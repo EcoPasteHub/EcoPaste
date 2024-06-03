@@ -12,11 +12,7 @@
 	"tauri": {
 		"macOSPrivateApi": true,
 		"allowlist": {
-			"all": true,
-			"shell": {
-				"all": false,
-				"open": true
-			}
+			"all": true
 		},
 		"windows": [
 			{
@@ -45,7 +41,16 @@
 				"icons/128x128@2x.png",
 				"icons/icon.icns",
 				"icons/icon.ico"
-			]
+			],
+			"windows": {
+				"digestAlgorithm": "sha256",
+				"wix": {
+					"language": "zh-CN"
+				},
+				"nsis": {
+					"languages": ["SimpChinese"]
+				}
+			}
 		}
 	}
 }
