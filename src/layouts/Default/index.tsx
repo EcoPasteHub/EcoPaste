@@ -39,7 +39,7 @@ const DefaultLayout = () => {
 					<div>主题</div>
 				</Flex>
 
-				<div className="h-full">
+				<div className="h-full flex-1 overflow-auto p-16">
 					<Outlet />
 				</div>
 			</Flex>
