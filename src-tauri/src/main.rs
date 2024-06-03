@@ -1,7 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use tauri::{generate_context, generate_handler, Builder, Manager, WindowEvent};
+use tauri::{generate_context, generate_handler, ActivationPolicy, Builder, Manager, WindowEvent};
 use tauri_plugin_theme::ThemePlugin;
 mod tray;
 mod window;
@@ -20,6 +20,10 @@ fn main() {
                 let window = _app.get_window(MAIN_WINDOW_LABEL).unwrap();
                 window.open_devtools();
             }
+
+            // 隐藏 mac 下的任务栏图标：https://github.com/tauri-apps/tauri/issues/4852#issuecomment-1312716378
+            #[cfg(target_os = "macos")]
+            _app.set_activation_policy(ActivationPolicy::Accessory);
 
             Ok(())
         })
