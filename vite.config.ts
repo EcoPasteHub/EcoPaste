@@ -9,8 +9,9 @@ export default defineConfig(async () => ({
 		react(),
 		UnoCSS(),
 		AutoImport({
-			imports: ["react", "ahooks"],
+			imports: ["react", "ahooks", "react-router-dom"],
 			dts: "src/types/auto-imports.d.ts",
+			dirs: ["src/router"],
 		}),
 	],
 	resolve: {

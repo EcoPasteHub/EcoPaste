@@ -17,9 +17,12 @@
 		"@tauri-apps/api": "^1",
 		"@unocss/reset": "^0.60.3",
 		"ahooks": "^3.8.0",
+		"antd": "^5.17.4",
+		"clsx": "^2.1.1",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
-		"tauri-plugin-clipboard-api": "^0.6.10"
+		"react-router-dom": "^6.23.1",
+		"tauri-plugin-clipboard-api": "^1.0.1"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.7.3",

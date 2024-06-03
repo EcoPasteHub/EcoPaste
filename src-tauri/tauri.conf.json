@@ -22,9 +22,14 @@
 			{
 				"label": "main",
 				"title": "EcoCopy",
-				"width": 800,
-				"height": 600,
-				"transparent": true
+				"resizable": false,
+				"minWidth": 800,
+				"minHeight": 600,
+				"center": true,
+				"skipTaskbar": true,
+				"hiddenTitle": true,
+				"maximizable": false,
+				"titleBarStyle": "Overlay"
 			}
 		],
 		"security": {
