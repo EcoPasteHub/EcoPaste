@@ -1070,6 +1070,7 @@ dependencies = [
  "tauri",
  "tauri-build",
  "tauri-plugin-clipboard",
+ "tauri-plugin-single-instance",
  "tauri-plugin-theme",
  "window-vibrancy",
 ]
@@ -4492,6 +4493,20 @@ dependencies = [
  "tauri",
  "tempfile",
  "thiserror",
+]
+
+[[package]]
+name = "tauri-plugin-single-instance"
+version = "0.0.0"
+source = "git+https://github.com/tauri-apps/plugins-workspace?branch=v1#5e3900e682e13f3759b439116ae2f77a6d389ca2"
+dependencies = [
+ "log",
+ "serde",
+ "serde_json",
+ "tauri",
+ "thiserror",
+ "windows-sys 0.52.0",
+ "zbus 3.15.2",
 ]
 
 [[package]]
