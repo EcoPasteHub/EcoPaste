@@ -1,6 +1,7 @@
 use tauri::{command, utils::config::WindowConfig, AppHandle, Manager, Window, WindowBuilder};
 use window_vibrancy::*;
 
+// 主窗口的名称
 pub static MAIN_WINDOW_LABEL: &str = "main";
 
 // 创建窗口

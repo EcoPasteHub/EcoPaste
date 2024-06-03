@@ -1,7 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use tauri::{generate_context, generate_handler, Builder, Manager};
+use tauri::{generate_context, generate_handler, Builder, Manager, WindowEvent};
 use tauri_plugin_theme::ThemePlugin;
 mod tray;
 mod window;
@@ -43,6 +43,14 @@ fn main() {
             quit_app,
             frosted_window
         ])
+        // 让 app 保持在后台运行：https://tauri.app/v1/guides/features/system-tray/#preventing-the-app-from-closing
+        .on_window_event(|event| match event.event() {
+            WindowEvent::CloseRequested { api, .. } => {
+                event.window().hide().unwrap();
+                api.prevent_close();
+            }
+            _ => {}
+        })
         .run(ctx)
         .expect("error while running tauri application");
 }
