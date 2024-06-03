@@ -8,7 +8,8 @@
 		"rules": {
 			"recommended": true,
 			"suspicious": {
-				"noConsoleLog": "error"
+				"noConsoleLog": "error",
+				"noExplicitAny": "off"
 			},
 			"correctness": {
 				"noUnusedVariables": "error",

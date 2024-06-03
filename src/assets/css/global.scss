@@ -1,0 +1,16 @@
+html {
+	--color-bg-1: var(--ant-color-bg-container);
+	--color-bg-2: var(--ant-color-bg-layout);
+	--color-text-1: var(--ant-color-text);
+	--color-text-2: var(--ant-color-text-secondary);
+	--color-text-3: var(--ant-color-text-tertiary);
+	--color-border-1: var(--ant-color-border);
+	--color-border-2: var(--ant-color-border-secondary);
+
+	--uno: bg-1 transition text-14 antialiased color-1;
+}
+
+img {
+	--uno: select-none;
+	-webkit-user-drag: none;
+}

@@ -15,5 +15,19 @@ export default defineConfig({
 			baseFontSize: 4,
 		}),
 	],
-	transformers: [transformerVariantGroup(), transformerDirectives()],
+	transformers: [
+		transformerVariantGroup(),
+		transformerDirectives({
+			applyVariable: ["--uno"],
+		}),
+	],
+	shortcuts: [
+		[/^bg-(\d+)$/, ([, d]) => `bg-[var(--color-bg-${d})]`],
+		[/^color-(\d+)$/, ([, d]) => `text-[var(--color-text-${d})]`],
+	],
+	theme: {
+		colors: {
+			primary: "var(--ant-blue-6)",
+		},
+	},
 });
