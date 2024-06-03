@@ -51,6 +51,11 @@
 					"languages": ["SimpChinese"]
 				}
 			}
+		},
+		"systemTray": {
+			"iconPath": "assets/logo.png",
+			"iconAsTemplate": true,
+			"menuOnLeftClick": false
 		}
 	}
 }

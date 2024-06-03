@@ -11,7 +11,7 @@ edition = "2021"
 tauri-build = { version = "1", features = [] }
 
 [dependencies]
-tauri = { version = "1", features = [ "macos-private-api", "api-all"] }
+tauri = { version = "1", features = [ "system-tray", "macos-private-api", "api-all"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tauri-plugin-clipboard = "0.6.10"
