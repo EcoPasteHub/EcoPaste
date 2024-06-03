@@ -12,13 +12,13 @@ const DefaultLayout = () => {
 					vertical
 					align="center"
 					justify="space-between"
-					className="h-full bg-2 pt-48 pb-32 transition w-68 color-2"
+					className="color-2 h-full w-68 bg-2 pt-48 pb-32 transition"
 				>
 					<Flex vertical gap="large">
 						{routes[0].children?.map((item) => {
 							const { path, meta } = item;
 
-							const { title } = meta!;
+							const { title } = meta ?? {};
 
 							return (
 								<Link

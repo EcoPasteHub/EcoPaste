@@ -15,8 +15,8 @@
 				"noUnusedVariables": "error",
 				"noUnusedImports": "error"
 			},
-			"style": {
-				"noNonNullAssertion": "off"
+			"nursery": {
+				"useSortedClasses": "error"
 			}
 		}
 	}
