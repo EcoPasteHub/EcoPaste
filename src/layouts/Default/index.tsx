@@ -12,13 +12,13 @@ const DefaultLayout = () => {
 					vertical
 					align="center"
 					justify="space-between"
-					className="color-2 h-full w-68 bg-2 pt-48 pb-32 transition"
+					className="color-2 h-full w-100 bg-2 pt-48 pb-32 transition"
 				>
 					<Flex vertical gap="large">
 						{routes[0].children?.map((item) => {
 							const { path, meta } = item;
 
-							const { title } = meta ?? {};
+							const { title, icon } = meta ?? {};
 
 							return (
 								<Link
@@ -29,7 +29,7 @@ const DefaultLayout = () => {
 									})}
 								>
 									<Flex vertical align="center" gap={4}>
-										{/* <Icon name={icon} size={path === "/keyboard" ? 24 : 26} /> */}
+										<i className={clsx(icon, "text-22")} />
 										<span>{title}</span>
 									</Flex>
 								</Link>

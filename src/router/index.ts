@@ -18,6 +18,7 @@ export const routes: Route[] = [
 				Component: Clipboard,
 				meta: {
 					title: "剪切板",
+					icon: "i-lucide-clipboard-list",
 				},
 			},
 			{
@@ -25,6 +26,7 @@ export const routes: Route[] = [
 				Component: QuickReply,
 				meta: {
 					title: "快捷回复",
+					icon: "i-gravity-ui-arrow-shape-turn-up-left",
 				},
 			},
 			{
@@ -32,6 +34,7 @@ export const routes: Route[] = [
 				Component: Settings,
 				meta: {
 					title: "通用设置",
+					icon: "i-lucide-settings",
 				},
 			},
 			{
@@ -39,6 +42,7 @@ export const routes: Route[] = [
 				Component: About,
 				meta: {
 					title: "关于",
+					icon: "i-lucide-info",
 				},
 			},
 		],
