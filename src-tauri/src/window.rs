@@ -3,6 +3,7 @@ use window_vibrancy::*;
 
 pub static MAIN_WINDOW_LABEL: &str = "main";
 
+// 创建窗口
 #[command]
 pub fn create_window(app_handle: AppHandle, label: String, mut options: WindowConfig) {
     let window = app_handle.get_window(&label);
@@ -21,6 +22,7 @@ pub fn create_window(app_handle: AppHandle, label: String, mut options: WindowCo
     .unwrap();
 }
 
+// 显示窗口
 #[command]
 pub fn show_window(window: Window) {
     window.show().unwrap();
@@ -28,18 +30,20 @@ pub fn show_window(window: Window) {
     window.set_focus().unwrap();
 }
 
+// 隐藏窗口
 #[command]
 pub fn hide_window(window: Window) {
     window.hide().unwrap();
 }
 
+// 退出 app
 #[command]
 pub fn quit_app() {
     std::process::exit(0)
 }
 
+// 磨砂窗口：https://github.com/tauri-apps/window-vibrancy
 #[command]
-// https://github.com/tauri-apps/window-vibrancy
 pub fn frosted_window(window: Window) {
     #[cfg(target_os = "macos")]
     apply_vibrancy(&window, NSVisualEffectMaterial::HudWindow, None, None)
