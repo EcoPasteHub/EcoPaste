@@ -8,22 +8,23 @@ pub static MAIN_WINDOW_LABEL: &str = "main";
 #[command]
 pub fn create_window(app_handle: AppHandle, label: String, mut options: WindowConfig) {
     let window = app_handle.get_window(&label);
+    let clone_window = window.clone().unwrap();
 
     if window.is_some() {
-        show_window(window.clone().unwrap());
-    } else {
-        options.label = label.clone();
-
-        Some(
-            WindowBuilder::from_config(&app_handle, options.clone())
-                .build()
-                .expect("failed to create window"),
-        )
-        .unwrap();
+        return show_window(clone_window);
     }
 
+    options.label = label.clone();
+
+    Some(
+        WindowBuilder::from_config(&app_handle, options.clone())
+            .build()
+            .expect("failed to create window"),
+    )
+    .unwrap();
+
     if options.transparent {
-        frosted_window(window.expect("window does not exist"));
+        frosted_window(clone_window);
     }
 }
 

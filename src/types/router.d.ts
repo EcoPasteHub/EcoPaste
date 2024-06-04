@@ -1,7 +1,7 @@
 import type { WindowOptions } from "@tauri-apps/api/window";
 import type { ComponentType } from "react";
 
-export type Path = "/" | "/quick-reply" | "/settings" | "/about";
+export type Path = "/" | "/settings" | "/about";
 
 export interface Route {
 	path: Path;

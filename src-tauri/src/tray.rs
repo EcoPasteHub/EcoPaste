@@ -37,7 +37,7 @@ pub fn handler(app: &AppHandle, event: SystemTrayEvent) {
                 println!("检查更新")
             }
             "github" => {
-                println!("打开 Github 地址")
+                window.emit("github", true).unwrap();
             }
             "quit" => quit_app(),
             _ => {}
