@@ -1,3 +1,4 @@
+import Icon from "@/components/Icon";
 import { ConfigProvider, Flex, theme } from "antd";
 import zhCN from "antd/locale/zh_CN";
 import clsx from "clsx";
@@ -39,21 +40,18 @@ const DefaultLayout = () => {
 									})}
 								>
 									<Flex vertical align="center" gap={4}>
-										<i className={clsx(icon, "text-22")} />
+										<Icon name={icon} size={22} />
 										<span>{title}</span>
 									</Flex>
 								</Link>
 							);
 						})}
 					</Flex>
-					<i
-						className={clsx(
-							"cursor-pointer text-24 transition hover:text-primary",
-							[isDark ? "i-iconamoon-mode-light" : "i-iconamoon-mode-dark"],
-						)}
-						onMouseDown={() => {
-							store.theme = isDark ? "light" : "dark";
-						}}
+					<Icon
+						hoverable
+						size={24}
+						name={isDark ? "i-iconamoon-mode-light" : "i-iconamoon-mode-dark"}
+						onMouseDown={() => toggleTheme(isDark ? "light" : "dark")}
 					/>
 				</Flex>
 

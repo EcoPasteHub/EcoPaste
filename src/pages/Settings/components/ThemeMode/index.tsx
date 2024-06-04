@@ -1,5 +1,4 @@
 import type { Theme } from "@/types/store";
-import { invoke } from "@tauri-apps/api";
 import { appWindow } from "@tauri-apps/api/window";
 import { Flex, Segmented } from "antd";
 import { useSnapshot } from "valtio";
@@ -38,17 +37,7 @@ const ThemeMode = () => {
 	return (
 		<Flex align="center">
 			<span>主题模式：</span>
-			<Segmented
-				value={theme}
-				options={options}
-				onChange={(value) => {
-					store.theme = value;
-
-					invoke("plugin:theme|set_theme", {
-						theme: value,
-					});
-				}}
-			/>
+			<Segmented value={theme} options={options} onChange={toggleTheme} />
 		</Flex>
 	);
 };
