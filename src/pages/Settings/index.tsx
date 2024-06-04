@@ -1,3 +1,4 @@
+import { invoke } from "@tauri-apps/api";
 import { Card, Flex, Segmented, Switch } from "antd";
 
 const Settings = () => {
@@ -46,6 +47,11 @@ const Settings = () => {
 									value: "dark",
 								},
 							]}
+							onChange={(value) => {
+								invoke("plugin:theme|set_theme", {
+									theme: value,
+								});
+							}}
 						/>
 					</Flex>
 				</Flex>

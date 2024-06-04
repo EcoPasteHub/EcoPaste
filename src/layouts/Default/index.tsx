@@ -9,6 +9,7 @@ const DefaultLayout = () => {
 		<ConfigProvider locale={zhCN}>
 			<Flex className="h-screen">
 				<Flex
+					data-tauri-drag-region
 					vertical
 					align="center"
 					justify="space-between"
@@ -16,9 +17,9 @@ const DefaultLayout = () => {
 				>
 					<Flex vertical gap="large">
 						{routes[0].children?.map((item) => {
-							const { path, meta } = item;
+							const { path, meta = {} } = item;
 
-							const { title, icon } = meta ?? {};
+							const { title, icon } = meta;
 
 							return (
 								<Link
@@ -39,7 +40,10 @@ const DefaultLayout = () => {
 					<div>主题</div>
 				</Flex>
 
-				<div className="h-full flex-1 overflow-auto p-16">
+				<div
+					data-tauri-drag-region
+					className="h-full flex-1 overflow-auto p-16"
+				>
 					<Outlet />
 				</div>
 			</Flex>
