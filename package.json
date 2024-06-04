@@ -7,7 +7,7 @@
 		"dev": "run-s build:icon start:app",
 		"build": "run-s build:*",
 		"start:app": "tauri dev",
-		"build:icon": "tauri icon src-tauri/assets/logo.png",
+		"build:icon": "tauri icon src/assets/img/logo.png",
 		"build:app": "tauri build",
 		"lint": "biome check --apply src",
 		"preinstall": "npx only-allow pnpm",
@@ -23,7 +23,9 @@
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"react-router-dom": "^6.23.1",
-		"tauri-plugin-clipboard-api": "^1.0.1"
+		"tauri-plugin-clipboard-api": "^1.0.1",
+		"valtio": "^1.13.2",
+		"valtio-persist": "^1.0.2"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.7.3",

@@ -11,7 +11,7 @@ export default defineConfig(async () => ({
 		AutoImport({
 			imports: ["react", "ahooks", "react-router-dom"],
 			dts: "src/types/auto-imports.d.ts",
-			dirs: ["src/router", "src/utils"],
+			dirs: ["src/router", "src/utils", "src/stores"],
 		}),
 	],
 	resolve: {

@@ -53,7 +53,7 @@
 			}
 		},
 		"systemTray": {
-			"iconPath": "assets/logo.png",
+			"iconPath": "icons/icon.png",
 			"iconAsTemplate": true,
 			"menuOnLeftClick": false
 		}
