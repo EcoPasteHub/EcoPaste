@@ -10,17 +10,21 @@ pub fn create_window(app_handle: AppHandle, label: String, mut options: WindowCo
     let window = app_handle.get_window(&label);
 
     if window.is_some() {
-        return show_window(window.clone().unwrap());
+        show_window(window.clone().unwrap());
+    } else {
+        options.label = label.clone();
+
+        Some(
+            WindowBuilder::from_config(&app_handle, options.clone())
+                .build()
+                .expect("failed to create window"),
+        )
+        .unwrap();
     }
 
-    options.label = label.clone();
-
-    Some(
-        WindowBuilder::from_config(&app_handle, options)
-            .build()
-            .expect("failed to create window"),
-    )
-    .unwrap();
+    if options.transparent {
+        frosted_window(window.expect("window does not exist"));
+    }
 }
 
 // 显示窗口
