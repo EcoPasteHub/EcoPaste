@@ -1,8 +1,13 @@
 import type { Theme } from "@/types/store";
 import { invoke } from "@tauri-apps/api";
 import { appWindow } from "@tauri-apps/api/window";
-import { Segmented } from "antd";
+import { Flex, Segmented } from "antd";
 import { useSnapshot } from "valtio";
+
+interface Option {
+	label: string;
+	value: Theme;
+}
 
 const ThemeMode = () => {
 	const { theme } = useSnapshot(store);
@@ -15,31 +20,36 @@ const ThemeMode = () => {
 		});
 	});
 
-	return (
-		<Segmented
-			value={theme}
-			options={[
-				{
-					label: "自动",
-					value: "auto",
-				},
-				{
-					label: "亮色",
-					value: "light",
-				},
-				{
-					label: "暗色",
-					value: "dark",
-				},
-			]}
-			onChange={(value: Theme) => {
-				store.theme = value;
+	const options: Option[] = [
+		{
+			label: "自动",
+			value: "auto",
+		},
+		{
+			label: "亮色",
+			value: "light",
+		},
+		{
+			label: "暗色",
+			value: "dark",
+		},
+	];
 
-				invoke("plugin:theme|set_theme", {
-					theme: value,
-				});
-			}}
-		/>
+	return (
+		<Flex align="center">
+			<span>主题模式：</span>
+			<Segmented
+				value={theme}
+				options={options}
+				onChange={(value) => {
+					store.theme = value;
+
+					invoke("plugin:theme|set_theme", {
+						theme: value,
+					});
+				}}
+			/>
+		</Flex>
 	);
 };
 
