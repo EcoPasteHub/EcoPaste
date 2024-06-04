@@ -10,6 +10,7 @@ edition = "2021"
 [build-dependencies]
 tauri-build = { version = "1", features = [] }
 
+
 [dependencies]
 tauri = { version = "1", features = [ "system-tray", "macos-private-api", "api-all"] }
 serde = { version = "1", features = ["derive"] }
@@ -18,6 +19,7 @@ tauri-plugin-clipboard = "0.6.10"
 window-vibrancy = "0.4.3"
 tauri-plugin-theme = "0.2.0"
 tauri-plugin-single-instance = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
+tauri-plugin-autostart = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!

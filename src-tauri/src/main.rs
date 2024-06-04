@@ -5,6 +5,7 @@ use tauri::{generate_context, generate_handler, ActivationPolicy, Builder, Manag
 use tauri_plugin_theme::ThemePlugin;
 mod tray;
 mod window;
+use tauri_plugin_autostart::MacosLauncher;
 use window::{
     create_window, frosted_window, hide_window, quit_app, show_window, MAIN_WINDOW_LABEL,
 };
@@ -37,6 +38,11 @@ fn main() {
 
             show_window(window);
         }))
+        // app 自启动：https://github.com/tauri-apps/tauri-plugin-autostart
+        .plugin(tauri_plugin_autostart::init(
+            MacosLauncher::LaunchAgent,
+            Some(vec!["--flag1", "--flag2"]),
+        ))
         // 系统托盘：https://tauri.app/v1/guides/features/system-tray
         .system_tray(tray::menu())
         .on_system_tray_event(tray::handler)

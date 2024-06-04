@@ -1,5 +1,6 @@
 import { appWindow } from "@tauri-apps/api/window";
-import { Card, Flex, Segmented, Switch } from "antd";
+import { Card, Flex, Segmented } from "antd";
+import Autostart from "./components/Autostart";
 import ThemeMode from "./components/ThemeMode";
 
 const Settings = () => {
@@ -17,7 +18,7 @@ const Settings = () => {
 				<Flex vertical gap="large">
 					<Flex align="center">
 						<span>开机自启：</span>
-						<Switch />
+						<Autostart />
 					</Flex>
 					{/* <Flex align="center">
 						<span>唤醒窗口：</span>

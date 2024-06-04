@@ -5,7 +5,7 @@ import proxyWithPersist, { PersistStrategy } from "valtio-persist";
 import { subscribeKey } from "valtio/utils";
 
 export const store = proxyWithPersist<GlobalStore>({
-	name: "EcoCopy",
+	name: "global",
 	initialState: {
 		theme: "auto",
 		isDark: false,

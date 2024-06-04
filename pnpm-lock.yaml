@@ -32,6 +32,9 @@ dependencies:
   react-router-dom:
     specifier: ^6.23.1
     version: 6.23.1(react-dom@18.3.1)(react@18.3.1)
+  tauri-plugin-autostart-api:
+    specifier: github:tauri-apps/tauri-plugin-autostart#v1
+    version: github.com/tauri-apps/tauri-plugin-autostart/a8455f120ad801d828f91528f1b4ca47d00c8ba3
   tauri-plugin-clipboard-api:
     specifier: ^1.0.1
     version: 1.0.1
@@ -1328,6 +1331,11 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
+
+  /@tauri-apps/api@1.5.3:
+    resolution: {integrity: sha512-zxnDjHHKjOsrIzZm6nO5Xapb/BxqUq1tc7cGkFXsFkGTsSWgCPH1D8mm0XS9weJY2OaR73I3k3S+b7eSzJDfqA==}
+    engines: {node: '>= 14.6.0', npm: '>= 6.6.0', yarn: '>= 1.19.1'}
+    dev: false
 
   /@tauri-apps/api@1.5.6:
     resolution: {integrity: sha512-LH5ToovAHnDVe5Qa9f/+jW28I6DeMhos8bNDtBOmmnaDpPmJmYLyHdeDblAWWWYc7KKRDg9/66vMuKyq0WIeFA==}
@@ -4911,4 +4919,12 @@ packages:
 
   /zod@3.23.8:
     resolution: {integrity: sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==}
+    dev: false
+
+  github.com/tauri-apps/tauri-plugin-autostart/a8455f120ad801d828f91528f1b4ca47d00c8ba3:
+    resolution: {tarball: https://codeload.github.com/tauri-apps/tauri-plugin-autostart/tar.gz/a8455f120ad801d828f91528f1b4ca47d00c8ba3}
+    name: tauri-plugin-autostart-api
+    version: 0.0.0
+    dependencies:
+      '@tauri-apps/api': 1.5.3
     dev: false
