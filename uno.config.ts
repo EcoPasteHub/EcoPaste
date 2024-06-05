@@ -21,9 +21,12 @@ export default defineConfig({
 			applyVariable: ["--uno"],
 		}),
 	],
+	rules: [["outline-none", { outline: "none" }]],
 	shortcuts: [
 		[/^bg-(\d+)$/, ([, d]) => `bg-[var(--color-bg-${d})]`],
 		[/^color-(\d+)$/, ([, d]) => `text-[var(--color-text-${d})]`],
+		[/^b-color-(\d+)$/, ([, d]) => `b-[var(--color-border-${d})]`],
+		[/^(.*)-primary-(\d+)$/, ([, s, d]) => `${s}-[var(--ant-blue-${d})]`],
 	],
 	theme: {
 		colors: {

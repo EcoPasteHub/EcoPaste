@@ -25,7 +25,7 @@ export const routes: Route[] = [
 				Component: Settings,
 				meta: {
 					title: "通用设置",
-					icon: "i-lucide-settings",
+					icon: "i-lucide-bolt",
 				},
 			},
 			{

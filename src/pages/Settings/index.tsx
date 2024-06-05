@@ -1,3 +1,4 @@
+import ShortcutKey from "@/layouts/ShortcutKey";
 import type { TabTrigger } from "@/types/store";
 import { Card, Flex, Segmented } from "antd";
 import { useSnapshot } from "valtio";
@@ -28,9 +29,12 @@ const Settings = () => {
 			<Card title="通用设置">
 				<Flex vertical gap="large">
 					<AutoStart />
-					{/* <Flex align="center">
+
+					<Flex align="center">
 						<span>唤醒窗口：</span>
-					</Flex> */}
+						<ShortcutKey />
+					</Flex>
+
 					<Flex align="center">
 						<span>切换分组：</span>
 						<Segmented

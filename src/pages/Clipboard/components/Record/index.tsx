@@ -18,10 +18,10 @@ const Record = () => {
 
 	return (
 		<Card
-			title="剪切板历史记录"
+			title="历史记录"
 			extra={
 				<Popconfirm placement="bottomRight" title="确定要清空历史记录吗？">
-					<Button danger type="primary">
+					<Button danger ghost type="primary">
 						清空
 					</Button>
 				</Popconfirm>

@@ -57,7 +57,7 @@ const DefaultLayout = () => {
 
 				<div
 					data-tauri-drag-region
-					className="h-full flex-1 overflow-auto p-16"
+					className="h-full flex-1 overflow-auto bg-1 p-16 transition"
 				>
 					<Outlet />
 				</div>

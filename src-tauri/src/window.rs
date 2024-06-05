@@ -8,10 +8,9 @@ pub static MAIN_WINDOW_LABEL: &str = "main";
 #[command]
 pub fn create_window(app_handle: AppHandle, label: String, mut options: WindowConfig) {
     let window = app_handle.get_window(&label);
-    let clone_window = window.clone().unwrap();
 
     if window.is_some() {
-        return show_window(clone_window);
+        return show_window(window.clone().unwrap());
     }
 
     options.label = label.clone();
@@ -22,10 +21,6 @@ pub fn create_window(app_handle: AppHandle, label: String, mut options: WindowCo
             .expect("failed to create window"),
     )
     .unwrap();
-
-    if options.transparent {
-        frosted_window(clone_window);
-    }
 }
 
 // 显示窗口

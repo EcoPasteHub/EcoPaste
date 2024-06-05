@@ -19,8 +19,6 @@
 				"label": "main",
 				"title": "EcoCopy",
 				"resizable": false,
-				"minWidth": 800,
-				"minHeight": 600,
 				"center": true,
 				"skipTaskbar": true,
 				"hiddenTitle": true,

@@ -30,6 +30,11 @@ export const showWindow = () => invoke("show_window");
 export const hideWindow = () => invoke("hide_window");
 
 /**
+ * 磨砂窗口
+ */
+export const frostedWindow = () => invoke("frosted_window");
+
+/**
  * 退出 app
  */
 export const quitApp = () => invoke("quit_app");
