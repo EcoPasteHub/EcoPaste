@@ -1,4 +1,4 @@
-import ShortcutKey from "@/layouts/ShortcutKey";
+import ShortcutKey from "@/components/ShortcutKey";
 import { Card, Flex, Switch } from "antd";
 import Record from "./components/Record";
 

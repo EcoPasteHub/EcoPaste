@@ -26,12 +26,9 @@ export const store = proxyWithPersist<GlobalStore>({
 subscribeKey(store._persist, "loaded", async (loaded) => {
 	if (!loaded) return;
 
-	const name = await getName();
-	const version = await getVersion();
-
 	store.appInfo = {
-		name,
-		version,
+		name: await getName(),
+		version: await getVersion(),
 	};
 });
 

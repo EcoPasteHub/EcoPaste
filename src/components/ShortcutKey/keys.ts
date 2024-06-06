@@ -12,12 +12,12 @@ export const modifierKeys: Key[] = [
 		symbol: "⇧",
 	},
 	{
-		key: "Alt",
-		symbol: "⌥",
-	},
-	{
 		key: "Control",
 		symbol: "⌃",
+	},
+	{
+		key: "Alt",
+		symbol: "⌥",
 	},
 	{
 		key: "Command",
@@ -162,7 +162,7 @@ export const normalKeys: Key[] = [
 		symbol: "]",
 	},
 	{
-		key: "BackSlash",
+		key: "Backslash",
 		symbol: "\\",
 	},
 	// 第四排

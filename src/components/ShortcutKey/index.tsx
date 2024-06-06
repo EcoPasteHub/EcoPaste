@@ -1,4 +1,3 @@
-import {} from "@tauri-apps/api/globalShortcut";
 import { Flex } from "antd";
 import clsx from "clsx";
 import { find, intersectionWith, isEqual, remove, some } from "lodash-es";
@@ -7,7 +6,7 @@ import { type Key, keys, modifierKeys, normalKeys } from "./keys";
 
 interface ShortcutKeyProps {
 	defaultValue?: Key[];
-	onChange?: (value: Key[]) => void;
+	onChange?: (value: Key[], oldValue: Key[]) => void;
 }
 
 interface State {
@@ -20,7 +19,7 @@ const ShortcutKey: FC<ShortcutKeyProps> = (props) => {
 	const containerRef = useRef<HTMLElement>(null);
 
 	const state = useReactive<State>({
-		value: [],
+		value: defaultValue,
 	});
 
 	const handleFocus = () => {
@@ -28,11 +27,11 @@ const ShortcutKey: FC<ShortcutKeyProps> = (props) => {
 	};
 
 	const handleBlur = () => {
-		if (!isCombinationKey()) {
+		if (!registrable()) {
 			state.value = defaultValue;
 		}
 
-		onChange?.(state.value);
+		onChange?.(state.value, defaultValue);
 	};
 
 	const handleKeyDown = (event: KeyboardEvent) => {
@@ -49,7 +48,7 @@ const ShortcutKey: FC<ShortcutKeyProps> = (props) => {
 
 		state.value.push(item);
 
-		if (isCombinationKey()) {
+		if (registrable()) {
 			containerRef.current?.blur();
 		}
 	};
@@ -78,9 +77,7 @@ const ShortcutKey: FC<ShortcutKeyProps> = (props) => {
 		return intersectionWith(state.value, normalKeys, isEqual)[0];
 	};
 
-	const isCombinationKey = () => {
-		return hasModifierKey() && getNormalKey();
-	};
+	const registrable = () => hasModifierKey() && getNormalKey();
 
 	return (
 		<Flex
@@ -110,7 +107,10 @@ const ShortcutKey: FC<ShortcutKeyProps> = (props) => {
 					);
 				})}
 			</Flex>
-			<span className="color-primary uppercase">{getNormalKey()?.symbol}</span>
+
+			{getNormalKey() && (
+				<span className="color-primary">{getNormalKey().symbol}</span>
+			)}
 		</Flex>
 	);
 };

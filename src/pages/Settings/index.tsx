@@ -1,4 +1,4 @@
-import ShortcutKey from "@/layouts/ShortcutKey";
+import ShortcutKey from "@/components/ShortcutKey";
 import type { TabTrigger } from "@/types/store";
 import { Card, Flex, Segmented } from "antd";
 import { useSnapshot } from "valtio";
@@ -32,7 +32,12 @@ const Settings = () => {
 
 					<Flex align="center">
 						<span>唤醒窗口：</span>
-						<ShortcutKey />
+						<ShortcutKey
+							defaultValue={store.wakeUpKey}
+							onChange={(value) => {
+								store.wakeUpKey = value;
+							}}
+						/>
 					</Flex>
 
 					<Flex align="center">

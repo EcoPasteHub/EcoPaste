@@ -1,3 +1,5 @@
+import type { Key } from "@/components/ShortcutKey/keys";
+
 export type Theme = "auto" | "light" | "dark";
 
 export type TabTrigger = "click" | "hover";
@@ -7,6 +9,7 @@ export interface GlobalStore {
 	isDark: boolean;
 	autoStart: boolean;
 	tabTrigger: TabTrigger;
+	wakeUpKey?: Key[];
 	appInfo?: {
 		name: string;
 		version: string;

@@ -1,5 +1,6 @@
 import type { Path } from "@/types/router";
 import { invoke } from "@tauri-apps/api";
+import { appWindow } from "@tauri-apps/api/window";
 import { find } from "lodash-es";
 
 /**
@@ -38,3 +39,16 @@ export const frostedWindow = () => invoke("frosted_window");
  * 退出 app
  */
 export const quitApp = () => invoke("quit_app");
+
+/**
+ * 切换窗口是否可见
+ */
+export const toggleWindowVisible = async () => {
+	const focused = await appWindow.isFocused();
+
+	if (focused) {
+		hideWindow();
+	} else {
+		showWindow();
+	}
+};

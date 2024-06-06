@@ -1,4 +1,6 @@
 import Icon from "@/components/Icon";
+import { listen } from "@tauri-apps/api/event";
+import { open } from "@tauri-apps/api/shell";
 import { ConfigProvider, Flex, theme } from "antd";
 import zhCN from "antd/locale/zh_CN";
 import clsx from "clsx";
@@ -9,6 +11,12 @@ const { defaultAlgorithm, darkAlgorithm } = theme;
 const DefaultLayout = () => {
 	const { pathname } = useLocation();
 	const { isDark } = useSnapshot(store);
+
+	useMount(() => {
+		listen("github", () => {
+			open("https://github.com/ayangweb/EcoCopy");
+		});
+	});
 
 	return (
 		<ConfigProvider
