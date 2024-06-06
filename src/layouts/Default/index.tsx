@@ -13,6 +13,8 @@ const DefaultLayout = () => {
 	const { isDark } = useSnapshot(store);
 
 	useMount(() => {
+		createWindow("/clipboard-history");
+
 		listen("github", () => {
 			open("https://github.com/ayangweb/EcoCopy");
 		});

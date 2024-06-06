@@ -5,8 +5,8 @@ export type Theme = "auto" | "light" | "dark";
 export type TabTrigger = "click" | "hover";
 
 export interface GlobalStore {
-	theme: Theme;
-	isDark: boolean;
+	theme?: Theme;
+	isDark?: boolean;
 	autoStart: boolean;
 	tabTrigger: TabTrigger;
 	wakeUpKey?: Key[];

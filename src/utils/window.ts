@@ -41,7 +41,7 @@ export const frostedWindow = () => invoke("frosted_window");
 export const quitApp = () => invoke("quit_app");
 
 /**
- * 切换窗口是否可见
+ * 切换窗口的显示和隐藏
  */
 export const toggleWindowVisible = async () => {
 	const focused = await appWindow.isFocused();

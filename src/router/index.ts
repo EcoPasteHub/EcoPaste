@@ -3,7 +3,8 @@ import { createBrowserRouter } from "react-router-dom";
 
 import DefaultLayout from "@/layouts/Default";
 import About from "@/pages/About";
-import Clipboard from "@/pages/Clipboard";
+import ClipboardHistory from "@/pages/Clipboard/History";
+import ClipboardSettings from "@/pages/Clipboard/Settings";
 import Settings from "@/pages/Settings";
 import type { Route } from "@/types/router";
 
@@ -14,7 +15,7 @@ export const routes: Route[] = [
 		children: [
 			{
 				path: "/",
-				Component: Clipboard,
+				Component: ClipboardSettings,
 				meta: {
 					title: "剪切板",
 					icon: "i-lucide-clipboard-list",
@@ -37,6 +38,22 @@ export const routes: Route[] = [
 				},
 			},
 		],
+	},
+	{
+		path: "/clipboard-history",
+		Component: ClipboardHistory,
+		meta: {
+			windowOptions: {
+				width: 360,
+				height: 600,
+				resizable: false,
+				maximizable: false,
+				decorations: false,
+				// visible: false,
+				transparent: true,
+				alwaysOnTop: true,
+			},
+		},
 	},
 ];
 

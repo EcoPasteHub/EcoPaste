@@ -7,8 +7,6 @@ import { subscribeKey } from "valtio/utils";
 export const store = proxyWithPersist<GlobalStore>({
 	name: "global",
 	initialState: {
-		theme: "auto",
-		isDark: false,
 		autoStart: false,
 		tabTrigger: "click",
 	},
@@ -30,9 +28,11 @@ subscribeKey(store._persist, "loaded", async (loaded) => {
 		name: await getName(),
 		version: await getVersion(),
 	};
+
+	store.theme ??= "auto";
 });
 
-subscribeKey(store, "theme", async (value) => {
+subscribeKey(store, "theme", async (value = "auto") => {
 	let theme: Theme = value;
 
 	if (theme === "auto") {
