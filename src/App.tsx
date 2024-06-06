@@ -2,6 +2,8 @@ import { RouterProvider } from "react-router-dom";
 
 const App = () => {
 	useMount(() => {
+		initDatabase();
+
 		generateColorVars();
 	});
 

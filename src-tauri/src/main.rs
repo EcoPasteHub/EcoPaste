@@ -43,6 +43,8 @@ fn main() {
             MacosLauncher::LaunchAgent,
             Some(vec!["--flag1", "--flag2"]),
         ))
+        // 数据库：https://github.com/tauri-apps/tauri-plugin-sql
+        .plugin(tauri_plugin_sql::Builder::default().build())
         // 系统托盘：https://tauri.app/v1/guides/features/system-tray
         .system_tray(tray::menu())
         .on_system_tray_event(tray::handler)

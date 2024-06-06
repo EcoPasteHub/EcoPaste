@@ -19,3 +19,10 @@ export const toggleTheme = async (theme: Theme) => {
 
 	invoke("plugin:theme|set_theme", { theme });
 };
+
+/**
+ * 是否为开发环境
+ */
+export const isDev = () => {
+	return import.meta.env.DEV;
+};

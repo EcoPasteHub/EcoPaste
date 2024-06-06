@@ -38,6 +38,9 @@ dependencies:
   tauri-plugin-clipboard-api:
     specifier: ^1.0.1
     version: 1.0.1
+  tauri-plugin-sql-api:
+    specifier: github:tauri-apps/tauri-plugin-sql#v1
+    version: github.com/tauri-apps/tauri-plugin-sql/6a4a14c36b1ad49c9f468351706d104a54e0540c
   valtio:
     specifier: ^1.13.2
     version: 1.13.2(@types/react@18.3.3)(react@18.3.1)
@@ -4924,4 +4927,12 @@ packages:
     version: 0.0.0
     dependencies:
       '@tauri-apps/api': 1.5.3
+    dev: false
+
+  github.com/tauri-apps/tauri-plugin-sql/6a4a14c36b1ad49c9f468351706d104a54e0540c:
+    resolution: {tarball: https://codeload.github.com/tauri-apps/tauri-plugin-sql/tar.gz/6a4a14c36b1ad49c9f468351706d104a54e0540c}
+    name: tauri-plugin-sql-api
+    version: 0.0.0
+    dependencies:
+      '@tauri-apps/api': 1.5.6
     dev: false

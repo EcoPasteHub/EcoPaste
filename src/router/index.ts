@@ -52,6 +52,7 @@ export const routes: Route[] = [
 				// visible: false,
 				transparent: true,
 				alwaysOnTop: true,
+				acceptFirstMouse: true,
 			},
 		},
 	},
