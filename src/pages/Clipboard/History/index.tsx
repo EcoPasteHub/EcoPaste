@@ -1,3 +1,4 @@
+import copyAudio from "@/assets/audio/copy.mp3";
 import type { HistoryItem, TablePayload } from "@/types/database";
 import { appWindow } from "@tauri-apps/api/window";
 import { isEqual } from "lodash-es";
@@ -21,6 +22,8 @@ interface State {
 const ClipboardHistory = () => {
 	const { wakeUpKey } = useSnapshot(clipboardStore);
 
+	const audioRef = useRef<HTMLAudioElement>(null);
+
 	const state = useReactive<State>({
 		historyList: [],
 	});
@@ -33,6 +36,10 @@ const ClipboardHistory = () => {
 		startListening();
 
 		onSomethingUpdate(async (updateTypes) => {
+			if (clipboardStore.enableAudio) {
+				audioRef.current?.play();
+			}
+
 			let payload: TablePayload = {};
 
 			if (updateTypes.files) {
@@ -85,6 +92,7 @@ const ClipboardHistory = () => {
 		>
 			{/* <Icon hoverable name="i-lucide:search" />
 			<Icon hoverable name="i-ri:pushpin-2-line" /> */}
+			<audio ref={audioRef} src={copyAudio} />
 
 			<FixedSizeList
 				width={344}

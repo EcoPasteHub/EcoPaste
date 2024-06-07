@@ -4,7 +4,7 @@ import { useSnapshot } from "valtio";
 import Record from "./components/Record";
 
 const Clipboard = () => {
-	const { wakeUpKey, enableSound } = useSnapshot(clipboardStore);
+	const { wakeUpKey, enableAudio } = useSnapshot(clipboardStore);
 
 	return (
 		<Flex vertical gap="middle">
@@ -23,9 +23,9 @@ const Clipboard = () => {
 					<Flex align="center">
 						启用音效：
 						<Switch
-							checked={enableSound}
+							checked={enableAudio}
 							onChange={(value) => {
-								clipboardStore.enableSound = value;
+								clipboardStore.enableAudio = value;
 							}}
 						/>
 					</Flex>

@@ -29,7 +29,8 @@
 				"noDangerouslySetInnerHtml": "off"
 			},
 			"a11y": {
-				"useAltText": "off"
+				"useAltText": "off",
+				"useMediaCaption": "off"
 			}
 		}
 	}

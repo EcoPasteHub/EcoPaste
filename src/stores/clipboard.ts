@@ -11,7 +11,3 @@ export const clipboardStore = proxyWithPersist<ClipboardStore>({
 	migrations: {},
 	getStorage,
 });
-
-// subscribe(clipboardStore, () => {
-// 	emit(LISTEN_KEY.CLIPBOARD_STORE_CHANGED, clipboardStore);
-// });

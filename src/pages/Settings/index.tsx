@@ -26,7 +26,7 @@ const Settings = () => {
 
 	return (
 		<Flex vertical gap="middle">
-			<Card title="通用设置">
+			<Card title="基础设置">
 				<Flex vertical gap="large">
 					<AutoStart />
 
