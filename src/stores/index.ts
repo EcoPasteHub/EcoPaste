@@ -9,6 +9,7 @@ export const store = proxyWithPersist<GlobalStore>({
 	initialState: {
 		autoStart: false,
 		tabTrigger: "click",
+		clipboard: {},
 	},
 	persistStrategies: PersistStrategy.MultiFile,
 	version: 0,

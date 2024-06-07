@@ -21,6 +21,12 @@
 					"fix": "safe",
 					"options": {}
 				}
+			},
+			"style": {
+				"noNonNullAssertion": "off"
+			},
+			"security": {
+				"noDangerouslySetInnerHtml": "off"
 			}
 		}
 	}

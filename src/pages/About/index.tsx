@@ -22,7 +22,7 @@ const About = () => {
 				<Flex align="center" gap={4}>
 					<span>v{appInfo?.version}</span>
 					<Tooltip title="检查更新">
-						<Icon hoverable name="i-iconamoon-restart" size={16} />
+						<Icon hoverable name="i-iconamoon:restart" size={16} />
 					</Tooltip>
 				</Flex>
 				<span>开源的跨平台剪切板工具，让您的工作更加高效便捷。</span>

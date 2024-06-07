@@ -18,7 +18,7 @@ export const routes: Route[] = [
 				Component: ClipboardSettings,
 				meta: {
 					title: "剪切板",
-					icon: "i-lucide-clipboard-list",
+					icon: "i-lucide:clipboard-list",
 				},
 			},
 			{
@@ -26,7 +26,7 @@ export const routes: Route[] = [
 				Component: Settings,
 				meta: {
 					title: "通用设置",
-					icon: "i-lucide-bolt",
+					icon: "i-lucide:bolt",
 				},
 			},
 			{
@@ -34,7 +34,7 @@ export const routes: Route[] = [
 				Component: About,
 				meta: {
 					title: "关于",
-					icon: "i-lucide-info",
+					icon: "i-lucide:info",
 				},
 			},
 		],
