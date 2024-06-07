@@ -3,10 +3,10 @@ import { disable, enable, isEnabled } from "tauri-plugin-autostart-api";
 import { useSnapshot } from "valtio";
 
 const AutoStart = () => {
-	const { autoStart } = useSnapshot(store);
+	const { autoStart } = useSnapshot(globalStore);
 
 	useMount(async () => {
-		store.autoStart = await isEnabled();
+		globalStore.autoStart = await isEnabled();
 	});
 
 	useUpdateEffect(() => {
@@ -23,7 +23,7 @@ const AutoStart = () => {
 			<Switch
 				checked={autoStart}
 				onChange={(value) => {
-					store.autoStart = value;
+					globalStore.autoStart = value;
 				}}
 			/>
 		</Flex>

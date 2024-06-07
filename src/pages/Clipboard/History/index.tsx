@@ -1,4 +1,5 @@
 import type { HistoryItem, TablePayload } from "@/types/database";
+import { appWindow } from "@tauri-apps/api/window";
 import { isEqual } from "lodash-es";
 import { FixedSizeList } from "react-window";
 import {
@@ -73,27 +74,37 @@ const ClipboardWindow = () => {
 	};
 
 	return (
-		<div data-tauri-drag-region className="h-screen rounded-8 p-8">
+		<div
+			className="h-screen rounded-8 p-8"
+			onMouseDown={() => appWindow.startDragging()}
+		>
 			{/* <Icon hoverable name="i-lucide:search" />
 			<Icon hoverable name="i-ri:pushpin-2-line" /> */}
 
 			<FixedSizeList
-				itemData={state.historyList}
+				width={344}
 				height={584}
+				itemData={state.historyList}
+				itemKey={(index, data) => data[index].id!}
 				itemCount={state.historyList.length}
 				itemSize={100}
-				width={344}
 			>
 				{(item) => {
 					const { index, style } = item;
-					const { id, type, content = "" } = item.data[index];
+					const { type, content = "", createTime } = item.data[index];
 
 					return (
-						<div key={id} style={style} className="not-last-of-type:pb-10">
-							<div className="h-full rounded-5 bg-primary-2">
+						<div style={style} className="not-last-of-type:pb-10">
+							<div
+								className="h-full rounded-5 bg-white shadow"
+								onMouseDown={(event) => {
+									event.stopPropagation();
+								}}
+							>
 								{type}
+								{createTime}
 								{type === "image" ? (
-									<img src={content} alt="aaa" className="h-60" />
+									<img src={content} className="h-60" />
 								) : (
 									<div dangerouslySetInnerHTML={{ __html: content }} />
 								)}

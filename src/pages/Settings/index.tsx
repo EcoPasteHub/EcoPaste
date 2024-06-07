@@ -11,7 +11,7 @@ interface Option {
 }
 
 const Settings = () => {
-	const { tabTrigger } = useSnapshot(store);
+	const { tabTrigger } = useSnapshot(globalStore);
 
 	const options: Option[] = [
 		{
@@ -33,9 +33,9 @@ const Settings = () => {
 					<Flex align="center">
 						<span>唤醒窗口：</span>
 						<ShortcutKey
-							defaultValue={store.wakeUpKey}
+							defaultValue={globalStore.wakeUpKey}
 							onChange={(value) => {
-								store.wakeUpKey = value;
+								globalStore.wakeUpKey = value;
 							}}
 						/>
 					</Flex>
@@ -46,7 +46,7 @@ const Settings = () => {
 							value={tabTrigger}
 							options={options}
 							onChange={(value) => {
-								store.tabTrigger = value;
+								globalStore.tabTrigger = value;
 							}}
 						/>
 					</Flex>

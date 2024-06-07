@@ -7,10 +7,10 @@ import { useSnapshot } from "valtio";
 
 const DefaultLayout = () => {
 	const { pathname } = useLocation();
-	const { isDark } = useSnapshot(store);
+	const { isDark } = useSnapshot(globalStore);
 
 	useMount(() => {
-		createWindow("/clipboard-history");
+		// createWindow("/clipboard-history");
 
 		listen("github", () => {
 			open("https://github.com/ayangweb/EcoCopy");

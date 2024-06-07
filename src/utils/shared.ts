@@ -15,7 +15,7 @@ export const toggleTheme = async (theme: Theme) => {
 		});
 	}
 
-	store.theme = theme;
+	globalStore.theme = theme;
 
 	invoke("plugin:theme|set_theme", { theme });
 };

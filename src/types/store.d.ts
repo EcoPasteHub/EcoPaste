@@ -14,9 +14,10 @@ export interface GlobalStore {
 		name: string;
 		version: string;
 	};
-	clipboard: {
-		audio?: boolean;
-		wakeUpKey?: Key[];
-		record?: string;
-	};
+}
+
+export interface ClipboardStore {
+	wakeUpKey?: Key[];
+	enableSound?: boolean;
+	capacity?: string;
 }

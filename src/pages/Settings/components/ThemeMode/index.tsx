@@ -9,13 +9,13 @@ interface Option {
 }
 
 const ThemeMode = () => {
-	const { theme } = useSnapshot(store);
+	const { theme } = useSnapshot(globalStore);
 
 	useMount(() => {
 		appWindow.onThemeChanged(({ payload }) => {
-			if (store.theme !== "auto") return;
+			if (globalStore.theme !== "auto") return;
 
-			store.isDark = payload === "dark";
+			globalStore.isDark = payload === "dark";
 		});
 	});
 

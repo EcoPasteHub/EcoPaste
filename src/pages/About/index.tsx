@@ -5,7 +5,7 @@ import { Button, Flex, Tooltip } from "antd";
 import { useSnapshot } from "valtio";
 
 const About = () => {
-	const { appInfo } = useSnapshot(store);
+	const { appInfo } = useSnapshot(globalStore);
 
 	return (
 		<Flex

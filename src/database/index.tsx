@@ -1,7 +1,7 @@
 import type { TableName, TablePayload } from "@/types/database";
 import { getName } from "@tauri-apps/api/app";
 import { appConfigDir } from "@tauri-apps/api/path";
-import { isBoolean, map, snakeCase } from "lodash-es";
+import { isBoolean, map } from "lodash-es";
 import Database from "tauri-plugin-sql-api";
 
 let db: Database;
@@ -15,7 +15,7 @@ export const initDatabase = async () => {
 
 	await executeSQL(
 		`
-        CREATE TABLE IF NOT EXISTS history (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT, content TEXT, create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP, is_favorite INTEGER DEFAULT 0);
+        CREATE TABLE IF NOT EXISTS history (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT, content TEXT, createTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP, isFavorite INTEGER DEFAULT 0);
         `,
 	);
 };
@@ -115,7 +115,7 @@ export const deleteSQL = async (tableName: TableName, id?: number) => {
  * @param payload 数据
  */
 const handlePayload = (payload: TablePayload) => {
-	const keys = map(Object.keys(payload), snakeCase);
+	const keys = Object.keys(payload);
 	const refs = map(keys, () => "?");
 	const values = map(Object.values(payload), (item) => {
 		return isBoolean(item) ? Number(item) : item;

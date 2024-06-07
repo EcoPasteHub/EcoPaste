@@ -6,7 +6,7 @@ import { useSnapshot } from "valtio";
 const { defaultAlgorithm, darkAlgorithm } = theme;
 
 const App = () => {
-	const { isDark } = useSnapshot(store);
+	const { isDark } = useSnapshot(globalStore);
 
 	useMount(() => {
 		initDatabase();

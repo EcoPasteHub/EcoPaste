@@ -27,6 +27,9 @@
 			},
 			"security": {
 				"noDangerouslySetInnerHtml": "off"
+			},
+			"a11y": {
+				"useAltText": "off"
 			}
 		}
 	}
