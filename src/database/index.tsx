@@ -1,7 +1,7 @@
 import type { TableName, TablePayload } from "@/types/database";
 import { getName } from "@tauri-apps/api/app";
 import { appConfigDir } from "@tauri-apps/api/path";
-import { isBoolean, isEmpty, map, snakeCase } from "lodash-es";
+import { isBoolean, map, snakeCase } from "lodash-es";
 import Database from "tauri-plugin-sql-api";
 
 let db: Database;
@@ -47,12 +47,12 @@ export const selectSQL = async (
 ) => {
 	const { keys, values } = handlePayload(payload);
 
-	const params = map(keys, (key) => `${key} LIKE ?`);
+	const clause = map(keys, (key) => `${key} LIKE ?`).join(" AND ");
 
-	const whereParams = isEmpty(payload) ? "" : `WHERE ${params.join(" AND ")}`;
+	const whereClause = clause ? `WHERE ${clause}` : "";
 
 	return await executeSQL(
-		`SELECT * FROM ${tableName} ${whereParams} ORDER BY id DESC;`,
+		`SELECT * FROM ${tableName} ${whereClause} ORDER BY id DESC;`,
 		map(values, (item) => `%${item}%`),
 	);
 };
@@ -87,10 +87,10 @@ export const updateSQL = async (
 
 	const { keys, values } = handlePayload(rest);
 
-	const setParams = map(keys, (item) => `${item} = ?`);
+	const setClause = map(keys, (item) => `${item} = ?`);
 
 	await executeSQL(
-		`UPDATE ${tableName} SET ${setParams} WHERE id = ?;`,
+		`UPDATE ${tableName} SET ${setClause} WHERE id = ?;`,
 		values.concat(id),
 	);
 };

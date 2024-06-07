@@ -1,7 +1,9 @@
-# Tauri + React + Typescript
+# EcoCopy
 
-This template should help get you started developing with Tauri, React and Typescript in Vite.
+一款开源的剪切板管理工具，同时支持 MacOS 和 Windows 两个平台。
 
-## Recommended IDE Setup
+TODO：
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+- [ ] 贴边的剪切板窗口（卡在窗口无法在任务栏之上）
+- [ ] 复制内容来源的应用信息
+- [ ] 快捷回复窗口
