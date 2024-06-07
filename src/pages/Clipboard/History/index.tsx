@@ -11,13 +11,16 @@ import {
 	readText,
 	startListening,
 } from "tauri-plugin-clipboard-api";
+import { useSnapshot } from "valtio";
 
 interface State {
 	historyList: HistoryItem[];
 	previousPayload?: TablePayload;
 }
 
-const ClipboardWindow = () => {
+const ClipboardHistory = () => {
+	const { wakeUpKey } = useSnapshot(clipboardStore);
+
 	const state = useReactive<State>({
 		historyList: [],
 	});
@@ -69,6 +72,8 @@ const ClipboardWindow = () => {
 		});
 	});
 
+	useRegister(toggleWindowVisible, [wakeUpKey]);
+
 	const getHistoryList = async () => {
 		state.historyList = await selectSQL<HistoryItem[]>("history");
 	};
@@ -117,4 +122,4 @@ const ClipboardWindow = () => {
 	);
 };
 
-export default ClipboardWindow;
+export default ClipboardHistory;

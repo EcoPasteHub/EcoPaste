@@ -7,15 +7,17 @@ import { useSnapshot } from "valtio";
 
 const DefaultLayout = () => {
 	const { pathname } = useLocation();
-	const { isDark } = useSnapshot(globalStore);
+	const { isDark, wakeUpKey } = useSnapshot(globalStore);
 
 	useMount(() => {
-		// createWindow("/clipboard-history");
+		createWindow("/clipboard-history");
 
 		listen("github", () => {
 			open("https://github.com/ayangweb/EcoCopy");
 		});
 	});
+
+	useRegister(toggleWindowVisible, [wakeUpKey]);
 
 	return (
 		<Flex className="h-screen">

@@ -3,7 +3,9 @@ import proxyWithPersist from "valtio-persist";
 
 export const clipboardStore = proxyWithPersist<ClipboardStore>({
 	name: "clipboard",
-	initialState: {},
+	initialState: {
+		wakeUpKey: "Alt+C",
+	},
 	persistStrategies,
 	version: 0,
 	migrations: {},

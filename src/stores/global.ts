@@ -21,6 +21,7 @@ export const globalStore = proxyWithPersist<GlobalStore>({
 	initialState: {
 		autoStart: false,
 		tabTrigger: "click",
+		wakeUpKey: "Alt+X",
 	},
 	persistStrategies,
 	version: 0,

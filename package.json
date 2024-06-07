@@ -17,7 +17,7 @@
 		"@tauri-apps/api": "^1",
 		"@unocss/reset": "^0.60.3",
 		"ahooks": "^3.8.0",
-		"antd": "^5.17.4",
+		"antd": "^5.18.0",
 		"clsx": "^2.1.1",
 		"lodash-es": "^4.17.21",
 		"react": "^18.2.0",

@@ -11,7 +11,7 @@ interface Option {
 }
 
 const Settings = () => {
-	const { tabTrigger } = useSnapshot(globalStore);
+	const { wakeUpKey, tabTrigger } = useSnapshot(globalStore);
 
 	const options: Option[] = [
 		{
@@ -33,7 +33,7 @@ const Settings = () => {
 					<Flex align="center">
 						<span>唤醒窗口：</span>
 						<ShortcutKey
-							defaultValue={globalStore.wakeUpKey}
+							defaultValue={wakeUpKey}
 							onChange={(value) => {
 								globalStore.wakeUpKey = value;
 							}}

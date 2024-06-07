@@ -4,7 +4,7 @@ import { useSnapshot } from "valtio";
 import Record from "./components/Record";
 
 const Clipboard = () => {
-	const { enableSound } = useSnapshot(clipboardStore);
+	const { wakeUpKey, enableSound } = useSnapshot(clipboardStore);
 
 	return (
 		<Flex vertical gap="middle">
@@ -13,7 +13,7 @@ const Clipboard = () => {
 					<Flex align="center">
 						<span>唤醒窗口：</span>
 						<ShortcutKey
-							defaultValue={clipboardStore.wakeUpKey}
+							defaultValue={wakeUpKey}
 							onChange={(value) => {
 								clipboardStore.wakeUpKey = value;
 							}}

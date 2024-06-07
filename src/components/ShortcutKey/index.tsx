@@ -1,12 +1,12 @@
 import { Flex } from "antd";
 import clsx from "clsx";
-import { find, intersectionWith, isEqual, remove, some } from "lodash-es";
+import { find, intersectionWith, isEqual, map, remove, some } from "lodash-es";
 import type { FC, KeyboardEvent } from "react";
 import { type Key, keys, modifierKeys, normalKeys } from "./keys";
 
 interface ShortcutKeyProps {
-	defaultValue?: Key[];
-	onChange?: (value: Key[], oldValue: Key[]) => void;
+	defaultValue?: string;
+	onChange?: (value: string) => void;
 }
 
 interface State {
@@ -14,12 +14,16 @@ interface State {
 }
 
 const ShortcutKey: FC<ShortcutKeyProps> = (props) => {
-	const { defaultValue = [], onChange } = props;
+	const { defaultValue = "", onChange } = props;
+
+	const handleDefaultValue = () => {
+		return defaultValue.split("+").map((shortcut) => find(keys, { shortcut })!);
+	};
 
 	const containerRef = useRef<HTMLElement>(null);
 
 	const state = useReactive<State>({
-		value: defaultValue,
+		value: handleDefaultValue(),
 	});
 
 	const handleFocus = () => {
@@ -28,10 +32,12 @@ const ShortcutKey: FC<ShortcutKeyProps> = (props) => {
 
 	const handleBlur = () => {
 		if (!registrable()) {
-			state.value = defaultValue;
+			state.value = handleDefaultValue();
 		}
 
-		onChange?.(state.value, defaultValue);
+		const changeValue = map(state.value, "shortcut").join("+");
+
+		onChange?.(changeValue);
 	};
 
 	const handleKeyDown = (event: KeyboardEvent) => {
