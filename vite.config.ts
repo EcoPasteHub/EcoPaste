@@ -17,6 +17,7 @@ export default defineConfig(async () => ({
 				"src/stores",
 				"src/database",
 				"src/hooks",
+				"src/constants",
 			],
 		}),
 	],

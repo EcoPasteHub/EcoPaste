@@ -1,9 +1,9 @@
 import Icon from "@/components/Icon";
-import { listen } from "@tauri-apps/api/event";
+import { emit, listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/api/shell";
 import { Flex } from "antd";
 import clsx from "clsx";
-import { useSnapshot } from "valtio";
+import { subscribe, useSnapshot } from "valtio";
 
 const DefaultLayout = () => {
 	const { pathname } = useLocation();
@@ -12,8 +12,16 @@ const DefaultLayout = () => {
 	useMount(() => {
 		createWindow("/clipboard-history");
 
-		listen("github", () => {
-			open("https://github.com/ayangweb/EcoCopy");
+		listen(LISTEN_KEY.GITHUB, () => {
+			open(GITHUB_LINK);
+		});
+
+		subscribe(globalStore, () => {
+			emit(LISTEN_KEY.GLOBAL_STORE_CHANGED, globalStore);
+		});
+
+		subscribe(clipboardStore, () => {
+			emit(LISTEN_KEY.CLIPBOARD_STORE_CHANGED, clipboardStore);
 		});
 	});
 

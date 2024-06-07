@@ -57,3 +57,7 @@ subscribeKey(globalStore, "isDark", (value) => {
 		document.documentElement.classList.remove("dark");
 	}
 });
+
+// subscribe(globalStore, () => {
+// 	emit(LISTEN_KEY.GLOBAL_STORE_CHANGED, globalStore);
+// });

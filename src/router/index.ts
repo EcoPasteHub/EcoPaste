@@ -49,7 +49,7 @@ export const routes: Route[] = [
 				resizable: false,
 				maximizable: false,
 				decorations: false,
-				// visible: false,
+				visible: false,
 				transparent: true,
 				alwaysOnTop: true,
 				acceptFirstMouse: true,

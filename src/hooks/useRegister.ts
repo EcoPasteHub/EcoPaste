@@ -5,7 +5,7 @@ import {
 } from "@tauri-apps/api/globalShortcut";
 
 export const useRegister = (handler: ShortcutHandler, deps: string[]) => {
-	const [oldKey, setOldKey] = useState("");
+	const [oldKey, setOldKey] = useState(deps[0]);
 
 	useAsyncEffect(async () => {
 		const [key] = deps;
