@@ -2,7 +2,7 @@ export type TableName = "history";
 
 export type HistoryType = "files" | "image" | "html" | "rtf" | "text";
 
-export interface HistoryPayload {
+export interface HistoryItem {
 	id?: number;
 	type?: HistoryType;
 	content?: string;
@@ -10,4 +10,4 @@ export interface HistoryPayload {
 	isFavorite?: boolean;
 }
 
-export type TablePayload = HistoryPayload;
+export type TablePayload = HistoryItem;

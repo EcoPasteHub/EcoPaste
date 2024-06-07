@@ -24,13 +24,13 @@ export const initDatabase = async () => {
  * 执行 sql 语句
  * @param sql sql 语句
  */
-export const executeSQL = async (query: string, values?: unknown[]) => {
+export const executeSQL = async <List,>(query: string, values?: unknown[]) => {
 	if (!db) {
 		await initDatabase();
 	}
 
 	if (query.startsWith("SELECT")) {
-		return await db.select(query, values);
+		return await db.select<List>(query, values);
 	}
 
 	await db.execute(query, values);
@@ -41,7 +41,7 @@ export const executeSQL = async (query: string, values?: unknown[]) => {
  * @param tableName 表名称
  * @returns
  */
-export const selectSQL = async (
+export const selectSQL = async <List,>(
 	tableName: TableName,
 	payload: TablePayload = {},
 ) => {
@@ -51,7 +51,7 @@ export const selectSQL = async (
 
 	const whereClause = clause ? `WHERE ${clause}` : "";
 
-	return await executeSQL(
+	return await executeSQL<List>(
 		`SELECT * FROM ${tableName} ${whereClause} ORDER BY id DESC;`,
 		map(values, (item) => `%${item}%`),
 	);

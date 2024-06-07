@@ -1,3 +1,4 @@
+import type { HistoryItem } from "@/types/database";
 import { appWindow } from "@tauri-apps/api/window";
 import {
 	onSomethingUpdate,
@@ -10,52 +11,59 @@ import {
 } from "tauri-plugin-clipboard-api";
 
 const ClipboardWindow = () => {
-	useMount(() => {
+	const [, setHistoryList] = useState<HistoryItem[]>();
+
+	useMount(async () => {
 		frostedWindow();
+
+		getData();
 
 		startListening();
 
 		onSomethingUpdate(async (updateTypes) => {
 			if (updateTypes.files) {
-				return insertSQL("history", {
+				await insertSQL("history", {
 					type: "files",
 					content: JSON.stringify(await readFilesURIs()),
 				});
-			}
-
-			if (updateTypes.image) {
-				return insertSQL("history", {
+			} else if (updateTypes.image) {
+				await insertSQL("history", {
 					type: "image",
 					content: `data:image/png;base64, ${await readImageBase64()}`,
 				});
-			}
-
-			if (updateTypes.html) {
-				return insertSQL("history", {
+			} else if (updateTypes.html) {
+				await insertSQL("history", {
 					type: "html",
 					content: await readHtml(),
 				});
-			}
-
-			if (updateTypes.rtf) {
-				return insertSQL("history", {
+			} else if (updateTypes.rtf) {
+				await insertSQL("history", {
 					type: "rtf",
 					content: await readRtf(),
 				});
-			}
-
-			if (updateTypes.text) {
-				insertSQL("history", {
+			} else if (updateTypes.text) {
+				await insertSQL("history", {
 					type: "text",
 					content: await readText(),
 				});
 			}
+
+			getData();
 		});
 	});
 
+	const getData = async () => {
+		const list = await selectSQL<HistoryItem[]>("history");
+
+		setHistoryList(list);
+	};
+
 	return (
-		<div className="h-screen" onMouseDown={() => appWindow.startDragging()}>
-			ClipboardWindow
+		<div
+			className="h-screen rounded-8 p-16"
+			onMouseDown={() => appWindow.startDragging()}
+		>
+			1
 		</div>
 	);
 };

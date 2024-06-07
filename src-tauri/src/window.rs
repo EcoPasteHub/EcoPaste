@@ -47,8 +47,13 @@ pub fn quit_app() {
 #[command]
 pub fn frosted_window(window: Window) {
     #[cfg(target_os = "macos")]
-    apply_vibrancy(&window, NSVisualEffectMaterial::HudWindow, None, None)
-        .expect("Unsupported platform! 'apply_vibrancy' is only supported on macOS");
+    apply_vibrancy(
+        &window,
+        NSVisualEffectMaterial::HeaderView,
+        Some(NSVisualEffectState::Active),
+        Some(10.0),
+    )
+    .expect("Unsupported platform! 'apply_vibrancy' is only supported on macOS");
 
     #[cfg(target_os = "windows")]
     apply_blur(&window, Some((18, 18, 18, 125)))
