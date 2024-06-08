@@ -1,12 +1,9 @@
 export type Theme = "auto" | "light" | "dark";
 
-export type TabTrigger = "click" | "hover";
-
 export interface GlobalStore {
 	theme?: Theme;
 	isDark?: boolean;
 	autoStart: boolean;
-	tabTrigger: TabTrigger;
 	wakeUpKey: string;
 	appInfo?: {
 		name: string;
@@ -17,5 +14,5 @@ export interface GlobalStore {
 export interface ClipboardStore {
 	wakeUpKey: string;
 	enableAudio?: boolean;
-	capacity?: string;
+	historicalCapacity?: string;
 }

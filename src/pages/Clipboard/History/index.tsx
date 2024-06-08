@@ -1,8 +1,7 @@
 import copyAudio from "@/assets/audio/copy.mp3";
 import type { HistoryItem, TablePayload } from "@/types/database";
-import { appWindow } from "@tauri-apps/api/window";
 import { isEqual } from "lodash-es";
-import { FixedSizeList } from "react-window";
+import { createContext } from "react";
 import {
 	onSomethingUpdate,
 	readFilesURIs,
@@ -13,11 +12,24 @@ import {
 	startListening,
 } from "tauri-plugin-clipboard-api";
 import { useSnapshot } from "valtio";
+import Header from "./components/Header";
+import Popup from "./components/Popup";
 
-interface State {
+interface State extends HistoryItem {
 	historyList: HistoryItem[];
 	previousPayload?: TablePayload;
 }
+
+interface HistoryContextValue {
+	state: State;
+	getHistoryList?: (payload?: HistoryItem) => void;
+}
+
+export const HistoryContext = createContext<HistoryContextValue>({
+	state: {
+		historyList: [],
+	},
+});
 
 const ClipboardHistory = () => {
 	const { wakeUpKey } = useSnapshot(clipboardStore);
@@ -31,8 +43,6 @@ const ClipboardHistory = () => {
 	useMount(async () => {
 		frostedWindow();
 
-		getHistoryList();
-
 		startListening();
 
 		onSomethingUpdate(async (updateTypes) => {
@@ -45,26 +55,31 @@ const ClipboardHistory = () => {
 			if (updateTypes.files) {
 				payload = {
 					type: "files",
+					group: "files",
 					content: JSON.stringify(await readFilesURIs()),
 				};
 			} else if (updateTypes.image) {
 				payload = {
 					type: "image",
+					group: "image",
 					content: `data:image/png;base64, ${await readImageBase64()}`,
 				};
 			} else if (updateTypes.html) {
 				payload = {
 					type: "html",
+					group: "text",
 					content: await readHtml(),
 				};
 			} else if (updateTypes.rtf) {
 				payload = {
 					type: "rtf",
+					group: "text",
 					content: await readRtf(),
 				};
 			} else if (updateTypes.text) {
 				payload = {
 					type: "text",
+					group: "text",
 					content: await readText(),
 				};
 			}
@@ -81,51 +96,34 @@ const ClipboardHistory = () => {
 
 	useRegister(toggleWindowVisible, [wakeUpKey]);
 
+	useEffect(() => {
+		getHistoryList?.();
+	}, [state.content, state.group, state.isFavorite]);
+
 	const getHistoryList = async () => {
-		state.historyList = await selectSQL<HistoryItem[]>("history");
+		const { content, group, isFavorite } = state;
+
+		state.historyList = await selectSQL<HistoryItem[]>("history", {
+			content,
+			group,
+			isFavorite,
+		});
 	};
 
 	return (
-		<div
-			className="h-screen rounded-8 p-8"
-			onMouseDown={() => appWindow.startDragging()}
-		>
-			{/* <Icon hoverable name="i-lucide:search" />
-			<Icon hoverable name="i-ri:pushpin-2-line" /> */}
+		<div data-tauri-drag-region className="h-screen rounded-8 p-12">
 			<audio ref={audioRef} src={copyAudio} />
 
-			<FixedSizeList
-				width={344}
-				height={584}
-				itemData={state.historyList}
-				itemKey={(index, data) => data[index].id!}
-				itemCount={state.historyList.length}
-				itemSize={100}
-			>
-				{(item) => {
-					const { index, style } = item;
-					const { type, content = "", createTime } = item.data[index];
-
-					return (
-						<div style={style} className="not-last-of-type:pb-10">
-							<div
-								className="h-full rounded-5 bg-white shadow"
-								onMouseDown={(event) => {
-									event.stopPropagation();
-								}}
-							>
-								{type}
-								{createTime}
-								{type === "image" ? (
-									<img src={content} className="h-60" />
-								) : (
-									<div dangerouslySetInnerHTML={{ __html: content }} />
-								)}
-							</div>
-						</div>
-					);
+			<HistoryContext.Provider
+				value={{
+					state,
+					getHistoryList,
 				}}
-			</FixedSizeList>
+			>
+				<Header />
+
+				<Popup />
+			</HistoryContext.Provider>
 		</div>
 	);
 };
