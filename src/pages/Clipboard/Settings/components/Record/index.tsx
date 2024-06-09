@@ -1,3 +1,4 @@
+import { emit } from "@tauri-apps/api/event";
 import { Button, Card, Popconfirm, Slider } from "antd";
 import type { SliderBaseProps } from "antd/es/slider";
 
@@ -16,11 +17,19 @@ const Record = () => {
 		return marks;
 	};
 
+	const handleConfirm = () => {
+		emit(LISTEN_KEY.CLEAR_HISTORY);
+	};
+
 	return (
 		<Card
 			title="历史记录"
 			extra={
-				<Popconfirm placement="bottomRight" title="确定要清空历史记录吗？">
+				<Popconfirm
+					placement="bottomRight"
+					title="确定要清空历史记录吗？"
+					onConfirm={handleConfirm}
+				>
 					<Button danger ghost type="primary">
 						清空
 					</Button>

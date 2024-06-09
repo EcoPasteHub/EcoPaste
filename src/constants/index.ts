@@ -4,4 +4,5 @@ export const LISTEN_KEY = {
 	GITHUB: "github",
 	GLOBAL_STORE_CHANGED: "global-store-changed",
 	CLIPBOARD_STORE_CHANGED: "clipboard-store-changed",
+	CLEAR_HISTORY: "clear-history",
 };

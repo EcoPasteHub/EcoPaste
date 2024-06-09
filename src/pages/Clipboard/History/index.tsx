@@ -1,5 +1,6 @@
 import copyAudio from "@/assets/audio/copy.mp3";
 import type { HistoryItem, TablePayload } from "@/types/database";
+import { listen } from "@tauri-apps/api/event";
 import { isEqual } from "lodash-es";
 import { createContext } from "react";
 import {
@@ -43,7 +44,9 @@ const ClipboardHistory = () => {
 	useMount(async () => {
 		frostedWindow();
 
-		startListening();
+		await initDatabase();
+
+		await startListening();
 
 		onSomethingUpdate(async (updateTypes) => {
 			if (clipboardStore.enableAudio) {
@@ -90,6 +93,11 @@ const ClipboardHistory = () => {
 
 			state.previousPayload = payload;
 
+			getHistoryList();
+		});
+
+		listen(LISTEN_KEY.CLEAR_HISTORY, async () => {
+			await deleteSQL("history");
 			getHistoryList();
 		});
 	});

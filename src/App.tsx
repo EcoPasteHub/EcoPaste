@@ -11,8 +11,6 @@ const App = () => {
 	const { isDark } = useSnapshot(globalStore);
 
 	useMount(() => {
-		initDatabase();
-
 		generateColorVars();
 
 		listen(LISTEN_KEY.GLOBAL_STORE_CHANGED, ({ payload }) => {
