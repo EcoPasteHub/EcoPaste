@@ -1,16 +1,16 @@
 html {
-	--color-bg-1: var(--ant-color-bg-container);
-	--color-bg-2: var(--ant-color-bg-layout);
-	--color-text-1: var(--ant-color-text);
-	--color-text-2: var(--ant-color-text-secondary);
-	--color-text-3: var(--ant-color-text-tertiary);
-	--color-border-1: var(--ant-color-border);
-	--color-border-2: var(--ant-color-border-secondary);
+  --color-bg-1: var(--ant-color-bg-container);
+  --color-bg-2: var(--ant-color-bg-layout);
+  --color-text-1: var(--ant-color-text);
+  --color-text-2: var(--ant-color-text-secondary);
+  --color-text-3: var(--ant-color-text-tertiary);
+  --color-border-1: var(--ant-color-border);
+  --color-border-2: var(--ant-color-border-secondary);
 
-	--uno: color-1 text-14 antialiased;
+  --uno: color-1 text-14 antialiased break-all;
 }
 
 img {
-	--uno: select-none;
-	-webkit-user-drag: none;
+  --uno: select-none;
+  -webkit-user-drag: none;
 }

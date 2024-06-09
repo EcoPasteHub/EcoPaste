@@ -1,5 +1,6 @@
 import type { HistoryItem } from "@/types/database";
 import { open } from "@tauri-apps/api/shell";
+import { Typography } from "antd";
 import type { FC } from "react";
 
 const Text: FC<HistoryItem> = (props) => {
@@ -22,7 +23,11 @@ const Text: FC<HistoryItem> = (props) => {
 		return content;
 	};
 
-	return renderContent();
+	return (
+		<Typography.Paragraph ellipsis={{ rows: 3 }}>
+			{renderContent()}
+		</Typography.Paragraph>
+	);
 };
 
 export default Text;
