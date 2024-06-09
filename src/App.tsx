@@ -24,6 +24,14 @@ const App = () => {
 
 			Object.assign(clipboardStore, payload);
 		});
+
+		if (isDev()) return;
+
+		document.addEventListener("contextmenu", (event) => {
+			if (getSelection()?.toString().trim()) return;
+
+			event.preventDefault();
+		});
 	});
 
 	return (

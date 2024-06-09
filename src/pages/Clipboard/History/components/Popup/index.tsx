@@ -1,5 +1,5 @@
 import Icon from "@/components/Icon";
-import type { HistoryItem } from "@/types/database";
+import type { HistoryItem, HistoryType } from "@/types/database";
 import { Flex } from "antd";
 import clsx from "clsx";
 import { FixedSizeList } from "react-window";
@@ -25,6 +25,21 @@ const Popup = () => {
 				return <Files {...data} />;
 			default:
 				return <Text {...data} />;
+		}
+	};
+
+	const getChineseType = (type: HistoryType) => {
+		switch (type) {
+			case "text":
+				return "文本";
+			case "rtf":
+				return "富文本";
+			case "html":
+				return "HTML";
+			case "image":
+				return "图片";
+			case "files":
+				return "文件（夹）";
 		}
 	};
 
@@ -64,7 +79,7 @@ const Popup = () => {
 							className="h-full rounded-6 bg-white p-6 shadow"
 						>
 							<Flex justify="space-between" className="color-2 text-12">
-								<span>{type}</span>
+								<span>{getChineseType(type!)}</span>
 								<span>{createTime}</span>
 								<Icon
 									hoverable
