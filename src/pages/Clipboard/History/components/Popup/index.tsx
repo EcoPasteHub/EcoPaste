@@ -1,5 +1,7 @@
+import Icon from "@/components/Icon";
 import type { HistoryItem } from "@/types/database";
 import { Flex } from "antd";
+import clsx from "clsx";
 import { FixedSizeList } from "react-window";
 import { HistoryContext } from "../..";
 import Files from "./components/Files";
@@ -9,7 +11,7 @@ import Rtf from "./components/Rtf";
 import Text from "./components/Text";
 
 const Popup = () => {
-	const { state } = useContext(HistoryContext);
+	const { state, getHistoryList } = useContext(HistoryContext);
 
 	const renderContent = (data: HistoryItem) => {
 		switch (data.type) {
@@ -26,6 +28,17 @@ const Popup = () => {
 		}
 	};
 
+	const collect = async (data: HistoryItem) => {
+		const { id, isCollected } = data;
+
+		await updateSQL("history", {
+			id,
+			isCollected: !isCollected,
+		});
+
+		getHistoryList?.();
+	};
+
 	return (
 		<FixedSizeList
 			width={336}
@@ -37,7 +50,7 @@ const Popup = () => {
 		>
 			{(item) => {
 				const { index, style, data } = item;
-				const { type, createTime } = data[index];
+				const { type, createTime, isCollected } = data[index];
 
 				return (
 					<div
@@ -45,16 +58,31 @@ const Popup = () => {
 						style={style}
 						className="not-last-of-type:pb-12"
 					>
-						<div className="h-full overflow-hidden rounded-6 bg-white p-6 shadow">
-							<Flex justify="space-between" className="pb-6 text-12">
+						<Flex
+							vertical
+							gap={6}
+							className="h-full rounded-6 bg-white p-6 shadow"
+						>
+							<Flex justify="space-between" className="color-2 text-12">
 								<span>{type}</span>
 								<span>{createTime}</span>
+								<Icon
+									hoverable
+									size={14}
+									name={
+										isCollected ? "i-iconamoon:star-fill" : "i-iconamoon:star"
+									}
+									className={clsx({
+										"text-gold!": isCollected,
+									})}
+									onMouseDown={() => collect(data[index])}
+								/>
 							</Flex>
 
-							<div className="overflow-hidden">
+							<div className="flex-1 overflow-hidden">
 								{renderContent(data[index])}
 							</div>
-						</div>
+						</Flex>
 					</div>
 				);
 			}}

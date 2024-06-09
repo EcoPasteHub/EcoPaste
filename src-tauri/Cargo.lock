@@ -1188,6 +1188,7 @@ dependencies = [
  "tauri-build",
  "tauri-plugin-autostart",
  "tauri-plugin-clipboard",
+ "tauri-plugin-fs-extra",
  "tauri-plugin-single-instance",
  "tauri-plugin-sql",
  "tauri-plugin-theme",
@@ -5047,6 +5048,18 @@ dependencies = [
  "serde",
  "tauri",
  "tempfile",
+ "thiserror",
+]
+
+[[package]]
+name = "tauri-plugin-fs-extra"
+version = "0.0.0"
+source = "git+https://github.com/tauri-apps/plugins-workspace?branch=v1#bd3d9ca152ee8b55e3e669dac68476ce6150c57f"
+dependencies = [
+ "log",
+ "serde",
+ "serde_json",
+ "tauri",
  "thiserror",
 ]
 

@@ -15,7 +15,7 @@ export const initDatabase = async () => {
 
 	await executeSQL(
 		`
-        CREATE TABLE IF NOT EXISTS history (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT, [group] TEXT, content TEXT, createTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP, isFavorite INTEGER DEFAULT 0);
+        CREATE TABLE IF NOT EXISTS history (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT, [group] TEXT, content TEXT, createTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP, isCollected INTEGER DEFAULT 0);
         `,
 	);
 };

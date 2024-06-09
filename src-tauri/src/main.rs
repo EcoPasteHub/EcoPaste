@@ -45,6 +45,8 @@ fn main() {
         ))
         // 数据库：https://github.com/tauri-apps/tauri-plugin-sql
         .plugin(tauri_plugin_sql::Builder::default().build())
+        // fs拓展插件：https://github.com/tauri-apps/tauri-plugin-fs-extra
+        .plugin(tauri_plugin_fs_extra::init())
         // 系统托盘：https://tauri.app/v1/guides/features/system-tray
         .system_tray(tray::menu())
         .on_system_tray_event(tray::handler)

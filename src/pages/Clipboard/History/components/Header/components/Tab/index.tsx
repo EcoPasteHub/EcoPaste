@@ -46,7 +46,7 @@ const Tab = () => {
 						onChange={() => {
 							setChecked(label);
 							state.group = value;
-							state.isFavorite = label === last(tabList)?.label || undefined;
+							state.isCollected = label === last(tabList)?.label || undefined;
 						}}
 					>
 						{label}

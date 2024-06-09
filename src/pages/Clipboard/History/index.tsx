@@ -4,7 +4,7 @@ import { isEqual } from "lodash-es";
 import { createContext } from "react";
 import {
 	onSomethingUpdate,
-	readFilesURIs,
+	readFiles,
 	readHtml,
 	readImageBase64,
 	readRtf,
@@ -56,7 +56,7 @@ const ClipboardHistory = () => {
 				payload = {
 					type: "files",
 					group: "files",
-					content: JSON.stringify(await readFilesURIs()),
+					content: JSON.stringify(await readFiles()),
 				};
 			} else if (updateTypes.image) {
 				payload = {
@@ -98,15 +98,15 @@ const ClipboardHistory = () => {
 
 	useEffect(() => {
 		getHistoryList?.();
-	}, [state.content, state.group, state.isFavorite]);
+	}, [state.content, state.group, state.isCollected]);
 
 	const getHistoryList = async () => {
-		const { content, group, isFavorite } = state;
+		const { content, group, isCollected } = state;
 
 		state.historyList = await selectSQL<HistoryItem[]>("history", {
 			content,
 			group,
-			isFavorite,
+			isCollected,
 		});
 	};
 

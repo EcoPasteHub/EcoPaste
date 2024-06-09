@@ -4,9 +4,9 @@ import type { FC } from "react";
 const Files: FC<HistoryItem> = (props) => {
 	const { content = "" } = props;
 
-	const a: string[] = JSON.parse(content);
+	const paths: string[] = JSON.parse(content);
 
-	return <div>{a.join("\n")}</div>;
+	return <div>{paths.join("\n")}</div>;
 };
 
 export default Files;

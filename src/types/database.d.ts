@@ -9,7 +9,7 @@ export interface HistoryItem {
 	group?: HistoryGroup;
 	content?: string;
 	createTime?: string;
-	isFavorite?: boolean;
+	isCollected?: boolean;
 }
 
 export type TablePayload = HistoryItem;
