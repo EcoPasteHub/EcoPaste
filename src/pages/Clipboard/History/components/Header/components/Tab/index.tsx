@@ -1,7 +1,9 @@
 import { HistoryContext } from "@/pages/Clipboard/History";
 import type { HistoryGroup } from "@/types/database";
 import { Flex, Tag } from "antd";
+import type { FlexProps } from "antd/lib";
 import { last } from "lodash-es";
+import type { FC } from "react";
 
 interface TabItem {
 	label: string;
@@ -29,13 +31,13 @@ const tabList: TabItem[] = [
 	},
 ];
 
-const Tab = () => {
+const Tab: FC<Partial<FlexProps>> = (props) => {
 	const { state } = useContext(HistoryContext);
 
 	const [checked, setChecked] = useState(tabList[0].label);
 
 	return (
-		<Flex data-tauri-drag-region>
+		<Flex data-tauri-drag-region {...props}>
 			{tabList.map((item) => {
 				const { label, value } = item;
 

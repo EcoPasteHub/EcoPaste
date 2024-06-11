@@ -2,6 +2,7 @@ import Icon from "@/components/Icon";
 import { appWindow } from "@tauri-apps/api/window";
 import { Flex } from "antd";
 import clsx from "clsx";
+import Search from "./components/Search";
 import Tab from "./components/Tab";
 
 interface State {
@@ -24,19 +25,20 @@ const Header = () => {
 			data-tauri-drag-region
 			align="center"
 			justify="space-between"
+			gap="small"
 			className="color-2 pb-12 text-18"
 		>
-			<Flex align="center" gap="small">
-				<Icon hoverable name="i-lucide:search" />
+			<Flex align="center" gap="small" className="overflow-hidden">
+				<Search />
 
-				<Tab />
+				<Tab className="overflow-auto" />
 			</Flex>
 
 			<Icon
 				hoverable
 				active={state.pin}
 				name="i-ri:pushpin-2-line"
-				className={clsx({ "rotate-45": state.pin })}
+				className={clsx("min-w-18", { "rotate-45": state.pin })}
 				onMouseDown={() => {
 					state.pin = !state.pin;
 				}}
