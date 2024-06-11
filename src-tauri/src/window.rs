@@ -1,5 +1,4 @@
 use tauri::{command, utils::config::WindowConfig, AppHandle, Manager, Window, WindowBuilder};
-use window_vibrancy::*;
 
 // 主窗口的名称
 pub static MAIN_WINDOW_LABEL: &str = "main";
@@ -45,17 +44,13 @@ pub fn quit_app() {
 
 // 磨砂窗口：https://github.com/tauri-apps/window-vibrancy
 #[command]
-pub fn frosted_window(window: Window) {
+pub fn frosted_window(_window: Window) {
     #[cfg(target_os = "macos")]
-    apply_vibrancy(
-        &window,
-        NSVisualEffectMaterial::HeaderView,
+    window_vibrancy::apply_vibrancy(
+        &_window,
+        window_vibrancy::NSVisualEffectMaterial::HeaderView,
         Some(NSVisualEffectState::Active),
         Some(10.0),
     )
     .expect("Unsupported platform! 'apply_vibrancy' is only supported on macOS");
-
-    #[cfg(target_os = "windows")]
-    apply_blur(&window, Some((18, 18, 18, 125)))
-        .expect("Unsupported platform! 'apply_blur' is only supported on Windows");
 }
