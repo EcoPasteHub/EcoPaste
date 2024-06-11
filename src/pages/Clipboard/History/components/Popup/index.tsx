@@ -1,5 +1,5 @@
 import Icon from "@/components/Icon";
-import type { HistoryItem, HistoryType } from "@/types/database";
+import type { HistoryItem } from "@/types/database";
 import { Flex } from "antd";
 import clsx from "clsx";
 import { FixedSizeList } from "react-window";
@@ -12,6 +12,42 @@ import Text from "./components/Text";
 
 const Popup = () => {
 	const { state, getHistoryList } = useContext(HistoryContext);
+
+	const getChineseType = (data: HistoryItem) => {
+		const { type, content = "" } = data;
+
+		switch (type) {
+			case "text":
+				if (isURL(content)) {
+					return "链接";
+				}
+
+				if (isEmail(content)) {
+					return "邮箱";
+				}
+
+				return "文本";
+			case "rtf":
+				return "富文本";
+			case "html":
+				return "HTML";
+			case "image":
+				return "图片";
+			case "files":
+				return `${JSON.parse(content).length}个文件（夹）`;
+		}
+	};
+
+	const collect = async (data: HistoryItem) => {
+		const { id, isCollected } = data;
+
+		await updateSQL("history", {
+			id,
+			isCollected: !isCollected,
+		});
+
+		getHistoryList?.();
+	};
 
 	const renderContent = (data: HistoryItem) => {
 		switch (data.type) {
@@ -28,32 +64,6 @@ const Popup = () => {
 		}
 	};
 
-	const getChineseType = (type: HistoryType) => {
-		switch (type) {
-			case "text":
-				return "文本";
-			case "rtf":
-				return "富文本";
-			case "html":
-				return "HTML";
-			case "image":
-				return "图片";
-			case "files":
-				return "文件（夹）";
-		}
-	};
-
-	const collect = async (data: HistoryItem) => {
-		const { id, isCollected } = data;
-
-		await updateSQL("history", {
-			id,
-			isCollected: !isCollected,
-		});
-
-		getHistoryList?.();
-	};
-
 	return (
 		<FixedSizeList
 			width={336}
@@ -65,7 +75,8 @@ const Popup = () => {
 		>
 			{(item) => {
 				const { index, style, data } = item;
-				const { type, createTime, isCollected } = data[index];
+				const historyData = data[index];
+				const { createTime, isCollected } = historyData;
 
 				return (
 					<div
@@ -73,13 +84,9 @@ const Popup = () => {
 						style={style}
 						className="not-last-of-type:pb-12"
 					>
-						<Flex
-							vertical
-							gap={6}
-							className="h-full rounded-6 bg-white p-6 shadow"
-						>
+						<Flex vertical gap={6} className="h-full rounded-6 bg-1 p-6">
 							<Flex justify="space-between" className="color-2 text-12">
-								<span>{getChineseType(type!)}</span>
+								<span>{getChineseType(historyData)}</span>
 								<span>{createTime}</span>
 								<Icon
 									hoverable
@@ -90,12 +97,12 @@ const Popup = () => {
 									className={clsx({
 										"text-gold!": isCollected,
 									})}
-									onMouseDown={() => collect(data[index])}
+									onMouseDown={() => collect(historyData)}
 								/>
 							</Flex>
 
 							<div className="flex-1 overflow-hidden">
-								{renderContent(data[index])}
+								{renderContent(historyData)}
 							</div>
 						</Flex>
 					</div>
