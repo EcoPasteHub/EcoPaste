@@ -9,14 +9,24 @@ interface State {
 	pin?: boolean;
 }
 
+let timerId: number;
+
 const Header = () => {
 	const state = useReactive<State>({});
 
 	useMount(() => {
 		appWindow.onFocusChanged(({ payload }) => {
-			if (payload || state.pin) return;
+			clearTimeout(timerId);
 
-			hideWindow();
+			/**
+			 * 背景：在 Windows 系统上，拖动窗口会多次触发 `onFocusChanged` 事件，导致窗口被失焦关闭
+			 * 解决方案：给 `onFocusChanged` 事件加个定时器，用最新的状态做变更
+			 */
+			timerId = setTimeout(() => {
+				if (payload || state.pin) return;
+
+				hideWindow();
+			}, 100);
 		});
 	});
 

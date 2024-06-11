@@ -9,6 +9,6 @@ TODO：
 - [ ] 快捷回复窗口
 - [ ] 兼容 Windows
     1. - [ ] 当前的 `createWindow` 函数在 Windows 系统有 bug
-    2. - [ ] `appWindow.onFocusChanged` 在 Windows 系统会频繁触发
+    2. - [x] `appWindow.onFocusChanged` 在 Windows 系统会频繁触发
     3. - [ ] 磨砂窗口在 Windows 系统不生效
     4. - [ ] 在 Rust 中使用除 Windows 系统以外生效的函数时不要直接导入，在使用时引入就好了
