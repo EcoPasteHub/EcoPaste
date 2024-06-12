@@ -110,7 +110,12 @@ const Popup = () => {
 
 				return (
 					<div data-tauri-drag-region style={style}>
-						<Flex vertical gap={6} className="h-full rounded-6 bg-1 p-6">
+						<Flex
+							vertical
+							gap={6}
+							className="h-full rounded-6 bg-1 p-6"
+							onDoubleClick={() => writeContent(historyData)}
+						>
 							<Flex justify="space-between" className="color-2">
 								<Flex align="center" gap={6} className="text-12">
 									<span>{getChineseType(historyData)}</span>
