@@ -20,6 +20,9 @@ dependencies:
   clsx:
     specifier: ^2.1.1
     version: 2.1.1
+  dayjs:
+    specifier: ^1.11.11
+    version: 1.11.11
   lodash-es:
     specifier: ^4.17.21
     version: 4.17.21

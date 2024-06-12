@@ -103,14 +103,11 @@ const Popup = () => {
 				const { createTime, isCollected } = historyData;
 
 				return (
-					<div
-						data-tauri-drag-region
-						style={{ ...style, top: Number(style.top) + 12 * index }}
-					>
+					<div data-tauri-drag-region style={style}>
 						<Flex vertical gap={6} className="h-full rounded-6 bg-1 p-6">
 							<Flex justify="space-between" className="color-2 text-12">
 								<span>{getChineseType(historyData)}</span>
-								<span>{createTime}</span>
+								<span>{dayjs(createTime).fromNow()}</span>
 								<Flex gap={6} className="text-14">
 									<Icon
 										hoverable
