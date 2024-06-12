@@ -30,7 +30,6 @@ pub fn handler(app: &AppHandle, event: SystemTrayEvent) {
         SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
             "preference" => show_window(window),
             "about" => {
-                show_window(window.clone());
                 window.emit("about", true).unwrap();
             }
             "update" => {

@@ -7,13 +7,20 @@ import { subscribe, useSnapshot } from "valtio";
 
 const DefaultLayout = () => {
 	const { pathname } = useLocation();
+	const navigate = useNavigate();
 	const { isDark, wakeUpKey } = useSnapshot(globalStore);
 
 	useMount(() => {
 		createWindow("/clipboard-history");
 
-		listen(LISTEN_KEY.GITHUB, () => {
+		listen(LISTEN_KEY.TRAY_GITHUB, () => {
 			open(GITHUB_LINK);
+		});
+
+		listen(LISTEN_KEY.TRAY_ABOUT, () => {
+			showWindow();
+
+			navigate("/about");
 		});
 
 		subscribe(globalStore, () => {
