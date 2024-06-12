@@ -7,9 +7,7 @@ import { type } from "@tauri-apps/api/os";
  * 切换主题
  */
 export const toggleTheme = async (theme: Theme) => {
-	const osType = await type();
-
-	if (osType === "Windows_NT") {
+	if (await isWin()) {
 		await message("切换主题需要重启 app 才能生效！", {
 			okLabel: "重启",
 		});

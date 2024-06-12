@@ -1,5 +1,6 @@
 import Icon from "@/components/Icon";
 import { appWindow } from "@tauri-apps/api/window";
+import type { Timeout } from "ahooks/lib/useRequest/src/types";
 import { Flex } from "antd";
 import clsx from "clsx";
 import Search from "./components/Search";
@@ -7,26 +8,33 @@ import Tab from "./components/Tab";
 
 interface State {
 	pin?: boolean;
+	delay: number;
 }
 
-let timerId: number;
+let timer: Timeout;
 
 const Header = () => {
-	const state = useReactive<State>({});
+	const state = useReactive<State>({
+		delay: 0,
+	});
 
-	useMount(() => {
-		appWindow.onFocusChanged(({ payload }) => {
-			clearTimeout(timerId);
+	useMount(async () => {
+		if (await isWin()) {
+			state.delay = 100;
+		}
+
+		appWindow.onFocusChanged(async ({ payload }) => {
+			clearTimeout(timer);
 
 			/**
 			 * 背景：在 Windows 系统上，拖动窗口会多次触发 `onFocusChanged` 事件，导致窗口被失焦关闭
 			 * 解决方案：给 `onFocusChanged` 事件加个定时器，用最新的状态做变更
 			 */
-			timerId = setTimeout(() => {
+			timer = setTimeout(() => {
 				if (payload || state.pin) return;
 
 				hideWindow();
-			}, 100);
+			}, state.delay);
 		});
 	});
 

@@ -122,9 +122,7 @@ const Popup = () => {
 										name={
 											isCollected ? "i-iconamoon:star-fill" : "i-iconamoon:star"
 										}
-										className={clsx({
-											"text-gold!": isCollected,
-										})}
+										className={clsx({ "text-gold!": isCollected })}
 										onMouseDown={() => collect(historyData)}
 									/>
 								</Flex>
