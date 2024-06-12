@@ -53,3 +53,8 @@ export const toggleWindowVisible = async () => {
 		showWindow();
 	}
 };
+
+/**
+ * 设置窗口阴影
+ */
+export const setWindowShadow = () => invoke("set_window_shadow");

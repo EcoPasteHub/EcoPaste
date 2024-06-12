@@ -40,6 +40,8 @@ const ClipboardHistory = () => {
 			frostedWindow();
 		} else {
 			state.classNames = "bg-1 rounded-10";
+
+			setWindowShadow();
 		}
 
 		await initDatabase();

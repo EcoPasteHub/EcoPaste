@@ -47,5 +47,12 @@ pub fn frosted_window(_window: Window) {
         Some(window_vibrancy::NSVisualEffectState::Active),
         Some(10.0),
     )
-    .expect("Unsupported platform! 'apply_vibrancy' is only supported on macOS");
+    .unwrap();
+}
+
+// 窗口阴影：https://github.com/tauri-apps/window-shadows
+#[command]
+pub fn set_window_shadow(_window: Window) {
+    #[cfg(target_os = "windows")]
+    window_shadows::set_shadow(&window, true)
 }
