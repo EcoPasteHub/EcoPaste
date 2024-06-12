@@ -54,5 +54,5 @@ pub fn frosted_window(_window: Window) {
 #[command]
 pub fn set_window_shadow(_window: Window) {
     #[cfg(target_os = "windows")]
-    window_shadows::set_shadow(&window, true)
+    window_shadows::set_shadow(&_window, true).unwrap();
 }
