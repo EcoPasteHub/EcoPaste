@@ -1,27 +1,23 @@
 import copyAudio from "@/assets/audio/copy.mp3";
-import type { HistoryItem, TablePayload } from "@/types/database";
+import { useReadClipboard } from "@/hooks/useReadClipboard";
+import type { HistoryItem } from "@/types/database";
 import { listen } from "@tauri-apps/api/event";
 import clsx from "clsx";
 import { isEqual } from "lodash-es";
 import { createContext } from "react";
-import {
-	onSomethingUpdate,
-	readFilesURIs,
-	readHtml,
-	readImageBase64,
-	readRtf,
-	readText,
-	startListening,
-} from "tauri-plugin-clipboard-api";
+import {} from "tauri-plugin-clipboard-api";
 import { useSnapshot } from "valtio";
 import Header from "./components/Header";
 import Popup from "./components/Popup";
 
 interface State extends HistoryItem {
 	historyList: HistoryItem[];
-	previousPayload?: TablePayload;
 	classNames?: string;
 }
+
+const INITIAL_STATE: State = {
+	historyList: [],
+};
 
 interface HistoryContextValue {
 	state: State;
@@ -29,9 +25,7 @@ interface HistoryContextValue {
 }
 
 export const HistoryContext = createContext<HistoryContextValue>({
-	state: {
-		historyList: [],
-	},
+	state: INITIAL_STATE,
 });
 
 const ClipboardHistory = () => {
@@ -39,9 +33,7 @@ const ClipboardHistory = () => {
 
 	const audioRef = useRef<HTMLAudioElement>(null);
 
-	const state = useReactive<State>({
-		historyList: [],
-	});
+	const state = useReactive<State>(INITIAL_STATE);
 
 	useMount(async () => {
 		if (await isMac()) {
@@ -52,62 +44,23 @@ const ClipboardHistory = () => {
 
 		await initDatabase();
 
-		await startListening();
-
-		onSomethingUpdate(async (updateTypes) => {
-			if (clipboardStore.enableAudio) {
-				audioRef.current?.play();
-			}
-
-			let payload: TablePayload = {};
-
-			if (updateTypes.files) {
-				const filesURIs = await readFilesURIs();
-
-				payload = {
-					type: "files",
-					group: "files",
-					content: JSON.stringify(filesURIs.map(decodeURIComponent)),
-				};
-			} else if (updateTypes.image) {
-				payload = {
-					type: "image",
-					group: "image",
-					content: await readImageBase64(),
-				};
-			} else if (updateTypes.html) {
-				payload = {
-					type: "html",
-					group: "text",
-					content: await readHtml(),
-				};
-			} else if (updateTypes.rtf) {
-				payload = {
-					type: "rtf",
-					group: "text",
-					content: await readRtf(),
-				};
-			} else if (updateTypes.text) {
-				payload = {
-					type: "text",
-					group: "text",
-					content: await readText(),
-				};
-			}
-
-			if (isEqual(payload, state.previousPayload)) return;
-
-			await insertSQL("history", payload);
-
-			state.previousPayload = payload;
-
-			getHistoryList();
-		});
-
 		listen(LISTEN_KEY.CLEAR_HISTORY, async () => {
 			await deleteSQL("history");
+
 			getHistoryList();
 		});
+	});
+
+	useReadClipboard(async (newValue, oldValue) => {
+		if (clipboardStore.enableAudio) {
+			audioRef.current?.play();
+		}
+
+		if (isEqual(newValue, oldValue)) return;
+
+		await insertSQL("history", newValue);
+
+		getHistoryList();
 	});
 
 	useRegister(toggleWindowVisible, [wakeUpKey]);
