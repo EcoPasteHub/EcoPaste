@@ -68,7 +68,7 @@ const ClipboardHistory = () => {
 				payload = {
 					type: "image",
 					group: "image",
-					content: `data:image/png;base64, ${await readImageBase64()}`,
+					content: await readImageBase64(),
 				};
 			} else if (updateTypes.html) {
 				payload = {
