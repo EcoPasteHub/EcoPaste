@@ -7,7 +7,8 @@ mod tray;
 mod window;
 use tauri_plugin_autostart::MacosLauncher;
 use window::{
-    create_window, frosted_window, hide_window, quit_app, show_window, MAIN_WINDOW_LABEL,
+    create_window, frosted_window, hide_window, quit_app, set_window_shadow, show_window,
+    MAIN_WINDOW_LABEL,
 };
 
 fn main() {
@@ -55,7 +56,8 @@ fn main() {
             hide_window,
             show_window,
             quit_app,
-            frosted_window
+            frosted_window,
+            set_window_shadow
         ])
         // 让 app 保持在后台运行：https://tauri.app/v1/guides/features/system-tray/#preventing-the-app-from-closing
         .on_window_event(|event| match event.event() {
