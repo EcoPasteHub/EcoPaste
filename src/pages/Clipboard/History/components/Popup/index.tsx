@@ -20,6 +20,8 @@ import Text from "./components/Text";
 const Popup = () => {
 	const { state, getHistoryList } = useContext(HistoryContext);
 
+	const [visibleStartIndex, setVisibleStartIndex] = useState(0);
+
 	const getChineseType = (data: HistoryItem) => {
 		const { type, content = "" } = data;
 
@@ -102,6 +104,9 @@ const Popup = () => {
 			itemKey={(index, data) => data[index].id!}
 			itemCount={state.historyList.length}
 			itemSize={120}
+			onItemsRendered={({ visibleStartIndex }) =>
+				setVisibleStartIndex(visibleStartIndex)
+			}
 		>
 			{(item) => {
 				const { index, style, data } = item;
@@ -109,11 +114,17 @@ const Popup = () => {
 				const { id, createTime, isCollected } = historyData;
 
 				return (
-					<div data-tauri-drag-region style={style}>
+					<div
+						data-tauri-drag-region
+						style={{
+							...style,
+							top: Number(style.top) + (index - visibleStartIndex) * 12,
+						}}
+					>
 						<Flex
 							vertical
 							gap={6}
-							className="h-full rounded-6 bg-1 p-6"
+							className="b b-color-2 hover:b-primary h-full rounded-6 bg-1 p-6"
 							onDoubleClick={() => writeContent(historyData)}
 						>
 							<Flex justify="space-between" className="color-2">
