@@ -1,5 +1,6 @@
 import copyAudio from "@/assets/audio/copy.mp3";
 import type { HistoryItem, TablePayload } from "@/types/database";
+import { isMac } from "@/utils/shared";
 import { listen } from "@tauri-apps/api/event";
 import { isEqual } from "lodash-es";
 import { createContext } from "react";
@@ -42,7 +43,9 @@ const ClipboardHistory = () => {
 	});
 
 	useMount(async () => {
-		frostedWindow();
+		if (await isMac()) {
+			frostedWindow();
+		}
 
 		await initDatabase();
 

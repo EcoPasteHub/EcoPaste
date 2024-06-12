@@ -26,3 +26,21 @@ export const toggleTheme = async (theme: Theme) => {
 export const isDev = () => {
 	return import.meta.env.DEV;
 };
+
+/**
+ * 是否为 windows 系统
+ */
+export const isWin = async () => {
+	const osType = await type();
+
+	return osType === "Windows_NT";
+};
+
+/**
+ * 是否为 mac 系统
+ */
+export const isMac = async () => {
+	const osType = await type();
+
+	return osType === "Darwin";
+};
