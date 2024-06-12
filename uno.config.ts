@@ -31,6 +31,7 @@ export default defineConfig({
 	theme: {
 		colors: {
 			primary: "var(--ant-blue-6)",
+			red: "var(--ant-red)",
 			gold: "var(--ant-gold)",
 		},
 	},

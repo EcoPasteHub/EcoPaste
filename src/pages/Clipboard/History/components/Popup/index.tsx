@@ -88,6 +88,12 @@ const Popup = () => {
 		}
 	};
 
+	const deleteItem = async (id: number) => {
+		await deleteSQL("history", id);
+
+		getHistoryList?.();
+	};
+
 	return (
 		<FixedSizeList
 			width={336}
@@ -100,15 +106,18 @@ const Popup = () => {
 			{(item) => {
 				const { index, style, data } = item;
 				const historyData = data[index];
-				const { createTime, isCollected } = historyData;
+				const { id, createTime, isCollected } = historyData;
 
 				return (
 					<div data-tauri-drag-region style={style}>
 						<Flex vertical gap={6} className="h-full rounded-6 bg-1 p-6">
-							<Flex justify="space-between" className="color-2 text-12">
-								<span>{getChineseType(historyData)}</span>
-								<span>{dayjs(createTime).fromNow()}</span>
-								<Flex gap={6} className="text-14">
+							<Flex justify="space-between" className="color-2">
+								<Flex align="center" gap={6} className="text-12">
+									<span>{getChineseType(historyData)}</span>
+									<span className="text-12">{dayjs(createTime).fromNow()}</span>
+								</Flex>
+
+								<Flex align="center" gap={6} className="text-14">
 									<Icon
 										hoverable
 										name="i-iconamoon:copy"
@@ -121,6 +130,13 @@ const Popup = () => {
 										}
 										className={clsx({ "text-gold!": isCollected })}
 										onMouseDown={() => collect(historyData)}
+									/>
+									<Icon
+										hoverable
+										size={15}
+										name="i-iconamoon:trash-simple"
+										className="hover:text-red!"
+										onMouseDown={() => deleteItem(id!)}
 									/>
 								</Flex>
 							</Flex>
