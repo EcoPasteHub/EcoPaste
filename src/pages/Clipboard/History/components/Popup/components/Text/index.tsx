@@ -24,7 +24,7 @@ const Text: FC<HistoryItem> = (props) => {
 	};
 
 	return (
-		<Typography.Paragraph ellipsis={{ rows: 3 }}>
+		<Typography.Paragraph ellipsis={{ rows: 4 }}>
 			{renderContent()}
 		</Typography.Paragraph>
 	);

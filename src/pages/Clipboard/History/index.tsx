@@ -6,7 +6,7 @@ import { isEqual } from "lodash-es";
 import { createContext } from "react";
 import {
 	onSomethingUpdate,
-	readFiles,
+	readFilesURIs,
 	readHtml,
 	readImageBase64,
 	readRtf,
@@ -59,10 +59,12 @@ const ClipboardHistory = () => {
 			let payload: TablePayload = {};
 
 			if (updateTypes.files) {
+				const filesURIs = await readFilesURIs();
+
 				payload = {
 					type: "files",
 					group: "files",
-					content: JSON.stringify(await readFiles()),
+					content: JSON.stringify(filesURIs.map(decodeURIComponent)),
 				};
 			} else if (updateTypes.image) {
 				payload = {

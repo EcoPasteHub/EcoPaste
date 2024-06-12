@@ -3,6 +3,13 @@ import type { HistoryItem } from "@/types/database";
 import { Flex } from "antd";
 import clsx from "clsx";
 import { FixedSizeList } from "react-window";
+import {
+	writeFilesURIs,
+	writeHtml,
+	writeImageBase64,
+	writeRtf,
+	writeText,
+} from "tauri-plugin-clipboard-api";
 import { HistoryContext } from "../..";
 import Files from "./components/Files";
 import Html from "./components/Html";
@@ -35,6 +42,23 @@ const Popup = () => {
 				return "图片";
 			case "files":
 				return `${JSON.parse(content).length}个文件（夹）`;
+		}
+	};
+
+	const writeContent = (data: HistoryItem) => {
+		const { type, content = "" } = data;
+
+		switch (type) {
+			case "text":
+				return writeText(content);
+			case "rtf":
+				return writeRtf(content);
+			case "html":
+				return writeHtml(content);
+			case "image":
+				return writeImageBase64(content);
+			case "files":
+				return writeFilesURIs(JSON.parse(content));
 		}
 	};
 
@@ -81,27 +105,32 @@ const Popup = () => {
 				return (
 					<div
 						data-tauri-drag-region
-						style={style}
-						className="not-last-of-type:pb-12"
+						style={{ ...style, top: Number(style.top) + 12 * index }}
 					>
 						<Flex vertical gap={6} className="h-full rounded-6 bg-1 p-6">
 							<Flex justify="space-between" className="color-2 text-12">
 								<span>{getChineseType(historyData)}</span>
 								<span>{createTime}</span>
-								<Icon
-									hoverable
-									size={14}
-									name={
-										isCollected ? "i-iconamoon:star-fill" : "i-iconamoon:star"
-									}
-									className={clsx({
-										"text-gold!": isCollected,
-									})}
-									onMouseDown={() => collect(historyData)}
-								/>
+								<Flex gap={6} className="text-14">
+									<Icon
+										hoverable
+										name="i-iconamoon:copy"
+										onMouseDown={() => writeContent(historyData)}
+									/>
+									<Icon
+										hoverable
+										name={
+											isCollected ? "i-iconamoon:star-fill" : "i-iconamoon:star"
+										}
+										className={clsx({
+											"text-gold!": isCollected,
+										})}
+										onMouseDown={() => collect(historyData)}
+									/>
+								</Flex>
 							</Flex>
 
-							<div className="flex-1 overflow-hidden">
+							<div className="\ flex-1 overflow-hidden">
 								{renderContent(historyData)}
 							</div>
 						</Flex>

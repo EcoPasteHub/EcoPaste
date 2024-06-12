@@ -49,7 +49,7 @@ pub fn frosted_window(_window: Window) {
     window_vibrancy::apply_vibrancy(
         &_window,
         window_vibrancy::NSVisualEffectMaterial::HeaderView,
-        Some(NSVisualEffectState::Active),
+        Some(window_vibrancy::NSVisualEffectState::Active),
         Some(10.0),
     )
     .expect("Unsupported platform! 'apply_vibrancy' is only supported on macOS");
