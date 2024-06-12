@@ -1,7 +1,7 @@
 import copyAudio from "@/assets/audio/copy.mp3";
 import type { HistoryItem, TablePayload } from "@/types/database";
-import { isMac } from "@/utils/shared";
 import { listen } from "@tauri-apps/api/event";
+import clsx from "clsx";
 import { isEqual } from "lodash-es";
 import { createContext } from "react";
 import {
@@ -20,6 +20,7 @@ import Popup from "./components/Popup";
 interface State extends HistoryItem {
 	historyList: HistoryItem[];
 	previousPayload?: TablePayload;
+	classNames?: string;
 }
 
 interface HistoryContextValue {
@@ -45,6 +46,8 @@ const ClipboardHistory = () => {
 	useMount(async () => {
 		if (await isMac()) {
 			frostedWindow();
+		} else {
+			state.classNames = "bg-1 rounded-10";
 		}
 
 		await initDatabase();
@@ -124,7 +127,10 @@ const ClipboardHistory = () => {
 	};
 
 	return (
-		<div data-tauri-drag-region className="h-screen rounded-8 p-12">
+		<div
+			data-tauri-drag-region
+			className={clsx("h-screen p-12", state.classNames)}
+		>
 			<audio ref={audioRef} src={copyAudio} />
 
 			<HistoryContext.Provider
