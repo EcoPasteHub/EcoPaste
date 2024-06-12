@@ -5,7 +5,6 @@ import { listen } from "@tauri-apps/api/event";
 import clsx from "clsx";
 import { isEqual } from "lodash-es";
 import { createContext } from "react";
-import {} from "tauri-plugin-clipboard-api";
 import { useSnapshot } from "valtio";
 import Header from "./components/Header";
 import Popup from "./components/Popup";
@@ -39,7 +38,7 @@ const ClipboardHistory = () => {
 		if (await isMac()) {
 			frostedWindow();
 		} else {
-			state.classNames = "bg-1 rounded-10";
+			state.classNames = "bg-1";
 
 			setWindowShadow();
 		}
