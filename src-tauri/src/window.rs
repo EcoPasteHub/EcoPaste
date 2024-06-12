@@ -5,21 +5,16 @@ pub static MAIN_WINDOW_LABEL: &str = "main";
 
 // 创建窗口
 #[command]
-pub fn create_window(app_handle: AppHandle, label: String, mut options: WindowConfig) {
-    let window = app_handle.get_window(&label);
+pub async fn create_window(app_handle: AppHandle, label: String, mut options: WindowConfig) {
+    if let Some(window) = app_handle.get_window(&label) {
+        show_window(window);
+    } else {
+        options.label = label.to_string();
 
-    if window.is_some() {
-        return show_window(window.clone().unwrap());
-    }
-
-    options.label = label.clone();
-
-    Some(
-        WindowBuilder::from_config(&app_handle, options.clone())
+        WindowBuilder::from_config(&app_handle, options)
             .build()
-            .expect("failed to create window"),
-    )
-    .unwrap();
+            .unwrap();
+    }
 }
 
 // 显示窗口
