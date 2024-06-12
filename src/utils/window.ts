@@ -15,6 +15,7 @@ export const createWindow = (path: Path) => {
 		label,
 		options: {
 			url: path,
+			skipTaskbar: true,
 			...options,
 		},
 	});
