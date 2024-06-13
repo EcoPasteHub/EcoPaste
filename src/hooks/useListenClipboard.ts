@@ -11,7 +11,7 @@ import {
 
 type Cb = (newValue: HistoryItem, oldValue?: HistoryItem) => void;
 
-export const useReadClipboard = (cb: Cb) => {
+export const useListenClipboard = (cb: Cb) => {
 	const oldValue = useRef<HistoryItem>();
 
 	useMount(async () => {

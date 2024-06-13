@@ -1,5 +1,4 @@
 import copyAudio from "@/assets/audio/copy.mp3";
-import { useReadClipboard } from "@/hooks/useReadClipboard";
 import type { HistoryItem } from "@/types/database";
 import { listen } from "@tauri-apps/api/event";
 import clsx from "clsx";
@@ -52,7 +51,7 @@ const ClipboardHistory = () => {
 		});
 	});
 
-	useReadClipboard(async (newValue, oldValue) => {
+	useListenClipboard(async (newValue, oldValue) => {
 		if (clipboardStore.enableAudio) {
 			audioRef.current?.play();
 		}
