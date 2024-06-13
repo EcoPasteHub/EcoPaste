@@ -113,54 +113,50 @@ const Popup = () => {
 				const historyData = data[index];
 				const { id, createTime, isCollected } = historyData;
 
-				return (
-					<div
-						style={{
-							...style,
-							top: Number(style.top) + (index - visibleStartIndex) * 12,
-						}}
-					>
-						<Flex
-							vertical
-							gap={6}
-							className="b b-color-2 hover:b-primary h-full rounded-6 bg-1 p-6"
-							onDoubleClick={() => writeContent(historyData)}
-						>
-							<Flex justify="space-between" className="color-2">
-								<Flex align="center" gap={6} className="text-12">
-									<span>{getChineseType(historyData)}</span>
-									<span className="text-12">{dayjs(createTime).fromNow()}</span>
-								</Flex>
+				const top = Number(style.top) + (index - visibleStartIndex) * 12;
 
-								<Flex align="center" gap={6} className="text-14">
-									<Icon
-										hoverable
-										name="i-iconamoon:copy"
-										onMouseDown={() => writeContent(historyData)}
-									/>
-									<Icon
-										hoverable
-										name={
-											isCollected ? "i-iconamoon:star-fill" : "i-iconamoon:star"
-										}
-										className={clsx({ "text-gold!": isCollected })}
-										onMouseDown={() => collect(historyData)}
-									/>
-									<Icon
-										hoverable
-										size={15}
-										name="i-iconamoon:trash-simple"
-										className="hover:text-red!"
-										onMouseDown={() => deleteItem(id!)}
-									/>
-								</Flex>
+				return (
+					<Flex
+						vertical
+						gap={6}
+						className="b b-color-2 hover:b-primary h-full rounded-6 bg-1 p-6 transition"
+						style={{ ...style, top }}
+						onDoubleClick={() => writeContent(historyData)}
+					>
+						<Flex justify="space-between" className="color-2">
+							<Flex align="center" gap={6} className="text-12">
+								<span>{getChineseType(historyData)}</span>
+								<span>{dayjs(createTime).fromNow()}</span>
 							</Flex>
 
-							<div className="\ flex-1 overflow-hidden">
-								{renderContent(historyData)}
-							</div>
+							<Flex align="center" gap={6} className="text-14">
+								<Icon
+									hoverable
+									name="i-iconamoon:copy"
+									onMouseDown={() => writeContent(historyData)}
+								/>
+								<Icon
+									hoverable
+									name={
+										isCollected ? "i-iconamoon:star-fill" : "i-iconamoon:star"
+									}
+									className={clsx({ "text-gold!": isCollected })}
+									onMouseDown={() => collect(historyData)}
+								/>
+								<Icon
+									hoverable
+									size={15}
+									name="i-iconamoon:trash-simple"
+									className="hover:text-red!"
+									onMouseDown={() => deleteItem(id!)}
+								/>
+							</Flex>
 						</Flex>
-					</div>
+
+						<div className="flex-1 overflow-hidden">
+							{renderContent(historyData)}
+						</div>
+					</Flex>
 				);
 			}}
 		</FixedSizeList>
