@@ -10,7 +10,6 @@ import Popup from "./components/Popup";
 
 interface State extends HistoryItem {
 	historyList: HistoryItem[];
-	classNames?: string;
 }
 
 const INITIAL_STATE: State = {
@@ -34,14 +33,6 @@ const ClipboardHistory = () => {
 	const state = useReactive<State>(INITIAL_STATE);
 
 	useMount(async () => {
-		if (await isMac()) {
-			frostedWindow();
-		} else {
-			state.classNames = "bg-1";
-
-			setWindowShadow();
-		}
-
 		await initDatabase();
 
 		listen(LISTEN_KEY.CLEAR_HISTORY, async () => {
@@ -82,7 +73,7 @@ const ClipboardHistory = () => {
 	return (
 		<div
 			data-tauri-drag-region
-			className={clsx("h-screen p-12", state.classNames)}
+			className={clsx("h-screen rounded-10 bg-1 p-12")}
 		>
 			<audio ref={audioRef} src={copyAudio} />
 

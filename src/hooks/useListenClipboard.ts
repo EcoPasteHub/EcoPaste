@@ -26,7 +26,7 @@ export const useListenClipboard = (cb: Cb) => {
 				value = {
 					type: "files",
 					group: "files",
-					content: JSON.stringify(filesURIs.map(decodeURIComponent)),
+					content: JSON.stringify(filesURIs.map(decodeURI)),
 				};
 			} else if (updateTypes.image) {
 				value = {

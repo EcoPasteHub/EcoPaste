@@ -115,7 +115,6 @@ const Popup = () => {
 
 				return (
 					<div
-						data-tauri-drag-region
 						style={{
 							...style,
 							top: Number(style.top) + (index - visibleStartIndex) * 12,

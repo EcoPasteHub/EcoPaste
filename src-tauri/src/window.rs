@@ -11,9 +11,13 @@ pub async fn create_window(app_handle: AppHandle, label: String, mut options: Wi
     } else {
         options.label = label.to_string();
 
-        WindowBuilder::from_config(&app_handle, options)
+        let window = WindowBuilder::from_config(&app_handle, options.clone())
             .build()
             .unwrap();
+
+        if !options.decorations {
+            window_shadows::set_shadow(&window, true).unwrap();
+        }
     }
 }
 
@@ -35,24 +39,4 @@ pub fn hide_window(window: Window) {
 #[command]
 pub fn quit_app() {
     std::process::exit(0)
-}
-
-// 磨砂窗口：https://github.com/tauri-apps/window-vibrancy
-#[command]
-pub fn frosted_window(_window: Window) {
-    #[cfg(target_os = "macos")]
-    window_vibrancy::apply_vibrancy(
-        &_window,
-        window_vibrancy::NSVisualEffectMaterial::HeaderView,
-        Some(window_vibrancy::NSVisualEffectState::Active),
-        Some(10.0),
-    )
-    .unwrap();
-}
-
-// 窗口阴影：https://github.com/tauri-apps/window-shadows
-#[command]
-pub fn set_window_shadow(_window: Window) {
-    #[cfg(target_os = "windows")]
-    window_shadows::set_shadow(&_window, true).unwrap();
 }
