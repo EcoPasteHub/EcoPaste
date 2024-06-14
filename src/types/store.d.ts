@@ -14,5 +14,5 @@ export interface GlobalStore {
 export interface ClipboardStore {
 	wakeUpKey: string;
 	enableAudio?: boolean;
-	historicalCapacity?: string;
+	capacity: number;
 }

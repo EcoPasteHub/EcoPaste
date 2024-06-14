@@ -63,11 +63,25 @@ const ClipboardHistory = () => {
 	const getHistoryList = async () => {
 		const { content, group, isCollected } = state;
 
-		state.historyList = await selectSQL<HistoryItem[]>("history", {
+		const list = await selectSQL<HistoryItem[]>("history", {
 			content,
 			group,
 			isCollected,
 		});
+
+		state.historyList = list;
+
+		if (!clipboardStore.capacity) return;
+
+		const maxMinute = clipboardStore.capacity * 24 * 60;
+
+		for (const item of list) {
+			const { id, createTime } = item;
+
+			if (dayjs().diff(createTime, "minutes") > maxMinute) {
+				deleteSQL("history", id);
+			}
+		}
 	};
 
 	return (
