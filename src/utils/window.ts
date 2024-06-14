@@ -11,7 +11,7 @@ export const createWindow = (path: Path) => {
 
 	const options = find(routes, { path })?.meta?.windowOptions;
 
-	invoke("create_window", {
+	invoke("plugin:window|create_window", {
 		label,
 		options: {
 			url: path,
@@ -24,17 +24,17 @@ export const createWindow = (path: Path) => {
 /**
  * 显示窗口
  */
-export const showWindow = () => invoke("show_window");
+export const showWindow = () => invoke("plugin:window|show_window");
 
 /**
  * 隐藏窗口
  */
-export const hideWindow = () => invoke("hide_window");
+export const hideWindow = () => invoke("plugin:window|hide_window");
 
 /**
  * 退出 app
  */
-export const quitApp = () => invoke("quit_app");
+export const quitApp = () => invoke("plugin:window|quit_app");
 
 /**
  * 切换窗口的显示和隐藏

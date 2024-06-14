@@ -7,7 +7,7 @@ mod fs_extra;
 mod tray;
 mod window;
 use tauri_plugin_autostart::MacosLauncher;
-use window::{create_window, hide_window, quit_app, show_window, MAIN_WINDOW_LABEL};
+use window::{show_window, MAIN_WINDOW_LABEL};
 
 fn main() {
     let mut ctx = generate_context!();
@@ -44,17 +44,14 @@ fn main() {
         ))
         // 数据库：https://github.com/tauri-apps/tauri-plugin-sql
         .plugin(tauri_plugin_sql::Builder::default().build())
+        // 自定义的窗口管理插件
+        .plugin(window::init())
         // 自定义的 fs_extra 插件
         .plugin(fs_extra::init())
         // 系统托盘：https://tauri.app/v1/guides/features/system-tray
         .system_tray(tray::menu())
         .on_system_tray_event(tray::handler)
-        .invoke_handler(generate_handler![
-            create_window,
-            hide_window,
-            show_window,
-            quit_app,
-        ])
+        .invoke_handler(generate_handler![])
         // 让 app 保持在后台运行：https://tauri.app/v1/guides/features/system-tray/#preventing-the-app-from-closing
         .on_window_event(|event| match event.event() {
             WindowEvent::CloseRequested { api, .. } => {

@@ -1,4 +1,9 @@
-use tauri::{command, utils::config::WindowConfig, AppHandle, Manager, Window, WindowBuilder};
+use tauri::{
+    command, generate_handler,
+    plugin::{Builder, TauriPlugin},
+    utils::config::WindowConfig,
+    AppHandle, Manager, Window, WindowBuilder, Wry,
+};
 
 // 主窗口的名称
 pub static MAIN_WINDOW_LABEL: &str = "main";
@@ -39,4 +44,15 @@ pub fn hide_window(window: Window) {
 #[command]
 pub fn quit_app() {
     std::process::exit(0)
+}
+
+pub fn init() -> TauriPlugin<Wry> {
+    Builder::new("window")
+        .invoke_handler(generate_handler![
+            create_window,
+            show_window,
+            hide_window,
+            quit_app
+        ])
+        .build()
 }

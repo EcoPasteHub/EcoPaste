@@ -3,7 +3,7 @@ use std::{fs, path::Path};
 use tauri::{
     command, generate_handler,
     plugin::{Builder, TauriPlugin},
-    Runtime,
+    Wry,
 };
 
 #[derive(Debug, thiserror::Error)]
@@ -81,7 +81,7 @@ async fn metadata(path: &str) -> Result<Metadata> {
     })
 }
 
-pub fn init<R: Runtime>() -> TauriPlugin<R> {
+pub fn init() -> TauriPlugin<Wry> {
     Builder::new("fs-extra")
         .invoke_handler(generate_handler![metadata])
         .build()
