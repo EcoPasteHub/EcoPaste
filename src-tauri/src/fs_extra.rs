@@ -1,5 +1,5 @@
 use serde::{ser::Serializer, Serialize};
-use std::{fs, path::Path};
+use std::{fs, path::PathBuf};
 use tauri::{
     command, generate_handler,
     plugin::{Builder, TauriPlugin},
@@ -31,7 +31,7 @@ struct Metadata {
     is_exist: bool,
 }
 
-fn get_dir_size<P: AsRef<Path>>(path: P) -> Result<u64> {
+fn get_dir_size(path: PathBuf) -> Result<u64> {
     let mut size = 0;
 
     for entry in fs::read_dir(path)? {
@@ -49,16 +49,11 @@ fn get_dir_size<P: AsRef<Path>>(path: P) -> Result<u64> {
 }
 
 #[command]
-async fn metadata(path: &str) -> Result<Metadata> {
-    let replace_path = path.replace("file://", "");
-
-    let path = Path::new(&replace_path);
-
-    let is_exist = path.exists();
-
+async fn metadata(path: PathBuf) -> Result<Metadata> {
     let mut size = 0;
     let mut is_dir = false;
     let mut is_file = false;
+    let is_exist = path.exists();
 
     if is_exist {
         let metadata = fs::metadata(&path)?;
@@ -69,7 +64,7 @@ async fn metadata(path: &str) -> Result<Metadata> {
         size = if is_file {
             metadata.len()
         } else {
-            get_dir_size(&path)?
+            get_dir_size(path)?
         };
     }
 
@@ -81,8 +76,13 @@ async fn metadata(path: &str) -> Result<Metadata> {
     })
 }
 
+#[command]
+async fn exists(path: PathBuf) -> bool {
+    path.exists()
+}
+
 pub fn init() -> TauriPlugin<Wry> {
     Builder::new("fs-extra")
-        .invoke_handler(generate_handler![metadata])
+        .invoke_handler(generate_handler![metadata, exists])
         .build()
 }
