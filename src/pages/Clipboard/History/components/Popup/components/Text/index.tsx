@@ -1,5 +1,4 @@
 import type { HistoryItem } from "@/types/database";
-import { open } from "@tauri-apps/api/shell";
 import { Typography } from "antd";
 import type { FC } from "react";
 
@@ -11,12 +10,9 @@ const Text: FC<HistoryItem> = (props) => {
 			const url = isURL(content) ? content : `mailto:${content}`;
 
 			return (
-				<span
-					className="cursor-pointer text-primary"
-					onMouseDown={() => open(url)}
-				>
+				<a href={url} target="_blank" rel="noreferrer">
 					{content}
-				</span>
+				</a>
 			);
 		}
 

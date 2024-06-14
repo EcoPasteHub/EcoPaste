@@ -73,12 +73,10 @@ const ClipboardHistory = () => {
 
 		if (!clipboardStore.capacity) return;
 
-		const maxMinute = clipboardStore.capacity * 24 * 60;
-
 		for (const item of list) {
 			const { id, createTime } = item;
 
-			if (dayjs().diff(createTime, "minutes") > maxMinute) {
+			if (dayjs().diff(createTime, "days") >= clipboardStore.capacity) {
 				deleteSQL("history", id);
 			}
 		}

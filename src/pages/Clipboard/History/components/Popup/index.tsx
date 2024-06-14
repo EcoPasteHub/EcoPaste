@@ -1,6 +1,6 @@
 import Icon from "@/components/Icon";
 import type { HistoryItem } from "@/types/database";
-import { Flex } from "antd";
+import { Flex, Popconfirm } from "antd";
 import clsx from "clsx";
 import { FixedSizeList } from "react-window";
 import {
@@ -143,13 +143,18 @@ const Popup = () => {
 									className={clsx({ "text-gold!": isCollected })}
 									onMouseDown={() => collect(historyData)}
 								/>
-								<Icon
-									hoverable
-									size={15}
-									name="i-iconamoon:trash-simple"
-									className="hover:text-red!"
-									onMouseDown={() => deleteItem(id!)}
-								/>
+								<Popconfirm
+									title="确定要删除吗？"
+									placement="left"
+									onConfirm={() => deleteItem(id!)}
+								>
+									<Icon
+										hoverable
+										size={15}
+										name="i-iconamoon:trash-simple"
+										className="hover:text-red!"
+									/>
+								</Popconfirm>
 							</Flex>
 						</Flex>
 
