@@ -1,13 +1,16 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use tauri::{async_runtime, generate_context, generate_handler, Builder, Manager, WindowEvent};
-use tauri_plugin_theme::ThemePlugin;
-mod fs_extra;
+mod plugins;
 mod tray;
-mod window;
+
+use plugins::{
+    fs_extra,
+    window::{self, show_window, MAIN_WINDOW_LABEL},
+};
+use tauri::{async_runtime, generate_context, generate_handler, Builder, Manager, WindowEvent};
 use tauri_plugin_autostart::MacosLauncher;
-use window::{show_window, MAIN_WINDOW_LABEL};
+use tauri_plugin_theme::ThemePlugin;
 
 fn main() {
     let mut ctx = generate_context!();
