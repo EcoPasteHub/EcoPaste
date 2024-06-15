@@ -1,7 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use tauri::{generate_context, generate_handler, Builder, Manager, WindowEvent};
+use tauri::{async_runtime, generate_context, generate_handler, Builder, Manager, WindowEvent};
 use tauri_plugin_theme::ThemePlugin;
 mod fs_extra;
 mod tray;
@@ -35,7 +35,9 @@ fn main() {
         .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
             let window = app.get_window(MAIN_WINDOW_LABEL).unwrap();
 
-            show_window(window);
+            async_runtime::block_on(async move {
+                show_window(window).await;
+            });
         }))
         // app 自启动：https://github.com/tauri-apps/tauri-plugin-autostart
         .plugin(tauri_plugin_autostart::init(

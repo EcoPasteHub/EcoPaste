@@ -1,6 +1,6 @@
 use crate::window::{quit_app, show_window, MAIN_WINDOW_LABEL};
 use tauri::{
-    AppHandle, CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu,
+    async_runtime, AppHandle, CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu,
     SystemTrayMenuItem, SystemTraySubmenu,
 };
 
@@ -23,24 +23,26 @@ pub fn menu() -> SystemTray {
 }
 
 pub fn handler(app: &AppHandle, event: SystemTrayEvent) {
-    let window = app.get_window(MAIN_WINDOW_LABEL).unwrap();
+    async_runtime::block_on(async {
+        let window = app.get_window(MAIN_WINDOW_LABEL).unwrap();
 
-    match event {
-        SystemTrayEvent::LeftClick { .. } => show_window(window),
-        SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
-            "preference" => show_window(window),
-            "about" => {
-                window.emit("about", true).unwrap();
-            }
-            "update" => {
-                println!("检查更新")
-            }
-            "github" => {
-                window.emit("github", true).unwrap();
-            }
-            "quit" => quit_app(),
+        match event {
+            SystemTrayEvent::LeftClick { .. } => show_window(window).await,
+            SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
+                "preference" => show_window(window).await,
+                "about" => {
+                    window.emit("about", true).unwrap();
+                }
+                "update" => {
+                    println!("检查更新")
+                }
+                "github" => {
+                    window.emit("github", true).unwrap();
+                }
+                "quit" => quit_app().await,
+                _ => {}
+            },
             _ => {}
-        },
-        _ => {}
-    }
+        }
+    })
 }
