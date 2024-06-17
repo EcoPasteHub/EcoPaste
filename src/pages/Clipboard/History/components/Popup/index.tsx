@@ -161,7 +161,7 @@ const Popup = () => {
 									onMouseDown={() => collect(historyData)}
 								/>
 								<Popconfirm
-									title="确定要删除吗？"
+									title="确定删除该历史记录？"
 									placement="left"
 									onConfirm={() => deleteItem(id!)}
 								>

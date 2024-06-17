@@ -1,4 +1,5 @@
-use image_base64::to_base64;
+use base64::{engine::general_purpose, Engine};
+use clipboard_rs::{common::RustImage, RustImageData};
 use std::{fs, path::PathBuf};
 use tauri::{
     command, generate_handler,
@@ -66,7 +67,13 @@ async fn exists(path: PathBuf) -> bool {
 
 #[command]
 pub async fn get_image_base64(path: &str) -> Result<String> {
-    Ok(to_base64(path))
+    let image = RustImageData::from_path(path).unwrap();
+
+    let bytes = image.to_png().unwrap().get_bytes().to_vec();
+
+    let base64 = general_purpose::STANDARD.encode(bytes);
+
+    Ok(format!("data:image/png;base64,{base64}"))
 }
 
 pub fn init() -> TauriPlugin<Wry> {
