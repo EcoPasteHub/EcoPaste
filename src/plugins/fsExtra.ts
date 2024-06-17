@@ -1,12 +1,6 @@
+import type { Metadata } from "@/types/plugin";
 import { invoke } from "@tauri-apps/api";
 import { camelCase, mapKeys } from "lodash-es";
-
-interface Metadata {
-	size: number;
-	isDir: boolean;
-	isFile: boolean;
-	isExist: boolean;
-}
 
 /**
  * 查看文件（夹）是否存在

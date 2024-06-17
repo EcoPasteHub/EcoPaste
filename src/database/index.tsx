@@ -19,7 +19,10 @@ export const initDatabase = async () => {
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			type TEXT,
 			[group] TEXT,
-			content TEXT,
+			value TEXT,
+			width INTEGER,
+			height INTEGER,
+			size INTEGER,
 			createTime TIMESTAMP DEFAULT (DATETIME('now', 'localtime')),
 			isCollected INTEGER DEFAULT 0
 		);

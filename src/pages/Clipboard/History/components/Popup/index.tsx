@@ -3,13 +3,6 @@ import type { HistoryItem } from "@/types/database";
 import { Flex, Popconfirm } from "antd";
 import clsx from "clsx";
 import { FixedSizeList } from "react-window";
-import {
-	writeFilesURIs,
-	writeHtml,
-	writeImageBase64,
-	writeRtf,
-	writeText,
-} from "tauri-plugin-clipboard-api";
 import { HistoryContext } from "../..";
 import Files from "./components/Files";
 import Html from "./components/Html";
@@ -23,15 +16,15 @@ const Popup = () => {
 	const [visibleStartIndex, setVisibleStartIndex] = useState(0);
 
 	const getChineseType = (data: HistoryItem) => {
-		const { type, content = "" } = data;
+		const { type, value = "" } = data;
 
 		switch (type) {
 			case "text":
-				if (isURL(content)) {
+				if (isURL(value)) {
 					return "链接";
 				}
 
-				if (isEmail(content)) {
+				if (isEmail(value)) {
 					return "邮箱";
 				}
 
@@ -43,24 +36,24 @@ const Popup = () => {
 			case "image":
 				return "图片";
 			case "files":
-				return `${JSON.parse(content).length}个文件（夹）`;
+				return `${JSON.parse(value).length}个文件（夹）`;
 		}
 	};
 
 	const writeContent = (data: HistoryItem) => {
-		const { type, content = "" } = data;
+		const { type, value = "" } = data;
 
 		switch (type) {
 			case "text":
-				return writeText(content);
+				return writeText(value);
 			case "rtf":
-				return writeRtf(content);
+				return writeRichText(value);
 			case "html":
-				return writeHtml(content);
+				return writeHTML(value);
 			case "image":
-				return writeImageBase64(content);
+				return writeImage(value);
 			case "files":
-				return writeFilesURIs(JSON.parse(content));
+				return writeFiles(JSON.parse(value));
 		}
 	};
 

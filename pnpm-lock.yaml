@@ -41,9 +41,6 @@ dependencies:
   tauri-plugin-autostart-api:
     specifier: github:tauri-apps/tauri-plugin-autostart#v1
     version: github.com/tauri-apps/tauri-plugin-autostart/a8455f120ad801d828f91528f1b4ca47d00c8ba3
-  tauri-plugin-clipboard-api:
-    specifier: ^1.0.1
-    version: 1.0.1
   tauri-plugin-sql-api:
     specifier: github:tauri-apps/tauri-plugin-sql#v1
     version: github.com/tauri-apps/tauri-plugin-sql/6a4a14c36b1ad49c9f468351706d104a54e0540c
@@ -4535,14 +4532,6 @@ packages:
     engines: {node: '>= 0.4'}
     dev: true
 
-  /tauri-plugin-clipboard-api@1.0.1:
-    resolution: {integrity: sha512-n7ttdZr7Y3fMPtM/SbgyZ/ImCHJFQA+hTw/+L5L+tSB2573c8RWLiH150N4QJqQQGDiadoojUyki8uGJhm9w2w==}
-    dependencies:
-      '@tauri-apps/api': 1.5.6
-      tslib: 2.6.2
-      zod: 3.23.8
-    dev: false
-
   /text-extensions@2.4.0:
     resolution: {integrity: sha512-te/NtwBwfiNRLf9Ijqx3T0nlqZiQ2XrrtBvu+cLL8ZRrGkO0NHTug8MYFKyoSrv/sHTaSKfilUkizV6XhxMJ3g==}
     engines: {node: '>=8'}
@@ -4957,10 +4946,6 @@ packages:
     resolution: {integrity: sha512-9bnSc/HEW2uRy67wc+T8UwauLuPJVn28jb+GtJY16iiKWyvmYJRXVT4UamsAEGQfPohgr2q4Tq0sQbQlxTfi1g==}
     engines: {node: '>=12.20'}
     dev: true
-
-  /zod@3.23.8:
-    resolution: {integrity: sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==}
-    dev: false
 
   github.com/tauri-apps/tauri-plugin-autostart/a8455f120ad801d828f91528f1b4ca47d00c8ba3:
     resolution: {tarball: https://codeload.github.com/tauri-apps/tauri-plugin-autostart/tar.gz/a8455f120ad801d828f91528f1b4ca47d00c8ba3}

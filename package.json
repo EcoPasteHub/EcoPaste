@@ -26,7 +26,6 @@
 		"react-router-dom": "^6.23.1",
 		"react-window": "^1.8.10",
 		"tauri-plugin-autostart-api": "github:tauri-apps/tauri-plugin-autostart#v1",
-		"tauri-plugin-clipboard-api": "^1.0.1",
 		"tauri-plugin-sql-api": "github:tauri-apps/tauri-plugin-sql#v1",
 		"valtio": "^1.13.2",
 		"valtio-persist": "^1.0.2"

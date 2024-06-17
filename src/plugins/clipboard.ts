@@ -1,13 +1,6 @@
+import type { ClipboardPayload, ReadImage } from "@/types/plugin";
 import { invoke } from "@tauri-apps/api";
 import { listen } from "@tauri-apps/api/event";
-
-interface ReadImage {
-	width: number;
-	height: number;
-	image: string;
-}
-
-export type ClipboardType = "text" | "rtf" | "html" | "image" | "files";
 
 /**
  * 开启监听
@@ -187,22 +180,37 @@ export const writeText = async (value: string) => {
 /**
  * 剪贴板更新
  */
-export const onClipboardUpdate = (fn: (type: ClipboardType) => void) => {
-	let type: ClipboardType;
+export const onClipboardUpdate = (
+	fn: (payload: ClipboardPayload, oldPayload?: ClipboardPayload) => void,
+) => {
+	let payload: ClipboardPayload;
+	let oldPayload: ClipboardPayload;
 
 	return listen(CLIPBOARD_PLUGIN.CLIPBOARD_UPDATE, async () => {
 		if (await hasFiles()) {
-			type = "files";
+			const filesPayload = await readFiles();
+
+			payload = { ...filesPayload, type: "files" };
 		} else if (await hasImage()) {
-			type = "image";
+			const imagePayload = await readImage();
+
+			payload = { ...imagePayload, type: "image" };
 		} else if (await hasHTML()) {
-			type = "html";
+			const htmlPayload = await readHTML();
+
+			payload = { ...htmlPayload, type: "html" };
 		} else if (await hasRichText()) {
-			type = "rtf";
+			const richTextPayload = await readRichText();
+
+			payload = { ...richTextPayload, type: "rtf" };
 		} else if (await hasText()) {
-			type = "text";
+			const textPayload = await readText();
+
+			payload = { ...textPayload, type: "text" };
 		}
 
-		fn(type);
+		fn(payload, oldPayload);
+
+		oldPayload = payload;
 	});
 };

@@ -1188,7 +1188,6 @@ dependencies = [
  "tauri",
  "tauri-build",
  "tauri-plugin-autostart",
- "tauri-plugin-clipboard",
  "tauri-plugin-single-instance",
  "tauri-plugin-sql",
  "tauri-plugin-theme",
@@ -2228,13 +2227,7 @@ dependencies = [
  "bytemuck",
  "byteorder",
  "color_quant",
- "exr",
- "gif",
- "jpeg-decoder",
  "num-traits",
- "png",
- "qoi",
- "tiff",
 ]
 
 [[package]]
@@ -2422,9 +2415,6 @@ name = "jpeg-decoder"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f5d4a7da358eff58addd2877a45865158f0d78c911d43a5784ceb7bbf52833b0"
-dependencies = [
- "rayon",
-]
 
 [[package]]
 name = "js-sys"
@@ -5033,21 +5023,6 @@ dependencies = [
  "serde",
  "serde_json",
  "tauri",
- "thiserror",
-]
-
-[[package]]
-name = "tauri-plugin-clipboard"
-version = "0.6.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9b7bac5d4342efcb63a437947aecaf135fa307b1791860805a537b56d9d75c2d"
-dependencies = [
- "base64 0.21.7",
- "clipboard-rs",
- "image 0.24.9",
- "serde",
- "tauri",
- "tempfile",
  "thiserror",
 ]
 

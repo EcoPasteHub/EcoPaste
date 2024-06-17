@@ -30,8 +30,6 @@ fn main() {
 
             Ok(())
         })
-        // 剪切板插件：https://github.com/CrossCopy/tauri-plugin-clipboard
-        .plugin(tauri_plugin_clipboard::init())
         // 主题插件：https://github.com/wyhaya/tauri-plugin-theme
         .plugin(ThemePlugin::init(ctx.config_mut()))
         // 确保在 windows 和 linux 上只有一个 app 实例在运行：https://github.com/tauri-apps/plugins-workspace/tree/v1/plugins/single-instance

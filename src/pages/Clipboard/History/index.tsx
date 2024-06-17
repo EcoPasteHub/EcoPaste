@@ -1,8 +1,8 @@
 import copyAudio from "@/assets/audio/copy.mp3";
-import type { HistoryItem } from "@/types/database";
+import type { HistoryGroup, HistoryItem } from "@/types/database";
 import { listen } from "@tauri-apps/api/event";
 import clsx from "clsx";
-import { isEqual } from "lodash-es";
+import { isArray, isEqual } from "lodash-es";
 import { createContext } from "react";
 import { useSnapshot } from "valtio";
 import Header from "./components/Header";
@@ -35,6 +35,40 @@ const ClipboardHistory = () => {
 	useMount(async () => {
 		await initDatabase();
 
+		startListen();
+
+		onClipboardUpdate(async (newPayload, oldPayload) => {
+			if (clipboardStore.enableAudio) {
+				audioRef.current?.play();
+			}
+
+			if (isEqual(newPayload, oldPayload)) return;
+
+			const { type, value } = newPayload;
+
+			let group: HistoryGroup;
+
+			switch (type) {
+				case "files":
+					group = "files";
+					break;
+				case "image":
+					group = "image";
+					break;
+				default:
+					group = "text";
+					break;
+			}
+
+			await insertSQL("history", {
+				...newPayload,
+				group,
+				value: isArray(value) ? JSON.stringify(value) : value,
+			});
+
+			getHistoryList();
+		});
+
 		listen(LISTEN_KEY.CLEAR_HISTORY, async () => {
 			await deleteSQL("history");
 
@@ -42,29 +76,17 @@ const ClipboardHistory = () => {
 		});
 	});
 
-	useListenClipboard(async (newValue, oldValue) => {
-		if (clipboardStore.enableAudio) {
-			audioRef.current?.play();
-		}
-
-		if (isEqual(newValue, oldValue)) return;
-
-		await insertSQL("history", newValue);
-
-		getHistoryList();
-	});
-
 	useRegister(toggleWindowVisible, [wakeUpKey]);
 
 	useEffect(() => {
 		getHistoryList?.();
-	}, [state.content, state.group, state.isCollected]);
+	}, [state.value, state.group, state.isCollected]);
 
 	const getHistoryList = async () => {
-		const { content, group, isCollected } = state;
+		const { value, group, isCollected } = state;
 
 		const list = await selectSQL<HistoryItem[]>("history", {
-			content,
+			value,
 			group,
 			isCollected,
 		});
