@@ -2,7 +2,7 @@ import copyAudio from "@/assets/audio/copy.mp3";
 import type { HistoryGroup, HistoryItem } from "@/types/database";
 import { listen } from "@tauri-apps/api/event";
 import clsx from "clsx";
-import { isArray, isEqual } from "lodash-es";
+import { isArray } from "lodash-es";
 import { createContext } from "react";
 import { useSnapshot } from "valtio";
 import Header from "./components/Header";
@@ -37,34 +37,46 @@ const ClipboardHistory = () => {
 
 		startListen();
 
-		onClipboardUpdate(async (newPayload, oldPayload) => {
+		onClipboardUpdate(async (payload) => {
 			if (clipboardStore.enableAudio) {
 				audioRef.current?.play();
 			}
 
-			if (isEqual(newPayload, oldPayload)) return;
+			let { type, value } = payload;
 
-			const { type, value } = newPayload;
+			value = isArray(value) ? JSON.stringify(value) : value;
 
-			let group: HistoryGroup;
-
-			switch (type) {
-				case "files":
-					group = "files";
-					break;
-				case "image":
-					group = "image";
-					break;
-				default:
-					group = "text";
-					break;
-			}
-
-			await insertSQL("history", {
-				...newPayload,
-				group,
-				value: isArray(value) ? JSON.stringify(value) : value,
+			const [selectItem] = await selectSQL<HistoryItem[]>("history", {
+				...payload,
+				value,
 			});
+
+			if (selectItem) {
+				await updateSQL("history", {
+					id: selectItem.id,
+					createTime: dayjs().format("YYYY-MM-DD HH:mm:ss"),
+				});
+			} else {
+				let group: HistoryGroup;
+
+				switch (type) {
+					case "files":
+						group = "files";
+						break;
+					case "image":
+						group = "image";
+						break;
+					default:
+						group = "text";
+						break;
+				}
+
+				await insertSQL("history", {
+					...payload,
+					value,
+					group,
+				});
+			}
 
 			getHistoryList();
 		});

@@ -62,7 +62,7 @@ export const selectSQL = async <List,>(
 	const whereClause = clause ? `WHERE ${clause}` : "";
 
 	const list = await executeSQL(
-		`SELECT * FROM ${tableName} ${whereClause} ORDER BY id DESC;`,
+		`SELECT * FROM ${tableName} ${whereClause} ORDER BY createTime DESC;`,
 		map(values, (item) => `%${item}%`),
 	);
 

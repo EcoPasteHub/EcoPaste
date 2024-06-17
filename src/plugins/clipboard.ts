@@ -146,7 +146,7 @@ export const writeFiles = async (value: string[]) => {
  */
 export const writeImage = async (value: string) => {
 	invoke(CLIPBOARD_PLUGIN.WRITE_IMAGE, {
-		value: [value],
+		value,
 	});
 };
 
@@ -180,11 +180,8 @@ export const writeText = async (value: string) => {
 /**
  * 剪贴板更新
  */
-export const onClipboardUpdate = (
-	fn: (payload: ClipboardPayload, oldPayload?: ClipboardPayload) => void,
-) => {
+export const onClipboardUpdate = (fn: (payload: ClipboardPayload) => void) => {
 	let payload: ClipboardPayload;
-	let oldPayload: ClipboardPayload;
 
 	return listen(CLIPBOARD_PLUGIN.CLIPBOARD_UPDATE, async () => {
 		if (await hasFiles()) {
@@ -209,8 +206,6 @@ export const onClipboardUpdate = (
 			payload = { ...textPayload, type: "text" };
 		}
 
-		fn(payload, oldPayload);
-
-		oldPayload = payload;
+		fn(payload);
 	});
 };
