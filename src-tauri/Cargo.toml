@@ -20,6 +20,7 @@ tauri-plugin-autostart = { git = "https://github.com/tauri-apps/plugins-workspac
 tauri-plugin-sql = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1",features = ["sqlite"] }
 window-shadows = "0.2.2"
 clipboard-rs = "0.1.7"
+image-base64 = "0.1.0"
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!

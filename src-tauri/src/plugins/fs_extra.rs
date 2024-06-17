@@ -1,3 +1,4 @@
+use image_base64::to_base64;
 use std::{fs, path::PathBuf};
 use tauri::{
     command, generate_handler,
@@ -63,8 +64,13 @@ async fn exists(path: PathBuf) -> bool {
     path.exists()
 }
 
+#[command]
+pub async fn get_image_base64(path: &str) -> Result<String> {
+    Ok(to_base64(path))
+}
+
 pub fn init() -> TauriPlugin<Wry> {
     Builder::new("fs-extra")
-        .invoke_handler(generate_handler![metadata, exists])
+        .invoke_handler(generate_handler![metadata, exists, get_image_base64])
         .build()
 }

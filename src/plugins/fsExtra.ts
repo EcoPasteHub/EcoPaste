@@ -23,3 +23,9 @@ export const metadata = async (path: string) => {
 
 	return mapKeys(result, (_, key) => camelCase(key)) as Metadata;
 };
+
+export const getImageBase64 = async (path: string) => {
+	return await invoke<string>(FS_EXTRA_PLUGIN.GET_IMAGE_BASE64, {
+		path,
+	});
+};
