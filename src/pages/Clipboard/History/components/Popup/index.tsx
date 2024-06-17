@@ -40,6 +40,24 @@ const Popup = () => {
 		}
 	};
 
+	const renderSize = (data: HistoryItem) => {
+		const { type, size = 0 } = data;
+
+		if (type === "files" || type === "image") {
+			return `${size}B`;
+		}
+
+		return `${size}个字符`;
+	};
+
+	const renderPixel = (data: HistoryItem) => {
+		const { type, width, height } = data;
+
+		if (type !== "image") return;
+
+		return `${width}×${height}`;
+	};
+
 	const writeContent = (data: HistoryItem) => {
 		const { type, value = "" } = data;
 
@@ -119,6 +137,8 @@ const Popup = () => {
 						<Flex justify="space-between" className="color-2">
 							<Flex align="center" gap={6} className="text-12">
 								<span>{getChineseType(historyData)}</span>
+								<span>{renderSize(historyData)}</span>
+								<span>{renderPixel(historyData)}</span>
 								<span>{dayjs(createTime).fromNow()}</span>
 							</Flex>
 
