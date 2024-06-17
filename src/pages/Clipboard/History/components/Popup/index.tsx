@@ -55,7 +55,11 @@ const Popup = () => {
 
 		if (type !== "image") return;
 
-		return `${width}×${height}`;
+		return (
+			<span>
+				{width}×{height}
+			</span>
+		);
 	};
 
 	const writeContent = (data: HistoryItem) => {
@@ -138,7 +142,7 @@ const Popup = () => {
 							<Flex align="center" gap={6} className="text-12">
 								<span>{getChineseType(historyData)}</span>
 								<span>{renderSize(historyData)}</span>
-								<span>{renderPixel(historyData)}</span>
+								{renderPixel(historyData)}
 								<span>{dayjs(createTime).fromNow()}</span>
 							</Flex>
 

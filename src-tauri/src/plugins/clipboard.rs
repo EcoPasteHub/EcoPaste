@@ -1,7 +1,7 @@
 // use crate::fs_extra::Result;
 use clipboard_rs::{
     common::RustImage, Clipboard, ClipboardContext, ClipboardHandler, ClipboardWatcher,
-    ClipboardWatcherContext, ContentFormat, WatcherShutdown,
+    ClipboardWatcherContext, ContentFormat, RustImageData, WatcherShutdown,
 };
 use std::{
     fs::create_dir_all,
@@ -192,7 +192,9 @@ async fn write_files(manager: State<'_, ClipboardManager>, value: Vec<String>) -
 
 #[command]
 async fn write_image(manager: State<'_, ClipboardManager>, value: String) -> Result<()> {
-    write_files(manager, vec![value]).await.unwrap();
+    let image = RustImageData::from_path(&value).unwrap();
+
+    manager.context.set_image(image).unwrap();
 
     Ok(())
 }
