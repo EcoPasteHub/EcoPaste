@@ -19,11 +19,11 @@ const DefaultLayout = () => {
 
 		createWindow("/clipboard-history");
 
-		listen(LISTEN_KEY.TRAY_GITHUB, () => {
+		listen(LISTEN_KEY.GITHUB, () => {
 			open(GITHUB_LINK);
 		});
 
-		listen(LISTEN_KEY.TRAY_ABOUT, () => {
+		listen(LISTEN_KEY.ABOUT, () => {
 			showWindow();
 
 			navigate("/about");

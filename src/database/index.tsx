@@ -1,6 +1,6 @@
 import type { TableName, TablePayload } from "@/types/database";
 import { getName } from "@tauri-apps/api/app";
-import { appConfigDir } from "@tauri-apps/api/path";
+import { appDataDir } from "@tauri-apps/api/path";
 import { isBoolean, isNil, map, omitBy } from "lodash-es";
 import Database from "tauri-plugin-sql-api";
 
@@ -8,10 +8,10 @@ let db: Database;
 
 export const initDatabase = async () => {
 	const appName = await getName();
-	const configDir = await appConfigDir();
+	const dataDir = await appDataDir();
 	const extensionName = isDev() ? "dev.db" : "db";
 
-	db = await Database.load(`sqlite:${configDir}${appName}.${extensionName}`);
+	db = await Database.load(`sqlite:${dataDir}${appName}.${extensionName}`);
 
 	await executeSQL(
 		`

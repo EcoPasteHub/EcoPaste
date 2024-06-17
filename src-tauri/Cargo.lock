@@ -1182,6 +1182,7 @@ checksum = "56ce8c6da7551ec6c462cbaf3bfbc75131ebbfa1c944aeaa9dab51ca1c5f0c3b"
 name = "eco-copy"
 version = "0.0.0"
 dependencies = [
+ "clipboard-rs",
  "serde",
  "serde_json",
  "tauri",
@@ -1191,7 +1192,6 @@ dependencies = [
  "tauri-plugin-single-instance",
  "tauri-plugin-sql",
  "tauri-plugin-theme",
- "thiserror",
  "window-shadows",
 ]
 

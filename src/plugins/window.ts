@@ -1,3 +1,4 @@
+import { WINDOW_PLUGIN } from "@/constants";
 import type { Path } from "@/types/router";
 import { invoke } from "@tauri-apps/api";
 import { appWindow } from "@tauri-apps/api/window";
@@ -11,7 +12,7 @@ export const createWindow = (path: Path) => {
 
 	const options = find(routes, { path })?.meta?.windowOptions;
 
-	invoke("plugin:window|create_window", {
+	invoke(WINDOW_PLUGIN.CREATE_WINDOW, {
 		label,
 		options: {
 			url: path,
@@ -24,17 +25,17 @@ export const createWindow = (path: Path) => {
 /**
  * 显示窗口
  */
-export const showWindow = () => invoke("plugin:window|show_window");
+export const showWindow = () => invoke(WINDOW_PLUGIN.SHOW_WINDOW);
 
 /**
  * 隐藏窗口
  */
-export const hideWindow = () => invoke("plugin:window|hide_window");
+export const hideWindow = () => invoke(WINDOW_PLUGIN.HIDE_WINDOW);
 
 /**
  * 退出 app
  */
-export const quitApp = () => invoke("plugin:window|quit_app");
+export const quitApp = () => invoke(WINDOW_PLUGIN.QUIT_APP);
 
 /**
  * 切换窗口的显示和隐藏

@@ -5,7 +5,7 @@ mod plugins;
 mod tray;
 
 use plugins::{
-    fs_extra,
+    clipboard, fs_extra,
     window::{self, show_window, MAIN_WINDOW_LABEL},
 };
 use tauri::{async_runtime, generate_context, generate_handler, Builder, Manager, WindowEvent};
@@ -53,6 +53,8 @@ fn main() {
         .plugin(window::init())
         // 自定义的 fs_extra 插件
         .plugin(fs_extra::init())
+        // 自定义剪切板插件
+        .plugin(clipboard::init())
         // 系统托盘：https://tauri.app/v1/guides/features/system-tray
         .system_tray(tray::menu())
         .on_system_tray_event(tray::handler)
