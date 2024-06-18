@@ -17,6 +17,9 @@ dependencies:
   antd:
     specifier: ^5.18.0
     version: 5.18.0(react-dom@18.3.1)(react@18.3.1)
+  arcdash:
+    specifier: ^0.0.51
+    version: 0.0.51
   clsx:
     specifier: ^2.1.1
     version: 2.1.1
@@ -44,6 +47,9 @@ dependencies:
   tauri-plugin-sql-api:
     specifier: github:tauri-apps/tauri-plugin-sql#v1
     version: github.com/tauri-apps/tauri-plugin-sql/6a4a14c36b1ad49c9f468351706d104a54e0540c
+  tauri-plugin-store-api:
+    specifier: github:tauri-apps/tauri-plugin-store#v1
+    version: github.com/tauri-apps/tauri-plugin-store/51717bbde4101f44d3e2191907419f6f7085e2ef
   valtio:
     specifier: ^1.13.2
     version: 1.13.2(@types/react@18.3.3)(react@18.3.1)
@@ -1919,6 +1925,11 @@ packages:
       normalize-path: 3.0.0
       picomatch: 2.3.1
     dev: true
+
+  /arcdash@0.0.51:
+    resolution: {integrity: sha512-jWcyM6p4I/grV01sWl56Pvxy/a/h1Yv+ETo0i3vPuAYaYiLEBhdGE3Xpbv3aJ2x8d7UEzn7ke1FE41Vh0+4U1Q==}
+    engines: {node: '>=18.0.0'}
+    dev: false
 
   /argparse@2.0.1:
     resolution: {integrity: sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q==}
@@ -4958,6 +4969,14 @@ packages:
   github.com/tauri-apps/tauri-plugin-sql/6a4a14c36b1ad49c9f468351706d104a54e0540c:
     resolution: {tarball: https://codeload.github.com/tauri-apps/tauri-plugin-sql/tar.gz/6a4a14c36b1ad49c9f468351706d104a54e0540c}
     name: tauri-plugin-sql-api
+    version: 0.0.0
+    dependencies:
+      '@tauri-apps/api': 1.5.6
+    dev: false
+
+  github.com/tauri-apps/tauri-plugin-store/51717bbde4101f44d3e2191907419f6f7085e2ef:
+    resolution: {tarball: https://codeload.github.com/tauri-apps/tauri-plugin-store/tar.gz/51717bbde4101f44d3e2191907419f6f7085e2ef}
+    name: tauri-plugin-store-api
     version: 0.0.0
     dependencies:
       '@tauri-apps/api': 1.5.6

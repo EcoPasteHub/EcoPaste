@@ -1,4 +1,5 @@
 import type { HistoryItem } from "@/types/database";
+import { isNil } from "lodash-es";
 import type { FC } from "react";
 
 const Image: FC<HistoryItem> = (props) => {
@@ -7,7 +8,13 @@ const Image: FC<HistoryItem> = (props) => {
 	const [base64, setBase64] = useState("");
 
 	useMount(async () => {
-		const base64 = await getImageBase64(value);
+		let base64 = await getStore(value);
+
+		if (isNil(base64)) {
+			base64 = await getImageBase64(value);
+
+			setStore(value, base64);
+		}
 
 		setBase64(base64);
 	});

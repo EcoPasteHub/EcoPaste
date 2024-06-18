@@ -33,6 +33,8 @@ const ClipboardHistory = () => {
 	const state = useReactive<State>(INITIAL_STATE);
 
 	useMount(async () => {
+		await initStore();
+
 		await initDatabase();
 
 		startListen();

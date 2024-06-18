@@ -1191,6 +1191,7 @@ dependencies = [
  "tauri-plugin-autostart",
  "tauri-plugin-single-instance",
  "tauri-plugin-sql",
+ "tauri-plugin-store",
  "tauri-plugin-theme",
  "window-shadows",
 ]
@@ -5017,7 +5018,7 @@ dependencies = [
 [[package]]
 name = "tauri-plugin-autostart"
 version = "0.0.0"
-source = "git+https://github.com/tauri-apps/plugins-workspace?branch=v1#562425644ef7c11a7b301a30c07a8c8b545621a8"
+source = "git+https://github.com/tauri-apps/plugins-workspace?branch=v1#0d649843c6b49b7a69200816c8d5195f9953a4fb"
 dependencies = [
  "auto-launch",
  "log",
@@ -5030,7 +5031,7 @@ dependencies = [
 [[package]]
 name = "tauri-plugin-single-instance"
 version = "0.0.0"
-source = "git+https://github.com/tauri-apps/plugins-workspace?branch=v1#562425644ef7c11a7b301a30c07a8c8b545621a8"
+source = "git+https://github.com/tauri-apps/plugins-workspace?branch=v1#0d649843c6b49b7a69200816c8d5195f9953a4fb"
 dependencies = [
  "log",
  "serde",
@@ -5044,7 +5045,7 @@ dependencies = [
 [[package]]
 name = "tauri-plugin-sql"
 version = "0.0.0"
-source = "git+https://github.com/tauri-apps/plugins-workspace?branch=v1#562425644ef7c11a7b301a30c07a8c8b545621a8"
+source = "git+https://github.com/tauri-apps/plugins-workspace?branch=v1#0d649843c6b49b7a69200816c8d5195f9953a4fb"
 dependencies = [
  "futures-core",
  "log",
@@ -5055,6 +5056,18 @@ dependencies = [
  "thiserror",
  "time",
  "tokio",
+]
+
+[[package]]
+name = "tauri-plugin-store"
+version = "0.0.0"
+source = "git+https://github.com/tauri-apps/plugins-workspace?branch=v1#0d649843c6b49b7a69200816c8d5195f9953a4fb"
+dependencies = [
+ "log",
+ "serde",
+ "serde_json",
+ "tauri",
+ "thiserror",
 ]
 
 [[package]]
