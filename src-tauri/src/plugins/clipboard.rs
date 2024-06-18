@@ -49,10 +49,7 @@ impl ClipboardListen {
 impl ClipboardHandler for ClipboardListen {
     fn on_clipboard_change(&mut self) {
         self.app_handle
-            .emit_all(
-                "plugin:clipboard-111://clipboard_update",
-                "Clipboard updated",
-            )
+            .emit_all("plugin:clipboard://clipboard_update", "Clipboard updated")
             .unwrap();
     }
 }
@@ -221,7 +218,7 @@ async fn write_text(manager: State<'_, ClipboardManager>, value: String) -> Resu
 }
 
 pub fn init() -> TauriPlugin<Wry> {
-    Builder::new("clipboard-111")
+    Builder::new("clipboard")
         .setup(move |app| {
             let mut manager = ClipboardManager::new();
 
