@@ -1,8 +1,8 @@
 import copyAudio from "@/assets/audio/copy.mp3";
 import type { HistoryGroup, HistoryItem } from "@/types/database";
 import { listen } from "@tauri-apps/api/event";
+import { isArray } from "arcdash";
 import clsx from "clsx";
-import { isArray } from "lodash-es";
 import { createContext } from "react";
 import { useSnapshot } from "valtio";
 import Header from "./components/Header";

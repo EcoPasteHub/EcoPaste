@@ -1,6 +1,7 @@
 import Icon from "@/components/Icon";
 import type { HistoryItem } from "@/types/database";
 import { Flex, Popconfirm } from "antd";
+import { autoConvertBytes } from "arcdash";
 import clsx from "clsx";
 import { FixedSizeList } from "react-window";
 import { HistoryContext } from "../..";
@@ -44,7 +45,7 @@ const List = () => {
 		const { type, size = 0 } = data;
 
 		if (type === "files" || type === "image") {
-			return `${size}B`;
+			return autoConvertBytes(size);
 		}
 
 		return `${size}个字符`;
