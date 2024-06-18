@@ -1,7 +1,7 @@
 import ShortcutKey from "@/components/ShortcutKey";
 import { Card, Flex, Switch } from "antd";
 import { useSnapshot } from "valtio";
-import Record from "./components/Record";
+import Capacity from "./components/Capacity";
 
 const Clipboard = () => {
 	const { wakeUpKey, enableAudio } = useSnapshot(clipboardStore);
@@ -31,7 +31,8 @@ const Clipboard = () => {
 					</Flex>
 				</Flex>
 			</Card>
-			<Record />
+
+			<Capacity />
 		</Flex>
 	);
 };

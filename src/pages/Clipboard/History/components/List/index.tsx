@@ -10,7 +10,7 @@ import Image from "./components/Image";
 import Rtf from "./components/Rtf";
 import Text from "./components/Text";
 
-const Popup = () => {
+const List = () => {
 	const { state, getHistoryList } = useContext(HistoryContext);
 
 	const [visibleStartIndex, setVisibleStartIndex] = useState(0);
@@ -185,4 +185,4 @@ const Popup = () => {
 	);
 };
 
-export default Popup;
+export default List;

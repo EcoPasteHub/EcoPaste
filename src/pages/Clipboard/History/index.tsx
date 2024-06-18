@@ -6,7 +6,7 @@ import { isArray } from "lodash-es";
 import { createContext } from "react";
 import { useSnapshot } from "valtio";
 import Header from "./components/Header";
-import Popup from "./components/Popup";
+import List from "./components/List";
 
 interface State extends HistoryItem {
 	historyList: HistoryItem[];
@@ -131,7 +131,7 @@ const ClipboardHistory = () => {
 			>
 				<Header />
 
-				<Popup />
+				<List />
 			</HistoryContext.Provider>
 		</div>
 	);

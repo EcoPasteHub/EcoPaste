@@ -14,9 +14,9 @@ export interface ReadImage {
 export type ClipboardType = "text" | "rtf" | "html" | "image" | "files";
 
 export interface ClipboardPayload {
-	width?: number;
-	height?: number;
 	type: ClipboardType;
 	size: number;
 	value: string | string[];
+	width?: number;
+	height?: number;
 }
