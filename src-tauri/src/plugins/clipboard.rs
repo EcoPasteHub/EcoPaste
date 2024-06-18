@@ -155,10 +155,12 @@ async fn read_image(manager: State<'_, ClipboardManager>) -> Result<ReadImage> {
     if let Some(path) = save_path.to_str() {
         image.save_to_path(path).unwrap();
 
+        let image = path.to_string();
+
         return Ok(ReadImage {
             width,
             height,
-            image: path.to_string(),
+            image,
         });
     }
 
