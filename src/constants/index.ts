@@ -16,9 +16,9 @@ export const WINDOW_PLUGIN = {
 };
 
 export const FS_EXTRA_PLUGIN = {
-	EXISTS: "plugin:fs-extra|exists",
 	METADATA: "plugin:fs-extra|metadata",
 	GET_IMAGE_BASE64: "plugin:fs-extra|get_image_base64",
+	VIEW_FILE: "plugin:fs-extra|view_file",
 };
 
 export const CLIPBOARD_PLUGIN = {

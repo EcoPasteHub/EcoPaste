@@ -19,3 +19,10 @@ export const getImageBase64 = async (path: string) => {
 		path,
 	});
 };
+
+export const viewFile = (path: string, finder = true) => {
+	return invoke(FS_EXTRA_PLUGIN.VIEW_FILE, {
+		path,
+		finder,
+	});
+};

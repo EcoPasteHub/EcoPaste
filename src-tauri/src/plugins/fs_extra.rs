@@ -1,6 +1,6 @@
 use base64::{engine::general_purpose, Engine};
 use clipboard_rs::{common::RustImage, RustImageData};
-use std::{fs, path::PathBuf};
+use std::{fs, path::PathBuf, process::Command};
 use tauri::{
     command, generate_handler,
     plugin::{Builder, TauriPlugin},
@@ -61,7 +61,7 @@ async fn metadata(path: PathBuf) -> Result<Metadata> {
 }
 
 #[command]
-pub async fn get_image_base64(path: &str) -> Result<String> {
+async fn get_image_base64(path: &str) -> Result<String> {
     let image = RustImageData::from_path(path).unwrap();
 
     let bytes = image.to_png().unwrap().get_bytes().to_vec();
@@ -71,8 +71,32 @@ pub async fn get_image_base64(path: &str) -> Result<String> {
     Ok(format!("data:image/png;base64,{base64}"))
 }
 
+#[command]
+async fn view_file(path: &str, finder: Option<bool>) -> Result<()> {
+    let finder = finder.unwrap_or(true);
+
+    let mut program = "open";
+    let mut args = vec![path];
+
+    if cfg!(target_os = "windows") {
+        program = "explorer"
+    }
+
+    if finder {
+        if cfg!(target_os = "windows") {
+            args.insert(0, "/select,")
+        } else {
+            args.insert(0, "-R")
+        }
+    }
+
+    Command::new(program).args(args).spawn().unwrap();
+
+    Ok(())
+}
+
 pub fn init() -> TauriPlugin<Wry> {
     Builder::new("fs-extra")
-        .invoke_handler(generate_handler![metadata, get_image_base64])
+        .invoke_handler(generate_handler![metadata, get_image_base64, view_file])
         .build()
 }

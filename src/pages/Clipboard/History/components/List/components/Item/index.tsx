@@ -61,7 +61,7 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 	const exportTXT = async () => {
 		const appName = await getName();
 
-		writeFile(`${appName}_${Date.now()}.txt`, value, {
+		writeFile(`${appName}_${id}.txt`, value, {
 			dir: BaseDirectory.Download,
 		});
 	};
@@ -72,6 +72,12 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 		copyFile(value, fileName!, {
 			dir: BaseDirectory.Download,
 		});
+	};
+
+	const openFinder = () => {
+		const [file] = JSON.parse(value);
+
+		viewFile(file);
 	};
 
 	const deleteItem = async () => {
@@ -120,7 +126,7 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 		getHistoryList?.();
 	};
 
-	const handleContextMenu = (event: MouseEvent) => {
+	const handleContextMenu = async (event: MouseEvent) => {
 		const { group } = data[index];
 
 		event.preventDefault();
@@ -160,8 +166,9 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 				event: downloadImage,
 			},
 			{
-				label: "打开文件（夹）所在位置",
+				label: (await isMac()) ? "在 Finder 中显示" : "在文件资源管理器中显示",
 				hide: type !== "files",
+				event: openFinder,
 			},
 			{
 				label: "删除",
