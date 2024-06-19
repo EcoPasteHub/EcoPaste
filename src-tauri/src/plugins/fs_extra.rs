@@ -61,11 +61,6 @@ async fn metadata(path: PathBuf) -> Result<Metadata> {
 }
 
 #[command]
-async fn exists(path: PathBuf) -> bool {
-    path.exists()
-}
-
-#[command]
 pub async fn get_image_base64(path: &str) -> Result<String> {
     let image = RustImageData::from_path(path).unwrap();
 
@@ -78,6 +73,6 @@ pub async fn get_image_base64(path: &str) -> Result<String> {
 
 pub fn init() -> TauriPlugin<Wry> {
     Builder::new("fs-extra")
-        .invoke_handler(generate_handler![metadata, exists, get_image_base64])
+        .invoke_handler(generate_handler![metadata, get_image_base64])
         .build()
 }
