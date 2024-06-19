@@ -96,11 +96,7 @@ export const readImage = async () => {
 export const readHTML = async () => {
 	const html = await invoke<string>(CLIPBOARD_PLUGIN.READ_HTML);
 
-	const divElement = document.createElement("div");
-
-	divElement.innerHTML = html;
-
-	const size = divElement.innerText.length;
+	const size = html2text(html).length;
 
 	return {
 		size,
@@ -208,4 +204,16 @@ export const onClipboardUpdate = (fn: (payload: ClipboardPayload) => void) => {
 
 		fn(payload);
 	});
+};
+
+/**
+ * 得到 HTML 内容的纯文本
+ * @param html html 内容
+ */
+export const html2text = (html: string) => {
+	const divElement = document.createElement("div");
+
+	divElement.innerHTML = html;
+
+	return divElement.innerText;
 };

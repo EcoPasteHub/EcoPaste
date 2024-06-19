@@ -1,3 +1,30 @@
+import { type } from "@tauri-apps/api/os";
+
+/**
+ * 是否为开发环境
+ */
+export const isDev = () => {
+	return import.meta.env.DEV;
+};
+
+/**
+ * 是否为 windows 系统
+ */
+export const isWin = async () => {
+	const osType = await type();
+
+	return osType === "Windows_NT";
+};
+
+/**
+ * 是否为 mac 系统
+ */
+export const isMac = async () => {
+	const osType = await type();
+
+	return osType === "Darwin";
+};
+
 /**
  * 是否为链接
  */

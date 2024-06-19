@@ -1,6 +1,7 @@
 import { Flex } from "antd";
+import { isEqual } from "arcdash";
 import clsx from "clsx";
-import { find, intersectionWith, isEqual, map, remove, some } from "lodash-es";
+import { find, intersectionWith, map, remove, some } from "lodash-es";
 import type { FC, KeyboardEvent } from "react";
 import { type Key, keys, modifierKeys, normalKeys } from "./keys";
 

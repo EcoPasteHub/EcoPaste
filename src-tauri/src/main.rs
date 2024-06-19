@@ -55,6 +55,7 @@ fn main() {
         .plugin(clipboard::init())
         // 全局状态管理插件：https://github.com/tauri-apps/tauri-plugin-store
         .plugin(tauri_plugin_store::Builder::default().build())
+        .plugin(tauri_plugin_context_menu::init())
         // 系统托盘：https://tauri.app/v1/guides/features/system-tray
         .system_tray(tray::menu())
         .on_system_tray_event(tray::handler)

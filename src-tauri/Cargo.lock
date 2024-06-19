@@ -1189,6 +1189,7 @@ dependencies = [
  "tauri",
  "tauri-build",
  "tauri-plugin-autostart",
+ "tauri-plugin-context-menu",
  "tauri-plugin-single-instance",
  "tauri-plugin-sql",
  "tauri-plugin-store",
@@ -2229,7 +2230,13 @@ dependencies = [
  "bytemuck",
  "byteorder",
  "color_quant",
+ "exr",
+ "gif",
+ "jpeg-decoder",
  "num-traits",
+ "png",
+ "qoi",
+ "tiff",
 ]
 
 [[package]]
@@ -2417,6 +2424,9 @@ name = "jpeg-decoder"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f5d4a7da358eff58addd2877a45865158f0d78c911d43a5784ceb7bbf52833b0"
+dependencies = [
+ "rayon",
+]
 
 [[package]]
 name = "js-sys"
@@ -5026,6 +5036,26 @@ dependencies = [
  "serde_json",
  "tauri",
  "thiserror",
+]
+
+[[package]]
+name = "tauri-plugin-context-menu"
+version = "0.7.1"
+source = "git+https://github.com/c2r0b/tauri-plugin-context-menu?branch=main#d8dcbcb944cf43eb946e65116ca358ee81f4f838"
+dependencies = [
+ "cocoa 0.24.1",
+ "dispatch",
+ "gdk",
+ "glib",
+ "gtk",
+ "image 0.24.9",
+ "lazy_static",
+ "libc",
+ "objc",
+ "serde",
+ "tauri",
+ "time",
+ "winapi",
 ]
 
 [[package]]

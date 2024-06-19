@@ -12,7 +12,11 @@
 	"tauri": {
 		"macOSPrivateApi": true,
 		"allowlist": {
-			"all": true
+			"all": true,
+			"fs": {
+				"all": true,
+				"scope": ["$APPDATA/**", "$DOWNLOAD/**"]
+			}
 		},
 		"windows": [
 			{
