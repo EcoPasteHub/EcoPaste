@@ -23,7 +23,11 @@
 				}
 			},
 			"style": {
-				"noNonNullAssertion": "off"
+				"noNonNullAssertion": "off",
+				"noUnusedTemplateLiteral": {
+					"level": "error",
+					"fix": "safe"
+				}
 			},
 			"security": {
 				"noDangerouslySetInnerHtml": "off"
