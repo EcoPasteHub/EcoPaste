@@ -66,6 +66,10 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 		});
 	};
 
+	const previewImage = () => {
+		viewFile(value, false);
+	};
+
 	const downloadImage = async () => {
 		const fileName = value.split("/").pop();
 
@@ -159,6 +163,11 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 				label: "导出为TXT",
 				hide: group !== "text",
 				event: exportTXT,
+			},
+			{
+				label: "预览图片",
+				hide: type !== "image",
+				event: previewImage,
 			},
 			{
 				label: "下载图片",

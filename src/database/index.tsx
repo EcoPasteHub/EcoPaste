@@ -139,7 +139,7 @@ export const updateSQL = async (
 export const deleteSQL = async (tableName: TableName, id?: number) => {
 	const list = await selectSQL<HistoryItem[]>("history", { id });
 
-	const deleteImage = (item: HistoryItem) => {
+	const deleteImageFile = (item: HistoryItem) => {
 		const { type, value = "" } = item;
 
 		if (type !== "image") return;
@@ -152,12 +152,12 @@ export const deleteSQL = async (tableName: TableName, id?: number) => {
 	if (id) {
 		await executeSQL(`DELETE FROM ${tableName} WHERE id = ?;`, [id]);
 
-		deleteImage(list[0]);
+		deleteImageFile(list[0]);
 	} else {
 		await executeSQL(`DELETE FROM ${tableName};`);
 
 		for (const item of list) {
-			deleteImage(item);
+			deleteImageFile(item);
 		}
 	}
 };
