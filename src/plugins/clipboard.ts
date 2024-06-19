@@ -199,7 +199,7 @@ export const onClipboardUpdate = (fn: (payload: ClipboardPayload) => void) => {
 		} else if (await hasRichText()) {
 			const richTextPayload = await readRichText();
 
-			payload = { ...richTextPayload, type: "rtf" };
+			payload = { ...richTextPayload, type: "rich-text" };
 		} else if (await hasText()) {
 			const textPayload = await readText();
 

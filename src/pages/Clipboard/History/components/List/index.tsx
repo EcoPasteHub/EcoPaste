@@ -68,7 +68,7 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 				}
 
 				return "文本";
-			case "rtf":
+			case "rich-text":
 				return "富文本";
 			case "html":
 				return "HTML";
@@ -103,7 +103,7 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 		switch (type) {
 			case "text":
 				return writeText(value);
-			case "rtf":
+			case "rich-text":
 				return writeRichText(value);
 			case "html":
 				return writeHTML(value);
@@ -133,7 +133,7 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 		const props = data[index];
 
 		switch (type) {
-			case "rtf":
+			case "rich-text":
 				return <RichText {...props} />;
 			case "html":
 				return <HTML {...props} />;
@@ -152,7 +152,7 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 				vertical
 				gap={6}
 				className="b b-color-2 hover:b-primary h-full rounded-6 bg-1 p-6 transition"
-				onDoubleClick={() => writeContent()}
+				onDoubleClick={writeContent}
 			>
 				<Flex justify="space-between" className="color-2">
 					<Flex align="center" gap={6} className="text-12">
@@ -166,18 +166,18 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 						<Icon
 							hoverable
 							name="i-iconamoon:copy"
-							onMouseDown={() => writeContent()}
+							onMouseDown={writeContent}
 						/>
 						<Icon
 							hoverable
 							name={isCollected ? "i-iconamoon:star-fill" : "i-iconamoon:star"}
 							className={clsx({ "text-gold!": isCollected })}
-							onMouseDown={() => collect()}
+							onMouseDown={collect}
 						/>
 						<Popconfirm
 							title="确定删除该历史记录？"
 							placement="left"
-							onConfirm={() => deleteItem()}
+							onConfirm={deleteItem}
 						>
 							<Icon
 								hoverable
