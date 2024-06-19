@@ -1,11 +1,35 @@
-import type { TableName, TablePayload } from "@/types/database";
+import type { HistoryItem, TableName, TablePayload } from "@/types/database";
 import { getName } from "@tauri-apps/api/app";
+import { removeFile } from "@tauri-apps/api/fs";
 import { appDataDir } from "@tauri-apps/api/path";
 import { isBoolean, isNil, map, omitBy } from "lodash-es";
 import Database from "tauri-plugin-sql-api";
 
 let db: Database;
 
+/**
+ * 处理参数
+ * @param payload 数据
+ */
+const handlePayload = (payload: TablePayload) => {
+	const omitPayload = omitBy(payload, isNil);
+
+	const keys = map(Object.keys(omitPayload), (key) => `[${key}]`);
+	const refs = map(keys, () => "?");
+	const values = map(Object.values(omitPayload), (item) => {
+		return isBoolean(item) ? Number(item) : item;
+	});
+
+	return {
+		keys,
+		refs,
+		values,
+	};
+};
+
+/**
+ * 初始化数据库
+ */
 export const initDatabase = async () => {
 	const appName = await getName();
 	const dataDir = await appDataDir();
@@ -113,29 +137,27 @@ export const updateSQL = async (
  * @param id 删除数据的 id
  */
 export const deleteSQL = async (tableName: TableName, id?: number) => {
+	const list = await selectSQL<HistoryItem[]>("history", { id });
+
+	const deleteImage = (item: HistoryItem) => {
+		const { type, value = "" } = item;
+
+		if (type !== "image") return;
+
+		deleteStore(value);
+
+		removeFile(value);
+	};
+
 	if (id) {
 		await executeSQL(`DELETE FROM ${tableName} WHERE id = ?;`, [id]);
+
+		deleteImage(list[0]);
 	} else {
 		await executeSQL(`DELETE FROM ${tableName};`);
+
+		for (const item of list) {
+			deleteImage(item);
+		}
 	}
-};
-
-/**
- * 处理参数
- * @param payload 数据
- */
-const handlePayload = (payload: TablePayload) => {
-	const omitPayload = omitBy(payload, isNil);
-
-	const keys = map(Object.keys(omitPayload), (key) => `[${key}]`);
-	const refs = map(keys, () => "?");
-	const values = map(Object.values(omitPayload), (item) => {
-		return isBoolean(item) ? Number(item) : item;
-	});
-
-	return {
-		keys,
-		refs,
-		values,
-	};
 };
