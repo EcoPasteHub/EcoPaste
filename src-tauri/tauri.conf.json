@@ -12,7 +12,18 @@
 	"tauri": {
 		"macOSPrivateApi": true,
 		"allowlist": {
-			"all": true,
+			"os": {
+				"all": true
+			},
+			"globalShortcut": {
+				"all": true
+			},
+			"shell": {
+				"open": true
+			},
+			"path": {
+				"all": true
+			},
 			"fs": {
 				"all": true,
 				"scope": ["$APPDATA/**", "$DOWNLOAD/**"]
@@ -20,6 +31,9 @@
 			"protocol": {
 				"asset": true,
 				"assetScope": ["$APPDATA/images/*"]
+			},
+			"window": {
+				"startDragging": true
 			}
 		},
 		"windows": [
