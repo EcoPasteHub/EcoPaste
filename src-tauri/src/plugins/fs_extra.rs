@@ -1,5 +1,3 @@
-use base64::{engine::general_purpose, Engine};
-use clipboard_rs::{common::RustImage, RustImageData};
 use std::{fs, path::PathBuf, process::Command};
 use tauri::{
     command, generate_handler,
