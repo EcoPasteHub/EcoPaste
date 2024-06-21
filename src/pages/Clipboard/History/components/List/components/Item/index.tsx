@@ -1,12 +1,12 @@
 import { HistoryContext } from "@/pages/Clipboard/History";
 import type { HistoryItem } from "@/types/database";
-import { getName } from "@tauri-apps/api/app";
 import { BaseDirectory, copyFile, writeFile } from "@tauri-apps/api/fs";
 import { open } from "@tauri-apps/api/shell";
 import { Flex } from "antd";
 import type { FC, MouseEvent } from "react";
 import { type ListChildComponentProps, areEqual } from "react-window";
 import { type ContextMenu, showMenu } from "tauri-plugin-context-menu";
+import { useSnapshot } from "valtio";
 import Files from "./components/Files";
 import HTML from "./components/HTML";
 import Header from "./components/Header";
@@ -19,6 +19,7 @@ interface MenuItem extends ContextMenu.Item {
 }
 
 const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
+	const { appInfo } = useSnapshot(globalStore);
 	const { getHistoryList } = useContext(HistoryContext);
 
 	const { index, style, data } = props;
@@ -59,9 +60,7 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 	};
 
 	const exportTXT = async () => {
-		const appName = await getName();
-
-		writeFile(`${appName}_${id}.txt`, value, {
+		writeFile(`${appInfo?.name}_${id}.txt`, value, {
 			dir: BaseDirectory.Download,
 		});
 	};
@@ -71,9 +70,7 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 	};
 
 	const downloadImage = async () => {
-		const fileName = value.split("/").pop();
-
-		copyFile(value, fileName!, {
+		copyFile(value, `${appInfo?.name}_${id}.png`, {
 			dir: BaseDirectory.Download,
 		});
 	};
