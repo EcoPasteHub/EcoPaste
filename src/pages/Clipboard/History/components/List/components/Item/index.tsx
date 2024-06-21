@@ -224,6 +224,7 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 				gap={6}
 				className="b b-color-2 hover:b-primary h-full rounded-6 bg-1 p-6 transition"
 				onContextMenu={handleContextMenu}
+				onDoubleClick={copy}
 			>
 				<Header
 					{...data[index]}
