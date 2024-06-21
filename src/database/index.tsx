@@ -144,8 +144,6 @@ export const deleteSQL = async (tableName: TableName, id?: number) => {
 
 		if (type !== "image") return;
 
-		deleteStore(value);
-
 		removeFile(value);
 	};
 
