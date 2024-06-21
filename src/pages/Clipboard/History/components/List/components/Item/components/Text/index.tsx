@@ -26,4 +26,4 @@ const Text: FC<HistoryItem> = (props) => {
 	);
 };
 
-export default Text;
+export default memo(Text);

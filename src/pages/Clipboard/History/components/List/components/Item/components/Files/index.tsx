@@ -9,4 +9,4 @@ const Files: FC<HistoryItem> = (props) => {
 	return <div>{paths.join("\n")}</div>;
 };
 
-export default Files;
+export default memo(Files);

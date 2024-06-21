@@ -7,4 +7,4 @@ const RichText: FC<HistoryItem> = (props) => {
 	return value;
 };
 
-export default RichText;
+export default memo(RichText);

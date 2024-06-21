@@ -16,4 +16,4 @@ const Image: FC<HistoryItem> = (props) => {
 	return <img src={src} />;
 };
 
-export default Image;
+export default memo(Image);

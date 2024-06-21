@@ -7,4 +7,4 @@ const HTML: FC<HistoryItem> = (props) => {
 	return <div dangerouslySetInnerHTML={{ __html: value }} />;
 };
 
-export default HTML;
+export default memo(HTML);

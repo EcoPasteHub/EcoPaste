@@ -15,4 +15,5 @@ export interface ClipboardStore {
 	wakeUpKey: string;
 	enableAudio?: boolean;
 	capacity: number;
+	visibleStartIndex: number;
 }

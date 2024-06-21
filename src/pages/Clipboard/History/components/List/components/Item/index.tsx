@@ -20,6 +20,7 @@ interface MenuItem extends ContextMenu.Item {
 
 const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 	const { appInfo } = useSnapshot(globalStore);
+	const { visibleStartIndex } = useSnapshot(clipboardStore);
 	const { getHistoryList } = useContext(HistoryContext);
 
 	const { index, style, data } = props;
@@ -217,25 +218,26 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 		}
 	};
 
-	return (
-		<div style={style} className="last-of-type:h-120! not-last-of-type:pb-12">
-			<Flex
-				vertical
-				gap={6}
-				className="b b-color-2 hover:b-primary h-full rounded-6 bg-1 p-6 transition"
-				onContextMenu={handleContextMenu}
-				onDoubleClick={copy}
-			>
-				<Header
-					{...data[index]}
-					copy={copy}
-					collect={collect}
-					deleteItem={deleteItem}
-				/>
+	const top = Number(style.top) + (index - visibleStartIndex) * 12;
 
-				<div className="flex-1 overflow-hidden">{renderContent()}</div>
-			</Flex>
-		</div>
+	return (
+		<Flex
+			vertical
+			gap={6}
+			style={{ ...style, top }}
+			className="b b-color-2 hover:b-primary h-full rounded-6 bg-1 p-6 transition"
+			onContextMenu={handleContextMenu}
+			onDoubleClick={copy}
+		>
+			<Header
+				{...data[index]}
+				copy={copy}
+				collect={collect}
+				deleteItem={deleteItem}
+			/>
+
+			<div className="flex-1 overflow-hidden">{renderContent()}</div>
+		</Flex>
 	);
 }, areEqual);
 
