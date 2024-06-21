@@ -29,7 +29,6 @@
 		"tauri-plugin-autostart-api": "github:tauri-apps/tauri-plugin-autostart#v1",
 		"tauri-plugin-context-menu": "^0.7.0",
 		"tauri-plugin-sql-api": "github:tauri-apps/tauri-plugin-sql#v1",
-		"tauri-plugin-store-api": "github:tauri-apps/tauri-plugin-store#v1",
 		"valtio": "^1.13.2",
 		"valtio-persist": "^1.0.2"
 	},

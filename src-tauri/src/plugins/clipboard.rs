@@ -1,4 +1,3 @@
-// use crate::fs_extra::Result;
 use clipboard_rs::{
     common::RustImage, Clipboard, ClipboardContext, ClipboardHandler, ClipboardWatcher,
     ClipboardWatcherContext, ContentFormat, RustImageData, WatcherShutdown,

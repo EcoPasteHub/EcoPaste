@@ -61,17 +61,6 @@ async fn metadata(path: PathBuf) -> Result<Metadata> {
 }
 
 #[command]
-async fn get_image_base64(path: &str) -> Result<String> {
-    let image = RustImageData::from_path(path).unwrap();
-
-    let bytes = image.to_png().unwrap().get_bytes().to_vec();
-
-    let base64 = general_purpose::STANDARD.encode(bytes);
-
-    Ok(format!("data:image/png;base64,{base64}"))
-}
-
-#[command]
 async fn view_file(path: &str, finder: Option<bool>) -> Result<()> {
     let finder = finder.unwrap_or(true);
 
@@ -97,6 +86,6 @@ async fn view_file(path: &str, finder: Option<bool>) -> Result<()> {
 
 pub fn init() -> TauriPlugin<Wry> {
     Builder::new("fs-extra")
-        .invoke_handler(generate_handler![metadata, get_image_base64, view_file])
+        .invoke_handler(generate_handler![metadata, view_file])
         .build()
 }

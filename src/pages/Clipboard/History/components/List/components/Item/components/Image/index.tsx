@@ -1,25 +1,19 @@
 import type { HistoryItem } from "@/types/database";
-import { isNil } from "lodash-es";
+import { convertFileSrc } from "@tauri-apps/api/tauri";
 import type { FC } from "react";
 
 const Image: FC<HistoryItem> = (props) => {
 	const { value = "" } = props;
 
-	const [base64, setBase64] = useState("");
+	const [src, setSrc] = useState("");
 
 	useMount(async () => {
-		let base64 = await getStore(value);
+		const src = await convertFileSrc(value);
 
-		if (isNil(base64)) {
-			base64 = await getImageBase64(value);
-
-			setStore(value, base64);
-		}
-
-		setBase64(base64);
+		setSrc(src);
 	});
 
-	return <img src={base64} />;
+	return <img src={src} />;
 };
 
 export default Image;

@@ -53,8 +53,7 @@ fn main() {
         .plugin(fs_extra::init())
         // 自定义剪切板插件
         .plugin(clipboard::init())
-        // 全局状态管理插件：https://github.com/tauri-apps/tauri-plugin-store
-        .plugin(tauri_plugin_store::Builder::default().build())
+        // 右键菜单插件：https://github.com/c2r0b/tauri-plugin-context-menu
         .plugin(tauri_plugin_context_menu::init())
         // 系统托盘：https://tauri.app/v1/guides/features/system-tray
         .system_tray(tray::menu())

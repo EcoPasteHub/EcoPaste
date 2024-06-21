@@ -14,7 +14,7 @@ export default defineConfig(async () => ({
 			dirs: [
 				"src/router",
 				"src/utils",
-				"src/stores/*",
+				"src/stores",
 				"src/database",
 				"src/hooks",
 				"src/constants",
