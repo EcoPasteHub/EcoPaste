@@ -4,7 +4,6 @@ import { Flex, Popconfirm } from "antd";
 import { autoConvertBytes } from "arcdash";
 import clsx from "clsx";
 import type { FC } from "react";
-import tinycolor from "tinycolor2";
 
 interface HeaderProps extends HistoryItem {
 	copy: () => void;
@@ -35,7 +34,7 @@ const Header: FC<HeaderProps> = (props) => {
 					return "邮箱";
 				}
 
-				if (tinycolor(value).isValid()) {
+				if (isColor(value)) {
 					return "颜色";
 				}
 

@@ -1,20 +1,19 @@
 import type { HistoryItem } from "@/types/database";
 import { Flex, Typography } from "antd";
 import type { FC } from "react";
-import tinycolor from "tinycolor2";
 
 const Text: FC<HistoryItem> = (props) => {
 	const { value = "" } = props;
 
-	const renderColor = (color: tinycolor.Instance) => {
-		const alpha = color.getAlpha();
-
+	const renderColor = () => {
 		return (
 			<Flex align="center" gap="small">
-				<div
-					className="relative h-22 w-22 rounded-full"
-					style={{ backgroundColor: color.setAlpha(alpha / 2).toRgbString() }}
-				>
+				<div className="relative h-22 w-22 overflow-hidden rounded-full">
+					<span
+						className="absolute inset-0 opacity-50"
+						style={{ backgroundColor: value }}
+					/>
+
 					<span
 						className="absolute inset-2 rounded-full"
 						style={{ backgroundColor: value }}
@@ -27,10 +26,8 @@ const Text: FC<HistoryItem> = (props) => {
 	};
 
 	const renderContent = () => {
-		const color = tinycolor(value);
-
-		if (color.isValid()) {
-			return renderColor(color);
+		if (isColor(value)) {
+			return renderColor();
 		}
 
 		if (isURL(value) || isEmail(value)) {

@@ -44,3 +44,16 @@ export const isEmail = (value: string) => {
 
 	return regexp.test(value);
 };
+
+/**
+ * 是否为颜色
+ */
+export const isColor = (value: string) => {
+	const style = new Option().style;
+
+	style.color = value;
+
+	const { color } = style;
+
+	return color !== "";
+};
