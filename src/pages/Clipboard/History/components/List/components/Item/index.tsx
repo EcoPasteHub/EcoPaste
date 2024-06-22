@@ -67,7 +67,7 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 	};
 
 	const previewImage = () => {
-		viewFile(value, false);
+		previewFile(value, false);
 	};
 
 	const downloadImage = async () => {
@@ -79,7 +79,7 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 	const openFinder = () => {
 		const [file] = JSON.parse(value);
 
-		viewFile(file);
+		previewFile(file);
 	};
 
 	const deleteItem = async () => {

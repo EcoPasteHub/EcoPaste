@@ -59,7 +59,7 @@ async fn metadata(path: PathBuf) -> Result<Metadata> {
 }
 
 #[command]
-async fn view_file(path: &str, finder: Option<bool>) -> Result<()> {
+async fn preview_file(path: &str, finder: Option<bool>) -> Result<()> {
     let finder = finder.unwrap_or(true);
 
     let mut program = "open";
@@ -84,6 +84,6 @@ async fn view_file(path: &str, finder: Option<bool>) -> Result<()> {
 
 pub fn init() -> TauriPlugin<Wry> {
     Builder::new("fs-extra")
-        .invoke_handler(generate_handler![metadata, view_file])
+        .invoke_handler(generate_handler![metadata, preview_file])
         .build()
 }
