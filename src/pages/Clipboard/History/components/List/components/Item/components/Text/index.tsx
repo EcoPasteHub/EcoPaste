@@ -1,23 +1,22 @@
 import type { HistoryItem } from "@/types/database";
 import { Flex, Typography } from "antd";
-import type { FC } from "react";
+import type { CSSProperties, FC } from "react";
 
 const Text: FC<HistoryItem> = (props) => {
 	const { value = "" } = props;
 
 	const renderColor = () => {
+		const style: CSSProperties = {
+			backgroundColor: value,
+			backgroundImage: value,
+		};
+
 		return (
 			<Flex align="center" gap="small">
-				<div className="relative h-22 w-22 overflow-hidden rounded-full">
-					<span
-						className="absolute inset-0 opacity-50"
-						style={{ backgroundColor: value }}
-					/>
+				<div className="relative h-22 min-w-22 overflow-hidden rounded-full">
+					<span className="absolute inset-0 opacity-50" style={style} />
 
-					<span
-						className="absolute inset-2 rounded-full"
-						style={{ backgroundColor: value }}
-					/>
+					<span className="absolute inset-2 rounded-full" style={style} />
 				</div>
 
 				{value}

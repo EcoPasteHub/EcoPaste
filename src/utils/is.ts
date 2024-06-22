@@ -52,8 +52,9 @@ export const isColor = (value: string) => {
 	const style = new Option().style;
 
 	style.color = value;
+	style.backgroundImage = value;
 
-	const { color } = style;
+	const { color, backgroundImage } = style;
 
-	return color !== "";
+	return color !== "" || backgroundImage !== "";
 };
