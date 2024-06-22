@@ -3,7 +3,7 @@ import type { HistoryItem } from "@/types/database";
 import { BaseDirectory, copyFile, writeFile } from "@tauri-apps/api/fs";
 import { open } from "@tauri-apps/api/shell";
 import { Flex } from "antd";
-import type { FC, MouseEvent } from "react";
+import type { FC, KeyboardEvent, MouseEvent } from "react";
 import { type ListChildComponentProps, areEqual } from "react-window";
 import { type ContextMenu, showMenu } from "tauri-plugin-context-menu";
 import { useSnapshot } from "valtio";
@@ -19,13 +19,23 @@ interface MenuItem extends ContextMenu.Item {
 }
 
 const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
-	const { appInfo } = useSnapshot(globalStore);
-	const { visibleStartIndex } = useSnapshot(clipboardStore);
-	const { getHistoryList } = useContext(HistoryContext);
-
 	const { index, style, data } = props;
 
 	const { id, type, value = "", createTime = "", isCollected } = data[index];
+
+	const { appInfo } = useSnapshot(globalStore);
+	const { visibleStartIndex, activeIndex } = useSnapshot(clipboardStore);
+	const { getHistoryList } = useContext(HistoryContext);
+
+	const containerRef = useRef<HTMLElement>(null);
+
+	useEffect(() => {
+		if (activeIndex === index) {
+			containerRef.current?.focus();
+		} else {
+			containerRef.current?.blur();
+		}
+	}, [activeIndex]);
 
 	const copy = () => {
 		switch (type) {
@@ -218,16 +228,39 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 		}
 	};
 
-	const top = Number(style.top) + (index - visibleStartIndex) * 12;
+	const handleFocus = () => {
+		clipboardStore.activeIndex = index;
+	};
+
+	const handleKeyDown = (event: KeyboardEvent) => {
+		if (event.code === "Space" && type === "image") {
+			previewImage();
+		}
+
+		if (event.code === "ArrowUp" && index > 0) {
+			clipboardStore.activeIndex = index - 1;
+		}
+
+		if (event.code === "ArrowDown" && index < data.length - 1) {
+			clipboardStore.activeIndex = index + 1;
+		}
+	};
 
 	return (
 		<Flex
 			vertical
+			ref={containerRef}
+			tabIndex={0}
 			gap={6}
-			style={{ ...style, top }}
-			className="b b-color-2 hover:b-primary h-full rounded-6 bg-1 p-6 transition"
+			style={{
+				...style,
+				top: Number(style.top) + (index - visibleStartIndex) * 12,
+			}}
+			className="b b-color-2 hover:b-primary-5 focus:b-primary h-full w-fit rounded-6 p-6 transition focus:shadow-[0_0_0_2px_rgba(5,145,255,0.1)] focus:outline-none"
 			onContextMenu={handleContextMenu}
 			onDoubleClick={copy}
+			onFocus={handleFocus}
+			onKeyDown={handleKeyDown}
 		>
 			<Header
 				{...data[index]}

@@ -16,4 +16,5 @@ export interface ClipboardStore {
 	enableAudio?: boolean;
 	capacity: number;
 	visibleStartIndex: number;
+	activeIndex: number;
 }

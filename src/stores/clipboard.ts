@@ -7,6 +7,7 @@ export const clipboardStore = proxyWithPersist<ClipboardStore>({
 		wakeUpKey: "Alt+C",
 		capacity: 0,
 		visibleStartIndex: 0,
+		activeIndex: 0,
 	},
 	persistStrategies,
 	version: 0,
