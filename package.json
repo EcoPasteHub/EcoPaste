@@ -29,6 +29,7 @@
 		"tauri-plugin-autostart-api": "github:tauri-apps/tauri-plugin-autostart#v1",
 		"tauri-plugin-context-menu": "^0.7.0",
 		"tauri-plugin-sql-api": "github:tauri-apps/tauri-plugin-sql#v1",
+		"tinycolor2": "^1.6.0",
 		"valtio": "^1.13.2",
 		"valtio-persist": "^1.0.2"
 	},
@@ -44,6 +45,7 @@
 		"@types/react": "^18.2.15",
 		"@types/react-dom": "^18.2.7",
 		"@types/react-window": "^1.8.8",
+		"@types/tinycolor2": "^1.4.6",
 		"@unocss/preset-rem-to-px": "^0.60.3",
 		"@vitejs/plugin-react": "^4.2.1",
 		"lint-staged": "^15.2.5",
