@@ -32,10 +32,6 @@ const App = () => {
 		event.preventDefault();
 	});
 
-	useEventListener("keydown", (event) => {
-		event.preventDefault();
-	});
-
 	return (
 		<ConfigProvider
 			locale={zhCN}
