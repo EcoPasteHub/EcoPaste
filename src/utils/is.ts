@@ -51,10 +51,9 @@ export const isEmail = (value: string) => {
 export const isColor = (value: string) => {
 	const style = new Option().style;
 
-	style.color = value;
-	style.backgroundImage = value;
+	style.background = value;
 
-	const { color, backgroundImage } = style;
+	const { background } = style;
 
-	return color !== "" || backgroundImage !== "";
+	return background !== "";
 };

@@ -1,22 +1,26 @@
 import type { HistoryItem } from "@/types/database";
 import { Flex, Typography } from "antd";
+import clsx from "clsx";
 import type { CSSProperties, FC } from "react";
 
 const Text: FC<HistoryItem> = (props) => {
 	const { value = "" } = props;
 
 	const renderColor = () => {
+		const className = "absolute rounded-inherit";
 		const style: CSSProperties = {
-			backgroundColor: value,
-			backgroundImage: value,
+			background: value,
 		};
 
 		return (
 			<Flex align="center" gap="small">
-				<div className="relative h-22 min-w-22 overflow-hidden rounded-full">
-					<span className="absolute inset-0 opacity-50" style={style} />
+				<div className="relative h-22 min-w-22 rounded-full">
+					<span
+						style={style}
+						className={clsx(className, "inset-0 opacity-50")}
+					/>
 
-					<span className="absolute inset-2 rounded-full" style={style} />
+					<span style={style} className={clsx(className, "inset-2")} />
 				</div>
 
 				{value}
