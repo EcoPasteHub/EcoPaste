@@ -24,12 +24,16 @@ const App = () => {
 
 			Object.assign(clipboardStore, payload);
 		});
+	});
 
+	useEventListener("contextmenu", (event) => {
 		if (isDev()) return;
 
-		document.addEventListener("contextmenu", (event) => {
-			event.preventDefault();
-		});
+		event.preventDefault();
+	});
+
+	useEventListener("keydown", (event) => {
+		event.preventDefault();
 	});
 
 	return (
