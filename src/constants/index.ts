@@ -41,3 +41,7 @@ export const CLIPBOARD_PLUGIN = {
 	WRITE_TEXT: "plugin:clipboard|write_text",
 	CLIPBOARD_UPDATE: "plugin:clipboard://clipboard_update",
 };
+
+export const MOUSE_PLUGIN = {
+	GET_MOUSE_COORDS: "plugin:mouse|get_mouse_coords",
+};

@@ -33,7 +33,9 @@
 				"assetScope": ["$APPDATA/images/*"]
 			},
 			"window": {
-				"startDragging": true
+				"startDragging": true,
+				"setPosition": true,
+				"center": true
 			}
 		},
 		"windows": [

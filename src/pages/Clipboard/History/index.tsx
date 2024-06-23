@@ -1,6 +1,11 @@
 import copyAudio from "@/assets/audio/copy.mp3";
 import type { HistoryGroup, HistoryItem } from "@/types/database";
 import { listen } from "@tauri-apps/api/event";
+import {
+	PhysicalPosition,
+	appWindow,
+	currentMonitor,
+} from "@tauri-apps/api/window";
 import { isArray } from "arcdash";
 import clsx from "clsx";
 import { createContext } from "react";
@@ -88,7 +93,36 @@ const ClipboardHistory = () => {
 		});
 	});
 
-	useRegister(toggleWindowVisible, [wakeUpKey]);
+	useRegister(async () => {
+		const focused = await appWindow.isFocused();
+
+		if (!focused) {
+			const { windowPosition } = clipboardStore;
+
+			if (windowPosition === "follow") {
+				const monitor = await currentMonitor();
+
+				if (!monitor) return;
+
+				const { width, height } = await appWindow.innerSize();
+				let [x, y] = await getMouseCoords();
+
+				const {
+					scaleFactor,
+					size: { width: screenWidth, height: screenHeight },
+				} = monitor;
+
+				x = Math.min(x * scaleFactor, screenWidth - width);
+				y = Math.min(y * scaleFactor, screenHeight - height);
+
+				appWindow.setPosition(new PhysicalPosition(x, y));
+			} else if (windowPosition === "center") {
+				appWindow.center();
+			}
+		}
+
+		toggleWindowVisible();
+	}, [wakeUpKey]);
 
 	useEffect(() => {
 		getHistoryList?.();

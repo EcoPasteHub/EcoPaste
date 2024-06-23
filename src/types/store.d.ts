@@ -11,10 +11,13 @@ export interface GlobalStore {
 	};
 }
 
+export type WindowPosition = "default" | "follow" | "center";
+
 export interface ClipboardStore {
 	wakeUpKey: string;
 	enableAudio?: boolean;
 	capacity: number;
 	visibleStartIndex: number;
 	activeIndex: number;
+	windowPosition: WindowPosition;
 }
