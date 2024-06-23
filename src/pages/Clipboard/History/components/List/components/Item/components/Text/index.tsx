@@ -7,14 +7,14 @@ const Text: FC<HistoryItem> = (props) => {
 	const { value = "" } = props;
 
 	const renderColor = () => {
-		const className = "absolute rounded-inherit";
+		const className = "absolute rounded-full";
 		const style: CSSProperties = {
 			background: value,
 		};
 
 		return (
 			<Flex align="center" gap="small">
-				<div className="relative h-22 min-w-22 rounded-full">
+				<div className="relative h-22 min-w-22">
 					<span
 						style={style}
 						className={clsx(className, "inset-0 opacity-50")}
