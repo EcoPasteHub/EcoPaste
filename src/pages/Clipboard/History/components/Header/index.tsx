@@ -49,7 +49,7 @@ const Header = () => {
 			<Flex align="center" gap="small" className="overflow-hidden">
 				<Search />
 
-				<Tab className="overflow-auto" />
+				<Tab />
 			</Flex>
 
 			<Icon

@@ -1,9 +1,8 @@
 import { HistoryContext } from "@/pages/Clipboard/History";
 import type { HistoryGroup } from "@/types/database";
 import { Flex, Tag } from "antd";
-import type { FlexProps } from "antd/lib";
 import { last } from "lodash-es";
-import type { FC } from "react";
+import { MacScrollbar } from "mac-scrollbar";
 
 interface TabItem {
 	label: string;
@@ -31,31 +30,33 @@ const tabList: TabItem[] = [
 	},
 ];
 
-const Tab: FC<Partial<FlexProps>> = (props) => {
+const Tab = () => {
 	const { state } = useContext(HistoryContext);
 
 	const [checked, setChecked] = useState(tabList[0].label);
 
 	return (
-		<Flex data-tauri-drag-region {...props}>
-			{tabList.map((item) => {
-				const { label, value } = item;
+		<MacScrollbar>
+			<Flex data-tauri-drag-region>
+				{tabList.map((item) => {
+					const { label, value } = item;
 
-				return (
-					<Tag.CheckableTag
-						key={label}
-						checked={checked === label}
-						onChange={() => {
-							setChecked(label);
-							state.group = value;
-							state.isCollected = label === last(tabList)?.label || undefined;
-						}}
-					>
-						{label}
-					</Tag.CheckableTag>
-				);
-			})}
-		</Flex>
+					return (
+						<Tag.CheckableTag
+							key={label}
+							checked={checked === label}
+							onChange={() => {
+								setChecked(label);
+								state.group = value;
+								state.isCollected = label === last(tabList)?.label || undefined;
+							}}
+						>
+							{label}
+						</Tag.CheckableTag>
+					);
+				})}
+			</Flex>
+		</MacScrollbar>
 	);
 };
 

@@ -233,6 +233,8 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 	};
 
 	const handleKeyDown = (event: KeyboardEvent) => {
+		event.preventDefault();
+
 		if (event.code === "Space" && type === "image") {
 			previewImage();
 		}
