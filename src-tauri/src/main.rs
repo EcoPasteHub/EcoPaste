@@ -5,7 +5,7 @@ mod plugins;
 mod tray;
 
 use plugins::{
-    clipboard, fs_extra, mouse,
+    clipboard, fs_extra, mouse, ocr,
     window::{self, show_window, MAIN_WINDOW_LABEL},
 };
 use tauri::{async_runtime, generate_context, generate_handler, Builder, Manager, WindowEvent};
@@ -57,6 +57,8 @@ fn main() {
         .plugin(tauri_plugin_context_menu::init())
         // 自定义鼠标相关的插件
         .plugin(mouse::init())
+        // 自定义图片识别插件
+        .plugin(ocr::init())
         // 系统托盘：https://tauri.app/v1/guides/features/system-tray
         .system_tray(tray::menu())
         .on_system_tray_event(tray::handler)

@@ -45,3 +45,7 @@ export const CLIPBOARD_PLUGIN = {
 export const MOUSE_PLUGIN = {
 	GET_MOUSE_COORDS: "plugin:mouse|get_mouse_coords",
 };
+
+export const OCR_PLUGIN = {
+	SYSTEM_OCR: "plugin:ocr|system_ocr",
+};
