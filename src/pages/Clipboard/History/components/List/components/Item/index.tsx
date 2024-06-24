@@ -1,5 +1,6 @@
 import { HistoryContext } from "@/pages/Clipboard/History";
 import type { HistoryItem } from "@/types/database";
+import { parse } from "@/utils/ocr";
 import { BaseDirectory, copyFile, writeFile } from "@tauri-apps/api/fs";
 import { open } from "@tauri-apps/api/shell";
 import { Flex } from "antd";
@@ -138,6 +139,11 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 		getHistoryList?.();
 	};
 
+	const copyOCRText = async () => {
+		const result = await parse(value);
+		writeText(result);
+	};
+
 	const handleContextMenu = async (event: MouseEvent) => {
 		const { group } = data[index];
 
@@ -147,6 +153,11 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 			{
 				label: "复制",
 				event: copy,
+			},
+			{
+				label: "复制OCR",
+				hide: type !== "image",
+				event: copyOCRText,
 			},
 			{
 				label: "复制纯文本",
