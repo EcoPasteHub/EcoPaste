@@ -19,7 +19,15 @@
 				"all": true
 			},
 			"shell": {
-				"open": true
+				"open": true,
+				"sidecar": true,
+				"scope": [
+					{
+						"name": "bin/ocr",
+						"sidecar": true,
+						"args": true
+					}
+				]
 			},
 			"path": {
 				"all": true
@@ -51,6 +59,7 @@
 			}
 		],
 		"security": {
+			"dangerousDisableAssetCspModification": true,
 			"csp": null
 		},
 		"bundle": {
@@ -64,6 +73,7 @@
 				"icons/icon.icns",
 				"icons/icon.ico"
 			],
+			"externalBin": ["bin/ocr"],
 			"windows": {
 				"digestAlgorithm": "sha256",
 				"wix": {
