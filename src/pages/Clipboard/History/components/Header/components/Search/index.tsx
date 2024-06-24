@@ -14,7 +14,7 @@ const Search = () => {
 
 	useDebounceEffect(
 		() => {
-			state.value = value;
+			state.search = value;
 		},
 		[value],
 		{

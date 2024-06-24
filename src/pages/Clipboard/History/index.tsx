@@ -63,22 +63,34 @@ const ClipboardHistory = () => {
 				});
 			} else {
 				let group: HistoryGroup;
+				let search: string;
 
 				switch (type) {
-					case "files":
+					case "files": {
 						group = "files";
+						const files = JSON.parse(value);
+						search = files
+							.map((file: string) => {
+								const len = file.split("/").length;
+								return len > 0 ? file.split("/")[len - 1] : "";
+							})
+							.join(",");
 						break;
+					}
 					case "image":
 						group = "image";
+						search = await parse(value);
 						break;
 					default:
 						group = "text";
+						search = html2text(value);
 						break;
 				}
 
 				await insertSQL("history", {
 					...payload,
 					value,
+					search,
 					group,
 				});
 			}
@@ -126,13 +138,14 @@ const ClipboardHistory = () => {
 
 	useEffect(() => {
 		getHistoryList?.();
-	}, [state.value, state.group, state.isCollected]);
+	}, [state.value, state.search, state.group, state.isCollected]);
 
 	const getHistoryList = async () => {
-		const { value, group, isCollected } = state;
+		const { value, search, group, isCollected } = state;
 
 		const list = await selectSQL<HistoryItem[]>("history", {
 			value,
+			search,
 			group,
 			isCollected,
 		});
