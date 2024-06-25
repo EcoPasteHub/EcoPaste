@@ -1,6 +1,7 @@
 import { HistoryContext } from "@/pages/Clipboard/History";
 import type { HistoryGroup } from "@/types/database";
 import { Flex, Tag } from "antd";
+import clsx from "clsx";
 import { last } from "lodash-es";
 import { MacScrollbar } from "mac-scrollbar";
 
@@ -41,10 +42,13 @@ const Tab = () => {
 				{tabList.map((item) => {
 					const { label, value } = item;
 
+					const isChecked = checked === label;
+
 					return (
 						<Tag.CheckableTag
 							key={label}
-							checked={checked === label}
+							checked={isChecked}
+							className={clsx({ "bg-primary!": isChecked })}
 							onChange={() => {
 								setChecked(label);
 								state.group = value;
