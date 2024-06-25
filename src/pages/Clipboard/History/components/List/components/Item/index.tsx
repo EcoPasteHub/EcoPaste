@@ -258,7 +258,7 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 				...style,
 				top: Number(style.top) + (index - visibleStartIndex) * 12,
 			}}
-			className="b b-color-2 hover:b-primary-5 focus:b-primary h-full w-fit rounded-6 p-6 transition focus:shadow-[0_0_0_2px_rgba(5,145,255,0.1)] focus:outline-none"
+			className="b b-color-2 hover:b-primary-5 focus:b-primary mx-12 h-full w-336! rounded-6 p-6 transition focus:shadow-[0_0_0_2px_rgba(5,145,255,0.1)] focus:outline-none"
 			onContextMenu={handleContextMenu}
 			onDoubleClick={copy}
 			onFocus={handleFocus}

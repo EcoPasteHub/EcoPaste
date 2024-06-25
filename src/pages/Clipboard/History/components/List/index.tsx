@@ -15,7 +15,7 @@ const List = () => {
 	return (
 		<FixedSizeList
 			ref={virtualListRef}
-			width={336}
+			width={360}
 			height={542}
 			itemData={state.historyList}
 			itemKey={(index, data) => data[index].id!}
