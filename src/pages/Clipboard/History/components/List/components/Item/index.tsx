@@ -1,6 +1,5 @@
 import { HistoryContext } from "@/pages/Clipboard/History";
 import type { HistoryItem } from "@/types/database";
-import { parse } from "@/utils/ocr";
 import { BaseDirectory, copyFile, writeFile } from "@tauri-apps/api/fs";
 import { open } from "@tauri-apps/api/shell";
 import { Flex } from "antd";
@@ -22,7 +21,14 @@ interface MenuItem extends ContextMenu.Item {
 const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 	const { index, style, data } = props;
 
-	const { id, type, value = "", createTime = "", isCollected } = data[index];
+	const {
+		id,
+		type,
+		value = "",
+		search = "",
+		createTime = "",
+		isCollected,
+	} = data[index];
 
 	const { appInfo } = useSnapshot(globalStore);
 	const { visibleStartIndex, activeIndex } = useSnapshot(clipboardStore);
@@ -45,7 +51,7 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 			case "rich-text":
 				return writeRichText(value);
 			case "html":
-				return writeHTML(value);
+				return writeHTML(search, value);
 			case "image":
 				return writeImage(value);
 			case "files":
@@ -54,7 +60,7 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 	};
 
 	const copyPlainText = () => {
-		writeText(html2text(value));
+		writeText(search);
 	};
 
 	const collect = async () => {
@@ -140,8 +146,7 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 	};
 
 	const copyOCRText = async () => {
-		const result = await parse(value);
-		writeText(result);
+		writeText(search);
 	};
 
 	const handleContextMenu = async (event: MouseEvent) => {
@@ -155,7 +160,7 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 				event: copy,
 			},
 			{
-				label: "复制OCR",
+				label: "复制OCR文本",
 				hide: type !== "image",
 				event: copyOCRText,
 			},

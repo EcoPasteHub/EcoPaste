@@ -11,6 +11,7 @@ struct Metadata {
     is_dir: bool,
     is_file: bool,
     is_exist: bool,
+    file_name: String,
 }
 
 fn get_dir_size(path: PathBuf) -> Result<u64> {
@@ -35,6 +36,7 @@ async fn metadata(path: PathBuf) -> Result<Metadata> {
     let mut size = 0;
     let mut is_dir = false;
     let mut is_file = false;
+    let mut file_name = String::new();
     let is_exist = path.exists();
 
     if is_exist {
@@ -42,6 +44,10 @@ async fn metadata(path: PathBuf) -> Result<Metadata> {
 
         is_dir = metadata.is_dir();
         is_file = metadata.is_file();
+
+        if let Some(name) = path.file_name() {
+            file_name = name.to_string_lossy().to_string();
+        }
 
         size = if is_file {
             metadata.len()
@@ -55,6 +61,7 @@ async fn metadata(path: PathBuf) -> Result<Metadata> {
         is_dir,
         is_file,
         is_exist,
+        file_name,
     })
 }
 
