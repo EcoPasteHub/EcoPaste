@@ -44,7 +44,7 @@ const Header = () => {
 			align="center"
 			justify="space-between"
 			gap="small"
-			className="color-2 pb-12 text-18"
+			className="color-2 px-12 pb-12 text-18"
 		>
 			<Flex align="center" gap="small" className="overflow-hidden">
 				<Search />

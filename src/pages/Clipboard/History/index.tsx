@@ -155,7 +155,7 @@ const ClipboardHistory = () => {
 	return (
 		<div
 			data-tauri-drag-region
-			className={clsx("h-screen rounded-10 bg-1 p-12")}
+			className={clsx("h-screen rounded-10 bg-1 py-12")}
 		>
 			<audio ref={audioRef} src={copyAudio} />
 
