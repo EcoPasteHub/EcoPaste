@@ -3,6 +3,7 @@ export interface Metadata {
 	isDir: boolean;
 	isFile: boolean;
 	isExist: boolean;
+	fileName: string;
 }
 
 export interface ReadImage {
@@ -14,9 +15,10 @@ export interface ReadImage {
 export type ClipboardType = "text" | "rich-text" | "html" | "image" | "files";
 
 export interface ClipboardPayload {
-	type: ClipboardType;
+	type?: ClipboardType;
 	size: number;
-	value: string | string[];
+	value: string;
+	search: string;
 	width?: number;
 	height?: number;
 }

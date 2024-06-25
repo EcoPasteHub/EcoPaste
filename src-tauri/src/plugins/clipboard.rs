@@ -1,6 +1,6 @@
 use clipboard_rs::{
-    common::RustImage, Clipboard, ClipboardContext, ClipboardHandler, ClipboardWatcher,
-    ClipboardWatcherContext, ContentFormat, RustImageData, WatcherShutdown,
+    common::RustImage, Clipboard, ClipboardContent, ClipboardContext, ClipboardHandler,
+    ClipboardWatcher, ClipboardWatcherContext, ContentFormat, RustImageData, WatcherShutdown,
 };
 use std::{
     fs::create_dir_all,
@@ -198,8 +198,14 @@ async fn write_image(manager: State<'_, ClipboardManager>, value: String) -> Res
 }
 
 #[command]
-async fn write_html(manager: State<'_, ClipboardManager>, value: String) -> Result<()> {
-    manager.context.set_html(value).unwrap();
+async fn write_html(
+    manager: State<'_, ClipboardManager>,
+    text: String,
+    html: String,
+) -> Result<()> {
+    let contents = vec![ClipboardContent::Text(text), ClipboardContent::Html(html)];
+
+    manager.context.set(contents).unwrap();
 
     Ok(())
 }

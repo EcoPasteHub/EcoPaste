@@ -6,7 +6,6 @@ export type HistoryGroup = "text" | "image" | "files";
 
 export interface HistoryItem extends Partial<ClipboardPayload> {
 	id?: number;
-	search?: string;
 	group?: HistoryGroup;
 	createTime?: string;
 	isCollected?: boolean;

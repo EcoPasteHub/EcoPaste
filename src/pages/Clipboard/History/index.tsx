@@ -6,7 +6,6 @@ import {
 	appWindow,
 	currentMonitor,
 } from "@tauri-apps/api/window";
-import { isArray } from "arcdash";
 import clsx from "clsx";
 import { createContext } from "react";
 import { useSnapshot } from "valtio";
@@ -47,14 +46,7 @@ const ClipboardHistory = () => {
 				audioRef.current?.play();
 			}
 
-			let { type, value } = payload;
-
-			value = isArray(value) ? JSON.stringify(value) : value;
-
-			const [selectItem] = await selectSQL<HistoryItem[]>("history", {
-				...payload,
-				value,
-			});
+			const [selectItem] = await selectSQL<HistoryItem[]>("history", payload);
 
 			if (selectItem) {
 				await updateSQL("history", {
@@ -63,34 +55,18 @@ const ClipboardHistory = () => {
 				});
 			} else {
 				let group: HistoryGroup;
-				let search: string;
 
-				switch (type) {
-					case "files": {
+				switch (payload.type) {
+					case "files":
 						group = "files";
-						const files = JSON.parse(value);
-						search = files
-							.map((file: string) => {
-								const len = file.split("/").length;
-								return len > 0 ? file.split("/")[len - 1] : "";
-							})
-							.join(",");
-						break;
-					}
-					case "image":
-						group = "image";
-						search = await parse(value);
 						break;
 					default:
 						group = "text";
-						search = html2text(value);
 						break;
 				}
 
 				await insertSQL("history", {
 					...payload,
-					value,
-					search,
 					group,
 				});
 			}
@@ -140,7 +116,7 @@ const ClipboardHistory = () => {
 
 	useEffect(() => {
 		getHistoryList?.();
-	}, [state.value, state.search, state.group, state.isCollected]);
+	}, [state.search, state.group, state.isCollected]);
 
 	const getHistoryList = async () => {
 		const { value, search, group, isCollected } = state;

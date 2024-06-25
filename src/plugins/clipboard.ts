@@ -54,38 +54,46 @@ export const hasText = async () => {
 /**
  * 读取剪切板文件
  */
-export const readFiles = async () => {
+export const readFiles = async (): Promise<ClipboardPayload> => {
 	let files = await invoke<string[]>(CLIPBOARD_PLUGIN.READ_FILES);
 
 	files = files.map(decodeURI);
 
 	let size = 0;
 
+	const fileNames = [];
+
 	for await (const path of files) {
-		const { size: fileSize } = await metadata(path);
+		const { size: fileSize, fileName } = await metadata(path);
 
 		size += fileSize;
+
+		fileNames.push(fileName);
 	}
 
 	return {
 		size,
-		value: files,
+		search: fileNames.join(" "),
+		value: JSON.stringify(files),
 	};
 };
 
 /**
  * 读取剪切板图片
  */
-export const readImage = async () => {
+export const readImage = async (): Promise<ClipboardPayload> => {
 	const { image, ...rest } = await invoke<ReadImage>(
 		CLIPBOARD_PLUGIN.READ_IMAGE,
 	);
 
 	const { size } = await metadata(image);
 
+	const search = await systemOCR(image);
+
 	return {
 		...rest,
 		size,
+		search,
 		value: image,
 	};
 };
@@ -93,25 +101,27 @@ export const readImage = async () => {
 /**
  * 读取 HTML 内容
  */
-export const readHTML = async () => {
+export const readHTML = async (): Promise<ClipboardPayload> => {
 	const html = await invoke<string>(CLIPBOARD_PLUGIN.READ_HTML);
 
-	const size = html2text(html).length;
+	const { value, size } = await readText();
 
 	return {
 		size,
 		value: html,
+		search: value,
 	};
 };
 
 /**
  * 读取富文本
  */
-export const readRichText = async () => {
+export const readRichText = async (): Promise<ClipboardPayload> => {
 	const richText = await invoke<string>(CLIPBOARD_PLUGIN.READ_RICH_TEXT);
 
 	return {
 		value: richText,
+		search: richText,
 		size: richText.length,
 	};
 };
@@ -119,11 +129,12 @@ export const readRichText = async () => {
 /**
  * 读取纯文本
  */
-export const readText = async () => {
+export const readText = async (): Promise<ClipboardPayload> => {
 	const text = await invoke<string>(CLIPBOARD_PLUGIN.READ_TEXT);
 
 	return {
 		value: text,
+		search: text,
 		size: text.length,
 	};
 };
@@ -149,9 +160,10 @@ export const writeImage = async (value: string) => {
 /**
  * HTML 内容写入剪切板
  */
-export const writeHTML = async (value: string) => {
+export const writeHTML = async (text: string, html: string) => {
 	invoke(CLIPBOARD_PLUGIN.WRITE_HTML, {
-		value,
+		text,
+		html,
 	});
 };
 
@@ -204,16 +216,4 @@ export const onClipboardUpdate = (fn: (payload: ClipboardPayload) => void) => {
 
 		fn(payload);
 	});
-};
-
-/**
- * 得到 HTML 内容的纯文本
- * @param html html 内容
- */
-export const html2text = (html: string) => {
-	const divElement = document.createElement("div");
-
-	divElement.innerHTML = html;
-
-	return divElement.innerText;
 };
