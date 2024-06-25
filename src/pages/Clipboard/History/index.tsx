@@ -112,8 +112,10 @@ const ClipboardHistory = () => {
 					size: { width: screenWidth, height: screenHeight },
 				} = monitor;
 
-				x = Math.min(x * scaleFactor, screenWidth - width);
-				y = Math.min(y * scaleFactor, screenHeight - height);
+				const factor = (await isWin()) ? 1 : scaleFactor;
+
+				x = Math.min(x * factor, screenWidth - width);
+				y = Math.min(y * factor, screenHeight - height);
 
 				appWindow.setPosition(new PhysicalPosition(x, y));
 			} else if (windowPosition === "center") {

@@ -21,7 +21,7 @@ tauri-plugin-sql = { git = "https://github.com/tauri-apps/plugins-workspace", br
 window-shadows = "0.2.2"
 clipboard-rs = "0.1.7"
 tauri-plugin-context-menu = { git = "https://github.com/c2r0b/tauri-plugin-context-menu", branch = "main" }
-device_query = "2.1.0"
+mouse_position = "0.1.4"
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!
