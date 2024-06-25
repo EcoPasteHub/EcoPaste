@@ -60,6 +60,9 @@ const ClipboardHistory = () => {
 					case "files":
 						group = "files";
 						break;
+					case "image":
+						group = "image";
+						break;
 					default:
 						group = "text";
 						break;
