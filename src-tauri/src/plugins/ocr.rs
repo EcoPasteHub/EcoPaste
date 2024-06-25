@@ -1,15 +1,14 @@
-use tauri::api::process::{Command, CommandEvent};
 use tauri::{
     command, generate_handler,
     plugin::{Builder, TauriPlugin},
     Result, Wry,
 };
 
-#[command(async)]
+#[command]
 #[cfg(target_os = "windows")]
-async fn system_ocr(app_handle: tauri::AppHandle, path: &str) -> Result<String, String> {
+async fn system_ocr(path: &str) -> Result<String> {
+    use tauri::Error;
     use windows::core::HSTRING;
-    use windows::Globalization::Language;
     use windows::Graphics::Imaging::BitmapDecoder;
     use windows::Media::Ocr::OcrEngine;
     use windows::Storage::{FileAccessMode, StorageFile};
@@ -29,16 +28,7 @@ async fn system_ocr(app_handle: tauri::AppHandle, path: &str) -> Result<String, 
 
     let bitmap = bitmap.GetSoftwareBitmapAsync().unwrap().get().unwrap();
 
-    let engine = match lang {
-        "auto" => OcrEngine::TryCreateFromUserProfileLanguages(),
-        _ => {
-            if let Ok(language) = Language::CreateLanguage(&HSTRING::from("zh")) {
-                OcrEngine::TryCreateFromLanguage(&language)
-            } else {
-                return Err("Language Error".to_string());
-            }
-        }
-    };
+    let engine = OcrEngine::TryCreateFromUserProfileLanguages();
 
     match engine {
         Ok(v) => Ok(v
@@ -51,17 +41,20 @@ async fn system_ocr(app_handle: tauri::AppHandle, path: &str) -> Result<String, 
             .to_string_lossy()),
         Err(e) => {
             if e.to_string().contains("0x00000000") {
-                Err("Language package not installed!\n\nSee: https://learn.microsoft.com/zh-cn/windows/powertoys/text-extractor#supported-languages".to_string())
+                // "Language package not installed!\n\nSee: https://learn.microsoft.com/zh-cn/windows/powertoys/text-extractor#supported-languages"
+                Err(Error::InvokeKey)
             } else {
-                Err(e.to_string())
+                Err(Error::InvokeKey)
             }
         }
     }
 }
 
-#[command(async)]
+#[command]
 #[cfg(target_os = "macos")]
 async fn system_ocr(path: &str) -> Result<String> {
+    use tauri::api::process::{Command, CommandEvent};
+
     let (mut rx, _child) = Command::new_sidecar("ocr")
         .expect("Failed to find sidecar")
         .args(&[path, "zh"])
