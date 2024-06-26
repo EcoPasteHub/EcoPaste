@@ -57,7 +57,7 @@ async fn system_ocr(path: &str) -> Result<String> {
 
     let (mut rx, _child) = Command::new_sidecar("ocr")
         .expect("Failed to find sidecar")
-        .args(&[path, "zh"])
+        .args(&[path])
         .spawn()
         .expect("Failed to spawn sidecar");
 
