@@ -165,7 +165,7 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 				event: copyOCRText,
 			},
 			{
-				label: "复制纯文本",
+				label: "粘贴为纯文本",
 				hide: type !== "html",
 				event: copyPlainText,
 			},
