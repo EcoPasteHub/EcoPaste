@@ -78,13 +78,11 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 	};
 
 	const exportFile = async () => {
-		writeFile(
-			`${appInfo?.name}_${id}.${type === "text" ? "txt" : type}`,
-			value,
-			{
-				dir: BaseDirectory.Download,
-			},
-		);
+		const ext = type === "text" ? "txt" : type;
+
+		writeFile(`${appInfo?.name}_${id}.${ext}`, value, {
+			dir: BaseDirectory.Download,
+		});
 	};
 
 	const previewImage = () => {
