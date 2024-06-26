@@ -88,7 +88,11 @@ export const readImage = async (): Promise<ClipboardPayload> => {
 
 	const { size } = await metadata(image);
 
-	const search = await systemOCR(image);
+	let search = await systemOCR(image);
+
+	if (await isWin()) {
+		search = search.replace(/\s+/g, " ");
+	}
 
 	return {
 		...rest,
