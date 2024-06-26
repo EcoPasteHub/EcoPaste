@@ -77,10 +77,14 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 		open(`mailto:${value}`);
 	};
 
-	const exportTXT = async () => {
-		writeFile(`${appInfo?.name}_${id}.txt`, value, {
-			dir: BaseDirectory.Download,
-		});
+	const exportFile = async () => {
+		writeFile(
+			`${appInfo?.name}_${id}.${type === "text" ? "txt" : type}`,
+			value,
+			{
+				dir: BaseDirectory.Download,
+			},
+		);
 	};
 
 	const previewImage = () => {
@@ -184,9 +188,9 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 				event: sendEmail,
 			},
 			{
-				label: "导出为TXT",
+				label: "导出为文件",
 				hide: group !== "text",
-				event: exportTXT,
+				event: exportFile,
 			},
 			{
 				label: "预览图片",
