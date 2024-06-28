@@ -92,7 +92,7 @@ const ShortcutKey: FC<ShortcutKeyProps> = (props) => {
 			tabIndex={0}
 			align="center"
 			gap="small"
-			className="b color-3 b-color-1 hover:b-primary-5 focus:b-primary h-32 w-fit rounded-6 px-10 font-bold text-16 transition focus:shadow-[0_0_0_2px_rgba(5,145,255,0.1)] focus:outline-none"
+			className="color-3 antd-focus h-32 w-fit rounded-6 px-10 font-bold text-16"
 			onFocus={handleFocus}
 			onBlur={handleBlur}
 			onKeyDown={handleKeyDown}
