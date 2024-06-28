@@ -10,6 +10,7 @@ const List = () => {
 
 	useUpdateEffect(() => {
 		virtualListRef.current?.scrollTo(0);
+		clipboardStore.activeIndex = 0;
 	}, [state.group, state.isCollected]);
 
 	return (

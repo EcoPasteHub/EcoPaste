@@ -27,11 +27,6 @@ const WindowPosition = () => {
 
 	const handleChange = (value: WindowPositionType) => {
 		clipboardStore.windowPosition = value;
-
-		if (value !== "follow") return;
-
-		// 请求一次，在 macos 需要获取权限
-		getMouseCoords();
 	};
 
 	return (
