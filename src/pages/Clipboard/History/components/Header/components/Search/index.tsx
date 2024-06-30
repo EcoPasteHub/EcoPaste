@@ -26,6 +26,20 @@ const Search = () => {
 		return isFocusWithin || Boolean(value);
 	}, [isFocusWithin, value]);
 
+	// 和实际焦点有时候不符.
+	useEffect(() => {
+		if (focused) {
+			// console.log("focus");
+			//TODO 获取前一个界面的焦点,临时保存
+			activate();
+		} else {
+			// console.log("lost focus");
+			noactivate();
+			//TODO 但原逻辑的PIN按钮有逻辑冲突.
+			//TODO 还原前一个界面的焦点
+		}
+	}, [focused]);
+
 	return (
 		<Flex
 			ref={labelRef}

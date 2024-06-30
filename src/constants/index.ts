@@ -13,6 +13,8 @@ export const WINDOW_PLUGIN = {
 	SHOW_WINDOW: "plugin:window|show_window",
 	HIDE_WINDOW: "plugin:window|hide_window",
 	QUIT_APP: "plugin:window|quit_app",
+	NOACTIVATE: "plugin:window|noactivate",
+	ACTIVATE: "plugin:window|activate",
 };
 
 export const FS_EXTRA_PLUGIN = {

@@ -37,6 +37,10 @@ export const hideWindow = () => invoke(WINDOW_PLUGIN.HIDE_WINDOW);
  */
 export const quitApp = () => invoke(WINDOW_PLUGIN.QUIT_APP);
 
+export const noactivate = () => invoke(WINDOW_PLUGIN.NOACTIVATE);
+
+export const activate = () => invoke(WINDOW_PLUGIN.ACTIVATE);
+
 /**
  * 切换窗口的显示和隐藏
  */
