@@ -1,6 +1,7 @@
-import type { ClipboardPayload, ReadImage } from "@/types/plugin";
+import type { ClipboardPayload, ReadImage, WinOCR } from "@/types/plugin";
 import { invoke } from "@tauri-apps/api";
 import { listen } from "@tauri-apps/api/event";
+import { isEmpty } from "arcdash";
 
 /**
  * 开启监听
@@ -91,7 +92,13 @@ export const readImage = async (): Promise<ClipboardPayload> => {
 	let search = await systemOCR(image);
 
 	if (await isWin()) {
-		search = search.replace(/\s+/g, "");
+		const { content, qr } = JSON.parse(search) as WinOCR;
+
+		if (isEmpty(qr)) {
+			search = content;
+		} else {
+			search = qr[0].content;
+		}
 	}
 
 	return {
