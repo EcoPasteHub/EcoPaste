@@ -271,7 +271,7 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 			vertical
 			ref={containerRef}
 			tabIndex={0}
-			gap={6}
+			gap={4}
 			style={{
 				...style,
 				top: Number(style.top) + (index - visibleStartIndex) * 12,
