@@ -70,7 +70,9 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 	};
 
 	const openBrowser = async () => {
-		open(value);
+		const url = value.startsWith("http") ? value : `http://${value}`;
+
+		open(url);
 	};
 
 	const sendEmail = async () => {
