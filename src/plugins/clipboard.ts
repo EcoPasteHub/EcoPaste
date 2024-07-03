@@ -204,14 +204,14 @@ export const onClipboardUpdate = (fn: (payload: ClipboardPayload) => void) => {
 			const imagePayload = await readImage();
 
 			payload = { ...imagePayload, type: "image" };
-		} else if (await hasRichText()) {
-			const richTextPayload = await readRichText();
-
-			payload = { ...richTextPayload, type: "rich-text" };
 		} else if (await hasHTML()) {
 			const htmlPayload = await readHTML();
 
 			payload = { ...htmlPayload, type: "html" };
+		} else if (await hasRichText()) {
+			const richTextPayload = await readRichText();
+
+			payload = { ...richTextPayload, type: "rich-text" };
 		} else if (await hasText()) {
 			const textPayload = await readText();
 
