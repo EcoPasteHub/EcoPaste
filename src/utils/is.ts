@@ -30,7 +30,7 @@ export const isMac = async () => {
  */
 export const isURL = (value: string) => {
 	const regexp =
-		/^(((ht|f)tps?):\/\/)?([^!@#$%^&*?.\s-]([^!@#$%^&*?.\s]{0,63}[^!@#$%^&*?.\s])?\.)+[a-z]{2,6}\/?/;
+		/^(https?:\/\/)?(([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,})(:\d+)?(\/[a-zA-Z0-9\-._~:\/?#@!$&'()*+,;=%]*)?$/;
 
 	return regexp.test(value);
 };
