@@ -21,7 +21,18 @@ export default defineConfig({
 			applyVariable: ["--uno"],
 		}),
 	],
-	rules: [["outline-none", { outline: "none" }]],
+	rules: [
+		["outline-none", { outline: "none" }],
+		[
+			/^line-clamp-(\d+)$/,
+			(match) => ({
+				display: "-webkit-box",
+				overflow: "hidden",
+				"-webkit-line-clamp": `${match[1]}`,
+				"-webkit-box-orient": "vertical",
+			}),
+		],
+	],
 	shortcuts: [
 		[/^bg-(\d+)$/, ([, d]) => `bg-[var(--color-bg-${d})]`],
 		[/^color-(\d+)$/, ([, d]) => `text-[var(--color-text-${d})]`],
