@@ -1,4 +1,3 @@
-import logo from "@/assets/img/logo.png";
 import Icon from "@/components/Icon";
 import { emit } from "@tauri-apps/api/event";
 import { Button, Flex, Tooltip } from "antd";
@@ -14,7 +13,7 @@ const About = () => {
 			justify="center"
 			className="color-2 h-full transition"
 		>
-			<img src={logo} className="h-120 w-120" alt="logo" />
+			<img src="logo.png" className="h-120 w-120" alt="logo" />
 			<Flex vertical align="center" gap="small">
 				<div className="color-1 font-bold text-22 transition">
 					{appInfo?.name}

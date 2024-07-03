@@ -4,11 +4,12 @@
 	"version": "0.0.0",
 	"type": "module",
 	"scripts": {
-		"dev": "run-s build:icon start:app",
+		"dev": "run-s build:icon dev:vite",
 		"build": "run-s build:*",
-		"start:app": "tauri dev",
-		"build:icon": "tauri icon src/assets/img/logo.png",
-		"build:app": "tauri build",
+		"dev:vite": "vite",
+		"build:icon": "tauri icon public/logo.png",
+		"build:vite": "vite build",
+		"tauri": "tauri",
 		"lint": "biome check --apply src",
 		"preinstall": "npx only-allow pnpm",
 		"prepare": "simple-git-hooks"
