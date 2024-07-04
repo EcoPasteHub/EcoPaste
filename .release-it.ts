@@ -9,6 +9,6 @@ export default {
 		publish: false,
 	},
 	hooks: {
-		"after:bump": "ts-node scripts/release.ts",
+		"after:bump": "ts-node-esm scripts/release.ts",
 	},
 } satisfies Config;
