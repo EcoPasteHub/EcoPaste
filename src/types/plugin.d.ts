@@ -22,3 +22,11 @@ export interface ClipboardPayload {
 	width?: number;
 	height?: number;
 }
+
+export interface WinOCR {
+	content: string;
+	qr: Array<{
+		bounds: Array<{ x: number; y: number }>;
+		content: string;
+	}>;
+}
