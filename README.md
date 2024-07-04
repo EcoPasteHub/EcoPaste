@@ -33,13 +33,20 @@
 ## 下载
 
 - **MacOS**: [Apple Silicon](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoCopy/releases/download/v0.0.0/EcoCopy_0.0.0_aarch64.dmg) | [Intel](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoCopy/releases/download/v0.0.0/EcoCopy_0.0.0_x64.dmg)
-- **Windows**: [Windows x64](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoCopy/releases/download/v0.0.0/EcoCopy_0.0.0_x64_zh-CN.msi)
+- **Windows**: [Windows](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoCopy/releases/download/v0.0.0/EcoCopy_0.0.0_x64_zh-CN.msi)
 
-## TODO
+## Star History
 
-以下问题，欢迎各位 Rust 大佬指点迷津 😁
+<a href="https://star-history.com/#ayangweb/EcoCopy&Date">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=ayangweb/EcoCopy&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=ayangweb/EcoCopy&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=ayangweb/EcoCopy&type=Date" />
+ </picture>
+</a>
 
-- [x] 剪切板窗口支持打开时显示在光标所在位置
-- [ ] 贴边的剪切板窗口（卡在窗口无法在任务栏之上）
-- [ ] 复制内容来源的应用信息
-- [ ] 直接将剪切板内容粘贴到光标所在的输入框里
+## Contributors
+
+<a href="https://github.com/ayangweb/EcoCopy/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=ayangweb/EcoCopy" />
+</a>
