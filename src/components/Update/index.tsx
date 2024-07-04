@@ -6,7 +6,7 @@ import {
 	onUpdaterEvent,
 	checkUpdate as tauriCheckUpdate,
 } from "@tauri-apps/api/updater";
-import { Flex, Modal, message } from "antd";
+import { Flex, Modal, Typography, message } from "antd";
 import Markdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import { useSnapshot } from "valtio";
@@ -126,40 +126,46 @@ const Update = () => {
 				onOk={handleOk}
 				onCancel={handleCancel}
 			>
-				<Flex vertical gap="middle">
-					<Flex>
-						<span>更新版本：</span>
+				<Flex vertical gap="small" className="pt-4">
+					<Flex align="center">
+						更新版本：
 						<span>
-							v{appInfo?.version} 👉 v{state.manifest?.version}
+							v{appInfo?.version} 👉{" "}
+							<span className="text-primary">v{state.manifest?.version}</span>
 						</span>
 					</Flex>
 
-					<Flex>
-						<span>更新时间：</span>
+					<Flex align="center">
+						更新时间：
 						<span>
 							{dayjs(state.manifest?.date).format("YYYY-MM-DD HH:mm:ss")}
 						</span>
 					</Flex>
 
-					<div>
-						<span>更新详情：</span>
+					<Flex vertical>
+						更新日志：
 						<Markdown
+							className="revert-all max-h-220 overflow-auto"
 							rehypePlugins={[rehypeRaw]}
 							components={{
 								a: (props) => {
 									const { href, children } = props;
 
 									return (
-										<a href={href} target="_blank" rel="noreferrer">
+										<Typography.Link
+											href={href}
+											target="_blank"
+											rel="noreferrer"
+										>
 											{children}
-										</a>
+										</Typography.Link>
 									);
 								},
 							}}
 						>
 							{state.manifest?.body}
 						</Markdown>
-					</div>
+					</Flex>
 				</Flex>
 			</Modal>
 		</>
