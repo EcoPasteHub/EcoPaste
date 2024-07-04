@@ -49,7 +49,7 @@
 				"center": true
 			},
 			"dialog": {
-				"all": true
+				"ask": true
 			}
 		},
 		"windows": [

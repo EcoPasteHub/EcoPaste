@@ -11,7 +11,7 @@ edition = "2021"
 tauri-build = { version = "1", features = [] }
 
 [dependencies]
-tauri = { version = "1", features = [ "dialog-all", "process-relaunch", "updater", "shell-sidecar", "window-center", "window-set-position", "window-start-dragging", "path-all", "os-all", "shell-open", "protocol-asset", "global-shortcut-all", "fs-all", "system-tray", "macos-private-api"] }
+tauri = { version = "1", features = [ "dialog-ask", "process-relaunch", "updater", "shell-sidecar", "window-center", "window-set-position", "window-start-dragging", "path-all", "os-all", "shell-open", "protocol-asset", "global-shortcut-all", "fs-all", "system-tray", "macos-private-api"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tauri-plugin-theme = "0.2.0"
