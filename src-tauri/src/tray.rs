@@ -1,4 +1,4 @@
-use crate::window::{quit_app, show_window, MAIN_WINDOW_LABEL};
+use crate::window::{show_window, MAIN_WINDOW_LABEL};
 use tauri::{
     async_runtime, AppHandle, CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu,
     SystemTrayMenuItem, SystemTraySubmenu,
@@ -17,7 +17,7 @@ pub fn menu() -> SystemTray {
                 .add_item(CustomMenuItem::new("github".to_string(), "开源地址")),
         ))
         .add_native_item(SystemTrayMenuItem::Separator)
-        .add_item(CustomMenuItem::new("quit".to_string(), "退出"));
+        .add_item(CustomMenuItem::new("exit".to_string(), "退出"));
 
     SystemTray::new().with_menu(tray_menu)
 }
@@ -30,16 +30,15 @@ pub fn handler(app: &AppHandle, event: SystemTrayEvent) {
             SystemTrayEvent::LeftClick { .. } => show_window(window).await,
             SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
                 "preference" => show_window(window).await,
-                "about" => {
-                    window.emit("about", true).unwrap();
-                }
+                "about" => window.emit("about", true).unwrap(),
                 "update" => {
-                    println!("检查更新")
+                    window.emit("about", true).unwrap();
+                    window.emit("update", true).unwrap();
                 }
                 "github" => {
                     window.emit("github", true).unwrap();
                 }
-                "quit" => quit_app().await,
+                "exit" => app.exit(0),
                 _ => {}
             },
             _ => {}

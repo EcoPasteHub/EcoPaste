@@ -1,4 +1,5 @@
 import Icon from "@/components/Icon";
+import Update from "@/components/Update";
 import { emit, listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/api/shell";
 import { Flex } from "antd";
@@ -88,6 +89,8 @@ const DefaultLayout = () => {
 			>
 				<Outlet />
 			</div>
+
+			<Update />
 		</Flex>
 	);
 };

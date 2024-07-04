@@ -6,13 +6,13 @@ export const LISTEN_KEY = {
 	GLOBAL_STORE_CHANGED: "global-store-changed",
 	CLIPBOARD_STORE_CHANGED: "clipboard-store-changed",
 	CLEAR_HISTORY: "clear-history",
+	UPDATE: "update",
 };
 
 export const WINDOW_PLUGIN = {
 	CREATE_WINDOW: "plugin:window|create_window",
 	SHOW_WINDOW: "plugin:window|show_window",
 	HIDE_WINDOW: "plugin:window|hide_window",
-	QUIT_APP: "plugin:window|quit_app",
 };
 
 export const FS_EXTRA_PLUGIN = {

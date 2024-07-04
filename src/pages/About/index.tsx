@@ -21,7 +21,12 @@ const About = () => {
 				<Flex align="center" gap={4}>
 					<span>v{appInfo?.version}</span>
 					<Tooltip title="检查更新">
-						<Icon hoverable name="i-iconamoon:restart" size={16} />
+						<Icon
+							hoverable
+							name="i-iconamoon:restart"
+							size={16}
+							onMouseDown={() => emit(LISTEN_KEY.UPDATE)}
+						/>
 					</Tooltip>
 				</Flex>
 				<span>开源的跨平台剪切板工具，让您的工作更加高效便捷。</span>
@@ -29,7 +34,7 @@ const About = () => {
 					ghost
 					size="large"
 					type="primary"
-					onClick={() => emit("github")}
+					onClick={() => emit(LISTEN_KEY.GITHUB)}
 				>
 					给 {appInfo?.name} 点个 Star 吧👍
 				</Button>

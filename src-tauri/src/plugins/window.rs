@@ -40,19 +40,8 @@ pub async fn hide_window(window: Window) {
     window.hide().unwrap();
 }
 
-// 退出 app
-#[command]
-pub async fn quit_app() {
-    std::process::exit(0)
-}
-
 pub fn init() -> TauriPlugin<Wry> {
     Builder::new("window")
-        .invoke_handler(generate_handler![
-            create_window,
-            show_window,
-            hide_window,
-            quit_app
-        ])
+        .invoke_handler(generate_handler![create_window, show_window, hide_window,])
         .build()
 }

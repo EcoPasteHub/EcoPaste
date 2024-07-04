@@ -33,11 +33,6 @@ export const showWindow = () => invoke(WINDOW_PLUGIN.SHOW_WINDOW);
 export const hideWindow = () => invoke(WINDOW_PLUGIN.HIDE_WINDOW);
 
 /**
- * 退出 app
- */
-export const quitApp = () => invoke(WINDOW_PLUGIN.QUIT_APP);
-
-/**
  * 切换窗口的显示和隐藏
  */
 export const toggleWindowVisible = async () => {

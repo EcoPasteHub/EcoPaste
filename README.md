@@ -33,7 +33,7 @@
 ## 下载
 
 - **MacOS**: [Apple Silicon](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoCopy/releases/download/v0.0.0/EcoCopy_0.0.0_aarch64.dmg) | [Intel](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoCopy/releases/download/v0.0.0/EcoCopy_0.0.0_x64.dmg)
-- **Windows**: [Windows](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoCopy/releases/download/v0.0.0/EcoCopy_0.0.0_x64_zh-CN.msi)
+- **Windows**: [Universal](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoCopy/releases/download/v0.0.0/EcoCopy_0.0.0_x64_zh-CN.msi)
 
 ## Star History
 
