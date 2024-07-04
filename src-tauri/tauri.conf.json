@@ -47,6 +47,9 @@
 				"startDragging": true,
 				"setPosition": true,
 				"center": true
+			},
+			"dialog": {
+				"all": true
 			}
 		},
 		"windows": [
