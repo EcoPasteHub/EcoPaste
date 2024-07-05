@@ -253,17 +253,23 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 	};
 
 	const handleKeyDown = (event: KeyboardEvent) => {
-		event.preventDefault();
+		const isSpace = event.code === "Space";
+		const isArrowUp = event.code === "ArrowUp";
+		const isArrowDown = event.code === "ArrowDown";
 
-		if (event.code === "Space" && type === "image") {
+		if (isSpace || isArrowUp || isArrowDown) {
+			event.preventDefault();
+		}
+
+		if (isSpace && type === "image") {
 			previewImage();
 		}
 
-		if (event.code === "ArrowUp" && index > 0) {
+		if (isArrowUp && index > 0) {
 			clipboardStore.activeIndex = index - 1;
 		}
 
-		if (event.code === "ArrowDown" && index < data.length - 1) {
+		if (isArrowDown && index < data.length - 1) {
 			clipboardStore.activeIndex = index + 1;
 		}
 	};
@@ -278,7 +284,7 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 				...style,
 				top: Number(style.top) + (index - visibleStartIndex) * 12,
 			}}
-			className="antd-focus b-color-2 mx-12 h-full w-336! rounded-6 p-6"
+			className="antd-input b-color-2 mx-12 h-full w-336! rounded-6 p-6"
 			onContextMenu={handleContextMenu}
 			onDoubleClick={copy}
 			onFocus={handleFocus}
