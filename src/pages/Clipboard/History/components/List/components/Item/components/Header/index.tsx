@@ -59,9 +59,9 @@ const Header: FC<HeaderProps> = (props) => {
 	};
 
 	const renderPixel = () => {
-		const { width, height } = props;
-
 		if (type !== "image") return;
+
+		const { width, height } = props;
 
 		return (
 			<span>
@@ -78,14 +78,17 @@ const Header: FC<HeaderProps> = (props) => {
 				{renderPixel()}
 				<span>{dayjs(createTime).fromNow()}</span>
 			</Flex>
+
 			<Flex align="center" gap={6} className="text-14">
 				<Icon hoverable name="i-iconamoon:copy" onMouseDown={copy} />
+
 				<Icon
 					hoverable
 					name={isCollected ? "i-iconamoon:star-fill" : "i-iconamoon:star"}
 					className={clsx({ "text-gold!": isCollected })}
 					onMouseDown={collect}
 				/>
+
 				<Popconfirm
 					title="确定删除该历史记录？"
 					placement="left"

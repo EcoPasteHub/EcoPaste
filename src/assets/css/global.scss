@@ -8,14 +8,6 @@ html {
   --color-border-2: var(--ant-color-border-secondary);
 
   --uno: color-1 text-14 antialiased break-all;
-
-  &.dark {
-    .ms-theme-light {
-      --ms-track-background: rgba(210, 210, 210, 0.14);
-      --ms-track-border-color: rgba(228, 228, 228, 0.32);
-      --ms-thumb-color: rgba(255, 255, 255, 0.5);
-    }
-  }
 }
 
 img {
@@ -28,7 +20,7 @@ img {
 }
 
 .antd-input {
-  --uno: "b hover:b-primary-5 transition outline-none focus:(b-primary shadow-[0_0_0_2px_rgba(5,145,255,0.1)] dark:shadow-[0_0_0_2px_rgba(0,60,180,0.15)]) ";
+  --uno: "b hover:b-primary-5 transition outline-none focus:(b-primary shadow-[0_0_0_2px_rgba(5,145,255,0.1)] dark:shadow-[0_0_0_2px_rgba(0,60,180,0.15)])";
 }
 
 .line-clamp-4 {

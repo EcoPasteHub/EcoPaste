@@ -1,9 +1,9 @@
+import Scrollbar from "@/components/Scrollbar";
 import { HistoryContext } from "@/pages/Clipboard/History";
 import type { HistoryItem } from "@/types/database";
 import { Flex, Tag } from "antd";
 import clsx from "clsx";
 import { last } from "lodash-es";
-import { MacScrollbar } from "mac-scrollbar";
 
 interface TabItem {
 	label: string;
@@ -37,7 +37,7 @@ const Tab = () => {
 	const [checked, setChecked] = useState(tabList[0].label);
 
 	return (
-		<MacScrollbar>
+		<Scrollbar>
 			<Flex data-tauri-drag-region>
 				{tabList.map((item) => {
 					const { label, value } = item;
@@ -60,7 +60,7 @@ const Tab = () => {
 					);
 				})}
 			</Flex>
-		</MacScrollbar>
+		</Scrollbar>
 	);
 };
 

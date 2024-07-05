@@ -29,7 +29,6 @@
 		"react-dom": "^18.2.0",
 		"react-markdown": "^9.0.1",
 		"react-router-dom": "^6.23.1",
-		"react-window": "^1.8.10",
 		"rehype-raw": "^7.0.0",
 		"tauri-plugin-autostart-api": "github:tauri-apps/tauri-plugin-autostart#v1",
 		"tauri-plugin-context-menu": "^0.7.0",

@@ -4,7 +4,6 @@ import { BaseDirectory, copyFile, writeFile } from "@tauri-apps/api/fs";
 import { open } from "@tauri-apps/api/shell";
 import { Flex } from "antd";
 import type { FC, KeyboardEvent, MouseEvent } from "react";
-import { type ListChildComponentProps, areEqual } from "react-window";
 import { type ContextMenu, showMenu } from "tauri-plugin-context-menu";
 import { useSnapshot } from "valtio";
 import Files from "./components/Files";
@@ -14,26 +13,30 @@ import Image from "./components/Image";
 import RichText from "./components/RichText";
 import Text from "./components/Text";
 
+interface ItemProps {
+	index: number;
+	data: HistoryItem;
+}
+
 interface MenuItem extends ContextMenu.Item {
 	hide?: boolean;
 }
 
-const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
-	const { index, style, data } = props;
-
+const Item: FC<ItemProps> = (props) => {
+	const { index, data } = props;
 	const {
 		id,
 		type,
+		group,
 		value = "",
 		search = "",
 		createTime = "",
 		isCollected,
-	} = data[index];
+	} = data;
 
+	const { state, getHistoryList } = useContext(HistoryContext);
 	const { appInfo } = useSnapshot(globalStore);
-	const { visibleStartIndex, activeIndex, doubleClickFeedback } =
-		useSnapshot(clipboardStore);
-	const { getHistoryList } = useContext(HistoryContext);
+	const { activeIndex, doubleClickFeedback } = useSnapshot(clipboardStore);
 
 	const containerRef = useRef<HTMLElement>(null);
 
@@ -111,7 +114,7 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 	};
 
 	const deleteAbove = async () => {
-		const aboveData = data.filter((item) => {
+		const aboveData = state.historyList.filter((item) => {
 			const isMore = item.createTime! > createTime;
 			const isDifferent = item.createTime === createTime && item.id !== id;
 
@@ -126,7 +129,7 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 	};
 
 	const deleteBelow = async () => {
-		const belowData = data.filter((item) => {
+		const belowData = state.historyList.filter((item) => {
 			const isLess = item.createTime! < createTime;
 			const isDifferent = item.createTime === createTime && item.id !== id;
 
@@ -141,7 +144,7 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 	};
 
 	const deleteOther = async () => {
-		const otherData = data.filter((item) => item.id !== id);
+		const otherData = state.historyList.filter((item) => item.id !== id);
 
 		for await (const item of otherData) {
 			await deleteSQL("history", item.id);
@@ -150,13 +153,7 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 		getHistoryList?.();
 	};
 
-	const copyOCRText = async () => {
-		writeText(search);
-	};
-
 	const handleContextMenu = async (event: MouseEvent) => {
-		const { group } = data[index];
-
 		event.preventDefault();
 
 		const menus: MenuItem[] = [
@@ -167,7 +164,7 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 			{
 				label: "复制OCR文本",
 				hide: type !== "image",
-				event: copyOCRText,
+				event: copyPlainText,
 			},
 			{
 				label: "粘贴为纯文本",
@@ -219,34 +216,17 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 			},
 			{
 				label: "删除下方",
-				hide: index === data.length - 1,
+				hide: index === state.historyList.length - 1,
 				event: deleteBelow,
 			},
 			{
 				label: "删除其它",
-				hide: data.length === 1,
+				hide: state.historyList.length === 1,
 				event: deleteOther,
 			},
 		];
 
 		showMenu({ items: menus.filter(({ hide }) => !hide) });
-	};
-
-	const renderContent = () => {
-		const props = data[index];
-
-		switch (type) {
-			case "rich-text":
-				return <RichText {...props} />;
-			case "html":
-				return <HTML {...props} />;
-			case "image":
-				return <Image {...props} />;
-			case "files":
-				return <Files {...props} />;
-			default:
-				return <Text {...props} />;
-		}
 	};
 
 	const handleDoubleClick = () => {
@@ -278,8 +258,23 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 			clipboardStore.activeIndex = index - 1;
 		}
 
-		if (isArrowDown && index < data.length - 1) {
+		if (isArrowDown && index < state.historyList.length - 1) {
 			clipboardStore.activeIndex = index + 1;
+		}
+	};
+
+	const renderContent = () => {
+		switch (type) {
+			case "rich-text":
+				return <RichText {...data} />;
+			case "html":
+				return <HTML {...data} />;
+			case "image":
+				return <Image {...data} />;
+			case "files":
+				return <Files {...data} />;
+			default:
+				return <Text {...data} />;
 		}
 	};
 
@@ -289,26 +284,17 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 			ref={containerRef}
 			tabIndex={0}
 			gap={4}
-			style={{
-				...style,
-				top: Number(style.top) + (index - visibleStartIndex) * 12,
-			}}
-			className="antd-input b-color-2 mx-12 h-full w-336! rounded-6 p-6"
+			className="antd-input b-color-2 mx-auto mb-12 h-120 w-336 rounded-6 p-6"
 			onContextMenu={handleContextMenu}
 			onDoubleClick={handleDoubleClick}
 			onFocus={handleFocus}
 			onKeyDown={handleKeyDown}
 		>
-			<Header
-				{...data[index]}
-				copy={copy}
-				collect={collect}
-				deleteItem={deleteItem}
-			/>
+			<Header {...data} copy={copy} collect={collect} deleteItem={deleteItem} />
 
 			<div className="flex-1 overflow-hidden">{renderContent()}</div>
 		</Flex>
 	);
-}, areEqual);
+};
 
-export default Item;
+export default memo(Item);

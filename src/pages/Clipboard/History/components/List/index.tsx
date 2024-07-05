@@ -1,34 +1,33 @@
-import { MacScrollbar } from "mac-scrollbar";
-import { FixedSizeList } from "react-window";
+import Scrollbar from "@/components/Scrollbar";
 import { HistoryContext } from "../..";
 import Item from "./components/Item";
 
 const List = () => {
 	const { state } = useContext(HistoryContext);
 
-	const virtualListRef = useRef<FixedSizeList>(null);
+	const containerTarget = useRef(null);
+	const wrapperTarget = useRef(null);
 
 	useUpdateEffect(() => {
-		virtualListRef.current?.scrollTo(0);
+		scrollTo(0);
+
 		clipboardStore.activeIndex = 0;
 	}, [state.group, state.isCollected]);
 
+	const [list, scrollTo] = useVirtualList(state.historyList, {
+		containerTarget,
+		wrapperTarget,
+		itemHeight: 120,
+	});
+
 	return (
-		<FixedSizeList
-			ref={virtualListRef}
-			width={360}
-			height={542}
-			itemData={state.historyList}
-			itemKey={(index, data) => data[index].id!}
-			itemCount={state.historyList.length}
-			itemSize={120}
-			outerElementType={MacScrollbar}
-			onItemsRendered={({ visibleStartIndex }) => {
-				clipboardStore.visibleStartIndex = visibleStartIndex;
-			}}
-		>
-			{Item}
-		</FixedSizeList>
+		<Scrollbar ref={containerTarget} className="h-542">
+			<div ref={wrapperTarget}>
+				{list.map((props) => (
+					<Item key={props.data.id} {...props} />
+				))}
+			</div>
+		</Scrollbar>
 	);
 };
 
