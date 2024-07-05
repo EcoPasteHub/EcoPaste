@@ -1,5 +1,5 @@
 import { HistoryContext } from "@/pages/Clipboard/History";
-import type { HistoryGroup } from "@/types/database";
+import type { HistoryItem } from "@/types/database";
 import { Flex, Tag } from "antd";
 import clsx from "clsx";
 import { last } from "lodash-es";
@@ -7,7 +7,7 @@ import { MacScrollbar } from "mac-scrollbar";
 
 interface TabItem {
 	label: string;
-	value?: HistoryGroup;
+	value?: HistoryItem["group"];
 }
 
 const tabList: TabItem[] = [

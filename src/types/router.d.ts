@@ -1,10 +1,8 @@
 import type { WindowOptions } from "@tauri-apps/api/window";
 import type { ComponentType } from "react";
 
-export type Path = "/" | "/settings" | "/about" | "/clipboard-history";
-
 export interface Route {
-	path: Path;
+	path: "/" | "/settings" | "/about" | "/clipboard-history";
 	Component: ComponentType;
 	children?: Route[];
 	meta?: {

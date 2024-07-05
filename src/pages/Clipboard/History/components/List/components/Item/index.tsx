@@ -31,7 +31,8 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 	} = data[index];
 
 	const { appInfo } = useSnapshot(globalStore);
-	const { visibleStartIndex, activeIndex } = useSnapshot(clipboardStore);
+	const { visibleStartIndex, activeIndex, doubleClickFeedback } =
+		useSnapshot(clipboardStore);
 	const { getHistoryList } = useContext(HistoryContext);
 
 	const containerRef = useRef<HTMLElement>(null);
@@ -248,6 +249,14 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 		}
 	};
 
+	const handleDoubleClick = () => {
+		if (doubleClickFeedback === "none") return;
+
+		if (doubleClickFeedback === "copy") {
+			return copy();
+		}
+	};
+
 	const handleFocus = () => {
 		clipboardStore.activeIndex = index;
 	};
@@ -286,7 +295,7 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = memo((props) => {
 			}}
 			className="antd-input b-color-2 mx-12 h-full w-336! rounded-6 p-6"
 			onContextMenu={handleContextMenu}
-			onDoubleClick={copy}
+			onDoubleClick={handleDoubleClick}
 			onFocus={handleFocus}
 			onKeyDown={handleKeyDown}
 		>

@@ -1,5 +1,5 @@
 import copyAudio from "@/assets/audio/copy.mp3";
-import type { HistoryGroup, HistoryItem } from "@/types/database";
+import type { HistoryItem } from "@/types/database";
 import { listen } from "@tauri-apps/api/event";
 import {
 	PhysicalPosition,
@@ -54,7 +54,7 @@ const ClipboardHistory = () => {
 					createTime: dayjs().format("YYYY-MM-DD HH:mm:ss"),
 				});
 			} else {
-				let group: HistoryGroup;
+				let group: HistoryItem["group"];
 
 				switch (payload.type) {
 					case "files":

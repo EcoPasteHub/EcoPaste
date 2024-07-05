@@ -9,6 +9,7 @@ export const clipboardStore = proxyWithPersist<ClipboardStore>({
 		visibleStartIndex: 0,
 		activeIndex: 0,
 		windowPosition: "default",
+		doubleClickFeedback: "none",
 	},
 	persistStrategies,
 	version: 0,

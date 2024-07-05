@@ -2,11 +2,9 @@ import type { ClipboardPayload } from "./plugin";
 
 export type TableName = "history";
 
-export type HistoryGroup = "text" | "image" | "files";
-
 export interface HistoryItem extends Partial<ClipboardPayload> {
 	id?: number;
-	group?: HistoryGroup;
+	group?: "text" | "image" | "files";
 	createTime?: string;
 	isCollected?: boolean;
 }

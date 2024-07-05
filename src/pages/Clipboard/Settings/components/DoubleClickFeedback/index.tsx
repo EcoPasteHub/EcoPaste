@@ -4,36 +4,32 @@ import { useSnapshot } from "valtio";
 
 interface Option {
 	label: string;
-	value: ClipboardStore["windowPosition"];
+	value: ClipboardStore["doubleClickFeedback"];
 }
 
-const WindowPosition = () => {
-	const { windowPosition } = useSnapshot(clipboardStore);
+const DoubleClickFeedback = () => {
+	const { doubleClickFeedback } = useSnapshot(clipboardStore);
 
 	const options: Option[] = [
 		{
-			label: "默认位置",
-			value: "default",
+			label: "无反馈",
+			value: "none",
 		},
 		{
-			label: "跟随鼠标",
-			value: "follow",
-		},
-		{
-			label: "屏幕中心",
-			value: "center",
+			label: "复制内容",
+			value: "copy",
 		},
 	];
 
 	const handleChange = (value: Option["value"]) => {
-		clipboardStore.windowPosition = value;
+		clipboardStore.doubleClickFeedback = value;
 	};
 
 	return (
 		<Flex align="center">
-			窗口位置：
+			双击反馈：
 			<Segmented
-				value={windowPosition}
+				value={doubleClickFeedback}
 				options={options}
 				onChange={handleChange}
 			/>
@@ -41,4 +37,4 @@ const WindowPosition = () => {
 	);
 };
 
-export default WindowPosition;
+export default DoubleClickFeedback;
