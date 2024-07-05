@@ -46,8 +46,8 @@
 - 应用常驻后台，通过自定义快捷键一键唤醒，节省时间，提高效率。
 - 所有剪切板内容都存储在本地设备上，绝不会上传到云端或第三方服务器，避免数据泄露风险。
 - 提供自动清理剪切板历史记录的功能，用户可以设定清理周期，确保敏感信息不会长时间保留在设备上。
-- 纯文本内容支持链接、链接、颜色块的识别。
-- 图片支持右键复制 OCR 文本。
+- 纯文本内容支持链接、邮箱、颜色块的识别。
+- 图片支持调用系统 OCR 进行文本识别，右键即可快速复制。
 - 提供多样的自定义选项，可以根据需求调整应用的行为和界面。
 
 ## 常见问题
@@ -58,6 +58,10 @@
 参考 huazai 大佬的[解决办法](https://zhuanlan.zhihu.com/p/135948430)
 
 </details>
+
+## 参与贡献
+
+请参考 [Contributing Guide](https://github.com/ayangweb/EcoCopy/blob/master/.github/CONTRIBUTING.md)。
 
 ## Star History
 
@@ -70,7 +74,7 @@
  </picture>
 </a>
 
-## Contributors
+## 感谢贡献者们做出的努力
 
 <a href="https://github.com/ayangweb/EcoCopy/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=ayangweb/EcoCopy" />
