@@ -48,6 +48,8 @@ const Update = () => {
 			const { shouldUpdate, manifest } = await tauriCheckUpdate();
 
 			if (shouldUpdate) {
+				showWindow();
+
 				messageApi.destroy(MESSAGE_KEY);
 
 				Object.assign(state, { manifest, open: true });

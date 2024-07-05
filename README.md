@@ -17,7 +17,7 @@
   </div>
 
   <div>
-    <a href="https://github.com/ayangweb/EcoCopy?tab=MIT-1-ov-file">
+    <a href="https://github.com/ayangweb/EcoCopy/blob/master/LICENSE">
       <img
         src="https://img.shields.io/github/license/ayangweb/EcoCopy?style=flat-square"
       />
