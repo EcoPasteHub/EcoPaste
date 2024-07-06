@@ -37,8 +37,8 @@
 
 ## 下载
 
-- **MacOS**: [Apple Silicon](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoCopy/releases/download/v0.0.0/EcoCopy_0.0.0_aarch64.dmg) | [Intel](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoCopy/releases/download/v0.0.0/EcoCopy_0.0.0_x64.dmg)
-- **Windows**: [Universal](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoCopy/releases/download/v0.0.0/EcoCopy_0.0.0_x64_zh-CN.msi)
+- **MacOS**: [Apple Silicon](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoCopy/releases/download/v0.0.1/EcoCopy_0.0.1_aarch64.dmg) | [Intel](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoCopy/releases/download/v0.0.1/EcoCopy_0.0.1_x64.dmg)
+- **Windows**: [Universal](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoCopy/releases/download/v0.0.1/EcoCopy_0.0.1_x64_zh-CN.msi)
 
 ## 功能介绍
 

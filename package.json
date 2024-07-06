@@ -1,7 +1,7 @@
 {
 	"name": "eco-copy",
 	"private": true,
-	"version": "0.0.0",
+	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
 		"dev": "run-s build:icon dev:vite",
