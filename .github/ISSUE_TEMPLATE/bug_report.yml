@@ -42,6 +42,15 @@ body:
       required: true
 
   - type: textarea
+    id: info
+    attributes:
+      label: Application and system information
+      description: Click the Copy Info button on the About page
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
     id: context
     attributes:
       label: Additional context
