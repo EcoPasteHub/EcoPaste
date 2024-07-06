@@ -40,6 +40,12 @@
 - **MacOS**: [Apple Silicon](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoCopy/releases/download/v0.0.1/EcoCopy_0.0.1_aarch64.dmg) | [Intel](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoCopy/releases/download/v0.0.1/EcoCopy_0.0.1_x64.dmg)
 - **Windows**: [Universal](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoCopy/releases/download/v0.0.1/EcoCopy_0.0.1_x64_zh-CN.msi)
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./images/app-dark.png" />
+  <source media="(prefers-color-scheme: light)" srcset="./images/app-light.png" />
+  <img src="./images/app-light.png" />
+</picture>
+
 ## 功能介绍
 
 - 使用 Tauri 构建项目，使其更加小巧精致，资源占用更少，同时适配多个平台。
@@ -59,18 +65,27 @@
 <details>
 <summary>1. MacOS 提示 app 已损坏，无法打开。</summary>
 
-参考 huazai 大佬的[解决办法](https://zhuanlan.zhihu.com/p/135948430)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./images/injure-dark.png" />
+  <source media="(prefers-color-scheme: light)" srcset="./images/injure-light.png" />
+  <img src="./images/injure-light.png" />
+</picture>
+
+在终端窗口输入以下命令，按回车键后输入系统密码并再次按回车键即可。
+
+```bash
+sudo xattr -r -d com.apple.quarantine /Applications/EcoCopy.app
+```
 
 </details>
 
 ## 参与贡献
 
-请参考 [Contributing Guide](https://github.com/ayangweb/EcoCopy/blob/master/.github/CONTRIBUTING.md)。
+请参考 [Contributing Guide](./.github/CONTRIBUTING.md)。
 
 ## Star History
 
 <a href="https://star-history.com/#ayangweb/EcoCopy&Date">
-
  <picture>
    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=ayangweb/EcoCopy&type=Date&theme=dark" />
    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=ayangweb/EcoCopy&type=Date" />
