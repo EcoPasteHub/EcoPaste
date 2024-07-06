@@ -1,10 +1,34 @@
 import Icon from "@/components/Icon";
+import { getTauriVersion } from "@tauri-apps/api/app";
 import { emit } from "@tauri-apps/api/event";
+import { arch, type, version } from "@tauri-apps/api/os";
+import { open } from "@tauri-apps/api/shell";
 import { Button, Flex, Tooltip } from "antd";
 import { useSnapshot } from "valtio";
 
 const About = () => {
 	const { appInfo } = useSnapshot(globalStore);
+
+	const update = () => {
+		emit(LISTEN_KEY.UPDATE);
+	};
+
+	const copyInfo = async () => {
+		const info = {
+			appName: appInfo?.name,
+			appVersion: appInfo?.version,
+			tauriVersion: await getTauriVersion(),
+			platform: await type(),
+			platformArch: await arch(),
+			platformVersion: await version(),
+		};
+
+		writeText(JSON.stringify(info, null, "\t"));
+	};
+
+	const feedbackIssue = () => {
+		open(`${GITHUB_LINK}/issues/new/choose`);
+	};
 
 	return (
 		<Flex
@@ -25,19 +49,28 @@ const About = () => {
 							hoverable
 							name="i-iconamoon:restart"
 							size={16}
-							onMouseDown={() => emit(LISTEN_KEY.UPDATE)}
+							onMouseDown={update}
 						/>
 					</Tooltip>
 				</Flex>
 				<span>开源的跨平台剪切板工具，让您的工作更加高效便捷。</span>
-				<Button
-					ghost
-					size="large"
-					type="primary"
-					onClick={() => emit(LISTEN_KEY.GITHUB)}
-				>
-					给 {appInfo?.name} 点个 Star 吧👍
-				</Button>
+				<Flex gap="middle">
+					<Tooltip title="复制应用和系统信息，用于 Issue">
+						<Button size="large" type="primary" onClick={copyInfo}>
+							复制信息
+						</Button>
+					</Tooltip>
+
+					<Button
+						ghost
+						danger
+						size="large"
+						type="primary"
+						onClick={feedbackIssue}
+					>
+						反馈问题
+					</Button>
+				</Flex>
 			</Flex>
 		</Flex>
 	);
