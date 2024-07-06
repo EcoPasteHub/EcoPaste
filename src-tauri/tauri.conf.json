@@ -91,7 +91,7 @@
 			}
 		},
 		"systemTray": {
-			"iconPath": "icons/icon.png",
+			"iconPath": "assets/tray.png",
 			"iconAsTemplate": true,
 			"menuOnLeftClick": false
 		},
