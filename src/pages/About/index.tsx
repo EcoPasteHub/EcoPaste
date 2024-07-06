@@ -23,7 +23,7 @@ const About = () => {
 			platformVersion: await version(),
 		};
 
-		writeText(JSON.stringify(info, null, "\t"));
+		writeText(JSON.stringify(info, null, 2));
 	};
 
 	const feedbackIssue = () => {
