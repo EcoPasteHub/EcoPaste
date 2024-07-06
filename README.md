@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://socialify.git.ci/ayangweb/EcoCopy/image?description=1&font=Source%20Code%20Pro&forks=1&issues=1&name=1&owner=1&pattern=Floating%20Cogs&pulls=1&stargazers=1&theme=Auto" alt="EcoCopy" />
+  <img src="https://socialify.git.ci/ayangweb/EcoCopy/image?description=1&font=Source%20Code%20Pro&forks=1&issues=1&logo=https%3A%2F%2Fgithub.com%2Fayangweb%2FEcoCopy%2Fblob%2Fmaster%2Fpublic%2Flogo.png%3Fraw%3Dtrue&name=1&owner=1&pattern=Floating%20Cogs&pulls=1&stargazers=1&theme=Auto" alt="EcoCopy" />
 
   <div>
     <a href="https://github.com/ayangweb/EcoCopy/releases/latest">
