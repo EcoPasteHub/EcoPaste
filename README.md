@@ -37,8 +37,8 @@
 
 ## 下载
 
-- **MacOS**: [Apple Silicon](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.1/EcoPaste_0.0.1_aarch64.dmg) | [Intel](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.1/EcoPaste_0.0.1_x64.dmg)
-- **Windows**: [Universal](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.1/EcoPaste_0.0.1_x64_zh-CN.msi)
+- **MacOS**: [Apple Silicon](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.2/EcoPaste_0.0.2_aarch64.dmg) | [Intel](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.2/EcoPaste_0.0.2_x64.dmg)
+- **Windows**: [Universal](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.2/EcoPaste_0.0.2_x64_zh-CN.msi)
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./images/app-dark.png" />
