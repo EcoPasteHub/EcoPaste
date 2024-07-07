@@ -92,7 +92,7 @@ jobs:
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
         with:
           tagName: ${{ github.ref_name }}
-          releaseName: EcoCopy ${{ needs.create-release.outputs.APP_VERSION }}
+          releaseName: EcoPaste ${{ needs.create-release.outputs.APP_VERSION }}
           releaseBody: ""
           releaseDraft: true
           prerelease: false

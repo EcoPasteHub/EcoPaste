@@ -6,7 +6,7 @@
 		"distDir": "../dist"
 	},
 	"package": {
-		"productName": "EcoCopy",
+		"productName": "EcoPaste",
 		"version": "../package.json"
 	},
 	"tauri": {
@@ -55,7 +55,7 @@
 		"windows": [
 			{
 				"label": "main",
-				"title": "EcoCopy",
+				"title": "EcoPaste",
 				"resizable": false,
 				"center": true,
 				"skipTaskbar": true,
@@ -71,7 +71,7 @@
 		"bundle": {
 			"active": true,
 			"targets": "all",
-			"identifier": "com.ayangweb.EcoCopy",
+			"identifier": "com.ayangweb.EcoPaste",
 			"icon": [
 				"icons/32x32.png",
 				"icons/128x128.png",
@@ -98,7 +98,7 @@
 		"updater": {
 			"active": true,
 			"endpoints": [
-				"https://mirror.ghproxy.com/https://github.com/ayangweb/EcoCopy/releases/latest/download/latest.json"
+				"https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/latest/download/latest.json"
 			],
 			"dialog": false,
 			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDNBRjgxOTE4RjlDMzRDNUQKUldSZFRNUDVHQm40T3BzT1FhZWxEMkEvbHBiSFJNLzVleS9HRVIyM0dzN0JXRmZRZktoS2w0U1MK"

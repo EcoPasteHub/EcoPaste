@@ -1,6 +1,6 @@
 # 贡献指南
 
-非常感谢您对 EcoCopy 的关注和贡献！在您提交贡献之前，请先花一些时间阅读以下指南，以确保您的贡献能够顺利进行。
+非常感谢您对 EcoPaste 的关注和贡献！在您提交贡献之前，请先花一些时间阅读以下指南，以确保您的贡献能够顺利进行。
 
 ## 透明的开发
 
@@ -8,7 +8,7 @@
 
 ## 提交 Issue
 
-我们使用 [Github Issues](https://github.com/ayangweb/EcoCopy/issues) 进行 Bug 报告和新 Feature 建议。在提交 Issue 之前，请确保已经搜索过类似的问题，因为它们可能已经得到解答或正在被修复。对于 Bug 报告，请包含可用于重现问题的完整步骤。对于新 Feature 建议，请指出你想要的更改以及期望的行为。
+我们使用 [Github Issues](https://github.com/ayangweb/EcoPaste/issues) 进行 Bug 报告和新 Feature 建议。在提交 Issue 之前，请确保已经搜索过类似的问题，因为它们可能已经得到解答或正在被修复。对于 Bug 报告，请包含可用于重现问题的完整步骤。对于新 Feature 建议，请指出你想要的更改以及期望的行为。
 
 ## 提交 Pull Request
 
@@ -60,4 +60,4 @@ Commit messages 请遵循[conventional-changelog 标准](https://www.conventiona
 - perf: 性能优化
 - chore: 其他提交
 
-期待您的参与，让我们一起使 EcoCopy 变得更好！
+期待您的参与，让我们一起使 EcoPaste 变得更好！
