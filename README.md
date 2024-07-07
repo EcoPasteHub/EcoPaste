@@ -17,7 +17,7 @@
   </div>
 
   <div>
-    <a href="https://github.com/ayangweb/EcoPaste/blob/master/LICENSE">
+    <a href="./LICENSE">
       <img
         src="https://img.shields.io/github/license/ayangweb/EcoPaste?style=flat-square"
       />
@@ -50,7 +50,7 @@
 
 - 使用 Tauri 构建项目，使其更加小巧精致，资源占用更少，同时适配多个平台。
 - 应用常驻后台，通过自定义快捷键一键唤醒，节省时间，提高效率。
-- 所有剪切板内容均在本地安全存储，确保数据隐私和安全。
+- 所有剪切板内容均在本地存储，确保数据隐私和安全。
 - 支持纯文本、富文本、HTML、图片和文件类型。
 - 自动根据剪切板内容类型进行分组，便于高效管理。
 - 内置搜索功能，轻松找到剪切板上的任何内容。
