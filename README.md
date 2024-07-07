@@ -83,7 +83,7 @@ sudo xattr -r -d com.apple.quarantine /Applications/EcoPaste.app
 
 请参考 [Contributing Guide](./.github/CONTRIBUTING.md)。
 
-## Star History
+## 历史星标
 
 <a href="https://star-history.com/#ayangweb/EcoPaste&Date">
  <picture>
