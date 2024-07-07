@@ -43,6 +43,12 @@ const Update = () => {
 		immediate: true,
 	});
 
+	const updateTime = useCreation(() => {
+		const date = state.manifest?.date?.split(" ")?.slice(0, 2)?.join(" ");
+
+		return dayjs.utc(date).local().format("YYYY-MM-DD HH:mm:ss");
+	}, [state.manifest?.date]);
+
 	const checkUpdate = async (showMessage = false) => {
 		try {
 			const { shouldUpdate, manifest } = await tauriCheckUpdate();
@@ -139,9 +145,7 @@ const Update = () => {
 
 					<Flex align="center">
 						更新时间：
-						<span>
-							{dayjs(state.manifest?.date).format("YYYY-MM-DD HH:mm:ss")}
-						</span>
+						<span>{updateTime}</span>
 					</Flex>
 
 					<Flex vertical>
