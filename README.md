@@ -1,14 +1,14 @@
 <div align="center">
-  <img src="https://socialify.git.ci/ayangweb/EcoCopy/image?description=1&font=Source%20Code%20Pro&forks=1&issues=1&logo=https%3A%2F%2Fgithub.com%2Fayangweb%2FEcoCopy%2Fblob%2Fmaster%2Fpublic%2Flogo.png%3Fraw%3Dtrue&name=1&owner=1&pattern=Floating%20Cogs&pulls=1&stargazers=1&theme=Auto" alt="EcoCopy" />
+  <img src="https://socialify.git.ci/ayangweb/EcoPaste/image?description=1&font=Source%20Code%20Pro&forks=1&issues=1&logo=https%3A%2F%2Fgithub.com%2Fayangweb%2FEcoPaste%2Fblob%2Fmaster%2Fpublic%2Flogo.png%3Fraw%3Dtrue&name=1&owner=1&pattern=Floating%20Cogs&pulls=1&stargazers=1&theme=Auto" alt="EcoPaste" />
 
   <div>
-    <a href="https://github.com/ayangweb/EcoCopy/releases/latest">
+    <a href="https://github.com/ayangweb/EcoPaste/releases/latest">
       <img
         alt="macOS"
         src="https://img.shields.io/badge/-MacOS-black?style=flat-square&logo=apple&logoColor=white"
       />
     </a>
-    <a href="https://github.com/ayangweb/EcoCopy/releases/latest">
+    <a href="https://github.com/ayangweb/EcoPaste/releases/latest">
       <img
         alt="Windows"
         src="https://img.shields.io/badge/-Windows-blue?style=flat-square&logo=windows&logoColor=white"
@@ -17,19 +17,19 @@
   </div>
 
   <div>
-    <a href="https://github.com/ayangweb/EcoCopy/blob/master/LICENSE">
+    <a href="https://github.com/ayangweb/EcoPaste/blob/master/LICENSE">
       <img
-        src="https://img.shields.io/github/license/ayangweb/EcoCopy?style=flat-square"
+        src="https://img.shields.io/github/license/ayangweb/EcoPaste?style=flat-square"
       />
     </a>
-    <a href="https://github.com/ayangweb/EcoCopy/releases/latest">
+    <a href="https://github.com/ayangweb/EcoPaste/releases/latest">
       <img
-        src="https://img.shields.io/github/package-json/v/ayangweb/EcoCopy?style=flat-square"
+        src="https://img.shields.io/github/package-json/v/ayangweb/EcoPaste?style=flat-square"
       />
     </a>
-    <a href="https://github.com/ayangweb/EcoCopy/releases">
+    <a href="https://github.com/ayangweb/EcoPaste/releases">
       <img
-        src="https://img.shields.io/github/downloads/ayangweb/EcoCopy/total?style=flat-square"
+        src="https://img.shields.io/github/downloads/ayangweb/EcoPaste/total?style=flat-square"
       />  
     </a>
   </div>
@@ -37,8 +37,8 @@
 
 ## 下载
 
-- **MacOS**: [Apple Silicon](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoCopy/releases/download/v0.0.1/EcoCopy_0.0.1_aarch64.dmg) | [Intel](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoCopy/releases/download/v0.0.1/EcoCopy_0.0.1_x64.dmg)
-- **Windows**: [Universal](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoCopy/releases/download/v0.0.1/EcoCopy_0.0.1_x64_zh-CN.msi)
+- **MacOS**: [Apple Silicon](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.1/EcoPaste_0.0.1_aarch64.dmg) | [Intel](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.1/EcoPaste_0.0.1_x64.dmg)
+- **Windows**: [Universal](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.1/EcoPaste_0.0.1_x64_zh-CN.msi)
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./images/app-dark.png" />
@@ -74,7 +74,7 @@
 在终端窗口输入以下命令，按回车键后输入系统密码并再次按回车键即可。
 
 ```bash
-sudo xattr -r -d com.apple.quarantine /Applications/EcoCopy.app
+sudo xattr -r -d com.apple.quarantine /Applications/EcoPaste.app
 ```
 
 </details>
@@ -85,16 +85,16 @@ sudo xattr -r -d com.apple.quarantine /Applications/EcoCopy.app
 
 ## Star History
 
-<a href="https://star-history.com/#ayangweb/EcoCopy&Date">
+<a href="https://star-history.com/#ayangweb/EcoPaste&Date">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=ayangweb/EcoCopy&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=ayangweb/EcoCopy&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=ayangweb/EcoCopy&type=Date" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=ayangweb/EcoPaste&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=ayangweb/EcoPaste&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=ayangweb/EcoPaste&type=Date" />
  </picture>
 </a>
 
 ## 感谢贡献者们做出的努力
 
-<a href="https://github.com/ayangweb/EcoCopy/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=ayangweb/EcoCopy" />
+<a href="https://github.com/ayangweb/EcoPaste/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=ayangweb/EcoPaste" />
 </a>

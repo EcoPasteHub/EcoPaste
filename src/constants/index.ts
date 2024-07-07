@@ -1,4 +1,4 @@
-export const GITHUB_LINK = "https://github.com/ayangweb/EcoCopy";
+export const GITHUB_LINK = "https://github.com/ayangweb/EcoPaste";
 
 export const LISTEN_KEY = {
 	ABOUT: "about",
