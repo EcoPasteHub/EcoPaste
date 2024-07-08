@@ -106,8 +106,7 @@
 		},
 		"systemTray": {
 			"iconPath": "assets/tray.png",
-			"iconAsTemplate": true,
-			"menuOnLeftClick": false
+			"iconAsTemplate": true
 		},
 		"updater": {
 			"active": true,
