@@ -4,7 +4,7 @@ import { listen } from "@tauri-apps/api/event";
 import {
 	PhysicalPosition,
 	appWindow,
-	currentMonitor,
+	availableMonitors,
 } from "@tauri-apps/api/window";
 import clsx from "clsx";
 import { createContext } from "react";
@@ -91,22 +91,32 @@ const ClipboardHistory = () => {
 			const { windowPosition } = clipboardStore;
 
 			if (windowPosition === "follow") {
-				const monitor = await currentMonitor();
-
-				if (!monitor) return;
+				const monitors = await availableMonitors();
+				if (!monitors.length) return;
 
 				const { width, height } = await appWindow.innerSize();
 				let [x, y] = await getMouseCoords();
 
-				const {
+				const isWindows = await isWin();
+
+				for (const {
 					scaleFactor,
+					position: { x: posX, y: posY },
 					size: { width: screenWidth, height: screenHeight },
-				} = monitor;
+				} of monitors) {
+					if (
+						x < posX ||
+						y < posY ||
+						x > posX + screenWidth ||
+						y > posY + screenHeight
+					) {
+						continue;
+					}
 
-				const factor = (await isWin()) ? 1 : scaleFactor;
-
-				x = Math.min(x * factor, screenWidth - width);
-				y = Math.min(y * factor, screenHeight - height);
+					const factor = isWindows ? 1 : scaleFactor;
+					x = Math.min(x * factor, posX + screenWidth - width);
+					y = Math.min(y * factor, posY + screenHeight - height);
+				}
 
 				appWindow.setPosition(new PhysicalPosition(x, y));
 			} else if (windowPosition === "center") {
