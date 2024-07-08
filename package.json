@@ -16,7 +16,7 @@
 		"release": "release-it"
 	},
 	"dependencies": {
-		"@tauri-apps/api": "^1",
+		"@tauri-apps/api": "^1.6.0",
 		"@unocss/reset": "^0.60.3",
 		"ahooks": "^3.8.0",
 		"antd": "^5.18.0",
@@ -43,7 +43,7 @@
 		"@iconify-json/iconamoon": "^1.1.4",
 		"@iconify-json/lucide": "^1.1.189",
 		"@iconify-json/ri": "^1.1.20",
-		"@tauri-apps/cli": "^1",
+		"@tauri-apps/cli": "^1.6.0",
 		"@types/lodash-es": "^4.17.12",
 		"@types/node": "^20.14.9",
 		"@types/react": "^18.2.15",
