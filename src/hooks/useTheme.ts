@@ -1,5 +1,4 @@
 import type { Theme } from "@/types/store";
-import { invoke } from "@tauri-apps/api";
 import { ask } from "@tauri-apps/api/dialog";
 import { appWindow } from "@tauri-apps/api/window";
 import { useSnapshot } from "valtio";
@@ -7,6 +6,14 @@ import { useSnapshot } from "valtio";
 export const useTheme = () => {
 	const { theme } = useSnapshot(globalStore);
 	const [isDark, setIsDark] = useState(false);
+
+	useMount(() => {
+		appWindow.onThemeChanged(({ payload }) => {
+			if (globalStore.theme !== "auto") return;
+
+			setIsDark(payload === "dark");
+		});
+	});
 
 	useAsyncEffect(async () => {
 		let value = theme;
@@ -40,7 +47,7 @@ export const useTheme = () => {
 
 		globalStore.theme = nextTheme;
 
-		invoke("plugin:theme|set_theme", { theme });
+		setTheme(nextTheme);
 	};
 
 	return {
