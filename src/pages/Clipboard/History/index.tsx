@@ -103,7 +103,7 @@ const ClipboardHistory = () => {
 					size: { width: screenWidth, height: screenHeight },
 				} = monitor;
 
-				const factor = (await isWin()) ? 1 : scaleFactor;
+				const factor = isWin() ? 1 : scaleFactor;
 
 				x = Math.min(x * factor, screenWidth - width);
 				y = Math.min(y * factor, screenHeight - height);

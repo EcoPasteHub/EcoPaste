@@ -1,5 +1,3 @@
-import { type } from "@tauri-apps/api/os";
-
 /**
  * 是否为开发环境
  */
@@ -8,21 +6,24 @@ export const isDev = () => {
 };
 
 /**
- * 是否为 windows 系统
+ * 是否为 macos 系统
  */
-export const isWin = async () => {
-	const osType = await type();
-
-	return osType === "Windows_NT";
+export const isMac = () => {
+	return globalStore.platform === "Darwin";
 };
 
 /**
- * 是否为 mac 系统
+ * 是否为 windows 系统
  */
-export const isMac = async () => {
-	const osType = await type();
+export const isWin = () => {
+	return globalStore.platform === "Windows_NT";
+};
 
-	return osType === "Darwin";
+/**
+ * 是否为 linux 系统
+ */
+export const isLinux = () => {
+	return globalStore.platform === "Linux";
 };
 
 /**
