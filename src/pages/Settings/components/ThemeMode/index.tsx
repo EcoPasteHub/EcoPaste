@@ -1,7 +1,6 @@
 import type { Theme } from "@/types/store";
 import { appWindow } from "@tauri-apps/api/window";
 import { Flex, Segmented } from "antd";
-import { useSnapshot } from "valtio";
 
 interface Option {
 	label: string;
@@ -9,7 +8,7 @@ interface Option {
 }
 
 const ThemeMode = () => {
-	const { theme } = useSnapshot(globalStore);
+	const { theme, toggleTheme } = useTheme();
 
 	useMount(() => {
 		appWindow.onThemeChanged(({ payload }) => {
