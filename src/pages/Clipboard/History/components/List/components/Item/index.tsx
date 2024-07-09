@@ -201,7 +201,7 @@ const Item: FC<ItemProps> = (props) => {
 				event: downloadImage,
 			},
 			{
-				label: (await isMac()) ? "在 Finder 中显示" : "在文件资源管理器中显示",
+				label: isMac() ? "在 Finder 中显示" : "在文件资源管理器中显示",
 				hide: type !== "files",
 				event: openFinder,
 			},

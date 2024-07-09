@@ -36,7 +36,7 @@ export const useTheme = () => {
 	const toggleTheme = async (theme?: Theme) => {
 		const nextTheme = theme ?? (isDark ? "light" : "dark");
 
-		if (await isWin()) {
+		if (isWin()) {
 			const yes = await ask("切换主题需要重启 app 才能生效！", {
 				okLabel: "重启",
 				cancelLabel: "取消",

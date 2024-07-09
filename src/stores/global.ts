@@ -1,5 +1,6 @@
 import type { GlobalStore } from "@/types/store";
 import { getName, getVersion } from "@tauri-apps/api/app";
+import { type } from "@tauri-apps/api/os";
 import proxyWithPersist, {
 	PersistStrategy,
 	type ProxyPersistStorageEngine,
@@ -35,4 +36,6 @@ subscribeKey(globalStore._persist, "loaded", async (loaded) => {
 		name: await getName(),
 		version: await getVersion(),
 	};
+
+	globalStore.platform = await type();
 });

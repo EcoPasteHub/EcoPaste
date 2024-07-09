@@ -19,7 +19,7 @@ const Header = () => {
 	});
 
 	useMount(async () => {
-		if (await isWin()) {
+		if (isWin()) {
 			state.delay = 100;
 		}
 

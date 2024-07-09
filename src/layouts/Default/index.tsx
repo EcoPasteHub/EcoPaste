@@ -15,7 +15,7 @@ const DefaultLayout = () => {
 	const [sidebarClassName, setSidebarClassName] = useState("pt-48");
 
 	useMount(async () => {
-		if (await isWin()) {
+		if (isWin()) {
 			setSidebarClassName("pt-32");
 		}
 
