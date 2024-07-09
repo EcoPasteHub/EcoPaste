@@ -1,5 +1,4 @@
 import type { Theme } from "@/types/store";
-import { appWindow } from "@tauri-apps/api/window";
 import { Flex, Segmented } from "antd";
 
 interface Option {
@@ -9,14 +8,6 @@ interface Option {
 
 const ThemeMode = () => {
 	const { theme, toggleTheme } = useTheme();
-
-	useMount(() => {
-		appWindow.onThemeChanged(({ payload }) => {
-			if (globalStore.theme !== "auto") return;
-
-			globalStore.isDark = payload === "dark";
-		});
-	});
 
 	const options: Option[] = [
 		{

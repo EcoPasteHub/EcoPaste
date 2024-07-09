@@ -6,6 +6,7 @@ use tauri::{
 };
 
 #[derive(Debug, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 struct Metadata {
     size: u64,
     is_dir: bool,

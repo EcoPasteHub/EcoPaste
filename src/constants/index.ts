@@ -49,3 +49,8 @@ export const MOUSE_PLUGIN = {
 export const OCR_PLUGIN = {
 	SYSTEM_OCR: "plugin:ocr|system_ocr",
 };
+
+export const THEME_PLUGIN = {
+	SET_THEME: "plugin:theme|set_theme",
+	GET_THEME: "plugin:theme|get_theme",
+};
