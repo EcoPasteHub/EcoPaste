@@ -17,7 +17,7 @@
   </div>
 
   <div>
-    <a href="./LICENSE">
+    <a href="https://github.com/ayangweb/EcoPaste/blob/master/LICENSE">
       <img
         src="https://img.shields.io/github/license/ayangweb/EcoPaste?style=flat-square"
       />
@@ -82,7 +82,7 @@ sudo xattr -r -d com.apple.quarantine /Applications/EcoPaste.app
 
 ## 参与贡献
 
-请参考 [Contributing Guide](./.github/CONTRIBUTING.md)。
+请参考 [Contributing Guide](https://github.com/ayangweb/EcoPaste/blob/master/.github/CONTRIBUTING.md)。
 
 ## 历史星标
 
