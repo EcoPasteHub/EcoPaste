@@ -10,7 +10,7 @@
 		"build:icon": "tauri icon public/logo.png",
 		"build:vite": "vite build",
 		"tauri": "tauri",
-		"lint": "biome check --apply src",
+		"lint": "biome check --write src",
 		"preinstall": "npx only-allow pnpm",
 		"prepare": "simple-git-hooks",
 		"release": "release-it"
