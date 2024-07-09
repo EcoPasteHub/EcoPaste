@@ -9,7 +9,8 @@ import { subscribe, useSnapshot } from "valtio";
 const DefaultLayout = () => {
 	const { pathname } = useLocation();
 	const navigate = useNavigate();
-	const { isDark, wakeUpKey } = useSnapshot(globalStore);
+	const { wakeUpKey } = useSnapshot(globalStore);
+	const { isDark, toggleTheme } = useTheme();
 
 	const [sidebarClassName, setSidebarClassName] = useState("pt-48");
 
@@ -79,7 +80,7 @@ const DefaultLayout = () => {
 					hoverable
 					size={24}
 					name={isDark ? "i-iconamoon:mode-light" : "i-iconamoon:mode-dark"}
-					onMouseDown={() => toggleTheme(isDark ? "light" : "dark")}
+					onMouseDown={() => toggleTheme()}
 				/>
 			</Flex>
 

@@ -1,8 +1,7 @@
 export type Theme = "auto" | "light" | "dark";
 
 export interface GlobalStore {
-	theme?: Theme;
-	isDark?: boolean;
+	theme: Theme;
 	autoStart: boolean;
 	wakeUpKey: string;
 	appInfo?: {

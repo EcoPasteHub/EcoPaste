@@ -1,8 +1,7 @@
 import { MacScrollbar, type MacScrollbarProps } from "mac-scrollbar";
-import { useSnapshot } from "valtio";
 
 const Scrollbar = forwardRef<HTMLElement, MacScrollbarProps>((props, ref) => {
-	const { isDark } = useSnapshot(globalStore);
+	const { isDark } = useTheme();
 
 	const { children, ...rest } = props;
 
