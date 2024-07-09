@@ -1,5 +1,5 @@
 import { Flex } from "antd";
-import { isEqual } from "arcdash";
+import { isEmpty, isEqual } from "arcdash";
 import clsx from "clsx";
 import { find, intersectionWith, map, remove, some } from "lodash-es";
 import type { FC, KeyboardEvent } from "react";
@@ -86,38 +86,57 @@ const ShortcutKey: FC<ShortcutKeyProps> = (props) => {
 
 	const registrable = () => hasModifierKey() && getNormalKey();
 
+	const renderContent = () => {
+		if (isMac()) {
+			return (
+				<Flex gap="small" className="font-bold text-16">
+					<Flex gap={4}>
+						{modifierKeys.map((item) => {
+							const { key, macosSymbol } = item;
+
+							return (
+								<span
+									key={key}
+									className={clsx("transition", {
+										"color-primary": some(state.value, { key }),
+									})}
+								>
+									{macosSymbol}
+								</span>
+							);
+						})}
+					</Flex>
+
+					{getNormalKey() && (
+						<span className="color-primary">{getNormalKey().symbol}</span>
+					)}
+				</Flex>
+			);
+		}
+
+		return (
+			<div className="font-500 text-14">
+				{isEmpty(state.value) ? (
+					<span className="font-normal text-primary">按键盘设置快捷键</span>
+				) : (
+					map(state.value, "symbol").join(" + ")
+				)}
+			</div>
+		);
+	};
+
 	return (
 		<Flex
 			ref={containerRef}
 			tabIndex={0}
 			align="center"
-			gap="small"
-			className="antd-input b-color-1 color-3 h-32 w-fit rounded-6 px-10 font-bold text-16"
+			className="antd-input b-color-1 color-3 h-32 rounded-6 px-10"
 			onFocus={handleFocus}
 			onBlur={handleBlur}
 			onKeyDown={handleKeyDown}
 			onKeyUp={handleKeyUp}
 		>
-			<Flex gap={4}>
-				{modifierKeys.map((item) => {
-					const { key, symbol } = item;
-
-					return (
-						<span
-							key={key}
-							className={clsx("transition", {
-								"color-primary": some(state.value, { key }),
-							})}
-						>
-							{symbol}
-						</span>
-					);
-				})}
-			</Flex>
-
-			{getNormalKey() && (
-				<span className="color-primary">{getNormalKey().symbol}</span>
-			)}
+			{renderContent()}
 		</Flex>
 	);
 };

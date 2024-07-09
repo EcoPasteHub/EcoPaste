@@ -4,26 +4,31 @@ export interface Key {
 	key: string;
 	symbol?: string;
 	shortcut?: string;
+	macosSymbol?: string;
 }
 
 export const modifierKeys: Key[] = [
 	{
 		key: "Shift",
-		symbol: "⇧",
+		symbol: "Shift",
+		macosSymbol: "⇧",
 	},
 	{
 		key: "Control",
-		symbol: "⌃",
+		symbol: "Ctrl",
+		macosSymbol: "⌃",
 	},
 	{
 		key: "Alt",
-		symbol: "⌥",
+		symbol: "Alt",
+		macosSymbol: "⌥",
 	},
 	{
 		key: "Command",
-		symbol: "⌘",
+		symbol: "Win",
+		macosSymbol: "⌘",
 	},
-].map((item) => ({
+].map((item: Key) => ({
 	...item,
 	shortcut: item.key,
 }));
@@ -261,7 +266,7 @@ export const normalKeys: Key[] = [
 		key: "ArrowRight",
 		symbol: "⇢",
 	},
-].map((item) => {
+].map((item: Key) => {
 	const { key } = item;
 
 	defaults(item, {
@@ -272,6 +277,8 @@ export const normalKeys: Key[] = [
 	if (key.startsWith("Digit") || key.startsWith("Key")) {
 		item.shortcut = item.symbol = key.slice(-1);
 	}
+
+	item.macosSymbol = item.symbol;
 
 	return item;
 });
