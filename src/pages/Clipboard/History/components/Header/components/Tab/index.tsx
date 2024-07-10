@@ -3,11 +3,11 @@ import { HistoryContext } from "@/pages/Clipboard/History";
 import type { HistoryItem } from "@/types/database";
 import { Flex, Tag } from "antd";
 import clsx from "clsx";
-import { last } from "lodash-es";
 
 interface TabItem {
 	label: string;
-	value?: HistoryItem["group"];
+	group?: HistoryItem["group"];
+	isCollected?: boolean;
 }
 
 const tabList: TabItem[] = [
@@ -16,18 +16,19 @@ const tabList: TabItem[] = [
 	},
 	{
 		label: "文本",
-		value: "text",
+		group: "text",
 	},
 	{
 		label: "图片",
-		value: "image",
+		group: "image",
 	},
 	{
 		label: "文件",
-		value: "files",
+		group: "files",
 	},
 	{
 		label: "收藏",
+		isCollected: true,
 	},
 ];
 
@@ -36,11 +37,19 @@ const Tab = () => {
 
 	const [checked, setChecked] = useState(tabList[0].label);
 
+	const handleChange = (item: TabItem) => {
+		const { label, group, isCollected } = item;
+
+		setChecked(label);
+
+		Object.assign(state, { group, isCollected });
+	};
+
 	return (
 		<Scrollbar>
 			<Flex data-tauri-drag-region>
 				{tabList.map((item) => {
-					const { label, value } = item;
+					const { label } = item;
 
 					const isChecked = checked === label;
 
@@ -49,11 +58,7 @@ const Tab = () => {
 							key={label}
 							checked={isChecked}
 							className={clsx({ "bg-primary!": isChecked })}
-							onChange={() => {
-								setChecked(label);
-								state.group = value;
-								state.isCollected = label === last(tabList)?.label || undefined;
-							}}
+							onChange={() => handleChange(item)}
 						>
 							{label}
 						</Tag.CheckableTag>
