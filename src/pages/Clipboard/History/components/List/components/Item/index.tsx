@@ -153,6 +153,14 @@ const Item: FC<ItemProps> = (props) => {
 		getHistoryList?.();
 	};
 
+	const deleteAll = async () => {
+		for await (const item of state.historyList) {
+			await deleteSQL("history", item.id);
+		}
+
+		getHistoryList?.();
+	};
+
 	const handleContextMenu = async (event: MouseEvent) => {
 		event.preventDefault();
 
@@ -223,6 +231,10 @@ const Item: FC<ItemProps> = (props) => {
 				label: "删除其它",
 				hide: state.historyList.length === 1,
 				event: deleteOther,
+			},
+			{
+				label: "删除所有",
+				event: deleteAll,
 			},
 		];
 
