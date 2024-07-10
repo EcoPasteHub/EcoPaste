@@ -7,6 +7,7 @@ export const LISTEN_KEY = {
 	CLIPBOARD_STORE_CHANGED: "clipboard-store-changed",
 	CLEAR_HISTORY: "clear-history",
 	UPDATE: "update",
+	TRAY_CLICK: "tray-click",
 };
 
 export const WINDOW_PLUGIN = {

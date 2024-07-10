@@ -31,6 +31,12 @@ const DefaultLayout = () => {
 			navigate("/about");
 		});
 
+		listen(LISTEN_KEY.TRAY_CLICK, () => {
+			if (isMac() || globalStore.trayClick === "none") return;
+
+			showWindow();
+		});
+
 		subscribe(globalStore, () => {
 			emit(LISTEN_KEY.GLOBAL_STORE_CHANGED, globalStore);
 		});
