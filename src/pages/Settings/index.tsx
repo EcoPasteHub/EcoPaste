@@ -3,6 +3,7 @@ import { Card, Flex, Switch } from "antd";
 import { useSnapshot } from "valtio";
 import AutoStart from "./components/AutoStart";
 import ThemeMode from "./components/ThemeMode";
+import TrayClick from "./components/TrayClick";
 
 const Settings = () => {
 	const { wakeUpKey, autoUpdate } = useSnapshot(globalStore);
@@ -34,6 +35,8 @@ const Settings = () => {
 					</Flex>
 
 					<ThemeMode />
+
+					<TrayClick />
 				</Flex>
 			</Card>
 		</Flex>

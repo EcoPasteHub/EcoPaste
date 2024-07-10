@@ -27,6 +27,7 @@ pub fn handler(app: &AppHandle, event: SystemTrayEvent) {
         let window = app.get_window(MAIN_WINDOW_LABEL).unwrap();
 
         match event {
+            SystemTrayEvent::LeftClick { .. } => window.emit("tray-click", true).unwrap(),
             SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
                 "preference" => show_window(window).await,
                 "about" => window.emit("about", true).unwrap(),
