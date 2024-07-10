@@ -9,8 +9,8 @@ const values = [1, 7, 30, 90, 180, 365, 0];
 const steps = labels.length;
 const step = Math.round(100 / (steps - 1));
 
-const Record = () => {
-	const { capacity } = useSnapshot(clipboardStore);
+const HistoryCapacity = () => {
+	const { historyCapacity } = useSnapshot(clipboardStore);
 
 	const marks = useCreation(() => {
 		const marks: SliderBaseProps["marks"] = {};
@@ -23,20 +23,21 @@ const Record = () => {
 	}, []);
 
 	const value = useCreation(() => {
-		const index = values.findIndex((item) => item === capacity);
+		const index = values.findIndex((item) => item === historyCapacity);
 
 		return Number(keys(marks)[index]);
-	}, [capacity]);
+	}, [historyCapacity]);
 
 	const handleChange = (value: number) => {
 		const index = labels.findIndex((item) => item === marks[value]);
 
-		clipboardStore.capacity = values[index];
+		clipboardStore.historyCapacity = values[index];
 	};
 
 	return (
 		<Card
-			title="历史记录"
+			className="flex-1"
+			title="历史记录容量"
 			extra={
 				<Popconfirm
 					placement="bottomRight"
@@ -60,4 +61,4 @@ const Record = () => {
 	);
 };
 
-export default Record;
+export default HistoryCapacity;
