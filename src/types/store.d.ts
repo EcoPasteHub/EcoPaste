@@ -8,6 +8,7 @@ export interface GlobalStore {
 	wakeUpKey: string;
 	appInfo?: { name: string; version: string };
 	platform?: OsType;
+	autoUpdate?: boolean;
 }
 
 export interface ClipboardStore {
