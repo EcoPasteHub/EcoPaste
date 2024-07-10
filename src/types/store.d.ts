@@ -9,6 +9,7 @@ export interface GlobalStore {
 	appInfo?: { name: string; version: string };
 	platform?: OsType;
 	autoUpdate?: boolean;
+	trayClick: "none" | "show";
 }
 
 export interface ClipboardStore {

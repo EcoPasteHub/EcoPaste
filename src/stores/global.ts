@@ -22,6 +22,7 @@ export const globalStore = proxyWithPersist<GlobalStore>({
 		theme: "auto",
 		autoStart: false,
 		wakeUpKey: "Alt+X",
+		trayClick: "none",
 	},
 	persistStrategies,
 	version: 0,
