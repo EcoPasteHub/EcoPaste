@@ -1,8 +1,8 @@
 import ShortcutKey from "@/components/ShortcutKey";
 import { Card, Flex, Switch } from "antd";
 import { useSnapshot } from "valtio";
-import Capacity from "./components/Capacity";
 import DoubleClickFeedback from "./components/DoubleClickFeedback";
+import HistoryCapacity from "./components/HistoryCapacity";
 import WindowPosition from "./components/WindowPosition";
 
 const Clipboard = () => {
@@ -38,7 +38,7 @@ const Clipboard = () => {
 				</Flex>
 			</Card>
 
-			<Capacity />
+			<HistoryCapacity />
 		</Flex>
 	);
 };

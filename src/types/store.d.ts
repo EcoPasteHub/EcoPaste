@@ -15,7 +15,7 @@ export interface GlobalStore {
 export interface ClipboardStore {
 	wakeUpKey: string;
 	enableAudio?: boolean;
-	capacity: number;
+	historyCapacity: number;
 	activeIndex: number;
 	windowPosition: "default" | "follow" | "center";
 	doubleClickFeedback: "none" | "copy";
