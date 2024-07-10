@@ -6,6 +6,7 @@ import {
 	onUpdaterEvent,
 	checkUpdate as tauriCheckUpdate,
 } from "@tauri-apps/api/updater";
+import type { Timeout } from "ahooks/lib/useRequest/src/types";
 import { Flex, Modal, Typography, message } from "antd";
 import Markdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
@@ -18,9 +19,10 @@ interface State {
 }
 
 const MESSAGE_KEY = "updatable";
+let timer: Timeout;
 
 const Update = () => {
-	const { appInfo } = useSnapshot(globalStore);
+	const { appInfo, autoUpdate } = useSnapshot(globalStore);
 
 	const state = useReactive<State>({});
 
@@ -39,9 +41,15 @@ const Update = () => {
 		});
 	});
 
-	useInterval(() => checkUpdate(), 1000 * 60 * 60 * 24, {
-		immediate: true,
-	});
+	useEffect(() => {
+		clearInterval(timer);
+
+		if (autoUpdate) {
+			checkUpdate();
+
+			timer = setInterval(checkUpdate, 1000 * 60 * 60 * 24);
+		}
+	}, [autoUpdate]);
 
 	const updateTime = useCreation(() => {
 		const date = state.manifest?.date?.split(" ")?.slice(0, 2)?.join(" ");
