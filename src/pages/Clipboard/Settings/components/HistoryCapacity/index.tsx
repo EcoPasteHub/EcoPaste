@@ -36,7 +36,6 @@ const HistoryCapacity = () => {
 
 	return (
 		<Card
-			className="flex-1"
 			title="历史记录容量"
 			extra={
 				<Popconfirm

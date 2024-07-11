@@ -43,13 +43,13 @@
 			"process": {
 				"relaunch": true
 			},
+			"dialog": {
+				"ask": true
+			},
 			"window": {
 				"startDragging": true,
 				"setPosition": true,
 				"center": true
-			},
-			"dialog": {
-				"ask": true
 			}
 		},
 		"windows": [

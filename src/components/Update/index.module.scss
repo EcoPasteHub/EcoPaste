@@ -1,0 +1,9 @@
+.markdown {
+  *:not(a) {
+    all: revert;
+  }
+
+  a {
+    --uno: "text-primary-5 hover:text-primary active:text-primary-7";
+  }
+}

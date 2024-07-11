@@ -58,6 +58,7 @@
 		"simple-git-hooks": "^2.11.1",
 		"tsx": "^4.16.2",
 		"typescript": "^5.0.2",
+		"typescript-plugin-css-modules": "^5.1.0",
 		"unocss": "^0.60.3",
 		"unplugin-auto-import": "^0.17.6",
 		"vite": "^5.0.0"
