@@ -1,8 +1,7 @@
 import type { HistoryItem } from "@/types/database";
-import { Flex } from "antd";
+import { Flex, Typography } from "antd";
 import clsx from "clsx";
 import type { CSSProperties, FC } from "react";
-import styles from "./index.module.scss";
 
 const Text: FC<HistoryItem> = (props) => {
 	const { value = "" } = props;
@@ -37,7 +36,11 @@ const Text: FC<HistoryItem> = (props) => {
 		return value;
 	};
 
-	return <div className={styles.normal}>{renderContent()}</div>;
+	return (
+		<Typography.Paragraph ellipsis={{ rows: 4 }} className="leading-unset">
+			{renderContent()}
+		</Typography.Paragraph>
+	);
 };
 
 export default memo(Text);
