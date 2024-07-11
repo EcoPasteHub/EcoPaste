@@ -7,10 +7,12 @@ import {
 	checkUpdate as tauriCheckUpdate,
 } from "@tauri-apps/api/updater";
 import type { Timeout } from "ahooks/lib/useRequest/src/types";
-import { Flex, Modal, Typography, message } from "antd";
+import { Flex, Modal, message } from "antd";
+import clsx from "clsx";
 import Markdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import { useSnapshot } from "valtio";
+import styles from "./index.module.scss";
 
 interface State {
 	open?: boolean;
@@ -159,23 +161,8 @@ const Update = () => {
 					<Flex vertical>
 						更新日志：
 						<Markdown
-							className="revert-all max-h-220 overflow-auto"
+							className={clsx(styles.markdown, "max-h-220 overflow-auto")}
 							rehypePlugins={[rehypeRaw]}
-							components={{
-								a: (props) => {
-									const { href, children } = props;
-
-									return (
-										<Typography.Link
-											href={href}
-											target="_blank"
-											rel="noreferrer"
-										>
-											{children}
-										</Typography.Link>
-									);
-								},
-							}}
 						>
 							{state.manifest?.body}
 						</Markdown>

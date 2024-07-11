@@ -25,12 +25,16 @@ export const createWindow = (path: Route["path"]) => {
 /**
  * 显示窗口
  */
-export const showWindow = () => invoke(WINDOW_PLUGIN.SHOW_WINDOW);
+export const showWindow = () => {
+	invoke(WINDOW_PLUGIN.SHOW_WINDOW);
+};
 
 /**
  * 隐藏窗口
  */
-export const hideWindow = () => invoke(WINDOW_PLUGIN.HIDE_WINDOW);
+export const hideWindow = () => {
+	invoke(WINDOW_PLUGIN.HIDE_WINDOW);
+};
 
 /**
  * 切换窗口的显示和隐藏
