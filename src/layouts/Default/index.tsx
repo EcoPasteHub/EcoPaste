@@ -60,7 +60,7 @@ const DefaultLayout = () => {
 					sidebarClassName,
 				)}
 			>
-				<Flex vertical gap="large">
+				<Flex vertical gap="large" onClick={(event) => event.stopPropagation()}>
 					{routes[0].children?.map((item) => {
 						const { path, meta = {} } = item;
 
