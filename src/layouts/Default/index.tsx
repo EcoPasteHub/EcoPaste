@@ -4,12 +4,13 @@ import { emit, listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/api/shell";
 import { Flex } from "antd";
 import clsx from "clsx";
+import { disable, enable, isEnabled } from "tauri-plugin-autostart-api";
 import { subscribe, useSnapshot } from "valtio";
 
 const DefaultLayout = () => {
 	const { pathname } = useLocation();
 	const navigate = useNavigate();
-	const { wakeUpKey } = useSnapshot(globalStore);
+	const { wakeUpKey, autoStart } = useSnapshot(globalStore);
 	const { isDark, toggleTheme } = useTheme();
 
 	const [sidebarClassName, setSidebarClassName] = useState("pt-48");
@@ -45,6 +46,16 @@ const DefaultLayout = () => {
 			emit(LISTEN_KEY.CLIPBOARD_STORE_CHANGED, clipboardStore);
 		});
 	});
+
+	useAsyncEffect(async () => {
+		const enabled = await isEnabled();
+
+		if (autoStart && !enabled) {
+			enable();
+		} else if (enabled) {
+			disable();
+		}
+	}, [autoStart]);
 
 	useRegister(toggleWindowVisible, [wakeUpKey]);
 

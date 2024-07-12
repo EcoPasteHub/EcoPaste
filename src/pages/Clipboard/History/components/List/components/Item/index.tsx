@@ -92,7 +92,7 @@ const Item: FC<ItemProps> = (props) => {
 	};
 
 	const previewImage = () => {
-		previewFile(value, false);
+		previewPath(value, false);
 	};
 
 	const downloadImage = async () => {
@@ -104,7 +104,7 @@ const Item: FC<ItemProps> = (props) => {
 	const openFinder = () => {
 		const [file] = JSON.parse(value);
 
-		previewFile(file);
+		previewPath(file);
 	};
 
 	const deleteItem = async () => {

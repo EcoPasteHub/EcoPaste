@@ -82,6 +82,8 @@ const ClipboardHistory = () => {
 
 			getHistoryList();
 		});
+
+		listen(LISTEN_KEY.IMPORT_DATA, getHistoryList);
 	});
 
 	useRegister(async () => {
