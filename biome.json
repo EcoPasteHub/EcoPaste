@@ -27,6 +27,10 @@
 				"noUnusedTemplateLiteral": {
 					"level": "error",
 					"fix": "safe"
+				},
+				"useTemplate": {
+					"level": "error",
+					"fix": "safe"
 				}
 			},
 			"security": {
