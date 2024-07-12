@@ -2,6 +2,11 @@ import type { OsType } from "@tauri-apps/api/os";
 
 export type Theme = "auto" | "light" | "dark";
 
+export interface Store {
+	globalStore: GlobalStore;
+	clipboardStore: ClipboardStore;
+}
+
 export interface GlobalStore {
 	theme: Theme;
 	autoStart: boolean;

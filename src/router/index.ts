@@ -5,6 +5,7 @@ import DefaultLayout from "@/layouts/Default";
 import About from "@/pages/About";
 import ClipboardHistory from "@/pages/Clipboard/History";
 import ClipboardSettings from "@/pages/Clipboard/Settings";
+import DataBackup from "@/pages/DataBackup";
 import Settings from "@/pages/Settings";
 import type { Route } from "@/types/router";
 
@@ -27,6 +28,14 @@ export const routes: Route[] = [
 				meta: {
 					title: "通用设置",
 					icon: "i-lucide:bolt",
+				},
+			},
+			{
+				path: "/data-backup",
+				Component: DataBackup,
+				meta: {
+					title: "数据备份",
+					icon: "i-lucide:database-backup",
 				},
 			},
 			{

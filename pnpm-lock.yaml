@@ -75,6 +75,9 @@ importers:
       '@commitlint/config-conventional':
         specifier: ^19.2.2
         version: 19.2.2
+      '@iconify-json/hugeicons':
+        specifier: ^1.1.0
+        version: 1.1.0
       '@iconify-json/iconamoon':
         specifier: ^1.1.4
         version: 1.1.4
@@ -760,6 +763,9 @@ packages:
 
   '@iarna/toml@2.2.5':
     resolution: {integrity: sha512-trnsAYxU3xnS1gPHPyU961coFyLkh4gAD/0zQ5mymY4yOZ+CYvsPqUbOFSw0aDM4y0tV7tiFxL/1XfXPNC6IPg==}
+
+  '@iconify-json/hugeicons@1.1.0':
+    resolution: {integrity: sha512-MzzShBJQsOB92kzPMBe2dI35m0BrR7Z7yEQ0Al84ULQ46PRAAu+RBkqmTzqY+T2uBB1PeGe8sPs+8lGRXClGjg==}
 
   '@iconify-json/iconamoon@1.1.4':
     resolution: {integrity: sha512-ciU8YeoMqWWMRurM7c7PqodEyvd/dGAV5zeLC5+IwqTfcPVI71RUDrhOsE656FjxADcyKh2ZkN64gVqFAZOVng==}
@@ -4648,6 +4654,10 @@ snapshots:
     optional: true
 
   '@iarna/toml@2.2.5': {}
+
+  '@iconify-json/hugeicons@1.1.0':
+    dependencies:
+      '@iconify/types': 2.0.0
 
   '@iconify-json/iconamoon@1.1.4':
     dependencies:

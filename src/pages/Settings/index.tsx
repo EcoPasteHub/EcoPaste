@@ -1,18 +1,25 @@
 import ShortcutKey from "@/components/ShortcutKey";
 import { Card, Flex, Switch } from "antd";
 import { useSnapshot } from "valtio";
-import AutoStart from "./components/AutoStart";
 import ThemeMode from "./components/ThemeMode";
 import TrayClick from "./components/TrayClick";
 
 const Settings = () => {
-	const { wakeUpKey, autoUpdate } = useSnapshot(globalStore);
+	const { autoStart, wakeUpKey, autoUpdate } = useSnapshot(globalStore);
 
 	return (
 		<Flex vertical gap="middle">
 			<Card title="基础设置">
 				<Flex vertical gap="large">
-					<AutoStart />
+					<Flex align="center">
+						<span>开机自启：</span>
+						<Switch
+							checked={autoStart}
+							onChange={(value) => {
+								globalStore.autoStart = value;
+							}}
+						/>
+					</Flex>
 
 					<Flex align="center">
 						<span>自动更新：</span>

@@ -5,11 +5,11 @@ use clipboard_rs::{
 use std::{
     fs::create_dir_all,
     hash::{DefaultHasher, Hash, Hasher},
+    path::PathBuf,
     sync::{Arc, Mutex},
     thread::spawn,
 };
 use tauri::{
-    api::path::app_data_dir,
     command, generate_handler,
     plugin::{Builder, TauriPlugin},
     AppHandle, Error, Manager, Result, State, Wry,
@@ -132,13 +132,8 @@ async fn read_files(manager: State<'_, ClipboardManager>) -> Result<Vec<String>>
 }
 
 #[command]
-async fn read_image(
-    app_handle: AppHandle,
-    manager: State<'_, ClipboardManager>,
-) -> Result<ReadImage> {
-    let save_images_dir = app_data_dir(&app_handle.config()).unwrap().join("images");
-
-    create_dir_all(&save_images_dir).unwrap();
+async fn read_image(manager: State<'_, ClipboardManager>, dir: PathBuf) -> Result<ReadImage> {
+    create_dir_all(&dir).unwrap();
 
     let image = manager.context.get_image().unwrap();
 
@@ -154,7 +149,7 @@ async fn read_image(
 
     let hash = hasher.finish();
 
-    let image_path = save_images_dir.join(format!("{hash}.png"));
+    let image_path = dir.join(format!("{hash}.png"));
 
     if let Some(path) = image_path.to_str() {
         image.save_to_path(path).unwrap();

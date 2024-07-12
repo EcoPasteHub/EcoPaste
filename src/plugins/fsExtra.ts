@@ -16,8 +16,8 @@ export const metadata = (path: string) => {
  * @param path 文件路径
  * @param finder 是否在 finder（文件资源管理器） 中打开，false 是用文件默认的程序打开
  */
-export const previewFile = (path: string, finder = true) => {
-	return invoke(FS_EXTRA_PLUGIN.PREVIEW_FILE, {
+export const previewPath = (path: string, finder = true) => {
+	return invoke(FS_EXTRA_PLUGIN.PREVIEW_PATH, {
 		path,
 		finder,
 	});
