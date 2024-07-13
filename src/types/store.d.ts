@@ -24,4 +24,5 @@ export interface ClipboardStore {
 	activeIndex: number;
 	windowPosition: "default" | "follow" | "center";
 	doubleClickFeedback: "none" | "copy";
+	replaceAllImagePath?: boolean;
 }

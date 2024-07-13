@@ -48,6 +48,12 @@ const Item: FC<ItemProps> = (props) => {
 		}
 	}, [activeIndex]);
 
+	const getImagePath = async () => {
+		const saveImageDir = await getSaveImageDir();
+
+		return saveImageDir + value;
+	};
+
 	const copy = () => {
 		switch (type) {
 			case "text":
@@ -91,12 +97,16 @@ const Item: FC<ItemProps> = (props) => {
 		});
 	};
 
-	const previewImage = () => {
-		previewPath(value, false);
+	const previewImage = async () => {
+		const path = await getImagePath();
+
+		previewPath(path, false);
 	};
 
 	const downloadImage = async () => {
-		copyFile(value, `${appInfo?.name}_${id}.png`, {
+		const path = await getImagePath();
+
+		copyFile(path, `${appInfo?.name}_${id}.png`, {
 			dir: BaseDirectory.Download,
 		});
 	};
