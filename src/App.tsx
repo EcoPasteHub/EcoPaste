@@ -1,3 +1,4 @@
+import { HappyProvider } from "@ant-design/happy-work-theme";
 import { listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/api/shell";
 import { ConfigProvider, theme } from "antd";
@@ -55,7 +56,9 @@ const App = () => {
 					algorithm: isDark ? darkAlgorithm : defaultAlgorithm,
 				}}
 			>
-				<RouterProvider router={router} />
+				<HappyProvider>
+					<RouterProvider router={router} />
+				</HappyProvider>
 			</ConfigProvider>
 		)
 	);
