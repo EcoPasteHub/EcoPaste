@@ -16,6 +16,7 @@
 		"release": "release-it"
 	},
 	"dependencies": {
+		"@ant-design/happy-work-theme": "^1.0.0",
 		"@tauri-apps/api": "^1.6.0",
 		"@unocss/reset": "^0.60.3",
 		"ahooks": "^3.8.0",
