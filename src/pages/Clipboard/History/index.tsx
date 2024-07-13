@@ -133,6 +133,26 @@ const ClipboardHistory = () => {
 			isCollected,
 		});
 
+		// TODO: 为了适配导出功能，把旧图片路径替换为文件名，此代码只执行一次，将在以后的版本中移除此段代码
+		if (!clipboardStore.replaceAllImagePath) {
+			const saveImageDir = await getSaveImageDir();
+
+			for (const item of list) {
+				const { id, type, value } = item;
+
+				if (type !== "image" || !value?.includes(saveImageDir)) continue;
+
+				item.value = value.replace(saveImageDir, "");
+
+				updateSQL("history", {
+					id,
+					value: item.value,
+				});
+			}
+
+			clipboardStore.replaceAllImagePath = true;
+		}
+
 		state.historyList = list;
 
 		if (!clipboardStore.historyCapacity) return;
