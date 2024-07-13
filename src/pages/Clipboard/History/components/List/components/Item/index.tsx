@@ -91,8 +91,10 @@ const Item: FC<ItemProps> = (props) => {
 		});
 	};
 
-	const previewImage = () => {
-		previewPath(value, false);
+	const previewImage = async () => {
+		const saveImageDir = await getSaveImageDir();
+
+		previewPath(saveImageDir + value, false);
 	};
 
 	const downloadImage = async () => {
