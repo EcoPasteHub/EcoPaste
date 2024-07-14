@@ -20,15 +20,21 @@ const DataBackup = () => {
 		cb: () => Promise<unknown>,
 		onSuccess?: (result: unknown) => void,
 	) => {
-		state.tip = tip;
+		try {
+			state.tip = tip;
 
-		toggleSpinning();
+			toggleSpinning();
 
-		const result = await cb();
+			const result = await cb();
 
-		toggleSpinning();
+			toggleSpinning();
 
-		onSuccess?.(result);
+			onSuccess?.(result);
+		} catch (error: any) {
+			toggleSpinning();
+
+			message.error(error);
+		}
 	};
 
 	const handleImport = async () => {
@@ -47,6 +53,8 @@ const DataBackup = () => {
 			emit(LISTEN_KEY.IMPORT_DATA);
 
 			message.success("导入成功");
+
+			initDatabase();
 		});
 	};
 

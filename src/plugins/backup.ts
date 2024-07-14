@@ -46,5 +46,7 @@ export const importData = async () => {
 
 	if (!path) return;
 
+	await closeDatabase();
+
 	return invoke(BACKUP_PLUGIN.IMPORT_DATA, { path });
 };
