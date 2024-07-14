@@ -51,7 +51,7 @@ async fn import_data(app_handle: AppHandle, path: String) -> Result<bool> {
         let path = entry.path()?;
 
         #[cfg(target_os = "windows")]
-        let path = path::Path::new(&path.to_string_lossy().replace("\\", "/")).to_path_buf();
+        let path = std::path::Path::new(&path.to_string_lossy().replace("\\", "/")).to_path_buf();
 
         entry.unpack(dst_dir.join(path))?;
     }
