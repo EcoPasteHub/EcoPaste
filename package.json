@@ -1,5 +1,6 @@
 {
 	"name": "eco-paste",
+	"description": "一款开源的跨平台剪切板管理工具",
 	"private": true,
 	"version": "0.0.3",
 	"type": "module",
