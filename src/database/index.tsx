@@ -160,3 +160,10 @@ export const deleteSQL = async (tableName: TableName, id?: number) => {
 		}
 	}
 };
+
+/**
+ * 关闭数据库连接池
+ */
+export const closeDatabase = async () => {
+	await db.close();
+};

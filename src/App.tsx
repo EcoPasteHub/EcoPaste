@@ -27,6 +27,8 @@ const App = () => {
 
 			Object.assign(clipboardStore, payload);
 		});
+
+		initDatabase();
 	});
 
 	useEventListener("contextmenu", (event) => {

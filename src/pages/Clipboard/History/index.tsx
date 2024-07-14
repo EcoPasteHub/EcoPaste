@@ -37,8 +37,6 @@ const ClipboardHistory = () => {
 	const state = useReactive<State>(INITIAL_STATE);
 
 	useMount(async () => {
-		await initDatabase();
-
 		startListen();
 
 		onClipboardUpdate(async (payload) => {
@@ -83,7 +81,11 @@ const ClipboardHistory = () => {
 			getHistoryList();
 		});
 
-		listen(LISTEN_KEY.IMPORT_DATA, getHistoryList);
+		listen(LISTEN_KEY.IMPORT_DATA, async () => {
+			await initDatabase();
+
+			getHistoryList();
+		});
 	});
 
 	useRegister(async () => {
