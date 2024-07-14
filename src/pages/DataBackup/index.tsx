@@ -1,4 +1,5 @@
 import Icon from "@/components/Icon";
+import { ask } from "@tauri-apps/api/dialog";
 import { emit } from "@tauri-apps/api/event";
 import { BaseDirectory, readTextFile } from "@tauri-apps/api/fs";
 import { appDataDir } from "@tauri-apps/api/path";
@@ -38,6 +39,18 @@ const DataBackup = () => {
 	};
 
 	const handleImport = async () => {
+		const yes = await ask(
+			"导入的数据会完全覆盖所有的偏好设置以及所有的剪切板历史数据，你确定要导入吗？",
+			{
+				title: "导入须知",
+				okLabel: "确定",
+				cancelLabel: "取消",
+				type: "error",
+			},
+		);
+
+		if (!yes) return;
+
 		await handleBackup("正在导入", importData, async (result) => {
 			if (!result) return;
 
@@ -58,7 +71,18 @@ const DataBackup = () => {
 		});
 	};
 
-	const handleExport = () => {
+	const handleExport = async () => {
+		const yes = await ask(
+			"导出的数据包含所有的偏好设置以及所有的剪切板历史数据",
+			{
+				title: "导出须知",
+				okLabel: "开始导出",
+				cancelLabel: "取消",
+			},
+		);
+
+		if (!yes) return;
+
 		handleBackup("正在导出", exportData);
 	};
 
