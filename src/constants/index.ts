@@ -1,5 +1,7 @@
 export const GITHUB_LINK = "https://github.com/ayangweb/EcoPaste";
 
+export const GITHUB_ISSUES_LINK = "https://github.com/ayangweb/EcoPaste/issues";
+
 export const LISTEN_KEY = {
 	ABOUT: "about",
 	GITHUB: "github",
