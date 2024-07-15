@@ -27,7 +27,7 @@ const About = () => {
 	};
 
 	const feedbackIssue = () => {
-		open(`${GITHUB_LINK}/issues/new/choose`);
+		open(`${GITHUB_ISSUES_LINK}/new/choose`);
 	};
 
 	return (
