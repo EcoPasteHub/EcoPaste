@@ -13,13 +13,7 @@ const DefaultLayout = () => {
 	const { wakeUpKey, autoStart } = useSnapshot(globalStore);
 	const { isDark, toggleTheme } = useTheme();
 
-	const [sidebarClassName, setSidebarClassName] = useState("pt-48");
-
 	useMount(async () => {
-		if (isWin()) {
-			setSidebarClassName("pt-32");
-		}
-
 		createWindow("/clipboard-history");
 
 		listen(LISTEN_KEY.GITHUB, () => {
@@ -66,10 +60,9 @@ const DefaultLayout = () => {
 				vertical
 				align="center"
 				justify="space-between"
-				className={clsx(
-					"color-2 h-full w-90 bg-2 pb-32 transition",
-					sidebarClassName,
-				)}
+				className={clsx("color-2 h-full w-90 bg-2 pb-32 transition", [
+					isWin() ? "pt-32" : "pt-48",
+				])}
 			>
 				<Flex vertical gap="large" onClick={(event) => event.stopPropagation()}>
 					{routes[0].children?.map((item) => {
