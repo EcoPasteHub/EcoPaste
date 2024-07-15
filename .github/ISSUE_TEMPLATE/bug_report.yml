@@ -30,16 +30,12 @@ body:
       placeholder: |
         Please provide a minimal reproduction or steps to reproduce, see this guide https://stackoverflow.com/help/minimal-reproducible-example
         Why reproduction is required? see this article https://antfu.me/posts/why-reproductions-are-required
-    validations:
-      required: true
 
   - type: textarea
     id: expected-behavior
     attributes:
       label: Expected behavior
       description: A clear description of what you expected to happen.
-    validations:
-      required: true
 
   - type: textarea
     id: info
@@ -47,6 +43,7 @@ body:
       label: Application and system information
       description: Click the Copy Info button on the About page
       render: text
+      placeholder: Click the Copy Info button on the About page
     validations:
       required: true
 
