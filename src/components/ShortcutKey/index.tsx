@@ -2,7 +2,8 @@ import { Flex } from "antd";
 import { isEmpty, isEqual } from "arcdash";
 import clsx from "clsx";
 import { find, intersectionWith, map, remove, some } from "lodash-es";
-import type { FC, KeyboardEvent } from "react";
+import type { FC, KeyboardEvent, MouseEvent } from "react";
+import Icon from "../Icon";
 import { type Key, keys, modifierKeys, normalKeys } from "./keys";
 
 interface ShortcutKeyProps {
@@ -18,6 +19,8 @@ const ShortcutKey: FC<ShortcutKeyProps> = (props) => {
 	const { defaultValue = "", onChange } = props;
 
 	const handleDefaultValue = () => {
+		if (!defaultValue) return [];
+
 		return defaultValue.split("+").map((shortcut) => find(keys, { shortcut })!);
 	};
 
@@ -27,19 +30,22 @@ const ShortcutKey: FC<ShortcutKeyProps> = (props) => {
 		value: handleDefaultValue(),
 	});
 
-	const handleFocus = () => {
-		state.value = [];
-	};
+	const isHovering = useHover(containerRef);
 
-	const handleBlur = () => {
-		if (!registrable()) {
-			state.value = handleDefaultValue();
-		}
+	const isFocusing = useFocusWithin(containerRef, {
+		onFocus: () => {
+			state.value = [];
+		},
+		onBlur: () => {
+			if (!registrable()) {
+				state.value = handleDefaultValue();
+			}
 
-		const changeValue = map(state.value, "shortcut").join("+");
+			const changeValue = map(state.value, "shortcut").join("+");
 
-		onChange?.(changeValue);
-	};
+			onChange?.(changeValue);
+		},
+	});
 
 	const handleKeyDown = (event: KeyboardEvent) => {
 		const key = getEventKey(event);
@@ -86,6 +92,14 @@ const ShortcutKey: FC<ShortcutKeyProps> = (props) => {
 
 	const registrable = () => hasModifierKey() && getNormalKey();
 
+	const handleClear = (event: MouseEvent) => {
+		event.preventDefault();
+
+		state.value = [];
+
+		onChange?.("");
+	};
+
 	const renderContent = () => {
 		if (isMac()) {
 			return (
@@ -116,8 +130,10 @@ const ShortcutKey: FC<ShortcutKeyProps> = (props) => {
 
 		return (
 			<div className="font-500 text-14">
-				{isEmpty(state.value) ? (
+				{isFocusing && isEmpty(state.value) ? (
 					<span className="font-normal text-primary">按键盘设置快捷键</span>
+				) : isEmpty(state.value) ? (
+					"未设置快捷键"
 				) : (
 					map(state.value, "symbol").join(" + ")
 				)}
@@ -130,13 +146,20 @@ const ShortcutKey: FC<ShortcutKeyProps> = (props) => {
 			ref={containerRef}
 			tabIndex={0}
 			align="center"
-			className="antd-input b-color-1 color-3 h-32 rounded-6 px-10"
-			onFocus={handleFocus}
-			onBlur={handleBlur}
+			gap="small"
+			className="antd-input group b-color-1 color-3 h-32 rounded-6 px-10"
 			onKeyDown={handleKeyDown}
 			onKeyUp={handleKeyUp}
 		>
 			{renderContent()}
+
+			<Icon
+				hoverable
+				size={16}
+				name="i-iconamoon:close-circle-1"
+				hidden={isFocusing || !isHovering || isEmpty(state.value)}
+				onMouseDown={handleClear}
+			/>
 		</Flex>
 	);
 };

@@ -10,9 +10,13 @@ export const useRegister = (handler: ShortcutHandler, deps: string[]) => {
 	useAsyncEffect(async () => {
 		const [key] = deps;
 
-		await unregister(oldKey);
+		if (oldKey) {
+			await unregister(oldKey);
+		}
 
-		await register(key, handler);
+		if (key) {
+			await register(key, handler);
+		}
 
 		setOldKey(key);
 	}, deps);
