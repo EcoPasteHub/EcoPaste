@@ -61,6 +61,9 @@ export const isColor = (value: string) => {
 	return background !== "";
 };
 
+/**
+ * 是否为 Windows 10 系统
+ */
 export const isWin10 = async () => {
 	if (!isWin()) return;
 

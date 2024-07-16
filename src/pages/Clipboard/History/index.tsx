@@ -1,5 +1,5 @@
 import copyAudio from "@/assets/audio/copy.mp3";
-import type { HistoryItem } from "@/types/database";
+import type { HistoryItem, TablePayload } from "@/types/database";
 import { listen } from "@tauri-apps/api/event";
 import {
 	PhysicalPosition,
@@ -14,7 +14,7 @@ import Header from "./components/Header";
 import List from "./components/List";
 import Search from "./components/Search";
 
-interface State extends HistoryItem {
+interface State extends TablePayload {
 	rounded: boolean;
 	historyList: HistoryItem[];
 	scrollTo?: (index: number) => void;

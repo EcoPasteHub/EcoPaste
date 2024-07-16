@@ -24,15 +24,7 @@ interface MenuItem extends ContextMenu.Item {
 
 const Item: FC<ItemProps> = (props) => {
 	const { index, data } = props;
-	const {
-		id,
-		type,
-		group,
-		value = "",
-		search = "",
-		createTime = "",
-		isCollected,
-	} = data;
+	const { id, type, group, value, search, createTime, isCollected } = data;
 
 	const { state, getHistoryList } = useContext(HistoryContext);
 	const { appInfo } = useSnapshot(globalStore);
@@ -127,7 +119,7 @@ const Item: FC<ItemProps> = (props) => {
 
 	const deleteAbove = async () => {
 		const list = state.historyList.filter((item) => {
-			const isMore = item.createTime! > createTime;
+			const isMore = item.createTime > createTime;
 			const isDifferent = item.createTime === createTime && item.id !== id;
 
 			return isMore || isDifferent;
@@ -138,7 +130,7 @@ const Item: FC<ItemProps> = (props) => {
 
 	const deleteBelow = async () => {
 		const list = state.historyList.filter((item) => {
-			const isLess = item.createTime! < createTime;
+			const isLess = item.createTime < createTime;
 			const isDifferent = item.createTime === createTime && item.id !== id;
 
 			return isLess || isDifferent;
