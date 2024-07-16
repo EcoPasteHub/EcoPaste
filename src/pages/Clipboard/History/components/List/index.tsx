@@ -1,4 +1,5 @@
 import Scrollbar from "@/components/Scrollbar";
+import { FloatButton } from "antd";
 import { HistoryContext } from "../..";
 import Item from "./components/Item";
 
@@ -25,6 +26,9 @@ const List = () => {
 					<Item key={props.data.id} {...props} />
 				))}
 			</div>
+
+			{/* @ts-ignore */}
+			<FloatButton.BackTop target={() => containerTarget.current} />
 		</Scrollbar>
 	);
 };
