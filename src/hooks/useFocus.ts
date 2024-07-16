@@ -9,6 +9,7 @@ interface Props {
 interface State {
 	delay: number;
 	timer?: Timeout;
+	unlisten?: () => void;
 }
 
 export const useFocus = (props: Props) => {
@@ -18,12 +19,12 @@ export const useFocus = (props: Props) => {
 		delay: 0,
 	});
 
-	useMount(() => {
+	useMount(async () => {
 		if (isWin()) {
 			state.delay = 100;
 		}
 
-		appWindow.onFocusChanged(({ payload }) => {
+		state.unlisten = await appWindow.onFocusChanged(({ payload }) => {
 			clearTimeout(state.timer);
 
 			/**
@@ -38,5 +39,9 @@ export const useFocus = (props: Props) => {
 				}
 			}, state.delay);
 		});
+	});
+
+	useUnmount(() => {
+		state.unlisten?.();
 	});
 };

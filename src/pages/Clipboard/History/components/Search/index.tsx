@@ -2,8 +2,8 @@ import Icon from "@/components/Icon";
 import { HistoryContext } from "@/pages/Clipboard/History";
 import type { InputProps, InputRef } from "antd";
 import { Input } from "antd";
+import { isNil } from "lodash-es";
 import type { FC } from "react";
-import { useSnapshot } from "valtio";
 
 const Search: FC<InputProps> = (props) => {
 	const { state } = useContext(HistoryContext);
@@ -12,13 +12,22 @@ const Search: FC<InputProps> = (props) => {
 
 	const inputRef = useRef<InputRef>(null);
 
-	const { isFocus, defaultFocus } = useSnapshot(clipboardStore);
+	useFocus({
+		onFocus() {
+			const { defaultFocus, activeIndex } = clipboardStore;
 
-	useEffect(() => {
-		if (isFocus && defaultFocus === "search") {
-			inputRef.current?.focus();
-		}
-	}, [isFocus, defaultFocus]);
+			if (defaultFocus === "search") {
+				inputRef.current?.focus();
+			} else if (isNil(activeIndex)) {
+				clipboardStore.activeIndex = 0;
+			}
+		},
+		onBlur() {
+			inputRef.current?.blur();
+
+			clipboardStore.activeIndex = -1;
+		},
+	});
 
 	useDebounceEffect(
 		() => {
