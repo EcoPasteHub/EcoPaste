@@ -2,7 +2,7 @@ use tauri::{
     command, generate_handler,
     plugin::{Builder, TauriPlugin},
     utils::config::WindowConfig,
-    AppHandle, Manager, Window, WindowBuilder, Wry,
+    AppHandle, Manager, PhysicalPosition, Window, WindowBuilder, Wry,
 };
 
 // 主窗口的名称
@@ -16,12 +16,15 @@ pub async fn create_window(app_handle: AppHandle, label: String, mut options: Wi
     } else {
         options.label = label.to_string();
 
-        let window = WindowBuilder::from_config(&app_handle, options.clone())
+        let _window = WindowBuilder::from_config(&app_handle, options.clone())
             .build()
             .unwrap();
 
-        if !options.decorations {
-            window_shadows::set_shadow(&window, true).unwrap();
+        #[cfg(not(target_os = "linux"))]
+        {
+            if !options.decorations {
+                window_shadows::set_shadow(&_window, true).unwrap();
+            }
         }
     }
 }
@@ -29,9 +32,20 @@ pub async fn create_window(app_handle: AppHandle, label: String, mut options: Wi
 // 显示窗口
 #[command]
 pub async fn show_window(window: Window) {
-    window.show().unwrap();
-    window.unminimize().unwrap();
-    window.set_focus().unwrap();
+    #[cfg(not(target_os = "linux"))]
+    {
+        window.show().unwrap();
+        window.unminimize().unwrap();
+        window.set_focus().unwrap();
+    }
+    
+    #[cfg(target_os = "linux")]
+    {
+        let position = window.outer_position().unwrap();
+        window.hide().unwrap();
+        window.set_position(PhysicalPosition::new(position.x, position.y)).unwrap();
+        window.show().unwrap();
+    }
 }
 
 // 隐藏窗口
