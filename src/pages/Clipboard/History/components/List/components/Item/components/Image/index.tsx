@@ -8,9 +8,7 @@ const Image: FC<HistoryItem> = (props) => {
 	const [src, setSrc] = useState("");
 
 	useMount(async () => {
-		const saveImageDir = await getSaveImageDir();
-
-		const src = await convertFileSrc(saveImageDir + value);
+		const src = await convertFileSrc(value);
 
 		setSrc(src);
 	});

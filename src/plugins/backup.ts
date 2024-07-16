@@ -18,8 +18,8 @@ const getExtension = async () => {
  */
 export const exportData = async () => {
 	const content = {
-		clipboardStore: omit(clipboardStore, ["_persist"]),
-		globalStore: omit(globalStore, ["platform", "appInfo", "_persist"]),
+		clipboardStore: omit(clipboardStore, ["_persist", "saveImageDir"]),
+		globalStore: omit(globalStore, ["_persist", "platform", "appInfo"]),
 	};
 
 	await writeFile(STORE_FILE_NAME, JSON.stringify(content), {

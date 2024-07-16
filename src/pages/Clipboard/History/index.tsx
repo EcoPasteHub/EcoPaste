@@ -150,7 +150,7 @@ const ClipboardHistory = () => {
 
 		// TODO: 为了适配导出功能，把旧图片路径替换为文件名，此代码只执行一次，将在以后的版本中移除此段代码
 		if (!clipboardStore.replaceAllImagePath) {
-			const saveImageDir = await getSaveImageDir();
+			const { saveImageDir } = clipboardStore;
 
 			for (const item of list) {
 				const { id, type, value } = item;

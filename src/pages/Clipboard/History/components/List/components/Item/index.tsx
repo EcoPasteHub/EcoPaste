@@ -40,15 +40,7 @@ const Item: FC<ItemProps> = (props) => {
 		}
 	}, [activeIndex]);
 
-	const getImagePath = async () => {
-		const saveImageDir = await getSaveImageDir();
-
-		return saveImageDir + value;
-	};
-
 	const copy = async () => {
-		const path = await getImagePath();
-
 		switch (type) {
 			case "text":
 				return writeText(value);
@@ -57,7 +49,7 @@ const Item: FC<ItemProps> = (props) => {
 			case "html":
 				return writeHTML(search, value);
 			case "image":
-				return writeImage(path);
+				return writeImage(value);
 			case "files":
 				return writeFiles(JSON.parse(value));
 		}
@@ -92,15 +84,11 @@ const Item: FC<ItemProps> = (props) => {
 	};
 
 	const previewImage = async () => {
-		const path = await getImagePath();
-
-		previewPath(path, false);
+		previewPath(value, false);
 	};
 
 	const downloadImage = async () => {
-		const path = await getImagePath();
-
-		copyFile(path, `${appInfo?.name}_${id}.png`, {
+		copyFile(value, `${appInfo?.name}_${id}.png`, {
 			dir: BaseDirectory.Download,
 		});
 	};

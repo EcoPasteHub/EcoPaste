@@ -1,7 +1,6 @@
 import type { ClipboardPayload, ReadImage, WinOCR } from "@/types/plugin";
 import { invoke } from "@tauri-apps/api";
 import { listen } from "@tauri-apps/api/event";
-import { appDataDir, sep } from "@tauri-apps/api/path";
 import { isEmpty } from "arcdash";
 
 /**
@@ -84,7 +83,7 @@ export const readFiles = async (): Promise<ClipboardPayload> => {
  * 读取剪切板图片
  */
 export const readImage = async (): Promise<ClipboardPayload> => {
-	const saveImageDir = await getSaveImageDir();
+	const { saveImageDir } = clipboardStore;
 
 	const { image, ...rest } = await invoke<ReadImage>(
 		CLIPBOARD_PLUGIN.READ_IMAGE,
@@ -233,13 +232,4 @@ export const onClipboardUpdate = (fn: (payload: ClipboardPayload) => void) => {
 
 		fn(payload);
 	});
-};
-
-/**
- * 获取保存图片目录
- */
-export const getSaveImageDir = async () => {
-	const dataDir = await appDataDir();
-
-	return `${dataDir}images${sep}`;
 };

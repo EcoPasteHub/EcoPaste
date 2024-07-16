@@ -2,7 +2,7 @@ use tauri::{
     command, generate_handler,
     plugin::{Builder, TauriPlugin},
     utils::config::WindowConfig,
-    AppHandle, Manager, PhysicalPosition, Window, WindowBuilder, Wry,
+    AppHandle, Manager, Window, WindowBuilder, Wry,
 };
 
 // 主窗口的名称
@@ -38,12 +38,14 @@ pub async fn show_window(window: Window) {
         window.unminimize().unwrap();
         window.set_focus().unwrap();
     }
-    
+
     #[cfg(target_os = "linux")]
     {
         let position = window.outer_position().unwrap();
         window.hide().unwrap();
-        window.set_position(PhysicalPosition::new(position.x, position.y)).unwrap();
+        window
+            .set_position(tauri::PhysicalPosition::new(position.x, position.y))
+            .unwrap();
         window.show().unwrap();
     }
 }

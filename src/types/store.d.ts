@@ -28,4 +28,5 @@ export interface ClipboardStore {
 	replaceAllImagePath?: boolean;
 	isFocus: boolean;
 	defaultFocus: "firstItem" | "search";
+	saveImageDir: string;
 }
