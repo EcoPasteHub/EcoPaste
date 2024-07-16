@@ -1,6 +1,7 @@
 import ShortcutKey from "@/components/ShortcutKey";
 import { Card, Flex, Switch } from "antd";
 import { useSnapshot } from "valtio";
+import DefaultFocus from "./components/DefaultFocus";
 import DoubleClickFeedback from "./components/DoubleClickFeedback";
 import HistoryCapacity from "./components/HistoryCapacity";
 import SearchPosition from "./components/SearchPosition";
@@ -38,6 +39,8 @@ const Clipboard = () => {
 					<WindowPosition />
 
 					<SearchPosition />
+
+					<DefaultFocus />
 				</Flex>
 			</Card>
 

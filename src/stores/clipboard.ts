@@ -10,6 +10,8 @@ export const clipboardStore = proxyWithPersist<ClipboardStore>({
 		windowPosition: "default",
 		searchPosition: "top",
 		doubleClickFeedback: "none",
+		isFocus: false,
+		defaultFocus: "firstItem",
 	},
 	persistStrategies,
 	version: 0,

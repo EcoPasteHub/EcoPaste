@@ -26,4 +26,6 @@ export interface ClipboardStore {
 	searchPosition: "top" | "bottom";
 	doubleClickFeedback: "none" | "copy";
 	replaceAllImagePath?: boolean;
+	isFocus: boolean;
+	defaultFocus: "firstItem" | "search";
 }

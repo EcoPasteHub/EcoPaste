@@ -44,7 +44,9 @@ export const toggleWindowVisible = async () => {
 
 	if (focused) {
 		hideWindow();
+		clipboardStore.isFocus = false;
 	} else {
 		showWindow();
+		clipboardStore.isFocus = true;
 	}
 };
