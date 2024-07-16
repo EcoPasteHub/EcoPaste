@@ -54,7 +54,9 @@ const Item: FC<ItemProps> = (props) => {
 		return saveImageDir + value;
 	};
 
-	const copy = () => {
+	const copy = async () => {
+		const path = await getImagePath();
+
 		switch (type) {
 			case "text":
 				return writeText(value);
@@ -63,7 +65,7 @@ const Item: FC<ItemProps> = (props) => {
 			case "html":
 				return writeHTML(search, value);
 			case "image":
-				return writeImage(value);
+				return writeImage(path);
 			case "files":
 				return writeFiles(JSON.parse(value));
 		}
