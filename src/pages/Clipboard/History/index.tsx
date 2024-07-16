@@ -11,6 +11,7 @@ import { createContext } from "react";
 import { useSnapshot } from "valtio";
 import Header from "./components/Header";
 import List from "./components/List";
+import Search from "./components/Search";
 
 interface State extends HistoryItem {
 	historyList: HistoryItem[];
@@ -30,7 +31,7 @@ export const HistoryContext = createContext<HistoryContextValue>({
 });
 
 const ClipboardHistory = () => {
-	const { wakeUpKey } = useSnapshot(clipboardStore);
+	const { wakeUpKey, searchPosition } = useSnapshot(clipboardStore);
 
 	const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -181,9 +182,13 @@ const ClipboardHistory = () => {
 					getHistoryList,
 				}}
 			>
+				{searchPosition === "top" && <Search classNames="mb-10" />}
+
 				<Header />
 
 				<List />
+
+				{searchPosition === "bottom" && <Search classNames="mt-10" />}
 			</HistoryContext.Provider>
 		</div>
 	);
