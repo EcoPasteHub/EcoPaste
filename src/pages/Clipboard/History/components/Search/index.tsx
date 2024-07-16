@@ -1,3 +1,4 @@
+import Icon from "@/components/Icon";
 import { HistoryContext } from "@/pages/Clipboard/History";
 import type { InputProps, InputRef } from "antd";
 import { Input } from "antd";
@@ -35,7 +36,7 @@ const Search: FC<InputProps> = (props) => {
 			ref={inputRef}
 			allowClear
 			value={value}
-			prefix={<i className="i-lucide:search" />}
+			prefix={<Icon name="i-lucide:search" />}
 			size="small"
 			placeholder="搜索"
 			className="m-auto w-336"
