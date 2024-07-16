@@ -194,7 +194,7 @@ const ClipboardHistory = () => {
 
 				<Search />
 
-				<Flex vertical gap={12}>
+				<Flex data-tauri-drag-region vertical gap={12}>
 					<Header />
 
 					<List />

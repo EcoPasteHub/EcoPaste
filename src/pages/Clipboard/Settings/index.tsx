@@ -34,13 +34,13 @@ const Clipboard = () => {
 						/>
 					</Flex>
 
-					<DoubleClickFeedback />
-
-					<WindowPosition />
-
 					<SearchPosition />
 
 					<DefaultFocus />
+
+					<DoubleClickFeedback />
+
+					<WindowPosition />
 				</Flex>
 			</Card>
 
