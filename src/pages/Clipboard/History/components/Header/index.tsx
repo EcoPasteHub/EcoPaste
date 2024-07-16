@@ -43,7 +43,7 @@ const Header = () => {
 			align="center"
 			justify="space-between"
 			gap="small"
-			className="color-2 px-12 pb-12 text-18"
+			className="color-2 px-12 text-18"
 		>
 			<Tab />
 
