@@ -1,17 +1,15 @@
 import { HistoryContext } from "@/pages/Clipboard/History";
-import type { InputRef } from "antd";
-import { Flex, Input } from "antd";
-import clsx from "clsx";
+import type { InputProps, InputRef } from "antd";
+import { Input } from "antd";
+import type { FC } from "react";
 import { useSnapshot } from "valtio";
 
-const Search = ({ classNames }: { classNames: string }) => {
+const Search: FC<InputProps> = (props) => {
 	const { state } = useContext(HistoryContext);
 
 	const [value, setValue] = useState("");
 
 	const inputRef = useRef<InputRef>(null);
-
-	const labelRef = useRef<HTMLLabelElement>(null);
 
 	const { isFocus, defaultFocus } = useSnapshot(clipboardStore);
 
@@ -32,24 +30,19 @@ const Search = ({ classNames }: { classNames: string }) => {
 	);
 
 	return (
-		<Flex
-			ref={labelRef}
-			align="center"
-			component={"label"}
-			className={clsx(`mx-auto w-336 ${classNames}`)}
-		>
-			<Input
-				ref={inputRef}
-				allowClear
-				value={value}
-				prefix={<i className="i-lucide:search" />}
-				size="small"
-				placeholder="搜索"
-				onChange={(event) => {
-					setValue(event.target.value);
-				}}
-			/>
-		</Flex>
+		<Input
+			{...props}
+			ref={inputRef}
+			allowClear
+			value={value}
+			prefix={<i className="i-lucide:search" />}
+			size="small"
+			placeholder="搜索"
+			className="m-auto w-336"
+			onChange={(event) => {
+				setValue(event.target.value);
+			}}
+		/>
 	);
 };
 

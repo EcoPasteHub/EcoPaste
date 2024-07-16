@@ -6,6 +6,7 @@ import {
 	appWindow,
 	currentMonitor,
 } from "@tauri-apps/api/window";
+import { Flex } from "antd";
 import clsx from "clsx";
 import { createContext } from "react";
 import { useSnapshot } from "valtio";
@@ -170,27 +171,31 @@ const ClipboardHistory = () => {
 	};
 
 	return (
-		<div
-			data-tauri-drag-region
-			className={clsx("h-screen rounded-10 bg-1 py-12")}
+		<HistoryContext.Provider
+			value={{
+				state,
+				getHistoryList,
+			}}
 		>
-			<audio ref={audioRef} src={copyAudio} />
-
-			<HistoryContext.Provider
-				value={{
-					state,
-					getHistoryList,
-				}}
+			<Flex
+				data-tauri-drag-region
+				vertical
+				gap={12}
+				className={clsx("h-screen rounded-10 bg-1 py-12", {
+					"flex-col-reverse": searchPosition === "bottom",
+				})}
 			>
-				{searchPosition === "top" && <Search classNames="mb-10" />}
+				<audio ref={audioRef} src={copyAudio} />
 
-				<Header />
+				<Search />
 
-				<List />
+				<Flex vertical gap={12}>
+					<Header />
 
-				{searchPosition === "bottom" && <Search classNames="mt-10" />}
-			</HistoryContext.Provider>
-		</div>
+					<List />
+				</Flex>
+			</Flex>
+		</HistoryContext.Provider>
 	);
 };
 
