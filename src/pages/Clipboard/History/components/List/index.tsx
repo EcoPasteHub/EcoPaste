@@ -21,7 +21,7 @@ const List = () => {
 	});
 
 	return (
-		<Scrollbar ref={containerTarget} className="h-542">
+		<Scrollbar ref={containerTarget} className="h-510">
 			<div ref={wrapperTarget}>
 				{list.map((props) => (
 					<Item key={props.data.id} {...props} />

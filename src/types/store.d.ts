@@ -23,6 +23,7 @@ export interface ClipboardStore {
 	historyCapacity: number;
 	activeIndex: number;
 	windowPosition: "default" | "follow" | "center";
+	searchPosition: "top" | "bottom";
 	doubleClickFeedback: "none" | "copy";
 	replaceAllImagePath?: boolean;
 }

@@ -1,16 +1,16 @@
-import Icon from "@/components/Icon";
 import { HistoryContext } from "@/pages/Clipboard/History";
+import type { InputRef } from "antd";
 import { Flex, Input } from "antd";
 import clsx from "clsx";
 
-const Search = () => {
+const Search = ({ classNames }: { classNames: string }) => {
 	const { state } = useContext(HistoryContext);
-
-	const labelRef = useRef<HTMLLabelElement>(null);
 
 	const [value, setValue] = useState("");
 
-	const isFocusWithin = useFocusWithin(labelRef);
+	const inputRef = useRef<InputRef>(null);
+
+	const labelRef = useRef<HTMLLabelElement>(null);
 
 	useDebounceEffect(
 		() => {
@@ -22,32 +22,20 @@ const Search = () => {
 		},
 	);
 
-	const focused = useCreation(() => {
-		return isFocusWithin || Boolean(value);
-	}, [isFocusWithin, value]);
-
 	return (
 		<Flex
 			ref={labelRef}
 			align="center"
 			component={"label"}
-			className={clsx("w-18 overflow-hidden", {
-				"w-unset": focused,
-			})}
+			className={clsx(`mx-auto w-336 ${classNames}`)}
 		>
-			<Icon
-				hoverable
-				name="i-lucide:search"
-				hidden={focused}
-				className="min-w-18"
-			/>
-
 			<Input
+				ref={inputRef}
 				allowClear
 				value={value}
+				prefix={<i className="i-lucide:search" />}
 				size="small"
 				placeholder="搜索"
-				className="w-150"
 				onChange={(event) => {
 					setValue(event.target.value);
 				}}

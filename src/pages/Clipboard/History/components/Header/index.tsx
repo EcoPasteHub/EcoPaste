@@ -3,7 +3,6 @@ import { appWindow } from "@tauri-apps/api/window";
 import type { Timeout } from "ahooks/lib/useRequest/src/types";
 import { Flex } from "antd";
 import clsx from "clsx";
-import Search from "./components/Search";
 import Tab from "./components/Tab";
 
 interface State {
@@ -46,11 +45,7 @@ const Header = () => {
 			gap="small"
 			className="color-2 px-12 pb-12 text-18"
 		>
-			<Flex align="center" gap="small" className="overflow-hidden">
-				<Search />
-
-				<Tab />
-			</Flex>
+			<Tab />
 
 			<Icon
 				hoverable
