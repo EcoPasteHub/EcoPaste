@@ -15,11 +15,13 @@ import List from "./components/List";
 import Search from "./components/Search";
 
 interface State extends HistoryItem {
+	rounded: boolean;
 	historyList: HistoryItem[];
 	scrollTo?: (index: number) => void;
 }
 
 const INITIAL_STATE: State = {
+	rounded: true,
 	historyList: [],
 };
 
@@ -40,6 +42,10 @@ const ClipboardHistory = () => {
 	const state = useReactive<State>(INITIAL_STATE);
 
 	useMount(async () => {
+		if (await isWin10()) {
+			state.rounded = false;
+		}
+
 		startListen();
 
 		onClipboardUpdate(async (payload) => {
@@ -186,7 +192,8 @@ const ClipboardHistory = () => {
 				data-tauri-drag-region
 				vertical
 				gap={12}
-				className={clsx("h-screen rounded-10 bg-1 py-12", {
+				className={clsx("h-screen bg-1 py-12", {
+					"rounded-10": state.rounded,
 					"flex-col-reverse": searchPosition === "bottom",
 				})}
 			>
