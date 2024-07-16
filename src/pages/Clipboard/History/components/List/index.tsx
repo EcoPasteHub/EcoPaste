@@ -8,16 +8,14 @@ const List = () => {
 	const containerTarget = useRef(null);
 	const wrapperTarget = useRef(null);
 
-	useUpdateEffect(() => {
-		scrollTo(0);
-
-		clipboardStore.activeIndex = 0;
-	}, [state.group, state.isCollected]);
-
 	const [list, scrollTo] = useVirtualList(state.historyList, {
 		containerTarget,
 		wrapperTarget,
 		itemHeight: 120,
+	});
+
+	useMount(() => {
+		state.scrollTo = scrollTo;
 	});
 
 	return (

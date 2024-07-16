@@ -16,6 +16,7 @@ import Search from "./components/Search";
 
 interface State extends HistoryItem {
 	historyList: HistoryItem[];
+	scrollTo?: (index: number) => void;
 }
 
 const INITIAL_STATE: State = {
@@ -124,6 +125,10 @@ const ClipboardHistory = () => {
 	}, [wakeUpKey]);
 
 	useEffect(() => {
+		state.scrollTo?.(0);
+
+		clipboardStore.activeIndex = 0;
+
 		getHistoryList?.();
 	}, [state.search, state.group, state.isCollected]);
 
