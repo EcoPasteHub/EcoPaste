@@ -4,7 +4,7 @@ import clsx from "clsx";
 import type { CSSProperties, FC } from "react";
 
 const Text: FC<HistoryItem> = (props) => {
-	const { value = "" } = props;
+	const { value } = props;
 
 	const renderColor = () => {
 		const className = "absolute rounded-full";

@@ -8,9 +8,9 @@ import type { FC } from "react";
 const Search: FC<InputProps> = (props) => {
 	const { state } = useContext(HistoryContext);
 
-	const [value, setValue] = useState("");
-
 	const inputRef = useRef<InputRef>(null);
+
+	const [value, setValue] = useState("");
 
 	useFocus({
 		onFocus() {

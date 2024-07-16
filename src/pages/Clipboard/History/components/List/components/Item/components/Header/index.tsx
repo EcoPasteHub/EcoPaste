@@ -14,8 +14,8 @@ interface HeaderProps extends HistoryItem {
 const Header: FC<HeaderProps> = (props) => {
 	const {
 		type,
-		value = "",
-		size = 0,
+		value,
+		size,
 		createTime,
 		isCollected,
 		copy,
