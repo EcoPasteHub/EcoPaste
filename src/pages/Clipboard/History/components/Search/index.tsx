@@ -2,6 +2,7 @@ import { HistoryContext } from "@/pages/Clipboard/History";
 import type { InputRef } from "antd";
 import { Flex, Input } from "antd";
 import clsx from "clsx";
+import { useSnapshot } from "valtio";
 
 const Search = ({ classNames }: { classNames: string }) => {
 	const { state } = useContext(HistoryContext);
@@ -11,6 +12,14 @@ const Search = ({ classNames }: { classNames: string }) => {
 	const inputRef = useRef<InputRef>(null);
 
 	const labelRef = useRef<HTMLLabelElement>(null);
+
+	const { isFocus, defaultFocus } = useSnapshot(clipboardStore);
+
+	useEffect(() => {
+		if (isFocus && defaultFocus === "search") {
+			inputRef.current?.focus();
+		}
+	}, [isFocus, defaultFocus]);
 
 	useDebounceEffect(
 		() => {
