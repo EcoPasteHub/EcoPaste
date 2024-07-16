@@ -98,7 +98,10 @@ const Update = () => {
 					"$1<a href='https://github.com/$2'><mark>@$2</mark></a>",
 				)
 				// 替换 pr 链接
-				.replace(new RegExp(`(${GITHUB_ISSUES_LINK}/)(\\d+)`), "[#$2]($1$2)")
+				.replace(
+					new RegExp(`(${GITHUB_ISSUES_LINK}/)(\\d+)`, "g"),
+					"[#$2]($1$2)",
+				)
 		);
 	};
 
