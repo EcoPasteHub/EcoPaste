@@ -1,13 +1,13 @@
 import Icon from "@/components/Icon";
 import { getTauriVersion } from "@tauri-apps/api/app";
 import { emit } from "@tauri-apps/api/event";
-import { arch, type, version } from "@tauri-apps/api/os";
+import { arch, version } from "@tauri-apps/api/os";
 import { open } from "@tauri-apps/api/shell";
 import { Button, Flex, Tooltip } from "antd";
 import { useSnapshot } from "valtio";
 
 const About = () => {
-	const { appInfo } = useSnapshot(globalStore);
+	const { appInfo, platform } = useSnapshot(globalStore);
 
 	const update = () => {
 		emit(LISTEN_KEY.UPDATE);
@@ -18,7 +18,7 @@ const About = () => {
 			appName: appInfo?.name,
 			appVersion: appInfo?.version,
 			tauriVersion: await getTauriVersion(),
-			platform: await type(),
+			platform,
 			platformArch: await arch(),
 			platformVersion: await version(),
 		};

@@ -252,6 +252,10 @@ const Item: FC<ItemProps> = (props) => {
 		clipboardStore.activeIndex = index;
 	};
 
+	const handleBlur = () => {
+		clipboardStore.activeIndex = -1;
+	};
+
 	const handleKeyDown = (event: KeyboardEvent) => {
 		const isSpace = event.code === "Space";
 		const isArrowUp = event.code === "ArrowUp";
@@ -299,6 +303,7 @@ const Item: FC<ItemProps> = (props) => {
 			onContextMenu={handleContextMenu}
 			onDoubleClick={handleDoubleClick}
 			onFocus={handleFocus}
+			onBlur={handleBlur}
 			onKeyDown={handleKeyDown}
 		>
 			<Header {...data} copy={copy} collect={collect} deleteItem={deleteItem} />
