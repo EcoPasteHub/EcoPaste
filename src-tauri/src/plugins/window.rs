@@ -20,9 +20,9 @@ pub async fn create_window(app_handle: AppHandle, label: String, mut options: Wi
             .build()
             .unwrap();
 
-        if !options.decorations {
-            #[cfg(not(target_os = "linux"))]
-            {
+        #[cfg(not(target_os = "linux"))]
+        {
+            if !options.decorations {
                 window_shadows::set_shadow(&_window, true).unwrap();
             }
         }
@@ -38,6 +38,7 @@ pub async fn show_window(window: Window) {
         window.unminimize().unwrap();
         window.set_focus().unwrap();
     }
+    
     #[cfg(target_os = "linux")]
     {
         let position = window.outer_position().unwrap();
