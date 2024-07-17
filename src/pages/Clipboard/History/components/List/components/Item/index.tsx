@@ -151,7 +151,7 @@ const Item: FC<ItemProps> = (props) => {
 			},
 			{
 				label: "复制OCR文本",
-				hide: type !== "image",
+				hide: type !== "image" || /^[\s]*$/.test(search),
 				event: copyPlainText,
 			},
 			{
