@@ -45,8 +45,10 @@ const DefaultLayout = () => {
 		const enabled = await isEnabled();
 
 		if (autoStart && !enabled) {
-			enable();
-		} else if (enabled) {
+			return enable();
+		}
+
+		if (!autoStart && enabled) {
 			disable();
 		}
 	}, [autoStart]);
