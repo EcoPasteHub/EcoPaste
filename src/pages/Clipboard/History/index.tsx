@@ -42,10 +42,6 @@ const ClipboardHistory = () => {
 	const state = useReactive<State>(INITIAL_STATE);
 
 	useMount(async () => {
-		if (await isWin10()) {
-			state.rounded = false;
-		}
-
 		startListen();
 
 		onClipboardUpdate(async (payload) => {
@@ -193,7 +189,7 @@ const ClipboardHistory = () => {
 				vertical
 				gap={12}
 				className={clsx("h-screen bg-1 py-12", {
-					"rounded-10": state.rounded,
+					"rounded-10": !isWin(),
 					"flex-col-reverse": searchPosition === "bottom",
 				})}
 			>

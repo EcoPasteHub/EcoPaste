@@ -1,5 +1,3 @@
-import { version } from "@tauri-apps/api/os";
-
 /**
  * 是否为开发环境
  */
@@ -59,13 +57,4 @@ export const isColor = (value: string) => {
 	const { background } = style;
 
 	return background !== "";
-};
-
-/**
- * 是否为 Windows 10 系统
- */
-export const isWin10 = async () => {
-	if (!isWin()) return;
-
-	return (await version()).startsWith("10.");
 };
