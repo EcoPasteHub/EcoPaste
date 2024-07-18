@@ -37,7 +37,7 @@ const About = () => {
 			justify="center"
 			className="color-2 h-full transition"
 		>
-			<img src="logo.png" className="h-120 w-120" alt="logo" />
+			<img src="/logo.png" className="h-120 w-120" alt="logo" />
 			<Flex vertical align="center" gap="small">
 				<div className="color-1 font-bold text-22 transition">
 					{appInfo?.name}

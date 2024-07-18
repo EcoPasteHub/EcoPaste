@@ -7,6 +7,7 @@ use tauri::{
 
 // 主窗口的名称
 pub static MAIN_WINDOW_LABEL: &str = "main";
+pub static PREFERENCE_WINDOW_LABEL: &str = "preference";
 
 // 创建窗口
 #[command]
@@ -16,16 +17,9 @@ pub async fn create_window(app_handle: AppHandle, label: String, mut options: Wi
     } else {
         options.label = label.to_string();
 
-        let _window = WindowBuilder::from_config(&app_handle, options.clone())
+        WindowBuilder::from_config(&app_handle, options.clone())
             .build()
             .unwrap();
-
-        #[cfg(not(target_os = "linux"))]
-        {
-            if !options.decorations {
-                window_shadows::set_shadow(&_window, true).unwrap();
-            }
-        }
     }
 }
 
@@ -56,8 +50,20 @@ pub async fn hide_window(window: Window) {
     window.hide().unwrap();
 }
 
+// 给窗口添加阴影
+#[command]
+pub async fn set_window_shadow(_window: Window) {
+    #[cfg(not(target_os = "linux"))]
+    window_shadows::set_shadow(&_window, true).unwrap();
+}
+
 pub fn init() -> TauriPlugin<Wry> {
     Builder::new("window")
-        .invoke_handler(generate_handler![create_window, show_window, hide_window,])
+        .invoke_handler(generate_handler![
+            create_window,
+            show_window,
+            hide_window,
+            set_window_shadow
+        ])
         .build()
 }

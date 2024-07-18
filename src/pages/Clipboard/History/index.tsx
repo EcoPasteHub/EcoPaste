@@ -41,7 +41,11 @@ const ClipboardHistory = () => {
 
 	const state = useReactive<State>(INITIAL_STATE);
 
-	useMount(async () => {
+	useMount(() => {
+		createWindow("/preference");
+
+		setWindowShadow();
+
 		startListen();
 
 		onClipboardUpdate(async (payload) => {

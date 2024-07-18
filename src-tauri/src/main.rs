@@ -16,17 +16,27 @@ fn main() {
     let mut ctx = generate_context!();
 
     Builder::default()
-        .setup(|_app| {
+        .setup(|app| {
+            let window = app.get_window(MAIN_WINDOW_LABEL).unwrap();
+
             // 在开发环境中启动时打开控制台：https://tauri.app/v1/guides/debugging/application/#opening-devtools-programmatically
             #[cfg(debug_assertions)]
-            {
-                let window = _app.get_window(MAIN_WINDOW_LABEL).unwrap();
-                window.open_devtools();
-            }
+            window.open_devtools();
 
-            // 隐藏 mac 下的任务栏图标：https://github.com/tauri-apps/tauri/issues/4852#issuecomment-1312716378
             #[cfg(target_os = "macos")]
-            _app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+            {
+                // 将窗口位于程序坞之上
+                use cocoa::appkit::{NSMainMenuWindowLevel, NSWindow};
+                use cocoa::base::id;
+
+                unsafe {
+                    let ns_window = window.ns_window().unwrap() as id;
+                    ns_window.setLevel_(NSMainMenuWindowLevel as i64 + 1);
+                }
+
+                // 隐藏 mac 下的任务栏图标：https://github.com/tauri-apps/tauri/issues/4852#issuecomment-1312716378
+                app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+            }
 
             Ok(())
         })
