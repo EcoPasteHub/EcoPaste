@@ -48,6 +48,14 @@ const App = () => {
 		open(link.href);
 	});
 
+	useEventListener("keydown", (event) => {
+		if (event.code === "Escape") {
+			event.preventDefault();
+
+			hideWindow();
+		}
+	});
+
 	return (
 		<ConfigProvider
 			locale={zhCN}
