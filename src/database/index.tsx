@@ -1,4 +1,9 @@
-import type { HistoryItem, TableName, TablePayload } from "@/types/database";
+import type {
+	HistoryItem,
+	SelectPayload,
+	TableName,
+	TablePayload,
+} from "@/types/database";
 import { getName } from "@tauri-apps/api/app";
 import { removeFile } from "@tauri-apps/api/fs";
 import { appDataDir } from "@tauri-apps/api/path";
@@ -78,17 +83,23 @@ export const executeSQL = async (query: string, values?: unknown[]) => {
  */
 export const selectSQL = async <List,>(
 	tableName: TableName,
-	payload: TablePayload = {},
+	payload: SelectPayload = {},
 ) => {
-	const { keys, values } = handlePayload(payload);
+	const { exact, ...rest } = payload;
 
-	const clause = map(keys, (key) => `${key} LIKE ?`).join(" AND ");
+	const { keys, values } = handlePayload(rest);
+
+	const connector = exact ? "=" : "LIKE";
+
+	const clause = map(keys, (key) => `${key} ${connector} ?`).join(" AND ");
 
 	const whereClause = clause ? `WHERE ${clause}` : "";
 
+	const bindValues = exact ? values : values.map((item) => `%${item}%`);
+
 	const list = await executeSQL(
 		`SELECT * FROM ${tableName} ${whereClause} ORDER BY createTime DESC;`,
-		map(values, (item) => `%${item}%`),
+		bindValues,
 	);
 
 	return (list ?? []) as List;
@@ -145,7 +156,7 @@ export const deleteSQL = async (tableName: TableName, id?: number) => {
 
 		if (type !== "image") return;
 
-		removeFile(value);
+		removeFile(clipboardStore.saveImageDir + value);
 	};
 
 	if (id) {
