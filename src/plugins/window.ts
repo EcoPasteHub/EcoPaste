@@ -37,6 +37,13 @@ export const hideWindow = () => {
 };
 
 /**
+ * 给窗口添加阴影
+ */
+export const setWindowShadow = () => {
+	invoke(WINDOW_PLUGIN.SET_WINDOW_SHADOW);
+};
+
+/**
  * 切换窗口的显示和隐藏
  */
 export const toggleWindowVisible = async () => {

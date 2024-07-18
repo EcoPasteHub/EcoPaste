@@ -44,6 +44,8 @@ const ClipboardHistory = () => {
 	useMount(() => {
 		createWindow("/preference");
 
+		setWindowShadow();
+
 		startListen();
 
 		onClipboardUpdate(async (payload) => {
