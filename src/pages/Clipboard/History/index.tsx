@@ -49,7 +49,10 @@ const ClipboardHistory = () => {
 				audioRef.current?.play();
 			}
 
-			const [selectItem] = await selectSQL<HistoryItem[]>("history", payload);
+			const [selectItem] = await selectSQL<HistoryItem[]>("history", {
+				...payload,
+				exact: true,
+			});
 
 			if (selectItem) {
 				await updateSQL("history", {
@@ -135,10 +138,9 @@ const ClipboardHistory = () => {
 	}, [state.search, state.group, state.isCollected]);
 
 	const getHistoryList = async () => {
-		const { value, search, group, isCollected } = state;
+		const { search, group, isCollected } = state;
 
 		const list = await selectSQL<HistoryItem[]>("history", {
-			value,
 			search,
 			group,
 			isCollected,

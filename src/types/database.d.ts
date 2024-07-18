@@ -10,3 +10,7 @@ export interface HistoryItem extends ClipboardPayload {
 }
 
 export type TablePayload = Partial<HistoryItem>;
+
+export interface SelectPayload extends TablePayload {
+	exact?: boolean;
+}
