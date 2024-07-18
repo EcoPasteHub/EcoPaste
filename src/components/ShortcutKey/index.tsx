@@ -48,6 +48,9 @@ const ShortcutKey: FC<ShortcutKeyProps> = (props) => {
 	});
 
 	const handleKeyDown = (event: KeyboardEvent) => {
+		event.stopPropagation();
+		event.preventDefault();
+
 		const key = getEventKey(event);
 
 		// 忽略大写锁定键、重复按键
