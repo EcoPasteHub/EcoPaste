@@ -1,8 +1,9 @@
-use crate::window::{show_window, MAIN_WINDOW_LABEL};
 use tauri::{
     async_runtime, AppHandle, CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu,
     SystemTrayMenuItem, SystemTraySubmenu,
 };
+
+use crate::plugins::window::{show_window, PREFERENCE_WINDOW_LABEL};
 
 pub fn menu() -> SystemTray {
     let tray_menu = SystemTrayMenu::new()
@@ -24,15 +25,19 @@ pub fn menu() -> SystemTray {
 
 pub fn handler(app: &AppHandle, event: SystemTrayEvent) {
     async_runtime::block_on(async {
-        let window = app.get_window(MAIN_WINDOW_LABEL).unwrap();
+        let window = app.get_window(PREFERENCE_WINDOW_LABEL).unwrap();
+
+        let about_event = || {
+            window.emit("about", true).unwrap();
+        };
 
         match event {
             SystemTrayEvent::LeftClick { .. } => window.emit("tray-click", true).unwrap(),
             SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
                 "preference" => show_window(window).await,
-                "about" => window.emit("about", true).unwrap(),
+                "about" => about_event(),
                 "update" => {
-                    window.emit("about", true).unwrap();
+                    about_event();
                     window.emit("update", true).unwrap();
                 }
                 "github" => {

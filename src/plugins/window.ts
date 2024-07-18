@@ -1,5 +1,5 @@
 import { WINDOW_PLUGIN } from "@/constants";
-import type { Route } from "@/types/router";
+import type { RoutePath } from "@/types/router";
 import { invoke } from "@tauri-apps/api";
 import { appWindow } from "@tauri-apps/api/window";
 import { find } from "lodash-es";
@@ -7,7 +7,7 @@ import { find } from "lodash-es";
 /**
  * 创建新窗口
  */
-export const createWindow = (path: Route["path"]) => {
+export const createWindow = (path: RoutePath) => {
 	const label = path.replace("/", "") ?? "main";
 
 	const options = find(routes, { path })?.meta?.windowOptions;

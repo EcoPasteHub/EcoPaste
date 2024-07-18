@@ -1,8 +1,15 @@
-import type { WindowOptions } from "@tauri-apps/api/window";
-import type { ComponentType } from "react";
+import type { RouteObject } from "react-router-dom";
 
-export interface Route {
-	path: "/" | "/settings" | "/about" | "/clipboard-history" | "/data-backup";
+export type RoutePath =
+	| "/"
+	| "/preference"
+	| "clipboard"
+	| "settings"
+	| "about"
+	| "data-backup";
+
+export interface Route extends RouteObject {
+	path: RoutePath;
 	Component: ComponentType;
 	children?: Route[];
 	meta?: {

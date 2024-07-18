@@ -7,14 +7,14 @@ import clsx from "clsx";
 import { disable, enable, isEnabled } from "tauri-plugin-autostart-api";
 import { subscribe, useSnapshot } from "valtio";
 
-const DefaultLayout = () => {
+const Preference = () => {
 	const { pathname } = useLocation();
 	const navigate = useNavigate();
 	const { wakeUpKey, autoStart } = useSnapshot(globalStore);
 	const { isDark, toggleTheme } = useTheme();
 
 	useMount(async () => {
-		createWindow("/clipboard-history");
+		navigate("clipboard");
 
 		listen(LISTEN_KEY.GITHUB, () => {
 			open(GITHUB_LINK);
@@ -23,7 +23,7 @@ const DefaultLayout = () => {
 		listen(LISTEN_KEY.ABOUT, () => {
 			showWindow();
 
-			navigate("/about");
+			navigate("about");
 		});
 
 		listen(LISTEN_KEY.TRAY_CLICK, () => {
@@ -67,9 +67,8 @@ const DefaultLayout = () => {
 				])}
 			>
 				<Flex vertical gap="large" onClick={(event) => event.stopPropagation()}>
-					{routes[0].children?.map((item) => {
+					{preferenceRoute.children?.map((item) => {
 						const { path, meta = {} } = item;
-
 						const { title, icon } = meta;
 
 						return (
@@ -77,7 +76,7 @@ const DefaultLayout = () => {
 								key={title}
 								to={path}
 								className={clsx("hover:text-primary", {
-									"text-primary": pathname === path,
+									"text-primary": pathname.endsWith(path),
 								})}
 							>
 								<Flex vertical align="center" gap={4}>
@@ -88,6 +87,7 @@ const DefaultLayout = () => {
 						);
 					})}
 				</Flex>
+
 				<Icon
 					hoverable
 					size={24}
@@ -108,4 +108,4 @@ const DefaultLayout = () => {
 	);
 };
 
-export default DefaultLayout;
+export default Preference;

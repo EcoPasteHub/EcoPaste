@@ -1080,6 +1080,7 @@ name = "eco-paste"
 version = "0.0.4"
 dependencies = [
  "clipboard-rs",
+ "cocoa 0.25.0",
  "flate2",
  "mouse_position",
  "serde",

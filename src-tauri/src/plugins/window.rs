@@ -7,6 +7,7 @@ use tauri::{
 
 // 主窗口的名称
 pub static MAIN_WINDOW_LABEL: &str = "main";
+pub static PREFERENCE_WINDOW_LABEL: &str = "preference";
 
 // 创建窗口
 #[command]
@@ -58,6 +59,6 @@ pub async fn hide_window(window: Window) {
 
 pub fn init() -> TauriPlugin<Wry> {
     Builder::new("window")
-        .invoke_handler(generate_handler![create_window, show_window, hide_window,])
+        .invoke_handler(generate_handler![create_window, show_window, hide_window])
         .build()
 }

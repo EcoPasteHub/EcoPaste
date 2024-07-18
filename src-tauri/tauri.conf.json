@@ -57,12 +57,16 @@
 			{
 				"label": "main",
 				"title": "EcoPaste",
+				"width": 360,
+				"height": 600,
 				"resizable": false,
-				"center": true,
-				"skipTaskbar": true,
-				"hiddenTitle": true,
 				"maximizable": false,
-				"titleBarStyle": "Overlay"
+				"decorations": false,
+				"visible": false,
+				"transparent": true,
+				"alwaysOnTop": true,
+				"acceptFirstMouse": true,
+				"skipTaskbar": true
 			}
 		],
 		"security": {
