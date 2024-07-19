@@ -5,7 +5,7 @@ mod plugins;
 mod tray;
 
 use plugins::{
-    backup, clipboard, fs_extra, mouse, ocr,
+    backup, clipboard, fs_extra, locale, mouse, ocr,
     window::{self, show_window, MAIN_WINDOW_LABEL},
 };
 use tauri::{async_runtime, generate_context, generate_handler, Builder, Manager, WindowEvent};
@@ -71,7 +71,8 @@ fn main() {
         .plugin(ocr::init())
         // 自定义备份插件
         .plugin(backup::init())
-        // 系统托盘：https://tauri.app/v1/guides/features/system-tray
+        // 自定义获取系统语言的插件
+        .plugin(locale::init()) // 系统托盘：https://tauri.app/v1/guides/features/system-tray
         .system_tray(tray::menu())
         .on_system_tray_event(tray::handler)
         .invoke_handler(generate_handler![])

@@ -910,6 +910,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "current_locale"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e0be8ddcccda8be68d8e31a421ceea7c79857404daa052434ae30ce2f402cd10"
+dependencies = [
+ "libc",
+ "objc",
+ "objc-foundation",
+ "winapi",
+]
+
+[[package]]
 name = "darling"
 version = "0.20.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1081,6 +1093,7 @@ version = "0.0.4"
 dependencies = [
  "clipboard-rs",
  "cocoa 0.25.0",
+ "current_locale",
  "flate2",
  "mouse_position",
  "serde",

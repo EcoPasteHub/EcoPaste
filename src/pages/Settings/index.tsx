@@ -1,6 +1,7 @@
 import ShortcutKey from "@/components/ShortcutKey";
 import { Card, Flex, Switch } from "antd";
 import { useSnapshot } from "valtio";
+import Language from "./components/Language";
 import ThemeMode from "./components/ThemeMode";
 import TrayClick from "./components/TrayClick";
 
@@ -42,6 +43,8 @@ const Settings = () => {
 					</Flex>
 
 					<ThemeMode />
+
+					<Language />
 
 					<TrayClick />
 				</Flex>

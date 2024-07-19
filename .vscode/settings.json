@@ -13,5 +13,7 @@
 		"editor.defaultFormatter": "biomejs.biome"
 	},
 	"typescript.tsdk": "node_modules/typescript/lib",
-	"typescript.enablePromptUseWorkspaceTsdk": true
+	"typescript.enablePromptUseWorkspaceTsdk": true,
+	"i18n-ally.localesPaths": ["src/locales"],
+	"i18n-ally.keystyle": "nested"
 }

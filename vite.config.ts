@@ -9,7 +9,7 @@ export default defineConfig(async () => ({
 		react(),
 		UnoCSS(),
 		AutoImport({
-			imports: ["react", "ahooks", "react-router-dom"],
+			imports: ["react", "ahooks", "react-router-dom", "react-i18next"],
 			dts: "src/types/auto-imports.d.ts",
 			dirs: [
 				"src/router",
@@ -19,6 +19,7 @@ export default defineConfig(async () => ({
 				"src/hooks",
 				"src/constants",
 				"src/plugins",
+				"src/locales",
 			],
 		}),
 	],

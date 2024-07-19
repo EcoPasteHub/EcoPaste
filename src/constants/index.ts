@@ -65,3 +65,12 @@ export const BACKUP_PLUGIN = {
 };
 
 export const STORE_FILE_NAME = "store";
+
+export const LANGUAGE = {
+	ZH_CN: "zh-CN",
+	EN_US: "en-US",
+} as const;
+
+export const LOCALE_PLUGIN = {
+	GET_LOCALE: "plugin:locale|get_locale",
+};

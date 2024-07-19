@@ -15,6 +15,7 @@ export interface GlobalStore {
 	platform?: OsType;
 	autoUpdate?: boolean;
 	trayClick: "none" | "show";
+	language: (typeof LANGUAGE)[keyof typeof LANGUAGE];
 }
 
 export interface ClipboardStore {

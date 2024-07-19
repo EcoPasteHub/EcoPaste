@@ -24,6 +24,7 @@ tauri-plugin-context-menu = { git = "https://github.com/c2r0b/tauri-plugin-conte
 mouse_position = "0.1.4"
 flate2 = "1.0.30"
 tar = "0.4.41"
+current_locale = "0.1.1"
 
 [target."cfg(target_os = \"macos\")".dependencies]
 cocoa = "0.25.0"

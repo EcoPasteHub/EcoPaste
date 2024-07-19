@@ -7,4 +7,4 @@ dayjs.extend(relativeTime);
 dayjs.extend(utc);
 dayjs.locale(zhCN);
 
-export default dayjs;
+export { dayjs };
