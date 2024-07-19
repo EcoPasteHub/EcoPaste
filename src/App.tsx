@@ -5,11 +5,13 @@ import { ConfigProvider, theme } from "antd";
 import zhCN from "antd/locale/zh_CN";
 import { isEqual } from "arcdash";
 import { RouterProvider } from "react-router-dom";
+import { useSnapshot } from "valtio";
 
 const { defaultAlgorithm, darkAlgorithm } = theme;
 
 const App = () => {
 	const { isDark } = useTheme();
+	const { language } = useSnapshot(globalStore);
 
 	useMount(() => {
 		generateColorVars();
@@ -28,6 +30,10 @@ const App = () => {
 
 		initDatabase();
 	});
+
+	useEffect(() => {
+		i18n.changeLanguage(language);
+	}, [language]);
 
 	useEventListener("contextmenu", (event) => {
 		if (isDev()) return;
