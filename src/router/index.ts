@@ -53,7 +53,7 @@ export const preferenceRoute: Route = {
 			resizable: false,
 			maximizable: false,
 			hiddenTitle: true,
-			titleBarStyle: "Overlay",
+			titleBarStyle: "overlay",
 		},
 	},
 };

@@ -17,11 +17,11 @@ fn main() {
 
     Builder::default()
         .setup(|app| {
-            let window = app.get_window(MAIN_WINDOW_LABEL).unwrap();
+            let _window = app.get_window(MAIN_WINDOW_LABEL).unwrap();
 
             // 在开发环境中启动时打开控制台：https://tauri.app/v1/guides/debugging/application/#opening-devtools-programmatically
             #[cfg(debug_assertions)]
-            window.open_devtools();
+            _window.open_devtools();
 
             #[cfg(target_os = "macos")]
             {
@@ -30,7 +30,7 @@ fn main() {
                 use cocoa::base::id;
 
                 unsafe {
-                    let ns_window = window.ns_window().unwrap() as id;
+                    let ns_window = _window.ns_window().unwrap() as id;
                     ns_window.setLevel_(NSMainMenuWindowLevel as i64 + 1);
                 }
 

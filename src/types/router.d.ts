@@ -1,3 +1,4 @@
+import type { WindowOptions } from "@tauri-apps/api/window";
 import type { RouteObject } from "react-router-dom";
 
 export type RoutePath =
