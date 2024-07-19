@@ -36,16 +36,19 @@ const App = () => {
 	});
 
 	useEventListener("click", (event) => {
-		const target = event.target as HTMLElement;
+		const link = (event.target as HTMLElement).closest("a");
 
-		const link = target.closest("a");
+		if (!link) return;
 
-		// 如果是 a 元素，并且 href 是链接，且 target 不是 "_blank"，那么就调用 open 方法在默认浏览器中打开
-		if (!link || !isURL(link.href) || link.target === "_blank") return;
+		const { href, target } = link;
+
+		if (target === "_blank") return;
 
 		event.preventDefault();
 
-		open(link.href);
+		if (!isURL(href)) return;
+
+		open(href);
 	});
 
 	useEventListener("keydown", (event) => {
