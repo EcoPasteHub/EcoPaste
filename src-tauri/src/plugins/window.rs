@@ -100,6 +100,24 @@ pub fn focus_previous_window() {
             app.activateWithOptions_(NSApplicationActivateIgnoringOtherApps);
         }
     }
+
+    #[cfg(target_os = "windows")]
+    {
+        use winapi::um::winuser::{GetForegroundWindow, SetForegroundWindow};
+
+        unsafe {
+            let hwnd = GetForegroundWindow();
+
+            if hwnd.is_null() {
+                println!("Could not get active window");
+                return;
+            }
+
+            if SetForegroundWindow(hwnd) == 0 {
+                println!("Could not focus on window");
+            }
+        }
+    }
 }
 
 pub fn init() -> TauriPlugin<Wry> {
