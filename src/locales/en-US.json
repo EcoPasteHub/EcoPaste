@@ -23,6 +23,17 @@
 					"language": "Language"
 				}
 			}
+		},
+		"about": {
+			"introduce": "Open source cross-platform clipboard tool to make your work more efficient and convenient",
+			"button": {
+				"copy_info": "Copy Info",
+				"feedback_issue": "Feedback Issue"
+			},
+			"tooltip": {
+				"update": "Check Update",
+				"copy": "Copy app and system info for Issue"
+			}
 		}
 	}
 }

@@ -8,6 +8,7 @@ import { useSnapshot } from "valtio";
 
 const About = () => {
 	const { appInfo, platform } = useSnapshot(globalStore);
+	const { t } = useTranslation();
 
 	const update = () => {
 		emit(LISTEN_KEY.UPDATE);
@@ -44,7 +45,7 @@ const About = () => {
 				</div>
 				<Flex align="center" gap={4}>
 					<span>v{appInfo?.version}</span>
-					<Tooltip title="检查更新">
+					<Tooltip title={t("preference.about.tooltip.update")}>
 						<Icon
 							hoverable
 							name="i-iconamoon:restart"
@@ -53,11 +54,11 @@ const About = () => {
 						/>
 					</Tooltip>
 				</Flex>
-				<span>开源的跨平台剪切板工具，让您的工作更加高效便捷。</span>
+				<span>{t("preference.about.introduce")}</span>
 				<Flex gap="middle">
-					<Tooltip title="复制应用和系统信息，用于 Issue">
+					<Tooltip title={t("preference.about.tooltip.copy")}>
 						<Button size="large" type="primary" onClick={copyInfo}>
-							复制信息
+							{t("preference.about.button.copy_info")}
 						</Button>
 					</Tooltip>
 
@@ -68,7 +69,7 @@ const About = () => {
 						type="primary"
 						onClick={feedbackIssue}
 					>
-						反馈问题
+						{t("preference.about.button.feedback_issue")}
 					</Button>
 				</Flex>
 			</Flex>
