@@ -23,8 +23,8 @@ impl Tray {
             .add_submenu(SystemTraySubmenu::new(
                 locale.language,
                 SystemTrayMenu::new()
-                    .add_item(CustomMenuItem::new(ZH_CN, locale.zh_cn).selected())
-                    .add_item(CustomMenuItem::new(EN_US, locale.en_us)),
+                    .add_item(CustomMenuItem::new(ZH_CN, locale.language_zh_cn))
+                    .add_item(CustomMenuItem::new(EN_US, locale.language_en_us)),
             ))
             .add_native_item(SystemTrayMenuItem::Separator)
             .add_item(CustomMenuItem::new("about".to_string(), locale.about))
