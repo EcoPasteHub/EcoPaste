@@ -7,7 +7,7 @@ mod plugins;
 
 use core::tray;
 use plugins::{
-    backup, clipboard, fs_extra, locale, mouse, ocr,
+    backup, clipboard, fs_extra, locale, mouse, ocr, paste,
     window::{self, show_window, MAIN_WINDOW_LABEL},
 };
 use tauri::{
@@ -31,13 +31,13 @@ fn main() {
             {
                 // 将窗口位于程序坞之上
                 // BUG: 打包之后没办法显示在全屏的屏幕上
-                use cocoa::appkit::{NSMainMenuWindowLevel, NSWindow};
-                use cocoa::base::id;
+                // use cocoa::appkit::{NSMainMenuWindowLevel, NSWindow};
+                // use cocoa::base::id;
 
-                unsafe {
-                    let ns_window = _window.ns_window().unwrap() as id;
-                    ns_window.setLevel_(NSMainMenuWindowLevel as i64 + 1);
-                }
+                // unsafe {
+                //     let ns_window = _window.ns_window().unwrap() as id;
+                //     ns_window.setLevel_(NSMainMenuWindowLevel as i64 + 1);
+                // }
 
                 // 隐藏 mac 下的任务栏图标：https://github.com/tauri-apps/tauri/issues/4852#issuecomment-1312716378
                 app.set_activation_policy(tauri::ActivationPolicy::Accessory);
@@ -78,6 +78,9 @@ fn main() {
         .plugin(backup::init())
         // 自定义语言相关的插件
         .plugin(locale::init()) // 系统托盘：https://tauri.app/v1/guides/features/system-tray
+        // 自定义粘贴的插件
+        .plugin(paste::init())
+        // 系统托盘：https://tauri.app/v1/guides/features/system-tray
         .system_tray(SystemTray::new())
         .on_system_tray_event(tray::Tray::handler)
         .invoke_handler(generate_handler![])

@@ -76,3 +76,7 @@ export const LOCALE_PLUGIN = {
 	GET_LOCALE: "plugin:locale|get_locale",
 	SET_LOCALE: "plugin:locale|set_locale",
 };
+
+export const PASTE_PLUGIN = {
+	PASTE: "plugin:paste|paste",
+};

@@ -1,6 +1,10 @@
 {
 	"name": "eco-paste",
 	"description": "一款开源的跨平台剪切板管理工具",
+	"author": {
+		"name": "ayangweb",
+		"email": "ayangweb@foxmail.com"
+	},
 	"private": true,
 	"version": "0.0.4",
 	"type": "module",

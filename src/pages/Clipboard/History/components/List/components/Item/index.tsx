@@ -40,7 +40,7 @@ const Item: FC<ItemProps> = (props) => {
 		}
 	}, [activeIndex]);
 
-	const copy = async () => {
+	const copy = () => {
 		switch (type) {
 			case "text":
 				return writeText(value);
@@ -141,6 +141,14 @@ const Item: FC<ItemProps> = (props) => {
 		getHistoryList?.();
 	};
 
+	const pasteValue = async () => {
+		await copy();
+
+		hideWindow();
+
+		paste();
+	};
+
 	const handleContextMenu = async (event: MouseEvent) => {
 		event.preventDefault();
 
@@ -222,12 +230,14 @@ const Item: FC<ItemProps> = (props) => {
 		showMenu({ items: menus.filter(({ hide }) => !hide) });
 	};
 
-	const handleDoubleClick = () => {
+	const handleDoubleClick = async () => {
 		if (doubleClickFeedback === "none") return;
 
 		if (doubleClickFeedback === "copy") {
 			return copy();
 		}
+
+		pasteValue();
 	};
 
 	const handleFocus = () => {
@@ -242,8 +252,9 @@ const Item: FC<ItemProps> = (props) => {
 		const isSpace = event.code === "Space";
 		const isArrowUp = event.code === "ArrowUp";
 		const isArrowDown = event.code === "ArrowDown";
+		const isEnter = event.code === "Enter";
 
-		if (isSpace || isArrowUp || isArrowDown) {
+		if (isSpace || isArrowUp || isArrowDown || isEnter) {
 			event.preventDefault();
 		}
 
@@ -257,6 +268,10 @@ const Item: FC<ItemProps> = (props) => {
 
 		if (isArrowDown && index < state.historyList.length - 1) {
 			clipboardStore.activeIndex = index + 1;
+		}
+
+		if (isEnter) {
+			pasteValue();
 		}
 	};
 
