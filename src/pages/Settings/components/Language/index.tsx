@@ -1,10 +1,10 @@
-import type { GlobalStore } from "@/types/store";
+import type { Language as TypeLanguage } from "@/types/store";
 import { Flex, Segmented } from "antd";
 import { useSnapshot } from "valtio";
 
 interface Option {
 	label: string;
-	value: GlobalStore["language"];
+	value: TypeLanguage;
 }
 
 const Language = () => {
