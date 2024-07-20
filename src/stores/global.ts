@@ -23,7 +23,6 @@ export const globalStore = proxyWithPersist<GlobalStore>({
 		autoStart: false,
 		wakeUpKey: "Alt+X",
 		trayClick: "none",
-		language: "zh-CN",
 	},
 	persistStrategies,
 	version: 0,
@@ -41,5 +40,5 @@ subscribeKey(globalStore._persist, "loaded", async (loaded) => {
 
 	globalStore.platform = await type();
 
-	globalStore.language = await getLocale();
+	globalStore.language ??= await getLocale();
 });

@@ -2,6 +2,8 @@ import type { OsType } from "@tauri-apps/api/os";
 
 export type Theme = "auto" | "light" | "dark";
 
+export type Language = (typeof LANGUAGE)[keyof typeof LANGUAGE];
+
 export interface Store {
 	globalStore: GlobalStore;
 	clipboardStore: ClipboardStore;
@@ -15,7 +17,7 @@ export interface GlobalStore {
 	platform?: OsType;
 	autoUpdate?: boolean;
 	trayClick: "none" | "show";
-	language: (typeof LANGUAGE)[keyof typeof LANGUAGE];
+	language?: Language;
 }
 
 export interface ClipboardStore {

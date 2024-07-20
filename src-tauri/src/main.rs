@@ -1,14 +1,18 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod core;
+mod locales;
 mod plugins;
-mod tray;
 
+use core::tray;
 use plugins::{
     backup, clipboard, fs_extra, locale, mouse, ocr,
     window::{self, show_window, MAIN_WINDOW_LABEL},
 };
-use tauri::{async_runtime, generate_context, generate_handler, Builder, Manager, WindowEvent};
+use tauri::{
+    async_runtime, generate_context, generate_handler, Builder, Manager, SystemTray, WindowEvent,
+};
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_theme::ThemePlugin;
 
@@ -26,6 +30,7 @@ fn main() {
             #[cfg(target_os = "macos")]
             {
                 // 将窗口位于程序坞之上
+                // BUG: 打包之后没办法显示在全屏的屏幕上
                 use cocoa::appkit::{NSMainMenuWindowLevel, NSWindow};
                 use cocoa::base::id;
 
@@ -73,8 +78,8 @@ fn main() {
         .plugin(backup::init())
         // 自定义获取系统语言的插件
         .plugin(locale::init()) // 系统托盘：https://tauri.app/v1/guides/features/system-tray
-        .system_tray(tray::menu())
-        .on_system_tray_event(tray::handler)
+        .system_tray(SystemTray::new())
+        .on_system_tray_event(tray::Tray::handler)
         .invoke_handler(generate_handler![])
         // 让 app 保持在后台运行：https://tauri.app/v1/guides/features/system-tray/#preventing-the-app-from-closing
         .on_window_event(|event| match event.event() {

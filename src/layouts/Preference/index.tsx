@@ -1,5 +1,6 @@
 import Icon from "@/components/Icon";
 import Update from "@/components/Update";
+import type { Language } from "@/types/store";
 import { emit, listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/api/shell";
 import { Flex } from "antd";
@@ -17,6 +18,14 @@ const Preference = () => {
 	useMount(async () => {
 		navigate("clipboard");
 
+		subscribe(globalStore, () => {
+			emit(LISTEN_KEY.GLOBAL_STORE_CHANGED, globalStore);
+		});
+
+		subscribe(clipboardStore, () => {
+			emit(LISTEN_KEY.CLIPBOARD_STORE_CHANGED, clipboardStore);
+		});
+
 		listen(LISTEN_KEY.GITHUB, () => {
 			open(GITHUB_LINK);
 		});
@@ -33,12 +42,8 @@ const Preference = () => {
 			showWindow();
 		});
 
-		subscribe(globalStore, () => {
-			emit(LISTEN_KEY.GLOBAL_STORE_CHANGED, globalStore);
-		});
-
-		subscribe(clipboardStore, () => {
-			emit(LISTEN_KEY.CLIPBOARD_STORE_CHANGED, clipboardStore);
+		listen<Language>(LISTEN_KEY.CHANGE_LANGUAGE, ({ payload }) => {
+			globalStore.language = payload;
 		});
 	});
 
