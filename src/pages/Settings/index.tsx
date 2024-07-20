@@ -7,13 +7,14 @@ import TrayClick from "./components/TrayClick";
 
 const Settings = () => {
 	const { autoStart, wakeUpKey, autoUpdate } = useSnapshot(globalStore);
+	const { t } = useTranslation();
 
 	return (
 		<Flex vertical gap="middle">
-			<Card title="基础设置">
+			<Card title={t("preference.settings.basic.title")}>
 				<Flex vertical gap="large">
 					<Flex align="center">
-						<span>开机自启：</span>
+						<span>{t("preference.settings.basic.label.auto_start")}：</span>
 						<Switch
 							checked={autoStart}
 							onChange={(value) => {
@@ -23,7 +24,7 @@ const Settings = () => {
 					</Flex>
 
 					<Flex align="center">
-						<span>自动更新：</span>
+						<span>{t("preference.settings.basic.label.auto_update")}：</span>
 						<Switch
 							checked={autoUpdate}
 							onChange={(value) => {
@@ -33,7 +34,7 @@ const Settings = () => {
 					</Flex>
 
 					<Flex align="center">
-						<span>唤醒窗口：</span>
+						<span>{t("preference.settings.basic.label.wake_up_key")}：</span>
 						<ShortcutKey
 							defaultValue={wakeUpKey}
 							onChange={(value) => {

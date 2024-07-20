@@ -1,3 +1,28 @@
 {
-	"preference": {}
+	"preference": {
+		"title": "偏好设置",
+		"menu": {
+			"title": {
+				"clipboard": "剪切板",
+				"settings": "通用设置",
+				"data_backup": "数据备份",
+				"about": "关于"
+			}
+		},
+		"settings": {
+			"basic": {
+				"title": "基础设置",
+				"label": {
+					"auto_start": "开机自启",
+					"auto_update": "自动更新",
+					"wake_up_key": "唤醒窗口",
+					"theme_mode": "主题模式",
+					"theme_mode_auto": "自动",
+					"theme_mode_light": "亮色",
+					"theme_mode_dark": "暗色",
+					"language": "语言选择"
+				}
+			}
+		}
+	}
 }

@@ -8,25 +8,26 @@ interface Option {
 
 const ThemeMode = () => {
 	const { theme, toggleTheme } = useTheme();
+	const { t } = useTranslation();
 
 	const options: Option[] = [
 		{
-			label: "自动",
+			label: t("preference.settings.basic.label.theme_mode_auto"),
 			value: "auto",
 		},
 		{
-			label: "亮色",
+			label: t("preference.settings.basic.label.theme_mode_light"),
 			value: "light",
 		},
 		{
-			label: "暗色",
+			label: t("preference.settings.basic.label.theme_mode_dark"),
 			value: "dark",
 		},
 	];
 
 	return (
 		<Flex align="center">
-			<span>主题模式：</span>
+			<span>{t("preference.settings.basic.label.theme_mode")}：</span>
 			<Segmented value={theme} options={options} onChange={toggleTheme} />
 		</Flex>
 	);

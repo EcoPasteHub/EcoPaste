@@ -1,3 +1,28 @@
 {
-	"preference": {}
+	"preference": {
+		"title": "Preferences",
+		"menu": {
+			"title": {
+				"clipboard": "Clipboard",
+				"settings": "General",
+				"data_backup": "Data Backup",
+				"about": "About"
+			}
+		},
+		"settings": {
+			"basic": {
+				"title": "Basic Settings",
+				"label": {
+					"auto_start": "Launch at Startup",
+					"auto_update": "Automatic Updates",
+					"wake_up_key": "Wake-Up Shortcut",
+					"theme_mode": "Theme Mode",
+					"theme_mode_auto": "Automatic",
+					"theme_mode_light": "Light",
+					"theme_mode_dark": "Dark",
+					"language": "Language"
+				}
+			}
+		}
+	}
 }

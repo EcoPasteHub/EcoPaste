@@ -12,6 +12,7 @@ const Preference = () => {
 	const navigate = useNavigate();
 	const { wakeUpKey, autoStart } = useSnapshot(globalStore);
 	const { isDark, toggleTheme } = useTheme();
+	const { t } = useTranslation();
 
 	useMount(async () => {
 		navigate("clipboard");
@@ -81,7 +82,7 @@ const Preference = () => {
 							>
 								<Flex vertical align="center" gap={4}>
 									<Icon name={icon} size={22} />
-									<span>{title}</span>
+									<span>{t(title!)}</span>
 								</Flex>
 							</Link>
 						);
