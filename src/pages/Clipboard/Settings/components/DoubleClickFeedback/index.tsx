@@ -19,6 +19,10 @@ const DoubleClickFeedback = () => {
 			label: "复制内容",
 			value: "copy",
 		},
+		{
+			label: "粘贴内容",
+			value: "paste",
+		},
 	];
 
 	const handleChange = (value: Option["value"]) => {

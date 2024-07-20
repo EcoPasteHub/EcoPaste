@@ -158,8 +158,8 @@ export const readText = async (): Promise<ClipboardPayload> => {
 /**
  * 文件写入剪切板
  */
-export const writeFiles = async (value: string[]) => {
-	invoke(CLIPBOARD_PLUGIN.WRITE_FILES, {
+export const writeFiles = (value: string[]) => {
+	return invoke(CLIPBOARD_PLUGIN.WRITE_FILES, {
 		value,
 	});
 };
@@ -167,8 +167,8 @@ export const writeFiles = async (value: string[]) => {
 /**
  * 图片写入剪切板
  */
-export const writeImage = async (value: string) => {
-	invoke(CLIPBOARD_PLUGIN.WRITE_IMAGE, {
+export const writeImage = (value: string) => {
+	return invoke(CLIPBOARD_PLUGIN.WRITE_IMAGE, {
 		value,
 	});
 };
@@ -176,8 +176,8 @@ export const writeImage = async (value: string) => {
 /**
  * HTML 内容写入剪切板
  */
-export const writeHTML = async (text: string, html: string) => {
-	invoke(CLIPBOARD_PLUGIN.WRITE_HTML, {
+export const writeHTML = (text: string, html: string) => {
+	return invoke(CLIPBOARD_PLUGIN.WRITE_HTML, {
 		text,
 		html,
 	});
@@ -186,8 +186,8 @@ export const writeHTML = async (text: string, html: string) => {
 /**
  * 富文写入剪切板
  */
-export const writeRichText = async (value: string) => {
-	invoke(CLIPBOARD_PLUGIN.WRITE_RICH_TEXT, {
+export const writeRichText = (value: string) => {
+	return invoke(CLIPBOARD_PLUGIN.WRITE_RICH_TEXT, {
 		value,
 	});
 };
@@ -195,8 +195,8 @@ export const writeRichText = async (value: string) => {
 /**
  * 纯文本写入剪切板
  */
-export const writeText = async (value: string) => {
-	invoke(CLIPBOARD_PLUGIN.WRITE_TEXT, {
+export const writeText = (value: string) => {
+	return invoke(CLIPBOARD_PLUGIN.WRITE_TEXT, {
 		value,
 	});
 };

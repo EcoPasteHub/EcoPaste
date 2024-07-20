@@ -4,4 +4,5 @@ pub mod fs_extra;
 pub mod locale;
 pub mod mouse;
 pub mod ocr;
+pub mod paste;
 pub mod window;
