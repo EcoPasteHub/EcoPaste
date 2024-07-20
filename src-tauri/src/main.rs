@@ -76,7 +76,7 @@ fn main() {
         .plugin(ocr::init())
         // 自定义备份插件
         .plugin(backup::init())
-        // 自定义获取系统语言的插件
+        // 自定义语言相关的插件
         .plugin(locale::init()) // 系统托盘：https://tauri.app/v1/guides/features/system-tray
         .system_tray(SystemTray::new())
         .on_system_tray_event(tray::Tray::handler)

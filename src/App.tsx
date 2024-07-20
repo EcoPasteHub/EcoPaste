@@ -34,7 +34,7 @@ const App = () => {
 	useEffect(() => {
 		i18n.changeLanguage(language);
 
-		setLocale(language);
+		setLocale(language!);
 	}, [language]);
 
 	useEventListener("contextmenu", (event) => {

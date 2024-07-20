@@ -7,8 +7,8 @@ pub const EN_US: &str = "en-US";
 pub struct Locale {
     pub preference: &'static str,
     pub language: &'static str,
-    pub zh_cn: &'static str,
-    pub en_us: &'static str,
+    pub language_zh_cn: &'static str,
+    pub language_en_us: &'static str,
     pub about: &'static str,
     pub update: &'static str,
     pub github: &'static str,

@@ -7,13 +7,17 @@ use tauri::{
 
 #[command]
 pub fn get_locale() -> String {
-    return current_locale::current_locale().unwrap();
+    let locale = current_locale::current_locale();
+
+    if locale.is_ok() {
+        return locale.ok().unwrap();
+    }
+
+    return ZH_CN.to_string();
 }
 
 #[command]
-pub fn set_locale(app_handle: AppHandle, language: Option<&str>) {
-    let language = language.unwrap_or(ZH_CN);
-
+pub fn set_locale(app_handle: AppHandle, language: &str) {
     Tray::update_menu(&app_handle, language)
 }
 
