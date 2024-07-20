@@ -9,6 +9,7 @@ interface Option {
 
 const Language = () => {
 	const { language } = useSnapshot(globalStore);
+	const { t } = useTranslation();
 
 	const options: Option[] = [
 		{
@@ -23,7 +24,7 @@ const Language = () => {
 
 	return (
 		<Flex align="center">
-			<span>语言选择：</span>
+			<span>{t("preference.settings.basic.label.language")}：</span>
 			<Segmented
 				value={language}
 				options={options}

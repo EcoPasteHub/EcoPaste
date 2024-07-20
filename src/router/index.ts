@@ -17,7 +17,7 @@ export const preferenceRoute: Route = {
 			path: "clipboard",
 			Component: ClipboardSettings,
 			meta: {
-				title: "剪切板",
+				title: "preference.menu.title.clipboard",
 				icon: "i-lucide:clipboard-list",
 			},
 		},
@@ -25,7 +25,7 @@ export const preferenceRoute: Route = {
 			path: "settings",
 			Component: Settings,
 			meta: {
-				title: "通用设置",
+				title: "preference.menu.title.settings",
 				icon: "i-lucide:bolt",
 			},
 		},
@@ -33,7 +33,7 @@ export const preferenceRoute: Route = {
 			path: "data-backup",
 			Component: DataBackup,
 			meta: {
-				title: "数据备份",
+				title: "preference.menu.title.data_backup",
 				icon: "i-lucide:database-backup",
 			},
 		},
@@ -41,14 +41,14 @@ export const preferenceRoute: Route = {
 			path: "about",
 			Component: About,
 			meta: {
-				title: "关于",
+				title: "preference.menu.title.about",
 				icon: "i-lucide:info",
 			},
 		},
 	],
 	meta: {
 		windowOptions: {
-			title: "偏好设置",
+			title: "preference.title",
 			center: true,
 			resizable: false,
 			maximizable: false,
