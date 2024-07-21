@@ -16,23 +16,23 @@
 					"auto_start": "开机自启",
 					"auto_update": "自动更新",
 					"wake_up_key": "唤醒窗口",
-					"theme_mode": "主题模式",
-					"theme_mode_auto": "自动",
-					"theme_mode_light": "亮色",
-					"theme_mode_dark": "暗色",
+					"theme": "主题模式",
+					"theme_auto": "自动",
+					"theme_light": "亮色",
+					"theme_dark": "暗色",
 					"language": "语言选择"
 				}
 			}
 		},
 		"about": {
-			"introduce": "开源的跨平台剪切板工具，让您的工作更加高效便捷。",
 			"button": {
 				"copy_info": "复制信息",
 				"feedback_issue": "反馈信息"
 			},
-			"tooltip": {
-				"update": "检查更新",
-				"copy": "复制应用和系统信息，用于 Issue"
+			"hints": {
+				"introduce": "开源的跨平台剪切板工具，让您的工作更加高效便捷。",
+				"check_update": "检查更新",
+				"copy_info": "复制应用和系统信息，用于 Issue"
 			}
 		}
 	}
