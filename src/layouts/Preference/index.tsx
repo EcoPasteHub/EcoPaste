@@ -3,6 +3,7 @@ import Update from "@/components/Update";
 import type { Language } from "@/types/store";
 import { emit, listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/api/shell";
+import { appWindow } from "@tauri-apps/api/window";
 import { Flex } from "antd";
 import clsx from "clsx";
 import { disable, enable, isEnabled } from "tauri-plugin-autostart-api";
@@ -11,7 +12,7 @@ import { subscribe, useSnapshot } from "valtio";
 const Preference = () => {
 	const { pathname } = useLocation();
 	const navigate = useNavigate();
-	const { wakeUpKey, autoStart } = useSnapshot(globalStore);
+	const { wakeUpKey, autoStart, language } = useSnapshot(globalStore);
 	const { isDark, toggleTheme } = useTheme();
 	const { t } = useTranslation();
 
@@ -60,6 +61,12 @@ const Preference = () => {
 	}, [autoStart]);
 
 	useRegister(toggleWindowVisible, [wakeUpKey]);
+
+	useEffect(() => {
+		requestAnimationFrame(() => {
+			appWindow.setTitle(i18n.t("preference.title"));
+		});
+	}, [language]);
 
 	return (
 		<Flex className="h-screen">
