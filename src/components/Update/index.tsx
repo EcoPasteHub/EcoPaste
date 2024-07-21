@@ -25,6 +25,7 @@ let timer: Timeout;
 
 const Update = () => {
 	const { appInfo, autoUpdate } = useSnapshot(globalStore);
+	const { t } = useTranslation();
 
 	const state = useReactive<State>({});
 
@@ -35,7 +36,7 @@ const Update = () => {
 			messageApi.open({
 				key: MESSAGE_KEY,
 				type: "loading",
-				content: "正在检查更新...",
+				content: t("component.app_update.hints.checking_update"),
 				duration: 0,
 			});
 
@@ -75,7 +76,7 @@ const Update = () => {
 				messageApi.open({
 					key: MESSAGE_KEY,
 					type: "success",
-					content: "当前已是最新版本🎉",
+					content: t("component.app_update.hints.latest_version"),
 				});
 			}
 		} catch {
@@ -84,7 +85,7 @@ const Update = () => {
 			messageApi.open({
 				key: MESSAGE_KEY,
 				type: "error",
-				content: "检查更新时出错，请检查网络并重试。",
+				content: t("component.app_update.hints.update_check_error"),
 			});
 		}
 	};
@@ -121,7 +122,7 @@ const Update = () => {
 					messageApi.open({
 						key: MESSAGE_KEY,
 						type: "loading",
-						content: "正在下载最新的安装包...",
+						content: t("component.app_update.hints.downloading_latest_package"),
 						duration: 0,
 					});
 					break;
@@ -136,7 +137,7 @@ const Update = () => {
 					messageApi.open({
 						key: MESSAGE_KEY,
 						type: "success",
-						content: "下载完成，即将开始安装并重启应用。",
+						content: t("component.app_update.hints.download_complete_restart"),
 					});
 			}
 		});
@@ -155,9 +156,9 @@ const Update = () => {
 				closable={false}
 				keyboard={false}
 				maskClosable={false}
-				title="发现新版本🥳"
-				okText="立即更新"
-				cancelText="以后再说"
+				title={t("component.app_update.label.new_version_title")}
+				okText={t("component.app_update.button.confirm_update")}
+				cancelText={t("component.app_update.button.cancel_update")}
 				className={styles.modal}
 				confirmLoading={state.loading}
 				onOk={handleOk}
@@ -165,7 +166,7 @@ const Update = () => {
 			>
 				<Flex vertical gap="small" className="pt-4">
 					<Flex align="center">
-						更新版本：
+						{t("component.app_update.label.release_version")}：
 						<span>
 							v{appInfo?.version} 👉{" "}
 							<a href={`${GITHUB_LINK}/releases/latest`}>
@@ -175,12 +176,12 @@ const Update = () => {
 					</Flex>
 
 					<Flex align="center">
-						更新时间：
+						{t("component.app_update.label.release_time")}：
 						<span>{updateTime}</span>
 					</Flex>
 
 					<Flex vertical>
-						更新日志：
+						{t("component.app_update.label.release_notes")}：
 						<Markdown
 							className={clsx(styles.markdown, "max-h-220 overflow-auto")}
 							rehypePlugins={[rehypeRaw]}

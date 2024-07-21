@@ -102,5 +102,41 @@
 				"copy_tooltip": "Copy app and system info for Issue"
 			}
 		}
+	},
+	"component": {
+		"shortcut_key": {
+			"hints": {
+				"set_shortcut_key": "Set Shortcut Key",
+				"shortcut_key_not_set": "Shortcut Key Not Set"
+			}
+		},
+		"app_update": {
+			"label": {
+				"new_version_title": "New Version Available 🥳",
+				"release_version": "Release Version",
+				"release_time": "Release Time",
+				"release_notes": "Release Notes"
+			},
+			"button": {
+				"confirm_update": "Update Now",
+				"cancel_update": "Postpone"
+			},
+			"hints": {
+				"checking_update": "Checking for updates...",
+				"latest_version": "You are already on the latest version 🎉",
+				"update_check_error": "Error checking for updates. Please check your network and try again.",
+				"downloading_latest_package": "Downloading the latest package...",
+				"download_complete_restart": "Download complete. The installation will start soon and the application will restart."
+			}
+		},
+		"use_theme": {
+			"button": {
+				"confirm_reboot": "Reboot",
+				"cancel": "Cancel"
+			},
+			"hints": {
+				"reboot_confirm": "Switching themes requires a reboot to take effect!"
+			}
+		}
 	}
 }

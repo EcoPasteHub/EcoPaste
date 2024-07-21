@@ -18,6 +18,8 @@ interface State {
 const ShortcutKey: FC<ShortcutKeyProps> = (props) => {
 	const { defaultValue = "", onChange } = props;
 
+	const { t } = useTranslation();
+
 	const handleDefaultValue = () => {
 		if (!defaultValue) return [];
 
@@ -134,9 +136,11 @@ const ShortcutKey: FC<ShortcutKeyProps> = (props) => {
 		return (
 			<div className="font-500 text-14">
 				{isFocusing && isEmpty(state.value) ? (
-					<span className="font-normal text-primary">按键盘设置快捷键</span>
+					<span className="font-normal text-primary">
+						{t("component.shortcut_key.hints.set_shortcut_key")}
+					</span>
 				) : isEmpty(state.value) ? (
-					"未设置快捷键"
+					t("component.shortcut_key.hints.shortcut_key_not_set")
 				) : (
 					map(state.value, "symbol").join(" + ")
 				)}
