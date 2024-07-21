@@ -74,8 +74,8 @@
 			},
 			"hints": {
 				"introduce": "Open source cross-platform clipboard tool to make your work more efficient and convenient",
-				"check_update": "Check Update",
-				"copy_info": "Copy app and system info for Issue"
+				"update_tooltip": "Check Update",
+				"copy_tooltip": "Copy app and system info for Issue"
 			}
 		}
 	}
