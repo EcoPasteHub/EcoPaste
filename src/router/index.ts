@@ -48,7 +48,6 @@ export const preferenceRoute: Route = {
 	],
 	meta: {
 		windowOptions: {
-			title: "preference.title",
 			center: true,
 			resizable: false,
 			maximizable: false,

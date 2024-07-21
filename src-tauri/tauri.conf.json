@@ -50,7 +50,8 @@
 			"window": {
 				"startDragging": true,
 				"setPosition": true,
-				"center": true
+				"center": true,
+				"setTitle": true
 			}
 		},
 		"windows": [
