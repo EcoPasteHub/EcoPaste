@@ -74,8 +74,8 @@
 			},
 			"hints": {
 				"introduce": "开源的跨平台剪切板工具，让您的工作更加高效便捷。",
-				"check_update": "检查更新",
-				"copy_info": "复制应用和系统信息，用于 Issue"
+				"update_tooltip": "检查更新",
+				"copy_tooltip": "复制应用和系统信息，用于 Issue"
 			}
 		}
 	}
