@@ -67,6 +67,30 @@
 				}
 			}
 		},
+		"data_backup": {
+			"import_export": {
+				"title": "Import / Export",
+				"label": {
+					"import_confirm_title": "Import Notice",
+					"export_confirm_title": "Export Notice"
+				},
+				"button": {
+					"open_dir": "Open Storage Directory",
+					"import": "Import",
+					"export": "Export",
+					"confirm_export": "Start",
+					"confirm": "Ok",
+					"cancel": "Cancel"
+				},
+				"hints": {
+					"import_confirm": "Imported data will completely overwrite all preferences and clipboard history. Are you sure you want to import?",
+					"export_confirm": "Exported data includes all preferences and clipboard history.",
+					"importing": "Importing",
+					"exporting": "Exporting",
+					"import_success": "Import Successful"
+				}
+			}
+		},
 		"about": {
 			"button": {
 				"copy_info": "Copy Info",
