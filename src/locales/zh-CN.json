@@ -63,7 +63,10 @@
 					"theme_auto": "自动",
 					"theme_light": "亮色",
 					"theme_dark": "暗色",
-					"language": "语言选择"
+					"language": "语言选择",
+					"tray_click": "单击托盘",
+					"tray_click_none": "无操作",
+					"tray_click_show": "显示应用"
 				}
 			}
 		},

@@ -63,7 +63,10 @@
 					"theme_auto": "Auto",
 					"theme_light": "Light",
 					"theme_dark": "Dark",
-					"language": "Language"
+					"language": "Language",
+					"tray_click": "Tray Click",
+					"tray_click_none": "None",
+					"tray_click_show": "Show Application"
 				}
 			}
 		},

@@ -9,14 +9,15 @@ interface Option {
 
 const TrayClick = () => {
 	const { trayClick } = useSnapshot(globalStore);
+	const { t } = useTranslation();
 
 	const options: Option[] = [
 		{
-			label: "无操作",
+			label: t("preference.settings.basic.label.tray_click_none"),
 			value: "none",
 		},
 		{
-			label: "显示应用",
+			label: t("preference.settings.basic.label.tray_click_show"),
 			value: "show",
 		},
 	];
@@ -24,7 +25,7 @@ const TrayClick = () => {
 	return (
 		isWin() && (
 			<Flex align="center">
-				<span>单击托盘：</span>
+				<span>{t("preference.settings.basic.label.tray_click")}：</span>
 				<Segmented
 					value={trayClick}
 					options={options}
