@@ -67,6 +67,30 @@
 				}
 			}
 		},
+		"data_backup": {
+			"import_export": {
+				"title": "导入和导出",
+				"label": {
+					"import_confirm_title": "导入须知",
+					"export_confirm_title": "导出须知"
+				},
+				"button": {
+					"open_dir": "打开存储目录",
+					"import": "导入数据",
+					"export": "导出数据",
+					"confirm_export": "开始导出",
+					"confirm": "确定",
+					"cancel": "取消"
+				},
+				"hints": {
+					"import_confirm": "导入的数据会完全覆盖所有的偏好设置以及所有的剪切板历史数据，你确定要导入吗？",
+					"export_confirm": "导出的数据包含所有的偏好设置以及所有的剪切板历史数据。",
+					"importing": "正在导入",
+					"exporting": "正在导出",
+					"import_success": "导入成功"
+				}
+			}
+		},
 		"about": {
 			"button": {
 				"copy_info": "复制信息",
