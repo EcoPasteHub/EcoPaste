@@ -9,6 +9,49 @@
 				"about": "关于"
 			}
 		},
+		"clipboard": {
+			"basic": {
+				"title": "基础设置",
+				"label": {
+					"wake_up_key": "唤醒窗口",
+					"enable_audio": "启用音效",
+					"search_position": "搜索位置",
+					"search_position_top": "顶部",
+					"search_position_bottom": "底部",
+					"default_focus": "默认聚焦",
+					"default_focus_first_item": "首项",
+					"default_focus_search": "搜索",
+					"dbl_click_feedback": "双击反馈",
+					"dbl_click_feedback_none": "无反馈",
+					"dbl_click_feedback_copy": "复制内容",
+					"dbl_click_feedback_paste": "粘贴内容",
+					"window_position": "窗口位置",
+					"window_position_default": "默认位置",
+					"window_position_follow": "跟随鼠标",
+					"window_position_center": "屏幕中心"
+				}
+			},
+			"history_capacity": {
+				"title": "历史记录容量",
+				"button": {
+					"clear": "清空"
+				},
+				"label": {
+					"duration": {
+						"day": "天",
+						"week": "周",
+						"month": "月",
+						"quarter": "季度",
+						"half_year": "半年",
+						"year": "年",
+						"unlimited": "无限制"
+					}
+				},
+				"hints": {
+					"clear_confirm": "确定要清空历史记录吗？"
+				}
+			}
+		},
 		"settings": {
 			"basic": {
 				"title": "基础设置",

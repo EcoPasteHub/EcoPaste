@@ -4,13 +4,34 @@ import type { SliderBaseProps } from "antd/es/slider";
 import { keys } from "lodash-es";
 import { useSnapshot } from "valtio";
 
-const labels = ["天", "周", "月", "季度", "半年", "年", "无限制"];
-const values = [1, 7, 30, 90, 180, 365, 0];
-const steps = labels.length;
-const step = Math.round(100 / (steps - 1));
+const useDuration = () => {
+	const { t } = useTranslation();
+
+	const labels = [
+		t("preference.clipboard.history_capacity.label.duration.day"),
+		t("preference.clipboard.history_capacity.label.duration.week"),
+		t("preference.clipboard.history_capacity.label.duration.month"),
+		t("preference.clipboard.history_capacity.label.duration.quarter"),
+		t("preference.clipboard.history_capacity.label.duration.half_year"),
+		t("preference.clipboard.history_capacity.label.duration.year"),
+		t("preference.clipboard.history_capacity.label.duration.unlimited"),
+	];
+	const values = [1, 7, 30, 90, 180, 365, 0];
+	const steps = labels.length;
+	const step = Math.round(100 / (steps - 1));
+
+	return {
+		labels,
+		values,
+		steps,
+		step,
+	};
+};
 
 const HistoryCapacity = () => {
 	const { historyCapacity } = useSnapshot(clipboardStore);
+	const { t } = useTranslation();
+	const { labels, values, steps, step } = useDuration();
 
 	const marks = useCreation(() => {
 		const marks: SliderBaseProps["marks"] = {};
@@ -20,7 +41,7 @@ const HistoryCapacity = () => {
 		}
 
 		return marks;
-	}, []);
+	}, [labels]);
 
 	const value = useCreation(() => {
 		const index = values.findIndex((item) => item === historyCapacity);
@@ -36,15 +57,15 @@ const HistoryCapacity = () => {
 
 	return (
 		<Card
-			title="历史记录容量"
+			title={t("preference.clipboard.history_capacity.title")}
 			extra={
 				<Popconfirm
 					placement="bottomRight"
-					title="确定要清空历史记录吗？"
+					title={t("preference.clipboard.history_capacity.hints.clear_confirm")}
 					onConfirm={() => emit(LISTEN_KEY.CLEAR_HISTORY)}
 				>
 					<Button danger ghost type="primary">
-						清空
+						{t("preference.clipboard.history_capacity.button.clear")}
 					</Button>
 				</Popconfirm>
 			}

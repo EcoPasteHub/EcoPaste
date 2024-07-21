@@ -9,14 +9,15 @@ interface Option {
 
 const DefaultFocus = () => {
 	const { defaultFocus } = useSnapshot(clipboardStore);
+	const { t } = useTranslation();
 
 	const options: Option[] = [
 		{
-			label: "首项",
+			label: t("preference.clipboard.basic.label.default_focus_first_item"),
 			value: "firstItem",
 		},
 		{
-			label: "搜索",
+			label: t("preference.clipboard.basic.label.default_focus_search"),
 			value: "search",
 		},
 	];
@@ -27,7 +28,7 @@ const DefaultFocus = () => {
 
 	return (
 		<Flex align="center">
-			默认聚焦：
+			{t("preference.clipboard.basic.label.default_focus")}：
 			<Segmented
 				value={defaultFocus}
 				options={options}

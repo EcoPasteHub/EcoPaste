@@ -9,6 +9,49 @@
 				"about": "About"
 			}
 		},
+		"clipboard": {
+			"basic": {
+				"title": "Basic Settings",
+				"label": {
+					"wake_up_key": "Wake-Up Shortcut",
+					"enable_audio": "Enable Sound Effects",
+					"search_position": "Search Box Position",
+					"search_position_top": "Top",
+					"search_position_bottom": "Bottom",
+					"default_focus": "Default Focus",
+					"default_focus_first_item": "First Item",
+					"default_focus_search": "Search Box",
+					"dbl_click_feedback": "Double-Click Item",
+					"dbl_click_feedback_none": "None",
+					"dbl_click_feedback_copy": "Copy",
+					"dbl_click_feedback_paste": "Paste",
+					"window_position": "Window Position",
+					"window_position_default": "Default",
+					"window_position_follow": "Follow Mouse",
+					"window_position_center": "Center of Screen"
+				}
+			},
+			"history_capacity": {
+				"title": "History Capacity",
+				"button": {
+					"clear": "Clear"
+				},
+				"label": {
+					"duration": {
+						"day": "Day",
+						"week": "Week",
+						"month": "Month",
+						"quarter": "Quarter",
+						"half_year": "Half Year",
+						"year": "Year",
+						"unlimited": "Unlimited"
+					}
+				},
+				"hints": {
+					"clear_confirm": "Are you sure you want to clear the history?"
+				}
+			}
+		},
 		"settings": {
 			"basic": {
 				"title": "Basic Settings",
