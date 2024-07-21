@@ -15,10 +15,10 @@ impl Tray {
         let app_version = app_handle.package_info().version.to_string();
 
         SystemTrayMenu::new()
-            .add_item(CustomMenuItem::new(
-                "preference".to_string(),
-                locale.preference,
-            ))
+            .add_item(
+                CustomMenuItem::new("preference".to_string(), locale.preference)
+                    .accelerator("CmdOrControl+,"),
+            )
             .add_native_item(SystemTrayMenuItem::Separator)
             .add_submenu(SystemTraySubmenu::new(
                 locale.language,

@@ -5,7 +5,7 @@
 			"title": {
 				"clipboard": "Clipboard",
 				"settings": "General",
-				"data_backup": "Data Backup",
+				"data_backup": "Backup",
 				"about": "About"
 			}
 		},
@@ -13,26 +13,26 @@
 			"basic": {
 				"title": "Basic Settings",
 				"label": {
-					"auto_start": "Launch at Startup",
-					"auto_update": "Automatic Updates",
-					"wake_up_key": "Wake-Up Shortcut",
-					"theme_mode": "Theme Mode",
-					"theme_mode_auto": "Automatic",
-					"theme_mode_light": "Light",
-					"theme_mode_dark": "Dark",
+					"auto_start": "Start at Login",
+					"auto_update": "Auto Updates",
+					"wake_up_key": "Wake-Up Key",
+					"theme": "Theme",
+					"theme_auto": "Auto",
+					"theme_light": "Light",
+					"theme_dark": "Dark",
 					"language": "Language"
 				}
 			}
 		},
 		"about": {
-			"introduce": "Open source cross-platform clipboard tool to make your work more efficient and convenient",
 			"button": {
 				"copy_info": "Copy Info",
 				"feedback_issue": "Feedback Issue"
 			},
-			"tooltip": {
-				"update": "Check Update",
-				"copy": "Copy app and system info for Issue"
+			"hints": {
+				"introduce": "Open source cross-platform clipboard tool to make your work more efficient and convenient",
+				"check_update": "Check Update",
+				"copy_info": "Copy app and system info for Issue"
 			}
 		}
 	}

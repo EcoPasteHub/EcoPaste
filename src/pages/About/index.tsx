@@ -45,7 +45,7 @@ const About = () => {
 				</div>
 				<Flex align="center" gap={4}>
 					<span>v{appInfo?.version}</span>
-					<Tooltip title={t("preference.about.tooltip.update")}>
+					<Tooltip title={t("preference.about.hints.check_update")}>
 						<Icon
 							hoverable
 							name="i-iconamoon:restart"
@@ -54,9 +54,9 @@ const About = () => {
 						/>
 					</Tooltip>
 				</Flex>
-				<span>{t("preference.about.introduce")}</span>
+				<span>{t("preference.about.hints.introduce")}</span>
 				<Flex gap="middle">
-					<Tooltip title={t("preference.about.tooltip.copy")}>
+					<Tooltip title={t("preference.about.hints.copy_info")}>
 						<Button size="large" type="primary" onClick={copyInfo}>
 							{t("preference.about.button.copy_info")}
 						</Button>
