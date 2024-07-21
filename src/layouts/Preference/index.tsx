@@ -64,7 +64,7 @@ const Preference = () => {
 
 	useEffect(() => {
 		requestAnimationFrame(() => {
-			appWindow.setTitle(i18n.t("preference.title"));
+			appWindow.setTitle(t("preference.title"));
 		});
 	}, [language]);
 
