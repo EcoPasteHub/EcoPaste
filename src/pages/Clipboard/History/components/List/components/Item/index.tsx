@@ -230,7 +230,7 @@ const Item: FC<ItemProps> = (props) => {
 		showMenu({ items: menus.filter(({ hide }) => !hide) });
 	};
 
-	const handleDoubleClick = async () => {
+	const handleDoubleClick = () => {
 		if (doubleClickFeedback === "none") return;
 
 		if (doubleClickFeedback === "copy") {
