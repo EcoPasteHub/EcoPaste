@@ -2,16 +2,20 @@ import { HappyProvider } from "@ant-design/happy-work-theme";
 import { listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/api/shell";
 import { ConfigProvider, theme } from "antd";
-import zhCN from "antd/locale/zh_CN";
 import { isEqual } from "arcdash";
 import { RouterProvider } from "react-router-dom";
 import { useSnapshot } from "valtio";
+import { getAntdLocale } from "./locales/antd";
 
 const { defaultAlgorithm, darkAlgorithm } = theme;
 
 const App = () => {
 	const { isDark } = useTheme();
 	const { language } = useSnapshot(globalStore);
+
+	const antdLocale = useCreation(() => {
+		return getAntdLocale(language);
+	}, [language]);
 
 	useMount(() => {
 		generateColorVars();
@@ -69,7 +73,7 @@ const App = () => {
 
 	return (
 		<ConfigProvider
-			locale={zhCN}
+			locale={antdLocale}
 			theme={{
 				algorithm: isDark ? darkAlgorithm : defaultAlgorithm,
 			}}
