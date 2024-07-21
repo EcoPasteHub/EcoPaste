@@ -9,13 +9,14 @@ import WindowPosition from "./components/WindowPosition";
 
 const Clipboard = () => {
 	const { wakeUpKey, enableAudio } = useSnapshot(clipboardStore);
+	const { t } = useTranslation();
 
 	return (
 		<Flex vertical gap="middle">
-			<Card title="基础设置">
+			<Card title={t("preference.clipboard.basic.title")}>
 				<Flex vertical gap="large">
 					<Flex align="center">
-						<span>唤醒窗口：</span>
+						<span>{t("preference.clipboard.basic.label.wake_up_key")}：</span>
 						<ShortcutKey
 							defaultValue={wakeUpKey}
 							onChange={(value) => {
@@ -25,7 +26,7 @@ const Clipboard = () => {
 					</Flex>
 
 					<Flex align="center">
-						启用音效：
+						{t("preference.clipboard.basic.label.enable_audio")}：
 						<Switch
 							checked={enableAudio}
 							onChange={(value) => {

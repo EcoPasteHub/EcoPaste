@@ -9,18 +9,19 @@ interface Option {
 
 const WindowPosition = () => {
 	const { windowPosition } = useSnapshot(clipboardStore);
+	const { t } = useTranslation();
 
 	const options: Option[] = [
 		{
-			label: "默认位置",
+			label: t("preference.clipboard.basic.label.window_position_default"),
 			value: "default",
 		},
 		{
-			label: "跟随鼠标",
+			label: t("preference.clipboard.basic.label.window_position_follow"),
 			value: "follow",
 		},
 		{
-			label: "屏幕中心",
+			label: t("preference.clipboard.basic.label.window_position_center"),
 			value: "center",
 		},
 	];
@@ -31,7 +32,7 @@ const WindowPosition = () => {
 
 	return (
 		<Flex align="center">
-			窗口位置：
+			{t("preference.clipboard.basic.label.window_position")}：
 			<Segmented
 				value={windowPosition}
 				options={options}
