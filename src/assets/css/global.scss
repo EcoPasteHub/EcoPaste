@@ -9,6 +9,12 @@ html {
   --color-border-2: var(--ant-color-border-secondary);
 
   --uno: color-1 text-14 antialiased break-all;
+
+  color-scheme: light;
+
+  &.dark {
+    color-scheme: dark;
+  }
 }
 
 img {
