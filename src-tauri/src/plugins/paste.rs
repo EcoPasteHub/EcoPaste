@@ -28,8 +28,6 @@ pub fn get_previous_process_id(window: tauri::Window) {
 
     let active_window = get_active_window().unwrap();
 
-    println!("{active_window:?}");
-
     let mut previous_process_id = PREVIOUS_PROCESS_ID.lock().unwrap();
 
     *previous_process_id = active_window.process_id;

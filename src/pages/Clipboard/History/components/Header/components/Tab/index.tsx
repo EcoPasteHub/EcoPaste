@@ -5,6 +5,7 @@ import { Flex, Tag } from "antd";
 import clsx from "clsx";
 
 interface TabItem {
+	key: string;
 	label: string;
 	group?: HistoryItem["group"];
 	isCollected?: boolean;
@@ -12,39 +13,41 @@ interface TabItem {
 
 const Tab = () => {
 	const { state } = useContext(HistoryContext);
-	const { t, i18n } = useTranslation();
+	const { t } = useTranslation();
 
-	const tabList = useCreation<TabItem[]>(
-		() => [
-			{
-				label: t("clipboard.label.tab.all"),
-			},
-			{
-				label: t("clipboard.label.tab.text"),
-				group: "text",
-			},
-			{
-				label: t("clipboard.label.tab.image"),
-				group: "image",
-			},
-			{
-				label: t("clipboard.label.tab.files"),
-				group: "files",
-			},
-			{
-				label: t("clipboard.label.tab.collection"),
-				isCollected: true,
-			},
-		],
-		[i18n.language],
-	);
+	const tabList: TabItem[] = [
+		{
+			key: "all",
+			label: t("clipboard.label.tab.all"),
+		},
+		{
+			key: "text",
+			label: t("clipboard.label.tab.text"),
+			group: "text",
+		},
+		{
+			key: "image",
+			label: t("clipboard.label.tab.image"),
+			group: "image",
+		},
+		{
+			key: "file",
+			label: t("clipboard.label.tab.files"),
+			group: "files",
+		},
+		{
+			key: "collect",
+			label: t("clipboard.label.tab.collection"),
+			isCollected: true,
+		},
+	];
 
-	const [checked, setChecked] = useState(tabList[0].label);
+	const [checked, setChecked] = useState(tabList[0].key);
 
 	const handleChange = (item: TabItem) => {
-		const { label, group, isCollected } = item;
+		const { key, group, isCollected } = item;
 
-		setChecked(label);
+		setChecked(key);
 
 		Object.assign(state, { group, isCollected });
 	};
@@ -53,13 +56,13 @@ const Tab = () => {
 		<Scrollbar>
 			<Flex data-tauri-drag-region>
 				{tabList.map((item) => {
-					const { label } = item;
+					const { key, label } = item;
 
-					const isChecked = checked === label;
+					const isChecked = checked === key;
 
 					return (
 						<Tag.CheckableTag
-							key={label}
+							key={key}
 							checked={isChecked}
 							className={clsx({ "bg-primary!": isChecked })}
 							onChange={() => handleChange(item)}
