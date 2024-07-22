@@ -241,6 +241,12 @@ const Item: FC<ItemProps> = (props) => {
 		showMenu({ items: menus.filter(({ hide }) => !hide) });
 	};
 
+	const handleClick = () => {
+		if (!clipboardStore.clickPaste) return;
+
+		pasteValue();
+	};
+
 	const handleDoubleClick = () => {
 		if (doubleClickFeedback === "none") return;
 
@@ -309,6 +315,7 @@ const Item: FC<ItemProps> = (props) => {
 			gap={4}
 			className="antd-input b-color-2 mx-auto mb-12 h-120 w-336 rounded-6 p-6"
 			onContextMenu={handleContextMenu}
+			onClick={handleClick}
 			onDoubleClick={handleDoubleClick}
 			onFocus={handleFocus}
 			onBlur={handleBlur}

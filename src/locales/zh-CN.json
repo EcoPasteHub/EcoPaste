@@ -21,6 +21,7 @@
 					"default_focus": "默认聚焦",
 					"default_focus_first_item": "首项",
 					"default_focus_search": "搜索",
+					"click_paste": "单击粘贴",
 					"dbl_click_feedback": "双击反馈",
 					"dbl_click_feedback_none": "无反馈",
 					"dbl_click_feedback_copy": "复制内容",
