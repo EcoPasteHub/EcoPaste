@@ -17,12 +17,13 @@ import Search from "./components/Search";
 interface State extends TablePayload {
 	rounded: boolean;
 	historyList: HistoryItem[];
-	scrollTo?: (index: number) => void;
+	visibleStartIndex: number;
 }
 
 const INITIAL_STATE: State = {
 	rounded: true,
 	historyList: [],
+	visibleStartIndex: 0,
 };
 
 interface HistoryContextValue {
@@ -134,10 +135,6 @@ const ClipboardHistory = () => {
 	}, [wakeUpKey]);
 
 	useEffect(() => {
-		state.scrollTo?.(0);
-
-		clipboardStore.activeIndex = 0;
-
 		getHistoryList?.();
 	}, [state.search, state.group, state.isCollected]);
 
