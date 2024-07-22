@@ -25,6 +25,14 @@ const Header: FC<HeaderProps> = (props) => {
 
 	const { t, i18n } = useTranslation();
 
+	const [copied, { toggle }] = useBoolean();
+
+	useEffect(() => {
+		if (!copied) return;
+
+		setTimeout(toggle, 3000);
+	}, [copied]);
+
 	const renderType = () => {
 		switch (type) {
 			case "text":
@@ -76,6 +84,11 @@ const Header: FC<HeaderProps> = (props) => {
 		);
 	};
 
+	const handleCopy = () => {
+		copy();
+		toggle();
+	};
+
 	return (
 		<Flex justify="space-between" className="color-2">
 			<Flex align="center" gap={6} className="text-12">
@@ -92,7 +105,15 @@ const Header: FC<HeaderProps> = (props) => {
 				onClick={(event) => event.stopPropagation()}
 				onDoubleClick={(event) => event.stopPropagation()}
 			>
-				<Icon hoverable name="i-iconamoon:copy" onMouseDown={copy} />
+				{copied ? (
+					<Icon
+						size={15}
+						name="i-iconamoon:check-circle-1-fill"
+						className="color-success"
+					/>
+				) : (
+					<Icon hoverable name="i-iconamoon:copy" onMouseDown={handleCopy} />
+				)}
 
 				<Icon
 					hoverable
@@ -111,7 +132,7 @@ const Header: FC<HeaderProps> = (props) => {
 						hoverable
 						size={15}
 						name="i-iconamoon:trash-simple"
-						className="hover:text-red!"
+						className="hover:text-danger!"
 					/>
 				</Popconfirm>
 			</Flex>
