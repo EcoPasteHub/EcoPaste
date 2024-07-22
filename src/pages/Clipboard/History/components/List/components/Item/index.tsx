@@ -29,7 +29,8 @@ const Item: FC<ItemProps> = (props) => {
 
 	const { state, getHistoryList } = useContext(HistoryContext);
 	const { appInfo } = useSnapshot(globalStore);
-	const { activeIndex, doubleClickFeedback } = useSnapshot(clipboardStore);
+	const { activeIndex, doubleClickFeedback, clickPaste } =
+		useSnapshot(clipboardStore);
 	const { t } = useTranslation();
 
 	const containerRef = useRef<HTMLElement>(null);
@@ -242,13 +243,13 @@ const Item: FC<ItemProps> = (props) => {
 	};
 
 	const handleClick = () => {
-		if (!clipboardStore.clickPaste) return;
+		if (!clickPaste) return;
 
 		pasteValue();
 	};
 
 	const handleDoubleClick = () => {
-		if (doubleClickFeedback === "none") return;
+		if (clickPaste || doubleClickFeedback === "none") return;
 
 		if (doubleClickFeedback === "copy") {
 			return copy();

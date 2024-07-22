@@ -85,7 +85,13 @@ const Header: FC<HeaderProps> = (props) => {
 				<span>{dayjs(createTime).locale(i18n.language).fromNow()}</span>
 			</Flex>
 
-			<Flex align="center" gap={6} className="text-14">
+			<Flex
+				align="center"
+				gap={6}
+				className="text-14"
+				onClick={(event) => event.stopPropagation()}
+				onDoubleClick={(event) => event.stopPropagation()}
+			>
 				<Icon hoverable name="i-iconamoon:copy" onMouseDown={copy} />
 
 				<Icon
