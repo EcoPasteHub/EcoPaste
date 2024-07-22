@@ -49,7 +49,7 @@ const Clipboard = () => {
 						/>
 					</Flex>
 
-					<DoubleClickFeedback />
+					{!clickPaste && <DoubleClickFeedback />}
 
 					<WindowPosition />
 				</Flex>
