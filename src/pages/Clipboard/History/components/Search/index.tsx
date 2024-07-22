@@ -15,18 +15,18 @@ const Search: FC<InputProps> = (props) => {
 
 	useFocus({
 		onFocus() {
-			const { defaultFocus, activeIndex } = clipboardStore;
+			const { defaultFocus } = clipboardStore;
 
 			if (defaultFocus === "search") {
 				inputRef.current?.focus();
-			} else if (isNil(activeIndex)) {
-				clipboardStore.activeIndex = 0;
+			} else if (isNil(state.activeIndex)) {
+				state.activeIndex = 0;
 			}
 		},
 		onBlur() {
 			inputRef.current?.blur();
 
-			clipboardStore.activeIndex = -1;
+			state.activeIndex = -1;
 		},
 	});
 

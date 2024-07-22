@@ -37,19 +37,18 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = (props) => {
 
 	const { state, getHistoryList } = useContext(HistoryContext);
 	const { appInfo } = useSnapshot(globalStore);
-	const { activeIndex, doubleClickFeedback, clickPaste } =
-		useSnapshot(clipboardStore);
+	const { doubleClickFeedback, clickPaste } = useSnapshot(clipboardStore);
 	const { t } = useTranslation();
 
 	const containerRef = useRef<HTMLElement>(null);
 
 	useEffect(() => {
-		if (activeIndex === index) {
+		if (state.activeIndex === index) {
 			containerRef.current?.focus();
 		} else {
 			containerRef.current?.blur();
 		}
-	}, [activeIndex]);
+	}, [state.activeIndex]);
 
 	const copy = () => {
 		switch (type) {
@@ -267,11 +266,11 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = (props) => {
 	};
 
 	const handleFocus = () => {
-		clipboardStore.activeIndex = index;
+		state.activeIndex = index;
 	};
 
 	const handleBlur = () => {
-		clipboardStore.activeIndex = -1;
+		state.activeIndex = -1;
 	};
 
 	const handleKeyDown = (event: KeyboardEvent) => {
@@ -289,11 +288,11 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = (props) => {
 		}
 
 		if (isArrowUp && index > 0) {
-			clipboardStore.activeIndex = index - 1;
+			state.activeIndex = index - 1;
 		}
 
 		if (isArrowDown && index < state.historyList.length - 1) {
-			clipboardStore.activeIndex = index + 1;
+			state.activeIndex = index + 1;
 		}
 
 		if (isEnter) {

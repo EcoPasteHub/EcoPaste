@@ -24,7 +24,6 @@ export interface ClipboardStore {
 	wakeUpKey: string;
 	enableAudio?: boolean;
 	historyCapacity: number;
-	activeIndex: number;
 	windowPosition: "default" | "follow" | "center";
 	searchPosition: "top" | "bottom";
 	clickPaste?: boolean;
