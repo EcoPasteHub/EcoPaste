@@ -8,7 +8,6 @@ export const clipboardStore = proxyWithPersist<ClipboardStore>({
 	initialState: {
 		wakeUpKey: "Alt+C",
 		historyCapacity: 0,
-		activeIndex: 0,
 		windowPosition: "default",
 		searchPosition: "top",
 		doubleClickFeedback: "none",

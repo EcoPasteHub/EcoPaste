@@ -17,12 +17,14 @@ import Search from "./components/Search";
 interface State extends TablePayload {
 	rounded: boolean;
 	historyList: HistoryItem[];
+	activeIndex: number;
 	visibleStartIndex: number;
 }
 
 const INITIAL_STATE: State = {
 	rounded: true,
 	historyList: [],
+	activeIndex: 0,
 	visibleStartIndex: 0,
 };
 
