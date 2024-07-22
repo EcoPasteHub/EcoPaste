@@ -30,6 +30,7 @@ const Item: FC<ItemProps> = (props) => {
 	const { state, getHistoryList } = useContext(HistoryContext);
 	const { appInfo } = useSnapshot(globalStore);
 	const { activeIndex, doubleClickFeedback } = useSnapshot(clipboardStore);
+	const { t } = useTranslation();
 
 	const containerRef = useRef<HTMLElement>(null);
 
@@ -160,74 +161,78 @@ const Item: FC<ItemProps> = (props) => {
 
 		const menus: MenuItem[] = [
 			{
-				label: "复制",
+				label: t("clipboard.button.context_menu.copy"),
 				event: copy,
 			},
 			{
-				label: "复制OCR文本",
+				label: t("clipboard.button.context_menu.copy_ocr_text"),
 				hide: type !== "image" || /^[\s]*$/.test(search),
 				event: copyPlainText,
 			},
 			{
-				label: "粘贴为纯文本",
+				label: t("clipboard.button.context_menu.paste_as_plain_text"),
 				hide: type !== "html",
 				event: copyPlainText,
 			},
 			{
-				label: isCollected ? "取消收藏" : "收藏",
+				label: isCollected
+					? t("clipboard.button.context_menu.unfavorite")
+					: t("clipboard.button.context_menu.favorite"),
 				event: collect,
 			},
 			{
-				label: "在浏览器访问",
+				label: t("clipboard.button.context_menu.open_in_browser"),
 				hide: type !== "text" || !isURL(value),
 				event: openBrowser,
 			},
 			{
-				label: "发送邮件",
+				label: t("clipboard.button.context_menu.send_email"),
 				hide: type !== "text" || !isEmail(value),
 				event: sendEmail,
 			},
 			{
-				label: "导出为文件",
+				label: t("clipboard.button.context_menu.export_as_file"),
 				hide: group !== "text",
 				event: exportFile,
 			},
 			{
-				label: "预览图片",
+				label: t("clipboard.button.context_menu.preview_image"),
 				hide: type !== "image",
 				event: previewImage,
 			},
 			{
-				label: "下载图片",
+				label: t("clipboard.button.context_menu.download_image"),
 				hide: type !== "image",
 				event: downloadImage,
 			},
 			{
-				label: isMac() ? "在 Finder 中显示" : "在文件资源管理器中显示",
+				label: isMac()
+					? t("clipboard.button.context_menu.show_in_finder")
+					: t("clipboard.button.context_menu.show_in_file_explorer"),
 				hide: type !== "files",
 				event: openFinder,
 			},
 			{
-				label: "删除",
+				label: t("clipboard.button.context_menu.delete"),
 				event: deleteItem,
 			},
 			{
-				label: "删除上方",
+				label: t("clipboard.button.context_menu.delete_above"),
 				hide: index === 0,
 				event: deleteAbove,
 			},
 			{
-				label: "删除下方",
+				label: t("clipboard.button.context_menu.delete_below"),
 				hide: index === state.historyList.length - 1,
 				event: deleteBelow,
 			},
 			{
-				label: "删除其它",
+				label: t("clipboard.button.context_menu.delete_other"),
 				hide: state.historyList.length === 1,
 				event: deleteOther,
 			},
 			{
-				label: "删除所有",
+				label: t("clipboard.button.context_menu.delete_all"),
 				hide: state.historyList.length === 1,
 				event: () => deleteAll(state.historyList),
 			},

@@ -106,6 +106,51 @@
 			}
 		}
 	},
+	"clipboard": {
+		"button": {
+			"context_menu": {
+				"copy": "Copy",
+				"copy_ocr_text": "Copy OCR Text",
+				"paste_as_plain_text": "Paste as Plain Text",
+				"unfavorite": "Unfavorite",
+				"favorite": "Favorite",
+				"open_in_browser": "Open in Browser",
+				"send_email": "Send Email",
+				"export_as_file": "Export as File",
+				"preview_image": "Preview Image",
+				"download_image": "Download Image",
+				"show_in_finder": "Show in Finder",
+				"show_in_file_explorer": "Show in File Explorer",
+				"delete": "Delete",
+				"delete_above": "Delete Above",
+				"delete_below": "Delete Below",
+				"delete_other": "Delete Others",
+				"delete_all": "Delete All"
+			}
+		},
+		"label": {
+			"tab": {
+				"all": "All",
+				"text": "Text",
+				"image": "Images",
+				"files": "Files",
+				"collection": "Favorites"
+			},
+			"link": "Link",
+			"email": "Email",
+			"color": "Color",
+			"plain_text": "Plain Text",
+			"rich_text": "Rich Text",
+			"html": "HTML",
+			"image": "Image",
+			"n_files": "{{0}} File(s)",
+			"n_chars": "{{0}} Character(s)"
+		},
+		"hints": {
+			"search_placeholder": "Search...",
+			"delete_confirm": "Are you sure you want to delete this item?"
+		}
+	},
 	"component": {
 		"shortcut_key": {
 			"hints": {
