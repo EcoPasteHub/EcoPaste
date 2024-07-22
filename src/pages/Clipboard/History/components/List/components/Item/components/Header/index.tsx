@@ -76,18 +76,13 @@ const Header: FC<HeaderProps> = (props) => {
 		);
 	};
 
-	const createDate = useCreation(
-		() => dayjs(createTime).locale(i18n.language),
-		[createTime, i18n.language],
-	);
-
 	return (
 		<Flex justify="space-between" className="color-2">
 			<Flex align="center" gap={6} className="text-12">
 				<span>{renderType()}</span>
 				<span>{renderSize()}</span>
 				{renderPixel()}
-				<span>{createDate.fromNow()}</span>
+				<span>{dayjs(createTime).locale(i18n.language).fromNow()}</span>
 			</Flex>
 
 			<Flex align="center" gap={6} className="text-14">
@@ -103,6 +98,7 @@ const Header: FC<HeaderProps> = (props) => {
 				<Popconfirm
 					title={t("clipboard.hints.delete_confirm")}
 					placement="left"
+					rootClassName="max-w-300"
 					onConfirm={deleteItem}
 				>
 					<Icon

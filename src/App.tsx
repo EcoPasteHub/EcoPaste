@@ -5,17 +5,12 @@ import { ConfigProvider, theme } from "antd";
 import { isEqual } from "arcdash";
 import { RouterProvider } from "react-router-dom";
 import { useSnapshot } from "valtio";
-import { getAntdLocale } from "./locales/antd";
 
 const { defaultAlgorithm, darkAlgorithm } = theme;
 
 const App = () => {
 	const { isDark } = useTheme();
 	const { language } = useSnapshot(globalStore);
-
-	const antdLocale = useCreation(() => {
-		return getAntdLocale(language);
-	}, [language]);
 
 	useMount(() => {
 		generateColorVars();
@@ -38,7 +33,7 @@ const App = () => {
 	useEffect(() => {
 		i18n.changeLanguage(language);
 
-		setLocale(language!);
+		setLocale(language);
 	}, [language]);
 
 	useEventListener("contextmenu", (event) => {
@@ -73,7 +68,7 @@ const App = () => {
 
 	return (
 		<ConfigProvider
-			locale={antdLocale}
+			locale={getAntdLocale(language)}
 			theme={{
 				algorithm: isDark ? darkAlgorithm : defaultAlgorithm,
 			}}
