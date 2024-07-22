@@ -27,6 +27,7 @@ export interface ClipboardStore {
 	activeIndex: number;
 	windowPosition: "default" | "follow" | "center";
 	searchPosition: "top" | "bottom";
+	clickPaste?: boolean;
 	doubleClickFeedback: "none" | "copy" | "paste";
 	replaceAllImagePath?: boolean;
 	isFocus: boolean;

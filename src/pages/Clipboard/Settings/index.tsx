@@ -8,7 +8,7 @@ import SearchPosition from "./components/SearchPosition";
 import WindowPosition from "./components/WindowPosition";
 
 const Clipboard = () => {
-	const { wakeUpKey, enableAudio } = useSnapshot(clipboardStore);
+	const { wakeUpKey, enableAudio, clickPaste } = useSnapshot(clipboardStore);
 	const { t } = useTranslation();
 
 	return (
@@ -38,6 +38,16 @@ const Clipboard = () => {
 					<SearchPosition />
 
 					<DefaultFocus />
+
+					<Flex align="center">
+						{t("preference.clipboard.basic.label.click_paste")}：
+						<Switch
+							checked={clickPaste}
+							onChange={(value) => {
+								clipboardStore.clickPaste = value;
+							}}
+						/>
+					</Flex>
 
 					<DoubleClickFeedback />
 
