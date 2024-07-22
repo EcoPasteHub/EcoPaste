@@ -15,10 +15,7 @@ impl Tray {
         let app_version = app_handle.package_info().version.to_string();
 
         SystemTrayMenu::new()
-            .add_item(
-                CustomMenuItem::new("preference".to_string(), locale.preference)
-                    .accelerator("CmdOrControl+,"),
-            )
+            .add_item(CustomMenuItem::new("preference", locale.preference))
             .add_native_item(SystemTrayMenuItem::Separator)
             .add_submenu(SystemTraySubmenu::new(
                 locale.language,
@@ -27,20 +24,15 @@ impl Tray {
                     .add_item(CustomMenuItem::new(EN_US, locale.language_en_us)),
             ))
             .add_native_item(SystemTrayMenuItem::Separator)
-            .add_item(CustomMenuItem::new("about".to_string(), locale.about))
-            .add_item(CustomMenuItem::new("update".to_string(), locale.update))
-            .add_item(CustomMenuItem::new("github".to_string(), locale.github))
+            .add_item(CustomMenuItem::new("about", locale.about))
+            .add_item(CustomMenuItem::new("update", locale.update))
+            .add_item(CustomMenuItem::new("github", locale.github))
             .add_native_item(SystemTrayMenuItem::Separator)
             .add_item(
-                CustomMenuItem::new(
-                    "version".to_string(),
-                    format!("{} {app_version}", locale.version),
-                )
-                .disabled(),
+                CustomMenuItem::new("version", format!("{} {app_version}", locale.version))
+                    .disabled(),
             )
-            .add_item(
-                CustomMenuItem::new("exit".to_string(), locale.exit).accelerator("CmdOrControl+Q"),
-            )
+            .add_item(CustomMenuItem::new("exit", locale.exit))
     }
 
     pub fn handler(app: &AppHandle, event: SystemTrayEvent) {
