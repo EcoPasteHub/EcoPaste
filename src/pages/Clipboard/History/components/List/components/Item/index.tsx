@@ -1,6 +1,7 @@
 import { HistoryContext } from "@/pages/Clipboard/History";
 import type { HistoryItem } from "@/types/database";
-import { BaseDirectory, copyFile, writeFile } from "@tauri-apps/api/fs";
+import { copyFile, writeFile } from "@tauri-apps/api/fs";
+import { downloadDir } from "@tauri-apps/api/path";
 import { open } from "@tauri-apps/api/shell";
 import { Flex } from "antd";
 import type { FC, KeyboardEvent, MouseEvent } from "react";
@@ -76,11 +77,13 @@ const Item: FC<ItemProps> = (props) => {
 	};
 
 	const exportFile = async () => {
-		const ext = type === "text" ? "txt" : type;
+		const extension = type === "text" ? "txt" : type;
+		const fileName = `${appInfo?.name}_${id}.${extension}`;
+		const destination = (await downloadDir()) + fileName;
 
-		writeFile(`${appInfo?.name}_${id}.${ext}`, value, {
-			dir: BaseDirectory.Download,
-		});
+		await writeFile(destination, value);
+
+		previewPath(destination);
 	};
 
 	const previewImage = async () => {
@@ -88,9 +91,12 @@ const Item: FC<ItemProps> = (props) => {
 	};
 
 	const downloadImage = async () => {
-		copyFile(value, `${appInfo?.name}_${id}.png`, {
-			dir: BaseDirectory.Download,
-		});
+		const fileName = `${appInfo?.name}_${id}.png`;
+		const destination = (await downloadDir()) + fileName;
+
+		await copyFile(value, destination);
+
+		previewPath(destination);
 	};
 
 	const openFinder = () => {
