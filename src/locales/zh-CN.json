@@ -63,7 +63,10 @@
 					"theme_auto": "自动",
 					"theme_light": "亮色",
 					"theme_dark": "暗色",
-					"language": "语言选择"
+					"language": "语言选择",
+					"tray_click": "单击托盘",
+					"tray_click_none": "无操作",
+					"tray_click_show": "显示应用"
 				}
 			}
 		},
@@ -100,6 +103,42 @@
 				"introduce": "开源的跨平台剪切板工具，让您的工作更加高效便捷。",
 				"update_tooltip": "检查更新",
 				"copy_tooltip": "复制应用和系统信息，用于 Issue"
+			}
+		}
+	},
+	"component": {
+		"shortcut_key": {
+			"hints": {
+				"set_shortcut_key": "按键盘设置快捷键",
+				"shortcut_key_not_set": "未设置快捷键"
+			}
+		},
+		"app_update": {
+			"label": {
+				"new_version_title": "发现新版本🥳",
+				"release_version": "更新版本",
+				"release_time": "更新时间",
+				"release_notes": "更新日志"
+			},
+			"button": {
+				"confirm_update": "立即更新",
+				"cancel_update": "以后再说"
+			},
+			"hints": {
+				"checking_update": "正在检查更新...",
+				"latest_version": "当前已是最新版本🎉",
+				"update_check_error": "检查更新时出错，请检查网络并重试。",
+				"downloading_latest_package": "正在下载最新的安装包...",
+				"download_complete_restart": "下载完成，即将开始安装并重启应用。"
+			}
+		},
+		"use_theme": {
+			"button": {
+				"confirm_reboot": "重启",
+				"cancel": "取消"
+			},
+			"hints": {
+				"reboot_confirm": "切换主题需要重启 app 才能生效！"
 			}
 		}
 	}

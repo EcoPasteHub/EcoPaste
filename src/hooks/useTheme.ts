@@ -5,6 +5,7 @@ import { useSnapshot } from "valtio";
 
 export const useTheme = () => {
 	const { theme } = useSnapshot(globalStore);
+	const { t } = useTranslation();
 	const [isDark, setIsDark] = useState(false);
 
 	useMount(() => {
@@ -37,9 +38,9 @@ export const useTheme = () => {
 		const nextTheme = theme ?? (isDark ? "light" : "dark");
 
 		if (isWin()) {
-			const yes = await ask("切换主题需要重启 app 才能生效！", {
-				okLabel: "重启",
-				cancelLabel: "取消",
+			const yes = await ask(t("component.use_theme.hints.reboot_confirm"), {
+				okLabel: t("component.use_theme.button.confirm_reboot"),
+				cancelLabel: t("component.use_theme.button.cancel"),
 			});
 
 			if (!yes) return;
