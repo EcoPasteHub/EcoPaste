@@ -1,49 +1,35 @@
 import Scrollbar from "@/components/Scrollbar";
-import { FloatButton } from "antd";
-import { useSnapshot } from "valtio";
+import { FixedSizeList } from "react-window";
 import { HistoryContext } from "../..";
 import Item from "./components/Item";
 
 const List = () => {
 	const { state } = useContext(HistoryContext);
-	const { saveImageDir } = useSnapshot(clipboardStore);
 
-	const containerTarget = useRef(null);
-	const wrapperTarget = useRef(null);
+	const virtualListRef = useRef<FixedSizeList>(null);
 
-	const [list, scrollTo] = useVirtualList(state.historyList, {
-		containerTarget,
-		wrapperTarget,
-		itemHeight: 120,
-	});
+	useUpdateEffect(() => {
+		virtualListRef.current?.scrollTo(0);
 
-	useMount(() => {
-		state.scrollTo = scrollTo;
-	});
+		clipboardStore.activeIndex = 0;
+	}, [state.search, state.group, state.isCollected]);
 
 	return (
-		<Scrollbar ref={containerTarget} className="h-506">
-			<div ref={wrapperTarget}>
-				{list.map((props) => {
-					const { index, data } = props;
-					const { type, value } = data;
-
-					return (
-						<Item
-							key={props.data.id}
-							index={index}
-							data={{
-								...data,
-								value: type !== "image" ? value : saveImageDir + value,
-							}}
-						/>
-					);
-				})}
-			</div>
-
-			{/* @ts-ignore */}
-			<FloatButton.BackTop target={() => containerTarget.current} />
-		</Scrollbar>
+		<FixedSizeList
+			ref={virtualListRef}
+			width={360}
+			height={506}
+			itemData={state.historyList}
+			itemKey={(index, data) => data[index].id}
+			itemCount={state.historyList.length}
+			itemSize={120}
+			outerElementType={Scrollbar}
+			onItemsRendered={({ visibleStartIndex }) => {
+				state.visibleStartIndex = visibleStartIndex;
+			}}
+		>
+			{Item}
+		</FixedSizeList>
 	);
 };
 
