@@ -10,30 +10,34 @@ interface TabItem {
 	isCollected?: boolean;
 }
 
-const tabList: TabItem[] = [
-	{
-		label: "全部",
-	},
-	{
-		label: "文本",
-		group: "text",
-	},
-	{
-		label: "图片",
-		group: "image",
-	},
-	{
-		label: "文件",
-		group: "files",
-	},
-	{
-		label: "收藏",
-		isCollected: true,
-	},
-];
-
 const Tab = () => {
 	const { state } = useContext(HistoryContext);
+	const { t, i18n } = useTranslation();
+
+	const tabList = useCreation<TabItem[]>(
+		() => [
+			{
+				label: t("clipboard.label.tab.all"),
+			},
+			{
+				label: t("clipboard.label.tab.text"),
+				group: "text",
+			},
+			{
+				label: t("clipboard.label.tab.image"),
+				group: "image",
+			},
+			{
+				label: t("clipboard.label.tab.files"),
+				group: "files",
+			},
+			{
+				label: t("clipboard.label.tab.collection"),
+				isCollected: true,
+			},
+		],
+		[i18n.language],
+	);
 
 	const [checked, setChecked] = useState(tabList[0].label);
 

@@ -23,30 +23,34 @@ const Header: FC<HeaderProps> = (props) => {
 		deleteItem,
 	} = props;
 
+	const { t, i18n } = useTranslation();
+
 	const renderType = () => {
 		switch (type) {
 			case "text":
 				if (isURL(value)) {
-					return "链接";
+					return t("clipboard.label.link");
 				}
 
 				if (isEmail(value)) {
-					return "邮箱";
+					return t("clipboard.label.email");
 				}
 
 				if (isColor(value)) {
-					return "颜色";
+					return t("clipboard.label.color");
 				}
 
-				return "纯文本";
+				return t("clipboard.label.plain_text");
 			case "rich-text":
-				return "富文本";
+				return t("clipboard.label.rich_text");
 			case "html":
-				return "HTML";
+				return t("clipboard.label.html");
 			case "image":
-				return "图片";
+				return t("clipboard.label.image");
 			case "files":
-				return `${JSON.parse(value).length}个文件（夹）`;
+				return t("clipboard.label.n_files", {
+					replace: [JSON.parse(value).length],
+				});
 		}
 	};
 
@@ -55,7 +59,9 @@ const Header: FC<HeaderProps> = (props) => {
 			return autoConvertBytes(size);
 		}
 
-		return `${size}个字符`;
+		return t("clipboard.label.n_chars", {
+			replace: [size],
+		});
 	};
 
 	const renderPixel = () => {
@@ -70,13 +76,18 @@ const Header: FC<HeaderProps> = (props) => {
 		);
 	};
 
+	const createDate = useCreation(
+		() => dayjs(createTime).locale(i18n.language),
+		[createTime, i18n.language],
+	);
+
 	return (
 		<Flex justify="space-between" className="color-2">
 			<Flex align="center" gap={6} className="text-12">
 				<span>{renderType()}</span>
 				<span>{renderSize()}</span>
 				{renderPixel()}
-				<span>{dayjs(createTime).fromNow()}</span>
+				<span>{createDate.fromNow()}</span>
 			</Flex>
 
 			<Flex align="center" gap={6} className="text-14">
@@ -90,7 +101,7 @@ const Header: FC<HeaderProps> = (props) => {
 				/>
 
 				<Popconfirm
-					title="确定删除该历史记录？"
+					title={t("clipboard.hints.delete_confirm")}
 					placement="left"
 					onConfirm={deleteItem}
 				>

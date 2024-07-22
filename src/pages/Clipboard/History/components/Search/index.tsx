@@ -7,6 +7,7 @@ import type { FC } from "react";
 
 const Search: FC<InputProps> = (props) => {
 	const { state } = useContext(HistoryContext);
+	const { t } = useTranslation();
 
 	const inputRef = useRef<InputRef>(null);
 
@@ -47,7 +48,7 @@ const Search: FC<InputProps> = (props) => {
 			value={value}
 			prefix={<Icon name="i-lucide:search" />}
 			size="small"
-			placeholder="搜索"
+			placeholder={t("clipboard.hints.search_placeholder")}
 			className="m-auto w-336"
 			onChange={(event) => {
 				setValue(event.target.value);
