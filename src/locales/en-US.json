@@ -5,7 +5,7 @@
 			"title": {
 				"clipboard": "Clipboard",
 				"settings": "General",
-				"data_backup": "Backup",
+				"data_backup": "Data Backup",
 				"about": "About"
 			}
 		},
@@ -13,7 +13,7 @@
 			"basic": {
 				"title": "Basic Settings",
 				"label": {
-					"wake_up_key": "Wake-Up Key",
+					"wake_up_key": "Hotkey",
 					"enable_audio": "Enable Sound Effects",
 					"search_position": "Search Box Position",
 					"search_position_top": "Top",
@@ -22,7 +22,7 @@
 					"default_focus_first_item": "First Item",
 					"default_focus_search": "Search Box",
 					"click_paste": "Click Paste",
-					"dbl_click_feedback": "Double-Click Item",
+					"dbl_click_feedback": "Double-Click Feedback",
 					"dbl_click_feedback_none": "None",
 					"dbl_click_feedback_copy": "Copy",
 					"dbl_click_feedback_paste": "Paste",
@@ -33,7 +33,7 @@
 				}
 			},
 			"history_capacity": {
-				"title": "History Capacity",
+				"title": "History Retention Period",
 				"button": {
 					"clear": "Clear"
 				},
@@ -57,11 +57,11 @@
 			"basic": {
 				"title": "Basic Settings",
 				"label": {
-					"auto_start": "Launch at login",
-					"auto_update": "Auto Updates",
+					"auto_start": "Launch at Login",
+					"auto_update": "Enable Auto Updates",
 					"wake_up_key": "Wake-Up Key",
 					"theme": "Theme",
-					"theme_auto": "Auto",
+					"theme_auto": "System",
 					"theme_light": "Light",
 					"theme_dark": "Dark",
 					"language": "Language",
@@ -98,12 +98,12 @@
 		"about": {
 			"button": {
 				"copy_info": "Copy Info",
-				"feedback_issue": "Feedback Issue"
+				"feedback_issue": "Submit Feedback/Report Issue"
 			},
 			"hints": {
-				"introduce": "Open source cross-platform clipboard tool to make your work more efficient and convenient",
-				"update_tooltip": "Check Update",
-				"copy_tooltip": "Copy app and system info for Issue"
+				"introduce": "Open-source cross-platform clipboard tool to make your work more efficient and convenient.",
+				"update_tooltip": "Check for Updates",
+				"copy_tooltip": "Copy app and system info to clipboard for submitting issues or suggestions."
 			}
 		}
 	},
@@ -172,10 +172,10 @@
 			},
 			"hints": {
 				"checking_update": "Checking for updates...",
-				"latest_version": "You are already on the latest version 🎉",
-				"update_check_error": "Error checking for updates. Please check your network and try again.",
+				"latest_version": "You are using the latest version 🎉",
+				"update_check_error": "An error occurred while checking for updates Please check your network connection and try again.",
 				"downloading_latest_package": "Downloading the latest package...",
-				"download_complete_restart": "Download complete. The installation will start soon and the application will restart."
+				"download_complete_restart": "Download completed. Restart the application to apply the update."
 			}
 		},
 		"use_theme": {
