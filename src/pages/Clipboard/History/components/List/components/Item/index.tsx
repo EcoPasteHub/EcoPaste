@@ -152,7 +152,9 @@ const Item: FC<ItemProps> = (props) => {
 	const pasteValue = async () => {
 		await copy();
 
-		hideWindow();
+		if (!state.pin) {
+			hideWindow();
+		}
 
 		paste();
 	};

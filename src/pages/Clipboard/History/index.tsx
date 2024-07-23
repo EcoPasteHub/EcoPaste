@@ -16,6 +16,7 @@ import Search from "./components/Search";
 
 interface State extends TablePayload {
 	rounded: boolean;
+	pin?: boolean;
 	historyList: HistoryItem[];
 	activeIndex: number;
 }

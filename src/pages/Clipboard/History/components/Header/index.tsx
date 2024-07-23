@@ -1,14 +1,11 @@
 import Icon from "@/components/Icon";
 import { Flex } from "antd";
 import clsx from "clsx";
+import { HistoryContext } from "../..";
 import Tab from "./components/Tab";
 
-interface State {
-	pin?: boolean;
-}
-
 const Header = () => {
-	const state = useReactive<State>({});
+	const { state } = useContext(HistoryContext);
 
 	useFocus({
 		onBlur() {
