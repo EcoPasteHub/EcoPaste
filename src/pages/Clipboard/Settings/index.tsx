@@ -1,4 +1,4 @@
-import ShortcutKey from "@/components/ShortcutKey";
+import Hotkey from "@/components/Hotkey";
 import { Card, Flex, Switch } from "antd";
 import { useSnapshot } from "valtio";
 import DefaultFocus from "./components/DefaultFocus";
@@ -17,7 +17,7 @@ const Clipboard = () => {
 				<Flex vertical gap="large">
 					<Flex align="center">
 						<span>{t("preference.clipboard.basic.label.wake_up_key")}：</span>
-						<ShortcutKey
+						<Hotkey
 							defaultValue={wakeUpKey}
 							onChange={(value) => {
 								clipboardStore.wakeUpKey = value;

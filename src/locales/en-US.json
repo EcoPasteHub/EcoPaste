@@ -59,7 +59,7 @@
 				"label": {
 					"auto_start": "Launch at Login",
 					"auto_update": "Enable Auto Updates",
-					"wake_up_key": "Wake-Up Key",
+					"wake_up_key": "Hotkey",
 					"theme": "Theme",
 					"theme_auto": "System",
 					"theme_light": "Light",
