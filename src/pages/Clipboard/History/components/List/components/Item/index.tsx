@@ -32,6 +32,7 @@ const Item: FC<ItemProps> = (props) => {
 	const { appInfo } = useSnapshot(globalStore);
 	const { doubleClickFeedback, clickPaste } = useSnapshot(clipboardStore);
 	const { t } = useTranslation();
+	const { isDark } = useTheme();
 
 	const containerRef = useRef<HTMLElement>(null);
 
@@ -241,7 +242,10 @@ const Item: FC<ItemProps> = (props) => {
 			},
 		];
 
-		showMenu({ items: menus.filter(({ hide }) => !hide) });
+		showMenu({
+			items: menus.filter(({ hide }) => !hide),
+			theme: isDark ? "dark" : "light",
+		});
 	};
 
 	const handleClick = () => {

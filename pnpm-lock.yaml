@@ -69,8 +69,8 @@ importers:
         specifier: github:tauri-apps/tauri-plugin-autostart#v1
         version: https://codeload.github.com/tauri-apps/tauri-plugin-autostart/tar.gz/a8455f120ad801d828f91528f1b4ca47d00c8ba3
       tauri-plugin-context-menu:
-        specifier: ^0.7.0
-        version: 0.7.0
+        specifier: ^0.8.0
+        version: 0.8.0
       tauri-plugin-sql-api:
         specifier: github:tauri-apps/tauri-plugin-sql#v1
         version: https://codeload.github.com/tauri-apps/tauri-plugin-sql/tar.gz/6a4a14c36b1ad49c9f468351706d104a54e0540c
@@ -3789,8 +3789,8 @@ packages:
     resolution: {tarball: https://codeload.github.com/tauri-apps/tauri-plugin-autostart/tar.gz/a8455f120ad801d828f91528f1b4ca47d00c8ba3}
     version: 0.0.0
 
-  tauri-plugin-context-menu@0.7.0:
-    resolution: {integrity: sha512-NtFyhP2lQrUqs2ZWxw5j75p0K/3+5xPAckKh8yvpn0Bjq6WpKpBRli5chmcP44ltUoHBfXl2yRnpU14G1G5ucg==}
+  tauri-plugin-context-menu@0.8.0:
+    resolution: {integrity: sha512-7+JAFbNpEKqSlnfU3PwQRB9ZGmWPDExgxkuiEv+athavFkAvLMYXlynme0ZW2rQO5ciz8lX/OsgGth7qT0JeNA==}
 
   tauri-plugin-sql-api@https://codeload.github.com/tauri-apps/tauri-plugin-sql/tar.gz/6a4a14c36b1ad49c9f468351706d104a54e0540c:
     resolution: {tarball: https://codeload.github.com/tauri-apps/tauri-plugin-sql/tar.gz/6a4a14c36b1ad49c9f468351706d104a54e0540c}
@@ -8244,7 +8244,7 @@ snapshots:
     dependencies:
       '@tauri-apps/api': 1.5.3
 
-  tauri-plugin-context-menu@0.7.0:
+  tauri-plugin-context-menu@0.8.0:
     dependencies:
       '@tauri-apps/api': 1.6.0
 
