@@ -5,7 +5,6 @@ import { downloadDir } from "@tauri-apps/api/path";
 import { open } from "@tauri-apps/api/shell";
 import { Flex } from "antd";
 import type { FC, KeyboardEvent, MouseEvent } from "react";
-import { type ListChildComponentProps, areEqual } from "react-window";
 import { type ContextMenu, showMenu } from "tauri-plugin-context-menu";
 import { useSnapshot } from "valtio";
 import Files from "./components/Files";
@@ -15,24 +14,17 @@ import Image from "./components/Image";
 import RichText from "./components/RichText";
 import Text from "./components/Text";
 
+interface ItemProps {
+	index: number;
+	data: HistoryItem;
+}
+
 interface MenuItem extends ContextMenu.Item {
 	hide?: boolean;
 }
 
-const handleData = (data: HistoryItem) => {
-	const { type, value } = data;
-
-	if (type !== "image") return data;
-
-	return {
-		...data,
-		value: clipboardStore.saveImageDir + value,
-	};
-};
-
-const Item: FC<ListChildComponentProps<HistoryItem[]>> = (props) => {
-	const { index, style } = props;
-	const data = handleData(props.data[index]);
+const Item: FC<ItemProps> = (props) => {
+	const { index, data } = props;
 	const { id, type, group, value, search, createTime, isCollected } = data;
 
 	const { state, getHistoryList } = useContext(HistoryContext);
@@ -321,10 +313,6 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = (props) => {
 			ref={containerRef}
 			tabIndex={0}
 			gap={4}
-			style={{
-				...style,
-				top: Number(style.top) + (index - state.visibleStartIndex) * 12,
-			}}
 			className="antd-input b-color-2 mx-12 h-full w-336! rounded-6 p-6"
 			onContextMenu={handleContextMenu}
 			onClick={handleClick}
@@ -340,4 +328,4 @@ const Item: FC<ListChildComponentProps<HistoryItem[]>> = (props) => {
 	);
 };
 
-export default memo(Item, areEqual);
+export default memo(Item);

@@ -23,6 +23,7 @@
 	"dependencies": {
 		"@ant-design/happy-work-theme": "^1.0.0",
 		"@formkit/auto-animate": "^0.8.2",
+		"@tanstack/react-virtual": "^3.8.3",
 		"@tauri-apps/api": "^1.6.0",
 		"@unocss/reset": "^0.60.3",
 		"ahooks": "^3.8.0",
@@ -38,7 +39,6 @@
 		"react-i18next": "^15.0.0",
 		"react-markdown": "^9.0.1",
 		"react-router-dom": "^6.23.1",
-		"react-window": "^1.8.10",
 		"rehype-raw": "^7.0.0",
 		"tauri-plugin-autostart-api": "github:tauri-apps/tauri-plugin-autostart#v1",
 		"tauri-plugin-context-menu": "^0.7.0",
