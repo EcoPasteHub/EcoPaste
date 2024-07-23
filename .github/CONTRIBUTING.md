@@ -20,7 +20,7 @@
 
 ### 准备工作
 
-- [Rust](https://tauri.app/v1/guides/getting-started/prerequisites/): 请自行根据官网步骤安装 rust 环境。
+- [Rust](https://tauri.app/v1/guides/getting-started/prerequisites/): 请自行根据官网步骤安装 rust 环境，Windwos 环境建议下载官方 [Microsoft C++ 生成工具](https://visualstudio.microsoft.com/visual-cpp-build-tools/) 进行安装，安装时请勾选 “使用 C++的桌面开发” 中的 “C++ 生成工具” 和 “Windows 11 SDK”。
 - [Node.js](https://nodejs.org/en/): 用于运行项目。
 - [Pnpm](https://pnpm.io/)：本项目使用 Pnpm 进行包管理。
 
