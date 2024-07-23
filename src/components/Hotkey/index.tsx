@@ -6,7 +6,7 @@ import type { FC, KeyboardEvent, MouseEvent } from "react";
 import Icon from "../Icon";
 import { type Key, keys, modifierKeys, normalKeys } from "./keys";
 
-interface ShortcutKeyProps {
+interface HotkeyProps {
 	defaultValue?: string;
 	onChange?: (value: string) => void;
 }
@@ -15,7 +15,7 @@ interface State {
 	value: Key[];
 }
 
-const ShortcutKey: FC<ShortcutKeyProps> = (props) => {
+const Hotkey: FC<HotkeyProps> = (props) => {
 	const { defaultValue = "", onChange } = props;
 
 	const { t } = useTranslation();
@@ -171,4 +171,4 @@ const ShortcutKey: FC<ShortcutKeyProps> = (props) => {
 	);
 };
 
-export default ShortcutKey;
+export default Hotkey;

@@ -1,4 +1,4 @@
-import ShortcutKey from "@/components/ShortcutKey";
+import Hotkey from "@/components/Hotkey";
 import { Card, Flex, Switch } from "antd";
 import { useSnapshot } from "valtio";
 import Language from "./components/Language";
@@ -35,7 +35,7 @@ const Settings = () => {
 
 					<Flex align="center">
 						<span>{t("preference.settings.basic.label.wake_up_key")}：</span>
-						<ShortcutKey
+						<Hotkey
 							defaultValue={wakeUpKey}
 							onChange={(value) => {
 								globalStore.wakeUpKey = value;
