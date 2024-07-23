@@ -1,4 +1,5 @@
 import Scrollbar from "@/components/Scrollbar";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { FloatButton } from "antd";
 import { FixedSizeList } from "react-window";
 import { HistoryContext } from "../..";
@@ -9,6 +10,7 @@ const List = () => {
 
 	const outerRef = useRef(null);
 	const virtualListRef = useRef<FixedSizeList>(null);
+	const [animationParent, enableAnimations] = useAutoAnimate();
 
 	useUpdateEffect(() => {
 		virtualListRef.current?.scrollTo(0);
@@ -16,11 +18,22 @@ const List = () => {
 		state.activeIndex = 0;
 	}, [state.search, state.group, state.isCollected]);
 
+	const { run } = useDebounceFn(() => enableAnimations(true), {
+		wait: 500,
+	});
+
+	const handleScroll = () => {
+		enableAnimations(false);
+
+		run();
+	};
+
 	return (
 		<>
 			<FixedSizeList
 				ref={virtualListRef}
 				outerRef={outerRef}
+				innerRef={animationParent}
 				width={360}
 				height={506}
 				itemData={state.historyList}
@@ -28,6 +41,7 @@ const List = () => {
 				itemCount={state.historyList.length}
 				itemSize={120}
 				outerElementType={Scrollbar}
+				onScroll={handleScroll}
 				onItemsRendered={({ visibleStartIndex }) => {
 					state.visibleStartIndex = visibleStartIndex;
 				}}
@@ -36,7 +50,7 @@ const List = () => {
 			</FixedSizeList>
 
 			{/* @ts-ignore */}
-			<FloatButton.BackTop target={() => outerRef.current} />
+			<FloatButton.BackTop duration={0} target={() => outerRef.current} />
 		</>
 	);
 };
