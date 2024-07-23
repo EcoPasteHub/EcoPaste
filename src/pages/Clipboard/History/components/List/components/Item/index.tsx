@@ -4,7 +4,7 @@ import { copyFile, writeFile } from "@tauri-apps/api/fs";
 import { downloadDir } from "@tauri-apps/api/path";
 import { open } from "@tauri-apps/api/shell";
 import { Flex } from "antd";
-import type { FC, KeyboardEvent, MouseEvent } from "react";
+import type { CSSProperties, FC, KeyboardEvent, MouseEvent } from "react";
 import { type ContextMenu, showMenu } from "tauri-plugin-context-menu";
 import { useSnapshot } from "valtio";
 import Files from "./components/Files";
@@ -17,6 +17,7 @@ import Text from "./components/Text";
 interface ItemProps {
 	index: number;
 	data: HistoryItem;
+	style: CSSProperties;
 }
 
 interface MenuItem extends ContextMenu.Item {
@@ -24,7 +25,7 @@ interface MenuItem extends ContextMenu.Item {
 }
 
 const Item: FC<ItemProps> = (props) => {
-	const { index, data } = props;
+	const { index, style, data } = props;
 	const { id, type, group, value, search, createTime, isCollected } = data;
 
 	const { state, getHistoryList } = useContext(HistoryContext);
@@ -313,7 +314,8 @@ const Item: FC<ItemProps> = (props) => {
 			ref={containerRef}
 			tabIndex={0}
 			gap={4}
-			className="antd-input b-color-2 mx-12 h-full w-336! rounded-6 p-6"
+			style={style}
+			className="antd-input b-color-2 absolute inset-0 mx-12 h-full w-336! rounded-6 p-6"
 			onContextMenu={handleContextMenu}
 			onClick={handleClick}
 			onDoubleClick={handleDoubleClick}
