@@ -1,6 +1,4 @@
-<a href=" ">
-  <img src="https://socialify.git.ci/ayangweb/EcoPaste/image?description=1&descriptionEditable=Powerful%20open-source%20clipboard%20manager%20for%20all%20platforms.&font=Source%20Code%20Pro&forks=1&issues=1&logo=https%3A%2F%2Fgithub.com%2Fayangweb%2FEcoPaste%2Fblob%2Fmaster%2Fpublic%2Flogo.png%3Fraw%3Dtrue&name=1&owner=1&pattern=Floating%20Cogs&pulls=1&stargazers=1&theme=Auto" alt="EcoPaste">
-</a >
+<img src="https://socialify.git.ci/ayangweb/EcoPaste/image?description=1&descriptionEditable=Powerful%20open-source%20clipboard%20manager%20for%20all%20platforms.&font=Source%20Code%20Pro&forks=1&issues=1&logo=https%3A%2F%2Fgithub.com%2Fayangweb%2FEcoPaste%2Fblob%2Fmaster%2Fpublic%2Flogo.png%3Fraw%3Dtrue&name=1&owner=1&pattern=Floating%20Cogs&pulls=1&stargazers=1&theme=Auto" alt="EcoPaste">
 
 <div align="center">
   <br/>
