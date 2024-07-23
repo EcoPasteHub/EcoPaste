@@ -1,63 +1,75 @@
-# 贡献指南
+# Contribution Guidelines
 
-非常感谢您对 EcoPaste 的关注和贡献！在您提交贡献之前，请先花一些时间阅读以下指南，以确保您的贡献能够顺利进行。
+Thanks for your interests and contributions to `EcoPaste`! Before you submit your Pull Request, please take a moment to review the following guidelines to ensure a smooth process.
 
-## 透明的开发
+## Transparent Development
 
-所有工作都在 GitHub 上公开进行。无论是核心团队成员还是外部贡献者的 Pull Request，都需要经过相同的 review 流程。
+All work is conducted openly on GitHub. Whether you are a core team member or an external contributor, all Pull Requests must go through the same review process.
 
-## 提交 Issue
+## Submitting Issues
 
-我们使用 [Github Issues](https://github.com/ayangweb/EcoPaste/issues) 进行 Bug 报告和新 Feature 建议。在提交 Issue 之前，请确保已经搜索过类似的问题，因为它们可能已经得到解答或正在被修复。对于 Bug 报告，请包含可用于重现问题的完整步骤。对于新 Feature 建议，请指出你想要的更改以及期望的行为。
+We use [GitHub Issues](https://github.com/ayangweb/EcoPaste/issues) for bug reports and feature suggestions. 
 
-## 提交 Pull Request
+Before submitting an issue, please search for similar problems, as they may have already been addressed or are in progress. 
 
-### 共建流程
+- For feature suggestions, describe the change you want and the expected behavior.
 
-- 认领 issue：在 Github 建立 Issue 并认领（或直接认领已有 Issue），告知大家自己正在修复，避免重复工作。
-- 项目开发：在完成准备工作后，进行 Bug 修复或功能开发。
-- 提交 PR
+- For bug reports, please include detailed steps to reproduce the issue. 
 
-### 准备工作
+## Submitting Pull Requests
 
-- [Rust](https://tauri.app/v1/guides/getting-started/prerequisites/): 请自行根据官网步骤安装 rust 环境。
-- [Node.js](https://nodejs.org/en/): 用于运行项目。
-- [Pnpm](https://pnpm.io/)：本项目使用 Pnpm 进行包管理。
+### Contribution Workflow
 
-### 下载依赖
+- Claim an issue: Create a new issue on GitHub and claim it (or claim an existing one) to inform others that you are working on it, avoiding duplicate efforts.
+
+- Project Development: Once you are ready, proceed with bug fixes or feature development in your local environment.
+
+- Test: Test your changes thoroughly to ensure they do not break existing functionality.
+
+- Submit a PR.
+
+### Setup
+
+- [Rust](https://tauri.app/v1/guides/getting-started/prerequisites/): Install Rust according to the official instructions.
+
+- [Node.js](https://nodejs.org/en/): Required to run the project.
+
+- [Pnpm](https://pnpm.io/): This project uses Pnpm for package management.
+
+### Install Dependencies
 
 ```shell
 pnpm install
 ```
 
-### 启动应用
+### Start the Application
 
 ```shell
 pnpm tauri dev
 ```
 
-### 打包应用
+### Build the Application
 
-> 如果需要打包后进行调试，请在以下命令后面加上 `--debug`
+> If you need to debug after building, add `--debug` to the following command
 
 ```shell
 pnpm tauri build
 ```
 
-## Commit 指南
+## Commit Guidelines
 
-Commit messages 请遵循[conventional-changelog 标准](https://www.conventionalcommits.org/en/v1.0.0/)。
+Please follow the [conventional-changelog standard](https://www.conventionalcommits.org/en/v1.0.0/) for commit messages.
 
-### Commit 类型
+### Commit Types
 
-以下是 commit 类型列表:
+Here are the available commit types:
 
-- feat: 新特性或功能
-- fix: 缺陷修复
-- docs: 文档更新
-- style: 代码风格更新
-- refactor: 代码重构，不引入新功能和缺陷修复
-- perf: 性能优化
-- chore: 其他提交
+- feat: New feature or functionality
+- fix: Bug fix
+- docs: Documentation updates
+- style: Code style updates
+- refactor: Code refactoring without new features or bug fixes
+- perf: Performance improvements
+- chore: Other changes
 
-期待您的参与，让我们一起使 EcoPaste 变得更好！
+We're looking forward to your contributions to make EcoPaste much better!

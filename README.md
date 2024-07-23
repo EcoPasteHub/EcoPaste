@@ -1,41 +1,47 @@
-<div align="center">
-  <img src="https://socialify.git.ci/ayangweb/EcoPaste/image?description=1&font=Source%20Code%20Pro&forks=1&issues=1&logo=https%3A%2F%2Fgithub.com%2Fayangweb%2FEcoPaste%2Fblob%2Fmaster%2Fpublic%2Flogo.png%3Fraw%3Dtrue&name=1&owner=1&pattern=Floating%20Cogs&pulls=1&stargazers=1&theme=Auto" alt="EcoPaste" />
+<a href=" ">
+  <img src="https://socialify.git.ci/ayangweb/EcoPaste/image?description=1&descriptionEditable=Powerful%20open-source%20clipboard%20manager%20for%20all%20platforms.&font=Source%20Code%20Pro&forks=1&issues=1&logo=https%3A%2F%2Fgithub.com%2Fayangweb%2FEcoPaste%2Fblob%2Fmaster%2Fpublic%2Flogo.png%3Fraw%3Dtrue&name=1&owner=1&pattern=Floating%20Cogs&pulls=1&stargazers=1&theme=Auto" alt="EcoPaste">
+</a >
 
+<div align="center">
+  <br/>
   <div>
-    <a href="https://github.com/ayangweb/EcoPaste/releases/latest">
-      <img
-        alt="macOS"
-        src="https://img.shields.io/badge/-MacOS-black?style=flat-square&logo=apple&logoColor=white"
-      />
-    </a>
-    <a href="https://github.com/ayangweb/EcoPaste/releases/latest">
-      <img
-        alt="Windows"
-        src="https://img.shields.io/badge/-Windows-blue?style=flat-square&logo=windows&logoColor=white"
-      />
-    </a>
+      English | <a href="./README.zh-CN.md">简体中文</a >
   </div>
+  <br/>
+    
+  <a href="https://github.com/ayangweb/EcoPaste/releases/latest">
+    <img
+      alt="macOS"
+      src="https://img.shields.io/badge/-MacOS-black?style=flat-square&logo=apple&logoColor=white"
+    />
+  </a >
+  <a href="https://github.com/ayangweb/EcoPaste/releases/latest">
+    <img
+      alt="Windows"
+      src="https://img.shields.io/badge/-Windows-blue?style=flat-square&logo=windows&logoColor=white"
+    />
+  </a >
 
   <div>
     <a href="https://github.com/ayangweb/EcoPaste/blob/master/LICENSE">
       <img
         src="https://img.shields.io/github/license/ayangweb/EcoPaste?style=flat-square"
       />
-    </a>
+    </a >
     <a href="https://github.com/ayangweb/EcoPaste/releases/latest">
       <img
         src="https://img.shields.io/github/package-json/v/ayangweb/EcoPaste?style=flat-square"
       />
-    </a>
+    </a >
     <a href="https://github.com/ayangweb/EcoPaste/releases">
       <img
         src="https://img.shields.io/github/downloads/ayangweb/EcoPaste/total?style=flat-square"
       />  
-    </a>
+    </a >
   </div>
 </div>
 
-## 下载
+## Download
 
 - **MacOS**: [Apple Silicon](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.4/EcoPaste_0.0.4_aarch64.dmg) | [Intel](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.4/EcoPaste_0.0.4_x64.dmg)
 - **Windows**: [Universal](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.4/EcoPaste_0.0.4_x64_zh-CN.msi)
@@ -46,60 +52,60 @@
   <img src="./images/app-light.png" />
 </picture>
 
-## 功能介绍
+## Features
 
-- **轻量小巧，多平台用**：
+- **Lightweight & Cross-platform Supported**: 
   
-  使用 Tauri 构建，应用更加小巧精致，资源占用极少，同时完美适配 Windows 和 MacOS 平台，保证多平台一致的用户体验。
+  Built with Tauri, the application is lightweight and refined, consuming minimal resources. It also delivers a uniform user experience across both Windows and macOS platforms.
 
-- **常驻后台，快捷唤醒**：
+- **Background Operation & Instant Access**：
 
-  应用常驻后台运行，通过自定义快捷键一键唤醒，帮助用户快速调用剪切板内容，极大地提高工作效率。
+  The application is resident in the background, wake up with one click through custom shortcut keys, save time and improve efficiency.
 
-- **本地存储，数据安全**：
+- **Local Storage & Data Security:**：
 
-  所有剪切板内容均在本地存储，确保数据隐私和安全，不会有任何数据泄漏风险。
+  All clipboard content is stored locally to ensure data privacy and security.
 
-- **智能管理，类型分组**：
+- **Smart Grouping**：
 
-  支持纯文本、富文本、HTML、图片和文件类型，并自动根据剪切板内容类型进行分组管理，方便用户高效查找和使用。
+  Supports plain text, rich text, HTML, images, and files. Automatically groups clipboard content by type, managing your clipboard content efficiently.
 
-- **收藏功能，快速访问**：
+- **Favorites**：
 
-  支持收藏剪切板内容，方便快速访问和管理重要信息。无论是工作中的关键数据还是日常生活中的常用信息，都可以轻松收藏和查看。
+  Allows you to bookmark clipboard content for easy and fast access. Whether it's crucial data for work or frequently used information in daily life, you can effortlessly save and retrieve it.
 
-- **内置搜索，轻松查找**：
+- **Built-in Search**：
 
-  内置搜索功能，帮助用户快速找到任何剪切板上的内容，无论是文本、图片（OCR文本搜索）还是文件，所有内容都可以一目了然。
+  Built-in search helps users quickly find any content on the clipboard, whether it's text, images (with OCR text search), or files, making everything easily accessible at a glance.
 
-- **图片OCR，离线识别**：
+- **Offline Image OCR**：
 
-  内置系统 OCR 功能，支持文本和二维码识别，通过右键菜单快速复制识别到的 OCR 内容，实现离线识别，使用更便捷。
+  Recognize text and QR codes in seconds. Quickly copy recognized content via the context menu, enabling convenient offline text recognition.
 
-- **右键菜单，操作便捷**：
+- **Enhanced Context Menu**：
 
-  提供丰富的自定义选项，用户可以根据自己的使用习惯和需求调整应用的各项设置，打造最适合自己的剪切板管理工具。
+  Provides customizable options, allowing users to adjust settings to their preferences and create the ideal clipboard management tool for their needs.
 
-- **自由定制，个性体验**：
+- **Highly Customizable**：
 
-  提供详细的配置选项，用户可以自由设置和调整应用效果，打造个性化的使用体验，满足不同场景和需求。
+  Provide abundant customization options to meet various scenarios and individual preferences.
 
-- **自动更新，保持最新**：
+- **Automatic Update**：
 
-  软件支持自动更新和手动检查更新功能，确保用户始终使用最新版本，享受最优质的使用体验。
+  Supports automatic and manual update checks, ensuring users always have the latest version for the best experience.
 
-- **数据备份，轻松迁移**：
+- **Backup & Migration**：
 
-  支持导出和导入配置及剪切板内容，便于数据备份与迁移到不同平台，保证数据的持续可用性。
+  Supports exporting and importing configurations and clipboard content, making data backup and migration to different platforms seamless, and ensuring continuous data availability.
 
-- **更多功能，等你探索**：
+- **More to Explore**：
 
-  EcoPaste 还在不断开发和添加更多有趣实用的功能，期待与你一起探索和发现这款剪切板管理工具的更多可能性。
+  `EcoPaste` continues to evolve with exciting new features. We look forward to sharing more possibilities with you.
 
-## 常见问题
+## Q&A
 
 <details>
-<summary>1. MacOS 提示 app 已损坏，无法打开。</summary>
+<summary>1. "EcoPaste Is Damaged and Can't Be Opened" on MacOS </summary>
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./images/injure-dark.png" />
@@ -107,19 +113,19 @@
   <img src="./images/injure-light.png" />
 </picture>
 
-在终端窗口输入以下命令，按回车键后输入系统密码并再次按回车键即可。
+Type the following command and press Enter in `terminal` to allow the app to run: 
+
+> Password may be required to run the command.
 
 ```bash
 sudo xattr -r -d com.apple.quarantine /Applications/EcoPaste.app
 ```
 
+After that, you can open the app normally.
+
 </details>
 
-## 参与贡献
-
-请参考 [Contributing Guide](https://github.com/ayangweb/EcoPaste/blob/master/.github/CONTRIBUTING.md)。
-
-## 历史星标
+## Star History
 
 <a href="https://star-history.com/#ayangweb/EcoPaste&Date">
  <picture>
@@ -129,7 +135,11 @@ sudo xattr -r -d com.apple.quarantine /Applications/EcoPaste.app
  </picture>
 </a>
 
-## 感谢贡献者们做出的努力
+## Contributors
+
+Thanks to everyone who has already contributed to `EcoPaste`. 
+
+If you want to contribute to this project, please refer to [Contributing Guide](./.github/CONTRIBUTING.md).
 
 <a href="https://github.com/ayangweb/EcoPaste/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=ayangweb/EcoPaste" />
