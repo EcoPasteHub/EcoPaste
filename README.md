@@ -108,9 +108,9 @@
 <summary>1. "EcoPaste Is Damaged and Can't Be Opened" on MacOS </summary>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./images/injure-dark.png" />
-  <source media="(prefers-color-scheme: light)" srcset="./images/injure-light.png" />
-  <img src="./images/injure-light.png" />
+  <source media="(prefers-color-scheme: dark)" srcset="./images/damaged-dark.en-US.png" />
+  <source media="(prefers-color-scheme: light)" srcset="./images/damaged-light.en-US.png" />
+  <img src="./images/damaged-light.en-US.png" />
 </picture>
 
 Type the following command and press Enter in `terminal` to allow the app to run: 
