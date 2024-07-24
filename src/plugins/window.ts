@@ -1,13 +1,16 @@
 import { WINDOW_PLUGIN } from "@/constants";
 import type { RoutePath } from "@/types/router";
 import { invoke } from "@tauri-apps/api";
-import { appWindow } from "@tauri-apps/api/window";
+import { type WindowOptions, appWindow } from "@tauri-apps/api/window";
 import { find } from "lodash-es";
 
 /**
  * 创建新窗口
  */
-export const createWindow = (path: RoutePath) => {
+export const createWindow = (
+	path: RoutePath,
+	priorityOptions?: WindowOptions,
+) => {
 	const label = path.replace("/", "") ?? "main";
 
 	const options = find(routes, { path })?.meta?.windowOptions;
@@ -18,6 +21,7 @@ export const createWindow = (path: RoutePath) => {
 			url: path,
 			skipTaskbar: true,
 			...options,
+			...priorityOptions,
 		},
 	});
 };
