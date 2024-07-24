@@ -9,7 +9,7 @@ import { find } from "lodash-es";
  */
 export const createWindow = (
 	path: RoutePath,
-	prioritization?: WindowOptions,
+	priorityOptions?: WindowOptions,
 ) => {
 	const label = path.replace("/", "") ?? "main";
 
@@ -21,7 +21,7 @@ export const createWindow = (
 			url: path,
 			skipTaskbar: true,
 			...options,
-			...prioritization,
+			...priorityOptions,
 		},
 	});
 };

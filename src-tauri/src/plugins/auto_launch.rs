@@ -1,3 +1,4 @@
+use crate::AUTO_LAUNCH_ARG;
 use std::env;
 use tauri::{
     command, generate_handler,
@@ -9,9 +10,7 @@ use tauri::{
 async fn is_auto_launch() -> Result<bool> {
     let args: Vec<String> = env::args().collect();
 
-    println!("Args: {:?}", args);
-
-    Ok(args.contains(&"--auto-launch".to_string()))
+    Ok(args.contains(&AUTO_LAUNCH_ARG.to_string()))
 }
 
 pub fn init() -> TauriPlugin<Wry> {
