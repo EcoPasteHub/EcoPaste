@@ -1,5 +1,5 @@
 <a href="https://github.com/ayangweb/EcoPaste">
-  <img src="https://socialify.git.ci/ayangweb/EcoPaste/image?description=1&descriptionEditable=%E4%B8%80%E6%AC%BE%E5%BC%80%E6%BA%90%E7%9A%84%E8%B7%A8%E5%B9%B3%E5%8F%B0%E5%89%AA%E5%88%87%E6%9D%BF%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7%E3%80%82&font=Source%20Code%20Pro&forks=1&issues=1&logo=https%3A%2F%2Fgithub.com%2Fayangweb%2FEcoPaste%2Fblob%2Fmaster%2Fpublic%2Flogo.png%3Fraw%3Dtrue&name=1&owner=1&pattern=Floating%20Cogs&pulls=1&stargazers=1&theme=Auto" alt="EcoPaste" />
+  <img src="https://socialify.git.ci/ayangweb/EcoPaste/image?description=1&descriptionEditable=%E9%80%82%E7%94%A8%E4%BA%8E%20MacOS%20%E5%92%8C%20Windows%20%E5%B9%B3%E5%8F%B0%E7%9A%84%E5%BC%80%E6%BA%90%E7%9A%84%E5%89%AA%E5%88%87%E6%9D%BF%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7%E3%80%82&font=Source%20Code%20Pro&forks=1&issues=1&logo=https%3A%2F%2Fgithub.com%2Fayangweb%2FEcoPaste%2Fblob%2Fmaster%2Fpublic%2Flogo.png%3Fraw%3Dtrue&name=1&owner=1&pattern=Floating%20Cogs&pulls=1&stargazers=1&theme=Auto" alt="EcoPaste" />
 </a>
 
 <div align="center">
