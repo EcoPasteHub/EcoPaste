@@ -108,9 +108,9 @@
 <summary>1. MacOS 提示 app 已损坏，无法打开。</summary>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./images/injure-dark.png" />
-  <source media="(prefers-color-scheme: light)" srcset="./images/injure-light.png" />
-  <img src="./images/injure-light.png" />
+  <source media="(prefers-color-scheme: dark)" srcset="./images/damaged-dark.zh-CN.png" />
+  <source media="(prefers-color-scheme: light)" srcset="./images/damaged-light.zh-CN.png" />
+  <img src="./images/damaged-light.zh-CN.png" />
 </picture>
 
 在终端窗口输入以下命令，按回车键后输入系统密码并再次按回车键即可。
