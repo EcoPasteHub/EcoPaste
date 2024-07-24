@@ -43,8 +43,10 @@ const ClipboardHistory = () => {
 
 	const state = useReactive<State>(INITIAL_STATE);
 
-	useMount(() => {
-		createWindow("/preference");
+	useMount(async () => {
+		const autoLaunched = await isAutoLaunch();
+
+		createWindow("/preference", { visible: !autoLaunched });
 
 		setWindowShadow();
 

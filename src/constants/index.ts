@@ -80,3 +80,7 @@ export const LOCALE_PLUGIN = {
 export const PASTE_PLUGIN = {
 	PASTE: "plugin:paste|paste",
 };
+
+export const AUTO_LAUNCH_PLUGIN = {
+	IS_AUTO_LAUNCH: "plugin:auto_launch|is_auto_launch",
+};

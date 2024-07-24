@@ -16,7 +16,7 @@ const Preference = () => {
 	const { isDark, toggleTheme } = useTheme();
 	const { t } = useTranslation();
 
-	useMount(async () => {
+	useMount(() => {
 		navigate("clipboard");
 
 		subscribe(globalStore, () => {

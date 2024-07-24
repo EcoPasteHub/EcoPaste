@@ -7,7 +7,7 @@ mod plugins;
 
 use core::tray;
 use plugins::{
-    backup, clipboard, fs_extra, locale, mouse, ocr, paste,
+    auto_launch, backup, clipboard, fs_extra, locale, mouse, ocr, paste,
     window::{self, show_window, MAIN_WINDOW_LABEL},
 };
 use tauri::{
@@ -58,7 +58,7 @@ fn main() {
         // app 自启动：https://github.com/tauri-apps/tauri-plugin-autostart
         .plugin(tauri_plugin_autostart::init(
             MacosLauncher::LaunchAgent,
-            Some(vec!["--flag1", "--flag2"]),
+            Some(vec!["--auto-launch"]),
         ))
         // 数据库：https://github.com/tauri-apps/tauri-plugin-sql
         .plugin(tauri_plugin_sql::Builder::default().build())
@@ -80,6 +80,8 @@ fn main() {
         .plugin(locale::init()) // 系统托盘：https://tauri.app/v1/guides/features/system-tray
         // 自定义粘贴的插件
         .plugin(paste::init())
+        // 自定义判断是否自动启动的插件
+        .plugin(auto_launch::init())
         // 系统托盘：https://tauri.app/v1/guides/features/system-tray
         .system_tray(SystemTray::new())
         .on_system_tray_event(tray::Tray::handler)
