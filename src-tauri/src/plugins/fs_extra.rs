@@ -73,11 +73,16 @@ pub async fn preview_path(path: &str, finder: bool) -> Result<()> {
 
     if cfg!(target_os = "windows") {
         program = "explorer"
+    } else if cfg!(target_os = "linux") {
+        program = "xdg-open";
     }
 
     if finder {
         if cfg!(target_os = "windows") {
             args.insert(0, "/select,")
+        } else if cfg!(target_os = "linux") {
+            showfile::show_path_in_file_manager(path);
+            return Ok(());
         } else {
             args.insert(0, "-R")
         }
