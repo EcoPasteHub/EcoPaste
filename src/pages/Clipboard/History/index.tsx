@@ -69,7 +69,7 @@ const ClipboardHistory = () => {
 					createTime: dayjs().format("YYYY-MM-DD HH:mm:ss"),
 				});
 			} else {
-				// Windows 偶尔会瞬间得到两条一模一样的数据，如果数据库还没存，这里判断一下也可以
+				// Windows 复制部分数据会瞬间得到多条一模一样的数据，如果数据库还没存，直接忽略
 				if (isEqual(payload, oldPayload)) return;
 
 				let group: HistoryItem["group"];
