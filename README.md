@@ -5,7 +5,7 @@
 <div align="center">
   <br/>
   <div>
-      English | <a href="./README.zh-CN.md">简体中文</a >
+      English | <a href="./README.zh-CN.md">简体中文</a> | <a href="./README.ja-JP.md">日本語</a>
   </div>
   <br/>
     
@@ -62,7 +62,7 @@
 
   The application is resident in the background, wake up with one click through custom shortcut keys, save time and improve efficiency.
 
-- **Local Storage & Data Security:**：
+- **Local Storage & Data Security**：
 
   All clipboard content is stored locally to ensure data privacy and security.
 
