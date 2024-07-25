@@ -24,6 +24,10 @@ const Language = () => {
 			label: "English",
 			value: "en-US",
 		},
+		{
+			label: "日本語",
+			value: "ja-JP",
+		},
 	];
 
 	return (
