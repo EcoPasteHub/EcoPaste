@@ -66,29 +66,38 @@ async fn metadata(path: PathBuf) -> Result<Metadata> {
     })
 }
 
+#[cfg(target_os = "macos")]
 #[command]
 pub async fn preview_path(path: &str, finder: bool) -> Result<()> {
-    let mut program = "open";
-    let mut args = vec![path];
+    let args = if finder { vec!["-R", path] } else { vec![path] };
 
-    if cfg!(target_os = "windows") {
-        program = "explorer"
-    } else if cfg!(target_os = "linux") {
-        program = "xdg-open";
-    }
+    Command::new("open").args(args).spawn()?;
 
+    Ok(())
+}
+
+#[cfg(target_os = "windows")]
+#[command]
+pub async fn preview_path(path: &str, finder: bool) -> Result<()> {
+    let args = if finder {
+        vec!["/select,", path]
+    } else {
+        vec![path]
+    };
+
+    Command::new("explorer").args(args).spawn()?;
+
+    Ok(())
+}
+
+#[cfg(target_os = "linux")]
+#[command]
+pub async fn preview_path(path: &str, finder: bool) -> Result<()> {
     if finder {
-        if cfg!(target_os = "windows") {
-            args.insert(0, "/select,")
-        } else if cfg!(target_os = "linux") {
-            // showfile::show_path_in_file_manager(path);
-            return Ok(());
-        } else {
-            args.insert(0, "-R")
-        }
+        showfile::show_path_in_file_manager(path);
+    } else {
+        Command::new("xdg-open").arg(path).spawn()?;
     }
-
-    Command::new(program).args(args).spawn().unwrap();
 
     Ok(())
 }
