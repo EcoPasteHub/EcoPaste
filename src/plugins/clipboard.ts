@@ -2,6 +2,7 @@ import type { ClipboardPayload, ReadImage, WinOCR } from "@/types/plugin";
 import { invoke } from "@tauri-apps/api";
 import { listen } from "@tauri-apps/api/event";
 import { isEmpty } from "arcdash";
+import { cloneDeep } from "lodash-es";
 
 /**
  * 开启监听
@@ -204,7 +205,10 @@ export const writeText = (value: string) => {
 /**
  * 剪贴板更新
  */
-export const onClipboardUpdate = (fn: (payload: ClipboardPayload) => void) => {
+export const onClipboardUpdate = (
+	fn: (payload: ClipboardPayload, oldPayload: ClipboardPayload) => void,
+) => {
+	let oldPayload: ClipboardPayload;
 	let payload: ClipboardPayload;
 
 	return listen(CLIPBOARD_PLUGIN.CLIPBOARD_UPDATE, async () => {
@@ -230,6 +234,8 @@ export const onClipboardUpdate = (fn: (payload: ClipboardPayload) => void) => {
 			payload = { ...textPayload, type: "text" };
 		}
 
-		fn(payload);
+		fn(payload, cloneDeep(oldPayload));
+
+		oldPayload = payload;
 	});
 };

@@ -7,6 +7,7 @@ import {
 	currentMonitor,
 } from "@tauri-apps/api/window";
 import { Flex } from "antd";
+import { isEqual } from "arcdash";
 import clsx from "clsx";
 import { createContext } from "react";
 import { useSnapshot } from "valtio";
@@ -52,7 +53,7 @@ const ClipboardHistory = () => {
 
 		startListen();
 
-		onClipboardUpdate(async (payload) => {
+		onClipboardUpdate(async (payload, oldPayload) => {
 			if (clipboardStore.enableAudio) {
 				audioRef.current?.play();
 			}
@@ -68,6 +69,9 @@ const ClipboardHistory = () => {
 					createTime: dayjs().format("YYYY-MM-DD HH:mm:ss"),
 				});
 			} else {
+				// Windows 偶尔会瞬间得到两条一模一样的数据，如果数据库还没存，这里判断一下也可以
+				if (isEqual(payload, oldPayload)) return;
+
 				let group: HistoryItem["group"];
 
 				switch (payload.type) {
