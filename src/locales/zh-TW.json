@@ -1,0 +1,191 @@
+{
+	"preference": {
+		"title": "偏好設置",
+		"menu": {
+			"title": {
+				"clipboard": "剪切板",
+				"settings": "通用設置",
+				"data_backup": "數據備份",
+				"about": "關於"
+			}
+		},
+		"clipboard": {
+			"basic": {
+				"title": "基礎設置",
+				"label": {
+					"wake_up_key": "喚醒窗口",
+					"enable_audio": "啟用音效",
+					"search_position": "搜索位置",
+					"search_position_top": "頂部",
+					"search_position_bottom": "底部",
+					"default_focus": "默認聚焦",
+					"default_focus_first_item": "首項",
+					"default_focus_search": "搜索",
+					"click_paste": "單擊粘貼",
+					"dbl_click_feedback": "雙擊反饋",
+					"dbl_click_feedback_none": "無反饋",
+					"dbl_click_feedback_copy": "復製內容",
+					"dbl_click_feedback_paste": "粘貼內容",
+					"window_position": "窗口位置",
+					"window_position_default": "默認位置",
+					"window_position_follow": "跟隨鼠標",
+					"window_position_center": "屏幕中心"
+				}
+			},
+			"history_capacity": {
+				"title": "歷史記錄容量",
+				"button": {
+					"clear": "清空"
+				},
+				"label": {
+					"duration": {
+						"day": "天",
+						"week": "周",
+						"month": "月",
+						"quarter": "季度",
+						"half_year": "半年",
+						"year": "年",
+						"unlimited": "無限製"
+					}
+				},
+				"hints": {
+					"clear_confirm": "確定要清空歷史記錄嗎？"
+				}
+			}
+		},
+		"settings": {
+			"basic": {
+				"title": "基礎設置",
+				"label": {
+					"auto_start": "開機自啟",
+					"auto_update": "自動更新",
+					"wake_up_key": "喚醒窗口",
+					"theme": "主題模式",
+					"theme_auto": "自動",
+					"theme_light": "亮色",
+					"theme_dark": "暗色",
+					"language": "語言選擇",
+					"tray_click": "單擊托盤",
+					"tray_click_none": "無操作",
+					"tray_click_show": "顯示應用"
+				}
+			}
+		},
+		"data_backup": {
+			"import_export": {
+				"title": "導入和導出",
+				"label": {
+					"import_confirm_title": "導入須知",
+					"export_confirm_title": "導出須知"
+				},
+				"button": {
+					"open_dir": "打開存儲目錄",
+					"import": "導入數據",
+					"export": "導出數據",
+					"confirm_export": "開始導出",
+					"confirm": "確定",
+					"cancel": "取消"
+				},
+				"hints": {
+					"import_confirm": "導入的數據會完全覆蓋所有的偏好設置以及所有的剪切板歷史數據，你確定要導入嗎？",
+					"export_confirm": "導出的數據包含所有的偏好設置以及所有的剪切板歷史數據。",
+					"importing": "正在導入",
+					"exporting": "正在導出",
+					"import_success": "導入成功"
+				}
+			}
+		},
+		"about": {
+			"button": {
+				"copy_info": "復製信息",
+				"feedback_issue": "反饋信息"
+			},
+			"hints": {
+				"introduce": "開源的跨平臺剪切板工具，讓您的工作更加高效便捷。",
+				"update_tooltip": "檢查更新",
+				"copy_tooltip": "復製應用和系統信息，用於 Issue"
+			}
+		}
+	},
+	"clipboard": {
+		"button": {
+			"context_menu": {
+				"copy": "復製",
+				"copy_ocr_text": "復製OCR文本",
+				"paste_as_plain_text": "粘貼為純文本",
+				"unfavorite": "取消收藏",
+				"favorite": "收藏",
+				"open_in_browser": "在瀏覽器訪問",
+				"send_email": "發送郵件",
+				"export_as_file": "導出為文件",
+				"preview_image": "預覽圖片",
+				"download_image": "下載圖片",
+				"show_in_finder": "在 Finder 中顯示",
+				"show_in_file_explorer": "在文件資源管理器中顯示",
+				"delete": "刪除",
+				"delete_above": "刪除上方",
+				"delete_below": "刪除下方",
+				"delete_other": "刪除其它",
+				"delete_all": "刪除所有"
+			}
+		},
+		"label": {
+			"tab": {
+				"all": "全部",
+				"text": "文本",
+				"image": "圖片",
+				"files": "文件",
+				"collection": "收藏"
+			},
+			"link": "鏈接",
+			"email": "郵箱",
+			"color": "顏色",
+			"plain_text": "純文本",
+			"rich_text": "富文本",
+			"html": "HTML",
+			"image": "圖片",
+			"n_files": "{{0}}個文件（夾）",
+			"n_chars": "{{0}}個字符"
+		},
+		"hints": {
+			"search_placeholder": "搜索",
+			"delete_confirm": "確定刪除該歷史記錄？"
+		}
+	},
+	"component": {
+		"shortcut_key": {
+			"hints": {
+				"set_shortcut_key": "按鍵盤設置快捷鍵",
+				"shortcut_key_not_set": "未設置快捷鍵"
+			}
+		},
+		"app_update": {
+			"label": {
+				"new_version_title": "發現新版本🥳",
+				"release_version": "更新版本",
+				"release_time": "更新時間",
+				"release_notes": "更新日誌"
+			},
+			"button": {
+				"confirm_update": "立即更新",
+				"cancel_update": "以後再說"
+			},
+			"hints": {
+				"checking_update": "正在檢查更新...",
+				"latest_version": "當前已是最新版本🎉",
+				"update_check_error": "檢查更新時出錯，請檢查網絡並重試。",
+				"downloading_latest_package": "正在下載最新的安裝包...",
+				"download_complete_restart": "下載完成，即將開始安裝並重啟應用。"
+			}
+		},
+		"use_theme": {
+			"button": {
+				"confirm_reboot": "重啟",
+				"cancel": "取消"
+			},
+			"hints": {
+				"reboot_confirm": "切換主題需要重啟 app 才能生效！"
+			}
+		}
+	}
+}

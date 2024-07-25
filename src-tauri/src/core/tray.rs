@@ -1,5 +1,5 @@
 use crate::{
-    locales::{get_locale, EN_US, ZH_CN},
+    locales::{get_locale, EN_US, LANGUAGES, ZH_CN, ZH_TW},
     plugins::window::{show_window, PREFERENCE_WINDOW_LABEL},
 };
 use tauri::{
@@ -20,8 +20,9 @@ impl Tray {
             .add_submenu(SystemTraySubmenu::new(
                 locale.language,
                 SystemTrayMenu::new()
-                    .add_item(CustomMenuItem::new(ZH_CN, locale.language_zh_cn))
-                    .add_item(CustomMenuItem::new(EN_US, locale.language_en_us)),
+                    .add_item(CustomMenuItem::new(ZH_CN, "简体中文"))
+                    .add_item(CustomMenuItem::new(ZH_TW, "繁體中文"))
+                    .add_item(CustomMenuItem::new(EN_US, "English")),
             ))
             .add_native_item(SystemTrayMenuItem::Separator)
             .add_item(CustomMenuItem::new("about", locale.about))
@@ -47,7 +48,7 @@ impl Tray {
                 SystemTrayEvent::LeftClick { .. } => window.emit("tray-click", true).unwrap(),
                 SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
                     "preference" => show_window(window).await,
-                    ZH_CN | EN_US => window.emit("change-language", id).unwrap(),
+                    ZH_CN | ZH_TW | EN_US => window.emit("change-language", id).unwrap(),
                     "about" => about_event(),
                     "update" => {
                         about_event();
@@ -75,7 +76,7 @@ impl Tray {
     pub fn update_item_selected(app_handle: &AppHandle, language: &str) {
         let tray = app_handle.tray_handle();
 
-        for &item in [ZH_CN, EN_US].iter() {
+        for &item in LANGUAGES.iter() {
             tray.get_item(item).set_selected(item == language).unwrap();
         }
     }
