@@ -6,7 +6,7 @@ pub const ZH_CN: &str = "zh-CN";
 pub const ZH_TW: &str = "zh-TW";
 pub const EN_US: &str = "en-US";
 
-pub const LANGUAGES: [&str; 3] = ["ZH_CN", "ZH_TW", "EN_US"];
+pub const LANGUAGES: [&str; 3] = [ZH_CN, ZH_TW, EN_US];
 
 pub struct Locale {
     pub preference: &'static str,

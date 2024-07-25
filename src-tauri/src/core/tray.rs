@@ -48,7 +48,7 @@ impl Tray {
                 SystemTrayEvent::LeftClick { .. } => window.emit("tray-click", true).unwrap(),
                 SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
                     "preference" => show_window(window).await,
-                    ZH_CN | ZH_TW | EN_US => window.emit("change-language", id).unwrap(),
+                    id if LANGUAGES.contains(&id)  => window.emit("change-language", id).unwrap(),
                     "about" => about_event(),
                     "update" => {
                         about_event();
