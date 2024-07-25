@@ -3,9 +3,9 @@
 		"title": "環境設定",
 		"menu": {
 			"title": {
-				"clipboard": "基本設定",
+				"clipboard": "クリップボード",
 				"settings": "共通設定",
-				"data_backup": "バックアップ",
+				"data_backup": "データバックアップ",
 				"about": "について"
 			}
 		},
@@ -18,12 +18,12 @@
 				"label": {
 					"wake_up_key": "ホットキー",
 					"enable_audio": "オープンサウンド",
-					"search_position": "検索位置",
-					"search_position_top": "頂部",
+					"search_position": "検索ボックス位置",
+					"search_position_top": "トップ",
 					"search_position_bottom": "ボトム",
 					"default_focus": "デフォルトフォーカス",
-					"default_focus_first_item": "最初の項目",
-					"default_focus_search": "検索",
+					"default_focus_first_item": "第1項",
+					"default_focus_search": "検索ボックス",
 					"click_paste": "シングルクリック",
 					"dbl_click_feedback": "ダブルクリック",
 					"dbl_click_feedback_none": "なし",
@@ -61,7 +61,7 @@
 		},
 		"settings": {
 			"basic": {
-				"title": "共通設定",
+				"title": "基本設定",
 				"button": {
 					"restore_default_setting": "デフォルトの復元"
 				},
