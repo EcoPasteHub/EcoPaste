@@ -204,8 +204,11 @@ export const writeText = (value: string) => {
 /**
  * 剪贴板更新
  */
-export const onClipboardUpdate = (fn: (payload: ClipboardPayload) => void) => {
+export const onClipboardUpdate = (
+	fn: (payload: ClipboardPayload, oldPayload: ClipboardPayload) => void,
+) => {
 	let payload: ClipboardPayload;
+	let oldPayload: ClipboardPayload;
 
 	return listen(CLIPBOARD_PLUGIN.CLIPBOARD_UPDATE, async () => {
 		if (await hasFiles()) {
@@ -230,6 +233,8 @@ export const onClipboardUpdate = (fn: (payload: ClipboardPayload) => void) => {
 			payload = { ...textPayload, type: "text" };
 		}
 
-		fn(payload);
+		fn(payload, { ...oldPayload });
+
+		oldPayload = payload;
 	});
 };
