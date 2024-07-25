@@ -1,5 +1,4 @@
 import type { Theme } from "@/types/store";
-import { ask } from "@tauri-apps/api/dialog";
 import { appWindow } from "@tauri-apps/api/window";
 import { useSnapshot } from "valtio";
 
@@ -41,6 +40,7 @@ export const useTheme = () => {
 			const yes = await ask(t("component.use_theme.hints.reboot_confirm"), {
 				okLabel: t("component.use_theme.button.confirm_reboot"),
 				cancelLabel: t("component.use_theme.button.cancel"),
+				type: "warning",
 			});
 
 			if (!yes) return;

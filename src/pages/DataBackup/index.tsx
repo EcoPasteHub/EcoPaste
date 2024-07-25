@@ -1,5 +1,4 @@
 import Icon from "@/components/Icon";
-import { ask } from "@tauri-apps/api/dialog";
 import { emit } from "@tauri-apps/api/event";
 import { BaseDirectory, readTextFile } from "@tauri-apps/api/fs";
 import { appDataDir } from "@tauri-apps/api/path";
@@ -49,7 +48,7 @@ const DataBackup = () => {
 				),
 				okLabel: t("preference.data_backup.import_export.button.confirm"),
 				cancelLabel: t("preference.data_backup.import_export.button.cancel"),
-				type: "error",
+				type: "warning",
 			},
 		);
 
