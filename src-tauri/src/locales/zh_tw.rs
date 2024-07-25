@@ -1,7 +1,7 @@
 use super::Locale;
 
 pub static LOCALE: Locale = Locale {
-    preference: "偏好設置",
+    preference: "偏好設定",
     language: "語言",
     about: "關於",
     update: "檢查更新",
