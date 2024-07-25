@@ -1,5 +1,5 @@
 use crate::{
-    locales::{get_locale, EN_US, LANGUAGES, ZH_CN, ZH_TW},
+    locales::{get_locale, EN_US, LANGUAGES, ZH_CN, ZH_TW, JA_JP},
     plugins::window::{show_window, PREFERENCE_WINDOW_LABEL},
 };
 use tauri::{
@@ -22,7 +22,8 @@ impl Tray {
                 SystemTrayMenu::new()
                     .add_item(CustomMenuItem::new(ZH_CN, "简体中文"))
                     .add_item(CustomMenuItem::new(ZH_TW, "繁體中文"))
-                    .add_item(CustomMenuItem::new(EN_US, "English")),
+                    .add_item(CustomMenuItem::new(EN_US, "English"))
+                    .add_item(CustomMenuItem::new(JA_JP, "日本語")),
             ))
             .add_native_item(SystemTrayMenuItem::Separator)
             .add_item(CustomMenuItem::new("about", locale.about))
