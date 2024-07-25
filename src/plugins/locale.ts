@@ -8,14 +8,12 @@ import { values } from "lodash-es";
 export const getLocale = async (): Promise<Language> => {
 	const locale = await invoke<Language>(LOCALE_PLUGIN.GET_LOCALE);
 
-	const supportLanguages = values(LANGUAGE);
-
-	if (supportLanguages.includes(locale)) {
+	if (values(LANGUAGE).includes(locale)) {
 		return locale;
 	}
 
 	if (locale.startsWith("zh")) {
-		return "zh-CN";
+		return "zh-TW";
 	}
 
 	return "en-US";
