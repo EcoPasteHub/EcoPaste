@@ -24,32 +24,25 @@ pub async fn create_window(app_handle: AppHandle, label: String, mut options: Wi
     }
 }
 
-// 显示窗口
+// 显示窗口（非linux）
+#[cfg(not(target_os = "linux"))]
 #[command]
 pub async fn show_window(window: Window) {
-    #[cfg(target_os = "macos")]
-    {
-        use super::paste::get_previous_process_id;
+    window.show().unwrap();
+    window.unminimize().unwrap();
+    window.set_focus().unwrap();
+}
 
-        get_previous_process_id(window.clone());
-    }
-
-    #[cfg(not(target_os = "linux"))]
-    {
-        window.show().unwrap();
-        window.unminimize().unwrap();
-        window.set_focus().unwrap();
-    }
-
-    #[cfg(target_os = "linux")]
-    {
-        let position = window.outer_position().unwrap();
-        window.hide().unwrap();
-        window
-            .set_position(tauri::PhysicalPosition::new(position.x, position.y))
-            .unwrap();
-        window.show().unwrap();
-    }
+// 显示窗口（linux）
+#[cfg(target_os = "linux")]
+#[command]
+pub async fn show_window(window: Window) {
+    let position = window.outer_position().unwrap();
+    window.hide().unwrap();
+    window
+        .set_position(tauri::PhysicalPosition::new(position.x, position.y))
+        .unwrap();
+    window.show().unwrap();
 }
 
 // 隐藏窗口
