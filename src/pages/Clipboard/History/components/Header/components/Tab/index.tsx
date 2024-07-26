@@ -53,7 +53,7 @@ const Tab = () => {
 	};
 
 	return (
-		<Scrollbar>
+		<Scrollbar thumbSize={0}>
 			<Flex data-tauri-drag-region>
 				{tabList.map((item) => {
 					const { key, label } = item;
