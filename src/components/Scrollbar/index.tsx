@@ -1,32 +1,27 @@
 import { MacScrollbar, type MacScrollbarProps } from "mac-scrollbar";
 
-const Scrollbar = forwardRef<HTMLElement, MacScrollbarProps>((props, ref) => {
+interface ScrollbarProps extends MacScrollbarProps {
+	thumbSize?: number;
+}
+
+const Scrollbar = forwardRef<HTMLElement, ScrollbarProps>((props, ref) => {
 	const { isDark } = useTheme();
 
-	const { children, ...rest } = props;
+	const { thumbSize = 6, children, ...rest } = props;
 
 	const containerRef = useRef<HTMLElement>(null);
 
 	useImperativeHandle(ref, () => containerRef.current!);
 
 	const getThumbStyle: MacScrollbarProps["thumbStyle"] = (horizontal) => {
-		const SCROLLBAR_THUMB_SIZE = 6;
-
 		if (horizontal) {
 			return {
-				height: SCROLLBAR_THUMB_SIZE,
+				height: thumbSize,
 			};
 		}
 
 		return {
-			width: SCROLLBAR_THUMB_SIZE,
-		};
-	};
-
-	const getTrackStyle: MacScrollbarProps["trackStyle"] = () => {
-		return {
-			border: 0,
-			background: "unset",
+			width: thumbSize,
 		};
 	};
 
@@ -36,7 +31,8 @@ const Scrollbar = forwardRef<HTMLElement, MacScrollbarProps>((props, ref) => {
 			ref={containerRef}
 			skin={isDark ? "dark" : "light"}
 			thumbStyle={getThumbStyle}
-			trackStyle={getTrackStyle}
+			// @ts-ignore
+			trackStyle={() => ({ "--ms-track-size": 0 })}
 		>
 			{children}
 		</MacScrollbar>

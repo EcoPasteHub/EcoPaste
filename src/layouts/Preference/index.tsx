@@ -79,9 +79,10 @@ const Preference = () => {
 				vertical
 				align="center"
 				justify="space-between"
-				className={clsx("color-2 h-full w-90 bg-2 pb-32 transition", [
-					isWin() ? "pt-32" : "pt-48",
-				])}
+				className={clsx(
+					"color-2 h-full w-90 bg-2 px-12 pb-32 text-center transition",
+					[isWin() ? "pt-32" : "pt-48"],
+				)}
 			>
 				<Flex vertical gap="large" onClick={(event) => event.stopPropagation()}>
 					{preferenceRoute.children?.map((item) => {

@@ -145,7 +145,7 @@ const DataBackup = () => {
 							align="center"
 							justify="center"
 							gap="small"
-							className="b b-dashed b-color-1 hover:b-primary h-102 w-102 cursor-pointer rounded-8 bg-3 transition hover:text-primary"
+							className="b b-dashed b-color-1 hover:b-primary h-102 w-102 cursor-pointer rounded-8 bg-3 px-8 text-center transition hover:text-primary"
 							onClick={event}
 						>
 							<Icon name={icon} size={26} />
