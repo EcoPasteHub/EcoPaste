@@ -142,7 +142,8 @@ const Item: FC<ItemProps> = (props) => {
 		deleteAll(list);
 	};
 
-	const deleteAll = async (list: HistoryItem[]) => {
+	const deleteAll = async (items: HistoryItem[]) => {
+		const list = items.filter((item) => !item.isCollected);
 		for await (const item of list) {
 			await deleteSQL("history", item.id);
 		}
