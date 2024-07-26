@@ -2,6 +2,7 @@ import Icon from "@/components/Icon";
 import { HistoryContext } from "@/pages/Clipboard/History";
 import type { InputProps, InputRef } from "antd";
 import { Input } from "antd";
+import { isNil } from "lodash-es";
 import type { FC } from "react";
 
 const Search: FC<InputProps> = (props) => {
@@ -18,6 +19,8 @@ const Search: FC<InputProps> = (props) => {
 
 			if (defaultFocus === "search") {
 				inputRef.current?.focus();
+			} else if (isNil(state.activeIndex)) {
+				state.activeIndex = 0;
 			}
 		},
 		onBlur() {
