@@ -33,8 +33,6 @@ extern "C" fn application_did_activate(_self: &Object, _cmd: Sel, notification: 
         let name_cstr = CStr::from_ptr(name_str);
         let name = name_cstr.to_str().unwrap_or("Unknown").to_string();
 
-        println!("{}: {}", name, process_id);
-
         let mut apps = FOREMOST_APPS.lock().unwrap();
 
         if apps.len() == 2 {

@@ -55,7 +55,7 @@ fn dispatch(event_type: &EventType) {
     simulate(event_type).unwrap();
 }
 
-// 粘贴剪切板内容
+// 粘贴剪切板内容（macos）
 #[cfg(target_os = "macos")]
 #[command]
 async fn paste(app_handle: AppHandle) {
@@ -77,7 +77,7 @@ async fn paste(app_handle: AppHandle) {
     dispatch(&EventType::KeyRelease(Key::MetaLeft));
 }
 
-// 粘贴剪切板内容
+// 粘贴剪切板内容（windows）
 #[cfg(target_os = "windows")]
 #[command]
 async fn paste() {
