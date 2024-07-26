@@ -6,7 +6,7 @@ import { HistoryContext } from "../..";
 import Item from "./components/Item";
 
 const List = () => {
-	const { state } = useContext(HistoryContext);
+	const { state, getHistoryList } = useContext(HistoryContext);
 	const { saveImageDir } = useSnapshot(clipboardStore);
 
 	const outerRef = useRef<HTMLDivElement>(null);
@@ -19,10 +19,10 @@ const List = () => {
 		getItemKey: (index) => state.historyList[index].id,
 	});
 
-	useUpdateEffect(() => {
+	useEffect(() => {
 		rowVirtualizer.scrollToIndex(0);
 
-		state.activeIndex = 0;
+		getHistoryList?.();
 	}, [state.search, state.group, state.isCollected]);
 
 	return (

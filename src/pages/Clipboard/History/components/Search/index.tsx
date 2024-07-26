@@ -2,7 +2,6 @@ import Icon from "@/components/Icon";
 import { HistoryContext } from "@/pages/Clipboard/History";
 import type { InputProps, InputRef } from "antd";
 import { Input } from "antd";
-import { isNil } from "lodash-es";
 import type { FC } from "react";
 
 const Search: FC<InputProps> = (props) => {
@@ -19,14 +18,10 @@ const Search: FC<InputProps> = (props) => {
 
 			if (defaultFocus === "search") {
 				inputRef.current?.focus();
-			} else if (isNil(state.activeIndex)) {
-				state.activeIndex = 0;
 			}
 		},
 		onBlur() {
 			inputRef.current?.blur();
-
-			state.activeIndex = -1;
 		},
 	});
 
@@ -50,6 +45,12 @@ const Search: FC<InputProps> = (props) => {
 			size="small"
 			placeholder={t("clipboard.hints.search_placeholder")}
 			className="m-auto w-336"
+			onFocus={() => {
+				state.searching = true;
+			}}
+			onBlur={() => {
+				state.searching = false;
+			}}
 			onChange={(event) => {
 				setValue(event.target.value);
 			}}

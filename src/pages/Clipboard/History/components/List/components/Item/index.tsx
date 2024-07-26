@@ -37,12 +37,14 @@ const Item: FC<ItemProps> = (props) => {
 	const containerRef = useRef<HTMLElement>(null);
 
 	useEffect(() => {
+		if (state.searching) return;
+
 		if (state.activeIndex === index) {
 			containerRef.current?.focus();
 		} else {
 			containerRef.current?.blur();
 		}
-	}, [state.activeIndex]);
+	}, [state.activeIndex, state.searching, state.historyList]);
 
 	const copy = () => {
 		switch (type) {
@@ -268,10 +270,6 @@ const Item: FC<ItemProps> = (props) => {
 		state.activeIndex = index;
 	};
 
-	const handleBlur = () => {
-		state.activeIndex = -1;
-	};
-
 	const handleKeyDown = (event: KeyboardEvent) => {
 		const isSpace = event.code === "Space";
 		const isArrowUp = event.code === "ArrowUp";
@@ -326,7 +324,6 @@ const Item: FC<ItemProps> = (props) => {
 			onClick={handleClick}
 			onDoubleClick={handleDoubleClick}
 			onFocus={handleFocus}
-			onBlur={handleBlur}
 			onKeyDown={handleKeyDown}
 		>
 			<Header {...data} copy={copy} collect={collect} deleteItem={deleteItem} />

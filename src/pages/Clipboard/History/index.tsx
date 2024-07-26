@@ -20,6 +20,7 @@ interface State extends TablePayload {
 	pin?: boolean;
 	historyList: HistoryItem[];
 	activeIndex: number;
+	searching?: boolean;
 }
 
 const INITIAL_STATE: State = {
@@ -30,7 +31,7 @@ const INITIAL_STATE: State = {
 
 interface HistoryContextValue {
 	state: State;
-	getHistoryList?: (payload?: HistoryItem) => void;
+	getHistoryList?: (payload?: HistoryItem) => Promise<void>;
 }
 
 export const HistoryContext = createContext<HistoryContextValue>({
@@ -140,10 +141,6 @@ const ClipboardHistory = () => {
 
 		toggleWindowVisible();
 	}, [wakeUpKey]);
-
-	useEffect(() => {
-		getHistoryList?.();
-	}, [state.search, state.group, state.isCollected]);
 
 	const getHistoryList = async () => {
 		const { search, group, isCollected } = state;
