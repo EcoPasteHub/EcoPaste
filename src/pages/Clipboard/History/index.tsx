@@ -182,6 +182,8 @@ const ClipboardHistory = () => {
 			const { id, createTime } = item;
 
 			if (dayjs().diff(createTime, "days") >= clipboardStore.historyCapacity) {
+				if (item.isCollected) continue;
+
 				deleteSQL("history", id);
 			}
 		}
