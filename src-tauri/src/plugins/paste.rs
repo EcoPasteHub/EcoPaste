@@ -56,6 +56,7 @@ fn dispatch(event_type: &EventType) {
 }
 
 // 粘贴剪切板内容
+#[cfg(target_os = "macos")]
 #[command]
 async fn paste(app_handle: AppHandle) {
     let app_name = app_handle.package_info().name.clone();
@@ -70,20 +71,24 @@ async fn paste(app_handle: AppHandle) {
         return;
     }
 
-    #[cfg(target_os = "windows")]
+    dispatch(&EventType::KeyPress(Key::MetaLeft));
+    dispatch(&EventType::KeyPress(Key::KeyV));
+    dispatch(&EventType::KeyRelease(Key::KeyV));
+    dispatch(&EventType::KeyRelease(Key::MetaLeft));
+}
+
+// 粘贴剪切板内容
+#[cfg(target_os = "windows")]
+#[command]
+async fn paste() {
+    focus_previous_window();
+
     sleep(100);
 
-    if cfg!(target_os = "macos") {
-        dispatch(&EventType::KeyPress(Key::MetaLeft));
-        dispatch(&EventType::KeyPress(Key::KeyV));
-        dispatch(&EventType::KeyRelease(Key::KeyV));
-        dispatch(&EventType::KeyRelease(Key::MetaLeft));
-    } else {
-        dispatch(&EventType::KeyPress(Key::ControlLeft));
-        dispatch(&EventType::KeyPress(Key::KeyV));
-        dispatch(&EventType::KeyRelease(Key::KeyV));
-        dispatch(&EventType::KeyRelease(Key::ControlLeft));
-    }
+    dispatch(&EventType::KeyPress(Key::ControlLeft));
+    dispatch(&EventType::KeyPress(Key::KeyV));
+    dispatch(&EventType::KeyRelease(Key::KeyV));
+    dispatch(&EventType::KeyRelease(Key::ControlLeft));
 }
 
 pub fn init() -> TauriPlugin<Wry> {
