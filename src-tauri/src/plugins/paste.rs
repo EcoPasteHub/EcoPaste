@@ -1,62 +1,26 @@
+use crate::core;
 use rdev::{simulate, EventType, Key};
 use std::{thread, time};
 use tauri::{
     command, generate_handler,
     plugin::{Builder, TauriPlugin},
-    Wry,
+    AppHandle, Wry,
 };
-
-#[cfg(target_os = "macos")]
-use std::sync::Mutex;
-
-// 上一个窗口的进程 id
-#[cfg(target_os = "macos")]
-static PREVIOUS_PROCESS_ID: Mutex<u64> = Mutex::new(0);
-
-// 获取上一个窗口的进程 id
-#[cfg(target_os = "macos")]
-pub fn get_previous_process_id(window: tauri::Window) {
-    use crate::plugins::window::MAIN_WINDOW_LABEL;
-
-    let label = window.label();
-
-    if label != MAIN_WINDOW_LABEL {
-        return;
-    }
-
-    use active_win_pos_rs::get_active_window;
-
-    let active_window = get_active_window().unwrap();
-
-    let mut previous_process_id = PREVIOUS_PROCESS_ID.lock().unwrap();
-
-    *previous_process_id = active_window.process_id;
-}
 
 // 让上一个窗口聚焦（macos）
 #[cfg(target_os = "macos")]
-fn focus_previous_window() {
+fn focus_previous_window(process_id: i32) {
     use cocoa::{
-        appkit::{
-            NSApplicationActivationOptions::NSApplicationActivateIgnoringOtherApps,
-            NSRunningApplication,
-        },
+        appkit::{NSApplicationActivationOptions, NSRunningApplication},
         base::nil,
     };
 
-    let previous_process_id = *PREVIOUS_PROCESS_ID.lock().unwrap();
-
-    if previous_process_id == 0 {
-        return;
-    }
-
     unsafe {
-        let app = NSRunningApplication::runningApplicationWithProcessIdentifier(
-            nil,
-            previous_process_id as i32,
-        );
+        let app = NSRunningApplication::runningApplicationWithProcessIdentifier(nil, process_id);
 
-        app.activateWithOptions_(NSApplicationActivateIgnoringOtherApps);
+        app.activateWithOptions_(
+            NSApplicationActivationOptions::NSApplicationActivateIgnoringOtherApps,
+        );
     }
 }
 
@@ -79,7 +43,7 @@ fn focus_previous_window() {
     }
 }
 
-// 线程睡眠（毫秒）
+// 线程等待（毫秒）
 fn sleep(millis: u64) {
     thread::sleep(time::Duration::from_millis(millis));
 }
@@ -92,23 +56,39 @@ fn dispatch(event_type: &EventType) {
 }
 
 // 粘贴剪切板内容
+#[cfg(target_os = "macos")]
+#[command]
+async fn paste(app_handle: AppHandle) {
+    let app_name = app_handle.package_info().name.clone();
+
+    let frontmost_apps = core::app::get_frontmost_apps();
+
+    if let Some(app) = frontmost_apps.iter().find(|app| app.name != app_name) {
+        let process_id = app.process_id;
+
+        focus_previous_window(process_id);
+    } else {
+        return;
+    }
+
+    dispatch(&EventType::KeyPress(Key::MetaLeft));
+    dispatch(&EventType::KeyPress(Key::KeyV));
+    dispatch(&EventType::KeyRelease(Key::KeyV));
+    dispatch(&EventType::KeyRelease(Key::MetaLeft));
+}
+
+// 粘贴剪切板内容
+#[cfg(target_os = "windows")]
 #[command]
 async fn paste() {
     focus_previous_window();
 
     sleep(100);
 
-    if cfg!(target_os = "macos") {
-        dispatch(&EventType::KeyPress(Key::MetaLeft));
-        dispatch(&EventType::KeyPress(Key::KeyV));
-        dispatch(&EventType::KeyRelease(Key::KeyV));
-        dispatch(&EventType::KeyRelease(Key::MetaLeft));
-    } else {
-        dispatch(&EventType::KeyPress(Key::ControlLeft));
-        dispatch(&EventType::KeyPress(Key::KeyV));
-        dispatch(&EventType::KeyRelease(Key::KeyV));
-        dispatch(&EventType::KeyRelease(Key::ControlLeft));
-    }
+    dispatch(&EventType::KeyPress(Key::ControlLeft));
+    dispatch(&EventType::KeyPress(Key::KeyV));
+    dispatch(&EventType::KeyRelease(Key::KeyV));
+    dispatch(&EventType::KeyRelease(Key::ControlLeft));
 }
 
 pub fn init() -> TauriPlugin<Wry> {

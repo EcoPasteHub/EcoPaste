@@ -2,7 +2,7 @@
 name = "eco-paste"
 version = "0.0.4"
 description = "一款开源的跨平台剪切板管理工具"
-authors = ["ayangweb", "Azir-11", "orangelckc", "pkptzx", "AuroraTea"]
+authors = []
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -30,6 +30,7 @@ active-win-pos-rs = "0.8.3"
 
 [target."cfg(target_os = \"macos\")".dependencies]
 cocoa = "0.25.0"
+objc = "0.2.7"
 
 [target."cfg(target_os = \"windows\")".dependencies]
 winapi = { version = "0.3", features = ["winuser"] }

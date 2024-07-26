@@ -1218,6 +1218,7 @@ dependencies = [
  "current_locale",
  "flate2",
  "mouse_position",
+ "objc",
  "rdev",
  "serde",
  "serde_json",

@@ -1,5 +1,5 @@
 use crate::{
-    locales::{get_locale, EN_US, LANGUAGES, ZH_CN, ZH_TW, JA_JP},
+    locales::{get_locale, EN_US, JA_JP, LANGUAGES, ZH_CN, ZH_TW},
     plugins::window::{show_window, PREFERENCE_WINDOW_LABEL},
 };
 use tauri::{
@@ -49,7 +49,7 @@ impl Tray {
                 SystemTrayEvent::LeftClick { .. } => window.emit("tray-click", true).unwrap(),
                 SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
                     "preference" => show_window(window).await,
-                    id if LANGUAGES.contains(&id)  => window.emit("change-language", id).unwrap(),
+                    id if LANGUAGES.contains(&id) => window.emit("change-language", id).unwrap(),
                     "about" => about_event(),
                     "update" => {
                         about_event();

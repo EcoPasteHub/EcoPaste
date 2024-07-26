@@ -31,18 +31,11 @@ fn main() {
 
             #[cfg(target_os = "macos")]
             {
-                // 将窗口位于程序坞之上
-                // use cocoa::appkit::{NSMainMenuWindowLevel, NSWindow};
-                // use cocoa::base::id;
-
-                // unsafe {
-                //     let ns_window = _window.ns_window().unwrap() as id;
-                //     ns_window.setLevel_(NSMainMenuWindowLevel as i64 + 1);
-                // }
-
                 // 隐藏 mac 下的任务栏图标：https://github.com/tauri-apps/tauri/issues/4852#issuecomment-1312716378
                 // BUG: 打包之后主窗口没办法显示在全屏的屏幕上
                 app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+
+                core::app::observe_app();
             }
 
             Ok(())
