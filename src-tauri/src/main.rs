@@ -26,7 +26,7 @@ fn main() {
             let _window = app.get_window(MAIN_WINDOW_LABEL).unwrap();
 
             // 在开发环境中启动时打开控制台：https://tauri.app/v1/guides/debugging/application/#opening-devtools-programmatically
-            #[cfg(debug_assertions)]
+            #[cfg(any(debug_assertions, feature = "devtools"))]
             _window.open_devtools();
 
             #[cfg(target_os = "macos")]
