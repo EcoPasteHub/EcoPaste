@@ -1,5 +1,5 @@
 import type { Language as TypeLanguage } from "@/types/store";
-import { Flex, Segmented } from "antd";
+import { Flex, Select } from "antd";
 import { useSnapshot } from "valtio";
 
 interface Option {
@@ -33,7 +33,7 @@ const Language = () => {
 	return (
 		<Flex align="center">
 			<span>{t("preference.settings.basic.label.language")}：</span>
-			<Segmented
+			<Select
 				value={language}
 				options={options}
 				onChange={(value) => {
