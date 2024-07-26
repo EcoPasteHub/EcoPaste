@@ -79,9 +79,14 @@ fn focus_previous_window() {
     }
 }
 
+// 线程睡眠（毫秒）
+fn sleep(millis: u64) {
+    thread::sleep(time::Duration::from_millis(millis));
+}
+
 // 模拟键盘按键
 fn dispatch(event_type: &EventType) {
-    thread::sleep(time::Duration::from_millis(20));
+    sleep(20);
 
     simulate(event_type).unwrap();
 }
@@ -90,6 +95,8 @@ fn dispatch(event_type: &EventType) {
 #[command]
 async fn paste() {
     focus_previous_window();
+
+    sleep(100);
 
     if cfg!(target_os = "macos") {
         dispatch(&EventType::KeyPress(Key::MetaLeft));
