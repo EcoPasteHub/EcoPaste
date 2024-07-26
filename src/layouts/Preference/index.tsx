@@ -13,10 +13,14 @@ const Preference = () => {
 	const { pathname } = useLocation();
 	const navigate = useNavigate();
 	const { wakeUpKey, autoStart, language } = useSnapshot(globalStore);
-	const { isDark, toggleTheme } = useTheme();
+	const { theme, isDark, toggleTheme } = useTheme();
 	const { t } = useTranslation();
 
 	useMount(() => {
+		if (!isWin()) {
+			toggleTheme(theme);
+		}
+
 		navigate("clipboard");
 
 		subscribe(globalStore, () => {

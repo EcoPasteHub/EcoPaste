@@ -25,8 +25,6 @@ const Search: FC<InputProps> = (props) => {
 		},
 		onBlur() {
 			inputRef.current?.blur();
-
-			state.activeIndex = -1;
 		},
 	});
 
@@ -50,6 +48,12 @@ const Search: FC<InputProps> = (props) => {
 			size="small"
 			placeholder={t("clipboard.hints.search_placeholder")}
 			className="m-auto w-336"
+			onFocus={() => {
+				state.searching = true;
+			}}
+			onBlur={() => {
+				state.searching = false;
+			}}
 			onChange={(event) => {
 				setValue(event.target.value);
 			}}
