@@ -690,9 +690,9 @@ dependencies = [
 
 [[package]]
 name = "clipboard-rs"
-version = "0.1.9"
+version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c2e06efb33149a3fbb88850b8539f1c97c834bf83a93f9a328f962ff29f7e337"
+checksum = "a81f249158e88a5f6e199ed52dd9f18dd22740876796901ce9b290eb07791107"
 dependencies = [
  "clipboard-win",
  "cocoa 0.25.0",
