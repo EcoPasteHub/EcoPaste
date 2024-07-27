@@ -6,7 +6,7 @@ use tauri::{
 };
 
 // 主窗口的label
-pub static MAIN_WINDOW_LABEL: &str = "main";
+// pub static MAIN_WINDOW_LABEL: &str = "main";
 // 偏好设置窗口的label
 pub static PREFERENCE_WINDOW_LABEL: &str = "preference";
 

@@ -16,7 +16,15 @@ const Preference = () => {
 	const { theme, isDark, toggleTheme } = useTheme();
 	const { t } = useTranslation();
 
-	useMount(() => {
+	useMount(async () => {
+		const autoLaunched = await isAutoLaunch();
+
+		if (!autoLaunched) {
+			showWindow();
+		}
+
+		createWindow("/");
+
 		if (!isWin()) {
 			toggleTheme(theme);
 		}
