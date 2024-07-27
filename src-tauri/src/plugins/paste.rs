@@ -1,19 +1,23 @@
-use crate::core;
 use rdev::{simulate, EventType, Key};
 use std::{thread, time};
 use tauri::{
     command, generate_handler,
     plugin::{Builder, TauriPlugin},
-    AppHandle, Wry,
+    Wry,
 };
 
 // 让上一个窗口聚焦（macos）
 #[cfg(target_os = "macos")]
-fn focus_previous_window(process_id: i32) {
+fn focus_previous_window() {
+    use crate::core::app::get_frontmost_apps;
     use cocoa::{
         appkit::{NSApplicationActivationOptions, NSRunningApplication},
         base::nil,
     };
+
+    let frontmost_apps = get_frontmost_apps();
+
+    let process_id = frontmost_apps[0].process_id;
 
     unsafe {
         let app = NSRunningApplication::runningApplicationWithProcessIdentifier(nil, process_id);
@@ -55,40 +59,24 @@ fn dispatch(event_type: &EventType) {
     simulate(event_type).unwrap();
 }
 
-// 粘贴剪切板内容（macos）
-#[cfg(target_os = "macos")]
-#[command]
-async fn paste(app_handle: AppHandle) {
-    let app_name = app_handle.package_info().name.clone();
-
-    let frontmost_apps = core::app::get_frontmost_apps();
-
-    if let Some(app) = frontmost_apps.iter().find(|app| app.name != app_name) {
-        let process_id = app.process_id;
-
-        focus_previous_window(process_id);
-    } else {
-        return;
-    }
-
-    dispatch(&EventType::KeyPress(Key::MetaLeft));
-    dispatch(&EventType::KeyPress(Key::KeyV));
-    dispatch(&EventType::KeyRelease(Key::KeyV));
-    dispatch(&EventType::KeyRelease(Key::MetaLeft));
-}
-
-// 粘贴剪切板内容（windows）
-#[cfg(target_os = "windows")]
+// 粘贴剪切板内容
 #[command]
 async fn paste() {
     focus_previous_window();
 
     sleep(100);
 
-    dispatch(&EventType::KeyPress(Key::ControlLeft));
-    dispatch(&EventType::KeyPress(Key::KeyV));
-    dispatch(&EventType::KeyRelease(Key::KeyV));
-    dispatch(&EventType::KeyRelease(Key::ControlLeft));
+    if cfg!(target_os = "macos") {
+        dispatch(&EventType::KeyPress(Key::MetaLeft));
+        dispatch(&EventType::KeyPress(Key::KeyV));
+        dispatch(&EventType::KeyRelease(Key::KeyV));
+        dispatch(&EventType::KeyRelease(Key::MetaLeft));
+    } else {
+        dispatch(&EventType::KeyPress(Key::ControlLeft));
+        dispatch(&EventType::KeyPress(Key::KeyV));
+        dispatch(&EventType::KeyRelease(Key::KeyV));
+        dispatch(&EventType::KeyRelease(Key::ControlLeft));
+    }
 }
 
 pub fn init() -> TauriPlugin<Wry> {
