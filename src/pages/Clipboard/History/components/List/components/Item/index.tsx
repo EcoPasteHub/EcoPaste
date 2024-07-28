@@ -29,10 +29,9 @@ const Item: FC<ItemProps> = (props) => {
 	const { id, type, group, value, search, createTime, isCollected } = data;
 
 	const { state, getHistoryList } = useContext(HistoryContext);
-	const { appInfo } = useSnapshot(globalStore);
+	const { appInfo, theme } = useSnapshot(globalStore);
 	const { doubleClickFeedback, clickPaste } = useSnapshot(clipboardStore);
 	const { t } = useTranslation();
-	const { isDark } = useTheme();
 
 	const containerRef = useRef<HTMLElement>(null);
 
@@ -258,7 +257,8 @@ const Item: FC<ItemProps> = (props) => {
 
 		showMenu({
 			items: menus.filter(({ hide }) => !hide),
-			theme: isDark ? "dark" : "light",
+			// @ts-ignore
+			theme,
 		});
 	};
 
