@@ -5,7 +5,7 @@
 <div align="center">
   <br/>
   <div>
-      日本語 | <a href="https://github.com/ayangweb/EcoPaste">English</a> | <a href="./README.zh-CN.md">简体中文</a> 
+      日本語 | <a href="./README.md">English</a> | <a href="./README.zh-CN.md">简体中文</a> 
   </div>
   <br/>
     
@@ -47,9 +47,9 @@
 - **Windows**: [Universal](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.4/EcoPaste_0.0.4_x64_zh-CN.msi)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./images/app-dark.zh-CN.png" />
-  <source media="(prefers-color-scheme: light)" srcset="./images/app-light.zh-CN.png" />
-  <img src="./images/app-light.zh-CN.png" />
+  <source media="(prefers-color-scheme: dark)" srcset="./images/app-dark.ja-JP.png" />
+  <source media="(prefers-color-scheme: light)" srcset="./images/app-light.ja-JP.png" />
+  <img src="./images/app-light.ja-JP.png" />
 </picture>
 
 ## 機能の概要

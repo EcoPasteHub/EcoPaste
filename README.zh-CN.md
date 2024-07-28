@@ -5,7 +5,7 @@
 <div align="center">
   <br/>
   <div>
-      简体中文 | <a href="https://github.com/ayangweb/EcoPaste">English</a> | <a href="./README.ja-JP.md">日本語</a>
+      简体中文 | <a href="./README.md">English</a> | <a href="./README.ja-JP.md">日本語</a>
   </div>
   <br/>
     
