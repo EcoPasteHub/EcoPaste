@@ -47,9 +47,9 @@
 - **Windows**: [Universal](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.5/EcoPaste_0.0.5_x64_zh-CN.msi)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./images/app-dark.zh-CN.png" />
-  <source media="(prefers-color-scheme: light)" srcset="./images/app-light.zh-CN.png" />
-  <img src="./images/app-light.zh-CN.png" />
+  <source media="(prefers-color-scheme: dark)" srcset="./images/app-dark.en-US.png" />
+  <source media="(prefers-color-scheme: light)" srcset="./images/app-light.en-US.png" />
+  <img src="./images/app-light.en-US.png" />
 </picture>
 
 ## Features
