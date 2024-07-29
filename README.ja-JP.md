@@ -5,7 +5,7 @@
 <div align="center">
   <br/>
   <div>
-      日本語 | <a href="./README.md">English</a> | <a href="./README.zh-CN.md">简体中文</a> 
+      日本語 | <a href="./README.md">English</a> | <a href="./README.zh-CN.md">简体中文</a>
   </div>
   <br/>
     
@@ -84,7 +84,7 @@
 
 - **拡張コンテキストメニュー**：
 
-  カスタマイズ可能なオプションを提供し、ユーザーが設定を自分の好みに合わせて調整し、ニーズに合った理想的なクリップボード管理ツールを作成できるようにします。
+  豊富な右クリックメニューオプションを提供することで、ユーザーは様々な操作を素早く行うことができ、使い勝手が大幅に向上します。
 
 - **高度なカスタマイズ可能**：
 
@@ -139,7 +139,7 @@ sudo xattr -r -d com.apple.quarantine /Applications/EcoPaste.app
 
 `EcoPaste` への貢献をいただいた皆様に感謝いたします。 
 
-このプロジェクトに貢献したい場合は、参照してください[貢献ガイド](./.github/CONTRIBUTING.ja-JP.md).
+このプロジェクトに貢献したい場合は、参照してください [貢献ガイド](./.github/CONTRIBUTING.ja-JP.md).
 
 <a href="https://github.com/ayangweb/EcoPaste/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=ayangweb/EcoPaste" />

@@ -84,7 +84,7 @@
 
 - **Enhanced Context Menu**：
 
-  Provides customizable options, allowing users to adjust settings to their preferences and create the ideal clipboard management tool for their needs.
+  Providing rich right-click menu options, users can quickly perform various operations, which greatly improves the ease of use.
 
 - **Highly Customizable**：
 

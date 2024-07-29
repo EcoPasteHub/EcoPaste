@@ -84,7 +84,7 @@
 
 - **右键菜单，操作便捷**：
 
-  提供丰富的自定义选项，用户可以根据自己的使用习惯和需求调整应用的各项设置，打造最适合自己的剪切板管理工具。
+  提供丰富的右键菜单选项，用户可以快速进行各种操作，极大地提高了使用便捷性。
 
 - **自由定制，个性体验**：
 
@@ -121,10 +121,6 @@ sudo xattr -r -d com.apple.quarantine /Applications/EcoPaste.app
 
 </details>
 
-## 参与贡献
-
-请参考 [Contributing Guide](./.github/CONTRIBUTING.zh-CN.md)。
-
 ## 历史星标
 
 <a href="https://star-history.com/#ayangweb/EcoPaste&Date">
@@ -136,7 +132,11 @@ sudo xattr -r -d com.apple.quarantine /Applications/EcoPaste.app
  </picture>
 </a>
 
-## 感谢贡献者们做出的努力
+## 贡献者
+
+感谢大家为 `EcoPaste` 做出的贡献。
+
+如果你想为这个项目做出贡献，请参考 [贡献指南](./.github/CONTRIBUTING.zh-CN.md)。
 
 <a href="https://github.com/ayangweb/EcoPaste/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=ayangweb/EcoPaste" />
