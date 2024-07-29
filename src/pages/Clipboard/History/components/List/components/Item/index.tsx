@@ -123,7 +123,9 @@ const Item: FC<ItemProps> = (props) => {
 			return isMore || isDifferent;
 		});
 
-		deleteAll(list);
+		await deleteAll(list);
+
+		state.scrollToIndex?.(0);
 	};
 
 	const deleteBelow = async () => {

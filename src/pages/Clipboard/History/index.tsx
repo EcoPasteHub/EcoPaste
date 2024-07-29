@@ -21,6 +21,7 @@ interface State extends TablePayload {
 	historyList: HistoryItem[];
 	activeIndex: number;
 	searching?: boolean;
+	scrollToIndex?: (index: number) => void;
 }
 
 const INITIAL_STATE: State = {

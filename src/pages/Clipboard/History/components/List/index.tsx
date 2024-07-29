@@ -19,6 +19,10 @@ const List = () => {
 		getItemKey: (index) => state.historyList[index].id,
 	});
 
+	useMount(() => {
+		state.scrollToIndex = rowVirtualizer.scrollToIndex;
+	});
+
 	useEffect(() => {
 		rowVirtualizer.scrollToIndex(0);
 
