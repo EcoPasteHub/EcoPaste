@@ -28,11 +28,6 @@ pub async fn create_window(app_handle: AppHandle, label: String, mut options: Wi
 #[cfg(not(target_os = "linux"))]
 #[command]
 pub async fn show_window(window: Window) {
-    #[cfg(target_os = "windows")]
-    {
-        use crate::core::app::win::update_foremost_apps;
-        update_foremost_apps()
-    }
     window.show().unwrap();
     window.unminimize().unwrap();
     window.set_focus().unwrap();

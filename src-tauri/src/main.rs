@@ -39,6 +39,10 @@ fn main() {
 
                 core::app::observe_app();
             }
+            #[cfg(target_os = "windows")]
+            {
+                core::app::win::observe_app();
+            }
 
             Ok(())
         })
