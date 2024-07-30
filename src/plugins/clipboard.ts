@@ -1,7 +1,7 @@
 import type { ClipboardPayload, ReadImage, WinOCR } from "@/types/plugin";
 import { invoke } from "@tauri-apps/api";
 import { listen } from "@tauri-apps/api/event";
-import { isEmpty } from "arcdash";
+import { isEmpty, isEqual } from "arcdash";
 
 /**
  * 开启监听
@@ -156,6 +156,37 @@ export const readText = async (): Promise<ClipboardPayload> => {
 };
 
 /**
+ * 读取剪贴板内容
+ */
+export const readClipboard = async () => {
+	let payload!: ClipboardPayload;
+
+	if (await hasFiles()) {
+		const filesPayload = await readFiles();
+
+		payload = { ...filesPayload, type: "files" };
+	} else if (await hasImage()) {
+		const imagePayload = await readImage();
+
+		payload = { ...imagePayload, type: "image" };
+	} else if (await hasHTML()) {
+		const htmlPayload = await readHTML();
+
+		payload = { ...htmlPayload, type: "html" };
+	} else if (await hasRichText()) {
+		const richTextPayload = await readRichText();
+
+		payload = { ...richTextPayload, type: "rich-text" };
+	} else if (await hasText()) {
+		const textPayload = await readText();
+
+		payload = { ...textPayload, type: "text" };
+	}
+
+	return payload;
+};
+
+/**
  * 文件写入剪切板
  */
 export const writeFiles = (value: string[]) => {
@@ -207,34 +238,22 @@ export const writeText = (value: string) => {
 export const onClipboardUpdate = (
 	fn: (payload: ClipboardPayload, oldPayload: ClipboardPayload) => void,
 ) => {
-	let payload: ClipboardPayload;
+	// 防抖间隔（ms）
+	const DEBOUNCE = 200;
+	let lastUpdatedAt = 0;
 	let oldPayload: ClipboardPayload;
 
 	return listen(CLIPBOARD_PLUGIN.CLIPBOARD_UPDATE, async () => {
-		if (await hasFiles()) {
-			const filesPayload = await readFiles();
+		const payload = await readClipboard();
 
-			payload = { ...filesPayload, type: "files" };
-		} else if (await hasImage()) {
-			const imagePayload = await readImage();
-
-			payload = { ...imagePayload, type: "image" };
-		} else if (await hasHTML()) {
-			const htmlPayload = await readHTML();
-
-			payload = { ...htmlPayload, type: "html" };
-		} else if (await hasRichText()) {
-			const richTextPayload = await readRichText();
-
-			payload = { ...richTextPayload, type: "rich-text" };
-		} else if (await hasText()) {
-			const textPayload = await readText();
-
-			payload = { ...textPayload, type: "text" };
+		if (
+			Date.now() - lastUpdatedAt > DEBOUNCE ||
+			!isEqual(payload, oldPayload)
+		) {
+			fn(payload, { ...oldPayload });
 		}
 
-		fn(payload, { ...oldPayload });
-
+		lastUpdatedAt = Date.now();
 		oldPayload = payload;
 	});
 };
