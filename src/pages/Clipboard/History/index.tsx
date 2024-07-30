@@ -7,7 +7,6 @@ import {
 	currentMonitor,
 } from "@tauri-apps/api/window";
 import { Flex } from "antd";
-import { isEqual } from "arcdash";
 import clsx from "clsx";
 import { createContext } from "react";
 import { useSnapshot } from "valtio";
@@ -51,7 +50,7 @@ const ClipboardHistory = () => {
 
 		startListen();
 
-		onClipboardUpdate(async (payload, oldPayload) => {
+		onClipboardUpdate(async (payload) => {
 			if (clipboardStore.enableAudio) {
 				audioRef.current?.play();
 			}
@@ -67,9 +66,6 @@ const ClipboardHistory = () => {
 					createTime: dayjs().format("YYYY-MM-DD HH:mm:ss"),
 				});
 			} else {
-				// Windows 复制部分数据会瞬间得到多条一模一样的数据，如果数据库还没存，直接忽略
-				if (isEqual(payload, oldPayload)) return;
-
 				let group: HistoryItem["group"];
 
 				switch (payload.type) {
