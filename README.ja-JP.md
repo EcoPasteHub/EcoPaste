@@ -134,7 +134,7 @@ brew untap ayangweb/EcoPaste
 ## Q&A
 
 <details>
-<summary>1. MacOSでは、"EcoPaste.app" は壊れて いるため開けません。</summary>
+<summary>1. MacOS のヒント EcoPaste.app は壊れているため開けません。</summary>
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./images/damaged-dark.ja-JP.png" />

@@ -134,7 +134,7 @@ brew untap ayangweb/EcoPaste
 ## 常见问题
 
 <details>
-<summary>1. MacOS 提示 app 已损坏，无法打开。</summary>
+<summary>1. MacOS 提示 EcoPaste.app 已损坏，无法打开。</summary>
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./images/damaged-dark.zh-CN.png" />

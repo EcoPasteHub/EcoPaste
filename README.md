@@ -134,7 +134,7 @@ brew untap ayangweb/EcoPaste
 ## Q&A
 
 <details>
-<summary>1. "EcoPaste Is Damaged and Can't Be Opened" on MacOS </summary>
+<summary>1. "EcoPaste.app is damaged and can't be opened" on MacOS </summary>
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./images/damaged-dark.en-US.png" />
