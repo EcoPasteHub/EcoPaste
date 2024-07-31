@@ -31,6 +31,10 @@
 				"useTemplate": {
 					"level": "error",
 					"fix": "safe"
+				},
+				"useSelfClosingElements": {
+					"level": "error",
+					"fix": "safe"
 				}
 			},
 			"security": {
