@@ -63,7 +63,7 @@ fn main() {
         .plugin(window::init())
         // 自定义的 fs_extra 插件
         .plugin(fs_extra::init())
-        // 自定义剪切板插件
+        // 自定义剪贴板插件
         .plugin(clipboard::init())
         // 右键菜单插件：https://github.com/c2r0b/tauri-plugin-context-menu
         .plugin(tauri_plugin_context_menu::init())

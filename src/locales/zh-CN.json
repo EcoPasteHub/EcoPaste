@@ -3,7 +3,7 @@
 		"title": "偏好设置",
 		"menu": {
 			"title": {
-				"clipboard": "剪切板",
+				"clipboard": "剪贴板",
 				"settings": "通用设置",
 				"data_backup": "数据备份",
 				"about": "关于"
@@ -87,8 +87,8 @@
 					"cancel": "取消"
 				},
 				"hints": {
-					"import_confirm": "导入的数据会完全覆盖所有的偏好设置以及所有的剪切板历史数据，你确定要导入吗？",
-					"export_confirm": "导出的数据包含所有的偏好设置以及所有的剪切板历史数据。",
+					"import_confirm": "导入的数据会完全覆盖所有的偏好设置以及所有的剪贴板历史数据，你确定要导入吗？",
+					"export_confirm": "导出的数据包含所有的偏好设置以及所有的剪贴板历史数据。",
 					"importing": "正在导入",
 					"exporting": "正在导出",
 					"import_success": "导入成功"
@@ -101,7 +101,7 @@
 				"feedback_issue": "反馈信息"
 			},
 			"hints": {
-				"introduce": "开源的跨平台剪切板工具，让您的工作更加高效便捷。",
+				"introduce": "开源的跨平台剪贴板工具，让您的工作更加高效便捷。",
 				"update_tooltip": "检查更新",
 				"copy_tooltip": "复制应用和系统信息，用于 Issue"
 			}
