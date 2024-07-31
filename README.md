@@ -166,9 +166,9 @@ After that, you can open the app normally.
 
 ## Contributors
 
-Thanks to everyone who has already contributed to `EcoPaste`. 
+Thanks to everyone who has already contributed to EcoPaste. 
 
-If you want to contribute to this project, please refer to [Contributing Guide](./.github/CONTRIBUTING.md).
+If you want to contribute to EcoPaste, please refer to [Contributing Guide](./.github/CONTRIBUTING.md).
 
 <a href="https://github.com/ayangweb/EcoPaste/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=ayangweb/EcoPaste" />

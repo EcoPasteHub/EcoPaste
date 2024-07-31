@@ -166,9 +166,9 @@ sudo xattr -r -d com.apple.quarantine /Applications/EcoPaste.app
 
 ## 貢献者
 
-`EcoPaste` への貢献をいただいた皆様に感謝いたします。 
+EcoPaste への貢献をいただいた皆様に感謝いたします。 
 
-このプロジェクトに貢献したい場合は、参照してください [貢献ガイド](./.github/CONTRIBUTING.ja-JP.md).
+EcoPaste に貢献したい方は、[貢献ガイドライン](./.github/CONTRIBUTING.zh-CN.md)を参照してください。
 
 <a href="https://github.com/ayangweb/EcoPaste/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=ayangweb/EcoPaste" />
