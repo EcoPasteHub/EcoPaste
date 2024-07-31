@@ -59,17 +59,17 @@
 
 HomeBrew:
 
-1. タップを追加する:
+1. リポジトリを追加:
 ```shell
 brew tap ayangweb/EcoPaste
 ```
 
-2. 取り付け:
+2. インストール:
 ```shell
 brew install ecopaste
 ```
 
-3. 更新:
+3. アップデート:
 ```shell
 brew upgrade ecopaste
 ```
@@ -168,7 +168,7 @@ sudo xattr -r -d com.apple.quarantine /Applications/EcoPaste.app
 
 EcoPaste への貢献をいただいた皆様に感謝いたします。 
 
-EcoPaste に貢献したい方は、[貢献ガイドライン](./.github/CONTRIBUTING.zh-CN.md)を参照してください。
+EcoPaste に貢献したい方は、[貢献ガイドライン](./.github/CONTRIBUTING.ja-JP.md)を参照してください。
 
 <a href="https://github.com/ayangweb/EcoPaste/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=ayangweb/EcoPaste" />
