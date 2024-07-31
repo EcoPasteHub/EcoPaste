@@ -39,18 +39,47 @@
       />  
     </a >
   </div>
+
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./images/app-dark.ja-JP.png" />
+    <source media="(prefers-color-scheme: light)" srcset="./images/app-light.ja-JP.png" />
+    <img src="./images/app-light.ja-JP.png" />
+  </picture>
 </div>
 
 ## ダウンロード
 
-- **MacOS**: [Apple Silicon](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.4/EcoPaste_0.0.4_aarch64.dmg) | [Intel](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.4/EcoPaste_0.0.4_x64.dmg)
-- **Windows**: [Universal](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.4/EcoPaste_0.0.4_x64_zh-CN.msi)
+### Windows
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./images/app-dark.ja-JP.png" />
-  <source media="(prefers-color-scheme: light)" srcset="./images/app-light.ja-JP.png" />
-  <img src="./images/app-light.ja-JP.png" />
-</picture>
+手動インストール: [Universal](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.5/EcoPaste_0.0.5_x64_zh-CN.msi)
+
+### Macos
+
+手動インストール: [Apple Silicon](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.5/EcoPaste_0.0.5_aarch64.dmg) | [Intel](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.5/EcoPaste_0.0.5_x64.dmg)
+
+HomeBrew:
+
+1. タップを追加する:
+```shell
+brew tap ayangweb/EcoPaste
+```
+
+2. 取り付け:
+```shell
+brew install ecopaste
+```
+
+3. 更新:
+```shell
+brew upgrade ecopaste
+```
+
+4. アンインストール:
+```shell
+brew uninstall --cask ecopaste
+
+brew untap ayangweb/EcoPaste
+```
 
 ## 機能の概要
 
@@ -137,9 +166,9 @@ sudo xattr -r -d com.apple.quarantine /Applications/EcoPaste.app
 
 ## 貢献者
 
-`EcoPaste` への貢献をいただいた皆様に感謝いたします。 
+EcoPaste への貢献をいただいた皆様に感謝いたします。 
 
-このプロジェクトに貢献したい場合は、参照してください [貢献ガイド](./.github/CONTRIBUTING.ja-JP.md).
+EcoPaste に貢献したい方は、[貢献ガイドライン](./.github/CONTRIBUTING.zh-CN.md)を参照してください。
 
 <a href="https://github.com/ayangweb/EcoPaste/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=ayangweb/EcoPaste" />

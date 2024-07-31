@@ -39,18 +39,47 @@
       />  
     </a >
   </div>
+
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./images/app-dark.zh-CN.png" />
+    <source media="(prefers-color-scheme: light)" srcset="./images/app-light.zh-CN.png" />
+    <img src="./images/app-light.zh-CN.png" />
+  </picture>
 </div>
 
 ## 下载
 
-- **MacOS**: [Apple Silicon](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.4/EcoPaste_0.0.4_aarch64.dmg) | [Intel](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.4/EcoPaste_0.0.4_x64.dmg)
-- **Windows**: [Universal](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.4/EcoPaste_0.0.4_x64_zh-CN.msi)
+### Windows
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./images/app-dark.zh-CN.png" />
-  <source media="(prefers-color-scheme: light)" srcset="./images/app-light.zh-CN.png" />
-  <img src="./images/app-light.zh-CN.png" />
-</picture>
+手动安装：[Universal](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.5/EcoPaste_0.0.5_x64_zh-CN.msi)
+
+### Macos
+
+手动安装：[Apple Silicon](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.5/EcoPaste_0.0.5_aarch64.dmg) | [Intel](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.5/EcoPaste_0.0.5_x64.dmg)
+
+HomeBrew：
+
+1. 添加我们的 tap:
+```shell
+brew tap ayangweb/EcoPaste
+```
+
+2. 安装:
+```shell
+brew install ecopaste
+```
+
+3. 更新:
+```shell
+brew upgrade ecopaste
+```
+
+4. 卸载:
+```shell
+brew uninstall --cask ecopaste
+
+brew untap ayangweb/EcoPaste
+```
 
 ## 功能介绍
 
@@ -134,9 +163,9 @@ sudo xattr -r -d com.apple.quarantine /Applications/EcoPaste.app
 
 ## 贡献者
 
-感谢大家为 `EcoPaste` 做出的贡献。
+感谢大家为 EcoPaste 做出的贡献。
 
-如果你想为这个项目做出贡献，请参考 [贡献指南](./.github/CONTRIBUTING.zh-CN.md)。
+如果你也想为 EcoPaste 做出贡献，请参考 [贡献指南](./.github/CONTRIBUTING.zh-CN.md)。
 
 <a href="https://github.com/ayangweb/EcoPaste/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=ayangweb/EcoPaste" />

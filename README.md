@@ -39,18 +39,47 @@
       />  
     </a >
   </div>
+  
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./images/app-dark.en-US.png" />
+    <source media="(prefers-color-scheme: light)" srcset="./images/app-light.en-US.png" />
+    <img src="./images/app-light.en-US.png" />
+ </picture>
 </div>
 
 ## Download
 
-- **MacOS**: [Apple Silicon](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.5/EcoPaste_0.0.5_aarch64.dmg) | [Intel](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.5/EcoPaste_0.0.5_x64.dmg)
-- **Windows**: [Universal](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.5/EcoPaste_0.0.5_x64_zh-CN.msi)
+### Windows
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./images/app-dark.en-US.png" />
-  <source media="(prefers-color-scheme: light)" srcset="./images/app-light.en-US.png" />
-  <img src="./images/app-light.en-US.png" />
-</picture>
+Install Manually: [Universal](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.5/EcoPaste_0.0.5_x64_zh-CN.msi)
+
+### Macos
+
+Install Manually: [Apple Silicon](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.5/EcoPaste_0.0.5_aarch64.dmg) | [Intel](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.5/EcoPaste_0.0.5_x64.dmg)
+
+HomeBrew:
+
+1. Add our tap:
+```shell
+brew tap ayangweb/EcoPaste
+```
+
+2. Install:
+```shell
+brew install ecopaste
+```
+
+3. Upgrade:
+```shell
+brew upgrade ecopaste
+```
+
+4. Uninstall:
+```shell
+brew uninstall --cask ecopaste
+
+brew untap ayangweb/EcoPaste
+```
 
 ## Features
 
@@ -137,9 +166,9 @@ After that, you can open the app normally.
 
 ## Contributors
 
-Thanks to everyone who has already contributed to `EcoPaste`. 
+Thanks to everyone who has already contributed to EcoPaste. 
 
-If you want to contribute to this project, please refer to [Contributing Guide](./.github/CONTRIBUTING.md).
+If you want to contribute to EcoPaste, please refer to [Contributing Guide](./.github/CONTRIBUTING.md).
 
 <a href="https://github.com/ayangweb/EcoPaste/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=ayangweb/EcoPaste" />
