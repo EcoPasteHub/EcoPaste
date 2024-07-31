@@ -59,7 +59,7 @@ fn dispatch(event_type: &EventType) {
     simulate(event_type).unwrap();
 }
 
-// 粘贴剪切板内容
+// 粘贴剪贴板内容
 #[command]
 async fn paste() {
     focus_previous_window();

@@ -18,42 +18,42 @@ export const stopListen = async () => {
 };
 
 /**
- * 剪切板是否有文件
+ * 剪贴板是否有文件
  */
 export const hasFiles = async () => {
 	return invoke<boolean>(CLIPBOARD_PLUGIN.HAS_FILES);
 };
 
 /**
- * 剪切板是否有图像
+ * 剪贴板是否有图像
  */
 export const hasImage = async () => {
 	return invoke<boolean>(CLIPBOARD_PLUGIN.HAS_IMAGE);
 };
 
 /**
- * 剪切板是否有 HTML 内容
+ * 剪贴板是否有 HTML 内容
  */
 export const hasHTML = async () => {
 	return invoke<boolean>(CLIPBOARD_PLUGIN.HAS_HTML);
 };
 
 /**
- * 剪切板是否有富文本
+ * 剪贴板是否有富文本
  */
 export const hasRichText = async () => {
 	return invoke<boolean>(CLIPBOARD_PLUGIN.HAS_RICH_TEXT);
 };
 
 /**
- * 剪切板是否有纯文本
+ * 剪贴板是否有纯文本
  */
 export const hasText = async () => {
 	return invoke<boolean>(CLIPBOARD_PLUGIN.HAS_TEXT);
 };
 
 /**
- * 读取剪切板文件
+ * 读取剪贴板文件
  */
 export const readFiles = async (): Promise<ClipboardPayload> => {
 	let files = await invoke<string[]>(CLIPBOARD_PLUGIN.READ_FILES);
@@ -80,7 +80,7 @@ export const readFiles = async (): Promise<ClipboardPayload> => {
 };
 
 /**
- * 读取剪切板图片
+ * 读取剪贴板图片
  */
 export const readImage = async (): Promise<ClipboardPayload> => {
 	const { saveImageDir } = clipboardStore;
@@ -187,7 +187,7 @@ export const readClipboard = async () => {
 };
 
 /**
- * 文件写入剪切板
+ * 文件写入剪贴板
  */
 export const writeFiles = (value: string[]) => {
 	return invoke(CLIPBOARD_PLUGIN.WRITE_FILES, {
@@ -196,7 +196,7 @@ export const writeFiles = (value: string[]) => {
 };
 
 /**
- * 图片写入剪切板
+ * 图片写入剪贴板
  */
 export const writeImage = (value: string) => {
 	return invoke(CLIPBOARD_PLUGIN.WRITE_IMAGE, {
@@ -205,7 +205,7 @@ export const writeImage = (value: string) => {
 };
 
 /**
- * HTML 内容写入剪切板
+ * HTML 内容写入剪贴板
  */
 export const writeHTML = (text: string, html: string) => {
 	return invoke(CLIPBOARD_PLUGIN.WRITE_HTML, {
@@ -215,7 +215,7 @@ export const writeHTML = (text: string, html: string) => {
 };
 
 /**
- * 富文写入剪切板
+ * 富文写入剪贴板
  */
 export const writeRichText = (value: string) => {
 	return invoke(CLIPBOARD_PLUGIN.WRITE_RICH_TEXT, {
@@ -224,7 +224,7 @@ export const writeRichText = (value: string) => {
 };
 
 /**
- * 纯文本写入剪切板
+ * 纯文本写入剪贴板
  */
 export const writeText = (value: string) => {
 	return invoke(CLIPBOARD_PLUGIN.WRITE_TEXT, {
