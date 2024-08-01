@@ -1,18 +1,19 @@
-import { List, Switch, type SwitchProps } from "antd";
+import { Switch, type SwitchProps } from "antd";
+import type { ListItemMetaProps } from "antd/es/list";
 import type { FC } from "react";
+import ProListItem from "../ProListItem";
 
-interface ProSwitchProps extends SwitchProps {
-	title: string;
-	description?: string;
-}
+type ProSwitchProps = SwitchProps & ListItemMetaProps;
 
 const ProSwitch: FC<ProSwitchProps> = (props) => {
-	const { title, description, ...rest } = props;
+	const { title, description, children, ...rest } = props;
 
 	return (
-		<List.Item actions={[<Switch key={1} {...rest} />]}>
-			<List.Item.Meta title={title} description={description} />
-		</List.Item>
+		<ProListItem title={title} description={description}>
+			<Switch {...rest} />
+
+			{children}
+		</ProListItem>
 	);
 };
 

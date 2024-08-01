@@ -1,6 +1,7 @@
 import ProList from "@/components/ProList";
+import ProSelect from "@/components/ProSelect";
 import { emit } from "@tauri-apps/api/event";
-import { Button, List, Select } from "antd";
+import { Button } from "antd";
 import { useSnapshot } from "valtio";
 
 const HistoryRecord = () => {
@@ -71,21 +72,15 @@ const HistoryRecord = () => {
 				</Button>
 			}
 		>
-			<List.Item
-				actions={[
-					<Select
-						key={1}
-						showSearch
-						value={value}
-						options={options}
-						filterOption={false}
-						onChange={handleChange}
-						onSearch={handleSearch}
-					/>,
-				]}
-			>
-				<List.Item.Meta title="保留时长" />
-			</List.Item>
+			<ProSelect
+				showSearch
+				title="保留时长"
+				value={value}
+				options={options}
+				filterOption={false}
+				onChange={handleChange}
+				onSearch={handleSearch}
+			/>
 		</ProList>
 	);
 };

@@ -1,17 +1,18 @@
-import { List, Select, type SelectProps } from "antd";
+import { Select, type SelectProps } from "antd";
+import type { ListItemMetaProps } from "antd/es/list";
+import ProListItem from "../ProListItem";
 
-interface ProSelect<T> extends SelectProps<T> {
-	title: string;
-	description?: string;
-}
+type ProSelect<T> = SelectProps<T> & ListItemMetaProps;
 
 const ProSelect = <T,>(props: ProSelect<T>) => {
-	const { title, description, ...rest } = props;
+	const { title, description, children, ...rest } = props;
 
 	return (
-		<List.Item actions={[<Select key={1} {...rest} />]}>
-			<List.Item.Meta title={title} description={description} />
-		</List.Item>
+		<ProListItem title={title} description={description}>
+			<Select {...rest} />
+
+			{children}
+		</ProListItem>
 	);
 };
 

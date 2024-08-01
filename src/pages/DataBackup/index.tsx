@@ -1,5 +1,6 @@
 import Icon from "@/components/Icon";
 import ProList from "@/components/ProList";
+import ProListItem from "@/components/ProListItem";
 import { emit } from "@tauri-apps/api/event";
 import { BaseDirectory, readTextFile } from "@tauri-apps/api/fs";
 import { appDataDir } from "@tauri-apps/api/path";
@@ -122,15 +123,11 @@ const DataBackup = () => {
 
 	return (
 		<ProList header="导入和导出">
-			<List.Item
-				actions={[
-					<Button key={1} type="primary" onClick={openDir}>
-						打开目录
-					</Button>,
-				]}
-			>
-				<List.Item.Meta title="存储路径" />
-			</List.Item>
+			<ProListItem title="存储路径">
+				<Button type="primary" onClick={openDir}>
+					打开目录
+				</Button>
+			</ProListItem>
 			<List.Item>
 				<Flex
 					gap="middle"

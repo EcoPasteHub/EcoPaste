@@ -1,9 +1,10 @@
-import { Flex, List } from "antd";
+import { Flex } from "antd";
 import { isEmpty, isEqual } from "arcdash";
 import clsx from "clsx";
 import { find, intersectionWith, map, remove, some } from "lodash-es";
 import type { FC, KeyboardEvent, MouseEvent } from "react";
 import Icon from "../Icon";
+import ProListItem from "../ProListItem";
 import { type Key, keys, modifierKeys, normalKeys } from "./keys";
 
 interface ProShortcutProps {
@@ -151,32 +152,28 @@ const ProShortcut: FC<ProShortcutProps> = (props) => {
 	};
 
 	return (
-		<List.Item
-			actions={[
-				<Flex
-					key={1}
-					ref={containerRef}
-					tabIndex={0}
-					align="center"
-					gap="small"
-					className="antd-input group b-color-1 color-3 h-32 rounded-6 px-10"
-					onKeyDown={handleKeyDown}
-					onKeyUp={handleKeyUp}
-				>
-					{renderContent()}
+		<ProListItem title={title} description={description}>
+			<Flex
+				key={1}
+				ref={containerRef}
+				tabIndex={0}
+				align="center"
+				gap="small"
+				className="antd-input group b-color-1 color-3 h-32 rounded-6 px-10"
+				onKeyDown={handleKeyDown}
+				onKeyUp={handleKeyUp}
+			>
+				{renderContent()}
 
-					<Icon
-						hoverable
-						size={16}
-						name="i-iconamoon:close-circle-1"
-						hidden={isFocusing || !isHovering || isEmpty(state.value)}
-						onMouseDown={handleClear}
-					/>
-				</Flex>,
-			]}
-		>
-			<List.Item.Meta title={title} description={description} />
-		</List.Item>
+				<Icon
+					hoverable
+					size={16}
+					name="i-iconamoon:close-circle-1"
+					hidden={isFocusing || !isHovering || isEmpty(state.value)}
+					onMouseDown={handleClear}
+				/>
+			</Flex>
+		</ProListItem>
 	);
 };
 
