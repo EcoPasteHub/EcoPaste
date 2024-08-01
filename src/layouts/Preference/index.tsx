@@ -13,7 +13,7 @@ const Preference = () => {
 	const { pathname } = useLocation();
 	const navigate = useNavigate();
 	const { wakeUpKey, autoStart, language } = useSnapshot(globalStore);
-	const { theme, isDark, toggleTheme } = useTheme();
+	const { theme, toggleTheme } = useTheme();
 	const { t } = useTranslation();
 
 	useMount(async () => {
@@ -118,13 +118,6 @@ const Preference = () => {
 						);
 					})}
 				</Flex>
-
-				<Icon
-					hoverable
-					size={24}
-					name={isDark ? "i-iconamoon:mode-light" : "i-iconamoon:mode-dark"}
-					onMouseDown={() => toggleTheme()}
-				/>
 			</Flex>
 
 			<div

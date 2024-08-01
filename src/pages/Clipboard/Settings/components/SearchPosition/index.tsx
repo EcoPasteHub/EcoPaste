@@ -1,5 +1,5 @@
 import type { ClipboardStore } from "@/types/store";
-import { Segmented } from "antd";
+import { List, Segmented } from "antd";
 import { useSnapshot } from "valtio";
 
 interface Option {
@@ -21,16 +21,21 @@ const SearchPosition = () => {
 		},
 	];
 
-	const handleChange = (value: Option["value"]) => {
-		clipboardStore.searchPosition = value;
-	};
-
 	return (
-		<Segmented
-			value={searchPosition}
-			options={options}
-			onChange={handleChange}
-		/>
+		<List.Item
+			actions={[
+				<Segmented
+					key={1}
+					value={searchPosition}
+					options={options}
+					onChange={(value) => {
+						clipboardStore.searchPosition = value;
+					}}
+				/>,
+			]}
+		>
+			<List.Item.Meta title="搜索框位置" />
+		</List.Item>
 	);
 };
 

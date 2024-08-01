@@ -1,5 +1,5 @@
+import ProSelect from "@/components/ProSelect";
 import type { ClipboardStore } from "@/types/store";
-import { Select } from "antd";
 import { useSnapshot } from "valtio";
 
 interface Option {
@@ -25,12 +25,15 @@ const WindowPosition = () => {
 		},
 	];
 
-	const handleChange = (value: Option["value"]) => {
-		clipboardStore.windowPosition = value;
-	};
-
 	return (
-		<Select value={windowPosition} options={options} onChange={handleChange} />
+		<ProSelect
+			title="窗口位置"
+			value={windowPosition}
+			options={options}
+			onChange={(value) => {
+				clipboardStore.windowPosition = value;
+			}}
+		/>
 	);
 };
 

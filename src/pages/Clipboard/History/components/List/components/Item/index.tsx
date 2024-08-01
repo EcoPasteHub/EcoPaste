@@ -1,5 +1,6 @@
 import { HistoryContext } from "@/pages/Clipboard/History";
 import type { HistoryItem } from "@/types/database";
+import type { ClipboardStore } from "@/types/store";
 import { copyFile, writeFile } from "@tauri-apps/api/fs";
 import { downloadDir } from "@tauri-apps/api/path";
 import { open } from "@tauri-apps/api/shell";
@@ -30,7 +31,6 @@ const Item: FC<ItemProps> = (props) => {
 
 	const { state, getHistoryList } = useContext(HistoryContext);
 	const { appInfo, theme } = useSnapshot(globalStore);
-	const { doubleClickFeedback, clickPaste } = useSnapshot(clipboardStore);
 	const { t } = useTranslation();
 
 	const containerRef = useRef<HTMLElement>(null);
@@ -264,16 +264,12 @@ const Item: FC<ItemProps> = (props) => {
 		});
 	};
 
-	const handleClick = () => {
-		if (!clickPaste) return;
+	const handleClick = (key: keyof ClipboardStore) => {
+		const value = clipboardStore[key];
 
-		pasteValue();
-	};
+		if (value === "none") return;
 
-	const handleDoubleClick = () => {
-		if (clickPaste || doubleClickFeedback === "none") return;
-
-		if (doubleClickFeedback === "copy") {
+		if (value === "copy") {
 			return copy();
 		}
 
@@ -335,8 +331,8 @@ const Item: FC<ItemProps> = (props) => {
 			style={style}
 			className="antd-input b-color-2 absolute inset-0 mx-12 h-full w-336! rounded-6 p-6"
 			onContextMenu={handleContextMenu}
-			onClick={handleClick}
-			onDoubleClick={handleDoubleClick}
+			onClick={() => handleClick("singleClick")}
+			onDoubleClick={() => handleClick("doubleClick")}
 			onFocus={handleFocus}
 			onKeyDown={handleKeyDown}
 		>

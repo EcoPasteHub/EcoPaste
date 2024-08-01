@@ -51,7 +51,7 @@ const ClipboardHistory = () => {
 		startListen();
 
 		onClipboardUpdate(async (payload) => {
-			if (clipboardStore.enableAudio) {
+			if (clipboardStore.copyAudio) {
 				audioRef.current?.play();
 			}
 
@@ -146,12 +146,12 @@ const ClipboardHistory = () => {
 
 		state.historyList = list;
 
-		if (!clipboardStore.historyCapacity) return;
+		if (!clipboardStore.historyDuration) return;
 
 		for (const item of list) {
 			const { id, createTime } = item;
 
-			if (dayjs().diff(createTime, "days") >= clipboardStore.historyCapacity) {
+			if (dayjs().diff(createTime, "days") >= clipboardStore.historyDuration) {
 				if (item.isCollected) continue;
 
 				deleteSQL("history", id);
