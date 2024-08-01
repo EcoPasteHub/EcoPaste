@@ -1,9 +1,8 @@
 import Icon from "@/components/Icon";
-import ProList from "@/components/ProList";
 import { emit } from "@tauri-apps/api/event";
 import { BaseDirectory, readTextFile } from "@tauri-apps/api/fs";
 import { appDataDir } from "@tauri-apps/api/path";
-import { Button, Flex, List, message } from "antd";
+import { Button, Card, Flex, Spin, message } from "antd";
 import type { Store } from "antd/es/form/interface";
 
 const DataBackup = () => {
@@ -121,45 +120,43 @@ const DataBackup = () => {
 	};
 
 	return (
-		<ProList header="导入和导出">
-			<List.Item
-				actions={[
-					<Button key={1} type="primary" onClick={openDir}>
-						打开目录
-					</Button>,
-				]}
+		<Card
+			title={t("preference.data_backup.import_export.title")}
+			extra={
+				<Button ghost type="primary" onClick={openDir}>
+					{t("preference.data_backup.import_export.button.open_dir")}
+				</Button>
+			}
+		>
+			<Flex
+				gap="middle"
+				onClick={(event) => {
+					event.stopPropagation();
+					event.preventDefault();
+				}}
 			>
-				<List.Item.Meta title="存储路径" />
-			</List.Item>
-			<List.Item>
-				<Flex
-					gap="middle"
-					onClick={(event) => {
-						event.stopPropagation();
-						event.preventDefault();
-					}}
-				>
-					{renderList.map((item) => {
-						const { label, icon, event } = item;
+				{renderList.map((item) => {
+					const { label, icon, event } = item;
 
-						return (
-							<Flex
-								key={label}
-								vertical
-								align="center"
-								justify="center"
-								gap="small"
-								className="b b-dashed b-color-1 hover:b-primary h-102 w-102 cursor-pointer rounded-8 bg-3 px-8 text-center transition hover:text-primary"
-								onClick={event}
-							>
-								<Icon name={icon} size={26} />
-								{label}
-							</Flex>
-						);
-					})}
-				</Flex>
-			</List.Item>
-		</ProList>
+					return (
+						<Flex
+							key={label}
+							vertical
+							align="center"
+							justify="center"
+							gap="small"
+							className="b b-dashed b-color-1 hover:b-primary h-102 w-102 cursor-pointer rounded-8 bg-3 px-8 text-center transition hover:text-primary"
+							onClick={event}
+						>
+							<Icon name={icon} size={26} />
+							{label}
+						</Flex>
+					);
+				})}
+			</Flex>
+
+			<Spin spinning={state.spinning} tip={state.tip} fullscreen />
+		</Card>
 	);
 };
 
