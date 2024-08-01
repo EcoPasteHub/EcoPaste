@@ -46,7 +46,10 @@ impl Tray {
             };
 
             match event {
-                SystemTrayEvent::LeftClick { .. } => window.emit("tray-click", true).unwrap(),
+                SystemTrayEvent::LeftClick { .. } => {
+                    #[cfg(target_os = "windows")]
+                    show_window(window).await;
+                }
                 SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
                     "preference" => show_window(window).await,
                     id if LANGUAGES.contains(&id) => window.emit("change-language", id).unwrap(),

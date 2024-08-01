@@ -1,5 +1,5 @@
+import ProSelect from "@/components/ProSelect";
 import type { Language as TypeLanguage } from "@/types/store";
-import { Flex, Select } from "antd";
 import { useSnapshot } from "valtio";
 
 interface Option {
@@ -9,7 +9,6 @@ interface Option {
 
 const Language = () => {
 	const { language } = useSnapshot(globalStore);
-	const { t } = useTranslation();
 
 	const options: Option[] = [
 		{
@@ -31,16 +30,14 @@ const Language = () => {
 	];
 
 	return (
-		<Flex align="center">
-			<span>{t("preference.settings.basic.label.language")}：</span>
-			<Select
-				value={language}
-				options={options}
-				onChange={(value) => {
-					globalStore.language = value;
-				}}
-			/>
-		</Flex>
+		<ProSelect
+			title="界面语言"
+			value={language}
+			options={options}
+			onChange={(value) => {
+				globalStore.language = value;
+			}}
+		/>
 	);
 };
 
