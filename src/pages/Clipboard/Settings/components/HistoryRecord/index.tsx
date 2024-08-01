@@ -1,3 +1,4 @@
+import ProList from "@/components/ProList";
 import { emit } from "@tauri-apps/api/event";
 import { Button, List, Popconfirm, Select } from "antd";
 import { useSnapshot } from "valtio";
@@ -49,8 +50,7 @@ const HistoryRecord = () => {
 	};
 
 	return (
-		<List
-			bordered
+		<ProList
 			header="历史记录"
 			footer={
 				<Popconfirm
@@ -78,7 +78,7 @@ const HistoryRecord = () => {
 			>
 				<List.Item.Meta title="保留时长" />
 			</List.Item>
-		</List>
+		</ProList>
 	);
 };
 

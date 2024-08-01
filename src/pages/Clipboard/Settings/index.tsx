@@ -1,6 +1,7 @@
 import Hotkey from "@/components/Hotkey";
+import ProList from "@/components/ProList";
 import ProSwitch from "@/components/ProSwitch";
-import { Flex, List } from "antd";
+import { List } from "antd";
 import { useSnapshot } from "valtio";
 import ClickFeedback from "./components/ClickFeedback";
 import HistoryRecord from "./components/HistoryRecord";
@@ -12,8 +13,8 @@ const Clipboard = () => {
 		useSnapshot(clipboardStore);
 
 	return (
-		<Flex data-tauri-drag-region vertical gap="middle">
-			<List bordered header="窗口设置">
+		<>
+			<ProList header="窗口设置">
 				<List.Item
 					actions={[
 						<Hotkey
@@ -29,9 +30,9 @@ const Clipboard = () => {
 				</List.Item>
 
 				<WindowPosition />
-			</List>
+			</ProList>
 
-			<List bordered header="音效设置">
+			<ProList header="音效设置">
 				<ProSwitch
 					title="复制音效"
 					value={copyAudio}
@@ -39,9 +40,9 @@ const Clipboard = () => {
 						clipboardStore.copyAudio = value;
 					}}
 				/>
-			</List>
+			</ProList>
 
-			<List bordered header="搜索框设置">
+			<ProList header="搜索框设置">
 				<SearchPosition key={1} />
 
 				<ProSwitch
@@ -61,9 +62,9 @@ const Clipboard = () => {
 						clipboardStore.searchDefaultFocus = value;
 					}}
 				/> */}
-			</List>
+			</ProList>
 
-			<List bordered header="点击反馈">
+			<ProList header="点击反馈">
 				<ClickFeedback
 					label="单击反馈"
 					value={singleClick}
@@ -79,10 +80,10 @@ const Clipboard = () => {
 						clipboardStore.doubleClick = value;
 					}}
 				/>
-			</List>
+			</ProList>
 
 			<HistoryRecord />
-		</Flex>
+		</>
 	);
 };
 

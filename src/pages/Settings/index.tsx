@@ -1,5 +1,5 @@
+import ProList from "@/components/ProList";
 import ProSwitch from "@/components/ProSwitch";
-import { Flex, List } from "antd";
 import { useSnapshot } from "valtio";
 import Language from "./components/Language";
 import ThemeMode from "./components/ThemeMode";
@@ -8,8 +8,8 @@ const Settings = () => {
 	const { autoStart, autoUpdate } = useSnapshot(globalStore);
 
 	return (
-		<Flex vertical gap="middle">
-			<List bordered header="应用设置">
+		<>
+			<ProList header="应用设置">
 				<ProSwitch
 					title="登录时启动"
 					value={autoStart}
@@ -25,14 +25,14 @@ const Settings = () => {
 						globalStore.autoUpdate = value;
 					}}
 				/>
-			</List>
+			</ProList>
 
-			<List bordered header="显示设置">
+			<ProList header="外观设置">
 				<Language />
 
 				<ThemeMode />
-			</List>
-		</Flex>
+			</ProList>
+		</>
 	);
 };
 

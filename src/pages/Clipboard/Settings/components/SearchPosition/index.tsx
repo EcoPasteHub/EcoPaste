@@ -1,5 +1,5 @@
+import ProSelect from "@/components/ProSelect";
 import type { ClipboardStore } from "@/types/store";
-import { List, Segmented } from "antd";
 import { useSnapshot } from "valtio";
 
 interface Option {
@@ -22,20 +22,14 @@ const SearchPosition = () => {
 	];
 
 	return (
-		<List.Item
-			actions={[
-				<Segmented
-					key={1}
-					value={searchPosition}
-					options={options}
-					onChange={(value) => {
-						clipboardStore.searchPosition = value;
-					}}
-				/>,
-			]}
-		>
-			<List.Item.Meta title="搜索框位置" />
-		</List.Item>
+		<ProSelect
+			title="搜索框位置"
+			value={searchPosition}
+			options={options}
+			onChange={(value) => {
+				clipboardStore.searchPosition = value;
+			}}
+		/>
 	);
 };
 

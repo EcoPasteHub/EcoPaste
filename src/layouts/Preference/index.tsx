@@ -90,9 +90,10 @@ const Preference = () => {
 				data-tauri-drag-region
 				vertical
 				justify="space-between"
-				className={clsx("color-2 h-full w-200 px-12 pb-32 transition", [
-					isMac() ? "pt-48" : "b-r b-color-2 bg-1 pt-21",
-				])}
+				className={clsx(
+					"color-2 h-full w-200 px-12 pb-32 font-bold transition",
+					[isMac() ? "pt-48" : "b-r b-color-2 bg-1 pt-32"],
+				)}
 			>
 				<Flex vertical gap="small" onClick={(event) => event.stopPropagation()}>
 					{preferenceRoute.children?.map((item) => {
@@ -104,9 +105,9 @@ const Preference = () => {
 								key={title}
 								to={path}
 								className={clsx(
-									"rounded-8 p-12 transition hover:text-primary",
+									"color-1! rounded-8 p-12 text-15 transition hover:bg-4",
 									{
-										"bg-primary text-white!": pathname.endsWith(path),
+										"bg-primary! text-white!": pathname.endsWith(path),
 									},
 								)}
 							>
@@ -122,7 +123,7 @@ const Preference = () => {
 
 			<div
 				data-tauri-drag-region
-				className="h-full flex-1 overflow-auto bg-1 p-16 transition"
+				className="h-full flex-1 overflow-auto bg-2 p-16 transition"
 			>
 				<Outlet />
 			</div>

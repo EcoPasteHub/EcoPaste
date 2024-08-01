@@ -1,0 +1,25 @@
+.normal {
+  --uno: "not-last-of-type:mb-16";
+
+  .title {
+    --uno: "pl-16 font-bold";
+  }
+
+  :global {
+    .ant-list {
+      --uno: "bg-1 b-color-2";
+
+      .ant-list-item {
+        --uno: "px-16!";
+      }
+
+      .ant-list-item-meta-title:last-child {
+        --uno: "m-0!";
+      }
+
+      .ant-list-item-meta-description {
+        --uno: "text-12!";
+      }
+    }
+  }
+}
