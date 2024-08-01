@@ -66,6 +66,7 @@
 				"hiddenTitle": true,
 				"skipTaskbar": true,
 				"visible": false,
+				"transparent": true,
 				"titleBarStyle": "Overlay"
 			}
 		],

@@ -59,3 +59,10 @@ export const toggleWindowVisible = async () => {
 		showWindow();
 	}
 };
+
+/**
+ * 磨砂窗口
+ */
+export const frostedWindow = () => {
+	invoke(WINDOW_PLUGIN.FROSTED_WINDOW);
+};

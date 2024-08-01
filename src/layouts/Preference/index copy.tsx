@@ -27,7 +27,7 @@ const Preference = () => {
 			showWindow();
 		}
 
-		// createWindow("/");
+		createWindow("/");
 
 		if (!isWin()) {
 			toggleTheme(theme);
@@ -91,7 +91,7 @@ const Preference = () => {
 				vertical
 				justify="space-between"
 				className={clsx("color-2 h-full w-200 px-12 pb-32 transition", [
-					isMac() ? "pt-48" : "b-r b-color-2 bg-1 pt-21",
+					isWin() ? "pt-32" : "pt-48",
 				])}
 			>
 				<Flex vertical gap="small" onClick={(event) => event.stopPropagation()}>
