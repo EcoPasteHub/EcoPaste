@@ -33,16 +33,19 @@ const About = () => {
 
 	return (
 		<Flex
+			data-tauri-drag-region
 			vertical
 			align="center"
 			justify="center"
 			className="color-2 h-full transition"
 		>
-			<img src="/logo.png" className="h-120 w-120" alt="logo" />
+			<img src="/logo.png" className="h-100 h-100" alt="logo" />
+
 			<Flex vertical align="center" gap="small">
-				<div className="color-1 font-bold text-22 transition">
+				<div className="color-1 font-bold text-20 transition">
 					{appInfo?.name}
 				</div>
+
 				<Flex align="center" gap={4}>
 					<span>v{appInfo?.version}</span>
 					<Tooltip title={t("preference.about.hints.update_tooltip")}>
@@ -54,7 +57,11 @@ const About = () => {
 						/>
 					</Tooltip>
 				</Flex>
-				<span>{t("preference.about.hints.introduce")}</span>
+
+				<span className="break-keep text-center">
+					{t("preference.about.hints.introduce")}
+				</span>
+
 				<Flex gap="middle">
 					<Tooltip title={t("preference.about.hints.copy_tooltip")}>
 						<Button size="large" type="primary" onClick={copyInfo}>

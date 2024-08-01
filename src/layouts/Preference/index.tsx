@@ -89,36 +89,31 @@ const Preference = () => {
 			<Flex
 				data-tauri-drag-region
 				vertical
-				justify="space-between"
-				className={clsx(
-					"color-2 h-full w-200 px-12 pb-32 font-bold transition",
-					[isMac() ? "pt-48" : "b-r b-color-2 bg-1 pt-32"],
-				)}
+				gap="small"
+				className={clsx("h-full w-200 px-12 py-32", [
+					isMac() ? "pt-48" : "bg-1",
+				])}
+				onClick={(event) => event.stopPropagation()}
 			>
-				<Flex vertical gap="small" onClick={(event) => event.stopPropagation()}>
-					{preferenceRoute.children?.map((item) => {
-						const { path, meta = {} } = item;
-						const { title, icon } = meta;
+				{preferenceRoute.children?.map((item) => {
+					const { path, meta = {} } = item;
+					const { title, icon } = meta;
 
-						return (
-							<Link
-								key={title}
-								to={path}
-								className={clsx(
-									"color-1! rounded-8 p-12 text-15 transition hover:bg-4",
-									{
-										"bg-primary! text-white!": pathname.endsWith(path),
-									},
-								)}
-							>
-								<Flex align="center" gap="small">
-									<Icon name={icon} size={20} />
-									<span>{t(title!)}</span>
-								</Flex>
-							</Link>
-						);
-					})}
-				</Flex>
+					return (
+						<Link
+							key={title}
+							to={path}
+							className={clsx("color-2! rounded-8 p-12 transition hover:bg-4", {
+								"bg-primary! text-white!": pathname.endsWith(path),
+							})}
+						>
+							<Flex align="center" gap="small">
+								<Icon name={icon} size={20} />
+								<span className="font-bold text-15">{t(title!)}</span>
+							</Flex>
+						</Link>
+					);
+				})}
 			</Flex>
 
 			<div
