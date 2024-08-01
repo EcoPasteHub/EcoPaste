@@ -7,6 +7,7 @@ import ClipboardHistory from "@/pages/Clipboard/History";
 import ClipboardSettings from "@/pages/Clipboard/Settings";
 import DataBackup from "@/pages/DataBackup";
 import Settings from "@/pages/Settings";
+import Shortcut from "@/pages/Shortcut";
 import type { Route } from "@/types/router";
 
 export const preferenceRoute: Route = {
@@ -27,6 +28,14 @@ export const preferenceRoute: Route = {
 			meta: {
 				title: "preference.menu.title.settings",
 				icon: "i-lucide:bolt",
+			},
+		},
+		{
+			path: "shortcut",
+			Component: Shortcut,
+			meta: {
+				title: "preference.menu.title.shortcut",
+				icon: "i-lucide:keyboard",
 			},
 		},
 		{

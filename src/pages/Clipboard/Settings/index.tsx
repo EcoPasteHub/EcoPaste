@@ -1,7 +1,5 @@
-import Hotkey from "@/components/Hotkey";
 import ProList from "@/components/ProList";
 import ProSwitch from "@/components/ProSwitch";
-import { List } from "antd";
 import { useSnapshot } from "valtio";
 import ClickFeedback from "./components/ClickFeedback";
 import HistoryRecord from "./components/HistoryRecord";
@@ -9,26 +7,12 @@ import SearchPosition from "./components/SearchPosition";
 import WindowPosition from "./components/WindowPosition";
 
 const Clipboard = () => {
-	const { wakeUpKey, copyAudio, searchDefaultFocus, singleClick, doubleClick } =
+	const { copyAudio, searchDefaultFocus, singleClick, doubleClick } =
 		useSnapshot(clipboardStore);
 
 	return (
 		<>
 			<ProList header="窗口设置">
-				<List.Item
-					actions={[
-						<Hotkey
-							key={1}
-							defaultValue={wakeUpKey}
-							onChange={(value) => {
-								clipboardStore.wakeUpKey = value;
-							}}
-						/>,
-					]}
-				>
-					<List.Item.Meta title="唤醒窗口" />
-				</List.Item>
-
 				<WindowPosition />
 			</ProList>
 

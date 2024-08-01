@@ -1,6 +1,6 @@
 import ProList from "@/components/ProList";
 import { emit } from "@tauri-apps/api/event";
-import { Button, List, Popconfirm, Select } from "antd";
+import { Button, List, Select } from "antd";
 import { useSnapshot } from "valtio";
 
 const HistoryRecord = () => {
@@ -49,18 +49,26 @@ const HistoryRecord = () => {
 		setValue(number);
 	};
 
+	const handleClear = async () => {
+		const yes = await ask("你确定要清除所有历史记录吗？", {
+			title: "清除历史记录",
+			okLabel: "确定",
+			cancelLabel: "取消",
+			type: "warning",
+		});
+
+		if (!yes) return;
+
+		emit(LISTEN_KEY.CLEAR_HISTORY);
+	};
+
 	return (
 		<ProList
 			header="历史记录"
 			footer={
-				<Popconfirm
-					title="确定要清除历史记录？"
-					onConfirm={() => emit(LISTEN_KEY.CLEAR_HISTORY)}
-				>
-					<Button block danger>
-						清除历史记录
-					</Button>
-				</Popconfirm>
+				<Button block danger onClick={handleClear}>
+					清除历史记录
+				</Button>
 			}
 		>
 			<List.Item
