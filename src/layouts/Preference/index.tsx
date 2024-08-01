@@ -23,7 +23,7 @@ const Preference = () => {
 			showWindow();
 		}
 
-		createWindow("/");
+		// createWindow("/");
 
 		if (!isWin()) {
 			toggleTheme(theme);
@@ -85,14 +85,12 @@ const Preference = () => {
 			<Flex
 				data-tauri-drag-region
 				vertical
-				align="center"
 				justify="space-between"
-				className={clsx(
-					"color-2 h-full w-90 bg-2 px-12 pb-32 text-center transition",
-					[isWin() ? "pt-32" : "pt-48"],
-				)}
+				className={clsx("color-2 h-full w-200 bg-2 px-12 pb-32 transition", [
+					isWin() ? "pt-32" : "pt-48",
+				])}
 			>
-				<Flex vertical gap="large" onClick={(event) => event.stopPropagation()}>
+				<Flex vertical gap="small" onClick={(event) => event.stopPropagation()}>
 					{preferenceRoute.children?.map((item) => {
 						const { path, meta = {} } = item;
 						const { title, icon } = meta;
@@ -101,12 +99,15 @@ const Preference = () => {
 							<Link
 								key={title}
 								to={path}
-								className={clsx("hover:text-primary", {
-									"text-primary": pathname.endsWith(path),
-								})}
+								className={clsx(
+									"rounded-8 p-12 transition hover:text-primary",
+									{
+										"bg-primary text-white!": pathname.endsWith(path),
+									},
+								)}
 							>
-								<Flex vertical align="center" gap={4}>
-									<Icon name={icon} size={22} />
+								<Flex align="center" gap="small">
+									<Icon name={icon} size={20} />
 									<span>{t(title!)}</span>
 								</Flex>
 							</Link>

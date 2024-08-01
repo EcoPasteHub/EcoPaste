@@ -58,6 +58,8 @@
 			{
 				"label": "preference",
 				"url": "/preference",
+				"width": 700,
+				"height": 480,
 				"center": true,
 				"resizable": false,
 				"maximizable": false,

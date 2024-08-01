@@ -1,4 +1,3 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Flex } from "antd";
 import { isEmpty, isEqual } from "arcdash";
 import clsx from "clsx";
@@ -28,14 +27,9 @@ const Hotkey: FC<HotkeyProps> = (props) => {
 	};
 
 	const containerRef = useRef<HTMLElement>(null);
-	const [animationParent] = useAutoAnimate();
 
 	const state = useReactive<State>({
 		value: handleDefaultValue(),
-	});
-
-	useMount(() => {
-		animationParent(containerRef.current);
 	});
 
 	const isHovering = useHover(containerRef);
@@ -114,7 +108,7 @@ const Hotkey: FC<HotkeyProps> = (props) => {
 	const renderContent = () => {
 		if (isMac()) {
 			return (
-				<Flex ref={animationParent} gap="small" className="font-bold text-16">
+				<Flex gap="small" className="font-bold text-16">
 					<Flex gap={4}>
 						{modifierKeys.map((item) => {
 							const { key, macosSymbol } = item;
@@ -140,7 +134,7 @@ const Hotkey: FC<HotkeyProps> = (props) => {
 		}
 
 		return (
-			<div ref={animationParent} className="whitespace-nowrap font-500 text-14">
+			<div className="font-500 text-14">
 				{isFocusing && isEmpty(state.value) ? (
 					<span className="font-normal text-primary">
 						{t("component.shortcut_key.hints.set_shortcut_key")}
@@ -166,14 +160,13 @@ const Hotkey: FC<HotkeyProps> = (props) => {
 		>
 			{renderContent()}
 
-			{isHovering && !isFocusing && !isEmpty(state.value) && (
-				<Icon
-					hoverable
-					size={16}
-					name="i-iconamoon:close-circle-1"
-					onMouseDown={handleClear}
-				/>
-			)}
+			<Icon
+				hoverable
+				size={16}
+				name="i-iconamoon:close-circle-1"
+				hidden={isFocusing || !isHovering || isEmpty(state.value)}
+				onMouseDown={handleClear}
+			/>
 		</Flex>
 	);
 };
