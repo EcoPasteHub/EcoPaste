@@ -1,5 +1,5 @@
 import type { ClipboardStore } from "@/types/store";
-import { Flex, Segmented } from "antd";
+import { Select } from "antd";
 import { useSnapshot } from "valtio";
 
 interface Option {
@@ -9,19 +9,18 @@ interface Option {
 
 const DoubleClickFeedback = () => {
 	const { doubleClickFeedback } = useSnapshot(clipboardStore);
-	const { t } = useTranslation();
 
 	const options: Option[] = [
 		{
-			label: t("preference.clipboard.basic.label.dbl_click_feedback_none"),
+			label: "无反馈",
 			value: "none",
 		},
 		{
-			label: t("preference.clipboard.basic.label.dbl_click_feedback_copy"),
+			label: "复制内容",
 			value: "copy",
 		},
 		{
-			label: t("preference.clipboard.basic.label.dbl_click_feedback_paste"),
+			label: "粘贴内容",
 			value: "paste",
 		},
 	];
@@ -31,14 +30,11 @@ const DoubleClickFeedback = () => {
 	};
 
 	return (
-		<Flex align="center">
-			{t("preference.clipboard.basic.label.dbl_click_feedback")}：
-			<Segmented
-				value={doubleClickFeedback}
-				options={options}
-				onChange={handleChange}
-			/>
-		</Flex>
+		<Select
+			value={doubleClickFeedback}
+			options={options}
+			onChange={handleChange}
+		/>
 	);
 };
 

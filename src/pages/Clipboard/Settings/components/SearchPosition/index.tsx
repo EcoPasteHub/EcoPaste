@@ -1,5 +1,5 @@
 import type { ClipboardStore } from "@/types/store";
-import { Flex, Segmented } from "antd";
+import { Segmented } from "antd";
 import { useSnapshot } from "valtio";
 
 interface Option {
@@ -9,15 +9,14 @@ interface Option {
 
 const SearchPosition = () => {
 	const { searchPosition } = useSnapshot(clipboardStore);
-	const { t } = useTranslation();
 
 	const options: Option[] = [
 		{
-			label: t("preference.clipboard.basic.label.search_position_top"),
+			label: "顶部",
 			value: "top",
 		},
 		{
-			label: t("preference.clipboard.basic.label.search_position_bottom"),
+			label: "底部",
 			value: "bottom",
 		},
 	];
@@ -27,14 +26,11 @@ const SearchPosition = () => {
 	};
 
 	return (
-		<Flex align="center">
-			{t("preference.clipboard.basic.label.search_position")}：
-			<Segmented
-				value={searchPosition}
-				options={options}
-				onChange={handleChange}
-			/>
-		</Flex>
+		<Segmented
+			value={searchPosition}
+			options={options}
+			onChange={handleChange}
+		/>
 	);
 };
 
