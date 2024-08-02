@@ -5,7 +5,6 @@ use tauri::{
     plugin::{Builder, TauriPlugin},
     Wry,
 };
-use crate::core::app::win::get_previous_foremost_app;
 
 // 让上一个窗口聚焦（macos）
 #[cfg(target_os = "macos")]
@@ -32,6 +31,7 @@ fn focus_previous_window() {
 // 让上一个窗口聚焦（windows）
 #[cfg(target_os = "windows")]
 fn focus_previous_window() {
+    use crate::core::app::win::get_previous_foremost_app;
     use winapi::um::winuser::{GetForegroundWindow, SetForegroundWindow};
     unsafe {
         let hwnd = {
