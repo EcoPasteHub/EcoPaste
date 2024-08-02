@@ -1,4 +1,3 @@
-use super::App;
 use cocoa::base::{id, nil};
 use cocoa::foundation::{NSAutoreleasePool, NSString};
 use objc::declare::ClassDecl;
@@ -7,6 +6,12 @@ use objc::{msg_send, sel, sel_impl};
 use std::ffi::CStr;
 use std::sync::Mutex;
 use std::thread;
+
+#[derive(Debug, serde::Serialize, Clone)]
+pub struct App {
+    pub name: String,
+    pub process_id: i32,
+}
 
 static FOREMOST_APPS: Mutex<Vec<App>> = Mutex::new(Vec::new());
 
@@ -35,7 +40,7 @@ extern "C" fn application_did_activate(_self: &Object, _cmd: Sel, notification: 
 
         let mut apps = FOREMOST_APPS.lock().unwrap();
 
-        if apps.len() == 2 {
+        if apps.len() >= 2 {
             apps.remove(0);
         }
 
@@ -73,6 +78,6 @@ pub fn observe_app() {
     });
 }
 
-pub fn get_frontmost_apps() -> Vec<App> {
+pub fn get_foreground_apps() -> Vec<App> {
     return FOREMOST_APPS.lock().unwrap().to_vec();
 }

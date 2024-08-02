@@ -1,16 +1,16 @@
 #[cfg(target_os = "macos")]
-mod macos;
+mod mac;
 #[cfg(target_os = "windows")]
 pub mod win;
 
-#[derive(Debug, serde::Serialize, Clone)]
-pub struct App {
-    pub name: String,
-    pub process_id: i32,
-}
+#[cfg(target_os = "macos")]
+pub use mac::observe_app;
 
 #[cfg(target_os = "macos")]
-pub use macos::observe_app;
+pub use mac::get_foreground_apps;
 
-#[cfg(target_os = "macos")]
-pub use macos::get_frontmost_apps;
+#[cfg(target_os = "windows")]
+pub use win::observe_app;
+
+#[cfg(target_os = "windows")]
+pub use win::get_foreground_apps;

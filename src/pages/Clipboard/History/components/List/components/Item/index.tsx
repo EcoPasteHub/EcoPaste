@@ -162,17 +162,7 @@ const Item: FC<ItemProps> = (props) => {
 	const pasteValue = async () => {
 		await copy();
 
-		if (isMac()) {
-			paste();
-		} else {
-			hideWindow();
-
-			await paste();
-
-			if (!state.pin) return;
-
-			showWindow();
-		}
+		paste();
 	};
 
 	const handleContextMenu = async (event: MouseEvent) => {
