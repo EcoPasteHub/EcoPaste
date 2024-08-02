@@ -1,3 +1,4 @@
+import PlayAudio from "@/components/PlayAudio";
 import ProList from "@/components/ProList";
 import ProSwitch from "@/components/ProSwitch";
 import { useSnapshot } from "valtio";
@@ -23,7 +24,14 @@ const Clipboard = () => {
 					onChange={(value) => {
 						clipboardStore.copyAudio = value;
 					}}
-				/>
+				>
+					<PlayAudio
+						iconProps={{
+							size: 22,
+							className: "flex!",
+						}}
+					/>
+				</ProSwitch>
 			</ProList>
 
 			<ProList header="搜索框设置">

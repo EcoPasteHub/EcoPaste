@@ -27,7 +27,7 @@ const Preference = () => {
 			showWindow();
 		}
 
-		// createWindow("/");
+		createWindow("/");
 
 		if (!isWin()) {
 			toggleTheme(theme);

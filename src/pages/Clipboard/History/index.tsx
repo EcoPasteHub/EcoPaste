@@ -1,4 +1,4 @@
-import copyAudio from "@/assets/audio/copy.mp3";
+import PlayAudio, { type PlayAudioRef } from "@/components/PlayAudio";
 import type { HistoryItem, TablePayload } from "@/types/database";
 import { listen } from "@tauri-apps/api/event";
 import {
@@ -41,7 +41,7 @@ export const HistoryContext = createContext<HistoryContextValue>({
 const ClipboardHistory = () => {
 	const { wakeUpKey, searchPosition } = useSnapshot(clipboardStore);
 
-	const audioRef = useRef<HTMLAudioElement>(null);
+	const audioRef = useRef<PlayAudioRef>(null);
 
 	const state = useReactive<State>(INITIAL_STATE);
 
@@ -175,7 +175,7 @@ const ClipboardHistory = () => {
 					"flex-col-reverse": searchPosition === "bottom",
 				})}
 			>
-				<audio ref={audioRef} src={copyAudio} />
+				<PlayAudio ref={audioRef} />
 
 				<Search />
 

@@ -9,7 +9,7 @@ html {
   --color-border-1: var(--ant-color-border);
   --color-border-2: var(--ant-color-border-secondary);
 
-  --uno: color-1 text-14 antialiased break-all;
+  --uno: color-1 text-14 antialiased break-all select-none;
 
   color-scheme: light;
 
@@ -19,7 +19,6 @@ html {
 }
 
 img {
-  --uno: select-none;
   -webkit-user-drag: none;
 }
 

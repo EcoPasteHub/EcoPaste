@@ -11,6 +11,7 @@
 
       .ant-list-item {
         --uno: "px-16!";
+
         .ant-list-item-meta-title {
           --uno: "last:m-0!";
         }
@@ -20,8 +21,10 @@
         }
 
         .ant-list-item-action {
+          --uno: "inline-flex items-center";
+
           li {
-            --uno: "last:p-0!";
+            --uno: "last:pr-0!";
           }
         }
       }

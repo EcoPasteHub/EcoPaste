@@ -338,7 +338,9 @@ const Item: FC<ItemProps> = (props) => {
 		>
 			<Header {...data} copy={copy} collect={collect} deleteItem={deleteItem} />
 
-			<div className="flex-1 overflow-hidden">{renderContent()}</div>
+			<div className="flex-1 select-auto overflow-hidden">
+				{renderContent()}
+			</div>
 		</Flex>
 	);
 };
