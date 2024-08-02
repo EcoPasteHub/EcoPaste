@@ -33,6 +33,7 @@ export interface ClipboardStore {
 	// 搜索框设置
 	searchPosition: "top" | "bottom";
 	searchDefaultFocus: boolean;
+	searchAutoClear: boolean;
 
 	// 点击反馈
 	singleClick: ClickFeedback;

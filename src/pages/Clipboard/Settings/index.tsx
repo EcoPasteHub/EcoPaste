@@ -8,8 +8,13 @@ import SearchPosition from "./components/SearchPosition";
 import WindowPosition from "./components/WindowPosition";
 
 const Clipboard = () => {
-	const { copyAudio, searchDefaultFocus, singleClick, doubleClick } =
-		useSnapshot(clipboardStore);
+	const {
+		copyAudio,
+		searchDefaultFocus,
+		singleClick,
+		doubleClick,
+		searchAutoClear,
+	} = useSnapshot(clipboardStore);
 
 	return (
 		<>
@@ -46,14 +51,14 @@ const Clipboard = () => {
 					}}
 				/>
 
-				{/* <ProSwitch
+				<ProSwitch
 					title="自动清除"
-					description="每次打开窗口时，自动清除搜索框"
-					value={searchDefaultFocus}
+					description="每次打开窗口时，自动清除搜索框内容"
+					value={searchAutoClear}
 					onChange={(value) => {
-						clipboardStore.searchDefaultFocus = value;
+						clipboardStore.searchAutoClear = value;
 					}}
-				/> */}
+				/>
 			</ProList>
 
 			<ProList header="点击反馈">

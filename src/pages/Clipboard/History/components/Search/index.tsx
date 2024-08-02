@@ -24,7 +24,13 @@ const Search: FC<InputProps> = (props) => {
 			}
 		},
 		onBlur() {
+			const { searchAutoClear } = clipboardStore;
+
 			inputRef.current?.blur();
+
+			if (searchAutoClear) {
+				setValue("");
+			}
 		},
 	});
 
