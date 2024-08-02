@@ -11,6 +11,7 @@ export const CLIPBOARD_STORE_INITIAL_STATE: ClipboardStore = {
 
 	searchPosition: "top",
 	searchDefaultFocus: false,
+	searchAutoClear: false,
 
 	singleClick: "none",
 	doubleClick: "none",
