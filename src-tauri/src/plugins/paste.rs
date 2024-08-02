@@ -32,11 +32,11 @@ fn focus_previous_window() {
 #[cfg(target_os = "windows")]
 fn focus_previous_window() {
     use crate::core::app::get_foreground_apps;
-    use winapi::um::winuser::{GetForegroundWindow, SetForegroundWindow};
+    use winapi::{shared::windef::HWND, um::winuser::SetForegroundWindow};
     unsafe {
         let foreground_apps = get_foreground_apps();
 
-        let hwnd = foreground_apps[0];
+        let hwnd = foreground_apps[0] as HWND;
 
         if hwnd.is_null() {
             println!("Could not get active window");

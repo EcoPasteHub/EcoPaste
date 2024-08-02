@@ -1,13 +1,7 @@
-use serde::Serialize;
-use std::ffi::OsString;
-use std::os::windows::ffi::OsStringExt;
 use std::sync::Mutex;
 use winapi::shared::minwindef::DWORD;
 use winapi::shared::windef::{HWINEVENTHOOK, HWND};
-use winapi::um::winuser::{
-    GetWindowTextLengthW, GetWindowTextW, SetWinEventHook, EVENT_SYSTEM_FOREGROUND,
-    WINEVENT_OUTOFCONTEXT,
-};
+use winapi::um::winuser::{SetWinEventHook, EVENT_SYSTEM_FOREGROUND, WINEVENT_OUTOFCONTEXT};
 
 static FOREMOST_APPS: Mutex<Vec<isize>> = Mutex::new(Vec::new());
 
@@ -22,13 +16,13 @@ unsafe extern "system" fn event_hook_callback(
     _dwms_event_time: DWORD,
 ) {
     if event == EVENT_SYSTEM_FOREGROUND {
-        let mut app = CURRENT_FOREGROUND_WINDOW.lock().unwrap();
-
-        app.push(hwnd as isize);
+        let mut app = FOREMOST_APPS.lock().unwrap();
 
         if app.len() >= 2 {
             app.remove(0);
         }
+
+        app.push(hwnd as isize);
     }
 }
 
@@ -44,6 +38,7 @@ pub fn observe_app() {
             0,
             WINEVENT_OUTOFCONTEXT,
         );
+
         if hook.is_null() {
             println!("设置事件钩子失败");
             return;
@@ -51,7 +46,6 @@ pub fn observe_app() {
     }
 }
 
-/// 获取之前激活的窗口
-pub fn get_foreground_apps() -> Option<App> {
+pub fn get_foreground_apps() -> Vec<isize> {
     return FOREMOST_APPS.lock().unwrap().to_vec();
 }
