@@ -26,14 +26,13 @@ const PlayAudio = forwardRef<PlayAudioRef, PlayAudioProps>((props, ref) => {
 
 	return (
 		<>
-			{!hiddenIcon && (
-				<Icon
-					{...iconProps}
-					hoverable
-					name="i-iconamoon:volume-up-light"
-					onClick={playAudio}
-				/>
-			)}
+			<Icon
+				{...iconProps}
+				hoverable
+				hidden={hiddenIcon}
+				name="i-iconamoon:volume-up-light"
+				onClick={playAudio}
+			/>
 
 			<audio ref={audioRef} src={src === "copy" ? copyAudio : src} />
 		</>

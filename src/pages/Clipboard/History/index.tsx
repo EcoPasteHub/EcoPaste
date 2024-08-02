@@ -175,7 +175,7 @@ const ClipboardHistory = () => {
 					"flex-col-reverse": searchPosition === "bottom",
 				})}
 			>
-				<PlayAudio ref={audioRef} />
+				<PlayAudio hiddenIcon ref={audioRef} />
 
 				<Search />
 
