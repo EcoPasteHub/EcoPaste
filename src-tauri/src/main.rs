@@ -40,6 +40,8 @@ fn main() {
                 core::app::observe_app();
             }
 
+            let _ = app;
+
             Ok(())
         })
         // 主题插件：https://github.com/wyhaya/tauri-plugin-theme
