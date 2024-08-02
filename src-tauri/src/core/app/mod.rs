@@ -1,5 +1,7 @@
 #[cfg(target_os = "macos")]
 mod macos;
+#[cfg(target_os = "windows")]
+pub mod win;
 
 #[derive(Debug, serde::Serialize, Clone)]
 pub struct App {

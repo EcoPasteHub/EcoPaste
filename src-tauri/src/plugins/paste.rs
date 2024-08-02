@@ -31,10 +31,17 @@ fn focus_previous_window() {
 // 让上一个窗口聚焦（windows）
 #[cfg(target_os = "windows")]
 fn focus_previous_window() {
+    use crate::core::app::win::get_previous_foremost_app;
     use winapi::um::winuser::{GetForegroundWindow, SetForegroundWindow};
-
     unsafe {
-        let hwnd = GetForegroundWindow();
+        let hwnd = {
+            let hwnd_option = get_previous_foremost_app();
+            if let Some(hwnd) = hwnd_option {
+                hwnd
+            } else {
+                GetForegroundWindow()
+            }
+        };
 
         if hwnd.is_null() {
             println!("Could not get active window");
