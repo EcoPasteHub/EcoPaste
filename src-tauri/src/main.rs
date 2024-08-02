@@ -44,6 +44,8 @@ fn main() {
                 core::app::win::observe_app();
             }
 
+            let _ = app;
+
             Ok(())
         })
         // 主题插件：https://github.com/wyhaya/tauri-plugin-theme

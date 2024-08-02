@@ -54,6 +54,10 @@ fn focus_previous_window() {
     }
 }
 
+#[cfg(target_os = "linux")]
+fn focus_previous_window() {
+}
+
 // 线程等待（毫秒）
 fn sleep(millis: u64) {
     thread::sleep(time::Duration::from_millis(millis));
