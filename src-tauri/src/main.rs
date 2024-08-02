@@ -36,13 +36,10 @@ fn main() {
                 // 隐藏 mac 下的任务栏图标：https://github.com/tauri-apps/tauri/issues/4852#issuecomment-1312716378
                 // BUG: 打包之后主窗口没办法显示在全屏的屏幕上
                 app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+            }
 
-                core::app::observe_app();
-            }
-            #[cfg(target_os = "windows")]
-            {
-                core::app::win::observe_app();
-            }
+            #[cfg(not(target_os = "linux"))]
+            core::app::observe_app();
 
             let _ = app;
 

@@ -9,15 +9,15 @@ use tauri::{
 // 让上一个窗口聚焦（macos）
 #[cfg(target_os = "macos")]
 fn focus_previous_window() {
-    use crate::core::app::get_frontmost_apps;
+    use crate::core::app::get_foreground_apps;
     use cocoa::{
         appkit::{NSApplicationActivationOptions, NSRunningApplication},
         base::nil,
     };
 
-    let frontmost_apps = get_frontmost_apps();
+    let foreground_apps = get_foreground_apps();
 
-    let process_id = frontmost_apps[0].process_id;
+    let process_id = foreground_apps[0].process_id;
 
     unsafe {
         let app = NSRunningApplication::runningApplicationWithProcessIdentifier(nil, process_id);
@@ -31,17 +31,12 @@ fn focus_previous_window() {
 // 让上一个窗口聚焦（windows）
 #[cfg(target_os = "windows")]
 fn focus_previous_window() {
-    use crate::core::app::win::get_previous_foremost_app;
-    use winapi::um::winuser::{GetForegroundWindow, SetForegroundWindow};
+    use crate::core::app::get_foreground_apps;
+    use winapi::{shared::windef::HWND, um::winuser::SetForegroundWindow};
     unsafe {
-        let hwnd = {
-            let hwnd_option = get_previous_foremost_app();
-            if let Some(hwnd) = hwnd_option {
-                hwnd
-            } else {
-                GetForegroundWindow()
-            }
-        };
+        let foreground_apps = get_foreground_apps();
+
+        let hwnd = foreground_apps[0] as HWND;
 
         if hwnd.is_null() {
             println!("Could not get active window");
@@ -55,8 +50,7 @@ fn focus_previous_window() {
 }
 
 #[cfg(target_os = "linux")]
-fn focus_previous_window() {
-}
+fn focus_previous_window() {}
 
 // 线程等待（毫秒）
 fn sleep(millis: u64) {
