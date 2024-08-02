@@ -1,4 +1,4 @@
-import copyAudio from "@/assets/audio/copy.mp3";
+import PlayAudio, { type PlayAudioRef } from "@/components/PlayAudio";
 import type { HistoryItem, TablePayload } from "@/types/database";
 import { listen } from "@tauri-apps/api/event";
 import {
@@ -41,7 +41,7 @@ export const HistoryContext = createContext<HistoryContextValue>({
 const ClipboardHistory = () => {
 	const { wakeUpKey, searchPosition } = useSnapshot(clipboardStore);
 
-	const audioRef = useRef<HTMLAudioElement>(null);
+	const audioRef = useRef<PlayAudioRef>(null);
 
 	const state = useReactive<State>(INITIAL_STATE);
 
@@ -51,7 +51,7 @@ const ClipboardHistory = () => {
 		startListen();
 
 		onClipboardUpdate(async (payload) => {
-			if (clipboardStore.enableAudio) {
+			if (clipboardStore.copyAudio) {
 				audioRef.current?.play();
 			}
 
@@ -144,34 +144,14 @@ const ClipboardHistory = () => {
 			isCollected,
 		});
 
-		// TODO: 为了适配导出功能，把旧图片路径替换为文件名，此代码只执行一次，将在以后的版本中移除此段代码
-		if (!clipboardStore.replaceAllImagePath) {
-			const { saveImageDir } = clipboardStore;
-
-			for (const item of list) {
-				const { id, type, value } = item;
-
-				if (type !== "image" || !value?.includes(saveImageDir)) continue;
-
-				item.value = value.replace(saveImageDir, "");
-
-				updateSQL("history", {
-					id,
-					value: item.value,
-				});
-			}
-
-			clipboardStore.replaceAllImagePath = true;
-		}
-
 		state.historyList = list;
 
-		if (!clipboardStore.historyCapacity) return;
+		if (!clipboardStore.historyDuration) return;
 
 		for (const item of list) {
 			const { id, createTime } = item;
 
-			if (dayjs().diff(createTime, "days") >= clipboardStore.historyCapacity) {
+			if (dayjs().diff(createTime, "days") >= clipboardStore.historyDuration) {
 				if (item.isCollected) continue;
 
 				deleteSQL("history", id);
@@ -195,7 +175,7 @@ const ClipboardHistory = () => {
 					"flex-col-reverse": searchPosition === "bottom",
 				})}
 			>
-				<audio ref={audioRef} src={copyAudio} />
+				<PlayAudio hiddenIcon ref={audioRef} />
 
 				<Search />
 

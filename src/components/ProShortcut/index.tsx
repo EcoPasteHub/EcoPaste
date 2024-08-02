@@ -1,13 +1,15 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Flex } from "antd";
 import { isEmpty, isEqual } from "arcdash";
 import clsx from "clsx";
 import { find, intersectionWith, map, remove, some } from "lodash-es";
 import type { FC, KeyboardEvent, MouseEvent } from "react";
 import Icon from "../Icon";
+import ProListItem from "../ProListItem";
 import { type Key, keys, modifierKeys, normalKeys } from "./keys";
 
-interface HotkeyProps {
+interface ProShortcutProps {
+	title: string;
+	description?: string;
 	defaultValue?: string;
 	onChange?: (value: string) => void;
 }
@@ -16,8 +18,8 @@ interface State {
 	value: Key[];
 }
 
-const Hotkey: FC<HotkeyProps> = (props) => {
-	const { defaultValue = "", onChange } = props;
+const ProShortcut: FC<ProShortcutProps> = (props) => {
+	const { title, description, defaultValue = "", onChange } = props;
 
 	const { t } = useTranslation();
 
@@ -28,14 +30,9 @@ const Hotkey: FC<HotkeyProps> = (props) => {
 	};
 
 	const containerRef = useRef<HTMLElement>(null);
-	const [animationParent] = useAutoAnimate();
 
 	const state = useReactive<State>({
 		value: handleDefaultValue(),
-	});
-
-	useMount(() => {
-		animationParent(containerRef.current);
 	});
 
 	const isHovering = useHover(containerRef);
@@ -114,7 +111,7 @@ const Hotkey: FC<HotkeyProps> = (props) => {
 	const renderContent = () => {
 		if (isMac()) {
 			return (
-				<Flex ref={animationParent} gap="small" className="font-bold text-16">
+				<Flex gap="small" className="font-bold text-16">
 					<Flex gap={4}>
 						{modifierKeys.map((item) => {
 							const { key, macosSymbol } = item;
@@ -140,7 +137,7 @@ const Hotkey: FC<HotkeyProps> = (props) => {
 		}
 
 		return (
-			<div ref={animationParent} className="whitespace-nowrap font-500 text-14">
+			<div className="font-500 text-14">
 				{isFocusing && isEmpty(state.value) ? (
 					<span className="font-normal text-primary">
 						{t("component.shortcut_key.hints.set_shortcut_key")}
@@ -155,27 +152,29 @@ const Hotkey: FC<HotkeyProps> = (props) => {
 	};
 
 	return (
-		<Flex
-			ref={containerRef}
-			tabIndex={0}
-			align="center"
-			gap="small"
-			className="antd-input group b-color-1 color-3 h-32 rounded-6 px-10"
-			onKeyDown={handleKeyDown}
-			onKeyUp={handleKeyUp}
-		>
-			{renderContent()}
+		<ProListItem title={title} description={description}>
+			<Flex
+				key={1}
+				ref={containerRef}
+				tabIndex={0}
+				align="center"
+				gap="small"
+				className="antd-input group b-color-1 color-3 h-32 rounded-6 px-10"
+				onKeyDown={handleKeyDown}
+				onKeyUp={handleKeyUp}
+			>
+				{renderContent()}
 
-			{isHovering && !isFocusing && !isEmpty(state.value) && (
 				<Icon
 					hoverable
 					size={16}
 					name="i-iconamoon:close-circle-1"
+					hidden={isFocusing || !isHovering || isEmpty(state.value)}
 					onMouseDown={handleClear}
 				/>
-			)}
-		</Flex>
+			</Flex>
+		</ProListItem>
 	);
 };
 
-export default Hotkey;
+export default ProShortcut;

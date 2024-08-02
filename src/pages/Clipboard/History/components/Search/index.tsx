@@ -15,9 +15,9 @@ const Search: FC<InputProps> = (props) => {
 
 	useFocus({
 		onFocus() {
-			const { defaultFocus } = clipboardStore;
+			const { searchDefaultFocus } = clipboardStore;
 
-			if (defaultFocus === "search") {
+			if (searchDefaultFocus) {
 				inputRef.current?.focus();
 			} else if (isNil(state.activeIndex)) {
 				state.activeIndex = 0;

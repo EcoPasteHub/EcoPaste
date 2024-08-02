@@ -1,8 +1,10 @@
 import Icon from "@/components/Icon";
+import ProList from "@/components/ProList";
+import ProListItem from "@/components/ProListItem";
 import { emit } from "@tauri-apps/api/event";
 import { BaseDirectory, readTextFile } from "@tauri-apps/api/fs";
 import { appDataDir } from "@tauri-apps/api/path";
-import { Button, Card, Flex, Spin, message } from "antd";
+import { Button, Flex, List, message } from "antd";
 import type { Store } from "antd/es/form/interface";
 
 const DataBackup = () => {
@@ -120,43 +122,41 @@ const DataBackup = () => {
 	};
 
 	return (
-		<Card
-			title={t("preference.data_backup.import_export.title")}
-			extra={
-				<Button ghost type="primary" onClick={openDir}>
-					{t("preference.data_backup.import_export.button.open_dir")}
+		<ProList header="导入和导出">
+			<ProListItem title="存储路径">
+				<Button type="primary" onClick={openDir}>
+					打开目录
 				</Button>
-			}
-		>
-			<Flex
-				gap="middle"
-				onClick={(event) => {
-					event.stopPropagation();
-					event.preventDefault();
-				}}
-			>
-				{renderList.map((item) => {
-					const { label, icon, event } = item;
+			</ProListItem>
+			<List.Item>
+				<Flex
+					gap="middle"
+					onClick={(event) => {
+						event.stopPropagation();
+						event.preventDefault();
+					}}
+				>
+					{renderList.map((item) => {
+						const { label, icon, event } = item;
 
-					return (
-						<Flex
-							key={label}
-							vertical
-							align="center"
-							justify="center"
-							gap="small"
-							className="b b-dashed b-color-1 hover:b-primary h-102 w-102 cursor-pointer rounded-8 bg-3 px-8 text-center transition hover:text-primary"
-							onClick={event}
-						>
-							<Icon name={icon} size={26} />
-							{label}
-						</Flex>
-					);
-				})}
-			</Flex>
-
-			<Spin spinning={state.spinning} tip={state.tip} fullscreen />
-		</Card>
+						return (
+							<Flex
+								key={label}
+								vertical
+								align="center"
+								justify="center"
+								gap="small"
+								className="b b-dashed b-color-1 hover:b-primary h-102 w-102 cursor-pointer rounded-8 bg-3 px-8 text-center transition hover:text-primary"
+								onClick={event}
+							>
+								<Icon name={icon} size={26} />
+								{label}
+							</Flex>
+						);
+					})}
+				</Flex>
+			</List.Item>
+		</ProList>
 	);
 };
 

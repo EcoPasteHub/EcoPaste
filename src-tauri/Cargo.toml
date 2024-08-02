@@ -26,6 +26,7 @@ flate2 = "1.0.30"
 tar = "0.4.41"
 current_locale = "0.1.1"
 rdev = "0.5.3"
+window-vibrancy = "0.4.3"
 
 [target."cfg(target_os = \"macos\")".dependencies]
 cocoa = "0.25.0"

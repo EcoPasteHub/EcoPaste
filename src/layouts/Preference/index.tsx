@@ -13,10 +13,14 @@ const Preference = () => {
 	const { pathname } = useLocation();
 	const navigate = useNavigate();
 	const { wakeUpKey, autoStart, language } = useSnapshot(globalStore);
-	const { theme, isDark, toggleTheme } = useTheme();
+	const { theme, toggleTheme } = useTheme();
 	const { t } = useTranslation();
 
 	useMount(async () => {
+		if (isMac()) {
+			frostedWindow();
+		}
+
 		const autoLaunched = await isAutoLaunch();
 
 		if (!autoLaunched) {
@@ -85,46 +89,34 @@ const Preference = () => {
 			<Flex
 				data-tauri-drag-region
 				vertical
-				align="center"
-				justify="space-between"
-				className={clsx(
-					"color-2 h-full w-90 bg-2 px-12 pb-32 text-center transition",
-					[isWin() ? "pt-32" : "pt-48"],
-				)}
+				gap="small"
+				className={clsx("h-full w-200 p-12", [isMac() ? "pt-32" : "bg-1"])}
+				onClick={(event) => event.stopPropagation()}
 			>
-				<Flex vertical gap="large" onClick={(event) => event.stopPropagation()}>
-					{preferenceRoute.children?.map((item) => {
-						const { path, meta = {} } = item;
-						const { title, icon } = meta;
+				{preferenceRoute.children?.map((item) => {
+					const { path, meta = {} } = item;
+					const { title, icon } = meta;
 
-						return (
-							<Link
-								key={title}
-								to={path}
-								className={clsx("hover:text-primary", {
-									"text-primary": pathname.endsWith(path),
-								})}
-							>
-								<Flex vertical align="center" gap={4}>
-									<Icon name={icon} size={22} />
-									<span>{t(title!)}</span>
-								</Flex>
-							</Link>
-						);
-					})}
-				</Flex>
-
-				<Icon
-					hoverable
-					size={24}
-					name={isDark ? "i-iconamoon:mode-light" : "i-iconamoon:mode-dark"}
-					onMouseDown={() => toggleTheme()}
-				/>
+					return (
+						<Link
+							key={title}
+							to={path}
+							className={clsx("color-2! rounded-8 p-12 transition hover:bg-4", {
+								"bg-primary! text-white!": pathname.endsWith(path),
+							})}
+						>
+							<Flex align="center" gap="small">
+								<Icon name={icon} size={20} />
+								<span className="font-bold">{t(title!)}</span>
+							</Flex>
+						</Link>
+					);
+				})}
 			</Flex>
 
 			<div
 				data-tauri-drag-region
-				className="h-full flex-1 overflow-auto bg-1 p-16 transition"
+				className="h-full flex-1 overflow-auto bg-2 p-16 transition"
 			>
 				<Outlet />
 			</div>

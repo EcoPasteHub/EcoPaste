@@ -58,13 +58,27 @@ pub async fn set_window_shadow(_window: Window) {
     window_shadows::set_shadow(&_window, true).unwrap();
 }
 
+// 磨砂窗口：https://github.com/tauri-apps/window-vibrancy
+#[command]
+pub fn frosted_window(_window: Window) {
+    #[cfg(target_os = "macos")]
+    window_vibrancy::apply_vibrancy(
+        &_window,
+        window_vibrancy::NSVisualEffectMaterial::Sidebar,
+        Some(window_vibrancy::NSVisualEffectState::Active),
+        Some(10.0),
+    )
+    .unwrap();
+}
+
 pub fn init() -> TauriPlugin<Wry> {
     Builder::new("window")
         .invoke_handler(generate_handler![
             create_window,
             show_window,
             hide_window,
-            set_window_shadow
+            set_window_shadow,
+            frosted_window
         ])
         .build()
 }

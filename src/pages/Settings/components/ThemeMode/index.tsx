@@ -1,5 +1,5 @@
+import ProSelect from "@/components/ProSelect";
 import type { Theme } from "@/types/store";
-import { Flex, Segmented } from "antd";
 
 interface Option {
 	label: string;
@@ -8,28 +8,29 @@ interface Option {
 
 const ThemeMode = () => {
 	const { theme, toggleTheme } = useTheme();
-	const { t } = useTranslation();
 
 	const options: Option[] = [
 		{
-			label: t("preference.settings.basic.label.theme_auto"),
+			label: "跟随系统",
 			value: "auto",
 		},
 		{
-			label: t("preference.settings.basic.label.theme_light"),
+			label: "亮色模式",
 			value: "light",
 		},
 		{
-			label: t("preference.settings.basic.label.theme_dark"),
+			label: "暗色模式",
 			value: "dark",
 		},
 	];
 
 	return (
-		<Flex align="center">
-			<span>{t("preference.settings.basic.label.theme")}：</span>
-			<Segmented value={theme} options={options} onChange={toggleTheme} />
-		</Flex>
+		<ProSelect
+			title="主题模式"
+			value={theme}
+			options={options}
+			onChange={toggleTheme}
+		/>
 	);
 };
 

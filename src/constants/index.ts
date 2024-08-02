@@ -19,6 +19,7 @@ export const WINDOW_PLUGIN = {
 	SHOW_WINDOW: "plugin:window|show_window",
 	HIDE_WINDOW: "plugin:window|hide_window",
 	SET_WINDOW_SHADOW: "plugin:window|set_window_shadow",
+	FROSTED_WINDOW: "plugin:window|frosted_window",
 };
 
 export const FS_EXTRA_PLUGIN = {

@@ -7,7 +7,8 @@ export type RoutePath =
 	| "clipboard"
 	| "settings"
 	| "about"
-	| "data-backup";
+	| "data-backup"
+	| "shortcut";
 
 export interface Route extends RouteObject {
 	path: RoutePath;

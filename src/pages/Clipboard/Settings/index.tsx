@@ -1,64 +1,81 @@
-import Hotkey from "@/components/Hotkey";
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { Card, Flex, Switch } from "antd";
+import PlayAudio from "@/components/PlayAudio";
+import ProList from "@/components/ProList";
+import ProSwitch from "@/components/ProSwitch";
 import { useSnapshot } from "valtio";
-import DefaultFocus from "./components/DefaultFocus";
-import DoubleClickFeedback from "./components/DoubleClickFeedback";
-import HistoryCapacity from "./components/HistoryCapacity";
+import ClickFeedback from "./components/ClickFeedback";
+import HistoryRecord from "./components/HistoryRecord";
 import SearchPosition from "./components/SearchPosition";
 import WindowPosition from "./components/WindowPosition";
 
 const Clipboard = () => {
-	const { wakeUpKey, enableAudio, clickPaste } = useSnapshot(clipboardStore);
-	const { t } = useTranslation();
-	const [animationParent] = useAutoAnimate();
+	const { copyAudio, searchDefaultFocus, singleClick, doubleClick } =
+		useSnapshot(clipboardStore);
 
 	return (
-		<Flex vertical gap="middle">
-			<Card title={t("preference.clipboard.basic.title")}>
-				<Flex ref={animationParent} vertical gap="large">
-					<Flex align="center">
-						<span>{t("preference.clipboard.basic.label.wake_up_key")}：</span>
-						<Hotkey
-							defaultValue={wakeUpKey}
-							onChange={(value) => {
-								clipboardStore.wakeUpKey = value;
-							}}
-						/>
-					</Flex>
+		<>
+			<ProList header="窗口设置">
+				<WindowPosition />
+			</ProList>
 
-					<Flex align="center">
-						{t("preference.clipboard.basic.label.enable_audio")}：
-						<Switch
-							checked={enableAudio}
-							onChange={(value) => {
-								clipboardStore.enableAudio = value;
-							}}
-						/>
-					</Flex>
+			<ProList header="音效设置">
+				<ProSwitch
+					title="复制音效"
+					value={copyAudio}
+					onChange={(value) => {
+						clipboardStore.copyAudio = value;
+					}}
+				>
+					<PlayAudio
+						iconProps={{
+							size: 22,
+							className: "flex!",
+						}}
+					/>
+				</ProSwitch>
+			</ProList>
 
-					<SearchPosition />
+			<ProList header="搜索框设置">
+				<SearchPosition key={1} />
 
-					<DefaultFocus />
+				<ProSwitch
+					title="默认聚焦"
+					description="每次打开窗口时，自动聚焦搜索框"
+					value={searchDefaultFocus}
+					onChange={(value) => {
+						clipboardStore.searchDefaultFocus = value;
+					}}
+				/>
 
-					<Flex align="center">
-						{t("preference.clipboard.basic.label.click_paste")}：
-						<Switch
-							checked={clickPaste}
-							onChange={(value) => {
-								clipboardStore.clickPaste = value;
-							}}
-						/>
-					</Flex>
+				{/* <ProSwitch
+					title="自动清除"
+					description="每次打开窗口时，自动清除搜索框"
+					value={searchDefaultFocus}
+					onChange={(value) => {
+						clipboardStore.searchDefaultFocus = value;
+					}}
+				/> */}
+			</ProList>
 
-					{!clickPaste && <DoubleClickFeedback />}
+			<ProList header="点击反馈">
+				<ClickFeedback
+					label="单击反馈"
+					value={singleClick}
+					onChange={(value) => {
+						clipboardStore.singleClick = value;
+					}}
+				/>
 
-					<WindowPosition />
-				</Flex>
-			</Card>
+				<ClickFeedback
+					label="双击反馈"
+					value={doubleClick}
+					onChange={(value) => {
+						clipboardStore.doubleClick = value;
+					}}
+				/>
+			</ProList>
 
-			<HistoryCapacity />
-		</Flex>
+			<HistoryRecord />
+		</>
 	);
 };
 

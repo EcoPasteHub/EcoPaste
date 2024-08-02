@@ -1,5 +1,5 @@
+import ProSelect from "@/components/ProSelect";
 import type { ClipboardStore } from "@/types/store";
-import { Flex, Segmented } from "antd";
 import { useSnapshot } from "valtio";
 
 interface Option {
@@ -9,36 +9,31 @@ interface Option {
 
 const WindowPosition = () => {
 	const { windowPosition } = useSnapshot(clipboardStore);
-	const { t } = useTranslation();
 
 	const options: Option[] = [
 		{
-			label: t("preference.clipboard.basic.label.window_position_default"),
+			label: "自由拖动",
 			value: "default",
 		},
 		{
-			label: t("preference.clipboard.basic.label.window_position_follow"),
+			label: "跟随鼠标",
 			value: "follow",
 		},
 		{
-			label: t("preference.clipboard.basic.label.window_position_center"),
+			label: "屏幕中心",
 			value: "center",
 		},
 	];
 
-	const handleChange = (value: Option["value"]) => {
-		clipboardStore.windowPosition = value;
-	};
-
 	return (
-		<Flex align="center">
-			{t("preference.clipboard.basic.label.window_position")}：
-			<Segmented
-				value={windowPosition}
-				options={options}
-				onChange={handleChange}
-			/>
-		</Flex>
+		<ProSelect
+			title="窗口位置"
+			value={windowPosition}
+			options={options}
+			onChange={(value) => {
+				clipboardStore.windowPosition = value;
+			}}
+		/>
 	);
 };
 

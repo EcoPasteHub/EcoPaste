@@ -1,5 +1,5 @@
+import ProSelect from "@/components/ProSelect";
 import type { ClipboardStore } from "@/types/store";
-import { Flex, Segmented } from "antd";
 import { useSnapshot } from "valtio";
 
 interface Option {
@@ -9,32 +9,27 @@ interface Option {
 
 const SearchPosition = () => {
 	const { searchPosition } = useSnapshot(clipboardStore);
-	const { t } = useTranslation();
 
 	const options: Option[] = [
 		{
-			label: t("preference.clipboard.basic.label.search_position_top"),
+			label: "顶部",
 			value: "top",
 		},
 		{
-			label: t("preference.clipboard.basic.label.search_position_bottom"),
+			label: "底部",
 			value: "bottom",
 		},
 	];
 
-	const handleChange = (value: Option["value"]) => {
-		clipboardStore.searchPosition = value;
-	};
-
 	return (
-		<Flex align="center">
-			{t("preference.clipboard.basic.label.search_position")}：
-			<Segmented
-				value={searchPosition}
-				options={options}
-				onChange={handleChange}
-			/>
-		</Flex>
+		<ProSelect
+			title="搜索框位置"
+			value={searchPosition}
+			options={options}
+			onChange={(value) => {
+				clipboardStore.searchPosition = value;
+			}}
+		/>
 	);
 };
 
