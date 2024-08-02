@@ -90,9 +90,7 @@ const Preference = () => {
 				data-tauri-drag-region
 				vertical
 				gap="small"
-				className={clsx("h-full w-200 px-12 py-32", [
-					isMac() ? "pt-48" : "bg-1",
-				])}
+				className={clsx("h-full w-200 p-12", [isMac() ? "pt-32" : "bg-1"])}
 				onClick={(event) => event.stopPropagation()}
 			>
 				{preferenceRoute.children?.map((item) => {
@@ -109,7 +107,7 @@ const Preference = () => {
 						>
 							<Flex align="center" gap="small">
 								<Icon name={icon} size={20} />
-								<span className="font-bold text-15">{t(title!)}</span>
+								<span className="font-bold">{t(title!)}</span>
 							</Flex>
 						</Link>
 					);
