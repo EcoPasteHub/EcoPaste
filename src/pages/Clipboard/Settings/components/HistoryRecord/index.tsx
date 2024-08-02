@@ -7,48 +7,32 @@ import { useSnapshot } from "valtio";
 const HistoryRecord = () => {
 	const { historyDuration } = useSnapshot(clipboardStore);
 
-	const [value, setValue] = useState(historyDuration);
-
-	const options = useCreation(() => {
-		return [
-			{
-				label: "永久",
-				value: 0,
-			},
-			{
-				label: `${value}天`,
-				value: value,
-			},
-			{
-				label: `${value}周`,
-				value: value * 7,
-			},
-			{
-				label: `${value}月`,
-				value: value * 30,
-			},
-			{
-				label: `${value}年`,
-				value: value * 365,
-			},
-		];
-	}, [value]);
-
-	const handleChange = (value: number) => {
-		setValue(value);
-
-		clipboardStore.historyDuration = value;
-	};
-
-	const handleSearch = (value: string) => {
-		let number = Number.parseInt(value);
-
-		if (Number.isNaN(number) || number <= 0) {
-			number = 1;
-		}
-
-		setValue(number);
-	};
+	const options = [
+		{
+			label: "永久",
+			value: 0,
+		},
+		{
+			label: "一天",
+			value: 1,
+		},
+		{
+			label: "一周",
+			value: 7,
+		},
+		{
+			label: "一月",
+			value: 30,
+		},
+		{
+			label: "半年",
+			value: 180,
+		},
+		{
+			label: "一年",
+			value: 365,
+		},
+	];
 
 	const handleClear = async () => {
 		const yes = await ask("你确定要清除所有历史记录吗？", {
@@ -73,13 +57,12 @@ const HistoryRecord = () => {
 			}
 		>
 			<ProSelect
-				showSearch
 				title="保留时长"
-				value={value}
+				value={historyDuration}
 				options={options}
-				filterOption={false}
-				onChange={handleChange}
-				onSearch={handleSearch}
+				onChange={(value) => {
+					clipboardStore.historyDuration = value;
+				}}
 			/>
 		</ProList>
 	);
