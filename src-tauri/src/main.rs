@@ -45,6 +45,8 @@ fn main() {
 
             Ok(())
         })
+        // 日志：https://github.com/tauri-apps/tauri-plugin-log
+        .plugin(tauri_plugin_log::Builder::default().build())
         // 主题插件：https://github.com/wyhaya/tauri-plugin-theme
         .plugin(ThemePlugin::init(ctx.config_mut()))
         // 确保在 windows 和 linux 上只有一个 app 实例在运行：https://github.com/tauri-apps/plugins-workspace/tree/v1/plugins/single-instance
