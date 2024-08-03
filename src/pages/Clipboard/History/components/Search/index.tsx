@@ -44,6 +44,12 @@ const Search: FC<InputProps> = (props) => {
 		},
 	);
 
+	useKeyPress(["meta.f", "ctrl.f"], (event) => {
+		event.preventDefault();
+
+		inputRef.current?.focus();
+	});
+
 	return (
 		<Input
 			{...props}
