@@ -1,4 +1,5 @@
-import PlayAudio, { type PlayAudioRef } from "@/components/PlayAudio";
+import type { PlayAudioRef } from "@/components/PlayAudio";
+import PlayAudio from "@/components/PlayAudio";
 import type { HistoryItem, TablePayload } from "@/types/database";
 import { listen } from "@tauri-apps/api/event";
 import {
@@ -39,6 +40,7 @@ export const HistoryContext = createContext<HistoryContextValue>({
 });
 
 const ClipboardHistory = () => {
+	const { appInfo } = useSnapshot(globalStore);
 	const { wakeUpKey, searchPosition } = useSnapshot(clipboardStore);
 
 	const audioRef = useRef<PlayAudioRef>(null);
@@ -46,6 +48,8 @@ const ClipboardHistory = () => {
 	const state = useReactive<State>(INITIAL_STATE);
 
 	useMount(async () => {
+		appWindow.setTitle(appInfo.name);
+
 		setWindowShadow();
 
 		startListen();
@@ -179,7 +183,12 @@ const ClipboardHistory = () => {
 
 				<Search />
 
-				<Flex data-tauri-drag-region vertical gap={12}>
+				<Flex
+					data-tauri-drag-region
+					vertical
+					gap={12}
+					className="flex-1 overflow-hidden"
+				>
 					<Header />
 
 					<List />

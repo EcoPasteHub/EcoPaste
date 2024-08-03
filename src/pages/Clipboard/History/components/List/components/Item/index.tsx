@@ -82,7 +82,7 @@ const Item: FC<ItemProps> = (props) => {
 
 	const exportFile = async () => {
 		const extension = type === "text" ? "txt" : type;
-		const fileName = `${appInfo?.name}_${id}.${extension}`;
+		const fileName = `${appInfo.name}_${id}.${extension}`;
 		const destination = (await downloadDir()) + fileName;
 
 		await writeFile(destination, value);
@@ -95,7 +95,7 @@ const Item: FC<ItemProps> = (props) => {
 	};
 
 	const downloadImage = async () => {
-		const fileName = `${appInfo?.name}_${id}.png`;
+		const fileName = `${appInfo.name}_${id}.png`;
 		const destination = (await downloadDir()) + fileName;
 
 		await copyFile(value, destination);
@@ -319,7 +319,7 @@ const Item: FC<ItemProps> = (props) => {
 			tabIndex={0}
 			gap={4}
 			style={style}
-			className="antd-input b-color-2 absolute inset-0 mx-12 h-full w-336! rounded-6 p-6"
+			className="antd-input b-color-2 absolute inset-0 mx-12 h-full rounded-6 p-6"
 			onContextMenu={handleContextMenu}
 			onClick={() => handleClick("singleClick")}
 			onDoubleClick={() => handleClick("doubleClick")}

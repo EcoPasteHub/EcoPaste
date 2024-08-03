@@ -16,8 +16,8 @@ const About = () => {
 
 	const copyInfo = async () => {
 		const info = {
-			appName: appInfo?.name,
-			appVersion: appInfo?.version,
+			appName: appInfo.name,
+			appVersion: appInfo.version,
 			tauriVersion: await getTauriVersion(),
 			platform,
 			platformArch: await arch(),
@@ -43,11 +43,11 @@ const About = () => {
 
 			<Flex vertical align="center" gap="small">
 				<div className="color-1 font-bold text-20 transition">
-					{appInfo?.name}
+					{appInfo.name}
 				</div>
 
 				<Flex align="center" gap={4}>
-					<span>v{appInfo?.version}</span>
+					<span>v{appInfo.version}</span>
 					<Tooltip title={t("preference.about.hints.update_tooltip")}>
 						<Icon
 							hoverable

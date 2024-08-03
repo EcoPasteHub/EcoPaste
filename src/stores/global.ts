@@ -17,9 +17,13 @@ export const getStorage = (): ProxyPersistStorageEngine => ({
 export const persistStrategies = PersistStrategy.MultiFile;
 
 export const GLOBAL_STORE_INITIAL_STATE: GlobalStore = {
-	theme: "auto",
-	autoStart: false,
 	wakeUpKey: "Alt+X",
+	autoStart: false,
+	autoUpdate: false,
+
+	theme: "auto",
+
+	appInfo: { name: "", version: "" },
 };
 
 export const globalStore = proxyWithPersist<GlobalStore>({

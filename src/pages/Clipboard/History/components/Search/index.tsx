@@ -51,25 +51,26 @@ const Search: FC<InputProps> = (props) => {
 	});
 
 	return (
-		<Input
-			{...props}
-			ref={inputRef}
-			allowClear
-			value={value}
-			prefix={<Icon name="i-lucide:search" />}
-			size="small"
-			placeholder={t("clipboard.hints.search_placeholder")}
-			className="m-auto w-336"
-			onFocus={() => {
-				state.searching = true;
-			}}
-			onBlur={() => {
-				state.searching = false;
-			}}
-			onChange={(event) => {
-				setValue(event.target.value);
-			}}
-		/>
+		<div className="mx-12">
+			<Input
+				{...props}
+				ref={inputRef}
+				allowClear
+				value={value}
+				prefix={<Icon name="i-lucide:search" />}
+				size="small"
+				placeholder={t("clipboard.hints.search_placeholder")}
+				onFocus={() => {
+					state.searching = true;
+				}}
+				onBlur={() => {
+					state.searching = false;
+				}}
+				onChange={(event) => {
+					setValue(event.target.value);
+				}}
+			/>
+		</div>
 	);
 };
 

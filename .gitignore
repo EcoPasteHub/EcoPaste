@@ -12,6 +12,7 @@ dist
 dist-ssr
 *.local
 auto-imports.d.ts
+*.patch
 
 # Editor directories and files
 .idea

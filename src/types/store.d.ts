@@ -1,5 +1,3 @@
-import type { OsType } from "@tauri-apps/api/os";
-
 export type Theme = "auto" | "light" | "dark";
 
 export type Language = (typeof LANGUAGE)[keyof typeof LANGUAGE];
@@ -10,13 +8,18 @@ export interface Store {
 }
 
 export interface GlobalStore {
-	theme: Theme;
-	autoStart: boolean;
+	// 应用设置
 	wakeUpKey: string;
-	appInfo?: { name: string; version: string };
-	platform?: OsType;
-	autoUpdate?: boolean;
+	autoStart: boolean;
+	autoUpdate: boolean;
+
+	// 外观设置
+	theme: Theme;
 	language?: Language;
+
+	// 非配置项
+	appInfo: { name: string; version: string };
+	platform?: OsType;
 }
 
 export type ClickFeedback = "none" | "copy" | "paste";
