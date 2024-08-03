@@ -170,7 +170,7 @@ We recommend using [issue](https://github.com/ayangweb/EcoPaste/issues) for the 
 
 - WeChat
 
-<img src="./images/wechat.png" />
+<img width="25%" src="./images/wechat.png" />
 
 ## Contributors
 

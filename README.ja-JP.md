@@ -170,7 +170,7 @@ sudo xattr -r -d com.apple.quarantine /Applications/EcoPaste.app
 
 - マイクロソフト
 
-<img src="./images/wechat.png" />
+<img width="25%" src="./images/wechat.png" />
 
 ## 貢献者
 
