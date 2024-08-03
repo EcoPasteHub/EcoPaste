@@ -53,12 +53,6 @@ const Preference = () => {
 			navigate("about");
 		});
 
-		listen(LISTEN_KEY.TRAY_CLICK, () => {
-			if (isMac() || globalStore.trayClick === "none") return;
-
-			showWindow();
-		});
-
 		listen<Language>(LISTEN_KEY.CHANGE_LANGUAGE, ({ payload }) => {
 			globalStore.language = payload;
 		});

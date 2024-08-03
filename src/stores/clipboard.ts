@@ -23,7 +23,7 @@ export const CLIPBOARD_STORE_INITIAL_STATE: ClipboardStore = {
 
 export const clipboardStore = proxyWithPersist<ClipboardStore>({
 	name: "clipboard",
-	initialState: CLIPBOARD_STORE_INITIAL_STATE,
+	initialState: { ...CLIPBOARD_STORE_INITIAL_STATE },
 	persistStrategies,
 	version: 0,
 	migrations: {},
