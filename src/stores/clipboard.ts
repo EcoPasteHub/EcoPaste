@@ -14,7 +14,7 @@ export const CLIPBOARD_STORE_INITIAL_STATE: ClipboardStore = {
 	searchAutoClear: false,
 
 	singleClick: "none",
-	doubleClick: "none",
+	doubleClick: "paste",
 
 	historyDuration: 0,
 

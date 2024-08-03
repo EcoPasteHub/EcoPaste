@@ -1,21 +1,13 @@
 import ProSelect from "@/components/ProSelect";
+import type { ProSelectProps } from "@/components/ProSelect";
 import type { ClickFeedback as TypeClickFeedback } from "@/types/store";
-import type { FC } from "react";
-
-interface ClickFeedbackProps {
-	label: string;
-	value: TypeClickFeedback;
-	onChange: (value: TypeClickFeedback) => void;
-}
 
 interface Option {
 	label: string;
 	value: TypeClickFeedback;
 }
 
-const ClickFeedback: FC<ClickFeedbackProps> = (props) => {
-	const { label, ...rest } = props;
-
+const ClickFeedback = <T,>(props: ProSelectProps<T>) => {
 	const options: Option[] = [
 		{
 			label: "无反馈",
@@ -31,7 +23,7 @@ const ClickFeedback: FC<ClickFeedbackProps> = (props) => {
 		},
 	];
 
-	return <ProSelect title={label} options={options} {...rest} />;
+	return <ProSelect {...props} options={options} />;
 };
 
 export default ClickFeedback;
