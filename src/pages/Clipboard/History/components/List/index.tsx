@@ -31,8 +31,9 @@ const List = () => {
 
 	return (
 		<>
-			<Scrollbar ref={outerRef} className="h-506">
+			<Scrollbar ref={outerRef} className="flex-1">
 				<div
+					data-tauri-drag-region
 					className="relative w-screen"
 					style={{ height: rowVirtualizer.getTotalSize() }}
 				>

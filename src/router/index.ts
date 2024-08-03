@@ -66,6 +66,8 @@ export const routes: Route[] = [
 			windowOptions: {
 				width: 360,
 				height: 600,
+				minWidth: 360,
+				minHeight: 600,
 				resizable: false,
 				maximizable: false,
 				decorations: false,

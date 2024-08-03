@@ -1,4 +1,5 @@
 import Icon from "@/components/Icon";
+import Scrollbar from "@/components/Scrollbar";
 import type { HistoryItem } from "@/types/database";
 import { Flex, Popconfirm } from "antd";
 import { autoConvertBytes } from "arcdash";
@@ -90,13 +91,16 @@ const Header: FC<HeaderProps> = (props) => {
 	};
 
 	return (
-		<Flex justify="space-between" className="color-2">
-			<Flex align="center" gap={6} className="text-12">
+		<Flex justify="space-between" gap="small" className="color-2">
+			<Scrollbar
+				thumbSize={0}
+				className="flex flex-1 gap-8 whitespace-nowrap text-12"
+			>
 				<span>{renderType()}</span>
 				<span>{renderSize()}</span>
 				{renderPixel()}
 				<span>{dayjs(createTime).locale(i18n.language).fromNow()}</span>
-			</Flex>
+			</Scrollbar>
 
 			<Flex
 				align="center"

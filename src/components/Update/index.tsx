@@ -168,7 +168,7 @@ const Update = () => {
 					<Flex align="center">
 						{t("component.app_update.label.release_version")}：
 						<span>
-							v{appInfo?.version} 👉{" "}
+							v{appInfo.version} 👉{" "}
 							<a href={`${GITHUB_LINK}/releases/latest`}>
 								v{state.manifest?.version}
 							</a>

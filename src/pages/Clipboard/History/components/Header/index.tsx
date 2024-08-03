@@ -21,7 +21,7 @@ const Header = () => {
 			align="center"
 			justify="space-between"
 			gap="small"
-			className="color-2 px-12 text-18"
+			className="px-12"
 		>
 			<Tab />
 
@@ -29,7 +29,7 @@ const Header = () => {
 				hoverable
 				active={state.pin}
 				name="i-ri:pushpin-2-line"
-				className={clsx("min-w-18", { "rotate-45": state.pin })}
+				className={clsx("color-2 min-w-18 text-18", { "rotate-45": state.pin })}
 				onMouseDown={() => {
 					state.pin = !state.pin;
 				}}
