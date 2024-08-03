@@ -164,6 +164,14 @@ After that, you can open the app normally.
  </picture>
 </a>
 
+## Community
+
+We recommend using [issue](https://github.com/ayangweb/EcoPaste/issues) to provide the most direct and effective feedback. Of course, the following options for feedback are also available:
+
+- WeChat
+
+<img width="25%" src="./images/wechat.png" />
+
 ## Contributors
 
 Thanks to everyone who has already contributed to EcoPaste. 
