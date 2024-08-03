@@ -161,6 +161,14 @@ sudo xattr -r -d com.apple.quarantine /Applications/EcoPaste.app
  </picture>
 </a>
 
+## 反馈和交流
+
+我们推荐使用 [issue](https://github.com/ayangweb/EcoPaste/issues) 进行最直接有效的反馈。
+
+- 微信
+
+<img src="./images/wechat.png" />
+
 ## 贡献者
 
 感谢大家为 EcoPaste 做出的贡献。
