@@ -166,9 +166,9 @@ sudo xattr -r -d com.apple.quarantine /Applications/EcoPaste.app
 
 ## コミュニティです
 
-最も直接的で効果的なフィードバックを得るには、[issue](https://github.com/ayangweb/EcoPaste/issues)の使用をお勧めします。
+最も直接的で効果的なフィードバックを提供するために、[issue](https://github.com/ayangweb/EcoPaste/issues)を使用することをお勧めします。もちろん、以下のフィードバックオプションもご利用いただけます：
 
-- マイクロソフト
+- ウィーチャット
 
 <img width="25%" src="./images/wechat.png" />
 

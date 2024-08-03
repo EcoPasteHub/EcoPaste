@@ -163,7 +163,7 @@ sudo xattr -r -d com.apple.quarantine /Applications/EcoPaste.app
 
 ## 反馈和交流
 
-我们推荐使用 [issue](https://github.com/ayangweb/EcoPaste/issues) 进行最直接有效的反馈。
+我们推荐使用 [issue](https://github.com/ayangweb/EcoPaste/issues) 提供最直接和有效的反馈。当然，也可以选择以下方式进行反馈：
 
 - 微信
 

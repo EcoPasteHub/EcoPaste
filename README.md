@@ -166,7 +166,7 @@ After that, you can open the app normally.
 
 ## Community
 
-We recommend using [issue](https://github.com/ayangweb/EcoPaste/issues) for the most direct and effective feedback.
+We recommend using [issue](https://github.com/ayangweb/EcoPaste/issues) to provide the most direct and effective feedback. Of course, the following options for feedback are also available:
 
 - WeChat
 
