@@ -2,9 +2,9 @@ import { Select, type SelectProps } from "antd";
 import type { ListItemMetaProps } from "antd/es/list";
 import ProListItem from "../ProListItem";
 
-type ProSelect<T> = SelectProps<T> & ListItemMetaProps;
+export type ProSelectProps<T> = SelectProps<T> & ListItemMetaProps;
 
-const ProSelect = <T,>(props: ProSelect<T>) => {
+const ProSelect = <T,>(props: ProSelectProps<T>) => {
 	const { title, description, children, ...rest } = props;
 
 	return (

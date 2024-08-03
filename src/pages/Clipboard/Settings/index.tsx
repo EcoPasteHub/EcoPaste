@@ -63,7 +63,7 @@ const Clipboard = () => {
 
 			<ProList header="点击反馈">
 				<ClickFeedback
-					label="单击反馈"
+					title="单击反馈"
 					value={singleClick}
 					onChange={(value) => {
 						clipboardStore.singleClick = value;
@@ -71,7 +71,7 @@ const Clipboard = () => {
 				/>
 
 				<ClickFeedback
-					label="双击反馈"
+					title="双击反馈"
 					value={doubleClick}
 					onChange={(value) => {
 						clipboardStore.doubleClick = value;
