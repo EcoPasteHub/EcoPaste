@@ -10,6 +10,14 @@
 		"version": "../package.json"
 	},
 	"tauri": {
+		"cli": {
+			"args": [
+				{
+					"name": "info",
+					"short": "i"
+				}
+			]
+		},
 		"macOSPrivateApi": true,
 		"allowlist": {
 			"os": {
