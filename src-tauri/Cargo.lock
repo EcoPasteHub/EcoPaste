@@ -1289,6 +1289,7 @@ dependencies = [
  "winapi",
  "window-shadows",
  "window-vibrancy",
+ "x11",
 ]
 
 [[package]]

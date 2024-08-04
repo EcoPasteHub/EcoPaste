@@ -50,7 +50,6 @@ fn main() {
                 app.set_activation_policy(tauri::ActivationPolicy::Accessory);
             }
 
-            #[cfg(not(target_os = "linux"))]
             core::app::observe_app();
 
             let _ = app;

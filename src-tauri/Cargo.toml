@@ -39,6 +39,7 @@ winapi = { version = "0.3", features = ["winuser", "windef"] }
 
 [target."cfg(target_os = \"linux\")".dependencies]
 showfile = "0.1.1"
+x11 = "2.21.0"
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!
