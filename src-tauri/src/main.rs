@@ -5,7 +5,7 @@ mod core;
 mod locales;
 mod plugins;
 
-use core::tray;
+use core::{info, tray};
 use plugins::{
     auto_launch, backup, clipboard, fs_extra, locale, mouse, ocr, paste,
     window::{self, show_window, PREFERENCE_WINDOW_LABEL},
@@ -23,6 +23,18 @@ fn main() {
 
     Builder::default()
         .setup(|app| {
+          // 获取命令行参数，检查是否有 `info` 或 `i` 参数
+          match app.get_cli_matches() {
+            Ok(matches) => {
+              if matches.args["info"].value.as_bool().expect("参数错误") {
+                info::print_system_info();
+                info::print_app_info(app.app_handle());
+                std::process::exit(0);
+              }
+            }
+            Err(_) => {}
+          }
+
             // 在开发环境中启动时打开控制台：https://tauri.app/v1/guides/debugging/application/#opening-devtools-programmatically
             #[cfg(any(debug_assertions, feature = "devtools"))]
             {
