@@ -50,7 +50,31 @@ fn focus_previous_window() {
 }
 
 #[cfg(target_os = "linux")]
-fn focus_previous_window() {}
+fn focus_previous_window() {
+    use crate::core::app::get_foreground_apps;
+    use x11::xlib::{self, XCloseDisplay, XOpenDisplay, XSetInputFocus};
+
+    unsafe {
+        let display = XOpenDisplay(std::ptr::null_mut());
+        if display.is_null() {
+            eprintln!("Could not open display");
+            return;
+        }
+        let window = get_foreground_apps();
+        let window = match window.get(0) {
+            Some(window) => *window,
+            None => {
+                eprintln!("Could not get active window");
+                return;
+            }
+        };
+        let result = XSetInputFocus(display, window, xlib::RevertToNone, xlib::CurrentTime);
+        if result != xlib::Success as i32 {
+            eprintln!("Could not focus on window")
+        }
+        XCloseDisplay(display);
+    }
+}
 
 // 线程等待（毫秒）
 fn sleep(millis: u64) {
