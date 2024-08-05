@@ -1272,7 +1272,6 @@ dependencies = [
  "flate2",
  "mouse_position",
  "objc",
- "once_cell",
  "rdev",
  "serde",
  "serde_json",

@@ -1,5 +1,4 @@
 use crate::{core::tray::Tray, locales::ZH_CN};
-use once_cell::sync::Lazy;
 use std::sync::Mutex;
 use tauri::{
     command, generate_handler,
@@ -7,7 +6,7 @@ use tauri::{
     AppHandle, Wry,
 };
 
-pub static LOCALE: Lazy<Mutex<String>> = Lazy::new(|| Mutex::new(ZH_CN.to_string()));
+pub static LOCALE: Mutex<Option<String>> = Mutex::new(None);
 
 #[command]
 pub fn get_locale() -> String {
@@ -24,7 +23,7 @@ pub fn get_locale() -> String {
 pub fn set_locale(app_handle: AppHandle<Wry>, language: String) {
     let mut locale = LOCALE.lock().unwrap();
 
-    *locale = language;
+    *locale = Some(language);
 
     drop(locale);
 

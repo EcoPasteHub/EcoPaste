@@ -89,7 +89,8 @@ impl Tray {
     pub fn update_menu(app_handle: &AppHandle) {
         let language = {
             let locale = LOCALE.lock().unwrap();
-            locale.clone()
+
+            locale.clone().unwrap_or_else(|| ZH_CN.to_string())
         };
 
         let is_listening = *IS_LISTENING.lock().unwrap();

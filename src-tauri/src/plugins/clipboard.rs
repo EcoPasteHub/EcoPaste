@@ -3,7 +3,6 @@ use clipboard_rs::{
     common::RustImage, Clipboard, ClipboardContent, ClipboardContext, ClipboardHandler,
     ClipboardWatcher, ClipboardWatcherContext, ContentFormat, RustImageData, WatcherShutdown,
 };
-use once_cell::sync::Lazy;
 use std::{
     fs::create_dir_all,
     hash::{DefaultHasher, Hash, Hasher},
@@ -17,7 +16,7 @@ use tauri::{
     AppHandle, Error, Manager, Result, State, Wry,
 };
 
-pub static IS_LISTENING: Lazy<Mutex<bool>> = Lazy::new(|| Mutex::new(false));
+pub static IS_LISTENING: Mutex<bool> = Mutex::new(false);
 
 struct ClipboardManager {
     context: ClipboardContext,
