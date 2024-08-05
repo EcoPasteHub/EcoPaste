@@ -4,7 +4,7 @@
 		"menu": {
 			"title": {
 				"clipboard": "剪貼簿",
-				"settings": "通用設定",
+				"general": "通用設定",
 				"data_backup": "資料備份",
 				"about": "關於"
 			}

@@ -4,7 +4,7 @@ import { emit } from "@tauri-apps/api/event";
 import { Button } from "antd";
 import { useSnapshot } from "valtio";
 
-const HistoryRecord = () => {
+const History = () => {
 	const { historyDuration } = useSnapshot(clipboardStore);
 
 	const options = [
@@ -68,4 +68,4 @@ const HistoryRecord = () => {
 	);
 };
 
-export default HistoryRecord;
+export default History;

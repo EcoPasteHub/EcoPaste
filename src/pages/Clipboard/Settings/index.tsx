@@ -3,7 +3,6 @@ import ProList from "@/components/ProList";
 import ProSwitch from "@/components/ProSwitch";
 import { useSnapshot } from "valtio";
 import ClickFeedback from "./components/ClickFeedback";
-import HistoryRecord from "./components/HistoryRecord";
 import SearchPosition from "./components/SearchPosition";
 import WindowPosition from "./components/WindowPosition";
 
@@ -78,8 +77,6 @@ const Clipboard = () => {
 					}}
 				/>
 			</ProList>
-
-			<HistoryRecord />
 		</>
 	);
 };
