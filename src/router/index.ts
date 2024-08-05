@@ -6,6 +6,7 @@ import About from "@/pages/About";
 import ClipboardHistory from "@/pages/Clipboard/History";
 import ClipboardSettings from "@/pages/Clipboard/Settings";
 import DataBackup from "@/pages/DataBackup";
+import History from "@/pages/History";
 import Settings from "@/pages/Settings";
 import Shortcut from "@/pages/Shortcut";
 import type { Route } from "@/types/router";
@@ -23,10 +24,18 @@ export const preferenceRoute: Route = {
 			},
 		},
 		{
-			path: "settings",
+			path: "history",
+			Component: History,
+			meta: {
+				title: "preference.menu.title.history",
+				icon: "i-lucide:history",
+			},
+		},
+		{
+			path: "general",
 			Component: Settings,
 			meta: {
-				title: "preference.menu.title.settings",
+				title: "preference.menu.title.general",
 				icon: "i-lucide:bolt",
 			},
 		},

@@ -4,7 +4,7 @@
 		"menu": {
 			"title": {
 				"clipboard": "Clipboard",
-				"settings": "General",
+				"general": "General",
 				"data_backup": "Data Backup",
 				"about": "About"
 			}

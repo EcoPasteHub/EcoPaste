@@ -5,10 +5,11 @@ export type RoutePath =
 	| "/"
 	| "/preference"
 	| "clipboard"
-	| "settings"
+	| "general"
 	| "about"
 	| "data-backup"
-	| "shortcut";
+	| "shortcut"
+	| "history";
 
 export interface Route extends RouteObject {
 	path: RoutePath;
