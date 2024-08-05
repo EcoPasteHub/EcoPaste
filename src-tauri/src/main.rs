@@ -23,17 +23,17 @@ fn main() {
 
     Builder::default()
         .setup(|app| {
-          // 获取命令行参数，检查是否有 `info` 或 `i` 参数
-          match app.get_cli_matches() {
-            Ok(matches) => {
-              if matches.args["info"].value.as_bool().expect("参数错误") {
-                info::print_system_info();
-                info::print_app_info(app.app_handle());
-                std::process::exit(0);
-              }
+            // 获取命令行参数，检查是否有 `info` 或 `i` 参数
+            match app.get_cli_matches() {
+                Ok(matches) => {
+                    if matches.args["info"].value.as_bool().expect("参数错误") {
+                        info::print_system_info();
+                        info::print_app_info(app.app_handle());
+                        std::process::exit(0);
+                    }
+                }
+                Err(_) => {}
             }
-            Err(_) => {}
-          }
 
             // 在开发环境中启动时打开控制台：https://tauri.app/v1/guides/debugging/application/#opening-devtools-programmatically
             #[cfg(any(debug_assertions, feature = "devtools"))]
@@ -56,18 +56,18 @@ fn main() {
 
             Ok(())
         })
-        // 日志：https://github.com/tauri-apps/tauri-plugin-log
-        .plugin(tauri_plugin_log::Builder::default().build())
         // 主题插件：https://github.com/wyhaya/tauri-plugin-theme
         .plugin(ThemePlugin::init(ctx.config_mut()))
         // 确保在 windows 和 linux 上只有一个 app 实例在运行：https://github.com/tauri-apps/plugins-workspace/tree/v1/plugins/single-instance
-        .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
-            let window = app.get_window(PREFERENCE_WINDOW_LABEL).unwrap();
+        .plugin(tauri_plugin_single_instance::init(
+            |app_handle, _argv, _cwd| {
+                let window = app_handle.get_window(PREFERENCE_WINDOW_LABEL).unwrap();
 
-            async_runtime::block_on(async move {
-                show_window(window).await;
-            });
-        }))
+                async_runtime::block_on(async move {
+                    show_window(window).await;
+                });
+            },
+        ))
         // app 自启动：https://github.com/tauri-apps/tauri-plugin-autostart
         .plugin(tauri_plugin_autostart::init(
             MacosLauncher::LaunchAgent,
@@ -95,6 +95,8 @@ fn main() {
         .plugin(paste::init())
         // 自定义判断是否自动启动的插件
         .plugin(auto_launch::init())
+        // 日志插件：https://github.com/tauri-apps/tauri-plugin-log
+        .plugin(tauri_plugin_log::Builder::default().build())
         // 系统托盘：https://tauri.app/v1/guides/features/system-tray
         .system_tray(SystemTray::new())
         .on_system_tray_event(tray::Tray::handler)

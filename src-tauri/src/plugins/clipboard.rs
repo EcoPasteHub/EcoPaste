@@ -1,7 +1,9 @@
+use crate::core::tray::Tray;
 use clipboard_rs::{
     common::RustImage, Clipboard, ClipboardContent, ClipboardContext, ClipboardHandler,
     ClipboardWatcher, ClipboardWatcherContext, ContentFormat, RustImageData, WatcherShutdown,
 };
+use once_cell::sync::Lazy;
 use std::{
     fs::create_dir_all,
     hash::{DefaultHasher, Hash, Hasher},
@@ -14,6 +16,8 @@ use tauri::{
     plugin::{Builder, TauriPlugin},
     AppHandle, Error, Manager, Result, State, Wry,
 };
+
+pub static IS_LISTENING: Lazy<Mutex<bool>> = Lazy::new(|| Mutex::new(false));
 
 struct ClipboardManager {
     context: ClipboardContext,
@@ -58,6 +62,16 @@ struct ReadImage {
     image: String,
 }
 
+fn toggle_listening(app_handle: AppHandle) {
+    let mut is_listening = IS_LISTENING.lock().unwrap();
+
+    *is_listening = !*is_listening;
+
+    drop(is_listening);
+
+    Tray::update_menu(&app_handle);
+}
+
 #[command]
 async fn start_listen(app_handle: AppHandle, manager: State<'_, ClipboardManager>) -> Result<()> {
     let listener = ClipboardListen::new(app_handle.clone());
@@ -79,11 +93,13 @@ async fn start_listen(app_handle: AppHandle, manager: State<'_, ClipboardManager
         watcher.start_watch();
     });
 
+    toggle_listening(app_handle);
+
     Ok(())
 }
 
 #[command]
-async fn stop_listen(manager: State<'_, ClipboardManager>) -> Result<()> {
+async fn stop_listen(app_handle: AppHandle, manager: State<'_, ClipboardManager>) -> Result<()> {
     let mut watcher_shutdown = manager.watcher_shutdown.lock().unwrap();
 
     if let Some(watcher_shutdown) = (*watcher_shutdown).take() {
@@ -91,6 +107,8 @@ async fn stop_listen(manager: State<'_, ClipboardManager>) -> Result<()> {
     }
 
     *watcher_shutdown = None;
+
+    toggle_listening(app_handle);
 
     Ok(())
 }

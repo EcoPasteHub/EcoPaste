@@ -1,7 +1,7 @@
 pub mod en_us;
+pub mod ja_jp;
 pub mod zh_cn;
 pub mod zh_tw;
-pub mod ja_jp;
 
 pub const ZH_CN: &str = "zh-CN";
 pub const ZH_TW: &str = "zh-TW";
@@ -12,6 +12,8 @@ pub const LANGUAGES: [&str; 4] = [ZH_CN, ZH_TW, EN_US, JA_JP];
 
 pub struct Locale {
     pub preference: &'static str,
+    pub start_listening: &'static str,
+    pub stop_listening: &'static str,
     pub language: &'static str,
     pub about: &'static str,
     pub update: &'static str,
