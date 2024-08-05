@@ -4,8 +4,10 @@
 		"menu": {
 			"title": {
 				"clipboard": "Clipboard",
+				"history": "历史记录",
 				"general": "General",
-				"data_backup": "Data Backup",
+				"shortcut": "快捷键",
+				"backup": "Data Backup",
 				"about": "About"
 			}
 		},

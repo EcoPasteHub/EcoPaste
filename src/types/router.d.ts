@@ -7,7 +7,7 @@ export type RoutePath =
 	| "clipboard"
 	| "general"
 	| "about"
-	| "data-backup"
+	| "backup"
 	| "shortcut"
 	| "history";
 

@@ -4,7 +4,7 @@ import { useSnapshot } from "valtio";
 import Language from "./components/Language";
 import ThemeMode from "./components/ThemeMode";
 
-const Settings = () => {
+const General = () => {
 	const { autoStart, autoUpdate } = useSnapshot(globalStore);
 
 	return (
@@ -36,4 +36,4 @@ const Settings = () => {
 	);
 };
 
-export default Settings;
+export default General;

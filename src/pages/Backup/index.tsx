@@ -7,7 +7,7 @@ import { appDataDir } from "@tauri-apps/api/path";
 import { Button, Flex, List, message } from "antd";
 import type { Store } from "antd/es/form/interface";
 
-const DataBackup = () => {
+const Backup = () => {
 	const { t } = useTranslation();
 
 	const state = useReactive({
@@ -160,4 +160,4 @@ const DataBackup = () => {
 	);
 };
 
-export default DataBackup;
+export default Backup;
