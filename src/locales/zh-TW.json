@@ -4,8 +4,10 @@
 		"menu": {
 			"title": {
 				"clipboard": "剪貼簿",
+				"history": "歷史記錄",
 				"general": "通用設定",
-				"data_backup": "資料備份",
+				"shortcut": "快速鍵",
+				"backup": "資料備份",
 				"about": "關於"
 			}
 		},

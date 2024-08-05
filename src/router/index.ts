@@ -3,11 +3,11 @@ import { createBrowserRouter } from "react-router-dom";
 
 import Preference from "@/layouts/Preference";
 import About from "@/pages/About";
+import Backup from "@/pages/Backup";
 import ClipboardHistory from "@/pages/Clipboard/History";
 import ClipboardSettings from "@/pages/Clipboard/Settings";
-import DataBackup from "@/pages/DataBackup";
+import General from "@/pages/General";
 import History from "@/pages/History";
-import Settings from "@/pages/Settings";
 import Shortcut from "@/pages/Shortcut";
 import type { Route } from "@/types/router";
 
@@ -33,7 +33,7 @@ export const preferenceRoute: Route = {
 		},
 		{
 			path: "general",
-			Component: Settings,
+			Component: General,
 			meta: {
 				title: "preference.menu.title.general",
 				icon: "i-lucide:bolt",
@@ -48,10 +48,10 @@ export const preferenceRoute: Route = {
 			},
 		},
 		{
-			path: "data-backup",
-			Component: DataBackup,
+			path: "backup",
+			Component: Backup,
 			meta: {
-				title: "preference.menu.title.data_backup",
+				title: "preference.menu.title.backup",
 				icon: "i-lucide:database-backup",
 			},
 		},
