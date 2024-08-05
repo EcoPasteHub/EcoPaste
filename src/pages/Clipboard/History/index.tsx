@@ -104,6 +104,14 @@ const ClipboardHistory = () => {
 
 			getHistoryList();
 		});
+
+		listen<boolean>(LISTEN_KEY.TOGGLE_LISTENING, ({ payload }) => {
+			if (payload) {
+				startListen();
+			} else {
+				stopListen();
+			}
+		});
 	});
 
 	useRegister(async () => {

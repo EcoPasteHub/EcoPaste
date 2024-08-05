@@ -12,6 +12,7 @@ export const LISTEN_KEY = {
 	TRAY_CLICK: "tray-click",
 	IMPORT_DATA: "import-data",
 	CHANGE_LANGUAGE: "change-language",
+	TOGGLE_LISTENING: "toggle-listening",
 };
 
 export const WINDOW_PLUGIN = {

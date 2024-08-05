@@ -1,6 +1,10 @@
 use crate::{
     locales::{get_locale, EN_US, JA_JP, LANGUAGES, ZH_CN, ZH_TW},
-    plugins::window::{show_window, PREFERENCE_WINDOW_LABEL},
+    plugins::{
+        clipboard::IS_LISTENING,
+        locale::LOCALE,
+        window::{show_window, PREFERENCE_WINDOW_LABEL},
+    },
 };
 use tauri::{
     async_runtime, AppHandle, CustomMenuItem, Manager, SystemTrayEvent, SystemTrayMenu,
@@ -10,12 +14,20 @@ use tauri::{
 pub struct Tray {}
 
 impl Tray {
-    pub fn menu(app_handle: &AppHandle, language: &str) -> SystemTrayMenu {
+    pub fn menu(app_handle: &AppHandle, language: &str, is_listening: bool) -> SystemTrayMenu {
         let locale = get_locale(language);
         let app_version = app_handle.package_info().version.to_string();
 
         SystemTrayMenu::new()
             .add_item(CustomMenuItem::new("preference", locale.preference))
+            .add_item(CustomMenuItem::new(
+                "toggle-listening",
+                if is_listening {
+                    locale.stop_listening
+                } else {
+                    locale.start_listening
+                },
+            ))
             .add_native_item(SystemTrayMenuItem::Separator)
             .add_submenu(SystemTraySubmenu::new(
                 locale.language,
@@ -37,9 +49,9 @@ impl Tray {
             .add_item(CustomMenuItem::new("exit", locale.exit))
     }
 
-    pub fn handler(app: &AppHandle, event: SystemTrayEvent) {
+    pub fn handler(app_handle: &AppHandle, event: SystemTrayEvent) {
         async_runtime::block_on(async {
-            let window = app.get_window(PREFERENCE_WINDOW_LABEL).unwrap();
+            let window = app_handle.get_window(PREFERENCE_WINDOW_LABEL).unwrap();
 
             let about_event = || {
                 window.emit("about", true).unwrap();
@@ -52,6 +64,11 @@ impl Tray {
                 }
                 SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
                     "preference" => show_window(window).await,
+                    "toggle-listening" => {
+                        let is_listening = *IS_LISTENING.lock().unwrap();
+
+                        window.emit_all(&id, !is_listening).unwrap();
+                    }
                     id if LANGUAGES.contains(&id) => window.emit("change-language", id).unwrap(),
                     "about" => about_event(),
                     "update" => {
@@ -61,7 +78,7 @@ impl Tray {
                     "github" => {
                         window.emit("github", true).unwrap();
                     }
-                    "exit" => app.exit(0),
+                    "exit" => app_handle.exit(0),
                     _ => {}
                 },
                 _ => {}
@@ -69,12 +86,21 @@ impl Tray {
         })
     }
 
-    pub fn update_menu(app_handle: &AppHandle, language: &str) {
+    pub fn update_menu(app_handle: &AppHandle) {
+        let language = {
+            let locale = LOCALE.lock().unwrap();
+
+            locale.clone().unwrap_or_else(|| ZH_CN.to_string())
+        };
+
+        let is_listening = *IS_LISTENING.lock().unwrap();
+
         let tray = app_handle.tray_handle();
 
-        tray.set_menu(Tray::menu(app_handle, language)).unwrap();
+        tray.set_menu(Tray::menu(app_handle, &language, is_listening))
+            .unwrap();
 
-        Tray::update_item_selected(app_handle, language);
+        Tray::update_item_selected(app_handle, &language);
     }
 
     pub fn update_item_selected(app_handle: &AppHandle, language: &str) {

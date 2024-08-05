@@ -2,7 +2,9 @@ use super::Locale;
 
 pub static LOCALE: Locale = Locale {
     preference: "Preference",
-    language: "Language",   
+    start_listening: "Start Listening",
+    stop_listening: "Stop listening",
+    language: "Language",
     about: "About",
     update: "Check Update",
     github: "GitHub",
