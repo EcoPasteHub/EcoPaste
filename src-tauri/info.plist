@@ -3,6 +3,8 @@
 <plist version="1.0">
 <dict>
   <key>CFBundleDevelopmentRegion</key>
-	<string>Chinese</string>
+  <string>Chinese</string>
+  <key>LSUIElement</key>
+  <true/>
 </dict>
 </plist>

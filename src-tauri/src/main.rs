@@ -29,30 +29,38 @@ fn main() {
                     if matches.args["info"].value.as_bool().expect("参数错误") {
                         info::print_system_info();
                         info::print_app_info(app.app_handle());
+
                         std::process::exit(0);
                     }
                 }
                 Err(_) => {}
             }
 
-            // 在开发环境中启动时打开控制台：https://tauri.app/v1/guides/debugging/application/#opening-devtools-programmatically
-            #[cfg(any(debug_assertions, feature = "devtools"))]
-            {
-                let window = app.get_window(MAIN_WINDOW_LABEL).unwrap();
+            let window = app.get_window(MAIN_WINDOW_LABEL).unwrap();
 
-                window.open_devtools();
-            }
+            // 在开发环境中或者打包时加上 `--features=devtools` 启动时自动打开控制台：https://tauri.app/v1/guides/debugging/application/#opening-devtools-programmatically
+            #[cfg(any(debug_assertions, feature = "devtools"))]
+            window.open_devtools();
 
             #[cfg(target_os = "macos")]
             {
-                // 隐藏 mac 下的任务栏图标：https://github.com/tauri-apps/tauri/issues/4852#issuecomment-1312716378
-                // BUG: 打包之后主窗口没办法显示在全屏的屏幕上
+                // 隐藏 mac 下的程序坞图标：https://github.com/tauri-apps/tauri/issues/4852#issuecomment-1312716378
                 app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+
+                unsafe {
+                    use cocoa::appkit::{NSMainMenuWindowLevel, NSWindow};
+                    use cocoa::base::id;
+
+                    let ns_window = window.ns_window().unwrap() as id;
+
+                    // 让窗口在程序坞之上
+                    ns_window.setLevel_(NSMainMenuWindowLevel as i64 + 1);
+                }
             }
 
             core::app::observe_app();
 
-            let _ = app;
+            let _ = (app, window);
 
             Ok(())
         })
