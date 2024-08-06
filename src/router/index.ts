@@ -64,6 +64,19 @@ export const preferenceRoute: Route = {
 			},
 		},
 	],
+	meta: {
+		windowOptions: {
+			width: 700,
+			height: 480,
+			center: true,
+			resizable: false,
+			maximizable: false,
+			hiddenTitle: true,
+			visible: false,
+			transparent: true,
+			titleBarStyle: "overlay",
+		},
+	},
 };
 
 export const routes: Route[] = [
@@ -71,19 +84,6 @@ export const routes: Route[] = [
 	{
 		path: "/",
 		Component: ClipboardHistory,
-		meta: {
-			windowOptions: {
-				width: 360,
-				height: 600,
-				resizable: false,
-				maximizable: false,
-				decorations: false,
-				visible: false,
-				transparent: true,
-				alwaysOnTop: true,
-				acceptFirstMouse: true,
-			},
-		},
 	},
 ];
 

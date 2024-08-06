@@ -1,3 +1,4 @@
+use crate::core::app::get_foreground_apps;
 use rdev::{simulate, EventType, Key};
 use std::{thread, time};
 use tauri::{
@@ -9,7 +10,6 @@ use tauri::{
 // 让上一个窗口聚焦（macos）
 #[cfg(target_os = "macos")]
 fn focus_previous_window() {
-    use crate::core::app::get_foreground_apps;
     use cocoa::{
         appkit::{NSApplicationActivationOptions, NSRunningApplication},
         base::nil,
@@ -31,7 +31,6 @@ fn focus_previous_window() {
 // 让上一个窗口聚焦（windows）
 #[cfg(target_os = "windows")]
 fn focus_previous_window() {
-    use crate::core::app::get_foreground_apps;
     use winapi::{shared::windef::HWND, um::winuser::SetForegroundWindow};
     unsafe {
         let foreground_apps = get_foreground_apps();
@@ -49,9 +48,9 @@ fn focus_previous_window() {
     }
 }
 
+// 让上一个窗口聚焦（linux）
 #[cfg(target_os = "linux")]
 fn focus_previous_window() {
-    use crate::core::app::get_foreground_apps;
     use x11::xlib::{self, XCloseDisplay, XOpenDisplay, XSetInputFocus};
 
     unsafe {

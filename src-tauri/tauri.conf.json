@@ -64,18 +64,16 @@
 		},
 		"windows": [
 			{
-				"label": "preference",
-				"url": "/preference",
-				"width": 700,
-				"height": 480,
-				"center": true,
+				"label": "main",
+				"width": 360,
+				"height": 600,
 				"resizable": false,
 				"maximizable": false,
-				"hiddenTitle": true,
-				"skipTaskbar": true,
+				"decorations": false,
 				"visible": false,
 				"transparent": true,
-				"titleBarStyle": "Overlay"
+				"alwaysOnTop": true,
+				"acceptFirstMouse": true
 			}
 		],
 		"security": {

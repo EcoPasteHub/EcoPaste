@@ -6,7 +6,7 @@ use tauri::{
 };
 
 // 主窗口的label
-// pub static MAIN_WINDOW_LABEL: &str = "main";
+pub static MAIN_WINDOW_LABEL: &str = "main";
 // 偏好设置窗口的label
 pub static PREFERENCE_WINDOW_LABEL: &str = "preference";
 
@@ -38,10 +38,10 @@ pub async fn show_window(window: Window) {
 #[command]
 pub async fn show_window(window: Window) {
     let position = window.outer_position().unwrap();
+    let physicalPosition = tauri::PhysicalPosition::new(position.x, position.y);
+
     window.hide().unwrap();
-    window
-        .set_position(tauri::PhysicalPosition::new(position.x, position.y))
-        .unwrap();
+    window.set_position(physicalPosition).unwrap();
     window.show().unwrap();
 }
 

@@ -1,17 +1,14 @@
 import { WINDOW_PLUGIN } from "@/constants";
 import type { RoutePath } from "@/types/router";
 import { invoke } from "@tauri-apps/api";
-import { type WindowOptions, appWindow } from "@tauri-apps/api/window";
-import { find } from "lodash-es";
+import { appWindow } from "@tauri-apps/api/window";
+import { debounce, find } from "lodash-es";
 
 /**
  * 创建新窗口
  */
-export const createWindow = (
-	path: RoutePath,
-	priorityOptions?: WindowOptions,
-) => {
-	const label = path.replace("/", "") ?? "main";
+export const createWindow = (path: RoutePath) => {
+	const label = path.replace("/", "") || "main";
 
 	const options = find(routes, { path })?.meta?.windowOptions;
 
@@ -21,7 +18,6 @@ export const createWindow = (
 			url: path,
 			skipTaskbar: true,
 			...options,
-			...priorityOptions,
 		},
 	});
 };
@@ -36,9 +32,16 @@ export const showWindow = () => {
 /**
  * 隐藏窗口
  */
-export const hideWindow = () => {
-	invoke(WINDOW_PLUGIN.HIDE_WINDOW);
-};
+export const hideWindow = debounce(
+	() => {
+		invoke(WINDOW_PLUGIN.HIDE_WINDOW);
+	},
+	200,
+	{
+		leading: true,
+		trailing: false,
+	},
+);
 
 /**
  * 给窗口添加阴影
