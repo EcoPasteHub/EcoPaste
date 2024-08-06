@@ -2,8 +2,8 @@ use super::Locale;
 
 pub static LOCALE: Locale = Locale {
     preference: "プリファレンス",
-    start_listening: "リスニングを有効にする",
-    stop_listening: "聞くのをやめる",
+    start_listening: "使用を停止",
+    stop_listening: "使用を再開",
     language: "言語",
     about: "について",
     update: "アップデートを確認",
