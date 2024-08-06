@@ -73,7 +73,8 @@
 				"visible": false,
 				"transparent": true,
 				"alwaysOnTop": true,
-				"acceptFirstMouse": true
+				"acceptFirstMouse": true,
+				"skipTaskbar": true
 			}
 		],
 		"security": {
