@@ -4,9 +4,9 @@
 		"menu": {
 			"title": {
 				"clipboard": "クリップボード",
-				"history": "历史记录",
+				"history": "履歴",
 				"general": "共通設定",
-				"shortcut": "快捷键",
+				"shortcut": "ショートカットキー",
 				"backup": "バックアップ",
 				"about": "について"
 			}
