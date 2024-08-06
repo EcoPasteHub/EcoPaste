@@ -13,6 +13,8 @@ const App = () => {
 	const { language } = useSnapshot(globalStore);
 
 	useMount(() => {
+		initDatabase();
+
 		generateColorVars();
 
 		listen(LISTEN_KEY.GLOBAL_STORE_CHANGED, ({ payload }) => {
@@ -26,8 +28,6 @@ const App = () => {
 
 			Object.assign(clipboardStore, payload);
 		});
-
-		initDatabase();
 	});
 
 	useEffect(() => {

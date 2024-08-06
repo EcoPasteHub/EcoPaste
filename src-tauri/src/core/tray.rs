@@ -3,7 +3,7 @@ use crate::{
     plugins::{
         clipboard::IS_LISTENING,
         locale::LOCALE,
-        window::{show_window, PREFERENCE_WINDOW_LABEL},
+        window::{show_window, MAIN_WINDOW_LABEL, PREFERENCE_WINDOW_LABEL},
     },
 };
 use tauri::{
@@ -60,7 +60,11 @@ impl Tray {
             match event {
                 SystemTrayEvent::LeftClick { .. } => {
                     #[cfg(target_os = "windows")]
-                    show_window(window).await;
+                    {
+                        let window = app_handle.get_window(MAIN_WINDOW_LABEL).unwrap();
+
+                        show_window(window).await;
+                    }
                 }
                 SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
                     "preference" => show_window(window).await,
