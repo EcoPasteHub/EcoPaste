@@ -8,7 +8,7 @@ mod plugins;
 use core::{info, tray};
 use plugins::{
     auto_launch, backup, clipboard, fs_extra, locale, mouse, ocr, paste,
-    window::{self, show_window, PREFERENCE_WINDOW_LABEL},
+    window::{self, show_window, MAIN_WINDOW_LABEL},
 };
 use tauri::{
     async_runtime, generate_context, generate_handler, Builder, Manager, SystemTray, WindowEvent,
@@ -38,7 +38,7 @@ fn main() {
             // 在开发环境中启动时打开控制台：https://tauri.app/v1/guides/debugging/application/#opening-devtools-programmatically
             #[cfg(any(debug_assertions, feature = "devtools"))]
             {
-                let window = app.get_window(PREFERENCE_WINDOW_LABEL).unwrap();
+                let window = app.get_window(MAIN_WINDOW_LABEL).unwrap();
 
                 window.open_devtools();
             }
@@ -61,7 +61,7 @@ fn main() {
         // 确保在 windows 和 linux 上只有一个 app 实例在运行：https://github.com/tauri-apps/plugins-workspace/tree/v1/plugins/single-instance
         .plugin(tauri_plugin_single_instance::init(
             |app_handle, _argv, _cwd| {
-                let window = app_handle.get_window(PREFERENCE_WINDOW_LABEL).unwrap();
+                let window = app_handle.get_window(MAIN_WINDOW_LABEL).unwrap();
 
                 async_runtime::block_on(async move {
                     show_window(window).await;

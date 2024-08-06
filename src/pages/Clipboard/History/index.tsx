@@ -50,6 +50,8 @@ const ClipboardHistory = () => {
 	useMount(async () => {
 		appWindow.setTitle(appInfo.name);
 
+		createWindow("/preference");
+
 		setWindowShadow();
 
 		startListen();

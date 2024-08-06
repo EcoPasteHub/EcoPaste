@@ -3,7 +3,7 @@ use crate::{
     plugins::{
         clipboard::IS_LISTENING,
         locale::LOCALE,
-        window::{show_window, PREFERENCE_WINDOW_LABEL},
+        window::{show_window, MAIN_WINDOW_LABEL},
     },
 };
 use tauri::{
@@ -51,7 +51,7 @@ impl Tray {
 
     pub fn handler(app_handle: &AppHandle, event: SystemTrayEvent) {
         async_runtime::block_on(async {
-            let window = app_handle.get_window(PREFERENCE_WINDOW_LABEL).unwrap();
+            let window = app_handle.get_window(MAIN_WINDOW_LABEL).unwrap();
 
             let about_event = || {
                 window.emit("about", true).unwrap();
