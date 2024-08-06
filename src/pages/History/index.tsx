@@ -6,39 +6,40 @@ import { useSnapshot } from "valtio";
 
 const History = () => {
 	const { historyDuration } = useSnapshot(clipboardStore);
+	const { t } = useTranslation();
 
 	const options = [
 		{
-			label: "永久",
+			label: t("preference.history.label.unlimited"),
 			value: 0,
 		},
 		{
-			label: "一天",
+			label: t("preference.history.label.day"),
 			value: 1,
 		},
 		{
-			label: "一周",
+			label: t("preference.history.label.week"),
 			value: 7,
 		},
 		{
-			label: "一月",
+			label: t("preference.history.label.month"),
 			value: 30,
 		},
 		{
-			label: "半年",
+			label: t("preference.history.label.half_year"),
 			value: 180,
 		},
 		{
-			label: "一年",
+			label: t("preference.history.label.year"),
 			value: 365,
 		},
 	];
 
 	const handleClear = async () => {
-		const yes = await ask("你确定要清除所有历史记录吗？", {
-			title: "清除历史记录",
-			okLabel: "确定",
-			cancelLabel: "取消",
+		const yes = await ask(t("preference.history.clear.hints.clear_confirm"), {
+			title: t("preference.history.clear.title"),
+			okLabel: t("preference.history.clear.button.confirm"),
+			cancelLabel: t("preference.history.clear.button.cancel"),
 			type: "warning",
 		});
 
@@ -49,15 +50,15 @@ const History = () => {
 
 	return (
 		<ProList
-			header="历史记录"
+			header={t("preference.history.title")}
 			footer={
 				<Button block danger onClick={handleClear}>
-					清除历史记录
+					{t("preference.history.button")}
 				</Button>
 			}
 		>
 			<ProSelect
-				title="保留时长"
+				title={t("preference.history.duration")}
 				value={historyDuration}
 				options={options}
 				onChange={(value) => {

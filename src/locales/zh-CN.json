@@ -73,9 +73,38 @@
 				}
 			}
 		},
+		"history": {
+			"title": "历史记录",
+			"button": "清除历史记录",
+			"duration": "保留时长",
+			"label": {
+				"day": "一天",
+				"week": "一周",
+				"month": "一月",
+				"half_year": "半年",
+				"year": "一年",
+				"unlimited": "永久"
+			},
+			"clear": {
+				"title": "清空历史记录",
+				"button": {
+					"confirm": "确定",
+					"cancel": "取消"
+				},
+				"hints": {
+					"clear_confirm": "你确定要清除所有历史记录吗？"
+				}
+			}
+		},
+		"shortcut": {
+			"title": "快捷键",
+			"clipboard": "唤醒剪贴板",
+			"settings": "唤醒偏好设置"
+		},
 		"data_backup": {
 			"import_export": {
 				"title": "导入和导出",
+				"path_title": "存储路径",
 				"label": {
 					"import_confirm_title": "导入须知",
 					"export_confirm_title": "导出须知"

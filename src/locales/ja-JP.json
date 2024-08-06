@@ -85,9 +85,38 @@
 				}
 			}
 		},
+		"history": {
+			"title": "履歴",
+			"button": "履歴の消去",
+			"duration": "保持時間",
+			"label": {
+				"day": "1日",
+				"week": "1週間",
+				"month": "1月",
+				"half_year": "半年",
+				"year": "一年",
+				"unlimited": "永久"
+			},
+			"clear": {
+				"title": "履歴の消去",
+				"button": {
+					"confirm": "を選択して、",
+					"cancel": "キャンセル"
+				},
+				"hints": {
+					"clear_confirm": "本当にすべての履歴をクリアしますか？"
+				}
+			}
+		},
+		"shortcut": {
+			"title": "ショートカットキー",
+			"clipboard": "クリップボードを起動",
+			"settings": "ウェイクアッププリファレンス設定"
+		},
 		"data_backup": {
 			"import_export": {
 				"title": "データのインポート/エクスポート",
+				"path_title": "ストレージパス",
 				"label": {
 					"import_confirm_title": "導入に関する注意事項",
 					"export_confirm_title": "輸出に関する注意事項"

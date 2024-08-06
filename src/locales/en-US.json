@@ -4,9 +4,9 @@
 		"menu": {
 			"title": {
 				"clipboard": "Clipboard",
-				"history": "历史记录",
+				"history": "History",
 				"general": "General",
-				"shortcut": "快捷键",
+				"shortcut": "Shortcut keys",
 				"backup": "Data Backup",
 				"about": "About"
 			}
@@ -73,9 +73,38 @@
 				}
 			}
 		},
+		"history": {
+			"title": "History",
+			"button": "Clear History",
+			"duration": "Retention Duration",
+			"label": {
+				"day": "Day",
+				"week": "Week",
+				"month": "Month",
+				"half_year": "Half Year",
+				"year": "Year",
+				"unlimited": "Unlimited"
+			},
+			"clear": {
+				"title": "Clear History",
+				"button": {
+					"confirm": "Confirm",
+					"cancel": "Cancel"
+				},
+				"hints": {
+					"clear_confirm": "Are you sure you want to clear the history?"
+				}
+			}
+		},
+		"shortcut": {
+			"title": "Shortcut Keys",
+			"clipboard": "Wake Up Clipboard",
+			"settings": "Wake Up Preference Settings"
+		},
 		"data_backup": {
 			"import_export": {
 				"title": "Import / Export",
+				"path_title": "Storage Path",
 				"label": {
 					"import_confirm_title": "Import Notice",
 					"export_confirm_title": "Export Notice"

@@ -122,10 +122,10 @@ const Backup = () => {
 	};
 
 	return (
-		<ProList header="导入和导出">
-			<ProListItem title="存储路径">
+		<ProList header={t("preference.data_backup.import_export.title")}>
+			<ProListItem title={t("preference.data_backup.import_export.path_title")}>
 				<Button type="primary" onClick={openDir}>
-					打开目录
+					{t("preference.data_backup.import_export.button.open_dir")}
 				</Button>
 			</ProListItem>
 			<List.Item>
