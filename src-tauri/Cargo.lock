@@ -1270,6 +1270,7 @@ dependencies = [
  "cocoa 0.25.0",
  "current_locale",
  "flate2",
+ "log",
  "mouse_position",
  "objc",
  "rdev",
