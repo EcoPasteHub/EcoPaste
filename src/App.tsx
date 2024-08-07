@@ -58,13 +58,7 @@ const App = () => {
 		open(href);
 	});
 
-	useEventListener("keydown", (event) => {
-		if (event.code === "Escape") {
-			event.preventDefault();
-
-			hideWindow();
-		}
-	});
+	useOSKeyPress(["esc", "meta.w"], hideWindow);
 
 	return (
 		<ConfigProvider
