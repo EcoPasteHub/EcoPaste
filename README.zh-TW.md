@@ -40,9 +40,9 @@
   </div>
 
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./images/app-dark.zh-CN.png" />
-    <source media="(prefers-color-scheme: light)" srcset="./images/app-light.zh-CN.png" />
-    <img src="./images/app-light.zh-CN.png" />
+    <source media="(prefers-color-scheme: dark)" srcset="./images/app-dark.zh-TW.png" />
+    <source media="(prefers-color-scheme: light)" srcset="./images/app-light.zh-TW.png" />
+    <img src="./images/app-light.zh-TW.png" />
   </picture>
 </div>
 
@@ -136,9 +136,9 @@ brew untap ayangweb/EcoPaste
 <summary>1. MacOS 提示 EcoPaste.app 已損壞，無法打開。</summary>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./images/damaged-dark.zh-CN.png" />
-  <source media="(prefers-color-scheme: light)" srcset="./images/damaged-light.zh-CN.png" />
-  <img src="./images/damaged-light.zh-CN.png" />
+  <source media="(prefers-color-scheme: dark)" srcset="./images/damaged-dark.zh-TW.png" />
+  <source media="(prefers-color-scheme: light)" srcset="./images/damaged-light.zh-TW.png" />
+  <img src="./images/damaged-light.zh-TW.png" />
 </picture>
 
 在終端窗口輸入以下命令，按回車鍵後輸入系統密碼並再次按回車鍵即可。
@@ -164,7 +164,7 @@ sudo xattr -r -d com.apple.quarantine /Applications/EcoPaste.app
 
 我們推薦使用 [issue](https://github.com/ayangweb/EcoPaste/issues) 提供最直接和有效的反饋。當然，也可以選擇以下方式進行反饋：
 
-- | <a href="./README.zh-TW.md">繁體中文</a>
+- 微信
 
 <img width="25%" src="./images/wechat.png" />
 
