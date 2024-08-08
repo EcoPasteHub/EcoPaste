@@ -4,11 +4,11 @@ import { useSnapshot } from "valtio";
 
 interface Option {
 	label: string;
-	value: ClipboardStore["searchPosition"];
+	value: ClipboardStore["search"]["position"];
 }
 
 const SearchPosition = () => {
-	const { searchPosition } = useSnapshot(clipboardStore);
+	const { search } = useSnapshot(clipboardStore);
 
 	const options: Option[] = [
 		{
@@ -24,10 +24,10 @@ const SearchPosition = () => {
 	return (
 		<ProSelect
 			title="搜索框位置"
-			value={searchPosition}
+			value={search.position}
 			options={options}
 			onChange={(value) => {
-				clipboardStore.searchPosition = value;
+				clipboardStore.search.position = value;
 			}}
 		/>
 	);

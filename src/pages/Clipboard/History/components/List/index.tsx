@@ -7,7 +7,7 @@ import Item from "./components/Item";
 
 const List = () => {
 	const { state, getHistoryList } = useContext(HistoryContext);
-	const { saveImageDir } = useSnapshot(clipboardStore);
+	const { env } = useSnapshot(globalStore);
 
 	const outerRef = useRef<HTMLDivElement>(null);
 
@@ -42,7 +42,7 @@ const List = () => {
 						const data = state.historyList[index];
 						let { type, value } = data;
 
-						value = type !== "image" ? value : saveImageDir + value;
+						value = type !== "image" ? value : env.saveImageDir + value;
 
 						return (
 							<Item

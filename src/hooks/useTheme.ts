@@ -3,27 +3,27 @@ import { appWindow } from "@tauri-apps/api/window";
 import { useSnapshot } from "valtio";
 
 export const useTheme = () => {
-	const { theme } = useSnapshot(globalStore);
+	const { appearance } = useSnapshot(globalStore);
 	const { t } = useTranslation();
 	const [isDark, setIsDark] = useState(false);
 
 	useMount(() => {
 		appWindow.onThemeChanged(({ payload }) => {
-			if (globalStore.theme !== "auto") return;
+			if (globalStore.appearance.theme !== "auto") return;
 
 			setIsDark(payload === "dark");
 		});
+
+		watchKey(globalStore.appearance, "theme", async (value) => {
+			let theme = value;
+
+			if (theme === "auto") {
+				theme = (await appWindow.theme()) ?? "light";
+			}
+
+			setIsDark(value === "dark");
+		});
 	});
-
-	useAsyncEffect(async () => {
-		let value = theme;
-
-		if (value === "auto") {
-			value = (await appWindow.theme()) ?? "light";
-		}
-
-		setIsDark(value === "dark");
-	}, [theme]);
 
 	useEffect(() => {
 		if (isDark) {
@@ -46,13 +46,13 @@ export const useTheme = () => {
 			if (!yes) return;
 		}
 
-		globalStore.theme = nextTheme;
+		globalStore.appearance.theme = nextTheme;
 
 		setTheme(nextTheme);
 	};
 
 	return {
-		theme,
+		theme: appearance.theme,
 		isDark,
 		toggleTheme,
 	};

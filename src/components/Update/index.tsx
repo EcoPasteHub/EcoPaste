@@ -24,7 +24,7 @@ const MESSAGE_KEY = "updatable";
 let timer: Timeout;
 
 const Update = () => {
-	const { appInfo, autoUpdate } = useSnapshot(globalStore);
+	const { env } = useSnapshot(globalStore);
 	const { t } = useTranslation();
 
 	const state = useReactive<State>({});
@@ -42,17 +42,17 @@ const Update = () => {
 
 			checkUpdate(true);
 		});
-	});
 
-	useEffect(() => {
-		clearInterval(timer);
+		watchKey(globalStore.app, "autoUpdate", (value) => {
+			clearInterval(timer);
 
-		if (autoUpdate) {
+			if (!value) return;
+
 			checkUpdate();
 
 			timer = setInterval(checkUpdate, 1000 * 60 * 60 * 24);
-		}
-	}, [autoUpdate]);
+		});
+	});
 
 	const updateTime = useCreation(() => {
 		const date = state.manifest?.date?.split(" ")?.slice(0, 2)?.join(" ");
@@ -168,7 +168,7 @@ const Update = () => {
 					<Flex align="center">
 						{t("component.app_update.label.release_version")}：
 						<span>
-							v{appInfo.version} 👉{" "}
+							v{env.appVersion} 👉{" "}
 							<a href={`${GITHUB_LINK}/releases/latest`}>
 								v{state.manifest?.version}
 							</a>

@@ -8,7 +8,7 @@ interface Option {
 }
 
 const Language = () => {
-	const { language } = useSnapshot(globalStore);
+	const { appearance } = useSnapshot(globalStore);
 
 	const options: Option[] = [
 		{
@@ -32,10 +32,10 @@ const Language = () => {
 	return (
 		<ProSelect
 			title="界面语言"
-			value={language}
+			value={appearance.language}
 			options={options}
 			onChange={(value) => {
-				globalStore.language = value;
+				globalStore.appearance.language = value;
 			}}
 		/>
 	);

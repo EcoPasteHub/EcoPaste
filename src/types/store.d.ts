@@ -9,48 +9,60 @@ export interface Store {
 
 export interface GlobalStore {
 	// 应用设置
-	wakeUpKey: string;
-	autoStart: boolean;
-	autoUpdate: boolean;
+	app: {
+		autoStart: boolean;
+		autoUpdate: boolean;
+	};
 
 	// 外观设置
-	theme: Theme;
-	language?: Language;
+	appearance: {
+		theme: Theme;
+		language?: Language;
+	};
 
-	// 非配置项
-	appInfo: { name: string; version: string };
-	platform?: OsType;
+	// 快捷键设置
+	shortcut: {
+		clipboard: string;
+		preference?: string;
+		paste?: string;
+	};
+
+	// 非配置项，只提供给全局使用
+	env: {
+		platform?: OsType;
+		appName?: string;
+		appVersion?: string;
+		saveImageDir?: string;
+	};
 }
 
 export type ClickFeedback = "none" | "copy" | "paste";
 
 export interface ClipboardStore {
 	// 窗口设置
-	wakeUpKey: string;
-	windowPosition: "default" | "follow" | "center";
+	window: {
+		position: "default" | "follow" | "center";
+	};
 
 	// 音效设置
-	copyAudio: boolean;
+	audio: {
+		copy: boolean;
+	};
 
 	// 搜索框设置
-	searchPosition: "top" | "bottom";
-	searchDefaultFocus: boolean;
-	searchAutoClear: boolean;
+	search: {
+		position: "top" | "bottom";
+		defaultFocus: boolean;
+		autoClear: boolean;
+	};
 
-	// 点击反馈
-	singleClick: ClickFeedback;
-	doubleClick: ClickFeedback;
+	// 剪切板内容设置
+	content: {
+		autoPaste: "single" | "double";
+	};
 
 	// 历史记录
-	historyDuration: number;
-
-	// 非配置项
-	saveImageDir: string;
-
-	// 版本迭代，后续删除
-	replaceSettings?: boolean;
-	enableAudio?: boolean;
-	historyCapacity?: number;
-	doubleClickFeedback?: ClickFeedback;
-	defaultFocus?: "first" | "search";
+	history: {
+		duration: number;
+	};
 }

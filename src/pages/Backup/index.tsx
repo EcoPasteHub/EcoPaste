@@ -1,11 +1,11 @@
 import Icon from "@/components/Icon";
 import ProList from "@/components/ProList";
 import ProListItem from "@/components/ProListItem";
+import type { Store } from "@/types/store";
 import { emit } from "@tauri-apps/api/event";
 import { BaseDirectory, readTextFile } from "@tauri-apps/api/fs";
 import { appDataDir } from "@tauri-apps/api/path";
 import { Button, Flex, List, message } from "antd";
-import type { Store } from "antd/es/form/interface";
 
 const Backup = () => {
 	const { t } = useTranslation();
@@ -66,10 +66,10 @@ const Backup = () => {
 					dir: BaseDirectory.AppData,
 				});
 
-				const parseContent = JSON.parse(content) as Store;
+				const store = JSON.parse(content) as Store;
 
-				Object.assign(globalStore, parseContent.globalStore);
-				Object.assign(clipboardStore, parseContent.clipboardStore);
+				Object.assign(globalStore, store.globalStore);
+				Object.assign(clipboardStore, store.clipboardStore);
 
 				emit(LISTEN_KEY.IMPORT_DATA);
 

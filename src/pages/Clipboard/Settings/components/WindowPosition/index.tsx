@@ -4,15 +4,15 @@ import { useSnapshot } from "valtio";
 
 interface Option {
 	label: string;
-	value: ClipboardStore["windowPosition"];
+	value: ClipboardStore["window"]["position"];
 }
 
 const WindowPosition = () => {
-	const { windowPosition } = useSnapshot(clipboardStore);
+	const { window } = useSnapshot(clipboardStore);
 
 	const options: Option[] = [
 		{
-			label: "自由拖动",
+			label: "记住位置",
 			value: "default",
 		},
 		{
@@ -28,10 +28,10 @@ const WindowPosition = () => {
 	return (
 		<ProSelect
 			title="窗口位置"
-			value={windowPosition}
+			value={window.position}
 			options={options}
 			onChange={(value) => {
-				clipboardStore.windowPosition = value;
+				clipboardStore.window.position = value;
 			}}
 		/>
 	);

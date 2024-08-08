@@ -9,21 +9,21 @@ export const isDev = () => {
  * 是否为 macos 系统
  */
 export const isMac = () => {
-	return globalStore.platform === "Darwin";
+	return globalStore.env.platform === "Darwin";
 };
 
 /**
  * 是否为 windows 系统
  */
 export const isWin = () => {
-	return globalStore.platform === "Windows_NT";
+	return globalStore.env.platform === "Windows_NT";
 };
 
 /**
  * 是否为 linux 系统
  */
 export const isLinux = () => {
-	return globalStore.platform === "Linux";
+	return globalStore.env.platform === "Linux";
 };
 
 /**
