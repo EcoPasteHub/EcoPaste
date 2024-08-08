@@ -10,6 +10,7 @@ use tauri::{
     async_runtime, AppHandle, CustomMenuItem, Manager, SystemTrayEvent, SystemTrayMenu,
     SystemTrayMenuItem, SystemTraySubmenu,
 };
+use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 
 pub struct Tray {}
 
@@ -84,7 +85,11 @@ impl Tray {
                     "github" => {
                         window.emit("github", true).unwrap();
                     }
-                    "exit" => app_handle.exit(0),
+                    "exit" => {
+                        app_handle.save_window_state(StateFlags::POSITION).unwrap();
+
+                        app_handle.exit(0)
+                    }
                     _ => {}
                 },
                 _ => {}
