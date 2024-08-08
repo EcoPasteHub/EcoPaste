@@ -59,6 +59,7 @@ export interface ClipboardStore {
 	// 剪切板内容设置
 	content: {
 		autoPaste: "single" | "double";
+		ocr: boolean;
 	};
 
 	// 历史记录

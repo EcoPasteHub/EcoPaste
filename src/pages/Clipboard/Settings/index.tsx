@@ -7,7 +7,7 @@ import SearchPosition from "./components/SearchPosition";
 import WindowPosition from "./components/WindowPosition";
 
 const Clipboard = () => {
-	const { audio, search } = useSnapshot(clipboardStore);
+	const { audio, search, content } = useSnapshot(clipboardStore);
 
 	return (
 		<>
@@ -56,6 +56,15 @@ const Clipboard = () => {
 
 			<ProList header="剪切板内容">
 				<AutoStart />
+
+				<ProSwitch
+					title="图片OCR"
+					description="可以暂时避免由于系统 OCR 支持不足导致应用崩溃的问题"
+					value={content.ocr}
+					onChange={(value) => {
+						clipboardStore.content.ocr = value;
+					}}
+				/>
 			</ProList>
 		</>
 	);
