@@ -12,7 +12,7 @@ import { subscribe, useSnapshot } from "valtio";
 const Preference = () => {
 	const { pathname } = useLocation();
 	const navigate = useNavigate();
-	const { wakeUpKey, autoStart, language } = useSnapshot(globalStore);
+	const { shortcut } = useSnapshot(globalStore);
 	const { theme, toggleTheme } = useTheme();
 	const { t } = useTranslation();
 
@@ -52,29 +52,29 @@ const Preference = () => {
 		});
 
 		listen<Language>(LISTEN_KEY.CHANGE_LANGUAGE, ({ payload }) => {
-			globalStore.language = payload;
+			globalStore.appearance.language = payload;
+		});
+
+		watchKey(globalStore.app, "autoStart", async (value) => {
+			const enabled = await isEnabled();
+
+			if (value && !enabled) {
+				return enable();
+			}
+
+			if (!value && enabled) {
+				disable();
+			}
+		});
+
+		watchKey(globalStore.appearance, "language", () => {
+			requestAnimationFrame(() => {
+				appWindow.setTitle(t("preference.title"));
+			});
 		});
 	});
 
-	useAsyncEffect(async () => {
-		const enabled = await isEnabled();
-
-		if (autoStart && !enabled) {
-			return enable();
-		}
-
-		if (!autoStart && enabled) {
-			disable();
-		}
-	}, [autoStart]);
-
-	useRegister(toggleWindowVisible, [wakeUpKey]);
-
-	useEffect(() => {
-		requestAnimationFrame(() => {
-			appWindow.setTitle(t("preference.title"));
-		});
-	}, [language]);
+	useRegister(toggleWindowVisible, [shortcut.preference]);
 
 	return (
 		<Flex className="h-screen">

@@ -5,24 +5,24 @@ import Language from "./components/Language";
 import ThemeMode from "./components/ThemeMode";
 
 const General = () => {
-	const { autoStart, autoUpdate } = useSnapshot(globalStore);
+	const { app } = useSnapshot(globalStore);
 
 	return (
 		<>
 			<ProList header="应用设置">
 				<ProSwitch
 					title="登录时启动"
-					value={autoStart}
+					value={app.autoStart}
 					onChange={(value) => {
-						globalStore.autoStart = value;
+						globalStore.app.autoStart = value;
 					}}
 				/>
 
 				<ProSwitch
 					title="自动检查更新"
-					value={autoUpdate}
+					value={app.autoUpdate}
 					onChange={(value) => {
-						globalStore.autoUpdate = value;
+						globalStore.app.autoUpdate = value;
 					}}
 				/>
 			</ProList>

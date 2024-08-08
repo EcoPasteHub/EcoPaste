@@ -1,6 +1,7 @@
 import type { GlobalStore } from "@/types/store";
 import { getName, getVersion } from "@tauri-apps/api/app";
 import { type } from "@tauri-apps/api/os";
+import { appDataDir, sep } from "@tauri-apps/api/path";
 import proxyWithPersist, {
 	PersistStrategy,
 	type ProxyPersistStorageEngine,
@@ -17,13 +18,20 @@ export const getStorage = (): ProxyPersistStorageEngine => ({
 export const persistStrategies = PersistStrategy.MultiFile;
 
 export const GLOBAL_STORE_INITIAL_STATE: GlobalStore = {
-	wakeUpKey: "Alt+X",
-	autoStart: false,
-	autoUpdate: false,
+	app: {
+		autoStart: false,
+		autoUpdate: false,
+	},
 
-	theme: "auto",
+	appearance: {
+		theme: "auto",
+	},
 
-	appInfo: { name: "", version: "" },
+	shortcut: {
+		clipboard: "Alt+C",
+	},
+
+	env: {},
 };
 
 export const globalStore = proxyWithPersist<GlobalStore>({
@@ -38,12 +46,16 @@ export const globalStore = proxyWithPersist<GlobalStore>({
 subscribeKey(globalStore._persist, "loaded", async (loaded) => {
 	if (!loaded) return;
 
-	globalStore.appInfo = {
-		name: await getName(),
-		version: await getVersion(),
-	};
-
-	globalStore.platform = await type();
-
-	globalStore.language ??= await getLocale();
+	globalStore.appearance.language ??= await getLocale();
+	globalStore.env.platform = await type();
+	globalStore.env.appName = await getName();
+	globalStore.env.appVersion = await getVersion();
+	globalStore.env.saveImageDir = `${await appDataDir()}images${sep}`;
 });
+
+// subscribeKey 但是首次使用执行
+export const watchKey: typeof subscribeKey = (object, key, callback) => {
+	callback(object[key]);
+
+	return subscribeKey(object, key, callback);
+};

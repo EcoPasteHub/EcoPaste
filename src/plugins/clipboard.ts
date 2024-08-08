@@ -83,7 +83,9 @@ export const readFiles = async (): Promise<ClipboardPayload> => {
  * 读取剪贴板图片
  */
 export const readImage = async (): Promise<ClipboardPayload> => {
-	const { saveImageDir } = clipboardStore;
+	const {
+		env: { saveImageDir = "" },
+	} = globalStore;
 
 	const { image, ...rest } = await invoke<ReadImage>(
 		CLIPBOARD_PLUGIN.READ_IMAGE,

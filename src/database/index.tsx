@@ -156,7 +156,7 @@ export const deleteSQL = async (tableName: TableName, id?: number) => {
 
 		if (type !== "image") return;
 
-		removeFile(clipboardStore.saveImageDir + value);
+		removeFile(globalStore.env.saveImageDir + value);
 	};
 
 	if (id) {

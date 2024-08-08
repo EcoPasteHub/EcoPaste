@@ -7,7 +7,7 @@ import { Button, Flex, Tooltip } from "antd";
 import { useSnapshot } from "valtio";
 
 const About = () => {
-	const { appInfo, platform } = useSnapshot(globalStore);
+	const { env } = useSnapshot(globalStore);
 	const { t } = useTranslation();
 
 	const update = () => {
@@ -15,9 +15,11 @@ const About = () => {
 	};
 
 	const copyInfo = async () => {
+		const { appName, appVersion, platform } = env;
+
 		const info = {
-			appName: appInfo.name,
-			appVersion: appInfo.version,
+			appName,
+			appVersion,
 			tauriVersion: await getTauriVersion(),
 			platform,
 			platformArch: await arch(),
@@ -43,11 +45,11 @@ const About = () => {
 
 			<Flex vertical align="center" gap="small">
 				<div className="color-1 font-bold text-20 transition">
-					{appInfo.name}
+					{env.appName}
 				</div>
 
 				<Flex align="center" gap={4}>
-					<span>v{appInfo.version}</span>
+					<span>v{env.appVersion}</span>
 					<Tooltip title={t("preference.about.hints.update_tooltip")}>
 						<Icon
 							hoverable
