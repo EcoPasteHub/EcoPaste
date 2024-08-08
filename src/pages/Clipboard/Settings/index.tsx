@@ -2,7 +2,7 @@ import PlayAudio from "@/components/PlayAudio";
 import ProList from "@/components/ProList";
 import ProSwitch from "@/components/ProSwitch";
 import { useSnapshot } from "valtio";
-import AutoStart from "./components/AutoPaste";
+import AutoPaste from "./components/AutoPaste";
 import SearchPosition from "./components/SearchPosition";
 import WindowPosition from "./components/WindowPosition";
 
@@ -55,7 +55,7 @@ const Clipboard = () => {
 			</ProList>
 
 			<ProList header="剪切板内容">
-				<AutoStart />
+				<AutoPaste />
 
 				<ProSwitch
 					title="图片OCR"
