@@ -84,6 +84,7 @@
 		"bundle": {
 			"active": true,
 			"targets": "all",
+			"shortDescription": "EcoPaste",
 			"identifier": "com.ayangweb.EcoPaste",
 			"icon": [
 				"icons/32x32.png",
