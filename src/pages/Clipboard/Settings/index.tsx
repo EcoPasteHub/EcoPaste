@@ -65,6 +65,15 @@ const Clipboard = () => {
 						clipboardStore.content.ocr = value;
 					}}
 				/>
+
+				<ProSwitch
+					title="复制为纯文本"
+					description="富文本和 HTML 格式在复制时仅保留纯文本内容"
+					value={content.copyPlainText}
+					onChange={(value) => {
+						clipboardStore.content.copyPlainText = value;
+					}}
+				/>
 			</ProList>
 		</>
 	);

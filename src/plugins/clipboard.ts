@@ -167,6 +167,10 @@ export const readText = async (): Promise<ClipboardPayload> => {
 export const readClipboard = async () => {
 	let payload!: ClipboardPayload;
 
+	const {
+		content: { copyPlainText },
+	} = clipboardStore;
+
 	if (await hasFiles()) {
 		const filesPayload = await readFiles();
 
@@ -175,11 +179,11 @@ export const readClipboard = async () => {
 		const imagePayload = await readImage();
 
 		payload = { ...imagePayload, type: "image" };
-	} else if (await hasHTML()) {
+	} else if (!copyPlainText && (await hasHTML())) {
 		const htmlPayload = await readHTML();
 
 		payload = { ...htmlPayload, type: "html" };
-	} else if (await hasRichText()) {
+	} else if (!copyPlainText && (await hasRichText())) {
 		const richTextPayload = await readRichText();
 
 		payload = { ...richTextPayload, type: "rich-text" };

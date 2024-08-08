@@ -20,6 +20,7 @@ export const CLIPBOARD_STORE_INITIAL_STATE: ClipboardStore = {
 	content: {
 		autoPaste: "double",
 		ocr: true,
+		copyPlainText: false,
 	},
 
 	history: {
