@@ -5,7 +5,7 @@ import { Button } from "antd";
 import { useSnapshot } from "valtio";
 
 const History = () => {
-	const { historyDuration } = useSnapshot(clipboardStore);
+	const { history } = useSnapshot(clipboardStore);
 
 	const options = [
 		{
@@ -58,10 +58,10 @@ const History = () => {
 		>
 			<ProSelect
 				title="保留时长"
-				value={historyDuration}
+				value={history.duration}
 				options={options}
 				onChange={(value) => {
-					clipboardStore.historyDuration = value;
+					clipboardStore.history.duration = value;
 				}}
 			/>
 		</ProList>

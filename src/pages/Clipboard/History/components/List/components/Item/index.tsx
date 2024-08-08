@@ -1,6 +1,5 @@
 import { HistoryContext } from "@/pages/Clipboard/History";
 import type { HistoryItem } from "@/types/database";
-import type { ClipboardStore } from "@/types/store";
 import { copyFile, writeFile } from "@tauri-apps/api/fs";
 import { downloadDir } from "@tauri-apps/api/path";
 import { open } from "@tauri-apps/api/shell";
@@ -30,7 +29,8 @@ const Item: FC<ItemProps> = (props) => {
 	const { id, type, group, value, search, createTime, isCollected } = data;
 
 	const { state, getHistoryList } = useContext(HistoryContext);
-	const { appInfo, theme } = useSnapshot(globalStore);
+	const { env, appearance } = useSnapshot(globalStore);
+	const { content } = useSnapshot(clipboardStore);
 	const { t } = useTranslation();
 
 	const containerRef = useRef<HTMLElement>(null);
@@ -82,7 +82,7 @@ const Item: FC<ItemProps> = (props) => {
 
 	const exportFile = async () => {
 		const extension = type === "text" ? "txt" : type;
-		const fileName = `${appInfo.name}_${id}.${extension}`;
+		const fileName = `${env.appName}_${id}.${extension}`;
 		const destination = (await downloadDir()) + fileName;
 
 		await writeFile(destination, value);
@@ -95,7 +95,7 @@ const Item: FC<ItemProps> = (props) => {
 	};
 
 	const downloadImage = async () => {
-		const fileName = `${appInfo.name}_${id}.png`;
+		const fileName = `${env.appName}_${id}.png`;
 		const destination = (await downloadDir()) + fileName;
 
 		await copyFile(value, destination);
@@ -250,18 +250,18 @@ const Item: FC<ItemProps> = (props) => {
 		showMenu({
 			items: menus.filter(({ hide }) => !hide),
 			// @ts-ignore
-			theme,
+			theme: appearance.theme,
 		});
 	};
 
-	const handleClick = (key: keyof ClipboardStore) => {
-		const value = clipboardStore[key];
+	const handleClick = () => {
+		if (content.autoPaste !== "single") return;
 
-		if (value === "none") return;
+		pasteValue();
+	};
 
-		if (value === "copy") {
-			return copy();
-		}
+	const handleDoubleClick = () => {
+		if (content.autoPaste !== "double") return;
 
 		pasteValue();
 	};
@@ -321,8 +321,8 @@ const Item: FC<ItemProps> = (props) => {
 			style={style}
 			className="antd-input b-color-2 absolute inset-0 mx-12 h-full rounded-6 p-6"
 			onContextMenu={handleContextMenu}
-			onClick={() => handleClick("singleClick")}
-			onDoubleClick={() => handleClick("doubleClick")}
+			onClick={handleClick}
+			onDoubleClick={handleDoubleClick}
 			onFocus={handleFocus}
 			onKeyDown={handleKeyDown}
 		>
