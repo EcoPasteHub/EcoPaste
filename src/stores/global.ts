@@ -25,6 +25,7 @@ export const GLOBAL_STORE_INITIAL_STATE: GlobalStore = {
 
 	appearance: {
 		theme: "auto",
+		isDark: false,
 	},
 
 	shortcut: {
