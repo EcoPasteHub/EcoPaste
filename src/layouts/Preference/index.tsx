@@ -13,7 +13,6 @@ const Preference = () => {
 	const { pathname } = useLocation();
 	const navigate = useNavigate();
 	const { shortcut } = useSnapshot(globalStore);
-	const { theme, toggleTheme } = useTheme();
 	const { t } = useTranslation();
 
 	useMount(async () => {
@@ -28,7 +27,7 @@ const Preference = () => {
 		}
 
 		if (!isWin()) {
-			toggleTheme(theme);
+			setTheme(globalStore.appearance.theme);
 		}
 
 		navigate("clipboard");

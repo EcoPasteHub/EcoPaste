@@ -17,6 +17,7 @@ export interface GlobalStore {
 	// 外观设置
 	appearance: {
 		theme: Theme;
+		isDark: boolean;
 		language?: Language;
 	};
 

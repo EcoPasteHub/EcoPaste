@@ -1,38 +1,61 @@
 import { HappyProvider } from "@ant-design/happy-work-theme";
-import { listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/api/shell";
+import { appWindow } from "@tauri-apps/api/window";
 import { ConfigProvider, theme } from "antd";
-import { isEqual } from "arcdash";
 import { RouterProvider } from "react-router-dom";
 import { useSnapshot } from "valtio";
+import { subscribeKey } from "valtio/utils";
 
 const { defaultAlgorithm, darkAlgorithm } = theme;
 
 const App = () => {
-	const { isDark } = useTheme();
 	const { appearance } = useSnapshot(globalStore);
 
 	useMount(() => {
+		appWindow.onThemeChanged(({ payload }) => {
+			if (globalStore.appearance.theme !== "auto") return;
+
+			globalStore.appearance.isDark = payload === "dark";
+		});
+
 		initDatabase();
 
 		generateColorVars();
-
-		listen(LISTEN_KEY.GLOBAL_STORE_CHANGED, ({ payload }) => {
-			if (isEqual(globalStore, payload)) return;
-
-			Object.assign(globalStore, payload);
-		});
-
-		listen(LISTEN_KEY.CLIPBOARD_STORE_CHANGED, ({ payload }) => {
-			if (isEqual(clipboardStore, payload)) return;
-
-			Object.assign(clipboardStore, payload);
-		});
 
 		watchKey(globalStore.appearance, "language", (value = "zh-CN") => {
 			i18n.changeLanguage(value);
 
 			setLocale(value);
+		});
+
+		subscribeKey(globalStore.appearance, "theme", async (value) => {
+			let nextTheme = value;
+
+			if (isWin()) {
+				const yes = await ask("切换主题需要重启 app 才能生效！", {
+					okLabel: "重启",
+					cancelLabel: "取消",
+					type: "warning",
+				});
+
+				if (!yes) return;
+			}
+
+			if (nextTheme === "auto") {
+				nextTheme = (await appWindow.theme()) ?? "light";
+			}
+
+			globalStore.appearance.isDark = nextTheme === "dark";
+
+			setTheme(nextTheme);
+		});
+
+		watchKey(globalStore.appearance, "isDark", (value) => {
+			if (value) {
+				document.documentElement.classList.add("dark");
+			} else {
+				document.documentElement.classList.remove("dark");
+			}
 		});
 	});
 
@@ -64,7 +87,7 @@ const App = () => {
 		<ConfigProvider
 			locale={getAntdLocale(appearance.language)}
 			theme={{
-				algorithm: isDark ? darkAlgorithm : defaultAlgorithm,
+				algorithm: appearance.isDark ? darkAlgorithm : defaultAlgorithm,
 			}}
 		>
 			<HappyProvider>

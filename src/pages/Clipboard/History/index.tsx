@@ -8,7 +8,9 @@ import {
 	currentMonitor,
 } from "@tauri-apps/api/window";
 import { Flex } from "antd";
+import { isEqual } from "arcdash";
 import clsx from "clsx";
+import { merge } from "lodash-es";
 import { createContext } from "react";
 import { useSnapshot } from "valtio";
 import Header from "./components/Header";
@@ -113,6 +115,18 @@ const ClipboardHistory = () => {
 			} else {
 				stopListen();
 			}
+		});
+
+		listen(LISTEN_KEY.GLOBAL_STORE_CHANGED, ({ payload }) => {
+			if (isEqual(globalStore, payload)) return;
+
+			merge(globalStore, payload);
+		});
+
+		listen(LISTEN_KEY.CLIPBOARD_STORE_CHANGED, ({ payload }) => {
+			if (isEqual(clipboardStore, payload)) return;
+
+			merge(clipboardStore, payload);
 		});
 	});
 

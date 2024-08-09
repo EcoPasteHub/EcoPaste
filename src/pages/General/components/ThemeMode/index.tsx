@@ -1,5 +1,6 @@
 import ProSelect from "@/components/ProSelect";
 import type { Theme } from "@/types/store";
+import { useSnapshot } from "valtio";
 
 interface Option {
 	label: string;
@@ -7,7 +8,7 @@ interface Option {
 }
 
 const ThemeMode = () => {
-	const { theme, toggleTheme } = useTheme();
+	const { appearance } = useSnapshot(globalStore);
 
 	const options: Option[] = [
 		{
@@ -27,9 +28,11 @@ const ThemeMode = () => {
 	return (
 		<ProSelect
 			title="主题模式"
-			value={theme}
+			value={appearance.theme}
 			options={options}
-			onChange={toggleTheme}
+			onChange={(value) => {
+				globalStore.appearance.theme = value;
+			}}
 		/>
 	);
 };

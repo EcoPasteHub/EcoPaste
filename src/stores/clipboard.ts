@@ -1,5 +1,4 @@
 import type { ClipboardStore } from "@/types/store";
-import {} from "@tauri-apps/api/path";
 import proxyWithPersist from "valtio-persist";
 
 export const CLIPBOARD_STORE_INITIAL_STATE: ClipboardStore = {
