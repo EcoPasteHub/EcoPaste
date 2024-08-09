@@ -1,0 +1,150 @@
+name: Multi-platform Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      isDebug:
+        description: 'is debug?'
+        required: true
+        type: boolean
+        default: false
+      platform_windows:
+        description: 'windows'
+        required: true
+        type: boolean
+        default: false
+      platform_linux:
+        description: 'linux'
+        required: true
+        type: boolean
+        default: false
+      platform_macos_aarch64:
+        description: 'macos-aarch64'
+        required: true
+        type: boolean
+        default: false
+      platform_macos_x86_64:
+        description: 'macos-x86_64'
+        required: true
+        type: boolean
+        default: false
+      retention_days:
+        description: 'Artifacts retention time (days)'
+        required: true
+        type: number
+        default: 2
+
+env:
+  BUILD_MODE: ${{ inputs.isDebug && '--debug' || '' }}
+  BUILD_PATH: ${{ inputs.isDebug && 'debug' || 'release' }}
+  RETENTION_DAYS: ${{ inputs.retention_days }}
+
+jobs:
+  define-matrix:
+    runs-on: ubuntu-latest
+
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+
+    steps:
+      - name: Set matrix
+        id: matrix
+        run: |
+          matrix=""
+          if [ "${{ inputs.platform_windows }}" == "true" ]; then
+            matrix="${matrix}\"windows-latest\","
+          fi
+          if [ "${{ inputs.platform_linux }}" == "true" ]; then
+            matrix="${matrix}\"ubuntu-20.04\","
+          fi
+          if [ "${{ inputs.platform_macos_aarch64 }}" == "true" ]; then
+            matrix="${matrix}\"macos-latest\","
+          fi
+          if [ "${{ inputs.platform_macos_x86_64 }}" == "true" ]; then
+            matrix="${matrix}\"macos-12\","
+          fi
+          if [ -z "${matrix}" ]; then
+            matrix="\"windows-latest\","
+          fi
+          matrix="${matrix%,}"
+          echo "matrix=[${matrix}]" >> "$GITHUB_OUTPUT"
+
+  auto-build:
+    needs: define-matrix
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: latest
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Install dependencies (ubuntu only)
+        if: matrix.os == 'ubuntu-20.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+        # webkitgtk 4.0 适用于 Tauri v1，webkitgtk 4.1 适用于 Tauriv2
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          # 那些目标仅在 macos 运行器上使用，因此将其置于 `if` 语句中，以稍微加快 Windows 和 Linux 的构建速度。
+          targets: ${{ startsWith(matrix.os, 'macos') && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build the app
+        env:
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          NO_STRIP: true
+        run: pnpm tauri build ${{ env.BUILD_MODE}}
+
+      - name: Upload artifacts (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: |
+            src-tauri/target/${{ env.BUILD_PATH }}/bundle/msi/*.msi
+            src-tauri/target/${{ env.BUILD_PATH }}/bundle/nsis/*.exe
+          retention-days: ${{ env.RETENTION_DAYS}}
+          compression-level: 0
+
+      - name: Upload artifacts (MacOS)
+        if: startsWith(matrix.os, 'macos')
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os == 'macos-latest' && 'macos-aarch64' || (matrix.os == 'macos-12' && 'macos-x86_64') }}
+          path: src-tauri/target/${{ env.BUILD_PATH }}/bundle/dmg/*.dmg
+          retention-days: ${{ env.RETENTION_DAYS}}
+          compression-level: 0
+
+      - name: Upload artifacts (Linux)
+        if: matrix.os == 'ubuntu-20.04'
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux
+          path: |
+            src-tauri/target/${{ env.BUILD_PATH }}/bundle/deb/*.deb
+            src-tauri/target/${{ env.BUILD_PATH }}/bundle/rpm/*.rpm
+            src-tauri/target/${{ env.BUILD_PATH }}/bundle/appimage/*.AppImage
+          retention-days: ${{ env.RETENTION_DAYS}}
+          compression-level: 0
