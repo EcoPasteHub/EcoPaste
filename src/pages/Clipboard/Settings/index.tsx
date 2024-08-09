@@ -2,12 +2,12 @@ import PlayAudio from "@/components/PlayAudio";
 import ProList from "@/components/ProList";
 import ProSwitch from "@/components/ProSwitch";
 import { useSnapshot } from "valtio";
-import AutoStart from "./components/AutoPaste";
+import AutoPaste from "./components/AutoPaste";
 import SearchPosition from "./components/SearchPosition";
 import WindowPosition from "./components/WindowPosition";
 
 const Clipboard = () => {
-	const { audio, search } = useSnapshot(clipboardStore);
+	const { audio, search, content } = useSnapshot(clipboardStore);
 
 	return (
 		<>
@@ -55,7 +55,25 @@ const Clipboard = () => {
 			</ProList>
 
 			<ProList header="剪切板内容">
-				<AutoStart />
+				<AutoPaste />
+
+				<ProSwitch
+					title="图片OCR"
+					description="可以暂时避免由于系统 OCR 支持不足导致应用崩溃的问题"
+					value={content.ocr}
+					onChange={(value) => {
+						clipboardStore.content.ocr = value;
+					}}
+				/>
+
+				<ProSwitch
+					title="复制为纯文本"
+					description="富文本和 HTML 格式在复制时仅保留纯文本内容"
+					value={content.copyPlainText}
+					onChange={(value) => {
+						clipboardStore.content.copyPlainText = value;
+					}}
+				/>
 			</ProList>
 		</>
 	);

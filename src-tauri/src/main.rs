@@ -109,6 +109,8 @@ fn main() {
         .plugin(auto_launch::init())
         // 日志插件：https://github.com/tauri-apps/tauri-plugin-log
         .plugin(tauri_plugin_log::Builder::default().build())
+        // 记住窗口状态的插件：https://github.com/tauri-apps/plugins-workspace/tree/v1/plugins/window-state
+        .plugin(tauri_plugin_window_state::Builder::default().build())
         // 系统托盘：https://tauri.app/v1/guides/features/system-tray
         .system_tray(SystemTray::new().with_tooltip(&tooltip))
         .on_system_tray_event(tray::Tray::handler)
