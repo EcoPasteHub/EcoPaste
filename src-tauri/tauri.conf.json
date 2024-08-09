@@ -65,6 +65,7 @@
 		"windows": [
 			{
 				"label": "main",
+				"url": "index.html/#/",
 				"width": 360,
 				"height": 600,
 				"resizable": false,
@@ -75,6 +76,20 @@
 				"alwaysOnTop": true,
 				"acceptFirstMouse": true,
 				"skipTaskbar": true
+			},
+			{
+				"label": "preference",
+				"url": "index.html/#/preference/clipboard",
+				"width": 700,
+				"height": 480,
+				"center": true,
+				"resizable": false,
+				"maximizable": false,
+				"hiddenTitle": true,
+				"visible": false,
+				"transparent": true,
+				"skipTaskbar": true,
+				"titleBarStyle": "Overlay"
 			}
 		],
 		"security": {

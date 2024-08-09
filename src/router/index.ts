@@ -1,6 +1,4 @@
 // @unocss-include
-import { createBrowserRouter } from "react-router-dom";
-
 import Preference from "@/layouts/Preference";
 import About from "@/pages/About";
 import Backup from "@/pages/Backup";
@@ -10,6 +8,7 @@ import General from "@/pages/General";
 import History from "@/pages/History";
 import Shortcut from "@/pages/Shortcut";
 import type { Route } from "@/types/router";
+import { createHashRouter } from "react-router-dom";
 
 export const preferenceRoute: Route = {
 	path: "/preference",
@@ -64,19 +63,6 @@ export const preferenceRoute: Route = {
 			},
 		},
 	],
-	meta: {
-		windowOptions: {
-			width: 700,
-			height: 480,
-			center: true,
-			resizable: false,
-			maximizable: false,
-			hiddenTitle: true,
-			visible: false,
-			transparent: true,
-			titleBarStyle: "overlay",
-		},
-	},
 };
 
 export const routes: Route[] = [
@@ -87,4 +73,4 @@ export const routes: Route[] = [
 	},
 ];
 
-export const router = createBrowserRouter(routes);
+export const router = createHashRouter(routes);

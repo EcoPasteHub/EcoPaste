@@ -1,4 +1,3 @@
-pub mod auto_launch;
 pub mod backup;
 pub mod clipboard;
 pub mod fs_extra;

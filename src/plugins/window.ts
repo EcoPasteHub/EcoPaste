@@ -1,26 +1,7 @@
 import { WINDOW_PLUGIN } from "@/constants";
-import type { RoutePath } from "@/types/router";
 import { invoke } from "@tauri-apps/api";
 import { appWindow } from "@tauri-apps/api/window";
-import { debounce, find } from "lodash-es";
-
-/**
- * 创建新窗口
- */
-export const createWindow = (path: RoutePath) => {
-	const label = path.replace("/", "") || "main";
-
-	const options = find(routes, { path })?.meta?.windowOptions;
-
-	invoke(WINDOW_PLUGIN.CREATE_WINDOW, {
-		label,
-		options: {
-			url: path,
-			skipTaskbar: true,
-			...options,
-		},
-	});
-};
+import { debounce } from "lodash-es";
 
 /**
  * 显示窗口
