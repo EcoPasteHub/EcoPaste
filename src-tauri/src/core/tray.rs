@@ -3,13 +3,14 @@ use crate::{
     plugins::{
         clipboard::IS_LISTENING,
         locale::LOCALE,
-        window::{show_window, MAIN_WINDOW_LABEL, PREFERENCE_WINDOW_LABEL},
+        window::{show_window, PREFERENCE_WINDOW_LABEL},
     },
 };
 use tauri::{
     async_runtime, AppHandle, CustomMenuItem, Manager, SystemTrayEvent, SystemTrayMenu,
     SystemTrayMenuItem, SystemTraySubmenu,
 };
+use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 
 pub struct Tray {}
 
@@ -61,6 +62,8 @@ impl Tray {
                 SystemTrayEvent::LeftClick { .. } => {
                     #[cfg(target_os = "windows")]
                     {
+                        use crate::plugins::window::MAIN_WINDOW_LABEL;
+
                         let window = app_handle.get_window(MAIN_WINDOW_LABEL).unwrap();
 
                         show_window(window).await;
@@ -82,7 +85,11 @@ impl Tray {
                     "github" => {
                         window.emit("github", true).unwrap();
                     }
-                    "exit" => app_handle.exit(0),
+                    "exit" => {
+                        app_handle.save_window_state(StateFlags::POSITION).unwrap();
+
+                        app_handle.exit(0)
+                    }
                     _ => {}
                 },
                 _ => {}

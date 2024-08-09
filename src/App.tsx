@@ -10,7 +10,7 @@ const { defaultAlgorithm, darkAlgorithm } = theme;
 
 const App = () => {
 	const { isDark } = useTheme();
-	const { language } = useSnapshot(globalStore);
+	const { appearance } = useSnapshot(globalStore);
 
 	useMount(() => {
 		initDatabase();
@@ -28,13 +28,13 @@ const App = () => {
 
 			Object.assign(clipboardStore, payload);
 		});
+
+		watchKey(globalStore.appearance, "language", (value = "zh-CN") => {
+			i18n.changeLanguage(value);
+
+			setLocale(value);
+		});
 	});
-
-	useEffect(() => {
-		i18n.changeLanguage(language);
-
-		setLocale(language);
-	}, [language]);
 
 	useEventListener("contextmenu", (event) => {
 		if (isDev()) return;
@@ -58,17 +58,11 @@ const App = () => {
 		open(href);
 	});
 
-	useEventListener("keydown", (event) => {
-		if (event.code === "Escape") {
-			event.preventDefault();
-
-			hideWindow();
-		}
-	});
+	useOSKeyPress(["esc", "meta.w"], hideWindow);
 
 	return (
 		<ConfigProvider
-			locale={getAntdLocale(language)}
+			locale={getAntdLocale(appearance.language)}
 			theme={{
 				algorithm: isDark ? darkAlgorithm : defaultAlgorithm,
 			}}

@@ -15,20 +15,20 @@ const Search: FC<InputProps> = (props) => {
 
 	useFocus({
 		onFocus() {
-			const { searchDefaultFocus } = clipboardStore;
+			const { search } = clipboardStore;
 
-			if (searchDefaultFocus) {
+			if (search.defaultFocus) {
 				inputRef.current?.focus();
 			} else if (isNil(state.activeIndex)) {
 				state.activeIndex = 0;
 			}
 		},
 		onBlur() {
-			const { searchAutoClear } = clipboardStore;
+			const { search } = clipboardStore;
 
 			inputRef.current?.blur();
 
-			if (searchAutoClear) {
+			if (search.autoClear) {
 				setValue("");
 			}
 		},
@@ -44,9 +44,7 @@ const Search: FC<InputProps> = (props) => {
 		},
 	);
 
-	useKeyPress(["meta.f", "ctrl.f"], (event) => {
-		event.preventDefault();
-
+	useOSKeyPress(["meta.f", "ctrl.f"], () => {
 		inputRef.current?.focus();
 	});
 

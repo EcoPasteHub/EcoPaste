@@ -40,15 +40,15 @@ export const HistoryContext = createContext<HistoryContextValue>({
 });
 
 const ClipboardHistory = () => {
-	const { appInfo } = useSnapshot(globalStore);
-	const { wakeUpKey, searchPosition } = useSnapshot(clipboardStore);
+	const { env, shortcut } = useSnapshot(globalStore);
+	const { search } = useSnapshot(clipboardStore);
 
 	const audioRef = useRef<PlayAudioRef>(null);
 
 	const state = useReactive<State>(INITIAL_STATE);
 
 	useMount(async () => {
-		appWindow.setTitle(appInfo.name);
+		appWindow.setTitle(env.appName!);
 
 		createWindow("/preference");
 
@@ -57,7 +57,7 @@ const ClipboardHistory = () => {
 		startListen();
 
 		onClipboardUpdate(async (payload) => {
-			if (clipboardStore.copyAudio) {
+			if (clipboardStore.audio.copy) {
 				audioRef.current?.play();
 			}
 
@@ -120,9 +120,9 @@ const ClipboardHistory = () => {
 		const focused = await appWindow.isFocused();
 
 		if (!focused) {
-			const { windowPosition } = clipboardStore;
+			const { window } = clipboardStore;
 
-			if (windowPosition === "follow") {
+			if (window.position === "follow") {
 				const monitor = await currentMonitor();
 
 				if (!monitor) return;
@@ -141,13 +141,13 @@ const ClipboardHistory = () => {
 				y = Math.min(y * factor, screenHeight - height);
 
 				appWindow.setPosition(new PhysicalPosition(x, y));
-			} else if (windowPosition === "center") {
+			} else if (window.position === "center") {
 				appWindow.center();
 			}
 		}
 
 		toggleWindowVisible();
-	}, [wakeUpKey]);
+	}, [shortcut.clipboard]);
 
 	const getHistoryList = async () => {
 		const { search, group, isCollected } = state;
@@ -160,12 +160,12 @@ const ClipboardHistory = () => {
 
 		state.historyList = list;
 
-		if (!clipboardStore.historyDuration) return;
+		if (!clipboardStore.history.duration) return;
 
 		for (const item of list) {
 			const { id, createTime } = item;
 
-			if (dayjs().diff(createTime, "days") >= clipboardStore.historyDuration) {
+			if (dayjs().diff(createTime, "days") >= clipboardStore.history.duration) {
 				if (item.isCollected) continue;
 
 				deleteSQL("history", id);
@@ -186,7 +186,7 @@ const ClipboardHistory = () => {
 				gap={12}
 				className={clsx("h-screen bg-1 py-12", {
 					"rounded-10": !isWin(),
-					"flex-col-reverse": searchPosition === "bottom",
+					"flex-col-reverse": search.position === "bottom",
 				})}
 			>
 				<PlayAudio hiddenIcon ref={audioRef} />

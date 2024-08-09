@@ -20,6 +20,10 @@ pub const AUTO_LAUNCH_ARG: &str = "--auto-launch";
 
 fn main() {
     let mut ctx = generate_context!();
+    let package_info = ctx.package_info();
+    let app_name = &package_info.name;
+    let app_version = &package_info.version;
+    let tooltip = format!("{app_name} v{app_version}");
 
     Builder::default()
         .setup(|app| {
@@ -105,8 +109,10 @@ fn main() {
         .plugin(auto_launch::init())
         // 日志插件：https://github.com/tauri-apps/tauri-plugin-log
         .plugin(tauri_plugin_log::Builder::default().build())
+        // 记住窗口状态的插件：https://github.com/tauri-apps/plugins-workspace/tree/v1/plugins/window-state
+        .plugin(tauri_plugin_window_state::Builder::default().build())
         // 系统托盘：https://tauri.app/v1/guides/features/system-tray
-        .system_tray(SystemTray::new())
+        .system_tray(SystemTray::new().with_tooltip(&tooltip))
         .on_system_tray_event(tray::Tray::handler)
         .invoke_handler(generate_handler![])
         // 让 app 保持在后台运行：https://tauri.app/v1/guides/features/system-tray/#preventing-the-app-from-closing

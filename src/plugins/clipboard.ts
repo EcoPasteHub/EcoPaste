@@ -83,7 +83,9 @@ export const readFiles = async (): Promise<ClipboardPayload> => {
  * 读取剪贴板图片
  */
 export const readImage = async (): Promise<ClipboardPayload> => {
-	const { saveImageDir } = clipboardStore;
+	const {
+		env: { saveImageDir = "" },
+	} = globalStore;
 
 	const { image, ...rest } = await invoke<ReadImage>(
 		CLIPBOARD_PLUGIN.READ_IMAGE,
@@ -92,15 +94,19 @@ export const readImage = async (): Promise<ClipboardPayload> => {
 
 	const { size } = await metadata(image);
 
-	let search = await systemOCR(image);
+	let search = "";
 
-	if (isWin()) {
-		const { content, qr } = JSON.parse(search) as WinOCR;
+	if (clipboardStore.content.ocr) {
+		search = await systemOCR(image);
 
-		if (isEmpty(qr)) {
-			search = content;
-		} else {
-			search = qr[0].content;
+		if (isWin()) {
+			const { content, qr } = JSON.parse(search) as WinOCR;
+
+			if (isEmpty(qr)) {
+				search = content;
+			} else {
+				search = qr[0].content;
+			}
 		}
 	}
 
@@ -161,6 +167,10 @@ export const readText = async (): Promise<ClipboardPayload> => {
 export const readClipboard = async () => {
 	let payload!: ClipboardPayload;
 
+	const {
+		content: { copyPlainText },
+	} = clipboardStore;
+
 	if (await hasFiles()) {
 		const filesPayload = await readFiles();
 
@@ -169,11 +179,11 @@ export const readClipboard = async () => {
 		const imagePayload = await readImage();
 
 		payload = { ...imagePayload, type: "image" };
-	} else if (await hasHTML()) {
+	} else if (!copyPlainText && (await hasHTML())) {
 		const htmlPayload = await readHTML();
 
 		payload = { ...htmlPayload, type: "html" };
-	} else if (await hasRichText()) {
+	} else if (!copyPlainText && (await hasRichText())) {
 		const richTextPayload = await readRichText();
 
 		payload = { ...richTextPayload, type: "rich-text" };
