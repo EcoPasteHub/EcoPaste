@@ -5,7 +5,7 @@ mod core;
 mod locales;
 mod plugins;
 
-use core::{info, tray};
+use core::{error::redirect_panic_to_log, info, tray};
 use plugins::{
     auto_launch, backup, clipboard, fs_extra, locale, mouse, ocr, paste,
     window::{self, show_window, MAIN_WINDOW_LABEL},
@@ -19,6 +19,8 @@ use tauri_plugin_theme::ThemePlugin;
 pub const AUTO_LAUNCH_ARG: &str = "--auto-launch";
 
 fn main() {
+    redirect_panic_to_log();
+
     let mut ctx = generate_context!();
     let package_info = ctx.package_info();
     let app_name = &package_info.name;
