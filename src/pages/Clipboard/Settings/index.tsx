@@ -1,6 +1,7 @@
 import PlayAudio from "@/components/PlayAudio";
 import ProList from "@/components/ProList";
 import ProSwitch from "@/components/ProSwitch";
+import { Typography } from "antd";
 import { useSnapshot } from "valtio";
 import AutoPaste from "./components/AutoPaste";
 import SearchPosition from "./components/SearchPosition";
@@ -59,7 +60,14 @@ const Clipboard = () => {
 
 				<ProSwitch
 					title="图片OCR"
-					description="可以暂时避免由于系统 OCR 支持不足导致应用崩溃的问题"
+					description={
+						<>
+							可以暂时避免由于系统OCR支持不足导致应用崩溃的问题，linux用户请自主下载
+							<Typography.Link href="https://github.com/tesseract-ocr/tesseract">
+								tesseract
+							</Typography.Link>
+						</>
+					}
 					value={content.ocr}
 					onChange={(value) => {
 						clipboardStore.content.ocr = value;

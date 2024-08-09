@@ -1,28 +1,13 @@
 use tauri::{
     command, generate_handler,
     plugin::{Builder, TauriPlugin},
-    utils::config::WindowConfig,
-    AppHandle, Manager, Window, WindowBuilder, Wry,
+    Window, Wry,
 };
 
 // 主窗口的label
 pub static MAIN_WINDOW_LABEL: &str = "main";
 // 偏好设置窗口的label
 pub static PREFERENCE_WINDOW_LABEL: &str = "preference";
-
-// 创建窗口
-#[command]
-pub async fn create_window(app_handle: AppHandle, label: String, mut options: WindowConfig) {
-    if let Some(window) = app_handle.get_window(&label) {
-        show_window(window).await;
-    } else {
-        options.label = label.to_string();
-
-        WindowBuilder::from_config(&app_handle, options.clone())
-            .build()
-            .unwrap();
-    }
-}
 
 // 显示窗口（非linux）
 #[cfg(not(target_os = "linux"))]
@@ -78,7 +63,6 @@ pub fn frosted_window(window: Window) {
 pub fn init() -> TauriPlugin<Wry> {
     Builder::new("window")
         .invoke_handler(generate_handler![
-            create_window,
             show_window,
             hide_window,
             set_window_shadow,

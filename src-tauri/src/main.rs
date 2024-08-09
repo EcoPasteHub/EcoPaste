@@ -7,19 +7,22 @@ mod plugins;
 
 use core::{info, tray};
 use plugins::{
-    auto_launch, backup, clipboard, fs_extra, locale, mouse, ocr, paste,
-    window::{self, show_window, MAIN_WINDOW_LABEL},
+    backup, clipboard, fs_extra, locale, mouse, ocr, paste,
+    window::{self, show_window, MAIN_WINDOW_LABEL, PREFERENCE_WINDOW_LABEL},
 };
+use std::env;
 use tauri::{
     async_runtime, generate_context, generate_handler, Builder, Manager, SystemTray, WindowEvent,
 };
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_theme::ThemePlugin;
+use tauri_plugin_window_state::StateFlags;
 
 pub const AUTO_LAUNCH_ARG: &str = "--auto-launch";
 
 fn main() {
     let mut ctx = generate_context!();
+
     let package_info = ctx.package_info();
     let app_name = &package_info.name;
     let app_version = &package_info.version;
@@ -38,6 +41,13 @@ fn main() {
                     }
                 }
                 Err(_) => {}
+            }
+
+            // 判断是否为自动启动
+            let args: Vec<String> = env::args().collect();
+            if !args.contains(&AUTO_LAUNCH_ARG.to_string()) {
+                let window = app.get_window(PREFERENCE_WINDOW_LABEL).unwrap();
+                window.show().unwrap();
             }
 
             let window = app.get_window(MAIN_WINDOW_LABEL).unwrap();
@@ -105,12 +115,14 @@ fn main() {
         .plugin(locale::init()) // 系统托盘：https://tauri.app/v1/guides/features/system-tray
         // 自定义粘贴的插件
         .plugin(paste::init())
-        // 自定义判断是否自动启动的插件
-        .plugin(auto_launch::init())
         // 日志插件：https://github.com/tauri-apps/tauri-plugin-log
         .plugin(tauri_plugin_log::Builder::default().build())
         // 记住窗口状态的插件：https://github.com/tauri-apps/plugins-workspace/tree/v1/plugins/window-state
-        .plugin(tauri_plugin_window_state::Builder::default().build())
+        .plugin(
+            tauri_plugin_window_state::Builder::default()
+                .with_state_flags(StateFlags::all() & !StateFlags::VISIBLE)
+                .build(),
+        )
         // 系统托盘：https://tauri.app/v1/guides/features/system-tray
         .system_tray(SystemTray::new().with_tooltip(&tooltip))
         .on_system_tray_event(tray::Tray::handler)

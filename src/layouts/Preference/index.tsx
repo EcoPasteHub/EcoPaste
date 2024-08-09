@@ -20,17 +20,9 @@ const Preference = () => {
 			frostedWindow();
 		}
 
-		const autoLaunched = await isAutoLaunch();
-
-		if (!autoLaunched) {
-			showWindow();
-		}
-
 		if (!isWin()) {
 			setTheme(globalStore.appearance.theme);
 		}
-
-		navigate("clipboard");
 
 		subscribe(globalStore, () => {
 			emit(LISTEN_KEY.GLOBAL_STORE_CHANGED, globalStore);

@@ -86,7 +86,7 @@ impl Tray {
                         window.emit("github", true).unwrap();
                     }
                     "exit" => {
-                        app_handle.save_window_state(StateFlags::POSITION).unwrap();
+                        app_handle.save_window_state(StateFlags::all()).unwrap();
 
                         app_handle.exit(0)
                     }
