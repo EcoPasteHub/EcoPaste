@@ -23,10 +23,10 @@ pub async fn show_window(window: Window) {
 #[command]
 pub async fn show_window(window: Window) {
     let position = window.outer_position().unwrap();
-    let physicalPosition = tauri::PhysicalPosition::new(position.x, position.y);
+    let physical_position = tauri::PhysicalPosition::new(position.x, position.y);
 
     window.hide().unwrap();
-    window.set_position(physicalPosition).unwrap();
+    window.set_position(physical_position).unwrap();
     window.show().unwrap();
 }
 
