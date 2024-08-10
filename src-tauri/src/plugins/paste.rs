@@ -97,6 +97,11 @@ async fn paste() {
         dispatch(&EventType::KeyPress(Key::KeyV));
         dispatch(&EventType::KeyRelease(Key::KeyV));
         dispatch(&EventType::KeyRelease(Key::MetaLeft));
+    } else if cfg!(target_os = "linux") {
+        dispatch(&EventType::KeyPress(Key::ShiftLeft));
+        dispatch(&EventType::KeyPress(Key::Insert));
+        dispatch(&EventType::KeyRelease(Key::Insert));
+        dispatch(&EventType::KeyRelease(Key::ShiftLeft));
     } else {
         dispatch(&EventType::KeyPress(Key::ControlLeft));
         dispatch(&EventType::KeyPress(Key::KeyV));
