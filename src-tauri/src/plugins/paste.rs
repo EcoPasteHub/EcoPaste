@@ -87,47 +87,54 @@ async fn paste() {
         .expect("failed to execute process");
 }
 
-// 粘贴剪贴板内容（macos）
+// 粘贴剪贴板内容（windows）
 #[cfg(target_os = "windows")]
 #[command]
 async fn paste() {
-    use enigo::{Direction::Press, Enigo, Key, Keyboard, Settings};
-
-    focus_previous_window();
+    use enigo::{
+        Direction::{Click, Press, Release},
+        Enigo, Key, Keyboard, Settings,
+    };
 
     let mut enigo = Enigo::new(&Settings::default()).unwrap();
 
+    focus_previous_window();
+
+    wait(100);
+
     enigo.key(Key::Shift, Press).unwrap();
     // insert 的微软虚拟键码：https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
-    enigo.key(Key::Other(0x2D), Press).unwrap();
-    // 自动释放，无需手动：https://github.com/enigo-rs/enigo/blob/0fa2b0d3665ca9f9dc17b615b24ed3ecab2e102c/src/lib.rs#L454
+    enigo.key(Key::Other(0x2D), Click).unwrap();
+    enigo.key(Key::Shift, Release).unwrap();
 }
 
-// 粘贴剪贴板内容
+// 粘贴剪贴板内容（linux）
 #[cfg(target_os = "linux")]
 #[command]
 async fn paste() {
     use rdev::{simulate, EventType, Key};
-    use std::{thread, time};
-
-    fn sleep(millis: u64) {
-        thread::sleep(time::Duration::from_millis(millis));
-    }
 
     fn dispatch(event_type: &EventType) {
-        sleep(20);
+        wait(20);
 
         simulate(event_type).unwrap();
     }
 
     focus_previous_window();
 
-    sleep(100);
+    wait(100);
 
     dispatch(&EventType::KeyPress(Key::ShiftLeft));
     dispatch(&EventType::KeyPress(Key::Insert));
     dispatch(&EventType::KeyRelease(Key::Insert));
     dispatch(&EventType::KeyRelease(Key::ShiftLeft));
+}
+
+#[cfg(not(target_os = "macos"))]
+fn wait(millis: u64) {
+    use std::{thread, time};
+
+    thread::sleep(time::Duration::from_millis(millis));
 }
 
 pub fn init() -> TauriPlugin<Wry> {
