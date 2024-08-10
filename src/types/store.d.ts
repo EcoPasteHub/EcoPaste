@@ -25,7 +25,6 @@ export interface GlobalStore {
 	shortcut: {
 		clipboard: string;
 		preference?: string;
-		paste?: string;
 	};
 
 	// 非配置项，只提供给全局使用

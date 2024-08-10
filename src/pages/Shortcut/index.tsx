@@ -22,15 +22,6 @@ const Shortcut = () => {
 					globalStore.shortcut.preference = value;
 				}}
 			/>
-
-			<ProShortcut
-				title="自动粘贴纯文本"
-				description="自动粘贴纯文本或者OCR文本"
-				defaultValue={shortcut.paste}
-				onChange={(value) => {
-					globalStore.shortcut.paste = value;
-				}}
-			/>
 		</ProList>
 	);
 };

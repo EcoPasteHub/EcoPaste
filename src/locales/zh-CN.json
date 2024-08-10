@@ -113,7 +113,7 @@
 		"button": {
 			"context_menu": {
 				"copy": "复制",
-				"copy_ocr_text": "复制OCR文本",
+				"paste_ocr_text": "粘贴OCR文本",
 				"paste_as_plain_text": "粘贴为纯文本",
 				"unfavorite": "取消收藏",
 				"favorite": "收藏",

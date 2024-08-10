@@ -60,8 +60,10 @@ const Item: FC<ItemProps> = (props) => {
 		}
 	};
 
-	const copyPlainText = () => {
-		writeText(search);
+	const pastePlainText = async () => {
+		await writeText(search);
+
+		paste();
 	};
 
 	const collect = async () => {
@@ -174,14 +176,14 @@ const Item: FC<ItemProps> = (props) => {
 				event: copy,
 			},
 			{
-				label: t("clipboard.button.context_menu.copy_ocr_text"),
+				label: t("clipboard.button.context_menu.paste_ocr_text"),
 				hide: type !== "image" || /^[\s]*$/.test(search),
-				event: copyPlainText,
+				event: pastePlainText,
 			},
 			{
 				label: t("clipboard.button.context_menu.paste_as_plain_text"),
 				hide: type !== "html",
-				event: copyPlainText,
+				event: pastePlainText,
 			},
 			{
 				label: isCollected
