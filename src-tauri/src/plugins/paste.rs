@@ -51,26 +51,24 @@ fn focus_previous_window() {
 // 让上一个窗口聚焦（linux）
 #[cfg(target_os = "linux")]
 fn focus_previous_window() {
-    use x11::xlib::{self, XCloseDisplay, XOpenDisplay, XSetInputFocus};
+    use x11::xlib::{self, XCloseDisplay, XOpenDisplay, XRaiseWindow, XSetInputFocus};
 
     unsafe {
         let display = XOpenDisplay(std::ptr::null_mut());
         if display.is_null() {
-            eprintln!("Could not open display");
+            log::error!("Could not open display");
             return;
         }
-        let window = get_foreground_apps();
-        let window = match window.get(0) {
-            Some(window) => *window,
+        let window = match get_foreground_apps() {
+            Some(window) => window,
             None => {
-                eprintln!("Could not get active window");
+                log::error!("Could not get active window");
                 return;
             }
         };
-        let result = XSetInputFocus(display, window, xlib::RevertToNone, xlib::CurrentTime);
-        if result != xlib::Success as i32 {
-            eprintln!("Could not focus on window")
-        }
+
+        XRaiseWindow(display, window);
+        XSetInputFocus(display, window, xlib::RevertToNone, xlib::CurrentTime);
         XCloseDisplay(display);
     }
 }
@@ -99,6 +97,11 @@ async fn paste() {
         dispatch(&EventType::KeyPress(Key::KeyV));
         dispatch(&EventType::KeyRelease(Key::KeyV));
         dispatch(&EventType::KeyRelease(Key::MetaLeft));
+    } else if cfg!(target_os = "linux") {
+        dispatch(&EventType::KeyPress(Key::ShiftLeft));
+        dispatch(&EventType::KeyPress(Key::Insert));
+        dispatch(&EventType::KeyRelease(Key::Insert));
+        dispatch(&EventType::KeyRelease(Key::ShiftLeft));
     } else {
         dispatch(&EventType::KeyPress(Key::ControlLeft));
         dispatch(&EventType::KeyPress(Key::KeyV));
