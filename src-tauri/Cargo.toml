@@ -26,7 +26,6 @@ mouse_position = "0.1.4"
 flate2 = "1.0.30"
 tar = "0.4.41"
 current_locale = "0.1.1"
-rdev = "0.5.3"
 window-vibrancy = "0.4.3"
 sys-info = "0.9.1"
 log = "0.4.22"
@@ -38,10 +37,12 @@ objc = "0.2.7"
 
 [target."cfg(target_os = \"windows\")".dependencies]
 winapi = { version = "0.3", features = ["winuser", "windef"] }
+enigo = "0.2.1"
 
 [target."cfg(target_os = \"linux\")".dependencies]
 showfile = "0.1.1"
 x11 = "2.21.0"
+rdev = "0.5.3"
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!
