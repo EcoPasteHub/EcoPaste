@@ -5,7 +5,8 @@ import type { Store } from "@/types/store";
 import { emit } from "@tauri-apps/api/event";
 import { BaseDirectory, readTextFile } from "@tauri-apps/api/fs";
 import { appDataDir } from "@tauri-apps/api/path";
-import { Button, Flex, List, message } from "antd";
+import { Button, Flex, List, Spin, message } from "antd";
+import { merge } from "lodash-es";
 
 const Backup = () => {
 	const { t } = useTranslation();
@@ -68,8 +69,8 @@ const Backup = () => {
 
 				const store = JSON.parse(content) as Store;
 
-				Object.assign(globalStore, store.globalStore);
-				Object.assign(clipboardStore, store.clipboardStore);
+				merge(globalStore, store.globalStore);
+				merge(clipboardStore, store.clipboardStore);
 
 				emit(LISTEN_KEY.IMPORT_DATA);
 
@@ -122,41 +123,45 @@ const Backup = () => {
 	};
 
 	return (
-		<ProList header="导入和导出">
-			<ProListItem title="存储路径">
-				<Button type="primary" onClick={openDir}>
-					打开目录
-				</Button>
-			</ProListItem>
-			<List.Item>
-				<Flex
-					gap="middle"
-					onClick={(event) => {
-						event.stopPropagation();
-						event.preventDefault();
-					}}
-				>
-					{renderList.map((item) => {
-						const { label, icon, event } = item;
+		<>
+			<ProList header="导入和导出">
+				<ProListItem title="存储路径">
+					<Button type="primary" onClick={openDir}>
+						打开目录
+					</Button>
+				</ProListItem>
+				<List.Item>
+					<Flex
+						gap="middle"
+						onClick={(event) => {
+							event.stopPropagation();
+							event.preventDefault();
+						}}
+					>
+						{renderList.map((item) => {
+							const { label, icon, event } = item;
 
-						return (
-							<Flex
-								key={label}
-								vertical
-								align="center"
-								justify="center"
-								gap="small"
-								className="b b-dashed b-color-1 hover:b-primary h-102 w-102 cursor-pointer rounded-8 bg-3 px-8 text-center transition hover:text-primary"
-								onClick={event}
-							>
-								<Icon name={icon} size={26} />
-								{label}
-							</Flex>
-						);
-					})}
-				</Flex>
-			</List.Item>
-		</ProList>
+							return (
+								<Flex
+									key={label}
+									vertical
+									align="center"
+									justify="center"
+									gap="small"
+									className="b b-dashed b-color-1 hover:b-primary h-102 w-102 cursor-pointer rounded-8 bg-3 px-8 text-center transition hover:text-primary"
+									onClick={event}
+								>
+									<Icon name={icon} size={26} />
+									{label}
+								</Flex>
+							);
+						})}
+					</Flex>
+				</List.Item>
+			</ProList>
+
+			<Spin spinning={state.spinning} tip={state.tip} fullscreen />
+		</>
 	);
 };
 
