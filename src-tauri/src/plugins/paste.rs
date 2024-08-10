@@ -1,6 +1,4 @@
 use crate::core::app::get_foreground_apps;
-use rdev::{simulate, EventType, Key};
-use std::{thread, time};
 use tauri::{
     command, generate_handler,
     plugin::{Builder, TauriPlugin},
@@ -73,31 +71,44 @@ fn focus_previous_window() {
     }
 }
 
-// 线程等待（毫秒）
-fn sleep(millis: u64) {
-    thread::sleep(time::Duration::from_millis(millis));
-}
-
-// 模拟键盘按键
-fn dispatch(event_type: &EventType) {
-    sleep(20);
-
-    simulate(event_type).unwrap();
-}
-
-// 粘贴剪贴板内容
+// 粘贴剪贴板内容（macos）
+#[cfg(target_os = "macos")]
 #[command]
 async fn paste() {
     focus_previous_window();
 
+    let script =
+        r#"osascript -e 'tell application "System Events" to keystroke "v" using command down'"#;
+
+    std::process::Command::new("sh")
+        .arg("-c")
+        .arg(script)
+        .output()
+        .expect("failed to execute process");
+}
+
+// 粘贴剪贴板内容
+#[cfg(not(target_os = "macos"))]
+#[command]
+async fn paste() {
+    use rdev::{simulate, EventType, Key};
+    use std::{thread, time};
+
+    focus_previous_window();
+
+    fn sleep(millis: u64) {
+        thread::sleep(time::Duration::from_millis(millis));
+    }
+
+    fn dispatch(event_type: &EventType) {
+        sleep(20);
+
+        simulate(event_type).unwrap();
+    }
+
     sleep(100);
 
-    if cfg!(target_os = "macos") {
-        dispatch(&EventType::KeyPress(Key::MetaLeft));
-        dispatch(&EventType::KeyPress(Key::KeyV));
-        dispatch(&EventType::KeyRelease(Key::KeyV));
-        dispatch(&EventType::KeyRelease(Key::MetaLeft));
-    } else if cfg!(target_os = "linux") {
+    if cfg!(target_os = "linux") {
         dispatch(&EventType::KeyPress(Key::ShiftLeft));
         dispatch(&EventType::KeyPress(Key::Insert));
         dispatch(&EventType::KeyRelease(Key::Insert));

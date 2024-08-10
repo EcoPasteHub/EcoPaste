@@ -62,7 +62,8 @@ const Clipboard = () => {
 					title="图片OCR"
 					description={
 						<>
-							可以暂时避免由于系统OCR支持不足导致应用崩溃的问题，linux用户请自主下载
+							可以暂时避免由于系统 OCR 支持不足导致应用崩溃的问题，如果是 linux
+							用户请自行下载{" "}
 							<Typography.Link href="https://github.com/tesseract-ocr/tesseract">
 								tesseract
 							</Typography.Link>
