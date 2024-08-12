@@ -31,7 +31,7 @@ fn get_net_wm_name(display: *mut Display, window: u64) -> std::result::Result<St
     };
     if result == xlib::Success as i32 && !prop.is_null() {
         let name = unsafe {
-            std::ffi::CStr::from_ptr(prop as *const i8)
+            std::ffi::CStr::from_ptr(prop as *const std::ffi::c_char)
                 .to_string_lossy()
                 .into_owned()
         };
