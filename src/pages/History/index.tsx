@@ -1,41 +1,33 @@
 import ProList from "@/components/ProList";
-import ProSelect from "@/components/ProSelect";
+import ProListItem from "@/components/ProListItem";
 import { emit } from "@tauri-apps/api/event";
-import { Button } from "antd";
+import { Button, InputNumber, Select, Space } from "antd";
 import { useSnapshot } from "valtio";
 
 const History = () => {
 	const { history } = useSnapshot(clipboardStore);
 
-	const options = [
+	const unitOptions = [
 		{
-			label: "永久",
-			value: 0,
-		},
-		{
-			label: "一天",
+			label: "天",
 			value: 1,
 		},
 		{
-			label: "一周",
+			label: "周",
 			value: 7,
 		},
 		{
-			label: "一月",
+			label: "月",
 			value: 30,
 		},
 		{
-			label: "半年",
-			value: 180,
-		},
-		{
-			label: "一年",
+			label: "年",
 			value: 365,
 		},
 	];
 
 	const handleClear = async () => {
-		const yes = await ask("你确定要清除所有历史记录吗？", {
+		const yes = await ask("你确定要清除所有历史记录（包括收藏）吗？", {
 			title: "清除历史记录",
 			okLabel: "确定",
 			cancelLabel: "取消",
@@ -56,14 +48,24 @@ const History = () => {
 				</Button>
 			}
 		>
-			<ProSelect
-				title="保留时长"
-				value={history.duration}
-				options={options}
-				onChange={(value) => {
-					clipboardStore.history.duration = value;
-				}}
-			/>
+			<ProListItem title="保留时长" description="输入 0 则表示永久保留">
+				<Space.Compact>
+					<InputNumber
+						min={0}
+						value={history.duration}
+						onChange={(value) => {
+							clipboardStore.history.duration = value ?? 0;
+						}}
+					/>
+					<Select
+						value={history.unit}
+						options={unitOptions}
+						onChange={(value) => {
+							clipboardStore.history.unit = value ?? 0;
+						}}
+					/>
+				</Space.Compact>
+			</ProListItem>
 		</ProList>
 	);
 };

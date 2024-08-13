@@ -66,5 +66,6 @@ export interface ClipboardStore {
 	// 历史记录
 	history: {
 		duration: number;
+		unit: number;
 	};
 }
