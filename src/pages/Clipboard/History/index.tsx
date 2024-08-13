@@ -172,12 +172,14 @@ const ClipboardHistory = () => {
 
 		state.historyList = list;
 
-		if (!clipboardStore.history.duration) return;
+		const { duration, unit } = clipboardStore.history;
+
+		if (duration <= 0) return;
 
 		for (const item of list) {
 			const { id, createTime } = item;
 
-			if (dayjs().diff(createTime, "days") >= clipboardStore.history.duration) {
+			if (dayjs().diff(createTime, "days") >= duration * unit) {
 				if (item.isCollected) continue;
 
 				deleteSQL("history", id);

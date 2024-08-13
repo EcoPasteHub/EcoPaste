@@ -24,6 +24,7 @@ export const CLIPBOARD_STORE_INITIAL_STATE: ClipboardStore = {
 
 	history: {
 		duration: 0,
+		unit: 1,
 	},
 };
 
