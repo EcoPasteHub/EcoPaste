@@ -58,7 +58,7 @@ export interface ClipboardStore {
 
 	// 剪切板内容设置
 	content: {
-		autoPaste: "single" | "double";
+		autoPaste: "close" | "single" | "double";
 		ocr: boolean;
 		copyPlainText: boolean;
 	};

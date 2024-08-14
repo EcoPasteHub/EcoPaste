@@ -12,6 +12,10 @@ const AutoPaste = () => {
 
 	const options: Option[] = [
 		{
+			label: "关闭",
+			value: "close",
+		},
+		{
 			label: "单击",
 			value: "single",
 		},
@@ -24,6 +28,7 @@ const AutoPaste = () => {
 	return (
 		<ProSelect
 			title="自动粘贴"
+			description="鼠标左键的操作"
 			value={content.autoPaste}
 			options={options}
 			onChange={(value) => {
