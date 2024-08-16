@@ -3,6 +3,11 @@ name: Multi-platform Build
 on:
   workflow_dispatch:
     inputs:
+      updater:
+        description: 'Enable updater?'
+        required: true
+        type: boolean
+        default: true
       isDebug:
         description: 'is debug?'
         required: true
@@ -42,11 +47,25 @@ env:
 jobs:
   define-matrix:
     runs-on: ubuntu-latest
-
     outputs:
       matrix: ${{ steps.matrix.outputs.matrix }}
-
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Update tauri.conf.json
+        if: ${{ !inputs.updater}}
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq -p=json -o=json -i '.tauri.updater.active = false' src-tauri/tauri.conf.json
+      - name: Upload artifact
+        if: ${{ !inputs.updater}}
+        uses: actions/upload-artifact@v4
+        with:
+          name: tauri-config
+          path: src-tauri/tauri.conf.json
+          retention-days: 1
       - name: Set matrix
         id: matrix
         run: |
@@ -84,6 +103,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Download artifact
+        if: ${{ !inputs.updater}}
+        uses: actions/download-artifact@v4
+        with:
+          name: tauri-config
+          path: src-tauri
+      # - name: Show tauri.conf.json
+      #   run: cat src-tauri/tauri.conf.json
       - name: Install pnpm
         uses: pnpm/action-setup@v3
         with:
