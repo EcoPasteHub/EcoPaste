@@ -7,7 +7,7 @@ on:
         description: 'Enable updater?'
         required: true
         type: boolean
-        default: true
+        default: false
       isDebug:
         description: 'is debug?'
         required: true
