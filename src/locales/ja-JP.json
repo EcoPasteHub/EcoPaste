@@ -12,32 +12,49 @@
 			}
 		},
 		"clipboard": {
-			"basic": {
-				"title": "基本設定",
-				"button": {
-					"restore_default_setting": "デフォルトの復元"
-				},
+			"window_settings": {
+				"title": "ウィンドウ設定",
 				"label": {
-					"wake_up_key": "ショートカットキー",
-					"enable_audio": "サウンド",
-					"search_position": "検索ボックス位置",
-					"search_position_top": "トップ",
-					"search_position_bottom": "ボトム",
-					"default_focus": "デフォルトフォーカス",
-					"default_focus_first_item": "第1項",
-					"default_focus_search": "検索ボックス",
-					"click_paste": "シングルクリック",
-					"dbl_click_feedback": "ダブルクリック",
-					"dbl_click_feedback_none": "なし",
-					"dbl_click_feedback_copy": "内容をコピーする",
-					"dbl_click_feedback_paste": "内容を貼り付けます",
 					"window_position": "ウィンドウ位置",
-					"window_position_default": "デフォルト",
-					"window_position_follow": "マウスに従う",
-					"window_position_center": "画面中央"
+					"window_position_default": "位置を記憶する",
+					"window_position_follow": "カーソルに追従",
+					"window_position_center": "画面の中央"
+				}
+			},
+			"audio_settings": {
+				"title": "サウンド設定",
+				"label": {
+					"copy_audio": "コピーサウンド"
+				}
+			},
+			"search_box_settings": {
+				"title": "検索ボックス設定",
+				"label": {
+					"default_focus": "デフォルトフォーカス",
+					"auto_clear": "自動クリア",
+					"position": "検索ボックスの位置",
+					"position_top": "上部",
+					"position_bottom": "下部"
 				},
 				"hints": {
-					"restore_confirm": "既定値に戻しますか？"
+					"default_focus": "ウィンドウを開くと自動的に検索ボックスにフォーカスします",
+					"auto_clear": "ウィンドウを開くと自動的に検索ボックスをクリアします"
+				}
+			},
+			"content_settings": {
+				"title": "クリップボードの内容",
+				"label": {
+					"auto_paste": "自動ペースト",
+					"auto_paste_close": "オフ",
+					"auto_paste_single": "シングルクリック",
+					"auto_paste_double": "ダブルクリック",
+					"image_ocr": "画像 OCR",
+					"copy_as_plain": "プレーンテキストとしてコピー"
+				},
+				"hints": {
+					"auto_paste": "左クリックでの操作",
+					"image_ocr": "システムOCRのサポートが不十分な場合のアプリケーションクラッシュを回避するために役立ちます。Linuxユーザーは別途ダウンロードが必要な場合があります。",
+					"copy_as_plain": "リッチテキストやHTML形式をコピーする際に、プレーンテキストのみを保持します"
 				}
 			},
 			"history_capacity": {

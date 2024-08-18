@@ -12,26 +12,49 @@
 			}
 		},
 		"clipboard": {
-			"basic": {
-				"title": "基础设置",
+			"window_settings": {
+				"title": "窗口设置",
 				"label": {
-					"wake_up_key": "唤醒窗口",
-					"enable_audio": "启用音效",
-					"search_position": "搜索位置",
-					"search_position_top": "顶部",
-					"search_position_bottom": "底部",
-					"default_focus": "默认聚焦",
-					"default_focus_first_item": "首项",
-					"default_focus_search": "搜索",
-					"click_paste": "单击粘贴",
-					"dbl_click_feedback": "双击反馈",
-					"dbl_click_feedback_none": "无反馈",
-					"dbl_click_feedback_copy": "复制内容",
-					"dbl_click_feedback_paste": "粘贴内容",
 					"window_position": "窗口位置",
-					"window_position_default": "默认位置",
+					"window_position_default": "记住位置",
 					"window_position_follow": "跟随鼠标",
 					"window_position_center": "屏幕中心"
+				}
+			},
+			"audio_settings": {
+				"title": "音效设置",
+				"label": {
+					"copy_audio": "复制音效"
+				}
+			},
+			"search_box_settings": {
+				"title": "搜索框设置",
+				"label": {
+					"default_focus": "默认聚焦",
+					"auto_clear": "自动清除",
+					"position": "搜索框位置",
+					"position_top": "顶部",
+					"position_bottom": "底部"
+				},
+				"hints": {
+					"default_focus": "每次打开窗口时，自动聚焦搜索框",
+					"auto_clear": "每次打开窗口时，自动清除搜索框内容"
+				}
+			},
+			"content_settings": {
+				"title": "剪切板内容",
+				"label": {
+					"auto_paste": "自动粘贴",
+					"auto_paste_close": "关闭",
+					"auto_paste_single": "单击",
+					"auto_paste_double": "双击",
+					"image_ocr": "图片OCR",
+					"copy_as_plain": "复制为纯文本"
+				},
+				"hints": {
+					"auto_paste": "鼠标左键的操作",
+					"image_ocr": "可以暂时避免由于系统 OCR 支持不足导致应用崩溃的问题，如果是 linux 用户请自行下载",
+					"copy_as_plain": "富文本和 HTML 格式在复制时仅保留纯文本内容"
 				}
 			},
 			"history_capacity": {

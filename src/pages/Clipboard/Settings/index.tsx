@@ -9,16 +9,17 @@ import WindowPosition from "./components/WindowPosition";
 
 const Clipboard = () => {
 	const { audio, search, content } = useSnapshot(clipboardStore);
+	const { t } = useTranslation();
 
 	return (
 		<>
-			<ProList header="窗口设置">
+			<ProList header={t("preference.clipboard.window_settings.title")}>
 				<WindowPosition />
 			</ProList>
 
-			<ProList header="音效设置">
+			<ProList header={t("preference.clipboard.audio_settings.title")}>
 				<ProSwitch
-					title="复制音效"
+					title={t("preference.clipboard.audio_settings.label.copy_audio")}
 					value={audio.copy}
 					onChange={(value) => {
 						clipboardStore.audio.copy = value;
@@ -33,12 +34,16 @@ const Clipboard = () => {
 				</ProSwitch>
 			</ProList>
 
-			<ProList header="搜索框设置">
+			<ProList header={t("preference.clipboard.search_box_settings.title")}>
 				<SearchPosition key={1} />
 
 				<ProSwitch
-					title="默认聚焦"
-					description="每次打开窗口时，自动聚焦搜索框"
+					title={t(
+						"preference.clipboard.search_box_settings.label.default_focus",
+					)}
+					description={t(
+						"preference.clipboard.search_box_settings.hints.default_focus",
+					)}
 					value={search.defaultFocus}
 					onChange={(value) => {
 						clipboardStore.search.defaultFocus = value;
@@ -46,8 +51,10 @@ const Clipboard = () => {
 				/>
 
 				<ProSwitch
-					title="自动清除"
-					description="每次打开窗口时，自动清除搜索框内容"
+					title={t("preference.clipboard.search_box_settings.label.auto_clear")}
+					description={t(
+						"preference.clipboard.search_box_settings.hints.auto_clear",
+					)}
 					value={search.autoClear}
 					onChange={(value) => {
 						clipboardStore.search.autoClear = value;
@@ -55,15 +62,14 @@ const Clipboard = () => {
 				/>
 			</ProList>
 
-			<ProList header="剪切板内容">
+			<ProList header={t("preference.clipboard.content_settings.title")}>
 				<AutoPaste />
 
 				<ProSwitch
-					title="图片OCR"
+					title={t("preference.clipboard.content_settings.label.image_ocr")}
 					description={
 						<>
-							可以暂时避免由于系统 OCR 支持不足导致应用崩溃的问题，如果是 linux
-							用户请自行下载{" "}
+							{t("preference.clipboard.content_settings.hints.image_ocr")}{" "}
 							<Typography.Link href="https://github.com/tesseract-ocr/tesseract">
 								tesseract
 							</Typography.Link>
@@ -76,8 +82,10 @@ const Clipboard = () => {
 				/>
 
 				<ProSwitch
-					title="复制为纯文本"
-					description="富文本和 HTML 格式在复制时仅保留纯文本内容"
+					title={t("preference.clipboard.content_settings.label.copy_as_plain")}
+					description={t(
+						"preference.clipboard.content_settings.hints.copy_as_plain",
+					)}
 					value={content.copyPlainText}
 					onChange={(value) => {
 						clipboardStore.content.copyPlainText = value;
