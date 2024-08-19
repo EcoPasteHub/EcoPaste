@@ -56,25 +56,29 @@
 					"image_ocr": "可以暂时避免由于系统 OCR 支持不足导致应用崩溃的问题，如果是 linux 用户请自行下载",
 					"copy_as_plain": "富文本和 HTML 格式在复制时仅保留纯文本内容"
 				}
-			},
-			"history_capacity": {
-				"title": "历史记录容量",
+			}
+		},
+		"history": {
+			"history": {
+				"title": "历史记录",
 				"button": {
-					"clear": "清空"
+					"clear": "清除历史记录",
+					"clear_confirm": "确定",
+					"clear_cancel": "取消"
 				},
 				"label": {
-					"duration": {
+					"duration": "保留时长",
+					"duration_unit": {
 						"day": "天",
 						"week": "周",
 						"month": "月",
-						"quarter": "季度",
-						"half_year": "半年",
-						"year": "年",
-						"unlimited": "无限制"
-					}
+						"year": "年"
+					},
+					"clear_confirm_title": "清除历史记录"
 				},
 				"hints": {
-					"clear_confirm": "确定要清空历史记录吗？"
+					"duration": "输入 0 则表示永久保留",
+					"clear_confirm": "你确定要清除所有历史记录（包括收藏）吗？"
 				}
 			}
 		},

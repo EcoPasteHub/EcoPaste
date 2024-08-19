@@ -56,25 +56,29 @@
 					"image_ocr": "システムOCRのサポートが不十分な場合のアプリケーションクラッシュを回避するために役立ちます。Linuxユーザーは別途ダウンロードが必要な場合があります。",
 					"copy_as_plain": "リッチテキストやHTML形式をコピーする際に、プレーンテキストのみを保持します"
 				}
-			},
-			"history_capacity": {
-				"title": "履歴容量",
+			}
+		},
+		"history": {
+			"history": {
+				"title": "履歴",
 				"button": {
-					"clear": "クリア"
+					"clear": "履歴をクリア",
+					"clear_confirm": "確認",
+					"clear_cancel": "キャンセル"
 				},
 				"label": {
-					"duration": {
+					"duration": "保存期間",
+					"duration_unit": {
 						"day": "日",
 						"week": "週",
 						"month": "月",
-						"quarter": "3ヶ月",
-						"half_year": "半年",
-						"year": "年",
-						"unlimited": "制限なし"
-					}
+						"year": "年"
+					},
+					"clear_confirm_title": "履歴をクリア"
 				},
 				"hints": {
-					"clear_confirm": "履歴をクリアしますか?"
+					"duration": "0を入力すると、履歴は永久に保存されます",
+					"clear_confirm": "すべての履歴（お気に入りを含む）をクリアしてもよろしいですか？"
 				}
 			}
 		},
