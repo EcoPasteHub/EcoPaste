@@ -273,12 +273,15 @@ const Item: FC<ItemProps> = (props) => {
 	};
 
 	const handleKeyDown = (event: KeyboardEvent) => {
-		const isSpace = event.code === "Space";
-		const isArrowUp = event.code === "ArrowUp";
-		const isArrowDown = event.code === "ArrowDown";
-		const isEnter = event.code === "Enter";
+		const { code } = event;
 
-		if (isSpace || isArrowUp || isArrowDown || isEnter) {
+		const isSpace = code === "Space";
+		const isArrowUp = code === "ArrowUp";
+		const isArrowDown = code === "ArrowDown";
+		const isEnter = code === "Enter";
+		const isDelete = code === "Backspace";
+
+		if (isSpace || isArrowUp || isArrowDown || isEnter || isDelete) {
 			event.preventDefault();
 		}
 
@@ -296,6 +299,10 @@ const Item: FC<ItemProps> = (props) => {
 
 		if (isEnter) {
 			pasteValue();
+		}
+
+		if (isDelete) {
+			deleteItem();
 		}
 	};
 
