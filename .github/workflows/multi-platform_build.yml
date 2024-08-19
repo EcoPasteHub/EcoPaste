@@ -7,7 +7,7 @@ on:
         description: 'Enable updater?'
         required: true
         type: boolean
-        default: true
+        default: false
       isDebug:
         description: 'is debug?'
         required: true
@@ -55,12 +55,15 @@ jobs:
         with:
           fetch-depth: 0
       - name: Update tauri.conf.json
-        if: ${{ !inputs.updater}}
         uses: mikefarah/yq@master
         with:
-          cmd: yq -p=json -o=json -i '.tauri.updater.active = false' src-tauri/tauri.conf.json
-      - name: Upload artifact
+          cmd: |
+            build=$(date "+%Y%m%d")
+            yq -p=json -o=json -i '.package.productName = "EcoPaste-beta'$build'"' src-tauri/tauri.conf.json
+      - name: Edit updater config
         if: ${{ !inputs.updater}}
+        run: yq -p=json -o=json -i '.tauri.updater.active = false' src-tauri/tauri.conf.json
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: tauri-config
@@ -109,8 +112,6 @@ jobs:
         with:
           name: tauri-config
           path: src-tauri
-      # - name: Show tauri.conf.json
-      #   run: cat src-tauri/tauri.conf.json
       - name: Install pnpm
         uses: pnpm/action-setup@v3
         with:
