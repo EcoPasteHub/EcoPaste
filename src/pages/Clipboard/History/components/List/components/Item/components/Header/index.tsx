@@ -104,7 +104,7 @@ const Header: FC<HeaderProps> = (props) => {
 			<Flex
 				align="center"
 				gap={6}
-				className="text-14"
+				className="text-14 opacity-0 transition group-hover:opacity-100 group-focus:opacity-100"
 				onClick={(event) => event.stopPropagation()}
 				onDoubleClick={(event) => event.stopPropagation()}
 			>
