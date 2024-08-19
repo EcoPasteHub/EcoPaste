@@ -118,21 +118,23 @@ const Backup = () => {
 		},
 	];
 
-	const openDir = async () => {
-		previewPath(await appDataDir());
-	};
-
 	return (
 		<>
 			<ProList header="导入和导出">
 				<ProListItem title="存储路径">
-					<Button type="primary" onClick={openDir}>
+					<Button
+						type="primary"
+						onClick={async () => {
+							previewPath(await appDataDir());
+						}}
+					>
 						打开目录
 					</Button>
 				</ProListItem>
 				<List.Item>
 					<Flex
 						gap="middle"
+						className="w-full"
 						onClick={(event) => {
 							event.stopPropagation();
 							event.preventDefault();
@@ -148,7 +150,7 @@ const Backup = () => {
 									align="center"
 									justify="center"
 									gap="small"
-									className="b b-dashed b-color-1 hover:b-primary h-102 w-102 cursor-pointer rounded-8 bg-3 px-8 text-center transition hover:text-primary"
+									className="b b-color-2 hover:b-primary h-102 flex-1 cursor-pointer rounded-8 bg-3 px-8 text-center transition hover:text-primary"
 									onClick={event}
 								>
 									<Icon name={icon} size={26} />
