@@ -83,26 +83,21 @@
 			}
 		},
 		"settings": {
-			"basic": {
-				"title": "基本設定",
-				"button": {
-					"restore_default_setting": "デフォルトの復元"
-				},
+			"app_settings": {
+				"title": "アプリ設定",
 				"label": {
-					"auto_start": "自動スタート",
-					"auto_update": "自動アップデート",
-					"wake_up_key": "ショートカットキー",
-					"theme": "テーマ",
-					"theme_auto": "自動",
-					"theme_light": "ライト",
-					"theme_dark": "ダーク",
-					"language": "言語選択",
-					"tray_click": "トレイをクリック",
-					"tray_click_none": "操作なし",
-					"tray_click_show": "アプリケーションを表示"
-				},
-				"hints": {
-					"restore_confirm": "既定値に戻しますか？"
+					"auto_start": "ログイン時に起動",
+					"auto_update": "自動アップデート確認"
+				}
+			},
+			"appearance_settings": {
+				"title": "外観設定",
+				"label": {
+					"language": "インターフェース言語",
+					"theme": "テーマモード",
+					"theme_auto": "システムに従う",
+					"theme_light": "ライトモード",
+					"theme_dark": "ダークモード"
 				}
 			}
 		},

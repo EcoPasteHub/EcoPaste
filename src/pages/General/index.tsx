@@ -6,12 +6,13 @@ import ThemeMode from "./components/ThemeMode";
 
 const General = () => {
 	const { app } = useSnapshot(globalStore);
+	const { t } = useTranslation();
 
 	return (
 		<>
-			<ProList header="应用设置">
+			<ProList header={t("preference.settings.app_settings.title")}>
 				<ProSwitch
-					title="登录时启动"
+					title={t("preference.settings.app_settings.label.auto_start")}
 					value={app.autoStart}
 					onChange={(value) => {
 						globalStore.app.autoStart = value;
@@ -19,7 +20,7 @@ const General = () => {
 				/>
 
 				<ProSwitch
-					title="自动检查更新"
+					title={t("preference.settings.app_settings.label.auto_update")}
 					value={app.autoUpdate}
 					onChange={(value) => {
 						globalStore.app.autoUpdate = value;
@@ -27,7 +28,7 @@ const General = () => {
 				/>
 			</ProList>
 
-			<ProList header="外观设置">
+			<ProList header={t("preference.settings.appearance_settings.title")}>
 				<Language />
 
 				<ThemeMode />

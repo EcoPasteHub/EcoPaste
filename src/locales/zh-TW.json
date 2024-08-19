@@ -83,20 +83,21 @@
 			}
 		},
 		"settings": {
-			"basic": {
-				"title": "基礎設定",
+			"app_settings": {
+				"title": "應用設置",
 				"label": {
-					"auto_start": "開機自啟",
-					"auto_update": "自動更新",
-					"wake_up_key": "喚醒視窗",
+					"auto_start": "登入時啟動",
+					"auto_update": "自動檢查更新"
+				}
+			},
+			"appearance_settings": {
+				"title": "外觀設置",
+				"label": {
+					"language": "界面語言",
 					"theme": "主題模式",
-					"theme_auto": "自動",
-					"theme_light": "亮色",
-					"theme_dark": "暗色",
-					"language": "語言選擇",
-					"tray_click": "單擊系統托盤",
-					"tray_click_none": "無操作",
-					"tray_click_show": "顯示應用"
+					"theme_auto": "跟隨系統",
+					"theme_light": "亮色模式",
+					"theme_dark": "暗色模式"
 				}
 			}
 		},

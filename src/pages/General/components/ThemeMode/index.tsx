@@ -9,25 +9,26 @@ interface Option {
 
 const ThemeMode = () => {
 	const { appearance } = useSnapshot(globalStore);
+	const { t } = useTranslation();
 
 	const options: Option[] = [
 		{
-			label: "跟随系统",
+			label: t("preference.settings.appearance_settings.label.theme_auto"),
 			value: "auto",
 		},
 		{
-			label: "亮色模式",
+			label: t("preference.settings.appearance_settings.label.theme_light"),
 			value: "light",
 		},
 		{
-			label: "暗色模式",
+			label: t("preference.settings.appearance_settings.label.theme_dark"),
 			value: "dark",
 		},
 	];
 
 	return (
 		<ProSelect
-			title="主题模式"
+			title={t("preference.settings.appearance_settings.label.theme")}
 			value={appearance.theme}
 			options={options}
 			onChange={(value) => {

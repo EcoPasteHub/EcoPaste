@@ -83,20 +83,21 @@
 			}
 		},
 		"settings": {
-			"basic": {
-				"title": "Basic Settings",
+			"app_settings": {
+				"title": "App Settings",
 				"label": {
-					"auto_start": "Auto Startup",
-					"auto_update": "Auto Updates",
-					"wake_up_key": "Hotkey",
-					"theme": "Theme",
+					"auto_start": "Start at Login",
+					"auto_update": "Auto Check for Updates"
+				}
+			},
+			"appearance_settings": {
+				"title": "Appearance Settings",
+				"label": {
+					"language": "Language",
+					"theme": "Theme Mode",
 					"theme_auto": "System",
 					"theme_light": "Light",
-					"theme_dark": "Dark",
-					"language": "Language",
-					"tray_click": "Tray Click",
-					"tray_click_none": "None",
-					"tray_click_show": "Show App"
+					"theme_dark": "Dark"
 				}
 			}
 		},
