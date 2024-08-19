@@ -6,31 +6,32 @@ import { useSnapshot } from "valtio";
 
 const History = () => {
 	const { history } = useSnapshot(clipboardStore);
+	const { t } = useTranslation();
 
 	const unitOptions = [
 		{
-			label: "天",
+			label: t("preference.history.history.label.duration_unit.day"),
 			value: 1,
 		},
 		{
-			label: "周",
+			label: t("preference.history.history.label.duration_unit.week"),
 			value: 7,
 		},
 		{
-			label: "月",
+			label: t("preference.history.history.label.duration_unit.month"),
 			value: 30,
 		},
 		{
-			label: "年",
+			label: t("preference.history.history.label.duration_unit.year"),
 			value: 365,
 		},
 	];
 
 	const handleClear = async () => {
-		const yes = await ask("你确定要清除所有历史记录（包括收藏）吗？", {
-			title: "清除历史记录",
-			okLabel: "确定",
-			cancelLabel: "取消",
+		const yes = await ask(t("preference.history.history.hints.clear_confirm"), {
+			title: t("preference.history.history.label.clear_confirm_title"),
+			okLabel: t("preference.history.history.button.clear_confirm"),
+			cancelLabel: t("preference.history.history.button.clear_cancel"),
 			type: "warning",
 		});
 
@@ -41,14 +42,17 @@ const History = () => {
 
 	return (
 		<ProList
-			header="历史记录"
+			header={t("preference.history.history.title")}
 			footer={
 				<Button block danger onClick={handleClear}>
-					清除历史记录
+					{t("preference.history.history.button.clear")}
 				</Button>
 			}
 		>
-			<ProListItem title="保留时长" description="输入 0 则表示永久保留">
+			<ProListItem
+				title={t("preference.history.history.label.duration")}
+				description={t("preference.history.history.hints.duration")}
+			>
 				<Space.Compact>
 					<InputNumber
 						min={0}

@@ -4,7 +4,7 @@
 		"menu": {
 			"title": {
 				"clipboard": "Clipboard",
-				"history": "历史记录",
+				"history": "History",
 				"general": "General",
 				"shortcut": "快捷键",
 				"backup": "Data Backup",
@@ -56,25 +56,29 @@
 					"image_ocr": "Helps prevent crashes due to insufficient system OCR support; Linux users may need to download separately",
 					"copy_as_plain": "Only retains plain text content when copying rich text or HTML formats"
 				}
-			},
-			"history_capacity": {
-				"title": "History Retention Period",
+			}
+		},
+		"history": {
+			"history": {
+				"title": "History",
 				"button": {
-					"clear": "Clear"
+					"clear": "Clear History",
+					"clear_confirm": "Confirm",
+					"clear_cancel": "Cancel"
 				},
 				"label": {
-					"duration": {
+					"duration": "Retention Duration",
+					"duration_unit": {
 						"day": "Day",
 						"week": "Week",
 						"month": "Month",
-						"quarter": "Quarter",
-						"half_year": "Half Year",
-						"year": "Year",
-						"unlimited": "Unlimited"
-					}
+						"year": "Year"
+					},
+					"clear_confirm_title": "Clear History"
 				},
 				"hints": {
-					"clear_confirm": "Are you sure you want to clear the history?"
+					"duration": "Enter 0 to keep forever",
+					"clear_confirm": "Are you sure you want to clear all history (including favorites)?"
 				}
 			}
 		},

@@ -56,25 +56,29 @@
 					"image_ocr": "可暫時避免因系統 OCR 支援不足導致應用程式崩潰的問題，若為 Linux 用戶請自行下載",
 					"copy_as_plain": "富文本和 HTML 格式在複製時僅保留純文字內容"
 				}
-			},
-			"history_capacity": {
-				"title": "歷史紀錄容量",
+			}
+		},
+		"history": {
+			"history": {
+				"title": "歷史紀錄",
 				"button": {
-					"clear": "清空"
+					"clear": "清除歷史紀錄",
+					"clear_confirm": "確認",
+					"clear_cancel": "取消"
 				},
 				"label": {
-					"duration": {
+					"duration": "保留時長",
+					"duration_unit": {
 						"day": "天",
 						"week": "週",
 						"month": "月",
-						"quarter": "季度",
-						"half_year": "半年",
-						"year": "年",
-						"unlimited": "無限"
-					}
+						"year": "年"
+					},
+					"clear_confirm_title": "清除歷史紀錄"
 				},
 				"hints": {
-					"clear_confirm": "確定要清空歷史紀錄嗎？"
+					"duration": "輸入 0 表示永久保留",
+					"clear_confirm": "你確定要清除所有歷史紀錄（包括收藏）嗎？"
 				}
 			}
 		},
