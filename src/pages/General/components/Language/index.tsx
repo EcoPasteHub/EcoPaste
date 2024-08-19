@@ -9,6 +9,7 @@ interface Option {
 
 const Language = () => {
 	const { appearance } = useSnapshot(globalStore);
+	const { t } = useTranslation();
 
 	const options: Option[] = [
 		{
@@ -31,7 +32,7 @@ const Language = () => {
 
 	return (
 		<ProSelect
-			title="界面语言"
+			title={t("preference.settings.appearance_settings.label.language")}
 			value={appearance.language}
 			options={options}
 			onChange={(value) => {

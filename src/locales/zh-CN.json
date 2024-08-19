@@ -83,20 +83,21 @@
 			}
 		},
 		"settings": {
-			"basic": {
-				"title": "基础设置",
+			"app_settings": {
+				"title": "应用设置",
 				"label": {
-					"auto_start": "开机自启",
-					"auto_update": "自动更新",
-					"wake_up_key": "唤醒窗口",
+					"auto_start": "登录时启动",
+					"auto_update": "自动检查更新"
+				}
+			},
+			"appearance_settings": {
+				"title": "外观设置",
+				"label": {
+					"language": "界面语言",
 					"theme": "主题模式",
-					"theme_auto": "自动",
-					"theme_light": "亮色",
-					"theme_dark": "暗色",
-					"language": "语言选择",
-					"tray_click": "单击托盘",
-					"tray_click_none": "无操作",
-					"tray_click_show": "显示应用"
+					"theme_auto": "跟随系统",
+					"theme_light": "亮色模式",
+					"theme_dark": "暗色模式"
 				}
 			}
 		},
