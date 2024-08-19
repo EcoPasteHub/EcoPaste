@@ -18,6 +18,9 @@ use tauri::{
 
 pub static IS_LISTENING: Mutex<bool> = Mutex::new(false);
 
+#[cfg(target_os = "windows")]
+static WIN_LOCK: Mutex<()> = Mutex::new(());
+
 struct ClipboardManager {
     context: ClipboardContext,
     watcher_shutdown: Arc<Mutex<Option<WatcherShutdown>>>,
@@ -114,31 +117,49 @@ async fn stop_listen(app_handle: AppHandle, manager: State<'_, ClipboardManager>
 
 #[command]
 async fn has_files(manager: State<'_, ClipboardManager>) -> Result<bool> {
+    #[cfg(target_os = "windows")]
+    let _lock = WIN_LOCK.lock().unwrap();
+
     Ok(manager.has(ContentFormat::Files))
 }
 
 #[command]
 async fn has_image(manager: State<'_, ClipboardManager>) -> Result<bool> {
+    #[cfg(target_os = "windows")]
+    let _lock = WIN_LOCK.lock().unwrap();
+
     Ok(manager.has(ContentFormat::Image))
 }
 
 #[command]
 async fn has_html(manager: State<'_, ClipboardManager>) -> Result<bool> {
+    #[cfg(target_os = "windows")]
+    let _lock = WIN_LOCK.lock().unwrap();
+
     Ok(manager.has(ContentFormat::Html))
 }
 
 #[command]
 async fn has_rich_text(manager: State<'_, ClipboardManager>) -> Result<bool> {
+    #[cfg(target_os = "windows")]
+    let _lock = WIN_LOCK.lock().unwrap();
+
     Ok(manager.has(ContentFormat::Rtf))
 }
 
 #[command]
 async fn has_text(manager: State<'_, ClipboardManager>) -> Result<bool> {
+    #[cfg(target_os = "windows")]
+    let _lock = WIN_LOCK.lock().unwrap();
+
     Ok(manager.has(ContentFormat::Text))
 }
 
 #[command]
 async fn read_files(manager: State<'_, ClipboardManager>) -> Result<Vec<String>> {
+    #[cfg(target_os = "windows")]
+    let _lock = WIN_LOCK.lock().unwrap();
+
     let mut files = manager.context.get_files().unwrap();
 
     files.iter_mut().for_each(|path| {
@@ -150,6 +171,9 @@ async fn read_files(manager: State<'_, ClipboardManager>) -> Result<Vec<String>>
 
 #[command]
 async fn read_image(manager: State<'_, ClipboardManager>, dir: PathBuf) -> Result<ReadImage> {
+    #[cfg(target_os = "windows")]
+    let _lock = WIN_LOCK.lock().unwrap();
+
     create_dir_all(&dir).unwrap();
 
     let image = manager.context.get_image().unwrap();
@@ -185,21 +209,33 @@ async fn read_image(manager: State<'_, ClipboardManager>, dir: PathBuf) -> Resul
 
 #[command]
 async fn read_html(manager: State<'_, ClipboardManager>) -> Result<String> {
+    #[cfg(target_os = "windows")]
+    let _lock = WIN_LOCK.lock().unwrap();
+
     Ok(manager.context.get_html().unwrap())
 }
 
 #[command]
 async fn read_rich_text(manager: State<'_, ClipboardManager>) -> Result<String> {
+    #[cfg(target_os = "windows")]
+    let _lock = WIN_LOCK.lock().unwrap();
+
     Ok(manager.context.get_rich_text().unwrap())
 }
 
 #[command]
 async fn read_text(manager: State<'_, ClipboardManager>) -> Result<String> {
+    #[cfg(target_os = "windows")]
+    let _lock = WIN_LOCK.lock().unwrap();
+
     Ok(manager.context.get_text().unwrap())
 }
 
 #[command]
 async fn write_files(manager: State<'_, ClipboardManager>, value: Vec<String>) -> Result<()> {
+    #[cfg(target_os = "windows")]
+    let _lock = WIN_LOCK.lock().unwrap();
+
     manager.context.set_files(value).unwrap();
 
     Ok(())
@@ -207,6 +243,9 @@ async fn write_files(manager: State<'_, ClipboardManager>, value: Vec<String>) -
 
 #[command]
 async fn write_image(manager: State<'_, ClipboardManager>, value: String) -> Result<()> {
+    #[cfg(target_os = "windows")]
+    let _lock = WIN_LOCK.lock().unwrap();
+
     let image = RustImageData::from_path(&value).unwrap();
 
     manager.context.set_image(image).unwrap();
@@ -220,6 +259,9 @@ async fn write_html(
     text: String,
     html: String,
 ) -> Result<()> {
+    #[cfg(target_os = "windows")]
+    let _lock = WIN_LOCK.lock().unwrap();
+
     let contents = vec![ClipboardContent::Text(text), ClipboardContent::Html(html)];
 
     manager.context.set(contents).unwrap();
@@ -229,6 +271,9 @@ async fn write_html(
 
 #[command]
 async fn write_rich_text(manager: State<'_, ClipboardManager>, value: String) -> Result<()> {
+    #[cfg(target_os = "windows")]
+    let _lock = WIN_LOCK.lock().unwrap();
+
     manager.context.set_rich_text(value).unwrap();
 
     Ok(())
@@ -236,6 +281,9 @@ async fn write_rich_text(manager: State<'_, ClipboardManager>, value: String) ->
 
 #[command]
 async fn write_text(manager: State<'_, ClipboardManager>, value: String) -> Result<()> {
+    #[cfg(target_os = "windows")]
+    let _lock = WIN_LOCK.lock().unwrap();
+
     manager.context.set_text(value).unwrap();
 
     Ok(())
