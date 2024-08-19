@@ -12,26 +12,49 @@
 			}
 		},
 		"clipboard": {
-			"basic": {
-				"title": "基礎設定",
+			"window_settings": {
+				"title": "視窗設定",
 				"label": {
-					"wake_up_key": "喚醒視窗",
-					"enable_audio": "啟用音效",
-					"search_position": "搜尋位置",
-					"search_position_top": "上方",
-					"search_position_bottom": "下方",
-					"default_focus": "預設焦點",
-					"default_focus_first_item": "第一項",
-					"default_focus_search": "搜尋",
-					"click_paste": "點擊貼上",
-					"dbl_click_feedback": "雙擊反饋",
-					"dbl_click_feedback_none": "無反饋",
-					"dbl_click_feedback_copy": "複製內容",
-					"dbl_click_feedback_paste": "貼上內容",
 					"window_position": "視窗位置",
-					"window_position_default": "預設位置",
+					"window_position_default": "記住位置",
 					"window_position_follow": "跟隨滑鼠",
 					"window_position_center": "螢幕中央"
+				}
+			},
+			"audio_settings": {
+				"title": "音效設定",
+				"label": {
+					"copy_audio": "複製音效"
+				}
+			},
+			"search_box_settings": {
+				"title": "搜尋框設定",
+				"label": {
+					"default_focus": "預設焦點",
+					"auto_clear": "自動清除",
+					"position": "搜尋框位置",
+					"position_top": "頂部",
+					"position_bottom": "底部"
+				},
+				"hints": {
+					"default_focus": "每次打開視窗時，自動聚焦搜尋框",
+					"auto_clear": "每次打開視窗時，自動清除搜尋框內容"
+				}
+			},
+			"content_settings": {
+				"title": "剪貼簿內容",
+				"label": {
+					"auto_paste": "自動貼上",
+					"auto_paste_close": "關閉",
+					"auto_paste_single": "單擊",
+					"auto_paste_double": "雙擊",
+					"image_ocr": "圖片 OCR",
+					"copy_as_plain": "複製為純文字"
+				},
+				"hints": {
+					"auto_paste": "滑鼠左鍵的操作",
+					"image_ocr": "可暫時避免因系統 OCR 支援不足導致應用程式崩潰的問題，若為 Linux 用戶請自行下載",
+					"copy_as_plain": "富文本和 HTML 格式在複製時僅保留純文字內容"
 				}
 			},
 			"history_capacity": {

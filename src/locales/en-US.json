@@ -12,26 +12,49 @@
 			}
 		},
 		"clipboard": {
-			"basic": {
-				"title": "Basic Settings",
+			"window_settings": {
+				"title": "Window Settings",
 				"label": {
-					"wake_up_key": "Hotkey",
-					"enable_audio": "Enable Sound Effects",
-					"search_position": "Search Box Position",
-					"search_position_top": "Top",
-					"search_position_bottom": "Bottom",
-					"default_focus": "Default Focus",
-					"default_focus_first_item": "First Item",
-					"default_focus_search": "Search Box",
-					"click_paste": "Click Paste",
-					"dbl_click_feedback": "Double-Click Feedback",
-					"dbl_click_feedback_none": "None",
-					"dbl_click_feedback_copy": "Copy",
-					"dbl_click_feedback_paste": "Paste",
 					"window_position": "Window Position",
-					"window_position_default": "Default",
-					"window_position_follow": "Follow Mouse",
-					"window_position_center": "Center of Screen"
+					"window_position_default": "Remember Position",
+					"window_position_follow": "Follow Cursor",
+					"window_position_center": "Center on Screen"
+				}
+			},
+			"audio_settings": {
+				"title": "Audio Settings",
+				"label": {
+					"copy_audio": "Copy Sound"
+				}
+			},
+			"search_box_settings": {
+				"title": "Search Box Settings",
+				"label": {
+					"default_focus": "Default Focus",
+					"auto_clear": "Auto Clear",
+					"position": "Search Box Position",
+					"position_top": "Top",
+					"position_bottom": "Bottom"
+				},
+				"hints": {
+					"default_focus": "Automatically focus on the search box when the window opens",
+					"auto_clear": "Automatically clear the search box when the window opens"
+				}
+			},
+			"content_settings": {
+				"title": "Clipboard Content",
+				"label": {
+					"auto_paste": "Auto Paste",
+					"auto_paste_close": "Close",
+					"auto_paste_single": "Single Click",
+					"auto_paste_double": "Double Click",
+					"image_ocr": "Image OCR",
+					"copy_as_plain": "Copy as Plain Text"
+				},
+				"hints": {
+					"auto_paste": "Action performed with the left mouse button",
+					"image_ocr": "Helps prevent crashes due to insufficient system OCR support; Linux users may need to download separately",
+					"copy_as_plain": "Only retains plain text content when copying rich text or HTML formats"
 				}
 			},
 			"history_capacity": {

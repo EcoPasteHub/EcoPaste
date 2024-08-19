@@ -9,25 +9,32 @@ interface Option {
 
 const WindowPosition = () => {
 	const { window } = useSnapshot(clipboardStore);
+	const { t } = useTranslation();
 
 	const options: Option[] = [
 		{
-			label: "记住位置",
+			label: t(
+				"preference.clipboard.window_settings.label.window_position_default",
+			),
 			value: "default",
 		},
 		{
-			label: "跟随鼠标",
+			label: t(
+				"preference.clipboard.window_settings.label.window_position_follow",
+			),
 			value: "follow",
 		},
 		{
-			label: "屏幕中心",
+			label: t(
+				"preference.clipboard.window_settings.label.window_position_center",
+			),
 			value: "center",
 		},
 	];
 
 	return (
 		<ProSelect
-			title="窗口位置"
+			title={t("preference.clipboard.window_settings.label.window_position")}
 			value={window.position}
 			options={options}
 			onChange={(value) => {

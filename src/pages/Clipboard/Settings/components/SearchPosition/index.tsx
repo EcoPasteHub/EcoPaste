@@ -9,21 +9,24 @@ interface Option {
 
 const SearchPosition = () => {
 	const { search } = useSnapshot(clipboardStore);
+	const { t } = useTranslation();
 
 	const options: Option[] = [
 		{
-			label: "顶部",
+			label: t("preference.clipboard.search_box_settings.label.position_top"),
 			value: "top",
 		},
 		{
-			label: "底部",
+			label: t(
+				"preference.clipboard.search_box_settings.label.position_bottom",
+			),
 			value: "bottom",
 		},
 	];
 
 	return (
 		<ProSelect
-			title="搜索框位置"
+			title={t("preference.clipboard.search_box_settings.label.position")}
 			value={search.position}
 			options={options}
 			onChange={(value) => {
