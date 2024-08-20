@@ -45,14 +45,12 @@
 				"title": "剪貼簿內容",
 				"label": {
 					"auto_paste": "自動貼上",
-					"auto_paste_close": "關閉",
 					"auto_paste_single": "單擊",
 					"auto_paste_double": "雙擊",
 					"image_ocr": "圖片 OCR",
 					"copy_as_plain": "複製為純文字"
 				},
 				"hints": {
-					"auto_paste": "滑鼠左鍵的操作",
 					"image_ocr": "可暫時避免因系統 OCR 支援不足導致應用程式崩潰的問題，若為 Linux 用戶請自行下載",
 					"copy_as_plain": "富文本和 HTML 格式在複製時僅保留純文字內容"
 				}

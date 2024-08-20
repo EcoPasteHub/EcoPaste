@@ -45,14 +45,12 @@
 				"title": "クリップボードの内容",
 				"label": {
 					"auto_paste": "自動ペースト",
-					"auto_paste_close": "オフ",
 					"auto_paste_single": "シングルクリック",
 					"auto_paste_double": "ダブルクリック",
 					"image_ocr": "画像 OCR",
 					"copy_as_plain": "プレーンテキストとしてコピー"
 				},
 				"hints": {
-					"auto_paste": "左クリックでの操作",
 					"image_ocr": "システムOCRのサポートが不十分な場合のアプリケーションクラッシュを回避するために役立ちます。Linuxユーザーは別途ダウンロードが必要な場合があります。",
 					"copy_as_plain": "リッチテキストやHTML形式をコピーする際に、プレーンテキストのみを保持します"
 				}
