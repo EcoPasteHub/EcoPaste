@@ -45,14 +45,12 @@
 				"title": "Clipboard Content",
 				"label": {
 					"auto_paste": "Auto Paste",
-					"auto_paste_close": "Close",
 					"auto_paste_single": "Single Click",
 					"auto_paste_double": "Double Click",
 					"image_ocr": "Image OCR",
 					"copy_as_plain": "Copy as Plain Text"
 				},
 				"hints": {
-					"auto_paste": "Action performed with the left mouse button",
 					"image_ocr": "Helps prevent crashes due to insufficient system OCR support; Linux users may need to download separately",
 					"copy_as_plain": "Only retains plain text content when copying rich text or HTML formats"
 				}

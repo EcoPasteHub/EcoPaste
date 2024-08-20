@@ -45,14 +45,12 @@
 				"title": "剪切板内容",
 				"label": {
 					"auto_paste": "自动粘贴",
-					"auto_paste_close": "关闭",
 					"auto_paste_single": "单击",
 					"auto_paste_double": "双击",
 					"image_ocr": "图片OCR",
 					"copy_as_plain": "复制为纯文本"
 				},
 				"hints": {
-					"auto_paste": "鼠标左键的操作",
 					"image_ocr": "可以暂时避免由于系统 OCR 支持不足导致应用崩溃的问题，如果是 linux 用户请自行下载",
 					"copy_as_plain": "富文本和 HTML 格式在复制时仅保留纯文本内容"
 				}

@@ -13,10 +13,6 @@ const AutoPaste = () => {
 
 	const options: Option[] = [
 		{
-			label: t("preference.clipboard.content_settings.label.auto_paste_close"),
-			value: "close",
-		},
-		{
 			label: t("preference.clipboard.content_settings.label.auto_paste_single"),
 			value: "single",
 		},
@@ -29,7 +25,6 @@ const AutoPaste = () => {
 	return (
 		<ProSelect
 			title={t("preference.clipboard.content_settings.label.auto_paste")}
-			description={t("preference.clipboard.content_settings.hints.auto_paste")}
 			value={content.autoPaste}
 			options={options}
 			onChange={(value) => {
