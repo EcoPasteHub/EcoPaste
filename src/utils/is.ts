@@ -30,20 +30,19 @@ export const isLinux = () => {
  * 是否为链接
  */
 export const isURL = (value: string) => {
-	const regexp =
+	const regex =
 		/^(https?:\/\/)?((localhost)|(([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}))(:\d+)?(\/[a-zA-Z0-9\-._~:\/?#@!$&'()*+,;=%]*)?$/;
 
-	return regexp.test(value);
+	return regex.test(value);
 };
 
 /**
  * 是否为邮箱
  */
 export const isEmail = (value: string) => {
-	const regexp =
-		/^[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/;
+	const regex = /^[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/;
 
-	return regexp.test(value);
+	return regex.test(value);
 };
 
 /**
@@ -57,4 +56,13 @@ export const isColor = (value: string) => {
 	const { background } = style;
 
 	return background !== "";
+};
+
+/**
+ * 是否为图片
+ */
+export const isImage = (value: string) => {
+	const regex = /\.(jpe?g|png|webp|avif|gif|svg|bmp|ico|tiff?|heic|apng)$/i;
+
+	return regex.test(value);
 };
