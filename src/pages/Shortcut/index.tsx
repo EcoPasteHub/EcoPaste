@@ -4,11 +4,12 @@ import { useSnapshot } from "valtio";
 
 const Shortcut = () => {
 	const { shortcut } = useSnapshot(globalStore);
+	const { t } = useTranslation();
 
 	return (
-		<ProList header="快捷键">
+		<ProList header={t("preference.shortcut.shortcut.title")}>
 			<ProShortcut
-				title="打开剪贴板窗口"
+				title={t("preference.shortcut.shortcut.label.open_clipboard")}
 				defaultValue={shortcut.clipboard}
 				onChange={(value) => {
 					globalStore.shortcut.clipboard = value;
@@ -16,7 +17,7 @@ const Shortcut = () => {
 			/>
 
 			<ProShortcut
-				title="打开偏好设置窗口"
+				title={t("preference.shortcut.shortcut.label.open_settings")}
 				defaultValue={shortcut.preference}
 				onChange={(value) => {
 					globalStore.shortcut.preference = value;

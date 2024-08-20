@@ -6,7 +6,7 @@
 				"clipboard": "クリップボード",
 				"history": "履歴",
 				"general": "共通設定",
-				"shortcut": "ショートカットキー",
+				"shortcut": "ショートカット",
 				"backup": "バックアップ",
 				"about": "について"
 			}
@@ -51,6 +51,7 @@
 					"copy_as_plain": "プレーンテキストとしてコピー"
 				},
 				"hints": {
+					"auto_paste": "左クリック時に、内容を素早く入力フィールドに貼り付けます",
 					"image_ocr": "システムOCRのサポートが不十分な場合のアプリケーションクラッシュを回避するために役立ちます。Linuxユーザーは別途ダウンロードが必要な場合があります。",
 					"copy_as_plain": "リッチテキストやHTML形式をコピーする際に、プレーンテキストのみを保持します"
 				}
@@ -96,6 +97,15 @@
 					"theme_auto": "システムに従う",
 					"theme_light": "ライトモード",
 					"theme_dark": "ダークモード"
+				}
+			}
+		},
+		"shortcut": {
+			"shortcut": {
+				"title": "ショートカット",
+				"label": {
+					"open_clipboard": "クリップボードウィンドウを開く",
+					"open_settings": "設定ウィンドウを開く"
 				}
 			}
 		},

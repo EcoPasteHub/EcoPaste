@@ -26,6 +26,7 @@ const AutoPaste = () => {
 		<ProSelect
 			title={t("preference.clipboard.content_settings.label.auto_paste")}
 			value={content.autoPaste}
+			description={t("preference.clipboard.content_settings.hints.auto_paste")}
 			options={options}
 			onChange={(value) => {
 				clipboardStore.content.autoPaste = value;
