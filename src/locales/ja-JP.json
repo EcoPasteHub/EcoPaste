@@ -113,11 +113,12 @@
 			"import_export": {
 				"title": "データのインポート/エクスポート",
 				"label": {
+					"storage_dir": "保存先パス",
 					"import_confirm_title": "導入に関する注意事項",
 					"export_confirm_title": "輸出に関する注意事項"
 				},
 				"button": {
-					"open_dir": "保存先ディレクトリを開く",
+					"open_dir": "ディレクトリを開く",
 					"import": "データのインポート",
 					"export": "データをエクスポート",
 					"confirm_export": "エクスポートを開始",
@@ -136,7 +137,7 @@
 		"about": {
 			"button": {
 				"copy_info": "情報をコピーする",
-				"feedback_issue": "フィードバック情報"
+				"feedback_issue": "問題を報告"
 			},
 			"hints": {
 				"introduce": "オープンソースのクロスプラットフォームクリップボードツールで、作業がより効率的かつ便利になります。",
