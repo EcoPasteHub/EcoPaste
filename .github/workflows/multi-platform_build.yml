@@ -58,8 +58,8 @@ jobs:
         uses: mikefarah/yq@master
         with:
           cmd: |
-            build=$(date "+%Y%m%d")
-            yq -p=json -o=json -i '.package.productName = "EcoPaste-beta'$build'"' src-tauri/tauri.conf.json
+            build=$(TZ=UTC+8 date +%y%m%d)
+            yq -p=json -o=json -i '.package.productName = "EcoPaste_'$build'"' src-tauri/tauri.conf.json
       - name: Edit updater config
         if: ${{ !inputs.updater}}
         run: yq -p=json -o=json -i '.tauri.updater.active = false' src-tauri/tauri.conf.json
