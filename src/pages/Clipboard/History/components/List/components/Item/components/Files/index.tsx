@@ -1,12 +1,27 @@
 import type { HistoryItem } from "@/types/database";
 import type { FC } from "react";
+import Image from "../Image";
 
 const Files: FC<HistoryItem> = (props) => {
 	const { value } = props;
 
 	const paths: string[] = JSON.parse(value);
 
-	return <div>{paths.join("\n")}</div>;
+	const renderContent = () => {
+		if (paths.length === 1) {
+			const [path] = paths;
+
+			if (isImage(path)) {
+				return <Image value={path} />;
+			}
+
+			return path;
+		}
+
+		return paths.join("\n");
+	};
+
+	return renderContent();
 };
 
 export default memo(Files);

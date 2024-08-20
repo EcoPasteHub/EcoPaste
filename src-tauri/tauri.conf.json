@@ -42,11 +42,11 @@
 			},
 			"fs": {
 				"all": true,
-				"scope": ["$APPDATA/**", "$DOWNLOAD/**"]
+				"scope": ["**/*"]
 			},
 			"protocol": {
 				"asset": true,
-				"assetScope": ["$APPDATA/images/*"]
+				"assetScope": ["**/*"]
 			},
 			"process": {
 				"relaunch": true
