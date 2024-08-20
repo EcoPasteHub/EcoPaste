@@ -1,7 +1,8 @@
+import EcoSelect from "@/components/EcoSelect";
 import ProList from "@/components/ProList";
 import ProListItem from "@/components/ProListItem";
 import { emit } from "@tauri-apps/api/event";
-import { Button, InputNumber, Select, Space } from "antd";
+import { Button, InputNumber, Space } from "antd";
 import { useSnapshot } from "valtio";
 
 const History = () => {
@@ -56,12 +57,14 @@ const History = () => {
 				<Space.Compact>
 					<InputNumber
 						min={0}
+						rootClassName="w-80"
 						value={history.duration}
 						onChange={(value) => {
 							clipboardStore.history.duration = value ?? 0;
 						}}
 					/>
-					<Select
+
+					<EcoSelect
 						value={history.unit}
 						options={unitOptions}
 						onChange={(value) => {
