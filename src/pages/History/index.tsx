@@ -57,7 +57,7 @@ const History = () => {
 				<Space.Compact>
 					<InputNumber
 						min={0}
-						rootClassName="w-80"
+						rootClassName="w-70"
 						value={history.duration}
 						onChange={(value) => {
 							clipboardStore.history.duration = value ?? 0;
