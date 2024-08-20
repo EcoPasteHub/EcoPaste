@@ -60,7 +60,7 @@ const About = () => {
 					</Tooltip>
 				</Flex>
 
-				<span className="break-keep text-center">
+				<span className="text-center">
 					{t("preference.about.hints.introduce")}
 				</span>
 
