@@ -30,14 +30,25 @@ fn main() {
     let app_version = &package_info.version;
     let tooltip = format!("{app_name} v{app_version}");
 
+    let log_builder = {
+        let builder =
+            tauri_plugin_log::Builder::new().targets([tauri_plugin_log::LogTarget::LogDir]);
+        if cfg!(debug_assertions) {
+            builder.target(tauri_plugin_log::LogTarget::Stderr)
+        } else {
+            builder
+        }
+    };
+
     Builder::default()
         .setup(|app| {
             // 获取命令行参数，检查是否有 `info` 或 `i` 参数
             match app.get_cli_matches() {
                 Ok(matches) => {
                     if matches.args["info"].value.as_bool().expect("参数错误") {
-                        info::print_system_info();
                         info::print_app_info(app.app_handle());
+                        info::print_build_info();
+                        info::print_system_info();
 
                         std::process::exit(0);
                     }
@@ -118,7 +129,7 @@ fn main() {
         // 自定义粘贴的插件
         .plugin(paste::init())
         // 日志插件：https://github.com/tauri-apps/tauri-plugin-log
-        .plugin(tauri_plugin_log::Builder::default().build())
+        .plugin(log_builder.build())
         // 记住窗口状态的插件：https://github.com/tauri-apps/plugins-workspace/tree/v1/plugins/window-state
         .plugin(
             tauri_plugin_window_state::Builder::default()

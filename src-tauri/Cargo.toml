@@ -9,6 +9,7 @@ edition = "2021"
 
 [build-dependencies]
 tauri-build = { version = "1", features = [] }
+build-info-build = "0.0.38"
 
 [dependencies]
 tauri = { version = "1", features = [ "cli", "window-set-title", "dialog-open", "dialog-ask", "process-relaunch", "updater", "shell-sidecar", "window-center", "window-set-position", "window-start-dragging", "path-all", "os-all", "shell-open", "protocol-asset", "global-shortcut-all", "fs-all", "system-tray", "macos-private-api"] }
@@ -30,6 +31,7 @@ window-vibrancy = "0.4.3"
 sys-info = "0.9.1"
 log = "0.4.22"
 tauri-plugin-window-state = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
+build-info = "0.0.38"
 
 [target."cfg(target_os = \"macos\")".dependencies]
 cocoa = "0.25.0"
