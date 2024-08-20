@@ -7,11 +7,7 @@ const ProListItem: FC<ListItemMetaProps> = (props) => {
 
 	return (
 		<List.Item actions={Children.toArray(children)}>
-			<List.Item.Meta
-				title={title}
-				description={description}
-				className="break-keep"
-			/>
+			<List.Item.Meta title={title} description={description} />
 		</List.Item>
 	);
 };
