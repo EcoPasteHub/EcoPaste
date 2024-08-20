@@ -113,11 +113,12 @@
 			"import_export": {
 				"title": "匯入和匯出",
 				"label": {
+					"storage_dir": "儲存路徑",
 					"import_confirm_title": "匯入須知",
 					"export_confirm_title": "匯出須知"
 				},
 				"button": {
-					"open_dir": "打開存儲目錄",
+					"open_dir": "打開目錄",
 					"import": "匯入資料",
 					"export": "匯出資料",
 					"confirm_export": "開始匯出",
@@ -136,7 +137,7 @@
 		"about": {
 			"button": {
 				"copy_info": "複製資訊",
-				"feedback_issue": "回饋資訊"
+				"feedback_issue": "回報問題"
 			},
 			"hints": {
 				"introduce": "開源的跨平台剪貼簿工具，讓您的工作更加高效便捷。",

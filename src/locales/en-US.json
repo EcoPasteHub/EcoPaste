@@ -113,11 +113,12 @@
 			"import_export": {
 				"title": "Import / Export",
 				"label": {
+					"storage_dir": "Storage Directory",
 					"import_confirm_title": "Import Notice",
 					"export_confirm_title": "Export Notice"
 				},
 				"button": {
-					"open_dir": "Open Storage Directory",
+					"open_dir": "Open",
 					"import": "Import",
 					"export": "Export",
 					"confirm_export": "Start",

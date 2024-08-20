@@ -113,11 +113,12 @@
 			"import_export": {
 				"title": "导入和导出",
 				"label": {
+					"storage_dir": "存储路径",
 					"import_confirm_title": "导入须知",
 					"export_confirm_title": "导出须知"
 				},
 				"button": {
-					"open_dir": "打开存储目录",
+					"open_dir": "打开目录",
 					"import": "导入数据",
 					"export": "导出数据",
 					"confirm_export": "开始导出",
@@ -136,7 +137,7 @@
 		"about": {
 			"button": {
 				"copy_info": "复制信息",
-				"feedback_issue": "反馈信息"
+				"feedback_issue": "反馈问题"
 			},
 			"hints": {
 				"introduce": "开源的跨平台剪贴板工具，让您的工作更加高效便捷。",
