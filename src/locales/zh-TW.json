@@ -6,7 +6,7 @@
 				"clipboard": "剪貼簿",
 				"history": "歷史記錄",
 				"general": "通用設定",
-				"shortcut": "快速鍵",
+				"shortcut": "快捷鍵",
 				"backup": "資料備份",
 				"about": "關於"
 			}
@@ -51,6 +51,7 @@
 					"copy_as_plain": "複製為純文字"
 				},
 				"hints": {
+					"auto_paste": "當使用滑鼠左鍵時，快速將內容貼上到輸入位置",
 					"image_ocr": "可暫時避免因系統 OCR 支援不足導致應用程式崩潰的問題，若為 Linux 用戶請自行下載",
 					"copy_as_plain": "富文本和 HTML 格式在複製時僅保留純文字內容"
 				}
@@ -96,6 +97,15 @@
 					"theme_auto": "跟隨系統",
 					"theme_light": "亮色模式",
 					"theme_dark": "暗色模式"
+				}
+			}
+		},
+		"shortcut": {
+			"shortcut": {
+				"title": "快捷鍵",
+				"label": {
+					"open_clipboard": "打開剪貼簿視窗",
+					"open_settings": "打開偏好設定視窗"
 				}
 			}
 		},

@@ -6,7 +6,7 @@
 				"clipboard": "Clipboard",
 				"history": "History",
 				"general": "General",
-				"shortcut": "快捷键",
+				"shortcut": "Shortcuts",
 				"backup": "Data Backup",
 				"about": "About"
 			}
@@ -17,7 +17,7 @@
 				"label": {
 					"window_position": "Window Position",
 					"window_position_default": "Remember Position",
-					"window_position_follow": "Follow Cursor",
+					"window_position_follow": "Follow Mouse Cursor",
 					"window_position_center": "Center on Screen"
 				}
 			},
@@ -51,6 +51,7 @@
 					"copy_as_plain": "Copy as Plain Text"
 				},
 				"hints": {
+					"auto_paste": "Quickly paste content to the input field when using the left mouse button",
 					"image_ocr": "Helps prevent crashes due to insufficient system OCR support; Linux users may need to download separately",
 					"copy_as_plain": "Only retains plain text content when copying rich text or HTML formats"
 				}
@@ -96,6 +97,15 @@
 					"theme_auto": "System",
 					"theme_light": "Light",
 					"theme_dark": "Dark"
+				}
+			}
+		},
+		"shortcut": {
+			"shortcut": {
+				"title": "Shortcuts",
+				"label": {
+					"open_clipboard": "Open Clipboard Window",
+					"open_settings": "Open Preferences Window"
 				}
 			}
 		},

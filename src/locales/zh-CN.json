@@ -51,6 +51,7 @@
 					"copy_as_plain": "复制为纯文本"
 				},
 				"hints": {
+					"auto_paste": "鼠标左键操作时，快速粘贴内容至输入位置",
 					"image_ocr": "可以暂时避免由于系统 OCR 支持不足导致应用崩溃的问题，如果是 linux 用户请自行下载",
 					"copy_as_plain": "富文本和 HTML 格式在复制时仅保留纯文本内容"
 				}
@@ -96,6 +97,15 @@
 					"theme_auto": "跟随系统",
 					"theme_light": "亮色模式",
 					"theme_dark": "暗色模式"
+				}
+			}
+		},
+		"shortcut": {
+			"shortcut": {
+				"title": "快捷键",
+				"label": {
+					"open_clipboard": "打开剪贴板窗口",
+					"open_settings": "打开偏好设置窗口"
 				}
 			}
 		},
