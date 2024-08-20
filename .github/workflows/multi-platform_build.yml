@@ -49,21 +49,29 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.matrix.outputs.matrix }}
+      file_prefix: ${{ steps.yq.outputs.file_name }}
+      build_time: ${{ steps.yq.outputs.build_time }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Update tauri.conf.json
+      - name: Install yq
+        id: yq
         uses: mikefarah/yq@master
         with:
           cmd: |
-            build=$(TZ=UTC+8 date +%y%m%d)
-            yq -p=json -o=json -i '.package.productName = "EcoPaste_'$build'"' src-tauri/tauri.conf.json
-      - name: Edit updater config
+            productName=$(yq e '.package.productName' src-tauri/tauri.conf.json)
+            version=$(yq e '.version' package.json)
+            build_time=$(TZ=UTC-8 date +%y%m%d%H)
+            echo "file_name=${productName}_${version}_Beta${build_time}" >> "$GITHUB_OUTPUT"
+            echo "build_time=${build_time}" >> "$GITHUB_OUTPUT"
+
+      - name: Update tauri.conf.json
         if: ${{ !inputs.updater}}
-        run: yq -p=json -o=json -i '.tauri.updater.active = false' src-tauri/tauri.conf.json
-      - name: Upload artifact
+        run: |
+            yq -i '.tauri.updater.active = false' src-tauri/tauri.conf.json
+      - name: Upload tauri-config
         uses: actions/upload-artifact@v4
         with:
           name: tauri-config
@@ -101,6 +109,12 @@ jobs:
         os: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
 
     runs-on: ${{ matrix.os }}
+    env:
+      FILE_PREFIX: ${{ needs.define-matrix.outputs.file_prefix }}
+      BUILD_TIME: ${{ needs.define-matrix.outputs.build_time }}
+      TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+      TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+      NO_STRIP: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -140,17 +154,32 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build the app
-        env:
-          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
-          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
-          NO_STRIP: true
         run: pnpm tauri build ${{ env.BUILD_MODE}}
 
+      - name: Rename macos-aarch64
+        if: matrix.os == 'macos-latest'
+        run: mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/dmg/*.dmg src-tauri/target/${{ env.BUILD_PATH }}/bundle/dmg/${{ env.FILE_PREFIX }}_aarch64.dmg
+
+      - name: Rename macos-x86_64
+        if: matrix.os == 'macos-12'
+        run: mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/dmg/*.dmg src-tauri/target/${{ env.BUILD_PATH }}/bundle/dmg/${{ env.FILE_PREFIX }}_x86_64.dmg
+      - name: Rename windows
+        if: matrix.os == 'windows-latest'
+        run: |
+          mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/msi/*.msi src-tauri/target/${{ env.BUILD_PATH }}/bundle/msi/${{ env.FILE_PREFIX }}_x64.msi
+          mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/nsis/*.exe src-tauri/target/${{ env.BUILD_PATH }}/bundle/nsis/${{ env.FILE_PREFIX }}_x64.exe
+      - name: Rename linux
+        if: matrix.os == 'ubuntu-20.04'
+        run: |
+          mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/deb/*.deb src-tauri/target/${{ env.BUILD_PATH }}/bundle/deb/${{ env.FILE_PREFIX }}_amd64.deb
+          mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/rpm/*.rpm src-tauri/target/${{ env.BUILD_PATH }}/bundle/rpm/${{ env.FILE_PREFIX }}_amd64.rpm
+          mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/appimage/*.AppImage src-tauri/target/${{ env.BUILD_PATH }}/bundle/appimage/${{ env.FILE_PREFIX }}_amd64.AppImage
+      
       - name: Upload artifacts (Windows)
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: windows
+          name: windows_Beta${{ env.BUILD_TIME }}
           path: |
             src-tauri/target/${{ env.BUILD_PATH }}/bundle/msi/*.msi
             src-tauri/target/${{ env.BUILD_PATH }}/bundle/nsis/*.exe
@@ -161,7 +190,7 @@ jobs:
         if: startsWith(matrix.os, 'macos')
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.os == 'macos-latest' && 'macos-aarch64' || (matrix.os == 'macos-12' && 'macos-x86_64') }}
+          name: ${{ matrix.os == 'macos-latest' && 'macos-aarch64' || 'macos-x86_64' }}_Beta${{ env.BUILD_TIME }}
           path: src-tauri/target/${{ env.BUILD_PATH }}/bundle/dmg/*.dmg
           retention-days: ${{ env.RETENTION_DAYS}}
           compression-level: 0
@@ -170,7 +199,7 @@ jobs:
         if: matrix.os == 'ubuntu-20.04'
         uses: actions/upload-artifact@v4
         with:
-          name: linux
+          name: linux_Beta${{ env.BUILD_TIME }}
           path: |
             src-tauri/target/${{ env.BUILD_PATH }}/bundle/deb/*.deb
             src-tauri/target/${{ env.BUILD_PATH }}/bundle/rpm/*.rpm
