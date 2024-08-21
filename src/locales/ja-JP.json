@@ -16,7 +16,7 @@
 				"title": "ウィンドウ設定",
 				"label": {
 					"window_position": "ウィンドウ位置",
-					"window_position_default": "位置を記憶する",
+					"window_position_remember": "位置を記憶する",
 					"window_position_follow": "カーソルに追従",
 					"window_position_center": "画面の中央"
 				}

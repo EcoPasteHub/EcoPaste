@@ -16,7 +16,7 @@
 				"title": "窗口设置",
 				"label": {
 					"window_position": "窗口位置",
-					"window_position_default": "记住位置",
+					"window_position_remember": "记住位置",
 					"window_position_follow": "跟随鼠标",
 					"window_position_center": "屏幕中心"
 				}

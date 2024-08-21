@@ -5,7 +5,7 @@ import { listen } from "@tauri-apps/api/event";
 import {
 	PhysicalPosition,
 	appWindow,
-	currentMonitor,
+	availableMonitors,
 } from "@tauri-apps/api/window";
 import { Flex } from "antd";
 import { isEqual } from "arcdash";
@@ -134,27 +134,47 @@ const ClipboardHistory = () => {
 		if (!focused) {
 			const { window } = clipboardStore;
 
-			if (window.position === "follow") {
-				const monitor = await currentMonitor();
+			if (window.position !== "remember") {
+				const monitors = await availableMonitors();
 
-				if (!monitor) return;
+				if (!monitors.length) return;
 
 				const { width, height } = await appWindow.innerSize();
-				let [x, y] = await getMouseCoords();
 
-				const {
-					scaleFactor,
-					size: { width: screenWidth, height: screenHeight },
-				} = monitor;
+				const [x, y] = await getMouseCoords();
 
-				const factor = isWin() ? 1 : scaleFactor;
+				for (const monitor of monitors) {
+					const {
+						scaleFactor,
+						position: { x: posX, y: posY },
+						size: { width: screenWidth, height: screenHeight },
+					} = monitor;
 
-				x = Math.min(x * factor, screenWidth - width);
-				y = Math.min(y * factor, screenHeight - height);
+					const factor = isMac() ? scaleFactor : 1;
+					let coordX = x * factor;
+					let coordY = y * factor;
 
-				appWindow.setPosition(new PhysicalPosition(x, y));
-			} else if (window.position === "center") {
-				appWindow.center();
+					if (
+						coordX < posX ||
+						coordY < posY ||
+						coordX > posX + screenWidth ||
+						coordY > posY + screenHeight
+					) {
+						continue;
+					}
+
+					if (window.position === "follow") {
+						coordX = Math.min(coordX, posX + screenWidth - width);
+						coordY = Math.min(coordY, posY + screenHeight - height);
+					} else if (window.position === "center") {
+						coordX = posX + (screenWidth - width) / 2;
+						coordY = posY + (screenHeight - height) / 2;
+					}
+
+					appWindow.setPosition(new PhysicalPosition(coordX, coordY));
+
+					break;
+				}
 			}
 		}
 

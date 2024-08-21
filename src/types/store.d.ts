@@ -41,7 +41,7 @@ export type ClickFeedback = "none" | "copy" | "paste";
 export interface ClipboardStore {
 	// 窗口设置
 	window: {
-		position: "default" | "follow" | "center";
+		position: "remember" | "follow" | "center";
 	};
 
 	// 音效设置
