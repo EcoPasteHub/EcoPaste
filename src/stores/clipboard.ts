@@ -3,7 +3,7 @@ import proxyWithPersist from "valtio-persist";
 
 export const CLIPBOARD_STORE_INITIAL_STATE: ClipboardStore = {
 	window: {
-		position: "default",
+		position: "remember",
 	},
 
 	audio: {

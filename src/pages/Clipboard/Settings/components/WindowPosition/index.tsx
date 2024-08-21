@@ -14,9 +14,9 @@ const WindowPosition = () => {
 	const options: Option[] = [
 		{
 			label: t(
-				"preference.clipboard.window_settings.label.window_position_default",
+				"preference.clipboard.window_settings.label.window_position_remember",
 			),
-			value: "default",
+			value: "remember",
 		},
 		{
 			label: t(
