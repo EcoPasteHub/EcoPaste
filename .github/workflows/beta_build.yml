@@ -1,6 +1,8 @@
-name: Multi-platform Build
+name: Build Beta Package
 
 on:
+  schedule:
+    - cron: "22 22 * * *"
   workflow_dispatch:
     inputs:
       updater:
@@ -36,82 +38,102 @@ on:
       retention_days:
         description: 'Artifacts retention time (days)'
         required: true
-        type: number
-        default: 2
-
-env:
-  BUILD_MODE: ${{ inputs.isDebug && '--debug' || '' }}
-  BUILD_PATH: ${{ inputs.isDebug && 'debug' || 'release' }}
-  RETENTION_DAYS: ${{ inputs.retention_days }}
+        type: string
+        default: '2'
 
 jobs:
-  define-matrix:
+  preprocess:
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.matrix.outputs.matrix }}
-      file_prefix: ${{ steps.yq.outputs.file_name }}
-      build_time: ${{ steps.yq.outputs.build_time }}
+      matrix: ${{ steps.setting.outputs.matrix }}
+      build_mode:  ${{ steps.setting.outputs.build_mode }}
+      build_path: ${{ steps.setting.outputs.build_path }}
+      retention_days: ${{ steps.setting.outputs.retention_days }}
+      file_prefix: ${{ steps.filename.outputs.file_prefix }}
+      # build_time: ${{ steps.filename.outputs.build_time }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - name: Install yq
-        id: yq
         uses: mikefarah/yq@master
         with:
-          cmd: |
-            productName=$(yq e '.package.productName' src-tauri/tauri.conf.json)
-            version=$(yq e '.version' package.json)
-            build_time=$(TZ=UTC-8 date +%y%m%d%H)
-            echo "file_name=${productName}_${version}_Beta${build_time}" >> "$GITHUB_OUTPUT"
-            echo "build_time=${build_time}" >> "$GITHUB_OUTPUT"
+          cmd: yq -V
 
       - name: Update tauri.conf.json
-        if: ${{ !inputs.updater}}
-        run: |
-            yq -i '.tauri.updater.active = false' src-tauri/tauri.conf.json
+        if: ${{ github.event_name == 'schedule' || !inputs.updater}}
+        run: yq -i '.tauri.updater.active = false' src-tauri/tauri.conf.json
+
       - name: Upload tauri-config
         uses: actions/upload-artifact@v4
         with:
           name: tauri-config
           path: src-tauri/tauri.conf.json
           retention-days: 1
-      - name: Set matrix
-        id: matrix
+
+      - name: Get file name
+        id: filename 
+        run: |
+            productName=$(yq e -r '.package.productName' src-tauri/tauri.conf.json)
+            # version=$(yq e -r '.version' package.json)
+            # build_time=$(TZ=UTC-8 date +%y%m%d%H)
+            git_des=$(git describe --long --tags --always --dirty)
+            echo "file_prefix=${productName}_${git_des}" >> "$GITHUB_OUTPUT"
+            # echo "build_time=${build_time}" >> "$GITHUB_OUTPUT"
+
+      - name: Setting variable
+        id: setting
         run: |
           matrix=""
-          if [ "${{ inputs.platform_windows }}" == "true" ]; then
-            matrix="${matrix}\"windows-latest\","
+          if [ "${{ github.event_name }}" == "schedule" ]; then
+            matrix="\"windows-latest\",\"ubuntu-20.04\",\"macos-latest\",\"macos-12\""
+            build_mode=""
+            build_path="release"
+            retention_days='1'
+          else
+            if [ "${{ inputs.platform_windows }}" == "true" ]; then
+              matrix="${matrix}\"windows-latest\","
+            fi
+            if [ "${{ inputs.platform_linux }}" == "true" ]; then
+              matrix="${matrix}\"ubuntu-20.04\","
+            fi
+            if [ "${{ inputs.platform_macos_aarch64 }}" == "true" ]; then
+              matrix="${matrix}\"macos-latest\","
+            fi
+            if [ "${{ inputs.platform_macos_x86_64 }}" == "true" ]; then
+              matrix="${matrix}\"macos-12\","
+            fi
+            if [ -z "${matrix}" ]; then
+              matrix="\"windows-latest\","
+            fi
+            matrix="${matrix%,}"
+            build_mode="${{ inputs.isDebug && '--debug' || '' }}"
+            build_path="${{ inputs.isDebug && 'debug' || 'release' }}"
+            retention_days="${{ inputs.retention_days }}"
           fi
-          if [ "${{ inputs.platform_linux }}" == "true" ]; then
-            matrix="${matrix}\"ubuntu-20.04\","
-          fi
-          if [ "${{ inputs.platform_macos_aarch64 }}" == "true" ]; then
-            matrix="${matrix}\"macos-latest\","
-          fi
-          if [ "${{ inputs.platform_macos_x86_64 }}" == "true" ]; then
-            matrix="${matrix}\"macos-12\","
-          fi
-          if [ -z "${matrix}" ]; then
-            matrix="\"windows-latest\","
-          fi
-          matrix="${matrix%,}"
           echo "matrix=[${matrix}]" >> "$GITHUB_OUTPUT"
+          echo "build_mode=${build_mode}" >> "$GITHUB_OUTPUT"
+          echo "build_path=${build_path}" >> "$GITHUB_OUTPUT"
+          echo "retention_days=${retention_days}" >> "$GITHUB_OUTPUT"
 
   auto-build:
-    needs: define-matrix
+    needs: preprocess
     permissions:
       contents: write
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ fromJson(needs.define-matrix.outputs.matrix) }}
+        os: ${{ fromJson(needs.preprocess.outputs.matrix) }}
 
     runs-on: ${{ matrix.os }}
     env:
-      FILE_PREFIX: ${{ needs.define-matrix.outputs.file_prefix }}
-      BUILD_TIME: ${{ needs.define-matrix.outputs.build_time }}
+      BUILD_MODE:  ${{ needs.preprocess.outputs.build_mode }}
+      BUILD_PATH:  ${{ needs.preprocess.outputs.build_path }}
+      RETENTION_DAYS:  ${{ needs.preprocess.outputs.retention_days }}
+      FILE_PREFIX: ${{ needs.preprocess.outputs.file_prefix }}
+      # BUILD_TIME: ${{ needs.preprocess.outputs.build_time }}
       TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
       TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
       NO_STRIP: true
@@ -120,36 +142,43 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - name: Download artifact
         if: ${{ !inputs.updater}}
         uses: actions/download-artifact@v4
         with:
           name: tauri-config
           path: src-tauri
+
       - name: Install pnpm
         uses: pnpm/action-setup@v3
         with:
           version: latest
+
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: pnpm
+
       - name: Install dependencies (ubuntu only)
         if: matrix.os == 'ubuntu-20.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libayatana-appindicator3-dev librsvg2-dev patchelf
         # webkitgtk 4.0 适用于 Tauri v1，webkitgtk 4.1 适用于 Tauriv2
+
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           # 那些目标仅在 macos 运行器上使用，因此将其置于 `if` 语句中，以稍微加快 Windows 和 Linux 的构建速度。
           targets: ${{ startsWith(matrix.os, 'macos') && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
       - name: Rust cache
         uses: swatinem/rust-cache@v2
         with:
           workspaces: './src-tauri -> target'
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -158,30 +187,32 @@ jobs:
 
       - name: Rename macos-aarch64
         if: matrix.os == 'macos-latest'
-        run: mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/dmg/*.dmg src-tauri/target/${{ env.BUILD_PATH }}/bundle/dmg/${{ env.FILE_PREFIX }}_aarch64.dmg
+        run: mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/dmg/*.dmg src-tauri/target/${{ env.BUILD_PATH }}/bundle/dmg/${{ env.FILE_PREFIX }}-aarch64.dmg
 
       - name: Rename macos-x86_64
         if: matrix.os == 'macos-12'
-        run: mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/dmg/*.dmg src-tauri/target/${{ env.BUILD_PATH }}/bundle/dmg/${{ env.FILE_PREFIX }}_x86_64.dmg
+        run: mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/dmg/*.dmg src-tauri/target/${{ env.BUILD_PATH }}/bundle/dmg/${{ env.FILE_PREFIX }}-amd64.dmg
+
       - name: Rename windows
         if: matrix.os == 'windows-latest'
         run: |
-          mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/msi/*.msi src-tauri/target/${{ env.BUILD_PATH }}/bundle/msi/${{ env.FILE_PREFIX }}_x64.msi
-          mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/nsis/*.exe src-tauri/target/${{ env.BUILD_PATH }}/bundle/nsis/${{ env.FILE_PREFIX }}_x64.exe
+          mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/msi/*.msi src-tauri/target/${{ env.BUILD_PATH }}/bundle/msi/${{ env.FILE_PREFIX }}-amd64.msi
+          mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/nsis/*.exe src-tauri/target/${{ env.BUILD_PATH }}/bundle/nsis/${{ env.FILE_PREFIX }}-amd64.exe
+
       - name: Rename linux
         if: matrix.os == 'ubuntu-20.04'
         run: |
-          mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/deb/*.deb src-tauri/target/${{ env.BUILD_PATH }}/bundle/deb/${{ env.FILE_PREFIX }}_amd64.deb
-          mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/rpm/*.rpm src-tauri/target/${{ env.BUILD_PATH }}/bundle/rpm/${{ env.FILE_PREFIX }}_amd64.rpm
-          mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/appimage/*.AppImage src-tauri/target/${{ env.BUILD_PATH }}/bundle/appimage/${{ env.FILE_PREFIX }}_amd64.AppImage
+          mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/deb/*.deb src-tauri/target/${{ env.BUILD_PATH }}/bundle/deb/${{ env.FILE_PREFIX }}-amd64.deb
+          mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/rpm/*.rpm src-tauri/target/${{ env.BUILD_PATH }}/bundle/rpm/${{ env.FILE_PREFIX }}-amd64.rpm
+          mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/appimage/*.AppImage src-tauri/target/${{ env.BUILD_PATH }}/bundle/appimage/${{ env.FILE_PREFIX }}-amd64.AppImage
       
       - name: Upload artifacts (Windows)
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: windows_Beta${{ env.BUILD_TIME }}
+          name: ${{ env.FILE_PREFIX }}_windows-amd64
           path: |
-            src-tauri/target/${{ env.BUILD_PATH }}/bundle/msi/*.msi
+            # src-tauri/target/${{ env.BUILD_PATH }}/bundle/msi/*.msi
             src-tauri/target/${{ env.BUILD_PATH }}/bundle/nsis/*.exe
           retention-days: ${{ env.RETENTION_DAYS}}
           compression-level: 0
@@ -190,7 +221,7 @@ jobs:
         if: startsWith(matrix.os, 'macos')
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.os == 'macos-latest' && 'macos-aarch64' || 'macos-x86_64' }}_Beta${{ env.BUILD_TIME }}
+          name: ${{ env.FILE_PREFIX }}_${{ matrix.os == 'macos-latest' && 'macos-aarch64' || 'macos-amd64' }}
           path: src-tauri/target/${{ env.BUILD_PATH }}/bundle/dmg/*.dmg
           retention-days: ${{ env.RETENTION_DAYS}}
           compression-level: 0
@@ -199,7 +230,7 @@ jobs:
         if: matrix.os == 'ubuntu-20.04'
         uses: actions/upload-artifact@v4
         with:
-          name: linux_Beta${{ env.BUILD_TIME }}
+          name: ${{ env.FILE_PREFIX }}_linux-amd64
           path: |
             src-tauri/target/${{ env.BUILD_PATH }}/bundle/deb/*.deb
             src-tauri/target/${{ env.BUILD_PATH }}/bundle/rpm/*.rpm
