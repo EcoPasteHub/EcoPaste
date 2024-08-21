@@ -7,18 +7,6 @@ RTFJS.loggingEnabled(false);
 WMFJS.loggingEnabled(false);
 EMFJS.loggingEnabled(false);
 
-const stringToArrayBuffer = (rtf: string) => {
-	const buffer = new ArrayBuffer(rtf.length);
-
-	const bufferView = new Uint8Array(buffer);
-
-	for (let i = 0; i < rtf.length; i++) {
-		bufferView[i] = rtf.charCodeAt(i);
-	}
-
-	return buffer;
-};
-
 const RichText: FC<HistoryItem> = (props) => {
 	const { value } = props;
 
@@ -29,13 +17,24 @@ const RichText: FC<HistoryItem> = (props) => {
 
 		const elements = await doc.render();
 
-		const parsedHTML = elements
-			.map(({ outerHTML }) => outerHTML)
-			.join("")
-			.replace(/(\d+)pt/g, "$1px");
+		pt2px(elements);
+
+		const parsedHTML = elements.map(({ outerHTML }) => outerHTML).join("");
 
 		setParsedHTML(parsedHTML);
 	});
+
+	const pt2px = (elements: Element[]) => {
+		for (const element of elements) {
+			let style = element.getAttribute("style");
+
+			style = style?.replace(/(\d+)pt/g, "px") ?? "";
+
+			element.setAttribute("style", style);
+
+			pt2px([...element.children]);
+		}
+	};
 
 	return <HTML value={parsedHTML} />;
 };
