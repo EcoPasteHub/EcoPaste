@@ -141,9 +141,11 @@ export const readHTML = async (): Promise<ClipboardPayload> => {
 export const readRichText = async (): Promise<ClipboardPayload> => {
 	const richText = await invoke<string>(CLIPBOARD_PLUGIN.READ_RICH_TEXT);
 
+	const { value } = await readText();
+
 	return {
 		value: richText,
-		search: richText,
+		search: value,
 		size: richText.length,
 	};
 };
