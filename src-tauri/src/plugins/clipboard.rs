@@ -13,16 +13,13 @@ use std::{
 use tauri::{
     command, generate_handler,
     plugin::{Builder, TauriPlugin},
-    AppHandle, Error, Manager, Result, State, Wry,
+    AppHandle, Manager, State, Wry,
 };
 
 pub static IS_LISTENING: Mutex<bool> = Mutex::new(false);
 
-#[cfg(target_os = "windows")]
-static WIN_LOCK: Mutex<()> = Mutex::new(());
-
 struct ClipboardManager {
-    context: ClipboardContext,
+    context: Arc<Mutex<ClipboardContext>>,
     watcher_shutdown: Arc<Mutex<Option<WatcherShutdown>>>,
 }
 
@@ -33,13 +30,13 @@ struct ClipboardListen {
 impl ClipboardManager {
     fn new() -> Self {
         ClipboardManager {
-            context: ClipboardContext::new().unwrap(),
+            context: Arc::new(Mutex::new(ClipboardContext::new().unwrap())),
             watcher_shutdown: Arc::default(),
         }
     }
 
     fn has(&self, format: ContentFormat) -> bool {
-        self.context.has(format)
+        self.context.lock().unwrap().has(format)
     }
 }
 
@@ -51,9 +48,10 @@ impl ClipboardListen {
 
 impl ClipboardHandler for ClipboardListen {
     fn on_clipboard_change(&mut self) {
-        self.app_handle
+        let _ = self
+            .app_handle
             .emit_all("plugin:clipboard://clipboard_update", "Clipboard updated")
-            .unwrap();
+            .map_err(|err| err.to_string());
     }
 }
 
@@ -75,7 +73,10 @@ fn toggle_listening(app_handle: AppHandle) {
 }
 
 #[command]
-async fn start_listen(app_handle: AppHandle, manager: State<'_, ClipboardManager>) -> Result<()> {
+async fn start_listen(
+    app_handle: AppHandle,
+    manager: State<'_, ClipboardManager>,
+) -> Result<(), String> {
     let listener = ClipboardListen::new(app_handle.clone());
 
     let mut watcher: ClipboardWatcherContext<ClipboardListen> =
@@ -101,7 +102,10 @@ async fn start_listen(app_handle: AppHandle, manager: State<'_, ClipboardManager
 }
 
 #[command]
-async fn stop_listen(app_handle: AppHandle, manager: State<'_, ClipboardManager>) -> Result<()> {
+async fn stop_listen(
+    app_handle: AppHandle,
+    manager: State<'_, ClipboardManager>,
+) -> Result<(), String> {
     let mut watcher_shutdown = manager.watcher_shutdown.lock().unwrap();
 
     if let Some(watcher_shutdown) = (*watcher_shutdown).take() {
@@ -116,51 +120,38 @@ async fn stop_listen(app_handle: AppHandle, manager: State<'_, ClipboardManager>
 }
 
 #[command]
-async fn has_files(manager: State<'_, ClipboardManager>) -> Result<bool> {
-    #[cfg(target_os = "windows")]
-    let _lock = WIN_LOCK.lock().unwrap();
-
+async fn has_files(manager: State<'_, ClipboardManager>) -> Result<bool, String> {
     Ok(manager.has(ContentFormat::Files))
 }
 
 #[command]
-async fn has_image(manager: State<'_, ClipboardManager>) -> Result<bool> {
-    #[cfg(target_os = "windows")]
-    let _lock = WIN_LOCK.lock().unwrap();
-
+async fn has_image(manager: State<'_, ClipboardManager>) -> Result<bool, String> {
     Ok(manager.has(ContentFormat::Image))
 }
 
 #[command]
-async fn has_html(manager: State<'_, ClipboardManager>) -> Result<bool> {
-    #[cfg(target_os = "windows")]
-    let _lock = WIN_LOCK.lock().unwrap();
-
+async fn has_html(manager: State<'_, ClipboardManager>) -> Result<bool, String> {
     Ok(manager.has(ContentFormat::Html))
 }
 
 #[command]
-async fn has_rich_text(manager: State<'_, ClipboardManager>) -> Result<bool> {
-    #[cfg(target_os = "windows")]
-    let _lock = WIN_LOCK.lock().unwrap();
-
+async fn has_rich_text(manager: State<'_, ClipboardManager>) -> Result<bool, String> {
     Ok(manager.has(ContentFormat::Rtf))
 }
 
 #[command]
-async fn has_text(manager: State<'_, ClipboardManager>) -> Result<bool> {
-    #[cfg(target_os = "windows")]
-    let _lock = WIN_LOCK.lock().unwrap();
-
+async fn has_text(manager: State<'_, ClipboardManager>) -> Result<bool, String> {
     Ok(manager.has(ContentFormat::Text))
 }
 
 #[command]
-async fn read_files(manager: State<'_, ClipboardManager>) -> Result<Vec<String>> {
-    #[cfg(target_os = "windows")]
-    let _lock = WIN_LOCK.lock().unwrap();
-
-    let mut files = manager.context.get_files().unwrap();
+async fn read_files(manager: State<'_, ClipboardManager>) -> Result<Vec<String>, String> {
+    let mut files = manager
+        .context
+        .lock()
+        .map_err(|err| err.to_string())?
+        .get_files()
+        .map_err(|err| err.to_string())?;
 
     files.iter_mut().for_each(|path| {
         *path = path.replace("file://", "");
@@ -170,19 +161,30 @@ async fn read_files(manager: State<'_, ClipboardManager>) -> Result<Vec<String>>
 }
 
 #[command]
-async fn read_image(manager: State<'_, ClipboardManager>, dir: PathBuf) -> Result<ReadImage> {
-    #[cfg(target_os = "windows")]
-    let _lock = WIN_LOCK.lock().unwrap();
+async fn read_image(
+    manager: State<'_, ClipboardManager>,
+    dir: PathBuf,
+) -> Result<ReadImage, String> {
+    create_dir_all(&dir).map_err(|op| op.to_string())?;
 
-    create_dir_all(&dir).unwrap();
-
-    let image = manager.context.get_image().unwrap();
+    let image = manager
+        .context
+        .lock()
+        .map_err(|err| err.to_string())?
+        .get_image()
+        .map_err(|err| err.to_string())?;
 
     let (width, height) = image.get_size();
 
-    let thumbnail_image = image.thumbnail(width / 10, height / 10).unwrap();
+    let thumbnail_image = image
+        .thumbnail(width / 10, height / 10)
+        .map_err(|err| err.to_string())?;
 
-    let bytes = thumbnail_image.to_png().unwrap().get_bytes().to_vec();
+    let bytes = thumbnail_image
+        .to_png()
+        .map_err(|err| err.to_string())?
+        .get_bytes()
+        .to_vec();
 
     let mut hasher = DefaultHasher::new();
 
@@ -193,7 +195,7 @@ async fn read_image(manager: State<'_, ClipboardManager>, dir: PathBuf) -> Resul
     let image_path = dir.join(format!("{hash}.png"));
 
     if let Some(path) = image_path.to_str() {
-        image.save_to_path(path).unwrap();
+        image.save_to_path(path).map_err(|err| err.to_string())?;
 
         let image = path.to_string();
 
@@ -204,53 +206,64 @@ async fn read_image(manager: State<'_, ClipboardManager>, dir: PathBuf) -> Resul
         });
     }
 
-    Err(Error::InvokeKey)
+    Err("read_image execution error".to_string())
 }
 
 #[command]
-async fn read_html(manager: State<'_, ClipboardManager>) -> Result<String> {
-    #[cfg(target_os = "windows")]
-    let _lock = WIN_LOCK.lock().unwrap();
-
-    Ok(manager.context.get_html().unwrap())
+async fn read_html(manager: State<'_, ClipboardManager>) -> Result<String, String> {
+    manager
+        .context
+        .lock()
+        .map_err(|err| err.to_string())?
+        .get_html()
+        .map_err(|err| err.to_string())
 }
 
 #[command]
-async fn read_rich_text(manager: State<'_, ClipboardManager>) -> Result<String> {
-    #[cfg(target_os = "windows")]
-    let _lock = WIN_LOCK.lock().unwrap();
-
-    Ok(manager.context.get_rich_text().unwrap())
+async fn read_rich_text(manager: State<'_, ClipboardManager>) -> Result<String, String> {
+    manager
+        .context
+        .lock()
+        .map_err(|err| err.to_string())?
+        .get_rich_text()
+        .map_err(|err| err.to_string())
 }
 
 #[command]
-async fn read_text(manager: State<'_, ClipboardManager>) -> Result<String> {
-    #[cfg(target_os = "windows")]
-    let _lock = WIN_LOCK.lock().unwrap();
-
-    Ok(manager.context.get_text().unwrap())
+async fn read_text(manager: State<'_, ClipboardManager>) -> Result<String, String> {
+    manager
+        .context
+        .lock()
+        .map_err(|err| err.to_string())?
+        .get_text()
+        .map_err(|err| err.to_string())
 }
 
 #[command]
-async fn write_files(manager: State<'_, ClipboardManager>, value: Vec<String>) -> Result<()> {
-    #[cfg(target_os = "windows")]
-    let _lock = WIN_LOCK.lock().unwrap();
-
-    manager.context.set_files(value).unwrap();
-
-    Ok(())
+async fn write_files(
+    manager: State<'_, ClipboardManager>,
+    value: Vec<String>,
+) -> Result<(), String> {
+    manager
+        .context
+        .lock()
+        .map_err(|err| err.to_string())?
+        .set_files(value)
+        .map_err(|err| err.to_string())
 }
 
 #[command]
-async fn write_image(manager: State<'_, ClipboardManager>, value: String) -> Result<()> {
-    #[cfg(target_os = "windows")]
-    let _lock = WIN_LOCK.lock().unwrap();
+async fn write_image(manager: State<'_, ClipboardManager>, value: String) -> Result<(), String> {
+    // 尝试从路径创建 RustImageData，如果失败则返回错误信息
+    let image = RustImageData::from_path(&value).map_err(|err| err.to_string())?;
 
-    let image = RustImageData::from_path(&value).unwrap();
-
-    manager.context.set_image(image).unwrap();
-
-    Ok(())
+    // 尝试获取锁并设置图像，如果失败则返回错误信息
+    manager
+        .context
+        .lock()
+        .map_err(|err| err.to_string())?
+        .set_image(image)
+        .map_err(|err| err.to_string())
 }
 
 #[command]
@@ -258,35 +271,38 @@ async fn write_html(
     manager: State<'_, ClipboardManager>,
     text: String,
     html: String,
-) -> Result<()> {
-    #[cfg(target_os = "windows")]
-    let _lock = WIN_LOCK.lock().unwrap();
-
+) -> Result<(), String> {
     let contents = vec![ClipboardContent::Text(text), ClipboardContent::Html(html)];
 
-    manager.context.set(contents).unwrap();
-
-    Ok(())
+    manager
+        .context
+        .lock()
+        .map_err(|err| err.to_string())?
+        .set(contents)
+        .map_err(|err| err.to_string())
 }
 
 #[command]
-async fn write_rich_text(manager: State<'_, ClipboardManager>, value: String) -> Result<()> {
-    #[cfg(target_os = "windows")]
-    let _lock = WIN_LOCK.lock().unwrap();
-
-    manager.context.set_rich_text(value).unwrap();
-
-    Ok(())
+async fn write_rich_text(
+    manager: State<'_, ClipboardManager>,
+    value: String,
+) -> Result<(), String> {
+    manager
+        .context
+        .lock()
+        .map_err(|err| err.to_string())?
+        .set_rich_text(value)
+        .map_err(|err| err.to_string())
 }
 
 #[command]
-async fn write_text(manager: State<'_, ClipboardManager>, value: String) -> Result<()> {
-    #[cfg(target_os = "windows")]
-    let _lock = WIN_LOCK.lock().unwrap();
-
-    manager.context.set_text(value).unwrap();
-
-    Ok(())
+async fn write_text(manager: State<'_, ClipboardManager>, value: String) -> Result<(), String> {
+    manager
+        .context
+        .lock()
+        .map_err(|err| err.to_string())?
+        .set_text(value)
+        .map_err(|err| err.to_string())
 }
 
 pub fn init() -> TauriPlugin<Wry> {
