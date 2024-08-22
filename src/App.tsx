@@ -5,8 +5,8 @@ import { ConfigProvider, theme } from "antd";
 import { RouterProvider } from "react-router-dom";
 import { useSnapshot } from "valtio";
 import { subscribeKey } from "valtio/utils";
-
 const { defaultAlgorithm, darkAlgorithm } = theme;
+import { error } from "tauri-plugin-log-api";
 
 const App = () => {
 	const { appearance } = useSnapshot(globalStore);
@@ -82,6 +82,10 @@ const App = () => {
 	});
 
 	useOSKeyPress(["esc", "meta.w"], hideWindow);
+
+	useEventListener("unhandledrejection", (event) => {
+		error(event.reason);
+	});
 
 	return (
 		<ConfigProvider

@@ -33,6 +33,7 @@ fn main() {
     let log_builder = {
         let builder =
             tauri_plugin_log::Builder::new().targets([tauri_plugin_log::LogTarget::LogDir]);
+
         if cfg!(debug_assertions) {
             builder.target(tauri_plugin_log::LogTarget::Stderr)
         } else {
