@@ -83,7 +83,8 @@ const Item: FC<ItemProps> = (props) => {
 	};
 
 	const exportFile = async () => {
-		const extension = type === "text" ? "txt" : type;
+		const extension =
+			type === "text" ? "txt" : type === "rich-text" ? "rtf" : type;
 		const fileName = `${env.appName}_${id}.${extension}`;
 		const destination = (await downloadDir()) + fileName;
 
@@ -182,7 +183,7 @@ const Item: FC<ItemProps> = (props) => {
 			},
 			{
 				label: t("clipboard.button.context_menu.paste_as_plain_text"),
-				hide: type !== "html",
+				hide: type !== "html" && type !== "rich-text",
 				event: pastePlainText,
 			},
 			{
