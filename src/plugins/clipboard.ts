@@ -167,27 +167,35 @@ export const readText = async (): Promise<ClipboardPayload> => {
 export const readClipboard = async () => {
 	let payload!: ClipboardPayload;
 
-	const {
-		content: { copyPlainText },
-	} = clipboardStore;
+	const { content } = clipboardStore;
 
-	if (await hasFiles()) {
+	const has = {
+		files: await hasFiles(),
+		image: await hasImage(),
+		html: await hasHTML(),
+		richText: await hasRichText(),
+		text: await hasText(),
+	};
+
+	if (has.files) {
 		const filesPayload = await readFiles();
 
 		payload = { ...filesPayload, type: "files" };
-	} else if (await hasImage()) {
+	} else if (has.image && !has.text) {
 		const imagePayload = await readImage();
 
 		payload = { ...imagePayload, type: "image" };
-	} else if (!copyPlainText && (await hasHTML())) {
-		const htmlPayload = await readHTML();
+	} else if (!content.copyPlainText) {
+		if (has.html) {
+			const htmlPayload = await readHTML();
 
-		payload = { ...htmlPayload, type: "html" };
-	} else if (!copyPlainText && (await hasRichText())) {
-		const richTextPayload = await readRichText();
+			payload = { ...htmlPayload, type: "html" };
+		} else if (has.richText) {
+			const richTextPayload = await readRichText();
 
-		payload = { ...richTextPayload, type: "rich-text" };
-	} else if (await hasText()) {
+			payload = { ...richTextPayload, type: "rich-text" };
+		}
+	} else {
 		const textPayload = await readText();
 
 		payload = { ...textPayload, type: "text" };
