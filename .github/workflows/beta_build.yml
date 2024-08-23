@@ -39,7 +39,7 @@ on:
         description: 'Artifacts retention time (days)'
         required: true
         type: string
-        default: '2'
+        default: '1'
 
 jobs:
   preprocess:
