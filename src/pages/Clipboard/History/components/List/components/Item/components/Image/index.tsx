@@ -13,7 +13,7 @@ const Image: FC<Partial<HistoryItem>> = (props) => {
 		setSrc(src);
 	});
 
-	return <img src={src} className="h-full" />;
+	return <img src={src} className="max-h-full" />;
 };
 
 export default memo(Image);
