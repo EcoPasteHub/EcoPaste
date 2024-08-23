@@ -15,7 +15,6 @@ use tauri::{
     async_runtime, generate_context, generate_handler, Builder, Manager, SystemTray, WindowEvent,
 };
 use tauri_plugin_autostart::MacosLauncher;
-use tauri_plugin_theme::ThemePlugin;
 use tauri_plugin_window_state::StateFlags;
 
 pub const AUTO_LAUNCH_ARG: &str = "--auto-launch";
@@ -93,7 +92,7 @@ fn main() {
             Ok(())
         })
         // 主题插件：https://github.com/wyhaya/tauri-plugin-theme
-        .plugin(ThemePlugin::init(ctx.config_mut()))
+        .plugin(tauri_plugin_theme ::init(ctx.config_mut()))
         // 确保在 windows 和 linux 上只有一个 app 实例在运行：https://github.com/tauri-apps/plugins-workspace/tree/v1/plugins/single-instance
         .plugin(tauri_plugin_single_instance::init(
             |app_handle, _argv, _cwd| {
