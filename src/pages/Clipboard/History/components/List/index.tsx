@@ -34,7 +34,7 @@ const List = () => {
 			<Scrollbar ref={outerRef} className="flex-1">
 				<div
 					data-tauri-drag-region
-					className="relative w-screen"
+					className="relative w-full"
 					style={{ height: rowVirtualizer.getTotalSize() }}
 				>
 					{rowVirtualizer.getVirtualItems().map((virtualItem) => {

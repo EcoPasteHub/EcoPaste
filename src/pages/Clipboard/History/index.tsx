@@ -214,30 +214,36 @@ const ClipboardHistory = () => {
 				getHistoryList,
 			}}
 		>
-			<Flex
-				data-tauri-drag-region
-				vertical
-				gap={12}
-				className={clsx("h-screen bg-1 py-12", {
+			{/* https://github.com/tauri-apps/tauri/issues/10735 */}
+			<div
+				className={clsx("h-screen bg-1 p-3", {
 					"rounded-10": !isWin(),
-					"flex-col-reverse": search.position === "bottom",
 				})}
 			>
-				<PlayAudio hiddenIcon ref={audioRef} />
-
-				<Search />
-
 				<Flex
 					data-tauri-drag-region
 					vertical
 					gap={12}
-					className="flex-1 overflow-hidden"
+					className={clsx("h-full py-9", {
+						"flex-col-reverse": search.position === "bottom",
+					})}
 				>
-					<Header />
+					<PlayAudio hiddenIcon ref={audioRef} />
 
-					<List />
+					<Search />
+
+					<Flex
+						data-tauri-drag-region
+						vertical
+						gap={12}
+						className="flex-1 overflow-hidden"
+					>
+						<Header />
+
+						<List />
+					</Flex>
 				</Flex>
-			</Flex>
+			</div>
 		</HistoryContext.Provider>
 	);
 };
