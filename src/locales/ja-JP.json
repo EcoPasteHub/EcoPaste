@@ -6,49 +6,49 @@
 				"clipboard": "クリップボード",
 				"history": "履歴",
 				"general": "共通設定",
-				"shortcut": "ショートカット",
+				"shortcut": "ショートカットキー",
 				"backup": "バックアップ",
 				"about": "について"
 			}
 		},
 		"clipboard": {
 			"window_settings": {
-				"title": "ウィンドウ設定",
+				"title": "クリップボード設定",
 				"label": {
-					"window_position": "ウィンドウ位置",
+					"window_position": "クリップボード位置",
 					"window_position_remember": "位置を記憶する",
-					"window_position_follow": "カーソルに追従",
-					"window_position_center": "画面の中央"
+					"window_position_follow": "マウスに従う",
+					"window_position_center": "スクリーンセンター"
 				}
 			},
 			"audio_settings": {
 				"title": "サウンド設定",
 				"label": {
-					"copy_audio": "コピーサウンド"
+					"copy_audio": "コピーされた音"
 				}
 			},
 			"search_box_settings": {
-				"title": "検索ボックス設定",
+				"title": "検索設定",
 				"label": {
 					"default_focus": "デフォルトフォーカス",
-					"auto_clear": "自動クリア",
-					"position": "検索ボックスの位置",
-					"position_top": "上部",
-					"position_bottom": "下部"
+					"auto_clear": "自動削除",
+					"position": "検索ボックス位置",
+					"position_top": "トップ",
+					"position_bottom": "ボトム"
 				},
 				"hints": {
-					"default_focus": "ウィンドウを開くと自動的に検索ボックスにフォーカスします",
-					"auto_clear": "ウィンドウを開くと自動的に検索ボックスをクリアします"
+					"default_focus": "クリップボードを開くとき、カーソルは検索ボックスにあります",
+					"auto_clear": "クリップボードを開いたときに検索ボックスの内容を自動で削除"
 				}
 			},
 			"content_settings": {
-				"title": "クリップボードの内容",
+				"title": "その他の設定",
 				"label": {
 					"auto_paste": "自動ペースト",
 					"auto_paste_single": "シングルクリック",
 					"auto_paste_double": "ダブルクリック",
 					"image_ocr": "画像 OCR",
-					"copy_as_plain": "プレーンテキストとしてコピー"
+					"copy_as_plain": "テキストでコピーする"
 				},
 				"hints": {
 					"auto_paste": "左クリック時に、内容を素早く入力フィールドに貼り付けます",
@@ -66,7 +66,7 @@
 					"clear_cancel": "キャンセル"
 				},
 				"label": {
-					"duration": "保存期間",
+					"duration": "保持期間",
 					"duration_unit": {
 						"day": "日",
 						"week": "週",
@@ -76,36 +76,36 @@
 					"clear_confirm_title": "履歴をクリア"
 				},
 				"hints": {
-					"duration": "0を入力すると、履歴は永久に保存されます",
+					"duration": "0 は永続保持を意味します",
 					"clear_confirm": "すべての履歴（お気に入りを含む）をクリアしてもよろしいですか？"
 				}
 			}
 		},
 		"settings": {
 			"app_settings": {
-				"title": "アプリ設定",
+				"title": "ソフト設定",
 				"label": {
 					"auto_start": "ログイン時に起動",
-					"auto_update": "自動アップデート確認"
+					"auto_update": "自動更新チェック"
 				}
 			},
 			"appearance_settings": {
 				"title": "外観設定",
 				"label": {
-					"language": "インターフェース言語",
-					"theme": "テーマモード",
+					"language": "表示言語",
+					"theme": "テーマ設定",
 					"theme_auto": "システムに従う",
-					"theme_light": "ライトモード",
-					"theme_dark": "ダークモード"
+					"theme_light": "ライト",
+					"theme_dark": "ダーク"
 				}
 			}
 		},
 		"shortcut": {
 			"shortcut": {
-				"title": "ショートカット",
+				"title": "ショートカットキー",
 				"label": {
-					"open_clipboard": "クリップボードウィンドウを開く",
-					"open_settings": "設定ウィンドウを開く"
+					"open_clipboard": "クリップボードを開く",
+					"open_settings": "クリップボード設定を開く"
 				}
 			}
 		},
