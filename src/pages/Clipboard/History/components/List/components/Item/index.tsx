@@ -329,7 +329,7 @@ const Item: FC<ItemProps> = (props) => {
 			tabIndex={0}
 			gap={4}
 			style={style}
-			className="antd-input group b-color-2 absolute inset-0 mx-12 h-full rounded-6 p-6"
+			className="antd-input group b-color-2 absolute inset-0 mx-9 h-full rounded-6 p-6"
 			onContextMenu={handleContextMenu}
 			onClick={handleClick}
 			onDoubleClick={handleDoubleClick}

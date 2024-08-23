@@ -21,7 +21,7 @@ const Header = () => {
 			align="center"
 			justify="space-between"
 			gap="small"
-			className="px-12"
+			className="px-9"
 		>
 			<Tab />
 

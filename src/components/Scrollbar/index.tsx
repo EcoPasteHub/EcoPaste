@@ -18,11 +18,13 @@ const Scrollbar = forwardRef<HTMLElement, ScrollbarProps>((props, ref) => {
 		if (horizontal) {
 			return {
 				height: thumbSize,
+				bottom: 0,
 			};
 		}
 
 		return {
 			width: thumbSize,
+			right: 0,
 		};
 	};
 
@@ -33,7 +35,7 @@ const Scrollbar = forwardRef<HTMLElement, ScrollbarProps>((props, ref) => {
 			skin={appearance.isDark ? "dark" : "light"}
 			thumbStyle={getThumbStyle}
 			// @ts-ignore
-			trackStyle={() => ({ "--ms-track-size": 0 })}
+			trackStyle={() => ({ border: 0, "--ms-track-size": 0 })}
 		>
 			{children}
 		</MacScrollbar>

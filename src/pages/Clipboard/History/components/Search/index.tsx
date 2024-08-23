@@ -49,7 +49,7 @@ const Search: FC<InputProps> = (props) => {
 	});
 
 	return (
-		<div className="mx-12">
+		<div className="mx-9">
 			<Input
 				{...props}
 				ref={inputRef}
