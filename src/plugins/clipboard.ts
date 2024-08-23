@@ -187,16 +187,14 @@ export const readClipboard = async () => {
 		const imagePayload = await readImage();
 
 		payload = { ...imagePayload, type: "image" };
-	} else if (!content.copyPlainText) {
-		if (has.html) {
-			const htmlPayload = await readHTML();
+	} else if (!content.copyPlainText && has.html) {
+		const htmlPayload = await readHTML();
 
-			payload = { ...htmlPayload, type: "html" };
-		} else if (has.richText) {
-			const richTextPayload = await readRichText();
+		payload = { ...htmlPayload, type: "html" };
+	} else if (!content.copyPlainText && has.richText) {
+		const richTextPayload = await readRichText();
 
-			payload = { ...richTextPayload, type: "rich-text" };
-		}
+		payload = { ...richTextPayload, type: "rich-text" };
 	} else {
 		const textPayload = await readText();
 
