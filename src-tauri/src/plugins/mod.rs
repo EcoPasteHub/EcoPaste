@@ -2,6 +2,7 @@ pub mod backup;
 pub mod clipboard;
 pub mod fs_extra;
 pub mod locale;
+pub mod macos_permissions;
 pub mod mouse;
 pub mod ocr;
 pub mod paste;

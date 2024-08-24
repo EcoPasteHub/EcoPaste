@@ -7,7 +7,7 @@ mod plugins;
 
 use core::{error::redirect_panic_to_log, info, tray};
 use plugins::{
-    backup, clipboard, fs_extra, locale, mouse, ocr, paste,
+    backup, clipboard, fs_extra, locale, macos_permissions, mouse, ocr, paste,
     window::{self, show_window, MAIN_WINDOW_LABEL, PREFERENCE_WINDOW_LABEL},
 };
 use std::env;
@@ -92,7 +92,7 @@ fn main() {
             Ok(())
         })
         // 主题插件：https://github.com/wyhaya/tauri-plugin-theme
-        .plugin(tauri_plugin_theme ::init(ctx.config_mut()))
+        .plugin(tauri_plugin_theme::init(ctx.config_mut()))
         // 确保在 windows 和 linux 上只有一个 app 实例在运行：https://github.com/tauri-apps/plugins-workspace/tree/v1/plugins/single-instance
         .plugin(tauri_plugin_single_instance::init(
             |app_handle, _argv, _cwd| {
@@ -136,6 +136,8 @@ fn main() {
                 .with_state_flags(StateFlags::all() & !StateFlags::VISIBLE)
                 .build(),
         )
+        // macos 权限查询的插件
+        .plugin(macos_permissions::init())
         // 系统托盘：https://tauri.app/v1/guides/features/system-tray
         .system_tray(SystemTray::new().with_tooltip(&tooltip))
         .on_system_tray_event(tray::Tray::handler)

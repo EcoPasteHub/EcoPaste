@@ -1,5 +1,6 @@
 import Icon from "@/components/Icon";
 import Update from "@/components/Update";
+import MacosPermissions from "@/pages/General/components/MacosPermissions";
 import type { Language } from "@/types/store";
 import { emit, listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/api/shell";
@@ -105,6 +106,10 @@ const Preference = () => {
 			</div>
 
 			<Update />
+
+			<div hidden>
+				<MacosPermissions />
+			</div>
 		</Flex>
 	);
 };

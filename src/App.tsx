@@ -6,6 +6,7 @@ import { RouterProvider } from "react-router-dom";
 import { useSnapshot } from "valtio";
 import { subscribeKey } from "valtio/utils";
 const { defaultAlgorithm, darkAlgorithm } = theme;
+import { isString } from "arcdash";
 import { error } from "tauri-plugin-log-api";
 
 const App = () => {
@@ -83,8 +84,10 @@ const App = () => {
 
 	useOSKeyPress(["esc", "meta.w"], hideWindow);
 
-	useEventListener("unhandledrejection", (event) => {
-		error(event.reason);
+	useEventListener("unhandledrejection", ({ reason }) => {
+		const message = isString(reason) ? reason : JSON.stringify(reason);
+
+		error(message);
 	});
 
 	return (
