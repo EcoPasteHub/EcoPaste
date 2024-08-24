@@ -24,11 +24,8 @@ extern "C" fn application_did_activate(_self: &Object, _cmd: Sel, notification: 
             return;
         }
 
-        // TODO: 获取窗口标题（而不是下面的获取 app 名称），然后忽略窗口名称为 MAIN_WINDOW_TITLE 的
         let localized_name: id = msg_send![app, localizedName];
         let name_str: *const i8 = msg_send![localized_name, UTF8String];
-
-        // 确保从 C 字符串转换为 Rust 字符串时，正确处理了生命周期问题
         let name_cstr = CStr::from_ptr(name_str);
         let name = name_cstr.to_str().unwrap_or("Unknown").to_string();
 
