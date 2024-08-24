@@ -20,11 +20,11 @@ const MacosPermissions = () => {
 		const check = async () => {
 			const opened = await checkAccessibilityPermissions();
 
-			if (!opened) {
-				setTimeout(check, 1000);
-			} else {
-				state.accessibilityPermissions = true;
-			}
+			state.accessibilityPermissions = opened;
+
+			if (opened) return;
+
+			setTimeout(check, 1000);
 		};
 
 		check();
@@ -33,24 +33,24 @@ const MacosPermissions = () => {
 	const checkFullDiskAccess = async () => {
 		const opened = await checkFullDiskAccessPermissions();
 
-		if (!opened) {
-			const yes = await ask("需要开启完全磁盘访问权限来实现文件预览", {
-				title: "需要开启完全磁盘访问权限",
-				okLabel: "去系统设置开启",
-				cancelLabel: "稍后开启",
-			});
+		state.fullDiskAccessPermissions = opened;
 
-			if (!yes) return;
+		if (opened) return;
 
-			requestFullDiskAccessPermissions();
-		} else {
-			state.fullDiskAccessPermissions = true;
-		}
+		const yes = await ask("需要开启完全磁盘访问权限来实现文件预览", {
+			title: "需要开启完全磁盘访问权限",
+			okLabel: "去系统设置开启",
+			cancelLabel: "稍后开启",
+		});
+
+		if (!yes) return;
+
+		requestFullDiskAccessPermissions();
 	};
 
 	const renderStatus = (
 		key: keyof typeof state,
-		checkEvent: () => Promise<void>,
+		mouseDownEvent: () => Promise<void>,
 	) => {
 		return (
 			<div className="children:(inline-flex items-center gap-4 font-bold)">
@@ -60,7 +60,10 @@ const MacosPermissions = () => {
 						已授权
 					</div>
 				) : (
-					<div className="cursor-pointer text-danger" onMouseDown={checkEvent}>
+					<div
+						className="cursor-pointer text-danger"
+						onMouseDown={mouseDownEvent}
+					>
 						<Icon name="i-lucide:circle-arrow-right" />
 						去授权
 					</div>
