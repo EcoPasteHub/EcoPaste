@@ -42,7 +42,7 @@ fn focus_previous_window() {
             return;
         }
 
-        SetForegroundWindow(hwnd)
+        SetForegroundWindow(hwnd);
     }
 }
 
