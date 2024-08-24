@@ -2,6 +2,7 @@ import ProList from "@/components/ProList";
 import ProSwitch from "@/components/ProSwitch";
 import { useSnapshot } from "valtio";
 import Language from "./components/Language";
+import MacosPermissions from "./components/MacosPermissions";
 import ThemeMode from "./components/ThemeMode";
 
 const General = () => {
@@ -10,6 +11,8 @@ const General = () => {
 
 	return (
 		<>
+			<MacosPermissions />
+
 			<ProList header={t("preference.settings.app_settings.title")}>
 				<ProSwitch
 					title={t("preference.settings.app_settings.label.auto_start")}

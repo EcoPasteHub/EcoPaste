@@ -85,6 +85,11 @@ export const PASTE_PLUGIN = {
 	PASTE: "plugin:paste|paste",
 };
 
-export const AUTO_LAUNCH_PLUGIN = {
-	IS_AUTO_LAUNCH: "plugin:auto_launch|is_auto_launch",
+export const MACOS_PERMISSIONS_PLUGIN = {
+	CHECK_ACCESSIBILITY_PERMISSIONS:
+		"plugin:macos-permissions|check_accessibility_permissions",
+	REQUEST_ACCESSIBILITY_PERMISSIONS:
+		"plugin:macos-permissions|request_accessibility_permissions",
+	REQUEST_FULL_DISK_ACCESS_PERMISSIONS:
+		"plugin:macos-permissions|request_full_disk_access_permissions",
 };
