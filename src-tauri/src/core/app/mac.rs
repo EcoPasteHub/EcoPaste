@@ -1,12 +1,12 @@
+use crate::plugins::window::MAIN_WINDOW_TITLE;
 use cocoa::base::{id, nil};
 use cocoa::foundation::{NSAutoreleasePool, NSString};
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
 use objc::{msg_send, sel, sel_impl};
+use std::ffi::CStr;
 use std::sync::Mutex;
 use std::thread;
-
-use crate::plugins::window::MAIN_WINDOW_TITLE;
 
 static PREVIOUS_WINDOW: Mutex<Option<i32>> = Mutex::new(None);
 
@@ -24,7 +24,17 @@ extern "C" fn application_did_activate(_self: &Object, _cmd: Sel, notification: 
             return;
         }
 
-        // TODO: 获取窗口标题，然后忽略剪切板窗口
+        // TODO: 获取窗口标题（而不是下面的获取 app 名称），然后忽略窗口名称为 MAIN_WINDOW_TITLE 的
+        let localized_name: id = msg_send![app, localizedName];
+        let name_str: *const i8 = msg_send![localized_name, UTF8String];
+
+        // 确保从 C 字符串转换为 Rust 字符串时，正确处理了生命周期问题
+        let name_cstr = CStr::from_ptr(name_str);
+        let name = name_cstr.to_str().unwrap_or("Unknown").to_string();
+
+        if name == MAIN_WINDOW_TITLE {
+            return;
+        }
 
         let process_id: i32 = msg_send![app, processIdentifier];
 
