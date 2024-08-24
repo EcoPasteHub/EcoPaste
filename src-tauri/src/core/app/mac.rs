@@ -1,3 +1,4 @@
+use crate::plugins::window::MAIN_WINDOW_TITLE;
 use cocoa::base::{id, nil};
 use cocoa::foundation::{NSAutoreleasePool, NSString};
 use objc::declare::ClassDecl;
@@ -7,30 +8,23 @@ use std::ffi::CStr;
 use std::sync::Mutex;
 use std::thread;
 
-#[derive(Debug, serde::Serialize, Clone)]
-pub struct App {
-    pub name: String,
-    pub process_id: i32,
-}
-
-static FOREMOST_APPS: Mutex<Vec<App>> = Mutex::new(Vec::new());
+static PREVIOUS_WINDOW: Mutex<Option<i32>> = Mutex::new(None);
 
 extern "C" fn application_did_activate(_self: &Object, _cmd: Sel, notification: id) {
     unsafe {
         let ns_app_key = NSString::alloc(nil).init_str("NSWorkspaceApplicationKey");
+
         let user_info: id = msg_send![notification, userInfo];
         if user_info == nil {
-            println!("No userInfo in notification");
             return;
         }
 
         let app: id = msg_send![user_info, objectForKey: ns_app_key];
         if app == nil {
-            println!("No application found in userInfo");
             return;
         }
 
-        let process_id: i32 = msg_send![app, processIdentifier];
+        // TODO: 获取窗口标题（而不是下面的获取 app 名称），然后忽略窗口名称为 MAIN_WINDOW_TITLE 的
         let localized_name: id = msg_send![app, localizedName];
         let name_str: *const i8 = msg_send![localized_name, UTF8String];
 
@@ -38,13 +32,14 @@ extern "C" fn application_did_activate(_self: &Object, _cmd: Sel, notification: 
         let name_cstr = CStr::from_ptr(name_str);
         let name = name_cstr.to_str().unwrap_or("Unknown").to_string();
 
-        let mut apps = FOREMOST_APPS.lock().unwrap();
-
-        if apps.len() >= 2 {
-            apps.remove(0);
+        if name == MAIN_WINDOW_TITLE {
+            return;
         }
 
-        apps.push(App { name, process_id });
+        let process_id: i32 = msg_send![app, processIdentifier];
+
+        let mut previous_window = PREVIOUS_WINDOW.lock().unwrap();
+        let _ = previous_window.insert(process_id);
     }
 }
 
@@ -78,6 +73,6 @@ pub fn observe_app() {
     });
 }
 
-pub fn get_foreground_apps() -> Vec<App> {
-    return FOREMOST_APPS.lock().unwrap().to_vec();
+pub fn get_previous_window() -> Option<i32> {
+    return PREVIOUS_WINDOW.lock().unwrap().clone();
 }

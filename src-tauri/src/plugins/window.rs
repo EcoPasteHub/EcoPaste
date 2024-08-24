@@ -8,6 +8,8 @@ use tauri::{
 pub static MAIN_WINDOW_LABEL: &str = "main";
 // 偏好设置窗口的label
 pub static PREFERENCE_WINDOW_LABEL: &str = "preference";
+// 主窗口的title
+pub static MAIN_WINDOW_TITLE: &str = "EcoPaste";
 
 // 显示窗口（非linux）
 #[cfg(not(target_os = "linux"))]
