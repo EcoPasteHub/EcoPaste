@@ -1,4 +1,4 @@
-use crate::core::app::get_foreground_apps;
+use crate::core::app::get_previous_window;
 use tauri::{
     command, generate_handler,
     plugin::{Builder, TauriPlugin},
@@ -13,9 +13,10 @@ fn focus_previous_window() {
         base::nil,
     };
 
-    let foreground_apps = get_foreground_apps();
-
-    let process_id = foreground_apps[0].process_id;
+    let process_id = match get_previous_window() {
+        Some(process_id) => process_id,
+        None => return,
+    };
 
     unsafe {
         let app = NSRunningApplication::runningApplicationWithProcessIdentifier(nil, process_id);
@@ -30,19 +31,18 @@ fn focus_previous_window() {
 #[cfg(target_os = "windows")]
 fn focus_previous_window() {
     use winapi::{shared::windef::HWND, um::winuser::SetForegroundWindow};
-    unsafe {
-        let foreground_apps = get_foreground_apps();
 
-        let hwnd = foreground_apps[0] as HWND;
+    unsafe {
+        let hwnd = match get_previous_window() {
+            Some(hwnd) => hwnd as HWND,
+            None => return,
+        };
 
         if hwnd.is_null() {
-            println!("Could not get active window");
             return;
         }
 
-        if SetForegroundWindow(hwnd) == 0 {
-            println!("Could not focus on window");
-        }
+        SetForegroundWindow(hwnd)
     }
 }
 
@@ -57,7 +57,7 @@ fn focus_previous_window() {
             log::error!("Could not open display");
             return;
         }
-        let window = match get_foreground_apps() {
+        let window = match get_previous_window() {
             Some(window) => window,
             None => {
                 log::error!("Could not get active window");

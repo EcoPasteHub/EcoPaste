@@ -3,48 +3,33 @@ use cocoa::foundation::{NSAutoreleasePool, NSString};
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
 use objc::{msg_send, sel, sel_impl};
-use std::ffi::CStr;
 use std::sync::Mutex;
 use std::thread;
 
-#[derive(Debug, serde::Serialize, Clone)]
-pub struct App {
-    pub name: String,
-    pub process_id: i32,
-}
+use crate::plugins::window::MAIN_WINDOW_TITLE;
 
-static FOREMOST_APPS: Mutex<Vec<App>> = Mutex::new(Vec::new());
+static PREVIOUS_WINDOW: Mutex<Option<i32>> = Mutex::new(None);
 
 extern "C" fn application_did_activate(_self: &Object, _cmd: Sel, notification: id) {
     unsafe {
         let ns_app_key = NSString::alloc(nil).init_str("NSWorkspaceApplicationKey");
+
         let user_info: id = msg_send![notification, userInfo];
         if user_info == nil {
-            println!("No userInfo in notification");
             return;
         }
 
         let app: id = msg_send![user_info, objectForKey: ns_app_key];
         if app == nil {
-            println!("No application found in userInfo");
             return;
         }
 
+        // TODO: 获取窗口标题，然后忽略剪切板窗口
+
         let process_id: i32 = msg_send![app, processIdentifier];
-        let localized_name: id = msg_send![app, localizedName];
-        let name_str: *const i8 = msg_send![localized_name, UTF8String];
 
-        // 确保从 C 字符串转换为 Rust 字符串时，正确处理了生命周期问题
-        let name_cstr = CStr::from_ptr(name_str);
-        let name = name_cstr.to_str().unwrap_or("Unknown").to_string();
-
-        let mut apps = FOREMOST_APPS.lock().unwrap();
-
-        if apps.len() >= 2 {
-            apps.remove(0);
-        }
-
-        apps.push(App { name, process_id });
+        let mut previous_window = PREVIOUS_WINDOW.lock().unwrap();
+        let _ = previous_window.insert(process_id);
     }
 }
 
@@ -78,6 +63,6 @@ pub fn observe_app() {
     });
 }
 
-pub fn get_foreground_apps() -> Vec<App> {
-    return FOREMOST_APPS.lock().unwrap().to_vec();
+pub fn get_previous_window() -> Option<i32> {
+    return PREVIOUS_WINDOW.lock().unwrap().clone();
 }

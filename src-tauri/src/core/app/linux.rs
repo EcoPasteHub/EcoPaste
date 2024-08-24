@@ -1,9 +1,11 @@
+use crate::plugins::window::MAIN_WINDOW_TITLE;
 use std::sync::Mutex;
-
 use x11::xlib::{
     self, Atom, Display, XDefaultRootWindow, XFree, XGetInputFocus, XGetWindowProperty,
     XInternAtom, XNextEvent, XOpenDisplay, XSelectInput,
 };
+
+static PREVIOUS_WINDOW: Mutex<Option<u64>> = Mutex::new(None);
 
 fn get_net_wm_name(display: *mut Display, window: u64) -> std::result::Result<String, String> {
     let mut actual_type: Atom = 0;
@@ -42,8 +44,6 @@ fn get_net_wm_name(display: *mut Display, window: u64) -> std::result::Result<St
     }
 }
 
-static FOREMOST_APPS: Mutex<Option<u64>> = Mutex::new(None);
-
 pub fn observe_app() {
     std::thread::spawn(|| unsafe {
         let display = XOpenDisplay(std::ptr::null_mut());
@@ -67,16 +67,16 @@ pub fn observe_app() {
             let mut revert_to_return: i32 = 0;
             XGetInputFocus(display, &mut focus_return, &mut revert_to_return);
 
-            if get_net_wm_name(display, focus_return).is_ok_and(|s| s.eq("EcoPaste")) {
+            if get_net_wm_name(display, focus_return).is_ok_and(|s| s.eq(MAIN_WINDOW_TITLE)) {
                 continue;
             }
 
-            let mut app = FOREMOST_APPS.lock().unwrap();
-            let _ = app.insert(focus_return);
+            let mut previous_window = PREVIOUS_WINDOW.lock().unwrap();
+            let _ = previous_window.insert(focus_return);
         }
     });
 }
 
-pub fn get_foreground_apps() -> Option<u64> {
-    return FOREMOST_APPS.lock().unwrap().clone();
+pub fn get_previous_window() -> Option<u64> {
+    return PREVIOUS_WINDOW.lock().unwrap().clone();
 }
