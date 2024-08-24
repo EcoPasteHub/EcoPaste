@@ -63,10 +63,11 @@ jobs:
           cmd: yq -V
 
       - name: Update tauri.conf.json
-        if: ${{ github.event_name == 'schedule' || !inputs.updater}}
+        if: ${{ github.event_name != 'schedule' && !inputs.updater }}
         run: yq -i '.tauri.updater.active = false' src-tauri/tauri.conf.json
 
       - name: Upload tauri-config
+        if: ${{ github.event_name != 'schedule' && !inputs.updater }}
         uses: actions/upload-artifact@v4
         with:
           name: tauri-config
@@ -144,7 +145,7 @@ jobs:
           fetch-depth: 0
 
       - name: Download artifact
-        if: ${{ !inputs.updater}}
+        if: ${{ github.event_name != 'schedule' && !inputs.updater }}
         uses: actions/download-artifact@v4
         with:
           name: tauri-config
