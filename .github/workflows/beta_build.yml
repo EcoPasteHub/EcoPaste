@@ -9,17 +9,12 @@ on:
         description: 'Enable updater?'
         required: true
         type: boolean
-        default: false
-      isDebug:
-        description: 'is debug?'
-        required: true
-        type: boolean
-        default: false
+        default: true
       platform_windows:
         description: 'windows'
         required: true
         type: boolean
-        default: false
+        default: true
       platform_linux:
         description: 'linux'
         required: true
@@ -32,6 +27,11 @@ on:
         default: false
       platform_macos_x86_64:
         description: 'macos-x86_64'
+        required: true
+        type: boolean
+        default: false
+      isDebug:
+        description: 'is debug?'
         required: true
         type: boolean
         default: false
