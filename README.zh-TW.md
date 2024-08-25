@@ -8,6 +8,13 @@
     繁體中文 | <a href="./README.md">English</a> | <a href="./README.zh-CN.md">简体中文</a> | <a href="./README.ja-JP.md">日本語</a>
   </div>
   <br/>
+
+  <a href="https://github.com/ayangweb/EcoPaste/releases/latest">
+    <img
+      alt="Windows"
+      src="https://img.shields.io/badge/-Windows-blue?style=flat-square&logo=windows&logoColor=white"
+    />
+  </a >  
   <a href="https://github.com/ayangweb/EcoPaste/releases/latest">
     <img
       alt="macOS"
@@ -15,11 +22,11 @@
     />
   </a >
   <a href="https://github.com/ayangweb/EcoPaste/releases/latest">
-    <img
-      alt="Windows"
-      src="https://img.shields.io/badge/-Windows-blue?style=flat-square&logo=windows&logoColor=white"
+    <img 
+      alt="Linux"
+      src="https://img.shields.io/badge/-Linux-yellow?style=flat-square&logo=linux&logoColor=white" 
     />
-  </a >
+  </a>
 
   <div>
     <a href="https://github.com/ayangweb/EcoPaste/blob/master/LICENSE">
@@ -52,6 +59,8 @@
 
 手動安裝：[Universal](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.5/EcoPaste_0.0.5_x64_zh-CN.msi)
 
+免安裝: [Universal](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.6/EcoPaste_0.0.6_Windows_x64_Portable.zip)
+
 ### Macos
 
 手動安裝：[Apple Silicon](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.5/EcoPaste_0.0.5_aarch64.dmg) | [Intel](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.5/EcoPaste_0.0.5_x64.dmg)
@@ -79,6 +88,10 @@ brew uninstall --cask ecopaste
 
 brew untap ayangweb/EcoPaste
 ```
+
+### Linux
+
+手動安裝：[AppImage](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.6/eco-paste_0.0.6_amd64.AppImage) | [deb](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.6/eco-paste_0.0.6_amd64.deb) | [rpm](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.6/eco-paste-0.0.6-1.x86_64.rpm)
 
 ## 功能介紹
 
