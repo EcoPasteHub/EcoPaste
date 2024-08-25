@@ -21,7 +21,7 @@ tauri-plugin-autostart = { git = "https://github.com/tauri-apps/plugins-workspac
 tauri-plugin-sql = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1",features = ["sqlite"] }
 tauri-plugin-log = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
 window-shadows = "0.2.2"
-clipboard-rs = "0.1.11"
+clipboard-rs = "0.2.0"
 tauri-plugin-context-menu = { git = "https://github.com/c2r0b/tauri-plugin-context-menu", branch = "main" }
 mouse_position = "0.1.4"
 flate2 = "1.0.30"
