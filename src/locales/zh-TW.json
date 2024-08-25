@@ -82,15 +82,34 @@
 			}
 		},
 		"settings": {
+			"permission_settings": {
+				"title": "權限設定",
+				"button": {
+					"confirm_full_disk_access": "前往系統設定開啟",
+					"cancel_full_disk_access": "稍後開啟",
+					"authorize": "前往授權"
+				},
+				"label": {
+					"accessibility_permissions": "輔助功能訪問權限",
+					"full_disk_access_permissions": "完全磁碟訪問權限",
+					"confirm_full_disk_access": "需要開啟完全磁碟訪問權限",
+					"authorized": "已授權"
+				},
+				"hints": {
+					"accessibility_permissions": "需要輔助功能訪問權限來操作剪貼簿內容",
+					"full_disk_access_permissions": "需要完全磁碟訪問權限來實現文件預覽",
+					"confirm_full_disk_access": "需要開啟完全磁碟訪問權限來實現文件預覽"
+				}
+			},
 			"app_settings": {
-				"title": "應用設置",
+				"title": "應用設定",
 				"label": {
 					"auto_start": "登入時啟動",
 					"auto_update": "自動檢查更新"
 				}
 			},
 			"appearance_settings": {
-				"title": "外觀設置",
+				"title": "外觀設定",
 				"label": {
 					"language": "界面語言",
 					"theme": "主題模式",
