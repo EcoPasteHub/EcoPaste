@@ -101,7 +101,7 @@ Install Manually: [AppImage](https://mirror.ghproxy.com/https://github.com/ayang
 
 - **Lightweight & Cross-platform Supported**: 
   
-  Built with Tauri, the application is lightweight and refined, consuming minimal resources. It also delivers a uniform user experience across both Windows and macOS platforms.
+  Built with Tauri, the application is lightweight and refined, consuming minimal resources. It also delivers a uniform user experience across both Windows, MacOS and Linux platforms.
 
 - **Background Operation & Instant Access**：
 
