@@ -82,6 +82,25 @@
 			}
 		},
 		"settings": {
+			"permission_settings": {
+				"title": "权限设置",
+				"button": {
+					"confirm_full_disk_access": "去系统设置开启",
+					"cancel_full_disk_access": "稍后开启",
+					"authorize": "去授权"
+				},
+				"label": {
+					"accessibility_permissions": "辅助功能访问权限",
+					"full_disk_access_permissions": "完全磁盘访问权限",
+					"confirm_full_disk_access": "需要开启完全磁盘访问权限",
+					"authorized": "已授权"
+				},
+				"hints": {
+					"accessibility_permissions": "需要无障碍访问权限来操作剪切板内容",
+					"full_disk_access_permissions": "需要完全磁盘访问权限来实现文件预览",
+					"confirm_full_disk_access": "需要开启完全磁盘访问权限来实现文件预览"
+				}
+			},
 			"app_settings": {
 				"title": "应用设置",
 				"label": {

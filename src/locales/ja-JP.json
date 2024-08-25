@@ -82,6 +82,25 @@
 			}
 		},
 		"settings": {
+			"permission_settings": {
+				"title": "権限設定",
+				"button": {
+					"confirm_full_disk_access": "システム設定で有効にする",
+					"cancel_full_disk_access": "後で有効にする",
+					"authorize": "今すぐ承認"
+				},
+				"label": {
+					"accessibility_permissions": "アクセシビリティ権限",
+					"full_disk_access_permissions": "フルディスクアクセス権限",
+					"confirm_full_disk_access": "フルディスクアクセスが必要です",
+					"authorized": "承認済み"
+				},
+				"hints": {
+					"accessibility_permissions": "クリップボードの内容を管理するためにアクセシビリティ権限が必要です",
+					"full_disk_access_permissions": "ファイルプレビューにはフルディスクアクセスが必要です",
+					"confirm_full_disk_access": "ファイルプレビューを有効にするにはフルディスクアクセスが必要です"
+				}
+			},
 			"app_settings": {
 				"title": "ソフト設定",
 				"label": {

@@ -82,6 +82,25 @@
 			}
 		},
 		"settings": {
+			"permission_settings": {
+				"title": "Permission Settings",
+				"button": {
+					"confirm_full_disk_access": "Enable in System Settings",
+					"cancel_full_disk_access": "Enable Later",
+					"authorize": "Authorize Now"
+				},
+				"label": {
+					"accessibility_permissions": "Accessibility Permissions",
+					"full_disk_access_permissions": "Full Disk Access Permissions",
+					"confirm_full_disk_access": "Full Disk Access Required",
+					"authorized": "Authorized"
+				},
+				"hints": {
+					"accessibility_permissions": "Accessibility permissions are needed to manage clipboard content",
+					"full_disk_access_permissions": "Full Disk Access is required for file preview",
+					"confirm_full_disk_access": "Full Disk Access is required to enable file preview"
+				}
+			},
 			"app_settings": {
 				"title": "App Settings",
 				"label": {
