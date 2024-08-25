@@ -85,9 +85,12 @@ const Preference = () => {
 						<Link
 							key={title}
 							to={path}
-							className={clsx("color-2! rounded-8 p-12 transition hover:bg-4", {
-								"bg-primary! text-white!": pathname.endsWith(path),
-							})}
+							className={clsx(
+								"color-2! rounded-8 p-12 p-r-0 transition hover:bg-4",
+								{
+									"bg-primary! text-white!": pathname.endsWith(path),
+								},
+							)}
 						>
 							<Flex align="center" gap="small">
 								<Icon name={icon} size={20} />
