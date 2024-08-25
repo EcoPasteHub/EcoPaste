@@ -1,17 +1,17 @@
 import copyAudio from "@/assets/audio/copy.mp3";
 import Icon, { type IconProps } from "../Icon";
 
-export interface PlayAudioProps {
+export interface AudioProps {
 	src?: string;
 	hiddenIcon?: boolean;
 	iconProps?: IconProps;
 }
 
-export interface PlayAudioRef {
+export interface AudioRef {
 	play: () => void;
 }
 
-const PlayAudio = forwardRef<PlayAudioRef, PlayAudioProps>((props, ref) => {
+const Audio = forwardRef<AudioRef, AudioProps>((props, ref) => {
 	const { hiddenIcon, iconProps, src = copyAudio } = props;
 
 	const audioRef = useRef<HTMLAudioElement>(null);
@@ -39,4 +39,4 @@ const PlayAudio = forwardRef<PlayAudioRef, PlayAudioProps>((props, ref) => {
 	);
 });
 
-export default PlayAudio;
+export default Audio;
