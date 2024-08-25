@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { name, version } from "../package.json";
@@ -6,13 +6,21 @@ import { name, version } from "../package.json";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const updateReadmeVersion = () => {
-	const path = resolve(__dirname, "..", "README.md");
+	const dirPath = resolve(__dirname, "..");
 
-	let content = readFileSync(path, "utf-8");
+	const files = readdirSync(dirPath).filter((file) => {
+		return file.startsWith("README.");
+	});
 
-	content = content.replace(/(\d+\.\d+\.\d+)/g, version);
+	for (const file of files) {
+		const path = resolve(dirPath, file);
 
-	writeFileSync(path, content);
+		let content = readFileSync(path, "utf-8");
+
+		content = content.replace(/(\d+\.\d+\.\d+)/g, version);
+
+		writeFileSync(path, content);
+	}
 };
 
 const updateCargoVersion = () => {

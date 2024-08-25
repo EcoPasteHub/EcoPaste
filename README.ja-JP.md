@@ -61,13 +61,13 @@
 
 ### Windows
 
-手動インストール: [Universal](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.5/EcoPaste_0.0.5_x64_zh-CN.msi)
+手動インストール: [Universal](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.6/EcoPaste_0.0.6_x64_zh-CN.msi)
 
 インストールなし: [Universal](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.6/EcoPaste_0.0.6_Windows_x64_Portable.zip)
 
 ### Macos
 
-手動インストール: [Apple Silicon](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.5/EcoPaste_0.0.5_aarch64.dmg) | [Intel](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.5/EcoPaste_0.0.5_x64.dmg)
+手動インストール: [Apple Silicon](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.6/EcoPaste_0.0.6_aarch64.dmg) | [Intel](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.6/EcoPaste_0.0.6_x64.dmg)
 
 HomeBrew:
 
