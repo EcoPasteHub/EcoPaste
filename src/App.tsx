@@ -48,7 +48,7 @@ const App = () => {
 
 			globalStore.appearance.isDark = nextTheme === "dark";
 
-			setTheme(nextTheme);
+			setTheme(value);
 		});
 
 		watchKey(globalStore.appearance, "isDark", (value) => {
