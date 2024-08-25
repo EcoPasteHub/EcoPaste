@@ -2,7 +2,6 @@
 	"tauri": {
 		"bundle": {
 			"identifier": "com.ayangweb.EcoPaste",
-			"targets": ["appimage", "deb", "rpm"],
 			"deb": {
 				"depends": ["gstreamer1.0-plugins-good"],
 				"desktopTemplate": "./EcoPaste.desktop"
