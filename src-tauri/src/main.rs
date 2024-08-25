@@ -22,6 +22,10 @@ pub const AUTO_LAUNCH_ARG: &str = "--auto-launch";
 fn main() {
     redirect_panic_to_log();
 
+    if cfg!(target_os = "linux") {
+        std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
+    }
+
     let mut ctx = generate_context!();
 
     let package_info = ctx.package_info();

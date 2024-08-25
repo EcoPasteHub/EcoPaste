@@ -1,4 +1,4 @@
-import PlayAudio from "@/components/PlayAudio";
+import Audio from "@/components/Audio";
 import ProList from "@/components/ProList";
 import ProSwitch from "@/components/ProSwitch";
 import { Typography } from "antd";
@@ -17,22 +17,24 @@ const Clipboard = () => {
 				<WindowPosition />
 			</ProList>
 
-			<ProList header={t("preference.clipboard.audio_settings.title")}>
-				<ProSwitch
-					title={t("preference.clipboard.audio_settings.label.copy_audio")}
-					value={audio.copy}
-					onChange={(value) => {
-						clipboardStore.audio.copy = value;
-					}}
-				>
-					<PlayAudio
-						iconProps={{
-							size: 22,
-							className: "flex!",
+			{!isLinux() && (
+				<ProList header={t("preference.clipboard.audio_settings.title")}>
+					<ProSwitch
+						title={t("preference.clipboard.audio_settings.label.copy_audio")}
+						value={audio.copy}
+						onChange={(value) => {
+							clipboardStore.audio.copy = value;
 						}}
-					/>
-				</ProSwitch>
-			</ProList>
+					>
+						<Audio
+							iconProps={{
+								size: 22,
+								className: "flex!",
+							}}
+						/>
+					</ProSwitch>
+				</ProList>
+			)}
 
 			<ProList header={t("preference.clipboard.search_box_settings.title")}>
 				<SearchPosition key={1} />
