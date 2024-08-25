@@ -1,5 +1,5 @@
 <a href="https://github.com/ayangweb/EcoPaste">
-  <img src="https://socialify.git.ci/ayangweb/EcoPaste/image?description=1&descriptionEditable=MacOS%E3%81%8A%E3%82%88%E3%81%B3Windows%E3%83%97%E3%83%A9%E3%83%83%E3%83%88%E3%83%95%E3%82%A9%E3%83%BC%E3%83%A0%E5%90%91%E3%81%91%E3%81%AE%E3%82%AA%E3%83%BC%E3%83%97%E3%83%B3%E3%82%BD%E3%83%BC%E3%82%B9%E3%82%AF%E3%83%AA%E3%83%83%E3%83%97%E3%83%9C%E3%83%BC%E3%83%89%E7%AE%A1%E7%90%86%E3%83%84%E3%83%BC%E3%83%AB%E3%80%82&font=Source%20Code%20Pro&forks=1&issues=1&logo=https%3A%2F%2Fgithub.com%2Fayangweb%2FEcoPaste%2Fblob%2Fmaster%2Fpublic%2Flogo.png%3Fraw%3Dtrue&name=1&owner=1&pattern=Floating%20Cogs&pulls=1&stargazers=1&theme=Auto" alt="EcoPaste" />
+  <img src="https://socialify.git.ci/ayangweb/EcoPaste/image?description=1&descriptionEditable=Windows%E3%80%81Macos%E3%80%81Linux%E7%94%A8%E3%81%AE%E3%82%AA%E3%83%BC%E3%83%97%E3%83%B3%E3%82%BD%E3%83%BC%E3%82%B9%E3%81%AE%E3%82%AF%E3%83%AA%E3%83%83%E3%83%97%E3%83%9C%E3%83%BC%E3%83%89%E7%AE%A1%E7%90%86%E3%83%84%E3%83%BC%E3%83%AB%E3%80%82&font=Source%20Code%20Pro&forks=1&issues=1&logo=https%3A%2F%2Fgithub.com%2Fayangweb%2FEcoPaste%2Fblob%2Fmaster%2Fpublic%2Flogo.png%3Fraw%3Dtrue&name=1&owner=1&pattern=Floating%20Cogs&pulls=1&stargazers=1&theme=Auto" alt="EcoPaste" />
 </a>
 
 <div align="center">
@@ -101,7 +101,7 @@ brew untap ayangweb/EcoPaste
 
 - **軽量でコンパクト、多プラットフォーム対応**: 
   
-  Tauri構築、リソース消費が少なく、WindowsとMacOSに対応し、一貫したユーザーエクスペリエンスを保証。
+  Tauriで構築されたこのアプリは、より小型で洗練され、リソースのフットプリントを最小限に抑え、Windows、MacOS、Linuxの各プラットフォームに完璧に適応し、複数のプラットフォームで一貫したユーザー体験を保証します。
 
 - **常駐バックグラウンド、素早く起動**：
 

@@ -1,5 +1,5 @@
 <a href="https://github.com/ayangweb/EcoPaste">
-  <img src="https://socialify.git.ci/ayangweb/EcoPaste/image?description=1&descriptionEditable=%E9%81%A9%E7%94%A8%E6%96%BC%20MacOS%20%E5%92%8C%20Windows%20%E5%B9%B3%E8%87%BA%E7%9A%84%E9%96%8B%E6%BA%90%E7%9A%84%E5%89%AA%E8%B2%BC%E7%B0%BF%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7%E3%80%82&font=Source%20Code%20Pro&forks=1&issues=1&logo=https%3A%2F%2Fgithub.com%2Fayangweb%2FEcoPaste%2Fblob%2Fmaster%2Fpublic%2Flogo.png%3Fraw%3Dtrue&name=1&owner=1&pattern=Floating%20Cogs&pulls=1&stargazers=1&theme=Auto" alt="EcoPaste" />
+  <img src="https://socialify.git.ci/ayangweb/EcoPaste/image?description=1&descriptionEditable=%E9%81%A9%E7%94%A8%E6%96%BCWindows%E3%80%81Macos%E5%92%8CLinux%E7%9A%84%E9%96%8B%E6%BA%90%E5%89%AA%E8%B2%BC%E6%9D%BF%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7%E3%80%82&font=Source%20Code%20Pro&forks=1&issues=1&logo=https%3A%2F%2Fgithub.com%2Fayangweb%2FEcoPaste%2Fblob%2Fmaster%2Fpublic%2Flogo.png%3Fraw%3Dtrue&name=1&owner=1&pattern=Floating%20Cogs&pulls=1&stargazers=1&theme=Auto" alt="EcoPaste" />
 </a>
 
 <div align="center">
@@ -101,7 +101,7 @@ brew untap ayangweb/EcoPaste
 
 - **輕量小巧，多平臺用**：
   
-  使用 Tauri 構建，應用更加小巧精致，資源占用極少，同時完美適配 Windows 和 MacOS 平臺，保證多平臺一致的用戶體驗。
+  使用 Tauri 構建，應用更加小巧精致，資源占用極少，同時完美適配 Windows、MacOS 和 Linux 平臺，保證多平臺一致的用戶體驗。
 
 - **常駐後臺，快捷喚醒**：
 
