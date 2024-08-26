@@ -235,9 +235,10 @@ export const writeHTML = (text: string, html: string) => {
 /**
  * 富文写入剪贴板
  */
-export const writeRichText = (value: string) => {
+export const writeRichText = (text: string, richText: string) => {
 	return invoke(CLIPBOARD_PLUGIN.WRITE_RICH_TEXT, {
-		value,
+		text,
+		richText,
 	});
 };
 
