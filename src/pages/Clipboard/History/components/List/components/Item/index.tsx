@@ -50,7 +50,7 @@ const Item: FC<ItemProps> = (props) => {
 			case "text":
 				return writeText(value);
 			case "rich-text":
-				return writeRichText(value);
+				return writeRichText(search, value);
 			case "html":
 				return writeHTML(search, value);
 			case "image":

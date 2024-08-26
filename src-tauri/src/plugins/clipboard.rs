@@ -285,13 +285,19 @@ async fn write_html(
 #[command]
 async fn write_rich_text(
     manager: State<'_, ClipboardManager>,
-    value: String,
+    text: String,
+    rich_text: String,
 ) -> Result<(), String> {
+    let contents = vec![
+        ClipboardContent::Text(text),
+        ClipboardContent::Rtf(rich_text),
+    ];
+
     manager
         .context
         .lock()
         .map_err(|err| err.to_string())?
-        .set_rich_text(value)
+        .set(contents)
         .map_err(|err| err.to_string())
 }
 
