@@ -5,7 +5,7 @@ mod core;
 mod locales;
 mod plugins;
 
-use core::{error::redirect_panic_to_log, info, tray};
+use core::{error::redirect_panic_to_log, setup, tray};
 use plugins::{
     backup, clipboard, fs_extra, locale, macos_permissions, mouse, ocr, paste,
     window::{self, show_window, MAIN_WINDOW_LABEL, PREFERENCE_WINDOW_LABEL},
@@ -46,52 +46,15 @@ fn main() {
 
     Builder::default()
         .setup(|app| {
-            // 获取命令行参数，检查是否有 `info` 或 `i` 参数
-            match app.get_cli_matches() {
-                Ok(matches) => {
-                    if matches.args["info"].value.as_bool().expect("参数错误") {
-                        info::print_app_info(app.app_handle());
-                        info::print_build_info();
-                        info::print_system_info();
+            let main_window = app.get_window(MAIN_WINDOW_LABEL).unwrap();
 
-                        std::process::exit(0);
-                    }
-                }
-                Err(_) => {}
-            }
+            let preference_window = app.get_window(PREFERENCE_WINDOW_LABEL).unwrap();
 
-            // 判断是否为自动启动
-            let args: Vec<String> = env::args().collect();
-            if !args.contains(&AUTO_LAUNCH_ARG.to_string()) {
-                let window = app.get_window(PREFERENCE_WINDOW_LABEL).unwrap();
-                window.show().unwrap();
-            }
+            setup::default(app, main_window.clone(), preference_window.clone());
 
-            let window = app.get_window(MAIN_WINDOW_LABEL).unwrap();
-
-            // 在开发环境中或者打包时加上 `--features=devtools` 启动时自动打开控制台：https://tauri.app/v1/guides/debugging/application/#opening-devtools-programmatically
-            #[cfg(any(debug_assertions, feature = "devtools"))]
-            window.open_devtools();
-
-            #[cfg(target_os = "macos")]
-            {
-                // 隐藏 mac 下的程序坞图标：https://github.com/tauri-apps/tauri/issues/4852#issuecomment-1312716378
-                app.set_activation_policy(tauri::ActivationPolicy::Accessory);
-
-                unsafe {
-                    use cocoa::appkit::{NSMainMenuWindowLevel, NSWindow};
-                    use cocoa::base::id;
-
-                    let ns_window = window.ns_window().unwrap() as id;
-
-                    // 让窗口在程序坞之上
-                    ns_window.setLevel_(NSMainMenuWindowLevel as i64 + 1);
-                }
-            }
+            setup::extra(app, main_window.clone(), preference_window.clone());
 
             core::app::observe_app();
-
-            let _ = (app, window);
 
             Ok(())
         })
