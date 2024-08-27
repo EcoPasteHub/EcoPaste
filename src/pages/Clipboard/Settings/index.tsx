@@ -70,12 +70,14 @@ const Clipboard = () => {
 				<ProSwitch
 					title={t("preference.clipboard.content_settings.label.image_ocr")}
 					description={
-						<>
-							{t("preference.clipboard.content_settings.hints.image_ocr")}{" "}
-							<Typography.Link href="https://github.com/tesseract-ocr/tesseract">
-								tesseract
-							</Typography.Link>
-						</>
+						isLinux() && (
+							<>
+								{t("preference.clipboard.content_settings.hints.image_ocr")}{" "}
+								<Typography.Link href="https://github.com/tesseract-ocr/tesseract">
+									tesseract
+								</Typography.Link>
+							</>
+						)
 					}
 					value={content.ocr}
 					onChange={(value) => {

@@ -52,7 +52,7 @@
 				},
 				"hints": {
 					"auto_paste": "Quickly paste content to the input field when using the left mouse button",
-					"image_ocr": "Helps prevent crashes due to insufficient system OCR support; Linux users may need to download separately",
+					"image_ocr": "Note: Please be sure to download the",
 					"copy_as_plain": "Only retains plain text content when copying rich text or HTML formats"
 				}
 			}
@@ -118,7 +118,7 @@
 					"theme_dark": "Dark"
 				},
 				"hints": {
-					"theme": "Note: The app will restart automatically when switching Windows system themes"
+					"theme": "Note: The app will restart automatically when switching themes"
 				}
 			}
 		},
