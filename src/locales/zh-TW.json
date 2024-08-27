@@ -116,6 +116,9 @@
 					"theme_auto": "跟隨系統",
 					"theme_light": "亮色模式",
 					"theme_dark": "暗色模式"
+				},
+				"hints": {
+					"theme": "注意：切換 Windows 系統主題時，應用會自動重啟"
 				}
 			}
 		},

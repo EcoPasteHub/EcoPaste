@@ -116,6 +116,9 @@
 					"theme_auto": "System",
 					"theme_light": "Light",
 					"theme_dark": "Dark"
+				},
+				"hints": {
+					"theme": "Note: The app will restart automatically when switching Windows system themes"
 				}
 			}
 		},

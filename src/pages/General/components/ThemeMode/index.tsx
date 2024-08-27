@@ -29,6 +29,7 @@ const ThemeMode = () => {
 	return (
 		<ProSelect
 			title={t("preference.settings.appearance_settings.label.theme")}
+			description={t("preference.settings.appearance_settings.hints.theme")}
 			value={appearance.theme}
 			options={options}
 			onChange={(value) => {
