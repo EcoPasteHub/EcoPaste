@@ -4,7 +4,6 @@ import { appWindow } from "@tauri-apps/api/window";
 import { ConfigProvider, theme } from "antd";
 import { RouterProvider } from "react-router-dom";
 import { useSnapshot } from "valtio";
-import { subscribeKey } from "valtio/utils";
 const { defaultAlgorithm, darkAlgorithm } = theme;
 import { isString } from "arcdash";
 import { error } from "tauri-plugin-log-api";
@@ -25,28 +24,6 @@ const App = () => {
 			i18n.changeLanguage(value);
 
 			setLocale(value);
-		});
-
-		subscribeKey(globalStore.appearance, "theme", async (value) => {
-			let nextTheme = value;
-
-			if (isWin()) {
-				const yes = await ask("切换主题需要重启 app 才能生效！", {
-					okLabel: "重启",
-					cancelLabel: "取消",
-					type: "warning",
-				});
-
-				if (!yes) return;
-			}
-
-			if (nextTheme === "auto") {
-				nextTheme = (await appWindow.theme()) ?? "light";
-			}
-
-			globalStore.appearance.isDark = nextTheme === "dark";
-
-			setTheme(value);
 		});
 
 		watchKey(globalStore.appearance, "isDark", (value) => {
