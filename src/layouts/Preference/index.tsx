@@ -9,6 +9,7 @@ import { Flex } from "antd";
 import clsx from "clsx";
 import { disable, enable, isEnabled } from "tauri-plugin-autostart-api";
 import { subscribe, useSnapshot } from "valtio";
+import { subscribeKey } from "valtio/utils";
 
 const Preference = () => {
 	const { pathname } = useLocation();
@@ -63,6 +64,28 @@ const Preference = () => {
 			requestAnimationFrame(() => {
 				appWindow.setTitle(t("preference.title"));
 			});
+		});
+
+		subscribeKey(globalStore.appearance, "theme", async (value) => {
+			let nextTheme = value;
+
+			if (isWin()) {
+				const yes = await ask("切换主题需要重启 app 才能生效！", {
+					okLabel: "重启",
+					cancelLabel: "取消",
+					type: "warning",
+				});
+
+				if (!yes) return;
+			}
+
+			if (nextTheme === "auto") {
+				nextTheme = (await appWindow.theme()) ?? "light";
+			}
+
+			globalStore.appearance.isDark = nextTheme === "dark";
+
+			setTheme(value);
 		});
 	});
 
