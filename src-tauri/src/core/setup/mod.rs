@@ -45,4 +45,6 @@ pub fn default(app: &mut App, main_window: Window, preference_window: Window) {
     // 在开发环境中或者打包时加上 `--features=devtools` 启动时自动打开控制台：https://tauri.app/v1/guides/debugging/application/#opening-devtools-programmatically
     #[cfg(any(debug_assertions, feature = "devtools"))]
     main_window.open_devtools();
+
+    let _ = main_window;
 }

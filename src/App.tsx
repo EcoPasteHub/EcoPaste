@@ -13,11 +13,9 @@ const App = () => {
 	const { appearance } = useSnapshot(globalStore);
 
 	useMount(() => {
-		appWindow.onThemeChanged(({ payload }) => {
-			if (globalStore.appearance.theme !== "auto") return;
+		handleSystemThemeChanged();
 
-			globalStore.appearance.isDark = payload === "dark";
-		});
+		appWindow.onThemeChanged(handleSystemThemeChanged);
 
 		initDatabase();
 
@@ -59,6 +57,14 @@ const App = () => {
 			}
 		});
 	});
+
+	const handleSystemThemeChanged = async () => {
+		if (globalStore.appearance.theme !== "auto") return;
+
+		const systemTheme = await appWindow.theme();
+
+		globalStore.appearance.isDark = systemTheme === "dark";
+	};
 
 	useEventListener("contextmenu", (event) => {
 		if (isDev()) return;
