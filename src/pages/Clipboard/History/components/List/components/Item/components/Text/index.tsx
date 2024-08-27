@@ -37,7 +37,7 @@ const Text: FC<HistoryItem> = (props) => {
 		return value;
 	};
 
-	return <div className={styles.normal}>{renderContent()}</div>;
+	return <div className={styles.root}>{renderContent()}</div>;
 };
 
 export default memo(Text);

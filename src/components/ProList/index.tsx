@@ -6,7 +6,7 @@ const ProList: FC<ListProps<unknown>> = (props) => {
 	const { header, children, ...rest } = props;
 
 	return (
-		<Flex vertical gap="small" className={styles.normal}>
+		<Flex vertical gap="small" className={styles.root}>
 			{header && (
 				<div data-tauri-drag-region className={styles.title}>
 					<span>{header}</span>
