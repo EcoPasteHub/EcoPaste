@@ -1,5 +1,14 @@
 {
 	"tauri": {
+		"allowlist": {
+			"protocol": {
+				"asset": true,
+				"assetScope": {
+					"allow": ["**/*"],
+					"requireLiteralLeadingDot": false
+				}
+			}
+		},
 		"bundle": {
 			"identifier": "com.ayangweb.EcoPaste",
 			"deb": {
