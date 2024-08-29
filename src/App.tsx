@@ -5,6 +5,7 @@ import { ConfigProvider, theme } from "antd";
 import { RouterProvider } from "react-router-dom";
 import { useSnapshot } from "valtio";
 const { defaultAlgorithm, darkAlgorithm } = theme;
+import { listen } from "@tauri-apps/api/event";
 import { isString } from "arcdash";
 import { error } from "tauri-plugin-log-api";
 
@@ -32,6 +33,12 @@ const App = () => {
 			} else {
 				document.documentElement.classList.remove("dark");
 			}
+		});
+
+		listen(LISTEN_KEY.SHOW_WINDOW, ({ payload }) => {
+			if (appWindow.label !== payload) return;
+
+			showWindow();
 		});
 	});
 

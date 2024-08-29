@@ -1,28 +1,25 @@
 import { WINDOW_PLUGIN } from "@/constants";
+import type { WindowLabel } from "@/types/plugin";
 import { invoke } from "@tauri-apps/api";
+import { emit } from "@tauri-apps/api/event";
 import { appWindow } from "@tauri-apps/api/window";
-import { debounce } from "lodash-es";
-
 /**
  * 显示窗口
  */
-export const showWindow = () => {
-	invoke(WINDOW_PLUGIN.SHOW_WINDOW);
+export const showWindow = (label?: WindowLabel) => {
+	if (label) {
+		emit(LISTEN_KEY.SHOW_WINDOW, label);
+	} else {
+		invoke(WINDOW_PLUGIN.SHOW_WINDOW);
+	}
 };
 
 /**
  * 隐藏窗口
  */
-export const hideWindow = debounce(
-	() => {
-		invoke(WINDOW_PLUGIN.HIDE_WINDOW);
-	},
-	200,
-	{
-		leading: true,
-		trailing: false,
-	},
-);
+export const hideWindow = () => {
+	invoke(WINDOW_PLUGIN.HIDE_WINDOW);
+};
 
 /**
  * 给窗口添加阴影

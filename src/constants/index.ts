@@ -13,6 +13,7 @@ export const LISTEN_KEY = {
 	IMPORT_DATA: "import-data",
 	CHANGE_LANGUAGE: "change-language",
 	TOGGLE_LISTENING: "toggle-listening",
+	SHOW_WINDOW: "show-window",
 };
 
 export const WINDOW_PLUGIN = {
