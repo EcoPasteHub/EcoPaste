@@ -99,12 +99,12 @@ importers:
       '@iconify-json/iconamoon':
         specifier: ^1.1.4
         version: 1.1.4
+      '@iconify-json/lets-icons':
+        specifier: ^1.1.3
+        version: 1.1.3
       '@iconify-json/lucide':
         specifier: ^1.1.189
         version: 1.1.189
-      '@iconify-json/ri':
-        specifier: ^1.1.20
-        version: 1.1.20
       '@tauri-apps/cli':
         specifier: ^1.6.0
         version: 1.6.0
@@ -800,11 +800,11 @@ packages:
   '@iconify-json/iconamoon@1.1.4':
     resolution: {integrity: sha512-ciU8YeoMqWWMRurM7c7PqodEyvd/dGAV5zeLC5+IwqTfcPVI71RUDrhOsE656FjxADcyKh2ZkN64gVqFAZOVng==}
 
+  '@iconify-json/lets-icons@1.1.3':
+    resolution: {integrity: sha512-xdIayb6MhFihEu3qie576eWy7GI9TUvFizuvz3XQ8zzHTiUXplpCzdmEiABSxUSrUNvTwE249sUzMw2XKKnFZw==}
+
   '@iconify-json/lucide@1.1.189':
     resolution: {integrity: sha512-XUmcSwfAhi4ctdbdxMikhy4avUjxSYePHBSyZiVHPPmbOPGM3KjDpP/UscZA49yPAmkFqvb6lUa3L1RHAOn0rQ==}
-
-  '@iconify-json/ri@1.1.20':
-    resolution: {integrity: sha512-yScIGjLFBCJKWKskQTWRjNI2Awoq+VRDkRxEsCQvSfdz41n+xkRtFG2K6J1OVI90ClRHfjFC8VJ2+WzxxyFjTQ==}
 
   '@iconify/types@2.0.0':
     resolution: {integrity: sha512-+wluvCrRhXrhyOmRDJ3q8mux9JkKy5SJ/v8ol2tu4FVjyYvtEzkc/3pK15ET6RKg4b4w4BmTk1+gsCUhf21Ykg==}
@@ -4752,11 +4752,11 @@ snapshots:
     dependencies:
       '@iconify/types': 2.0.0
 
-  '@iconify-json/lucide@1.1.189':
+  '@iconify-json/lets-icons@1.1.3':
     dependencies:
       '@iconify/types': 2.0.0
 
-  '@iconify-json/ri@1.1.20':
+  '@iconify-json/lucide@1.1.189':
     dependencies:
       '@iconify/types': 2.0.0
 

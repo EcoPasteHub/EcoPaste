@@ -1,3 +1,5 @@
+export type WindowLabel = "main" | "preference";
+
 export interface Metadata {
 	size: number;
 	isDir: boolean;

@@ -25,15 +25,25 @@ const Header = () => {
 		>
 			<Tab />
 
-			<Icon
-				hoverable
-				active={state.pin}
-				name="i-ri:pushpin-2-line"
-				className={clsx("color-2 min-w-18 text-18", { "rotate-45": state.pin })}
-				onMouseDown={() => {
-					state.pin = !state.pin;
-				}}
-			/>
+			<Flex align="center" gap={4} className="color-2 text-18">
+				<Icon
+					hoverable
+					active={state.pin}
+					name="i-lets-icons:pin"
+					className={clsx({ "-rotate-45": !state.pin })}
+					onMouseDown={() => {
+						state.pin = !state.pin;
+					}}
+				/>
+
+				<Icon
+					hoverable
+					name="i-lets-icons:setting-alt-line"
+					onClick={() => {
+						showWindow("preference");
+					}}
+				/>
+			</Flex>
 		</Flex>
 	);
 };
