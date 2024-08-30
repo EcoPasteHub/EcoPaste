@@ -8,7 +8,7 @@ All work is conducted openly on GitHub. Whether you are a core team member or an
 
 ## Submitting Issues
 
-We use [GitHub Issues](https://github.com/ayangweb/EcoPaste/issues) for bug reports and feature suggestions. 
+We use [GitHub Issues](https://github.com/EcoPasteHub/EcoPaste/issues) for bug reports and feature suggestions. 
 
 Before submitting an issue, please search for similar problems, as they may have already been addressed or are in progress. 
 

@@ -8,7 +8,7 @@
 
 ## 提交 Issue
 
-我们使用 [Github Issues](https://github.com/ayangweb/EcoPaste/issues) 进行 Bug 报告和新 Feature 建议。在提交 Issue 之前，请确保已经搜索过类似的问题，因为它们可能已经得到解答或正在被修复。对于 Bug 报告，请包含可用于重现问题的完整步骤。对于新 Feature 建议，请指出你想要的更改以及期望的行为。
+我们使用 [Github Issues](https://github.com/EcoPasteHub/EcoPaste/issues) 进行 Bug 报告和新 Feature 建议。在提交 Issue 之前，请确保已经搜索过类似的问题，因为它们可能已经得到解答或正在被修复。对于 Bug 报告，请包含可用于重现问题的完整步骤。对于新 Feature 建议，请指出你想要的更改以及期望的行为。
 
 ## 提交 Pull Request
 

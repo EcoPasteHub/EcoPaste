@@ -1,6 +1,6 @@
-export const GITHUB_LINK = "https://github.com/ayangweb/EcoPaste";
+export const GITHUB_LINK = "https://github.com/EcoPasteHub/EcoPaste";
 
-export const GITHUB_ISSUES_LINK = "https://github.com/ayangweb/EcoPaste/issues";
+export const GITHUB_ISSUES_LINK = `${GITHUB_LINK}/issues`;
 
 export const LISTEN_KEY = {
 	ABOUT: "about",

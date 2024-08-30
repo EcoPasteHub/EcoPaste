@@ -8,7 +8,7 @@
 
 ## Issue を提出
 
-バグ報告と機能提案のために[GitHub Issues](https://github.com/ayangweb/EcoPaste/issues)を使用しています。
+バグ報告と機能提案のために[GitHub Issues](https://github.com/EcoPasteHub/EcoPaste/issues)を使用しています。
 
 問題を提出する前に、既に対処済みまたは進行中の類似の問題がないか検索してください。
 

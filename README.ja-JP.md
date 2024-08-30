@@ -1,5 +1,5 @@
-<a href="https://github.com/ayangweb/EcoPaste">
-  <img src="https://socialify.git.ci/ayangweb/EcoPaste/image?description=1&descriptionEditable=Windows%E3%80%81Macos%E3%80%81Linux%E7%94%A8%E3%81%AE%E3%82%AA%E3%83%BC%E3%83%97%E3%83%B3%E3%82%BD%E3%83%BC%E3%82%B9%E3%81%AE%E3%82%AF%E3%83%AA%E3%83%83%E3%83%97%E3%83%9C%E3%83%BC%E3%83%89%E7%AE%A1%E7%90%86%E3%83%84%E3%83%BC%E3%83%AB%E3%80%82&font=Source%20Code%20Pro&forks=1&issues=1&logo=https%3A%2F%2Fgithub.com%2Fayangweb%2FEcoPaste%2Fblob%2Fmaster%2Fpublic%2Flogo.png%3Fraw%3Dtrue&name=1&owner=1&pattern=Floating%20Cogs&pulls=1&stargazers=1&theme=Auto" alt="EcoPaste" />
+<a href="https://github.com/EcoPasteHub/EcoPaste">
+  <img src="https://socialify.git.ci/EcoPasteHub/EcoPaste/image?description=1&descriptionEditable=Windows%E3%80%81Macos%E3%80%81Linux%E7%94%A8%E3%81%AE%E3%82%AA%E3%83%BC%E3%83%97%E3%83%B3%E3%82%BD%E3%83%BC%E3%82%B9%E3%81%AE%E3%82%AF%E3%83%AA%E3%83%83%E3%83%97%E3%83%9C%E3%83%BC%E3%83%89%E7%AE%A1%E7%90%86%E3%83%84%E3%83%BC%E3%83%AB%E3%80%82&font=Source%20Code%20Pro&forks=1&issues=1&logo=https%3A%2F%2Fgithub.com%2Fayangweb%2FEcoPaste%2Fblob%2Fmaster%2Fpublic%2Flogo.png%3Fraw%3Dtrue&name=1&owner=1&pattern=Floating%20Cogs&pulls=1&stargazers=1&theme=Auto" alt="EcoPaste" />
 </a>
 
 <div align="center">
@@ -11,19 +11,19 @@
 
   <br/>
     
-  <a href="https://github.com/ayangweb/EcoPaste/releases/latest">
+  <a href="https://github.com/EcoPasteHub/EcoPaste/releases/latest">
     <img
       alt="Windows"
       src="https://img.shields.io/badge/-Windows-blue?style=flat-square&logo=windows&logoColor=white"
     />
   </a >  
-  <a href="https://github.com/ayangweb/EcoPaste/releases/latest">
+  <a href="https://github.com/EcoPasteHub/EcoPaste/releases/latest">
     <img
       alt="macOS"
       src="https://img.shields.io/badge/-MacOS-black?style=flat-square&logo=apple&logoColor=white"
     />
   </a >
-  <a href="https://github.com/ayangweb/EcoPaste/releases/latest">
+  <a href="https://github.com/EcoPasteHub/EcoPaste/releases/latest">
     <img 
       alt="Linux"
       src="https://img.shields.io/badge/-Linux-yellow?style=flat-square&logo=linux&logoColor=white" 
@@ -31,19 +31,19 @@
   </a>
 
   <div>
-    <a href="https://github.com/ayangweb/EcoPaste/blob/master/LICENSE">
+    <a href="https://github.com/EcoPasteHub/EcoPaste/blob/master/LICENSE">
       <img
-        src="https://img.shields.io/github/license/ayangweb/EcoPaste?style=flat-square"
+        src="https://img.shields.io/github/license/EcoPasteHub/EcoPaste?style=flat-square"
       />
     </a >
-    <a href="https://github.com/ayangweb/EcoPaste/releases/latest">
+    <a href="https://github.com/EcoPasteHub/EcoPaste/releases/latest">
       <img
-        src="https://img.shields.io/github/package-json/v/ayangweb/EcoPaste?style=flat-square"
+        src="https://img.shields.io/github/package-json/v/EcoPasteHub/EcoPaste?style=flat-square"
       />
     </a >
-    <a href="https://github.com/ayangweb/EcoPaste/releases">
+    <a href="https://github.com/EcoPasteHub/EcoPaste/releases">
       <img
-        src="https://img.shields.io/github/downloads/ayangweb/EcoPaste/total?style=flat-square"
+        src="https://img.shields.io/github/downloads/EcoPasteHub/EcoPaste/total?style=flat-square"
       />  
     </a >
   </div>
@@ -61,19 +61,19 @@
 
 ### Windows
 
-手動インストール: [Universal](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.6/EcoPaste_0.0.6_x64_zh-CN.msi)
+手動インストール: [Universal](https://mirror.ghproxy.com/https://github.com/EcoPasteHub/EcoPaste/releases/download/v0.0.6/EcoPaste_0.0.6_x64_zh-CN.msi)
 
-インストールなし: [Universal](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.6/EcoPaste_0.0.6_Windows_x64_Portable.zip)
+インストールなし: [Universal](https://mirror.ghproxy.com/https://github.com/EcoPasteHub/EcoPaste/releases/download/v0.0.6/EcoPaste_0.0.6_Windows_x64_Portable.zip)
 
 ### Macos
 
-手動インストール: [Apple Silicon](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.6/EcoPaste_0.0.6_aarch64.dmg) | [Intel](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.6/EcoPaste_0.0.6_x64.dmg)
+手動インストール: [Apple Silicon](https://mirror.ghproxy.com/https://github.com/EcoPasteHub/EcoPaste/releases/download/v0.0.6/EcoPaste_0.0.6_aarch64.dmg) | [Intel](https://mirror.ghproxy.com/https://github.com/EcoPasteHub/EcoPaste/releases/download/v0.0.6/EcoPaste_0.0.6_x64.dmg)
 
 HomeBrew:
 
 1. リポジトリを追加:
 ```shell
-brew tap ayangweb/EcoPaste
+brew tap EcoPasteHub/EcoPaste
 ```
 
 2. インストール:
@@ -90,12 +90,12 @@ brew upgrade ecopaste
 ```shell
 brew uninstall --cask ecopaste
 
-brew untap ayangweb/EcoPaste
+brew untap EcoPasteHub/EcoPaste
 ```
 
 ### Linux
 
-手動インストール: [AppImage](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.6/eco-paste_0.0.6_amd64.AppImage) | [deb](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.6/eco-paste_0.0.6_amd64.deb) | [rpm](https://mirror.ghproxy.com/https://github.com/ayangweb/EcoPaste/releases/download/v0.0.6/eco-paste-0.0.6-1.x86_64.rpm)
+手動インストール: [AppImage](https://mirror.ghproxy.com/https://github.com/EcoPasteHub/EcoPaste/releases/download/v0.0.6/eco-paste_0.0.6_amd64.AppImage) | [deb](https://mirror.ghproxy.com/https://github.com/EcoPasteHub/EcoPaste/releases/download/v0.0.6/eco-paste_0.0.6_amd64.deb) | [rpm](https://mirror.ghproxy.com/https://github.com/EcoPasteHub/EcoPaste/releases/download/v0.0.6/eco-paste-0.0.6-1.x86_64.rpm)
 
 ## 機能の概要
 
@@ -147,11 +147,11 @@ sudo xattr -r -d com.apple.quarantine /Applications/EcoPaste.app
 
 ## スター歴史
 
-<a href="https://star-history.com/#ayangweb/EcoPaste&Date">
+<a href="https://star-history.com/#EcoPasteHub/EcoPaste&Date">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=ayangweb/EcoPaste&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=ayangweb/EcoPaste&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=ayangweb/EcoPaste&type=Date" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=EcoPasteHub/EcoPaste&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=EcoPasteHub/EcoPaste&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=EcoPasteHub/EcoPaste&type=Date" />
  </picture>
 </a>
 
@@ -161,6 +161,6 @@ EcoPaste への貢献をいただいた皆様に感謝いたします。
 
 EcoPaste に貢献したい方は、[貢献ガイドライン](./.github/CONTRIBUTING.ja-JP.md)を参照してください。
 
-<a href="https://github.com/ayangweb/EcoPaste/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=ayangweb/EcoPaste" />
+<a href="https://github.com/EcoPasteHub/EcoPaste/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=EcoPasteHub/EcoPaste" />
 </a>
