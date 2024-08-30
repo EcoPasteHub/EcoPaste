@@ -8,8 +8,8 @@ body:
     attributes:
       value: |
         ## First of all
-        1. Please search for [existing issues](https://github.com/ayangweb/EcoPaste/issues) about this problem first.
-        2. Make sure the [EcoPaste](https://github.com/ayangweb/EcoPaste/releases/latest) you download is up to date.
+        1. Please search for [existing issues](https://github.com/EcoPasteHub/EcoPaste/issues) about this problem first.
+        2. Make sure the [EcoPaste](https://github.com/EcoPasteHub/EcoPaste/releases/latest) you download is up to date.
         3. Make sure it's an issue with EcoPaste and not something else you are using.
         4. Remember to follow our community guidelines and be friendly.
 
