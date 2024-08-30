@@ -1,5 +1,4 @@
 use mouse_position::mouse_position::Mouse;
-
 use tauri::{
     command, generate_handler,
     plugin::{Builder, TauriPlugin},

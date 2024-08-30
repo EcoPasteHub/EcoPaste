@@ -1,4 +1,3 @@
-use crate::core::tray::Tray;
 use clipboard_rs::{
     common::RustImage, Clipboard, ClipboardContent, ClipboardContext, ClipboardHandler,
     ClipboardWatcher, ClipboardWatcherContext, ContentFormat, RustImageData, WatcherShutdown,
@@ -15,6 +14,8 @@ use tauri::{
     plugin::{Builder, TauriPlugin},
     AppHandle, Manager, State, Wry,
 };
+
+use super::tray::update_tray_menu;
 
 pub static IS_LISTENING: Mutex<bool> = Mutex::new(false);
 
@@ -69,7 +70,7 @@ fn toggle_listening(app_handle: AppHandle) {
 
     drop(is_listening);
 
-    Tray::update_menu(&app_handle);
+    update_tray_menu(&app_handle);
 }
 
 #[command]

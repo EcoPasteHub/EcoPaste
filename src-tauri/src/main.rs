@@ -5,15 +5,13 @@ mod core;
 mod locales;
 mod plugins;
 
-use core::{error::redirect_panic_to_log, setup, tray};
+use core::{error::redirect_panic_to_log, setup};
 use plugins::{
-    backup, clipboard, fs_extra, locale, macos_permissions, mouse, ocr, paste,
-    window::{self, show_window, MAIN_WINDOW_LABEL, PREFERENCE_WINDOW_LABEL},
+    backup, clipboard, fs_extra, locale, macos_permissions, mouse, ocr, paste, tray,
+    window::{self, show_main_window, MAIN_WINDOW_LABEL, PREFERENCE_WINDOW_LABEL},
 };
 use std::env;
-use tauri::{
-    async_runtime, generate_context, generate_handler, Builder, Manager, SystemTray, WindowEvent,
-};
+use tauri::{generate_context, generate_handler, Builder, Manager, WindowEvent};
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_window_state::StateFlags;
 
@@ -26,12 +24,7 @@ fn main() {
         std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
     }
 
-    let mut ctx = generate_context!();
-
-    let package_info = ctx.package_info();
-    let app_name = &package_info.name;
-    let app_version = &package_info.version;
-    let tooltip = format!("{app_name} v{app_version}");
+    let mut context = generate_context!();
 
     let log_builder = {
         let builder =
@@ -59,15 +52,11 @@ fn main() {
             Ok(())
         })
         // 主题插件：https://github.com/wyhaya/tauri-plugin-theme
-        .plugin(tauri_plugin_theme::init(ctx.config_mut()))
+        .plugin(tauri_plugin_theme::init(context.config_mut()))
         // 确保在 windows 和 linux 上只有一个 app 实例在运行：https://github.com/tauri-apps/plugins-workspace/tree/v1/plugins/single-instance
         .plugin(tauri_plugin_single_instance::init(
             |app_handle, _argv, _cwd| {
-                let window = app_handle.get_window(MAIN_WINDOW_LABEL).unwrap();
-
-                async_runtime::block_on(async move {
-                    show_window(window).await;
-                });
+                show_main_window(app_handle);
             },
         ))
         // app 自启动：https://github.com/tauri-apps/tauri-plugin-autostart
@@ -105,9 +94,8 @@ fn main() {
         )
         // macos 权限查询的插件
         .plugin(macos_permissions::init())
-        // 系统托盘：https://tauri.app/v1/guides/features/system-tray
-        .system_tray(SystemTray::new().with_tooltip(&tooltip))
-        .on_system_tray_event(tray::Tray::handler)
+        // 自定义托盘插件
+        .plugin(tray::init())
         .invoke_handler(generate_handler![])
         // 让 app 保持在后台运行：https://tauri.app/v1/guides/features/system-tray/#preventing-the-app-from-closing
         .on_window_event(|event| match event.event() {
@@ -117,7 +105,7 @@ fn main() {
             }
             _ => {}
         })
-        .build(ctx)
+        .build(context)
         .expect("error while running tauri application");
 
     app.run(|app_handle, event| match event {
@@ -130,9 +118,9 @@ fn main() {
                 return;
             }
 
-            let window = app_handle.get_window(PREFERENCE_WINDOW_LABEL).unwrap();
+            use plugins::window::show_preference_window;
 
-            async_runtime::spawn(async move { show_window(window).await });
+            show_preference_window(app_handle);
         }
         _ => {
             let _ = app_handle;

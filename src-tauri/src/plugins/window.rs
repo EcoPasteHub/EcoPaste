@@ -1,7 +1,7 @@
 use tauri::{
-    command, generate_handler,
+    async_runtime, command, generate_handler,
     plugin::{Builder, TauriPlugin},
-    Window, Wry,
+    AppHandle, Manager, Window, Wry,
 };
 
 // 主窗口的label
@@ -60,6 +60,24 @@ pub fn frosted_window(window: Window) {
     .unwrap();
 
     let _ = window;
+}
+
+// 显示主窗口
+pub fn show_main_window(app_handle: &AppHandle) {
+    let window = app_handle.get_window(MAIN_WINDOW_LABEL).unwrap();
+
+    async_runtime::spawn(async move {
+        show_window(window).await;
+    });
+}
+
+// 显示偏好设置窗口
+pub fn show_preference_window(app_handle: &AppHandle) {
+    let window = app_handle.get_window(PREFERENCE_WINDOW_LABEL).unwrap();
+
+    async_runtime::spawn(async move {
+        show_window(window).await;
+    });
 }
 
 pub fn init() -> TauriPlugin<Wry> {

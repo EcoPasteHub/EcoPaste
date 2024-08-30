@@ -94,3 +94,7 @@ export const MACOS_PERMISSIONS_PLUGIN = {
 	REQUEST_FULL_DISK_ACCESS_PERMISSIONS:
 		"plugin:macos-permissions|request_full_disk_access_permissions",
 };
+
+export const TRAY_PLUGIN = {
+	TOGGLE_TRAY_VISIBLE: "plugin:tray|toggle_tray_visible",
+};

@@ -77,6 +77,10 @@ const Preference = () => {
 
 			setTheme(value);
 		});
+
+		watchKey(globalStore.app, "hideTray", (value) => {
+			toggleTrayVisible(!value);
+		});
 	});
 
 	useRegister(toggleWindowVisible, [shortcut.preference]);
