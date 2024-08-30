@@ -33,6 +33,10 @@ log = "0.4.22"
 tauri-plugin-window-state = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
 build-info = "0.0.38"
 
+[patch.crates-io]
+tao = { git = "https://github.com/ayangweb/tao" }
+tauri = { git = "https://github.com/ayangweb/tauri" }
+
 [target."cfg(target_os = \"macos\")".dependencies]
 cocoa = "0.25.0"
 objc = "0.2.7"

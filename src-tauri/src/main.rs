@@ -44,7 +44,7 @@ fn main() {
         }
     };
 
-    Builder::default()
+    let app = Builder::default()
         .setup(|app| {
             let main_window = app.get_window(MAIN_WINDOW_LABEL).unwrap();
 
@@ -117,6 +117,25 @@ fn main() {
             }
             _ => {}
         })
-        .run(ctx)
+        .build(ctx)
         .expect("error while running tauri application");
+
+    app.run(|app_handle, event| match event {
+        #[cfg(target_os = "macos")]
+        tauri::RunEvent::Reopen {
+            has_visible_windows,
+            ..
+        } => {
+            if has_visible_windows {
+                return;
+            }
+
+            let window = app_handle.get_window(PREFERENCE_WINDOW_LABEL).unwrap();
+
+            async_runtime::spawn(async move { show_window(window).await });
+        }
+        _ => {
+            let _ = app_handle;
+        }
+    });
 }
