@@ -34,8 +34,8 @@ tauri-plugin-window-state = { git = "https://github.com/tauri-apps/plugins-works
 build-info = "0.0.38"
 
 [patch.crates-io]
-tao = { git = "https://github.com/ayangweb/tao" }
-tauri = { git = "https://github.com/ayangweb/tauri" }
+tao = { git = "https://github.com/EcoPasteHub/tao", branch = "v0.16" }
+tauri = { git = "https://github.com/EcoPasteHub/tauri", branch = "1.x" }
 
 [target."cfg(target_os = \"macos\")".dependencies]
 cocoa = "0.25.0"
