@@ -105,7 +105,8 @@
 				"title": "App Settings",
 				"label": {
 					"auto_start": "Start at Login",
-					"auto_update": "Auto Check for Updates"
+					"auto_update": "Auto Check for Updates",
+					"hide_tray": "Hide Tray Icon"
 				}
 			},
 			"appearance_settings": {

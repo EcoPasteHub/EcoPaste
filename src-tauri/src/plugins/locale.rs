@@ -1,3 +1,4 @@
+use super::tray::update_tray_menu;
 use crate::locales::ZH_CN;
 use std::sync::Mutex;
 use tauri::{
@@ -5,8 +6,6 @@ use tauri::{
     plugin::{Builder, TauriPlugin},
     AppHandle, Wry,
 };
-
-use super::tray::update_tray_menu;
 
 pub static LOCALE: Mutex<Option<String>> = Mutex::new(None);
 

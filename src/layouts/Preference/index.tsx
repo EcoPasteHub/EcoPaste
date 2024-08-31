@@ -81,6 +81,8 @@ const Preference = () => {
 		watchKey(globalStore.app, "hideTray", (value) => {
 			toggleTrayVisible(!value);
 		});
+
+		watchKey(globalStore.appearance, "language", setLocale);
 	});
 
 	useRegister(toggleWindowVisible, [shortcut.preference]);

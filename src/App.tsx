@@ -21,11 +21,7 @@ const App = () => {
 
 		generateColorVars();
 
-		watchKey(globalStore.appearance, "language", (value = "zh-CN") => {
-			i18n.changeLanguage(value);
-
-			setLocale(value);
-		});
+		watchKey(globalStore.appearance, "language", i18n.changeLanguage);
 
 		watchKey(globalStore.appearance, "isDark", (value) => {
 			if (value) {

@@ -105,7 +105,8 @@
 				"title": "应用设置",
 				"label": {
 					"auto_start": "登录时启动",
-					"auto_update": "自动检查更新"
+					"auto_update": "自动检查更新",
+					"hide_tray": "隐藏托盘图标"
 				}
 			},
 			"appearance_settings": {

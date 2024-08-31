@@ -31,7 +31,7 @@ const General = () => {
 				/>
 
 				<ProSwitch
-					title={"隐藏托盘图标"}
+					title={t("preference.settings.app_settings.label.hide_tray")}
 					value={app.hideTray}
 					onChange={(value) => {
 						globalStore.app.hideTray = value;

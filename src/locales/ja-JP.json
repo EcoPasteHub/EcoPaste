@@ -105,7 +105,8 @@
 				"title": "ソフト設定",
 				"label": {
 					"auto_start": "ログイン時に起動",
-					"auto_update": "自動更新チェック"
+					"auto_update": "自動更新チェック",
+					"hide_tray": "トレイアイコンを隠す"
 				}
 			},
 			"appearance_settings": {

@@ -18,13 +18,11 @@ use tauri_plugin_window_state::StateFlags;
 pub const AUTO_LAUNCH_ARG: &str = "--auto-launch";
 
 fn main() {
-    redirect_panic_to_log();
+    let mut context = generate_context!();
 
     if cfg!(target_os = "linux") {
         std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
     }
-
-    let mut context = generate_context!();
 
     let log_builder = {
         let builder =
@@ -39,6 +37,8 @@ fn main() {
 
     let app = Builder::default()
         .setup(|app| {
+            redirect_panic_to_log();
+
             let main_window = app.get_window(MAIN_WINDOW_LABEL).unwrap();
 
             let preference_window = app.get_window(PREFERENCE_WINDOW_LABEL).unwrap();

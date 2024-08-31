@@ -4,6 +4,7 @@ use super::{
     window::{show_preference_window, PREFERENCE_WINDOW_LABEL},
 };
 use crate::locales::{get_locale, EN_US, JA_JP, LANGUAGES, ZH_CN, ZH_TW};
+use std::sync::Mutex;
 use tauri::{
     command, generate_handler,
     plugin::{Builder, TauriPlugin},
@@ -14,11 +15,10 @@ use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 
 const TRAY_ID: &str = "ECO_PASTE_TRAY";
 
+static IS_VISIBLE: Mutex<bool> = Mutex::new(false);
+
 pub fn tray_menu(app_handle: &AppHandle) -> SystemTrayMenu {
-    let language = {
-        let locale = LOCALE.lock().unwrap();
-        locale.clone().unwrap_or_else(|| ZH_CN.to_string())
-    };
+    let language = LOCALE.lock().unwrap().clone().unwrap_or(ZH_CN.to_string());
     let locale = get_locale(&language);
 
     let is_listening = *IS_LISTENING.lock().unwrap();
@@ -61,7 +61,11 @@ pub fn handle_tray_event(app_handle: AppHandle, system_tray: SystemTray) -> Syst
     system_tray.on_event(move |e| match e {
         SystemTrayEvent::LeftClick { .. } => {
             #[cfg(target_os = "windows")]
-            show_main_window(&app_handle);
+            {
+                use super::window::show_main_window;
+
+                show_main_window(&app_handle);
+            }
         }
         SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
             "preference" => {
@@ -94,10 +98,13 @@ pub fn handle_tray_event(app_handle: AppHandle, system_tray: SystemTray) -> Syst
 }
 
 pub fn update_tray_menu(app_handle: &AppHandle) {
-    let language = {
-        let locale = LOCALE.lock().unwrap();
-        locale.clone().unwrap_or_else(|| ZH_CN.to_string())
-    };
+    let is_visible = IS_VISIBLE.lock().unwrap();
+
+    if !*is_visible {
+        return;
+    }
+
+    let language = LOCALE.lock().unwrap().clone().unwrap_or(ZH_CN.to_string());
 
     if let Some(tray) = app_handle.tray_handle_by_id(TRAY_ID) {
         tray.set_menu(tray_menu(app_handle)).unwrap();
@@ -141,6 +148,10 @@ pub async fn toggle_tray_visible(app_handle: AppHandle, visible: bool) {
     } else {
         destroy_tray(&app_handle);
     }
+
+    let mut is_visible = IS_VISIBLE.lock().unwrap();
+
+    *is_visible = visible;
 }
 
 pub fn init() -> TauriPlugin<Wry> {

@@ -22,7 +22,7 @@ export const getLocale = async (): Promise<Language> => {
 /**
  * 设置语言
  */
-export const setLocale = (language: Language) => {
+export const setLocale = (language: Language = "zh-CN") => {
 	invoke(LOCALE_PLUGIN.SET_LOCALE, {
 		language,
 	});
