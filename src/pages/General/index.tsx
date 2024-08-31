@@ -29,6 +29,14 @@ const General = () => {
 						globalStore.app.autoUpdate = value;
 					}}
 				/>
+
+				<ProSwitch
+					title={t("preference.settings.app_settings.label.hide_tray")}
+					value={app.hideTray}
+					onChange={(value) => {
+						globalStore.app.hideTray = value;
+					}}
+				/>
 			</ProList>
 
 			<ProList header={t("preference.settings.appearance_settings.title")}>

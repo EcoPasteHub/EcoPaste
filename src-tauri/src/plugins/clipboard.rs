@@ -1,4 +1,4 @@
-use crate::core::tray::Tray;
+use super::tray::update_tray_menu;
 use clipboard_rs::{
     common::RustImage, Clipboard, ClipboardContent, ClipboardContext, ClipboardHandler,
     ClipboardWatcher, ClipboardWatcherContext, ContentFormat, RustImageData, WatcherShutdown,
@@ -69,7 +69,7 @@ fn toggle_listening(app_handle: AppHandle) {
 
     drop(is_listening);
 
-    Tray::update_menu(&app_handle);
+    update_tray_menu(&app_handle);
 }
 
 #[command]

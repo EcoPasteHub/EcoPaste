@@ -1,4 +1,5 @@
-use crate::{core::tray::Tray, locales::ZH_CN};
+use super::tray::update_tray_menu;
+use crate::locales::ZH_CN;
 use std::sync::Mutex;
 use tauri::{
     command, generate_handler,
@@ -27,7 +28,7 @@ pub fn set_locale(app_handle: AppHandle<Wry>, language: String) {
 
     drop(locale);
 
-    Tray::update_menu(&app_handle)
+    update_tray_menu(&app_handle);
 }
 
 pub fn init() -> TauriPlugin<Wry> {

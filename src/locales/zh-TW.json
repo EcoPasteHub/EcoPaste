@@ -105,7 +105,8 @@
 				"title": "應用設定",
 				"label": {
 					"auto_start": "登入時啟動",
-					"auto_update": "自動檢查更新"
+					"auto_update": "自動檢查更新",
+					"hide_tray": "隱藏託盤圖標"
 				}
 			},
 			"appearance_settings": {
