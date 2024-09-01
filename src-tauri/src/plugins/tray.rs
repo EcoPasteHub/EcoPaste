@@ -86,11 +86,7 @@ pub fn handle_tray_event(app_handle: AppHandle, system_tray: SystemTray) -> Syst
             "github" => {
                 window.emit("github", true).unwrap();
             }
-            "exit" => {
-                app_handle.save_window_state(StateFlags::all()).unwrap();
-
-                app_handle.exit(0)
-            }
+            "exit" => app_handle.exit(0),
             _ => {}
         },
         _ => {}
@@ -103,6 +99,8 @@ pub fn update_tray_menu(app_handle: &AppHandle) {
     if !*is_visible {
         return;
     }
+
+    drop(is_visible);
 
     let language = LOCALE.lock().unwrap().clone().unwrap_or(ZH_CN.to_string());
 
@@ -143,15 +141,17 @@ pub fn destroy_tray(app_handle: &AppHandle) {
 
 #[command]
 pub async fn toggle_tray_visible(app_handle: AppHandle, visible: bool) {
+    let mut is_visible = IS_VISIBLE.lock().unwrap();
+
+    *is_visible = visible;
+
+    drop(is_visible);
+
     if visible {
         init_tray(&app_handle)
     } else {
         destroy_tray(&app_handle);
     }
-
-    let mut is_visible = IS_VISIBLE.lock().unwrap();
-
-    *is_visible = visible;
 }
 
 pub fn init() -> TauriPlugin<Wry> {

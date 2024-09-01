@@ -89,7 +89,7 @@ fn main() {
         // 记住窗口状态的插件：https://github.com/tauri-apps/plugins-workspace/tree/v1/plugins/window-state
         .plugin(
             tauri_plugin_window_state::Builder::default()
-                .with_state_flags(StateFlags::all() & !StateFlags::VISIBLE)
+                .with_state_flags(StateFlags::POSITION & StateFlags::SIZE)
                 .build(),
         )
         // macos 权限查询的插件

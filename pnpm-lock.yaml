@@ -77,6 +77,9 @@ importers:
       tauri-plugin-sql-api:
         specifier: github:tauri-apps/tauri-plugin-sql#v1
         version: https://codeload.github.com/tauri-apps/tauri-plugin-sql/tar.gz/6a4a14c36b1ad49c9f468351706d104a54e0540c
+      tauri-plugin-window-state-api:
+        specifier: github:tauri-apps/tauri-plugin-window-state#v1
+        version: https://codeload.github.com/tauri-apps/tauri-plugin-window-state/tar.gz/1abc39dce68e3da8377230b83b7792cd4c86c50a
       valtio:
         specifier: ^1.13.2
         version: 1.13.2(@types/react@18.3.3)(react@18.3.1)
@@ -3805,6 +3808,10 @@ packages:
 
   tauri-plugin-sql-api@https://codeload.github.com/tauri-apps/tauri-plugin-sql/tar.gz/6a4a14c36b1ad49c9f468351706d104a54e0540c:
     resolution: {tarball: https://codeload.github.com/tauri-apps/tauri-plugin-sql/tar.gz/6a4a14c36b1ad49c9f468351706d104a54e0540c}
+    version: 0.0.0
+
+  tauri-plugin-window-state-api@https://codeload.github.com/tauri-apps/tauri-plugin-window-state/tar.gz/1abc39dce68e3da8377230b83b7792cd4c86c50a:
+    resolution: {tarball: https://codeload.github.com/tauri-apps/tauri-plugin-window-state/tar.gz/1abc39dce68e3da8377230b83b7792cd4c86c50a}
     version: 0.0.0
 
   text-extensions@2.4.0:
@@ -8270,6 +8277,10 @@ snapshots:
   tauri-plugin-sql-api@https://codeload.github.com/tauri-apps/tauri-plugin-sql/tar.gz/6a4a14c36b1ad49c9f468351706d104a54e0540c:
     dependencies:
       '@tauri-apps/api': 1.5.6
+
+  tauri-plugin-window-state-api@https://codeload.github.com/tauri-apps/tauri-plugin-window-state/tar.gz/1abc39dce68e3da8377230b83b7792cd4c86c50a:
+    dependencies:
+      '@tauri-apps/api': 1.6.0
 
   text-extensions@2.4.0: {}
 
