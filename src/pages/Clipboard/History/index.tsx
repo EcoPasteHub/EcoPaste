@@ -11,7 +11,6 @@ import { isEqual } from "arcdash";
 import clsx from "clsx";
 import { merge } from "lodash-es";
 import { createContext } from "react";
-import { StateFlags, saveWindowState } from "tauri-plugin-window-state-api";
 import { useSnapshot } from "valtio";
 import Header from "./components/Header";
 import List from "./components/List";
@@ -125,14 +124,6 @@ const ClipboardHistory = () => {
 			if (isEqual(clipboardStore, payload)) return;
 
 			merge(clipboardStore, payload);
-		});
-
-		appWindow.onMoved(() => {
-			saveWindowState(StateFlags.POSITION);
-		});
-
-		appWindow.onResized(() => {
-			saveWindowState(StateFlags.SIZE);
 		});
 	});
 
