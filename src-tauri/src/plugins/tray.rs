@@ -11,7 +11,6 @@ use tauri::{
     AppHandle, CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu,
     SystemTrayMenuItem, SystemTraySubmenu, Wry,
 };
-use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 
 const TRAY_ID: &str = "ECO_PASTE_TRAY";
 
