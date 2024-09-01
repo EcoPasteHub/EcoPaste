@@ -10,10 +10,11 @@ use plugins::{
     backup, clipboard, fs_extra, locale, macos_permissions, mouse, ocr, paste, tray,
     window::{self, show_main_window, MAIN_WINDOW_LABEL, PREFERENCE_WINDOW_LABEL},
 };
-use std::env;
-use tauri::{generate_context, generate_handler, Builder, Manager, WindowEvent};
+use tauri::{
+    generate_context, generate_handler, Builder, Manager, PageLoadPayload, Window, WindowEvent,
+};
 use tauri_plugin_autostart::MacosLauncher;
-use tauri_plugin_window_state::StateFlags;
+use tauri_plugin_window_state::{AppHandleExt, StateFlags, WindowExt};
 
 pub const AUTO_LAUNCH_ARG: &str = "--auto-launch";
 
@@ -48,6 +49,15 @@ fn main() {
             setup::extra(app, main_window.clone(), preference_window.clone());
 
             core::app::observe_app();
+
+            main_window.restore_state(StateFlags::POSITION).unwrap();
+            main_window.restore_state(StateFlags::SIZE).unwrap();
+            preference_window
+                .restore_state(StateFlags::POSITION)
+                .unwrap();
+
+            // main_window.set_decorations(false).unwrap();
+            // preference_window.set_resizable(false).unwrap();
 
             Ok(())
         })
@@ -89,6 +99,8 @@ fn main() {
         // 记住窗口状态的插件：https://github.com/tauri-apps/plugins-workspace/tree/v1/plugins/window-state
         .plugin(
             tauri_plugin_window_state::Builder::default()
+                .skip_initial_state(MAIN_WINDOW_LABEL)
+                .skip_initial_state(PREFERENCE_WINDOW_LABEL)
                 .with_state_flags(StateFlags::all() & !StateFlags::VISIBLE)
                 .build(),
         )
@@ -101,7 +113,22 @@ fn main() {
         .on_window_event(|event| match event.event() {
             WindowEvent::CloseRequested { api, .. } => {
                 event.window().hide().unwrap();
+
                 api.prevent_close();
+            }
+            WindowEvent::Moved(_) => {
+                println!("window moved");
+
+                let app_handle = event.window().app_handle();
+
+                app_handle.save_window_state(StateFlags::POSITION).unwrap();
+            }
+            WindowEvent::Resized(_) => {
+                println!("window resized");
+
+                let app_handle = event.window().app_handle();
+
+                app_handle.save_window_state(StateFlags::SIZE).unwrap();
             }
             _ => {}
         })

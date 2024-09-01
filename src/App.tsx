@@ -8,7 +8,6 @@ const { defaultAlgorithm, darkAlgorithm } = theme;
 import { listen } from "@tauri-apps/api/event";
 import { isString } from "arcdash";
 import { error } from "tauri-plugin-log-api";
-import { StateFlags, saveWindowState } from "tauri-plugin-window-state-api";
 
 const App = () => {
 	const { appearance } = useSnapshot(globalStore);
@@ -36,14 +35,6 @@ const App = () => {
 			if (appWindow.label !== payload) return;
 
 			showWindow();
-		});
-
-		appWindow.onMoved(() => {
-			saveWindowState(StateFlags.POSITION);
-		});
-
-		appWindow.onResized(() => {
-			saveWindowState(StateFlags.SIZE);
 		});
 	});
 
