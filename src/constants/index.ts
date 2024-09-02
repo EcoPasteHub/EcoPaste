@@ -14,14 +14,15 @@ export const LISTEN_KEY = {
 	CHANGE_LANGUAGE: "change-language",
 	TOGGLE_LISTENING: "toggle-listening",
 	SHOW_WINDOW: "show-window",
+	CLIPBOARD_ITEM_PREVIEW: "clipboard-item-preview",
+	CLIPBOARD_ITEM_PASTE: "clipboard-item-paste",
+	CLIPBOARD_ITEM_DELETE: "clipboard-item-delete",
 };
 
 export const WINDOW_PLUGIN = {
 	CREATE_WINDOW: "plugin:window|create_window",
 	SHOW_WINDOW: "plugin:window|show_window",
 	HIDE_WINDOW: "plugin:window|hide_window",
-	SET_WINDOW_SHADOW: "plugin:window|set_window_shadow",
-	FROSTED_WINDOW: "plugin:window|frosted_window",
 };
 
 export const FS_EXTRA_PLUGIN = {

@@ -1,21 +1,21 @@
 import Scrollbar from "@/components/Scrollbar";
-import { HistoryContext } from "@/pages/Clipboard/History";
-import type { HistoryItem } from "@/types/database";
+import type { ClipboardItem } from "@/types/database";
 import { Flex, Tag } from "antd";
 import clsx from "clsx";
+import { ClipboardPanelContext } from "../..";
 
-interface TabItem {
+interface GroupItem {
 	key: string;
 	label: string;
-	group?: HistoryItem["group"];
+	group?: ClipboardItem["group"];
 	isCollected?: boolean;
 }
 
-const Tab = () => {
-	const { state } = useContext(HistoryContext);
+const Group = () => {
+	const { state } = useContext(ClipboardPanelContext);
 	const { t } = useTranslation();
 
-	const tabList: TabItem[] = [
+	const groupList: GroupItem[] = [
 		{
 			key: "all",
 			label: t("clipboard.label.tab.all"),
@@ -42,9 +42,9 @@ const Tab = () => {
 		},
 	];
 
-	const [checked, setChecked] = useState(tabList[0].key);
+	const [checked, setChecked] = useState(groupList[0].key);
 
-	const handleChange = (item: TabItem) => {
+	const handleChange = (item: GroupItem) => {
 		const { key, group, isCollected } = item;
 
 		setChecked(key);
@@ -55,7 +55,7 @@ const Tab = () => {
 	return (
 		<Scrollbar thumbSize={0}>
 			<Flex data-tauri-drag-region>
-				{tabList.map((item) => {
+				{groupList.map((item) => {
 					const { key, label } = item;
 
 					const isChecked = checked === key;
@@ -76,4 +76,4 @@ const Tab = () => {
 	);
 };
 
-export default Tab;
+export default Group;

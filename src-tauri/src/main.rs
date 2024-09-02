@@ -5,7 +5,7 @@ mod core;
 mod locales;
 mod plugins;
 
-use core::{error::redirect_panic_to_log, setup};
+use core::setup;
 use plugins::{
     backup, clipboard, fs_extra, locale, macos_permissions, mouse, ocr, paste, tray,
     window::{self, show_main_window, MAIN_WINDOW_LABEL, PREFERENCE_WINDOW_LABEL},
@@ -37,17 +37,11 @@ fn main() {
 
     let app = Builder::default()
         .setup(|app| {
-            redirect_panic_to_log();
-
             let main_window = app.get_window(MAIN_WINDOW_LABEL).unwrap();
 
             let preference_window = app.get_window(PREFERENCE_WINDOW_LABEL).unwrap();
 
             setup::default(app, main_window.clone(), preference_window.clone());
-
-            setup::extra(app, main_window.clone(), preference_window.clone());
-
-            core::app::observe_app();
 
             Ok(())
         })

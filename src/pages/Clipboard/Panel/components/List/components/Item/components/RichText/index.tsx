@@ -1,4 +1,4 @@
-import type { HistoryItem } from "@/types/database";
+import type { ClipboardItem } from "@/types/database";
 import type { FC } from "react";
 import { EMFJS, RTFJS, WMFJS } from "rtf.js";
 import HTML from "../HTML";
@@ -7,7 +7,7 @@ RTFJS.loggingEnabled(false);
 WMFJS.loggingEnabled(false);
 EMFJS.loggingEnabled(false);
 
-const RichText: FC<HistoryItem> = (props) => {
+const RichText: FC<ClipboardItem> = (props) => {
 	const { value } = props;
 
 	const [parsedHTML, setParsedHTML] = useState("");

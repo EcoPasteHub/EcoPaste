@@ -1,8 +1,8 @@
-import type { HistoryItem } from "@/types/database";
+import type { ClipboardItem } from "@/types/database";
 import type { FC } from "react";
 import Image from "../Image";
 
-const Files: FC<HistoryItem> = (props) => {
+const Files: FC<ClipboardItem> = (props) => {
 	const { value } = props;
 
 	const paths: string[] = JSON.parse(value);

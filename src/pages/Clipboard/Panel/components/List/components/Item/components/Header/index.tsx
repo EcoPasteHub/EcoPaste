@@ -1,12 +1,12 @@
 import Icon from "@/components/Icon";
 import Scrollbar from "@/components/Scrollbar";
-import type { HistoryItem } from "@/types/database";
+import type { ClipboardItem } from "@/types/database";
 import { Flex, Popconfirm } from "antd";
 import { autoConvertBytes } from "arcdash";
 import clsx from "clsx";
 import type { FC } from "react";
 
-interface HeaderProps extends HistoryItem {
+interface HeaderProps extends ClipboardItem {
 	copy: () => void;
 	collect: () => void;
 	deleteItem: () => void;

@@ -1,7 +1,7 @@
-import type { HistoryItem } from "@/types/database";
+import type { ClipboardItem } from "@/types/database";
 import type { FC } from "react";
 
-const HTML: FC<Partial<HistoryItem>> = (props) => {
+const HTML: FC<Partial<ClipboardItem>> = (props) => {
 	const { value = "" } = props;
 	const containerRef = useRef<HTMLDivElement>(null);
 

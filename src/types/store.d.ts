@@ -42,6 +42,7 @@ export type ClickFeedback = "none" | "copy" | "paste";
 export interface ClipboardStore {
 	// 窗口设置
 	window: {
+		style: "float" | "dock";
 		position: "remember" | "follow" | "center";
 	};
 

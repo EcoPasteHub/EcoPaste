@@ -1,34 +1,25 @@
 import Icon from "@/components/Icon";
-import { HistoryContext } from "@/pages/Clipboard/History";
-import type { InputProps, InputRef } from "antd";
+import type { InputRef } from "antd";
 import { Input } from "antd";
-import { isNil } from "lodash-es";
-import type { FC } from "react";
+import type { FC, HTMLAttributes } from "react";
+import { ClipboardPanelContext } from "../..";
 
-const Search: FC<InputProps> = (props) => {
-	const { state } = useContext(HistoryContext);
-	const { t } = useTranslation();
-
+const Search: FC<HTMLAttributes<HTMLDivElement>> = (props) => {
+	const { state } = useContext(ClipboardPanelContext);
 	const inputRef = useRef<InputRef>(null);
-
 	const [value, setValue] = useState("");
+	const { t } = useTranslation();
 
 	useFocus({
 		onFocus() {
-			const { search } = clipboardStore;
-
-			if (search.defaultFocus) {
+			if (clipboardStore.search.defaultFocus) {
 				inputRef.current?.focus();
-			} else if (isNil(state.activeIndex)) {
-				state.activeIndex = 0;
 			}
 		},
 		onBlur() {
-			const { search } = clipboardStore;
-
 			inputRef.current?.blur();
 
-			if (search.autoClear) {
+			if (clipboardStore.search.autoClear) {
 				setValue("");
 			}
 		},
@@ -39,9 +30,7 @@ const Search: FC<InputProps> = (props) => {
 			state.search = value;
 		},
 		[value],
-		{
-			wait: 500,
-		},
+		{ wait: 500 },
 	);
 
 	useOSKeyPress(["meta.f", "ctrl.f"], () => {
@@ -49,21 +38,14 @@ const Search: FC<InputProps> = (props) => {
 	});
 
 	return (
-		<div className="mx-9">
+		<div {...props}>
 			<Input
-				{...props}
 				ref={inputRef}
 				allowClear
 				value={value}
 				prefix={<Icon name="i-lucide:search" />}
 				size="small"
 				placeholder={t("clipboard.hints.search_placeholder")}
-				onFocus={() => {
-					state.searching = true;
-				}}
-				onBlur={() => {
-					state.searching = false;
-				}}
 				onChange={(event) => {
 					setValue(event.target.value);
 				}}

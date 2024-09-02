@@ -22,13 +22,6 @@ export const hideWindow = () => {
 };
 
 /**
- * 给窗口添加阴影
- */
-export const setWindowShadow = () => {
-	invoke(WINDOW_PLUGIN.SET_WINDOW_SHADOW);
-};
-
-/**
  * 切换窗口的显示和隐藏
  */
 export const toggleWindowVisible = async () => {
@@ -39,11 +32,4 @@ export const toggleWindowVisible = async () => {
 	} else {
 		showWindow();
 	}
-};
-
-/**
- * 磨砂窗口
- */
-export const frostedWindow = () => {
-	invoke(WINDOW_PLUGIN.FROSTED_WINDOW);
 };

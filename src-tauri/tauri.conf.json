@@ -65,6 +65,7 @@
 		"windows": [
 			{
 				"label": "main",
+				"title": "EcoPaste",
 				"url": "index.html/#/",
 				"width": 360,
 				"height": 600,
