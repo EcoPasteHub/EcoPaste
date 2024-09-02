@@ -63,16 +63,23 @@ pub fn observe_app() {
             let mut event = std::mem::zeroed();
             XNextEvent(display, &mut event);
 
-            let mut focus_return: u64 = 0;
+            let mut window: u64 = 0;
             let mut revert_to_return: i32 = 0;
-            XGetInputFocus(display, &mut focus_return, &mut revert_to_return);
+            XGetInputFocus(display, &mut window, &mut revert_to_return);
 
-            if get_net_wm_name(display, focus_return).is_ok_and(|s| s.eq(MAIN_WINDOW_TITLE)) {
+            if window == 1 {
+                continue;
+            }
+
+            let wm_name = get_net_wm_name(display, window).unwrap_or_default();
+
+            if wm_name.is_empty() || wm_name.eq(MAIN_WINDOW_TITLE) {
+                log::warn!("Ignore window: 0x{:x}", window);
                 continue;
             }
 
             let mut previous_window = PREVIOUS_WINDOW.lock().unwrap();
-            let _ = previous_window.insert(focus_return);
+            let _ = previous_window.insert(window);
         }
     });
 }
