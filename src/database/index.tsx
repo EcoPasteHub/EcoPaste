@@ -1,5 +1,5 @@
 import type {
-	HistoryItem,
+	ClipboardItem,
 	SelectPayload,
 	TableName,
 	TablePayload,
@@ -149,9 +149,9 @@ export const updateSQL = async (
  * @param id 删除数据的 id
  */
 export const deleteSQL = async (tableName: TableName, id?: number) => {
-	const list = await selectSQL<HistoryItem[]>("history", { id });
+	const list = await selectSQL<ClipboardItem[]>("history", { id });
 
-	const deleteImageFile = (item: HistoryItem) => {
+	const deleteImageFile = (item: ClipboardItem) => {
 		const { type, value = "" } = item;
 
 		if (type !== "image") return;

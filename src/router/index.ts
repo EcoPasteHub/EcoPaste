@@ -2,7 +2,7 @@
 import Preference from "@/layouts/Preference";
 import About from "@/pages/About";
 import Backup from "@/pages/Backup";
-import ClipboardHistory from "@/pages/Clipboard/History";
+import ClipboardPanel from "@/pages/Clipboard/Panel";
 import ClipboardSettings from "@/pages/Clipboard/Settings";
 import General from "@/pages/General";
 import History from "@/pages/History";
@@ -69,7 +69,7 @@ export const routes: Route[] = [
 	preferenceRoute,
 	{
 		path: "/",
-		Component: ClipboardHistory,
+		Component: ClipboardPanel,
 	},
 ];
 

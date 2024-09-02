@@ -1,10 +1,12 @@
-import { HistoryContext } from "@/pages/Clipboard/History";
-import type { HistoryItem } from "@/types/database";
+import { ClipboardPanelContext } from "@/pages/Clipboard/Panel";
+import type { ClipboardItem } from "@/types/database";
+import {} from "@tauri-apps/api/event";
 import { copyFile, writeFile } from "@tauri-apps/api/fs";
 import { downloadDir } from "@tauri-apps/api/path";
 import { open } from "@tauri-apps/api/shell";
-import { Flex } from "antd";
-import type { CSSProperties, FC, KeyboardEvent, MouseEvent } from "react";
+import { Flex, type FlexProps } from "antd";
+import clsx from "clsx";
+import type { FC, MouseEvent } from "react";
 import { type ContextMenu, showMenu } from "tauri-plugin-context-menu";
 import { useSnapshot } from "valtio";
 import Files from "./components/Files";
@@ -14,10 +16,9 @@ import Image from "./components/Image";
 import RichText from "./components/RichText";
 import Text from "./components/Text";
 
-interface ItemProps {
+interface ItemProps extends Partial<FlexProps> {
 	index: number;
-	data: HistoryItem;
-	style: CSSProperties;
+	data: ClipboardItem;
 }
 
 interface MenuItem extends ContextMenu.Item {
@@ -25,25 +26,23 @@ interface MenuItem extends ContextMenu.Item {
 }
 
 const Item: FC<ItemProps> = (props) => {
-	const { index, style, data } = props;
-	const { id, type, group, value, search, createTime, isCollected } = data;
-
-	const { state, getHistoryList } = useContext(HistoryContext);
+	const { index, data, className, ...rest } = props;
+	const { id, type, value, search, group, isCollected, createTime } = data;
+	const { state, getClipboardList } = useContext(ClipboardPanelContext);
+	const { t } = useTranslation();
 	const { env, appearance } = useSnapshot(globalStore);
 	const { content } = useSnapshot(clipboardStore);
-	const { t } = useTranslation();
 
-	const containerRef = useRef<HTMLElement>(null);
-
-	useEffect(() => {
-		if (state.searching) return;
-
-		if (state.activeIndex === index) {
-			containerRef.current?.focus();
-		} else {
-			containerRef.current?.blur();
+	state.$eventBus?.useSubscription((key) => {
+		switch (key) {
+			case LISTEN_KEY.CLIPBOARD_ITEM_PREVIEW:
+				return preview();
+			case LISTEN_KEY.CLIPBOARD_ITEM_PASTE:
+				return pasteValue();
+			case LISTEN_KEY.CLIPBOARD_ITEM_DELETE:
+				return deleteItem();
 		}
-	}, [state.activeIndex, state.searching, state.historyList]);
+	});
 
 	const copy = () => {
 		switch (type) {
@@ -69,7 +68,7 @@ const Item: FC<ItemProps> = (props) => {
 	const collect = async () => {
 		await updateSQL("history", { id, isCollected: !isCollected });
 
-		getHistoryList?.();
+		getClipboardList?.();
 	};
 
 	const openBrowser = async () => {
@@ -93,7 +92,9 @@ const Item: FC<ItemProps> = (props) => {
 		previewPath(destination);
 	};
 
-	const previewImage = async () => {
+	const preview = () => {
+		if (state.activeId !== id || type !== "image") return;
+
 		previewPath(value, false);
 	};
 
@@ -113,13 +114,15 @@ const Item: FC<ItemProps> = (props) => {
 	};
 
 	const deleteItem = async () => {
+		if (state.activeId !== id) return;
+
 		await deleteSQL("history", id);
 
-		getHistoryList?.();
+		getClipboardList?.();
 	};
 
 	const deleteAbove = async () => {
-		const list = state.historyList.filter((item) => {
+		const list = state.data.list.filter((item) => {
 			const isMore = item.createTime > createTime;
 			const isDifferent = item.createTime === createTime && item.id !== id;
 
@@ -132,7 +135,7 @@ const Item: FC<ItemProps> = (props) => {
 	};
 
 	const deleteBelow = async () => {
-		const list = state.historyList.filter((item) => {
+		const list = state.data.list.filter((item) => {
 			const isLess = item.createTime < createTime;
 			const isDifferent = item.createTime === createTime && item.id !== id;
 
@@ -143,12 +146,12 @@ const Item: FC<ItemProps> = (props) => {
 	};
 
 	const deleteOther = async () => {
-		const list = state.historyList.filter((item) => item.id !== id);
+		const list = state.data.list.filter((item) => item.id !== id);
 
 		deleteAll(list);
 	};
 
-	const deleteAll = async (list: HistoryItem[]) => {
+	const deleteAll = async (list: ClipboardItem[]) => {
 		let filteredList = list;
 
 		if (!state.isCollected) {
@@ -159,10 +162,12 @@ const Item: FC<ItemProps> = (props) => {
 			await deleteSQL("history", item.id);
 		}
 
-		getHistoryList?.();
+		getClipboardList?.();
 	};
 
 	const pasteValue = async () => {
+		if (state.activeId !== id) return;
+
 		await copy();
 
 		paste();
@@ -170,6 +175,8 @@ const Item: FC<ItemProps> = (props) => {
 
 	const handleContextMenu = async (event: MouseEvent) => {
 		event.preventDefault();
+
+		state.activeId = id;
 
 		const menus: MenuItem[] = [
 			{
@@ -210,7 +217,7 @@ const Item: FC<ItemProps> = (props) => {
 			{
 				label: t("clipboard.button.context_menu.preview_image"),
 				hide: type !== "image",
-				event: previewImage,
+				event: preview,
 			},
 			{
 				label: t("clipboard.button.context_menu.download_image"),
@@ -235,18 +242,18 @@ const Item: FC<ItemProps> = (props) => {
 			},
 			{
 				label: t("clipboard.button.context_menu.delete_below"),
-				hide: index === state.historyList.length - 1,
+				hide: index === state.data.list.length - 1,
 				event: deleteBelow,
 			},
 			{
 				label: t("clipboard.button.context_menu.delete_other"),
-				hide: state.historyList.length === 1,
+				hide: state.data.list.length === 1,
 				event: deleteOther,
 			},
 			{
 				label: t("clipboard.button.context_menu.delete_all"),
-				hide: state.historyList.length === 1,
-				event: () => deleteAll(state.historyList),
+				hide: state.data.list.length === 1,
+				event: () => deleteAll(state.data.list),
 			},
 		];
 
@@ -257,54 +264,12 @@ const Item: FC<ItemProps> = (props) => {
 		});
 	};
 
-	const handleClick = () => {
-		if (content.autoPaste !== "single") return;
+	const handleClick = (type: typeof content.autoPaste) => {
+		state.activeId = id;
+
+		if (content.autoPaste !== type) return;
 
 		pasteValue();
-	};
-
-	const handleDoubleClick = () => {
-		if (content.autoPaste !== "double") return;
-
-		pasteValue();
-	};
-
-	const handleFocus = () => {
-		state.activeIndex = index;
-	};
-
-	const handleKeyDown = (event: KeyboardEvent) => {
-		const { code } = event;
-
-		const isSpace = code === "Space";
-		const isArrowUp = code === "ArrowUp";
-		const isArrowDown = code === "ArrowDown";
-		const isEnter = code === "Enter";
-		const isDelete = code === "Backspace";
-
-		if (isSpace || isArrowUp || isArrowDown || isEnter || isDelete) {
-			event.preventDefault();
-		}
-
-		if (isSpace && type === "image") {
-			previewImage();
-		}
-
-		if (isArrowUp && index > 0) {
-			state.activeIndex = index - 1;
-		}
-
-		if (isArrowDown && index < state.historyList.length - 1) {
-			state.activeIndex = index + 1;
-		}
-
-		if (isEnter) {
-			pasteValue();
-		}
-
-		if (isDelete) {
-			deleteItem();
-		}
 	};
 
 	const renderContent = () => {
@@ -324,17 +289,19 @@ const Item: FC<ItemProps> = (props) => {
 
 	return (
 		<Flex
+			{...rest}
 			vertical
-			ref={containerRef}
-			tabIndex={0}
 			gap={4}
-			style={style}
-			className="antd-input group b-color-2 absolute inset-0 mx-9 h-full rounded-6 p-6"
+			className={clsx(
+				className,
+				"group antd-input! b-color-2 absolute inset-0 mx-9 h-full rounded-6 p-6",
+				{
+					"antd-input-focus!": state.activeId === id,
+				},
+			)}
 			onContextMenu={handleContextMenu}
-			onClick={handleClick}
-			onDoubleClick={handleDoubleClick}
-			onFocus={handleFocus}
-			onKeyDown={handleKeyDown}
+			onClick={() => handleClick("single")}
+			onDoubleClick={() => handleClick("double")}
 		>
 			<Header {...data} copy={copy} collect={collect} deleteItem={deleteItem} />
 
@@ -345,4 +312,4 @@ const Item: FC<ItemProps> = (props) => {
 	);
 };
 
-export default memo(Item);
+export default Item;

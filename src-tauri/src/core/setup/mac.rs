@@ -1,6 +1,6 @@
 use tauri::{App, Window};
 
-pub fn extra(app: &mut App, main_window: Window, _preference_window: Window) {
+pub fn platform(app: &mut App, main_window: Window, _preference_window: Window) {
     // 隐藏 mac 的程序坞图标：https://github.com/tauri-apps/tauri/issues/4852#issuecomment-1312716378
     app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 

@@ -40,19 +40,19 @@ pub async fn hide_window(window: Window) {
 
 // 给窗口添加阴影
 #[command]
-pub async fn set_window_shadow(window: Window) {
+pub fn set_window_shadow(window: &Window) {
     #[cfg(not(target_os = "linux"))]
-    window_shadows::set_shadow(&window, true).unwrap();
+    window_shadows::set_shadow(window, true).unwrap();
 
     let _ = window;
 }
 
 // 磨砂窗口：https://github.com/tauri-apps/window-vibrancy
 #[command]
-pub fn frosted_window(window: Window) {
+pub fn frosted_window(window: &Window) {
     #[cfg(target_os = "macos")]
     window_vibrancy::apply_vibrancy(
-        &window,
+        window,
         window_vibrancy::NSVisualEffectMaterial::Sidebar,
         Some(window_vibrancy::NSVisualEffectState::Active),
         Some(10.0),
@@ -82,11 +82,6 @@ pub fn show_preference_window(app_handle: &AppHandle) {
 
 pub fn init() -> TauriPlugin<Wry> {
     Builder::new("window")
-        .invoke_handler(generate_handler![
-            show_window,
-            hide_window,
-            set_window_shadow,
-            frosted_window
-        ])
+        .invoke_handler(generate_handler![show_window, hide_window])
         .build()
 }

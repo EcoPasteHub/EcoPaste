@@ -27,6 +27,12 @@ export default defineConfig({
 		[/^color-(\d+)$/, ([, d]) => `text-[var(--color-text-${d})]`],
 		[/^b-color-(\d+)$/, ([, d]) => `b-[var(--color-border-${d})]`],
 		[/^(.*)-primary-(\d+)$/, ([, s, d]) => `${s}-[var(--ant-blue-${d})]`],
+		{
+			"antd-input":
+				"b hover:b-primary-5 transition outline-none focus:antd-input-focus",
+			"antd-input-focus":
+				"b-primary shadow-[0_0_0_2px_rgba(5,145,255,0.1)] dark:shadow-[0_0_0_2px_rgba(0,60,180,0.15)]",
+		},
 	],
 	theme: {
 		colors: {

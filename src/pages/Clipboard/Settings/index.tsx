@@ -7,7 +7,7 @@ import AutoPaste from "./components/AutoPaste";
 import SearchPosition from "./components/SearchPosition";
 import WindowPosition from "./components/WindowPosition";
 
-const Clipboard = () => {
+const ClipboardSettings = () => {
 	const { audio, search, content } = useSnapshot(clipboardStore);
 	const { t } = useTranslation();
 
@@ -100,4 +100,4 @@ const Clipboard = () => {
 	);
 };
 
-export default Clipboard;
+export default ClipboardSettings;

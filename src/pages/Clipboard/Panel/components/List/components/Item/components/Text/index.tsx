@@ -1,10 +1,10 @@
-import type { HistoryItem } from "@/types/database";
+import type { ClipboardItem } from "@/types/database";
 import { Flex } from "antd";
 import clsx from "clsx";
 import type { CSSProperties, FC } from "react";
 import styles from "./index.module.scss";
 
-const Text: FC<HistoryItem> = (props) => {
+const Text: FC<ClipboardItem> = (props) => {
 	const { value } = props;
 
 	const renderColor = () => {

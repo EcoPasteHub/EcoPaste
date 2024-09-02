@@ -1,8 +1,8 @@
-import type { HistoryItem } from "@/types/database";
+import type { ClipboardItem } from "@/types/database";
 import { convertFileSrc } from "@tauri-apps/api/tauri";
 import type { FC } from "react";
 
-const Image: FC<Partial<HistoryItem>> = (props) => {
+const Image: FC<Partial<ClipboardItem>> = (props) => {
 	const { value = "" } = props;
 
 	const [src, setSrc] = useState("");

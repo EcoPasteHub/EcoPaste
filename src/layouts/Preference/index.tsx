@@ -18,10 +18,6 @@ const Preference = () => {
 	const { t } = useTranslation();
 
 	useMount(async () => {
-		if (isMac()) {
-			frostedWindow();
-		}
-
 		if (!isWin()) {
 			setTheme(globalStore.appearance.theme);
 		}

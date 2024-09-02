@@ -23,4 +23,12 @@ export const useRegister = (
 
 		setOldKey(key);
 	}, deps);
+
+	useUnmount(() => {
+		const [key] = deps;
+
+		if (!key) return;
+
+		unregister(key);
+	});
 };
