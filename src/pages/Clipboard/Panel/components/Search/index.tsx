@@ -7,7 +7,8 @@ import { ClipboardPanelContext } from "../..";
 const Search: FC<HTMLAttributes<HTMLDivElement>> = (props) => {
 	const { state } = useContext(ClipboardPanelContext);
 	const inputRef = useRef<InputRef>(null);
-	const [value, setValue] = useState("");
+	const [value, setValue] = useState<string>();
+	const [isComposition, { setTrue, setFalse }] = useBoolean();
 	const { t } = useTranslation();
 
 	useFocus({
@@ -20,22 +21,20 @@ const Search: FC<HTMLAttributes<HTMLDivElement>> = (props) => {
 			inputRef.current?.blur();
 
 			if (clipboardStore.search.autoClear) {
-				setValue("");
+				setValue(undefined);
 			}
 		},
 	});
 
-	useDebounceEffect(
-		() => {
-			state.search = value;
-		},
-		[value],
-		{ wait: 500 },
-	);
-
 	useOSKeyPress(["meta.f", "ctrl.f"], () => {
 		inputRef.current?.focus();
 	});
+
+	useEffect(() => {
+		if (isComposition) return;
+
+		state.search = value;
+	}, [value, isComposition]);
 
 	return (
 		<div {...props}>
@@ -46,6 +45,8 @@ const Search: FC<HTMLAttributes<HTMLDivElement>> = (props) => {
 				prefix={<Icon name="i-lucide:search" />}
 				size="small"
 				placeholder={t("clipboard.hints.search_placeholder")}
+				onCompositionStart={setTrue}
+				onCompositionEnd={setFalse}
 				onChange={(event) => {
 					setValue(event.target.value);
 				}}
