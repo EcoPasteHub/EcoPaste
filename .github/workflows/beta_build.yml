@@ -30,11 +30,6 @@ on:
         required: true
         type: boolean
         default: false
-      isDebug:
-        description: 'is debug?'
-        required: true
-        type: boolean
-        default: false
       retention_days:
         description: 'Artifacts retention time (days)'
         required: true
@@ -46,8 +41,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.setting.outputs.matrix }}
-      build_mode:  ${{ steps.setting.outputs.build_mode }}
-      build_path: ${{ steps.setting.outputs.build_path }}
       retention_days: ${{ steps.setting.outputs.retention_days }}
       file_prefix: ${{ steps.filename.outputs.file_prefix }}
       # build_time: ${{ steps.filename.outputs.build_time }}
@@ -80,7 +73,7 @@ jobs:
             productName=$(yq e -r '.package.productName' src-tauri/tauri.conf.json)
             # version=$(yq e -r '.version' package.json)
             # build_time=$(TZ=UTC-8 date +%y%m%d%H)
-            git_des=$(git describe --long --tags --always --dirty)
+            git_des=$(git describe --long --tags --always --dirty | sed 's/^.*-g//')
             echo "file_prefix=${productName}_${git_des}" >> "$GITHUB_OUTPUT"
             # echo "build_time=${build_time}" >> "$GITHUB_OUTPUT"
 
@@ -90,8 +83,6 @@ jobs:
           matrix=""
           if [ "${{ github.event_name }}" == "schedule" ]; then
             matrix="\"windows-latest\",\"ubuntu-20.04\",\"macos-latest\",\"macos-12\""
-            build_mode=""
-            build_path="release"
             retention_days='1'
           else
             if [ "${{ inputs.platform_windows }}" == "true" ]; then
@@ -110,13 +101,9 @@ jobs:
               matrix="\"windows-latest\","
             fi
             matrix="${matrix%,}"
-            build_mode="${{ inputs.isDebug && '--debug' || '' }}"
-            build_path="${{ inputs.isDebug && 'debug' || 'release' }}"
             retention_days="${{ inputs.retention_days }}"
           fi
           echo "matrix=[${matrix}]" >> "$GITHUB_OUTPUT"
-          echo "build_mode=${build_mode}" >> "$GITHUB_OUTPUT"
-          echo "build_path=${build_path}" >> "$GITHUB_OUTPUT"
           echo "retention_days=${retention_days}" >> "$GITHUB_OUTPUT"
 
   auto-build:
@@ -130,8 +117,6 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     env:
-      BUILD_MODE:  ${{ needs.preprocess.outputs.build_mode }}
-      BUILD_PATH:  ${{ needs.preprocess.outputs.build_path }}
       RETENTION_DAYS:  ${{ needs.preprocess.outputs.retention_days }}
       FILE_PREFIX: ${{ needs.preprocess.outputs.file_prefix }}
       # BUILD_TIME: ${{ needs.preprocess.outputs.build_time }}
@@ -184,28 +169,28 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build the app
-        run: pnpm tauri build ${{ env.BUILD_MODE}}
+        run: pnpm tauri build
 
       - name: Rename macos-aarch64
         if: matrix.os == 'macos-latest'
-        run: mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/dmg/*.dmg src-tauri/target/${{ env.BUILD_PATH }}/bundle/dmg/${{ env.FILE_PREFIX }}-aarch64.dmg
+        run: mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/dmg/*.dmg src-tauri/target/${{ env.FILE_PREFIX }}-aarch64.dmg
 
       - name: Rename macos-x86_64
         if: matrix.os == 'macos-12'
-        run: mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/dmg/*.dmg src-tauri/target/${{ env.BUILD_PATH }}/bundle/dmg/${{ env.FILE_PREFIX }}-amd64.dmg
+        run: mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/dmg/*.dmg src-tauri/target/${{ env.FILE_PREFIX }}-amd64.dmg
 
       - name: Rename windows
         if: matrix.os == 'windows-latest'
         run: |
-          mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/msi/*.msi src-tauri/target/${{ env.BUILD_PATH }}/bundle/msi/${{ env.FILE_PREFIX }}-amd64.msi
-          mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/nsis/*.exe src-tauri/target/${{ env.BUILD_PATH }}/bundle/nsis/${{ env.FILE_PREFIX }}-amd64.exe
+          mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/msi/*.msi src-tauri/target/${{ env.FILE_PREFIX }}-amd64.msi
+          mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/nsis/*.exe src-tauri/target/${{ env.FILE_PREFIX }}-amd64.exe
 
       - name: Rename linux
         if: matrix.os == 'ubuntu-20.04'
         run: |
-          mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/deb/*.deb src-tauri/target/${{ env.BUILD_PATH }}/bundle/deb/${{ env.FILE_PREFIX }}-amd64.deb
-          mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/rpm/*.rpm src-tauri/target/${{ env.BUILD_PATH }}/bundle/rpm/${{ env.FILE_PREFIX }}-amd64.rpm
-          mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/appimage/*.AppImage src-tauri/target/${{ env.BUILD_PATH }}/bundle/appimage/${{ env.FILE_PREFIX }}-amd64.AppImage
+          mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/deb/*.deb src-tauri/target/${{ env.FILE_PREFIX }}-amd64.deb
+          mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/rpm/*.rpm src-tauri/target/${{ env.FILE_PREFIX }}-amd64.rpm
+          mv src-tauri/target/${{ env.BUILD_PATH }}/bundle/appimage/*.AppImage src-tauri/target/${{ env.FILE_PREFIX }}-amd64.AppImage
       
       - name: Upload artifacts (Windows)
         if: matrix.os == 'windows-latest'
@@ -213,8 +198,8 @@ jobs:
         with:
           name: ${{ env.FILE_PREFIX }}_windows-amd64
           path: |
-            # src-tauri/target/${{ env.BUILD_PATH }}/bundle/msi/*.msi
-            src-tauri/target/${{ env.BUILD_PATH }}/bundle/nsis/*.exe
+            # src-tauri/target/*.msi
+            src-tauri/target/*.exe
           retention-days: ${{ env.RETENTION_DAYS}}
           compression-level: 0
 
@@ -223,7 +208,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.FILE_PREFIX }}_${{ matrix.os == 'macos-latest' && 'macos-aarch64' || 'macos-amd64' }}
-          path: src-tauri/target/${{ env.BUILD_PATH }}/bundle/dmg/*.dmg
+          path: src-tauri/target/*.dmg
           retention-days: ${{ env.RETENTION_DAYS}}
           compression-level: 0
 
@@ -233,8 +218,8 @@ jobs:
         with:
           name: ${{ env.FILE_PREFIX }}_linux-amd64
           path: |
-            src-tauri/target/${{ env.BUILD_PATH }}/bundle/deb/*.deb
-            src-tauri/target/${{ env.BUILD_PATH }}/bundle/rpm/*.rpm
-            src-tauri/target/${{ env.BUILD_PATH }}/bundle/appimage/*.AppImage
+            src-tauri/target/*.deb
+            src-tauri/target/*.rpm
+            src-tauri/target/*.AppImage
           retention-days: ${{ env.RETENTION_DAYS}}
           compression-level: 0
