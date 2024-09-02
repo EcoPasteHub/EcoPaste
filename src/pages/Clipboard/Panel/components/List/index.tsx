@@ -23,47 +23,52 @@ const List = () => {
 		state.scrollToIndex = rowVirtualizer.scrollToIndex;
 	});
 
+	const isFocusWithin = useFocusWithin(document.body);
+
 	useEffect(() => {
 		rowVirtualizer.scrollToIndex(0);
 
 		getClipboardList?.();
 	}, [state.search, state.group, state.isCollected]);
 
-	// 空格预览
-	useOSKeyPress("space", () => {
-		state.$eventBus?.emit(LISTEN_KEY.CLIPBOARD_ITEM_PREVIEW);
-	});
+	useOSKeyPress(
+		["space", "enter", "backspace", "uparrow", "downarrow"],
+		(_, key) => {
+			if (key === "space") {
+				// 空格预览
+				state.$eventBus?.emit(LISTEN_KEY.CLIPBOARD_ITEM_PREVIEW);
+			} else if (key === "enter") {
+				// 回车粘贴
+				state.$eventBus?.emit(LISTEN_KEY.CLIPBOARD_ITEM_PASTE);
+			} else if (key === "backspace") {
+				// 删除
+				state.$eventBus?.emit(LISTEN_KEY.CLIPBOARD_ITEM_DELETE);
+			} else {
+				const index = findIndex(state.data.list, { id: state.activeId });
 
-	// 回车粘贴
-	useOSKeyPress("enter", () => {
-		state.$eventBus?.emit(LISTEN_KEY.CLIPBOARD_ITEM_PASTE);
-	});
+				let nextIndex = index;
 
-	// 删除
-	useOSKeyPress("backspace", () => {
-		state.$eventBus?.emit(LISTEN_KEY.CLIPBOARD_ITEM_DELETE);
-	});
+				if (key === "uparrow") {
+					// 选中上一个
+					if (index === 0) return;
 
-	// 选中上一个或者下一个
-	useOSKeyPress(["uparrow", "downarrow"], (_, key) => {
-		const index = findIndex(state.data.list, { id: state.activeId });
+					nextIndex = index - 1;
+				} else {
+					// 选中下一个
+					if (index === state.data.list.length - 1) return;
 
-		let nextIndex = index;
+					nextIndex = index + 1;
+				}
 
-		if (key === "uparrow") {
-			if (index === 0) return;
+				state.activeId = state.data.list[nextIndex].id;
 
-			nextIndex = index - 1;
-		} else {
-			if (index === state.data.list.length - 1) return;
-
-			nextIndex = index + 1;
-		}
-
-		state.activeId = state.data.list[nextIndex].id;
-
-		state.scrollToIndex?.(nextIndex);
-	});
+				state.scrollToIndex?.(nextIndex);
+			}
+		},
+		{
+			events: isFocusWithin ? [] : ["keydown"],
+		},
+	);
 
 	return (
 		<>
