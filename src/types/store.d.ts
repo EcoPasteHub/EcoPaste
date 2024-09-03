@@ -11,7 +11,6 @@ export interface GlobalStore {
 	// 应用设置
 	app: {
 		autoStart: boolean;
-		autoUpdate: boolean;
 		hideTray: boolean;
 	};
 
@@ -20,6 +19,11 @@ export interface GlobalStore {
 		theme: Theme;
 		isDark: boolean;
 		language?: Language;
+	};
+
+	update: {
+		auto: boolean;
+		beta: boolean;
 	};
 
 	// 快捷键设置

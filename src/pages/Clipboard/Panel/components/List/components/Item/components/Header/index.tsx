@@ -2,8 +2,8 @@ import Icon from "@/components/Icon";
 import Scrollbar from "@/components/Scrollbar";
 import type { ClipboardItem } from "@/types/database";
 import { Flex, Popconfirm } from "antd";
-import { autoConvertBytes } from "arcdash";
 import clsx from "clsx";
+import { filesize } from "filesize";
 import type { FC } from "react";
 
 interface HeaderProps extends ClipboardItem {
@@ -65,7 +65,7 @@ const Header: FC<HeaderProps> = (props) => {
 
 	const renderSize = () => {
 		if (type === "files" || type === "image") {
-			return autoConvertBytes(size);
+			return filesize(size, { standard: "jedec" });
 		}
 
 		return t("clipboard.label.n_chars", {

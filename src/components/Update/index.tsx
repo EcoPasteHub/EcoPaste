@@ -2,9 +2,9 @@ import { listen } from "@tauri-apps/api/event";
 import { relaunch } from "@tauri-apps/api/process";
 import {
 	type UpdateManifest,
+	checkUpdate,
 	installUpdate,
 	onUpdaterEvent,
-	checkUpdate as tauriCheckUpdate,
 } from "@tauri-apps/api/updater";
 import type { Timeout } from "ahooks/lib/useRequest/src/types";
 import { Flex, Modal, message } from "antd";
@@ -32,25 +32,27 @@ const Update = () => {
 	const [messageApi, contextHolder] = message.useMessage();
 
 	useMount(() => {
-		listen(LISTEN_KEY.UPDATE, async () => {
+		listen<boolean>(LISTEN_KEY.UPDATE, async ({ payload }) => {
+			check(payload);
+
+			if (!payload) return;
+
 			messageApi.open({
 				key: MESSAGE_KEY,
 				type: "loading",
 				content: t("component.app_update.hints.checking_update"),
 				duration: 0,
 			});
-
-			checkUpdate(true);
 		});
 
-		watchKey(globalStore.app, "autoUpdate", (value) => {
+		watchKey(globalStore.update, "auto", (value) => {
 			clearInterval(timer);
 
 			if (!value) return;
 
-			checkUpdate();
+			check();
 
-			timer = setInterval(checkUpdate, 1000 * 60 * 60 * 24);
+			timer = setInterval(check, 1000 * 60 * 60 * 24);
 		});
 	});
 
@@ -60,16 +62,22 @@ const Update = () => {
 		return dayjs.utc(date).local().format("YYYY-MM-DD HH:mm:ss");
 	}, [state.manifest?.date]);
 
-	const checkUpdate = async (showMessage = false) => {
+	const check = async (showMessage = false) => {
 		try {
-			const { shouldUpdate, manifest } = await tauriCheckUpdate();
+			const { shouldUpdate, manifest } = await checkUpdate();
 
 			if (shouldUpdate && manifest) {
+				const { version, body } = manifest;
+
+				const isBeta = /[a-z]/.test(version);
+
+				if (isBeta && !globalStore.update.beta) return;
+
 				showWindow();
 
 				messageApi.destroy(MESSAGE_KEY);
 
-				manifest.body = replaceManifestBody(manifest.body);
+				manifest.body = replaceManifestBody(body);
 
 				Object.assign(state, { manifest, open: true });
 			} else if (showMessage) {
