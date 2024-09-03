@@ -18,7 +18,9 @@
 		"lint": "biome check --write src",
 		"preinstall": "npx only-allow pnpm",
 		"prepare": "simple-git-hooks",
-		"release": "release-it"
+		"release": "release-it",
+		"release-rc": "release-it --preRelease=rc",
+		"release-beta": "release-it --preRelease=beta"
 	},
 	"dependencies": {
 		"@ant-design/happy-work-theme": "^1.0.0",
