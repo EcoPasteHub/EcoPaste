@@ -73,7 +73,7 @@ jobs:
             productName=$(yq e -r '.package.productName' src-tauri/tauri.conf.json)
             # version=$(yq e -r '.version' package.json)
             # build_time=$(TZ=UTC-8 date +%y%m%d%H)
-            git_des=$(git describe --long --tags --always --dirty | sed 's/^.*-g//')
+            git_des=$(git describe --long --tags --always --dirty | sed 's/-g/-/')
             echo "file_prefix=${productName}_${git_des}" >> "$GITHUB_OUTPUT"
             # echo "build_time=${build_time}" >> "$GITHUB_OUTPUT"
 
