@@ -13,7 +13,8 @@ use plugins::{
 use std::env;
 use tauri::{generate_context, generate_handler, Builder, Manager, WindowEvent};
 use tauri_plugin_autostart::MacosLauncher;
-use tauri_plugin_window_state::StateFlags;
+use tauri_plugin_log::LogTarget;
+use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 
 pub const AUTO_LAUNCH_ARG: &str = "--auto-launch";
 
@@ -23,17 +24,6 @@ fn main() {
     if cfg!(target_os = "linux") {
         std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
     }
-
-    let log_builder = {
-        let builder =
-            tauri_plugin_log::Builder::new().targets([tauri_plugin_log::LogTarget::LogDir]);
-
-        if cfg!(debug_assertions) {
-            builder.target(tauri_plugin_log::LogTarget::Stderr)
-        } else {
-            builder
-        }
-    };
 
     let app = Builder::default()
         .setup(|app| {
@@ -79,7 +69,11 @@ fn main() {
         // 自定义粘贴的插件
         .plugin(paste::init())
         // 日志插件：https://github.com/tauri-apps/tauri-plugin-log
-        .plugin(log_builder.build())
+        .plugin(
+            tauri_plugin_log::Builder::default()
+                .targets([LogTarget::LogDir, LogTarget::Stdout, LogTarget::Webview])
+                .build(),
+        )
         // 记住窗口状态的插件：https://github.com/tauri-apps/plugins-workspace/tree/v1/plugins/window-state
         .plugin(
             tauri_plugin_window_state::Builder::default()
@@ -95,7 +89,17 @@ fn main() {
         .on_window_event(|event| match event.event() {
             WindowEvent::CloseRequested { api, .. } => {
                 event.window().hide().unwrap();
+
                 api.prevent_close();
+            }
+            WindowEvent::Focused(focused) => {
+                if *focused {
+                    return;
+                }
+
+                let app_handle = event.window().app_handle();
+
+                let _ = app_handle.save_window_state(StateFlags::all());
             }
             _ => {}
         })
