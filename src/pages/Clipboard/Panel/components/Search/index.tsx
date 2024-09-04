@@ -15,11 +15,11 @@ const Search: FC<HTMLAttributes<HTMLDivElement>> = (props) => {
 		onFocus() {
 			if (clipboardStore.search.defaultFocus) {
 				inputRef.current?.focus();
+			} else {
+				inputRef.current?.blur();
 			}
 		},
 		onBlur() {
-			inputRef.current?.blur();
-
 			if (clipboardStore.search.autoClear) {
 				setValue(undefined);
 			}

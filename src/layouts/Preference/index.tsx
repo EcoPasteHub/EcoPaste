@@ -75,7 +75,7 @@ const Preference = () => {
 		});
 
 		watchKey(globalStore.app, "hideTray", (value) => {
-			toggleTrayVisible(!value);
+			setTrayVisible(!value);
 		});
 
 		watchKey(globalStore.appearance, "language", setLocale);

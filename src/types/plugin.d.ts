@@ -1,4 +1,4 @@
-export type WindowLabel = "main" | "preference";
+export type WindowLabel = (typeof WINDOW_LABEL)[keyof typeof WINDOW_LABEL];
 
 export interface Metadata {
 	size: number;
