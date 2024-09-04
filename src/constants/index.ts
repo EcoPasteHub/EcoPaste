@@ -17,6 +17,7 @@ export const LISTEN_KEY = {
 	CLIPBOARD_ITEM_PREVIEW: "clipboard-item-preview",
 	CLIPBOARD_ITEM_PASTE: "clipboard-item-paste",
 	CLIPBOARD_ITEM_DELETE: "clipboard-item-delete",
+	TOGGLE_MAIN_WINDOW_VISIBLE: "toggle-main-window-visible",
 };
 
 export const WINDOW_PLUGIN = {
@@ -97,5 +98,10 @@ export const MACOS_PERMISSIONS_PLUGIN = {
 };
 
 export const TRAY_PLUGIN = {
-	TOGGLE_TRAY_VISIBLE: "plugin:tray|toggle_tray_visible",
+	SET_TRAY_VISIBLE: "plugin:tray|set_tray_visible",
 };
+
+export const WINDOW_LABEL = {
+	MAIN: "main",
+	PREFERENCE: "preference",
+} as const;

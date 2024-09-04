@@ -61,11 +61,7 @@ pub fn handle_tray_event(app_handle: AppHandle, system_tray: SystemTray) -> Syst
     system_tray.on_event(move |e| match e {
         SystemTrayEvent::LeftClick { .. } => {
             #[cfg(target_os = "windows")]
-            {
-                use super::window::show_main_window;
-
-                show_main_window(&app_handle);
-            }
+            window.emit_all("toggle-main-window-visible", true).unwrap();
         }
         SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
             "preference" => {
@@ -142,7 +138,7 @@ pub fn destroy_tray(app_handle: &AppHandle) {
 }
 
 #[command]
-pub async fn toggle_tray_visible(app_handle: AppHandle, visible: bool) {
+pub async fn set_tray_visible(app_handle: AppHandle, visible: bool) {
     if visible {
         init_tray(&app_handle)
     } else {
@@ -156,6 +152,6 @@ pub async fn toggle_tray_visible(app_handle: AppHandle, visible: bool) {
 
 pub fn init() -> TauriPlugin<Wry> {
     Builder::new("tray")
-        .invoke_handler(generate_handler![toggle_tray_visible])
+        .invoke_handler(generate_handler![set_tray_visible])
         .build()
 }

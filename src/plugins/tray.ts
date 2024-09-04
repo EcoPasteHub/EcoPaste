@@ -1,10 +1,10 @@
 import { invoke } from "@tauri-apps/api";
 
 /**
- * 显示和隐藏托盘
+ * 设置图片的可见性
  */
-export const toggleTrayVisible = (visible: boolean) => {
-	invoke(TRAY_PLUGIN.TOGGLE_TRAY_VISIBLE, {
+export const setTrayVisible = (visible: boolean) => {
+	invoke(TRAY_PLUGIN.SET_TRAY_VISIBLE, {
 		visible,
 	});
 };

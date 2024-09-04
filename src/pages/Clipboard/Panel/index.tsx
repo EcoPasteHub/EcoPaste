@@ -45,6 +45,7 @@ export const ClipboardPanelContext = createContext<ClipboardPanelContextValue>({
 });
 
 const ClipboardPanel = () => {
+	const { shortcut } = useSnapshot(globalStore);
 	const { window } = useSnapshot(clipboardStore);
 	const state = useReactive<State>(INITIAL_STATE);
 	const audioRef = useRef<AudioRef>(null);
@@ -125,7 +126,19 @@ const ClipboardPanel = () => {
 
 			merge(clipboardStore, payload);
 		});
+
+		listen(LISTEN_KEY.TOGGLE_MAIN_WINDOW_VISIBLE, toggleWindowVisible);
 	});
+
+	useFocus({
+		onBlur() {
+			if (state.pin) return;
+
+			hideWindow();
+		},
+	});
+
+	useRegister(toggleWindowVisible, [shortcut.clipboard]);
 
 	const getClipboardList = async () => {
 		const { search, group, isCollected } = state;
