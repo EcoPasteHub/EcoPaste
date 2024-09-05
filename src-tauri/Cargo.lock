@@ -787,9 +787,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.1.15"
+version = "1.1.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "57b6a275aa2903740dc87da01c62040406b8812552e97129a63ea8850a17c6e6"
+checksum = "e9d013ecb737093c0e86b151a7b837993cf9ec6c502946cfb44bedc392421e0b"
 dependencies = [
  "jobserver",
  "libc",
@@ -4732,9 +4732,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.127"
+version = "1.0.128"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8043c06d9f82bd7271361ed64f415fe5e12a77fdb52e573e7f06a516dea329ad"
+checksum = "6ff5456707a1de34e7e37f2a6fd3d3f808c318259cbd01ab6377795054b483d8"
 dependencies = [
  "indexmap 2.5.0",
  "itoa 1.0.11",
@@ -5619,7 +5619,7 @@ dependencies = [
 [[package]]
 name = "tauri-plugin-autostart"
 version = "0.0.0"
-source = "git+https://github.com/tauri-apps/plugins-workspace?branch=v1#104f482ed29093c27ac9a4b34894804726ea8672"
+source = "git+https://github.com/tauri-apps/plugins-workspace?branch=v1#5c249a1a1076ac78cfc0ed4c2857cf7e2540b1cc"
 dependencies = [
  "auto-launch",
  "log",
@@ -5652,7 +5652,7 @@ dependencies = [
 [[package]]
 name = "tauri-plugin-log"
 version = "0.0.0"
-source = "git+https://github.com/tauri-apps/plugins-workspace?branch=v1#104f482ed29093c27ac9a4b34894804726ea8672"
+source = "git+https://github.com/tauri-apps/plugins-workspace?branch=v1#5c249a1a1076ac78cfc0ed4c2857cf7e2540b1cc"
 dependencies = [
  "byte-unit",
  "fern",
@@ -5667,7 +5667,7 @@ dependencies = [
 [[package]]
 name = "tauri-plugin-single-instance"
 version = "0.0.0"
-source = "git+https://github.com/tauri-apps/plugins-workspace?branch=v1#104f482ed29093c27ac9a4b34894804726ea8672"
+source = "git+https://github.com/tauri-apps/plugins-workspace?branch=v1#5c249a1a1076ac78cfc0ed4c2857cf7e2540b1cc"
 dependencies = [
  "log",
  "serde",
@@ -5681,7 +5681,7 @@ dependencies = [
 [[package]]
 name = "tauri-plugin-sql"
 version = "0.0.0"
-source = "git+https://github.com/tauri-apps/plugins-workspace?branch=v1#104f482ed29093c27ac9a4b34894804726ea8672"
+source = "git+https://github.com/tauri-apps/plugins-workspace?branch=v1#5c249a1a1076ac78cfc0ed4c2857cf7e2540b1cc"
 dependencies = [
  "futures-core",
  "log",
@@ -5712,7 +5712,7 @@ dependencies = [
 [[package]]
 name = "tauri-plugin-window-state"
 version = "0.1.1"
-source = "git+https://github.com/tauri-apps/plugins-workspace?branch=v1#104f482ed29093c27ac9a4b34894804726ea8672"
+source = "git+https://github.com/tauri-apps/plugins-workspace?branch=v1#5c249a1a1076ac78cfc0ed4c2857cf7e2540b1cc"
 dependencies = [
  "bincode",
  "bitflags 2.6.0",
@@ -6024,9 +6024,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-util"
-version = "0.7.11"
+version = "0.7.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9cf6b47b3771c49ac75ad09a6162f53ad4b8088b76ac60e8ec1455b31a189fe1"
+checksum = "61e7c3654c13bcd040d4a03abee2c75b1d14a37b423cf5a813ceae1cc903ec6a"
 dependencies = [
  "bytes",
  "futures-core",
