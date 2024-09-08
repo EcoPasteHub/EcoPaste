@@ -100,7 +100,7 @@
 		},
 		"bundle": {
 			"active": true,
-			"targets": "all",
+			"targets": ["nsis", "dmg", "app", "appimage", "deb", "rpm", "updater"],
 			"shortDescription": "EcoPaste",
 			"identifier": "com.ayangweb.EcoPaste",
 			"icon": [
@@ -117,9 +117,7 @@
 		},
 		"updater": {
 			"active": true,
-			"endpoints": [
-				"https://mirror.ghproxy.com/https://github.com/EcoPasteHub/EcoPaste/releases/latest/download/latest.json"
-			],
+			"endpoints": ["https://ecopaste-updater.ayangweb.cn/api/update"],
 			"dialog": false,
 			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDNBRjgxOTE4RjlDMzRDNUQKUldSZFRNUDVHQm40T3BzT1FhZWxEMkEvbHBiSFJNLzVleS9HRVIyM0dzN0JXRmZRZktoS2w0U1MK"
 		}

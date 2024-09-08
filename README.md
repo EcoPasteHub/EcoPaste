@@ -61,13 +61,11 @@
 
 ### Windows
 
-Install Manually: [Universal](https://mirror.ghproxy.com/https://github.com/EcoPasteHub/EcoPaste/releases/download/v0.0.6/EcoPaste_0.0.6_x64_zh-CN.msi)
-
-Portable: [Universal](https://mirror.ghproxy.com/https://github.com/EcoPasteHub/EcoPaste/releases/download/v0.0.6/EcoPaste_0.0.6_Windows_x64_Portable.zip)
+Install Manually: [Universal](https://gh-proxy.com/https://github.com/EcoPasteHub/EcoPaste/releases/download/v0.0.6/EcoPaste_0.0.6_x64-setup.exe)
 
 ### Macos
 
-Install Manually: [Apple Silicon](https://mirror.ghproxy.com/https://github.com/EcoPasteHub/EcoPaste/releases/download/v0.0.6/EcoPaste_0.0.6_aarch64.dmg) | [Intel](https://mirror.ghproxy.com/https://github.com/EcoPasteHub/EcoPaste/releases/download/v0.0.6/EcoPaste_0.0.6_x64.dmg)
+Install Manually: [Apple Silicon](https://gh-proxy.com/https://github.com/EcoPasteHub/EcoPaste/releases/download/v0.0.6/EcoPaste_0.0.6_aarch64.dmg) | [Intel](https://gh-proxy.com/https://github.com/EcoPasteHub/EcoPaste/releases/download/v0.0.6/EcoPaste_0.0.6_x64.dmg)
 
 HomeBrew:
 
@@ -95,7 +93,7 @@ brew untap EcoPasteHub/EcoPaste
 
 ### Linux
 
-Install Manually: [AppImage](https://mirror.ghproxy.com/https://github.com/EcoPasteHub/EcoPaste/releases/download/v0.0.6/eco-paste_0.0.6_amd64.AppImage) | [deb](https://mirror.ghproxy.com/https://github.com/EcoPasteHub/EcoPaste/releases/download/v0.0.6/eco-paste_0.0.6_amd64.deb) | [rpm](https://mirror.ghproxy.com/https://github.com/EcoPasteHub/EcoPaste/releases/download/v0.0.6/eco-paste-0.0.6-1.x86_64.rpm)
+Install Manually: [AppImage](https://gh-proxy.com/https://github.com/EcoPasteHub/EcoPaste/releases/download/v0.0.6/eco-paste_0.0.6_amd64.AppImage) | [deb](https://gh-proxy.com/https://github.com/EcoPasteHub/EcoPaste/releases/download/v0.0.6/eco-paste_0.0.6_amd64.deb) | [rpm](https://gh-proxy.com/https://github.com/EcoPasteHub/EcoPaste/releases/download/v0.0.6/eco-paste-0.0.6-1.x86_64.rpm)
 
 ## Features
 

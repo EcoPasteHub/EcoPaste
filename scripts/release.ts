@@ -6,6 +6,8 @@ import { name, version } from "../package.json";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const updateReadmeVersion = () => {
+	if (/[a-z]/.test(version)) return;
+
 	const dirPath = resolve(__dirname, "..");
 
 	const files = readdirSync(dirPath).filter((file) => {
@@ -31,7 +33,7 @@ const updateCargoVersion = () => {
 		let content = readFileSync(path, "utf-8");
 
 		const regexp = new RegExp(
-			`(name\\s*=\\s*"${name}"\\s*version\\s*=\\s*)"\\d+.\\d+.\\d+"`,
+			`(name\\s*=\\s*"${name}"\\s*version\\s*=\\s*)"(\\d+\\.\\d+\\.\\d+(-\\w+\\.\\d+)?)"`,
 		);
 
 		content = content.replace(regexp, `$1"${version}"`);

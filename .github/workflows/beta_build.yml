@@ -6,35 +6,35 @@ on:
   workflow_dispatch:
     inputs:
       updater:
-        description: 'Enable updater?'
+        description: "Enable updater?"
         required: true
         type: boolean
         default: true
       platform_windows:
-        description: 'windows'
+        description: "windows"
         required: true
         type: boolean
         default: true
       platform_linux:
-        description: 'linux'
+        description: "linux"
         required: true
         type: boolean
         default: false
       platform_macos_aarch64:
-        description: 'macos-aarch64'
+        description: "macos-aarch64"
         required: true
         type: boolean
         default: false
       platform_macos_x86_64:
-        description: 'macos-x86_64'
+        description: "macos-x86_64"
         required: true
         type: boolean
         default: false
       retention_days:
-        description: 'Artifacts retention time (days)'
+        description: "Artifacts retention time (days)"
         required: true
         type: string
-        default: '1'
+        default: "1"
 
 jobs:
   preprocess:
@@ -68,14 +68,14 @@ jobs:
           retention-days: 1
 
       - name: Get file name
-        id: filename 
+        id: filename
         run: |
-            productName=$(yq e -r '.package.productName' src-tauri/tauri.conf.json)
-            # version=$(yq e -r '.version' package.json)
-            # build_time=$(TZ=UTC-8 date +%y%m%d%H)
-            git_des=$(git describe --long --tags --always --dirty | sed 's/-g/-/')
-            echo "file_prefix=${productName}_${git_des}" >> "$GITHUB_OUTPUT"
-            # echo "build_time=${build_time}" >> "$GITHUB_OUTPUT"
+          productName=$(yq e -r '.package.productName' src-tauri/tauri.conf.json)
+          # version=$(yq e -r '.version' package.json)
+          # build_time=$(TZ=UTC-8 date +%y%m%d%H)
+          git_des=$(git describe --long --tags --always --dirty | sed 's/-g/-/')
+          echo "file_prefix=${productName}_${git_des}" >> "$GITHUB_OUTPUT"
+          # echo "build_time=${build_time}" >> "$GITHUB_OUTPUT"
 
       - name: Setting variable
         id: setting
@@ -117,12 +117,13 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     env:
-      RETENTION_DAYS:  ${{ needs.preprocess.outputs.retention_days }}
+      RETENTION_DAYS: ${{ needs.preprocess.outputs.retention_days }}
       FILE_PREFIX: ${{ needs.preprocess.outputs.file_prefix }}
       # BUILD_TIME: ${{ needs.preprocess.outputs.build_time }}
       TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
       TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
       NO_STRIP: true
+      CI: false
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -163,7 +164,7 @@ jobs:
       - name: Rust cache
         uses: swatinem/rust-cache@v2
         with:
-          workspaces: './src-tauri -> target'
+          workspaces: "./src-tauri -> target"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -191,7 +192,7 @@ jobs:
           mv src-tauri/target/release/bundle/deb/*.deb src-tauri/target/${{ env.FILE_PREFIX }}-amd64.deb
           mv src-tauri/target/release/bundle/rpm/*.rpm src-tauri/target/${{ env.FILE_PREFIX }}-amd64.rpm
           mv src-tauri/target/release/bundle/appimage/*.AppImage src-tauri/target/${{ env.FILE_PREFIX }}-amd64.AppImage
-      
+
       - name: Upload artifacts (Windows)
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
