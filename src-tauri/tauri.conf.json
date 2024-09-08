@@ -100,7 +100,7 @@
 		},
 		"bundle": {
 			"active": true,
-			"targets": ["nsis", "dmg", "app", "appimage", "deb", "rpm", "updater"],
+			"targets": "all",
 			"shortDescription": "EcoPaste",
 			"identifier": "com.ayangweb.EcoPaste",
 			"icon": [

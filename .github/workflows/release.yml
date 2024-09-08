@@ -41,7 +41,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [windows-latest, macos-latest, macos-12, ubuntu-20.04]
+        include:
+          - platform: "macos-latest"
+            args: "--target aarch64-apple-darwin"
+          - platform: "macos-12"
+            args: "--target x86_64-apple-darwin"
+          - platform: "ubuntu-20.04"
+            args: ""
+          - platform: "windows-latest"
+            args: ""
 
     runs-on: ${{ matrix.platform }}
 
@@ -98,3 +106,4 @@ jobs:
           releaseBody: ""
           releaseDraft: true
           prerelease: false
+          args: ${{ matrix.args }} ${{ (contains(github.ref_name, 'rc') || contains(github.ref_name, 'beta')) && matrix.platform == 'windows-latest' && '-b nsis,updater' || '' }}
