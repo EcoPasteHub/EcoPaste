@@ -105,7 +105,6 @@
 				"title": "應用設定",
 				"label": {
 					"auto_start": "登入時啟動",
-					"auto_update": "自動檢查更新",
 					"hide_tray": "隱藏託盤圖標"
 				}
 			},
@@ -120,6 +119,16 @@
 				},
 				"hints": {
 					"theme": "注意：切換主題時，應用將會自動重啟"
+				}
+			},
+			"app_update": {
+				"title": "應用更新",
+				"label": {
+					"auto_update": "自動檢查更新",
+					"update_beta": "參與測試版體驗"
+				},
+				"hints": {
+					"update_beta": "將會接收測試版更新，即使它們可能不穩定"
 				}
 			}
 		},

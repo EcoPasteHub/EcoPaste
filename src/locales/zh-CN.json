@@ -105,7 +105,6 @@
 				"title": "应用设置",
 				"label": {
 					"auto_start": "登录时启动",
-					"auto_update": "自动检查更新",
 					"hide_tray": "隐藏托盘图标"
 				}
 			},
@@ -120,6 +119,16 @@
 				},
 				"hints": {
 					"theme": "注意：切换主题时，应用将会自动重启"
+				}
+			},
+			"app_update": {
+				"title": "应用更新",
+				"label": {
+					"auto_update": "自动检查更新",
+					"update_beta": "参与测试版体验"
+				},
+				"hints": {
+					"update_beta": "将会接收测试版更新，即使它们可能不稳定"
 				}
 			}
 		},

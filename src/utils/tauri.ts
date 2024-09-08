@@ -2,7 +2,7 @@ import {
 	type ConfirmDialogOptions,
 	ask as tauriAsk,
 } from "@tauri-apps/api/dialog";
-import { isObject } from "arcdash";
+import { isObject } from "lodash-es";
 
 export function ask(
 	message: string,

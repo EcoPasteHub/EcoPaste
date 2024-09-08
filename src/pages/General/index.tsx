@@ -1,12 +1,13 @@
 import ProList from "@/components/ProList";
 import ProSwitch from "@/components/ProSwitch";
+import { emit } from "@tauri-apps/api/event";
 import { useSnapshot } from "valtio";
 import Language from "./components/Language";
 import MacosPermissions from "./components/MacosPermissions";
 import ThemeMode from "./components/ThemeMode";
 
 const General = () => {
-	const { app } = useSnapshot(globalStore);
+	const { app, update } = useSnapshot(globalStore);
 	const { t } = useTranslation();
 
 	return (
@@ -23,14 +24,6 @@ const General = () => {
 				/>
 
 				<ProSwitch
-					title={t("preference.settings.app_settings.label.auto_update")}
-					value={app.autoUpdate}
-					onChange={(value) => {
-						globalStore.app.autoUpdate = value;
-					}}
-				/>
-
-				<ProSwitch
 					title={t("preference.settings.app_settings.label.hide_tray")}
 					value={app.hideTray}
 					onChange={(value) => {
@@ -43,6 +36,29 @@ const General = () => {
 				<Language />
 
 				<ThemeMode />
+			</ProList>
+
+			<ProList header={t("preference.settings.app_update.title")}>
+				<ProSwitch
+					title={t("preference.settings.app_update.label.auto_update")}
+					value={update.auto}
+					onChange={(value) => {
+						globalStore.update.auto = value;
+					}}
+				/>
+
+				<ProSwitch
+					title={t("preference.settings.app_update.label.update_beta")}
+					description={t("preference.settings.app_update.hints.update_beta")}
+					value={update.beta}
+					onChange={(value) => {
+						globalStore.update.beta = value;
+
+						if (!value) return;
+
+						emit(LISTEN_KEY.UPDATE);
+					}}
+				/>
 			</ProList>
 		</>
 	);

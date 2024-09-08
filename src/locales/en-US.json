@@ -105,7 +105,6 @@
 				"title": "App Settings",
 				"label": {
 					"auto_start": "Start at Login",
-					"auto_update": "Auto Check for Updates",
 					"hide_tray": "Hide Tray Icon"
 				}
 			},
@@ -113,13 +112,23 @@
 				"title": "Appearance Settings",
 				"label": {
 					"language": "Language",
-					"theme": "Theme Mode",
+					"theme": "Theme",
 					"theme_auto": "System",
 					"theme_light": "Light",
 					"theme_dark": "Dark"
 				},
 				"hints": {
 					"theme": "Note: The app will restart automatically when switching themes"
+				}
+			},
+			"app_update": {
+				"title": "App Update",
+				"label": {
+					"auto_update": "Auto check for updates",
+					"update_beta": "Participate in the beta experience"
+				},
+				"hints": {
+					"update_beta": "Will receive beta updates, even if they may be unstable"
 				}
 			}
 		},

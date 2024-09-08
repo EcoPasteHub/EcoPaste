@@ -1,7 +1,7 @@
 import type { ClipboardPayload, ReadImage, WinOCR } from "@/types/plugin";
 import { invoke } from "@tauri-apps/api";
 import { listen } from "@tauri-apps/api/event";
-import { isEmpty, isEqual } from "arcdash";
+import { isEmpty, isEqual } from "lodash-es";
 
 /**
  * 开启监听

@@ -20,13 +20,17 @@ export const persistStrategies = PersistStrategy.MultiFile;
 export const GLOBAL_STORE_INITIAL_STATE: GlobalStore = {
 	app: {
 		autoStart: false,
-		autoUpdate: false,
 		hideTray: false,
 	},
 
 	appearance: {
 		theme: "auto",
 		isDark: false,
+	},
+
+	update: {
+		auto: false,
+		beta: false,
 	},
 
 	shortcut: {
