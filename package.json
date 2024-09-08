@@ -32,6 +32,7 @@
 		"arcdash": "^0.0.51",
 		"clsx": "^2.1.1",
 		"dayjs": "^1.11.11",
+		"filesize": "^10.1.4",
 		"i18next": "^23.12.1",
 		"lodash-es": "^4.17.21",
 		"mac-scrollbar": "^0.13.6",

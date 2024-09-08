@@ -10,10 +10,6 @@ const About = () => {
 	const { env } = useSnapshot(globalStore);
 	const { t } = useTranslation();
 
-	const update = () => {
-		emit(LISTEN_KEY.UPDATE);
-	};
-
 	const copyInfo = async () => {
 		const { appName, appVersion, platform } = env;
 
@@ -55,7 +51,9 @@ const About = () => {
 							hoverable
 							name="i-iconamoon:restart"
 							size={16}
-							onMouseDown={update}
+							onMouseDown={() => {
+								emit(LISTEN_KEY.UPDATE, true);
+							}}
 						/>
 					</Tooltip>
 				</Flex>

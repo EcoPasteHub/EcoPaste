@@ -6,7 +6,7 @@ import { RouterProvider } from "react-router-dom";
 import { useSnapshot } from "valtio";
 const { defaultAlgorithm, darkAlgorithm } = theme;
 import { listen } from "@tauri-apps/api/event";
-import { isString } from "arcdash";
+import { isString } from "lodash-es";
 import { error } from "tauri-plugin-log-api";
 
 const App = () => {
