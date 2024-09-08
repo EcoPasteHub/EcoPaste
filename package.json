@@ -18,7 +18,9 @@
 		"lint": "biome check --write src",
 		"preinstall": "npx only-allow pnpm",
 		"prepare": "simple-git-hooks",
-		"release": "release-it"
+		"release": "release-it",
+		"release-rc": "release-it --preRelease=rc --preReleaseBase=1",
+		"release-beta": "release-it --preRelease=beta --preReleaseBase=1"
 	},
 	"dependencies": {
 		"@ant-design/happy-work-theme": "^1.0.0",
@@ -26,7 +28,7 @@
 		"@tauri-apps/api": "^1.6.0",
 		"@unocss/reset": "^0.60.3",
 		"ahooks": "^3.8.0",
-		"antd": "^5.19.1",
+		"antd": "^5.20.5",
 		"arcdash": "^0.0.51",
 		"clsx": "^2.1.1",
 		"dayjs": "^1.11.11",
@@ -65,7 +67,7 @@
 		"@vitejs/plugin-react": "^4.2.1",
 		"lint-staged": "^15.2.5",
 		"npm-run-all": "^4.1.5",
-		"release-it": "^17.4.1",
+		"release-it": "^17.6.0",
 		"sass": "^1.77.4",
 		"simple-git-hooks": "^2.11.1",
 		"tsx": "^4.16.2",
