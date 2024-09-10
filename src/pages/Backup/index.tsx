@@ -3,8 +3,7 @@ import ProList from "@/components/ProList";
 import ProListItem from "@/components/ProListItem";
 import type { Store } from "@/types/store";
 import { emit } from "@tauri-apps/api/event";
-import { BaseDirectory, readTextFile } from "@tauri-apps/api/fs";
-import { appDataDir } from "@tauri-apps/api/path";
+import { readTextFile } from "@tauri-apps/api/fs";
 import { Button, Flex, List, Spin, message } from "antd";
 import { merge } from "lodash-es";
 
@@ -63,9 +62,7 @@ const Backup = () => {
 			async (result) => {
 				if (!result) return;
 
-				const content = await readTextFile(STORE_FILE_NAME, {
-					dir: BaseDirectory.AppData,
-				});
+				const content = await readTextFile(getBackupStorePath());
 
 				const store = JSON.parse(content) as Store;
 
@@ -127,7 +124,11 @@ const Backup = () => {
 					<Button
 						type="primary"
 						onClick={async () => {
-							previewPath(await appDataDir());
+							const { saveDataDir } = globalStore.env;
+
+							if (!saveDataDir) return;
+
+							previewPath(saveDataDir);
 						}}
 					>
 						{t("preference.data_backup.import_export.button.open_dir")}

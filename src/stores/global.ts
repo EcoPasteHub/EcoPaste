@@ -1,7 +1,7 @@
 import type { GlobalStore } from "@/types/store";
 import { getName, getVersion } from "@tauri-apps/api/app";
 import { type } from "@tauri-apps/api/os";
-import { appDataDir, sep } from "@tauri-apps/api/path";
+import { appDataDir } from "@tauri-apps/api/path";
 import proxyWithPersist, {
 	PersistStrategy,
 	type ProxyPersistStorageEngine,
@@ -57,7 +57,7 @@ subscribeKey(globalStore._persist, "loaded", async (loaded) => {
 	globalStore.env.platform = await type();
 	globalStore.env.appName = await getName();
 	globalStore.env.appVersion = await getVersion();
-	globalStore.env.saveImageDir = `${await appDataDir()}images${sep}`;
+	globalStore.env.saveDataDir ??= await appDataDir();
 });
 
 // subscribeKey 但是首次使用执行

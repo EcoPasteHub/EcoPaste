@@ -6,7 +6,6 @@ import type {
 } from "@/types/database";
 import { getName } from "@tauri-apps/api/app";
 import { removeFile } from "@tauri-apps/api/fs";
-import { appDataDir } from "@tauri-apps/api/path";
 import { isBoolean, isNil, map, omitBy } from "lodash-es";
 import Database from "tauri-plugin-sql-api";
 
@@ -37,10 +36,10 @@ const handlePayload = (payload: TablePayload) => {
  */
 export const initDatabase = async () => {
 	const appName = await getName();
-	const dataDir = await appDataDir();
-	const extensionName = isDev() ? "dev.db" : "db";
+	const { saveDataDir } = globalStore.env;
+	const ext = isDev() ? "dev.db" : "db";
 
-	db = await Database.load(`sqlite:${dataDir}${appName}.${extensionName}`);
+	db = await Database.load(`sqlite:${saveDataDir}${appName}.${ext}`);
 
 	await executeSQL(
 		`
@@ -156,7 +155,7 @@ export const deleteSQL = async (tableName: TableName, id?: number) => {
 
 		if (type !== "image") return;
 
-		removeFile(globalStore.env.saveImageDir + value);
+		removeFile(getSaveImageDir() + value);
 	};
 
 	if (id) {
@@ -176,5 +175,5 @@ export const deleteSQL = async (tableName: TableName, id?: number) => {
  * 关闭数据库连接池
  */
 export const closeDatabase = async () => {
-	await db.close();
+	await db?.close();
 };

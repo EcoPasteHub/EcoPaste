@@ -82,9 +82,8 @@ const Item: FC<ItemProps> = (props) => {
 	};
 
 	const exportFile = async () => {
-		const extension =
-			type === "text" ? "txt" : type === "rich-text" ? "rtf" : type;
-		const fileName = `${env.appName}_${id}.${extension}`;
+		const ext = type === "text" ? "txt" : type === "rich-text" ? "rtf" : type;
+		const fileName = `${env.appName}_${id}.${ext}`;
 		const destination = (await downloadDir()) + fileName;
 
 		await writeFile(destination, value);

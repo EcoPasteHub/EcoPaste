@@ -3,12 +3,10 @@ import { ClipboardPanelContext } from "@/pages/Clipboard/Panel";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { FloatButton } from "antd";
 import { findIndex } from "lodash-es";
-import { useSnapshot } from "valtio";
 import Item from "./components/Item";
 
 const List = () => {
 	const { state, getClipboardList } = useContext(ClipboardPanelContext);
-	const { env } = useSnapshot(globalStore);
 	const outerRef = useRef<HTMLDivElement>(null);
 
 	const rowVirtualizer = useVirtualizer({
@@ -83,7 +81,7 @@ const List = () => {
 						const data = state.data.list[index];
 						let { type, value } = data;
 
-						value = type !== "image" ? value : env.saveImageDir + value;
+						value = type !== "image" ? value : getSaveImageDir() + value;
 
 						return (
 							<Item

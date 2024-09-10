@@ -70,8 +70,6 @@ export const BACKUP_PLUGIN = {
 	IMPORT_DATA: "plugin:backup|import_data",
 };
 
-export const STORE_FILE_NAME = "store";
-
 export const LANGUAGE = {
 	ZH_CN: "zh-CN",
 	ZH_TW: "zh-TW",

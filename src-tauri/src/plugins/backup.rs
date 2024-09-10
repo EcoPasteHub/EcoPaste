@@ -1,17 +1,19 @@
 use super::fs_extra::preview_path;
 use flate2::{read::GzDecoder, write::GzEncoder, Compression};
-use std::fs::{read_dir, File};
+use std::{
+    fs::{read_dir, File},
+    path::PathBuf,
+};
 use tar::Archive;
 use tauri::{
-    api::path::{app_data_dir, download_dir},
+    api::path::download_dir,
     command, generate_handler,
     plugin::{Builder, TauriPlugin},
-    AppHandle, Result, Wry,
+    Result, Wry,
 };
 
 #[command]
-async fn export_data(app_handle: AppHandle, file_name: String) -> Result<()> {
-    let src_dir = app_data_dir(&app_handle.config()).unwrap();
+async fn export_data(src_dir: PathBuf, file_name: String) -> Result<()> {
     let dst_path = download_dir().unwrap().join(file_name.clone());
     let dst_file = File::create(dst_path.clone())?;
 
@@ -39,9 +41,7 @@ async fn export_data(app_handle: AppHandle, file_name: String) -> Result<()> {
 }
 
 #[command]
-async fn import_data(app_handle: AppHandle, path: String) -> Result<bool> {
-    let dst_dir = app_data_dir(&app_handle.config()).unwrap();
-
+async fn import_data(dst_dir: PathBuf, path: String) -> Result<bool> {
     let file = File::open(path)?;
     let decoder = GzDecoder::new(file);
     let mut archive = Archive::new(decoder);
