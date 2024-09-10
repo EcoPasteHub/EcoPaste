@@ -71,7 +71,17 @@ const Update = () => {
 
 				const isBeta = /[a-z]/.test(version);
 
-				if (isBeta && !globalStore.update.beta) return;
+				if (isBeta && !globalStore.update.beta) {
+					if (showMessage) {
+						messageApi.open({
+							key: MESSAGE_KEY,
+							type: "success",
+							content: t("component.app_update.hints.latest_version"),
+						});
+					}
+
+					return;
+				}
 
 				showWindow();
 
@@ -158,6 +168,7 @@ const Update = () => {
 	return (
 		<>
 			{contextHolder}
+
 			<Modal
 				centered
 				open={state.open}
@@ -169,6 +180,7 @@ const Update = () => {
 				cancelText={t("component.app_update.button.cancel_update")}
 				className={styles.modal}
 				confirmLoading={state.loading}
+				cancelButtonProps={{ disabled: state.loading }}
 				onOk={handleOk}
 				onCancel={handleCancel}
 			>
