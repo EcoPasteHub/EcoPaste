@@ -11,6 +11,12 @@ const Search: FC<HTMLAttributes<HTMLDivElement>> = (props) => {
 	const [isComposition, { setTrue, setFalse }] = useBoolean();
 	const { t } = useTranslation();
 
+	useEffect(() => {
+		if (isComposition) return;
+
+		state.search = value;
+	}, [value, isComposition]);
+
 	useFocus({
 		onFocus() {
 			if (clipboardStore.search.defaultFocus) {
@@ -30,11 +36,15 @@ const Search: FC<HTMLAttributes<HTMLDivElement>> = (props) => {
 		inputRef.current?.focus();
 	});
 
-	useEffect(() => {
-		if (isComposition) return;
-
-		state.search = value;
-	}, [value, isComposition]);
+	useKeyPress(
+		["enter", "uparrow", "downarrow"],
+		() => {
+			inputRef.current?.blur();
+		},
+		{
+			target: inputRef.current?.input,
+		},
+	);
 
 	return (
 		<div {...props}>
