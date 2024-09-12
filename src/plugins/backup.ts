@@ -28,7 +28,7 @@ export const exportData = async () => {
 	const extension = await getExtension();
 
 	return invoke(BACKUP_PLUGIN.EXPORT_DATA, {
-		srcDir: globalStore.env.saveDataDir,
+		srcDir: getSaveDataDir(),
 		fileName: `${time}.${extension}`,
 	});
 };
@@ -45,10 +45,17 @@ export const importData = async () => {
 
 	if (!path) return;
 
-	await closeDatabase();
-
 	return invoke(BACKUP_PLUGIN.IMPORT_DATA, {
-		dstDir: globalStore.env.saveDataDir,
+		dstDir: getSaveDataDir(),
 		path,
 	});
+};
+
+/**
+ * 移动文件夹
+ * @param from 源文件夹
+ * @param to 目标文件夹
+ */
+export const moveData = (from: string, to: string) => {
+	return invoke<string>(BACKUP_PLUGIN.MOVE_DATA, { from, to });
 };

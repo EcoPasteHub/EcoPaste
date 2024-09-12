@@ -13,7 +13,7 @@ import { error } from "tauri-plugin-log-api";
 const App = () => {
 	const { appearance } = useSnapshot(globalStore);
 
-	useMount(() => {
+	useMount(async () => {
 		// 处理系统主题变化
 		handleSystemThemeChanged();
 

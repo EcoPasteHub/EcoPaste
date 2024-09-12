@@ -35,11 +35,12 @@ const handlePayload = (payload: TablePayload) => {
  * 初始化数据库
  */
 export const initDatabase = async () => {
+	await db?.close();
+
 	const appName = await getName();
-	const { saveDataDir } = globalStore.env;
 	const ext = isDev() ? "dev.db" : "db";
 
-	db = await Database.load(`sqlite:${saveDataDir}${appName}.${ext}`);
+	db = await Database.load(`sqlite:${getSaveDataDir()}${appName}.${ext}`);
 
 	await executeSQL(
 		`
@@ -169,11 +170,4 @@ export const deleteSQL = async (tableName: TableName, id?: number) => {
 			deleteImageFile(item);
 		}
 	}
-};
-
-/**
- * 关闭数据库连接池
- */
-export const closeDatabase = async () => {
-	await db?.close();
 };
