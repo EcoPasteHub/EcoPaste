@@ -27,7 +27,7 @@ const Manual: FC<{ state: State }> = (props) => {
 		merge(globalStore, store.globalStore);
 		merge(clipboardStore, store.clipboardStore);
 
-		emit(LISTEN_KEY.CHANGE_DATA);
+		emit(LISTEN_KEY.CHANGE_DATA_FILE);
 
 		message.success("导入成功");
 	};

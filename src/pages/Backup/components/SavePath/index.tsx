@@ -26,7 +26,7 @@ const SavePath: FC<{ state: State }> = (props) => {
 
 		state.spinning = false;
 
-		emit(LISTEN_KEY.CHANGE_DATA);
+		emit(LISTEN_KEY.CHANGE_DATA_FILE);
 	};
 
 	return (
