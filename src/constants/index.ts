@@ -10,7 +10,7 @@ export const LISTEN_KEY = {
 	CLEAR_HISTORY: "clear-history",
 	UPDATE: "update",
 	TRAY_CLICK: "tray-click",
-	IMPORT_DATA: "import-data",
+	CHANGE_DATA_FILE: "change-data-file",
 	CHANGE_LANGUAGE: "change-language",
 	TOGGLE_LISTENING: "toggle-listening",
 	SHOW_WINDOW: "show-window",
@@ -68,9 +68,8 @@ export const THEME_PLUGIN = {
 export const BACKUP_PLUGIN = {
 	EXPORT_DATA: "plugin:backup|export_data",
 	IMPORT_DATA: "plugin:backup|import_data",
+	MOVE_DATA: "plugin:backup|move_data",
 };
-
-export const STORE_FILE_NAME = "store";
 
 export const LANGUAGE = {
 	ZH_CN: "zh-CN",

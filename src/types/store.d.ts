@@ -32,12 +32,12 @@ export interface GlobalStore {
 		preference?: string;
 	};
 
-	// 非配置项，只提供给全局使用
+	// 只在当前系统环境使用
 	env: {
 		platform?: OsType;
 		appName?: string;
 		appVersion?: string;
-		saveImageDir?: string;
+		saveDataDir?: string;
 	};
 }
 

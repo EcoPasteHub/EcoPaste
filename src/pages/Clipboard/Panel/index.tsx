@@ -100,7 +100,7 @@ const ClipboardPanel = () => {
 			getClipboardList();
 		});
 
-		listen(LISTEN_KEY.IMPORT_DATA, async () => {
+		listen(LISTEN_KEY.CHANGE_DATA_FILE, async () => {
 			await initDatabase();
 
 			getClipboardList();

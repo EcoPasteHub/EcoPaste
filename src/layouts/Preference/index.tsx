@@ -18,10 +18,6 @@ const Preference = () => {
 	const { t } = useTranslation();
 
 	useMount(async () => {
-		if (!isWin()) {
-			setTheme(globalStore.appearance.theme);
-		}
-
 		subscribe(globalStore, () => {
 			emit(LISTEN_KEY.GLOBAL_STORE_CHANGED, globalStore);
 		});

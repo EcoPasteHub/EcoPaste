@@ -83,13 +83,11 @@ export const readFiles = async (): Promise<ClipboardPayload> => {
  * 读取剪贴板图片
  */
 export const readImage = async (): Promise<ClipboardPayload> => {
-	const {
-		env: { saveImageDir = "" },
-	} = globalStore;
-
 	const { image, ...rest } = await invoke<ReadImage>(
 		CLIPBOARD_PLUGIN.READ_IMAGE,
-		{ dir: saveImageDir },
+		{
+			dir: getSaveImageDir(),
+		},
 	);
 
 	const { size } = await metadata(image);
@@ -110,7 +108,7 @@ export const readImage = async (): Promise<ClipboardPayload> => {
 		}
 	}
 
-	const value = image.replace(saveImageDir, "");
+	const value = image.replace(getSaveImageDir(), "");
 
 	return {
 		...rest,

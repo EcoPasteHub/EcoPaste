@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api";
 import { getName } from "@tauri-apps/api/app";
 import { open } from "@tauri-apps/api/dialog";
-import { BaseDirectory, writeFile } from "@tauri-apps/api/fs";
+import { writeFile } from "@tauri-apps/api/fs";
 import { omit } from "lodash-es";
 
 /**
@@ -22,14 +22,13 @@ export const exportData = async () => {
 		globalStore: omit(globalStore, ["_persist", "env"]),
 	};
 
-	await writeFile(STORE_FILE_NAME, JSON.stringify(content), {
-		dir: BaseDirectory.AppData,
-	});
+	await writeFile(getBackupStorePath(), JSON.stringify(content));
 
 	const time = dayjs().format("YYYY_MM_DD_HH_mm_ss");
 	const extension = await getExtension();
 
 	return invoke(BACKUP_PLUGIN.EXPORT_DATA, {
+		srcDir: getSaveDataDir(),
 		fileName: `${time}.${extension}`,
 	});
 };
@@ -46,7 +45,17 @@ export const importData = async () => {
 
 	if (!path) return;
 
-	await closeDatabase();
+	return invoke(BACKUP_PLUGIN.IMPORT_DATA, {
+		dstDir: getSaveDataDir(),
+		path,
+	});
+};
 
-	return invoke(BACKUP_PLUGIN.IMPORT_DATA, { path });
+/**
+ * 移动文件夹
+ * @param from 源文件夹
+ * @param to 目标文件夹
+ */
+export const moveData = (from: string, to: string) => {
+	return invoke<string>(BACKUP_PLUGIN.MOVE_DATA, { from, to });
 };
