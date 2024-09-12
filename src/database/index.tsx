@@ -35,7 +35,7 @@ const handlePayload = (payload: TablePayload) => {
  * 初始化数据库
  */
 export const initDatabase = async () => {
-	await db?.close();
+	await closeDatabase();
 
 	const appName = await getName();
 	const ext = isDev() ? "dev.db" : "db";
@@ -170,4 +170,11 @@ export const deleteSQL = async (tableName: TableName, id?: number) => {
 			deleteImageFile(item);
 		}
 	}
+};
+
+/**
+ * 关闭数据库连接池
+ */
+export const closeDatabase = async () => {
+	await db?.close();
 };
