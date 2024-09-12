@@ -45,6 +45,8 @@ export const importData = async () => {
 
 	if (!path) return;
 
+	await closeDatabase();
+
 	return invoke(BACKUP_PLUGIN.IMPORT_DATA, {
 		dstDir: getSaveDataDir(),
 		path,
@@ -52,10 +54,12 @@ export const importData = async () => {
 };
 
 /**
- * 移动文件夹
+ * 移动数据
  * @param from 源文件夹
  * @param to 目标文件夹
  */
-export const moveData = (from: string, to: string) => {
+export const moveData = async (from: string, to: string) => {
+	await closeDatabase();
+
 	return invoke<string>(BACKUP_PLUGIN.MOVE_DATA, { from, to });
 };

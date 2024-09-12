@@ -3,7 +3,7 @@ import ProListItem from "@/components/ProListItem";
 import { open } from "@tauri-apps/api/dialog";
 import { emit } from "@tauri-apps/api/event";
 import { join } from "@tauri-apps/api/path";
-import { Button, Flex } from "antd";
+import { Button, Flex, message } from "antd";
 import { isString } from "antd/es/button";
 import type { FC } from "react";
 import { useSnapshot } from "valtio";
@@ -22,11 +22,15 @@ const SavePath: FC<{ state: State }> = (props) => {
 
 		const dirName = await moveData(getSaveDataDir(), select);
 
+		if (!dirName) return;
+
 		globalStore.env.saveDataDir = await join(select, dirName);
 
 		state.spinning = false;
 
 		emit(LISTEN_KEY.CHANGE_DATA_FILE);
+
+		message.success("更改成功");
 	};
 
 	return (
