@@ -1,9 +1,10 @@
 import ProList from "@/components/ProList";
 import ProListItem from "@/components/ProListItem";
+import { NodeIndexOutlined, ReloadOutlined } from "@ant-design/icons";
 import { open } from "@tauri-apps/api/dialog";
 import { emit } from "@tauri-apps/api/event";
-import { join, sep } from "@tauri-apps/api/path";
-import { Button, Flex, message } from "antd";
+import { dataDir, join } from "@tauri-apps/api/path";
+import { Button, Flex, Space, Tooltip, message } from "antd";
 import { isString } from "antd/es/button";
 import type { FC } from "react";
 import type { State } from "../..";
@@ -11,19 +12,21 @@ import type { State } from "../..";
 const SavePath: FC<{ state: State }> = (props) => {
 	const { state } = props;
 
-	const handleClick = async () => {
+	const handleChange = async (isDefault = false) => {
 		try {
-			const select = await open({ directory: true });
+			const nextDir = isDefault
+				? await dataDir()
+				: await open({ directory: true });
 
-			if (!isString(select)) return;
+			if (!isString(nextDir) || getSaveDataDir().startsWith(nextDir)) return;
 
 			state.spinning = true;
 
-			const dirName = await moveData(getSaveDataDir(), select);
+			const dirName = await moveData(getSaveDataDir(), nextDir);
 
 			if (!dirName) return;
 
-			globalStore.env.saveDataDir = await join(select, dirName);
+			globalStore.env.saveDataDir = await join(nextDir, dirName);
 
 			state.spinning = false;
 
@@ -42,19 +45,33 @@ const SavePath: FC<{ state: State }> = (props) => {
 			<ProListItem
 				title={
 					<Flex vertical align="flex-start" gap={2}>
-						自定义存储路径
+						数据存储路径
 						<span
 							className="color-3 hover:color-primary cursor-pointer break-all text-12 transition"
 							onMouseDown={() => {
 								previewPath(getSaveDataDir());
 							}}
 						>
-							{getSaveDataDir().replace(new RegExp(`${sep}$`, "g"), "")}
+							{getSaveDataDir(false)}
 						</span>
 					</Flex>
 				}
 			>
-				<Button onClick={handleClick}>更改</Button>
+				<Space.Compact>
+					<Tooltip title="自定义">
+						<Button
+							icon={<NodeIndexOutlined />}
+							onClick={() => handleChange()}
+						/>
+					</Tooltip>
+
+					<Tooltip title="恢复默认">
+						<Button
+							icon={<ReloadOutlined className="text-14!" />}
+							onClick={() => handleChange(true)}
+						/>
+					</Tooltip>
+				</Space.Compact>
 			</ProListItem>
 		</ProList>
 	);

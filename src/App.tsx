@@ -12,7 +12,7 @@ import { error } from "tauri-plugin-log-api";
 const App = () => {
 	const { appearance } = useSnapshot(globalStore);
 
-	useMount(async () => {
+	useMount(() => {
 		// 处理系统主题变化
 		handleSystemThemeChanged();
 
@@ -21,9 +21,6 @@ const App = () => {
 
 		// 生成 antd 的颜色变量
 		generateColorVars();
-
-		// 初始化数据库
-		initDatabase();
 
 		// 监听语言的变化
 		watchKey(globalStore.appearance, "language", i18n.changeLanguage);

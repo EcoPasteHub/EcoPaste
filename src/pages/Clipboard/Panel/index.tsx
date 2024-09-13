@@ -100,11 +100,7 @@ const ClipboardPanel = () => {
 			getClipboardList();
 		});
 
-		listen(LISTEN_KEY.CHANGE_DATA_FILE, async () => {
-			await initDatabase();
-
-			getClipboardList();
-		});
+		listen(LISTEN_KEY.CHANGE_DATA_FILE, getClipboardList);
 
 		listen<boolean>(LISTEN_KEY.TOGGLE_LISTENING, ({ payload }) => {
 			if (payload) {
