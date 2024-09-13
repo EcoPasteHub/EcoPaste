@@ -62,7 +62,14 @@ async fn import_data(dst_dir: PathBuf, path: String) -> tauri::Result<bool> {
 
 #[command]
 async fn move_data(from: PathBuf, to: PathBuf) -> Result<String, String> {
-    let options = CopyOptions::new();
+    let options = CopyOptions {
+        overwrite: true,
+        skip_exist: false,
+        buffer_size: 64000,
+        copy_inside: false,
+        content_only: false,
+        depth: 0,
+    };
 
     move_dir(&from, &to, &options).map_err(|err| err.to_string())?;
 

@@ -6,7 +6,6 @@ import { RouterProvider } from "react-router-dom";
 import { useSnapshot } from "valtio";
 const { defaultAlgorithm, darkAlgorithm } = theme;
 import { listen } from "@tauri-apps/api/event";
-import {} from "@tauri-apps/api/path";
 import { isString } from "lodash-es";
 import { error } from "tauri-plugin-log-api";
 
@@ -44,6 +43,9 @@ const App = () => {
 
 			showWindow();
 		});
+
+		// 监听关闭数据库的事件
+		listen(LISTEN_KEY.CLOSE_DATABASE, closeDatabase);
 	});
 
 	// 处理系统主题变化
