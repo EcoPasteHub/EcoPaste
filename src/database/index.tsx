@@ -9,7 +9,7 @@ import { removeFile } from "@tauri-apps/api/fs";
 import { isBoolean, isNil, map, omitBy } from "lodash-es";
 import Database from "tauri-plugin-sql-api";
 
-let db: Database;
+let db: Database | null;
 
 /**
  * 处理参数
@@ -35,8 +35,6 @@ const handlePayload = (payload: TablePayload) => {
  * 初始化数据库
  */
 export const initDatabase = async () => {
-	await closeDatabase();
-
 	const appName = await getName();
 	const ext = isDev() ? "dev.db" : "db";
 
@@ -70,10 +68,10 @@ export const executeSQL = async (query: string, values?: unknown[]) => {
 	}
 
 	if (query.startsWith("SELECT")) {
-		return await db.select(query, values);
+		return await db!.select(query, values);
 	}
 
-	await db.execute(query, values);
+	await db!.execute(query, values);
 };
 
 /**
@@ -177,4 +175,6 @@ export const deleteSQL = async (tableName: TableName, id?: number) => {
  */
 export const closeDatabase = async () => {
 	await db?.close();
+
+	db = null;
 };

@@ -3,14 +3,18 @@ import { sep } from "@tauri-apps/api/path";
 /**
  * 获取存储数据的目录
  */
-export const getSaveDataDir = () => {
-	const { saveDataDir } = globalStore.env;
+export const getSaveDataDir = (endWithSep = true) => {
+	let { saveDataDir = "" } = globalStore.env;
 
-	if (saveDataDir?.endsWith(sep)) {
+	if (!saveDataDir.endsWith(sep)) {
+		saveDataDir += sep;
+	}
+
+	if (endWithSep) {
 		return saveDataDir;
 	}
 
-	return saveDataDir + sep;
+	return saveDataDir.replace(new RegExp(`${sep}$`), "");
 };
 
 /**
