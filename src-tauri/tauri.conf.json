@@ -119,7 +119,7 @@
 			"active": true,
 			"endpoints": ["https://ecopaste-updater.ayangweb.cn/api/update"],
 			"dialog": false,
-			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDNBRjgxOTE4RjlDMzRDNUQKUldSZFRNUDVHQm40T3BzT1FhZWxEMkEvbHBiSFJNLzVleS9HRVIyM0dzN0JXRmZRZktoS2w0U1MK"
+			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDcwNEIyQkUwRjNEMTg4NgpSV1NHR0QwUHZySUVCeXFRQzZ4aEpNRWdFdThVQ2I4b2dSQktRcmNtV1dYTFJJV1h2VmVVZXBWSgo"
 		}
 	}
 }
