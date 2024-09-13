@@ -1,6 +1,5 @@
 import { ClipboardPanelContext } from "@/pages/Clipboard/Panel";
 import type { ClipboardItem } from "@/types/database";
-import {} from "@tauri-apps/api/event";
 import { copyFile, writeFile } from "@tauri-apps/api/fs";
 import { downloadDir } from "@tauri-apps/api/path";
 import { open } from "@tauri-apps/api/shell";

@@ -12,32 +12,44 @@ const Manual: FC<{ state: State }> = (props) => {
 	const { state } = props;
 
 	const handleImport = async () => {
-		state.spinning = true;
+		try {
+			state.spinning = true;
 
-		const result = await importData();
+			const result = await importData();
 
-		state.spinning = false;
+			state.spinning = false;
 
-		if (!result) return;
+			if (!result) return;
 
-		const content = await readTextFile(getBackupStorePath());
+			const content = await readTextFile(getBackupStorePath());
 
-		const store = JSON.parse(content) as Store;
+			const store = JSON.parse(content) as Store;
 
-		merge(globalStore, store.globalStore);
-		merge(clipboardStore, store.clipboardStore);
+			merge(globalStore, store.globalStore);
+			merge(clipboardStore, store.clipboardStore);
 
-		emit(LISTEN_KEY.CHANGE_DATA_FILE);
+			emit(LISTEN_KEY.CHANGE_DATA_FILE);
 
-		message.success("导入成功");
+			message.success("导入成功");
+		} catch (error: any) {
+			state.spinning = false;
+
+			message.error(error);
+		}
 	};
 
 	const handleExport = async () => {
-		state.spinning = true;
+		try {
+			state.spinning = true;
 
-		await exportData();
+			await exportData();
 
-		state.spinning = false;
+			state.spinning = false;
+		} catch (error: any) {
+			state.spinning = false;
+
+			message.error(error);
+		}
 	};
 
 	const mapList = [

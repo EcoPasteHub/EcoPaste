@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api";
 import { getName } from "@tauri-apps/api/app";
 import { open } from "@tauri-apps/api/dialog";
+import { emit } from "@tauri-apps/api/event";
 import { writeFile } from "@tauri-apps/api/fs";
 import { omit } from "lodash-es";
 
@@ -45,7 +46,7 @@ export const importData = async () => {
 
 	if (!path) return;
 
-	await closeDatabase();
+	await emit(LISTEN_KEY.CLOSE_DATABASE);
 
 	return invoke(BACKUP_PLUGIN.IMPORT_DATA, {
 		dstDir: getSaveDataDir(),
@@ -59,7 +60,7 @@ export const importData = async () => {
  * @param to 目标文件夹
  */
 export const moveData = async (from: string, to: string) => {
-	await closeDatabase();
+	await emit(LISTEN_KEY.CLOSE_DATABASE);
 
 	return invoke<string>(BACKUP_PLUGIN.MOVE_DATA, { from, to });
 };

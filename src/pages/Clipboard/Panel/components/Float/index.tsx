@@ -1,5 +1,4 @@
 import Icon from "@/components/Icon";
-import {} from "@tauri-apps/api/window";
 import { Flex } from "antd";
 import clsx from "clsx";
 import { useSnapshot } from "valtio";

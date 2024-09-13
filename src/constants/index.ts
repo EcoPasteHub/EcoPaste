@@ -18,6 +18,7 @@ export const LISTEN_KEY = {
 	CLIPBOARD_ITEM_PASTE: "clipboard-item-paste",
 	CLIPBOARD_ITEM_DELETE: "clipboard-item-delete",
 	TOGGLE_MAIN_WINDOW_VISIBLE: "toggle-main-window-visible",
+	CLOSE_DATABASE: "close-database",
 };
 
 export const WINDOW_PLUGIN = {

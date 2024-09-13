@@ -14,23 +14,29 @@ const SavePath: FC<{ state: State }> = (props) => {
 	const { env } = useSnapshot(globalStore);
 
 	const handleClick = async () => {
-		const select = await open({ directory: true });
+		try {
+			const select = await open({ directory: true });
 
-		if (!isString(select)) return;
+			if (!isString(select)) return;
 
-		state.spinning = true;
+			state.spinning = true;
 
-		const dirName = await moveData(getSaveDataDir(), select);
+			const dirName = await moveData(getSaveDataDir(), select);
 
-		if (!dirName) return;
+			if (!dirName) return;
 
-		globalStore.env.saveDataDir = await join(select, dirName);
+			globalStore.env.saveDataDir = await join(select, dirName);
 
-		state.spinning = false;
+			state.spinning = false;
 
-		emit(LISTEN_KEY.CHANGE_DATA_FILE);
+			emit(LISTEN_KEY.CHANGE_DATA_FILE);
 
-		message.success("更改成功");
+			message.success("更改成功");
+		} catch (error: any) {
+			state.spinning = false;
+
+			message.error(error);
+		}
 	};
 
 	return (
