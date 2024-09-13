@@ -44,7 +44,7 @@ const App = () => {
 			showWindow();
 		});
 
-		// 监听数据库的关闭事件
+		// 监听关闭数据库的事件
 		listen(LISTEN_KEY.CLOSE_DATABASE, closeDatabase);
 	});
 
