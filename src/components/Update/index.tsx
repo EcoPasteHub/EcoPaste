@@ -16,7 +16,7 @@ import styles from "./index.module.scss";
 
 interface State {
 	open?: boolean;
-	loading?: boolean;
+	downloading?: boolean;
 	manifest?: UpdateManifest;
 }
 
@@ -26,12 +26,11 @@ let timer: Timeout;
 const Update = () => {
 	const { env } = useSnapshot(globalStore);
 	const { t } = useTranslation();
-
 	const state = useReactive<State>({});
-
 	const [messageApi, contextHolder] = message.useMessage();
 
 	useMount(() => {
+		// 监听更新事件
 		listen<boolean>(LISTEN_KEY.UPDATE, async ({ payload }) => {
 			check(payload);
 
@@ -45,6 +44,7 @@ const Update = () => {
 			});
 		});
 
+		// 监听自动更新配置变化
 		watchKey(globalStore.update, "auto", (value) => {
 			clearInterval(timer);
 
@@ -56,12 +56,14 @@ const Update = () => {
 		});
 	});
 
+	// 本地化更新时间
 	const updateTime = useCreation(() => {
 		const date = state.manifest?.date?.split(" ")?.slice(0, 2)?.join(" ");
 
 		return dayjs.utc(date).local().format("YYYY-MM-DD HH:mm:ss");
 	}, [state.manifest?.date]);
 
+	// 检查更新
 	const check = async (showMessage = false) => {
 		try {
 			const { shouldUpdate, manifest } = await checkUpdate();
@@ -72,15 +74,7 @@ const Update = () => {
 				const isBeta = /[a-z]/.test(version);
 
 				if (isBeta && !globalStore.update.beta) {
-					if (showMessage) {
-						messageApi.open({
-							key: MESSAGE_KEY,
-							type: "success",
-							content: t("component.app_update.hints.latest_version"),
-						});
-					}
-
-					return;
+					return showLatestMessage(showMessage);
 				}
 
 				showWindow();
@@ -91,11 +85,7 @@ const Update = () => {
 
 				Object.assign(state, { manifest, open: true });
 			} else if (showMessage) {
-				messageApi.open({
-					key: MESSAGE_KEY,
-					type: "success",
-					content: t("component.app_update.hints.latest_version"),
-				});
+				showLatestMessage();
 			}
 		} catch {
 			if (!showMessage) return;
@@ -108,6 +98,7 @@ const Update = () => {
 		}
 	};
 
+	// 替换更新日志里的内容
 	const replaceManifestBody = (body: string) => {
 		return (
 			body
@@ -124,8 +115,19 @@ const Update = () => {
 		);
 	};
 
+	// 显示最新版本的提示信息
+	const showLatestMessage = (show = true) => {
+		if (!show) return;
+
+		messageApi.open({
+			key: MESSAGE_KEY,
+			type: "success",
+			content: t("component.app_update.hints.latest_version"),
+		});
+	};
+
 	const handleOk = async () => {
-		state.loading = true;
+		state.downloading = true;
 
 		installUpdate();
 
@@ -150,6 +152,8 @@ const Update = () => {
 						type: "error",
 						content: error,
 					});
+
+					state.downloading = false;
 					break;
 				case "UPTODATE":
 					messageApi.open({
@@ -171,6 +175,7 @@ const Update = () => {
 
 			<Modal
 				centered
+				destroyOnClose
 				open={state.open}
 				closable={false}
 				keyboard={false}
@@ -179,8 +184,8 @@ const Update = () => {
 				okText={t("component.app_update.button.confirm_update")}
 				cancelText={t("component.app_update.button.cancel_update")}
 				className={styles.modal}
-				confirmLoading={state.loading}
-				cancelButtonProps={{ disabled: state.loading }}
+				confirmLoading={state.downloading}
+				cancelButtonProps={{ disabled: state.downloading }}
 				onOk={handleOk}
 				onCancel={handleCancel}
 			>
