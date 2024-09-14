@@ -142,27 +142,25 @@
 			}
 		},
 		"data_backup": {
-			"import_export": {
-				"title": "匯入和匯出",
+			"storage_path": {
+				"title": "存儲設定",
 				"label": {
-					"storage_dir": "儲存路徑",
-					"import_confirm_title": "匯入須知",
-					"export_confirm_title": "匯出須知"
-				},
-				"button": {
-					"open_dir": "打開目錄",
-					"import": "匯入資料",
-					"export": "匯出資料",
-					"confirm_export": "開始匯出",
-					"confirm": "確定",
-					"cancel": "取消"
+					"storage_path": "數據存儲路徑"
 				},
 				"hints": {
-					"import_confirm": "匯入的資料會完全覆蓋所有的偏好設定以及所有的剪貼簿歷史資料，你確定要匯入嗎？",
-					"export_confirm": "匯出的資料包含所有的偏好設定以及所有的剪貼簿歷史資料。",
-					"importing": "正在匯入",
-					"exporting": "正在匯出",
-					"import_success": "匯入成功"
+					"custom_path": "自訂",
+					"default_path": "恢復預設",
+					"save_success": "更改成功"
+				}
+			},
+			"import_export": {
+				"title": "導入和導出",
+				"button": {
+					"import": "導入數據",
+					"export": "導出數據"
+				},
+				"hints": {
+					"import_success": "導入成功"
 				}
 			}
 		},

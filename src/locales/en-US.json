@@ -142,26 +142,24 @@
 			}
 		},
 		"data_backup": {
-			"import_export": {
-				"title": "Import / Export",
+			"storage_path": {
+				"title": "Storage Settings",
 				"label": {
-					"storage_dir": "Storage Directory",
-					"import_confirm_title": "Import Notice",
-					"export_confirm_title": "Export Notice"
-				},
-				"button": {
-					"open_dir": "Open",
-					"import": "Import",
-					"export": "Export",
-					"confirm_export": "Start",
-					"confirm": "Ok",
-					"cancel": "Cancel"
+					"storage_path": "Data Storage Directory"
 				},
 				"hints": {
-					"import_confirm": "Imported data will completely overwrite all preferences and clipboard history. Are you sure you want to import?",
-					"export_confirm": "Exported data includes all preferences and clipboard history.",
-					"importing": "Importing",
-					"exporting": "Exporting",
+					"custom_path": "Custom",
+					"default_path": "Restore Default",
+					"save_success": "Changes Saved Successfully"
+				}
+			},
+			"import_export": {
+				"title": "Import / Export",
+				"button": {
+					"import": "Import",
+					"export": "Export"
+				},
+				"hints": {
 					"import_success": "Import Successful"
 				}
 			}
