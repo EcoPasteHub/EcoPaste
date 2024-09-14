@@ -1,5 +1,5 @@
 <a href="https://github.com/EcoPasteHub/EcoPaste">
-  <img src="https://socialify.git.ci/EcoPasteHub/EcoPaste/image?description=1&descriptionEditable=%E9%80%82%E7%94%A8%E4%BA%8E%20Windows%E3%80%81Macos%20%E5%92%8C%20Linux%20%E7%9A%84%E5%BC%80%E6%BA%90%E5%89%AA%E8%B4%B4%E6%9D%BF%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7%E3%80%82&font=Source%20Code%20Pro&forks=1&issues=1&logo=https%3A%2F%2Fgithub.com%2Fayangweb%2FEcoPaste%2Fblob%2Fmaster%2Fpublic%2Flogo.png%3Fraw%3Dtrue&name=1&owner=1&pattern=Floating%20Cogs&pulls=1&stargazers=1&theme=Auto" alt="EcoPaste" />
+  <img src="https://socialify.git.ci/EcoPasteHub/EcoPaste/image?description=1&descriptionEditable=%E9%80%82%E7%94%A8%E4%BA%8E%20Windows%E3%80%81MacOS%20%E5%92%8C%20Linux(x11)%20%E7%9A%84%E5%BC%80%E6%BA%90%E5%89%AA%E8%B4%B4%E6%9D%BF%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7%E3%80%82&font=Source%20Code%20Pro&forks=1&issues=1&logo=https%3A%2F%2Fgithub.com%2FEcoPasteHub%2FEcoPaste%2Fblob%2Fmaster%2Fpublic%2Flogo.png%3Fraw%3Dtrue&name=1&owner=1&pattern=Floating%20Cogs&pulls=1&stargazers=1&theme=Auto" alt="EcoPaste" />
 </a>
 
 <div align="center">
@@ -11,19 +11,19 @@
 
   <br/>
     
-  <a href="https://github.com/EcoPasteHub/EcoPaste/releases/latest">
+  <a href="https://github.com/EcoPasteHub/EcoPaste/releases">
     <img
       alt="Windows"
-      src="https://img.shields.io/badge/-Windows-blue?style=flat-square&logo=windows&logoColor=white"
+      src="https://img.shields.io/badge/-Windows-blue?style=flat-square&logo=data:image/svg+xml;base64,PHN2ZyB0PSIxNzI2MzA1OTcxMDA2IiBjbGFzcz0iaWNvbiIgdmlld0JveD0iMCAwIDEwMjQgMTAyNCIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHAtaWQ9IjE1NDgiIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4Ij48cGF0aCBkPSJNNTI3LjI3NTU1MTYxIDk2Ljk3MTAzMDEzdjM3My45OTIxMDY2N2g0OTQuNTEzNjE5NzVWMTUuMDI2NzU3NTN6TTUyNy4yNzU1NTE2MSA5MjguMzIzNTA4MTVsNDk0LjUxMzYxOTc1IDgwLjUyMDI4MDQ5di00NTUuNjc3NDcxNjFoLTQ5NC41MTM2MTk3NXpNNC42NzA0NTEzNiA0NzAuODMzNjgyOTdINDIyLjY3Njg1OTI1VjExMC41NjM2ODE5N2wtNDE4LjAwNjQwNzg5IDY5LjI1Nzc5NzUzek00LjY3MDQ1MTM2IDg0Ni43Njc1OTcwM0w0MjIuNjc2ODU5MjUgOTE0Ljg2MDMxMDEzVjU1My4xNjYzMTcwM0g0LjY3MDQ1MTM2eiIgcC1pZD0iMTU0OSIgZmlsbD0iI2ZmZmZmZiI+PC9wYXRoPjwvc3ZnPg=="
     />
   </a >  
-  <a href="https://github.com/EcoPasteHub/EcoPaste/releases/latest">
+  <a href="https://github.com/EcoPasteHub/EcoPaste/releases">
     <img
-      alt="macOS"
+      alt="MacOS"
       src="https://img.shields.io/badge/-MacOS-black?style=flat-square&logo=apple&logoColor=white"
     />
   </a >
-  <a href="https://github.com/EcoPasteHub/EcoPaste/releases/latest">
+  <a href="https://github.com/EcoPasteHub/EcoPaste/releases">
     <img 
       alt="Linux"
       src="https://img.shields.io/badge/-Linux-yellow?style=flat-square&logo=linux&logoColor=white" 
@@ -36,7 +36,7 @@
         src="https://img.shields.io/github/license/EcoPasteHub/EcoPaste?style=flat-square"
       />
     </a >
-    <a href="https://github.com/EcoPasteHub/EcoPaste/releases/latest">
+    <a href="https://github.com/EcoPasteHub/EcoPaste/releases">
       <img
         src="https://img.shields.io/github/package-json/v/EcoPasteHub/EcoPaste?style=flat-square"
       />
@@ -61,11 +61,11 @@
 
 ### Windows
 
-手动安装：[Universal](https://gh-proxy.com/https://github.com/EcoPasteHub/EcoPaste/releases/download/v0.0.6/EcoPaste_0.0.6_x64-setup.exe)
+手动安装：[Universal](https://ecopaste-updater.ayangweb.cn/api/latest?platform=windows)
 
 ### Macos
 
-手动安装：[Apple Silicon](https://gh-proxy.com/https://github.com/EcoPasteHub/EcoPaste/releases/download/v0.0.6/EcoPaste_0.0.6_aarch64.dmg) | [Intel](https://gh-proxy.com/https://github.com/EcoPasteHub/EcoPaste/releases/download/v0.0.6/EcoPaste_0.0.6_x64.dmg)
+手动安装：[Apple Silicon](https://ecopaste-updater.ayangweb.cn/api/latest?platform=macos-arm) | [Intel](https://ecopaste-updater.ayangweb.cn/api/latest?platform=macos-x64)
 
 HomeBrew：
 
@@ -91,9 +91,9 @@ brew uninstall --cask ecopaste
 brew untap EcoPasteHub/EcoPaste
 ```
 
-### Linux
+### Linux(x11)
 
-手动安装： [AppImage](https://gh-proxy.com/https://github.com/EcoPasteHub/EcoPaste/releases/download/v0.0.6/eco-paste_0.0.6_amd64.AppImage) | [deb](https://gh-proxy.com/https://github.com/EcoPasteHub/EcoPaste/releases/download/v0.0.6/eco-paste_0.0.6_amd64.deb) | [rpm](https://gh-proxy.com/https://github.com/EcoPasteHub/EcoPaste/releases/download/v0.0.6/eco-paste-0.0.6-1.x86_64.rpm)
+手动安装： [AppImage](https://ecopaste-updater.ayangweb.cn/api/latest?platform=linux-appimage) | [deb](https://ecopaste-updater.ayangweb.cn/api/latest?platform=linux-deb) | [rpm](https://ecopaste-updater.ayangweb.cn/api/latest?platform=linux-rpm)
 
 ## 功能介绍
 
