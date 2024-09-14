@@ -204,13 +204,13 @@
 				"text": "Text",
 				"image": "Image",
 				"files": "File",
-				"collection": "Favorite"
+				"favorite": "Favorite"
 			},
 			"link": "Link",
 			"email": "Email",
 			"color": "Color",
 			"plain_text": "Plain Text",
-			"rich_text": "Rich Text",
+			"rtf": "Rich Text",
 			"html": "HTML",
 			"image": "Image",
 			"n_files": "{{0}} File(s)",

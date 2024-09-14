@@ -7,7 +7,7 @@ RTFJS.loggingEnabled(false);
 WMFJS.loggingEnabled(false);
 EMFJS.loggingEnabled(false);
 
-const RichText: FC<ClipboardItem> = (props) => {
+const RTF: FC<ClipboardItem> = (props) => {
 	const { value } = props;
 
 	const [parsedHTML, setParsedHTML] = useState("");
@@ -39,4 +39,4 @@ const RichText: FC<ClipboardItem> = (props) => {
 	return <HTML value={parsedHTML} />;
 };
 
-export default memo(RichText);
+export default memo(RTF);

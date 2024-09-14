@@ -27,7 +27,7 @@ const List = () => {
 		rowVirtualizer.scrollToIndex(0);
 
 		getClipboardList?.();
-	}, [state.search, state.group, state.isCollected]);
+	}, [state.search, state.group, state.favorite]);
 
 	useOSKeyPress(
 		["space", "enter", "backspace", "uparrow", "downarrow"],

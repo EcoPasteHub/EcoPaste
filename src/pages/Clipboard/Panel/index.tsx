@@ -129,12 +129,12 @@ const ClipboardPanel = () => {
 
 	// 获取剪切板内容
 	const getClipboardList = async () => {
-		const { search, group, isCollected } = state;
+		const { search, group, favorite } = state;
 
 		const list = await selectSQL<ClipboardItem[]>("history", {
 			search,
 			group,
-			isCollected,
+			favorite,
 		});
 
 		state.data.list = list;
@@ -151,7 +151,7 @@ const ClipboardPanel = () => {
 			const { id, createTime } = item;
 
 			if (dayjs().diff(createTime, "days") >= duration * unit) {
-				if (item.isCollected) continue;
+				if (item.favorite) continue;
 
 				deleteSQL("history", id);
 			}

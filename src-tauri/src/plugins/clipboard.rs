@@ -135,7 +135,7 @@ async fn has_html(manager: State<'_, ClipboardManager>) -> Result<bool, String> 
 }
 
 #[command]
-async fn has_rich_text(manager: State<'_, ClipboardManager>) -> Result<bool, String> {
+async fn has_rtf(manager: State<'_, ClipboardManager>) -> Result<bool, String> {
     Ok(manager.has(ContentFormat::Rtf))
 }
 
@@ -220,7 +220,7 @@ async fn read_html(manager: State<'_, ClipboardManager>) -> Result<String, Strin
 }
 
 #[command]
-async fn read_rich_text(manager: State<'_, ClipboardManager>) -> Result<String, String> {
+async fn read_rtf(manager: State<'_, ClipboardManager>) -> Result<String, String> {
     manager
         .context
         .lock()
@@ -283,15 +283,15 @@ async fn write_html(
 }
 
 #[command]
-async fn write_rich_text(
+async fn write_rtf(
     manager: State<'_, ClipboardManager>,
     text: String,
-    rich_text: String,
+    rtf: String,
 ) -> Result<(), String> {
-    let contents = vec![
-        ClipboardContent::Text(text),
-        ClipboardContent::Rtf(rich_text),
-    ];
+    println!("text: {text}");
+    println!("rtf: {rtf}");
+
+    let contents = vec![ClipboardContent::Text(text), ClipboardContent::Rtf(rtf)];
 
     manager
         .context
@@ -324,17 +324,17 @@ pub fn init() -> TauriPlugin<Wry> {
             has_files,
             has_image,
             has_html,
-            has_rich_text,
+            has_rtf,
             has_text,
             read_files,
             read_image,
             read_html,
-            read_rich_text,
+            read_rtf,
             read_text,
             write_files,
             write_image,
             write_html,
-            write_rich_text,
+            write_rtf,
             write_text,
         ])
         .build()
