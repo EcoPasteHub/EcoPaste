@@ -76,6 +76,7 @@ export const readFiles = async (): Promise<ClipboardPayload> => {
 		size,
 		search: fileNames.join(" "),
 		value: JSON.stringify(files),
+		group: "files",
 	};
 };
 
@@ -113,8 +114,9 @@ export const readImage = async (): Promise<ClipboardPayload> => {
 	return {
 		...rest,
 		size,
-		search,
 		value,
+		search,
+		group: "image",
 	};
 };
 
@@ -130,6 +132,7 @@ export const readHTML = async (): Promise<ClipboardPayload> => {
 		size,
 		value: html,
 		search: value,
+		group: "text",
 	};
 };
 
@@ -142,9 +145,10 @@ export const readRichText = async (): Promise<ClipboardPayload> => {
 	const { value, size } = await readText();
 
 	return {
+		size,
 		value: richText,
 		search: value,
-		size,
+		group: "text",
 	};
 };
 
@@ -158,6 +162,7 @@ export const readText = async (): Promise<ClipboardPayload> => {
 		value: text,
 		search: text,
 		size: text.length,
+		group: "text",
 	};
 };
 
@@ -166,8 +171,6 @@ export const readText = async (): Promise<ClipboardPayload> => {
  */
 export const readClipboard = async () => {
 	let payload!: ClipboardPayload;
-
-	const { content } = clipboardStore;
 
 	const has = {
 		files: await hasFiles(),
@@ -185,11 +188,11 @@ export const readClipboard = async () => {
 		const imagePayload = await readImage();
 
 		payload = { ...imagePayload, type: "image" };
-	} else if (!content.copyPlainText && has.html) {
+	} else if (has.html) {
 		const htmlPayload = await readHTML();
 
 		payload = { ...htmlPayload, type: "html" };
-	} else if (!content.copyPlainText && has.richText) {
+	} else if (has.richText) {
 		const richTextPayload = await readRichText();
 
 		payload = { ...richTextPayload, type: "rich-text" };
@@ -224,6 +227,12 @@ export const writeImage = (value: string) => {
  * HTML 内容写入剪贴板
  */
 export const writeHTML = (text: string, html: string) => {
+	const { pastePlainText } = clipboardStore.content;
+
+	if (pastePlainText) {
+		return writeText(text);
+	}
+
 	return invoke(CLIPBOARD_PLUGIN.WRITE_HTML, {
 		text,
 		html,
@@ -234,6 +243,12 @@ export const writeHTML = (text: string, html: string) => {
  * 富文写入剪贴板
  */
 export const writeRichText = (text: string, richText: string) => {
+	const { pastePlainText } = clipboardStore.content;
+
+	if (pastePlainText) {
+		return writeText(text);
+	}
+
 	return invoke(CLIPBOARD_PLUGIN.WRITE_RICH_TEXT, {
 		text,
 		richText,

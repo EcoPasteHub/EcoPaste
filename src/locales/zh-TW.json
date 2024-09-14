@@ -48,12 +48,12 @@
 					"auto_paste_single": "單擊",
 					"auto_paste_double": "雙擊",
 					"image_ocr": "圖片 OCR",
-					"copy_as_plain": "複製為純文字"
+					"paste_as_plain": "粘貼為純文字"
 				},
 				"hints": {
 					"auto_paste": "當使用滑鼠左鍵時，快速將內容貼上到輸入位置",
 					"image_ocr": "注意：使用前請務必先下載",
-					"copy_as_plain": "富文本和 HTML 格式在複製時僅保留純文字內容"
+					"paste_as_plain": "富文字和 HTML 格式在粘貼時僅保留純文字內容"
 				}
 			}
 		},

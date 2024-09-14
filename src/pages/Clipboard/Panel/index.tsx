@@ -53,8 +53,10 @@ const ClipboardPanel = () => {
 	useMount(async () => {
 		state.$eventBus = $eventBus;
 
+		// 开启监听
 		startListen();
 
+		// 监听剪切板更新
 		onClipboardUpdate(async (payload) => {
 			if (clipboardStore.audio.copy) {
 				audioRef.current?.play();
@@ -71,29 +73,13 @@ const ClipboardPanel = () => {
 					createTime: dayjs().format("YYYY-MM-DD HH:mm:ss"),
 				});
 			} else {
-				let group: ClipboardItem["group"];
-
-				switch (payload.type) {
-					case "files":
-						group = "files";
-						break;
-					case "image":
-						group = "image";
-						break;
-					default:
-						group = "text";
-						break;
-				}
-
-				await insertSQL("history", {
-					...payload,
-					group,
-				});
+				await insertSQL("history", payload);
 			}
 
 			getClipboardList();
 		});
 
+		// 监听清空历史记录
 		listen(LISTEN_KEY.CLEAR_HISTORY, async () => {
 			await deleteSQL("history");
 
@@ -102,6 +88,7 @@ const ClipboardPanel = () => {
 
 		listen(LISTEN_KEY.CHANGE_DATA_FILE, getClipboardList);
 
+		// 监听监听状态变更
 		listen<boolean>(LISTEN_KEY.TOGGLE_LISTENING, ({ payload }) => {
 			if (payload) {
 				startListen();
@@ -110,21 +97,25 @@ const ClipboardPanel = () => {
 			}
 		});
 
+		// 监听全局配置变更
 		listen(LISTEN_KEY.GLOBAL_STORE_CHANGED, ({ payload }) => {
 			if (isEqual(globalStore, payload)) return;
 
 			merge(globalStore, payload);
 		});
 
+		// 监听剪切板配置变更
 		listen(LISTEN_KEY.CLIPBOARD_STORE_CHANGED, ({ payload }) => {
 			if (isEqual(clipboardStore, payload)) return;
 
 			merge(clipboardStore, payload);
 		});
 
+		// 监听主窗口显示/隐藏
 		listen(LISTEN_KEY.TOGGLE_MAIN_WINDOW_VISIBLE, toggleWindowVisible);
 	});
 
+	// 监听窗口焦点
 	useFocus({
 		onBlur() {
 			if (state.pin) return;
@@ -133,8 +124,10 @@ const ClipboardPanel = () => {
 		},
 	});
 
+	// 监听快捷键
 	useRegister(toggleWindowVisible, [shortcut.clipboard]);
 
+	// 获取剪切板内容
 	const getClipboardList = async () => {
 		const { search, group, isCollected } = state;
 
