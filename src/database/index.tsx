@@ -12,33 +12,14 @@ import Database from "tauri-plugin-sql-api";
 let db: Database | null;
 
 /**
- * 处理参数
- * @param payload 数据
- */
-const handlePayload = (payload: TablePayload) => {
-	const omitPayload = omitBy(payload, isNil);
-
-	const keys = map(Object.keys(omitPayload), (key) => `[${key}]`);
-	const refs = map(keys, () => "?");
-	const values = map(Object.values(omitPayload), (item) => {
-		return isBoolean(item) ? Number(item) : item;
-	});
-
-	return {
-		keys,
-		refs,
-		values,
-	};
-};
-
-/**
  * 初始化数据库
  */
 export const initDatabase = async () => {
 	const appName = await getName();
 	const ext = isDev() ? "dev.db" : "db";
+	const path = joinPath(getSaveDataDir(), `${appName}.${ext}`);
 
-	db = await Database.load(`sqlite:${getSaveDataDir()}${appName}.${ext}`);
+	db = await Database.load(`sqlite:${path}`);
 
 	await executeSQL(
 		`
@@ -154,7 +135,7 @@ export const deleteSQL = async (tableName: TableName, id?: number) => {
 
 		if (type !== "image") return;
 
-		removeFile(getSaveImageDir() + value);
+		removeFile(getSaveImagePath(value));
 	};
 
 	if (id) {
@@ -177,4 +158,24 @@ export const closeDatabase = async () => {
 	await db?.close();
 
 	db = null;
+};
+
+/**
+ * 处理参数
+ * @param payload 数据
+ */
+const handlePayload = (payload: TablePayload) => {
+	const omitPayload = omitBy(payload, isNil);
+
+	const keys = map(Object.keys(omitPayload), (key) => `[${key}]`);
+	const refs = map(keys, () => "?");
+	const values = map(Object.values(omitPayload), (item) => {
+		return isBoolean(item) ? Number(item) : item;
+	});
+
+	return {
+		keys,
+		refs,
+		values,
+	};
 };
