@@ -66,7 +66,7 @@ export interface ClipboardStore {
 	content: {
 		autoPaste: "single" | "double";
 		ocr: boolean;
-		copyPlainText: boolean;
+		pastePlainText: boolean;
 	};
 
 	// 历史记录

@@ -4,7 +4,6 @@ export type TableName = "history";
 
 export interface ClipboardItem extends ClipboardPayload {
 	id: number;
-	group: "text" | "image" | "files";
 	createTime: string;
 	isCollected: boolean;
 }

@@ -86,13 +86,15 @@ const ClipboardSettings = () => {
 				/>
 
 				<ProSwitch
-					title={t("preference.clipboard.content_settings.label.copy_as_plain")}
-					description={t(
-						"preference.clipboard.content_settings.hints.copy_as_plain",
+					title={t(
+						"preference.clipboard.content_settings.label.paste_as_plain",
 					)}
-					value={content.copyPlainText}
+					description={t(
+						"preference.clipboard.content_settings.hints.paste_as_plain",
+					)}
+					value={content.pastePlainText}
 					onChange={(value) => {
-						clipboardStore.content.copyPlainText = value;
+						clipboardStore.content.pastePlainText = value;
 					}}
 				/>
 			</ProList>
