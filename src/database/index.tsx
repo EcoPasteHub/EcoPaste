@@ -6,7 +6,7 @@ import type {
 } from "@/types/database";
 import { getName } from "@tauri-apps/api/app";
 import { removeFile } from "@tauri-apps/api/fs";
-import { isBoolean, isNil, map, omitBy } from "lodash-es";
+import { isBoolean, isNil, map, omitBy, some } from "lodash-es";
 import Database from "tauri-plugin-sql-api";
 
 let db: Database | null;
@@ -29,14 +29,30 @@ export const initDatabase = async () => {
 			[group] TEXT,
 			value TEXT,
      		search TEXT,
+			size INTEGER,
 			width INTEGER,
 			height INTEGER,
-			size INTEGER,
-			createTime TIMESTAMP DEFAULT (DATETIME('now', 'localtime')),
-			isCollected INTEGER DEFAULT 0
+			favorite INTEGER DEFAULT 0,
+			createTime TIMESTAMP DEFAULT (DATETIME('now', 'localtime'))
 		);
         `,
 	);
+
+	// 获取 history 表字段
+	const fields: any = await executeSQL("PRAGMA table_info(history)");
+
+	// `isCollected` 更名 `favorite`
+	if (some(fields, { name: "isCollected" })) {
+		await executeSQL(
+			"ALTER TABLE history RENAME COLUMN isCollected TO favorite;",
+		);
+	}
+
+	// 将 type 为富文本的简化为 rtf
+	await executeSQL("UPDATE history SET type = ? WHERE type = ?;", [
+		"rtf",
+		"rich-text",
+	]);
 };
 
 /**
@@ -48,7 +64,7 @@ export const executeSQL = async (query: string, values?: unknown[]) => {
 		await initDatabase();
 	}
 
-	if (query.startsWith("SELECT")) {
+	if (query.startsWith("SELECT") || query.startsWith("PRAGMA")) {
 		return await db!.select(query, values);
 	}
 

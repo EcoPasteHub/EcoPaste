@@ -204,13 +204,13 @@
 				"text": "文本",
 				"image": "图片",
 				"files": "文件",
-				"collection": "收藏"
+				"favorite": "收藏"
 			},
 			"link": "链接",
 			"email": "邮箱",
 			"color": "颜色",
 			"plain_text": "纯文本",
-			"rich_text": "富文本",
+			"rtf": "富文本",
 			"html": "HTML",
 			"image": "图片",
 			"n_files": "{{0}}个文件（夹）",

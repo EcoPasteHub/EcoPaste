@@ -41,8 +41,8 @@ export const hasHTML = async () => {
 /**
  * 剪贴板是否有富文本
  */
-export const hasRichText = async () => {
-	return invoke<boolean>(CLIPBOARD_PLUGIN.HAS_RICH_TEXT);
+export const hasRTF = async () => {
+	return invoke<boolean>(CLIPBOARD_PLUGIN.HAS_RTF);
 };
 
 /**
@@ -139,14 +139,14 @@ export const readHTML = async (): Promise<ClipboardPayload> => {
 /**
  * 读取富文本
  */
-export const readRichText = async (): Promise<ClipboardPayload> => {
-	const richText = await invoke<string>(CLIPBOARD_PLUGIN.READ_RICH_TEXT);
+export const readRTF = async (): Promise<ClipboardPayload> => {
+	const rtf = await invoke<string>(CLIPBOARD_PLUGIN.READ_RTF);
 
 	const { value, size } = await readText();
 
 	return {
 		size,
-		value: richText,
+		value: rtf,
 		search: value,
 		group: "text",
 	};
@@ -176,7 +176,7 @@ export const readClipboard = async () => {
 		files: await hasFiles(),
 		image: await hasImage(),
 		html: await hasHTML(),
-		richText: await hasRichText(),
+		rtf: await hasRTF(),
 		text: await hasText(),
 	};
 
@@ -192,10 +192,10 @@ export const readClipboard = async () => {
 		const htmlPayload = await readHTML();
 
 		payload = { ...htmlPayload, type: "html" };
-	} else if (has.richText) {
-		const richTextPayload = await readRichText();
+	} else if (has.rtf) {
+		const rtfPayload = await readRTF();
 
-		payload = { ...richTextPayload, type: "rich-text" };
+		payload = { ...rtfPayload, type: "rtf" };
 	} else {
 		const textPayload = await readText();
 
@@ -242,16 +242,16 @@ export const writeHTML = (text: string, html: string) => {
 /**
  * 富文写入剪贴板
  */
-export const writeRichText = (text: string, richText: string) => {
+export const writeRTF = (text: string, rtf: string) => {
 	const { pastePlainText } = clipboardStore.content;
 
 	if (pastePlainText) {
 		return writeText(text);
 	}
 
-	return invoke(CLIPBOARD_PLUGIN.WRITE_RICH_TEXT, {
+	return invoke(CLIPBOARD_PLUGIN.WRITE_RTF, {
 		text,
-		richText,
+		rtf,
 	});
 };
 

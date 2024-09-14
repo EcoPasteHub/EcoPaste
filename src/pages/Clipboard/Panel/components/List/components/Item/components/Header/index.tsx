@@ -8,7 +8,7 @@ import type { FC } from "react";
 
 interface HeaderProps extends ClipboardItem {
 	copy: () => void;
-	collect: () => void;
+	toggleFavorite: () => void;
 	deleteItem: () => void;
 }
 
@@ -18,9 +18,9 @@ const Header: FC<HeaderProps> = (props) => {
 		value,
 		size,
 		createTime,
-		isCollected,
+		favorite,
 		copy,
-		collect,
+		toggleFavorite,
 		deleteItem,
 	} = props;
 
@@ -50,8 +50,8 @@ const Header: FC<HeaderProps> = (props) => {
 				}
 
 				return t("clipboard.label.plain_text");
-			case "rich-text":
-				return t("clipboard.label.rich_text");
+			case "rtf":
+				return t("clipboard.label.rtf");
 			case "html":
 				return t("clipboard.label.html");
 			case "image":
@@ -120,9 +120,9 @@ const Header: FC<HeaderProps> = (props) => {
 
 				<Icon
 					hoverable
-					name={isCollected ? "i-iconamoon:star-fill" : "i-iconamoon:star"}
-					className={clsx({ "text-gold!": isCollected })}
-					onMouseDown={collect}
+					name={favorite ? "i-iconamoon:star-fill" : "i-iconamoon:star"}
+					className={clsx({ "text-gold!": favorite })}
+					onMouseDown={toggleFavorite}
 				/>
 
 				<Popconfirm

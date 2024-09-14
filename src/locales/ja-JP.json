@@ -204,13 +204,13 @@
 				"text": "テキスト",
 				"image": "画像",
 				"files": "ファイル",
-				"collection": "コレクション"
+				"favorite": "コレクション"
 			},
 			"link": "ウェブリンク",
 			"email": "メール",
 			"color": "カラー",
 			"plain_text": "プレーンテキスト",
-			"rich_text": "リッチテキスト",
+			"rtf": "リッチテキスト",
 			"html": "HTML",
 			"image": "画像",
 			"n_files": "{{0}} ファイル（フォルダ）",

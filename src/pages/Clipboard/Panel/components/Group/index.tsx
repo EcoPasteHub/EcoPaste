@@ -4,11 +4,9 @@ import { Flex, Tag } from "antd";
 import clsx from "clsx";
 import { ClipboardPanelContext } from "../..";
 
-interface GroupItem {
+interface GroupItem extends Partial<ClipboardItem> {
 	key: string;
 	label: string;
-	group?: ClipboardItem["group"];
-	isCollected?: boolean;
 }
 
 const Group = () => {
@@ -36,20 +34,20 @@ const Group = () => {
 			group: "files",
 		},
 		{
-			key: "collect",
-			label: t("clipboard.label.tab.collection"),
-			isCollected: true,
+			key: "favorite",
+			label: t("clipboard.label.tab.favorite"),
+			favorite: true,
 		},
 	];
 
 	const [checked, setChecked] = useState(groupList[0].key);
 
 	const handleChange = (item: GroupItem) => {
-		const { key, group, isCollected } = item;
+		const { key, group, favorite } = item;
 
 		setChecked(key);
 
-		Object.assign(state, { group, isCollected });
+		Object.assign(state, { group, favorite });
 	};
 
 	return (

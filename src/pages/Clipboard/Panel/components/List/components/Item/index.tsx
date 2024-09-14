@@ -12,7 +12,7 @@ import Files from "./components/Files";
 import HTML from "./components/HTML";
 import Header from "./components/Header";
 import Image from "./components/Image";
-import RichText from "./components/RichText";
+import RTF from "./components/RTF";
 import Text from "./components/Text";
 
 interface ItemProps extends Partial<FlexProps> {
@@ -26,7 +26,7 @@ interface MenuItem extends ContextMenu.Item {
 
 const Item: FC<ItemProps> = (props) => {
 	const { index, data, className, ...rest } = props;
-	const { id, type, value, search, group, isCollected, createTime } = data;
+	const { id, type, value, search, group, favorite, createTime } = data;
 	const { state, getClipboardList } = useContext(ClipboardPanelContext);
 	const { t } = useTranslation();
 	const { env, appearance } = useSnapshot(globalStore);
@@ -47,8 +47,8 @@ const Item: FC<ItemProps> = (props) => {
 		switch (type) {
 			case "text":
 				return writeText(value);
-			case "rich-text":
-				return writeRichText(search, value);
+			case "rtf":
+				return writeRTF(search, value);
 			case "html":
 				return writeHTML(search, value);
 			case "image":
@@ -64,8 +64,8 @@ const Item: FC<ItemProps> = (props) => {
 		paste();
 	};
 
-	const collect = async () => {
-		await updateSQL("history", { id, isCollected: !isCollected });
+	const toggleFavorite = async () => {
+		await updateSQL("history", { id, favorite: !favorite });
 
 		getClipboardList?.();
 	};
@@ -81,7 +81,7 @@ const Item: FC<ItemProps> = (props) => {
 	};
 
 	const exportFile = async () => {
-		const ext = type === "text" ? "txt" : type === "rich-text" ? "rtf" : type;
+		const ext = type === "text" ? "txt" : type;
 		const fileName = `${env.appName}_${id}.${ext}`;
 		const destination = (await downloadDir()) + fileName;
 
@@ -152,8 +152,8 @@ const Item: FC<ItemProps> = (props) => {
 	const deleteAll = async (list: ClipboardItem[]) => {
 		let filteredList = list;
 
-		if (!state.isCollected) {
-			filteredList = list.filter((item) => !item.isCollected);
+		if (!state.favorite) {
+			filteredList = list.filter((item) => !item.favorite);
 		}
 
 		for await (const item of filteredList) {
@@ -188,14 +188,14 @@ const Item: FC<ItemProps> = (props) => {
 			},
 			{
 				label: t("clipboard.button.context_menu.paste_as_plain_text"),
-				hide: type !== "html" && type !== "rich-text",
+				hide: type !== "html" && type !== "rtf",
 				event: pastePlainText,
 			},
 			{
-				label: isCollected
+				label: favorite
 					? t("clipboard.button.context_menu.unfavorite")
 					: t("clipboard.button.context_menu.favorite"),
-				event: collect,
+				event: toggleFavorite,
 			},
 			{
 				label: t("clipboard.button.context_menu.open_in_browser"),
@@ -272,8 +272,8 @@ const Item: FC<ItemProps> = (props) => {
 
 	const renderContent = () => {
 		switch (type) {
-			case "rich-text":
-				return <RichText {...data} />;
+			case "rtf":
+				return <RTF {...data} />;
 			case "html":
 				return <HTML {...data} />;
 			case "image":
@@ -301,7 +301,12 @@ const Item: FC<ItemProps> = (props) => {
 			onClick={() => handleClick("single")}
 			onDoubleClick={() => handleClick("double")}
 		>
-			<Header {...data} copy={copy} collect={collect} deleteItem={deleteItem} />
+			<Header
+				{...data}
+				copy={copy}
+				toggleFavorite={toggleFavorite}
+				deleteItem={deleteItem}
+			/>
 
 			<div className="flex-1 select-auto overflow-hidden break-words">
 				{renderContent()}

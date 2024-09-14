@@ -4,8 +4,8 @@ export type TableName = "history";
 
 export interface ClipboardItem extends ClipboardPayload {
 	id: number;
+	favorite: boolean;
 	createTime: string;
-	isCollected: boolean;
 }
 
 export type TablePayload = Partial<ClipboardItem>;
