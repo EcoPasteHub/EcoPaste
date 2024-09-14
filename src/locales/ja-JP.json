@@ -142,26 +142,24 @@
 			}
 		},
 		"data_backup": {
-			"import_export": {
-				"title": "データのインポート/エクスポート",
+			"storage_path": {
+				"title": "保存設定",
 				"label": {
-					"storage_dir": "保存先パス",
-					"import_confirm_title": "導入に関する注意事項",
-					"export_confirm_title": "輸出に関する注意事項"
-				},
-				"button": {
-					"open_dir": "ディレクトリを開く",
-					"import": "データのインポート",
-					"export": "データをエクスポート",
-					"confirm_export": "エクスポートを開始",
-					"confirm": "インポートを開始",
-					"cancel": "キャンセル"
+					"storage_path": "データ保存パス"
 				},
 				"hints": {
-					"import_confirm": "インポートされたデータはすべての設定とすべてのクリップボード履歴データを完全に上書きします。インポートしてもよろしいですか？",
-					"export_confirm": "エクスポートされたデータには、すべての設定とすべてのクリップボード履歴データが含まれます。",
-					"importing": "インポート中",
-					"exporting": "エクスポート中",
+					"custom_path": "カスタム",
+					"default_path": "デフォルトに戻す",
+					"save_success": "変更に成功しました"
+				}
+			},
+			"import_export": {
+				"title": "インポートとエクスポート",
+				"button": {
+					"import": "データをインポート",
+					"export": "データをエクスポート"
+				},
+				"hints": {
 					"import_success": "インポート成功"
 				}
 			}

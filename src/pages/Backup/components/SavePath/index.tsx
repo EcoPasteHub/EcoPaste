@@ -11,6 +11,7 @@ import type { State } from "../..";
 
 const SavePath: FC<{ state: State }> = (props) => {
 	const { state } = props;
+	const { t } = useTranslation();
 
 	const handleChange = async (isDefault = false) => {
 		try {
@@ -32,7 +33,9 @@ const SavePath: FC<{ state: State }> = (props) => {
 
 			emit(LISTEN_KEY.CHANGE_DATA_FILE);
 
-			message.success("更改成功");
+			message.success(
+				t("preference.data_backup.storage_path.hints.save_success"),
+			);
 		} catch (error: any) {
 			state.spinning = false;
 
@@ -41,11 +44,11 @@ const SavePath: FC<{ state: State }> = (props) => {
 	};
 
 	return (
-		<ProList header="存储路径">
+		<ProList header={t("preference.data_backup.storage_path.title")}>
 			<ProListItem
 				title={
 					<Flex vertical align="flex-start" gap={2}>
-						数据存储路径
+						{t("preference.data_backup.storage_path.label.storage_path")}
 						<span
 							className="color-3 hover:color-primary cursor-pointer break-all text-12 transition"
 							onMouseDown={() => {
@@ -58,14 +61,18 @@ const SavePath: FC<{ state: State }> = (props) => {
 				}
 			>
 				<Space.Compact>
-					<Tooltip title="自定义">
+					<Tooltip
+						title={t("preference.data_backup.storage_path.hints.custom_path")}
+					>
 						<Button
 							icon={<NodeIndexOutlined />}
 							onClick={() => handleChange()}
 						/>
 					</Tooltip>
 
-					<Tooltip title="恢复默认">
+					<Tooltip
+						title={t("preference.data_backup.storage_path.hints.default_path")}
+					>
 						<Button
 							icon={<ReloadOutlined className="text-14!" />}
 							onClick={() => handleChange(true)}

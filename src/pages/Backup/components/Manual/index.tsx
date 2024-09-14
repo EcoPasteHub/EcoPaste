@@ -10,6 +10,7 @@ import type { State } from "../..";
 
 const Manual: FC<{ state: State }> = (props) => {
 	const { state } = props;
+	const { t } = useTranslation();
 
 	const handleImport = async () => {
 		try {
@@ -30,7 +31,9 @@ const Manual: FC<{ state: State }> = (props) => {
 
 			emit(LISTEN_KEY.CHANGE_DATA_FILE);
 
-			message.success("导入成功");
+			message.success(
+				t("preference.data_backup.import_export.hints.import_success"),
+			);
 		} catch (error: any) {
 			state.spinning = false;
 
@@ -54,19 +57,19 @@ const Manual: FC<{ state: State }> = (props) => {
 
 	const mapList = [
 		{
-			label: "导入数据",
+			label: t("preference.data_backup.import_export.button.import"),
 			icon: "i-hugeicons:database-import",
 			event: handleImport,
 		},
 		{
-			label: "导出数据",
+			label: t("preference.data_backup.import_export.button.export"),
 			icon: "i-hugeicons:database-export",
 			event: handleExport,
 		},
 	];
 
 	return (
-		<ProList header="导入和导出">
+		<ProList header={t("preference.data_backup.import_export.title")}>
 			<List.Item className="p-16!">
 				<Flex gap="middle" className="w-full">
 					{mapList.map((item) => {
