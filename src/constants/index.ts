@@ -10,7 +10,7 @@ export const LISTEN_KEY = {
 	CLEAR_HISTORY: "clear-history",
 	UPDATE: "update",
 	TRAY_CLICK: "tray-click",
-	CHANGE_DATA_FILE: "change-data-file",
+	REFRESH_CLIPBOARD_LIST: "refresh-clipboard-list",
 	CHANGE_LANGUAGE: "change-language",
 	TOGGLE_LISTENING: "toggle-listening",
 	SHOW_WINDOW: "show-window",

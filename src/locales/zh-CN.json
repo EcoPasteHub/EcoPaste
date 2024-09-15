@@ -191,11 +191,7 @@
 				"download_image": "下载图片",
 				"show_in_finder": "在 Finder 中显示",
 				"show_in_file_explorer": "在文件资源管理器中显示",
-				"delete": "删除",
-				"delete_above": "删除上方",
-				"delete_below": "删除下方",
-				"delete_other": "删除其它",
-				"delete_all": "删除所有"
+				"delete": "删除"
 			}
 		},
 		"label": {

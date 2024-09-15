@@ -16,7 +16,6 @@ import RTF from "./components/RTF";
 import Text from "./components/Text";
 
 interface ItemProps extends Partial<FlexProps> {
-	index: number;
 	data: ClipboardItem;
 }
 
@@ -25,8 +24,8 @@ interface MenuItem extends ContextMenu.Item {
 }
 
 const Item: FC<ItemProps> = (props) => {
-	const { index, data, className, ...rest } = props;
-	const { id, type, value, search, group, favorite, createTime } = data;
+	const { data, className, ...rest } = props;
+	const { id, type, value, search, group, favorite } = data;
 	const { state, getClipboardList } = useContext(ClipboardPanelContext);
 	const { t } = useTranslation();
 	const { env, appearance } = useSnapshot(globalStore);
@@ -119,50 +118,6 @@ const Item: FC<ItemProps> = (props) => {
 		getClipboardList?.();
 	};
 
-	const deleteAbove = async () => {
-		const list = state.data.list.filter((item) => {
-			const isMore = item.createTime > createTime;
-			const isDifferent = item.createTime === createTime && item.id !== id;
-
-			return isMore || isDifferent;
-		});
-
-		await deleteAll(list);
-
-		state.scrollToIndex?.(0);
-	};
-
-	const deleteBelow = async () => {
-		const list = state.data.list.filter((item) => {
-			const isLess = item.createTime < createTime;
-			const isDifferent = item.createTime === createTime && item.id !== id;
-
-			return isLess || isDifferent;
-		});
-
-		deleteAll(list);
-	};
-
-	const deleteOther = async () => {
-		const list = state.data.list.filter((item) => item.id !== id);
-
-		deleteAll(list);
-	};
-
-	const deleteAll = async (list: ClipboardItem[]) => {
-		let filteredList = list;
-
-		if (!state.favorite) {
-			filteredList = list.filter((item) => !item.favorite);
-		}
-
-		for await (const item of filteredList) {
-			await deleteSQL("history", item.id);
-		}
-
-		getClipboardList?.();
-	};
-
 	const pasteValue = async () => {
 		if (state.activeId !== id) return;
 
@@ -232,26 +187,6 @@ const Item: FC<ItemProps> = (props) => {
 			{
 				label: t("clipboard.button.context_menu.delete"),
 				event: deleteItem,
-			},
-			{
-				label: t("clipboard.button.context_menu.delete_above"),
-				hide: index === 0,
-				event: deleteAbove,
-			},
-			{
-				label: t("clipboard.button.context_menu.delete_below"),
-				hide: index === state.data.list.length - 1,
-				event: deleteBelow,
-			},
-			{
-				label: t("clipboard.button.context_menu.delete_other"),
-				hide: state.data.list.length === 1,
-				event: deleteOther,
-			},
-			{
-				label: t("clipboard.button.context_menu.delete_all"),
-				hide: state.data.list.length === 1,
-				event: () => deleteAll(state.data.list),
 			},
 		];
 

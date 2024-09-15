@@ -20,7 +20,6 @@ interface State extends TablePayload {
 		loading: boolean;
 	};
 	$eventBus?: EventEmitter<string>;
-	scrollToIndex?: (index: number) => void;
 }
 
 const INITIAL_STATE: State = {
@@ -86,7 +85,8 @@ const ClipboardPanel = () => {
 			getClipboardList();
 		});
 
-		listen(LISTEN_KEY.CHANGE_DATA_FILE, getClipboardList);
+		// 监听刷新列表
+		listen(LISTEN_KEY.REFRESH_CLIPBOARD_LIST, getClipboardList);
 
 		// 监听监听状态变更
 		listen<boolean>(LISTEN_KEY.TOGGLE_LISTENING, ({ payload }) => {
@@ -140,21 +140,7 @@ const ClipboardPanel = () => {
 		state.data.list = list;
 
 		if (state.data.page === 1) {
-			state.activeId = list[0]?.id;
-		}
-
-		const { duration, unit } = clipboardStore.history;
-
-		if (duration === 0) return;
-
-		for (const item of list) {
-			const { id, createTime } = item;
-
-			if (dayjs().diff(createTime, "days") >= duration * unit) {
-				if (item.favorite) continue;
-
-				deleteSQL("history", id);
-			}
+			state.activeId ||= list[0]?.id;
 		}
 	};
 

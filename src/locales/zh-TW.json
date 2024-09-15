@@ -191,11 +191,7 @@
 				"download_image": "下載圖片",
 				"show_in_finder": "在 Finder 中顯示",
 				"show_in_file_explorer": "在檔案總管中顯示",
-				"delete": "刪除",
-				"delete_above": "刪除上方",
-				"delete_below": "刪除下方",
-				"delete_other": "刪除其他",
-				"delete_all": "刪除所有"
+				"delete": "刪除"
 			}
 		},
 		"label": {

@@ -17,10 +17,6 @@ const List = () => {
 		getItemKey: (index) => state.data.list[index].id,
 	});
 
-	useMount(() => {
-		state.scrollToIndex = rowVirtualizer.scrollToIndex;
-	});
-
 	const isFocusWithin = useFocusWithin(document.body);
 
 	useEffect(() => {
@@ -60,7 +56,7 @@ const List = () => {
 
 				state.activeId = state.data.list[nextIndex].id;
 
-				state.scrollToIndex?.(nextIndex);
+				rowVirtualizer.scrollToIndex?.(nextIndex);
 			}
 		},
 		{
@@ -86,7 +82,6 @@ const List = () => {
 						return (
 							<Item
 								key={key}
-								index={index}
 								data={{ ...data, value }}
 								style={{ height: size, transform: `translateY(${start}px)` }}
 							/>
