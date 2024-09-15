@@ -29,7 +29,7 @@ const Manual: FC<{ state: State }> = (props) => {
 			merge(globalStore, store.globalStore);
 			merge(clipboardStore, store.clipboardStore);
 
-			emit(LISTEN_KEY.CHANGE_DATA_FILE);
+			emit(LISTEN_KEY.REFRESH_CLIPBOARD_LIST);
 
 			message.success(
 				t("preference.data_backup.import_export.hints.import_success"),

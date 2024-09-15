@@ -35,7 +35,7 @@ const SavePath: FC<{ state: State }> = (props) => {
 
 			state.spinning = false;
 
-			emit(LISTEN_KEY.CHANGE_DATA_FILE);
+			emit(LISTEN_KEY.REFRESH_CLIPBOARD_LIST);
 
 			message.success(
 				t("preference.data_backup.storage_path.hints.save_success"),

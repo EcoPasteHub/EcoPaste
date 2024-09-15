@@ -191,11 +191,7 @@
 				"download_image": "Download Image",
 				"show_in_finder": "Show in Finder",
 				"show_in_file_explorer": "Show in File Explorer",
-				"delete": "Delete",
-				"delete_above": "Delete Above",
-				"delete_below": "Delete Below",
-				"delete_other": "Delete Others",
-				"delete_all": "Delete All"
+				"delete": "Delete"
 			}
 		},
 		"label": {
