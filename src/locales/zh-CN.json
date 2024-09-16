@@ -137,7 +137,11 @@
 				"title": "快捷键",
 				"label": {
 					"open_clipboard": "打开剪贴板窗口",
-					"open_settings": "打开偏好设置窗口"
+					"open_settings": "打开偏好设置窗口",
+					"quick_paste": "快速粘贴"
+				},
+				"hints": {
+					"quick_paste": "在隐藏窗口时，使用数字组合键快速粘贴前九项"
 				}
 			}
 		},

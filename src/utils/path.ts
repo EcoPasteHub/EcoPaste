@@ -40,8 +40,10 @@ export const getSaveImageDir = () => {
  * 获取图片内容的存储路径
  * @param file 文件名
  */
-export const getSaveImagePath = (fileName: string) => {
-	return joinPath(getSaveImageDir(), fileName);
+export const getSaveImagePath = (file: string) => {
+	if (file.startsWith(getSaveImageDir())) return file;
+
+	return joinPath(getSaveImageDir(), file);
 };
 
 /**

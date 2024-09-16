@@ -43,24 +43,11 @@ const Item: FC<ItemProps> = (props) => {
 	});
 
 	const copy = () => {
-		switch (type) {
-			case "text":
-				return writeText(value);
-			case "rtf":
-				return writeRTF(search, value);
-			case "html":
-				return writeHTML(search, value);
-			case "image":
-				return writeImage(value);
-			case "files":
-				return writeFiles(JSON.parse(value));
-		}
+		return writeClipboard(data);
 	};
 
-	const pastePlainText = async () => {
-		await writeText(search);
-
-		paste();
+	const pastePlainText = () => {
+		pasteClipboard(data, true);
 	};
 
 	const toggleFavorite = async () => {
@@ -121,9 +108,7 @@ const Item: FC<ItemProps> = (props) => {
 	const pasteValue = async () => {
 		if (state.activeId !== id) return;
 
-		await copy();
-
-		paste();
+		pasteClipboard(data);
 	};
 
 	const handleContextMenu = async (event: MouseEvent) => {

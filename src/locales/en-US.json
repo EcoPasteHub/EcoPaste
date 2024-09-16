@@ -137,7 +137,11 @@
 				"title": "Shortcuts",
 				"label": {
 					"open_clipboard": "Open Clipboard Window",
-					"open_settings": "Open Preferences Window"
+					"open_settings": "Open Preferences Window",
+					"quick_paste": "Quick Paste"
+				},
+				"hints": {
+					"quick_paste": "Use number key combos to quickly paste top 9 items when window is hidden"
 				}
 			}
 		},

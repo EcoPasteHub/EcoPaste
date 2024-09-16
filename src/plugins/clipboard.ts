@@ -1,3 +1,4 @@
+import type { ClipboardItem } from "@/types/database";
 import type { ClipboardPayload, ReadImage, WinOCR } from "@/types/plugin";
 import { invoke } from "@tauri-apps/api";
 import { listen } from "@tauri-apps/api/event";
@@ -288,4 +289,40 @@ export const onClipboardUpdate = (
 		lastUpdatedAt = Date.now();
 		oldPayload = payload;
 	});
+};
+
+/**
+ * 将数据写入剪切板
+ * @param data 数据
+ */
+export const writeClipboard = async (data: ClipboardItem) => {
+	const { type, value, search } = data;
+
+	switch (type) {
+		case "text":
+			return writeText(value);
+		case "rtf":
+			return writeRTF(search, value);
+		case "html":
+			return writeHTML(search, value);
+		case "image":
+			return writeImage(getSaveImagePath(value));
+		case "files":
+			return writeFiles(JSON.parse(value));
+	}
+};
+
+/**
+ * 粘贴剪切板数据
+ * @param data 数据
+ * @param plain 是否纯文本粘贴
+ */
+export const pasteClipboard = async (data: ClipboardItem, plain = false) => {
+	if (plain) {
+		await writeText(data.search);
+	} else {
+		await writeClipboard(data);
+	}
+
+	paste();
 };

@@ -19,10 +19,12 @@ const List = () => {
 
 	const isFocusWithin = useFocusWithin(document.body);
 
-	useEffect(() => {
+	useAsyncEffect(async () => {
 		rowVirtualizer.scrollToIndex(0);
 
-		getClipboardList?.();
+		await getClipboardList?.();
+
+		state.activeId = state.data.list[0].id;
 	}, [state.search, state.group, state.favorite]);
 
 	useOSKeyPress(

@@ -1,6 +1,7 @@
 import ProList from "@/components/ProList";
 import ProShortcut from "@/components/ProShortcut";
 import { useSnapshot } from "valtio";
+import QuickPaste from "./components/QuickPaste";
 
 const Shortcut = () => {
 	const { shortcut } = useSnapshot(globalStore);
@@ -23,6 +24,8 @@ const Shortcut = () => {
 					globalStore.shortcut.preference = value;
 				}}
 			/>
+
+			<QuickPaste />
 		</ProList>
 	);
 };

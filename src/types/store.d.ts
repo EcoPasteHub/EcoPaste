@@ -1,3 +1,5 @@
+import type { ModifierKey } from "@/components/ProShortcut/keys";
+
 export type Theme = "auto" | "light" | "dark";
 
 export type Language = (typeof LANGUAGE)[keyof typeof LANGUAGE];
@@ -30,6 +32,10 @@ export interface GlobalStore {
 	shortcut: {
 		clipboard: string;
 		preference?: string;
+		quickPaste: {
+			enable: boolean;
+			value: ModifierKey;
+		};
 	};
 
 	// 只在当前系统环境使用
