@@ -36,6 +36,10 @@ export const GLOBAL_STORE_INITIAL_STATE: GlobalStore = {
 	shortcut: {
 		clipboard: "Alt+C",
 		preference: "Alt+X",
+		quickPaste: {
+			enable: false,
+			value: "Alt",
+		},
 	},
 
 	env: {},

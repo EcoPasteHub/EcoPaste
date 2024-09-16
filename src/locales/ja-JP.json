@@ -137,7 +137,11 @@
 				"title": "ショートカットキー",
 				"label": {
 					"open_clipboard": "クリップボードを開く",
-					"open_settings": "クリップボード設定を開く"
+					"open_settings": "クリップボード設定を開く",
+					"quick_paste": "クイックペースト"
+				},
+				"hints": {
+					"quick_paste": "ウィンドウを隠す際、数字キーの組み合わせで最初の9項目を素早く貼り付ける"
 				}
 			}
 		},

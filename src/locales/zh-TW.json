@@ -137,7 +137,11 @@
 				"title": "快捷鍵",
 				"label": {
 					"open_clipboard": "打開剪貼簿視窗",
-					"open_settings": "打開偏好設定視窗"
+					"open_settings": "打開偏好設定視窗",
+					"quick_paste": "快速粘貼"
+				},
+				"hints": {
+					"quick_paste": "在隱藏視窗時，使用數位複合鍵快速粘貼前九項"
 				}
 			}
 		},

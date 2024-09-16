@@ -1,7 +1,9 @@
 import { defaults } from "lodash-es";
 
+export type ModifierKey = "Shift" | "Control" | "Alt" | "Command";
+
 export interface Key {
-	key: string;
+	key: ModifierKey | (string & {});
 	symbol?: string;
 	shortcut?: string;
 	macosSymbol?: string;
