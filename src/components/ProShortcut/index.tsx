@@ -17,7 +17,7 @@ import { type Key, keys, modifierKeys, normalKeys } from "./keys";
 interface ProShortcutProps {
 	title: string;
 	description?: string;
-	defaultValue?: string;
+	value?: string;
 	onChange?: (value: string) => void;
 }
 
@@ -26,14 +26,14 @@ interface State {
 }
 
 const ProShortcut: FC<ProShortcutProps> = (props) => {
-	const { title, description, defaultValue = "", onChange } = props;
+	const { title, description, value = "", onChange } = props;
 
 	const { t } = useTranslation();
 
 	const handleDefaultValue = () => {
-		if (!defaultValue) return [];
+		if (!value) return [];
 
-		return defaultValue.split("+").map((shortcut) => find(keys, { shortcut })!);
+		return value.split("+").map((shortcut) => find(keys, { shortcut })!);
 	};
 
 	const containerRef = useRef<HTMLElement>(null);

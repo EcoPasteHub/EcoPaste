@@ -28,7 +28,7 @@ export const initDatabase = async () => {
 			type TEXT,
 			[group] TEXT,
 			value TEXT,
-     		search TEXT,
+			search TEXT,
 			count INTEGER,
 			width INTEGER,
 			height INTEGER,

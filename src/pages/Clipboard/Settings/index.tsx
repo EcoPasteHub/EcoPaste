@@ -92,9 +92,9 @@ const ClipboardSettings = () => {
 					description={t(
 						"preference.clipboard.content_settings.hints.paste_as_plain",
 					)}
-					value={content.pastePlainText}
+					value={content.pastePlain}
 					onChange={(value) => {
-						clipboardStore.content.pastePlainText = value;
+						clipboardStore.content.pastePlain = value;
 					}}
 				/>
 			</ProList>
