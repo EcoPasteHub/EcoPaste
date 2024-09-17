@@ -16,7 +16,7 @@ const Header: FC<HeaderProps> = (props) => {
 	const {
 		type,
 		value,
-		size,
+		count,
 		createTime,
 		favorite,
 		copy,
@@ -65,11 +65,11 @@ const Header: FC<HeaderProps> = (props) => {
 
 	const renderSize = () => {
 		if (type === "files" || type === "image") {
-			return filesize(size, { standard: "jedec" });
+			return filesize(count, { standard: "jedec" });
 		}
 
 		return t("clipboard.label.n_chars", {
-			replace: [size],
+			replace: [count],
 		});
 	};
 

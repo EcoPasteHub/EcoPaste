@@ -52,7 +52,7 @@ const About = () => {
 							name="i-iconamoon:restart"
 							size={16}
 							onMouseDown={() => {
-								emit(LISTEN_KEY.UPDATE, true);
+								emit(LISTEN_KEY.UPDATE_APP, true);
 							}}
 						/>
 					</Tooltip>

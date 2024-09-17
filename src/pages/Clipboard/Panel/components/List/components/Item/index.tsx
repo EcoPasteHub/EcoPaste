@@ -5,6 +5,7 @@ import { downloadDir } from "@tauri-apps/api/path";
 import { open } from "@tauri-apps/api/shell";
 import { Flex, type FlexProps } from "antd";
 import clsx from "clsx";
+import { find, remove } from "lodash-es";
 import type { FC, MouseEvent } from "react";
 import { type ContextMenu, showMenu } from "tauri-plugin-context-menu";
 import { useSnapshot } from "valtio";
@@ -26,7 +27,7 @@ interface MenuItem extends ContextMenu.Item {
 const Item: FC<ItemProps> = (props) => {
 	const { data, className, ...rest } = props;
 	const { id, type, value, search, group, favorite } = data;
-	const { state, getClipboardList } = useContext(ClipboardPanelContext);
+	const { state } = useContext(ClipboardPanelContext);
 	const { t } = useTranslation();
 	const { env, appearance } = useSnapshot(globalStore);
 	const { content } = useSnapshot(clipboardStore);
@@ -42,18 +43,22 @@ const Item: FC<ItemProps> = (props) => {
 		}
 	});
 
+	// 复制
 	const copy = () => {
 		return writeClipboard(data);
 	};
 
+	// 粘贴纯文本
 	const pastePlainText = () => {
 		pasteClipboard(data, true);
 	};
 
-	const toggleFavorite = async () => {
-		await updateSQL("history", { id, favorite: !favorite });
+	const toggleFavorite = () => {
+		const nextFavorite = !favorite;
 
-		getClipboardList?.();
+		find(state.list, { id })!.favorite = nextFavorite;
+
+		updateSQL("history", { id, favorite: nextFavorite });
 	};
 
 	const openBrowser = async () => {
@@ -97,12 +102,12 @@ const Item: FC<ItemProps> = (props) => {
 		previewPath(file);
 	};
 
-	const deleteItem = async () => {
+	const deleteItem = () => {
 		if (state.activeId !== id) return;
 
-		await deleteSQL("history", id);
+		remove(state.list, { id });
 
-		getClipboardList?.();
+		deleteSQL("history", id);
 	};
 
 	const pasteValue = async () => {

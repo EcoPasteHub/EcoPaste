@@ -6,7 +6,7 @@ import type {
 } from "@/types/database";
 import { getName } from "@tauri-apps/api/app";
 import { removeFile } from "@tauri-apps/api/fs";
-import { isBoolean, isNil, map, omitBy, some } from "lodash-es";
+import { find, isBoolean, isNil, map, omitBy, some } from "lodash-es";
 import Database from "tauri-plugin-sql-api";
 
 let db: Database | null;
@@ -24,20 +24,21 @@ export const initDatabase = async () => {
 	await executeSQL(
 		`
         CREATE TABLE IF NOT EXISTS history (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			id TEXT PRIMARY KEY,
 			type TEXT,
 			[group] TEXT,
 			value TEXT,
      		search TEXT,
-			size INTEGER,
+			count INTEGER,
 			width INTEGER,
 			height INTEGER,
 			favorite INTEGER DEFAULT 0,
-			createTime TIMESTAMP DEFAULT (DATETIME('now', 'localtime'))
+			createTime TEXT
 		);
         `,
 	);
 
+	// 以下代码未来版本会删除！！！
 	// 获取 history 表字段
 	const fields: any = await executeSQL("PRAGMA table_info(history)");
 
@@ -48,11 +49,45 @@ export const initDatabase = async () => {
 		);
 	}
 
+	// `size` 更名 `count`
+	if (some(fields, { name: "size" })) {
+		await executeSQL("ALTER TABLE history RENAME COLUMN size TO count;");
+	}
+
 	// 将 type 为富文本的简化为 rtf
 	await executeSQL("UPDATE history SET type = ? WHERE type = ?;", [
 		"rtf",
 		"rich-text",
 	]);
+
+	// 将 id 类型从 INTEGER 转为 TEXT
+	if (find(fields, { name: "id" })?.type === "INTEGER") {
+		await executeSQL(
+			`
+			CREATE TABLE IF NOT EXISTS temp_history (
+				id TEXT PRIMARY KEY,
+				type TEXT,
+				[group] TEXT,
+				value TEXT,
+				search TEXT,
+				count INTEGER,
+				width INTEGER,
+				height INTEGER,
+				favorite INTEGER DEFAULT 0,
+				createTime TEXT
+			);
+			`,
+		);
+
+		await executeSQL(
+			"INSERT INTO temp_history (id, type, [group], value, search, count, width, height, favorite, createTime) SELECT CAST(id AS TEXT), type, [group], value, search, count, width, height, favorite, createTime FROM history;",
+		);
+
+		await executeSQL("DROP TABLE history;");
+
+		await executeSQL("ALTER TABLE temp_history RENAME TO history;");
+	}
+	// 以上代码未来版本会删除！！！
 };
 
 /**
@@ -143,28 +178,16 @@ export const updateSQL = async (
  * @param tableName 表名称
  * @param id 删除数据的 id
  */
-export const deleteSQL = async (tableName: TableName, id?: number) => {
-	const list = await selectSQL<ClipboardItem[]>("history", { id });
+export const deleteSQL = async (tableName: TableName, id: string) => {
+	const [item] = await selectSQL<ClipboardItem[]>("history", { id });
 
-	const deleteImageFile = (item: ClipboardItem) => {
-		const { type, value = "" } = item;
+	await executeSQL(`DELETE FROM ${tableName} WHERE id = ?;`, [id]);
 
-		if (type !== "image") return;
+	const { type, value = "" } = item;
 
-		removeFile(getSaveImagePath(value));
-	};
+	if (type !== "image") return;
 
-	if (id) {
-		await executeSQL(`DELETE FROM ${tableName} WHERE id = ?;`, [id]);
-
-		deleteImageFile(list[0]);
-	} else {
-		await executeSQL(`DELETE FROM ${tableName};`);
-
-		for (const item of list) {
-			deleteImageFile(item);
-		}
-	}
+	removeFile(getSaveImagePath(value));
 };
 
 /**

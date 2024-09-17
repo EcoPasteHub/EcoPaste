@@ -31,7 +31,7 @@ const Update = () => {
 
 	useMount(() => {
 		// 监听更新事件
-		listen<boolean>(LISTEN_KEY.UPDATE, async ({ payload }) => {
+		listen<boolean>(LISTEN_KEY.UPDATE_APP, async ({ payload }) => {
 			check(payload);
 
 			if (!payload) return;

@@ -77,7 +77,7 @@ pub fn handle_tray_event(app_handle: AppHandle, system_tray: SystemTray) -> Syst
             "update" => {
                 window.emit("about", true).unwrap();
 
-                window.emit("update", true).unwrap();
+                window.emit("update-app", true).unwrap();
             }
             "github" => {
                 window.emit("github", true).unwrap();
