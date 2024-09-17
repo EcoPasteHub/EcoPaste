@@ -36,6 +36,7 @@ export interface GlobalStore {
 			enable: boolean;
 			value: ModifierKey;
 		};
+		pastePlain?: string;
 	};
 
 	// 只在当前系统环境使用
@@ -72,7 +73,7 @@ export interface ClipboardStore {
 	content: {
 		autoPaste: "single" | "double";
 		ocr: boolean;
-		pastePlainText: boolean;
+		pastePlain: boolean;
 	};
 
 	// 历史记录

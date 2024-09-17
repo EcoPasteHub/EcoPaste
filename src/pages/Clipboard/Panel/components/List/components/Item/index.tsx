@@ -49,7 +49,7 @@ const Item: FC<ItemProps> = (props) => {
 	};
 
 	// 粘贴纯文本
-	const pastePlainText = () => {
+	const pastePlain = () => {
 		pasteClipboard(data, true);
 	};
 
@@ -129,12 +129,12 @@ const Item: FC<ItemProps> = (props) => {
 			{
 				label: t("clipboard.button.context_menu.paste_ocr_text"),
 				hide: type !== "image" || /^[\s]*$/.test(search),
-				event: pastePlainText,
+				event: pastePlain,
 			},
 			{
 				label: t("clipboard.button.context_menu.paste_as_plain_text"),
 				hide: type !== "html" && type !== "rtf",
-				event: pastePlainText,
+				event: pastePlain,
 			},
 			{
 				label: favorite

@@ -3,6 +3,7 @@ import Audio from "@/components/Audio";
 import type { ClipboardItem, TablePayload } from "@/types/database";
 import { listen } from "@tauri-apps/api/event";
 import { registerAll, unregister } from "@tauri-apps/api/globalShortcut";
+import { appWindow } from "@tauri-apps/api/window";
 import type { EventEmitter } from "ahooks/lib/useEventEmitter";
 import { find, findIndex, isEqual, last, merge, range } from "lodash-es";
 import { nanoid } from "nanoid";
@@ -128,8 +129,19 @@ const ClipboardPanel = () => {
 		},
 	});
 
-	// 监听快捷键
+	// 监听窗口显隐的快捷键
 	useRegister(toggleWindowVisible, [shortcut.clipboard]);
+
+	// 监听粘贴为纯文本的快捷键
+	useRegister(async () => {
+		const focused = await appWindow.isFocused();
+
+		if (!focused) return;
+
+		const data = find(state.list, { id: state.activeId });
+
+		pasteClipboard(data, true);
+	}, [shortcut.pastePlain]);
 
 	// 获取剪切板内容
 	const getList = async () => {

@@ -228,9 +228,9 @@ export const writeImage = (value: string) => {
  * HTML 内容写入剪贴板
  */
 export const writeHTML = (text: string, html: string) => {
-	const { pastePlainText } = clipboardStore.content;
+	const { pastePlain } = clipboardStore.content;
 
-	if (pastePlainText) {
+	if (pastePlain) {
 		return writeText(text);
 	}
 
@@ -244,9 +244,9 @@ export const writeHTML = (text: string, html: string) => {
  * 富文写入剪贴板
  */
 export const writeRTF = (text: string, rtf: string) => {
-	const { pastePlainText } = clipboardStore.content;
+	const { pastePlain } = clipboardStore.content;
 
-	if (pastePlainText) {
+	if (pastePlain) {
 		return writeText(text);
 	}
 
@@ -295,7 +295,7 @@ export const onClipboardUpdate = (
  * 将数据写入剪切板
  * @param data 数据
  */
-export const writeClipboard = async (data: ClipboardItem) => {
+export const writeClipboard = async (data?: ClipboardItem) => {
 	if (!data) return;
 
 	const { type, value, search } = data;
@@ -319,7 +319,7 @@ export const writeClipboard = async (data: ClipboardItem) => {
  * @param data 数据
  * @param plain 是否纯文本粘贴
  */
-export const pasteClipboard = async (data: ClipboardItem, plain = false) => {
+export const pasteClipboard = async (data?: ClipboardItem, plain = false) => {
 	if (!data) return;
 
 	const { type, value } = data;
