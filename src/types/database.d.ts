@@ -3,7 +3,7 @@ import type { ClipboardPayload } from "./plugin";
 export type TableName = "history";
 
 export interface ClipboardItem extends ClipboardPayload {
-	id: number;
+	id: string;
 	favorite: boolean;
 	createTime: string;
 }

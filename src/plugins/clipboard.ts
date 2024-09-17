@@ -61,20 +61,20 @@ export const readFiles = async (): Promise<ClipboardPayload> => {
 
 	files = files.map(decodeURI);
 
-	let size = 0;
+	let count = 0;
 
 	const fileNames = [];
 
 	for await (const path of files) {
-		const { size: fileSize, fileName } = await metadata(path);
+		const { size, fileName } = await metadata(path);
 
-		size += fileSize;
+		count += size;
 
 		fileNames.push(fileName);
 	}
 
 	return {
-		size,
+		count,
 		search: fileNames.join(" "),
 		value: JSON.stringify(files),
 		group: "files",
@@ -92,7 +92,7 @@ export const readImage = async (): Promise<ClipboardPayload> => {
 		},
 	);
 
-	const { size } = await metadata(image);
+	const { size: count } = await metadata(image);
 
 	let search = "";
 
@@ -114,7 +114,7 @@ export const readImage = async (): Promise<ClipboardPayload> => {
 
 	return {
 		...rest,
-		size,
+		count,
 		value,
 		search,
 		group: "image",
@@ -127,10 +127,10 @@ export const readImage = async (): Promise<ClipboardPayload> => {
 export const readHTML = async (): Promise<ClipboardPayload> => {
 	const html = await invoke<string>(CLIPBOARD_PLUGIN.READ_HTML);
 
-	const { value, size } = await readText();
+	const { value, count } = await readText();
 
 	return {
-		size,
+		count,
 		value: html,
 		search: value,
 		group: "text",
@@ -143,10 +143,10 @@ export const readHTML = async (): Promise<ClipboardPayload> => {
 export const readRTF = async (): Promise<ClipboardPayload> => {
 	const rtf = await invoke<string>(CLIPBOARD_PLUGIN.READ_RTF);
 
-	const { value, size } = await readText();
+	const { value, count } = await readText();
 
 	return {
-		size,
+		count,
 		value: rtf,
 		search: value,
 		group: "text",
@@ -162,7 +162,7 @@ export const readText = async (): Promise<ClipboardPayload> => {
 	return {
 		value: text,
 		search: text,
-		size: text.length,
+		count: text.length,
 		group: "text",
 	};
 };
@@ -209,9 +209,9 @@ export const readClipboard = async () => {
 /**
  * 文件写入剪贴板
  */
-export const writeFiles = (value: string[]) => {
+export const writeFiles = (value: string) => {
 	return invoke(CLIPBOARD_PLUGIN.WRITE_FILES, {
-		value,
+		value: JSON.parse(value),
 	});
 };
 
@@ -296,6 +296,8 @@ export const onClipboardUpdate = (
  * @param data 数据
  */
 export const writeClipboard = async (data: ClipboardItem) => {
+	if (!data) return;
+
 	const { type, value, search } = data;
 
 	switch (type) {
@@ -308,7 +310,7 @@ export const writeClipboard = async (data: ClipboardItem) => {
 		case "image":
 			return writeImage(getSaveImagePath(value));
 		case "files":
-			return writeFiles(JSON.parse(value));
+			return writeFiles(value);
 	}
 };
 
@@ -318,8 +320,16 @@ export const writeClipboard = async (data: ClipboardItem) => {
  * @param plain 是否纯文本粘贴
  */
 export const pasteClipboard = async (data: ClipboardItem, plain = false) => {
+	if (!data) return;
+
+	const { type, value } = data;
+
 	if (plain) {
-		await writeText(data.search);
+		if (type === "files") {
+			await writeFiles(value);
+		} else {
+			await writeText(data.search);
+		}
 	} else {
 		await writeClipboard(data);
 	}

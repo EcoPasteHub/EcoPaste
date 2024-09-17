@@ -4,7 +4,8 @@ import type { ClipboardItem, TablePayload } from "@/types/database";
 import { listen } from "@tauri-apps/api/event";
 import { registerAll, unregister } from "@tauri-apps/api/globalShortcut";
 import type { EventEmitter } from "ahooks/lib/useEventEmitter";
-import { isEqual, last, merge, range } from "lodash-es";
+import { find, findIndex, isEqual, last, merge, range } from "lodash-es";
+import { nanoid } from "nanoid";
 import { createContext } from "react";
 import { useSnapshot } from "valtio";
 import { subscribeKey } from "valtio/utils";
@@ -13,33 +14,20 @@ import Float from "./components/Float";
 
 interface State extends TablePayload {
 	pin?: boolean;
-	activeId: number;
-	data: {
-		list: ClipboardItem[];
-		total: number;
-		page: number;
-		size: number;
-		loading: boolean;
-	};
+	list: ClipboardItem[];
+	activeId?: string;
 	$eventBus?: EventEmitter<string>;
 	quickPasteShortcuts: string[];
 }
 
 const INITIAL_STATE: State = {
-	activeId: 0,
-	data: {
-		list: [],
-		total: 0,
-		page: 1,
-		size: 20,
-		loading: false,
-	},
+	list: [],
 	quickPasteShortcuts: [],
 };
 
 interface ClipboardPanelContextValue {
 	state: State;
-	getClipboardList?: (payload?: ClipboardItem) => Promise<void>;
+	getList?: (payload?: ClipboardItem) => Promise<void>;
 }
 
 export const ClipboardPanelContext = createContext<ClipboardPanelContextValue>({
@@ -65,32 +53,38 @@ const ClipboardPanel = () => {
 				audioRef.current?.play();
 			}
 
-			const [selectItem] = await selectSQL<ClipboardItem[]>("history", {
-				...payload,
-				exact: true,
-			});
+			const { type, value } = payload;
 
-			if (selectItem) {
-				await updateSQL("history", {
-					id: selectItem.id,
-					createTime: dayjs().format("YYYY-MM-DD HH:mm:ss"),
-				});
+			const findItem = find(state.list, { type, value });
+
+			const createTime = dayjs().format("YYYY-MM-DD HH:mm:ss");
+
+			if (findItem) {
+				const { id } = findItem;
+
+				const index = findIndex(state.list, { id });
+
+				const [targetItem] = state.list.splice(index, 1);
+
+				state.list.unshift({ ...targetItem, createTime });
+
+				updateSQL("history", { id, createTime });
 			} else {
-				await insertSQL("history", payload);
+				const data: ClipboardItem = {
+					...payload,
+					createTime,
+					id: nanoid(),
+					favorite: false,
+				};
+
+				state.list.unshift(data);
+
+				insertSQL("history", data);
 			}
-
-			getClipboardList();
-		});
-
-		// 监听清空历史记录
-		listen(LISTEN_KEY.CLEAR_HISTORY, async () => {
-			await deleteSQL("history");
-
-			getClipboardList();
 		});
 
 		// 监听刷新列表
-		listen(LISTEN_KEY.REFRESH_CLIPBOARD_LIST, getClipboardList);
+		listen(LISTEN_KEY.REFRESH_CLIPBOARD_LIST, getList);
 
 		// 监听监听状态变更
 		listen<boolean>(LISTEN_KEY.TOGGLE_LISTENING, ({ payload }) => {
@@ -138,10 +132,10 @@ const ClipboardPanel = () => {
 	useRegister(toggleWindowVisible, [shortcut.clipboard]);
 
 	// 获取剪切板内容
-	const getClipboardList = async () => {
+	const getList = async () => {
 		const { search, group, favorite } = state;
 
-		state.data.list = await selectSQL<ClipboardItem[]>("history", {
+		state.list = await selectSQL<ClipboardItem[]>("history", {
 			search,
 			group,
 			favorite,
@@ -165,7 +159,7 @@ const ClipboardPanel = () => {
 
 			const index = Number(last(shortcut));
 
-			const data = state.data.list[index - 1];
+			const data = state.list[index - 1];
 
 			pasteClipboard(data);
 		});
@@ -180,7 +174,7 @@ const ClipboardPanel = () => {
 			<ClipboardPanelContext.Provider
 				value={{
 					state,
-					getClipboardList,
+					getList,
 				}}
 			>
 				{window.style === "float" ? <Float /> : <Dock />}

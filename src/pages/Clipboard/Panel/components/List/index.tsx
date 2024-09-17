@@ -6,15 +6,15 @@ import { findIndex } from "lodash-es";
 import Item from "./components/Item";
 
 const List = () => {
-	const { state, getClipboardList } = useContext(ClipboardPanelContext);
+	const { state, getList } = useContext(ClipboardPanelContext);
 	const outerRef = useRef<HTMLDivElement>(null);
 
 	const rowVirtualizer = useVirtualizer({
-		count: state.data.list.length,
+		count: state.list.length,
 		gap: 12,
 		getScrollElement: () => outerRef.current,
 		estimateSize: () => 120,
-		getItemKey: (index) => state.data.list[index].id,
+		getItemKey: (index) => state.list[index].id,
 	});
 
 	const isFocusWithin = useFocusWithin(document.body);
@@ -22,9 +22,9 @@ const List = () => {
 	useAsyncEffect(async () => {
 		rowVirtualizer.scrollToIndex(0);
 
-		await getClipboardList?.();
+		await getList?.();
 
-		state.activeId = state.data.list[0].id;
+		state.activeId = state.list[0]?.id;
 	}, [state.search, state.group, state.favorite]);
 
 	useOSKeyPress(
@@ -40,7 +40,7 @@ const List = () => {
 				// 删除
 				state.$eventBus?.emit(LISTEN_KEY.CLIPBOARD_ITEM_DELETE);
 			} else {
-				const index = findIndex(state.data.list, { id: state.activeId });
+				const index = findIndex(state.list, { id: state.activeId });
 
 				let nextIndex = index;
 
@@ -51,12 +51,12 @@ const List = () => {
 					nextIndex = index - 1;
 				} else {
 					// 选中下一个
-					if (index === state.data.list.length - 1) return;
+					if (index === state.list.length - 1) return;
 
 					nextIndex = index + 1;
 				}
 
-				state.activeId = state.data.list[nextIndex].id;
+				state.activeId = state.list[nextIndex].id;
 
 				rowVirtualizer.scrollToIndex?.(nextIndex);
 			}
@@ -76,7 +76,7 @@ const List = () => {
 				>
 					{rowVirtualizer.getVirtualItems().map((virtualItem) => {
 						const { key, size, start, index } = virtualItem;
-						const data = state.data.list[index];
+						const data = state.list[index];
 						let { type, value } = data;
 
 						value = type !== "image" ? value : getSaveImagePath(value);

@@ -56,7 +56,7 @@ const General = () => {
 
 						if (!value) return;
 
-						emit(LISTEN_KEY.UPDATE);
+						emit(LISTEN_KEY.UPDATE_APP);
 					}}
 				/>
 			</ProList>

@@ -36,6 +36,7 @@
 		"i18next": "^23.12.1",
 		"lodash-es": "^4.17.21",
 		"mac-scrollbar": "^0.13.6",
+		"nanoid": "^5.0.7",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"react-i18next": "^15.0.0",
