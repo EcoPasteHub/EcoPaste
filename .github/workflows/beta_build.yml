@@ -38,6 +38,7 @@ on:
 
 jobs:
   preprocess:
+    if: github.repository == 'EcoPasteHub/EcoPaste'
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.setting.outputs.matrix }}

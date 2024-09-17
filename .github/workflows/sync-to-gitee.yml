@@ -7,6 +7,7 @@ on:
 jobs:
   repo-sync:
     runs-on: ubuntu-latest
+    if: github.repository == 'EcoPasteHub/EcoPaste'
     steps:
       - name: Sync Github Repos To Gitee
         uses: Yikun/hub-mirror-action@master
