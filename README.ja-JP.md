@@ -31,7 +31,7 @@
   </a>
 
   <div>
-    <a href="https://github.com/EcoPasteHub/EcoPaste/blob/master/LICENSE">
+    <a href="./LICENSE">
       <img
         src="https://img.shields.io/github/license/EcoPasteHub/EcoPaste?style=flat-square"
       />
