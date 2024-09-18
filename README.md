@@ -1,12 +1,12 @@
 <a href="https://github.com/EcoPasteHub/EcoPaste">
-  <img src="https://socialify.git.ci/EcoPasteHub/EcoPaste/image?description=1&font=Source%20Code%20Pro&forks=1&issues=1&logo=https%3A%2F%2Fgithub.com%2Fayangweb%2FEcoPaste%2Fblob%2Fmaster%2Fpublic%2Flogo.png%3Fraw%3Dtrue&name=1&owner=1&pattern=Floating%20Cogs&pulls=1&stargazers=1&theme=Auto" alt="EcoPaste" />
+  <img src="https://socialify.git.ci/EcoPasteHub/EcoPaste/image?description=1&descriptionEditable=%E9%80%82%E7%94%A8%E4%BA%8E%20Windows%E3%80%81MacOS%20%E5%92%8C%20Linux(x11)%20%E7%9A%84%E5%BC%80%E6%BA%90%E5%89%AA%E8%B4%B4%E6%9D%BF%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7%E3%80%82&font=Source%20Code%20Pro&forks=1&issues=1&logo=https%3A%2F%2Fgithub.com%2FEcoPasteHub%2FEcoPaste%2Fblob%2Fmaster%2Fpublic%2Flogo.png%3Fraw%3Dtrue&name=1&owner=1&pattern=Floating%20Cogs&pulls=1&stargazers=1&theme=Auto" alt="EcoPaste" />
 </a>
 
 <div align="center">
   <br/>
-  
+
   <div>
-      English | <a href="./README.zh-CN.md">简体中文</a> | <a href="./README.zh-TW.md">繁體中文</a> | <a href="./README.ja-JP.md">日本語</a>
+      简体中文 | <a href="./README.zh-TW.md">繁體中文</a> | <a href="./README.en-US.md">English</a> | <a href="./README.ja-JP.md">日本語</a>
   </div>
 
   <br/>
@@ -47,44 +47,44 @@
       />  
     </a >
   </div>
-  
+
   <br/>
 
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./images/app-dark.en-US.png" />
-    <source media="(prefers-color-scheme: light)" srcset="./images/app-light.en-US.png" />
-    <img src="./images/app-light.en-US.png" />
- </picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./images/app-dark.zh-CN.png" />
+    <source media="(prefers-color-scheme: light)" srcset="./images/app-light.zh-CN.png" />
+    <img src="./images/app-light.zh-CN.png" />
+  </picture>
 </div>
 
-## Download
+## 下载
 
 ### Windows
 
-Install Manually: [Universal](https://ecopaste-updater.ayangweb.cn/api/latest?platform=windows)
+手动安装：[Universal](https://ecopaste-updater.ayangweb.cn/api/latest?platform=windows)
 
 ### Macos
 
-Install Manually: [Apple Silicon](https://ecopaste-updater.ayangweb.cn/api/latest?platform=macos-arm) | [Intel](https://ecopaste-updater.ayangweb.cn/api/latest?platform=macos-x64)
+手动安装：[Apple Silicon](https://ecopaste-updater.ayangweb.cn/api/latest?platform=macos-arm) | [Intel](https://ecopaste-updater.ayangweb.cn/api/latest?platform=macos-x64)
 
-HomeBrew:
+HomeBrew：
 
-1. Add our tap:
+1. 添加我们的 tap:
 ```shell
 brew tap EcoPasteHub/EcoPaste
 ```
 
-2. Install:
+2. 安装:
 ```shell
 brew install ecopaste
 ```
 
-3. Upgrade:
+3. 更新:
 ```shell
 brew upgrade ecopaste
 ```
 
-4. Uninstall:
+4. 卸载:
 ```shell
 brew uninstall --cask ecopaste
 
@@ -93,84 +93,81 @@ brew untap EcoPasteHub/EcoPaste
 
 ### Linux(x11)
 
-Install Manually: [AppImage](https://ecopaste-updater.ayangweb.cn/api/latest?platform=linux-appimage) | [deb](https://ecopaste-updater.ayangweb.cn/api/latest?platform=linux-deb) | [rpm](https://ecopaste-updater.ayangweb.cn/api/latest?platform=linux-rpm)
+手动安装： [AppImage](https://ecopaste-updater.ayangweb.cn/api/latest?platform=linux-appimage) | [deb](https://ecopaste-updater.ayangweb.cn/api/latest?platform=linux-deb) | [rpm](https://ecopaste-updater.ayangweb.cn/api/latest?platform=linux-rpm)
 
-## Features
+## 功能介绍
 
-- **Lightweight & Cross-platform Supported**: 
+- **轻量小巧，多平台用**：
   
-  Built with Tauri, the application is lightweight and refined, consuming minimal resources. It also delivers a uniform user experience across both Windows, MacOS and Linux platforms.
+  使用 Tauri 构建，应用更加小巧精致，资源占用极少，同时完美适配 Windows、MacOS 和 Linux 平台，保证多平台一致的用户体验。
 
-- **Background Operation & Instant Access**：
+- **常驻后台，快捷唤醒**：
 
-  The application is resident in the background, wake up with one click through custom shortcut keys, save time and improve efficiency.
+  应用常驻后台运行，通过自定义快捷键一键唤醒，帮助用户快速调用剪贴板内容，极大地提高工作效率。
 
-- **Local Storage & Data Security**：
+- **本地存储，数据安全**：
 
-  All clipboard content is stored locally to ensure data privacy and security.
+  所有剪贴板内容均在本地存储，确保数据隐私和安全，不会有任何数据泄漏风险。
 
-- **Smart Grouping**：
+- **智能管理，类型分组**：
 
-  Supports plain text, rich text, HTML, images, and files. Automatically groups clipboard content by type, managing your clipboard content efficiently.
+  支持纯文本、富文本、HTML、图片和文件类型，并自动根据剪贴板内容类型进行分组管理，方便用户高效查找和使用。
 
-- **Favorites**：
+- **收藏功能，快速访问**：
 
-  Allows you to bookmark clipboard content for easy and fast access. Whether it's crucial data for work or frequently used information in daily life, you can effortlessly save and retrieve it.
+  支持收藏剪贴板内容，方便快速访问和管理重要信息。无论是工作中的关键数据还是日常生活中的常用信息，都可以轻松收藏和查看。
 
-- **Built-in Search**：
+- **内置搜索，轻松查找**：
 
-  Built-in search helps users quickly find any content on the clipboard, whether it's text, images (with OCR text search), or files, making everything easily accessible at a glance.
+  内置搜索功能，帮助用户快速找到任何剪贴板上的内容，无论是文本、图片（OCR文本搜索）还是文件，所有内容都可以一目了然。
 
-- **Offline Image OCR**：
+- **图片OCR，离线识别**：
 
-  Recognize text and QR codes in seconds. Quickly copy recognized content via the context menu, enabling convenient offline text recognition.
+  内置系统 OCR 功能，支持文本和二维码识别，通过右键菜单快速复制识别到的 OCR 内容，实现离线识别，使用更便捷。
 
-- **Enhanced Context Menu**：
+- **右键菜单，操作便捷**：
 
-  Providing rich right-click menu options, users can quickly perform various operations, which greatly improves the ease of use.
+  提供丰富的右键菜单选项，用户可以快速进行各种操作，极大地提高了使用便捷性。
 
-- **Highly Customizable**：
+- **自由定制，个性体验**：
 
-  Provide abundant customization options to meet various scenarios and individual preferences.
+  提供详细的配置选项，用户可以自由设置和调整应用效果，打造个性化的使用体验，满足不同场景和需求。
 
-- **Automatic Update**：
+- **自动更新，保持最新**：
 
-  Supports automatic and manual update checks, ensuring users always have the latest version for the best experience.
+  软件支持自动更新和手动检查更新功能，确保用户始终使用最新版本，享受最优质的使用体验。
 
-- **Backup & Migration**：
+- **数据备份，轻松迁移**：
 
-  Supports exporting and importing configurations and clipboard content, making data backup and migration to different platforms seamless, and ensuring continuous data availability.
+  支持导出和导入配置及剪贴板内容，便于数据备份与迁移到不同平台，保证数据的持续可用性。
 
-- **More to Explore**：
+- **更多功能，等你探索**：
 
-  `EcoPaste` continues to evolve with exciting new features. We look forward to sharing more possibilities with you.
+  EcoPaste 还在不断开发和添加更多有趣实用的功能，期待与你一起探索和发现这款剪贴板管理工具的更多可能性。
 
-## Q&A
+## 常见问题
 
 <details>
-<summary>1. "EcoPaste.app is damaged and can't be opened" on MacOS </summary>
+<summary>1. MacOS 提示 EcoPaste.app 已损坏，无法打开。</summary>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./images/damaged-dark.en-US.png" />
-  <source media="(prefers-color-scheme: light)" srcset="./images/damaged-light.en-US.png" />
-  <img src="./images/damaged-light.en-US.png" />
+  <source media="(prefers-color-scheme: dark)" srcset="./images/damaged-dark.zh-CN.png" />
+  <source media="(prefers-color-scheme: light)" srcset="./images/damaged-light.zh-CN.png" />
+  <img src="./images/damaged-light.zh-CN.png" />
 </picture>
 
-Type the following command and press Enter in `terminal` to allow the app to run: 
-
-> Password may be required to run the command.
+在终端窗口输入以下命令，按回车键后输入系统密码并再次按回车键即可。
 
 ```bash
 sudo xattr -r -d com.apple.quarantine /Applications/EcoPaste.app
 ```
 
-After that, you can open the app normally.
-
 </details>
 
-## Star History
+## 历史星标
 
 <a href="https://star-history.com/#EcoPasteHub/EcoPaste&Date">
+
  <picture>
    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=EcoPasteHub/EcoPaste&type=Date&theme=dark" />
    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=EcoPasteHub/EcoPaste&type=Date" />
@@ -178,19 +175,19 @@ After that, you can open the app normally.
  </picture>
 </a>
 
-## Community
+## 反馈和交流
 
-We recommend using [issue](https://github.com/EcoPasteHub/EcoPaste/issues) to provide the most direct and effective feedback. Of course, the following options for feedback are also available:
+我们推荐使用 [issue](https://github.com/EcoPasteHub/EcoPaste/issues) 提供最直接和有效的反馈。当然，也可以选择以下方式进行反馈：
 
-- WeChat
+- 微信
 
 <img width="25%" src="https://picture-bed.ayangweb.cn/EcoPaste/wechat.png" />
 
-## Contributors
+## 贡献者
 
-Thanks to everyone who has already contributed to EcoPaste. 
+感谢大家为 EcoPaste 做出的贡献。
 
-If you want to contribute to EcoPaste, please refer to [Contributing Guide](./.github/CONTRIBUTING.md).
+如果你也想为 EcoPaste 做出贡献，请参考 [贡献指南](./.github/CONTRIBUTING/zh-CN.md)。
 
 <a href="https://github.com/EcoPasteHub/EcoPaste/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=EcoPasteHub/EcoPaste" />
