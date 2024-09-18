@@ -19,6 +19,7 @@ interface State extends TablePayload {
 	activeId?: string;
 	$eventBus?: EventEmitter<string>;
 	quickPasteShortcuts: string[];
+	eventBusId?: string;
 }
 
 const INITIAL_STATE: State = {

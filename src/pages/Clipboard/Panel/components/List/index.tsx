@@ -27,38 +27,44 @@ const List = () => {
 		state.activeId = state.list[0]?.id;
 	}, [state.search, state.group, state.favorite]);
 
+	useEffect(() => {
+		const index = findIndex(state.list, { id: state.activeId });
+
+		if (index < 0) return;
+
+		rowVirtualizer.scrollToIndex?.(index);
+	}, [state.activeId]);
+
+	// 始终保持有一个选中
+	useUpdateEffect(() => {
+		if (state.list.length === 0) {
+			state.activeId = undefined;
+		}
+
+		state.activeId ??= state.list[0]?.id;
+	}, [state.list.length]);
+
 	useOSKeyPress(
 		["space", "enter", "backspace", "uparrow", "downarrow"],
 		(_, key) => {
-			if (key === "space") {
+			state.eventBusId = state.activeId;
+
+			switch (key) {
 				// 空格预览
-				state.$eventBus?.emit(LISTEN_KEY.CLIPBOARD_ITEM_PREVIEW);
-			} else if (key === "enter") {
+				case "space":
+					return state.$eventBus?.emit(LISTEN_KEY.CLIPBOARD_ITEM_PREVIEW);
 				// 回车粘贴
-				state.$eventBus?.emit(LISTEN_KEY.CLIPBOARD_ITEM_PASTE);
-			} else if (key === "backspace") {
+				case "enter":
+					return state.$eventBus?.emit(LISTEN_KEY.CLIPBOARD_ITEM_PASTE);
 				// 删除
-				state.$eventBus?.emit(LISTEN_KEY.CLIPBOARD_ITEM_DELETE);
-			} else {
-				const index = findIndex(state.list, { id: state.activeId });
-
-				let nextIndex = index;
-
-				if (key === "uparrow") {
-					// 选中上一个
-					if (index === 0) return;
-
-					nextIndex = index - 1;
-				} else {
-					// 选中下一个
-					if (index === state.list.length - 1) return;
-
-					nextIndex = index + 1;
-				}
-
-				state.activeId = state.list[nextIndex].id;
-
-				rowVirtualizer.scrollToIndex?.(nextIndex);
+				case "backspace":
+					return state.$eventBus?.emit(LISTEN_KEY.CLIPBOARD_ITEM_DELETE);
+				// 选中上一个
+				case "uparrow":
+					return state.$eventBus?.emit(LISTEN_KEY.CLIPBOARD_ITEM_SELECT_PREV);
+				// 选中下一个
+				case "downarrow":
+					return state.$eventBus?.emit(LISTEN_KEY.CLIPBOARD_ITEM_SELECT_NEXT);
 			}
 		},
 		{
@@ -84,6 +90,7 @@ const List = () => {
 						return (
 							<Item
 								key={key}
+								index={index}
 								data={{ ...data, value }}
 								style={{ height: size, transform: `translateY(${start}px)` }}
 							/>

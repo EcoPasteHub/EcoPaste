@@ -217,8 +217,7 @@
 			"n_chars": "{{0}} Character(s)"
 		},
 		"hints": {
-			"search_placeholder": "Search...",
-			"delete_confirm": "Are you sure you want to delete this item?"
+			"search_placeholder": "Search..."
 		}
 	},
 	"component": {

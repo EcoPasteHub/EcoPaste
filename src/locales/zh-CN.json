@@ -217,8 +217,7 @@
 			"n_chars": "{{0}}个字符"
 		},
 		"hints": {
-			"search_placeholder": "搜索",
-			"delete_confirm": "确定删除该历史记录？"
+			"search_placeholder": "搜索"
 		}
 	},
 	"component": {
