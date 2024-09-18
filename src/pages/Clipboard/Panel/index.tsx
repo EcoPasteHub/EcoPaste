@@ -164,7 +164,7 @@ const ClipboardPanel = () => {
 
 		if (!enable) return;
 
-		const shortcuts = range(1, 10).map((item) => `${value}+${item}`);
+		const shortcuts = range(1, 10).map((item) => [value, item].join("+"));
 
 		await registerAll(shortcuts, async (shortcut) => {
 			if (!globalStore.shortcut.quickPaste.enable) return;

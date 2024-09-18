@@ -1,5 +1,3 @@
-import type { ModifierKey } from "@/components/ProShortcut/keys";
-
 export type Theme = "auto" | "light" | "dark";
 
 export type Language = (typeof LANGUAGE)[keyof typeof LANGUAGE];
@@ -34,7 +32,7 @@ export interface GlobalStore {
 		preference?: string;
 		quickPaste: {
 			enable: boolean;
-			value: ModifierKey;
+			value: string;
 		};
 		pastePlain?: string;
 	};

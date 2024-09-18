@@ -1,8 +1,8 @@
-import EcoSelect from "@/components/EcoSelect";
 import ProListItem from "@/components/ProListItem";
 import { modifierKeys } from "@/components/ProShortcut/keys";
-import { Space, Switch } from "antd";
+import { Select, Space, Switch } from "antd";
 import type { DefaultOptionType } from "antd/es/select";
+import {} from "lodash-es";
 import { useSnapshot } from "valtio";
 
 const QuickPaste = () => {
@@ -15,6 +15,7 @@ const QuickPaste = () => {
 		return {
 			label: isMac() ? macosSymbol : symbol,
 			value: key,
+			disabled: globalStore.shortcut.quickPaste.value === key,
 		};
 	});
 
@@ -31,12 +32,15 @@ const QuickPaste = () => {
 			/>
 
 			<Space>
-				<EcoSelect
+				<Select
+					mode="multiple"
+					maxCount={2}
+					showSearch={false}
 					options={options}
-					value={shortcut.quickPaste.value}
+					value={shortcut.quickPaste.value?.split("+")}
 					disabled={!shortcut.quickPaste.enable}
 					onChange={(value) => {
-						globalStore.shortcut.quickPaste.value = value;
+						globalStore.shortcut.quickPaste.value = value.join("+");
 					}}
 				/>
 
