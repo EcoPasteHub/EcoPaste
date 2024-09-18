@@ -71,6 +71,7 @@ export interface ClipboardStore {
 	content: {
 		autoPaste: "single" | "double";
 		ocr: boolean;
+		copyPlain: boolean;
 		pastePlain: boolean;
 	};
 

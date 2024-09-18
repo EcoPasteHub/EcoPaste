@@ -27,6 +27,7 @@ const List = () => {
 		state.activeId = state.list[0]?.id;
 	}, [state.search, state.group, state.favorite]);
 
+	// 滚动到选中
 	useEffect(() => {
 		const index = findIndex(state.list, { id: state.activeId });
 
