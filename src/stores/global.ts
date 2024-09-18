@@ -38,7 +38,7 @@ export const GLOBAL_STORE_INITIAL_STATE: GlobalStore = {
 		preference: "Alt+X",
 		quickPaste: {
 			enable: false,
-			value: "Alt",
+			value: "Command+Shift",
 		},
 	},
 
