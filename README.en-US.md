@@ -61,11 +61,11 @@
 
 ### Windows
 
-Install Manually: [Universal](https://ecopaste-updater.ayangweb.cn/api/latest?platform=windows)
+Install Manually: [Universal](https://ecopaste-updater.ayangweb.cn/api/stable?platform=windows)
 
 ### Macos
 
-Install Manually: [Apple Silicon](https://ecopaste-updater.ayangweb.cn/api/latest?platform=macos-arm) | [Intel](https://ecopaste-updater.ayangweb.cn/api/latest?platform=macos-x64)
+Install Manually: [Apple Silicon](https://ecopaste-updater.ayangweb.cn/api/stable?platform=macos-arm) | [Intel](https://ecopaste-updater.ayangweb.cn/api/stable?platform=macos-x64)
 
 HomeBrew:
 
@@ -93,7 +93,7 @@ brew untap EcoPasteHub/EcoPaste
 
 ### Linux(x11)
 
-Install Manually: [AppImage](https://ecopaste-updater.ayangweb.cn/api/latest?platform=linux-appimage) | [deb](https://ecopaste-updater.ayangweb.cn/api/latest?platform=linux-deb) | [rpm](https://ecopaste-updater.ayangweb.cn/api/latest?platform=linux-rpm)
+Install Manually: [AppImage](https://ecopaste-updater.ayangweb.cn/api/stable?platform=linux-appimage) | [deb](https://ecopaste-updater.ayangweb.cn/api/stable?platform=linux-deb) | [rpm](https://ecopaste-updater.ayangweb.cn/api/stable?platform=linux-rpm)
 
 ## Features
 

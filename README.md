@@ -61,11 +61,11 @@
 
 ### Windows
 
-手动安装：[Universal](https://ecopaste-updater.ayangweb.cn/api/latest?platform=windows)
+手动安装：[Universal](https://ecopaste-updater.ayangweb.cn/api/stable?platform=windows)
 
 ### Macos
 
-手动安装：[Apple Silicon](https://ecopaste-updater.ayangweb.cn/api/latest?platform=macos-arm) | [Intel](https://ecopaste-updater.ayangweb.cn/api/latest?platform=macos-x64)
+手动安装：[Apple Silicon](https://ecopaste-updater.ayangweb.cn/api/stable?platform=macos-arm) | [Intel](https://ecopaste-updater.ayangweb.cn/api/stable?platform=macos-x64)
 
 HomeBrew：
 
@@ -93,7 +93,7 @@ brew untap EcoPasteHub/EcoPaste
 
 ### Linux(x11)
 
-手动安装： [AppImage](https://ecopaste-updater.ayangweb.cn/api/latest?platform=linux-appimage) | [deb](https://ecopaste-updater.ayangweb.cn/api/latest?platform=linux-deb) | [rpm](https://ecopaste-updater.ayangweb.cn/api/latest?platform=linux-rpm)
+手动安装： [AppImage](https://ecopaste-updater.ayangweb.cn/api/stable?platform=linux-appimage) | [deb](https://ecopaste-updater.ayangweb.cn/api/stable?platform=linux-deb) | [rpm](https://ecopaste-updater.ayangweb.cn/api/stable?platform=linux-rpm)
 
 ## 功能介绍
 
