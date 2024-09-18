@@ -5,9 +5,9 @@
 <div align="center">
   <br/>
   
-  <h3>
+  <div>
       English | <a href="./README.md">简体中文</a> | <a href="./README.zh-TW.md">繁體中文</a> | <a href="./README.ja-JP.md">日本語</a>
-  </h3>
+  </div>
 
   <br/>
     
