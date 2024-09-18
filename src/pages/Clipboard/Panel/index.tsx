@@ -17,14 +17,14 @@ interface State extends TablePayload {
 	pin?: boolean;
 	list: ClipboardItem[];
 	activeId?: string;
-	$eventBus?: EventEmitter<string>;
-	quickPasteShortcuts: string[];
 	eventBusId?: string;
+	$eventBus?: EventEmitter<string>;
+	quickPasteKeys: string[];
 }
 
 const INITIAL_STATE: State = {
 	list: [],
-	quickPasteShortcuts: [],
+	quickPasteKeys: [],
 };
 
 interface ClipboardPanelContextValue {
@@ -159,15 +159,15 @@ const ClipboardPanel = () => {
 	const registerQuickPaste = async () => {
 		const { enable, value } = globalStore.shortcut.quickPaste;
 
-		for await (const shortcut of state.quickPasteShortcuts) {
-			await unregister(shortcut);
+		for await (const key of state.quickPasteKeys) {
+			await unregister(key);
 		}
 
 		if (!enable) return;
 
-		const shortcuts = range(1, 10).map((item) => [value, item].join("+"));
+		const keys = range(1, 10).map((item) => [value, item].join("+"));
 
-		await registerAll(shortcuts, async (shortcut) => {
+		await registerAll(keys, async (shortcut) => {
 			if (!globalStore.shortcut.quickPaste.enable) return;
 
 			const index = Number(last(shortcut));
@@ -177,7 +177,7 @@ const ClipboardPanel = () => {
 			pasteClipboard(data);
 		});
 
-		state.quickPasteShortcuts = shortcuts;
+		state.quickPasteKeys = keys;
 	};
 
 	return (

@@ -173,6 +173,8 @@ export const readText = async (): Promise<ClipboardPayload> => {
 export const readClipboard = async () => {
 	let payload!: ClipboardPayload;
 
+	const { copyPlain } = clipboardStore.content;
+
 	const has = {
 		files: await hasFiles(),
 		image: await hasImage(),
@@ -189,11 +191,11 @@ export const readClipboard = async () => {
 		const imagePayload = await readImage();
 
 		payload = { ...imagePayload, type: "image" };
-	} else if (has.html) {
+	} else if (!copyPlain && has.html) {
 		const htmlPayload = await readHTML();
 
 		payload = { ...htmlPayload, type: "html" };
-	} else if (has.rtf) {
+	} else if (!copyPlain && has.rtf) {
 		const rtfPayload = await readRTF();
 
 		payload = { ...rtfPayload, type: "rtf" };
