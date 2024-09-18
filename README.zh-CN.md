@@ -181,7 +181,7 @@ sudo xattr -r -d com.apple.quarantine /Applications/EcoPaste.app
 
 - 微信
 
-<img width="25%" src="./images/wechat.png" />
+<img width="25%" src="https://picture-bed.ayangweb.cn/EcoPaste/wechat.png" />
 
 ## 贡献者
 

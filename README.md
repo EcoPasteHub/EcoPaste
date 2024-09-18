@@ -184,7 +184,7 @@ We recommend using [issue](https://github.com/EcoPasteHub/EcoPaste/issues) to pr
 
 - WeChat
 
-<img width="25%" src="./images/wechat.png" />
+<img width="25%" src="https://picture-bed.ayangweb.cn/EcoPaste/wechat.png" />
 
 ## Contributors
 
