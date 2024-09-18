@@ -6,7 +6,7 @@
   <br/>
 
   <div>
-    繁體中文 | <a href="./README.md">English</a> | <a href="./README.zh-CN.md">简体中文</a> | <a href="./README.ja-JP.md">日本語</a>
+    繁體中文 | <a href="./README.zh-CN.md">简体中文</a> | <a href="./README.md">English</a> | <a href="./README.ja-JP.md">日本語</a>
   </div>
   
   <br/>
@@ -187,7 +187,7 @@ sudo xattr -r -d com.apple.quarantine /Applications/EcoPaste.app
 
 感謝大家為 EcoPaste 做出的貢獻。
 
-如果你也想為 EcoPaste 做出貢獻，請參考 [貢獻指南](./.github/CONTRIBUTING.zh-TW.md)。
+如果你也想為 EcoPaste 做出貢獻，請參考 [貢獻指南](./.github/CONTRIBUTING/zh-TW.md)。
 
 <a href="https://github.com/EcoPasteHub/EcoPaste/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=EcoPasteHub/EcoPaste" />
