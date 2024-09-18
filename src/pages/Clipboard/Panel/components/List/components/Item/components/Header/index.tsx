@@ -1,31 +1,24 @@
 import Icon from "@/components/Icon";
 import Scrollbar from "@/components/Scrollbar";
+import { ClipboardPanelContext } from "@/pages/Clipboard/Panel";
 import type { ClipboardItem } from "@/types/database";
-import { Flex, Popconfirm } from "antd";
+import { Flex } from "antd";
 import clsx from "clsx";
 import { filesize } from "filesize";
-import type { FC } from "react";
+import type { FC, MouseEvent } from "react";
 
-interface HeaderProps extends ClipboardItem {
+interface HeaderProps {
+	data: ClipboardItem;
 	copy: () => void;
 	toggleFavorite: () => void;
 	deleteItem: () => void;
 }
 
 const Header: FC<HeaderProps> = (props) => {
-	const {
-		type,
-		value,
-		count,
-		createTime,
-		favorite,
-		copy,
-		toggleFavorite,
-		deleteItem,
-	} = props;
-
+	const { data, copy, toggleFavorite, deleteItem } = props;
+	const { id, type, value, count, createTime, favorite } = data;
+	const { state } = useContext(ClipboardPanelContext);
 	const { t, i18n } = useTranslation();
-
 	const [copied, { toggle }] = useBoolean();
 
 	useEffect(() => {
@@ -63,7 +56,7 @@ const Header: FC<HeaderProps> = (props) => {
 		}
 	};
 
-	const renderSize = () => {
+	const renderCount = () => {
 		if (type === "files" || type === "image") {
 			return filesize(count, { standard: "jedec" });
 		}
@@ -76,7 +69,7 @@ const Header: FC<HeaderProps> = (props) => {
 	const renderPixel = () => {
 		if (type !== "image") return;
 
-		const { width, height } = props;
+		const { width, height } = data;
 
 		return (
 			<span>
@@ -90,12 +83,24 @@ const Header: FC<HeaderProps> = (props) => {
 		toggle();
 	};
 
+	const handleClick = (event: MouseEvent) => {
+		event.stopPropagation();
+
+		state.activeId = id;
+	};
+
+	const handleDelete = (event: MouseEvent) => {
+		event.stopPropagation();
+
+		deleteItem();
+	};
+
 	return (
 		<Flex justify="space-between" gap="small" className="color-2">
 			<Scrollbar thumbSize={0}>
 				<Flex gap="small" className="flex-1 whitespace-nowrap text-12">
 					<span>{renderType()}</span>
-					<span>{renderSize()}</span>
+					<span>{renderCount()}</span>
 					{renderPixel()}
 					<span>{dayjs(createTime).locale(i18n.language).fromNow()}</span>
 				</Flex>
@@ -105,7 +110,7 @@ const Header: FC<HeaderProps> = (props) => {
 				align="center"
 				gap={6}
 				className="text-14 opacity-0 transition group-hover:opacity-100 group-focus:opacity-100"
-				onClick={(event) => event.stopPropagation()}
+				onClick={handleClick}
 				onDoubleClick={(event) => event.stopPropagation()}
 			>
 				{copied ? (
@@ -115,29 +120,23 @@ const Header: FC<HeaderProps> = (props) => {
 						className="color-success"
 					/>
 				) : (
-					<Icon hoverable name="i-iconamoon:copy" onMouseDown={handleCopy} />
+					<Icon hoverable name="i-iconamoon:copy" onClick={handleCopy} />
 				)}
 
 				<Icon
 					hoverable
 					name={favorite ? "i-iconamoon:star-fill" : "i-iconamoon:star"}
 					className={clsx({ "text-gold!": favorite })}
-					onMouseDown={toggleFavorite}
+					onClick={toggleFavorite}
 				/>
 
-				<Popconfirm
-					title={t("clipboard.hints.delete_confirm")}
-					placement="left"
-					rootClassName="max-w-300"
-					onConfirm={deleteItem}
-				>
-					<Icon
-						hoverable
-						size={15}
-						name="i-iconamoon:trash-simple"
-						className="hover:text-danger!"
-					/>
-				</Popconfirm>
+				<Icon
+					hoverable
+					size={15}
+					name="i-iconamoon:trash-simple"
+					className="hover:text-danger!"
+					onClick={handleDelete}
+				/>
 			</Flex>
 		</Flex>
 	);

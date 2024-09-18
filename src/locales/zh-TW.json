@@ -217,8 +217,7 @@
 			"n_chars": "{{0}}個字元"
 		},
 		"hints": {
-			"search_placeholder": "搜尋",
-			"delete_confirm": "確定刪除該歷史紀錄？"
+			"search_placeholder": "搜尋"
 		}
 	},
 	"component": {

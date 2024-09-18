@@ -217,8 +217,7 @@
 			"n_chars": "{{0}} 文字"
 		},
 		"hints": {
-			"search_placeholder": "検索",
-			"delete_confirm": "この履歴を削除してもよろしいですか？"
+			"search_placeholder": "検索"
 		}
 	},
 	"component": {
