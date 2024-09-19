@@ -17,6 +17,10 @@
 					"height": 400
 				}
 			}
+		},
+		"systemTray": {
+			"iconPath": "assets/tray-mac.ico",
+			"iconAsTemplate": true
 		}
 	}
 }
