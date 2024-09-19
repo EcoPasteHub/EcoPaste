@@ -112,8 +112,7 @@
 			]
 		},
 		"systemTray": {
-			"iconPath": "assets/tray.png",
-			"iconAsTemplate": true
+			"iconPath": "assets/tray.ico"
 		},
 		"updater": {
 			"active": true,

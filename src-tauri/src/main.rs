@@ -10,7 +10,6 @@ use plugins::{
     backup, clipboard, fs_extra, locale, macos_permissions, mouse, ocr, paste, tray,
     window::{self, show_main_window, MAIN_WINDOW_LABEL, PREFERENCE_WINDOW_LABEL},
 };
-use std::env;
 use tauri::{generate_context, generate_handler, Builder, Manager, WindowEvent};
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_log::LogTarget;
