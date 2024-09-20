@@ -28,8 +28,8 @@ const Shortcut = () => {
 			<QuickPaste />
 
 			<ProShortcut
-				title="粘贴为纯文本"
-				description="将内容粘贴为纯文本或 OCR 文本"
+				title={t("preference.shortcut.shortcut.label.paste_as_plain")}
+				description={t("preference.shortcut.shortcut.hints.paste_as_plain")}
 				value={shortcut.pastePlain}
 				onChange={(value) => {
 					globalStore.shortcut.pastePlain = value;

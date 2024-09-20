@@ -883,9 +883,9 @@ dependencies = [
 
 [[package]]
 name = "clipboard-rs"
-version = "0.2.0"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "87a53eafcd82176ce44c0d9a4e3e8c27e63f160c919f775a2373ddb20f605e13"
+checksum = "bd61885ce9f906c60f40d384b132fed04685f51d3da3576d27b8e4f274b6100d"
 dependencies = [
  "clipboard-win",
  "image 0.25.2",
@@ -5427,7 +5427,7 @@ dependencies = [
 [[package]]
 name = "tao"
 version = "0.16.9"
-source = "git+https://github.com/EcoPasteHub/tao?branch=v0.16#e714a03b41cf477286d072d855516ed39f1986a0"
+source = "git+https://github.com/EcoPasteHub/tao?branch=v0.16#ffadbcd445b633db687d8a5f055253ac8b26f642"
 dependencies = [
  "bitflags 1.3.2",
  "cairo-rs",
@@ -5475,7 +5475,7 @@ dependencies = [
 [[package]]
 name = "tao-macros"
 version = "0.1.0"
-source = "git+https://github.com/EcoPasteHub/tao?branch=v0.16#e714a03b41cf477286d072d855516ed39f1986a0"
+source = "git+https://github.com/EcoPasteHub/tao?branch=v0.16#ffadbcd445b633db687d8a5f055253ac8b26f642"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -6236,9 +6236,9 @@ checksum = "f6ccf251212114b54433ec949fd6a7841275f9ada20dddd2f29e9ceea4501493"
 
 [[package]]
 name = "unicode-xid"
-version = "0.2.5"
+version = "0.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "229730647fbc343e3a80e463c1db7f78f3855d3f3739bee0dda773c9a037c90a"
+checksum = "ebc1c04c71510c7f702b52b7c350734c9ff1295c464a03335b00bb84fc54f853"
 
 [[package]]
 name = "unicode_categories"
