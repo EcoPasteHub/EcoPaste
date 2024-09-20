@@ -2,7 +2,6 @@ import { listen } from "@tauri-apps/api/event";
 import { relaunch } from "@tauri-apps/api/process";
 import {
 	type UpdateManifest,
-	checkUpdate,
 	installUpdate,
 	onUpdaterEvent,
 } from "@tauri-apps/api/updater";
@@ -20,7 +19,8 @@ interface State {
 	manifest?: UpdateManifest;
 }
 
-const MESSAGE_KEY = "updatable";
+const MESSAGE_KEY = "update";
+
 let timer: Timeout;
 
 const Update = () => {
@@ -31,11 +31,7 @@ const Update = () => {
 
 	useMount(() => {
 		// 监听更新事件
-		listen<boolean>(LISTEN_KEY.UPDATE_APP, async ({ payload }) => {
-			check(payload);
-
-			if (!payload) return;
-
+		listen<boolean>(LISTEN_KEY.UPDATE_APP, () => {
 			messageApi.open({
 				key: MESSAGE_KEY,
 				type: "loading",
@@ -54,46 +50,50 @@ const Update = () => {
 
 			timer = setInterval(check, 1000 * 60 * 60 * 24);
 		});
+
+		// 监听参与测试版本配置变化
+		watchKey(globalStore.update, "beta", (value) => {
+			if (!value) return;
+
+			check();
+		});
 	});
-
-	// 本地化更新时间
-	const updateTime = useCreation(() => {
-		const date = state.manifest?.date?.split(" ")?.slice(0, 2)?.join(" ");
-
-		return dayjs.utc(date).local().format("YYYY-MM-DD HH:mm:ss");
-	}, [state.manifest?.date]);
 
 	// 检查更新
 	const check = async (showMessage = false) => {
 		try {
-			const { shouldUpdate, manifest } = await checkUpdate();
+			const { shouldUpdate, manifest } = await checkUpdate(
+				globalStore.update.beta,
+			);
 
 			if (shouldUpdate && manifest) {
-				const { version, body } = manifest;
-
-				const isBeta = /[a-z]/.test(version);
-
-				if (isBeta && !globalStore.update.beta) {
-					return showLatestMessage(showMessage);
-				}
+				const { version, body, date } = manifest;
 
 				showWindow();
 
 				messageApi.destroy(MESSAGE_KEY);
 
-				manifest.body = replaceManifestBody(body);
+				Object.assign(manifest, {
+					version: `v${version}`,
+					body: replaceManifestBody(body),
+					date: Number(date) * 1000,
+				});
 
 				Object.assign(state, { manifest, open: true });
 			} else if (showMessage) {
-				showLatestMessage();
+				messageApi.open({
+					key: MESSAGE_KEY,
+					type: "success",
+					content: t("component.app_update.hints.latest_version"),
+				});
 			}
-		} catch {
+		} catch (error: any) {
 			if (!showMessage) return;
 
 			messageApi.open({
 				key: MESSAGE_KEY,
 				type: "error",
-				content: t("component.app_update.hints.update_check_error"),
+				content: error,
 			});
 		}
 	};
@@ -115,17 +115,6 @@ const Update = () => {
 		);
 	};
 
-	// 显示最新版本的提示信息
-	const showLatestMessage = (show = true) => {
-		if (!show) return;
-
-		messageApi.open({
-			key: MESSAGE_KEY,
-			type: "success",
-			content: t("component.app_update.hints.latest_version"),
-		});
-	};
-
 	const handleOk = async () => {
 		state.downloading = true;
 
@@ -136,30 +125,14 @@ const Update = () => {
 
 			switch (status) {
 				case "DONE":
-					relaunch();
-					break;
-				case "PENDING":
-					messageApi.open({
-						key: MESSAGE_KEY,
-						type: "loading",
-						content: t("component.app_update.hints.downloading_latest_package"),
-						duration: 0,
-					});
-					break;
+					return relaunch();
 				case "ERROR":
-					messageApi.open({
+					state.downloading = false;
+
+					return messageApi.open({
 						key: MESSAGE_KEY,
 						type: "error",
 						content: error,
-					});
-
-					state.downloading = false;
-					break;
-				case "UPTODATE":
-					messageApi.open({
-						key: MESSAGE_KEY,
-						type: "success",
-						content: t("component.app_update.hints.download_complete_restart"),
 					});
 			}
 		});
@@ -194,15 +167,19 @@ const Update = () => {
 						{t("component.app_update.label.release_version")}：
 						<span>
 							v{env.appVersion} 👉{" "}
-							<a href={`${GITHUB_LINK}/releases/latest`}>
-								v{state.manifest?.version}
+							<a
+								href={`${GITHUB_LINK}/releases/tag/${state.manifest?.version}`}
+							>
+								{state.manifest?.version}
 							</a>
 						</span>
 					</Flex>
 
 					<Flex align="center">
 						{t("component.app_update.label.release_time")}：
-						<span>{updateTime}</span>
+						<span>
+							{dayjs(state.manifest?.date).format("YYYY-MM-DD HH:mm:ss")}
+						</span>
 					</Flex>
 
 					<Flex vertical>

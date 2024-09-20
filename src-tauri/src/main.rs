@@ -7,7 +7,7 @@ mod plugins;
 
 use core::setup;
 use plugins::{
-    backup, clipboard, fs_extra, locale, macos_permissions, mouse, ocr, paste, tray,
+    backup, clipboard, fs_extra, locale, macos_permissions, mouse, ocr, paste, tray, updater,
     window::{self, show_main_window, MAIN_WINDOW_LABEL, PREFERENCE_WINDOW_LABEL},
 };
 use tauri::{generate_context, generate_handler, Builder, Manager, WindowEvent};
@@ -83,6 +83,8 @@ fn main() {
         .plugin(macos_permissions::init())
         // 自定义托盘插件
         .plugin(tray::init())
+        // 自定义更新插件
+        .plugin(updater::init())
         .invoke_handler(generate_handler![])
         // 让 app 保持在后台运行：https://tauri.app/v1/guides/features/system-tray/#preventing-the-app-from-closing
         .on_window_event(|event| match event.event() {

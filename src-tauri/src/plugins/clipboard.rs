@@ -288,9 +288,6 @@ async fn write_rtf(
     text: String,
     rtf: String,
 ) -> Result<(), String> {
-    println!("text: {text}");
-    println!("rtf: {rtf}");
-
     let contents = vec![ClipboardContent::Text(text), ClipboardContent::Rtf(rtf)];
 
     manager

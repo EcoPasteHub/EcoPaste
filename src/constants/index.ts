@@ -106,3 +106,7 @@ export const WINDOW_LABEL = {
 	MAIN: "main",
 	PREFERENCE: "preference",
 } as const;
+
+export const UPDATER_PLUGIN = {
+	CHECK_UPDATE: "plugin:updater|check_update",
+};

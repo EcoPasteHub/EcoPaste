@@ -242,10 +242,7 @@
 			},
 			"hints": {
 				"checking_update": "Checking for updates...",
-				"latest_version": "You are using the latest version 🎉",
-				"update_check_error": "An error occurred while checking for updates Please check your network connection and try again.",
-				"downloading_latest_package": "Downloading the latest package...",
-				"download_complete_restart": "Download completed. Restart the application to apply the update."
+				"latest_version": "You are using the latest version 🎉"
 			}
 		},
 		"use_theme": {

@@ -21,9 +21,9 @@ export const initDatabase = async () => {
 
 	db = await Database.load(`sqlite:${path}`);
 
-	await executeSQL(
-		`
-        CREATE TABLE IF NOT EXISTS history (
+	const createHistoryQuery = (tableName = "history") => {
+		return `
+        CREATE TABLE IF NOT EXISTS ${tableName} (
 			id TEXT PRIMARY KEY,
 			type TEXT,
 			[group] TEXT,
@@ -33,61 +33,63 @@ export const initDatabase = async () => {
 			width INTEGER,
 			height INTEGER,
 			favorite INTEGER DEFAULT 0,
-			createTime TEXT
+			createTime TEXT,
+			remark TEXT
 		);
-        `,
-	);
+        `;
+	};
 
-	// 以下代码未来版本会删除！！！
-	// 获取 history 表字段
-	const fields: any = await executeSQL("PRAGMA table_info(history)");
+	// 创建 `history` 表
+	await executeSQL(createHistoryQuery());
 
-	// `isCollected` 更名 `favorite`
-	if (some(fields, { name: "isCollected" })) {
-		await executeSQL(
-			"ALTER TABLE history RENAME COLUMN isCollected TO favorite;",
-		);
-	}
-
-	// `size` 更名 `count`
-	if (some(fields, { name: "size" })) {
-		await executeSQL("ALTER TABLE history RENAME COLUMN size TO count;");
-	}
-
-	// 将 type 为富文本的简化为 rtf
+	// 将 `type` 为 rich-text 的更换为 rtf
 	await executeSQL("UPDATE history SET type = ? WHERE type = ?;", [
 		"rtf",
 		"rich-text",
 	]);
 
-	// 将 id 类型从 INTEGER 转为 TEXT
-	if (find(fields, { name: "id" })?.type === "INTEGER") {
-		await executeSQL(
-			`
-			CREATE TABLE IF NOT EXISTS temp_history (
-				id TEXT PRIMARY KEY,
-				type TEXT,
-				[group] TEXT,
-				value TEXT,
-				search TEXT,
-				count INTEGER,
-				width INTEGER,
-				height INTEGER,
-				favorite INTEGER DEFAULT 0,
-				createTime TEXT
-			);
-			`,
-		);
+	// `isCollected` 更名 `favorite`
+	await renameField("history", "isCollected", "favorite");
 
-		await executeSQL(
-			"INSERT INTO temp_history (id, type, [group], value, search, count, width, height, favorite, createTime) SELECT CAST(id AS TEXT), type, [group], value, search, count, width, height, favorite, createTime FROM history;",
-		);
+	// `size` 更名 `count`
+	await renameField("history", "size", "count");
+
+	// 新增 `remark`
+	await addField("history", "remark", "TEXT");
+
+	// 将 `id` 从 INTEGER 转为 TEXT 类型
+	const fields = await getFields("history");
+	if (find(fields, { name: "id" })?.type === "INTEGER") {
+		const tableName = "temp_history";
+
+		await executeSQL(createHistoryQuery(tableName));
+
+		await executeSQL(`INSERT INTO ${tableName} SELECT * FROM history;`);
 
 		await executeSQL("DROP TABLE history;");
 
-		await executeSQL("ALTER TABLE temp_history RENAME TO history;");
+		await executeSQL(`ALTER TABLE ${tableName} RENAME TO history;`);
 	}
-	// 以上代码未来版本会删除！！！
+};
+
+/**
+ * 处理参数
+ * @param payload 数据
+ */
+const handlePayload = (payload: TablePayload) => {
+	const omitPayload = omitBy(payload, isNil);
+
+	const keys = map(Object.keys(omitPayload), (key) => `[${key}]`);
+	const refs = map(keys, () => "?");
+	const values = map(Object.values(omitPayload), (item) => {
+		return isBoolean(item) ? Number(item) : item;
+	});
+
+	return {
+		keys,
+		refs,
+		values,
+	};
 };
 
 /**
@@ -200,21 +202,46 @@ export const closeDatabase = async () => {
 };
 
 /**
- * 处理参数
- * @param payload 数据
+ * 获取全部字段
+ * @param tableName 表名
  */
-const handlePayload = (payload: TablePayload) => {
-	const omitPayload = omitBy(payload, isNil);
+const getFields = async (tableName: TableName) => {
+	const fields = await executeSQL(`PRAGMA table_info(${tableName})`);
 
-	const keys = map(Object.keys(omitPayload), (key) => `[${key}]`);
-	const refs = map(keys, () => "?");
-	const values = map(Object.values(omitPayload), (item) => {
-		return isBoolean(item) ? Number(item) : item;
-	});
+	return fields as { name: string; type: string }[];
+};
 
-	return {
-		keys,
-		refs,
-		values,
-	};
+/**
+ * 重命名字段
+ * @param tableName 表名
+ * @param field 字段名称
+ * @param rename 重命名
+ * @returns
+ */
+const renameField = async (
+	tableName: TableName,
+	field: string,
+	rename: string,
+) => {
+	const fields = await getFields(tableName);
+
+	if (some(fields, { name: rename })) return;
+
+	return executeSQL(
+		`ALTER TABLE ${tableName} RENAME COLUMN ${field} TO ${rename};`,
+	);
+};
+
+/**
+ * 新增字段
+ * @param tableName 表名
+ * @param field 字段
+ * @param type 类型
+ */
+const addField = async (tableName: TableName, field: string, type: string) => {
+	const fields = await getFields(tableName);
+
+	if (some(fields, { name: field })) return;
+
+	return executeSQL(`ALTER TABLE ${tableName} ADD COLUMN ${field} ${type};`);
 };
