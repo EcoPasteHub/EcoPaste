@@ -62,11 +62,6 @@
 		"history": {
 			"history": {
 				"title": "History",
-				"button": {
-					"clear": "Clear History",
-					"clear_confirm": "Confirm",
-					"clear_cancel": "Cancel"
-				},
 				"label": {
 					"duration": "Retention Duration",
 					"duration_unit": {
@@ -74,12 +69,7 @@
 						"week": "Week",
 						"month": "Month",
 						"year": "Year"
-					},
-					"clear_confirm_title": "Clear History"
-				},
-				"hints": {
-					"duration": "Enter 0 to keep forever",
-					"clear_confirm": "Are you sure you want to clear all history (including favorites)?"
+					}
 				}
 			}
 		},
@@ -140,10 +130,12 @@
 				"label": {
 					"open_clipboard": "Open Clipboard Window",
 					"open_settings": "Open Preferences Window",
-					"quick_paste": "Quick Paste"
+					"quick_paste": "Quick Paste",
+					"paste_as_plain": "Paste as Plain Text"
 				},
 				"hints": {
-					"quick_paste": "Use number key combos to quickly paste top 9 items when window is hidden"
+					"quick_paste": "Use number key combos to quickly paste top 9 items when window is hidden",
+					"paste_as_plain": "Paste content as plain text or OCR text"
 				}
 			}
 		},
@@ -243,15 +235,6 @@
 			"hints": {
 				"checking_update": "Checking for updates...",
 				"latest_version": "You are using the latest version 🎉"
-			}
-		},
-		"use_theme": {
-			"button": {
-				"confirm_reboot": "Reboot",
-				"cancel": "Cancel"
-			},
-			"hints": {
-				"reboot_confirm": "Switching themes requires a reboot to take effect!"
 			}
 		}
 	}

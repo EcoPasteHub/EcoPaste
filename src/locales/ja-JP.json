@@ -62,11 +62,6 @@
 		"history": {
 			"history": {
 				"title": "履歴",
-				"button": {
-					"clear": "履歴をクリア",
-					"clear_confirm": "確認",
-					"clear_cancel": "キャンセル"
-				},
 				"label": {
 					"duration": "保持期間",
 					"duration_unit": {
@@ -74,12 +69,7 @@
 						"week": "週",
 						"month": "月",
 						"year": "年"
-					},
-					"clear_confirm_title": "履歴をクリア"
-				},
-				"hints": {
-					"duration": "0 は永続保持を意味します",
-					"clear_confirm": "すべての履歴（お気に入りを含む）をクリアしてもよろしいですか？"
+					}
 				}
 			}
 		},
@@ -140,10 +130,12 @@
 				"label": {
 					"open_clipboard": "クリップボードを開く",
 					"open_settings": "クリップボード設定を開く",
-					"quick_paste": "クイックペースト"
+					"quick_paste": "クイックペースト",
+					"paste_as_plain": "プレーンテキストとして貼り付け"
 				},
 				"hints": {
-					"quick_paste": "ウィンドウを隠す際、数字キーの組み合わせで最初の9項目を素早く貼り付ける"
+					"quick_paste": "ウィンドウを隠す際、数字キーの組み合わせで最初の9項目を素早く貼り付ける",
+					"paste_as_plain": "内容をプレーンテキストまたは OCR テキストとして貼り付け"
 				}
 			}
 		},
@@ -243,15 +235,6 @@
 			"hints": {
 				"checking_update": "更新を確認しています...",
 				"latest_version": "すでに最新バージョンです🎉"
-			}
-		},
-		"use_theme": {
-			"button": {
-				"confirm_reboot": "再起動",
-				"cancel": "キャンセル"
-			},
-			"hints": {
-				"reboot_confirm": "テーマを切り替えるには、appを再起動する必要があります！"
 			}
 		}
 	}
