@@ -242,10 +242,7 @@
 			},
 			"hints": {
 				"checking_update": "更新を確認しています...",
-				"latest_version": "すでに最新バージョンです🎉",
-				"update_check_error": "更新中にエラーが発生しました。ネットワークを確認して再試行してください。",
-				"downloading_latest_package": "最新のインストールパッケージをダウンロード中...",
-				"download_complete_restart": "ダウンロードが完了しました。インストールを開始し、アプリを再起動します。"
+				"latest_version": "すでに最新バージョンです🎉"
 			}
 		},
 		"use_theme": {

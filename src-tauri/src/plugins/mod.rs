@@ -7,4 +7,5 @@ pub mod mouse;
 pub mod ocr;
 pub mod paste;
 pub mod tray;
+pub mod updater;
 pub mod window;

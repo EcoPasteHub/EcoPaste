@@ -43,7 +43,7 @@ const ClipboardPanel = () => {
 	const audioRef = useRef<AudioRef>(null);
 	const $eventBus = useEventEmitter<string>();
 
-	useMount(async () => {
+	useMount(() => {
 		state.$eventBus = $eventBus;
 
 		// 开启监听

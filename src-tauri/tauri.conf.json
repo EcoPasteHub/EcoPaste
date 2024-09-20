@@ -116,9 +116,7 @@
 		},
 		"updater": {
 			"active": true,
-			"endpoints": [
-				"https://gh-proxy.com/https://github.com/EcoPasteHub/EcoPaste/releases/latest/download/latest.json"
-			],
+			"endpoints": ["https://ecopaste-updater.ayangweb.cn/api/update"],
 			"dialog": false,
 			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDcwNEIyQkUwRjNEMTg4NgpSV1NHR0QwUHZySUVCeXFRQzZ4aEpNRWdFdThVQ2I4b2dSQktRcmNtV1dYTFJJV1h2VmVVZXBWSgo="
 		}

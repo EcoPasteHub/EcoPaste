@@ -4,10 +4,8 @@ import "dayjs/locale/zh-tw";
 import "dayjs/locale/ja";
 import isBetween from "dayjs/plugin/isBetween";
 import relativeTime from "dayjs/plugin/relativeTime";
-import utc from "dayjs/plugin/utc";
 
 dayjs.extend(relativeTime);
-dayjs.extend(utc);
 dayjs.extend(isBetween);
 
 export { dayjs };

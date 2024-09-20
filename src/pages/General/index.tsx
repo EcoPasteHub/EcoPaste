@@ -1,6 +1,5 @@
 import ProList from "@/components/ProList";
 import ProSwitch from "@/components/ProSwitch";
-import { emit } from "@tauri-apps/api/event";
 import { useSnapshot } from "valtio";
 import Language from "./components/Language";
 import MacosPermissions from "./components/MacosPermissions";
@@ -53,10 +52,6 @@ const General = () => {
 					value={update.beta}
 					onChange={(value) => {
 						globalStore.update.beta = value;
-
-						if (!value) return;
-
-						emit(LISTEN_KEY.UPDATE_APP);
 					}}
 				/>
 			</ProList>
