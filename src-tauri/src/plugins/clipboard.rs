@@ -288,7 +288,11 @@ async fn write_rtf(
     text: String,
     rtf: String,
 ) -> Result<(), String> {
-    let contents = vec![ClipboardContent::Text(text), ClipboardContent::Rtf(rtf)];
+    let mut contents = vec![ClipboardContent::Rtf(rtf)];
+
+    if cfg!(not(target_os = "macos")) {
+        contents.push(ClipboardContent::Text(text))
+    }
 
     manager
         .context
