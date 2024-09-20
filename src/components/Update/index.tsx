@@ -32,6 +32,8 @@ const Update = () => {
 	useMount(() => {
 		// 监听更新事件
 		listen<boolean>(LISTEN_KEY.UPDATE_APP, () => {
+			check(true);
+
 			messageApi.open({
 				key: MESSAGE_KEY,
 				type: "loading",

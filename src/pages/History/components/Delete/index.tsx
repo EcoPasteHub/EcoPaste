@@ -28,31 +28,33 @@ const Delete = () => {
 	const timeRange = Form.useWatch("timeRange", form);
 	const [deleting, { setTrue, setFalse }] = useBoolean();
 
+	const { t } = useTranslation();
+
 	useEffect(form.resetFields, [open]);
 
 	const rangeOptions: DefaultOptionType[] = [
 		{
-			label: "过去 1 小时",
+			label: t("preference.history.history.label.time_range_opt.last_hour"),
 			value: 1,
 		},
 		{
-			label: "过去 1 天",
+			label: t("preference.history.history.label.time_range_opt.last_24_hours"),
 			value: 24,
 		},
 		{
-			label: "过去 7 天",
+			label: t("preference.history.history.label.time_range_opt.last_7_days"),
 			value: 7 * 24,
 		},
 		{
-			label: "过去 30 天",
+			label: t("preference.history.history.label.time_range_opt.last_30_days"),
 			value: 30 * 24,
 		},
 		{
-			label: "时间不限",
+			label: t("preference.history.history.label.time_range_opt.unlimited"),
 			value: 0,
 		},
 		{
-			label: "自定义",
+			label: t("preference.history.history.label.time_range_opt.custom"),
 			value: -1,
 		},
 	];
@@ -93,19 +95,19 @@ const Delete = () => {
 
 		toggle();
 		setFalse();
-		message.success("删除成功");
+		message.success(t("preference.history.history.hints.delete_success"));
 		emit(LISTEN_KEY.REFRESH_CLIPBOARD_LIST);
 	};
 
 	return (
 		<>
 			<Button block danger icon={<DeleteOutlined />} onClick={toggle}>
-				删除历史记录
+				{t("preference.history.history.button.goto_delete")}
 			</Button>
 
 			<Drawer
 				open={open}
-				title="删除历史记录"
+				title={t("preference.history.history.label.delete_title")}
 				width="100%"
 				closable={false}
 				classNames={{
@@ -115,11 +117,11 @@ const Delete = () => {
 				footer={
 					<Space>
 						<Button disabled={deleting} onClick={toggle}>
-							取消
+							{t("preference.history.history.button.cancel_delete")}
 						</Button>
 
 						<Button type="primary" loading={deleting} onClick={onSubmit}>
-							确定
+							{t("preference.history.history.button.confirm_delete")}
 						</Button>
 					</Space>
 				}
@@ -132,7 +134,10 @@ const Delete = () => {
 					}}
 				>
 					<Space>
-						<Form.Item name="timeRange" label="时间范围">
+						<Form.Item
+							name="timeRange"
+							label={t("preference.history.history.label.time_range")}
+						>
 							<EcoSelect options={rangeOptions} />
 						</Form.Item>
 
@@ -147,7 +152,9 @@ const Delete = () => {
 					</Space>
 
 					<Form.Item name="deleteFavorite" valuePropName="checked">
-						<Checkbox>删除收藏</Checkbox>
+						<Checkbox>
+							{t("preference.history.history.label.include_favorite")}
+						</Checkbox>
 					</Form.Item>
 				</Form>
 			</Drawer>

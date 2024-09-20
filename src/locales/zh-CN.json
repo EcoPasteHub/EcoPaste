@@ -62,6 +62,11 @@
 		"history": {
 			"history": {
 				"title": "历史记录",
+				"button": {
+					"goto_delete": "删除历史记录",
+					"confirm_delete": "确定",
+					"cancel_delete": "取消"
+				},
 				"label": {
 					"duration": "保留时长",
 					"duration_unit": {
@@ -69,7 +74,22 @@
 						"week": "周",
 						"month": "月",
 						"year": "年"
-					}
+					},
+					"delete_title": "删除历史记录",
+					"time_range": "时间范围",
+					"time_range_opt": {
+						"last_hour": "过去 1 小时",
+						"last_24_hours": "过去 24 小时",
+						"last_7_days": "过去 7 天",
+						"last_30_days": "过去 30 天",
+						"unlimited": "时间不限",
+						"custom": "自定义"
+					},
+					"include_favorite": "删除收藏"
+				},
+				"hints": {
+					"duration": "输入 0 则表示永久保留，自动删除时会保留收藏",
+					"delete_success": "删除成功"
 				}
 			}
 		},

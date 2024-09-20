@@ -62,6 +62,11 @@
 		"history": {
 			"history": {
 				"title": "History",
+				"button": {
+					"goto_delete": "Delete History",
+					"confirm_delete": "Confirm",
+					"cancel_delete": "Cancel"
+				},
 				"label": {
 					"duration": "Retention Duration",
 					"duration_unit": {
@@ -69,7 +74,22 @@
 						"week": "Week",
 						"month": "Month",
 						"year": "Year"
-					}
+					},
+					"delete_title": "Delete History",
+					"time_range": "Time Range",
+					"time_range_opt": {
+						"last_hour": "Last 1 Hour",
+						"last_24_hours": "Last 24 Hours",
+						"last_7_days": "Last 7 Days",
+						"last_30_days": "Last 30 Days",
+						"unlimited": "Unlimited",
+						"custom": "Custom"
+					},
+					"include_favorite": "Delete Favorites"
+				},
+				"hints": {
+					"duration": "Enter 0 to keep permanently, favorites will be retained when auto-deleting",
+					"delete_success": "Successfully Deleted"
 				}
 			}
 		},

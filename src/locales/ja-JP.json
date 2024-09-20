@@ -62,6 +62,11 @@
 		"history": {
 			"history": {
 				"title": "履歴",
+				"button": {
+					"goto_delete": "履歴を削除",
+					"confirm_delete": "確認",
+					"cancel_delete": "キャンセル"
+				},
 				"label": {
 					"duration": "保持期間",
 					"duration_unit": {
@@ -69,7 +74,22 @@
 						"week": "週",
 						"month": "月",
 						"year": "年"
-					}
+					},
+					"delete_title": "履歴を削除",
+					"time_range": "時間範囲",
+					"time_range_opt": {
+						"last_hour": "過去 1 時間",
+						"last_24_hours": "過去 24 時間",
+						"last_7_days": "過去 7 日間",
+						"last_30_days": "過去 30 日間",
+						"unlimited": "無制限",
+						"custom": "カスタム"
+					},
+					"include_favorite": "お気に入りも削除"
+				},
+				"hints": {
+					"duration": "0 を入力すると永久保存され、削除時にお気に入りが保持されます",
+					"delete_success": "削除が成功しました"
 				}
 			}
 		},

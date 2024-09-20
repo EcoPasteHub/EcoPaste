@@ -32,7 +32,7 @@ const History = () => {
 		<ProList header={t("preference.history.history.title")} footer={<Delete />}>
 			<ProListItem
 				title={t("preference.history.history.label.duration")}
-				description={"输入 0 则表示永久保留，自动删除时会保留收藏"}
+				description={t("preference.history.history.hints.duration")}
 			>
 				<InputNumber
 					min={0}
