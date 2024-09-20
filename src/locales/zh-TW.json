@@ -61,7 +61,12 @@
 		},
 		"history": {
 			"history": {
-				"title": "歷史紀錄",
+				"title": "歷史記錄",
+				"button": {
+					"goto_delete": "刪除歷史記錄",
+					"confirm_delete": "確定",
+					"cancel_delete": "取消"
+				},
 				"label": {
 					"duration": "保留時長",
 					"duration_unit": {
@@ -69,7 +74,22 @@
 						"week": "週",
 						"month": "月",
 						"year": "年"
-					}
+					},
+					"delete_title": "刪除歷史記錄",
+					"time_range": "時間範圍",
+					"time_range_opt": {
+						"last_hour": "過去 1 小時",
+						"last_24_hours": "過去 24 小時",
+						"last_7_days": "過去 7 天",
+						"last_30_days": "過去 30 天",
+						"unlimited": "時間不限",
+						"custom": "自定義"
+					},
+					"include_favorite": "刪除收藏"
+				},
+				"hints": {
+					"duration": "輸入 0 表示永久保留，收藏在自動刪除時將保留",
+					"delete_success": "刪除成功"
 				}
 			}
 		},
