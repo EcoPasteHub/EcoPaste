@@ -15,7 +15,7 @@ import styles from "./index.module.scss";
 
 interface State {
 	open?: boolean;
-	downloading?: boolean;
+	loading?: boolean;
 	manifest?: UpdateManifest;
 }
 
@@ -118,7 +118,7 @@ const Update = () => {
 	};
 
 	const handleOk = async () => {
-		state.downloading = true;
+		state.loading = true;
 
 		installUpdate();
 
@@ -129,7 +129,7 @@ const Update = () => {
 				case "DONE":
 					return relaunch();
 				case "ERROR":
-					state.downloading = false;
+					state.loading = false;
 
 					return messageApi.open({
 						key: MESSAGE_KEY,
@@ -159,8 +159,8 @@ const Update = () => {
 				okText={t("component.app_update.button.confirm_update")}
 				cancelText={t("component.app_update.button.cancel_update")}
 				className={styles.modal}
-				confirmLoading={state.downloading}
-				cancelButtonProps={{ disabled: state.downloading }}
+				confirmLoading={state.loading}
+				cancelButtonProps={{ disabled: state.loading }}
 				onOk={handleOk}
 				onCancel={handleCancel}
 			>

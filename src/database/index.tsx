@@ -64,7 +64,9 @@ export const initDatabase = async () => {
 
 		await executeSQL(createHistoryQuery(tableName));
 
-		await executeSQL(`INSERT INTO ${tableName} SELECT * FROM history;`);
+		await executeSQL(
+			`INSERT INTO ${tableName} (id, type, [group], value, search, count, width, height, favorite, createTime, remark) SELECT CAST(id AS TEXT), type, [group], value, search, count, width, height, favorite, createTime, remark FROM history;`,
+		);
 
 		await executeSQL("DROP TABLE history;");
 

@@ -118,10 +118,12 @@ const Item: FC<ItemProps> = (props) => {
 
 	// 删除条目
 	const deleteItem = () => {
-		const nextIndex = selectNextOrPrev();
+		if (state.activeId === id) {
+			const nextIndex = selectNextOrPrev();
 
-		if (isNil(nextIndex)) {
-			selectNextOrPrev(false);
+			if (isNil(nextIndex)) {
+				selectNextOrPrev(false);
+			}
 		}
 
 		remove(state.list, { id });
