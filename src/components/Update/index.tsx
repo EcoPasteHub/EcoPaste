@@ -8,6 +8,7 @@ import {
 import type { Timeout } from "ahooks/lib/useRequest/src/types";
 import { Flex, Modal, message } from "antd";
 import clsx from "clsx";
+import { isString } from "lodash-es";
 import Markdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import { useSnapshot } from "valtio";
@@ -69,11 +70,9 @@ const Update = () => {
 			);
 
 			if (shouldUpdate && manifest) {
-				const { version, body, date } = manifest;
-
 				showWindow();
 
-				messageApi.destroy(MESSAGE_KEY);
+				const { version, body, date } = manifest;
 
 				Object.assign(manifest, {
 					version: `v${version}`,
@@ -82,6 +81,8 @@ const Update = () => {
 				});
 
 				Object.assign(state, { manifest, open: true });
+
+				messageApi.destroy(MESSAGE_KEY);
 			} else if (showMessage) {
 				messageApi.open({
 					key: MESSAGE_KEY,
@@ -89,14 +90,10 @@ const Update = () => {
 					content: t("component.app_update.hints.latest_version"),
 				});
 			}
-		} catch (error: any) {
+		} catch (error) {
 			if (!showMessage) return;
 
-			messageApi.open({
-				key: MESSAGE_KEY,
-				type: "error",
-				content: error,
-			});
+			showErrorMessage(error);
 		}
 	};
 
@@ -117,6 +114,19 @@ const Update = () => {
 		);
 	};
 
+	// 显示错误信息
+	const showErrorMessage = (error: unknown) => {
+		state.loading = false;
+
+		const content = isString(error) ? error : JSON.stringify(error);
+
+		messageApi.open({
+			key: MESSAGE_KEY,
+			type: "error",
+			content,
+		});
+	};
+
 	const handleOk = async () => {
 		state.loading = true;
 
@@ -129,13 +139,7 @@ const Update = () => {
 				case "DONE":
 					return relaunch();
 				case "ERROR":
-					state.loading = false;
-
-					return messageApi.open({
-						key: MESSAGE_KEY,
-						type: "error",
-						content: error,
-					});
+					return showErrorMessage(error);
 			}
 		});
 	};
