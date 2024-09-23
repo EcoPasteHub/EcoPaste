@@ -5,7 +5,7 @@ import { listen } from "@tauri-apps/api/event";
 import { registerAll, unregister } from "@tauri-apps/api/globalShortcut";
 import { appWindow } from "@tauri-apps/api/window";
 import type { EventEmitter } from "ahooks/lib/useEventEmitter";
-import { find, findIndex, isEqual, last, merge, range } from "lodash-es";
+import { find, findIndex, isEqual, isNil, last, merge, range } from "lodash-es";
 import { nanoid } from "nanoid";
 import { createContext } from "react";
 import { useSnapshot } from "valtio";
@@ -55,7 +55,7 @@ const ClipboardPanel = () => {
 				audioRef.current?.play();
 			}
 
-			const { type, value } = payload;
+			const { type, value, group } = payload;
 
 			const findItem = find(state.list, { type, value });
 
@@ -79,7 +79,9 @@ const ClipboardPanel = () => {
 					favorite: false,
 				};
 
-				state.list.unshift(data);
+				if (state.group === group || (isNil(state.group) && !state.favorite)) {
+					state.list.unshift(data);
+				}
 
 				insertSQL("history", data);
 			}
