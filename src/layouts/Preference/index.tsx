@@ -1,4 +1,5 @@
 import Icon from "@/components/Icon";
+import ScrollRestore from "@/components/ScrollRestore";
 import Update from "@/components/Update";
 import MacosPermissions from "@/pages/General/components/MacosPermissions";
 import type { ClipboardItem } from "@/types/database";
@@ -145,12 +146,12 @@ const Preference = () => {
 				})}
 			</Flex>
 
-			<div
+			<ScrollRestore
 				data-tauri-drag-region
 				className="h-full flex-1 overflow-auto bg-2 p-16 transition"
 			>
 				<Outlet />
-			</div>
+			</ScrollRestore>
 
 			<Update />
 
