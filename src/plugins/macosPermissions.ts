@@ -33,9 +33,9 @@ export const checkFullDiskAccessPermissions = async () => {
 		const checkDirs = ["Library/Containers/com.apple.stocks", "Library/Safari"];
 
 		for (const dir of checkDirs) {
-			const { isExist } = await metadata(`${homePath}${dir}`);
+			const { size } = await metadata(`${homePath}${dir}`);
 
-			if (!isExist) continue;
+			if (size === 0) continue;
 
 			return true;
 		}
