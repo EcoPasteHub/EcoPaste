@@ -86,13 +86,14 @@ fn main() {
         // 自定义更新插件
         .plugin(updater::init())
         .invoke_handler(generate_handler![])
-        // 让 app 保持在后台运行：https://tauri.app/v1/guides/features/system-tray/#preventing-the-app-from-closing
         .on_window_event(|event| match event.event() {
+            // 让 app 保持在后台运行：https://tauri.app/v1/guides/features/system-tray/#preventing-the-app-from-closing
             WindowEvent::CloseRequested { api, .. } => {
                 event.window().hide().unwrap();
 
                 api.prevent_close();
             }
+            // 窗口失焦保存窗口的状态信息
             WindowEvent::Focused(focused) => {
                 if *focused {
                     return;
@@ -117,9 +118,7 @@ fn main() {
                 return;
             }
 
-            use plugins::window::show_preference_window;
-
-            show_preference_window(app_handle);
+            plugins::window::show_preference_window(app_handle);
         }
         _ => {
             let _ = app_handle;
