@@ -117,7 +117,7 @@
 				"title": "應用設定",
 				"label": {
 					"auto_start": "登入時啟動",
-					"show_menubar_icon": "隱藏功能表列圖標",
+					"show_menubar_icon": "顯示功能表列圖標",
 					"show_taskbar_icon": "顯示工作列圖標"
 				}
 			},
