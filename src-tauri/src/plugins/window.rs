@@ -38,30 +38,6 @@ pub async fn hide_window(window: Window) {
     window.hide().unwrap();
 }
 
-// 给窗口添加阴影
-#[command]
-pub fn set_window_shadow(window: &Window) {
-    #[cfg(not(target_os = "linux"))]
-    window_shadows::set_shadow(window, true).unwrap();
-
-    let _ = window;
-}
-
-// 磨砂窗口：https://github.com/tauri-apps/window-vibrancy
-#[command]
-pub fn frosted_window(window: &Window) {
-    #[cfg(target_os = "macos")]
-    window_vibrancy::apply_vibrancy(
-        window,
-        window_vibrancy::NSVisualEffectMaterial::Sidebar,
-        Some(window_vibrancy::NSVisualEffectState::Active),
-        Some(10.0),
-    )
-    .unwrap();
-
-    let _ = window;
-}
-
 // 显示主窗口
 pub fn show_main_window(app_handle: &AppHandle) {
     let window = app_handle.get_window(MAIN_WINDOW_LABEL).unwrap();
@@ -80,8 +56,36 @@ pub fn show_preference_window(app_handle: &AppHandle) {
     });
 }
 
+// 显示任务栏图标
+#[command]
+pub fn show_taskbar_icon(window: Window, show: bool) {
+    #[cfg(not(target_os = "macos"))]
+    window.set_skip_taskbar(!show).unwrap();
+
+    #[cfg(target_os = "macos")]
+    {
+        use cocoa::appkit::{NSApp, NSApplication, NSApplicationActivationPolicy::*};
+
+        unsafe {
+            let app = NSApp();
+
+            if show {
+                app.setActivationPolicy_(NSApplicationActivationPolicyRegular);
+            } else {
+                app.setActivationPolicy_(NSApplicationActivationPolicyAccessory);
+            }
+        }
+    }
+
+    let _ = window;
+}
+
 pub fn init() -> TauriPlugin<Wry> {
     Builder::new("window")
-        .invoke_handler(generate_handler![show_window, hide_window])
+        .invoke_handler(generate_handler![
+            show_window,
+            hide_window,
+            show_taskbar_icon
+        ])
         .build()
 }

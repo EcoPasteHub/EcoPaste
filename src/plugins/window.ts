@@ -89,3 +89,10 @@ export const toggleWindowVisible = async () => {
 		showWindow();
 	}
 };
+
+/**
+ * 显示任务栏图标
+ */
+export const showTaskbarIcon = (show = true) => {
+	invoke(WINDOW_PLUGIN.SHOW_TASKBAR_ICON, { show });
+};

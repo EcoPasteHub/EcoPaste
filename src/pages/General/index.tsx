@@ -29,6 +29,14 @@ const General = () => {
 						globalStore.app.hideTray = value;
 					}}
 				/>
+
+				<ProSwitch
+					title="显示任务栏图标"
+					value={app.showTaskbar}
+					onChange={(value) => {
+						globalStore.app.showTaskbar = value;
+					}}
+				/>
 			</ProList>
 
 			<ProList header={t("preference.settings.appearance_settings.title")}>

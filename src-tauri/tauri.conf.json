@@ -59,7 +59,8 @@
 				"startDragging": true,
 				"setPosition": true,
 				"center": true,
-				"setTitle": true
+				"setTitle": true,
+				"setSkipTaskbar": true
 			}
 		},
 		"windows": [

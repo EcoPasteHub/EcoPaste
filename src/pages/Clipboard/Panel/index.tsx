@@ -121,6 +121,11 @@ const ClipboardPanel = () => {
 
 		// 监听快速粘贴的快捷键变更
 		subscribeKey(globalStore.shortcut.quickPaste, "value", registerQuickPaste);
+
+		// 监听是否显示任务栏图标
+		watchKey(globalStore.app, "showTaskbar", (value) => {
+			showTaskbarIcon(value);
+		});
 	});
 
 	// 监听窗口焦点

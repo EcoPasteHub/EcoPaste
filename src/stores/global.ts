@@ -21,6 +21,7 @@ export const GLOBAL_STORE_INITIAL_STATE: GlobalStore = {
 	app: {
 		autoStart: false,
 		hideTray: false,
+		showTaskbar: false,
 	},
 
 	appearance: {
