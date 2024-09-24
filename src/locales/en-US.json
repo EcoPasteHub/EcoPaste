@@ -117,7 +117,8 @@
 				"title": "App Settings",
 				"label": {
 					"auto_start": "Start at Login",
-					"hide_tray": "Hide Tray Icon"
+					"show_menubar_icon": "Show Menubar Icon",
+					"show_taskbar_icon": "Show Taskbar Icon"
 				}
 			},
 			"appearance_settings": {

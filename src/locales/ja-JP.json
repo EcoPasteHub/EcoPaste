@@ -117,7 +117,8 @@
 				"title": "ソフト設定",
 				"label": {
 					"auto_start": "ログイン時に起動",
-					"hide_tray": "トレイアイコンを隠す"
+					"show_menubar_icon": "メニューバーアイコンを表示する",
+					"show_taskbar_icon": "タスクバーアイコンを表示する"
 				}
 			},
 			"appearance_settings": {
