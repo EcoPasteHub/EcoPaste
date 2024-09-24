@@ -12,6 +12,7 @@ export interface GlobalStore {
 	app: {
 		autoStart: boolean;
 		hideTray: boolean;
+		showTaskbar: boolean;
 	};
 
 	// 外观设置

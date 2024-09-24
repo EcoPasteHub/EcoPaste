@@ -1,8 +1,5 @@
 use super::{app::observe_app, error::redirect_panic_to_log, info};
-use crate::{
-    plugins::window::{frosted_window, set_window_shadow, show_preference_window},
-    AUTO_LAUNCH_ARG,
-};
+use crate::{plugins::window::show_preference_window, AUTO_LAUNCH_ARG};
 use std::env;
 use tauri::{App, Manager, Window};
 
@@ -53,9 +50,9 @@ pub fn default(app: &mut App, main_window: Window, preference_window: Window) {
     #[cfg(any(debug_assertions, feature = "devtools"))]
     main_window.open_devtools();
 
-    set_window_shadow(&main_window);
-
-    frosted_window(&preference_window);
+    // 给窗口添加阴影
+    #[cfg(not(target_os = "linux"))]
+    window_shadows::set_shadow(&main_window, true).unwrap();
 
     platform(app, main_window.clone(), preference_window.clone());
 

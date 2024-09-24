@@ -26,6 +26,7 @@ export const WINDOW_PLUGIN = {
 	CREATE_WINDOW: "plugin:window|create_window",
 	SHOW_WINDOW: "plugin:window|show_window",
 	HIDE_WINDOW: "plugin:window|hide_window",
+	SHOW_TASKBAR_ICON: "plugin:window|show_taskbar_icon",
 };
 
 export const FS_EXTRA_PLUGIN = {
