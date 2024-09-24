@@ -82,9 +82,9 @@ const Preference = () => {
 			setTheme(value);
 		});
 
-		// 监听是否隐藏托盘图标
-		watchKey(globalStore.app, "hideTray", (value) => {
-			setTrayVisible(!value);
+		// 监听是否显示菜单栏图标
+		watchKey(globalStore.app, "showMenubarIcon", (value) => {
+			setTrayVisible(value);
 		});
 	});
 

@@ -23,18 +23,18 @@ const General = () => {
 				/>
 
 				<ProSwitch
-					title={t("preference.settings.app_settings.label.hide_tray")}
-					value={app.hideTray}
+					title={t("preference.settings.app_settings.label.show_menubar_icon")}
+					value={app.showMenubarIcon}
 					onChange={(value) => {
-						globalStore.app.hideTray = value;
+						globalStore.app.showMenubarIcon = value;
 					}}
 				/>
 
 				<ProSwitch
-					title="显示任务栏图标"
-					value={app.showTaskbar}
+					title={t("preference.settings.app_settings.label.show_taskbar_icon")}
+					value={app.showTaskbarIcon}
 					onChange={(value) => {
-						globalStore.app.showTaskbar = value;
+						globalStore.app.showTaskbarIcon = value;
 					}}
 				/>
 			</ProList>

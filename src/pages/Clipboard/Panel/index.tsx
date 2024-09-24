@@ -123,7 +123,7 @@ const ClipboardPanel = () => {
 		subscribeKey(globalStore.shortcut.quickPaste, "value", registerQuickPaste);
 
 		// 监听是否显示任务栏图标
-		watchKey(globalStore.app, "showTaskbar", (value) => {
+		watchKey(globalStore.app, "showTaskbarIcon", (value) => {
 			showTaskbarIcon(value);
 		});
 	});
