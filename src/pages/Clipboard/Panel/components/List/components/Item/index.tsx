@@ -21,7 +21,7 @@ interface ItemProps extends Partial<FlexProps> {
 	data: ClipboardItem;
 }
 
-interface MenuItem extends ContextMenu.Item {
+interface ContextMenuItem extends ContextMenu.Item {
 	hide?: boolean;
 }
 
@@ -161,7 +161,7 @@ const Item: FC<ItemProps> = (props) => {
 
 		state.activeId = id;
 
-		const menus: MenuItem[] = [
+		const menus: ContextMenuItem[] = [
 			{
 				label: t("clipboard.button.context_menu.copy"),
 				event: copy,
@@ -222,8 +222,7 @@ const Item: FC<ItemProps> = (props) => {
 
 		showMenu({
 			items: menus.filter(({ hide }) => !hide),
-			// @ts-ignore
-			theme: appearance.theme,
+			theme: appearance.theme as ContextMenu.Theme,
 		});
 	};
 
