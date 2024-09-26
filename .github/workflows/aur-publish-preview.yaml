@@ -1,8 +1,9 @@
-name: Publish Release AUR Package 
+name: Publish Preview AUR Package 
 
 on:
-  release:
-    types: [created]
+  push:
+    tags:
+      - "*"
 
 jobs:
     aur-publish:
@@ -13,9 +14,9 @@ jobs:
           - name: Publish AUR package
             uses: anas-elgarhy/aur-release-action@v4.1
             with:
-              package_name: eco-paste-bin
+              package_name: eco-paste-beta-bin
               ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
-              pkgbuild_path: aur/release/PKGBUILD
+              pkgbuild_path: aur/preview/PKGBUILD
               try_build_and_install: true
               git_username: witt
               git_email: 1989161762@qq.com
