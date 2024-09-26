@@ -78,13 +78,12 @@ async fn paste() {
     focus_previous_window();
 
     let script =
-        r#"osascript -e 'tell application "System Events" to keystroke "v" using command down'"#;
+        r#"osascript -e 'tell application "System Events" to key code 9 using command down'"#;
 
-    std::process::Command::new("sh")
+    let _ = std::process::Command::new("sh")
         .arg("-c")
         .arg(script)
-        .output()
-        .expect("failed to execute process");
+        .output();
 }
 
 // 粘贴剪贴板内容（windows）

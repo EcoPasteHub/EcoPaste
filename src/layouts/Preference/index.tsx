@@ -83,9 +83,7 @@ const Preference = () => {
 		});
 
 		// 监听是否显示菜单栏图标
-		watchKey(globalStore.app, "showMenubarIcon", (value) => {
-			setTrayVisible(value);
-		});
+		watchKey(globalStore.app, "showMenubarIcon", setTrayVisible);
 	});
 
 	// 监听快捷键切换窗口显隐
