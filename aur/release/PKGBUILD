@@ -1,0 +1,50 @@
+# Maintainer: witt <1989161762 at qq dot com>
+
+pkgname=eco-paste-bin
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="🎉跨平台的剪贴板管理工具 | Cross-platform clipboard management tool ."
+arch=('any')
+url="https://github.com/EcoPasteHub/EcoPaste"
+license=('Apache-2.0')
+provides=("eco-paste" "EcoPaste" "eco-paste")
+conflicts=("eco-paste-git" "eco-paste-appimage")
+optdepends=()
+_ocr_languages=(afr amh ara asm aze_cyrl aze bel ben bod bos bre bul cat ceb ces chi_sim chi_sim_vert
+chi_tra chi_tra_vert chr cos cym dan deu div dzo ell eng enm epo est eus fao fas fil fin fra frk
+frm fry gla gle glg grc guj hat heb hin hrv hun hye iku ind isl ita_old ita jav jpn jpn_vert kan
+kat_old kat kaz khm kir kmr kor kor_vert lao lat lav lit ltz mal mar mkd mlt mon mri msa mya nep
+nld nor oci ori osd pan pol por pus que ron rus san sin slk slv snd spa_old spa sqi srp_latn srp
+sun swa swe syr tam tat tel tgk tha tir ton tur uig ukr urd uzb_cyrl uzb vie yid yor)
+for lang in "${_ocr_languages[@]}"; do
+	# if [[ $lang == osd ]]; then continue; fi
+  _depends="tesseract-data-best-${lang}: ${lang} supported image OCR library tesseract";
+  optdepends+=("${_depends}");
+done
+source=(
+  "${pkgname%-bin}-${pkgver}_amd64.deb::${url}/releases/download/v${pkgver}/eco-paste_${pkgver}_amd64.deb"
+  "LICENSE::https://raw.githubusercontent.com/EcoPasteHub/EcoPaste/refs/heads/master/LICENSE"
+)
+sha256sums=('87c8d1b6523b2a0319b509e811cd7e3f7be13c08a4c546a153a96cfd3cec02cc'
+            'c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4')
+
+build() {
+  mkdir -p "build/";
+  bsdtar -xf data.tar.gz -C "build/"
+}
+
+package() {
+  # binary
+  install -Dm755 "${srcdir}/build/usr/bin/${pkgname%-bin}" -t "${pkgdir}/usr/bin/"
+  
+  # desktop 
+  install -Dm644 "${srcdir}/build/usr/share/applications/${pkgname%-bin}.desktop" -t "${pkgdir}/usr/share/applications"
+
+  # icon
+  cd "${srcdir}/build/";
+  find "usr/share/icons" -type f -exec install -Dm644 {} "${pkgdir}/{}" \;
+
+  # license
+  install -Dm644 "${srcdir}/LICENSE" -t "${pkgdir}/usr/share/licenses/${pkgname}"
+}
+# vim: set sw=2 ts=2 et:

@@ -1,0 +1,23 @@
+name: Publish Preview AUR Package 
+
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+    aur-publish:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v2
+      
+          - name: Publish AUR package
+            uses: anas-elgarhy/aur-release-action@v4.1
+            with:
+              package_name: eco-paste-beta-bin
+              ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+              pkgbuild_path: aur/preview/PKGBUILD
+              try_build_and_install: true
+              git_username: witt
+              git_email: 1989161762@qq.com
+              commit_message: "feat: Update %FILENAME% to %VERSION%" # Use this if you want to change the commit message
