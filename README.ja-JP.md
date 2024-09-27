@@ -95,6 +95,42 @@ brew untap EcoPasteHub/EcoPaste
 
 手動インストール: [AppImage](https://ecopaste-updater.ayangweb.cn/api/stable?platform=linux-appimage) | [deb](https://ecopaste-updater.ayangweb.cn/api/stable?platform=linux-deb) | [rpm](https://ecopaste-updater.ayangweb.cn/api/stable?platform=linux-rpm)
 
+* Ubuntu、Debainシリーズ：
+```shell
+wget "https://ecopaste-updater.ayangweb.cn/api/stable?platform=linux-deb" -O ecopaste-stable.deb
+sudo dpkg -i ecopaste-stable.deb
+```
+
+* Red Hat、CentOS、Fedoraシリーズ：
+```shell
+wget "https://ecopaste-updater.ayangweb.cn/api/stable?platform=linux-rpm" -O ecopaste-stable.rpm
+sudo yum install ecopaste-stable.rpm
+```
+
+* Manjaro、ArchLinuxシリーズ：
+```shell
+yay -S eco-paste-bin
+```
+
+* 他のディストリビューション:
+```shell
+wget "https://ecopaste-updater.ayangweb.cn/api/stable?platform=linux-appimage" -O EcoPaste.AppImage
+chmod +x EcoPaste.AppImage
+./EcoPaste.AppImage --appimage-extract
+
+sed -i 's|Exec=.*|Exec=/opt/ecopaste/EcoPaste.AppImage|g' squashfs-root/usr/share/applications/eco-paste.desktop
+sed -i 's/^Icon=.*/Icon=EcoPaste/g' squashfs-root/usr/share/applications/eco-paste.desktop
+install -Dm644 squashfs-root/usr/share/applications/eco-paste.desktop /usr/share/applications/EcoPaste.desktop
+
+wget "https://raw.githubusercontent.com/EcoPasteHub/EcoPaste-Logo/refs/heads/master/img/logo.svg" -O EcoPaste.svg
+install -Dm644 EcoPaste.svg /usr/share/icons/hicolor/scalable/apps/EcoPaste.svg
+
+rm -r squashfs-root EcoPaste.svg
+
+mkdir -p /opt/ecopaste
+mv ecopaste.AppImage /opt/ecopaste/
+```
+
 ## 機能の概要
 
 - **軽量でコンパクト、多プラットフォーム対応**: 
