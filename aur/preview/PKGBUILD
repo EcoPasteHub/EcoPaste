@@ -8,8 +8,8 @@ pkgdesc="内测预览版!!!🎉跨平台的剪贴板管理工具 | Cross-platfor
 arch=('any')
 url="https://github.com/EcoPasteHub/EcoPaste"
 license=('Apache-2.0')
-provides=("eco-paste" "EcoPaste" "eco-paste" "eco-paste-beta-bin")
-conflicts=("eco-paste-git" "eco-paste-appimage" "eco-paste-bin")
+provides=("eco-paste" "EcoPaste" "eco-paste-beta")
+conflicts=("eco-paste" "eco-paste-git" "eco-paste-appimage" "eco-paste-bin")
 optdepends=()
 _ocr_languages=(afr amh ara asm aze_cyrl aze bel ben bod bos bre bul cat ceb ces chi_sim chi_sim_vert
 chi_tra chi_tra_vert chr cos cym dan deu div dzo ell eng enm epo est eus fao fas fil fin fra frk

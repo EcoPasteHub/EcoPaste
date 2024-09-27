@@ -8,7 +8,7 @@ arch=('any')
 url="https://github.com/EcoPasteHub/EcoPaste"
 license=('Apache-2.0')
 provides=("eco-paste" "EcoPaste" "eco-paste")
-conflicts=("eco-paste-git" "eco-paste-appimage")
+conflicts=("eco-paste" "eco-paste-git" "eco-paste-appimage" "eco-paste-beta" "eco-paste-beta-bin")
 optdepends=()
 _ocr_languages=(afr amh ara asm aze_cyrl aze bel ben bod bos bre bul cat ceb ces chi_sim chi_sim_vert
 chi_tra chi_tra_vert chr cos cym dan deu div dzo ell eng enm epo est eus fao fas fil fin fra frk
