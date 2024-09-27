@@ -5,11 +5,12 @@ name: Publish Release AUR Package
 
 on:
   release:
-    types: [created]
+    types: [published]
 
 jobs:
     aur-publish:
         runs-on: ubuntu-latest
+        if: '!github.event.release.prerelease'
         steps:
           - uses: actions/checkout@v2
       
