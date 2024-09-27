@@ -4,15 +4,8 @@
 name: Publish Preview AUR Package 
 
 on:
-  # 在Build Beta Package完成后触发
-  workflow_run:
-    workflows: ["Build Beta Package"]
-    types:
-      - completed
-  # 推动tag后触发
-  push:
-    tags:
-      - "*"
+  release:
+    types: [published]
 
 jobs:
     aur-publish:
