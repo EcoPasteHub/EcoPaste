@@ -19,14 +19,29 @@ const Search: FC<HTMLAttributes<HTMLDivElement>> = (props) => {
 
 	useFocus({
 		onFocus() {
-			if (clipboardStore.search.defaultFocus) {
+			const { window, search } = clipboardStore;
+
+			// 搜索框默认聚焦
+			if (search.defaultFocus) {
 				inputRef.current?.focus();
 			} else {
 				inputRef.current?.blur();
 			}
+
+			// 激活窗口时滚动到顶部并选中首项
+			if (window.scrollTop) {
+				requestAnimationFrame(() => {
+					state.scrollToIndex?.(0);
+
+					state.activeId = state.list[0]?.id;
+				});
+			}
 		},
 		onBlur() {
-			if (clipboardStore.search.autoClear) {
+			const { search } = clipboardStore;
+
+			// 搜索框自动清空
+			if (search.autoClear) {
 				setValue(undefined);
 			}
 		},

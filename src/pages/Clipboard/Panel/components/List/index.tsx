@@ -17,6 +17,10 @@ const List = () => {
 		getItemKey: (index) => state.list[index].id,
 	});
 
+	useMount(() => {
+		state.scrollToIndex = rowVirtualizer.scrollToIndex;
+	});
+
 	const isFocusWithin = useFocusWithin(document.body);
 
 	useAsyncEffect(async () => {
