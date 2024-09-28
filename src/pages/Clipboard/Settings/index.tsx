@@ -8,13 +8,22 @@ import SearchPosition from "./components/SearchPosition";
 import WindowPosition from "./components/WindowPosition";
 
 const ClipboardSettings = () => {
-	const { audio, search, content } = useSnapshot(clipboardStore);
+	const { window, audio, search, content } = useSnapshot(clipboardStore);
 	const { t } = useTranslation();
 
 	return (
 		<>
 			<ProList header={t("preference.clipboard.window_settings.title")}>
 				<WindowPosition />
+
+				<ProSwitch
+					title={"回到顶部"}
+					description={"激活窗口时，滚动至顶部并选中首条"}
+					value={window.scrollTop}
+					onChange={(value) => {
+						clipboardStore.window.scrollTop = value;
+					}}
+				/>
 			</ProList>
 
 			{!isLinux() && (
