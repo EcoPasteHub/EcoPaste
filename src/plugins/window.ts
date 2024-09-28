@@ -1,6 +1,5 @@
 import { WINDOW_PLUGIN } from "@/constants";
 import type { WindowLabel } from "@/types/plugin";
-import { isLinux } from "@/utils/is";
 import { invoke } from "@tauri-apps/api";
 import { emit } from "@tauri-apps/api/event";
 import {
