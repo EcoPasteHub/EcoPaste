@@ -165,15 +165,16 @@
 			}
 		},
 		"data_backup": {
-			"storage_path": {
+			"storage_settings": {
 				"title": "存储设置",
 				"label": {
-					"storage_path": "数据存储路径"
+					"data_storage_path": "数据存储路径",
+					"log_storage_path": "日志存储路径"
 				},
 				"hints": {
 					"custom_path": "自定义",
 					"default_path": "恢复默认",
-					"save_success": "更改成功"
+					"change_success": "更改成功"
 				}
 			},
 			"import_export": {

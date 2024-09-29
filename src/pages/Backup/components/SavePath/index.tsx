@@ -5,8 +5,7 @@ import { open } from "@tauri-apps/api/dialog";
 import { emit } from "@tauri-apps/api/event";
 import { dataDir as tauriDataDir } from "@tauri-apps/api/path";
 import { Button, Space, Tooltip, message } from "antd";
-import { isString } from "antd/es/button";
-import { isEqual } from "lodash-es";
+import { isEqual, isString } from "lodash-es";
 import type { FC } from "react";
 import type { State } from "../..";
 
@@ -21,25 +20,27 @@ const SavePath: FC<{ state: State }> = (props) => {
 
 	const handleChange = async (isDefault = false) => {
 		try {
-			const nextDir = isDefault ? dataDir : await open({ directory: true });
+			const dstDir = isDefault ? dataDir : await open({ directory: true });
 
-			if (!isString(nextDir) || isEqualPath(nextDir)) return;
+			if (!isString(dstDir) || isEqualPath(dstDir)) return;
+
+			const dstPath = joinPath(dstDir, getSaveDataDirName());
 
 			state.spinning = true;
 
-			const dirName = await moveData(getSaveDataDir(), nextDir);
+			await moveData(getSaveDataDir(), dstPath);
 
-			if (!dirName) return;
+			globalStore.env.saveDataDir = dstPath;
 
-			globalStore.env.saveDataDir = joinPath(nextDir, dirName);
-
-			state.spinning = false;
+			await wait();
 
 			emit(LISTEN_KEY.REFRESH_CLIPBOARD_LIST);
 
 			message.success(
-				t("preference.data_backup.storage_path.hints.save_success"),
+				t("preference.data_backup.storage_settings.hints.change_success"),
 			);
+
+			state.spinning = false;
 		} catch (error: any) {
 			state.spinning = false;
 
@@ -47,26 +48,32 @@ const SavePath: FC<{ state: State }> = (props) => {
 		}
 	};
 
-	const isEqualPath = (nextDir = dataDir) => {
-		return isEqual(joinPath(nextDir, getSaveDataDirName()), getSaveDataDir());
+	const isEqualPath = (dstDir = dataDir) => {
+		const dstPath = joinPath(dstDir, getSaveDataDirName());
+
+		return isEqual(dstPath, getSaveDataDir());
 	};
 
 	return (
-		<ProList header={t("preference.data_backup.storage_path.title")}>
+		<ProList header={t("preference.data_backup.storage_settings.title")}>
 			<ProListItem
-				title={t("preference.data_backup.storage_path.label.storage_path")}
+				title={t(
+					"preference.data_backup.storage_settings.label.data_storage_path",
+				)}
 				description={
 					<span
 						className="hover:color-primary cursor-pointer break-all transition"
 						onMouseDown={() => previewPath(getSaveDataDir())}
 					>
-						{getSaveDataDir()}
+						{joinPath(getSaveDataDir())}
 					</span>
 				}
 			>
 				<Space.Compact>
 					<Tooltip
-						title={t("preference.data_backup.storage_path.hints.custom_path")}
+						title={t(
+							"preference.data_backup.storage_settings.hints.custom_path",
+						)}
 					>
 						<Button
 							icon={<NodeIndexOutlined />}
@@ -75,7 +82,9 @@ const SavePath: FC<{ state: State }> = (props) => {
 					</Tooltip>
 
 					<Tooltip
-						title={t("preference.data_backup.storage_path.hints.default_path")}
+						title={t(
+							"preference.data_backup.storage_settings.hints.default_path",
+						)}
 					>
 						<Button
 							disabled={isEqualPath()}

@@ -1,8 +1,12 @@
 use super::fs_extra::{get_file_name, preview_path};
 use flate2::{read::GzDecoder, write::GzEncoder, Compression};
-use fs_extra::dir::{move_dir, CopyOptions};
+use fs_extra::{
+    dir::{ls, CopyOptions, DirEntryAttr, DirEntryValue},
+    move_items,
+};
 use std::{
-    fs::{read_dir, File},
+    collections::HashSet,
+    fs::{create_dir_all, read_dir, remove_dir, File},
     path::PathBuf,
 };
 use tar::Archive;
@@ -61,7 +65,41 @@ async fn import_data(dst_dir: PathBuf, path: String) -> tauri::Result<bool> {
 }
 
 #[command]
-async fn move_data(from: PathBuf, to: PathBuf) -> Result<String, String> {
+async fn move_data(from: PathBuf, to: PathBuf) -> Result<PathBuf, String> {
+    create_dir_all(to.clone()).map_err(|err| err.to_string())?;
+
+    let mut config = HashSet::new();
+    config.insert(DirEntryAttr::Path);
+
+    let ls_result = ls(&from, &config).unwrap();
+
+    let mut from_items = Vec::new();
+
+    for item in ls_result.items {
+        if let Some(path) = item.get(&DirEntryAttr::Path) {
+            if let &DirEntryValue::String(ref path) = path {
+                let path = PathBuf::from(path);
+                let is_dir = path.is_dir();
+                let is_file = path.is_file();
+                let file_name = get_file_name(path.clone());
+
+                // 忽略主题插件和窗口状态插件生成的的文件，无法修改存储路径
+                let skip_files = ["tauri-plugin-theme", ".window-state"];
+                if is_file && skip_files.contains(&file_name.as_str()) {
+                    continue;
+                }
+
+                // 忽略日志插件生成的目录，无法修改存储路径
+                let skip_dirs = ["logs"];
+                if is_dir && skip_dirs.contains(&file_name.as_str()) {
+                    continue;
+                }
+
+                from_items.push(path);
+            }
+        }
+    }
+
     let options = CopyOptions {
         overwrite: true,
         skip_exist: false,
@@ -71,9 +109,11 @@ async fn move_data(from: PathBuf, to: PathBuf) -> Result<String, String> {
         depth: 0,
     };
 
-    move_dir(&from, &to, &options).map_err(|err| err.to_string())?;
+    move_items(&from_items, &to, &options).map_err(|err| err.to_string())?;
 
-    Ok(get_file_name(from))
+    let _ = remove_dir(from);
+
+    Ok(to)
 }
 
 pub fn init() -> TauriPlugin<Wry> {

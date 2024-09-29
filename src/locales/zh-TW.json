@@ -165,15 +165,16 @@
 			}
 		},
 		"data_backup": {
-			"storage_path": {
+			"storage_settings": {
 				"title": "存儲設定",
 				"label": {
-					"storage_path": "數據存儲路徑"
+					"data_storage_path": "資料存儲路徑",
+					"log_storage_path": "日誌存儲路徑"
 				},
 				"hints": {
 					"custom_path": "自訂",
 					"default_path": "恢復預設",
-					"save_success": "更改成功"
+					"change_success": "更改成功"
 				}
 			},
 			"import_export": {
