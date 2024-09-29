@@ -165,15 +165,16 @@
 			}
 		},
 		"data_backup": {
-			"storage_path": {
-				"title": "保存設定",
+			"storage_settings": {
+				"title": "ストレージ設定",
 				"label": {
-					"storage_path": "データ保存パス"
+					"data_storage_path": "データ保存パス",
+					"log_storage_path": "ログ保存パス"
 				},
 				"hints": {
-					"custom_path": "カスタム",
+					"custom_path": "カスタマイズ",
 					"default_path": "デフォルトに戻す",
-					"save_success": "変更に成功しました"
+					"change_success": "変更成功"
 				}
 			},
 			"import_export": {
