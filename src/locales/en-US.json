@@ -41,8 +41,8 @@
 					"position_bottom": "Bottom"
 				},
 				"hints": {
-					"default_focus": "Automatically focus on the search box when the window opens",
-					"auto_clear": "Automatically clear the search box when the window opens"
+					"default_focus": "Focuses the search box by default when the window is activated",
+					"auto_clear": "Clear search box contents when window is activated"
 				}
 			},
 			"content_settings": {
