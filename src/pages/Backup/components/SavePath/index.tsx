@@ -3,7 +3,7 @@ import ProListItem from "@/components/ProListItem";
 import { NodeIndexOutlined, ReloadOutlined } from "@ant-design/icons";
 import { open } from "@tauri-apps/api/dialog";
 import { emit } from "@tauri-apps/api/event";
-import { dataDir as tauriDataDir } from "@tauri-apps/api/path";
+import { appLogDir, dataDir as tauriDataDir } from "@tauri-apps/api/path";
 import { Button, Space, Tooltip, message } from "antd";
 import { isEqual, isString } from "lodash-es";
 import type { FC } from "react";
@@ -13,9 +13,11 @@ const SavePath: FC<{ state: State }> = (props) => {
 	const { state } = props;
 	const { t } = useTranslation();
 	const [dataDir, setDataDir] = useState("");
+	const [logDir, setLogDir] = useState("");
 
 	useMount(async () => {
 		setDataDir(await tauriDataDir());
+		setLogDir(await appLogDir());
 	});
 
 	const handleChange = async (isDefault = false) => {
@@ -54,20 +56,24 @@ const SavePath: FC<{ state: State }> = (props) => {
 		return isEqual(dstPath, getSaveDataDir());
 	};
 
+	const description = (path = getSaveDataDir()) => {
+		return (
+			<span
+				className="hover:color-primary cursor-pointer break-all transition"
+				onMouseDown={() => previewPath(path)}
+			>
+				{joinPath(path)}
+			</span>
+		);
+	};
+
 	return (
 		<ProList header={t("preference.data_backup.storage_settings.title")}>
 			<ProListItem
 				title={t(
 					"preference.data_backup.storage_settings.label.data_storage_path",
 				)}
-				description={
-					<span
-						className="hover:color-primary cursor-pointer break-all transition"
-						onMouseDown={() => previewPath(getSaveDataDir())}
-					>
-						{joinPath(getSaveDataDir())}
-					</span>
-				}
+				description={description()}
 			>
 				<Space.Compact>
 					<Tooltip
@@ -94,6 +100,13 @@ const SavePath: FC<{ state: State }> = (props) => {
 					</Tooltip>
 				</Space.Compact>
 			</ProListItem>
+
+			<ProListItem
+				title={t(
+					"preference.data_backup.storage_settings.label.log_storage_path",
+				)}
+				description={description(logDir)}
+			/>
 		</ProList>
 	);
 };
