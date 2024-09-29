@@ -18,7 +18,11 @@
 					"window_position": "クリップボード位置",
 					"window_position_remember": "位置を記憶する",
 					"window_position_follow": "マウスに従う",
-					"window_position_center": "スクリーンセンター"
+					"window_position_center": "スクリーンセンター",
+					"back_top": "トップページに戻る"
+				},
+				"hints": {
+					"back_top": "ウィンドウがアクティブになったら、一番上までスクロールし、最初のバーを選択する。"
 				}
 			},
 			"audio_settings": {

@@ -29,7 +29,7 @@ const Search: FC<HTMLAttributes<HTMLDivElement>> = (props) => {
 			}
 
 			// 激活窗口时滚动到顶部并选中首项
-			if (window.scrollTop) {
+			if (window.backTop) {
 				requestAnimationFrame(() => {
 					state.scrollToIndex?.(0);
 

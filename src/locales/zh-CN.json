@@ -18,7 +18,11 @@
 					"window_position": "窗口位置",
 					"window_position_remember": "记住位置",
 					"window_position_follow": "跟随鼠标",
-					"window_position_center": "屏幕中心"
+					"window_position_center": "屏幕中心",
+					"back_top": "激活时回到顶部"
+				},
+				"hints": {
+					"back_top": "激活窗口时，滚动至顶部并选中首条"
 				}
 			},
 			"audio_settings": {
