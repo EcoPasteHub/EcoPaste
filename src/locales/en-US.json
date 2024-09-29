@@ -165,15 +165,16 @@
 			}
 		},
 		"data_backup": {
-			"storage_path": {
+			"storage_settings": {
 				"title": "Storage Settings",
 				"label": {
-					"storage_path": "Data Storage Directory"
+					"data_storage_path": "Data Storage Path",
+					"log_storage_path": "Log Storage Path"
 				},
 				"hints": {
 					"custom_path": "Custom",
 					"default_path": "Restore Default",
-					"save_success": "Changes Saved Successfully"
+					"change_success": "Changed successfully"
 				}
 			},
 			"import_export": {
