@@ -41,8 +41,8 @@
 					"position_bottom": "底部"
 				},
 				"hints": {
-					"default_focus": "每次打開視窗時，自動聚焦搜尋框",
-					"auto_clear": "每次打開視窗時，自動清除搜尋框內容"
+					"default_focus": "啟動視窗時，默認聚焦蒐索框",
+					"auto_clear": "啟動視窗時，清除蒐索框內容"
 				}
 			},
 			"content_settings": {
