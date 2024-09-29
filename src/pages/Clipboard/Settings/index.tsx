@@ -17,11 +17,11 @@ const ClipboardSettings = () => {
 				<WindowPosition />
 
 				<ProSwitch
-					title={"回到顶部"}
-					description={"激活窗口时，滚动至顶部并选中首条"}
-					value={window.scrollTop}
+					title={t("preference.clipboard.window_settings.label.back_top")}
+					description={t("preference.clipboard.window_settings.hints.back_top")}
+					value={window.backTop}
 					onChange={(value) => {
-						clipboardStore.window.scrollTop = value;
+						clipboardStore.window.backTop = value;
 					}}
 				/>
 			</ProList>

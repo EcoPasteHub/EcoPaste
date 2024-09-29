@@ -18,7 +18,11 @@
 					"window_position": "Window Position",
 					"window_position_remember": "Remember Position",
 					"window_position_follow": "Follow Mouse Cursor",
-					"window_position_center": "Center on Screen"
+					"window_position_center": "Center on Screen",
+					"back_top": "Back to top when activated"
+				},
+				"hints": {
+					"back_top": "When the window is activated, scroll to the top and check the first item"
 				}
 			},
 			"audio_settings": {
