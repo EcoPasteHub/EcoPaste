@@ -2,7 +2,6 @@ import type { ClipboardItem } from "@/types/database";
 import { Flex } from "antd";
 import clsx from "clsx";
 import type { CSSProperties, FC } from "react";
-import styles from "./index.module.scss";
 
 const Text: FC<ClipboardItem> = (props) => {
 	const { value } = props;
@@ -37,7 +36,7 @@ const Text: FC<ClipboardItem> = (props) => {
 		return value;
 	};
 
-	return <div className={styles.root}>{renderContent()}</div>;
+	return <div className="line-clamp-4">{renderContent()}</div>;
 };
 
 export default memo(Text);

@@ -1,3 +1,4 @@
+import Icon from "@/components/Icon";
 import { ClipboardPanelContext } from "@/pages/Clipboard/Panel";
 import type { ClipboardItem } from "@/types/database";
 import { copyFile, writeFile } from "@tauri-apps/api/fs";
@@ -19,6 +20,7 @@ import Text from "./components/Text";
 interface ItemProps extends Partial<FlexProps> {
 	index: number;
 	data: ClipboardItem;
+	openRemarkModel: () => void;
 }
 
 interface ContextMenuItem extends ContextMenu.Item {
@@ -26,8 +28,8 @@ interface ContextMenuItem extends ContextMenu.Item {
 }
 
 const Item: FC<ItemProps> = (props) => {
-	const { index, data, className, ...rest } = props;
-	const { id, type, value, search, group, favorite } = data;
+	const { index, data, className, openRemarkModel, ...rest } = props;
+	const { id, type, value, search, group, favorite, remark } = data;
 	const { state } = useContext(ClipboardPanelContext);
 	const { t } = useTranslation();
 	const { env, appearance } = useSnapshot(globalStore);
@@ -167,6 +169,10 @@ const Item: FC<ItemProps> = (props) => {
 				event: copy,
 			},
 			{
+				label: "备注",
+				event: openRemarkModel,
+			},
+			{
 				label: t("clipboard.button.context_menu.paste_ocr_text"),
 				hide: type !== "image" || /^[\s]*$/.test(search),
 				event: pastePlain,
@@ -274,8 +280,30 @@ const Item: FC<ItemProps> = (props) => {
 				deleteItem={deleteItem}
 			/>
 
-			<div className="flex-1 select-auto overflow-hidden break-words">
-				{renderContent()}
+			<div className="relative flex-1 select-auto overflow-hidden break-words children:transition">
+				<div
+					className={clsx(
+						"absolute inset-0 line-clamp-4 opacity-100 group-hover:opacity-0",
+						{
+							"opacity-0!": !remark,
+						},
+					)}
+				>
+					<Icon
+						name="i-hugeicons:task-edit-01"
+						className="mr-2 translate-y-2"
+					/>
+
+					{remark}
+				</div>
+
+				<div
+					className={clsx("h-full opacity-0 group-hover:opacity-100", {
+						"opacity-100!": !remark,
+					})}
+				>
+					{renderContent()}
+				</div>
 			</div>
 		</Flex>
 	);
