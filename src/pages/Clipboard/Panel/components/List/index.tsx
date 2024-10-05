@@ -52,7 +52,7 @@ const List = () => {
 	}, [state.list.length]);
 
 	useOSKeyPress(
-		["space", "enter", "backspace", "uparrow", "downarrow"],
+		["space", "enter", "backspace", "uparrow", "downarrow", "home"],
 		(_, key) => {
 			state.eventBusId = state.activeId;
 
@@ -72,6 +72,9 @@ const List = () => {
 				// 选中下一个
 				case "downarrow":
 					return state.$eventBus?.emit(LISTEN_KEY.CLIPBOARD_ITEM_SELECT_NEXT);
+				// 回到顶部
+				case "home":
+					return rowVirtualizer.scrollToIndex?.(0);
 			}
 		},
 		{
