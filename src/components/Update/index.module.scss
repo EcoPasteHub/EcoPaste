@@ -1,15 +1,7 @@
 .modal {
-  a {
-    --uno: "text-primary-5 hover:text-primary active:text-primary-7";
-  }
-
   .markdown {
-    *:not(a) {
+    *:not(a, code, mark) {
       all: revert;
-    }
-
-    mark {
-      --uno: "rounded-2 bg-[#ffef87] px-2";
     }
   }
 }

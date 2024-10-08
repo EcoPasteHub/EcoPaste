@@ -6,13 +6,15 @@ import {
 	onUpdaterEvent,
 } from "@tauri-apps/api/updater";
 import type { Timeout } from "ahooks/lib/useRequest/src/types";
-import { Flex, Modal, message } from "antd";
+import { Flex, Modal, Typography, message } from "antd";
 import clsx from "clsx";
 import { isString } from "lodash-es";
 import Markdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import { useSnapshot } from "valtio";
 import styles from "./index.module.scss";
+
+const { Link, Text } = Typography;
 
 interface State {
 	open?: boolean;
@@ -173,11 +175,11 @@ const Update = () => {
 						{t("component.app_update.label.release_version")}：
 						<span>
 							v{env.appVersion} 👉{" "}
-							<a
+							<Link
 								href={`${GITHUB_LINK}/releases/tag/${state.manifest?.version}`}
 							>
 								{state.manifest?.version}
-							</a>
+							</Link>
 						</span>
 					</Flex>
 
@@ -193,6 +195,11 @@ const Update = () => {
 						<Markdown
 							className={clsx(styles.markdown, "max-h-220 overflow-auto")}
 							rehypePlugins={[rehypeRaw]}
+							components={{
+								a: ({ href, children }) => <Link href={href}>{children}</Link>,
+								mark: ({ children }) => <Text mark>{children}</Text>,
+								code: ({ children }) => <Text code>{children}</Text>,
+							}}
 						>
 							{state.manifest?.body}
 						</Markdown>
