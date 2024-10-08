@@ -196,15 +196,9 @@ const Update = () => {
 							className={clsx(styles.markdown, "max-h-220 overflow-auto")}
 							rehypePlugins={[rehypeRaw]}
 							components={{
-								a: ({ href, children }) => {
-									return <Link href={href}>{children}</Link>;
-								},
-								code: ({ children }) => {
-									return <Text code>{children}</Text>;
-								},
-								mark: ({ children }) => {
-									return <Text mark>{children}</Text>;
-								},
+								a: ({ href, children }) => <Link href={href}>{children}</Link>,
+								mark: ({ children }) => <Text mark>{children}</Text>,
+								code: ({ children }) => <Text code>{children}</Text>,
 							}}
 						>
 							{state.manifest?.body}
