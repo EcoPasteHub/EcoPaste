@@ -5,9 +5,8 @@ import type {
 	TablePayload,
 } from "@/types/database";
 import { getName } from "@tauri-apps/api/app";
-import { removeFile } from "@tauri-apps/api/fs";
+import Database from "@tauri-apps/plugin-sql";
 import { find, isBoolean, isNil, map, omitBy, some } from "lodash-es";
-import Database from "tauri-plugin-sql-api";
 
 let db: Database | null;
 

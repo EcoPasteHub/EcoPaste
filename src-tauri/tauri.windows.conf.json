@@ -1,16 +1,14 @@
 {
-	"tauri": {
-		"bundle": {
-			"identifier": "com.ayangweb.EcoPaste",
-			"externalBin": ["bin/ocr"],
-			"windows": {
-				"digestAlgorithm": "sha256",
-				"wix": {
-					"language": "zh-CN"
-				},
-				"nsis": {
-					"languages": ["SimpChinese"]
-				}
+	"identifier": "com.ayangweb.EcoPaste",
+	"bundle": {
+		"externalBin": ["bin/ocr"],
+		"windows": {
+			"digestAlgorithm": "sha256",
+			"wix": {
+				"language": "zh-CN"
+			},
+			"nsis": {
+				"languages": ["SimpChinese"]
 			}
 		}
 	}

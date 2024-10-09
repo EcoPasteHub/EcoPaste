@@ -1,13 +1,15 @@
 import { HappyProvider } from "@ant-design/happy-work-theme";
-import { open } from "@tauri-apps/api/shell";
-import { appWindow } from "@tauri-apps/api/window";
+import { listen } from "@tauri-apps/api/event";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { error } from "@tauri-apps/plugin-log";
+import { open } from "@tauri-apps/plugin-shell";
 import { ConfigProvider, theme } from "antd";
+import { isString } from "lodash-es";
 import { RouterProvider } from "react-router-dom";
 import { useSnapshot } from "valtio";
+
 const { defaultAlgorithm, darkAlgorithm } = theme;
-import { listen } from "@tauri-apps/api/event";
-import { isString } from "lodash-es";
-import { error } from "tauri-plugin-log-api";
+const appWindow = getCurrentWebviewWindow();
 
 const App = () => {
 	const { appearance } = useSnapshot(globalStore);

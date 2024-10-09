@@ -1,15 +1,14 @@
 import Icon from "@/components/Icon";
 import ScrollRestore from "@/components/ScrollRestore";
-import Update from "@/components/Update";
 import MacosPermissions from "@/pages/General/components/MacosPermissions";
 import type { ClipboardItem } from "@/types/database";
 import type { Language } from "@/types/store";
 import { emit, listen } from "@tauri-apps/api/event";
-import { open } from "@tauri-apps/api/shell";
-import { appWindow } from "@tauri-apps/api/window";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart";
+import { open } from "@tauri-apps/plugin-shell";
 import { Flex } from "antd";
 import clsx from "clsx";
-import { disable, enable, isEnabled } from "tauri-plugin-autostart-api";
 import { subscribe, useSnapshot } from "valtio";
 import { subscribeKey } from "valtio/utils";
 
@@ -20,6 +19,8 @@ const Preference = () => {
 	const { t } = useTranslation();
 
 	useMount(async () => {
+		const appWindow = getCurrentWebviewWindow();
+
 		// 监听全局状态变化
 		subscribe(globalStore, () => {
 			emit(LISTEN_KEY.GLOBAL_STORE_CHANGED, globalStore);
@@ -62,8 +63,6 @@ const Preference = () => {
 
 		// 监听语言变更
 		watchKey(globalStore.appearance, "language", () => {
-			setLocale();
-
 			requestAnimationFrame(() => {
 				appWindow.setTitle(t("preference.title"));
 			});
@@ -151,7 +150,7 @@ const Preference = () => {
 				<Outlet />
 			</ScrollRestore>
 
-			<Update />
+			{/* <Update /> */}
 
 			<div hidden>
 				<MacosPermissions />

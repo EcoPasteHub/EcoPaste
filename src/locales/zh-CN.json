@@ -133,9 +133,6 @@
 					"theme_auto": "跟随系统",
 					"theme_light": "亮色模式",
 					"theme_dark": "暗色模式"
-				},
-				"hints": {
-					"theme": "注意：切换主题时，应用将会自动重启"
 				}
 			},
 			"app_update": {

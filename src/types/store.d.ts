@@ -1,3 +1,5 @@
+import type { OsType } from "@tauri-apps/plugin-os";
+
 export type Theme = "auto" | "light" | "dark";
 
 export type Language = (typeof LANGUAGE)[keyof typeof LANGUAGE];

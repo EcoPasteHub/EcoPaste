@@ -7,14 +7,14 @@ import { last } from "lodash-es";
  */
 export const joinPath = (...paths: string[]) => {
 	const joinPaths = paths.map((path) => {
-		if (path.endsWith(sep)) {
+		if (path.endsWith(sep())) {
 			return path.slice(0, -1);
 		}
 
 		return path;
 	});
 
-	return joinPaths.join(sep);
+	return joinPaths.join(sep());
 };
 
 /**
@@ -57,5 +57,5 @@ export const getBackupStorePath = () => {
  * 存储数据的目录名
  */
 export const getSaveDataDirName = () => {
-	return last(getSaveDataDir().split(sep)) as string;
+	return last(getSaveDataDir().split(sep())) as string;
 };

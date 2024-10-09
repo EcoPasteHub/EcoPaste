@@ -1,5 +1,5 @@
 import type { ClipboardItem } from "@/types/database";
-import { convertFileSrc } from "@tauri-apps/api/tauri";
+import { convertFileSrc } from "@tauri-apps/api/core";
 import type { FC } from "react";
 
 const Image: FC<Partial<ClipboardItem>> = (props) => {

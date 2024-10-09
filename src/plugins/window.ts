@@ -1,12 +1,10 @@
 import { WINDOW_PLUGIN } from "@/constants";
 import type { WindowLabel } from "@/types/plugin";
-import { invoke } from "@tauri-apps/api";
+import { invoke } from "@tauri-apps/api/core";
 import { emit } from "@tauri-apps/api/event";
-import {
-	PhysicalPosition,
-	appWindow,
-	availableMonitors,
-} from "@tauri-apps/api/window";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { PhysicalPosition, availableMonitors } from "@tauri-apps/api/window";
+
 /**
  * 显示窗口
  */
@@ -29,6 +27,8 @@ export const hideWindow = () => {
  * 切换窗口的显示和隐藏
  */
 export const toggleWindowVisible = async () => {
+	const appWindow = getCurrentWebviewWindow();
+
 	const focused = await appWindow.isFocused();
 
 	if (appWindow.label === WINDOW_LABEL.MAIN) {

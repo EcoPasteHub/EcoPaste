@@ -1,5 +1,5 @@
 import type { Language } from "@/types/store";
-import { invoke } from "@tauri-apps/api";
+import { invoke } from "@tauri-apps/api/core";
 import { values } from "lodash-es";
 
 /**
@@ -17,13 +17,4 @@ export const getLocale = async (): Promise<Language> => {
 	}
 
 	return "en-US";
-};
-
-/**
- * 设置语言
- */
-export const setLocale = (language: Language = "zh-CN") => {
-	invoke(LOCALE_PLUGIN.SET_LOCALE, {
-		language,
-	});
 };

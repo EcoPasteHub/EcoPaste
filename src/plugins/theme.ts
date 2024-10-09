@@ -1,5 +1,5 @@
 import type { Theme } from "@/types/store";
-import { invoke } from "@tauri-apps/api";
+import { invoke } from "@tauri-apps/api/core";
 
 /**
  * 获取主题色

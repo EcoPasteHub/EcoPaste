@@ -2,7 +2,7 @@ import {
 	type ShortcutHandler,
 	register,
 	unregister,
-} from "@tauri-apps/api/globalShortcut";
+} from "@tauri-apps/plugin-global-shortcut";
 
 export const useRegister = (
 	handler: ShortcutHandler,
@@ -18,7 +18,11 @@ export const useRegister = (
 		}
 
 		if (key) {
-			await register(key, handler);
+			await register(key, (event) => {
+				if (event.state === "Released") return;
+
+				handler(event);
+			});
 		}
 
 		setOldKey(key);

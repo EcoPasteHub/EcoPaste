@@ -1,6 +1,6 @@
 import type { ClipboardItem } from "@/types/database";
 import type { ClipboardPayload, ReadImage, WinOCR } from "@/types/plugin";
-import { invoke } from "@tauri-apps/api";
+import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { isEmpty, isEqual } from "lodash-es";
 

@@ -1,9 +1,9 @@
 import Icon from "@/components/Icon";
 import { ClipboardPanelContext } from "@/pages/Clipboard/Panel";
 import type { ClipboardItem } from "@/types/database";
-import { copyFile, writeFile } from "@tauri-apps/api/fs";
 import { downloadDir } from "@tauri-apps/api/path";
-import { open } from "@tauri-apps/api/shell";
+import { copyFile } from "@tauri-apps/plugin-fs";
+import { open } from "@tauri-apps/plugin-shell";
 import { Flex, type FlexProps } from "antd";
 import clsx from "clsx";
 import { find, isNil, remove } from "lodash-es";
@@ -87,7 +87,7 @@ const Item: FC<ItemProps> = (props) => {
 	const exportFile = async () => {
 		const ext = type === "text" ? "txt" : type;
 		const fileName = `${env.appName}_${id}.${ext}`;
-		const destination = (await downloadDir()) + fileName;
+		const destination = joinPath(await downloadDir(), fileName);
 
 		await writeFile(destination, value);
 
@@ -104,7 +104,7 @@ const Item: FC<ItemProps> = (props) => {
 	// 下载图片
 	const downloadImage = async () => {
 		const fileName = `${env.appName}_${id}.png`;
-		const destination = (await downloadDir()) + fileName;
+		const destination = joinPath(await downloadDir(), fileName);
 
 		await copyFile(value, destination);
 
@@ -264,7 +264,7 @@ const Item: FC<ItemProps> = (props) => {
 			gap={4}
 			className={clsx(
 				className,
-				"group antd-input! b-color-2 absolute inset-0 mx-9 h-full rounded-6 p-6",
+				"group antd-input! b-color-2 absolute inset-0 mx-12 h-full rounded-6 p-6",
 				{
 					"antd-input-focus!": state.activeId === id,
 				},

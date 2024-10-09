@@ -2,7 +2,7 @@ import Icon from "@/components/Icon";
 import ProList from "@/components/ProList";
 import type { Store } from "@/types/store";
 import { emit } from "@tauri-apps/api/event";
-import { readTextFile } from "@tauri-apps/api/fs";
+import { readTextFile } from "@tauri-apps/plugin-fs";
 import { Flex, List, message } from "antd";
 import { merge } from "lodash-es";
 import type { FC } from "react";
