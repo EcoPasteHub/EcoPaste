@@ -1,7 +1,7 @@
 mod core;
 
 use core::setup;
-use tauri::{generate_context, Builder, Manager, RunEvent, WindowEvent};
+use tauri::{generate_context, Builder, Manager, WindowEvent};
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_eco_window::{show_main_window, MAIN_WINDOW_LABEL, PREFERENCE_WINDOW_LABEL};
 use tauri_plugin_log::{Target, TargetKind};
@@ -107,7 +107,7 @@ pub fn run() {
 
     app.run(|app_handle, event| match event {
         #[cfg(target_os = "macos")]
-        RunEvent::Reopen {
+        tauri::RunEvent::Reopen {
             has_visible_windows,
             ..
         } => {

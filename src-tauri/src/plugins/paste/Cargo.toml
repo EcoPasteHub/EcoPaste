@@ -20,9 +20,11 @@ cocoa = "0.25.0"
 objc = "0.2.7"
 
 [target."cfg(target_os = \"windows\")".dependencies]
+log = "0.4.22"
 winapi = { version = "0.3", features = ["winuser", "windef"] }
 enigo = "0.2.1"
 
 [target."cfg(target_os = \"linux\")".dependencies]
+log = "0.4.22"
 x11 = "2.21.0"
 rdev = "0.5.3"

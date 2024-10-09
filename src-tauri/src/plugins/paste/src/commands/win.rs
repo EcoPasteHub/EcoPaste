@@ -1,5 +1,4 @@
 use super::wait;
-use crate::core::app::get_previous_window;
 use enigo::{
     Direction::{Click, Press, Release},
     Enigo, Key, Keyboard, Settings,

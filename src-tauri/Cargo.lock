@@ -5573,6 +5573,7 @@ version = "0.1.0"
 dependencies = [
  "cocoa 0.25.0",
  "enigo",
+ "log",
  "objc",
  "rdev",
  "serde",
