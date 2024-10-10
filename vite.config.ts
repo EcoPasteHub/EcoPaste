@@ -54,4 +54,12 @@ export default defineConfig(async () => ({
 	build: {
 		chunkSizeWarningLimit: 3000,
 	},
+	css: {
+		preprocessorOptions: {
+			scss: {
+				// https://sass-lang.com/documentation/breaking-changes/legacy-js-api/#silencing-warnings
+				silenceDeprecations: ["legacy-js-api"],
+			},
+		},
+	},
 }));
