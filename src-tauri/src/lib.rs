@@ -57,13 +57,17 @@ pub fn run() {
                 .build(),
         )
         // 快捷键插件: https://github.com/tauri-apps/tauri-plugin-global-shortcut
-        .plugin(tauri_plugin_global_shortcut::Builder::default().build())
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         // 操作系统相关信息插件：https://github.com/tauri-apps/tauri-plugin-os
         .plugin(tauri_plugin_os::init())
         // 系统级别对话框插件：https://github.com/tauri-apps/tauri-plugin-dialog
         .plugin(tauri_plugin_dialog::init())
         // 访问文件系统插件：https://github.com/tauri-apps/tauri-plugin-fs
         .plugin(tauri_plugin_fs::init())
+        // 更新插件：https://github.com/tauri-apps/tauri-plugin-updater
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        // 进程相关插件：https://github.com/tauri-apps/tauri-plugin-process
+        .plugin(tauri_plugin_process::init())
         // 自定义的窗口管理插件
         .plugin(tauri_plugin_eco_window::init())
         // 自定义的 fs_extra 插件
@@ -72,13 +76,13 @@ pub fn run() {
         .plugin(tauri_plugin_eco_clipboard::init())
         // 自定义鼠标相关的插件
         .plugin(tauri_plugin_eco_mouse::init())
-        // // 自定义图片识别插件
+        // 自定义图片识别插件
         .plugin(tauri_plugin_eco_ocr::init())
         // 自定义备份插件
         .plugin(tauri_plugin_eco_backup::init())
         // 自定义语言相关的插件
         .plugin(tauri_plugin_eco_locale::init())
-        // // 自定义粘贴的插件
+        // 自定义粘贴的插件
         .plugin(tauri_plugin_eco_paste::init())
         // 自定义 macos 权限查询的插件
         .plugin(tauri_plugin_eco_macos_permissions::init())

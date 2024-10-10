@@ -166,9 +166,7 @@ const ClipboardPanel = () => {
 	const registerQuickPaste = async () => {
 		const { enable, value } = globalStore.shortcut.quickPaste;
 
-		for await (const key of state.quickPasteKeys) {
-			await unregister(key);
-		}
+		await unregister(state.quickPasteKeys);
 
 		if (!enable) return;
 

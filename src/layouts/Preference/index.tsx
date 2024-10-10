@@ -1,5 +1,6 @@
 import Icon from "@/components/Icon";
 import ScrollRestore from "@/components/ScrollRestore";
+import UpdateApp from "@/components/UpdateApp";
 import MacosPermissions from "@/pages/General/components/MacosPermissions";
 import type { ClipboardItem } from "@/types/database";
 import type { Language } from "@/types/store";
@@ -150,7 +151,7 @@ const Preference = () => {
 				<Outlet />
 			</ScrollRestore>
 
-			{/* <Update /> */}
+			<UpdateApp />
 
 			<div hidden>
 				<MacosPermissions />

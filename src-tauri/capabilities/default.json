@@ -39,6 +39,8 @@
 		"global-shortcut:allow-unregister",
 		"os:default",
 		"dialog:default",
+		"updater:default",
+		"process:default",
 		"eco-window:default",
 		"eco-macos-permissions:default",
 		"eco-mouse:default",

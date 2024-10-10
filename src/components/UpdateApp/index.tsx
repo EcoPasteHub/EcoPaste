@@ -1,17 +1,11 @@
 import { listen } from "@tauri-apps/api/event";
 import { relaunch } from "@tauri-apps/plugin-process";
-import {
-	type UpdateManifest,
-	installUpdate,
-	onUpdaterEvent,
-} from "@tauri-apps/plugin-updater";
+import { type Update, check } from "@tauri-apps/plugin-updater";
 import type { Timeout } from "ahooks/lib/useRequest/src/types";
 import { Flex, Modal, Typography, message } from "antd";
 import clsx from "clsx";
-import { isString } from "lodash-es";
 import Markdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
-import { useSnapshot } from "valtio";
 import styles from "./index.module.scss";
 
 const { Link, Text } = Typography;
@@ -19,15 +13,14 @@ const { Link, Text } = Typography;
 interface State {
 	open?: boolean;
 	loading?: boolean;
-	manifest?: UpdateManifest;
+	update?: Update;
 }
 
 const MESSAGE_KEY = "update";
 
 let timer: Timeout;
 
-const Update = () => {
-	const { env } = useSnapshot(globalStore);
+const UpdateApp = () => {
 	const { t } = useTranslation();
 	const state = useReactive<State>({});
 	const [messageApi, contextHolder] = message.useMessage();
@@ -35,7 +28,7 @@ const Update = () => {
 	useMount(() => {
 		// 监听更新事件
 		listen<boolean>(LISTEN_KEY.UPDATE_APP, () => {
-			check(true);
+			checkUpdate(true);
 
 			messageApi.open({
 				key: MESSAGE_KEY,
@@ -51,38 +44,41 @@ const Update = () => {
 
 			if (!value) return;
 
-			check();
+			checkUpdate();
 
-			timer = setInterval(check, 1000 * 60 * 60 * 24);
+			timer = setInterval(checkUpdate, 1000 * 60 * 60 * 24);
 		});
 
 		// 监听参与测试版本配置变化
 		watchKey(globalStore.update, "beta", (value) => {
 			if (!value) return;
 
-			check();
+			checkUpdate();
 		});
 	});
 
 	// 检查更新
-	const check = async (showMessage = false) => {
+	const checkUpdate = async (showMessage = false) => {
 		try {
-			const { shouldUpdate, manifest } = await checkUpdate(
-				globalStore.update.beta,
-			);
+			const update = await check({
+				headers: {
+					"join-beta": String(globalStore.update.beta),
+				},
+			});
 
-			if (shouldUpdate && manifest) {
+			if (update?.available) {
 				showWindow();
 
-				const { version, body, date } = manifest;
+				const { version, currentVersion, body = "", date } = update;
 
-				Object.assign(manifest, {
+				Object.assign(update, {
 					version: `v${version}`,
-					body: replaceManifestBody(body),
-					date: Number(date) * 1000,
+					currentVersion: `v${currentVersion}`,
+					body: replaceBody(body),
+					date: dayjs.utc(date?.split(" ")?.slice(0, 2)?.join(" ")).local(),
 				});
 
-				Object.assign(state, { manifest, open: true });
+				Object.assign(state, { update, open: true });
 
 				messageApi.destroy(MESSAGE_KEY);
 			} else if (showMessage) {
@@ -92,15 +88,19 @@ const Update = () => {
 					content: t("component.app_update.hints.latest_version"),
 				});
 			}
-		} catch (error) {
+		} catch (error: any) {
 			if (!showMessage) return;
 
-			showErrorMessage(error);
+			messageApi.open({
+				key: MESSAGE_KEY,
+				type: "error",
+				content: error,
+			});
 		}
 	};
 
 	// 替换更新日志里的内容
-	const replaceManifestBody = (body: string) => {
+	const replaceBody = (body: string) => {
 		return (
 			body
 				// 替换贡献者名称
@@ -116,33 +116,15 @@ const Update = () => {
 		);
 	};
 
-	// 显示错误信息
-	const showErrorMessage = (error: unknown) => {
-		state.loading = false;
-
-		const content = isString(error) ? error : JSON.stringify(error);
-
-		messageApi.open({
-			key: MESSAGE_KEY,
-			type: "error",
-			content,
-		});
-	};
-
 	const handleOk = async () => {
 		state.loading = true;
 
-		installUpdate();
+		state.update?.downloadAndInstall((progress) => {
+			const { event } = progress;
 
-		onUpdaterEvent((event) => {
-			const { error, status } = event;
+			if (event !== "Finished") return;
 
-			switch (status) {
-				case "DONE":
-					return relaunch();
-				case "ERROR":
-					return showErrorMessage(error);
-			}
+			relaunch();
 		});
 	};
 
@@ -174,11 +156,11 @@ const Update = () => {
 					<Flex align="center">
 						{t("component.app_update.label.release_version")}：
 						<span>
-							v{env.appVersion} 👉{" "}
+							{state.update?.currentVersion} 👉{" "}
 							<Link
-								href={`${GITHUB_LINK}/releases/tag/${state.manifest?.version}`}
+								href={`${GITHUB_LINK}/releases/tag/${state.update?.version}`}
 							>
-								{state.manifest?.version}
+								{state.update?.version}
 							</Link>
 						</span>
 					</Flex>
@@ -186,7 +168,7 @@ const Update = () => {
 					<Flex align="center">
 						{t("component.app_update.label.release_time")}：
 						<span>
-							{dayjs(state.manifest?.date).format("YYYY-MM-DD HH:mm:ss")}
+							{dayjs(state.update?.date).format("YYYY-MM-DD HH:mm:ss")}
 						</span>
 					</Flex>
 
@@ -201,7 +183,7 @@ const Update = () => {
 								code: ({ children }) => <Text code>{children}</Text>,
 							}}
 						>
-							{state.manifest?.body}
+							{state.update?.body}
 						</Markdown>
 					</Flex>
 				</Flex>
@@ -210,4 +192,4 @@ const Update = () => {
 	);
 };
 
-export default Update;
+export default UpdateApp;
