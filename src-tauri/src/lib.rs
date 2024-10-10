@@ -50,12 +50,13 @@ pub fn run() {
                 ])
                 .build(),
         )
+        // TODO: 窗口状态插件
         // 记住窗口状态的插件：https://github.com/tauri-apps/plugins-workspace/tree/v2/plugins/window-state
-        .plugin(
-            tauri_plugin_window_state::Builder::default()
-                .with_state_flags(StateFlags::all() & !StateFlags::VISIBLE)
-                .build(),
-        )
+        // .plugin(
+        //     tauri_plugin_window_state::Builder::default()
+        //         .with_state_flags(StateFlags::all() & !StateFlags::VISIBLE)
+        //         .build(),
+        // )
         // 快捷键插件: https://github.com/tauri-apps/tauri-plugin-global-shortcut
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         // 操作系统相关信息插件：https://github.com/tauri-apps/tauri-plugin-os

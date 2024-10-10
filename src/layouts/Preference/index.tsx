@@ -1,5 +1,6 @@
 import Icon from "@/components/Icon";
 import ScrollRestore from "@/components/ScrollRestore";
+import Tray from "@/components/Tray";
 import UpdateApp from "@/components/UpdateApp";
 import MacosPermissions from "@/pages/General/components/MacosPermissions";
 import type { ClipboardItem } from "@/types/database";
@@ -7,7 +8,6 @@ import type { Language } from "@/types/store";
 import { emit, listen } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart";
-import { open } from "@tauri-apps/plugin-shell";
 import { Flex } from "antd";
 import clsx from "clsx";
 import { subscribe, useSnapshot } from "valtio";
@@ -15,7 +15,6 @@ import { subscribeKey } from "valtio/utils";
 
 const Preference = () => {
 	const { pathname } = useLocation();
-	const navigate = useNavigate();
 	const { shortcut } = useSnapshot(globalStore);
 	const { t } = useTranslation();
 
@@ -30,18 +29,6 @@ const Preference = () => {
 		// 监听剪切板状态变化
 		subscribe(clipboardStore, () => {
 			emit(LISTEN_KEY.CLIPBOARD_STORE_CHANGED, clipboardStore);
-		});
-
-		// 监听打开 github 地址
-		listen(LISTEN_KEY.GITHUB, () => {
-			open(GITHUB_LINK);
-		});
-
-		// 监听打开关于页面
-		listen(LISTEN_KEY.ABOUT, () => {
-			showWindow();
-
-			navigate("about");
 		});
 
 		// 监听语言变更
@@ -81,9 +68,6 @@ const Preference = () => {
 
 			setTheme(value);
 		});
-
-		// 监听是否显示菜单栏图标
-		watchKey(globalStore.app, "showMenubarIcon", setTrayVisible);
 	});
 
 	// 监听快捷键切换窗口显隐
@@ -156,6 +140,8 @@ const Preference = () => {
 			<div hidden>
 				<MacosPermissions />
 			</div>
+
+			<Tray />
 		</Flex>
 	);
 };

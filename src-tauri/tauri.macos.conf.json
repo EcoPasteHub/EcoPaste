@@ -1,12 +1,5 @@
 {
 	"identifier": "com.ayangweb.EcoPaste",
-	"app": {
-		"macOSPrivateApi": true,
-		"trayIcon": {
-			"iconPath": "assets/tray-mac.ico",
-			"iconAsTemplate": true
-		}
-	},
 	"bundle": {
 		"externalBin": ["bin/ocr"],
 		"macOS": {

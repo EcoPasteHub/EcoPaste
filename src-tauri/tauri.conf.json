@@ -11,6 +11,7 @@
 		"frontendDist": "../dist"
 	},
 	"app": {
+		"macOSPrivateApi": true,
 		"windows": [
 			{
 				"label": "main",
@@ -43,9 +44,6 @@
 				"titleBarStyle": "Overlay"
 			}
 		],
-		"trayIcon": {
-			"iconPath": "assets/tray.ico"
-		},
 		"security": {
 			"dangerousDisableAssetCspModification": true,
 			"assetProtocol": {
@@ -66,7 +64,8 @@
 			"icons/icon.icns",
 			"icons/icon.ico"
 		],
-		"createUpdaterArtifacts": true
+		"createUpdaterArtifacts": true,
+		"resources": ["./assets/tray.ico", "./assets/tray-mac.ico"]
 	},
 	"plugins": {
 		"updater": {

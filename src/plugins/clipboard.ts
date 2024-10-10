@@ -18,6 +18,15 @@ export const stopListen = async () => {
 	invoke(CLIPBOARD_PLUGIN.STOP_LISTEN);
 };
 
+// 切换监听
+export const toggleListen = (value: boolean) => {
+	if (value) {
+		startListen();
+	} else {
+		stopListen();
+	}
+};
+
 /**
  * 剪贴板是否有文件
  */

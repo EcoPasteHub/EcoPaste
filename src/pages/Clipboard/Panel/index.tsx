@@ -48,7 +48,7 @@ const ClipboardPanel = () => {
 	useMount(() => {
 		state.$eventBus = $eventBus;
 
-		// 开启监听
+		// 开启剪贴板监听
 		startListen();
 
 		// 监听剪切板更新
@@ -92,15 +92,6 @@ const ClipboardPanel = () => {
 		// 监听刷新列表
 		listen(LISTEN_KEY.REFRESH_CLIPBOARD_LIST, getList);
 
-		// 监听监听状态变更
-		listen<boolean>(LISTEN_KEY.TOGGLE_LISTENING, ({ payload }) => {
-			if (payload) {
-				startListen();
-			} else {
-				stopListen();
-			}
-		});
-
 		// 监听全局配置变更
 		listen(LISTEN_KEY.GLOBAL_STORE_CHANGED, ({ payload }) => {
 			if (isEqual(globalStore, payload)) return;
@@ -126,6 +117,11 @@ const ClipboardPanel = () => {
 
 		// 监听是否显示任务栏图标
 		watchKey(globalStore.app, "showTaskbarIcon", showTaskbarIcon);
+
+		// 切换剪贴板监听状态
+		listen<boolean>(LISTEN_KEY.TOGGLE_LISTEN_CLIPBOARD, ({ payload }) => {
+			toggleListen(payload);
+		});
 	});
 
 	// 监听窗口焦点

@@ -3,15 +3,11 @@ export const GITHUB_LINK = "https://github.com/EcoPasteHub/EcoPaste";
 export const GITHUB_ISSUES_LINK = `${GITHUB_LINK}/issues`;
 
 export const LISTEN_KEY = {
-	ABOUT: "about",
-	GITHUB: "github",
 	GLOBAL_STORE_CHANGED: "global-store-changed",
 	CLIPBOARD_STORE_CHANGED: "clipboard-store-changed",
 	UPDATE_APP: "update-app",
-	TRAY_CLICK: "tray-click",
 	REFRESH_CLIPBOARD_LIST: "refresh-clipboard-list",
 	CHANGE_LANGUAGE: "change-language",
-	TOGGLE_LISTENING: "toggle-listening",
 	SHOW_WINDOW: "show-window",
 	CLIPBOARD_ITEM_PREVIEW: "clipboard-item-preview",
 	CLIPBOARD_ITEM_PASTE: "clipboard-item-paste",
@@ -20,6 +16,7 @@ export const LISTEN_KEY = {
 	CLIPBOARD_ITEM_SELECT_NEXT: "clipboard-item-select-next",
 	TOGGLE_MAIN_WINDOW_VISIBLE: "toggle-main-window-visible",
 	CLOSE_DATABASE: "close-database",
+	TOGGLE_LISTEN_CLIPBOARD: "toggle-listen-clipboard",
 };
 
 export const WINDOW_PLUGIN = {
