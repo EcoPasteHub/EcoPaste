@@ -104,9 +104,6 @@ importers:
       rtf.js:
         specifier: ^3.0.9
         version: 3.0.9
-      tauri-plugin-context-menu:
-        specifier: ^0.8.0
-        version: 0.8.0
       valtio:
         specifier: ^1.7.0
         version: 1.13.2(@types/react@18.3.11)(react@18.3.1)
@@ -1094,10 +1091,6 @@ packages:
 
   '@tanstack/virtual-core@3.10.8':
     resolution: {integrity: sha512-PBu00mtt95jbKFi6Llk9aik8bnR3tR/oQP1o3TSi+iG//+Q2RTIzCEgKkHG8BB86kxMNW6O8wku+Lmi+QFR6jA==}
-
-  '@tauri-apps/api@1.6.0':
-    resolution: {integrity: sha512-rqI++FWClU5I2UBp4HXFvl+sBWkdigBkxnpJDQUWttNyG7IZP4FwQGhTNL5EOw0vI8i6eSAJ5frLqO7n7jbJdg==}
-    engines: {node: '>= 14.6.0', npm: '>= 6.6.0', yarn: '>= 1.19.1'}
 
   '@tauri-apps/api@2.0.2':
     resolution: {integrity: sha512-3wSwmG+1kr6WrgAFKK5ijkNFPp8TT3FLj3YHUb5EwMO+3FxX4uWlfSWkeeBy+Kc1RsKzugtYLuuya+98Flj+3w==}
@@ -3822,9 +3815,6 @@ packages:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
 
-  tauri-plugin-context-menu@0.8.0:
-    resolution: {integrity: sha512-7+JAFbNpEKqSlnfU3PwQRB9ZGmWPDExgxkuiEv+athavFkAvLMYXlynme0ZW2rQO5ciz8lX/OsgGth7qT0JeNA==}
-
   text-extensions@2.4.0:
     resolution: {integrity: sha512-te/NtwBwfiNRLf9Ijqx3T0nlqZiQ2XrrtBvu+cLL8ZRrGkO0NHTug8MYFKyoSrv/sHTaSKfilUkizV6XhxMJ3g==}
     engines: {node: '>=8'}
@@ -5023,8 +5013,6 @@ snapshots:
       react-dom: 18.3.1(react@18.3.1)
 
   '@tanstack/virtual-core@3.10.8': {}
-
-  '@tauri-apps/api@1.6.0': {}
 
   '@tauri-apps/api@2.0.2': {}
 
@@ -8250,10 +8238,6 @@ snapshots:
       has-flag: 4.0.0
 
   supports-preserve-symlinks-flag@1.0.0: {}
-
-  tauri-plugin-context-menu@0.8.0:
-    dependencies:
-      '@tauri-apps/api': 1.6.0
 
   text-extensions@2.4.0: {}
 

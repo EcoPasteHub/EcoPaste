@@ -55,7 +55,6 @@
 		"react-router-dom": "^6.26.2",
 		"rehype-raw": "^7.0.0",
 		"rtf.js": "^3.0.9",
-		"tauri-plugin-context-menu": "^0.8.0",
 		"valtio": "^1.7.0",
 		"valtio-persist": "^1.0.2"
 	},
