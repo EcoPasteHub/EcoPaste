@@ -44,7 +44,7 @@ export const toggleWindowVisible = async () => {
 
 				const [x, y] = await getMouseCoords();
 
-				for (const monitor of monitors) {
+				for await (const monitor of monitors) {
 					const {
 						scaleFactor,
 						position: { x: posX, y: posY },
@@ -73,7 +73,7 @@ export const toggleWindowVisible = async () => {
 						coordY = posY + (screenHeight - height) / 2;
 					}
 
-					appWindow.setPosition(new PhysicalPosition(coordX, coordY));
+					await appWindow.setPosition(new PhysicalPosition(coordX, coordY));
 
 					break;
 				}
