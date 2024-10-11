@@ -3,16 +3,16 @@ import type { ClipboardItem } from "@/types/database";
 import { Form, Input, Modal } from "antd";
 import { find } from "lodash-es";
 
-export interface RemarkModalRef {
+export interface NoteModalRef {
 	open: () => void;
 }
 
 interface FormFields {
-	remark: string;
+	note: string;
 }
 
 // TODO: 添加国际化
-const RemarkModal = forwardRef<RemarkModalRef>((_, ref) => {
+const NoteModal = forwardRef<NoteModalRef>((_, ref) => {
 	const { state } = useContext(ClipboardPanelContext);
 	const [open, { toggle }] = useBoolean();
 	const [item, setItem] = useState<ClipboardItem>();
@@ -23,7 +23,7 @@ const RemarkModal = forwardRef<RemarkModalRef>((_, ref) => {
 			const findItem = find(state.list, { id: state.activeId });
 
 			form.setFieldsValue({
-				remark: findItem?.remark,
+				note: findItem?.note,
 			});
 
 			setItem(findItem);
@@ -33,12 +33,12 @@ const RemarkModal = forwardRef<RemarkModalRef>((_, ref) => {
 	}));
 
 	const handleOk = () => {
-		const { remark } = form.getFieldsValue();
+		const { note } = form.getFieldsValue();
 
 		if (item) {
-			item.remark = remark;
+			item.note = note;
 
-			updateSQL("history", { id: item.id, remark });
+			updateSQL("history", { id: item.id, note });
 		}
 
 		toggle();
@@ -55,10 +55,10 @@ const RemarkModal = forwardRef<RemarkModalRef>((_, ref) => {
 		>
 			<Form
 				form={form}
-				initialValues={{ remark: item?.remark }}
+				initialValues={{ note: item?.note }}
 				onFinish={handleOk}
 			>
-				<Form.Item name="remark" className="mb-0!">
+				<Form.Item name="note" className="mb-0!">
 					<Input placeholder="请输入备注" />
 				</Form.Item>
 			</Form>
@@ -66,4 +66,4 @@ const RemarkModal = forwardRef<RemarkModalRef>((_, ref) => {
 	);
 });
 
-export default RemarkModal;
+export default NoteModal;

@@ -33,7 +33,7 @@ export const initDatabase = async () => {
 			height INTEGER,
 			favorite INTEGER DEFAULT 0,
 			createTime TEXT,
-			remark TEXT
+			note TEXT
 		);
         `;
 	};
@@ -47,24 +47,30 @@ export const initDatabase = async () => {
 		"rich-text",
 	]);
 
+	const fields = await getFields("history");
+
 	// `isCollected` 更名 `favorite`
 	await renameField("history", "isCollected", "favorite");
 
 	// `size` 更名 `count`
 	await renameField("history", "size", "count");
 
-	// 新增 `remark`
-	await addField("history", "remark", "TEXT");
+	if (!some(fields, { name: "note" })) {
+		// 新增 `remark`
+		await addField("history", "remark", "TEXT");
+
+		// `remark` 更名 `note`
+		await renameField("history", "remark", "note");
+	}
 
 	// 将 `id` 从 INTEGER 转为 TEXT 类型
-	const fields = await getFields("history");
 	if (find(fields, { name: "id" })?.type === "INTEGER") {
 		const tableName = "temp_history";
 
 		await executeSQL(createHistoryQuery(tableName));
 
 		await executeSQL(
-			`INSERT INTO ${tableName} (id, type, [group], value, search, count, width, height, favorite, createTime, remark) SELECT CAST(id AS TEXT), type, [group], value, search, count, width, height, favorite, createTime, remark FROM history;`,
+			`INSERT INTO ${tableName} (id, type, [group], value, search, count, width, height, favorite, createTime, note) SELECT CAST(id AS TEXT), type, [group], value, search, count, width, height, favorite, createTime, note FROM history;`,
 		);
 
 		await executeSQL("DROP TABLE history;");
