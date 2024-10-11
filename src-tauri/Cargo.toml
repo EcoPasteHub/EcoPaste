@@ -34,7 +34,6 @@ tauri-plugin-fs = "2.0.1"
 tauri-plugin-updater = "2.0.2"
 tauri-plugin-theme = "2.1.2"
 tauri-plugin-process = "2.0.1"
-window-vibrancy = "0.5.2"
 tauri-plugin-eco-window = { path =  "./src/plugins/window" }
 tauri-plugin-eco-macos-permissions = { path = "./src/plugins/macos-permissions" }
 tauri-plugin-eco-mouse = { path = "./src/plugins/mouse" }
@@ -46,4 +45,5 @@ tauri-plugin-eco-ocr = { path = "./src/plugins/ocr" }
 tauri-plugin-eco-paste = { path = "./src/plugins/paste" }
 
 [target."cfg(target_os = \"macos\")".dependencies]
+window-vibrancy = "0.5.2"
 cocoa = "0.25.0"
