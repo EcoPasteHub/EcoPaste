@@ -1,16 +1,16 @@
 use cocoa::appkit::{NSMainMenuWindowLevel, NSWindow};
 use cocoa::base::id;
+use tauri::window::{Effect, EffectState, EffectsBuilder};
 use tauri::{ActivationPolicy, App, WebviewWindow};
 
 pub fn platform(app: &mut App, main_window: WebviewWindow, preference_window: WebviewWindow) {
-    // 磨砂窗口：https://github.com/tauri-apps/window-vibrancy
-    window_vibrancy::apply_vibrancy(
-        &preference_window,
-        window_vibrancy::NSVisualEffectMaterial::Sidebar,
-        Some(window_vibrancy::NSVisualEffectState::Active),
-        Some(10.0),
-    )
-    .unwrap();
+    let _ = preference_window.set_effects(
+        EffectsBuilder::new()
+            .effect(Effect::Sidebar)
+            .state(EffectState::Active)
+            .radius(10.0)
+            .build(),
+    );
 
     // 隐藏 mac 的程序坞图标：https://github.com/tauri-apps/tauri/issues/4852#issuecomment-1312716378
     app.set_activation_policy(ActivationPolicy::Accessory);

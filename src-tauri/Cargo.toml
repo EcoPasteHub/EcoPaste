@@ -44,5 +44,4 @@ tauri-plugin-eco-ocr = { path = "./src/plugins/ocr" }
 tauri-plugin-eco-paste = { path = "./src/plugins/paste" }
 
 [target."cfg(target_os = \"macos\")".dependencies]
-window-vibrancy = "0.5.2"
 cocoa = "0.25.0"
