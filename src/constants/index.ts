@@ -94,10 +94,6 @@ export const MACOS_PERMISSIONS_PLUGIN = {
 		"plugin:eco-macos-permissions|request_full_disk_access_permissions",
 };
 
-export const TRAY_PLUGIN = {
-	SET_TRAY_VISIBLE: "plugin:tray|set_tray_visible",
-};
-
 export const WINDOW_LABEL = {
 	MAIN: "main",
 	PREFERENCE: "preference",
