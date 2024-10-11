@@ -87,7 +87,7 @@ pub async fn move_data(from: PathBuf, to: PathBuf) -> Result<PathBuf, String> {
                 let is_file = path.is_file();
                 let file_name = get_file_name(path.clone());
 
-                // 忽略主题插件和窗口状态插件生成的的文件，无法修改存储路径
+                // 忽略窗口状态插件生成的的文件，无法修改存储路径
                 let skip_files = [".window-state"];
                 if is_file && skip_files.contains(&file_name.as_str()) {
                     continue;

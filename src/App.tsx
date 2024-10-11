@@ -9,7 +9,6 @@ import { RouterProvider } from "react-router-dom";
 import { useSnapshot } from "valtio";
 
 const { defaultAlgorithm, darkAlgorithm } = theme;
-const appWindow = getCurrentWebviewWindow();
 
 const App = () => {
 	const { appearance } = useSnapshot(globalStore);
@@ -32,6 +31,8 @@ const App = () => {
 
 		// 监听显示窗口的事件
 		listen(LISTEN_KEY.SHOW_WINDOW, ({ payload }) => {
+			const appWindow = getCurrentWebviewWindow();
+
 			if (appWindow.label !== payload) return;
 
 			showWindow();
