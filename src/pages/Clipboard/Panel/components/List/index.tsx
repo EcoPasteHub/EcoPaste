@@ -4,12 +4,12 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { FloatButton } from "antd";
 import { findIndex } from "lodash-es";
 import Item from "./components/Item";
-import RemarkModal, { type RemarkModalRef } from "./components/RemarkModel";
+import NoteModal, { type NoteModalRef } from "./components/NoteModal";
 
 const List = () => {
 	const { state, getList } = useContext(ClipboardPanelContext);
 	const outerRef = useRef<HTMLDivElement>(null);
-	const remarkModelRef = useRef<RemarkModalRef>(null);
+	const noteModelRef = useRef<NoteModalRef>(null);
 
 	const rowVirtualizer = useVirtualizer({
 		count: state.list.length,
@@ -103,7 +103,7 @@ const List = () => {
 								index={index}
 								data={{ ...data, value }}
 								style={{ height: size, transform: `translateY(${start}px)` }}
-								openRemarkModel={() => remarkModelRef.current?.open()}
+								openNoteModel={() => noteModelRef.current?.open()}
 							/>
 						);
 					})}
@@ -113,7 +113,7 @@ const List = () => {
 			{/* @ts-ignore */}
 			<FloatButton.BackTop duration={0} target={() => outerRef.current} />
 
-			<RemarkModal ref={remarkModelRef} />
+			<NoteModal ref={noteModelRef} />
 		</>
 	);
 };

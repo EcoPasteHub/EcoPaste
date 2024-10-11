@@ -201,6 +201,7 @@
 		"button": {
 			"context_menu": {
 				"copy": "Copy",
+				"note": "Note",
 				"paste_ocr_text": "Paste OCR Text",
 				"paste_as_plain_text": "Paste as Plain Text",
 				"unfavorite": "Unfavorite",

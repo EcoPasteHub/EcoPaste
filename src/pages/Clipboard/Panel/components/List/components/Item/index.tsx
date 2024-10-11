@@ -20,7 +20,7 @@ import Text from "./components/Text";
 interface ItemProps extends Partial<FlexProps> {
 	index: number;
 	data: ClipboardItem;
-	openRemarkModel: () => void;
+	openNoteModel: () => void;
 }
 
 interface ContextMenuItem extends MenuItemOptions {
@@ -28,8 +28,8 @@ interface ContextMenuItem extends MenuItemOptions {
 }
 
 const Item: FC<ItemProps> = (props) => {
-	const { index, data, className, openRemarkModel, ...rest } = props;
-	const { id, type, value, search, group, favorite, remark } = data;
+	const { index, data, className, openNoteModel, ...rest } = props;
+	const { id, type, value, search, group, favorite, note } = data;
 	const { state } = useContext(ClipboardPanelContext);
 	const { t } = useTranslation();
 	const { env } = useSnapshot(globalStore);
@@ -168,10 +168,9 @@ const Item: FC<ItemProps> = (props) => {
 				text: t("clipboard.button.context_menu.copy"),
 				action: copy,
 			},
-			// TODO: 添加国际化
 			{
-				text: "备注",
-				action: openRemarkModel,
+				text: t("clipboard.button.context_menu.note"),
+				action: openNoteModel,
 			},
 			{
 				text: t("clipboard.button.context_menu.paste_ocr_text"),
@@ -291,7 +290,7 @@ const Item: FC<ItemProps> = (props) => {
 					className={clsx(
 						"absolute inset-0 line-clamp-4 opacity-100 group-hover:opacity-0",
 						{
-							"opacity-0!": !remark,
+							"opacity-0!": !note,
 						},
 					)}
 				>
@@ -300,12 +299,12 @@ const Item: FC<ItemProps> = (props) => {
 						className="mr-2 translate-y-2"
 					/>
 
-					{remark}
+					{note}
 				</div>
 
 				<div
 					className={clsx("h-full opacity-0 group-hover:opacity-100", {
-						"opacity-100!": !remark,
+						"opacity-100!": !note,
 					})}
 				>
 					{renderContent()}

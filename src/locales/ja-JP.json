@@ -201,6 +201,7 @@
 		"button": {
 			"context_menu": {
 				"copy": "コピー",
+				"note": "備考",
 				"paste_ocr_text": "OCRテキストペースト",
 				"paste_as_plain_text": "プレーンテキストとして貼り付け",
 				"unfavorite": "コレクションのキャンセル",
