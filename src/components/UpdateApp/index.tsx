@@ -16,8 +16,6 @@ interface State {
 	update?: Update;
 }
 
-const MESSAGE_KEY = "update";
-
 let timer: Timeout;
 
 const UpdateApp = () => {
@@ -31,7 +29,7 @@ const UpdateApp = () => {
 			checkUpdate(true);
 
 			messageApi.open({
-				key: MESSAGE_KEY,
+				key: UPDATE_MESSAGE_KEY,
 				type: "loading",
 				content: t("component.app_update.hints.checking_update"),
 				duration: 0,
@@ -50,11 +48,7 @@ const UpdateApp = () => {
 		});
 
 		// 监听参与测试版本配置变化
-		watchKey(globalStore.update, "beta", (value) => {
-			if (!value) return;
-
-			checkUpdate();
-		});
+		watchKey(globalStore.update, "beta", checkUpdate);
 	});
 
 	// 检查更新
@@ -80,10 +74,10 @@ const UpdateApp = () => {
 
 				Object.assign(state, { update, open: true });
 
-				messageApi.destroy(MESSAGE_KEY);
+				messageApi.destroy(UPDATE_MESSAGE_KEY);
 			} else if (showMessage) {
 				messageApi.open({
-					key: MESSAGE_KEY,
+					key: UPDATE_MESSAGE_KEY,
 					type: "success",
 					content: t("component.app_update.hints.latest_version"),
 				});
@@ -92,7 +86,7 @@ const UpdateApp = () => {
 			if (!showMessage) return;
 
 			messageApi.open({
-				key: MESSAGE_KEY,
+				key: UPDATE_MESSAGE_KEY,
 				type: "error",
 				content: error,
 			});

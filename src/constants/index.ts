@@ -108,3 +108,5 @@ export const UPDATER_PLUGIN = {
 };
 
 export const TRAY_ID = "EcoPaste-tray";
+
+export const UPDATE_MESSAGE_KEY = "EcoPaste-update-message";
