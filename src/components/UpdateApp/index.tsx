@@ -48,7 +48,7 @@ const UpdateApp = () => {
 		});
 
 		// 监听参与测试版本配置变化
-		watchKey(globalStore.update, "beta", checkUpdate);
+		watchKey(globalStore.update, "beta", () => checkUpdate());
 	});
 
 	// 检查更新
