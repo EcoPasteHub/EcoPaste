@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api";
+import { invoke } from "@tauri-apps/api/core";
 
 /**
  * 设置菜单栏图标（托盘图标）的可见性

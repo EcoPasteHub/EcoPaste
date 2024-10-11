@@ -1,9 +1,9 @@
 import ProList from "@/components/ProList";
 import ProListItem from "@/components/ProListItem";
 import { NodeIndexOutlined, ReloadOutlined } from "@ant-design/icons";
-import { open } from "@tauri-apps/api/dialog";
 import { emit } from "@tauri-apps/api/event";
 import { appLogDir, dataDir as tauriDataDir } from "@tauri-apps/api/path";
+import { open } from "@tauri-apps/plugin-dialog";
 import { Button, Space, Tooltip, message } from "antd";
 import { isEqual, isString } from "lodash-es";
 import type { FC } from "react";

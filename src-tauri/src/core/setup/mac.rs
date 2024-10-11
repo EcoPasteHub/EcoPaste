@@ -1,8 +1,8 @@
 use cocoa::appkit::{NSMainMenuWindowLevel, NSWindow};
 use cocoa::base::id;
-use tauri::{ActivationPolicy, App, Window};
+use tauri::{ActivationPolicy, App, WebviewWindow};
 
-pub fn platform(app: &mut App, main_window: Window, preference_window: Window) {
+pub fn platform(app: &mut App, main_window: WebviewWindow, preference_window: WebviewWindow) {
     // 磨砂窗口：https://github.com/tauri-apps/window-vibrancy
     window_vibrancy::apply_vibrancy(
         &preference_window,

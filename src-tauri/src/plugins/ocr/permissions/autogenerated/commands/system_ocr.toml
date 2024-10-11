@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-system-ocr"
+description = "Enables the system_ocr command without any pre-configured scope."
+commands.allow = ["system_ocr"]
+
+[[permission]]
+identifier = "deny-system-ocr"
+description = "Denies the system_ocr command without any pre-configured scope."
+commands.deny = ["system_ocr"]

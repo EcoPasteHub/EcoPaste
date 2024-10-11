@@ -1,6 +1,6 @@
 import type { ClipboardItem } from "@/types/database";
 import type { ClipboardPayload, ReadImage, WinOCR } from "@/types/plugin";
-import { invoke } from "@tauri-apps/api";
+import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { isEmpty, isEqual } from "lodash-es";
 
@@ -16,6 +16,15 @@ export const startListen = async () => {
  */
 export const stopListen = async () => {
 	invoke(CLIPBOARD_PLUGIN.STOP_LISTEN);
+};
+
+// 切换监听
+export const toggleListen = (value: boolean) => {
+	if (value) {
+		startListen();
+	} else {
+		stopListen();
+	}
 };
 
 /**
