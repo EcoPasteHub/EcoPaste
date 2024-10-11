@@ -4,40 +4,41 @@ import {
 	register,
 	unregister,
 } from "@tauri-apps/plugin-global-shortcut";
+import { castArray } from "lodash-es";
 
 export const useRegister = (
 	handler: ShortcutHandler,
-	deps: Array<string | undefined>,
+	deps: Array<string | string[] | undefined>,
 ) => {
-	const [oldKey, setOldKey] = useState<string>();
+	const [oldShortcuts, setOldShortcuts] = useState(deps[0]);
 
 	useAsyncEffect(async () => {
-		const [key] = deps;
+		const [shortcuts] = deps;
 
-		if (oldKey) {
-			const registered = await isRegistered(oldKey);
+		if (!shortcuts) return;
+
+		for await (const shortcut of castArray(oldShortcuts)) {
+			const registered = await isRegistered(shortcut);
 
 			if (registered) {
-				await unregister(oldKey);
+				await unregister(shortcut);
 			}
 		}
 
-		if (key) {
-			await register(key, (event) => {
-				if (event.state === "Released") return;
+		await register(shortcuts, (event) => {
+			if (event.state === "Released") return;
 
-				handler(event);
-			});
-		}
+			handler(event);
+		});
 
-		setOldKey(key);
+		setOldShortcuts(shortcuts);
 	}, deps);
 
 	useUnmount(() => {
-		const [key] = deps;
+		const [shortcuts] = deps;
 
-		if (!key) return;
+		if (!shortcuts) return;
 
-		unregister(key);
+		unregister(shortcuts);
 	});
 };

@@ -2,9 +2,7 @@ import type { AudioRef } from "@/components/Audio";
 import Audio from "@/components/Audio";
 import type { ClipboardItem, TablePayload } from "@/types/database";
 import { listen } from "@tauri-apps/api/event";
-import {} from "@tauri-apps/api/menu";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { register, unregister } from "@tauri-apps/plugin-global-shortcut";
 import type { EventEmitter } from "ahooks/lib/useEventEmitter";
 import { find, findIndex, isEqual, isNil, last, merge, range } from "lodash-es";
 import { nanoid } from "nanoid";
@@ -110,10 +108,10 @@ const ClipboardPanel = () => {
 		listen(LISTEN_KEY.TOGGLE_MAIN_WINDOW_VISIBLE, toggleWindowVisible);
 
 		// 监听快速粘贴的启用状态变更
-		watchKey(globalStore.shortcut.quickPaste, "enable", registerQuickPaste);
+		watchKey(globalStore.shortcut.quickPaste, "enable", setQuickPasteKeys);
 
 		// 监听快速粘贴的快捷键变更
-		subscribeKey(globalStore.shortcut.quickPaste, "value", registerQuickPaste);
+		subscribeKey(globalStore.shortcut.quickPaste, "value", setQuickPasteKeys);
 
 		// 监听是否显示任务栏图标
 		watchKey(globalStore.app, "showTaskbarIcon", showTaskbarIcon);
@@ -147,6 +145,20 @@ const ClipboardPanel = () => {
 		pasteClipboard(data, true);
 	}, [shortcut.pastePlain]);
 
+	// 监听快速粘贴的快捷键
+	useRegister(
+		async (event) => {
+			if (!globalStore.shortcut.quickPaste.enable) return;
+
+			const index = Number(last(event.shortcut));
+
+			const data = state.list[index - 1];
+
+			pasteClipboard(data);
+		},
+		[state.quickPasteKeys],
+	);
+
 	// 获取剪切板内容
 	const getList = async () => {
 		const { search, group, favorite } = state;
@@ -158,29 +170,17 @@ const ClipboardPanel = () => {
 		});
 	};
 
-	// 注册数字组合键快速粘贴的快捷键
-	const registerQuickPaste = async () => {
+	// 设置快捷粘贴的快捷键
+	const setQuickPasteKeys = () => {
 		const { enable, value } = globalStore.shortcut.quickPaste;
 
-		await unregister(state.quickPasteKeys);
+		if (!enable) {
+			state.quickPasteKeys = [];
 
-		if (!enable) return;
+			return;
+		}
 
-		const keys = range(1, 10).map((item) => [value, item].join("+"));
-
-		await register(keys, async (event) => {
-			if (event.state === "Released") return;
-
-			if (!globalStore.shortcut.quickPaste.enable) return;
-
-			const index = Number(last(event.shortcut));
-
-			const data = state.list[index - 1];
-
-			pasteClipboard(data);
-		});
-
-		state.quickPasteKeys = keys;
+		state.quickPasteKeys = range(1, 10).map((item) => [value, item].join("+"));
 	};
 
 	return (
