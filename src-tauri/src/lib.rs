@@ -5,7 +5,7 @@ use tauri::{generate_context, Builder, Manager, WindowEvent};
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_eco_window::{show_main_window, MAIN_WINDOW_LABEL, PREFERENCE_WINDOW_LABEL};
 use tauri_plugin_log::{Target, TargetKind};
-use tauri_plugin_window_state::{AppHandleExt, StateFlags};
+// use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 
 pub const AUTO_LAUNCH_ARG: &str = "--auto-launch";
 
