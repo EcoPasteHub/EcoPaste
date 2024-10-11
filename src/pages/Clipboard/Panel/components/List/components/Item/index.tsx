@@ -168,6 +168,7 @@ const Item: FC<ItemProps> = (props) => {
 				text: t("clipboard.button.context_menu.copy"),
 				action: copy,
 			},
+			// TODO: 添加国际化
 			{
 				text: "备注",
 				action: openRemarkModel,
