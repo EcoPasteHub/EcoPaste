@@ -1,6 +1,6 @@
 import { ClipboardPanelContext } from "@/pages/Clipboard/Panel";
 import type { ClipboardItem } from "@/types/database";
-import { Form, Input, Modal } from "antd";
+import { Form, Input, type InputRef, Modal } from "antd";
 import { find } from "lodash-es";
 
 export interface NoteModalRef {
@@ -17,6 +17,7 @@ const NoteModal = forwardRef<NoteModalRef>((_, ref) => {
 	const [open, { toggle }] = useBoolean();
 	const [item, setItem] = useState<ClipboardItem>();
 	const [form] = Form.useForm<FormFields>();
+	const inputRef = useRef<InputRef>(null);
 
 	useImperativeHandle(ref, () => ({
 		open: () => {
@@ -44,6 +45,12 @@ const NoteModal = forwardRef<NoteModalRef>((_, ref) => {
 		toggle();
 	};
 
+	const handleAfterOpenChange = (open: boolean) => {
+		if (!open) return;
+
+		inputRef.current?.focus();
+	};
+
 	return (
 		<Modal
 			forceRender
@@ -52,6 +59,7 @@ const NoteModal = forwardRef<NoteModalRef>((_, ref) => {
 			open={open}
 			onOk={handleOk}
 			onCancel={toggle}
+			afterOpenChange={handleAfterOpenChange}
 		>
 			<Form
 				form={form}
@@ -59,7 +67,7 @@ const NoteModal = forwardRef<NoteModalRef>((_, ref) => {
 				onFinish={handleOk}
 			>
 				<Form.Item name="note" className="mb-0!">
-					<Input placeholder="请输入备注" />
+					<Input ref={inputRef} placeholder="请输入备注" />
 				</Form.Item>
 			</Form>
 		</Modal>
