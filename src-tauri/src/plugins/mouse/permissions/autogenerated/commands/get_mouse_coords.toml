@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-get-mouse-coords"
+description = "Enables the get_mouse_coords command without any pre-configured scope."
+commands.allow = ["get_mouse_coords"]
+
+[[permission]]
+identifier = "deny-get-mouse-coords"
+description = "Denies the get_mouse_coords command without any pre-configured scope."
+commands.deny = ["get_mouse_coords"]

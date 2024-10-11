@@ -10,7 +10,7 @@ const MacosPermissions = () => {
 		fullDiskAccessPermissions: false,
 	});
 
-	useMount(async () => {
+	useMount(() => {
 		checkAccessibility();
 
 		checkFullDiskAccess();

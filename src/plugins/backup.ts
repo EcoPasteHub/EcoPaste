@@ -1,8 +1,7 @@
-import { invoke } from "@tauri-apps/api";
 import { getName } from "@tauri-apps/api/app";
-import { open } from "@tauri-apps/api/dialog";
+import { invoke } from "@tauri-apps/api/core";
 import { emit } from "@tauri-apps/api/event";
-import { writeFile } from "@tauri-apps/api/fs";
+import { open } from "@tauri-apps/plugin-dialog";
 import { omit } from "lodash-es";
 
 /**

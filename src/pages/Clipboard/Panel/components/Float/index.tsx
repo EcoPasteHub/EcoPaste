@@ -11,16 +11,16 @@ const Float = () => {
 	const { search } = useSnapshot(clipboardStore);
 
 	return (
-		<div className={clsx("h-screen bg-1 p-3", { "rounded-10": !isWin() })}>
+		<div className={clsx("h-screen bg-1", { "rounded-10": !isWin() })}>
 			<Flex
 				data-tauri-drag-region
 				vertical
 				gap={12}
-				className={clsx("h-full py-9", {
+				className={clsx("h-full py-12", {
 					"flex-col-reverse": search.position === "bottom",
 				})}
 			>
-				<Search className="mx-9" />
+				<Search className="mx-12" />
 
 				<Flex
 					data-tauri-drag-region
@@ -33,7 +33,7 @@ const Float = () => {
 						align="center"
 						justify="space-between"
 						gap="small"
-						className="px-9"
+						className="px-12"
 					>
 						<Group />
 

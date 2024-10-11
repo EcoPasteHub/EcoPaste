@@ -1,14 +1,14 @@
 import Icon from "@/components/Icon";
 import { ClipboardPanelContext } from "@/pages/Clipboard/Panel";
 import type { ClipboardItem } from "@/types/database";
-import { copyFile, writeFile } from "@tauri-apps/api/fs";
+import { Menu, MenuItem, type MenuItemOptions } from "@tauri-apps/api/menu";
 import { downloadDir } from "@tauri-apps/api/path";
-import { open } from "@tauri-apps/api/shell";
+import { copyFile } from "@tauri-apps/plugin-fs";
+import { open } from "@tauri-apps/plugin-shell";
 import { Flex, type FlexProps } from "antd";
 import clsx from "clsx";
 import { find, isNil, remove } from "lodash-es";
 import type { FC, MouseEvent } from "react";
-import { type ContextMenu, showMenu } from "tauri-plugin-context-menu";
 import { useSnapshot } from "valtio";
 import Files from "./components/Files";
 import HTML from "./components/HTML";
@@ -23,7 +23,7 @@ interface ItemProps extends Partial<FlexProps> {
 	openRemarkModel: () => void;
 }
 
-interface ContextMenuItem extends ContextMenu.Item {
+interface ContextMenuItem extends MenuItemOptions {
 	hide?: boolean;
 }
 
@@ -32,7 +32,7 @@ const Item: FC<ItemProps> = (props) => {
 	const { id, type, value, search, group, favorite, remark } = data;
 	const { state } = useContext(ClipboardPanelContext);
 	const { t } = useTranslation();
-	const { env, appearance } = useSnapshot(globalStore);
+	const { env } = useSnapshot(globalStore);
 	const { content } = useSnapshot(clipboardStore);
 
 	state.$eventBus?.useSubscription((key) => {
@@ -72,14 +72,14 @@ const Item: FC<ItemProps> = (props) => {
 	};
 
 	// 打开链接至浏览器
-	const openBrowser = async () => {
+	const openBrowser = () => {
 		const url = value.startsWith("http") ? value : `http://${value}`;
 
 		open(url);
 	};
 
 	// 发送邮件
-	const sendEmail = async () => {
+	const sendEmail = () => {
 		open(`mailto:${value}`);
 	};
 
@@ -87,7 +87,7 @@ const Item: FC<ItemProps> = (props) => {
 	const exportFile = async () => {
 		const ext = type === "text" ? "txt" : type;
 		const fileName = `${env.appName}_${id}.${ext}`;
-		const destination = (await downloadDir()) + fileName;
+		const destination = joinPath(await downloadDir(), fileName);
 
 		await writeFile(destination, value);
 
@@ -104,7 +104,7 @@ const Item: FC<ItemProps> = (props) => {
 	// 下载图片
 	const downloadImage = async () => {
 		const fileName = `${env.appName}_${id}.png`;
-		const destination = (await downloadDir()) + fileName;
+		const destination = joinPath(await downloadDir(), fileName);
 
 		await copyFile(value, destination);
 
@@ -134,8 +134,8 @@ const Item: FC<ItemProps> = (props) => {
 	};
 
 	// 粘贴
-	const pasteValue = async () => {
-		pasteClipboard(data);
+	const pasteValue = () => {
+		return pasteClipboard(data);
 	};
 
 	// 选中下一个或者上一个
@@ -163,73 +163,79 @@ const Item: FC<ItemProps> = (props) => {
 
 		state.activeId = id;
 
-		const menus: ContextMenuItem[] = [
+		const items: ContextMenuItem[] = [
 			{
-				label: t("clipboard.button.context_menu.copy"),
-				event: copy,
+				text: t("clipboard.button.context_menu.copy"),
+				action: copy,
+			},
+			// TODO: 添加国际化
+			{
+				text: "备注",
+				action: openRemarkModel,
 			},
 			{
-				label: "备注",
-				event: openRemarkModel,
-			},
-			{
-				label: t("clipboard.button.context_menu.paste_ocr_text"),
+				text: t("clipboard.button.context_menu.paste_ocr_text"),
 				hide: type !== "image" || /^[\s]*$/.test(search),
-				event: pastePlain,
+				action: pastePlain,
 			},
 			{
-				label: t("clipboard.button.context_menu.paste_as_plain_text"),
+				text: t("clipboard.button.context_menu.paste_as_plain_text"),
 				hide: type !== "html" && type !== "rtf",
-				event: pastePlain,
+				action: pastePlain,
 			},
 			{
-				label: favorite
+				text: favorite
 					? t("clipboard.button.context_menu.unfavorite")
 					: t("clipboard.button.context_menu.favorite"),
-				event: toggleFavorite,
+				action: toggleFavorite,
 			},
 			{
-				label: t("clipboard.button.context_menu.open_in_browser"),
+				text: t("clipboard.button.context_menu.open_in_browser"),
 				hide: type !== "text" || !isURL(value),
-				event: openBrowser,
+				action: openBrowser,
 			},
 			{
-				label: t("clipboard.button.context_menu.send_email"),
+				text: t("clipboard.button.context_menu.send_email"),
 				hide: type !== "text" || !isEmail(value),
-				event: sendEmail,
+				action: sendEmail,
 			},
 			{
-				label: t("clipboard.button.context_menu.export_as_file"),
+				text: t("clipboard.button.context_menu.export_as_file"),
 				hide: group !== "text",
-				event: exportFile,
+				action: exportFile,
 			},
 			{
-				label: t("clipboard.button.context_menu.preview_image"),
+				text: t("clipboard.button.context_menu.preview_image"),
 				hide: type !== "image",
-				event: preview,
+				action: preview,
 			},
 			{
-				label: t("clipboard.button.context_menu.download_image"),
+				text: t("clipboard.button.context_menu.download_image"),
 				hide: type !== "image",
-				event: downloadImage,
+				action: downloadImage,
 			},
 			{
-				label: isMac()
+				text: isMac()
 					? t("clipboard.button.context_menu.show_in_finder")
 					: t("clipboard.button.context_menu.show_in_file_explorer"),
 				hide: type !== "files",
-				event: openFinder,
+				action: openFinder,
 			},
 			{
-				label: t("clipboard.button.context_menu.delete"),
-				event: deleteItem,
+				text: t("clipboard.button.context_menu.delete"),
+				action: deleteItem,
 			},
 		];
 
-		showMenu({
-			items: menus.filter(({ hide }) => !hide),
-			theme: appearance.theme as ContextMenu.Theme,
-		});
+		const menu = await Menu.new();
+
+		for await (const item of items.filter(({ hide }) => !hide)) {
+			const menuItem = await MenuItem.new(item);
+
+			await menu.append(menuItem);
+		}
+
+		menu.popup();
 	};
 
 	// 点击事件
@@ -264,7 +270,7 @@ const Item: FC<ItemProps> = (props) => {
 			gap={4}
 			className={clsx(
 				className,
-				"group antd-input! b-color-2 absolute inset-0 mx-9 h-full rounded-6 p-6",
+				"group antd-input! b-color-2 absolute inset-0 mx-12 h-full rounded-6 p-6",
 				{
 					"antd-input-focus!": state.activeId === id,
 				},

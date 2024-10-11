@@ -2,7 +2,6 @@ import ProListItem from "@/components/ProListItem";
 import { modifierKeys } from "@/components/ProShortcut/keys";
 import { Select, Space, Switch } from "antd";
 import type { DefaultOptionType } from "antd/es/select";
-import {} from "lodash-es";
 import { useSnapshot } from "valtio";
 
 const QuickPaste = () => {

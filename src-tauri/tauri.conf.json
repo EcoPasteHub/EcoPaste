@@ -1,68 +1,17 @@
 {
+	"$schema": "https://schema.tauri.app/config/2.0.0",
+	"productName": "EcoPaste",
+	"mainBinaryName": "EcoPaste",
+	"version": "../package.json",
+	"identifier": "com.ayangweb.EcoPaste",
 	"build": {
 		"beforeDevCommand": "pnpm dev",
+		"devUrl": "http://localhost:1420",
 		"beforeBuildCommand": "pnpm build",
-		"devPath": "http://localhost:1420",
-		"distDir": "../dist"
+		"frontendDist": "../dist"
 	},
-	"package": {
-		"productName": "EcoPaste",
-		"version": "../package.json"
-	},
-	"tauri": {
-		"cli": {
-			"args": [
-				{
-					"name": "info",
-					"short": "i"
-				}
-			]
-		},
+	"app": {
 		"macOSPrivateApi": true,
-		"allowlist": {
-			"os": {
-				"all": true
-			},
-			"globalShortcut": {
-				"all": true
-			},
-			"shell": {
-				"open": true,
-				"sidecar": true,
-				"scope": [
-					{
-						"name": "bin/ocr",
-						"sidecar": true,
-						"args": true
-					}
-				]
-			},
-			"path": {
-				"all": true
-			},
-			"fs": {
-				"all": true,
-				"scope": ["**/*"]
-			},
-			"protocol": {
-				"asset": true,
-				"assetScope": ["**/*"]
-			},
-			"process": {
-				"relaunch": true
-			},
-			"dialog": {
-				"ask": true,
-				"open": true
-			},
-			"window": {
-				"startDragging": true,
-				"setPosition": true,
-				"center": true,
-				"setTitle": true,
-				"setSkipTaskbar": true
-			}
-		},
 		"windows": [
 			{
 				"label": "main",
@@ -87,39 +36,41 @@
 				"height": 480,
 				"center": true,
 				"resizable": false,
-				"maximizable": false,
-				"hiddenTitle": true,
 				"visible": false,
 				"transparent": true,
+				"maximizable": false,
+				"hiddenTitle": true,
 				"skipTaskbar": true,
 				"titleBarStyle": "Overlay"
 			}
 		],
 		"security": {
 			"dangerousDisableAssetCspModification": true,
+			"assetProtocol": {
+				"scope": ["**/*"],
+				"enable": true
+			},
 			"csp": null
-		},
-		"bundle": {
-			"active": true,
-			"targets": ["nsis", "dmg", "app", "appimage", "deb", "rpm", "updater"],
-			"shortDescription": "EcoPaste",
-			"identifier": "com.ayangweb.EcoPaste",
-			"icon": [
-				"icons/32x32.png",
-				"icons/128x128.png",
-				"icons/128x128@2x.png",
-				"icons/icon.icns",
-				"icons/icon.ico"
-			]
-		},
-		"systemTray": {
-			"iconPath": "assets/tray.ico"
-		},
+		}
+	},
+	"bundle": {
+		"active": true,
+		"targets": ["nsis", "dmg", "app", "appimage", "deb", "rpm"],
+		"shortDescription": "EcoPaste",
+		"icon": [
+			"icons/32x32.png",
+			"icons/128x128.png",
+			"icons/128x128@2x.png",
+			"icons/icon.icns",
+			"icons/icon.ico"
+		],
+		"createUpdaterArtifacts": true,
+		"resources": ["./assets/tray.ico", "./assets/tray-mac.ico"]
+	},
+	"plugins": {
 		"updater": {
-			"active": true,
-			"endpoints": ["https://ecopaste-updater.ayangweb.cn/api/update"],
-			"dialog": false,
-			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDcwNEIyQkUwRjNEMTg4NgpSV1NHR0QwUHZySUVCeXFRQzZ4aEpNRWdFdThVQ2I4b2dSQktRcmNtV1dYTFJJV1h2VmVVZXBWSgo="
+			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDcwNEIyQkUwRjNEMTg4NgpSV1NHR0QwUHZySUVCeXFRQzZ4aEpNRWdFdThVQ2I4b2dSQktRcmNtV1dYTFJJV1h2VmVVZXBWSgo=",
+			"endpoints": ["https://ecopaste-updater.ayangweb.cn/api/update"]
 		}
 	}
 }

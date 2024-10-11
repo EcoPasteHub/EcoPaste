@@ -1,0 +1,55 @@
+{
+	"$schema": "../gen/schemas/desktop-schema.json",
+	"identifier": "default",
+	"description": "Capability for the all window",
+	"windows": ["*"],
+	"permissions": [
+		"core:default",
+		"core:window:allow-center",
+		"core:window:allow-set-title",
+		"core:window:allow-set-position",
+		"core:window:allow-start-dragging",
+		"core:window:allow-set-theme",
+		"shell:default",
+		{
+			"identifier": "shell:allow-execute",
+			"allow": [
+				{
+					"args": true,
+					"name": "bin/ocr",
+					"sidecar": true
+				}
+			]
+		},
+		"fs:read-files",
+		"fs:allow-write-file",
+		"fs:allow-copy-file",
+		{
+			"identifier": "fs:scope",
+			"allow": ["**/*"]
+		},
+		"autostart:allow-enable",
+		"autostart:allow-disable",
+		"autostart:allow-is-enabled",
+		"log:default",
+		"sql:default",
+		"sql:allow-execute",
+		"window-state:default",
+		"global-shortcut:allow-is-registered",
+		"global-shortcut:allow-register",
+		"global-shortcut:allow-unregister",
+		"os:default",
+		"dialog:default",
+		"updater:default",
+		"process:default",
+		"eco-window:default",
+		"eco-macos-permissions:default",
+		"eco-mouse:default",
+		"eco-fs-extra:default",
+		"eco-backup:default",
+		"eco-locale:default",
+		"eco-clipboard:default",
+		"eco-ocr:default",
+		"eco-paste:default"
+	]
+}

@@ -1,0 +1,30 @@
+[package]
+name = "tauri-plugin-eco-paste"
+version = "0.1.0"
+authors = []
+description = ""
+edition = "2021"
+rust-version = "1.77.2"
+links = "tauri-plugin-eco-paste"
+
+[dependencies]
+tauri = { version = "2.0.2" }
+serde = "1.0"
+tauri-plugin-eco-window = { path = "../window" }
+
+[build-dependencies]
+tauri-plugin = { version = "2.0.1", features = ["build"] }
+
+[target."cfg(target_os = \"macos\")".dependencies]
+cocoa = "0.25.0"
+objc = "0.2.7"
+
+[target."cfg(target_os = \"windows\")".dependencies]
+log = "0.4.22"
+winapi = { version = "0.3", features = ["winuser", "windef"] }
+enigo = "0.2.1"
+
+[target."cfg(target_os = \"linux\")".dependencies]
+log = "0.4.22"
+x11 = "2.21.0"
+rdev = "0.5.3"

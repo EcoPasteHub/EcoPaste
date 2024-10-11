@@ -1,25 +1,25 @@
 import Icon from "@/components/Icon";
 import ScrollRestore from "@/components/ScrollRestore";
-import Update from "@/components/Update";
+import Tray from "@/components/Tray";
+import UpdateApp from "@/components/UpdateApp";
 import MacosPermissions from "@/pages/General/components/MacosPermissions";
 import type { ClipboardItem } from "@/types/database";
 import type { Language } from "@/types/store";
 import { emit, listen } from "@tauri-apps/api/event";
-import { open } from "@tauri-apps/api/shell";
-import { appWindow } from "@tauri-apps/api/window";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart";
 import { Flex } from "antd";
 import clsx from "clsx";
-import { disable, enable, isEnabled } from "tauri-plugin-autostart-api";
 import { subscribe, useSnapshot } from "valtio";
-import { subscribeKey } from "valtio/utils";
 
 const Preference = () => {
 	const { pathname } = useLocation();
-	const navigate = useNavigate();
 	const { shortcut } = useSnapshot(globalStore);
 	const { t } = useTranslation();
 
-	useMount(async () => {
+	useMount(() => {
+		const appWindow = getCurrentWebviewWindow();
+
 		// 监听全局状态变化
 		subscribe(globalStore, () => {
 			emit(LISTEN_KEY.GLOBAL_STORE_CHANGED, globalStore);
@@ -28,18 +28,6 @@ const Preference = () => {
 		// 监听剪切板状态变化
 		subscribe(clipboardStore, () => {
 			emit(LISTEN_KEY.CLIPBOARD_STORE_CHANGED, clipboardStore);
-		});
-
-		// 监听打开 github 地址
-		listen(LISTEN_KEY.GITHUB, () => {
-			open(GITHUB_LINK);
-		});
-
-		// 监听打开关于页面
-		listen(LISTEN_KEY.ABOUT, () => {
-			showWindow();
-
-			navigate("about");
 		});
 
 		// 监听语言变更
@@ -62,28 +50,28 @@ const Preference = () => {
 
 		// 监听语言变更
 		watchKey(globalStore.appearance, "language", () => {
-			setLocale();
-
 			requestAnimationFrame(() => {
 				appWindow.setTitle(t("preference.title"));
 			});
 		});
 
 		// 监听主题变更
-		subscribeKey(globalStore.appearance, "theme", async (value) => {
-			let nextTheme = value;
+		watchKey(globalStore.appearance, "theme", async (value) => {
+			let nextTheme = value === "auto" ? null : value;
 
-			if (nextTheme === "auto") {
-				nextTheme = (await appWindow.theme()) ?? "light";
-			}
+			await appWindow.setTheme(nextTheme);
+
+			nextTheme = nextTheme ?? (await appWindow.theme());
 
 			globalStore.appearance.isDark = nextTheme === "dark";
-
-			setTheme(value);
 		});
 
-		// 监听是否显示菜单栏图标
-		watchKey(globalStore.app, "showMenubarIcon", setTrayVisible);
+		// 监听系统主题的变化
+		appWindow.onThemeChanged(async () => {
+			if (globalStore.appearance.theme !== "auto") return;
+
+			globalStore.appearance.isDark = (await appWindow.theme()) === "dark";
+		});
 	});
 
 	// 监听快捷键切换窗口显隐
@@ -151,11 +139,13 @@ const Preference = () => {
 				<Outlet />
 			</ScrollRestore>
 
-			<Update />
+			<UpdateApp />
 
 			<div hidden>
 				<MacosPermissions />
 			</div>
+
+			<Tray />
 		</Flex>
 	);
 };

@@ -1,8 +1,8 @@
 import Icon from "@/components/Icon";
 import { getTauriVersion } from "@tauri-apps/api/app";
 import { emit } from "@tauri-apps/api/event";
-import { arch, version } from "@tauri-apps/api/os";
-import { open } from "@tauri-apps/api/shell";
+import { arch, version } from "@tauri-apps/plugin-os";
+import { open } from "@tauri-apps/plugin-shell";
 import { Button, Flex, Tooltip } from "antd";
 import { useSnapshot } from "valtio";
 
@@ -22,7 +22,7 @@ const About = () => {
 			platformVersion: await version(),
 		};
 
-		writeText(JSON.stringify(info, null, 2));
+		return writeText(JSON.stringify(info, null, 2));
 	};
 
 	const feedbackIssue = () => {

@@ -1,5 +1,5 @@
 import type { Metadata } from "@/types/plugin";
-import { invoke } from "@tauri-apps/api";
+import { invoke } from "@tauri-apps/api/core";
 
 /**
  * 获取系统文件（夹）的信息

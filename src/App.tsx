@@ -1,24 +1,19 @@
 import { HappyProvider } from "@ant-design/happy-work-theme";
-import { open } from "@tauri-apps/api/shell";
-import { appWindow } from "@tauri-apps/api/window";
+import { listen } from "@tauri-apps/api/event";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { error } from "@tauri-apps/plugin-log";
+import { open } from "@tauri-apps/plugin-shell";
 import { ConfigProvider, theme } from "antd";
+import { isString } from "lodash-es";
 import { RouterProvider } from "react-router-dom";
 import { useSnapshot } from "valtio";
+
 const { defaultAlgorithm, darkAlgorithm } = theme;
-import { listen } from "@tauri-apps/api/event";
-import { isString } from "lodash-es";
-import { error } from "tauri-plugin-log-api";
 
 const App = () => {
 	const { appearance } = useSnapshot(globalStore);
 
 	useMount(() => {
-		// 处理系统主题变化
-		handleSystemThemeChanged();
-
-		// 监听系统主题的变化
-		appWindow.onThemeChanged(handleSystemThemeChanged);
-
 		// 生成 antd 的颜色变量
 		generateColorVars();
 
@@ -36,6 +31,8 @@ const App = () => {
 
 		// 监听显示窗口的事件
 		listen(LISTEN_KEY.SHOW_WINDOW, ({ payload }) => {
+			const appWindow = getCurrentWebviewWindow();
+
 			if (appWindow.label !== payload) return;
 
 			showWindow();
@@ -44,15 +41,6 @@ const App = () => {
 		// 监听关闭数据库的事件
 		listen(LISTEN_KEY.CLOSE_DATABASE, closeDatabase);
 	});
-
-	// 处理系统主题变化
-	const handleSystemThemeChanged = async () => {
-		if (globalStore.appearance.theme !== "auto") return;
-
-		const systemTheme = await appWindow.theme();
-
-		globalStore.appearance.isDark = systemTheme === "dark";
-	};
 
 	// 生产环境禁用默认的右键菜单
 	useEventListener("contextmenu", (event) => {

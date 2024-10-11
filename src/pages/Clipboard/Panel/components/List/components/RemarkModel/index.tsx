@@ -11,6 +11,7 @@ interface FormFields {
 	remark: string;
 }
 
+// TODO: 添加国际化
 const RemarkModal = forwardRef<RemarkModalRef>((_, ref) => {
 	const { state } = useContext(ClipboardPanelContext);
 	const [open, { toggle }] = useBoolean();
