@@ -1,4 +1,4 @@
-import { appWindow } from "@tauri-apps/api/window";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 
 interface Props {
 	onFocus?: () => void;
@@ -26,6 +26,8 @@ export const useFocus = (props: Props) => {
 	);
 
 	useMount(async () => {
+		const appWindow = getCurrentWebviewWindow();
+
 		state.unlisten = await appWindow.onFocusChanged(run);
 	});
 

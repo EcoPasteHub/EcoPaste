@@ -1,0 +1,19 @@
+[package]
+name = "tauri-plugin-eco-macos-permissions"
+version = "0.1.0"
+authors = []
+description = ""
+edition = "2021"
+rust-version = "1.77.2"
+links = "tauri-plugin-eco-macos-permissions"
+
+[dependencies]
+tauri = { version = "2.0.2" }
+serde = "1.0"
+
+[target."cfg(target_os = \"macos\")".dependencies]
+macos-accessibility-client = "0.0.1"
+
+[build-dependencies]
+tauri-plugin = { version = "2.0.1", features = ["build"] }
+

@@ -1,6 +1,6 @@
-import { invoke } from "@tauri-apps/api";
+import { invoke } from "@tauri-apps/api/core";
 import { homeDir } from "@tauri-apps/api/path";
-import { error as logError } from "tauri-plugin-log-api";
+import { error as logError } from "@tauri-apps/plugin-log";
 
 /**
  * 检查辅助功能权限
@@ -26,14 +26,12 @@ export const requestAccessibilityPermissions = () => {
 export const checkFullDiskAccessPermissions = async () => {
 	if (!isMac()) return true;
 
-	const homePath = await homeDir();
-
 	try {
 		// https://github.com/inket/FullDiskAccess/blob/846e04ea2b84fce843f47d7e7f3421189221829c/Sources/FullDiskAccess/FullDiskAccess.swift#L46
 		const checkDirs = ["Library/Containers/com.apple.stocks", "Library/Safari"];
 
-		for (const dir of checkDirs) {
-			const { size } = await metadata(`${homePath}${dir}`);
+		for await (const dir of checkDirs) {
+			const { size } = await metadata(joinPath(await homeDir(), dir));
 
 			if (size === 0) continue;
 

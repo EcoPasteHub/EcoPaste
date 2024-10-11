@@ -81,7 +81,7 @@ const ProShortcut: FC<ProShortcutProps> = (props) => {
 		}
 	};
 
-	const handleKeyUp = async (event: KeyboardEvent) => {
+	const handleKeyUp = (event: KeyboardEvent) => {
 		const key = getEventKey(event);
 
 		remove(state.value, { key });

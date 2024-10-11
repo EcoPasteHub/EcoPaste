@@ -1,55 +1,64 @@
 import type { ClipboardItem } from "@/types/database";
 import type { ClipboardPayload, ReadImage, WinOCR } from "@/types/plugin";
-import { invoke } from "@tauri-apps/api";
+import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { isEmpty, isEqual } from "lodash-es";
 
 /**
  * 开启监听
  */
-export const startListen = async () => {
-	invoke(CLIPBOARD_PLUGIN.START_LISTEN);
+export const startListen = () => {
+	return invoke(CLIPBOARD_PLUGIN.START_LISTEN);
 };
 
 /**
  * 停止监听
  */
-export const stopListen = async () => {
-	invoke(CLIPBOARD_PLUGIN.STOP_LISTEN);
+export const stopListen = () => {
+	return invoke(CLIPBOARD_PLUGIN.STOP_LISTEN);
+};
+
+// 切换监听
+export const toggleListen = (value: boolean) => {
+	if (value) {
+		startListen();
+	} else {
+		stopListen();
+	}
 };
 
 /**
  * 剪贴板是否有文件
  */
-export const hasFiles = async () => {
+export const hasFiles = () => {
 	return invoke<boolean>(CLIPBOARD_PLUGIN.HAS_FILES);
 };
 
 /**
  * 剪贴板是否有图像
  */
-export const hasImage = async () => {
+export const hasImage = () => {
 	return invoke<boolean>(CLIPBOARD_PLUGIN.HAS_IMAGE);
 };
 
 /**
  * 剪贴板是否有 HTML 内容
  */
-export const hasHTML = async () => {
+export const hasHTML = () => {
 	return invoke<boolean>(CLIPBOARD_PLUGIN.HAS_HTML);
 };
 
 /**
  * 剪贴板是否有富文本
  */
-export const hasRTF = async () => {
+export const hasRTF = () => {
 	return invoke<boolean>(CLIPBOARD_PLUGIN.HAS_RTF);
 };
 
 /**
  * 剪贴板是否有纯文本
  */
-export const hasText = async () => {
+export const hasText = () => {
 	return invoke<boolean>(CLIPBOARD_PLUGIN.HAS_TEXT);
 };
 
@@ -297,7 +306,7 @@ export const onClipboardUpdate = (
  * 将数据写入剪切板
  * @param data 数据
  */
-export const writeClipboard = async (data?: ClipboardItem) => {
+export const writeClipboard = (data?: ClipboardItem) => {
 	if (!data) return;
 
 	const { type, value, search } = data;
@@ -336,5 +345,5 @@ export const pasteClipboard = async (data?: ClipboardItem, plain = false) => {
 		await writeClipboard(data);
 	}
 
-	paste();
+	return paste();
 };

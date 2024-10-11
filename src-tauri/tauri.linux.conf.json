@@ -1,16 +1,18 @@
 {
-	"tauri": {
-		"allowlist": {
-			"protocol": {
-				"asset": true,
-				"assetScope": {
+	"identifier": "com.ayangweb.EcoPaste",
+	"app": {
+		"security": {
+			"assetProtocol": {
+				"enable": true,
+				"scope": {
 					"allow": ["**/*"],
 					"requireLiteralLeadingDot": false
 				}
 			}
-		},
-		"bundle": {
-			"identifier": "com.ayangweb.EcoPaste",
+		}
+	},
+	"bundle": {
+		"linux": {
 			"deb": {
 				"depends": ["gstreamer1.0-plugins-good"],
 				"desktopTemplate": "./EcoPaste.desktop"

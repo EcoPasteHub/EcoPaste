@@ -1,0 +1,19 @@
+[package]
+name = "tauri-plugin-eco-backup"
+version = "0.1.0"
+authors = []
+description = ""
+edition = "2021"
+rust-version = "1.77.2"
+links = "tauri-plugin-eco-backup"
+
+[dependencies]
+tauri = { version = "2.0.2" }
+serde = "1.0"
+flate2 = "1.0.34"
+tar = "0.4.42"
+fs_extra = "1.3.0"
+tauri-plugin-eco-fs-extra = { path = "../fs-extra" }
+
+[build-dependencies]
+tauri-plugin = { version = "2.0.1", features = ["build"] }

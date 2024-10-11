@@ -5,9 +5,8 @@ import type {
 	TablePayload,
 } from "@/types/database";
 import { getName } from "@tauri-apps/api/app";
-import { removeFile } from "@tauri-apps/api/fs";
+import Database from "@tauri-apps/plugin-sql";
 import { find, isBoolean, isNil, map, omitBy, some } from "lodash-es";
-import Database from "tauri-plugin-sql-api";
 
 let db: Database | null;
 
@@ -144,13 +143,10 @@ export const selectSQL = async <List,>(
  * @param tableName 表名称
  * @param payload 添加的数据
  */
-export const insertSQL = async (
-	tableName: TableName,
-	payload: TablePayload,
-) => {
+export const insertSQL = (tableName: TableName, payload: TablePayload) => {
 	const { keys, values, refs } = handlePayload(payload);
 
-	await executeSQL(
+	return executeSQL(
 		`INSERT INTO ${tableName} (${keys}) VALUES (${refs});`,
 		values,
 	);
@@ -161,17 +157,14 @@ export const insertSQL = async (
  * @param tableName 表名称
  * @param payload 修改的数据
  */
-export const updateSQL = async (
-	tableName: TableName,
-	payload: TablePayload,
-) => {
+export const updateSQL = (tableName: TableName, payload: TablePayload) => {
 	const { id, ...rest } = payload;
 
 	const { keys, values } = handlePayload(rest);
 
 	const setClause = map(keys, (item) => `${item} = ?`);
 
-	await executeSQL(
+	return executeSQL(
 		`UPDATE ${tableName} SET ${setClause} WHERE id = ?;`,
 		values.concat(id!),
 	);
@@ -191,7 +184,7 @@ export const deleteSQL = async (tableName: TableName, id: string) => {
 
 	if (type !== "image") return;
 
-	removeFile(getSaveImagePath(value));
+	return removeFile(getSaveImagePath(value));
 };
 
 /**

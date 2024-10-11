@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-move-data"
+description = "Enables the move_data command without any pre-configured scope."
+commands.allow = ["move_data"]
+
+[[permission]]
+identifier = "deny-move-data"
+description = "Denies the move_data command without any pre-configured scope."
+commands.deny = ["move_data"]

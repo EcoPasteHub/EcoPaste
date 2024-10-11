@@ -18,8 +18,7 @@
 			"nursery": {
 				"useSortedClasses": {
 					"level": "error",
-					"fix": "safe",
-					"options": {}
+					"fix": "safe"
 				}
 			},
 			"style": {
@@ -45,5 +44,8 @@
 				"useMediaCaption": "off"
 			}
 		}
+	},
+	"files": {
+		"ignore": ["**/schema.json"]
 	}
 }
