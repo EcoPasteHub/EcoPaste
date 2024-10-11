@@ -107,6 +107,6 @@ export const UPDATER_PLUGIN = {
 	CHECK_UPDATE: "plugin:updater|check_update",
 };
 
-export const TRAY_ID = "EcoPaste-tray";
+export const TRAY_ID = "app-tray";
 
-export const UPDATE_MESSAGE_KEY = "EcoPaste-update-message";
+export const UPDATE_MESSAGE_KEY = "app-update-message";
