@@ -106,3 +106,5 @@ export const WINDOW_LABEL = {
 export const UPDATER_PLUGIN = {
 	CHECK_UPDATE: "plugin:updater|check_update",
 };
+
+export const TRAY_ID = "EcoPaste-tray";

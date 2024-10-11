@@ -5,21 +5,18 @@ import { TrayIcon, type TrayIconOptions } from "@tauri-apps/api/tray";
 import { exit } from "@tauri-apps/plugin-process";
 import { open } from "@tauri-apps/plugin-shell";
 
-interface State {
-	tray?: TrayIcon;
-}
-
 const Tray = () => {
 	const navigate = useNavigate();
-	const state = useReactive<State>({});
 	const [startListen, { toggle }] = useBoolean(true);
 
 	useMount(async () => {
 		await createTrayIcon();
 
 		// 监听是否显示菜单栏图标
-		watchKey(globalStore.app, "showMenubarIcon", (value) => {
-			state.tray?.setVisible(value);
+		watchKey(globalStore.app, "showMenubarIcon", async (value) => {
+			const tray = await getTrayById();
+
+			tray?.setVisible(value);
 		});
 
 		// 监听语言变更
@@ -32,8 +29,17 @@ const Tray = () => {
 		emit(LISTEN_KEY.TOGGLE_LISTEN_CLIPBOARD, startListen);
 	}, [startListen]);
 
+	// 通过 id 获取托盘图标
+	const getTrayById = () => {
+		return TrayIcon.getById(TRAY_ID);
+	};
+
 	// 创建托盘图标
 	const createTrayIcon = async () => {
+		const tray = await getTrayById();
+
+		if (tray) return;
+
 		const { appName, appVersion } = globalStore.env;
 
 		const menu = await getTrayMenu();
@@ -44,8 +50,10 @@ const Tray = () => {
 		const options: TrayIconOptions = {
 			menu,
 			icon,
+			id: TRAY_ID,
 			tooltip: `${appName} v${appVersion}`,
 			iconAsTemplate: true,
+			menuOnLeftClick: isMac(),
 			action: (event) => {
 				if (isMac()) return;
 
@@ -55,14 +63,14 @@ const Tray = () => {
 			},
 		};
 
-		state.tray = await TrayIcon.new(options);
+		return TrayIcon.new(options);
 	};
 
 	// 获取托盘菜单
 	const getTrayMenu = async () => {
 		const { appVersion } = globalStore.env;
 
-		// TODO：添加国际化
+		// TODO: 添加国际化
 		const items = await Promise.all([
 			MenuItem.new({
 				text: "偏好设置",
@@ -109,11 +117,13 @@ const Tray = () => {
 
 	// 更新托盘菜单
 	const updateTrayMenu = async () => {
-		if (!state.tray) return;
+		const tray = await getTrayById();
+
+		if (!tray) return;
 
 		const menu = await getTrayMenu();
 
-		state.tray.setMenu(menu);
+		tray.setMenu(menu);
 	};
 
 	return <></>;
