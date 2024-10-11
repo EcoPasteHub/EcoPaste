@@ -17,7 +17,7 @@ const Preference = () => {
 	const { shortcut } = useSnapshot(globalStore);
 	const { t } = useTranslation();
 
-	useMount(async () => {
+	useMount(() => {
 		const appWindow = getCurrentWebviewWindow();
 
 		// 监听全局状态变化

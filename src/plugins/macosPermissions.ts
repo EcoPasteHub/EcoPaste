@@ -30,7 +30,7 @@ export const checkFullDiskAccessPermissions = async () => {
 		// https://github.com/inket/FullDiskAccess/blob/846e04ea2b84fce843f47d7e7f3421189221829c/Sources/FullDiskAccess/FullDiskAccess.swift#L46
 		const checkDirs = ["Library/Containers/com.apple.stocks", "Library/Safari"];
 
-		for (const dir of checkDirs) {
+		for await (const dir of checkDirs) {
 			const { size } = await metadata(joinPath(await homeDir(), dir));
 
 			if (size === 0) continue;

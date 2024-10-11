@@ -72,14 +72,14 @@ const Item: FC<ItemProps> = (props) => {
 	};
 
 	// 打开链接至浏览器
-	const openBrowser = async () => {
+	const openBrowser = () => {
 		const url = value.startsWith("http") ? value : `http://${value}`;
 
 		open(url);
 	};
 
 	// 发送邮件
-	const sendEmail = async () => {
+	const sendEmail = () => {
 		open(`mailto:${value}`);
 	};
 
@@ -134,8 +134,8 @@ const Item: FC<ItemProps> = (props) => {
 	};
 
 	// 粘贴
-	const pasteValue = async () => {
-		pasteClipboard(data);
+	const pasteValue = () => {
+		return pasteClipboard(data);
 	};
 
 	// 选中下一个或者上一个

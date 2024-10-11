@@ -110,7 +110,7 @@ const UpdateApp = () => {
 		);
 	};
 
-	const handleOk = async () => {
+	const handleOk = () => {
 		state.loading = true;
 
 		state.update?.downloadAndInstall((progress) => {

@@ -50,7 +50,7 @@ const ClipboardPanel = () => {
 		startListen();
 
 		// 监听剪切板更新
-		onClipboardUpdate(async (payload) => {
+		onClipboardUpdate((payload) => {
 			if (clipboardStore.audio.copy) {
 				audioRef.current?.play();
 			}
