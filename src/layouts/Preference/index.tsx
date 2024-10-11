@@ -57,9 +57,11 @@ const Preference = () => {
 
 		// 监听主题变更
 		watchKey(globalStore.appearance, "theme", async (value) => {
-			appWindow.setTheme(value === "auto" ? null : value);
+			let nextTheme = value === "auto" ? null : value;
 
-			const nextTheme = value ?? (await appWindow.theme());
+			await appWindow.setTheme(nextTheme);
+
+			nextTheme = nextTheme ?? (await appWindow.theme());
 
 			globalStore.appearance.isDark = nextTheme === "dark";
 		});
