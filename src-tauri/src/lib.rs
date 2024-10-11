@@ -11,8 +11,6 @@ pub const AUTO_LAUNCH_ARG: &str = "--auto-launch";
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let mut context = generate_context!();
-
     let app = Builder::default()
         .setup(|app| {
             let main_window = app.get_webview_window(MAIN_WINDOW_LABEL).unwrap();
@@ -25,8 +23,6 @@ pub fn run() {
         })
         // 系统 shell 插件：https://github.com/tauri-apps/tauri-plugin-shell
         .plugin(tauri_plugin_shell::init())
-        // 主题插件：https://github.com/wyhaya/tauri-plugin-theme
-        .plugin(tauri_plugin_theme::init(context.config_mut()))
         // 确保在 windows 和 linux 上只有一个 app 实例在运行：https://github.com/tauri-apps/plugins-workspace/tree/v2/plugins/single-instance
         .plugin(tauri_plugin_single_instance::init(
             |app_handle, _argv, _cwd| {
@@ -107,7 +103,7 @@ pub fn run() {
             _ => {}
         })
         .invoke_handler(tauri::generate_handler![])
-        .build(context)
+        .build(generate_context!())
         .expect("error while running tauri application");
 
     app.run(|app_handle, event| match event {

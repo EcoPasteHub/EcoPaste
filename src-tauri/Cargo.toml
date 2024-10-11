@@ -32,7 +32,6 @@ tauri-plugin-os = "2.0.1"
 tauri-plugin-dialog = "2.0.1"   
 tauri-plugin-fs = "2.0.1"
 tauri-plugin-updater = "2.0.2"
-tauri-plugin-theme = "2.1.2"
 tauri-plugin-process = "2.0.1"
 tauri-plugin-eco-window = { path =  "./src/plugins/window" }
 tauri-plugin-eco-macos-permissions = { path = "./src/plugins/macos-permissions" }

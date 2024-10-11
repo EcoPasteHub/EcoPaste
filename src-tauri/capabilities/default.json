@@ -9,6 +9,7 @@
 		"core:window:allow-set-title",
 		"core:window:allow-set-position",
 		"core:window:allow-start-dragging",
+		"core:window:allow-set-theme",
 		"shell:default",
 		{
 			"identifier": "shell:allow-execute",
@@ -27,7 +28,6 @@
 			"identifier": "fs:scope",
 			"allow": ["**/*"]
 		},
-		"theme:default",
 		"autostart:allow-enable",
 		"autostart:allow-disable",
 		"autostart:allow-is-enabled",

@@ -11,7 +11,6 @@ import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart";
 import { Flex } from "antd";
 import clsx from "clsx";
 import { subscribe, useSnapshot } from "valtio";
-import { subscribeKey } from "valtio/utils";
 
 const Preference = () => {
 	const { pathname } = useLocation();
@@ -57,16 +56,19 @@ const Preference = () => {
 		});
 
 		// 监听主题变更
-		subscribeKey(globalStore.appearance, "theme", async (value) => {
-			let nextTheme = value;
+		watchKey(globalStore.appearance, "theme", async (value) => {
+			appWindow.setTheme(value === "auto" ? null : value);
 
-			if (nextTheme === "auto") {
-				nextTheme = (await appWindow.theme()) ?? "light";
-			}
+			const nextTheme = value ?? (await appWindow.theme());
 
 			globalStore.appearance.isDark = nextTheme === "dark";
+		});
 
-			setTheme(value);
+		// 监听系统主题的变化
+		appWindow.onThemeChanged(async () => {
+			if (globalStore.appearance.theme !== "auto") return;
+
+			globalStore.appearance.isDark = (await appWindow.theme()) === "dark";
 		});
 	});
 

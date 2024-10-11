@@ -15,12 +15,6 @@ const App = () => {
 	const { appearance } = useSnapshot(globalStore);
 
 	useMount(() => {
-		// 处理系统主题变化
-		handleSystemThemeChanged();
-
-		// 监听系统主题的变化
-		appWindow.onThemeChanged(handleSystemThemeChanged);
-
 		// 生成 antd 的颜色变量
 		generateColorVars();
 
@@ -46,15 +40,6 @@ const App = () => {
 		// 监听关闭数据库的事件
 		listen(LISTEN_KEY.CLOSE_DATABASE, closeDatabase);
 	});
-
-	// 处理系统主题变化
-	const handleSystemThemeChanged = async () => {
-		if (globalStore.appearance.theme !== "auto") return;
-
-		const systemTheme = await appWindow.theme();
-
-		globalStore.appearance.isDark = systemTheme === "dark";
-	};
 
 	// 生产环境禁用默认的右键菜单
 	useEventListener("contextmenu", (event) => {
