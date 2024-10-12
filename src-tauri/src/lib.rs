@@ -1,11 +1,12 @@
 mod core;
 
 use core::setup;
+use fern::colors::{Color, ColoredLevelConfig};
+use log::LevelFilter;
 use tauri::{generate_context, Builder, Manager, WindowEvent};
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_eco_window::{show_main_window, MAIN_WINDOW_LABEL, PREFERENCE_WINDOW_LABEL};
 use tauri_plugin_log::{Target, TargetKind};
-// use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 
 pub const AUTO_LAUNCH_ARG: &str = "--auto-launch";
 
@@ -44,6 +45,10 @@ pub fn run() {
                     Target::new(TargetKind::LogDir { file_name: None }),
                     Target::new(TargetKind::Webview),
                 ])
+                // 日志级别
+                .level(LevelFilter::Info)
+                // .level(LevelFilter::Trace)
+                .format(log_formatter)
                 .build(),
         )
         // TODO: 窗口状态插件
@@ -122,4 +127,34 @@ pub fn run() {
             let _ = app_handle;
         }
     });
+}
+
+/// 日志格式配置
+/// 
+/// 参考：fern-0.6.2/src/colors.rs#L275
+/// 参考：fern-0.6.2/src/colors.rs#L89
+/// 参考：fern-0.6.2/src/colors.rs#L263
+fn log_formatter(
+    out: fern::FormatCallback<'_>,
+    message: &std::fmt::Arguments<'_>,
+    record: &log::Record<'_>,
+) {
+    let colors = ColoredLevelConfig::new()
+        // use builder methods
+        .trace(Color::BrightBlack)
+        .debug(Color::BrightWhite)
+        .info(Color::Green)
+        .warn(Color::Yellow)
+        .error(Color::Red);
+    let level = record.level();
+    
+    let color: Color = colors.get_color(&level);
+    let time = chrono::Local::now().format("%Y-%m-%d %H:%M:%S");
+    let function = record.target();
+    let line_no = record.line().unwrap_or(0);
+    out.finish(format_args!(
+        "\x1B[{}m{}\x1B[0m",
+        color.to_fg_str(),
+        format!("{} [{:<5}] {}#{}:{}", time, level, function, line_no, message)
+    ));
 }

@@ -33,6 +33,9 @@ tauri-plugin-dialog = "2.0.1"
 tauri-plugin-fs = "2.0.1"
 tauri-plugin-updater = "2.0.2"
 tauri-plugin-process = "2.0.1"
+log = "0.4.22"
+chrono = "0.4.38"
+fern = { version = "0.6.0", features = ["colored"] }
 tauri-plugin-eco-window.workspace = true
 tauri-plugin-eco-macos-permissions.workspace = true
 tauri-plugin-eco-mouse.workspace = true
