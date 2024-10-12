@@ -11,6 +11,7 @@ fs_extra = "1.3.0"
 log = "0.4.22"
 cocoa = "0.25.0"
 tauri-plugin-shell = "2.0.1"
+tauri-plugin = { version = "2.0.1", features = ["build"] }
 tauri-plugin-eco-window = { path = "./src-tauri/src/plugins/window" }
 tauri-plugin-eco-macos-permissions = { path = "./src-tauri/src/plugins/macos-permissions" }
 tauri-plugin-eco-mouse = { path = "./src-tauri/src/plugins/mouse" }
@@ -20,4 +21,3 @@ tauri-plugin-eco-locale = { path = "./src-tauri/src/plugins/locale" }
 tauri-plugin-eco-clipboard = { path = "./src-tauri/src/plugins/clipboard" }
 tauri-plugin-eco-ocr = { path = "./src-tauri/src/plugins/ocr" }
 tauri-plugin-eco-paste = { path = "./src-tauri/src/plugins/paste" }
-tauri-plugin = { version = "2.0.1", features = ["build"] }
