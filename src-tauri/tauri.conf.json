@@ -46,6 +46,7 @@
 			}
 		],
 		"security": {
+			"csp": null,
 			"dangerousDisableAssetCspModification": true,
 			"assetProtocol": {
 				"enable": true,
@@ -53,12 +54,12 @@
 					"allow": ["**/*"],
 					"requireLiteralLeadingDot": false
 				}
-			},
-			"csp": null
+			}
 		}
 	},
 	"bundle": {
 		"active": true,
+		"createUpdaterArtifacts": true,
 		"targets": ["nsis", "dmg", "app", "appimage", "deb", "rpm"],
 		"shortDescription": "EcoPaste",
 		"icon": [
@@ -68,8 +69,7 @@
 			"icons/icon.icns",
 			"icons/icon.ico"
 		],
-		"createUpdaterArtifacts": true,
-		"resources": ["./assets/tray.ico", "./assets/tray-mac.ico"]
+		"resources": ["assets/tray.ico", "assets/tray-mac.ico"]
 	},
 	"plugins": {
 		"updater": {
