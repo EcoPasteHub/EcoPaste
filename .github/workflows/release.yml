@@ -44,7 +44,7 @@ jobs:
         include:
           - platform: "macos-latest"
             target: "aarch64-apple-darwin"
-          - platform: "macos-12"
+          - platform: "macos-latest"
             target: "x86_64-apple-darwin"
 
           - platform: "windows-latest"
