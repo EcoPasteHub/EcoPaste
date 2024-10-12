@@ -44,7 +44,7 @@ const Tray = () => {
 
 		const menu = await getTrayMenu();
 
-		const iconPath = isMac() ? "./assets/tray-mac.ico" : "./assets/tray.ico";
+		const iconPath = isMac() ? "assets/tray-mac.ico" : "assets/tray.ico";
 		const icon = await resolveResource(iconPath);
 
 		const options: TrayIconOptions = {
