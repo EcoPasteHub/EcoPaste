@@ -72,7 +72,7 @@ const Delete = () => {
 			range = [dayjs().subtract(timeRange, "hour"), dayjs()];
 		}
 
-		const formatRange = range.map((item) => item.format("YYYY-MM-DD HH:mm:ss"));
+		const formatRange = range.map((item) => formatDate(item));
 
 		const list = await selectSQL<ClipboardItem[]>("history");
 

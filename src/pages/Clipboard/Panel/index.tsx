@@ -59,7 +59,7 @@ const ClipboardPanel = () => {
 
 			const findItem = find(state.list, { type, value });
 
-			const createTime = dayjs().format("YYYY-MM-DD HH:mm:ss");
+			const createTime = formatDate();
 
 			if (findItem) {
 				const { id } = findItem;

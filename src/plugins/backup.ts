@@ -1,4 +1,3 @@
-import { getName } from "@tauri-apps/api/app";
 import { invoke } from "@tauri-apps/api/core";
 import { emit } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/plugin-dialog";
@@ -7,8 +6,8 @@ import { omit } from "lodash-es";
 /**
  * 备份数据的扩展名
  */
-const getExtension = async () => {
-	const appName = await getName();
+const extname = () => {
+	const { appName } = globalStore.env;
 
 	return `${appName}-backup`;
 };
@@ -24,12 +23,9 @@ export const exportData = async () => {
 
 	await writeFile(getBackupStorePath(), JSON.stringify(content));
 
-	const time = dayjs().format("YYYY_MM_DD_HH_mm_ss");
-	const extension = await getExtension();
-
 	return invoke(BACKUP_PLUGIN.EXPORT_DATA, {
 		srcDir: getSaveDataDir(),
-		fileName: `${time}.${extension}`,
+		fileName: `${formatDate()}.${extname()}`,
 	});
 };
 
@@ -37,10 +33,8 @@ export const exportData = async () => {
  * 导入数据
  */
 export const importData = async () => {
-	const extension = await getExtension();
-
 	const path = await open({
-		filters: [{ name: "", extensions: [extension] }],
+		filters: [{ name: "", extensions: [extname()] }],
 	});
 
 	if (!path) return;
