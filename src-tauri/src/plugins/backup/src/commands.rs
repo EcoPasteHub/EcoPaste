@@ -88,14 +88,12 @@ pub async fn move_data(from: PathBuf, to: PathBuf) -> Result<PathBuf, String> {
                 let file_name = get_file_name(path.clone());
 
                 // 忽略窗口状态插件生成的的文件，无法修改存储路径
-                let skip_files = [".window-state"];
-                if is_file && skip_files.contains(&file_name.as_str()) {
+                if is_file && file_name.starts_with(".window-state") {
                     continue;
                 }
 
                 // 忽略日志插件生成的目录，无法修改存储路径
-                let skip_dirs = ["logs"];
-                if is_dir && skip_dirs.contains(&file_name.as_str()) {
+                if is_dir && file_name == "logs" {
                     continue;
                 }
 
