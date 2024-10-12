@@ -69,7 +69,7 @@ const UpdateApp = () => {
 					version: `v${version}`,
 					currentVersion: `v${currentVersion}`,
 					body: replaceBody(body),
-					date: dayjs.utc(date?.split(" ")?.slice(0, 2)?.join(" ")).local(),
+					date: formatDate(dayjs.utc(date?.split(".")[0]).local()),
 				});
 
 				Object.assign(state, { update, open: true });
@@ -161,9 +161,7 @@ const UpdateApp = () => {
 
 					<Flex align="center">
 						{t("component.app_update.label.release_time")}：
-						<span>
-							{dayjs(state.update?.date).format("YYYY-MM-DD HH:mm:ss")}
-						</span>
+						<span>{state.update?.date}</span>
 					</Flex>
 
 					<Flex vertical>
