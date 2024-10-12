@@ -18,10 +18,10 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2.0.1", features = [] }
 
 [dependencies]
-tauri = { version = "2.0.2", features = [ "tray-icon", "protocol-asset", "macos-private-api", "image-png" ] }
-serde = { version = "1", features = ["derive"] }
+tauri = { workspace = true, features = [ "tray-icon", "protocol-asset", "macos-private-api", "image-png" ] }
+serde = { workspace = true, features = ["derive"] }
 serde_json = "1"
-tauri-plugin-shell = "2.0.1"
+tauri-plugin-shell.workspace = true
 tauri-plugin-single-instance = "2.0.1"
 tauri-plugin-autostart = "2.0.1"
 tauri-plugin-sql = { version = "2.0.1", features = ["sqlite"] }
@@ -33,15 +33,15 @@ tauri-plugin-dialog = "2.0.1"
 tauri-plugin-fs = "2.0.1"
 tauri-plugin-updater = "2.0.2"
 tauri-plugin-process = "2.0.1"
-tauri-plugin-eco-window = { path =  "./src/plugins/window" }
-tauri-plugin-eco-macos-permissions = { path = "./src/plugins/macos-permissions" }
-tauri-plugin-eco-mouse = { path = "./src/plugins/mouse" }
-tauri-plugin-eco-fs-extra = { path = "./src/plugins/fs-extra" }
-tauri-plugin-eco-backup = { path = "./src/plugins/backup" }
-tauri-plugin-eco-locale = { path = "./src/plugins/locale" }
-tauri-plugin-eco-clipboard = { path = "./src/plugins/clipboard" }
-tauri-plugin-eco-ocr = { path = "./src/plugins/ocr" }
-tauri-plugin-eco-paste = { path = "./src/plugins/paste" }
+tauri-plugin-eco-window.workspace = true
+tauri-plugin-eco-macos-permissions.workspace = true
+tauri-plugin-eco-mouse.workspace = true
+tauri-plugin-eco-fs-extra.workspace = true
+tauri-plugin-eco-backup.workspace = true
+tauri-plugin-eco-locale.workspace = true
+tauri-plugin-eco-clipboard.workspace = true
+tauri-plugin-eco-ocr.workspace = true
+tauri-plugin-eco-paste.workspace = true
 
 [target."cfg(target_os = \"macos\")".dependencies]
-cocoa = "0.25.0"
+cocoa.workspace = true
