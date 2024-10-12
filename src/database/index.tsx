@@ -1,12 +1,7 @@
-import type {
-	ClipboardItem,
-	SelectPayload,
-	TableName,
-	TablePayload,
-} from "@/types/database";
+import type { ClipboardItem, TableName, TablePayload } from "@/types/database";
 import { getName } from "@tauri-apps/api/app";
 import Database from "@tauri-apps/plugin-sql";
-import { find, isBoolean, isNil, map, omitBy, some } from "lodash-es";
+import { entries, find, isBoolean, isNil, map, omitBy, some } from "lodash-es";
 
 let db: Database | null;
 
@@ -86,15 +81,19 @@ export const initDatabase = async () => {
 const handlePayload = (payload: TablePayload) => {
 	const omitPayload = omitBy(payload, isNil);
 
-	const keys = map(Object.keys(omitPayload), (key) => `[${key}]`);
-	const refs = map(keys, () => "?");
-	const values = map(Object.values(omitPayload), (item) => {
-		return isBoolean(item) ? Number(item) : item;
-	});
+	const keys = [];
+	const values = [];
+
+	for (const [key, value] of entries(omitPayload)) {
+		keys.push(key === "group" ? "[group]" : key);
+
+		const nextValue = isBoolean(value) ? Number(value) : value;
+
+		values.push(nextValue);
+	}
 
 	return {
 		keys,
-		refs,
 		values,
 	};
 };
@@ -122,23 +121,28 @@ export const executeSQL = async (query: string, values?: unknown[]) => {
  */
 export const selectSQL = async <List,>(
 	tableName: TableName,
-	payload: SelectPayload = {},
+	payload: TablePayload = {},
 ) => {
-	const { exact, ...rest } = payload;
+	const { keys, values } = handlePayload(payload);
 
-	const { keys, values } = handlePayload(rest);
+	const clause = map(keys, (key, index) => {
+		if (key === "search") {
+			const value = `%${payload.search}%`;
 
-	const connector = exact ? "=" : "LIKE";
+			values[index] = value;
+			values.splice(index + 1, 0, value);
 
-	const clause = map(keys, (key) => `${key} ${connector} ?`).join(" AND ");
+			return "(search LIKE ? OR note LIKE ?)";
+		}
+
+		return `${key} = ?`;
+	}).join(" AND ");
 
 	const whereClause = clause ? `WHERE ${clause}` : "";
 
-	const bindValues = exact ? values : values.map((item) => `%${item}%`);
-
 	const list = await executeSQL(
 		`SELECT * FROM ${tableName} ${whereClause} ORDER BY createTime DESC;`,
-		bindValues,
+		values,
 	);
 
 	return (list ?? []) as List;
@@ -150,7 +154,9 @@ export const selectSQL = async <List,>(
  * @param payload 添加的数据
  */
 export const insertSQL = (tableName: TableName, payload: TablePayload) => {
-	const { keys, values, refs } = handlePayload(payload);
+	const { keys, values } = handlePayload(payload);
+
+	const refs = map(values, () => "?");
 
 	return executeSQL(
 		`INSERT INTO ${tableName} (${keys}) VALUES (${refs});`,
@@ -181,12 +187,10 @@ export const updateSQL = (tableName: TableName, payload: TablePayload) => {
  * @param tableName 表名称
  * @param id 删除数据的 id
  */
-export const deleteSQL = async (tableName: TableName, id: string) => {
-	const [item] = await selectSQL<ClipboardItem[]>("history", { id });
+export const deleteSQL = async (tableName: TableName, item: ClipboardItem) => {
+	const { id, type, value } = item;
 
 	await executeSQL(`DELETE FROM ${tableName} WHERE id = ?;`, [id]);
-
-	const { type, value = "" } = item;
 
 	if (type !== "image") return;
 

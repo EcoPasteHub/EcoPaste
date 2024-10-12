@@ -10,7 +10,3 @@ export interface ClipboardItem extends ClipboardPayload {
 }
 
 export type TablePayload = Partial<ClipboardItem>;
-
-export interface SelectPayload extends TablePayload {
-	exact?: boolean;
-}

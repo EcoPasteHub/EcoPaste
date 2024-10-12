@@ -128,9 +128,9 @@ const Item: FC<ItemProps> = (props) => {
 			}
 		}
 
-		remove(state.list, { id });
+		deleteSQL("history", data);
 
-		deleteSQL("history", id);
+		remove(state.list, { id });
 	};
 
 	// 粘贴

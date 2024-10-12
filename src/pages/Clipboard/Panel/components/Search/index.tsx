@@ -14,7 +14,7 @@ const Search: FC<HTMLAttributes<HTMLDivElement>> = (props) => {
 	useEffect(() => {
 		if (isComposition) return;
 
-		state.search = value;
+		state.search = value || void 0;
 	}, [value, isComposition]);
 
 	useFocus({
@@ -42,7 +42,7 @@ const Search: FC<HTMLAttributes<HTMLDivElement>> = (props) => {
 
 			// 搜索框自动清空
 			if (search.autoClear) {
-				setValue(undefined);
+				setValue(void 0);
 			}
 		},
 	});

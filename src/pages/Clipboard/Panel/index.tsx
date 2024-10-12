@@ -161,11 +161,11 @@ const ClipboardPanel = () => {
 
 	// 获取剪切板内容
 	const getList = async () => {
-		const { search, group, favorite } = state;
+		const { group, search, favorite } = state;
 
 		state.list = await selectSQL<ClipboardItem[]>("history", {
-			search,
 			group,
+			search,
 			favorite,
 		});
 	};

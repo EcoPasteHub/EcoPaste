@@ -24,6 +24,7 @@
 		"fs:read-files",
 		"fs:allow-write-file",
 		"fs:allow-copy-file",
+		"fs:allow-remove",
 		{
 			"identifier": "fs:scope",
 			"allow": ["**/*"]
