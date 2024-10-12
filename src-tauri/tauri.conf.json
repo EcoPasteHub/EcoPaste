@@ -48,8 +48,11 @@
 		"security": {
 			"dangerousDisableAssetCspModification": true,
 			"assetProtocol": {
-				"scope": ["**/*"],
-				"enable": true
+				"enable": true,
+				"scope": {
+					"allow": ["**/*"],
+					"requireLiteralLeadingDot": false
+				}
 			},
 			"csp": null
 		}
