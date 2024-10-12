@@ -44,8 +44,5 @@
 				"useMediaCaption": "off"
 			}
 		}
-	},
-	"files": {
-		"ignore": ["**/schema.json"]
 	}
 }
