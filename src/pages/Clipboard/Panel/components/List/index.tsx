@@ -45,7 +45,7 @@ const List = () => {
 	// 始终保持有一个选中
 	useUpdateEffect(() => {
 		if (state.list.length === 0) {
-			state.activeId = undefined;
+			state.activeId = void 0;
 		}
 
 		state.activeId ??= state.list[0]?.id;

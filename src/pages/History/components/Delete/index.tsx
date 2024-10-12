@@ -77,7 +77,7 @@ const Delete = () => {
 		const list = await selectSQL<ClipboardItem[]>("history");
 
 		for await (const item of list) {
-			const { id, favorite, createTime } = item;
+			const { favorite, createTime } = item;
 
 			if (favorite && !deleteFavorite) continue;
 
@@ -89,7 +89,7 @@ const Delete = () => {
 			);
 
 			if (timeRange === 0 || isBetween) {
-				await deleteSQL("history", id);
+				await deleteSQL("history", item);
 			}
 		}
 

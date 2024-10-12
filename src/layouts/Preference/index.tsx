@@ -87,12 +87,12 @@ const Preference = () => {
 			const list = await selectSQL<ClipboardItem[]>("history");
 
 			for (const item of list) {
-				const { id, createTime, favorite } = item;
+				const { createTime, favorite } = item;
 
 				if (dayjs().diff(createTime, "days") >= duration * unit) {
 					if (favorite) continue;
 
-					deleteSQL("history", id);
+					deleteSQL("history", item);
 				}
 			}
 		},
