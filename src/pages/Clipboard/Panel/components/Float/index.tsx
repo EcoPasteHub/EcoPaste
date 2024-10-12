@@ -11,7 +11,12 @@ const Float = () => {
 	const { search } = useSnapshot(clipboardStore);
 
 	return (
-		<div className={clsx("h-screen bg-1", { "rounded-10": !isWin() })}>
+		<div
+			className={clsx("h-screen bg-1", {
+				"rounded-10": !isWin(),
+				"b b-color-1": isLinux(),
+			})}
+		>
 			<Flex
 				data-tauri-drag-region
 				vertical
