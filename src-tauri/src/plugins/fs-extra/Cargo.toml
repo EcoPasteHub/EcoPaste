@@ -8,12 +8,12 @@ rust-version = "1.77.2"
 links = "tauri-plugin-eco-fs-extra"
 
 [dependencies]
-tauri = { version = "2.0.2" }
-serde = "1.0"
-fs_extra = "1.3.0"
+tauri.workspace = true
+serde.workspace = true
+fs_extra.workspace = true
 
 [build-dependencies]
-tauri-plugin = { version = "2.0.1", features = ["build"] }
+tauri-plugin.workspace = true
 
 [target."cfg(target_os = \"linux\")".dependencies]
 showfile = "0.1.1"
