@@ -1,16 +1,5 @@
 {
 	"identifier": "com.ayangweb.EcoPaste",
-	"app": {
-		"security": {
-			"assetProtocol": {
-				"enable": true,
-				"scope": {
-					"allow": ["**/*"],
-					"requireLiteralLeadingDot": false
-				}
-			}
-		}
-	},
 	"bundle": {
 		"linux": {
 			"deb": {
