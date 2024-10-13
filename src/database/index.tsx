@@ -10,8 +10,8 @@ let db: Database | null;
  */
 export const initDatabase = async () => {
 	const appName = await getName();
-	const ext = isDev() ? "dev.db" : "db";
-	const path = joinPath(getSaveDataDir(), `${appName}.${ext}`);
+	const extname = isDev() ? "dev.db" : "db";
+	const path = joinPath(getSaveDataDir(), `${appName}.${extname}`);
 
 	db = await Database.load(`sqlite:${path}`);
 

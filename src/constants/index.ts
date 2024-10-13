@@ -27,7 +27,7 @@ export const WINDOW_PLUGIN = {
 
 export const FS_EXTRA_PLUGIN = {
 	METADATA: "plugin:eco-fs-extra|metadata",
-	PREVIEW_PATH: "plugin:eco-fs-extra|preview_path",
+	OPEN_PATH: "plugin:eco-fs-extra|open_path",
 };
 
 export const CLIPBOARD_PLUGIN = {

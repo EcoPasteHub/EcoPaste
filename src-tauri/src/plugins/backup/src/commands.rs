@@ -10,7 +10,7 @@ use std::{
 };
 use tar::Archive;
 use tauri::{command, path::BaseDirectory, AppHandle, Manager, Runtime};
-use tauri_plugin_eco_fs_extra::{get_file_name, preview_path};
+use tauri_plugin_eco_fs_extra::{get_file_name, open_path};
 
 // 导出数据
 #[command]
@@ -40,9 +40,7 @@ pub async fn export_data<R: Runtime>(
 
     tar.finish()?;
 
-    preview_path(dst_path.to_str().unwrap(), true)
-        .await
-        .unwrap();
+    let _ = open_path(app_handle, dst_path.to_str().unwrap(), true).await;
 
     Ok(())
 }

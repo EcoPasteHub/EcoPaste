@@ -1,24 +1,8 @@
 use fs_extra::dir::get_size;
+use showfile::show_path_in_file_manager;
 use std::path::PathBuf;
-use tauri::command;
-
-#[cfg(target_os = "macos")]
-mod mac;
-
-#[cfg(target_os = "windows")]
-mod win;
-
-#[cfg(target_os = "linux")]
-mod linux;
-
-#[cfg(target_os = "macos")]
-pub use mac::*;
-
-#[cfg(target_os = "windows")]
-pub use win::*;
-
-#[cfg(target_os = "linux")]
-pub use linux::*;
+use tauri::{command, AppHandle, Runtime};
+use tauri_plugin_shell::ShellExt;
 
 #[derive(Debug, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -53,4 +37,22 @@ pub async fn metadata(path: PathBuf) -> Result<Metadata, String> {
         is_exist,
         file_name,
     })
+}
+
+// 在默认程序或者文件资源管理器打开指定路径
+#[command]
+pub async fn open_path<R: Runtime>(
+    app_handle: AppHandle<R>,
+    path: &str,
+    finder: bool,
+) -> Result<(), String> {
+    if finder {
+        show_path_in_file_manager(path);
+    } else {
+        let shell = app_handle.shell();
+
+        shell.open(path, None).map_err(|err| err.to_string())?;
+    }
+
+    Ok(())
 }
