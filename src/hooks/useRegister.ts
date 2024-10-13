@@ -15,15 +15,17 @@ export const useRegister = (
 	useAsyncEffect(async () => {
 		const [shortcuts] = deps;
 
-		if (!shortcuts) return;
-
 		for await (const shortcut of castArray(oldShortcuts)) {
+			if (!shortcut) continue;
+
 			const registered = await isRegistered(shortcut);
 
 			if (registered) {
 				await unregister(shortcut);
 			}
 		}
+
+		if (!shortcuts) return;
 
 		await register(shortcuts, (event) => {
 			if (event.state === "Released") return;
