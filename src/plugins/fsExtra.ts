@@ -12,12 +12,12 @@ export const metadata = (path: string) => {
 };
 
 /**
- * 预览文件
+ * 在默认程序中或者文件资源管理器指定路径
  * @param path 文件路径
  * @param finder 是否在 finder（文件资源管理器） 中打开，false 是用文件默认的程序打开
  */
-export const previewPath = (path: string, finder = true) => {
-	return invoke(FS_EXTRA_PLUGIN.PREVIEW_PATH, {
+export const openPath = (path: string, finder = true) => {
+	return invoke(FS_EXTRA_PLUGIN.OPEN_PATH, {
 		path,
 		finder,
 	});

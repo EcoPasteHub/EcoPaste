@@ -85,37 +85,37 @@ const Item: FC<ItemProps> = (props) => {
 
 	// 导出文件
 	const exportFile = async () => {
-		const ext = type === "text" ? "txt" : type;
-		const fileName = `${env.appName}_${id}.${ext}`;
-		const destination = joinPath(await downloadDir(), fileName);
+		const extname = type === "text" ? "txt" : type;
+		const fileName = `${env.appName}_${id}.${extname}`;
+		const path = joinPath(await downloadDir(), fileName);
 
-		await writeFile(destination, value);
+		await writeFile(path, value);
 
-		previewPath(destination);
+		openPath(path);
 	};
 
 	// 预览
 	const preview = () => {
 		if (type !== "image") return;
 
-		previewPath(value, false);
+		openPath(value, false);
 	};
 
 	// 下载图片
 	const downloadImage = async () => {
 		const fileName = `${env.appName}_${id}.png`;
-		const destination = joinPath(await downloadDir(), fileName);
+		const path = joinPath(await downloadDir(), fileName);
 
-		await copyFile(value, destination);
+		await copyFile(value, path);
 
-		previewPath(destination);
+		openPath(path);
 	};
 
 	// 打开文件至访达
 	const openFinder = () => {
 		const [file] = JSON.parse(value);
 
-		previewPath(file);
+		openPath(file);
 	};
 
 	// 删除条目

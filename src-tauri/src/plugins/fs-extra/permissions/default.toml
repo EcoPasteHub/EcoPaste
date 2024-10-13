@@ -2,4 +2,4 @@
 
 [default]
 description = "Default permissions for the plugin"
-permissions = ["allow-metadata", "allow-preview-path"]
+permissions = ["allow-metadata", "allow-open-path"]

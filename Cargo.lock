@@ -5609,6 +5609,7 @@ dependencies = [
  "showfile",
  "tauri",
  "tauri-plugin",
+ "tauri-plugin-shell",
 ]
 
 [[package]]

@@ -60,7 +60,7 @@ const SavePath: FC<{ state: State }> = (props) => {
 		return (
 			<span
 				className="hover:color-primary cursor-pointer break-all transition"
-				onMouseDown={() => previewPath(path, false)}
+				onMouseDown={() => openPath(path, false)}
 			>
 				{joinPath(path)}
 			</span>
