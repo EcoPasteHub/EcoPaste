@@ -1,8 +1,8 @@
 import type { AudioRef } from "@/components/Audio";
 import Audio from "@/components/Audio";
+import { getWebShortcuts } from "@/components/ProShortcut/keys";
 import type { ClipboardItem, TablePayload } from "@/types/database";
 import { listen } from "@tauri-apps/api/event";
-import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import type { EventEmitter } from "ahooks/lib/useEventEmitter";
 import { find, findIndex, isEqual, isNil, last, merge, range } from "lodash-es";
 import { nanoid } from "nanoid";
@@ -135,15 +135,13 @@ const ClipboardPanel = () => {
 	useRegister(toggleWindowVisible, [shortcut.clipboard]);
 
 	// 监听粘贴为纯文本的快捷键
-	useRegister(async () => {
-		const focused = await getCurrentWebviewWindow().isFocused();
-
-		if (!focused) return;
+	useKeyPress(getWebShortcuts(shortcut.pastePlain), (event) => {
+		event.preventDefault();
 
 		const data = find(state.list, { id: state.activeId });
 
 		pasteClipboard(data, true);
-	}, [shortcut.pastePlain]);
+	});
 
 	// 监听快速粘贴的快捷键
 	useRegister(
