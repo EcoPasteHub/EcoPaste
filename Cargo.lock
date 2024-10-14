@@ -1434,6 +1434,7 @@ dependencies = [
  "tauri-plugin-eco-ocr",
  "tauri-plugin-eco-paste",
  "tauri-plugin-eco-window",
+ "tauri-plugin-eco-window-state",
  "tauri-plugin-fs",
  "tauri-plugin-global-shortcut",
  "tauri-plugin-log",
@@ -1443,7 +1444,6 @@ dependencies = [
  "tauri-plugin-single-instance",
  "tauri-plugin-sql",
  "tauri-plugin-updater",
- "tauri-plugin-window-state",
 ]
 
 [[package]]
@@ -5680,6 +5680,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "tauri-plugin-eco-window-state"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-plugin",
+]
+
+[[package]]
 name = "tauri-plugin-fs"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5848,21 +5858,6 @@ dependencies = [
  "url",
  "windows-sys 0.59.0",
  "zip",
-]
-
-[[package]]
-name = "tauri-plugin-window-state"
-version = "2.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fd1cef203a15b4772898e7bc8e57c1f34696e39848987dfcd294d51ba0525650"
-dependencies = [
- "bitflags 2.6.0",
- "log",
- "serde",
- "serde_json",
- "tauri",
- "tauri-plugin",
- "thiserror",
 ]
 
 [[package]]

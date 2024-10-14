@@ -5,7 +5,6 @@ use tauri::{generate_context, Builder, Manager, WindowEvent};
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_eco_window::{show_main_window, MAIN_WINDOW_LABEL, PREFERENCE_WINDOW_LABEL};
 use tauri_plugin_log::{Target, TargetKind};
-// use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 
 pub const AUTO_LAUNCH_ARG: &str = "--auto-launch";
 
@@ -46,13 +45,6 @@ pub fn run() {
                 ])
                 .build(),
         )
-        // TODO: 窗口状态插件
-        // 记住窗口状态的插件：https://github.com/tauri-apps/plugins-workspace/tree/v2/plugins/window-state
-        // .plugin(
-        //     tauri_plugin_window_state::Builder::default()
-        //         .with_state_flags(StateFlags::all() & !StateFlags::VISIBLE)
-        //         .build(),
-        // )
         // 快捷键插件: https://github.com/tauri-apps/tauri-plugin-global-shortcut
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         // 操作系统相关信息插件：https://github.com/tauri-apps/tauri-plugin-os
@@ -83,6 +75,8 @@ pub fn run() {
         .plugin(tauri_plugin_eco_paste::init())
         // 自定义 macos 权限查询的插件
         .plugin(tauri_plugin_eco_macos_permissions::init())
+        // 自定义保存和恢复窗口状态的插件
+        .plugin(tauri_plugin_eco_window_state::init())
         .on_window_event(|window, event| match event {
             // 让 app 保持在后台运行：https://tauri.app/v1/guides/features/system-tray/#preventing-the-app-from-closing
             WindowEvent::CloseRequested { api, .. } => {
@@ -90,16 +84,6 @@ pub fn run() {
 
                 api.prevent_close();
             }
-            // 窗口失焦保存窗口的状态信息
-            // WindowEvent::Focused(focused) => {
-            //     if *focused {
-            //         return;
-            //     }
-
-            //     let app_handle = window.app_handle();
-
-            //     let _ = app_handle.save_window_state(StateFlags::all());
-            // }
             _ => {}
         })
         .invoke_handler(tauri::generate_handler![])

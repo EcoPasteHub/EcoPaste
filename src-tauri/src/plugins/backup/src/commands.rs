@@ -90,12 +90,12 @@ pub async fn move_data(from: PathBuf, to: PathBuf) -> Result<PathBuf, String> {
                 let is_file = path.is_file();
                 let file_name = get_file_name(path.clone());
 
-                // 忽略窗口状态插件生成的的文件，无法修改存储路径
+                // 忽略窗口状态插件生成的的文件
                 if is_file && file_name.starts_with(".window-state") {
                     continue;
                 }
 
-                // 忽略日志插件生成的目录，无法修改存储路径
+                // 忽略日志插件生成的目录
                 if is_dir && file_name == "logs" {
                     continue;
                 }
