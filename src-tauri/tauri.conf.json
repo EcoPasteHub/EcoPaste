@@ -42,7 +42,11 @@
 				"maximizable": false,
 				"hiddenTitle": true,
 				"skipTaskbar": true,
-				"titleBarStyle": "Overlay"
+				"titleBarStyle": "Overlay",
+				"windowEffects": {
+					"effects": ["sidebar"],
+					"state": "active"
+				}
 			}
 		],
 		"security": {
