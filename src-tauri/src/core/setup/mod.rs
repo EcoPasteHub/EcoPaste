@@ -34,8 +34,5 @@ pub fn default(app: &mut App, main_window: WebviewWindow, preference_window: Web
     #[cfg(any(dev, debug_assertions))]
     main_window.open_devtools();
 
-    // 给窗口添加阴影
-    let _ = main_window.set_shadow(true);
-
     platform(app, main_window.clone(), preference_window.clone());
 }
