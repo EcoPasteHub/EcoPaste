@@ -27,8 +27,7 @@
 				"transparent": true,
 				"alwaysOnTop": true,
 				"acceptFirstMouse": true,
-				"skipTaskbar": true,
-				"dragDropEnabled": false
+				"skipTaskbar": true
 			},
 			{
 				"label": "preference",
@@ -47,8 +46,7 @@
 				"windowEffects": {
 					"effects": ["sidebar"],
 					"state": "active"
-				},
-				"dragDropEnabled": false
+				}
 			}
 		],
 		"security": {
