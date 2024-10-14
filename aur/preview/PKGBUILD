@@ -41,10 +41,10 @@ build() {
 
 package() {
   # binary
-  install -Dm755 "${srcdir}/build/usr/bin/${_pkgname}" -t "${pkgdir}/usr/bin/"
+  install -Dm755 "${srcdir}/build/usr/bin/"* -t "${pkgdir}/usr/bin/"
   
   # desktop 
-  install -Dm644 "${srcdir}/build/usr/share/applications/${_pkgname}.desktop" -t "${pkgdir}/usr/share/applications"
+  install -Dm644 "${srcdir}/build/usr/share/applications/"*.desktop -t "${pkgdir}/usr/share/applications"
 
   # icon
   cd "${srcdir}/build/";

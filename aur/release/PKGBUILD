@@ -35,10 +35,10 @@ build() {
 
 package() {
   # binary
-  install -Dm755 "${srcdir}/build/usr/bin/${pkgname%-bin}" -t "${pkgdir}/usr/bin/"
+  install -Dm755 "${srcdir}/build/usr/bin/"* -t "${pkgdir}/usr/bin/"
   
   # desktop 
-  install -Dm644 "${srcdir}/build/usr/share/applications/${pkgname%-bin}.desktop" -t "${pkgdir}/usr/share/applications"
+  install -Dm644 "${srcdir}/build/usr/share/applications/"*.desktop -t "${pkgdir}/usr/share/applications"
 
   # icon
   cd "${srcdir}/build/";
