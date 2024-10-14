@@ -3,7 +3,7 @@ import { ClipboardPanelContext } from "@/pages/Clipboard/Panel";
 import type { ClipboardItem } from "@/types/database";
 import { Menu, MenuItem, type MenuItemOptions } from "@tauri-apps/api/menu";
 import { downloadDir } from "@tauri-apps/api/path";
-import { copyFile } from "@tauri-apps/plugin-fs";
+import { copyFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { open } from "@tauri-apps/plugin-shell";
 import { Flex, type FlexProps } from "antd";
 import clsx from "clsx";
@@ -89,7 +89,7 @@ const Item: FC<ItemProps> = (props) => {
 		const fileName = `${env.appName}_${id}.${extname}`;
 		const path = joinPath(await downloadDir(), fileName);
 
-		await writeFile(path, value);
+		await writeTextFile(path, value);
 
 		openPath(path);
 	};
