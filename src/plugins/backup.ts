@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { emit } from "@tauri-apps/api/event";
+import { downloadDir } from "@tauri-apps/api/path";
 import { open } from "@tauri-apps/plugin-dialog";
 import { omit } from "lodash-es";
 
@@ -23,9 +24,11 @@ export const exportData = async () => {
 
 	await writeFile(getBackupStorePath(), JSON.stringify(content));
 
+	const dstPath = joinPath(await downloadDir(), `${formatDate()}.${extname()}`);
+
 	return invoke(BACKUP_PLUGIN.EXPORT_DATA, {
+		dstPath,
 		srcDir: getSaveDataDir(),
-		fileName: `${formatDate()}.${extname()}`,
 	});
 };
 
@@ -33,17 +36,17 @@ export const exportData = async () => {
  * 导入数据
  */
 export const importData = async () => {
-	const path = await open({
+	const srcPath = await open({
 		filters: [{ name: "", extensions: [extname()] }],
 	});
 
-	if (!path) return;
+	if (!srcPath) return;
 
 	await emit(LISTEN_KEY.CLOSE_DATABASE);
 
 	return invoke(BACKUP_PLUGIN.IMPORT_DATA, {
+		srcPath,
 		dstDir: getSaveDataDir(),
-		path,
 	});
 };
 

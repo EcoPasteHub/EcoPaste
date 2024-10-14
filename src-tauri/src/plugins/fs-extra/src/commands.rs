@@ -43,7 +43,7 @@ pub async fn metadata(path: PathBuf) -> Result<Metadata, String> {
 #[command]
 pub async fn open_path<R: Runtime>(
     app_handle: AppHandle<R>,
-    path: &str,
+    path: String,
     finder: bool,
 ) -> Result<(), String> {
     if finder {
