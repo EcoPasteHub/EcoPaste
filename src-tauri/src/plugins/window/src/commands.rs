@@ -7,8 +7,7 @@ pub static PREFERENCE_WINDOW_LABEL: &str = "preference";
 // 主窗口的title
 pub static MAIN_WINDOW_TITLE: &str = "EcoPaste";
 
-// 显示窗口（非linux）
-#[cfg(not(target_os = "linux"))]
+// 显示窗口
 #[command]
 pub async fn show_window<R: Runtime>(window: WebviewWindow<R>) {
     window.show().unwrap();
@@ -16,20 +15,8 @@ pub async fn show_window<R: Runtime>(window: WebviewWindow<R>) {
     window.set_focus().unwrap();
 }
 
-// 显示窗口（linux）
-#[cfg(target_os = "linux")]
-#[command]
-pub async fn show_window<R: Runtime>(window: WebviewWindow<R>) {
-    let position = window.outer_position().unwrap();
-    let physical_position = tauri::PhysicalPosition::new(position.x, position.y);
-
-    window.hide().unwrap();
-    window.set_position(physical_position).unwrap();
-    window.show().unwrap();
-}
-
-#[command]
 // 隐藏窗口
+#[command]
 pub async fn hide_window<R: Runtime>(window: WebviewWindow<R>) {
     window.hide().unwrap();
 }
