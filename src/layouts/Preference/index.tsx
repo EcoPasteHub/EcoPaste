@@ -4,12 +4,14 @@ import Tray from "@/components/Tray";
 import UpdateApp from "@/components/UpdateApp";
 import MacosPermissions from "@/pages/General/components/MacosPermissions";
 import type { ClipboardItem } from "@/types/database";
-import type { Language } from "@/types/store";
-import { emit, listen } from "@tauri-apps/api/event";
+import type { Store } from "@/types/store";
+import { emit } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart";
+import { create, exists, readTextFile } from "@tauri-apps/plugin-fs";
 import { Flex } from "antd";
 import clsx from "clsx";
+import { merge } from "lodash-es";
 import { subscribe, useSnapshot } from "valtio";
 
 const Preference = () => {
@@ -17,23 +19,16 @@ const Preference = () => {
 	const { shortcut } = useSnapshot(globalStore);
 	const { t } = useTranslation();
 
-	useMount(() => {
+	useMount(async () => {
+		await restoreStore();
+
 		const appWindow = getCurrentWebviewWindow();
 
-		// 监听全局状态变化
-		subscribe(globalStore, () => {
-			emit(LISTEN_KEY.GLOBAL_STORE_CHANGED, globalStore);
-		});
+		// 监听全局配置项变化
+		subscribe(globalStore, handleStoreChanged);
 
-		// 监听剪切板状态变化
-		subscribe(clipboardStore, () => {
-			emit(LISTEN_KEY.CLIPBOARD_STORE_CHANGED, clipboardStore);
-		});
-
-		// 监听语言变更
-		listen<Language>(LISTEN_KEY.CHANGE_LANGUAGE, ({ payload }) => {
-			globalStore.appearance.language = payload;
-		});
+		// 监听剪贴板配置项变化
+		subscribe(clipboardStore, handleStoreChanged);
 
 		// 监听自动启动变更
 		watchKey(globalStore.app, "autoStart", async (value) => {
@@ -98,6 +93,32 @@ const Preference = () => {
 		},
 		1000 * 60 * 30,
 	);
+
+	// 配置项变化通知其它窗口和本地存储
+	const handleStoreChanged = async () => {
+		const store = { globalStore, clipboardStore };
+
+		emit(LISTEN_KEY.STORE_CHANGED, { globalStore, clipboardStore });
+
+		const file = await create(getSaveStorePath());
+		await file.write(new TextEncoder().encode(JSON.stringify(store, null, 2)));
+		await file.close();
+	};
+
+	// 从本地存储恢复配置项
+	const restoreStore = async () => {
+		const path = getSaveStorePath();
+
+		const existed = await exists(path);
+
+		if (!existed) return;
+
+		const content = await readTextFile(path);
+		const store: Store = JSON.parse(content);
+
+		merge(globalStore, store.globalStore);
+		merge(clipboardStore, store.clipboardStore);
+	};
 
 	return (
 		<Flex className="h-screen">

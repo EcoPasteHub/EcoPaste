@@ -2,6 +2,7 @@ import type { AudioRef } from "@/components/Audio";
 import Audio from "@/components/Audio";
 import { getWebShortcuts } from "@/components/ProShortcut/keys";
 import type { ClipboardItem, TablePayload } from "@/types/database";
+import type { Store } from "@/types/store";
 import { listen } from "@tauri-apps/api/event";
 import type { EventEmitter } from "ahooks/lib/useEventEmitter";
 import { find, findIndex, isEqual, isNil, last, merge, range } from "lodash-es";
@@ -90,18 +91,15 @@ const ClipboardPanel = () => {
 		// 监听刷新列表
 		listen(LISTEN_KEY.REFRESH_CLIPBOARD_LIST, getList);
 
-		// 监听全局配置变更
-		listen(LISTEN_KEY.GLOBAL_STORE_CHANGED, ({ payload }) => {
-			if (isEqual(globalStore, payload)) return;
+		// 监听配置项变化
+		listen<Store>(LISTEN_KEY.STORE_CHANGED, ({ payload }) => {
+			if (!isEqual(globalStore, payload.globalStore)) {
+				merge(globalStore, payload.globalStore);
+			}
 
-			merge(globalStore, payload);
-		});
-
-		// 监听剪切板配置变更
-		listen(LISTEN_KEY.CLIPBOARD_STORE_CHANGED, ({ payload }) => {
-			if (isEqual(clipboardStore, payload)) return;
-
-			merge(clipboardStore, payload);
+			if (!isEqual(clipboardStore, payload.clipboardStore)) {
+				merge(clipboardStore, payload.clipboardStore);
+			}
 		});
 
 		// 监听主窗口显示/隐藏

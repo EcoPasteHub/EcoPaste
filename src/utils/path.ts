@@ -59,3 +59,10 @@ export const getBackupStorePath = () => {
 export const getSaveDataDirName = () => {
 	return last(getSaveDataDir().split(sep())) as string;
 };
+
+/**
+ * 存储配置项的路径
+ */
+export const getSaveStorePath = () => {
+	return joinPath(getSaveDataDir(), ".store.json");
+};

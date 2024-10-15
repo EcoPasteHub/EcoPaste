@@ -1,7 +1,6 @@
 import ProList from "@/components/ProList";
 import ProListItem from "@/components/ProListItem";
 import { WechatOutlined } from "@ant-design/icons";
-import { getTauriVersion } from "@tauri-apps/api/app";
 import { emit } from "@tauri-apps/api/event";
 import { arch, version } from "@tauri-apps/plugin-os";
 import { Avatar, Button, Image, message } from "antd";
@@ -19,7 +18,6 @@ const About = () => {
 		const info = {
 			appName,
 			appVersion,
-			tauriVersion: await getTauriVersion(),
 			platform,
 			platformArch: await arch(),
 			platformVersion: await version(),
@@ -76,9 +74,7 @@ const About = () => {
 					hidden
 					preview={{
 						visible,
-						movable: false,
 						src: "https://picture-bed.ayangweb.cn/EcoPaste/wechat.png",
-						toolbarRender: () => null,
 						onVisibleChange: toggle,
 					}}
 				/>
