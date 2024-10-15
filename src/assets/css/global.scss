@@ -21,3 +21,7 @@ html {
 img {
   -webkit-user-drag: none;
 }
+
+a {
+  --uno: "hover:color-primary";
+}
