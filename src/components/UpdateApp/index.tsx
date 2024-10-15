@@ -14,13 +14,15 @@ interface State {
 	open?: boolean;
 	loading?: boolean;
 	update?: Update;
+	total?: number;
+	download: number;
 }
 
 let timer: Timeout;
 
 const UpdateApp = () => {
 	const { t } = useTranslation();
-	const state = useReactive<State>({});
+	const state = useReactive<State>({ download: 0 });
 	const [messageApi, contextHolder] = message.useMessage();
 
 	useMount(() => {
@@ -50,6 +52,21 @@ const UpdateApp = () => {
 		// 监听参与测试版本配置变化
 		watchKey(globalStore.update, "beta", () => checkUpdate());
 	});
+
+	// 确认按钮的文字
+	const okText = useCreation(() => {
+		const { loading, total, download } = state;
+
+		if (loading) {
+			if (!total) return "0%";
+
+			const percent = (download / total) * 100;
+
+			return `${percent.toFixed(2)}%`;
+		}
+
+		return t("component.app_update.button.confirm_update");
+	}, [state.loading, state.total, state.download]);
 
 	// 检查更新
 	const checkUpdate = async (showMessage = false) => {
@@ -116,9 +133,16 @@ const UpdateApp = () => {
 		state.update?.downloadAndInstall((progress) => {
 			const { event } = progress;
 
-			if (event !== "Finished") return;
-
-			relaunch();
+			switch (event) {
+				case "Started":
+					state.total = progress.data.contentLength;
+					break;
+				case "Progress":
+					state.download += progress.data.chunkLength;
+					break;
+				case "Finished":
+					return relaunch();
+			}
 		});
 	};
 
@@ -138,7 +162,7 @@ const UpdateApp = () => {
 				keyboard={false}
 				maskClosable={false}
 				title={t("component.app_update.label.new_version_title")}
-				okText={t("component.app_update.button.confirm_update")}
+				okText={okText}
 				cancelText={t("component.app_update.button.cancel_update")}
 				className={styles.modal}
 				confirmLoading={state.loading}
