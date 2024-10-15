@@ -33,6 +33,11 @@ const Thank = () => {
 			link: "https://unocss.dev",
 		},
 		{
+			name: "ahooks",
+			icon: "i-skill-icons:typescript",
+			link: "https://ahooks.js.org",
+		},
+		{
 			name: "lodash-es",
 			icon: "i-logos:lodash",
 			link: "https://www.lodashjs.com",
@@ -45,7 +50,7 @@ const Thank = () => {
 		},
 		{
 			name: "valtio",
-			icon: "i-skill-icons:javascript",
+			icon: "i-skill-icons:v-dark",
 			link: "https://github.com/pmndrs/valtio",
 		},
 	];

@@ -3,11 +3,9 @@ export const GITHUB_LINK = "https://github.com/EcoPasteHub/EcoPaste";
 export const GITHUB_ISSUES_LINK = `${GITHUB_LINK}/issues`;
 
 export const LISTEN_KEY = {
-	GLOBAL_STORE_CHANGED: "global-store-changed",
-	CLIPBOARD_STORE_CHANGED: "clipboard-store-changed",
+	STORE_CHANGED: "store-changed",
 	UPDATE_APP: "update-app",
 	REFRESH_CLIPBOARD_LIST: "refresh-clipboard-list",
-	CHANGE_LANGUAGE: "change-language",
 	SHOW_WINDOW: "show-window",
 	CLIPBOARD_ITEM_PREVIEW: "clipboard-item-preview",
 	CLIPBOARD_ITEM_PASTE: "clipboard-item-paste",
