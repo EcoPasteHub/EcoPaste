@@ -34,7 +34,7 @@ const Thank = () => {
 		},
 		{
 			name: "ahooks",
-			icon: "i-skill-icons:javascript",
+			icon: "i-skill-icons:typescript",
 			link: "https://ahooks.js.org",
 		},
 		{
