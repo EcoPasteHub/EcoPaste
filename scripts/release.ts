@@ -7,7 +7,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const updateCargoVersion = () => {
 	const tomlPath = resolve(__dirname, "..", "src-tauri", "Cargo.toml");
-	const lockPath = resolve(__dirname, "..", "src-tauri", "Cargo.lock");
+	const lockPath = resolve(__dirname, "..", "Cargo.lock");
 
 	for (const path of [tomlPath, lockPath]) {
 		let content = readFileSync(path, "utf-8");
