@@ -1,6 +1,6 @@
 [package]
 name = "eco-paste"
-version = "0.2.0-beta.2"
+version = "0.2.0-beta.3"
 description = "一款开源的跨平台剪贴板管理工具"
 authors = []
 edition = "2021"
