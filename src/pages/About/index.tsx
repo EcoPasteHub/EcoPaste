@@ -1,14 +1,17 @@
-import Icon from "@/components/Icon";
+import ProList from "@/components/ProList";
+import ProListItem from "@/components/ProListItem";
+import { WechatOutlined } from "@ant-design/icons";
 import { getTauriVersion } from "@tauri-apps/api/app";
 import { emit } from "@tauri-apps/api/event";
 import { arch, version } from "@tauri-apps/plugin-os";
-import { open } from "@tauri-apps/plugin-shell";
-import { Button, Flex, Tooltip } from "antd";
+import { Avatar, Button, Image, message } from "antd";
 import { useSnapshot } from "valtio";
+import Thank from "./components/Thank";
 
+// TODO: 国际化
 const About = () => {
 	const { env } = useSnapshot(globalStore);
-	const { t } = useTranslation();
+	const [visible, { toggle }] = useBoolean();
 
 	const copyInfo = async () => {
 		const { appName, appVersion, platform } = env;
@@ -22,65 +25,67 @@ const About = () => {
 			platformVersion: await version(),
 		};
 
-		return writeText(JSON.stringify(info, null, 2));
-	};
+		await writeText(JSON.stringify(info, null, 2));
 
-	const feedbackIssue = () => {
-		open(`${GITHUB_ISSUES_LINK}/new/choose`);
+		message.success("复制成功");
 	};
 
 	return (
-		<Flex
-			data-tauri-drag-region
-			vertical
-			align="center"
-			justify="center"
-			className="color-2 h-full transition"
-		>
-			<img src="/logo.png" className="h-100 h-100" alt="logo" />
-
-			<Flex vertical align="center" gap="small">
-				<div className="color-1 font-bold text-20 transition">
-					{env.appName}
-				</div>
-
-				<Flex align="center" gap={4}>
-					<span>v{env.appVersion}</span>
-					<Tooltip title={t("preference.about.hints.update_tooltip")}>
-						<Icon
-							hoverable
-							name="i-iconamoon:restart"
-							size={16}
-							onMouseDown={() => {
-								emit(LISTEN_KEY.UPDATE_APP, true);
-							}}
-						/>
-					</Tooltip>
-				</Flex>
-
-				<span className="text-center">
-					{t("preference.about.hints.introduce")}
-				</span>
-
-				<Flex gap="middle">
-					<Tooltip title={t("preference.about.hints.copy_tooltip")}>
-						<Button size="large" type="primary" onClick={copyInfo}>
-							{t("preference.about.button.copy_info")}
-						</Button>
-					</Tooltip>
-
+		<>
+			<ProList header="关于软件">
+				<ProListItem
+					avatar={<Avatar src="/logo.png" size={44} shape="square" />}
+					title={env.appName}
+					description={`版本：v${env.appVersion}`}
+				>
 					<Button
-						ghost
-						danger
-						size="large"
 						type="primary"
-						onClick={feedbackIssue}
+						onClick={() => {
+							emit(LISTEN_KEY.UPDATE_APP, true);
+						}}
 					>
-						{t("preference.about.button.feedback_issue")}
+						检查更新
 					</Button>
-				</Flex>
-			</Flex>
-		</Flex>
+				</ProListItem>
+
+				<ProListItem
+					title="软件信息"
+					description="复制软件信息并提供给 Bug Issue"
+				>
+					<Button onClick={copyInfo}>复制</Button>
+				</ProListItem>
+
+				<ProListItem
+					title="开源地址"
+					description={<a href={GITHUB_LINK}>{GITHUB_LINK}</a>}
+				>
+					<Button danger href={GITHUB_ISSUES_LINK}>
+						反馈问题
+					</Button>
+				</ProListItem>
+
+				<ProListItem title="社区交流">
+					<Button
+						className="hover:b-#2aae67!"
+						icon={<WechatOutlined style={{ color: "#2aae67" }} />}
+						onClick={toggle}
+					/>
+				</ProListItem>
+
+				<Image
+					hidden
+					preview={{
+						visible,
+						movable: false,
+						src: "https://picture-bed.ayangweb.cn/EcoPaste/wechat.png",
+						toolbarRender: () => null,
+						onVisibleChange: toggle,
+					}}
+				/>
+			</ProList>
+
+			<Thank />
+		</>
 	);
 };
 

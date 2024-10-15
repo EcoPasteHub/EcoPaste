@@ -23,7 +23,7 @@ export const exportData = async () => {
 		globalStore: omit(globalStore, ["_persist", "env"]),
 	};
 
-	await writeTextFile(getBackupStorePath(), JSON.stringify(content));
+	await writeTextFile(getBackupStorePath(), JSON.stringify(content, null, 2));
 
 	const dstPath = joinPath(await downloadDir(), `${formatDate()}.${extname()}`);
 
