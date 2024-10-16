@@ -5,7 +5,7 @@ import type { ClipboardItem, TablePayload } from "@/types/database";
 import type { Store } from "@/types/store";
 import { listen } from "@tauri-apps/api/event";
 import type { EventEmitter } from "ahooks/lib/useEventEmitter";
-import { find, findIndex, isEqual, isNil, last, merge, range } from "lodash-es";
+import { find, findIndex, isNil, last, merge, range } from "lodash-es";
 import { nanoid } from "nanoid";
 import { createContext } from "react";
 import { useSnapshot } from "valtio";
@@ -93,13 +93,8 @@ const ClipboardPanel = () => {
 
 		// 监听配置项变化
 		listen<Store>(LISTEN_KEY.STORE_CHANGED, ({ payload }) => {
-			if (!isEqual(globalStore, payload.globalStore)) {
-				merge(globalStore, payload.globalStore);
-			}
-
-			if (!isEqual(clipboardStore, payload.clipboardStore)) {
-				merge(clipboardStore, payload.clipboardStore);
-			}
+			merge(globalStore, payload.globalStore);
+			merge(clipboardStore, payload.clipboardStore);
 		});
 
 		// 监听主窗口显示/隐藏

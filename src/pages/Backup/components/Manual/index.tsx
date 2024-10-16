@@ -1,10 +1,7 @@
 import Icon from "@/components/Icon";
 import ProList from "@/components/ProList";
-import type { Store } from "@/types/store";
 import { emit } from "@tauri-apps/api/event";
-import { readTextFile } from "@tauri-apps/plugin-fs";
 import { Flex, List, message } from "antd";
-import { merge } from "lodash-es";
 import type { FC } from "react";
 import type { State } from "../..";
 
@@ -22,12 +19,7 @@ const Manual: FC<{ state: State }> = (props) => {
 
 			if (!result) return;
 
-			const content = await readTextFile(getBackupStorePath());
-
-			const store = JSON.parse(content) as Store;
-
-			merge(globalStore, store.globalStore);
-			merge(clipboardStore, store.clipboardStore);
+			await restoreStore(true);
 
 			emit(LISTEN_KEY.REFRESH_CLIPBOARD_LIST);
 

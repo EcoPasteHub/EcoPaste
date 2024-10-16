@@ -11,9 +11,11 @@ import { useSnapshot } from "valtio";
 const { defaultAlgorithm, darkAlgorithm } = theme;
 
 const App = () => {
-	const { appearance } = useSnapshot(globalStore);
+	const { appearance, env } = useSnapshot(globalStore);
 
-	useMount(() => {
+	useMount(async () => {
+		await restoreStore();
+
 		// 生成 antd 的颜色变量
 		generateColorVars();
 
@@ -84,7 +86,7 @@ const App = () => {
 			}}
 		>
 			<HappyProvider>
-				<RouterProvider router={router} />
+				{env.saveDataDir && <RouterProvider router={router} />}
 			</HappyProvider>
 		</ConfigProvider>
 	);
