@@ -13,10 +13,16 @@ import { subscribe, useSnapshot } from "valtio";
 
 const Preference = () => {
 	const { pathname } = useLocation();
-	const { shortcut } = useSnapshot(globalStore);
+	const { shortcut, app } = useSnapshot(globalStore);
 	const { t } = useTranslation();
 
-	useMount(() => {
+	useMount(async () => {
+		const autostart = await isAutostart();
+
+		if (!autostart && !app.silentStart) {
+			showWindow();
+		}
+
 		const appWindow = getCurrentWebviewWindow();
 
 		// 监听全局配置项变化

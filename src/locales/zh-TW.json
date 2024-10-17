@@ -121,8 +121,12 @@
 				"title": "應用設定",
 				"label": {
 					"auto_start": "登入時啟動",
+					"silent_start": "靜默啟動",
 					"show_menubar_icon": "顯示功能表列圖標",
 					"show_taskbar_icon": "顯示工作列圖標"
+				},
+				"hints": {
+					"silent_start": "手動啟動應用時隱藏視窗"
 				}
 			},
 			"appearance_settings": {

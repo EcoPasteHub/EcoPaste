@@ -2,6 +2,22 @@ export const GITHUB_LINK = "https://github.com/EcoPasteHub/EcoPaste";
 
 export const GITHUB_ISSUES_LINK = `${GITHUB_LINK}/issues`;
 
+export const TRAY_ID = "app-tray";
+
+export const UPDATE_MESSAGE_KEY = "app-update-message";
+
+export const WINDOW_LABEL = {
+	MAIN: "main",
+	PREFERENCE: "preference",
+} as const;
+
+export const LANGUAGE = {
+	ZH_CN: "zh-CN",
+	ZH_TW: "zh-TW",
+	EN_US: "en-US",
+	JA_JP: "ja-JP",
+} as const;
+
 export const LISTEN_KEY = {
 	STORE_CHANGED: "store-changed",
 	UPDATE_APP: "update-app",
@@ -56,23 +72,11 @@ export const OCR_PLUGIN = {
 	SYSTEM_OCR: "plugin:eco-ocr|system_ocr",
 };
 
-export const THEME_PLUGIN = {
-	GET_THEME: "plugin:theme|get_theme",
-	SET_THEME: "plugin:theme|set_theme",
-};
-
 export const BACKUP_PLUGIN = {
 	EXPORT_DATA: "plugin:eco-backup|export_data",
 	IMPORT_DATA: "plugin:eco-backup|import_data",
 	MOVE_DATA: "plugin:eco-backup|move_data",
 };
-
-export const LANGUAGE = {
-	ZH_CN: "zh-CN",
-	ZH_TW: "zh-TW",
-	EN_US: "en-US",
-	JA_JP: "ja-JP",
-} as const;
 
 export const LOCALE_PLUGIN = {
 	GET_LOCALE: "plugin:eco-locale|get_locale",
@@ -91,15 +95,6 @@ export const MACOS_PERMISSIONS_PLUGIN = {
 		"plugin:eco-macos-permissions|request_full_disk_access_permissions",
 };
 
-export const WINDOW_LABEL = {
-	MAIN: "main",
-	PREFERENCE: "preference",
-} as const;
-
-export const UPDATER_PLUGIN = {
-	CHECK_UPDATE: "plugin:updater|check_update",
+export const AUTOSTART_PLUGIN = {
+	IS_AUTOSTART: "plugin:eco-autostart|is_autostart",
 };
-
-export const TRAY_ID = "app-tray";
-
-export const UPDATE_MESSAGE_KEY = "app-update-message";

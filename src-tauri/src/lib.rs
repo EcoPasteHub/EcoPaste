@@ -6,8 +6,6 @@ use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_eco_window::{show_main_window, MAIN_WINDOW_LABEL, PREFERENCE_WINDOW_LABEL};
 use tauri_plugin_log::{Target, TargetKind};
 
-pub const AUTO_LAUNCH_ARG: &str = "--auto-launch";
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let app = Builder::default()
@@ -31,7 +29,7 @@ pub fn run() {
         // app 自启动：https://github.com/tauri-apps/tauri-plugin-autostart/tree/v2
         .plugin(tauri_plugin_autostart::init(
             MacosLauncher::LaunchAgent,
-            Some(vec![AUTO_LAUNCH_ARG]),
+            Some(vec!["--auto-launch"]),
         ))
         // 数据库：https://github.com/tauri-apps/tauri-plugin-sql/tree/v2
         .plugin(tauri_plugin_sql::Builder::default().build())
@@ -77,6 +75,8 @@ pub fn run() {
         .plugin(tauri_plugin_eco_macos_permissions::init())
         // 自定义保存和恢复窗口状态的插件
         .plugin(tauri_plugin_eco_window_state::init())
+        // 自定义判断是否自动启动的插件
+        .plugin(tauri_plugin_eco_autostart::init())
         .on_window_event(|window, event| match event {
             // 让 app 保持在后台运行：https://tauri.app/v1/guides/features/system-tray/#preventing-the-app-from-closing
             WindowEvent::CloseRequested { api, .. } => {

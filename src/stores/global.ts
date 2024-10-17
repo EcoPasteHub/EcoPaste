@@ -17,6 +17,7 @@ export const persistStrategies = PersistStrategy.MultiFile;
 export const GLOBAL_STORE_INITIAL_STATE: GlobalStore = {
 	app: {
 		autoStart: false,
+		silentStart: false,
 		showMenubarIcon: true,
 		showTaskbarIcon: false,
 	},

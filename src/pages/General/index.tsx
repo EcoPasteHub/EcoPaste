@@ -23,6 +23,15 @@ const General = () => {
 				/>
 
 				<ProSwitch
+					title={t("preference.settings.app_settings.label.silent_start")}
+					description={t("preference.settings.app_settings.hints.silent_start")}
+					value={app.silentStart}
+					onChange={(value) => {
+						globalStore.app.silentStart = value;
+					}}
+				/>
+
+				<ProSwitch
 					title={t("preference.settings.app_settings.label.show_menubar_icon")}
 					value={app.showMenubarIcon}
 					onChange={(value) => {

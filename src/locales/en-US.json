@@ -121,8 +121,12 @@
 				"title": "App Settings",
 				"label": {
 					"auto_start": "Start at Login",
+					"silent_start": "Silent Start",
 					"show_menubar_icon": "Show Menubar Icon",
 					"show_taskbar_icon": "Show Taskbar Icon"
+				},
+				"hints": {
+					"silent_start": "Hide windows when launching applications manually"
 				}
 			},
 			"appearance_settings": {
