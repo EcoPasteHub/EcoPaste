@@ -53,6 +53,7 @@
 		"eco-locale:default",
 		"eco-clipboard:default",
 		"eco-ocr:default",
-		"eco-paste:default"
+		"eco-paste:default",
+		"eco-autostart:default"
 	]
 }

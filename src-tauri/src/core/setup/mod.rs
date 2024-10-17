@@ -1,7 +1,4 @@
-use crate::AUTO_LAUNCH_ARG;
-use std::env;
-use tauri::{App, Manager, WebviewWindow};
-use tauri_plugin_eco_window::show_preference_window;
+use tauri::{App, WebviewWindow};
 
 #[cfg(target_os = "macos")]
 mod mac;
@@ -22,15 +19,7 @@ pub use win::*;
 pub use linux::*;
 
 pub fn default(app: &mut App, main_window: WebviewWindow, preference_window: WebviewWindow) {
-    let app_handle = app.app_handle();
-
-    // 判断是否为自动启动
-    let args: Vec<String> = env::args().collect();
-    if !args.contains(&AUTO_LAUNCH_ARG.to_string()) {
-        show_preference_window(&app_handle);
-    }
-
-    // 自动打开控制台：https://tauri.app/develop/debug
+    // 开发模式自动打开控制台：https://tauri.app/develop/debug
     #[cfg(any(dev, debug_assertions))]
     main_window.open_devtools();
 

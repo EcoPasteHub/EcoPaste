@@ -121,8 +121,12 @@
 				"title": "应用设置",
 				"label": {
 					"auto_start": "登录时启动",
+					"silent_start": "静默启动",
 					"show_menubar_icon": "显示菜单栏图标",
 					"show_taskbar_icon": "显示任务栏图标"
+				},
+				"hints": {
+					"silent_start": "手动启动应用时隐藏窗口"
 				}
 			},
 			"appearance_settings": {

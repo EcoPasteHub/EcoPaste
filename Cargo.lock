@@ -1425,6 +1425,7 @@ dependencies = [
  "tauri-build",
  "tauri-plugin-autostart",
  "tauri-plugin-dialog",
+ "tauri-plugin-eco-autostart",
  "tauri-plugin-eco-backup",
  "tauri-plugin-eco-clipboard",
  "tauri-plugin-eco-fs-extra",
@@ -5572,6 +5573,15 @@ dependencies = [
  "tauri-plugin-fs",
  "thiserror",
  "url",
+]
+
+[[package]]
+name = "tauri-plugin-eco-autostart"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "tauri",
+ "tauri-plugin",
 ]
 
 [[package]]

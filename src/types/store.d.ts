@@ -13,6 +13,7 @@ export interface GlobalStore {
 	// 应用设置
 	app: {
 		autoStart: boolean;
+		silentStart: boolean;
 		showMenubarIcon: boolean;
 		showTaskbarIcon: boolean;
 	};

@@ -121,8 +121,12 @@
 				"title": "ソフト設定",
 				"label": {
 					"auto_start": "ログイン時に起動",
+					"silent_start": "サイレントブート",
 					"show_menubar_icon": "メニューバーアイコンを表示する",
 					"show_taskbar_icon": "タスクバーアイコンを表示する"
+				},
+				"hints": {
+					"silent_start": "アプリケーションの手動起動時にウィンドウを隠す"
 				}
 			},
 			"appearance_settings": {
