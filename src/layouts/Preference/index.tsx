@@ -57,10 +57,10 @@ const Preference = () => {
 		});
 
 		// 监听系统主题的变化
-		appWindow.onThemeChanged(async () => {
+		appWindow.onThemeChanged(async ({ payload }) => {
 			if (globalStore.appearance.theme !== "auto") return;
 
-			globalStore.appearance.isDark = (await appWindow.theme()) === "dark";
+			globalStore.appearance.isDark = payload === "dark";
 		});
 	});
 
