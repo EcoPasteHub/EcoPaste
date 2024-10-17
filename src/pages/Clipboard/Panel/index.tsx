@@ -175,7 +175,7 @@ const ClipboardPanel = () => {
 	};
 
 	return (
-		<div>
+		<>
 			{!isLinux() && <Audio hiddenIcon ref={audioRef} />}
 
 			<ClipboardPanelContext.Provider
@@ -186,7 +186,7 @@ const ClipboardPanel = () => {
 			>
 				{window.style === "float" ? <Float /> : <Dock />}
 			</ClipboardPanelContext.Provider>
-		</div>
+		</>
 	);
 };
 
