@@ -22,7 +22,7 @@ for lang in "${_ocr_languages[@]}"; do
   optdepends+=("${_depends}");
 done
 source=(
-  "${pkgname%-bin}-${pkgver}_amd64.deb::${url}/releases/download/v${pkgver}/eco-paste_${pkgver}_amd64.deb"
+  "${pkgname%-bin}-${pkgver}_amd64.deb::${url}/releases/download/v${pkgver}/EcoPaste_${pkgver}_amd64.deb"
   "LICENSE::https://raw.githubusercontent.com/EcoPasteHub/EcoPaste/refs/heads/master/LICENSE"
 )
 sha256sums=('87c8d1b6523b2a0319b509e811cd7e3f7be13c08a4c546a153a96cfd3cec02cc'

@@ -1,7 +1,7 @@
 # Maintainer: witt <1989161762 at qq dot com>
 
 pkgname=eco-paste-beta-bin
-_pkgname="eco-paste"
+_pkgname="EcoPaste"
 pkgver=0.1.0-rc.1
 pkgrel=1
 pkgdesc="内测预览版!!!🎉跨平台的剪贴板管理工具 | Cross-platform clipboard management tool ."
