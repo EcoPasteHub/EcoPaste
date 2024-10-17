@@ -1,6 +1,7 @@
 use crate::AUTO_LAUNCH_ARG;
 use std::env;
 use tauri::{App, Manager, WebviewWindow};
+use tauri_plugin_eco_window::show_preference_window;
 
 #[cfg(target_os = "macos")]
 mod mac;
@@ -14,7 +15,6 @@ mod linux;
 #[cfg(target_os = "macos")]
 pub use mac::*;
 
-use tauri_plugin_eco_window::show_preference_window;
 #[cfg(target_os = "windows")]
 pub use win::*;
 
