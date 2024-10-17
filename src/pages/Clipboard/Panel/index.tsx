@@ -97,9 +97,6 @@ const ClipboardPanel = () => {
 			merge(clipboardStore, payload.clipboardStore);
 		});
 
-		// 监听主窗口显示/隐藏
-		listen(LISTEN_KEY.TOGGLE_MAIN_WINDOW_VISIBLE, toggleWindowVisible);
-
 		// 监听快速粘贴的启用状态变更
 		watchKey(globalStore.shortcut.quickPaste, "enable", setQuickPasteKeys);
 
