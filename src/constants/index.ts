@@ -12,7 +12,6 @@ export const LISTEN_KEY = {
 	CLIPBOARD_ITEM_DELETE: "clipboard-item-delete",
 	CLIPBOARD_ITEM_SELECT_PREV: "clipboard-item-select-prev",
 	CLIPBOARD_ITEM_SELECT_NEXT: "clipboard-item-select-next",
-	TOGGLE_MAIN_WINDOW_VISIBLE: "toggle-main-window-visible",
 	CLOSE_DATABASE: "close-database",
 	TOGGLE_LISTEN_CLIPBOARD: "toggle-listen-clipboard",
 };

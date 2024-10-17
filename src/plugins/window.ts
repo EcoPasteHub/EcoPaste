@@ -29,7 +29,11 @@ export const hideWindow = () => {
 export const toggleWindowVisible = async () => {
 	const appWindow = getCurrentWebviewWindow();
 
-	const focused = await appWindow.isFocused();
+	let focused = await appWindow.isFocused();
+
+	if (isLinux()) {
+		focused = await appWindow.isVisible();
+	}
 
 	if (appWindow.label === WINDOW_LABEL.MAIN) {
 		const { window } = clipboardStore;
@@ -68,7 +72,7 @@ export const toggleWindowVisible = async () => {
 					if (window.position === "follow") {
 						coordX = Math.min(coordX, posX + screenWidth - width);
 						coordY = Math.min(coordY, posY + screenHeight - height);
-					} else if (window.position === "center") {
+					} else {
 						coordX = posX + (screenWidth - width) / 2;
 						coordY = posY + (screenHeight - height) / 2;
 					}
