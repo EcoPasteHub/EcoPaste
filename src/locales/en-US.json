@@ -264,6 +264,18 @@
 				"checking_update": "Checking for updates...",
 				"latest_version": "You are using the latest version 🎉"
 			}
+		},
+		"tray": {
+			"label": {
+				"preference": "Preference",
+				"start_listening": "Start Listening",
+				"stop_listening": "Stop listening",
+				"about": "About",
+				"check_update": "Check Update",
+				"github": "Open Source Address",
+				"version": "Version",
+				"exit": "Exit"
+			}
 		}
 	}
 }

@@ -8,6 +8,7 @@ import { open } from "@tauri-apps/plugin-shell";
 const Tray = () => {
 	const navigate = useNavigate();
 	const [startListen, { toggle }] = useBoolean(true);
+	const { t } = useTranslation();
 
 	useMount(async () => {
 		await createTrayIcon();
@@ -70,19 +71,20 @@ const Tray = () => {
 	const getTrayMenu = async () => {
 		const { appVersion } = globalStore.env;
 
-		// TODO: 添加国际化
 		const items = await Promise.all([
 			MenuItem.new({
-				text: "偏好设置",
+				text: t("component.tray.label.preference"),
 				action: () => showWindow("preference"),
 			}),
 			MenuItem.new({
-				text: startListen ? "停止监听" : "开始监听",
+				text: startListen
+					? t("component.tray.label.stop_listening")
+					: t("component.tray.label.start_listening"),
 				action: toggle,
 			}),
 			PredefinedMenuItem.new({ item: "Separator" }),
 			MenuItem.new({
-				text: "关于",
+				text: t("component.tray.label.about"),
 				action: () => {
 					showWindow();
 
@@ -90,7 +92,7 @@ const Tray = () => {
 				},
 			}),
 			MenuItem.new({
-				text: "检查更新",
+				text: t("component.tray.label.check_update"),
 				action: () => {
 					showWindow();
 
@@ -98,16 +100,16 @@ const Tray = () => {
 				},
 			}),
 			MenuItem.new({
-				text: "开源地址",
+				text: t("component.tray.label.github"),
 				action: () => open(GITHUB_LINK),
 			}),
 			PredefinedMenuItem.new({ item: "Separator" }),
 			MenuItem.new({
-				text: `版本 ${appVersion}`,
+				text: `${t("component.tray.label.version")} ${appVersion}`,
 				enabled: false,
 			}),
 			MenuItem.new({
-				text: "退出",
+				text: t("component.tray.label.exit"),
 				action: () => exit(1),
 			}),
 		]);
