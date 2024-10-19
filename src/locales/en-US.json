@@ -291,6 +291,14 @@
 				"version": "Version",
 				"exit": "Exit"
 			}
+		},
+		"note_modal": {
+			"label": {
+				"note": "Note"
+			},
+			"hints": {
+				"input_note": "Please enter a note"
+			}
 		}
 	}
 }

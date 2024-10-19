@@ -291,6 +291,14 @@
 				"version": "版本",
 				"exit": "退出"
 			}
+		},
+		"note_modal": {
+			"label": {
+				"note": "备注"
+			},
+			"hints": {
+				"input_note": "请输入备注"
+			}
 		}
 	}
 }
