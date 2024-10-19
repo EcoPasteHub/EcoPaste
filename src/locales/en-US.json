@@ -190,14 +190,29 @@
 			}
 		},
 		"about": {
-			"button": {
-				"copy_info": "Copy Info",
-				"feedback_issue": "Submit Feedback/Report Issue"
+			"about_software": {
+				"title": "About Software",
+				"label": {
+					"version": "Version: ",
+					"software_info": "Software Information",
+					"open_source_address": "Open Source Address",
+					"community": "Community"
+				},
+				"button": {
+					"check_update": "Check Update",
+					"copy": "Copy",
+					"feedback_issue": "Feedback Issue"
+				},
+				"hints": {
+					"software_info": "Copying software information and providing it to Bug Issues",
+					"copy_success": "Copy Success"
+				}
 			},
-			"hints": {
-				"introduce": "Open-source cross-platform clipboard tool to make your work more efficient and convenient.",
-				"update_tooltip": "Check for Updates",
-				"copy_tooltip": "Copy app and system info to clipboard for submitting issues or suggestions."
+			"thank": {
+				"title": "Thank",
+				"hints": {
+					"thank_all": "Thanks to all listed and unlisted open source dependencies, as well as to the users who suggested {{0}} and the developers who contributed."
+				}
 			}
 		}
 	},
@@ -272,7 +287,7 @@
 				"stop_listening": "Stop listening",
 				"about": "About",
 				"check_update": "Check Update",
-				"github": "Open Source Address",
+				"open_source_address": "Open Source Address",
 				"version": "Version",
 				"exit": "Exit"
 			}

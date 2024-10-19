@@ -190,14 +190,29 @@
 			}
 		},
 		"about": {
-			"button": {
-				"copy_info": "复制信息",
-				"feedback_issue": "反馈问题"
+			"about_software": {
+				"title": "关于软件",
+				"label": {
+					"version": "版本：",
+					"software_info": "软件信息",
+					"open_source_address": "开源地址",
+					"community": "社区交流"
+				},
+				"button": {
+					"check_update": "检查更新",
+					"copy": "复制",
+					"feedback_issue": "反馈问题"
+				},
+				"hints": {
+					"software_info": "复制软件信息并提供给 Bug Issue",
+					"copy_success": "复制成功"
+				}
 			},
-			"hints": {
-				"introduce": "开源的跨平台剪贴板工具，让您的工作更加高效便捷。",
-				"update_tooltip": "检查更新",
-				"copy_tooltip": "复制应用和系统信息，用于 Issue"
+			"thank": {
+				"title": "致谢",
+				"hints": {
+					"thank_all": "感谢所有列出的和未能列出的开源依赖，以及为 {{0}} 提出建议的用户和做出贡献的开发者。"
+				}
 			}
 		}
 	},
@@ -272,7 +287,7 @@
 				"stop_listening": "停止监听",
 				"about": "关于",
 				"check_update": "检查更新",
-				"github": "开源地址",
+				"open_source_address": "开源地址",
 				"version": "版本",
 				"exit": "退出"
 			}

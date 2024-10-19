@@ -5,6 +5,7 @@ import { useSnapshot } from "valtio";
 
 const Thank = () => {
 	const { env } = useSnapshot(globalStore);
+	const { t } = useTranslation();
 
 	const list = [
 		{
@@ -56,7 +57,7 @@ const Thank = () => {
 	];
 
 	return (
-		<ProList header="致谢">
+		<ProList header={t("preference.about.thank.title")}>
 			{list.map((item) => {
 				const { name, icon, link, iconColor } = item;
 
@@ -71,7 +72,9 @@ const Thank = () => {
 			})}
 
 			<ProListItem
-				title={`感谢所有列出的和未能列出的开源依赖，以及为 ${env.appName} 提出建议的用户和做出贡献的开发者。`}
+				title={t("preference.about.thank.hints.thank_all", {
+					replace: [env.appName],
+				})}
 			/>
 		</ProList>
 	);

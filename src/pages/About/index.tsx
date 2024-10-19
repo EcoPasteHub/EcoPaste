@@ -11,6 +11,7 @@ import Thank from "./components/Thank";
 const About = () => {
 	const { env } = useSnapshot(globalStore);
 	const [visible, { toggle }] = useBoolean();
+	const { t } = useTranslation();
 
 	const copyInfo = async () => {
 		const { appName, appVersion, platform } = env;
@@ -25,16 +26,16 @@ const About = () => {
 
 		await writeText(JSON.stringify(info, null, 2));
 
-		message.success("复制成功");
+		message.success(t("preference.about.about_software.hints.copy_success"));
 	};
 
 	return (
 		<>
-			<ProList header="关于软件">
+			<ProList header={t("preference.about.about_software.title")}>
 				<ProListItem
 					avatar={<Avatar src="/logo.png" size={44} shape="square" />}
 					title={env.appName}
-					description={`版本：v${env.appVersion}`}
+					description={`${t("preference.about.about_software.label.version")}v${env.appVersion}`}
 				>
 					<Button
 						type="primary"
@@ -42,27 +43,31 @@ const About = () => {
 							emit(LISTEN_KEY.UPDATE_APP, true);
 						}}
 					>
-						检查更新
+						{t("preference.about.about_software.button.check_update")}
 					</Button>
 				</ProListItem>
 
 				<ProListItem
-					title="软件信息"
-					description="复制软件信息并提供给 Bug Issue"
+					title={t("preference.about.about_software.label.software_info")}
+					description={t("preference.about.about_software.hints.software_info")}
 				>
-					<Button onClick={copyInfo}>复制</Button>
+					<Button onClick={copyInfo}>
+						{t("preference.about.about_software.button.copy")}
+					</Button>
 				</ProListItem>
 
 				<ProListItem
-					title="开源地址"
+					title={t("preference.about.about_software.label.open_source_address")}
 					description={<a href={GITHUB_LINK}>{GITHUB_LINK}</a>}
 				>
 					<Button danger href={GITHUB_ISSUES_LINK}>
-						反馈问题
+						{t("preference.about.about_software.button.feedback_issue")}
 					</Button>
 				</ProListItem>
 
-				<ProListItem title="社区交流">
+				<ProListItem
+					title={t("preference.about.about_software.label.community")}
+				>
 					<Button
 						className="hover:b-#2aae67!"
 						icon={<WechatOutlined style={{ color: "#2aae67" }} />}
