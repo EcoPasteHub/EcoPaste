@@ -100,7 +100,7 @@ const Tray = () => {
 				},
 			}),
 			MenuItem.new({
-				text: t("component.tray.label.github"),
+				text: t("component.tray.label.open_source_address"),
 				action: () => open(GITHUB_LINK),
 			}),
 			PredefinedMenuItem.new({ item: "Separator" }),

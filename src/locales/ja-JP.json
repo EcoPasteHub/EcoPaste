@@ -190,14 +190,29 @@
 			}
 		},
 		"about": {
-			"button": {
-				"copy_info": "情報をコピーする",
-				"feedback_issue": "問題を報告"
+			"about_software": {
+				"title": "ソフトウェアについて",
+				"label": {
+					"version": "バージョン: ",
+					"software_info": "ソフトウェア情報",
+					"open_source_address": "オープンソースアドレス",
+					"community": "コミュニティの交流です"
+				},
+				"button": {
+					"check_update": "アップデートの確認",
+					"copy": "複製します",
+					"feedback_issue": "フィードバックの問題"
+				},
+				"hints": {
+					"software_info": "ソフトウェアの情報をコピーしてバグ問題に提供すること",
+					"copy_success": "コピー成功"
+				}
 			},
-			"hints": {
-				"introduce": "オープンソースのクロスプラットフォームクリップボードツールで、作業がより効率的かつ便利になります。",
-				"update_tooltip": "更新を確認する",
-				"copy_tooltip": "Issue用のアプリケーションとシステム情報のコピー"
+			"thank": {
+				"title": "礼状",
+				"hints": {
+					"thank_all": "リストアップされているもの、されていないもの、すべてのオープン・ソースの依存関係、そして {{0}} を提案してくれたユーザーと貢献してくれた開発者に感謝します。"
+				}
 			}
 		}
 	},
@@ -272,7 +287,7 @@
 				"stop_listening": "使用を再開",
 				"about": "について",
 				"check_update": "アップデートを確認",
-				"github": "ギットハブ",
+				"open_source_address": "ギットハブ",
 				"version": "バージョン",
 				"exit": "終了する"
 			}
