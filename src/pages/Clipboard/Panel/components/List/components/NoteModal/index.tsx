@@ -1,6 +1,7 @@
 import { ClipboardPanelContext } from "@/pages/Clipboard/Panel";
 import type { ClipboardItem } from "@/types/database";
 import { Form, Input, type InputRef, Modal } from "antd";
+import { t } from "i18next";
 import { find } from "lodash-es";
 
 export interface NoteModalRef {
@@ -11,7 +12,6 @@ interface FormFields {
 	note: string;
 }
 
-// TODO: 添加国际化
 const NoteModal = forwardRef<NoteModalRef>((_, ref) => {
 	const { state } = useContext(ClipboardPanelContext);
 	const [open, { toggle }] = useBoolean();
@@ -55,7 +55,7 @@ const NoteModal = forwardRef<NoteModalRef>((_, ref) => {
 		<Modal
 			forceRender
 			centered
-			title="备注"
+			title={t("component.note_modal.label.note")}
 			open={open}
 			onOk={handleOk}
 			onCancel={toggle}
@@ -67,7 +67,10 @@ const NoteModal = forwardRef<NoteModalRef>((_, ref) => {
 				onFinish={handleOk}
 			>
 				<Form.Item name="note" className="mb-0!">
-					<Input ref={inputRef} placeholder="请输入备注" />
+					<Input
+						ref={inputRef}
+						placeholder={t("component.note_modal.hints.input_note")}
+					/>
 				</Form.Item>
 			</Form>
 		</Modal>

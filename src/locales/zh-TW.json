@@ -291,6 +291,14 @@
 				"version": "版本",
 				"exit": "退出"
 			}
+		},
+		"note_modal": {
+			"label": {
+				"note": "備註"
+			},
+			"hints": {
+				"input_note": "請輸入備註"
+			}
 		}
 	}
 }

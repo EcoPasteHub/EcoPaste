@@ -7,7 +7,6 @@ import { Avatar, Button, Image, message } from "antd";
 import { useSnapshot } from "valtio";
 import Thank from "./components/Thank";
 
-// TODO: 国际化
 const About = () => {
 	const { env } = useSnapshot(globalStore);
 	const [visible, { toggle }] = useBoolean();

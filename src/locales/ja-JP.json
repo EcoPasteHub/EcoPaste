@@ -291,6 +291,14 @@
 				"version": "バージョン",
 				"exit": "終了する"
 			}
+		},
+		"note_modal": {
+			"label": {
+				"note": "備考"
+			},
+			"hints": {
+				"input_note": "メモを入力してください"
+			}
 		}
 	}
 }
