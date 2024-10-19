@@ -264,6 +264,18 @@
 				"checking_update": "正在检查更新...",
 				"latest_version": "当前已是最新版本🎉"
 			}
+		},
+		"tray": {
+			"label": {
+				"preference": "偏好设置",
+				"start_listening": "开启监听",
+				"stop_listening": "停止监听",
+				"about": "关于",
+				"check_update": "检查更新",
+				"github": "开源地址",
+				"version": "版本",
+				"exit": "退出"
+			}
 		}
 	}
 }
