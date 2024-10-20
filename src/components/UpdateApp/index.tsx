@@ -127,10 +127,10 @@ const UpdateApp = () => {
 		);
 	};
 
-	const handleOk = () => {
+	const handleOk = async () => {
 		state.loading = true;
 
-		state.update?.downloadAndInstall((progress) => {
+		await state.update?.downloadAndInstall((progress) => {
 			const { event } = progress;
 
 			switch (event) {
@@ -140,10 +140,12 @@ const UpdateApp = () => {
 				case "Progress":
 					state.download += progress.data.chunkLength;
 					break;
-				case "Finished":
-					return relaunch();
 			}
 		});
+
+		state.loading = false;
+
+		relaunch();
 	};
 
 	const handleCancel = () => {
