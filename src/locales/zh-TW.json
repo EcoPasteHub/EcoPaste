@@ -51,7 +51,7 @@
 					"auto_paste": "自動貼上",
 					"auto_paste_single": "單擊",
 					"auto_paste_double": "雙擊",
-					"image_ocr": "圖片 OCR",
+					"image_ocr": "圖片OCR",
 					"copy_as_plain": "複製為純文字",
 					"paste_as_plain": "粘貼為純文字"
 				},
@@ -59,7 +59,7 @@
 					"auto_paste": "當使用滑鼠左鍵時，快速將內容貼上到輸入位置",
 					"image_ocr": "注意：使用前請務必先下載",
 					"copy_as_plain": "富文字和HTML格式在複製時僅保留純文字內容",
-					"paste_as_plain": "富文字和 HTML 格式在粘貼時僅保留純文字內容"
+					"paste_as_plain": "富文字和HTML格式在粘貼時僅保留純文字內容"
 				}
 			}
 		},
@@ -161,7 +161,7 @@
 				},
 				"hints": {
 					"quick_paste": "隱藏視窗時，使用數字鍵快速貼上前九項",
-					"paste_as_plain": "啟動視窗時，將選中的內容粘貼為純文字或 OCR 文字"
+					"paste_as_plain": "啟動視窗時，將選中的內容粘貼為純文字、OCR文字和路徑"
 				}
 			}
 		},
@@ -211,7 +211,7 @@
 			"thank": {
 				"title": "致謝",
 				"hints": {
-					"thank_all": "感謝所有列出的和未能列出的開源依賴，以及為 {{0}} 提出建議的用戶和做出貢獻的開發者。"
+					"thank_all": "感謝所有列出的和未能列出的開源依賴，以及為{{0}}提出建議的用戶和做出貢獻的開發者。"
 				}
 			}
 		}
@@ -221,8 +221,9 @@
 			"context_menu": {
 				"copy": "複製",
 				"note": "備註",
-				"paste_ocr_text": "粘貼OCR文字",
 				"paste_as_plain_text": "貼上為純文字",
+				"paste_ocr_text": "粘貼OCR文字",
+				"paste_as_path": "粘貼為路徑",
 				"unfavorite": "取消收藏",
 				"favorite": "收藏",
 				"open_in_browser": "在瀏覽器開啟",

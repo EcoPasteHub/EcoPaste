@@ -173,13 +173,18 @@ const Item: FC<ItemProps> = (props) => {
 				action: openNoteModel,
 			},
 			{
+				text: t("clipboard.button.context_menu.paste_as_plain_text"),
+				hide: type !== "html" && type !== "rtf",
+				action: pastePlain,
+			},
+			{
 				text: t("clipboard.button.context_menu.paste_ocr_text"),
 				hide: type !== "image" || /^[\s]*$/.test(search),
 				action: pastePlain,
 			},
 			{
-				text: t("clipboard.button.context_menu.paste_as_plain_text"),
-				hide: type !== "html" && type !== "rtf",
+				text: t("clipboard.button.context_menu.paste_as_path"),
+				hide: type !== "files",
 				action: pastePlain,
 			},
 			{
