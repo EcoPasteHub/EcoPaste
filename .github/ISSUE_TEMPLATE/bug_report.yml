@@ -41,9 +41,9 @@ body:
     id: info
     attributes:
       label: Application and system information
-      description: Click the Copy Info button on the About page
+      description: Copy the software information from the About page
       render: text
-      placeholder: Click the Copy Info button on the About page
+      placeholder: Copy the software information from the About page
     validations:
       required: true
 
