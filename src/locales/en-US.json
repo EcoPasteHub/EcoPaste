@@ -161,7 +161,7 @@
 				},
 				"hints": {
 					"quick_paste": "Use number key combos to quickly paste top 9 items when window is hidden",
-					"paste_as_plain": "Paste content as plain text or OCR text"
+					"paste_as_plain": "Paste the selection as plain text or OCR text when the window is activated"
 				}
 			}
 		},

@@ -161,7 +161,7 @@
 				},
 				"hints": {
 					"quick_paste": "隱藏視窗時，使用數字鍵快速貼上前九項",
-					"paste_as_plain": "將內容貼上為純文字或 OCR 文本"
+					"paste_as_plain": "啟動視窗時，將選中的內容粘貼為純文字或 OCR 文字"
 				}
 			}
 		},
