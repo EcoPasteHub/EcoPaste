@@ -58,8 +58,8 @@
 				"hints": {
 					"auto_paste": "鼠标左键操作时，快速粘贴内容至输入位置",
 					"image_ocr": "注意：使用前请务必先下载",
-					"copy_as_plain": "富文本和 HTML 格式在复制时仅保留纯文本内容",
-					"paste_as_plain": "富文本和 HTML 格式在粘贴时仅保留纯文本内容"
+					"copy_as_plain": "富文本和HTML格式在复制时仅保留纯文本内容",
+					"paste_as_plain": "富文本和HTML格式在粘贴时仅保留纯文本内容"
 				}
 			}
 		},
@@ -161,7 +161,7 @@
 				},
 				"hints": {
 					"quick_paste": "隐藏窗口时，使用数字组合键快速粘贴前九项",
-					"paste_as_plain": "激活窗口时，将选中的内容粘贴为纯文本或 OCR 文本"
+					"paste_as_plain": "激活窗口时，将选中的内容粘贴为纯文本、OCR文本和路径"
 				}
 			}
 		},
@@ -211,7 +211,7 @@
 			"thank": {
 				"title": "致谢",
 				"hints": {
-					"thank_all": "感谢所有列出的和未能列出的开源依赖，以及为 {{0}} 提出建议的用户和做出贡献的开发者。"
+					"thank_all": "感谢所有列出的和未能列出的开源依赖，以及为{{0}}提出建议的用户和做出贡献的开发者。"
 				}
 			}
 		}
@@ -221,8 +221,9 @@
 			"context_menu": {
 				"copy": "复制",
 				"note": "备注",
-				"paste_ocr_text": "粘贴OCR文本",
 				"paste_as_plain_text": "粘贴为纯文本",
+				"paste_ocr_text": "粘贴OCR文本",
+				"paste_as_path": "粘贴为路径",
 				"unfavorite": "取消收藏",
 				"favorite": "收藏",
 				"open_in_browser": "在浏览器访问",

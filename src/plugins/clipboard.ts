@@ -337,7 +337,9 @@ export const pasteClipboard = async (data?: ClipboardItem, plain = false) => {
 
 	if (plain) {
 		if (type === "files") {
-			await writeFiles(value);
+			const pasteValue = JSON.parse(value);
+
+			await writeText(pasteValue.join("\n"));
 		} else {
 			await writeText(data.search);
 		}
