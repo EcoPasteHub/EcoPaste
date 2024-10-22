@@ -29,7 +29,7 @@ interface ContextMenuItem extends MenuItemOptions {
 
 const Item: FC<ItemProps> = (props) => {
 	const { index, data, className, openNoteModel, ...rest } = props;
-	const { id, type, value, search, group, favorite, note } = data;
+	const { id, type, value, search, group, favorite, note, subtype } = data;
 	const { state } = useContext(ClipboardPanelContext);
 	const { t } = useTranslation();
 	const { env } = useSnapshot(globalStore);
@@ -113,9 +113,13 @@ const Item: FC<ItemProps> = (props) => {
 
 	// 打开文件至访达
 	const openFinder = () => {
-		const [file] = JSON.parse(value);
+		if (type === "text") {
+			openPath(value);
+		} else {
+			const [file] = JSON.parse(value);
 
-		openPath(file);
+			openPath(file);
+		}
 	};
 
 	// 删除条目
@@ -195,12 +199,12 @@ const Item: FC<ItemProps> = (props) => {
 			},
 			{
 				text: t("clipboard.button.context_menu.open_in_browser"),
-				hide: type !== "text" || !isURL(value),
+				hide: subtype !== "url",
 				action: openBrowser,
 			},
 			{
 				text: t("clipboard.button.context_menu.send_email"),
-				hide: type !== "text" || !isEmail(value),
+				hide: subtype !== "email",
 				action: sendEmail,
 			},
 			{
@@ -222,7 +226,7 @@ const Item: FC<ItemProps> = (props) => {
 				text: isMac()
 					? t("clipboard.button.context_menu.show_in_finder")
 					: t("clipboard.button.context_menu.show_in_file_explorer"),
-				hide: type !== "files",
+				hide: type !== "files" && subtype !== "path",
 				action: openFinder,
 			},
 			{

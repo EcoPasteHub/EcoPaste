@@ -248,6 +248,7 @@
 			"link": "链接",
 			"email": "邮箱",
 			"color": "颜色",
+			"path": "路径",
 			"plain_text": "纯文本",
 			"rtf": "富文本",
 			"html": "HTML",

@@ -15,13 +15,13 @@ const Manual: FC<{ state: State }> = (props) => {
 
 			const result = await importData();
 
+			state.spinning = false;
+
 			if (!result) return;
 
 			await restoreStore(true);
 
 			emit(LISTEN_KEY.REFRESH_CLIPBOARD_LIST);
-
-			state.spinning = false;
 
 			message.success(
 				t("preference.data_backup.import_export.hints.import_success"),
