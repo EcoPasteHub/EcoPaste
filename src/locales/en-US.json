@@ -248,6 +248,7 @@
 			"link": "Link",
 			"email": "Email",
 			"color": "Color",
+			"path": "Path",
 			"plain_text": "Plain Text",
 			"rtf": "Rich Text",
 			"html": "HTML",

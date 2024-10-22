@@ -28,7 +28,8 @@ export const initDatabase = async () => {
 			height INTEGER,
 			favorite INTEGER DEFAULT 0,
 			createTime TEXT,
-			note TEXT
+			note TEXT,
+			subtype TEXT
 		);
         `;
 	};
@@ -65,12 +66,29 @@ export const initDatabase = async () => {
 		await executeSQL(createHistoryQuery(tableName));
 
 		await executeSQL(
-			`INSERT INTO ${tableName} (id, type, [group], value, search, count, width, height, favorite, createTime, note) SELECT CAST(id AS TEXT), type, [group], value, search, count, width, height, favorite, createTime, note FROM history;`,
+			`INSERT INTO ${tableName} (id, type, [group], value, search, count, width, height, favorite, createTime, note, subtype) SELECT CAST(id AS TEXT), type, [group], value, search, count, width, height, favorite, createTime, note, subtype FROM history;`,
 		);
 
 		await executeSQL("DROP TABLE history;");
 
 		await executeSQL(`ALTER TABLE ${tableName} RENAME TO history;`);
+	}
+
+	// 新增 `subtype`
+	if (!some(fields, { name: "subtype" })) {
+		await addField("history", "subtype", "TEXT");
+
+		const list = await selectSQL<ClipboardItem[]>("history");
+
+		for await (const item of list) {
+			const { id, type } = item;
+
+			if (type !== "text") return;
+
+			const subtype = await getClipboardSubtype(item);
+
+			await updateSQL("history", { id, subtype });
+		}
 	}
 };
 

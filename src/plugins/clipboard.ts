@@ -2,6 +2,7 @@ import type { ClipboardItem } from "@/types/database";
 import type { ClipboardPayload, ReadImage, WinOCR } from "@/types/plugin";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import { exists } from "@tauri-apps/plugin-fs";
 import { isEmpty, isEqual } from "lodash-es";
 
 /**
@@ -168,12 +169,16 @@ export const readRTF = async (): Promise<ClipboardPayload> => {
 export const readText = async (): Promise<ClipboardPayload> => {
 	const text = await invoke<string>(CLIPBOARD_PLUGIN.READ_TEXT);
 
-	return {
+	const data: ClipboardPayload = {
 		value: text,
 		search: text,
 		count: text.length,
 		group: "text",
 	};
+
+	data.subtype = await getClipboardSubtype(data);
+
+	return data;
 };
 
 /**
@@ -348,4 +353,28 @@ export const pasteClipboard = async (data?: ClipboardItem, plain = false) => {
 	}
 
 	return paste();
+};
+
+/**
+ * 获取剪切板数据的子类型
+ * @param data 剪贴板数据
+ */
+export const getClipboardSubtype = async (data: ClipboardPayload) => {
+	const { type, value } = data;
+
+	if (type !== "text") return;
+
+	let subtype: ClipboardPayload["subtype"];
+
+	if (isURL(value)) {
+		subtype = "url";
+	} else if (isEmail(value)) {
+		subtype = "email";
+	} else if (isColor(value)) {
+		subtype = "color";
+	} else if (await exists(value)) {
+		subtype = "path";
+	}
+
+	return subtype;
 };

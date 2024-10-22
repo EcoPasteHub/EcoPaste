@@ -16,7 +16,7 @@ interface HeaderProps {
 
 const Header: FC<HeaderProps> = (props) => {
 	const { data, copy, toggleFavorite, deleteItem } = props;
-	const { id, type, value, count, createTime, favorite } = data;
+	const { id, type, value, count, createTime, favorite, subtype } = data;
 	const { state } = useContext(ClipboardPanelContext);
 	const { t, i18n } = useTranslation();
 	const [copied, { toggle }] = useBoolean();
@@ -28,20 +28,19 @@ const Header: FC<HeaderProps> = (props) => {
 	}, [copied]);
 
 	const renderType = () => {
+		switch (subtype) {
+			case "url":
+				return t("clipboard.label.link");
+			case "email":
+				return t("clipboard.label.email");
+			case "color":
+				return t("clipboard.label.color");
+			case "path":
+				return t("clipboard.label.path");
+		}
+
 		switch (type) {
 			case "text":
-				if (isURL(value)) {
-					return t("clipboard.label.link");
-				}
-
-				if (isEmail(value)) {
-					return t("clipboard.label.email");
-				}
-
-				if (isColor(value)) {
-					return t("clipboard.label.color");
-				}
-
 				return t("clipboard.label.plain_text");
 			case "rtf":
 				return t("clipboard.label.rtf");
