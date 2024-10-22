@@ -23,7 +23,7 @@ fn get_name(path: PathBuf) -> String {
 }
 
 // 获取文件后缀名
-pub fn get_extname(path: PathBuf) -> String {
+fn get_extname(path: PathBuf) -> String {
     path.extension()
         .map(|ext| ext.to_string_lossy().to_string())
         .unwrap_or_default()
