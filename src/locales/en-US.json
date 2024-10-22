@@ -185,7 +185,8 @@
 					"export": "Export"
 				},
 				"hints": {
-					"import_success": "Import Successful"
+					"import_success": "Import Successful",
+					"export_success": "Export Successful"
 				}
 			}
 		},

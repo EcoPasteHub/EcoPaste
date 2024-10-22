@@ -185,7 +185,8 @@
 					"export": "データをエクスポート"
 				},
 				"hints": {
-					"import_success": "インポート成功"
+					"import_success": "インポート成功",
+					"export_success": "エクスポート成功"
 				}
 			}
 		},
