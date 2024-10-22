@@ -18,7 +18,9 @@ const extname = () => {
 export const exportData = async () => {
 	await saveStore(true);
 
-	const dstPath = joinPath(await downloadDir(), `${formatDate()}.${extname()}`);
+	const filename = formatDate(dayjs(), "YYYY_MM_DD_HH_mm_ss");
+
+	const dstPath = joinPath(await downloadDir(), `${filename}.${extname()}`);
 
 	return invoke(BACKUP_PLUGIN.EXPORT_DATA, {
 		dstPath,
