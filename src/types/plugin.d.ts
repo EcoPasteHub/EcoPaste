@@ -5,7 +5,8 @@ export interface Metadata {
 	isDir: boolean;
 	isFile: boolean;
 	isExist: boolean;
-	fileName: string;
+	name: string;
+	extname: string;
 }
 
 export interface ReadImage {
