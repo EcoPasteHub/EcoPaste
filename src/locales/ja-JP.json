@@ -186,7 +186,7 @@
 				},
 				"hints": {
 					"import_success": "インポート成功",
-					"export_success": "輸出成功"
+					"export_success": "エクスポート成功"
 				}
 			}
 		},
