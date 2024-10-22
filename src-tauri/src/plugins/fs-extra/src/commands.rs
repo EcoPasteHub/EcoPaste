@@ -7,17 +7,25 @@ use tauri_plugin_shell::ShellExt;
 #[derive(Debug, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Metadata {
-    size: u64,
-    is_dir: bool,
-    is_file: bool,
-    is_exist: bool,
-    file_name: String,
+    pub size: u64,
+    pub is_dir: bool,
+    pub is_file: bool,
+    pub is_exist: bool,
+    pub name: String,
+    pub extname: String,
 }
 
 // 获取文件（夹）名
-pub fn get_file_name(path: PathBuf) -> String {
+fn get_name(path: PathBuf) -> String {
     path.file_name()
         .map(|name| name.to_string_lossy().to_string())
+        .unwrap_or_default()
+}
+
+// 获取文件后缀名
+pub fn get_extname(path: PathBuf) -> String {
+    path.extension()
+        .map(|ext| ext.to_string_lossy().to_string())
         .unwrap_or_default()
 }
 
@@ -28,14 +36,16 @@ pub async fn metadata(path: PathBuf) -> Result<Metadata, String> {
     let is_dir = path.is_dir();
     let is_file = path.is_file();
     let is_exist = path.exists();
-    let file_name = get_file_name(path);
+    let name = get_name(path.clone());
+    let extname = get_extname(path);
 
     Ok(Metadata {
         size,
         is_dir,
         is_file,
         is_exist,
-        file_name,
+        name,
+        extname,
     })
 }
 

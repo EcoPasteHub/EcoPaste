@@ -72,19 +72,19 @@ export const readFiles = async (): Promise<ClipboardPayload> => {
 
 	let count = 0;
 
-	const fileNames = [];
+	const names = [];
 
 	for await (const path of files) {
-		const { size, fileName } = await metadata(path);
+		const { size, name } = await metadata(path);
 
 		count += size;
 
-		fileNames.push(fileName);
+		names.push(name);
 	}
 
 	return {
 		count,
-		search: fileNames.join(" "),
+		search: names.join(" "),
 		value: JSON.stringify(files),
 		group: "files",
 	};
@@ -337,9 +337,9 @@ export const pasteClipboard = async (data?: ClipboardItem, plain = false) => {
 
 	if (plain) {
 		if (type === "files") {
-			const pasteValue = JSON.parse(value);
+			const pasteValue = JSON.parse(value).join("\n");
 
-			await writeText(pasteValue.join("\n"));
+			await writeText(pasteValue);
 		} else {
 			await writeText(data.search);
 		}

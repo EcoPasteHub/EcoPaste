@@ -10,7 +10,7 @@ use std::{
 };
 use tar::Archive;
 use tauri::{command, AppHandle, Runtime};
-use tauri_plugin_eco_fs_extra::{get_file_name, open_path};
+use tauri_plugin_eco_fs_extra::{metadata, open_path};
 
 // 导出数据
 #[command]
@@ -24,18 +24,21 @@ pub async fn export_data<R: Runtime>(
     let mut tar = tar::Builder::new(enc);
 
     for entry in read_dir(&src_dir).map_err(|err| err.to_string())? {
-        let entry = entry.map_err(|err| err.to_string())?;
-        let path = entry.path();
-        let name = path.strip_prefix(&src_dir).map_err(|err| err.to_string())?;
-        if path.is_dir() {
-            tar.append_dir_all(name, path.clone())
+        let path = entry.map_err(|err| err.to_string())?.path();
+        let metadata = metadata(path.clone()).await?;
+
+        if metadata.is_file {
+            if metadata.extname == "db" || metadata.name == ".store-backup.json" {
+                let file = &mut File::open(path.clone()).map_err(|err| err.to_string())?;
+
+                tar.append_file(metadata.name.clone(), file)
+                    .map_err(|err| err.to_string())?;
+            }
+        }
+
+        if metadata.is_dir && metadata.name == "images" {
+            tar.append_dir_all(metadata.name, path.clone())
                 .map_err(|err| err.to_string())?;
-        } else {
-            tar.append_file(
-                name,
-                &mut File::open(path.clone()).map_err(|err| err.to_string())?,
-            )
-            .map_err(|err| err.to_string())?;
         }
     }
 
@@ -86,21 +89,17 @@ pub async fn move_data(from: PathBuf, to: PathBuf) -> Result<PathBuf, String> {
         if let Some(path) = item.get(&DirEntryAttr::Path) {
             if let &DirEntryValue::String(ref path) = path {
                 let path = PathBuf::from(path);
-                let is_dir = path.is_dir();
-                let is_file = path.is_file();
-                let file_name = get_file_name(path.clone());
+                let metadata = metadata(path.clone()).await?;
 
-                // 忽略窗口状态插件生成的的文件
-                if is_file && file_name.starts_with(".window-state") {
+                if metadata.is_dir && metadata.name != "images" {
                     continue;
                 }
 
-                // 忽略日志插件生成的目录
-                if is_dir && file_name == "logs" {
+                if metadata.is_file && metadata.extname == "json" {
                     continue;
                 }
 
-                from_items.push(path);
+                from_items.push(path.clone());
             }
         }
     }
