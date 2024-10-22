@@ -5340,8 +5340,7 @@ dependencies = [
 [[package]]
 name = "tao"
 version = "0.30.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a0dbbebe82d02044dfa481adca1550d6dd7bd16e086bc34fa0fbecceb5a63751"
+source = "git+https://github.com/Legend-Master/tao?branch=fix-set-theme-mac-crash#147a36719471864f3d165ef0f5ceba2acdd22687"
 dependencies = [
  "bitflags 2.6.0",
  "cocoa 0.26.0",
@@ -5367,7 +5366,7 @@ dependencies = [
  "parking_lot",
  "raw-window-handle",
  "scopeguard",
- "tao-macros",
+ "tao-macros 0.1.3 (git+https://github.com/Legend-Master/tao?branch=fix-set-theme-mac-crash)",
  "unicode-segmentation",
  "url",
  "windows 0.58.0",
@@ -5381,6 +5380,16 @@ name = "tao-macros"
 version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f4e16beb8b2ac17db28eab8bca40e62dbfbb34c0fcdc6d9826b11b7b5d047dfd"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.79",
+]
+
+[[package]]
+name = "tao-macros"
+version = "0.1.3"
+source = "git+https://github.com/Legend-Master/tao?branch=fix-set-theme-mac-crash#147a36719471864f3d165ef0f5ceba2acdd22687"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -7233,7 +7242,7 @@ dependencies = [
  "raw-window-handle",
  "sha2",
  "soup3",
- "tao-macros",
+ "tao-macros 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "thiserror",
  "webkit2gtk",
  "webkit2gtk-sys",
