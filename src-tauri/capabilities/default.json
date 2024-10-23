@@ -10,6 +10,7 @@
 		"core:window:allow-set-position",
 		"core:window:allow-start-dragging",
 		"core:window:allow-set-theme",
+		"core:window:deny-internal-toggle-maximize",
 		"shell:default",
 		{
 			"identifier": "shell:allow-execute",
