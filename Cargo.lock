@@ -5718,6 +5718,7 @@ dependencies = [
  "rdev",
  "serde",
  "tauri",
+ "tauri-nspanel",
  "tauri-plugin",
  "tauri-plugin-eco-window",
  "winapi",

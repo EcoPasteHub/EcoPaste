@@ -1,14 +1,15 @@
-use cocoa::appkit::{NSApplicationActivationOptions, NSRunningApplication};
 use cocoa::base::{id, nil};
 use cocoa::foundation::{NSAutoreleasePool, NSString};
 use objc::declare::ClassDecl;
 use objc::runtime::{Class, Object, Sel};
 use objc::{msg_send, sel, sel_impl};
 use std::ffi::CStr;
+use std::process::Command;
 use std::sync::Mutex;
 use std::thread;
-use tauri::command;
-use tauri_plugin_eco_window::MAIN_WINDOW_TITLE;
+use tauri::{command, AppHandle, Runtime};
+use tauri_nspanel::ManagerExt;
+use tauri_plugin_eco_window::{MAIN_WINDOW_LABEL, MAIN_WINDOW_TITLE};
 
 static PREVIOUS_WINDOW: Mutex<Option<i32>> = Mutex::new(None);
 
@@ -78,33 +79,21 @@ pub fn get_previous_window() -> Option<i32> {
     return PREVIOUS_WINDOW.lock().unwrap().clone();
 }
 
-// 聚焦前一个窗口
-fn focus_previous_window() {
-    let process_id = match get_previous_window() {
-        Some(process_id) => process_id,
-        None => return,
-    };
-
-    unsafe {
-        let app = NSRunningApplication::runningApplicationWithProcessIdentifier(nil, process_id);
-
-        app.activateWithOptions_(
-            NSApplicationActivationOptions::NSApplicationActivateIgnoringOtherApps,
-        );
-    }
-}
-
 // 粘贴
 #[command]
-pub async fn paste() {
-    focus_previous_window();
+pub async fn paste<R: Runtime>(app_handle: AppHandle<R>) {
+    let handle = app_handle.clone();
 
-    let script =
-        r#"osascript -e 'tell application "System Events" to keystroke "v" using command down'"#;
+    let _ = app_handle.run_on_main_thread(move || {
+        let panel = handle.get_webview_panel(MAIN_WINDOW_LABEL).unwrap();
 
-    std::process::Command::new("sh")
-        .arg("-c")
-        .arg(script)
+        panel.resign_key_window();
+    });
+
+    let script = r#"tell application "System Events" to keystroke "v" using command down"#;
+
+    Command::new("osascript")
+        .args(["-e", script])
         .output()
         .expect("failed to execute process");
 }

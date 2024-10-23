@@ -1,3 +1,4 @@
+import { listen } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 
 interface Props {
@@ -29,6 +30,8 @@ export const useFocus = (props: Props) => {
 		const appWindow = getCurrentWebviewWindow();
 
 		state.unlisten = await appWindow.onFocusChanged(run);
+
+		listen(LISTEN_KEY.MACOS_PANEL_FOCUS, run);
 	});
 
 	useUnmount(() => {
