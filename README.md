@@ -61,7 +61,7 @@
 
 ### Windows
 
-手动安装：[x86](https://api.ecopaste.cn/download?platform=windows-x86) | [x64](https://api.ecopaste.cn/download?platform=windows-x64) | [arm64](https://api.ecopaste.cn/download?platform=windows-arm64)
+手动安装：[x86](https://api.ecopaste.cn/download?platform=windows-x86) | [x64](https://api.ecopaste.cn/download?platform=windows-x64) | [arm64](https://api.ecopaste.cn/download?platform=windows-arm)
 
 ### Macos
 
