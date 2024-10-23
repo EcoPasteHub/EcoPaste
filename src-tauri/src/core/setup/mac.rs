@@ -1,8 +1,5 @@
 use tauri::{ActivationPolicy, App, Emitter, Manager, WebviewWindow};
-use tauri_nspanel::{
-    cocoa::appkit::{NSMainMenuWindowLevel, NSWindowCollectionBehavior},
-    panel_delegate, WebviewWindowExt,
-};
+use tauri_nspanel::{cocoa::appkit::NSWindowCollectionBehavior, panel_delegate, WebviewWindowExt};
 use tauri_plugin_eco_window_state::save_window_state;
 
 #[allow(non_upper_case_globals)]
@@ -21,7 +18,7 @@ pub fn platform(app: &mut App, main_window: WebviewWindow, _preference_window: W
     let panel = main_window.to_panel().unwrap();
 
     // 让窗口在程序坞之上
-    panel.set_level(NSMainMenuWindowLevel + 1);
+    panel.set_level(20);
 
     // 不抢占其它窗口的焦点和支持缩放
     panel.set_style_mask(NSWindowStyleMaskNonActivatingPanel | NSResizableWindowMask);
