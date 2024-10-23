@@ -13,6 +13,7 @@ log = "0.4.22"
 cocoa = "0.25.0"
 tauri-plugin-shell = "2.0.1"
 tauri-plugin = { version = "2.0.1", features = ["build"] }
+tauri-nspanel = { git = "https://github.com/ahkohd/tauri-nspanel", branch = "v2" }
 tauri-plugin-eco-window = { path = "./src-tauri/src/plugins/window" }
 tauri-plugin-eco-macos-permissions = { path = "./src-tauri/src/plugins/macos-permissions" }
 tauri-plugin-eco-mouse = { path = "./src-tauri/src/plugins/mouse" }
