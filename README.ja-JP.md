@@ -61,30 +61,34 @@
 
 ### Windows
 
-手動インストール: [Universal](https://ecopaste-updater.ayangweb.cn/api/stable?platform=windows)
+手動インストール: [x86](https://api.ecopaste.cn/download?platform=windows-x86) | [x64](https://api.ecopaste.cn/download?platform=windows-x64) | [arm64](https://api.ecopaste.cn/download?platform=windows-arm64)
 
 ### Macos
 
-手動インストール: [Apple Silicon](https://ecopaste-updater.ayangweb.cn/api/stable?platform=macos-arm) | [Intel](https://ecopaste-updater.ayangweb.cn/api/stable?platform=macos-x64)
+手動インストール: [Apple Silicon](https://api.ecopaste.cn/download?platform=macos-arm) | [Intel](https://api.ecopaste.cn/download?platform=macos-x64)
 
 HomeBrew:
 
 1. リポジトリを追加:
+
 ```shell
 brew tap EcoPasteHub/EcoPaste
 ```
 
 2. インストール:
+
 ```shell
 brew install ecopaste
 ```
 
 3. アップデート:
+
 ```shell
 brew upgrade ecopaste
 ```
 
 4. アンインストール:
+
 ```shell
 brew uninstall --cask ecopaste
 
@@ -93,28 +97,32 @@ brew untap EcoPasteHub/EcoPaste
 
 ### Linux(x11)
 
-手動インストール: [AppImage](https://ecopaste-updater.ayangweb.cn/api/stable?platform=linux-appimage) | [deb](https://ecopaste-updater.ayangweb.cn/api/stable?platform=linux-deb) | [rpm](https://ecopaste-updater.ayangweb.cn/api/stable?platform=linux-rpm)
+手動インストール: [AppImage](https://api.ecopaste.cn/download?platform=linux-appimage) | [deb](https://api.ecopaste.cn/download?platform=linux-deb) | [rpm](https://api.ecopaste.cn/download?platform=linux-rpm)
 
-* Ubuntu、Debainシリーズ：
+- Ubuntu、Debain シリーズ：
+
 ```shell
-wget "https://ecopaste-updater.ayangweb.cn/api/stable?platform=linux-deb" -O ecopaste-stable.deb
+wget "https://api.ecopaste.cn/download?platform=linux-deb" -O ecopaste-stable.deb
 sudo dpkg -i ecopaste-stable.deb
 ```
 
-* Red Hat、CentOS、Fedoraシリーズ：
+- Red Hat、CentOS、Fedora シリーズ：
+
 ```shell
-wget "https://ecopaste-updater.ayangweb.cn/api/stable?platform=linux-rpm" -O ecopaste-stable.rpm
+wget "https://api.ecopaste.cn/download?platform=linux-rpm" -O ecopaste-stable.rpm
 sudo yum install ecopaste-stable.rpm
 ```
 
-* Manjaro、ArchLinuxシリーズ：
+- Manjaro、ArchLinux シリーズ：
+
 ```shell
 yay -S eco-paste-bin
 ```
 
-* 他のディストリビューション:
+- 他のディストリビューション:
+
 ```shell
-wget "https://ecopaste-updater.ayangweb.cn/api/stable?platform=linux-appimage" -O EcoPaste.AppImage
+wget "https://api.ecopaste.cn/download?platform=linux-appimage" -O EcoPaste.AppImage
 chmod +x EcoPaste.AppImage
 ./EcoPaste.AppImage --appimage-extract
 
@@ -133,20 +141,20 @@ mv ecopaste.AppImage /opt/ecopaste/
 
 ## 機能の概要
 
-- **軽量でコンパクト、多プラットフォーム対応**: 
-  
-  Tauriで構築されたこのアプリは、より小型で洗練され、リソースのフットプリントを最小限に抑え、Windows、MacOS、Linuxの各プラットフォームに完璧に適応し、複数のプラットフォームで一貫したユーザー体験を保証します。
+- **軽量でコンパクト、多プラットフォーム対応**:
+
+  Tauri で構築されたこのアプリは、より小型で洗練され、リソースのフットプリントを最小限に抑え、Windows、MacOS、Linux の各プラットフォームに完璧に適応し、複数のプラットフォームで一貫したユーザー体験を保証します。
 
 - **常駐バックグラウンド、素早く起動**：
 
   アプリは常にバックグラウンドに常駐、カスタムショートカットキーで素早く呼び出し、クリップボードの内容をすばやく利用。
-- 
-  **画像OCR、オフライン認識**：
 
-  内蔵のOCR機能、テキストとQRコードの認識をサポートし、右クリックメニューでOCR内容を素早くコピー。
+- **画像 OCR、オフライン認識**：
+
+  内蔵の OCR 機能、テキストと QR コードの認識をサポートし、右クリックメニューで OCR 内容を素早くコピー。
 
   **組み込み検索**：
-  内蔵検索機能、クリップボード内容をすばやく見つける、テキスト、画像（OCRテキスト検索）、ファイルを含む。
+  内蔵検索機能、クリップボード内容をすばやく見つける、テキスト、画像（OCR テキスト検索）、ファイルを含む。
 
 - **ローカルストレージ、データセキュリティ**：
 
@@ -167,7 +175,7 @@ mv ecopaste.AppImage /opt/ecopaste/
   <img src="./images/damaged-light.ja-JP.png" />
 </picture>
 
-アプリが実行できるようにするため、`terminal` で次のコマンドを入力し、Enterキーを押してください: 
+アプリが実行できるようにするため、`terminal` で次のコマンドを入力し、Enter キーを押してください:
 
 > コマンドを実行するにはパスワードが必要な場合があります。
 
@@ -191,7 +199,7 @@ sudo xattr -r -d com.apple.quarantine /Applications/EcoPaste.app
 
 ## 貢献者
 
-EcoPaste への貢献をいただいた皆様に感謝いたします。 
+EcoPaste への貢献をいただいた皆様に感謝いたします。
 
 EcoPaste に貢献したい方は、[貢献ガイドライン](./.github/CONTRIBUTING/ja-JP.md)を参照してください。
 

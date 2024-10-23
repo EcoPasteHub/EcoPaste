@@ -61,30 +61,34 @@
 
 ### Windows
 
-Install Manually: [Universal](https://ecopaste-updater.ayangweb.cn/api/stable?platform=windows)
+Install Manually: [x86](https://api.ecopaste.cn/download?platform=windows-x86) | [x64](https://api.ecopaste.cn/download?platform=windows-x64) | [arm64](https://api.ecopaste.cn/download?platform=windows-arm64)
 
 ### Macos
 
-Install Manually: [Apple Silicon](https://ecopaste-updater.ayangweb.cn/api/stable?platform=macos-arm) | [Intel](https://ecopaste-updater.ayangweb.cn/api/stable?platform=macos-x64)
+Install Manually: [Apple Silicon](https://api.ecopaste.cn/download?platform=macos-arm) | [Intel](https://api.ecopaste.cn/download?platform=macos-x64)
 
 HomeBrew:
 
 1. Add our tap:
+
 ```shell
 brew tap EcoPasteHub/EcoPaste
 ```
 
 2. Install:
+
 ```shell
 brew install ecopaste
 ```
 
 3. Upgrade:
+
 ```shell
 brew upgrade ecopaste
 ```
 
 4. Uninstall:
+
 ```shell
 brew uninstall --cask ecopaste
 
@@ -93,28 +97,32 @@ brew untap EcoPasteHub/EcoPaste
 
 ### Linux(x11)
 
-Install Manually: [AppImage](https://ecopaste-updater.ayangweb.cn/api/stable?platform=linux-appimage) | [deb](https://ecopaste-updater.ayangweb.cn/api/stable?platform=linux-deb) | [rpm](https://ecopaste-updater.ayangweb.cn/api/stable?platform=linux-rpm)
+Install Manually: [AppImage](https://api.ecopaste.cn/download?platform=linux-appimage) | [deb](https://api.ecopaste.cn/download?platform=linux-deb) | [rpm](https://api.ecopaste.cn/download?platform=linux-rpm)
 
-* Ubuntu、Debain:
+- Ubuntu、Debain:
+
 ```shell
-wget "https://ecopaste-updater.ayangweb.cn/api/stable?platform=linux-deb" -O ecopaste-stable.deb
+wget "https://api.ecopaste.cn/download?platform=linux-deb" -O ecopaste-stable.deb
 sudo dpkg -i ecopaste-stable.deb
 ```
 
-* Red Hat、CentOS、Fedora:
+- Red Hat、CentOS、Fedora:
+
 ```shell
-wget "https://ecopaste-updater.ayangweb.cn/api/stable?platform=linux-rpm" -O ecopaste-stable.rpm
+wget "https://api.ecopaste.cn/download?platform=linux-rpm" -O ecopaste-stable.rpm
 sudo yum install ecopaste-stable.rpm
 ```
 
-* Manjaro、ArchLinux:
+- Manjaro、ArchLinux:
+
 ```shell
 yay -S eco-paste-bin
 ```
 
-* Others:
+- Others:
+
 ```shell
-wget "https://ecopaste-updater.ayangweb.cn/api/stable?platform=linux-appimage" -O EcoPaste.AppImage
+wget "https://api.ecopaste.cn/download?platform=linux-appimage" -O EcoPaste.AppImage
 chmod +x EcoPaste.AppImage
 ./EcoPaste.AppImage --appimage-extract
 
@@ -133,8 +141,8 @@ mv ecopaste.AppImage /opt/ecopaste/
 
 ## Features
 
-- **Lightweight & Cross-platform Supported**: 
-  
+- **Lightweight & Cross-platform Supported**:
+
   Built with Tauri, the application is lightweight and refined, consuming minimal resources. It also delivers a uniform user experience across both Windows, MacOS and Linux platforms.
 
 - **Background Operation & Instant Access**：
@@ -192,7 +200,7 @@ mv ecopaste.AppImage /opt/ecopaste/
   <img src="./images/damaged-light.en-US.png" />
 </picture>
 
-Type the following command and press Enter in `terminal` to allow the app to run: 
+Type the following command and press Enter in `terminal` to allow the app to run:
 
 > Password may be required to run the command.
 
@@ -224,7 +232,7 @@ We recommend using [issue](https://github.com/EcoPasteHub/EcoPaste/issues) to pr
 
 ## Contributors
 
-Thanks to everyone who has already contributed to EcoPaste. 
+Thanks to everyone who has already contributed to EcoPaste.
 
 If you want to contribute to EcoPaste, please refer to [Contributing Guide](./.github/CONTRIBUTING/en-US.md).
 
