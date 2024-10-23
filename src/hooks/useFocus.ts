@@ -1,3 +1,4 @@
+import { listen } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 
 interface Props {
@@ -5,14 +6,8 @@ interface Props {
 	onBlur?: () => void;
 }
 
-interface State {
-	unlisten?: () => void;
-}
-
 export const useFocus = (props: Props) => {
 	const { onFocus, onBlur } = props;
-
-	const state = useReactive<State>({});
 
 	const { run } = useDebounceFn(
 		({ payload }) => {
@@ -28,10 +23,8 @@ export const useFocus = (props: Props) => {
 	useMount(async () => {
 		const appWindow = getCurrentWebviewWindow();
 
-		state.unlisten = await appWindow.onFocusChanged(run);
-	});
+		appWindow.onFocusChanged(run);
 
-	useUnmount(() => {
-		state.unlisten?.();
+		listen(LISTEN_KEY.MACOS_PANEL_FOCUS, run);
 	});
 };

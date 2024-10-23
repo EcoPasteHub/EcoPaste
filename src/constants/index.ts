@@ -30,6 +30,7 @@ export const LISTEN_KEY = {
 	CLIPBOARD_ITEM_SELECT_NEXT: "clipboard-item-select-next",
 	CLOSE_DATABASE: "close-database",
 	TOGGLE_LISTEN_CLIPBOARD: "toggle-listen-clipboard",
+	MACOS_PANEL_FOCUS: "macos-panel-focus",
 };
 
 export const WINDOW_PLUGIN = {
