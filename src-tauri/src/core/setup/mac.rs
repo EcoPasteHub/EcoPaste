@@ -25,12 +25,20 @@ pub fn platform(app: &mut App, main_window: WebviewWindow, _preference_window: W
     // 不抢占其它窗口的焦点和支持缩放
     panel.set_style_mask(NSWindowStyleMaskNonActivatingPanel | NSResizableWindowMask);
 
+    // 在各个桌面空间、全屏中共享窗口
+    panel.set_collection_behaviour(
+        NSWindowCollectionBehavior::NSWindowCollectionBehaviorCanJoinAllSpaces
+            | NSWindowCollectionBehavior::NSWindowCollectionBehaviorStationary
+            | NSWindowCollectionBehavior::NSWindowCollectionBehaviorFullScreenAuxiliary,
+    );
+
     // 定义面板的委托 (delegate)，用于监听面板窗口的事件
     let delegate = panel_delegate!(EcoPanelDelegate {
         window_did_become_key,
         window_did_resign_key
     });
 
+    // 为 delegate 设置事件监听器
     delegate.set_listener(Box::new(move |delegate_name: String| {
         match delegate_name.as_str() {
             // 当窗口获得键盘焦点时调用
