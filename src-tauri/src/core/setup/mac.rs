@@ -1,8 +1,5 @@
 use tauri::{ActivationPolicy, App, Emitter, Manager, WebviewWindow};
-use tauri_nspanel::{
-    cocoa::appkit::{NSMainMenuWindowLevel, NSWindowCollectionBehavior},
-    panel_delegate, WebviewWindowExt,
-};
+use tauri_nspanel::{cocoa::appkit::NSWindowCollectionBehavior, panel_delegate, WebviewWindowExt};
 use tauri_plugin_eco_window_state::save_window_state;
 
 #[allow(non_upper_case_globals)]
