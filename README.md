@@ -61,30 +61,34 @@
 
 ### Windows
 
-手动安装：[Universal](https://ecopaste-updater.ayangweb.cn/api/stable?platform=windows)
+手动安装：[x86](https://api.ecopaste.cn/download?platform=windows-x86) | [x64](https://api.ecopaste.cn/download?platform=windows-x64) | [arm64](https://api.ecopaste.cn/download?platform=windows-arm64)
 
 ### Macos
 
-手动安装：[Apple Silicon](https://ecopaste-updater.ayangweb.cn/api/stable?platform=macos-arm) | [Intel](https://ecopaste-updater.ayangweb.cn/api/stable?platform=macos-x64)
+手动安装：[Apple Silicon](https://api.ecopaste.cn/download?platform=macos-arm) | [Intel](https://api.ecopaste.cn/download?platform=macos-x64)
 
 HomeBrew：
 
 1. 添加我们的 tap:
+
 ```shell
 brew tap EcoPasteHub/EcoPaste
 ```
 
 2. 安装:
+
 ```shell
 brew install ecopaste
 ```
 
 3. 更新:
+
 ```shell
 brew upgrade ecopaste
 ```
 
 4. 卸载:
+
 ```shell
 brew uninstall --cask ecopaste
 
@@ -93,28 +97,32 @@ brew untap EcoPasteHub/EcoPaste
 
 ### Linux(x11)
 
-手动安装： [AppImage](https://ecopaste-updater.ayangweb.cn/api/stable?platform=linux-appimage) | [deb](https://ecopaste-updater.ayangweb.cn/api/stable?platform=linux-deb) | [rpm](https://ecopaste-updater.ayangweb.cn/api/stable?platform=linux-rpm)
+手动安装：[AppImage](https://api.ecopaste.cn/download?platform=linux-appimage) | [deb](https://api.ecopaste.cn/download?platform=linux-deb) | [rpm](https://api.ecopaste.cn/download?platform=linux-rpm)
 
-* Ubuntu、Debain系列：
+- Ubuntu、Debain 系列：
+
 ```shell
-wget "https://ecopaste-updater.ayangweb.cn/api/stable?platform=linux-deb" -O ecopaste-stable.deb
+wget "https://api.ecopaste.cn/download?platform=linux-deb" -O ecopaste-stable.deb
 sudo dpkg -i ecopaste-stable.deb
 ```
 
-* Red Hat、CentOS、Fedora系列：
+- Red Hat、CentOS、Fedora 系列：
+
 ```shell
-wget "https://ecopaste-updater.ayangweb.cn/api/stable?platform=linux-rpm" -O ecopaste-stable.rpm
+wget "https://api.ecopaste.cn/download?platform=linux-rpm" -O ecopaste-stable.rpm
 sudo yum install ecopaste-stable.rpm
 ```
 
-* Manjaro、ArchLinux系列：
+- Manjaro、ArchLinux 系列：
+
 ```shell
 yay -S eco-paste-bin
 ```
 
-* 其他发行版：
+- 其他发行版：
+
 ```shell
-wget "https://ecopaste-updater.ayangweb.cn/api/stable?platform=linux-appimage" -O EcoPaste.AppImage
+wget "https://api.ecopaste.cn/download?platform=linux-appimage" -O EcoPaste.AppImage
 chmod +x EcoPaste.AppImage
 ./EcoPaste.AppImage --appimage-extract
 
@@ -134,7 +142,7 @@ mv ecopaste.AppImage /opt/ecopaste/
 ## 功能介绍
 
 - **轻量小巧，多平台用**：
-  
+
   使用 Tauri 构建，应用更加小巧精致，资源占用极少，同时完美适配 Windows、MacOS 和 Linux 平台，保证多平台一致的用户体验。
 
 - **常驻后台，快捷唤醒**：
@@ -155,9 +163,9 @@ mv ecopaste.AppImage /opt/ecopaste/
 
 - **内置搜索，轻松查找**：
 
-  内置搜索功能，帮助用户快速找到任何剪贴板上的内容，无论是文本、图片（OCR文本搜索）还是文件，所有内容都可以一目了然。
+  内置搜索功能，帮助用户快速找到任何剪贴板上的内容，无论是文本、图片（OCR 文本搜索）还是文件，所有内容都可以一目了然。
 
-- **图片OCR，离线识别**：
+- **图片 OCR，离线识别**：
 
   内置系统 OCR 功能，支持文本和二维码识别，通过右键菜单快速复制识别到的 OCR 内容，实现离线识别，使用更便捷。
 

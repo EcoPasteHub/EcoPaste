@@ -113,8 +113,8 @@ const Item: FC<ItemProps> = (props) => {
 
 	// 打开文件至访达
 	const openFinder = () => {
-		if (type === "text") {
-			openPath(value);
+		if (subtype === "path") {
+			openPath(value, false);
 		} else {
 			const [file] = JSON.parse(value);
 
