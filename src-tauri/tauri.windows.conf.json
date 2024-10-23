@@ -5,7 +5,8 @@
 		"windows": {
 			"digestAlgorithm": "sha256",
 			"nsis": {
-				"languages": ["SimpChinese"]
+				"languages": ["SimpChinese"],
+				"installMode": "both"
 			}
 		}
 	}
