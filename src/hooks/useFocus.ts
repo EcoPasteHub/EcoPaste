@@ -6,14 +6,8 @@ interface Props {
 	onBlur?: () => void;
 }
 
-interface State {
-	unlisten?: () => void;
-}
-
 export const useFocus = (props: Props) => {
 	const { onFocus, onBlur } = props;
-
-	const state = useReactive<State>({});
 
 	const { run } = useDebounceFn(
 		({ payload }) => {
@@ -29,12 +23,8 @@ export const useFocus = (props: Props) => {
 	useMount(async () => {
 		const appWindow = getCurrentWebviewWindow();
 
-		state.unlisten = await appWindow.onFocusChanged(run);
+		appWindow.onFocusChanged(run);
 
 		listen(LISTEN_KEY.MACOS_PANEL_FOCUS, run);
-	});
-
-	useUnmount(() => {
-		state.unlisten?.();
 	});
 };
