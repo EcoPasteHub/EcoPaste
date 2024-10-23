@@ -2,4 +2,4 @@
 
 [default]
 description = "Default permissions for the plugin"
-permissions = ["allow-save-state", "allow-restore-state"]
+permissions = ["allow-save-window-state", "allow-restore-window-state"]

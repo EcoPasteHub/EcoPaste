@@ -3,6 +3,7 @@ use tauri_nspanel::{
     cocoa::appkit::{NSMainMenuWindowLevel, NSWindowCollectionBehavior},
     panel_delegate, WebviewWindowExt,
 };
+use tauri_plugin_eco_window_state::save_window_state;
 
 #[allow(non_upper_case_globals)]
 const NSWindowStyleMaskNonActivatingPanel: i32 = 1 << 7;
@@ -48,6 +49,9 @@ pub fn platform(app: &mut App, main_window: WebviewWindow, _preference_window: W
             // 当窗口失去键盘焦点时调用
             "window_did_resign_key" => {
                 app_handle.emit(MACOS_PANEL_FOCUS, false).unwrap();
+
+                let app_handle_clone = app_handle.clone();
+                save_window_state(app_handle_clone);
             }
             _ => (),
         }
