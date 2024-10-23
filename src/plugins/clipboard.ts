@@ -360,9 +360,7 @@ export const pasteClipboard = async (data?: ClipboardItem, plain = false) => {
  * @param data 剪贴板数据
  */
 export const getClipboardSubtype = async (data: ClipboardPayload) => {
-	const { type, value } = data;
-
-	if (type !== "text") return;
+	const { value } = data;
 
 	let subtype: ClipboardPayload["subtype"];
 
