@@ -26,24 +26,22 @@ const ClipboardSettings = () => {
 				/>
 			</ProList>
 
-			{!isLinux() && (
-				<ProList header={t("preference.clipboard.audio_settings.title")}>
-					<ProSwitch
-						title={t("preference.clipboard.audio_settings.label.copy_audio")}
-						value={audio.copy}
-						onChange={(value) => {
-							clipboardStore.audio.copy = value;
+			<ProList header={t("preference.clipboard.audio_settings.title")}>
+				<ProSwitch
+					title={t("preference.clipboard.audio_settings.label.copy_audio")}
+					value={audio.copy}
+					onChange={(value) => {
+						clipboardStore.audio.copy = value;
+					}}
+				>
+					<Audio
+						iconProps={{
+							size: 22,
+							className: "flex!",
 						}}
-					>
-						<Audio
-							iconProps={{
-								size: 22,
-								className: "flex!",
-							}}
-						/>
-					</ProSwitch>
-				</ProList>
-			)}
+					/>
+				</ProSwitch>
+			</ProList>
 
 			<ProList header={t("preference.clipboard.search_box_settings.title")}>
 				<SearchPosition key={1} />
