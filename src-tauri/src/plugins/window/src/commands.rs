@@ -26,6 +26,8 @@ pub async fn show_window<R: Runtime>(app_handle: AppHandle<R>, window: WebviewWi
         window.unminimize().unwrap();
         window.set_focus().unwrap();
     }
+
+    let _ = app_handle;
 }
 
 // 隐藏窗口
@@ -37,6 +39,8 @@ pub async fn hide_window<R: Runtime>(app_handle: AppHandle<R>, window: WebviewWi
     if !is_macos_panel(&window) {
         window.hide().unwrap();
     }
+
+    let _ = app_handle;
 }
 
 // 显示任务栏图标
