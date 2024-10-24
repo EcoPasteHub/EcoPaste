@@ -24,6 +24,11 @@ const Thank = () => {
 			link: "https://github.com/ChurchTao/clipboard-rs",
 		},
 		{
+			name: "tauri-nspanel",
+			icon: "i-skill-icons:rust",
+			link: "https://github.com/ahkohd/tauri-nspanel",
+		},
+		{
 			name: "ant-design",
 			icon: "i-logos:ant-design",
 			link: "https://ant-design.antgroup.com",
