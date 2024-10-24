@@ -173,7 +173,7 @@ const ClipboardPanel = () => {
 
 	return (
 		<>
-			{!isLinux() && <Audio hiddenIcon ref={audioRef} />}
+			<Audio hiddenIcon ref={audioRef} />
 
 			<ClipboardPanelContext.Provider
 				value={{
