@@ -1,5 +1,4 @@
 use tauri::{async_runtime::spawn, command, AppHandle, Manager, Runtime, WebviewWindow};
-use tauri_nspanel::ManagerExt;
 
 // 主窗口的label
 pub static MAIN_WINDOW_LABEL: &str = "main";
@@ -100,6 +99,8 @@ pub fn set_macos_panel<R: Runtime>(
     window: &WebviewWindow<R>,
     status: MacOSPanelStatus,
 ) {
+    use tauri_nspanel::ManagerExt;
+
     if is_macos_panel(window) {
         let handle = app_handle.clone();
 
