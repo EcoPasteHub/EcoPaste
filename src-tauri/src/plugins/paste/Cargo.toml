@@ -18,7 +18,6 @@ tauri-plugin.workspace = true
 [target."cfg(target_os = \"macos\")".dependencies]
 cocoa.workspace = true
 objc = "0.2.7"
-tauri-nspanel.workspace = true
 
 [target."cfg(target_os = \"windows\")".dependencies]
 log.workspace = true
