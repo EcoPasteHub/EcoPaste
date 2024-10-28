@@ -28,7 +28,7 @@ pub async fn export_data<R: Runtime>(
         let metadata = metadata(path.clone()).await?;
 
         if metadata.is_file {
-            if metadata.extname == "db" || metadata.name == ".store-backup.json" {
+            if metadata.extname == "db" || metadata.name.starts_with(".store-backup.") {
                 let file = &mut File::open(path.clone()).map_err(|err| err.to_string())?;
 
                 tar.append_file(metadata.name.clone(), file)
