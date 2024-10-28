@@ -34,6 +34,7 @@ tauri-plugin-updater = "2"
 tauri-plugin-process = "2"
 tauri-plugin-eco-window.workspace = true
 tauri-plugin-eco-macos-permissions.workspace = true
+tauri-plugin-eco-mouse.workspace = true
 tauri-plugin-eco-fs-extra.workspace = true
 tauri-plugin-eco-backup.workspace = true
 tauri-plugin-eco-locale.workspace = true
