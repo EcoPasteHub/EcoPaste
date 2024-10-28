@@ -42,6 +42,7 @@ tauri-plugin-eco-ocr.workspace = true
 tauri-plugin-eco-paste.workspace = true
 tauri-plugin-eco-window-state.workspace = true
 tauri-plugin-eco-autostart.workspace = true
+tauri-plugin-eco-mouse.workspace = true
 
 [target."cfg(target_os = \"macos\")".dependencies]
 tauri-nspanel.workspace = true

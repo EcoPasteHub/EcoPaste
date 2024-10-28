@@ -24,6 +24,7 @@ tauri-plugin-eco-ocr = { path = "./src-tauri/src/plugins/ocr" }
 tauri-plugin-eco-paste = { path = "./src-tauri/src/plugins/paste" }
 tauri-plugin-eco-window-state = { path = "./src-tauri/src/plugins/window-state" }
 tauri-plugin-eco-autostart = { path = "./src-tauri/src/plugins/autostart" }
+tauri-plugin-eco-mouse = { path = "./src-tauri/src/plugins/mouse" }
 
 [patch.crates-io]
 tao = { git = "https://github.com/Legend-Master/tao", branch = "fix-set-theme-mac-crash" }
