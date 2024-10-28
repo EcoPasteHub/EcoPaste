@@ -57,9 +57,11 @@ export const getSaveDataDirName = () => {
  * @param backup 是否是备份数据
  */
 export const getSaveStorePath = async (backup = false) => {
+	const extname = isDev() ? "dev.json" : "json";
+
 	if (backup) {
-		return joinPath(getSaveDataDir(), ".store-backup.json");
+		return joinPath(getSaveDataDir(), `.store-backup.${extname}`);
 	}
 
-	return joinPath(await appDataDir(), ".store.json");
+	return joinPath(await appDataDir(), `.store.${extname}`);
 };
