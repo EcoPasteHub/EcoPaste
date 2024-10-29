@@ -1,0 +1,13 @@
+.root {
+  --uno: "h-screen";
+
+  :global {
+    .ant-tabs-content-holder {
+      --uno: "b-0 h-full flex-1 overflow-auto bg-2 p-16";
+
+      .ant-tabs-tabpane {
+        --uno: "p-0!";
+      }
+    }
+  }
+}

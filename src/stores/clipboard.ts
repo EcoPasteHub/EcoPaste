@@ -1,7 +1,7 @@
 import type { ClipboardStore } from "@/types/store";
-import proxyWithPersist from "valtio-persist";
+import { proxy } from "valtio";
 
-export const CLIPBOARD_STORE_INITIAL_STATE: ClipboardStore = {
+export const clipboardStore = proxy<ClipboardStore>({
 	window: {
 		style: "float",
 		position: "remember",
@@ -29,13 +29,4 @@ export const CLIPBOARD_STORE_INITIAL_STATE: ClipboardStore = {
 		duration: 0,
 		unit: 1,
 	},
-};
-
-export const clipboardStore = proxyWithPersist<ClipboardStore>({
-	name: "clipboard",
-	initialState: { ...CLIPBOARD_STORE_INITIAL_STATE },
-	persistStrategies,
-	version: 0,
-	migrations: {},
-	getStorage,
 });

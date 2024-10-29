@@ -1,6 +1,7 @@
 import EcoSelect from "@/components/EcoSelect";
 import ProList from "@/components/ProList";
 import ProListItem from "@/components/ProListItem";
+import type { ClipboardItem } from "@/types/database";
 import { InputNumber } from "antd";
 import { useSnapshot } from "valtio";
 import Delete from "./components/Delete";
@@ -8,6 +9,27 @@ import Delete from "./components/Delete";
 const History = () => {
 	const { history } = useSnapshot(clipboardStore);
 	const { t } = useTranslation();
+
+	useInterval(
+		async () => {
+			const { duration, unit } = clipboardStore.history;
+
+			if (duration === 0) return;
+
+			const list = await selectSQL<ClipboardItem[]>("history");
+
+			for (const item of list) {
+				const { createTime, favorite } = item;
+
+				if (dayjs().diff(createTime, "days") >= duration * unit) {
+					if (favorite) continue;
+
+					deleteSQL("history", item);
+				}
+			}
+		},
+		1000 * 60 * 30,
+	);
 
 	const unitOptions = [
 		{
