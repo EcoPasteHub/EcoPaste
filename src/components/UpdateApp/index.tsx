@@ -39,18 +39,23 @@ const UpdateApp = () => {
 		});
 
 		// 监听自动更新配置变化
-		watchKey(globalStore.update, "auto", (value) => {
-			clearInterval(timer);
+		subscribeKey(
+			globalStore.update,
+			"auto",
+			(value) => {
+				clearInterval(timer);
 
-			if (!value) return;
+				if (!value) return;
 
-			checkUpdate();
+				checkUpdate();
 
-			timer = setInterval(checkUpdate, 1000 * 60 * 60 * 24);
-		});
+				timer = setInterval(checkUpdate, 1000 * 60 * 60 * 24);
+			},
+			true,
+		);
 
 		// 监听参与测试版本配置变化
-		watchKey(globalStore.update, "beta", () => checkUpdate());
+		subscribeKey(globalStore.update, "beta", () => checkUpdate(), true);
 	});
 
 	// 确认按钮的文字

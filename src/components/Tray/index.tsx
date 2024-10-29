@@ -6,7 +6,6 @@ import { exit } from "@tauri-apps/plugin-process";
 import { open } from "@tauri-apps/plugin-shell";
 
 const Tray = () => {
-	const navigate = useNavigate();
 	const [startListen, { toggle }] = useBoolean(true);
 	const { t } = useTranslation();
 
@@ -14,14 +13,19 @@ const Tray = () => {
 		await createTrayIcon();
 
 		// 监听是否显示菜单栏图标
-		watchKey(globalStore.app, "showMenubarIcon", async (value) => {
-			const tray = await getTrayById();
+		subscribeKey(
+			globalStore.app,
+			"showMenubarIcon",
+			async (value) => {
+				const tray = await getTrayById();
 
-			tray?.setVisible(value);
-		});
+				tray?.setVisible(value);
+			},
+			true,
+		);
 
 		// 监听语言变更
-		watchKey(globalStore.appearance, "language", updateTrayMenu);
+		subscribeKey(globalStore.appearance, "language", updateTrayMenu, true);
 	});
 
 	useUpdateEffect(() => {
@@ -83,14 +87,6 @@ const Tray = () => {
 				action: toggle,
 			}),
 			PredefinedMenuItem.new({ item: "Separator" }),
-			MenuItem.new({
-				text: t("component.tray.label.about"),
-				action: () => {
-					showWindow();
-
-					navigate("about");
-				},
-			}),
 			MenuItem.new({
 				text: t("component.tray.label.check_update"),
 				action: () => {

@@ -1,5 +1,6 @@
 import ProList from "@/components/ProList";
 import ProSwitch from "@/components/ProSwitch";
+import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart";
 import { useSnapshot } from "valtio";
 import Language from "./components/Language";
 import MacosPermissions from "./components/MacosPermissions";
@@ -8,6 +9,26 @@ import ThemeMode from "./components/ThemeMode";
 const General = () => {
 	const { app, update } = useSnapshot(globalStore);
 	const { t } = useTranslation();
+
+	useMount(async () => {
+		// 监听自动启动变更
+		subscribeKey(
+			globalStore.app,
+			"autoStart",
+			async (value) => {
+				const enabled = await isEnabled();
+
+				if (value && !enabled) {
+					return enable();
+				}
+
+				if (!value && enabled) {
+					disable();
+				}
+			},
+			true,
+		);
+	});
 
 	return (
 		<>

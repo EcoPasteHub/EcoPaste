@@ -20,16 +20,21 @@ const App = () => {
 		generateColorVars();
 
 		// 监听语言的变化
-		watchKey(globalStore.appearance, "language", i18n.changeLanguage);
+		subscribeKey(globalStore.appearance, "language", i18n.changeLanguage, true);
 
 		// 监听是否是暗黑模式
-		watchKey(globalStore.appearance, "isDark", (value) => {
-			if (value) {
-				document.documentElement.classList.add("dark");
-			} else {
-				document.documentElement.classList.remove("dark");
-			}
-		});
+		subscribeKey(
+			globalStore.appearance,
+			"isDark",
+			(value) => {
+				if (value) {
+					document.documentElement.classList.add("dark");
+				} else {
+					document.documentElement.classList.remove("dark");
+				}
+			},
+			true,
+		);
 
 		// 监听显示窗口的事件
 		listen(LISTEN_KEY.SHOW_WINDOW, ({ payload }) => {

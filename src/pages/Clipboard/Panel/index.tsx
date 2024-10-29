@@ -9,7 +9,6 @@ import { find, findIndex, isNil, last, merge, range } from "lodash-es";
 import { nanoid } from "nanoid";
 import { createContext } from "react";
 import { useSnapshot } from "valtio";
-import { subscribeKey } from "valtio/utils";
 import Dock from "./components/Dock";
 import Float from "./components/Float";
 
@@ -98,13 +97,18 @@ const ClipboardPanel = () => {
 		});
 
 		// 监听快速粘贴的启用状态变更
-		watchKey(globalStore.shortcut.quickPaste, "enable", setQuickPasteKeys);
+		subscribeKey(
+			globalStore.shortcut.quickPaste,
+			"enable",
+			setQuickPasteKeys,
+			true,
+		);
 
 		// 监听快速粘贴的快捷键变更
 		subscribeKey(globalStore.shortcut.quickPaste, "value", setQuickPasteKeys);
 
 		// 监听是否显示任务栏图标
-		watchKey(globalStore.app, "showTaskbarIcon", showTaskbarIcon);
+		subscribeKey(globalStore.app, "showTaskbarIcon", showTaskbarIcon, true);
 
 		// 切换剪贴板监听状态
 		listen<boolean>(LISTEN_KEY.TOGGLE_LISTEN_CLIPBOARD, ({ payload }) => {
