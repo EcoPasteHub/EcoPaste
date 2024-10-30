@@ -1,27 +1,10 @@
 import { invoke } from "@tauri-apps/api/core";
 import { emit } from "@tauri-apps/api/event";
-import { downloadDir } from "@tauri-apps/api/path";
-import { open } from "@tauri-apps/plugin-dialog";
-
-/**
- * 备份数据的扩展名
- */
-const extname = () => {
-	const { appName } = globalStore.env;
-
-	return `${appName}-backup`;
-};
 
 /**
  * 导出数据
  */
-export const exportData = async () => {
-	await saveStore(true);
-
-	const filename = formatDate(dayjs(), "YYYY_MM_DD_HH_mm_ss");
-
-	const dstPath = joinPath(await downloadDir(), `${filename}.${extname()}`);
-
+export const exportData = async (dstPath: string) => {
 	return invoke(BACKUP_PLUGIN.EXPORT_DATA, {
 		dstPath,
 		srcDir: getSaveDataDir(),
@@ -31,13 +14,7 @@ export const exportData = async () => {
 /**
  * 导入数据
  */
-export const importData = async () => {
-	const srcPath = await open({
-		filters: [{ name: "", extensions: [extname()] }],
-	});
-
-	if (!srcPath) return;
-
+export const importData = async (srcPath: string) => {
 	await emit(LISTEN_KEY.CLOSE_DATABASE);
 
 	return invoke(BACKUP_PLUGIN.IMPORT_DATA, {

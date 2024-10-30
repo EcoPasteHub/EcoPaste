@@ -46,6 +46,7 @@
 		"dialog:default",
 		"updater:default",
 		"process:default",
+		"deep-link:default",
 		"eco-window:default",
 		"eco-macos-permissions:default",
 		"eco-mouse:default",

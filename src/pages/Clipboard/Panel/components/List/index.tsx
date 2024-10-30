@@ -110,8 +110,7 @@ const List = () => {
 				</div>
 			</Scrollbar>
 
-			{/* @ts-ignore */}
-			<FloatButton.BackTop duration={0} target={() => outerRef.current} />
+			<FloatButton.BackTop duration={0} target={() => outerRef.current!} />
 
 			<NoteModal ref={noteModelRef} />
 		</>

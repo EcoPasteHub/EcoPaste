@@ -55,6 +55,8 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         // 进程相关插件：https://github.com/tauri-apps/tauri-plugin-process
         .plugin(tauri_plugin_process::init())
+        // 将 EcoPaste 设置为特殊的 URL 或者文件的默认处理程序：https://github.com/tauri-apps/plugins-workspace/tree/v2/plugins/deep-link
+        .plugin(tauri_plugin_deep_link::init())
         // 自定义的窗口管理插件
         .plugin(tauri_plugin_eco_window::init())
         // 自定义的 fs_extra 插件
