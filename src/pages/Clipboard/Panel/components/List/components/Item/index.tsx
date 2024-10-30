@@ -114,7 +114,7 @@ const Item: FC<ItemProps> = (props) => {
 	// 打开文件至访达
 	const openFinder = () => {
 		if (subtype === "path") {
-			openPath(value, false);
+			openPath(value);
 		} else {
 			const [file] = JSON.parse(value);
 

@@ -1,6 +1,9 @@
 import Icon from "@/components/Icon";
 import ProList from "@/components/ProList";
 import { emit } from "@tauri-apps/api/event";
+import { downloadDir } from "@tauri-apps/api/path";
+import { onOpenUrl } from "@tauri-apps/plugin-deep-link";
+import { open } from "@tauri-apps/plugin-dialog";
 import { Flex, List, message } from "antd";
 import type { FC } from "react";
 import type { State } from "../..";
@@ -9,11 +12,35 @@ const Manual: FC<{ state: State }> = (props) => {
 	const { state } = props;
 	const { t } = useTranslation();
 
-	const handleImport = async () => {
+	useMount(() => {
+		onOpenUrl((urls) => {
+			const url = urls.find((item) => item.endsWith(extname()));
+
+			if (!url) return;
+
+			handleImport(url.replace("file://", ""));
+		});
+	});
+
+	const extname = () => {
+		return `${globalStore.env.appName}-backup`;
+	};
+
+	const handleImport = async (path?: string | null) => {
 		try {
+			let srcPath = path;
+
+			srcPath ??= await open({
+				filters: [{ name: "", extensions: [extname()] }],
+			});
+
+			showWindow();
+
+			if (!srcPath) return;
+
 			state.spinning = true;
 
-			const result = await importData();
+			const result = await importData(srcPath);
 
 			state.spinning = false;
 
@@ -37,7 +64,13 @@ const Manual: FC<{ state: State }> = (props) => {
 		try {
 			state.spinning = true;
 
-			await exportData();
+			await saveStore(true);
+
+			const filename = formatDate(dayjs(), "YYYY_MM_DD_HH_mm_ss");
+
+			const path = joinPath(await downloadDir(), `${filename}.${extname()}`);
+
+			await exportData(path);
 
 			state.spinning = false;
 
@@ -79,7 +112,7 @@ const Manual: FC<{ state: State }> = (props) => {
 								justify="center"
 								gap="small"
 								className="b b-color-2 hover:b-primary h-102 flex-1 cursor-pointer rounded-8 bg-3 px-8 text-center transition hover:text-primary"
-								onClick={event}
+								onClick={() => event()}
 							>
 								<Icon name={icon} size={26} />
 								{label}
