@@ -1,7 +1,16 @@
 import type { ClipboardItem, TableName, TablePayload } from "@/types/database";
 import { getName } from "@tauri-apps/api/app";
 import Database from "@tauri-apps/plugin-sql";
-import { entries, find, isBoolean, isNil, map, omitBy, some } from "lodash-es";
+import {
+	entries,
+	find,
+	isBoolean,
+	isEmpty,
+	isNil,
+	map,
+	omitBy,
+	some,
+} from "lodash-es";
 
 let db: Database | null;
 
@@ -86,6 +95,8 @@ export const initDatabase = async () => {
 			if (type !== "text") return;
 
 			const subtype = await getClipboardSubtype(item);
+
+			if (!subtype) return;
 
 			await updateSQL("history", { id, subtype });
 		}
@@ -191,6 +202,8 @@ export const updateSQL = (tableName: TableName, payload: TablePayload) => {
 	const { id, ...rest } = payload;
 
 	const { keys, values } = handlePayload(rest);
+
+	if (isEmpty(keys)) return;
 
 	const setClause = map(keys, (item) => `${item} = ?`);
 
