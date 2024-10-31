@@ -87,6 +87,8 @@ export const initDatabase = async () => {
 
 			const subtype = await getClipboardSubtype(item);
 
+			if (!subtype) return;
+
 			await updateSQL("history", { id, subtype });
 		}
 	}
@@ -191,6 +193,8 @@ export const updateSQL = (tableName: TableName, payload: TablePayload) => {
 	const { id, ...rest } = payload;
 
 	const { keys, values } = handlePayload(rest);
+
+	if (keys.length === 0) return;
 
 	const setClause = map(keys, (item) => `${item} = ?`);
 
