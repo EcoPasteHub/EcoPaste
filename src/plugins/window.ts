@@ -77,7 +77,9 @@ export const toggleWindowVisible = async () => {
 						coordY = posY + (screenHeight - height) / 2;
 					}
 
-					await appWindow.setPosition(new PhysicalPosition(coordX, coordY));
+					await appWindow.setPosition(
+						new PhysicalPosition(Math.round(coordX), Math.round(coordY)),
+					);
 
 					break;
 				}
