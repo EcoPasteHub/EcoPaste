@@ -360,19 +360,23 @@ export const pasteClipboard = async (data?: ClipboardItem, plain = false) => {
  * @param data 剪贴板数据
  */
 export const getClipboardSubtype = async (data: ClipboardPayload) => {
-	const { value } = data;
+	try {
+		const { value } = data;
 
-	let subtype: ClipboardPayload["subtype"];
+		let subtype: ClipboardPayload["subtype"];
 
-	if (isURL(value)) {
-		subtype = "url";
-	} else if (isEmail(value)) {
-		subtype = "email";
-	} else if (isColor(value)) {
-		subtype = "color";
-	} else if (await exists(value)) {
-		subtype = "path";
+		if (isURL(value)) {
+			subtype = "url";
+		} else if (isEmail(value)) {
+			subtype = "email";
+		} else if (isColor(value)) {
+			subtype = "color";
+		} else if (await exists(value)) {
+			subtype = "path";
+		}
+
+		return subtype;
+	} catch {
+		return;
 	}
-
-	return subtype;
 };
