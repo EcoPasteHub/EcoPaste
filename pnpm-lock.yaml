@@ -23,9 +23,6 @@ importers:
       '@tauri-apps/plugin-autostart':
         specifier: ^2.0.0
         version: 2.0.0
-      '@tauri-apps/plugin-deep-link':
-        specifier: ^2.0.0
-        version: 2.0.0
       '@tauri-apps/plugin-dialog':
         specifier: ^2.0.1
         version: 2.0.1
@@ -1217,9 +1214,6 @@ packages:
 
   '@tauri-apps/plugin-autostart@2.0.0':
     resolution: {integrity: sha512-NEwOQWVasZ8RczXkMLNJokRDujneuMH/UFA5t84DLkbNZUmiD3G7HZWhgSd1YQ0BFU9h9w+h2B/py3y6bzWg4Q==}
-
-  '@tauri-apps/plugin-deep-link@2.0.0':
-    resolution: {integrity: sha512-cDa2k1OrRU5DoKc0IXl1Y8RlFOU107u2phdZfT7FkApsC6TL/VAPs3YOUTT8p9/PZ50EjOKP104HFMqVqnQ0bw==}
 
   '@tauri-apps/plugin-dialog@2.0.1':
     resolution: {integrity: sha512-fnUrNr6EfvTqdls/ufusU7h6UbNFzLKvHk/zTuOiBq01R3dTODqwctZlzakdbfSp/7pNwTKvgKTAgl/NAP/Z0Q==}
@@ -5040,10 +5034,6 @@ snapshots:
       '@tauri-apps/cli-win32-x64-msvc': 2.0.4
 
   '@tauri-apps/plugin-autostart@2.0.0':
-    dependencies:
-      '@tauri-apps/api': 2.0.3
-
-  '@tauri-apps/plugin-deep-link@2.0.0':
     dependencies:
       '@tauri-apps/api': 2.0.3
 
