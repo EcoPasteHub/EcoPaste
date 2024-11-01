@@ -73,14 +73,7 @@
 			"icons/icon.icns",
 			"icons/icon.ico"
 		],
-		"resources": ["assets/tray.ico", "assets/tray-mac.ico"],
-		"fileAssociations": [
-			{
-				"ext": ["EcoPaste-backup"],
-				"mimeType": "text/plain",
-				"description": "EcoPaste Backup File"
-			}
-		]
+		"resources": ["assets/tray.ico", "assets/tray-mac.ico"]
 	},
 	"plugins": {
 		"updater": {
