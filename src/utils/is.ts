@@ -1,3 +1,5 @@
+import isUrl from "is-url";
+
 /**
  * 是否为开发环境
  */
@@ -30,10 +32,7 @@ export const isLinux = () => {
  * 是否为链接
  */
 export const isURL = (value: string) => {
-	const regex =
-		/^(https?:\/\/)?((localhost)|(([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}))(:\d+)?(\/[a-zA-Z0-9\-._~:\/?#@!$&'()*+,;=%]*)?$/;
-
-	return regex.test(value);
+	return isUrl(value);
 };
 
 /**
