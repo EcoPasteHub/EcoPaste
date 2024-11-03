@@ -3,12 +3,13 @@ import { useSnapshot } from "valtio";
 
 interface ScrollbarProps extends MacScrollbarProps {
 	thumbSize?: number;
+	offset?: number;
 }
 
 const Scrollbar = forwardRef<HTMLElement, ScrollbarProps>((props, ref) => {
 	const { appearance } = useSnapshot(globalStore);
 
-	const { thumbSize = 6, children, ...rest } = props;
+	const { thumbSize = 6, offset = 0, children, ...rest } = props;
 
 	const containerRef = useRef<HTMLElement>(null);
 
@@ -18,13 +19,13 @@ const Scrollbar = forwardRef<HTMLElement, ScrollbarProps>((props, ref) => {
 		if (horizontal) {
 			return {
 				height: thumbSize,
-				bottom: 0,
+				bottom: offset,
 			};
 		}
 
 		return {
 			width: thumbSize,
-			right: 0,
+			right: offset,
 		};
 	};
 
@@ -34,7 +35,6 @@ const Scrollbar = forwardRef<HTMLElement, ScrollbarProps>((props, ref) => {
 			ref={containerRef}
 			skin={appearance.isDark ? "dark" : "light"}
 			thumbStyle={getThumbStyle}
-			// @ts-ignore
 			trackStyle={() => ({ border: 0, "--ms-track-size": 0 })}
 		>
 			{children}

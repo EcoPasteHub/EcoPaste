@@ -84,7 +84,7 @@ const List = () => {
 
 	return (
 		<>
-			<Scrollbar ref={outerRef} className="flex-1">
+			<Scrollbar ref={outerRef} offset={3} className="flex-1">
 				<div
 					data-tauri-drag-region
 					className="relative w-full"
