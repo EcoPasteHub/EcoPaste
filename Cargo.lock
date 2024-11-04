@@ -1410,7 +1410,7 @@ checksum = "0d6ef0072f8a535281e4876be788938b528e9a1d43900b82c2569af7da799125"
 
 [[package]]
 name = "eco-paste"
-version = "0.3.0"
+version = "0.4.0-beta.1"
 dependencies = [
  "serde",
  "serde_json",
