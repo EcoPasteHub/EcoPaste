@@ -30,7 +30,7 @@ sha256sums=('7e24917cd0a772dcb8cb733f47c8853f1aa972a17d3fa3247dc0f085af08e28d'
             'c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4')
 # 修复不能出现短线的问题
 fixver(){
-  pkgver="${pkgver//[:\/\- ]/_}";
+  pkgver="${pkgver//[:\/\- ]/}";
 }
 fixver;
 
@@ -42,8 +42,8 @@ build() {
 package() {
   # binary
   install -Dm755 "${srcdir}/build/usr/bin/"* -t "${pkgdir}/usr/bin/"
-  
-  # desktop 
+
+  # desktop
   install -Dm644 "${srcdir}/build/usr/share/applications/"*.desktop -t "${pkgdir}/usr/share/applications"
 
   # icon
