@@ -69,6 +69,7 @@ const NoteModal = forwardRef<NoteModalRef>((_, ref) => {
 				<Form.Item name="note" className="mb-0!">
 					<Input
 						ref={inputRef}
+						autoComplete="off"
 						placeholder={t("component.note_modal.hints.input_note")}
 					/>
 				</Form.Item>
