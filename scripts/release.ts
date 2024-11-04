@@ -5,7 +5,7 @@ import { name, version } from "../package.json";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const updateCargoVersion = () => {
+(() => {
 	const tomlPath = resolve(__dirname, "..", "src-tauri", "Cargo.toml");
 	const lockPath = resolve(__dirname, "..", "Cargo.lock");
 
@@ -20,6 +20,4 @@ const updateCargoVersion = () => {
 
 		writeFileSync(path, content);
 	}
-};
-
-updateCargoVersion();
+})();
