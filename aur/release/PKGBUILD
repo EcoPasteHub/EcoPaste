@@ -36,8 +36,8 @@ build() {
 package() {
   # binary
   install -Dm755 "${srcdir}/build/usr/bin/"* -t "${pkgdir}/usr/bin/"
-  
-  # desktop 
+
+  # desktop
   install -Dm644 "${srcdir}/build/usr/share/applications/"*.desktop -t "${pkgdir}/usr/share/applications"
 
   # icon
