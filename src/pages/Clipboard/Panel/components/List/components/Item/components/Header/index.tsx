@@ -9,23 +9,16 @@ import type { FC, MouseEvent } from "react";
 
 interface HeaderProps {
 	data: ClipboardItem;
-	copy: () => void;
+	pastePlain: () => void;
 	toggleFavorite: () => void;
 	deleteItem: () => void;
 }
 
 const Header: FC<HeaderProps> = (props) => {
-	const { data, copy, toggleFavorite, deleteItem } = props;
+	const { data, pastePlain, toggleFavorite, deleteItem } = props;
 	const { id, type, value, count, createTime, favorite, subtype } = data;
 	const { state } = useContext(ClipboardPanelContext);
 	const { t, i18n } = useTranslation();
-	const [copied, { toggle }] = useBoolean();
-
-	useEffect(() => {
-		if (!copied) return;
-
-		setTimeout(toggle, 3000);
-	}, [copied]);
 
 	const renderType = () => {
 		switch (subtype) {
@@ -77,11 +70,6 @@ const Header: FC<HeaderProps> = (props) => {
 		);
 	};
 
-	const handleCopy = () => {
-		copy();
-		toggle();
-	};
-
 	const handleClick = (event: MouseEvent) => {
 		event.stopPropagation();
 
@@ -117,15 +105,7 @@ const Header: FC<HeaderProps> = (props) => {
 				onClick={handleClick}
 				onDoubleClick={(event) => event.stopPropagation()}
 			>
-				{copied ? (
-					<Icon
-						size={15}
-						name="i-iconamoon:check-circle-1-fill"
-						className="color-success"
-					/>
-				) : (
-					<Icon hoverable name="i-iconamoon:copy" onClick={handleCopy} />
-				)}
+				<Icon hoverable name="i-lucide:clipboard-paste" onClick={pastePlain} />
 
 				<Icon
 					hoverable
