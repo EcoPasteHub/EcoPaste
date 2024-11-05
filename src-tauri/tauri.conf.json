@@ -73,7 +73,7 @@
 			"icons/icon.icns",
 			"icons/icon.ico"
 		],
-		"resources": ["assets/tray.ico", "assets/tray-mac.ico"]
+		"resources": ["assets/tray.ico"]
 	},
 	"plugins": {
 		"updater": {

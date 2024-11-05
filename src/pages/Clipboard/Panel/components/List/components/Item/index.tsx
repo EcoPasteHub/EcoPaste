@@ -49,6 +49,8 @@ const Item: FC<ItemProps> = (props) => {
 				return selectNextOrPrev(false);
 			case LISTEN_KEY.CLIPBOARD_ITEM_SELECT_NEXT:
 				return selectNextOrPrev();
+			case LISTEN_KEY.CLIPBOARD_ITEM_FAVORITE:
+				return toggleFavorite();
 		}
 	});
 
