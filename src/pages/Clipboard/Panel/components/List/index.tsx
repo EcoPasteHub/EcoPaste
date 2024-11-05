@@ -52,7 +52,16 @@ const List = () => {
 	}, [state.list.length]);
 
 	useOSKeyPress(
-		["space", "enter", "backspace", "uparrow", "downarrow", "home"],
+		[
+			"space",
+			"enter",
+			"backspace",
+			"uparrow",
+			"downarrow",
+			"home",
+			"meta.d",
+			"ctrl.d",
+		],
 		(_, key) => {
 			state.eventBusId = state.activeId;
 
@@ -75,6 +84,9 @@ const List = () => {
 				// 回到顶部
 				case "home":
 					return rowVirtualizer.scrollToIndex?.(0);
+				case "meta.d":
+				case "ctrl.d":
+					return state.$eventBus?.emit(LISTEN_KEY.CLIPBOARD_ITEM_FAVORITE);
 			}
 		},
 		{

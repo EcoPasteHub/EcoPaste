@@ -31,6 +31,7 @@ export const LISTEN_KEY = {
 	CLOSE_DATABASE: "close-database",
 	TOGGLE_LISTEN_CLIPBOARD: "toggle-listen-clipboard",
 	MACOS_PANEL_FOCUS: "macos-panel-focus",
+	CLIPBOARD_ITEM_FAVORITE: "clipboard-item-favorite",
 };
 
 export const WINDOW_PLUGIN = {
