@@ -1,29 +1,29 @@
 # link aur/release/PKGBUILD
 # 当前仓库不更新PKGBUILD,每次版本，将当前仓库的pkgver更新，覆盖到AUR,PKGBUILD以当前仓库为准
 # 如果设置了aur_submodule_path,则git_email、git_username、commit_message两个仓库共用
-name: Publish Release AUR Package 
+name: Publish Release AUR Package
 
 on:
   release:
     types: [published]
 
 jobs:
-    aur-publish:
-        runs-on: ubuntu-latest
-        if: '!github.event.release.prerelease'
-        steps:
-          - uses: actions/checkout@v2
-      
-          - name: Publish AUR package
-            uses: anas-elgarhy/aur-release-action@v4.1
-            with:
-              package_name: eco-paste-bin
-              ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
-              github_token: ${{ secrets.GITHUB_TOKEN }}
-              pkgbuild_path: aur/release/PKGBUILD
-              # 禁止使用AUR仓库的PKGBUILD覆盖当前仓库的PKGBUILD
-              update_pkgbuild: false
-              try_build_and_install: true
-              git_username: witt
-              git_email: 1989161762@qq.com
-              commit_message: "feat: Update %FILENAME% to %VERSION% by Github Action ."
+  aur-publish:
+    runs-on: ubuntu-latest
+    if: "!github.event.release.prerelease"
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Publish AUR package
+        uses: anas-elgarhy/aur-release-action@v4.1
+        with:
+          package_name: eco-paste-bin
+          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          pkgbuild_path: .github/LINUX_AUR/release/PKGBUILD
+          # 禁止使用AUR仓库的PKGBUILD覆盖当前仓库的PKGBUILD
+          update_pkgbuild: false
+          try_build_and_install: true
+          git_username: witt
+          git_email: 1989161762@qq.com
+          commit_message: "feat: Update %FILENAME% to %VERSION% by Github Action ."
