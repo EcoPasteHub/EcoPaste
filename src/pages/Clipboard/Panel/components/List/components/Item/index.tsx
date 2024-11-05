@@ -291,7 +291,7 @@ const Item: FC<ItemProps> = (props) => {
 		>
 			<Header
 				data={data}
-				copy={copy}
+				pastePlain={pastePlain}
 				toggleFavorite={toggleFavorite}
 				deleteItem={deleteItem}
 			/>
