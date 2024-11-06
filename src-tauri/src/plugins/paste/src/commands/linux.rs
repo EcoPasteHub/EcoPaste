@@ -80,7 +80,6 @@ pub fn observe_app() {
             let wm_name = get_net_wm_name(display, window).unwrap_or_default();
 
             if wm_name.is_empty() || wm_name.eq(MAIN_WINDOW_TITLE) {
-                log::warn!("Ignore window: 0x{:x}", window);
                 continue;
             }
 
