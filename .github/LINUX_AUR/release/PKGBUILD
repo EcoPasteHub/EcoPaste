@@ -45,7 +45,7 @@ package() {
   # icon
   find "usr/share/icons" -type f -exec install -Dm644 {} "${pkgdir}/{}" \;
   # lib
-  find "usr/lib/${_pkgname}/assets" -type f -exec install -Dm644 {} "${pkgdir}/{}" \;
+  find "usr/lib/EcoPaste/assets" -type f -exec install -Dm644 {} "${pkgdir}/{}" \;
 
   # license
   install -Dm644 "${srcdir}/LICENSE" -t "${pkgdir}/usr/share/licenses/${pkgname}"
