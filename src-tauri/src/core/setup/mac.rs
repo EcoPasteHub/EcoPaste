@@ -58,8 +58,7 @@ pub fn platform(app: &mut App, main_window: WebviewWindow, _preference_window: W
             "window_did_resign_key" => {
                 let _ = main_window.emit_to(emit_target, WINDOW_BLUR_EVENT, true);
 
-                // let app_handle_clone = app_handle.clone();
-                // save_window_state(app_handle_clone);
+                save_window_state(app_handle.clone());
             }
             "window_did_resize" => {
                 let size = main_window.inner_size().unwrap();
