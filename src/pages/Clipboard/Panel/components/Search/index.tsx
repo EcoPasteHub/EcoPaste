@@ -17,7 +17,7 @@ const Search: FC<HTMLAttributes<HTMLDivElement>> = (props) => {
 		state.search = value || void 0;
 	}, [value, isComposition]);
 
-	useFocus({
+	useTauriFocus({
 		onFocus() {
 			const { window, search } = clipboardStore;
 

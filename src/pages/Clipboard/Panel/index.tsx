@@ -117,7 +117,7 @@ const ClipboardPanel = () => {
 	});
 
 	// 监听窗口焦点
-	useFocus({
+	useTauriFocus({
 		onBlur() {
 			if (state.pin) return;
 
