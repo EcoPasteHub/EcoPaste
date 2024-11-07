@@ -1,27 +1,17 @@
 {
-	"tauri": {
-		"bundle": {
-			"identifier": "com.ayangweb.EcoPaste",
+	"bundle": {
+		"linux": {
+			"deb": {
+				"depends": ["gstreamer1.0-plugins-good"],
+				"desktopTemplate": "./EcoPaste.desktop"
+			},
+			"rpm": {
+				"depends": ["gstreamer1-plugins-good"],
+				"desktopTemplate": "./EcoPaste.desktop"
+			},
 			"appimage": {
 				"bundleMediaFramework": true
-			},
-			"linux": {
-				"deb": {
-					"depends": ["gstreamer1.0-plugins-good"],
-					"desktopTemplate": "./EcoPaste.desktop"
-				},
-				"rpm": {
-					"depends": ["gstreamer1-plugins-good"],
-					"desktopTemplate": "./EcoPaste.desktop"
-				}
 			}
-		},
-		"targets": {
-			"linux": [
-				"x86_64-unknown-linux-gnu",
-				"armv7-unknown-linux-gnueabihf",
-				"aarch64-unknown-linux-gnu"
-			]
 		}
 	}
 }
