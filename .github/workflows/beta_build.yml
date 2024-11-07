@@ -107,6 +107,14 @@ jobs:
       fail-fast: false
       matrix:
         os: ${{ fromJson(needs.preprocess.outputs.matrix) }}
+        include:
+          - os: macos-latest
+            targets: "aarch64-apple-darwin,x86_64-apple-darwin"
+          - os: 'windows-latest'
+            targets: ""
+          - os: ubuntu-22.04
+            target: "x86_64-unknown-linux-gnu,armv7-unknown-linux-gnueabihf,aarch64-unknown-linux-gnu"
+
 
     runs-on: ${{ matrix.os }}
     env:
@@ -145,13 +153,13 @@ jobs:
         if: matrix.os == 'ubuntu-22.04'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf \
+             gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          # 那些目标仅在 macos 运行器上使用，因此将其置于 `if` 语句中，以稍微加快 Windows 和 Linux 的构建速度。
-          targets: ${{ startsWith(matrix.os, 'macos') && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+          targets: ${{ matrix.targets }}
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
@@ -167,9 +175,16 @@ jobs:
           pnpm tauri build --target aarch64-apple-darwin
           pnpm tauri build --target x86_64-apple-darwin
 
-      - name: Build Other app
-        if: matrix.os == 'windows-latest' || matrix.os == 'ubuntu-22.04'
+      - name: Build Windows app
+        if: matrix.os == 'windows-latest'
         run: pnpm tauri build
+
+      - name: Build Linux app
+        if: matrix.os == 'ubuntu-22.04'
+        run: |
+          pnpm tauri build --target x86_64-unknown-linux-gnu
+          pnpm tauri build --target armv7-unknown-linux-gnueabihf
+          pnpm tauri build --target aarch64-unknown-linux-gnu
 
       - name: Rename macos
         if: startsWith(matrix.os, 'macos')
@@ -184,9 +199,12 @@ jobs:
       - name: Rename linux
         if: startsWith(matrix.os, 'ubuntu')
         run: |
-          mv target/release/bundle/deb/*.deb target/${{ env.FILE_PREFIX }}_amd64.deb
-          mv target/release/bundle/rpm/*.rpm target/${{ env.FILE_PREFIX }}_x64.rpm
-          mv target/release/bundle/appimage/*.AppImage target/${{ env.FILE_PREFIX }}_amd64.AppImage
+          mv target/x86_64-unknown-linux-gnu/release/bundle/deb/*.deb target/${{ env.FILE_PREFIX }}_amd64.deb
+          mv target/x86_64-unknown-linux-gnu/release/bundle/rpm/*.rpm target/${{ env.FILE_PREFIX }}_x64.rpm
+          mv target/x86_64-unknown-linux-gnu/release/bundle/appimage/*.AppImage target/${{ env.FILE_PREFIX }}_amd64.AppImage
+          mv target/armv7-unknown-linux-gnueabihf/release/bundle/deb/*.deb target/${{ env.FILE_PREFIX }}_armv7.deb
+          mv target/armv7-unknown-linux-gnueabihf/release/bundle/rpm/*.rpm target/${{ env.FILE_PREFIX }}_armv7.rpm
+          mv target/armv7-unknown-linux-gnueabihf/release/bundle/appimage/*.AppImage target/${{ env.FILE_PREFIX }}_armv7.AppImage
 
       - name: Upload artifacts (Windows)
         if: matrix.os == 'windows-latest'
