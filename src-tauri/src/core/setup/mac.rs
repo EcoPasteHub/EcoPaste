@@ -1,7 +1,6 @@
 use tauri::{ActivationPolicy, App, Emitter, EventTarget, Manager, WebviewWindow};
 use tauri_nspanel::{cocoa::appkit::NSWindowCollectionBehavior, panel_delegate, WebviewWindowExt};
 use tauri_plugin_eco_window::MAIN_WINDOW_LABEL;
-use tauri_plugin_eco_window_state::save_window_state;
 
 #[allow(non_upper_case_globals)]
 const NSWindowStyleMaskNonActivatingPanel: i32 = 1 << 7;
@@ -47,29 +46,33 @@ pub fn platform(app: &mut App, main_window: WebviewWindow, _preference_window: W
 
     // 为 delegate 设置事件监听器
     delegate.set_listener(Box::new(move |delegate_name: String| {
-        let emit_target = EventTarget::labeled(MAIN_WINDOW_LABEL);
+        let target = EventTarget::labeled(MAIN_WINDOW_LABEL);
+
+        let window_move_event = || {
+            if let Ok(position) = main_window.outer_position() {
+                let _ = main_window.emit_to(target.clone(), WINDOW_MOVED_EVENT, position);
+            }
+        };
 
         match delegate_name.as_str() {
             // 当窗口获得键盘焦点时调用
             "window_did_become_key" => {
-                let _ = main_window.emit_to(emit_target, WINDOW_FOCUS_EVENT, true);
+                let _ = main_window.emit_to(target, WINDOW_FOCUS_EVENT, true);
             }
             // 当窗口失去键盘焦点时调用
             "window_did_resign_key" => {
-                let _ = main_window.emit_to(emit_target, WINDOW_BLUR_EVENT, true);
-
-                save_window_state(app_handle.clone());
+                let _ = main_window.emit_to(target, WINDOW_BLUR_EVENT, true);
             }
+            // 当窗口大小改变时调用
             "window_did_resize" => {
-                let size = main_window.inner_size().unwrap();
+                window_move_event();
 
-                let _ = main_window.emit_to(emit_target, WINDOW_RESIZED_EVENT, size);
+                if let Ok(size) = main_window.inner_size() {
+                    let _ = main_window.emit_to(target, WINDOW_RESIZED_EVENT, size);
+                }
             }
-            "window_did_move" => {
-                let position = main_window.outer_position().unwrap();
-
-                let _ = main_window.emit_to(emit_target, WINDOW_MOVED_EVENT, position);
-            }
+            // 当窗口位置改变时调用
+            "window_did_move" => window_move_event(),
             _ => (),
         }
     }));

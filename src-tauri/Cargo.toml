@@ -41,7 +41,6 @@ tauri-plugin-eco-locale.workspace = true
 tauri-plugin-eco-clipboard.workspace = true
 tauri-plugin-eco-ocr.workspace = true
 tauri-plugin-eco-paste.workspace = true
-tauri-plugin-eco-window-state.workspace = true
 tauri-plugin-eco-autostart.workspace = true
 
 [target."cfg(target_os = \"macos\")".dependencies]
