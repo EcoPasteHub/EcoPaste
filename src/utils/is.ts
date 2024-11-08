@@ -48,13 +48,55 @@ export const isEmail = (value: string) => {
  * 是否为颜色
  */
 export const isColor = (value: string) => {
+	const excludes = [
+		"none",
+		"currentColor",
+		"-moz-initial",
+		"inherit",
+		"initial",
+		"revert",
+		"revert-layer",
+		"unset",
+		"ActiveBorder",
+		"ActiveCaption",
+		"AppWorkspace",
+		"Background",
+		"ButtonFace",
+		"ButtonHighlight",
+		"ButtonShadow",
+		"ButtonText",
+		"CaptionText",
+		"GrayText",
+		"Highlight",
+		"HighlightText",
+		"InactiveBorder",
+		"InactiveCaption",
+		"InactiveCaptionText",
+		"InfoBackground",
+		"InfoText",
+		"Menu",
+		"MenuText",
+		"Scrollbar",
+		"ThreeDDarkShadow",
+		"ThreeDFace",
+		"ThreeDHighlight",
+		"ThreeDLightShadow",
+		"ThreeDShadow",
+		"Window",
+		"WindowFrame",
+		"WindowText",
+	];
+
+	if (excludes.includes(value) || value.includes("url")) return false;
+
 	const style = new Option().style;
 
-	style.background = value;
+	style.backgroundColor = value;
+	style.backgroundImage = value;
 
-	const { background } = style;
+	const { backgroundColor, backgroundImage } = style;
 
-	return background !== "";
+	return backgroundColor !== "" || backgroundImage !== "";
 };
 
 /**
