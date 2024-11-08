@@ -1,4 +1,5 @@
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { debounce } from "lodash-es";
 
 interface Props {
 	onFocus?: () => void;
@@ -8,22 +9,19 @@ interface Props {
 export const useTauriFocus = (props: Props) => {
 	const { onFocus, onBlur } = props;
 
-	const { run } = useDebounceFn(
-		({ payload }) => {
+	useMount(async () => {
+		const appWindow = getCurrentWebviewWindow();
+
+		const wait = isMac() ? 0 : 100;
+
+		const debounced = debounce(({ payload }) => {
 			if (payload) {
 				onFocus?.();
 			} else {
 				onBlur?.();
 			}
-		},
-		{
-			wait: isMac() ? 0 : 100,
-		},
-	);
+		}, wait);
 
-	useMount(async () => {
-		const appWindow = getCurrentWebviewWindow();
-
-		appWindow.onFocusChanged(run);
+		appWindow.onFocusChanged(debounced);
 	});
 };
