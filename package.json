@@ -51,7 +51,7 @@
 		"react-dom": "^18.3.1",
 		"react-i18next": "^15.1.1",
 		"react-markdown": "^9.0.1",
-		"react-router-dom": "^6.28.0",
+		"react-router-dom": "6.27.0",
 		"rehype-raw": "^7.0.0",
 		"rtf.js": "^3.0.9",
 		"valtio": "^2.1.2"
