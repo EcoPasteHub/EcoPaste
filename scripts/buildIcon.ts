@@ -1,9 +1,11 @@
 import { execSync } from "node:child_process";
 
 (() => {
-	const platform = process.platform;
+	const { env, platform } = process;
 
-	const logoName = platform !== "darwin" ? "logo" : "logo-mac";
+	const isMac = env.PLATFORM?.startsWith("macos") ?? platform === "darwin";
+
+	const logoName = isMac ? "logo-mac" : "logo";
 
 	const command = `tauri icon src-tauri/assets/${logoName}.png`;
 
