@@ -65,3 +65,12 @@ export const getSaveStorePath = async (backup = false) => {
 
 	return joinPath(await appDataDir(), `.store.${extname}`);
 };
+
+/**
+ * 存储窗口位置的路径
+ */
+export const saveWindowStatePath = async () => {
+	const extname = isDev() ? "dev.json" : "json";
+
+	return joinPath(await appDataDir(), `.window-state.${extname}`);
+};

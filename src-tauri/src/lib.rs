@@ -73,8 +73,6 @@ pub fn run() {
         .plugin(tauri_plugin_eco_paste::init())
         // 自定义 macos 权限查询的插件
         .plugin(tauri_plugin_eco_macos_permissions::init())
-        // 自定义保存和恢复窗口状态的插件
-        .plugin(tauri_plugin_eco_window_state::init())
         // 自定义判断是否自动启动的插件
         .plugin(tauri_plugin_eco_autostart::init())
         .on_window_event(|window, event| match event {

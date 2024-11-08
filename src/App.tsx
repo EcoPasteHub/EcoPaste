@@ -12,8 +12,11 @@ const { defaultAlgorithm, darkAlgorithm } = theme;
 
 const App = () => {
 	const { appearance, env } = useSnapshot(globalStore);
+	const { restoreState } = useWindowState();
 
 	useMount(async () => {
+		await restoreState();
+
 		await restoreStore();
 
 		// 生成 antd 的颜色变量
