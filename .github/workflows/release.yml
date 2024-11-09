@@ -58,7 +58,6 @@ jobs:
             target: "x86_64-unknown-linux-gnu"
 
     runs-on: ${{ matrix.platform }}
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -70,7 +69,7 @@ jobs:
         with:
           version: latest
 
-      - name: Add rust target
+      - name: Install rust target
         run: rustup target add ${{ matrix.target }}
 
       - name: Install dependencies (ubuntu only)
@@ -87,7 +86,7 @@ jobs:
       - name: Rust cache
         uses: swatinem/rust-cache@v2
         with:
-          workspaces: ./src-tauri -> target
+          workspaces: target
 
       # 获取 pnpm 缓存
       - name: Sync node version and setup cache
@@ -103,7 +102,6 @@ jobs:
       # 执行构建，以及推送 github release
       - name: Build the app
         uses: tauri-apps/tauri-action@v0
-
         env:
           CI: false
           PLATFORM: ${{ matrix.platform }}
