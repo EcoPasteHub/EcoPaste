@@ -4,8 +4,9 @@
 name: Publish Preview AUR Package
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'v*'
 
 jobs:
   aur-publish:
