@@ -11,13 +11,16 @@ import { useSnapshot } from "valtio";
 const { defaultAlgorithm, darkAlgorithm } = theme;
 
 const App = () => {
-	const { appearance, env } = useSnapshot(globalStore);
+	const { appearance } = useSnapshot(globalStore);
 	const { restoreState } = useWindowState();
+	const [ready, { toggle }] = useBoolean();
 
 	useMount(async () => {
 		await restoreState();
 
 		await restoreStore();
+
+		toggle();
 
 		// 生成 antd 的颜色变量
 		generateColorVars();
@@ -94,7 +97,7 @@ const App = () => {
 			}}
 		>
 			<HappyProvider>
-				{env.saveDataDir && <RouterProvider router={router} />}
+				{ready && <RouterProvider router={router} />}
 			</HappyProvider>
 		</ConfigProvider>
 	);

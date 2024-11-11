@@ -48,5 +48,5 @@ export const restoreStore = async (backup = false) => {
 
 	if (backup) return;
 
-	initStore();
+	return initStore();
 };
