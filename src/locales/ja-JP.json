@@ -182,11 +182,20 @@
 				"title": "インポートとエクスポート",
 				"button": {
 					"import": "データをインポート",
-					"export": "データをエクスポート"
+					"export": "データをエクスポート",
+					"cancel": "キャンセル",
+					"confirm_import": "定義する",
+					"confirm_export": "導く"
+				},
+				"label": {
+					"confirm_import": "インポートノート",
+					"confirm_export": "メモのエクスポート"
 				},
 				"hints": {
 					"import_success": "インポート成功",
-					"export_success": "エクスポート成功"
+					"export_success": "エクスポート成功",
+					"confirm_import": "インポートされたクリップボードのデータは既存のデータを上書きします。",
+					"confirm_export": "エクスポートされたデータには、すべての環境設定とクリップボードの内容が含まれ、平文で保存されますので、安全に保管してください。"
 				}
 			}
 		},

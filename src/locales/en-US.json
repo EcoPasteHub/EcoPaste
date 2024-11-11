@@ -182,11 +182,20 @@
 				"title": "Import / Export",
 				"button": {
 					"import": "Import",
-					"export": "Export"
+					"export": "Export",
+					"cancel": "Cancel",
+					"confirm_import": "OK",
+					"confirm_export": "Export"
+				},
+				"label": {
+					"confirm_import": "Import Notes",
+					"confirm_export": "Export Notes"
 				},
 				"hints": {
 					"import_success": "Import Successful",
-					"export_success": "Export Successful"
+					"export_success": "Export Successful",
+					"confirm_import": "Imported clipboard data will overwrite existing data, sure you want to proceed?",
+					"confirm_export": "The exported data contains all preferences and clipboard contents and is saved in plaintext, so please keep it safe."
 				}
 			}
 		},
