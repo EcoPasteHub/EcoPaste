@@ -179,14 +179,23 @@
 				}
 			},
 			"import_export": {
-				"title": "導入和導出",
+				"title": "導入和匯出",
 				"button": {
 					"import": "導入數據",
-					"export": "導出數據"
+					"export": "匯出數據",
+					"cancel": "取消",
+					"confirm_import": "確定",
+					"confirm_export": "匯出"
+				},
+				"label": {
+					"confirm_import": "導入須知",
+					"confirm_export": "匯出須知"
 				},
 				"hints": {
 					"import_success": "導入成功",
-					"export_success": "匯出成功"
+					"export_success": "匯出成功",
+					"confirm_import": "導入的剪貼板數據將覆蓋現有數據，確定要繼續嗎？",
+					"confirm_export": "匯出的數據包含所有偏好設定和剪貼板內容，且均以明文形式保存，請妥善保管。"
 				}
 			}
 		},

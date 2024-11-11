@@ -2,7 +2,7 @@ import Icon from "@/components/Icon";
 import ProList from "@/components/ProList";
 import { emit } from "@tauri-apps/api/event";
 import { downloadDir } from "@tauri-apps/api/path";
-import { open } from "@tauri-apps/plugin-dialog";
+import { confirm, open } from "@tauri-apps/plugin-dialog";
 import { Flex, List, message } from "antd";
 import type { FC } from "react";
 import type { State } from "../..";
@@ -19,6 +19,20 @@ const Manual: FC<{ state: State }> = (props) => {
 	// 导入数据
 	const handleImport = async () => {
 		try {
+			const confirmed = await confirm(
+				t("preference.data_backup.import_export.hints.confirm_import"),
+				{
+					kind: "warning",
+					title: t("preference.data_backup.import_export.label.confirm_import"),
+					okLabel: t(
+						"preference.data_backup.import_export.button.confirm_import",
+					),
+					cancelLabel: t("preference.data_backup.import_export.button.cancel"),
+				},
+			);
+
+			if (!confirmed) return;
+
 			const path = await open({
 				filters: [{ name: "", extensions: [extname()] }],
 			});
@@ -52,6 +66,20 @@ const Manual: FC<{ state: State }> = (props) => {
 	// 导出数据
 	const handleExport = async () => {
 		try {
+			const confirmed = await confirm(
+				t("preference.data_backup.import_export.hints.confirm_export"),
+				{
+					kind: "warning",
+					title: t("preference.data_backup.import_export.hints.export_success"),
+					okLabel: t(
+						"preference.data_backup.import_export.button.confirm_export",
+					),
+					cancelLabel: t("preference.data_backup.import_export.button.cancel"),
+				},
+			);
+
+			if (!confirmed) return;
+
 			state.spinning = true;
 
 			await saveStore(true);

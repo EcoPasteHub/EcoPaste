@@ -182,11 +182,20 @@
 				"title": "导入和导出",
 				"button": {
 					"import": "导入数据",
-					"export": "导出数据"
+					"export": "导出数据",
+					"cancel": "取消",
+					"confirm_import": "确定",
+					"confirm_export": "导出"
+				},
+				"label": {
+					"confirm_import": "导入须知",
+					"confirm_export": "导出须知"
 				},
 				"hints": {
 					"import_success": "导入成功",
-					"export_success": "导出成功"
+					"export_success": "导出成功",
+					"confirm_import": "导入的剪贴板数据将覆盖现有数据，确定要继续吗？",
+					"confirm_export": "导出的数据包含所有偏好设置和剪贴板内容，且均以明文形式保存，请妥善保管。"
 				}
 			}
 		},
