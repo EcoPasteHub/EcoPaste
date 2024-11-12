@@ -70,7 +70,7 @@ const Manual: FC<{ state: State }> = (props) => {
 				t("preference.data_backup.import_export.hints.confirm_export"),
 				{
 					kind: "warning",
-					title: t("preference.data_backup.import_export.hints.export_success"),
+					title: t("preference.data_backup.import_export.label.confirm_export"),
 					okLabel: t(
 						"preference.data_backup.import_export.button.confirm_export",
 					),
