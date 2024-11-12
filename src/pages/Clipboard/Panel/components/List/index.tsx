@@ -56,6 +56,7 @@ const List = () => {
 			"space",
 			"enter",
 			"backspace",
+			"delete",
 			"uparrow",
 			"downarrow",
 			"home",
@@ -74,6 +75,7 @@ const List = () => {
 					return state.$eventBus?.emit(LISTEN_KEY.CLIPBOARD_ITEM_PASTE);
 				// 删除
 				case "backspace":
+				case "delete":
 					return state.$eventBus?.emit(LISTEN_KEY.CLIPBOARD_ITEM_DELETE);
 				// 选中上一个
 				case "uparrow":
