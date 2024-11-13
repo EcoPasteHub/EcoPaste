@@ -49,7 +49,6 @@
 		"process:default",
 		"eco-window:default",
 		"eco-macos-permissions:default",
-		"eco-mouse:default",
 		"eco-fs-extra:default",
 		"eco-backup:default",
 		"eco-locale:default",

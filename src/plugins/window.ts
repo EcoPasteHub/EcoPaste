@@ -3,7 +3,11 @@ import type { WindowLabel } from "@/types/plugin";
 import { invoke } from "@tauri-apps/api/core";
 import { emit } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { PhysicalPosition, availableMonitors } from "@tauri-apps/api/window";
+import {
+	PhysicalPosition,
+	availableMonitors,
+	cursorPosition,
+} from "@tauri-apps/api/window";
 
 /**
  * 显示窗口
@@ -46,7 +50,7 @@ export const toggleWindowVisible = async () => {
 
 				const { width, height } = await appWindow.innerSize();
 
-				const [x, y] = await getMouseCoords();
+				const { x, y } = await cursorPosition();
 
 				for await (const monitor of monitors) {
 					const {
