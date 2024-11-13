@@ -61,8 +61,6 @@ pub fn run() {
         .plugin(tauri_plugin_eco_fs_extra::init())
         // 自定义剪贴板插件
         .plugin(tauri_plugin_eco_clipboard::init())
-        // 自定义鼠标相关的插件
-        .plugin(tauri_plugin_eco_mouse::init())
         // 自定义图片识别插件
         .plugin(tauri_plugin_eco_ocr::init())
         // 自定义备份插件

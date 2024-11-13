@@ -65,10 +65,6 @@ export const CLIPBOARD_PLUGIN = {
 	CLIPBOARD_UPDATE: "plugin:eco-clipboard://clipboard_update",
 };
 
-export const MOUSE_PLUGIN = {
-	GET_MOUSE_COORDS: "plugin:eco-mouse|get_mouse_coords",
-};
-
 export const OCR_PLUGIN = {
 	SYSTEM_OCR: "plugin:eco-ocr|system_ocr",
 };
