@@ -47,6 +47,7 @@
 		"dialog:default",
 		"updater:default",
 		"process:default",
+		"drag:default",
 		"eco-window:default",
 		"eco-macos-permissions:default",
 		"eco-fs-extra:default",

@@ -1,5 +1,5 @@
-import type { ClipboardItem } from "@/types/database";
-import type { ClipboardPayload, ReadImage, WinOCR } from "@/types/plugin";
+import type { HistoryTablePayload } from "@/types/database";
+import type { ClipboardPayload, ReadImage, WindowsOCR } from "@/types/plugin";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { exists } from "@tauri-apps/plugin-fs";
@@ -110,7 +110,7 @@ export const readImage = async (): Promise<ClipboardPayload> => {
 		search = await systemOCR(image);
 
 		if (isWin()) {
-			const { content, qr } = JSON.parse(search) as WinOCR;
+			const { content, qr } = JSON.parse(search) as WindowsOCR;
 
 			if (isEmpty(qr)) {
 				search = content;
@@ -311,7 +311,7 @@ export const onClipboardUpdate = (
  * 将数据写入剪切板
  * @param data 数据
  */
-export const writeClipboard = (data?: ClipboardItem) => {
+export const writeClipboard = (data?: HistoryTablePayload) => {
 	if (!data) return;
 
 	const { type, value, search } = data;
@@ -335,7 +335,10 @@ export const writeClipboard = (data?: ClipboardItem) => {
  * @param data 数据
  * @param plain 是否纯文本粘贴
  */
-export const pasteClipboard = async (data?: ClipboardItem, plain = false) => {
+export const pasteClipboard = async (
+	data?: HistoryTablePayload,
+	plain = false,
+) => {
 	if (!data) return;
 
 	const { type, value } = data;

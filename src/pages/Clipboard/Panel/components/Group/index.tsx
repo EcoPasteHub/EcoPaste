@@ -1,10 +1,10 @@
 import Scrollbar from "@/components/Scrollbar";
-import type { ClipboardItem } from "@/types/database";
+import type { HistoryTablePayload } from "@/types/database";
 import { Flex, Tag } from "antd";
 import clsx from "clsx";
 import { ClipboardPanelContext } from "../..";
 
-interface GroupItem extends Partial<ClipboardItem> {
+interface GroupItem extends Partial<HistoryTablePayload> {
 	key: string;
 	label: string;
 }

@@ -24,6 +24,7 @@
 	"dependencies": {
 		"@ant-design/happy-work-theme": "^1.0.0",
 		"@ant-design/icons": "^5.5.1",
+		"@crabnebula/tauri-plugin-drag": "^2.0.0",
 		"@tanstack/react-virtual": "^3.10.9",
 		"@tauri-apps/api": "^2.1.1",
 		"@tauri-apps/plugin-autostart": "^2.0.0",
