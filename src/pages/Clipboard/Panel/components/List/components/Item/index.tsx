@@ -1,14 +1,15 @@
 import Icon from "@/components/Icon";
 import { ClipboardPanelContext } from "@/pages/Clipboard/Panel";
-import type { ClipboardItem } from "@/types/database";
+import type { HistoryTablePayload } from "@/types/database";
+import { startDrag } from "@crabnebula/tauri-plugin-drag";
 import { Menu, MenuItem, type MenuItemOptions } from "@tauri-apps/api/menu";
-import { downloadDir } from "@tauri-apps/api/path";
+import { downloadDir, resolveResource } from "@tauri-apps/api/path";
 import { copyFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { open } from "@tauri-apps/plugin-shell";
-import { Flex, type FlexProps } from "antd";
+import { Flex, type FlexProps, message } from "antd";
 import clsx from "clsx";
 import { find, isNil, remove } from "lodash-es";
-import type { FC, MouseEvent } from "react";
+import type { DragEvent, FC, MouseEvent } from "react";
 import { useSnapshot } from "valtio";
 import Files from "./components/Files";
 import HTML from "./components/HTML";
@@ -19,7 +20,7 @@ import Text from "./components/Text";
 
 interface ItemProps extends Partial<FlexProps> {
 	index: number;
-	data: ClipboardItem;
+	data: HistoryTablePayload;
 	openNoteModel: () => void;
 }
 
@@ -257,6 +258,23 @@ const Item: FC<ItemProps> = (props) => {
 		pasteValue();
 	};
 
+	// 拖拽事件
+	const handleDragStart = async (event: DragEvent) => {
+		event.preventDefault();
+
+		const icon = await resolveResource("assets/drag-icon.png");
+
+		if (group === "text") {
+			return message.warning("暂不支持拖拽文本");
+		}
+
+		if (group === "image") {
+			return startDrag({ item: [value], icon: value });
+		}
+
+		startDrag({ icon, item: JSON.parse(value) });
+	};
+
 	// 渲染内容
 	const renderContent = () => {
 		switch (type) {
@@ -277,6 +295,7 @@ const Item: FC<ItemProps> = (props) => {
 		<Flex
 			{...rest}
 			vertical
+			draggable
 			gap={4}
 			className={clsx(
 				className,
@@ -288,6 +307,7 @@ const Item: FC<ItemProps> = (props) => {
 			onContextMenu={handleContextMenu}
 			onClick={() => handleClick("single")}
 			onDoubleClick={() => handleClick("double")}
+			onDragStart={handleDragStart}
 		>
 			<Header
 				data={data}

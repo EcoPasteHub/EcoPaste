@@ -1,5 +1,5 @@
 import EcoSelect from "@/components/EcoSelect";
-import type { ClipboardItem } from "@/types/database";
+import type { HistoryTablePayload } from "@/types/database";
 import { DeleteOutlined } from "@ant-design/icons";
 import { emit } from "@tauri-apps/api/event";
 import {
@@ -74,7 +74,7 @@ const Delete = () => {
 
 		const formatRange = range.map((item) => formatDate(item));
 
-		const list = await selectSQL<ClipboardItem[]>("history");
+		const list = await selectSQL<HistoryTablePayload[]>("history");
 
 		for await (const item of list) {
 			const { favorite, createTime } = item;

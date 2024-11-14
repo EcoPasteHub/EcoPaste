@@ -1,7 +1,7 @@
 import EcoSelect from "@/components/EcoSelect";
 import ProList from "@/components/ProList";
 import ProListItem from "@/components/ProListItem";
-import type { ClipboardItem } from "@/types/database";
+import type { HistoryTablePayload } from "@/types/database";
 import { InputNumber } from "antd";
 import { useSnapshot } from "valtio";
 import Delete from "./components/Delete";
@@ -16,7 +16,7 @@ const History = () => {
 
 			if (duration === 0) return;
 
-			const list = await selectSQL<ClipboardItem[]>("history");
+			const list = await selectSQL<HistoryTablePayload[]>("history");
 
 			for (const item of list) {
 				const { createTime, favorite } = item;

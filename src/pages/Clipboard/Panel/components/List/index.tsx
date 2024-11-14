@@ -86,6 +86,7 @@ const List = () => {
 				// 回到顶部
 				case "home":
 					return rowVirtualizer.scrollToIndex?.(0);
+				// 收藏和取消收藏
 				case "meta.d":
 				case "ctrl.d":
 					return state.$eventBus?.emit(LISTEN_KEY.CLIPBOARD_ITEM_FAVORITE);

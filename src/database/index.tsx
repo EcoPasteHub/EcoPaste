@@ -1,7 +1,7 @@
-import type { ClipboardItem, TableName, TablePayload } from "@/types/database";
+import type { TableName, TablePayload } from "@/types/database";
 import { getName } from "@tauri-apps/api/app";
 import Database from "@tauri-apps/plugin-sql";
-import { entries, find, isBoolean, isNil, map, omitBy, some } from "lodash-es";
+import { entries, isBoolean, isNil, map, omitBy, some } from "lodash-es";
 
 let db: Database | null;
 
@@ -15,9 +15,9 @@ export const initDatabase = async () => {
 
 	db = await Database.load(`sqlite:${path}`);
 
-	const createHistoryQuery = (tableName = "history") => {
-		return `
-        CREATE TABLE IF NOT EXISTS ${tableName} (
+	// 创建 `history` 表
+	await executeSQL(`
+        CREATE TABLE IF NOT EXISTS history (
 			id TEXT PRIMARY KEY,
 			type TEXT,
 			[group] TEXT,
@@ -31,67 +31,7 @@ export const initDatabase = async () => {
 			note TEXT,
 			subtype TEXT
 		);
-        `;
-	};
-
-	// 创建 `history` 表
-	await executeSQL(createHistoryQuery());
-
-	// 将 `type` 为 rich-text 的更换为 rtf
-	await executeSQL("UPDATE history SET type = ? WHERE type = ?;", [
-		"rtf",
-		"rich-text",
-	]);
-
-	const fields = await getFields("history");
-
-	// `isCollected` 更名 `favorite`
-	await renameField("history", "isCollected", "favorite");
-
-	// `size` 更名 `count`
-	await renameField("history", "size", "count");
-
-	if (!some(fields, { name: "note" })) {
-		// 新增 `remark`
-		await addField("history", "remark", "TEXT");
-
-		// `remark` 更名 `note`
-		await renameField("history", "remark", "note");
-	}
-
-	// 将 `id` 从 INTEGER 转为 TEXT 类型
-	if (find(fields, { name: "id" })?.type === "INTEGER") {
-		const tableName = "temp_history";
-
-		await executeSQL(createHistoryQuery(tableName));
-
-		await executeSQL(
-			`INSERT INTO ${tableName} (id, type, [group], value, search, count, width, height, favorite, createTime, note, subtype) SELECT CAST(id AS TEXT), type, [group], value, search, count, width, height, favorite, createTime, note, subtype FROM history;`,
-		);
-
-		await executeSQL("DROP TABLE history;");
-
-		await executeSQL(`ALTER TABLE ${tableName} RENAME TO history;`);
-	}
-
-	// 新增 `subtype`
-	if (!some(fields, { name: "subtype" })) {
-		await addField("history", "subtype", "TEXT");
-
-		const list = await selectSQL<ClipboardItem[]>("history");
-
-		for await (const item of list) {
-			const { id, type } = item;
-
-			if (type !== "text") return;
-
-			const subtype = await getClipboardSubtype(item);
-
-			if (!subtype) return;
-
-			await updateSQL("history", { id, subtype });
-		}
-	}
+        `);
 };
 
 /**
@@ -209,12 +149,12 @@ export const updateSQL = (tableName: TableName, payload: TablePayload) => {
  * @param tableName 表名称
  * @param id 删除数据的 id
  */
-export const deleteSQL = async (tableName: TableName, item: ClipboardItem) => {
+export const deleteSQL = async (tableName: TableName, item: TablePayload) => {
 	const { id, type, value } = item;
 
 	await executeSQL(`DELETE FROM ${tableName} WHERE id = ?;`, [id]);
 
-	if (type !== "image") return;
+	if (type !== "image" || !value) return;
 
 	return removeFile(getSaveImagePath(value));
 };
@@ -245,7 +185,7 @@ const getFields = async (tableName: TableName) => {
  * @param rename 重命名
  * @returns
  */
-const renameField = async (
+export const renameField = async (
 	tableName: TableName,
 	field: string,
 	rename: string,
@@ -265,7 +205,11 @@ const renameField = async (
  * @param field 字段
  * @param type 类型
  */
-const addField = async (tableName: TableName, field: string, type: string) => {
+export const addField = async (
+	tableName: TableName,
+	field: string,
+	type: string,
+) => {
 	const fields = await getFields(tableName);
 
 	if (some(fields, { name: field })) return;

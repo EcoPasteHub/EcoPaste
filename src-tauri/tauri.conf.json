@@ -73,7 +73,7 @@
 			"icons/icon.icns",
 			"icons/icon.ico"
 		],
-		"resources": ["assets/tray.ico"]
+		"resources": ["assets/tray.ico", "assets/drag-icon.png"]
 	},
 	"plugins": {
 		"updater": {

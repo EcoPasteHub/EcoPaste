@@ -1,7 +1,7 @@
 import type { AudioRef } from "@/components/Audio";
 import Audio from "@/components/Audio";
 import { getWebShortcuts } from "@/components/ProShortcut/keys";
-import type { ClipboardItem, TablePayload } from "@/types/database";
+import type { HistoryTablePayload, TablePayload } from "@/types/database";
 import type { Store } from "@/types/store";
 import { listen } from "@tauri-apps/api/event";
 import type { EventEmitter } from "ahooks/lib/useEventEmitter";
@@ -14,7 +14,7 @@ import Float from "./components/Float";
 
 interface State extends TablePayload {
 	pin?: boolean;
-	list: ClipboardItem[];
+	list: HistoryTablePayload[];
 	activeId?: string;
 	eventBusId?: string;
 	$eventBus?: EventEmitter<string>;
@@ -29,7 +29,7 @@ const INITIAL_STATE: State = {
 
 interface ClipboardPanelContextValue {
 	state: State;
-	getList?: (payload?: ClipboardItem) => Promise<void>;
+	getList?: (payload?: HistoryTablePayload) => Promise<void>;
 }
 
 export const ClipboardPanelContext = createContext<ClipboardPanelContextValue>({
@@ -72,7 +72,7 @@ const ClipboardPanel = () => {
 
 				updateSQL("history", { id, createTime });
 			} else {
-				const data: ClipboardItem = {
+				const data: HistoryTablePayload = {
 					...payload,
 					createTime,
 					id: nanoid(),
@@ -155,7 +155,7 @@ const ClipboardPanel = () => {
 	const getList = async () => {
 		const { group, search, favorite } = state;
 
-		state.list = await selectSQL<ClipboardItem[]>("history", {
+		state.list = await selectSQL<HistoryTablePayload[]>("history", {
 			group,
 			search,
 			favorite,

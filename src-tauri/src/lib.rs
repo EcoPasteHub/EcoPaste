@@ -55,6 +55,8 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         // 进程相关插件：https://github.com/tauri-apps/tauri-plugin-process
         .plugin(tauri_plugin_process::init())
+        // 拖拽插件：https://github.com/crabnebula-dev/drag-rs
+        .plugin(tauri_plugin_drag::init())
         // 自定义的窗口管理插件
         .plugin(tauri_plugin_eco_window::init())
         // 自定义的 fs_extra 插件

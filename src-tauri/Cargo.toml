@@ -32,6 +32,7 @@ tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
 tauri-plugin-updater = "2"
 tauri-plugin-process = "2"
+tauri-plugin-drag = "2"
 tauri-plugin-eco-window.workspace = true
 tauri-plugin-eco-macos-permissions.workspace = true
 tauri-plugin-eco-fs-extra.workspace = true

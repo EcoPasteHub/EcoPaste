@@ -1,14 +1,14 @@
 import Icon from "@/components/Icon";
 import Scrollbar from "@/components/Scrollbar";
 import { ClipboardPanelContext } from "@/pages/Clipboard/Panel";
-import type { ClipboardItem } from "@/types/database";
+import type { HistoryTablePayload } from "@/types/database";
 import { Flex } from "antd";
 import clsx from "clsx";
 import { filesize } from "filesize";
 import type { FC, MouseEvent } from "react";
 
 interface HeaderProps {
-	data: ClipboardItem;
+	data: HistoryTablePayload;
 	pastePlain: () => void;
 	toggleFavorite: () => void;
 	deleteItem: () => void;

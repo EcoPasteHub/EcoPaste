@@ -14,6 +14,9 @@ importers:
       '@ant-design/icons':
         specifier: ^5.5.1
         version: 5.5.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@crabnebula/tauri-plugin-drag':
+        specifier: ^2.0.0
+        version: 2.0.0
       '@tanstack/react-virtual':
         specifier: ^3.10.9
         version: 3.10.9(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -457,6 +460,9 @@ packages:
   '@commitlint/types@19.5.0':
     resolution: {integrity: sha512-DSHae2obMSMkAtTBSOulg5X7/z+rGLxcXQIkg3OmWvY6wifojge5uVMydfhUvs7yQj+V7jNmRZ2Xzl8GJyqRgg==}
     engines: {node: '>=v18'}
+
+  '@crabnebula/tauri-plugin-drag@2.0.0':
+    resolution: {integrity: sha512-HgYEwqvbwVY2/nqaGNI9jVAnhKvuzR85jpBgjkZjsxFYS0MToWQUywbNjYNvfGQFavxsL9EXkVIoB3EXA1ypCA==}
 
   '@ctrl/tinycolor@3.6.1':
     resolution: {integrity: sha512-SITSV6aIXsuVNV3f3O0f2n/cgyEDWoSqtZMYiAmcsYHydcKrOz3gUxB/iXd/Qf08+IZX4KpgNbvUdMBmWz+kcA==}
@@ -4473,6 +4479,10 @@ snapshots:
     dependencies:
       '@types/conventional-commits-parser': 5.0.0
       chalk: 5.3.0
+
+  '@crabnebula/tauri-plugin-drag@2.0.0':
+    dependencies:
+      '@tauri-apps/api': 2.1.1
 
   '@ctrl/tinycolor@3.6.1': {}
 
