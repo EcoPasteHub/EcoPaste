@@ -2,7 +2,7 @@ import { emit } from "@tauri-apps/api/event";
 import { Menu, MenuItem, PredefinedMenuItem } from "@tauri-apps/api/menu";
 import { resolveResource } from "@tauri-apps/api/path";
 import { TrayIcon, type TrayIconOptions } from "@tauri-apps/api/tray";
-import { exit } from "@tauri-apps/plugin-process";
+import { exit, relaunch } from "@tauri-apps/plugin-process";
 import { open } from "@tauri-apps/plugin-shell";
 
 const Tray = () => {
@@ -105,8 +105,12 @@ const Tray = () => {
 				enabled: false,
 			}),
 			MenuItem.new({
+				text: t("component.tray.label.relaunch"),
+				action: relaunch,
+			}),
+			MenuItem.new({
 				text: t("component.tray.label.exit"),
-				action: () => exit(1),
+				action: () => exit(0),
 			}),
 		]);
 

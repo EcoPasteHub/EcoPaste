@@ -300,7 +300,8 @@
 				"check_update": "檢查更新",
 				"open_source_address": "開源地址",
 				"version": "版本",
-				"exit": "退出"
+				"relaunch": "重啓應用",
+				"exit": "退出應用"
 			}
 		},
 		"note_modal": {
