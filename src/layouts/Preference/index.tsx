@@ -122,7 +122,7 @@ const PreferenceLayout = () => {
 	const handleTabItemClick = (key: string) => {
 		setActiveKey(key);
 
-		requestAnimationFrame(() => {
+		raf(() => {
 			const element = document.querySelector(".ant-tabs-content-holder");
 
 			element?.scrollTo({ top: 0, behavior: "smooth" });

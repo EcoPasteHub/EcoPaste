@@ -19,7 +19,7 @@ const Language = () => {
 			globalStore.appearance,
 			"language",
 			() => {
-				requestAnimationFrame(() => {
+				raf(() => {
 					appWindow.setTitle(t("preference.title"));
 				});
 			},

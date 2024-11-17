@@ -19,22 +19,13 @@ const Search: FC<HTMLAttributes<HTMLDivElement>> = (props) => {
 
 	useTauriFocus({
 		onFocus() {
-			const { window, search } = clipboardStore;
+			const { search } = clipboardStore;
 
 			// 搜索框默认聚焦
 			if (search.defaultFocus) {
 				inputRef.current?.focus();
 			} else {
 				inputRef.current?.blur();
-			}
-
-			// 激活窗口时滚动到顶部并选中首项
-			if (window.backTop) {
-				requestAnimationFrame(() => {
-					state.scrollToIndex?.(0);
-
-					state.activeId = state.list[0]?.id;
-				});
 			}
 		},
 		onBlur() {

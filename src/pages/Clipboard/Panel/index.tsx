@@ -19,7 +19,6 @@ interface State extends TablePayload {
 	eventBusId?: string;
 	$eventBus?: EventEmitter<string>;
 	quickPasteKeys: string[];
-	scrollToIndex?: (index: number) => void;
 }
 
 const INITIAL_STATE: State = {

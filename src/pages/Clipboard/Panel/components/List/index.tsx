@@ -1,6 +1,7 @@
 import Scrollbar from "@/components/Scrollbar";
 import { ClipboardPanelContext } from "@/pages/Clipboard/Panel";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { listen } from "@tauri-apps/api/event";
 import { FloatButton } from "antd";
 import { findIndex } from "lodash-es";
 import Item from "./components/Item";
@@ -20,7 +21,7 @@ const List = () => {
 	});
 
 	useMount(() => {
-		state.scrollToIndex = rowVirtualizer.scrollToIndex;
+		listen(LISTEN_KEY.ACTIVATE_BACK_TOP, scrollToTop);
 	});
 
 	const isFocusWithin = useFocusWithin(document.body);
@@ -97,6 +98,12 @@ const List = () => {
 		},
 	);
 
+	const scrollToTop = () => {
+		rowVirtualizer.scrollToIndex(0);
+
+		state.activeId = state.list[0]?.id;
+	};
+
 	return (
 		<>
 			<Scrollbar ref={outerRef} offset={3} className="flex-1">
@@ -125,7 +132,11 @@ const List = () => {
 				</div>
 			</Scrollbar>
 
-			<FloatButton.BackTop duration={0} target={() => outerRef.current!} />
+			<FloatButton.BackTop
+				duration={0}
+				target={() => outerRef.current!}
+				onClick={scrollToTop}
+			/>
 
 			<NoteModal ref={noteModelRef} />
 		</>
