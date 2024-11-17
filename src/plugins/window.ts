@@ -42,6 +42,11 @@ export const toggleWindowVisible = async () => {
 	if (appWindow.label === WINDOW_LABEL.MAIN) {
 		const { window } = clipboardStore;
 
+		// 激活时回到顶部
+		if (window.backTop) {
+			await emit(LISTEN_KEY.ACTIVATE_BACK_TOP);
+		}
+
 		if (window.style === "float") {
 			if (!focused && window.position !== "remember") {
 				const monitors = await availableMonitors();

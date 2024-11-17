@@ -31,6 +31,7 @@ export const LISTEN_KEY = {
 	CLOSE_DATABASE: "close-database",
 	TOGGLE_LISTEN_CLIPBOARD: "toggle-listen-clipboard",
 	CLIPBOARD_ITEM_FAVORITE: "clipboard-item-favorite",
+	ACTIVATE_BACK_TOP: "activate-back-top",
 };
 
 export const WINDOW_PLUGIN = {
