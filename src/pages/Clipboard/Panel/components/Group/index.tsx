@@ -42,6 +42,14 @@ const Group = () => {
 
 	const [checked, setChecked] = useState(groupList[0].key);
 
+	useTauriFocus({
+		onFocus() {
+			if (!clipboardStore.window.showAll) return;
+
+			handleChange(groupList[0]);
+		},
+	});
+
 	const handleChange = (item: GroupItem) => {
 		const { key, group, favorite } = item;
 

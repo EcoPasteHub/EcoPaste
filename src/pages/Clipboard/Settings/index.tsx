@@ -24,6 +24,14 @@ const ClipboardSettings = () => {
 						clipboardStore.window.backTop = value;
 					}}
 				/>
+
+				<ProSwitch
+					title={t("preference.clipboard.window_settings.label.show_all")}
+					value={window.showAll}
+					onChange={(value) => {
+						clipboardStore.window.showAll = value;
+					}}
+				/>
 			</ProList>
 
 			<ProList header={t("preference.clipboard.audio_settings.title")}>
