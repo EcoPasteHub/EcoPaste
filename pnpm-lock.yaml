@@ -107,6 +107,9 @@ importers:
       rtf.js:
         specifier: ^3.0.9
         version: 3.0.9
+      tauri-plugin-macos-permissions-api:
+        specifier: ^2.0.1
+        version: 2.0.1
       valtio:
         specifier: ^2.1.2
         version: 2.1.2(@types/react@18.3.12)(react@18.3.1)
@@ -3802,6 +3805,9 @@ packages:
   supports-preserve-symlinks-flag@1.0.0:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
+
+  tauri-plugin-macos-permissions-api@2.0.1:
+    resolution: {integrity: sha512-t1YIWtKPz302JZicLsdDFl9MEOqvBkk+GyGsUBMDWd7gIkxRAJjxkd2iwKSCfsfWxnmTA/zZLKG/dKOBoeXcBA==}
 
   text-extensions@2.4.0:
     resolution: {integrity: sha512-te/NtwBwfiNRLf9Ijqx3T0nlqZiQ2XrrtBvu+cLL8ZRrGkO0NHTug8MYFKyoSrv/sHTaSKfilUkizV6XhxMJ3g==}
@@ -8206,6 +8212,10 @@ snapshots:
       has-flag: 4.0.0
 
   supports-preserve-symlinks-flag@1.0.0: {}
+
+  tauri-plugin-macos-permissions-api@2.0.1:
+    dependencies:
+      '@tauri-apps/api': 2.1.1
 
   text-extensions@2.4.0: {}
 

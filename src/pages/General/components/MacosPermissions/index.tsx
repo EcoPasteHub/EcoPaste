@@ -2,6 +2,12 @@ import Icon from "@/components/Icon";
 import ProList from "@/components/ProList";
 import ProListItem from "@/components/ProListItem";
 import { confirm } from "@tauri-apps/plugin-dialog";
+import {
+	checkAccessibilityPermissions,
+	checkFullDiskAccessPermissions,
+	requestAccessibilityPermissions,
+	requestFullDiskAccessPermissions,
+} from "tauri-plugin-macos-permissions-api";
 
 const MacosPermissions = () => {
 	const { t } = useTranslation();

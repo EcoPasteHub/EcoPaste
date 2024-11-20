@@ -55,6 +55,7 @@
 		"react-router-dom": "6.27.0",
 		"rehype-raw": "^7.0.0",
 		"rtf.js": "^3.0.9",
+		"tauri-plugin-macos-permissions-api": "^2.0.1",
 		"valtio": "^2.1.2"
 	},
 	"devDependencies": {

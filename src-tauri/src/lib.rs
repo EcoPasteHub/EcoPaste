@@ -57,6 +57,8 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         // 拖拽插件：https://github.com/crabnebula-dev/drag-rs
         .plugin(tauri_plugin_drag::init())
+        // macos 权限查询的插件：https://github.com/ayangweb/tauri-plugin-macos-permissions
+        .plugin(tauri_plugin_macos_permissions::init())
         // 自定义的窗口管理插件
         .plugin(tauri_plugin_eco_window::init())
         // 自定义的 fs_extra 插件
@@ -71,8 +73,6 @@ pub fn run() {
         .plugin(tauri_plugin_eco_locale::init())
         // 自定义粘贴的插件
         .plugin(tauri_plugin_eco_paste::init())
-        // 自定义 macos 权限查询的插件
-        .plugin(tauri_plugin_eco_macos_permissions::init())
         // 自定义判断是否自动启动的插件
         .plugin(tauri_plugin_eco_autostart::init())
         .on_window_event(|window, event| match event {

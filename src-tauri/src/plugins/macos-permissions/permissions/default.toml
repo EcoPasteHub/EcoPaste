@@ -1,5 +1,0 @@
-"$schema" = "schemas/schema.json"
-
-[default]
-description = "Default permissions for the plugin"
-permissions = ["allow-check-accessibility-permissions", "allow-request-accessibility-permissions", "allow-request-full-disk-access-permissions"]
