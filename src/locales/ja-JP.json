@@ -19,7 +19,8 @@
 					"window_position_remember": "位置を記憶する",
 					"window_position_follow": "マウスに従う",
 					"window_position_center": "スクリーンセンター",
-					"back_top": "トップページに戻る"
+					"back_top": "トップページに戻る",
+					"show_all": "起動時に全グループに切り替わる"
 				},
 				"hints": {
 					"back_top": "ウィンドウがアクティブになったら、一番上までスクロールし、最初のバーを選択する。"

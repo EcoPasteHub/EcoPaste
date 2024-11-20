@@ -19,7 +19,8 @@
 					"window_position_remember": "記住位置",
 					"window_position_follow": "跟隨滑鼠",
 					"window_position_center": "螢幕中央",
-					"back_top": "啟動時回到頂部"
+					"back_top": "啟動時回到頂部",
+					"show_all": "啟動時切換至全部分組"
 				},
 				"hints": {
 					"back_top": "啟動視窗時，滾動至頂部並選中首條"
