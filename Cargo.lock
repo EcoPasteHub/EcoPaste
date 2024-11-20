@@ -1442,13 +1442,13 @@ dependencies = [
  "tauri-plugin-eco-clipboard",
  "tauri-plugin-eco-fs-extra",
  "tauri-plugin-eco-locale",
- "tauri-plugin-eco-macos-permissions",
  "tauri-plugin-eco-ocr",
  "tauri-plugin-eco-paste",
  "tauri-plugin-eco-window",
  "tauri-plugin-fs",
  "tauri-plugin-global-shortcut",
  "tauri-plugin-log",
+ "tauri-plugin-macos-permissions",
  "tauri-plugin-os",
  "tauri-plugin-process",
  "tauri-plugin-shell",
@@ -5796,16 +5796,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tauri-plugin-eco-macos-permissions"
-version = "0.1.0"
-dependencies = [
- "macos-accessibility-client",
- "serde",
- "tauri",
- "tauri-plugin",
-]
-
-[[package]]
 name = "tauri-plugin-eco-ocr"
 version = "0.1.0"
 dependencies = [
@@ -5899,6 +5889,21 @@ dependencies = [
  "tauri-plugin",
  "thiserror 1.0.69",
  "time",
+]
+
+[[package]]
+name = "tauri-plugin-macos-permissions"
+version = "2.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f119e0f2f1eb0389730c978db550571e9b0a6444bb440be791a8539d0a0ea235"
+dependencies = [
+ "fs_extra",
+ "log",
+ "macos-accessibility-client",
+ "serde",
+ "tauri",
+ "tauri-plugin",
+ "thiserror 2.0.3",
 ]
 
 [[package]]
