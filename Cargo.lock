@@ -5501,9 +5501,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-macos-permissions"
-version = "2.0.1"
+version = "2.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f119e0f2f1eb0389730c978db550571e9b0a6444bb440be791a8539d0a0ea235"
+checksum = "db5abab8f868786faf664dea279043c9bf553f054b3d81a14b3c4f133a927da2"
 dependencies = [
  "fs_extra",
  "log",
