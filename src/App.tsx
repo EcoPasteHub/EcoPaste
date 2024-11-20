@@ -1,5 +1,4 @@
 import { HappyProvider } from "@ant-design/happy-work-theme";
-import { listen } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { error } from "@tauri-apps/plugin-log";
 import { open } from "@tauri-apps/plugin-shell";
@@ -41,19 +40,19 @@ const App = () => {
 			},
 			true,
 		);
-
-		// 监听显示窗口的事件
-		listen(LISTEN_KEY.SHOW_WINDOW, ({ payload }) => {
-			const appWindow = getCurrentWebviewWindow();
-
-			if (appWindow.label !== payload) return;
-
-			showWindow();
-		});
-
-		// 监听关闭数据库的事件
-		listen(LISTEN_KEY.CLOSE_DATABASE, closeDatabase);
 	});
+
+	// 监听显示窗口的事件
+	useTauriListen(LISTEN_KEY.SHOW_WINDOW, ({ payload }) => {
+		const appWindow = getCurrentWebviewWindow();
+
+		if (appWindow.label !== payload) return;
+
+		showWindow();
+	});
+
+	// 监听关闭数据库的事件
+	useTauriListen(LISTEN_KEY.CLOSE_DATABASE, closeDatabase);
 
 	// 生产环境禁用默认的右键菜单
 	useEventListener("contextmenu", (event) => {

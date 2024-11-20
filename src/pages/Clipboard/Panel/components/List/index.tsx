@@ -1,7 +1,6 @@
 import Scrollbar from "@/components/Scrollbar";
 import { ClipboardPanelContext } from "@/pages/Clipboard/Panel";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { listen } from "@tauri-apps/api/event";
 import { FloatButton } from "antd";
 import { findIndex } from "lodash-es";
 import Item from "./components/Item";
@@ -20,9 +19,8 @@ const List = () => {
 		getItemKey: (index) => state.list[index].id,
 	});
 
-	useMount(() => {
-		listen(LISTEN_KEY.ACTIVATE_BACK_TOP, scrollToTop);
-	});
+	// 监听激活时回到顶部
+	useTauriListen(LISTEN_KEY.ACTIVATE_BACK_TOP, () => scrollToTop());
 
 	const isFocusWithin = useFocusWithin(document.body);
 

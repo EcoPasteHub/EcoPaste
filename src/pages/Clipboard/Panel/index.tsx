@@ -3,7 +3,6 @@ import Audio from "@/components/Audio";
 import { getWebShortcuts } from "@/components/ProShortcut/keys";
 import type { HistoryTablePayload, TablePayload } from "@/types/database";
 import type { Store } from "@/types/store";
-import { listen } from "@tauri-apps/api/event";
 import type { EventEmitter } from "ahooks/lib/useEventEmitter";
 import { find, findIndex, isNil, last, merge, range } from "lodash-es";
 import { nanoid } from "nanoid";
@@ -86,15 +85,6 @@ const ClipboardPanel = () => {
 			}
 		});
 
-		// 监听刷新列表
-		listen(LISTEN_KEY.REFRESH_CLIPBOARD_LIST, getList);
-
-		// 监听配置项变化
-		listen<Store>(LISTEN_KEY.STORE_CHANGED, ({ payload }) => {
-			merge(globalStore, payload.globalStore);
-			merge(clipboardStore, payload.clipboardStore);
-		});
-
 		// 监听快速粘贴的启用状态变更
 		subscribeKey(
 			globalStore.shortcut.quickPaste,
@@ -108,11 +98,20 @@ const ClipboardPanel = () => {
 
 		// 监听是否显示任务栏图标
 		subscribeKey(globalStore.app, "showTaskbarIcon", showTaskbarIcon, true);
+	});
 
-		// 切换剪贴板监听状态
-		listen<boolean>(LISTEN_KEY.TOGGLE_LISTEN_CLIPBOARD, ({ payload }) => {
-			toggleListen(payload);
-		});
+	// 监听刷新列表
+	useTauriListen(LISTEN_KEY.REFRESH_CLIPBOARD_LIST, () => getList());
+
+	// 监听配置项变化
+	useTauriListen<Store>(LISTEN_KEY.STORE_CHANGED, ({ payload }) => {
+		merge(globalStore, payload.globalStore);
+		merge(clipboardStore, payload.clipboardStore);
+	});
+
+	// 切换剪贴板监听状态
+	useTauriListen<boolean>(LISTEN_KEY.TOGGLE_LISTEN_CLIPBOARD, ({ payload }) => {
+		toggleListen(payload);
 	});
 
 	// 监听窗口焦点
