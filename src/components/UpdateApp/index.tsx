@@ -1,4 +1,3 @@
-import { listen } from "@tauri-apps/api/event";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { type Update, check } from "@tauri-apps/plugin-updater";
 import type { Timeout } from "ahooks/lib/useRequest/src/types";
@@ -26,18 +25,6 @@ const UpdateApp = () => {
 	const [messageApi, contextHolder] = message.useMessage();
 
 	useMount(() => {
-		// 监听更新事件
-		listen<boolean>(LISTEN_KEY.UPDATE_APP, () => {
-			checkUpdate(true);
-
-			messageApi.open({
-				key: UPDATE_MESSAGE_KEY,
-				type: "loading",
-				content: t("component.app_update.hints.checking_update"),
-				duration: 0,
-			});
-		});
-
 		// 监听自动更新配置变化
 		subscribeKey(
 			globalStore.update,
@@ -56,6 +43,18 @@ const UpdateApp = () => {
 
 		// 监听参与测试版本配置变化
 		subscribeKey(globalStore.update, "beta", () => checkUpdate(), true);
+	});
+
+	// 监听更新事件
+	useTauriListen<boolean>(LISTEN_KEY.UPDATE_APP, () => {
+		checkUpdate(true);
+
+		messageApi.open({
+			key: UPDATE_MESSAGE_KEY,
+			type: "loading",
+			content: t("component.app_update.hints.checking_update"),
+			duration: 0,
+		});
 	});
 
 	// 确认按钮的文字
