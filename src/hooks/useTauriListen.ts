@@ -1,7 +1,7 @@
 import { listen } from "@tauri-apps/api/event";
 import { noop } from "lodash-es";
 
-export const useTauriListen = (...args: Parameters<typeof listen>) => {
+export const useTauriListen = <T>(...args: Parameters<typeof listen<T>>) => {
 	const state = useReactive({
 		unlisten: noop,
 	});
