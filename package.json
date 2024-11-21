@@ -39,11 +39,11 @@
 		"@tauri-apps/plugin-updater": "^2.0.0",
 		"@unocss/reset": "^0.63.6",
 		"ahooks": "^3.8.1",
-		"antd": "^5.22.1",
+		"antd": "^5.22.2",
 		"clsx": "^2.1.1",
 		"dayjs": "^1.11.13",
 		"filesize": "^10.1.6",
-		"i18next": "^23.16.6",
+		"i18next": "^23.16.8",
 		"is-url": "^1.2.4",
 		"lodash-es": "^4.17.21",
 		"mac-scrollbar": "^0.13.6",
@@ -55,7 +55,7 @@
 		"react-router-dom": "6.27.0",
 		"rehype-raw": "^7.0.0",
 		"rtf.js": "^3.0.9",
-		"tauri-plugin-macos-permissions-api": "^2.0.1",
+		"tauri-plugin-macos-permissions-api": "^2.0.2",
 		"valtio": "^2.1.2"
 	},
 	"devDependencies": {
