@@ -40,11 +40,6 @@ export const WINDOW_PLUGIN = {
 	SHOW_TASKBAR_ICON: "plugin:eco-window|show_taskbar_icon",
 };
 
-export const FS_EXTRA_PLUGIN = {
-	METADATA: "plugin:eco-fs-extra|metadata",
-	OPEN_PATH: "plugin:eco-fs-extra|open_path",
-};
-
 export const CLIPBOARD_PLUGIN = {
 	START_LISTEN: "plugin:eco-clipboard|start_listen",
 	STOP_LISTEN: "plugin:eco-clipboard|stop_listen",
@@ -82,15 +77,6 @@ export const LOCALE_PLUGIN = {
 
 export const PASTE_PLUGIN = {
 	PASTE: "plugin:eco-paste|paste",
-};
-
-export const MACOS_PERMISSIONS_PLUGIN = {
-	CHECK_ACCESSIBILITY_PERMISSIONS:
-		"plugin:eco-macos-permissions|check_accessibility_permissions",
-	REQUEST_ACCESSIBILITY_PERMISSIONS:
-		"plugin:eco-macos-permissions|request_accessibility_permissions",
-	REQUEST_FULL_DISK_ACCESS_PERMISSIONS:
-		"plugin:eco-macos-permissions|request_full_disk_access_permissions",
 };
 
 export const AUTOSTART_PLUGIN = {

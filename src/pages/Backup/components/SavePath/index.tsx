@@ -7,6 +7,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { Button, Space, Tooltip, message } from "antd";
 import { isEqual, isString } from "lodash-es";
 import type { FC } from "react";
+import { open as openPath } from "tauri-plugin-fs-pro-api";
 import type { State } from "../..";
 
 const SavePath: FC<{ state: State }> = (props) => {
@@ -60,7 +61,7 @@ const SavePath: FC<{ state: State }> = (props) => {
 		return (
 			<span
 				className="hover:color-primary cursor-pointer break-all transition"
-				onMouseDown={() => openPath(path, false)}
+				onMouseDown={() => openPath(path)}
 			>
 				{joinPath(path)}
 			</span>

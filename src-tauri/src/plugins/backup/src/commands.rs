@@ -10,14 +10,14 @@ use std::{
 };
 use tar::Archive;
 use tauri::{command, AppHandle, Runtime};
-use tauri_plugin_eco_fs_extra::{metadata, open_path};
+use tauri_plugin_fs_pro::{metadata, open, OpenOptions};
 
 // 导出数据
 #[command]
 pub async fn export_data<R: Runtime>(
     app_handle: AppHandle<R>,
     src_dir: String,
-    dst_path: String,
+    dst_path: PathBuf,
 ) -> Result<(), String> {
     let dst_file = File::create(dst_path.clone()).map_err(|err| err.to_string())?;
     let enc = GzEncoder::new(dst_file, Compression::default());
@@ -44,9 +44,12 @@ pub async fn export_data<R: Runtime>(
 
     tar.finish().map_err(|err| err.to_string())?;
 
-    open_path(app_handle, dst_path, true)
-        .await
-        .map_err(|err| err.to_string())?;
+    let open_options = OpenOptions {
+        explorer: Some(true),
+        enter_dir: Some(false),
+    };
+
+    let _ = open(app_handle, dst_path, Some(open_options)).await;
 
     Ok(())
 }

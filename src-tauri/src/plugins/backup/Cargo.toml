@@ -13,7 +13,7 @@ serde.workspace = true
 fs_extra.workspace = true
 flate2 = "1.0.34"
 tar = "0.4.42"
-tauri-plugin-eco-fs-extra.workspace = true
+tauri-plugin-fs-pro.workspace = true
 
 [build-dependencies]
 tauri-plugin.workspace = true
