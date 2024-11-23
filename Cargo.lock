@@ -5504,9 +5504,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-macos-permissions"
-version = "2.0.3"
+version = "2.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a9db9536bcf2ff79e5637dbd0a5745953e66b6ff601090a8675f66d5da628085"
+checksum = "f5db3010ccd60ac3b508164823e0fc6ebcf99fc6bdbf0583830879152f2cf860"
 dependencies = [
  "macos-accessibility-client",
  "serde",

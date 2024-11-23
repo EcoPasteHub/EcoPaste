@@ -56,7 +56,7 @@
 		"rehype-raw": "^7.0.0",
 		"rtf.js": "^3.0.9",
 		"tauri-plugin-fs-pro-api": "^2.0.0",
-		"tauri-plugin-macos-permissions-api": "^2.0.3",
+		"tauri-plugin-macos-permissions-api": "^2.0.4",
 		"valtio": "^2.1.2"
 	},
 	"devDependencies": {
