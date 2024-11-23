@@ -1,4 +1,5 @@
 import { PhysicalPosition, PhysicalSize } from "@tauri-apps/api/dpi";
+import type { Event } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { exists, readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 
@@ -9,13 +10,9 @@ export const useWindowState = () => {
 	const state = useReactive<Partial<PhysicalPosition & PhysicalSize>>({});
 
 	useMount(() => {
-		appWindow.onMoved(({ payload }) => {
-			Object.assign(state, payload);
-		});
+		appWindow.onMoved(onChange);
 
-		appWindow.onResized(({ payload }) => {
-			Object.assign(state, payload);
-		});
+		appWindow.onResized(onChange);
 	});
 
 	useTauriFocus({
@@ -23,6 +20,14 @@ export const useWindowState = () => {
 			saveState();
 		},
 	});
+
+	const onChange = async (event: Event<PhysicalPosition | PhysicalSize>) => {
+		const minimized = await appWindow.isMinimized();
+
+		if (minimized) return;
+
+		Object.assign(state, event.payload);
+	};
 
 	const getSavedStates = async () => {
 		const path = await saveWindowStatePath();
