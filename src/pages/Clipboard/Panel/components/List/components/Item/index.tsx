@@ -10,6 +10,7 @@ import { Flex, type FlexProps, message } from "antd";
 import clsx from "clsx";
 import { find, isNil, remove } from "lodash-es";
 import type { DragEvent, FC, MouseEvent } from "react";
+import { open as openPath } from "tauri-plugin-fs-pro-api";
 import { useSnapshot } from "valtio";
 import Files from "./components/Files";
 import HTML from "./components/HTML";
@@ -101,7 +102,7 @@ const Item: FC<ItemProps> = (props) => {
 	const preview = () => {
 		if (type !== "image") return;
 
-		openPath(value, false);
+		openPath(value);
 	};
 
 	// 下载图片
@@ -111,17 +112,20 @@ const Item: FC<ItemProps> = (props) => {
 
 		await copyFile(value, path);
 
-		openPath(path);
+		openPath(path, { explorer: true });
 	};
 
 	// 打开文件至访达
 	const openFinder = () => {
 		if (subtype === "path") {
-			openPath(value);
+			openPath(value, {
+				explorer: true,
+				enterDir: true,
+			});
 		} else {
 			const [file] = JSON.parse(value);
 
-			openPath(file);
+			openPath(file, { explorer: true });
 		}
 	};
 

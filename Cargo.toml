@@ -12,10 +12,10 @@ fs_extra = "1.3.0"
 log = "0.4.22"
 cocoa = "0.25.0"
 tauri-plugin-shell = "2"
+tauri-plugin-fs-pro = "2"
 tauri-plugin = { version = "2", features = ["build"] }
 tauri-nspanel = { git = "https://github.com/ahkohd/tauri-nspanel", branch = "v2" }
 tauri-plugin-eco-window = { path = "./src-tauri/src/plugins/window" }
-tauri-plugin-eco-fs-extra = { path = "./src-tauri/src/plugins/fs-extra" }
 tauri-plugin-eco-backup = { path = "./src-tauri/src/plugins/backup" }
 tauri-plugin-eco-locale = { path = "./src-tauri/src/plugins/locale" }
 tauri-plugin-eco-clipboard = { path = "./src-tauri/src/plugins/clipboard" }

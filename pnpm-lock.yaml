@@ -107,6 +107,9 @@ importers:
       rtf.js:
         specifier: ^3.0.9
         version: 3.0.9
+      tauri-plugin-fs-pro-api:
+        specifier: ^2.0.0
+        version: 2.0.0(react@18.3.1)(typescript@5.7.2)
       tauri-plugin-macos-permissions-api:
         specifier: ^2.0.3
         version: 2.0.3
@@ -3836,6 +3839,9 @@ packages:
   supports-preserve-symlinks-flag@1.0.0:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
+
+  tauri-plugin-fs-pro-api@2.0.0:
+    resolution: {integrity: sha512-1ACxm45pNpk3Rok9gFvZqCiATcK6rdyt5Wvvny8XLiv1B95QbRwdRsKaa5G9FCD6gQwHiTyaedd1sF5Z3pmnMQ==}
 
   tauri-plugin-macos-permissions-api@2.0.3:
     resolution: {integrity: sha512-dV8A/HBzAUXkt6qupXG10GYpa1G9UXXE1SSrvFJtuhk/KedrHuy3xVLxnA/zdGlvBMFqXItp3su9chNLq82P2w==}
@@ -8284,6 +8290,16 @@ snapshots:
       has-flag: 4.0.0
 
   supports-preserve-symlinks-flag@1.0.0: {}
+
+  tauri-plugin-fs-pro-api@2.0.0(react@18.3.1)(typescript@5.7.2):
+    dependencies:
+      '@tauri-apps/api': 2.1.1
+      ahooks: 3.8.1(react@18.3.1)
+      release-it: 17.10.0(typescript@5.7.2)
+    transitivePeerDependencies:
+      - react
+      - supports-color
+      - typescript
 
   tauri-plugin-macos-permissions-api@2.0.3:
     dependencies:

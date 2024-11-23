@@ -1,5 +1,6 @@
 import type { TableName, TablePayload } from "@/types/database";
 import { getName } from "@tauri-apps/api/app";
+import { remove } from "@tauri-apps/plugin-fs";
 import Database from "@tauri-apps/plugin-sql";
 import { entries, isBoolean, isNil, map, omitBy, some } from "lodash-es";
 
@@ -156,7 +157,7 @@ export const deleteSQL = async (tableName: TableName, item: TablePayload) => {
 
 	if (type !== "image" || !value) return;
 
-	return removeFile(getSaveImagePath(value));
+	return remove(getSaveImagePath(value));
 };
 
 /**
