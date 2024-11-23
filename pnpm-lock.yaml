@@ -111,8 +111,8 @@ importers:
         specifier: ^2.0.0
         version: 2.0.0(react@18.3.1)(typescript@5.7.2)
       tauri-plugin-macos-permissions-api:
-        specifier: ^2.0.3
-        version: 2.0.3
+        specifier: ^2.0.4
+        version: 2.0.4
       valtio:
         specifier: ^2.1.2
         version: 2.1.2(@types/react@18.3.12)(react@18.3.1)
@@ -3843,8 +3843,8 @@ packages:
   tauri-plugin-fs-pro-api@2.0.0:
     resolution: {integrity: sha512-1ACxm45pNpk3Rok9gFvZqCiATcK6rdyt5Wvvny8XLiv1B95QbRwdRsKaa5G9FCD6gQwHiTyaedd1sF5Z3pmnMQ==}
 
-  tauri-plugin-macos-permissions-api@2.0.3:
-    resolution: {integrity: sha512-dV8A/HBzAUXkt6qupXG10GYpa1G9UXXE1SSrvFJtuhk/KedrHuy3xVLxnA/zdGlvBMFqXItp3su9chNLq82P2w==}
+  tauri-plugin-macos-permissions-api@2.0.4:
+    resolution: {integrity: sha512-OVEMhw0IABbgez7apbXMmQyxAWzj9RDoun9I9DzMQ6guHCLutKiPAcX79Cie9mCn1Mvc6fyVNf5Li4NbazfPHg==}
 
   text-extensions@2.4.0:
     resolution: {integrity: sha512-te/NtwBwfiNRLf9Ijqx3T0nlqZiQ2XrrtBvu+cLL8ZRrGkO0NHTug8MYFKyoSrv/sHTaSKfilUkizV6XhxMJ3g==}
@@ -8301,7 +8301,7 @@ snapshots:
       - supports-color
       - typescript
 
-  tauri-plugin-macos-permissions-api@2.0.3:
+  tauri-plugin-macos-permissions-api@2.0.4:
     dependencies:
       '@tauri-apps/api': 2.1.1
 
