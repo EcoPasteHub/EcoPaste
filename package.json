@@ -55,7 +55,7 @@
 		"react-router-dom": "6.27.0",
 		"rehype-raw": "^7.0.0",
 		"rtf.js": "^3.0.9",
-		"tauri-plugin-macos-permissions-api": "^2.0.2",
+		"tauri-plugin-macos-permissions-api": "^2.0.3",
 		"valtio": "^2.1.2"
 	},
 	"devDependencies": {
@@ -72,7 +72,7 @@
 		"@tauri-apps/cli": "^2.1.0",
 		"@types/is-url": "^1.2.32",
 		"@types/lodash-es": "^4.17.12",
-		"@types/node": "^22.9.1",
+		"@types/node": "^22.9.3",
 		"@types/react": "^18.3.12",
 		"@types/react-dom": "^18.3.1",
 		"@unocss/preset-rem-to-px": "^0.63.6",
@@ -83,7 +83,7 @@
 		"sass": "^1.81.0",
 		"simple-git-hooks": "^2.11.1",
 		"tsx": "^4.19.2",
-		"typescript": "^5.6.3",
+		"typescript": "^5.7.2",
 		"typescript-plugin-css-modules": "^5.1.0",
 		"unocss": "^0.63.6",
 		"unplugin-auto-import": "^0.18.5",
