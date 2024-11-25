@@ -55,7 +55,7 @@
 		"react-router-dom": "6.27.0",
 		"rehype-raw": "^7.0.0",
 		"rtf.js": "^3.0.9",
-		"tauri-plugin-fs-pro-api": "^2.0.0",
+		"tauri-plugin-fs-pro-api": "^2.1.0",
 		"tauri-plugin-macos-permissions-api": "^2.0.4",
 		"valtio": "^2.1.2"
 	},
