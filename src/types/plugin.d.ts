@@ -1,14 +1,5 @@
 export type WindowLabel = (typeof WINDOW_LABEL)[keyof typeof WINDOW_LABEL];
 
-export interface Metadata {
-	size: number;
-	isDir: boolean;
-	isFile: boolean;
-	isExist: boolean;
-	name: string;
-	extname: string;
-}
-
 export interface ReadImage {
 	width: number;
 	height: number;

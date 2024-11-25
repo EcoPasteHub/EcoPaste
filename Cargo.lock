@@ -2101,9 +2101,9 @@ dependencies = [
 
 [[package]]
 name = "hashbrown"
-version = "0.15.1"
+version = "0.15.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3a9bfc1af68b1726ea47d3d5109de126281def866b33970e10fbab11b5dafab3"
+checksum = "bf151400ff0baff5465007dd2f3e717f3fe502074ca563069ce3a6629d07b289"
 
 [[package]]
 name = "hashlink"
@@ -2508,7 +2508,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "707907fe3c25f5424cce2cb7e1cbcafee6bdbe735ca90ef77c29e84591e5b9da"
 dependencies = [
  "equivalent",
- "hashbrown 0.15.1",
+ "hashbrown 0.15.2",
  "serde",
 ]
 
@@ -5452,9 +5452,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-fs-pro"
-version = "2.0.0"
+version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "84a71709f5e2181186897f526aa916d564227c8303677ec23ee63cb3d7b6f7f4"
+checksum = "4910f3d42c954e5e07dd04c3c8a8af3a942d0dac04f63ad83022817051f58ce5"
 dependencies = [
  "fs_extra",
  "serde",
