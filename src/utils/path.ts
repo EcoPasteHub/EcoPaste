@@ -1,3 +1,4 @@
+import { getName } from "@tauri-apps/api/app";
 import { appDataDir, sep } from "@tauri-apps/api/path";
 import { last } from "lodash-es";
 
@@ -30,6 +31,16 @@ export const getSaveDataDir = () => {
 };
 
 /**
+ * 获取数据库文件存储路径
+ */
+export const getDatabasePath = async () => {
+	const appName = await getName();
+	const extname = isDev() ? "dev.db" : "db";
+
+	return joinPath(getSaveDataDir(), `${appName}.${extname}`);
+};
+
+/**
  * 获取存储图片的目录
  */
 export const getSaveImageDir = () => {
@@ -52,6 +63,7 @@ export const getSaveImagePath = (file: string) => {
 export const getSaveDataDirName = () => {
 	return last(getSaveDataDir().split(sep())) as string;
 };
+
 /**
  * 存储配置项的路径
  * @param backup 是否是备份数据

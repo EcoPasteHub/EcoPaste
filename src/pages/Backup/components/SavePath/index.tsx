@@ -7,7 +7,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { Button, Space, Tooltip, message } from "antd";
 import { isEqual, isString } from "lodash-es";
 import type { FC } from "react";
-import { open as openPath } from "tauri-plugin-fs-pro-api";
+import { fullName, open as openPath, transfer } from "tauri-plugin-fs-pro-api";
 import type { State } from "../..";
 
 const SavePath: FC<{ state: State }> = (props) => {
@@ -31,7 +31,14 @@ const SavePath: FC<{ state: State }> = (props) => {
 
 			state.spinning = true;
 
-			await moveData(getSaveDataDir(), dstPath);
+			await emit(LISTEN_KEY.CLOSE_DATABASE);
+
+			await transfer(getSaveDataDir(), dstPath, {
+				includes: [
+					await fullName(await getDatabasePath()),
+					await fullName(await getSaveImageDir()),
+				],
+			});
 
 			globalStore.env.saveDataDir = dstPath;
 
