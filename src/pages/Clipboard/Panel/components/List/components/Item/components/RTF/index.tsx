@@ -24,6 +24,18 @@ const RTF: FC<HistoryTablePayload> = (props) => {
 		setParsedHTML(parsedHTML);
 	});
 
+	const stringToArrayBuffer = (value: string) => {
+		const buffer = new ArrayBuffer(value.length);
+
+		const bufferView = new Uint8Array(buffer);
+
+		for (let i = 0; i < value.length; i++) {
+			bufferView[i] = value.charCodeAt(i);
+		}
+
+		return buffer;
+	};
+
 	const pt2px = (elements: Element[]) => {
 		for (const element of elements) {
 			let style = element.getAttribute("style");

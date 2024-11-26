@@ -1329,7 +1329,6 @@ dependencies = [
  "tauri-plugin-dialog",
  "tauri-plugin-drag",
  "tauri-plugin-eco-autostart",
- "tauri-plugin-eco-backup",
  "tauri-plugin-eco-clipboard",
  "tauri-plugin-eco-locale",
  "tauri-plugin-eco-ocr",
@@ -5359,19 +5358,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tauri-plugin-eco-backup"
-version = "0.1.0"
-dependencies = [
- "flate2",
- "fs_extra",
- "serde",
- "tar",
- "tauri",
- "tauri-plugin",
- "tauri-plugin-fs-pro",
-]
-
-[[package]]
 name = "tauri-plugin-eco-clipboard"
 version = "0.1.0"
 dependencies = [
@@ -5452,13 +5438,15 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-fs-pro"
-version = "2.1.0"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4910f3d42c954e5e07dd04c3c8a8af3a942d0dac04f63ad83022817051f58ce5"
+checksum = "4d44a068abe0d86c51ac86d8a34b8de0fd0bbc07a553bd7acc660cfe68663253"
 dependencies = [
+ "flate2",
  "fs_extra",
  "serde",
  "showfile",
+ "tar",
  "tauri",
  "tauri-plugin",
  "tauri-plugin-shell",

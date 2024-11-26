@@ -67,8 +67,6 @@ pub fn run() {
         .plugin(tauri_plugin_eco_clipboard::init())
         // 自定义图片识别插件
         .plugin(tauri_plugin_eco_ocr::init())
-        // 自定义备份插件
-        .plugin(tauri_plugin_eco_backup::init())
         // 自定义语言相关的插件
         .plugin(tauri_plugin_eco_locale::init())
         // 自定义粘贴的插件

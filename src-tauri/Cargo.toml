@@ -36,7 +36,6 @@ tauri-plugin-drag = "2"
 tauri-plugin-macos-permissions = "2"
 tauri-plugin-fs-pro.workspace = true
 tauri-plugin-eco-window.workspace = true
-tauri-plugin-eco-backup.workspace = true
 tauri-plugin-eco-locale.workspace = true
 tauri-plugin-eco-clipboard.workspace = true
 tauri-plugin-eco-ocr.workspace = true

@@ -115,7 +115,7 @@ const List = () => {
 						const data = state.list[index];
 						let { type, value } = data;
 
-						value = type !== "image" ? value : getSaveImagePath(value);
+						value = type !== "image" ? value : resolveImagePath(value);
 
 						return (
 							<Item

@@ -5,6 +5,8 @@ import { downloadDir } from "@tauri-apps/api/path";
 import { confirm, open } from "@tauri-apps/plugin-dialog";
 import { Flex, List, message } from "antd";
 import type { FC } from "react";
+import { fullName, open as openPath } from "tauri-plugin-fs-pro-api";
+import { compress, decompress } from "tauri-plugin-fs-pro-api";
 import type { State } from "../..";
 
 const Manual: FC<{ state: State }> = (props) => {
@@ -43,11 +45,11 @@ const Manual: FC<{ state: State }> = (props) => {
 
 			state.spinning = true;
 
-			const result = await importData(path);
+			await closeDatabase();
+
+			await decompress(path, getSaveDataPath());
 
 			state.spinning = false;
-
-			if (!result) return;
 
 			await restoreStore(true);
 
@@ -88,7 +90,15 @@ const Manual: FC<{ state: State }> = (props) => {
 
 			const path = joinPath(await downloadDir(), `${filename}.${extname()}`);
 
-			await exportData(path);
+			await compress(getSaveDataPath(), path, {
+				includes: [
+					await fullName(getSaveImagePath()),
+					await fullName(await getSaveDatabasePath()),
+					await fullName(await getSaveStorePath(true)),
+				],
+			});
+
+			await openPath(path, { explorer: true });
 
 			state.spinning = false;
 

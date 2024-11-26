@@ -16,7 +16,6 @@ tauri-plugin-fs-pro = "2"
 tauri-plugin = { version = "2", features = ["build"] }
 tauri-nspanel = { git = "https://github.com/ahkohd/tauri-nspanel", branch = "v2" }
 tauri-plugin-eco-window = { path = "./src-tauri/src/plugins/window" }
-tauri-plugin-eco-backup = { path = "./src-tauri/src/plugins/backup" }
 tauri-plugin-eco-locale = { path = "./src-tauri/src/plugins/locale" }
 tauri-plugin-eco-clipboard = { path = "./src-tauri/src/plugins/clipboard" }
 tauri-plugin-eco-ocr = { path = "./src-tauri/src/plugins/ocr" }
