@@ -1,4 +1,5 @@
 import type { HistoryTablePayload } from "@/types/database";
+import DOMPurify from "dompurify";
 import type { FC } from "react";
 
 const HTML: FC<Partial<HistoryTablePayload>> = (props) => {
@@ -35,8 +36,8 @@ const HTML: FC<Partial<HistoryTablePayload>> = (props) => {
 	return (
 		<div
 			ref={containerRef}
-			dangerouslySetInnerHTML={{ __html: value }}
 			className="translate-z-0"
+			dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(value) }}
 		/>
 	);
 };
