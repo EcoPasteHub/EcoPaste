@@ -151,9 +151,9 @@ pub async fn read_files(manager: State<'_, ClipboardManager>) -> Result<Vec<Stri
 #[command]
 pub async fn read_image(
     manager: State<'_, ClipboardManager>,
-    dir: PathBuf,
+    path: PathBuf,
 ) -> Result<ReadImage, String> {
-    create_dir_all(&dir).map_err(|op| op.to_string())?;
+    create_dir_all(&path).map_err(|op| op.to_string())?;
 
     let image = manager
         .context
@@ -180,7 +180,7 @@ pub async fn read_image(
 
     let hash = hasher.finish();
 
-    let image_path = dir.join(format!("{hash}.png"));
+    let image_path = path.join(format!("{hash}.png"));
 
     if let Some(path) = image_path.to_str() {
         image.save_to_path(path).map_err(|err| err.to_string())?;

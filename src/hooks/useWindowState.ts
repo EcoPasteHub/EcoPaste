@@ -30,7 +30,7 @@ export const useWindowState = () => {
 	};
 
 	const getSavedStates = async () => {
-		const path = await saveWindowStatePath();
+		const path = await getSaveWindowStatePath();
 
 		const existed = await exists(path);
 
@@ -42,7 +42,7 @@ export const useWindowState = () => {
 	};
 
 	const saveState = async () => {
-		const path = await saveWindowStatePath();
+		const path = await getSaveWindowStatePath();
 
 		const states = await getSavedStates();
 

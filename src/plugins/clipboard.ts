@@ -99,7 +99,7 @@ export const readImage = async (): Promise<ClipboardPayload> => {
 	const { image, ...rest } = await invoke<ReadImage>(
 		CLIPBOARD_PLUGIN.READ_IMAGE,
 		{
-			dir: getSaveImageDir(),
+			path: getSaveImagePath(),
 		},
 	);
 
@@ -121,7 +121,7 @@ export const readImage = async (): Promise<ClipboardPayload> => {
 		}
 	}
 
-	const value = image.replace(getSaveImageDir(), "");
+	const value = image.replace(getSaveImagePath(), "");
 
 	return {
 		...rest,
@@ -325,7 +325,7 @@ export const writeClipboard = (data?: HistoryTablePayload) => {
 		case "html":
 			return writeHTML(search, value);
 		case "image":
-			return writeImage(getSaveImagePath(value));
+			return writeImage(resolveImagePath(value));
 		case "files":
 			return writeFiles(value);
 	}

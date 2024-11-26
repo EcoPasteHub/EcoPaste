@@ -65,12 +65,6 @@ export const OCR_PLUGIN = {
 	SYSTEM_OCR: "plugin:eco-ocr|system_ocr",
 };
 
-export const BACKUP_PLUGIN = {
-	EXPORT_DATA: "plugin:eco-backup|export_data",
-	IMPORT_DATA: "plugin:eco-backup|import_data",
-	MOVE_DATA: "plugin:eco-backup|move_data",
-};
-
 export const LOCALE_PLUGIN = {
 	GET_LOCALE: "plugin:eco-locale|get_locale",
 };

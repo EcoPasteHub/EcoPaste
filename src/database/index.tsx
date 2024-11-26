@@ -1,5 +1,4 @@
 import type { TableName, TablePayload } from "@/types/database";
-import { getName } from "@tauri-apps/api/app";
 import { remove } from "@tauri-apps/plugin-fs";
 import Database from "@tauri-apps/plugin-sql";
 import { entries, isBoolean, isNil, map, omitBy, some } from "lodash-es";
@@ -10,9 +9,7 @@ let db: Database | null;
  * 初始化数据库
  */
 export const initDatabase = async () => {
-	const appName = await getName();
-	const extname = isDev() ? "dev.db" : "db";
-	const path = joinPath(getSaveDataDir(), `${appName}.${extname}`);
+	const path = await getDatabasePath();
 
 	db = await Database.load(`sqlite:${path}`);
 
@@ -157,7 +154,7 @@ export const deleteSQL = async (tableName: TableName, item: TablePayload) => {
 
 	if (type !== "image" || !value) return;
 
-	return remove(getSaveImagePath(value));
+	return remove(resolveImagePath(value));
 };
 
 /**
