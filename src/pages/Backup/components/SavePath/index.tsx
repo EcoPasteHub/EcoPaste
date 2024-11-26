@@ -31,18 +31,16 @@ const SavePath: FC<{ state: State }> = (props) => {
 
 			state.spinning = true;
 
-			await emit(LISTEN_KEY.CLOSE_DATABASE);
+			await closeDatabase();
 
 			await transfer(getSaveDataPath(), dstPath, {
 				includes: [
-					await fullName(await getDatabasePath()),
 					await fullName(getSaveImagePath()),
+					await fullName(await getSaveDatabasePath()),
 				],
 			});
 
 			globalStore.env.saveDataDir = dstPath;
-
-			await wait();
 
 			emit(LISTEN_KEY.REFRESH_CLIPBOARD_LIST);
 

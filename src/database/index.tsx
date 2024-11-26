@@ -1,4 +1,5 @@
 import type { TableName, TablePayload } from "@/types/database";
+import { emit } from "@tauri-apps/api/event";
 import { remove } from "@tauri-apps/plugin-fs";
 import Database from "@tauri-apps/plugin-sql";
 import { entries, isBoolean, isNil, map, omitBy, some } from "lodash-es";
@@ -9,7 +10,7 @@ let db: Database | null;
  * 初始化数据库
  */
 export const initDatabase = async () => {
-	const path = await getDatabasePath();
+	const path = await getSaveDatabasePath();
 
 	db = await Database.load(`sqlite:${path}`);
 
@@ -161,9 +162,13 @@ export const deleteSQL = async (tableName: TableName, item: TablePayload) => {
  * 关闭数据库连接池
  */
 export const closeDatabase = async () => {
-	await db?.close();
+	if (!db) return;
+
+	await db.close();
 
 	db = null;
+
+	emit(LISTEN_KEY.CLOSE_DATABASE);
 };
 
 /**

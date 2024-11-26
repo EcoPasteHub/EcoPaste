@@ -28,7 +28,7 @@ export const getSaveDataPath = () => {
 /**
  * 获取数据库文件存储路径
  */
-export const getDatabasePath = async () => {
+export const getSaveDatabasePath = async () => {
 	const appName = await getName();
 	const extname = isDev() ? "dev.db" : "db";
 

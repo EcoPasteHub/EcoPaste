@@ -45,7 +45,7 @@ const Manual: FC<{ state: State }> = (props) => {
 
 			state.spinning = true;
 
-			await emit(LISTEN_KEY.CLOSE_DATABASE);
+			await closeDatabase();
 
 			await decompress(path, getSaveDataPath());
 
@@ -92,9 +92,9 @@ const Manual: FC<{ state: State }> = (props) => {
 
 			await compress(getSaveDataPath(), path, {
 				includes: [
-					await fullName(await getDatabasePath()),
-					await fullName(await getSaveStorePath(true)),
 					await fullName(getSaveImagePath()),
+					await fullName(await getSaveDatabasePath()),
+					await fullName(await getSaveStorePath(true)),
 				],
 			});
 
