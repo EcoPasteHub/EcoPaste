@@ -51,9 +51,9 @@
   <br/>
 
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./images/app-dark.zh-CN.png" />
-    <source media="(prefers-color-scheme: light)" srcset="./images/app-light.zh-CN.png" />
-    <img src="./images/app-light.zh-CN.png" />
+    <source media="(prefers-color-scheme: dark)" srcset="./static/app-dark.zh-CN.png" />
+    <source media="(prefers-color-scheme: light)" srcset="./static/app-light.zh-CN.png" />
+    <img src="./static/app-light.zh-CN.png" />
   </picture>
 </div>
 
@@ -195,9 +195,9 @@ mv ecopaste.AppImage /opt/ecopaste/
 <summary>1. MacOS 提示 EcoPaste.app 已损坏，无法打开。</summary>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./images/damaged-dark.zh-CN.png" />
-  <source media="(prefers-color-scheme: light)" srcset="./images/damaged-light.zh-CN.png" />
-  <img src="./images/damaged-light.zh-CN.png" />
+  <source media="(prefers-color-scheme: dark)" srcset="./static/damaged-dark.zh-CN.png" />
+  <source media="(prefers-color-scheme: light)" srcset="./static/damaged-light.zh-CN.png" />
+  <img src="./static/damaged-light.zh-CN.png" />
 </picture>
 
 在终端窗口输入以下命令，按回车键后输入系统密码并再次按回车键即可。

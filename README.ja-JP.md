@@ -51,9 +51,9 @@
   <br/>
 
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./images/app-dark.ja-JP.png" />
-    <source media="(prefers-color-scheme: light)" srcset="./images/app-light.ja-JP.png" />
-    <img src="./images/app-light.ja-JP.png" />
+    <source media="(prefers-color-scheme: dark)" srcset="./static/app-dark.ja-JP.png" />
+    <source media="(prefers-color-scheme: light)" srcset="./static/app-light.ja-JP.png" />
+    <img src="./static/app-light.ja-JP.png" />
   </picture>
 </div>
 
@@ -170,9 +170,9 @@ mv ecopaste.AppImage /opt/ecopaste/
 <summary>1. MacOS のヒント EcoPaste.app は壊れているため開けません。</summary>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./images/damaged-dark.ja-JP.png" />
-  <source media="(prefers-color-scheme: light)" srcset="./images/damaged-light.ja-JP.png" />
-  <img src="./images/damaged-light.ja-JP.png" />
+  <source media="(prefers-color-scheme: dark)" srcset="./static/damaged-dark.ja-JP.png" />
+  <source media="(prefers-color-scheme: light)" srcset="./static/damaged-light.ja-JP.png" />
+  <img src="./static/damaged-light.ja-JP.png" />
 </picture>
 
 アプリが実行できるようにするため、`terminal` で次のコマンドを入力し、Enter キーを押してください:

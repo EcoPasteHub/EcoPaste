@@ -51,9 +51,9 @@
   <br/>
 
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./images/app-dark.en-US.png" />
-    <source media="(prefers-color-scheme: light)" srcset="./images/app-light.en-US.png" />
-    <img src="./images/app-light.en-US.png" />
+    <source media="(prefers-color-scheme: dark)" srcset="./static/app-dark.en-US.png" />
+    <source media="(prefers-color-scheme: light)" srcset="./static/app-light.en-US.png" />
+    <img src="./static/app-light.en-US.png" />
  </picture>
 </div>
 
@@ -195,9 +195,9 @@ mv ecopaste.AppImage /opt/ecopaste/
 <summary>1. "EcoPaste.app is damaged and can't be opened" on MacOS </summary>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./images/damaged-dark.en-US.png" />
-  <source media="(prefers-color-scheme: light)" srcset="./images/damaged-light.en-US.png" />
-  <img src="./images/damaged-light.en-US.png" />
+  <source media="(prefers-color-scheme: dark)" srcset="./static/damaged-dark.en-US.png" />
+  <source media="(prefers-color-scheme: light)" srcset="./static/damaged-light.en-US.png" />
+  <img src="./static/damaged-light.en-US.png" />
 </picture>
 
 Type the following command and press Enter in `terminal` to allow the app to run:

@@ -52,10 +52,7 @@ where
     fn on_clipboard_change(&mut self) {
         let _ = self
             .app_handle
-            .emit(
-                "plugin:eco-clipboard://clipboard_update",
-                "Clipboard updated",
-            )
+            .emit("plugin:eco-clipboard://clipboard_update", ())
             .map_err(|err| err.to_string());
     }
 }
