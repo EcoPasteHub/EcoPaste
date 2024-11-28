@@ -39,8 +39,21 @@ fn shared_show_window<R: Runtime>(app_handle: &AppHandle<R>, window: &WebviewWin
     let _ = app_handle;
 }
 
+// 共享隐藏窗口的方法
 fn shared_hide_window<R: Runtime>(app_handle: &AppHandle<R>, window: &WebviewWindow<R>) {
     let _ = window.hide();
+
+    let _ = app_handle;
+}
+
+// 共享显示任务栏图标的方法
+#[cfg(not(target_os = "macos"))]
+fn shared_show_taskbar_icon<R: Runtime>(
+    app_handle: &AppHandle<R>,
+    window: &WebviewWindow<R>,
+    show: bool,
+) {
+    let _ = window.set_skip_taskbar(!show);
 
     let _ = app_handle;
 }

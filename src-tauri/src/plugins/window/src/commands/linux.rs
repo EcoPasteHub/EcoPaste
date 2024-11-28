@@ -1,4 +1,4 @@
-use super::{shared_hide_window, shared_show_window};
+use super::{shared_hide_window, shared_show_taskbar_icon, shared_show_window};
 use tauri::{command, AppHandle, Runtime, WebviewWindow};
 
 // 显示窗口
@@ -20,7 +20,5 @@ pub async fn show_taskbar_icon<R: Runtime>(
     window: WebviewWindow<R>,
     show: bool,
 ) {
-    let _ = window.set_skip_taskbar(!show);
-
-    let _ = app_handle;
+    shared_show_taskbar_icon(&app_handle, &window, show);
 }
