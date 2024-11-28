@@ -51,9 +51,9 @@
   <br/>
 
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./images/app-dark.zh-TW.png" />
-    <source media="(prefers-color-scheme: light)" srcset="./images/app-light.zh-TW.png" />
-    <img src="./images/app-light.zh-TW.png" />
+    <source media="(prefers-color-scheme: dark)" srcset="./static/app-dark.zh-TW.png" />
+    <source media="(prefers-color-scheme: light)" srcset="./static/app-light.zh-TW.png" />
+    <img src="./static/app-light.zh-TW.png" />
   </picture>
 </div>
 
@@ -195,9 +195,9 @@ mv ecopaste.AppImage /opt/ecopaste/
 <summary>1. MacOS 提示 EcoPaste.app 已損壞，無法打開。</summary>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./images/damaged-dark.zh-TW.png" />
-  <source media="(prefers-color-scheme: light)" srcset="./images/damaged-light.zh-TW.png" />
-  <img src="./images/damaged-light.zh-TW.png" />
+  <source media="(prefers-color-scheme: dark)" srcset="./static/damaged-dark.zh-TW.png" />
+  <source media="(prefers-color-scheme: light)" srcset="./static/damaged-light.zh-TW.png" />
+  <img src="./static/damaged-light.zh-TW.png" />
 </picture>
 
 在終端窗口輸入以下命令，按回車鍵後輸入系統密碼並再次按回車鍵即可。
