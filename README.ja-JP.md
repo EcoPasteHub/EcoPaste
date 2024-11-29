@@ -111,7 +111,7 @@ HomeBrew：[クリックして確認する](https://ecopaste.cn/guide/install#%E
 
 ## 貢献者
 
-EcoPaste へ貴重なご貢献をいただいた皆様に感謝します！もしEcoPaste にご協力のご希望があれば、[貢献ガイド](./.github/CONTRIBUTING/zh-CN.md)をご覧ください。
+EcoPaste へ貴重なご貢献をいただいた皆様に感謝します！もしEcoPaste にご協力のご希望があれば、[貢献ガイド](./.github/CONTRIBUTING/ja-JP.md)をご覧ください。
 
 <a href="https://github.com/EcoPasteHub/EcoPaste/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=EcoPasteHub/EcoPaste" />
