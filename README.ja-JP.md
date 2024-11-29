@@ -91,7 +91,7 @@ HomeBrew：[クリックして確認する](https://ecopaste.cn/guide/install#%E
 
 ## よくある質問
 
-お問い合わせの前に[よくある質問](https://ecopaste.cn/problem/macos/damage)または既存の [Issues](https://github.com/EcoPasteHub/EcoPaste/issues) をご覧ください。なお不明な点がある場合、新しい Issue を提出するかまたは[コミュニティ]を通じてお問い合わせください。
+お問い合わせの前に[よくある質問](https://ecopaste.cn/problem/macos/damage)または既存の [Issues](https://github.com/EcoPasteHub/EcoPaste/issues) をご覧ください。なお不明な点がある場合、新しい Issue を提出するかまたは[コミュニティ](#コミュニティ交流)を通じてお問い合わせください。
 
 ## 履歴スター
 
