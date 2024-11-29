@@ -11,24 +11,26 @@
 
   <br/>
     
-  <a href="https://github.com/EcoPasteHub/EcoPaste/releases">
-    <img
-      alt="Windows"
-      src="https://img.shields.io/badge/-Windows-blue?style=flat-square&logo=data:image/svg+xml;base64,PHN2ZyB0PSIxNzI2MzA1OTcxMDA2IiBjbGFzcz0iaWNvbiIgdmlld0JveD0iMCAwIDEwMjQgMTAyNCIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHAtaWQ9IjE1NDgiIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4Ij48cGF0aCBkPSJNNTI3LjI3NTU1MTYxIDk2Ljk3MTAzMDEzdjM3My45OTIxMDY2N2g0OTQuNTEzNjE5NzVWMTUuMDI2NzU3NTN6TTUyNy4yNzU1NTE2MSA5MjguMzIzNTA4MTVsNDk0LjUxMzYxOTc1IDgwLjUyMDI4MDQ5di00NTUuNjc3NDcxNjFoLTQ5NC41MTM2MTk3NXpNNC42NzA0NTEzNiA0NzAuODMzNjgyOTdINDIyLjY3Njg1OTI1VjExMC41NjM2ODE5N2wtNDE4LjAwNjQwNzg5IDY5LjI1Nzc5NzUzek00LjY3MDQ1MTM2IDg0Ni43Njc1OTcwM0w0MjIuNjc2ODU5MjUgOTE0Ljg2MDMxMDEzVjU1My4xNjYzMTcwM0g0LjY3MDQ1MTM2eiIgcC1pZD0iMTU0OSIgZmlsbD0iI2ZmZmZmZiI+PC9wYXRoPjwvc3ZnPg=="
-    />
-  </a >  
-  <a href="https://github.com/EcoPasteHub/EcoPaste/releases">
-    <img
-      alt="MacOS"
-      src="https://img.shields.io/badge/-MacOS-black?style=flat-square&logo=apple&logoColor=white"
-    />
-  </a >
-  <a href="https://github.com/EcoPasteHub/EcoPaste/releases">
-    <img 
-      alt="Linux"
-      src="https://img.shields.io/badge/-Linux-yellow?style=flat-square&logo=linux&logoColor=white" 
-    />
-  </a>
+  <div>
+    <a href="https://github.com/EcoPasteHub/EcoPaste/releases">
+      <img
+        alt="Windows"
+        src="https://img.shields.io/badge/-Windows-blue?style=flat-square&logo=data:image/svg+xml;base64,PHN2ZyB0PSIxNzI2MzA1OTcxMDA2IiBjbGFzcz0iaWNvbiIgdmlld0JveD0iMCAwIDEwMjQgMTAyNCIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHAtaWQ9IjE1NDgiIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4Ij48cGF0aCBkPSJNNTI3LjI3NTU1MTYxIDk2Ljk3MTAzMDEzdjM3My45OTIxMDY2N2g0OTQuNTEzNjE5NzVWMTUuMDI2NzU3NTN6TTUyNy4yNzU1NTE2MSA5MjguMzIzNTA4MTVsNDk0LjUxMzYxOTc1IDgwLjUyMDI4MDQ5di00NTUuNjc3NDcxNjFoLTQ5NC41MTM2MTk3NXpNNC42NzA0NTEzNiA0NzAuODMzNjgyOTdINDIyLjY3Njg1OTI1VjExMC41NjM2ODE5N2wtNDE4LjAwNjQwNzg5IDY5LjI1Nzc5NzUzek00LjY3MDQ1MTM2IDg0Ni43Njc1OTcwM0w0MjIuNjc2ODU5MjUgOTE0Ljg2MDMxMDEzVjU1My4xNjYzMTcwM0g0LjY3MDQ1MTM2eiIgcC1pZD0iMTU0OSIgZmlsbD0iI2ZmZmZmZiI+PC9wYXRoPjwvc3ZnPg=="
+      />
+    </a >  
+    <a href="https://github.com/EcoPasteHub/EcoPaste/releases">
+      <img
+        alt="MacOS"
+        src="https://img.shields.io/badge/-MacOS-black?style=flat-square&logo=apple&logoColor=white"
+      />
+    </a >
+    <a href="https://github.com/EcoPasteHub/EcoPaste/releases">
+      <img 
+        alt="Linux"
+        src="https://img.shields.io/badge/-Linux-yellow?style=flat-square&logo=linux&logoColor=white" 
+      />
+    </a>
+  </div>
 
   <div>
     <a href="./LICENSE">
@@ -57,137 +59,41 @@
   </picture>
 </div>
 
-## ダウンロード
+## 下载
 
 ### Windows
 
-手動インストール: [x86](https://api.ecopaste.cn/download?platform=windows-x86) | [x64](https://api.ecopaste.cn/download?platform=windows-x64) | [arm64](https://api.ecopaste.cn/download?platform=windows-arm)
+手动下载：[x86](https://api.ecopaste.cn/download?platform=windows-x86) | [x64](https://api.ecopaste.cn/download?platform=windows-x64) | [ARM64](https://api.ecopaste.cn/download?platform=windows-arm)
 
-### Macos
+### MacOS
 
-手動インストール: [Apple Silicon](https://api.ecopaste.cn/download?platform=macos-arm) | [Intel](https://api.ecopaste.cn/download?platform=macos-x64)
+手动下载：[Apple Silicon](https://api.ecopaste.cn/download?platform=macos-arm) | [Intel](https://api.ecopaste.cn/download?platform=macos-x64)
 
-HomeBrew:
-
-1. リポジトリを追加:
-
-```shell
-brew tap EcoPasteHub/EcoPaste
-```
-
-2. インストール:
-
-```shell
-brew install ecopaste
-```
-
-3. アップデート:
-
-```shell
-brew upgrade ecopaste
-```
-
-4. アンインストール:
-
-```shell
-brew uninstall --cask ecopaste
-
-brew untap EcoPasteHub/EcoPaste
-```
+HomeBrew：[点击查看](https://ecopaste.cn/guide/install#%E4%BD%BF%E7%94%A8-homebrew-%E5%AE%89%E8%A3%85)
 
 ### Linux(x11)
 
-手動インストール: [AppImage](https://api.ecopaste.cn/download?platform=linux-appimage) | [deb](https://api.ecopaste.cn/download?platform=linux-deb) | [rpm](https://api.ecopaste.cn/download?platform=linux-rpm)
+手动下载：[deb](https://api.ecopaste.cn/download?platform=linux-deb) | [AppImage](https://api.ecopaste.cn/download?platform=linux-appimage) | [rpm](https://api.ecopaste.cn/download?platform=linux-rpm)
 
-- Ubuntu、Debain シリーズ：
+安装指南：[点击查看](https://ecopaste.cn/guide/install#linux)
 
-```shell
-wget "https://api.ecopaste.cn/download?platform=linux-deb" -O ecopaste-stable.deb
-sudo dpkg -i ecopaste-stable.deb
-```
+## 功能介绍
 
-- Red Hat、CentOS、Fedora シリーズ：
+- 🎉 基于 Tauri v2 开发，轻量高效，跨平台体验更进一步。
+- 💻 支持 Windows、macOS 和 Linux（x11），在多设备间无缝切换。
+- ✨ 简洁直观的用户界面，操作简单，零门槛上手，开箱即用。
+- 📋 支持纯文本、富文本、HTML、图片和文件类型的剪贴板内容。
+- 🔒 数据本地存储，确保用户隐私安全，数据完全掌控在用户手中。
+- 📝 支持备注功能，轻松分类、管理和检索，让工作更高效。
+- ⚙️ 丰富的个性化设置，满足不同用户需求，打造专属体验。
+- 🤝 完善的文档与社区支持，与开发者共同探索与成长。
+- 🧩 持续优化中，更多惊喜功能等你发现。
 
-```shell
-wget "https://api.ecopaste.cn/download?platform=linux-rpm" -O ecopaste-stable.rpm
-sudo yum install ecopaste-stable.rpm
-```
+## 常见问题
 
-- Manjaro、ArchLinux シリーズ：
+遇到问题时，您可以先查阅[常见问题](https://ecopaste.cn/problem/macos/damage)或浏览已有的 [Issues](https://github.com/EcoPasteHub/EcoPaste/issues)。如果问题仍未解决，欢迎提交新 Issue 或通过[社区](#社区交流)联系我们。
 
-```shell
-yay -S eco-paste-bin
-```
-
-- 他のディストリビューション:
-
-```shell
-wget "https://api.ecopaste.cn/download?platform=linux-appimage" -O EcoPaste.AppImage
-chmod +x EcoPaste.AppImage
-./EcoPaste.AppImage --appimage-extract
-
-sed -i 's|Exec=.*|Exec=/opt/ecopaste/EcoPaste.AppImage|g' squashfs-root/usr/share/applications/eco-paste.desktop
-sed -i 's/^Icon=.*/Icon=EcoPaste/g' squashfs-root/usr/share/applications/eco-paste.desktop
-install -Dm644 squashfs-root/usr/share/applications/eco-paste.desktop /usr/share/applications/EcoPaste.desktop
-
-wget "https://raw.githubusercontent.com/EcoPasteHub/EcoPaste-Logo/refs/heads/master/img/logo.svg" -O EcoPaste.svg
-install -Dm644 EcoPaste.svg /usr/share/icons/hicolor/scalable/apps/EcoPaste.svg
-
-rm -r squashfs-root EcoPaste.svg
-
-mkdir -p /opt/ecopaste
-mv ecopaste.AppImage /opt/ecopaste/
-```
-
-## 機能の概要
-
-- **軽量でコンパクト、多プラットフォーム対応**:
-
-  Tauri で構築されたこのアプリは、より小型で洗練され、リソースのフットプリントを最小限に抑え、Windows、MacOS、Linux の各プラットフォームに完璧に適応し、複数のプラットフォームで一貫したユーザー体験を保証します。
-
-- **常駐バックグラウンド、素早く起動**：
-
-  アプリは常にバックグラウンドに常駐、カスタムショートカットキーで素早く呼び出し、クリップボードの内容をすばやく利用。
-
-- **画像 OCR、オフライン認識**：
-
-  内蔵の OCR 機能、テキストと QR コードの認識をサポートし、右クリックメニューで OCR 内容を素早くコピー。
-
-  **組み込み検索**：
-  内蔵検索機能、クリップボード内容をすばやく見つける、テキスト、画像（OCR テキスト検索）、ファイルを含む。
-
-- **ローカルストレージ、データセキュリティ**：
-
-  すべてのクリップボード内容はローカルに保存され、データプライバシーを確保。
-
-- **もっと探検する**：
-
-  `EcoPaste` は新機能を継続的に開発しており、より多くの可能性を共に探索することを楽しみにしています
-
-## Q&A
-
-<details>
-<summary>1. MacOS のヒント EcoPaste.app は壊れているため開けません。</summary>
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./static/damaged-dark.ja-JP.png" />
-  <source media="(prefers-color-scheme: light)" srcset="./static/damaged-light.ja-JP.png" />
-  <img src="./static/damaged-light.ja-JP.png" />
-</picture>
-
-アプリが実行できるようにするため、`terminal` で次のコマンドを入力し、Enter キーを押してください:
-
-> コマンドを実行するにはパスワードが必要な場合があります。
-
-```bash
-sudo xattr -r -d com.apple.quarantine /Applications/EcoPaste.app
-```
-
-その後、アプリケーションを正常に開くことができます。
-
-</details>
-
-## スター歴史
+## 历史星标
 
 <a href="https://star-history.com/#EcoPasteHub/EcoPaste&Date">
  <picture>
@@ -197,12 +103,26 @@ sudo xattr -r -d com.apple.quarantine /Applications/EcoPaste.app
  </picture>
 </a>
 
-## 貢献者
+## 社区交流
 
-EcoPaste への貢献をいただいた皆様に感謝いたします。
+- 微信
 
-EcoPaste に貢献したい方は、[貢献ガイドライン](./.github/CONTRIBUTING/ja-JP.md)を参照してください。
+<img width="25%" src="https://picture-bed.ayangweb.cn/EcoPaste/wechat.png" />
+
+## 贡献者
+
+感谢大家为 EcoPaste 做出的宝贵贡献！如果你也希望为 EcoPaste 做出贡献，请查阅[贡献指南](./.github/CONTRIBUTING/zh-CN.md)。
 
 <a href="https://github.com/EcoPasteHub/EcoPaste/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=EcoPasteHub/EcoPaste" />
 </a>
+
+## 赞助
+
+如果您觉得这个项目对您有帮助，可以考虑赞助支持我们！您的支持将帮助我们更好地维护和发展项目，让 EcoPaste 持续为社区创造价值。
+
+赞助时请务必填写留言，以便我们收录到[赞助名单](https://ecopaste.cn/sponsor/list)中，感谢您的支持与鼓励！
+
+|                  微信                  |              支付宝              |
+| :------------------------------------: | :------------------------------: |
+| ![wehcat-pay](./static/wechat-pay.png) | ![ali-pay](./static/ali-pay.png) |
