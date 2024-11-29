@@ -59,41 +59,41 @@
   </picture>
 </div>
 
-## 下载
+## ダウンロード
 
 ### Windows
 
-手动下载：[x86](https://api.ecopaste.cn/download?platform=windows-x86) | [x64](https://api.ecopaste.cn/download?platform=windows-x64) | [ARM64](https://api.ecopaste.cn/download?platform=windows-arm)
+手動ダウンロード：[x86](https://api.ecopaste.cn/download?platform=windows-x86) | [x64](https://api.ecopaste.cn/download?platform=windows-x64) | [ARM64](https://api.ecopaste.cn/download?platform=windows-arm)
 
 ### MacOS
 
-手动下载：[Apple Silicon](https://api.ecopaste.cn/download?platform=macos-arm) | [Intel](https://api.ecopaste.cn/download?platform=macos-x64)
+手動ダウンロード：[Apple Silicon](https://api.ecopaste.cn/download?platform=macos-arm) | [Intel](https://api.ecopaste.cn/download?platform=macos-x64)
 
-HomeBrew：[点击查看](https://ecopaste.cn/guide/install#%E4%BD%BF%E7%94%A8-homebrew-%E5%AE%89%E8%A3%85)
+HomeBrew：[クリックして確認する](https://ecopaste.cn/guide/install#%E4%BD%BF%E7%94%A8-homebrew-%E5%AE%89%E8%A3%85)
 
 ### Linux(x11)
 
-手动下载：[deb](https://api.ecopaste.cn/download?platform=linux-deb) | [AppImage](https://api.ecopaste.cn/download?platform=linux-appimage) | [rpm](https://api.ecopaste.cn/download?platform=linux-rpm)
+手動ダウンロード：[deb](https://api.ecopaste.cn/download?platform=linux-deb) | [AppImage](https://api.ecopaste.cn/download?platform=linux-appimage) | [rpm](https://api.ecopaste.cn/download?platform=linux-rpm)
 
-安装指南：[点击查看](https://ecopaste.cn/guide/install#linux)
+インストールガイド：[クリックして確認する](https://ecopaste.cn/guide/install#linux)
 
-## 功能介绍
+## 機能紹介
 
-- 🎉 基于 Tauri v2 开发，轻量高效，跨平台体验更进一步。
-- 💻 支持 Windows、macOS 和 Linux（x11），在多设备间无缝切换。
-- ✨ 简洁直观的用户界面，操作简单，零门槛上手，开箱即用。
-- 📋 支持纯文本、富文本、HTML、图片和文件类型的剪贴板内容。
-- 🔒 数据本地存储，确保用户隐私安全，数据完全掌控在用户手中。
-- 📝 支持备注功能，轻松分类、管理和检索，让工作更高效。
-- ⚙️ 丰富的个性化设置，满足不同用户需求，打造专属体验。
-- 🤝 完善的文档与社区支持，与开发者共同探索与成长。
-- 🧩 持续优化中，更多惊喜功能等你发现。
+- 🎉 Tauri v2 をもとに開発、軽量で効率的、クロスプラットフォームの体験をさらに向上させる。
+- 💻 Windows、macOS、Linux（x11）とも対応でき、複数デバイス間でシームレスに切り替え可能である。
+- ✨ シンプルで直感的なユーザーインターフェース、敷居が低く簡単に利用可能になる。
+- 📋 テキスト、リッチテキスト、HTML、画像、ファイル形式のクリップボード内容をサポートできる。
+- 🔒 データはローカルに保存され、ユーザーのプライバシーを保護、データはユーザー自身が完全に管理できる。
+- 📝 メモ機能をサポートでき、簡単に分類、管理、検索が可能で作業効率を向上させる。
+- ⚙️ 豊富なカスタマイズ設定で、異なるユーザーのニーズを満たす個別体験を提供できる。
+- 🤝 完善なドキュメントとコミュニティ機能をサポート、開発者と共に成長を目指す。
+- 🧩 継続的な最適化し、もっと驚きの機能があなたの発見を待っている。
 
-## 常见问题
+## よくある質問
 
-遇到问题时，您可以先查阅[常见问题](https://ecopaste.cn/problem/macos/damage)或浏览已有的 [Issues](https://github.com/EcoPasteHub/EcoPaste/issues)。如果问题仍未解决，欢迎提交新 Issue 或通过[社区](#社区交流)联系我们。
+お問い合わせの前に[よくある質問](https://ecopaste.cn/problem/macos/damage)または既存の [Issues](https://github.com/EcoPasteHub/EcoPaste/issues) をご覧ください。なお不明な点がある場合、新しい Issue を提出するかまたは[コミュニティ]を通じてお問い合わせください。
 
-## 历史星标
+## 履歴スター
 
 <a href="https://star-history.com/#EcoPasteHub/EcoPaste&Date">
  <picture>
@@ -103,25 +103,25 @@ HomeBrew：[点击查看](https://ecopaste.cn/guide/install#%E4%BD%BF%E7%94%A8-h
  </picture>
 </a>
 
-## 社区交流
+## コミュニティ交流
 
-- 微信
+- WeChat
 
 <img width="25%" src="https://picture-bed.ayangweb.cn/EcoPaste/wechat.png" />
 
-## 贡献者
+## 貢献者
 
-感谢大家为 EcoPaste 做出的宝贵贡献！如果你也希望为 EcoPaste 做出贡献，请查阅[贡献指南](./.github/CONTRIBUTING/zh-CN.md)。
+EcoPaste へ貴重なご貢献をいただいた皆様に感謝します！もしEcoPaste にご協力のご希望があれば、[貢献ガイド](./.github/CONTRIBUTING/zh-CN.md)をご覧ください。
 
 <a href="https://github.com/EcoPasteHub/EcoPaste/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=EcoPasteHub/EcoPaste" />
 </a>
 
-## 赞助
+## 寄付
 
-如果您觉得这个项目对您有帮助，可以考虑赞助支持我们！您的支持将帮助我们更好地维护和发展项目，让 EcoPaste 持续为社区创造价值。
+このプロジェクトがお役に立てば光栄に思い、応援しいただければ助かります！貴重なご寄付を頂戴していただければ，プロジェクトの維持と発展に活用させていただい、EcoPasteはコミュニティに価値を提供し続けるようになります。
 
-赞助时请务必填写留言，以便我们收录到[赞助名单](https://ecopaste.cn/sponsor/list)中，感谢您的支持与鼓励！
+ご寄付の場合には必ずメッセージしていただき、[寄附者名簿](https://ecopaste.cn/sponsor/list)に記載させていただきます。ご支援とご協力を賜り御礼申し上げます。
 
 |                  微信                  |              支付宝              |
 | :------------------------------------: | :------------------------------: |
