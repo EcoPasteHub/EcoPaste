@@ -105,9 +105,9 @@ HomeBrew：[點擊查看](https://ecopaste.cn/guide/install#%E4%BD%BF%E7%94%A8-h
 
 ## 社區交流
 
-- 微信
-
-<img width="25%" src="https://picture-bed.ayangweb.cn/EcoPaste/wechat.png" />
+|                                    微信群                                     |                      QQ 群                      |
+| :---------------------------------------------------------------------------: | :---------------------------------------------: |
+| <img width="50%" src="https://picture-bed.ayangweb.cn/EcoPaste/wechat.png" /> | <img width="50%" src="./static/qq-group.png" /> |
 
 ## 貢獻者
 

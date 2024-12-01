@@ -105,9 +105,9 @@ If you encounter any issues, please refer to the [FAQ](https://ecopaste.cn/probl
 
 ## Community
 
-- WeChat
-
-<img width="25%" src="https://picture-bed.ayangweb.cn/EcoPaste/wechat.png" />
+|                                 WeChat Group                                  |                    QQ Group                     |
+| :---------------------------------------------------------------------------: | :---------------------------------------------: |
+| <img width="50%" src="https://picture-bed.ayangweb.cn/EcoPaste/wechat.png" /> | <img width="50%" src="./static/qq-group.png" /> |
 
 ## Contributors
 
