@@ -105,13 +105,13 @@ HomeBrew：[クリックして確認する](https://ecopaste.cn/guide/install#%E
 
 ## コミュニティ交流
 
-- WeChat
-
-<img width="25%" src="https://picture-bed.ayangweb.cn/EcoPaste/wechat.png" />
+|                                 WeChat Group                                  |                    QQ Group                     |
+| :---------------------------------------------------------------------------: | :---------------------------------------------: |
+| <img width="50%" src="https://picture-bed.ayangweb.cn/EcoPaste/wechat.png" /> | <img width="50%" src="./static/qq-group.png" /> |
 
 ## 貢献者
 
-EcoPaste へ貴重なご貢献をいただいた皆様に感謝します！もしEcoPaste にご協力のご希望があれば、[貢献ガイド](./.github/CONTRIBUTING/ja-JP.md)をご覧ください。
+EcoPaste へ貴重なご貢献をいただいた皆様に感謝します！もし EcoPaste にご協力のご希望があれば、[貢献ガイド](./.github/CONTRIBUTING/ja-JP.md)をご覧ください。
 
 <a href="https://github.com/EcoPasteHub/EcoPaste/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=EcoPasteHub/EcoPaste" />
@@ -119,10 +119,10 @@ EcoPaste へ貴重なご貢献をいただいた皆様に感謝します！も�
 
 ## 寄付
 
-このプロジェクトがお役に立てば光栄に思い、応援しいただければ助かります！貴重なご寄付を頂戴していただければ，プロジェクトの維持と発展に活用させていただい、EcoPasteはコミュニティに価値を提供し続けるようになります。
+このプロジェクトがお役に立てば光栄に思い、応援しいただければ助かります！貴重なご寄付を頂戴していただければ，プロジェクトの維持と発展に活用させていただい、EcoPaste はコミュニティに価値を提供し続けるようになります。
 
 ご寄付の場合には必ずメッセージしていただき、[寄附者名簿](https://ecopaste.cn/sponsor/list)に記載させていただきます。ご支援とご協力を賜り御礼申し上げます。
 
-|                  微信                  |              支付宝              |
+|               WeChat Pay               |              Alipay              |
 | :------------------------------------: | :------------------------------: |
 | ![wehcat-pay](./static/wechat-pay.png) | ![ali-pay](./static/ali-pay.png) |
