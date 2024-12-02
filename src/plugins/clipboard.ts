@@ -183,47 +183,6 @@ export const readText = async (): Promise<ClipboardPayload> => {
 };
 
 /**
- * 读取剪贴板内容
- */
-export const readClipboard = async () => {
-	let payload!: ClipboardPayload;
-
-	const { copyPlain } = clipboardStore.content;
-
-	const has = {
-		files: await hasFiles(),
-		image: await hasImage(),
-		html: await hasHTML(),
-		rtf: await hasRTF(),
-		text: await hasText(),
-	};
-
-	if (has.files) {
-		const filesPayload = await readFiles();
-
-		payload = { ...filesPayload, type: "files" };
-	} else if (has.image && !has.text) {
-		const imagePayload = await readImage();
-
-		payload = { ...imagePayload, type: "image" };
-	} else if (!copyPlain && has.html) {
-		const htmlPayload = await readHTML();
-
-		payload = { ...htmlPayload, type: "html" };
-	} else if (!copyPlain && has.rtf) {
-		const rtfPayload = await readRTF();
-
-		payload = { ...rtfPayload, type: "rtf" };
-	} else {
-		const textPayload = await readText();
-
-		payload = { ...textPayload, type: "text" };
-	}
-
-	return payload;
-};
-
-/**
  * 文件写入剪贴板
  */
 export const writeFiles = (value: string) => {
@@ -283,28 +242,70 @@ export const writeText = (value: string) => {
 };
 
 /**
+ * 读取剪贴板内容
+ */
+export const readClipboard = async () => {
+	let payload!: ClipboardPayload;
+
+	const { copyPlain } = clipboardStore.content;
+
+	const has = {
+		files: await hasFiles(),
+		image: await hasImage(),
+		html: await hasHTML(),
+		rtf: await hasRTF(),
+		text: await hasText(),
+	};
+
+	if (has.files) {
+		const filesPayload = await readFiles();
+
+		payload = { ...filesPayload, type: "files" };
+	} else if (has.image && !has.text) {
+		const imagePayload = await readImage();
+
+		payload = { ...imagePayload, type: "image" };
+	} else if (!copyPlain && has.html) {
+		const htmlPayload = await readHTML();
+
+		payload = { ...htmlPayload, type: "html" };
+	} else if (!copyPlain && has.rtf) {
+		const rtfPayload = await readRTF();
+
+		payload = { ...rtfPayload, type: "rtf" };
+	} else {
+		const textPayload = await readText();
+
+		payload = { ...textPayload, type: "text" };
+	}
+
+	return payload;
+};
+
+/**
  * 剪贴板更新
  */
-export const onClipboardUpdate = (
-	fn: (payload: ClipboardPayload, oldPayload: ClipboardPayload) => void,
-) => {
-	// 防抖间隔（ms）
-	const DEBOUNCE = 200;
-	let lastUpdatedAt = 0;
-	let oldPayload: ClipboardPayload;
+export const onClipboardUpdate = (fn: (payload: ClipboardPayload) => void) => {
+	let lastUpdated = 0;
+	let previousPayload: ClipboardPayload;
 
 	return listen(CLIPBOARD_PLUGIN.CLIPBOARD_UPDATE, async () => {
 		const payload = await readClipboard();
 
-		if (
-			Date.now() - lastUpdatedAt > DEBOUNCE ||
-			!isEqual(payload, oldPayload)
-		) {
-			fn(payload, { ...oldPayload });
+		const { group, count } = payload;
+
+		if (group === "text" && count === 0) {
+			return;
 		}
 
-		lastUpdatedAt = Date.now();
-		oldPayload = payload;
+		const expired = Date.now() - lastUpdated > 200;
+
+		if (expired || !isEqual(payload, previousPayload)) {
+			fn(payload);
+		}
+
+		lastUpdated = Date.now();
+		previousPayload = payload;
 	});
 };
 
