@@ -67,11 +67,7 @@ const About = () => {
 				<ProListItem
 					title={t("preference.about.about_software.label.community")}
 				>
-					<Button
-						className="hover:b-#2aae67!"
-						icon={<WechatOutlined style={{ color: "#2aae67" }} />}
-						onClick={toggle}
-					/>
+					<Button icon={<WechatOutlined />} onClick={toggle} />
 				</ProListItem>
 
 				<Image
