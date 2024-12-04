@@ -15,28 +15,33 @@ interface TransferData {
 export const transferData: TransferData[] = [
 	{
 		key: "copy",
-		title: "复制",
+		title:
+			"preference.clipboard.content_settings.label.operation_button_option.copy",
 		icon: "i-lucide:copy",
 	},
 	{
 		key: "pastePlain",
-		title: "粘贴为纯文本",
+		title:
+			"preference.clipboard.content_settings.label.operation_button_option.paste_plain",
 		icon: "i-lucide:clipboard-paste",
 	},
 	{
 		key: "note",
-		title: "备注",
+		title:
+			"preference.clipboard.content_settings.label.operation_button_option.notes",
 		icon: "i-lucide:clipboard-pen-line",
 	},
 	{
 		key: "star",
-		title: "收藏",
+		title:
+			"preference.clipboard.content_settings.label.operation_button_option.favorite",
 		icon: "i-iconamoon:star",
 		activeIcon: "i-iconamoon:star-fill",
 	},
 	{
 		key: "delete",
-		title: "删除",
+		title:
+			"preference.clipboard.content_settings.label.operation_button_option.delete",
 		icon: "i-lucide:trash",
 	},
 ];
@@ -44,12 +49,17 @@ export const transferData: TransferData[] = [
 const OperationButton = () => {
 	const { content } = useSnapshot(clipboardStore);
 	const [open, { toggle }] = useBoolean();
+	const { t, i18n } = useTranslation();
 
 	const treeData = useCreation(() => {
 		return content.operationButtons.map((key) => {
-			return transferData.find((data) => data.key === key)!;
+			const item = transferData.find((data) => data.key === key)!;
+			return {
+				...item,
+				title: t(item.title),
+			};
 		});
-	}, [content.operationButtons]);
+	}, [content.operationButtons, i18n.language]);
 
 	const handleDrop: TreeProps["onDrop"] = (info) => {
 		const { dragNode, node, dropPosition } = info;
@@ -73,7 +83,7 @@ const OperationButton = () => {
 		return (
 			<Flex key={key} align="center" gap={4}>
 				<Icon name={icon} />
-				<span>{title}</span>
+				<span>{t(title)}</span>
 			</Flex>
 		);
 	};
@@ -106,16 +116,27 @@ const OperationButton = () => {
 	return (
 		<>
 			<ProListItem
-				title="操作按钮"
-				description="自定义操作剪贴板内容的图标按钮"
+				title={t(
+					"preference.clipboard.content_settings.label.operation_button",
+				)}
+				description={t(
+					"preference.clipboard.content_settings.hints.operation_button",
+				)}
 			>
-				<Button onClick={toggle}>自定义</Button>
+				<Button onClick={toggle}>
+					{t(
+						"preference.clipboard.content_settings.button.custom_operation_button",
+					)}
+				</Button>
 			</ProListItem>
 
 			<Modal
+				key={i18n.language}
 				centered
 				open={open}
-				title="自定义操作按钮"
+				title={t(
+					"preference.clipboard.content_settings.label.custom_operation_button_title",
+				)}
 				width={448}
 				footer={null}
 				onCancel={toggle}

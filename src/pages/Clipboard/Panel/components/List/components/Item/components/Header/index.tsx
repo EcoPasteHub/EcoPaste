@@ -125,7 +125,7 @@ const Header: FC<HeaderProps> = (props) => {
 				onDoubleClick={(event) => event.stopPropagation()}
 			>
 				{operationButtons.map((item) => {
-					const { key, icon, activeIcon } = item;
+					const { key, icon, activeIcon, title } = item;
 
 					const isFavorite = key === "star" && favorite;
 
@@ -134,6 +134,7 @@ const Header: FC<HeaderProps> = (props) => {
 							key={key}
 							hoverable
 							name={isFavorite ? activeIcon : icon}
+							title={t(title)}
 							className={clsx({ "text-gold!": isFavorite })}
 							onClick={(event) => handleClick(event, key)}
 						/>

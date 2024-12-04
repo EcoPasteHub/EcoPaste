@@ -48,19 +48,32 @@
 			},
 			"content_settings": {
 				"title": "剪貼簿內容",
+				"button": {
+					"custom_operation_button": "自定義"
+				},
 				"label": {
 					"auto_paste": "自動貼上",
 					"auto_paste_single": "單擊",
 					"auto_paste_double": "雙擊",
 					"image_ocr": "圖片OCR",
 					"copy_as_plain": "複製為純文字",
-					"paste_as_plain": "粘貼為純文字"
+					"paste_as_plain": "粘貼為純文字",
+					"operation_button": "操作按鈕",
+					"custom_operation_button_title": "自定義操作按鈕",
+					"operation_button_option": {
+						"copy": "複製",
+						"paste_plain": "貼上為純文本",
+						"notes": "備註",
+						"favorite": "收藏",
+						"delete": "刪除"
+					}
 				},
 				"hints": {
 					"auto_paste": "當使用滑鼠左鍵時，快速將內容貼上到輸入位置",
 					"image_ocr": "注意：使用前請務必先下載",
 					"copy_as_plain": "富文字和HTML格式在複製時僅保留純文字內容",
-					"paste_as_plain": "富文字和HTML格式在粘貼時僅保留純文字內容"
+					"paste_as_plain": "富文字和HTML格式在粘貼時僅保留純文字內容",
+					"operation_button": "自定義操作剪貼簿內容的圖示按鈕"
 				}
 			}
 		},

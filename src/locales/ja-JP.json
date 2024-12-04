@@ -48,19 +48,32 @@
 			},
 			"content_settings": {
 				"title": "その他の設定",
+				"button": {
+					"custom_operation_button": "カスタム"
+				},
 				"label": {
 					"auto_paste": "自動ペースト",
 					"auto_paste_single": "シングルクリック",
 					"auto_paste_double": "ダブルクリック",
 					"image_ocr": "画像OCR",
 					"copy_as_plain": "プレーンテキストとしてコピー",
-					"paste_as_plain": "プレーンテキストとして貼り付ける"
+					"paste_as_plain": "プレーンテキストとして貼り付ける",
+					"operation_button": "操作ボタン",
+					"custom_operation_button_title": "カスタム操作ボタン",
+					"operation_button_option": {
+						"copy": "コピー",
+						"paste_plain": "プレーンテキストとして貼り付け",
+						"notes": "メモ",
+						"favorite": "お気に入り",
+						"delete": "削除"
+					}
 				},
 				"hints": {
 					"auto_paste": "左クリック時に、内容を素早く入力フィールドに貼り付けます",
 					"image_ocr": "注意：ご使用前に必ずダウンロードしてください。",
 					"copy_as_plain": "リッチテキストとHTML形式は、コピーしてもプレーンテキストの内容しか保持しない",
-					"paste_as_plain": "リッチテキストとHTMLの書式設定は、貼り付け時にプレーンテキストの内容だけを保持する"
+					"paste_as_plain": "リッチテキストとHTMLの書式設定は、貼り付け時にプレーンテキストの内容だけを保持する",
+					"operation_button": "クリップボード内容を操作するためのアイコンボタンをカスタマイズします"
 				}
 			}
 		},

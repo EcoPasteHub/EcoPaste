@@ -48,19 +48,32 @@
 			},
 			"content_settings": {
 				"title": "剪切板内容",
+				"button": {
+					"custom_operation_button": "自定义"
+				},
 				"label": {
 					"auto_paste": "自动粘贴",
 					"auto_paste_single": "单击",
 					"auto_paste_double": "双击",
 					"image_ocr": "图片OCR",
 					"copy_as_plain": "复制为纯文本",
-					"paste_as_plain": "粘贴为纯文本"
+					"paste_as_plain": "粘贴为纯文本",
+					"operation_button": "操作按钮",
+					"custom_operation_button_title": "自定义操作按钮",
+					"operation_button_option": {
+						"copy": "复制",
+						"paste_plain": "粘贴为纯文本",
+						"notes": "备注",
+						"favorite": "收藏",
+						"delete": "删除"
+					}
 				},
 				"hints": {
 					"auto_paste": "鼠标左键操作时，快速粘贴内容至输入位置",
 					"image_ocr": "注意：使用前请务必先下载",
 					"copy_as_plain": "富文本和HTML格式在复制时仅保留纯文本内容",
-					"paste_as_plain": "富文本和HTML格式在粘贴时仅保留纯文本内容"
+					"paste_as_plain": "富文本和HTML格式在粘贴时仅保留纯文本内容",
+					"operation_button": "自定义操作剪贴板内容的图标按钮"
 				}
 			}
 		},
