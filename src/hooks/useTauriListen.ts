@@ -7,7 +7,7 @@ export const useTauriListen = <T>(...args: Parameters<typeof listen<T>>) => {
 	});
 
 	useMount(async () => {
-		state.unlisten = await listen(...args);
+		state.unlisten = await listen<T>(...args);
 	});
 
 	useUnmount(state.unlisten);

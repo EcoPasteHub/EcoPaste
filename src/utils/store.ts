@@ -3,7 +3,7 @@ import { getName, getVersion } from "@tauri-apps/api/app";
 import { appDataDir } from "@tauri-apps/api/path";
 import { exists, readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { type } from "@tauri-apps/plugin-os";
-import { merge, omit } from "lodash-es";
+import { omit } from "lodash-es";
 
 /**
  * 初始化配置项

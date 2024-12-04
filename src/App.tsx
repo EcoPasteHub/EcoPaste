@@ -23,23 +23,18 @@ const App = () => {
 
 		// 生成 antd 的颜色变量
 		generateColorVars();
+	});
 
-		// 监听语言的变化
-		subscribeKey(globalStore.appearance, "language", i18n.changeLanguage, true);
+	// 监听语言的变化
+	useImmediateKey(globalStore.appearance, "language", i18n.changeLanguage);
 
-		// 监听是否是暗黑模式
-		subscribeKey(
-			globalStore.appearance,
-			"isDark",
-			(value) => {
-				if (value) {
-					document.documentElement.classList.add("dark");
-				} else {
-					document.documentElement.classList.remove("dark");
-				}
-			},
-			true,
-		);
+	// 监听是否是暗黑模式
+	useImmediateKey(globalStore.appearance, "isDark", (value) => {
+		if (value) {
+			document.documentElement.classList.add("dark");
+		} else {
+			document.documentElement.classList.remove("dark");
+		}
 	});
 
 	// 监听显示窗口的事件

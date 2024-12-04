@@ -1,6 +1,5 @@
 import type { GlobalStore } from "@/types/store";
 import { proxy } from "valtio";
-import { subscribeKey as valtioSubscribeKey } from "valtio/utils";
 
 export const globalStore = proxy<GlobalStore>({
 	app: {
@@ -31,16 +30,3 @@ export const globalStore = proxy<GlobalStore>({
 
 	env: {},
 });
-
-export const subscribeKey: typeof valtioSubscribeKey = (
-	object,
-	key,
-	callback,
-	immediate,
-) => {
-	if (immediate) {
-		callback(object[key]);
-	}
-
-	return valtioSubscribeKey(object, key, callback);
-};

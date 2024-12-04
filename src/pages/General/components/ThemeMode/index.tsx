@@ -8,34 +8,29 @@ interface Option {
 	value: Theme;
 }
 
+const appWindow = getCurrentWebviewWindow();
+
 const ThemeMode = () => {
 	const { appearance } = useSnapshot(globalStore);
 	const { t } = useTranslation();
 
 	useMount(() => {
-		const appWindow = getCurrentWebviewWindow();
-
-		subscribeKey(
-			globalStore.appearance,
-			"theme",
-			async (value) => {
-				let nextTheme = value === "auto" ? null : value;
-
-				await appWindow.setTheme(nextTheme);
-
-				nextTheme = nextTheme ?? (await appWindow.theme());
-
-				globalStore.appearance.isDark = nextTheme === "dark";
-			},
-			true,
-		);
-
 		// 监听系统主题的变化
 		appWindow.onThemeChanged(async ({ payload }) => {
 			if (globalStore.appearance.theme !== "auto") return;
 
 			globalStore.appearance.isDark = payload === "dark";
 		});
+	});
+
+	useImmediateKey(globalStore.appearance, "theme", async (value) => {
+		let nextTheme = value === "auto" ? null : value;
+
+		await appWindow.setTheme(nextTheme);
+
+		nextTheme = nextTheme ?? (await appWindow.theme());
+
+		globalStore.appearance.isDark = nextTheme === "dark";
 	});
 
 	const options: Option[] = [

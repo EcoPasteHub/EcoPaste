@@ -43,6 +43,7 @@
 				"hiddenTitle": true,
 				"skipTaskbar": true,
 				"titleBarStyle": "Overlay",
+				"dragDropEnabled": false,
 				"windowEffects": {
 					"effects": ["sidebar"],
 					"state": "active"
