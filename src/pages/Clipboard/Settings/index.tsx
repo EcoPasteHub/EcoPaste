@@ -4,6 +4,7 @@ import ProSwitch from "@/components/ProSwitch";
 import { Typography } from "antd";
 import { useSnapshot } from "valtio";
 import AutoPaste from "./components/AutoPaste";
+import OperationButton from "./components/OperationButton";
 import SearchPosition from "./components/SearchPosition";
 import WindowPosition from "./components/WindowPosition";
 
@@ -123,6 +124,8 @@ const ClipboardSettings = () => {
 						clipboardStore.content.pastePlain = value;
 					}}
 				/>
+
+				<OperationButton />
 			</ProList>
 		</>
 	);

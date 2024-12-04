@@ -9,23 +9,24 @@ const Tray = () => {
 	const [startListen, { toggle }] = useBoolean(true);
 	const { t } = useTranslation();
 
-	useMount(async () => {
-		await createTrayIcon();
+	useMount(() => {
+		createTrayIcon();
+	});
 
-		// 监听是否显示菜单栏图标
-		subscribeKey(
-			globalStore.app,
-			"showMenubarIcon",
-			async (value) => {
-				const tray = await getTrayById();
+	// 监听是否显示菜单栏图标
+	useSubscribeKey(globalStore.app, "showMenubarIcon", async (value) => {
+		const tray = await getTrayById();
 
-				tray?.setVisible(value);
-			},
-			true,
-		);
+		if (tray) {
+			tray.setVisible(value);
+		} else {
+			createTrayIcon();
+		}
+	});
 
-		// 监听语言变更
-		subscribeKey(globalStore.appearance, "language", updateTrayMenu, true);
+	// 监听语言变更
+	useSubscribeKey(globalStore.appearance, "language", () => {
+		updateTrayMenu();
 	});
 
 	useUpdateEffect(() => {
@@ -41,6 +42,8 @@ const Tray = () => {
 
 	// 创建托盘图标
 	const createTrayIcon = async () => {
+		if (!globalStore.app.showMenubarIcon) return;
+
 		const tray = await getTrayById();
 
 		if (tray) return;

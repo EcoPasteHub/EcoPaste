@@ -10,7 +10,7 @@ import Shortcut from "@/pages/Shortcut";
 import { emit } from "@tauri-apps/api/event";
 import { Flex, Tabs, type TabsProps } from "antd";
 import clsx from "clsx";
-import { subscribe, useSnapshot } from "valtio";
+import { useSnapshot } from "valtio";
 import styles from "./index.module.scss";
 
 const PreferenceLayout = () => {
@@ -24,12 +24,16 @@ const PreferenceLayout = () => {
 		if (!autostart && !app.silentStart) {
 			showWindow();
 		}
+	});
 
-		// 监听全局配置项变化
-		subscribe(globalStore, handleStoreChanged);
+	// 监听全局配置项变化
+	useSubscribe(globalStore, () => {
+		handleStoreChanged();
+	});
 
-		// 监听剪贴板配置项变化
-		subscribe(clipboardStore, handleStoreChanged);
+	// 监听剪贴板配置项变化
+	useSubscribe(clipboardStore, () => {
+		handleStoreChanged();
 	});
 
 	// 监听快捷键切换窗口显隐

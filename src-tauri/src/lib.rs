@@ -82,7 +82,6 @@ pub fn run() {
             }
             _ => {}
         })
-        .invoke_handler(tauri::generate_handler![])
         .build(generate_context!())
         .expect("error while running tauri application");
 

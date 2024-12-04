@@ -1,24 +1,36 @@
 import Icon from "@/components/Icon";
 import Scrollbar from "@/components/Scrollbar";
 import { ClipboardPanelContext } from "@/pages/Clipboard/Panel";
+import { transferData } from "@/pages/Clipboard/Settings/components/OperationButton";
 import type { HistoryTablePayload } from "@/types/database";
+import type { OperationButton } from "@/types/store";
 import { Flex } from "antd";
 import clsx from "clsx";
 import { filesize } from "filesize";
 import type { FC, MouseEvent } from "react";
+import { useSnapshot } from "valtio";
 
 interface HeaderProps {
 	data: HistoryTablePayload;
+	copy: () => void;
 	pastePlain: () => void;
+	openNoteModel: () => void;
 	toggleFavorite: () => void;
 	deleteItem: () => void;
 }
 
 const Header: FC<HeaderProps> = (props) => {
-	const { data, pastePlain, toggleFavorite, deleteItem } = props;
+	const { data } = props;
 	const { id, type, value, count, createTime, favorite, subtype } = data;
 	const { state } = useContext(ClipboardPanelContext);
 	const { t, i18n } = useTranslation();
+	const { content } = useSnapshot(clipboardStore);
+
+	const operationButtons = useCreation(() => {
+		return content.operationButtons.map((key) => {
+			return transferData.find((data) => data.key === key)!;
+		});
+	}, [content.operationButtons]);
 
 	const renderType = () => {
 		switch (subtype) {
@@ -70,16 +82,26 @@ const Header: FC<HeaderProps> = (props) => {
 		);
 	};
 
-	const handleClick = (event: MouseEvent) => {
+	const handleClick = (event: MouseEvent, key: OperationButton) => {
+		const { copy, pastePlain, openNoteModel, toggleFavorite, deleteItem } =
+			props;
+
 		event.stopPropagation();
 
 		state.activeId = id;
-	};
 
-	const handleDelete = (event: MouseEvent) => {
-		event.stopPropagation();
-
-		deleteItem();
+		switch (key) {
+			case "copy":
+				return copy();
+			case "pastePlain":
+				return pastePlain();
+			case "note":
+				return openNoteModel();
+			case "star":
+				return toggleFavorite();
+			case "delete":
+				return deleteItem();
+		}
 	};
 
 	return (
@@ -98,29 +120,25 @@ const Header: FC<HeaderProps> = (props) => {
 				gap={6}
 				className={clsx(
 					"text-14 opacity-0 transition group-hover:opacity-100",
-					{
-						"opacity-100": state.activeId === id,
-					},
+					{ "opacity-100": state.activeId === id },
 				)}
-				onClick={handleClick}
 				onDoubleClick={(event) => event.stopPropagation()}
 			>
-				<Icon hoverable name="i-lucide:clipboard-paste" onClick={pastePlain} />
+				{operationButtons.map((item) => {
+					const { key, icon, activeIcon } = item;
 
-				<Icon
-					hoverable
-					name={favorite ? "i-iconamoon:star-fill" : "i-iconamoon:star"}
-					className={clsx({ "text-gold!": favorite })}
-					onClick={toggleFavorite}
-				/>
+					const isFavorite = key === "star" && favorite;
 
-				<Icon
-					hoverable
-					size={15}
-					name="i-iconamoon:trash-simple"
-					className="hover:text-danger!"
-					onClick={handleDelete}
-				/>
+					return (
+						<Icon
+							key={key}
+							hoverable
+							name={isFavorite ? activeIcon : icon}
+							className={clsx({ "text-gold!": isFavorite })}
+							onClick={(event) => handleClick(event, key)}
+						/>
+					);
+				})}
 			</Flex>
 		</Flex>
 	);

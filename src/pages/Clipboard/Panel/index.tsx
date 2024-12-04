@@ -4,7 +4,7 @@ import { getWebShortcuts } from "@/components/ProShortcut/keys";
 import type { HistoryTablePayload, TablePayload } from "@/types/database";
 import type { Store } from "@/types/store";
 import type { EventEmitter } from "ahooks/lib/useEventEmitter";
-import { find, findIndex, isNil, last, merge, range } from "lodash-es";
+import { find, findIndex, isNil, last, range } from "lodash-es";
 import { nanoid } from "nanoid";
 import { createContext } from "react";
 import { useSnapshot } from "valtio";
@@ -84,21 +84,20 @@ const ClipboardPanel = () => {
 				insertSQL("history", data);
 			}
 		});
-
-		// 监听快速粘贴的启用状态变更
-		subscribeKey(
-			globalStore.shortcut.quickPaste,
-			"enable",
-			setQuickPasteKeys,
-			true,
-		);
-
-		// 监听快速粘贴的快捷键变更
-		subscribeKey(globalStore.shortcut.quickPaste, "value", setQuickPasteKeys);
-
-		// 监听是否显示任务栏图标
-		subscribeKey(globalStore.app, "showTaskbarIcon", showTaskbarIcon, true);
 	});
+
+	// 监听快速粘贴的启用状态变更
+	useImmediateKey(globalStore.shortcut.quickPaste, "enable", () => {
+		setQuickPasteKeys();
+	});
+
+	// 监听快速粘贴的快捷键变更
+	useSubscribeKey(globalStore.shortcut.quickPaste, "value", () => {
+		setQuickPasteKeys();
+	});
+
+	// 监听是否显示任务栏图标
+	useImmediateKey(globalStore.app, "showTaskbarIcon", showTaskbarIcon);
 
 	// 监听刷新列表
 	useTauriListen(LISTEN_KEY.REFRESH_CLIPBOARD_LIST, () => getList());

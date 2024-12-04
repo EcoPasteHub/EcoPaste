@@ -24,25 +24,20 @@ const UpdateApp = () => {
 	const state = useReactive<State>({ download: 0 });
 	const [messageApi, contextHolder] = message.useMessage();
 
-	useMount(() => {
-		// 监听自动更新配置变化
-		subscribeKey(
-			globalStore.update,
-			"auto",
-			(value) => {
-				clearInterval(timer);
+	// 监听自动更新配置变化
+	useImmediateKey(globalStore.update, "auto", (value) => {
+		clearInterval(timer);
 
-				if (!value) return;
+		if (!value) return;
 
-				checkUpdate();
+		checkUpdate();
 
-				timer = setInterval(checkUpdate, 1000 * 60 * 60 * 24);
-			},
-			true,
-		);
+		timer = setInterval(checkUpdate, 1000 * 60 * 60 * 24);
+	});
 
-		// 监听参与测试版本配置变化
-		subscribeKey(globalStore.update, "beta", () => checkUpdate(), true);
+	// 监听参与测试版本配置变化
+	useImmediateKey(globalStore.update, "beta", () => {
+		checkUpdate();
 	});
 
 	// 监听更新事件

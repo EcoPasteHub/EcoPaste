@@ -12,19 +12,12 @@ const Language = () => {
 	const { appearance } = useSnapshot(globalStore);
 	const { t } = useTranslation();
 
-	useMount(() => {
+	useImmediateKey(globalStore.appearance, "language", () => {
 		const appWindow = getCurrentWebviewWindow();
 
-		subscribeKey(
-			globalStore.appearance,
-			"language",
-			() => {
-				raf(() => {
-					appWindow.setTitle(t("preference.title"));
-				});
-			},
-			true,
-		);
+		raf(() => {
+			appWindow.setTitle(t("preference.title"));
+		});
 	});
 
 	const options: Option[] = [
