@@ -42,8 +42,8 @@ export const restoreStore = async (backup = false) => {
 		const store: Store = JSON.parse(content);
 		const nextGlobalStore = omit(store.globalStore, backup ? "env" : "");
 
-		merge(globalStore, nextGlobalStore);
-		merge(clipboardStore, store.clipboardStore);
+		deepAssign(globalStore, nextGlobalStore);
+		deepAssign(clipboardStore, store.clipboardStore);
 	}
 
 	if (backup) return;

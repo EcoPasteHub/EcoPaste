@@ -104,8 +104,8 @@ const ClipboardPanel = () => {
 
 	// 监听配置项变化
 	useTauriListen<Store>(LISTEN_KEY.STORE_CHANGED, ({ payload }) => {
-		merge(globalStore, payload.globalStore);
-		merge(clipboardStore, payload.clipboardStore);
+		deepAssign(globalStore, payload.globalStore);
+		deepAssign(clipboardStore, payload.clipboardStore);
 	});
 
 	// 切换剪贴板监听状态
