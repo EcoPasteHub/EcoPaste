@@ -49,17 +49,13 @@ export const transferData: TransferData[] = [
 const OperationButton = () => {
 	const { content } = useSnapshot(clipboardStore);
 	const [open, { toggle }] = useBoolean();
-	const { t, i18n } = useTranslation();
+	const { t } = useTranslation();
 
 	const treeData = useCreation(() => {
 		return content.operationButtons.map((key) => {
-			const item = transferData.find((data) => data.key === key)!;
-			return {
-				...item,
-				title: t(item.title),
-			};
+			return transferData.find((data) => data.key === key)!;
 		});
-	}, [content.operationButtons, i18n.language]);
+	}, [content.operationButtons]);
 
 	const handleDrop: TreeProps["onDrop"] = (info) => {
 		const { dragNode, node, dropPosition } = info;
@@ -81,9 +77,9 @@ const OperationButton = () => {
 		const { key, icon, title } = data;
 
 		return (
-			<Flex key={key} align="center" gap={4}>
+			<Flex key={key} align="center" gap={4} className="max-w-125">
 				<Icon name={icon} />
-				<span>{t(title)}</span>
+				<span className="truncate">{t(title)}</span>
 			</Flex>
 		);
 	};
@@ -131,8 +127,8 @@ const OperationButton = () => {
 			</ProListItem>
 
 			<Modal
-				key={i18n.language}
 				centered
+				destroyOnClose
 				open={open}
 				title={t(
 					"preference.clipboard.content_settings.label.custom_operation_button_title",
