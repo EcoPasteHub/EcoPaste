@@ -80,7 +80,7 @@ export interface ClipboardStore {
 		autoClear: boolean;
 	};
 
-	// 剪切板内容设置
+	// 剪贴板内容设置
 	content: {
 		autoPaste: "single" | "double";
 		ocr: boolean;
