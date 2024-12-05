@@ -47,7 +47,7 @@ const ClipboardPanel = () => {
 		// 开启剪贴板监听
 		startListen();
 
-		// 监听剪切板更新
+		// 监听剪贴板更新
 		onClipboardUpdate((payload) => {
 			if (clipboardStore.audio.copy) {
 				audioRef.current?.play();

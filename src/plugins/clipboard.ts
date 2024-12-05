@@ -310,7 +310,7 @@ export const onClipboardUpdate = (fn: (payload: ClipboardPayload) => void) => {
 };
 
 /**
- * 将数据写入剪切板
+ * 将数据写入剪贴板
  * @param data 数据
  */
 export const writeClipboard = (data?: HistoryTablePayload) => {
@@ -333,7 +333,7 @@ export const writeClipboard = (data?: HistoryTablePayload) => {
 };
 
 /**
- * 粘贴剪切板数据
+ * 粘贴剪贴板数据
  * @param data 数据
  * @param plain 是否纯文本粘贴
  */
@@ -361,7 +361,7 @@ export const pasteClipboard = async (
 };
 
 /**
- * 获取剪切板数据的子类型
+ * 获取剪贴板数据的子类型
  * @param data 剪贴板数据
  */
 export const getClipboardSubtype = async (data: ClipboardPayload) => {

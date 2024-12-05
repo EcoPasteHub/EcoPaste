@@ -47,7 +47,7 @@
 				}
 			},
 			"content_settings": {
-				"title": "剪切板内容",
+				"title": "剪贴板内容",
 				"button": {
 					"custom_operation_button": "自定义"
 				},
