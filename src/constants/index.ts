@@ -1,3 +1,5 @@
+export const WEBSITE_LINK = "https://www.ecopaste.cn";
+
 export const GITHUB_LINK = "https://github.com/EcoPasteHub/EcoPaste";
 
 export const GITHUB_ISSUES_LINK = `${GITHUB_LINK}/issues`;

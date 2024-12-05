@@ -40,6 +40,9 @@ export default defineConfig({
 			success: "var(--ant-green)",
 			danger: "var(--ant-red)",
 			gold: "var(--ant-gold)",
+			wechat: "#00c25f",
+			qq: "#0099ff",
+			alipay: "#0c79fe",
 		},
 	},
 });
