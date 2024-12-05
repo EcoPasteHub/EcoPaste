@@ -207,7 +207,8 @@
 					"version": "バージョン: ",
 					"software_info": "ソフトウェア情報",
 					"open_source_address": "オープンソースアドレス",
-					"community": "コミュニティの交流です"
+					"community": "コミュニティの交流です",
+					"sponsor": "スポンサー"
 				},
 				"button": {
 					"check_update": "アップデートの確認",

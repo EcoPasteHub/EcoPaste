@@ -207,7 +207,8 @@
 					"version": "Version: ",
 					"software_info": "Software Information",
 					"open_source_address": "Open Source Address",
-					"community": "Community"
+					"community": "Community",
+					"sponsor": "Sponsor"
 				},
 				"button": {
 					"check_update": "Check Update",

@@ -207,7 +207,8 @@
 					"version": "版本：",
 					"software_info": "软件信息",
 					"open_source_address": "开源地址",
-					"community": "社区交流"
+					"community": "社区交流",
+					"sponsor": "赞助我们"
 				},
 				"button": {
 					"check_update": "检查更新",
