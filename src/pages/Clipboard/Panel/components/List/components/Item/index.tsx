@@ -95,7 +95,7 @@ const Item: FC<ItemProps> = (props) => {
 
 		await writeTextFile(path, value);
 
-		openPath(path);
+		openPath(path, { explorer: true });
 	};
 
 	// 预览
