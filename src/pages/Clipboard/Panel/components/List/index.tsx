@@ -19,7 +19,7 @@ const List = () => {
 		getItemKey: (index) => state.list[index].id,
 	});
 
-	// 监听激活时回到顶部
+	// 监听激活时回到顶部并选中第一个
 	useTauriListen(LISTEN_KEY.ACTIVATE_BACK_TOP, () => scrollToTop());
 
 	const isFocusWithin = useFocusWithin(document.body);
@@ -84,7 +84,7 @@ const List = () => {
 					return state.$eventBus?.emit(LISTEN_KEY.CLIPBOARD_ITEM_SELECT_NEXT);
 				// 回到顶部
 				case "home":
-					return rowVirtualizer.scrollToIndex?.(0);
+					return scrollToTop();
 				// 收藏和取消收藏
 				case "meta.d":
 				case "ctrl.d":
@@ -96,6 +96,7 @@ const List = () => {
 		},
 	);
 
+	// 回到顶部并选中第一个
 	const scrollToTop = () => {
 		rowVirtualizer.scrollToIndex(0);
 
