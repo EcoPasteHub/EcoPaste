@@ -70,12 +70,13 @@ export const toggleWindowVisible = async () => {
 				const monitor = await getCursorMonitor();
 
 				if (monitor) {
-					const { width } = monitor.size;
-					const height = 200;
-					const { x, y } = monitor.position;
+					const { width, height } = monitor.size;
+					const windowHeight = 400;
+					const { x } = monitor.position;
+					const y = height - windowHeight;
 
-					await appWindow.setSize(new LogicalSize(width, height));
-					await appWindow.setPosition(new LogicalPosition(x, y - height));
+					await appWindow.setSize(new LogicalSize(width, windowHeight));
+					await appWindow.setPosition(new LogicalPosition(x, y));
 				}
 			}
 		}
