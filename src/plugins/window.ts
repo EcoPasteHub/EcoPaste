@@ -4,9 +4,9 @@ import { invoke } from "@tauri-apps/api/core";
 import { emit } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import {
-	PhysicalPosition,
-	availableMonitors,
-	cursorPosition,
+	LogicalPosition,
+	LogicalSize,
+	currentMonitor,
 } from "@tauri-apps/api/window";
 
 /**
@@ -39,38 +39,25 @@ export const toggleWindowVisible = async () => {
 		focused = await appWindow.isVisible();
 	}
 
-	if (appWindow.label === WINDOW_LABEL.MAIN) {
-		const { window } = clipboardStore;
+	if (focused) {
+		hideWindow();
+	} else {
+		if (appWindow.label === WINDOW_LABEL.MAIN) {
+			const { window } = clipboardStore;
 
-		// 激活时回到顶部
-		if (window.backTop) {
-			await emit(LISTEN_KEY.ACTIVATE_BACK_TOP);
-		}
+			// 激活时回到顶部
+			if (window.backTop) {
+				await emit(LISTEN_KEY.ACTIVATE_BACK_TOP);
+			}
 
-		if (window.style === "float") {
-			if (!focused && window.position !== "remember") {
-				const monitors = await availableMonitors();
+			if (window.style === "float" && window.position !== "remember") {
+				const current = await currentMonitor();
+				const monitor = await getCursorMonitor();
 
-				if (!monitors.length) return;
-
-				const { width, height } = await appWindow.innerSize();
-
-				const cursor = await cursorPosition();
-
-				for await (const monitor of monitors) {
-					const { position, size } = monitor;
-
-					let cursorX = cursor.x;
-					let cursorY = cursor.y;
-
-					if (
-						cursorX < position.x ||
-						cursorY < position.y ||
-						cursorX > position.x + size.width ||
-						cursorY > position.y + size.height
-					) {
-						continue;
-					}
+				if (current && monitor) {
+					let { position, size, cursorX, cursorY } = monitor;
+					const windowSize = await appWindow.innerSize();
+					const { width, height } = windowSize.toLogical(current.scaleFactor);
 
 					if (window.position === "follow") {
 						cursorX = Math.min(cursorX, position.x + size.width - width);
@@ -81,20 +68,24 @@ export const toggleWindowVisible = async () => {
 					}
 
 					await appWindow.setPosition(
-						new PhysicalPosition(Math.round(cursorX), Math.round(cursorY)),
+						new LogicalPosition(Math.round(cursorX), Math.round(cursorY)),
 					);
+				}
+			} else if (window.style === "dock") {
+				const monitor = await getCursorMonitor();
 
-					break;
+				if (monitor) {
+					const { width, height } = monitor.size;
+					const windowHeight = 400;
+					const { x } = monitor.position;
+					const y = height - windowHeight;
+
+					await appWindow.setSize(new LogicalSize(width, windowHeight));
+					await appWindow.setPosition(new LogicalPosition(x, y));
 				}
 			}
-		} else {
-			// TODO: dock 风格的位置
 		}
-	}
 
-	if (focused) {
-		hideWindow();
-	} else {
 		showWindow();
 	}
 };
