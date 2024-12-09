@@ -3,7 +3,11 @@ import type { WindowLabel } from "@/types/plugin";
 import { invoke } from "@tauri-apps/api/core";
 import { emit } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { LogicalPosition, LogicalSize } from "@tauri-apps/api/window";
+import {
+	LogicalPosition,
+	LogicalSize,
+	currentMonitor,
+} from "@tauri-apps/api/window";
 
 /**
  * 显示窗口
@@ -47,12 +51,13 @@ export const toggleWindowVisible = async () => {
 			}
 
 			if (window.style === "float" && window.position !== "remember") {
+				const current = await currentMonitor();
 				const monitor = await getCursorMonitor();
 
-				if (monitor) {
-					let { position, size, scaleFactor, cursorX, cursorY } = monitor;
+				if (current && monitor) {
+					let { position, size, cursorX, cursorY } = monitor;
 					const windowSize = await appWindow.innerSize();
-					const { width, height } = windowSize.toLogical(scaleFactor);
+					const { width, height } = windowSize.toLogical(current.scaleFactor);
 
 					if (window.position === "follow") {
 						cursorX = Math.min(cursorX, position.x + size.width - width);
