@@ -4,6 +4,9 @@ import {
 	primaryMonitor,
 } from "@tauri-apps/api/window";
 
+/**
+ * 获取当前鼠标所在的显示器
+ */
 export const getCursorMonitor = async () => {
 	const primary = await primaryMonitor();
 

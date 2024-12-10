@@ -23,9 +23,9 @@ export default defineConfig({
 	],
 	rules: [["outline-none", { outline: "none" }]],
 	shortcuts: [
-		[/^bg-(\d+)$/, ([, d]) => `bg-[var(--color-bg-${d})]`],
-		[/^color-(\d+)$/, ([, d]) => `text-[var(--color-text-${d})]`],
-		[/^b-color-(\d+)$/, ([, d]) => `b-[var(--color-border-${d})]`],
+		[/^bg-color-(\d+)$/, ([, d]) => `bg-bg-${d}`],
+		[/^text-color-(\d+)$/, ([, d]) => `text-text-${d}`],
+		[/^b-color-(\d+)$/, ([, d]) => `b-border-${d}`],
 		[/^(.*)-primary-(\d+)$/, ([, s, d]) => `${s}-[var(--ant-blue-${d})]`],
 		{
 			"antd-input":
@@ -36,12 +36,21 @@ export default defineConfig({
 	],
 	theme: {
 		colors: {
+			"bg-1": "var(--ant-color-bg-container)",
+			"bg-2": "var(--ant-color-bg-layout)",
+			"bg-3": "var(--ant-color-fill-quaternary)",
+			"bg-4": "var(--ant-color-fill-content)",
+			"text-1": "var(--ant-color-text)",
+			"text-2": "var(--ant-color-text-secondary)",
+			"text-3": "var(--ant-color-text-tertiary)",
+			"border-1": "var(--ant-color-border)",
+			"border-2": "var(--ant-color-border-secondary)",
 			primary: "var(--ant-blue)",
 			success: "var(--ant-green)",
 			danger: "var(--ant-red)",
 			gold: "var(--ant-gold)",
-			wechat: "#00c25f",
 			qq: "#0099ff",
+			wechat: "#00c25f",
 			alipay: "#0c79fe",
 		},
 	},
