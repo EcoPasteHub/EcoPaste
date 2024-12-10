@@ -1,15 +1,5 @@
 html {
-  --color-bg-1: var(--ant-color-bg-container);
-  --color-bg-2: var(--ant-color-bg-layout);
-  --color-bg-3: var(--ant-color-fill-quaternary);
-  --color-bg-4: var(--ant-color-fill-content);
-  --color-text-1: var(--ant-color-text);
-  --color-text-2: var(--ant-color-text-secondary);
-  --color-text-3: var(--ant-color-text-tertiary);
-  --color-border-1: var(--ant-color-border);
-  --color-border-2: var(--ant-color-border-secondary);
-
-  --uno: color-1 text-14 antialiased select-none overscroll-none;
+  --uno: text-color-1 text-14 antialiased select-none overscroll-none;
 
   color-scheme: light;
 

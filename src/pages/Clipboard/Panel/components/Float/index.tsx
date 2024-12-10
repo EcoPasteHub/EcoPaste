@@ -12,7 +12,7 @@ const Float = () => {
 
 	return (
 		<div
-			className={clsx("h-screen bg-1", {
+			className={clsx("h-screen bg-color-1", {
 				"rounded-10": !isWin(),
 				"b b-color-1": isLinux(),
 			})}
@@ -42,7 +42,7 @@ const Float = () => {
 					>
 						<Group />
 
-						<Flex align="center" gap={4} className="color-2 text-18">
+						<Flex align="center" gap={4} className="text-18 text-color-2">
 							<Pin />
 
 							<Icon

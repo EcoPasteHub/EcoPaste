@@ -172,7 +172,7 @@ const ProShortcut: FC<ProShortcutProps> = (props) => {
 				tabIndex={0}
 				align="center"
 				gap="small"
-				className="antd-input group b-color-1 color-3 h-32 rounded-6 px-10"
+				className="antd-input group b-color-1 h-32 rounded-6 px-10 text-color-3"
 				onKeyDown={handleKeyDown}
 				onKeyUp={handleKeyUp}
 			>
