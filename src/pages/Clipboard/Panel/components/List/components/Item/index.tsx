@@ -325,10 +325,8 @@ const Item: FC<ItemProps> = (props) => {
 			<div className="relative flex-1 select-auto overflow-hidden break-words children:transition">
 				<div
 					className={clsx(
-						"absolute inset-0 line-clamp-4 opacity-100 group-hover:opacity-0",
-						{
-							"opacity-0!": !note,
-						},
+						"pointer-events-none absolute inset-0 line-clamp-4 opacity-100 group-hover:opacity-0",
+						{ "opacity-0!": !note },
 					)}
 				>
 					<Icon
