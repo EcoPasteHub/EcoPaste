@@ -83,7 +83,7 @@ export const getSaveWindowStatePath = async () => {
 };
 
 /**
- * 获取存储路径系统图标的路径
+ * 获取存储系统图标的路径
  */
 export const getSaveIconPath = () => {
 	return joinPath(getSaveDataPath(), "icons");
