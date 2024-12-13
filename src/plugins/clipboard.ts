@@ -368,19 +368,21 @@ export const getClipboardSubtype = async (data: ClipboardPayload) => {
 	try {
 		const { value } = data;
 
-		let subtype: ClipboardPayload["subtype"];
-
 		if (isURL(value)) {
-			subtype = "url";
-		} else if (isEmail(value)) {
-			subtype = "email";
-		} else if (isColor(value)) {
-			subtype = "color";
-		} else if (await exists(value)) {
-			subtype = "path";
+			return "url";
 		}
 
-		return subtype;
+		if (isEmail(value)) {
+			return "email";
+		}
+
+		if (isColor(value)) {
+			return "color";
+		}
+
+		if (await exists(value)) {
+			return "path";
+		}
 	} catch {
 		return;
 	}

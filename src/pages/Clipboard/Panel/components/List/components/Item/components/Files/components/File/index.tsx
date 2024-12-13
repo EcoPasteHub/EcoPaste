@@ -1,5 +1,6 @@
 import { exists, mkdir, writeFile } from "@tauri-apps/plugin-fs";
 import { Flex } from "antd";
+import clsx from "clsx";
 import type { FC } from "react";
 import { type Metadata, icon, metadata } from "tauri-plugin-fs-pro-api";
 import Image from "../../../Image";
@@ -19,45 +20,76 @@ const File: FC<FileProps> = (props) => {
 	const state = useReactive<State>({});
 
 	useAsyncEffect(async () => {
-		if (!path) return;
+		try {
+			const data = await metadata(path, { omitSize: true });
 
-		Object.assign(state, await metadata(path, { omitSize: false }));
+			Object.assign(state, data);
 
-		if (!state.isExist) return;
+			state.iconPath = await getIconPath();
+		} catch {
+			Object.assign(state, {
+				fullName: path.split("/").pop(),
+			});
+		}
+	}, [path]);
 
-		await mkdir(getSaveIconPath(), { recursive: true });
-
-		const iconPath = joinPath(getSaveIconPath(), `${state.extname}.png`);
+	const getIconPath = async () => {
+		const iconPath = joinPath(getSaveIconPath(), `${getIconName()}.png`);
 
 		const existed = await exists(iconPath);
 
-		if (existed) {
-			state.iconPath = iconPath;
+		if (existed) return iconPath;
 
-			return;
-		}
+		await mkdir(getSaveIconPath(), { recursive: true });
 
 		const bytes = await icon(path, 256);
 
 		await writeFile(iconPath, bytes);
 
-		state.iconPath = iconPath;
-	}, [path]);
+		return iconPath;
+	};
+
+	const getIconName = () => {
+		const { isDir, extname, name, fullName } = state;
+
+		const isMacApp = isMac() && extname === "app";
+		const isWinApp = isWin() && extname === "exe";
+
+		if (isMacApp || isWinApp) {
+			return fullName;
+		}
+
+		if (isDir) {
+			return "__ECOPASTE_DIRECTORY__";
+		}
+
+		if (!extname) {
+			return name;
+		}
+
+		return extname;
+	};
 
 	const renderContent = () => {
-		if (count === 1) {
+		const height = 100 / Math.min(count, 3);
+
+		if (state.isExist && count === 1) {
 			if (isImage(path)) {
 				return <Image value={path} />;
 			}
 		}
 
-		const height = 100 / Math.min(count, 3);
-
 		return (
 			<Flex align="center" gap={4} style={{ height: `${height}%` }}>
-				<Image value={state.iconPath} className="h-full" />
+				{state.isExist && <Image value={state.iconPath} className="h-full" />}
 
-				<span className="truncate">{state.fullName}</span>
+				<span
+					className={clsx("truncate", {
+						"text-danger line-through": !state.isExist,
+					})}
+				>
+					{state.fullName}
+				</span>
 			</Flex>
 		);
 	};
