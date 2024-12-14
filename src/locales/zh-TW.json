@@ -33,7 +33,7 @@
 				}
 			},
 			"search_box_settings": {
-				"title": "搜尋框設定",
+				"title": "搜尋設定",
 				"label": {
 					"default_focus": "預設焦點",
 					"auto_clear": "自動清除",
@@ -47,7 +47,7 @@
 				}
 			},
 			"content_settings": {
-				"title": "剪貼簿內容",
+				"title": "內容設定",
 				"button": {
 					"custom_operation_button": "自定義"
 				},
@@ -66,14 +66,16 @@
 						"notes": "備註",
 						"favorite": "收藏",
 						"delete": "刪除"
-					}
+					},
+					"auto_favorite": "自動收藏"
 				},
 				"hints": {
 					"auto_paste": "當使用滑鼠左鍵時，快速將內容貼上到輸入位置",
 					"image_ocr": "注意：使用前請務必先下載",
 					"copy_as_plain": "富文字和HTML格式在複製時僅保留純文字內容",
 					"paste_as_plain": "富文字和HTML格式在粘貼時僅保留純文字內容",
-					"operation_button": "自定義操作剪貼簿內容的圖示按鈕"
+					"operation_button": "自定義操作剪貼簿內容的圖示按鈕",
+					"auto_favorite": "新增或編輯備註後自動收藏"
 				}
 			}
 		},

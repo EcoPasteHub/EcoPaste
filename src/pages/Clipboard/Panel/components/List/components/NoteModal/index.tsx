@@ -37,9 +37,17 @@ const NoteModal = forwardRef<NoteModalRef>((_, ref) => {
 		const { note } = form.getFieldsValue();
 
 		if (item) {
+			const { id, favorite } = item;
+
 			item.note = note;
 
-			updateSQL("history", { id: item.id, note });
+			updateSQL("history", { id, note });
+
+			if (clipboardStore.content.autoFavorite && !favorite) {
+				item.favorite = true;
+
+				updateSQL("history", { id, favorite: true });
+			}
 		}
 
 		toggle();

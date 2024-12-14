@@ -33,7 +33,7 @@
 				}
 			},
 			"search_box_settings": {
-				"title": "搜索框设置",
+				"title": "搜索设置",
 				"label": {
 					"default_focus": "默认聚焦",
 					"auto_clear": "自动清除",
@@ -47,7 +47,7 @@
 				}
 			},
 			"content_settings": {
-				"title": "剪贴板内容",
+				"title": "内容设置",
 				"button": {
 					"custom_operation_button": "自定义"
 				},
@@ -66,14 +66,16 @@
 						"notes": "备注",
 						"favorite": "收藏",
 						"delete": "删除"
-					}
+					},
+					"auto_favorite": "自动收藏"
 				},
 				"hints": {
 					"auto_paste": "鼠标左键操作时，快速粘贴内容至输入位置",
 					"image_ocr": "注意：使用前请务必先下载",
 					"copy_as_plain": "富文本和HTML格式在复制时仅保留纯文本内容",
 					"paste_as_plain": "富文本和HTML格式在粘贴时仅保留纯文本内容",
-					"operation_button": "自定义操作剪贴板内容的图标按钮"
+					"operation_button": "自定义操作剪贴板内容的图标按钮",
+					"auto_favorite": "新增或编辑备注后自动收藏"
 				}
 			}
 		},
