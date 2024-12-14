@@ -47,7 +47,7 @@
 				}
 			},
 			"content_settings": {
-				"title": "その他の設定",
+				"title": "コンテンツ設定",
 				"button": {
 					"custom_operation_button": "カスタム"
 				},
@@ -66,14 +66,16 @@
 						"notes": "メモ",
 						"favorite": "お気に入り",
 						"delete": "削除"
-					}
+					},
+					"auto_favorite": "自動コレクション"
 				},
 				"hints": {
 					"auto_paste": "左クリック時に、内容を素早く入力フィールドに貼り付けます",
 					"image_ocr": "注意：ご使用前に必ずダウンロードしてください。",
 					"copy_as_plain": "リッチテキストとHTML形式は、コピーしてもプレーンテキストの内容しか保持しない",
 					"paste_as_plain": "リッチテキストとHTMLの書式設定は、貼り付け時にプレーンテキストの内容だけを保持する",
-					"operation_button": "クリップボード内容を操作するためのアイコンボタンをカスタマイズします"
+					"operation_button": "クリップボード内容を操作するためのアイコンボタンをカスタマイズします",
+					"auto_favorite": "メモの追加・編集後に自動お気に入り登録"
 				}
 			}
 		},

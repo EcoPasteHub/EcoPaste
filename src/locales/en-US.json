@@ -33,7 +33,7 @@
 				}
 			},
 			"search_box_settings": {
-				"title": "Search Box Settings",
+				"title": "Search Settings",
 				"label": {
 					"default_focus": "Default Focus",
 					"auto_clear": "Auto Clear",
@@ -47,7 +47,7 @@
 				}
 			},
 			"content_settings": {
-				"title": "Clipboard Content",
+				"title": "Content Settings",
 				"button": {
 					"custom_operation_button": "Custom"
 				},
@@ -66,14 +66,16 @@
 						"notes": "Notes",
 						"favorite": "Favorite",
 						"delete": "Delete"
-					}
+					},
+					"auto_favorite": "Auto Favorite"
 				},
 				"hints": {
 					"auto_paste": "Quickly paste content to the input field when using the left mouse button",
 					"image_ocr": "Note: Please be sure to download the",
 					"copy_as_plain": "Rich text and HTML formats retain only plain text content when copied",
 					"paste_as_plain": "Rich text and HTML formatting retains only plain text content when pasting",
-					"operation_button": "Customize icon buttons to operate on clipboard content"
+					"operation_button": "Customize icon buttons to operate on clipboard content",
+					"auto_favorite": "Auto-favorite after adding or editing a note"
 				}
 			}
 		},

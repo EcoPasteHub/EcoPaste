@@ -126,6 +126,17 @@ const ClipboardSettings = () => {
 				/>
 
 				<OperationButton />
+
+				<ProSwitch
+					title={t("preference.clipboard.content_settings.label.auto_favorite")}
+					description={t(
+						"preference.clipboard.content_settings.hints.auto_favorite",
+					)}
+					value={content.autoFavorite}
+					onChange={(value) => {
+						clipboardStore.content.autoFavorite = value;
+					}}
+				/>
 			</ProList>
 		</>
 	);

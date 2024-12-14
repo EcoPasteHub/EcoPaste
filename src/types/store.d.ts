@@ -87,6 +87,7 @@ export interface ClipboardStore {
 		copyPlain: boolean;
 		pastePlain: boolean;
 		operationButtons: OperationButton[];
+		autoFavorite: boolean;
 	};
 
 	// 历史记录
