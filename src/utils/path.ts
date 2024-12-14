@@ -81,3 +81,10 @@ export const getSaveWindowStatePath = async () => {
 
 	return joinPath(await appDataDir(), `.window-state.${extname}`);
 };
+
+/**
+ * 获取存储系统图标的路径
+ */
+export const getSaveIconPath = () => {
+	return joinPath(getSaveDataPath(), "icons");
+};
