@@ -109,9 +109,40 @@ HomeBrew：[クリックして確認する](https://ecopaste.cn/guide/install#%E
 
 ⚠️ ご注意: グループチャットは日常的な議論と経験の共有に限ります。問題のフィードバックや新しい機能のリクエストが必要な場合は、[問題のフィードバック](#問題のフィードバック)をご確認ください。
 
-|                                  WeChat Group                                  |                                  QQ Group                                  |
-| :----------------------------------------------------------------------------: | :------------------------------------------------------------------------: |
-| <img width="70%" src="https://ecopaste.cn/community/wechat-group-light.png" /> | <img width="70%" src="https://ecopaste.cn/community/qq-group-light.png" /> |
+<table>
+  <thead>
+    <tr>
+      <th width="33.3%">WeChat Group</th>
+      <th width="33.3%">QQ Group</th>
+      <th width="33.3%">Telegram</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="https://ecopaste.cn/community/wechat-group-dark.png" />
+          <source media="(prefers-color-scheme: light)" srcset="https://ecopaste.cn/community/wechat-group-light.png" />
+          <img src="https://ecopaste.cn/community/wechat-group-light.png" />
+        </picture>
+      </td>
+      <td>
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="https://ecopaste.cn/community/qq-group-dark.png" />
+          <source media="(prefers-color-scheme: light)" srcset="https://ecopaste.cn/community/qq-group-light.png" />
+          <img src="https://ecopaste.cn/community/qq-group-light.png" />
+        </picture>
+      </td>
+      <td>
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="https://ecopaste.cn/community/telegram-chat-dark.png" />
+          <source media="(prefers-color-scheme: light)" srcset="https://ecopaste.cn/community/telegram-chat-light.png" />
+          <img src="https://ecopaste.cn/community/telegram-chat-light.png" />
+        </picture>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 ## 貢献者
 
