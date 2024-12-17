@@ -109,9 +109,40 @@ HomeBrew：[点击查看](https://ecopaste.cn/guide/install#%E4%BD%BF%E7%94%A8-h
 
 ⚠️ 温馨提示：群聊仅限日常讨论和经验分享，如需反馈问题或提交新需求，请查看[问题反馈](#问题反馈)。
 
-|                                     微信群                                     |                                   QQ 群                                    |
-| :----------------------------------------------------------------------------: | :------------------------------------------------------------------------: |
-| <img width="70%" src="https://ecopaste.cn/community/wechat-group-light.png" /> | <img width="70%" src="https://ecopaste.cn/community/qq-group-light.png" /> |
+<table>
+  <thead>
+    <tr>
+      <th width="33.3%">微信群</th>
+      <th width="33.3%">QQ 群</th>
+      <th width="33.3%">Telegram</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="https://ecopaste.cn/community/wechat-group-dark.png" />
+          <source media="(prefers-color-scheme: light)" srcset="https://ecopaste.cn/community/wechat-group-light.png" />
+          <img src="https://ecopaste.cn/community/wechat-group-light.png" />
+        </picture>
+      </td>
+      <td>
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="https://ecopaste.cn/community/qq-group-dark.png" />
+          <source media="(prefers-color-scheme: light)" srcset="https://ecopaste.cn/community/qq-group-light.png" />
+          <img src="https://ecopaste.cn/community/qq-group-light.png" />
+        </picture>
+      </td>
+      <td>
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="https://ecopaste.cn/community/telegram-chat-dark.png" />
+          <source media="(prefers-color-scheme: light)" srcset="https://ecopaste.cn/community/telegram-chat-light.png" />
+          <img src="https://ecopaste.cn/community/telegram-chat-light.png" />
+        </picture>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 ## 贡献者
 

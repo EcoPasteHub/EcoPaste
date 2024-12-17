@@ -109,9 +109,40 @@ Installation Guide: [Click here](https://ecopaste.cn/guide/install#linux)
 
 ⚠️ Friendly Reminder: Group chats are for casual discussions and experience sharing only. For issue reporting or submitting new feature requests, please refer to [Feedback](#Feedback).
 
-|                                  WeChat Group                                  |                                  QQ Group                                  |
-| :----------------------------------------------------------------------------: | :------------------------------------------------------------------------: |
-| <img width="70%" src="https://ecopaste.cn/community/wechat-group-light.png" /> | <img width="70%" src="https://ecopaste.cn/community/qq-group-light.png" /> |
+<table>
+  <thead>
+    <tr>
+      <th width="33.3%">WeChat Group</th>
+      <th width="33.3%">QQ Group</th>
+      <th width="33.3%">Telegram</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="https://ecopaste.cn/community/wechat-group-dark.png" />
+          <source media="(prefers-color-scheme: light)" srcset="https://ecopaste.cn/community/wechat-group-light.png" />
+          <img src="https://ecopaste.cn/community/wechat-group-light.png" />
+        </picture>
+      </td>
+      <td>
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="https://ecopaste.cn/community/qq-group-dark.png" />
+          <source media="(prefers-color-scheme: light)" srcset="https://ecopaste.cn/community/qq-group-light.png" />
+          <img src="https://ecopaste.cn/community/qq-group-light.png" />
+        </picture>
+      </td>
+      <td>
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="https://ecopaste.cn/community/telegram-chat-dark.png" />
+          <source media="(prefers-color-scheme: light)" srcset="https://ecopaste.cn/community/telegram-chat-light.png" />
+          <img src="https://ecopaste.cn/community/telegram-chat-light.png" />
+        </picture>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 ## Contributors
 
