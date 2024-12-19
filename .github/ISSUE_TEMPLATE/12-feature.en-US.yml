@@ -1,0 +1,33 @@
+name: 💡 Feature Request
+title: "[feat] "
+description: Suggest an idea
+labels: "type: feature request"
+
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Describe the Problem
+      description: Please clearly describe the problem this feature will solve.
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Describe Your Desired Solution
+      description: Please clearly describe the changes or improvements you expect.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Considered Alternatives
+      description: Provide any alternative solutions you have considered.
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Please provide any other relevant information that may help us better understand the issue.

@@ -1,0 +1,49 @@
+name: 🐞 Bug Report
+title: "[bug] "
+description: Report a Bug
+labels: ["type: bug", "status: needs triage"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Friendly Reminder
+        1. Please check the [FAQ](https://ecopaste.cn/problem/macos/damage) or existing [issues](https://github.com/EcoPasteHub/EcoPaste/issues) first.
+        2. Make sure you're using the [latest version](https://github.com/EcoPasteHub/EcoPaste/releases/latest).
+        3. Ensure the issue is not caused by other software.
+        4. Please always remain friendly and respectful. Thank you for your understanding and cooperation.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the Bug
+      description: Please describe the bug in detail and provide screenshots or videos to help us better understand the issue.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction Steps
+      description: Please list the steps to reproduce the issue, and include screenshots or videos.
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: Please describe the behavior you expected to happen.
+
+  - type: textarea
+    id: info
+    attributes:
+      render: text
+      label: Software Information
+      description: Please copy the software information from `Preferences > About` page.
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Please provide any other relevant information that may help us better understand the issue.
