@@ -67,7 +67,8 @@
 						"favorite": "收藏",
 						"delete": "删除"
 					},
-					"auto_favorite": "自动收藏"
+					"auto_favorite": "自动收藏",
+					"delete_confirm": "删除确认"
 				},
 				"hints": {
 					"auto_paste": "鼠标左键操作时，快速粘贴内容至输入位置",
@@ -75,7 +76,8 @@
 					"copy_as_plain": "富文本和HTML格式在复制时仅保留纯文本内容",
 					"paste_as_plain": "富文本和HTML格式在粘贴时仅保留纯文本内容",
 					"operation_button": "自定义操作剪贴板内容的图标按钮",
-					"auto_favorite": "新增或编辑备注后自动收藏"
+					"auto_favorite": "新增或编辑备注后自动收藏",
+					"delete_confirm": "删除剪贴板内容时弹出确认对话框"
 				}
 			}
 		},
@@ -283,7 +285,8 @@
 			"n_chars": "{{0}}个字符"
 		},
 		"hints": {
-			"search_placeholder": "搜索"
+			"search_placeholder": "搜索",
+			"delete_modal_content": "确定要删除此项吗？"
 		}
 	},
 	"component": {
