@@ -7,6 +7,7 @@ import { downloadDir, resolveResource } from "@tauri-apps/api/path";
 import { copyFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { open } from "@tauri-apps/plugin-shell";
 import { Flex, type FlexProps, message } from "antd";
+import type { HookAPI } from "antd/es/modal/useModal";
 import clsx from "clsx";
 import { find, isNil, remove } from "lodash-es";
 import type { DragEvent, FC, MouseEvent } from "react";
@@ -22,6 +23,7 @@ import Text from "./components/Text";
 interface ItemProps extends Partial<FlexProps> {
 	index: number;
 	data: HistoryTablePayload;
+	deleteModal: HookAPI;
 	openNoteModel: () => void;
 }
 
@@ -30,7 +32,7 @@ interface ContextMenuItem extends MenuItemOptions {
 }
 
 const Item: FC<ItemProps> = (props) => {
-	const { index, data, className, openNoteModel, ...rest } = props;
+	const { index, data, className, deleteModal, openNoteModel, ...rest } = props;
 	const { id, type, value, search, group, favorite, note, subtype } = data;
 	const { state } = useContext(ClipboardPanelContext);
 	const { t } = useTranslation();
@@ -130,7 +132,22 @@ const Item: FC<ItemProps> = (props) => {
 	};
 
 	// 删除条目
-	const deleteItem = () => {
+	const deleteItem = async () => {
+		let confirmed = true;
+
+		if (clipboardStore.content.deleteConfirm) {
+			confirmed = await deleteModal.confirm({
+				centered: true,
+				content: t("clipboard.hints.delete_modal_content"),
+				afterClose() {
+					// 关闭确认框后焦点还在，需要手动取消焦点
+					(document.activeElement as HTMLElement)?.blur();
+				},
+			});
+		}
+
+		if (!confirmed) return;
+
 		if (state.activeId === id) {
 			const nextIndex = selectNextOrPrev();
 

@@ -67,7 +67,8 @@
 						"favorite": "お気に入り",
 						"delete": "削除"
 					},
-					"auto_favorite": "自動コレクション"
+					"auto_favorite": "自動コレクション",
+					"delete_confirm": "削除確認"
 				},
 				"hints": {
 					"auto_paste": "左クリック時に、内容を素早く入力フィールドに貼り付けます",
@@ -75,7 +76,8 @@
 					"copy_as_plain": "リッチテキストとHTML形式は、コピーしてもプレーンテキストの内容しか保持しない",
 					"paste_as_plain": "リッチテキストとHTMLの書式設定は、貼り付け時にプレーンテキストの内容だけを保持する",
 					"operation_button": "クリップボード内容を操作するためのアイコンボタンをカスタマイズします",
-					"auto_favorite": "メモの追加・編集後に自動お気に入り登録"
+					"auto_favorite": "メモの追加・編集後に自動お気に入り登録",
+					"delete_confirm": "クリップボードの内容を削除する際のポップアップ確認ダイアログ"
 				}
 			}
 		},
@@ -283,7 +285,8 @@
 			"n_chars": "{{0}} 文字"
 		},
 		"hints": {
-			"search_placeholder": "検索"
+			"search_placeholder": "検索",
+			"delete_modal_content": "本当に削除しますか？"
 		}
 	},
 	"component": {

@@ -67,7 +67,8 @@
 						"favorite": "Favorite",
 						"delete": "Delete"
 					},
-					"auto_favorite": "Auto Favorite"
+					"auto_favorite": "Auto Favorite",
+					"delete_confirm": "Delete Confirmation"
 				},
 				"hints": {
 					"auto_paste": "Quickly paste content to the input field when using the left mouse button",
@@ -75,7 +76,8 @@
 					"copy_as_plain": "Rich text and HTML formats retain only plain text content when copied",
 					"paste_as_plain": "Rich text and HTML formatting retains only plain text content when pasting",
 					"operation_button": "Customize icon buttons to operate on clipboard content",
-					"auto_favorite": "Auto-favorite after adding or editing a note"
+					"auto_favorite": "Auto-favorite after adding or editing a note",
+					"delete_confirm": "Pop-up confirmation dialog when deleting clipboard contents"
 				}
 			}
 		},
@@ -283,7 +285,8 @@
 			"n_chars": "{{0}} Character(s)"
 		},
 		"hints": {
-			"search_placeholder": "Search..."
+			"search_placeholder": "Search...",
+			"delete_modal_content": "Are you sure you want to delete this?"
 		}
 	},
 	"component": {

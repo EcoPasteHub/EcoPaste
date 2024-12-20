@@ -137,6 +137,19 @@ const ClipboardSettings = () => {
 						clipboardStore.content.autoFavorite = value;
 					}}
 				/>
+
+				<ProSwitch
+					title={t(
+						"preference.clipboard.content_settings.label.delete_confirm",
+					)}
+					description={t(
+						"preference.clipboard.content_settings.hints.delete_confirm",
+					)}
+					value={content.deleteConfirm}
+					onChange={(value) => {
+						clipboardStore.content.deleteConfirm = value;
+					}}
+				/>
 			</ProList>
 		</>
 	);
