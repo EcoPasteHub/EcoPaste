@@ -32,5 +32,6 @@ export const clipboardStore = proxy<ClipboardStore>({
 	history: {
 		duration: 0,
 		unit: 1,
+		maxCount: 0,
 	},
 });

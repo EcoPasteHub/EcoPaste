@@ -91,12 +91,9 @@
 				},
 				"label": {
 					"duration": "保留时长",
-					"duration_unit": {
-						"day": "天",
-						"week": "周",
-						"month": "月",
-						"year": "年"
-					},
+					"duration_unit": "天",
+					"max_count": "最大保留条数",
+					"max_count_unit": "条",
 					"delete_title": "删除历史记录",
 					"time_range": "时间范围",
 					"time_range_opt": {
@@ -110,7 +107,8 @@
 					"include_favorite": "删除收藏"
 				},
 				"hints": {
-					"duration": "输入 0 则表示永久保留，自动删除时会保留收藏",
+					"duration": "输入 0 表示永久保留，仅统计和删除未收藏条目",
+					"max_count": "输入 0 表示永久保留，仅统计和删除未收藏条目",
 					"delete_success": "删除成功"
 				}
 			}

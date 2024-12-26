@@ -1,6 +1,6 @@
+import type { Interval } from "@/types/shared";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { type Update, check } from "@tauri-apps/plugin-updater";
-import type { Timeout } from "ahooks/lib/useRequest/src/types";
 import { Flex, Modal, Typography, message } from "antd";
 import clsx from "clsx";
 import Markdown from "react-markdown";
@@ -17,22 +17,21 @@ interface State {
 	download: number;
 }
 
-let timer: Timeout;
-
 const UpdateApp = () => {
 	const { t } = useTranslation();
+	const timerRef = useRef<Interval>();
 	const state = useReactive<State>({ download: 0 });
 	const [messageApi, contextHolder] = message.useMessage();
 
 	// 监听自动更新配置变化
 	useImmediateKey(globalStore.update, "auto", (value) => {
-		clearInterval(timer);
+		clearInterval(timerRef.current);
 
 		if (!value) return;
 
 		checkUpdate();
 
-		timer = setInterval(checkUpdate, 1000 * 60 * 60 * 24);
+		timerRef.current = setInterval(checkUpdate, 1000 * 60 * 60 * 24);
 	});
 
 	// 监听参与测试版本配置变化

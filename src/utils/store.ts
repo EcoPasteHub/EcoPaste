@@ -9,6 +9,15 @@ import { omit } from "lodash-es";
  * 初始化配置项
  */
 const initStore = async () => {
+	const { unit, duration } = clipboardStore.history;
+
+	if (unit !== 1) {
+		deepAssign(clipboardStore.history, {
+			unit: 1,
+			duration: duration * unit,
+		});
+	}
+
 	globalStore.appearance.language ??= await getLocale();
 	globalStore.env.platform = await type();
 	globalStore.env.appName = await getName();

@@ -95,5 +95,6 @@ export interface ClipboardStore {
 	history: {
 		duration: number;
 		unit: number;
+		maxCount: number;
 	};
 }

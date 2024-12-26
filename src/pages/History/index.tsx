@@ -1,79 +1,46 @@
-import EcoSelect from "@/components/EcoSelect";
 import ProList from "@/components/ProList";
-import ProListItem from "@/components/ProListItem";
 import type { HistoryTablePayload } from "@/types/database";
-import { InputNumber } from "antd";
-import { useSnapshot } from "valtio";
+import type { Interval } from "@/types/shared";
 import Delete from "./components/Delete";
+import Duration from "./components/Duration";
+import MaxCount from "./components/MaxCount";
 
 const History = () => {
-	const { history } = useSnapshot(clipboardStore);
 	const { t } = useTranslation();
+	const timerRef = useRef<Interval>();
 
-	useInterval(
-		async () => {
-			const { duration, unit } = clipboardStore.history;
+	useImmediate(clipboardStore.history, async () => {
+		const { duration, maxCount } = clipboardStore.history;
 
-			if (duration === 0) return;
+		clearInterval(timerRef.current);
 
-			const list = await selectSQL<HistoryTablePayload[]>("history");
+		if (duration === 0 && maxCount === 0) return;
 
-			for (const item of list) {
-				const { createTime, favorite } = item;
+		const delay = 1000 * 60 * 30;
 
-				if (dayjs().diff(createTime, "days") >= duration * unit) {
-					if (favorite) continue;
+		timerRef.current = setInterval(async () => {
+			const list = await selectSQL<HistoryTablePayload[]>("history", {
+				favorite: false,
+			});
 
-					deleteSQL("history", item);
-				}
+			for (const [index, item] of list.entries()) {
+				const { createTime } = item;
+				const diffDays = dayjs().diff(createTime, "days");
+				const isExpired = duration > 0 && diffDays >= duration;
+				const isOverMaxCount = maxCount > 0 && index >= maxCount;
+
+				if (!isExpired && !isOverMaxCount) continue;
+
+				deleteSQL("history", item);
 			}
-		},
-		1000 * 60 * 30,
-	);
-
-	const unitOptions = [
-		{
-			label: t("preference.history.history.label.duration_unit.day"),
-			value: 1,
-		},
-		{
-			label: t("preference.history.history.label.duration_unit.week"),
-			value: 7,
-		},
-		{
-			label: t("preference.history.history.label.duration_unit.month"),
-			value: 30,
-		},
-		{
-			label: t("preference.history.history.label.duration_unit.year"),
-			value: 365,
-		},
-	];
+		}, delay);
+	});
 
 	return (
 		<ProList header={t("preference.history.history.title")} footer={<Delete />}>
-			<ProListItem
-				title={t("preference.history.history.label.duration")}
-				description={t("preference.history.history.hints.duration")}
-			>
-				<InputNumber
-					min={0}
-					className="w-130"
-					value={history.duration}
-					addonAfter={
-						<EcoSelect
-							value={history.unit}
-							options={unitOptions}
-							onChange={(value) => {
-								clipboardStore.history.unit = value ?? 0;
-							}}
-						/>
-					}
-					onChange={(value) => {
-						clipboardStore.history.duration = value ?? 0;
-					}}
-				/>
-			</ProListItem>
+			<Duration />
+
+			<MaxCount />
 		</ProList>
 	);
 };
