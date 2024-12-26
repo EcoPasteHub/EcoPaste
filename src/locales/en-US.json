@@ -91,12 +91,9 @@
 				},
 				"label": {
 					"duration": "Retention Duration",
-					"duration_unit": {
-						"day": "Day",
-						"week": "Week",
-						"month": "Month",
-						"year": "Year"
-					},
+					"duration_unit": "Day",
+					"max_count": "Max Count",
+					"max_count_unit": "Items",
 					"delete_title": "Delete History",
 					"time_range": "Time Range",
 					"time_range_opt": {
@@ -110,7 +107,8 @@
 					"include_favorite": "Delete Favorites"
 				},
 				"hints": {
-					"duration": "Enter 0 to keep permanently, favorites will be retained when auto-deleting",
+					"duration": "Enter 0 for permanent retention, only counting and deleting uncollected entries",
+					"max_count": "Enter 0 for permanent retention, only counting and deleting uncollected entries",
 					"delete_success": "Successfully Deleted"
 				}
 			}

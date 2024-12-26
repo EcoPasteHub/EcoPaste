@@ -91,12 +91,9 @@
 				},
 				"label": {
 					"duration": "保持期間",
-					"duration_unit": {
-						"day": "日",
-						"week": "週",
-						"month": "月",
-						"year": "年"
-					},
+					"duration_unit": "日",
+					"max_count": "最大保持エントリー数",
+					"max_count_unit": "項",
 					"delete_title": "履歴を削除",
 					"time_range": "時間範囲",
 					"time_range_opt": {
@@ -110,7 +107,8 @@
 					"include_favorite": "お気に入りも削除"
 				},
 				"hints": {
-					"duration": "0 を入力すると永久保存され、削除時にお気に入りが保持されます",
+					"duration": "0を入力すると永久に保持して、収蔵されていない項目のみを統計して削除します",
+					"max_count": "0を入力すると永久に保持して、収蔵されていない項目のみを統計して削除します",
 					"delete_success": "削除が成功しました"
 				}
 			}

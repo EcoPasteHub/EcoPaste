@@ -27,14 +27,10 @@ const PreferenceLayout = () => {
 	});
 
 	// 监听全局配置项变化
-	useSubscribe(globalStore, () => {
-		handleStoreChanged();
-	});
+	useSubscribe(globalStore, () => handleStoreChanged());
 
 	// 监听剪贴板配置项变化
-	useSubscribe(clipboardStore, () => {
-		handleStoreChanged();
-	});
+	useSubscribe(clipboardStore, () => handleStoreChanged());
 
 	// 监听快捷键切换窗口显隐
 	useRegister(toggleWindowVisible, [shortcut.preference]);
