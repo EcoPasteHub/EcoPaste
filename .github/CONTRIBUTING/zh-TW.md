@@ -20,7 +20,7 @@
 
 ### 準備工作
 
-- [Rust](https://tauri.app/v1/guides/getting-started/prerequisites/): 請自行根據官網步驟安裝 rust 環境。
+- [Rust](https://v1.tauri.app/v1/guides/getting-started/prerequisites/): 請自行根據官網步驟安裝 rust 環境。
 - [Node.js](https://nodejs.org/en/): 用於運行項目。
 - [Pnpm](https://pnpm.io/)：本項目使用 Pnpm 進行包管理。
 

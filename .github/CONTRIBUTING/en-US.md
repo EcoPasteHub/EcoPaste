@@ -8,13 +8,13 @@ All work is conducted openly on GitHub. Whether you are a core team member or an
 
 ## Submitting Issues
 
-We use [GitHub Issues](https://github.com/EcoPasteHub/EcoPaste/issues) for bug reports and feature suggestions. 
+We use [GitHub Issues](https://github.com/EcoPasteHub/EcoPaste/issues) for bug reports and feature suggestions.
 
-Before submitting an issue, please search for similar problems, as they may have already been addressed or are in progress. 
+Before submitting an issue, please search for similar problems, as they may have already been addressed or are in progress.
 
 - For feature suggestions, describe the change you want and the expected behavior.
 
-- For bug reports, please include detailed steps to reproduce the issue. 
+- For bug reports, please include detailed steps to reproduce the issue.
 
 ## Submitting Pull Requests
 
@@ -30,7 +30,7 @@ Before submitting an issue, please search for similar problems, as they may have
 
 ### Setup
 
-- [Rust](https://tauri.app/v1/guides/getting-started/prerequisites/): Install Rust according to the official instructions.
+- [Rust](https://v1.tauri.app/v1/guides/getting-started/prerequisites/): Install Rust according to the official instructions.
 
 - [Node.js](https://nodejs.org/en/): Required to run the project.
 
