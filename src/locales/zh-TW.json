@@ -68,7 +68,8 @@
 						"delete": "刪除"
 					},
 					"auto_favorite": "自動收藏",
-					"delete_confirm": "删除確認"
+					"delete_confirm": "删除確認",
+					"auto_sort": "自動排序"
 				},
 				"hints": {
 					"auto_paste": "當使用滑鼠左鍵時，快速將內容貼上到輸入位置",
@@ -77,7 +78,8 @@
 					"paste_as_plain": "富文字和HTML格式在粘貼時僅保留純文字內容",
 					"operation_button": "自定義操作剪貼簿內容的圖示按鈕",
 					"auto_favorite": "新增或編輯備註後自動收藏",
-					"delete_confirm": "删除剪貼板內容時彈出確認對話方塊"
+					"delete_confirm": "删除剪貼板內容時彈出確認對話方塊",
+					"auto_sort": "複製已存在的內容時排列到最前面"
 				}
 			}
 		},

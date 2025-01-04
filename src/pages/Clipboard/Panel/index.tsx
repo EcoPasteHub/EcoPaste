@@ -60,6 +60,8 @@ const ClipboardPanel = () => {
 			const createTime = formatDate();
 
 			if (findItem) {
+				if (!clipboardStore.content.autoSort) return;
+
 				const { id } = findItem;
 
 				const index = findIndex(state.list, { id });

@@ -150,6 +150,17 @@ const ClipboardSettings = () => {
 						clipboardStore.content.deleteConfirm = value;
 					}}
 				/>
+
+				<ProSwitch
+					title={t("preference.clipboard.content_settings.label.auto_sort")}
+					description={t(
+						"preference.clipboard.content_settings.hints.auto_sort",
+					)}
+					value={content.autoSort}
+					onChange={(value) => {
+						clipboardStore.content.autoSort = value;
+					}}
+				/>
 			</ProList>
 		</>
 	);
