@@ -27,6 +27,7 @@ export const clipboardStore = proxy<ClipboardStore>({
 		operationButtons: ["copy", "star", "delete"],
 		autoFavorite: false,
 		deleteConfirm: true,
+		autoSort: false,
 	},
 
 	history: {
