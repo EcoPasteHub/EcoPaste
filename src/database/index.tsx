@@ -1,15 +1,16 @@
 import type { TableName, TablePayload } from "@/types/database";
-import { emit } from "@tauri-apps/api/event";
 import { remove } from "@tauri-apps/plugin-fs";
 import Database from "@tauri-apps/plugin-sql";
 import { entries, isBoolean, isNil, map, omitBy, some } from "lodash-es";
 
-let db: Database | null;
+let db: Database | null = null;
 
 /**
  * 初始化数据库
  */
 export const initDatabase = async () => {
+	if (db) return;
+
 	const path = await getSaveDatabasePath();
 
 	db = await Database.load(`sqlite:${path}`);
@@ -62,9 +63,7 @@ const handlePayload = (payload: TablePayload) => {
  * @param sql sql 语句
  */
 export const executeSQL = async (query: string, values?: unknown[]) => {
-	if (!db) {
-		await initDatabase();
-	}
+	await initDatabase();
 
 	if (query.startsWith("SELECT") || query.startsWith("PRAGMA")) {
 		return await db!.select(query, values);
@@ -167,8 +166,6 @@ export const closeDatabase = async () => {
 	await db.close();
 
 	db = null;
-
-	emit(LISTEN_KEY.CLOSE_DATABASE);
 };
 
 /**

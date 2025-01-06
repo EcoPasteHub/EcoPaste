@@ -45,7 +45,9 @@ const Manual: FC<{ state: State }> = (props) => {
 
 			state.spinning = true;
 
-			await closeDatabase();
+			emit(LISTEN_KEY.CLOSE_DATABASE);
+
+			await wait();
 
 			await decompress(path, getSaveDataPath());
 
