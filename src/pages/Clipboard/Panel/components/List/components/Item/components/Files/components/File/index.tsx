@@ -1,4 +1,4 @@
-import { exists, mkdir, writeFile } from "@tauri-apps/plugin-fs";
+import { mkdir, writeFile } from "@tauri-apps/plugin-fs";
 import { Flex } from "antd";
 import clsx from "clsx";
 import type { FC } from "react";
@@ -37,10 +37,6 @@ const File: FC<FileProps> = (props) => {
 
 	const getIconPath = async () => {
 		const iconPath = joinPath(getSaveIconPath(), `${getIconName()}.png`);
-
-		const existed = await exists(iconPath);
-
-		if (existed) return iconPath;
 
 		await mkdir(getSaveIconPath(), { recursive: true });
 
