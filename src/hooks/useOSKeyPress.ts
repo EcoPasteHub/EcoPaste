@@ -12,6 +12,6 @@ export const useOSKeyPress: typeof useKeyPress = (...args) => {
 
 			handler(event, key);
 		},
-		option,
+		{ exactMatch: true, ...option },
 	);
 };
