@@ -1,7 +1,12 @@
 import type { Store } from "@/types/store";
 import { getName, getVersion } from "@tauri-apps/api/app";
 import { appDataDir } from "@tauri-apps/api/path";
-import { exists, readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
+import {
+	exists,
+	mkdir,
+	readTextFile,
+	writeTextFile,
+} from "@tauri-apps/plugin-fs";
 import { type } from "@tauri-apps/plugin-os";
 import { omit } from "lodash-es";
 
@@ -9,20 +14,13 @@ import { omit } from "lodash-es";
  * 初始化配置项
  */
 const initStore = async () => {
-	const { unit, duration } = clipboardStore.history;
-
-	if (unit !== 1) {
-		deepAssign(clipboardStore.history, {
-			unit: 1,
-			duration: duration * unit,
-		});
-	}
-
 	globalStore.appearance.language ??= await getLocale();
 	globalStore.env.platform = await type();
 	globalStore.env.appName = await getName();
 	globalStore.env.appVersion = await getVersion();
 	globalStore.env.saveDataDir ??= await appDataDir();
+
+	await mkdir(globalStore.env.saveDataDir, { recursive: true });
 };
 
 /**
