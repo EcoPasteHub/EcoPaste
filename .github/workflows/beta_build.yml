@@ -78,14 +78,14 @@ jobs:
         run: |
           matrix=""
           if [ "${{ github.event_name }}" == "schedule" ]; then
-            matrix="\"windows-latest\",\"ubuntu-22.04\",\"macos-latest\""
+            matrix="\"windows-latest\",\"ubuntu-24.04\",\"macos-latest\""
             retain_days='1'
           else
             if [ "${{ inputs.platform_windows }}" == "true" ]; then
               matrix="${matrix}\"windows-latest\","
             fi
             if [ "${{ inputs.platform_linux }}" == "true" ]; then
-              matrix="${matrix}\"ubuntu-22.04\","
+              matrix="${matrix}\"ubuntu-24.04\","
             fi
             if [ "${{ inputs.platform_macos }}" == "true" ]; then
               matrix="${matrix}\"macos-latest\","
@@ -142,7 +142,7 @@ jobs:
           cache: "pnpm"
 
       - name: Install dependencies (ubuntu only)
-        if: matrix.os == 'ubuntu-22.04'
+        if: matrix.os == 'ubuntu-24.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
@@ -168,7 +168,7 @@ jobs:
           pnpm tauri build --target x86_64-apple-darwin
 
       - name: Build Other app
-        if: matrix.os == 'windows-latest' || matrix.os == 'ubuntu-22.04'
+        if: matrix.os == 'windows-latest' || matrix.os == 'ubuntu-24.04'
         run: pnpm tauri build
 
       - name: Rename macos
