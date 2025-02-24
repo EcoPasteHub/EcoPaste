@@ -1,4 +1,4 @@
-import type { OsType } from "@tauri-apps/plugin-os";
+import type { Platform } from "@tauri-apps/plugin-os";
 
 export type Theme = "auto" | "light" | "dark";
 
@@ -43,7 +43,7 @@ export interface GlobalStore {
 
 	// 只在当前系统环境使用
 	env: {
-		platform?: OsType;
+		platform?: Platform;
 		appName?: string;
 		appVersion?: string;
 		saveDataDir?: string;

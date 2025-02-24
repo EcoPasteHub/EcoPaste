@@ -26,8 +26,8 @@ const About = () => {
 			appVersion,
 			tauriVersion: await getTauriVersion(),
 			platform,
-			platformArch: await arch(),
-			platformVersion: await version(),
+			platformArch: arch(),
+			platformVersion: version(),
 		};
 
 		await writeText(JSON.stringify(info, null, 2));
