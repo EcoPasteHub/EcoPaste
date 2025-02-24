@@ -7,7 +7,7 @@ import {
 	readTextFile,
 	writeTextFile,
 } from "@tauri-apps/plugin-fs";
-import { type } from "@tauri-apps/plugin-os";
+import { platform } from "@tauri-apps/plugin-os";
 import { omit } from "lodash-es";
 
 /**
@@ -15,7 +15,7 @@ import { omit } from "lodash-es";
  */
 const initStore = async () => {
 	globalStore.appearance.language ??= await getLocale();
-	globalStore.env.platform = await type();
+	globalStore.env.platform = platform();
 	globalStore.env.appName = await getName();
 	globalStore.env.appVersion = await getVersion();
 	globalStore.env.saveDataDir ??= await appDataDir();

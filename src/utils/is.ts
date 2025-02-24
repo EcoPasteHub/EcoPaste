@@ -1,3 +1,4 @@
+import { platform } from "@tauri-apps/plugin-os";
 import isUrl from "is-url";
 
 /**
@@ -11,21 +12,21 @@ export const isDev = () => {
  * 是否为 macos 系统
  */
 export const isMac = () => {
-	return globalStore.env.platform === "macos";
+	return platform() === "macos";
 };
 
 /**
  * 是否为 windows 系统
  */
 export const isWin = () => {
-	return globalStore.env.platform === "windows";
+	return platform() === "windows";
 };
 
 /**
  * 是否为 linux 系统
  */
 export const isLinux = () => {
-	return globalStore.env.platform === "linux";
+	return platform() === "linux";
 };
 
 /**
