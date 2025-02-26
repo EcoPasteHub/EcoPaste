@@ -69,7 +69,8 @@
 					},
 					"auto_favorite": "自動收藏",
 					"delete_confirm": "删除確認",
-					"auto_sort": "自動排序"
+					"auto_sort": "自動排序",
+					"show_original_content": "顯示原內容"
 				},
 				"hints": {
 					"auto_paste": "當使用滑鼠左鍵時，快速將內容貼上到輸入位置",
@@ -79,7 +80,8 @@
 					"operation_button": "自定義操作剪貼簿內容的圖示按鈕",
 					"auto_favorite": "新增或編輯備註後自動收藏",
 					"delete_confirm": "删除剪貼板內容時彈出確認對話方塊",
-					"auto_sort": "複製已存在的內容時排列到最前面"
+					"auto_sort": "複製已存在的內容時排列到最前面",
+					"show_original_content": "添加備註後，滑鼠懸停時是否顯示原內容"
 				}
 			}
 		},

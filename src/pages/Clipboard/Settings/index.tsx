@@ -161,6 +161,19 @@ const ClipboardSettings = () => {
 						clipboardStore.content.autoSort = value;
 					}}
 				/>
+
+				<ProSwitch
+					title={t(
+						"preference.clipboard.content_settings.label.show_original_content",
+					)}
+					description={t(
+						"preference.clipboard.content_settings.hints.show_original_content",
+					)}
+					value={content.showOriginalContent}
+					onChange={(value) => {
+						clipboardStore.content.showOriginalContent = value;
+					}}
+				/>
 			</ProList>
 		</>
 	);
