@@ -342,8 +342,11 @@ const Item: FC<ItemProps> = (props) => {
 			<div className="relative flex-1 select-auto overflow-hidden break-words children:transition">
 				<div
 					className={clsx(
-						"pointer-events-none absolute inset-0 line-clamp-4 opacity-100 group-hover:opacity-0",
-						{ "opacity-0!": !note },
+						"pointer-events-none absolute inset-0 line-clamp-4 opacity-0",
+						{
+							"opacity-100": note,
+							"group-hover:opacity-0": content.showOriginalContent,
+						},
 					)}
 				>
 					<Icon
@@ -355,8 +358,9 @@ const Item: FC<ItemProps> = (props) => {
 				</div>
 
 				<div
-					className={clsx("h-full opacity-0 group-hover:opacity-100", {
-						"opacity-100!": !note,
+					className={clsx("h-full", {
+						"opacity-0": note,
+						"group-hover:opacity-100": content.showOriginalContent,
 					})}
 				>
 					{renderContent()}

@@ -69,7 +69,8 @@
 					},
 					"auto_favorite": "Auto Favorite",
 					"delete_confirm": "Delete Confirmation",
-					"auto_sort": "Auto Sort"
+					"auto_sort": "Auto Sort",
+					"show_riginal_cntent": "Show Original Content"
 				},
 				"hints": {
 					"auto_paste": "Quickly paste content to the input field when using the left mouse button",
@@ -79,7 +80,8 @@
 					"operation_button": "Customize icon buttons to operate on clipboard content",
 					"auto_favorite": "Auto-favorite after adding or editing a note",
 					"delete_confirm": "Pop-up confirmation dialog when deleting clipboard contents",
-					"auto_sort": "Alignment to the top when copying existing content"
+					"auto_sort": "Alignment to the top when copying existing content",
+					"show_riginal_cntent": "Whether to display the original content on mouse hover after adding a note"
 				}
 			}
 		},
