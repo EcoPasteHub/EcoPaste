@@ -9,17 +9,7 @@ interface ImageProps extends Partial<HistoryTablePayload> {
 const Image: FC<ImageProps> = (props) => {
 	const { value = "", className = "max-h-full" } = props;
 
-	const [src, setSrc] = useState("");
-
-	useAsyncEffect(async () => {
-		if (!value) return;
-
-		const src = await convertFileSrc(value);
-
-		setSrc(src);
-	}, [value]);
-
-	return <img src={src} className={className} />;
+	return <img src={convertFileSrc(value)} className={className} />;
 };
 
 export default memo(Image);
