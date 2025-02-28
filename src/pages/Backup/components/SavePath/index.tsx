@@ -50,12 +50,10 @@ const SavePath: FC<{ state: State }> = (props) => {
 			message.success(
 				t("preference.data_backup.storage_settings.hints.change_success"),
 			);
-
-			state.spinning = false;
 		} catch (error: any) {
-			state.spinning = false;
-
 			message.error(error);
+		} finally {
+			state.spinning = false;
 		}
 	};
 

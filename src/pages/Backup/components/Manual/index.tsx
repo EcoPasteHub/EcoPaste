@@ -51,8 +51,6 @@ const Manual: FC<{ state: State }> = (props) => {
 
 			await decompress(path, getSaveDataPath());
 
-			state.spinning = false;
-
 			await restoreStore(true);
 
 			emit(LISTEN_KEY.REFRESH_CLIPBOARD_LIST);
@@ -61,9 +59,9 @@ const Manual: FC<{ state: State }> = (props) => {
 				t("preference.data_backup.import_export.hints.import_success"),
 			);
 		} catch (error: any) {
-			state.spinning = false;
-
 			message.error(error);
+		} finally {
+			state.spinning = false;
 		}
 	};
 
@@ -102,15 +100,13 @@ const Manual: FC<{ state: State }> = (props) => {
 
 			await openPath(path, { explorer: true });
 
-			state.spinning = false;
-
 			message.success(
 				t("preference.data_backup.import_export.hints.export_success"),
 			);
 		} catch (error: any) {
-			state.spinning = false;
-
 			message.error(error);
+		} finally {
+			state.spinning = false;
 		}
 	};
 
