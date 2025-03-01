@@ -6100,9 +6100,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-fs-pro"
-version = "2.3.0"
+version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4644a4622f8cda1d06a6a3ef5f1c72ae9e853f8d45d93babd02a689cd001276d"
+checksum = "88311267fcdd4221e1b86c8aedf4f8e33ea0ea33e28718624fe2bc7405935a84"
 dependencies = [
  "file_icon_provider",
  "flate2",
@@ -6156,10 +6156,11 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-macos-permissions"
-version = "2.0.4"
+version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f5db3010ccd60ac3b508164823e0fc6ebcf99fc6bdbf0583830879152f2cf860"
+checksum = "65510927dba2ceb3285eb7efc960972e913b52e8d3dae89b65ef7324be8cf44e"
 dependencies = [
+ "core-graphics 0.24.0",
  "macos-accessibility-client",
  "serde",
  "tauri",
