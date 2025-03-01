@@ -60,43 +60,48 @@ const Delete = () => {
 	];
 
 	const onSubmit = async () => {
-		const { timeRange, customRange, deleteFavorite } = form.getFieldsValue();
+		try {
+			const { timeRange, customRange, deleteFavorite } = form.getFieldsValue();
 
-		setTrue();
+			setTrue();
 
-		let range: Dayjs[] = [];
+			let range: Dayjs[] = [];
 
-		if (timeRange < 0) {
-			range = customRange;
-		} else {
-			range = [dayjs().subtract(timeRange, "hour"), dayjs()];
-		}
-
-		const formatRange = range.map((item) => formatDate(item));
-
-		const list = await selectSQL<HistoryTablePayload[]>("history");
-
-		for await (const item of list) {
-			const { favorite, createTime } = item;
-
-			if (favorite && !deleteFavorite) continue;
-
-			const isBetween = dayjs(createTime).isBetween(
-				formatRange[0],
-				formatRange[1],
-				null,
-				"[]",
-			);
-
-			if (timeRange === 0 || isBetween) {
-				await deleteSQL("history", item);
+			if (timeRange < 0) {
+				range = customRange;
+			} else {
+				range = [dayjs().subtract(timeRange, "hour"), dayjs()];
 			}
-		}
 
-		toggle();
-		setFalse();
-		message.success(t("preference.history.history.hints.delete_success"));
-		emit(LISTEN_KEY.REFRESH_CLIPBOARD_LIST);
+			const formatRange = range.map((item) => formatDate(item));
+
+			const list = await selectSQL<HistoryTablePayload[]>("history");
+
+			for await (const item of list) {
+				const { favorite, createTime } = item;
+
+				if (favorite && !deleteFavorite) continue;
+
+				const isBetween = dayjs(createTime).isBetween(
+					formatRange[0],
+					formatRange[1],
+					null,
+					"[]",
+				);
+
+				if (timeRange === 0 || isBetween) {
+					await deleteSQL("history", item);
+				}
+			}
+
+			toggle();
+			message.success(t("preference.history.history.hints.delete_success"));
+			emit(LISTEN_KEY.REFRESH_CLIPBOARD_LIST);
+		} catch (error) {
+			message.error(String(error));
+		} finally {
+			setFalse();
+		}
 	};
 
 	return (

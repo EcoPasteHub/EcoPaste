@@ -97,13 +97,13 @@ const UpdateApp = () => {
 					content: t("component.app_update.hints.latest_version"),
 				});
 			}
-		} catch (error: any) {
+		} catch (error) {
 			if (!showMessage) return;
 
 			messageApi.open({
 				key: UPDATE_MESSAGE_KEY,
 				type: "error",
-				content: error,
+				content: String(error),
 			});
 		}
 	};

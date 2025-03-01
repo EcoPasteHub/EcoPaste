@@ -58,8 +58,8 @@ const Manual: FC<{ state: State }> = (props) => {
 			message.success(
 				t("preference.data_backup.import_export.hints.import_success"),
 			);
-		} catch (error: any) {
-			message.error(error);
+		} catch (error) {
+			message.error(String(error));
 		} finally {
 			state.spinning = false;
 		}
@@ -103,8 +103,8 @@ const Manual: FC<{ state: State }> = (props) => {
 			message.success(
 				t("preference.data_backup.import_export.hints.export_success"),
 			);
-		} catch (error: any) {
-			message.error(error);
+		} catch (error) {
+			message.error(String(error));
 		} finally {
 			state.spinning = false;
 		}
