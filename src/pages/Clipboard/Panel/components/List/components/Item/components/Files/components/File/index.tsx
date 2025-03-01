@@ -1,4 +1,4 @@
-import { exists, mkdir, writeFile } from "@tauri-apps/plugin-fs";
+import { sep } from "@tauri-apps/api/path";
 import { Flex } from "antd";
 import clsx from "clsx";
 import type { FC } from "react";
@@ -27,50 +27,13 @@ const File: FC<FileProps> = (props) => {
 
 			if (isLinux()) return;
 
-			state.iconPath = await getIconPath();
+			state.iconPath = await icon(path, 256);
 		} catch {
 			Object.assign(state, {
-				fullName: path.split("/").pop(),
+				fullName: path.split(sep()).pop(),
 			});
 		}
 	}, [path]);
-
-	const getIconPath = async () => {
-		const iconPath = joinPath(getSaveIconPath(), `${getIconName()}.png`);
-
-		const existed = await exists(iconPath);
-
-		if (existed) return iconPath;
-
-		await mkdir(getSaveIconPath(), { recursive: true });
-
-		const bytes = await icon(path, 256);
-
-		await writeFile(iconPath, bytes);
-
-		return iconPath;
-	};
-
-	const getIconName = () => {
-		const { isDir, extname, name, fullName } = state;
-
-		const isMacApp = isMac() && extname === "app";
-		const isWinApp = isWin() && extname === "exe";
-
-		if (isMacApp || isWinApp) {
-			return fullName;
-		}
-
-		if (isDir) {
-			return "__ECOPASTE_DIRECTORY__";
-		}
-
-		if (!extname) {
-			return name;
-		}
-
-		return extname;
-	};
 
 	const renderContent = () => {
 		const height = 100 / Math.min(count, 3);

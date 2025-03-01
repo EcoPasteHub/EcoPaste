@@ -3,18 +3,18 @@ import ProList from "@/components/ProList";
 import ProListItem from "@/components/ProListItem";
 import { confirm } from "@tauri-apps/plugin-dialog";
 import {
-	checkAccessibilityPermissions,
-	checkFullDiskAccessPermissions,
-	requestAccessibilityPermissions,
-	requestFullDiskAccessPermissions,
+	checkAccessibilityPermission,
+	checkFullDiskAccessPermission,
+	requestAccessibilityPermission,
+	requestFullDiskAccessPermission,
 } from "tauri-plugin-macos-permissions-api";
 
 const MacosPermissions = () => {
 	const { t } = useTranslation();
 
 	const state = useReactive({
-		accessibilityPermissions: false,
-		fullDiskAccessPermissions: false,
+		accessibilityPermission: false,
+		fullDiskAccessPermission: false,
 	});
 
 	useMount(() => {
@@ -24,14 +24,12 @@ const MacosPermissions = () => {
 	});
 
 	const checkAccessibility = async () => {
-		state.accessibilityPermissions = await requestAccessibilityPermissions();
+		await requestAccessibilityPermission();
 
 		const check = async () => {
-			const opened = await checkAccessibilityPermissions();
+			state.accessibilityPermission = await checkAccessibilityPermission();
 
-			state.accessibilityPermissions = opened;
-
-			if (opened) return;
+			if (state.accessibilityPermission) return;
 
 			setTimeout(check, 1000);
 		};
@@ -40,11 +38,9 @@ const MacosPermissions = () => {
 	};
 
 	const checkFullDiskAccess = async () => {
-		const opened = await checkFullDiskAccessPermissions();
+		state.fullDiskAccessPermission = await checkFullDiskAccessPermission();
 
-		state.fullDiskAccessPermissions = opened;
-
-		if (opened) return;
+		if (state.fullDiskAccessPermission) return;
 
 		const confirmed = await confirm(
 			t(
@@ -65,25 +61,19 @@ const MacosPermissions = () => {
 
 		if (!confirmed) return;
 
-		requestFullDiskAccessPermissions();
+		requestFullDiskAccessPermission();
 	};
 
-	const renderStatus = (
-		key: keyof typeof state,
-		mouseDownEvent: () => Promise<void>,
-	) => {
+	const renderStatus = (authorized: boolean, event: () => Promise<void>) => {
 		return (
 			<div className="children:(inline-flex items-center gap-4 font-bold)">
-				{state[key] ? (
+				{authorized ? (
 					<div className="text-primary">
 						<Icon name="i-lucide:circle-check" />
 						{t("preference.settings.permission_settings.label.authorized")}
 					</div>
 				) : (
-					<div
-						className="cursor-pointer text-danger"
-						onMouseDown={mouseDownEvent}
-					>
+					<div className="cursor-pointer text-danger" onMouseDown={event}>
 						<Icon name="i-lucide:circle-arrow-right" />
 						{t("preference.settings.permission_settings.button.authorize")}
 					</div>
@@ -103,7 +93,7 @@ const MacosPermissions = () => {
 						"preference.settings.permission_settings.hints.accessibility_permissions",
 					)}
 				>
-					{renderStatus("accessibilityPermissions", checkAccessibility)}
+					{renderStatus(state.accessibilityPermission, checkAccessibility)}
 				</ProListItem>
 
 				<ProListItem
@@ -114,7 +104,7 @@ const MacosPermissions = () => {
 						"preference.settings.permission_settings.hints.full_disk_access_permissions",
 					)}
 				>
-					{renderStatus("fullDiskAccessPermissions", checkFullDiskAccess)}
+					{renderStatus(state.fullDiskAccessPermission, checkFullDiskAccess)}
 				</ProListItem>
 			</ProList>
 		)
