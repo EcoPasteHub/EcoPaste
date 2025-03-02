@@ -114,8 +114,8 @@ importers:
         specifier: ^2.3.1
         version: 2.3.1
       tauri-plugin-macos-permissions-api:
-        specifier: ^2.1.0
-        version: 2.1.0
+        specifier: ^2.1.1
+        version: 2.1.1
       valtio:
         specifier: ^2.1.3
         version: 2.1.3(@types/react@18.3.18)(react@18.3.1)
@@ -4086,8 +4086,8 @@ packages:
   tauri-plugin-fs-pro-api@2.3.1:
     resolution: {integrity: sha512-fx/zITX9MWoDZ603FKWSybluZqJUEOvHU+H6kj3iRJNyoGFHoNkajpQbiK5cu81spQbGBlP9sV2HkaCI07gQ+Q==}
 
-  tauri-plugin-macos-permissions-api@2.1.0:
-    resolution: {integrity: sha512-e+3F12TYhK2sFxC0NvQitxHsvW37npyYT/OP2IqlgUOm0McV3WAs3IdQLcxHq3Q/B0puEIIEPN9Zm7yGYEHpUQ==}
+  tauri-plugin-macos-permissions-api@2.1.1:
+    resolution: {integrity: sha512-aUM02FibqrG0YRs0o4gza+RlE9Q2Tpo4FJz6G+CSQYc7ZsgCVkywJm40yfHKKFzd4eEAIPPI5agEIFOvWfBpxg==}
 
   text-extensions@2.4.0:
     resolution: {integrity: sha512-te/NtwBwfiNRLf9Ijqx3T0nlqZiQ2XrrtBvu+cLL8ZRrGkO0NHTug8MYFKyoSrv/sHTaSKfilUkizV6XhxMJ3g==}
@@ -8748,7 +8748,7 @@ snapshots:
     dependencies:
       '@tauri-apps/api': 2.2.0
 
-  tauri-plugin-macos-permissions-api@2.1.0:
+  tauri-plugin-macos-permissions-api@2.1.1:
     dependencies:
       '@tauri-apps/api': 2.2.0
 
