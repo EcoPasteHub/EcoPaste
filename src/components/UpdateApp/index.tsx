@@ -35,7 +35,9 @@ const UpdateApp = () => {
 	});
 
 	// 监听参与测试版本配置变化
-	useImmediateKey(globalStore.update, "beta", () => {
+	useImmediateKey(globalStore.update, "beta", (value) => {
+		if (!value) return;
+
 		checkUpdate();
 	});
 
@@ -110,19 +112,10 @@ const UpdateApp = () => {
 
 	// 替换更新日志里的内容
 	const replaceBody = (body: string) => {
-		return (
-			body
-				// 替换贡献者名称
-				.replace(
-					/(-.*?by.*?)@([^ ]+)/g,
-					"$1<a href='https://github.com/$2'><mark>@$2</mark></a>",
-				)
-				// 替换 pr 链接
-				.replace(
-					new RegExp(`(${GITHUB_ISSUES_LINK}/)(\\d+)`, "g"),
-					"[#$2]($1$2)",
-				)
-		);
+		return body
+			.split("\n")
+			.map((line) => line.replace(/\s*-\s+by\s+@.*/, ""))
+			.join("\n");
 	};
 
 	const handleOk = async () => {
