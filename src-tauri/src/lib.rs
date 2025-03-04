@@ -59,7 +59,7 @@ pub fn run() {
         .plugin(tauri_plugin_drag::init())
         // macos 权限查询的插件：https://github.com/ayangweb/tauri-plugin-macos-permissions
         .plugin(tauri_plugin_macos_permissions::init())
-        // 拓展了对文件和目录的操作
+        // 拓展了对文件和目录的操作：https://github.com/ayangweb/tauri-plugin-fs-pro
         .plugin(tauri_plugin_fs_pro::init())
         // 自定义的窗口管理插件
         .plugin(tauri_plugin_eco_window::init())

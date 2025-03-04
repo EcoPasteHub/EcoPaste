@@ -28,3 +28,6 @@ enigo = "0.2.1"
 log.workspace = true
 x11 = "2.21.0"
 rdev = "0.5.3"
+
+[features]
+cargo-clippy = []
