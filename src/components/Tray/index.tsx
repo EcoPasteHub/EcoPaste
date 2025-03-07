@@ -81,6 +81,7 @@ const Tray = () => {
 		const items = await Promise.all([
 			MenuItem.new({
 				text: t("component.tray.label.preference"),
+				accelerator: isMac() ? "Cmd+," : void 0,
 				action: () => showWindow("preference"),
 			}),
 			MenuItem.new({
@@ -113,6 +114,7 @@ const Tray = () => {
 			}),
 			MenuItem.new({
 				text: t("component.tray.label.exit"),
+				accelerator: isMac() ? "Cmd+Q" : void 0,
 				action: () => exit(0),
 			}),
 		]);
