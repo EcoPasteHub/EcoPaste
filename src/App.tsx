@@ -73,8 +73,8 @@ const App = () => {
 		open(href);
 	});
 
-	// esc 或者 meta.w 隐藏窗口
-	useOSKeyPress(["esc", "meta.w"], hideWindow);
+	// 隐藏窗口
+	useOSKeyPress(["esc", "meta.w", "ctrl.w"], hideWindow);
 
 	// 监听 promise 的错误，输出到日志
 	useEventListener("unhandledrejection", ({ reason }) => {

@@ -150,6 +150,11 @@ const ClipboardPanel = () => {
 		[state.quickPasteKeys],
 	);
 
+	// 打开偏好设置窗口
+	useOSKeyPress(["meta.comma", "ctrl.comma"], () => {
+		showWindow("preference");
+	});
+
 	// 获取剪切板内容
 	const getList = async () => {
 		const { group, search, favorite } = state;
