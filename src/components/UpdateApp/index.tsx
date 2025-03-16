@@ -122,9 +122,7 @@ const UpdateApp = () => {
 		state.loading = true;
 
 		await state.update?.downloadAndInstall((progress) => {
-			const { event } = progress;
-
-			switch (event) {
+			switch (progress.event) {
 				case "Started":
 					state.total = progress.data.contentLength;
 					break;
