@@ -4,6 +4,9 @@
   :global {
     .ant-tabs-content-holder {
       --uno: "b-0 h-full flex-1 overflow-auto bg-color-2 p-16";
+      
+      overflow-y: scroll;
+      scrollbar-gutter: stable;
 
       .ant-tabs-tabpane {
         --uno: "p-0!";
