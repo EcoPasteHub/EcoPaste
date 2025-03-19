@@ -37,7 +37,11 @@ const HTML: FC<Partial<HistoryTablePayload>> = (props) => {
 		<div
 			ref={containerRef}
 			className="translate-z-0"
-			dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(value) }}
+			dangerouslySetInnerHTML={{
+				__html: DOMPurify.sanitize(value, {
+					FORBID_ATTR: ["controls", "autoplay", "autoPlay"],
+				}),
+			}}
 		/>
 	);
 };
