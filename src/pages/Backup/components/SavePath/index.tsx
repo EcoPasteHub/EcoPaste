@@ -38,7 +38,6 @@ const SavePath: FC<{ state: State }> = (props) => {
 			await transfer(getSaveDataPath(), dstPath, {
 				includes: [
 					await fullName(getSaveImagePath()),
-					await fullName(getSaveIconPath()),
 					await fullName(await getSaveDatabasePath()),
 				],
 			});

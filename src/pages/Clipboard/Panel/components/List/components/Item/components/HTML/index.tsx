@@ -1,47 +1,30 @@
 import type { HistoryTablePayload } from "@/types/database";
 import DOMPurify from "dompurify";
-import type { FC } from "react";
+import type { FC, MouseEvent } from "react";
 
 const HTML: FC<Partial<HistoryTablePayload>> = (props) => {
 	const { value = "" } = props;
-	const containerRef = useRef<HTMLDivElement>(null);
 
-	useMount(() => {
-		if (!containerRef.current) return;
+	const handleClick = (event: MouseEvent) => {
+		const { target, metaKey, ctrlKey } = event;
 
-		const links = containerRef.current.querySelectorAll("a");
+		const link = (target as HTMLElement).closest("a");
 
-		for (const link of links) {
-			link.removeAttribute("target");
-		}
-	});
+		if (!link || metaKey || ctrlKey) return;
 
-	useEventListener(
-		"click",
-		(event) => {
-			const { target, metaKey, ctrlKey } = event;
-
-			const link = (target as HTMLElement).closest("a");
-
-			if (!link || metaKey || ctrlKey) return;
-
-			event.preventDefault();
-			event.stopPropagation();
-		},
-		{
-			target: containerRef,
-		},
-	);
+		event.preventDefault();
+		event.stopPropagation();
+	};
 
 	return (
 		<div
-			ref={containerRef}
 			className="translate-z-0"
 			dangerouslySetInnerHTML={{
 				__html: DOMPurify.sanitize(value, {
-					FORBID_ATTR: ["controls", "autoplay", "autoPlay"],
+					FORBID_ATTR: ["target", "controls", "autoplay", "autoPlay"],
 				}),
 			}}
+			onClick={handleClick}
 		/>
 	);
 };
