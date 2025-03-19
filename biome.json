@@ -41,7 +41,8 @@
 			},
 			"a11y": {
 				"useAltText": "off",
-				"useMediaCaption": "off"
+				"useMediaCaption": "off",
+				"useKeyWithClickEvents": "off"
 			}
 		}
 	}
