@@ -1,16 +1,13 @@
-import { noop } from "lodash-es";
 import { subscribeKey } from "valtio/utils";
 
 export const useSubscribeKey: typeof subscribeKey = (...args) => {
-	const state = useReactive({
-		unsubscribe: noop,
-	});
+	const unsubscribeRef = useRef(() => {});
 
-	useMount(async () => {
-		state.unsubscribe = subscribeKey(...args);
-	});
+	useEffect(() => {
+		unsubscribeRef.current = subscribeKey(...args);
 
-	useUnmount(state.unsubscribe);
+		return unsubscribeRef.current;
+	}, []);
 
-	return state.unsubscribe;
+	return unsubscribeRef.current;
 };

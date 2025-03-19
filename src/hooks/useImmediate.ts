@@ -1,18 +1,13 @@
-import { noop } from "lodash-es";
 import { subscribe } from "valtio";
 
-export const useImmediate = (...args: Parameters<typeof subscribe>) => {
-	const state = useReactive({
-		unsubscribe: noop,
-	});
-
-	useMount(async () => {
+export const useImmediate = (...args: Parameters<typeof subscribe>): void => {
+	useEffect(() => {
 		const [, callback] = args;
 
 		callback([]);
 
-		state.unsubscribe = subscribe(...args);
-	});
+		const unsubscribe = subscribe(...args);
 
-	useUnmount(state.unsubscribe);
+		return unsubscribe;
+	}, []);
 };
