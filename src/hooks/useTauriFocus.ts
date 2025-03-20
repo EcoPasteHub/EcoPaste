@@ -8,6 +8,7 @@ interface Props {
 
 export const useTauriFocus = (props: Props) => {
 	const { onFocus, onBlur } = props;
+	const unlistenRef = useRef(() => {});
 
 	useMount(async () => {
 		const appWindow = getCurrentWebviewWindow();
@@ -22,6 +23,8 @@ export const useTauriFocus = (props: Props) => {
 			}
 		}, wait);
 
-		appWindow.onFocusChanged(debounced);
+		unlistenRef.current = await appWindow.onFocusChanged(debounced);
 	});
+
+	useUnmount(unlistenRef.current);
 };
