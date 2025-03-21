@@ -1,5 +1,4 @@
 import Icon from "@/components/Icon";
-import Tray from "@/components/Tray";
 import UpdateApp from "@/components/UpdateApp";
 import About from "@/pages/About";
 import Backup from "@/pages/Backup";
@@ -18,6 +17,8 @@ const PreferenceLayout = () => {
 	const { app, shortcut, appearance } = useSnapshot(globalStore);
 	const [activeKey, setActiveKey] = useState("clipboard");
 	const contentRef = useRef<HTMLElement>(null);
+
+	useTray();
 
 	useMount(async () => {
 		const autostart = await isAutostart();
@@ -138,8 +139,6 @@ const PreferenceLayout = () => {
 					{renderContent()}
 				</MacScrollbar>
 			</Flex>
-
-			<Tray />
 
 			<UpdateApp />
 		</>
