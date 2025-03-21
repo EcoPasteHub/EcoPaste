@@ -5,7 +5,7 @@ import { TrayIcon, type TrayIconOptions } from "@tauri-apps/api/tray";
 import { exit, relaunch } from "@tauri-apps/plugin-process";
 import { open } from "@tauri-apps/plugin-shell";
 
-const Tray = () => {
+export const useTray = () => {
 	const [startListen, { toggle }] = useBoolean(true);
 	const { t } = useTranslation();
 
@@ -132,8 +132,4 @@ const Tray = () => {
 
 		tray.setMenu(menu);
 	};
-
-	return <></>;
 };
-
-export default Tray;
