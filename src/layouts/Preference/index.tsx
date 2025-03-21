@@ -8,15 +8,16 @@ import General from "@/pages/General";
 import History from "@/pages/History";
 import Shortcut from "@/pages/Shortcut";
 import { emit } from "@tauri-apps/api/event";
-import { Flex, Tabs, type TabsProps } from "antd";
+import { Flex } from "antd";
 import clsx from "clsx";
+import { MacScrollbar } from "mac-scrollbar";
 import { useSnapshot } from "valtio";
-import styles from "./index.module.scss";
 
 const PreferenceLayout = () => {
 	const { t } = useTranslation();
-	const { app, shortcut } = useSnapshot(globalStore);
+	const { app, shortcut, appearance } = useSnapshot(globalStore);
 	const [activeKey, setActiveKey] = useState("clipboard");
+	const contentRef = useRef<HTMLElement>(null);
 
 	useMount(async () => {
 		const autostart = await isAutostart();
@@ -35,7 +36,7 @@ const PreferenceLayout = () => {
 	// 监听快捷键切换窗口显隐
 	useRegister(toggleWindowVisible, [shortcut.preference]);
 
-	const tabItems: TabsProps["items"] = [
+	const menuItems = [
 		{
 			key: "clipboard",
 			label: t("preference.menu.title.clipboard"),
@@ -46,14 +47,12 @@ const PreferenceLayout = () => {
 			key: "history",
 			label: t("preference.menu.title.history"),
 			icon: "i-lucide:history",
-			forceRender: true,
 			children: <History />,
 		},
 		{
 			key: "general",
 			label: t("preference.menu.title.general"),
 			icon: "i-lucide:bolt",
-			forceRender: true,
 			children: <General />,
 		},
 		{
@@ -76,43 +75,6 @@ const PreferenceLayout = () => {
 		},
 	];
 
-	const renderTabBar: TabsProps["renderTabBar"] = () => {
-		return (
-			<Flex
-				data-tauri-drag-region
-				vertical
-				gap="small"
-				className={clsx("h-full w-200 p-12", [
-					isMac() ? "pt-32" : "bg-color-1",
-				])}
-				onClick={(event) => event.stopPropagation()}
-			>
-				{tabItems.map((item) => {
-					const { key, label, icon } = item;
-
-					return (
-						<Flex
-							key={key}
-							align="center"
-							gap="small"
-							className={clsx(
-								"cursor-pointer rounded-8 p-12 p-r-0 text-color-2 transition hover:bg-color-4",
-								{
-									"bg-primary! text-white!": activeKey === key,
-								},
-							)}
-							onClick={() => handleTabItemClick(key)}
-						>
-							<Icon name={icon as string} size={20} />
-
-							<span className="font-bold">{label}</span>
-						</Flex>
-					);
-				})}
-			</Flex>
-		);
-	};
-
 	// 配置项变化通知其它窗口和本地存储
 	const handleStoreChanged = async () => {
 		emit(LISTEN_KEY.STORE_CHANGED, { globalStore, clipboardStore });
@@ -120,27 +82,62 @@ const PreferenceLayout = () => {
 		saveStore();
 	};
 
-	// 切换选项卡
-	const handleTabItemClick = (key: string) => {
+	const handleMenuClick = (key: string) => {
 		setActiveKey(key);
 
 		raf(() => {
-			const element = document.querySelector(".ant-tabs-content-holder");
-
-			element?.scrollTo({ top: 0, behavior: "smooth" });
+			contentRef.current?.scrollTo({ top: 0, behavior: "smooth" });
 		});
+	};
+
+	const renderContent = () => {
+		return menuItems.find((item) => item.key === activeKey)?.children;
 	};
 
 	return (
 		<>
-			<Tabs
-				animated
-				activeKey={activeKey}
-				tabPosition="left"
-				items={tabItems}
-				className={styles.root}
-				renderTabBar={renderTabBar}
-			/>
+			<Flex className="h-screen">
+				<Flex
+					data-tauri-drag-region
+					vertical
+					gap="small"
+					className={clsx("h-full w-200 p-12", [
+						isMac() ? "pt-32" : "bg-color-1",
+					])}
+				>
+					{menuItems.map((item) => {
+						const { key, label, icon } = item;
+
+						return (
+							<Flex
+								key={key}
+								align="center"
+								gap="small"
+								className={clsx(
+									"cursor-pointer rounded-8 p-12 p-r-0 text-color-2 transition hover:bg-color-4",
+									{
+										"bg-primary! text-white!": activeKey === key,
+									},
+								)}
+								onClick={() => handleMenuClick(key)}
+							>
+								<Icon name={icon} size={20} />
+
+								<span className="font-bold">{label}</span>
+							</Flex>
+						);
+					})}
+				</Flex>
+
+				<MacScrollbar
+					data-tauri-drag-region
+					ref={contentRef}
+					skin={appearance.isDark ? "dark" : "light"}
+					className="h-full flex-1 bg-color-2 p-16"
+				>
+					{renderContent()}
+				</MacScrollbar>
+			</Flex>
 
 			<Tray />
 
