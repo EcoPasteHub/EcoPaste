@@ -8,19 +8,10 @@ import General from "@/pages/General";
 import History from "@/pages/History";
 import Shortcut from "@/pages/Shortcut";
 import { emit } from "@tauri-apps/api/event";
-import { Flex, Layout } from "antd";
+import { Flex } from "antd";
 import clsx from "clsx";
 import { MacScrollbar } from "mac-scrollbar";
 import { useSnapshot } from "valtio";
-
-const { Sider, Content } = Layout;
-
-interface MenuItem {
-	key: string;
-	label: string;
-	icon: string;
-	children: React.ReactNode;
-}
 
 const PreferenceLayout = () => {
 	const { t } = useTranslation();
@@ -45,7 +36,7 @@ const PreferenceLayout = () => {
 	// 监听快捷键切换窗口显隐
 	useRegister(toggleWindowVisible, [shortcut.preference]);
 
-	const menuItems: MenuItem[] = [
+	const menuItems = [
 		{
 			key: "clipboard",
 			label: t("preference.menu.title.clipboard"),
@@ -105,50 +96,48 @@ const PreferenceLayout = () => {
 
 	return (
 		<>
-			<Layout className="h-screen bg-transparent">
-				<Sider width={200} className="bg-transparent">
-					<Flex
-						data-tauri-drag-region
-						vertical
-						gap="small"
-						className={clsx("h-full p-12", [isMac() ? "pt-32" : "bg-color-1"])}
-					>
-						{menuItems.map((item) => {
-							const { key, label, icon } = item;
+			<Flex className="h-screen">
+				<Flex
+					data-tauri-drag-region
+					vertical
+					gap="small"
+					className={clsx("h-full w-200 p-12", [
+						isMac() ? "pt-32" : "bg-color-1",
+					])}
+				>
+					{menuItems.map((item) => {
+						const { key, label, icon } = item;
 
-							return (
-								<Flex
-									key={key}
-									align="center"
-									gap="small"
-									className={clsx(
-										"cursor-pointer rounded-8 p-12 p-r-0 text-color-2 transition hover:bg-color-4",
-										{
-											"bg-primary! text-white!": activeKey === key,
-										},
-									)}
-									onClick={() => handleMenuClick(key)}
-								>
-									<Icon name={icon} size={20} />
+						return (
+							<Flex
+								key={key}
+								align="center"
+								gap="small"
+								className={clsx(
+									"cursor-pointer rounded-8 p-12 p-r-0 text-color-2 transition hover:bg-color-4",
+									{
+										"bg-primary! text-white!": activeKey === key,
+									},
+								)}
+								onClick={() => handleMenuClick(key)}
+							>
+								<Icon name={icon} size={20} />
 
-									<span className="font-bold">{label}</span>
-								</Flex>
-							);
-						})}
-					</Flex>
-				</Sider>
+								<span className="font-bold">{label}</span>
+							</Flex>
+						);
+					})}
+				</Flex>
 
-				<Content className="bg-color-2">
-					<MacScrollbar
-						data-tauri-drag-region
-						ref={contentRef}
-						skin={appearance.isDark ? "dark" : "light"}
-						className="h-full p-16"
-					>
-						{renderContent()}
-					</MacScrollbar>
-				</Content>
-			</Layout>
+				<MacScrollbar
+					data-tauri-drag-region
+					ref={contentRef}
+					skin={appearance.isDark ? "dark" : "light"}
+					className="h-full flex-1 bg-color-2 p-16"
+				>
+					{renderContent()}
+				</MacScrollbar>
+			</Flex>
 
 			<Tray />
 
