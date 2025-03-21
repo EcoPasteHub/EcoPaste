@@ -17,17 +17,17 @@ tauri-plugin.workspace = true
 
 [target."cfg(target_os = \"macos\")".dependencies]
 cocoa.workspace = true
-objc = "0.2.7"
+objc = "0.2"
 
 [target."cfg(target_os = \"windows\")".dependencies]
 log.workspace = true
 winapi = { version = "0.3", features = ["winuser", "windef"] }
-enigo = "0.2.1"
+enigo = "0.2"
 
 [target."cfg(target_os = \"linux\")".dependencies]
 log.workspace = true
-x11 = "2.21.0"
-rdev = "0.5.3"
+x11 = "2"
+rdev = "0.5"
 
 [features]
 cargo-clippy = []

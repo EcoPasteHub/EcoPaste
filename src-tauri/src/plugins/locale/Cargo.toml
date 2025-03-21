@@ -10,7 +10,7 @@ links = "tauri-plugin-eco-locale"
 [dependencies]
 tauri.workspace = true
 serde.workspace = true
-current_locale = "0.1.1"
+current_locale = "0.1"
 
 [build-dependencies]
 tauri-plugin.workspace = true
