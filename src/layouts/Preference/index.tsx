@@ -1,5 +1,4 @@
 import Icon from "@/components/Icon";
-import Scrollbar from "@/components/Scrollbar";
 import Tray from "@/components/Tray";
 import UpdateApp from "@/components/UpdateApp";
 import About from "@/pages/About";
@@ -9,13 +8,14 @@ import General from "@/pages/General";
 import History from "@/pages/History";
 import Shortcut from "@/pages/Shortcut";
 import { emit } from "@tauri-apps/api/event";
-import { Layout, Menu } from "antd";
-import Sider from "antd/es/layout/Sider";
-import { Content } from "antd/lib/layout/layout";
+import { Flex, Layout } from "antd";
+import clsx from "clsx";
+import { MacScrollbar } from "mac-scrollbar";
 import { useSnapshot } from "valtio";
-import styles from "./index.module.scss";
 
-interface TabItem {
+const { Sider, Content } = Layout;
+
+interface MenuItem {
 	key: string;
 	label: string;
 	icon: string;
@@ -24,8 +24,9 @@ interface TabItem {
 
 const PreferenceLayout = () => {
 	const { t } = useTranslation();
-	const { app, shortcut } = useSnapshot(globalStore);
+	const { app, shortcut, appearance } = useSnapshot(globalStore);
 	const [activeKey, setActiveKey] = useState("clipboard");
+	const contentRef = useRef<HTMLElement>(null);
 
 	useMount(async () => {
 		const autostart = await isAutostart();
@@ -44,7 +45,7 @@ const PreferenceLayout = () => {
 	// 监听快捷键切换窗口显隐
 	useRegister(toggleWindowVisible, [shortcut.preference]);
 
-	const tabItems: TabItem[] = [
+	const menuItems: MenuItem[] = [
 		{
 			key: "clipboard",
 			label: t("preference.menu.title.clipboard"),
@@ -90,37 +91,62 @@ const PreferenceLayout = () => {
 		saveStore();
 	};
 
-	const menuItems = tabItems.map((item) => ({
-		key: item.key,
-		label: <span className="font-bold">{item.label}</span>,
-		icon: <Icon name={item.icon as string} size={20} />,
-	}));
+	const handleMenuClick = (key: string) => {
+		setActiveKey(key);
 
-	// 根据 activeKey 获取当前要显示的内容
-	const getCurrentContent = () => {
-		const currentTab = tabItems.find((item) => item.key === activeKey);
-		return currentTab?.children;
+		raf(() => {
+			contentRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+		});
 	};
 
-	// 处理菜单点击事件
-	const handleMenuClick = ({ key }: { key: string }) => {
-		setActiveKey(key);
+	const renderContent = () => {
+		return menuItems.find((item) => item.key === activeKey)?.children;
 	};
 
 	return (
 		<>
-			<Layout className={styles.root}>
-				<Sider>
-					<Menu
-						className="h-full p-t-24"
-						mode="inline"
-						items={menuItems}
-						selectedKeys={[activeKey]}
-						onClick={handleMenuClick}
-					/>
+			<Layout className="h-screen bg-transparent">
+				<Sider width={200} className="bg-transparent">
+					<Flex
+						data-tauri-drag-region
+						vertical
+						gap="small"
+						className={clsx("h-full p-12", [isMac() ? "pt-32" : "bg-color-1"])}
+					>
+						{menuItems.map((item) => {
+							const { key, label, icon } = item;
+
+							return (
+								<Flex
+									key={key}
+									align="center"
+									gap="small"
+									className={clsx(
+										"cursor-pointer rounded-8 p-12 p-r-0 text-color-2 transition hover:bg-color-4",
+										{
+											"bg-primary! text-white!": activeKey === key,
+										},
+									)}
+									onClick={() => handleMenuClick(key)}
+								>
+									<Icon name={icon} size={20} />
+
+									<span className="font-bold">{label}</span>
+								</Flex>
+							);
+						})}
+					</Flex>
 				</Sider>
-				<Content className="p-r-2 py-4">
-					<Scrollbar className="h-full p-10">{getCurrentContent()}</Scrollbar>
+
+				<Content className="bg-color-2">
+					<MacScrollbar
+						data-tauri-drag-region
+						ref={contentRef}
+						skin={appearance.isDark ? "dark" : "light"}
+						className="h-full p-16"
+					>
+						{renderContent()}
+					</MacScrollbar>
 				</Content>
 			</Layout>
 
