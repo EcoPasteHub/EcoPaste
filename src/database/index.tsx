@@ -1,5 +1,5 @@
 import type { TableName, TablePayload } from "@/types/database";
-import { remove } from "@tauri-apps/plugin-fs";
+import { exists, remove } from "@tauri-apps/plugin-fs";
 import Database from "@tauri-apps/plugin-sql";
 import { entries, isBoolean, isNil, map, omitBy, some } from "lodash-es";
 
@@ -153,6 +153,11 @@ export const deleteSQL = async (tableName: TableName, item: TablePayload) => {
 	await executeSQL(`DELETE FROM ${tableName} WHERE id = ?;`, [id]);
 
 	if (type !== "image" || !value) return;
+
+	const path = resolveImagePath(value);
+	const existed = await exists(path);
+
+	if (!existed) return;
 
 	return remove(resolveImagePath(value));
 };
