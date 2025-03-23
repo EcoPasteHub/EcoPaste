@@ -96,52 +96,50 @@ const PreferenceLayout = () => {
 	};
 
 	return (
-		<>
-			<Flex className="h-screen">
-				<Flex
-					data-tauri-drag-region
-					vertical
-					gap="small"
-					className={clsx("h-full w-200 p-12", [
-						isMac() ? "pt-32" : "bg-color-1",
-					])}
-				>
-					{menuItems.map((item) => {
-						const { key, label, icon } = item;
+		<Flex className="h-screen">
+			<Flex
+				data-tauri-drag-region
+				vertical
+				gap="small"
+				className={clsx("h-full w-200 p-12", [
+					isMac() ? "pt-32" : "bg-color-1",
+				])}
+			>
+				{menuItems.map((item) => {
+					const { key, label, icon } = item;
 
-						return (
-							<Flex
-								key={key}
-								align="center"
-								gap="small"
-								className={clsx(
-									"cursor-pointer rounded-8 p-12 p-r-0 text-color-2 transition hover:bg-color-4",
-									{
-										"bg-primary! text-white!": activeKey === key,
-									},
-								)}
-								onClick={() => handleMenuClick(key)}
-							>
-								<Icon name={icon} size={20} />
+					return (
+						<Flex
+							key={key}
+							align="center"
+							gap="small"
+							className={clsx(
+								"cursor-pointer rounded-8 p-12 p-r-0 text-color-2 transition hover:bg-color-4",
+								{
+									"bg-primary! text-white!": activeKey === key,
+								},
+							)}
+							onClick={() => handleMenuClick(key)}
+						>
+							<Icon name={icon} size={20} />
 
-								<span className="font-bold">{label}</span>
-							</Flex>
-						);
-					})}
-				</Flex>
-
-				<MacScrollbar
-					data-tauri-drag-region
-					ref={contentRef}
-					skin={appearance.isDark ? "dark" : "light"}
-					className="h-full flex-1 bg-color-2 p-16"
-				>
-					{renderContent()}
-				</MacScrollbar>
+							<span className="font-bold">{label}</span>
+						</Flex>
+					);
+				})}
 			</Flex>
 
+			<MacScrollbar
+				data-tauri-drag-region
+				ref={contentRef}
+				skin={appearance.isDark ? "dark" : "light"}
+				className="h-full flex-1 bg-color-2 p-16"
+			>
+				{renderContent()}
+			</MacScrollbar>
+
 			<UpdateApp />
-		</>
+		</Flex>
 	);
 };
 
