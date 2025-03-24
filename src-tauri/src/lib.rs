@@ -57,18 +57,18 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         // 拖拽插件：https://github.com/crabnebula-dev/drag-rs
         .plugin(tauri_plugin_drag::init())
-        // macos 权限查询的插件：https://github.com/ayangweb/tauri-plugin-macos-permissions
+        // 检查和请求 macos 系统权限：https://github.com/ayangweb/tauri-plugin-macos-permissions
         .plugin(tauri_plugin_macos_permissions::init())
         // 拓展了对文件和目录的操作：https://github.com/ayangweb/tauri-plugin-fs-pro
         .plugin(tauri_plugin_fs_pro::init())
+        // 获取系统获取系统的区域设置：https://github.com/ayangweb/tauri-plugin-locale
+        .plugin(tauri_plugin_locale::init())
         // 自定义的窗口管理插件
         .plugin(tauri_plugin_eco_window::init())
         // 自定义剪贴板插件
         .plugin(tauri_plugin_eco_clipboard::init())
         // 自定义图片识别插件
         .plugin(tauri_plugin_eco_ocr::init())
-        // 自定义语言相关的插件
-        .plugin(tauri_plugin_eco_locale::init())
         // 自定义粘贴的插件
         .plugin(tauri_plugin_eco_paste::init())
         // 自定义判断是否自动启动的插件
