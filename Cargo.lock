@@ -1424,13 +1424,13 @@ dependencies = [
  "tauri-plugin-drag",
  "tauri-plugin-eco-autostart",
  "tauri-plugin-eco-clipboard",
- "tauri-plugin-eco-locale",
  "tauri-plugin-eco-ocr",
  "tauri-plugin-eco-paste",
  "tauri-plugin-eco-window",
  "tauri-plugin-fs",
  "tauri-plugin-fs-pro",
  "tauri-plugin-global-shortcut",
+ "tauri-plugin-locale",
  "tauri-plugin-log",
  "tauri-plugin-macos-permissions",
  "tauri-plugin-os",
@@ -5954,16 +5954,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tauri-plugin-eco-locale"
-version = "0.1.0"
-dependencies = [
- "current_locale",
- "serde",
- "tauri",
- "tauri-plugin",
-]
-
-[[package]]
 name = "tauri-plugin-eco-ocr"
 version = "0.1.0"
 dependencies = [
@@ -6053,6 +6043,19 @@ dependencies = [
  "log",
  "serde",
  "serde_json",
+ "tauri",
+ "tauri-plugin",
+ "thiserror 2.0.12",
+]
+
+[[package]]
+name = "tauri-plugin-locale"
+version = "2.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5686c1fe8fb748c45ba0b516db42f78dd6fde91b16bc5248de438eff8d2e6abd"
+dependencies = [
+ "current_locale",
+ "serde",
  "tauri",
  "tauri-plugin",
  "thiserror 2.0.12",

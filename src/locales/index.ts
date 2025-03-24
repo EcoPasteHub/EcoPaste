@@ -36,12 +36,12 @@ i18n.use(initReactI18next).init({
 
 export { i18n };
 
-export const getAntdLocale = (language: Language = "zh-CN") => {
+export const getAntdLocale = (language: Language = LANGUAGE.ZH_CN) => {
 	const antdLanguage: Record<Language, AntdLocale> = {
-		"zh-CN": antdZhCN,
-		"zh-TW": antdZhTW,
-		"en-US": antdEnUS,
-		"ja-JP": antdJaJP,
+		[LANGUAGE.ZH_CN]: antdZhCN,
+		[LANGUAGE.ZH_TW]: antdZhTW,
+		[LANGUAGE.EN_US]: antdEnUS,
+		[LANGUAGE.JA_JP]: antdJaJP,
 	};
 
 	return antdLanguage[language];

@@ -1,11 +1,10 @@
 import ProSelect from "@/components/ProSelect";
-import type { Language as TypeLanguage } from "@/types/store";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { useSnapshot } from "valtio";
 
 interface Option {
 	label: string;
-	value: TypeLanguage;
+	value: string;
 }
 
 const Language = () => {
@@ -23,19 +22,19 @@ const Language = () => {
 	const options: Option[] = [
 		{
 			label: "简体中文",
-			value: "zh-CN",
+			value: LANGUAGE.ZH_CN,
 		},
 		{
 			label: "繁體中文",
-			value: "zh-TW",
+			value: LANGUAGE.ZH_TW,
 		},
 		{
 			label: "English",
-			value: "en-US",
+			value: LANGUAGE.EN_US,
 		},
 		{
 			label: "日本語",
-			value: "ja-JP",
+			value: LANGUAGE.JA_JP,
 		},
 	];
 
