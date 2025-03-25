@@ -37,51 +37,53 @@ const PreferenceLayout = () => {
 	// 监听快捷键切换窗口显隐
 	useRegister(toggleWindowVisible, [shortcut.preference]);
 
-	const menuItems = [
-		{
-			key: "clipboard",
-			label: t("preference.menu.title.clipboard"),
-			icon: "i-lucide:clipboard-list",
-			children: <ClipboardSettings />,
-		},
-		{
-			key: "history",
-			label: t("preference.menu.title.history"),
-			icon: "i-lucide:history",
-			children: <History />,
-		},
-		{
-			key: "general",
-			label: t("preference.menu.title.general"),
-			icon: "i-lucide:bolt",
-			children: <General />,
-		},
-		{
-			key: "shortcut",
-			label: t("preference.menu.title.shortcut"),
-			icon: "i-lucide:keyboard",
-			children: <Shortcut />,
-		},
-		{
-			key: "backup",
-			label: t("preference.menu.title.backup"),
-			icon: "i-lucide:database-backup",
-			children: <Backup />,
-		},
-		{
-			key: "about",
-			label: t("preference.menu.title.about"),
-			icon: "i-lucide:info",
-			children: <About />,
-		},
-	];
-
 	// 配置项变化通知其它窗口和本地存储
-	const handleStoreChanged = async () => {
+	const handleStoreChanged = () => {
 		emit(LISTEN_KEY.STORE_CHANGED, { globalStore, clipboardStore });
 
 		saveStore();
 	};
+
+	const menuItems = useCreation(() => {
+		return [
+			{
+				key: "clipboard",
+				label: t("preference.menu.title.clipboard"),
+				icon: "i-lucide:clipboard-list",
+				content: <ClipboardSettings />,
+			},
+			{
+				key: "history",
+				label: t("preference.menu.title.history"),
+				icon: "i-lucide:history",
+				content: <History />,
+			},
+			{
+				key: "general",
+				label: t("preference.menu.title.general"),
+				icon: "i-lucide:bolt",
+				content: <General />,
+			},
+			{
+				key: "shortcut",
+				label: t("preference.menu.title.shortcut"),
+				icon: "i-lucide:keyboard",
+				content: <Shortcut />,
+			},
+			{
+				key: "backup",
+				label: t("preference.menu.title.backup"),
+				icon: "i-lucide:database-backup",
+				content: <Backup />,
+			},
+			{
+				key: "about",
+				label: t("preference.menu.title.about"),
+				icon: "i-lucide:info",
+				content: <About />,
+			},
+		];
+	}, [appearance.language]);
 
 	const handleMenuClick = (key: string) => {
 		setActiveKey(key);
@@ -89,10 +91,6 @@ const PreferenceLayout = () => {
 		raf(() => {
 			contentRef.current?.scrollTo({ top: 0, behavior: "smooth" });
 		});
-	};
-
-	const renderContent = () => {
-		return menuItems.find((item) => item.key === activeKey)?.children;
 	};
 
 	return (
@@ -135,7 +133,15 @@ const PreferenceLayout = () => {
 				skin={appearance.isDark ? "dark" : "light"}
 				className="h-full flex-1 bg-color-2 p-16"
 			>
-				{renderContent()}
+				{menuItems.map((item) => {
+					const { key, content } = item;
+
+					return (
+						<div key={key} hidden={key !== activeKey}>
+							{content}
+						</div>
+					);
+				})}
 			</MacScrollbar>
 
 			<UpdateApp />
