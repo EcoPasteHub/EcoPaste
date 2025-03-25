@@ -23,20 +23,13 @@
 				}
 			]
 		},
-		"fs:allow-read-text-file",
-		"fs:allow-write-text-file",
-		"fs:allow-copy-file",
-		"fs:allow-remove",
-		"fs:allow-exists",
-		"fs:allow-mkdir",
-		"fs:allow-write-file",
+		"fs:read-all",
+		"fs:write-all",
 		{
 			"identifier": "fs:scope",
 			"allow": ["**/*"]
 		},
-		"autostart:allow-enable",
-		"autostart:allow-disable",
-		"autostart:allow-is-enabled",
+		"autostart:default",
 		"log:default",
 		"sql:default",
 		"sql:allow-execute",
