@@ -1,4 +1,4 @@
-import { ClipboardPanelContext } from "@/pages/Clipboard/Panel";
+import { MainContext } from "@/pages/Main";
 import type { HistoryTablePayload } from "@/types/database";
 import { Form, Input, type InputRef, Modal } from "antd";
 import { t } from "i18next";
@@ -13,7 +13,7 @@ interface FormFields {
 }
 
 const NoteModal = forwardRef<NoteModalRef>((_, ref) => {
-	const { state } = useContext(ClipboardPanelContext);
+	const { state } = useContext(MainContext);
 	const [open, { toggle }] = useBoolean();
 	const [item, setItem] = useState<HistoryTablePayload>();
 	const [form] = Form.useForm<FormFields>();

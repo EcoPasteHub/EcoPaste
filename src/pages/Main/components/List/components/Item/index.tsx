@@ -1,5 +1,5 @@
 import Icon from "@/components/Icon";
-import { ClipboardPanelContext } from "@/pages/Clipboard/Panel";
+import { MainContext } from "@/pages/Main";
 import type { HistoryTablePayload } from "@/types/database";
 import { startDrag } from "@crabnebula/tauri-plugin-drag";
 import { Menu, MenuItem, type MenuItemOptions } from "@tauri-apps/api/menu";
@@ -34,7 +34,7 @@ interface ContextMenuItem extends MenuItemOptions {
 const Item: FC<ItemProps> = (props) => {
 	const { index, data, className, deleteModal, openNoteModel, ...rest } = props;
 	const { id, type, value, search, group, favorite, note, subtype } = data;
-	const { state } = useContext(ClipboardPanelContext);
+	const { state } = useContext(MainContext);
 	const { t } = useTranslation();
 	const { env } = useSnapshot(globalStore);
 	const { content } = useSnapshot(clipboardStore);

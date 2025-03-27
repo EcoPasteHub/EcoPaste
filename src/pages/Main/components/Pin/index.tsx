@@ -1,9 +1,9 @@
 import Icon from "@/components/Icon";
 import clsx from "clsx";
-import { ClipboardPanelContext } from "../..";
+import { MainContext } from "../..";
 
 const Pin = () => {
-	const { state } = useContext(ClipboardPanelContext);
+	const { state } = useContext(MainContext);
 
 	return (
 		<Icon

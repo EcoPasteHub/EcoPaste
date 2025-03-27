@@ -1,17 +1,14 @@
-// @unocss-include
-import PreferenceLayout from "@/layouts/Preference";
-import ClipboardPanel from "@/pages/Clipboard/Panel";
-import { type RouteObject, createHashRouter } from "react-router-dom";
+import Main from "@/pages/Main";
+import Preference from "@/pages/Preference";
+import { createHashRouter } from "react-router-dom";
 
-export const routes: RouteObject[] = [
+export const router = createHashRouter([
 	{
 		path: "/",
-		Component: ClipboardPanel,
+		Component: Main,
 	},
 	{
 		path: "/preference",
-		Component: PreferenceLayout,
+		Component: Preference,
 	},
-];
-
-export const router = createHashRouter(routes);
+]);

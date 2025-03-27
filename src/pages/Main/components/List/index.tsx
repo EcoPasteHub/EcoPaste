@@ -1,5 +1,5 @@
 import Scrollbar from "@/components/Scrollbar";
-import { ClipboardPanelContext } from "@/pages/Clipboard/Panel";
+import { MainContext } from "@/pages/Main";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { FloatButton, Modal } from "antd";
 import { findIndex } from "lodash-es";
@@ -7,7 +7,7 @@ import Item from "./components/Item";
 import NoteModal, { type NoteModalRef } from "./components/NoteModal";
 
 const List = () => {
-	const { state, getList } = useContext(ClipboardPanelContext);
+	const { state, getList } = useContext(MainContext);
 	const outerRef = useRef<HTMLDivElement>(null);
 	const noteModelRef = useRef<NoteModalRef>(null);
 	const [deleteModal, contextHolder] = Modal.useModal();
