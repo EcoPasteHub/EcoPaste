@@ -2,10 +2,10 @@ import Icon from "@/components/Icon";
 import type { InputRef } from "antd";
 import { Input } from "antd";
 import type { FC, HTMLAttributes } from "react";
-import { ClipboardPanelContext } from "../..";
+import { MainContext } from "../..";
 
 const Search: FC<HTMLAttributes<HTMLDivElement>> = (props) => {
-	const { state } = useContext(ClipboardPanelContext);
+	const { state } = useContext(MainContext);
 	const inputRef = useRef<InputRef>(null);
 	const [value, setValue] = useState<string>();
 	const [isComposition, { setTrue, setFalse }] = useBoolean();

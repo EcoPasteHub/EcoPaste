@@ -25,16 +25,16 @@ const INITIAL_STATE: State = {
 	quickPasteKeys: [],
 };
 
-interface ClipboardPanelContextValue {
+interface MainContextValue {
 	state: State;
 	getList?: (payload?: HistoryTablePayload) => Promise<void>;
 }
 
-export const ClipboardPanelContext = createContext<ClipboardPanelContextValue>({
+export const MainContext = createContext<MainContextValue>({
 	state: INITIAL_STATE,
 });
 
-const ClipboardPanel = () => {
+const Main = () => {
 	const { shortcut } = useSnapshot(globalStore);
 	const { window } = useSnapshot(clipboardStore);
 	const state = useReactive<State>(INITIAL_STATE);
@@ -183,16 +183,16 @@ const ClipboardPanel = () => {
 		<>
 			<Audio hiddenIcon ref={audioRef} />
 
-			<ClipboardPanelContext.Provider
+			<MainContext.Provider
 				value={{
 					state,
 					getList,
 				}}
 			>
 				{window.style === "float" ? <Float /> : <Dock />}
-			</ClipboardPanelContext.Provider>
+			</MainContext.Provider>
 		</>
 	);
 };
 
-export default ClipboardPanel;
+export default Main;

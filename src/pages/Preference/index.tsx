@@ -1,18 +1,18 @@
 import Icon from "@/components/Icon";
 import UpdateApp from "@/components/UpdateApp";
-import About from "@/pages/About";
-import Backup from "@/pages/Backup";
-import ClipboardSettings from "@/pages/Clipboard/Settings";
-import General from "@/pages/General";
-import History from "@/pages/History";
-import Shortcut from "@/pages/Shortcut";
 import { emit } from "@tauri-apps/api/event";
 import { Flex } from "antd";
 import clsx from "clsx";
 import { MacScrollbar } from "mac-scrollbar";
 import { useSnapshot } from "valtio";
+import About from "./components/About";
+import Backup from "./components/Backup";
+import Clipboard from "./components/Clipboard";
+import General from "./components/General";
+import History from "./components/History";
+import Shortcut from "./components/Shortcut";
 
-const PreferenceLayout = () => {
+const Preference = () => {
 	const { t } = useTranslation();
 	const { app, shortcut, appearance } = useSnapshot(globalStore);
 	const [activeKey, setActiveKey] = useState("clipboard");
@@ -50,7 +50,7 @@ const PreferenceLayout = () => {
 				key: "clipboard",
 				label: t("preference.menu.title.clipboard"),
 				icon: "i-lucide:clipboard-list",
-				content: <ClipboardSettings />,
+				content: <Clipboard />,
 			},
 			{
 				key: "history",
@@ -149,4 +149,4 @@ const PreferenceLayout = () => {
 	);
 };
 
-export default PreferenceLayout;
+export default Preference;

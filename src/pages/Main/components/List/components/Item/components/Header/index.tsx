@@ -1,7 +1,7 @@
 import Icon from "@/components/Icon";
 import Scrollbar from "@/components/Scrollbar";
-import { ClipboardPanelContext } from "@/pages/Clipboard/Panel";
-import { transferData } from "@/pages/Clipboard/Settings/components/OperationButton";
+import { MainContext } from "@/pages/Main";
+import { transferData } from "@/pages/Preference/components/Clipboard/components/OperationButton";
 import type { HistoryTablePayload } from "@/types/database";
 import type { OperationButton } from "@/types/store";
 import { Flex } from "antd";
@@ -22,7 +22,7 @@ interface HeaderProps {
 const Header: FC<HeaderProps> = (props) => {
 	const { data } = props;
 	const { id, type, value, count, createTime, favorite, subtype } = data;
-	const { state } = useContext(ClipboardPanelContext);
+	const { state } = useContext(MainContext);
 	const { t, i18n } = useTranslation();
 	const { content } = useSnapshot(clipboardStore);
 

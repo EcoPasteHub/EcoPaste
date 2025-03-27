@@ -3,7 +3,7 @@ import type { HistoryTablePayload } from "@/types/database";
 import { Flex, Tag } from "antd";
 import clsx from "clsx";
 import { last } from "lodash-es";
-import { ClipboardPanelContext } from "../..";
+import { MainContext } from "../..";
 
 interface GroupItem extends Partial<HistoryTablePayload> {
 	key: string;
@@ -11,7 +11,7 @@ interface GroupItem extends Partial<HistoryTablePayload> {
 }
 
 const Group = () => {
-	const { state } = useContext(ClipboardPanelContext);
+	const { state } = useContext(MainContext);
 	const { t } = useTranslation();
 	const [checked, setChecked] = useState("all");
 
