@@ -1,4 +1,3 @@
-import { WINDOW_PLUGIN } from "@/constants";
 import type { WindowLabel } from "@/types/plugin";
 import { invoke } from "@tauri-apps/api/core";
 import { emit } from "@tauri-apps/api/event";
@@ -9,6 +8,12 @@ import {
 	currentMonitor,
 } from "@tauri-apps/api/window";
 
+const COMMAND = {
+	SHOW_WINDOW: "plugin:eco-window|show_window",
+	HIDE_WINDOW: "plugin:eco-window|hide_window",
+	SHOW_TASKBAR_ICON: "plugin:eco-window|show_taskbar_icon",
+};
+
 /**
  * 显示窗口
  */
@@ -16,7 +21,7 @@ export const showWindow = (label?: WindowLabel) => {
 	if (label) {
 		emit(LISTEN_KEY.SHOW_WINDOW, label);
 	} else {
-		invoke(WINDOW_PLUGIN.SHOW_WINDOW);
+		invoke(COMMAND.SHOW_WINDOW);
 	}
 };
 
@@ -24,7 +29,7 @@ export const showWindow = (label?: WindowLabel) => {
  * 隐藏窗口
  */
 export const hideWindow = () => {
-	invoke(WINDOW_PLUGIN.HIDE_WINDOW);
+	invoke(COMMAND.HIDE_WINDOW);
 };
 
 /**
@@ -94,5 +99,5 @@ export const toggleWindowVisible = async () => {
  * 显示任务栏图标
  */
 export const showTaskbarIcon = (show = true) => {
-	invoke(WINDOW_PLUGIN.SHOW_TASKBAR_ICON, { show });
+	invoke(COMMAND.SHOW_TASKBAR_ICON, { show });
 };
