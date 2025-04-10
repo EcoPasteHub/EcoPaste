@@ -6,18 +6,39 @@ import { exists } from "@tauri-apps/plugin-fs";
 import { isEmpty, isEqual } from "lodash-es";
 import { fullName, metadata } from "tauri-plugin-fs-pro-api";
 
+const COMMAND = {
+	START_LISTEN: "plugin:eco-clipboard|start_listen",
+	STOP_LISTEN: "plugin:eco-clipboard|stop_listen",
+	HAS_FILES: "plugin:eco-clipboard|has_files",
+	HAS_IMAGE: "plugin:eco-clipboard|has_image",
+	HAS_HTML: "plugin:eco-clipboard|has_html",
+	HAS_RTF: "plugin:eco-clipboard|has_rtf",
+	HAS_TEXT: "plugin:eco-clipboard|has_text",
+	READ_FILES: "plugin:eco-clipboard|read_files",
+	READ_IMAGE: "plugin:eco-clipboard|read_image",
+	READ_HTML: "plugin:eco-clipboard|read_html",
+	READ_RTF: "plugin:eco-clipboard|read_rtf",
+	READ_TEXT: "plugin:eco-clipboard|read_text",
+	WRITE_FILES: "plugin:eco-clipboard|write_files",
+	WRITE_IMAGE: "plugin:eco-clipboard|write_image",
+	WRITE_HTML: "plugin:eco-clipboard|write_html",
+	WRITE_RTF: "plugin:eco-clipboard|write_rtf",
+	WRITE_TEXT: "plugin:eco-clipboard|write_text",
+	CLIPBOARD_UPDATE: "plugin:eco-clipboard://clipboard_update",
+};
+
 /**
  * 开启监听
  */
 export const startListen = () => {
-	return invoke(CLIPBOARD_PLUGIN.START_LISTEN);
+	return invoke(COMMAND.START_LISTEN);
 };
 
 /**
  * 停止监听
  */
 export const stopListen = () => {
-	return invoke(CLIPBOARD_PLUGIN.STOP_LISTEN);
+	return invoke(COMMAND.STOP_LISTEN);
 };
 
 // 切换监听
@@ -33,42 +54,42 @@ export const toggleListen = (value: boolean) => {
  * 剪贴板是否有文件
  */
 export const hasFiles = () => {
-	return invoke<boolean>(CLIPBOARD_PLUGIN.HAS_FILES);
+	return invoke<boolean>(COMMAND.HAS_FILES);
 };
 
 /**
  * 剪贴板是否有图像
  */
 export const hasImage = () => {
-	return invoke<boolean>(CLIPBOARD_PLUGIN.HAS_IMAGE);
+	return invoke<boolean>(COMMAND.HAS_IMAGE);
 };
 
 /**
  * 剪贴板是否有 HTML 内容
  */
 export const hasHTML = () => {
-	return invoke<boolean>(CLIPBOARD_PLUGIN.HAS_HTML);
+	return invoke<boolean>(COMMAND.HAS_HTML);
 };
 
 /**
  * 剪贴板是否有富文本
  */
 export const hasRTF = () => {
-	return invoke<boolean>(CLIPBOARD_PLUGIN.HAS_RTF);
+	return invoke<boolean>(COMMAND.HAS_RTF);
 };
 
 /**
  * 剪贴板是否有纯文本
  */
 export const hasText = () => {
-	return invoke<boolean>(CLIPBOARD_PLUGIN.HAS_TEXT);
+	return invoke<boolean>(COMMAND.HAS_TEXT);
 };
 
 /**
  * 读取剪贴板文件
  */
 export const readFiles = async (): Promise<ClipboardPayload> => {
-	let files = await invoke<string[]>(CLIPBOARD_PLUGIN.READ_FILES);
+	let files = await invoke<string[]>(COMMAND.READ_FILES);
 
 	files = files.map(decodeURI);
 
@@ -96,12 +117,9 @@ export const readFiles = async (): Promise<ClipboardPayload> => {
  * 读取剪贴板图片
  */
 export const readImage = async (): Promise<ClipboardPayload> => {
-	const { image, ...rest } = await invoke<ReadImage>(
-		CLIPBOARD_PLUGIN.READ_IMAGE,
-		{
-			path: getSaveImagePath(),
-		},
-	);
+	const { image, ...rest } = await invoke<ReadImage>(COMMAND.READ_IMAGE, {
+		path: getSaveImagePath(),
+	});
 
 	const { size: count } = await metadata(image);
 
@@ -136,7 +154,7 @@ export const readImage = async (): Promise<ClipboardPayload> => {
  * 读取 HTML 内容
  */
 export const readHTML = async (): Promise<ClipboardPayload> => {
-	const html = await invoke<string>(CLIPBOARD_PLUGIN.READ_HTML);
+	const html = await invoke<string>(COMMAND.READ_HTML);
 
 	const { value, count } = await readText();
 
@@ -152,7 +170,7 @@ export const readHTML = async (): Promise<ClipboardPayload> => {
  * 读取富文本
  */
 export const readRTF = async (): Promise<ClipboardPayload> => {
-	const rtf = await invoke<string>(CLIPBOARD_PLUGIN.READ_RTF);
+	const rtf = await invoke<string>(COMMAND.READ_RTF);
 
 	const { value, count } = await readText();
 
@@ -168,7 +186,7 @@ export const readRTF = async (): Promise<ClipboardPayload> => {
  * 读取纯文本
  */
 export const readText = async (): Promise<ClipboardPayload> => {
-	const text = await invoke<string>(CLIPBOARD_PLUGIN.READ_TEXT);
+	const text = await invoke<string>(COMMAND.READ_TEXT);
 
 	const data: ClipboardPayload = {
 		value: text,
@@ -186,7 +204,7 @@ export const readText = async (): Promise<ClipboardPayload> => {
  * 文件写入剪贴板
  */
 export const writeFiles = (value: string) => {
-	return invoke(CLIPBOARD_PLUGIN.WRITE_FILES, {
+	return invoke(COMMAND.WRITE_FILES, {
 		value: JSON.parse(value),
 	});
 };
@@ -195,7 +213,7 @@ export const writeFiles = (value: string) => {
  * 图片写入剪贴板
  */
 export const writeImage = (value: string) => {
-	return invoke(CLIPBOARD_PLUGIN.WRITE_IMAGE, {
+	return invoke(COMMAND.WRITE_IMAGE, {
 		value,
 	});
 };
@@ -210,7 +228,7 @@ export const writeHTML = (text: string, html: string) => {
 		return writeText(text);
 	}
 
-	return invoke(CLIPBOARD_PLUGIN.WRITE_HTML, {
+	return invoke(COMMAND.WRITE_HTML, {
 		text,
 		html,
 	});
@@ -226,7 +244,7 @@ export const writeRTF = (text: string, rtf: string) => {
 		return writeText(text);
 	}
 
-	return invoke(CLIPBOARD_PLUGIN.WRITE_RTF, {
+	return invoke(COMMAND.WRITE_RTF, {
 		text,
 		rtf,
 	});
@@ -236,7 +254,7 @@ export const writeRTF = (text: string, rtf: string) => {
  * 纯文本写入剪贴板
  */
 export const writeText = (value: string) => {
-	return invoke(CLIPBOARD_PLUGIN.WRITE_TEXT, {
+	return invoke(COMMAND.WRITE_TEXT, {
 		value,
 	});
 };
@@ -289,7 +307,7 @@ export const onClipboardUpdate = (fn: (payload: ClipboardPayload) => void) => {
 	let lastUpdated = 0;
 	let previousPayload: ClipboardPayload;
 
-	return listen(CLIPBOARD_PLUGIN.CLIPBOARD_UPDATE, async () => {
+	return listen(COMMAND.CLIPBOARD_UPDATE, async () => {
 		const payload = await readClipboard();
 
 		const { group, count } = payload;
