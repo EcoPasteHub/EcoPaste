@@ -1,4 +1,4 @@
-use tauri::{ActivationPolicy, App, Emitter, EventTarget, Manager, WebviewWindow};
+use tauri::{ActivationPolicy, AppHandle, Emitter, EventTarget, WebviewWindow};
 use tauri_nspanel::{cocoa::appkit::NSWindowCollectionBehavior, panel_delegate, WebviewWindowExt};
 use tauri_plugin_eco_window::MAIN_WINDOW_LABEL;
 
@@ -11,14 +11,16 @@ const WINDOW_BLUR_EVENT: &str = "tauri://blur";
 const WINDOW_MOVED_EVENT: &str = "tauri://move";
 const WINDOW_RESIZED_EVENT: &str = "tauri://resize";
 
-pub fn platform(app: &mut App, main_window: WebviewWindow, _preference_window: WebviewWindow) {
-    let app_handle = app.app_handle().clone();
-
+pub fn platform(
+    app_handle: &AppHandle,
+    main_window: WebviewWindow,
+    _preference_window: WebviewWindow,
+) {
     // macos window 转 ns_panel 插件
     let _ = app_handle.plugin(tauri_nspanel::init());
 
     // 隐藏 mac 的程序坞图标：https://github.com/tauri-apps/tauri/issues/4852#issuecomment-1312716378
-    app.set_activation_policy(ActivationPolicy::Accessory);
+    let _ = app_handle.set_activation_policy(ActivationPolicy::Accessory);
 
     // 把 ns_window 转换为 ns_panel
     let panel = main_window.to_panel().unwrap();

@@ -10,11 +10,13 @@ use tauri_plugin_log::{Target, TargetKind};
 pub fn run() {
     let app = Builder::default()
         .setup(|app| {
+            let app_handle = app.handle();
+
             let main_window = app.get_webview_window(MAIN_WINDOW_LABEL).unwrap();
 
             let preference_window = app.get_webview_window(PREFERENCE_WINDOW_LABEL).unwrap();
 
-            setup::default(app, main_window.clone(), preference_window.clone());
+            setup::default(&app_handle, main_window.clone(), preference_window.clone());
 
             Ok(())
         })
