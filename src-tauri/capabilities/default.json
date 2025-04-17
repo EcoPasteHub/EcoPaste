@@ -12,7 +12,6 @@
 		"core:window:allow-set-theme",
 		"core:window:deny-internal-toggle-maximize",
 		"core:window:allow-set-size",
-		"shell:default",
 		{
 			"identifier": "shell:allow-execute",
 			"allow": [
@@ -45,6 +44,14 @@
 		"fs-pro:default",
 		"locale:default",
 		"opener:default",
+		{
+			"identifier": "opener:allow-open-path",
+			"allow": [
+				{
+					"path": "**/*"
+				}
+			]
+		},
 		"eco-window:default",
 		"eco-clipboard:default",
 		"eco-ocr:default",

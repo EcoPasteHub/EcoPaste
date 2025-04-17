@@ -35,7 +35,6 @@
 		"@tauri-apps/plugin-opener": "^2.2.6",
 		"@tauri-apps/plugin-os": "^2.2.1",
 		"@tauri-apps/plugin-process": "^2.2.1",
-		"@tauri-apps/plugin-shell": "^2.2.1",
 		"@tauri-apps/plugin-sql": "^2.2.0",
 		"@tauri-apps/plugin-updater": "^2.7.0",
 		"@unocss/reset": "^0.63.6",
@@ -58,7 +57,7 @@
 		"react-router-dom": "6.27.0",
 		"rehype-raw": "^7.0.0",
 		"rtf.js": "^3.0.9",
-		"tauri-plugin-fs-pro-api": "2.3.1",
+		"tauri-plugin-fs-pro-api": "^2.4.0",
 		"tauri-plugin-locale-api": "^2.0.1",
 		"tauri-plugin-macos-permissions-api": "^2.2.0",
 		"valtio": "^2.1.4"

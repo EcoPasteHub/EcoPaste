@@ -47,9 +47,6 @@ importers:
       '@tauri-apps/plugin-process':
         specifier: ^2.2.1
         version: 2.2.1
-      '@tauri-apps/plugin-shell':
-        specifier: ^2.2.1
-        version: 2.2.1
       '@tauri-apps/plugin-sql':
         specifier: ^2.2.0
         version: 2.2.0
@@ -117,8 +114,8 @@ importers:
         specifier: ^3.0.9
         version: 3.0.9
       tauri-plugin-fs-pro-api:
-        specifier: 2.3.1
-        version: 2.3.1
+        specifier: ^2.4.0
+        version: 2.4.0
       tauri-plugin-locale-api:
         specifier: ^2.0.1
         version: 2.0.1
@@ -1418,9 +1415,6 @@ packages:
 
   '@tauri-apps/plugin-process@2.2.1':
     resolution: {integrity: sha512-cF/k8J+YjjuowhNG1AboHNTlrGiOwgX5j6NzsX6WFf9FMzyZUchkCgZMxCdSE5NIgFX0vvOgLQhODFJgbMenLg==}
-
-  '@tauri-apps/plugin-shell@2.2.1':
-    resolution: {integrity: sha512-G1GFYyWe/KlCsymuLiNImUgC8zGY0tI0Y3p8JgBCWduR5IEXlIJS+JuG1qtveitwYXlfJrsExt3enhv5l2/yhA==}
 
   '@tauri-apps/plugin-sql@2.2.0':
     resolution: {integrity: sha512-yGdybpaMENe/p6lTXslvDHYNNvD9qB7palaBBF5fJHdYSkwd3vrLiYU9dFfLwUAwnsBylND55EiivWsjhazejA==}
@@ -4126,8 +4120,8 @@ packages:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
 
-  tauri-plugin-fs-pro-api@2.3.1:
-    resolution: {integrity: sha512-fx/zITX9MWoDZ603FKWSybluZqJUEOvHU+H6kj3iRJNyoGFHoNkajpQbiK5cu81spQbGBlP9sV2HkaCI07gQ+Q==}
+  tauri-plugin-fs-pro-api@2.4.0:
+    resolution: {integrity: sha512-SfXMQC3SClaHCzEfrQOeSgQvx+YrlfQQpbbtj1U9LJhRjhwpIsC71UqtzcI2J7aJTt5njD+7Oe8daa3mH0Eybg==}
 
   tauri-plugin-locale-api@2.0.1:
     resolution: {integrity: sha512-kiNcbP6ZKUpPbFseePrR9eb8kTRw8tSJ0ZBpQk4mDyGcbK3xGu0/dy7Cx8lBfC/p2MlmnyO4uRVIwta7FoV6eQ==}
@@ -5487,10 +5481,6 @@ snapshots:
       '@tauri-apps/api': 2.5.0
 
   '@tauri-apps/plugin-process@2.2.1':
-    dependencies:
-      '@tauri-apps/api': 2.5.0
-
-  '@tauri-apps/plugin-shell@2.2.1':
     dependencies:
       '@tauri-apps/api': 2.5.0
 
@@ -8826,7 +8816,7 @@ snapshots:
 
   supports-preserve-symlinks-flag@1.0.0: {}
 
-  tauri-plugin-fs-pro-api@2.3.1:
+  tauri-plugin-fs-pro-api@2.4.0:
     dependencies:
       '@tauri-apps/api': 2.5.0
 

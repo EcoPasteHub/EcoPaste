@@ -3,10 +3,10 @@ import ProList from "@/components/ProList";
 import { emit } from "@tauri-apps/api/event";
 import { downloadDir } from "@tauri-apps/api/path";
 import { confirm, open } from "@tauri-apps/plugin-dialog";
+import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { Flex, List, message } from "antd";
 import type { FC } from "react";
-import { fullName, open as openPath } from "tauri-plugin-fs-pro-api";
-import { compress, decompress } from "tauri-plugin-fs-pro-api";
+import { compress, decompress, fullName } from "tauri-plugin-fs-pro-api";
 import type { State } from "../..";
 
 const Manual: FC<{ state: State }> = (props) => {
@@ -98,7 +98,7 @@ const Manual: FC<{ state: State }> = (props) => {
 				],
 			});
 
-			await openPath(path, { explorer: true });
+			await revealItemInDir(path);
 
 			message.success(
 				t("preference.data_backup.import_export.hints.export_success"),

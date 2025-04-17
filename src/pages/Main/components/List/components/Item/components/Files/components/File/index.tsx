@@ -27,7 +27,7 @@ const File: FC<FileProps> = (props) => {
 
 			if (isLinux) return;
 
-			state.iconPath = await icon(path, 256);
+			state.iconPath = await icon(path, { size: 256 });
 		} catch {
 			Object.assign(state, {
 				fullName: path.split(sep()).pop(),
