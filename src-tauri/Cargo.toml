@@ -35,6 +35,7 @@ tauri-plugin-process = "2"
 tauri-plugin-drag = "2"
 tauri-plugin-macos-permissions = "2"
 tauri-plugin-locale = "2"
+tauri-plugin-opener = "2"
 tauri-plugin-fs-pro.workspace = true
 tauri-plugin-eco-window.workspace = true
 tauri-plugin-eco-clipboard.workspace = true

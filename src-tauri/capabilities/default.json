@@ -44,6 +44,7 @@
 		"macos-permissions:default",
 		"fs-pro:default",
 		"locale:default",
+		"opener:default",
 		"eco-window:default",
 		"eco-clipboard:default",
 		"eco-ocr:default",

@@ -98,6 +98,6 @@ export const toggleWindowVisible = async () => {
 /**
  * 显示任务栏图标
  */
-export const showTaskbarIcon = (show = true) => {
-	invoke(COMMAND.SHOW_TASKBAR_ICON, { show });
+export const showTaskbarIcon = (visible = true) => {
+	invoke(COMMAND.SHOW_TASKBAR_ICON, { visible });
 };

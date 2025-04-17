@@ -1,4 +1,4 @@
-use tauri::{ActivationPolicy, AppHandle, Emitter, EventTarget, WebviewWindow};
+use tauri::{AppHandle, Emitter, EventTarget, WebviewWindow};
 use tauri_nspanel::{cocoa::appkit::NSWindowCollectionBehavior, panel_delegate, WebviewWindowExt};
 use tauri_plugin_eco_window::MAIN_WINDOW_LABEL;
 
@@ -20,7 +20,7 @@ pub fn platform(
     let _ = app_handle.plugin(tauri_nspanel::init());
 
     // 隐藏 mac 的程序坞图标：https://github.com/tauri-apps/tauri/issues/4852#issuecomment-1312716378
-    let _ = app_handle.set_activation_policy(ActivationPolicy::Accessory);
+    let _ = app_handle.set_dock_visibility(false);
 
     // 把 ns_window 转换为 ns_panel
     let panel = main_window.to_panel().unwrap();

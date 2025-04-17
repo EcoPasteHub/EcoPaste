@@ -65,6 +65,8 @@ pub fn run() {
         .plugin(tauri_plugin_fs_pro::init())
         // 获取系统获取系统的区域设置：https://github.com/ayangweb/tauri-plugin-locale
         .plugin(tauri_plugin_locale::init())
+        // 打开文件或者链接：https://github.com/tauri-apps/plugins-workspace/tree/v2/plugins/opener
+        .plugin(tauri_plugin_opener::init())
         // 自定义的窗口管理插件
         .plugin(tauri_plugin_eco_window::init())
         // 自定义剪贴板插件
