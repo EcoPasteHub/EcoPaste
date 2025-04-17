@@ -83,7 +83,7 @@ const MacosPermissions = () => {
 	};
 
 	return (
-		isMac() && (
+		isMac && (
 			<ProList header={t("preference.settings.permission_settings.title")}>
 				<ProListItem
 					title={t(

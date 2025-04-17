@@ -183,6 +183,18 @@
 					"quick_paste": "隐藏窗口时，使用数字组合键快速粘贴前九项",
 					"paste_as_plain": "激活窗口时，将选中的内容粘贴为纯文本、OCR文本和路径"
 				}
+			},
+			"preset": {
+				"search": "搜索",
+				"select_item": "选择条目",
+				"select_group": "选择分组",
+				"paste": "粘贴",
+				"delete": "删除",
+				"favorite_or_unfavorite": "收藏或取消收藏",
+				"preview_image": "预览图片",
+				"back_to_top": "回到顶部",
+				"open_preferences": "打开偏好设置",
+				"hide_window": "隐藏窗口"
 			}
 		},
 		"data_backup": {

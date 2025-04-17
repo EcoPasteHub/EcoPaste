@@ -183,6 +183,18 @@
 					"quick_paste": "Use number key combos to quickly paste top 9 items when window is hidden",
 					"paste_as_plain": "Paste selections as plain text, OCR text and paths when the window is activated"
 				}
+			},
+			"preset": {
+				"search": "Search",
+				"select_item": "Select Item",
+				"select_group": "Select Group",
+				"paste": "Paste",
+				"delete": "Delete",
+				"favorite_or_unfavorite": "Favorite or Unfavorite",
+				"preview_image": "Preview Image",
+				"back_to_top": "Back to Top",
+				"open_preferences": "Open Preferences",
+				"hide_window": "Hide Window"
 			}
 		},
 		"data_backup": {

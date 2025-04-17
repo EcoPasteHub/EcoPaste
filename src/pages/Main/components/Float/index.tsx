@@ -13,8 +13,8 @@ const Float = () => {
 	return (
 		<div
 			className={clsx("h-screen bg-color-1", {
-				"rounded-10": !isWin(),
-				"b b-color-1": isLinux(),
+				"rounded-10": !isWin,
+				"b b-color-1": isLinux,
 			})}
 		>
 			<Flex

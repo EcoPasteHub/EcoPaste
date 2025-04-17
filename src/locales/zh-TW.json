@@ -183,6 +183,18 @@
 					"quick_paste": "隱藏視窗時，使用數字鍵快速貼上前九項",
 					"paste_as_plain": "啟動視窗時，將選中的內容粘貼為純文字、OCR文字和路徑"
 				}
+			},
+			"preset": {
+				"search": "搜尋",
+				"select_item": "選擇條目",
+				"select_group": "選擇分組",
+				"paste": "粘貼",
+				"delete": "删除",
+				"favorite_or_unfavorite": "收藏或取消收藏",
+				"preview_image": "預覽圖片",
+				"back_to_top": "回到頂部",
+				"open_preferences": "打開偏好設定",
+				"hide_window": "隱藏視窗"
 			}
 		},
 		"data_backup": {

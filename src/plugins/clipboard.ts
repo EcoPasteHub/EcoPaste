@@ -128,7 +128,7 @@ export const readImage = async (): Promise<ClipboardPayload> => {
 	if (clipboardStore.content.ocr) {
 		search = await systemOCR(image);
 
-		if (isWin()) {
+		if (isWin) {
 			const { content, qr } = JSON.parse(search) as WindowsOCR;
 
 			if (isEmpty(qr)) {

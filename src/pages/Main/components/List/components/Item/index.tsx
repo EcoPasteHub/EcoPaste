@@ -247,7 +247,7 @@ const Item: FC<ItemProps> = (props) => {
 				action: downloadImage,
 			},
 			{
-				text: isMac()
+				text: isMac
 					? t("clipboard.button.context_menu.show_in_finder")
 					: t("clipboard.button.context_menu.show_in_file_explorer"),
 				hide: type !== "files" && subtype !== "path",

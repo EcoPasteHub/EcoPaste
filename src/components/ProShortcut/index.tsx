@@ -122,12 +122,12 @@ const ProShortcut: FC<ProShortcutProps> = (props) => {
 	};
 
 	const renderContent = () => {
-		if (isMac()) {
+		if (isMac) {
 			return (
 				<Flex gap="small" className="font-bold text-16">
 					<Flex gap={4}>
 						{modifierKeys.map((item) => {
-							const { key, macosSymbol } = item;
+							const { key, symbol } = item;
 
 							return (
 								<span
@@ -136,7 +136,7 @@ const ProShortcut: FC<ProShortcutProps> = (props) => {
 										"color-primary": some(state.value, { key }),
 									})}
 								>
-									{macosSymbol}
+									{symbol}
 								</span>
 							);
 						})}
