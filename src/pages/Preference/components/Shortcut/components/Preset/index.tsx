@@ -49,11 +49,11 @@ const Preset = () => {
 		},
 	].map(({ label, value }) => ({
 		label,
-		value: castArray(value).map((item) => {
-			const aa = item.split("+").map(getKeySymbol).join(" ");
-
-			return aa;
-		}),
+		value: union(
+			castArray(value).map((item) => {
+				return item.split("+").map(getKeySymbol).join(" ");
+			}),
+		),
 	}));
 
 	return (
@@ -70,7 +70,7 @@ const Preset = () => {
 						<div className="mb-16 break-all">{t(label)}</div>
 
 						<Flex wrap gap="small">
-							{union(value).map((item) => (
+							{value.map((item) => (
 								<Tag key={item} className="m-0">
 									{item}
 								</Tag>
