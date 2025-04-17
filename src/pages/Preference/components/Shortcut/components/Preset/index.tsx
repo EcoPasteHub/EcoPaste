@@ -51,7 +51,7 @@ const Preset = () => {
 		label,
 		value: union(
 			castArray(value).map((item) => {
-				return item.split("+").map(getKeySymbol).join(" ");
+				return item.split("+").map(getKeySymbol).join(" + ");
 			}),
 		),
 	}));
