@@ -86,7 +86,7 @@ const ClipboardSettings = () => {
 				<ProSwitch
 					title={t("preference.clipboard.content_settings.label.image_ocr")}
 					description={
-						isLinux() && (
+						isLinux && (
 							<>
 								{t("preference.clipboard.content_settings.hints.image_ocr")}{" "}
 								<Typography.Link href="https://github.com/tesseract-ocr/tesseract">

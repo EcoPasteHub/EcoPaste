@@ -13,7 +13,7 @@ export const useTauriFocus = (props: Props) => {
 	useMount(async () => {
 		const appWindow = getCurrentWebviewWindow();
 
-		const wait = isMac() ? 0 : 100;
+		const wait = isMac ? 0 : 100;
 
 		const debounced = debounce(({ payload }) => {
 			if (payload) {

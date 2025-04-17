@@ -99,9 +99,7 @@ const Preference = () => {
 				data-tauri-drag-region
 				vertical
 				gap="small"
-				className={clsx("h-full w-200 p-12", [
-					isMac() ? "pt-32" : "bg-color-1",
-				])}
+				className={clsx("h-full w-200 p-12", [isMac ? "pt-32" : "bg-color-1"])}
 			>
 				{menuItems.map((item) => {
 					const { key, label, icon } = item;

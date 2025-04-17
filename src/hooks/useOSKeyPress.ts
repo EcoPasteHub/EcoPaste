@@ -6,7 +6,7 @@ export const useOSKeyPress: typeof useKeyPress = (...args) => {
 		(event, key) => {
 			const { metaKey, ctrlKey } = event;
 
-			if ((metaKey && !isMac()) || (ctrlKey && isMac())) return;
+			if ((metaKey && !isMac) || (ctrlKey && isMac)) return;
 
 			event.preventDefault();
 

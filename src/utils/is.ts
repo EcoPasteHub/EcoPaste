@@ -11,23 +11,17 @@ export const isDev = () => {
 /**
  * 是否为 macos 系统
  */
-export const isMac = () => {
-	return platform() === "macos";
-};
+export const isMac = platform() === "macos";
 
 /**
  * 是否为 windows 系统
  */
-export const isWin = () => {
-	return platform() === "windows";
-};
+export const isWin = platform() === "windows";
 
 /**
  * 是否为 linux 系统
  */
-export const isLinux = () => {
-	return platform() === "linux";
-};
+export const isLinux = platform() === "linux";
 
 /**
  * 是否为链接

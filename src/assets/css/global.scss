@@ -6,12 +6,12 @@ html {
   &.dark {
     color-scheme: dark;
   }
-}
 
-img {
-  -webkit-user-drag: none;
-}
+  img {
+    -webkit-user-drag: none;
+  }
 
-a {
-  --uno: "hover:color-primary";
+  a {
+    --uno: "hover:color-primary";
+  }
 }

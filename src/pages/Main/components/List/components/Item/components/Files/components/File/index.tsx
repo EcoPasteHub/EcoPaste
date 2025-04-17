@@ -25,7 +25,7 @@ const File: FC<FileProps> = (props) => {
 
 			Object.assign(state, data);
 
-			if (isLinux()) return;
+			if (isLinux) return;
 
 			state.iconPath = await icon(path, 256);
 		} catch {

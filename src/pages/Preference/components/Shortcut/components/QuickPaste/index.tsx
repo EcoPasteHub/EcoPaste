@@ -9,10 +9,10 @@ const QuickPaste = () => {
 	const { t } = useTranslation();
 
 	const options: DefaultOptionType[] = modifierKeys.map((item) => {
-		const { key, symbol, macosSymbol } = item;
+		const { key, symbol } = item;
 
 		return {
-			label: isMac() ? macosSymbol : symbol,
+			label: symbol,
 			value: key,
 			disabled: globalStore.shortcut.quickPaste.value === key,
 		};
