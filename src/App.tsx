@@ -1,7 +1,7 @@
 import { HappyProvider } from "@ant-design/happy-work-theme";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { error } from "@tauri-apps/plugin-log";
-import { open } from "@tauri-apps/plugin-shell";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { ConfigProvider, theme } from "antd";
 import { isString } from "lodash-es";
 import { RouterProvider } from "react-router-dom";
@@ -70,7 +70,7 @@ const App = () => {
 
 		if (!isURL(href)) return;
 
-		open(href);
+		openUrl(href);
 	});
 
 	// 隐藏窗口

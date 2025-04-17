@@ -1,6 +1,5 @@
 use super::{is_main_window, shared_hide_window, shared_show_window};
 use crate::MAIN_WINDOW_LABEL;
-use tauri::ActivationPolicy::{Accessory, Regular};
 use tauri::{command, AppHandle, Runtime, WebviewWindow};
 use tauri_nspanel::ManagerExt;
 
@@ -16,7 +15,7 @@ pub async fn show_window<R: Runtime>(app_handle: AppHandle<R>, window: WebviewWi
     if is_main_window(&window) {
         set_macos_panel(&app_handle, &window, MacOSPanelStatus::Show);
     } else {
-        shared_show_window(&app_handle, &window);
+        shared_show_window(&window);
     }
 }
 
@@ -26,7 +25,7 @@ pub async fn hide_window<R: Runtime>(app_handle: AppHandle<R>, window: WebviewWi
     if is_main_window(&window) {
         set_macos_panel(&app_handle, &window, MacOSPanelStatus::Hide);
     } else {
-        shared_hide_window(&app_handle, &window);
+        shared_hide_window(&window);
     }
 }
 
@@ -34,13 +33,10 @@ pub async fn hide_window<R: Runtime>(app_handle: AppHandle<R>, window: WebviewWi
 #[command]
 pub async fn show_taskbar_icon<R: Runtime>(
     app_handle: AppHandle<R>,
-    window: WebviewWindow<R>,
-    show: bool,
+    _window: WebviewWindow<R>,
+    visible: bool,
 ) {
-    let policy = if show { Regular } else { Accessory };
-    let _ = app_handle.set_activation_policy(policy);
-
-    let _ = window;
+    let _ = app_handle.set_dock_visibility(visible);
 }
 
 // 设置 macos 的 ns_panel 的状态

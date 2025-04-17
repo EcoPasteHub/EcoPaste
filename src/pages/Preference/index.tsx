@@ -18,9 +18,11 @@ const Preference = () => {
 	const [activeKey, setActiveKey] = useState("clipboard");
 	const contentRef = useRef<HTMLElement>(null);
 
-	useTray();
+	const { createTray } = useTray();
 
 	useMount(async () => {
+		createTray();
+
 		const autostart = await isAutostart();
 
 		if (!autostart && !app.silentStart) {

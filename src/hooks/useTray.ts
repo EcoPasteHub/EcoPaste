@@ -2,16 +2,12 @@ import { emit } from "@tauri-apps/api/event";
 import { Menu, MenuItem, PredefinedMenuItem } from "@tauri-apps/api/menu";
 import { resolveResource } from "@tauri-apps/api/path";
 import { TrayIcon, type TrayIconOptions } from "@tauri-apps/api/tray";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { exit, relaunch } from "@tauri-apps/plugin-process";
-import { open } from "@tauri-apps/plugin-shell";
 
 export const useTray = () => {
 	const [startListen, { toggle }] = useBoolean(true);
 	const { t } = useTranslation();
-
-	useMount(() => {
-		createTrayIcon();
-	});
 
 	// 监听是否显示菜单栏图标
 	useSubscribeKey(globalStore.app, "showMenubarIcon", async (value) => {
@@ -20,7 +16,7 @@ export const useTray = () => {
 		if (tray) {
 			tray.setVisible(value);
 		} else {
-			createTrayIcon();
+			createTray();
 		}
 	});
 
@@ -40,8 +36,8 @@ export const useTray = () => {
 		return TrayIcon.getById(TRAY_ID);
 	};
 
-	// 创建托盘图标
-	const createTrayIcon = async () => {
+	// 创建托盘
+	const createTray = async () => {
 		if (!globalStore.app.showMenubarIcon) return;
 
 		const tray = await getTrayById();
@@ -101,7 +97,7 @@ export const useTray = () => {
 			}),
 			MenuItem.new({
 				text: t("component.tray.label.open_source_address"),
-				action: () => open(GITHUB_LINK),
+				action: () => openUrl(GITHUB_LINK),
 			}),
 			PredefinedMenuItem.new({ item: "Separator" }),
 			MenuItem.new({
@@ -131,5 +127,9 @@ export const useTray = () => {
 		const menu = await getTrayMenu();
 
 		tray.setMenu(menu);
+	};
+
+	return {
+		createTray,
 	};
 };

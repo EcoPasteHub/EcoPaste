@@ -5,13 +5,12 @@ import { startDrag } from "@crabnebula/tauri-plugin-drag";
 import { Menu, MenuItem, type MenuItemOptions } from "@tauri-apps/api/menu";
 import { downloadDir, resolveResource } from "@tauri-apps/api/path";
 import { copyFile, writeTextFile } from "@tauri-apps/plugin-fs";
-import { open } from "@tauri-apps/plugin-shell";
+import { openPath, openUrl, revealItemInDir } from "@tauri-apps/plugin-opener";
 import { Flex, type FlexProps, message } from "antd";
 import type { HookAPI } from "antd/es/modal/useModal";
 import clsx from "clsx";
 import { find, isNil, remove } from "lodash-es";
 import type { DragEvent, FC, MouseEvent } from "react";
-import { open as openPath } from "tauri-plugin-fs-pro-api";
 import { useSnapshot } from "valtio";
 import Files from "./components/Files";
 import HTML from "./components/HTML";
@@ -81,12 +80,12 @@ const Item: FC<ItemProps> = (props) => {
 	const openBrowser = () => {
 		const url = value.startsWith("http") ? value : `http://${value}`;
 
-		open(url);
+		openUrl(url);
 	};
 
 	// 发送邮件
 	const sendEmail = () => {
-		open(`mailto:${value}`);
+		openUrl(`mailto:${value}`);
 	};
 
 	// 导出文件
@@ -97,7 +96,7 @@ const Item: FC<ItemProps> = (props) => {
 
 		await writeTextFile(path, value);
 
-		openPath(path, { explorer: true });
+		revealItemInDir(path);
 	};
 
 	// 预览
@@ -114,20 +113,17 @@ const Item: FC<ItemProps> = (props) => {
 
 		await copyFile(value, path);
 
-		openPath(path, { explorer: true });
+		revealItemInDir(path);
 	};
 
 	// 打开文件至访达
 	const openFinder = () => {
 		if (subtype === "path") {
-			openPath(value, {
-				explorer: true,
-				enterDir: true,
-			});
+			revealItemInDir(value);
 		} else {
 			const [file] = JSON.parse(value);
 
-			openPath(file, { explorer: true });
+			revealItemInDir(file);
 		}
 	};
 

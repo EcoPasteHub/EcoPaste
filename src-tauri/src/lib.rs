@@ -20,8 +20,6 @@ pub fn run() {
 
             Ok(())
         })
-        // 系统 shell 插件：https://github.com/tauri-apps/tauri-plugin-shell
-        .plugin(tauri_plugin_shell::init())
         // 确保在 windows 和 linux 上只有一个 app 实例在运行：https://github.com/tauri-apps/plugins-workspace/tree/v2/plugins/single-instance
         .plugin(tauri_plugin_single_instance::init(
             |app_handle, _argv, _cwd| {
@@ -65,6 +63,8 @@ pub fn run() {
         .plugin(tauri_plugin_fs_pro::init())
         // 获取系统获取系统的区域设置：https://github.com/ayangweb/tauri-plugin-locale
         .plugin(tauri_plugin_locale::init())
+        // 打开文件或者链接：https://github.com/tauri-apps/plugins-workspace/tree/v2/plugins/opener
+        .plugin(tauri_plugin_opener::init())
         // 自定义的窗口管理插件
         .plugin(tauri_plugin_eco_window::init())
         // 自定义剪贴板插件
