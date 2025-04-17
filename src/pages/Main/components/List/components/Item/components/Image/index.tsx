@@ -7,9 +7,9 @@ interface ImageProps extends Partial<HistoryTablePayload> {
 }
 
 const Image: FC<ImageProps> = (props) => {
-	const { value = "", className = "max-h-full" } = props;
+	const { value, className = "max-h-full" } = props;
 
-	return <img src={convertFileSrc(value)} className={className} />;
+	return value && <img src={convertFileSrc(value)} className={className} />;
 };
 
 export default memo(Image);
