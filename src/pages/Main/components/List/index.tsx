@@ -51,7 +51,7 @@ const List = () => {
 		state.activeId ??= state.list[0]?.id;
 	}, [state.list.length]);
 
-	useOSKeyPress(
+	useKeyPress(
 		[
 			"space",
 			"enter",
@@ -60,8 +60,7 @@ const List = () => {
 			"uparrow",
 			"downarrow",
 			"home",
-			"meta.d",
-			"ctrl.d",
+			PRESET_SHORTCUT.FAVORITE,
 		],
 		(_, key) => {
 			state.eventBusId = state.activeId;
@@ -87,8 +86,7 @@ const List = () => {
 				case "home":
 					return scrollToTop();
 				// 收藏和取消收藏
-				case "meta.d":
-				case "ctrl.d":
+				case PRESET_SHORTCUT.FAVORITE:
 					return state.$eventBus?.emit(LISTEN_KEY.CLIPBOARD_ITEM_FAVORITE);
 			}
 		},

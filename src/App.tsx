@@ -49,13 +49,6 @@ const App = () => {
 	// 监听关闭数据库的事件
 	useTauriListen(LISTEN_KEY.CLOSE_DATABASE, closeDatabase);
 
-	// 生产环境禁用默认的右键菜单
-	useEventListener("contextmenu", (event) => {
-		if (isDev()) return;
-
-		event.preventDefault();
-	});
-
 	// 链接跳转到系统浏览器
 	useEventListener("click", (event) => {
 		const link = (event.target as HTMLElement).closest("a");
@@ -74,7 +67,7 @@ const App = () => {
 	});
 
 	// 隐藏窗口
-	useOSKeyPress(["esc", "meta.w", "ctrl.w"], hideWindow);
+	useKeyPress(["esc", PRESET_SHORTCUT.HIDE_WINDOW], hideWindow);
 
 	// 监听 promise 的错误，输出到日志
 	useEventListener("unhandledrejection", ({ reason }) => {

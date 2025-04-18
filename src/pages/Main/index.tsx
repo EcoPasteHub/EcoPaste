@@ -151,7 +151,7 @@ const Main = () => {
 	);
 
 	// 打开偏好设置窗口
-	useOSKeyPress(["meta.comma", "ctrl.comma"], () => {
+	useKeyPress(PRESET_SHORTCUT.OPEN_PREFERENCES, () => {
 		showWindow("preference");
 	});
 

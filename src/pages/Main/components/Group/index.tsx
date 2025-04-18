@@ -49,16 +49,16 @@ const Group = () => {
 		},
 	});
 
-	useOSKeyPress(["tab", "shift.tab"], (_, key) => {
+	useKeyPress("tab", (event) => {
 		const index = groupList.findIndex((item) => item.key === checked);
 		const length = groupList.length;
 
 		let nextIndex = index;
 
-		if (key === "tab") {
-			nextIndex = index === length - 1 ? 0 : index + 1;
-		} else {
+		if (event.shiftKey) {
 			nextIndex = index === 0 ? length - 1 : index - 1;
+		} else {
+			nextIndex = index === length - 1 ? 0 : index + 1;
 		}
 
 		handleChange(groupList[nextIndex]);

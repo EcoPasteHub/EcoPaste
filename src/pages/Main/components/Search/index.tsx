@@ -38,7 +38,7 @@ const Search: FC<HTMLAttributes<HTMLDivElement>> = (props) => {
 		},
 	});
 
-	useOSKeyPress(["meta.f", "ctrl.f"], () => {
+	useKeyPress(PRESET_SHORTCUT.SEARCH, () => {
 		inputRef.current?.focus();
 	});
 
