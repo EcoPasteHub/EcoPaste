@@ -65,7 +65,7 @@ pub fn run() {
         .plugin(tauri_plugin_locale::init())
         // 打开文件或者链接：https://github.com/tauri-apps/plugins-workspace/tree/v2/plugins/opener
         .plugin(tauri_plugin_opener::init())
-        // 禁用默认的快捷键：https://github.com/ferreira-tb/tauri-plugin-prevent-default
+        // 禁用 webview 的默认行为：https://github.com/ferreira-tb/tauri-plugin-prevent-default
         .plugin(prevent_default::init())
         // 自定义的窗口管理插件
         .plugin(tauri_plugin_eco_window::init())
