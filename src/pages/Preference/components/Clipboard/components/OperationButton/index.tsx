@@ -1,5 +1,5 @@
-import Icon from "@/components/Icon";
 import ProListItem from "@/components/ProListItem";
+import UnoIcon from "@/components/UnoIcon";
 import type { OperationButton as Key } from "@/types/store";
 import { Button, Flex, Modal, Transfer, Tree, type TreeProps } from "antd";
 import type { TransferCustomListBodyProps } from "antd/lib/transfer/list";
@@ -78,7 +78,7 @@ const OperationButton = () => {
 
 		return (
 			<Flex key={key} align="center" gap={4} className="max-w-125">
-				<Icon name={icon} />
+				<UnoIcon name={icon} />
 				<span className="truncate">{t(title)}</span>
 			</Flex>
 		);

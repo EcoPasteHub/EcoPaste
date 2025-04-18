@@ -1,5 +1,5 @@
-import Icon from "@/components/Icon";
 import ProList from "@/components/ProList";
+import UnoIcon from "@/components/UnoIcon";
 import { emit } from "@tauri-apps/api/event";
 import { downloadDir } from "@tauri-apps/api/path";
 import { confirm, open } from "@tauri-apps/plugin-dialog";
@@ -140,7 +140,7 @@ const Manual: FC<{ state: State }> = (props) => {
 								className="b b-color-2 hover:b-primary h-102 flex-1 cursor-pointer rounded-8 bg-color-3 px-8 text-center transition hover:text-primary"
 								onClick={event}
 							>
-								<Icon name={icon} size={26} />
+								<UnoIcon name={icon} size={26} />
 								{label}
 							</Flex>
 						);

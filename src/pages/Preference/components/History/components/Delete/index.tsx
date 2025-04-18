@@ -1,4 +1,4 @@
-import EcoSelect from "@/components/EcoSelect";
+import AdaptiveSelect from "@/components/AdaptiveSelect";
 import type { HistoryTablePayload } from "@/types/database";
 import { DeleteOutlined } from "@ant-design/icons";
 import { emit } from "@tauri-apps/api/event";
@@ -143,7 +143,7 @@ const Delete = () => {
 							name="timeRange"
 							label={t("preference.history.history.label.time_range")}
 						>
-							<EcoSelect options={rangeOptions} />
+							<AdaptiveSelect options={rangeOptions} />
 						</Form.Item>
 
 						{timeRange < 0 && (

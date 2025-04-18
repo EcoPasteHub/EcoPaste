@@ -1,4 +1,4 @@
-import Icon from "@/components/Icon";
+import UnoIcon from "@/components/UnoIcon";
 import { Flex } from "antd";
 import clsx from "clsx";
 import { useSnapshot } from "valtio";
@@ -45,7 +45,7 @@ const Float = () => {
 						<Flex align="center" gap={4} className="text-18 text-color-2">
 							<Pin />
 
-							<Icon
+							<UnoIcon
 								hoverable
 								name="i-lets-icons:setting-alt-line"
 								onClick={() => {

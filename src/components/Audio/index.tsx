@@ -1,10 +1,10 @@
 import copyAudio from "@/assets/audio/copy.mp3";
-import Icon, { type IconProps } from "../Icon";
+import UnoIcon, { type UnoIconProps } from "../UnoIcon";
 
 export interface AudioProps {
 	src?: string;
 	hiddenIcon?: boolean;
-	iconProps?: IconProps;
+	iconProps?: UnoIconProps;
 }
 
 export interface AudioRef {
@@ -26,7 +26,7 @@ const Audio = forwardRef<AudioRef, AudioProps>((props, ref) => {
 
 	return (
 		<>
-			<Icon
+			<UnoIcon
 				{...iconProps}
 				hoverable
 				hidden={hiddenIcon}

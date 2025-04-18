@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import type { FC, HTMLAttributes } from "react";
 
-export interface IconProps extends HTMLAttributes<HTMLElement> {
+export interface UnoIconProps extends HTMLAttributes<HTMLElement> {
 	name?: string;
 	size?: number;
 	color?: string;
@@ -9,7 +9,7 @@ export interface IconProps extends HTMLAttributes<HTMLElement> {
 	hoverable?: boolean;
 }
 
-const Icon: FC<IconProps> = (props) => {
+const UnoIcon: FC<UnoIconProps> = (props) => {
 	const { name, className, size, color, active, hoverable, style, ...rest } =
 		props;
 
@@ -30,4 +30,4 @@ const Icon: FC<IconProps> = (props) => {
 	);
 };
 
-export default Icon;
+export default UnoIcon;

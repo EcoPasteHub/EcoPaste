@@ -1,4 +1,4 @@
-import Icon from "@/components/Icon";
+import UnoIcon from "@/components/UnoIcon";
 import { MainContext } from "@/pages/Main";
 import type { HistoryTablePayload } from "@/types/database";
 import { startDrag } from "@crabnebula/tauri-plugin-drag";
@@ -345,7 +345,7 @@ const Item: FC<ItemProps> = (props) => {
 						},
 					)}
 				>
-					<Icon
+					<UnoIcon
 						name="i-hugeicons:task-edit-01"
 						className="mr-2 translate-y-2"
 					/>

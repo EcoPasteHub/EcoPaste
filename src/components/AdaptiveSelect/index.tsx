@@ -2,7 +2,7 @@ import { Select, type SelectProps } from "antd";
 
 const DEFAULT_WIDTH = 100;
 
-const EcoSelect = <T,>(props: SelectProps<T>) => {
+const AdaptiveSelect = <T,>(props: SelectProps<T>) => {
 	const { style, ...rest } = props;
 
 	const width = useCreation(() => {
@@ -41,4 +41,4 @@ const EcoSelect = <T,>(props: SelectProps<T>) => {
 	);
 };
 
-export default EcoSelect;
+export default AdaptiveSelect;

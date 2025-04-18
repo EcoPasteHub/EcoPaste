@@ -1,5 +1,5 @@
-import Icon from "@/components/Icon";
 import Scrollbar from "@/components/Scrollbar";
+import UnoIcon from "@/components/UnoIcon";
 import { MainContext } from "@/pages/Main";
 import { transferData } from "@/pages/Preference/components/Clipboard/components/OperationButton";
 import type { HistoryTablePayload } from "@/types/database";
@@ -130,7 +130,7 @@ const Header: FC<HeaderProps> = (props) => {
 					const isFavorite = key === "star" && favorite;
 
 					return (
-						<Icon
+						<UnoIcon
 							key={key}
 							hoverable
 							name={isFavorite ? activeIcon : icon}
