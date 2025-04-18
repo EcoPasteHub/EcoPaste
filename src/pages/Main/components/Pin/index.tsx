@@ -5,7 +5,7 @@ import { MainContext } from "../..";
 const Pin = () => {
 	const { state } = useContext(MainContext);
 
-	useOSKeyPress(["meta.p", "ctrl.p"], () => {
+	useKeyPress(PRESET_SHORTCUT.FIXED_WINDOW, () => {
 		togglePin();
 	});
 

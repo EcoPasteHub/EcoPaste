@@ -1,6 +1,6 @@
 mod core;
 
-use core::setup;
+use core::{prevent_default, setup};
 use tauri::{generate_context, Builder, Manager, WindowEvent};
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_eco_window::{show_main_window, MAIN_WINDOW_LABEL, PREFERENCE_WINDOW_LABEL};
@@ -65,6 +65,8 @@ pub fn run() {
         .plugin(tauri_plugin_locale::init())
         // 打开文件或者链接：https://github.com/tauri-apps/plugins-workspace/tree/v2/plugins/opener
         .plugin(tauri_plugin_opener::init())
+        // 禁用 webview 的默认行为：https://github.com/ferreira-tb/tauri-plugin-prevent-default
+        .plugin(prevent_default::init())
         // 自定义的窗口管理插件
         .plugin(tauri_plugin_eco_window::init())
         // 自定义剪贴板插件

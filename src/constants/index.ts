@@ -35,3 +35,11 @@ export const LISTEN_KEY = {
 	CLIPBOARD_ITEM_FAVORITE: "clipboard-item-favorite",
 	ACTIVATE_BACK_TOP: "activate-back-top",
 };
+
+export const PRESET_SHORTCUT = {
+	SEARCH: isMac ? "meta.f" : "ctrl.f",
+	FAVORITE: isMac ? "meta.d" : "ctrl.d",
+	OPEN_PREFERENCES: isMac ? "meta.comma" : "ctrl.comma",
+	HIDE_WINDOW: isMac ? "meta.w" : "ctrl.w",
+	FIXED_WINDOW: isMac ? "meta.p" : "ctrl.p",
+};
