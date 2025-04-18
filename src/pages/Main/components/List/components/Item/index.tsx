@@ -316,7 +316,7 @@ const Item: FC<ItemProps> = (props) => {
 			gap={4}
 			className={clsx(
 				className,
-				"group antd-input! b-color-2 absolute inset-0 mx-12 h-full rounded-6 p-6",
+				"group antd-input! b-color-2 absolute inset-0 mx-3 h-full rounded-md p-1.5",
 				{
 					"antd-input-focus!": state.activeId === id,
 				},
@@ -347,7 +347,7 @@ const Item: FC<ItemProps> = (props) => {
 				>
 					<UnoIcon
 						name="i-hugeicons:task-edit-01"
-						className="mr-2 translate-y-2"
+						className="mr-0.5 translate-y-0.5"
 					/>
 
 					{note}

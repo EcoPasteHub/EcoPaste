@@ -161,7 +161,7 @@ const UpdateApp = () => {
 				onOk={handleOk}
 				onCancel={handleCancel}
 			>
-				<Flex vertical gap="small" className="pt-4">
+				<Flex vertical gap="small" className="pt-1">
 					<Flex align="center">
 						{t("component.app_update.label.release_version")}：
 						<span>
@@ -182,7 +182,7 @@ const UpdateApp = () => {
 					<Flex vertical>
 						{t("component.app_update.label.release_notes")}：
 						<Markdown
-							className={clsx(styles.markdown, "max-h-220 overflow-auto")}
+							className={clsx(styles.markdown, "max-h-50 overflow-auto")}
 							rehypePlugins={[rehypeRaw]}
 							components={{
 								a: ({ href, children }) => <Link href={href}>{children}</Link>,

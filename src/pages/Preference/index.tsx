@@ -96,12 +96,12 @@ const Preference = () => {
 	};
 
 	return (
-		<Flex className="h-screen">
+		<Flex className="h-screen text-sm">
 			<Flex
 				data-tauri-drag-region
 				vertical
 				gap="small"
-				className={clsx("h-full w-200 p-12", [isMac ? "pt-32" : "bg-color-1"])}
+				className={clsx("h-full w-50 p-3", [isMac ? "pt-8" : "bg-color-1"])}
 			>
 				{menuItems.map((item) => {
 					const { key, label, icon } = item;
@@ -112,7 +112,7 @@ const Preference = () => {
 							align="center"
 							gap="small"
 							className={clsx(
-								"cursor-pointer rounded-8 p-12 p-r-0 text-color-2 transition hover:bg-color-4",
+								"cursor-pointer rounded-lg p-3 p-r-0 text-color-2 transition hover:bg-color-4",
 								{
 									"bg-primary! text-white!": activeKey === key,
 								},
@@ -131,7 +131,7 @@ const Preference = () => {
 				data-tauri-drag-region
 				ref={contentRef}
 				skin={appearance.isDark ? "dark" : "light"}
-				className="h-full flex-1 bg-color-2 p-16"
+				className="h-full flex-1 bg-color-2 p-4"
 			>
 				{menuItems.map((item) => {
 					const { key, content } = item;

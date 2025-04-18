@@ -116,7 +116,7 @@ const Delete = () => {
 				width="100%"
 				closable={false}
 				classNames={{
-					body: "py-16!",
+					body: "py-4!",
 					footer: "flex justify-end",
 				}}
 				footer={

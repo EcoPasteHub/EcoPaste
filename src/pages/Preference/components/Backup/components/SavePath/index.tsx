@@ -101,7 +101,7 @@ const SavePath: FC<{ state: State }> = (props) => {
 					>
 						<Button
 							disabled={isEqualPath()}
-							icon={<ReloadOutlined className="text-14!" />}
+							icon={<ReloadOutlined />}
 							onClick={() => handleChange(true)}
 						/>
 					</Tooltip>

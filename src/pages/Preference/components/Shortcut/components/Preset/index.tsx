@@ -63,15 +63,15 @@ const Preset = () => {
 	return (
 		<Masonry
 			breakpointCols={3}
-			className="-mt-8 flex gap-8"
-			columnClassName="flex flex-col gap-8 bg-clip-padding"
+			className="-mt-2 flex gap-2"
+			columnClassName="flex flex-col gap-2 bg-clip-padding"
 		>
 			{list.map((item) => {
 				const { label, value } = item;
 
 				return (
 					<Card key={label} size="small">
-						<div className="mb-16 break-all">{t(label)}</div>
+						<div className="mb-4 break-all">{t(label)}</div>
 
 						<Flex wrap gap="small">
 							{value.map((item) => (

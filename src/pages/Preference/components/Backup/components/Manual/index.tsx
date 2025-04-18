@@ -125,7 +125,7 @@ const Manual: FC<{ state: State }> = (props) => {
 
 	return (
 		<ProList header={t("preference.data_backup.import_export.title")}>
-			<List.Item className="p-16!">
+			<List.Item className="p-4!">
 				<Flex gap="middle" className="w-full">
 					{mapList.map((item) => {
 						const { label, icon, event } = item;
@@ -137,7 +137,7 @@ const Manual: FC<{ state: State }> = (props) => {
 								align="center"
 								justify="center"
 								gap="small"
-								className="b b-color-2 hover:b-primary h-102 flex-1 cursor-pointer rounded-8 bg-color-3 px-8 text-center transition hover:text-primary"
+								className="b b-color-2 hover:b-primary h-25.5 flex-1 cursor-pointer rounded-lg bg-color-3 px-2 text-center transition hover:text-primary"
 								onClick={event}
 							>
 								<UnoIcon name={icon} size={26} />

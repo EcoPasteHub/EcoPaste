@@ -1,8 +1,8 @@
 .root {
-  --uno: "not-last-of-type:pb-16";
+  --uno: "not-last-of-type:pb-4";
 
   .title {
-    --uno: "pl-16 font-bold";
+    --uno: "pl-4 font-bold";
   }
 
   :global {
@@ -10,14 +10,14 @@
       --uno: "bg-color-1 b-color-2";
 
       .ant-list-item {
-        --uno: "px-16!";
+        --uno: "px-4!";
 
         .ant-list-item-meta-title {
           --uno: "last:m-0!";
         }
 
         .ant-list-item-meta-description {
-          --uno: "text-12!";
+          --uno: "text-xs!";
         }
 
         .ant-list-item-action {

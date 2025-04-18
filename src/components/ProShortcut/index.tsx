@@ -124,7 +124,7 @@ const ProShortcut: FC<ProShortcutProps> = (props) => {
 	const renderContent = () => {
 		if (isMac) {
 			return (
-				<Flex gap="small" className="font-bold text-16">
+				<Flex gap="small" className="font-bold text-base">
 					<Flex gap={4}>
 						{modifierKeys.map((item) => {
 							const { key, symbol } = item;
@@ -150,7 +150,7 @@ const ProShortcut: FC<ProShortcutProps> = (props) => {
 		}
 
 		return (
-			<div className="font-500 text-14">
+			<div className="font-500 text-sm">
 				{isFocusing && isEmpty(state.value) ? (
 					<span className="font-normal text-primary">
 						{t("component.shortcut_key.hints.set_shortcut_key")}
@@ -172,7 +172,7 @@ const ProShortcut: FC<ProShortcutProps> = (props) => {
 				tabIndex={0}
 				align="center"
 				gap="small"
-				className="antd-input group b-color-1 h-32 rounded-6 px-10 text-color-3"
+				className="antd-input group b-color-1 h-8 rounded-md px-2.5 text-color-3"
 				onKeyDown={handleKeyDown}
 				onKeyUp={handleKeyUp}
 			>
