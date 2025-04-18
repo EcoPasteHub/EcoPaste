@@ -10,8 +10,8 @@ import {
 	some,
 } from "lodash-es";
 import type { FC, KeyboardEvent, MouseEvent } from "react";
-import Icon from "../Icon";
 import ProListItem from "../ProListItem";
+import UnoIcon from "../UnoIcon";
 import { type Key, keys, modifierKeys, normalKeys } from "./keys";
 
 interface ProShortcutProps {
@@ -178,7 +178,7 @@ const ProShortcut: FC<ProShortcutProps> = (props) => {
 			>
 				{renderContent()}
 
-				<Icon
+				<UnoIcon
 					hoverable
 					size={16}
 					name="i-iconamoon:close-circle-1"

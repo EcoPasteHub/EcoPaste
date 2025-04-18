@@ -1,4 +1,4 @@
-import Icon from "@/components/Icon";
+import UnoIcon from "@/components/UnoIcon";
 import clsx from "clsx";
 import { MainContext } from "../..";
 
@@ -6,7 +6,7 @@ const Pin = () => {
 	const { state } = useContext(MainContext);
 
 	return (
-		<Icon
+		<UnoIcon
 			hoverable
 			active={state.pin}
 			name="i-lets-icons:pin"

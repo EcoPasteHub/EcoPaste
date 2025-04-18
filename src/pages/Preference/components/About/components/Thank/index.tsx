@@ -1,6 +1,6 @@
-import Icon from "@/components/Icon";
 import ProList from "@/components/ProList";
 import ProListItem from "@/components/ProListItem";
+import UnoIcon from "@/components/UnoIcon";
 import { useSnapshot } from "valtio";
 
 const Thank = () => {
@@ -70,7 +70,7 @@ const Thank = () => {
 					<ProListItem
 						key={name}
 						title={name}
-						avatar={<Icon name={icon} size={30} color={iconColor} />}
+						avatar={<UnoIcon name={icon} size={30} color={iconColor} />}
 						description={<a href={link}>{link}</a>}
 					/>
 				);

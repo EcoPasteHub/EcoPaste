@@ -1,6 +1,6 @@
-import Icon from "@/components/Icon";
 import ProList from "@/components/ProList";
 import ProListItem from "@/components/ProListItem";
+import UnoIcon from "@/components/UnoIcon";
 import { confirm } from "@tauri-apps/plugin-dialog";
 import {
 	checkAccessibilityPermission,
@@ -69,12 +69,12 @@ const MacosPermissions = () => {
 			<div className="children:(inline-flex items-center gap-4 font-bold)">
 				{authorized ? (
 					<div className="text-primary">
-						<Icon name="i-lucide:circle-check" />
+						<UnoIcon name="i-lucide:circle-check" />
 						{t("preference.settings.permission_settings.label.authorized")}
 					</div>
 				) : (
 					<div className="cursor-pointer text-danger" onMouseDown={event}>
-						<Icon name="i-lucide:circle-arrow-right" />
+						<UnoIcon name="i-lucide:circle-arrow-right" />
 						{t("preference.settings.permission_settings.button.authorize")}
 					</div>
 				)}

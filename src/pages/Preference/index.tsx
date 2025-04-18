@@ -1,4 +1,4 @@
-import Icon from "@/components/Icon";
+import UnoIcon from "@/components/UnoIcon";
 import UpdateApp from "@/components/UpdateApp";
 import { emit } from "@tauri-apps/api/event";
 import { Flex } from "antd";
@@ -119,7 +119,7 @@ const Preference = () => {
 							)}
 							onClick={() => handleMenuClick(key)}
 						>
-							<Icon name={icon} size={20} />
+							<UnoIcon name={icon} size={20} />
 
 							<span className="font-bold">{label}</span>
 						</Flex>

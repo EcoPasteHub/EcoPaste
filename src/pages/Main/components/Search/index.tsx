@@ -1,4 +1,4 @@
-import Icon from "@/components/Icon";
+import UnoIcon from "@/components/UnoIcon";
 import type { InputRef } from "antd";
 import { Input } from "antd";
 import type { FC, HTMLAttributes } from "react";
@@ -58,7 +58,7 @@ const Search: FC<HTMLAttributes<HTMLDivElement>> = (props) => {
 				ref={inputRef}
 				allowClear
 				value={value}
-				prefix={<Icon name="i-lucide:search" />}
+				prefix={<UnoIcon name="i-lucide:search" />}
 				size="small"
 				placeholder={t("clipboard.hints.search_placeholder")}
 				onCompositionStart={setTrue}
