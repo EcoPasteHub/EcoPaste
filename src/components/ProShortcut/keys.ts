@@ -1,8 +1,5 @@
 import { defaults, find } from "lodash-es";
 
-// TODO: 添加一个主修饰键，就不用导出 isMac 了
-// TODO:  快捷键 可以写到 constants 中
-
 export interface Key {
 	key: string;
 	symbol?: string;
