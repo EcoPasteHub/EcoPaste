@@ -10,7 +10,7 @@ links = "tauri-plugin-eco-clipboard"
 [dependencies]
 tauri.workspace = true
 serde.workspace = true
-clipboard-rs = "0.2"
+clipboard-rs = ">=0.2, <1"
 
 [build-dependencies]
 tauri-plugin.workspace = true
