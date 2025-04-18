@@ -2,7 +2,6 @@ import Scrollbar from "@/components/Scrollbar";
 import type { HistoryTablePayload } from "@/types/database";
 import { Flex, Tag } from "antd";
 import clsx from "clsx";
-import { last } from "lodash-es";
 import { MainContext } from "../..";
 
 interface GroupItem extends Partial<HistoryTablePayload> {
@@ -50,24 +49,19 @@ const Group = () => {
 		},
 	});
 
-	useOSKeyPress("tab", () => {
+	useOSKeyPress(["tab", "shift.tab"], (_, key) => {
 		const index = groupList.findIndex((item) => item.key === checked);
+		const length = groupList.length;
 
-		if (index === groupList.length - 1) {
-			handleChange(groupList[0]);
+		let nextIndex = index;
+
+		if (key === "tab") {
+			nextIndex = index === length - 1 ? 0 : index + 1;
 		} else {
-			handleChange(groupList[index + 1]);
+			nextIndex = index === 0 ? length - 1 : index - 1;
 		}
-	});
 
-	useOSKeyPress("shift.tab", () => {
-		const index = groupList.findIndex((item) => item.key === checked);
-
-		if (index === 0) {
-			handleChange(last(groupList)!);
-		} else {
-			handleChange(groupList[index - 1]);
-		}
+		handleChange(groupList[nextIndex]);
 	});
 
 	const handleChange = (item: GroupItem) => {
