@@ -14,13 +14,13 @@ const Text: FC<HistoryTablePayload> = (props) => {
 
 		return (
 			<Flex align="center" gap="small">
-				<div className="relative h-22 min-w-22">
+				<div className="relative h-5.5 min-w-5.5">
 					<span
 						style={style}
 						className={clsx(className, "inset-0 opacity-50")}
 					/>
 
-					<span style={style} className={clsx(className, "inset-2")} />
+					<span style={style} className={clsx(className, "inset-0.5")} />
 				</div>
 
 				{value}

@@ -180,7 +180,7 @@ const Main = () => {
 	};
 
 	return (
-		<>
+		<div className="text-sm">
 			<Audio hiddenIcon ref={audioRef} />
 
 			<MainContext.Provider
@@ -191,7 +191,7 @@ const Main = () => {
 			>
 				{window.style === "float" ? <Float /> : <Dock />}
 			</MainContext.Provider>
-		</>
+		</div>
 	);
 };
 

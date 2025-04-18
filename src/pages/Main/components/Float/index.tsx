@@ -13,7 +13,7 @@ const Float = () => {
 	return (
 		<div
 			className={clsx("h-screen bg-color-1", {
-				"rounded-10": !isWin,
+				"rounded-2.5": !isWin,
 				"b b-color-1": isLinux,
 			})}
 		>
@@ -21,11 +21,11 @@ const Float = () => {
 				data-tauri-drag-region
 				vertical
 				gap={12}
-				className={clsx("h-full py-12", {
+				className={clsx("h-full py-3", {
 					"flex-col-reverse": search.position === "bottom",
 				})}
 			>
-				<Search className="mx-12" />
+				<Search className="mx-3" />
 
 				<Flex
 					data-tauri-drag-region
@@ -38,11 +38,11 @@ const Float = () => {
 						align="center"
 						justify="space-between"
 						gap="small"
-						className="px-12"
+						className="px-3"
 					>
 						<Group />
 
-						<Flex align="center" gap={4} className="text-18 text-color-2">
+						<Flex align="center" gap={4} className="text-color-2 text-lg">
 							<Pin />
 
 							<UnoIcon

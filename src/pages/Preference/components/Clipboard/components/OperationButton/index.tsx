@@ -77,7 +77,7 @@ const OperationButton = () => {
 		const { key, icon, title } = data;
 
 		return (
-			<Flex key={key} align="center" gap={4} className="max-w-125">
+			<Flex key={key} align="center" gap={4} className="max-w-31.25">
 				<UnoIcon name={icon} />
 				<span className="truncate">{t(title)}</span>
 			</Flex>

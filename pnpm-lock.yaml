@@ -174,9 +174,6 @@ importers:
       '@types/react-dom':
         specifier: ^18.3.6
         version: 18.3.6(@types/react@18.3.20)
-      '@unocss/preset-rem-to-px':
-        specifier: ^0.63.6
-        version: 0.63.6
       '@vitejs/plugin-react':
         specifier: ^4.4.0
         version: 4.4.0(vite@5.4.18(@types/node@22.14.1)(less@4.3.0)(sass@1.86.3)(stylus@0.62.0))
@@ -1539,9 +1536,6 @@ packages:
 
   '@unocss/preset-mini@0.63.6':
     resolution: {integrity: sha512-pZDZbSuxabHSwPIy3zCgQ4MNdVCSHvOvZecreH+v96R1oOhquiwU8WiSbkxvZiKiLQJd7JUVW87E1pAzr5ZGGQ==}
-
-  '@unocss/preset-rem-to-px@0.63.6':
-    resolution: {integrity: sha512-iiCM5upG6kBVJKZmIveSdwxZjsanYkM7SMywb0MIhVtJR6qVLe0XhKjY5Cu95DxlL6vHJLUUozAbcNIctk+cCA==}
 
   '@unocss/preset-tagify@0.63.6':
     resolution: {integrity: sha512-3lKhk4MW3RqJBwIvBXHj0H0/kHkFlKtCIBQFiBcCJh8TXOID8IZ0iVjuGwdlk63VTizI/wnsNDOVpj6YcjRRlw==}
@@ -5661,10 +5655,6 @@ snapshots:
       '@unocss/core': 0.63.6
       '@unocss/extractor-arbitrary-variants': 0.63.6
       '@unocss/rule-utils': 0.63.6
-
-  '@unocss/preset-rem-to-px@0.63.6':
-    dependencies:
-      '@unocss/core': 0.63.6
 
   '@unocss/preset-tagify@0.63.6':
     dependencies:

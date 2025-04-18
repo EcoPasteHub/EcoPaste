@@ -66,7 +66,7 @@ const MacosPermissions = () => {
 
 	const renderStatus = (authorized: boolean, event: () => Promise<void>) => {
 		return (
-			<div className="children:(inline-flex items-center gap-4 font-bold)">
+			<div className="children:(inline-flex items-center gap-1 font-bold)">
 				{authorized ? (
 					<div className="text-primary">
 						<UnoIcon name="i-lucide:circle-check" />

@@ -107,7 +107,7 @@ const Header: FC<HeaderProps> = (props) => {
 	return (
 		<Flex justify="space-between" gap="small" className="text-color-2">
 			<Scrollbar thumbSize={0}>
-				<Flex gap="small" className="flex-1 whitespace-nowrap text-12">
+				<Flex gap="small" className="flex-1 whitespace-nowrap text-xs">
 					<span>{renderType()}</span>
 					<span>{renderCount()}</span>
 					{renderPixel()}
@@ -119,7 +119,7 @@ const Header: FC<HeaderProps> = (props) => {
 				align="center"
 				gap={6}
 				className={clsx(
-					"text-14 opacity-0 transition group-hover:opacity-100",
+					"text-sm opacity-0 transition group-hover:opacity-100",
 					{ "opacity-100": state.activeId === id },
 				)}
 				onDoubleClick={(event) => event.stopPropagation()}

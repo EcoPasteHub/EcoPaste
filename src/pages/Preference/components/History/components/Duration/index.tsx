@@ -15,7 +15,7 @@ const Duration = () => {
 				value={history.duration}
 				min={0}
 				addonAfter={t("preference.history.history.label.duration_unit")}
-				className="w-120"
+				className="w-30"
 				onChange={(value) => {
 					clipboardStore.history.duration = value ?? 0;
 				}}

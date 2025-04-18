@@ -15,7 +15,7 @@ const MaxCount = () => {
 				value={history.maxCount}
 				min={0}
 				addonAfter={t("preference.history.history.label.max_count_unit")}
-				className="w-120"
+				className="w-30"
 				onChange={(value) => {
 					clipboardStore.history.maxCount = value ?? 0;
 				}}
