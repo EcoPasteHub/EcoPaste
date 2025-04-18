@@ -190,9 +190,10 @@
 				"select_group": "Select Group",
 				"paste": "Paste",
 				"delete": "Delete",
-				"favorite_or_unfavorite": "Favorite or Unfavorite",
+				"favorite": "Favorite Item",
 				"preview_image": "Preview Image",
 				"back_to_top": "Back to Top",
+				"fixed_window": "Fixed Window",
 				"open_preferences": "Open Preferences",
 				"hide_window": "Hide Window"
 			}

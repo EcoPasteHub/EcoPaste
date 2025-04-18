@@ -190,9 +190,10 @@
 				"select_group": "选择分组",
 				"paste": "粘贴",
 				"delete": "删除",
-				"favorite_or_unfavorite": "收藏或取消收藏",
+				"favorite": "收藏条目",
 				"preview_image": "预览图片",
 				"back_to_top": "回到顶部",
+				"fixed_window": "固定窗口",
 				"open_preferences": "打开偏好设置",
 				"hide_window": "隐藏窗口"
 			}

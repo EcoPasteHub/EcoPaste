@@ -9,7 +9,7 @@ const Preset = () => {
 	const list = [
 		{
 			label: "preference.shortcut.preset.search",
-			value: "Command+F",
+			value: isMac ? "Command+F" : "Ctrl+F",
 		},
 		{
 			label: "preference.shortcut.preset.select_item",
@@ -28,8 +28,8 @@ const Preset = () => {
 			value: ["Delete", "Backspace"],
 		},
 		{
-			label: "preference.shortcut.preset.favorite_or_unfavorite",
-			value: "Command+D",
+			label: "preference.shortcut.preset.favorite",
+			value: isMac ? "Command+D" : "Ctrl+D",
 		},
 		{
 			label: "preference.shortcut.preset.preview_image",
@@ -40,12 +40,16 @@ const Preset = () => {
 			value: "Home",
 		},
 		{
+			label: "preference.shortcut.preset.fixed_window",
+			value: isMac ? "Command+P" : "Ctrl+P",
+		},
+		{
 			label: "preference.shortcut.preset.open_preferences",
-			value: "Command+Comma",
+			value: isMac ? "Command+Comma" : "Ctrl+Comma",
 		},
 		{
 			label: "preference.shortcut.preset.hide_window",
-			value: ["Escape", "Command+W"],
+			value: ["Escape", isMac ? "Command+W" : "Ctrl+W"],
 		},
 	].map(({ label, value }) => ({
 		label,
