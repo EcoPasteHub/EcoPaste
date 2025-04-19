@@ -159,8 +159,8 @@
 					"theme_dark": "暗色模式"
 				}
 			},
-			"app_update": {
-				"title": "应用更新",
+			"update_settings": {
+				"title": "更新设置",
 				"label": {
 					"auto_update": "自动检查更新",
 					"update_beta": "参与测试版体验"

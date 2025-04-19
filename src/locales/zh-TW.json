@@ -159,8 +159,8 @@
 					"theme_dark": "暗色模式"
 				}
 			},
-			"app_update": {
-				"title": "應用更新",
+			"update_settings": {
+				"title": "更新設定",
 				"label": {
 					"auto_update": "自動檢查更新",
 					"update_beta": "參與測試版體驗"
