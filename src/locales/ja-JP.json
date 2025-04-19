@@ -159,8 +159,8 @@
 					"theme_dark": "ダーク"
 				}
 			},
-			"app_update": {
-				"title": "アプリケーションの更新",
+			"update_settings": {
+				"title": "設定の更新",
 				"label": {
 					"auto_update": "自動更新チェック",
 					"update_beta": "ベータ体験に参加する"

@@ -68,9 +68,9 @@ const General = () => {
 				<ThemeMode />
 			</ProList>
 
-			<ProList header={t("preference.settings.app_update.title")}>
+			<ProList header={t("preference.settings.update_settings.title")}>
 				<ProSwitch
-					title={t("preference.settings.app_update.label.auto_update")}
+					title={t("preference.settings.update_settings.label.auto_update")}
 					value={update.auto}
 					onChange={(value) => {
 						globalStore.update.auto = value;
@@ -78,8 +78,10 @@ const General = () => {
 				/>
 
 				<ProSwitch
-					title={t("preference.settings.app_update.label.update_beta")}
-					description={t("preference.settings.app_update.hints.update_beta")}
+					title={t("preference.settings.update_settings.label.update_beta")}
+					description={t(
+						"preference.settings.update_settings.hints.update_beta",
+					)}
 					value={update.beta}
 					onChange={(value) => {
 						globalStore.update.beta = value;

@@ -159,8 +159,8 @@
 					"theme_dark": "Dark"
 				}
 			},
-			"app_update": {
-				"title": "App Update",
+			"update_settings": {
+				"title": "Update Settings",
 				"label": {
 					"auto_update": "Auto check for updates",
 					"update_beta": "Participate in the beta experience"
