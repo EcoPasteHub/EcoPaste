@@ -1,4 +1,4 @@
-import { getKeySymbol } from "@/components/ProShortcut/keys";
+import { getKeySymbol } from "@/components/ProShortcut/keyboard";
 import { Card, Flex, Tag } from "antd";
 import { castArray, union } from "lodash-es";
 import Masonry from "react-masonry-css";
@@ -9,31 +9,31 @@ const Preset = () => {
 	const list = [
 		{
 			label: "preference.shortcut.preset.search",
-			value: isMac ? "Command+F" : "Ctrl+F",
+			value: PRESET_SHORTCUT.SEARCH,
 		},
 		{
 			label: "preference.shortcut.preset.select_item",
-			value: ["Tab", "Shift+Tab"],
+			value: ["tab", "shift.tab"],
 		},
 		{
 			label: "preference.shortcut.preset.select_group",
-			value: ["ArrowUp", "ArrowDown"],
+			value: ["uparrow", "downarrow"],
 		},
 		{
 			label: "preference.shortcut.preset.paste",
-			value: "Enter",
+			value: "enter",
 		},
 		{
 			label: "preference.shortcut.preset.delete",
-			value: ["Delete", "Backspace"],
+			value: ["delete", "backspace"],
 		},
 		{
 			label: "preference.shortcut.preset.favorite",
-			value: isMac ? "Command+D" : "Ctrl+D",
+			value: PRESET_SHORTCUT.FAVORITE,
 		},
 		{
 			label: "preference.shortcut.preset.preview_image",
-			value: "Space",
+			value: "space",
 		},
 		{
 			label: "preference.shortcut.preset.back_to_top",
@@ -41,21 +41,21 @@ const Preset = () => {
 		},
 		{
 			label: "preference.shortcut.preset.fixed_window",
-			value: isMac ? "Command+P" : "Ctrl+P",
+			value: PRESET_SHORTCUT.FIXED_WINDOW,
 		},
 		{
 			label: "preference.shortcut.preset.open_preferences",
-			value: isMac ? "Command+Comma" : "Ctrl+Comma",
+			value: PRESET_SHORTCUT.OPEN_PREFERENCES,
 		},
 		{
 			label: "preference.shortcut.preset.hide_window",
-			value: ["Escape", isMac ? "Command+W" : "Ctrl+W"],
+			value: ["esc", PRESET_SHORTCUT.HIDE_WINDOW],
 		},
 	].map(({ label, value }) => ({
 		label,
 		value: union(
 			castArray(value).map((item) => {
-				return item.split("+").map(getKeySymbol).join(" + ");
+				return item.split(".").map(getKeySymbol).join(" + ");
 			}),
 		),
 	}));

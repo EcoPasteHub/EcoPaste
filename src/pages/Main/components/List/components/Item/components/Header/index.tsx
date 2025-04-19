@@ -118,10 +118,9 @@ const Header: FC<HeaderProps> = (props) => {
 			<Flex
 				align="center"
 				gap={6}
-				className={clsx(
-					"text-sm opacity-0 transition group-hover:opacity-100",
-					{ "opacity-100": state.activeId === id },
-				)}
+				className={clsx("opacity-0 transition group-hover:opacity-100", {
+					"opacity-100": state.activeId === id,
+				})}
 				onDoubleClick={(event) => event.stopPropagation()}
 			>
 				{operationButtons.map((item) => {

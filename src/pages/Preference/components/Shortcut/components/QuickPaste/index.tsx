@@ -1,5 +1,5 @@
 import ProListItem from "@/components/ProListItem";
-import { modifierKeys } from "@/components/ProShortcut/keys";
+import { modifierKeys } from "@/components/ProShortcut/keyboard";
 import { Select, Space, Switch } from "antd";
 import type { DefaultOptionType } from "antd/es/select";
 import { useSnapshot } from "valtio";
@@ -9,12 +9,12 @@ const QuickPaste = () => {
 	const { t } = useTranslation();
 
 	const options: DefaultOptionType[] = modifierKeys.map((item) => {
-		const { key, symbol } = item;
+		const { tauriKey, symbol } = item;
 
 		return {
 			label: symbol,
-			value: key,
-			disabled: globalStore.shortcut.quickPaste.value === key,
+			value: tauriKey,
+			disabled: globalStore.shortcut.quickPaste.value === tauriKey,
 		};
 	});
 

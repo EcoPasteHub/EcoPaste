@@ -7,11 +7,15 @@ html {
     color-scheme: dark;
   }
 
-  img {
-    -webkit-user-drag: none;
-  }
+  body {
+    --uno: text-sm;
 
-  a {
-    --uno: "hover:color-primary";
+    img {
+      -webkit-user-drag: none;
+    }
+
+    a {
+      --uno: "hover:color-primary";
+    }
   }
 }

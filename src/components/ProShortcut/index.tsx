@@ -1,23 +1,14 @@
 import { Flex } from "antd";
-import clsx from "clsx";
-import {
-	find,
-	intersectionWith,
-	isEmpty,
-	isEqual,
-	map,
-	remove,
-	some,
-} from "lodash-es";
+import type { ListItemMetaProps } from "antd/es/list";
+import { find, isEmpty, map, remove, some, split } from "lodash-es";
 import type { FC, KeyboardEvent, MouseEvent } from "react";
 import ProListItem from "../ProListItem";
 import UnoIcon from "../UnoIcon";
-import { type Key, keys, modifierKeys, normalKeys } from "./keys";
+import { type Key, keys, modifierKeys, standardKeys } from "./keyboard";
 
-interface ProShortcutProps {
-	title: string;
-	description?: string;
+interface ProShortcutProps extends ListItemMetaProps {
 	value?: string;
+	isSystem?: boolean;
 	onChange?: (value: string) => void;
 }
 
@@ -26,21 +17,26 @@ interface State {
 }
 
 const ProShortcut: FC<ProShortcutProps> = (props) => {
-	const { title, description, value = "", onChange } = props;
+	const { value = "", isSystem = true, onChange, ...rest } = props;
 
 	const { t } = useTranslation();
 
-	const handleDefaultValue = () => {
+	const separator = isSystem ? "+" : ".";
+	const keyFiled = isSystem ? "tauriKey" : "hookKey";
+
+	const parseValue = () => {
 		if (!value) return [];
 
-		return value.split("+").map((shortcut) => find(keys, { shortcut })!);
+		return split(value, separator).map((key) => {
+			return find(keys, { [keyFiled]: key })!;
+		});
 	};
 
-	const containerRef = useRef<HTMLElement>(null);
-
 	const state = useReactive<State>({
-		value: handleDefaultValue(),
+		value: parseValue(),
 	});
+
+	const containerRef = useRef<HTMLElement>(null);
 
 	const isHovering = useHover(containerRef);
 
@@ -49,42 +45,27 @@ const ProShortcut: FC<ProShortcutProps> = (props) => {
 			state.value = [];
 		},
 		onBlur: () => {
-			if (!registrable()) {
-				state.value = handleDefaultValue();
+			if (!isValidShortcut()) {
+				state.value = parseValue();
 			}
 
-			const changeValue = map(state.value, "shortcut").join("+");
-
-			onChange?.(changeValue);
+			handleChange();
 		},
 	});
 
-	const handleKeyDown = (event: KeyboardEvent) => {
-		event.stopPropagation();
-		event.preventDefault();
-
-		const key = getEventKey(event);
-
-		// 忽略大写锁定键、重复按键
-		if (key === "CapsLock" || some(state.value, { key })) return;
-		// 已经有普通按键就忽略其它的
-		if (some(normalKeys, { key }) && getNormalKey()) return;
-
-		const item = find(keys, { key });
-
-		if (!item) return;
-
-		state.value.push(item);
-
-		if (registrable()) {
-			containerRef.current?.blur();
+	const isValidShortcut = () => {
+		if (state.value?.[0]?.eventKey?.startsWith("F")) {
+			return true;
 		}
-	};
 
-	const handleKeyUp = (event: KeyboardEvent) => {
-		const key = getEventKey(event);
+		const hasModifierKey = some(state.value, ({ eventKey }) => {
+			return some(modifierKeys, { eventKey });
+		});
+		const hasStandardKey = some(state.value, ({ eventKey }) => {
+			return some(standardKeys, { eventKey });
+		});
 
-		remove(state.value, { key });
+		return hasModifierKey && hasStandardKey;
 	};
 
 	const getEventKey = (event: KeyboardEvent) => {
@@ -92,25 +73,35 @@ const ProShortcut: FC<ProShortcutProps> = (props) => {
 
 		key = key.replace("Meta", "Command");
 
-		const isModifierKey = some(modifierKeys, { key });
+		const isModifierKey = some(modifierKeys, { eventKey: key });
 
 		return isModifierKey ? key : code;
 	};
 
-	const hasModifierKey = () => {
-		return intersectionWith(state.value, modifierKeys, isEqual).length > 0;
+	const handleChange = () => {
+		const nextValue = map(state.value, keyFiled).join(separator);
+
+		onChange?.(nextValue);
 	};
 
-	const getNormalKey = () => {
-		return intersectionWith(state.value, normalKeys, isEqual)[0];
-	};
+	const handleKeyDown = (event: KeyboardEvent) => {
+		const eventKey = getEventKey(event);
 
-	const registrable = () => {
-		if (state.value.length === 1) {
-			return /^F\d{1,2}$/.test(state.value[0].shortcut!);
+		const matched = find(keys, { eventKey });
+		const isInvalid = !matched;
+		const isDuplicate = some(state.value, { eventKey });
+
+		if (isInvalid || isDuplicate) return;
+
+		state.value.push(matched);
+
+		if (isValidShortcut()) {
+			containerRef.current?.blur();
 		}
+	};
 
-		return hasModifierKey() && getNormalKey();
+	const handleKeyUp = (event: KeyboardEvent) => {
+		remove(state.value, { eventKey: getEventKey(event) });
 	};
 
 	const handleClear = (event: MouseEvent) => {
@@ -118,71 +109,39 @@ const ProShortcut: FC<ProShortcutProps> = (props) => {
 
 		state.value = [];
 
-		onChange?.("");
-	};
-
-	const renderContent = () => {
-		if (isMac) {
-			return (
-				<Flex gap="small" className="font-bold text-base">
-					<Flex gap={4}>
-						{modifierKeys.map((item) => {
-							const { key, symbol } = item;
-
-							return (
-								<span
-									key={key}
-									className={clsx("transition", {
-										"color-primary": some(state.value, { key }),
-									})}
-								>
-									{symbol}
-								</span>
-							);
-						})}
-					</Flex>
-
-					{getNormalKey() && (
-						<span className="color-primary">{getNormalKey().symbol}</span>
-					)}
-				</Flex>
-			);
-		}
-
-		return (
-			<div className="font-500 text-sm">
-				{isFocusing && isEmpty(state.value) ? (
-					<span className="font-normal text-primary">
-						{t("component.shortcut_key.hints.set_shortcut_key")}
-					</span>
-				) : isEmpty(state.value) ? (
-					t("component.shortcut_key.hints.shortcut_key_not_set")
-				) : (
-					map(state.value, "symbol").join(" + ")
-				)}
-			</div>
-		);
+		handleChange();
 	};
 
 	return (
-		<ProListItem title={title} description={description}>
+		<ProListItem {...rest}>
 			<Flex
-				key={1}
 				ref={containerRef}
 				tabIndex={0}
+				justify="center"
 				align="center"
 				gap="small"
-				className="antd-input group b-color-1 h-8 rounded-md px-2.5 text-color-3"
+				className="antd-input b-color-1 h-8 min-w-32 rounded-md px-2.5"
 				onKeyDown={handleKeyDown}
 				onKeyUp={handleKeyUp}
 			>
-				{renderContent()}
+				{isEmpty(state.value) ? (
+					isFocusing ? (
+						t("component.shortcut_key.hints.press")
+					) : (
+						t("component.shortcut_key.hints.click")
+					)
+				) : (
+					<div className="font-bold text-primary">
+						{map(state.value, "symbol").join(" ")}
+					</div>
+				)}
 
 				<UnoIcon
 					hoverable
 					size={16}
 					name="i-iconamoon:close-circle-1"
 					hidden={isFocusing || !isHovering || isEmpty(state.value)}
+					className="absolute right-2 text-color-3"
 					onMouseDown={handleClear}
 				/>
 			</Flex>
