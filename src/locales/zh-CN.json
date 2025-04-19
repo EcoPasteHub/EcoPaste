@@ -307,8 +307,8 @@
 	"component": {
 		"shortcut_key": {
 			"hints": {
-				"set_shortcut_key": "按键盘设置快捷键",
-				"shortcut_key_not_set": "未设置快捷键"
+				"click": "点击录制快捷键",
+				"press": "按下录制快捷键"
 			}
 		},
 		"app_update": {

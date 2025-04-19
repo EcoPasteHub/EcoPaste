@@ -38,7 +38,7 @@ export interface GlobalStore {
 			enable: boolean;
 			value: string;
 		};
-		pastePlain?: string;
+		pastePlain: string;
 	};
 
 	// 只在当前系统环境使用

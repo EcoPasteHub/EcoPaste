@@ -1,6 +1,5 @@
 import type { AudioRef } from "@/components/Audio";
 import Audio from "@/components/Audio";
-import { getWebShortcuts } from "@/components/ProShortcut/keys";
 import type { HistoryTablePayload, TablePayload } from "@/types/database";
 import type { Store } from "@/types/store";
 import type { EventEmitter } from "ahooks/lib/useEventEmitter";
@@ -128,7 +127,7 @@ const Main = () => {
 	useRegister(toggleWindowVisible, [shortcut.clipboard]);
 
 	// 监听粘贴为纯文本的快捷键
-	useKeyPress(getWebShortcuts(shortcut.pastePlain), (event) => {
+	useKeyPress(shortcut.pastePlain, (event) => {
 		event.preventDefault();
 
 		const data = find(state.list, { id: state.activeId });
@@ -180,7 +179,7 @@ const Main = () => {
 	};
 
 	return (
-		<div className="text-sm">
+		<>
 			<Audio hiddenIcon ref={audioRef} />
 
 			<MainContext.Provider
@@ -191,7 +190,7 @@ const Main = () => {
 			>
 				{window.style === "float" ? <Float /> : <Dock />}
 			</MainContext.Provider>
-		</div>
+		</>
 	);
 };
 

@@ -96,7 +96,7 @@ const Preference = () => {
 	};
 
 	return (
-		<Flex className="h-screen text-sm">
+		<Flex className="h-screen">
 			<Flex
 				data-tauri-drag-region
 				vertical

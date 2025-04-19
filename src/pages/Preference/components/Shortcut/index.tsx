@@ -30,6 +30,7 @@ const Shortcut = () => {
 				<QuickPaste />
 
 				<ProShortcut
+					isSystem={false}
 					title={t("preference.shortcut.shortcut.label.paste_as_plain")}
 					description={t("preference.shortcut.shortcut.hints.paste_as_plain")}
 					value={shortcut.pastePlain}

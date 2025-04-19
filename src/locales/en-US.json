@@ -307,8 +307,8 @@
 	"component": {
 		"shortcut_key": {
 			"hints": {
-				"set_shortcut_key": "Set Shortcut Key",
-				"shortcut_key_not_set": "Shortcut Key Not Set"
+				"click": "Click to record",
+				"press": "Press keys"
 			}
 		},
 		"app_update": {
