@@ -64,6 +64,7 @@ const Item: FC<ItemProps> = (props) => {
 		return writeClipboard(data);
 	};
 
+	// 多选复制
 	const multipleCopy = () => {
 		if (state.selectedIds.length > 1) {
 			const selectedItems = state.list.filter((item) =>

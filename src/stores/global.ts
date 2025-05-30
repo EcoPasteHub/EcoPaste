@@ -7,7 +7,6 @@ export const globalStore = proxy<GlobalStore>({
 		silentStart: false,
 		showMenubarIcon: true,
 		showTaskbarIcon: false,
-		autoDeduplicate: true,
 	},
 
 	appearance: {
@@ -28,6 +27,7 @@ export const globalStore = proxy<GlobalStore>({
 			value: "Command+Shift",
 		},
 		pastePlain: "",
+		notes: "Alt+N",
 	},
 
 	env: {},

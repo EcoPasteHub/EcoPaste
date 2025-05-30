@@ -9,6 +9,8 @@ import { createContext } from "react";
 import { useSnapshot } from "valtio";
 import Dock from "./components/Dock";
 import Float from "./components/Float";
+import List from "./components/List";
+import type { ListRef } from "./components/List";
 
 interface State extends TablePayload {
 	pin?: boolean;
@@ -29,6 +31,7 @@ const INITIAL_STATE: State = {
 interface MainContextValue {
 	state: State;
 	getList?: (payload?: HistoryTablePayload) => Promise<void>;
+	$eventBus?: EventEmitter<string>;
 }
 
 export const MainContext = createContext<MainContextValue>({
@@ -41,6 +44,7 @@ const Main = () => {
 	const state = useReactive<State>(INITIAL_STATE);
 	const audioRef = useRef<AudioRef>(null);
 	const $eventBus = useEventEmitter<string>();
+	const listRef = useRef<ListRef>(null);
 
 	useMount(() => {
 		state.$eventBus = $eventBus;
@@ -56,7 +60,7 @@ const Main = () => {
 
 			const { type, value, group } = payload;
 			const createTime = formatDate();
-			const currentAutoDeduplicate = globalStore.app.autoDeduplicate;
+			const currentAutoDeduplicate = clipboardStore.content.autoDeduplicate;
 
 			// 如果开启了去重，则先检查是否存在相同内容
 			if (currentAutoDeduplicate) {
@@ -126,7 +130,7 @@ const Main = () => {
 	});
 
 	// 监听去重配置变化
-	useImmediateKey(globalStore.app, "autoDeduplicate", () => {
+	useImmediateKey(clipboardStore.content, "autoDeduplicate", () => {
 		// 当去重配置变化时，重新获取列表
 		getList();
 	});
@@ -176,6 +180,14 @@ const Main = () => {
 		showWindow("preference");
 	});
 
+	// 监听打开备注面板的快捷键
+	useRegister(async () => {
+		const currentList = listRef.current;
+		if (!currentList) return;
+
+		currentList.noteModelRef.current?.open();
+	}, [shortcut.notes]);
+
 	// 获取剪切板内容
 	const getList = async () => {
 		const { group, search, favorite } = state;
@@ -208,9 +220,12 @@ const Main = () => {
 				value={{
 					state,
 					getList,
+					$eventBus,
 				}}
 			>
 				{window.style === "float" ? <Float /> : <Dock />}
+
+				<List ref={listRef} />
 			</MainContext.Provider>
 		</>
 	);

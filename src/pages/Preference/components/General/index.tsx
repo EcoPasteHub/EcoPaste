@@ -60,14 +60,6 @@ const General = () => {
 						globalStore.app.showTaskbarIcon = value;
 					}}
 				/>
-
-				<ProSwitch
-					title={t("preference.settings.app_settings.label.auto_deduplicate")}
-					value={app.autoDeduplicate}
-					onChange={(value) => {
-						globalStore.app.autoDeduplicate = value;
-					}}
-				/>
 			</ProList>
 
 			<ProList header={t("preference.settings.appearance_settings.title")}>

@@ -16,7 +16,6 @@ export interface GlobalStore {
 		silentStart: boolean;
 		showMenubarIcon: boolean;
 		showTaskbarIcon: boolean;
-		autoDeduplicate: boolean;
 	};
 
 	// 外观设置
@@ -40,6 +39,7 @@ export interface GlobalStore {
 			value: string;
 		};
 		pastePlain: string;
+		notes?: string;
 	};
 
 	// 只在当前系统环境使用
@@ -92,6 +92,7 @@ export interface ClipboardStore {
 		deleteConfirm: boolean;
 		autoSort: boolean;
 		showOriginalContent: boolean;
+		autoDeduplicate: boolean;
 	};
 
 	// 历史记录
