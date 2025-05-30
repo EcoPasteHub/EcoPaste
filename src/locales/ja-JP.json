@@ -195,7 +195,8 @@
 				"back_to_top": "トップへ戻る",
 				"fixed_window": "固定ウィンドウ",
 				"open_preferences": "環境設定を開く",
-				"hide_window": "ウィンドウを隠す"
+				"hide_window": "ウィンドウを隠す",
+				"copy": "コピー"
 			}
 		},
 		"data_backup": {

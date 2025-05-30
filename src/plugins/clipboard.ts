@@ -336,6 +336,9 @@ export const writeClipboard = (data?: HistoryTablePayload) => {
 
 	const { type, value, search } = data;
 
+	// 写入剪贴板后隐藏窗口
+	hideWindow();
+
 	switch (type) {
 		case "text":
 			return writeText(value);

@@ -8,6 +8,10 @@ const Preset = () => {
 
 	const list = [
 		{
+			label: "preference.shortcut.preset.copy",
+			value: PRESET_SHORTCUT.COPY,
+		},
+		{
 			label: "preference.shortcut.preset.search",
 			value: PRESET_SHORTCUT.SEARCH,
 		},

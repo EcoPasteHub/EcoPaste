@@ -195,7 +195,8 @@
 				"back_to_top": "回到顶部",
 				"fixed_window": "固定窗口",
 				"open_preferences": "打开偏好设置",
-				"hide_window": "隐藏窗口"
+				"hide_window": "隐藏窗口",
+				"copy": "复制"
 			}
 		},
 		"data_backup": {

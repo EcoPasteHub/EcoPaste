@@ -17,11 +17,13 @@ interface State extends TablePayload {
 	eventBusId?: string;
 	$eventBus?: EventEmitter<string>;
 	quickPasteKeys: string[];
+	selectedIds: string[];
 }
 
 const INITIAL_STATE: State = {
 	list: [],
 	quickPasteKeys: [],
+	selectedIds: [],
 };
 
 interface MainContextValue {
@@ -123,7 +125,7 @@ const Main = () => {
 		},
 	});
 
-	// 监听窗口显隐的快捷键
+	// 监听窗口显隐的快捷键preference.shortcut.preset.search
 	useRegister(toggleWindowVisible, [shortcut.clipboard]);
 
 	// 监听粘贴为纯文本的快捷键

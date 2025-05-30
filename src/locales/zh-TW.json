@@ -195,7 +195,8 @@
 				"back_to_top": "回到頂部",
 				"fixed_window": "固定視窗",
 				"open_preferences": "打開偏好設定",
-				"hide_window": "隱藏視窗"
+				"hide_window": "隱藏視窗",
+				"copy": "複製"
 			}
 		},
 		"data_backup": {

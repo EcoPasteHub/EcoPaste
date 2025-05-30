@@ -54,6 +54,8 @@ const Item: FC<ItemProps> = (props) => {
 				return selectNextOrPrev();
 			case LISTEN_KEY.CLIPBOARD_ITEM_FAVORITE:
 				return toggleFavorite();
+			case LISTEN_KEY.CLIPBOARD_ITEM_COPY:
+				return copy();
 		}
 	});
 
@@ -267,7 +269,20 @@ const Item: FC<ItemProps> = (props) => {
 	};
 
 	// 点击事件
-	const handleClick = (type: typeof content.autoPaste) => {
+	const handleClick = (type: typeof content.autoPaste, event: MouseEvent) => {
+		if (event.ctrlKey) {
+			// Handle multi-selection
+			const index = state.selectedIds.indexOf(id);
+			if (index === -1) {
+				state.selectedIds.push(id);
+			} else {
+				state.selectedIds.splice(index, 1);
+			}
+			return;
+		}
+
+		// Clear other selections when clicking without Ctrl
+		state.selectedIds = [id];
 		state.activeId = id;
 
 		if (content.autoPaste !== type) return;
@@ -318,12 +333,13 @@ const Item: FC<ItemProps> = (props) => {
 				className,
 				"group antd-input! b-color-2 absolute inset-0 mx-3 h-full rounded-md p-1.5",
 				{
-					"antd-input-focus!": state.activeId === id,
+					"antd-input-focus!":
+						state.activeId === id || state.selectedIds.includes(id),
 				},
 			)}
 			onContextMenu={handleContextMenu}
-			onClick={() => handleClick("single")}
-			onDoubleClick={() => handleClick("double")}
+			onClick={(e) => handleClick("single", e)}
+			onDoubleClick={(e) => handleClick("double", e)}
 			onDragStart={handleDragStart}
 		>
 			<Header

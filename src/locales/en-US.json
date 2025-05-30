@@ -195,7 +195,8 @@
 				"back_to_top": "Back to Top",
 				"fixed_window": "Fixed Window",
 				"open_preferences": "Open Preferences",
-				"hide_window": "Hide Window"
+				"hide_window": "Hide Window",
+				"copy": "Copy"
 			}
 		},
 		"data_backup": {

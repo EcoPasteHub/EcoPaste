@@ -61,6 +61,7 @@ const List = () => {
 			"downarrow",
 			"home",
 			PRESET_SHORTCUT.FAVORITE,
+			PRESET_SHORTCUT.COPY,
 		],
 		(_, key) => {
 			state.eventBusId = state.activeId;
@@ -88,6 +89,9 @@ const List = () => {
 				// 收藏和取消收藏
 				case PRESET_SHORTCUT.FAVORITE:
 					return state.$eventBus?.emit(LISTEN_KEY.CLIPBOARD_ITEM_FAVORITE);
+				// 复制 回写到剪贴板
+				case PRESET_SHORTCUT.COPY:
+					return state.$eventBus?.emit(LISTEN_KEY.CLIPBOARD_ITEM_COPY);
 			}
 		},
 		{
