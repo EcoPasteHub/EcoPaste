@@ -55,12 +55,22 @@ const Item: FC<ItemProps> = (props) => {
 			case LISTEN_KEY.CLIPBOARD_ITEM_FAVORITE:
 				return toggleFavorite();
 			case LISTEN_KEY.CLIPBOARD_ITEM_COPY:
-				return copy();
+				return multipleCopy();
 		}
 	});
 
 	// 复制
 	const copy = () => {
+		return writeClipboard(data);
+	};
+
+	const multipleCopy = () => {
+		if (state.selectedIds.length > 1) {
+			const selectedItems = state.list.filter((item) =>
+				state.selectedIds.includes(item.id),
+			);
+			return writeMultipleClipboard(selectedItems);
+		}
 		return writeClipboard(data);
 	};
 
@@ -271,7 +281,24 @@ const Item: FC<ItemProps> = (props) => {
 	// 点击事件
 	const handleClick = (type: typeof content.autoPaste, event: MouseEvent) => {
 		if (event.ctrlKey) {
-			// Handle multi-selection
+			// 检查是否支持多选
+			if (data.type !== "text" && data.type !== "html") {
+				message.warning("多选只支持纯文本和HTML类型");
+				return;
+			}
+
+			// 检查是否已有选中项
+			if (state.selectedIds.length > 0) {
+				// 获取第一个选中项的类型
+				const firstSelectedItem = state.list.find(
+					(item) => item.id === state.selectedIds[0],
+				);
+				if (firstSelectedItem && firstSelectedItem.type !== data.type) {
+					message.warning("多选时只能选择相同类型的内容");
+					return;
+				}
+			}
+
 			const index = state.selectedIds.indexOf(id);
 			if (index === -1) {
 				state.selectedIds.push(id);

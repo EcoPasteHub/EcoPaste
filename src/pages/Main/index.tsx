@@ -55,39 +55,53 @@ const Main = () => {
 			}
 
 			const { type, value, group } = payload;
-
-			const findItem = find(state.list, { type, value });
-
 			const createTime = formatDate();
+			const currentAutoDeduplicate = globalStore.app.autoDeduplicate;
 
-			if (findItem) {
-				if (!clipboardStore.content.autoSort) return;
+			// 如果开启了去重，则先检查是否存在相同内容
+			if (currentAutoDeduplicate) {
+				const findItem = find(state.list, { type, value });
 
-				const { id } = findItem;
+				if (findItem) {
+					if (!clipboardStore.content.autoSort) return;
 
-				const index = findIndex(state.list, { id });
+					const { id } = findItem;
 
-				const [targetItem] = state.list.splice(index, 1);
+					const index = findIndex(state.list, { id });
 
-				state.list.unshift({ ...targetItem, createTime });
+					const [targetItem] = state.list.splice(index, 1);
 
-				updateSQL("history", { id, createTime });
-			} else {
-				const data: HistoryTablePayload = {
-					...payload,
-					createTime,
-					id: nanoid(),
-					favorite: false,
-				};
+					state.list.unshift({ ...targetItem, createTime });
 
-				if (state.group === group || (isNil(state.group) && !state.favorite)) {
-					state.list.unshift(data);
+					updateSQL("history", { id, createTime });
+				} else {
+					insertNewClipboardItem(payload, createTime, group);
 				}
-
-				insertSQL("history", data);
+			} else {
+				insertNewClipboardItem(payload, createTime, group);
 			}
 		});
 	});
+
+	// 插入新剪贴板
+	const insertNewClipboardItem = (
+		payload: any,
+		createTime: string,
+		group: string,
+	) => {
+		const data: HistoryTablePayload = {
+			...payload,
+			createTime,
+			id: nanoid(),
+			favorite: false,
+		};
+
+		if (state.group === group || (isNil(state.group) && !state.favorite)) {
+			state.list.unshift(data);
+		}
+
+		insertSQL("history", data);
+	};
 
 	// 监听快速粘贴的启用状态变更
 	useImmediateKey(globalStore.shortcut.quickPaste, "enable", () => {
@@ -109,6 +123,12 @@ const Main = () => {
 	useTauriListen<Store>(LISTEN_KEY.STORE_CHANGED, ({ payload }) => {
 		deepAssign(globalStore, payload.globalStore);
 		deepAssign(clipboardStore, payload.clipboardStore);
+	});
+
+	// 监听去重配置变化
+	useImmediateKey(globalStore.app, "autoDeduplicate", () => {
+		// 当去重配置变化时，重新获取列表
+		getList();
 	});
 
 	// 切换剪贴板监听状态
