@@ -33,6 +33,7 @@ export const LISTEN_KEY = {
 	CLOSE_DATABASE: "close-database",
 	TOGGLE_LISTEN_CLIPBOARD: "toggle-listen-clipboard",
 	CLIPBOARD_ITEM_FAVORITE: "clipboard-item-favorite",
+	CLIPBOARD_ITEM_COPY: "clipboard-item-copy",
 	ACTIVATE_BACK_TOP: "activate-back-top",
 };
 
@@ -42,4 +43,5 @@ export const PRESET_SHORTCUT = {
 	OPEN_PREFERENCES: isMac ? "meta.comma" : "ctrl.comma",
 	HIDE_WINDOW: isMac ? "meta.w" : "ctrl.w",
 	FIXED_WINDOW: isMac ? "meta.p" : "ctrl.p",
+	COPY: isMac ? "meta.c" : "ctrl.c",
 };

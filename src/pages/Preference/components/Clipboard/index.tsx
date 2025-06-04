@@ -174,6 +174,19 @@ const ClipboardSettings = () => {
 						clipboardStore.content.showOriginalContent = value;
 					}}
 				/>
+
+				<ProSwitch
+					title={t(
+						"preference.clipboard.content_settings.label.auto_deduplicate",
+					)}
+					description={t(
+						"preference.clipboard.content_settings.hints.auto_deduplicate",
+					)}
+					value={content.autoDeduplicate}
+					onChange={(value) => {
+						clipboardStore.content.autoDeduplicate = value;
+					}}
+				/>
 			</ProList>
 		</>
 	);

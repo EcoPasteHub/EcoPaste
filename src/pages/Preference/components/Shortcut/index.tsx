@@ -27,6 +27,14 @@ const Shortcut = () => {
 					}}
 				/>
 
+				<ProShortcut
+					title={t("preference.shortcut.shortcut.label.open_notes")}
+					value={shortcut.notes}
+					onChange={(value) => {
+						globalStore.shortcut.notes = value;
+					}}
+				/>
+
 				<QuickPaste />
 
 				<ProShortcut

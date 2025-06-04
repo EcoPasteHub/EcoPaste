@@ -70,7 +70,8 @@
 					"auto_favorite": "自动收藏",
 					"delete_confirm": "删除确认",
 					"auto_sort": "自动排序",
-					"show_original_content": "显示原内容"
+					"show_original_content": "显示原内容",
+					"auto_deduplicate": "自动去重"
 				},
 				"hints": {
 					"auto_paste": "鼠标左键操作时，快速粘贴内容至输入位置",
@@ -81,7 +82,8 @@
 					"auto_favorite": "新增或编辑备注后自动收藏",
 					"delete_confirm": "删除剪贴板内容时弹出确认对话框",
 					"auto_sort": "复制已存在的内容时排列到最前面",
-					"show_original_content": "添加备注后，鼠标悬停时是否显示原内容"
+					"show_original_content": "添加备注后，鼠标悬停时是否显示原内容",
+					"auto_deduplicate": "复制已存在的内容时，自动去重"
 				}
 			}
 		},
@@ -177,11 +179,13 @@
 					"open_clipboard": "打开剪贴板窗口",
 					"open_settings": "打开偏好设置窗口",
 					"quick_paste": "快速粘贴",
-					"paste_as_plain": "粘贴为纯文本"
+					"paste_as_plain": "粘贴为纯文本",
+					"open_notes": "打开备注界面"
 				},
 				"hints": {
 					"quick_paste": "隐藏窗口时，使用数字组合键快速粘贴前九项",
-					"paste_as_plain": "激活窗口时，将选中的内容粘贴为纯文本、OCR文本和路径"
+					"paste_as_plain": "激活窗口时，将选中的内容粘贴为纯文本、OCR文本和路径",
+					"open_notes": "激活窗口时，打开备注界面"
 				}
 			},
 			"preset": {
@@ -195,7 +199,8 @@
 				"back_to_top": "回到顶部",
 				"fixed_window": "固定窗口",
 				"open_preferences": "打开偏好设置",
-				"hide_window": "隐藏窗口"
+				"hide_window": "隐藏窗口",
+				"copy": "复制"
 			}
 		},
 		"data_backup": {

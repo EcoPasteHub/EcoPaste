@@ -70,7 +70,8 @@
 					"auto_favorite": "自動コレクション",
 					"delete_confirm": "削除確認",
 					"auto_sort": "自動整列",
-					"show_original_content": "元の内容を表示します"
+					"show_original_content": "元の内容を表示します",
+					"auto_deduplicate": "複製已存在的內容時自動去重"
 				},
 				"hints": {
 					"auto_paste": "左クリック時に、内容を素早く入力フィールドに貼り付けます",
@@ -81,7 +82,8 @@
 					"auto_favorite": "メモの追加・編集後に自動お気に入り登録",
 					"delete_confirm": "クリップボードの内容を削除する際に確認ダイアログを表示する",
 					"auto_sort": "既存の内容をコピーして最前面に配置する",
-					"show_original_content": "メモを追加した後、マウスをホバーしたときに元のコンテンツを表示するかどうか"
+					"show_original_content": "メモを追加した後、マウスをホバーしたときに元のコンテンツを表示するかどうか",
+					"auto_deduplicate": "複製已存在的內容時自動去重"
 				}
 			}
 		},
@@ -195,7 +197,8 @@
 				"back_to_top": "トップへ戻る",
 				"fixed_window": "固定ウィンドウ",
 				"open_preferences": "環境設定を開く",
-				"hide_window": "ウィンドウを隠す"
+				"hide_window": "ウィンドウを隠す",
+				"copy": "コピー"
 			}
 		},
 		"data_backup": {

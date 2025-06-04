@@ -70,7 +70,8 @@
 					"auto_favorite": "Auto Favorite",
 					"delete_confirm": "Delete Confirmation",
 					"auto_sort": "Auto Sort",
-					"show_original_content": "Show Original Content"
+					"show_original_content": "Show Original Content",
+					"auto_deduplicate": "Auto Deduplicate"
 				},
 				"hints": {
 					"auto_paste": "Quickly paste content to the input field when using the left mouse button",
@@ -81,7 +82,8 @@
 					"auto_favorite": "Auto-favorite after adding or editing a note",
 					"delete_confirm": "Pop-up confirmation dialog when deleting clipboard contents",
 					"auto_sort": "Alignment to the top when copying existing content",
-					"show_original_content": "Whether to display the original content on mouse hover after adding a note"
+					"show_original_content": "Whether to display the original content on mouse hover after adding a note",
+					"auto_deduplicate": "Automatically deduplicate when copying existing content"
 				}
 			}
 		},
@@ -195,7 +197,8 @@
 				"back_to_top": "Back to Top",
 				"fixed_window": "Fixed Window",
 				"open_preferences": "Open Preferences",
-				"hide_window": "Hide Window"
+				"hide_window": "Hide Window",
+				"copy": "Copy"
 			}
 		},
 		"data_backup": {

@@ -119,7 +119,8 @@ const Header: FC<HeaderProps> = (props) => {
 				align="center"
 				gap={6}
 				className={clsx("opacity-0 transition group-hover:opacity-100", {
-					"opacity-100": state.activeId === id,
+					"opacity-100":
+						state.activeId === id || state.selectedIds.includes(id),
 				})}
 				onDoubleClick={(event) => event.stopPropagation()}
 			>

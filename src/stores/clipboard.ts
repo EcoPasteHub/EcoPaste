@@ -29,6 +29,7 @@ export const clipboardStore = proxy<ClipboardStore>({
 		deleteConfirm: true,
 		autoSort: false,
 		showOriginalContent: false,
+		autoDeduplicate: true,
 	},
 
 	history: {

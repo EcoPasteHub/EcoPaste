@@ -3,14 +3,23 @@ import { MainContext } from "@/pages/Main";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { FloatButton, Modal } from "antd";
 import { findIndex } from "lodash-es";
+import { forwardRef, useImperativeHandle, useRef } from "react";
 import Item from "./components/Item";
 import NoteModal, { type NoteModalRef } from "./components/NoteModal";
 
-const List = () => {
+export interface ListRef {
+	noteModelRef: React.RefObject<NoteModalRef>;
+}
+
+const List = forwardRef<ListRef>((_, ref) => {
 	const { state, getList } = useContext(MainContext);
 	const outerRef = useRef<HTMLDivElement>(null);
 	const noteModelRef = useRef<NoteModalRef>(null);
 	const [deleteModal, contextHolder] = Modal.useModal();
+
+	useImperativeHandle(ref, () => ({
+		noteModelRef,
+	}));
 
 	const rowVirtualizer = useVirtualizer({
 		count: state.list.length,
@@ -61,6 +70,7 @@ const List = () => {
 			"downarrow",
 			"home",
 			PRESET_SHORTCUT.FAVORITE,
+			PRESET_SHORTCUT.COPY,
 		],
 		(_, key) => {
 			state.eventBusId = state.activeId;
@@ -88,6 +98,9 @@ const List = () => {
 				// 收藏和取消收藏
 				case PRESET_SHORTCUT.FAVORITE:
 					return state.$eventBus?.emit(LISTEN_KEY.CLIPBOARD_ITEM_FAVORITE);
+				// 复制 回写到剪贴板
+				case PRESET_SHORTCUT.COPY:
+					return state.$eventBus?.emit(LISTEN_KEY.CLIPBOARD_ITEM_COPY);
 			}
 		},
 		{
@@ -142,6 +155,6 @@ const List = () => {
 			{contextHolder}
 		</>
 	);
-};
+});
 
 export default List;

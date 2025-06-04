@@ -71,6 +71,8 @@ pub fn run() {
         .plugin(tauri_plugin_eco_window::init())
         // 自定义剪贴板插件
         .plugin(tauri_plugin_eco_clipboard::init())
+        // Shell 插件
+        .plugin(tauri_plugin_shell::init())
         // 自定义图片识别插件
         .plugin(tauri_plugin_eco_ocr::init())
         // 自定义粘贴的插件

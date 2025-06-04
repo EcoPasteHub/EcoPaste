@@ -336,6 +336,9 @@ export const writeClipboard = (data?: HistoryTablePayload) => {
 
 	const { type, value, search } = data;
 
+	// 写入剪贴板后隐藏窗口
+	hideWindow();
+
 	switch (type) {
 		case "text":
 			return writeText(value);
@@ -404,4 +407,32 @@ export const getClipboardSubtype = async (data: ClipboardPayload) => {
 	} catch {
 		return;
 	}
+};
+
+/**
+ * 将多种格式的数据写入剪贴板
+ * @param items 多个剪贴板数据项
+ */
+export const writeMultipleClipboard = async (items: HistoryTablePayload[]) => {
+	if (!items || items.length === 0) return;
+
+	// 按类型分组处理
+	const textItems = items.filter((item) => item.type === "text");
+	const htmlItems = items.filter((item) => item.type === "html");
+
+	// 处理文本内容
+	if (textItems.length > 0) {
+		const combinedText = textItems.map((item) => item.value).join("\n");
+		await writeText(combinedText);
+	}
+
+	// 处理HTML内容
+	if (htmlItems.length > 0) {
+		const combinedHtml = htmlItems.map((item) => item.value).join("\n");
+		const combinedText = htmlItems.map((item) => item.search).join("\n");
+		await writeHTML(combinedText, combinedHtml);
+	}
+
+	// 写入剪贴板后隐藏窗口
+	hideWindow();
 };
