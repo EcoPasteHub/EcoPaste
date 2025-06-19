@@ -99,7 +99,7 @@ const Preference = () => {
 		<div
 			className={clsx("h-screen", {
 				"rounded-2.5": !isWin,
-				"b b-color-2 shadow-lg": appearance.isDark,
+				"b b-color-2": appearance.isDark,
 			})}
 		>
 			<Flex className="h-full">
