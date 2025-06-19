@@ -316,9 +316,10 @@ const Item: FC<ItemProps> = (props) => {
 			gap={4}
 			className={clsx(
 				className,
-				"group antd-input! b-color-2 absolute inset-0 mx-3 h-full rounded-md p-1.5",
+				"group b-2 b-color-2 absolute inset-0 mx-3 h-full rounded-md bg-color-1 p-1 outline-none transition",
+				"hover:b-primary-5",
 				{
-					"antd-input-focus!": state.activeId === id,
+					"b-primary-6": state.activeId === id,
 				},
 			)}
 			onContextMenu={handleContextMenu}

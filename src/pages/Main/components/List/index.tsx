@@ -14,7 +14,7 @@ const List = () => {
 
 	const rowVirtualizer = useVirtualizer({
 		count: state.list.length,
-		gap: 12,
+		gap: 8,
 		getScrollElement: () => outerRef.current,
 		estimateSize: () => 120,
 		getItemKey: (index) => state.list[index].id,

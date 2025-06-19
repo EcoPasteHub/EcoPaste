@@ -13,7 +13,7 @@ const Float = () => {
 
 	return (
 		<div
-			className={clsx("h-screen bg-color-1", {
+			className={clsx("h-screen bg-color-2", {
 				"rounded-2.5": !isWin,
 				"b b-color-1": isLinux,
 				"b b-color-2": appearance.isDark && !isLinux,
