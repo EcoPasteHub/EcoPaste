@@ -1,9 +1,9 @@
+import Scrollbar from "@/components/Scrollbar";
 import UnoIcon from "@/components/UnoIcon";
 import UpdateApp from "@/components/UpdateApp";
 import { emit } from "@tauri-apps/api/event";
 import { Flex } from "antd";
 import clsx from "clsx";
-import { MacScrollbar } from "mac-scrollbar";
 import { useSnapshot } from "valtio";
 import About from "./components/About";
 import Backup from "./components/Backup";
@@ -96,56 +96,69 @@ const Preference = () => {
 	};
 
 	return (
-		<Flex className="h-screen">
-			<Flex
-				data-tauri-drag-region
-				vertical
-				gap="small"
-				className={clsx("h-full w-50 p-3", [isMac ? "pt-8" : "bg-color-1"])}
-			>
-				{menuItems.map((item) => {
-					const { key, label, icon } = item;
+		<div
+			className={clsx("h-screen", {
+				"rounded-2.5": !isWin,
+				"b b-color-2 shadow-lg": appearance.isDark,
+			})}
+		>
+			<Flex className="h-full">
+				<Flex
+					data-tauri-drag-region
+					vertical
+					gap="small"
+					className={clsx("h-full w-50 p-3", [isMac ? "pt-8" : "bg-color-1"])}
+				>
+					{menuItems.map((item) => {
+						const { key, label, icon } = item;
 
-					return (
-						<Flex
-							key={key}
-							align="center"
-							gap="small"
-							className={clsx(
-								"cursor-pointer rounded-lg p-3 p-r-0 text-color-2 transition hover:bg-color-4",
-								{
-									"bg-primary! text-white!": activeKey === key,
-								},
-							)}
-							onClick={() => handleMenuClick(key)}
-						>
-							<UnoIcon name={icon} size={20} />
+						return (
+							<Flex
+								key={key}
+								align="center"
+								gap="small"
+								className={clsx(
+									"cursor-pointer rounded-lg p-3 p-r-0 text-color-2 transition hover:bg-color-4",
+									{
+										"bg-primary! text-white!": activeKey === key,
+									},
+								)}
+								onClick={() => handleMenuClick(key)}
+							>
+								<UnoIcon name={icon} size={20} />
 
-							<span className="font-bold">{label}</span>
-						</Flex>
-					);
-				})}
+								<span className="font-bold">{label}</span>
+							</Flex>
+						);
+					})}
+				</Flex>
+
+				<div
+					className={clsx("flex-1 bg-color-2 py-3", {
+						"rounded-r-2.5": !isWin,
+					})}
+				>
+					<Scrollbar
+						data-tauri-drag-region
+						ref={contentRef}
+						offset={3}
+						className="h-full px-4"
+					>
+						{menuItems.map((item) => {
+							const { key, content } = item;
+
+							return (
+								<div key={key} hidden={key !== activeKey}>
+									{content}
+								</div>
+							);
+						})}
+					</Scrollbar>
+				</div>
+
+				<UpdateApp />
 			</Flex>
-
-			<MacScrollbar
-				data-tauri-drag-region
-				ref={contentRef}
-				skin={appearance.isDark ? "dark" : "light"}
-				className="h-full flex-1 bg-color-2 p-4"
-			>
-				{menuItems.map((item) => {
-					const { key, content } = item;
-
-					return (
-						<div key={key} hidden={key !== activeKey}>
-							{content}
-						</div>
-					);
-				})}
-			</MacScrollbar>
-
-			<UpdateApp />
-		</Flex>
+		</div>
 	);
 };
 

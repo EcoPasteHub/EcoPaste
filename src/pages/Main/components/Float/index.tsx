@@ -9,12 +9,14 @@ import Search from "../Search";
 
 const Float = () => {
 	const { search } = useSnapshot(clipboardStore);
+	const { appearance } = useSnapshot(globalStore);
 
 	return (
 		<div
 			className={clsx("h-screen bg-color-1", {
 				"rounded-2.5": !isWin,
 				"b b-color-1": isLinux,
+				"b b-color-2 shadow-lg": appearance.isDark && !isLinux,
 			})}
 		>
 			<Flex
