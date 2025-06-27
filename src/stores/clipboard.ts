@@ -36,4 +36,6 @@ export const clipboardStore = proxy<ClipboardStore>({
 		unit: 1,
 		maxCount: 0,
 	},
+
+	excludeFiles: [],
 });

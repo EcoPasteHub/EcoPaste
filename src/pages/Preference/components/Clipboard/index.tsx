@@ -1,6 +1,7 @@
 import Audio from "@/components/Audio";
 import ProList from "@/components/ProList";
 import ProSwitch from "@/components/ProSwitch";
+import ExcludeFileTypes from "@/pages/Preference/components/Clipboard/components/ExcludeFileTypes";
 import { Typography } from "antd";
 import { useSnapshot } from "valtio";
 import AutoPaste from "./components/AutoPaste";
@@ -174,6 +175,8 @@ const ClipboardSettings = () => {
 						clipboardStore.content.showOriginalContent = value;
 					}}
 				/>
+
+				<ExcludeFileTypes />
 			</ProList>
 		</>
 	);

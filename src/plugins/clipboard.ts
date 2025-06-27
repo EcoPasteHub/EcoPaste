@@ -1,3 +1,4 @@
+import { clipboardStore } from "@/stores/clipboard.ts";
 import type { HistoryTablePayload } from "@/types/database";
 import type { ClipboardPayload, ReadImage, WindowsOCR } from "@/types/plugin";
 import { invoke } from "@tauri-apps/api/core";
@@ -96,6 +97,16 @@ export const readFiles = async (): Promise<ClipboardPayload> => {
 	let count = 0;
 
 	const names = [];
+
+	// 获取需要排除的文件类型
+	const excludeFiles = clipboardStore.excludeFiles;
+	// 移除指定的文件类型
+	if (excludeFiles.length > 0 && files.length > 0) {
+		files = files.filter((file) => {
+			const ext = file.slice(file.lastIndexOf("."));
+			return !excludeFiles.includes(ext);
+		});
+	}
 
 	for await (const path of files) {
 		const { size, name } = await metadata(path);

@@ -99,4 +99,7 @@ export interface ClipboardStore {
 		unit: number;
 		maxCount: number;
 	};
+
+	// 排除的文件类型
+	excludeFiles: string[];
 }
