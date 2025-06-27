@@ -108,12 +108,27 @@ export const readFiles = async (): Promise<ClipboardPayload> => {
 		});
 	}
 
+	const excludeBigFiles: string[] = [];
+
 	for await (const path of files) {
 		const { size, name } = await metadata(path);
-
+		if (
+			clipboardStore.fileSizeLimit !== 0 &&
+			size >= clipboardStore.fileSizeLimit * 1024 * 1024
+		) {
+			excludeBigFiles.push(path);
+			continue;
+		}
 		count += size;
 
 		names.push(name);
+	}
+
+	// 排除文件大小超过限制的文件
+	if (excludeBigFiles.length > 0) {
+		files = files.filter((file) => {
+			return !excludeBigFiles.includes(file);
+		});
 	}
 
 	return {

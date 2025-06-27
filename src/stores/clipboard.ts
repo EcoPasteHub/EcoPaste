@@ -38,4 +38,6 @@ export const clipboardStore = proxy<ClipboardStore>({
 	},
 
 	excludeFiles: [],
+
+	fileSizeLimit: 0,
 });
