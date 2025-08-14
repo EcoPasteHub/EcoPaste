@@ -4,7 +4,7 @@ import { MainContext } from "@/pages/Main";
 import { transferData } from "@/pages/Preference/components/Clipboard/components/OperationButton";
 import type { HistoryTablePayload } from "@/types/database";
 import type { OperationButton } from "@/types/store";
-import { Flex } from "antd";
+import { Flex, Tooltip } from "antd";
 import clsx from "clsx";
 import { filesize } from "filesize";
 import type { FC, MouseEvent } from "react";
@@ -127,6 +127,55 @@ const Header: FC<HeaderProps> = (props) => {
 					const { key, icon, activeIcon, title } = item;
 
 					const isFavorite = key === "star" && favorite;
+
+					if (key === "delete") {
+						const [showConfirm, setShowConfirm] = useState(false);
+						const [deleteConfirm, setDeleteConfirm] = useState(false);
+
+						const handleDeleteAction = (event) => {
+							event.stopPropagation();
+
+							let shouldDelete = deleteConfirm;
+
+							setShowConfirm(clipboardStore.content.deleteConfirm);
+
+							if (!clipboardStore.content.deleteConfirm) {
+								shouldDelete = true;
+							}
+
+							// 二次点击之后确认删除
+							if (!deleteConfirm) {
+								setDeleteConfirm(true);
+							}
+
+							if (shouldDelete) {
+								handleClick(event, key);
+							}
+						};
+
+						const cancelDelete = () => {
+							setShowConfirm(false);
+							setDeleteConfirm(false);
+						};
+
+						return (
+							<Tooltip
+								key={key}
+								title={t("clipboard.hints.delete_modal_content")}
+								placement={"left"}
+								open={showConfirm}
+								onMouseLeave={cancelDelete}
+							>
+								<UnoIcon
+									hoverable
+									name={icon}
+									title={t(title)}
+									className={clsx({ "text-red-5!": showConfirm })}
+									onClick={(event) => handleDeleteAction(event)}
+								/>
+							</Tooltip>
+						);
+					}
 
 					return (
 						<UnoIcon

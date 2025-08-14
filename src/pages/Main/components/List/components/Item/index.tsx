@@ -129,21 +129,6 @@ const Item: FC<ItemProps> = (props) => {
 
 	// 删除条目
 	const deleteItem = async () => {
-		let confirmed = true;
-
-		if (clipboardStore.content.deleteConfirm) {
-			confirmed = await deleteModal.confirm({
-				centered: true,
-				content: t("clipboard.hints.delete_modal_content"),
-				afterClose() {
-					// 关闭确认框后焦点还在，需要手动取消焦点
-					(document.activeElement as HTMLElement)?.blur();
-				},
-			});
-		}
-
-		if (!confirmed) return;
-
 		if (state.activeId === id) {
 			const nextIndex = selectNextOrPrev();
 
