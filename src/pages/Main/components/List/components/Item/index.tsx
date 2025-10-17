@@ -54,11 +54,24 @@ const Item: FC<ItemProps> = (props) => {
 				return selectNextOrPrev();
 			case LISTEN_KEY.CLIPBOARD_ITEM_FAVORITE:
 				return toggleFavorite();
+			case LISTEN_KEY.CLIPBOARD_ITEM_COPY:
+				return multipleCopy();
 		}
 	});
 
 	// 复制
 	const copy = () => {
+		return writeClipboard(data);
+	};
+
+	// 多选复制
+	const multipleCopy = () => {
+		if (state.selectedIds.length > 1) {
+			const selectedItems = state.list.filter((item) =>
+				state.selectedIds.includes(item.id),
+			);
+			return writeMultipleClipboard(selectedItems);
+		}
 		return writeClipboard(data);
 	};
 
@@ -267,7 +280,37 @@ const Item: FC<ItemProps> = (props) => {
 	};
 
 	// 点击事件
-	const handleClick = (type: typeof content.autoPaste) => {
+	const handleClick = (type: typeof content.autoPaste, event: MouseEvent) => {
+		if (event.ctrlKey) {
+			// 检查是否支持多选
+			if (data.type !== "text" && data.type !== "html") {
+				message.warning("多选只支持纯文本和HTML类型");
+				return;
+			}
+
+			// 检查是否已有选中项
+			if (state.selectedIds.length > 0) {
+				// 获取第一个选中项的类型
+				const firstSelectedItem = state.list.find(
+					(item) => item.id === state.selectedIds[0],
+				);
+				if (firstSelectedItem && firstSelectedItem.type !== data.type) {
+					message.warning("多选时只能选择相同类型的内容");
+					return;
+				}
+			}
+
+			const index = state.selectedIds.indexOf(id);
+			if (index === -1) {
+				state.selectedIds.push(id);
+			} else {
+				state.selectedIds.splice(index, 1);
+			}
+			return;
+		}
+
+		// Clear other selections when clicking without Ctrl
+		state.selectedIds = [id];
 		state.activeId = id;
 
 		if (content.autoPaste !== type) return;
@@ -318,12 +361,13 @@ const Item: FC<ItemProps> = (props) => {
 				className,
 				"group antd-input! b-color-2 absolute inset-0 mx-3 h-full rounded-md p-1.5",
 				{
-					"antd-input-focus!": state.activeId === id,
+					"antd-input-focus!":
+						state.activeId === id || state.selectedIds.includes(id),
 				},
 			)}
 			onContextMenu={handleContextMenu}
-			onClick={() => handleClick("single")}
-			onDoubleClick={() => handleClick("double")}
+			onClick={(e) => handleClick("single", e)}
+			onDoubleClick={(e) => handleClick("double", e)}
 			onDragStart={handleDragStart}
 		>
 			<Header

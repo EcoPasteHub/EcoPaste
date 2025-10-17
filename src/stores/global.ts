@@ -27,6 +27,7 @@ export const globalStore = proxy<GlobalStore>({
 			value: "Command+Shift",
 		},
 		pastePlain: "",
+		notes: "Alt+N",
 	},
 
 	env: {},

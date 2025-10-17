@@ -69,6 +69,8 @@ const Group = () => {
 
 		setChecked(key);
 
+		// 切换时清空多选
+		state.selectedIds = [];
 		Object.assign(state, { group, favorite });
 	};
 
