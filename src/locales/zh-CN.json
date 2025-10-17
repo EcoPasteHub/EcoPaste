@@ -70,7 +70,9 @@
 					"auto_favorite": "自动收藏",
 					"delete_confirm": "删除确认",
 					"auto_sort": "自动排序",
-					"show_original_content": "显示原内容"
+					"show_original_content": "显示原内容",
+					"excluded_file_types": "排除指定类型文件",
+					"file_size_limit": "文件大小限制"
 				},
 				"hints": {
 					"auto_paste": "鼠标左键操作时，快速粘贴内容至输入位置",
@@ -81,7 +83,10 @@
 					"auto_favorite": "新增或编辑备注后自动收藏",
 					"delete_confirm": "删除剪贴板内容时弹出确认对话框",
 					"auto_sort": "复制已存在的内容时排列到最前面",
-					"show_original_content": "添加备注后，鼠标悬停时是否显示原内容"
+					"show_original_content": "添加备注后，鼠标悬停时是否显示原内容",
+					"excluded_file_types": "复制时，不保存指定类型的文件",
+					"excluded_file_types_placeholder": "例如 .pdf .mp3",
+					"file_size_limit": "文件大小限制，默认 0 不限制，超过指定大小则在复制时不保存该文件"
 				}
 			}
 		},

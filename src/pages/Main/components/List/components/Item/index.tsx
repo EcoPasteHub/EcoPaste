@@ -361,6 +361,27 @@ const Item: FC<ItemProps> = (props) => {
 				>
 					{renderContent()}
 				</div>
+
+				{/* 数字标记 - 显示在右下角 */}
+				<div
+					className={clsx(
+						"absolute right-1 bottom-1 flex items-center justify-center rounded-full bg-blue-500 font-medium text-white shadow-sm",
+						{
+							// 1-2位数字：小圆圈
+							"h-5 w-5 text-xs": index + 1 < 100,
+							// 3位数字：中等圆圈
+							"h-6 w-6 text-xs": index + 1 >= 100 && index + 1 < 1000,
+							// 4位数字：大圆圈
+							"h-7 w-7 text-xs": index + 1 >= 1000 && index + 1 < 10000,
+							// 5位及以上：椭圆形
+							"h-6 rounded-full px-2 text-xs": index + 1 >= 10000,
+						},
+					)}
+				>
+					{index + 1 >= 10000
+						? `${Math.floor((index + 1) / 1000)}k`
+						: index + 1}
+				</div>
 			</div>
 		</Flex>
 	);

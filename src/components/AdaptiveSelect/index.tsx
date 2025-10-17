@@ -1,14 +1,18 @@
-import { Select, type SelectProps } from "antd";
+import type { AdaptiveSelectProps } from "@/types/plugin";
+import { Select } from "antd";
 
 const DEFAULT_WIDTH = 100;
 
-const AdaptiveSelect = <T,>(props: SelectProps<T>) => {
-	const { style, ...rest } = props;
+const AdaptiveSelect = <T,>(props: AdaptiveSelectProps<T>) => {
+	const { style, expandWidth = 0, ...rest } = props;
 
 	const width = useCreation(() => {
 		if (!rest.options) return DEFAULT_WIDTH;
 
 		let width = 0;
+		if (props.expandWidth !== 0 && props.expandWidth !== undefined) {
+			width = props.expandWidth;
+		}
 
 		const canvas = document.createElement("canvas");
 		const context = canvas.getContext("2d");

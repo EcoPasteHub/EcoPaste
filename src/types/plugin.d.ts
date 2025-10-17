@@ -1,3 +1,5 @@
+import type { SelectProps } from "antd";
+
 export type WindowLabel = (typeof WINDOW_LABEL)[keyof typeof WINDOW_LABEL];
 
 export interface ReadImage {
@@ -23,4 +25,8 @@ export interface WindowsOCR {
 		bounds: Array<{ x: number; y: number }>;
 		content: string;
 	}>;
+}
+
+export interface AdaptiveSelectProps<T> extends SelectProps<T> {
+	expandWidth?: number;
 }

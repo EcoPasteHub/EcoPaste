@@ -70,7 +70,9 @@
 					"auto_favorite": "自動コレクション",
 					"delete_confirm": "削除確認",
 					"auto_sort": "自動整列",
-					"show_original_content": "元の内容を表示します"
+					"show_original_content": "元の内容を表示します",
+					"excluded_file_types": "指定された種類のファイルを除外する",
+					"file_size_limit": "ファイルサイズの制限"
 				},
 				"hints": {
 					"auto_paste": "左クリック時に、内容を素早く入力フィールドに貼り付けます",
@@ -81,7 +83,10 @@
 					"auto_favorite": "メモの追加・編集後に自動お気に入り登録",
 					"delete_confirm": "クリップボードの内容を削除する際に確認ダイアログを表示する",
 					"auto_sort": "既存の内容をコピーして最前面に配置する",
-					"show_original_content": "メモを追加した後、マウスをホバーしたときに元のコンテンツを表示するかどうか"
+					"show_original_content": "メモを追加した後、マウスをホバーしたときに元のコンテンツを表示するかどうか",
+					"excluded_file_types": "コピー時に、指定したタイプのファイルを保存しない",
+					"excluded_file_types_placeholder": "例えば .pdf .mp3",
+					"file_size_limit": "ファイルサイズの制限。デフォルトは 0 で制限なし。ファイルが指定されたサイズを超えると、コピー時にファイルは保存されません"
 				}
 			}
 		},

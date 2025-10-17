@@ -1,7 +1,9 @@
 import Audio from "@/components/Audio";
 import ProList from "@/components/ProList";
+import ProListItem from "@/components/ProListItem";
 import ProSwitch from "@/components/ProSwitch";
-import { Typography } from "antd";
+import ExcludeFileTypes from "@/pages/Preference/components/Clipboard/components/ExcludeFileTypes";
+import { InputNumber, Typography } from "antd";
 import { useSnapshot } from "valtio";
 import AutoPaste from "./components/AutoPaste";
 import OperationButton from "./components/OperationButton";
@@ -174,6 +176,31 @@ const ClipboardSettings = () => {
 						clipboardStore.content.showOriginalContent = value;
 					}}
 				/>
+
+				<ExcludeFileTypes />
+
+				<ProListItem
+					title={t(
+						"preference.clipboard.content_settings.label.file_size_limit",
+					)}
+					description={t(
+						"preference.clipboard.content_settings.hints.file_size_limit",
+					)}
+				>
+					<InputNumber<number>
+						defaultValue={clipboardStore.fileSizeLimit}
+						min={0}
+						formatter={(value) => `${value} MB`}
+						parser={(value) => value?.replace(" MB", "") as unknown as number}
+						onChange={(value) => {
+							if (typeof value === "number") {
+								clipboardStore.fileSizeLimit = value;
+							} else {
+								clipboardStore.fileSizeLimit = 0;
+							}
+						}}
+					/>
+				</ProListItem>
 			</ProList>
 		</>
 	);

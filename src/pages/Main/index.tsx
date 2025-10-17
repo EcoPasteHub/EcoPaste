@@ -1,5 +1,6 @@
 import type { AudioRef } from "@/components/Audio";
 import Audio from "@/components/Audio";
+import { clipboardStore } from "@/stores/clipboard.ts";
 import type { HistoryTablePayload, TablePayload } from "@/types/database";
 import type { Store } from "@/types/store";
 import type { EventEmitter } from "ahooks/lib/useEventEmitter";
@@ -53,6 +54,10 @@ const Main = () => {
 			}
 
 			const { type, value, group } = payload;
+
+			if (type === "files" && payload.count === 0) {
+				return;
+			}
 
 			const findItem = find(state.list, { type, value });
 
