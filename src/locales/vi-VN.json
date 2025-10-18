@@ -1,0 +1,351 @@
+{
+	"preference": {
+		"title": "Tùy chọn",
+		"menu": {
+			"title": {
+				"clipboard": "Bảng tạm",
+				"history": "Lịch sử",
+				"general": "Chung",
+				"shortcut": "Phím tắt",
+				"backup": "Sao lưu Dữ liệu",
+				"about": "Giới thiệu"
+			}
+		},
+		"clipboard": {
+			"window_settings": {
+				"title": "Cài đặt Cửa sổ",
+				"label": {
+					"window_position": "Vị trí Cửa sổ",
+					"window_position_remember": "Ghi nhớ Vị trí",
+					"window_position_follow": "Theo con trỏ chuột",
+					"window_position_center": "Căn giữa Màn hình",
+					"back_top": "Cuộn lên đầu khi kích hoạt",
+					"show_all": "Chuyển đến nhóm tất cả khi kích hoạt"
+				},
+				"hints": {
+					"back_top": "Khi cửa sổ được kích hoạt, cuộn lên trên cùng và chọn mục đầu tiên"
+				}
+			},
+			"audio_settings": {
+				"title": "Cài đặt Âm thanh",
+				"label": {
+					"copy_audio": "Âm thanh khi sao chép"
+				}
+			},
+			"search_box_settings": {
+				"title": "Cài đặt Tìm kiếm",
+				"label": {
+					"default_focus": "Tập trung mặc định",
+					"auto_clear": "Tự động xóa",
+					"position": "Vị trí hộp tìm kiếm",
+					"position_top": "Trên cùng",
+					"position_bottom": "Dưới cùng"
+				},
+				"hints": {
+					"default_focus": "Tự động tập trung vào hộp tìm kiếm khi cửa sổ được kích hoạt",
+					"auto_clear": "Xóa nội dung hộp tìm kiếm khi cửa sổ được kích hoạt"
+				}
+			},
+			"content_settings": {
+				"title": "Cài đặt Nội dung",
+				"button": {
+					"custom_operation_button": "Tùy chỉnh"
+				},
+				"label": {
+					"auto_paste": "Tự động dán",
+					"auto_paste_single": "Nhấp một lần",
+					"auto_paste_double": "Nhấp đúp",
+					"image_ocr": "OCR Hình ảnh",
+					"copy_as_plain": "Sao chép dưới dạng văn bản thuần",
+					"paste_as_plain": "Dán dưới dạng văn bản thuần",
+					"operation_button": "Nút Hành động",
+					"custom_operation_button_title": "Tùy chỉnh Nút Hành động",
+					"operation_button_option": {
+						"copy": "Sao chép",
+						"paste_plain": "Dán dưới dạng văn bản thuần",
+						"notes": "Ghi chú",
+						"favorite": "Yêu thích",
+						"delete": "Xóa"
+					},
+					"auto_favorite": "Tự động yêu thích",
+					"delete_confirm": "Xác nhận xóa",
+					"auto_sort": "Tự động sắp xếp",
+					"show_original_content": "Hiển thị nội dung gốc"
+				},
+				"hints": {
+					"auto_paste": "Dán nhanh nội dung vào trường nhập liệu khi sử dụng nút chuột trái",
+					"image_ocr": "Lưu ý: Vui lòng đảm bảo bạn đã tải xuống",
+					"copy_as_plain": "Định dạng văn bản đa dạng thức và HTML chỉ giữ lại nội dung văn bản thuần khi sao chép",
+					"paste_as_plain": "Định dạng văn bản đa dạng thức và HTML chỉ giữ lại nội dung văn bản thuần khi dán",
+					"operation_button": "Tùy chỉnh các nút biểu tượng để thao tác với nội dung bảng tạm",
+					"auto_favorite": "Tự động yêu thích sau khi thêm hoặc chỉnh sửa ghi chú",
+					"delete_confirm": "Hiển thị hộp thoại xác nhận khi xóa nội dung bảng tạm",
+					"auto_sort": "Sắp xếp lên trên cùng khi sao chép nội dung đã tồn tại",
+					"show_original_content": "Có hiển thị nội dung gốc khi di chuột qua sau khi thêm ghi chú hay không"
+				}
+			}
+		},
+		"history": {
+			"history": {
+				"title": "Lịch sử",
+				"button": {
+					"goto_delete": "Xóa Lịch sử",
+					"confirm_delete": "Xác nhận",
+					"cancel_delete": "Hủy"
+				},
+				"label": {
+					"duration": "Thời gian lưu giữ",
+					"duration_unit": "Ngày",
+					"max_count": "Số lượng tối đa",
+					"max_count_unit": "Mục",
+					"delete_title": "Xóa Lịch sử",
+					"time_range": "Phạm vi thời gian",
+					"time_range_opt": {
+						"last_hour": "1 giờ qua",
+						"last_24_hours": "24 giờ qua",
+						"last_7_days": "7 ngày qua",
+						"last_30_days": "30 ngày qua",
+						"unlimited": "Không giới hạn",
+						"custom": "Tùy chỉnh"
+					},
+					"include_favorite": "Xóa cả mục yêu thích"
+				},
+				"hints": {
+					"duration": "Nhập 0 để lưu giữ vĩnh viễn, chỉ đếm và xóa các mục chưa được thu thập",
+					"max_count": "Nhập 0 để lưu giữ vĩnh viễn, chỉ đếm và xóa các mục chưa được thu thập",
+					"delete_success": "Xóa thành công"
+				}
+			}
+		},
+		"settings": {
+			"permission_settings": {
+				"title": "Cài đặt Quyền",
+				"button": {
+					"confirm_full_disk_access": "Bật trong Cài đặt Hệ thống",
+					"cancel_full_disk_access": "Bật sau",
+					"authorize": "Ủy quyền ngay"
+				},
+				"label": {
+					"accessibility_permissions": "Quyền Trợ năng",
+					"full_disk_access_permissions": "Quyền Truy cập Toàn bộ Đĩa",
+					"confirm_full_disk_access": "Yêu cầu Quyền Truy cập Toàn bộ Đĩa",
+					"authorized": "Đã ủy quyền"
+				},
+				"hints": {
+					"accessibility_permissions": "Cần có quyền trợ năng để quản lý nội dung bảng tạm",
+					"full_disk_access_permissions": "Cần có quyền truy cập toàn bộ đĩa để xem trước tệp",
+					"confirm_full_disk_access": "Cần có quyền truy cập toàn bộ đĩa để bật tính năng xem trước tệp"
+				}
+			},
+			"app_settings": {
+				"title": "Cài đặt Ứng dụng",
+				"label": {
+					"auto_start": "Khởi động khi đăng nhập",
+					"silent_start": "Khởi động ẩn",
+					"show_menubar_icon": "Hiển thị biểu tượng trên thanh menu",
+					"show_taskbar_icon": "Hiển thị biểu tượng trên thanh tác vụ"
+				},
+				"hints": {
+					"silent_start": "Ẩn cửa sổ khi khởi chạy ứng dụng thủ công"
+				}
+			},
+			"appearance_settings": {
+				"title": "Cài đặt Giao diện",
+				"label": {
+					"language": "Ngôn ngữ",
+					"theme": "Giao diện",
+					"theme_auto": "Hệ thống",
+					"theme_light": "Sáng",
+					"theme_dark": "Tối"
+				}
+			},
+			"update_settings": {
+				"title": "Cài đặt Cập nhật",
+				"label": {
+					"auto_update": "Tự động kiểm tra cập nhật",
+					"update_beta": "Tham gia trải nghiệm beta"
+				},
+				"hints": {
+					"update_beta": "Sẽ nhận được các bản cập nhật beta, ngay cả khi chúng có thể không ổn định"
+				}
+			}
+		},
+		"shortcut": {
+			"shortcut": {
+				"title": "Phím tắt",
+				"label": {
+					"open_clipboard": "Mở cửa sổ Bảng tạm",
+					"open_settings": "Mở cửa sổ Tùy chọn",
+					"quick_paste": "Dán nhanh",
+					"paste_as_plain": "Dán dưới dạng văn bản thuần"
+				},
+				"hints": {
+					"quick_paste": "Sử dụng tổ hợp phím số để dán nhanh 9 mục trên cùng khi cửa sổ bị ẩn",
+					"paste_as_plain": "Dán các lựa chọn dưới dạng văn bản thuần, văn bản OCR và đường dẫn khi cửa sổ được kích hoạt"
+				}
+			},
+			"preset": {
+				"search": "Tìm kiếm",
+				"select_item": "Chọn mục",
+				"select_group": "Chọn nhóm",
+				"paste": "Dán",
+				"delete": "Xóa",
+				"favorite": "Yêu thích mục",
+				"preview_image": "Xem trước ảnh",
+				"back_to_top": "Về đầu trang",
+				"fixed_window": "Ghim cửa sổ",
+				"open_preferences": "Mở Tùy chọn",
+				"hide_window": "Ẩn cửa sổ"
+			}
+		},
+		"data_backup": {
+			"storage_settings": {
+				"title": "Cài đặt Lưu trữ",
+				"label": {
+					"data_storage_path": "Đường dẫn lưu dữ liệu",
+					"log_storage_path": "Đường dẫn lưu nhật ký"
+				},
+				"hints": {
+					"custom_path": "Tùy chỉnh",
+					"default_path": "Khôi phục mặc định",
+					"change_success": "Thay đổi thành công"
+				}
+			},
+			"import_export": {
+				"title": "Nhập / Xuất",
+				"button": {
+					"import": "Nhập",
+					"export": "Xuất",
+					"cancel": "Hủy",
+					"confirm_import": "OK",
+					"confirm_export": "Xuất"
+				},
+				"label": {
+					"confirm_import": "Nhập Ghi chú",
+					"confirm_export": "Xuất Ghi chú"
+				},
+				"hints": {
+					"import_success": "Nhập thành công",
+					"export_success": "Xuất thành công",
+					"confirm_import": "Dữ liệu bảng tạm được nhập sẽ ghi đè lên dữ liệu hiện có, bạn có chắc chắn muốn tiếp tục không?",
+					"confirm_export": "Dữ liệu được xuất chứa tất cả các tùy chọn và nội dung bảng tạm và được lưu dưới dạng văn bản thuần túy, vì vậy hãy giữ nó an toàn."
+				}
+			}
+		},
+		"about": {
+			"about_software": {
+				"title": "Về Phần mềm",
+				"label": {
+					"version": "Phiên bản: ",
+					"software_info": "Thông tin Phần mềm",
+					"open_source_address": "Địa chỉ Mã nguồn mở",
+					"community": "Cộng đồng",
+					"sponsor": "Tài trợ"
+				},
+				"button": {
+					"check_update": "Kiểm tra Cập nhật",
+					"copy": "Sao chép",
+					"feedback_issue": "Báo cáo Vấn đề"
+				},
+				"hints": {
+					"software_info": "Sao chép thông tin phần mềm và cung cấp cho Báo cáo lỗi",
+					"copy_success": "Sao chép thành công"
+				}
+			},
+			"thank": {
+				"title": "Cảm ơn",
+				"hints": {
+					"thank_all": "Cảm ơn tất cả các dự án mã nguồn mở phụ thuộc đã được liệt kê và chưa được liệt kê, cũng như những người dùng đã đề xuất {{0}} và các nhà phát triển đã đóng góp."
+				}
+			}
+		}
+	},
+	"clipboard": {
+		"button": {
+			"context_menu": {
+				"copy": "Sao chép",
+				"note": "Ghi chú",
+				"paste_as_plain_text": "Dán dưới dạng văn bản thuần",
+				"paste_ocr_text": "Dán văn bản OCR",
+				"paste_as_path": "Dán dưới dạng đường dẫn",
+				"unfavorite": "Bỏ yêu thích",
+				"favorite": "Yêu thích",
+				"open_in_browser": "Mở trong trình duyệt",
+				"send_email": "Gửi Email",
+				"export_as_file": "Xuất ra tệp",
+				"preview_image": "Xem trước ảnh",
+				"download_image": "Tải ảnh xuống",
+				"show_in_finder": "Hiển thị trong Finder",
+				"show_in_file_explorer": "Hiển thị trong File Explorer",
+				"delete": "Xóa"
+			}
+		},
+		"label": {
+			"tab": {
+				"all": "Tất cả",
+				"text": "Văn bản",
+				"image": "Hình ảnh",
+				"files": "Tệp",
+				"favorite": "Yêu thích"
+			},
+			"link": "Liên kết",
+			"email": "Email",
+			"color": "Màu sắc",
+			"path": "Đường dẫn",
+			"plain_text": "Văn bản thuần",
+			"rtf": "Văn bản đa dạng thức",
+			"html": "HTML",
+			"image": "Hình ảnh",
+			"n_files": "{{0}} Tệp",
+			"n_chars": "{{0}} Ký tự"
+		},
+		"hints": {
+			"search_placeholder": "Tìm kiếm...",
+			"delete_modal_content": "Bạn có chắc chắn muốn xóa mục này không?"
+		}
+	},
+	"component": {
+		"shortcut_key": {
+			"hints": {
+				"click": "Nhấp để ghi",
+				"press": "Nhấn phím"
+			}
+		},
+		"app_update": {
+			"label": {
+				"new_version_title": "Có phiên bản mới 🥳",
+				"release_version": "Phiên bản phát hành",
+				"release_time": "Thời gian phát hành",
+				"release_notes": "Ghi chú phát hành"
+			},
+			"button": {
+				"confirm_update": "Cập nhật ngay",
+				"cancel_update": "Để sau"
+			},
+			"hints": {
+				"checking_update": "Đang kiểm tra cập nhật...",
+				"latest_version": "Bạn đang sử dụng phiên bản mới nhất 🎉"
+			}
+		},
+		"tray": {
+			"label": {
+				"preference": "Tùy chọn",
+				"start_listening": "Bắt đầu lắng nghe",
+				"stop_listening": "Ngừng lắng nghe",
+				"check_update": "Kiểm tra Cập nhật",
+				"open_source_address": "Địa chỉ Mã nguồn mở",
+				"version": "Phiên bản",
+				"relaunch": "Khởi chạy lại",
+				"exit": "Thoát"
+			}
+		},
+		"note_modal": {
+			"label": {
+				"note": "Ghi chú"
+			},
+			"hints": {
+				"input_note": "Vui lòng nhập ghi chú"
+			}
+		}
+	}
+}

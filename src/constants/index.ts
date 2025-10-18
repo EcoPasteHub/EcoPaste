@@ -18,6 +18,7 @@ export const LANGUAGE = {
 	ZH_TW: "zh-TW",
 	EN_US: "en-US",
 	JA_JP: "ja-JP",
+	VI_VN: "vi-VN",
 } as const;
 
 export const LISTEN_KEY = {

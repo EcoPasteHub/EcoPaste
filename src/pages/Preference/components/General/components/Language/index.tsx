@@ -36,6 +36,10 @@ const Language = () => {
 			label: "日本語",
 			value: LANGUAGE.JA_JP,
 		},
+		{
+			label: "Tiếng Việt",
+			value: LANGUAGE.VI_VN,
+		},
 	];
 
 	return (
