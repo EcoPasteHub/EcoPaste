@@ -14,7 +14,7 @@
 		"build:icon": "tsx scripts/buildIcon.ts",
 		"build:vite": "vite build",
 		"tauri": "tauri",
-		"lint": "biome check --write",
+		"lint": "biome check --write src",
 		"preinstall": "npx only-allow pnpm",
 		"prepare": "simple-git-hooks",
 		"release": "release-it",
@@ -24,7 +24,6 @@
 	"dependencies": {
 		"@ant-design/happy-work-theme": "^1.0.0",
 		"@ant-design/icons": "^5.6.1",
-		"@crabnebula/tauri-plugin-drag": "^2.1.0",
 		"@tanstack/react-virtual": "^3.13.12",
 		"@tauri-apps/api": "^2.5.0",
 		"@tauri-apps/plugin-autostart": "^2.3.0",

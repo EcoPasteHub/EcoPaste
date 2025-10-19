@@ -69,7 +69,7 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "resources": ["assets/tray.ico", "assets/drag-icon.png"],
+    "resources": ["assets/tray.ico"],
     "shortDescription": "EcoPaste",
     "targets": ["nsis", "dmg", "app", "appimage", "deb", "rpm"]
   },

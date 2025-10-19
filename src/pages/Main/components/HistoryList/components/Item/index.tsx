@@ -1,10 +1,8 @@
-import { startDrag } from "@crabnebula/tauri-plugin-drag";
-import { resolveResource } from "@tauri-apps/api/path";
 import { openPath } from "@tauri-apps/plugin-opener";
-import { Flex, message } from "antd";
+import { Flex } from "antd";
 import type { HookAPI } from "antd/es/modal/useModal";
 import clsx from "clsx";
-import type { DragEvent, FC } from "react";
+import type { FC } from "react";
 import { useSnapshot } from "valtio";
 import UnoIcon from "@/components/UnoIcon";
 import { MainContext } from "@/pages/Main";
@@ -86,22 +84,6 @@ const Item: FC<ItemProps> = (props) => {
     handlePaste();
   };
 
-  const handleDragStart = async (event: DragEvent) => {
-    event.preventDefault();
-
-    const icon = await resolveResource("assets/drag-icon.png");
-
-    if (type === "image") {
-      return startDrag({ icon: value, item: [value] });
-    }
-
-    if (type === "files") {
-      return startDrag({ icon, item: value });
-    }
-
-    return message.warning("暂不支持拖拽文本");
-  };
-
   const renderContent = () => {
     switch (type) {
       case "text":
@@ -125,12 +107,10 @@ const Item: FC<ItemProps> = (props) => {
           "antd-input-focus!": rootState.activeId === id,
         },
       )}
-      draggable
       gap={4}
       onClick={() => handleClick("single")}
       onContextMenu={handleContextMenu}
       onDoubleClick={() => handleClick("double")}
-      onDragStart={handleDragStart}
       vertical
     >
       <Header {...rest} data={data} handleNote={handleNote} />
