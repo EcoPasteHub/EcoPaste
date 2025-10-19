@@ -1,42 +1,42 @@
-import type { DatabaseSchemaHistory } from "@/types/database";
 import { Flex } from "antd";
 import clsx from "clsx";
 import type { CSSProperties, FC } from "react";
+import type { DatabaseSchemaHistory } from "@/types/database";
 
 const Text: FC<DatabaseSchemaHistory<"text">> = (props) => {
-	const { value, subtype } = props;
+  const { value, subtype } = props;
 
-	const renderColor = () => {
-		const className = "absolute rounded-full";
-		const style: CSSProperties = {
-			background: value,
-		};
+  const renderColor = () => {
+    const className = "absolute rounded-full";
+    const style: CSSProperties = {
+      background: value,
+    };
 
-		return (
-			<Flex align="center" gap="small">
-				<div className="relative h-5.5 min-w-5.5">
-					<span
-						style={style}
-						className={clsx(className, "inset-0 opacity-50")}
-					/>
+    return (
+      <Flex align="center" gap="small">
+        <div className="relative h-5.5 min-w-5.5">
+          <span
+            className={clsx(className, "inset-0 opacity-50")}
+            style={style}
+          />
 
-					<span style={style} className={clsx(className, "inset-0.5")} />
-				</div>
+          <span className={clsx(className, "inset-0.5")} style={style} />
+        </div>
 
-				{value}
-			</Flex>
-		);
-	};
+        {value}
+      </Flex>
+    );
+  };
 
-	const renderContent = () => {
-		if (subtype === "color") {
-			return renderColor();
-		}
+  const renderContent = () => {
+    if (subtype === "color") {
+      return renderColor();
+    }
 
-		return value;
-	};
+    return value;
+  };
 
-	return <div className="line-clamp-4">{renderContent()}</div>;
+  return <div className="line-clamp-4">{renderContent()}</div>;
 };
 
 export default Text;

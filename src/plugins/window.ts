@@ -1,103 +1,103 @@
-import type { WindowLabel } from "@/types/plugin";
 import { invoke } from "@tauri-apps/api/core";
 import { emit } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import {
-	LogicalPosition,
-	LogicalSize,
-	currentMonitor,
+  currentMonitor,
+  LogicalPosition,
+  LogicalSize,
 } from "@tauri-apps/api/window";
+import type { WindowLabel } from "@/types/plugin";
 
 const COMMAND = {
-	SHOW_WINDOW: "plugin:eco-window|show_window",
-	HIDE_WINDOW: "plugin:eco-window|hide_window",
-	SHOW_TASKBAR_ICON: "plugin:eco-window|show_taskbar_icon",
+  HIDE_WINDOW: "plugin:eco-window|hide_window",
+  SHOW_TASKBAR_ICON: "plugin:eco-window|show_taskbar_icon",
+  SHOW_WINDOW: "plugin:eco-window|show_window",
 };
 
 /**
  * 显示窗口
  */
 export const showWindow = (label?: WindowLabel) => {
-	if (label) {
-		emit(LISTEN_KEY.SHOW_WINDOW, label);
-	} else {
-		invoke(COMMAND.SHOW_WINDOW);
-	}
+  if (label) {
+    emit(LISTEN_KEY.SHOW_WINDOW, label);
+  } else {
+    invoke(COMMAND.SHOW_WINDOW);
+  }
 };
 
 /**
  * 隐藏窗口
  */
 export const hideWindow = () => {
-	invoke(COMMAND.HIDE_WINDOW);
+  invoke(COMMAND.HIDE_WINDOW);
 };
 
 /**
  * 切换窗口的显示和隐藏
  */
 export const toggleWindowVisible = async () => {
-	const appWindow = getCurrentWebviewWindow();
+  const appWindow = getCurrentWebviewWindow();
 
-	let focused = await appWindow.isFocused();
+  let focused = await appWindow.isFocused();
 
-	if (isLinux) {
-		focused = await appWindow.isVisible();
-	}
+  if (isLinux) {
+    focused = await appWindow.isVisible();
+  }
 
-	if (focused) {
-		hideWindow();
-	} else {
-		if (appWindow.label === WINDOW_LABEL.MAIN) {
-			const { window } = clipboardStore;
+  if (focused) {
+    hideWindow();
+  } else {
+    if (appWindow.label === WINDOW_LABEL.MAIN) {
+      const { window } = clipboardStore;
 
-			// 激活时回到顶部
-			if (window.backTop) {
-				await emit(LISTEN_KEY.ACTIVATE_BACK_TOP);
-			}
+      // 激活时回到顶部
+      if (window.backTop) {
+        await emit(LISTEN_KEY.ACTIVATE_BACK_TOP);
+      }
 
-			if (window.style === "standard" && window.position !== "remember") {
-				const current = await currentMonitor();
-				const monitor = await getCursorMonitor();
+      if (window.style === "standard" && window.position !== "remember") {
+        const current = await currentMonitor();
+        const monitor = await getCursorMonitor();
 
-				if (current && monitor) {
-					let { position, size, cursorX, cursorY } = monitor;
-					const windowSize = await appWindow.innerSize();
-					const { width, height } = windowSize.toLogical(current.scaleFactor);
+        if (current && monitor) {
+          let { position, size, cursorX, cursorY } = monitor;
+          const windowSize = await appWindow.innerSize();
+          const { width, height } = windowSize.toLogical(current.scaleFactor);
 
-					if (window.position === "follow") {
-						cursorX = Math.min(cursorX, position.x + size.width - width);
-						cursorY = Math.min(cursorY, position.y + size.height - height);
-					} else {
-						cursorX = position.x + (size.width - width) / 2;
-						cursorY = position.y + (size.height - height) / 2;
-					}
+          if (window.position === "follow") {
+            cursorX = Math.min(cursorX, position.x + size.width - width);
+            cursorY = Math.min(cursorY, position.y + size.height - height);
+          } else {
+            cursorX = position.x + (size.width - width) / 2;
+            cursorY = position.y + (size.height - height) / 2;
+          }
 
-					await appWindow.setPosition(
-						new LogicalPosition(Math.round(cursorX), Math.round(cursorY)),
-					);
-				}
-			} else if (window.style === "dock") {
-				const monitor = await getCursorMonitor();
+          await appWindow.setPosition(
+            new LogicalPosition(Math.round(cursorX), Math.round(cursorY)),
+          );
+        }
+      } else if (window.style === "dock") {
+        const monitor = await getCursorMonitor();
 
-				if (monitor) {
-					const { width, height } = monitor.size;
-					const windowHeight = 400;
-					const { x } = monitor.position;
-					const y = height - windowHeight;
+        if (monitor) {
+          const { width, height } = monitor.size;
+          const windowHeight = 400;
+          const { x } = monitor.position;
+          const y = height - windowHeight;
 
-					await appWindow.setSize(new LogicalSize(width, windowHeight));
-					await appWindow.setPosition(new LogicalPosition(x, y));
-				}
-			}
-		}
+          await appWindow.setSize(new LogicalSize(width, windowHeight));
+          await appWindow.setPosition(new LogicalPosition(x, y));
+        }
+      }
+    }
 
-		showWindow();
-	}
+    showWindow();
+  }
 };
 
 /**
  * 显示任务栏图标
  */
 export const showTaskbarIcon = (visible = true) => {
-	invoke(COMMAND.SHOW_TASKBAR_ICON, { visible });
+  invoke(COMMAND.SHOW_TASKBAR_ICON, { visible });
 };

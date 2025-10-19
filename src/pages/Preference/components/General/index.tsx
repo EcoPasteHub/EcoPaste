@@ -1,95 +1,95 @@
-import ProList from "@/components/ProList";
-import ProSwitch from "@/components/ProSwitch";
 import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart";
 import { useSnapshot } from "valtio";
+import ProList from "@/components/ProList";
+import ProSwitch from "@/components/ProSwitch";
 import Language from "./components/Language";
 import MacosPermissions from "./components/MacosPermissions";
 import ThemeMode from "./components/ThemeMode";
 
 const General = () => {
-	const { app, update } = useSnapshot(globalStore);
-	const { t } = useTranslation();
+  const { app, update } = useSnapshot(globalStore);
+  const { t } = useTranslation();
 
-	// 监听自动启动变更
-	useImmediateKey(globalStore.app, "autoStart", async (value) => {
-		const enabled = await isEnabled();
+  // 监听自动启动变更
+  useImmediateKey(globalStore.app, "autoStart", async (value) => {
+    const enabled = await isEnabled();
 
-		if (value && !enabled) {
-			return enable();
-		}
+    if (value && !enabled) {
+      return enable();
+    }
 
-		if (!value && enabled) {
-			disable();
-		}
-	});
+    if (!value && enabled) {
+      disable();
+    }
+  });
 
-	return (
-		<>
-			<MacosPermissions />
+  return (
+    <>
+      <MacosPermissions />
 
-			<ProList header={t("preference.settings.app_settings.title")}>
-				<ProSwitch
-					title={t("preference.settings.app_settings.label.auto_start")}
-					value={app.autoStart}
-					onChange={(value) => {
-						globalStore.app.autoStart = value;
-					}}
-				/>
+      <ProList header={t("preference.settings.app_settings.title")}>
+        <ProSwitch
+          onChange={(value) => {
+            globalStore.app.autoStart = value;
+          }}
+          title={t("preference.settings.app_settings.label.auto_start")}
+          value={app.autoStart}
+        />
 
-				<ProSwitch
-					title={t("preference.settings.app_settings.label.silent_start")}
-					description={t("preference.settings.app_settings.hints.silent_start")}
-					value={app.silentStart}
-					onChange={(value) => {
-						globalStore.app.silentStart = value;
-					}}
-				/>
+        <ProSwitch
+          description={t("preference.settings.app_settings.hints.silent_start")}
+          onChange={(value) => {
+            globalStore.app.silentStart = value;
+          }}
+          title={t("preference.settings.app_settings.label.silent_start")}
+          value={app.silentStart}
+        />
 
-				<ProSwitch
-					title={t("preference.settings.app_settings.label.show_menubar_icon")}
-					value={app.showMenubarIcon}
-					onChange={(value) => {
-						globalStore.app.showMenubarIcon = value;
-					}}
-				/>
+        <ProSwitch
+          onChange={(value) => {
+            globalStore.app.showMenubarIcon = value;
+          }}
+          title={t("preference.settings.app_settings.label.show_menubar_icon")}
+          value={app.showMenubarIcon}
+        />
 
-				<ProSwitch
-					title={t("preference.settings.app_settings.label.show_taskbar_icon")}
-					value={app.showTaskbarIcon}
-					onChange={(value) => {
-						globalStore.app.showTaskbarIcon = value;
-					}}
-				/>
-			</ProList>
+        <ProSwitch
+          onChange={(value) => {
+            globalStore.app.showTaskbarIcon = value;
+          }}
+          title={t("preference.settings.app_settings.label.show_taskbar_icon")}
+          value={app.showTaskbarIcon}
+        />
+      </ProList>
 
-			<ProList header={t("preference.settings.appearance_settings.title")}>
-				<Language />
+      <ProList header={t("preference.settings.appearance_settings.title")}>
+        <Language />
 
-				<ThemeMode />
-			</ProList>
+        <ThemeMode />
+      </ProList>
 
-			<ProList header={t("preference.settings.update_settings.title")}>
-				<ProSwitch
-					title={t("preference.settings.update_settings.label.auto_update")}
-					value={update.auto}
-					onChange={(value) => {
-						globalStore.update.auto = value;
-					}}
-				/>
+      <ProList header={t("preference.settings.update_settings.title")}>
+        <ProSwitch
+          onChange={(value) => {
+            globalStore.update.auto = value;
+          }}
+          title={t("preference.settings.update_settings.label.auto_update")}
+          value={update.auto}
+        />
 
-				<ProSwitch
-					title={t("preference.settings.update_settings.label.update_beta")}
-					description={t(
-						"preference.settings.update_settings.hints.update_beta",
-					)}
-					value={update.beta}
-					onChange={(value) => {
-						globalStore.update.beta = value;
-					}}
-				/>
-			</ProList>
-		</>
-	);
+        <ProSwitch
+          description={t(
+            "preference.settings.update_settings.hints.update_beta",
+          )}
+          onChange={(value) => {
+            globalStore.update.beta = value;
+          }}
+          title={t("preference.settings.update_settings.label.update_beta")}
+          value={update.beta}
+        />
+      </ProList>
+    </>
+  );
 };
 
 export default General;

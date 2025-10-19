@@ -7,68 +7,68 @@ const appWindow = getCurrentWebviewWindow();
 const { label } = appWindow;
 
 export const useWindowState = () => {
-	const state = useReactive<Partial<PhysicalPosition & PhysicalSize>>({});
+  const state = useReactive<Partial<PhysicalPosition & PhysicalSize>>({});
 
-	useMount(() => {
-		appWindow.onMoved(onChange);
+  useMount(() => {
+    appWindow.onMoved(onChange);
 
-		appWindow.onResized(onChange);
-	});
+    appWindow.onResized(onChange);
+  });
 
-	useTauriFocus({
-		onBlur() {
-			saveState();
-		},
-	});
+  useTauriFocus({
+    onBlur() {
+      saveState();
+    },
+  });
 
-	const onChange = async (event: Event<PhysicalPosition | PhysicalSize>) => {
-		const minimized = await appWindow.isMinimized();
+  const onChange = async (event: Event<PhysicalPosition | PhysicalSize>) => {
+    const minimized = await appWindow.isMinimized();
 
-		if (minimized) return;
+    if (minimized) return;
 
-		Object.assign(state, event.payload);
-	};
+    Object.assign(state, event.payload);
+  };
 
-	const getSavedStates = async () => {
-		const path = await getSaveWindowStatePath();
+  const getSavedStates = async () => {
+    const path = await getSaveWindowStatePath();
 
-		const existed = await exists(path);
+    const existed = await exists(path);
 
-		if (!existed) return {};
+    if (!existed) return {};
 
-		const states = await readTextFile(path);
+    const states = await readTextFile(path);
 
-		return JSON.parse(states);
-	};
+    return JSON.parse(states);
+  };
 
-	const saveState = async () => {
-		const path = await getSaveWindowStatePath();
+  const saveState = async () => {
+    const path = await getSaveWindowStatePath();
 
-		const states = await getSavedStates();
+    const states = await getSavedStates();
 
-		states[label] = state;
+    states[label] = state;
 
-		return writeTextFile(path, JSON.stringify(states, null, 2));
-	};
+    return writeTextFile(path, JSON.stringify(states, null, 2));
+  };
 
-	const restoreState = async () => {
-		const states = await getSavedStates();
+  const restoreState = async () => {
+    const states = await getSavedStates();
 
-		Object.assign(state, states[label]);
+    Object.assign(state, states[label]);
 
-		const { x, y, width, height } = state;
+    const { x, y, width, height } = state;
 
-		if (x && y) {
-			appWindow.setPosition(new PhysicalPosition(x, y));
-		}
+    if (x && y) {
+      appWindow.setPosition(new PhysicalPosition(x, y));
+    }
 
-		if (width && height) {
-			appWindow.setSize(new PhysicalSize(width, height));
-		}
-	};
+    if (width && height) {
+      appWindow.setSize(new PhysicalSize(width, height));
+    }
+  };
 
-	return {
-		saveState,
-		restoreState,
-	};
+  return {
+    restoreState,
+    saveState,
+  };
 };

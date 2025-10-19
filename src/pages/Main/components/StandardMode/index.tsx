@@ -1,60 +1,60 @@
-import UnoIcon from "@/components/UnoIcon";
 import { Flex } from "antd";
 import clsx from "clsx";
 import { useSnapshot } from "valtio";
+import UnoIcon from "@/components/UnoIcon";
 import GroupList from "../GroupList";
 import HistoryList from "../HistoryList";
 import SearchInput from "../SearchInput";
 import WindowPin from "../WindowPin";
 
 const StandardMode = () => {
-	const { search } = useSnapshot(clipboardStore);
+  const { search } = useSnapshot(clipboardStore);
 
-	return (
-		<Flex
-			data-tauri-drag-region
-			vertical
-			gap={12}
-			className={clsx("h-screen bg-color-1 py-3", {
-				"rounded-2.5": !isWin,
-				"b b-color-1": isLinux,
-				"flex-col-reverse": search.position === "bottom",
-			})}
-		>
-			<SearchInput className="mx-3" />
+  return (
+    <Flex
+      className={clsx("h-screen bg-color-1 py-3", {
+        "b b-color-1": isLinux,
+        "flex-col-reverse": search.position === "bottom",
+        "rounded-2.5": !isWin,
+      })}
+      data-tauri-drag-region
+      gap={12}
+      vertical
+    >
+      <SearchInput className="mx-3" />
 
-			<Flex
-				data-tauri-drag-region
-				vertical
-				gap={12}
-				className="flex-1 overflow-hidden"
-			>
-				<Flex
-					data-tauri-drag-region
-					align="center"
-					justify="space-between"
-					gap="small"
-					className="overflow-hidden px-3"
-				>
-					<GroupList />
+      <Flex
+        className="flex-1 overflow-hidden"
+        data-tauri-drag-region
+        gap={12}
+        vertical
+      >
+        <Flex
+          align="center"
+          className="overflow-hidden px-3"
+          data-tauri-drag-region
+          gap="small"
+          justify="space-between"
+        >
+          <GroupList />
 
-					<Flex align="center" gap={4} className="text-color-2 text-lg">
-						<WindowPin />
+          <Flex align="center" className="text-color-2 text-lg" gap={4}>
+            <WindowPin />
 
-						<UnoIcon
-							hoverable
-							name="i-lets-icons:setting-alt-line"
-							onClick={() => {
-								showWindow("preference");
-							}}
-						/>
-					</Flex>
-				</Flex>
+            <UnoIcon
+              hoverable
+              name="i-lets-icons:setting-alt-line"
+              onClick={() => {
+                showWindow("preference");
+              }}
+            />
+          </Flex>
+        </Flex>
 
-				<HistoryList />
-			</Flex>
-		</Flex>
-	);
+        <HistoryList />
+      </Flex>
+    </Flex>
+  );
 };
 
 export default StandardMode;

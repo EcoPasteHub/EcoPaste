@@ -1,342 +1,342 @@
 {
-	"preference": {
-		"title": "環境設定",
-		"menu": {
-			"title": {
-				"clipboard": "クリップボード",
-				"history": "履歴",
-				"general": "共通設定",
-				"shortcut": "ショートカットキー",
-				"backup": "バックアップ",
-				"about": "について"
-			}
-		},
-		"clipboard": {
-			"window_settings": {
-				"title": "クリップボード設定",
-				"label": {
-					"window_position": "クリップボード位置",
-					"window_position_remember": "位置を記憶する",
-					"window_position_follow": "マウスに従う",
-					"window_position_center": "スクリーンセンター",
-					"back_top": "トップページに戻る",
-					"show_all": "起動時に全グループに切り替わる"
-				},
-				"hints": {
-					"back_top": "ウィンドウがアクティブになったら、一番上までスクロールし、最初のバーを選択する。"
-				}
-			},
-			"audio_settings": {
-				"title": "サウンド設定",
-				"label": {
-					"copy_audio": "コピーされた音"
-				}
-			},
-			"search_box_settings": {
-				"title": "検索設定",
-				"label": {
-					"default_focus": "デフォルトフォーカス",
-					"auto_clear": "自動削除",
-					"position": "検索ボックス位置",
-					"position_top": "トップ",
-					"position_bottom": "ボトム"
-				},
-				"hints": {
-					"default_focus": "ウィンドウがアクティブになると、デフォルトで検索ボックスにフォーカスを当てる。",
-					"auto_clear": "ウィンドウがアクティブになったときに検索ボックスの内容をクリアする"
-				}
-			},
-			"content_settings": {
-				"title": "コンテンツ設定",
-				"button": {
-					"custom_operation_button": "カスタム"
-				},
-				"label": {
-					"auto_paste": "自動ペースト",
-					"auto_paste_single": "シングルクリック",
-					"auto_paste_double": "ダブルクリック",
-					"copy_as_plain": "プレーンテキストとしてコピー",
-					"paste_as_plain": "プレーンテキストとして貼り付ける",
-					"operation_button": "操作ボタン",
-					"custom_operation_button_title": "カスタム操作ボタン",
-					"operation_button_option": {
-						"copy": "コピー",
-						"paste_plain": "プレーンテキストとして貼り付け",
-						"notes": "メモ",
-						"favorite": "お気に入り",
-						"delete": "削除"
-					},
-					"auto_favorite": "自動コレクション",
-					"delete_confirm": "削除確認",
-					"auto_sort": "自動整列",
-					"show_original_content": "元の内容を表示します"
-				},
-				"hints": {
-					"auto_paste": "左クリック時に、内容を素早く入力フィールドに貼り付けます",
-					"copy_as_plain": "リッチテキストとHTML形式は、コピーしてもプレーンテキストの内容しか保持しない",
-					"paste_as_plain": "リッチテキストとHTMLの書式設定は、貼り付け時にプレーンテキストの内容だけを保持する",
-					"operation_button": "クリップボード内容を操作するためのアイコンボタンをカスタマイズします",
-					"auto_favorite": "メモの追加・編集後に自動お気に入り登録",
-					"delete_confirm": "クリップボードの内容を削除する際に確認ダイアログを表示する",
-					"auto_sort": "既存の内容をコピーして最前面に配置する",
-					"show_original_content": "メモを追加した後、マウスをホバーしたときに元のコンテンツを表示するかどうか"
-				}
-			}
-		},
-		"history": {
-			"history": {
-				"title": "履歴",
-				"button": {
-					"goto_delete": "履歴を削除",
-					"confirm_delete": "確認",
-					"cancel_delete": "キャンセル"
-				},
-				"label": {
-					"duration": "保持期間",
-					"duration_unit": "日",
-					"max_count": "最大保持エントリー数",
-					"max_count_unit": "項",
-					"delete_title": "履歴を削除",
-					"time_range": "時間範囲",
-					"time_range_opt": {
-						"last_hour": "過去 1 時間",
-						"last_24_hours": "過去 24 時間",
-						"last_7_days": "過去 7 日間",
-						"last_30_days": "過去 30 日間",
-						"unlimited": "無制限",
-						"custom": "カスタム"
-					},
-					"include_favorite": "お気に入りも削除"
-				},
-				"hints": {
-					"duration": "0を入力すると永久に保持して、収蔵されていない項目のみを統計して削除します",
-					"max_count": "0を入力すると永久に保持して、収蔵されていない項目のみを統計して削除します",
-					"delete_success": "削除が成功しました"
-				}
-			}
-		},
-		"settings": {
-			"permission_settings": {
-				"title": "権限設定",
-				"button": {
-					"confirm_full_disk_access": "システム設定で開く",
-					"cancel_full_disk_access": "後で開く",
-					"authorize": "許可する"
-				},
-				"label": {
-					"accessibility_permissions": "アクセシビリティ権限",
-					"full_disk_access_permissions": "フルディスクアクセス権限",
-					"confirm_full_disk_access": "ファイルプレビューのために、フルディスクアクセスを有効にしてください",
-					"authorized": "許可済み"
-				},
-				"hints": {
-					"accessibility_permissions": "クリップボードの操作にはアクセシビリティ権限が必要です",
-					"full_disk_access_permissions": "ファイルのプレビューにはフルディスクアクセス権限が必要です",
-					"confirm_full_disk_access": "ファイルのプレビューにはフルディスクアクセス権限を有効にする必要があります"
-				}
-			},
-			"app_settings": {
-				"title": "ソフト設定",
-				"label": {
-					"auto_start": "ログイン時に起動",
-					"silent_start": "サイレントブート",
-					"show_menubar_icon": "メニューバーアイコンを表示する",
-					"show_taskbar_icon": "タスクバーアイコンを表示する"
-				},
-				"hints": {
-					"silent_start": "アプリケーションの手動起動時にウィンドウを隠す"
-				}
-			},
-			"appearance_settings": {
-				"title": "外観設定",
-				"label": {
-					"language": "表示言語",
-					"theme": "テーマ設定",
-					"theme_auto": "システムに従う",
-					"theme_light": "ライト",
-					"theme_dark": "ダーク"
-				}
-			},
-			"update_settings": {
-				"title": "設定の更新",
-				"label": {
-					"auto_update": "自動更新チェック",
-					"update_beta": "ベータ体験に参加する"
-				},
-				"hints": {
-					"update_beta": "不安定でもベータ版アップデートを受け取れる"
-				}
-			}
-		},
-		"shortcut": {
-			"shortcut": {
-				"title": "ショートカットキー",
-				"label": {
-					"open_clipboard": "クリップボードを開く",
-					"open_settings": "クリップボード設定を開く",
-					"quick_paste": "クイックペースト",
-					"paste_as_plain": "プレーンテキストとして貼り付け"
-				},
-				"hints": {
-					"quick_paste": "ウィンドウを隠す際、数字キーの組み合わせで最初の9項目を素早く貼り付ける",
-					"paste_as_plain": "選択範囲をプレーンテキスト、パスとして貼り付けます。"
-				}
-			},
-			"preset": {
-				"search": "検索",
-				"select_item": "項目を選択",
-				"select_group": "グループを選択",
-				"paste": "貼り付け",
-				"delete": "削除",
-				"favorite": "ブックマークエントリー",
-				"preview_image": "画像をプレビュー",
-				"back_to_top": "トップへ戻る",
-				"fixed_window": "固定ウィンドウ",
-				"open_preferences": "環境設定を開く",
-				"hide_window": "ウィンドウを隠す"
-			}
-		},
-		"data_backup": {
-			"storage_settings": {
-				"title": "ストレージ設定",
-				"label": {
-					"data_storage_path": "データ保存パス",
-					"log_storage_path": "ログ保存パス"
-				},
-				"hints": {
-					"custom_path": "カスタマイズ",
-					"default_path": "デフォルトに戻す",
-					"change_success": "変更成功"
-				}
-			},
-			"import_export": {
-				"title": "インポートとエクスポート",
-				"button": {
-					"import": "データをインポート",
-					"export": "データをエクスポート",
-					"cancel": "キャンセル",
-					"confirm_import": "定義する",
-					"confirm_export": "導く"
-				},
-				"label": {
-					"confirm_import": "インポートノート",
-					"confirm_export": "メモのエクスポート"
-				},
-				"hints": {
-					"import_success": "インポート成功",
-					"export_success": "エクスポート成功",
-					"confirm_import": "インポートされたクリップボードのデータは既存のデータを上書きします。",
-					"confirm_export": "エクスポートされたデータには、すべての環境設定とクリップボードの内容が含まれ、平文で保存されますので、安全に保管してください。"
-				}
-			}
-		},
-		"about": {
-			"about_software": {
-				"title": "ソフトウェアについて",
-				"label": {
-					"version": "バージョン: ",
-					"software_info": "ソフトウェア情報",
-					"open_source_address": "オープンソースアドレス",
-					"community": "コミュニティの交流です",
-					"sponsor": "スポンサー"
-				},
-				"button": {
-					"check_update": "アップデートの確認",
-					"copy": "複製します",
-					"feedback_issue": "フィードバックの問題"
-				},
-				"hints": {
-					"software_info": "ソフトウェアの情報をコピーしてバグ問題に提供すること",
-					"copy_success": "コピー成功"
-				}
-			}
-		}
-	},
-	"clipboard": {
-		"button": {
-			"context_menu": {
-				"copy": "コピー",
-				"note": "備考",
-				"paste_as_plain_text": "プレーンテキストとして貼り付け",
-				"paste_as_path": "パスとして貼り付ける",
-				"unfavorite": "コレクションのキャンセル",
-				"favorite": "コレクション",
-				"open_in_browser": "ブラウザで開く",
-				"send_email": "メールを送信",
-				"export_as_file": "ファイルとしてエクスポート",
-				"preview_image": "画像プレビュー",
-				"download_image": "画像をダウンロード",
-				"show_in_finder": "Finder で表示",
-				"show_in_file_explorer": "ファイルエクスプローラで表示",
-				"delete": "削除"
-			}
-		},
-		"label": {
-			"tab": {
-				"all": "すべて",
-				"text": "テキスト",
-				"image": "画像",
-				"files": "ファイル",
-				"favorite": "コレクション"
-			},
-			"link": "ウェブリンク",
-			"email": "メール",
-			"color": "カラー",
-			"path": "トレール",
-			"plain_text": "プレーンテキスト",
-			"rtf": "リッチテキスト",
-			"html": "HTML",
-			"image": "画像",
-			"n_files": "{{0}} ファイル（フォルダ）",
-			"n_chars": "{{0}} 文字"
-		},
-		"hints": {
-			"search_placeholder": "検索",
-			"delete_modal_content": "本当に削除しますか？"
-		}
-	},
-	"component": {
-		"shortcut_key": {
-			"hints": {
-				"click": "クリックして入力",
-				"press": "キーを押す"
-			}
-		},
-		"app_update": {
-			"label": {
-				"new_version_title": "新しいバージョンが利用可能🥳",
-				"release_version": "リリースバージョン",
-				"release_time": "リリース時間",
-				"release_notes": "リリースノート"
-			},
-			"button": {
-				"confirm_update": "すぐ更新",
-				"cancel_update": "キャンセル"
-			},
-			"hints": {
-				"checking_update": "更新を確認しています...",
-				"latest_version": "すでに最新バージョンです🎉"
-			}
-		},
-		"tray": {
-			"label": {
-				"preference": "プリファレンス",
-				"start_listening": "使用を停止",
-				"stop_listening": "使用を再開",
-				"check_update": "アップデートを確認",
-				"open_source_address": "ギットハブ",
-				"version": "バージョン",
-				"relaunch": "再開",
-				"exit": "終了する"
-			}
-		},
-		"note_modal": {
-			"label": {
-				"note": "備考"
-			},
-			"hints": {
-				"input_note": "メモを入力してください"
-			}
-		}
-	}
+  "clipboard": {
+    "button": {
+      "context_menu": {
+        "copy": "コピー",
+        "delete": "削除",
+        "download_image": "画像をダウンロード",
+        "export_as_file": "ファイルとしてエクスポート",
+        "favorite": "コレクション",
+        "note": "備考",
+        "open_in_browser": "ブラウザで開く",
+        "paste_as_path": "パスとして貼り付ける",
+        "paste_as_plain_text": "プレーンテキストとして貼り付け",
+        "preview_image": "画像プレビュー",
+        "send_email": "メールを送信",
+        "show_in_file_explorer": "ファイルエクスプローラで表示",
+        "show_in_finder": "Finder で表示",
+        "unfavorite": "コレクションのキャンセル"
+      }
+    },
+    "hints": {
+      "delete_modal_content": "本当に削除しますか？",
+      "search_placeholder": "検索"
+    },
+    "label": {
+      "color": "カラー",
+      "email": "メール",
+      "html": "HTML",
+      "image": "画像",
+      "link": "ウェブリンク",
+      "n_chars": "{{0}} 文字",
+      "n_files": "{{0}} ファイル（フォルダ）",
+      "path": "トレール",
+      "plain_text": "プレーンテキスト",
+      "rtf": "リッチテキスト",
+      "tab": {
+        "all": "すべて",
+        "favorite": "コレクション",
+        "files": "ファイル",
+        "image": "画像",
+        "text": "テキスト"
+      }
+    }
+  },
+  "component": {
+    "app_update": {
+      "button": {
+        "cancel_update": "キャンセル",
+        "confirm_update": "すぐ更新"
+      },
+      "hints": {
+        "checking_update": "更新を確認しています...",
+        "latest_version": "すでに最新バージョンです🎉"
+      },
+      "label": {
+        "new_version_title": "新しいバージョンが利用可能🥳",
+        "release_notes": "リリースノート",
+        "release_time": "リリース時間",
+        "release_version": "リリースバージョン"
+      }
+    },
+    "note_modal": {
+      "hints": {
+        "input_note": "メモを入力してください"
+      },
+      "label": {
+        "note": "備考"
+      }
+    },
+    "shortcut_key": {
+      "hints": {
+        "click": "クリックして入力",
+        "press": "キーを押す"
+      }
+    },
+    "tray": {
+      "label": {
+        "check_update": "アップデートを確認",
+        "exit": "終了する",
+        "open_source_address": "ギットハブ",
+        "preference": "プリファレンス",
+        "relaunch": "再開",
+        "start_listening": "使用を停止",
+        "stop_listening": "使用を再開",
+        "version": "バージョン"
+      }
+    }
+  },
+  "preference": {
+    "about": {
+      "about_software": {
+        "button": {
+          "check_update": "アップデートの確認",
+          "copy": "複製します",
+          "feedback_issue": "フィードバックの問題"
+        },
+        "hints": {
+          "copy_success": "コピー成功",
+          "software_info": "ソフトウェアの情報をコピーしてバグ問題に提供すること"
+        },
+        "label": {
+          "community": "コミュニティの交流です",
+          "open_source_address": "オープンソースアドレス",
+          "software_info": "ソフトウェア情報",
+          "sponsor": "スポンサー",
+          "version": "バージョン: "
+        },
+        "title": "ソフトウェアについて"
+      }
+    },
+    "clipboard": {
+      "audio_settings": {
+        "label": {
+          "copy_audio": "コピーされた音"
+        },
+        "title": "サウンド設定"
+      },
+      "content_settings": {
+        "button": {
+          "custom_operation_button": "カスタム"
+        },
+        "hints": {
+          "auto_favorite": "メモの追加・編集後に自動お気に入り登録",
+          "auto_paste": "左クリック時に、内容を素早く入力フィールドに貼り付けます",
+          "auto_sort": "既存の内容をコピーして最前面に配置する",
+          "copy_as_plain": "リッチテキストとHTML形式は、コピーしてもプレーンテキストの内容しか保持しない",
+          "delete_confirm": "クリップボードの内容を削除する際に確認ダイアログを表示する",
+          "operation_button": "クリップボード内容を操作するためのアイコンボタンをカスタマイズします",
+          "paste_as_plain": "リッチテキストとHTMLの書式設定は、貼り付け時にプレーンテキストの内容だけを保持する",
+          "show_original_content": "メモを追加した後、マウスをホバーしたときに元のコンテンツを表示するかどうか"
+        },
+        "label": {
+          "auto_favorite": "自動コレクション",
+          "auto_paste": "自動ペースト",
+          "auto_paste_double": "ダブルクリック",
+          "auto_paste_single": "シングルクリック",
+          "auto_sort": "自動整列",
+          "copy_as_plain": "プレーンテキストとしてコピー",
+          "custom_operation_button_title": "カスタム操作ボタン",
+          "delete_confirm": "削除確認",
+          "operation_button": "操作ボタン",
+          "operation_button_option": {
+            "copy": "コピー",
+            "delete": "削除",
+            "favorite": "お気に入り",
+            "notes": "メモ",
+            "paste_plain": "プレーンテキストとして貼り付け"
+          },
+          "paste_as_plain": "プレーンテキストとして貼り付ける",
+          "show_original_content": "元の内容を表示します"
+        },
+        "title": "コンテンツ設定"
+      },
+      "search_box_settings": {
+        "hints": {
+          "auto_clear": "ウィンドウがアクティブになったときに検索ボックスの内容をクリアする",
+          "default_focus": "ウィンドウがアクティブになると、デフォルトで検索ボックスにフォーカスを当てる。"
+        },
+        "label": {
+          "auto_clear": "自動削除",
+          "default_focus": "デフォルトフォーカス",
+          "position": "検索ボックス位置",
+          "position_bottom": "ボトム",
+          "position_top": "トップ"
+        },
+        "title": "検索設定"
+      },
+      "window_settings": {
+        "hints": {
+          "back_top": "ウィンドウがアクティブになったら、一番上までスクロールし、最初のバーを選択する。"
+        },
+        "label": {
+          "back_top": "トップページに戻る",
+          "show_all": "起動時に全グループに切り替わる",
+          "window_position": "クリップボード位置",
+          "window_position_center": "スクリーンセンター",
+          "window_position_follow": "マウスに従う",
+          "window_position_remember": "位置を記憶する"
+        },
+        "title": "クリップボード設定"
+      }
+    },
+    "data_backup": {
+      "import_export": {
+        "button": {
+          "cancel": "キャンセル",
+          "confirm_export": "導く",
+          "confirm_import": "定義する",
+          "export": "データをエクスポート",
+          "import": "データをインポート"
+        },
+        "hints": {
+          "confirm_export": "エクスポートされたデータには、すべての環境設定とクリップボードの内容が含まれ、平文で保存されますので、安全に保管してください。",
+          "confirm_import": "インポートされたクリップボードのデータは既存のデータを上書きします。",
+          "export_success": "エクスポート成功",
+          "import_success": "インポート成功"
+        },
+        "label": {
+          "confirm_export": "メモのエクスポート",
+          "confirm_import": "インポートノート"
+        },
+        "title": "インポートとエクスポート"
+      },
+      "storage_settings": {
+        "hints": {
+          "change_success": "変更成功",
+          "custom_path": "カスタマイズ",
+          "default_path": "デフォルトに戻す"
+        },
+        "label": {
+          "data_storage_path": "データ保存パス",
+          "log_storage_path": "ログ保存パス"
+        },
+        "title": "ストレージ設定"
+      }
+    },
+    "history": {
+      "history": {
+        "button": {
+          "cancel_delete": "キャンセル",
+          "confirm_delete": "確認",
+          "goto_delete": "履歴を削除"
+        },
+        "hints": {
+          "delete_success": "削除が成功しました",
+          "duration": "0を入力すると永久に保持して、収蔵されていない項目のみを統計して削除します",
+          "max_count": "0を入力すると永久に保持して、収蔵されていない項目のみを統計して削除します"
+        },
+        "label": {
+          "delete_title": "履歴を削除",
+          "duration": "保持期間",
+          "duration_unit": "日",
+          "include_favorite": "お気に入りも削除",
+          "max_count": "最大保持エントリー数",
+          "max_count_unit": "項",
+          "time_range": "時間範囲",
+          "time_range_opt": {
+            "custom": "カスタム",
+            "last_7_days": "過去 7 日間",
+            "last_24_hours": "過去 24 時間",
+            "last_30_days": "過去 30 日間",
+            "last_hour": "過去 1 時間",
+            "unlimited": "無制限"
+          }
+        },
+        "title": "履歴"
+      }
+    },
+    "menu": {
+      "title": {
+        "about": "について",
+        "backup": "バックアップ",
+        "clipboard": "クリップボード",
+        "general": "共通設定",
+        "history": "履歴",
+        "shortcut": "ショートカットキー"
+      }
+    },
+    "settings": {
+      "app_settings": {
+        "hints": {
+          "silent_start": "アプリケーションの手動起動時にウィンドウを隠す"
+        },
+        "label": {
+          "auto_start": "ログイン時に起動",
+          "show_menubar_icon": "メニューバーアイコンを表示する",
+          "show_taskbar_icon": "タスクバーアイコンを表示する",
+          "silent_start": "サイレントブート"
+        },
+        "title": "ソフト設定"
+      },
+      "appearance_settings": {
+        "label": {
+          "language": "表示言語",
+          "theme": "テーマ設定",
+          "theme_auto": "システムに従う",
+          "theme_dark": "ダーク",
+          "theme_light": "ライト"
+        },
+        "title": "外観設定"
+      },
+      "permission_settings": {
+        "button": {
+          "authorize": "許可する",
+          "cancel_full_disk_access": "後で開く",
+          "confirm_full_disk_access": "システム設定で開く"
+        },
+        "hints": {
+          "accessibility_permissions": "クリップボードの操作にはアクセシビリティ権限が必要です",
+          "confirm_full_disk_access": "ファイルのプレビューにはフルディスクアクセス権限を有効にする必要があります",
+          "full_disk_access_permissions": "ファイルのプレビューにはフルディスクアクセス権限が必要です"
+        },
+        "label": {
+          "accessibility_permissions": "アクセシビリティ権限",
+          "authorized": "許可済み",
+          "confirm_full_disk_access": "ファイルプレビューのために、フルディスクアクセスを有効にしてください",
+          "full_disk_access_permissions": "フルディスクアクセス権限"
+        },
+        "title": "権限設定"
+      },
+      "update_settings": {
+        "hints": {
+          "update_beta": "不安定でもベータ版アップデートを受け取れる"
+        },
+        "label": {
+          "auto_update": "自動更新チェック",
+          "update_beta": "ベータ体験に参加する"
+        },
+        "title": "設定の更新"
+      }
+    },
+    "shortcut": {
+      "preset": {
+        "back_to_top": "トップへ戻る",
+        "delete": "削除",
+        "favorite": "ブックマークエントリー",
+        "fixed_window": "固定ウィンドウ",
+        "hide_window": "ウィンドウを隠す",
+        "open_preferences": "環境設定を開く",
+        "paste": "貼り付け",
+        "preview_image": "画像をプレビュー",
+        "search": "検索",
+        "select_group": "グループを選択",
+        "select_item": "項目を選択"
+      },
+      "shortcut": {
+        "hints": {
+          "paste_as_plain": "選択範囲をプレーンテキスト、パスとして貼り付けます。",
+          "quick_paste": "ウィンドウを隠す際、数字キーの組み合わせで最初の9項目を素早く貼り付ける"
+        },
+        "label": {
+          "open_clipboard": "クリップボードを開く",
+          "open_settings": "クリップボード設定を開く",
+          "paste_as_plain": "プレーンテキストとして貼り付け",
+          "quick_paste": "クイックペースト"
+        },
+        "title": "ショートカットキー"
+      }
+    },
+    "title": "環境設定"
+  }
 }

@@ -1,13 +1,13 @@
 import { subscribe } from "valtio";
 
 export const useImmediate = (...args: Parameters<typeof subscribe>): void => {
-	useEffect(() => {
-		const [, callback] = args;
+  useEffect(() => {
+    const [, callback] = args;
 
-		callback([]);
+    callback([]);
 
-		const unsubscribe = subscribe(...args);
+    const unsubscribe = subscribe(...args);
 
-		return unsubscribe;
-	}, []);
+    return unsubscribe;
+  }, []);
 };

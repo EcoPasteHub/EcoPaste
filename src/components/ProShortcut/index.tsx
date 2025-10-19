@@ -7,146 +7,146 @@ import UnoIcon from "../UnoIcon";
 import { type Key, keys, modifierKeys, standardKeys } from "./keyboard";
 
 interface ProShortcutProps extends ListItemMetaProps {
-	value?: string;
-	isSystem?: boolean;
-	onChange?: (value: string) => void;
+  value?: string;
+  isSystem?: boolean;
+  onChange?: (value: string) => void;
 }
 
 interface State {
-	value: Key[];
+  value: Key[];
 }
 
 const ProShortcut: FC<ProShortcutProps> = (props) => {
-	const { value = "", isSystem = true, onChange, ...rest } = props;
+  const { value = "", isSystem = true, onChange, ...rest } = props;
 
-	const { t } = useTranslation();
+  const { t } = useTranslation();
 
-	const separator = isSystem ? "+" : ".";
-	const keyFiled = isSystem ? "tauriKey" : "hookKey";
+  const separator = isSystem ? "+" : ".";
+  const keyFiled = isSystem ? "tauriKey" : "hookKey";
 
-	const parseValue = () => {
-		if (!value) return [];
+  const parseValue = () => {
+    if (!value) return [];
 
-		return split(value, separator).map((key) => {
-			return find(keys, { [keyFiled]: key })!;
-		});
-	};
+    return split(value, separator).map((key) => {
+      return find(keys, { [keyFiled]: key })!;
+    });
+  };
 
-	const state = useReactive<State>({
-		value: parseValue(),
-	});
+  const state = useReactive<State>({
+    value: parseValue(),
+  });
 
-	const containerRef = useRef<HTMLElement>(null);
+  const containerRef = useRef<HTMLElement>(null);
 
-	const isHovering = useHover(containerRef);
+  const isHovering = useHover(containerRef);
 
-	const isFocusing = useFocusWithin(containerRef, {
-		onFocus: () => {
-			state.value = [];
-		},
-		onBlur: () => {
-			if (!isValidShortcut()) {
-				state.value = parseValue();
-			}
+  const isFocusing = useFocusWithin(containerRef, {
+    onBlur: () => {
+      if (!isValidShortcut()) {
+        state.value = parseValue();
+      }
 
-			handleChange();
-		},
-	});
+      handleChange();
+    },
+    onFocus: () => {
+      state.value = [];
+    },
+  });
 
-	const isValidShortcut = () => {
-		if (state.value?.[0]?.eventKey?.startsWith("F")) {
-			return true;
-		}
+  const isValidShortcut = () => {
+    if (state.value?.[0]?.eventKey?.startsWith("F")) {
+      return true;
+    }
 
-		const hasModifierKey = some(state.value, ({ eventKey }) => {
-			return some(modifierKeys, { eventKey });
-		});
-		const hasStandardKey = some(state.value, ({ eventKey }) => {
-			return some(standardKeys, { eventKey });
-		});
+    const hasModifierKey = some(state.value, ({ eventKey }) => {
+      return some(modifierKeys, { eventKey });
+    });
+    const hasStandardKey = some(state.value, ({ eventKey }) => {
+      return some(standardKeys, { eventKey });
+    });
 
-		return hasModifierKey && hasStandardKey;
-	};
+    return hasModifierKey && hasStandardKey;
+  };
 
-	const getEventKey = (event: KeyboardEvent) => {
-		let { key, code } = event;
+  const getEventKey = (event: KeyboardEvent) => {
+    let { key, code } = event;
 
-		key = key.replace("Meta", "Command");
+    key = key.replace("Meta", "Command");
 
-		const isModifierKey = some(modifierKeys, { eventKey: key });
+    const isModifierKey = some(modifierKeys, { eventKey: key });
 
-		return isModifierKey ? key : code;
-	};
+    return isModifierKey ? key : code;
+  };
 
-	const handleChange = () => {
-		const nextValue = map(state.value, keyFiled).join(separator);
+  const handleChange = () => {
+    const nextValue = map(state.value, keyFiled).join(separator);
 
-		onChange?.(nextValue);
-	};
+    onChange?.(nextValue);
+  };
 
-	const handleKeyDown = (event: KeyboardEvent) => {
-		const eventKey = getEventKey(event);
+  const handleKeyDown = (event: KeyboardEvent) => {
+    const eventKey = getEventKey(event);
 
-		const matched = find(keys, { eventKey });
-		const isInvalid = !matched;
-		const isDuplicate = some(state.value, { eventKey });
+    const matched = find(keys, { eventKey });
+    const isInvalid = !matched;
+    const isDuplicate = some(state.value, { eventKey });
 
-		if (isInvalid || isDuplicate) return;
+    if (isInvalid || isDuplicate) return;
 
-		state.value.push(matched);
+    state.value.push(matched);
 
-		if (isValidShortcut()) {
-			containerRef.current?.blur();
-		}
-	};
+    if (isValidShortcut()) {
+      containerRef.current?.blur();
+    }
+  };
 
-	const handleKeyUp = (event: KeyboardEvent) => {
-		remove(state.value, { eventKey: getEventKey(event) });
-	};
+  const handleKeyUp = (event: KeyboardEvent) => {
+    remove(state.value, { eventKey: getEventKey(event) });
+  };
 
-	const handleClear = (event: MouseEvent) => {
-		event.preventDefault();
+  const handleClear = (event: MouseEvent) => {
+    event.preventDefault();
 
-		state.value = [];
+    state.value = [];
 
-		handleChange();
-	};
+    handleChange();
+  };
 
-	return (
-		<ProListItem {...rest}>
-			<Flex
-				ref={containerRef}
-				tabIndex={0}
-				justify="center"
-				align="center"
-				gap="small"
-				className="antd-input b-color-1 h-8 min-w-32 rounded-md px-2.5"
-				onKeyDown={handleKeyDown}
-				onKeyUp={handleKeyUp}
-			>
-				{isEmpty(state.value) ? (
-					isFocusing ? (
-						t("component.shortcut_key.hints.press")
-					) : (
-						t("component.shortcut_key.hints.click")
-					)
-				) : (
-					<div className="font-bold text-primary">
-						{map(state.value, "symbol").join(" ")}
-					</div>
-				)}
+  return (
+    <ProListItem {...rest}>
+      <Flex
+        align="center"
+        className="antd-input b-color-1 h-8 min-w-32 rounded-md px-2.5"
+        gap="small"
+        justify="center"
+        onKeyDown={handleKeyDown}
+        onKeyUp={handleKeyUp}
+        ref={containerRef}
+        tabIndex={0}
+      >
+        {isEmpty(state.value) ? (
+          isFocusing ? (
+            t("component.shortcut_key.hints.press")
+          ) : (
+            t("component.shortcut_key.hints.click")
+          )
+        ) : (
+          <div className="font-bold text-primary">
+            {map(state.value, "symbol").join(" ")}
+          </div>
+        )}
 
-				<UnoIcon
-					hoverable
-					size={16}
-					name="i-iconamoon:close-circle-1"
-					hidden={isFocusing || !isHovering || isEmpty(state.value)}
-					className="absolute right-2 text-color-3"
-					onMouseDown={handleClear}
-				/>
-			</Flex>
-		</ProListItem>
-	);
+        <UnoIcon
+          className="absolute right-2 text-color-3"
+          hidden={isFocusing || !isHovering || isEmpty(state.value)}
+          hoverable
+          name="i-iconamoon:close-circle-1"
+          onMouseDown={handleClear}
+          size={16}
+        />
+      </Flex>
+    </ProListItem>
+  );
 };
 
 export default ProShortcut;
