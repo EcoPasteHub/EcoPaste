@@ -102,9 +102,9 @@ const Item: FC<ItemProps> = (props) => {
   return (
     <Flex
       className={clsx(
-        "group antd-input! b-color-2 mx-3 max-h-30 rounded-md p-1.5",
+        "group b hover:b-primary-5 b-color-2 mx-3 max-h-30 rounded-md p-1.5 transition",
         {
-          "antd-input-focus!": rootState.activeId === id,
+          "b-primary bg-primary-1": rootState.activeId === id,
         },
       )}
       gap={4}

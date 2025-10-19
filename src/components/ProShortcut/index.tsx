@@ -116,7 +116,7 @@ const ProShortcut: FC<ProShortcutProps> = (props) => {
     <ProListItem {...rest}>
       <Flex
         align="center"
-        className="antd-input b-color-1 h-8 min-w-32 rounded-md px-2.5"
+        className="b hover:b-primary-5 b-color-1 focus:b-primary h-8 min-w-32 rounded-md px-2.5 outline-none transition focus:shadow-[0_0_0_2px_rgba(5,145,255,0.1)] focus:dark:shadow-[0_0_0_2px_rgba(0,60,180,0.15)]"
         gap="small"
         justify="center"
         onKeyDown={handleKeyDown}
