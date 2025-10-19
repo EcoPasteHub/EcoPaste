@@ -1,6 +1,5 @@
 import ProList from "@/components/ProList";
 import ProSwitch from "@/components/ProSwitch";
-import { Typography } from "antd";
 import { useSnapshot } from "valtio";
 import AudioSettings from "./components/AudioSettings";
 import AutoPaste from "./components/AutoPaste";
@@ -67,24 +66,6 @@ const ClipboardSettings = () => {
 
 			<ProList header={t("preference.clipboard.content_settings.title")}>
 				<AutoPaste />
-
-				<ProSwitch
-					title={t("preference.clipboard.content_settings.label.image_ocr")}
-					description={
-						isLinux && (
-							<>
-								{t("preference.clipboard.content_settings.hints.image_ocr")}{" "}
-								<Typography.Link href="https://github.com/tesseract-ocr/tesseract">
-									tesseract
-								</Typography.Link>
-							</>
-						)
-					}
-					value={content.ocr}
-					onChange={(value) => {
-						clipboardStore.content.ocr = value;
-					}}
-				/>
 
 				<ProSwitch
 					title={t("preference.clipboard.content_settings.label.copy_as_plain")}

@@ -55,7 +55,6 @@
 					"auto_paste": "Auto Paste",
 					"auto_paste_single": "Single Click",
 					"auto_paste_double": "Double Click",
-					"image_ocr": "Image OCR",
 					"copy_as_plain": "Copy as Plain Text",
 					"paste_as_plain": "Paste as Plain Text",
 					"operation_button": "Action Button",
@@ -74,7 +73,6 @@
 				},
 				"hints": {
 					"auto_paste": "Quickly paste content to the input field when using the left mouse button",
-					"image_ocr": "Note: Please be sure to download the",
 					"copy_as_plain": "Rich text and HTML formats retain only plain text content when copied",
 					"paste_as_plain": "Rich text and HTML formatting retains only plain text content when pasting",
 					"operation_button": "Customize icon buttons to operate on clipboard content",
@@ -181,7 +179,7 @@
 				},
 				"hints": {
 					"quick_paste": "Use number key combos to quickly paste top 9 items when window is hidden",
-					"paste_as_plain": "Paste selections as plain text, OCR text and paths when the window is activated"
+					"paste_as_plain": "Paste selections as plain text or paths when the window is activated"
 				}
 			},
 			"preset": {
@@ -260,7 +258,6 @@
 				"copy": "Copy",
 				"note": "Note",
 				"paste_as_plain_text": "Paste as Plain Text",
-				"paste_ocr_text": "Paste OCR Text",
 				"paste_as_path": "Paste as Path",
 				"unfavorite": "Unfavorite",
 				"favorite": "Favorite",

@@ -12,16 +12,6 @@
 		"core:window:allow-set-theme",
 		"core:window:deny-internal-toggle-maximize",
 		"core:window:allow-set-size",
-		{
-			"identifier": "shell:allow-execute",
-			"allow": [
-				{
-					"args": true,
-					"name": "bin/ocr",
-					"sidecar": true
-				}
-			]
-		},
 		"fs:read-all",
 		"fs:write-all",
 		{
@@ -54,7 +44,6 @@
 		},
 		"clipboard-x:default",
 		"eco-window:default",
-		"eco-ocr:default",
 		"eco-paste:default",
 		"eco-autostart:default"
 	]

@@ -15,7 +15,7 @@ interface ContextMenuItem extends MenuItemOptions {
 
 export const useContextMenu = (props: ItemProps) => {
 	const { data, deleteModal, handleNote } = props;
-	const { id, type, value, search, group, favorite, subtype } = data;
+	const { id, type, value, group, favorite, subtype } = data;
 	const { t } = useTranslation();
 	const { env } = useSnapshot(globalStore);
 	const { rootState } = useContext(MainContext);
@@ -127,11 +127,6 @@ export const useContextMenu = (props: ItemProps) => {
 			{
 				text: t("clipboard.button.context_menu.paste_as_plain_text"),
 				hide: type !== "html" && type !== "rtf",
-				action: pasteAsText,
-			},
-			{
-				text: t("clipboard.button.context_menu.paste_ocr_text"),
-				hide: type !== "image" || isBlank(search),
 				action: pasteAsText,
 			},
 			{

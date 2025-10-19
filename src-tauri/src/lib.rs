@@ -47,8 +47,6 @@ pub fn run() {
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         // 操作系统相关信息插件：https://github.com/tauri-apps/tauri-plugin-os
         .plugin(tauri_plugin_os::init())
-        // 在后台启动子进程命令等功能：https://github.com/tauri-apps/tauri-plugin-shell
-        .plugin(tauri_plugin_shell::init())
         // 系统级别对话框插件：https://github.com/tauri-apps/tauri-plugin-dialog
         .plugin(tauri_plugin_dialog::init())
         // 访问文件系统插件：https://github.com/tauri-apps/tauri-plugin-fs
@@ -73,8 +71,6 @@ pub fn run() {
         .plugin(tauri_plugin_clipboard_x::init())
         // 自定义的窗口管理插件
         .plugin(tauri_plugin_eco_window::init())
-        // 自定义图片识别插件
-        .plugin(tauri_plugin_eco_ocr::init())
         // 自定义粘贴的插件
         .plugin(tauri_plugin_eco_paste::init())
         // 自定义判断是否自动启动的插件

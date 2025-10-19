@@ -83,7 +83,6 @@ export interface ClipboardStore {
 	// 剪贴板内容设置
 	content: {
 		autoPaste: "single" | "double";
-		ocr: boolean;
 		copyPlain: boolean;
 		pastePlain: boolean;
 		operationButtons: OperationButton[];
