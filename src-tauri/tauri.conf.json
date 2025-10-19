@@ -1,89 +1,89 @@
 {
-	"$schema": "https://schema.tauri.app/config/2.0.0",
-	"productName": "EcoPaste",
-	"mainBinaryName": "EcoPaste",
-	"version": "../package.json",
-	"identifier": "com.ayangweb.EcoPaste",
-	"build": {
-		"beforeDevCommand": "pnpm dev",
-		"devUrl": "http://localhost:1420",
-		"beforeBuildCommand": "pnpm build",
-		"frontendDist": "../dist"
-	},
-	"app": {
-		"macOSPrivateApi": true,
-		"windows": [
-			{
-				"label": "main",
-				"title": "EcoPaste",
-				"url": "index.html/#/",
-				"width": 360,
-				"height": 600,
-				"minWidth": 360,
-				"minHeight": 600,
-				"maximizable": false,
-				"decorations": false,
-				"visible": false,
-				"transparent": true,
-				"alwaysOnTop": true,
-				"acceptFirstMouse": true,
-				"skipTaskbar": true,
-				"visibleOnAllWorkspaces": true
-			},
-			{
-				"label": "preference",
-				"url": "index.html/#/preference",
-				"width": 700,
-				"height": 480,
-				"minWidth": 700,
-				"minHeight": 480,
-				"center": true,
-				"visible": false,
-				"transparent": true,
-				"maximizable": false,
-				"hiddenTitle": true,
-				"skipTaskbar": true,
-				"titleBarStyle": "Overlay",
-				"dragDropEnabled": false,
-				"windowEffects": {
-					"effects": ["sidebar"],
-					"state": "active"
-				}
-			}
-		],
-		"security": {
-			"csp": null,
-			"dangerousDisableAssetCspModification": true,
-			"assetProtocol": {
-				"enable": true,
-				"scope": {
-					"allow": ["**/*"],
-					"requireLiteralLeadingDot": false
-				}
-			}
-		}
-	},
-	"bundle": {
-		"active": true,
-		"createUpdaterArtifacts": true,
-		"targets": ["nsis", "dmg", "app", "appimage", "deb", "rpm"],
-		"shortDescription": "EcoPaste",
-		"icon": [
-			"icons/32x32.png",
-			"icons/128x128.png",
-			"icons/128x128@2x.png",
-			"icons/icon.icns",
-			"icons/icon.ico"
-		],
-		"resources": ["assets/tray.ico", "assets/drag-icon.png"]
-	},
-	"plugins": {
-		"updater": {
-			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDcwNEIyQkUwRjNEMTg4NgpSV1NHR0QwUHZySUVCeXFRQzZ4aEpNRWdFdThVQ2I4b2dSQktRcmNtV1dYTFJJV1h2VmVVZXBWSgo=",
-			"endpoints": ["https://api.ecopaste.cn/update"]
-		},
-		"fs": {
-			"requireLiteralLeadingDot": false
-		}
-	}
+  "$schema": "https://schema.tauri.app/config/2.0.0",
+  "app": {
+    "macOSPrivateApi": true,
+    "security": {
+      "assetProtocol": {
+        "enable": true,
+        "scope": {
+          "allow": ["**/*"],
+          "requireLiteralLeadingDot": false
+        }
+      },
+      "csp": null,
+      "dangerousDisableAssetCspModification": true
+    },
+    "windows": [
+      {
+        "acceptFirstMouse": true,
+        "alwaysOnTop": true,
+        "decorations": false,
+        "height": 600,
+        "label": "main",
+        "maximizable": false,
+        "minHeight": 600,
+        "minWidth": 360,
+        "skipTaskbar": true,
+        "title": "EcoPaste",
+        "transparent": true,
+        "url": "index.html/#/",
+        "visible": false,
+        "visibleOnAllWorkspaces": true,
+        "width": 360
+      },
+      {
+        "center": true,
+        "dragDropEnabled": false,
+        "height": 480,
+        "hiddenTitle": true,
+        "label": "preference",
+        "maximizable": false,
+        "minHeight": 480,
+        "minWidth": 700,
+        "skipTaskbar": true,
+        "titleBarStyle": "Overlay",
+        "transparent": true,
+        "url": "index.html/#/preference",
+        "visible": false,
+        "width": 700,
+        "windowEffects": {
+          "effects": ["sidebar"],
+          "state": "active"
+        }
+      }
+    ]
+  },
+  "build": {
+    "beforeBuildCommand": "pnpm build",
+    "beforeDevCommand": "pnpm dev",
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "../dist"
+  },
+  "bundle": {
+    "active": true,
+    "createUpdaterArtifacts": true,
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "resources": ["assets/tray.ico", "assets/drag-icon.png"],
+    "shortDescription": "EcoPaste",
+    "targets": ["nsis", "dmg", "app", "appimage", "deb", "rpm"]
+  },
+  "identifier": "com.ayangweb.EcoPaste",
+  "mainBinaryName": "EcoPaste",
+  "plugins": {
+    "fs": {
+      "requireLiteralLeadingDot": false
+    },
+    "updater": {
+      "endpoints": ["https://api.ecopaste.cn/update"],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDcwNEIyQkUwRjNEMTg4NgpSV1NHR0QwUHZySUVCeXFRQzZ4aEpNRWdFdThVQ2I4b2dSQktRcmNtV1dYTFJJV1h2VmVVZXBWSgo="
+    }
+  },
+  "productName": "EcoPaste",
+  "version": "../package.json"
 }

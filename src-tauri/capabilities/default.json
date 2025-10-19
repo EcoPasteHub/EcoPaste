@@ -1,50 +1,50 @@
 {
-	"$schema": "../gen/schemas/desktop-schema.json",
-	"identifier": "default",
-	"description": "Capability for the all window",
-	"windows": ["*"],
-	"permissions": [
-		"core:default",
-		"core:window:allow-center",
-		"core:window:allow-set-title",
-		"core:window:allow-set-position",
-		"core:window:allow-start-dragging",
-		"core:window:allow-set-theme",
-		"core:window:deny-internal-toggle-maximize",
-		"core:window:allow-set-size",
-		"fs:read-all",
-		"fs:write-all",
-		{
-			"identifier": "fs:scope",
-			"allow": ["**/*"]
-		},
-		"autostart:default",
-		"log:default",
-		"sql:default",
-		"sql:allow-execute",
-		"global-shortcut:allow-is-registered",
-		"global-shortcut:allow-register",
-		"global-shortcut:allow-unregister",
-		"os:default",
-		"dialog:default",
-		"updater:default",
-		"process:default",
-		"drag:default",
-		"macos-permissions:default",
-		"fs-pro:default",
-		"locale:default",
-		"opener:default",
-		{
-			"identifier": "opener:allow-open-path",
-			"allow": [
-				{
-					"path": "**/*"
-				}
-			]
-		},
-		"clipboard-x:default",
-		"eco-window:default",
-		"eco-paste:default",
-		"eco-autostart:default"
-	]
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "description": "Capability for the all window",
+  "identifier": "default",
+  "permissions": [
+    "core:default",
+    "core:window:allow-center",
+    "core:window:allow-set-title",
+    "core:window:allow-set-position",
+    "core:window:allow-start-dragging",
+    "core:window:allow-set-theme",
+    "core:window:deny-internal-toggle-maximize",
+    "core:window:allow-set-size",
+    "fs:read-all",
+    "fs:write-all",
+    {
+      "allow": ["**/*"],
+      "identifier": "fs:scope"
+    },
+    "autostart:default",
+    "log:default",
+    "sql:default",
+    "sql:allow-execute",
+    "global-shortcut:allow-is-registered",
+    "global-shortcut:allow-register",
+    "global-shortcut:allow-unregister",
+    "os:default",
+    "dialog:default",
+    "updater:default",
+    "process:default",
+    "drag:default",
+    "macos-permissions:default",
+    "fs-pro:default",
+    "locale:default",
+    "opener:default",
+    {
+      "allow": [
+        {
+          "path": "**/*"
+        }
+      ],
+      "identifier": "opener:allow-open-path"
+    },
+    "clipboard-x:default",
+    "eco-window:default",
+    "eco-paste:default",
+    "eco-autostart:default"
+  ],
+  "windows": ["*"]
 }

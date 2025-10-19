@@ -14,7 +14,7 @@
 		"build:icon": "tsx scripts/buildIcon.ts",
 		"build:vite": "vite build",
 		"tauri": "tauri",
-		"lint": "biome check --write src",
+		"lint": "biome check --write",
 		"preinstall": "npx only-allow pnpm",
 		"prepare": "simple-git-hooks",
 		"release": "release-it",
