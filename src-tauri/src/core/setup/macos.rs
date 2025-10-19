@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 use tauri::{AppHandle, Emitter, EventTarget, WebviewWindow};
 use tauri_nspanel::{cocoa::appkit::NSWindowCollectionBehavior, panel_delegate, WebviewWindowExt};
 use tauri_plugin_eco_window::MAIN_WINDOW_LABEL;

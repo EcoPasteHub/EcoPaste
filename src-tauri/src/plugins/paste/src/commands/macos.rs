@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 use cocoa::base::{id, nil};
 use cocoa::foundation::{NSAutoreleasePool, NSString};
 use objc::declare::ClassDecl;
