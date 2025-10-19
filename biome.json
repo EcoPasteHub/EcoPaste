@@ -11,7 +11,12 @@
     }
   },
   "files": {
-    "includes": ["**", "!package.json", "!.release-it.ts"]
+    "includes": [
+      "**",
+      "!package.json",
+      "!.release-it.ts",
+      "!**/auto-imports.d.ts"
+    ]
   },
   "formatter": {
     "indentStyle": "space"
