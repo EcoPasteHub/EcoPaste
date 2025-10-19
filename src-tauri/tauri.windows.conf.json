@@ -1,7 +1,6 @@
 {
 	"identifier": "com.ayangweb.EcoPaste",
 	"bundle": {
-		"externalBin": ["bin/ocr"],
 		"windows": {
 			"digestAlgorithm": "sha256",
 			"nsis": {

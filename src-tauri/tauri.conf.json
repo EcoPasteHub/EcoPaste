@@ -23,7 +23,7 @@
 				"minHeight": 600,
 				"maximizable": false,
 				"decorations": false,
-				"visible": true,
+				"visible": false,
 				"transparent": true,
 				"alwaysOnTop": true,
 				"acceptFirstMouse": true,

@@ -11,11 +11,9 @@ serde_json = "1"
 fs_extra = "1"
 log = ">=0.4, <1"
 cocoa = ">=0.25, <1"
-tauri-plugin-shell = "2"
 tauri-plugin-fs-pro = "2"
 tauri-plugin = { version = "2", features = ["build"] }
 tauri-nspanel = { git = "https://github.com/ahkohd/tauri-nspanel", branch = "v2" }
 tauri-plugin-eco-window = { path = "./src-tauri/src/plugins/window" }
-tauri-plugin-eco-ocr = { path = "./src-tauri/src/plugins/ocr" }
 tauri-plugin-eco-paste = { path = "./src-tauri/src/plugins/paste" }
 tauri-plugin-eco-autostart = { path = "./src-tauri/src/plugins/autostart" }

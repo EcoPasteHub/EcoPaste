@@ -16,11 +16,3 @@ export interface ClipboardPayload {
 	width?: number;
 	height?: number;
 }
-
-export interface WindowsOCR {
-	content: string;
-	qr: Array<{
-		bounds: Array<{ x: number; y: number }>;
-		content: string;
-	}>;
-}

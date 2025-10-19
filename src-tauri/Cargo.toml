@@ -21,7 +21,6 @@ tauri-build = { version = "2", features = [] }
 tauri = { workspace = true, features = ["tray-icon", "protocol-asset", "macos-private-api", "image-ico"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
-tauri-plugin-shell.workspace = true
 tauri-plugin-single-instance = "2"
 tauri-plugin-autostart = "2"
 tauri-plugin-sql = { version = "2", features = ["sqlite"] }
@@ -40,7 +39,6 @@ tauri-plugin-prevent-default = "1"
 tauri-plugin-clipboard-x = "2"
 tauri-plugin-fs-pro.workspace = true
 tauri-plugin-eco-window.workspace = true
-tauri-plugin-eco-ocr.workspace = true
 tauri-plugin-eco-paste.workspace = true
 tauri-plugin-eco-autostart.workspace = true
 
