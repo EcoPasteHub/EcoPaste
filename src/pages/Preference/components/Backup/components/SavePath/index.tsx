@@ -1,67 +1,61 @@
-import { NodeIndexOutlined, ReloadOutlined } from "@ant-design/icons";
-import { emit } from "@tauri-apps/api/event";
-import { appLogDir, dataDir as tauriDataDir } from "@tauri-apps/api/path";
-import { open } from "@tauri-apps/plugin-dialog";
+import { appLogDir } from "@tauri-apps/api/path";
 import { openPath } from "@tauri-apps/plugin-opener";
-import { Button, message, Space, Tooltip } from "antd";
-import { isEqual, isString } from "es-toolkit";
 import type { FC } from "react";
-import { fullName, transfer } from "tauri-plugin-fs-pro-api";
 import ProList from "@/components/ProList";
 import ProListItem from "@/components/ProListItem";
 import type { State } from "../..";
 
-const SavePath: FC<{ state: State }> = (props) => {
-  const { state } = props;
+const SavePath: FC<{ state: State }> = () => {
+  // const { state } = props;
   const { t } = useTranslation();
-  const [dataDir, setDataDir] = useState("");
+  // const [dataDir, setDataDir] = useState("");
   const [logDir, setLogDir] = useState("");
 
   useMount(async () => {
-    setDataDir(await tauriDataDir());
+    // setDataDir(await tauriDataDir());
     setLogDir(await appLogDir());
   });
 
-  const handleChange = async (isDefault = false) => {
-    try {
-      const dstDir = isDefault ? dataDir : await open({ directory: true });
+  // const handleChange = async (isDefault = false) => {
+  //   try {
+  //     const dstDir = isDefault ? dataDir : await open({ directory: true });
 
-      if (!isString(dstDir) || isEqualPath(dstDir)) return;
+  //     if (!isString(dstDir) || isEqualPath(dstDir)) return;
 
-      const dstPath = join(dstDir, getSaveDataDirName());
+  //     const dstPath = join(dstDir, getSaveDataDirName());
 
-      state.spinning = true;
+  //     state.spinning = true;
 
-      emit(LISTEN_KEY.CLOSE_DATABASE);
+  //     emit(LISTEN_KEY.CLOSE_DATABASE);
 
-      await wait();
+  //     await wait();
 
-      await transfer(getSaveDataPath(), dstPath, {
-        includes: [
-          await fullName(getSaveImagePath()),
-          await fullName(await getSaveDatabasePath()),
-        ],
-      });
+  //     await transfer(getSaveDataPath(), dstPath, {
+  //       includes: [
+  //         await fullName(getSaveImagePath()),
+  //         await fullName(await getSaveDatabasePath()),
+  //       ],
+  //     });
 
-      globalStore.env.saveDataDir = dstPath;
+  //     globalStore.env.saveDataDir = dstPath;
 
-      emit(LISTEN_KEY.REFRESH_CLIPBOARD_LIST);
+  //     emit(LISTEN_KEY.REFRESH_CLIPBOARD_LIST);
 
-      message.success(
-        t("preference.data_backup.storage_settings.hints.change_success"),
-      );
-    } catch (error: any) {
-      message.error(error);
-    } finally {
-      state.spinning = false;
-    }
-  };
+  //     message.success(
+  //       t("preference.data_backup.storage_settings.hints.change_success"),
+  //     );
+  //   } catch (error: any) {
+  //     message.error(error);
+  //   } finally {
+  //     state.spinning = false;
+  //   }
+  // };
 
-  const isEqualPath = (dstDir = dataDir) => {
-    const dstPath = join(dstDir, getSaveDataDirName());
+  // const isEqualPath = (dstDir = dataDir) => {
+  //   const dstPath = join(dstDir, getSaveDataDirName());
 
-    return isEqual(dstPath, getSaveDataPath());
-  };
+  //   return isEqual(dstPath, getSaveDataPath());
+  // };
 
   const description = (path = getSaveDataPath()) => {
     return (
@@ -82,7 +76,7 @@ const SavePath: FC<{ state: State }> = (props) => {
           "preference.data_backup.storage_settings.label.data_storage_path",
         )}
       >
-        <Space.Compact>
+        {/* <Space.Compact>
           <Tooltip
             title={t(
               "preference.data_backup.storage_settings.hints.custom_path",
@@ -105,7 +99,7 @@ const SavePath: FC<{ state: State }> = (props) => {
               onClick={() => handleChange(true)}
             />
           </Tooltip>
-        </Space.Compact>
+        </Space.Compact> */}
       </ProListItem>
 
       <ProListItem
