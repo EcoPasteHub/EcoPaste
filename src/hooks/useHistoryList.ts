@@ -1,5 +1,5 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { copyFile, exists } from "@tauri-apps/plugin-fs";
+import { copyFile, exists, remove } from "@tauri-apps/plugin-fs";
 import { isString, last } from "es-toolkit";
 import { unionBy } from "es-toolkit/compat";
 import type { RefObject, UIEvent } from "react";
@@ -61,6 +61,8 @@ export const useHistoryList = (scrollRef: RefObject<HTMLDivElement>) => {
 
           if (await exists(oldPath)) {
             await copyFile(oldPath, newPath);
+
+            remove(oldPath);
           }
 
           item.value = newPath;
