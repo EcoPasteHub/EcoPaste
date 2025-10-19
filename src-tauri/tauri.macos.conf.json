@@ -1,6 +1,6 @@
 {
   "bundle": {
-    "resources": ["assets/tray-mac.ico", "assets/drag-icon.png"]
+    "resources": ["assets/tray-mac.ico"]
   },
   "identifier": "com.ayangweb.EcoPaste"
 }

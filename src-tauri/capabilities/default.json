@@ -28,7 +28,6 @@
     "dialog:default",
     "updater:default",
     "process:default",
-    "drag:default",
     "macos-permissions:default",
     "fs-pro:default",
     "locale:default",
