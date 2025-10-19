@@ -1,342 +1,342 @@
 {
-	"preference": {
-		"title": "Preferences",
-		"menu": {
-			"title": {
-				"clipboard": "Clipboard",
-				"history": "History",
-				"general": "General",
-				"shortcut": "Shortcuts",
-				"backup": "Data Backup",
-				"about": "About"
-			}
-		},
-		"clipboard": {
-			"window_settings": {
-				"title": "Window Settings",
-				"label": {
-					"window_position": "Window Position",
-					"window_position_remember": "Remember Position",
-					"window_position_follow": "Follow Mouse Cursor",
-					"window_position_center": "Center on Screen",
-					"back_top": "Back to top when activated",
-					"show_all": "Switch to all group when activated"
-				},
-				"hints": {
-					"back_top": "When the window is activated, scroll to the top and check the first item"
-				}
-			},
-			"audio_settings": {
-				"title": "Audio Settings",
-				"label": {
-					"copy_audio": "Copy Sound"
-				}
-			},
-			"search_box_settings": {
-				"title": "Search Settings",
-				"label": {
-					"default_focus": "Default Focus",
-					"auto_clear": "Auto Clear",
-					"position": "Search Box Position",
-					"position_top": "Top",
-					"position_bottom": "Bottom"
-				},
-				"hints": {
-					"default_focus": "Focuses the search box by default when the window is activated",
-					"auto_clear": "Clear search box contents when window is activated"
-				}
-			},
-			"content_settings": {
-				"title": "Content Settings",
-				"button": {
-					"custom_operation_button": "Custom"
-				},
-				"label": {
-					"auto_paste": "Auto Paste",
-					"auto_paste_single": "Single Click",
-					"auto_paste_double": "Double Click",
-					"copy_as_plain": "Copy as Plain Text",
-					"paste_as_plain": "Paste as Plain Text",
-					"operation_button": "Action Button",
-					"custom_operation_button_title": "Custom Action Button",
-					"operation_button_option": {
-						"copy": "Copy",
-						"paste_plain": "Paste as Plain Text",
-						"notes": "Notes",
-						"favorite": "Favorite",
-						"delete": "Delete"
-					},
-					"auto_favorite": "Auto Favorite",
-					"delete_confirm": "Delete Confirmation",
-					"auto_sort": "Auto Sort",
-					"show_original_content": "Show Original Content"
-				},
-				"hints": {
-					"auto_paste": "Quickly paste content to the input field when using the left mouse button",
-					"copy_as_plain": "Rich text and HTML formats retain only plain text content when copied",
-					"paste_as_plain": "Rich text and HTML formatting retains only plain text content when pasting",
-					"operation_button": "Customize icon buttons to operate on clipboard content",
-					"auto_favorite": "Auto-favorite after adding or editing a note",
-					"delete_confirm": "Pop-up confirmation dialog when deleting clipboard contents",
-					"auto_sort": "Alignment to the top when copying existing content",
-					"show_original_content": "Whether to display the original content on mouse hover after adding a note"
-				}
-			}
-		},
-		"history": {
-			"history": {
-				"title": "History",
-				"button": {
-					"goto_delete": "Delete History",
-					"confirm_delete": "Confirm",
-					"cancel_delete": "Cancel"
-				},
-				"label": {
-					"duration": "Retention Duration",
-					"duration_unit": "Day",
-					"max_count": "Max Count",
-					"max_count_unit": "Items",
-					"delete_title": "Delete History",
-					"time_range": "Time Range",
-					"time_range_opt": {
-						"last_hour": "Last 1 Hour",
-						"last_24_hours": "Last 24 Hours",
-						"last_7_days": "Last 7 Days",
-						"last_30_days": "Last 30 Days",
-						"unlimited": "Unlimited",
-						"custom": "Custom"
-					},
-					"include_favorite": "Delete Favorites"
-				},
-				"hints": {
-					"duration": "Enter 0 for permanent retention, only counting and deleting uncollected entries",
-					"max_count": "Enter 0 for permanent retention, only counting and deleting uncollected entries",
-					"delete_success": "Successfully Deleted"
-				}
-			}
-		},
-		"settings": {
-			"permission_settings": {
-				"title": "Permission Settings",
-				"button": {
-					"confirm_full_disk_access": "Enable in System Settings",
-					"cancel_full_disk_access": "Enable Later",
-					"authorize": "Authorize Now"
-				},
-				"label": {
-					"accessibility_permissions": "Accessibility Permissions",
-					"full_disk_access_permissions": "Full Disk Access Permissions",
-					"confirm_full_disk_access": "Full Disk Access Required",
-					"authorized": "Authorized"
-				},
-				"hints": {
-					"accessibility_permissions": "Accessibility permissions are needed to manage clipboard content",
-					"full_disk_access_permissions": "Full Disk Access is required for file preview",
-					"confirm_full_disk_access": "Full Disk Access is required to enable file preview"
-				}
-			},
-			"app_settings": {
-				"title": "App Settings",
-				"label": {
-					"auto_start": "Start at Login",
-					"silent_start": "Silent Start",
-					"show_menubar_icon": "Show Menubar Icon",
-					"show_taskbar_icon": "Show Taskbar Icon"
-				},
-				"hints": {
-					"silent_start": "Hide windows when launching applications manually"
-				}
-			},
-			"appearance_settings": {
-				"title": "Appearance Settings",
-				"label": {
-					"language": "Language",
-					"theme": "Theme",
-					"theme_auto": "System",
-					"theme_light": "Light",
-					"theme_dark": "Dark"
-				}
-			},
-			"update_settings": {
-				"title": "Update Settings",
-				"label": {
-					"auto_update": "Auto check for updates",
-					"update_beta": "Participate in the beta experience"
-				},
-				"hints": {
-					"update_beta": "Will receive beta updates, even if they may be unstable"
-				}
-			}
-		},
-		"shortcut": {
-			"shortcut": {
-				"title": "Shortcuts",
-				"label": {
-					"open_clipboard": "Open Clipboard Window",
-					"open_settings": "Open Preferences Window",
-					"quick_paste": "Quick Paste",
-					"paste_as_plain": "Paste as Plain Text"
-				},
-				"hints": {
-					"quick_paste": "Use number key combos to quickly paste top 9 items when window is hidden",
-					"paste_as_plain": "Paste selections as plain text or paths when the window is activated"
-				}
-			},
-			"preset": {
-				"search": "Search",
-				"select_item": "Select Item",
-				"select_group": "Select Group",
-				"paste": "Paste",
-				"delete": "Delete",
-				"favorite": "Favorite Item",
-				"preview_image": "Preview Image",
-				"back_to_top": "Back to Top",
-				"fixed_window": "Fixed Window",
-				"open_preferences": "Open Preferences",
-				"hide_window": "Hide Window"
-			}
-		},
-		"data_backup": {
-			"storage_settings": {
-				"title": "Storage Settings",
-				"label": {
-					"data_storage_path": "Data Storage Path",
-					"log_storage_path": "Log Storage Path"
-				},
-				"hints": {
-					"custom_path": "Custom",
-					"default_path": "Restore Default",
-					"change_success": "Changed successfully"
-				}
-			},
-			"import_export": {
-				"title": "Import / Export",
-				"button": {
-					"import": "Import",
-					"export": "Export",
-					"cancel": "Cancel",
-					"confirm_import": "OK",
-					"confirm_export": "Export"
-				},
-				"label": {
-					"confirm_import": "Import Notes",
-					"confirm_export": "Export Notes"
-				},
-				"hints": {
-					"import_success": "Import Successful",
-					"export_success": "Export Successful",
-					"confirm_import": "Imported clipboard data will overwrite existing data, sure you want to proceed?",
-					"confirm_export": "The exported data contains all preferences and clipboard contents and is saved in plaintext, so please keep it safe."
-				}
-			}
-		},
-		"about": {
-			"about_software": {
-				"title": "About Software",
-				"label": {
-					"version": "Version: ",
-					"software_info": "Software Information",
-					"open_source_address": "Open Source Address",
-					"community": "Community",
-					"sponsor": "Sponsor"
-				},
-				"button": {
-					"check_update": "Check Update",
-					"copy": "Copy",
-					"feedback_issue": "Feedback Issue"
-				},
-				"hints": {
-					"software_info": "Copying software information and providing it to Bug Issues",
-					"copy_success": "Copy Success"
-				}
-			}
-		}
-	},
-	"clipboard": {
-		"button": {
-			"context_menu": {
-				"copy": "Copy",
-				"note": "Note",
-				"paste_as_plain_text": "Paste as Plain Text",
-				"paste_as_path": "Paste as Path",
-				"unfavorite": "Unfavorite",
-				"favorite": "Favorite",
-				"open_in_browser": "Open in Browser",
-				"send_email": "Send Email",
-				"export_as_file": "Export as File",
-				"preview_image": "Preview Image",
-				"download_image": "Download Image",
-				"show_in_finder": "Show in Finder",
-				"show_in_file_explorer": "Show in File Explorer",
-				"delete": "Delete"
-			}
-		},
-		"label": {
-			"tab": {
-				"all": "All",
-				"text": "Text",
-				"image": "Image",
-				"files": "File",
-				"favorite": "Favorite"
-			},
-			"link": "Link",
-			"email": "Email",
-			"color": "Color",
-			"path": "Path",
-			"plain_text": "Plain Text",
-			"rtf": "Rich Text",
-			"html": "HTML",
-			"image": "Image",
-			"n_files": "{{0}} File(s)",
-			"n_chars": "{{0}} Character(s)"
-		},
-		"hints": {
-			"search_placeholder": "Search...",
-			"delete_modal_content": "Are you sure you want to delete this?"
-		}
-	},
-	"component": {
-		"shortcut_key": {
-			"hints": {
-				"click": "Click to record",
-				"press": "Press keys"
-			}
-		},
-		"app_update": {
-			"label": {
-				"new_version_title": "New Version Available 🥳",
-				"release_version": "Release Version",
-				"release_time": "Release Time",
-				"release_notes": "Release Notes"
-			},
-			"button": {
-				"confirm_update": "Update Now",
-				"cancel_update": "Postpone"
-			},
-			"hints": {
-				"checking_update": "Checking for updates...",
-				"latest_version": "You are using the latest version 🎉"
-			}
-		},
-		"tray": {
-			"label": {
-				"preference": "Preference",
-				"start_listening": "Start Listening",
-				"stop_listening": "Stop listening",
-				"check_update": "Check Update",
-				"open_source_address": "Open Source Address",
-				"version": "Version",
-				"relaunch": "Relaunch",
-				"exit": "Exit"
-			}
-		},
-		"note_modal": {
-			"label": {
-				"note": "Note"
-			},
-			"hints": {
-				"input_note": "Please enter a note"
-			}
-		}
-	}
+  "clipboard": {
+    "button": {
+      "context_menu": {
+        "copy": "Copy",
+        "delete": "Delete",
+        "download_image": "Download Image",
+        "export_as_file": "Export as File",
+        "favorite": "Favorite",
+        "note": "Note",
+        "open_in_browser": "Open in Browser",
+        "paste_as_path": "Paste as Path",
+        "paste_as_plain_text": "Paste as Plain Text",
+        "preview_image": "Preview Image",
+        "send_email": "Send Email",
+        "show_in_file_explorer": "Show in File Explorer",
+        "show_in_finder": "Show in Finder",
+        "unfavorite": "Unfavorite"
+      }
+    },
+    "hints": {
+      "delete_modal_content": "Are you sure you want to delete this?",
+      "search_placeholder": "Search..."
+    },
+    "label": {
+      "color": "Color",
+      "email": "Email",
+      "html": "HTML",
+      "image": "Image",
+      "link": "Link",
+      "n_chars": "{{0}} Character(s)",
+      "n_files": "{{0}} File(s)",
+      "path": "Path",
+      "plain_text": "Plain Text",
+      "rtf": "Rich Text",
+      "tab": {
+        "all": "All",
+        "favorite": "Favorite",
+        "files": "File",
+        "image": "Image",
+        "text": "Text"
+      }
+    }
+  },
+  "component": {
+    "app_update": {
+      "button": {
+        "cancel_update": "Postpone",
+        "confirm_update": "Update Now"
+      },
+      "hints": {
+        "checking_update": "Checking for updates...",
+        "latest_version": "You are using the latest version 🎉"
+      },
+      "label": {
+        "new_version_title": "New Version Available 🥳",
+        "release_notes": "Release Notes",
+        "release_time": "Release Time",
+        "release_version": "Release Version"
+      }
+    },
+    "note_modal": {
+      "hints": {
+        "input_note": "Please enter a note"
+      },
+      "label": {
+        "note": "Note"
+      }
+    },
+    "shortcut_key": {
+      "hints": {
+        "click": "Click to record",
+        "press": "Press keys"
+      }
+    },
+    "tray": {
+      "label": {
+        "check_update": "Check Update",
+        "exit": "Exit",
+        "open_source_address": "Open Source Address",
+        "preference": "Preference",
+        "relaunch": "Relaunch",
+        "start_listening": "Start Listening",
+        "stop_listening": "Stop listening",
+        "version": "Version"
+      }
+    }
+  },
+  "preference": {
+    "about": {
+      "about_software": {
+        "button": {
+          "check_update": "Check Update",
+          "copy": "Copy",
+          "feedback_issue": "Feedback Issue"
+        },
+        "hints": {
+          "copy_success": "Copy Success",
+          "software_info": "Copying software information and providing it to Bug Issues"
+        },
+        "label": {
+          "community": "Community",
+          "open_source_address": "Open Source Address",
+          "software_info": "Software Information",
+          "sponsor": "Sponsor",
+          "version": "Version: "
+        },
+        "title": "About Software"
+      }
+    },
+    "clipboard": {
+      "audio_settings": {
+        "label": {
+          "copy_audio": "Copy Sound"
+        },
+        "title": "Audio Settings"
+      },
+      "content_settings": {
+        "button": {
+          "custom_operation_button": "Custom"
+        },
+        "hints": {
+          "auto_favorite": "Auto-favorite after adding or editing a note",
+          "auto_paste": "Quickly paste content to the input field when using the left mouse button",
+          "auto_sort": "Alignment to the top when copying existing content",
+          "copy_as_plain": "Rich text and HTML formats retain only plain text content when copied",
+          "delete_confirm": "Pop-up confirmation dialog when deleting clipboard contents",
+          "operation_button": "Customize icon buttons to operate on clipboard content",
+          "paste_as_plain": "Rich text and HTML formatting retains only plain text content when pasting",
+          "show_original_content": "Whether to display the original content on mouse hover after adding a note"
+        },
+        "label": {
+          "auto_favorite": "Auto Favorite",
+          "auto_paste": "Auto Paste",
+          "auto_paste_double": "Double Click",
+          "auto_paste_single": "Single Click",
+          "auto_sort": "Auto Sort",
+          "copy_as_plain": "Copy as Plain Text",
+          "custom_operation_button_title": "Custom Action Button",
+          "delete_confirm": "Delete Confirmation",
+          "operation_button": "Action Button",
+          "operation_button_option": {
+            "copy": "Copy",
+            "delete": "Delete",
+            "favorite": "Favorite",
+            "notes": "Notes",
+            "paste_plain": "Paste as Plain Text"
+          },
+          "paste_as_plain": "Paste as Plain Text",
+          "show_original_content": "Show Original Content"
+        },
+        "title": "Content Settings"
+      },
+      "search_box_settings": {
+        "hints": {
+          "auto_clear": "Clear search box contents when window is activated",
+          "default_focus": "Focuses the search box by default when the window is activated"
+        },
+        "label": {
+          "auto_clear": "Auto Clear",
+          "default_focus": "Default Focus",
+          "position": "Search Box Position",
+          "position_bottom": "Bottom",
+          "position_top": "Top"
+        },
+        "title": "Search Settings"
+      },
+      "window_settings": {
+        "hints": {
+          "back_top": "When the window is activated, scroll to the top and check the first item"
+        },
+        "label": {
+          "back_top": "Back to top when activated",
+          "show_all": "Switch to all group when activated",
+          "window_position": "Window Position",
+          "window_position_center": "Center on Screen",
+          "window_position_follow": "Follow Mouse Cursor",
+          "window_position_remember": "Remember Position"
+        },
+        "title": "Window Settings"
+      }
+    },
+    "data_backup": {
+      "import_export": {
+        "button": {
+          "cancel": "Cancel",
+          "confirm_export": "Export",
+          "confirm_import": "OK",
+          "export": "Export",
+          "import": "Import"
+        },
+        "hints": {
+          "confirm_export": "The exported data contains all preferences and clipboard contents and is saved in plaintext, so please keep it safe.",
+          "confirm_import": "Imported clipboard data will overwrite existing data, sure you want to proceed?",
+          "export_success": "Export Successful",
+          "import_success": "Import Successful"
+        },
+        "label": {
+          "confirm_export": "Export Notes",
+          "confirm_import": "Import Notes"
+        },
+        "title": "Import / Export"
+      },
+      "storage_settings": {
+        "hints": {
+          "change_success": "Changed successfully",
+          "custom_path": "Custom",
+          "default_path": "Restore Default"
+        },
+        "label": {
+          "data_storage_path": "Data Storage Path",
+          "log_storage_path": "Log Storage Path"
+        },
+        "title": "Storage Settings"
+      }
+    },
+    "history": {
+      "history": {
+        "button": {
+          "cancel_delete": "Cancel",
+          "confirm_delete": "Confirm",
+          "goto_delete": "Delete History"
+        },
+        "hints": {
+          "delete_success": "Successfully Deleted",
+          "duration": "Enter 0 for permanent retention, only counting and deleting uncollected entries",
+          "max_count": "Enter 0 for permanent retention, only counting and deleting uncollected entries"
+        },
+        "label": {
+          "delete_title": "Delete History",
+          "duration": "Retention Duration",
+          "duration_unit": "Day",
+          "include_favorite": "Delete Favorites",
+          "max_count": "Max Count",
+          "max_count_unit": "Items",
+          "time_range": "Time Range",
+          "time_range_opt": {
+            "custom": "Custom",
+            "last_7_days": "Last 7 Days",
+            "last_24_hours": "Last 24 Hours",
+            "last_30_days": "Last 30 Days",
+            "last_hour": "Last 1 Hour",
+            "unlimited": "Unlimited"
+          }
+        },
+        "title": "History"
+      }
+    },
+    "menu": {
+      "title": {
+        "about": "About",
+        "backup": "Data Backup",
+        "clipboard": "Clipboard",
+        "general": "General",
+        "history": "History",
+        "shortcut": "Shortcuts"
+      }
+    },
+    "settings": {
+      "app_settings": {
+        "hints": {
+          "silent_start": "Hide windows when launching applications manually"
+        },
+        "label": {
+          "auto_start": "Start at Login",
+          "show_menubar_icon": "Show Menubar Icon",
+          "show_taskbar_icon": "Show Taskbar Icon",
+          "silent_start": "Silent Start"
+        },
+        "title": "App Settings"
+      },
+      "appearance_settings": {
+        "label": {
+          "language": "Language",
+          "theme": "Theme",
+          "theme_auto": "System",
+          "theme_dark": "Dark",
+          "theme_light": "Light"
+        },
+        "title": "Appearance Settings"
+      },
+      "permission_settings": {
+        "button": {
+          "authorize": "Authorize Now",
+          "cancel_full_disk_access": "Enable Later",
+          "confirm_full_disk_access": "Enable in System Settings"
+        },
+        "hints": {
+          "accessibility_permissions": "Accessibility permissions are needed to manage clipboard content",
+          "confirm_full_disk_access": "Full Disk Access is required to enable file preview",
+          "full_disk_access_permissions": "Full Disk Access is required for file preview"
+        },
+        "label": {
+          "accessibility_permissions": "Accessibility Permissions",
+          "authorized": "Authorized",
+          "confirm_full_disk_access": "Full Disk Access Required",
+          "full_disk_access_permissions": "Full Disk Access Permissions"
+        },
+        "title": "Permission Settings"
+      },
+      "update_settings": {
+        "hints": {
+          "update_beta": "Will receive beta updates, even if they may be unstable"
+        },
+        "label": {
+          "auto_update": "Auto check for updates",
+          "update_beta": "Participate in the beta experience"
+        },
+        "title": "Update Settings"
+      }
+    },
+    "shortcut": {
+      "preset": {
+        "back_to_top": "Back to Top",
+        "delete": "Delete",
+        "favorite": "Favorite Item",
+        "fixed_window": "Fixed Window",
+        "hide_window": "Hide Window",
+        "open_preferences": "Open Preferences",
+        "paste": "Paste",
+        "preview_image": "Preview Image",
+        "search": "Search",
+        "select_group": "Select Group",
+        "select_item": "Select Item"
+      },
+      "shortcut": {
+        "hints": {
+          "paste_as_plain": "Paste selections as plain text or paths when the window is activated",
+          "quick_paste": "Use number key combos to quickly paste top 9 items when window is hidden"
+        },
+        "label": {
+          "open_clipboard": "Open Clipboard Window",
+          "open_settings": "Open Preferences Window",
+          "paste_as_plain": "Paste as Plain Text",
+          "quick_paste": "Quick Paste"
+        },
+        "title": "Shortcuts"
+      }
+    },
+    "title": "Preferences"
+  }
 }

@@ -6,5 +6,5 @@ import "./assets/css/global.scss";
 import "mac-scrollbar/dist/mac-scrollbar.css";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-	<App />,
+  <App />,
 );

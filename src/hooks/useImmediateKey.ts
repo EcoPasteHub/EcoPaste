@@ -1,17 +1,17 @@
 import { subscribeKey } from "valtio/utils";
 
 export const useImmediateKey: typeof subscribeKey = (...args) => {
-	const unsubscribeRef = useRef(() => {});
+  const unsubscribeRef = useRef(() => {});
 
-	useEffect(() => {
-		const [object, key, callback] = args;
+  useEffect(() => {
+    const [object, key, callback] = args;
 
-		callback(object[key]);
+    callback(object[key]);
 
-		unsubscribeRef.current = subscribeKey(...args);
+    unsubscribeRef.current = subscribeKey(...args);
 
-		return unsubscribeRef.current;
-	}, []);
+    return unsubscribeRef.current;
+  }, []);
 
-	return unsubscribeRef.current;
+  return unsubscribeRef.current;
 };

@@ -6,15 +6,15 @@ import ProListItem from "../ProListItem";
 type ProSwitchProps = SwitchProps & ListItemMetaProps;
 
 const ProSwitch: FC<ProSwitchProps> = (props) => {
-	const { title, description, children, ...rest } = props;
+  const { title, description, children, ...rest } = props;
 
-	return (
-		<ProListItem title={title} description={description}>
-			<Switch {...rest} />
+  return (
+    <ProListItem description={description} title={title}>
+      <Switch {...rest} />
 
-			{children}
-		</ProListItem>
-	);
+      {children}
+    </ProListItem>
+  );
 };
 
 export default ProSwitch;

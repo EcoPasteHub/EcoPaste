@@ -1,75 +1,75 @@
-import UnoIcon from "@/components/UnoIcon";
 import type { InputRef } from "antd";
 import { Input } from "antd";
 import type { FC, HTMLAttributes } from "react";
+import UnoIcon from "@/components/UnoIcon";
 import { MainContext } from "../..";
 
 const SearchInput: FC<HTMLAttributes<HTMLDivElement>> = (props) => {
-	const { rootState } = useContext(MainContext);
-	const inputRef = useRef<InputRef>(null);
-	const [value, setValue] = useState<string>();
-	const [isComposition, { setTrue, setFalse }] = useBoolean();
-	const { t } = useTranslation();
+  const { rootState } = useContext(MainContext);
+  const inputRef = useRef<InputRef>(null);
+  const [value, setValue] = useState<string>();
+  const [isComposition, { setTrue, setFalse }] = useBoolean();
+  const { t } = useTranslation();
 
-	useEffect(() => {
-		if (isComposition) return;
+  useEffect(() => {
+    if (isComposition) return;
 
-		rootState.search = value;
-	}, [value, isComposition]);
+    rootState.search = value;
+  }, [value, isComposition]);
 
-	useTauriFocus({
-		onFocus() {
-			const { search } = clipboardStore;
+  useTauriFocus({
+    onBlur() {
+      const { search } = clipboardStore;
 
-			// 搜索框默认聚焦
-			if (search.defaultFocus) {
-				inputRef.current?.focus();
-			} else {
-				inputRef.current?.blur();
-			}
-		},
-		onBlur() {
-			const { search } = clipboardStore;
+      // 搜索框自动清空
+      if (search.autoClear) {
+        setValue(void 0);
+      }
+    },
+    onFocus() {
+      const { search } = clipboardStore;
 
-			// 搜索框自动清空
-			if (search.autoClear) {
-				setValue(void 0);
-			}
-		},
-	});
+      // 搜索框默认聚焦
+      if (search.defaultFocus) {
+        inputRef.current?.focus();
+      } else {
+        inputRef.current?.blur();
+      }
+    },
+  });
 
-	useKeyPress(PRESET_SHORTCUT.SEARCH, () => {
-		inputRef.current?.focus();
-	});
+  useKeyPress(PRESET_SHORTCUT.SEARCH, () => {
+    inputRef.current?.focus();
+  });
 
-	useKeyPress(
-		["enter", "uparrow", "downarrow"],
-		() => {
-			inputRef.current?.blur();
-		},
-		{
-			target: inputRef.current?.input,
-		},
-	);
+  useKeyPress(
+    ["enter", "uparrow", "downarrow"],
+    () => {
+      inputRef.current?.blur();
+    },
+    {
+      target: inputRef.current?.input,
+    },
+  );
 
-	return (
-		<div {...props}>
-			<Input
-				ref={inputRef}
-				autoCorrect="off"
-				allowClear
-				value={value}
-				prefix={<UnoIcon name="i-lucide:search" />}
-				size="small"
-				placeholder={t("clipboard.hints.search_placeholder")}
-				onCompositionStart={setTrue}
-				onCompositionEnd={setFalse}
-				onChange={(event) => {
-					setValue(event.target.value);
-				}}
-			/>
-		</div>
-	);
+  return (
+    <div {...props}>
+      <Input
+        allowClear
+        autoCorrect="off"
+        onChange={(event) => {
+          setValue(event.target.value);
+        }}
+        onCompositionEnd={setFalse}
+        onCompositionStart={setTrue}
+        placeholder={t("clipboard.hints.search_placeholder")}
+        prefix={<UnoIcon name="i-lucide:search" />}
+        ref={inputRef}
+        size="small"
+        value={value}
+      />
+    </div>
+  );
 };
 
 export default SearchInput;

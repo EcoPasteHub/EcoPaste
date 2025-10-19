@@ -3,21 +3,21 @@ import type { FC } from "react";
 import styles from "./index.module.scss";
 
 const ProList: FC<ListProps<unknown>> = (props) => {
-	const { header, children, ...rest } = props;
+  const { header, children, ...rest } = props;
 
-	return (
-		<Flex data-tauri-drag-region vertical gap="small" className={styles.root}>
-			{header && (
-				<div data-tauri-drag-region className={styles.title}>
-					<span>{header}</span>
-				</div>
-			)}
+  return (
+    <Flex className={styles.root} data-tauri-drag-region gap="small" vertical>
+      {header && (
+        <div className={styles.title} data-tauri-drag-region>
+          <span>{header}</span>
+        </div>
+      )}
 
-			<List bordered {...rest}>
-				{children}
-			</List>
-		</Flex>
-	);
+      <List bordered {...rest}>
+        {children}
+      </List>
+    </Flex>
+  );
 };
 
 export default ProList;

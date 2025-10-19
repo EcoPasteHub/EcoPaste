@@ -1,6 +1,6 @@
 {
-	"identifier": "com.ayangweb.EcoPaste",
-	"bundle": {
-		"resources": ["assets/tray-mac.ico", "assets/drag-icon.png"]
-	}
+  "bundle": {
+    "resources": ["assets/tray-mac.ico", "assets/drag-icon.png"]
+  },
+  "identifier": "com.ayangweb.EcoPaste"
 }

@@ -1,6 +1,6 @@
+import { useSnapshot } from "valtio";
 import ProList from "@/components/ProList";
 import ProSwitch from "@/components/ProSwitch";
-import { useSnapshot } from "valtio";
 import AudioSettings from "./components/AudioSettings";
 import AutoPaste from "./components/AutoPaste";
 import OperationButton from "./components/OperationButton";
@@ -8,141 +8,141 @@ import SearchPosition from "./components/SearchPosition";
 import WindowPosition from "./components/WindowPosition";
 
 const ClipboardSettings = () => {
-	const { window, search, content } = useSnapshot(clipboardStore);
-	const { t } = useTranslation();
+  const { window, search, content } = useSnapshot(clipboardStore);
+  const { t } = useTranslation();
 
-	return (
-		<>
-			<ProList header={t("preference.clipboard.window_settings.title")}>
-				<WindowPosition />
+  return (
+    <>
+      <ProList header={t("preference.clipboard.window_settings.title")}>
+        <WindowPosition />
 
-				<ProSwitch
-					title={t("preference.clipboard.window_settings.label.back_top")}
-					description={t("preference.clipboard.window_settings.hints.back_top")}
-					value={window.backTop}
-					onChange={(value) => {
-						clipboardStore.window.backTop = value;
-					}}
-				/>
+        <ProSwitch
+          description={t("preference.clipboard.window_settings.hints.back_top")}
+          onChange={(value) => {
+            clipboardStore.window.backTop = value;
+          }}
+          title={t("preference.clipboard.window_settings.label.back_top")}
+          value={window.backTop}
+        />
 
-				<ProSwitch
-					title={t("preference.clipboard.window_settings.label.show_all")}
-					value={window.showAll}
-					onChange={(value) => {
-						clipboardStore.window.showAll = value;
-					}}
-				/>
-			</ProList>
+        <ProSwitch
+          onChange={(value) => {
+            clipboardStore.window.showAll = value;
+          }}
+          title={t("preference.clipboard.window_settings.label.show_all")}
+          value={window.showAll}
+        />
+      </ProList>
 
-			<AudioSettings />
+      <AudioSettings />
 
-			<ProList header={t("preference.clipboard.search_box_settings.title")}>
-				<SearchPosition key={1} />
+      <ProList header={t("preference.clipboard.search_box_settings.title")}>
+        <SearchPosition key={1} />
 
-				<ProSwitch
-					title={t(
-						"preference.clipboard.search_box_settings.label.default_focus",
-					)}
-					description={t(
-						"preference.clipboard.search_box_settings.hints.default_focus",
-					)}
-					value={search.defaultFocus}
-					onChange={(value) => {
-						clipboardStore.search.defaultFocus = value;
-					}}
-				/>
+        <ProSwitch
+          description={t(
+            "preference.clipboard.search_box_settings.hints.default_focus",
+          )}
+          onChange={(value) => {
+            clipboardStore.search.defaultFocus = value;
+          }}
+          title={t(
+            "preference.clipboard.search_box_settings.label.default_focus",
+          )}
+          value={search.defaultFocus}
+        />
 
-				<ProSwitch
-					title={t("preference.clipboard.search_box_settings.label.auto_clear")}
-					description={t(
-						"preference.clipboard.search_box_settings.hints.auto_clear",
-					)}
-					value={search.autoClear}
-					onChange={(value) => {
-						clipboardStore.search.autoClear = value;
-					}}
-				/>
-			</ProList>
+        <ProSwitch
+          description={t(
+            "preference.clipboard.search_box_settings.hints.auto_clear",
+          )}
+          onChange={(value) => {
+            clipboardStore.search.autoClear = value;
+          }}
+          title={t("preference.clipboard.search_box_settings.label.auto_clear")}
+          value={search.autoClear}
+        />
+      </ProList>
 
-			<ProList header={t("preference.clipboard.content_settings.title")}>
-				<AutoPaste />
+      <ProList header={t("preference.clipboard.content_settings.title")}>
+        <AutoPaste />
 
-				<ProSwitch
-					title={t("preference.clipboard.content_settings.label.copy_as_plain")}
-					description={t(
-						"preference.clipboard.content_settings.hints.copy_as_plain",
-					)}
-					value={content.copyPlain}
-					onChange={(value) => {
-						clipboardStore.content.copyPlain = value;
-					}}
-				/>
+        <ProSwitch
+          description={t(
+            "preference.clipboard.content_settings.hints.copy_as_plain",
+          )}
+          onChange={(value) => {
+            clipboardStore.content.copyPlain = value;
+          }}
+          title={t("preference.clipboard.content_settings.label.copy_as_plain")}
+          value={content.copyPlain}
+        />
 
-				<ProSwitch
-					title={t(
-						"preference.clipboard.content_settings.label.paste_as_plain",
-					)}
-					description={t(
-						"preference.clipboard.content_settings.hints.paste_as_plain",
-					)}
-					value={content.pastePlain}
-					onChange={(value) => {
-						clipboardStore.content.pastePlain = value;
-					}}
-				/>
+        <ProSwitch
+          description={t(
+            "preference.clipboard.content_settings.hints.paste_as_plain",
+          )}
+          onChange={(value) => {
+            clipboardStore.content.pastePlain = value;
+          }}
+          title={t(
+            "preference.clipboard.content_settings.label.paste_as_plain",
+          )}
+          value={content.pastePlain}
+        />
 
-				<OperationButton />
+        <OperationButton />
 
-				<ProSwitch
-					title={t("preference.clipboard.content_settings.label.auto_favorite")}
-					description={t(
-						"preference.clipboard.content_settings.hints.auto_favorite",
-					)}
-					value={content.autoFavorite}
-					onChange={(value) => {
-						clipboardStore.content.autoFavorite = value;
-					}}
-				/>
+        <ProSwitch
+          description={t(
+            "preference.clipboard.content_settings.hints.auto_favorite",
+          )}
+          onChange={(value) => {
+            clipboardStore.content.autoFavorite = value;
+          }}
+          title={t("preference.clipboard.content_settings.label.auto_favorite")}
+          value={content.autoFavorite}
+        />
 
-				<ProSwitch
-					title={t(
-						"preference.clipboard.content_settings.label.delete_confirm",
-					)}
-					description={t(
-						"preference.clipboard.content_settings.hints.delete_confirm",
-					)}
-					value={content.deleteConfirm}
-					onChange={(value) => {
-						clipboardStore.content.deleteConfirm = value;
-					}}
-				/>
+        <ProSwitch
+          description={t(
+            "preference.clipboard.content_settings.hints.delete_confirm",
+          )}
+          onChange={(value) => {
+            clipboardStore.content.deleteConfirm = value;
+          }}
+          title={t(
+            "preference.clipboard.content_settings.label.delete_confirm",
+          )}
+          value={content.deleteConfirm}
+        />
 
-				<ProSwitch
-					title={t("preference.clipboard.content_settings.label.auto_sort")}
-					description={t(
-						"preference.clipboard.content_settings.hints.auto_sort",
-					)}
-					value={content.autoSort}
-					onChange={(value) => {
-						clipboardStore.content.autoSort = value;
-					}}
-				/>
+        <ProSwitch
+          description={t(
+            "preference.clipboard.content_settings.hints.auto_sort",
+          )}
+          onChange={(value) => {
+            clipboardStore.content.autoSort = value;
+          }}
+          title={t("preference.clipboard.content_settings.label.auto_sort")}
+          value={content.autoSort}
+        />
 
-				<ProSwitch
-					title={t(
-						"preference.clipboard.content_settings.label.show_original_content",
-					)}
-					description={t(
-						"preference.clipboard.content_settings.hints.show_original_content",
-					)}
-					value={content.showOriginalContent}
-					onChange={(value) => {
-						clipboardStore.content.showOriginalContent = value;
-					}}
-				/>
-			</ProList>
-		</>
-	);
+        <ProSwitch
+          description={t(
+            "preference.clipboard.content_settings.hints.show_original_content",
+          )}
+          onChange={(value) => {
+            clipboardStore.content.showOriginalContent = value;
+          }}
+          title={t(
+            "preference.clipboard.content_settings.label.show_original_content",
+          )}
+          value={content.showOriginalContent}
+        />
+      </ProList>
+    </>
+  );
 };
 
 export default ClipboardSettings;

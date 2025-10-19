@@ -3,23 +3,23 @@ import Manual from "./components/Manual";
 import SavePath from "./components/SavePath";
 
 export interface State {
-	spinning: boolean;
+  spinning: boolean;
 }
 
 const Backup = () => {
-	const state = useReactive<State>({
-		spinning: false,
-	});
+  const state = useReactive<State>({
+    spinning: false,
+  });
 
-	return (
-		<>
-			<Spin fullscreen percent="auto" spinning={state.spinning} />
+  return (
+    <>
+      <Spin fullscreen percent="auto" spinning={state.spinning} />
 
-			<SavePath state={state} />
+      <SavePath state={state} />
 
-			<Manual state={state} />
-		</>
-	);
+      <Manual state={state} />
+    </>
+  );
 };
 
 export default Backup;

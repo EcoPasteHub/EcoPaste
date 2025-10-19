@@ -1,18 +1,18 @@
 export type WindowLabel = (typeof WINDOW_LABEL)[keyof typeof WINDOW_LABEL];
 
 export interface ReadImage {
-	width: number;
-	height: number;
-	image: string;
+  width: number;
+  height: number;
+  image: string;
 }
 
 export interface ClipboardPayload {
-	type?: "text" | "rtf" | "html" | "image" | "files";
-	group: "text" | "image" | "files";
-	subtype?: "url" | "email" | "color" | "path";
-	count: number;
-	value: string;
-	search: string;
-	width?: number;
-	height?: number;
+  type?: "text" | "rtf" | "html" | "image" | "files";
+  group: "text" | "image" | "files";
+  subtype?: "url" | "email" | "color" | "path";
+  count: number;
+  value: string;
+  search: string;
+  width?: number;
+  height?: number;
 }

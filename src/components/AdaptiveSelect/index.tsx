@@ -3,42 +3,42 @@ import { Select, type SelectProps } from "antd";
 const DEFAULT_WIDTH = 100;
 
 const AdaptiveSelect = <T,>(props: SelectProps<T>) => {
-	const { style, ...rest } = props;
+  const { style, ...rest } = props;
 
-	const width = useCreation(() => {
-		if (!rest.options) return DEFAULT_WIDTH;
+  const width = useCreation(() => {
+    if (!rest.options) return DEFAULT_WIDTH;
 
-		let width = 0;
+    let width = 0;
 
-		const canvas = document.createElement("canvas");
-		const context = canvas.getContext("2d");
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
 
-		if (!context) return DEFAULT_WIDTH;
+    if (!context) return DEFAULT_WIDTH;
 
-		context.font = getComputedStyle(document.body).font;
+    context.font = getComputedStyle(document.body).font;
 
-		for (const option of rest.options) {
-			const textWidth = context.measureText(option.label as string).width;
+    for (const option of rest.options) {
+      const textWidth = context.measureText(option.label as string).width;
 
-			if (textWidth > width) {
-				width = textWidth;
-			}
-		}
+      if (textWidth > width) {
+        width = textWidth;
+      }
+    }
 
-		canvas.remove();
+    canvas.remove();
 
-		return width + 43;
-	}, [rest.options]);
+    return width + 43;
+  }, [rest.options]);
 
-	return (
-		<Select
-			{...rest}
-			style={{
-				...style,
-				width,
-			}}
-		/>
-	);
+  return (
+    <Select
+      {...rest}
+      style={{
+        ...style,
+        width,
+      }}
+    />
+  );
 };
 
 export default AdaptiveSelect;

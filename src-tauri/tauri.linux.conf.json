@@ -1,15 +1,15 @@
 {
-	"identifier": "com.ayangweb.EcoPaste",
-	"bundle": {
-		"linux": {
-			"deb": {
-				"depends": ["gstreamer1.0-plugins-good"],
-				"desktopTemplate": "./EcoPaste.desktop"
-			},
-			"rpm": {
-				"depends": ["gstreamer1-plugins-good"],
-				"desktopTemplate": "./EcoPaste.desktop"
-			}
-		}
-	}
+  "bundle": {
+    "linux": {
+      "deb": {
+        "depends": ["gstreamer1.0-plugins-good"],
+        "desktopTemplate": "./EcoPaste.desktop"
+      },
+      "rpm": {
+        "depends": ["gstreamer1-plugins-good"],
+        "desktopTemplate": "./EcoPaste.desktop"
+      }
+    }
+  },
+  "identifier": "com.ayangweb.EcoPaste"
 }

@@ -4,11 +4,11 @@
  * @param count 执行次数
  */
 export const raf = (fn: () => void, count = 1) => {
-	if (count <= 1) {
-		return requestAnimationFrame(fn);
-	}
+  if (count <= 1) {
+    return requestAnimationFrame(fn);
+  }
 
-	requestAnimationFrame(() => {
-		raf(fn, count - 1);
-	});
+  requestAnimationFrame(() => {
+    raf(fn, count - 1);
+  });
 };

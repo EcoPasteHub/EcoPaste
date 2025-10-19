@@ -11,7 +11,7 @@ dayjs.extend(isBetween);
 dayjs.extend(utc);
 
 const formatDate = (date?: ConfigType, format = "YYYY-MM-DD HH:mm:ss") => {
-	return dayjs(date).format(format);
+  return dayjs(date).format(format);
 };
 
 export { dayjs, formatDate };

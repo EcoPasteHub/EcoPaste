@@ -1,49 +1,68 @@
 {
-	"$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-	"organizeImports": {
-		"enabled": true
-	},
-	"linter": {
-		"enabled": true,
-		"rules": {
-			"recommended": true,
-			"suspicious": {
-				"noConsoleLog": "error",
-				"noExplicitAny": "off"
-			},
-			"correctness": {
-				"noUnusedVariables": "error",
-				"noUnusedImports": "error"
-			},
-			"nursery": {
-				"useSortedClasses": {
-					"level": "error",
-					"fix": "safe"
-				}
-			},
-			"style": {
-				"noNonNullAssertion": "off",
-				"noUnusedTemplateLiteral": {
-					"level": "error",
-					"fix": "safe"
-				},
-				"useTemplate": {
-					"level": "error",
-					"fix": "safe"
-				},
-				"useSelfClosingElements": {
-					"level": "error",
-					"fix": "safe"
-				}
-			},
-			"security": {
-				"noDangerouslySetInnerHtml": "off"
-			},
-			"a11y": {
-				"useAltText": "off",
-				"useMediaCaption": "off",
-				"useKeyWithClickEvents": "off"
-			}
-		}
-	}
+  "$schema": "https://biomejs.dev/schemas/2.2.6/schema.json",
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on",
+        "useSortedAttributes": "on",
+        "useSortedKeys": "on",
+        "useSortedProperties": "on"
+      }
+    }
+  },
+  "files": {
+    "includes": ["**", "!package.json"]
+  },
+  "formatter": {
+    "indentStyle": "space"
+  },
+  "linter": {
+    "enabled": true,
+    "includes": ["**", "!package.json"],
+    "rules": {
+      "a11y": {
+        "noStaticElementInteractions": "off",
+        "useAltText": "off",
+        "useKeyWithClickEvents": "off",
+        "useMediaCaption": "off"
+      },
+      "correctness": {
+        "noUnusedImports": "error",
+        "noUnusedVariables": "error"
+      },
+      "nursery": {
+        "useSortedClasses": {
+          "fix": "safe",
+          "level": "error",
+          "options": {}
+        }
+      },
+      "recommended": true,
+      "security": {
+        "noDangerouslySetInnerHtml": "off"
+      },
+      "style": {
+        "noNonNullAssertion": "off",
+        "noUnusedTemplateLiteral": {
+          "fix": "safe",
+          "level": "error",
+          "options": {}
+        },
+        "useSelfClosingElements": {
+          "fix": "safe",
+          "level": "error",
+          "options": {}
+        },
+        "useTemplate": {
+          "fix": "safe",
+          "level": "error",
+          "options": {}
+        }
+      },
+      "suspicious": {
+        "noConsole": "error",
+        "noExplicitAny": "off"
+      }
+    }
+  }
 }

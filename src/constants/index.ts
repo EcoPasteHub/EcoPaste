@@ -9,37 +9,37 @@ export const TRAY_ID = "app-tray";
 export const UPDATE_MESSAGE_KEY = "app-update-message";
 
 export const WINDOW_LABEL = {
-	MAIN: "main",
-	PREFERENCE: "preference",
+  MAIN: "main",
+  PREFERENCE: "preference",
 } as const;
 
 export const LANGUAGE = {
-	ZH_CN: "zh-CN",
-	ZH_TW: "zh-TW",
-	EN_US: "en-US",
-	JA_JP: "ja-JP",
+  EN_US: "en-US",
+  JA_JP: "ja-JP",
+  ZH_CN: "zh-CN",
+  ZH_TW: "zh-TW",
 } as const;
 
 export const LISTEN_KEY = {
-	STORE_CHANGED: "store-changed",
-	UPDATE_APP: "update-app",
-	REFRESH_CLIPBOARD_LIST: "refresh-clipboard-list",
-	SHOW_WINDOW: "show-window",
-	CLIPBOARD_ITEM_PREVIEW: "clipboard-item-preview",
-	CLIPBOARD_ITEM_PASTE: "clipboard-item-paste",
-	CLIPBOARD_ITEM_DELETE: "clipboard-item-delete",
-	CLIPBOARD_ITEM_SELECT_PREV: "clipboard-item-select-prev",
-	CLIPBOARD_ITEM_SELECT_NEXT: "clipboard-item-select-next",
-	CLOSE_DATABASE: "close-database",
-	TOGGLE_LISTEN_CLIPBOARD: "toggle-listen-clipboard",
-	CLIPBOARD_ITEM_FAVORITE: "clipboard-item-favorite",
-	ACTIVATE_BACK_TOP: "activate-back-top",
+  ACTIVATE_BACK_TOP: "activate-back-top",
+  CLIPBOARD_ITEM_DELETE: "clipboard-item-delete",
+  CLIPBOARD_ITEM_FAVORITE: "clipboard-item-favorite",
+  CLIPBOARD_ITEM_PASTE: "clipboard-item-paste",
+  CLIPBOARD_ITEM_PREVIEW: "clipboard-item-preview",
+  CLIPBOARD_ITEM_SELECT_NEXT: "clipboard-item-select-next",
+  CLIPBOARD_ITEM_SELECT_PREV: "clipboard-item-select-prev",
+  CLOSE_DATABASE: "close-database",
+  REFRESH_CLIPBOARD_LIST: "refresh-clipboard-list",
+  SHOW_WINDOW: "show-window",
+  STORE_CHANGED: "store-changed",
+  TOGGLE_LISTEN_CLIPBOARD: "toggle-listen-clipboard",
+  UPDATE_APP: "update-app",
 };
 
 export const PRESET_SHORTCUT = {
-	SEARCH: isMac ? "meta.f" : "ctrl.f",
-	FAVORITE: isMac ? "meta.d" : "ctrl.d",
-	OPEN_PREFERENCES: isMac ? "meta.comma" : "ctrl.comma",
-	HIDE_WINDOW: isMac ? "meta.w" : "ctrl.w",
-	FIXED_WINDOW: isMac ? "meta.p" : "ctrl.p",
+  FAVORITE: isMac ? "meta.d" : "ctrl.d",
+  FIXED_WINDOW: isMac ? "meta.p" : "ctrl.p",
+  HIDE_WINDOW: isMac ? "meta.w" : "ctrl.w",
+  OPEN_PREFERENCES: isMac ? "meta.comma" : "ctrl.comma",
+  SEARCH: isMac ? "meta.f" : "ctrl.f",
 };

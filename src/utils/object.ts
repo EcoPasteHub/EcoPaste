@@ -6,9 +6,9 @@ import { isArray, mergeWith } from "es-toolkit/compat";
  * @param source 源对象
  */
 export const deepAssign = <T, S>(target: T, source: S): T & S => {
-	return mergeWith(target, source, (targetValue, sourceValue) => {
-		if (isArray(targetValue)) {
-			return sourceValue;
-		}
-	});
+  return mergeWith(target, source, (targetValue, sourceValue) => {
+    if (isArray(targetValue)) {
+      return sourceValue;
+    }
+  });
 };

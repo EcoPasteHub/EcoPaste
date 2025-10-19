@@ -1,32 +1,32 @@
-import type { DatabaseSchemaHistory } from "@/types/database";
 import DOMPurify from "dompurify";
 import type { FC, MouseEvent } from "react";
+import type { DatabaseSchemaHistory } from "@/types/database";
 
 const HTML: FC<DatabaseSchemaHistory<"html">> = (props) => {
-	const { value } = props;
+  const { value } = props;
 
-	const handleClick = (event: MouseEvent) => {
-		const { target, metaKey, ctrlKey } = event;
+  const handleClick = (event: MouseEvent) => {
+    const { target, metaKey, ctrlKey } = event;
 
-		const link = (target as HTMLElement).closest("a");
+    const link = (target as HTMLElement).closest("a");
 
-		if (!link || metaKey || ctrlKey) return;
+    if (!link || metaKey || ctrlKey) return;
 
-		event.preventDefault();
-		event.stopPropagation();
-	};
+    event.preventDefault();
+    event.stopPropagation();
+  };
 
-	return (
-		<div
-			className="translate-z-0"
-			dangerouslySetInnerHTML={{
-				__html: DOMPurify.sanitize(value, {
-					FORBID_ATTR: ["target", "controls", "autoplay", "autoPlay"],
-				}),
-			}}
-			onClick={handleClick}
-		/>
-	);
+  return (
+    <div
+      className="translate-z-0"
+      dangerouslySetInnerHTML={{
+        __html: DOMPurify.sanitize(value, {
+          FORBID_ATTR: ["target", "controls", "autoplay", "autoPlay"],
+        }),
+      }}
+      onClick={handleClick}
+    />
+  );
 };
 
 export default HTML;

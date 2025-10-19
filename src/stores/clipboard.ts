@@ -1,38 +1,37 @@
-import type { ClipboardStore } from "@/types/store";
 import { proxy } from "valtio";
+import type { ClipboardStore } from "@/types/store";
 
 export const clipboardStore = proxy<ClipboardStore>({
-	window: {
-		style: "standard",
-		position: "remember",
-		backTop: false,
-		showAll: false,
-	},
+  audio: {
+    copy: false,
+  },
 
-	audio: {
-		copy: false,
-	},
+  content: {
+    autoFavorite: false,
+    autoPaste: "double",
+    autoSort: false,
+    copyPlain: false,
+    deleteConfirm: true,
+    operationButtons: ["copy", "star", "delete"],
+    pastePlain: false,
+    showOriginalContent: false,
+  },
 
-	search: {
-		position: "top",
-		defaultFocus: false,
-		autoClear: false,
-	},
+  history: {
+    duration: 0,
+    maxCount: 0,
+    unit: 1,
+  },
 
-	content: {
-		autoPaste: "double",
-		copyPlain: false,
-		pastePlain: false,
-		operationButtons: ["copy", "star", "delete"],
-		autoFavorite: false,
-		deleteConfirm: true,
-		autoSort: false,
-		showOriginalContent: false,
-	},
-
-	history: {
-		duration: 0,
-		unit: 1,
-		maxCount: 0,
-	},
+  search: {
+    autoClear: false,
+    defaultFocus: false,
+    position: "top",
+  },
+  window: {
+    backTop: false,
+    position: "remember",
+    showAll: false,
+    style: "standard",
+  },
 });

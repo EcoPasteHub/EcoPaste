@@ -5,47 +5,47 @@ import Duration from "./components/Duration";
 import MaxCount from "./components/MaxCount";
 
 const History = () => {
-	const { t } = useTranslation();
-	const timerRef = useRef<Interval>();
+  const { t } = useTranslation();
+  const timerRef = useRef<Interval>();
 
-	useImmediate(clipboardStore.history, async () => {
-		const { duration, maxCount } = clipboardStore.history;
+  useImmediate(clipboardStore.history, async () => {
+    const { duration, maxCount } = clipboardStore.history;
 
-		clearInterval(timerRef.current);
+    clearInterval(timerRef.current);
 
-		if (duration === 0 && maxCount === 0) return;
+    if (duration === 0 && maxCount === 0) return;
 
-		const delay = 1000 * 60 * 30;
+    const delay = 1000 * 60 * 30;
 
-		timerRef.current = setInterval(async () => {
-			const db = await getDatabase();
+    timerRef.current = setInterval(async () => {
+      const db = await getDatabase();
 
-			const list = await db
-				.selectFrom("history")
-				.selectAll()
-				.where("favorite", "=", false)
-				.execute();
+      const list = await db
+        .selectFrom("history")
+        .selectAll()
+        .where("favorite", "=", false)
+        .execute();
 
-			for (const [index, item] of list.entries()) {
-				const { id, createTime } = item;
-				const diffDays = dayjs().diff(createTime, "days");
-				const isExpired = duration > 0 && diffDays >= duration;
-				const isOverMaxCount = maxCount > 0 && index >= maxCount;
+      for (const [index, item] of list.entries()) {
+        const { id, createTime } = item;
+        const diffDays = dayjs().diff(createTime, "days");
+        const isExpired = duration > 0 && diffDays >= duration;
+        const isOverMaxCount = maxCount > 0 && index >= maxCount;
 
-				if (!isExpired && !isOverMaxCount) continue;
+        if (!isExpired && !isOverMaxCount) continue;
 
-				db.deleteFrom("history").where("id", "=", id).execute();
-			}
-		}, delay);
-	});
+        db.deleteFrom("history").where("id", "=", id).execute();
+      }
+    }, delay);
+  });
 
-	return (
-		<ProList header={t("preference.history.history.title")} footer={<Delete />}>
-			<Duration />
+  return (
+    <ProList footer={<Delete />} header={t("preference.history.history.title")}>
+      <Duration />
 
-			<MaxCount />
-		</ProList>
-	);
+      <MaxCount />
+    </ProList>
+  );
 };
 
 export default History;

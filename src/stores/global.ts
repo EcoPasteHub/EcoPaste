@@ -1,33 +1,33 @@
-import type { GlobalStore } from "@/types/store";
 import { proxy } from "valtio";
+import type { GlobalStore } from "@/types/store";
 
 export const globalStore = proxy<GlobalStore>({
-	app: {
-		autoStart: false,
-		silentStart: false,
-		showMenubarIcon: true,
-		showTaskbarIcon: false,
-	},
+  app: {
+    autoStart: false,
+    showMenubarIcon: true,
+    showTaskbarIcon: false,
+    silentStart: false,
+  },
 
-	appearance: {
-		theme: "auto",
-		isDark: false,
-	},
+  appearance: {
+    isDark: false,
+    theme: "auto",
+  },
 
-	update: {
-		auto: false,
-		beta: false,
-	},
+  env: {},
 
-	shortcut: {
-		clipboard: "Alt+C",
-		preference: "Alt+X",
-		quickPaste: {
-			enable: false,
-			value: "Command+Shift",
-		},
-		pastePlain: "",
-	},
+  shortcut: {
+    clipboard: "Alt+C",
+    pastePlain: "",
+    preference: "Alt+X",
+    quickPaste: {
+      enable: false,
+      value: "Command+Shift",
+    },
+  },
 
-	env: {},
+  update: {
+    auto: false,
+    beta: false,
+  },
 });

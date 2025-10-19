@@ -1,12 +1,12 @@
 {
-	"identifier": "com.ayangweb.EcoPaste",
-	"bundle": {
-		"windows": {
-			"digestAlgorithm": "sha256",
-			"nsis": {
-				"languages": ["SimpChinese"],
-				"installMode": "both"
-			}
-		}
-	}
+  "bundle": {
+    "windows": {
+      "digestAlgorithm": "sha256",
+      "nsis": {
+        "installMode": "both",
+        "languages": ["SimpChinese"]
+      }
+    }
+  },
+  "identifier": "com.ayangweb.EcoPaste"
 }

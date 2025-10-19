@@ -6,15 +6,15 @@ import ProListItem from "../ProListItem";
 export type ProSelectProps<T> = SelectProps<T> & ListItemMetaProps;
 
 const SettingSelect = <T,>(props: ProSelectProps<T>) => {
-	const { title, description, children, ...rest } = props;
+  const { title, description, children, ...rest } = props;
 
-	return (
-		<ProListItem title={title} description={description}>
-			<AdaptiveSelect {...rest} />
+  return (
+    <ProListItem description={description} title={title}>
+      <AdaptiveSelect {...rest} />
 
-			{children}
-		</ProListItem>
-	);
+      {children}
+    </ProListItem>
+  );
 };
 
 export default SettingSelect;

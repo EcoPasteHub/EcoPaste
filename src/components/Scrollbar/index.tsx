@@ -2,44 +2,44 @@ import { MacScrollbar, type MacScrollbarProps } from "mac-scrollbar";
 import { useSnapshot } from "valtio";
 
 interface ScrollbarProps extends MacScrollbarProps {
-	thumbSize?: number;
-	offset?: number;
+  thumbSize?: number;
+  offset?: number;
 }
 
 const Scrollbar = forwardRef<HTMLElement, ScrollbarProps>((props, ref) => {
-	const { appearance } = useSnapshot(globalStore);
+  const { appearance } = useSnapshot(globalStore);
 
-	const { thumbSize = 6, offset = 0, children, ...rest } = props;
+  const { thumbSize = 6, offset = 0, children, ...rest } = props;
 
-	const containerRef = useRef<HTMLElement>(null);
+  const containerRef = useRef<HTMLElement>(null);
 
-	useImperativeHandle(ref, () => containerRef.current!);
+  useImperativeHandle(ref, () => containerRef.current!);
 
-	const getThumbStyle: MacScrollbarProps["thumbStyle"] = (horizontal) => {
-		if (horizontal) {
-			return {
-				height: thumbSize,
-				bottom: offset,
-			};
-		}
+  const getThumbStyle: MacScrollbarProps["thumbStyle"] = (horizontal) => {
+    if (horizontal) {
+      return {
+        bottom: offset,
+        height: thumbSize,
+      };
+    }
 
-		return {
-			width: thumbSize,
-			right: offset,
-		};
-	};
+    return {
+      right: offset,
+      width: thumbSize,
+    };
+  };
 
-	return (
-		<MacScrollbar
-			{...rest}
-			ref={containerRef}
-			skin={appearance.isDark ? "dark" : "light"}
-			thumbStyle={getThumbStyle}
-			trackStyle={() => ({ border: 0, "--ms-track-size": 0 })}
-		>
-			{children}
-		</MacScrollbar>
-	);
+  return (
+    <MacScrollbar
+      {...rest}
+      ref={containerRef}
+      skin={appearance.isDark ? "dark" : "light"}
+      thumbStyle={getThumbStyle}
+      trackStyle={() => ({ "--ms-track-size": 0, border: 0 })}
+    >
+      {children}
+    </MacScrollbar>
+  );
 });
 
 export default Scrollbar;
