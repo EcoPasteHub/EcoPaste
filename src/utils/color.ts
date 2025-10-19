@@ -1,5 +1,6 @@
 import { theme } from "antd";
-import { kebabCase, map } from "lodash-es";
+import { kebabCase } from "es-toolkit";
+import { map } from "es-toolkit/compat";
 
 const { getDesignToken, darkAlgorithm } = theme;
 

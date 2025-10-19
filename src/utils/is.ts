@@ -1,4 +1,6 @@
 import { platform } from "@tauri-apps/plugin-os";
+import { isString } from "es-toolkit";
+import { isEmpty } from "es-toolkit/compat";
 import isUrl from "is-url";
 
 /**
@@ -101,4 +103,15 @@ export const isImage = (value: string) => {
 	const regex = /\.(jpe?g|png|webp|avif|gif|svg|bmp|ico|tiff?|heic|apng)$/i;
 
 	return regex.test(value);
+};
+
+/**
+ * 是否为空白字符串
+ */
+export const isBlank = (value: unknown) => {
+	if (isString(value)) {
+		return isEmpty(value.trim());
+	}
+
+	return true;
 };

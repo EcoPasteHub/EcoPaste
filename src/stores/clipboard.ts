@@ -3,7 +3,7 @@ import { proxy } from "valtio";
 
 export const clipboardStore = proxy<ClipboardStore>({
 	window: {
-		style: "float",
+		style: "standard",
 		position: "remember",
 		backTop: false,
 		showAll: false,

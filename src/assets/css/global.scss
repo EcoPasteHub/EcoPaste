@@ -10,6 +10,10 @@ html {
   body {
     --uno: text-sm;
 
+    * {
+      outline: none !important;
+    }
+
     img {
       -webkit-user-drag: none;
     }

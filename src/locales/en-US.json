@@ -251,12 +251,6 @@
 					"software_info": "Copying software information and providing it to Bug Issues",
 					"copy_success": "Copy Success"
 				}
-			},
-			"thank": {
-				"title": "Thank",
-				"hints": {
-					"thank_all": "Thanks to all listed and unlisted open source dependencies, as well as to the users who suggested {{0}} and the developers who contributed."
-				}
 			}
 		}
 	},

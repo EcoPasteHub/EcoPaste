@@ -3,7 +3,7 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { error } from "@tauri-apps/plugin-log";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { ConfigProvider, theme } from "antd";
-import { isString } from "lodash-es";
+import { isString } from "es-toolkit";
 import { RouterProvider } from "react-router-dom";
 import { useSnapshot } from "valtio";
 
@@ -47,7 +47,11 @@ const App = () => {
 	});
 
 	// 监听关闭数据库的事件
-	useTauriListen(LISTEN_KEY.CLOSE_DATABASE, closeDatabase);
+	useTauriListen(LISTEN_KEY.CLOSE_DATABASE, async () => {
+		const db = await getDatabase();
+
+		db.destroy();
+	});
 
 	// 链接跳转到系统浏览器
 	useEventListener("click", (event) => {

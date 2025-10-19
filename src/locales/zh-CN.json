@@ -251,12 +251,6 @@
 					"software_info": "复制软件信息并提供给 Bug Issue",
 					"copy_success": "复制成功"
 				}
-			},
-			"thank": {
-				"title": "致谢",
-				"hints": {
-					"thank_all": "感谢所有列出的和未能列出的开源依赖，以及为{{0}}提出建议的用户和做出贡献的开发者。"
-				}
 			}
 		}
 	},

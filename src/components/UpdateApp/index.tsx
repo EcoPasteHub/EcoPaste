@@ -113,6 +113,7 @@ const UpdateApp = () => {
 	// 替换更新日志里的内容
 	const replaceBody = (body: string) => {
 		return body
+			.replace(/&nbsp;/g, "")
 			.split("\n")
 			.map((line) => line.replace(/\s*-\s+by\s+@.*/, ""))
 			.join("\n");

@@ -55,7 +55,7 @@ export const toggleWindowVisible = async () => {
 				await emit(LISTEN_KEY.ACTIVATE_BACK_TOP);
 			}
 
-			if (window.style === "float" && window.position !== "remember") {
+			if (window.style === "standard" && window.position !== "remember") {
 				const current = await currentMonitor();
 				const monitor = await getCursorMonitor();
 

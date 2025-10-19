@@ -8,7 +8,7 @@ import {
 	writeTextFile,
 } from "@tauri-apps/plugin-fs";
 import { platform } from "@tauri-apps/plugin-os";
-import { omit } from "lodash-es";
+import { omit } from "es-toolkit/compat";
 import { getLocale } from "tauri-plugin-locale-api";
 
 /**
@@ -20,6 +20,11 @@ const initStore = async () => {
 	globalStore.env.appName = await getName();
 	globalStore.env.appVersion = await getVersion();
 	globalStore.env.saveDataDir ??= await appDataDir();
+
+	// @ts-ignore
+	if (clipboardStore.window.style === "float") {
+		clipboardStore.window.style = "standard";
+	}
 
 	await mkdir(globalStore.env.saveDataDir, { recursive: true });
 };
