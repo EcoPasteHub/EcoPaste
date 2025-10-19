@@ -11,7 +11,7 @@
     }
   },
   "files": {
-    "includes": ["**", "!package.json"]
+    "includes": ["**", "!package.json", "!.release-it.ts"]
   },
   "formatter": {
     "indentStyle": "space"
