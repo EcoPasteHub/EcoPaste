@@ -5,8 +5,8 @@ import { getTauriVersion } from "@tauri-apps/api/app";
 import { emit } from "@tauri-apps/api/event";
 import { arch, version } from "@tauri-apps/plugin-os";
 import { Avatar, Button, Image, message } from "antd";
+import { writeText } from "tauri-plugin-clipboard-x-api";
 import { useSnapshot } from "valtio";
-import Thank from "./components/Thank";
 
 const About = () => {
 	const { appearance, env } = useSnapshot(globalStore);
@@ -121,8 +121,6 @@ const About = () => {
 					}}
 				/>
 			</ProList>
-
-			<Thank />
 		</>
 	);
 };

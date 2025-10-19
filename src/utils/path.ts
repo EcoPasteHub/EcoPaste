@@ -1,28 +1,28 @@
 import { getName } from "@tauri-apps/api/app";
 import { appDataDir, sep } from "@tauri-apps/api/path";
-import { last } from "lodash-es";
+import { last } from "es-toolkit";
 
 /**
- * 连接相应系统的路径
+ * 拼接文件路径
  * @param paths 路径数组
  */
-export const joinPath = (...paths: string[]) => {
-	const joinPaths = paths.map((path) => {
-		if (path.endsWith(sep())) {
-			return path.slice(0, -1);
+export function join(...paths: string[]) {
+	const joinPaths = paths.map((path, index) => {
+		if (index === 0) {
+			return path.replace(new RegExp(`${sep()}+$`), "");
 		}
 
-		return path;
+		return path.replace(new RegExp(`^${sep()}+|${sep()}+$`, "g"), "");
 	});
 
 	return joinPaths.join(sep());
-};
+}
 
 /**
  * 获取存储数据的目录
  */
 export const getSaveDataPath = () => {
-	return joinPath(globalStore.env.saveDataDir!);
+	return join(globalStore.env.saveDataDir!);
 };
 
 /**
@@ -32,14 +32,14 @@ export const getSaveDatabasePath = async () => {
 	const appName = await getName();
 	const extname = isDev() ? "dev.db" : "db";
 
-	return joinPath(getSaveDataPath(), `${appName}.${extname}`);
+	return join(getSaveDataPath(), `${appName}.${extname}`);
 };
 
 /**
  * 获取存储图片的路径
  */
 export const getSaveImagePath = () => {
-	return joinPath(getSaveDataPath(), "images");
+	return join(getSaveDataPath(), "images");
 };
 
 /**
@@ -49,7 +49,7 @@ export const getSaveImagePath = () => {
 export const resolveImagePath = (file: string) => {
 	if (file.startsWith(getSaveImagePath())) return file;
 
-	return joinPath(getSaveImagePath(), file);
+	return join(getSaveImagePath(), file);
 };
 
 /**
@@ -67,10 +67,10 @@ export const getSaveStorePath = async (backup = false) => {
 	const extname = isDev() ? "dev.json" : "json";
 
 	if (backup) {
-		return joinPath(getSaveDataPath(), `.store-backup.${extname}`);
+		return join(getSaveDataPath(), `.store-backup.${extname}`);
 	}
 
-	return joinPath(await appDataDir(), `.store.${extname}`);
+	return join(await appDataDir(), `.store.${extname}`);
 };
 
 /**
@@ -79,5 +79,5 @@ export const getSaveStorePath = async (backup = false) => {
 export const getSaveWindowStatePath = async () => {
 	const extname = isDev() ? "dev.json" : "json";
 
-	return joinPath(await appDataDir(), `.window-state.${extname}`);
+	return join(await appDataDir(), `.window-state.${extname}`);
 };

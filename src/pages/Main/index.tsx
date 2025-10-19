@@ -1,169 +1,74 @@
-import type { AudioRef } from "@/components/Audio";
-import Audio from "@/components/Audio";
-import type { HistoryTablePayload, TablePayload } from "@/types/database";
+import type {
+	DatabaseSchemaGroupId,
+	DatabaseSchemaHistory,
+} from "@/types/database";
 import type { Store } from "@/types/store";
 import type { EventEmitter } from "ahooks/lib/useEventEmitter";
-import { find, findIndex, isNil, last, range } from "lodash-es";
-import { nanoid } from "nanoid";
+import { range } from "es-toolkit";
+import { find, last } from "es-toolkit/compat";
 import { createContext } from "react";
+import { startListening, stopListening } from "tauri-plugin-clipboard-x-api";
 import { useSnapshot } from "valtio";
-import Dock from "./components/Dock";
-import Float from "./components/Float";
+import DockMode from "./components/DockMode";
+import StandardMode from "./components/StandardMode";
 
-interface State extends TablePayload {
-	pin?: boolean;
-	list: HistoryTablePayload[];
+export interface EventBusPayload {
+	id: string;
+	action: string;
+}
+
+export interface State {
+	group: DatabaseSchemaGroupId;
+	search?: string;
+	pinned?: boolean;
 	activeId?: string;
-	eventBusId?: string;
-	$eventBus?: EventEmitter<string>;
+	list: DatabaseSchemaHistory[];
+	eventBus?: EventEmitter<EventBusPayload>;
 	quickPasteKeys: string[];
 }
 
 const INITIAL_STATE: State = {
+	group: "all",
 	list: [],
 	quickPasteKeys: [],
 };
 
 interface MainContextValue {
-	state: State;
-	getList?: (payload?: HistoryTablePayload) => Promise<void>;
+	rootState: State;
 }
 
 export const MainContext = createContext<MainContextValue>({
-	state: INITIAL_STATE,
+	rootState: INITIAL_STATE,
 });
 
 const Main = () => {
+	const state = useReactive<State>(INITIAL_STATE);
 	const { shortcut } = useSnapshot(globalStore);
 	const { window } = useSnapshot(clipboardStore);
-	const state = useReactive<State>(INITIAL_STATE);
-	const audioRef = useRef<AudioRef>(null);
-	const $eventBus = useEventEmitter<string>();
+	const eventBus = useEventEmitter<EventBusPayload>();
 
 	useMount(() => {
-		state.$eventBus = $eventBus;
-
-		// 开启剪贴板监听
-		startListen();
-
-		// 监听剪贴板更新
-		onClipboardUpdate((payload) => {
-			if (clipboardStore.audio.copy) {
-				audioRef.current?.play();
-			}
-
-			const { type, value, group } = payload;
-
-			const findItem = find(state.list, { type, value });
-
-			const createTime = formatDate();
-
-			if (findItem) {
-				if (!clipboardStore.content.autoSort) return;
-
-				const { id } = findItem;
-
-				const index = findIndex(state.list, { id });
-
-				const [targetItem] = state.list.splice(index, 1);
-
-				state.list.unshift({ ...targetItem, createTime });
-
-				updateSQL("history", { id, createTime });
-			} else {
-				const data: HistoryTablePayload = {
-					...payload,
-					createTime,
-					id: nanoid(),
-					favorite: false,
-				};
-
-				if (state.group === group || (isNil(state.group) && !state.favorite)) {
-					state.list.unshift(data);
-				}
-
-				insertSQL("history", data);
-			}
-		});
+		state.eventBus = eventBus;
 	});
 
-	// 监听快速粘贴的启用状态变更
-	useImmediateKey(globalStore.shortcut.quickPaste, "enable", () => {
-		setQuickPasteKeys();
-	});
+	useClipboard(state);
 
-	// 监听快速粘贴的快捷键变更
-	useSubscribeKey(globalStore.shortcut.quickPaste, "value", () => {
-		setQuickPasteKeys();
-	});
-
-	// 监听是否显示任务栏图标
+	// 任务栏图标的显示与隐藏
 	useImmediateKey(globalStore.app, "showTaskbarIcon", showTaskbarIcon);
 
-	// 监听刷新列表
-	useTauriListen(LISTEN_KEY.REFRESH_CLIPBOARD_LIST, () => getList());
-
-	// 监听配置项变化
+	// 同步配置项
 	useTauriListen<Store>(LISTEN_KEY.STORE_CHANGED, ({ payload }) => {
 		deepAssign(globalStore, payload.globalStore);
 		deepAssign(clipboardStore, payload.clipboardStore);
 	});
 
-	// 切换剪贴板监听状态
-	useTauriListen<boolean>(LISTEN_KEY.TOGGLE_LISTEN_CLIPBOARD, ({ payload }) => {
-		toggleListen(payload);
-	});
-
-	// 监听窗口焦点
-	useTauriFocus({
-		onBlur() {
-			if (state.pin) return;
-
-			hideWindow();
-		},
-	});
-
-	// 监听窗口显隐的快捷键
+	// 窗口显示与隐藏
 	useRegister(toggleWindowVisible, [shortcut.clipboard]);
-
-	// 监听粘贴为纯文本的快捷键
-	useKeyPress(shortcut.pastePlain, (event) => {
-		event.preventDefault();
-
-		const data = find(state.list, { id: state.activeId });
-
-		pasteClipboard(data, true);
-	});
-
-	// 监听快速粘贴的快捷键
-	useRegister(
-		async (event) => {
-			if (!globalStore.shortcut.quickPaste.enable) return;
-
-			const index = Number(last(event.shortcut));
-
-			const data = state.list[index - 1];
-
-			pasteClipboard(data);
-		},
-		[state.quickPasteKeys],
-	);
 
 	// 打开偏好设置窗口
 	useKeyPress(PRESET_SHORTCUT.OPEN_PREFERENCES, () => {
 		showWindow("preference");
 	});
-
-	// 获取剪切板内容
-	const getList = async () => {
-		const { group, search, favorite } = state;
-
-		state.list = await selectSQL<HistoryTablePayload[]>("history", {
-			group,
-			search,
-			favorite,
-		});
-	};
 
 	// 设置快捷粘贴的快捷键
 	const setQuickPasteKeys = () => {
@@ -178,19 +83,58 @@ const Main = () => {
 		state.quickPasteKeys = range(1, 10).map((item) => [value, item].join("+"));
 	};
 
-	return (
-		<>
-			<Audio hiddenIcon ref={audioRef} />
+	// 监听快速粘贴的启用状态变更
+	useImmediateKey(globalStore.shortcut.quickPaste, "enable", () => {
+		setQuickPasteKeys();
+	});
 
-			<MainContext.Provider
-				value={{
-					state,
-					getList,
-				}}
-			>
-				{window.style === "float" ? <Float /> : <Dock />}
-			</MainContext.Provider>
-		</>
+	// 监听快速粘贴的快捷键变更
+	useSubscribeKey(globalStore.shortcut.quickPaste, "value", () => {
+		setQuickPasteKeys();
+	});
+
+	// 切换剪贴板监听状态
+	useTauriListen<boolean>(LISTEN_KEY.TOGGLE_LISTEN_CLIPBOARD, ({ payload }) => {
+		if (payload) {
+			startListening();
+		} else {
+			stopListening();
+		}
+	});
+
+	// 监听粘贴为纯文本的快捷键
+	useKeyPress(shortcut.pastePlain, (event) => {
+		event.preventDefault();
+
+		const data = find(state.list, { id: state.activeId });
+
+		if (!data) return;
+
+		pasteToClipboard(data, true);
+	});
+
+	// 监听快速粘贴的快捷键
+	useRegister(
+		async (event) => {
+			if (!globalStore.shortcut.quickPaste.enable) return;
+
+			const index = Number(last(event.shortcut));
+
+			const data = state.list[index - 1];
+
+			pasteToClipboard(data, clipboardStore.content.pastePlain);
+		},
+		[state.quickPasteKeys],
+	);
+
+	return (
+		<MainContext.Provider
+			value={{
+				rootState: state,
+			}}
+		>
+			{window.style === "standard" ? <StandardMode /> : <DockMode />}
+		</MainContext.Provider>
 	);
 };
 

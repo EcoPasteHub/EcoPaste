@@ -1,5 +1,4 @@
 import ProList from "@/components/ProList";
-import type { HistoryTablePayload } from "@/types/database";
 import type { Interval } from "@/types/shared";
 import Delete from "./components/Delete";
 import Duration from "./components/Duration";
@@ -19,19 +18,23 @@ const History = () => {
 		const delay = 1000 * 60 * 30;
 
 		timerRef.current = setInterval(async () => {
-			const list = await selectSQL<HistoryTablePayload[]>("history", {
-				favorite: false,
-			});
+			const db = await getDatabase();
+
+			const list = await db
+				.selectFrom("history")
+				.selectAll()
+				.where("favorite", "=", false)
+				.execute();
 
 			for (const [index, item] of list.entries()) {
-				const { createTime } = item;
+				const { id, createTime } = item;
 				const diffDays = dayjs().diff(createTime, "days");
 				const isExpired = duration > 0 && diffDays >= duration;
 				const isOverMaxCount = maxCount > 0 && index >= maxCount;
 
 				if (!isExpired && !isOverMaxCount) continue;
 
-				deleteSQL("history", item);
+				db.deleteFrom("history").where("id", "=", id).execute();
 			}
 		}, delay);
 	});

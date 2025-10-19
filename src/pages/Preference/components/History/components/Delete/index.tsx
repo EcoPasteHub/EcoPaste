@@ -1,5 +1,4 @@
 import AdaptiveSelect from "@/components/AdaptiveSelect";
-import type { HistoryTablePayload } from "@/types/database";
 import { DeleteOutlined } from "@ant-design/icons";
 import { emit } from "@tauri-apps/api/event";
 import {
@@ -75,10 +74,12 @@ const Delete = () => {
 
 			const formatRange = range.map((item) => formatDate(item));
 
-			const list = await selectSQL<HistoryTablePayload[]>("history");
+			const db = await getDatabase();
+
+			const list = await db.selectFrom("history").selectAll().execute();
 
 			for await (const item of list) {
-				const { favorite, createTime } = item;
+				const { id, favorite, createTime } = item;
 
 				if (favorite && !deleteFavorite) continue;
 
@@ -90,7 +91,7 @@ const Delete = () => {
 				);
 
 				if (timeRange === 0 || isBetween) {
-					await deleteSQL("history", item);
+					await db.deleteFrom("history").where("id", "=", id).execute();
 				}
 			}
 

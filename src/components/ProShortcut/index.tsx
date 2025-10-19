@@ -1,6 +1,6 @@
 import { Flex } from "antd";
 import type { ListItemMetaProps } from "antd/es/list";
-import { find, isEmpty, map, remove, some, split } from "lodash-es";
+import { find, isEmpty, map, remove, some, split } from "es-toolkit/compat";
 import type { FC, KeyboardEvent, MouseEvent } from "react";
 import ProListItem from "../ProListItem";
 import UnoIcon from "../UnoIcon";

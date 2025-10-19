@@ -1,5 +1,5 @@
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { debounce } from "lodash-es";
+import { debounce } from "es-toolkit";
 
 interface Props {
 	onFocus?: () => void;

@@ -1,15 +1,15 @@
-import Audio from "@/components/Audio";
 import ProList from "@/components/ProList";
 import ProSwitch from "@/components/ProSwitch";
 import { Typography } from "antd";
 import { useSnapshot } from "valtio";
+import AudioSettings from "./components/AudioSettings";
 import AutoPaste from "./components/AutoPaste";
 import OperationButton from "./components/OperationButton";
 import SearchPosition from "./components/SearchPosition";
 import WindowPosition from "./components/WindowPosition";
 
 const ClipboardSettings = () => {
-	const { window, audio, search, content } = useSnapshot(clipboardStore);
+	const { window, search, content } = useSnapshot(clipboardStore);
 	const { t } = useTranslation();
 
 	return (
@@ -35,22 +35,7 @@ const ClipboardSettings = () => {
 				/>
 			</ProList>
 
-			<ProList header={t("preference.clipboard.audio_settings.title")}>
-				<ProSwitch
-					title={t("preference.clipboard.audio_settings.label.copy_audio")}
-					value={audio.copy}
-					onChange={(value) => {
-						clipboardStore.audio.copy = value;
-					}}
-				>
-					<Audio
-						iconProps={{
-							size: 22,
-							className: "flex!",
-						}}
-					/>
-				</ProSwitch>
-			</ProList>
+			<AudioSettings />
 
 			<ProList header={t("preference.clipboard.search_box_settings.title")}>
 				<SearchPosition key={1} />

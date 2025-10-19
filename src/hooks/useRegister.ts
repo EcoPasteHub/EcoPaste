@@ -4,7 +4,7 @@ import {
 	register,
 	unregister,
 } from "@tauri-apps/plugin-global-shortcut";
-import { castArray } from "lodash-es";
+import { castArray } from "es-toolkit/compat";
 
 export const useRegister = (
 	handler: ShortcutHandler,

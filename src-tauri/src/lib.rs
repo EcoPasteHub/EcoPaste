@@ -47,7 +47,7 @@ pub fn run() {
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         // 操作系统相关信息插件：https://github.com/tauri-apps/tauri-plugin-os
         .plugin(tauri_plugin_os::init())
-        // Shell 插件（在后台启动子进程命令等功能）：https://github.com/tauri-apps/tauri-plugin-shell
+        // 在后台启动子进程命令等功能：https://github.com/tauri-apps/tauri-plugin-shell
         .plugin(tauri_plugin_shell::init())
         // 系统级别对话框插件：https://github.com/tauri-apps/tauri-plugin-dialog
         .plugin(tauri_plugin_dialog::init())
@@ -69,10 +69,10 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         // 禁用 webview 的默认行为：https://github.com/ferreira-tb/tauri-plugin-prevent-default
         .plugin(prevent_default::init())
+        // 剪贴板插件：https://github.com/ayangweb/tauri-plugin-clipboard-x
+        .plugin(tauri_plugin_clipboard_x::init())
         // 自定义的窗口管理插件
         .plugin(tauri_plugin_eco_window::init())
-        // 自定义剪贴板插件
-        .plugin(tauri_plugin_eco_clipboard::init())
         // 自定义图片识别插件
         .plugin(tauri_plugin_eco_ocr::init())
         // 自定义粘贴的插件

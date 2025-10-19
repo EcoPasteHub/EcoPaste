@@ -88,7 +88,7 @@ const Manual: FC<{ state: State }> = (props) => {
 
 			const filename = formatDate(dayjs(), "YYYY_MM_DD_HH_mm_ss");
 
-			const path = joinPath(await downloadDir(), `${filename}.${extname()}`);
+			const path = join(await downloadDir(), `${filename}.${extname()}`);
 
 			await compress(getSaveDataPath(), path, {
 				includes: [

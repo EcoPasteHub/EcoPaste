@@ -1,5 +1,0 @@
-"$schema" = "schemas/schema.json"
-
-[default]
-description = "Default permissions for the plugin"
-permissions = ["allow-start-listen", "allow-stop-listen", "allow-has-files", "allow-has-image", "allow-has-html", "allow-has-rtf", "allow-has-text", "allow-read-files", "allow-read-image", "allow-read-html", "allow-read-rtf", "allow-read-text", "allow-write-files", "allow-write-image", "allow-write-html", "allow-write-rtf", "allow-write-text"]

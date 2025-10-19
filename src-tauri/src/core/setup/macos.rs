@@ -19,7 +19,7 @@ pub fn platform(
     // macos window 转 ns_panel 插件
     let _ = app_handle.plugin(tauri_nspanel::init());
 
-    // 隐藏 mac 的程序坞图标：https://github.com/tauri-apps/tauri/issues/4852#issuecomment-1312716378
+    // 隐藏 mac 的程序坞图标：https://github.com/tauri-apps/tauri/pull/13185
     let _ = app_handle.set_dock_visibility(false);
 
     // 把 ns_window 转换为 ns_panel

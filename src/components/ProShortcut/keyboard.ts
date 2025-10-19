@@ -1,4 +1,4 @@
-import { defaults } from "lodash-es";
+import { defaults } from "es-toolkit/compat";
 
 export interface Key {
 	eventKey: string;

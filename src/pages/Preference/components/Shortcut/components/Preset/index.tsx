@@ -1,6 +1,6 @@
 import { getKeySymbol } from "@/components/ProShortcut/keyboard";
 import { Card, Flex, Tag } from "antd";
-import { castArray, union } from "lodash-es";
+import { castArray, union } from "es-toolkit/compat";
 import Masonry from "react-masonry-css";
 
 const Preset = () => {
@@ -13,11 +13,11 @@ const Preset = () => {
 		},
 		{
 			label: "preference.shortcut.preset.select_item",
-			value: ["tab", "shift.tab"],
+			value: ["uparrow", "downarrow"],
 		},
 		{
 			label: "preference.shortcut.preset.select_group",
-			value: ["uparrow", "downarrow"],
+			value: ["tab", "shift.tab"],
 		},
 		{
 			label: "preference.shortcut.preset.paste",

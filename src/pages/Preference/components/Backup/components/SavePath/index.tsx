@@ -6,7 +6,7 @@ import { appLogDir, dataDir as tauriDataDir } from "@tauri-apps/api/path";
 import { open } from "@tauri-apps/plugin-dialog";
 import { openPath } from "@tauri-apps/plugin-opener";
 import { Button, Space, Tooltip, message } from "antd";
-import { isEqual, isString } from "lodash-es";
+import { isEqual, isString } from "es-toolkit";
 import type { FC } from "react";
 import { fullName, transfer } from "tauri-plugin-fs-pro-api";
 import type { State } from "../..";
@@ -28,7 +28,7 @@ const SavePath: FC<{ state: State }> = (props) => {
 
 			if (!isString(dstDir) || isEqualPath(dstDir)) return;
 
-			const dstPath = joinPath(dstDir, getSaveDataDirName());
+			const dstPath = join(dstDir, getSaveDataDirName());
 
 			state.spinning = true;
 
@@ -58,7 +58,7 @@ const SavePath: FC<{ state: State }> = (props) => {
 	};
 
 	const isEqualPath = (dstDir = dataDir) => {
-		const dstPath = joinPath(dstDir, getSaveDataDirName());
+		const dstPath = join(dstDir, getSaveDataDirName());
 
 		return isEqual(dstPath, getSaveDataPath());
 	};
@@ -69,7 +69,7 @@ const SavePath: FC<{ state: State }> = (props) => {
 				className="hover:color-primary cursor-pointer break-all transition"
 				onMouseDown={() => openPath(path)}
 			>
-				{joinPath(path)}
+				{join(path)}
 			</span>
 		);
 	};
