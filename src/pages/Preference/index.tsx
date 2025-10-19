@@ -6,7 +6,6 @@ import { useSnapshot } from "valtio";
 import UnoIcon from "@/components/UnoIcon";
 import UpdateApp from "@/components/UpdateApp";
 import About from "./components/About";
-import Backup from "./components/Backup";
 import Clipboard from "./components/Clipboard";
 import General from "./components/General";
 import History from "./components/History";
@@ -72,12 +71,12 @@ const Preference = () => {
         key: "shortcut",
         label: t("preference.menu.title.shortcut"),
       },
-      {
-        content: <Backup />,
-        icon: "i-lucide:database-backup",
-        key: "backup",
-        label: t("preference.menu.title.backup"),
-      },
+      // {
+      //   content: <Backup />,
+      //   icon: "i-lucide:database-backup",
+      //   key: "backup",
+      //   label: t("preference.menu.title.backup"),
+      // },
       {
         content: <About />,
         icon: "i-lucide:info",
