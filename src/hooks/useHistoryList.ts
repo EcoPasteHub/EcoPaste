@@ -2,13 +2,14 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { copyFile, exists, remove } from "@tauri-apps/plugin-fs";
 import { isString, last } from "es-toolkit";
 import { unionBy } from "es-toolkit/compat";
-import type { RefObject, UIEvent } from "react";
+import type { RefObject } from "react";
 import { getDefaultSaveImagePath } from "tauri-plugin-clipboard-x-api";
 import { MainContext } from "@/pages/Main";
 import type { DatabaseSchemaHistory } from "@/types/database";
 
 export const useHistoryList = (scrollRef: RefObject<HTMLDivElement>) => {
   const { rootState } = useContext(MainContext);
+  const scrollPos = useScroll(scrollRef);
   const state = useReactive({
     loading: false,
     noMore: false,
@@ -27,13 +28,13 @@ export const useHistoryList = (scrollRef: RefObject<HTMLDivElement>) => {
 
       const db = await getDatabase();
 
-      const isFavoriteGroup = group === "favorite";
-      const isValidGroup = group !== "all" && !isFavoriteGroup;
+      const isFavorite = group === "favorite";
+      const isValidGroup = group !== "all" && !isFavorite;
 
       const result = await db
         .selectFrom("history")
         .selectAll()
-        .$if(isFavoriteGroup, (eb) => eb.where("favorite", "=", true))
+        .$if(isFavorite, (eb) => eb.where("favorite", "=", true))
         .$if(isValidGroup, (eb) => eb.where("group", "=", group))
         .$if(!isBlank(search), (eb) => {
           return eb.where((eb) => {
@@ -110,28 +111,28 @@ export const useHistoryList = (scrollRef: RefObject<HTMLDivElement>) => {
     rootState.activeId = rootState.list[0]?.id;
   }, [rootState.group, rootState.search]);
 
+  useEffect(() => {
+    if (!scrollRef.current || !scrollPos) return;
+
+    const { top } = scrollPos;
+
+    if (rootState.list.length > 20 && top <= 0) {
+      reload();
+    } else {
+      const { clientHeight, scrollHeight } = scrollRef.current;
+
+      if (top + clientHeight >= scrollHeight - 50) {
+        loadMore();
+      }
+    }
+  }, [rootState.list.length, scrollPos]);
+
   const virtualizer = useVirtualizer({
     count: state.noMore ? rootState.list.length : rootState.list.length + 1,
     estimateSize: () => 54,
     gap: 12,
     getScrollElement: () => scrollRef.current,
     overscan: 5,
-  });
-
-  const handleScroll = (event: UIEvent) => {
-    const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
-
-    if (scrollTop <= 0) {
-      return reload();
-    }
-
-    if (scrollTop + clientHeight >= scrollHeight - 50) {
-      loadMore();
-    }
-  };
-
-  useEventListener("scroll", handleScroll, {
-    target: scrollRef,
   });
 
   const list = virtualizer.getVirtualItems();
