@@ -4,14 +4,14 @@ import type { HookAPI } from "antd/es/modal/useModal";
 import clsx from "clsx";
 import type { FC } from "react";
 import { useSnapshot } from "valtio";
+import SafeHtml from "@/components/SafeHtml";
 import UnoIcon from "@/components/UnoIcon";
 import { MainContext } from "@/pages/Main";
 import type { DatabaseSchemaHistory } from "@/types/database";
 import Files from "../Files";
 import Header from "../Header";
-import HTML from "../HTML";
 import Image from "../Image";
-import RTF from "../RTF";
+import Rtf from "../Rtf";
 import Text from "../Text";
 
 export interface ItemProps {
@@ -89,9 +89,9 @@ const Item: FC<ItemProps> = (props) => {
       case "text":
         return <Text {...data} />;
       case "rtf":
-        return <RTF {...data} />;
+        return <Rtf {...data} />;
       case "html":
-        return <HTML {...data} />;
+        return <SafeHtml {...data} />;
       case "image":
         return <Image {...data} />;
       case "files":
