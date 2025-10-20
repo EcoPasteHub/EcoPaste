@@ -1,43 +1,22 @@
-import {
-  availableMonitors,
-  cursorPosition,
-  primaryMonitor,
-} from "@tauri-apps/api/window";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { cursorPosition, monitorFromPoint } from "@tauri-apps/api/window";
 
 /**
  * 获取当前鼠标所在的显示器
  */
 export const getCursorMonitor = async () => {
-  const primary = await primaryMonitor();
+  const appWindow = getCurrentWebviewWindow();
+  const scaleFactor = await appWindow.scaleFactor();
 
-  const monitors = await availableMonitors();
+  const cursorPoint = await cursorPosition();
+  const { x, y } = cursorPoint.toLogical(scaleFactor);
 
-  if (!primary || !monitors.length) return;
-
-  const mousePosition = await cursorPosition();
-  const { x, y } = mousePosition.toLogical(primary.scaleFactor);
-
-  const monitor = monitors.find((monitor) => {
-    const { scaleFactor } = monitor;
-
-    const position = monitor.position.toLogical(scaleFactor);
-    const size = monitor.size.toLogical(scaleFactor);
-
-    const inX = x >= position.x && x <= position.x + size.width;
-    const inY = y >= position.y && y <= position.y + size.height;
-
-    return inX && inY;
-  });
+  const monitor = await monitorFromPoint(x, y);
 
   if (!monitor) return;
 
-  const { scaleFactor, size, position } = monitor;
-
   return {
     ...monitor,
-    cursorX: x,
-    cursorY: y,
-    position: position.toLogical(scaleFactor),
-    size: size.toLogical(scaleFactor),
+    cursorPoint,
   };
 };
