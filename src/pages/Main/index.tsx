@@ -73,6 +73,9 @@ const Main = () => {
   // 窗口显示与隐藏
   useRegister(toggleWindowVisible, [shortcut.clipboard]);
 
+  // 监听 `Win+V` 触发的窗口显示与隐藏
+  useTauriListen(LISTEN_KEY.TOGGLE_MAIN_WINDOW_VISIBLE, toggleWindowVisible);
+
   // 打开偏好设置窗口
   useKeyPress(PRESET_SHORTCUT.OPEN_PREFERENCES, () => {
     showWindow("preference");

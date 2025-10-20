@@ -33,6 +33,7 @@ export const LISTEN_KEY = {
   SHOW_WINDOW: "show-window",
   STORE_CHANGED: "store-changed",
   TOGGLE_LISTEN_CLIPBOARD: "toggle-listen-clipboard",
+  TOGGLE_MAIN_WINDOW_VISIBLE: "toggle-main-window-visible",
   UPDATE_APP: "update-app",
 };
 
