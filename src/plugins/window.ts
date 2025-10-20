@@ -1,11 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { emit } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import {
-  currentMonitor,
-  LogicalPosition,
-  LogicalSize,
-} from "@tauri-apps/api/window";
+import { PhysicalPosition, PhysicalSize } from "@tauri-apps/api/window";
 import type { WindowLabel } from "@/types/plugin";
 
 const COMMAND = {
@@ -45,54 +41,53 @@ export const toggleWindowVisible = async () => {
   }
 
   if (focused) {
-    hideWindow();
-  } else {
-    if (appWindow.label === WINDOW_LABEL.MAIN) {
-      const { window } = clipboardStore;
+    return hideWindow();
+  }
 
-      // 激活时回到顶部
-      if (window.backTop) {
-        await emit(LISTEN_KEY.ACTIVATE_BACK_TOP);
-      }
+  if (appWindow.label === WINDOW_LABEL.MAIN) {
+    const { window } = clipboardStore;
 
-      if (window.style === "standard" && window.position !== "remember") {
-        const current = await currentMonitor();
-        const monitor = await getCursorMonitor();
-
-        if (current && monitor) {
-          let { position, size, cursorX, cursorY } = monitor;
-          const windowSize = await appWindow.innerSize();
-          const { width, height } = windowSize.toLogical(current.scaleFactor);
-
-          if (window.position === "follow") {
-            cursorX = Math.min(cursorX, position.x + size.width - width);
-            cursorY = Math.min(cursorY, position.y + size.height - height);
-          } else {
-            cursorX = position.x + (size.width - width) / 2;
-            cursorY = position.y + (size.height - height) / 2;
-          }
-
-          await appWindow.setPosition(
-            new LogicalPosition(Math.round(cursorX), Math.round(cursorY)),
-          );
-        }
-      } else if (window.style === "dock") {
-        const monitor = await getCursorMonitor();
-
-        if (monitor) {
-          const { width, height } = monitor.size;
-          const windowHeight = 400;
-          const { x } = monitor.position;
-          const y = height - windowHeight;
-
-          await appWindow.setSize(new LogicalSize(width, windowHeight));
-          await appWindow.setPosition(new LogicalPosition(x, y));
-        }
-      }
+    // 激活时回到顶部
+    if (window.backTop) {
+      await emit(LISTEN_KEY.ACTIVATE_BACK_TOP);
     }
 
-    showWindow();
+    if (window.style === "standard" && window.position !== "remember") {
+      const monitor = await getCursorMonitor();
+
+      if (monitor) {
+        const { position, size, cursorPoint } = monitor;
+        const { width, height } = await appWindow.innerSize();
+        let { x, y } = cursorPoint;
+
+        if (window.position === "follow") {
+          x = Math.min(x, position.x + size.width - width);
+          y = Math.min(y, position.y + size.height - height);
+        } else {
+          x = position.x + (size.width - width) / 2;
+          y = position.y + (size.height - height) / 2;
+        }
+
+        await appWindow.setPosition(
+          new PhysicalPosition(Math.round(x), Math.round(y)),
+        );
+      }
+    } else if (window.style === "dock") {
+      const monitor = await getCursorMonitor();
+
+      if (monitor) {
+        const { width, height } = monitor.size;
+        const { x } = monitor.position;
+        const windowHeight = 400;
+        const y = height - windowHeight;
+
+        await appWindow.setSize(new PhysicalSize(width, windowHeight));
+        await appWindow.setPosition(new PhysicalPosition(x, y));
+      }
+    }
   }
+
+  showWindow();
 };
 
 /**
