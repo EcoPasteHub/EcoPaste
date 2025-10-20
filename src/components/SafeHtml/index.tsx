@@ -1,8 +1,11 @@
 import DOMPurify from "dompurify";
 import type { FC, MouseEvent } from "react";
-import type { DatabaseSchemaHistory } from "@/types/database";
 
-const HTML: FC<DatabaseSchemaHistory<"html">> = (props) => {
+interface SafeHtmlProps {
+  value: string;
+}
+
+const SafeHtml: FC<SafeHtmlProps> = (props) => {
   const { value } = props;
 
   const handleClick = (event: MouseEvent) => {
@@ -29,4 +32,4 @@ const HTML: FC<DatabaseSchemaHistory<"html">> = (props) => {
   );
 };
 
-export default HTML;
+export default SafeHtml;
