@@ -1,6 +1,6 @@
 use rdev::{listen, Event, EventType, Key};
 use std::thread;
-use tauri::{AppHandle, WebviewWindow};
+use tauri::{AppHandle, Emitter, WebviewWindow};
 
 pub fn platform(
     app_handle: &AppHandle,
