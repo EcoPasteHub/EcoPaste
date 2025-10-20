@@ -1,7 +1,7 @@
 use super::{is_main_window, shared_hide_window, shared_show_window};
 use crate::MAIN_WINDOW_LABEL;
 use tauri::{command, AppHandle, Runtime, WebviewWindow};
-use tauri_nspanel::ManagerExt;
+use tauri_nspanel::{CollectionBehavior, ManagerExt};
 
 pub enum MacOSPanelStatus {
     Show,
@@ -53,9 +53,25 @@ pub fn set_macos_panel<R: Runtime>(
                 match status {
                     MacOSPanelStatus::Show => {
                         panel.show_and_make_key();
+
+                        panel.set_collection_behavior(
+                            CollectionBehavior::new()
+                                .stationary()
+                                .can_join_all_spaces()
+                                .full_screen_auxiliary()
+                                .into(),
+                        );
                     }
                     MacOSPanelStatus::Hide => {
                         panel.hide();
+
+                        panel.set_collection_behavior(
+                            CollectionBehavior::new()
+                                .stationary()
+                                .move_to_active_space()
+                                .full_screen_auxiliary()
+                                .into(),
+                        );
                     }
                     MacOSPanelStatus::Resign => {
                         panel.resign_key_window();
