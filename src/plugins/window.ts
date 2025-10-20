@@ -40,6 +40,8 @@ export const toggleWindowVisible = async () => {
 
   let focused = await appWindow.isFocused();
 
+  console.log("focused", focused);
+
   if (isLinux) {
     focused = await appWindow.isVisible();
   }

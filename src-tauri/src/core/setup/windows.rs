@@ -16,9 +16,13 @@ pub fn platform(
             EventType::KeyPress(key) => match key {
                 Key::MetaLeft | Key::MetaRight => {
                     win_pressed = true;
+
+                    println!("Win key pressed");
                 }
                 Key::KeyV => {
                     if win_pressed {
+                        println!("Win + V pressed!");
+
                         let _ = app_handle.emit("toggle-main-window-visible", ());
                     }
                 }
@@ -27,6 +31,8 @@ pub fn platform(
             EventType::KeyRelease(key) => match key {
                 Key::MetaLeft | Key::MetaRight => {
                     win_pressed = false;
+
+                    println!("Win key released");
                 }
                 _ => {}
             },
