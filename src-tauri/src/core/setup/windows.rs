@@ -20,6 +20,8 @@ pub fn platform(
                     println!("Win key pressed");
                 }
                 Key::KeyV => {
+                    println!("V key pressed");
+
                     if win_pressed {
                         println!("Win + V pressed!");
 
