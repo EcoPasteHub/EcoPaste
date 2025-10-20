@@ -42,8 +42,13 @@ const File: FC<FileProps> = (props) => {
       return <LocalImage className="max-h-21.5" src={path} />;
     }
 
+    const height = 100 / Math.min(count, 3);
+
     return (
-      <div className="flex-1 overflow-hidden">
+      <div
+        className={clsx({ "py-0.5": count > 1 })}
+        style={{ height: `${height}%` }}
+      >
         <Flex align="center" className="h-full" gap={4}>
           {state.icon && <LocalImage className="h-full" src={state.icon} />}
 

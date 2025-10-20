@@ -1,4 +1,3 @@
-import { Flex } from "antd";
 import type { FC } from "react";
 import type { DatabaseSchemaHistory } from "@/types/database";
 import File from "./components/File";
@@ -23,11 +22,11 @@ const Files: FC<DatabaseSchemaHistory<"files">> = (props) => {
   };
 
   return (
-    <Flex align="start" className={getClassName()} gap={4} vertical>
+    <div className={getClassName()}>
       {value.map((path) => {
         return <File count={value.length} key={path} path={path} />;
       })}
-    </Flex>
+    </div>
   );
 };
 
