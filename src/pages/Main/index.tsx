@@ -4,6 +4,7 @@ import { find, last } from "es-toolkit/compat";
 import { createContext } from "react";
 import { startListening, stopListening } from "tauri-plugin-clipboard-x-api";
 import { useSnapshot } from "valtio";
+import Audio, { type AudioRef } from "@/components/Audio";
 import type {
   DatabaseSchemaGroupId,
   DatabaseSchemaHistory,
@@ -46,12 +47,19 @@ const Main = () => {
   const { shortcut } = useSnapshot(globalStore);
   const { window } = useSnapshot(clipboardStore);
   const eventBus = useEventEmitter<EventBusPayload>();
+  const audioRef = useRef<AudioRef>(null);
 
   useMount(() => {
     state.eventBus = eventBus;
   });
 
-  useClipboard(state);
+  useClipboard(state, {
+    beforeRead() {
+      if (!clipboardStore.audio.copy) return;
+
+      audioRef.current?.play();
+    },
+  });
 
   // 任务栏图标的显示与隐藏
   useImmediateKey(globalStore.app, "showTaskbarIcon", showTaskbarIcon);
@@ -133,6 +141,8 @@ const Main = () => {
         rootState: state,
       }}
     >
+      <Audio ref={audioRef} />
+
       {window.style === "standard" ? <StandardMode /> : <DockMode />}
     </MainContext.Provider>
   );
