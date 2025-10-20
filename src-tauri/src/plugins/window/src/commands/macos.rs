@@ -52,10 +52,10 @@ pub fn set_macos_panel<R: Runtime>(
             if let Ok(panel) = app_handle_clone.get_webview_panel(MAIN_WINDOW_LABEL) {
                 match status {
                     MacOSPanelStatus::Show => {
-                        panel.show();
+                        panel.show_and_make_key();
                     }
                     MacOSPanelStatus::Hide => {
-                        panel.order_out(None);
+                        panel.hide();
                     }
                     MacOSPanelStatus::Resign => {
                         panel.resign_key_window();
