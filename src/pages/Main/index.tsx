@@ -130,7 +130,7 @@ const Main = () => {
 
       const data = state.list[index - 1];
 
-      pasteToClipboard(data, clipboardStore.content.pastePlain);
+      pasteToClipboard(data);
     },
     [state.quickPasteKeys],
   );

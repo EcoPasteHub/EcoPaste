@@ -55,6 +55,7 @@
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
 		"react-i18next": "^15.7.4",
+		"react-mark.js": "^10.0.10",
 		"react-markdown": "^9.1.0",
 		"react-masonry-css": "^1.0.16",
 		"react-router-dom": "6.27.0",

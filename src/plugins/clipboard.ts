@@ -49,11 +49,12 @@ export const writeToClipboard = (data: DatabaseSchemaHistory) => {
 
 export const pasteToClipboard = async (
   data: DatabaseSchemaHistory,
-  asText = false,
+  asPlain?: boolean,
 ) => {
   const { type, value, search } = data;
+  const { pastePlain } = clipboardStore.content;
 
-  if (asText) {
+  if (asPlain ?? pastePlain) {
     if (type === "files") {
       await writeText(value.join("\n"));
     } else {
