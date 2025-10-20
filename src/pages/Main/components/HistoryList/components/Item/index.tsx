@@ -35,10 +35,6 @@ const Item: FC<ItemProps> = (props) => {
     openPath(value);
   };
 
-  const handlePaste = () => {
-    pasteToClipboard(data, content.pastePlain);
-  };
-
   const handleNext = () => {
     const nextIndex = index + 1;
 
@@ -64,7 +60,7 @@ const Item: FC<ItemProps> = (props) => {
       case LISTEN_KEY.CLIPBOARD_ITEM_PREVIEW:
         return handlePreview();
       case LISTEN_KEY.CLIPBOARD_ITEM_PASTE:
-        return handlePaste();
+        return pasteToClipboard(data);
       case LISTEN_KEY.CLIPBOARD_ITEM_DELETE:
         return handleDelete();
       case LISTEN_KEY.CLIPBOARD_ITEM_SELECT_PREV:
@@ -81,7 +77,7 @@ const Item: FC<ItemProps> = (props) => {
 
     if (content.autoPaste !== type) return;
 
-    handlePaste();
+    pasteToClipboard(data);
   };
 
   const renderContent = () => {

@@ -107,6 +107,9 @@ importers:
       react-i18next:
         specifier: ^15.7.4
         version: 15.7.4(i18next@23.16.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.9.3)
+      react-mark.js:
+        specifier: ^10.0.10
+        version: 10.0.10(mark.js@8.11.1)(react@18.3.1)
       react-markdown:
         specifier: ^9.1.0
         version: 9.1.0(@types/react@18.3.26)(react@18.3.1)
@@ -3008,6 +3011,9 @@ packages:
     resolution: {integrity: sha512-LS9X+dc8KLxXCb8dni79fLIIUA5VyZoyjSMCwTluaXA0o27cCK0bhXkpgw+sTXVpPy/lSO57ilRixqk0vDmtRA==}
     engines: {node: '>=6'}
 
+  mark.js@8.11.1:
+    resolution: {integrity: sha512-1I+1qpDt4idfgLQG+BNWmrqku+7/2bi5nLf4YwF8y8zXvmfiTBY3PV3ZibfrjBueCByROpuBjLLFCajqkgYoLQ==}
+
   math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
     engines: {node: '>= 0.4'}
@@ -3752,6 +3758,12 @@ packages:
 
   react-is@18.3.1:
     resolution: {integrity: sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg==}
+
+  react-mark.js@10.0.10:
+    resolution: {integrity: sha512-2ttqwTuGZNsyhZ7FLgvFqNEWk6UGJWg1OqYGel+BvRkWEoZVqdZnD2kIj430gAlH1Rsfyp4VvaaCvwC2REOLxQ==}
+    peerDependencies:
+      mark.js: ^8.11.1
+      react: '>=16.8.0'
 
   react-markdown@9.1.0:
     resolution: {integrity: sha512-xaijuJB0kzGiUdG7nc2MOMDUDBWPyGAjZtUrow9XxUeua8IqeP+VlIfAZ3bphpcLTnSZXz6z9jcVC/TCwbfgdw==}
@@ -7442,6 +7454,8 @@ snapshots:
       semver: 5.7.2
     optional: true
 
+  mark.js@8.11.1: {}
+
   math-intrinsics@1.1.0: {}
 
   mdast-util-from-markdown@2.0.2:
@@ -8404,6 +8418,11 @@ snapshots:
       typescript: 5.9.3
 
   react-is@18.3.1: {}
+
+  react-mark.js@10.0.10(mark.js@8.11.1)(react@18.3.1):
+    dependencies:
+      mark.js: 8.11.1
+      react: 18.3.1
 
   react-markdown@9.1.0(@types/react@18.3.26)(react@18.3.1):
     dependencies:
