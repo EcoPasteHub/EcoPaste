@@ -1,4 +1,4 @@
-import { remove } from "es-toolkit/compat";
+import { isEmpty, remove } from "es-toolkit/compat";
 import { nanoid } from "nanoid";
 import {
   type ClipboardChangeOptions,
@@ -18,6 +18,9 @@ export const useClipboard = (
 
     onClipboardChange(async (result) => {
       const { files, image, html, rtf, text } = result;
+
+      if (isEmpty(result) || Object.values(result).every(isEmpty)) return;
+
       const { copyPlain } = clipboardStore.content;
 
       const data = {
