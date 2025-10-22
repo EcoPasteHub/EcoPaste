@@ -13,7 +13,7 @@ import type { Store } from "@/types/store";
 import DockMode from "./components/DockMode";
 import StandardMode from "./components/StandardMode";
 
-export interface EventBusPayload {
+interface EventBusPayload {
   id: string;
   action: string;
 }

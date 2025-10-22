@@ -86,8 +86,6 @@ const Header: FC<HeaderProps> = (props) => {
 
     event.stopPropagation();
 
-    rootState.activeId = id;
-
     switch (key) {
       case "copy":
         return writeToClipboard(data);
