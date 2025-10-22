@@ -3,6 +3,7 @@ import { Flex } from "antd";
 import type { HookAPI } from "antd/es/modal/useModal";
 import clsx from "clsx";
 import type { FC } from "react";
+import { Marker } from "react-mark.js";
 import { useSnapshot } from "valtio";
 import SafeHtml from "@/components/SafeHtml";
 import UnoIcon from "@/components/UnoIcon";
@@ -114,7 +115,7 @@ const Item: FC<ItemProps> = (props) => {
       <div className="relative flex-1 select-auto overflow-hidden break-words children:transition">
         <div
           className={clsx(
-            "pointer-events-none absolute inset-0 line-clamp-4 opacity-0",
+            "pointer-events-none absolute inset-0 line-clamp-4 children:inline opacity-0",
             {
               "group-hover:opacity-0": content.showOriginalContent,
               "opacity-100": note,
@@ -126,7 +127,7 @@ const Item: FC<ItemProps> = (props) => {
             name="i-hugeicons:task-edit-01"
           />
 
-          {note}
+          <Marker mark={rootState.search}>{note}</Marker>
         </div>
 
         <div
