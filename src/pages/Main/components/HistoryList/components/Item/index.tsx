@@ -28,8 +28,6 @@ const Item: FC<ItemProps> = (props) => {
   const { rootState } = useContext(MainContext);
   const { content } = useSnapshot(clipboardStore);
 
-  const { handleContextMenu, ...rest } = useContextMenu(props);
-
   const handlePreview = () => {
     if (type !== "image") return;
 
@@ -37,19 +35,17 @@ const Item: FC<ItemProps> = (props) => {
   };
 
   const handleNext = () => {
-    const nextIndex = index + 1;
+    const { list } = rootState;
 
-    if (nextIndex >= rootState.list.length) return;
+    const nextItem = list[index + 1] ?? list[index - 1];
 
-    rootState.activeId = rootState.list[nextIndex].id;
+    rootState.activeId = nextItem?.id;
   };
 
   const handlePrev = () => {
-    const nextIndex = index - 1;
+    if (index === 0) return;
 
-    if (nextIndex < 0) return;
-
-    rootState.activeId = rootState.list[nextIndex].id;
+    rootState.activeId = rootState.list[index - 1].id;
   };
 
   rootState.eventBus?.useSubscription((payload) => {
@@ -71,6 +67,11 @@ const Item: FC<ItemProps> = (props) => {
       case LISTEN_KEY.CLIPBOARD_ITEM_FAVORITE:
         return handleFavorite();
     }
+  });
+
+  const { handleContextMenu, ...rest } = useContextMenu({
+    ...props,
+    handleNext,
   });
 
   const handleClick = (type: typeof content.autoPaste) => {

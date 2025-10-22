@@ -5,7 +5,7 @@ import { MainContext } from "@/pages/Main";
 import type { DatabaseSchemaHistory } from "@/types/database";
 
 export interface NoteModalRef {
-  open: () => void;
+  open: (id: string) => void;
 }
 
 interface FormFields {
@@ -20,8 +20,8 @@ const NoteModal = forwardRef<NoteModalRef>((_, ref) => {
   const inputRef = useRef<InputRef>(null);
 
   useImperativeHandle(ref, () => ({
-    open: () => {
-      const findItem = find(rootState.list, { id: rootState.activeId });
+    open: (id) => {
+      const findItem = find(rootState.list, { id });
 
       form.setFieldsValue({
         note: findItem?.note,

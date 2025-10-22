@@ -9,12 +9,16 @@ import { MainContext } from "@/pages/Main";
 import type { ItemProps } from "@/pages/Main/components/HistoryList/components/Item";
 import { writeToClipboard } from "@/plugins/clipboard";
 
+interface UseContextMenuProps extends ItemProps {
+  handleNext: () => void;
+}
+
 interface ContextMenuItem extends MenuItemOptions {
   hide?: boolean;
 }
 
-export const useContextMenu = (props: ItemProps) => {
-  const { data, deleteModal, handleNote } = props;
+export const useContextMenu = (props: UseContextMenuProps) => {
+  const { data, deleteModal, handleNote, handleNext } = props;
   const { id, type, value, group, favorite, subtype } = data;
   const { t } = useTranslation();
   const { env } = useSnapshot(globalStore);
@@ -96,6 +100,10 @@ export const useContextMenu = (props: ItemProps) => {
     }
 
     if (!confirmed) return;
+
+    if (id === rootState.activeId) {
+      handleNext();
+    }
 
     remove(rootState.list, { id });
 

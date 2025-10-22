@@ -1,7 +1,7 @@
 import { FloatButton, Modal } from "antd";
 import { findIndex } from "es-toolkit/compat";
 import Scrollbar from "@/components/Scrollbar";
-import { type EventBusPayload, MainContext } from "../..";
+import { MainContext } from "../..";
 import Item from "./components/Item";
 import NoteModal, { type NoteModalRef } from "./components/NoteModal";
 
@@ -16,6 +16,8 @@ const HistoryList = () => {
     useHistoryList(scrollRef);
 
   const scrollToTop = () => {
+    if (rootState.list.length === 0) return;
+
     scrollToIndex(0);
 
     rootState.activeId = rootState.list[0].id;
@@ -24,15 +26,21 @@ const HistoryList = () => {
   useTauriListen(LISTEN_KEY.ACTIVATE_BACK_TOP, scrollToTop);
 
   useUpdateEffect(() => {
-    if (rootState.list.length === 0) {
-      rootState.activeId = void 0;
-    }
+    const { list } = rootState;
 
-    rootState.activeId ??= rootState.list[0]?.id;
+    if (list.length === 0) {
+      rootState.activeId = void 0;
+    } else {
+      rootState.activeId ??= list[0].id;
+    }
   }, [rootState.list.length]);
 
   useEffect(() => {
-    const index = findIndex(rootState.list, { id: rootState.activeId });
+    const { list, activeId } = rootState;
+
+    if (!activeId) return;
+
+    const index = findIndex(list, { id: activeId });
 
     if (index < 0) return;
 
@@ -51,50 +59,55 @@ const HistoryList = () => {
       PRESET_SHORTCUT.FAVORITE,
     ],
     (event, key) => {
+      event.preventDefault();
+
       if (key === "home") {
         return scrollToTop();
       }
 
-      const { activeId } = rootState;
+      const { activeId, eventBus } = rootState;
 
       if (!activeId) return;
-
-      const payload: EventBusPayload = {
-        action: "",
-        id: activeId,
-      };
-
-      event?.preventDefault();
 
       switch (key) {
         // 空格预览
         case "space":
-          payload.action = LISTEN_KEY.CLIPBOARD_ITEM_PREVIEW;
-          break;
+          return eventBus?.emit({
+            action: LISTEN_KEY.CLIPBOARD_ITEM_PREVIEW,
+            id: activeId,
+          });
         // 回车粘贴
         case "enter":
-          payload.action = LISTEN_KEY.CLIPBOARD_ITEM_PASTE;
-          break;
+          return eventBus?.emit({
+            action: LISTEN_KEY.CLIPBOARD_ITEM_PASTE,
+            id: activeId,
+          });
         // 删除
         case "backspace":
         case "delete":
-          payload.action = LISTEN_KEY.CLIPBOARD_ITEM_DELETE;
-          break;
+          return eventBus?.emit({
+            action: LISTEN_KEY.CLIPBOARD_ITEM_DELETE,
+            id: activeId,
+          });
         // 选中上一个
         case "uparrow":
-          payload.action = LISTEN_KEY.CLIPBOARD_ITEM_SELECT_PREV;
-          break;
+          return eventBus?.emit({
+            action: LISTEN_KEY.CLIPBOARD_ITEM_SELECT_PREV,
+            id: activeId,
+          });
         // 选中下一个
         case "downarrow":
-          payload.action = LISTEN_KEY.CLIPBOARD_ITEM_SELECT_NEXT;
-          break;
+          return eventBus?.emit({
+            action: LISTEN_KEY.CLIPBOARD_ITEM_SELECT_NEXT,
+            id: activeId,
+          });
         // 收藏和取消收藏
         case PRESET_SHORTCUT.FAVORITE:
-          payload.action = LISTEN_KEY.CLIPBOARD_ITEM_FAVORITE;
-          break;
+          return eventBus?.emit({
+            action: LISTEN_KEY.CLIPBOARD_ITEM_FAVORITE,
+            id: activeId,
+          });
       }
-
-      rootState.eventBus?.emit(payload);
     },
     {
       events: isFocusWithin ? [] : ["keydown"],
@@ -123,7 +136,7 @@ const HistoryList = () => {
                 <Item
                   data={data}
                   deleteModal={deleteModal}
-                  handleNote={() => noteModelRef.current?.open()}
+                  handleNote={() => noteModelRef.current?.open(data.id)}
                   index={index}
                 />
               </div>

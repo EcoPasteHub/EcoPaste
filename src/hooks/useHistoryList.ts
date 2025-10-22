@@ -74,6 +74,8 @@ export const useHistoryList = (scrollRef: RefObject<HTMLDivElement>) => {
       if (page === 1) {
         rootState.list = list;
 
+        if (state.noMore) return;
+
         return virtualizer.scrollToIndex(0);
       }
 
