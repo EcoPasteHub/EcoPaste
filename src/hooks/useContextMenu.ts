@@ -33,13 +33,7 @@ export const useContextMenu = (props: ItemProps) => {
 
     matched.favorite = nextFavorite;
 
-    const db = await getDatabase();
-
-    await db
-      .updateTable("history")
-      .set("favorite", nextFavorite)
-      .where("id", "=", id)
-      .execute();
+    updateHistory(id, { favorite: nextFavorite });
   };
 
   const openToBrowser = () => {
@@ -84,8 +78,6 @@ export const useContextMenu = (props: ItemProps) => {
   };
 
   const handleDelete = async () => {
-    const db = await getDatabase();
-
     const matched = find(rootState.list, { id });
 
     if (!matched) return;
@@ -107,7 +99,7 @@ export const useContextMenu = (props: ItemProps) => {
 
     remove(rootState.list, { id });
 
-    db.deleteFrom("history").where("id", "=", id).execute();
+    deleteHistory(data);
   };
 
   const handleContextMenu = async (event: MouseEvent) => {

@@ -49,3 +49,9 @@ export const getDatabase = async () => {
 
   return db;
 };
+
+export const destroyDatabase = async () => {
+  const db = await getDatabase();
+
+  return db.destroy();
+};

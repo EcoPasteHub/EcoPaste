@@ -44,30 +44,26 @@ export const useClipboard = (
       } else if (text) {
         const subtype = await getClipboardTextSubtype(text.value);
 
-        Object.assign(data, text, {
-          subtype,
-        });
+        Object.assign(data, text, { subtype });
       }
+
+      const sqlData = data;
 
       const { type, value, group, createTime } = data;
 
-      let dbValue = value;
-
       if (type === "image") {
-        dbValue = await fullName(value);
+        sqlData.value = await fullName(value);
       }
 
       if (type === "files") {
-        dbValue = JSON.stringify(value);
+        sqlData.value = JSON.stringify(value);
       }
 
-      const db = await getDatabase();
-      const matched = await db
-        .selectFrom("history")
-        .select("id")
-        .where("type", "=", type)
-        .where("value", "=", dbValue)
-        .executeTakeFirst();
+      const [matched] = await selectHistory((qb) => {
+        const { type, value } = sqlData;
+
+        return qb.where("type", "=", type).where("value", "=", value);
+      });
 
       if (matched) {
         if (!clipboardStore.content.autoSort) return;
@@ -78,20 +74,14 @@ export const useClipboard = (
 
         state.list.unshift({ ...targetItem, createTime });
 
-        return db
-          .updateTable("history")
-          .set("createTime", createTime)
-          .where("id", "=", matched.id)
-          .execute();
+        return updateHistory(id, { createTime });
       }
 
       if (state.group === "all" || state.group === group) {
         state.list.unshift(data);
       }
 
-      db.insertInto("history")
-        .values({ ...data, value: dbValue })
-        .execute();
+      insertHistory(sqlData);
     }, options);
   });
 };

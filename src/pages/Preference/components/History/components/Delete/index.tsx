@@ -74,12 +74,10 @@ const Delete = () => {
 
       const formatRange = range.map((item) => formatDate(item));
 
-      const db = await getDatabase();
-
-      const list = await db.selectFrom("history").selectAll().execute();
+      const list = await selectHistory();
 
       for await (const item of list) {
-        const { id, favorite, createTime } = item;
+        const { favorite, createTime } = item;
 
         if (favorite && !deleteFavorite) continue;
 
@@ -91,7 +89,7 @@ const Delete = () => {
         );
 
         if (timeRange === 0 || isBetween) {
-          await db.deleteFrom("history").where("id", "=", id).execute();
+          deleteHistory(item);
         }
       }
 

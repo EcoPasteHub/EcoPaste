@@ -47,11 +47,7 @@ const App = () => {
   });
 
   // 监听关闭数据库的事件
-  useTauriListen(LISTEN_KEY.CLOSE_DATABASE, async () => {
-    const db = await getDatabase();
-
-    db.destroy();
-  });
+  useTauriListen(LISTEN_KEY.CLOSE_DATABASE, destroyDatabase);
 
   // 链接跳转到系统浏览器
   useEventListener("click", (event) => {

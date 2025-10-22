@@ -41,20 +41,12 @@ const NoteModal = forwardRef<NoteModalRef>((_, ref) => {
 
       item.note = note;
 
-      const db = await getDatabase();
-
-      db.updateTable("history")
-        .set("note", note)
-        .where("id", "=", id)
-        .execute();
+      updateHistory(id, { note });
 
       if (clipboardStore.content.autoFavorite && !favorite) {
         item.favorite = true;
 
-        db.updateTable("history")
-          .set("favorite", true)
-          .where("id", "=", id)
-          .execute();
+        updateHistory(id, { favorite: true });
       }
     }
 
