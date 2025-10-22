@@ -18,23 +18,19 @@ const History = () => {
     const delay = 1000 * 60 * 30;
 
     timerRef.current = setInterval(async () => {
-      const db = await getDatabase();
-
-      const list = await db
-        .selectFrom("history")
-        .selectAll()
-        .where("favorite", "=", false)
-        .execute();
+      const list = await selectHistory((qb) => {
+        return qb.where("favorite", "=", false);
+      });
 
       for (const [index, item] of list.entries()) {
-        const { id, createTime } = item;
+        const { createTime } = item;
         const diffDays = dayjs().diff(createTime, "days");
         const isExpired = duration > 0 && diffDays >= duration;
         const isOverMaxCount = maxCount > 0 && index >= maxCount;
 
         if (!isExpired && !isOverMaxCount) continue;
 
-        db.deleteFrom("history").where("id", "=", id).execute();
+        deleteHistory(item);
       }
     }, delay);
   });

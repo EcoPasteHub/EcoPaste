@@ -5,7 +5,6 @@ import { unionBy } from "es-toolkit/compat";
 import type { RefObject } from "react";
 import { getDefaultSaveImagePath } from "tauri-plugin-clipboard-x-api";
 import { MainContext } from "@/pages/Main";
-import type { DatabaseSchemaHistory } from "@/types/database";
 
 export const useHistoryList = (scrollRef: RefObject<HTMLDivElement>) => {
   const { rootState } = useContext(MainContext);
@@ -23,33 +22,29 @@ export const useHistoryList = (scrollRef: RefObject<HTMLDivElement>) => {
 
       state.loading = true;
 
-      const { group, search } = rootState;
-      const { page, size } = state;
+      const { page } = state;
 
-      const db = await getDatabase();
+      const list = await selectHistory((qb) => {
+        const { size } = state;
+        const { group, search } = rootState;
+        const isFavoriteGroup = group === "favorite";
+        const isNormalGroup = group !== "all" && !isFavoriteGroup;
 
-      const isFavorite = group === "favorite";
-      const isValidGroup = group !== "all" && !isFavorite;
-
-      const result = await db
-        .selectFrom("history")
-        .selectAll()
-        .$if(isFavorite, (eb) => eb.where("favorite", "=", true))
-        .$if(isValidGroup, (eb) => eb.where("group", "=", group))
-        .$if(!isBlank(search), (eb) => {
-          return eb.where((eb) => {
-            return eb.or([
-              eb("search", "like", eb.val(`%${search}%`)),
-              eb("note", "like", eb.val(`%${search}%`)),
-            ]);
-          });
-        })
-        .orderBy("createTime", "desc")
-        .offset((page - 1) * size)
-        .limit(size)
-        .execute();
-
-      const list = result as DatabaseSchemaHistory[];
+        return qb
+          .$if(isFavoriteGroup, (eb) => eb.where("favorite", "=", true))
+          .$if(isNormalGroup, (eb) => eb.where("group", "=", group))
+          .$if(!isBlank(search), (eb) => {
+            return eb.where((eb) => {
+              return eb.or([
+                eb("search", "like", eb.val(`%${search}%`)),
+                eb("note", "like", eb.val(`%${search}%`)),
+              ]);
+            });
+          })
+          .offset((page - 1) * size)
+          .limit(size)
+          .orderBy("createTime", "desc");
+      });
 
       for (const item of list) {
         const { type, value } = item;

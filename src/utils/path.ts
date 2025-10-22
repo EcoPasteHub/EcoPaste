@@ -43,16 +43,6 @@ export const getSaveImagePath = () => {
 };
 
 /**
- * 解析完整的存储图片路径
- * @param file 文件名
- */
-export const resolveImagePath = (file: string) => {
-  if (file.startsWith(getSaveImagePath())) return file;
-
-  return join(getSaveImagePath(), file);
-};
-
-/**
  * 存储数据的目录名
  */
 export const getSaveDataDirName = () => {
