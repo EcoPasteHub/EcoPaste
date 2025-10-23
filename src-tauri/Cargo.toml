@@ -1,5 +1,5 @@
 [package]
-name = "eco-paste"
+name = "EcoPaste"
 version = "0.6.0-beta.3"
 description = "一款开源的跨平台剪贴板管理工具"
 authors = []
@@ -40,6 +40,7 @@ tauri-plugin-fs-pro.workspace = true
 tauri-plugin-eco-window.workspace = true
 tauri-plugin-eco-paste.workspace = true
 tauri-plugin-eco-autostart.workspace = true
+winshift = "0.0.5"
 
 [target."cfg(target_os = \"macos\")".dependencies]
 tauri-nspanel.workspace = true
