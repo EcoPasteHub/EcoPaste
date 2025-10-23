@@ -1,3 +1,4 @@
+import { cloneDeep } from "es-toolkit";
 import { isEmpty, remove } from "es-toolkit/compat";
 import { nanoid } from "nanoid";
 import {
@@ -32,14 +33,7 @@ export const useClipboard = (
       } as DatabaseSchemaHistory;
 
       if (files) {
-        Object.assign(data, files, {
-          group: "files",
-          search: files.value.join(" "),
-        });
-      } else if (image) {
-        Object.assign(data, image, {
-          group: "image",
-        });
+        Object.assign(data, files, { group: "files" });
       } else if (html && !copyPlain) {
         Object.assign(data, html);
       } else if (rtf && !copyPlain) {
@@ -48,9 +42,13 @@ export const useClipboard = (
         const subtype = await getClipboardTextSubtype(text.value);
 
         Object.assign(data, text, { subtype });
+      } else if (image) {
+        Object.assign(data, image, {
+          group: "image",
+        });
       }
 
-      const sqlData = data;
+      const sqlData = cloneDeep(data);
 
       const { type, value, group, createTime } = data;
 
