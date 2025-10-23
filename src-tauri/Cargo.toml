@@ -40,7 +40,6 @@ tauri-plugin-fs-pro.workspace = true
 tauri-plugin-eco-window.workspace = true
 tauri-plugin-eco-paste.workspace = true
 tauri-plugin-eco-autostart.workspace = true
-winshift = "0.0.5"
 
 [target."cfg(target_os = \"macos\")".dependencies]
 tauri-nspanel.workspace = true
