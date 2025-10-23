@@ -1,5 +1,5 @@
 [package]
-name = "eco-paste"
+name = "EcoPaste"
 version = "0.6.0-beta.3"
 description = "一款开源的跨平台剪贴板管理工具"
 authors = []

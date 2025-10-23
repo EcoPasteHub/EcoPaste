@@ -3,6 +3,36 @@
 version = 3
 
 [[package]]
+name = "EcoPaste"
+version = "0.6.0-beta.3"
+dependencies = [
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "tauri-nspanel",
+ "tauri-plugin-autostart",
+ "tauri-plugin-clipboard-x",
+ "tauri-plugin-dialog",
+ "tauri-plugin-eco-autostart",
+ "tauri-plugin-eco-paste",
+ "tauri-plugin-eco-window",
+ "tauri-plugin-fs",
+ "tauri-plugin-fs-pro",
+ "tauri-plugin-global-shortcut",
+ "tauri-plugin-locale",
+ "tauri-plugin-log",
+ "tauri-plugin-macos-permissions",
+ "tauri-plugin-opener",
+ "tauri-plugin-os",
+ "tauri-plugin-prevent-default",
+ "tauri-plugin-process",
+ "tauri-plugin-single-instance",
+ "tauri-plugin-sql",
+ "tauri-plugin-updater",
+]
+
+[[package]]
 name = "adler2"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1306,36 +1336,6 @@ name = "dyn-clone"
 version = "1.0.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d0881ea181b1df73ff77ffaaf9c7544ecc11e82fba9b5f27b262a3c73a332555"
-
-[[package]]
-name = "eco-paste"
-version = "0.6.0-beta.3"
-dependencies = [
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "tauri-nspanel",
- "tauri-plugin-autostart",
- "tauri-plugin-clipboard-x",
- "tauri-plugin-dialog",
- "tauri-plugin-eco-autostart",
- "tauri-plugin-eco-paste",
- "tauri-plugin-eco-window",
- "tauri-plugin-fs",
- "tauri-plugin-fs-pro",
- "tauri-plugin-global-shortcut",
- "tauri-plugin-locale",
- "tauri-plugin-log",
- "tauri-plugin-macos-permissions",
- "tauri-plugin-opener",
- "tauri-plugin-os",
- "tauri-plugin-prevent-default",
- "tauri-plugin-process",
- "tauri-plugin-single-instance",
- "tauri-plugin-sql",
- "tauri-plugin-updater",
-]
 
 [[package]]
 name = "either"
