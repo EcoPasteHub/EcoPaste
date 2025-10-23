@@ -68,19 +68,23 @@ export const useClipboard = (
         return qb.where("type", "=", type).where("value", "=", value);
       });
 
+      const visible = state.group === "all" || state.group === group;
+
       if (matched) {
         if (!clipboardStore.content.autoSort) return;
 
         const { id } = matched;
 
-        const [targetItem] = remove(state.list, { id });
+        if (visible) {
+          remove(state.list, { id });
 
-        state.list.unshift({ ...targetItem, createTime });
+          state.list.unshift({ ...matched, createTime });
+        }
 
         return updateHistory(id, { createTime });
       }
 
-      if (state.group === "all" || state.group === group) {
+      if (visible) {
         state.list.unshift(data);
       }
 
