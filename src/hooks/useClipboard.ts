@@ -36,10 +36,6 @@ export const useClipboard = (
           group: "files",
           search: files.value.join(" "),
         });
-      } else if (image) {
-        Object.assign(data, image, {
-          group: "image",
-        });
       } else if (html && !copyPlain) {
         Object.assign(data, html);
       } else if (rtf && !copyPlain) {
@@ -47,7 +43,13 @@ export const useClipboard = (
       } else if (text) {
         const subtype = await getClipboardTextSubtype(text.value);
 
-        Object.assign(data, text, { subtype });
+        Object.assign(data, text, {
+          subtype,
+        });
+      } else if (image) {
+        Object.assign(data, image, {
+          group: "image",
+        });
       }
 
       const sqlData = data;
