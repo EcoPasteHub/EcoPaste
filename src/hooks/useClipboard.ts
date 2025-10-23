@@ -1,3 +1,4 @@
+import { cloneDeep } from "es-toolkit";
 import { isEmpty, remove } from "es-toolkit/compat";
 import { nanoid } from "nanoid";
 import {
@@ -52,7 +53,7 @@ export const useClipboard = (
         });
       }
 
-      const sqlData = data;
+      const sqlData = cloneDeep(data);
 
       const { type, value, group, createTime } = data;
 
@@ -80,7 +81,7 @@ export const useClipboard = (
         if (visible) {
           remove(state.list, { id });
 
-          state.list.unshift({ ...matched, createTime });
+          state.list.unshift(data);
         }
 
         return updateHistory(id, { createTime });
