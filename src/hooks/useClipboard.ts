@@ -81,7 +81,7 @@ export const useClipboard = (
         if (visible) {
           remove(state.list, { id });
 
-          state.list.unshift(data);
+          state.list.unshift({ ...data, id });
         }
 
         return updateHistory(id, { createTime });
