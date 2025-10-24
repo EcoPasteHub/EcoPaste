@@ -34,13 +34,13 @@ export const hideWindow = () => {
 export const toggleWindowVisible = async () => {
   const appWindow = getCurrentWebviewWindow();
 
-  let focused = await appWindow.isFocused();
+  let visible = await appWindow.isVisible();
 
-  if (isLinux) {
-    focused = await appWindow.isVisible();
+  if (isMac) {
+    visible = await appWindow.isFocused();
   }
 
-  if (focused) {
+  if (visible) {
     return hideWindow();
   }
 
