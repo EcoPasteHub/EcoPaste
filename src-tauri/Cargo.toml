@@ -45,7 +45,7 @@ tauri-plugin-eco-autostart.workspace = true
 tauri-nspanel.workspace = true
 
 [target."cfg(target_os = \"windows\")".dependencies]
-windows = ">=0.62, <1"
+windows = { version = ">=0.62, <1", features = ["Win32_Foundation", "Win32_UI_WindowsAndMessaging"] }
 
 [features]
 cargo-clippy = []
