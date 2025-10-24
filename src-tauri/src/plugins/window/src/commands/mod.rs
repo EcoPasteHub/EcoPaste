@@ -10,30 +10,24 @@ pub static MAIN_WINDOW_TITLE: &str = "EcoPaste";
 #[cfg(target_os = "macos")]
 mod macos;
 
-#[cfg(not(target_os = "macos"))]
-mod not_macos;
+#[cfg(target_os = "windows")]
+mod windows;
+
+#[cfg(target_os = "linux")]
+mod linux;
 
 #[cfg(target_os = "macos")]
 pub use macos::*;
 
-#[cfg(not(target_os = "macos"))]
-pub use not_macos::*;
+#[cfg(target_os = "windows")]
+pub use windows::*;
+
+#[cfg(target_os = "linux")]
+pub use linux::*;
 
 // 是否为主窗口
 pub fn is_main_window<R: Runtime>(window: &WebviewWindow<R>) -> bool {
     window.label() == MAIN_WINDOW_LABEL
-}
-
-// 共享显示窗口的方法
-fn shared_show_window<R: Runtime>(window: &WebviewWindow<R>) {
-    let _ = window.show();
-    let _ = window.unminimize();
-    let _ = window.set_focus();
-}
-
-// 共享隐藏窗口的方法
-fn shared_hide_window<R: Runtime>(window: &WebviewWindow<R>) {
-    let _ = window.hide();
 }
 
 // 显示主窗口
