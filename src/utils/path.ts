@@ -1,6 +1,8 @@
 import { getName } from "@tauri-apps/api/app";
 import { appDataDir, sep } from "@tauri-apps/api/path";
 import { last } from "es-toolkit";
+import { globalStore } from "@/stores/global";
+import { isDev } from "./is";
 
 /**
  * 拼接文件路径

@@ -1,6 +1,6 @@
 import { Flex } from "antd";
 import clsx from "clsx";
-import type { CSSProperties, FC } from "react";
+import { type CSSProperties, type FC, useContext } from "react";
 import { Marker } from "react-mark.js";
 import { MainContext } from "@/pages/Main";
 import type { DatabaseSchemaHistory } from "@/types/database";

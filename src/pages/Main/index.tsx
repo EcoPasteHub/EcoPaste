@@ -1,15 +1,31 @@
+import { useEventEmitter, useKeyPress, useMount, useReactive } from "ahooks";
 import type { EventEmitter } from "ahooks/lib/useEventEmitter";
 import { range } from "es-toolkit";
 import { find, last } from "es-toolkit/compat";
-import { createContext } from "react";
+import { createContext, useRef } from "react";
 import { startListening, stopListening } from "tauri-plugin-clipboard-x-api";
 import { useSnapshot } from "valtio";
 import Audio, { type AudioRef } from "@/components/Audio";
+import { LISTEN_KEY, PRESET_SHORTCUT } from "@/constants";
+import { useClipboard } from "@/hooks/useClipboard";
+import { useImmediateKey } from "@/hooks/useImmediateKey";
+import { useRegister } from "@/hooks/useRegister";
+import { useSubscribeKey } from "@/hooks/useSubscribeKey";
+import { useTauriListen } from "@/hooks/useTauriListen";
+import { pasteToClipboard } from "@/plugins/clipboard";
+import {
+  showTaskbarIcon,
+  showWindow,
+  toggleWindowVisible,
+} from "@/plugins/window";
+import { clipboardStore } from "@/stores/clipboard";
+import { globalStore } from "@/stores/global";
 import type {
   DatabaseSchemaGroupId,
   DatabaseSchemaHistory,
 } from "@/types/database";
 import type { Store } from "@/types/store";
+import { deepAssign } from "@/utils/object";
 import DockMode from "./components/DockMode";
 import StandardMode from "./components/StandardMode";
 

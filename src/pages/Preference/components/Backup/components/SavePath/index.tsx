@@ -3,12 +3,24 @@ import { emit } from "@tauri-apps/api/event";
 import { appLogDir, dataDir as tauriDataDir } from "@tauri-apps/api/path";
 import { open } from "@tauri-apps/plugin-dialog";
 import { openPath } from "@tauri-apps/plugin-opener";
+import { useMount } from "ahooks";
 import { Button, message, Space, Tooltip } from "antd";
 import { isEqual, isString } from "es-toolkit";
-import type { FC } from "react";
+import { type FC, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { fullName, transfer } from "tauri-plugin-fs-pro-api";
 import ProList from "@/components/ProList";
 import ProListItem from "@/components/ProListItem";
+import { LISTEN_KEY } from "@/constants";
+import { globalStore } from "@/stores/global";
+import {
+  getSaveDatabasePath,
+  getSaveDataDirName,
+  getSaveDataPath,
+  getSaveImagePath,
+  join,
+} from "@/utils/path";
+import { wait } from "@/utils/shared";
 import type { State } from "../..";
 
 const SavePath: FC<{ state: State }> = (props) => {

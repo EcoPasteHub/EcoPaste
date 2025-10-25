@@ -1,3 +1,4 @@
+import { useMount } from "ahooks";
 import { cloneDeep } from "es-toolkit";
 import { isEmpty, remove } from "es-toolkit/compat";
 import { nanoid } from "nanoid";
@@ -7,8 +8,16 @@ import {
   startListening,
 } from "tauri-plugin-clipboard-x-api";
 import { fullName } from "tauri-plugin-fs-pro-api";
+import {
+  insertHistory,
+  selectHistory,
+  updateHistory,
+} from "@/database/history";
 import type { State } from "@/pages/Main";
+import { getClipboardTextSubtype } from "@/plugins/clipboard";
+import { clipboardStore } from "@/stores/clipboard";
 import type { DatabaseSchemaHistory } from "@/types/database";
+import { formatDate } from "@/utils/dayjs";
 
 export const useClipboard = (
   state: State,

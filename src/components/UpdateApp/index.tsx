@@ -1,10 +1,19 @@
 import { relaunch } from "@tauri-apps/plugin-process";
 import { check, type Update } from "@tauri-apps/plugin-updater";
+import { useCreation, useReactive } from "ahooks";
 import { Flex, Modal, message, Typography } from "antd";
 import clsx from "clsx";
+import { useRef } from "react";
+import { useTranslation } from "react-i18next";
 import Markdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
+import { GITHUB_LINK, LISTEN_KEY, UPDATE_MESSAGE_KEY } from "@/constants";
+import { useImmediateKey } from "@/hooks/useImmediateKey";
+import { useTauriListen } from "@/hooks/useTauriListen";
+import { showWindow } from "@/plugins/window";
+import { globalStore } from "@/stores/global";
 import type { Interval } from "@/types/shared";
+import { dayjs, formatDate } from "@/utils/dayjs";
 import styles from "./index.module.scss";
 
 const { Link, Text } = Typography;
@@ -77,7 +86,7 @@ const UpdateApp = () => {
         },
       });
 
-      if (update?.available) {
+      if (update) {
         showWindow();
 
         const { version, currentVersion, body = "", date } = update;

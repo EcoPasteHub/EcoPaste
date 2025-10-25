@@ -2,7 +2,11 @@ import { invoke } from "@tauri-apps/api/core";
 import { emit } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { PhysicalPosition, PhysicalSize } from "@tauri-apps/api/window";
+import { LISTEN_KEY, WINDOW_LABEL } from "@/constants";
+import { clipboardStore } from "@/stores/clipboard";
 import type { WindowLabel } from "@/types/plugin";
+import { isLinux } from "@/utils/is";
+import { getCursorMonitor } from "@/utils/monitor";
 
 const COMMAND = {
   HIDE_WINDOW: "plugin:eco-window|hide_window",

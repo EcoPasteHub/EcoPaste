@@ -1,6 +1,5 @@
 import react from "@vitejs/plugin-react";
 import UnoCSS from "unocss/vite";
-import AutoImport from "unplugin-auto-import/vite";
 import { defineConfig } from "vite";
 
 const host = process.env.TAURI_DEV_HOST;
@@ -22,24 +21,7 @@ export default defineConfig(async () => ({
       },
     },
   },
-  plugins: [
-    react(),
-    UnoCSS(),
-    AutoImport({
-      dirs: [
-        "src/router",
-        "src/utils",
-        "src/stores",
-        "src/database",
-        "src/hooks",
-        "src/constants",
-        "src/plugins",
-        "src/locales",
-      ],
-      dts: "src/types/auto-imports.d.ts",
-      imports: ["react", "ahooks", "react-router-dom", "react-i18next"],
-    }),
-  ],
+  plugins: [react(), UnoCSS()],
   resolve: {
     alias: {
       "@": "/src",

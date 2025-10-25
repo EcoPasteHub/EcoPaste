@@ -4,6 +4,15 @@ import { resolveResource } from "@tauri-apps/api/path";
 import { TrayIcon, type TrayIconOptions } from "@tauri-apps/api/tray";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { exit, relaunch } from "@tauri-apps/plugin-process";
+import { useBoolean, useUpdateEffect } from "ahooks";
+import { useTranslation } from "react-i18next";
+import { GITHUB_LINK, LISTEN_KEY } from "@/constants";
+import { showWindow } from "@/plugins/window";
+import { globalStore } from "@/stores/global";
+import { isMac } from "@/utils/is";
+import { useSubscribeKey } from "./useSubscribeKey";
+
+const TRAY_ID = "app-tray";
 
 export const useTray = () => {
   const [startListen, { toggle }] = useBoolean(true);

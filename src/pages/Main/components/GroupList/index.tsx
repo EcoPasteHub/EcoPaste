@@ -1,7 +1,11 @@
+import { useKeyPress } from "ahooks";
 import { Tag } from "antd";
 import clsx from "clsx";
+import { useContext, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import Scrollbar from "@/components/Scrollbar";
 import type { DatabaseSchemaGroup } from "@/types/database";
+import { scrollElementToCenter } from "@/utils/dom";
 import { MainContext } from "../..";
 
 const GroupList = () => {

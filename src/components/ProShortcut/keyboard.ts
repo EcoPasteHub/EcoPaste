@@ -1,4 +1,5 @@
 import { defaults } from "es-toolkit/compat";
+import { isMac } from "@/utils/is";
 
 export interface Key {
   eventKey: string;

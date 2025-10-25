@@ -1,5 +1,10 @@
+import { useKeyPress } from "ahooks";
 import clsx from "clsx";
+import { useContext } from "react";
 import UnoIcon from "@/components/UnoIcon";
+import { PRESET_SHORTCUT } from "@/constants";
+import { useTauriFocus } from "@/hooks/useTauriFocus";
+import { hideWindow } from "@/plugins/window";
 import { MainContext } from "../..";
 
 const WindowPin = () => {

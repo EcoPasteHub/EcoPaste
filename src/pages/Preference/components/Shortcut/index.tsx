@@ -1,6 +1,8 @@
+import { useTranslation } from "react-i18next";
 import { useSnapshot } from "valtio";
 import ProList from "@/components/ProList";
 import ProShortcut from "@/components/ProShortcut";
+import { globalStore } from "@/stores/global";
 import Preset from "./components/Preset";
 import QuickPaste from "./components/QuickPaste";
 

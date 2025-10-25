@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { subscribe } from "valtio";
 
 export const useImmediate = (...args: Parameters<typeof subscribe>): void => {

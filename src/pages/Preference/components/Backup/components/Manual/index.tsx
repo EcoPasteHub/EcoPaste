@@ -4,9 +4,23 @@ import { confirm, open } from "@tauri-apps/plugin-dialog";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { Flex, List, message } from "antd";
 import type { FC } from "react";
+import { useTranslation } from "react-i18next";
 import { compress, decompress, fullName } from "tauri-plugin-fs-pro-api";
 import ProList from "@/components/ProList";
 import UnoIcon from "@/components/UnoIcon";
+import { LISTEN_KEY } from "@/constants";
+import { showWindow } from "@/plugins/window";
+import { globalStore } from "@/stores/global";
+import { dayjs, formatDate } from "@/utils/dayjs";
+import {
+  getSaveDatabasePath,
+  getSaveDataPath,
+  getSaveImagePath,
+  getSaveStorePath,
+  join,
+} from "@/utils/path";
+import { wait } from "@/utils/shared";
+import { restoreStore, saveStore } from "@/utils/store";
 import type { State } from "../..";
 
 const Manual: FC<{ state: State }> = (props) => {

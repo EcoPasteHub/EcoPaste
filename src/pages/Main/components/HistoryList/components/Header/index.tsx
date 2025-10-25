@@ -1,15 +1,19 @@
+import { useCreation } from "ahooks";
 import { Flex } from "antd";
 import clsx from "clsx";
 import { filesize } from "filesize";
-import type { FC, MouseEvent } from "react";
+import { type FC, type MouseEvent, useContext } from "react";
+import { useTranslation } from "react-i18next";
 import { useSnapshot } from "valtio";
 import Scrollbar from "@/components/Scrollbar";
 import UnoIcon from "@/components/UnoIcon";
 import { MainContext } from "@/pages/Main";
 import { transferData } from "@/pages/Preference/components/Clipboard/components/OperationButton";
 import { pasteToClipboard, writeToClipboard } from "@/plugins/clipboard";
+import { clipboardStore } from "@/stores/clipboard";
 import type { DatabaseSchemaHistory } from "@/types/database";
 import type { OperationButton } from "@/types/store";
+import { dayjs } from "@/utils/dayjs";
 
 interface HeaderProps {
   data: DatabaseSchemaHistory;
@@ -140,4 +144,4 @@ const Header: FC<HeaderProps> = (props) => {
   );
 };
 
-export default memo(Header);
+export default Header;

@@ -1,5 +1,5 @@
 import DOMPurify from "dompurify";
-import type { FC, MouseEvent } from "react";
+import { type FC, type MouseEvent, useContext } from "react";
 import { Marker } from "react-mark.js";
 import { MainContext } from "@/pages/Main";
 

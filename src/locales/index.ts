@@ -5,6 +5,7 @@ import antdZhCN from "antd/locale/zh_CN";
 import antdZhTW from "antd/locale/zh_TW";
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
+import { LANGUAGE } from "@/constants";
 import type { Language } from "@/types/store";
 import enUS from "./en-US.json";
 import jaJP from "./ja-JP.json";

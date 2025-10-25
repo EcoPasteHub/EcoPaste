@@ -1,6 +1,11 @@
+import { useFocusWithin, useKeyPress, useUpdateEffect } from "ahooks";
 import { FloatButton, Modal } from "antd";
 import { findIndex } from "es-toolkit/compat";
+import { useContext, useEffect, useRef } from "react";
 import Scrollbar from "@/components/Scrollbar";
+import { LISTEN_KEY, PRESET_SHORTCUT } from "@/constants";
+import { useHistoryList } from "@/hooks/useHistoryList";
+import { useTauriListen } from "@/hooks/useTauriListen";
 import { MainContext } from "../..";
 import Item from "./components/Item";
 import NoteModal, { type NoteModalRef } from "./components/NoteModal";

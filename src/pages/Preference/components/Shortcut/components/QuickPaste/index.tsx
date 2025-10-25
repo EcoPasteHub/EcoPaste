@@ -1,8 +1,10 @@
 import { Select, Space, Switch } from "antd";
 import type { DefaultOptionType } from "antd/es/select";
+import { useTranslation } from "react-i18next";
 import { useSnapshot } from "valtio";
 import ProListItem from "@/components/ProListItem";
 import { modifierKeys } from "@/components/ProShortcut/keyboard";
+import { globalStore } from "@/stores/global";
 
 const QuickPaste = () => {
   const { shortcut } = useSnapshot(globalStore);
