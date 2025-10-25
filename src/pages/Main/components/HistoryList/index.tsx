@@ -1,10 +1,11 @@
-import { useFocusWithin, useKeyPress, useUpdateEffect } from "ahooks";
+import { useUpdateEffect } from "ahooks";
 import { FloatButton, Modal } from "antd";
 import { findIndex } from "es-toolkit/compat";
 import { useContext, useEffect, useRef } from "react";
 import Scrollbar from "@/components/Scrollbar";
-import { LISTEN_KEY, PRESET_SHORTCUT } from "@/constants";
+import { LISTEN_KEY } from "@/constants";
 import { useHistoryList } from "@/hooks/useHistoryList";
+import { useKeyboard } from "@/hooks/useKeyboard";
 import { useTauriListen } from "@/hooks/useTauriListen";
 import { MainContext } from "../..";
 import Item from "./components/Item";
@@ -15,7 +16,6 @@ const HistoryList = () => {
   const noteModelRef = useRef<NoteModalRef>(null);
   const [deleteModal, contextHolder] = Modal.useModal();
   const scrollRef = useRef<HTMLDivElement>(null);
-  const isFocusWithin = useFocusWithin(document.body);
 
   const { list, height, measureElement, scrollToIndex } =
     useHistoryList(scrollRef);
@@ -27,6 +27,8 @@ const HistoryList = () => {
 
     rootState.activeId = rootState.list[0].id;
   };
+
+  useKeyboard({ scrollToTop });
 
   useTauriListen(LISTEN_KEY.ACTIVATE_BACK_TOP, scrollToTop);
 
@@ -51,73 +53,6 @@ const HistoryList = () => {
 
     scrollToIndex(index);
   }, [rootState.activeId]);
-
-  useKeyPress(
-    [
-      "space",
-      "enter",
-      "backspace",
-      "delete",
-      "uparrow",
-      "downarrow",
-      "home",
-      PRESET_SHORTCUT.FAVORITE,
-    ],
-    (event, key) => {
-      event.preventDefault();
-
-      if (key === "home") {
-        return scrollToTop();
-      }
-
-      const { activeId, eventBus } = rootState;
-
-      if (!activeId) return;
-
-      switch (key) {
-        // 空格预览
-        case "space":
-          return eventBus?.emit({
-            action: LISTEN_KEY.CLIPBOARD_ITEM_PREVIEW,
-            id: activeId,
-          });
-        // 回车粘贴
-        case "enter":
-          return eventBus?.emit({
-            action: LISTEN_KEY.CLIPBOARD_ITEM_PASTE,
-            id: activeId,
-          });
-        // 删除
-        case "backspace":
-        case "delete":
-          return eventBus?.emit({
-            action: LISTEN_KEY.CLIPBOARD_ITEM_DELETE,
-            id: activeId,
-          });
-        // 选中上一个
-        case "uparrow":
-          return eventBus?.emit({
-            action: LISTEN_KEY.CLIPBOARD_ITEM_SELECT_PREV,
-            id: activeId,
-          });
-        // 选中下一个
-        case "downarrow":
-          return eventBus?.emit({
-            action: LISTEN_KEY.CLIPBOARD_ITEM_SELECT_NEXT,
-            id: activeId,
-          });
-        // 收藏和取消收藏
-        case PRESET_SHORTCUT.FAVORITE:
-          return eventBus?.emit({
-            action: LISTEN_KEY.CLIPBOARD_ITEM_FAVORITE,
-            id: activeId,
-          });
-      }
-    },
-    {
-      events: isFocusWithin ? [] : ["keydown"],
-    },
-  );
 
   return (
     <>
