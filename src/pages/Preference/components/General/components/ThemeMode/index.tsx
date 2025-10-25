@@ -1,6 +1,10 @@
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { useMount } from "ahooks";
+import { useTranslation } from "react-i18next";
 import { useSnapshot } from "valtio";
 import ProSelect from "@/components/ProSelect";
+import { useImmediateKey } from "@/hooks/useImmediateKey";
+import { globalStore } from "@/stores/global";
 import type { Theme } from "@/types/store";
 
 interface Option {

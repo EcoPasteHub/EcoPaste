@@ -1,4 +1,6 @@
 import { confirm } from "@tauri-apps/plugin-dialog";
+import { useMount, useReactive } from "ahooks";
+import { useTranslation } from "react-i18next";
 import {
   checkAccessibilityPermission,
   checkFullDiskAccessPermission,
@@ -83,31 +85,29 @@ const MacosPermissions = () => {
   };
 
   return (
-    isMac && (
-      <ProList header={t("preference.settings.permission_settings.title")}>
-        <ProListItem
-          description={t(
-            "preference.settings.permission_settings.hints.accessibility_permissions",
-          )}
-          title={t(
-            "preference.settings.permission_settings.label.accessibility_permissions",
-          )}
-        >
-          {renderStatus(state.accessibilityPermission, checkAccessibility)}
-        </ProListItem>
+    <ProList header={t("preference.settings.permission_settings.title")}>
+      <ProListItem
+        description={t(
+          "preference.settings.permission_settings.hints.accessibility_permissions",
+        )}
+        title={t(
+          "preference.settings.permission_settings.label.accessibility_permissions",
+        )}
+      >
+        {renderStatus(state.accessibilityPermission, checkAccessibility)}
+      </ProListItem>
 
-        <ProListItem
-          description={t(
-            "preference.settings.permission_settings.hints.full_disk_access_permissions",
-          )}
-          title={t(
-            "preference.settings.permission_settings.label.full_disk_access_permissions",
-          )}
-        >
-          {renderStatus(state.fullDiskAccessPermission, checkFullDiskAccess)}
-        </ProListItem>
-      </ProList>
-    )
+      <ProListItem
+        description={t(
+          "preference.settings.permission_settings.hints.full_disk_access_permissions",
+        )}
+        title={t(
+          "preference.settings.permission_settings.label.full_disk_access_permissions",
+        )}
+      >
+        {renderStatus(state.fullDiskAccessPermission, checkFullDiskAccess)}
+      </ProListItem>
+    </ProList>
   );
 };
 

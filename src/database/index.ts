@@ -4,6 +4,7 @@ import { Kysely } from "kysely";
 import { TauriSqliteDialect } from "kysely-dialect-tauri";
 import { SerializePlugin } from "kysely-plugin-serialize";
 import type { DatabaseSchema } from "@/types/database";
+import { getSaveDatabasePath } from "@/utils/path";
 
 let db: Kysely<DatabaseSchema> | null = null;
 

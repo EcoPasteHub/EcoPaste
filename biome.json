@@ -11,12 +11,7 @@
     }
   },
   "files": {
-    "includes": [
-      "**",
-      "!package.json",
-      "!.release-it.ts",
-      "!**/auto-imports.d.ts"
-    ]
+    "includes": ["**", "!package.json", "!.release-it.ts"]
   },
   "formatter": {
     "indentStyle": "space"
@@ -33,7 +28,8 @@
       },
       "correctness": {
         "noUnusedImports": "error",
-        "noUnusedVariables": "error"
+        "noUnusedVariables": "error",
+        "useExhaustiveDependencies": "off"
       },
       "nursery": {
         "useSortedClasses": {

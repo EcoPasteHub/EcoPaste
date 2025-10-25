@@ -1,10 +1,16 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { copyFile, exists, remove } from "@tauri-apps/plugin-fs";
+import { useAsyncEffect, useCreation, useReactive, useScroll } from "ahooks";
 import { isString, last } from "es-toolkit";
 import { unionBy } from "es-toolkit/compat";
-import type { RefObject } from "react";
+import { type RefObject, useContext, useEffect } from "react";
 import { getDefaultSaveImagePath } from "tauri-plugin-clipboard-x-api";
+import { LISTEN_KEY } from "@/constants";
+import { selectHistory } from "@/database/history";
 import { MainContext } from "@/pages/Main";
+import { isBlank } from "@/utils/is";
+import { getSaveImagePath, join } from "@/utils/path";
+import { useTauriListen } from "./useTauriListen";
 
 export const useHistoryList = (scrollRef: RefObject<HTMLDivElement>) => {
   const { rootState } = useContext(MainContext);

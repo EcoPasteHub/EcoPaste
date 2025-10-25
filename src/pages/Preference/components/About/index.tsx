@@ -2,11 +2,21 @@ import { AlipayOutlined, QqOutlined, WechatOutlined } from "@ant-design/icons";
 import { getTauriVersion } from "@tauri-apps/api/app";
 import { emit } from "@tauri-apps/api/event";
 import { arch, version } from "@tauri-apps/plugin-os";
+import { useBoolean, useCreation } from "ahooks";
 import { Avatar, Button, Image, message } from "antd";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { writeText } from "tauri-plugin-clipboard-x-api";
 import { useSnapshot } from "valtio";
 import ProList from "@/components/ProList";
 import ProListItem from "@/components/ProListItem";
+import {
+  GITHUB_ISSUES_LINK,
+  GITHUB_LINK,
+  LISTEN_KEY,
+  WEBSITE_LINK,
+} from "@/constants";
+import { globalStore } from "@/stores/global";
 
 const About = () => {
   const { appearance, env } = useSnapshot(globalStore);

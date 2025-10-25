@@ -1,3 +1,4 @@
+import { useAsyncEffect, useReactive } from "ahooks";
 import { Flex } from "antd";
 import clsx from "clsx";
 import type { FC } from "react";
@@ -8,6 +9,7 @@ import {
   metadata,
 } from "tauri-plugin-fs-pro-api";
 import LocalImage from "@/components/LocalImage";
+import { isImage, isLinux } from "@/utils/is";
 
 interface FileProps {
   path: string;

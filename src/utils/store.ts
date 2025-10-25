@@ -9,7 +9,11 @@ import {
 import { platform } from "@tauri-apps/plugin-os";
 import { omit } from "es-toolkit/compat";
 import { getLocale } from "tauri-plugin-locale-api";
+import { clipboardStore } from "@/stores/clipboard";
+import { globalStore } from "@/stores/global";
 import type { Language, Store } from "@/types/store";
+import { deepAssign } from "./object";
+import { getSaveStorePath } from "./path";
 
 /**
  * 初始化配置项

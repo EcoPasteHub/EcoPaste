@@ -1,8 +1,11 @@
+import { useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { useSnapshot } from "valtio";
 import Audio, { type AudioRef } from "@/components/Audio";
 import ProList from "@/components/ProList";
 import ProSwitch from "@/components/ProSwitch";
 import UnoIcon from "@/components/UnoIcon";
+import { clipboardStore } from "@/stores/clipboard";
 
 const AudioSettings = () => {
   const { audio } = useSnapshot(clipboardStore);

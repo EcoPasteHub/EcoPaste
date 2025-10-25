@@ -1,4 +1,5 @@
-import type { FC } from "react";
+import { useMount } from "ahooks";
+import { type FC, useState } from "react";
 import { EMFJS, RTFJS, WMFJS } from "rtf.js";
 import SafeHtml from "@/components/SafeHtml";
 import type { DatabaseSchemaHistory } from "@/types/database";

@@ -1,7 +1,9 @@
 import { Card, Flex, Tag } from "antd";
 import { castArray, union } from "es-toolkit/compat";
+import { useTranslation } from "react-i18next";
 import Masonry from "react-masonry-css";
 import { getKeySymbol } from "@/components/ProShortcut/keyboard";
+import { PRESET_SHORTCUT } from "@/constants";
 
 const Preset = () => {
   const { t } = useTranslation();

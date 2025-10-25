@@ -1,5 +1,7 @@
+import { useTranslation } from "react-i18next";
 import { useSnapshot } from "valtio";
 import ProSelect from "@/components/ProSelect";
+import { clipboardStore } from "@/stores/clipboard";
 import type { ClipboardStore } from "@/types/store";
 
 interface Option {

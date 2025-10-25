@@ -1,6 +1,11 @@
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { useTranslation } from "react-i18next";
 import { useSnapshot } from "valtio";
 import ProSelect from "@/components/ProSelect";
+import { LANGUAGE } from "@/constants";
+import { useImmediateKey } from "@/hooks/useImmediateKey";
+import { globalStore } from "@/stores/global";
+import { raf } from "@/utils/bom";
 
 interface Option {
   label: string;

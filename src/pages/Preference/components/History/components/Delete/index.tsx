@@ -1,5 +1,6 @@
 import { DeleteOutlined } from "@ant-design/icons";
 import { emit } from "@tauri-apps/api/event";
+import { useBoolean } from "ahooks";
 import {
   Button,
   Checkbox,
@@ -11,7 +12,12 @@ import {
 } from "antd";
 import type { DefaultOptionType } from "antd/es/select";
 import type { Dayjs } from "dayjs";
+import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import AdaptiveSelect from "@/components/AdaptiveSelect";
+import { LISTEN_KEY } from "@/constants";
+import { deleteHistory, selectHistory } from "@/database/history";
+import { dayjs, formatDate } from "@/utils/dayjs";
 
 const { RangePicker } = DatePicker;
 

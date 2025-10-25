@@ -1,7 +1,17 @@
+import { useBoolean } from "ahooks";
 import { Form, Input, type InputRef, Modal } from "antd";
 import { find } from "es-toolkit/compat";
 import { t } from "i18next";
+import {
+  forwardRef,
+  useContext,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
+import { updateHistory } from "@/database/history";
 import { MainContext } from "@/pages/Main";
+import { clipboardStore } from "@/stores/clipboard";
 import type { DatabaseSchemaHistory } from "@/types/database";
 
 export interface NoteModalRef {

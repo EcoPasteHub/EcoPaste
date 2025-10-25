@@ -1,6 +1,8 @@
 import { InputNumber } from "antd";
+import { useTranslation } from "react-i18next";
 import { useSnapshot } from "valtio";
 import ProListItem from "@/components/ProListItem";
+import { clipboardStore } from "@/stores/clipboard";
 
 const MaxCount = () => {
   const { history } = useSnapshot(clipboardStore);

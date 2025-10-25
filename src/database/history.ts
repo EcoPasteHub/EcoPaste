@@ -3,6 +3,8 @@ import type { AnyObject } from "antd/es/_util/type";
 import type { SelectQueryBuilder } from "kysely";
 import { getDefaultSaveImagePath } from "tauri-plugin-clipboard-x-api";
 import type { DatabaseSchema, DatabaseSchemaHistory } from "@/types/database";
+import { join } from "@/utils/path";
+import { getDatabase } from ".";
 
 type QueryBuilder = SelectQueryBuilder<DatabaseSchema, "history", AnyObject>;
 

@@ -2,10 +2,23 @@ import { HappyProvider } from "@ant-design/happy-work-theme";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { error } from "@tauri-apps/plugin-log";
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { useBoolean, useEventListener, useKeyPress, useMount } from "ahooks";
 import { ConfigProvider, theme } from "antd";
 import { isString } from "es-toolkit";
 import { RouterProvider } from "react-router-dom";
 import { useSnapshot } from "valtio";
+import { LISTEN_KEY, PRESET_SHORTCUT } from "./constants";
+import { destroyDatabase } from "./database";
+import { useImmediateKey } from "./hooks/useImmediateKey";
+import { useTauriListen } from "./hooks/useTauriListen";
+import { useWindowState } from "./hooks/useWindowState";
+import { getAntdLocale, i18n } from "./locales";
+import { hideWindow, showWindow } from "./plugins/window";
+import { router } from "./router";
+import { globalStore } from "./stores/global";
+import { generateColorVars } from "./utils/color";
+import { isURL } from "./utils/is";
+import { restoreStore } from "./utils/store";
 
 const { defaultAlgorithm, darkAlgorithm } = theme;
 

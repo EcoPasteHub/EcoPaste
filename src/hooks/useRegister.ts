@@ -4,7 +4,9 @@ import {
   type ShortcutHandler,
   unregister,
 } from "@tauri-apps/plugin-global-shortcut";
+import { useAsyncEffect, useUnmount } from "ahooks";
 import { castArray } from "es-toolkit/compat";
+import { useState } from "react";
 
 export const useRegister = (
   handler: ShortcutHandler,

@@ -1,5 +1,6 @@
 import type { FC } from "react";
 import type { DatabaseSchemaHistory } from "@/types/database";
+import { isImage } from "@/utils/is";
 import File from "./components/File";
 
 const Files: FC<DatabaseSchemaHistory<"files">> = (props) => {

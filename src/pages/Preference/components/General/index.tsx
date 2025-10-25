@@ -1,7 +1,11 @@
 import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart";
+import { useTranslation } from "react-i18next";
 import { useSnapshot } from "valtio";
 import ProList from "@/components/ProList";
 import ProSwitch from "@/components/ProSwitch";
+import { useImmediateKey } from "@/hooks/useImmediateKey";
+import { globalStore } from "@/stores/global";
+import { isMac } from "@/utils/is";
 import Language from "./components/Language";
 import MacosPermissions from "./components/MacosPermissions";
 import ThemeMode from "./components/ThemeMode";
@@ -25,7 +29,7 @@ const General = () => {
 
   return (
     <>
-      <MacosPermissions />
+      {isMac && <MacosPermissions />}
 
       <ProList header={t("preference.settings.app_settings.title")}>
         <ProSwitch

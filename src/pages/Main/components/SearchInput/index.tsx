@@ -1,7 +1,19 @@
+import { useBoolean, useKeyPress } from "ahooks";
 import type { InputRef } from "antd";
 import { Input } from "antd";
-import type { FC, HTMLAttributes } from "react";
+import {
+  type FC,
+  type HTMLAttributes,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { useTranslation } from "react-i18next";
 import UnoIcon from "@/components/UnoIcon";
+import { PRESET_SHORTCUT } from "@/constants";
+import { useTauriFocus } from "@/hooks/useTauriFocus";
+import { clipboardStore } from "@/stores/clipboard";
 import { MainContext } from "../..";
 
 const SearchInput: FC<HTMLAttributes<HTMLDivElement>> = (props) => {

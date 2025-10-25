@@ -1,5 +1,8 @@
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { useMount, useUnmount } from "ahooks";
 import { debounce } from "es-toolkit";
+import { useRef } from "react";
+import { isMac } from "@/utils/is";
 
 interface Props {
   onFocus?: () => void;

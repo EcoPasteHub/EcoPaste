@@ -1,5 +1,11 @@
+import { useRef } from "react";
+import { useTranslation } from "react-i18next";
 import ProList from "@/components/ProList";
+import { deleteHistory, selectHistory } from "@/database/history";
+import { useImmediate } from "@/hooks/useImmediate";
+import { clipboardStore } from "@/stores/clipboard";
 import type { Interval } from "@/types/shared";
+import { dayjs } from "@/utils/dayjs";
 import Delete from "./components/Delete";
 import Duration from "./components/Duration";
 import MaxCount from "./components/MaxCount";

@@ -1,5 +1,7 @@
 import { MacScrollbar, type MacScrollbarProps } from "mac-scrollbar";
+import { forwardRef, useImperativeHandle, useRef } from "react";
 import { useSnapshot } from "valtio";
+import { globalStore } from "@/stores/global";
 
 interface ScrollbarProps extends MacScrollbarProps {
   thumbSize?: number;

@@ -1,6 +1,8 @@
+import { useTranslation } from "react-i18next";
 import { useSnapshot } from "valtio";
 import ProList from "@/components/ProList";
 import ProSwitch from "@/components/ProSwitch";
+import { clipboardStore } from "@/stores/clipboard";
 import AudioSettings from "./components/AudioSettings";
 import AutoPaste from "./components/AutoPaste";
 import OperationButton from "./components/OperationButton";

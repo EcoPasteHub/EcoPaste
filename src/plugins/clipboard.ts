@@ -6,7 +6,10 @@ import {
   writeRTF,
   writeText,
 } from "tauri-plugin-clipboard-x-api";
+import { clipboardStore } from "@/stores/clipboard";
 import type { DatabaseSchemaHistory } from "@/types/database";
+import { isColor, isEmail, isURL } from "@/utils/is";
+import { paste } from "./paste";
 
 export const getClipboardTextSubtype = async (value: string) => {
   try {
