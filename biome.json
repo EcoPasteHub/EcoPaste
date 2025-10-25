@@ -27,7 +27,11 @@
         "useMediaCaption": "off"
       },
       "correctness": {
-        "noUnusedImports": "error",
+        "noUnusedImports": {
+          "fix": "safe",
+          "level": "error",
+          "options": {}
+        },
         "noUnusedVariables": "error",
         "useExhaustiveDependencies": "off"
       },
