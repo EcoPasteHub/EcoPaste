@@ -12,11 +12,10 @@ dependencies = [
  "tauri-build",
  "tauri-nspanel",
  "tauri-plugin-autostart",
+ "tauri-plugin-autostart-x",
+ "tauri-plugin-clipboard-paste",
  "tauri-plugin-clipboard-x",
  "tauri-plugin-dialog",
- "tauri-plugin-eco-autostart",
- "tauri-plugin-eco-paste",
- "tauri-plugin-eco-window",
  "tauri-plugin-fs",
  "tauri-plugin-fs-pro",
  "tauri-plugin-global-shortcut",
@@ -30,6 +29,7 @@ dependencies = [
  "tauri-plugin-single-instance",
  "tauri-plugin-sql",
  "tauri-plugin-updater",
+ "tauri-plugin-window-manage",
 ]
 
 [[package]]
@@ -5922,6 +5922,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "tauri-plugin-autostart-x"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "tauri",
+ "tauri-plugin",
+]
+
+[[package]]
+name = "tauri-plugin-clipboard-paste"
+version = "0.1.0"
+dependencies = [
+ "cocoa 0.26.1",
+ "enigo",
+ "log",
+ "objc",
+ "rdev",
+ "serde",
+ "tauri",
+ "tauri-plugin",
+ "tauri-plugin-window-manage",
+ "winapi",
+ "x11",
+]
+
+[[package]]
 name = "tauri-plugin-clipboard-x"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5951,42 +5977,6 @@ dependencies = [
  "tauri-plugin-fs",
  "thiserror 2.0.17",
  "url",
-]
-
-[[package]]
-name = "tauri-plugin-eco-autostart"
-version = "0.1.0"
-dependencies = [
- "serde",
- "tauri",
- "tauri-plugin",
-]
-
-[[package]]
-name = "tauri-plugin-eco-paste"
-version = "0.1.0"
-dependencies = [
- "cocoa 0.26.1",
- "enigo",
- "log",
- "objc",
- "rdev",
- "serde",
- "tauri",
- "tauri-plugin",
- "tauri-plugin-eco-window",
- "winapi",
- "x11",
-]
-
-[[package]]
-name = "tauri-plugin-eco-window"
-version = "0.1.0"
-dependencies = [
- "serde",
- "tauri",
- "tauri-nspanel",
- "tauri-plugin",
 ]
 
 [[package]]
@@ -6222,6 +6212,16 @@ dependencies = [
  "url",
  "windows-sys 0.60.2",
  "zip",
+]
+
+[[package]]
+name = "tauri-plugin-window-manage"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "tauri",
+ "tauri-nspanel",
+ "tauri-plugin",
 ]
 
 [[package]]

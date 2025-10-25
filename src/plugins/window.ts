@@ -5,9 +5,9 @@ import { PhysicalPosition, PhysicalSize } from "@tauri-apps/api/window";
 import type { WindowLabel } from "@/types/plugin";
 
 const COMMAND = {
-  HIDE_WINDOW: "plugin:eco-window|hide_window",
-  SHOW_TASKBAR_ICON: "plugin:eco-window|show_taskbar_icon",
-  SHOW_WINDOW: "plugin:eco-window|show_window",
+  HIDE_WINDOW: "plugin:window-manage|hide_window",
+  SHOW_TASKBAR_ICON: "plugin:window-manage|show_taskbar_icon",
+  SHOW_WINDOW: "plugin:window-manage|show_window",
 };
 
 /**

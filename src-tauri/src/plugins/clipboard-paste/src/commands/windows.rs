@@ -8,7 +8,7 @@ use std::os::windows::ffi::OsStringExt;
 use std::ptr;
 use std::sync::Mutex;
 use tauri::command;
-use tauri_plugin_eco_window::MAIN_WINDOW_TITLE;
+use tauri_plugin_window_manage::MAIN_WINDOW_TITLE;
 use winapi::shared::minwindef::DWORD;
 use winapi::shared::windef::{HWINEVENTHOOK, HWND};
 use winapi::um::winuser::{

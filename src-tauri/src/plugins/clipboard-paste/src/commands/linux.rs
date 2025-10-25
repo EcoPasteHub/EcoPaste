@@ -2,7 +2,7 @@ use super::wait;
 use rdev::{simulate, EventType, Key};
 use std::sync::Mutex;
 use tauri::command;
-use tauri_plugin_eco_window::MAIN_WINDOW_TITLE;
+use tauri_plugin_window_manage::MAIN_WINDOW_TITLE;
 use x11::xlib::{
     self, Atom, Display, XCloseDisplay, XDefaultRootWindow, XFree, XGetInputFocus,
     XGetWindowProperty, XInternAtom, XNextEvent, XOpenDisplay, XRaiseWindow, XSelectInput,

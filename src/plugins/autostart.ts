@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 
 const COMMAND = {
-  IS_AUTOSTART: "plugin:eco-autostart|is_autostart",
+  IS_AUTOSTART: "plugin:autostart-x|is_autostart",
 };
 
 /**

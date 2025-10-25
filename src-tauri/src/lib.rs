@@ -3,8 +3,8 @@ mod core;
 use core::{prevent_default, setup};
 use tauri::{generate_context, Builder, Manager, WindowEvent};
 use tauri_plugin_autostart::MacosLauncher;
-use tauri_plugin_eco_window::{show_main_window, MAIN_WINDOW_LABEL, PREFERENCE_WINDOW_LABEL};
 use tauri_plugin_log::{Target, TargetKind};
+use tauri_plugin_window_manage::{show_main_window, MAIN_WINDOW_LABEL, PREFERENCE_WINDOW_LABEL};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -59,20 +59,20 @@ pub fn run() {
         .plugin(tauri_plugin_macos_permissions::init())
         // 拓展了对文件和目录的操作：https://github.com/ayangweb/tauri-plugin-fs-pro
         .plugin(tauri_plugin_fs_pro::init())
-        // 获取系统获取系统的区域设置：https://github.com/ayangweb/tauri-plugin-locale
+        // 获取系统语言：https://github.com/ayangweb/tauri-plugin-locale
         .plugin(tauri_plugin_locale::init())
         // 打开文件或者链接：https://github.com/tauri-apps/plugins-workspace/tree/v2/plugins/opener
         .plugin(tauri_plugin_opener::init())
         // 禁用 webview 的默认行为：https://github.com/ferreira-tb/tauri-plugin-prevent-default
         .plugin(prevent_default::init())
-        // 剪贴板插件：https://github.com/ayangweb/tauri-plugin-clipboard-x
+        // 剪贴板：https://github.com/ayangweb/tauri-plugin-clipboard-x
         .plugin(tauri_plugin_clipboard_x::init())
-        // 自定义的窗口管理插件
-        .plugin(tauri_plugin_eco_window::init())
-        // 自定义粘贴的插件
-        .plugin(tauri_plugin_eco_paste::init())
-        // 自定义判断是否自动启动的插件
-        .plugin(tauri_plugin_eco_autostart::init())
+        // 窗口管理
+        .plugin(tauri_plugin_window_manage::init())
+        // 剪贴板粘贴
+        .plugin(tauri_plugin_clipboard_paste::init())
+        // 自启动增强
+        .plugin(tauri_plugin_autostart_x::init())
         .on_window_event(|window, event| match event {
             // 让 app 保持在后台运行：https://tauri.app/v1/guides/features/system-tray/#preventing-the-app-from-closing
             WindowEvent::CloseRequested { api, .. } => {
@@ -95,7 +95,7 @@ pub fn run() {
                 return;
             }
 
-            tauri_plugin_eco_window::show_preference_window(app_handle);
+            tauri_plugin_window_manage::show_preference_window(app_handle);
         }
         _ => {
             let _ = app_handle;

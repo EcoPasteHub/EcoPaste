@@ -9,7 +9,7 @@ use std::process::Command;
 use std::sync::Mutex;
 use std::thread;
 use tauri::{command, AppHandle, Runtime, WebviewWindow};
-use tauri_plugin_eco_window::{set_macos_panel, MacOSPanelStatus, MAIN_WINDOW_TITLE};
+use tauri_plugin_window_manage::{set_macos_panel, MacOSPanelStatus, MAIN_WINDOW_TITLE};
 
 static PREVIOUS_WINDOW: Mutex<Option<i32>> = Mutex::new(None);
 

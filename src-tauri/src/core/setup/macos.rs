@@ -1,6 +1,6 @@
 use tauri::{AppHandle, Emitter, EventTarget, Manager, WebviewWindow};
 use tauri_nspanel::{tauri_panel, CollectionBehavior, PanelLevel, StyleMask, WebviewWindowExt};
-use tauri_plugin_eco_window::MAIN_WINDOW_LABEL;
+use tauri_plugin_window_manage::MAIN_WINDOW_LABEL;
 
 const WINDOW_FOCUS_EVENT: &str = "tauri://focus";
 const WINDOW_BLUR_EVENT: &str = "tauri://blur";

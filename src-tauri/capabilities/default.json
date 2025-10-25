@@ -41,9 +41,9 @@
       "identifier": "opener:allow-open-path"
     },
     "clipboard-x:default",
-    "eco-window:default",
-    "eco-paste:default",
-    "eco-autostart:default"
+    "window-manage:default",
+    "clipboard-paste:default",
+    "autostart-x:default"
   ],
   "windows": ["*"]
 }
