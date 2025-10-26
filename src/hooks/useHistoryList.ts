@@ -1,9 +1,8 @@
-import { useVirtualizer } from "@tanstack/react-virtual";
 import { copyFile, exists, remove } from "@tauri-apps/plugin-fs";
-import { useAsyncEffect, useCreation, useReactive, useScroll } from "ahooks";
-import { isString, last } from "es-toolkit";
+import { useAsyncEffect, useReactive } from "ahooks";
+import { isString } from "es-toolkit";
 import { unionBy } from "es-toolkit/compat";
-import { type RefObject, useContext, useEffect } from "react";
+import { useContext } from "react";
 import { getDefaultSaveImagePath } from "tauri-plugin-clipboard-x-api";
 import { LISTEN_KEY } from "@/constants";
 import { selectHistory } from "@/database/history";
@@ -12,9 +11,13 @@ import { isBlank } from "@/utils/is";
 import { getSaveImagePath, join } from "@/utils/path";
 import { useTauriListen } from "./useTauriListen";
 
-export const useHistoryList = (scrollRef: RefObject<HTMLDivElement>) => {
+interface Options {
+  scrollToTop: () => void;
+}
+
+export const useHistoryList = (options: Options) => {
+  const { scrollToTop } = options;
   const { rootState } = useContext(MainContext);
-  const scrollPos = useScroll(scrollRef);
   const state = useReactive({
     loading: false,
     noMore: false,
@@ -82,7 +85,7 @@ export const useHistoryList = (scrollRef: RefObject<HTMLDivElement>) => {
 
         if (state.noMore) return;
 
-        return virtualizer.scrollToIndex(0);
+        return scrollToTop();
       }
 
       rootState.list = unionBy(rootState.list, list, "id");
@@ -114,43 +117,8 @@ export const useHistoryList = (scrollRef: RefObject<HTMLDivElement>) => {
     rootState.activeId = rootState.list[0]?.id;
   }, [rootState.group, rootState.search]);
 
-  useEffect(() => {
-    if (!scrollRef.current || !scrollPos) return;
-
-    const { top } = scrollPos;
-
-    if (rootState.list.length > 20 && top <= 0) {
-      reload();
-    } else {
-      const { clientHeight, scrollHeight } = scrollRef.current;
-
-      if (top + clientHeight >= scrollHeight - 50) {
-        loadMore();
-      }
-    }
-  }, [rootState.list.length, scrollPos]);
-
-  const virtualizer = useVirtualizer({
-    count: state.noMore ? rootState.list.length : rootState.list.length + 1,
-    estimateSize: () => 54,
-    gap: 12,
-    getScrollElement: () => scrollRef.current,
-    overscan: 5,
-  });
-
-  const list = virtualizer.getVirtualItems();
-
-  const height = useCreation(() => {
-    const lastItem = last(list);
-
-    if (!lastItem) return 0;
-
-    return lastItem.end - lastItem.size - 12;
-  }, [list]);
-
   return {
-    ...virtualizer,
-    height,
-    list,
+    loadMore,
+    reload,
   };
 };

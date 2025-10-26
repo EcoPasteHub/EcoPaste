@@ -1,7 +1,9 @@
 import { useUpdateEffect } from "ahooks";
 import { FloatButton, Modal } from "antd";
+import clsx from "clsx";
 import { findIndex } from "es-toolkit/compat";
 import { useContext, useEffect, useRef } from "react";
+import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import Scrollbar from "@/components/Scrollbar";
 import { LISTEN_KEY } from "@/constants";
 import { useHistoryList } from "@/hooks/useHistoryList";
@@ -15,10 +17,12 @@ const HistoryList = () => {
   const { rootState } = useContext(MainContext);
   const noteModelRef = useRef<NoteModalRef>(null);
   const [deleteModal, contextHolder] = Modal.useModal();
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const virtuosoRef = useRef<VirtuosoHandle>(null);
+  const scrollerRef = useRef<HTMLDivElement>(null);
 
-  const { list, height, measureElement, scrollToIndex } =
-    useHistoryList(scrollRef);
+  const scrollToIndex = (index: number) => {
+    return virtuosoRef.current?.scrollIntoView({ index });
+  };
 
   const scrollToTop = () => {
     if (rootState.list.length === 0) return;
@@ -29,6 +33,8 @@ const HistoryList = () => {
   };
 
   useKeyboard({ scrollToTop });
+
+  const { reload, loadMore } = useHistoryList({ scrollToTop });
 
   useTauriListen(LISTEN_KEY.ACTIVATE_BACK_TOP, scrollToTop);
 
@@ -56,23 +62,20 @@ const HistoryList = () => {
 
   return (
     <>
-      <Scrollbar className="flex-1" offset={3} ref={scrollRef}>
-        <div className="relative" data-tauri-drag-region style={{ height }}>
-          {list.map((item) => {
-            const { key, start, index } = item;
+      <Scrollbar className="flex-1" offsetX={3} ref={scrollerRef}>
+        <Virtuoso
+          atTopStateChange={(atTop) => {
+            if (!atTop || rootState.list.length <= 20) return;
 
-            const data = rootState.list[index];
-
-            if (!data) return null;
-
+            reload();
+          }}
+          customScrollParent={scrollerRef.current ?? void 0}
+          data={rootState.list}
+          endReached={loadMore}
+          increaseViewportBy={50}
+          itemContent={(index, data) => {
             return (
-              <div
-                className="absolute w-full"
-                data-index={index}
-                key={key}
-                ref={measureElement}
-                style={{ top: start }}
-              >
+              <div className={clsx({ "pt-3": index !== 0 })}>
                 <Item
                   data={data}
                   deleteModal={deleteModal}
@@ -81,8 +84,9 @@ const HistoryList = () => {
                 />
               </div>
             );
-          })}
-        </div>
+          }}
+          ref={virtuosoRef}
+        />
       </Scrollbar>
 
       <NoteModal ref={noteModelRef} />
@@ -90,7 +94,7 @@ const HistoryList = () => {
       <FloatButton.BackTop
         duration={0}
         onClick={scrollToTop}
-        target={() => scrollRef.current!}
+        target={() => scrollerRef.current!}
       />
 
       {contextHolder}
