@@ -5,13 +5,14 @@ import { globalStore } from "@/stores/global";
 
 interface ScrollbarProps extends MacScrollbarProps {
   thumbSize?: number;
-  offset?: number;
+  offsetX?: number;
+  offsetY?: number;
 }
 
 const Scrollbar = forwardRef<HTMLElement, ScrollbarProps>((props, ref) => {
   const { appearance } = useSnapshot(globalStore);
 
-  const { thumbSize = 6, offset = 0, children, ...rest } = props;
+  const { thumbSize = 6, offsetX = 0, offsetY = 0, children, ...rest } = props;
 
   const containerRef = useRef<HTMLElement>(null);
 
@@ -20,14 +21,21 @@ const Scrollbar = forwardRef<HTMLElement, ScrollbarProps>((props, ref) => {
   const getThumbStyle: MacScrollbarProps["thumbStyle"] = (horizontal) => {
     if (horizontal) {
       return {
-        bottom: offset,
+        bottom: offsetY,
         height: thumbSize,
       };
     }
 
     return {
-      right: offset,
+      right: offsetX,
       width: thumbSize,
+    };
+  };
+
+  const getTrackStyle: MacScrollbarProps["trackStyle"] = () => {
+    return {
+      "--ms-track-size": 0,
+      border: 0,
     };
   };
 
@@ -37,7 +45,7 @@ const Scrollbar = forwardRef<HTMLElement, ScrollbarProps>((props, ref) => {
       ref={containerRef}
       skin={appearance.isDark ? "dark" : "light"}
       thumbStyle={getThumbStyle}
-      trackStyle={() => ({ "--ms-track-size": 0, border: 0 })}
+      trackStyle={getTrackStyle}
     >
       {children}
     </MacScrollbar>
