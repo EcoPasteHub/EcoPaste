@@ -69,10 +69,10 @@ const HistoryList = () => {
 
             reload();
           }}
+          computeItemKey={(_, item) => item.id}
           customScrollParent={scrollerRef.current ?? void 0}
           data={rootState.list}
           endReached={loadMore}
-          increaseViewportBy={50}
           itemContent={(index, data) => {
             return (
               <div className={clsx({ "pt-3": index !== 0 })}>
