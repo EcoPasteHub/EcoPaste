@@ -1,9 +1,9 @@
-use super::{is_main_window, shared_hide_window, shared_show_window};
+use super::is_main_window;
 use crate::MAIN_WINDOW_LABEL;
 use tauri::{command, AppHandle, Runtime, WebviewWindow};
 use tauri_nspanel::{CollectionBehavior, ManagerExt};
 
-pub enum MacOSPanelStatus {
+pub enum NsPanelStatus {
     Show,
     Hide,
     Resign,
@@ -13,9 +13,11 @@ pub enum MacOSPanelStatus {
 #[command]
 pub async fn show_window<R: Runtime>(app_handle: AppHandle<R>, window: WebviewWindow<R>) {
     if is_main_window(&window) {
-        set_macos_panel(&app_handle, &window, MacOSPanelStatus::Show);
+        set_ns_panel(&app_handle, &window, NsPanelStatus::Show);
     } else {
-        shared_show_window(&window);
+        let _ = window.show();
+        let _ = window.unminimize();
+        let _ = window.set_focus();
     }
 }
 
@@ -23,9 +25,9 @@ pub async fn show_window<R: Runtime>(app_handle: AppHandle<R>, window: WebviewWi
 #[command]
 pub async fn hide_window<R: Runtime>(app_handle: AppHandle<R>, window: WebviewWindow<R>) {
     if is_main_window(&window) {
-        set_macos_panel(&app_handle, &window, MacOSPanelStatus::Hide);
+        set_ns_panel(&app_handle, &window, NsPanelStatus::Hide);
     } else {
-        shared_hide_window(&window);
+        let _ = window.hide();
     }
 }
 
@@ -40,10 +42,10 @@ pub async fn show_taskbar_icon<R: Runtime>(
 }
 
 // 设置 macos 的 ns_panel 的状态
-pub fn set_macos_panel<R: Runtime>(
+pub fn set_ns_panel<R: Runtime>(
     app_handle: &AppHandle<R>,
     window: &WebviewWindow<R>,
-    status: MacOSPanelStatus,
+    status: NsPanelStatus,
 ) {
     if is_main_window(window) {
         let app_handle_clone = app_handle.clone();
@@ -51,7 +53,7 @@ pub fn set_macos_panel<R: Runtime>(
         let _ = app_handle.run_on_main_thread(move || {
             if let Ok(panel) = app_handle_clone.get_webview_panel(MAIN_WINDOW_LABEL) {
                 match status {
-                    MacOSPanelStatus::Show => {
+                    NsPanelStatus::Show => {
                         panel.show_and_make_key();
 
                         panel.set_collection_behavior(
@@ -62,7 +64,7 @@ pub fn set_macos_panel<R: Runtime>(
                                 .into(),
                         );
                     }
-                    MacOSPanelStatus::Hide => {
+                    NsPanelStatus::Hide => {
                         panel.hide();
 
                         panel.set_collection_behavior(
@@ -73,7 +75,7 @@ pub fn set_macos_panel<R: Runtime>(
                                 .into(),
                         );
                     }
-                    MacOSPanelStatus::Resign => {
+                    NsPanelStatus::Resign => {
                         panel.resign_key_window();
                     }
                 }

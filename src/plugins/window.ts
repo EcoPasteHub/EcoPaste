@@ -5,7 +5,6 @@ import { PhysicalPosition, PhysicalSize } from "@tauri-apps/api/window";
 import { LISTEN_KEY, WINDOW_LABEL } from "@/constants";
 import { clipboardStore } from "@/stores/clipboard";
 import type { WindowLabel } from "@/types/plugin";
-import { isLinux } from "@/utils/is";
 import { getCursorMonitor } from "@/utils/monitor";
 
 const COMMAND = {
@@ -38,13 +37,13 @@ export const hideWindow = () => {
 export const toggleWindowVisible = async () => {
   const appWindow = getCurrentWebviewWindow();
 
-  let focused = await appWindow.isFocused();
+  let visible = await appWindow.isVisible();
 
-  if (isLinux) {
-    focused = await appWindow.isVisible();
+  if (isMac) {
+    visible = await appWindow.isFocused();
   }
 
-  if (focused) {
+  if (visible) {
     return hideWindow();
   }
 

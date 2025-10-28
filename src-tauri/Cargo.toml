@@ -43,6 +43,7 @@ tauri-plugin-eco-autostart.workspace = true
 
 [target."cfg(target_os = \"macos\")".dependencies]
 tauri-nspanel.workspace = true
+rdev = { git = "https://github.com/Narsil/rdev", features = ["unstable_grab"] }
 
 [features]
 cargo-clippy = []

@@ -151,6 +151,10 @@ const Main = () => {
     [state.quickPasteKeys],
   );
 
+  // useTauriListen("dispatch-event", ({ payload }) => {
+  //   // console.log("payload", payload);
+  // });
+
   return (
     <MainContext.Provider
       value={{
