@@ -148,8 +148,8 @@ HomeBrew：[點擊查看](https://ecopaste.cn/guide/install#%E4%BD%BF%E7%94%A8-h
 
 感謝大家為 EcoPaste 做出的寶貴貢獻！如果你也希望為 EcoPaste 做出貢獻，請查閱[貢獻指南](./.github/CONTRIBUTING/zh-TW.md)。
 
-<a href="https://github.com/EcoPasteHub/EcoPaste/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=EcoPasteHub/EcoPaste" />
+<a href="https://openomy.com/EcoPasteHub/EcoPaste" target="_blank" style="display: block; width: 100%;" align="center">
+  <img src="https://openomy.com/svg?repo=EcoPasteHub/EcoPaste&chart=bubble&latestMonth=3" target="_blank" alt="Contribution Leaderboard" style="display: block; width: 100%;" />
 </a>
 
 ## 贊助
