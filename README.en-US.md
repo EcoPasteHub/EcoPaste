@@ -148,8 +148,8 @@ Installation Guide: [Click here](https://ecopaste.cn/guide/install#linux)
 
 Thank you to everyone who has contributed to EcoPaste! If you’d like to contribute, check out the [Contributing Guide](./.github/CONTRIBUTING/en-US.md).
 
-<a href="https://github.com/EcoPasteHub/EcoPaste/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=EcoPasteHub/EcoPaste" />
+<a href="https://openomy.com/EcoPasteHub/EcoPaste" target="_blank" style="display: block; width: 100%;" align="center">
+  <img src="https://openomy.com/svg?repo=EcoPasteHub/EcoPaste&chart=bubble&latestMonth=3" target="_blank" alt="Contribution Leaderboard" style="display: block; width: 100%;" />
 </a>
 
 ## Sponsors

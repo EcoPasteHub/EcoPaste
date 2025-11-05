@@ -148,8 +148,8 @@ HomeBrew：[クリックして確認する](https://ecopaste.cn/guide/install#%E
 
 EcoPaste へ貴重なご貢献をいただいた皆様に感謝します！もし EcoPaste にご協力のご希望があれば、[貢献ガイド](./.github/CONTRIBUTING/ja-JP.md)をご覧ください。
 
-<a href="https://github.com/EcoPasteHub/EcoPaste/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=EcoPasteHub/EcoPaste" />
+<a href="https://openomy.com/EcoPasteHub/EcoPaste" target="_blank" style="display: block; width: 100%;" align="center">
+  <img src="https://openomy.com/svg?repo=EcoPasteHub/EcoPaste&chart=bubble&latestMonth=3" target="_blank" alt="Contribution Leaderboard" style="display: block; width: 100%;" />
 </a>
 
 ## 寄付
