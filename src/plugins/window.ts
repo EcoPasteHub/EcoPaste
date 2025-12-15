@@ -51,6 +51,11 @@ export const toggleWindowVisible = async () => {
   if (appWindow.label === WINDOW_LABEL.MAIN) {
     const { window } = clipboardStore;
 
+    // 激活时切换至全部分组
+    if (window.showAll) {
+      await emit(LISTEN_KEY.ACTIVATE_SHOW_ALL);
+    }
+
     // 激活时回到顶部
     if (window.backTop) {
       await emit(LISTEN_KEY.ACTIVATE_BACK_TOP);

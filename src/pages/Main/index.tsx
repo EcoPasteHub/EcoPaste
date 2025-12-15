@@ -126,6 +126,11 @@ const Main = () => {
     }
   });
 
+  // 激活时切换至全部分组
+  useTauriListen(LISTEN_KEY.ACTIVATE_SHOW_ALL, () => {
+    state.group = "all";
+  });
+
   // 监听粘贴为纯文本的快捷键
   useKeyPress(shortcut.pastePlain, (event) => {
     event.preventDefault();
