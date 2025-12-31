@@ -22,6 +22,7 @@ export const LANGUAGE = {
 
 export const LISTEN_KEY = {
   ACTIVATE_BACK_TOP: "activate-back-top",
+  ACTIVATE_SHOW_ALL: "activate-show-all",
   CLIPBOARD_ITEM_DELETE: "clipboard-item-delete",
   CLIPBOARD_ITEM_FAVORITE: "clipboard-item-favorite",
   CLIPBOARD_ITEM_PASTE: "clipboard-item-paste",

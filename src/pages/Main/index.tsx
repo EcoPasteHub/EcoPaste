@@ -69,6 +69,11 @@ const Main = () => {
     state.eventBus = eventBus;
   });
 
+  // 激活时切换至全部分组
+  useTauriListen(LISTEN_KEY.ACTIVATE_SHOW_ALL, () => {
+    state.group = "all";
+  });
+
   useClipboard(state, {
     beforeRead() {
       if (!clipboardStore.audio.copy) return;
