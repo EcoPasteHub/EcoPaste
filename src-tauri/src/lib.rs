@@ -51,6 +51,8 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         // 访问文件系统插件：https://github.com/tauri-apps/tauri-plugin-fs
         .plugin(tauri_plugin_fs::init())
+        // HTTP 请求插件：https://github.com/tauri-apps/plugins-workspace/tree/v2/plugins/http
+        .plugin(tauri_plugin_http::init())
         // 更新插件：https://github.com/tauri-apps/tauri-plugin-updater
         .plugin(tauri_plugin_updater::Builder::new().build())
         // 进程相关插件：https://github.com/tauri-apps/tauri-plugin-process

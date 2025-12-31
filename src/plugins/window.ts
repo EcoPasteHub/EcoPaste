@@ -56,6 +56,11 @@ export const toggleWindowVisible = async () => {
       await emit(LISTEN_KEY.ACTIVATE_BACK_TOP);
     }
 
+    // 激活时切换至全部分组
+    if (window.showAll) {
+      await emit(LISTEN_KEY.ACTIVATE_SHOW_ALL);
+    }
+
     if (window.style === "standard" && window.position !== "remember") {
       const monitor = await getCursorMonitor();
 

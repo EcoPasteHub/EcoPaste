@@ -50,6 +50,24 @@
           "effects": ["sidebar"],
           "state": "active"
         }
+      },
+      {
+        "acceptFirstMouse": true,
+        "alwaysOnTop": true,
+        "center": true,
+        "decorations": false,
+        "height": 500,
+        "label": "ocr",
+        "maximizable": false,
+        "minHeight": 300,
+        "minWidth": 400,
+        "resizable": true,
+        "skipTaskbar": true,
+        "title": "OCR",
+        "transparent": true,
+        "url": "index.html/#/ocr",
+        "visible": false,
+        "width": 450
       }
     ]
   },

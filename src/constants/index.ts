@@ -10,6 +10,7 @@ export const UPDATE_MESSAGE_KEY = "app-update-message";
 
 export const WINDOW_LABEL = {
   MAIN: "main",
+  OCR: "ocr",
   PREFERENCE: "preference",
 } as const;
 
@@ -22,6 +23,7 @@ export const LANGUAGE = {
 
 export const LISTEN_KEY = {
   ACTIVATE_BACK_TOP: "activate-back-top",
+  ACTIVATE_SHOW_ALL: "activate-show-all",
   CLIPBOARD_ITEM_DELETE: "clipboard-item-delete",
   CLIPBOARD_ITEM_FAVORITE: "clipboard-item-favorite",
   CLIPBOARD_ITEM_PASTE: "clipboard-item-paste",
@@ -29,6 +31,8 @@ export const LISTEN_KEY = {
   CLIPBOARD_ITEM_SELECT_NEXT: "clipboard-item-select-next",
   CLIPBOARD_ITEM_SELECT_PREV: "clipboard-item-select-prev",
   CLOSE_DATABASE: "close-database",
+  OCR_START: "ocr-start",
+  OCR_TRANSLATE_START: "ocr-translate-start",
   REFRESH_CLIPBOARD_LIST: "refresh-clipboard-list",
   SHOW_WINDOW: "show-window",
   STORE_CHANGED: "store-changed",

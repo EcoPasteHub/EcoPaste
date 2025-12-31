@@ -253,7 +253,74 @@
         "clipboard": "Clipboard",
         "general": "General",
         "history": "History",
+        "ocr": "OCR",
         "shortcut": "Shortcuts"
+      }
+    },
+    "ocr": {
+      "api_settings": {
+        "hints": {
+          "api_base": "OpenAI-compatible API endpoint",
+          "api_key": "API key for authentication",
+          "model": "Vision model name that supports image recognition",
+          "prompt": "OCR prompt sent to the vision model"
+        },
+        "label": {
+          "api_base": "API Base URL",
+          "api_key": "API Key",
+          "model": "Model Name",
+          "prompt": "OCR Prompt"
+        },
+        "title": "OCR API Settings"
+      },
+      "behavior_settings": {
+        "hints": {
+          "auto_copy": "Automatically copy OCR result to clipboard",
+          "hide_main_window": "Hide main window when OCR is triggered",
+          "save_history": "Save OCR recognition history",
+          "window_pinned": "OCR window stays on top by default"
+        },
+        "label": {
+          "auto_copy": "Auto Copy Result",
+          "hide_main_window": "Hide Main Window",
+          "save_history": "Save History",
+          "window_pinned": "Pin Window"
+        },
+        "title": "Behavior Settings"
+      },
+      "shortcut_settings": {
+        "hints": {
+          "ocr": "Read image from clipboard and recognize text",
+          "ocr_translate": "Recognize text and auto-translate"
+        },
+        "label": {
+          "ocr": "OCR Recognition",
+          "ocr_translate": "OCR + Translation"
+        },
+        "title": "Shortcut Settings"
+      },
+      "translate_settings": {
+        "hints": {
+          "api_base": "Leave empty to use OCR API settings",
+          "api_key": "Leave empty to use OCR API key",
+          "model": "Leave empty to use OCR model",
+          "system_prompt": "System prompt for translation, use $targetLanguage as target language variable",
+          "target_language": "Target language for translation"
+        },
+        "label": {
+          "api_base": "Translation API URL",
+          "api_key": "Translation API Key",
+          "enabled": "Enable Translation",
+          "model": "Translation Model",
+          "system_prompt": "Translation System Prompt",
+          "target_language": "Target Language"
+        },
+        "placeholder": {
+          "api_base": "Use OCR settings",
+          "api_key": "Use OCR settings",
+          "model": "Use OCR settings"
+        },
+        "title": "Translation Settings"
       }
     },
     "settings": {

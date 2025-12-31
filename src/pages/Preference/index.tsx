@@ -23,6 +23,7 @@ import About from "./components/About";
 import Clipboard from "./components/Clipboard";
 import General from "./components/General";
 import History from "./components/History";
+import OCR from "./components/OCR";
 import Shortcut from "./components/Shortcut";
 
 const Preference = () => {
@@ -51,6 +52,18 @@ const Preference = () => {
 
   // 监听快捷键切换窗口显隐
   useRegister(toggleWindowVisible, [shortcut.preference]);
+
+  // 监听 OCR 快捷键
+  useRegister(async () => {
+    const { ocrFromClipboard } = await import("@/plugins/ocr");
+    await ocrFromClipboard(false);
+  }, [shortcut.ocr]);
+
+  // 监听 OCR+翻译 快捷键
+  useRegister(async () => {
+    const { ocrFromClipboard } = await import("@/plugins/ocr");
+    await ocrFromClipboard(true);
+  }, [shortcut.ocrTranslate]);
 
   // 配置项变化通知其它窗口和本地存储
   const handleStoreChanged = () => {
@@ -84,6 +97,12 @@ const Preference = () => {
         icon: "i-lucide:keyboard",
         key: "shortcut",
         label: t("preference.menu.title.shortcut"),
+      },
+      {
+        content: <OCR />,
+        icon: "i-lucide:scan-text",
+        key: "ocr",
+        label: t("preference.menu.title.ocr"),
       },
       // {
       //   content: <Backup />,
