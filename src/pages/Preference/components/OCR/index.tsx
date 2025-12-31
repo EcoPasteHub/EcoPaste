@@ -1,4 +1,5 @@
 import { Input, Select } from "antd";
+import TextArea from "antd/es/input/TextArea";
 import { useTranslation } from "react-i18next";
 import { useSnapshot } from "valtio";
 import ProList from "@/components/ProList";
@@ -17,6 +18,9 @@ const LANGUAGE_OPTIONS = [
   { label: "Deutsch", value: "de" },
   { label: "Español", value: "es" },
   { label: "Русский", value: "ru" },
+  { label: "Português", value: "pt" },
+  { label: "Italiano", value: "it" },
+  { label: "العربية", value: "ar" },
 ];
 
 const OCRSettings = () => {
@@ -25,6 +29,7 @@ const OCRSettings = () => {
 
   return (
     <>
+      {/* API 设置 */}
       <ProList header={t("preference.ocr.api_settings.title")}>
         <ProListItem
           description={t("preference.ocr.api_settings.hints.api_base")}
@@ -67,8 +72,24 @@ const OCRSettings = () => {
             value={ocr.model}
           />
         </ProListItem>
+
+        <ProListItem
+          description={t("preference.ocr.api_settings.hints.prompt")}
+          title={t("preference.ocr.api_settings.label.prompt")}
+        >
+          <TextArea
+            autoSize={{ maxRows: 4, minRows: 2 }}
+            onChange={(e) => {
+              globalStore.ocr.prompt = e.target.value;
+            }}
+            placeholder="请识别图片中的文字..."
+            style={{ width: 300 }}
+            value={ocr.prompt}
+          />
+        </ProListItem>
       </ProList>
 
+      {/* 翻译设置 */}
       <ProList header={t("preference.ocr.translate_settings.title")}>
         <ProSwitch
           onChange={(value) => {
@@ -141,8 +162,26 @@ const OCRSettings = () => {
             value={ocr.translate.model}
           />
         </ProListItem>
+
+        <ProListItem
+          description={t(
+            "preference.ocr.translate_settings.hints.system_prompt",
+          )}
+          title={t("preference.ocr.translate_settings.label.system_prompt")}
+        >
+          <TextArea
+            autoSize={{ maxRows: 4, minRows: 2 }}
+            onChange={(e) => {
+              globalStore.ocr.translate.systemPrompt = e.target.value;
+            }}
+            placeholder="You are a professional translator..."
+            style={{ width: 300 }}
+            value={ocr.translate.systemPrompt}
+          />
+        </ProListItem>
       </ProList>
 
+      {/* 快捷键设置 */}
       <ProList header={t("preference.ocr.shortcut_settings.title")}>
         <ProShortcut
           description={t("preference.ocr.shortcut_settings.hints.ocr")}
@@ -165,6 +204,7 @@ const OCRSettings = () => {
         />
       </ProList>
 
+      {/* 行为设置 */}
       <ProList header={t("preference.ocr.behavior_settings.title")}>
         <ProSwitch
           description={t("preference.ocr.behavior_settings.hints.auto_copy")}
@@ -173,6 +213,37 @@ const OCRSettings = () => {
           }}
           title={t("preference.ocr.behavior_settings.label.auto_copy")}
           value={ocr.autoCopy}
+        />
+
+        <ProSwitch
+          description={t(
+            "preference.ocr.behavior_settings.hints.window_pinned",
+          )}
+          onChange={(value) => {
+            globalStore.ocr.windowPinned = value;
+          }}
+          title={t("preference.ocr.behavior_settings.label.window_pinned")}
+          value={ocr.windowPinned}
+        />
+
+        <ProSwitch
+          description={t(
+            "preference.ocr.behavior_settings.hints.hide_main_window",
+          )}
+          onChange={(value) => {
+            globalStore.ocr.hideMainWindow = value;
+          }}
+          title={t("preference.ocr.behavior_settings.label.hide_main_window")}
+          value={ocr.hideMainWindow}
+        />
+
+        <ProSwitch
+          description={t("preference.ocr.behavior_settings.hints.save_history")}
+          onChange={(value) => {
+            globalStore.ocr.saveHistory = value;
+          }}
+          title={t("preference.ocr.behavior_settings.label.save_history")}
+          value={ocr.saveHistory}
         />
       </ProList>
     </>

@@ -1,0 +1,125 @@
+.container {
+  height: 100vh;
+  background: var(--ant-color-bg-container);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.titleBar {
+  padding: 8px 12px;
+  -webkit-app-region: drag;
+
+  .pinButton,
+  .closeButton {
+    -webkit-app-region: no-drag;
+    opacity: 0.6;
+    transition: all 0.2s;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+
+  .pinButton {
+    &.pinned {
+      opacity: 1;
+      color: var(--ant-color-primary);
+      transform: rotate(45deg);
+    }
+  }
+
+  .closeButton {
+    &:hover {
+      background: var(--ant-color-error-bg);
+      color: var(--ant-color-error);
+    }
+  }
+}
+
+.resultSection {
+  flex: 1;
+  padding: 0 16px 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.textArea {
+  flex: 1;
+  min-height: 80px;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 12px;
+  background: var(--ant-color-bg-elevated);
+  border-radius: 8px;
+  margin-bottom: 8px;
+
+  .text {
+    margin: 0;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--ant-color-text);
+  }
+
+  .error {
+    color: var(--ant-color-error);
+    font-size: 13px;
+  }
+}
+
+.actionBar {
+  .spacer {
+    flex: 1;
+  }
+
+  .languageTag {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: var(--ant-color-primary-bg);
+    border-radius: 12px;
+    font-size: 12px;
+    color: var(--ant-color-primary);
+  }
+}
+
+.modelInfo {
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  background: var(--ant-color-bg-elevated);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--ant-color-text-secondary);
+
+  .spacer {
+    flex: 1;
+  }
+}
+
+.divider {
+  margin: 0;
+}
+
+// 滚动条样式
+.textArea::-webkit-scrollbar {
+  width: 6px;
+}
+
+.textArea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.textArea::-webkit-scrollbar-thumb {
+  background: var(--ant-color-border);
+  border-radius: 3px;
+}
+
+.textArea::-webkit-scrollbar-thumb:hover {
+  background: var(--ant-color-border-secondary);
+}

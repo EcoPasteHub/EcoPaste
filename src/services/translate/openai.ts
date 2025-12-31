@@ -5,6 +5,7 @@ export interface TranslateConfig {
   apiKey: string;
   model: string;
   targetLanguage: string;
+  systemPrompt: string;
 }
 
 export interface TranslateResult {
@@ -20,7 +21,7 @@ export async function translate(
   text: string,
   config: TranslateConfig,
 ): Promise<TranslateResult> {
-  const { apiBase, apiKey, model, targetLanguage } = config;
+  const { apiBase, apiKey, model, targetLanguage, systemPrompt } = config;
 
   if (!apiKey) {
     return {
@@ -44,12 +45,18 @@ export async function translate(
     url = `${url}/v1/chat/completions`;
   }
 
+  // 替换系统提示词中的变量
+  const processedPrompt = systemPrompt.replace(
+    /\$targetLanguage/g,
+    targetLanguage,
+  );
+
   try {
     const response = await fetch(url, {
       body: JSON.stringify({
         messages: [
           {
-            content: `You are a professional translator. Translate the following text to ${targetLanguage}. Only output the translation result, without any explanations, notes, or the original text.`,
+            content: processedPrompt,
             role: "system",
           },
           {

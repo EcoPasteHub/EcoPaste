@@ -45,17 +45,32 @@ export interface GlobalStore {
 
   // OCR 设置
   ocr: {
+    // API 配置
     apiBase: string;
     apiKey: string;
     model: string;
+    // OCR 提示词
+    prompt: string;
+    // 翻译配置
     translate: {
       enabled: boolean;
       apiBase: string;
       apiKey: string;
       model: string;
       targetLanguage: string;
+      // 翻译系统提示词
+      systemPrompt: string;
     };
+    // 行为设置
     autoCopy: boolean;
+    // 窗口设置
+    windowPinned: boolean;
+    // 自动朗读
+    autoSpeak: boolean;
+    // 保存历史
+    saveHistory: boolean;
+    // 截图后自动关闭主窗口
+    hideMainWindow: boolean;
   };
 
   // 只在当前系统环境使用

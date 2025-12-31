@@ -4,6 +4,7 @@ export interface OcrConfig {
   apiBase: string;
   apiKey: string;
   model: string;
+  prompt: string;
 }
 
 export interface OcrResult {
@@ -19,7 +20,7 @@ export async function performOcr(
   imageBase64: string,
   config: OcrConfig,
 ): Promise<OcrResult> {
-  const { apiBase, apiKey, model } = config;
+  const { apiBase, apiKey, model, prompt } = config;
 
   if (!apiKey) {
     return {
@@ -43,7 +44,7 @@ export async function performOcr(
           {
             content: [
               {
-                text: "请识别图片中的所有文字，只输出识别到的文字内容，不要添加任何解释、格式或标点符号修改。如果图片中没有文字，请回复[无文字]。",
+                text: prompt,
                 type: "text",
               },
               {

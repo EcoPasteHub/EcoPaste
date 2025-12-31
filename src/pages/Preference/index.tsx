@@ -53,6 +53,18 @@ const Preference = () => {
   // 监听快捷键切换窗口显隐
   useRegister(toggleWindowVisible, [shortcut.preference]);
 
+  // 监听 OCR 快捷键
+  useRegister(async () => {
+    const { ocrFromClipboard } = await import("@/plugins/ocr");
+    await ocrFromClipboard(false);
+  }, [shortcut.ocr]);
+
+  // 监听 OCR+翻译 快捷键
+  useRegister(async () => {
+    const { ocrFromClipboard } = await import("@/plugins/ocr");
+    await ocrFromClipboard(true);
+  }, [shortcut.ocrTranslate]);
+
   // 配置项变化通知其它窗口和本地存储
   const handleStoreChanged = () => {
     emit(LISTEN_KEY.STORE_CHANGED, { clipboardStore, globalStore });
