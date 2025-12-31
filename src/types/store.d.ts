@@ -39,6 +39,23 @@ export interface GlobalStore {
       value: string;
     };
     pastePlain: string;
+    ocr: string;
+    ocrTranslate: string;
+  };
+
+  // OCR 设置
+  ocr: {
+    apiBase: string;
+    apiKey: string;
+    model: string;
+    translate: {
+      enabled: boolean;
+      apiBase: string;
+      apiKey: string;
+      model: string;
+      targetLanguage: string;
+    };
+    autoCopy: boolean;
   };
 
   // 只在当前系统环境使用

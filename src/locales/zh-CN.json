@@ -253,7 +253,64 @@
         "clipboard": "剪贴板",
         "general": "通用设置",
         "history": "历史记录",
+        "ocr": "OCR 识别",
         "shortcut": "快捷键"
+      }
+    },
+    "ocr": {
+      "api_settings": {
+        "hints": {
+          "api_base": "支持 OpenAI 格式的 API 地址",
+          "api_key": "API 密钥用于身份验证",
+          "model": "支持图像识别的视觉模型名称"
+        },
+        "label": {
+          "api_base": "API 地址",
+          "api_key": "API 密钥",
+          "model": "模型名称"
+        },
+        "title": "OCR API 设置"
+      },
+      "behavior_settings": {
+        "hints": {
+          "auto_copy": "OCR 识别完成后自动复制结果到剪贴板"
+        },
+        "label": {
+          "auto_copy": "自动复制结果"
+        },
+        "title": "行为设置"
+      },
+      "shortcut_settings": {
+        "hints": {
+          "ocr": "截图并识别图片中的文字",
+          "ocr_translate": "截图识别文字后自动翻译"
+        },
+        "label": {
+          "ocr": "OCR 识别",
+          "ocr_translate": "OCR + 翻译"
+        },
+        "title": "快捷键设置"
+      },
+      "translate_settings": {
+        "hints": {
+          "api_base": "留空则使用 OCR 的 API 配置",
+          "api_key": "留空则使用 OCR 的 API 密钥",
+          "model": "留空则使用 OCR 的模型",
+          "target_language": "翻译的目标语言"
+        },
+        "label": {
+          "api_base": "翻译 API 地址",
+          "api_key": "翻译 API 密钥",
+          "enabled": "启用翻译功能",
+          "model": "翻译模型",
+          "target_language": "目标语言"
+        },
+        "placeholder": {
+          "api_base": "留空使用 OCR 配置",
+          "api_key": "留空使用 OCR 配置",
+          "model": "留空使用 OCR 配置"
+        },
+        "title": "翻译设置"
       }
     },
     "settings": {

@@ -16,8 +16,24 @@ export const globalStore = proxy<GlobalStore>({
 
   env: {},
 
+  ocr: {
+    apiBase: "https://api.openai.com",
+    apiKey: "",
+    autoCopy: true,
+    model: "gpt-4o",
+    translate: {
+      apiBase: "",
+      apiKey: "",
+      enabled: true,
+      model: "",
+      targetLanguage: "zh-CN",
+    },
+  },
+
   shortcut: {
     clipboard: "Alt+C",
+    ocr: "Alt+O",
+    ocrTranslate: "Alt+T",
     pastePlain: "",
     preference: "Alt+X",
     quickPaste: {

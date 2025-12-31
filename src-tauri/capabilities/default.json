@@ -43,7 +43,19 @@
     "clipboard-x:default",
     "eco-window:default",
     "eco-paste:default",
-    "eco-autostart:default"
+    "eco-autostart:default",
+    "http:default",
+    {
+      "allow": [
+        {
+          "url": "https://*"
+        },
+        {
+          "url": "http://*"
+        }
+      ],
+      "identifier": "http:allow-fetch"
+    }
   ],
   "windows": ["*"]
 }

@@ -253,7 +253,64 @@
         "clipboard": "Clipboard",
         "general": "General",
         "history": "History",
+        "ocr": "OCR",
         "shortcut": "Shortcuts"
+      }
+    },
+    "ocr": {
+      "api_settings": {
+        "hints": {
+          "api_base": "OpenAI-compatible API endpoint",
+          "api_key": "API key for authentication",
+          "model": "Vision model name that supports image recognition"
+        },
+        "label": {
+          "api_base": "API Base URL",
+          "api_key": "API Key",
+          "model": "Model Name"
+        },
+        "title": "OCR API Settings"
+      },
+      "behavior_settings": {
+        "hints": {
+          "auto_copy": "Automatically copy OCR result to clipboard"
+        },
+        "label": {
+          "auto_copy": "Auto Copy Result"
+        },
+        "title": "Behavior Settings"
+      },
+      "shortcut_settings": {
+        "hints": {
+          "ocr": "Capture screen and recognize text in the image",
+          "ocr_translate": "Capture, recognize text, then translate"
+        },
+        "label": {
+          "ocr": "OCR Recognition",
+          "ocr_translate": "OCR + Translation"
+        },
+        "title": "Shortcut Settings"
+      },
+      "translate_settings": {
+        "hints": {
+          "api_base": "Leave empty to use OCR API settings",
+          "api_key": "Leave empty to use OCR API key",
+          "model": "Leave empty to use OCR model",
+          "target_language": "Target language for translation"
+        },
+        "label": {
+          "api_base": "Translation API URL",
+          "api_key": "Translation API Key",
+          "enabled": "Enable Translation",
+          "model": "Translation Model",
+          "target_language": "Target Language"
+        },
+        "placeholder": {
+          "api_base": "Use OCR settings",
+          "api_key": "Use OCR settings",
+          "model": "Use OCR settings"
+        },
+        "title": "Translation Settings"
       }
     },
     "settings": {

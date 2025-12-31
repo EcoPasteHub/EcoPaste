@@ -23,6 +23,7 @@ import About from "./components/About";
 import Clipboard from "./components/Clipboard";
 import General from "./components/General";
 import History from "./components/History";
+import OCR from "./components/OCR";
 import Shortcut from "./components/Shortcut";
 
 const Preference = () => {
@@ -84,6 +85,12 @@ const Preference = () => {
         icon: "i-lucide:keyboard",
         key: "shortcut",
         label: t("preference.menu.title.shortcut"),
+      },
+      {
+        content: <OCR />,
+        icon: "i-lucide:scan-text",
+        key: "ocr",
+        label: t("preference.menu.title.ocr"),
       },
       // {
       //   content: <Backup />,
