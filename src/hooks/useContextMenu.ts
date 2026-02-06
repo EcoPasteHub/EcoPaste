@@ -6,7 +6,11 @@ import { find, isArray, remove } from "es-toolkit/compat";
 import { type MouseEvent, useContext } from "react";
 import { useTranslation } from "react-i18next";
 import { useSnapshot } from "valtio";
-import { deleteHistory, updateHistory } from "@/database/history";
+import {
+  deleteHistory,
+  getHistoryFullValue,
+  updateHistory,
+} from "@/database/history";
 import { MainContext } from "@/pages/Main";
 import type { ItemProps } from "@/pages/Main/components/HistoryList/components/Item";
 import { pasteToClipboard, writeToClipboard } from "@/plugins/clipboard";
@@ -57,11 +61,14 @@ export const useContextMenu = (props: UseContextMenuProps) => {
   const exportToFile = async () => {
     if (isArray(value)) return;
 
+    // 列表里的 value 可能被截断，导出时需要完整内容
+    const fullValue = (await getHistoryFullValue(id)) ?? value;
+
     const extname = type === "text" ? "txt" : type;
     const fileName = `${env.appName}_${id}.${extname}`;
     const path = join(await downloadDir(), fileName);
 
-    await writeTextFile(path, value);
+    await writeTextFile(path, fullValue);
 
     revealItemInDir(path);
   };
