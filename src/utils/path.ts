@@ -24,6 +24,13 @@ export function join(...paths: string[]) {
  * 获取存储数据的目录
  */
 export const getSaveDataPath = () => {
+  // 开发环境可强制指向测试数据目录，避免读写真实 AppData
+  const testDataDir = isDev() ? import.meta.env.VITE_ECOPASTE_TESTDATA_DIR : "";
+
+  if (testDataDir) {
+    return join(testDataDir);
+  }
+
   return join(globalStore.env.saveDataDir!);
 };
 
@@ -32,7 +39,10 @@ export const getSaveDataPath = () => {
  */
 export const getSaveDatabasePath = async () => {
   const appName = await getName();
-  const extname = isDev() ? "dev.db" : "db";
+  // 开发环境下若指定了测试数据目录，则直接复用生产库文件名 `*.db`
+  // 这样可以用真实大库验证搜索性能（同时不会影响真实数据，因为目录已是拷贝）。
+  const testDataDir = isDev() ? import.meta.env.VITE_ECOPASTE_TESTDATA_DIR : "";
+  const extname = testDataDir ? "db" : isDev() ? "dev.db" : "db";
 
   return join(getSaveDataPath(), `${appName}.${extname}`);
 };

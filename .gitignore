@@ -23,3 +23,6 @@ auto-imports.d.ts
 *.njsproj
 *.sln
 *.sw?
+
+# Local test data (copied / repaired from AppData)
+.testdata*/

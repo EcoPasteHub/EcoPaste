@@ -26,7 +26,14 @@ const SearchInput: FC<HTMLAttributes<HTMLDivElement>> = (props) => {
   useEffect(() => {
     if (isComposition) return;
 
-    rootState.search = value;
+    // 搜索防抖：避免每个按键都触发一次查库
+    const timer = window.setTimeout(() => {
+      rootState.search = value;
+    }, 200);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
   }, [value, isComposition]);
 
   useTauriFocus({

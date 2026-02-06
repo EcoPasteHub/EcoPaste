@@ -18,16 +18,23 @@ export const useTauriFocus = (props: Props) => {
 
     const wait = isMac ? 0 : 100;
 
-    const debounced = debounce(({ payload }) => {
-      if (payload) {
+    // Windows 上偶尔会收到“假失焦”事件，这里用 isFocused 二次确认
+    const debounced = debounce(async () => {
+      const focused = await appWindow.isFocused();
+
+      if (focused) {
         onFocus?.();
       } else {
         onBlur?.();
       }
     }, wait);
 
-    unlistenRef.current = await appWindow.onFocusChanged(debounced);
+    unlistenRef.current = await appWindow.onFocusChanged(() => {
+      void debounced();
+    });
   });
 
-  useUnmount(unlistenRef.current);
+  useUnmount(() => {
+    unlistenRef.current?.();
+  });
 };
