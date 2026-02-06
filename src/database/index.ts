@@ -1,6 +1,6 @@
 import Database from "@tauri-apps/plugin-sql";
 import { isBoolean } from "es-toolkit";
-import { Kysely } from "kysely";
+import { Kysely, sql } from "kysely";
 import { TauriSqliteDialect } from "kysely-dialect-tauri";
 import { SerializePlugin } from "kysely-plugin-serialize";
 import type { DatabaseSchema } from "@/types/database";
@@ -31,6 +31,9 @@ export const getDatabase = async () => {
     ],
   });
 
+  // 启用 WAL 模式：读写并发，搜索时不阻塞剪贴板写入
+  await sql`PRAGMA journal_mode = WAL`.execute(db);
+
   await db.schema
     .createTable("history")
     .ifNotExists()
@@ -46,6 +49,28 @@ export const getDatabase = async () => {
     .addColumn("createTime", "text")
     .addColumn("note", "text")
     .addColumn("subtype", "text")
+    .execute();
+
+  // B-Tree 索引：提升 ORDER BY createTime DESC LIMIT 的性能
+  await db.schema
+    .createIndex("idx_history_createTime")
+    .ifNotExists()
+    .on("history")
+    .column("createTime")
+    .execute();
+
+  await db.schema
+    .createIndex("idx_history_group_createTime")
+    .ifNotExists()
+    .on("history")
+    .columns(["group", "createTime"])
+    .execute();
+
+  await db.schema
+    .createIndex("idx_history_favorite_createTime")
+    .ifNotExists()
+    .on("history")
+    .columns(["favorite", "createTime"])
     .execute();
 
   return db;
