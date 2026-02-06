@@ -23,15 +23,23 @@ export const useHistoryList = (options: Options) => {
     noMore: false,
     page: 1,
     size: 20,
+    // 防止旧请求结果覆盖新搜索
+    fetchId: 0,
+    queryKey: "",
+    pendingReload: false,
   });
 
-  const fetchData = async () => {
-    try {
-      if (state.loading) return;
+  const getQueryKey = () => {
+    const { group, search } = rootState;
 
+    return JSON.stringify([group, search ?? ""]);
+  };
+
+  const fetchData = async (key: string, page: number) => {
+    try {
       state.loading = true;
 
-      const { page } = state;
+      const currentFetchId = ++state.fetchId;
 
       const list = await selectHistory((qb) => {
         const { size } = state;
@@ -54,6 +62,10 @@ export const useHistoryList = (options: Options) => {
           .limit(size)
           .orderBy("createTime", "desc");
       });
+
+      // 丢弃过期请求的结果，避免旧结果覆盖新搜索
+      if (currentFetchId !== state.fetchId) return;
+      if (key !== state.queryKey) return;
 
       for (const item of list) {
         const { type, value } = item;
@@ -91,22 +103,41 @@ export const useHistoryList = (options: Options) => {
       rootState.list = unionBy(rootState.list, list, "id");
     } finally {
       state.loading = false;
+
+      if (state.pendingReload) {
+        state.pendingReload = false;
+        reload();
+      }
     }
   };
 
   const reload = () => {
+    const key = getQueryKey();
+
+    state.queryKey = key;
     state.page = 1;
     state.noMore = false;
 
-    return fetchData();
+    rootState.list = [];
+    rootState.activeId = void 0;
+
+    if (state.loading) {
+      state.pendingReload = true;
+      return;
+    }
+
+    return fetchData(key, 1);
   };
 
   const loadMore = () => {
     if (state.noMore) return;
+    if (state.loading) return;
 
-    state.page += 1;
+    const nextPage = state.page + 1;
 
-    fetchData();
+    state.page = nextPage;
+
+    fetchData(state.queryKey || getQueryKey(), nextPage);
   };
 
   useTauriListen(LISTEN_KEY.REFRESH_CLIPBOARD_LIST, reload);
