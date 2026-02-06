@@ -8,25 +8,27 @@ import { getDatabase } from ".";
 
 type QueryBuilder = SelectQueryBuilder<DatabaseSchema, "history", AnyObject>;
 
-// 列表查询时 value 截断长度（只用于预览，避免几 MB 的文本拖慢渲染）
+// 列表查询时 text 类型的 value 截断长度（避免几 MB 的纯文本拖慢渲染）
+// HTML/RTF 需要完整 value 才能渲染富文本，不截断
 const LIST_VALUE_TRUNCATE = 500;
 
 /**
- * 查询历史记录（列表用，value 字段截断以提升性能）
+ * 查询历史记录（列表用，仅 text 类型的 value 截断）
  */
 export const selectHistory = async (
   fn?: (qb: QueryBuilder) => QueryBuilder,
 ) => {
   const db = await getDatabase();
 
-  // 不用 selectAll()，而是显式选择字段，value 截断到 500 字符
+  // text 类型截断 value（列表只显示前几行预览，不需要完整内容）
+  // html/rtf 需要完整 value 来渲染富文本，不截断
   let qb = db
     .selectFrom("history")
     .select([
       "id",
       "type",
       "group",
-      sql<string>`substr(value, 1, ${sql.lit(LIST_VALUE_TRUNCATE)})`.as(
+      sql<string>`CASE WHEN type = 'text' THEN substr(value, 1, ${sql.lit(LIST_VALUE_TRUNCATE)}) ELSE value END`.as(
         "value",
       ),
       "search",
