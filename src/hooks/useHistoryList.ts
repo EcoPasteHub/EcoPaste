@@ -54,21 +54,11 @@ export const useHistoryList = (options: Options) => {
           .$if(isFavoriteGroup, (eb) => eb.where("favorite", "=", true))
           .$if(isNormalGroup, (eb) => eb.where("group", "=", group))
           .$if(!isBlank(search), (eb) => {
-            // 使用 FTS5 trigram 索引加速搜索（比 LIKE 快 7~21 倍）
-            // 如果 FTS5 不可用会自动 fallback 到 LIKE
-            return eb.where(({ eb: e, selectFrom }) => {
-              return e(
-                "history.rowid",
-                "in",
-                selectFrom("history_fts" as any)
-                  .select("rowid" as any)
-                  .where((ftsEb: any) =>
-                    ftsEb.or([
-                      ftsEb("search", "like", ftsEb.val(`%${search}%`)),
-                      ftsEb("note", "like", ftsEb.val(`%${search}%`)),
-                    ]),
-                  ),
-              );
+            return eb.where((eb) => {
+              return eb.or([
+                eb("search", "like", eb.val(`%${search}%`)),
+                eb("note", "like", eb.val(`%${search}%`)),
+              ]);
             });
           })
           .offset((page - 1) * size)
