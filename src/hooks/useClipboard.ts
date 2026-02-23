@@ -18,6 +18,7 @@ import { getClipboardTextSubtype } from "@/plugins/clipboard";
 import { clipboardStore } from "@/stores/clipboard";
 import type { DatabaseSchemaHistory } from "@/types/database";
 import { formatDate } from "@/utils/dayjs";
+import { isURL } from "@/utils/is";
 
 export const useClipboard = (
   state: State,
@@ -41,10 +42,41 @@ export const useClipboard = (
         search: text?.value,
       } as DatabaseSchemaHistory;
 
+      let isPureImage = false;
+
+      if (image && !copyPlain) {
+        if (html?.value) {
+          try {
+            const doc = new DOMParser().parseFromString(
+              html.value,
+              "text/html",
+            );
+            const body = doc.body;
+            const nonVisibleTags = body.querySelectorAll(
+              "meta, style, script, link, title, noscript",
+            );
+            nonVisibleTags.forEach((el) => {
+              el.remove();
+            });
+
+            const imgs = body.getElementsByTagName("img");
+            if (imgs.length > 0 && !body.textContent?.trim()) {
+              isPureImage = true;
+            }
+          } catch {}
+        } else if (!text?.value?.trim() || isURL(text.value)) {
+          isPureImage = true;
+        }
+      }
+
       if (files) {
         Object.assign(data, files, {
           group: "files",
           search: files.value.join(" "),
+        });
+      } else if (image && isPureImage) {
+        Object.assign(data, image, {
+          group: "image",
         });
       } else if (html && !copyPlain) {
         Object.assign(data, html);
