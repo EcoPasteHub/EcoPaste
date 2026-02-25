@@ -13,7 +13,7 @@ pub struct CaretPosition {
 #[cfg(target_os = "windows")]
 #[command]
 pub fn get_caret_position() -> CaretPosition {
-    use windows::Win32::Foundation::{POINT, RECT};
+    use windows::Win32::Foundation::POINT;
     use windows::Win32::UI::WindowsAndMessaging::{
         GetCaretPos, GetForegroundWindow, GetWindowThreadProcessId,
         GetGUIThreadInfo, GUITHREADINFO,

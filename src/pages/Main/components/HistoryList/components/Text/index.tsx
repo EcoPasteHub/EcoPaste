@@ -56,17 +56,17 @@ const Text = forwardRef<HTMLDivElement, TextProps>((props, ref) => {
   const getLineClampStyle = (): CSSProperties => {
     if (expanded) {
       return {
-        wordBreak: "break-all",
         whiteSpace: "pre-wrap",
+        wordBreak: "break-all",
       };
     }
     return {
       display: "-webkit-box",
-      WebkitLineClamp: displayLines,
-      WebkitBoxOrient: "vertical",
       overflow: "hidden",
-      wordBreak: "break-all",
+      WebkitBoxOrient: "vertical",
+      WebkitLineClamp: displayLines,
       whiteSpace: "pre-wrap", // 确保换行符被尊重
+      wordBreak: "break-all",
     };
   };
 

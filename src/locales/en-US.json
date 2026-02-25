@@ -125,11 +125,11 @@
           "auto_sort": "Alignment to the top when copying existing content",
           "copy_as_plain": "Rich text and HTML formats retain only plain text content when copied",
           "delete_confirm": "Pop-up confirmation dialog when deleting clipboard contents",
+          "display_lines": "Set the default number of lines displayed for text in the clipboard list",
+          "image_display_height": "Set the default display height for images in the clipboard list",
           "operation_button": "Customize icon buttons to operate on clipboard content",
           "paste_as_plain": "Rich text and HTML formatting retains only plain text content when pasting",
-          "show_original_content": "Whether to display the original content on mouse hover after adding a note",
-          "display_lines": "Set the default number of lines displayed for text in the clipboard list",
-          "image_display_height": "Set the default display height for images in the clipboard list"
+          "show_original_content": "Whether to display the original content on mouse hover after adding a note"
         },
         "label": {
           "auto_favorite": "Auto Favorite",
@@ -137,9 +137,14 @@
           "auto_paste_double": "Double Click",
           "auto_paste_single": "Single Click",
           "auto_sort": "Auto Sort",
+          "collapse": "Collapse",
           "copy_as_plain": "Copy as Plain Text",
           "custom_operation_button_title": "Custom Action Button",
           "delete_confirm": "Delete Confirmation",
+          "display_lines": "Text Display Lines",
+          "expand": "Expand",
+          "image_display_height": "Image Display Height",
+          "image_display_height_unit": "px",
           "operation_button": "Action Button",
           "operation_button_option": {
             "copy": "Copy",
@@ -149,12 +154,7 @@
             "paste_plain": "Paste as Plain Text"
           },
           "paste_as_plain": "Paste as Plain Text",
-          "show_original_content": "Show Original Content",
-          "display_lines": "Text Display Lines",
-          "image_display_height": "Image Display Height",
-          "image_display_height_unit": "px",
-          "expand": "Expand",
-          "collapse": "Collapse"
+          "show_original_content": "Show Original Content"
         },
         "title": "Content Settings"
       },
@@ -180,9 +180,9 @@
           "back_top": "Back to top when activated",
           "show_all": "Switch to all group when activated",
           "window_position": "Window Position",
+          "window_position_caret": "Follow Input Caret",
           "window_position_center": "Center on Screen",
           "window_position_follow": "Follow Mouse Cursor",
-          "window_position_caret": "Follow Input Caret",
           "window_position_remember": "Remember Position"
         },
         "title": "Window Settings"
@@ -220,6 +220,71 @@
           "log_storage_path": "Log Storage Path"
         },
         "title": "Storage Settings"
+      },
+      "webdav": {
+        "button": {
+          "backup": "Backup to WebDAV",
+          "cancel_restore": "Cancel",
+          "close": "Close",
+          "confirm_backup": "Start Backup",
+          "confirm_restore": "Continue",
+          "delete": "Delete",
+          "delete_selected": "Delete Selected ({{total}})",
+          "refresh": "Refresh",
+          "restore": "Restore",
+          "restore_from": "Restore from WebDAV",
+          "test": "Test"
+        },
+        "hints": {
+          "auto_backup": "Set the interval for WebDAV automatic backups",
+          "backup_success": "Backup Successful",
+          "confirm_restore": "Restoring from WebDAV will overwrite current data. Continue?",
+          "delete_success": "Deleted Successfully",
+          "error": "Backup error: {{error}}",
+          "manual": "Backup and restore via WebDAV",
+          "max_backups": "Limit the number of backups retained on WebDAV",
+          "restore_success": "Restore Successful",
+          "slim": "Skip images and icons to back up text and settings only for speed",
+          "test_failed": "Connection failed: {{error}}",
+          "test_success": "Connection successful"
+        },
+        "label": {
+          "address": "WebDAV Address",
+          "auto_backup": "Auto Backup",
+          "filename": "Backup File Name",
+          "manual": "Backup and Restore",
+          "max_backups": "Max Backups",
+          "password": "WebDAV Password",
+          "path": "WebDAV Path",
+          "slim": "Slim Backup",
+          "status": "Backup Status",
+          "total": "Total {{total}} backups",
+          "username": "WebDAV Username"
+        },
+        "placeholder": {
+          "address": "https://example.com/dav/",
+          "filename": "EcoPaste.20260212131015.PC001.windows",
+          "password": "Password",
+          "path": "e.g. /EcoPaste",
+          "username": "Username"
+        },
+        "section_title": "WebDAV",
+        "status": {
+          "failed": "Backup Failed",
+          "never": "Never Backed Up",
+          "success": "Backup Successful"
+        },
+        "table": {
+          "action": "Action",
+          "device": "Device",
+          "name": "File Name",
+          "size": "Size",
+          "time": "Backup Time"
+        },
+        "title": {
+          "backup": "Backup to WebDAV",
+          "restore": "Restore from WebDAV"
+        }
       }
     },
     "history": {

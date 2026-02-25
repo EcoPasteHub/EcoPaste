@@ -1,0 +1,16 @@
+"$schema" = "schemas/schema.json"
+
+[default]
+description = "Default permissions for the plugin"
+permissions = [
+  "allow-set-config",
+  "allow-get-config",
+  "allow-get-computer-name",
+  "allow-test-config",
+  "allow-list-backups",
+  "allow-upload-backup",
+  "allow-cancel-upload",
+  "allow-download-backup",
+  "allow-delete-backup",
+  "allow-create-slim-database"
+]

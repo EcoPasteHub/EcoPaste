@@ -43,8 +43,10 @@ export const useClipboard = (
 
       if (files) {
         // 如果文件都是图片且有图片数据，优先识别为图片（如截图工具）
-        const imageExtensions = /\.(png|jpg|jpeg|gif|bmp|webp|svg|ico|tiff?|avif)$/i;
-        const allFilesAreImages = files.value.length > 0 &&
+        const imageExtensions =
+          /\.(png|jpg|jpeg|gif|bmp|webp|svg|ico|tiff?|avif)$/i;
+        const allFilesAreImages =
+          files.value.length > 0 &&
           files.value.every((f: string) => imageExtensions.test(f));
 
         if (allFilesAreImages && image) {

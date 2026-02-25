@@ -1,0 +1,28 @@
+[package]
+name = "tauri-plugin-eco-webdav"
+version = "0.1.0"
+authors = []
+description = ""
+edition = "2021"
+rust-version = "1.77.2"
+links = "tauri-plugin-eco-webdav"
+
+[dependencies]
+tauri.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+keyring = "2"
+hostname = "0.4"
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "stream"] }
+quick-xml = "0.31"
+url = "2"
+tokio = { version = "1", features = ["fs", "io-util", "rt", "macros"] }
+tokio-util = { version = "0.7", features = ["io"] }
+futures-util = "0.3"
+rusqlite = { version = "0.32", features = ["bundled"] }
+
+[build-dependencies]
+tauri-plugin.workspace = true
+
+[features]
+cargo-clippy = []

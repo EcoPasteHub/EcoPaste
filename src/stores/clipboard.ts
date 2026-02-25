@@ -11,13 +11,13 @@ export const clipboardStore = proxy<ClipboardStore>({
     autoPaste: "double",
     autoSort: false,
     copyPlain: false,
+    defaultCollapse: false,
     deleteConfirm: true,
+    displayLines: 4,
+    imageDisplayHeight: 100,
     operationButtons: ["copy", "star", "delete"],
     pastePlain: false,
     showOriginalContent: false,
-    displayLines: 4,
-    imageDisplayHeight: 100,
-    defaultCollapse: false,
   },
 
   history: {
@@ -30,6 +30,14 @@ export const clipboardStore = proxy<ClipboardStore>({
     autoClear: false,
     defaultFocus: false,
     position: "top",
+  },
+  webdav: {
+    autoBackup: 0,
+    lastBackupAt: void 0,
+    lastBackupError: void 0,
+    lastBackupStatus: "none",
+    maxBackups: 0,
+    slim: false,
   },
   window: {
     backTop: false,

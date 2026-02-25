@@ -19,8 +19,8 @@ const Image = forwardRef<HTMLImageElement, ImageProps>((props, ref) => {
     if (expanded) {
       return {
         maxHeight: "none",
-        width: "100%",
         objectFit: "contain",
+        width: "100%",
       };
     }
     return {
@@ -29,7 +29,9 @@ const Image = forwardRef<HTMLImageElement, ImageProps>((props, ref) => {
     };
   };
 
-  return <LocalImage ref={ref} style={getImageStyle()} src={value} onLoad={onLoad} />;
+  return (
+    <LocalImage onLoad={onLoad} ref={ref} src={value} style={getImageStyle()} />
+  );
 });
 
 Image.displayName = "Image";

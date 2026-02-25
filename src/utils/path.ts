@@ -51,6 +51,11 @@ export const getSaveDataDirName = () => {
   return last(getSaveDataPath().split(sep())) as string;
 };
 
+export const getBackupExtname = () => {
+  const appName = globalStore.env.appName || "EcoPaste";
+  return `${appName}-backup`;
+};
+
 /**
  * 存储配置项的路径
  * @param backup 是否是备份数据

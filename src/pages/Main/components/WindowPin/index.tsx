@@ -1,7 +1,7 @@
+import { listen } from "@tauri-apps/api/event";
 import { useKeyPress } from "ahooks";
 import clsx from "clsx";
 import { useContext, useEffect } from "react";
-import { listen } from "@tauri-apps/api/event";
 import UnoIcon from "@/components/UnoIcon";
 import { PRESET_SHORTCUT } from "@/constants";
 import { useTauriFocus } from "@/hooks/useTauriFocus";

@@ -22,8 +22,8 @@ const ImageDisplayHeight = () => {
           "preference.clipboard.content_settings.label.image_display_height_unit",
         )}
         className="w-30"
-        min={50}
         max={500}
+        min={50}
         onChange={(value) => {
           if (value !== null) {
             clipboardStore.content.imageDisplayHeight = value;

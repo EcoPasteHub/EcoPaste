@@ -55,9 +55,7 @@ const Rtf = forwardRef<HTMLDivElement, RtfProps>((props, ref) => {
     }
   };
 
-  return (
-    <SafeHtml ref={ref} value={parsedHTML} expanded={expanded} />
-  );
+  return <SafeHtml expanded={expanded} ref={ref} value={parsedHTML} />;
 });
 
 Rtf.displayName = "Rtf";

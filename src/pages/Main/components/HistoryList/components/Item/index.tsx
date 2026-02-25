@@ -3,8 +3,8 @@ import { Flex } from "antd";
 import type { HookAPI } from "antd/es/modal/useModal";
 import clsx from "clsx";
 import { type FC, useContext, useEffect, useRef, useState } from "react";
-import { Marker } from "react-mark.js";
 import { useTranslation } from "react-i18next";
+import { Marker } from "react-mark.js";
 import { useSnapshot } from "valtio";
 import SafeHtml from "@/components/SafeHtml";
 import UnoIcon from "@/components/UnoIcon";
@@ -40,7 +40,14 @@ const Item: FC<ItemProps> = (props) => {
   // 检查内容是否溢出（依赖 expanded 以便收起时重新检测）
   useEffect(() => {
     checkOverflow();
-  }, [content.displayLines, content.imageDisplayHeight, value, type, rootState.search, expanded]);
+  }, [
+    content.displayLines,
+    content.imageDisplayHeight,
+    value,
+    type,
+    rootState.search,
+    expanded,
+  ]);
 
   const checkOverflow = () => {
     // 展开状态：已展开说明之前检测过溢出，保持按钮显示
@@ -53,21 +60,25 @@ const Item: FC<ItemProps> = (props) => {
       setIsOverflow(false);
       return;
     }
-    
+
     const element = contentRef.current;
-    
+
     if (element instanceof HTMLImageElement) {
-        // 图片：超过设定高度 且 缩放后的渲染宽度未布满容器时显示按钮
-        const maxH = content.imageDisplayHeight || 100;
-        const containerWidth = element.parentElement?.clientWidth || element.clientWidth;
-        // 计算 maxHeight 约束下的渲染宽度（保持宽高比）
-        const renderedWidth = element.naturalHeight > 0
+      // 图片：超过设定高度 且 缩放后的渲染宽度未布满容器时显示按钮
+      const maxH = content.imageDisplayHeight || 100;
+      const containerWidth =
+        element.parentElement?.clientWidth || element.clientWidth;
+      // 计算 maxHeight 约束下的渲染宽度（保持宽高比）
+      const renderedWidth =
+        element.naturalHeight > 0
           ? element.naturalWidth * (maxH / element.naturalHeight)
           : element.naturalWidth;
-        setIsOverflow(element.naturalHeight > maxH && renderedWidth < containerWidth);
+      setIsOverflow(
+        element.naturalHeight > maxH && renderedWidth < containerWidth,
+      );
     } else {
-        // 文本：检查 scrollHeight 是否大于 clientHeight
-        setIsOverflow(element.scrollHeight > element.clientHeight + 1);
+      // 文本：检查 scrollHeight 是否大于 clientHeight
+      setIsOverflow(element.scrollHeight > element.clientHeight + 1);
     }
   };
 
@@ -134,7 +145,9 @@ const Item: FC<ItemProps> = (props) => {
   const handleToggleExpand = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (expanded) {
-      rootState.expandedIds = rootState.expandedIds.filter((eid: string) => eid !== id);
+      rootState.expandedIds = rootState.expandedIds.filter(
+        (eid: string) => eid !== id,
+      );
     } else {
       rootState.expandedIds = [...rootState.expandedIds, id];
     }
@@ -145,11 +158,27 @@ const Item: FC<ItemProps> = (props) => {
       case "text":
         return <Text ref={contentRef as any} {...data} expanded={expanded} />;
       case "rtf":
-        return <Rtf ref={contentRef as any} {...data} expanded={expanded} onLoad={checkOverflow} />;
+        return (
+          <Rtf
+            ref={contentRef as any}
+            {...data}
+            expanded={expanded}
+            onLoad={checkOverflow}
+          />
+        );
       case "html":
-        return <SafeHtml ref={contentRef as any} {...data} expanded={expanded} />;
+        return (
+          <SafeHtml ref={contentRef as any} {...data} expanded={expanded} />
+        );
       case "image":
-        return <Image ref={contentRef as any} {...data} expanded={expanded} onLoad={checkOverflow} />;
+        return (
+          <Image
+            ref={contentRef as any}
+            {...data}
+            expanded={expanded}
+            onLoad={checkOverflow}
+          />
+        );
       case "files":
         return <Files {...data} />;
     }
@@ -182,9 +211,9 @@ const Item: FC<ItemProps> = (props) => {
           )}
           style={{
             display: expanded ? "block" : "-webkit-box",
-            WebkitLineClamp: expanded ? "none" : content.displayLines || 4,
-            WebkitBoxOrient: "vertical",
             overflow: "hidden",
+            WebkitBoxOrient: "vertical",
+            WebkitLineClamp: expanded ? "none" : content.displayLines || 4,
           }}
         >
           <UnoIcon
@@ -208,7 +237,7 @@ const Item: FC<ItemProps> = (props) => {
       {/* 展开/收起按钮 */}
       {(isOverflow || expanded) && (
         <div
-          className="flex cursor-pointer items-center justify-center text-xs text-primary hover:text-primary-6"
+          className="flex cursor-pointer items-center justify-center text-primary text-xs hover:text-primary-6"
           onClick={handleToggleExpand}
         >
           <UnoIcon

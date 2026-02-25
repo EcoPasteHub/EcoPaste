@@ -27,3 +27,33 @@ html {
     }
   }
 }
+
+.webdav-password {
+  display: inline-flex;
+
+  .ant-input-affix-wrapper {
+    border-right: 0;
+    // box-shadow: inset -1px 0 0 var(--ant-color-border);
+  }
+
+  .ant-input-group-addon {
+    border-left: 0;
+    padding: 0;
+    box-shadow: inset 1px 0 0 var(--ant-color-border);
+  }
+
+  .ant-input-affix-wrapper:hover,
+  .ant-input-affix-wrapper:focus-within {
+    border-color: var(--ant-color-primary);
+    box-shadow: inset -1px 0 0 var(--ant-color-primary);
+  }
+
+  .ant-input-group-addon:hover {
+    border-color: var(--ant-color-primary);
+    box-shadow: inset 1px 0 0 var(--ant-color-primary);
+  }
+
+  .ant-input-group-addon:hover .webdav-test {
+    color: var(--ant-color-primary);
+  }
+}

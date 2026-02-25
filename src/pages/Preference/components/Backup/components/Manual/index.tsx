@@ -10,9 +10,9 @@ import ProList from "@/components/ProList";
 import UnoIcon from "@/components/UnoIcon";
 import { LISTEN_KEY } from "@/constants";
 import { showWindow } from "@/plugins/window";
-import { globalStore } from "@/stores/global";
 import { dayjs, formatDate } from "@/utils/dayjs";
 import {
+  getBackupExtname,
   getSaveDatabasePath,
   getSaveDataPath,
   getSaveImagePath,
@@ -26,11 +26,6 @@ import type { State } from "../..";
 const Manual: FC<{ state: State }> = (props) => {
   const { state } = props;
   const { t } = useTranslation();
-
-  // 备份文件的扩展名
-  const extname = () => {
-    return `${globalStore.env.appName}-backup`;
-  };
 
   // 导入数据
   const handleImport = async () => {
@@ -50,7 +45,7 @@ const Manual: FC<{ state: State }> = (props) => {
       if (!confirmed) return;
 
       const path = await open({
-        filters: [{ extensions: [extname()], name: "" }],
+        filters: [{ extensions: [getBackupExtname()], name: "" }],
       });
 
       showWindow();
@@ -102,7 +97,10 @@ const Manual: FC<{ state: State }> = (props) => {
 
       const filename = formatDate(dayjs(), "YYYY_MM_DD_HH_mm_ss");
 
-      const path = join(await downloadDir(), `${filename}.${extname()}`);
+      const path = join(
+        await downloadDir(),
+        `${filename}.${getBackupExtname()}`,
+      );
 
       await compress(getSaveDataPath(), path, {
         includes: [

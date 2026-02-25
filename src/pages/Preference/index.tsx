@@ -1,6 +1,5 @@
 import { emit } from "@tauri-apps/api/event";
 import { useCreation, useMount } from "ahooks";
-import Backup from "./components/Backup";
 import { Flex } from "antd";
 import clsx from "clsx";
 import { MacScrollbar } from "mac-scrollbar";
@@ -21,6 +20,7 @@ import { raf } from "@/utils/bom";
 import { isMac } from "@/utils/is";
 import { saveStore } from "@/utils/store";
 import About from "./components/About";
+import Backup from "./components/Backup";
 import Clipboard from "./components/Clipboard";
 import General from "./components/General";
 import History from "./components/History";

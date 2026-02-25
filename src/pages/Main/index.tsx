@@ -46,10 +46,10 @@ export interface State {
 }
 
 const INITIAL_STATE: State = {
+  expandedIds: [],
   group: "all",
   list: [],
   quickPasteKeys: [],
-  expandedIds: [],
 };
 
 interface MainContextValue {

@@ -17,3 +17,4 @@ tauri-nspanel = { git = "https://github.com/ahkohd/tauri-nspanel", branch = "v2.
 tauri-plugin-eco-window = { path = "./src-tauri/src/plugins/window" }
 tauri-plugin-eco-paste = { path = "./src-tauri/src/plugins/paste" }
 tauri-plugin-eco-autostart = { path = "./src-tauri/src/plugins/autostart" }
+tauri-plugin-eco-webdav = { path = "./src-tauri/src/plugins/webdav" }

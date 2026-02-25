@@ -1,5 +1,10 @@
 import DOMPurify from "dompurify";
-import { type CSSProperties, type MouseEvent, forwardRef, useContext } from "react";
+import {
+  type CSSProperties,
+  forwardRef,
+  type MouseEvent,
+  useContext,
+} from "react";
 import { Marker } from "react-mark.js";
 import { useSnapshot } from "valtio";
 import { MainContext } from "@/pages/Main";
@@ -42,7 +47,6 @@ const SafeHtml = forwardRef<HTMLDivElement, SafeHtmlProps>((props, ref) => {
   return (
     <Marker mark={rootState.search}>
       <div
-        ref={ref}
         className="translate-z-0"
         dangerouslySetInnerHTML={{
           __html: DOMPurify.sanitize(value, {
@@ -50,6 +54,7 @@ const SafeHtml = forwardRef<HTMLDivElement, SafeHtmlProps>((props, ref) => {
           }),
         }}
         onClick={handleClick}
+        ref={ref}
         style={getLineClampStyle()}
       />
     </Marker>

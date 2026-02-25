@@ -43,7 +43,8 @@
     "clipboard-x:default",
     "eco-window:default",
     "eco-paste:default",
-    "eco-autostart:default"
+    "eco-autostart:default",
+    "eco-webdav:default"
   ],
   "windows": ["*"]
 }

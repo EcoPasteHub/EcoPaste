@@ -125,11 +125,11 @@
           "auto_sort": "复制已存在的内容时排列到最前面",
           "copy_as_plain": "富文本和HTML格式在复制时仅保留纯文本内容",
           "delete_confirm": "删除剪贴板内容时弹出确认对话框",
+          "display_lines": "设置剪贴板列表中纯文本、富文本、HTML格式内容的默认显示行数",
+          "image_display_height": "设置剪贴板列表中图片的默认显示高度",
           "operation_button": "自定义操作剪贴板内容的图标按钮",
           "paste_as_plain": "富文本和HTML格式在粘贴时仅保留纯文本内容",
-          "show_original_content": "添加备注后，鼠标悬停时是否显示原内容",
-          "display_lines": "设置剪贴板列表中纯文本、富文本、HTML格式内容的默认显示行数",
-          "image_display_height": "设置剪贴板列表中图片的默认显示高度"
+          "show_original_content": "添加备注后，鼠标悬停时是否显示原内容"
         },
         "label": {
           "auto_favorite": "自动收藏",
@@ -137,9 +137,14 @@
           "auto_paste_double": "双击",
           "auto_paste_single": "单击",
           "auto_sort": "自动排序",
+          "collapse": "收起",
           "copy_as_plain": "复制为纯文本",
           "custom_operation_button_title": "自定义操作按钮",
           "delete_confirm": "删除确认",
+          "display_lines": "文本显示行数",
+          "expand": "展开",
+          "image_display_height": "图片显示高度",
+          "image_display_height_unit": "像素",
           "operation_button": "操作按钮",
           "operation_button_option": {
             "copy": "复制",
@@ -149,12 +154,7 @@
             "paste_plain": "粘贴为纯文本"
           },
           "paste_as_plain": "粘贴为纯文本",
-          "show_original_content": "显示原内容",
-          "display_lines": "文本显示行数",
-          "image_display_height": "图片显示高度",
-          "image_display_height_unit": "像素",
-          "expand": "展开",
-          "collapse": "收起"
+          "show_original_content": "显示原内容"
         },
         "title": "内容设置"
       },
@@ -189,9 +189,9 @@
           "back_top": "激活时回到顶部",
           "show_all": "激活时切换至全部分组",
           "window_position": "窗口位置",
+          "window_position_caret": "跟随光标",
           "window_position_center": "屏幕中心",
           "window_position_follow": "跟随鼠标",
-          "window_position_caret": "跟随光标",
           "window_position_remember": "记住位置"
         },
         "title": "窗口设置"
@@ -229,6 +229,71 @@
           "log_storage_path": "日志存储路径"
         },
         "title": "存储设置"
+      },
+      "webdav": {
+        "button": {
+          "backup": "备份到 WebDAV",
+          "cancel_restore": "取消",
+          "close": "关闭",
+          "confirm_backup": "开始备份",
+          "confirm_restore": "继续恢复",
+          "delete": "删除",
+          "delete_selected": "删除选中({{total}})",
+          "refresh": "刷新",
+          "restore": "恢复",
+          "restore_from": "从 WebDAV 恢复",
+          "test": "检测"
+        },
+        "hints": {
+          "auto_backup": "设置 WebDAV 自动备份的间隔时间",
+          "backup_success": "备份成功",
+          "confirm_restore": "从 WebDAV 恢复将会覆盖当前数据，是否继续？",
+          "delete_success": "删除成功",
+          "error": "备份错误：{{error}}",
+          "manual": "通过 WebDAV 进行备份与恢复",
+          "max_backups": "限制 WebDAV 保留的最大备份数量",
+          "restore_success": "恢复成功",
+          "slim": "备份时跳过图片、图标等文件，仅保留文本内容与设置以提升速度",
+          "test_failed": "连接失败：{{error}}",
+          "test_success": "连接成功"
+        },
+        "label": {
+          "address": "WebDAV 地址",
+          "auto_backup": "自动备份",
+          "filename": "备份文件名",
+          "manual": "数据备份与恢复",
+          "max_backups": "最大备份数",
+          "password": "WebDAV 密码",
+          "path": "WebDAV 路径",
+          "slim": "精简备份",
+          "status": "备份状态",
+          "total": "共 {{total}} 个备份",
+          "username": "WebDAV 用户名"
+        },
+        "placeholder": {
+          "address": "https://example.com/dav/",
+          "filename": "EcoPaste.20260212131015.PC001.windows",
+          "password": "密码",
+          "path": "例如 /EcoPaste",
+          "username": "用户名"
+        },
+        "section_title": "WebDAV",
+        "status": {
+          "failed": "备份失败",
+          "never": "从未备份",
+          "success": "备份成功"
+        },
+        "table": {
+          "action": "操作",
+          "device": "设备",
+          "name": "文件名",
+          "size": "大小",
+          "time": "备份时间"
+        },
+        "title": {
+          "backup": "备份到 WebDAV",
+          "restore": "从 WebDAV 恢复"
+        }
       }
     },
     "history": {

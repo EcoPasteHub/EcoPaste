@@ -11,6 +11,7 @@ import { LISTEN_KEY, PRESET_SHORTCUT } from "./constants";
 import { destroyDatabase } from "./database";
 import { useImmediateKey } from "./hooks/useImmediateKey";
 import { useTauriListen } from "./hooks/useTauriListen";
+import { useWebdavAutoBackup } from "./hooks/useWebdavAutoBackup";
 import { useWindowState } from "./hooks/useWindowState";
 import { getAntdLocale, i18n } from "./locales";
 import { hideWindow, showWindow } from "./plugins/window";
@@ -61,6 +62,8 @@ const App = () => {
 
   // 监听关闭数据库的事件
   useTauriListen(LISTEN_KEY.CLOSE_DATABASE, destroyDatabase);
+
+  useWebdavAutoBackup();
 
   // 链接跳转到系统浏览器
   useEventListener("click", (event) => {

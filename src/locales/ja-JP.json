@@ -125,11 +125,11 @@
           "auto_sort": "既存の内容をコピーして最前面に配置する",
           "copy_as_plain": "リッチテキストとHTML形式は、コピーしてもプレーンテキストの内容しか保持しない",
           "delete_confirm": "クリップボードの内容を削除する際に確認ダイアログを表示する",
+          "display_lines": "クリップボードリストのテキスト内容のデフォルト表示行数を設定",
+          "image_display_height": "クリップボードリストの画像のデフォルト表示高さを設定",
           "operation_button": "クリップボード内容を操作するためのアイコンボタンをカスタマイズします",
           "paste_as_plain": "リッチテキストとHTMLの書式設定は、貼り付け時にプレーンテキストの内容だけを保持する",
-          "show_original_content": "メモを追加した後、マウスをホバーしたときに元のコンテンツを表示するかどうか",
-          "display_lines": "クリップボードリストのテキスト内容のデフォルト表示行数を設定",
-          "image_display_height": "クリップボードリストの画像のデフォルト表示高さを設定"
+          "show_original_content": "メモを追加した後、マウスをホバーしたときに元のコンテンツを表示するかどうか"
         },
         "label": {
           "auto_favorite": "自動コレクション",
@@ -137,9 +137,14 @@
           "auto_paste_double": "ダブルクリック",
           "auto_paste_single": "シングルクリック",
           "auto_sort": "自動整列",
+          "collapse": "折りたたむ",
           "copy_as_plain": "プレーンテキストとしてコピー",
           "custom_operation_button_title": "カスタム操作ボタン",
           "delete_confirm": "削除確認",
+          "display_lines": "テキスト表示行数",
+          "expand": "展開",
+          "image_display_height": "画像表示高さ",
+          "image_display_height_unit": "ピクセル",
           "operation_button": "操作ボタン",
           "operation_button_option": {
             "copy": "コピー",
@@ -149,12 +154,7 @@
             "paste_plain": "プレーンテキストとして貼り付け"
           },
           "paste_as_plain": "プレーンテキストとして貼り付ける",
-          "show_original_content": "元の内容を表示します",
-          "display_lines": "テキスト表示行数",
-          "image_display_height": "画像表示高さ",
-          "image_display_height_unit": "ピクセル",
-          "expand": "展開",
-          "collapse": "折りたたむ"
+          "show_original_content": "元の内容を表示します"
         },
         "title": "コンテンツ設定"
       },
@@ -180,9 +180,9 @@
           "back_top": "トップページに戻る",
           "show_all": "起動時に全グループに切り替わる",
           "window_position": "クリップボード位置",
+          "window_position_caret": "カーソルに従う",
           "window_position_center": "スクリーンセンター",
           "window_position_follow": "マウスに従う",
-          "window_position_caret": "カーソルに従う",
           "window_position_remember": "位置を記憶する"
         },
         "title": "クリップボード設定"
@@ -220,6 +220,71 @@
           "log_storage_path": "ログ保存パス"
         },
         "title": "ストレージ設定"
+      },
+      "webdav": {
+        "button": {
+          "backup": "WebDAV にバックアップ",
+          "cancel_restore": "キャンセル",
+          "close": "閉じる",
+          "confirm_backup": "バックアップ開始",
+          "confirm_restore": "続行",
+          "delete": "削除",
+          "delete_selected": "選択を削除({{total}})",
+          "refresh": "更新",
+          "restore": "復元",
+          "restore_from": "WebDAV から復元",
+          "test": "テスト"
+        },
+        "hints": {
+          "auto_backup": "WebDAV 自動バックアップの間隔を設定します",
+          "backup_success": "バックアップ成功",
+          "confirm_restore": "WebDAV から復元すると現在のデータが上書きされます。続行しますか？",
+          "delete_success": "削除成功",
+          "error": "バックアップエラー：{{error}}",
+          "manual": "WebDAV でバックアップと復元を行います",
+          "max_backups": "WebDAV に保存する最大バックアップ数を制限します",
+          "restore_success": "復元成功",
+          "slim": "画像やアイコンを除外し、テキストと設定のみをバックアップして高速化します",
+          "test_failed": "接続失敗：{{error}}",
+          "test_success": "接続成功"
+        },
+        "label": {
+          "address": "WebDAV アドレス",
+          "auto_backup": "自動バックアップ",
+          "filename": "バックアップファイル名",
+          "manual": "バックアップと復元",
+          "max_backups": "最大バックアップ数",
+          "password": "WebDAV パスワード",
+          "path": "WebDAV パス",
+          "slim": "軽量バックアップ",
+          "status": "バックアップ状態",
+          "total": "合計 {{total}} 件のバックアップ",
+          "username": "WebDAV ユーザー名"
+        },
+        "placeholder": {
+          "address": "https://example.com/dav/",
+          "filename": "EcoPaste.20260212131015.PC001.windows",
+          "password": "パスワード",
+          "path": "例: /EcoPaste",
+          "username": "ユーザー名"
+        },
+        "section_title": "WebDAV",
+        "status": {
+          "failed": "バックアップ失敗",
+          "never": "未バックアップ",
+          "success": "バックアップ成功"
+        },
+        "table": {
+          "action": "操作",
+          "device": "デバイス",
+          "name": "ファイル名",
+          "size": "サイズ",
+          "time": "バックアップ時間"
+        },
+        "title": {
+          "backup": "WebDAV にバックアップ",
+          "restore": "WebDAV から復元"
+        }
       }
     },
     "history": {

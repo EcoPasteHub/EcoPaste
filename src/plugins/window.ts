@@ -9,10 +9,10 @@ import type { WindowLabel } from "@/types/plugin";
 import { getCursorMonitor } from "@/utils/monitor";
 
 const COMMAND = {
+  GET_CARET_POSITION: "plugin:eco-window|get_caret_position",
   HIDE_WINDOW: "plugin:eco-window|hide_window",
   SHOW_TASKBAR_ICON: "plugin:eco-window|show_taskbar_icon",
   SHOW_WINDOW: "plugin:eco-window|show_window",
-  GET_CARET_POSITION: "plugin:eco-window|get_caret_position",
 };
 
 interface CaretPosition {
@@ -79,7 +79,9 @@ export const toggleWindowVisible = async () => {
         } else if (window.position === "caret") {
           // 跟随输入光标位置
           try {
-            const caretPos = await invoke<CaretPosition>(COMMAND.GET_CARET_POSITION);
+            const caretPos = await invoke<CaretPosition>(
+              COMMAND.GET_CARET_POSITION,
+            );
             if (caretPos.success && caretPos.x > 0 && caretPos.y > 0) {
               x = Math.min(caretPos.x, position.x + size.width - width);
               y = Math.min(caretPos.y + 20, position.y + size.height - height); // +20 偏移避免遮挡光标

@@ -90,9 +90,9 @@ export interface ClipboardStore {
     deleteConfirm: boolean;
     autoSort: boolean;
     showOriginalContent: boolean;
-    displayLines: number;      // 显示行数，默认 4
+    displayLines: number; // 显示行数，默认 4
     imageDisplayHeight: number; // 图片显示高度（像素），默认 100
-    defaultCollapse: boolean;  // 默认收起，默认 false
+    defaultCollapse: boolean; // 默认收起，默认 false
   };
 
   // 历史记录
@@ -100,5 +100,15 @@ export interface ClipboardStore {
     duration: number;
     unit: number;
     maxCount: number;
+  };
+
+  // WebDAV 备份
+  webdav: {
+    slim: boolean;
+    autoBackup: number;
+    maxBackups: number;
+    lastBackupAt?: string;
+    lastBackupStatus?: "none" | "success" | "error";
+    lastBackupError?: string;
   };
 }

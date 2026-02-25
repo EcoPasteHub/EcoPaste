@@ -21,6 +21,7 @@ const DisplayLines = () => {
 
   return (
     <ProSelect
+      className="w-30"
       description={t(
         "preference.clipboard.content_settings.hints.display_lines",
       )}
@@ -30,7 +31,6 @@ const DisplayLines = () => {
       options={options}
       title={t("preference.clipboard.content_settings.label.display_lines")}
       value={content.displayLines}
-      className="w-30"
     />
   );
 };
