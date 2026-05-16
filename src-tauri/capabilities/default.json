@@ -32,6 +32,7 @@
     "fs-pro:default",
     "locale:default",
     "opener:default",
+    "drag:default",
     {
       "allow": [
         {

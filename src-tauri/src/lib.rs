@@ -63,6 +63,8 @@ pub fn run() {
         .plugin(tauri_plugin_locale::init())
         // 打开文件或者链接：https://github.com/tauri-apps/plugins-workspace/tree/v2/plugins/opener
         .plugin(tauri_plugin_opener::init())
+        // 支持将文件从应用中拖到系统文件管理器
+        .plugin(tauri_plugin_drag::init())
         // 禁用 webview 的默认行为：https://github.com/ferreira-tb/tauri-plugin-prevent-default
         .plugin(prevent_default::init())
         // 剪贴板插件：https://github.com/ayangweb/tauri-plugin-clipboard-x
