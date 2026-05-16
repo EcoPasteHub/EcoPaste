@@ -1,0 +1,429 @@
+{
+  "clipboard": {
+    "button": {
+      "context_menu": {
+        "copy": "複製",
+        "delete": "刪除",
+        "download_image": "下載圖片",
+        "export_as_file": "匯出為文件",
+        "favorite": "收藏",
+        "note": "備註",
+        "open_in_browser": "在瀏覽器開啟",
+        "paste_as_path": "粘貼為路徑",
+        "paste_as_plain_text": "貼上為純文字",
+        "preview_image": "預覽圖片",
+        "send_email": "發送郵件",
+        "show_in_file_explorer": "在檔案總管中顯示",
+        "show_in_finder": "在 Finder 中顯示",
+        "unfavorite": "取消收藏"
+      }
+    },
+    "gif": {
+      "button": {
+        "load_more": "加載更多",
+        "open_preferences": "打開偏好設置",
+        "retry": "重試",
+        "save_api": "保存並啟用"
+      },
+      "categories": {
+        "angry": "生氣",
+        "featured": "熱門",
+        "funny": "搞笑",
+        "happy": "開心",
+        "love": "喜歡",
+        "sad": "難過",
+        "wow": "震驚"
+      },
+      "hints": {
+        "api_description": "請先配置你自己的 Tenor API Key。保存後，GIF 面板會直接使用該 Key 搜索和加載 GIF。",
+        "api_placeholder": "請輸入 Tenor API Key",
+        "empty": "暫無 GIF 結果",
+        "request_failed": "GIF 請求失敗"
+      },
+      "label": {
+        "api_title": "配置 Tenor API",
+        "copy_gif_link": "點擊粘貼 GIF 連結",
+        "powered_by": "內容來源",
+        "search_results": "搜索結果：{{keyword}}"
+      }
+    },
+    "emoji": {
+      "categories": {
+        "activity": "活動",
+        "flags": "旗幟",
+        "foods": "食物與飲料",
+        "frequent": "最近使用",
+        "nature": "自然與動物",
+        "objects": "物體",
+        "people": "表情與角色",
+        "places": "旅行與地點",
+        "symbols": "符號"
+      }
+    },
+    "kaomoji": {
+      "categories": {
+        "angry": "生氣",
+        "common": "常用",
+        "happy": "開心",
+        "helpless": "無語",
+        "love": "喜歡",
+        "shy": "害羞"
+      }
+    },
+    "symbol": {
+      "categories": {
+        "currency": "貨幣符號",
+        "geometric": "幾何符號",
+        "language": "語言符號",
+        "latin": "拉丁符號",
+        "math": "數學符號",
+        "punctuation": "常規標點",
+        "supplemental": "補充符號"
+      }
+    },
+    "hints": {
+      "delete_modal_content": "確定要删除此項嗎？",
+      "search_placeholder": "搜尋"
+    },
+    "label": {
+      "color": "顏色",
+      "email": "信箱",
+      "html": "HTML",
+      "image": "圖片",
+      "link": "連結",
+      "n_chars": "{{0}}個字元",
+      "n_files": "{{0}}個檔案",
+      "path": "路徑",
+      "plain_text": "純文字",
+      "rtf": "富文字",
+      "tab": {
+        "all": "全部",
+        "emoji": "表情",
+        "favorite": "收藏",
+        "files": "文件",
+        "gif": "GIF",
+        "image": "圖片",
+        "kaomoji": "顏文字",
+        "symbol": "符號",
+        "text": "文字"
+      }
+    }
+  },
+  "component": {
+    "app_update": {
+      "button": {
+        "cancel_update": "以後再說",
+        "confirm_update": "立即更新"
+      },
+      "hints": {
+        "checking_update": "正在檢查更新...",
+        "latest_version": "當前已是最新版本🎉"
+      },
+      "label": {
+        "new_version_title": "發現新版本🥳",
+        "release_notes": "更新日誌",
+        "release_time": "更新時間",
+        "release_version": "更新版本"
+      }
+    },
+    "note_modal": {
+      "hints": {
+        "input_note": "請輸入備註"
+      },
+      "label": {
+        "note": "備註"
+      }
+    },
+    "shortcut_key": {
+      "hints": {
+        "click": "點擊錄製快速鍵",
+        "press": "按下錄製快速鍵"
+      }
+    },
+    "tray": {
+      "label": {
+        "check_update": "檢查更新",
+        "exit": "退出應用",
+        "open_source_address": "開源地址",
+        "preference": "偏好設定",
+        "relaunch": "重啓應用",
+        "start_listening": "開啟監聽",
+        "stop_listening": "停止監聽",
+        "version": "版本"
+      }
+    }
+  },
+  "preference": {
+    "about": {
+      "about_software": {
+        "button": {
+          "check_update": "檢查更新",
+          "copy": "複製",
+          "feedback_issue": "迴響問題"
+        },
+        "hints": {
+          "copy_success": "複製成功",
+          "software_info": "複製軟件資訊並提供給 Bug Issue"
+        },
+        "label": {
+          "community": "社區交流",
+          "open_source_address": "開源地址",
+          "software_info": "軟件資訊",
+          "sponsor": "贊助我們",
+          "version": "版本："
+        },
+        "title": "關於軟件"
+      }
+    },
+    "clipboard": {
+      "audio_settings": {
+        "label": {
+          "copy_audio": "複製音效"
+        },
+        "title": "音效設定"
+      },
+      "content_settings": {
+        "button": {
+          "custom_operation_button": "自定義"
+        },
+        "hints": {
+          "auto_favorite": "新增或編輯備註後自動收藏",
+          "auto_paste": "當使用滑鼠左鍵時，快速將內容貼上到輸入位置",
+          "auto_sort": "複製已存在的內容時排列到最前面",
+          "copy_as_plain": "富文字和HTML格式在複製時僅保留純文字內容",
+          "delete_confirm": "删除剪貼板內容時彈出確認對話方塊",
+          "operation_button": "自定義操作剪貼簿內容的圖示按鈕",
+          "paste_as_plain": "富文字和HTML格式在粘貼時僅保留純文字內容",
+          "show_original_content": "添加備註後，滑鼠懸停時是否顯示原內容"
+        },
+        "label": {
+          "auto_favorite": "自動收藏",
+          "auto_paste": "自動貼上",
+          "auto_paste_double": "雙擊",
+          "auto_paste_single": "單擊",
+          "auto_sort": "自動排序",
+          "copy_as_plain": "複製為純文字",
+          "custom_operation_button_title": "自定義操作按鈕",
+          "delete_confirm": "删除確認",
+          "operation_button": "操作按鈕",
+          "operation_button_option": {
+            "copy": "複製",
+            "delete": "刪除",
+            "favorite": "收藏",
+            "notes": "備註",
+            "paste_plain": "貼上為純文本"
+          },
+          "paste_as_plain": "粘貼為純文字",
+          "show_original_content": "顯示原內容"
+        },
+        "title": "內容設定"
+      },
+      "search_box_settings": {
+        "hints": {
+          "auto_clear": "啟動視窗時，清除蒐索框內容",
+          "default_focus": "啟動視窗時，默認聚焦蒐索框"
+        },
+        "label": {
+          "auto_clear": "自動清除",
+          "default_focus": "預設焦點",
+          "position": "搜尋框位置",
+          "position_bottom": "底部",
+          "position_top": "頂部"
+        },
+        "title": "搜尋設定"
+      },
+      "window_settings": {
+        "hints": {
+          "back_top": "啟動視窗時，滾動至頂部並選中首條"
+        },
+        "label": {
+          "back_top": "啟動時回到頂部",
+          "show_all": "啟動時切換至全部分組",
+          "window_position": "視窗位置",
+          "window_position_center": "螢幕中央",
+          "window_position_follow": "跟隨滑鼠",
+          "window_position_remember": "記住位置"
+        },
+        "title": "視窗設定"
+      }
+    },
+    "data_backup": {
+      "import_export": {
+        "button": {
+          "cancel": "取消",
+          "confirm_export": "匯出",
+          "confirm_import": "確定",
+          "export": "匯出數據",
+          "import": "導入數據"
+        },
+        "hints": {
+          "confirm_export": "匯出的數據包含所有偏好設定和剪貼板內容，且均以明文形式保存，請妥善保管。",
+          "confirm_import": "導入的剪貼板數據將覆蓋現有數據，確定要繼續嗎？",
+          "export_success": "匯出成功",
+          "import_success": "導入成功"
+        },
+        "label": {
+          "confirm_export": "匯出須知",
+          "confirm_import": "導入須知"
+        },
+        "title": "導入和匯出"
+      },
+      "storage_settings": {
+        "hints": {
+          "change_success": "更改成功",
+          "custom_path": "自訂",
+          "default_path": "恢復預設"
+        },
+        "label": {
+          "data_storage_path": "資料存儲路徑",
+          "log_storage_path": "日誌存儲路徑"
+        },
+        "title": "存儲設定"
+      }
+    },
+    "history": {
+      "history": {
+        "button": {
+          "cancel_delete": "取消",
+          "confirm_delete": "確定",
+          "goto_delete": "刪除歷史記錄"
+        },
+        "hints": {
+          "delete_success": "刪除成功",
+          "duration": "輸入 0 表示永久保留，僅統計和删除未收藏條目",
+          "max_count": "輸入 0 表示永久保留，僅統計和删除未收藏條目"
+        },
+        "label": {
+          "delete_title": "刪除歷史記錄",
+          "duration": "保留時長",
+          "duration_unit": "天",
+          "include_favorite": "刪除收藏",
+          "max_count": "最大保留條數",
+          "max_count_unit": "條",
+          "time_range": "時間範圍",
+          "time_range_opt": {
+            "custom": "自定義",
+            "last_7_days": "過去 7 天",
+            "last_24_hours": "過去 24 小時",
+            "last_30_days": "過去 30 天",
+            "last_hour": "過去 1 小時",
+            "unlimited": "時間不限"
+          }
+        },
+        "title": "歷史記錄"
+      }
+    },
+    "menu": {
+      "title": {
+        "about": "關於",
+        "backup": "資料備份",
+        "clipboard": "剪貼簿",
+        "general": "通用設定",
+        "history": "歷史記錄",
+        "shortcut": "快捷鍵"
+      }
+    },
+    "settings": {
+      "app_settings": {
+        "hints": {
+          "silent_start": "手動啟動應用時隱藏視窗"
+        },
+        "label": {
+          "auto_start": "登入時啟動",
+          "show_menubar_icon": "顯示功能表列圖標",
+          "show_taskbar_icon": "顯示工作列圖標",
+          "silent_start": "靜默啟動"
+        },
+        "title": "應用設定"
+      },
+      "appearance_settings": {
+        "button": {
+          "custom_group_tabs": "自訂",
+          "reset_group_tabs": "恢復預設"
+        },
+        "hints": {
+          "group_tabs": "自訂主視窗一級標籤的顯示與順序",
+          "group_tabs_drag": "拖曳左側手柄可調整順序",
+          "group_tabs_fixed": "固定顯示且不可排序"
+        },
+        "label": {
+          "custom_group_tabs_title": "自訂一級標籤",
+          "group_tabs": "一級標籤",
+          "language": "界面語言",
+          "theme": "主題模式",
+          "theme_auto": "跟隨系統",
+          "theme_dark": "暗色模式",
+          "theme_light": "亮色模式"
+        },
+        "title": "外觀設定"
+      },
+      "integration_settings": {
+        "hints": {
+          "tenor_api_key": "用於 GIF 面板請求 Tenor 內容。你也可以在主視窗打開 GIF 分組後直接配置。"
+        },
+        "label": {
+          "tenor_api_key": "Tenor API Key"
+        },
+        "title": "整合設定"
+      },
+      "permission_settings": {
+        "button": {
+          "authorize": "前往授權",
+          "cancel_full_disk_access": "稍後開啟",
+          "confirm_full_disk_access": "前往系統設定開啟"
+        },
+        "hints": {
+          "accessibility_permissions": "需要輔助功能訪問權限來操作剪貼簿內容",
+          "confirm_full_disk_access": "需要開啟完全磁碟訪問權限來實現文件預覽",
+          "full_disk_access_permissions": "需要完全磁碟訪問權限來實現文件預覽"
+        },
+        "label": {
+          "accessibility_permissions": "輔助功能訪問權限",
+          "authorized": "已授權",
+          "confirm_full_disk_access": "需要開啟完全磁碟訪問權限",
+          "full_disk_access_permissions": "完全磁碟訪問權限"
+        },
+        "title": "權限設定"
+      },
+      "update_settings": {
+        "hints": {
+          "update_beta": "將會接收測試版更新，即使它們可能不穩定"
+        },
+        "label": {
+          "auto_update": "自動檢查更新",
+          "update_beta": "參與測試版體驗"
+        },
+        "title": "更新設定"
+      }
+    },
+    "shortcut": {
+      "preset": {
+        "back_to_top": "回到頂部",
+        "delete": "删除",
+        "favorite": "收藏條目",
+        "fixed_window": "固定視窗",
+        "hide_window": "隱藏視窗",
+        "open_preferences": "打開偏好設定",
+        "paste": "粘貼",
+        "preview_image": "預覽圖片",
+        "search": "搜尋",
+        "select_group": "選擇分組",
+        "select_item": "選擇條目"
+      },
+      "shortcut": {
+        "hints": {
+          "paste_as_plain": "啟動視窗時，將選中的內容粘貼為純文字或路徑",
+          "quick_paste": "隱藏視窗時，使用數字鍵快速貼上前九項"
+        },
+        "label": {
+          "open_clipboard": "打開剪貼簿視窗",
+          "open_settings": "打開偏好設定視窗",
+          "paste_as_plain": "貼上為純文字",
+          "quick_paste": "快速貼上"
+        },
+        "title": "快捷鍵"
+      }
+    },
+    "title": "偏好設定"
+  }
+}

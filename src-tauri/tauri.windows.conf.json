@@ -1,0 +1,13 @@
+{
+  "bundle": {
+    "windows": {
+      "digestAlgorithm": "sha256",
+      "nsis": {
+        "displayLanguageSelector": true,
+        "installMode": "both",
+        "languages": ["English", "SimpChinese"]
+      }
+    }
+  },
+  "identifier": "com.ayangweb.EcoPaste"
+}

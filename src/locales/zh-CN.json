@@ -1,0 +1,429 @@
+{
+  "clipboard": {
+    "button": {
+      "context_menu": {
+        "copy": "复制",
+        "delete": "删除",
+        "download_image": "下载图片",
+        "export_as_file": "导出为文件",
+        "favorite": "收藏",
+        "note": "备注",
+        "open_in_browser": "在浏览器访问",
+        "paste_as_path": "粘贴为路径",
+        "paste_as_plain_text": "粘贴为纯文本",
+        "preview_image": "预览图片",
+        "send_email": "发送邮件",
+        "show_in_file_explorer": "在文件资源管理器中显示",
+        "show_in_finder": "在 Finder 中显示",
+        "unfavorite": "取消收藏"
+      }
+    },
+    "gif": {
+      "button": {
+        "load_more": "加载更多",
+        "open_preferences": "打开偏好设置",
+        "retry": "重试",
+        "save_api": "保存并启用"
+      },
+      "categories": {
+        "angry": "生气",
+        "featured": "热门",
+        "funny": "搞笑",
+        "happy": "开心",
+        "love": "喜欢",
+        "sad": "难过",
+        "wow": "震惊"
+      },
+      "hints": {
+        "api_description": "请先配置你自己的 Tenor API Key。保存后，GIF 面板会直接使用该 Key 搜索和加载 GIF。",
+        "api_placeholder": "请输入 Tenor API Key",
+        "empty": "暂无 GIF 结果",
+        "request_failed": "GIF 请求失败"
+      },
+      "label": {
+        "api_title": "配置 Tenor API",
+        "copy_gif_link": "点击粘贴 GIF 链接",
+        "powered_by": "内容来源",
+        "search_results": "搜索结果：{{keyword}}"
+      }
+    },
+    "emoji": {
+      "categories": {
+        "activity": "活动",
+        "flags": "旗帜",
+        "foods": "食物与饮料",
+        "frequent": "最近使用",
+        "nature": "自然与动物",
+        "objects": "物体",
+        "people": "表情与角色",
+        "places": "旅行与地点",
+        "symbols": "符号"
+      }
+    },
+    "kaomoji": {
+      "categories": {
+        "angry": "生气",
+        "common": "常用",
+        "happy": "开心",
+        "helpless": "无语",
+        "love": "喜欢",
+        "shy": "害羞"
+      }
+    },
+    "symbol": {
+      "categories": {
+        "currency": "货币符号",
+        "geometric": "几何符号",
+        "language": "语言符号",
+        "latin": "拉丁符号",
+        "math": "数学符号",
+        "punctuation": "常规标点",
+        "supplemental": "补充符号"
+      }
+    },
+    "hints": {
+      "delete_modal_content": "确定要删除此项吗？",
+      "search_placeholder": "搜索"
+    },
+    "label": {
+      "color": "颜色",
+      "email": "邮箱",
+      "html": "HTML",
+      "image": "图片",
+      "link": "链接",
+      "n_chars": "{{0}}个字符",
+      "n_files": "{{0}}个文件（夹）",
+      "path": "路径",
+      "plain_text": "纯文本",
+      "rtf": "富文本",
+      "tab": {
+        "all": "全部",
+        "emoji": "表情",
+        "favorite": "收藏",
+        "files": "文件",
+        "gif": "GIF",
+        "image": "图片",
+        "kaomoji": "颜文字",
+        "symbol": "符号",
+        "text": "文本"
+      }
+    }
+  },
+  "component": {
+    "app_update": {
+      "button": {
+        "cancel_update": "以后再说",
+        "confirm_update": "立即更新"
+      },
+      "hints": {
+        "checking_update": "正在检查更新...",
+        "latest_version": "当前已是最新版本🎉"
+      },
+      "label": {
+        "new_version_title": "发现新版本🥳",
+        "release_notes": "更新日志",
+        "release_time": "更新时间",
+        "release_version": "更新版本"
+      }
+    },
+    "note_modal": {
+      "hints": {
+        "input_note": "请输入备注"
+      },
+      "label": {
+        "note": "备注"
+      }
+    },
+    "shortcut_key": {
+      "hints": {
+        "click": "点击录制快捷键",
+        "press": "按下录制快捷键"
+      }
+    },
+    "tray": {
+      "label": {
+        "check_update": "检查更新",
+        "exit": "退出应用",
+        "open_source_address": "开源地址",
+        "preference": "偏好设置",
+        "relaunch": "重启应用",
+        "start_listening": "开启监听",
+        "stop_listening": "停止监听",
+        "version": "版本"
+      }
+    }
+  },
+  "preference": {
+    "about": {
+      "about_software": {
+        "button": {
+          "check_update": "检查更新",
+          "copy": "复制",
+          "feedback_issue": "反馈问题"
+        },
+        "hints": {
+          "copy_success": "复制成功",
+          "software_info": "复制软件信息并提供给 Bug Issue"
+        },
+        "label": {
+          "community": "社区交流",
+          "open_source_address": "开源地址",
+          "software_info": "软件信息",
+          "sponsor": "赞助我们",
+          "version": "版本："
+        },
+        "title": "关于软件"
+      }
+    },
+    "clipboard": {
+      "audio_settings": {
+        "label": {
+          "copy_audio": "复制音效"
+        },
+        "title": "音效设置"
+      },
+      "content_settings": {
+        "button": {
+          "custom_operation_button": "自定义"
+        },
+        "hints": {
+          "auto_favorite": "新增或编辑备注后自动收藏",
+          "auto_paste": "鼠标左键操作时，快速粘贴内容至输入位置",
+          "auto_sort": "复制已存在的内容时排列到最前面",
+          "copy_as_plain": "富文本和HTML格式在复制时仅保留纯文本内容",
+          "delete_confirm": "删除剪贴板内容时弹出确认对话框",
+          "operation_button": "自定义操作剪贴板内容的图标按钮",
+          "paste_as_plain": "富文本和HTML格式在粘贴时仅保留纯文本内容",
+          "show_original_content": "添加备注后，鼠标悬停时是否显示原内容"
+        },
+        "label": {
+          "auto_favorite": "自动收藏",
+          "auto_paste": "自动粘贴",
+          "auto_paste_double": "双击",
+          "auto_paste_single": "单击",
+          "auto_sort": "自动排序",
+          "copy_as_plain": "复制为纯文本",
+          "custom_operation_button_title": "自定义操作按钮",
+          "delete_confirm": "删除确认",
+          "operation_button": "操作按钮",
+          "operation_button_option": {
+            "copy": "复制",
+            "delete": "删除",
+            "favorite": "收藏",
+            "notes": "备注",
+            "paste_plain": "粘贴为纯文本"
+          },
+          "paste_as_plain": "粘贴为纯文本",
+          "show_original_content": "显示原内容"
+        },
+        "title": "内容设置"
+      },
+      "search_box_settings": {
+        "hints": {
+          "auto_clear": "激活窗口时，清除搜索框内容",
+          "default_focus": "激活窗口时，默认聚焦搜索框"
+        },
+        "label": {
+          "auto_clear": "自动清除",
+          "default_focus": "默认聚焦",
+          "position": "搜索框位置",
+          "position_bottom": "底部",
+          "position_top": "顶部"
+        },
+        "title": "搜索设置"
+      },
+      "window_settings": {
+        "hints": {
+          "back_top": "激活窗口时，滚动至顶部并选中首条"
+        },
+        "label": {
+          "back_top": "激活时回到顶部",
+          "show_all": "激活时切换至全部分组",
+          "window_position": "窗口位置",
+          "window_position_center": "屏幕中心",
+          "window_position_follow": "跟随鼠标",
+          "window_position_remember": "记住位置"
+        },
+        "title": "窗口设置"
+      }
+    },
+    "data_backup": {
+      "import_export": {
+        "button": {
+          "cancel": "取消",
+          "confirm_export": "导出",
+          "confirm_import": "确定",
+          "export": "导出数据",
+          "import": "导入数据"
+        },
+        "hints": {
+          "confirm_export": "导出的数据包含所有偏好设置和剪贴板内容，且均以明文形式保存，请妥善保管。",
+          "confirm_import": "导入的剪贴板数据将覆盖现有数据，确定要继续吗？",
+          "export_success": "导出成功",
+          "import_success": "导入成功"
+        },
+        "label": {
+          "confirm_export": "导出须知",
+          "confirm_import": "导入须知"
+        },
+        "title": "导入和导出"
+      },
+      "storage_settings": {
+        "hints": {
+          "change_success": "更改成功",
+          "custom_path": "自定义",
+          "default_path": "恢复默认"
+        },
+        "label": {
+          "data_storage_path": "数据存储路径",
+          "log_storage_path": "日志存储路径"
+        },
+        "title": "存储设置"
+      }
+    },
+    "history": {
+      "history": {
+        "button": {
+          "cancel_delete": "取消",
+          "confirm_delete": "确定",
+          "goto_delete": "删除历史记录"
+        },
+        "hints": {
+          "delete_success": "删除成功",
+          "duration": "输入 0 表示永久保留，仅统计和删除未收藏条目",
+          "max_count": "输入 0 表示永久保留，仅统计和删除未收藏条目"
+        },
+        "label": {
+          "delete_title": "删除历史记录",
+          "duration": "保留时长",
+          "duration_unit": "天",
+          "include_favorite": "删除收藏",
+          "max_count": "最大保留条数",
+          "max_count_unit": "条",
+          "time_range": "时间范围",
+          "time_range_opt": {
+            "custom": "自定义",
+            "last_7_days": "过去 7 天",
+            "last_24_hours": "过去 24 小时",
+            "last_30_days": "过去 30 天",
+            "last_hour": "过去 1 小时",
+            "unlimited": "时间不限"
+          }
+        },
+        "title": "历史记录"
+      }
+    },
+    "menu": {
+      "title": {
+        "about": "关于",
+        "backup": "数据备份",
+        "clipboard": "剪贴板",
+        "general": "通用设置",
+        "history": "历史记录",
+        "shortcut": "快捷键"
+      }
+    },
+    "settings": {
+      "app_settings": {
+        "hints": {
+          "silent_start": "手动启动应用时隐藏窗口"
+        },
+        "label": {
+          "auto_start": "登录时启动",
+          "show_menubar_icon": "显示菜单栏图标",
+          "show_taskbar_icon": "显示任务栏图标",
+          "silent_start": "静默启动"
+        },
+        "title": "应用设置"
+      },
+      "appearance_settings": {
+        "button": {
+          "custom_group_tabs": "自定义",
+          "reset_group_tabs": "恢复默认"
+        },
+        "hints": {
+          "group_tabs": "自定义主界面一级标签的显示与顺序",
+          "group_tabs_drag": "拖拽左侧手柄可调整顺序",
+          "group_tabs_fixed": "固定显示且不可排序"
+        },
+        "label": {
+          "custom_group_tabs_title": "自定义一级标签",
+          "group_tabs": "一级标签",
+          "language": "界面语言",
+          "theme": "主题模式",
+          "theme_auto": "跟随系统",
+          "theme_dark": "暗色模式",
+          "theme_light": "亮色模式"
+        },
+        "title": "外观设置"
+      },
+      "integration_settings": {
+        "hints": {
+          "tenor_api_key": "用于 GIF 面板请求 Tenor 内容。你也可以在主窗口打开 GIF 分组后直接配置。"
+        },
+        "label": {
+          "tenor_api_key": "Tenor API Key"
+        },
+        "title": "集成设置"
+      },
+      "permission_settings": {
+        "button": {
+          "authorize": "去授权",
+          "cancel_full_disk_access": "稍后开启",
+          "confirm_full_disk_access": "去系统设置开启"
+        },
+        "hints": {
+          "accessibility_permissions": "需要无障碍访问权限来操作剪切板内容",
+          "confirm_full_disk_access": "需要开启完全磁盘访问权限来实现文件预览",
+          "full_disk_access_permissions": "需要完全磁盘访问权限来实现文件预览"
+        },
+        "label": {
+          "accessibility_permissions": "辅助功能访问权限",
+          "authorized": "已授权",
+          "confirm_full_disk_access": "需要开启完全磁盘访问权限",
+          "full_disk_access_permissions": "完全磁盘访问权限"
+        },
+        "title": "权限设置"
+      },
+      "update_settings": {
+        "hints": {
+          "update_beta": "将会接收测试版更新，即使它们可能不稳定"
+        },
+        "label": {
+          "auto_update": "自动检查更新",
+          "update_beta": "参与测试版体验"
+        },
+        "title": "更新设置"
+      }
+    },
+    "shortcut": {
+      "preset": {
+        "back_to_top": "回到顶部",
+        "delete": "删除",
+        "favorite": "收藏条目",
+        "fixed_window": "固定窗口",
+        "hide_window": "隐藏窗口",
+        "open_preferences": "打开偏好设置",
+        "paste": "粘贴",
+        "preview_image": "预览图片",
+        "search": "搜索",
+        "select_group": "选择分组",
+        "select_item": "选择条目"
+      },
+      "shortcut": {
+        "hints": {
+          "paste_as_plain": "激活窗口时，将选中的内容粘贴为纯文本或路径",
+          "quick_paste": "隐藏窗口时，使用数字组合键快速粘贴前九项"
+        },
+        "label": {
+          "open_clipboard": "打开剪贴板窗口",
+          "open_settings": "打开偏好设置窗口",
+          "paste_as_plain": "粘贴为纯文本",
+          "quick_paste": "快速粘贴"
+        },
+        "title": "快捷键"
+      }
+    },
+    "title": "偏好设置"
+  }
+}

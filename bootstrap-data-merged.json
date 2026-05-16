@@ -1,0 +1,4792 @@
+{
+  "kaomojis": [
+    {
+      "text": "(╯°□°)╯︵ ┻━┻",
+      "keywords": "沮丧 table angry 掀桌 生气 frustrated tableflip flip"
+    },
+    {
+      "text": "┻━┻ ︵╰(°□°)╯︵ ┻━┻",
+      "keywords": "沮丧 table 桌子 angry 掀桌 flip 生气 翻转 tableflip frustrated 双倍 double"
+    },
+    {
+      "text": "ノ┬─┬ノ ︵ ( \\o°o)\\",
+      "keywords": "table 俄罗斯 掀桌 russia soviet tableflip 苏联 flip"
+    },
+    {
+      "text": "┬─┬ノ( º _ ºノ)",
+      "keywords": "relax 放回 down 放松 table unflip calm tableunflip back 冷静下来 放回桌子 putting 回来"
+    },
+    {
+      "text": "ಠ_ಠ",
+      "keywords": "disapproval 厌恶 angry upset 心烦 生气 不赞成 disgust"
+    },
+    {
+      "text": "╰( ◕ ᗜ ◕ )╯",
+      "keywords": "happy joy 开心 快乐"
+    },
+    {
+      "text": "( ◕ ʖ̯ ◕ )",
+      "keywords": "sad 含泪 teary-eyed 孤独 forlorn 悲伤"
+    },
+    {
+      "text": "(＞﹏＜)",
+      "keywords": "沮丧 angry upset 心烦 生气 frustrated"
+    },
+    {
+      "text": "(ノ°益°)ノ",
+      "keywords": "furious angry 愤怒 生气 mad 疯狂"
+    },
+    {
+      "text": "(⇀‸↼‶)",
+      "keywords": "沮丧 upset 心烦 mad 疯狂 frustrated"
+    },
+    {
+      "text": "(◕‿◕)♡",
+      "keywords": "爱 love happy 开心"
+    },
+    {
+      "text": "＼(＾▽＾)／",
+      "keywords": "praise excited 开心 快乐 happy 赞美 兴奋 joy"
+    },
+    {
+      "text": "(｡•́︿•̀｡)",
+      "keywords": "悲痛 sad upset 心烦 sorrow 悲伤"
+    },
+    {
+      "text": "＼(º □ º l|l)/",
+      "keywords": "fear shocked 惊恐 震惊 害怕 scared frightened"
+    },
+    {
+      "text": "¯\\_(ツ)_/¯",
+      "keywords": "whatever well shrug oh 耸肩 冷漠 indifferent 无所谓 哦好吧"
+    },
+    {
+      "text": "╮(︶︿︶)╭",
+      "keywords": "whatever indifferent shrug 一般般 耸肩 冷漠 meh 无所谓"
+    },
+    {
+      "text": "(￣.￣;)",
+      "keywords": "confused 困惑 什么 不确定 unsure what"
+    },
+    {
+      "text": "(⇀_⇀)",
+      "keywords": "skeptical 不确定 怀疑 doubt unsure"
+    },
+    {
+      "text": "(°ロ°) !",
+      "keywords": "震惊 surprised shocked 惊讶"
+    },
+    {
+      "text": "(´• ω •`)ﾉ",
+      "keywords": "hello 你好 嗨 问候 greetings wave 挥手 嘿 hey hi"
+    },
+    {
+      "text": "(づ ◕‿◕ )づ",
+      "keywords": "拥抱 embrace hug"
+    },
+    {
+      "text": "(^_−)☆",
+      "keywords": "wink 眨眼"
+    },
+    {
+      "text": "┬┴┬┴┤(･_├┬┴┬┴",
+      "keywords": "偷看 hiding wall 墙 shy 害羞 peeking 躲藏"
+    },
+    {
+      "text": "(＾• ω •＾)",
+      "keywords": "kitty 小猫 猫 cat"
+    },
+    {
+      "text": "∪･ｪ･∪",
+      "keywords": "dog 狗 doggy puppy 小狗"
+    },
+    {
+      "text": "(´♡‿♡`)",
+      "keywords": "infatuated 爱 迷恋 love"
+    },
+    {
+      "text": "(*≧m≦*)",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "(>;_<;)",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "(,,#ﾟДﾟ)",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "ヽ(ｏ`皿′ｏ)ﾉ",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "o(>;<; )o",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "ｏ( >;<;)o",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "ヽ(≧Д≦)ノ",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "（＞д＜）",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "（;≧皿≦）",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "[○･｀Д´･○]",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "ヽ(#`Д´)ﾉ",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "Σ(-`Д´-ﾉ；)ﾉ",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "(((p(>;o<;)q)))",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "(/ﾟДﾟ)/",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "(¬д¬。)",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": " (¬､¬)",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": " （；¬＿¬)",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": " (;¬_¬)",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": " (；¬д¬)",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": " (≧σ≦)",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": " o(-`д´- ｡)",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": " ヽ(●-`Д´-)ノ",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": " (*￣m￣)",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": " (´Д｀)",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": " (；￣Д￣）",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": " (¬_¬)ﾉ",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "(＃｀д´)ﾉ",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "(」゜ロ゜)」",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "Σ(▼□▼メ)",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "(━┳━ _ ━┳━)",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "(┳◇┳)",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "{{|└(>;o<; )┘|}}",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "＼(＠O＠)／",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "（≧▼≦；)",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "＼(〇O〇)／",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "s(・｀ヘ´・;)ゞ",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "（▼へ▼メ）",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "＼(`O´θ／",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "θ＼(；￢_￢)",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": " ヽ(｀⌒´メ)ノ",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": " 凸(-0-メ)",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": " 凸(｀△´＋）",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": " 凸(｀0´)凸",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": " 凸(｀⌒´メ)凸",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": " ＼(｀0´)／",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": " -`д´-",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": " (>;人<;)",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "щ(ಠ益ಠщ)",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "(ノಠ益ಠ)ノ",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "щ(ಥДಥщ)",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "o(≧o≦)o",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": " (⋋▂⋌)",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "(◣_◢)",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "ᕙ(⇀‸↼‶)ᕗ",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "ᕦ(ò_óˇ)ᕤ",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "( ಠ ಠ )",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": " (¬▂¬)",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": " (¬_¬)",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "ಥ⌣ಥ",
+      "keywords": "沮丧 angry 生气 mad 疯狂 frustrated"
+    },
+    {
+      "text": "（ﾉ´д｀）",
+      "keywords": "抱歉 apologize 道歉 sorry"
+    },
+    {
+      "text": "(シ_ _)シ",
+      "keywords": "抱歉 apologize 道歉 sorry"
+    },
+    {
+      "text": "<(_ _)>",
+      "keywords": "抱歉 apologize 道歉 sorry"
+    },
+    {
+      "text": "＜(。_。)＞",
+      "keywords": "抱歉 apologize 道歉 sorry"
+    },
+    {
+      "text": " ｍ（＿　＿；；ｍ",
+      "keywords": "抱歉 apologize 道歉 sorry"
+    },
+    {
+      "text": " m(￢0￢)m",
+      "keywords": "抱歉 apologize 道歉 sorry"
+    },
+    {
+      "text": "(*ノ・ω・）",
+      "keywords": "动物 熊 bear animal"
+    },
+    {
+      "text": "川´･ω･`川",
+      "keywords": "动物 熊 bear animal"
+    },
+    {
+      "text": "( (ﾐ´ω`ﾐ))",
+      "keywords": "动物 熊 bear animal"
+    },
+    {
+      "text": "ヾ(T(エ)Tヽ)",
+      "keywords": "动物 熊 bear animal"
+    },
+    {
+      "text": "＼(・｀(ｪ)・)/",
+      "keywords": "动物 熊 bear animal"
+    },
+    {
+      "text": "⊂(ο･㉨･ο）⊃(^(エ)^)",
+      "keywords": "动物 熊 bear animal"
+    },
+    {
+      "text": "(^(I)^)",
+      "keywords": "动物 熊 bear animal"
+    },
+    {
+      "text": "(￣(ｴ)￣)ﾉ",
+      "keywords": "动物 熊 bear animal"
+    },
+    {
+      "text": "⊂(￣(工)￣)⊃",
+      "keywords": "动物 熊 bear animal"
+    },
+    {
+      "text": "⊂(^(工)^)⊃",
+      "keywords": "动物 熊 bear animal"
+    },
+    {
+      "text": "⊂(・(ェ)・)⊃",
+      "keywords": "动物 熊 bear animal"
+    },
+    {
+      "text": "(*￣(ｴ)￣*)",
+      "keywords": "动物 熊 bear animal"
+    },
+    {
+      "text": "ヾ(´(ｴ)｀ﾉﾞ",
+      "keywords": "动物 熊 bear animal"
+    },
+    {
+      "text": "(／(ｴ)＼)",
+      "keywords": "动物 熊 bear animal"
+    },
+    {
+      "text": "⊂(￣(ｴ)￣)⊃",
+      "keywords": "动物 熊 bear animal"
+    },
+    {
+      "text": " “(`(エ)´)ノ",
+      "keywords": "动物 熊 bear animal"
+    },
+    {
+      "text": " (｀(エ)´)ﾉ",
+      "keywords": "动物 熊 bear animal"
+    },
+    {
+      "text": " (ó㉨ò)",
+      "keywords": "动物 熊 bear animal"
+    },
+    {
+      "text": "(♥ó㉨ò)ﾉ♡",
+      "keywords": "动物 熊 bear animal"
+    },
+    {
+      "text": " (/-(ｴ)-＼)",
+      "keywords": "动物 熊 bear animal"
+    },
+    {
+      "text": " (´(エ)｀)",
+      "keywords": "动物 熊 bear animal"
+    },
+    {
+      "text": " ヽ(￣(ｴ)￣)ﾉ",
+      "keywords": "动物 熊 bear animal"
+    },
+    {
+      "text": " (／￣(ｴ)￣)／",
+      "keywords": "动物 熊 bear animal"
+    },
+    {
+      "text": "⊂(◎(工)◎)⊃",
+      "keywords": "动物 熊 bear animal"
+    },
+    {
+      "text": "(●￣(ｴ)￣●)",
+      "keywords": "动物 熊 bear animal"
+    },
+    {
+      "text": " 《/(￣(ｴ)￣)ゞ》",
+      "keywords": "动物 熊 bear animal"
+    },
+    {
+      "text": "⁝⁞⁝⁞ʕु•̫͡•ʔु☂⁝⁞⁝⁝",
+      "keywords": "动物 熊 bear animal"
+    },
+    {
+      "text": "  (✪㉨✪)",
+      "keywords": "动物 熊 bear animal"
+    },
+    {
+      "text": "Ψ(￣(ｴ)￣)Ψ",
+      "keywords": "动物 熊 bear animal"
+    },
+    {
+      "text": "┏((＝￣(ｴ)￣=))┛",
+      "keywords": "动物 熊 bear animal"
+    },
+    {
+      "text": "・㉨・",
+      "keywords": "动物 熊 bear animal"
+    },
+    {
+      "text": "V(=^･ω･^=)v",
+      "keywords": "动物 cat animal 猫"
+    },
+    {
+      "text": "(=｀ω´=)",
+      "keywords": "动物 cat animal 猫"
+    },
+    {
+      "text": "o(^・x・^)o",
+      "keywords": "动物 cat animal 猫"
+    },
+    {
+      "text": "＼(=^‥^)/'`",
+      "keywords": "动物 cat animal 猫"
+    },
+    {
+      "text": "( =①ω①=)",
+      "keywords": "动物 cat animal 猫"
+    },
+    {
+      "text": "d(=^･ω･^=)b",
+      "keywords": "动物 cat animal 猫"
+    },
+    {
+      "text": "(=ＴェＴ=)",
+      "keywords": "动物 cat animal 猫"
+    },
+    {
+      "text": "(=;ェ;=)",
+      "keywords": "动物 cat animal 猫"
+    },
+    {
+      "text": "ヽ(=^･ω･^=)丿",
+      "keywords": "动物 cat animal 猫"
+    },
+    {
+      "text": "(=^･ω･^)y＝",
+      "keywords": "动物 cat animal 猫"
+    },
+    {
+      "text": "(^-人-^)",
+      "keywords": "动物 cat animal 猫"
+    },
+    {
+      "text": "ヽ(^‥^=ゞ)",
+      "keywords": "动物 cat animal 猫"
+    },
+    {
+      "text": "(^・ω・^ )",
+      "keywords": "动物 cat animal 猫"
+    },
+    {
+      "text": "(=^-ω-^=)",
+      "keywords": "动物 cat animal 猫"
+    },
+    {
+      "text": "b(=^‥^=)o",
+      "keywords": "动物 cat animal 猫"
+    },
+    {
+      "text": "(.=^・ェ・^=)",
+      "keywords": "动物 cat animal 猫"
+    },
+    {
+      "text": "（=´∇｀=）",
+      "keywords": "动物 cat animal 猫"
+    },
+    {
+      "text": "ヾ(=ﾟ･ﾟ=)ﾉ",
+      "keywords": "动物 cat animal 猫"
+    },
+    {
+      "text": "~(=^‥^)ノ",
+      "keywords": "动物 cat animal 猫"
+    },
+    {
+      "text": "~(=^‥^)/",
+      "keywords": "动物 cat animal 猫"
+    },
+    {
+      "text": "(=ｘェｘ=)",
+      "keywords": "动物 cat animal 猫"
+    },
+    {
+      "text": "(=；ェ；=)",
+      "keywords": "动物 cat animal 猫"
+    },
+    {
+      "text": "(=｀ェ´=)",
+      "keywords": "动物 cat animal 猫"
+    },
+    {
+      "text": "(^･o･^)ﾉ\\\"",
+      "keywords": "动物 cat animal 猫"
+    },
+    {
+      "text": "(^._.^)ﾉ",
+      "keywords": "动物 cat animal 猫"
+    },
+    {
+      "text": "└(=^‥^=)┐",
+      "keywords": "动物 cat animal 猫"
+    },
+    {
+      "text": "='①。①'=",
+      "keywords": "动物 cat animal 猫"
+    },
+    {
+      "text": "<(*ΦωΦ*)>",
+      "keywords": "动物 cat animal 猫"
+    },
+    {
+      "text": "(◎-◎；)",
+      "keywords": "什么 confused 困惑 哈 uh huh 呃 what"
+    },
+    {
+      "text": "(・_・ヾ",
+      "keywords": "什么 confused 困惑 哈 uh huh 呃 what"
+    },
+    {
+      "text": "(￣(エ)￣)ゞ",
+      "keywords": "什么 confused 困惑 哈 uh huh 呃 what"
+    },
+    {
+      "text": "(-_-)ゞ゛",
+      "keywords": "什么 confused 困惑 哈 uh huh 呃 what"
+    },
+    {
+      "text": "(‘◇’)?",
+      "keywords": "什么 confused 困惑 哈 uh huh 呃 what"
+    },
+    {
+      "text": "ヽ(゜Q。)ノ？",
+      "keywords": "什么 confused 困惑 哈 uh huh 呃 what"
+    },
+    {
+      "text": "(´｀;) ？",
+      "keywords": "什么 confused 困惑 哈 uh huh 呃 what"
+    },
+    {
+      "text": "【・ヘ・?】",
+      "keywords": "什么 confused 困惑 哈 uh huh 呃 what"
+    },
+    {
+      "text": "【・_・?】",
+      "keywords": "什么 confused 困惑 哈 uh huh 呃 what"
+    },
+    {
+      "text": "( ・◇・)？",
+      "keywords": "什么 confused 困惑 哈 uh huh 呃 what"
+    },
+    {
+      "text": "(゜-゜)",
+      "keywords": "什么 confused 困惑 哈 uh huh 呃 what"
+    },
+    {
+      "text": "ヾ(´･ ･｀｡)ノ”",
+      "keywords": "什么 confused 困惑 哈 uh huh 呃 what"
+    },
+    {
+      "text": "｢(ﾟﾍﾟ)",
+      "keywords": "什么 confused 困惑 哈 uh huh 呃 what"
+    },
+    {
+      "text": "( ?´_ゝ｀)",
+      "keywords": "什么 confused 困惑 哈 uh huh 呃 what"
+    },
+    {
+      "text": "o(´^｀)o",
+      "keywords": "什么 confused 困惑 哈 uh huh 呃 what"
+    },
+    {
+      "text": "(´−｀) ﾝｰ",
+      "keywords": "什么 confused 困惑 哈 uh huh 呃 what"
+    },
+    {
+      "text": "(」ﾟヘﾟ)」",
+      "keywords": "什么 confused 困惑 哈 uh huh 呃 what"
+    },
+    {
+      "text": "(•ิ_•ิ)?",
+      "keywords": "什么 confused 困惑 哈 uh huh 呃 what"
+    },
+    {
+      "text": "「(°ヘ°)",
+      "keywords": "什么 confused 困惑 哈 uh huh 呃 what"
+    },
+    {
+      "text": "(。ヘ°)",
+      "keywords": "什么 confused 困惑 哈 uh huh 呃 what"
+    },
+    {
+      "text": "〈(゜。゜)",
+      "keywords": "什么 confused 困惑 哈 uh huh 呃 what"
+    },
+    {
+      "text": "(゜。゜)",
+      "keywords": "什么 confused 困惑 哈 uh huh 呃 what"
+    },
+    {
+      "text": "く（＾_・）ゝ",
+      "keywords": "什么 confused 困惑 哈 uh huh 呃 what"
+    },
+    {
+      "text": "(^～^;)ゞ",
+      "keywords": "什么 confused 困惑 哈 uh huh 呃 what"
+    },
+    {
+      "text": " ٩(͡๏̯͡๏)۶",
+      "keywords": "什么 confused 困惑 哈 uh huh 呃 what"
+    },
+    {
+      "text": "٩(̾●̮̮̃̾•̃̾)۶",
+      "keywords": "什么 confused 困惑 哈 uh huh 呃 what"
+    },
+    {
+      "text": "(⊙_◎)",
+      "keywords": "什么 confused 困惑 哈 uh huh 呃 what"
+    },
+    {
+      "text": "Dancing",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "ヘ(^_^ヘ)",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "(ノ^_^)ノ",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "o(^^o)",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "(o^^)o",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "(ノ´＿ゝ｀）ノ",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "ヾ(^ ^ゞ",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "(ノ‥)ノ",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "( ﾉ^ω^)ﾉﾟ",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "ヾ(*´∇`)ﾉ",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "ヾ(･ω･*)ﾉ",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "(*ﾉ´□`)ﾉ",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "。(⌒∇⌒。)",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "(。⌒∇⌒)。",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "〜(￣▽￣〜)",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "(〜￣▽￣)〜",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "〜(^∇^〜）",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "（〜^∇^)〜",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "〜(￣△￣〜)",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "(〜￣△￣)〜",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "┗(｀ー´)┓",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "┏(｀ー´)┛",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "┗(＾0＾)┓",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "┏(＾0＾)┛",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "(ノ￣ー￣)ノ",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "ヘ(￣ー￣ヘ)",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "ヘ(￣ω￣ヘ)",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "(ノ￣ω￣)ノ",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "ヘ(^o^ヘ)",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "(ノ^o^)ノ",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "ヾ(-_- )ゞ",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "ヾ(＠^∇^＠)ノ",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "(ﾉ≧∀≦)ﾉ",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "＼(^ω^＼)",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "(ﾉﾟ▽ﾟ)ﾉ",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "ヽ(ﾟｰﾟ*ヽ)",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "ヽ(*ﾟｰﾟ*)ﾉ",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "(ﾉ*ﾟｰﾟ)ﾉ",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "ヽ(*´Д｀*)ﾉ",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "(o´･_･)っ",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "ヾ(*д*)ﾉ゛",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "ヽ(°◇° )ノ",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "ヽ( °◇°)ノ",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "(ノ°ο°)ノ",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "(ﾉ･o･)ﾉ",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "ヾ(^^ゞ)",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "ヾ(ﾟ∀ﾟゞ)",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "ヽ(´ー`)ﾉ",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "ヾ（*⌒ヮ⌒*）ゞ",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "〈( ^.^)ノ",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "┌（★ｏ☆）┘",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "└（★ｏ★）┐",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "♪(┌・。・)┌",
+      "keywords": "dance party 跳舞 派对"
+    },
+    {
+      "text": "（x_x；）",
+      "keywords": "在 死亡 休息 dead 和平 安息 rip peace rest in"
+    },
+    {
+      "text": "(*_*)",
+      "keywords": "在 死亡 休息 dead 和平 安息 rip peace rest in"
+    },
+    {
+      "text": "(×_×;）",
+      "keywords": "在 死亡 休息 dead 和平 安息 rip peace rest in"
+    },
+    {
+      "text": "(×_×#",
+      "keywords": "在 死亡 休息 dead 和平 安息 rip peace rest in"
+    },
+    {
+      "text": "(#+_+)",
+      "keywords": "在 死亡 休息 dead 和平 安息 rip peace rest in"
+    },
+    {
+      "text": "(+_+)",
+      "keywords": "在 死亡 休息 dead 和平 安息 rip peace rest in"
+    },
+    {
+      "text": "ヾ(×× ) ﾂ",
+      "keywords": "在 死亡 休息 dead 和平 安息 rip peace rest in"
+    },
+    {
+      "text": "（Ω_Ω）",
+      "keywords": "在 死亡 休息 dead 和平 安息 rip peace rest in"
+    },
+    {
+      "text": "へ（<_>へ)",
+      "keywords": "在 死亡 休息 dead 和平 安息 rip peace rest in"
+    },
+    {
+      "text": "(＊0＊;)",
+      "keywords": "在 死亡 休息 dead 和平 安息 rip peace rest in"
+    },
+    {
+      "text": "(u_u)",
+      "keywords": "在 死亡 休息 dead 和平 安息 rip peace rest in"
+    },
+    {
+      "text": " (✖╭╮✖)",
+      "keywords": "在 死亡 休息 dead 和平 安息 rip peace rest in"
+    },
+    {
+      "text": "(º_º)",
+      "keywords": "在 死亡 休息 dead 和平 安息 rip peace rest in"
+    },
+    {
+      "text": "٩(×̯×)۶",
+      "keywords": "在 死亡 休息 dead 和平 安息 rip peace rest in"
+    },
+    {
+      "text": "(ñ_ñ)",
+      "keywords": "在 死亡 休息 dead 和平 安息 rip peace rest in"
+    },
+    {
+      "text": "(o_-)",
+      "keywords": "在 死亡 休息 dead 和平 安息 rip peace rest in"
+    },
+    {
+      "text": "Defeated",
+      "keywords": "up give surrender defeated 投降 给予 向上 失败"
+    },
+    {
+      "text": "＿|￣|○",
+      "keywords": "up give surrender defeated 投降 给予 向上 失败"
+    },
+    {
+      "text": "＼（－－）／",
+      "keywords": "up give surrender defeated 投降 给予 向上 失败"
+    },
+    {
+      "text": "＼(-___________-;)／",
+      "keywords": "up give surrender defeated 投降 给予 向上 失败"
+    },
+    {
+      "text": "/(;-_-)",
+      "keywords": "up give surrender defeated 投降 给予 向上 失败"
+    },
+    {
+      "text": "~(>_<。)＼",
+      "keywords": "up give surrender defeated 投降 给予 向上 失败"
+    },
+    {
+      "text": "((-_-))",
+      "keywords": "up give surrender defeated 投降 给予 向上 失败"
+    },
+    {
+      "text": "（ー△ー；）",
+      "keywords": "up give surrender defeated 投降 给予 向上 失败"
+    },
+    {
+      "text": "（◎ー◎；）",
+      "keywords": "up give surrender defeated 投降 给予 向上 失败"
+    },
+    {
+      "text": "(/ _ ; )",
+      "keywords": "up give surrender defeated 投降 给予 向上 失败"
+    },
+    {
+      "text": "(o_ _)o",
+      "keywords": "up give surrender defeated 投降 给予 向上 失败"
+    },
+    {
+      "text": "ﾍ(￣ ￣;ﾍ)",
+      "keywords": "up give surrender defeated 投降 给予 向上 失败"
+    },
+    {
+      "text": "(;*´Д`)ﾉ",
+      "keywords": "up give surrender defeated 投降 给予 向上 失败"
+    },
+    {
+      "text": "(ﾉ_ _)ﾉ",
+      "keywords": "up give surrender defeated 投降 给予 向上 失败"
+    },
+    {
+      "text": "ヘ(_ _ヘ)",
+      "keywords": "up give surrender defeated 投降 给予 向上 失败"
+    },
+    {
+      "text": "(ﾉ￣д￣)ﾉ",
+      "keywords": "up give surrender defeated 投降 给予 向上 失败"
+    },
+    {
+      "text": "(;-_-)ノ",
+      "keywords": "up give surrender defeated 投降 给予 向上 失败"
+    },
+    {
+      "text": "o(-_-;*)",
+      "keywords": "up give surrender defeated 投降 给予 向上 失败"
+    },
+    {
+      "text": "ﾍ(;´Д｀ﾍ)",
+      "keywords": "up give surrender defeated 投降 给予 向上 失败"
+    },
+    {
+      "text": "(;-_-)/",
+      "keywords": "up give surrender defeated 投降 给予 向上 失败"
+    },
+    {
+      "text": "(oT-T)尸",
+      "keywords": "up give surrender defeated 投降 给予 向上 失败"
+    },
+    {
+      "text": "ヘ（´ｏ｀）ヘ",
+      "keywords": "up give surrender defeated 投降 给予 向上 失败"
+    },
+    {
+      "text": "(一。一;;）",
+      "keywords": "up give surrender defeated 投降 给予 向上 失败"
+    },
+    {
+      "text": "(ノ#-_-)ノ",
+      "keywords": "up give surrender defeated 投降 给予 向上 失败"
+    },
+    {
+      "text": "（~～~）",
+      "keywords": "up give surrender defeated 投降 给予 向上 失败"
+    },
+    {
+      "text": "y-(~。~；)",
+      "keywords": "up give surrender defeated 投降 给予 向上 失败"
+    },
+    {
+      "text": "(　-。-)",
+      "keywords": "up give surrender defeated 投降 给予 向上 失败"
+    },
+    {
+      "text": "Uo･ｪ･o",
+      "keywords": "dog 狗 puppy 狗狗 doggo animal 动物 小狗 pupper"
+    },
+    {
+      "text": "∪･ω･∪",
+      "keywords": "dog 狗 puppy 狗狗 doggo animal 动物 小狗 pupper"
+    },
+    {
+      "text": "U｡･ｪ･｡",
+      "keywords": "dog 狗 puppy 狗狗 doggo animal 动物 小狗 pupper"
+    },
+    {
+      "text": "▽・ω・▽",
+      "keywords": "dog 狗 puppy 狗狗 doggo animal 动物 小狗 pupper"
+    },
+    {
+      "text": "▽・ｗ・▽",
+      "keywords": "dog 狗 puppy 狗狗 doggo animal 动物 小狗 pupper"
+    },
+    {
+      "text": "Ｕ^皿^Ｕ",
+      "keywords": "dog 狗 puppy 狗狗 doggo animal 动物 小狗 pupper"
+    },
+    {
+      "text": "ｖ・。・Ｖ",
+      "keywords": "dog 狗 puppy 狗狗 doggo animal 动物 小狗 pupper"
+    },
+    {
+      "text": "ＵＴｪＴＵ",
+      "keywords": "dog 狗 puppy 狗狗 doggo animal 动物 小狗 pupper"
+    },
+    {
+      "text": "(^・(I)・^)",
+      "keywords": "dog 狗 puppy 狗狗 doggo animal 动物 小狗 pupper"
+    },
+    {
+      "text": "U・♀・",
+      "keywords": "dog 狗 puppy 狗狗 doggo animal 动物 小狗 pupper"
+    },
+    {
+      "text": "ｏ（Ｕ・ω・）⊃",
+      "keywords": "dog 狗 puppy 狗狗 doggo animal 动物 小狗 pupper"
+    },
+    {
+      "text": "(^・x・^)",
+      "keywords": "dog 狗 puppy 狗狗 doggo animal 动物 小狗 pupper"
+    },
+    {
+      "text": "(U・x・U)",
+      "keywords": "dog 狗 puppy 狗狗 doggo animal 动物 小狗 pupper"
+    },
+    {
+      "text": "▼o・ェ・o▼",
+      "keywords": "dog 狗 puppy 狗狗 doggo animal 动物 小狗 pupper"
+    },
+    {
+      "text": "U＾ェ＾",
+      "keywords": "dog 狗 puppy 狗狗 doggo animal 动物 小狗 pupper"
+    },
+    {
+      "text": "U￣ｰ￣",
+      "keywords": "dog 狗 puppy 狗狗 doggo animal 动物 小狗 pupper"
+    },
+    {
+      "text": "┌U･ｪ･U┘",
+      "keywords": "dog 狗 puppy 狗狗 doggo animal 动物 小狗 pupper"
+    },
+    {
+      "text": "└@(･ｪ･)@┐",
+      "keywords": "dog 狗 puppy 狗狗 doggo animal 动物 小狗 pupper"
+    },
+    {
+      "text": "ヾ(●ω●)ノ",
+      "keywords": "dog 狗 puppy 狗狗 doggo animal 动物 小狗 pupper"
+    },
+    {
+      "text": "(〓￣(∵エ∵)￣〓)",
+      "keywords": "dog 狗 puppy 狗狗 doggo animal 动物 小狗 pupper"
+    },
+    {
+      "text": "ｏ口(・∀・ )",
+      "keywords": "喝酒 drink"
+    },
+    {
+      "text": "(。・・)_且",
+      "keywords": "喝酒 drink"
+    },
+    {
+      "text": "且_(ﾟ◇ﾟ；)ノﾞ",
+      "keywords": "喝酒 drink"
+    },
+    {
+      "text": "~旦_(^O^ )",
+      "keywords": "喝酒 drink"
+    },
+    {
+      "text": "(　 ゜Д゜)⊃旦",
+      "keywords": "喝酒 drink"
+    },
+    {
+      "text": "( ´･ω･`)_且~",
+      "keywords": "喝酒 drink"
+    },
+    {
+      "text": "( ^-^)_旦”\\\"",
+      "keywords": "喝酒 drink"
+    },
+    {
+      "text": "(*^◇^)_旦",
+      "keywords": "喝酒 drink"
+    },
+    {
+      "text": "(*｀▽´)_旦~~",
+      "keywords": "喝酒 drink"
+    },
+    {
+      "text": "~(=^‥^)_旦~",
+      "keywords": "喝酒 drink"
+    },
+    {
+      "text": "(＾-＾)＿日",
+      "keywords": "喝酒 drink"
+    },
+    {
+      "text": "~~旦_(･o･;)",
+      "keywords": "喝酒 drink"
+    },
+    {
+      "text": "( -_-)旦~",
+      "keywords": "喝酒 drink"
+    },
+    {
+      "text": "(＃´ー´)旦",
+      "keywords": "喝酒 drink"
+    },
+    {
+      "text": "且_(・_・ )",
+      "keywords": "喝酒 drink"
+    },
+    {
+      "text": "(・｀ω´・)",
+      "keywords": "sneaky 偷偷摸摸 evil 邪恶 策划 狡猾 devious plotting"
+    },
+    {
+      "text": "ψ(｀∇´)ψ",
+      "keywords": "sneaky 偷偷摸摸 evil 邪恶 策划 狡猾 devious plotting"
+    },
+    {
+      "text": "（｀ー´）",
+      "keywords": "sneaky 偷偷摸摸 evil 邪恶 策划 狡猾 devious plotting"
+    },
+    {
+      "text": "(｡･｀ω´･｡)",
+      "keywords": "sneaky 偷偷摸摸 evil 邪恶 策划 狡猾 devious plotting"
+    },
+    {
+      "text": "o(｀ω´*)o",
+      "keywords": "sneaky 偷偷摸摸 evil 邪恶 策划 狡猾 devious plotting"
+    },
+    {
+      "text": "| ｀Д´|",
+      "keywords": "sneaky 偷偷摸摸 evil 邪恶 策划 狡猾 devious plotting"
+    },
+    {
+      "text": "(｀ε´)",
+      "keywords": "sneaky 偷偷摸摸 evil 邪恶 策划 狡猾 devious plotting"
+    },
+    {
+      "text": "(σ-`д･´)",
+      "keywords": "sneaky 偷偷摸摸 evil 邪恶 策划 狡猾 devious plotting"
+    },
+    {
+      "text": "(｀Д´*)",
+      "keywords": "sneaky 偷偷摸摸 evil 邪恶 策划 狡猾 devious plotting"
+    },
+    {
+      "text": "（=｀〜´=）",
+      "keywords": "sneaky 偷偷摸摸 evil 邪恶 策划 狡猾 devious plotting"
+    },
+    {
+      "text": "(ﾒ｀ﾛ´)/",
+      "keywords": "sneaky 偷偷摸摸 evil 邪恶 策划 狡猾 devious plotting"
+    },
+    {
+      "text": "Ψ(｀▽´)Ψ",
+      "keywords": "sneaky 偷偷摸摸 evil 邪恶 策划 狡猾 devious plotting"
+    },
+    {
+      "text": "^(#｀∀´)_Ψ",
+      "keywords": "sneaky 偷偷摸摸 evil 邪恶 策划 狡猾 devious plotting"
+    },
+    {
+      "text": "(*-`ω´- )人",
+      "keywords": "sneaky 偷偷摸摸 evil 邪恶 策划 狡猾 devious plotting"
+    },
+    {
+      "text": "(ц｀ω´ц*)",
+      "keywords": "sneaky 偷偷摸摸 evil 邪恶 策划 狡猾 devious plotting"
+    },
+    {
+      "text": "(｀∀´)Ψ",
+      "keywords": "sneaky 偷偷摸摸 evil 邪恶 策划 狡猾 devious plotting"
+    },
+    {
+      "text": "ψ(*｀ー´)ψ",
+      "keywords": "sneaky 偷偷摸摸 evil 邪恶 策划 狡猾 devious plotting"
+    },
+    {
+      "text": "Ψ(｀◇´)Ψ",
+      "keywords": "sneaky 偷偷摸摸 evil 邪恶 策划 狡猾 devious plotting"
+    },
+    {
+      "text": "“ψ(｀∇´)ψ",
+      "keywords": "sneaky 偷偷摸摸 evil 邪恶 策划 狡猾 devious plotting"
+    },
+    {
+      "text": ">=<",
+      "keywords": "动物 鱼 fish animal"
+    },
+    {
+      "text": ">゜))))彡",
+      "keywords": "动物 鱼 fish animal"
+    },
+    {
+      "text": "ζ°)))彡",
+      "keywords": "动物 鱼 fish animal"
+    },
+    {
+      "text": ">_)))彡",
+      "keywords": "动物 鱼 fish animal"
+    },
+    {
+      "text": ">^)))< ～～",
+      "keywords": "动物 鱼 fish animal"
+    },
+    {
+      "text": "(°)#))<<",
+      "keywords": "动物 鱼 fish animal"
+    },
+    {
+      "text": "（：。）ミ",
+      "keywords": "动物 鱼 fish animal"
+    },
+    {
+      "text": "Ｃ：。ミ",
+      "keywords": "动物 鱼 fish animal"
+    },
+    {
+      "text": "(Q )) >",
+      "keywords": "动物 鱼 fish animal"
+    },
+    {
+      "text": "(°))<<",
+      "keywords": "动物 鱼 fish animal"
+    },
+    {
+      "text": ">°))))彡",
+      "keywords": "动物 鱼 fish animal"
+    },
+    {
+      "text": "≧〔゜゜〕≦",
+      "keywords": "动物 鱼 fish animal"
+    },
+    {
+      "text": "ミ(・・)ミ",
+      "keywords": "动物 鱼 fish animal"
+    },
+    {
+      "text": "V=(° °)=V",
+      "keywords": "动物 鱼 fish animal"
+    },
+    {
+      "text": "＜コ：ミ",
+      "keywords": "动物 鱼 fish animal"
+    },
+    {
+      "text": "(゜))<<",
+      "keywords": "动物 鱼 fish animal"
+    },
+    {
+      "text": "ミ[°°]ミ",
+      "keywords": "动物 鱼 fish animal"
+    },
+    {
+      "text": "くコ:彡",
+      "keywords": "动物 鱼 fish animal"
+    },
+    {
+      "text": "ミ．．ミ",
+      "keywords": "动物 鱼 fish animal"
+    },
+    {
+      "text": "ヽ(∀゜ )人( ゜∀)ノ",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "(*･∀･)／＼(･∀･*)",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "＼（＾∀＾）メ（＾∀＾）ノ",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "＼（★´−｀）人（´▽｀★）／",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "（　＾＾）人（＾＾　）",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "(〃⌒▽⌒)八(〃⌒▽⌒〃)八(⌒▽⌒〃)",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "☆-(ノﾟДﾟ)八(ﾟДﾟ )ノ",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "( ｡･_･｡)人(｡･_･｡ )",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "ヽ(*^ｰ^)人(^ｰ^*)ノ",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "━(○´ｴ｀)(´ｴ｀●)━",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "(◎｀・ω・´)人(´・ω・｀*)",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "｡*:★(´・ω・人・ω・`)｡:゜★｡",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "(*´∀｀*人*´∀｀*)",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "（＾▽＾）／＼（＾▽＾）",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "（*＾ω＾）人（＾ω＾*）",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "ヽ(○´∀)乂(*´∀`*）乂(∀`●)",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "ヽ(´Д｀)人(´Д｀)人(´Д｀)ノ〜♪",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "(((*°▽°*)八(*°▽°*)))♪",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "♡(*´∀｀*)人(*´∀｀*)♡",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "(〃￣д￣)八( ￣д￣ )八(￣д￣〃)",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "ヽ(＾▽＾)人(＾▽＾)人(＾▽＾)ﾉ",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "(((＠°▽°＠)八(＠°▽°＠)))",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "(･_･”)/＼(･_･”)",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "(○｀ε´○)／＼(○｀ε´○)",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "ヘ( ^o^)ノ＼(^_^ )",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "(/^-^(^ ^*)/",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "( 。・_・。)人(。・_・。 )",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "(・_・)〆＼(Ｔ＿Ｔ）",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "(^^)-(^^)-(^^)-(^^)-(^^)",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "ヽ(´Д｀)人(´Д｀)人(´Д｀)ノ",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "ヾ(￣ー￣)X(^∇^)ゞ",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "♪ヽ( ⌒o⌒)人(⌒-⌒ )v ♪",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "(*^o^)人(^o^*)",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "＼(　^o)( ^ 0 ^ )(o^　)／",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "ヽ（　＾＾）人（＾＾　）ノ",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "(・_・”)／＼(・_・”)",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "└(^o^ )Ｘ( ^o^)┘",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "(＾○＾)オ(＾▽＾)ハ(＾０＾)ツ～",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "( ⌒o⌒)人(⌒-⌒ )v",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "(°◇°人°◇°)",
+      "keywords": "朋友 friends"
+    },
+    {
+      "text": "( ^_^)／",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "(^o^)/",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "(^ _ ^)/",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "( ´ ▽ ` )ﾉ",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "(ﾉ´∀｀*)ﾉ",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "ヾ(´･ω･｀)",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "☆ﾐ(o*･ω･)ﾉ",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "＼(＾▽＾*)",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "(*＾▽＾)／",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "(￣▽￣)ノ",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "ヾ(-_-;)",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "ヾ( ‘ – ‘*)",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "ヾ(＠⌒ー⌒＠)ノ",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "~ヾ ＾∇＾",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "~ヾ(＾∇＾)",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "＼(￣O￣)",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "(｡･ω･)ﾉﾞ",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "(*^･ｪ･)ﾉ",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "(￣∠ ￣ )ﾉ",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "(*￣Ｏ￣)ノ",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "ヾ(｡´･_●･`｡)☆",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "(/・0・)",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "(ノ^∇^)",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "(,, ･∀･)ﾉ゛",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "(。･д･)ﾉﾞ",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "＼(°o°；）",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "(｡´∀｀)ﾉ",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "(o´ω`o)ﾉ",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "( ･ω･)ﾉ",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "(。^_・)ノ",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "( ・_・)ノ",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "＼(-o- )",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "(。-ω-)ﾉ",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "＼(-_- )",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "＼( ･_･)",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "ヾ(´￢｀)ﾉ",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "ヾ(☆▽☆)",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "(^ Q ^)/゛",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "~(＾◇^)/",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "ヘ(‘◇’、)/",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "ヘ(°◇、°)ノ",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "ヘ(°￢°)ノ",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "ヘ(゜Д、゜)ノ",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "（ ゜ρ゜)ノ",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "ー( ´ ▽ ` )ﾉ",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "ヽ(๏∀๏ )ﾉ",
+      "keywords": "嗨 问候 再见 greetings 挥手 goodbye hi bye wave"
+    },
+    {
+      "text": "(●´∀｀●)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(｀・ω・´)”",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "ヽ(；▽；)ノ",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(*´・ｖ・)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(((o(*ﾟ▽ﾟ*)o)))",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "☆*:.｡. o(≧▽≦)o .｡.:*☆",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(⌒▽⌒)☆",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "⊂((・▽・))⊃",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(≧∇≦)/",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(´∇ﾉ｀*)ノ",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "（・◇・）",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "（＾_＾）",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "（￣ー￣）",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(*^▽^*)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(＾▽＾)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "（’-’*)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "∩( ・ω・)∩",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(*≧▽≦)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "＼（＾ ＾）／",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "Ｏ(≧∇≦)Ｏ",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "（　´∀｀）",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(^～^)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "＼（＠￣∇￣＠）／",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(☆^O^☆)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(★^O^★)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(☆^ー^☆)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(´ω｀★)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "＼（Ｔ∇Ｔ）／",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "ヽ(*≧ω≦)ﾉ",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "*(*´∀｀*)☆",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "Ｏ(≧▽≦)Ｏ",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "ヽ(*⌒∇⌒*)ﾉ",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "d=(´▽｀)=b",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "＼(*T▽T*)／",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "ヽ(‘ ∇‘ )ノ",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "（*＾ワ＾*）",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "ヽ(＾Д＾)ﾉ",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(´∀`)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(°◇°;)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(゜▽゜;)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(/^▽^)/",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(ﾉ´ｰ`)ﾉ",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(　＾∇＾)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "＼( ｀.∀´)／",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(●⌒∇⌒●)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "o(≧∇≦o)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "ヽ(｀◇´)/",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "ヽ(*・ω・)ﾉ",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "（＾ω＾）",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "｡◕‿◕｡",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "⊙ω⊙",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "⊙△⊙",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "⊙▽⊙",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "o (◡‿◡✿)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(◕‿◕✿)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(∩_∩)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(•ิ_•ิ)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(/•ิ_•ิ)/",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "（ΦωΦ）",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "（*＾＾*)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "（＾⊆＾）",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(-^〇^-)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(ノ*゜▽゜*)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "ヾ(´▽｀;)ゝ",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(゜▼゜＊）",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(￣个￣)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "＼(^▽^＠)ノ",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(“⌒∇⌒”)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "へ(゜∇、°)へ",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "（-＾〇＾-）",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "（＞ｙ＜）",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "ヽ(^。^)丿",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(ヘ。ヘ)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "（＾ｖ＾）",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "ヾ(@^▽^@)ノ",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "ヾ(@°▽°@)ノ",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "ヾ（＠＾▽＾＠）ノ",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "o((*^▽^*))o",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "ヾ(@゜∇゜@)ノ",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "ヾ(＠゜▽゜＠）ノ",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "（＠´＿｀＠）",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "ヾ(＠† ▽ †＠）ノ",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(ノ＞▽＜。)ノ",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "＼（＠；◇；＠）／",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "＼(☆o◎)／",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(((＼（＠v＠）／)))",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(o;TωT)o",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "ヽ(;^o^ヽ)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "（⌒▽⌒ゞ",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "“ヽ(´▽｀)ノ”",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "Ψ(´▽｀)Ψ",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "（ｖ＾＿＾）ｖ",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "  (ી(΄◞ิ౪◟ิ‵)ʃ)♥",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(❁´◡`❁)*✲ﾟ*",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(ღ˘⌣˘ღ) ♫･*:.｡. .｡.:*･",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": " ლ(╹◡╹ლ)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(✿◠‿◠)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(◑‿◐)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "ლ(́◉◞౪◟◉‵ლ)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "✖‿✖",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(*~▽~)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(─‿‿─)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "∩(︶▽︶)∩",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": " (︶ω︶)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "(∩▂∩)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": " (¬‿¬)",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": " (n˘v˘•)¬",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": " ಥ‿ಥ",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "≖‿≖",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "ʘ‿ʘ",
+      "keywords": "开心 joyful yay 快乐 happy 耶 joy"
+    },
+    {
+      "text": "|･ω･｀)",
+      "keywords": "peek 偷看 hide 隐藏"
+    },
+    {
+      "text": "ﾍ(･_|",
+      "keywords": "peek 偷看 hide 隐藏"
+    },
+    {
+      "text": "｜−・;）",
+      "keywords": "peek 偷看 hide 隐藏"
+    },
+    {
+      "text": "|ω・）",
+      "keywords": "peek 偷看 hide 隐藏"
+    },
+    {
+      "text": "|_・)",
+      "keywords": "peek 偷看 hide 隐藏"
+    },
+    {
+      "text": "(´∀｀)♡",
+      "keywords": "爱 心 love infatuation 爱心 <3 heart 迷恋"
+    },
+    {
+      "text": "(‘∀’●)♡",
+      "keywords": "爱 心 love infatuation 爱心 <3 heart 迷恋"
+    },
+    {
+      "text": "（*´▽｀*）",
+      "keywords": "爱 心 love infatuation 爱心 <3 heart 迷恋"
+    },
+    {
+      "text": "(*°∀°)=3",
+      "keywords": "爱 心 love infatuation 爱心 <3 heart 迷恋"
+    },
+    {
+      "text": "（´ω｀♡%）",
+      "keywords": "爱 心 love infatuation 爱心 <3 heart 迷恋"
+    },
+    {
+      "text": "ヽ(愛´∀｀愛)ノ",
+      "keywords": "爱 心 love infatuation 爱心 <3 heart 迷恋"
+    },
+    {
+      "text": "♡o｡.(✿ฺ｡ ✿ฺ)",
+      "keywords": "爱 心 love infatuation 爱心 <3 heart 迷恋"
+    },
+    {
+      "text": "(｡･ω･｡)ﾉ♡",
+      "keywords": "爱 心 love infatuation 爱心 <3 heart 迷恋"
+    },
+    {
+      "text": "（●´∀｀）ノ♡",
+      "keywords": "爱 心 love infatuation 爱心 <3 heart 迷恋"
+    },
+    {
+      "text": "♡＾▽＾♡",
+      "keywords": "爱 心 love infatuation 爱心 <3 heart 迷恋"
+    },
+    {
+      "text": "(｡-_-｡ )人( ｡-_-｡)",
+      "keywords": "爱 心 love infatuation 爱心 <3 heart 迷恋"
+    },
+    {
+      "text": "(●♡∀♡)",
+      "keywords": "爱 心 love infatuation 爱心 <3 heart 迷恋"
+    },
+    {
+      "text": "（＿´ω｀）",
+      "keywords": "爱 心 love infatuation 爱心 <3 heart 迷恋"
+    },
+    {
+      "text": "(´ ▽｀).。ｏ♡",
+      "keywords": "爱 心 love infatuation 爱心 <3 heart 迷恋"
+    },
+    {
+      "text": "(o⌒．⌒o)",
+      "keywords": "爱 心 love infatuation 爱心 <3 heart 迷恋"
+    },
+    {
+      "text": "（人´∀`*）",
+      "keywords": "爱 心 love infatuation 爱心 <3 heart 迷恋"
+    },
+    {
+      "text": "（〃・・〃）",
+      "keywords": "爱 心 love infatuation 爱心 <3 heart 迷恋"
+    },
+    {
+      "text": "♥（ﾉ´∀`）",
+      "keywords": "爱 心 love infatuation 爱心 <3 heart 迷恋"
+    },
+    {
+      "text": "(ღ˘⌣˘ღ)",
+      "keywords": "爱 心 love infatuation 爱心 <3 heart 迷恋"
+    },
+    {
+      "text": "(｡’▽’｡)♡",
+      "keywords": "爱 心 love infatuation 爱心 <3 heart 迷恋"
+    },
+    {
+      "text": "  (●´□`)♡",
+      "keywords": "爱 心 love infatuation 爱心 <3 heart 迷恋"
+    },
+    {
+      "text": " (｡♥‿♥｡)",
+      "keywords": "爱 心 love infatuation 爱心 <3 heart 迷恋"
+    },
+    {
+      "text": "(✿ ♥‿♥)",
+      "keywords": "爱 心 love infatuation 爱心 <3 heart 迷恋"
+    },
+    {
+      "text": "♥╣[-_-]╠♥",
+      "keywords": "爱 心 love infatuation 爱心 <3 heart 迷恋"
+    },
+    {
+      "text": "(´ε｀ )♡",
+      "keywords": "kiss 亲吻"
+    },
+    {
+      "text": "～(^з^)-☆",
+      "keywords": "kiss 亲吻"
+    },
+    {
+      "text": "|°з°|",
+      "keywords": "kiss 亲吻"
+    },
+    {
+      "text": "（＿ε＿）",
+      "keywords": "kiss 亲吻"
+    },
+    {
+      "text": "(‘ε’)",
+      "keywords": "kiss 亲吻"
+    },
+    {
+      "text": "|(￣3￣)|",
+      "keywords": "kiss 亲吻"
+    },
+    {
+      "text": "（￣ε￣＠）",
+      "keywords": "kiss 亲吻"
+    },
+    {
+      "text": "（*＾3＾）",
+      "keywords": "kiss 亲吻"
+    },
+    {
+      "text": "(´ε｀*)",
+      "keywords": "kiss 亲吻"
+    },
+    {
+      "text": "(○´3｀)ﾉ",
+      "keywords": "kiss 亲吻"
+    },
+    {
+      "text": "(☆´3｀)",
+      "keywords": "kiss 亲吻"
+    },
+    {
+      "text": "(*￣з￣)",
+      "keywords": "kiss 亲吻"
+    },
+    {
+      "text": "(づ￣ ³￣)づ",
+      "keywords": "kiss 亲吻"
+    },
+    {
+      "text": "（○゜ε＾○）",
+      "keywords": "kiss 亲吻"
+    },
+    {
+      "text": "(TεT)",
+      "keywords": "kiss 亲吻"
+    },
+    {
+      "text": "(-ε- )",
+      "keywords": "kiss 亲吻"
+    },
+    {
+      "text": "（＠ーεー＠）",
+      "keywords": "kiss 亲吻"
+    },
+    {
+      "text": "（*＾3＾）/～☆",
+      "keywords": "kiss 亲吻"
+    },
+    {
+      "text": "ლ(|||⌒εー|||)ლ",
+      "keywords": "kiss 亲吻"
+    },
+    {
+      "text": "  (╯3╰)",
+      "keywords": "kiss 亲吻"
+    },
+    {
+      "text": " (ΘεΘ;)",
+      "keywords": "kiss 亲吻"
+    },
+    {
+      "text": "（・∀・）",
+      "keywords": "haha 笑 哈哈 laugh"
+    },
+    {
+      "text": "（⌒▽⌒）",
+      "keywords": "haha 笑 哈哈 laugh"
+    },
+    {
+      "text": " (*≧▽≦)ﾉｼ))",
+      "keywords": "haha 笑 哈哈 laugh"
+    },
+    {
+      "text": "  (●´艸`)",
+      "keywords": "haha 笑 哈哈 laugh"
+    },
+    {
+      "text": " (*´艸`*)",
+      "keywords": "haha 笑 哈哈 laugh"
+    },
+    {
+      "text": "(｡ >艸<)",
+      "keywords": "haha 笑 哈哈 laugh"
+    },
+    {
+      "text": "(*≧艸≦)",
+      "keywords": "haha 笑 哈哈 laugh"
+    },
+    {
+      "text": "(*・艸・)",
+      "keywords": "haha 笑 哈哈 laugh"
+    },
+    {
+      "text": "ヽ（´ー｀）┌",
+      "keywords": "whatever 什么 so 温和 shrug 一般般 耸肩 meh 无所谓 mellow 所以 what"
+    },
+    {
+      "text": "┗┐ヽ(′Д、`*)ﾉ┌┛",
+      "keywords": "whatever 什么 so 温和 shrug 一般般 耸肩 meh 无所谓 mellow 所以 what"
+    },
+    {
+      "text": "ヽ( ´¬`)ノ",
+      "keywords": "whatever 什么 so 温和 shrug 一般般 耸肩 meh 无所谓 mellow 所以 what"
+    },
+    {
+      "text": "┗┃・ ■ ・┃┛",
+      "keywords": "whatever 什么 so 温和 shrug 一般般 耸肩 meh 无所谓 mellow 所以 what"
+    },
+    {
+      "text": "ヾ(´A｀)ノﾟ",
+      "keywords": "whatever 什么 so 温和 shrug 一般般 耸肩 meh 无所谓 mellow 所以 what"
+    },
+    {
+      "text": "ヽ（・＿・；)ノ",
+      "keywords": "whatever 什么 so 温和 shrug 一般般 耸肩 meh 无所谓 mellow 所以 what"
+    },
+    {
+      "text": "ヽ(　￣д￣;)ノ",
+      "keywords": "whatever 什么 so 温和 shrug 一般般 耸肩 meh 无所谓 mellow 所以 what"
+    },
+    {
+      "text": "＼（〇_ｏ）／",
+      "keywords": "whatever 什么 so 温和 shrug 一般般 耸肩 meh 无所谓 mellow 所以 what"
+    },
+    {
+      "text": "ヽ(。_°)ノ",
+      "keywords": "whatever 什么 so 温和 shrug 一般般 耸肩 meh 无所谓 mellow 所以 what"
+    },
+    {
+      "text": "＼(;´□｀)/",
+      "keywords": "whatever 什么 so 温和 shrug 一般般 耸肩 meh 无所谓 mellow 所以 what"
+    },
+    {
+      "text": "ヾ(*´ー`)ノ",
+      "keywords": "whatever 什么 so 温和 shrug 一般般 耸肩 meh 无所谓 mellow 所以 what"
+    },
+    {
+      "text": "ヽ(‘ー`)ノ",
+      "keywords": "whatever 什么 so 温和 shrug 一般般 耸肩 meh 无所谓 mellow 所以 what"
+    },
+    {
+      "text": "ヽ(ー_ー )ノ",
+      "keywords": "whatever 什么 so 温和 shrug 一般般 耸肩 meh 无所谓 mellow 所以 what"
+    },
+    {
+      "text": "ヽ(´～｀；）",
+      "keywords": "whatever 什么 so 温和 shrug 一般般 耸肩 meh 无所谓 mellow 所以 what"
+    },
+    {
+      "text": "┐(‘～`；)┌",
+      "keywords": "whatever 什么 so 温和 shrug 一般般 耸肩 meh 无所谓 mellow 所以 what"
+    },
+    {
+      "text": "ヽ（*ω。）ノ",
+      "keywords": "whatever 什么 so 温和 shrug 一般般 耸肩 meh 无所谓 mellow 所以 what"
+    },
+    {
+      "text": "(;´・`)>",
+      "keywords": "whatever 什么 so 温和 shrug 一般般 耸肩 meh 无所谓 mellow 所以 what"
+    },
+    {
+      "text": "（＾～＾）",
+      "keywords": "whatever 什么 so 温和 shrug 一般般 耸肩 meh 无所谓 mellow 所以 what"
+    },
+    {
+      "text": "╮(─▽─)╭",
+      "keywords": "whatever 什么 so 温和 shrug 一般般 耸肩 meh 无所谓 mellow 所以 what"
+    },
+    {
+      "text": " ¯\\_(ツ)_/¯",
+      "keywords": "whatever 什么 so 温和 shrug 一般般 耸肩 meh 无所谓 mellow 所以 what"
+    },
+    {
+      "text": "٩(-̮̮̃-̃)۶",
+      "keywords": "whatever 什么 so 温和 shrug 一般般 耸肩 meh 无所谓 mellow 所以 what"
+    },
+    {
+      "text": "٩(-̮̮̃•̃)۶",
+      "keywords": "whatever 什么 so 温和 shrug 一般般 耸肩 meh 无所谓 mellow 所以 what"
+    },
+    {
+      "text": "(=ﾟωﾟ)ﾉ",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "(○’ω’○)",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "[´・ω・`]",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "ヾ(｡･ω･｡)",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "(´-ω-｀)",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "(*･ω･)",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "(*-ω-)",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "┗(･ω･;)┛",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "｛・ω-*}",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "(* >ω<)",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "ヾ(ｏ･ω･)ﾉ",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "w(´･ω･`)w",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "(´・ω・`)",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "(・ω・；)",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "Σ(・ω・`|||)",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "ヾ(・ω・ｏ)",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "(´o・┏ω┓・o｀)",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "ヽ(･ω･｡)ﾉ",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "(ﾉ･ω･)ﾉﾞ",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "ヽ(･ω･ゞ)",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "ヾ(･ω･`｡)",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "(。-`ω´-)",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "(=ﾟωﾟ)ノ",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "(｡+･`ω･´)",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "ヽ(｡ゝω・｡)ﾉ",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "⊂^j^⊃",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "（⊂((・⊥・))⊃）",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "~(-仝-)~",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "⊂((〃’⊥’〃))⊃",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "○(・x・)",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "◎▼◎",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "（-Φ-）",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "⊆（⌒◎⌒）⊇",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "≫(‘♀’)≪",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "（’∽’）",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "（≡・　x　・≡）",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "(∵)",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "Σ( ﾟωﾟ；≡⊃",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "ヽ(´･ω･`)､",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "(*´ω｀)o",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "(´・ω・)ﾉ",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "～>゜）～～～～",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "＞°）m～～～∈",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "～＞°）mニニニニ＝～",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "(∩ё∩)",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "～>`)～～～",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "]＾：山",
+      "keywords": "动物 animal"
+    },
+    {
+      "text": "(´Д` )",
+      "keywords": ""
+    },
+    {
+      "text": "・゜・(ノД`)",
+      "keywords": ""
+    },
+    {
+      "text": "ヽ(´Д｀ヽ",
+      "keywords": ""
+    },
+    {
+      "text": "（ゝ。∂）",
+      "keywords": ""
+    },
+    {
+      "text": "(-_＼)",
+      "keywords": ""
+    },
+    {
+      "text": "( 　ﾟ,_ゝﾟ)",
+      "keywords": ""
+    },
+    {
+      "text": "ヽ(･∀･)ﾉ",
+      "keywords": ""
+    },
+    {
+      "text": "v(｡-_-｡)v",
+      "keywords": ""
+    },
+    {
+      "text": "（＾凹＾）",
+      "keywords": ""
+    },
+    {
+      "text": "(　ﾟдﾟ)",
+      "keywords": ""
+    },
+    {
+      "text": "(/・・)ノ",
+      "keywords": ""
+    },
+    {
+      "text": "(ﾉ･ｪ･)ﾉ",
+      "keywords": ""
+    },
+    {
+      "text": "＼(ﾟｰﾟ＼)",
+      "keywords": ""
+    },
+    {
+      "text": "o(‧”’‧)",
+      "keywords": ""
+    },
+    {
+      "text": "(◕〝◕)",
+      "keywords": ""
+    },
+    {
+      "text": "( c//”-}{-*\\x)",
+      "keywords": ""
+    },
+    {
+      "text": "(◐ o ◑ )",
+      "keywords": ""
+    },
+    {
+      "text": "（;´_ヘ;）",
+      "keywords": ""
+    },
+    {
+      "text": "（πーπ）",
+      "keywords": ""
+    },
+    {
+      "text": "w(@。@;)w",
+      "keywords": ""
+    },
+    {
+      "text": "＼(●o○;)ノ",
+      "keywords": ""
+    },
+    {
+      "text": "(V)o\\o;;(V)",
+      "keywords": ""
+    },
+    {
+      "text": "（＄０＄）",
+      "keywords": ""
+    },
+    {
+      "text": "（ｏ。ｏ；）",
+      "keywords": ""
+    },
+    {
+      "text": "ヘ（゜◇、゜）ノ",
+      "keywords": ""
+    },
+    {
+      "text": "☆⌒(*＾-°)v",
+      "keywords": ""
+    },
+    {
+      "text": "☆⌒（＊＾∇゜）v",
+      "keywords": ""
+    },
+    {
+      "text": "m{oYo}屮",
+      "keywords": ""
+    },
+    {
+      "text": "*~●＞＾）",
+      "keywords": ""
+    },
+    {
+      "text": "━━☆＞＾）",
+      "keywords": ""
+    },
+    {
+      "text": "（´・｀ ）",
+      "keywords": ""
+    },
+    {
+      "text": "(^ц^ )",
+      "keywords": ""
+    },
+    {
+      "text": "【:εω",
+      "keywords": ""
+    },
+    {
+      "text": " (๑ ऀืົཽ₍₍ළ₎₎ ऀืົཽ)✧",
+      "keywords": ""
+    },
+    {
+      "text": " ‹(•¿•)›",
+      "keywords": ""
+    },
+    {
+      "text": "(⊙ヮ⊙)",
+      "keywords": ""
+    },
+    {
+      "text": "( °٢° )",
+      "keywords": ""
+    },
+    {
+      "text": "  ( 　ﾟ,_ゝﾟ)",
+      "keywords": ""
+    },
+    {
+      "text": "@(o･ｪ･)@",
+      "keywords": "动物 猴子 monkey animal"
+    },
+    {
+      "text": "@(｡･o･)@",
+      "keywords": "动物 猴子 monkey animal"
+    },
+    {
+      "text": "@(o･ｪ･o)@",
+      "keywords": "动物 猴子 monkey animal"
+    },
+    {
+      "text": "@(/o･ｪ･o)@/",
+      "keywords": "动物 猴子 monkey animal"
+    },
+    {
+      "text": "@(*^ｪ^)@",
+      "keywords": "动物 猴子 monkey animal"
+    },
+    {
+      "text": "Moustache",
+      "keywords": "胡子 moustache stache"
+    },
+    {
+      "text": "(´┏o┓｀)",
+      "keywords": "胡子 moustache stache"
+    },
+    {
+      "text": "ﾐ(´┏ω┓｀)/",
+      "keywords": "胡子 moustache stache"
+    },
+    {
+      "text": "(´┏･┓｀)",
+      "keywords": "胡子 moustache stache"
+    },
+    {
+      "text": "(￣┏Д┓￣°*)",
+      "keywords": "胡子 moustache stache"
+    },
+    {
+      "text": "(￣┏Д┓￣ )",
+      "keywords": "胡子 moustache stache"
+    },
+    {
+      "text": "( ￣┏＿┓￣)",
+      "keywords": "胡子 moustache stache"
+    },
+    {
+      "text": "(ノ≧┏Д┓≦)ノ",
+      "keywords": "胡子 moustache stache"
+    },
+    {
+      "text": "(￣┏∞┓￣)",
+      "keywords": "胡子 moustache stache"
+    },
+    {
+      "text": "☆⌒(＞。≪)",
+      "keywords": "urgh ugh pain 疼痛 哎哟 呃 ow"
+    },
+    {
+      "text": "☆￣(＞。☆)",
+      "keywords": "urgh ugh pain 疼痛 哎哟 呃 ow"
+    },
+    {
+      "text": "~(>_<~)",
+      "keywords": "urgh ugh pain 疼痛 哎哟 呃 ow"
+    },
+    {
+      "text": "ヘ(>_<ヘ)",
+      "keywords": "urgh ugh pain 疼痛 哎哟 呃 ow"
+    },
+    {
+      "text": "(。_＋)＼",
+      "keywords": "urgh ugh pain 疼痛 哎哟 呃 ow"
+    },
+    {
+      "text": "(xLx)ヾ",
+      "keywords": "urgh ugh pain 疼痛 哎哟 呃 ow"
+    },
+    {
+      "text": "/(*ι*)ヾ",
+      "keywords": "urgh ugh pain 疼痛 哎哟 呃 ow"
+    },
+    {
+      "text": "(ノ>ノ)",
+      "keywords": "urgh ugh pain 疼痛 哎哟 呃 ow"
+    },
+    {
+      "text": "／(x~x)＼",
+      "keywords": "urgh ugh pain 疼痛 哎哟 呃 ow"
+    },
+    {
+      "text": "◎☆（♯××）┘",
+      "keywords": "urgh ugh pain 疼痛 哎哟 呃 ow"
+    },
+    {
+      "text": "ヘ（。□°）ヘ",
+      "keywords": "urgh ugh pain 疼痛 哎哟 呃 ow"
+    },
+    {
+      "text": "( ´(00)`)",
+      "keywords": "动物 animal 猪 pig"
+    },
+    {
+      "text": "ヾ(；ﾟ(OO)ﾟ)ﾉ",
+      "keywords": "动物 animal 猪 pig"
+    },
+    {
+      "text": "ヽ(*’(OO)’)ﾉ",
+      "keywords": "动物 animal 猪 pig"
+    },
+    {
+      "text": "(￣(oo)￣)ﾉ",
+      "keywords": "动物 animal 猪 pig"
+    },
+    {
+      "text": "(○｀（●●）´○)ﾉ",
+      "keywords": "动物 animal 猪 pig"
+    },
+    {
+      "text": "(*’(OO)’*)",
+      "keywords": "动物 animal 猪 pig"
+    },
+    {
+      "text": "(；ﾟ(OO)ﾟ)",
+      "keywords": "动物 animal 猪 pig"
+    },
+    {
+      "text": "(*´(00)`)’",
+      "keywords": "动物 animal 猪 pig"
+    },
+    {
+      "text": "ヽ(*’(OO)’)ﾉﾟ",
+      "keywords": "动物 animal 猪 pig"
+    },
+    {
+      "text": "q(￣(oo)￣)p",
+      "keywords": "动物 animal 猪 pig"
+    },
+    {
+      "text": "｡ﾟ(ﾟ´(00)`ﾟ)ﾟ｡",
+      "keywords": "动物 animal 猪 pig"
+    },
+    {
+      "text": "(￣（∞）￣)",
+      "keywords": "动物 animal 猪 pig"
+    },
+    {
+      "text": "(￣(▽▽)￣)",
+      "keywords": "动物 animal 猪 pig"
+    },
+    {
+      "text": "(=｀(∞)´=)",
+      "keywords": "动物 animal 猪 pig"
+    },
+    {
+      "text": "（ ; ; ）",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "(T＿T)",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "（ ＴДＴ）",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "(ToT)",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "(Ｔ▽Ｔ)",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "(‘A`)",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "（；_・）",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "(T_T)",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "((T.T； )",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "(； T.T))",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "（；へ：）",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "(ノД`)・゜・。",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "・(/Д`)・",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "(´＿｀。)",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "(´Д｀。)",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "(´Ａ｀。)",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "(´∩｀。)",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "｡：ﾟ(｡ﾉω＼｡)ﾟ･｡",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "(┳Д┳)",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "(´；д；`)",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "(*´；ェ；`*)",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "｡･ﾟﾟ･(>д<)･ﾟﾟ･｡",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "(。┰ω┰。)",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "(゜´Д｀゜)",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "（ｉДｉ）",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "(´；ω；`)",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "。ﾟ(ﾟﾉД｀ﾟ)ﾟ｡",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "ヽ(´□｀。)ﾉ",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "(ﾟ´Д｀ﾟ)ﾟ",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "{{p´Д｀q}}",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "ヽ(●ﾟ´Д｀ﾟ●)ﾉﾟ",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "( p_q)",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": ".・゜゜・（／。＼）・゜゜・．",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "(个_个)",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "((´д｀))",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "( ≧Д≦)",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "｡゜(｀Д´)゜｡",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "p(´⌒｀｡q)",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "(/□＼*)・゜",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "((o(;△;)o))",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "（；￣д￣）",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "(ㄒoㄒ)",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "⊙︿⊙",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "o(╥﹏╥)o",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "o(；△；)o",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "(;*△*;)",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "（´＿｀）",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "╥﹏╥",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "  (´°̥̥̥̥̥̥̥̥ω°̥̥̥̥̥̥̥̥｀)",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": " (∩︵∩)",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": " (╯︵╰,)",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "(︶︹︺)",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": " (╥_╥)",
+      "keywords": "sad 眼泪 tears upset 心烦 悲伤 crying 哭泣"
+    },
+    {
+      "text": "(ノдヽ)",
+      "keywords": "shy 害羞 scared 害怕"
+    },
+    {
+      "text": "ヽ(ﾟДﾟ)ﾉ",
+      "keywords": "shy 害羞 scared 害怕"
+    },
+    {
+      "text": "(／。＼)",
+      "keywords": "shy 害羞 scared 害怕"
+    },
+    {
+      "text": "（／_＼）",
+      "keywords": "shy 害羞 scared 害怕"
+    },
+    {
+      "text": "（／．＼）",
+      "keywords": "shy 害羞 scared 害怕"
+    },
+    {
+      "text": "( ꒪Д꒪)ノ",
+      "keywords": "什么 what way 方式 surprise no 震惊 mouth 嘴巴 不 shock open 打开 惊讶"
+    },
+    {
+      "text": "(((( ;°Д°))))",
+      "keywords": "什么 what way 方式 surprise no 震惊 mouth 嘴巴 不 shock open 打开 惊讶"
+    },
+    {
+      "text": "((((；゜Д゜)))",
+      "keywords": "什么 what way 方式 surprise no 震惊 mouth 嘴巴 不 shock open 打开 惊讶"
+    },
+    {
+      "text": "（゜◇゜）",
+      "keywords": "什么 what way 方式 surprise no 震惊 mouth 嘴巴 不 shock open 打开 惊讶"
+    },
+    {
+      "text": "（￣□￣；）",
+      "keywords": "什么 what way 方式 surprise no 震惊 mouth 嘴巴 不 shock open 打开 惊讶"
+    },
+    {
+      "text": "∑(O_O；)",
+      "keywords": "什么 what way 方式 surprise no 震惊 mouth 嘴巴 不 shock open 打开 惊讶"
+    },
+    {
+      "text": "＼(>o<)ノ",
+      "keywords": "什么 what way 方式 surprise no 震惊 mouth 嘴巴 不 shock open 打开 惊讶"
+    },
+    {
+      "text": "━Σ(ﾟДﾟ|||)━",
+      "keywords": "什么 what way 方式 surprise no 震惊 mouth 嘴巴 不 shock open 打开 惊讶"
+    },
+    {
+      "text": "Σ(゜ロ゜;)",
+      "keywords": "什么 what way 方式 surprise no 震惊 mouth 嘴巴 不 shock open 打开 惊讶"
+    },
+    {
+      "text": "Σ(゜゜)",
+      "keywords": "什么 what way 方式 surprise no 震惊 mouth 嘴巴 不 shock open 打开 惊讶"
+    },
+    {
+      "text": "(*ﾟﾛﾟ)",
+      "keywords": "什么 what way 方式 surprise no 震惊 mouth 嘴巴 不 shock open 打开 惊讶"
+    },
+    {
+      "text": "щ(゜ロ゜щ)",
+      "keywords": "什么 what way 方式 surprise no 震惊 mouth 嘴巴 不 shock open 打开 惊讶"
+    },
+    {
+      "text": "(ﾉﾟ0ﾟ)ﾉ~",
+      "keywords": "什么 what way 方式 surprise no 震惊 mouth 嘴巴 不 shock open 打开 惊讶"
+    },
+    {
+      "text": "⊙▂⊙",
+      "keywords": "什么 what way 方式 surprise no 震惊 mouth 嘴巴 不 shock open 打开 惊讶"
+    },
+    {
+      "text": "⊙０⊙",
+      "keywords": "什么 what way 方式 surprise no 震惊 mouth 嘴巴 不 shock open 打开 惊讶"
+    },
+    {
+      "text": "w(°ｏ°)w",
+      "keywords": "什么 what way 方式 surprise no 震惊 mouth 嘴巴 不 shock open 打开 惊讶"
+    },
+    {
+      "text": "L(・o・)」",
+      "keywords": "什么 what way 方式 surprise no 震惊 mouth 嘴巴 不 shock open 打开 惊讶"
+    },
+    {
+      "text": "(○o○)",
+      "keywords": "什么 what way 方式 surprise no 震惊 mouth 嘴巴 不 shock open 打开 惊讶"
+    },
+    {
+      "text": "（・□・；）",
+      "keywords": "什么 what way 方式 surprise no 震惊 mouth 嘴巴 不 shock open 打开 惊讶"
+    },
+    {
+      "text": "(^_^;)",
+      "keywords": "bashful embarrassed shy 害羞 尴尬"
+    },
+    {
+      "text": "(^^ゞ",
+      "keywords": "bashful embarrassed shy 害羞 尴尬"
+    },
+    {
+      "text": "(^^;)",
+      "keywords": "bashful embarrassed shy 害羞 尴尬"
+    },
+    {
+      "text": "(#^.^#)",
+      "keywords": "bashful embarrassed shy 害羞 尴尬"
+    },
+    {
+      "text": "(‘-’*)",
+      "keywords": "bashful embarrassed shy 害羞 尴尬"
+    },
+    {
+      "text": "(*^^*)",
+      "keywords": "bashful embarrassed shy 害羞 尴尬"
+    },
+    {
+      "text": "(⌒_⌒;)",
+      "keywords": "bashful embarrassed shy 害羞 尴尬"
+    },
+    {
+      "text": "(#｀ε´#ゞ",
+      "keywords": "bashful embarrassed shy 害羞 尴尬"
+    },
+    {
+      "text": "（*/∇＼*）",
+      "keywords": "bashful embarrassed shy 害羞 尴尬"
+    },
+    {
+      "text": "(〃￣ω￣〃ゞ",
+      "keywords": "bashful embarrassed shy 害羞 尴尬"
+    },
+    {
+      "text": "(*´ｪ｀*)",
+      "keywords": "bashful embarrassed shy 害羞 尴尬"
+    },
+    {
+      "text": "(*´∀`*)",
+      "keywords": "bashful embarrassed shy 害羞 尴尬"
+    },
+    {
+      "text": "(*´_ゝ｀)",
+      "keywords": "bashful embarrassed shy 害羞 尴尬"
+    },
+    {
+      "text": "(/ω＼)",
+      "keywords": "bashful embarrassed shy 害羞 尴尬"
+    },
+    {
+      "text": "(*ﾉ▽ﾉ)",
+      "keywords": "bashful embarrassed shy 害羞 尴尬"
+    },
+    {
+      "text": "(*ﾉωﾉ)",
+      "keywords": "bashful embarrassed shy 害羞 尴尬"
+    },
+    {
+      "text": "（/｡＼)",
+      "keywords": "bashful embarrassed shy 害羞 尴尬"
+    },
+    {
+      "text": "（。-＿-。）",
+      "keywords": "bashful embarrassed shy 害羞 尴尬"
+    },
+    {
+      "text": "(#／。＼#)",
+      "keywords": "bashful embarrassed shy 害羞 尴尬"
+    },
+    {
+      "text": " (╯_╰)",
+      "keywords": "bashful embarrassed shy 害羞 尴尬"
+    },
+    {
+      "text": "(╯ಊ╰)",
+      "keywords": "bashful embarrassed shy 害羞 尴尬"
+    },
+    {
+      "text": "ヾ(´□｀* )ノ",
+      "keywords": "singing 唱歌"
+    },
+    {
+      "text": "（＾Ｏ＾☆♪",
+      "keywords": "singing 唱歌"
+    },
+    {
+      "text": "＼(^o^)／",
+      "keywords": "singing 唱歌"
+    },
+    {
+      "text": "(´▽｀)ノ♪",
+      "keywords": "singing 唱歌"
+    },
+    {
+      "text": "ヽ(´▽｀；)/♪",
+      "keywords": "singing 唱歌"
+    },
+    {
+      "text": "ヽ(´・｀)ﾉ",
+      "keywords": "singing 唱歌"
+    },
+    {
+      "text": "ヽ(○´∀`)ﾉ♪",
+      "keywords": "singing 唱歌"
+    },
+    {
+      "text": "ヾ(´ρ｀)〃",
+      "keywords": "singing 唱歌"
+    },
+    {
+      "text": "ヾ(´〇｀)ﾉ",
+      "keywords": "singing 唱歌"
+    },
+    {
+      "text": "(´△｀)♪",
+      "keywords": "singing 唱歌"
+    },
+    {
+      "text": "(ﾉ´▽｀)ﾉ♪",
+      "keywords": "singing 唱歌"
+    },
+    {
+      "text": "Σ(￣。￣ノ)ノ",
+      "keywords": "up 疲倦 打哈欠 yawning sleepy wake 醒来 tired 困倦 向上"
+    },
+    {
+      "text": "(-ｪ-)｡o",
+      "keywords": "up 疲倦 打哈欠 yawning sleepy wake 醒来 tired 困倦 向上"
+    },
+    {
+      "text": "(;´ρ`)",
+      "keywords": "up 疲倦 打哈欠 yawning sleepy wake 醒来 tired 困倦 向上"
+    },
+    {
+      "text": "(*´ο`*)",
+      "keywords": "up 疲倦 打哈欠 yawning sleepy wake 醒来 tired 困倦 向上"
+    },
+    {
+      "text": "ε-(´・｀)",
+      "keywords": "up 疲倦 打哈欠 yawning sleepy wake 醒来 tired 困倦 向上"
+    },
+    {
+      "text": "＼(o￣∇￣o)/",
+      "keywords": "up 疲倦 打哈欠 yawning sleepy wake 醒来 tired 困倦 向上"
+    },
+    {
+      "text": "＼（´Ｏ｀）／",
+      "keywords": "up 疲倦 打哈欠 yawning sleepy wake 醒来 tired 困倦 向上"
+    },
+    {
+      "text": "［(－－)］zzz",
+      "keywords": "up 疲倦 打哈欠 yawning sleepy wake 醒来 tired 困倦 向上"
+    },
+    {
+      "text": "(´～`)",
+      "keywords": "up 疲倦 打哈欠 yawning sleepy wake 醒来 tired 困倦 向上"
+    },
+    {
+      "text": "ヾ(。￣□￣)ﾂ",
+      "keywords": "up 疲倦 打哈欠 yawning sleepy wake 醒来 tired 困倦 向上"
+    },
+    {
+      "text": "ヾ(￣0￣； )ノ",
+      "keywords": "up 疲倦 打哈欠 yawning sleepy wake 醒来 tired 困倦 向上"
+    },
+    {
+      "text": "ヾ(￣□￣;)ﾉ",
+      "keywords": "up 疲倦 打哈欠 yawning sleepy wake 醒来 tired 困倦 向上"
+    },
+    {
+      "text": "(。-ω-)zzz",
+      "keywords": "up 疲倦 打哈欠 yawning sleepy wake 醒来 tired 困倦 向上"
+    },
+    {
+      "text": "(-_-) zzz",
+      "keywords": "up 疲倦 打哈欠 yawning sleepy wake 醒来 tired 困倦 向上"
+    },
+    {
+      "text": "(∪｡∪)｡｡｡zzz",
+      "keywords": "up 疲倦 打哈欠 yawning sleepy wake 醒来 tired 困倦 向上"
+    },
+    {
+      "text": "(´〜｀*) zzz",
+      "keywords": "up 疲倦 打哈欠 yawning sleepy wake 醒来 tired 困倦 向上"
+    },
+    {
+      "text": "∑(￣□￣)",
+      "keywords": "up 疲倦 打哈欠 yawning sleepy wake 醒来 tired 困倦 向上"
+    },
+    {
+      "text": "(o´Д`)",
+      "keywords": "up 疲倦 打哈欠 yawning sleepy wake 醒来 tired 困倦 向上"
+    },
+    {
+      "text": "（)´д`(）",
+      "keywords": "up 疲倦 打哈欠 yawning sleepy wake 醒来 tired 困倦 向上"
+    },
+    {
+      "text": "（´□｀川）",
+      "keywords": "up 疲倦 打哈欠 yawning sleepy wake 醒来 tired 困倦 向上"
+    },
+    {
+      "text": " ᕙ(⇀‸↼‶)ᕗ",
+      "keywords": "up 疲倦 打哈欠 yawning sleepy wake 醒来 tired 困倦 向上"
+    },
+    {
+      "text": " (ι´Д｀)ﾉ",
+      "keywords": "up 疲倦 打哈欠 yawning sleepy wake 醒来 tired 困倦 向上"
+    },
+    {
+      "text": "(ᴗ˳ᴗ)",
+      "keywords": "up 疲倦 打哈欠 yawning sleepy wake 醒来 tired 困倦 向上"
+    },
+    {
+      "text": " ＿ﾉ乙(､ﾝ､)_",
+      "keywords": "up 疲倦 打哈欠 yawning sleepy wake 醒来 tired 困倦 向上"
+    },
+    {
+      "text": "(_ _)ヾ(‘ロ‘)",
+      "keywords": "up 疲倦 打哈欠 yawning sleepy wake 醒来 tired 困倦 向上"
+    },
+    {
+      "text": "ー(￣～￣)ξ",
+      "keywords": "自鸣得意 smug"
+    },
+    {
+      "text": "(((￣へ￣井)",
+      "keywords": "自鸣得意 smug"
+    },
+    {
+      "text": "(`へ´*)ノ",
+      "keywords": "自鸣得意 smug"
+    },
+    {
+      "text": "(￣^￣)",
+      "keywords": "自鸣得意 smug"
+    },
+    {
+      "text": "（￣へ￣）",
+      "keywords": "自鸣得意 smug"
+    },
+    {
+      "text": "（￣～￣;）",
+      "keywords": "自鸣得意 smug"
+    },
+    {
+      "text": "(￣ェ￣;)",
+      "keywords": "自鸣得意 smug"
+    },
+    {
+      "text": "(-、-)",
+      "keywords": "自鸣得意 smug"
+    },
+    {
+      "text": "( ；｀ヘ´)",
+      "keywords": "自鸣得意 smug"
+    },
+    {
+      "text": "(￣ω￣;)",
+      "keywords": "自鸣得意 smug"
+    },
+    {
+      "text": "（｀＾´）ノ",
+      "keywords": "自鸣得意 smug"
+    },
+    {
+      "text": "<(￣︶￣)>",
+      "keywords": "自鸣得意 smug"
+    },
+    {
+      "text": "Winking",
+      "keywords": "自鸣得意 smug"
+    },
+    {
+      "text": "（＾＿－）",
+      "keywords": "自鸣得意 smug"
+    },
+    {
+      "text": "(－ｏ⌒)",
+      "keywords": "自鸣得意 smug"
+    },
+    {
+      "text": "（＾＿−）",
+      "keywords": "自鸣得意 smug"
+    },
+    {
+      "text": "(^_-)",
+      "keywords": "自鸣得意 smug"
+    },
+    {
+      "text": "(^_−)☆",
+      "keywords": "自鸣得意 smug"
+    },
+    {
+      "text": "(⌒.−)＝★",
+      "keywords": "自鸣得意 smug"
+    },
+    {
+      "text": "（＾_-）",
+      "keywords": "自鸣得意 smug"
+    },
+    {
+      "text": "（＾＿・）",
+      "keywords": "自鸣得意 smug"
+    },
+    {
+      "text": "๏[-ิ_•ิ]๏",
+      "keywords": "自鸣得意 smug"
+    },
+    {
+      "text": "（＾＿－）≡★",
+      "keywords": "自鸣得意 smug"
+    },
+    {
+      "text": "☆～（ゝ。∂）",
+      "keywords": "自鸣得意 smug"
+    },
+    {
+      "text": "＼（^０＾）／",
+      "keywords": "自鸣得意 smug"
+    },
+    {
+      "text": " (･ｪ-)",
+      "keywords": "自鸣得意 smug"
+    },
+    {
+      "text": "(ーー;)",
+      "keywords": "worried 担心"
+    },
+    {
+      "text": "( ；´Д｀)",
+      "keywords": "worried 担心"
+    },
+    {
+      "text": "（；￣ェ￣）",
+      "keywords": "worried 担心"
+    },
+    {
+      "text": "ヽ(￣д￣;)ノ",
+      "keywords": "worried 担心"
+    },
+    {
+      "text": "(￣◇￣;)",
+      "keywords": "worried 担心"
+    },
+    {
+      "text": "（−＿−；）",
+      "keywords": "worried 担心"
+    },
+    {
+      "text": "(~_~;)",
+      "keywords": "worried 担心"
+    },
+    {
+      "text": "((*゜Д゜)ゞ”",
+      "keywords": "worried 担心"
+    },
+    {
+      "text": "(･_-｡ )",
+      "keywords": "worried 担心"
+    },
+    {
+      "text": "⊙﹏⊙",
+      "keywords": "worried 担心"
+    },
+    {
+      "text": "ミ●﹏☉ミ",
+      "keywords": "worried 担心"
+    },
+    {
+      "text": "(-’๏_๏’-)",
+      "keywords": "worried 担心"
+    },
+    {
+      "text": "(⊙…⊙ )",
+      "keywords": "worried 担心"
+    },
+    {
+      "text": "( ´△｀)",
+      "keywords": "worried 担心"
+    },
+    {
+      "text": "(;° ロ°)",
+      "keywords": "worried 担心"
+    },
+    {
+      "text": "ヽ（゜ロ゜；）ノ",
+      "keywords": "worried 担心"
+    },
+    {
+      "text": "（°o°；）",
+      "keywords": "worried 担心"
+    },
+    {
+      "text": "｡:ﾟ*+;(●´･д･`●);+*ﾟ:｡",
+      "keywords": "worried 担心"
+    },
+    {
+      "text": "φ(￣ー￣ )ノ",
+      "keywords": "writing 写作"
+    },
+    {
+      "text": "φ(°ρ°*)メ",
+      "keywords": "writing 写作"
+    },
+    {
+      "text": "＿φ(□□ヘ)",
+      "keywords": "writing 写作"
+    },
+    {
+      "text": "＿φ(￣ー￣ )",
+      "keywords": "writing 写作"
+    },
+    {
+      "text": "φ(._.)",
+      "keywords": "writing 写作"
+    },
+    {
+      "text": "φ（．．）",
+      "keywords": "writing 写作"
+    },
+    {
+      "text": "___ψ(‥ )",
+      "keywords": "writing 写作"
+    },
+    {
+      "text": "ψ(。。)",
+      "keywords": "writing 写作"
+    },
+    {
+      "text": "φ(◎◎ヘ)",
+      "keywords": "writing 写作"
+    },
+    {
+      "text": "＿φ( °-°)/",
+      "keywords": "writing 写作"
+    },
+    {
+      "text": "＿φ(°-°=)",
+      "keywords": "writing 写作"
+    },
+    {
+      "text": "φ(◎◎へ）",
+      "keywords": "writing 写作"
+    },
+    {
+      "text": "φ(^∇^ )",
+      "keywords": "writing 写作"
+    },
+    {
+      "text": "＿〆(。。)",
+      "keywords": "writing 写作"
+    },
+    {
+      "text": "φ(．．;)",
+      "keywords": "writing 写作"
+    },
+    {
+      "text": "φ(・ω・｀ )",
+      "keywords": "writing 写作"
+    },
+    {
+      "text": "〆(・∀・＠)",
+      "keywords": "writing 写作"
+    },
+    {
+      "text": "(╯°□°）╯︵ ┻━┻",
+      "keywords": ""
+    },
+    {
+      "text": "┬──┬◡ﾉ(° -°ﾉ)",
+      "keywords": ""
+    },
+    {
+      "text": "(╯°Д°）╯︵/(.□ . \\)",
+      "keywords": ""
+    },
+    {
+      "text": "((((*｡_｡)_",
+      "keywords": ""
+    },
+    {
+      "text": "(*・_・)ノ⌒*",
+      "keywords": ""
+    },
+    {
+      "text": "八(＾□＾*)",
+      "keywords": ""
+    },
+    {
+      "text": "(?・・)σ",
+      "keywords": ""
+    },
+    {
+      "text": "(ι´Д｀)ﾉ",
+      "keywords": ""
+    },
+    {
+      "text": "＼（＼◇￣ ）ﾍﾝ~( ￣▽/)ゝｼﾝ!!! ＼(○ ｀O´ ○)/ﾄｩｰｰ!!",
+      "keywords": ""
+    },
+    {
+      "text": "(／￣△￣)／ﾍｰﾝ＼(￣_￣＼)ｼﾝ!＼(￣△￣)／ﾄｫｰ!!",
+      "keywords": ""
+    },
+    {
+      "text": "d(-_^)",
+      "keywords": ""
+    },
+    {
+      "text": "( ﾟ∀(・－・)",
+      "keywords": ""
+    },
+    {
+      "text": "p(*＾-＾*)q",
+      "keywords": ""
+    },
+    {
+      "text": "(*・)σσσ(*゜Д゜*)",
+      "keywords": ""
+    },
+    {
+      "text": "ヽ｀、ヽ｀ヽ(*￣o￣*)>ヽ｀、ヽ｀",
+      "keywords": ""
+    },
+    {
+      "text": "￢o(￣-￣ﾒ)",
+      "keywords": ""
+    },
+    {
+      "text": "（　＾）／占~~~~~",
+      "keywords": ""
+    },
+    {
+      "text": "（*＾＾）/~~~~~~~~~~◎",
+      "keywords": ""
+    },
+    {
+      "text": "（。_°☆＼(- – )",
+      "keywords": ""
+    },
+    {
+      "text": "( `_)乂(_’ )",
+      "keywords": ""
+    },
+    {
+      "text": "Ｏ( ｀_´)乂(｀_´ )Ｏ",
+      "keywords": ""
+    },
+    {
+      "text": "(`･ω･´)ゞ",
+      "keywords": ""
+    },
+    {
+      "text": "(●ゝω)ノヽ(∀＜●)",
+      "keywords": ""
+    },
+    {
+      "text": "凸(⊙▂⊙✖ )",
+      "keywords": ""
+    },
+    {
+      "text": "( ^o)ρ┳┻┳°σ(o^ )",
+      "keywords": ""
+    },
+    {
+      "text": "ヽ(^o^)ρ┳┻┳°σ(^o^)/",
+      "keywords": ""
+    },
+    {
+      "text": " (／_^)／ 　　　　　　●　＼(^_＼)",
+      "keywords": ""
+    },
+    {
+      "text": "＝( ^o^)ノ ．．．…___ｏ",
+      "keywords": ""
+    },
+    {
+      "text": " (-^-^)p_____|_o____q(^-^ )",
+      "keywords": ""
+    },
+    {
+      "text": "(／o^)/ °⊥ ＼(^o＼)",
+      "keywords": ""
+    },
+    {
+      "text": " (ｏ・_・)ノ”(ノ_＜。)",
+      "keywords": ""
+    },
+    {
+      "text": "―(T_T)→",
+      "keywords": ""
+    },
+    {
+      "text": "ლ(´ڡ`ლ)",
+      "keywords": ""
+    },
+    {
+      "text": " (☞ﾟ∀ﾟ)☞",
+      "keywords": ""
+    },
+    {
+      "text": "('-'*)ｵﾊﾖ♪",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "(*ﾟｰﾟ)vｵﾊﾖ♪",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "ヾ(＠⌒ー⌒＠)ノおはよう",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "￣O￣)ノｵﾊｰ",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "~~~ヾ(＾∇＾)おはよー♪",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "才ﾉヽ∋―_φ(ﾟ▽ﾟ*)♪",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "オ川・o・川 ハ川・▽・川 ヨ川・0・川 ウ川・ε・川",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "...φ(ｰ￣*)ｶｷｶｷ_φ(*￣0￣)ﾉ[才八∃一]ﾍﾟﾀｯ",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "( 'o')b ｵｯ ( 'O')L ﾊｰ♪",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "(b*^０)d (ﾉ*^▽)ﾉ　ｵｯﾊｰ♪",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "お～ｏ(⌒0⌒)ｏは～♪＼(⌒▽⌒)／",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "b(⌒o⌒)d おっ ＼(*^▽^*)/ はぁー!!",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "b(￣ﾛ￣)d w(￣◇￣)w ｵｯﾊｰｧ",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "b(^o^)d w(^０^)w ｵｯﾊｰ♪",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "p(￣o￣)qｵｯ!!w(￣0￣)wﾊｰ!!",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "p(￣o￣)qｵｯ!!w(￣0￣)wﾊｰ!!v(￣■￣)vｸﾞﾛｯ!!",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "o(＾０＾)oオッｗ(＾○＾)ｗハ～♪",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "o川・o・川oｵｯ!＼川・o・川／ﾊｰ!!",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "b(≧δ≦)d おっ…*(≧〇≦)* はー!",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "ｵｯ*´○｀)/ﾊｧ*´▽｀)/~~",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "(ヾ(´▽｀)ﾉｵﾊﾖｳ(o´_｀)o)ﾍﾟｺｯ",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "b(･ｏ･)dおw(･0･)wはぁで(･＜＞･)まよｃ(^･^)っちゅ",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "ヾ(´ω｀＝´ω｀)ﾉ ｵﾊﾖォ",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "6(o￣O￣o)∂ｵｯ！＼(o￣∇￣o)/ ﾊｯｰｰｰ♪",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "ν(o￣O￣o)γｱｰﾛ！＼(o￣∇￣o)/ ﾊｯｰｰｰ♪",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "お(￣ー￣ )ﾉ は(￣ｰ￣)ﾉ よっ( ￣ｰ￣)ﾉ",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "お(~∇~* )ﾉ は(*~∇~*)ﾉ よっ( *~∇~)ﾉ",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "(￣o ￣;)ｵ(￣0 ￣;)ﾊ(￣、￣;)ﾖ...",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "(*^o^*)ｵ (*^O^*)ﾊ (*^｡^*)ﾖｰ!!",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "( 'Θ')ﾉ( 'Θ')ﾉ( 'Θ')ﾉｵﾊｵﾊｵﾊ♪",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "~(=^‥^)ノ☆ おはよぉニャ！",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "(^オ^)(^ハ^)(^ヨ^)(^ウ^)(^ー^)",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "☆お(^O^)☆は(^o^)☆よ(^0^)☆う(^ｰ^☆♪",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "ｵ(´┏○┓｀)ﾊ(´┏▽┓｀)ﾖ(´┏0┓｀)ｳ(´┏３┓｀)ﾉ\\\"))",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "オ波ー！(　^-)＜≡≡(((( ☆ドゴーン！☆)´0｀)ノハウー",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "おはよ～～( ￣Д￣)σ)*￣-￣)ｵﾗｵﾗ",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "ｵﾊﾖｳｶｳﾝﾀｰﾊﾟﾝﾁｲｰ!!o( ﾟoﾟ)==○) ﾟοﾟ)☆ｸﾞﾊｧｯﾞ",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "><(((( ﾟ<.｡o○オ.｡o○ハ.｡o○ヨ.｡o○ウ.｡o○",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "◎＼(￣O￣)ｵﾊﾖｰﾖｰ!!Ξ( ￣▽￣)ﾉ―――――――◎)+o+)ｸﾞｼｬ",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "((s-_-)sｽﾞﾝ,,((s-_･)sｽﾞﾝ,,((((/ﾟ◇ﾟ)/＜ｵｯﾊﾖｫｰｰｰｰｰｰｰｰｰｰｰｰ!!",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "~~-v(*￣･￣)｡｡o(オ)(ハ)(ヨ)(ウ)~",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "~~~ヾ(〓￣(∵エ∵)￣〓)ｵﾊﾖｳ!!",
+      "keywords": "morning good 早安"
+    },
+    {
+      "text": "^-^*)/ｺﾝﾁｬ!",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "(｡･ω･)ﾉﾞ ｺﾝﾁｬ♪",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "(*^･ｪ･)ﾉ ｺﾝﾁｬ♪",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "U｡･x･)ﾉ ﾁﾜﾝ!",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "▼o･_･o▼ｺﾝﾆﾁﾜﾝ♪",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "ヾ(〃⌒ ー―――⌒)ﾉ~~ｺﾝﾆﾁﾜｧ♪",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "☆Hey!ヽ('ｰ'#)/ Hello!☆",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "(^ｺ^)(^ﾝ^)(^ﾆ^)(^ﾁ^)(^ﾜ^)",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "≫≫o(-0-o)ｽｩ･･･(oﾟ□ﾟ)o≪≪≪ｺﾝﾆﾁﾜｧｱｱｱｱｱｱｱｱｱ!!!!",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "o(￣･･￣o)))=3｡o○ｺ｡o○ﾝ｡o○ﾆ｡o○ﾁ｡o○ﾌﾟｰ",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "(*^o^*)ｺ(*^_^*)ﾝ(*^ｰ^*)ﾆ(*^ｰ^*)ﾁ(*^O^*)ﾜｰｰ!",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "おこぉ～にちわぁ～んわぁ～ぱぁ～ん～ち～～о(･_･O",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "こ(＾０＾)ん(－_－)に(￣ー￣)ち(￣∞￣)・・・Ψ(￣∇￣)Ψわっはっは～♪",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "*ﾟoﾟ)ﾉ*ﾟoﾟ)ﾉ*ﾟoﾟ)ﾉｺﾝﾁｺﾝﾁｺﾝﾁｯ♪",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "ｸﾙｸﾙ (*^ｰ^)ﾉ(^-^)(-^ )(^ )( )( ^)( ^-)(^-^)ﾉｺﾝﾁｬ",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "(；￣o☆O＝(・_・O ｵｺﾝﾆﾁ ﾜﾝﾂｰﾊﾟｰﾝﾁ!!",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "><(((( ﾟ<.｡o○コ.｡o○ン.｡o○ニ.｡o○チ.｡o○ワ.｡o○",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "~~-v(*￣･￣)｡｡o(コ)(ン)(ニ)(チ)(ワ)~",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "ｺﾝﾆﾁ波！(　゜o）＜≡≡((((☆ｶﾞｺﾞｰﾝ☆）>o<)ノ ｵｩｰ",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "ちわ～v(￣∇￣)v",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "こ(￣0￣)ん(￣ー￣)に(￣△￣)ち\\\"<(￣∇￣)>\\\"わっはっは!!",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "こ(￣□￣)か(￣ー￣)き(￣◇￣)く(￣△￣)け(￣O￣)ﾉ~こんちゃ♪",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "⊃｀ﾉ二千ヮ...φ(´ー｀*)",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "\\\"(　　´　　　▽　　　｀　　)ﾉ\\\"ちわぁ",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "(〃　´　　▽　　｀　　)ﾉ\\\"▽ ちわぁ♪",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "(・Ω・)ﾉ ﾁﾜｰ!!",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "ﾎﾞﾝｼﾞｭｰﾙ (￣∠ ￣ )ﾉ",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "☆ﾎﾞﾝｼﾞｭｰﾙ ♪(￣∠ ￣ )ﾉ",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "( ´_ゝ`)ﾉﾎﾞﾝｼﾞｭｰﾙ♪",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "o(･\\\"･;)ゞ=3ｺﾝﾆﾁﾌﾞｯ～！＼(ﾟ0ﾟ;)/ｳﾋｬｰ((ヾ(*ﾍ*;)ｸｾｰ!!",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "こんにち▼･。･▼｣｣｣｣ーﾜﾝﾜﾝ!!",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "(　)/!-ろは　んっ( ^)　こっちだ!(^-^)/はろ-!!",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "は(*￣▽￣)ノろぉ(*￣Ｏ￣)ノ",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "(*~▼~)ﾉ ﾊﾛｰ元気～??",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "川￣_ゝ￣)ﾉ ﾊﾛｰ♪",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "(/*^^)/ﾊｯﾛ-!!",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "＝＝((( (/* ^^)/　ﾊﾛｰｰｰ!!",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "ﾊﾛｰ (￣∠ ￣ )ﾉﾊﾛｰ (￣∠ ￣ )ﾉﾊﾛｰ (￣∠ ￣)ﾉ＜ハロー注意報",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "(　)/!ーﾛﾊ ﾝｯ( ･) ｺｯﾁﾀﾞ!(^ｰ^)/ﾊﾛｰ!!",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "ﾊﾛｯo(~∇~*o)(o*~∇~)oﾊﾛｰｯ",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "ﾊﾛｯo(￣▽￣o)(o￣▽￣)oﾊﾛｰ",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "♪ﾊﾛo(･x･o) !!o(･x･)/ﾊﾛ!! (o･x･)oﾊﾛ♪",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "ヾ(〃￣￣￣￣▽￣￣￣￣〃)ﾉ ﾊﾛﾊﾛｰ♪",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "ヾ(〃￣￣￣￣(エ)￣￣￣￣〃)ﾉヽ口―♪",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "ﾉヽ口―_φ(ﾟ▽ﾟ*)♪",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "(o^-')o∠☆:ﾟ*'ﾉヽ口―",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "川・ム・川ノハロー",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "はろ～ん　あるふぁ～♪(　^ｰ^)ニΣニニ⊃‐・:;ﾌﾟﾆｨｨｨ",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "|^・ω・)/ ﾊﾛｰ♪",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "壁|≡ヾ(*ﾟ▽ﾟ)ﾉ ﾊﾛｰ♪ ",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "(￣┏∞┓￣)/ ﾆｲﾊｵ♪",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "o( ´_ゝ｀)ﾉ ｱﾆｮﾊｾﾖ♪♪",
+      "keywords": "afternoon good 下午 好"
+    },
+    {
+      "text": "こ(^0^)ん(^_^)ば(^▽^)ん(^_^)わ(^○^)",
+      "keywords": "evening good 晚上 好"
+    },
+    {
+      "text": "（￣0￣)こ(￣ｰ￣)ん(￣〇￣)ば(￣ｰ￣)ん(￣〇￣)わ",
+      "keywords": "evening good 晚上 好"
+    },
+    {
+      "text": "こヾ(^o^-) ん(o^ｰ^)o ばo(^0^o*) ん(o^-^)ヾわ(*^〇^*)ノ”",
+      "keywords": "evening good 晚上 好"
+    },
+    {
+      "text": "(*^ο^)こ(*^-^)ん(*^○^)ば(*^-^)ん(*^〇^)わ(*^∇^)ｖﾆﾊﾟｯ♪",
+      "keywords": "evening good 晚上 好"
+    },
+    {
+      "text": "⊃｀ﾉ八\\\"｀ﾉ八_〆┤'-'*├",
+      "keywords": "evening good 晚上 好"
+    },
+    {
+      "text": "⊃`ﾉ八\\\"`ﾉ八,,,((φ(￣Д￣)ﾉ",
+      "keywords": "evening good 晚上 好"
+    },
+    {
+      "text": "><(((( ﾟ<.｡o○コ.｡o○ン.｡o○バ.｡o○ン.｡o○ワ.｡o○",
+      "keywords": "evening good 晚上 好"
+    },
+    {
+      "text": "こんぱんだ♪ヾ(●ω●)ノ”フリフリ",
+      "keywords": "evening good 晚上 好"
+    },
+    {
+      "text": "( ﾟ▽ﾟ)/ｺﾝﾊﾞﾝﾊ",
+      "keywords": "evening good 晚上 好"
+    },
+    {
+      "text": "(*・ｪ･*)ﾉ~☆ｺﾝﾊﾞﾝﾜ♪",
+      "keywords": "evening good 晚上 好"
+    },
+    {
+      "text": "( ^-^)ﾉ(* ^-^)ﾉこんばんわぁ♪",
+      "keywords": "evening good 晚上 好"
+    },
+    {
+      "text": "(*^o^*)ｺ(*^_^*)ﾝ(*^O^*)ﾊﾞ(*^_^*)ﾝ(*^O^*)ﾜｰｰ!",
+      "keywords": "evening good 晚上 好"
+    },
+    {
+      "text": "こんばんわぁo(^-^ o )(ﾉ ^-^)ﾉゃぁゃぁ♪",
+      "keywords": "evening good 晚上 好"
+    },
+    {
+      "text": "(^o^)ｺ(^-^)ﾝ(^0^)ﾊﾞ(^-^)ﾝ(^0^)ﾊ",
+      "keywords": "evening good 晚上 好"
+    },
+    {
+      "text": "( -｡-)ｽｩｰｰｰ･･･ (ｏ＞ﾛ<)ｏｺﾝﾊﾞﾝﾊｱｱｱｱｱｱｱｱ",
+      "keywords": "evening good 晚上 好"
+    },
+    {
+      "text": "ヾ(*￣￣￣￣▽￣￣￣￣*)ノこんばんわ♪",
+      "keywords": "evening good 晚上 好"
+    },
+    {
+      "text": "ヾ(｡･ｪ･)ｺﾝﾊﾞﾝ波!!(｡･ｪ･)ﾉﾉ^＼/＼/＼/＼/＼☆)ﾟдﾟ||)ｸﾞﾊｯ!",
+      "keywords": "evening good 晚上 好"
+    },
+    {
+      "text": "こんばん波！（＾-）＜≡((((（（ ☆ぼしゅ！☆（）‘0')ﾉあうっ",
+      "keywords": "evening good 晚上 好"
+    },
+    {
+      "text": "こんばん波！(*￣ー）＜≡((((（（ ☆ぼしゅ！☆)ToT)ﾉ",
+      "keywords": "evening good 晚上 好"
+    },
+    {
+      "text": "ｺﾝﾊﾞﾝ波！( ￣ー）＜≡≡((((☆ﾊﾞｺﾞｰﾝ☆）ToT)ノｱｩｰ",
+      "keywords": "evening good 晚上 好"
+    },
+    {
+      "text": "( +o☆O＝(・_・O ｵｺﾝﾊﾞﾝ ﾜﾝﾂｰﾊﾟｰﾝﾁ!!",
+      "keywords": "evening good 晚上 好"
+    },
+    {
+      "text": "「(」。・＿・)こんばん(。・＿・)＝《《≠≠≠≠≠≠≠≠〇波！！",
+      "keywords": "evening good 晚上 好"
+    },
+    {
+      "text": "ヾ(｡･_･)ｺﾝﾊﾞﾝ(｡･o･)ﾉﾉ=≪≪≠≠≠≠≠≠≠≠〇波!!Σ(ﾟ□ﾟ||)ﾊｩｩ",
+      "keywords": "evening good 晚上 好"
+    },
+    {
+      "text": "o(｡･_･)ｺﾝﾊﾞﾝﾜﾝ!( ｡･_)oﾂｰ!!ε==ΞΞ(o- -)=○ﾊﾟｰﾝﾁ!!☆",
+      "keywords": "evening good 晚上 好"
+    },
+    {
+      "text": "▽・ｗ・▽こんばんわんこ",
+      "keywords": "evening good 晚上 好"
+    },
+    {
+      "text": "ｳｨｰ (*^￢^)ノ∀ ｺﾝﾊﾞﾝﾜｲﾝｰ",
+      "keywords": "evening good 晚上 好"
+    },
+    {
+      "text": "U｡･ｪ･｡Uﾉ~ｺﾝﾊﾞﾝﾜﾝ♪",
+      "keywords": "evening good 晚上 好"
+    },
+    {
+      "text": "▽･ｪ･▽ﾉ\\\"\\\"ｺﾝﾊﾞﾝﾜﾝ♪",
+      "keywords": "evening good 晚上 好"
+    },
+    {
+      "text": "(￣○￣)お(￣◇￣)や(￣o￣)す(￣ｰ￣)ノみ♪",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "お(￣o￣) や(￣O￣) す(￣。￣) みぃ(￣ｰ￣)ﾉ”",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "(￣0 ￣お(￣〇￣や(￣ε￣す(￣￢￣みぃ",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "お(^o^) や(^O^) す(^｡^) みぃ(^-^)ﾉﾞ",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "ヾ(´○｀ )お♪( ´▽｀)や♪(´ε｀ )す♪( ´θ｀)ﾉみ♪",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "(・Ｏ・。)お(・▽・。)や(・．・。)す(・ー・。)み",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "お(=^o^=) や(=^O^=) す(=^｡^=) みぃ(=^-^)/~~ﾆｬ- ♪",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "(*'Ｏ'*)お(*'∇'*)や(*'・'*)す(*'ー'*)み♪",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "( ﾟoﾟ )ｵ(ﾟ▽ﾟ)ﾔ( ﾟ･ﾟ )ｽ(ﾟ━ﾟ)/~ﾐｰ",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "ｵ(*ﾟoﾟ)ﾔ(*ﾟOﾟ)ｽ(*ﾟ｡ﾟ)ﾐ(*ﾟｰ~)^☆",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "ｵ(･ｪ･)ﾔ(･ｪ-)ｽ(-ｪ･)ﾐ(-ｪ-)｡o○Zzz…",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "(ﾟoﾟ)ｵ(ﾟ0ﾟ)ﾔ(ﾟ･ﾟ)ｽ(ﾟ-ﾟ)ﾐ ﾈﾛ!(oﾟﾛﾟ)θ☆(o_ﾛ_)ozzZ",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "ｵ((ﾟ0ﾟ| ﾔ((ﾟo| ｽ((ﾟ| ﾐ!((三[家]o_ω_)ozZZ",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "ｵ(ﾒ▼O▼)ﾔ(ﾒ▼◇▼)ｽ(ﾒ▼｡▼)ﾐ(ﾒ▼皿▼)┳*--ﾊﾞｷｭｰﾝ!!",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "(*´○`*)あ(*´ｰ`*)い(*´△`*)う(*´０`*)え(*´◇`*)ﾉ~おやすみ♪",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "@(｡･o･)@お@(｡･◇･)@や@(｡･｡･)@す@(｡･_･)@ノみ♪",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "(-o-;) お(^◇^;)や(◎。◎;)す(T0T) み･･･",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "（T￢T)/~~~ｻﾖﾅﾗ･･･ｵﾔｽﾐﾅｻｲ･･",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "○Ｏo。.（T￢T)/~~~オヤスミナサイ",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "~(=^‥^)ノ☆ おやすみニャ。",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "ξ・◇・ξ/~~~ ｵﾔｽﾐｰ",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "（θωθ）おやすみ～☆",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "おやすみなさい～♪（⌒∇⌒）ﾉ\\\"\\\"ﾌﾘﾌﾘ",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "☆GOODNIGHT☆(；д；）ﾉ~▽''｡･ﾟﾟ･",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "★*♪｡☆*★*♪｡☆*★*♪｡☆*(^∇ﾟ*)ﾉ\\\"ｵﾔｽﾐｨ♪",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "お(*'o'*)や(*'O'*)す(*'｡'*)みぃ(*'-'*)ﾉ\\\"\\\"",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "ｵ(*ﾟoﾟ*)ﾔ(*^0^*)ｽ(*ﾟ▽ﾟ*)ﾐｨ(ﾟ-^*)ﾉ\\\"\\\"ﾏﾀﾈ♪",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "お(^o^) や(^O^) す(^^) みぃ(^-^)",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "お(^○^)や(~o~)す(ﾟoﾟ)みぃ(- -)｡0O",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "お(＾o^)や(^◇^)す(^〇^)み(^-^)で(^･^)ﾁｭｯ♪",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "お(+o＋) や(+O＋) す(＋＋) みぃ(＋-＋)",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "(｡･o･)お(｡･д･)や(｡･｡･)す(｡･_･)ノみ♪",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "ｵ(o･0･o)ﾔ(o･ｪ･o)ｽ(o-ｪ-o)ﾐｨ(o_ _)o.zZ",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "(＝ｏ＝)お(＝Ｏ＝)や(＝。＝)す(＝ｗ＝)み～～ｚｚＺＺ",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "お《≡^o^》や《≡^O^》 す《≡^^》 みぃ《≡^-^》",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "(≧○≦)お(≧◇≦)や(≧ｏ≦)す(≧▽≦)ﾉみ♪",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "川*'o'*川ﾉ~お川*'0'*川ﾉ~や川*'･'*川ﾉ~す川*'ｰ'*川ﾉ~み",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "お^(w^0^w)^や^(w^o^w)^す^(w^｡^w)^み^(w^-^w)^♪☆･ﾟ",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "お～♪＞(´0｀(´0｀ や～♪>(~▽~(~▽~す～♪>(^ε^(^ε^ み～♪>(~Θ~(~Θ~",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "ｵﾔｽｯｽｰｺｰﾗｽヽ(*ﾟoﾟ)(ﾟ0ﾟ)(ﾟoﾟ*)ﾉｵﾔｽｯｽｰｵﾔｽｯｽｰﾃﾞｭｩﾜｧｰﾜｧｰ♪",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "(*⌒○⌒*)おー(*⌒▽⌒*)やー(*⌒ｏ⌒*)すー(*⌒ー⌒*)みっ♪",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "(￣○￣)お(￣◇￣)や(￣ο￣)す(￣ー￣)ﾉ~~~み～♪･:*:･ﾟ★,｡･:*:･ﾟ☆",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "ｵ(^o^*)ﾔ(*^O^)ｽ(*^^*)ﾐｰ(*^-^)ﾉﾌﾘﾌﾘ",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "ｵ(´┏o┓｀)ﾔ(´┏0┓｀)ｽ(´┏･┓｀)ﾐ(´┏ω┓｀)/",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "あちらさんも(・_・ )ノこちらさんも(・ ・)そちらさんも(・_・)ノおやすみい♪",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "お(○｀ｏ´○）　や（○｀Ｏ´○）　す（○｀ε´○）　みぃ（○｀－´○）",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "寝る5秒前(p.-)4(ρ.-)3(p.-)2(ρ.-)1…(ToT)/~~~おやすみぃ～♪",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "ヾ(*~▼~)おやすみいーっ(~▼~*)ﾉ~''",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "┌|^o^|┘ｵ┌|^O^|┘ﾔ┌|^･^|┘ｽ┌|^-^|┘ﾐｨ",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "ｵ┤*￣Ｏ￣*├ﾔ┤*－.－*├ｽ┤＿ ＿├ﾐ",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "お(ﾉ￣0￣)ﾉや(o￣・￣)oす(。＿ ＿)。みzzz..",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "ｵﾔｽﾐ (*~￢~*)/｡･:*:･ﾟ★,｡･:*:･ﾟ☆",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "川*'-'*川ﾉ~☆･*｡.:*･ﾟ☆ｵﾔｽﾐ♪",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "ｵﾔｽﾐ♪<(ﾟｰ^)ﾉ^*･'ﾟ☆｡.:*:･'☆'･:*:.｡.:*:･'ﾟ:*:･'ﾟ☆",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "睡魔→Ψ(｀∀´#)ﾉ＼_(T◇T)ﾉ\\\")),,,,,,,,,ｵﾔｽﾐｰ",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "||寝室||Ю　o(▽｀ o) =3 =3 =3 ｵﾔｽﾐｰ♪",
+      "keywords": "晚安 night good"
+    },
+    {
+      "text": "・。・゜゜・☆彡*:.。.:*・゜Xmas+.(○・艸)(艸・●)゜+.☆彡・゜・。・*:.。.:*・゜",
+      "keywords": "christmas 快乐 merry holiday 圣诞节 假期"
+    },
+    {
+      "text": "(〃￣▽￣)o-o∠※PAN!\\\"｡･:*:･ﾟ☆ﾒﾘｰｸﾘｽﾏｽ･:*:･ﾟ☆",
+      "keywords": "christmas 快乐 merry holiday 圣诞节 假期"
+    },
+    {
+      "text": "*＜(*´-｀)o∠※PAN!\\\"。・:*:・ﾟMerry Christmas♪",
+      "keywords": "christmas 快乐 merry holiday 圣诞节 假期"
+    },
+    {
+      "text": "(*´ω｀)o【★メ☆リ★ク☆リ★】o(´ω｀*)",
+      "keywords": "christmas 快乐 merry holiday 圣诞节 假期"
+    },
+    {
+      "text": "(o´∀｀o):.*メﾟ::リ.｡:ク..*.リﾟ:..(o´∀｀o)",
+      "keywords": "christmas 快乐 merry holiday 圣诞节 假期"
+    },
+    {
+      "text": "(*´▽｀)v☆・゜:*☆ﾒ☆ﾘ☆ｸ☆ﾘ ☆・゜:*☆v(´▽｀=)",
+      "keywords": "christmas 快乐 merry holiday 圣诞节 假期"
+    },
+    {
+      "text": "｡∠(*ﾟ∇ﾟ*)☆ﾒﾘｰｸﾘｽﾏｽ☆(*･ｪ･*)＞｡",
+      "keywords": "christmas 快乐 merry holiday 圣诞节 假期"
+    },
+    {
+      "text": "☆*Merry*☆=- ★=- ヽ(^∇^*)ﾉ -=★ -=☆*X'mas*☆",
+      "keywords": "christmas 快乐 merry holiday 圣诞节 假期"
+    },
+    {
+      "text": "ﾒﾘｰｰｰｰｰ｡･：*：･ﾟ`★(o≧□≦)o☆.｡･：*：･ﾟ`ｸﾘｽﾏｰｰｰｰｰｽ!!!!!",
+      "keywords": "christmas 快乐 merry holiday 圣诞节 假期"
+    },
+    {
+      "text": "*＜( ^O^)／□☆□＼(^O^ )＞* メリー クリスマス！",
+      "keywords": "christmas 快乐 merry holiday 圣诞节 假期"
+    },
+    {
+      "text": "メリー *＜( ≧▽≦)／□☆□＼(≧▽≦ )＞* クリスマス！",
+      "keywords": "christmas 快乐 merry holiday 圣诞节 假期"
+    },
+    {
+      "text": "ﾒﾘ━ *＜( ・∀・)ノ□☆□ヽ(・∀・ )＞* ━ｸﾘｽﾏｽ!",
+      "keywords": "christmas 快乐 merry holiday 圣诞节 假期"
+    },
+    {
+      "text": "｡∠(*￣ ￣)〃∇〃)η　.｡.:*･ﾟMerry X'mas:*･ﾟ｡:.*",
+      "keywords": "christmas 快乐 merry holiday 圣诞节 假期"
+    },
+    {
+      "text": "*＜(*￣▽￣)ノ☆;:*:;☆",
+      "keywords": "christmas 快乐 merry holiday 圣诞节 假期"
+    },
+    {
+      "text": "★:゜*☆※＞o(￣▽￣*)＞*",
+      "keywords": "christmas 快乐 merry holiday 圣诞节 假期"
+    },
+    {
+      "text": "★:ﾟ*☆※＞o(´ｰ´*)Merry*Christmas(*´ｰ´)o＜※☆:ﾟ*★",
+      "keywords": "christmas 快乐 merry holiday 圣诞节 假期"
+    },
+    {
+      "text": "★:ﾟ*☆※＞o('ｰ'*)＞o　Merry*Christmas　o＜(*'ｰ')o＜※☆:ﾟ*★",
+      "keywords": "christmas 快乐 merry holiday 圣诞节 假期"
+    },
+    {
+      "text": "v(ﾟ∇^*)＞o⌒☆merry X'mas☆ﾐ",
+      "keywords": "christmas 快乐 merry holiday 圣诞节 假期"
+    },
+    {
+      "text": "(´・ω・)ﾉ★*ﾟ*☆*ﾟ*めりーくりすます*ﾟ*☆*ﾟ*★ヽ(・ω・`)",
+      "keywords": "christmas 快乐 merry holiday 圣诞节 假期"
+    },
+    {
+      "text": "ﾌﾟﾚｾﾞﾝﾄ置ｲﾃｸﾈ *＜(´・ω・)っ由　　|[(*´ｪ`)]|zZＺ",
+      "keywords": "christmas 快乐 merry holiday 圣诞节 假期"
+    },
+    {
+      "text": "ｿﾘ⇒└*・・*┘----┐(・ω・`)＞* ｼﾞｬｧ､ﾎﾞｸﾊ帰ﾙﾈ",
+      "keywords": "christmas 快乐 merry holiday 圣诞节 假期"
+    },
+    {
+      "text": "└*・・*┘----┐(´；ω；)ﾉｼ ﾏﾀ来年会ｵｳﾈ　|[(*´ｪ`)]|Zｚz",
+      "keywords": "christmas 快乐 merry holiday 圣诞节 假期"
+    },
+    {
+      "text": "ﾙﾝﾙﾝ♪ヾ(´ I `*)o<【:*･ﾟ☆†Merry X'mas†.｡.:*･ﾟ】",
+      "keywords": "christmas 快乐 merry holiday 圣诞节 假期"
+    },
+    {
+      "text": "×└|勹└|_φ(･ω･｀)＞* ＿＿＿］＼（*´・●・｀）＼（*´・○・｀）♪メリークリスマス",
+      "keywords": "christmas 快乐 merry holiday 圣诞节 假期"
+    },
+    {
+      "text": ".｡+ﾟ*[o･ω･]ﾉ*мёЯЯЧ CнЯIsтмДs*.｡+ﾟ*",
+      "keywords": "christmas 快乐 merry holiday 圣诞节 假期"
+    },
+    {
+      "text": "∈・｀*┘ミ-ヽ(m｀*)＞*_［†+。:.゜Merry Christmas゜.:。+†］",
+      "keywords": "christmas 快乐 merry holiday 圣诞节 假期"
+    },
+    {
+      "text": "｡+｡ﾟ☆ｧｹｵﾒ(p*'v`*q)ｺﾄｮﾛ☆ﾟ｡+｡",
+      "keywords": "年 新 new year"
+    },
+    {
+      "text": "|ｮ･∀･）ぁヶぉめ★",
+      "keywords": "年 新 new year"
+    },
+    {
+      "text": "ｱｹ━(｡´>∀)ﾉ━ｵﾒ♪",
+      "keywords": "年 新 new year"
+    },
+    {
+      "text": "(●＞∇＜ノ)ノ・.。*あけおめぇ・.。* ",
+      "keywords": "年 新 new year"
+    },
+    {
+      "text": "*☆━｡ﾟΑКЁ.+ﾟ(ｐ･ω･｡q)ﾟ+ОМЁ.ﾟ｡━★*!!",
+      "keywords": "年 新 new year"
+    },
+    {
+      "text": "☆･:.,:*明ヶﾏｼﾃｪｪヾ(*´・エ・｀)ﾉｵﾒﾃﾞﾄ*:,.:･★",
+      "keywords": "年 新 new year"
+    },
+    {
+      "text": "･ﾟ+А｡･｡ндрру ヾ(′エ+`)ﾉйёщ･ﾟ+уёая｡･｡",
+      "keywords": "年 新 new year"
+    },
+    {
+      "text": "+｡:.(*′艸`)★ｱｹｵﾒ♪ｺﾄﾖﾛ★(*′艸`).::+｡",
+      "keywords": "年 新 new year"
+    },
+    {
+      "text": "☆*+:.★ヾ(o´∀｀o)ﾉ{今年もよろしくね}ヾ(o´∀｀o)ﾉ☆.:+*★",
+      "keywords": "年 新 new year"
+    },
+    {
+      "text": "☆ﾟ+｡*ﾟ(*´д｀良い年になりますように´д｀*)ﾟ*｡+ﾟ☆",
+      "keywords": "年 新 new year"
+    },
+    {
+      "text": "＋＋Ｕ*´∀｀ァアアケオメエエェ´∀｀*Ｕ＋＋",
+      "keywords": "年 新 new year"
+    },
+    {
+      "text": "(m*uωu)m今年も宜しくﾈｯ♪",
+      "keywords": "年 新 new year"
+    },
+    {
+      "text": "┃賽銭箱┃⑩ ⌒ヾ(ｕωｕ*)今年ﾓﾖﾛﾋﾟｸ★",
+      "keywords": "年 新 new year"
+    },
+    {
+      "text": "(＠o´∀｀)o～［нарру　йёω　уёая］三３",
+      "keywords": "年 新 new year"
+    },
+    {
+      "text": "(＠´∀｀) ｏ наppч йёw чёaｒ　ｏ( ´∀｀＠)",
+      "keywords": "年 新 new year"
+    },
+    {
+      "text": "(ゝ∀・★Α　ΗΑΡΡΥ　ΝΕШ　ΥΕΑЯ☆´∀｀)",
+      "keywords": "年 新 new year"
+    },
+    {
+      "text": "A HAPPY*.+ﾟ(*'ω｀人)ﾟ+.*NEW YEAR",
+      "keywords": "年 新 new year"
+    },
+    {
+      "text": "ε=ε=ε=(o･д･ﾉ)ﾉ【｡+ﾟ:.Ａ　ＨＡＰＰＹ　ＮＥＷＹＥＡＲ.:ﾟ+。】",
+      "keywords": "年 新 new year"
+    }
+  ]
+}
