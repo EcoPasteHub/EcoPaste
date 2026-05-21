@@ -1,8 +1,17 @@
 import { startDrag } from "@crabnebula/tauri-plugin-drag";
 import { exists } from "@tauri-apps/plugin-fs";
 import type { DragEvent, FC } from "react";
+import { getDefaultSaveImagePath } from "tauri-plugin-clipboard-x-api";
 import LocalImage from "@/components/LocalImage";
 import type { DatabaseSchemaHistory } from "@/types/database";
+import { join } from "@/utils/path";
+
+const isAbsolutePath = (path: string) => {
+	if (/^[a-zA-Z]:[\\/]/.test(path)) return true;
+	if (path.startsWith("\\\\")) return true;
+	if (path.startsWith("/")) return true;
+	return false;
+};
 
 const Image: FC<DatabaseSchemaHistory<"image">> = (props) => {
 	const { value } = props;
@@ -12,11 +21,24 @@ const Image: FC<DatabaseSchemaHistory<"image">> = (props) => {
 		event.stopPropagation();
 
 		void (async () => {
-			if (!(await exists(value))) return;
+			let dragPath = value;
+
+			try {
+				const saveImagePath = await getDefaultSaveImagePath();
+				if (
+					saveImagePath &&
+					!isAbsolutePath(value) &&
+					!value.startsWith(saveImagePath)
+				) {
+					dragPath = join(saveImagePath, value);
+				}
+			} catch {}
+
+			if (!(await exists(dragPath))) return;
 
 			await startDrag({
-				icon: value,
-				item: [value],
+				icon: dragPath,
+				item: [dragPath],
 				mode: "copy",
 			});
 		})();
