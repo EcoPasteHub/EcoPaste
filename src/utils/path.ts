@@ -4,51 +4,62 @@ import { last } from "es-toolkit";
 import { globalStore } from "@/stores/global";
 import { isDev } from "./is";
 
+const STORAGE_NAMESPACE = "EcoPasteEmoji";
+
 /**
  * 拼接文件路径
  * @param paths 路径数组
  */
 export function join(...paths: string[]) {
-  const joinPaths = paths.map((path, index) => {
-    if (index === 0) {
-      return path.replace(new RegExp(`${sep()}+$`), "");
-    }
+	const joinPaths = paths.map((path, index) => {
+		if (index === 0) {
+			return path.replace(new RegExp(`${sep()}+$`), "");
+		}
 
-    return path.replace(new RegExp(`^${sep()}+|${sep()}+$`, "g"), "");
-  });
+		return path.replace(new RegExp(`^${sep()}+|${sep()}+$`, "g"), "");
+	});
 
-  return joinPaths.join(sep());
+	return joinPaths.join(sep());
 }
 
 /**
  * 获取存储数据的目录
  */
 export const getSaveDataPath = () => {
-  return join(globalStore.env.saveDataDir!);
+	return join(globalStore.env.saveDataDir ?? "");
 };
 
 /**
  * 获取数据库文件存储路径
  */
 export const getSaveDatabasePath = async () => {
-  const appName = await getName();
-  const extname = isDev() ? "dev.db" : "db";
+	const extname = isDev() ? "dev.db" : "db";
 
-  return join(getSaveDataPath(), `${appName}.${extname}`);
+	try {
+		const appName = await getName();
+
+		if (appName !== "EcoPaste") {
+			return join(getSaveDataPath(), `${appName}.${extname}`);
+		}
+	} catch {
+		// Fallback to the emoji namespace when Tauri APIs are temporarily unavailable.
+	}
+
+	return join(getSaveDataPath(), `${STORAGE_NAMESPACE}.${extname}`);
 };
 
 /**
  * 获取存储图片的路径
  */
 export const getSaveImagePath = () => {
-  return join(getSaveDataPath(), "images");
+	return join(getSaveDataPath(), `${STORAGE_NAMESPACE}-images`);
 };
 
 /**
  * 存储数据的目录名
  */
 export const getSaveDataDirName = () => {
-  return last(getSaveDataPath().split(sep())) as string;
+	return last(getSaveDataPath().split(sep())) as string;
 };
 
 /**
@@ -56,20 +67,23 @@ export const getSaveDataDirName = () => {
  * @param backup 是否是备份数据
  */
 export const getSaveStorePath = async (backup = false) => {
-  const extname = isDev() ? "dev.json" : "json";
+	const extname = isDev() ? "dev.json" : "json";
 
-  if (backup) {
-    return join(getSaveDataPath(), `.store-backup.${extname}`);
-  }
+	if (backup) {
+		return join(
+			getSaveDataPath(),
+			`.${STORAGE_NAMESPACE}-store-backup.${extname}`,
+		);
+	}
 
-  return join(await appDataDir(), `.store.${extname}`);
+	return join(await appDataDir(), `.store.${extname}`);
 };
 
 /**
  * 存储窗口位置的路径
  */
 export const getSaveWindowStatePath = async () => {
-  const extname = isDev() ? "dev.json" : "json";
+	const extname = isDev() ? "dev.json" : "json";
 
-  return join(await appDataDir(), `.window-state.${extname}`);
+	return join(await appDataDir(), `.window-state.${extname}`);
 };

@@ -1,6 +1,6 @@
 {
-  "bundle": {
-    "resources": ["assets/tray-mac.ico"]
-  },
-  "identifier": "com.ayangweb.EcoPaste"
+	"bundle": {
+		"resources": ["assets/tray-mac.ico"]
+	},
+	"identifier": "com.hgrover.EcoPasteEmoji"
 }
