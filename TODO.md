@@ -10,20 +10,20 @@
 
 ## 技术选型（已确认）
 
-| 维度        | 决策                   | 说明                                                           |
-| ----------- | ---------------------- | -------------------------------------------------------------- |
-| 代码组织    | **当前项目新建空分支** | `pnpm create tauri-app` 一键生成脚手架，逐功能从旧项目迁移参考 |
-| 桌面框架    | Tauri v2               | `tray-icon` / `protocol-asset` / `macos-private-api`           |
+| 维度        | 决策                   | 说明                                                                                    |
+| ----------- | ---------------------- | --------------------------------------------------------------------------------------- |
+| 代码组织    | **当前项目新建空分支** | `pnpm create tauri-app` 一键生成脚手架，逐功能从旧项目迁移参考                          |
+| 桌面框架    | Tauri v2               | `tray-icon` / `protocol-asset` / `macos-private-api`                                    |
 | IPC 层      | **tauri-awesome-rpc**  | 替代 Tauri 自带 IPC：WebSocket + JSON-RPC 2.0、命令异步执行不阻塞主线程、支持大 payload |
-| 前端框架    | React 19               | 新特性：Actions、`use`、`useOptimistic`、ref as prop           |
-| UI 组件库   | HeroUI v3              | 替换旧项目的 Ant Design 5                                      |
-| 样式        | TailwindCSS v4         | 替换旧项目的 UnoCSS；CSS-first 配置（`@theme`）                |
-| Rust 数据层 | **sqlx (SQLite)**      | 异步 + 编译期 SQL 校验 + 内置 migration                        |
-| 前端状态    | **Valtio**             | 仅管理 UI 状态，业务状态来自 Rust                              |
-| 构建        | Vite + pnpm            |                                                                |
-| Lint/Format | Biome                  |                                                                |
-| 范围策略    | **MVP 先行**           | 阶段 0–7 为 MVP，阶段 8+ 为增强                                |
-| 支持平台    | **仅 macOS + Windows** | 不支持 Linux；平台特化用 `#[cfg(target_os)]` 隔离              |
+| 前端框架    | React 19               | 新特性：Actions、`use`、`useOptimistic`、ref as prop                                    |
+| UI 组件库   | HeroUI v3              | 替换旧项目的 Ant Design 5                                                               |
+| 样式        | TailwindCSS v4         | 替换旧项目的 UnoCSS；CSS-first 配置（`@theme`）                                         |
+| Rust 数据层 | **sqlx (SQLite)**      | 异步 + 编译期 SQL 校验 + 内置 migration                                                 |
+| 前端状态    | **Valtio**             | 仅管理 UI 状态，业务状态来自 Rust                                                       |
+| 构建        | Vite + pnpm            |                                                                                         |
+| Lint/Format | Biome                  |                                                                                         |
+| 范围策略    | **MVP 先行**           | 阶段 0–7 为 MVP，阶段 8+ 为增强                                                         |
+| 支持平台    | **仅 macOS + Windows** | 不支持 Linux；平台特化用 `#[cfg(target_os)]` 隔离                                       |
 
 ## Rust-First 职责划分
 
@@ -105,29 +105,36 @@
 - [x] 编写 `0001_init.sql`：`clipboard_items` 表 + `clipboard_groups` 表
   - `clipboard_items` 字段：`id TEXT PK`、`kind`、`sub_kind`、`group_id`、`content`、`search_text`、`size INTEGER`、`width`、`height`、`use_count INTEGER`、`is_favorite INTEGER`、`is_pinned INTEGER`、`platform`、`note`、`created_at`、`updated_at`
   - `clipboard_groups` 字段：`id TEXT PK`、`name`、`sort_order INTEGER`、`created_at`；`clipboard_items.group_id` FK 到此表，`ON DELETE SET NULL`
-  - 类型枚举：`text` / `rtf` / `html` / `image` / `files`；text 子类型：`url` / `email` / `color` / `path`
+  - 类型枚举：`kind`：`text` / `image` / `files`；`sub_kind`：`rtf` / `html` / `url` / `email` / `color` / `path`
 - [x] 编写 `0002_fts.sql`：FTS5 虚表 `clipboard_items_fts` + 触发器（insert/update/delete 同步）
 - [x] 启动时自动执行 migration，失败时优雅报错
-- [x] 配置 `.env`（`DATABASE_URL`）以启用 sqlx 编译期校验（或离线模式 `sqlx prepare` 生成 `.sqlx`）
+- [x] 配置 `.env`（`DATABASE_URL`）；仓储层最终改用运行时 `query_as` + `QueryBuilder`（见 1.3），未启用 `query!` 宏的编译期校验，故无需 `sqlx prepare` 生成 `.sqlx`。SQL 正确性由仓储层单测兜底
 
 ### 1.3 数据模型与仓储层
 
-- [ ] 定义 Rust 结构体 `HistoryItem`（`#[derive(Serialize, Deserialize, FromRow)]`）
-- [ ] 定义查询参数结构体（分页、过滤 type、favorite、group、关键词）
-- [ ] 实现仓储函数（全部 async）：
-  - [ ] `insert_history(item)`
-  - [ ] `query_history(filter, page, size)` — 分页 + 排序（时间/频率）
-  - [ ] `search_history(keyword, filter)` — 走 FTS5
-  - [ ] `update_history(id, patch)` — 收藏 / 备注 / count++
-  - [ ] `delete_history(id)` / `delete_batch(ids)` / `clear_all(keep_favorite: bool)`
-  - [ ] `get_by_id(id)`
-  - [ ] `toggle_favorite(id)`
-- [ ] 写仓储层单元测试（用内存库 `sqlite::memory:`）
+- [x] 定义 Rust 结构体 `ClipboardItem` / `ClipboardGroup`（`#[derive(Serialize, Deserialize, FromRow)]`）
+- [x] 定义查询参数结构体（分页、过滤 kind、favorite、pinned、group、关键词；排序按时间/频率）
+- [x] 实现 `clipboard_items` 仓储函数（`src-tauri/src/db/items.rs`，全部 async，统一 `Result<T, AppError>`，首参 `pool: &SqlitePool`）：
+  > 用运行时 `sqlx::query_as::<_, ClipboardItem>` + `QueryBuilder`（复用模型的 `FromRow`/`sqlx::Type` derive），不用 `query_as!` 宏——动态过滤/分页 SQL 无法用静态 SQL 宏表达，且免去编译期连库与 `.sqlx` 离线缓存维护。
+  > 方法名一律带 `_item` / `_items` 后缀（与 `clipboard_groups` 的 `*_group` 后缀对称），即便日后从 `db::items` / `db::groups` 扁平化 re-export 也不会撞名。
+  - [x] `insert_item(item: &ClipboardItem) -> Result<()>`
+  - [x] `query_items(q: &ClipboardItemQuery) -> Result<Vec<ClipboardItem>>` — 统一列表查询：按 `kind` / `group_id` / `favorite` / `pinned` 过滤 + `limit`/`offset` 分页 + `sort`（`CreatedAtDesc` / `UseCountDesc`，置顶项恒前置）；`keyword` 非空时委托 `search_items_fts`
+  - [x] `search_items_fts(q: &ClipboardItemQuery) -> Result<Vec<ClipboardItem>>` — 基于 `clipboard_items_fts` 的关键词前缀检索（由 `query_items` 在有 `keyword` 时调用，复用同一套过滤/分页/排序；私有 `fts_match_expr` 把关键词转成转义后的 `"x"*` 前缀表达式）
+  - [x] `find_item_by_id(id: &str) -> Result<Option<ClipboardItem>>`
+  - [x] `toggle_item_favorite(id: &str)` / `toggle_item_pinned(id: &str)` — 翻转 `is_favorite` / `is_pinned`
+  - [x] `update_item_note(id: &str, note: Option<&str>) -> Result<()>`
+  - [x] `increment_item_use_count(id: &str) -> Result<()>` — `use_count + 1` 并刷新 `updated_at`
+  - [x] `delete_item(id: &str) -> Result<()>` / `delete_items(ids: &[String]) -> Result<u64>` / `clear_items(keep_favorite: bool) -> Result<u64>`（后两者返回删除行数）
+- [x] 实现 `clipboard_groups` 仓储函数（`src-tauri/src/db/groups.rs`，全部 async，统一 `Result<T, AppError>`，首参 `pool: &SqlitePool`；分组特性见阶段 8.2，数据层先备齐基础 CRUD）：
+  - [x] `list_groups() -> Result<Vec<ClipboardGroup>>` — 按 `sort_order` 升序（同序按 `created_at` 兜底，顺序稳定）
+  - [x] `insert_group(group: &ClipboardGroup) -> Result<()>` / `rename_group(id: &str, name: &str) -> Result<()>` / `delete_group(id: &str) -> Result<()>`（删除分组时其下记录的 `group_id` 由 FK `ON DELETE SET NULL` 自动置空）
+- [x] 写仓储层单元测试（用内存库 `sqlite::memory:` + `sqlx::migrate!` 跑迁移）
+  > 共用 `db::test_support::memory_pool()`（`#[cfg(test)]`，单连接 + 开外键 + 跑迁移）；`items` 覆盖 增删改查 / 过滤 / 排序（置顶前置）/ 分页 / FTS 前缀检索 / 计数；`groups` 覆盖 CRUD / 排序 / FK `ON DELETE SET NULL`。
 
 ### 1.4 去重与计数逻辑（Rust）
 
-- [ ] 入库前对相同内容做哈希/比对，命中则 `count++` 并刷新 `create_time`（替代旧前端逻辑）
-- [ ] 选择哈希策略（text 直接比对；image/files 用内容哈希）
+- [ ] 入库前对相同内容做比对，命中已有记录则 `use_count + 1` 并刷新 `updated_at`，不再插入新行（替代旧前端逻辑）
+- [ ] 选择比对策略（text 按 `content` 直接比对；image/files 用内容哈希）；如需按哈希查重，评估在 `clipboard_items` 增加 `content_hash` 列并建索引（写新 migration `0003_*.sql`，迁移只增不改）
 
 ---
 
@@ -271,7 +278,7 @@
 ### 7.3 搜索
 
 - [ ] 搜索框组件（位置 top/bottom 可配）
-- [ ] 输入 → 调 Rust `search_history`（FTS5）→ 渲染
+- [ ] 输入 → 调 Rust 列表查询命令（`ClipboardItemQuery.keyword` 带关键词时自动走 FTS5）→ 渲染
 - [ ] 命中文本高亮（react-mark.js 等价）
 - [ ] 默认聚焦 / 自动清空（按设置）
 

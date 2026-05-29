@@ -28,4 +28,8 @@ tauri-plugin-log = "2.8.0"
 log = "0.4.30"
 tauri-awesome-rpc = { git = "https://github.com/ahkohd/tauri-awesome-rpc", branch = "v2", version = "0.0.0" }
 sqlx = { version = "0.9.0", default-features = false, features = ["runtime-tokio", "sqlite", "macros", "chrono", "migrate"] }
+chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt"] }
 
