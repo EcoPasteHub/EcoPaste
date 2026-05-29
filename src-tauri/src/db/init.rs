@@ -21,6 +21,11 @@ pub async fn init(app: &AppHandle) -> Result<SqlitePool> {
         .await
         .with_context(|| format!("failed to open sqlite database at {path:?}"))?;
 
+    sqlx::migrate!("./migrations")
+        .run(&pool)
+        .await
+        .context("failed to run sqlite migrations")?;
+
     log::info!("sqlite pool ready at {path:?}");
     Ok(pool)
 }

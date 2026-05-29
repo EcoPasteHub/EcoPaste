@@ -101,13 +101,14 @@
 
 ### 1.2 Migration（编译期校验）
 
-- [ ] 建立 `migrations/` 目录，配置 `sqlx::migrate!`
-- [ ] 编写 `0001_init.sql`：`history` 表
-  - 字段：`id TEXT PK`、`type`、`subtype`、`group`、`value`、`search`、`count INTEGER`、`width`、`height`、`favorite INTEGER`、`note`、`create_time`
+- [x] 建立 `migrations/` 目录，配置 `sqlx::migrate!`
+- [x] 编写 `0001_init.sql`：`clipboard_items` 表 + `clipboard_groups` 表
+  - `clipboard_items` 字段：`id TEXT PK`、`kind`、`sub_kind`、`group_id`、`content`、`search_text`、`size INTEGER`、`width`、`height`、`use_count INTEGER`、`is_favorite INTEGER`、`is_pinned INTEGER`、`platform`、`note`、`created_at`、`updated_at`
+  - `clipboard_groups` 字段：`id TEXT PK`、`name`、`sort_order INTEGER`、`created_at`；`clipboard_items.group_id` FK 到此表，`ON DELETE SET NULL`
   - 类型枚举：`text` / `rtf` / `html` / `image` / `files`；text 子类型：`url` / `email` / `color` / `path`
-- [ ] 编写 `0002_fts.sql`：FTS5 虚表 `history_fts` + 触发器（insert/update/delete 同步）
-- [ ] 启动时自动执行 migration，失败时优雅报错
-- [ ] 配置 `.env`（`DATABASE_URL`）以启用 sqlx 编译期校验（或离线模式 `sqlx prepare` 生成 `.sqlx`）
+- [x] 编写 `0002_fts.sql`：FTS5 虚表 `clipboard_items_fts` + 触发器（insert/update/delete 同步）
+- [x] 启动时自动执行 migration，失败时优雅报错
+- [x] 配置 `.env`（`DATABASE_URL`）以启用 sqlx 编译期校验（或离线模式 `sqlx prepare` 生成 `.sqlx`）
 
 ### 1.3 数据模型与仓储层
 

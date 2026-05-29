@@ -6,3 +6,10 @@
 # will have schema files for capabilities auto-completion
 /gen/schemas
 /icons/
+
+# sqlx compile-time check
+.env
+dev.db
+dev.db-journal
+dev.db-wal
+dev.db-shm

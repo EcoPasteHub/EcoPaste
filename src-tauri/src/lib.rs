@@ -43,7 +43,10 @@ pub fn run() {
 
             let handle = app.handle().clone();
             tauri::async_runtime::block_on(async move {
-                let pool = db::init(&handle).await?;
+                let pool = db::init(&handle).await.map_err(|err| {
+                    log::error!("database initialization failed: {err:?}");
+                    err
+                })?;
                 handle.manage(pool);
                 Ok::<_, anyhow::Error>(())
             })?;
