@@ -14,6 +14,7 @@
 | ----------- | ---------------------- | -------------------------------------------------------------- |
 | 代码组织    | **当前项目新建空分支** | `pnpm create tauri-app` 一键生成脚手架，逐功能从旧项目迁移参考 |
 | 桌面框架    | Tauri v2               | `tray-icon` / `protocol-asset` / `macos-private-api`           |
+| IPC 层      | **tauri-awesome-rpc**  | 替代 Tauri 自带 IPC：WebSocket + JSON-RPC 2.0、命令异步执行不阻塞主线程、支持大 payload |
 | 前端框架    | React 19               | 新特性：Actions、`use`、`useOptimistic`、ref as prop           |
 | UI 组件库   | HeroUI v3              | 替换旧项目的 Ant Design 5                                      |
 | 样式        | TailwindCSS v4         | 替换旧项目的 UnoCSS；CSS-first 配置（`@theme`）                |
@@ -75,11 +76,17 @@
 
 ### 0.4 Rust 项目骨架
 
-- [ ] 规划 `src-tauri/src` 模块目录：`commands/` `db/` `clipboard/` `window/` `paste/` `settings/` `core/`（platform setup）
-- [ ] `lib.rs` 搭建 Tauri `Builder` 骨架，`main.rs` 调用 `lib::run()`
-- [ ] 引入 `serde` / `serde_json` / `thiserror` / `anyhow`（错误处理）
-- [ ] 定义统一错误类型 `AppError` + `Result<T>`，并实现 `serde::Serialize` 供命令返回
-- [ ] 引入 `tracing` 或 `tauri-plugin-log` 做日志
+- [x] 规划 `src-tauri/src` 模块目录：`commands/` `db/` `clipboard/` `window/` `paste/` `settings/` `core/`（platform setup）
+- [x] `lib.rs` 搭建 Tauri `Builder` 骨架，`main.rs` 调用 `lib::run()`
+- [x] 引入 `serde` / `serde_json` / `thiserror` / `anyhow`（错误处理）
+- [x] 定义统一错误类型 `AppError` + `Result<T>`，并实现 `serde::Serialize` 供命令返回
+- [x] 引入 `tracing` 或 `tauri-plugin-log` 做日志
+- [x] 接入 [`tauri-awesome-rpc`](https://github.com/ahkohd/tauri-awesome-rpc) 替代 Tauri 自带 IPC
+  - [x] 后端：`AwesomeRpc::new(allowed_origins)` + `Builder::invoke_system(init_script)`，`setup` 中启动 WebSocket
+  - [x] 前端：安装 `tauri-awesome-rpc` npm 包，`invoke` / `listen` / `once` 透明切换至 WS 通道
+  - [ ] 统一规范 `EmitterExt` / `ListenerExt` 用法（避免与 `tauri::Emitter` 的 trait 冲突）
+  - [x] 调优 max payload / buffer / max connections，预留大文件与图片 base64 等大 payload 场景
+  - [x] 评估 dev / 打包后的 origin 白名单与端口策略
 
 ---
 

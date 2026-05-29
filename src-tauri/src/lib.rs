@@ -1,14 +1,46 @@
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
+mod clipboard;
+mod commands;
+mod core;
+mod db;
+mod paste;
+mod settings;
+mod window;
+
+use tauri_awesome_rpc::AwesomeRpc;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let log_plugin = tauri_plugin_log::Builder::new()
+        .level(if cfg!(debug_assertions) {
+            log::LevelFilter::Debug
+        } else {
+            log::LevelFilter::Info
+        })
+        .targets([
+            tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Stdout),
+            tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::LogDir { file_name: None }),
+            tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Webview),
+        ])
+        .build();
+
+    let allowed_origins = if cfg!(dev) {
+        vec!["http://localhost:1420"]
+    } else {
+        vec!["tauri://localhost"]
+    };
+
+    let awesome_rpc = AwesomeRpc::new(allowed_origins)
+        .max_payload(64 * 1024 * 1024)
+        .max_in_buffer_capacity(64 * 1024 * 1024)
+        .max_out_buffer_capacity(64 * 1024 * 1024);
+
     tauri::Builder::default()
-        .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet])
+        .plugin(log_plugin)
+        .invoke_system(awesome_rpc.initialization_script())
+        .setup(move |app| {
+            awesome_rpc.start(app.handle().clone());
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
