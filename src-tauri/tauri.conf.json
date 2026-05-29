@@ -1,14 +1,36 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "app": {
+    "macOSPrivateApi": true,
     "security": {
       "csp": null
     },
     "windows": [
       {
+        "alwaysOnTop": true,
+        "decorations": false,
         "height": 600,
-        "title": "eco-paste",
-        "width": 800
+        "label": "main",
+        "maximizable": false,
+        "resizable": false,
+        "skipTaskbar": true,
+        "title": "EcoPaste",
+        "transparent": true,
+        "url": "index.html/#/",
+        "visible": false,
+        "width": 360
+      },
+      {
+        "center": true,
+        "height": 480,
+        "label": "preference",
+        "minHeight": 480,
+        "minWidth": 700,
+        "resizable": true,
+        "title": "EcoPaste",
+        "url": "index.html/#/preference",
+        "visible": false,
+        "width": 700
       }
     ]
   },

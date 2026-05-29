@@ -192,10 +192,13 @@
 
 ### 3.1 窗口配置
 
-- [ ] `tauri.conf.json` 定义两个窗口：
+- [x] `tauri.conf.json` 定义两个窗口：
   - `main`：360×600、透明、无边框、置顶、跳过任务栏、默认隐藏、`#/`
   - `preference`：700×480、居中、可调、`#/preference`
-- [ ] 配置 capabilities/permissions（v2 权限模型，最小授权）
+  > 两窗口均 `visible: false`（启动隐藏，由 3.2/3.3 的 show/hide 命令控制显隐）。`main` 加 `resizable:false` + `maximizable:false`（固定浮层尺寸）；`preference` 设 `minWidth/minHeight=700×480` 防缩到不可用。透明窗口依赖 macOS 私有 API：`tauri.conf.json` 开 `app.macOSPrivateApi:true`，`Cargo.toml` 的 `tauri` 同步加 `macos-private-api` feature（否则编译报错）。URL 用 `index.html/#/` 哈希路由，对齐前端 `createHashRouter`。NSPanel 浮层级 / 窗口特效（sidebar）等留待 3.3。
+- [x] 配置 capabilities/permissions（v2 权限模型，最小授权）
+  > [capabilities/default.json](src-tauri/capabilities/default.json)：`windows` 从 `["main"]` 扩到 `["main","preference"]`（新 preference 窗口纳入授权，否则收不到 core 事件）。权限收敛到仅 `core:default`（含 `core:window`/`core:event`/`core:app` 等基础能力，足够前端监听 emit 事件与基本窗口操作）。自定义命令（`read_clipboard` 等）经 `generate_handler!` 注册、属应用自有命令，**不受 ACL 约束**，无需在此授权；awesome-rpc 仅换 IPC 传输层不影响这一点。后续插件能力（window 管理 / paste / 快捷键 / 设置落盘）按阶段最小增量添加。
+  > 顺手清理脚手架残留：`opener:default` 权限连同从未注册/引用的 `tauri-plugin-opener` 依赖一并移除（Cargo.toml + Cargo.lock），保持最小授权与零死依赖。`cargo check` 通过。
 
 ### 3.2 自定义窗口插件（eco-window 思路）
 
