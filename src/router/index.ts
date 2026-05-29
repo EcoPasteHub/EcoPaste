@@ -1,4 +1,4 @@
-import { createHashRouter } from "react-router-dom";
+import { createHashRouter } from "react-router";
 import Main from "@/pages/Main";
 import Preference from "@/pages/Preference";
 

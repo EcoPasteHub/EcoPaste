@@ -1,8 +1,7 @@
 {
   "compilerOptions": {
     "allowImportingTsExtensions": true,
-
-    "baseUrl": ".",
+    "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
@@ -14,11 +13,11 @@
     "noFallthroughCasesInSwitch": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "paths": {
-      "@/*": ["src/*"]
-    },
 
-    "plugins": [{ "name": "typescript-plugin-css-modules" }],
+    /* Path aliases */
+    "paths": {
+      "@/*": ["./src/*"]
+    },
     "resolveJsonModule": true,
     "skipLibCheck": true,
 

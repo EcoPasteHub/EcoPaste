@@ -1,0 +1,16 @@
+---
+description: EcoPaste 项目编码约定（单一真相源指向 AGENTS.md）
+alwaysApply: true
+---
+
+本项目所有编码约定的单一真相源是 [AGENTS.md](mdc:AGENTS.md)，请完整阅读并遵循。
+分阶段重构清单见 [TODO.md](mdc:TODO.md)。
+
+要点速记（详见 AGENTS.md）：
+
+- **Rust-First**：核心逻辑尽量下沉 Rust，前端只做 UI 展示与交互。前端禁止直连 SQL、禁止做内容类型识别与窗口坐标计算——这些调用 Rust 的 `#[tauri::command]`。
+- **仅 macOS + Windows**：不新增任何 Linux 代码或依赖；平台特化用 `#[cfg(target_os = "macos")]` / `#[cfg(target_os = "windows")]` 隔离。
+- **技术栈**：Tauri v2 + React 19 + HeroUI v3 + TailwindCSS v4 + sqlx(SQLite) + Valtio + Vite/pnpm + Biome。
+- **Rust**：命令与仓储全 async，统一 `Result<T, AppError>`；用 `sqlx::query!` 宏，改 SQL 后跑 `sqlx prepare`；migration 只增不改。
+- **前端**：React 19 新特性优先（不用 `forwardRef`）；Valtio 只存 UI 状态；HTML 内容必经 DOMPurify sanitize；i18n 四语种同步。
+- 旧版 `EcoPaste_bak` 仅供参考，不要照搬其前端直查 SQL、前端轮询监听等已废弃模式。

@@ -11,11 +11,10 @@ node_modules
 dist
 dist-ssr
 *.local
-auto-imports.d.ts
-*.patch
-/target/
 
 # Editor directories and files
+.vscode/*
+!.vscode/extensions.json
 .idea
 .DS_Store
 *.suo

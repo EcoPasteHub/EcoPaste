@@ -1,30 +1,22 @@
+import { fileURLToPath, URL } from "node:url";
+import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import UnoCSS from "unocss/vite";
 import { defineConfig } from "vite";
 
+// @ts-expect-error process is a nodejs global
 const host = process.env.TAURI_DEV_HOST;
 
-// https://vitejs.dev/config/
+// https://vite.dev/config/
 export default defineConfig(async () => ({
-  build: {
-    chunkSizeWarningLimit: 3000,
-  },
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
-  // 1. prevent vite from obscuring rust errors
+  // 1. prevent Vite from obscuring rust errors
   clearScreen: false,
-  css: {
-    preprocessorOptions: {
-      scss: {
-        // https://sass-lang.com/documentation/breaking-changes/legacy-js-api/#silencing-warnings
-        silenceDeprecations: ["legacy-js-api"],
-      },
-    },
-  },
-  plugins: [react(), UnoCSS()],
+  plugins: [react(), tailwindcss()],
+
   resolve: {
     alias: {
-      "@": "/src",
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
   // 2. tauri expects a fixed port, fail if that port is not available
@@ -40,7 +32,7 @@ export default defineConfig(async () => ({
     port: 1420,
     strictPort: true,
     watch: {
-      // 3. tell vite to ignore watching `src-tauri`
+      // 3. tell Vite to ignore watching `src-tauri`
       ignored: ["**/src-tauri/**"],
     },
   },
