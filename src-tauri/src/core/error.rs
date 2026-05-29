@@ -3,6 +3,9 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum AppError {
+    #[error("clipboard error: {0}")]
+    Clipboard(String),
+
     #[error(transparent)]
     Other(#[from] anyhow::Error),
 }

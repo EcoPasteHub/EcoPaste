@@ -145,29 +145,46 @@
 
 ### 2.1 剪贴板读取插件
 
-- [ ] 评估 `tauri-plugin-clipboard-x` 复用 vs 自研（旧项目用了自定义 fork）
-- [ ] 引入剪贴板能力，支持读取：纯文本 / HTML / RTF / 图片 / 文件列表
-- [ ] 封装 `clipboard::read_all() -> ClipboardPayload`（带类型标记）
+- [x] 评估 `tauri-plugin-clipboard-x` 复用 vs 自研 → 选 **底层库 `clipboard-rs`**（ChurchTao/clipboard-rs `0.3`）：text/html/rtf/image/files 全支持、macOS/Windows 原生读取、内置 watcher（供 2.2）、`RustImage` 缩略图（供 2.3）、`set_*` 写回（供 4.1）；比再包一层插件更可控
+- [x] 引入剪贴板能力，支持读取：纯文本 / HTML / RTF / 图片 / 文件列表
+- [x] 封装 `ClipboardReader::read_all() -> Result<Option<ClipboardPayload>>`（带类型标记，files > image > text 优先级；`None` = 空/无可识别内容）
+  > `src-tauri/src/clipboard/{payload,read}.rs`。`ClipboardPayload` 为内部类型（不直接回传前端）；`get_files()` 返回裸路径（macOS 走 `NSURL.path()` 已解码），无需 URI 解码。子类型识别/图片落盘留待 2.3。真实剪贴板往返读取测试见 `read.rs`（`#[ignore]`，`cargo test -- --ignored` 验证，已通过）。
 
 ### 2.2 OS 级监听（替代前端轮询）★
 
-- [ ] macOS：基于 `NSPasteboard` 的 `changeCount` 轮询线程（或事件）
-- [ ] Windows：`AddClipboardFormatListener` 监听 `WM_CLIPBOARDUPDATE`
-- [ ] 统一抽象 `ClipboardWatcher`，变更时触发回调
-- [ ] 监听线程产出变更 → 经内容处理 → 入库 → `emit` 事件通知前端刷新
-- [ ] 处理自身写回剪贴板导致的回环（写回时打标记/抑制下一次监听）
+- [x] macOS：基于 `NSPasteboard` 的 `changeCount` 轮询线程（或事件）→ 由 `clipboard-rs` watcher 内置
+- [x] Windows：`AddClipboardFormatListener` 监听 `WM_CLIPBOARDUPDATE` → 由 `clipboard-rs` watcher 内置
+- [x] 统一抽象 `ClipboardWatcher`，变更时触发回调
+  > `src-tauri/src/clipboard/watcher.rs`：`ClipboardChangeHandler` 实现 `clipboard_rs::ClipboardHandler`，在名为 `clipboard-watcher` 的独立 `std::thread` 上跑阻塞 `start_watch()`。平台句柄（`ClipboardContext`/`ClipboardWatcherContext`）**在该线程内构造**，绕开 `!Send` 约束。
+- [x] 监听线程产出变更 → 经内容处理 → 入库 → `emit` 事件通知前端刷新
+  > 回调里同步 `read_all()` → `ingest::build_item()` 转换（含图片落盘）→ `tauri::async_runtime::spawn` 投递（仅移动 `Send` 的 pool/AppHandle/item）→ `db::items::upsert_item` 去重入库 → `EmitterExt::emit("clipboard://updated", {id, deduplicated})`。text/files/image 全部接通。
+- [x] 处理自身写回剪贴板导致的回环（写回时打标记/抑制下一次监听）
+  > `src-tauri/src/clipboard/guard.rs`：`WritebackGuard`（入 Tauri `State`，供 4.1 写回前 `suppress(content_hash)`）。回调用 `should_skip(hash)` 按指纹比对命中即跳过，带 2s TTL 兜底防登记滞留误吞后续真实复制。
+  > 验证：`guard.rs` 单测覆盖抑制/不误伤/过期；`watcher.rs` 含 `#[ignore]` 真实剪贴板端到端测试（读取→转换→去重入库 + 写回抑制），触碰系统剪贴板的测试经 `clipboard::test_lock` 串行化，默认多线程 runner 下亦稳定。`cargo test -- --ignored` 已通过。
 
 ### 2.3 内容类型识别（Rust）★
 
-- [ ] 文本子类型检测：`url`（含 `is-url` 等价正则）/ `email` / `color`（hex/rgb/hsl）/ `path`
-- [ ] 生成 `search` 字段：HTML→纯文本、RTF→纯文本、image→占位、files→路径串
-- [ ] 图片处理：解码取 `width`/`height`，落盘到 app data `images/`，`value` 存引用
-- [ ] 文件处理：读取路径列表、文件大小/类型元信息
-- [ ] 单元测试覆盖各类型识别
+- [x] 文本子类型检测：`url` / `email` / `color`（hex/rgb(a)/hsl(a)）/ `path`
+  > `src-tauri/src/clipboard/detect.rs`：纯函数 `detect_text_sub_kind`，判定顺序 url > email > color > path（对齐旧项目）。正则用 `std::sync::LazyLock` 编译期复用。两处比旧版收紧以求稳：url 要求带协议头或 `www.`（不再把任意带点词判为链接）；path 仅认**绝对路径 + `exists()`**（相对路径受进程 cwd 影响，监听线程下不可控）。color 只匹配 hex/函数式语法，天然排除 CSS 关键字，无需旧版的关键字黑名单。
+- [x] 生成 `search` 字段：HTML→纯文本、RTF→纯文本、image→占位、files→路径串
+  > 存储语义（`ingest.rs`，对齐参考插件 [tauri-plugin-clipboard-x](https://github.com/ayangweb/tauri-plugin-clipboard-x) 读取优先级 html > rtf > plain）：`content` 存源表示（`get_html()`/`get_rich_text()` 原文或纯文本），`search_text` 存纯文本供 FTS。**HTML/RTF 不自己解析转纯文本**——复制富文本时剪贴板本就并存 `get_text()` 纯文本表示，直接拿来当 `search_text` 即可（前端再用 DOMPurify 渲染 HTML 源）。image 的 `search_text` 留 `None`（不污染 FTS，占位展示交前端按 `kind` 渲染）；files 的 `content` 即换行路径串、本身可检索。
+- [x] 图片处理：解码取 `width`/`height`，落盘到 app data，`content` 存引用
+  > `src-tauri/src/clipboard/storage.rs`：`ImageStore`（入 Tauri `State`）。**按内容哈希分片**避免单目录爆量：`<app_data>/resources/images/{origin,thumbnails}/<sha256前2位>/<sha256>.png`。`content` 存文件名 `<sha256>.png`，分片目录由 `origin_path`/`thumbnail_path`（供阶段 4 写回与前端预览）从文件名推导。缩略图最长边 300px。文件名取 PNG 字节的 sha256 → 同图重复复制落盘幂等，且 `content_hash` 对字节敏感，与 1.4 去重同源。
+- [x] 文件处理：读取路径列表（裸路径，2.1 已确认无需 URI 解码）；`content` 存换行连接路径串
+  > 单文件大小/MIME 等逐文件元信息留待 UI 需要时再补（前端展示阶段 7.2），数据层已可入库检索。
+- [x] 单元测试覆盖各类型识别
+  > `detect.rs` 覆盖 url/email/color/path 正负例；`storage.rs` 覆盖哈希分片落盘/幂等/路径解析（合成 PNG）；`ingest.rs` 覆盖 html/rtf/plain 存储语义（富文本用 OS 纯文本作检索文本）+ 图片落盘记录 + 空文本跳过；`watcher.rs` 新增 `#[ignore]` 真实剪贴板图片端到端（OS TIFF→PNG 解码→落盘→入库）。`cargo test`（40 通过）+ `cargo test -- --ignored`（4 通过）+ `cargo fmt --check` + clippy 均过。
 
 ### 2.4 暴露命令
 
-- [ ] `#[tauri::command]` 包装 2.1–2.3，供前端按需手动触发（如「重新读取」）
+- [x] `#[tauri::command]` 包装 2.1–2.3，供前端按需手动触发（如「重新读取」）
+  > `src-tauri/src/commands/clipboard.rs`（薄封装层，仅参数校验 + 调下层）：
+  > - `read_clipboard()` — 手动重新读取并入库，复用监听管线 read_all → `build_item` → `persist_and_notify`（去重入库 + emit `clipboard://updated`），与 OS 监听同一条路径、语义一致。返回 `Option<ReadClipboardResult { item, deduplicated, captured }>`，剪贴板空时为 `None`。
+  > - `get_clipboard_image_path(file_name, thumbnail)` — 把图片文件名解析为原图/缩略图绝对路径，供前端预览取图。
+  > 关键点：(1) `ClipboardReader` 的 `ClipboardContext` 是 `!Send`，读取+转换全在 await 前的同步块内完成并 drop，命令 future 才满足 `Send`；(2) `read_clipboard` 与 watcher 共用抽出的 `clipboard::persist_and_notify`，不重复入库/emit 逻辑；(3) `get_clipboard_image_path` 的 `file_name` 是唯一外部输入，`validate_image_file_name` 防路径穿越（拒绝分隔符/`..`/子目录/非 `.png`），单测覆盖。
+  > awesome-rpc 只换 IPC 传输层，命令仍走标准 `generate_handler!`（`lib.rs` 注册）。`cargo test`（42 通过）+ clippy + fmt 均过。
+
+> **阶段 2 完成**：剪贴板「监听 → 读取 → 内容识别/图片落盘 → 去重入库 → emit」闭环已通，并提供手动重读 / 取图命令。
 
 ---
 

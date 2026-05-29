@@ -38,6 +38,10 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(log_plugin)
         .invoke_system(awesome_rpc.initialization_script())
+        .invoke_handler(tauri::generate_handler![
+            commands::read_clipboard,
+            commands::get_clipboard_image_path,
+        ])
         .setup(move |app| {
             awesome_rpc.start(app.handle().clone());
 
@@ -47,7 +51,8 @@ pub fn run() {
                     log::error!("database initialization failed: {err:?}");
                     err
                 })?;
-                handle.manage(pool);
+                handle.manage(pool.clone());
+                clipboard::init(&handle, pool)?;
                 Ok::<_, anyhow::Error>(())
             })?;
 
