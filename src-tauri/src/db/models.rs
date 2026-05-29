@@ -39,6 +39,8 @@ pub struct ClipboardItem {
     pub sub_kind: Option<ClipboardSubKind>,
     pub group_id: Option<String>,
     pub content: String,
+    /// 去重指纹：`sha256(kind:content)`，由 `db::items::content_hash` 计算并在入库前比对。
+    pub content_hash: String,
     pub search_text: Option<String>,
     pub size: Option<i64>,
     pub width: Option<i64>,

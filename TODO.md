@@ -133,8 +133,11 @@
 
 ### 1.4 去重与计数逻辑（Rust）
 
-- [ ] 入库前对相同内容做比对，命中已有记录则 `use_count + 1` 并刷新 `updated_at`，不再插入新行（替代旧前端逻辑）
-- [ ] 选择比对策略（text 按 `content` 直接比对；image/files 用内容哈希）；如需按哈希查重，评估在 `clipboard_items` 增加 `content_hash` 列并建索引（写新 migration `0003_*.sql`，迁移只增不改）
+- [x] 入库前对相同内容做比对，命中已有记录则 `use_count + 1` 并刷新 `updated_at`，不再插入新行（替代旧前端逻辑）
+  > 实现为 `db::items::upsert_item`：按 `content_hash` 查重，命中走 `increment_item_use_count` 并返回 `UpsertResult { id, deduplicated }`，未命中走 `insert_item`。
+- [x] 选择比对策略（text 按 `content` 直接比对；image/files 用内容哈希）；如需按哈希查重，评估在 `clipboard_items` 增加 `content_hash` 列并建索引（写新 migration `0003_*.sql`，迁移只增不改）
+  > 统一用 `content_hash = sha256("<kind>:<content>")`（`db::items::content_hash`）一条索引路径覆盖两种策略：text 即哈希内容串；image/files 的 `content` 为落盘引用/路径，阶段 2.3 持有原始字节时可改为对字节哈希后写入。`kind` 前缀隔离避免跨类型误判。
+  > **未发版、仍在开发阶段**，故直接改 `0001_init.sql` 增列 `content_hash TEXT NOT NULL` + 索引 `idx_clipboard_items_content_hash`，不另写 `0003`（迁移只增不改的约定从首个发版后生效）。
 
 ---
 

@@ -11,6 +11,7 @@ CREATE TABLE clipboard_items (
     sub_kind     TEXT,
     group_id     TEXT    REFERENCES clipboard_groups(id) ON DELETE SET NULL,
     content      TEXT    NOT NULL,
+    content_hash TEXT    NOT NULL,
     search_text  TEXT,
     size         INTEGER,
     width        INTEGER,
@@ -23,3 +24,5 @@ CREATE TABLE clipboard_items (
     created_at   TEXT    NOT NULL,
     updated_at   TEXT    NOT NULL
 );
+
+CREATE INDEX idx_clipboard_items_content_hash ON clipboard_items (content_hash);

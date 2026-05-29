@@ -1,27 +1,94 @@
 use anyhow::Context;
 use chrono::Utc;
+use sha2::{Digest, Sha256};
 use sqlx::{QueryBuilder, Sqlite, SqlitePool};
 
 use crate::core::Result;
-use crate::db::models::{ClipboardItem, ClipboardItemQuery, ClipboardItemSort};
+use crate::db::models::{ClipboardItem, ClipboardItemQuery, ClipboardItemSort, ClipboardKind};
 
-const SELECT_ITEM: &str = "SELECT id, kind, sub_kind, group_id, content, search_text, size, \
-     width, height, use_count, is_favorite, is_pinned, platform, note, created_at, updated_at \
-     FROM clipboard_items";
+const SELECT_ITEM: &str = "SELECT id, kind, sub_kind, group_id, content, content_hash, \
+     search_text, size, width, height, use_count, is_favorite, is_pinned, platform, note, \
+     created_at, updated_at FROM clipboard_items";
 
-/// 插入一条剪贴板记录（去重/计数由上层在调用前处理，见阶段 1.4）。
+/// 入库去重的结果：`id` 为生效行的主键（命中时是已有行，未命中时是新插入行），
+/// `deduplicated` 表示是否命中了已有内容（命中则只 `use_count + 1` 未插入新行）。
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct UpsertResult {
+    pub id: String,
+    pub deduplicated: bool,
+}
+
+/// 计算去重指纹：`sha256("<kind>:<content>")`。
+/// 加 `kind` 前缀，避免 text 与 files 恰好同串内容被误判为重复。
+/// text 直接哈希内容串即可；image/files 的 `content` 是落盘引用/路径，
+/// 调用方（阶段 2.3，持有原始字节时）可改为对原始内容字节哈希后写入 `content_hash`。
+pub fn content_hash(kind: ClipboardKind, content: &str) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(kind_tag(kind).as_bytes());
+    hasher.update(b":");
+    hasher.update(content.as_bytes());
+    format!("{:x}", hasher.finalize())
+}
+
+fn kind_tag(kind: ClipboardKind) -> &'static str {
+    match kind {
+        ClipboardKind::Text => "text",
+        ClipboardKind::Image => "image",
+        ClipboardKind::Files => "files",
+    }
+}
+
+/// 入库主入口：按 `item.content_hash` 去重。
+/// 命中已有记录 → 复用 [`increment_item_use_count`] 累加并刷新 `updated_at`，不插入新行；
+/// 未命中 → 调用 [`insert_item`] 插入。返回生效行 id 与是否去重。
+pub async fn upsert_item(pool: &SqlitePool, item: &ClipboardItem) -> Result<UpsertResult> {
+    if let Some(existing) = find_item_by_content_hash(pool, &item.content_hash).await? {
+        increment_item_use_count(pool, &existing.id).await?;
+        return Ok(UpsertResult {
+            id: existing.id,
+            deduplicated: true,
+        });
+    }
+
+    insert_item(pool, item).await?;
+    Ok(UpsertResult {
+        id: item.id.clone(),
+        deduplicated: false,
+    })
+}
+
+/// 按 `content_hash` 查最近一条同内容记录（命中 `idx_clipboard_items_content_hash` 索引）。
+pub async fn find_item_by_content_hash(
+    pool: &SqlitePool,
+    hash: &str,
+) -> Result<Option<ClipboardItem>> {
+    let mut qb: QueryBuilder<Sqlite> = QueryBuilder::new(SELECT_ITEM);
+    qb.push(" WHERE content_hash = ")
+        .push_bind(hash.to_owned())
+        .push(" ORDER BY created_at DESC LIMIT 1");
+
+    let item = qb
+        .build_query_as::<ClipboardItem>()
+        .fetch_optional(pool)
+        .await
+        .context("failed to find clipboard item by content_hash")?;
+    Ok(item)
+}
+
+/// 插入一条剪贴板记录（不做去重；去重请走 [`upsert_item`]）。
 pub async fn insert_item(pool: &SqlitePool, item: &ClipboardItem) -> Result<()> {
     sqlx::query(
         "INSERT INTO clipboard_items \
-         (id, kind, sub_kind, group_id, content, search_text, size, width, height, \
+         (id, kind, sub_kind, group_id, content, content_hash, search_text, size, width, height, \
           use_count, is_favorite, is_pinned, platform, note, created_at, updated_at) \
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
     )
     .bind(item.id.as_str())
     .bind(item.kind)
     .bind(item.sub_kind)
     .bind(item.group_id.as_deref())
     .bind(item.content.as_str())
+    .bind(item.content_hash.as_str())
     .bind(item.search_text.as_deref())
     .bind(item.size)
     .bind(item.width)
@@ -240,12 +307,14 @@ mod tests {
 
     fn sample_item(id: &str) -> ClipboardItem {
         let ts = DateTime::from_timestamp(1_700_000_000, 0).unwrap();
+        let content = format!("content-{id}");
         ClipboardItem {
             id: id.to_owned(),
             kind: ClipboardKind::Text,
             sub_kind: None,
             group_id: None,
-            content: format!("content-{id}"),
+            content_hash: content_hash(ClipboardKind::Text, &content),
+            content,
             search_text: None,
             size: None,
             width: None,
@@ -279,6 +348,86 @@ mod tests {
         assert_eq!(found.use_count, 1);
 
         assert!(find_item_by_id(&pool, "missing").await.unwrap().is_none());
+    }
+
+    #[tokio::test]
+    async fn upsert_inserts_when_content_is_new() {
+        let pool = memory_pool().await;
+        let result = upsert_item(&pool, &sample_item("a")).await.unwrap();
+        assert_eq!(
+            result,
+            UpsertResult {
+                id: "a".to_owned(),
+                deduplicated: false,
+            }
+        );
+        assert_eq!(
+            find_item_by_id(&pool, "a")
+                .await
+                .unwrap()
+                .unwrap()
+                .use_count,
+            1
+        );
+    }
+
+    #[tokio::test]
+    async fn upsert_dedups_same_content_bumping_use_count() {
+        let pool = memory_pool().await;
+        let first = sample_item("first");
+        upsert_item(&pool, &first).await.unwrap();
+
+        // 不同 id，但内容相同 → content_hash 相同 → 命中去重，不插入新行。
+        let mut dup = sample_item("second");
+        dup.content = first.content.clone();
+        dup.content_hash = first.content_hash.clone();
+        let result = upsert_item(&pool, &dup).await.unwrap();
+
+        assert_eq!(
+            result,
+            UpsertResult {
+                id: "first".to_owned(),
+                deduplicated: true,
+            }
+        );
+        // 仍只有一行，且命中行 use_count 累加到 2。
+        let all = query_items(&pool, &ClipboardItemQuery::default())
+            .await
+            .unwrap();
+        assert_eq!(ids(&all), ["first"]);
+        assert_eq!(all[0].use_count, 2);
+        assert!(find_item_by_id(&pool, "second").await.unwrap().is_none());
+    }
+
+    #[tokio::test]
+    async fn upsert_keeps_distinct_content_separate() {
+        let pool = memory_pool().await;
+        upsert_item(&pool, &sample_item("a")).await.unwrap();
+        upsert_item(&pool, &sample_item("b")).await.unwrap();
+
+        let all = query_items(&pool, &ClipboardItemQuery::default())
+            .await
+            .unwrap();
+        assert_eq!(all.len(), 2);
+    }
+
+    #[test]
+    fn content_hash_is_stable_and_kind_scoped() {
+        // 同 kind 同内容 → 同哈希（稳定、可去重）。
+        assert_eq!(
+            content_hash(ClipboardKind::Text, "hello"),
+            content_hash(ClipboardKind::Text, "hello")
+        );
+        // 内容不同 → 哈希不同。
+        assert_ne!(
+            content_hash(ClipboardKind::Text, "hello"),
+            content_hash(ClipboardKind::Text, "world")
+        );
+        // 内容相同但 kind 不同 → 哈希不同（kind 前缀隔离）。
+        assert_ne!(
+            content_hash(ClipboardKind::Text, "same"),
+            content_hash(ClipboardKind::Files, "same")
+        );
     }
 
     #[tokio::test]

@@ -55,7 +55,7 @@ pub async fn delete_group(pool: &SqlitePool, id: &str) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::db::items::{find_item_by_id, insert_item};
+    use crate::db::items::{content_hash, find_item_by_id, insert_item};
     use crate::db::models::{ClipboardItem, ClipboardKind, Platform};
     use crate::db::test_support::memory_pool;
     use chrono::DateTime;
@@ -118,6 +118,7 @@ mod tests {
             sub_kind: None,
             group_id: Some("g".to_owned()),
             content: "content".to_owned(),
+            content_hash: content_hash(ClipboardKind::Text, "content"),
             search_text: None,
             size: None,
             width: None,
