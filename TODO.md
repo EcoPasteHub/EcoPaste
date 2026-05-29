@@ -94,10 +94,10 @@
 
 ### 1.1 数据库初始化
 
-- [ ] 引入 `sqlx`（features：`runtime-tokio` / `sqlite` / `macros` / `chrono`）
-- [ ] 确定 DB 路径：app data dir 下 `EcoPaste.db`（dev 用 `EcoPaste.dev.db`），由 Rust 解析路径
-- [ ] 实现 `db::init()`：创建/打开数据库 + `SqlitePool` 连接池，存入 Tauri `State`
-- [ ] 启用 SQLite pragma（`journal_mode=WAL`、`foreign_keys=ON`、`synchronous=NORMAL`）
+- [x] 引入 `sqlx`（features：`runtime-tokio` / `sqlite` / `macros` / `chrono`）
+- [x] 确定 DB 路径：app data dir 下 `clipboard.db`（dev 用 `clipboard.dev.db`），由 Rust 解析路径
+- [x] 实现 `db::init()`：创建/打开数据库 + `SqlitePool` 连接池，存入 Tauri `State`
+- [x] 启用 SQLite pragma（`journal_mode=WAL`、`foreign_keys=ON`、`synchronous=NORMAL`）
 
 ### 1.2 Migration（编译期校验）
 

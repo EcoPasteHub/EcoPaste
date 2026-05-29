@@ -6,6 +6,7 @@ mod paste;
 mod settings;
 mod window;
 
+use tauri::Manager;
 use tauri_awesome_rpc::AwesomeRpc;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -39,6 +40,14 @@ pub fn run() {
         .invoke_system(awesome_rpc.initialization_script())
         .setup(move |app| {
             awesome_rpc.start(app.handle().clone());
+
+            let handle = app.handle().clone();
+            tauri::async_runtime::block_on(async move {
+                let pool = db::init(&handle).await?;
+                handle.manage(pool);
+                Ok::<_, anyhow::Error>(())
+            })?;
+
             Ok(())
         })
         .run(tauri::generate_context!())
