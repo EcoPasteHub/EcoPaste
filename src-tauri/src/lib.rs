@@ -2,7 +2,7 @@ mod clipboard;
 mod commands;
 mod core;
 mod db;
-mod paste;
+mod keystroke;
 mod settings;
 mod window;
 
@@ -42,6 +42,7 @@ pub fn run() {
             commands::read_clipboard,
             commands::get_clipboard_image_path,
             commands::write_to_clipboard,
+            commands::paste_clipboard_item,
             commands::show_window,
             commands::hide_window,
             commands::toggle_window,

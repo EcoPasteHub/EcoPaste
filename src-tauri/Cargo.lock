@@ -9,6 +9,7 @@ dependencies = [
  "anyhow",
  "chrono",
  "clipboard-rs",
+ "core-graphics",
  "image",
  "log",
  "regex",
@@ -23,6 +24,7 @@ dependencies = [
  "thiserror 2.0.18",
  "tokio",
  "uuid",
+ "winapi 0.3.9",
 ]
 
 [[package]]

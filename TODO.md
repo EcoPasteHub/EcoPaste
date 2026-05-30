@@ -236,10 +236,14 @@
 
 ### 4.2 模拟粘贴（eco-paste 思路）
 
-- [ ] macOS：`cocoa` 触发 Cmd+V
-- [ ] Windows：`enigo` / `winapi` 模拟 Ctrl+V
-- [ ] `paste(item, plain: bool)` 组合命令：写回 + 触发粘贴
-- [ ] 粘贴前隐藏主窗口、聚焦回原应用的时序处理
+- [x] macOS：`core-graphics` (CGEvent) 触发 ⌘V
+  > `keystroke/macos.rs::simulate_paste()` 走 `CGEventSource::CombinedSessionState` + `CGEvent::new_keyboard_event(KEY_V=0x09, down/up)`，设 `CGEventFlagCommand` 后 `post(CGEventTapLocation::HID)`。比旧版 `osascript` 实现少一层子进程，但同样需要「辅助功能」权限（CGEvent 未授权时被静默丢弃，是 macOS 安全模型限制）。
+- [x] Windows：`winapi` SendInput 模拟 Shift+Insert
+  > `keystroke/windows.rs::simulate_paste()` 一次性投递 4 个 `INPUT_KEYBOARD`（Shift↓ / Insert↓ / Insert↑ / Shift↑）。选 Shift+Insert 而非 Ctrl+V 是因为前者是 NT 时代沿用的系统级编辑约定，传统 Win32 控件、cmd/PowerShell 终端、部分 Electron 应用都接收；Ctrl+V 经常被自定义快捷键吞掉或在控制台不响应。winapi 直调比 enigo 少一层依赖。
+- [x] `paste_clipboard_item(id, plain)` 组合命令：写回 + 隐藏窗口 + 触发粘贴
+  > `commands/clipboard.rs::paste_clipboard_item`：复用 `find_item_by_id` + `clipboard::write_to_clipboard`，结尾 `keystroke::simulate_paste()`。命名从 `paste` 改为 `paste_clipboard_item`，避免与前端 HTML paste 事件等通用术语撞名，并与 `read_clipboard` / `write_to_clipboard` 命名风格对齐。注：Rust 模块经历两轮改名 `paste/` → `simulate_paste/` → `keystroke/`，最终落在「按键事件注入」这个领域名词上，调用点 `crate::keystroke::simulate_paste()` 不再有词根重复；后续若有其他系统级按键注入（如快捷键测试）也能收纳进来。写回剪贴板早在 4.1 下沉到 `clipboard/write.rs`。
+- [x] 粘贴前隐藏主窗口的时序处理
+  > `paste_clipboard_item` 内：写回后 `hide_window(main)` → `tokio::sleep(50ms)` → `simulate_paste`。50ms 是经验值（旧版 100ms 偏保守），让 OS 完成「key window 交还上一个应用」的焦点切换；过短按键会在自家窗口仍是 key window 时被吞掉，过长用户能感到延迟。隐藏失败仅 `log::warn!` 不中断（剪贴板已写回，按键仍可生效）。**不做**主动「聚焦回原应用」——按用户指示，后续会把主窗口改成「不抢占焦点」（NSPanel `NonactivatingPanel` / Windows `WS_EX_NOACTIVATE`），届时 hide + sleep 整段可拆除；现在的实现是过渡形态，避免重复堆 OS 级前台窗口观察器。新增 `tokio` 主依赖 `time` feature（原先只在 dev-deps）。
 
 ---
 

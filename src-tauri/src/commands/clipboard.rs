@@ -1,6 +1,7 @@
 //! 剪贴板相关命令：手动重新读取、解析图片路径。供前端按需触发。
 
 use std::sync::Arc;
+use std::time::Duration;
 
 use serde::Serialize;
 use sqlx::SqlitePool;
@@ -12,6 +13,7 @@ use crate::clipboard::{
 use crate::core::{AppError, Result};
 use crate::db::items::find_item_by_id;
 use crate::db::models::ClipboardItem;
+use crate::window::{self, MAIN_WINDOW_LABEL};
 
 /// `read_clipboard` 的返回：入库后的记录 + 是否命中去重（前端据此决定提示/滚动行为）。
 #[derive(Debug, Serialize)]
@@ -99,6 +101,40 @@ pub async fn write_to_clipboard(
         .ok_or_else(|| AppError::Clipboard(format!("clipboard item not found: {id}")))?;
 
     crate::clipboard::write_to_clipboard(&store, guard.inner().as_ref(), &item, plain)?;
+    Ok(())
+}
+
+/// 「点击列表项 → 自动粘贴」的组合命令：写回剪贴板 + 隐藏主窗口 + 触发系统级粘贴。
+///
+/// 隐藏窗口是为了让 OS 把焦点交还给上一个应用——这样 ⌘V / Shift+Insert 投递到
+/// 的是用户原本工作的窗口而非我们自己。等后续把主窗口改成「不抢占焦点」
+/// （NSPanel `NonactivatingPanel` / Windows `WS_EX_NOACTIVATE`）后，这一步可拆除，
+/// 但当前先按「显示即夺焦、粘贴时隐藏」的简单模型走，逻辑就在 Rust 一处闭环。
+///
+/// 隐藏后短暂等待让系统完成焦点切换；50ms 是经验值，旧版用 100ms 保守，
+/// 这里取一半够用——超出会让用户感到延迟，过短则可能在前一个窗口还未成为
+/// key window 时按键被自身吞掉。
+#[tauri::command]
+pub async fn paste_clipboard_item(
+    app: AppHandle,
+    pool: State<'_, SqlitePool>,
+    store: State<'_, ImageStore>,
+    guard: State<'_, Arc<WritebackGuard>>,
+    id: String,
+    plain: bool,
+) -> Result<()> {
+    let item = find_item_by_id(&pool, &id)
+        .await?
+        .ok_or_else(|| AppError::Clipboard(format!("clipboard item not found: {id}")))?;
+
+    crate::clipboard::write_to_clipboard(&store, guard.inner().as_ref(), &item, plain)?;
+
+    if let Err(err) = window::hide_window(&app, MAIN_WINDOW_LABEL) {
+        log::warn!("hide main window before paste failed: {err:?}");
+    }
+    tokio::time::sleep(Duration::from_millis(50)).await;
+
+    crate::keystroke::simulate_paste()?;
     Ok(())
 }
 

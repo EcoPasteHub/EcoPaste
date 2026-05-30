@@ -32,6 +32,13 @@ sha2 = "0.10"
 clipboard-rs = "0.3"
 uuid = { version = "1", features = ["v4"] }
 regex = "1"
+tokio = { version = "1", features = ["time"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+core-graphics = "0.25"
+
+[target.'cfg(target_os = "windows")'.dependencies]
+winapi = { version = "0.3", features = ["winuser"] }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["macros", "rt"] }
