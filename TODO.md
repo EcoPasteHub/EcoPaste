@@ -302,8 +302,11 @@
 
 ### 6.2 前端绑定
 
-- [ ] 前端 Valtio store 仅作为设置的本地镜像，变更经命令写回 Rust
-- [ ] 启动时从 Rust 拉取设置初始化
+- [x] 前端 Valtio store 仅作为设置的本地镜像，变更经命令写回 Rust
+- [x] 启动时从 Rust 拉取设置初始化
+  > 新增 `src/types/settings.ts`（与 `src-tauri/src/settings/model.rs` 字段一一对齐的 TS 类型，含 `DeepPartial<Settings>` 作为 patch 类型）+ `src/stores/settings.ts`（`proxy<{value: Settings|null, loaded: boolean}>` + `loadSettings` / `updateSettings`）。`updateSettings` 直接把 Rust 返回的快照覆盖镜像，不在前端做二次合并，避免本地状态与盘上漂移。
+  > `main.tsx` 启动期 `await loadSettings()` 后再 `root.render(<App />)`，组件层无需处理 null 态；IPC 通信异常时用 `console.error` 兜底（启动期 log 通道未就绪），并仍渲染——降级到 `loaded=false`，后续组件读 `settingsState.loaded` 决定是否阻塞。
+  > 装了 `valtio@2.3.2`。未引入额外 hook 封装，组件层直接 `useSnapshot(settingsState)`——React 19 下 valtio 工作良好，不需要 `forwardRef` 等老式样板。
 
 ---
 
