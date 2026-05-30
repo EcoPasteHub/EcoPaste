@@ -9,7 +9,6 @@ mod shortcut;
 mod window;
 
 use tauri::{Manager, WindowEvent};
-use tauri_awesome_rpc::AwesomeRpc;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -26,17 +25,6 @@ pub fn run() {
         ])
         .build();
 
-    let allowed_origins = if cfg!(dev) {
-        vec!["http://localhost:1420"]
-    } else {
-        vec!["tauri://localhost"]
-    };
-
-    let awesome_rpc = AwesomeRpc::new(allowed_origins)
-        .max_payload(64 * 1024 * 1024)
-        .max_in_buffer_capacity(64 * 1024 * 1024)
-        .max_out_buffer_capacity(64 * 1024 * 1024);
-
     tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(
             |app_handle, _argv, _cwd| {
@@ -47,7 +35,6 @@ pub fn run() {
         ))
         .plugin(log_plugin)
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
-        .invoke_system(awesome_rpc.initialization_script())
         .invoke_handler(tauri::generate_handler![
             commands::read_clipboard,
             commands::get_clipboard_image_path,
@@ -68,8 +55,6 @@ pub fn run() {
             commands::is_launched_via_autostart,
         ])
         .setup(move |app| {
-            awesome_rpc.start(app.handle().clone());
-
             let handle = app.handle().clone();
 
             let window_state_store = window::WindowStateStore::new(&handle).map_err(|err| {

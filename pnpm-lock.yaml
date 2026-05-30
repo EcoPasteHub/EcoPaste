@@ -32,9 +32,6 @@ importers:
       react-router:
         specifier: ^7.16.0
         version: 7.16.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
-      tauri-awesome-rpc:
-        specifier: ^0.1.3
-        version: 0.1.3
       tsx:
         specifier: ^4.22.3
         version: 4.22.3
@@ -2268,9 +2265,6 @@ packages:
   tapable@2.3.3:
     resolution: {integrity: sha512-uxc/zpqFg6x7C8vOE7lh6Lbda8eEL9zmVm/PLeTPBRhh1xCgdWaQ+J1CUieGpIfm2HdtsUpRv+HshiasBMcc6A==}
     engines: {node: '>=6'}
-
-  tauri-awesome-rpc@0.1.3:
-    resolution: {integrity: sha512-0E8OuLtgTR6ON558K1od/+L5AROKycMMFpxG+S+Qr6ZuHRzWS2xF1XA0vBy8VFN+/mgqwyDK5wbsxKB8Yj242w==}
 
   tinyexec@1.2.2:
     resolution: {integrity: sha512-M/Q0B2cp4K7kynaT/vnED1j8TlLY+Pp7C6Wl2bl/7u/F0mUVwdyOpwomQb8JpYLitHUssAJRmLZdMCGsrx7i+g==}
@@ -4600,8 +4594,6 @@ snapshots:
   tailwindcss@4.3.0: {}
 
   tapable@2.3.3: {}
-
-  tauri-awesome-rpc@0.1.3: {}
 
   tinyexec@1.2.2: {}
 

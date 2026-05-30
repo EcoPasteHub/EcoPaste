@@ -1,6 +1,4 @@
 //! `#[tauri::command]` 入口层（薄封装）：参数校验 + 调用 `clipboard` / `db` 下层，不写业务逻辑。
-//!
-//! awesome-rpc 只替换 IPC 传输层，命令仍走标准 `#[tauri::command]` + `generate_handler!`。
 
 mod autostart;
 mod clipboard;

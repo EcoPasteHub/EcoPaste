@@ -14,8 +14,7 @@ use chrono::Utc;
 use clipboard_rs::{ClipboardHandler, ClipboardWatcher, ClipboardWatcherContext};
 use serde_json::json;
 use sqlx::SqlitePool;
-use tauri::{AppHandle, Manager};
-use tauri_awesome_rpc::EmitterExt;
+use tauri::{AppHandle, Emitter, Manager};
 
 use super::app_store::AppIconStore;
 use super::guard::WritebackGuard;
@@ -76,14 +75,15 @@ pub async fn persist_and_notify(
         }
     }
     let result = upsert_item(pool, &item_to_write).await?;
-    // EmitterExt::emit 是 fire-and-forget（返回 ()），经 WS 通道送达前端。
-    app.emit(
+    if let Err(err) = app.emit(
         CLIPBOARD_UPDATED_EVENT,
         json!({
             "id": result.id,
             "deduplicated": result.deduplicated,
         }),
-    );
+    ) {
+        log::warn!("emit {CLIPBOARD_UPDATED_EVENT} failed: {err}");
+    }
     Ok(result)
 }
 

@@ -10,20 +10,20 @@
 
 ## 技术选型（已确认）
 
-| 维度        | 决策                   | 说明                                                                                    |
-| ----------- | ---------------------- | --------------------------------------------------------------------------------------- |
-| 代码组织    | **当前项目新建空分支** | `pnpm create tauri-app` 一键生成脚手架，逐功能从旧项目迁移参考                          |
-| 桌面框架    | Tauri v2               | `tray-icon` / `protocol-asset` / `macos-private-api`                                    |
-| IPC 层      | **tauri-awesome-rpc**  | 替代 Tauri 自带 IPC：WebSocket + JSON-RPC 2.0、命令异步执行不阻塞主线程、支持大 payload |
-| 前端框架    | React 19               | 新特性：Actions、`use`、`useOptimistic`、ref as prop                                    |
-| UI 组件库   | HeroUI v3              | 替换旧项目的 Ant Design 5                                                               |
-| 样式        | TailwindCSS v4         | 替换旧项目的 UnoCSS；CSS-first 配置（`@theme`）                                         |
-| Rust 数据层 | **sqlx (SQLite)**      | 异步 + 编译期 SQL 校验 + 内置 migration                                                 |
-| 前端状态    | **Valtio**             | 仅管理 UI 状态，业务状态来自 Rust                                                       |
-| 构建        | Vite + pnpm            |                                                                                         |
-| Lint/Format | Biome                  |                                                                                         |
-| 范围策略    | **MVP 先行**           | 阶段 0–7 为 MVP，阶段 8+ 为增强                                                         |
-| 支持平台    | **仅 macOS + Windows** | 不支持 Linux；平台特化用 `#[cfg(target_os)]` 隔离                                       |
+| 维度        | 决策                   | 说明                                                                                                                                       |
+| ----------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| 代码组织    | **当前项目新建空分支** | `pnpm create tauri-app` 一键生成脚手架，逐功能从旧项目迁移参考                                                                             |
+| 桌面框架    | Tauri v2               | `tray-icon` / `protocol-asset` / `macos-private-api`                                                                                       |
+| IPC 层      | **Tauri 原生 IPC**     | 原 `tauri-awesome-rpc` 在 Windows 触发 `miow 0.2.2` null 指针 panic（不可修复，上游已停 issue），改回原生 `#[tauri::command]` + `app.emit` |
+| 前端框架    | React 19               | 新特性：Actions、`use`、`useOptimistic`、ref as prop                                                                                       |
+| UI 组件库   | HeroUI v3              | 替换旧项目的 Ant Design 5                                                                                                                  |
+| 样式        | TailwindCSS v4         | 替换旧项目的 UnoCSS；CSS-first 配置（`@theme`）                                                                                            |
+| Rust 数据层 | **sqlx (SQLite)**      | 异步 + 编译期 SQL 校验 + 内置 migration                                                                                                    |
+| 前端状态    | **Valtio**             | 仅管理 UI 状态，业务状态来自 Rust                                                                                                          |
+| 构建        | Vite + pnpm            |                                                                                                                                            |
+| Lint/Format | Biome                  |                                                                                                                                            |
+| 范围策略    | **MVP 先行**           | 阶段 0–7 为 MVP，阶段 8+ 为增强                                                                                                            |
+| 支持平台    | **仅 macOS + Windows** | 不支持 Linux；平台特化用 `#[cfg(target_os)]` 隔离                                                                                          |
 
 ## Rust-First 职责划分
 
@@ -295,10 +295,11 @@
   > `update(patch)` 接 `serde_json::Value`，要求 object，走 `deep_merge` 后再 `from_value::<Settings>`——这样前端可以发任意子树（如 `{"clipboard":{"history":{"maxCount":500}}}`）而不必构造完整对象，且类型校验仍在反序列化阶段集中处理。数组按 patch 整体替换（而非追加合并），对 `itemActions` 这类「顺序就是配置」的字段更直觉。
   > 命令层 `commands/settings.rs::{get_settings, update_settings}`。`update_settings` 检测到 patch 含 `shortcuts` 键时顺带调 `shortcut::apply` 重注册——把「写入后副作用」拢在命令层，避免 store 反过来依赖 `shortcut` 模块。
   > **重构副作用：**
+  >
   > - `shortcut/mod.rs` 弃用自维护的 `ShortcutBindings` 结构（重复定义、与 settings 各执一词），改为接收 `&settings::Shortcuts`；`ShortcutManager` 退化为只持有 `active: Vec<(action, Shortcut)>` 用于反注册，bindings 真相源现统一在 settings store。
   > - 旧命令 `get_shortcuts`/`update_shortcuts` 删除，前端走通用 `get_settings`/`update_settings`。
   > - `lib.rs` setup 顺序：`settings::init` → db → `shortcut::init(&handle, &settings.shortcuts)`。注：autostart 仍走独立命令（OS 级状态是真相源，不是设置文件镜像），settings.general.autoStart 与 OS 状态的双向同步留到 6.2 处理。
-  > 单元测试：`deep_merge` 覆盖「对象递归 / 数组整体替换」、`#[serde(default)]` 覆盖「缺字段回落默认」三例，全部通过。`cargo check` / `cargo test --lib settings::` 干净。
+  >   单元测试：`deep_merge` 覆盖「对象递归 / 数组整体替换」、`#[serde(default)]` 覆盖「缺字段回落默认」三例，全部通过。`cargo check` / `cargo test --lib settings::` 干净。
 
 ### 6.2 前端绑定
 
@@ -318,8 +319,8 @@
   > HeroUI v3 不需要 Provider 包裹（参见 https://heroui.com/react/llms-patterns.txt ：「No provider required」），改为在 `index.html` 上声明 `class="light"` 与 `body class="bg-background text-foreground"` 让 HeroUI 的 token/CSS 变量生效，避免后续暗色切换时只改 class 而背景色不跟随。
   > `App.tsx` 仅保留 `RouterProvider`，并加注释把后续 7.1.3 主题与 7.5 i18n 的插入点标出来，避免下次又被「为什么没 Provider」绊一下。
 - [x] 全局事件监听 hook `useTauriListen`（封装 Tauri event）
-  > `src/hooks/useTauriListen.ts`：走 `tauri-awesome-rpc` 的 `listen`（同步返回 `UnlistenFn`，挂在 `window.AwesomeListener` 上的 WS 通道），不是官方 `@tauri-apps/api/event`——后者 IPC 已被 awesome-rpc 替换。同步注册免去「Promise resolve 时组件已卸载」的竞态，effect 直接 return unlisten 即可。
-  > payload 在 JSON-RPC 层是 `unknown`，hook 用泛型 `T` 让调用方断言；handler 走 ref 转发，effect 仅依赖事件名，业务侧不必 `useCallback`。
+  > `src/hooks/useTauriListen.ts`：走官方 `@tauri-apps/api/event` 的 `listen`（`Promise<UnlistenFn>`）。原方案用 `tauri-awesome-rpc` 的同步 `listen` 免「Promise resolve 时组件已卸载」的竞态，但 awesome-rpc 因依赖链中 `miow 0.2.2` 在 Windows panic 已移除（见 §选型表），改用 `cancelled` 标记拦截迟到的注册。
+  > payload 由 `@tauri-apps/api/event` 的 `Event<T>` 携带，hook 用泛型 `T` 让调用方断言；handler 走 ref 转发，effect 仅依赖事件名，业务侧不必 `useCallback`。
 - [x] 暗色模式应用（监听系统 / 跟随设置），注入 CSS 变量
   > `src/hooks/useApplyTheme.ts` + `App.tsx` 调用：**两条路径都走** —— ① Tauri `getCurrentWindow().setTheme(null|light|dark)` 让原生 chrome（标题栏装饰、滚动条、原生菜单）跟随；② `html.classList` 写 `light/dark`（HeroUI v3 `@custom-variant dark (&:is(.dark *))` 依赖该 class）+ `data-theme` + `style.colorScheme`。旧版 EcoPaste 就是这么干的——只改 DOM 不改窗口会让原生区域与内容主题割裂。
   > `auto` 模式：`setTheme(null)` 把跟随系统的责任交给 Tauri，订阅 `appWindow.onThemeChanged` 而非 `matchMedia`——单一信源避免双订阅打架；切到显式 light/dark 时立刻 unlisten。effect 依赖 `[theme, loaded]`，未加载完成时不动 DOM/窗口，避免和 `index.html` 默认 `class="light"` 闪一下。
