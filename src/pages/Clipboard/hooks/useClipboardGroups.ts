@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useState } from "react";
-
+import { TAURI_COMMAND } from "@/constants/commands";
 import type { ClipboardGroup } from "@/types/clipboard";
 import { log } from "@/utils/log";
 
@@ -11,7 +11,7 @@ export const useClipboardGroups = (): ClipboardGroup[] => {
 
   useEffect(() => {
     let cancelled = false;
-    invoke<ClipboardGroup[]>("list_clipboard_groups")
+    invoke<ClipboardGroup[]>(TAURI_COMMAND.LIST_CLIPBOARD_GROUPS)
       .then((list) => {
         if (!cancelled) setGroups(list);
       })

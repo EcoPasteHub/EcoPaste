@@ -5,7 +5,7 @@ use std::time::Duration;
 
 use serde::Serialize;
 use sqlx::SqlitePool;
-use tauri::{AppHandle, State};
+use tauri::{AppHandle, Manager, State};
 
 use crate::clipboard::{
     build_item, detect_frontmost, materialize_source, persist_and_notify, AppIconStore,
@@ -219,12 +219,17 @@ pub async fn delete_clipboard_item(pool: State<'_, SqlitePool>, id: String) -> R
 
 /// 更新备注（薄封装）。`note = None` 或空串清空备注；空串归一化为 None，
 /// 保证「无备注」在库里只有一种表示（NULL），避免后续筛选/展示判别两套逻辑。
+///
+/// auto-favorite：写入非空备注时，若 `settings.clipboard.content.autoFavorite` 开启，
+/// 顺带把 `is_favorite` 置为 true（已收藏的无变化；清空备注不触发）。返回值表示本次
+/// 是否触发了 auto-favorite，供前端把乐观更新里的 `isFavorite` 一并设为 true。
 #[tauri::command]
 pub async fn update_clipboard_item_note(
+    app: AppHandle,
     pool: State<'_, SqlitePool>,
     id: String,
     note: Option<String>,
-) -> Result<()> {
+) -> Result<bool> {
     let normalized = note.as_deref().and_then(|s| {
         let trimmed = s.trim();
         if trimmed.is_empty() {
@@ -233,7 +238,20 @@ pub async fn update_clipboard_item_note(
             Some(trimmed)
         }
     });
-    crate::db::items::update_item_note(&pool, &id, normalized).await
+    crate::db::items::update_item_note(&pool, &id, normalized).await?;
+
+    let mut auto_favorited = false;
+    if normalized.is_some() {
+        let auto_favorite = app
+            .try_state::<crate::settings::SettingsStore>()
+            .map(|s| s.snapshot().clipboard.content.auto_favorite)
+            .unwrap_or(false);
+        if auto_favorite {
+            crate::db::items::mark_item_favorite(&pool, &id).await?;
+            auto_favorited = true;
+        }
+    }
+    Ok(auto_favorited)
 }
 
 /// 校验图片文件名：必须是单层 `<name>.png`，不含路径分隔符 / 父目录引用。

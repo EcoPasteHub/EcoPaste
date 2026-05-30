@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useRef } from "react";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
-
+import { TAURI_COMMAND } from "@/constants/commands";
 import { WINDOW_LABEL } from "@/constants/windows";
 import type { ClipboardViewTab } from "@/stores/clipboardView";
 import { log } from "@/utils/log";
@@ -29,8 +29,8 @@ const ClipboardList = ({ keyword = "", tab }: Props) => {
       actions.paste(item.id);
     },
     onEscape: () => {
-      invoke("hide_window", { label: WINDOW_LABEL.MAIN }).catch((err) =>
-        log.error("hide_window failed", err),
+      invoke(TAURI_COMMAND.HIDE_WINDOW, { label: WINDOW_LABEL.MAIN }).catch(
+        (err) => log.error("hide_window failed", err),
       );
     },
   });

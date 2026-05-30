@@ -1,6 +1,6 @@
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { useEffect, useRef, useState } from "react";
-
+import { TAURI_COMMAND } from "@/constants/commands";
 import type { ClipboardApp, ClipboardItem } from "@/types/clipboard";
 import { log } from "@/utils/log";
 
@@ -30,16 +30,17 @@ export const useClipboardApps = (
     let cancelled = false;
     (async () => {
       try {
-        const list = await invoke<ClipboardApp[]>("list_clipboard_apps", {
-          ids: missing,
-        });
+        const list = await invoke<ClipboardApp[]>(
+          TAURI_COMMAND.LIST_CLIPBOARD_APPS,
+          { ids: missing },
+        );
         const entries = await Promise.all(
           list.map(async (app): Promise<[string, AppMeta]> => {
             let iconSrc: string | null = null;
             if (app.iconFile) {
               try {
                 const path = await invoke<string>(
-                  "get_clipboard_app_icon_path",
+                  TAURI_COMMAND.GET_CLIPBOARD_APP_ICON_PATH,
                   { fileName: app.iconFile },
                 );
                 iconSrc = convertFileSrc(path);

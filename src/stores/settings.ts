@@ -3,6 +3,7 @@
 
 import { invoke } from "@tauri-apps/api/core";
 import { proxy } from "valtio";
+import { TAURI_COMMAND } from "@/constants/commands";
 import type { Settings, SettingsPatch } from "@/types/settings";
 
 interface SettingsState {
@@ -17,14 +18,14 @@ export const settingsState = proxy<SettingsState>({
 });
 
 export async function loadSettings(): Promise<Settings> {
-  const next = await invoke<Settings>("get_settings");
+  const next = await invoke<Settings>(TAURI_COMMAND.GET_SETTINGS);
   settingsState.value = next;
   settingsState.loaded = true;
   return next;
 }
 
 export async function updateSettings(patch: SettingsPatch): Promise<Settings> {
-  const next = await invoke<Settings>("update_settings", { patch });
+  const next = await invoke<Settings>(TAURI_COMMAND.UPDATE_SETTINGS, { patch });
   settingsState.value = next;
   settingsState.loaded = true;
   return next;

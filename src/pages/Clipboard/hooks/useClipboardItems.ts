@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { TAURI_COMMAND } from "@/constants/commands";
 import { TAURI_EVENT } from "@/constants/events";
 import { useTauriListen } from "@/hooks/useTauriListen";
 import type { ClipboardViewTab } from "@/stores/clipboardView";
@@ -35,10 +36,10 @@ interface UseClipboardItemsResult {
 }
 
 const list = (query: ClipboardItemQuery) =>
-  invoke<ClipboardItem[]>("list_clipboard_items", { query });
+  invoke<ClipboardItem[]>(TAURI_COMMAND.LIST_CLIPBOARD_ITEMS, { query });
 
 const getOne = (id: string) =>
-  invoke<ClipboardItem | null>("get_clipboard_item", { id });
+  invoke<ClipboardItem | null>(TAURI_COMMAND.GET_CLIPBOARD_ITEM, { id });
 
 const tabToFilter = (
   tab: ClipboardViewTab,
@@ -157,17 +158,21 @@ export const useClipboardItems = (
   const actions = useMemo<ClipboardActions>(
     () => ({
       copy: (id, plain = false) =>
-        invoke<void>("write_to_clipboard", { id, plain }).catch((err) => {
-          log.error("write_to_clipboard failed", err);
-        }),
+        invoke<void>(TAURI_COMMAND.WRITE_TO_CLIPBOARD, { id, plain }).catch(
+          (err) => {
+            log.error("write_to_clipboard failed", err);
+          },
+        ),
       paste: (id, plain = false) =>
-        invoke<void>("paste_clipboard_item", { id, plain }).catch((err) => {
-          log.error("paste_clipboard_item failed", err);
-        }),
+        invoke<void>(TAURI_COMMAND.PASTE_CLIPBOARD_ITEM, { id, plain }).catch(
+          (err) => {
+            log.error("paste_clipboard_item failed", err);
+          },
+        ),
       remove: (id) => {
         setItems((prev) => prev.filter((it) => it.id !== id));
-        return invoke<void>("delete_clipboard_item", { id }).catch((err) =>
-          log.error("delete_clipboard_item failed", err),
+        return invoke<void>(TAURI_COMMAND.DELETE_CLIPBOARD_ITEM, { id }).catch(
+          (err) => log.error("delete_clipboard_item failed", err),
         );
       },
       toggleFavorite: (id) => {
@@ -182,8 +187,10 @@ export const useClipboardItems = (
             return [next];
           });
         });
-        return invoke<void>("toggle_clipboard_item_favorite", { id }).catch(
-          (err) => log.error("toggle_clipboard_item_favorite failed", err),
+        return invoke<void>(TAURI_COMMAND.TOGGLE_CLIPBOARD_ITEM_FAVORITE, {
+          id,
+        }).catch((err) =>
+          log.error("toggle_clipboard_item_favorite failed", err),
         );
       },
       updateNote: (id, note) => {
@@ -192,10 +199,19 @@ export const useClipboardItems = (
         setItems((prev) =>
           prev.map((it) => (it.id === id ? { ...it, note: next } : it)),
         );
-        return invoke<void>("update_clipboard_item_note", {
+        return invoke<boolean>(TAURI_COMMAND.UPDATE_CLIPBOARD_ITEM_NOTE, {
           id,
           note: next,
-        }).catch((err) => log.error("update_clipboard_item_note failed", err));
+        })
+          .then((autoFavorited) => {
+            if (!autoFavorited) return;
+            setItems((prev) =>
+              prev.map((it) =>
+                it.id === id ? { ...it, isFavorite: true } : it,
+              ),
+            );
+          })
+          .catch((err) => log.error("update_clipboard_item_note failed", err));
       },
     }),
     [],

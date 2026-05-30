@@ -1,6 +1,6 @@
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { useEffect, useState } from "react";
-
+import { TAURI_COMMAND } from "@/constants/commands";
 import type { ClipboardItem } from "@/types/clipboard";
 import { log } from "@/utils/log";
 
@@ -18,7 +18,7 @@ const ImageCard = ({ item }: { item: ClipboardItem }) => {
 
   useEffect(() => {
     let cancelled = false;
-    invoke<string>("get_clipboard_image_path", {
+    invoke<string>(TAURI_COMMAND.GET_CLIPBOARD_IMAGE_PATH, {
       fileName: item.content,
       thumbnail: true,
     })

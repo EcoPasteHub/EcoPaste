@@ -150,6 +150,16 @@ pub async fn toggle_item_favorite(pool: &SqlitePool, id: &str) -> Result<()> {
     Ok(())
 }
 
+/// 幂等地将 `is_favorite` 置为 true（已收藏的无变化）。auto-favorite 场景用。
+pub async fn mark_item_favorite(pool: &SqlitePool, id: &str) -> Result<()> {
+    sqlx::query("UPDATE clipboard_items SET is_favorite = 1 WHERE id = ?")
+        .bind(id)
+        .execute(pool)
+        .await
+        .context("failed to mark clipboard item favorite")?;
+    Ok(())
+}
+
 /// 翻转 `is_pinned`（置顶 / 取消置顶）。
 pub async fn toggle_item_pinned(pool: &SqlitePool, id: &str) -> Result<()> {
     sqlx::query("UPDATE clipboard_items SET is_pinned = NOT is_pinned WHERE id = ?")
