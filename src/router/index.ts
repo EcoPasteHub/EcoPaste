@@ -1,10 +1,10 @@
 import { createHashRouter } from "react-router";
-import Main from "@/pages/Main";
+import Clipboard from "@/pages/Clipboard";
 import Preference from "@/pages/Preference";
 
 export const router = createHashRouter([
   {
-    Component: Main,
+    Component: Clipboard,
     path: "/",
   },
   {

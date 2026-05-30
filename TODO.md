@@ -341,13 +341,13 @@
 ### 7.2 剪贴板历史列表（main 窗口）
 
 - [x] 列表容器：`react-virtuoso` 虚拟滚动
-  > `pnpm add react-virtuoso`（4.18.7）。`src/pages/Main/components/ClipboardList.tsx` 用 `<Virtuoso>` 渲染列表，`style={{height: "100%"}}` + 外层 `h-screen w-screen` 让其占满 main 窗口（360×600 固定）。Row 仅占位（kind + content slice）—— 分类型卡片是 item 2 的职责。
+  > `pnpm add react-virtuoso`（4.18.7）。`src/pages/Clipboard/components/ClipboardList.tsx` 用 `<Virtuoso>` 渲染列表，`style={{height: "100%"}}` + 外层 `h-screen w-screen` 让其占满 main 窗口（360×600 固定）。Row 仅占位（kind + content slice）—— 分类型卡片是 item 2 的职责。
   > 顺带把数据源 `list_clipboard_items` 也补上（item 3 预热）：`src-tauri/src/commands/clipboard.rs` 薄封装 `db::items::query_items`，参数 `Option<ClipboardItemQuery>`，缺省走 Rust 默认（limit=50, offset=0, createdAtDesc）；FTS 委派沿用 `query_items` 内部判断。`lib.rs` 注册了。初始加载用 `invoke<ClipboardItem[]>("list_clipboard_items")`，失败走 `@/utils/log`（不要裸 console）。事件驱动增量刷新留给 item 3 余下部分。
 - [x] 历史项组件：按 type 渲染（text/rtf/html/image/files 各自卡片）
-  > 新增 `src/pages/Main/components/cards/`：`ClipboardCard`（按 `kind` 分发 + 共享外壳：相对时间 + 置顶/收藏角标）；`TextCard` 内部再按 `subKind` 分支——`color` 给色块预览、`url`/`email` 着 primary 色、`rtf`/`html` 读 `searchText`（Rust 入库已落纯文本，富文本/HTML/Markdown 的真正渲染留给 item 5）；`ImageCard` 仅展示尺寸 + 体积（`<img>` 预览要 asset scope `images/**`，留给 item 5）；`FilesCard` 按换行解析 `content`（与 Rust `write_files` 一致），展示 basename + 总数。
+  > 新增 `src/pages/Clipboard/components/cards/`：`ClipboardCard`（按 `kind` 分发 + 共享外壳：相对时间 + 置顶/收藏角标）；`TextCard` 内部再按 `subKind` 分支——`color` 给色块预览、`url`/`email` 着 primary 色、`rtf`/`html` 读 `searchText`（Rust 入库已落纯文本，富文本/HTML/Markdown 的真正渲染留给 item 5）；`ImageCard` 仅展示尺寸 + 体积（`<img>` 预览要 asset scope `images/**`，留给 item 5）；`FilesCard` 按换行解析 `content`（与 Rust `write_files` 一致），展示 basename + 总数。
   > `ClipboardList.tsx` Row 改为 `<ClipboardCard item={item} />`。没引入 HeroUI 组件——本步全用 Tailwind + HeroUI 的 token 色（`text-default-500`、`border-divider`、`text-primary`），先把分发骨架稳住，Card/Chip 等组件留到后续操作按钮（item 4）一起接。
 - [x] 从 Rust 命令拉取分页数据；监听「剪贴板更新」事件增量刷新
-  > 抽出 `src/pages/Main/hooks/useClipboardItems.ts`：分页 50 条/页，Virtuoso `endReached` 触发 `loadMore`（offset 取当前 `items.length`，`loadingRef` 抑制重入，返回不足 PAGE_SIZE 时把 `hasMore` 落为 false）；订阅 `clipboard://updated`（payload `{id, deduplicated}`）走新的 `get_clipboard_item` 命令拉单条，setItems 时先按 id 过滤再前置 —— 这样去重场景（旧条目 updatedAt 更新）会自然「移到顶部」，新条目同路径处理为「直接前置」，避免整页 refetch 打断滚动。
+  > 抽出 `src/pages/Clipboard/hooks/useClipboardItems.ts`：分页 50 条/页，Virtuoso `endReached` 触发 `loadMore`（offset 取当前 `items.length`，`loadingRef` 抑制重入，返回不足 PAGE_SIZE 时把 `hasMore` 落为 false）；订阅 `clipboard://updated`（payload `{id, deduplicated}`）走新的 `get_clipboard_item` 命令拉单条，setItems 时先按 id 过滤再前置 —— 这样去重场景（旧条目 updatedAt 更新）会自然「移到顶部」，新条目同路径处理为「直接前置」，避免整页 refetch 打断滚动。
   > Rust 侧加 `get_clipboard_item(id) -> Option<ClipboardItem>` 薄封装 `find_item_by_id`，`lib.rs` 注册。`ClipboardList.tsx` 瘦身为纯 Virtuoso，状态全在 hook。事件名常量直接写在 hook 里（不引 Rust 常量到前端，避免跨端硬耦合）。
 - [x] 操作：复制回 / 粘贴 / 收藏 / 删除 / 备注（调用 Rust 命令）
   > Rust 侧新增 3 个薄封装命令：`toggle_clipboard_item_favorite` / `delete_clipboard_item` / `update_clipboard_item_note`（lib.rs 注册）。`update_clipboard_item_note` 把空串 / 全空白归一化为 NULL，保证「无备注」在库里只有一种表示。复制/粘贴沿用已有的 `write_to_clipboard` / `paste_clipboard_item`。
@@ -360,11 +360,11 @@
 ### 7.3 搜索
 
 - [x] 搜索框组件（位置 top/bottom 可配）
-  > 新增 `src/pages/Main/components/SearchBar.tsx`：HeroUI v3 `SearchField` 复合组件（Group + SearchIcon + Input + ClearButton），受控 `value` / `onChange`，aria-label 兜底。`Main/index.tsx` 用 `useSnapshot(settingsState)` 读 `clipboard.search.position`（缺省 `top`），外层 `flex flex-col` + `flex-col-reverse` 切换 top/bottom；list 容器套 `min-h-0 flex-1` 把剩余高度让给 Virtuoso，避免 search bar 把列表挤出可视区。`keyword` 暂存在 `Main` 本地 state，下面 item 2 接 Rust `list_clipboard_items({ keyword })` 时再下沉到 `useClipboardItems`。
+  > 新增 `src/pages/Clipboard/components/SearchBar.tsx`：HeroUI v3 `SearchField` 复合组件（Group + SearchIcon + Input + ClearButton），受控 `value` / `onChange`，aria-label 兜底。`Main/index.tsx` 用 `useSnapshot(settingsState)` 读 `clipboard.search.position`（缺省 `top`），外层 `flex flex-col` + `flex-col-reverse` 切换 top/bottom；list 容器套 `min-h-0 flex-1` 把剩余高度让给 Virtuoso，避免 search bar 把列表挤出可视区。`keyword` 暂存在 `Main` 本地 state，下面 item 2 接 Rust `list_clipboard_items({ keyword })` 时再下沉到 `useClipboardItems`。
 - [x] 输入 → 调 Rust 列表查询命令（`ClipboardItemQuery.keyword` 带关键词时自动走 FTS5）→ 渲染
   > `useClipboardItems(keyword)` 接受外部关键词：`Main` 持有 `keyword` state，`SearchBar` 与 `ClipboardList` 共用。useEffect 用 `setTimeout(200ms)` 防抖 + `cancelled` 标志拦下旧响应（防抖中 keyword 再变 → clearTimeout 撤掉；已发请求期间 keyword 再变 → cancelled 阻止旧结果覆盖新结果）。`buildQuery` 把 trim 后非空的 keyword 放进 `ClipboardItemQuery`（Rust 端 `query_items` 看到 `keyword` 即委派 `search_items_fts` 走 FTS5）。`activeKeywordRef` 给 `loadMore` 和 `clipboard://updated` 回调读当前生效关键词，搜索态下跳过 live 事件——搜索结果是关键词快照，新条目未必匹配，硬塞会污染结果；清空搜索时 effect 重新拉取，最新条目自然回顶。
 - [x] 命中文本高亮（react-mark.js 等价）
-  > 新增 `src/pages/Main/components/Highlight.tsx`：纯组件实现，避免引第三方库——`escapeRegExp` 转义后大小写不敏感切分，奇数索引片段 `<mark>` 包裹（HeroUI `bg-warning-soft` token）。key 用 `${i}-${part}` 既稳又避撞。keyword 从 `Main` → `ClipboardList` → `ClipboardCard` → `TextCard` 透传，TextCard 在非 HTML 分支（含 url/email/color/path/rtf 的纯文本预览）包裹 `<Highlight>`。HTML 预览跳过——sanitize 后是已渲染 DOM，节点级别注入 `<mark>` 复杂度过高且收益小，需要时再单独处理。FilesCard 用 basename 不参与 FTS 匹配，也跳过。
+  > 新增 `src/pages/Clipboard/components/Highlight.tsx`：纯组件实现，避免引第三方库——`escapeRegExp` 转义后大小写不敏感切分，奇数索引片段 `<mark>` 包裹（HeroUI `bg-warning-soft` token）。key 用 `${i}-${part}` 既稳又避撞。keyword 从 `Main` → `ClipboardList` → `ClipboardCard` → `TextCard` 透传，TextCard 在非 HTML 分支（含 url/email/color/path/rtf 的纯文本预览）包裹 `<Highlight>`。HTML 预览跳过——sanitize 后是已渲染 DOM，节点级别注入 `<mark>` 复杂度过高且收益小，需要时再单独处理。FilesCard 用 basename 不参与 FTS 匹配，也跳过。
 - [x] 默认聚焦 / 自动清空（按设置）
   > Rust `window/mod.rs` 在统一入口处加 `window://visibility` 事件（payload `{label, visible}`），`show_window` / `hide_window` 成功后 emit——不复用 `tauri://focus`/`blur`，因为 macos NSPanel 走自定义 emit、Windows 主窗口为不抢焦点设计，平台行为不一致。`SearchBar` 加 `inputRef` 转给 `SearchField.Input`。`Main` 监听 `window://visibility`：`label==="main"` 时按 `settings.clipboard.search.defaultFocus` 决定 `focus()`，按 `clearOnHide` 决定 `setKeyword("")`。两项均走 `useSnapshot` 读最新设置，关掉再开即时生效。
 

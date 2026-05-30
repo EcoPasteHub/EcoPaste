@@ -15,7 +15,7 @@ interface VisibilityPayload {
   visible: boolean;
 }
 
-const Main = () => {
+const Clipboard = () => {
   const settings = useSnapshot(settingsState);
   const search = settings.value?.clipboard.search;
   const position = search?.position ?? "top";
@@ -50,4 +50,4 @@ const Main = () => {
   );
 };
 
-export default Main;
+export default Clipboard;
