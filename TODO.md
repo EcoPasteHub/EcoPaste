@@ -251,10 +251,12 @@
 
 ### 5.1 全局快捷键
 
-- [ ] 引入 `tauri-plugin-global-shortcut`
-- [ ] 注册：显示/隐藏剪贴板窗（默认 Cmd/Ctrl+...）、打开偏好、纯文本粘贴、快捷粘贴
-- [ ] 快捷键可在偏好设置中自定义，变更时由 Rust 重新注册
-- [ ] 冲突检测与注册失败反馈
+- [x] 引入 `tauri-plugin-global-shortcut`
+- [x] 注册：显示/隐藏剪贴板窗（默认 Cmd/Ctrl+...）、打开偏好、纯文本粘贴、快捷粘贴
+- [x] 快捷键可在偏好设置中自定义，变更时由 Rust 重新注册
+- [x] 冲突检测与注册失败反馈
+  > 新增 `src-tauri/src/shortcut/mod.rs`：`ShortcutManager`（`Mutex<bindings + active>` 作为 Tauri State）+ `init/apply/current_bindings` 三个入口。`apply` 全量替换：先 unregister 上一轮已注册项再逐个 register 新项，单项失败不影响其它项——`log::warn!` 落盘 + `app.emit("shortcut://conflict", {action, binding, reason})` 通知前端（让偏好页能高亮冲突格子并提示用户改键）。`register_one` 先 `is_registered` → `unregister` 兜底其它进程占用残留，再 `on_shortcut` 注册回调；回调内只在 `ShortcutState::Pressed` 触发，否则按下/松开会让 toggle 一来一回回到原态。默认绑定对齐旧版 `stores/global.ts`：`open_clipboard=Alt+C` → `toggle_window("main")`，`open_preference=Alt+X` → `toggle_window("preference")`。空字符串视为禁用直接跳过，给后续「不绑定该项」留口子。
+  > 命令层 `commands/shortcut.rs::{get_shortcuts, update_shortcuts}`：前端读当前绑定 / 偏好页变更后回写。**重注册机制现在就位**（命令 + apply 全量替换），但默认值仍是硬编码；待阶段 6 设置系统落盘后，启动时改为从 Settings 加载初始绑定、偏好页变更走 `update_settings → apply`。**未注册：`pastePlain` 和 `quickPaste`**——前者在旧版是 `useKeyPress` 局部按键（焦点在主窗时才生效），后者依赖列表序号上下文，都是「窗口内」交互，留到阶段 7 前端用 `useKeyPress` 实现。`lib.rs`：注册 `tauri_plugin_global_shortcut::Builder::new().build()`，setup 末尾调 `shortcut::init(&handle)`（必须在 plugin 注册之后，因 `app.global_shortcut()` 依赖 plugin state）；旧 `block_on` 闭包 move 了 handle，故拆出 `handle_db` 副本喂给 async 段，原 `handle` 留给 `shortcut::init`。Cargo 新增 `tauri-plugin-global-shortcut = "2.3"`。capabilities 不动——全部注册在 Rust 侧，前端不需要 `global-shortcut:allow-*` 权限。`cargo check` / `cargo fmt` / `cargo clippy --lib`（仅看新增模块）均过；db/models.rs 有的 22 条 dead_code 警告是阶段 2 留下的（FTS5、查询模型尚无调用方），与本改动无关。
 
 ### 5.2 自启动
 

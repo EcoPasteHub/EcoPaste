@@ -4,6 +4,7 @@ mod core;
 mod db;
 mod keystroke;
 mod settings;
+mod shortcut;
 mod window;
 
 use tauri::{Manager, WindowEvent};
@@ -37,6 +38,7 @@ pub fn run() {
 
     tauri::Builder::default()
         .plugin(log_plugin)
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .invoke_system(awesome_rpc.initialization_script())
         .invoke_handler(tauri::generate_handler![
             commands::read_clipboard,
@@ -50,6 +52,8 @@ pub fn run() {
             commands::position_window,
             commands::save_window_state,
             commands::restore_window_state,
+            commands::get_shortcuts,
+            commands::update_shortcuts,
         ])
         .setup(move |app| {
             awesome_rpc.start(app.handle().clone());
@@ -62,14 +66,20 @@ pub fn run() {
             })?;
             handle.manage(window_state_store);
 
+            let handle_db = handle.clone();
             tauri::async_runtime::block_on(async move {
-                let pool = db::init(&handle).await.map_err(|err| {
+                let pool = db::init(&handle_db).await.map_err(|err| {
                     log::error!("database initialization failed: {err:?}");
                     err
                 })?;
-                handle.manage(pool.clone());
-                clipboard::init(&handle, pool)?;
+                handle_db.manage(pool.clone());
+                clipboard::init(&handle_db, pool)?;
                 Ok::<_, anyhow::Error>(())
+            })?;
+
+            shortcut::init(&handle).map_err(|err| {
+                log::error!("global shortcut initialization failed: {err:?}");
+                err
             })?;
 
             Ok(())
