@@ -8,6 +8,7 @@
 //! 从而绕开其 `Send` 约束；只有 `Send` 的数据（连接池克隆、`AppHandle`、`item`）会被
 //! 投递进 Tauri 异步运行时做 sqlx 入库与事件 emit。
 
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
 use chrono::Utc;
@@ -34,6 +35,21 @@ pub const CLIPBOARD_UPDATED_EVENT: &str = "clipboard://updated";
 /// 偏慢；我们 fork 出 `new_with_interval` 后调到 120ms，跟手且 CPU 开销可忽略。
 /// Windows 走事件驱动（`WM_CLIPBOARDUPDATE`），此值被忽略。
 const CLIPBOARD_POLL_INTERVAL: std::time::Duration = std::time::Duration::from_millis(120);
+
+/// 监听暂停开关。托盘菜单「停止监听」翻转，handler 早返回跳过整条入库链路。
+/// 用 `Arc<AtomicBool>` 跨线程共享；不停 watcher 线程本身，避免反复重建平台句柄。
+#[derive(Debug, Default, Clone)]
+pub struct WatcherPause(Arc<AtomicBool>);
+
+impl WatcherPause {
+    pub fn is_paused(&self) -> bool {
+        self.0.load(Ordering::Relaxed)
+    }
+
+    pub fn set_paused(&self, paused: bool) {
+        self.0.store(paused, Ordering::Relaxed);
+    }
+}
 
 /// 把同步抓到的 [`FrontmostApp`] 落 icon 字节 + 拼成可入库的 [`ClipboardApp`]。
 /// icon 落盘失败不阻断（仍保留应用名），仅 warn。
@@ -107,8 +123,11 @@ pub fn init(app: &AppHandle, pool: SqlitePool) -> crate::core::Result<()> {
     let app_icon_store = AppIconStore::new(app)?;
     app.manage(app_icon_store.clone());
 
+    let pause = WatcherPause::default();
+    app.manage(pause.clone());
+
     super::cleanup::spawn(app.clone(), pool.clone());
-    spawn_watch_thread(app.clone(), pool, guard, store, app_icon_store);
+    spawn_watch_thread(app.clone(), pool, guard, store, app_icon_store, pause);
     Ok(())
 }
 
@@ -118,6 +137,7 @@ fn spawn_watch_thread(
     guard: Arc<WritebackGuard>,
     store: ImageStore,
     app_icon_store: AppIconStore,
+    pause: WatcherPause,
 ) {
     std::thread::Builder::new()
         .name("clipboard-watcher".to_owned())
@@ -147,6 +167,7 @@ fn spawn_watch_thread(
                 guard,
                 store,
                 app_icon_store,
+                pause,
             });
 
             log::info!("clipboard watcher started");
@@ -163,10 +184,16 @@ struct ClipboardChangeHandler {
     guard: Arc<WritebackGuard>,
     store: ImageStore,
     app_icon_store: AppIconStore,
+    pause: WatcherPause,
 }
 
 impl ClipboardHandler for ClipboardChangeHandler {
     fn on_clipboard_change(&mut self) {
+        // 用户从托盘关掉「监听」时直接早退，不读取、不入库、不 emit。
+        if self.pause.is_paused() {
+            return;
+        }
+
         // **先**抓前台应用：等异步入库再问，前台早就切回我们自己了。
         // 自身写回的事件会在下方 guard 处被丢弃，但 detect 仍会无害地返回我们自己的 bundle id——
         // 顺序换不得：guard 判定依赖 content_hash，必须先把 payload 读出来才能判，

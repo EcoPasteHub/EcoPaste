@@ -8,6 +8,7 @@ mod keyboard;
 mod keystroke;
 mod settings;
 mod shortcut;
+mod tray;
 mod window;
 
 use tauri::{Manager, WindowEvent};
@@ -37,6 +38,7 @@ pub fn run() {
         ))
         .plugin(log_plugin)
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
+        .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             commands::read_clipboard,
             commands::list_clipboard_items,
@@ -101,6 +103,10 @@ pub fn run() {
                 log::error!("autostart initialization failed: {err:?}");
                 err
             })?;
+
+            if let Err(err) = tray::init(&handle, &settings) {
+                log::error!("tray initialization failed: {err:?}");
+            }
 
             // 平台主窗口初始化：macOS 转 NSPanel；Windows 改 focusable=false。
             #[cfg(target_os = "macos")]

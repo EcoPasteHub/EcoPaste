@@ -17,7 +17,7 @@ pub use ingest::build_item;
 pub use read::ClipboardReader;
 pub use source::detect_frontmost;
 pub use storage::ImageStore;
-pub use watcher::{init, materialize_source, persist_and_notify};
+pub use watcher::{init, materialize_source, persist_and_notify, WatcherPause};
 pub use write::write_to_clipboard;
 
 #[cfg(test)]

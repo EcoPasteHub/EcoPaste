@@ -91,7 +91,11 @@ unsafe extern "system" fn hook_proc(code: i32, wparam: WPARAM, lparam: LPARAM) -
         // GetAsyncKeyState 高位为按住状态；shift 同时按下视为反向。
         VK_TAB => Some({
             let shift_down = (GetAsyncKeyState(VK_SHIFT) as u16) & 0x8000 != 0;
-            if shift_down { "prevTab" } else { "nextTab" }
+            if shift_down {
+                "prevTab"
+            } else {
+                "nextTab"
+            }
         }),
         _ => None,
     };

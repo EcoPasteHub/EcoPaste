@@ -46,7 +46,10 @@ impl SettingsStore {
                 let mut settings = Settings::default();
                 if let Some(tag) = sys_locale::get_locale() {
                     settings.appearance.language = Language::from_system_locale(&tag);
-                    log::info!("first-run language from locale {tag}: {:?}", settings.appearance.language);
+                    log::info!(
+                        "first-run language from locale {tag}: {:?}",
+                        settings.appearance.language
+                    );
                 }
                 if let Err(err) = write_atomic(&path, &backup_path, &settings) {
                     log::warn!("persist first-run settings failed: {err}");

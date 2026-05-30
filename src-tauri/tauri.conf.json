@@ -53,6 +53,7 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
+    "resources": ["assets/tray.ico", "assets/tray-mac.ico"],
     "targets": "all"
   },
   "identifier": "com.ayangweb.eco-paste",
