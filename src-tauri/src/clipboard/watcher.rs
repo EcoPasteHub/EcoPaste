@@ -20,6 +20,7 @@ use super::app_store::AppIconStore;
 use super::guard::WritebackGuard;
 use super::ingest::build_item;
 use super::read::ClipboardReader;
+use super::sound;
 use super::source::{self, FrontmostApp};
 use super::storage::ImageStore;
 use crate::db::apps::upsert_app;
@@ -75,6 +76,7 @@ pub async fn persist_and_notify(
         }
     }
     let result = upsert_item(pool, &item_to_write).await?;
+    sound::maybe_play_copy(app);
     if let Err(err) = app.emit(
         CLIPBOARD_UPDATED_EVENT,
         json!({

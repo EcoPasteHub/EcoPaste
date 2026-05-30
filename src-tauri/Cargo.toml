@@ -36,6 +36,7 @@ tauri-plugin-global-shortcut = "2"
 tauri-plugin-single-instance = "2"
 auto-launch = "0.6"
 sys-locale = "0.3"
+rodio = { version = "0.20", default-features = false, features = ["symphonia-mp3"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 core-graphics = "0.25"

@@ -417,11 +417,8 @@
 
 ### 8.4 声音通知
 
-- [ ] 复制成功提示音（前端播放或 Rust 触发）
-
-### 8.5 瀑布流 / 多视图
-
-- [ ] 瀑布流布局（react-masonry-css 等价）切换
+- [x] 复制成功提示音（前端播放或 Rust 触发）
+  > 下沉到 Rust 监听链路：`clipboard/sound.rs::maybe_play_copy` 在 `persist_and_notify` upsert 之后调用，从 `SettingsStore.snapshot().clipboard.feedback.copy_sound` 读最新开关，关闭则直接 return。播放本身用 `rodio`（`default-features = false, features = ["symphonia-mp3"]`）解码 `assets/sounds/copy.mp3`（旧版同款，`include_bytes!` 烤进二进制，24KB 不值得走 resource 路径 + 文件 IO）。`OutputStream` 是 `!Send` 且必须存活到播放结束，所以每次播放都新开短命 `std::thread`：建流 → 解码 → `sink.sleep_until_end()` → drop；剪贴板事件频率远低于建流开销（ms 级），不必维护常驻 worker。播放失败仅 `log::warn`，不阻断入库主流程。自身写回触发的事件在 `guard.should_skip` 处已被抑制，不会响——只有真正的用户复制才会播。`SettingsStore` 未 manage 时保守视为关闭，与 `cleanup.rs` 一致。
 
 ---
 

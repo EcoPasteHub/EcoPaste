@@ -5,6 +5,7 @@ mod guard;
 mod ingest;
 mod payload;
 mod read;
+mod sound;
 mod source;
 mod storage;
 mod watcher;
