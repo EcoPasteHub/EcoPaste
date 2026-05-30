@@ -4,6 +4,8 @@ import { useMemo } from "react";
 
 import type { ClipboardItem } from "@/types/clipboard";
 
+import Highlight from "../Highlight";
+
 const KIND_LABEL: Record<string, string> = {
   color: "Color",
   email: "Email",
@@ -33,7 +35,13 @@ const HtmlPreview = ({ html }: { html: string }) => {
   );
 };
 
-const TextCard = ({ item }: { item: ClipboardItem }) => {
+const TextCard = ({
+  item,
+  keyword = "",
+}: {
+  item: ClipboardItem;
+  keyword?: string;
+}) => {
   const isHtml = item.subKind === "html";
   const preview = item.searchText ?? item.content;
   const isLinkLike = item.subKind === "url" || item.subKind === "email";
@@ -58,7 +66,7 @@ const TextCard = ({ item }: { item: ClipboardItem }) => {
               "truncate text-link": isLinkLike,
             })}
           >
-            {preview}
+            <Highlight keyword={keyword} text={preview} />
           </div>
         )}
       </div>

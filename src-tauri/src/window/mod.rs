@@ -11,12 +11,32 @@ pub use macos::handle_reopen;
 pub use position::{WindowPosition, WindowStyle};
 pub use state::WindowStateStore;
 
-use tauri::{AppHandle, Manager, WebviewWindow, Window};
+use tauri::{AppHandle, Emitter, Manager, WebviewWindow, Window};
 
 use crate::core::Result;
 
 pub const MAIN_WINDOW_LABEL: &str = "main";
 pub const PREFERENCE_WINDOW_LABEL: &str = "preference";
+
+/// 主窗口显隐变化事件。前端用以做默认聚焦 / 自动清空搜索等 UI 副作用。
+/// 由 [`show_window`] / [`hide_window`] 在统一入口处发出，平台一致，
+/// 不依赖 `tauri://focus` / `tauri://blur`（Windows 主窗口 `focusable: false` 不可靠）。
+const WINDOW_VISIBILITY_EVENT: &str = "window://visibility";
+
+#[derive(Clone, serde::Serialize)]
+struct WindowVisibilityPayload<'a> {
+    label: &'a str,
+    visible: bool,
+}
+
+fn emit_visibility(app_handle: &AppHandle, label: &str, visible: bool) {
+    if let Err(err) = app_handle.emit(
+        WINDOW_VISIBILITY_EVENT,
+        WindowVisibilityPayload { label, visible },
+    ) {
+        log::error!("emit window visibility failed: {err:?}");
+    }
+}
 
 pub(super) fn get_window(app_handle: &AppHandle, label: &str) -> Result<WebviewWindow> {
     app_handle
@@ -26,16 +46,24 @@ pub(super) fn get_window(app_handle: &AppHandle, label: &str) -> Result<WebviewW
 
 pub fn show_window(app_handle: &AppHandle, label: &str) -> Result<()> {
     #[cfg(target_os = "macos")]
-    return macos::show_window(app_handle, label);
+    let result = macos::show_window(app_handle, label);
     #[cfg(target_os = "windows")]
-    return windows::show_window(app_handle, label);
+    let result = windows::show_window(app_handle, label);
+    if result.is_ok() {
+        emit_visibility(app_handle, label, true);
+    }
+    result
 }
 
 pub fn hide_window(app_handle: &AppHandle, label: &str) -> Result<()> {
     #[cfg(target_os = "macos")]
-    return macos::hide_window(app_handle, label);
+    let result = macos::hide_window(app_handle, label);
     #[cfg(target_os = "windows")]
-    return windows::hide_window(app_handle, label);
+    let result = windows::hide_window(app_handle, label);
+    if result.is_ok() {
+        emit_visibility(app_handle, label, false);
+    }
+    result
 }
 
 pub fn toggle_window(app_handle: &AppHandle, label: &str) -> Result<()> {

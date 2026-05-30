@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-
+import { TAURI_EVENT } from "@/constants/events";
 import { useTauriListen } from "@/hooks/useTauriListen";
-
-const NAV_EVENT = "keyboard://nav";
 
 type NavAction = "up" | "down" | "enter" | "escape";
 
@@ -73,7 +71,11 @@ export const useListNavigation = ({
     }
   }, []);
 
-  // macOS 路径：Web 键盘事件
+  // macOS 路径：Web 键盘事件。
+  // 用 capture 阶段 + stopPropagation：搜索框聚焦时，react-aria 的 SearchField 也
+  // 监听 Enter/Escape（Enter 触发 submit、Escape 清空输入框），bubble 阶段才到 window
+  // 就被它先处理了。在 capture 阶段拦住，让上/下/回车/Esc 一律直达列表导航，
+  // 而不是被输入框「拦截」。preventDefault 抑制默认行为（form submit / 光标移动等）。
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       let action: NavAction | null = null;
@@ -93,14 +95,15 @@ export const useListNavigation = ({
       }
       if (!action) return;
       e.preventDefault();
+      e.stopPropagation();
       dispatch(action);
     };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
+    window.addEventListener("keydown", handler, true);
+    return () => window.removeEventListener("keydown", handler, true);
   }, [dispatch]);
 
   // Windows 路径：Rust 钩子 emit
-  useTauriListen<NavPayload>(NAV_EVENT, (payload) => {
+  useTauriListen<NavPayload>(TAURI_EVENT.KEYBOARD_NAV, (payload) => {
     dispatch(payload.action);
   });
 

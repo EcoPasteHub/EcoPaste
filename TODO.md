@@ -210,11 +210,12 @@
 - [x] 窗口位置/尺寸持久化（由 Rust 落盘 `.window-state.json`），启动恢复
   > `window/state.rs`：`WindowStateStore` 持有文件路径 + `Mutex<HashMap<String, WindowState>>`，入 Tauri `State`，`setup` 中初始化。文件名区分环境：dev `window-state.dev.json` / prod `window-state.json`，存放于 `app_local_data_dir` 根目录（对齐 DB 的 dev/prod 命名惯例）。`WindowState { x, y, width, height }` 按窗口 label 索引。`save` 写内存 + 立即落盘 JSON；`get` 仅读内存。`save_window_state(app, label)` 读取窗口当前 `outer_position` + `inner_size` 后存储；`restore_window_state(app, label)` 从存储恢复位置和尺寸，返回 `bool` 表示是否有状态可恢复。命令层 `commands/window.rs` 暴露 `save_window_state` / `restore_window_state` 供前端在窗口 move/resize 事件和启动时调用。`cargo check` 通过。
 
-### 3.3 macOS NSPanel 特化（暂时不实现，在等 tauri 的新特性）
+### 3.3 macOS NSPanel 特化
 
-- [ ] 引入 `tauri-nspanel`，将 main 窗口转为 NSPanel（浮层、dock level）
-- [ ] 隐藏 dock 图标、可在全空间显示、`acceptsFirstMouse`
-- [ ] 绑定 focus/blur/resize/move 事件 → emit 给前端
+- [x] 引入 `tauri-nspanel`，将 main 窗口转为 NSPanel（浮层、dock level）
+- [x] 隐藏 dock 图标、可在全空间显示、`acceptsFirstMouse`
+- [x] 绑定 focus/blur/resize/move 事件 → emit 给前端
+  > `window/macos.rs`：依赖 `tauri-nspanel` v2.1 分支。`register_plugin` 在 setup 早期注册 plugin（必须在 to_panel 前）。`setup_main` 用 `tauri_panel!` 宏定义 `MainPanel`（`is_floating_panel + can_become_key_window` 但 `can_become_main_window=false`），`to_panel::<MainPanel>` 转换后设 `PanelLevel::Dock` + `StyleMask::empty().resizable().nonactivating_panel()`（NonactivatingPanel = 按键不激活 App，Spotlight/Raycast 模式），`CollectionBehavior::stationary().move_to_active_space().full_screen_auxiliary()`。注册 `MainPanelEventHandler` 把 `window_did_become_key/resign_key/resize/move` 转 emit 成 `tauri://focus|blur|move|resize` 给前端。`show_main_panel`/`hide_main_panel` 都在 `run_on_main_thread` 内执行，shown 切 `can_join_all_spaces`、hidden 切回 `move_to_active_space`，避免全空间常驻浪费。`acceptsFirstMouse` 暂走默认（点击窗外才隐藏的需求未到，后续若要"点透"再 objc2 子类化）。
 
 ### 3.4 关闭行为
 
@@ -358,10 +359,14 @@
 
 ### 7.3 搜索
 
-- [ ] 搜索框组件（位置 top/bottom 可配）
-- [ ] 输入 → 调 Rust 列表查询命令（`ClipboardItemQuery.keyword` 带关键词时自动走 FTS5）→ 渲染
-- [ ] 命中文本高亮（react-mark.js 等价）
-- [ ] 默认聚焦 / 自动清空（按设置）
+- [x] 搜索框组件（位置 top/bottom 可配）
+  > 新增 `src/pages/Main/components/SearchBar.tsx`：HeroUI v3 `SearchField` 复合组件（Group + SearchIcon + Input + ClearButton），受控 `value` / `onChange`，aria-label 兜底。`Main/index.tsx` 用 `useSnapshot(settingsState)` 读 `clipboard.search.position`（缺省 `top`），外层 `flex flex-col` + `flex-col-reverse` 切换 top/bottom；list 容器套 `min-h-0 flex-1` 把剩余高度让给 Virtuoso，避免 search bar 把列表挤出可视区。`keyword` 暂存在 `Main` 本地 state，下面 item 2 接 Rust `list_clipboard_items({ keyword })` 时再下沉到 `useClipboardItems`。
+- [x] 输入 → 调 Rust 列表查询命令（`ClipboardItemQuery.keyword` 带关键词时自动走 FTS5）→ 渲染
+  > `useClipboardItems(keyword)` 接受外部关键词：`Main` 持有 `keyword` state，`SearchBar` 与 `ClipboardList` 共用。useEffect 用 `setTimeout(200ms)` 防抖 + `cancelled` 标志拦下旧响应（防抖中 keyword 再变 → clearTimeout 撤掉；已发请求期间 keyword 再变 → cancelled 阻止旧结果覆盖新结果）。`buildQuery` 把 trim 后非空的 keyword 放进 `ClipboardItemQuery`（Rust 端 `query_items` 看到 `keyword` 即委派 `search_items_fts` 走 FTS5）。`activeKeywordRef` 给 `loadMore` 和 `clipboard://updated` 回调读当前生效关键词，搜索态下跳过 live 事件——搜索结果是关键词快照，新条目未必匹配，硬塞会污染结果；清空搜索时 effect 重新拉取，最新条目自然回顶。
+- [x] 命中文本高亮（react-mark.js 等价）
+  > 新增 `src/pages/Main/components/Highlight.tsx`：纯组件实现，避免引第三方库——`escapeRegExp` 转义后大小写不敏感切分，奇数索引片段 `<mark>` 包裹（HeroUI `bg-warning-soft` token）。key 用 `${i}-${part}` 既稳又避撞。keyword 从 `Main` → `ClipboardList` → `ClipboardCard` → `TextCard` 透传，TextCard 在非 HTML 分支（含 url/email/color/path/rtf 的纯文本预览）包裹 `<Highlight>`。HTML 预览跳过——sanitize 后是已渲染 DOM，节点级别注入 `<mark>` 复杂度过高且收益小，需要时再单独处理。FilesCard 用 basename 不参与 FTS 匹配，也跳过。
+- [x] 默认聚焦 / 自动清空（按设置）
+  > Rust `window/mod.rs` 在统一入口处加 `window://visibility` 事件（payload `{label, visible}`），`show_window` / `hide_window` 成功后 emit——不复用 `tauri://focus`/`blur`，因为 macos NSPanel 走自定义 emit、Windows 主窗口为不抢焦点设计，平台行为不一致。`SearchBar` 加 `inputRef` 转给 `SearchField.Input`。`Main` 监听 `window://visibility`：`label==="main"` 时按 `settings.clipboard.search.defaultFocus` 决定 `focus()`，按 `clearOnHide` 决定 `setKeyword("")`。两项均走 `useSnapshot` 读最新设置，关掉再开即时生效。
 
 ### 7.4 偏好设置（preference 窗口）
 

@@ -1,12 +1,14 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { TAURI_EVENT } from "@/constants/events";
 import { useTauriListen } from "@/hooks/useTauriListen";
 import type { ClipboardItem, ClipboardItemQuery } from "@/types/clipboard";
 import { log } from "@/utils/log";
 
 const PAGE_SIZE = 50;
-const CLIPBOARD_UPDATED = "clipboard://updated";
+// 关键词输入防抖：避免每个键入字符都打 Rust。
+const KEYWORD_DEBOUNCE_MS = 200;
 
 interface UpdatedPayload {
   id: string;
@@ -37,27 +39,57 @@ const list = (query: ClipboardItemQuery) =>
 const getOne = (id: string) =>
   invoke<ClipboardItem | null>("get_clipboard_item", { id });
 
-export const useClipboardItems = (): UseClipboardItemsResult => {
+const buildQuery = (
+  keyword: string,
+  limit: number,
+  offset: number,
+): ClipboardItemQuery => {
+  const trimmed = keyword.trim();
+  return trimmed.length > 0
+    ? { keyword: trimmed, limit, offset }
+    : { limit, offset };
+};
+
+export const useClipboardItems = (
+  keyword: string = "",
+): UseClipboardItemsResult => {
   const [items, setItems] = useState<ClipboardItem[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const itemsRef = useRef<ClipboardItem[]>(items);
   itemsRef.current = items;
   const loadingRef = useRef(false);
+  // 当前生效的关键词（已防抖），loadMore / 事件回调读它，避免闭包陷旧值。
+  const activeKeywordRef = useRef("");
 
   useEffect(() => {
-    list({ limit: PAGE_SIZE, offset: 0 })
-      .then((page) => {
-        setItems(page);
-        setHasMore(page.length === PAGE_SIZE);
-      })
-      .catch((err) => log.error("list_clipboard_items initial failed", err));
-  }, []);
+    // 防抖期内 keyword 又变 → clearTimeout 撤掉，请求根本不发。
+    // 已发请求期间 keyword 又变 → cancelled 拦住 setItems，避免旧结果覆盖新结果。
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      activeKeywordRef.current = keyword;
+      loadingRef.current = true;
+      list(buildQuery(keyword, PAGE_SIZE, 0))
+        .then((page) => {
+          if (cancelled) return;
+          setItems(page);
+          setHasMore(page.length === PAGE_SIZE);
+        })
+        .catch((err) => log.error("list_clipboard_items query failed", err))
+        .finally(() => {
+          if (!cancelled) loadingRef.current = false;
+        });
+    }, KEYWORD_DEBOUNCE_MS);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [keyword]);
 
   const loadMore = useCallback(() => {
     if (loadingRef.current || !hasMore) return;
     loadingRef.current = true;
     const offset = itemsRef.current.length;
-    list({ limit: PAGE_SIZE, offset })
+    list(buildQuery(activeKeywordRef.current, PAGE_SIZE, offset))
       .then((page) => {
         setItems((prev) => [...prev, ...page]);
         setHasMore(page.length === PAGE_SIZE);
@@ -68,7 +100,10 @@ export const useClipboardItems = (): UseClipboardItemsResult => {
       });
   }, [hasMore]);
 
-  useTauriListen<UpdatedPayload>(CLIPBOARD_UPDATED, (payload) => {
+  useTauriListen<UpdatedPayload>(TAURI_EVENT.CLIPBOARD_UPDATED, (payload) => {
+    // 搜索态下结果是关键词快照：新条目未必匹配，强行前置会污染结果，索性跳过。
+    // 清空搜索时 effect 会重新拉取，最新条目自然回到顶部。
+    if (activeKeywordRef.current.trim().length > 0) return;
     getOne(payload.id)
       .then((item) => {
         if (!item) return;

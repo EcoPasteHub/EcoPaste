@@ -19,14 +19,14 @@ const formatTime = (iso: string): string => {
   return iso.slice(0, 10);
 };
 
-const renderBody = (item: ClipboardItem) => {
+const renderBody = (item: ClipboardItem, keyword: string) => {
   switch (item.kind) {
     case "image":
       return <ImageCard item={item} />;
     case "files":
       return <FilesCard item={item} />;
     default:
-      return <TextCard item={item} />;
+      return <TextCard item={item} keyword={keyword} />;
   }
 };
 
@@ -66,11 +66,13 @@ const ClipboardCard = ({
   actions,
   app,
   isSelected = false,
+  keyword = "",
 }: {
   item: ClipboardItem;
   actions: ClipboardActions;
   app?: AppMeta;
   isSelected?: boolean;
+  keyword?: string;
 }) => {
   const [noteOpen, setNoteOpen] = useState(false);
   const [draft, setDraft] = useState(item.note ?? "");
@@ -91,7 +93,7 @@ const ClipboardCard = ({
         "bg-accent-soft text-accent-soft-foreground": isSelected,
       })}
     >
-      {renderBody(item)}
+      {renderBody(item, keyword)}
 
       {item.note ? (
         <div className="mt-1 truncate text-muted text-xs italic">
