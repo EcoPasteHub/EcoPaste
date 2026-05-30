@@ -267,7 +267,8 @@
 
 ### 5.3 单实例
 
-- [ ] 引入 `tauri-plugin-single-instance`，二次启动时唤起已有窗口
+- [x] 引入 `tauri-plugin-single-instance`，二次启动时唤起已有窗口
+  > `lib.rs`：`tauri_plugin_single_instance::init` 必须作为**第一个**注册的 plugin（plugin 文档明确要求，靠前注册才能在其它 plugin 初始化前拒绝重复进程，避免数据库 / 全局快捷键 / LaunchAgent 在第二实例里被重复初始化导致状态错乱）。二次启动回调里调 `show_window(PREFERENCE_WINDOW_LABEL)`——和 macOS dock reopen 行为对齐：main 窗口是"剪贴板弹层"（跟随光标、用快捷键唤起），用户从启动器再次点图标的语义是"打开应用主面板"，应映射到偏好窗。不传 `argv`/`cwd`：本应用没有 CLI 入参语义（`--auto-launch` 只在首次启动判断），第二实例的参数没有消费场景。Cargo 新增 `tauri-plugin-single-instance = "2"`。**不需要**前端 capability 权限：plugin 完全工作在 Rust 侧、无 JS API。
 
 ---
 
