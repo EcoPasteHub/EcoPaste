@@ -337,17 +337,23 @@
 - [x] 待 7.2 接入前端时一并补：capability `asset:default` scope 放开 `app-icons/**`、`ClipboardItem` 的 TS 类型同步 `sourceAppId`
   > Tauri v2 的 asset 协议没有 `asset:default` 这种 capability permission（实测会被 build script 拒绝），真正的开关是：① `Cargo.toml` 加 `protocol-asset` feature；② `tauri.conf.json > app.security.assetProtocol` 配 `enable: true` + `scope: ["$APPLOCALDATA/resources/app-icons/**"]`。scope 就是访问网关，capabilities 不需要再列。
   > TS 类型新增 `src/types/clipboard.ts`，camelCase 与 `db/models.rs` 对齐：`ClipboardItem`（含 `sourceAppId`）/ `ClipboardApp` / `ClipboardItemQuery` / `ReadClipboardResult` / 三个枚举 union。日期字段按 serde 默认 ISO8601 字符串。
-- [ ] **dev 注意**：0001 迁移已变更，本地老 DB 需删除后重启（sqlx checksum 不匹配会拒启动）
 
 ### 7.2 剪贴板历史列表（main 窗口）
 
 - [x] 列表容器：`react-virtuoso` 虚拟滚动
   > `pnpm add react-virtuoso`（4.18.7）。`src/pages/Main/components/ClipboardList.tsx` 用 `<Virtuoso>` 渲染列表，`style={{height: "100%"}}` + 外层 `h-screen w-screen` 让其占满 main 窗口（360×600 固定）。Row 仅占位（kind + content slice）—— 分类型卡片是 item 2 的职责。
   > 顺带把数据源 `list_clipboard_items` 也补上（item 3 预热）：`src-tauri/src/commands/clipboard.rs` 薄封装 `db::items::query_items`，参数 `Option<ClipboardItemQuery>`，缺省走 Rust 默认（limit=50, offset=0, createdAtDesc）；FTS 委派沿用 `query_items` 内部判断。`lib.rs` 注册了。初始加载用 `invoke<ClipboardItem[]>("list_clipboard_items")`，失败走 `@/utils/log`（不要裸 console）。事件驱动增量刷新留给 item 3 余下部分。
-- [ ] 历史项组件：按 type 渲染（text/rtf/html/image/files 各自卡片）
-- [ ] 从 Rust 命令拉取分页数据；监听「剪贴板更新」事件增量刷新
-- [ ] 操作：复制回 / 粘贴 / 收藏 / 删除 / 备注（调用 Rust 命令）
-- [ ] HTML 预览（DOMPurify sanitize）、Markdown 渲染、RTF 渲染、图片预览
+- [x] 历史项组件：按 type 渲染（text/rtf/html/image/files 各自卡片）
+  > 新增 `src/pages/Main/components/cards/`：`ClipboardCard`（按 `kind` 分发 + 共享外壳：相对时间 + 置顶/收藏角标）；`TextCard` 内部再按 `subKind` 分支——`color` 给色块预览、`url`/`email` 着 primary 色、`rtf`/`html` 读 `searchText`（Rust 入库已落纯文本，富文本/HTML/Markdown 的真正渲染留给 item 5）；`ImageCard` 仅展示尺寸 + 体积（`<img>` 预览要 asset scope `images/**`，留给 item 5）；`FilesCard` 按换行解析 `content`（与 Rust `write_files` 一致），展示 basename + 总数。
+  > `ClipboardList.tsx` Row 改为 `<ClipboardCard item={item} />`。没引入 HeroUI 组件——本步全用 Tailwind + HeroUI 的 token 色（`text-default-500`、`border-divider`、`text-primary`），先把分发骨架稳住，Card/Chip 等组件留到后续操作按钮（item 4）一起接。
+- [x] 从 Rust 命令拉取分页数据；监听「剪贴板更新」事件增量刷新
+  > 抽出 `src/pages/Main/hooks/useClipboardItems.ts`：分页 50 条/页，Virtuoso `endReached` 触发 `loadMore`（offset 取当前 `items.length`，`loadingRef` 抑制重入，返回不足 PAGE_SIZE 时把 `hasMore` 落为 false）；订阅 `clipboard://updated`（payload `{id, deduplicated}`）走新的 `get_clipboard_item` 命令拉单条，setItems 时先按 id 过滤再前置 —— 这样去重场景（旧条目 updatedAt 更新）会自然「移到顶部」，新条目同路径处理为「直接前置」，避免整页 refetch 打断滚动。
+  > Rust 侧加 `get_clipboard_item(id) -> Option<ClipboardItem>` 薄封装 `find_item_by_id`，`lib.rs` 注册。`ClipboardList.tsx` 瘦身为纯 Virtuoso，状态全在 hook。事件名常量直接写在 hook 里（不引 Rust 常量到前端，避免跨端硬耦合）。
+- [x] 操作：复制回 / 粘贴 / 收藏 / 删除 / 备注（调用 Rust 命令）
+  > Rust 侧新增 3 个薄封装命令：`toggle_clipboard_item_favorite` / `delete_clipboard_item` / `update_clipboard_item_note`（lib.rs 注册）。`update_clipboard_item_note` 把空串 / 全空白归一化为 NULL，保证「无备注」在库里只有一种表示。复制/粘贴沿用已有的 `write_to_clipboard` / `paste_clipboard_item`。
+  > 前端 `useClipboardItems` 暴露 `actions: ClipboardActions`（copy/paste/toggleFavorite/remove/updateNote），写操作走乐观更新（先动本地、失败仅 log，不回滚——剪贴板/SQLite 出错本来罕见，整页 refetch 反而打断滚动；后续接 toast 时统一在 hook 里挂）。`ClipboardCard` 加 hover 显形的文字按钮行（粘贴/复制/收藏/备注/删除）+ 折叠 textarea 备注编辑器，按钮统一 `e.stopPropagation()` 避免冒泡到后续 item 6 的行选中。`ClipboardList` 把 actions 通过 prop 透传给卡片。
+- [x] HTML 预览（DOMPurify sanitize）、Markdown 渲染、RTF 渲染、图片预览
+  > `tauri.conf.json > assetProtocol.scope` 追加 `$APPLOCALDATA/resources/images/**`，让缩略图能走 `asset://`。`ImageCard` 在 useEffect 里 invoke `get_clipboard_image_path`（thumbnail=true）拿到磁盘路径后 `convertFileSrc` 拼成 asset URL，`<img>` 渲染 + 占位框；失败仅 log 不抛。`TextCard` 对 `subKind=html` 走新增 `HtmlPreview` 子组件：`DOMPurify.sanitize`（FORBID_TAGS: script/style）后 `dangerouslySetInnerHTML`，外层 `max-h-16 overflow-hidden` 防大段 HTML 撑爆行。RTF 沿用 `searchText` 纯文本预览（不引 RTF→HTML 库，依赖太重且现有库质量参差）；Markdown 暂跳过（Rust detect.rs 没识别 subKind=markdown，需要时再补检测+marked）。
 - [ ] 选中态、键盘上下选择、Enter 粘贴、Esc 隐藏
 
 ### 7.3 搜索

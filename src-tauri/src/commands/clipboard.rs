@@ -178,6 +178,51 @@ pub async fn list_clipboard_items(
     crate::db::items::query_items(&pool, &q).await
 }
 
+/// 单条查询命令：监听到 `clipboard://updated` 后前端按 id 拉单条，
+/// 避免事件驱动刷新时整页 refetch。不存在返回 `None`，前端按需降级。
+#[tauri::command]
+pub async fn get_clipboard_item(
+    pool: State<'_, SqlitePool>,
+    id: String,
+) -> Result<Option<ClipboardItem>> {
+    find_item_by_id(&pool, &id).await
+}
+
+/// 翻转收藏状态（薄封装）。前端在调用前/后做乐观更新；这里不返回新状态，
+/// 失败时前端按需回滚 / 重拉单条。
+#[tauri::command]
+pub async fn toggle_clipboard_item_favorite(
+    pool: State<'_, SqlitePool>,
+    id: String,
+) -> Result<()> {
+    crate::db::items::toggle_item_favorite(&pool, &id).await
+}
+
+/// 删除单条记录（薄封装）。
+#[tauri::command]
+pub async fn delete_clipboard_item(pool: State<'_, SqlitePool>, id: String) -> Result<()> {
+    crate::db::items::delete_item(&pool, &id).await
+}
+
+/// 更新备注（薄封装）。`note = None` 或空串清空备注；空串归一化为 None，
+/// 保证「无备注」在库里只有一种表示（NULL），避免后续筛选/展示判别两套逻辑。
+#[tauri::command]
+pub async fn update_clipboard_item_note(
+    pool: State<'_, SqlitePool>,
+    id: String,
+    note: Option<String>,
+) -> Result<()> {
+    let normalized = note.as_deref().and_then(|s| {
+        let trimmed = s.trim();
+        if trimmed.is_empty() {
+            None
+        } else {
+            Some(trimmed)
+        }
+    });
+    crate::db::items::update_item_note(&pool, &id, normalized).await
+}
+
 /// 校验图片文件名：必须是单层 `<name>.png`，不含路径分隔符 / 父目录引用。
 fn validate_image_file_name(file_name: &str) -> Result<()> {
     let invalid = file_name.is_empty()
