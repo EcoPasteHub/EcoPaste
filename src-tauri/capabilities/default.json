@@ -2,6 +2,6 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "description": "Base capability shared by the main and preference windows: core window/event/app APIs only. Plugin- and feature-specific grants are added per phase (window mgmt, paste, shortcuts, settings).",
   "identifier": "default",
-  "permissions": ["core:default"],
+  "permissions": ["core:default", "log:default"],
   "windows": ["main", "preference"]
 }

@@ -317,8 +317,13 @@
 - [x] `App.tsx`：HeroUI Provider + 主题 + i18n + 路由
   > HeroUI v3 不需要 Provider 包裹（参见 https://heroui.com/react/llms-patterns.txt ：「No provider required」），改为在 `index.html` 上声明 `class="light"` 与 `body class="bg-background text-foreground"` 让 HeroUI 的 token/CSS 变量生效，避免后续暗色切换时只改 class 而背景色不跟随。
   > `App.tsx` 仅保留 `RouterProvider`，并加注释把后续 7.1.3 主题与 7.5 i18n 的插入点标出来，避免下次又被「为什么没 Provider」绊一下。
-- [ ] 全局事件监听 hook `useTauriListen`（封装 Tauri event）
-- [ ] 暗色模式应用（监听系统 / 跟随设置），注入 CSS 变量
+- [x] 全局事件监听 hook `useTauriListen`（封装 Tauri event）
+  > `src/hooks/useTauriListen.ts`：走 `tauri-awesome-rpc` 的 `listen`（同步返回 `UnlistenFn`，挂在 `window.AwesomeListener` 上的 WS 通道），不是官方 `@tauri-apps/api/event`——后者 IPC 已被 awesome-rpc 替换。同步注册免去「Promise resolve 时组件已卸载」的竞态，effect 直接 return unlisten 即可。
+  > payload 在 JSON-RPC 层是 `unknown`，hook 用泛型 `T` 让调用方断言；handler 走 ref 转发，effect 仅依赖事件名，业务侧不必 `useCallback`。
+- [x] 暗色模式应用（监听系统 / 跟随设置），注入 CSS 变量
+  > `src/hooks/useApplyTheme.ts` + `App.tsx` 调用：**两条路径都走** —— ① Tauri `getCurrentWindow().setTheme(null|light|dark)` 让原生 chrome（标题栏装饰、滚动条、原生菜单）跟随；② `html.classList` 写 `light/dark`（HeroUI v3 `@custom-variant dark (&:is(.dark *))` 依赖该 class）+ `data-theme` + `style.colorScheme`。旧版 EcoPaste 就是这么干的——只改 DOM 不改窗口会让原生区域与内容主题割裂。
+  > `auto` 模式：`setTheme(null)` 把跟随系统的责任交给 Tauri，订阅 `appWindow.onThemeChanged` 而非 `matchMedia`——单一信源避免双订阅打架；切到显式 light/dark 时立刻 unlisten。effect 依赖 `[theme, loaded]`，未加载完成时不动 DOM/窗口，避免和 `index.html` 默认 `class="light"` 闪一下。
+  > 顺手新增 `src/utils/log.ts`：封装 `@tauri-apps/plugin-log` 的 `error/warn/info/debug`，与 Rust `log::error!` 同源（一并进 LogDir 文件 / Stdout / Webview console），catch 兜底落控制台避免 unhandled rejection。`useApplyTheme.ts` + `main.tsx` 全部走 `log.error`，不再散落 `console.error`。capability 加 `log:default` 让前端能调到 plugin-log 的 IPC；npm 装 `@tauri-apps/plugin-log`。
 
 ### 7.2 剪贴板历史列表（main 窗口）
 
