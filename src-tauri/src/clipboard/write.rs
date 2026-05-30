@@ -16,7 +16,7 @@
 //! 缺失时退回 `content`。供「纯文本粘贴」快捷路径使用。
 
 use clipboard_rs::common::RustImage;
-use clipboard_rs::{Clipboard, ClipboardContext, RustImageData};
+use clipboard_rs::{Clipboard, ClipboardContent, ClipboardContext, RustImageData};
 
 use super::guard::WritebackGuard;
 use super::storage::ImageStore;
@@ -61,8 +61,27 @@ fn write_text(
     guard.suppress(content_hash(ClipboardKind::Text, &content));
 
     match sub_kind {
-        Some(ClipboardSubKind::Html) => ctx.set_html(content).map_err(clip_err)?,
-        Some(ClipboardSubKind::Rtf) => ctx.set_rich_text(content).map_err(clip_err)?,
+        // HTML / RTF 必须同时写入纯文本回退：clipboard-rs 的 set_html / set_rich_text
+        // 会先 clearContents，单独写时只剩富格式，多数应用读 plain/text 拿不到就拒绝粘贴。
+        // 走 set(Vec<ClipboardContent>) 一次写多格式（内部不再相互清空）。
+        Some(ClipboardSubKind::Html) => {
+            let plain = item.search_text.clone().unwrap_or_else(|| content.clone());
+            guard.suppress(content_hash(ClipboardKind::Text, &plain));
+            ctx.set(vec![
+                ClipboardContent::Text(plain),
+                ClipboardContent::Html(content),
+            ])
+            .map_err(clip_err)?;
+        }
+        Some(ClipboardSubKind::Rtf) => {
+            let plain = item.search_text.clone().unwrap_or_else(|| content.clone());
+            guard.suppress(content_hash(ClipboardKind::Text, &plain));
+            ctx.set(vec![
+                ClipboardContent::Text(plain),
+                ClipboardContent::Rtf(content),
+            ])
+            .map_err(clip_err)?;
+        }
         // url / email / color / path 及无 sub_kind 都走纯文本通道。
         _ => ctx.set_text(content).map_err(clip_err)?,
     }
