@@ -13,12 +13,14 @@ use crate::db::models::ClipboardSubKind;
 /// URL：要求带协议头（http/https/ftp/file）或 `www.` 开头的单行串。
 /// 比旧项目 `is-url` 收紧，避免把任意带点的词误判为链接。
 static URL_RE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"(?i)^(https?|ftp|file)://[^\s]+$|^www\.[^\s]+\.[^\s]+$").unwrap()
+    Regex::new(r"(?i)^(https?|ftp|file)://[^\s]+$|^www\.[^\s]+\.[^\s]+$")
+        .expect("invalid URL regex")
 });
 
 /// Email：沿用旧项目 `utils/is.ts` 的正则（允许中文用户名）。
 static EMAIL_RE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"^[A-Za-z0-9\u{4e00}-\u{9fa5}]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$").unwrap()
+    Regex::new(r"^[A-Za-z0-9\u{4e00}-\u{9fa5}]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$")
+        .expect("invalid email regex")
 });
 
 /// 颜色：hex(#RGB/#RGBA/#RRGGBB/#RRGGBBAA) 或 rgb()/rgba()/hsl()/hsla() 函数式。
@@ -28,7 +30,7 @@ static COLOR_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
         r"(?i)^#([0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$|^(rgb|rgba|hsl|hsla)\([^)]*\)$",
     )
-    .unwrap()
+    .expect("invalid color regex")
 });
 
 /// 识别纯文本的子类型。判定顺序：url > email > color > path。

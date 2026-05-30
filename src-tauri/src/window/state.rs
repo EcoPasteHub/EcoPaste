@@ -42,8 +42,16 @@ impl WindowStateStore {
         let path = dir.join(filename);
 
         let states = if path.exists() {
-            let content = fs::read_to_string(&path).unwrap_or_default();
-            serde_json::from_str(&content).unwrap_or_default()
+            match fs::read_to_string(&path) {
+                Ok(content) => serde_json::from_str(&content).unwrap_or_else(|e| {
+                    log::warn!("failed to parse window state at {path:?}, using defaults: {e}");
+                    HashMap::new()
+                }),
+                Err(e) => {
+                    log::warn!("failed to read window state at {path:?}, using defaults: {e}");
+                    HashMap::new()
+                }
+            }
         } else {
             HashMap::new()
         };
@@ -56,7 +64,10 @@ impl WindowStateStore {
     }
 
     pub fn save(&self, label: &str, state: WindowState) -> Result<()> {
-        let mut states = self.states.lock().unwrap();
+        let mut states = self.states.lock().unwrap_or_else(|poisoned| {
+            log::error!("window state mutex poisoned on save, recovering");
+            poisoned.into_inner()
+        });
         states.insert(label.to_owned(), state);
         let json =
             serde_json::to_string_pretty(&*states).context("failed to serialize window states")?;
@@ -66,7 +77,10 @@ impl WindowStateStore {
     }
 
     pub fn get(&self, label: &str) -> Option<WindowState> {
-        let states = self.states.lock().unwrap();
+        let states = self.states.lock().unwrap_or_else(|poisoned| {
+            log::error!("window state mutex poisoned on get, recovering");
+            poisoned.into_inner()
+        });
         states.get(label).cloned()
     }
 }
