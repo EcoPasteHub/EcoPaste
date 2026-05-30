@@ -1,22 +1,7 @@
-use serde::{Deserialize, Serialize};
 use tauri::{PhysicalPosition, PhysicalSize, WebviewWindow};
 
 use crate::core::Result;
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub enum WindowPosition {
-    Remember,
-    Follow,
-    Center,
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub enum WindowStyle {
-    Standard,
-    Dock,
-}
+use crate::settings::{WindowPosition, WindowStyle};
 
 const DOCK_HEIGHT: u32 = 400;
 
@@ -63,7 +48,7 @@ pub fn position_window(
         WindowStyle::Dock => apply_dock(window, &monitor)?,
         WindowStyle::Standard => match position {
             WindowPosition::Remember => {}
-            WindowPosition::Follow => apply_follow(window, &monitor, &cursor)?,
+            WindowPosition::FollowCursor => apply_follow(window, &monitor, &cursor)?,
             WindowPosition::Center => apply_center(window, &monitor)?,
         },
     }

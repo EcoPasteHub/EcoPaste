@@ -1,7 +1,8 @@
 use tauri::AppHandle;
 
 use crate::core::Result;
-use crate::window::{self, WindowPosition, WindowStyle};
+use crate::settings::{WindowPosition, WindowStyle};
+use crate::window;
 
 #[tauri::command]
 pub async fn show_window(app: AppHandle, label: String) -> Result<()> {
