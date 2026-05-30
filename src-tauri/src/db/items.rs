@@ -161,6 +161,7 @@ pub async fn mark_item_favorite(pool: &SqlitePool, id: &str) -> Result<()> {
 }
 
 /// 翻转 `is_pinned`（置顶 / 取消置顶）。
+#[allow(dead_code)]
 pub async fn toggle_item_pinned(pool: &SqlitePool, id: &str) -> Result<()> {
     sqlx::query("UPDATE clipboard_items SET is_pinned = NOT is_pinned WHERE id = ?")
         .bind(id)
@@ -205,6 +206,7 @@ pub async fn delete_item(pool: &SqlitePool, id: &str) -> Result<()> {
 }
 
 /// 批量删除，返回实际删除行数；`ids` 为空时不发查询。
+#[allow(dead_code)]
 pub async fn delete_items(pool: &SqlitePool, ids: &[String]) -> Result<u64> {
     if ids.is_empty() {
         return Ok(0);
@@ -269,6 +271,7 @@ pub async fn cleanup_history(
 }
 
 /// 清空全部记录，返回删除行数；`keep_favorite` 为真时保留收藏项。
+#[allow(dead_code)]
 pub async fn clear_items(pool: &SqlitePool, keep_favorite: bool) -> Result<u64> {
     let mut qb: QueryBuilder<Sqlite> = QueryBuilder::new("DELETE FROM clipboard_items");
     if keep_favorite {

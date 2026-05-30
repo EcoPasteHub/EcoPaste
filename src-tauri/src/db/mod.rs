@@ -6,10 +6,6 @@ pub mod models;
 pub mod path;
 
 pub use init::init;
-pub use models::{
-    ClipboardApp, ClipboardGroup, ClipboardItem, ClipboardItemQuery, ClipboardItemSort,
-    ClipboardKind, ClipboardSubKind, Platform,
-};
 pub use path::db_path;
 
 #[cfg(test)]

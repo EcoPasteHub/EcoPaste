@@ -33,6 +33,7 @@ pub struct StoredImage {
     /// 入库 `content`：图片文件名 `<sha256>.png`（不含分片目录）。
     pub file_name: String,
     /// 去重指纹来源：PNG 字节的 sha256（十六进制）。
+    #[allow(dead_code)]
     pub sha256: String,
     pub width: i64,
     pub height: i64,

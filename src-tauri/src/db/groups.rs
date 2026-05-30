@@ -17,6 +17,7 @@ pub async fn list_groups(pool: &SqlitePool) -> Result<Vec<ClipboardGroup>> {
 }
 
 /// 新建分组。
+#[allow(dead_code)]
 pub async fn insert_group(pool: &SqlitePool, group: &ClipboardGroup) -> Result<()> {
     sqlx::query(
         "INSERT INTO clipboard_groups (id, name, sort_order, created_at) VALUES (?, ?, ?, ?)",
@@ -32,6 +33,7 @@ pub async fn insert_group(pool: &SqlitePool, group: &ClipboardGroup) -> Result<(
 }
 
 /// 重命名分组。
+#[allow(dead_code)]
 pub async fn rename_group(pool: &SqlitePool, id: &str, name: &str) -> Result<()> {
     sqlx::query("UPDATE clipboard_groups SET name = ? WHERE id = ?")
         .bind(name)
@@ -43,6 +45,7 @@ pub async fn rename_group(pool: &SqlitePool, id: &str, name: &str) -> Result<()>
 }
 
 /// 删除分组；其下记录的 `group_id` 由外键 `ON DELETE SET NULL` 自动置空（已启用 `foreign_keys`）。
+#[allow(dead_code)]
 pub async fn delete_group(pool: &SqlitePool, id: &str) -> Result<()> {
     sqlx::query("DELETE FROM clipboard_groups WHERE id = ?")
         .bind(id)

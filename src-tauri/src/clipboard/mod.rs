@@ -14,11 +14,10 @@ mod write;
 pub use app_store::AppIconStore;
 pub use guard::WritebackGuard;
 pub use ingest::build_item;
-pub use payload::{ClipboardPayload, ImagePayload, TextPayload};
 pub use read::ClipboardReader;
 pub use source::detect_frontmost;
 pub use storage::ImageStore;
-pub use watcher::{init, materialize_source, persist_and_notify, CLIPBOARD_UPDATED_EVENT};
+pub use watcher::{init, materialize_source, persist_and_notify};
 pub use write::write_to_clipboard;
 
 #[cfg(test)]

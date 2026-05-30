@@ -13,6 +13,7 @@ const SELECT_APP: &str = "SELECT id, name, icon_file, platform, created_at, upda
      FROM clipboard_apps";
 
 /// 按 id 查单条记录。
+#[allow(dead_code)]
 pub async fn find_app_by_id(pool: &SqlitePool, id: &str) -> Result<Option<ClipboardApp>> {
     let mut qb: QueryBuilder<Sqlite> = QueryBuilder::new(SELECT_APP);
     qb.push(" WHERE id = ").push_bind(id.to_owned());
