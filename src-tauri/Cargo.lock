@@ -729,8 +729,7 @@ dependencies = [
 [[package]]
 name = "clipboard-rs"
 version = "0.3.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dbadf7a82795a94d37b74f92f60879306b21dafd9e85c24114a9ac46d3135b8d"
+source = "git+https://github.com/ayangweb/clipboard-rs?branch=feat%2Fconfigurable-watch-interval#b6918210a0f58e82661c5f5f0800dcc18fde18e1"
 dependencies = [
  "clipboard-win",
  "image",

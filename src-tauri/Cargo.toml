@@ -28,7 +28,7 @@ log = "0.4"
 sqlx = { version = "0.9", default-features = false, features = ["runtime-tokio", "sqlite", "macros", "chrono", "migrate"] }
 chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
 sha2 = "0.10"
-clipboard-rs = "0.3"
+clipboard-rs = { git = "https://github.com/ayangweb/clipboard-rs", branch = "feat/configurable-watch-interval" }
 uuid = { version = "1", features = ["v4"] }
 regex = "1"
 tokio = { version = "1", features = ["time"] }

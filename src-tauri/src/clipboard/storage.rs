@@ -3,12 +3,15 @@
 //! 目录布局（`content` 字段存文件名 `<sha256>.png`，分片目录由此函数推导，不入库）：
 //! ```text
 //! <app_local_data>/resources/images/
-//!   origin/<hash[..2]>/<sha256>.png       原图（PNG）
-//!   thumbnails/<hash[..2]>/<sha256>.png   缩略图（PNG，最长边 <= THUMBNAIL_MAX）
+//!   origin/<hash[..2]>/<sha256>.png       原图（PNG），复制时落盘
+//!   thumbnails/<hash[..2]>/<sha256>.png   缩略图（PNG，最长边 <= THUMBNAIL_MAX），首次预览时按需生成
 //! ```
 //! 文件名取「PNG 字节的 sha256」：同一张图重复复制 → 同字节 → 同文件名，落盘幂等，
 //! 且与阶段 1.4 的去重指纹同源（image 的 `content_hash` 即对 PNG 字节哈希）。
 //! 按 hash 前 2 位 hex 分 256 个子目录，避免重度使用下单目录文件爆量。
+//!
+//! 缩略图的解码/缩放/编码不在复制热路径上——`store` 只写原图，缩略图由
+//! [`ImageStore::ensure_thumbnail`] 在前端首次取图时懒生成并缓存。
 
 use std::path::{Path, PathBuf};
 
@@ -64,19 +67,16 @@ impl ImageStore {
         Self { images_root }
     }
 
-    /// 落盘原图 + 缩略图，返回 [`StoredImage`]。已存在的文件跳过写入（幂等）。
+    /// 落盘原图，返回 [`StoredImage`]。已存在的文件跳过写入（幂等）。
+    ///
+    /// 缩略图**不在此生成**——它已移出复制热路径，改由 [`Self::ensure_thumbnail`] 在
+    /// 前端首次预览时按需生成并缓存。复制路径只做「哈希 + 写原图」，避免大图编解码卡顿。
     pub fn store(&self, image: &ImagePayload) -> Result<StoredImage> {
         let sha256 = sha256_hex(&image.bytes);
         let file_name = format!("{sha256}.png");
 
         let origin_path = self.shard_path(ORIGIN_DIR, &sha256, &file_name);
         write_if_absent(&origin_path, &image.bytes)?;
-
-        let thumb_path = self.shard_path(THUMBNAILS_DIR, &sha256, &file_name);
-        if !thumb_path.exists() {
-            let thumb_bytes = encode_thumbnail(&image.bytes)?;
-            write_if_absent(&thumb_path, &thumb_bytes)?;
-        }
 
         Ok(StoredImage {
             file_name,
@@ -85,6 +85,24 @@ impl ImageStore {
             height: i64::from(image.height),
             size: image.bytes.len() as i64,
         })
+    }
+
+    /// 确保缩略图存在并返回其绝对路径：已存在直接返回；否则读原图 → 解码 → 缩放 → 编码 PNG → 落盘。
+    ///
+    /// 供 `get_clipboard_image_path(thumbnail=true)` 调用。把生成放在「读」而非「写」侧，
+    /// 既将解码/编码移出复制热路径，又因「返回前文件已确保存在」天然避免前端加载到半成品文件。
+    pub fn ensure_thumbnail(&self, file_name: &str) -> Result<PathBuf> {
+        let thumb_path = self.thumbnail_path(file_name);
+        if thumb_path.exists() {
+            return Ok(thumb_path);
+        }
+
+        let origin_path = self.origin_path(file_name);
+        let origin_bytes = std::fs::read(&origin_path)
+            .with_context(|| format!("failed to read origin image {origin_path:?}"))?;
+        let thumb_bytes = encode_thumbnail(&origin_bytes)?;
+        write_if_absent(&thumb_path, &thumb_bytes)?;
+        Ok(thumb_path)
     }
 
     /// 由文件名解析原图绝对路径（分片目录从文件名前 2 位推导）。供写回/粘贴（阶段 4）使用。
@@ -174,7 +192,7 @@ mod tests {
     }
 
     #[test]
-    fn stores_origin_and_thumbnail_under_hash_shard() {
+    fn stores_origin_under_hash_shard_without_thumbnail() {
         let (_dir, store) = temp_store();
         let payload = ImagePayload {
             bytes: sample_png(64, 48),
@@ -189,17 +207,51 @@ mod tests {
         assert_eq!(stored.height, 48);
         assert!(stored.size > 0);
 
-        // 原图与缩略图都落在 <前2位>/<file_name>。
+        // 原图落在 <前2位>/<file_name>；缩略图此刻尚未生成（移出热路径）。
         let origin = store.origin_path(&stored.file_name);
         let thumb = store.thumbnail_path(&stored.file_name);
         assert!(origin.exists(), "origin should exist: {origin:?}");
-        assert!(thumb.exists(), "thumbnail should exist: {thumb:?}");
+        assert!(
+            !thumb.exists(),
+            "thumbnail should NOT exist before ensure_thumbnail: {thumb:?}"
+        );
         assert_eq!(
             origin.parent().unwrap().file_name().unwrap().to_str(),
             Some(&stored.sha256[..2])
         );
         // 原图字节与输入一致（未改动）。
         assert_eq!(std::fs::read(&origin).unwrap(), payload.bytes);
+    }
+
+    #[test]
+    fn ensure_thumbnail_generates_then_caches() {
+        let (_dir, store) = temp_store();
+        let payload = ImagePayload {
+            bytes: sample_png(64, 48),
+            width: 64,
+            height: 48,
+        };
+        let stored = store.store(&payload).unwrap();
+
+        // 首次：从原图生成缩略图并返回其路径。
+        let thumb = store.ensure_thumbnail(&stored.file_name).unwrap();
+        assert!(thumb.exists(), "thumbnail should be generated: {thumb:?}");
+        assert_eq!(thumb, store.thumbnail_path(&stored.file_name));
+        let first_bytes = std::fs::read(&thumb).unwrap();
+        assert!(!first_bytes.is_empty());
+
+        // 再次：命中缓存，路径一致、内容不变（幂等，不重复编码）。
+        let thumb2 = store.ensure_thumbnail(&stored.file_name).unwrap();
+        assert_eq!(thumb, thumb2);
+        assert_eq!(std::fs::read(&thumb2).unwrap(), first_bytes);
+    }
+
+    #[test]
+    fn ensure_thumbnail_errors_when_origin_missing() {
+        let (_dir, store) = temp_store();
+        // 原图从未落盘：ensure_thumbnail 读不到原图，报错而非 panic。
+        let result = store.ensure_thumbnail("0000000000000000.png");
+        assert!(result.is_err());
     }
 
     #[test]

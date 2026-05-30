@@ -76,6 +76,10 @@ pub async fn read_clipboard(
 /// 把入库的图片文件名解析为磁盘绝对路径，供前端预览取图。
 /// `thumbnail = true` 取缩略图，否则取原图。
 ///
+/// 缩略图按需生成：不存在时在 `spawn_blocking` 里从原图解码 + 缩放 + 编码后落盘，再返回路径。
+/// 解码/编码是 CPU 阻塞活，放到阻塞线程池避免占用 async worker；且「返回时文件已确保存在」，
+/// 前端拿到路径即可安全 `convertFileSrc` 加载，不会撞到半成品文件。
+///
 /// `file_name` 来自前端（即记录的 `content`），是唯一的外部输入，需防路径穿越：
 /// 仅允许「单层、纯 `<hash>.png` 形态」的文件名，含分隔符 / `..` / 子目录一律拒绝。
 #[tauri::command]
@@ -87,7 +91,10 @@ pub async fn get_clipboard_image_path(
     validate_image_file_name(&file_name)?;
 
     let path = if thumbnail {
-        store.thumbnail_path(&file_name)
+        let store = store.inner().clone();
+        tauri::async_runtime::spawn_blocking(move || store.ensure_thumbnail(&file_name))
+            .await
+            .map_err(|err| AppError::Clipboard(format!("thumbnail task join failed: {err}")))??
     } else {
         store.origin_path(&file_name)
     };

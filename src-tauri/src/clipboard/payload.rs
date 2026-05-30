@@ -25,7 +25,8 @@ pub struct TextPayload {
     pub rtf: Option<String>,
 }
 
-/// 图片载荷。底层 macOS 剪贴板原始为 TIFF，库已统一解码后重新编码为 PNG。
+/// 图片载荷。`bytes` 恒为 PNG 编码字节：源是 PNG 时为剪贴板原始字节（直通），
+/// 源是 TIFF/DIB 等时为库解码后重编码的 PNG。
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ImagePayload {
     /// PNG 编码字节。用于去重哈希与 2.3 的落盘，不直接回传前端。

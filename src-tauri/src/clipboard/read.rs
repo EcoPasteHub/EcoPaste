@@ -2,6 +2,9 @@
 //!
 //! [`clipboard_rs`] 已内置 macOS（`NSPasteboard`）/ Windows 的平台读取，
 //! 这里只负责按 files > image > text 的优先级归类，并过滤掉空内容。
+//!
+//! 图片读取走「PNG 直通优先」：源本身是 PNG 时直取原始字节、从头部解析尺寸（零解码/编码）；
+//! 仅当源是 TIFF/DIB 等非 PNG 时才回退到库的解码 + 重编码 PNG。
 
 use clipboard_rs::common::RustImage;
 use clipboard_rs::{Clipboard, ClipboardContext, ContentFormat};
@@ -70,7 +73,25 @@ impl ClipboardReader {
         Ok(None)
     }
 
+    /// 读取图片为 PNG 载荷。
+    ///
+    /// 快路径：剪贴板原生就带 PNG（浏览器复制图片等）时，直接取原始 PNG 字节，
+    /// 宽高从 PNG 头（IHDR）解析——全程零图像解码/编码。
+    ///
+    /// 慢路径回退：源是 TIFF（macOS 截图/多数 App）/ DIB（Windows）等非 PNG 时，
+    /// 交给 [`clipboard_rs`] 解码再编码为 PNG（存储格式恒为 PNG，这次转码无法避免）。
     fn read_image(&self) -> Result<Option<ImagePayload>> {
+        if let Ok(bytes) = self.ctx.get_buffer(PNG_FORMAT) {
+            if let Some((width, height)) = png_dimensions(&bytes) {
+                return Ok(Some(ImagePayload {
+                    bytes,
+                    width,
+                    height,
+                }));
+            }
+            // 拿到了 PNG 格式字节但解析不出尺寸（异常/截断）：落到下方回退，由库重新解码。
+        }
+
         let image = self.ctx.get_image().map_err(clip_err)?;
         let (width, height) = image.get_size();
         if width == 0 || height == 0 {
@@ -88,6 +109,29 @@ impl ClipboardReader {
             height,
         }))
     }
+}
+
+/// 平台剪贴板里 PNG 的原始格式标识符，用于 `get_buffer` 直取原始字节。
+#[cfg(target_os = "macos")]
+const PNG_FORMAT: &str = "public.png";
+#[cfg(target_os = "windows")]
+const PNG_FORMAT: &str = "PNG";
+
+/// 从 PNG 字节解析宽高（不解码像素）。
+///
+/// PNG 布局固定：8 字节签名 + 4 字节 IHDR 长度 + 4 字节 "IHDR" + 宽(大端 u32) + 高(大端 u32)。
+/// 宽高位于偏移 16..24。校验签名与 IHDR 标记，任一不符返回 `None`（交回退路径处理）。
+fn png_dimensions(bytes: &[u8]) -> Option<(u32, u32)> {
+    const SIGNATURE: [u8; 8] = [0x89, b'P', b'N', b'G', 0x0d, 0x0a, 0x1a, 0x0a];
+    if bytes.len() < 24 || bytes[..8] != SIGNATURE || &bytes[12..16] != b"IHDR" {
+        return None;
+    }
+    let width = u32::from_be_bytes([bytes[16], bytes[17], bytes[18], bytes[19]]);
+    let height = u32::from_be_bytes([bytes[20], bytes[21], bytes[22], bytes[23]]);
+    if width == 0 || height == 0 {
+        return None;
+    }
+    Some((width, height))
 }
 
 /// 仅当 `available` 时读取，读取失败或空串都归并为 `None`，
@@ -113,6 +157,32 @@ mod tests {
     // 这些测试会触碰真实系统剪贴板，依赖桌面会话，CI 无头环境下会失败，
     // 故默认 ignore；本机验证用 `cargo test -- --ignored`。
     use clipboard_rs::{Clipboard, ClipboardContext};
+
+    /// 用 image crate 生成一张纯色 PNG，取其真实头部字节验证解析。
+    fn sample_png(w: u32, h: u32) -> Vec<u8> {
+        use std::io::Cursor;
+        let buf = image::RgbaImage::from_pixel(w, h, image::Rgba([1, 2, 3, 255]));
+        let mut out = Cursor::new(Vec::new());
+        image::DynamicImage::ImageRgba8(buf)
+            .write_to(&mut out, image::ImageFormat::Png)
+            .unwrap();
+        out.into_inner()
+    }
+
+    #[test]
+    fn png_dimensions_reads_real_png_header() {
+        assert_eq!(png_dimensions(&sample_png(123, 45)), Some((123, 45)));
+    }
+
+    #[test]
+    fn png_dimensions_rejects_non_png_and_truncated() {
+        // 非 PNG 签名。
+        assert_eq!(png_dimensions(b"not a png at all really"), None);
+        // 截断到 24 字节以下。
+        assert_eq!(png_dimensions(&sample_png(8, 8)[..20]), None);
+        // 空。
+        assert_eq!(png_dimensions(&[]), None);
+    }
 
     #[test]
     #[ignore = "touches the real system clipboard; run with --ignored on a desktop session"]

@@ -30,6 +30,11 @@ use crate::db::models::{ClipboardApp, ClipboardItem};
 /// 剪贴板更新事件名。前端监听此事件后增量刷新 / 重新拉取列表（阶段 7.2）。
 pub const CLIPBOARD_UPDATED_EVENT: &str = "clipboard://updated";
 
+/// macOS 轮询 `changeCount` 的间隔。上游 clipboard-rs 默认 500ms，对复制响应（尤其图片）
+/// 偏慢；我们 fork 出 `new_with_interval` 后调到 120ms，跟手且 CPU 开销可忽略。
+/// Windows 走事件驱动（`WM_CLIPBOARDUPDATE`），此值被忽略。
+const CLIPBOARD_POLL_INTERVAL: std::time::Duration = std::time::Duration::from_millis(120);
+
 /// 把同步抓到的 [`FrontmostApp`] 落 icon 字节 + 拼成可入库的 [`ClipboardApp`]。
 /// icon 落盘失败不阻断（仍保留应用名），仅 warn。
 pub fn materialize_source(store: &AppIconStore, src: FrontmostApp) -> ClipboardApp {
@@ -126,13 +131,14 @@ fn spawn_watch_thread(
                 }
             };
 
-            let mut watcher = match ClipboardWatcherContext::new() {
-                Ok(watcher) => watcher,
-                Err(err) => {
-                    log::error!("clipboard watcher: failed to create watcher: {err}");
-                    return;
-                }
-            };
+            let mut watcher =
+                match ClipboardWatcherContext::new_with_interval(CLIPBOARD_POLL_INTERVAL) {
+                    Ok(watcher) => watcher,
+                    Err(err) => {
+                        log::error!("clipboard watcher: failed to create watcher: {err}");
+                        return;
+                    }
+                };
 
             watcher.add_handler(ClipboardChangeHandler {
                 reader,
@@ -323,11 +329,14 @@ mod tests {
                 .expect("image should map to item")
         };
 
-        assert_eq!(item.kind, crate::db::ClipboardKind::Image);
+        assert_eq!(item.kind, crate::db::models::ClipboardKind::Image);
         assert!(item.content.ends_with(".png"));
         assert!(item.width.unwrap() > 0 && item.height.unwrap() > 0);
+        // 复制热路径只落原图；缩略图懒生成，此刻尚未存在。
         assert!(store.origin_path(&item.content).exists());
-        assert!(store.thumbnail_path(&item.content).exists());
+        assert!(!store.thumbnail_path(&item.content).exists());
+        // 模拟前端首次取图：按需生成缩略图。
+        assert!(store.ensure_thumbnail(&item.content).unwrap().exists());
 
         let result = upsert_item(&pool, &item).await.unwrap();
         assert!(!result.deduplicated);
@@ -337,7 +346,7 @@ mod tests {
                 .unwrap()
                 .unwrap()
                 .kind,
-            crate::db::ClipboardKind::Image
+            crate::db::models::ClipboardKind::Image
         );
     }
 
