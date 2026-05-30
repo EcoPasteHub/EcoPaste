@@ -4,7 +4,7 @@ mod state;
 pub use position::{WindowPosition, WindowStyle};
 pub use state::WindowStateStore;
 
-use tauri::{AppHandle, Manager, WebviewWindow};
+use tauri::{AppHandle, Manager, WebviewWindow, Window};
 
 use crate::core::Result;
 
@@ -73,4 +73,24 @@ pub fn save_window_state(app_handle: &AppHandle, label: &str) -> Result<()> {
 
 pub fn restore_window_state(app_handle: &AppHandle, label: &str) -> Result<bool> {
     state::restore_window_state(app_handle, label)
+}
+
+/// 关闭请求改为隐藏窗口，让应用常驻后台（系统托盘）。
+/// 返回 `true` 表示已拦截关闭，调用方需 `api.prevent_close()`。
+pub fn hide_on_close(window: &Window) -> bool {
+    if let Err(err) = window.hide() {
+        log::error!("hide window on close failed: {err:?}");
+    }
+    true
+}
+
+/// macOS 点击 dock 图标 reopen 时，无可见窗口则唤起偏好窗口。
+#[cfg(target_os = "macos")]
+pub fn handle_reopen(app_handle: &AppHandle, has_visible_windows: bool) {
+    if has_visible_windows {
+        return;
+    }
+    if let Err(err) = show_window(app_handle, PREFERENCE_WINDOW_LABEL) {
+        log::error!("show preference window on reopen failed: {err:?}");
+    }
 }

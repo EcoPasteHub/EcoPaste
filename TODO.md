@@ -210,7 +210,7 @@
 - [x] 窗口位置/尺寸持久化（由 Rust 落盘 `.window-state.json`），启动恢复
   > `window/state.rs`：`WindowStateStore` 持有文件路径 + `Mutex<HashMap<String, WindowState>>`，入 Tauri `State`，`setup` 中初始化。文件名区分环境：dev `window-state.dev.json` / prod `window-state.json`，存放于 `app_local_data_dir` 根目录（对齐 DB 的 dev/prod 命名惯例）。`WindowState { x, y, width, height }` 按窗口 label 索引。`save` 写内存 + 立即落盘 JSON；`get` 仅读内存。`save_window_state(app, label)` 读取窗口当前 `outer_position` + `inner_size` 后存储；`restore_window_state(app, label)` 从存储恢复位置和尺寸，返回 `bool` 表示是否有状态可恢复。命令层 `commands/window.rs` 暴露 `save_window_state` / `restore_window_state` 供前端在窗口 move/resize 事件和启动时调用。`cargo check` 通过。
 
-### 3.3 macOS NSPanel 特化
+### 3.3 macOS NSPanel 特化（暂时不实现，在等 tauri 的新特性）
 
 - [ ] 引入 `tauri-nspanel`，将 main 窗口转为 NSPanel（浮层、dock level）
 - [ ] 隐藏 dock 图标、可在全空间显示、`acceptsFirstMouse`
@@ -219,8 +219,9 @@
 
 ### 3.4 关闭行为
 
-- [ ] `WindowEvent::CloseRequested`：隐藏而非退出（常驻后台）
-- [ ] macOS 应用 reopen 事件处理
+- [x] `WindowEvent::CloseRequested`：隐藏而非退出（常驻后台）
+- [x] macOS 应用 reopen 事件处理
+  > 逻辑下沉 `window/mod.rs`，`lib.rs` 只做 Builder 接线：`hide_on_close(window)` 隐藏窗口并返回 `true`，`.on_window_event` 里据此 `api.prevent_close()`（任一窗口关闭都隐藏，常驻托盘后台）。reopen 需 build-then-run 形态，故 `.run(generate_context!())` 改为 `.build(...).run(|app_handle, event| ...)`：macOS 下匹配 `RunEvent::Reopen`，`has_visible_windows` 为真直接返回，否则 `handle_reopen` 唤起 preference 窗口（对齐旧版点击 dock 图标行为）。`handle_reopen` 用 `#[cfg(target_os = "macos")]` 隔离。`cargo check` / `cargo fmt --check` / clippy 均过。
 
 ---
 

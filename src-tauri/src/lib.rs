@@ -6,7 +6,7 @@ mod paste;
 mod settings;
 mod window;
 
-use tauri::Manager;
+use tauri::{Manager, WindowEvent};
 use tauri_awesome_rpc::AwesomeRpc;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -72,6 +72,25 @@ pub fn run() {
 
             Ok(())
         })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .on_window_event(|window, event| {
+            if let WindowEvent::CloseRequested { api, .. } = event {
+                if window::hide_on_close(window) {
+                    api.prevent_close();
+                }
+            }
+        })
+        .build(tauri::generate_context!())
+        .expect("error while running tauri application")
+        .run(|app_handle, event| {
+            #[cfg(target_os = "macos")]
+            if let tauri::RunEvent::Reopen {
+                has_visible_windows,
+                ..
+            } = event
+            {
+                window::handle_reopen(app_handle, has_visible_windows);
+            }
+
+            let _ = (app_handle, event);
+        });
 }

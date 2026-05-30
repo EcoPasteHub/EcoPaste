@@ -18,8 +18,7 @@ pub fn db_path(app: &AppHandle) -> Result<PathBuf> {
         .context("failed to resolve app local data dir")?
         .join(DB_DIR);
 
-    std::fs::create_dir_all(&dir)
-        .with_context(|| format!("failed to create db dir at {dir:?}"))?;
+    std::fs::create_dir_all(&dir).with_context(|| format!("failed to create db dir at {dir:?}"))?;
 
     let filename = if cfg!(dev) {
         DB_FILENAME_DEV
