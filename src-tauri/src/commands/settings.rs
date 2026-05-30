@@ -1,8 +1,11 @@
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Emitter, Manager};
 
 use crate::core::Result;
 use crate::settings::{Settings, SettingsStore};
 use crate::shortcut;
+
+// 与前端 src/constants/events.ts 的 SETTINGS_UPDATED 一一对应。
+const SETTINGS_UPDATED_EVENT: &str = "settings://updated";
 
 #[tauri::command]
 pub async fn get_settings(app: AppHandle) -> Result<Settings> {
@@ -24,6 +27,10 @@ pub async fn update_settings(app: AppHandle, patch: serde_json::Value) -> Result
         if let Err(err) = shortcut::apply(&app, &next.shortcuts) {
             log::warn!("re-apply shortcuts after settings update failed: {err}");
         }
+    }
+
+    if let Err(err) = app.emit(SETTINGS_UPDATED_EVENT, &next) {
+        log::warn!("emit settings updated event failed: {err}");
     }
 
     Ok(next)

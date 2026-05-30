@@ -30,3 +30,10 @@ export async function updateSettings(patch: SettingsPatch): Promise<Settings> {
   settingsState.loaded = true;
   return next;
 }
+
+// 多窗口同步入口：监听 Rust 的 settings://updated 事件后，直接用 payload 覆盖本地镜像，
+// 省一次 get_settings 往返。发起变更的窗口也会收到该事件，重复赋值无副作用。
+export function applySettings(next: Settings): void {
+  settingsState.value = next;
+  settingsState.loaded = true;
+}

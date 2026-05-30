@@ -2,8 +2,10 @@
 // - WINDOW_VISIBILITY → src-tauri/src/window/mod.rs
 // - CLIPBOARD_UPDATED → src-tauri/src/clipboard/ingest.rs（或检索同名常量）
 // - KEYBOARD_NAV      → src-tauri/src/keyboard/windows.rs
+// - SETTINGS_UPDATED  → src-tauri/src/commands/settings.rs
 export const TAURI_EVENT = {
   CLIPBOARD_UPDATED: "clipboard://updated",
   KEYBOARD_NAV: "keyboard://nav",
+  SETTINGS_UPDATED: "settings://updated",
   WINDOW_VISIBILITY: "window://visibility",
 } as const;
