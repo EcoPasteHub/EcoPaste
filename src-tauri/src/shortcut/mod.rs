@@ -1,35 +1,19 @@
-//! 全局快捷键：注册由 Rust 主导，前端只在偏好设置里改绑定值后调命令重注册。
+//! 全局快捷键：注册由 Rust 主导，前端在偏好设置里改完通过 `update_settings` 触发重注册。
 //!
-//! 默认绑定对齐旧版（`stores/global.ts`）：
-//! - 打开剪贴板窗：Alt+C
-//! - 打开偏好窗：Alt+X
-//! - 纯文本粘贴 / 快捷粘贴：窗口内局部按键（前端 `useKeyPress`），不在此注册。
+//! 配置来自 `settings::Shortcuts`。本模块只负责 OS 级注册——`paste_plain` / `quick_paste`
+//! 是窗口内交互（前端 `useKeyPress`），不在这里处理。
 
 use std::sync::Mutex;
 
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutEvent, ShortcutState};
 
 use crate::core::{AppError, Result};
+use crate::settings::Shortcuts;
 use crate::window::{self, MAIN_WINDOW_LABEL, PREFERENCE_WINDOW_LABEL};
 
 pub const CONFLICT_EVENT: &str = "shortcut://conflict";
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ShortcutBindings {
-    pub open_clipboard: String,
-    pub open_preference: String,
-}
-
-impl Default for ShortcutBindings {
-    fn default() -> Self {
-        Self {
-            open_clipboard: "Alt+C".into(),
-            open_preference: "Alt+X".into(),
-        }
-    }
-}
 
 #[derive(Debug, Clone, Serialize)]
 pub struct ShortcutConflict {
@@ -40,28 +24,22 @@ pub struct ShortcutConflict {
 
 #[derive(Default)]
 pub struct ShortcutManager {
-    state: Mutex<ShortcutManagerState>,
+    active: Mutex<Vec<(&'static str, Shortcut)>>,
 }
 
-#[derive(Default)]
-struct ShortcutManagerState {
-    bindings: ShortcutBindings,
-    active: Vec<(&'static str, Shortcut)>,
-}
-
-pub fn init(app: &AppHandle) -> Result<()> {
+pub fn init(app: &AppHandle, shortcuts: &Shortcuts) -> Result<()> {
     app.manage(ShortcutManager::default());
-    apply(app, ShortcutBindings::default())
+    apply(app, shortcuts)
 }
 
-/// 用新绑定全量替换：先取消已注册项，再逐个注册新项。注册失败仅记录 + emit，不中断其它项。
-pub fn apply(app: &AppHandle, bindings: ShortcutBindings) -> Result<()> {
+/// 全量替换：先取消上一轮注册，再逐个注册新项。注册失败仅 emit 不中断其它项。
+pub fn apply(app: &AppHandle, shortcuts: &Shortcuts) -> Result<()> {
     let plugin = app.global_shortcut();
     let manager = app.state::<ShortcutManager>();
 
     let previous = {
-        let mut guard = manager.state.lock().expect("shortcut state poisoned");
-        std::mem::take(&mut guard.active)
+        let mut guard = manager.active.lock().expect("shortcut state poisoned");
+        std::mem::take(&mut *guard)
     };
     for (_, shortcut) in &previous {
         if let Err(err) = plugin.unregister(*shortcut) {
@@ -70,8 +48,8 @@ pub fn apply(app: &AppHandle, bindings: ShortcutBindings) -> Result<()> {
     }
 
     let desired: [(&'static str, &str); 2] = [
-        ("open_clipboard", &bindings.open_clipboard),
-        ("open_preference", &bindings.open_preference),
+        ("open_clipboard", &shortcuts.open_clipboard),
+        ("open_preference", &shortcuts.open_preference),
     ];
 
     let mut active = Vec::new();
@@ -95,9 +73,7 @@ pub fn apply(app: &AppHandle, bindings: ShortcutBindings) -> Result<()> {
         }
     }
 
-    let mut guard = manager.state.lock().expect("shortcut state poisoned");
-    guard.bindings = bindings;
-    guard.active = active;
+    *manager.active.lock().expect("shortcut state poisoned") = active;
     Ok(())
 }
 
@@ -134,15 +110,4 @@ fn handle_event(app: &AppHandle, action: &'static str, event: ShortcutEvent) {
     if let Err(err) = window::toggle_window(app, label) {
         log::warn!("toggle window via shortcut {action} failed: {err}");
     }
-}
-
-pub fn current_bindings(app: &AppHandle) -> ShortcutBindings {
-    let manager = app.state::<ShortcutManager>();
-    let bindings = manager
-        .state
-        .lock()
-        .expect("shortcut state poisoned")
-        .bindings
-        .clone();
-    bindings
 }

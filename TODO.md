@@ -276,18 +276,29 @@
 
 ### 6.1 设置数据模型
 
-- [ ] Rust 定义 `Settings` 结构体（对齐旧项目 global + clipboard 两组）：
-  - app：autoStart、showMenubarIcon、showTaskbarIcon、silentStart
-  - appearance：theme（auto/light/dark）
-  - shortcut：各快捷键
-  - clipboard.content：autoPaste、copyPlain、pastePlain、deleteConfirm、操作按钮、showOriginalContent
-  - clipboard.history：duration、maxCount、unit
-  - clipboard.search：autoClear、defaultFocus、position
-  - clipboard.window：position、style、backTop、showAll
-  - update：autoUpdate、beta
-- [ ] 命令：`get_settings()` / `update_settings(patch)`，落盘 JSON（app data dir）
-- [ ] 默认值与缺字段兼容（旧配置升级）
-- [ ] 备份机制（写入前备份 `.store-backup.json`）
+- [x] Rust 定义 `Settings` 结构体（重新组织，不照搬旧版命名）：
+  - general：autoStart、silentStart、trayIcon、dockIcon
+  - appearance：theme（auto/light/dark）、language（zh-CN/zh-TW/en-US/ja-JP）
+  - shortcuts：openClipboard、openPreference、pastePlain、quickPaste{enabled,modifier}
+  - clipboard.content：autoPaste(disabled/single/double)、copyPlain、pastePlain、showOriginalPreview、deleteConfirm、autoFavorite、autoSortByFrequency、itemActions
+  - clipboard.history：retention{value,unit(hours/days/weeks/months/forever)}、maxCount(0=∞)
+  - clipboard.search：position、defaultFocus、clearOnHide
+  - clipboard.window：style(standard/dock)、position(remember/followCursor/center)、alwaysOnTop、allWorkspaces
+  - clipboard.feedback：copySound
+  - update：autoCheck、includeBeta
+- [x] 命令：`get_settings()` / `update_settings(patch)`，落盘 JSON（app local data dir）
+- [x] 默认值与缺字段兼容（每个结构 `#[serde(default)]`，新增字段不破坏旧文件；本项目不做旧版本数据迁移）
+- [x] 备份机制（写入前 rename 当前文件为 `.bak`，新内容先写 `.tmp` 再 rename，原子覆盖）
+  > 新增 `src-tauri/src/settings/{model.rs,store.rs,mod.rs}` + `commands/settings.rs`。
+  > **重要：不照搬旧版字段。** 旧版 `backTop` → `alwaysOnTop`、`showAll` → `allWorkspaces`、`history.{duration,unit:number}` 改成强类型 `retention{value, unit:RetentionUnit枚举}`、`autoPaste:"single"|"double"` 增加 `disabled` 档、`operationButtons` → `itemActions`（行为命名）、`audio.copy:bool` → `feedback.copySound`、`update.auto/beta` → `update.{autoCheck,includeBeta}`、`shortcut.quickPaste.value` → `quickPaste.modifier`（明确语义：按住的修饰键）。`General` 把菜单栏/任务栏图标命名为 `trayIcon`/`dockIcon`（跨平台中性词），不再用 `showMenubarIcon`/`showTaskbarIcon` 这种带平台前缀的字段。
+  > `SettingsStore`：`RwLock<Settings>` 内存态 + `app_local_data_dir/settings.json`（dev 文件名带 `.dev` 后缀，与 `WindowStateStore` 同套约定）。`load_from_disk` 主文件解析失败回退 `.bak`，再失败回退 `Default`——单次坏盘不丢全部偏好。`write_atomic`：现盘 rename → `.bak`（顶掉上一份备份），新内容写 `.json.tmp` 后 `fs::rename` 升级为主文件；rename 在同 FS 下是原子的，避免半截 JSON。
+  > `update(patch)` 接 `serde_json::Value`，要求 object，走 `deep_merge` 后再 `from_value::<Settings>`——这样前端可以发任意子树（如 `{"clipboard":{"history":{"maxCount":500}}}`）而不必构造完整对象，且类型校验仍在反序列化阶段集中处理。数组按 patch 整体替换（而非追加合并），对 `itemActions` 这类「顺序就是配置」的字段更直觉。
+  > 命令层 `commands/settings.rs::{get_settings, update_settings}`。`update_settings` 检测到 patch 含 `shortcuts` 键时顺带调 `shortcut::apply` 重注册——把「写入后副作用」拢在命令层，避免 store 反过来依赖 `shortcut` 模块。
+  > **重构副作用：**
+  > - `shortcut/mod.rs` 弃用自维护的 `ShortcutBindings` 结构（重复定义、与 settings 各执一词），改为接收 `&settings::Shortcuts`；`ShortcutManager` 退化为只持有 `active: Vec<(action, Shortcut)>` 用于反注册，bindings 真相源现统一在 settings store。
+  > - 旧命令 `get_shortcuts`/`update_shortcuts` 删除，前端走通用 `get_settings`/`update_settings`。
+  > - `lib.rs` setup 顺序：`settings::init` → db → `shortcut::init(&handle, &settings.shortcuts)`。注：autostart 仍走独立命令（OS 级状态是真相源，不是设置文件镜像），settings.general.autoStart 与 OS 状态的双向同步留到 6.2 处理。
+  > 单元测试：`deep_merge` 覆盖「对象递归 / 数组整体替换」、`#[serde(default)]` 覆盖「缺字段回落默认」三例，全部通过。`cargo check` / `cargo test --lib settings::` 干净。
 
 ### 6.2 前端绑定
 

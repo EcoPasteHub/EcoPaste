@@ -60,8 +60,8 @@ pub fn run() {
             commands::position_window,
             commands::save_window_state,
             commands::restore_window_state,
-            commands::get_shortcuts,
-            commands::update_shortcuts,
+            commands::get_settings,
+            commands::update_settings,
             commands::get_autostart,
             commands::set_autostart,
             commands::is_launched_via_autostart,
@@ -77,6 +77,11 @@ pub fn run() {
             })?;
             handle.manage(window_state_store);
 
+            let settings = settings::init(&handle).map_err(|err| {
+                log::error!("settings initialization failed: {err:?}");
+                err
+            })?;
+
             let handle_db = handle.clone();
             tauri::async_runtime::block_on(async move {
                 let pool = db::init(&handle_db).await.map_err(|err| {
@@ -88,7 +93,7 @@ pub fn run() {
                 Ok::<_, anyhow::Error>(())
             })?;
 
-            shortcut::init(&handle).map_err(|err| {
+            shortcut::init(&handle, &settings.shortcuts).map_err(|err| {
                 log::error!("global shortcut initialization failed: {err:?}");
                 err
             })?;
