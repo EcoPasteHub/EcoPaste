@@ -403,7 +403,8 @@
 
 ### 8.2 分组 / 收藏视图
 
-- [ ] 前端分组 tab、收藏过滤；Rust 查询支持 group/favorite 过滤
+- [x] 前端分组 tab、收藏过滤；Rust 查询支持 group/favorite 过滤
+  > Rust：`db/items.rs::query_items` 早已支持 `favorite`/`group_id` 过滤；本步只补 `list_clipboard_groups` 命令（`commands/clipboard.rs`），薄封装 `db::groups::list_groups`，在 `lib.rs::invoke_handler` 注册。前端：① 新 store `stores/clipboardView.ts` 用 Valtio 持有 `tab: { kind: "all" | "favorite" | "group", groupId? }`，带 `tabToKey`/`keyToTab` 双向编码（`"group:<id>"`）。② 新 hook `useClipboardGroups` 一次性 `invoke("list_clipboard_groups")`——暂无分组 CRUD UI 故不订阅事件。③ `useClipboardItems` 增加 `tab` 参数：`buildQuery` 把 tab 折算成 `favorite`/`groupId` 过滤；effect 依赖 `[keyword, tab]`，切 tab 立即 refetch；`tabRef` 让 `loadMore` 和事件回调读最新视图。④ `clipboard://updated` 事件：在「收藏」/「分组」视图下，对拉到的单条用 `matchesTab(item, tab)` 判定，不匹配则不前置（避免普通新条目污染收藏视图）。⑤ `toggleFavorite` 乐观更新：在收藏视图下取消收藏直接从本地列表移除，UI 立刻反映过滤集合变化。⑥ 新组件 `ClipboardTabs` 用 HeroUI `Tabs`（横向）渲染「全部 / 收藏 + 各分组」，挂在 `SearchBar` 下方；i18n 加 `clipboard.tabs.{all,favorite,ariaLabel}` 两份。分组 CRUD UI（新建 / 重命名 / 删除）留到 8.3 自动行为或后续单做。
 
 ### 8.3 自动行为
 

@@ -69,6 +69,11 @@
       "desc": "Show the raw source of HTML/RTF on hover",
       "label": "Original content preview"
     },
+    "tabs": {
+      "all": "All",
+      "ariaLabel": "Clipboard view",
+      "favorite": "Favorites"
+    },
     "windowPosition": {
       "label": "Spawn position",
       "option": {

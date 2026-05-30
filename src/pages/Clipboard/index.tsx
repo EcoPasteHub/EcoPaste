@@ -5,9 +5,11 @@ import { useSnapshot } from "valtio";
 import { TAURI_EVENT } from "@/constants/events";
 import { WINDOW_LABEL } from "@/constants/windows";
 import { useTauriListen } from "@/hooks/useTauriListen";
+import { clipboardViewState } from "@/stores/clipboardView";
 import { settingsState } from "@/stores/settings";
 
 import ClipboardList from "./components/ClipboardList";
+import ClipboardTabs from "./components/ClipboardTabs";
 import SearchBar from "./components/SearchBar";
 
 interface VisibilityPayload {
@@ -17,6 +19,7 @@ interface VisibilityPayload {
 
 const Clipboard = () => {
   const settings = useSnapshot(settingsState);
+  const view = useSnapshot(clipboardViewState);
   const search = settings.value?.clipboard.search;
   const position = search?.position ?? "top";
   const [keyword, setKeyword] = useState("");
@@ -43,8 +46,9 @@ const Clipboard = () => {
       })}
     >
       <SearchBar inputRef={inputRef} onChange={setKeyword} value={keyword} />
+      <ClipboardTabs />
       <div className="min-h-0 flex-1">
-        <ClipboardList keyword={keyword} />
+        <ClipboardList keyword={keyword} tab={view.tab} />
       </div>
     </div>
   );

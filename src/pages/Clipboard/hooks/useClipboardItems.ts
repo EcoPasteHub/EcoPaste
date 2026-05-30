@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { TAURI_EVENT } from "@/constants/events";
 import { useTauriListen } from "@/hooks/useTauriListen";
+import type { ClipboardViewTab } from "@/stores/clipboardView";
 import type { ClipboardItem, ClipboardItemQuery } from "@/types/clipboard";
 import { log } from "@/utils/log";
 
@@ -39,19 +40,46 @@ const list = (query: ClipboardItemQuery) =>
 const getOne = (id: string) =>
   invoke<ClipboardItem | null>("get_clipboard_item", { id });
 
+const tabToFilter = (
+  tab: ClipboardViewTab,
+): Pick<ClipboardItemQuery, "favorite" | "groupId"> => {
+  switch (tab.kind) {
+    case "favorite":
+      return { favorite: true };
+    case "group":
+      return { groupId: tab.groupId };
+    case "all":
+      return {};
+  }
+};
+
 const buildQuery = (
   keyword: string,
+  tab: ClipboardViewTab,
   limit: number,
   offset: number,
 ): ClipboardItemQuery => {
   const trimmed = keyword.trim();
-  return trimmed.length > 0
-    ? { keyword: trimmed, limit, offset }
-    : { limit, offset };
+  const base: ClipboardItemQuery = { limit, offset, ...tabToFilter(tab) };
+  return trimmed.length > 0 ? { ...base, keyword: trimmed } : base;
+};
+
+// 判定单条新/更新项是否属于当前视图——决定收到 `clipboard://updated` 事件后是否插入列表。
+// 「全部」恒为真；「收藏」需 isFavorite；「分组」需 groupId 匹配。
+const matchesTab = (item: ClipboardItem, tab: ClipboardViewTab): boolean => {
+  switch (tab.kind) {
+    case "all":
+      return true;
+    case "favorite":
+      return item.isFavorite;
+    case "group":
+      return item.groupId === tab.groupId;
+  }
 };
 
 export const useClipboardItems = (
   keyword: string = "",
+  tab: ClipboardViewTab = { kind: "all" },
 ): UseClipboardItemsResult => {
   const [items, setItems] = useState<ClipboardItem[]>([]);
   const [hasMore, setHasMore] = useState(true);
@@ -60,15 +88,18 @@ export const useClipboardItems = (
   const loadingRef = useRef(false);
   // 当前生效的关键词（已防抖），loadMore / 事件回调读它，避免闭包陷旧值。
   const activeKeywordRef = useRef("");
+  // 当前视图同理：tab 切换后立即刷新，事件回调据此判定是否插入。
+  const tabRef = useRef(tab);
+  tabRef.current = tab;
 
   useEffect(() => {
     // 防抖期内 keyword 又变 → clearTimeout 撤掉，请求根本不发。
-    // 已发请求期间 keyword 又变 → cancelled 拦住 setItems，避免旧结果覆盖新结果。
+    // 已发请求期间 keyword/tab 又变 → cancelled 拦住 setItems，避免旧结果覆盖新结果。
     let cancelled = false;
     const timer = window.setTimeout(() => {
       activeKeywordRef.current = keyword;
       loadingRef.current = true;
-      list(buildQuery(keyword, PAGE_SIZE, 0))
+      list(buildQuery(keyword, tab, PAGE_SIZE, 0))
         .then((page) => {
           if (cancelled) return;
           setItems(page);
@@ -83,13 +114,15 @@ export const useClipboardItems = (
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [keyword]);
+  }, [keyword, tab]);
 
   const loadMore = useCallback(() => {
     if (loadingRef.current || !hasMore) return;
     loadingRef.current = true;
     const offset = itemsRef.current.length;
-    list(buildQuery(activeKeywordRef.current, PAGE_SIZE, offset))
+    list(
+      buildQuery(activeKeywordRef.current, tabRef.current, PAGE_SIZE, offset),
+    )
       .then((page) => {
         setItems((prev) => [...prev, ...page]);
         setHasMore(page.length === PAGE_SIZE);
@@ -107,6 +140,8 @@ export const useClipboardItems = (
     getOne(payload.id)
       .then((item) => {
         if (!item) return;
+        // 非「全部」视图：新条目可能不属于当前过滤集合（如普通条目进收藏视图），不插入。
+        if (!matchesTab(item, tabRef.current)) return;
         setItems((prev) => {
           // 去重场景：旧条目移到顶部（updatedAt 已更新）。新条目：直接前置。
           const without = prev.filter((it) => it.id !== item.id);
@@ -136,11 +171,17 @@ export const useClipboardItems = (
         );
       },
       toggleFavorite: (id) => {
-        setItems((prev) =>
-          prev.map((it) =>
-            it.id === id ? { ...it, isFavorite: !it.isFavorite } : it,
-          ),
-        );
+        // 在「收藏」视图下取消收藏后，该条不再属于当前过滤集合 → 从列表移除。
+        // 在其他视图下仅翻转标记，保留位置。
+        setItems((prev) => {
+          const currentTab = tabRef.current;
+          return prev.flatMap((it) => {
+            if (it.id !== id) return [it];
+            const next = { ...it, isFavorite: !it.isFavorite };
+            if (currentTab.kind === "favorite" && !next.isFavorite) return [];
+            return [next];
+          });
+        });
         return invoke<void>("toggle_clipboard_item_favorite", { id }).catch(
           (err) => log.error("toggle_clipboard_item_favorite failed", err),
         );

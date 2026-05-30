@@ -48,6 +48,13 @@ export interface ClipboardApp {
   updatedAt: string;
 }
 
+export interface ClipboardGroup {
+  id: string;
+  name: string;
+  sortOrder: number;
+  createdAt: string;
+}
+
 // 对齐 Rust `#[serde(default)]`：全 optional，前端不传时由 Rust 侧填默认值
 // （limit=50, offset=0, sort=createdAtDesc）。
 export interface ClipboardItemQuery {

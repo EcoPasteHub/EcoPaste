@@ -69,6 +69,11 @@
       "desc": "悬停时显示 HTML/RTF 渲染前的原文",
       "label": "原始内容预览"
     },
+    "tabs": {
+      "all": "全部",
+      "ariaLabel": "剪贴板视图",
+      "favorite": "收藏"
+    },
     "windowPosition": {
       "label": "弹出位置",
       "option": {

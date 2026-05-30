@@ -1,0 +1,25 @@
+import { invoke } from "@tauri-apps/api/core";
+import { useEffect, useState } from "react";
+
+import type { ClipboardGroup } from "@/types/clipboard";
+import { log } from "@/utils/log";
+
+// 分组列表一次性加载。当前阶段不提供分组 CRUD UI，因此不监听变更事件——
+// 后续加上 add/rename/delete 命令后，在这里订阅同源事件 refetch 即可。
+export const useClipboardGroups = (): ClipboardGroup[] => {
+  const [groups, setGroups] = useState<ClipboardGroup[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    invoke<ClipboardGroup[]>("list_clipboard_groups")
+      .then((list) => {
+        if (!cancelled) setGroups(list);
+      })
+      .catch((err) => log.error("list_clipboard_groups failed", err));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return groups;
+};

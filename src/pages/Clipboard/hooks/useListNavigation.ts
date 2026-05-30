@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { TAURI_EVENT } from "@/constants/events";
 import { useTauriListen } from "@/hooks/useTauriListen";
 
-type NavAction = "up" | "down" | "enter" | "escape";
+type NavAction = "up" | "down" | "enter" | "escape" | "nextTab" | "prevTab";
 
 interface NavPayload {
   action: NavAction;

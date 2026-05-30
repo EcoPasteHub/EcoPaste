@@ -13,7 +13,7 @@ use crate::clipboard::{
 };
 use crate::core::{AppError, Result};
 use crate::db::items::find_item_by_id;
-use crate::db::models::{ClipboardItem, ClipboardItemQuery};
+use crate::db::models::{ClipboardGroup, ClipboardItem, ClipboardItemQuery};
 use crate::window::{self, MAIN_WINDOW_LABEL};
 
 /// `read_clipboard` 的返回：入库后的记录 + 是否命中去重（前端据此决定提示/滚动行为）。
@@ -195,6 +195,13 @@ pub async fn list_clipboard_apps(
     ids: Vec<String>,
 ) -> Result<Vec<crate::db::models::ClipboardApp>> {
     crate::db::apps::list_apps_by_ids(&pool, &ids).await
+}
+
+/// 列出全部分组（薄封装），供前端构建分组 tab 栏。
+/// 按 `sort_order` 升序，同序按 `created_at` 兜底。
+#[tauri::command]
+pub async fn list_clipboard_groups(pool: State<'_, SqlitePool>) -> Result<Vec<ClipboardGroup>> {
+    crate::db::groups::list_groups(&pool).await
 }
 
 /// 翻转收藏状态（薄封装）。前端在调用前/后做乐观更新；这里不返回新状态，

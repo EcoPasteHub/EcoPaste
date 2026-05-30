@@ -40,6 +40,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::read_clipboard,
             commands::list_clipboard_items,
+            commands::list_clipboard_groups,
             commands::get_clipboard_item,
             commands::list_clipboard_apps,
             commands::get_clipboard_image_path,

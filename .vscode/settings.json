@@ -11,5 +11,8 @@
   "cSpell.words": ["focusable", "maximizable"],
   "editor.codeActionsOnSave": {
     "source.fixAll.biome": "explicit"
-  }
+  },
+  "i18n-ally.displayLanguage": "zh-CN",
+  "i18n-ally.keystyle": "nested",
+  "i18n-ally.localesPaths": ["src/locales"]
 }

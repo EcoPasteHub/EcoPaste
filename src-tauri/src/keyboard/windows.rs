@@ -8,9 +8,9 @@ use tauri::{AppHandle, Emitter};
 use winapi::shared::minwindef::{LPARAM, LRESULT, UINT, WPARAM};
 use winapi::um::processthreadsapi::GetCurrentThreadId;
 use winapi::um::winuser::{
-    CallNextHookEx, GetMessageW, PostThreadMessageW, SetWindowsHookExW, UnhookWindowsHookEx,
-    KBDLLHOOKSTRUCT, MSG, VK_DOWN, VK_ESCAPE, VK_RETURN, VK_UP, WH_KEYBOARD_LL, WM_KEYDOWN,
-    WM_KEYUP, WM_QUIT, WM_SYSKEYDOWN, WM_SYSKEYUP,
+    CallNextHookEx, GetAsyncKeyState, GetMessageW, PostThreadMessageW, SetWindowsHookExW,
+    UnhookWindowsHookEx, KBDLLHOOKSTRUCT, MSG, VK_DOWN, VK_ESCAPE, VK_RETURN, VK_SHIFT, VK_TAB,
+    VK_UP, WH_KEYBOARD_LL, WM_KEYDOWN, WM_KEYUP, WM_QUIT, WM_SYSKEYDOWN, WM_SYSKEYUP,
 };
 
 use super::NAV_EVENT;
@@ -87,6 +87,12 @@ unsafe extern "system" fn hook_proc(code: i32, wparam: WPARAM, lparam: LPARAM) -
         VK_DOWN => Some("down"),
         VK_RETURN => Some("enter"),
         VK_ESCAPE => Some("escape"),
+        // Tab / Shift+Tab：在前端 ClipboardTabs 里循环切换分组。
+        // GetAsyncKeyState 高位为按住状态；shift 同时按下视为反向。
+        VK_TAB => Some({
+            let shift_down = (GetAsyncKeyState(VK_SHIFT) as u16) & 0x8000 != 0;
+            if shift_down { "prevTab" } else { "nextTab" }
+        }),
         _ => None,
     };
 

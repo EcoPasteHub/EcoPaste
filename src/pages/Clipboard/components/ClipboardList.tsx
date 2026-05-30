@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 
 import { WINDOW_LABEL } from "@/constants/windows";
+import type { ClipboardViewTab } from "@/stores/clipboardView";
 import { log } from "@/utils/log";
 
 import { useClipboardApps } from "../hooks/useClipboardApps";
@@ -10,8 +11,13 @@ import { useClipboardItems } from "../hooks/useClipboardItems";
 import { useListNavigation } from "../hooks/useListNavigation";
 import ClipboardCard from "./cards/ClipboardCard";
 
-const ClipboardList = ({ keyword = "" }: { keyword?: string }) => {
-  const { items, loadMore, actions } = useClipboardItems(keyword);
+interface Props {
+  keyword?: string;
+  tab?: ClipboardViewTab;
+}
+
+const ClipboardList = ({ keyword = "", tab }: Props) => {
+  const { items, loadMore, actions } = useClipboardItems(keyword, tab);
   const apps = useClipboardApps(items);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
 
