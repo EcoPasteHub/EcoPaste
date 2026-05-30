@@ -410,7 +410,8 @@
 
 - [x] auto-favorite（按规则自动收藏，Rust 判定）
   > 沿用旧版「写入备注后自动收藏」语义，但判定下沉到 Rust，避免前端来回读设置。`db/items.rs::mark_item_favorite` 新增幂等 setter（区别于 `toggle_item_favorite` 的翻转），已收藏的不变；命令层 `update_clipboard_item_note` 在归一化后的 note 非空时，从 `SettingsStore.snapshot().clipboard.content.auto_favorite` 读最新开关，开启则调用 `mark_item_favorite`。清空备注（normalized = None）不触发，比旧版「保存即收藏」更直觉。命令返回值从 `()` 改为 `bool`（是否触发了 auto-favorite），前端 `useClipboardItems.updateNote` 据此把乐观更新里的 `isFavorite` 一并设为 true，否则列表会与库不一致（在「收藏」视图下尤其明显）。`SettingsStore` 通过 `app.try_state` 取，未 manage 时保守视为关闭。
-- [ ] auto-paste 模式（never / 双击 / 直接）
+- [x] auto-paste 模式（never / 双击 / 直接）
+  > 设置 / 命令 / i18n 都已就绪（`Settings.clipboard.content.auto_paste` 三态 `disabled` / `singleClick` / `doubleClick`，命令 `paste_clipboard_item` 写回+模拟 ⌘V/Shift+Insert），缺的是前端把 setting 与列表行点击挂上钩。在 `ClipboardList.tsx` 用 `useSnapshot(settingsState)` 拿到 `autoPaste`，把每个 Virtuoso item 外套一层 `<div>` 挂 `onClick`/`onDoubleClick`：单击一律先 `setSelectedIndex(idx)` 保持键盘导航游标与点击位置一致，再按模式决定是否 `actions.paste(item.id)`；双击仅在 `doubleClick` 模式触发。`disabled` 模式只选中不粘贴，与设置面板的「仅选中」文案对齐。卡片内 `ActionButton` 早已 `stopPropagation`，所以 hover 工具条（粘贴/复制/收藏/备注/删除）不会被行级 onClick 串扰；`noteOpen` 的 textarea 区同样 stopPropagation。`autoPaste` 取不到（设置未加载）时默认按 `doubleClick`，与 Rust 端 `Settings::default()` 一致避免首屏闪烁两种行为。
 - [ ] auto-sort（时间 / 频率）
 
 ### 8.4 声音通知
