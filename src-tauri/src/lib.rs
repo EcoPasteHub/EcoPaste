@@ -1,3 +1,4 @@
+mod autostart;
 mod clipboard;
 mod commands;
 mod core;
@@ -54,6 +55,9 @@ pub fn run() {
             commands::restore_window_state,
             commands::get_shortcuts,
             commands::update_shortcuts,
+            commands::get_autostart,
+            commands::set_autostart,
+            commands::is_launched_via_autostart,
         ])
         .setup(move |app| {
             awesome_rpc.start(app.handle().clone());
@@ -79,6 +83,11 @@ pub fn run() {
 
             shortcut::init(&handle).map_err(|err| {
                 log::error!("global shortcut initialization failed: {err:?}");
+                err
+            })?;
+
+            autostart::init(&handle).map_err(|err| {
+                log::error!("autostart initialization failed: {err:?}");
                 err
             })?;
 

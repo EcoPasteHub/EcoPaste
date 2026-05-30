@@ -34,6 +34,7 @@ uuid = { version = "1", features = ["v4"] }
 regex = "1"
 tokio = { version = "1", features = ["time"] }
 tauri-plugin-global-shortcut = "2.3"
+auto-launch = "0.6"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 core-graphics = "0.25"

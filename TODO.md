@@ -260,9 +260,10 @@
 
 ### 5.2 自启动
 
-- [ ] 引入 `tauri-plugin-autostart`
-- [ ] 自定义 `is_autostart()` 检测（eco-autostart 思路）
-- [ ] 偏好设置开关联动
+- [x] ~~引入 `tauri-plugin-autostart`~~ 改为直接调 `auto-launch = "0.6"` crate（上游 plugin bug：tauri-apps/plugins-workspace#1922）
+- [x] 自定义 `is_autostart()` 检测（eco-autostart 思路）
+- [x] 偏好设置开关联动（命令已就位，UI 待阶段 7）
+  > 新增 `src-tauri/src/autostart/mod.rs`：在 setup 末尾 `init(&handle)`，构造 `AutoLaunch{app_name=package_info().name, app_path=current_exe(), args=["--auto-launch"]}` 存入 `State<AutostartManager>`。命令 `commands/autostart.rs::{get_autostart, set_autostart, is_launched_via_autostart}`。`is_launched_via_autostart` 复用旧版 `eco-autostart::is_autostart` 思路——扫 `env::args()` 找 `--auto-launch` flag，给将来「静默启动」用。**不引入 `tauri-plugin-autostart`**：参考 tauri-apps/plugins-workspace#1922，macOS 上 `is_enabled` 会因为 LaunchAgent plist 路径解析差异而误报，`enable` 写入的可执行路径也可能指向 `.app` 内部而非 wrapper，造成开关之后无法卸载；`auto-launch` 直接走 `~/Library/LaunchAgents/<bundle>.plist` 并把 exe 路径作为 `ProgramArguments[0]`，绕过这个 bug。Cargo 新增 `auto-launch = "0.6"`（0.5 不支持以管理员权限运行的应用自动重启，见 issue#1922 评论 3858495164）。
 
 ### 5.3 单实例
 
