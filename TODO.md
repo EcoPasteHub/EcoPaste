@@ -314,7 +314,9 @@
 
 ### 7.1 应用骨架
 
-- [ ] `App.tsx`：HeroUI Provider + 主题 + i18n + 路由
+- [x] `App.tsx`：HeroUI Provider + 主题 + i18n + 路由
+  > HeroUI v3 不需要 Provider 包裹（参见 https://heroui.com/react/llms-patterns.txt ：「No provider required」），改为在 `index.html` 上声明 `class="light"` 与 `body class="bg-background text-foreground"` 让 HeroUI 的 token/CSS 变量生效，避免后续暗色切换时只改 class 而背景色不跟随。
+  > `App.tsx` 仅保留 `RouterProvider`，并加注释把后续 7.1.3 主题与 7.5 i18n 的插入点标出来，避免下次又被「为什么没 Provider」绊一下。
 - [ ] 全局事件监听 hook `useTauriListen`（封装 Tauri event）
 - [ ] 暗色模式应用（监听系统 / 跟随设置），注入 CSS 变量
 
