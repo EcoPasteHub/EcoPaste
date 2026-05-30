@@ -179,10 +179,11 @@
 
 - [x] `#[tauri::command]` 包装 2.1–2.3，供前端按需手动触发（如「重新读取」）
   > `src-tauri/src/commands/clipboard.rs`（薄封装层，仅参数校验 + 调下层）：
+  >
   > - `read_clipboard()` — 手动重新读取并入库，复用监听管线 read_all → `build_item` → `persist_and_notify`（去重入库 + emit `clipboard://updated`），与 OS 监听同一条路径、语义一致。返回 `Option<ReadClipboardResult { item, deduplicated, captured }>`，剪贴板空时为 `None`。
   > - `get_clipboard_image_path(file_name, thumbnail)` — 把图片文件名解析为原图/缩略图绝对路径，供前端预览取图。
-  > 关键点：(1) `ClipboardReader` 的 `ClipboardContext` 是 `!Send`，读取+转换全在 await 前的同步块内完成并 drop，命令 future 才满足 `Send`；(2) `read_clipboard` 与 watcher 共用抽出的 `clipboard::persist_and_notify`，不重复入库/emit 逻辑；(3) `get_clipboard_image_path` 的 `file_name` 是唯一外部输入，`validate_image_file_name` 防路径穿越（拒绝分隔符/`..`/子目录/非 `.png`），单测覆盖。
-  > awesome-rpc 只换 IPC 传输层，命令仍走标准 `generate_handler!`（`lib.rs` 注册）。`cargo test`（42 通过）+ clippy + fmt 均过。
+  >   关键点：(1) `ClipboardReader` 的 `ClipboardContext` 是 `!Send`，读取+转换全在 await 前的同步块内完成并 drop，命令 future 才满足 `Send`；(2) `read_clipboard` 与 watcher 共用抽出的 `clipboard::persist_and_notify`，不重复入库/emit 逻辑；(3) `get_clipboard_image_path` 的 `file_name` 是唯一外部输入，`validate_image_file_name` 防路径穿越（拒绝分隔符/`..`/子目录/非 `.png`），单测覆盖。
+  >   awesome-rpc 只换 IPC 传输层，命令仍走标准 `generate_handler!`（`lib.rs` 注册）。`cargo test`（42 通过）+ clippy + fmt 均过。
 
 > **阶段 2 完成**：剪贴板「监听 → 读取 → 内容识别/图片落盘 → 去重入库 → emit」闭环已通，并提供手动重读 / 取图命令。
 
@@ -195,16 +196,19 @@
 - [x] `tauri.conf.json` 定义两个窗口：
   - `main`：360×600、透明、无边框、置顶、跳过任务栏、默认隐藏、`#/`
   - `preference`：700×480、居中、可调、`#/preference`
-  > 两窗口均 `visible: false`（启动隐藏，由 3.2/3.3 的 show/hide 命令控制显隐）。`main` 加 `resizable:false` + `maximizable:false`（固定浮层尺寸）；`preference` 设 `minWidth/minHeight=700×480` 防缩到不可用。透明窗口依赖 macOS 私有 API：`tauri.conf.json` 开 `app.macOSPrivateApi:true`，`Cargo.toml` 的 `tauri` 同步加 `macos-private-api` feature（否则编译报错）。URL 用 `index.html/#/` 哈希路由，对齐前端 `createHashRouter`。NSPanel 浮层级 / 窗口特效（sidebar）等留待 3.3。
+    > 两窗口均 `visible: false`（启动隐藏，由 3.2/3.3 的 show/hide 命令控制显隐）。`main` 加 `resizable:false` + `maximizable:false`（固定浮层尺寸）；`preference` 设 `minWidth/minHeight=700×480` 防缩到不可用。透明窗口依赖 macOS 私有 API：`tauri.conf.json` 开 `app.macOSPrivateApi:true`，`Cargo.toml` 的 `tauri` 同步加 `macos-private-api` feature（否则编译报错）。URL 用 `index.html/#/` 哈希路由，对齐前端 `createHashRouter`。NSPanel 浮层级 / 窗口特效（sidebar）等留待 3.3。
 - [x] 配置 capabilities/permissions（v2 权限模型，最小授权）
   > [capabilities/default.json](src-tauri/capabilities/default.json)：`windows` 从 `["main"]` 扩到 `["main","preference"]`（新 preference 窗口纳入授权，否则收不到 core 事件）。权限收敛到仅 `core:default`（含 `core:window`/`core:event`/`core:app` 等基础能力，足够前端监听 emit 事件与基本窗口操作）。自定义命令（`read_clipboard` 等）经 `generate_handler!` 注册、属应用自有命令，**不受 ACL 约束**，无需在此授权；awesome-rpc 仅换 IPC 传输层不影响这一点。后续插件能力（window 管理 / paste / 快捷键 / 设置落盘）按阶段最小增量添加。
   > 顺手清理脚手架残留：`opener:default` 权限连同从未注册/引用的 `tauri-plugin-opener` 依赖一并移除（Cargo.toml + Cargo.lock），保持最小授权与零死依赖。`cargo check` 通过。
 
 ### 3.2 自定义窗口插件（eco-window 思路）
 
-- [ ] 命令：`show_window` / `hide_window` / `toggle_window` / `show_taskbar_icon`
-- [ ] 窗口定位计算（Rust）★：跟随光标 / 屏幕居中 / dock 底部；多显示器下取光标所在屏
-- [ ] 窗口位置/尺寸持久化（由 Rust 落盘 `.window-state.json`），启动恢复
+- [x] 命令：`show_window` / `hide_window` / `toggle_window` / `show_taskbar_icon`
+  > 不做成插件，直接作为 `window/mod.rs` 的公共函数 + `commands/window.rs` 的 `#[tauri::command]` 薄封装。`show_window` 执行 show → unminimize → set_focus；`hide_window` 仅 hide；`toggle_window` 按 `is_visible` 分派；`show_taskbar_icon` 平台分支：macOS 调 `set_dock_visibility`，Windows 调 `set_skip_taskbar(!visible)`。`window/mod.rs` 导出 `MAIN_WINDOW_LABEL` / `PREFERENCE_WINDOW_LABEL` 常量供后续模块使用。NSPanel 浮层级特化留待 3.3 接入 `tauri-nspanel` 后在 `show_window`/`hide_window` 中对 main 窗口做分支处理。
+- [x] 窗口定位计算（Rust）★：跟随光标 / 屏幕居中 / dock 底部；多显示器下取光标所在屏
+  > `window/position.rs`：定义 `WindowPosition`（`Remember`/`Follow`/`Center`）和 `WindowStyle`（`Standard`/`Dock`）枚举（`serde` camelCase，阶段 6 设置可直接复用）。核心函数 `position_window(window, style, position)`：先 `monitor_from_cursor` 遍历 `available_monitors()` 命中光标所在屏（物理坐标比对），无命中则 fallback 首个显示器；再按模式分派——`Follow` 将窗口左上角置于光标处并 clamp 到屏幕右/下边界、`Center` 居中于光标所在屏、`Dock` 全宽 400px 贴底（修复旧版多显示器 y 偏移 bug：加上 `monitor.position.y`）、`Remember` 不动。`window/mod.rs` 代理 `position_window(app, label, style, pos)` 取窗口再调内层。命令层 `commands/window.rs` 暴露 `position_window` 供前端调用。`cargo check` 通过。
+- [x] 窗口位置/尺寸持久化（由 Rust 落盘 `.window-state.json`），启动恢复
+  > `window/state.rs`：`WindowStateStore` 持有文件路径 + `Mutex<HashMap<String, WindowState>>`，入 Tauri `State`，`setup` 中初始化。文件名区分环境：dev `window-state.dev.json` / prod `window-state.json`，存放于 `app_local_data_dir` 根目录（对齐 DB 的 dev/prod 命名惯例）。`WindowState { x, y, width, height }` 按窗口 label 索引。`save` 写内存 + 立即落盘 JSON；`get` 仅读内存。`save_window_state(app, label)` 读取窗口当前 `outer_position` + `inner_size` 后存储；`restore_window_state(app, label)` 从存储恢复位置和尺寸，返回 `bool` 表示是否有状态可恢复。命令层 `commands/window.rs` 暴露 `save_window_state` / `restore_window_state` 供前端在窗口 move/resize 事件和启动时调用。`cargo check` 通过。
 
 ### 3.3 macOS NSPanel 特化
 
