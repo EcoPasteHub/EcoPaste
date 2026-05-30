@@ -3,6 +3,7 @@ mod clipboard;
 mod commands;
 mod core;
 mod db;
+mod keyboard;
 mod keystroke;
 mod settings;
 mod shortcut;

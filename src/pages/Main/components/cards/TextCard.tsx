@@ -1,3 +1,4 @@
+import { cn } from "@heroui/styles";
 import DOMPurify from "dompurify";
 import { useMemo } from "react";
 
@@ -35,27 +36,27 @@ const HtmlPreview = ({ html }: { html: string }) => {
 const TextCard = ({ item }: { item: ClipboardItem }) => {
   const isHtml = item.subKind === "html";
   const preview = item.searchText ?? item.content;
+  const isLinkLike = item.subKind === "url" || item.subKind === "email";
 
   return (
     <div className="flex items-start gap-2">
       {item.subKind === "color" ? (
         <div
           aria-hidden
-          className="mt-0.5 size-5 shrink-0 rounded border border-divider"
+          className="mt-0.5 size-5 shrink-0 rounded border border-separator"
           style={{ background: item.content }}
         />
       ) : null}
       <div className="min-w-0 flex-1">
-        <div className="text-default-500 text-xs">{variantLabel(item)}</div>
+        <div className="text-muted text-xs">{variantLabel(item)}</div>
         {isHtml ? (
           <HtmlPreview html={item.content} />
         ) : (
           <div
-            className={
-              item.subKind === "url" || item.subKind === "email"
-                ? "truncate text-primary text-sm"
-                : "line-clamp-2 break-all text-sm"
-            }
+            className={cn("text-sm", {
+              "line-clamp-2 break-all": !isLinkLike,
+              "truncate text-link": isLinkLike,
+            })}
           >
             {preview}
           </div>

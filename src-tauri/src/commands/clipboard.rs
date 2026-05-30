@@ -191,10 +191,7 @@ pub async fn get_clipboard_item(
 /// 翻转收藏状态（薄封装）。前端在调用前/后做乐观更新；这里不返回新状态，
 /// 失败时前端按需回滚 / 重拉单条。
 #[tauri::command]
-pub async fn toggle_clipboard_item_favorite(
-    pool: State<'_, SqlitePool>,
-    id: String,
-) -> Result<()> {
+pub async fn toggle_clipboard_item_favorite(pool: State<'_, SqlitePool>, id: String) -> Result<()> {
     crate::db::items::toggle_item_favorite(&pool, &id).await
 }
 

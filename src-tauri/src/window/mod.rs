@@ -7,6 +7,7 @@ pub use state::WindowStateStore;
 use tauri::{AppHandle, Manager, WebviewWindow, Window};
 
 use crate::core::Result;
+use crate::keyboard;
 
 pub const MAIN_WINDOW_LABEL: &str = "main";
 pub const PREFERENCE_WINDOW_LABEL: &str = "preference";
@@ -22,12 +23,19 @@ pub fn show_window(app_handle: &AppHandle, label: &str) -> Result<()> {
     window.show().map_err(|e| anyhow::anyhow!(e))?;
     window.unminimize().map_err(|e| anyhow::anyhow!(e))?;
     window.set_focus().map_err(|e| anyhow::anyhow!(e))?;
+    if label == MAIN_WINDOW_LABEL {
+        // 主窗口 visible 期间装系统级键盘钩子，让 focusable=false 的 Windows 也能收到导航键。
+        keyboard::enable_navigation_keys(app_handle);
+    }
     Ok(())
 }
 
 pub fn hide_window(app_handle: &AppHandle, label: &str) -> Result<()> {
     let window = get_window(app_handle, label)?;
     window.hide().map_err(|e| anyhow::anyhow!(e))?;
+    if label == MAIN_WINDOW_LABEL {
+        keyboard::disable_navigation_keys();
+    }
     Ok(())
 }
 

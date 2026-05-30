@@ -354,7 +354,8 @@
   > 前端 `useClipboardItems` 暴露 `actions: ClipboardActions`（copy/paste/toggleFavorite/remove/updateNote），写操作走乐观更新（先动本地、失败仅 log，不回滚——剪贴板/SQLite 出错本来罕见，整页 refetch 反而打断滚动；后续接 toast 时统一在 hook 里挂）。`ClipboardCard` 加 hover 显形的文字按钮行（粘贴/复制/收藏/备注/删除）+ 折叠 textarea 备注编辑器，按钮统一 `e.stopPropagation()` 避免冒泡到后续 item 6 的行选中。`ClipboardList` 把 actions 通过 prop 透传给卡片。
 - [x] HTML 预览（DOMPurify sanitize）、Markdown 渲染、RTF 渲染、图片预览
   > `tauri.conf.json > assetProtocol.scope` 追加 `$APPLOCALDATA/resources/images/**`，让缩略图能走 `asset://`。`ImageCard` 在 useEffect 里 invoke `get_clipboard_image_path`（thumbnail=true）拿到磁盘路径后 `convertFileSrc` 拼成 asset URL，`<img>` 渲染 + 占位框；失败仅 log 不抛。`TextCard` 对 `subKind=html` 走新增 `HtmlPreview` 子组件：`DOMPurify.sanitize`（FORBID_TAGS: script/style）后 `dangerouslySetInnerHTML`，外层 `max-h-16 overflow-hidden` 防大段 HTML 撑爆行。RTF 沿用 `searchText` 纯文本预览（不引 RTF→HTML 库，依赖太重且现有库质量参差）；Markdown 暂跳过（Rust detect.rs 没识别 subKind=markdown，需要时再补检测+marked）。
-- [ ] 选中态、键盘上下选择、Enter 粘贴、Esc 隐藏
+- [x] 选中态、键盘上下选择、Enter 粘贴、Esc 隐藏
+  > 主窗口 `tauri.conf.json` 加 `focusable: false`：macOS 自动用 NSPanel；Windows 不抢前台焦点但 WebView 收不到键盘事件——参考 QuickClipboard 的方案在 Rust 侧加 `keyboard/` 模块装 `WH_KEYBOARD_LL` 低级钩子（用现有 `winapi` crate，无新依赖），命中 Up/Down/Enter/Esc 后 emit `keyboard://nav` `{action}` 给前端，并返回 `LRESULT(1)` 吞键 + `CONSUMED_KEYS` 集合让配对的 KEYUP 也吞，防止泄到背后聚焦的应用。钩子线程跟随主窗口 show/hide 生命周期：`show_window`/`hide_window` 在 main 分支调用 `enable/disable_navigation_keys`，disable 通过 `PostThreadMessageW(WM_QUIT)` 让消息泵自然退出，避免常驻全局抓键。macOS 走 noop 实现。`show_window` 同时跳过对 main 窗口的 `set_focus`（focusable=false 后无意义）。前端新增 `useListNavigation` hook 同时挂 `window.keydown`（macOS 路径）和 `useTauriListen(keyboard://nav)`（Windows 路径），另一端自然不触发，不做平台判断；`ClipboardList` 接入 `selectedIndex` + `VirtuosoHandle.scrollToIndex` 跟随，Enter → `actions.paste`，Esc → `invoke("hide_window", {label: "main"})` 复用已有命令。`ClipboardCard` 新增 `isSelected` prop 加 `bg-default-100` 视觉态。
 
 ### 7.3 搜索
 

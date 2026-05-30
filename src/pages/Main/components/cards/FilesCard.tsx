@@ -16,14 +16,12 @@ const FilesCard = ({ item }: { item: ClipboardItem }) => {
 
   return (
     <div className="min-w-0">
-      <div className="text-default-500 text-xs">
+      <div className="text-muted text-xs">
         Files{paths.length > 1 ? ` · ${paths.length}` : ""}
       </div>
       <div className="truncate text-sm">
         {basename(first)}
-        {rest > 0 ? (
-          <span className="text-default-500"> 等 {rest} 项</span>
-        ) : null}
+        {rest > 0 ? <span className="text-muted"> 等 {rest} 项</span> : null}
       </div>
     </div>
   );

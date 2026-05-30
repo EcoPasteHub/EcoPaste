@@ -1,3 +1,4 @@
+import { cn } from "@heroui/styles";
 import { useState } from "react";
 
 import type { ClipboardItem } from "@/types/clipboard";
@@ -40,14 +41,13 @@ const ActionButton = ({
   danger?: boolean;
   children: React.ReactNode;
 }) => {
-  const tone = danger
-    ? "text-danger hover:text-danger-600"
-    : active
-      ? "text-primary"
-      : "text-default-500 hover:text-default-700";
   return (
     <button
-      className={`rounded px-1.5 py-0.5 text-xs ${tone}`}
+      className={cn("rounded px-1.5 py-0.5 text-xs", {
+        "text-danger hover:text-danger-hover": danger,
+        "text-link": !danger && active,
+        "text-muted hover:text-foreground": !danger && !active,
+      })}
       onClick={(e) => {
         // 阻止冒泡，避免触发后续 7.2 item 6 的列表行选中。
         e.stopPropagation();
@@ -63,9 +63,11 @@ const ActionButton = ({
 const ClipboardCard = ({
   item,
   actions,
+  isSelected = false,
 }: {
   item: ClipboardItem;
   actions: ClipboardActions;
+  isSelected?: boolean;
 }) => {
   const [noteOpen, setNoteOpen] = useState(false);
   const [draft, setDraft] = useState(item.note ?? "");
@@ -81,16 +83,20 @@ const ClipboardCard = ({
   };
 
   return (
-    <div className="group relative border-divider border-b px-3 py-2">
+    <div
+      className={cn("group relative border-separator border-b px-3 py-2", {
+        "bg-accent-soft text-accent-soft-foreground": isSelected,
+      })}
+    >
       {renderBody(item)}
 
       {item.note ? (
-        <div className="mt-1 truncate text-default-600 text-xs italic">
+        <div className="mt-1 truncate text-muted text-xs italic">
           备注：{item.note}
         </div>
       ) : null}
 
-      <div className="mt-1 flex items-center justify-between text-default-400 text-xs">
+      <div className="mt-1 flex items-center justify-between text-muted text-xs">
         <span>{formatTime(item.createdAt)}</span>
         <span className="flex items-center gap-2">
           {item.isPinned ? <span title="置顶">●</span> : null}
@@ -122,7 +128,7 @@ const ClipboardCard = ({
           onKeyDown={(e) => e.stopPropagation()}
         >
           <textarea
-            className="rounded border border-divider bg-default-100 px-2 py-1 text-xs"
+            className="rounded border border-separator bg-surface-secondary px-2 py-1 text-xs"
             onChange={(e) => setDraft(e.target.value)}
             placeholder="备注..."
             ref={(el) => el?.focus()}
