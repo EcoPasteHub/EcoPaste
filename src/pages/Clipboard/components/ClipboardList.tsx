@@ -19,11 +19,15 @@ interface Props {
 }
 
 const ClipboardList = ({ keyword = "", tab }: Props) => {
-  const { items, loadMore, actions } = useClipboardItems(keyword, tab);
-  const apps = useClipboardApps(items);
-  const virtuosoRef = useRef<VirtuosoHandle>(null);
   const { value: settings } = useSnapshot(settingsState);
   const autoPaste = settings?.clipboard.content.autoPaste ?? "doubleClick";
+  const sort = settings?.clipboard.content.autoSortByFrequency
+    ? "useCountDesc"
+    : "createdAtDesc";
+
+  const { items, loadMore, actions } = useClipboardItems(keyword, tab, sort);
+  const apps = useClipboardApps(items);
+  const virtuosoRef = useRef<VirtuosoHandle>(null);
 
   const { selectedIndex, setSelectedIndex } = useListNavigation({
     count: items.length,

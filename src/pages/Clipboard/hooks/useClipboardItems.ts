@@ -5,7 +5,11 @@ import { TAURI_COMMAND } from "@/constants/commands";
 import { TAURI_EVENT } from "@/constants/events";
 import { useTauriListen } from "@/hooks/useTauriListen";
 import type { ClipboardViewTab } from "@/stores/clipboardView";
-import type { ClipboardItem, ClipboardItemQuery } from "@/types/clipboard";
+import type {
+  ClipboardItem,
+  ClipboardItemQuery,
+  ClipboardItemSort,
+} from "@/types/clipboard";
 import { log } from "@/utils/log";
 
 const PAGE_SIZE = 50;
@@ -57,11 +61,17 @@ const tabToFilter = (
 const buildQuery = (
   keyword: string,
   tab: ClipboardViewTab,
+  sort: ClipboardItemSort,
   limit: number,
   offset: number,
 ): ClipboardItemQuery => {
   const trimmed = keyword.trim();
-  const base: ClipboardItemQuery = { limit, offset, ...tabToFilter(tab) };
+  const base: ClipboardItemQuery = {
+    limit,
+    offset,
+    sort,
+    ...tabToFilter(tab),
+  };
   return trimmed.length > 0 ? { ...base, keyword: trimmed } : base;
 };
 
@@ -81,6 +91,7 @@ const matchesTab = (item: ClipboardItem, tab: ClipboardViewTab): boolean => {
 export const useClipboardItems = (
   keyword: string = "",
   tab: ClipboardViewTab = { kind: "all" },
+  sort: ClipboardItemSort = "createdAtDesc",
 ): UseClipboardItemsResult => {
   const [items, setItems] = useState<ClipboardItem[]>([]);
   const [hasMore, setHasMore] = useState(true);
@@ -92,15 +103,17 @@ export const useClipboardItems = (
   // 当前视图同理：tab 切换后立即刷新，事件回调据此判定是否插入。
   const tabRef = useRef(tab);
   tabRef.current = tab;
+  const sortRef = useRef(sort);
+  sortRef.current = sort;
 
   useEffect(() => {
     // 防抖期内 keyword 又变 → clearTimeout 撤掉，请求根本不发。
-    // 已发请求期间 keyword/tab 又变 → cancelled 拦住 setItems，避免旧结果覆盖新结果。
+    // 已发请求期间 keyword/tab/sort 又变 → cancelled 拦住 setItems，避免旧结果覆盖新结果。
     let cancelled = false;
     const timer = window.setTimeout(() => {
       activeKeywordRef.current = keyword;
       loadingRef.current = true;
-      list(buildQuery(keyword, tab, PAGE_SIZE, 0))
+      list(buildQuery(keyword, tab, sort, PAGE_SIZE, 0))
         .then((page) => {
           if (cancelled) return;
           setItems(page);
@@ -115,14 +128,20 @@ export const useClipboardItems = (
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [keyword, tab]);
+  }, [keyword, tab, sort]);
 
   const loadMore = useCallback(() => {
     if (loadingRef.current || !hasMore) return;
     loadingRef.current = true;
     const offset = itemsRef.current.length;
     list(
-      buildQuery(activeKeywordRef.current, tabRef.current, PAGE_SIZE, offset),
+      buildQuery(
+        activeKeywordRef.current,
+        tabRef.current,
+        sortRef.current,
+        PAGE_SIZE,
+        offset,
+      ),
     )
       .then((page) => {
         setItems((prev) => [...prev, ...page]);
