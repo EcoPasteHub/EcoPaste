@@ -3,6 +3,10 @@
   "app": {
     "macOSPrivateApi": true,
     "security": {
+      "assetProtocol": {
+        "enable": true,
+        "scope": ["$APPLOCALDATA/resources/app-icons/**"]
+      },
       "csp": null
     },
     "windows": [

@@ -37,6 +37,7 @@ pub fn run() {
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
             commands::read_clipboard,
+            commands::list_clipboard_items,
             commands::get_clipboard_image_path,
             commands::get_clipboard_app_icon_path,
             commands::write_to_clipboard,

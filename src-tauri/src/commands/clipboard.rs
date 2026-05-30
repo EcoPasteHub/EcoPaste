@@ -13,7 +13,7 @@ use crate::clipboard::{
 };
 use crate::core::{AppError, Result};
 use crate::db::items::find_item_by_id;
-use crate::db::models::ClipboardItem;
+use crate::db::models::{ClipboardItem, ClipboardItemQuery};
 use crate::window::{self, MAIN_WINDOW_LABEL};
 
 /// `read_clipboard` 的返回：入库后的记录 + 是否命中去重（前端据此决定提示/滚动行为）。
@@ -165,6 +165,17 @@ pub async fn paste_clipboard_item(
 
     crate::keystroke::simulate_paste()?;
     Ok(())
+}
+
+/// 列表查询命令（薄封装）：参数缺省时走 Rust 端默认（limit=50, offset=0, createdAtDesc）；
+/// `keyword` 非空时由 `query_items` 内部自动委派 FTS5。
+#[tauri::command]
+pub async fn list_clipboard_items(
+    pool: State<'_, SqlitePool>,
+    query: Option<ClipboardItemQuery>,
+) -> Result<Vec<ClipboardItem>> {
+    let q = query.unwrap_or_default();
+    crate::db::items::query_items(&pool, &q).await
 }
 
 /// 校验图片文件名：必须是单层 `<name>.png`，不含路径分隔符 / 父目录引用。

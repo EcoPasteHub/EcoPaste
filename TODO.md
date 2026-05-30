@@ -334,12 +334,16 @@
 - [x] `clipboard/source.rs`：macOS 走 `NSWorkspace.frontmostApplication` 取 bundle id / localizedName / icon（NSImage → TIFF → NSBitmapImageRep → PNG）；Windows 占位返回 None
 - [x] watcher：回调里**先**同步抓前台应用（晚一步前台会切回 EcoPaste 自己），materialize 后随 item 一并 upsert；apps 表写失败降级为 source_app_id=None，不阻断条目入库
 - [x] `read_clipboard` 命令同走采源链路；新增 `get_clipboard_app_icon_path` 命令（沿用图片同款防穿越校验）
-- [ ] 待 7.2 接入前端时一并补：capability `asset:default` scope 放开 `app-icons/**`、`ClipboardItem` 的 TS 类型同步 `sourceAppId`
+- [x] 待 7.2 接入前端时一并补：capability `asset:default` scope 放开 `app-icons/**`、`ClipboardItem` 的 TS 类型同步 `sourceAppId`
+  > Tauri v2 的 asset 协议没有 `asset:default` 这种 capability permission（实测会被 build script 拒绝），真正的开关是：① `Cargo.toml` 加 `protocol-asset` feature；② `tauri.conf.json > app.security.assetProtocol` 配 `enable: true` + `scope: ["$APPLOCALDATA/resources/app-icons/**"]`。scope 就是访问网关，capabilities 不需要再列。
+  > TS 类型新增 `src/types/clipboard.ts`，camelCase 与 `db/models.rs` 对齐：`ClipboardItem`（含 `sourceAppId`）/ `ClipboardApp` / `ClipboardItemQuery` / `ReadClipboardResult` / 三个枚举 union。日期字段按 serde 默认 ISO8601 字符串。
 - [ ] **dev 注意**：0001 迁移已变更，本地老 DB 需删除后重启（sqlx checksum 不匹配会拒启动）
 
 ### 7.2 剪贴板历史列表（main 窗口）
 
-- [ ] 列表容器：`react-virtuoso` 虚拟滚动
+- [x] 列表容器：`react-virtuoso` 虚拟滚动
+  > `pnpm add react-virtuoso`（4.18.7）。`src/pages/Main/components/ClipboardList.tsx` 用 `<Virtuoso>` 渲染列表，`style={{height: "100%"}}` + 外层 `h-screen w-screen` 让其占满 main 窗口（360×600 固定）。Row 仅占位（kind + content slice）—— 分类型卡片是 item 2 的职责。
+  > 顺带把数据源 `list_clipboard_items` 也补上（item 3 预热）：`src-tauri/src/commands/clipboard.rs` 薄封装 `db::items::query_items`，参数 `Option<ClipboardItemQuery>`，缺省走 Rust 默认（limit=50, offset=0, createdAtDesc）；FTS 委派沿用 `query_items` 内部判断。`lib.rs` 注册了。初始加载用 `invoke<ClipboardItem[]>("list_clipboard_items")`，失败走 `@/utils/log`（不要裸 console）。事件驱动增量刷新留给 item 3 余下部分。
 - [ ] 历史项组件：按 type 渲染（text/rtf/html/image/files 各自卡片）
 - [ ] 从 Rust 命令拉取分页数据；监听「剪贴板更新」事件增量刷新
 - [ ] 操作：复制回 / 粘贴 / 收藏 / 删除 / 备注（调用 Rust 命令）
