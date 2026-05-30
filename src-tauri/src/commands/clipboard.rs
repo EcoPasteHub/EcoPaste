@@ -188,6 +188,15 @@ pub async fn get_clipboard_item(
     find_item_by_id(&pool, &id).await
 }
 
+/// 按 id 列表批量取来源应用——前端渲染卡片时一次性补齐图标/名称。
+#[tauri::command]
+pub async fn list_clipboard_apps(
+    pool: State<'_, SqlitePool>,
+    ids: Vec<String>,
+) -> Result<Vec<crate::db::models::ClipboardApp>> {
+    crate::db::apps::list_apps_by_ids(&pool, &ids).await
+}
+
 /// 翻转收藏状态（薄封装）。前端在调用前/后做乐观更新；这里不返回新状态，
 /// 失败时前端按需回滚 / 重拉单条。
 #[tauri::command]

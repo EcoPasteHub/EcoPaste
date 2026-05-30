@@ -4,12 +4,14 @@ import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 
 import { log } from "@/utils/log";
 
+import { useClipboardApps } from "../hooks/useClipboardApps";
 import { useClipboardItems } from "../hooks/useClipboardItems";
 import { useListNavigation } from "../hooks/useListNavigation";
 import ClipboardCard from "./cards/ClipboardCard";
 
 const ClipboardList = () => {
   const { items, loadMore, actions } = useClipboardItems();
+  const apps = useClipboardApps(items);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
 
   const { selectedIndex } = useListNavigation({
@@ -39,6 +41,7 @@ const ClipboardList = () => {
       itemContent={(idx, item) => (
         <ClipboardCard
           actions={actions}
+          app={item.sourceAppId ? apps.get(item.sourceAppId) : undefined}
           isSelected={idx === selectedIndex}
           item={item}
         />

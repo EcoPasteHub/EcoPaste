@@ -3,6 +3,7 @@ import { useState } from "react";
 
 import type { ClipboardItem } from "@/types/clipboard";
 
+import type { AppMeta } from "../../hooks/useClipboardApps";
 import type { ClipboardActions } from "../../hooks/useClipboardItems";
 import FilesCard from "./FilesCard";
 import ImageCard from "./ImageCard";
@@ -63,10 +64,12 @@ const ActionButton = ({
 const ClipboardCard = ({
   item,
   actions,
+  app,
   isSelected = false,
 }: {
   item: ClipboardItem;
   actions: ClipboardActions;
+  app?: AppMeta;
   isSelected?: boolean;
 }) => {
   const [noteOpen, setNoteOpen] = useState(false);
@@ -97,7 +100,24 @@ const ClipboardCard = ({
       ) : null}
 
       <div className="mt-1 flex items-center justify-between text-muted text-xs">
-        <span>{formatTime(item.createdAt)}</span>
+        <span className="flex items-center gap-1.5">
+          {app ? (
+            app.iconSrc ? (
+              <img
+                alt=""
+                className="size-3.5 shrink-0 rounded-sm"
+                src={app.iconSrc}
+                title={app.name}
+              />
+            ) : (
+              <span
+                className="size-3.5 shrink-0 rounded-sm bg-surface-secondary"
+                title={app.name}
+              />
+            )
+          ) : null}
+          <span>{formatTime(item.createdAt)}</span>
+        </span>
         <span className="flex items-center gap-2">
           {item.isPinned ? <span title="置顶">●</span> : null}
           {item.isFavorite ? <span title="收藏">★</span> : null}

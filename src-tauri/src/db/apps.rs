@@ -24,6 +24,27 @@ pub async fn find_app_by_id(pool: &SqlitePool, id: &str) -> Result<Option<Clipbo
     Ok(row)
 }
 
+/// 按 id 列表批量取——给前端渲染卡片时一次性补齐 icon/name 用。
+/// 空列表直接返回空结果，避免拼出 `IN ()` 这种非法 SQL。
+pub async fn list_apps_by_ids(pool: &SqlitePool, ids: &[String]) -> Result<Vec<ClipboardApp>> {
+    if ids.is_empty() {
+        return Ok(Vec::new());
+    }
+    let mut qb: QueryBuilder<Sqlite> = QueryBuilder::new(SELECT_APP);
+    qb.push(" WHERE id IN (");
+    let mut sep = qb.separated(", ");
+    for id in ids {
+        sep.push_bind(id.clone());
+    }
+    qb.push(")");
+    let rows = qb
+        .build_query_as::<ClipboardApp>()
+        .fetch_all(pool)
+        .await
+        .context("failed to list clipboard apps by ids")?;
+    Ok(rows)
+}
+
 /// upsert：id 已存在则只刷新 name / icon_file / updated_at；不存在则全量插入。
 /// 显式分两路而非依赖 `INSERT OR REPLACE`：后者会重置 created_at 与（潜在的）外键级联。
 pub async fn upsert_app(pool: &SqlitePool, app: &ClipboardApp) -> Result<()> {
