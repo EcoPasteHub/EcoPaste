@@ -370,10 +370,14 @@
 
 ### 7.4 偏好设置（preference 窗口）
 
-- [ ] 设置页框架（分组：常规 / 剪贴板 / 快捷键 / 外观 / 关于）
-- [ ] 各项控件绑定 Rust `get_settings`/`update_settings`
-- [ ] 快捷键录制控件
-- [ ] 主题切换、语言切换
+- [x] 设置页框架（分组：常规 / 剪贴板 / 快捷键 / 外观 / 关于）
+  > `src/pages/Preference/index.tsx` 用 HeroUI v3 `Tabs orientation="vertical"`：左侧 `w-36` 侧栏 + 右侧 `flex-1 overflow-auto` 内容区，撑满 `h-screen w-screen`（preference 窗口 700×480）。`GROUPS` 数组单一来源驱动 Tab 与 Panel，新增/调整分组只改一处。各 Panel 暂为「待接入」占位 —— 控件绑定 `get_settings`/`update_settings` 留给下一项；文案先硬编码中文，等 7.5 引 i18n 后统一替换。
+- [x] 各项控件绑定 Rust `get_settings`/`update_settings`
+  > 新增 `components/Row.tsx`（label + 描述 + 右侧 control 行）和 `components/Field.tsx`（`Toggle` 薄封装 HeroUI Switch；`SelectControl<T>` 薄封装 Select+ListBox，泛型锁定枚举字面量），避免每个面板重复写 `Switch.Control/Thumb` / `Select.Trigger/Popover/ListBox.Item`。`panels/GeneralPanel.tsx` 4 个 Switch；`panels/ClipboardPanel.tsx` 按 content/history/search/window/feedback 5 个 Section 拆分（每段标题 + Separator 分隔），含 `NumberField` 处理 `history.maxCount` 与 `retention.value`（unit=forever 时隐藏数值行）；`panels/AboutPanel.tsx` 用 `@tauri-apps/api/app` 的 `getName/getVersion` 异步取值 + 仓库链接。`shortcuts` / `appearance` 暂留占位指向 7.4 第 3、4 项。所有写操作走 `updateSettings({ <group>: { <field>: v } })`，依赖 Rust `update_settings` 的 JSON 合并把单字段补丁深合并进 `Settings`，再用返回快照覆盖 `settingsState`——前端不本地变更、不回滚，避免与 Rust 真相源漂移。`itemActions` 顺序编辑器复杂度高（拖拽 + 子集选择）且非 MVP 关键路径，留作后续单独项。各面板用 `useSnapshot(settingsState).value`，未加载时 `return null`（preference 独立窗口启动时 `main.tsx` 已发起 `loadSettings`，首帧短暂空白可接受）。
+- [x] 快捷键录制控件
+  > 新增 `components/ShortcutInput.tsx`：触发按钮显示当前 binding（空值显占位「未设置」）；点击展开 HeroUI `Popover`，内含 dashed 边框的「录制区」按钮 + 清除/取消/保存。`useEffect(open)` 在 popover 打开后 `focus()` 录制按钮（不用 autoFocus，绕开 biome a11y）。`onKeyDown` 里 `preventDefault + stopPropagation` 吞下所有按键，按 `event.code` 映射成 `Letter/Digit/Fn/Arrow/Space|Enter|…`，再按平台拼修饰键名（mac: Cmd/Option；其他: Super/Alt + Ctrl/Shift）；提交时 `toCanonical` 把 Option 写回 Alt，库内统一一套字符串，避免分平台两份。完整组合（≥1 修饰 + 1 主键）在 keydown 即提交并关闭 popover；`modifierOnly` 模式（QuickPaste.modifier）改为按 Save 按钮提交——因为 keyup 阶段 metaKey/ctrlKey 已清零，无法在那时取到组合，必须显式确认。`panels/ShortcutsPanel.tsx` 接入 4 行：openClipboard / openPreference / pastePlain（不在 OS 级注册，但格式一致复用同组件）/ quickPaste.modifier（modifierOnly）。写操作走 `updateSettings({ shortcuts: { ... } })`，Rust 端 `commands/settings.rs` 检测到 `shortcuts` 字段会自动 `shortcut::apply()` 重新注册，冲突走 `shortcut://conflict` 事件——前端 toast 系统暂缺，这里不订阅，等通知组件就位再补；命令行/Rust 日志已能看到冲突原因。浏览器层面有少量系统级组合（如 macOS Cmd+Space）拿不到 KeyboardEvent，属已知限制。
+- [x] 主题切换、语言切换
+  > `panels/AppearancePanel.tsx` 两个 `SelectControl`：主题 auto/light/dark、语言 zh-CN/zh-TW/en-US/ja-JP。主题写回 `updateSettings({ appearance: { theme } })`，App.tsx 已挂的 `useApplyTheme` 监听 `settingsState.appearance.theme`，自动重新 `appWindow.setTheme + applyClass`——预览/主窗都即时切。语言这一项只落库，实际文案切换等 7.5 引 i18next；当前 description 注明「i18n 接入后即时生效」。
 
 ### 7.5 i18n
 
