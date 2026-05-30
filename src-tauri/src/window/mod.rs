@@ -1,70 +1,57 @@
 mod position;
 mod state;
 
+#[cfg(target_os = "macos")]
+pub mod macos;
+#[cfg(target_os = "windows")]
+pub mod windows;
+
+#[cfg(target_os = "macos")]
+pub use macos::handle_reopen;
 pub use position::{WindowPosition, WindowStyle};
 pub use state::WindowStateStore;
 
 use tauri::{AppHandle, Manager, WebviewWindow, Window};
 
 use crate::core::Result;
-use crate::keyboard;
 
 pub const MAIN_WINDOW_LABEL: &str = "main";
 pub const PREFERENCE_WINDOW_LABEL: &str = "preference";
 
-fn get_window(app_handle: &AppHandle, label: &str) -> Result<WebviewWindow> {
+pub(super) fn get_window(app_handle: &AppHandle, label: &str) -> Result<WebviewWindow> {
     app_handle
         .get_webview_window(label)
         .ok_or_else(|| anyhow::anyhow!("window not found: {label}").into())
 }
 
 pub fn show_window(app_handle: &AppHandle, label: &str) -> Result<()> {
-    let window = get_window(app_handle, label)?;
-    window.show().map_err(|e| anyhow::anyhow!(e))?;
-    window.unminimize().map_err(|e| anyhow::anyhow!(e))?;
-    // main 不调 set_focus：Windows 上要避免抢走前台应用的焦点（粘贴目标）。
-    // macOS 走 Web keydown 仍需要 webview 是 key window，由前端/平台默认行为承担。
-    if label == MAIN_WINDOW_LABEL {
-        keyboard::enable_navigation_keys(app_handle);
-    } else {
-        window.set_focus().map_err(|e| anyhow::anyhow!(e))?;
-    }
-    Ok(())
+    #[cfg(target_os = "macos")]
+    return macos::show_window(app_handle, label);
+    #[cfg(target_os = "windows")]
+    return windows::show_window(app_handle, label);
 }
 
 pub fn hide_window(app_handle: &AppHandle, label: &str) -> Result<()> {
-    let window = get_window(app_handle, label)?;
-    window.hide().map_err(|e| anyhow::anyhow!(e))?;
-    if label == MAIN_WINDOW_LABEL {
-        keyboard::disable_navigation_keys();
-    }
-    Ok(())
+    #[cfg(target_os = "macos")]
+    return macos::hide_window(app_handle, label);
+    #[cfg(target_os = "windows")]
+    return windows::hide_window(app_handle, label);
 }
 
 pub fn toggle_window(app_handle: &AppHandle, label: &str) -> Result<()> {
-    let window = get_window(app_handle, label)?;
-    if window.is_visible().unwrap_or(false) {
+    let visible = get_window(app_handle, label)?.is_visible().unwrap_or(false);
+    if visible {
         hide_window(app_handle, label)
     } else {
         show_window(app_handle, label)
     }
 }
 
-#[cfg(target_os = "macos")]
 pub fn show_taskbar_icon(app_handle: &AppHandle, visible: bool) -> Result<()> {
-    app_handle
-        .set_dock_visibility(visible)
-        .map_err(|e| anyhow::anyhow!(e))?;
-    Ok(())
-}
-
-#[cfg(target_os = "windows")]
-pub fn show_taskbar_icon(app_handle: &AppHandle, visible: bool) -> Result<()> {
-    let window = get_window(app_handle, MAIN_WINDOW_LABEL)?;
-    window
-        .set_skip_taskbar(!visible)
-        .map_err(|e| anyhow::anyhow!(e))?;
-    Ok(())
+    #[cfg(target_os = "macos")]
+    return macos::show_taskbar_icon(app_handle, visible);
+    #[cfg(target_os = "windows")]
+    return windows::show_taskbar_icon(app_handle, visible);
 }
 
 pub fn position_window(
@@ -92,15 +79,4 @@ pub fn hide_on_close(window: &Window) -> bool {
         log::error!("hide window on close failed: {err:?}");
     }
     true
-}
-
-/// macOS 点击 dock 图标 reopen 时，无可见窗口则唤起偏好窗口。
-#[cfg(target_os = "macos")]
-pub fn handle_reopen(app_handle: &AppHandle, has_visible_windows: bool) {
-    if has_visible_windows {
-        return;
-    }
-    if let Err(err) = show_window(app_handle, PREFERENCE_WINDOW_LABEL) {
-        log::error!("show preference window on reopen failed: {err:?}");
-    }
 }

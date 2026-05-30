@@ -16,7 +16,6 @@
       {
         "alwaysOnTop": true,
         "decorations": false,
-        "focusable": false,
         "height": 600,
         "label": "main",
         "maximizable": false,

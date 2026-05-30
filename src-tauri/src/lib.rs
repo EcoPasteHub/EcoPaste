@@ -3,6 +3,7 @@ mod clipboard;
 mod commands;
 mod core;
 mod db;
+#[cfg(target_os = "windows")]
 mod keyboard;
 mod keystroke;
 mod settings;
@@ -63,6 +64,10 @@ pub fn run() {
         .setup(move |app| {
             let handle = app.handle().clone();
 
+            // macOS：plugin 必须在 to_panel 前注册。
+            #[cfg(target_os = "macos")]
+            window::macos::register_plugin(&handle);
+
             let window_state_store = window::WindowStateStore::new(&handle).map_err(|err| {
                 log::error!("window state store initialization failed: {err:?}");
                 err
@@ -94,6 +99,16 @@ pub fn run() {
                 log::error!("autostart initialization failed: {err:?}");
                 err
             })?;
+
+            // 平台主窗口初始化：macOS 转 NSPanel；Windows 改 focusable=false。
+            #[cfg(target_os = "macos")]
+            if let Err(err) = window::macos::setup_main(&handle) {
+                log::error!("setup main NSPanel failed: {err:?}");
+            }
+            #[cfg(target_os = "windows")]
+            if let Err(err) = window::windows::setup_main(&handle) {
+                log::error!("setup main (windows) failed: {err:?}");
+            }
 
             Ok(())
         })
