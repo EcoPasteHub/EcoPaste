@@ -1,5 +1,6 @@
 import ReactDOM from "react-dom/client";
 import App from "@/App";
+import { initI18n } from "@/locales";
 import { loadSettings } from "@/stores/settings";
 import { log } from "@/utils/log";
 import "@/styles/index.css";
@@ -13,6 +14,11 @@ const root = ReactDOM.createRoot(
 loadSettings()
   .catch((err) => {
     log.error("load settings failed", err);
+    return null;
+  })
+  .then((settings) => initI18n(settings?.appearance.language ?? "zh-CN"))
+  .catch((err) => {
+    log.error("init i18n failed", err);
   })
   .finally(() => {
     root.render(<App />);

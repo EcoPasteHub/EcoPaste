@@ -68,12 +68,21 @@ pub enum Language {
     #[default]
     #[serde(rename = "zh-CN")]
     ZhCN,
-    #[serde(rename = "zh-TW")]
-    ZhTW,
     #[serde(rename = "en-US")]
     EnUS,
-    #[serde(rename = "ja-JP")]
-    JaJP,
+}
+
+impl Language {
+    /// 把系统 locale（如 `zh_CN.UTF-8` / `en-US` / `ja-JP`）映射到支持的语言；
+    /// 任何 zh-* 都归到 zh-CN，其余一律 en-US。
+    pub fn from_system_locale(tag: &str) -> Self {
+        let lower = tag.to_ascii_lowercase();
+        if lower.starts_with("zh") {
+            Self::ZhCN
+        } else {
+            Self::EnUS
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]

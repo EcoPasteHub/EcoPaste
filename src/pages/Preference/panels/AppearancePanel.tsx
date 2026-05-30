@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useSnapshot } from "valtio";
 import { settingsState, updateSettings } from "@/stores/settings";
 import type { Appearance, Language, Theme } from "@/types/settings";
@@ -6,7 +7,16 @@ import Row from "../components/Row";
 
 const patch = (p: Partial<Appearance>) => updateSettings({ appearance: p });
 
+const THEME_KEYS: Theme[] = ["auto", "light", "dark"];
+
+const LANG_KEYS: Language[] = ["zh-CN", "en-US"];
+const LANG_LABEL: Record<Language, string> = {
+  "en-US": "English",
+  "zh-CN": "简体中文",
+};
+
 const AppearancePanel = () => {
+  const { t } = useTranslation();
   const { value } = useSnapshot(settingsState);
   if (!value) return null;
   const a = value.appearance;
@@ -17,31 +27,25 @@ const AppearancePanel = () => {
         control={
           <SelectControl<Theme>
             onChange={(v) => patch({ theme: v })}
-            options={[
-              { key: "auto", label: "跟随系统" },
-              { key: "light", label: "浅色" },
-              { key: "dark", label: "深色" },
-            ]}
+            options={THEME_KEYS.map((key) => ({
+              key,
+              label: t(`appearance.theme.option.${key}`),
+            }))}
             value={a.theme}
           />
         }
-        label="主题"
+        label={t("appearance.theme.label")}
       />
       <Row
         control={
           <SelectControl<Language>
             onChange={(v) => patch({ language: v })}
-            options={[
-              { key: "zh-CN", label: "简体中文" },
-              { key: "zh-TW", label: "繁體中文" },
-              { key: "en-US", label: "English" },
-              { key: "ja-JP", label: "日本語" },
-            ]}
+            options={LANG_KEYS.map((key) => ({ key, label: LANG_LABEL[key] }))}
             value={a.language}
           />
         }
-        description="界面文案语言（i18n 接入后即时生效）"
-        label="语言"
+        description={t("appearance.language.desc")}
+        label={t("appearance.language.label")}
       />
     </div>
   );

@@ -3,7 +3,7 @@
 
 export type Theme = "auto" | "light" | "dark";
 
-export type Language = "zh-CN" | "zh-TW" | "en-US" | "ja-JP";
+export type Language = "zh-CN" | "en-US";
 
 export type AutoPaste = "disabled" | "singleClick" | "doubleClick";
 

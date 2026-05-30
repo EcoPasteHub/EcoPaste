@@ -1,4 +1,5 @@
 import { NumberField, Separator } from "@heroui/react";
+import { useTranslation } from "react-i18next";
 import { useSnapshot } from "valtio";
 import { settingsState, updateSettings } from "@/stores/settings";
 import type {
@@ -42,27 +43,43 @@ const Section = ({
   </section>
 );
 
+const AUTO_PASTE_KEYS: AutoPaste[] = ["disabled", "singleClick", "doubleClick"];
+const RETENTION_UNITS: RetentionUnit[] = [
+  "forever",
+  "hours",
+  "days",
+  "weeks",
+  "months",
+];
+const SEARCH_POSITIONS: SearchPosition[] = ["top", "bottom"];
+const WINDOW_STYLES: WindowStyle[] = ["standard", "dock"];
+const WINDOW_POSITIONS: WindowPosition[] = [
+  "followCursor",
+  "center",
+  "remember",
+];
+
 const ClipboardPanel = () => {
+  const { t } = useTranslation();
   const { value } = useSnapshot(settingsState);
   if (!value) return null;
   const { content, history, search, window, feedback } = value.clipboard;
 
   return (
     <div className="flex flex-col gap-4">
-      <Section title="内容">
+      <Section title={t("clipboard.section.content")}>
         <Row
           control={
             <SelectControl<AutoPaste>
               onChange={(v) => patch.content({ autoPaste: v })}
-              options={[
-                { key: "disabled", label: "仅选中" },
-                { key: "singleClick", label: "单击粘贴" },
-                { key: "doubleClick", label: "双击粘贴" },
-              ]}
+              options={AUTO_PASTE_KEYS.map((key) => ({
+                key,
+                label: t(`clipboard.autoPaste.option.${key}`),
+              }))}
               value={content.autoPaste}
             />
           }
-          label="点击行为"
+          label={t("clipboard.autoPaste.label")}
         />
         <Row
           control={
@@ -71,7 +88,7 @@ const ClipboardPanel = () => {
               onChange={(v) => patch.content({ copyPlain: v })}
             />
           }
-          label="复制时去除格式"
+          label={t("clipboard.copyPlain.label")}
         />
         <Row
           control={
@@ -80,7 +97,7 @@ const ClipboardPanel = () => {
               onChange={(v) => patch.content({ pastePlain: v })}
             />
           }
-          label="粘贴时去除格式"
+          label={t("clipboard.pastePlain.label")}
         />
         <Row
           control={
@@ -89,8 +106,8 @@ const ClipboardPanel = () => {
               onChange={(v) => patch.content({ showOriginalPreview: v })}
             />
           }
-          description="悬停时显示 HTML/RTF 渲染前的原文"
-          label="原始内容预览"
+          description={t("clipboard.showOriginalPreview.desc")}
+          label={t("clipboard.showOriginalPreview.label")}
         />
         <Row
           control={
@@ -99,7 +116,7 @@ const ClipboardPanel = () => {
               onChange={(v) => patch.content({ deleteConfirm: v })}
             />
           }
-          label="删除时二次确认"
+          label={t("clipboard.deleteConfirm.label")}
         />
         <Row
           control={
@@ -108,7 +125,7 @@ const ClipboardPanel = () => {
               onChange={(v) => patch.content({ autoFavorite: v })}
             />
           }
-          label="自动收藏"
+          label={t("clipboard.autoFavorite.label")}
         />
         <Row
           control={
@@ -117,31 +134,28 @@ const ClipboardPanel = () => {
               onChange={(v) => patch.content({ autoSortByFrequency: v })}
             />
           }
-          label="按使用频率排序"
+          label={t("clipboard.autoSortByFrequency.label")}
         />
       </Section>
 
       <Separator />
 
-      <Section title="历史">
+      <Section title={t("clipboard.section.history")}>
         <Row
           control={
             <SelectControl<RetentionUnit>
               onChange={(v) =>
                 patch.history({ retention: { ...history.retention, unit: v } })
               }
-              options={[
-                { key: "forever", label: "永久" },
-                { key: "hours", label: "小时" },
-                { key: "days", label: "天" },
-                { key: "weeks", label: "周" },
-                { key: "months", label: "月" },
-              ]}
+              options={RETENTION_UNITS.map((key) => ({
+                key,
+                label: t(`clipboard.retention.unit.${key}`),
+              }))}
               value={history.retention.unit}
             />
           }
-          description="超过指定时长的条目会被后台清理（收藏项除外）"
-          label="保留时长"
+          description={t("clipboard.retention.desc")}
+          label={t("clipboard.retention.label")}
         />
         {history.retention.unit !== "forever" && (
           <Row
@@ -163,7 +177,7 @@ const ClipboardPanel = () => {
                 </NumberField.Group>
               </NumberField>
             }
-            label="时长数值"
+            label={t("clipboard.retentionValue.label")}
           />
         )}
         <Row
@@ -183,26 +197,26 @@ const ClipboardPanel = () => {
               </NumberField.Group>
             </NumberField>
           }
-          description="0 表示不限"
-          label="最大条数"
+          description={t("clipboard.maxCount.desc")}
+          label={t("clipboard.maxCount.label")}
         />
       </Section>
 
       <Separator />
 
-      <Section title="搜索">
+      <Section title={t("clipboard.section.search")}>
         <Row
           control={
             <SelectControl<SearchPosition>
               onChange={(v) => patch.search({ position: v })}
-              options={[
-                { key: "top", label: "顶部" },
-                { key: "bottom", label: "底部" },
-              ]}
+              options={SEARCH_POSITIONS.map((key) => ({
+                key,
+                label: t(`clipboard.searchPosition.option.${key}`),
+              }))}
               value={search.position}
             />
           }
-          label="搜索框位置"
+          label={t("clipboard.searchPosition.label")}
         />
         <Row
           control={
@@ -211,7 +225,7 @@ const ClipboardPanel = () => {
               onChange={(v) => patch.search({ defaultFocus: v })}
             />
           }
-          label="显示主窗时自动聚焦"
+          label={t("clipboard.defaultFocus.label")}
         />
         <Row
           control={
@@ -220,39 +234,38 @@ const ClipboardPanel = () => {
               onChange={(v) => patch.search({ clearOnHide: v })}
             />
           }
-          label="隐藏主窗时清空关键词"
+          label={t("clipboard.clearOnHide.label")}
         />
       </Section>
 
       <Separator />
 
-      <Section title="窗口">
+      <Section title={t("clipboard.section.window")}>
         <Row
           control={
             <SelectControl<WindowStyle>
               onChange={(v) => patch.window({ style: v })}
-              options={[
-                { key: "standard", label: "标准" },
-                { key: "dock", label: "Dock" },
-              ]}
+              options={WINDOW_STYLES.map((key) => ({
+                key,
+                label: t(`clipboard.windowStyle.option.${key}`),
+              }))}
               value={window.style}
             />
           }
-          label="窗口样式"
+          label={t("clipboard.windowStyle.label")}
         />
         <Row
           control={
             <SelectControl<WindowPosition>
               onChange={(v) => patch.window({ position: v })}
-              options={[
-                { key: "followCursor", label: "跟随光标" },
-                { key: "center", label: "屏幕居中" },
-                { key: "remember", label: "记住上次位置" },
-              ]}
+              options={WINDOW_POSITIONS.map((key) => ({
+                key,
+                label: t(`clipboard.windowPosition.option.${key}`),
+              }))}
               value={window.position}
             />
           }
-          label="弹出位置"
+          label={t("clipboard.windowPosition.label")}
         />
         <Row
           control={
@@ -261,7 +274,7 @@ const ClipboardPanel = () => {
               onChange={(v) => patch.window({ alwaysOnTop: v })}
             />
           }
-          label="窗口置顶"
+          label={t("clipboard.alwaysOnTop.label")}
         />
         <Row
           control={
@@ -270,14 +283,14 @@ const ClipboardPanel = () => {
               onChange={(v) => patch.window({ allWorkspaces: v })}
             />
           }
-          description="macOS Spaces / Windows 虚拟桌面"
-          label="所有桌面可见"
+          description={t("clipboard.allWorkspaces.desc")}
+          label={t("clipboard.allWorkspaces.label")}
         />
       </Section>
 
       <Separator />
 
-      <Section title="反馈">
+      <Section title={t("clipboard.section.feedback")}>
         <Row
           control={
             <Toggle
@@ -285,7 +298,7 @@ const ClipboardPanel = () => {
               onChange={(v) => patch.feedback({ copySound: v })}
             />
           }
-          label="复制成功提示音"
+          label={t("clipboard.copySound.label")}
         />
       </Section>
     </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useSnapshot } from "valtio";
 import { settingsState, updateSettings } from "@/stores/settings";
 import type { Shortcuts } from "@/types/settings";
@@ -7,6 +8,7 @@ import ShortcutInput from "../components/ShortcutInput";
 const patch = (p: Partial<Shortcuts>) => updateSettings({ shortcuts: p });
 
 const ShortcutsPanel = () => {
+  const { t } = useTranslation();
   const { value } = useSnapshot(settingsState);
   if (!value) return null;
   const s = value.shortcuts;
@@ -20,8 +22,8 @@ const ShortcutsPanel = () => {
             value={s.openClipboard}
           />
         }
-        description="显示/隐藏主窗"
-        label="唤起剪贴板"
+        description={t("shortcuts.openClipboard.desc")}
+        label={t("shortcuts.openClipboard.label")}
       />
       <Row
         control={
@@ -30,7 +32,7 @@ const ShortcutsPanel = () => {
             value={s.openPreference}
           />
         }
-        label="打开偏好设置"
+        label={t("shortcuts.openPreference.label")}
       />
       <Row
         control={
@@ -39,8 +41,8 @@ const ShortcutsPanel = () => {
             value={s.pastePlain}
           />
         }
-        description="主窗内局部生效（不在 OS 级注册）"
-        label="粘贴时去除格式"
+        description={t("shortcuts.pastePlain.desc")}
+        label={t("shortcuts.pastePlain.label")}
       />
       <Row
         control={
@@ -52,8 +54,8 @@ const ShortcutsPanel = () => {
             value={s.quickPaste.modifier}
           />
         }
-        description="按住此修饰键 + 数字键粘贴第 N 条"
-        label="快速粘贴修饰键"
+        description={t("shortcuts.quickPasteModifier.desc")}
+        label={t("shortcuts.quickPasteModifier.label")}
       />
     </div>
   );

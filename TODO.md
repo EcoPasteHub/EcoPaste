@@ -278,7 +278,7 @@
 
 - [x] Rust 定义 `Settings` 结构体（重新组织，不照搬旧版命名）：
   - general：autoStart、silentStart、trayIcon、dockIcon
-  - appearance：theme（auto/light/dark）、language（zh-CN/zh-TW/en-US/ja-JP）
+  - appearance：theme（auto/light/dark）、language（zh-CN/en-US）
   - shortcuts：openClipboard、openPreference、pastePlain、quickPaste{enabled,modifier}
   - clipboard.content：autoPaste(disabled/single/double)、copyPlain、pastePlain、showOriginalPreview、deleteConfirm、autoFavorite、autoSortByFrequency、itemActions
   - clipboard.history：retention{value,unit(hours/days/weeks/months/forever)}、maxCount(0=∞)
@@ -377,13 +377,16 @@
 - [x] 快捷键录制控件
   > 新增 `components/ShortcutInput.tsx`：触发按钮显示当前 binding（空值显占位「未设置」）；点击展开 HeroUI `Popover`，内含 dashed 边框的「录制区」按钮 + 清除/取消/保存。`useEffect(open)` 在 popover 打开后 `focus()` 录制按钮（不用 autoFocus，绕开 biome a11y）。`onKeyDown` 里 `preventDefault + stopPropagation` 吞下所有按键，按 `event.code` 映射成 `Letter/Digit/Fn/Arrow/Space|Enter|…`，再按平台拼修饰键名（mac: Cmd/Option；其他: Super/Alt + Ctrl/Shift）；提交时 `toCanonical` 把 Option 写回 Alt，库内统一一套字符串，避免分平台两份。完整组合（≥1 修饰 + 1 主键）在 keydown 即提交并关闭 popover；`modifierOnly` 模式（QuickPaste.modifier）改为按 Save 按钮提交——因为 keyup 阶段 metaKey/ctrlKey 已清零，无法在那时取到组合，必须显式确认。`panels/ShortcutsPanel.tsx` 接入 4 行：openClipboard / openPreference / pastePlain（不在 OS 级注册，但格式一致复用同组件）/ quickPaste.modifier（modifierOnly）。写操作走 `updateSettings({ shortcuts: { ... } })`，Rust 端 `commands/settings.rs` 检测到 `shortcuts` 字段会自动 `shortcut::apply()` 重新注册，冲突走 `shortcut://conflict` 事件——前端 toast 系统暂缺，这里不订阅，等通知组件就位再补；命令行/Rust 日志已能看到冲突原因。浏览器层面有少量系统级组合（如 macOS Cmd+Space）拿不到 KeyboardEvent，属已知限制。
 - [x] 主题切换、语言切换
-  > `panels/AppearancePanel.tsx` 两个 `SelectControl`：主题 auto/light/dark、语言 zh-CN/zh-TW/en-US/ja-JP。主题写回 `updateSettings({ appearance: { theme } })`，App.tsx 已挂的 `useApplyTheme` 监听 `settingsState.appearance.theme`，自动重新 `appWindow.setTheme + applyClass`——预览/主窗都即时切。语言这一项只落库，实际文案切换等 7.5 引 i18next；当前 description 注明「i18n 接入后即时生效」。
+  > `panels/AppearancePanel.tsx` 两个 `SelectControl`：主题 auto/light/dark、语言 zh-CN/en-US。主题写回 `updateSettings({ appearance: { theme } })`，App.tsx 已挂的 `useApplyTheme` 监听 `settingsState.appearance.theme`，自动重新 `appWindow.setTheme + applyClass`——预览/主窗都即时切。语言这一项只落库，实际文案切换等 7.5 引 i18next；当前 description 注明「i18n 接入后即时生效」。
 
 ### 7.5 i18n
 
-- [ ] 引入 i18next + react-i18next
-- [ ] 文案表：zh-CN（默认）/ zh-TW / en-US / ja-JP
-- [ ] 语言可由 Rust 提供系统 locale 作初始值（`tauri-plugin-os`/locale）
+- [x] 引入 i18next + react-i18next
+  > `pnpm add i18next react-i18next` 引入。`src/locales/index.ts` 暴露 `initI18n(language)` —— 用 `initReactI18next` 注册资源、`fallbackLng: "zh-CN"`、`interpolation.escapeValue: false`（React 已自带 XSS 防护）、`returnNull: false`（缺翻译返回 key 字符串便于排查）。`src/main.tsx` 在 `loadSettings()` 之后、首屏 `render` 之前调用 `initI18n(settings.appearance.language)`，IPC 失败时降级到 zh-CN。新增 `src/hooks/useApplyLanguage.ts`，类似 `useApplyTheme` 订阅 `settingsState.appearance.language`，运行时切换走 `i18n.changeLanguage`；`App.tsx` 同时挂 `useApplyTheme` 和 `useApplyLanguage`。Tauri 系统 locale 作初始值（第 3 项）暂未做，目前以 Rust 默认 `Language::ZhCN` 起步。
+- [x] 文案表：zh-CN（默认）/ en-US
+  > `src/locales/{zh-CN,en-US}.json` 两份，单 `translation` namespace + 层级 key（如 `clipboard.autoPaste.option.disabled`）。`Language` 类型 / Rust `Language` 枚举只保留 `zh-CN` + `en-US` 两个字面量，磁盘上若残留旧值（zh-TW/ja-JP）由 store 的 `.bak/Default` 兜底回到默认 zh-CN。所有 Preference 面板（General/Clipboard/Shortcuts/Appearance/Preference index）与 `ShortcutInput` 已全部替换 `useTranslation` + `t()`，硬编码中文清零。
+- [x] 语言可由 Rust 提供系统 locale 作初始值（`tauri-plugin-os`/locale）
+  > 用轻量 `sys-locale` crate（tauri-plugin-os 内部用的同一份）替代整套 plugin，避免给前端再开一条 OS 信息读取通道。`Language::from_system_locale(tag)` 做粗匹配：任何 `zh-*` 归 zh-CN，其余 en-US。`SettingsStore::new` 区分「真首次启动（主文件 + `.bak` 均不存在）」和「文件存在但坏掉」两种路径 —— 只有前者会读取系统 locale 并立刻 `write_atomic` 落盘，确保第二次启动起就走常规分支、用户手动改过的语言也不会被系统 locale 覆盖。坏文件路径仍回退到 `Settings::default()`（zh-CN），避免一次坏盘静默改语言。`load_from_disk` 返回 `Option<Settings>` 表达「首次」与「找不到可读副本」的差别。
 
 > **MVP 里程碑**：到此可完成「监听→入库→列表展示→搜索→粘贴→设置」闭环。
 

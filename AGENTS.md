@@ -105,7 +105,7 @@ sqlx prepare            # 生成离线 SQL 校验缓存（.sqlx），改动 SQL 
 - 状态：Valtio 只存 UI 状态和设置的本地镜像；业务数据从 Rust 命令拉取，不在前端建「数据库副本」。
 - 样式：TailwindCSS v4 用 `@theme` 定义 token；优先用 HeroUI v3 组件，避免重复造轮子。
 - 不要在前端写 SQL、不要做内容类型识别、不要算窗口坐标——这些调用 Rust 命令。
-- i18n 文案表：zh-CN（默认）/ zh-TW / en-US / ja-JP，新增文案四种语言同步补齐。
+- i18n 文案表：zh-CN（默认）/ en-US，新增文案两种语言同步补齐。
 - 列表用 `react-virtuoso` 虚拟滚动；HTML 内容必须经 DOMPurify sanitize 再渲染。
 
 ## 通用代码规范

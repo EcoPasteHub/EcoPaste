@@ -1,5 +1,6 @@
 import { Tabs } from "@heroui/react";
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import AboutPanel from "./panels/AboutPanel";
 import AppearancePanel from "./panels/AppearancePanel";
 import ClipboardPanel from "./panels/ClipboardPanel";
@@ -8,15 +9,16 @@ import ShortcutsPanel from "./panels/ShortcutsPanel";
 
 type GroupKey = "general" | "clipboard" | "shortcuts" | "appearance" | "about";
 
-const GROUPS: { key: GroupKey; label: string; panel: ReactNode }[] = [
-  { key: "general", label: "常规", panel: <GeneralPanel /> },
-  { key: "clipboard", label: "剪贴板", panel: <ClipboardPanel /> },
-  { key: "shortcuts", label: "快捷键", panel: <ShortcutsPanel /> },
-  { key: "appearance", label: "外观", panel: <AppearancePanel /> },
-  { key: "about", label: "关于", panel: <AboutPanel /> },
+const GROUPS: { key: GroupKey; panel: ReactNode }[] = [
+  { key: "general", panel: <GeneralPanel /> },
+  { key: "clipboard", panel: <ClipboardPanel /> },
+  { key: "shortcuts", panel: <ShortcutsPanel /> },
+  { key: "appearance", panel: <AppearancePanel /> },
+  { key: "about", panel: <AboutPanel /> },
 ];
 
 const Preference = () => {
+  const { t } = useTranslation();
   return (
     <Tabs
       className="flex h-screen w-screen gap-0"
@@ -24,10 +26,10 @@ const Preference = () => {
       orientation="vertical"
     >
       <Tabs.ListContainer className="w-36 border-default-200 border-r">
-        <Tabs.List aria-label="偏好设置" className="p-2">
-          {GROUPS.map(({ key, label }) => (
+        <Tabs.List aria-label={t("preference.title")} className="p-2">
+          {GROUPS.map(({ key }) => (
             <Tabs.Tab id={key} key={key}>
-              {label}
+              {t(`preference.tab.${key}`)}
               <Tabs.Indicator />
             </Tabs.Tab>
           ))}

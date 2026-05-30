@@ -1,6 +1,7 @@
 import { Button, Popover } from "@heroui/react";
 import { cn } from "@heroui/styles";
 import { type KeyboardEvent, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 const IS_MAC =
   typeof navigator !== "undefined" &&
@@ -83,8 +84,10 @@ const ShortcutInput = ({
   value,
   onChange,
   modifierOnly = false,
-  placeholder = "未设置",
+  placeholder,
 }: ShortcutInputProps) => {
+  const { t } = useTranslation();
+  const placeholderText = placeholder ?? t("shortcutInput.placeholder");
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<Captured>(EMPTY);
   const captureRef = useRef<HTMLButtonElement>(null);
@@ -130,15 +133,15 @@ const ShortcutInput = ({
           )}
           type="button"
         >
-          {value || placeholder}
+          {value || placeholderText}
         </button>
       </Popover.Trigger>
       <Popover.Content>
         <Popover.Dialog className="w-64 p-3">
           <div className="mb-2 text-default-600 text-xs">
             {modifierOnly
-              ? "按下修饰键组合（不含主键），然后保存"
-              : "按下目标快捷键组合"}
+              ? t("shortcutInput.hintModifierOnly")
+              : t("shortcutInput.hint")}
           </div>
           <button
             className="flex h-12 w-full items-center justify-center rounded-md border border-default-300 border-dashed bg-default-50 text-sm outline-none focus:border-primary"
@@ -146,7 +149,11 @@ const ShortcutInput = ({
             ref={captureRef}
             type="button"
           >
-            {preview || <span className="text-default-400">等待按键…</span>}
+            {preview || (
+              <span className="text-default-400">
+                {t("shortcutInput.waiting")}
+              </span>
+            )}
           </button>
           <div className="mt-3 flex justify-between gap-2">
             <Button
@@ -155,7 +162,7 @@ const ShortcutInput = ({
               size="sm"
               variant="ghost"
             >
-              清除
+              {t("shortcutInput.clear")}
             </Button>
             <div className="flex gap-2">
               <Button
@@ -163,7 +170,7 @@ const ShortcutInput = ({
                 size="sm"
                 variant="ghost"
               >
-                取消
+                {t("shortcutInput.cancel")}
               </Button>
               {modifierOnly && (
                 <Button
@@ -171,7 +178,7 @@ const ShortcutInput = ({
                   onPress={() => commit(buildBinding(draft, true))}
                   size="sm"
                 >
-                  保存
+                  {t("shortcutInput.save")}
                 </Button>
               )}
             </div>

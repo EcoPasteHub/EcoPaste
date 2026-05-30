@@ -15,7 +15,7 @@ use tauri::{AppHandle, Manager};
 
 use crate::core::{AppError, Result};
 
-use super::model::Settings;
+use super::model::{Language, Settings};
 
 const FILENAME_RELEASE: &str = "settings.json";
 const FILENAME_DEV: &str = "settings.dev.json";
@@ -47,7 +47,22 @@ impl SettingsStore {
             BACKUP_SUFFIX
         ));
 
-        let current = load_from_disk(&path, &backup_path);
+        let current = match load_from_disk(&path, &backup_path) {
+            Some(settings) => settings,
+            None => {
+                // 真·首次启动（主文件 + 备份都不存在）：用系统 locale 推导默认语言并落盘，
+                // 之后所有读取都走常规分支，避免每次启动都重算。
+                let mut settings = Settings::default();
+                if let Some(tag) = sys_locale::get_locale() {
+                    settings.appearance.language = Language::from_system_locale(&tag);
+                    log::info!("first-run language from locale {tag}: {:?}", settings.appearance.language);
+                }
+                if let Err(err) = write_atomic(&path, &backup_path, &settings) {
+                    log::warn!("persist first-run settings failed: {err}");
+                }
+                settings
+            }
+        };
         log::info!("settings store ready at {path:?}");
 
         Ok(Self {
@@ -85,7 +100,13 @@ impl SettingsStore {
     }
 }
 
-fn load_from_disk(path: &Path, backup: &Path) -> Settings {
+/// 返回 `None` 表示主文件与备份都不存在（首次启动），调用方据此走「初始化默认」分支；
+/// 读取过程中遇到 IO/解析错误会逐个回退并打 warn，最终仍找不到可用文件时也返回 `Settings::default()` 包装在 `Some` 里——
+/// 这条路径表示「文件存在但坏了」，不要当成首次启动覆盖系统 locale。
+fn load_from_disk(path: &Path, backup: &Path) -> Option<Settings> {
+    if !path.exists() && !backup.exists() {
+        return None;
+    }
     for candidate in [path, backup] {
         if !candidate.exists() {
             continue;
@@ -94,13 +115,13 @@ fn load_from_disk(path: &Path, backup: &Path) -> Settings {
             serde_json::from_str::<Settings>(&content)
                 .map_err(|err| std::io::Error::new(std::io::ErrorKind::InvalidData, err))
         }) {
-            Ok(settings) => return settings,
+            Ok(settings) => return Some(settings),
             Err(err) => {
                 log::warn!("settings file {candidate:?} unreadable, falling back: {err}");
             }
         }
     }
-    Settings::default()
+    Some(Settings::default())
 }
 
 /// 写入策略：先把现盘文件 rename 成 `.bak`（覆盖旧备份），再把新内容写到 tmp 后 rename 成主文件。
