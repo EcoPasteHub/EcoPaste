@@ -40,6 +40,8 @@ pub fn register_plugin(app_handle: &AppHandle) {
 
 /// setup 末尾调用：转 NSPanel + 绑事件 emit。
 pub fn setup_main(app_handle: &AppHandle) -> Result<()> {
+    show_taskbar_icon(app_handle, false)?;
+
     let main_window = get_window(app_handle, MAIN_WINDOW_LABEL)?;
 
     let panel = main_window
