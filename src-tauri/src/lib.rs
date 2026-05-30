@@ -41,6 +41,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::read_clipboard,
             commands::get_clipboard_image_path,
+            commands::write_to_clipboard,
             commands::show_window,
             commands::hide_window,
             commands::toggle_window,

@@ -1,11 +1,16 @@
 //! 剪贴板相关命令：手动重新读取、解析图片路径。供前端按需触发。
 
+use std::sync::Arc;
+
 use serde::Serialize;
 use sqlx::SqlitePool;
 use tauri::{AppHandle, State};
 
-use crate::clipboard::{build_item, persist_and_notify, ClipboardReader, ImageStore};
+use crate::clipboard::{
+    build_item, persist_and_notify, ClipboardReader, ImageStore, WritebackGuard,
+};
 use crate::core::{AppError, Result};
+use crate::db::items::find_item_by_id;
 use crate::db::models::ClipboardItem;
 
 /// `read_clipboard` 的返回：入库后的记录 + 是否命中去重（前端据此决定提示/滚动行为）。
@@ -74,6 +79,27 @@ pub async fn get_clipboard_image_path(
     path.to_str()
         .map(str::to_owned)
         .ok_or_else(|| AppError::Clipboard("image path is not valid utf-8".to_owned()))
+}
+
+/// 把指定历史记录写回系统剪贴板（不触发模拟粘贴，4.2 再补）。
+/// `plain = true` 强制纯文本，剥离 HTML/RTF。
+///
+/// `ClipboardContext` 是 `!Send`，写回逻辑在 `clipboard::write_to_clipboard` 内同步完成，
+/// 之后无 await，命令 future 仍满足 `Send`。
+#[tauri::command]
+pub async fn write_to_clipboard(
+    pool: State<'_, SqlitePool>,
+    store: State<'_, ImageStore>,
+    guard: State<'_, Arc<WritebackGuard>>,
+    id: String,
+    plain: bool,
+) -> Result<()> {
+    let item = find_item_by_id(&pool, &id)
+        .await?
+        .ok_or_else(|| AppError::Clipboard(format!("clipboard item not found: {id}")))?;
+
+    crate::clipboard::write_to_clipboard(&store, guard.inner().as_ref(), &item, plain)?;
+    Ok(())
 }
 
 /// 校验图片文件名：必须是单层 `<name>.png`，不含路径分隔符 / 父目录引用。

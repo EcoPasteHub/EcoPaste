@@ -5,6 +5,7 @@ mod payload;
 mod read;
 mod storage;
 mod watcher;
+mod write;
 
 pub use guard::WritebackGuard;
 pub use ingest::build_item;
@@ -12,6 +13,7 @@ pub use payload::{ClipboardPayload, ImagePayload, TextPayload};
 pub use read::ClipboardReader;
 pub use storage::ImageStore;
 pub use watcher::{init, persist_and_notify, CLIPBOARD_UPDATED_EVENT};
+pub use write::write_to_clipboard;
 
 #[cfg(test)]
 pub(crate) mod test_lock {

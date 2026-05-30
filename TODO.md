@@ -229,8 +229,10 @@
 
 ### 4.1 写回剪贴板
 
-- [ ] `write_to_clipboard(item)`：按类型写回 text/rtf/html/image/files
-- [ ] 纯文本模式：剥离格式只写 plain text
+- [x] `write_to_clipboard(item)`：按类型写回 text/rtf/html/image/files
+- [x] 纯文本模式：剥离格式只写 plain text
+  > `clipboard/write.rs`：`write_to_clipboard(store, guard, item, plain)` 内部新建 `ClipboardContext` 后按 `kind` 分派——Text 走 `set_html` / `set_rich_text` / `set_text`（依 `sub_kind`，未识别子类型与 url/email/color/path 均走纯文本通道）；Image 从 `ImageStore::origin_path` 读原 PNG → `RustImageData::from_bytes` → `set_image`；Files 把 `content` 按 `\n` 拆回路径列表 → `set_files`。写回前一律向 `WritebackGuard` 登记将写入内容的 `content_hash`，与 watcher 路径上 `build_item` 算出的哈希同源，OS 监听到自身写回时直接 `should_skip` 跳过入库，杜绝「点击粘贴 → 自动新增一条」回环。`plain = true` 忽略 `sub_kind`，优先写 `search_text`（即 OS 提供的纯文本表示），缺失时退回 `content`。
+  > 命令层 `commands/clipboard.rs::write_to_clipboard(id, plain)`：按 id 查记录后调下层（同 `read_clipboard` 写法，`!Send` 的 `ClipboardContext` 在同步段内创建与销毁，命令 future 仍 `Send`）。已在 `lib.rs` 的 `generate_handler!` 注册。`cargo check` 通过；`clipboard::write` 三个 `--ignored` 真实剪贴板测试全过（plain 写回 + guard 抑制、`plain` 模式剥离 HTML、Image 往返哈希一致并被 guard 抑制——确认 OS pasteboard PNG 字节往返无损，文档里的「极端情况漏抑制」未在测试中复现）。
 
 ### 4.2 模拟粘贴（eco-paste 思路）
 
