@@ -100,6 +100,7 @@ pub fn init(app: &AppHandle, pool: SqlitePool) -> crate::core::Result<()> {
     let app_icon_store = AppIconStore::new(app)?;
     app.manage(app_icon_store.clone());
 
+    super::cleanup::spawn(app.clone(), pool.clone());
     spawn_watch_thread(app.clone(), pool, guard, store, app_icon_store);
     Ok(())
 }

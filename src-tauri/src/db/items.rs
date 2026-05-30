@@ -216,6 +216,48 @@ pub async fn delete_items(pool: &SqlitePool, ids: &[String]) -> Result<u64> {
     Ok(result.rows_affected())
 }
 
+/// 历史清理：按「时间下限」和「最大条数」删除条目；置顶 / 收藏项一律保留。
+/// 返回总共删除的行数。`older_than = None` 跳过时长清理；`max_count = None` 或 `Some(0)` 跳过条数清理。
+pub async fn cleanup_history(
+    pool: &SqlitePool,
+    older_than: Option<chrono::DateTime<chrono::Utc>>,
+    max_count: Option<u32>,
+) -> Result<u64> {
+    let mut total = 0u64;
+
+    if let Some(cutoff) = older_than {
+        let result = sqlx::query(
+            "DELETE FROM clipboard_items \
+             WHERE is_pinned = 0 AND is_favorite = 0 AND created_at < ?",
+        )
+        .bind(cutoff)
+        .execute(pool)
+        .await
+        .context("failed to cleanup clipboard items by retention")?;
+        total += result.rows_affected();
+    }
+
+    if let Some(max) = max_count.filter(|n| *n > 0) {
+        // 仅在非置顶 / 非收藏集合内按 created_at DESC 保留前 max 条，多余的删除。
+        // SQLite 中 `LIMIT -1 OFFSET n` 表示「跳过前 n 条，剩下全要」。
+        let result = sqlx::query(
+            "DELETE FROM clipboard_items WHERE id IN ( \
+                 SELECT id FROM clipboard_items \
+                 WHERE is_pinned = 0 AND is_favorite = 0 \
+                 ORDER BY created_at DESC \
+                 LIMIT -1 OFFSET ? \
+             )",
+        )
+        .bind(max as i64)
+        .execute(pool)
+        .await
+        .context("failed to cleanup clipboard items by max_count")?;
+        total += result.rows_affected();
+    }
+
+    Ok(total)
+}
+
 /// 清空全部记录，返回删除行数；`keep_favorite` 为真时保留收藏项。
 pub async fn clear_items(pool: &SqlitePool, keep_favorite: bool) -> Result<u64> {
     let mut qb: QueryBuilder<Sqlite> = QueryBuilder::new("DELETE FROM clipboard_items");
@@ -763,6 +805,74 @@ mod tests {
             .await
             .unwrap()
             .is_empty());
+    }
+
+    #[tokio::test]
+    async fn cleanup_history_drops_old_items_keeping_pinned_and_favorite() {
+        let pool = memory_pool().await;
+        let mk = |id: &str, ts: i64, fav: bool, pin: bool| {
+            let mut it = sample_item(id);
+            it.created_at = DateTime::from_timestamp(ts, 0).unwrap();
+            it.is_favorite = fav;
+            it.is_pinned = pin;
+            it
+        };
+        let old_plain = mk("old", 1_000, false, false);
+        let old_fav = mk("old-fav", 1_000, true, false);
+        let old_pin = mk("old-pin", 1_000, false, true);
+        let recent = mk("recent", 9_000, false, false);
+        for item in [&old_plain, &old_fav, &old_pin, &recent] {
+            insert_item(&pool, item).await.unwrap();
+        }
+
+        let cutoff = DateTime::from_timestamp(5_000, 0).unwrap();
+        let removed = cleanup_history(&pool, Some(cutoff), None).await.unwrap();
+        assert_eq!(removed, 1);
+
+        let all = query_items(&pool, &ClipboardItemQuery::default())
+            .await
+            .unwrap();
+        // 置顶项恒前置；保留集合：old-pin、old-fav、recent。
+        assert_eq!(ids(&all), ["old-pin", "recent", "old-fav"]);
+    }
+
+    #[tokio::test]
+    async fn cleanup_history_enforces_max_count_keeping_pinned_and_favorite() {
+        let pool = memory_pool().await;
+        // 五条普通项 + 一条收藏 + 一条置顶；max_count = 2 时仅保留两条最新的普通项。
+        for n in 0..5i64 {
+            let mut it = sample_item(&format!("p{n}"));
+            it.created_at = DateTime::from_timestamp(1_000 + n, 0).unwrap();
+            insert_item(&pool, &it).await.unwrap();
+        }
+        let mut fav = sample_item("fav");
+        fav.is_favorite = true;
+        fav.created_at = DateTime::from_timestamp(500, 0).unwrap();
+        insert_item(&pool, &fav).await.unwrap();
+        let mut pin = sample_item("pin");
+        pin.is_pinned = true;
+        pin.created_at = DateTime::from_timestamp(400, 0).unwrap();
+        insert_item(&pool, &pin).await.unwrap();
+
+        let removed = cleanup_history(&pool, None, Some(2)).await.unwrap();
+        assert_eq!(removed, 3); // p0, p1, p2 被删
+
+        let all = query_items(&pool, &ClipboardItemQuery::default())
+            .await
+            .unwrap();
+        assert_eq!(ids(&all), ["pin", "p4", "p3", "fav"]);
+    }
+
+    #[tokio::test]
+    async fn cleanup_history_no_op_when_both_disabled() {
+        let pool = memory_pool().await;
+        insert_item(&pool, &sample_item("a")).await.unwrap();
+        assert_eq!(cleanup_history(&pool, None, None).await.unwrap(), 0);
+        assert_eq!(cleanup_history(&pool, None, Some(0)).await.unwrap(), 0);
+        let all = query_items(&pool, &ClipboardItemQuery::default())
+            .await
+            .unwrap();
+        assert_eq!(ids(&all), ["a"]);
     }
 
     #[test]

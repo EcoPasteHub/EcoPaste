@@ -1,4 +1,5 @@
 mod app_store;
+mod cleanup;
 mod detect;
 mod guard;
 mod ingest;

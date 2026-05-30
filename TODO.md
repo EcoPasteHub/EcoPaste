@@ -396,8 +396,10 @@
 
 ### 8.1 历史清理后台任务（Rust）★
 
-- [ ] 后台定时任务：按 `duration` + `maxCount` 清理（保留收藏项可选）
-- [ ] 启动时执行一次 + 周期执行
+- [x] 后台定时任务：按 `duration` + `maxCount` 清理（保留置顶 / 收藏）
+  > `db/items.rs::cleanup_history(pool, older_than, max_count)` 两条 DELETE：① `is_pinned = 0 AND is_favorite = 0 AND created_at < cutoff` 按时间砍；② `id IN (SELECT id ... WHERE is_pinned = 0 AND is_favorite = 0 ORDER BY created_at DESC LIMIT -1 OFFSET max)` 按条数砍——置顶 / 收藏不计入名额也不会被删。`clipboard/cleanup.rs::spawn` 启动即跑一次，然后 `tokio::time::interval(60min)` 周期触发；每个 tick 从 `SettingsStore::snapshot()` 取最新 `history`，`retention_cutoff` 把 `Retention { value, unit }` 折算成 `DateTime<Utc>`（`Forever` / `value == 0` 视为禁用，月按 30 天近似）。清掉非零行后 `emit(CLIPBOARD_UPDATED_EVENT, {cleanup: n})` 让前端列表刷新。挂在 `clipboard::watcher::init` 里，复用同一份 `SqlitePool::clone`。
+- [x] 启动时执行一次 + 周期执行
+  > 见上：`clipboard/cleanup.rs::spawn` 在 `tauri::async_runtime::spawn` 内先调用 `run_once`，再用 `tokio::time::interval(60min)` 进入周期循环；interval 首个 tick 立即返回故丢弃一次，避免与启动那次重复跑。`SettingsStore` 未 manage 时 `run_once` 直接 return（保守降级）；清理失败仅 `log::warn` 不中断循环，确保单次抽风不影响后续 tick。
 
 ### 8.2 分组 / 收藏视图
 
