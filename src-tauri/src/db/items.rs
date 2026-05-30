@@ -195,14 +195,25 @@ pub async fn increment_item_use_count(pool: &SqlitePool, id: &str) -> Result<()>
     Ok(())
 }
 
-/// 删除单条记录。
-pub async fn delete_item(pool: &SqlitePool, id: &str) -> Result<()> {
-    sqlx::query("DELETE FROM clipboard_items WHERE id = ?")
-        .bind(id)
-        .execute(pool)
-        .await
-        .context("failed to delete clipboard item")?;
-    Ok(())
+/// 删除单条记录。若删除的是图片记录，返回其落盘文件名（`<sha256>.png`），供调用方删图；
+/// 否则返回 `None`。记录不存在时也返回 `None`。
+///
+/// image 去重指纹源自 PNG 字节、落盘文件名即字节 sha256，故库里同图至多一行，
+/// 删行后该文件必为孤儿，调用方可直接删，无需引用计数。
+pub async fn delete_item(pool: &SqlitePool, id: &str) -> Result<Option<String>> {
+    let row = sqlx::query_as::<_, (ClipboardKind, String)>(
+        "DELETE FROM clipboard_items WHERE id = ? RETURNING kind, content",
+    )
+    .bind(id)
+    .fetch_optional(pool)
+    .await
+    .context("failed to delete clipboard item")?;
+    Ok(row.and_then(|(kind, content)| image_file_name(kind, content)))
+}
+
+/// 取被删行里需要连带删除的图片文件名：kind 为 image 时 `content` 即文件名，否则 `None`。
+fn image_file_name(kind: ClipboardKind, content: String) -> Option<String> {
+    (kind == ClipboardKind::Image).then_some(content)
 }
 
 /// 批量删除，返回实际删除行数；`ids` 为空时不发查询。
@@ -228,46 +239,64 @@ pub async fn delete_items(pool: &SqlitePool, ids: &[String]) -> Result<u64> {
     Ok(result.rows_affected())
 }
 
+/// 历史清理的结果：删除行数 + 其中图片记录的落盘文件名（供调用方删图）。
+#[derive(Debug, Default)]
+pub struct CleanupOutcome {
+    pub removed: u64,
+    pub image_files: Vec<String>,
+}
+
 /// 历史清理：按「时间下限」和「最大条数」删除条目；置顶 / 收藏项一律保留。
-/// 返回总共删除的行数。`older_than = None` 跳过时长清理；`max_count = None` 或 `Some(0)` 跳过条数清理。
+/// 返回删除行数与被删图片的文件名。`older_than = None` 跳过时长清理；`max_count = None` 或 `Some(0)` 跳过条数清理。
 pub async fn cleanup_history(
     pool: &SqlitePool,
     older_than: Option<chrono::DateTime<chrono::Utc>>,
     max_count: Option<u32>,
-) -> Result<u64> {
-    let mut total = 0u64;
+) -> Result<CleanupOutcome> {
+    let mut outcome = CleanupOutcome::default();
 
     if let Some(cutoff) = older_than {
-        let result = sqlx::query(
+        let rows = sqlx::query_as::<_, (ClipboardKind, String)>(
             "DELETE FROM clipboard_items \
-             WHERE is_pinned = 0 AND is_favorite = 0 AND created_at < ?",
+             WHERE is_pinned = 0 AND is_favorite = 0 AND created_at < ? \
+             RETURNING kind, content",
         )
         .bind(cutoff)
-        .execute(pool)
+        .fetch_all(pool)
         .await
         .context("failed to cleanup clipboard items by retention")?;
-        total += result.rows_affected();
+        absorb_deleted(&mut outcome, rows);
     }
 
     if let Some(max) = max_count.filter(|n| *n > 0) {
         // 仅在非置顶 / 非收藏集合内按 created_at DESC 保留前 max 条，多余的删除。
         // SQLite 中 `LIMIT -1 OFFSET n` 表示「跳过前 n 条，剩下全要」。
-        let result = sqlx::query(
+        let rows = sqlx::query_as::<_, (ClipboardKind, String)>(
             "DELETE FROM clipboard_items WHERE id IN ( \
                  SELECT id FROM clipboard_items \
                  WHERE is_pinned = 0 AND is_favorite = 0 \
                  ORDER BY created_at DESC \
                  LIMIT -1 OFFSET ? \
-             )",
+             ) \
+             RETURNING kind, content",
         )
         .bind(max as i64)
-        .execute(pool)
+        .fetch_all(pool)
         .await
         .context("failed to cleanup clipboard items by max_count")?;
-        total += result.rows_affected();
+        absorb_deleted(&mut outcome, rows);
     }
 
-    Ok(total)
+    Ok(outcome)
+}
+
+/// 把一批被删行计入 outcome：累加行数，并收集其中的图片文件名。
+fn absorb_deleted(outcome: &mut CleanupOutcome, rows: Vec<(ClipboardKind, String)>) {
+    outcome.removed += rows.len() as u64;
+    outcome.image_files.extend(
+        rows.into_iter()
+            .filter_map(|(kind, content)| image_file_name(kind, content)),
+    );
 }
 
 /// 清空全部记录，返回删除行数；`keep_favorite` 为真时保留收藏项。
@@ -769,8 +798,29 @@ mod tests {
         let pool = memory_pool().await;
         insert_item(&pool, &sample_item("a")).await.unwrap();
 
-        delete_item(&pool, "a").await.unwrap();
+        // 文本行删除：无图片文件名返回。
+        assert_eq!(delete_item(&pool, "a").await.unwrap(), None);
         assert!(find_item_by_id(&pool, "a").await.unwrap().is_none());
+
+        // 记录不存在：同样返回 None，不报错。
+        assert_eq!(delete_item(&pool, "missing").await.unwrap(), None);
+    }
+
+    #[tokio::test]
+    async fn delete_image_item_returns_file_name() {
+        let pool = memory_pool().await;
+        let mut img = sample_item("img");
+        img.kind = ClipboardKind::Image;
+        img.content = "deadbeef.png".to_owned();
+        img.content_hash = content_hash(ClipboardKind::Image, "deadbeef.png");
+        insert_item(&pool, &img).await.unwrap();
+
+        // 图片行删除：返回落盘文件名供调用方删图。
+        assert_eq!(
+            delete_item(&pool, "img").await.unwrap().as_deref(),
+            Some("deadbeef.png")
+        );
+        assert!(find_item_by_id(&pool, "img").await.unwrap().is_none());
     }
 
     #[tokio::test]
@@ -839,8 +889,9 @@ mod tests {
         }
 
         let cutoff = DateTime::from_timestamp(5_000, 0).unwrap();
-        let removed = cleanup_history(&pool, Some(cutoff), None).await.unwrap();
-        assert_eq!(removed, 1);
+        let outcome = cleanup_history(&pool, Some(cutoff), None).await.unwrap();
+        assert_eq!(outcome.removed, 1);
+        assert!(outcome.image_files.is_empty());
 
         let all = query_items(&pool, &ClipboardItemQuery::default())
             .await
@@ -867,8 +918,9 @@ mod tests {
         pin.created_at = DateTime::from_timestamp(400, 0).unwrap();
         insert_item(&pool, &pin).await.unwrap();
 
-        let removed = cleanup_history(&pool, None, Some(2)).await.unwrap();
-        assert_eq!(removed, 3); // p0, p1, p2 被删
+        let outcome = cleanup_history(&pool, None, Some(2)).await.unwrap();
+        assert_eq!(outcome.removed, 3); // p0, p1, p2 被删
+        assert!(outcome.image_files.is_empty());
 
         let all = query_items(&pool, &ClipboardItemQuery::default())
             .await
@@ -880,12 +932,35 @@ mod tests {
     async fn cleanup_history_no_op_when_both_disabled() {
         let pool = memory_pool().await;
         insert_item(&pool, &sample_item("a")).await.unwrap();
-        assert_eq!(cleanup_history(&pool, None, None).await.unwrap(), 0);
-        assert_eq!(cleanup_history(&pool, None, Some(0)).await.unwrap(), 0);
+        assert_eq!(cleanup_history(&pool, None, None).await.unwrap().removed, 0);
+        assert_eq!(
+            cleanup_history(&pool, None, Some(0)).await.unwrap().removed,
+            0
+        );
         let all = query_items(&pool, &ClipboardItemQuery::default())
             .await
             .unwrap();
         assert_eq!(ids(&all), ["a"]);
+    }
+
+    #[tokio::test]
+    async fn cleanup_history_collects_deleted_image_file_names() {
+        let pool = memory_pool().await;
+        // 一条旧图片 + 一条旧文本，都早于 cutoff；只有图片应进入 image_files。
+        let mut img = sample_item("img");
+        img.kind = ClipboardKind::Image;
+        img.content = "cafe1234.png".to_owned();
+        img.content_hash = content_hash(ClipboardKind::Image, "cafe1234.png");
+        img.created_at = DateTime::from_timestamp(1_000, 0).unwrap();
+        let mut txt = sample_item("txt");
+        txt.created_at = DateTime::from_timestamp(1_000, 0).unwrap();
+        insert_item(&pool, &img).await.unwrap();
+        insert_item(&pool, &txt).await.unwrap();
+
+        let cutoff = DateTime::from_timestamp(5_000, 0).unwrap();
+        let outcome = cleanup_history(&pool, Some(cutoff), None).await.unwrap();
+        assert_eq!(outcome.removed, 2);
+        assert_eq!(outcome.image_files, vec!["cafe1234.png".to_owned()]);
     }
 
     #[test]

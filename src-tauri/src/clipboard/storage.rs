@@ -2,7 +2,7 @@
 //!
 //! 目录布局（`content` 字段存文件名 `<sha256>.png`，分片目录由此函数推导，不入库）：
 //! ```text
-//! <app_local_data>/resources/images/
+//! <app_local_data>/resources/clipboard-images/
 //!   origin/<hash[..2]>/<sha256>.png       原图（PNG），复制时落盘
 //!   thumbnails/<hash[..2]>/<sha256>.png   缩略图（PNG，最长边 <= THUMBNAIL_MAX），首次预览时按需生成
 //! ```
@@ -18,7 +18,7 @@ use std::path::{Path, PathBuf};
 use anyhow::Context;
 use clipboard_rs::common::{RustImage, RustImageData};
 use sha2::{Digest, Sha256};
-use tauri::{AppHandle, Manager};
+use tauri::AppHandle;
 
 use super::payload::ImagePayload;
 use crate::core::{AppError, Result};
@@ -26,8 +26,8 @@ use crate::core::{AppError, Result};
 /// 缩略图最长边像素。仅用于列表预览，够清晰即可。
 const THUMBNAIL_MAX: u32 = 300;
 
-const RESOURCES_DIR: &str = "resources";
-const IMAGES_DIR: &str = "images";
+/// 剪贴板图片目录名，挂在 `core::paths::resources_dir` 下（与 `app-icons` 并列）。
+const IMAGES_DIR: &str = "clipboard-images";
 const ORIGIN_DIR: &str = "origin";
 const THUMBNAILS_DIR: &str = "thumbnails";
 
@@ -44,7 +44,7 @@ pub struct StoredImage {
     pub size: i64,
 }
 
-/// 图片存储器：持有 app data 下的 `resources/images` 根目录。
+/// 图片存储器：持有 app data 下的 `resources/clipboard-images` 根目录。
 /// 放入 Tauri `State`，监听线程与命令共用。
 #[derive(Clone)]
 pub struct ImageStore {
@@ -52,13 +52,9 @@ pub struct ImageStore {
 }
 
 impl ImageStore {
-    /// 从 `AppHandle` 解析 `<app_local_data>/resources/images` 作为根。
+    /// 从 `AppHandle` 解析 `<app_local_data>/resources/clipboard-images` 作为根。
     pub fn new(app: &AppHandle) -> Result<Self> {
-        let base = app
-            .path()
-            .app_local_data_dir()
-            .context("failed to resolve app local data dir")?;
-        let images_root = base.join(RESOURCES_DIR).join(IMAGES_DIR);
+        let images_root = crate::core::paths::resources_dir(app)?.join(IMAGES_DIR);
         Ok(Self { images_root })
     }
 
@@ -103,6 +99,23 @@ impl ImageStore {
         let thumb_bytes = encode_thumbnail(&origin_bytes)?;
         write_if_absent(&thumb_path, &thumb_bytes)?;
         Ok(thumb_path)
+    }
+
+    /// 删除一张图片的原图与缩略图。缩略图懒生成、可能不存在，缺失文件视作成功（幂等）。
+    /// 删后顺手清理变空的分片目录（`origin/<ab>`、`thumbnails/<ab>`）。
+    ///
+    /// 调用前提：库里该图至多一行（image 去重指纹源自 PNG 字节，落盘文件名即字节 sha256），
+    /// 故删行后该文件必为孤儿，可直接删，无需引用计数。其余 IO 错误上抛由调用方记日志。
+    pub fn remove(&self, file_name: &str) -> Result<()> {
+        let origin = self.origin_path(file_name);
+        let thumb = self.thumbnail_path(file_name);
+        remove_if_present(&origin)?;
+        remove_if_present(&thumb)?;
+        // 分片目录可能被同前缀的其他图共享，非空时保留——remove_dir 只删空目录，
+        // 非空 / 不存在都返回 Err，一并忽略；目录清理是尽力而为，不影响删图结果。
+        remove_dir_if_empty(origin.parent());
+        remove_dir_if_empty(thumb.parent());
+        Ok(())
     }
 
     /// 由文件名解析原图绝对路径（分片目录从文件名前 2 位推导）。供写回/粘贴（阶段 4）使用。
@@ -157,6 +170,25 @@ fn write_if_absent(path: &Path, bytes: &[u8]) -> Result<()> {
     Ok(())
 }
 
+/// 删文件；文件不存在时静默成功（幂等），其余 IO 错误上抛。
+fn remove_if_present(path: &Path) -> Result<()> {
+    match std::fs::remove_file(path) {
+        Ok(()) => Ok(()),
+        Err(err) if err.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(err) => Err(AppError::from(
+            anyhow::Error::new(err).context(format!("failed to remove image {path:?}")),
+        )),
+    }
+}
+
+/// 尽力删除空目录：`remove_dir` 仅在目录为空时成功，非空（仍有同分片的其他图）/
+/// 不存在都返回 `Err`，一律忽略——目录清理不影响删图结果，无需上抛。
+fn remove_dir_if_empty(dir: Option<&Path>) {
+    if let Some(dir) = dir {
+        let _ = std::fs::remove_dir(dir);
+    }
+}
+
 /// 把原图 PNG 字节解码 → 生成缩略图（最长边 <= [`THUMBNAIL_MAX`]，保持比例）→ 重新编码 PNG。
 fn encode_thumbnail(png_bytes: &[u8]) -> Result<Vec<u8>> {
     let image = RustImageData::from_bytes(png_bytes).map_err(clip_err)?;
@@ -187,7 +219,7 @@ mod tests {
 
     fn temp_store() -> (tempdir_guard::TempDir, ImageStore) {
         let dir = tempdir_guard::TempDir::new();
-        let store = ImageStore::for_test(dir.path().join("resources").join("images"));
+        let store = ImageStore::for_test(dir.path().join("resources").join("clipboard-images"));
         (dir, store)
     }
 
@@ -268,6 +300,79 @@ mod tests {
         // 同字节 → 同文件名 / 同 sha256，幂等。
         assert_eq!(a.file_name, b.file_name);
         assert_eq!(a.sha256, b.sha256);
+    }
+
+    #[test]
+    fn remove_deletes_origin_and_thumbnail_idempotently() {
+        let (_dir, store) = temp_store();
+        let payload = ImagePayload {
+            bytes: sample_png(40, 30),
+            width: 40,
+            height: 30,
+        };
+        let stored = store.store(&payload).unwrap();
+        store.ensure_thumbnail(&stored.file_name).unwrap();
+
+        let origin = store.origin_path(&stored.file_name);
+        let thumb = store.thumbnail_path(&stored.file_name);
+        assert!(origin.exists() && thumb.exists());
+
+        store.remove(&stored.file_name).unwrap();
+        assert!(!origin.exists(), "origin should be removed");
+        assert!(!thumb.exists(), "thumbnail should be removed");
+        // 分片目录已空 → 一并清理。
+        assert!(
+            !origin.parent().unwrap().exists(),
+            "empty origin shard dir should be removed"
+        );
+        assert!(
+            !thumb.parent().unwrap().exists(),
+            "empty thumbnail shard dir should be removed"
+        );
+
+        // 再次删除：文件已不存在，仍成功（幂等）。
+        store.remove(&stored.file_name).unwrap();
+    }
+
+    #[test]
+    fn remove_keeps_shard_dir_when_other_image_shares_prefix() {
+        let (_dir, store) = temp_store();
+        let payload = ImagePayload {
+            bytes: sample_png(40, 30),
+            width: 40,
+            height: 30,
+        };
+        let stored = store.store(&payload).unwrap();
+        let shard = store
+            .origin_path(&stored.file_name)
+            .parent()
+            .unwrap()
+            .to_path_buf();
+
+        // 模拟同前缀的另一张图占用同一分片目录。
+        let sibling = shard.join("sibling.png");
+        std::fs::write(&sibling, b"x").unwrap();
+
+        store.remove(&stored.file_name).unwrap();
+        // 目标图已删，但分片目录非空 → 必须保留，sibling 不受影响。
+        assert!(!store.origin_path(&stored.file_name).exists());
+        assert!(shard.exists(), "non-empty shard dir must be kept");
+        assert!(sibling.exists(), "sibling image must survive");
+    }
+
+    #[test]
+    fn remove_succeeds_when_thumbnail_never_generated() {
+        let (_dir, store) = temp_store();
+        let payload = ImagePayload {
+            bytes: sample_png(16, 16),
+            width: 16,
+            height: 16,
+        };
+        let stored = store.store(&payload).unwrap();
+        // 只落了原图，缩略图从未生成；remove 不应因缩略图缺失而失败。
+        assert!(!store.thumbnail_path(&stored.file_name).exists());
+        store.remove(&stored.file_name).unwrap();
+        assert!(!store.origin_path(&stored.file_name).exists());
     }
 
     #[test]

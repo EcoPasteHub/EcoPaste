@@ -218,10 +218,20 @@ pub async fn toggle_clipboard_item_favorite(pool: State<'_, SqlitePool>, id: Str
     crate::db::items::toggle_item_favorite(&pool, &id).await
 }
 
-/// 删除单条记录（薄封装）。
+/// 删除单条记录（薄封装）。若删的是图片记录，连带删除其落盘文件（原图 + 缩略图）。
+/// 行已删成功，删文件失败仅记日志、不回滚——残留文件最坏占用磁盘，不影响功能。
 #[tauri::command]
-pub async fn delete_clipboard_item(pool: State<'_, SqlitePool>, id: String) -> Result<()> {
-    crate::db::items::delete_item(&pool, &id).await
+pub async fn delete_clipboard_item(
+    pool: State<'_, SqlitePool>,
+    store: State<'_, ImageStore>,
+    id: String,
+) -> Result<()> {
+    if let Some(file_name) = crate::db::items::delete_item(&pool, &id).await? {
+        if let Err(err) = store.remove(&file_name) {
+            log::warn!("remove deleted image {file_name} failed: {err}");
+        }
+    }
+    Ok(())
 }
 
 /// 更新备注（薄封装）。`note = None` 或空串清空备注；空串归一化为 None，

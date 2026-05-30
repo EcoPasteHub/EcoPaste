@@ -224,7 +224,7 @@ mod tests {
 
     fn temp_image_store() -> (TempDir, ImageStore) {
         let dir = TempDir::new();
-        let store = ImageStore::for_test(dir.path().join("resources").join("images"));
+        let store = ImageStore::for_test(dir.path().join("resources").join("clipboard-images"));
         (dir, store)
     }
 

@@ -5,10 +5,7 @@
     "security": {
       "assetProtocol": {
         "enable": true,
-        "scope": [
-          "$APPLOCALDATA/resources/app-icons/**",
-          "$APPLOCALDATA/resources/images/**"
-        ]
+        "scope": ["$APPLOCALDATA/**"]
       },
       "csp": null
     },

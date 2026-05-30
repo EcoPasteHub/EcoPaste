@@ -9,8 +9,7 @@ use tauri::{AppHandle, Manager, PhysicalPosition, PhysicalSize};
 
 use crate::core::Result;
 
-const STATE_FILENAME_RELEASE: &str = "window-state.json";
-const STATE_FILENAME_DEV: &str = "window-state.dev.json";
+const STATE_FILENAME: &str = "window-state.json";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WindowState {
@@ -27,19 +26,11 @@ pub struct WindowStateStore {
 
 impl WindowStateStore {
     pub fn new(app: &AppHandle) -> Result<Self> {
-        let dir = app
-            .path()
-            .app_local_data_dir()
-            .context("failed to resolve app local data dir")?;
+        let dir = crate::core::paths::app_data_dir(app)?;
 
         fs::create_dir_all(&dir).with_context(|| format!("failed to create dir at {dir:?}"))?;
 
-        let filename = if cfg!(dev) {
-            STATE_FILENAME_DEV
-        } else {
-            STATE_FILENAME_RELEASE
-        };
-        let path = dir.join(filename);
+        let path = dir.join(STATE_FILENAME);
 
         let states = if path.exists() {
             match fs::read_to_string(&path) {

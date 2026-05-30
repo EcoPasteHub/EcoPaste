@@ -1,6 +1,6 @@
 //! 设置持久化。
 //!
-//! - 落盘位置：`app_local_data_dir/settings.json`（dev 走 `settings.dev.json`，与窗口状态保持同一套规则）。
+//! - 落盘位置：`<app_data_dir>/settings.json`（dev/prod 由 `core::paths` 的环境子目录隔离，文件名不带后缀）。
 //! - 写入流程：先把当前盘内容备份到 `settings.json.bak`，再原子写入新文件。
 //!   读取时主文件解析失败回退到 `.bak`，再失败回退到 `Default`，避免一次坏盘把所有偏好弄丢。
 //! - 缺字段兼容：`Settings` 各结构体都 `#[serde(default)]`，新版本新增字段不影响旧文件。
@@ -11,14 +11,13 @@ use std::path::{Path, PathBuf};
 use std::sync::RwLock;
 
 use anyhow::Context;
-use tauri::{AppHandle, Manager};
+use tauri::AppHandle;
 
 use crate::core::{AppError, Result};
 
 use super::model::{Language, Settings};
 
-const FILENAME_RELEASE: &str = "settings.json";
-const FILENAME_DEV: &str = "settings.dev.json";
+const FILENAME: &str = "settings.json";
 const BACKUP_SUFFIX: &str = ".bak";
 
 pub struct SettingsStore {
@@ -29,18 +28,10 @@ pub struct SettingsStore {
 
 impl SettingsStore {
     pub fn new(app: &AppHandle) -> Result<Self> {
-        let dir = app
-            .path()
-            .app_local_data_dir()
-            .context("failed to resolve app local data dir")?;
+        let dir = crate::core::paths::app_data_dir(app)?;
         fs::create_dir_all(&dir).with_context(|| format!("failed to create dir at {dir:?}"))?;
 
-        let filename = if cfg!(dev) {
-            FILENAME_DEV
-        } else {
-            FILENAME_RELEASE
-        };
-        let path = dir.join(filename);
+        let path = dir.join(FILENAME);
         let backup_path = path.with_extension(format!(
             "{}{}",
             path.extension().and_then(|s| s.to_str()).unwrap_or("json"),

@@ -181,7 +181,7 @@ mod tests {
     // build_item 需要 ImageStore；非图片用例不触图，故指向临时目录即可。
     fn store() -> (TempDir, ImageStore) {
         let dir = TempDir::new();
-        let store = ImageStore::for_test(dir.path().join("resources").join("images"));
+        let store = ImageStore::for_test(dir.path().join("resources").join("clipboard-images"));
         (dir, store)
     }
 

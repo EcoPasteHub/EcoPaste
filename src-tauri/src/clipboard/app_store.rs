@@ -1,18 +1,21 @@
-//! 应用 icon 落盘：按 PNG 字节 sha256 命名，与 [`super::storage::ImageStore`] 同套分片布局。
+//! 应用 icon 落盘：按 PNG 字节 sha256 命名，平铺在单层目录下。
 //!
-//! 目录：`<app_local_data>/resources/app-icons/<hash[..2]>/<sha256>.png`。
+//! 目录：`<app_local_data>/resources/app-icons/<sha256>.png`。
 //! 同 icon（同字节）天然去重：不同应用若指向相同 icon 二进制只占一份。
-//! `clipboard_apps.icon_file` 存「`<sha256>.png`」纯文件名，分片目录从文件名推导，不入库。
+//! `clipboard_apps.icon_file` 存「`<sha256>.png`」纯文件名，不入库目录前缀。
+//!
+//! 不像剪贴板图片那样按 hash 前缀分片：icon 数量受「用户从多少个不同应用复制过」约束，
+//! 撑死几十到低几百个，单层目录足够，分片只是徒增复杂度。
 
 use std::path::{Path, PathBuf};
 
 use anyhow::Context;
 use sha2::{Digest, Sha256};
-use tauri::{AppHandle, Manager};
+use tauri::AppHandle;
 
 use crate::core::Result;
 
-const RESOURCES_DIR: &str = "resources";
+/// 应用 icon 目录名，挂在 `core::paths::resources_dir` 下（与 `clipboard-images` 并列）。
 const APP_ICONS_DIR: &str = "app-icons";
 
 #[derive(Clone)]
@@ -22,12 +25,8 @@ pub struct AppIconStore {
 
 impl AppIconStore {
     pub fn new(app: &AppHandle) -> Result<Self> {
-        let base = app
-            .path()
-            .app_local_data_dir()
-            .context("failed to resolve app local data dir")?;
         Ok(Self {
-            root: base.join(RESOURCES_DIR).join(APP_ICONS_DIR),
+            root: crate::core::paths::resources_dir(app)?.join(APP_ICONS_DIR),
         })
     }
 
@@ -40,30 +39,13 @@ impl AppIconStore {
     pub fn store(&self, png_bytes: &[u8]) -> Result<String> {
         let sha = sha256_hex(png_bytes);
         let file_name = format!("{sha}.png");
-        let path = self.shard_path(&sha, &file_name);
-        write_if_absent(&path, png_bytes)?;
+        write_if_absent(&self.root.join(&file_name), png_bytes)?;
         Ok(file_name)
     }
 
     pub fn icon_path(&self, file_name: &str) -> PathBuf {
-        self.shard_path(shard_key(file_name), file_name)
+        self.root.join(file_name)
     }
-
-    fn shard_path(&self, shard_src: &str, file_name: &str) -> PathBuf {
-        self.root.join(shard_dir(shard_src)).join(file_name)
-    }
-}
-
-fn shard_dir(src: &str) -> &str {
-    if src.len() >= 2 {
-        &src[..2]
-    } else {
-        "00"
-    }
-}
-
-fn shard_key(file_name: &str) -> &str {
-    file_name.split('.').next().unwrap_or(file_name)
 }
 
 fn sha256_hex(bytes: &[u8]) -> String {
@@ -95,7 +77,7 @@ mod tests {
     }
 
     #[test]
-    fn stores_under_hash_shard_and_is_idempotent() {
+    fn stores_flat_under_root_and_is_idempotent() {
         let (_d, store) = temp_store();
         let bytes = b"fake-png-bytes-for-test".to_vec();
 
@@ -107,16 +89,8 @@ mod tests {
         let path = store.icon_path(&a);
         assert!(path.exists());
         assert_eq!(std::fs::read(&path).unwrap(), bytes);
-        // 分片目录 = 文件名前 2 位 hex。
-        assert_eq!(
-            path.parent()
-                .unwrap()
-                .file_name()
-                .unwrap()
-                .to_str()
-                .unwrap(),
-            &a[..2]
-        );
+        // 平铺：文件直接落在 root 下，无分片子目录。
+        assert_eq!(path, store.root.join(&a));
     }
 
     struct TempDir(PathBuf);

@@ -10,6 +10,7 @@ use serde_json::json;
 use sqlx::SqlitePool;
 use tauri::{AppHandle, Emitter, Manager};
 
+use super::storage::ImageStore;
 use super::watcher::CLIPBOARD_UPDATED_EVENT;
 use crate::db::items::cleanup_history;
 use crate::settings::{Retention, RetentionUnit, SettingsStore};
@@ -45,14 +46,38 @@ async fn run_once(app: &AppHandle, pool: &SqlitePool) {
     }
 
     match cleanup_history(pool, cutoff, max).await {
-        Ok(0) => {}
-        Ok(n) => {
-            log::info!("history cleanup removed {n} item(s)");
-            if let Err(err) = app.emit(CLIPBOARD_UPDATED_EVENT, json!({ "cleanup": n })) {
+        Ok(outcome) if outcome.removed == 0 => {}
+        Ok(outcome) => {
+            remove_images(app, &outcome.image_files);
+            log::info!("history cleanup removed {} item(s)", outcome.removed);
+            if let Err(err) = app.emit(
+                CLIPBOARD_UPDATED_EVENT,
+                json!({ "cleanup": outcome.removed }),
+            ) {
                 log::warn!("emit cleanup event failed: {err}");
             }
         }
         Err(err) => log::warn!("history cleanup failed: {err}"),
+    }
+}
+
+/// 删除被清理图片记录的落盘文件（原图 + 缩略图）。`ImageStore` 未注册或单个文件删除失败
+/// 都只记日志、不阻断——清理本身已成功，残留文件最坏只是占用磁盘，不影响功能。
+fn remove_images(app: &AppHandle, file_names: &[String]) {
+    if file_names.is_empty() {
+        return;
+    }
+    let Some(store) = app.try_state::<ImageStore>() else {
+        log::warn!(
+            "image store unavailable; skip removing {} image file(s)",
+            file_names.len()
+        );
+        return;
+    };
+    for file_name in file_names {
+        if let Err(err) = store.remove(file_name) {
+            log::warn!("remove cleaned image {file_name} failed: {err}");
+        }
     }
 }
 
