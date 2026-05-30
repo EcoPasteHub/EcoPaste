@@ -215,7 +215,6 @@
 - [ ] 引入 `tauri-nspanel`，将 main 窗口转为 NSPanel（浮层、dock level）
 - [ ] 隐藏 dock 图标、可在全空间显示、`acceptsFirstMouse`
 - [ ] 绑定 focus/blur/resize/move 事件 → emit 给前端
-- [ ] 失焦自动隐藏（可配置）
 
 ### 3.4 关闭行为
 

@@ -22,10 +22,12 @@ pub fn show_window(app_handle: &AppHandle, label: &str) -> Result<()> {
     let window = get_window(app_handle, label)?;
     window.show().map_err(|e| anyhow::anyhow!(e))?;
     window.unminimize().map_err(|e| anyhow::anyhow!(e))?;
-    window.set_focus().map_err(|e| anyhow::anyhow!(e))?;
+    // main 不调 set_focus：Windows 上要避免抢走前台应用的焦点（粘贴目标）。
+    // macOS 走 Web keydown 仍需要 webview 是 key window，由前端/平台默认行为承担。
     if label == MAIN_WINDOW_LABEL {
-        // 主窗口 visible 期间装系统级键盘钩子，让 focusable=false 的 Windows 也能收到导航键。
         keyboard::enable_navigation_keys(app_handle);
+    } else {
+        window.set_focus().map_err(|e| anyhow::anyhow!(e))?;
     }
     Ok(())
 }
