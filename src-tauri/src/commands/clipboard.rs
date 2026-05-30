@@ -8,7 +8,8 @@ use sqlx::SqlitePool;
 use tauri::{AppHandle, State};
 
 use crate::clipboard::{
-    build_item, persist_and_notify, ClipboardReader, ImageStore, WritebackGuard,
+    build_item, detect_frontmost, materialize_source, persist_and_notify, AppIconStore,
+    ClipboardReader, ImageStore, WritebackGuard,
 };
 use crate::core::{AppError, Result};
 use crate::db::items::find_item_by_id;
@@ -37,21 +38,34 @@ pub async fn read_clipboard(
     app: AppHandle,
     pool: State<'_, SqlitePool>,
     store: State<'_, ImageStore>,
+    app_icon_store: State<'_, AppIconStore>,
 ) -> Result<Option<ReadClipboardResult>> {
-    let item: Option<ClipboardItem> = {
+    // 先在同步段抓前台应用 + 读取剪贴板。
+    // 注意：手动「重新读取」时前台应用就是 EcoPaste 自己，不像 OS 监听场景能拿到原应用——
+    // 这里仍保留探测：若用户在外部应用复制后立刻命令式触发，多少能捕获到正确来源；
+    // 命中我们自己也无害（apps 表只是多记一条「EcoPaste」）。
+    let (item_opt, source) = {
+        let source = detect_frontmost();
         let reader = ClipboardReader::new()?;
-        match reader.read_all()? {
+        let payload = reader.read_all()?;
+        let item = match payload {
             Some(payload) => build_item(&store, &payload)?,
             None => None,
-        }
+        };
+        (item, source)
         // reader 在此 drop，!Send 句柄不跨下方 await。
     };
 
-    let Some(item) = item else {
+    let Some(mut item) = item_opt else {
         return Ok(None);
     };
 
-    let result = persist_and_notify(&app, &pool, &item).await?;
+    let source_app = source.map(|src| materialize_source(&app_icon_store, src));
+    if let Some(src) = &source_app {
+        item.source_app_id = Some(src.id.clone());
+    }
+
+    let result = persist_and_notify(&app, &pool, &item, source_app.as_ref()).await?;
     Ok(Some(ReadClipboardResult {
         item,
         deduplicated: result.deduplicated,
@@ -81,6 +95,21 @@ pub async fn get_clipboard_image_path(
     path.to_str()
         .map(str::to_owned)
         .ok_or_else(|| AppError::Clipboard("image path is not valid utf-8".to_owned()))
+}
+
+/// 把 `clipboard_apps.icon_file`（形如 `<sha256>.png`）解析为磁盘绝对路径，
+/// 供前端用 `convertFileSrc` 渲染。文件名复用图片同款防穿越校验。
+#[tauri::command]
+pub async fn get_clipboard_app_icon_path(
+    store: State<'_, AppIconStore>,
+    file_name: String,
+) -> Result<String> {
+    validate_image_file_name(&file_name)?;
+    store
+        .icon_path(&file_name)
+        .to_str()
+        .map(str::to_owned)
+        .ok_or_else(|| AppError::Clipboard("app icon path is not valid utf-8".to_owned()))
 }
 
 /// 把指定历史记录写回系统剪贴板（不触发模拟粘贴，4.2 再补）。

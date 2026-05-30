@@ -38,6 +38,10 @@ pub struct ClipboardItem {
     pub kind: ClipboardKind,
     pub sub_kind: Option<ClipboardSubKind>,
     pub group_id: Option<String>,
+    /// 复制时的来源应用 id（macOS = bundle id，Windows = 可执行文件绝对路径）；
+    /// 监听 / 命令链路若未能取到前台应用则为 `None`。引用 `clipboard_apps(id)`，
+    /// 删除应用记录时置 NULL，不会级联删条目。
+    pub source_app_id: Option<String>,
     pub content: String,
     /// 去重指纹：`sha256(kind:content)`，由 `db::items::content_hash` 计算并在入库前比对。
     pub content_hash: String,
@@ -50,6 +54,20 @@ pub struct ClipboardItem {
     pub is_pinned: bool,
     pub platform: Platform,
     pub note: Option<String>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+/// 剪贴板来源应用（macOS bundle id / Windows exe 路径作主键），
+/// 名称与图标按 id 去重共享，单条剪贴板记录通过 `source_app_id` 引用。
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[serde(rename_all = "camelCase")]
+pub struct ClipboardApp {
+    pub id: String,
+    pub name: String,
+    /// `app-icons/<sha256>.png` 形式的文件名（无分片目录前缀）；无图标则 `None`。
+    pub icon_file: Option<String>,
+    pub platform: Platform,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }

@@ -6,9 +6,9 @@ use sqlx::{QueryBuilder, Sqlite, SqlitePool};
 use crate::core::Result;
 use crate::db::models::{ClipboardItem, ClipboardItemQuery, ClipboardItemSort, ClipboardKind};
 
-const SELECT_ITEM: &str = "SELECT id, kind, sub_kind, group_id, content, content_hash, \
-     search_text, size, width, height, use_count, is_favorite, is_pinned, platform, note, \
-     created_at, updated_at FROM clipboard_items";
+const SELECT_ITEM: &str = "SELECT id, kind, sub_kind, group_id, source_app_id, content, \
+     content_hash, search_text, size, width, height, use_count, is_favorite, is_pinned, \
+     platform, note, created_at, updated_at FROM clipboard_items";
 
 /// 入库去重的结果：`id` 为生效行的主键（命中时是已有行，未命中时是新插入行），
 /// `deduplicated` 表示是否命中了已有内容（命中则只 `use_count + 1` 未插入新行）。
@@ -79,14 +79,16 @@ pub async fn find_item_by_content_hash(
 pub async fn insert_item(pool: &SqlitePool, item: &ClipboardItem) -> Result<()> {
     sqlx::query(
         "INSERT INTO clipboard_items \
-         (id, kind, sub_kind, group_id, content, content_hash, search_text, size, width, height, \
-          use_count, is_favorite, is_pinned, platform, note, created_at, updated_at) \
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+         (id, kind, sub_kind, group_id, source_app_id, content, content_hash, search_text, \
+          size, width, height, use_count, is_favorite, is_pinned, platform, note, \
+          created_at, updated_at) \
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
     )
     .bind(item.id.as_str())
     .bind(item.kind)
     .bind(item.sub_kind)
     .bind(item.group_id.as_deref())
+    .bind(item.source_app_id.as_deref())
     .bind(item.content.as_str())
     .bind(item.content_hash.as_str())
     .bind(item.search_text.as_deref())
@@ -313,6 +315,7 @@ mod tests {
             kind: ClipboardKind::Text,
             sub_kind: None,
             group_id: None,
+            source_app_id: None,
             content_hash: content_hash(ClipboardKind::Text, &content),
             content,
             search_text: None,

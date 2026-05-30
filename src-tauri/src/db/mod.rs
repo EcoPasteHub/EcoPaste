@@ -1,3 +1,4 @@
+pub mod apps;
 pub mod groups;
 pub mod init;
 pub mod items;
@@ -6,8 +7,8 @@ pub mod path;
 
 pub use init::init;
 pub use models::{
-    ClipboardGroup, ClipboardItem, ClipboardItemQuery, ClipboardItemSort, ClipboardKind,
-    ClipboardSubKind, Platform,
+    ClipboardApp, ClipboardGroup, ClipboardItem, ClipboardItemQuery, ClipboardItemSort,
+    ClipboardKind, ClipboardSubKind, Platform,
 };
 pub use path::db_path;
 

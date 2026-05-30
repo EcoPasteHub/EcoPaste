@@ -325,6 +325,17 @@
   > `auto` 模式：`setTheme(null)` 把跟随系统的责任交给 Tauri，订阅 `appWindow.onThemeChanged` 而非 `matchMedia`——单一信源避免双订阅打架；切到显式 light/dark 时立刻 unlisten。effect 依赖 `[theme, loaded]`，未加载完成时不动 DOM/窗口，避免和 `index.html` 默认 `class="light"` 闪一下。
   > 顺手新增 `src/utils/log.ts`：封装 `@tauri-apps/plugin-log` 的 `error/warn/info/debug`，与 Rust `log::error!` 同源（一并进 LogDir 文件 / Stdout / Webview console），catch 兜底落控制台避免 unhandled rejection。`useApplyTheme.ts` + `main.tsx` 全部走 `log.error`，不再散落 `console.error`。capability 加 `log:default` 让前端能调到 plugin-log 的 IPC；npm 装 `@tauri-apps/plugin-log`。
 
+### 7.1.5 剪贴板条目「来源应用」（趁数据库未发版）
+
+- [x] migration 0001：新增 `clipboard_apps`（id/name/icon_file/platform/created_at/updated_at），`clipboard_items` 加 `source_app_id` 外键 + 索引
+- [x] `db/apps.rs`：`upsert_app`（UPDATE 失败再 INSERT，保留 created_at）/ `find_app_by_id`
+- [x] `clipboard/app_store.rs`：app icon PNG 落 `<app_local_data>/resources/app-icons/<hash[..2]>/<sha256>.png`（sha256 内容寻址，幂等）
+- [x] `clipboard/source.rs`：macOS 走 `NSWorkspace.frontmostApplication` 取 bundle id / localizedName / icon（NSImage → TIFF → NSBitmapImageRep → PNG）；Windows 占位返回 None
+- [x] watcher：回调里**先**同步抓前台应用（晚一步前台会切回 EcoPaste 自己），materialize 后随 item 一并 upsert；apps 表写失败降级为 source_app_id=None，不阻断条目入库
+- [x] `read_clipboard` 命令同走采源链路；新增 `get_clipboard_app_icon_path` 命令（沿用图片同款防穿越校验）
+- [ ] 待 7.2 接入前端时一并补：capability `asset:default` scope 放开 `app-icons/**`、`ClipboardItem` 的 TS 类型同步 `sourceAppId`
+- [ ] **dev 注意**：0001 迁移已变更，本地老 DB 需删除后重启（sqlx checksum 不匹配会拒启动）
+
 ### 7.2 剪贴板历史列表（main 窗口）
 
 - [ ] 列表容器：`react-virtuoso` 虚拟滚动

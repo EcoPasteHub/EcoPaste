@@ -149,6 +149,7 @@ pub fn build_item(store: &ImageStore, payload: &ClipboardPayload) -> Result<Opti
         kind: draft.kind,
         sub_kind: draft.sub_kind,
         group_id: None,
+        source_app_id: None,
         content: draft.content,
         search_text: draft.search_text,
         size: draft.size,

@@ -38,19 +38,20 @@ pub fn run() {
         .max_out_buffer_capacity(64 * 1024 * 1024);
 
     tauri::Builder::default()
-        .plugin(tauri_plugin_single_instance::init(|app_handle, _argv, _cwd| {
-            if let Err(err) =
-                window::show_window(app_handle, window::PREFERENCE_WINDOW_LABEL)
-            {
-                log::error!("show preference window on second instance failed: {err:?}");
-            }
-        }))
+        .plugin(tauri_plugin_single_instance::init(
+            |app_handle, _argv, _cwd| {
+                if let Err(err) = window::show_window(app_handle, window::PREFERENCE_WINDOW_LABEL) {
+                    log::error!("show preference window on second instance failed: {err:?}");
+                }
+            },
+        ))
         .plugin(log_plugin)
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .invoke_system(awesome_rpc.initialization_script())
         .invoke_handler(tauri::generate_handler![
             commands::read_clipboard,
             commands::get_clipboard_image_path,
+            commands::get_clipboard_app_icon_path,
             commands::write_to_clipboard,
             commands::paste_clipboard_item,
             commands::show_window,

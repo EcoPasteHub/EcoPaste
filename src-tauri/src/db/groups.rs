@@ -117,6 +117,7 @@ mod tests {
             kind: ClipboardKind::Text,
             sub_kind: None,
             group_id: Some("g".to_owned()),
+            source_app_id: None,
             content: "content".to_owned(),
             content_hash: content_hash(ClipboardKind::Text, "content"),
             search_text: None,

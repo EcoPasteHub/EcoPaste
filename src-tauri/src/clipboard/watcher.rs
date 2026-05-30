@@ -10,30 +10,72 @@
 
 use std::sync::Arc;
 
+use chrono::Utc;
 use clipboard_rs::{ClipboardHandler, ClipboardWatcher, ClipboardWatcherContext};
 use serde_json::json;
 use sqlx::SqlitePool;
 use tauri::{AppHandle, Manager};
 use tauri_awesome_rpc::EmitterExt;
 
+use super::app_store::AppIconStore;
 use super::guard::WritebackGuard;
 use super::ingest::build_item;
 use super::read::ClipboardReader;
+use super::source::{self, FrontmostApp};
 use super::storage::ImageStore;
+use crate::db::apps::upsert_app;
 use crate::db::items::{upsert_item, UpsertResult};
-use crate::db::models::ClipboardItem;
+use crate::db::models::{ClipboardApp, ClipboardItem};
 
 /// 剪贴板更新事件名。前端监听此事件后增量刷新 / 重新拉取列表（阶段 7.2）。
 pub const CLIPBOARD_UPDATED_EVENT: &str = "clipboard://updated";
 
+/// 把同步抓到的 [`FrontmostApp`] 落 icon 字节 + 拼成可入库的 [`ClipboardApp`]。
+/// icon 落盘失败不阻断（仍保留应用名），仅 warn。
+pub fn materialize_source(store: &AppIconStore, src: FrontmostApp) -> ClipboardApp {
+    let icon_file = src
+        .icon_png
+        .as_deref()
+        .and_then(|bytes| match store.store(bytes) {
+            Ok(name) => Some(name),
+            Err(err) => {
+                log::warn!("app icon store failed for {}: {err}", src.id);
+                None
+            }
+        });
+    let now = Utc::now();
+    ClipboardApp {
+        id: src.id,
+        name: src.name,
+        icon_file,
+        platform: src.platform,
+        created_at: now,
+        updated_at: now,
+    }
+}
+
 /// 去重入库 + emit「剪贴板更新」事件。监听回调与 `read_clipboard` 命令共用，
 /// 保证两条路径的入库语义与事件契约一致。失败仅记日志（监听场景无人接收 Result）。
+///
+/// `source_app` 为 `Some` 时先 upsert apps 表再写 item，满足 FK 约束。
+/// 应用 upsert 失败不阻断条目入库——清掉 source_app_id 后继续，避免单次系统调用抽风丢内容。
 pub async fn persist_and_notify(
     app: &AppHandle,
     pool: &SqlitePool,
     item: &ClipboardItem,
+    source_app: Option<&ClipboardApp>,
 ) -> crate::core::Result<UpsertResult> {
-    let result = upsert_item(pool, item).await?;
+    let mut item_to_write = item.clone();
+    if let Some(src) = source_app {
+        match upsert_app(pool, src).await {
+            Ok(()) => {}
+            Err(err) => {
+                log::warn!("clipboard source app upsert failed ({}): {err}", src.id);
+                item_to_write.source_app_id = None;
+            }
+        }
+    }
+    let result = upsert_item(pool, &item_to_write).await?;
     // EmitterExt::emit 是 fire-and-forget（返回 ()），经 WS 通道送达前端。
     app.emit(
         CLIPBOARD_UPDATED_EVENT,
@@ -45,9 +87,9 @@ pub async fn persist_and_notify(
     Ok(result)
 }
 
-/// 启动监听：注册 [`WritebackGuard`] 与 [`ImageStore`] 到 Tauri `State`
-/// （供阶段 4 写回打标记 / 取图），并在独立线程上跑 OS 级监听。
-/// 应在 `setup` 中、连接池就绪后调用一次。`ImageStore` 创建失败属致命配置错误，直接返回错误。
+/// 启动监听：注册 [`WritebackGuard`] / [`ImageStore`] / [`AppIconStore`] 到 Tauri `State`
+/// （供阶段 4 写回打标记 / 取图 / 取来源应用图标），并在独立线程上跑 OS 级监听。
+/// 应在 `setup` 中、连接池就绪后调用一次。store 创建失败属致命配置错误，直接返回错误。
 pub fn init(app: &AppHandle, pool: SqlitePool) -> crate::core::Result<()> {
     let guard = Arc::new(WritebackGuard::new());
     app.manage(guard.clone());
@@ -55,7 +97,10 @@ pub fn init(app: &AppHandle, pool: SqlitePool) -> crate::core::Result<()> {
     let store = ImageStore::new(app)?;
     app.manage(store.clone());
 
-    spawn_watch_thread(app.clone(), pool, guard, store);
+    let app_icon_store = AppIconStore::new(app)?;
+    app.manage(app_icon_store.clone());
+
+    spawn_watch_thread(app.clone(), pool, guard, store, app_icon_store);
     Ok(())
 }
 
@@ -64,6 +109,7 @@ fn spawn_watch_thread(
     pool: SqlitePool,
     guard: Arc<WritebackGuard>,
     store: ImageStore,
+    app_icon_store: AppIconStore,
 ) {
     std::thread::Builder::new()
         .name("clipboard-watcher".to_owned())
@@ -91,6 +137,7 @@ fn spawn_watch_thread(
                 app,
                 guard,
                 store,
+                app_icon_store,
             });
 
             log::info!("clipboard watcher started");
@@ -106,10 +153,17 @@ struct ClipboardChangeHandler {
     app: AppHandle,
     guard: Arc<WritebackGuard>,
     store: ImageStore,
+    app_icon_store: AppIconStore,
 }
 
 impl ClipboardHandler for ClipboardChangeHandler {
     fn on_clipboard_change(&mut self) {
+        // **先**抓前台应用：等异步入库再问，前台早就切回我们自己了。
+        // 自身写回的事件会在下方 guard 处被丢弃，但 detect 仍会无害地返回我们自己的 bundle id——
+        // 顺序换不得：guard 判定依赖 content_hash，必须先把 payload 读出来才能判，
+        // 而 read_all 期间用户可能已经切走前台。
+        let source = source::detect_frontmost();
+
         // 同步读取 + 转换（含图片落盘）：拿到 content_hash 才能判定是否为自身写回。
         let payload = match self.reader.read_all() {
             Ok(Some(payload)) => payload,
@@ -120,7 +174,7 @@ impl ClipboardHandler for ClipboardChangeHandler {
             }
         };
 
-        let item = match build_item(&self.store, &payload) {
+        let mut item = match build_item(&self.store, &payload) {
             Ok(Some(item)) => item,
             Ok(None) => return,
             Err(err) => {
@@ -134,11 +188,16 @@ impl ClipboardHandler for ClipboardChangeHandler {
             return;
         }
 
+        let source_app = source.map(|src| materialize_source(&self.app_icon_store, src));
+        if let Some(src) = &source_app {
+            item.source_app_id = Some(src.id.clone());
+        }
+
         // 入库与 emit 交给异步运行时；只移动 Send 数据，不碰平台句柄。
         let pool = self.pool.clone();
         let app = self.app.clone();
         tauri::async_runtime::spawn(async move {
-            if let Err(err) = persist_and_notify(&app, &pool, &item).await {
+            if let Err(err) = persist_and_notify(&app, &pool, &item, source_app.as_ref()).await {
                 log::error!("clipboard watcher: persist failed: {err}");
             }
         });
