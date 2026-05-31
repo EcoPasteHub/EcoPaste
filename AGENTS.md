@@ -109,7 +109,7 @@ cargo test                    # Rust 单测（在 src-tauri 下）
 
 - React 19：优先用新特性（Actions、`use`、`useOptimistic`、ref as prop），不要再用 `forwardRef`。
 - 状态：Valtio 只存 UI 状态和设置的本地镜像；业务数据从 Rust 命令拉取，不在前端建「数据库副本」。
-- 样式：UnoCSS（`presetWind4` 负责非颜色原子类；自研 `presetAntdColors` 负责颜色）；颜色类名直接用 antd v6 token 名（`c-primary` / `bg-bg-container` / `b-border-secondary` / `c-text-tertiary` / `b-split` 等），preset 会映射到 `--ant-color-*` CSS 变量。前缀约定：`c-`/`color-` → color，`bg-` → background-color，`b-`/`border-` → border-color（支持 `b-t-` / `bt-` 等单边短写）。**禁止**在调用处写死十六进制色。
+- 样式：UnoCSS。
 - **尺寸只走 wind4 数字制**（1 单位 = 0.25rem = 4px），写 `p-1` / `p-1.25` / `p-1.5` / `gap-2` / `rounded-2.5` / `w-36` 等数字原子类；**禁止**出现 `px` 字面量——不写 `rounded-[10px]` / `w-[144px]` / `text-[14px]` 这类任意值类，也不在 `style={{}}` 里塞数字像素（antd 组件 `tabBarStyle` 等 inline 样式同理，必要时改写 className 或在 `theme.token` 里调）。非常规尺寸通过 wind4 内置 fractional（`.25/.5/.75/.125`）拼，确实没有对应值再扩 `theme.spacing`。
 - 组件优先用 Ant Design v6（`antd`），避免重复造轮子；主题切换在根节点用 `ConfigProvider` 的 `theme.algorithm` 切 `defaultAlgorithm` / `darkAlgorithm`，并把同步的 `light` / `dark` 类挂到 `<html>` 上，供 UnoCSS `dark:` 变体使用。
 - antd prop 命名：`open` / `checked` / `disabled` / `onClick`（不要再用 HeroUI 的 `isOpen` / `isSelected` / `isDisabled` / `onPress`）。
