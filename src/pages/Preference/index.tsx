@@ -1,5 +1,5 @@
 const Preference = () => {
-  return <div>Preference</div>;
+  return <div className="text-primary">Preference</div>;
 };
 
 export default Preference;

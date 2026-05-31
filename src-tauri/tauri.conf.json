@@ -40,7 +40,6 @@
         "minWidth": 700,
         "skipTaskbar": true,
         "title": "EcoPaste Preference",
-        "titleBarStyle": "Overlay",
         "url": "index.html/#/preference",
         "visible": false,
         "width": 700
