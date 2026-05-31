@@ -1,5 +1,4 @@
-import { Tabs } from "@heroui/react";
-import type { ReactNode } from "react";
+import { Tabs } from "antd";
 import { useTranslation } from "react-i18next";
 import AboutPanel from "./panels/AboutPanel";
 import AppearancePanel from "./panels/AppearancePanel";
@@ -16,7 +15,7 @@ type GroupKey =
   | "appearance"
   | "about";
 
-const GROUPS: { key: GroupKey; panel: ReactNode }[] = [
+const GROUPS: { key: GroupKey; panel: React.ReactNode }[] = [
   { key: "general", panel: <GeneralPanel /> },
   { key: "clipboard", panel: <ClipboardPanel /> },
   { key: "filters", panel: <AppFilterPanel /> },
@@ -25,30 +24,22 @@ const GROUPS: { key: GroupKey; panel: ReactNode }[] = [
   { key: "about", panel: <AboutPanel /> },
 ];
 
+/**
+ * 左侧导航 + 右侧面板：antd `Tabs tabPosition="left"`，items 内 children 即面板内容。
+ */
 const Preference = () => {
   const { t } = useTranslation();
   return (
     <Tabs
-      className="flex h-screen w-screen gap-0"
-      defaultSelectedKey="general"
-      orientation="vertical"
-    >
-      <Tabs.ListContainer className="w-36 border-default-200 border-r">
-        <Tabs.List aria-label={t("preference.title")} className="p-2">
-          {GROUPS.map(({ key }) => (
-            <Tabs.Tab id={key} key={key}>
-              {t(`preference.tab.${key}`)}
-              <Tabs.Indicator />
-            </Tabs.Tab>
-          ))}
-        </Tabs.List>
-      </Tabs.ListContainer>
-      {GROUPS.map(({ key, panel }) => (
-        <Tabs.Panel className="flex-1 overflow-auto p-4" id={key} key={key}>
-          {panel}
-        </Tabs.Panel>
-      ))}
-    </Tabs>
+      className="h-screen w-screen [&_.ant-tabs-nav]:w-36 [&_.ant-tabs-nav]:p-2"
+      defaultActiveKey="general"
+      items={GROUPS.map(({ key, panel }) => ({
+        children: <div className="flex-1 overflow-auto p-4">{panel}</div>,
+        key,
+        label: t(`preference.tab.${key}`),
+      }))}
+      tabPosition="left"
+    />
   );
 };
 

@@ -1,4 +1,4 @@
-import { NumberField, Separator } from "@heroui/react";
+import { Divider, InputNumber } from "antd";
 import { useTranslation } from "react-i18next";
 import { useSnapshot } from "valtio";
 import { settingsState, updateSettings } from "@/stores/settings";
@@ -36,10 +36,12 @@ const Section = ({
   children: React.ReactNode;
 }) => (
   <section>
-    <h3 className="mb-1 font-medium text-default-600 text-xs uppercase tracking-wide">
+    <h3 className="c-text-secondary mb-1 font-medium text-xs uppercase tracking-wide">
       {title}
     </h3>
-    <div className="flex flex-col divide-y divide-default-100">{children}</div>
+    <div className="flex flex-col divide-y divide-border-secondary">
+      {children}
+    </div>
   </section>
 );
 
@@ -138,7 +140,7 @@ const ClipboardPanel = () => {
         />
       </Section>
 
-      <Separator />
+      <Divider />
 
       <Section title={t("clipboard.section.history")}>
         <Row
@@ -160,49 +162,41 @@ const ClipboardPanel = () => {
         {history.retention.unit !== "forever" && (
           <Row
             control={
-              <NumberField
+              <InputNumber
                 className="w-28"
-                minValue={1}
+                min={1}
                 onChange={(v) =>
                   patch.history({
-                    retention: { ...history.retention, value: v || 1 },
+                    retention: {
+                      ...history.retention,
+                      value: Number(v) || 1,
+                    },
                   })
                 }
                 value={history.retention.value || 1}
-              >
-                <NumberField.Group>
-                  <NumberField.DecrementButton />
-                  <NumberField.Input />
-                  <NumberField.IncrementButton />
-                </NumberField.Group>
-              </NumberField>
+              />
             }
             label={t("clipboard.retentionValue.label")}
           />
         )}
         <Row
           control={
-            <NumberField
+            <InputNumber
               className="w-28"
-              minValue={0}
-              onChange={(v) =>
-                patch.history({ maxCount: Number.isFinite(v) ? v : 0 })
-              }
+              min={0}
+              onChange={(v) => {
+                const n = Number(v);
+                patch.history({ maxCount: Number.isFinite(n) ? n : 0 });
+              }}
               value={history.maxCount}
-            >
-              <NumberField.Group>
-                <NumberField.DecrementButton />
-                <NumberField.Input />
-                <NumberField.IncrementButton />
-              </NumberField.Group>
-            </NumberField>
+            />
           }
           description={t("clipboard.maxCount.desc")}
           label={t("clipboard.maxCount.label")}
         />
       </Section>
 
-      <Separator />
+      <Divider />
 
       <Section title={t("clipboard.section.search")}>
         <Row
@@ -238,7 +232,7 @@ const ClipboardPanel = () => {
         />
       </Section>
 
-      <Separator />
+      <Divider />
 
       <Section title={t("clipboard.section.window")}>
         <Row
@@ -288,7 +282,7 @@ const ClipboardPanel = () => {
         />
       </Section>
 
-      <Separator />
+      <Divider />
 
       <Section title={t("clipboard.section.feedback")}>
         <Row

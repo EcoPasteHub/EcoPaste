@@ -21,7 +21,7 @@ const GeneralPanel = () => {
   const g = value.general;
 
   return (
-    <div className="flex flex-col divide-y divide-default-100">
+    <div className="flex flex-col divide-y divide-border-secondary">
       {FIELDS.map((field) => (
         <Row
           control={

@@ -1,7 +1,7 @@
-import { cn } from "@heroui/styles";
 import { useState } from "react";
 
 import type { ClipboardItem } from "@/types/clipboard";
+import { cn } from "@/utils/cn";
 
 import type { AppMeta } from "../../hooks/useClipboardApps";
 import type { ClipboardActions } from "../../hooks/useClipboardItems";
@@ -47,9 +47,9 @@ const ActionButton = ({
   return (
     <button
       className={cn("rounded px-1.5 py-0.5 text-xs", {
-        "text-danger hover:text-danger-hover": danger,
-        "text-link": !danger && active,
-        "text-muted hover:text-foreground": !danger && !active,
+        "c-error hover:c-error-hover": danger,
+        "c-link": !danger && active,
+        "c-text-tertiary hover:c-text": !danger && !active,
       })}
       onClick={(e) => {
         e.stopPropagation();
@@ -90,19 +90,19 @@ const ClipboardCard = ({
 
   return (
     <div
-      className={cn("group relative border-separator border-b px-3 py-2", {
-        "bg-accent-soft text-accent-soft-foreground": isSelected,
+      className={cn("group b-split relative border-b px-3 py-2", {
+        "c-primary-text bg-primary-bg": isSelected,
       })}
     >
       {renderBody(item, keyword)}
 
       {item.note ? (
-        <div className="mt-1 truncate text-muted text-xs italic">
+        <div className="c-text-tertiary mt-1 truncate text-xs italic">
           备注：{item.note}
         </div>
       ) : null}
 
-      <div className="mt-1 flex items-center justify-between text-muted text-xs">
+      <div className="c-text-tertiary mt-1 flex items-center justify-between text-xs">
         <span className="flex items-center gap-1.5">
           {app ? (
             app.iconSrc ? (
@@ -114,7 +114,7 @@ const ClipboardCard = ({
               />
             ) : (
               <span
-                className="size-3.5 shrink-0 rounded-sm bg-surface-secondary"
+                className="size-3.5 shrink-0 rounded-sm bg-bg-elevated"
                 title={app.name}
               />
             )
@@ -128,7 +128,7 @@ const ClipboardCard = ({
       </div>
 
       {/* hover 时显形：避免每条都堆满按钮，鼠标过来再露出 */}
-      <div className="absolute top-1 right-2 hidden gap-1 rounded bg-background shadow-sm group-hover:flex">
+      <div className="absolute top-1 right-2 hidden gap-1 rounded bg-bg-container shadow-sm group-hover:flex">
         <ActionButton onClick={() => actions.paste(item.id)}>粘贴</ActionButton>
         <ActionButton onClick={() => actions.copy(item.id)}>复制</ActionButton>
         <ActionButton
@@ -151,7 +151,7 @@ const ClipboardCard = ({
           onKeyDown={(e) => e.stopPropagation()}
         >
           <textarea
-            className="rounded border border-separator bg-surface-secondary px-2 py-1 text-xs"
+            className="b-split rounded border bg-bg-elevated px-2 py-1 text-xs"
             onChange={(e) => setDraft(e.target.value)}
             placeholder="备注..."
             ref={(el) => el?.focus()}

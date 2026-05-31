@@ -1,6 +1,5 @@
-import { cn } from "@heroui/styles";
-
 import type { ClipboardItem } from "@/types/clipboard";
+import { cn } from "@/utils/cn";
 
 import Highlight from "../Highlight";
 
@@ -36,16 +35,16 @@ const TextCard = ({
       {item.subKind === "color" ? (
         <div
           aria-hidden
-          className="mt-0.5 size-5 shrink-0 rounded border border-separator"
+          className="b-split mt-0.5 size-5 shrink-0 rounded border"
           style={{ background: preview }}
         />
       ) : null}
       <div className="min-w-0 flex-1">
-        <div className="text-muted text-xs">{variantLabel(item)}</div>
+        <div className="c-text-tertiary text-xs">{variantLabel(item)}</div>
         <div
           className={cn("text-sm", {
+            "c-link truncate": isLinkLike,
             "line-clamp-2 whitespace-pre-wrap break-all": !isLinkLike,
-            "truncate text-link": isLinkLike,
           })}
         >
           <Highlight keyword={keyword} text={preview} />

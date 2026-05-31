@@ -1,7 +1,7 @@
-import { Button, Popover } from "@heroui/react";
-import { cn } from "@heroui/styles";
+import { Button, Popover } from "antd";
 import { type KeyboardEvent, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { cn } from "@/utils/cn";
 
 const IS_MAC =
   typeof navigator !== "undefined" &&
@@ -131,68 +131,68 @@ const ShortcutInput = ({
 
   const preview = buildBinding(draft, modifierOnly);
 
-  return (
-    <Popover isOpen={open} onOpenChange={handleOpen}>
-      <Popover.Trigger>
-        <button
-          className={cn(
-            "flex h-9 w-44 items-center rounded-md border border-default-200 bg-default-50 px-3 text-sm hover:bg-default-100",
-            { "text-default-400": !value },
-          )}
-          type="button"
+  const popoverContent = (
+    <div className="w-64">
+      <div className="c-text-tertiary mb-2 text-xs">
+        {modifierOnly
+          ? t("shortcutInput.hintModifierOnly")
+          : t("shortcutInput.hint")}
+      </div>
+      <button
+        className="b-border-secondary flex h-12 w-full items-center justify-center rounded-md border border-dashed bg-bg-layout text-sm outline-none focus:border-primary"
+        onKeyDown={handleKeyDown}
+        ref={captureRef}
+        type="button"
+      >
+        {preview || (
+          <span className="c-text-quaternary">
+            {t("shortcutInput.waiting")}
+          </span>
+        )}
+      </button>
+      <div className="mt-3 flex justify-between gap-2">
+        <Button
+          disabled={!value && draft.mods.length === 0}
+          onClick={() => commit("")}
+          size="small"
         >
-          {value || placeholderText}
-        </button>
-      </Popover.Trigger>
-      <Popover.Content>
-        <Popover.Dialog className="w-64 p-3">
-          <div className="mb-2 text-default-600 text-xs">
-            {modifierOnly
-              ? t("shortcutInput.hintModifierOnly")
-              : t("shortcutInput.hint")}
-          </div>
-          <button
-            className="flex h-12 w-full items-center justify-center rounded-md border border-default-300 border-dashed bg-default-50 text-sm outline-none focus:border-primary"
-            onKeyDown={handleKeyDown}
-            ref={captureRef}
-            type="button"
-          >
-            {preview || (
-              <span className="text-default-400">
-                {t("shortcutInput.waiting")}
-              </span>
-            )}
-          </button>
-          <div className="mt-3 flex justify-between gap-2">
+          {t("shortcutInput.clear")}
+        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => handleOpen(false)} size="small">
+            {t("shortcutInput.cancel")}
+          </Button>
+          {modifierOnly && (
             <Button
-              isDisabled={!value && draft.mods.length === 0}
-              onPress={() => commit("")}
-              size="sm"
-              variant="ghost"
+              disabled={draft.mods.length === 0}
+              onClick={() => commit(buildBinding(draft, true))}
+              size="small"
+              type="primary"
             >
-              {t("shortcutInput.clear")}
+              {t("shortcutInput.save")}
             </Button>
-            <div className="flex gap-2">
-              <Button
-                onPress={() => handleOpen(false)}
-                size="sm"
-                variant="ghost"
-              >
-                {t("shortcutInput.cancel")}
-              </Button>
-              {modifierOnly && (
-                <Button
-                  isDisabled={draft.mods.length === 0}
-                  onPress={() => commit(buildBinding(draft, true))}
-                  size="sm"
-                >
-                  {t("shortcutInput.save")}
-                </Button>
-              )}
-            </div>
-          </div>
-        </Popover.Dialog>
-      </Popover.Content>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <Popover
+      content={popoverContent}
+      onOpenChange={handleOpen}
+      open={open}
+      trigger="click"
+    >
+      <button
+        className={cn(
+          "b-border flex h-9 w-44 items-center rounded-md border bg-bg-layout px-3 text-sm hover:bg-fill-quaternary",
+          { "c-text-quaternary": !value },
+        )}
+        type="button"
+      >
+        {value || placeholderText}
+      </button>
     </Popover>
   );
 };

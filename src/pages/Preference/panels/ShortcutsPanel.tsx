@@ -14,7 +14,7 @@ const ShortcutsPanel = () => {
   const s = value.shortcuts;
 
   return (
-    <div className="flex flex-col divide-y divide-default-100">
+    <div className="flex flex-col divide-y divide-border-secondary">
       <Row
         control={
           <ShortcutInput

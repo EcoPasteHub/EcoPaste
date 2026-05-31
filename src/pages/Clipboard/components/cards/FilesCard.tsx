@@ -1,9 +1,9 @@
-import { cn } from "@heroui/styles";
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { useEffect, useState } from "react";
 
 import { TAURI_COMMAND } from "@/constants/commands";
 import type { ClipboardItem } from "@/types/clipboard";
+import { cn } from "@/utils/cn";
 import { isImage } from "@/utils/is";
 
 const MAX_VISIBLE = 3;
@@ -50,7 +50,7 @@ const ImagePreview = ({
     <div className="flex min-w-0 items-start gap-2">
       <img
         alt=""
-        className="size-12 shrink-0 rounded border border-separator object-cover"
+        className="b-split size-12 shrink-0 rounded border object-cover"
         onError={onError}
         onLoad={(e) => {
           const img = e.currentTarget;
@@ -59,9 +59,9 @@ const ImagePreview = ({
         src={src}
       />
       <div className="min-w-0 flex-1">
-        <div className="text-muted text-xs">Image · File</div>
-        <div className="truncate text-foreground text-sm">{basename(path)}</div>
-        {dims ? <div className="text-muted text-xs">{dims}</div> : null}
+        <div className="c-text-tertiary text-xs">Image · File</div>
+        <div className="c-text truncate text-sm">{basename(path)}</div>
+        {dims ? <div className="c-text-tertiary text-xs">{dims}</div> : null}
       </div>
     </div>
   );
@@ -137,7 +137,7 @@ const FilesCard = ({ item }: { item: ClipboardItem }) => {
 
   return (
     <div className="min-w-0">
-      <div className="text-muted text-xs">
+      <div className="c-text-tertiary text-xs">
         Files{paths.length > 1 ? ` · ${paths.length}` : ""}
       </div>
       <div className="flex flex-col gap-1">
@@ -150,7 +150,7 @@ const FilesCard = ({ item }: { item: ClipboardItem }) => {
           />
         ))}
         {overflow > 0 ? (
-          <div className="text-muted text-xs">等 {overflow} 项</div>
+          <div className="c-text-tertiary text-xs">等 {overflow} 项</div>
         ) : null}
       </div>
     </div>

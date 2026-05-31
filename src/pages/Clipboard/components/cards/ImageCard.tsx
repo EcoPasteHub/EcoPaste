@@ -37,15 +37,15 @@ const ImageCard = ({ item }: { item: ClipboardItem }) => {
       {src ? (
         <img
           alt=""
-          className="size-12 shrink-0 rounded border border-separator object-cover"
+          className="b-split size-12 shrink-0 rounded border object-cover"
           src={src}
         />
       ) : (
-        <div className="size-12 shrink-0 rounded border border-separator bg-surface-secondary" />
+        <div className="b-split size-12 shrink-0 rounded border bg-bg-elevated" />
       )}
       <div className="min-w-0 flex-1">
-        <div className="text-muted text-xs">Image</div>
-        <div className="text-foreground text-sm">
+        <div className="c-text-tertiary text-xs">Image</div>
+        <div className="c-text text-sm">
           {[dims, size].filter(Boolean).join(" · ")}
         </div>
       </div>

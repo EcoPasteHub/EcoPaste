@@ -8,7 +8,8 @@ import { log } from "@/utils/log";
  * 主题应用要两条路径都走：
  * 1) Tauri 窗口侧 setTheme（null=跟随系统）—— 让原生 chrome（标题栏装饰、滚动条、菜单等）跟随；
  *    仅改 DOM class 不改窗口会导致原生区域与内容主题割裂。
- * 2) html 上的 light/dark class —— HeroUI v3 `@custom-variant dark (&:is(.dark *))` 依赖这个类拿到 token。
+ * 2) html 上的 light/dark class —— 供 UnoCSS `dark:` 变体识别（antd 主题算法由 App.tsx 内
+ *    useResolvedMode 单独驱动；这里只负责 DOM class 和窗口 chrome）。
  * auto 模式下用窗口的 onThemeChanged 而不是 matchMedia——窗口事件已经由 OS 触发，且 setTheme(null) 后 theme() 直接给到解析结果，单一信源避免双订阅打架。
  */
 export function useApplyTheme(): void {

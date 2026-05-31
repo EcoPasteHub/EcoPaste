@@ -1,4 +1,4 @@
-import { cn } from "@heroui/styles";
+import type { InputRef } from "antd";
 import { useRef, useState } from "react";
 import { useSnapshot } from "valtio";
 
@@ -7,6 +7,7 @@ import { WINDOW_LABEL } from "@/constants/windows";
 import { useTauriListen } from "@/hooks/useTauriListen";
 import { clipboardViewState } from "@/stores/clipboardView";
 import { settingsState } from "@/stores/settings";
+import { cn } from "@/utils/cn";
 import { isMac } from "@/utils/is";
 
 import ClipboardList from "./components/ClipboardList";
@@ -24,7 +25,7 @@ const Clipboard = () => {
   const search = settings.value?.clipboard.search;
   const position = search?.position ?? "top";
   const [keyword, setKeyword] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<InputRef>(null);
 
   // Rust 端 show_window/hide_window 在 mod.rs 入口处统一 emit，
   // 比依赖平台各异的 tauri://focus/blur 更可靠（Windows 主窗口为不抢焦点设计）。
@@ -42,10 +43,10 @@ const Clipboard = () => {
 
   return (
     <div
-      className={cn("flex h-screen w-screen flex-col bg-background", {
+      className={cn("flex h-screen w-screen flex-col bg-bg-container", {
         "flex-col-reverse": position === "bottom",
         // macOS 主窗口为透明 NSPanel，根容器圆角即窗口圆角；Windows 保持直角。
-        "overflow-hidden rounded-[10px]": isMac,
+        "overflow-hidden rounded-2.5": isMac,
       })}
     >
       <SearchBar inputRef={inputRef} onChange={setKeyword} value={keyword} />

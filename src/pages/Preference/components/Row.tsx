@@ -11,7 +11,7 @@ const Row = ({ label, description, control }: RowProps) => (
     <div className="min-w-0 flex-1">
       <div className="text-sm">{label}</div>
       {description && (
-        <div className="mt-0.5 text-default-500 text-xs">{description}</div>
+        <div className="c-text-tertiary mt-0.5 text-xs">{description}</div>
       )}
     </div>
     <div className="shrink-0">{control}</div>

@@ -1,5 +1,5 @@
-import { Button, Checkbox, Input, Separator } from "@heroui/react";
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
+import { Button, Checkbox, Divider, Input } from "antd";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSnapshot } from "valtio";
@@ -86,19 +86,19 @@ const AppFilterPanel = () => {
     <div className="flex flex-col gap-4">
       <section className="flex flex-col gap-2">
         <header className="flex items-center justify-between">
-          <h3 className="font-medium text-default-600 text-xs uppercase tracking-wide">
+          <h3 className="c-text-secondary font-medium text-xs uppercase tracking-wide">
             {t("filters.section.scanDirs")}
           </h3>
-          <Button onPress={addDir} size="sm" variant="ghost">
+          <Button onClick={addDir} size="small">
             {t("filters.dirs.add")}
           </Button>
         </header>
-        <p className="text-default-500 text-xs">
+        <p className="c-text-tertiary text-xs">
           {t("filters.section.scanDirs.desc")}
         </p>
         <div className="flex flex-col gap-2">
           {scanDirs.length === 0 && (
-            <div className="text-default-400 text-xs">
+            <div className="c-text-quaternary text-xs">
               {t("filters.dirs.empty")}
             </div>
           )}
@@ -115,23 +115,23 @@ const AppFilterPanel = () => {
         </div>
       </section>
 
-      <Separator />
+      <Divider />
 
       <section className="flex flex-col gap-2">
         <header className="flex items-center justify-between gap-2">
-          <h3 className="font-medium text-default-600 text-xs uppercase tracking-wide">
+          <h3 className="c-text-secondary font-medium text-xs uppercase tracking-wide">
             {t("filters.section.excluded")}
           </h3>
-          <span className="text-default-400 text-xs">
+          <span className="c-text-quaternary text-xs">
             {excludedApps.length}
           </span>
         </header>
-        <p className="text-default-500 text-xs">
+        <p className="c-text-tertiary text-xs">
           {t("filters.section.excluded.desc")}
         </p>
-        <div className="flex max-h-[30vh] flex-col divide-y divide-default-100 overflow-auto rounded border border-default-200">
+        <div className="b-border flex max-h-[30vh] flex-col divide-y divide-border-secondary overflow-auto rounded border">
           {excludedApps.length === 0 && (
-            <div className="p-3 text-default-400 text-xs">
+            <div className="c-text-quaternary p-3 text-xs">
               {t("filters.excluded.empty")}
             </div>
           )}
@@ -146,23 +146,18 @@ const AppFilterPanel = () => {
         </div>
       </section>
 
-      <Separator />
+      <Divider />
 
       <section className="flex min-h-0 flex-1 flex-col gap-2">
         <header className="flex items-center justify-between gap-2">
-          <h3 className="font-medium text-default-600 text-xs uppercase tracking-wide">
+          <h3 className="c-text-secondary font-medium text-xs uppercase tracking-wide">
             {t("filters.section.apps")}
           </h3>
-          <Button
-            isDisabled={refreshing}
-            onPress={refresh}
-            size="sm"
-            variant="ghost"
-          >
+          <Button disabled={refreshing} onClick={refresh} size="small">
             {t("filters.apps.refresh")}
           </Button>
         </header>
-        <p className="text-default-500 text-xs">
+        <p className="c-text-tertiary text-xs">
           {t("filters.section.apps.desc")}
         </p>
         <Input
@@ -170,9 +165,9 @@ const AppFilterPanel = () => {
           placeholder={t("filters.apps.searchPlaceholder")}
           value={keyword}
         />
-        <div className="flex max-h-[55vh] flex-col divide-y divide-default-100 overflow-auto rounded border border-default-200">
+        <div className="b-border flex max-h-[55vh] flex-col divide-y divide-border-secondary overflow-auto rounded border">
           {filtered.length === 0 && (
-            <div className="p-3 text-default-400 text-xs">
+            <div className="c-text-quaternary p-3 text-xs">
               {t("filters.apps.empty")}
             </div>
           )}
@@ -213,7 +208,7 @@ const DirRow = ({
         onChange={(e) => setDraft(e.target.value)}
         value={draft}
       />
-      <Button onPress={onRemove} size="sm" variant="ghost">
+      <Button onClick={onRemove} size="small">
         {removeLabel}
       </Button>
     </div>
@@ -244,11 +239,14 @@ const AppRow = ({
 
   return (
     <button
-      className="flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left hover:bg-default-50"
+      className="flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left hover:bg-bg-layout"
       onClick={() => onToggle(!checked)}
       type="button"
     >
-      <Checkbox isSelected={checked} onChange={onToggle} />
+      <Checkbox
+        checked={checked}
+        onChange={(e) => onToggle(e.target.checked)}
+      />
       <div className="size-6 shrink-0 overflow-hidden rounded">
         {iconSrc ? (
           <img
@@ -258,12 +256,12 @@ const AppRow = ({
             src={iconSrc}
           />
         ) : (
-          <div className="size-full bg-default-100" />
+          <div className="size-full bg-fill-quaternary" />
         )}
       </div>
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm">{app.name}</div>
-        <div className="truncate text-default-400 text-xs">{app.id}</div>
+        <div className="c-text-quaternary truncate text-xs">{app.id}</div>
       </div>
     </button>
   );

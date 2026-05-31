@@ -1,4 +1,4 @@
-import { Tabs } from "@heroui/react";
+import { Tabs } from "antd";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useSnapshot } from "valtio";
@@ -66,28 +66,20 @@ const ClipboardTabs = () => {
 
   return (
     <Tabs
+      activeKey={tabToKey(tab)}
       aria-label={t("clipboard.tabs.ariaLabel")}
       className="px-2"
-      onSelectionChange={(key) => setClipboardTab(keyToTab(String(key)))}
-      selectedKey={tabToKey(tab)}
-    >
-      <Tabs.List className="gap-1">
-        <Tabs.Tab id="all">
-          {t("clipboard.tabs.all")}
-          <Tabs.Indicator />
-        </Tabs.Tab>
-        <Tabs.Tab id="favorite">
-          {t("clipboard.tabs.favorite")}
-          <Tabs.Indicator />
-        </Tabs.Tab>
-        {groups.map((group) => (
-          <Tabs.Tab id={`group:${group.id}`} key={group.id}>
-            {group.name}
-            <Tabs.Indicator />
-          </Tabs.Tab>
-        ))}
-      </Tabs.List>
-    </Tabs>
+      items={[
+        { key: "all", label: t("clipboard.tabs.all") },
+        { key: "favorite", label: t("clipboard.tabs.favorite") },
+        ...groups.map((group) => ({
+          key: `group:${group.id}`,
+          label: group.name,
+        })),
+      ]}
+      onChange={(key) => setClipboardTab(keyToTab(key))}
+      size="small"
+    />
   );
 };
 
