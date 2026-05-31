@@ -28,13 +28,17 @@
         "width": 360
       },
       {
+        "acceptFirstMouse": true,
         "center": true,
         "height": 480,
+        "hiddenTitle": true,
         "label": "preference",
         "minHeight": 480,
         "minWidth": 700,
         "resizable": true,
+        "skipTaskbar": true,
         "title": "EcoPaste",
+        "titleBarStyle": "Overlay",
         "url": "index.html/#/preference",
         "visible": false,
         "width": 700
