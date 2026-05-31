@@ -26,10 +26,9 @@ const TextCard = ({
   item: ClipboardItem;
   keyword?: string;
 }) => {
-  // HTML/RTF/纯文本都用 summary（Rust 入库时按 512 字符截断的纯文本）；
-  // 列表不再渲染原始 HTML/RTF，避免大段富文本撑爆 DOM。
-  // summary 为 null 时（旧数据兜底）退回到 searchText / content。
-  const preview = item.summary ?? item.searchText ?? item.content;
+  // text 类型在列表查询里 content / searchText 都被置空，渲染只看 summary。
+  // summary 为空仅在 image/files 等无意义场景出现，对 TextCard 不会发生。
+  const preview = item.summary ?? "";
   const isLinkLike = item.subKind === "url" || item.subKind === "email";
 
   return (
@@ -38,14 +37,14 @@ const TextCard = ({
         <div
           aria-hidden
           className="mt-0.5 size-5 shrink-0 rounded border border-separator"
-          style={{ background: item.content }}
+          style={{ background: preview }}
         />
       ) : null}
       <div className="min-w-0 flex-1">
         <div className="text-muted text-xs">{variantLabel(item)}</div>
         <div
           className={cn("text-sm", {
-            "line-clamp-2 break-all": !isLinkLike,
+            "line-clamp-2 whitespace-pre-wrap break-all": !isLinkLike,
             "truncate text-link": isLinkLike,
           })}
         >

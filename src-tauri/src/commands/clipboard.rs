@@ -11,7 +11,7 @@ use crate::clipboard::{
     AppIconStore, AppsRegistry, ClipboardReader, FileIconStore, ImageStore, WritebackGuard,
 };
 use crate::core::{AppError, Result};
-use crate::db::items::find_item_by_id;
+use crate::db::items::{find_item_by_id, find_item_for_list_by_id};
 use crate::db::models::{ClipboardGroup, ClipboardItem, ClipboardItemQuery, Platform};
 use crate::window::{self, MAIN_WINDOW_LABEL};
 
@@ -266,12 +266,15 @@ pub async fn list_clipboard_items(
 
 /// 单条查询命令：监听到 `clipboard://updated` 后前端按 id 拉单条，
 /// 避免事件驱动刷新时整页 refetch。不存在返回 `None`，前端按需降级。
+///
+/// 这里故意走列表视图（text 类型 content 置空）保持与列表查询同款裁剪；
+/// 需要完整 content 的写回/预览走各自专用命令。
 #[tauri::command]
 pub async fn get_clipboard_item(
     pool: State<'_, SqlitePool>,
     id: String,
 ) -> Result<Option<ClipboardItem>> {
-    find_item_by_id(&pool, &id).await
+    find_item_for_list_by_id(&pool, &id).await
 }
 
 /// 按 id 列表批量取来源应用——前端渲染卡片时一次性补齐图标/名称。

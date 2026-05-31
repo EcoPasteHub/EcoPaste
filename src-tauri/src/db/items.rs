@@ -10,6 +10,17 @@ const SELECT_ITEM: &str = "SELECT id, kind, sub_kind, group_id, source_app_id, c
      content_hash, search_text, summary, file_types, size, width, height, use_count, is_favorite, is_pinned, \
      platform, note, created_at, updated_at FROM clipboard_items";
 
+/// 列表/单条刷新场景的精简 SELECT：text 类型条目的 `content` 与 `search_text` 一律置空，
+/// 由前端用 `summary` 渲染。HTML/RTF/长纯文本可能很大（用户复制整段文档），
+/// 整段过 IPC + 进 DOM 是这条链路最昂贵的一环；image/files 的 content 是
+/// 文件名 / 路径列表，保留原值。预览/写回走 [`find_item_by_id`] 拿完整 content。
+const LIST_SELECT_ITEM: &str = "SELECT id, kind, sub_kind, group_id, source_app_id, \
+     CASE WHEN kind = 'text' THEN '' ELSE content END AS content, \
+     content_hash, \
+     CASE WHEN kind = 'text' THEN NULL ELSE search_text END AS search_text, \
+     summary, file_types, size, width, height, use_count, is_favorite, is_pinned, \
+     platform, note, created_at, updated_at FROM clipboard_items";
+
 /// 入库去重的结果：`id` 为生效行的主键（命中时是已有行，未命中时是新插入行），
 /// `deduplicated` 表示是否命中了已有内容（命中则只 `use_count + 1` 未插入新行）。
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -139,6 +150,23 @@ pub async fn find_item_by_id(pool: &SqlitePool, id: &str) -> Result<Option<Clipb
         .fetch_optional(pool)
         .await
         .context("failed to find clipboard item by id")?;
+    Ok(item)
+}
+
+/// 按 `id` 查找单条记录的「列表视图」副本（text 类型 content 置空）。
+/// 供前端响应 `clipboard://updated` 时按 id 拉取——保持与列表查询同款裁剪。
+pub async fn find_item_for_list_by_id(
+    pool: &SqlitePool,
+    id: &str,
+) -> Result<Option<ClipboardItem>> {
+    let mut qb: QueryBuilder<Sqlite> = QueryBuilder::new(LIST_SELECT_ITEM);
+    qb.push(" WHERE id = ").push_bind(id.to_owned());
+
+    let item = qb
+        .build_query_as::<ClipboardItem>()
+        .fetch_optional(pool)
+        .await
+        .context("failed to find clipboard item (list view) by id")?;
     Ok(item)
 }
 
@@ -341,7 +369,7 @@ async fn fetch_items(
     q: &ClipboardItemQuery,
     match_expr: Option<String>,
 ) -> Result<Vec<ClipboardItem>> {
-    let mut qb: QueryBuilder<Sqlite> = QueryBuilder::new(SELECT_ITEM);
+    let mut qb: QueryBuilder<Sqlite> = QueryBuilder::new(LIST_SELECT_ITEM);
     qb.push(" WHERE 1 = 1");
 
     if let Some(expr) = match_expr {
