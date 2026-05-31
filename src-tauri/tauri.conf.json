@@ -53,6 +53,7 @@
   },
   "bundle": {
     "active": true,
+    "createUpdaterArtifacts": true,
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -60,8 +61,9 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "resources": ["assets/tray.ico", "assets/tray-mac.ico"],
-    "targets": "all"
+    "resources": ["assets/tray.ico"],
+    "shortDescription": "EcoPaste",
+    "targets": ["nsis", "dmg", "app"]
   },
   "identifier": "com.ayangweb.eco-paste",
   "productName": "EcoPaste",
