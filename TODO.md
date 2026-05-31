@@ -464,6 +464,24 @@
   > 与现有模块联动：`keyboard/windows.rs` 的低级钩子已经在跑（用于 focusable=false 主窗时转发方向键），扩展它的事件分发逻辑即可，不要重复装两个 `WH_KEYBOARD_LL` 钩子（系统对单进程多钩子的顺序无保证，容易竞态）。`shortcut/mod.rs` 在注册阶段先检测组合是否等于「Win+V」，是则跳过 plugin 注册、走 `windows.rs::register_win_v`；否则走原 plugin 流程。
   > 注意：不要尝试禁用系统剪贴板历史功能本身（涉及改注册表 / 组策略，越权且易触发杀软告警）；接管只通过抢注热键 + 低级钩子拦截即可，用户保留通过卸载 EcoPaste 立即恢复系统默认的能力。macOS 不实现本项（macOS 无对应保留键）。
 
+### 8.10 首次启动引导
+
+- [ ] 独立引导窗口，分步带用户走完关键设置（欢迎 → 权限 → 快捷键 → 忽略应用 → ...）
+  > 首次启动 / 设置缺失关键项时弹出独立窗口走完引导；完成后写入 `Settings.onboarding.completed = true`，后续不再自动弹（仍可从设置面板手动重开）。
+  > Rust：新窗口 label = `onboarding`，`core/setup` 启动时按 `SettingsStore.snapshot().onboarding.completed` 决定是否创建：未完成则用 `WebviewWindowBuilder` 创建（800x560，居中，`resizable(false)`，普通装饰，URL `/#/onboarding`），主窗 / 托盘按需仍正常初始化但不抢焦点；已完成直接不创建。命令 `open_onboarding()` 用于设置面板里的「重新查看引导」按钮，存在窗口就 `set_focus`，否则现建。
+  > 数据模型：`Settings.onboarding: { completed: bool, last_step: u8 }`（默认 `{ completed: false, last_step: 0 }`），允许用户中途关窗后下次启动从上次那一步继续；`set_onboarding_step(step)` / `finish_onboarding()` 两个命令薄封装 `SettingsStore::update`，完成时关闭引导窗。
+  > 步骤设计（前端 `pages/Onboarding/index.tsx`，HeroUI `Tabs(variant="underlined")` 或自绘 stepper；底部固定「上一步 / 下一步 / 跳过」）：
+  >
+  > 1. **欢迎**：产品介绍 + 版本号 + GitHub 链接；纯展示。
+  > 2. **权限**：macOS 重点页——「辅助功能」（模拟粘贴 ⌘V）/「屏幕录制」（截图类内容预览，如未来要做）/「输入监控」（OS 级键盘钩子）。每项一行：图标 + 名称 + 状态徽章（已授权 / 未授权 / 不适用）+「打开系统设置」按钮（用 `shell::open` 跳到对应 `x-apple.systempreferences:` URL）。Rust 命令 `check_permissions() -> { accessibility, screen_recording, input_monitoring }` 用 macOS API（`AXIsProcessTrusted` 等）查询；Windows 上整页跳过或仅显示「无需额外授权」。
+  > 3. **快捷键**：核心快捷键速览 + 让用户当场录入「唤出主窗」组合；复用设置面板里的快捷键录入控件。展示当前默认（macOS `Cmd+Shift+V`、Windows `Win+V`，与 8.9 联动），用户可改可跳过。
+  > 4. **忽略应用**：解释「在这些 App 复制时不入库」用途（密码管理器、银行 App 等），用 `list_known_apps` 命令（已有 `apps_registry.rs` 基础）列出近期出现过的应用 + 系统常见敏感 App 预设清单（macOS：1Password、Bitwarden、Keychain Access；Windows：1Password、Bitwarden、KeePass），多选写入 `Settings.clipboard.ignored_apps`。可全跳过。
+  > 5. **完成**：摘要前面选择 + 「打开主窗体验」按钮（触发 `toggle_main_window` 并 `finish_onboarding`）。
+  >    设计余量：步骤数组定义在前端常量（`src/pages/Onboarding/steps.ts`），新增步骤只追加数组项 + 一个组件文件，不动外壳，方便后续补「自启」「云同步」「数据迁移」等。
+  >    视觉：左侧 1/3 竖向 stepper 显示步骤名 + 当前位置高亮，右侧 2/3 是当前步骤内容；macOS 用 `vibrancy` 背景，Windows 用纯色 `bg-content1`。底部进度条按 step 计算百分比，符合现代 onboarding 直觉。
+  >    i18n：`onboarding.{step1..step5}.{title,desc,action}` 与按钮文案（next / prev / skip / finish）两份语言同步补齐。
+  >    触发时机：① 首次启动（`Settings.onboarding.completed == false`）；② 设置面板「关于 / 帮助」加「重新查看引导」按钮 → 调 `open_onboarding`；③ 主动重置（清掉 settings 文件）等价首次启动。不要在每次升级后强制重弹——后续大版本若新增关键步骤，单独做「版本更新提示」而非整套重走。
+
 ---
 
 # 阶段 9 · 打包、签名与发布
