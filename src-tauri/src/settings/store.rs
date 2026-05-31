@@ -44,7 +44,7 @@ impl SettingsStore {
                 // 真·首次启动（主文件 + 备份都不存在）：用系统 locale 推导默认语言并落盘，
                 // 之后所有读取都走常规分支，避免每次启动都重算。
                 let mut settings = Settings::default();
-                if let Some(tag) = sys_locale::get_locale() {
+                if let Some(tag) = tauri_plugin_os::locale() {
                     settings.appearance.language = Language::from_system_locale(&tag);
                     log::info!(
                         "first-run language from locale {tag}: {:?}",

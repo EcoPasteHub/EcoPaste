@@ -7,6 +7,7 @@ import { WINDOW_LABEL } from "@/constants/windows";
 import { useTauriListen } from "@/hooks/useTauriListen";
 import { clipboardViewState } from "@/stores/clipboardView";
 import { settingsState } from "@/stores/settings";
+import { isMac } from "@/utils/is";
 
 import ClipboardList from "./components/ClipboardList";
 import ClipboardTabs from "./components/ClipboardTabs";
@@ -41,8 +42,10 @@ const Clipboard = () => {
 
   return (
     <div
-      className={cn("flex h-screen w-screen flex-col", {
+      className={cn("flex h-screen w-screen flex-col bg-background", {
         "flex-col-reverse": position === "bottom",
+        // macOS 主窗口为透明 NSPanel，根容器圆角即窗口圆角；Windows 保持直角。
+        "overflow-hidden rounded-[10px]": isMac,
       })}
     >
       <SearchBar inputRef={inputRef} onChange={setKeyword} value={keyword} />

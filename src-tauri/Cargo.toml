@@ -36,11 +36,10 @@ tauri-plugin-global-shortcut = "2"
 tauri-plugin-single-instance = "2"
 tauri-plugin-opener = "2"
 auto-launch = "0.6"
-sys-locale = "0.3"
 rodio = { version = "0.20", default-features = false, features = ["symphonia-mp3"] }
-plist = { version = "1", default-features = false }
 file_icon_provider = "1"
 image = { version = "0.25", default-features = false, features = ["png"] }
+tauri-plugin-os = "2"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 core-graphics = "0.25"
@@ -48,6 +47,7 @@ objc2 = "0.6"
 objc2-foundation = { version = "0.3", features = ["NSString", "NSData", "NSDictionary", "NSURL"] }
 objc2-app-kit = { version = "0.3", features = ["NSWorkspace", "NSRunningApplication", "NSImage"] }
 tauri-nspanel = { git = "https://github.com/ahkohd/tauri-nspanel", branch = "v2.1" }
+plist = { version = "1", default-features = false }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 winapi = { version = "0.3", features = [

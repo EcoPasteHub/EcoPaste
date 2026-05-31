@@ -24,13 +24,13 @@ dependencies = [
  "serde_json",
  "sha2 0.10.9",
  "sqlx",
- "sys-locale",
  "tauri",
  "tauri-build",
  "tauri-nspanel",
  "tauri-plugin-global-shortcut",
  "tauri-plugin-log",
  "tauri-plugin-opener",
+ "tauri-plugin-os",
  "tauri-plugin-single-instance",
  "thiserror 2.0.18",
  "tokio",
@@ -3301,6 +3301,7 @@ dependencies = [
  "objc2",
  "objc2-foundation",
  "objc2-ui-kit",
+ "serde",
  "windows-sys 0.61.2",
 ]
 
@@ -4978,6 +4979,24 @@ dependencies = [
  "url",
  "windows 0.61.3",
  "zbus",
+]
+
+[[package]]
+name = "tauri-plugin-os"
+version = "2.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d8f08346c8deb39e96f86973da0e2d76cbb933d7ac9b750f6dc4daf955a6f997"
+dependencies = [
+ "gethostname",
+ "log",
+ "os_info",
+ "serde",
+ "serde_json",
+ "serialize-to-javascript",
+ "sys-locale",
+ "tauri",
+ "tauri-plugin",
+ "thiserror 2.0.18",
 ]
 
 [[package]]

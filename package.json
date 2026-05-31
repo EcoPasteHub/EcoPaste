@@ -26,6 +26,7 @@
     "@heroui/styles": "^3.1.0",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-log": "^2.8.0",
+    "@tauri-apps/plugin-os": "^2.3.2",
     "dompurify": "^3.4.7",
     "i18next": "^26.3.0",
     "npm-run-all": "^4.1.5",

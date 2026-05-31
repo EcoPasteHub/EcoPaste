@@ -5,7 +5,10 @@
     "security": {
       "assetProtocol": {
         "enable": true,
-        "scope": ["$APPLOCALDATA/**"]
+        "scope": {
+          "allow": ["**/*"],
+          "requireLiteralLeadingDot": false
+        }
       },
       "csp": null
     },

@@ -3,6 +3,7 @@ import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { useEffect, useState } from "react";
 
 import type { ClipboardItem } from "@/types/clipboard";
+import { isImage } from "@/utils/is";
 
 const MAX_VISIBLE = 3;
 
@@ -24,6 +25,39 @@ const parsePaths = (content: string): string[] =>
 const basename = (p: string): string => {
   const idx = Math.max(p.lastIndexOf("/"), p.lastIndexOf("\\"));
   return idx >= 0 ? p.slice(idx + 1) : p;
+};
+
+// 单个图片文件用 ImageCard 同款样式展示。文件被删时缩略图加载失败 →
+// 由父组件捕获 onError 切回 FileRow 渲染，避免显示破图。
+const ImagePreview = ({
+  path,
+  onError,
+}: {
+  path: string;
+  onError: () => void;
+}) => {
+  const [dims, setDims] = useState<string>("");
+  const src = convertFileSrc(path);
+
+  return (
+    <div className="flex min-w-0 items-start gap-2">
+      <img
+        alt=""
+        className="size-12 shrink-0 rounded border border-separator object-cover"
+        onError={onError}
+        onLoad={(e) => {
+          const img = e.currentTarget;
+          setDims(`${img.naturalWidth}×${img.naturalHeight}`);
+        }}
+        src={src}
+      />
+      <div className="min-w-0 flex-1">
+        <div className="text-muted text-xs">Image · File</div>
+        <div className="truncate text-foreground text-sm">{basename(path)}</div>
+        {dims ? <div className="text-muted text-xs">{dims}</div> : null}
+      </div>
+    </div>
+  );
 };
 
 const FileRow = ({
@@ -75,6 +109,22 @@ const FileRow = ({
 
 const FilesCard = ({ item }: { item: ClipboardItem }) => {
   const paths = parsePaths(item.content);
+  const [imageLoadFailed, setImageLoadFailed] = useState(false);
+
+  // 单个图片文件（非目录、扩展名匹配）走 ImageCard 同款样式；
+  // 加载失败（文件被删）则退回 FileRow 渲染，避免显示破图。
+  const isSingleImage =
+    paths.length === 1 &&
+    item.fileTypes?.split(",")[0] !== "d" &&
+    isImage(paths[0]) &&
+    !imageLoadFailed;
+
+  if (isSingleImage) {
+    return (
+      <ImagePreview onError={() => setImageLoadFailed(true)} path={paths[0]} />
+    );
+  }
+
   const visible = paths.slice(0, MAX_VISIBLE);
   const overflow = paths.length - visible.length;
 
