@@ -4,7 +4,7 @@ use crate::core::Result;
 use crate::settings::{Settings, SettingsStore};
 use crate::{shortcut, tray};
 
-/// 与前端 events 常量 SETTINGS_UPDATED 一一对应。
+/// 与前端 `src/constants/events.ts` 的 `TAURI_EVENT.SETTINGS_UPDATED` 一一对应。
 const SETTINGS_UPDATED_EVENT: &str = "settings://updated";
 
 #[tauri::command]
