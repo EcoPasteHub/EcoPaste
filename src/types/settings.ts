@@ -1,5 +1,4 @@
-// 与 src-tauri/src/settings/model.rs 对齐。
-// Rust 侧 serde 全部 camelCase（枚举亦同），改 Rust 时记得同步这里。
+// 与 Rust 端 settings::model 对齐。serde 全部 camelCase（枚举亦同），改 Rust 时记得同步这里。
 
 export type Theme = "auto" | "light" | "dark";
 
@@ -80,9 +79,13 @@ export interface Feedback {
 }
 
 export interface Filters {
-  // 命中复制来源时，对应剪贴板内容不入库。
+  /**
+   * 命中复制来源时，对应剪贴板内容不入库。
+   */
   excludedAppIds: string[];
-  // 应用扫描目录，启动 / 手动刷新时遍历 `.app` / `.exe`。
+  /**
+   * 应用扫描目录，启动 / 手动刷新时遍历 `.app` / `.exe`。
+   */
   scanDirs: string[];
 }
 

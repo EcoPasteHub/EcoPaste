@@ -30,7 +30,7 @@ use crate::db::items::{upsert_item, UpsertResult};
 use crate::db::models::{ClipboardApp, ClipboardItem};
 use crate::settings::SettingsStore;
 
-/// 剪贴板更新事件名。前端监听此事件后增量刷新 / 重新拉取列表（阶段 7.2）。
+/// 剪贴板更新事件名。前端监听此事件后增量刷新 / 重新拉取列表。
 pub const CLIPBOARD_UPDATED_EVENT: &str = "clipboard://updated";
 
 /// macOS 轮询 `changeCount` 的间隔。上游 clipboard-rs 默认 500ms，对复制响应（尤其图片）
@@ -131,7 +131,7 @@ pub async fn persist_and_notify(
 }
 
 /// 启动监听：注册 [`WritebackGuard`] / [`ImageStore`] / [`AppIconStore`] 到 Tauri `State`
-/// （供阶段 4 写回打标记 / 取图 / 取来源应用图标），并在独立线程上跑 OS 级监听。
+/// （供写回时打标记 / 取图 / 取来源应用图标），并在独立线程上跑 OS 级监听。
 /// 应在 `setup` 中、连接池就绪后调用一次。store 创建失败属致命配置错误，直接返回错误。
 pub fn init(app: &AppHandle, pool: SqlitePool) -> crate::core::Result<()> {
     let guard = Arc::new(WritebackGuard::new());

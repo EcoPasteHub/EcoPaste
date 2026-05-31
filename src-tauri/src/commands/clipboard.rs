@@ -153,13 +153,11 @@ pub async fn get_file_icon_path(
         Platform::Windows
     };
 
-    // 从 file_types 推断类型（优先用入库时记录的类型）
     let is_directory = file_types
         .as_ref()
         .and_then(|types| types.split(',').nth(index))
         .map(|t| t == "d");
 
-    // 生成 cache_key
     let cache_key = if is_directory == Some(true) {
         crate::clipboard::DIR_CACHE_KEY.to_string()
     } else {
@@ -167,7 +165,6 @@ pub async fn get_file_icon_path(
         crate::clipboard::get_icon_cache_key(path_obj)
     };
 
-    // 查缓存
     if let Some(icon_file) = crate::db::file_icons::get_icon(&pool, &cache_key, platform).await? {
         let icon_path = file_icon_store.icon_path(&icon_file);
         return Ok(FileIconResult {
@@ -176,7 +173,6 @@ pub async fn get_file_icon_path(
         });
     }
 
-    // 缓存 miss：路径存在则抽取 icon
     if !exists {
         return Ok(FileIconResult {
             icon_path: None,
@@ -198,7 +194,6 @@ pub async fn get_file_icon_path(
         });
     };
 
-    // 落盘并缓存
     let icon_file = file_icon_store.store(&png)?;
     crate::db::file_icons::upsert_icon(&pool, &cache_key, platform, &icon_file).await?;
 
@@ -209,7 +204,7 @@ pub async fn get_file_icon_path(
     })
 }
 
-/// 把指定历史记录写回系统剪贴板（不触发模拟粘贴，4.2 再补）。
+/// 把指定历史记录写回系统剪贴板（不触发模拟粘贴）。
 /// `plain = true` 强制纯文本，剥离 HTML/RTF。
 ///
 /// `ClipboardContext` 是 `!Send`，写回逻辑在 `clipboard::write_to_clipboard` 内同步完成，
@@ -237,8 +232,8 @@ pub async fn write_to_clipboard(
 /// （NSPanel `NonactivatingPanel` / Windows `WS_EX_NOACTIVATE`）后，这一步可拆除，
 /// 但当前先按「显示即夺焦、粘贴时隐藏」的简单模型走，逻辑就在 Rust 一处闭环。
 ///
-/// 隐藏后短暂等待让系统完成焦点切换；50ms 是经验值，旧版用 100ms 保守，
-/// 这里取一半够用——超出会让用户感到延迟，过短则可能在前一个窗口还未成为
+/// 隐藏后短暂等待让系统完成焦点切换；50ms 是经验值——
+/// 超出会让用户感到延迟，过短则可能在前一个窗口还未成为
 /// key window 时按键被自身吞掉。
 #[tauri::command]
 pub async fn paste_clipboard_item(

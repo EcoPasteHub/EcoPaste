@@ -1,5 +1,5 @@
 //! macOS 窗口管理：主窗口转 NSPanel（show_and_make_key 拿键盘焦点但不激活 App），
-//! 其它窗口走常规 show/hide。参考旧版 `core/setup/macos.rs` + `plugins/window/src/commands/macos.rs`。
+//! 其它窗口走常规 show/hide。
 
 use tauri::{AppHandle, Emitter, EventTarget, Manager};
 use tauri_nspanel::{
@@ -9,8 +9,8 @@ use tauri_nspanel::{
 use super::{get_window, MAIN_WINDOW_LABEL, PREFERENCE_WINDOW_LABEL};
 use crate::core::Result;
 
-// 复用 Tauri 原生事件名，前端已有的 listen("tauri://focus" 等) 能直接接住——
-// NSPanel 化后 Tauri 自身不再触发这些事件，由我们手动 emit 补齐。
+/// 复用 Tauri 原生事件名，前端已有的 listen("tauri://focus" 等) 能直接接住——
+/// NSPanel 化后 Tauri 自身不再触发这些事件，由我们手动 emit 补齐。
 const WINDOW_FOCUS_EVENT: &str = "tauri://focus";
 const WINDOW_BLUR_EVENT: &str = "tauri://blur";
 const WINDOW_MOVED_EVENT: &str = "tauri://move";
@@ -145,7 +145,7 @@ pub fn handle_reopen(app_handle: &AppHandle, has_visible_windows: bool) {
     }
 }
 
-// 所有 panel 方法必须在主线程。
+/// 所有 panel 方法必须在主线程。
 fn show_main_panel(app_handle: &AppHandle) -> Result<()> {
     let handle = app_handle.clone();
     app_handle

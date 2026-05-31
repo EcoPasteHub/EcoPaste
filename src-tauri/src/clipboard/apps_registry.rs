@@ -449,8 +449,8 @@ mod macos {
 #[cfg(target_os = "windows")]
 mod windows {
     use super::ScannedAppMeta;
-    // Windows 端的可执行文件枚举还没接入（注册表 / Start Menu 都需要额外实现）。
-    // 用户仍可通过监听捕获已用过的应用 id（exe 绝对路径）并在 UI 勾选过滤。
+    /// Windows 端的可执行文件枚举还没接入（注册表 / Start Menu 都需要额外实现）。
+    /// 用户仍可通过监听捕获已用过的应用 id（exe 绝对路径）并在 UI 勾选过滤。
     pub fn scan_dirs(_dirs: &[String]) -> Vec<ScannedAppMeta> {
         Vec::new()
     }

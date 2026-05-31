@@ -6,12 +6,16 @@ import { log } from "@/utils/log";
 
 export interface AppMeta {
   name: string;
-  // 图标绝对路径经 convertFileSrc 转换后的 asset URL；无图标为 null。
+  /**
+   * 图标绝对路径经 convertFileSrc 转换后的 asset URL；无图标为 null。
+   */
   iconSrc: string | null;
 }
 
-// 卡片列表里需要展示来源应用图标——按 sourceAppId 去重批量拉一次 meta，
-// 写入 Map 缓存；后续 items 增量只拉缺失项，避免每条卡片单独 invoke。
+/**
+ * 按 sourceAppId 去重批量拉取来源应用 meta，写入 Map 缓存；
+ * 后续 items 增量只拉缺失项，避免每条卡片单独 invoke。
+ */
 export const useClipboardApps = (
   items: ClipboardItem[],
 ): Map<string, AppMeta> => {

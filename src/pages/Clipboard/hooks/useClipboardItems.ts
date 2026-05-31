@@ -22,13 +22,19 @@ interface UpdatedPayload {
 }
 
 export interface ClipboardActions {
-  // 写回剪贴板；不关闭窗口，不模拟粘贴。
+  /**
+   * 写回剪贴板；不关闭窗口，不模拟粘贴。
+   */
   copy: (id: string, plain?: boolean) => Promise<void>;
-  // 写回 + 隐藏窗口 + 模拟粘贴，Rust 侧 50ms 让位前台。
+  /**
+   * 写回 + 隐藏窗口 + 模拟粘贴，Rust 侧 50ms 让位前台。
+   */
   paste: (id: string, plain?: boolean) => Promise<void>;
   toggleFavorite: (id: string) => Promise<void>;
   remove: (id: string) => Promise<void>;
-  // 空串 / 全空白会被 Rust 端归一化为 NULL，等价于清空。
+  /**
+   * 空串 / 全空白会被 Rust 端归一化为 NULL，等价于清空。
+   */
   updateNote: (id: string, note: string) => Promise<void>;
 }
 
@@ -75,8 +81,10 @@ const buildQuery = (
   return trimmed.length > 0 ? { ...base, keyword: trimmed } : base;
 };
 
-// 判定单条新/更新项是否属于当前视图——决定收到 `clipboard://updated` 事件后是否插入列表。
-// 「全部」恒为真；「收藏」需 isFavorite；「分组」需 groupId 匹配。
+/**
+ * 判定单条新/更新项是否属于当前视图——决定收到 `clipboard://updated` 事件后是否插入列表。
+ * 「全部」恒为真；「收藏」需 isFavorite；「分组」需 groupId 匹配。
+ */
 const matchesTab = (item: ClipboardItem, tab: ClipboardViewTab): boolean => {
   switch (tab.kind) {
     case "all":

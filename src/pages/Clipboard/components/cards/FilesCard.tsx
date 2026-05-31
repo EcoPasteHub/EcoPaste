@@ -8,8 +8,10 @@ import { isImage } from "@/utils/is";
 
 const MAX_VISIBLE = 3;
 
-// 进程级 icon 路径缓存：避免列表来回滚动时重复 IPC。
-// 只缓存 icon 的 src（按类型决定，稳定），不缓存 exists（路径状态会动态变化）。
+/**
+ * 进程级 icon 路径缓存：避免列表来回滚动时重复 IPC。
+ * 只缓存 src（按类型决定，稳定），不缓存 exists（路径状态会动态变化）。
+ */
 const iconCache = new Map<string, string | null>();
 const cacheKey = (path: string, index: number, fileTypes?: string | null) =>
   `${fileTypes ?? ""}|${index}|${path}`;
@@ -19,7 +21,9 @@ interface FileIconResult {
   exists: boolean;
 }
 
-// `content` 为换行分隔的绝对路径列表（见 src-tauri/src/clipboard/ingest.rs:49-50）。
+/**
+ * 将 Files 类型条目的 `content`（换行分隔的绝对路径列表）切分成路径数组。
+ */
 const parsePaths = (content: string): string[] =>
   content.split("\n").filter(Boolean);
 
@@ -28,8 +32,10 @@ const basename = (p: string): string => {
   return idx >= 0 ? p.slice(idx + 1) : p;
 };
 
-// 单个图片文件用 ImageCard 同款样式展示。文件被删时缩略图加载失败 →
-// 由父组件捕获 onError 切回 FileRow 渲染，避免显示破图。
+/**
+ * 单图片文件以 ImageCard 同款样式展示。文件被删时缩略图加载失败，
+ * 由父组件捕获 onError 切回 FileRow 渲染，避免显示破图。
+ */
 const ImagePreview = ({
   path,
   onError,

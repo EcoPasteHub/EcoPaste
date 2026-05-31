@@ -22,7 +22,9 @@ interface SelectControlProps<T extends string> {
   className?: string;
 }
 
-// 仅作单选枚举的薄封装；空选区（onSelectionChange 给 null）保持原值不变。
+/**
+ * 单选枚举的薄封装；空选区（onSelectionChange 给 null）保持原值不变。
+ */
 export const SelectControl = <T extends string>({
   value,
   onChange,

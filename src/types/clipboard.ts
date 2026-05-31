@@ -1,5 +1,4 @@
-// 与 src-tauri/src/db/models.rs 对齐。
-// Rust 侧 serde 全部 camelCase（枚举值用 lowercase），改 Rust 时记得同步这里。
+// 与 Rust 端 db::models 对齐。serde 全部 camelCase（枚举值用 lowercase），改 Rust 时记得同步这里。
 
 export type ClipboardKind = "text" | "image" | "files";
 
@@ -20,12 +19,16 @@ export interface ClipboardItem {
   kind: ClipboardKind;
   subKind?: ClipboardSubKind | null;
   groupId?: string | null;
-  // 复制时的前台应用 id（macOS bundle id / Windows exe 路径）；未识别为 null。
+  /**
+   * 复制时的前台应用 id（macOS bundle id / Windows exe 路径）；未识别为 null。
+   */
   sourceAppId?: string | null;
   content: string;
   contentHash: string;
   searchText?: string | null;
-  // Files 类型专用：紧凑格式记录每个路径的类型，如 "d,f,f" 表示 [dir, file, file]。
+  /**
+   * Files 类型专用：紧凑格式记录每个路径的类型，如 "d,f,f" 表示 [dir, file, file]。
+   */
   fileTypes?: string | null;
   size?: number | null;
   width?: number | null;
@@ -35,7 +38,9 @@ export interface ClipboardItem {
   isPinned: boolean;
   platform: Platform;
   note?: string | null;
-  // DateTime<Utc> 序列化为 ISO8601 字符串。
+  /**
+   * DateTime<Utc> 序列化为 ISO8601 字符串。
+   */
   createdAt: string;
   updatedAt: string;
 }
@@ -43,7 +48,9 @@ export interface ClipboardItem {
 export interface ClipboardApp {
   id: string;
   name: string;
-  // `<sha256>.png` 文件名；无图标为 null。配合 `get_clipboard_app_icon_path` 命令解析为绝对路径。
+  /**
+   * `<sha256>.png` 文件名；无图标为 null。配合 `get_clipboard_app_icon_path` 命令解析为绝对路径。
+   */
   iconFile?: string | null;
   platform: Platform;
   createdAt: string;
@@ -58,8 +65,10 @@ export interface ClipboardGroup {
   updatedAt: string;
 }
 
-// 对齐 Rust `#[serde(default)]`：全 optional，前端不传时由 Rust 侧填默认值
-// （limit=50, offset=0, sort=createdAtDesc）。
+/**
+ * 对齐 Rust `#[serde(default)]`：全 optional，前端不传时由 Rust 侧填默认值
+ * （limit=50, offset=0, sort=createdAtDesc）。
+ */
 export interface ClipboardItemQuery {
   kind?: ClipboardKind;
   groupId?: string;

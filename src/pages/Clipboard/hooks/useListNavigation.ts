@@ -19,8 +19,11 @@ interface UseListNavigationResult {
   setSelectedIndex: (index: number) => void;
 }
 
-// 两路同时挂：macOS 走 window keydown；Windows focusable=false 时 WebView 收不到键，
-// 走 Rust 钩子 emit 的 `keyboard://nav`。另一端自然不会触发，不做平台分支。
+/**
+ * 列表上下/回车/Esc 的键盘导航。两路同时挂：
+ * macOS 走 window keydown；Windows focusable=false 时 WebView 收不到键，走 Rust 钩子 emit 的 `keyboard://nav`。
+ * 另一端自然不会触发，不做平台分支。
+ */
 export const useListNavigation = ({
   count,
   onEnter,

@@ -1,8 +1,7 @@
 //! 一次剪贴板读取的「带类型标记」结果。
 //!
-//! 这是阶段 2.1 的产物：仅做原始读取与种类归类（text / image / files），
-//! 映射到 [`crate::db::ClipboardKind`]。子类型识别（url / email / color / path）、
-//! 图片落盘与缩略图属于阶段 2.3，不在此处。
+//! 仅做原始读取与种类归类（text / image / files），映射到 [`crate::db::ClipboardKind`]。
+//! 子类型识别（url / email / color / path）、图片落盘与缩略图不在此处。
 
 /// 剪贴板内容按种类归类后的载荷。读取优先级：files > image > text。
 #[derive(Debug, Clone, PartialEq, Eq)]

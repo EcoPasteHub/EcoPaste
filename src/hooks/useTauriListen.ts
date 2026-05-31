@@ -1,9 +1,11 @@
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { useEffect, useRef } from "react";
 
-// @tauri-apps/api 的 listen 返回 Promise<UnlistenFn>，注册期间组件可能已卸载，
-// 因此用 cancelled 标记拦截「迟到的注册」，避免泄漏监听器。
-// handler 走 ref 转发，effect 仅依赖事件名。
+/**
+ * 订阅 Tauri 事件，组件卸载时自动解绑。
+ * listen 返回 Promise<UnlistenFn>，注册期间组件可能已卸载，因此用 cancelled 标记拦截「迟到的注册」，避免泄漏监听器。
+ * handler 走 ref 转发，effect 仅依赖事件名。
+ */
 export function useTauriListen<T = unknown>(
   event: string,
   handler: (payload: T) => void,

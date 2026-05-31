@@ -4,8 +4,10 @@ import { TAURI_COMMAND } from "@/constants/commands";
 import type { ClipboardGroup } from "@/types/clipboard";
 import { log } from "@/utils/log";
 
-// 分组列表一次性加载。当前阶段不提供分组 CRUD UI，因此不监听变更事件——
-// 后续加上 add/rename/delete 命令后，在这里订阅同源事件 refetch 即可。
+/**
+ * 一次性加载分组列表。当前阶段不提供分组 CRUD UI，因此不监听变更事件——
+ * 后续加上 add/rename/delete 命令后，在这里订阅同源事件 refetch 即可。
+ */
 export const useClipboardGroups = (): ClipboardGroup[] => {
   const [groups, setGroups] = useState<ClipboardGroup[]>([]);
 

@@ -1,6 +1,3 @@
-// 主窗剪贴板视图：tab 选择 + 派生的查询过滤。
-// 仅 UI 状态，进程内存即可——不需要持久化（重开窗回到「全部」最直觉）。
-
 import { proxy } from "valtio";
 
 export type ClipboardViewTab =
@@ -12,6 +9,10 @@ interface ClipboardViewState {
   tab: ClipboardViewTab;
 }
 
+/**
+ * 主窗剪贴板视图：tab 选择 + 派生的查询过滤。
+ * 仅 UI 状态，进程内存即可——不需要持久化（重开窗回到「全部」最直觉）。
+ */
 export const clipboardViewState = proxy<ClipboardViewState>({
   tab: { kind: "all" },
 });
@@ -20,7 +21,9 @@ export const setClipboardTab = (tab: ClipboardViewTab) => {
   clipboardViewState.tab = tab;
 };
 
-// HeroUI Tabs 的 key 是字符串：约定 "all" / "favorite" / "group:<id>"。
+/**
+ * HeroUI Tabs 的 key 是字符串：约定 "all" / "favorite" / "group:<id>"。
+ */
 export const tabToKey = (tab: ClipboardViewTab): string => {
   switch (tab.kind) {
     case "all":
@@ -40,8 +43,10 @@ export const keyToTab = (key: string): ClipboardViewTab => {
   return { kind: "all" };
 };
 
-// 在给定的 tab key 序列里循环移动一格；越界回绕。组件持有完整 key 列表（含动态分组），
-// 故循环逻辑放在调用方而非 store——store 不依赖 groups 数据。
+/**
+ * 在给定的 tab key 序列里循环移动一格，越界回绕。
+ * 组件持有完整 key 列表（含动态分组），故循环逻辑放在调用方——store 不依赖 groups 数据。
+ */
 export const cycleTabKey = (
   keys: string[],
   current: string,

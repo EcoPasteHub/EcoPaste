@@ -21,7 +21,7 @@ pub struct UpsertResult {
 /// 计算去重指纹：`sha256("<kind>:<content>")`。
 /// 加 `kind` 前缀，避免 text 与 files 恰好同串内容被误判为重复。
 /// text 直接哈希内容串即可；image/files 的 `content` 是落盘引用/路径，
-/// 调用方（阶段 2.3，持有原始字节时）可改为对原始内容字节哈希后写入 `content_hash`。
+/// 调用方持有原始字节时可改为对原始内容字节哈希后写入 `content_hash`。
 pub fn content_hash(kind: ClipboardKind, content: &str) -> String {
     let mut hasher = Sha256::new();
     hasher.update(kind_tag(kind).as_bytes());
@@ -183,7 +183,7 @@ pub async fn update_item_note(pool: &SqlitePool, id: &str, note: Option<&str>) -
     Ok(())
 }
 
-/// `use_count + 1` 并刷新 `updated_at`（命中去重时复用，见阶段 1.4）。
+/// `use_count + 1` 并刷新 `updated_at`（命中去重时复用）。
 pub async fn increment_item_use_count(pool: &SqlitePool, id: &str) -> Result<()> {
     sqlx::query(
         "UPDATE clipboard_items SET use_count = use_count + 1, updated_at = ? WHERE id = ?",

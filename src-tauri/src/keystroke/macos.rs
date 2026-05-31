@@ -4,7 +4,7 @@ use core_graphics::event_source::{CGEventSource, CGEventSourceStateID};
 
 use crate::core::error::Result;
 
-// kVK_ANSI_V，HIToolbox/Events.h 中定义的硬件无关键码。
+/// kVK_ANSI_V，HIToolbox/Events.h 中定义的硬件无关键码。
 const KEY_V: CGKeyCode = 0x09;
 
 /// 向系统事件队列投递一次 ⌘V，模拟「粘贴」。

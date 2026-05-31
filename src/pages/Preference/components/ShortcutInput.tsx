@@ -7,9 +7,11 @@ const IS_MAC =
   typeof navigator !== "undefined" &&
   /Mac|iP(hone|ad)/.test(navigator.platform);
 
-// 修饰键名（与 tauri-plugin-global-shortcut 接受的写法对齐）。
-// macOS 上 metaKey 映射 "Cmd"；Windows 上 metaKey（Win 键）几乎不用于全局快捷键，
-// 这里映射 "Super" 仅作兜底，实际几乎不会触达。
+/**
+ * 修饰键名（与 tauri-plugin-global-shortcut 接受的写法对齐）。
+ * macOS 上 metaKey 映射 "Cmd"；Windows 上 metaKey（Win 键）几乎不用于全局快捷键，
+ * 映射 "Super" 仅作兜底，实际几乎不会触达。
+ */
 const MOD_NAMES = {
   alt: IS_MAC ? "Option" : "Alt",
   ctrl: "Ctrl",
@@ -17,8 +19,10 @@ const MOD_NAMES = {
   shift: "Shift",
 } as const;
 
-// 显示时把 Option 写回 Alt（Rust 端接受 Alt；Option 仅给用户看更友好的写法）。
-// 实际写入 settings 时统一用 Alt，避免分平台两套字符串。
+/**
+ * 显示时把 Option 写回 Alt（Rust 端接受 Alt；Option 仅给用户看更友好的写法）。
+ * 实际写入 settings 时统一用 Alt，避免分平台两套字符串。
+ */
 const toCanonical = (s: string) => s.replace(/\bOption\b/g, "Alt");
 
 interface Captured {
@@ -28,7 +32,9 @@ interface Captured {
 
 const EMPTY: Captured = { key: null, mods: [] };
 
-// 把 KeyboardEvent.code 转成 tauri shortcut 可识别的 key 名；返回 null 表示纯修饰键。
+/**
+ * 把 KeyboardEvent.code 转成 tauri shortcut 可识别的 key 名；返回 null 表示纯修饰键。
+ */
 const codeToKey = (code: string): string | null => {
   if (code.startsWith("Key")) return code.slice(3);
   if (code.startsWith("Digit")) return code.slice(5);
@@ -75,7 +81,9 @@ const captureFromEvent = (e: KeyboardEvent<HTMLElement>): Captured => {
 interface ShortcutInputProps {
   value: string;
   onChange: (v: string) => void;
-  /** 仅录制修饰键（用于 QuickPaste.modifier）。 */
+  /**
+   * 仅录制修饰键（用于 QuickPaste.modifier）。
+   */
   modifierOnly?: boolean;
   placeholder?: string;
 }

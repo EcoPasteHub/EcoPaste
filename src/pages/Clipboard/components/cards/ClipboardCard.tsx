@@ -30,7 +30,9 @@ const renderBody = (item: ClipboardItem, keyword: string) => {
   }
 };
 
-// 小尺寸文字按钮：HeroUI 主题色 token，避免散落 hex；hover 时变深。
+/**
+ * 卡片操作区里的小尺寸文字按钮：HeroUI 主题色 token，hover 时变深。
+ */
 const ActionButton = ({
   onClick,
   active = false,
@@ -50,7 +52,6 @@ const ActionButton = ({
         "text-muted hover:text-foreground": !danger && !active,
       })}
       onClick={(e) => {
-        // 阻止冒泡，避免触发后续 7.2 item 6 的列表行选中。
         e.stopPropagation();
         onClick();
       }}

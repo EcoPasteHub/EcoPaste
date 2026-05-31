@@ -7,7 +7,7 @@
 //!   thumbnails/<hash[..2]>/<sha256>.png   缩略图（PNG，最长边 <= THUMBNAIL_MAX），首次预览时按需生成
 //! ```
 //! 文件名取「PNG 字节的 sha256」：同一张图重复复制 → 同字节 → 同文件名，落盘幂等，
-//! 且与阶段 1.4 的去重指纹同源（image 的 `content_hash` 即对 PNG 字节哈希）。
+//! 且与去重指纹同源（image 的 `content_hash` 即对 PNG 字节哈希）。
 //! 按 hash 前 2 位 hex 分 256 个子目录，避免重度使用下单目录文件爆量。
 //!
 //! 缩略图的解码/缩放/编码不在复制热路径上——`store` 只写原图，缩略图由
@@ -118,7 +118,7 @@ impl ImageStore {
         Ok(())
     }
 
-    /// 由文件名解析原图绝对路径（分片目录从文件名前 2 位推导）。供写回/粘贴（阶段 4）使用。
+    /// 由文件名解析原图绝对路径（分片目录从文件名前 2 位推导）。供写回/粘贴使用。
     pub fn origin_path(&self, file_name: &str) -> PathBuf {
         self.shard_path(ORIGIN_DIR, shard_key(file_name), file_name)
     }

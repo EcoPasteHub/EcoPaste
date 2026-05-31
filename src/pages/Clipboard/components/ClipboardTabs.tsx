@@ -19,12 +19,12 @@ interface NavPayload {
   action: string;
 }
 
-// 横向 tab：固定「全部 / 收藏」+ 后续追加的分组。
-// 没有分组数据时仍渲染两个固定 tab，不退化为空——保持视觉位置稳定。
-// 键盘：Tab / Shift+Tab 在 tab 列表中循环切换；
-// macOS 走 window keydown 捕获阶段（与 useListNavigation 同款），
-// Windows 主窗 focusable=false 拿不到键，由 Rust 低级钩子 emit `keyboard://nav` 的
-// `nextTab`/`prevTab` 投递过来——两路同时挂，平台侧另一路自然不触发。
+/**
+ * 横向 tab：固定「全部 / 收藏」+ 后续追加的分组。
+ * 没有分组数据时仍渲染两个固定 tab，不退化为空——保持视觉位置稳定。
+ * 键盘 Tab / Shift+Tab 在 tab 列表中循环切换；macOS 走 window keydown（与 useListNavigation 同款），
+ * Windows 主窗 focusable=false 拿不到键，由 Rust 钩子 emit `keyboard://nav` 的 `nextTab`/`prevTab` 投递过来——两路同时挂，平台侧另一路自然不触发。
+ */
 const ClipboardTabs = () => {
   const { t } = useTranslation();
   const { tab } = useSnapshot(clipboardViewState);
