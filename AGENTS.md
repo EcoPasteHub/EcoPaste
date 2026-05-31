@@ -166,6 +166,11 @@ cargo test                    # Rust 单测（在 src-tauri 下）
   Getter/setter、显然的 1 行包装、纯字面量常量可省略。
 
 - 函数体内默认不写注释；仅当「为什么」不明显（隐藏约束、绕过特定 bug、反直觉行为）时写一行。
+- **守卫条件优先早返回（guard clause）**，不要把主逻辑塞进 `if` 体里：
+  - ❌ `if (cond) { doMainThing(); }` —— 主流程被嵌套一层。
+  - ✅ `if (!cond) return;` 空一行，然后写主逻辑。
+  - 同理：多个互斥分支用「条件不满足就 return」逐个剥离，避免 `if / else if / else` 金字塔。
+  - 反例：`if (isModifierPressed(e)) setActive(true);` —— 应改成 `if (!isModifierPressed(e)) return;` + `setActive(true);`。
 - 函数体内**给逻辑分组留空行**，不要把多步骤压成一坨：
   - hooks 调用 / 变量声明 / 副作用 / `return` 之间至少留一空行。
   - 连续的 `await`、`Object.assign`、`if` 块等，若属于**不同语义阶段**（如「先订阅再拉首屏」「先准备数据再渲染」），用空行分隔。

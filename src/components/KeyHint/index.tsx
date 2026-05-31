@@ -1,5 +1,4 @@
 import { useEventListener, useKeyPress } from "ahooks";
-import type { KeyType } from "ahooks/lib/useKeyPress";
 import { type FC, type ReactNode, useState } from "react";
 import { cn } from "@/utils/cn";
 import { isMac } from "@/utils/is";
@@ -32,8 +31,9 @@ interface KeyHintProps {
 /**
  * 把 `auto` 解析为当前平台真实修饰键名。
  */
-const resolveModifier = (modifier: Modifier) =>
-  modifier === "auto" ? (isMac ? "meta" : "ctrl") : modifier;
+const resolveModifier = (modifier: Modifier) => {
+  return modifier === "auto" ? (isMac ? "meta" : "ctrl") : modifier;
+};
 
 /**
  * 判断键盘事件中目标修饰键是否处于按下状态。
@@ -62,15 +62,17 @@ const KeyHint: FC<KeyHintProps> = (props) => {
   const [active, setActive] = useState(false);
 
   useEventListener("keydown", (event) => {
-    if (isModifierPressed(event, modifier)) setActive(true);
+    if (!isModifierPressed(event, modifier)) return;
+
+    setActive(true);
   });
 
   useEventListener("keyup", () => setActive(false));
 
-  useEventListener("blur", () => setActive(false), { target: () => window });
+  useEventListener("blur", () => setActive(false), { target: window });
 
   useKeyPress(
-    `${resolveModifier(modifier)}.${hintKey.toLowerCase()}` as KeyType,
+    `${resolveModifier(modifier)}.${hintKey.toLowerCase()}`,
     (event) => {
       event.preventDefault();
       onKeyPress?.(event);
