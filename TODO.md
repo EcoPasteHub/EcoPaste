@@ -420,14 +420,48 @@
 - [x] 复制成功提示音（前端播放或 Rust 触发）
   > 下沉到 Rust 监听链路：`clipboard/sound.rs::maybe_play_copy` 在 `persist_and_notify` upsert 之后调用，从 `SettingsStore.snapshot().clipboard.feedback.copy_sound` 读最新开关，关闭则直接 return。播放本身用 `rodio`（`default-features = false, features = ["symphonia-mp3"]`）解码 `assets/sounds/copy.mp3`（旧版同款，`include_bytes!` 烤进二进制，24KB 不值得走 resource 路径 + 文件 IO）。`OutputStream` 是 `!Send` 且必须存活到播放结束，所以每次播放都新开短命 `std::thread`：建流 → 解码 → `sink.sleep_until_end()` → drop；剪贴板事件频率远低于建流开销（ms 级），不必维护常驻 worker。播放失败仅 `log::warn`，不阻断入库主流程。自身写回触发的事件在 `guard.should_skip` 处已被抑制，不会响——只有真正的用户复制才会播。`SettingsStore` 未 manage 时保守视为关闭，与 `cleanup.rs` 一致。
 
+### 8.5 多选删除
+
+- [ ] 列表多选模式 + 批量删除（Rust 命令 + 前端 UI）
+  > Rust：`db/items.rs::delete_items_bulk(pool, ids: &[i64])` 用 `DELETE ... WHERE id IN (?, ?, ...)` 一条 SQL 删掉，事务包裹保证原子性；附带删除其图片 / 文件副本（复用 `delete_item` 的清理逻辑，提到 `cleanup_item_assets` 私有 helper 复用）。命令 `delete_clipboard_items(ids: Vec<i64>)` 薄封装，删完 `emit(CLIPBOARD_UPDATED_EVENT, {bulk_delete: n})` 让列表刷新。前端：① `stores/clipboardView.ts` 增 `selectionMode: boolean` + `selectedIds: Set<number>`，提供 `toggleSelection` / `clearSelection` / `enterSelectionMode` actions。② `ClipboardList` 进入多选模式后行点击改为 toggle 选中（不再触发 paste），渲染左侧 checkbox；键盘导航暂保留单选高亮。③ 工具栏（`ClipboardTabs` 旁或 `SearchBar` 内）显示「全选 / 反选 / 删除选中(N) / 退出」。④ 删除前用 HeroUI `Modal` 二次确认，删除后清空选区并退出多选。⑤ 快捷键：列表聚焦时 `Cmd/Ctrl+A` 全选，`Esc` 退出多选。
+
+### 8.6 内容加密保护
+
+- [ ] 给单条剪贴板内容设置访问密码（与备注独立）
+  > 需求：用户对敏感条目设密码，列表中默认遮蔽内容，输入正确密码后短时解锁查看 / 复制 / 粘贴；密码与「备注」是两套独立字段。
+  > 数据层：`clipboard_items` 加两列 `password_hash TEXT`（argon2 哈希，nullable）+ `password_hint TEXT`（可选提示，nullable）；migration 写入 `0001_init.sql`（仓库未发版，按现有约定直接改 init）。`models.rs::ClipboardItem` 同步加 `is_locked: bool`（由 `password_hash IS NOT NULL` 推导，**前端不下发 hash**），返回给前端的 payload 只带 `is_locked` + `password_hint`。
+  > Rust 命令（`commands/clipboard.rs`）：① `set_item_password(id, password, hint)` 用 `argon2` crate 算 hash 存库；密码空字符串视为「清除」（hash / hint 置空）。② `verify_item_password(id, password) -> bool` 校验，成功返回 true，失败返回 false（不抛错）。③ `read_locked_item(id, password) -> ClipboardPayload` 校验密码后返回完整 payload（包含被加密的 text/html/files 等明文字段）；失败返回 `AppError::InvalidPassword`。④ 锁定条目走 `paste_clipboard_item` / `copy_clipboard_item` 时强制要求先 `verify`，否则拒绝。
+  > 内容存储策略：MVP 版**不加密磁盘明文**，仅加「密码门禁」——`is_locked = true` 的条目，列表 payload 里 `text` / `html` / `files` 等敏感字段返回 `None`（DB 仍是明文，靠命令层过滤），前端拿不到内容；调用 `read_locked_item` 才下发明文。后续若要真加密落盘，再加 `encrypted_blob` 列 + AES-GCM（key 由用户密码 KDF 派生），属于增强项不在本步。
+  > 前端 UI：① 卡片右上 `ActionButton` 增「设置密码」（图标：lock），调出 `Modal` 输入密码 + 提示，确认后 `invoke("set_item_password", ...)`。② 锁定条目卡片：内容区替换为占位（图标 + hint），点击触发 `Modal` 输密码 → `verify_item_password`；通过后把明文缓存到 `clipboardViewStore.unlockedIds: Set<number>`（仅当前会话生效，关窗清空），渲染时若在集合内则正常展示。③ 复制 / 粘贴动作在锁定条目上点击同样先弹密码框；通过后调用 `read_locked_item` 拿明文 → 写回剪贴板。④ 备注与密码并存：解锁后才能看 / 改备注（备注本身不加密但跟内容同入口）。⑤ i18n 加 `clipboard.password.{set,unlock,verify,hint,placeholder,wrong,clear}` 两份。
+  > 安全注意：argon2 参数走默认即可（m=19MiB, t=2, p=1）；`verify` 命令做简单速率限制（同一 id 连续 5 次失败后 30s 内拒绝，记到内存 `DashMap<i64, FailState>`，不持久化），防本机暴破。
+
+### 8.7 贴边隐藏（Edge Hide）
+
+- [ ] 主窗口拖到屏幕边缘时自动收起，鼠标贴边唤出
+  > 旧版（macOS NSPanel + 自研 eco-window）有此特性，重构版把窗口位姿与贴边判定都下沉到 Rust。
+  > Rust：`window/edge_hide.rs` 维护 `EdgeHideState { docked: Option<Edge>, hidden: bool, peek_strip_px: i32 }`，`Edge = Top|Left|Right`（不做 Bottom，避免与 macOS Dock / Windows 任务栏冲突）。① 监听窗口 move 结束事件（macOS `NSWindowDidMoveNotification` / Windows `WM_EXITSIZEMOVE`）：如果窗口某条边距离当前屏 visibleFrame 对应边 ≤ 8px，标记 `docked = Some(edge)`，触发 `slide_out`——把窗口移到只剩 `peek_strip_px = 4` 像素挂在屏幕外，`hidden = true`。② 在 docked 状态下启动一个 OS 级鼠标位置轮询（macOS `NSEvent.mouseLocation`，Windows `GetCursorPos`，间隔 50ms，使用 `tokio::time::interval`，仅在 docked 时跑，未 docked 时停掉 task）：鼠标进入「贴边触发带」（沿对应边、宽 4px、长度 = 屏幕该边长度）时 `slide_in` 恢复原位置；窗口失焦且鼠标离开窗口区域 ≥ 300ms 后再次 `slide_out`。③ 拖动远离边缘（距离 > 32px）解除 docked。④ 滑入 / 滑出做 150ms 缓动（`tokio::time::sleep` + 分帧 `set_position`，10 帧足够顺滑；可选先做硬切版，缓动留作打磨）。
+  > 设置：`Settings.window.edge_hide_enabled: bool`（默认关，避免对新用户造成困惑），`window/edge_hide.rs` 启动时按设置 enable / disable 整个模块；`SettingsStore::subscribe` 收到变更时停 / 启监听 task。设置面板 `Preference/panels` 加开关 + 简短说明文案。
+  > 命令：`set_edge_hide_enabled(enabled)` 仅薄封装 `SettingsStore::update`；窗口当前是否 docked 不暴露给前端（纯 Rust 内部状态）。
+  > 平台注意：macOS 主窗目前是 NSPanel（`focusable=false`），slide_in 时不要抢焦点（保持 panel 行为）；Windows 上注意 DPI 缩放——`peek_strip_px` 用 `monitor.scale_factor()` 换算物理像素再 `set_position`，否则高 DPI 屏会肉眼看不到挂出的 strip。多屏切换：用窗口当前所在 `Monitor::work_area()` 而非主屏，dock 后用户拖窗到另一屏的逻辑在「拖动 → 解除 docked」一步已覆盖。
+  > 与现有逻辑联动：用户按全局快捷键 / 托盘呼出窗口时，若 `hidden = true` 直接走 `slide_in`（视为唤出）；窗口隐藏（`hide_main_window`）时取消 docked 计时器，下次 show 重新依设置启用。
+
+### 8.8 系统级 Popover 预览
+
+- [ ] 选中条目按空格 或 鼠标悬停触发独立预览窗口（macOS Quick Look 风格）
+  > 需求对标 macOS Finder 空格预览：列表中焦点条目按 `Space` 或鼠标悬停 ≥ 600ms 时弹一个独立的、跟随主窗的浮层窗口展示完整内容，再次按 `Space` / 鼠标移开 / `Esc` 关闭。是「系统级窗口」而非主窗内 Popover——内容长 / 图片大时主窗内放不下，独立窗口可以拉到屏幕剩余空间。
+  > Rust：新窗口 label = `clipboard-preview`，用 `WebviewWindowBuilder` 在 `core/setup` 里预创建（hidden、`skip_taskbar`、`always_on_top`、macOS 上 `decorations(false)` + 自绘圆角阴影、Windows 上 `transparent(true) + decorations(false)`），URL `/#/preview` 复用同一 bundle 的另一路由。`window/preview.rs::show_preview(item_id, anchor: Rect)` 计算 popover 位置：优先放主窗右侧，空间不够则左侧 / 下方；尺寸自适应内容类型上限（text 480x600，image 按原始比例最长边 ≤ 720，files 列表 480x400）。`hide_preview()` 仅 `window.hide()` 不销毁（避免 webview 重建抖动）。
+  > 命令：`open_clipboard_preview(item_id, anchor: { x, y, width, height })` / `close_clipboard_preview()`；`anchor` 由前端在列表项 DOMRect + 主窗 outer position 算出，传屏幕绝对坐标。预览窗加载完成后通过 `invoke("get_clipboard_payload", { id })`（已存在）拉内容，不另开数据通道；锁定条目（见 8.6）按设计**不允许预览**，前端在 `Space` / hover 触发处过滤掉 `is_locked && !unlocked`。
+  > 前端：① `stores/clipboardView.ts` 增 `previewId: number | null`、`hoverIntentId`（带计时器）。② `ClipboardList` 在选中态变化或鼠标进入某行时启动 600ms 定时器；定时到 / 按 `Space` → 计算 anchor → invoke `open_clipboard_preview`；鼠标离开 / 滚动 / 切换选中 / 再按 `Space` / `Esc` → `close_clipboard_preview`。③ 多选模式（8.5）下禁用 hover 预览，避免误触；`Space` 仍可用作单条预览。④ 新页面 `pages/Preview/index.tsx` 一份精简渲染：text 用 `<pre>`，html 走 DOMPurify，image 直接 `<img>`，files 列表表格化；不带交互按钮（复制 / 粘贴留在主窗工具条）。⑤ 路由 `router/index.ts` 加 `/preview` 项，仅在该窗口加载，不出现在主窗导航。
+  > 视觉：背景色用 HeroUI `bg-content1` + 12px 圆角 + 主题阴影；macOS 下加细边框（dark / light 各一档）模拟系统弹窗。窗口失去焦点（点其他应用）立即关闭——通过 `WindowEvent::Focused(false)` 监听。
+  > 性能：hover 触发用前端 `setTimeout`，不要每次 hover 都走 IPC；预览窗仅维持一份 webview，复用切换内容。设置位 `Settings.clipboard.preview.{enabled, hover_delay_ms}`（默认 enabled=true, delay=600），关闭后 `Space` 也不响应。
+
 ---
 
 # 阶段 9 · 打包、签名与发布
 
 ### 9.1 图标与资源
 
-- [ ] 图标生成脚本（`scripts/buildIcon.ts` 等价），生成各平台格式
-- [ ] 应用 identifier / name / version（version 取自 package.json）
+- [x] 应用 identifier / name / version（version 取自 package.json）
 
 ### 9.2 自动更新
 
