@@ -24,6 +24,7 @@ CREATE TABLE clipboard_items (
     content       TEXT    NOT NULL,
     content_hash  TEXT    NOT NULL,
     search_text   TEXT,
+    summary       TEXT,
     file_types    TEXT,
     size          INTEGER,
     width         INTEGER,

@@ -131,6 +131,7 @@ mod tests {
             content: "content".to_owned(),
             content_hash: content_hash(ClipboardKind::Text, "content"),
             search_text: None,
+            summary: None,
             file_types: None,
             size: None,
             width: None,

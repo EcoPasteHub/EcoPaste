@@ -18,6 +18,20 @@ use crate::core::Result;
 use crate::db::items::content_hash;
 use crate::db::models::{ClipboardItem, ClipboardKind, ClipboardSubKind, Platform};
 
+/// 列表渲染用摘要的最大字符数（按 Unicode 标量计，不是字节）。
+/// 超过此长度的文本会被截断，前端列表只渲染摘要，预览/写回时再读完整 `content`。
+pub const SUMMARY_MAX_CHARS: usize = 512;
+
+/// 从纯文本生成列表摘要：trim 后按 [`SUMMARY_MAX_CHARS`] 字符截断。
+/// 输入空串返回 `None`。HTML/RTF 也用这个，输入是 OS 同时提供的纯文本，不解析富文本。
+fn make_summary(plain: &str) -> Option<String> {
+    let trimmed = plain.trim();
+    if trimmed.is_empty() {
+        return None;
+    }
+    Some(trimmed.chars().take(SUMMARY_MAX_CHARS).collect())
+}
+
 /// 当前平台标记。仅 macOS / Windows 双平台（见 AGENTS.md），其余 target 不应被编译进来。
 fn current_platform() -> Platform {
     #[cfg(target_os = "macos")]
@@ -40,6 +54,7 @@ struct Draft {
     sub_kind: Option<ClipboardSubKind>,
     content: String,
     search_text: Option<String>,
+    summary: Option<String>,
     file_types: Option<String>,
     width: Option<i64>,
     height: Option<i64>,
@@ -61,6 +76,7 @@ fn draft_from_text(text: &TextPayload) -> Option<Draft> {
     let plain = text.text.trim();
     // 富文本场景的检索文本：OS 提供的纯文本表示，空则不存。
     let plain_search = (!plain.is_empty()).then(|| plain.to_owned());
+    let summary = make_summary(plain);
 
     if let Some(html) = non_empty(&text.html) {
         return Some(Draft {
@@ -68,6 +84,7 @@ fn draft_from_text(text: &TextPayload) -> Option<Draft> {
             sub_kind: Some(ClipboardSubKind::Html),
             content: html.clone(),
             search_text: plain_search,
+            summary,
             file_types: None,
             width: None,
             height: None,
@@ -81,6 +98,7 @@ fn draft_from_text(text: &TextPayload) -> Option<Draft> {
             sub_kind: Some(ClipboardSubKind::Rtf),
             content: rtf.clone(),
             search_text: plain_search,
+            summary,
             file_types: None,
             width: None,
             height: None,
@@ -96,6 +114,7 @@ fn draft_from_text(text: &TextPayload) -> Option<Draft> {
         sub_kind: detect_text_sub_kind(plain),
         content: plain.to_owned(),
         search_text: None,
+        summary,
         file_types: None,
         width: None,
         height: None,
@@ -135,6 +154,7 @@ pub fn build_item(store: &ImageStore, payload: &ClipboardPayload) -> Result<Opti
                     sub_kind: None,
                     content,
                     search_text: None,
+                    summary: None,
                     file_types: Some(file_types_str),
                     width: None,
                     height: None,
@@ -149,6 +169,7 @@ pub fn build_item(store: &ImageStore, payload: &ClipboardPayload) -> Result<Opti
                 sub_kind: None,
                 content: stored.file_name,
                 search_text: None,
+                summary: None,
                 file_types: None,
                 width: Some(stored.width),
                 height: Some(stored.height),
@@ -171,6 +192,7 @@ pub fn build_item(store: &ImageStore, payload: &ClipboardPayload) -> Result<Opti
         source_app_id: None,
         content: draft.content,
         search_text: draft.search_text,
+        summary: draft.summary,
         file_types: draft.file_types,
         size: draft.size,
         width: draft.width,

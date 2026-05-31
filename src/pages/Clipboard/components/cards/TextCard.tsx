@@ -1,6 +1,4 @@
 import { cn } from "@heroui/styles";
-import DOMPurify from "dompurify";
-import { useMemo } from "react";
 
 import type { ClipboardItem } from "@/types/clipboard";
 
@@ -21,20 +19,6 @@ const variantLabel = (item: ClipboardItem): string => {
   return KIND_LABEL[item.kind] ?? item.kind;
 };
 
-// 渲染富 HTML 预览：限定高度 + 折行，避免大段 HTML 撑爆列表行。
-const HtmlPreview = ({ html }: { html: string }) => {
-  const safe = useMemo(
-    () => DOMPurify.sanitize(html, { FORBID_TAGS: ["script", "style"] }),
-    [html],
-  );
-  return (
-    <div
-      className="prose prose-sm max-h-16 overflow-hidden break-all text-sm"
-      dangerouslySetInnerHTML={{ __html: safe }}
-    />
-  );
-};
-
 const TextCard = ({
   item,
   keyword = "",
@@ -42,8 +26,10 @@ const TextCard = ({
   item: ClipboardItem;
   keyword?: string;
 }) => {
-  const isHtml = item.subKind === "html";
-  const preview = item.searchText ?? item.content;
+  // HTML/RTF/纯文本都用 summary（Rust 入库时按 512 字符截断的纯文本）；
+  // 列表不再渲染原始 HTML/RTF，避免大段富文本撑爆 DOM。
+  // summary 为 null 时（旧数据兜底）退回到 searchText / content。
+  const preview = item.summary ?? item.searchText ?? item.content;
   const isLinkLike = item.subKind === "url" || item.subKind === "email";
 
   return (
@@ -57,18 +43,14 @@ const TextCard = ({
       ) : null}
       <div className="min-w-0 flex-1">
         <div className="text-muted text-xs">{variantLabel(item)}</div>
-        {isHtml ? (
-          <HtmlPreview html={item.content} />
-        ) : (
-          <div
-            className={cn("text-sm", {
-              "line-clamp-2 break-all": !isLinkLike,
-              "truncate text-link": isLinkLike,
-            })}
-          >
-            <Highlight keyword={keyword} text={preview} />
-          </div>
-        )}
+        <div
+          className={cn("text-sm", {
+            "line-clamp-2 break-all": !isLinkLike,
+            "truncate text-link": isLinkLike,
+          })}
+        >
+          <Highlight keyword={keyword} text={preview} />
+        </div>
       </div>
     </div>
   );

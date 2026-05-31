@@ -46,6 +46,10 @@ pub struct ClipboardItem {
     /// 去重指纹：`sha256(kind:content)`，由 `db::items::content_hash` 计算并在入库前比对。
     pub content_hash: String,
     pub search_text: Option<String>,
+    /// 列表渲染用的纯文本摘要（最多 512 字符）。HTML/RTF 也只存纯文本截断
+    /// （来源是 OS 同时提供的纯文本，不解析富文本）；Image/Files 为 `None`。
+    /// 完整内容仍在 `content`，预览/写回时再读。
+    pub summary: Option<String>,
     /// Files 类型专用：紧凑格式记录每个路径的类型，如 "d,f,f" 表示 [dir, file, file]。
     /// d=directory, f=file。用于删除文件后仍能准确显示 icon。
     pub file_types: Option<String>,

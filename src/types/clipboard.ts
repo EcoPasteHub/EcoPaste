@@ -27,6 +27,11 @@ export interface ClipboardItem {
   contentHash: string;
   searchText?: string | null;
   /**
+   * 列表渲染用的纯文本摘要（最多 512 字符）。HTML/RTF 也只存纯文本截断；
+   * Image/Files 为 null。完整内容在 `content`，预览/写回时再读。
+   */
+  summary?: string | null;
+  /**
    * Files 类型专用：紧凑格式记录每个路径的类型，如 "d,f,f" 表示 [dir, file, file]。
    */
   fileTypes?: string | null;
