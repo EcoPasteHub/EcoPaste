@@ -1,7 +1,6 @@
 //! 剪贴板相关命令：手动重新读取、解析图片路径。供前端按需触发。
 
 use std::sync::Arc;
-use std::time::Duration;
 
 use serde::Serialize;
 use sqlx::SqlitePool;
@@ -227,14 +226,10 @@ pub async fn write_to_clipboard(
 
 /// 「点击列表项 → 自动粘贴」的组合命令：写回剪贴板 + 隐藏主窗口 + 触发系统级粘贴。
 ///
-/// 隐藏窗口是为了让 OS 把焦点交还给上一个应用——这样 ⌘V / Shift+Insert 投递到
-/// 的是用户原本工作的窗口而非我们自己。等后续把主窗口改成「不抢占焦点」
-/// （NSPanel `NonactivatingPanel` / Windows `WS_EX_NOACTIVATE`）后，这一步可拆除，
-/// 但当前先按「显示即夺焦、粘贴时隐藏」的简单模型走，逻辑就在 Rust 一处闭环。
-///
-/// 隐藏后短暂等待让系统完成焦点切换；50ms 是经验值——
-/// 超出会让用户感到延迟，过短则可能在前一个窗口还未成为
-/// key window 时按键被自身吞掉。
+/// 窗口已是非激活面板（macOS NSPanel `nonactivating_panel` / Windows `focusable=false`），
+/// show 时不会把前台 App 推走，前台焦点始终在用户原窗口。
+/// macOS 上 panel 会成为 key window，CGEvent ⌘V 若不先 hide 会被 panel 自己吞掉，
+/// hide 后 key window 状态由 OS 同步切回上一个 App，无需额外让位等待。
 #[tauri::command]
 pub async fn paste_clipboard_item(
     app: AppHandle,
@@ -253,7 +248,6 @@ pub async fn paste_clipboard_item(
     if let Err(err) = window::hide_window(&app, MAIN_WINDOW_LABEL) {
         log::warn!("hide main window before paste failed: {err:?}");
     }
-    tokio::time::sleep(Duration::from_millis(50)).await;
 
     crate::keystroke::simulate_paste()?;
     Ok(())
