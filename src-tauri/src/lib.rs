@@ -15,17 +15,25 @@ use tauri::{Manager, WindowEvent};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // Webview target 把日志回灌到前端 devtools console，只在 dev 启用；
+    // 生产环境只落 LogDir 文件 + Stdout，避免向用户的 webview console 喷日志。
+    let mut log_targets = vec![
+        tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Stdout),
+        tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::LogDir { file_name: None }),
+    ];
+    if cfg!(debug_assertions) {
+        log_targets.push(tauri_plugin_log::Target::new(
+            tauri_plugin_log::TargetKind::Webview,
+        ));
+    }
+
     let log_plugin = tauri_plugin_log::Builder::new()
         .level(if cfg!(debug_assertions) {
             log::LevelFilter::Debug
         } else {
             log::LevelFilter::Info
         })
-        .targets([
-            tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Stdout),
-            tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::LogDir { file_name: None }),
-            tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Webview),
-        ])
+        .targets(log_targets)
         .build();
 
     tauri::Builder::default()

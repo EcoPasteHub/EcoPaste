@@ -131,13 +131,17 @@ cargo test                    # Rust 单测（在 src-tauri 下）
 - 组件优先用 Ant Design v6（`antd`），避免重复造轮子；主题切换在根节点用 `ConfigProvider` 的 `theme.algorithm` 切 `defaultAlgorithm` / `darkAlgorithm`，并把同步的 `light` / `dark` 类挂到 `<html>` 上，供 UnoCSS `dark:` 变体使用。
 - antd prop 命名：`open` / `checked` / `disabled` / `onClick`（不要再用 HeroUI 的 `isOpen` / `isSelected` / `isDisabled` / `onPress`）。
 - 条件 className 统一用 `cn from "@/utils/cn"`（内部 `clsx` + `tailwind-merge`，后写的同族原子类胜出）+ 对象语法 `{ "class": cond }`，不堆三元 / `&&`。**禁止**用模板字符串 / `+` 拼接 className（包括 `${className ?? ""}` 这种透传）——一律走 `cn("base...", condClass, propsClassName)`。
-- **事件回调必须提取为命名函数**，不要在 JSX 里写内联箭头函数 / 行内逻辑：
+- **JSX 中的事件回调优先提取为命名函数**，不要在 JSX 里塞内联箭头函数 / 行内逻辑：
   - ❌ `<Button onClick={() => doSomething(x)} />` / `<Input onChange={(e) => setX(e.target.value)} />`
   - ✅ 在组件函数体内声明 `const handleClick = () => doSomething(x);`，JSX 里写 `<Button onClick={handleClick} />`
   - 同一个回调被多个元素复用时（如 `onClick` 和某快捷键 `onKeyPress`）共用同一个命名函数。
   - 命名约定：单一动作用动词（`focusSearch` / `openGithub`），通用事件处理用 `handleXxx`（`handleSubmit` / `handleChange`）。
   - 好处：JSX 只描述结构、便于打断点调试、避免每次渲染重建闭包、回调有自己的 JSDoc 说明意图。
+  - **例外**：注册到 hook / API 而非 JSX prop 的一次性回调（如 `useEventListener("error", (e) => ...)`、`window.addEventListener` 回调），如果逻辑只有 2-3 行且不复用，可直接写成内联箭头函数——这类回调不在 JSX 里，没有渲染重建问题，提取成命名函数反而增加噪音。**但**：若该回调有「为什么这么做」的非显然意图（兜底、绕 bug、特殊顺序），仍需在 `useEventListener(...)` 上方写一行注释说明。
 - 日志统一走 `@/utils/log`（内部委托 `tauri-plugin-log`），禁止裸 `console.*`——保证前后端日志同源进 LogDir。
+- 平台 / 环境判断统一从 `@/utils/is` 引入（`isMac` / `isWin` / `isDev` 等），**禁止**在业务代码里散写 `platform() === "macos"` / `import.meta.env.DEV` 这类原始判断；新增一个判断时先去 `is.ts` 加常量，再 import 使用。
+- 表达「未定义」一律用 `void 0`，**禁止**写 `undefined` 字面量（包括判等 `x === undefined`、默认值、返回值等）。理由：`undefined` 在非严格作用域里可被遮蔽，`void 0` 是表达式恒等且更短。
+- 异步统一用 `async` / `await` + `try` / `catch`，**禁止**使用 `.then()` / `.catch()` / `.finally()` 链式写法（包括火并忘场景：`fn().catch(...)` 应改成 `async function wrapper() { try { await fn(); } catch {} }`）。理由：风格一致、错误处理与控制流在同一缩进、便于打断点。
 - 不要在前端写 SQL、不要做内容类型识别、不要算窗口坐标——这些调用 Rust 命令。
 - i18n 文案表：zh-CN（默认）/ en-US，新增文案两种语言同步补齐。
 - 列表用 `react-virtuoso` 虚拟滚动；HTML 内容必须经 DOMPurify sanitize 再渲染。
