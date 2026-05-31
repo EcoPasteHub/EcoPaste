@@ -4,14 +4,22 @@ import { useTranslation } from "react-i18next";
 import AboutPanel from "./panels/AboutPanel";
 import AppearancePanel from "./panels/AppearancePanel";
 import ClipboardPanel from "./panels/ClipboardPanel";
+import FiltersPanel from "./panels/FiltersPanel";
 import GeneralPanel from "./panels/GeneralPanel";
 import ShortcutsPanel from "./panels/ShortcutsPanel";
 
-type GroupKey = "general" | "clipboard" | "shortcuts" | "appearance" | "about";
+type GroupKey =
+  | "general"
+  | "clipboard"
+  | "filters"
+  | "shortcuts"
+  | "appearance"
+  | "about";
 
 const GROUPS: { key: GroupKey; panel: ReactNode }[] = [
   { key: "general", panel: <GeneralPanel /> },
   { key: "clipboard", panel: <ClipboardPanel /> },
+  { key: "filters", panel: <FiltersPanel /> },
   { key: "shortcuts", panel: <ShortcutsPanel /> },
   { key: "appearance", panel: <AppearancePanel /> },
   { key: "about", panel: <AboutPanel /> },

@@ -79,12 +79,20 @@ export interface Feedback {
   copySound: boolean;
 }
 
+export interface Filters {
+  // 命中复制来源时，对应剪贴板内容不入库。
+  excludedAppIds: string[];
+  // 应用扫描目录，启动 / 手动刷新时遍历 `.app` / `.exe`。
+  scanDirs: string[];
+}
+
 export interface Clipboard {
   content: Content;
   history: History;
   search: Search;
   window: Window;
   feedback: Feedback;
+  filters: Filters;
 }
 
 export interface Update {

@@ -1,7 +1,9 @@
 mod app_store;
+mod apps_registry;
 mod cleanup;
 mod detect;
 mod guard;
+mod icon;
 mod ingest;
 mod payload;
 mod read;
@@ -12,6 +14,7 @@ mod watcher;
 mod write;
 
 pub use app_store::AppIconStore;
+pub use apps_registry::{refresh_from_dirs, AppsRegistry};
 pub use guard::WritebackGuard;
 pub use ingest::build_item;
 pub use read::ClipboardReader;

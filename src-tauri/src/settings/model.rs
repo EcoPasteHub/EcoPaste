@@ -133,6 +133,79 @@ pub struct Clipboard {
     pub search: Search,
     pub window: Window,
     pub feedback: Feedback,
+    pub filters: Filters,
+}
+
+/// 应用过滤规则 + 应用扫描目录。
+/// `excluded_app_ids` 命中复制来源时，对应剪贴板内容不入库。
+/// `scan_dirs` 是启动时遍历查找已安装应用（macOS `.app` / Windows TBD）的根目录列表，可由用户编辑。
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(default, rename_all = "camelCase")]
+pub struct Filters {
+    pub excluded_app_ids: Vec<String>,
+    pub scan_dirs: Vec<String>,
+}
+
+impl Default for Filters {
+    fn default() -> Self {
+        Self {
+            excluded_app_ids: default_excluded_app_ids(),
+            scan_dirs: default_scan_dirs(),
+        }
+    }
+}
+
+fn default_excluded_app_ids() -> Vec<String> {
+    #[cfg(target_os = "macos")]
+    {
+        // 系统级密码 / 密钥工具：用户从这里复制的几乎都是敏感凭据，默认不入库。
+        // - com.apple.keychainaccess：钥匙串访问
+        // - com.apple.Passwords：macOS 15 起的「密码」App
+        vec![
+            "com.apple.keychainaccess".to_owned(),
+            "com.apple.Passwords".to_owned(),
+        ]
+    }
+    #[cfg(target_os = "windows")]
+    {
+        // Windows 无系统内置的密码管理 App（凭据管理器是 Control Panel 子项，不会作为复制来源）。
+        // 第三方密码管理器（1Password / Bitwarden / KeePass 等）因人而异，留给用户在 UI 勾选。
+        Vec::new()
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    {
+        Vec::new()
+    }
+}
+
+fn default_scan_dirs() -> Vec<String> {
+    #[cfg(target_os = "macos")]
+    {
+        let mut dirs = vec![
+            "/Applications".to_owned(),
+            "/System/Applications".to_owned(),
+            "/System/Applications/Utilities".to_owned(),
+            "/System/Library/CoreServices/Applications".to_owned(),
+        ];
+        if let Some(home) = std::env::var_os("HOME") {
+            let p = std::path::PathBuf::from(home).join("Applications");
+            if let Some(s) = p.to_str() {
+                dirs.push(s.to_owned());
+            }
+        }
+        dirs
+    }
+    #[cfg(target_os = "windows")]
+    {
+        vec![
+            "C:\\Program Files".to_owned(),
+            "C:\\Program Files (x86)".to_owned(),
+        ]
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    {
+        Vec::new()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]

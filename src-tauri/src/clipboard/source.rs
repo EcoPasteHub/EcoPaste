@@ -4,9 +4,8 @@
 //! 必须**同步**在监听回调一发生时立即抓——延后到 await 之后再问，前台应用很可能已经切走。
 //! 探测失败（无前台应用 / 自身复制 / 平台 API 错误）一律返回 `None`，不阻断入库。
 //!
-//! macOS 走 `NSWorkspace.frontmostApplication`，icon 走 `NSImage` → TIFF → `NSBitmapImageRep` → PNG。
-//! Windows 走 `GetForegroundWindow` → `QueryFullProcessImageNameW` 拿 exe 路径；
-//! icon 走 `ExtractIconExW` → `GetIconInfo` → `GetDIBits`(32bpp BGRA) → `png` crate 编 PNG。
+//! 平台 API：macOS 走 `NSWorkspace.frontmostApplication`，Windows 走 `GetForegroundWindow`
+//! + `QueryFullProcessImageNameW`。图标统一交给 `crate::clipboard::icon` 跨平台抽取。
 
 use crate::db::models::Platform;
 
@@ -40,12 +39,14 @@ pub fn detect_frontmost() -> Option<FrontmostApp> {
 #[cfg(target_os = "macos")]
 mod macos {
     use super::{FrontmostApp, Platform};
+    use crate::clipboard::icon;
 
+    use std::path::PathBuf;
+
+    use objc2::msg_send;
     use objc2::rc::{autoreleasepool, Retained};
-    use objc2::runtime::AnyObject;
-    use objc2::{msg_send, ClassType};
-    use objc2_app_kit::{NSBitmapImageFileType, NSBitmapImageRep, NSImage, NSWorkspace};
-    use objc2_foundation::{NSData, NSDictionary, NSString};
+    use objc2_app_kit::{NSRunningApplication, NSWorkspace};
+    use objc2_foundation::{NSString, NSURL};
 
     pub(super) fn detect() -> Option<FrontmostApp> {
         autoreleasepool(|_| {
@@ -53,13 +54,14 @@ mod macos {
             let app = workspace.frontmostApplication()?;
 
             // 没 bundle id 的进程（命令行子进程等）不入表，避免主键不稳定。
-            let id = app.bundleIdentifier().map(|s| nsstring_to_string(&s))?;
+            let id = app.bundleIdentifier().map(|s| s.to_string())?;
             let name = app
                 .localizedName()
-                .map(|s| nsstring_to_string(&s))
+                .map(|s| s.to_string())
                 .unwrap_or_else(|| id.clone());
 
-            let icon_png = app.icon().and_then(|img| unsafe { nsimage_to_png(&img) });
+            let icon_png =
+                unsafe { bundle_path(&app) }.and_then(|path| icon::icon_png(&path, None));
 
             Some(FrontmostApp {
                 id,
@@ -70,61 +72,30 @@ mod macos {
         })
     }
 
-    fn nsstring_to_string(s: &NSString) -> String {
-        s.to_string()
-    }
-
-    /// NSImage → PNG。先 TIFF 表示 → 包装成 NSBitmapImageRep → 编出 PNG。
-    /// 直接用 NSImage 的 size 像素，不强行缩放——前端按需 CSS 缩放，避免不同 retina 倍率失真。
-    unsafe fn nsimage_to_png(img: &NSImage) -> Option<Vec<u8>> {
-        let tiff: Retained<NSData> = msg_send![img, TIFFRepresentation];
-        if tiff.is_empty() {
-            return None;
-        }
-
-        let rep_cls = NSBitmapImageRep::class();
-        // imageRepWithData: 返回 NSImageRep（NSBitmapImageRep 的父类）；这里我们知道
-        // TIFF 一定走 NSBitmapImageRep 实现，按其类型继续用。
-        let rep: Option<Retained<NSBitmapImageRep>> = msg_send![rep_cls, imageRepWithData: &*tiff];
-        let rep = rep?;
-
-        let props: Retained<NSDictionary<NSString, AnyObject>> = NSDictionary::new();
-        let png: Option<Retained<NSData>> = msg_send![
-            &*rep,
-            representationUsingType: NSBitmapImageFileType::PNG,
-            properties: &*props,
-        ];
-        let png = png?;
-        if png.is_empty() {
-            return None;
-        }
-        Some(png.to_vec())
+    /// 通过 NSRunningApplication.bundleURL 拿到 .app 路径。objc2-app-kit 当前 feature 没生成
+    /// 该 getter，只能 msg_send!；返回 NSURL 后用 path 取 NSString → Rust String。
+    unsafe fn bundle_path(app: &NSRunningApplication) -> Option<PathBuf> {
+        let url: Option<Retained<NSURL>> = msg_send![app, bundleURL];
+        let url = url?;
+        let path: Option<Retained<NSString>> = msg_send![&*url, path];
+        Some(PathBuf::from(path?.to_string()))
     }
 }
 
 #[cfg(target_os = "windows")]
 mod windows {
     use super::{FrontmostApp, Platform};
+    use crate::clipboard::icon;
 
-    use std::mem::{size_of, zeroed};
     use std::path::Path;
-    use std::ptr;
 
     use winapi::shared::minwindef::{DWORD, FALSE};
-    use winapi::shared::windef::{HBITMAP, HICON, HWND};
+    use winapi::shared::windef::HWND;
     use winapi::um::handleapi::CloseHandle;
     use winapi::um::processthreadsapi::OpenProcess;
-    use winapi::um::shellapi::ExtractIconExW;
     use winapi::um::winbase::QueryFullProcessImageNameW;
-    use winapi::um::wingdi::{
-        DeleteObject, GetDIBits, GetObjectW, BITMAP, BITMAPINFO, BITMAPINFOHEADER, BI_RGB,
-        DIB_RGB_COLORS,
-    };
     use winapi::um::winnt::PROCESS_QUERY_LIMITED_INFORMATION;
-    use winapi::um::winuser::{
-        DestroyIcon, GetDC, GetForegroundWindow, GetIconInfo, GetWindowThreadProcessId, ReleaseDC,
-        ICONINFO,
-    };
+    use winapi::um::winuser::{GetForegroundWindow, GetWindowThreadProcessId};
 
     pub(super) fn detect() -> Option<FrontmostApp> {
         let exe_path = unsafe { foreground_exe_path() }?;
@@ -135,7 +106,7 @@ mod windows {
             .and_then(|s| s.to_str())
             .unwrap_or(&exe_path)
             .to_owned();
-        let icon_png = unsafe { extract_icon_png(&exe_path) };
+        let icon_png = icon::icon_png(Path::new(&exe_path), None);
 
         Some(FrontmostApp {
             id: exe_path,
@@ -170,103 +141,5 @@ mod windows {
             return None;
         }
         Some(String::from_utf16_lossy(&buf[..size as usize]))
-    }
-
-    /// HICON → 32bpp BGRA → RGBA → PNG。失败一律 None，不影响入库。
-    unsafe fn extract_icon_png(exe_path: &str) -> Option<Vec<u8>> {
-        let wide: Vec<u16> = exe_path.encode_utf16().chain(std::iter::once(0)).collect();
-        let mut large: HICON = ptr::null_mut();
-        // 只取 large icon（index 0），small icon 用不上。
-        let count = ExtractIconExW(wide.as_ptr(), 0, &mut large, ptr::null_mut(), 1);
-        if count == 0 || large.is_null() {
-            return None;
-        }
-
-        let png = hicon_to_png(large);
-        DestroyIcon(large);
-        png
-    }
-
-    unsafe fn hicon_to_png(icon: HICON) -> Option<Vec<u8>> {
-        let mut info: ICONINFO = zeroed();
-        if GetIconInfo(icon, &mut info) == 0 {
-            return None;
-        }
-        // 任何分支返回前都得 DeleteObject 两个 bitmap，避免 GDI 句柄泄漏。
-        let result = hbitmap_to_png(info.hbmColor);
-        if !info.hbmColor.is_null() {
-            DeleteObject(info.hbmColor as _);
-        }
-        if !info.hbmMask.is_null() {
-            DeleteObject(info.hbmMask as _);
-        }
-        result
-    }
-
-    unsafe fn hbitmap_to_png(hbm: HBITMAP) -> Option<Vec<u8>> {
-        if hbm.is_null() {
-            return None;
-        }
-        let mut bm: BITMAP = zeroed();
-        if GetObjectW(
-            hbm as _,
-            size_of::<BITMAP>() as i32,
-            &mut bm as *mut _ as *mut _,
-        ) == 0
-        {
-            return None;
-        }
-        let width = bm.bmWidth;
-        let height = bm.bmHeight;
-        if width <= 0 || height <= 0 {
-            return None;
-        }
-
-        let mut bi: BITMAPINFO = zeroed();
-        bi.bmiHeader.biSize = size_of::<BITMAPINFOHEADER>() as u32;
-        bi.bmiHeader.biWidth = width;
-        // 负高度 = top-down 行序，省一次反向遍历。
-        bi.bmiHeader.biHeight = -height;
-        bi.bmiHeader.biPlanes = 1;
-        bi.bmiHeader.biBitCount = 32;
-        bi.bmiHeader.biCompression = BI_RGB;
-
-        let stride = (width as usize) * 4;
-        let mut buf = vec![0u8; stride * height as usize];
-
-        let hdc = GetDC(ptr::null_mut());
-        let scanned = GetDIBits(
-            hdc,
-            hbm,
-            0,
-            height as u32,
-            buf.as_mut_ptr() as *mut _,
-            &mut bi,
-            DIB_RGB_COLORS,
-        );
-        ReleaseDC(ptr::null_mut(), hdc);
-
-        if scanned == 0 {
-            return None;
-        }
-
-        // GDI 给的是 BGRA，转 RGBA。
-        for px in buf.chunks_exact_mut(4) {
-            px.swap(0, 2);
-        }
-
-        encode_png(width as u32, height as u32, &buf)
-    }
-
-    fn encode_png(width: u32, height: u32, rgba: &[u8]) -> Option<Vec<u8>> {
-        let mut out = Vec::new();
-        {
-            let mut encoder = png::Encoder::new(&mut out, width, height);
-            encoder.set_color(png::ColorType::Rgba);
-            encoder.set_depth(png::BitDepth::Eight);
-            let mut writer = encoder.write_header().ok()?;
-            writer.write_image_data(rgba).ok()?;
-        }
-        Some(out)
     }
 }

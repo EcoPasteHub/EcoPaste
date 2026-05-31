@@ -46,6 +46,19 @@ pub async fn list_apps_by_ids(pool: &SqlitePool, ids: &[String]) -> Result<Vec<C
     Ok(rows)
 }
 
+/// 列出全部已知应用（来源既包含监听过程中捕获的前台应用，也包含目录扫描发现的安装应用）。
+/// 名称按大小写不敏感升序，给前端过滤选择 UI 一个稳定顺序。
+pub async fn list_all_apps(pool: &SqlitePool) -> Result<Vec<ClipboardApp>> {
+    let mut qb: QueryBuilder<Sqlite> = QueryBuilder::new(SELECT_APP);
+    qb.push(" ORDER BY name COLLATE NOCASE ASC, id ASC");
+    let rows = qb
+        .build_query_as::<ClipboardApp>()
+        .fetch_all(pool)
+        .await
+        .context("failed to list all clipboard apps")?;
+    Ok(rows)
+}
+
 /// upsert：id 已存在则只刷新 name / icon_file / updated_at；不存在则全量插入。
 /// 显式分两路而非依赖 `INSERT OR REPLACE`：后者会重置 created_at 与（潜在的）外键级联。
 pub async fn upsert_app(pool: &SqlitePool, app: &ClipboardApp) -> Result<()> {

@@ -90,6 +90,29 @@
       }
     }
   },
+  "filters": {
+    "apps": {
+      "empty": "No apps yet. Click \"Refresh\" to scan configured directories.",
+      "refresh": "Refresh",
+      "searchPlaceholder": "Search name / bundle id"
+    },
+    "dirs": {
+      "add": "Add Directory",
+      "empty": "No scan directories configured; installed apps can't be discovered.",
+      "remove": "Remove"
+    },
+    "excluded": {
+      "empty": "No apps are currently filtered."
+    },
+    "section": {
+      "apps": "All Apps",
+      "apps.desc": "Clipboard content from checked apps will be ignored",
+      "excluded": "Filtered Apps",
+      "excluded.desc": "Clipboard content from these apps is ignored. Click to un-filter.",
+      "scanDirs": "Scan Directories",
+      "scanDirs.desc": "Walked on launch / manual refresh to find .app / .exe"
+    }
+  },
   "general": {
     "autoStart": {
       "desc": "Start EcoPaste automatically after system login",
@@ -113,6 +136,7 @@
       "about": "About",
       "appearance": "Appearance",
       "clipboard": "Clipboard",
+      "filters": "App Filter",
       "general": "General",
       "shortcuts": "Shortcuts"
     },

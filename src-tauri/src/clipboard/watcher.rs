@@ -18,6 +18,7 @@ use sqlx::SqlitePool;
 use tauri::{AppHandle, Emitter, Manager};
 
 use super::app_store::AppIconStore;
+use super::apps_registry::AppsRegistry;
 use super::guard::WritebackGuard;
 use super::ingest::build_item;
 use super::read::ClipboardReader;
@@ -27,6 +28,7 @@ use super::storage::ImageStore;
 use crate::db::apps::upsert_app;
 use crate::db::items::{upsert_item, UpsertResult};
 use crate::db::models::{ClipboardApp, ClipboardItem};
+use crate::settings::SettingsStore;
 
 /// 剪贴板更新事件名。前端监听此事件后增量刷新 / 重新拉取列表（阶段 7.2）。
 pub const CLIPBOARD_UPDATED_EVENT: &str = "clipboard://updated";
@@ -53,7 +55,21 @@ impl WatcherPause {
 
 /// 把同步抓到的 [`FrontmostApp`] 落 icon 字节 + 拼成可入库的 [`ClipboardApp`]。
 /// icon 落盘失败不阻断（仍保留应用名），仅 warn。
-pub fn materialize_source(store: &AppIconStore, src: FrontmostApp) -> ClipboardApp {
+///
+/// `registry` 命中缓存时优先复用——通常包含目录扫描得到的更完整图标，
+/// 也省掉一次 PNG 字节 sha256/IO；缓存未命中再走 FrontmostApp.icon_png 路径，
+/// 并把结果回写缓存，让首次见到的应用后续直接命中。
+pub fn materialize_source(
+    store: &AppIconStore,
+    registry: Option<&AppsRegistry>,
+    src: FrontmostApp,
+) -> ClipboardApp {
+    if let Some(reg) = registry {
+        if let Some(cached) = reg.get(&src.id) {
+            return cached;
+        }
+    }
+
     let icon_file = src
         .icon_png
         .as_deref()
@@ -65,14 +81,18 @@ pub fn materialize_source(store: &AppIconStore, src: FrontmostApp) -> ClipboardA
             }
         });
     let now = Utc::now();
-    ClipboardApp {
+    let app = ClipboardApp {
         id: src.id,
         name: src.name,
         icon_file,
         platform: src.platform,
         created_at: now,
         updated_at: now,
+    };
+    if let Some(reg) = registry {
+        reg.insert_into_cache(app.clone());
     }
+    app
 }
 
 /// 去重入库 + emit「剪贴板更新」事件。监听回调与 `read_clipboard` 命令共用，
@@ -123,11 +143,50 @@ pub fn init(app: &AppHandle, pool: SqlitePool) -> crate::core::Result<()> {
     let app_icon_store = AppIconStore::new(app)?;
     app.manage(app_icon_store.clone());
 
+    let registry = AppsRegistry::new(pool.clone(), app_icon_store.clone());
+    app.manage(registry.clone());
+
     let pause = WatcherPause::default();
     app.manage(pause.clone());
 
+    // 启动期：先把已落库的应用读进缓存，再后台跑一次目录扫描补齐已安装应用。
+    // 两段都失败时只 warn，不阻塞剪贴板监听主路径。
+    {
+        let registry = registry.clone();
+        let app = app.clone();
+        tauri::async_runtime::spawn(async move {
+            if let Err(err) = registry.load_from_db().await {
+                log::warn!("apps registry: initial DB load failed: {err}");
+            }
+            let dirs = app
+                .try_state::<SettingsStore>()
+                .map(|s| s.snapshot().clipboard.filters.scan_dirs.clone())
+                .unwrap_or_default();
+            if !dirs.is_empty() {
+                if let Err(err) = super::apps_registry::refresh_from_dirs(
+                    app.clone(),
+                    registry.clone(),
+                    dirs,
+                    false,
+                )
+                .await
+                {
+                    log::warn!("apps registry: initial scan failed: {err}");
+                }
+            }
+        });
+    }
+
     super::cleanup::spawn(app.clone(), pool.clone());
-    spawn_watch_thread(app.clone(), pool, guard, store, app_icon_store, pause);
+    spawn_watch_thread(
+        app.clone(),
+        pool,
+        guard,
+        store,
+        app_icon_store,
+        registry,
+        pause,
+    );
     Ok(())
 }
 
@@ -137,6 +196,7 @@ fn spawn_watch_thread(
     guard: Arc<WritebackGuard>,
     store: ImageStore,
     app_icon_store: AppIconStore,
+    registry: AppsRegistry,
     pause: WatcherPause,
 ) {
     std::thread::Builder::new()
@@ -167,6 +227,7 @@ fn spawn_watch_thread(
                 guard,
                 store,
                 app_icon_store,
+                registry,
                 pause,
             });
 
@@ -184,6 +245,7 @@ struct ClipboardChangeHandler {
     guard: Arc<WritebackGuard>,
     store: ImageStore,
     app_icon_store: AppIconStore,
+    registry: AppsRegistry,
     pause: WatcherPause,
 }
 
@@ -199,6 +261,26 @@ impl ClipboardHandler for ClipboardChangeHandler {
         // 顺序换不得：guard 判定依赖 content_hash，必须先把 payload 读出来才能判，
         // 而 read_all 期间用户可能已经切走前台。
         let source = source::detect_frontmost();
+
+        // 用户在偏好里勾选了「过滤此应用」时，本次复制整条直接丢弃——不读取、不入库、不 emit。
+        // 提前到读 payload 前判定，省掉无效的 OS 调用 + 图片解码开销。
+        if let Some(src) = &source {
+            let excluded = self
+                .app
+                .try_state::<SettingsStore>()
+                .map(|s| {
+                    s.snapshot()
+                        .clipboard
+                        .filters
+                        .excluded_app_ids
+                        .iter()
+                        .any(|id| id == &src.id)
+                })
+                .unwrap_or(false);
+            if excluded {
+                return;
+            }
+        }
 
         // 同步读取 + 转换（含图片落盘）：拿到 content_hash 才能判定是否为自身写回。
         let payload = match self.reader.read_all() {
@@ -224,7 +306,8 @@ impl ClipboardHandler for ClipboardChangeHandler {
             return;
         }
 
-        let source_app = source.map(|src| materialize_source(&self.app_icon_store, src));
+        let source_app =
+            source.map(|src| materialize_source(&self.app_icon_store, Some(&self.registry), src));
         if let Some(src) = &source_app {
             item.source_app_id = Some(src.id.clone());
         }

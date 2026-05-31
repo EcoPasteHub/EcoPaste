@@ -90,6 +90,29 @@
       }
     }
   },
+  "filters": {
+    "apps": {
+      "empty": "暂无应用，点击右上角「刷新」从扫描目录抓取",
+      "refresh": "刷新",
+      "searchPlaceholder": "搜索应用名 / 包名"
+    },
+    "dirs": {
+      "add": "添加目录",
+      "empty": "未配置扫描目录，将无法发现已安装应用",
+      "remove": "删除"
+    },
+    "excluded": {
+      "empty": "暂未过滤任何应用"
+    },
+    "section": {
+      "apps": "全部应用",
+      "apps.desc": "勾选的应用复制内容将不会被记录",
+      "excluded": "已过滤的应用",
+      "excluded.desc": "以下应用复制的内容不会被记录，点击可移出过滤",
+      "scanDirs": "扫描目录",
+      "scanDirs.desc": "启动 / 手动刷新时遍历这些目录寻找 .app / .exe"
+    }
+  },
   "general": {
     "autoStart": {
       "desc": "登录系统后自动启动 EcoPaste",
@@ -113,6 +136,7 @@
       "about": "关于",
       "appearance": "外观",
       "clipboard": "剪贴板",
+      "filters": "应用过滤",
       "general": "常规",
       "shortcuts": "快捷键"
     },

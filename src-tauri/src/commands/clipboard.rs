@@ -8,8 +8,8 @@ use sqlx::SqlitePool;
 use tauri::{AppHandle, Manager, State};
 
 use crate::clipboard::{
-    build_item, detect_frontmost, materialize_source, persist_and_notify, AppIconStore,
-    ClipboardReader, ImageStore, WritebackGuard,
+    build_item, detect_frontmost, materialize_source, persist_and_notify, refresh_from_dirs,
+    AppIconStore, AppsRegistry, ClipboardReader, ImageStore, WritebackGuard,
 };
 use crate::core::{AppError, Result};
 use crate::db::items::find_item_by_id;
@@ -39,6 +39,7 @@ pub async fn read_clipboard(
     pool: State<'_, SqlitePool>,
     store: State<'_, ImageStore>,
     app_icon_store: State<'_, AppIconStore>,
+    registry: State<'_, AppsRegistry>,
 ) -> Result<Option<ReadClipboardResult>> {
     // 先在同步段抓前台应用 + 读取剪贴板。
     // 注意：手动「重新读取」时前台应用就是 EcoPaste 自己，不像 OS 监听场景能拿到原应用——
@@ -60,7 +61,7 @@ pub async fn read_clipboard(
         return Ok(None);
     };
 
-    let source_app = source.map(|src| materialize_source(&app_icon_store, src));
+    let source_app = source.map(|src| materialize_source(&app_icon_store, Some(&registry), src));
     if let Some(src) = &source_app {
         item.source_app_id = Some(src.id.clone());
     }
@@ -202,6 +203,75 @@ pub async fn list_clipboard_apps(
     ids: Vec<String>,
 ) -> Result<Vec<crate::db::models::ClipboardApp>> {
     crate::db::apps::list_apps_by_ids(&pool, &ids).await
+}
+
+/// 列出全部已知应用（目录扫描发现 + 监听过程捕获的并集）+ 设置里勾选了但 DB 尚无记录的
+/// 「占位条目」，确保用户当前的过滤选择在 UI 上始终可见可取消。
+/// 直接走 DB 避免与启动期异步装载缓存的竞态。
+#[tauri::command]
+pub async fn list_all_apps(
+    app: AppHandle,
+    pool: State<'_, SqlitePool>,
+) -> Result<Vec<crate::db::models::ClipboardApp>> {
+    use crate::db::models::{ClipboardApp, Platform};
+    use std::collections::HashSet;
+
+    let mut apps = crate::db::apps::list_all_apps(&pool).await?;
+    let known: HashSet<String> = apps.iter().map(|a| a.id.clone()).collect();
+
+    let excluded = app
+        .state::<crate::settings::SettingsStore>()
+        .snapshot()
+        .clipboard
+        .filters
+        .excluded_app_ids;
+
+    let now = chrono::Utc::now();
+    let platform = if cfg!(target_os = "macos") {
+        Platform::Macos
+    } else {
+        Platform::Windows
+    };
+    for id in excluded {
+        if known.contains(&id) {
+            continue;
+        }
+        apps.push(ClipboardApp {
+            name: id.clone(),
+            id,
+            icon_file: None,
+            platform,
+            created_at: now,
+            updated_at: now,
+        });
+    }
+
+    // 保持按名称升序，让占位项也归入正确位置。
+    apps.sort_by(|a, b| {
+        a.name
+            .to_lowercase()
+            .cmp(&b.name.to_lowercase())
+            .then_with(|| a.id.cmp(&b.id))
+    });
+    Ok(apps)
+}
+
+/// 手动触发一次目录扫描：按当前 `settings.clipboard.filters.scanDirs` 重新枚举
+/// 已安装应用，更新 DB + 内存缓存，返回最新完整列表。耗时较长（取决于目录条目数），
+/// 前端按钮调用时建议带 loading 态。
+#[tauri::command]
+pub async fn refresh_apps(
+    app: AppHandle,
+    registry: State<'_, AppsRegistry>,
+) -> Result<Vec<crate::db::models::ClipboardApp>> {
+    let dirs = app
+        .state::<crate::settings::SettingsStore>()
+        .snapshot()
+        .clipboard
+        .filters
+        .scan_dirs
+        .clone();
+    refresh_from_dirs(app, registry.inner().clone(), dirs, true).await
 }
 
 /// 列出全部分组（薄封装），供前端构建分组 tab 栏。

@@ -4,6 +4,7 @@
 // - KEYBOARD_NAV      → src-tauri/src/keyboard/windows.rs
 // - SETTINGS_UPDATED  → src-tauri/src/commands/settings.rs
 export const TAURI_EVENT = {
+  CLIPBOARD_APPS_UPDATED: "clipboard-apps://updated",
   CLIPBOARD_UPDATED: "clipboard://updated",
   KEYBOARD_NAV: "keyboard://nav",
   SETTINGS_UPDATED: "settings://updated",
