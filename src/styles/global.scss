@@ -1,0 +1,15 @@
+html {
+  --uno: scheme-light select-none overscroll-none antialiased;
+
+  &.dark {
+    --uno: scheme-dark;
+  }
+
+  body {
+    --uno: text-3.5;
+
+    img {
+      -webkit-user-drag: none;
+    }
+  }
+}

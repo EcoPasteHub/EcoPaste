@@ -6,7 +6,9 @@
     "core:default",
     "core:window:allow-set-theme",
     "log:default",
-    "os:default"
+    "os:default",
+    "core:window:allow-start-dragging",
+    "opener:default"
   ],
   "windows": ["main", "preference"]
 }

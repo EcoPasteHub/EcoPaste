@@ -1,27 +1,22 @@
-import { theme as antdTheme, type GlobalToken, type ThemeConfig } from "antd";
-import type { CSSObject, Preset } from "unocss";
+import { theme as antdTheme, type ThemeConfig } from "antd";
+import type { Preset } from "unocss";
 
 /**
- * UnoCSS preset：把 antd v6 颜色 token 暴露成原子类。
+ * UnoCSS preset：把 antd v6 颜色 token 接入 UnoCSS 的 `theme.colors`。
  *
- * 构建期从 `antd.theme.getDesignToken()` 枚举所有 `color*` 与
- * `{palette}-{1..10}` 调色板键，按 antd CSS 变量命名规则（camelCase →
- * kebab-case，前缀 `--ant-`）映射为 `var(--ant-...)`；同时通过 `preflights`
- * 把 token 写入 `:root`（不依赖 `ConfigProvider.cssVar`，因为后者只把
- * 变量挂在组件级 `xxx-css-var` 类名下，原生 DOM 元素拿不到）。
+ * 做两件事：
+ *   1. `extendTheme`：把所有 `color*` 与 `{palette}-{1..10}` 写入
+ *      `theme.colors`（值为 `var(--ant-...)`）。wind4 的 `parseColor`
+ *      检测到 `var(` 时会原样保留色值，所以 wind4 自带的 **所有** 用色工具
+ *      （text- / bg- / from- / via- / to- / border- / ring- / shadow-
+ *      / outline- / decoration- / accent- / fill- / stroke- ...）
+ *      都会自动支持 antd 颜色，无需我们再单独写规则。
+ *   2. `preflights`：把 antd token 落到 `:root` / `.dark`，供上面那些
+ *      `var(--ant-...)` 在运行时取到值；切主题只需在 `<html>` 切类名。
  *
- * 支持多主题：传 `themes` 时按选择器输出多套变量，切主题只需切类名。
- *
- * 类名形态（{c} 例：`primary` / `primary-hover` / `bg-container`
- * / `text-secondary` / `split` / `blue` / `blue-6`）：
- *   text-{c} / c-{c} / color-{c}        → color
- *   bg-{c}                              → background-color
- *   border-{c} / b-{c}                  → border-color
- *   border-{t|r|b|l|x|y}-{c}
- *     / b-{t|r|b|l|x|y}-{c}
- *     / b{t|r|b|l|x|y}-{c}              → 单/双边 border-*-color
- *
- * lookup 不命中时返回 `undefined`，让 wind4 等其它 preset 接管。
+ * 调色板键以嵌套对象（`blue: { "1": ..., DEFAULT: ... }`）写入，避免
+ * 整体覆盖 wind4 自带的 Tailwind 调色板（`blue-50`..`blue-950` 仍可用）。
+ * 单调色板别名（`text-blue`）通过 `DEFAULT` 指向 `var(--ant-blue-6)`。
  */
 export interface PresetAntdColorsOptions {
   /** CSS 变量前缀，默认 `"ant"`。 */
@@ -33,49 +28,13 @@ export interface PresetAntdColorsOptions {
   themes?: Record<string, ThemeConfig>;
 }
 
-const SIDE_PROPS: Record<string, string[]> = {
-  "": ["border-color"],
-  b: ["border-bottom-color"],
-  l: ["border-left-color"],
-  r: ["border-right-color"],
-  t: ["border-top-color"],
-  x: ["border-left-color", "border-right-color"],
-  y: ["border-top-color", "border-bottom-color"],
-};
-
 const kebab = (s: string): string =>
   s.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
 
-/** token 键名 → CSS 变量名。 */
-const toVarName = (key: string, antPrefix: string): string => {
-  if (/^color[A-Z]/.test(key)) {
-    return `--${antPrefix}-color-${kebab(key.slice("color".length))}`;
-  }
-  return `--${antPrefix}-${/^[a-z]+-\d{1,2}$/.test(key) ? key : kebab(key)}`;
-};
-
-/** 颜色查找表：短名 → `var(--ant-...)`。 */
-const buildColorMap = (
-  token: GlobalToken,
-  antPrefix: string,
-): Map<string, string> => {
-  const map = new Map<string, string>();
-  const palettes = new Set<string>();
-  for (const key of Object.keys(token)) {
-    if (/^color[A-Z]/.test(key)) {
-      const short = kebab(key.slice("color".length));
-      map.set(short, `var(--${antPrefix}-color-${short})`);
-    } else if (/^[a-z]+-\d{1,2}$/.test(key)) {
-      map.set(key, `var(--${antPrefix}-${key})`);
-      palettes.add(key.split("-")[0]);
-    }
-  }
-  for (const p of palettes) map.set(p, `var(--${antPrefix}-${p}-6)`);
-  return map;
-};
+const PALETTE_RE = /^([a-z]+)-(\d{1,2})$/;
 
 /**
- * 创建 antd 颜色原子类 preset。
+ * 创建 antd 颜色 preset。
  */
 export const presetAntdColors = (
   options: PresetAntdColorsOptions = {},
@@ -85,56 +44,95 @@ export const presetAntdColors = (
     ":root, .light": { algorithm: antdTheme.defaultAlgorithm },
     ".dark": { algorithm: antdTheme.darkAlgorithm },
   };
-  const colors = buildColorMap(
-    antdTheme.getDesignToken(Object.values(themes)[0]),
-    antPrefix,
-  );
 
-  const sideProps = (side: string, v: string): CSSObject =>
-    Object.fromEntries(SIDE_PROPS[side].map((p) => [p, v]));
+  const baseToken = antdTheme.getDesignToken(Object.values(themes)[0]);
+
+  type ColorMap = Record<string, string | Record<string, string>>;
+  const colors: ColorMap = {};
+  const palettes = new Set<string>();
+
+  for (const key of Object.keys(baseToken)) {
+    if (/^color[A-Z]/.test(key)) {
+      const short = kebab(key.slice("color".length));
+      colors[short] = `var(--${antPrefix}-color-${short})`;
+      continue;
+    }
+    const m = PALETTE_RE.exec(key);
+    if (m) {
+      const [, palette, num] = m;
+      palettes.add(palette);
+      colors[palette] ??= {};
+      (colors[palette] as Record<string, string>)[num] =
+        `var(--${antPrefix}-${key})`;
+    }
+  }
+  for (const p of palettes) {
+    (colors[p] as Record<string, string>).DEFAULT =
+      `var(--${antPrefix}-${p}-6)`;
+  }
+
+  const toVarName = (key: string): string => {
+    if (/^color[A-Z]/.test(key)) {
+      return `--${antPrefix}-color-${kebab(key.slice("color".length))}`;
+    }
+    return `--${antPrefix}-${PALETTE_RE.test(key) ? key : kebab(key)}`;
+  };
 
   const preflightCss = Object.entries(themes)
     .map(([selector, cfg]) => {
       const lines = Object.entries(antdTheme.getDesignToken(cfg))
         .filter(([, v]) => typeof v === "string" || typeof v === "number")
-        .map(([k, v]) => `  ${toVarName(k, antPrefix)}: ${v};`);
+        .map(([k, v]) => `  ${toVarName(k)}: ${v};`);
       return `${selector} {\n${lines.join("\n")}\n}`;
     })
     .join("\n");
 
+  // wind4 内部生成颜色变量时强制用 `var(--colors-{key})`，
+  // 这里在 postprocess 阶段把我们注册过的键改写成 `var(--ant-{key})`，
+  // 不动 wind4 自带调色板（`--colors-blue-500` 等）。
+  const antVarByFlat = new Map<string, string>();
+  for (const k of Object.keys(baseToken)) {
+    if (/^color[A-Z]/.test(k)) {
+      const short = kebab(k.slice("color".length));
+      antVarByFlat.set(short, `var(--${antPrefix}-color-${short})`);
+    } else if (PALETTE_RE.test(k)) {
+      antVarByFlat.set(k, `var(--${antPrefix}-${k})`);
+    }
+  }
+  for (const p of palettes) {
+    antVarByFlat.set(p, `var(--${antPrefix}-${p}-6)`);
+  }
+  const COLORS_VAR_RE = /var\(--colors-([\w-]+)\)/g;
+  const rewriteColorVar = (raw: string): string =>
+    raw.replace(
+      COLORS_VAR_RE,
+      (m, flat: string) => antVarByFlat.get(flat) ?? m,
+    );
+
   return {
+    extendTheme: (theme: { colors?: ColorMap }) => {
+      theme.colors ??= {};
+      const dst = theme.colors;
+      for (const [k, v] of Object.entries(colors)) {
+        if (typeof v === "string") {
+          dst[k] = v;
+        } else {
+          dst[k] = { ...((dst[k] as Record<string, string>) ?? {}), ...v };
+        }
+      }
+    },
     name: "preset-antd-colors",
+    postprocess: (util) => {
+      for (const entry of util.entries) {
+        if (
+          typeof entry[1] === "string" &&
+          entry[1].includes("var(--colors-")
+        ) {
+          entry[1] = rewriteColorVar(entry[1]);
+        }
+      }
+    },
     preflights: [{ getCSS: () => preflightCss }],
-    rules: [
-      [
-        /^(?:text|c|color)-(.+)$/,
-        ([, name]) => {
-          const v = colors.get(name);
-          return v ? { color: v } : undefined;
-        },
-      ],
-      [
-        /^bg-(.+)$/,
-        ([, name]) => {
-          const v = colors.get(name);
-          return v ? { "background-color": v } : undefined;
-        },
-      ],
-      [
-        /^(?:border|b)(?:-([trblxy]))?-(.+)$/,
-        ([, side, name]) => {
-          const v = colors.get(name);
-          return v ? sideProps(side ?? "", v) : undefined;
-        },
-      ],
-      [
-        /^b([trblxy])-(.+)$/,
-        ([, side, name]) => {
-          const v = colors.get(name);
-          return v ? sideProps(side, v) : undefined;
-        },
-      ],
-    ],
   };
 };
 

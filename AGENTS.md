@@ -108,12 +108,35 @@ cargo test                    # Rust 单测（在 src-tauri 下）
 ## 前端侧约定
 
 - React 19：优先用新特性（Actions、`use`、`useOptimistic`、ref as prop），不要再用 `forwardRef`。
+- **组件声明统一用 `FC<Props>` + `props` 解构**，不要把解构写进函数签名：
+
+  ```tsx
+  // ✅ 正确
+  interface FooProps { a: string; b?: number }
+  const Foo: FC<FooProps> = (props) => {
+    const { a, b = 0 } = props;
+    // ...
+  };
+
+  // ❌ 不要
+  const Foo = ({ a, b = 0 }: FooProps) => { ... }
+  function Foo(props: FooProps) { ... }
+  ```
+
+  好处：默认值集中在函数体头部、便于调试时整体打印 `props`、便于后续 `rest` 透传。
+
 - 状态：Valtio 只存 UI 状态和设置的本地镜像；业务数据从 Rust 命令拉取，不在前端建「数据库副本」。
 - 样式：UnoCSS。
 - **尺寸只走 wind4 数字制**（1 单位 = 0.25rem = 4px），写 `p-1` / `p-1.25` / `p-1.5` / `gap-2` / `rounded-2.5` / `w-36` 等数字原子类；**禁止**出现 `px` 字面量——不写 `rounded-[10px]` / `w-[144px]` / `text-[14px]` 这类任意值类，也不在 `style={{}}` 里塞数字像素（antd 组件 `tabBarStyle` 等 inline 样式同理，必要时改写 className 或在 `theme.token` 里调）。非常规尺寸通过 wind4 内置 fractional（`.25/.5/.75/.125`）拼，确实没有对应值再扩 `theme.spacing`。
 - 组件优先用 Ant Design v6（`antd`），避免重复造轮子；主题切换在根节点用 `ConfigProvider` 的 `theme.algorithm` 切 `defaultAlgorithm` / `darkAlgorithm`，并把同步的 `light` / `dark` 类挂到 `<html>` 上，供 UnoCSS `dark:` 变体使用。
 - antd prop 命名：`open` / `checked` / `disabled` / `onClick`（不要再用 HeroUI 的 `isOpen` / `isSelected` / `isDisabled` / `onPress`）。
-- 条件 className 统一用 `cn from "@/utils/cn"`（内部 `clsx` + `tailwind-merge`，后写的同族原子类胜出）+ 对象语法 `{ "class": cond }`，不堆三元 / `&&`。
+- 条件 className 统一用 `cn from "@/utils/cn"`（内部 `clsx` + `tailwind-merge`，后写的同族原子类胜出）+ 对象语法 `{ "class": cond }`，不堆三元 / `&&`。**禁止**用模板字符串 / `+` 拼接 className（包括 `${className ?? ""}` 这种透传）——一律走 `cn("base...", condClass, propsClassName)`。
+- **事件回调必须提取为命名函数**，不要在 JSX 里写内联箭头函数 / 行内逻辑：
+  - ❌ `<Button onClick={() => doSomething(x)} />` / `<Input onChange={(e) => setX(e.target.value)} />`
+  - ✅ 在组件函数体内声明 `const handleClick = () => doSomething(x);`，JSX 里写 `<Button onClick={handleClick} />`
+  - 同一个回调被多个元素复用时（如 `onClick` 和某快捷键 `onKeyPress`）共用同一个命名函数。
+  - 命名约定：单一动作用动词（`focusSearch` / `openGithub`），通用事件处理用 `handleXxx`（`handleSubmit` / `handleChange`）。
+  - 好处：JSX 只描述结构、便于打断点调试、避免每次渲染重建闭包、回调有自己的 JSDoc 说明意图。
 - 日志统一走 `@/utils/log`（内部委托 `tauri-plugin-log`），禁止裸 `console.*`——保证前后端日志同源进 LogDir。
 - 不要在前端写 SQL、不要做内容类型识别、不要算窗口坐标——这些调用 Rust 命令。
 - i18n 文案表：zh-CN（默认）/ en-US，新增文案两种语言同步补齐。

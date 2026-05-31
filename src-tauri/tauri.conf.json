@@ -32,17 +32,23 @@
       {
         "acceptFirstMouse": true,
         "center": true,
-        "height": 480,
+        "height": 600,
         "hiddenTitle": true,
         "label": "preference",
         "maximizable": false,
-        "minHeight": 480,
-        "minWidth": 700,
+        "minHeight": 600,
+        "minWidth": 900,
+        "scrollBarStyle": "fluentOverlay",
         "skipTaskbar": true,
         "title": "EcoPaste Preference",
+        "titleBarStyle": "Overlay",
+        "trafficLightPosition": {
+          "x": 15,
+          "y": 25
+        },
         "url": "index.html/#/preference",
         "visible": false,
-        "width": 700
+        "width": 900
       }
     ]
   },
