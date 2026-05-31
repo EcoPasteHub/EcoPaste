@@ -455,6 +455,15 @@
   > 视觉：背景色用 HeroUI `bg-content1` + 12px 圆角 + 主题阴影；macOS 下加细边框（dark / light 各一档）模拟系统弹窗。窗口失去焦点（点其他应用）立即关闭——通过 `WindowEvent::Focused(false)` 监听。
   > 性能：hover 触发用前端 `setTimeout`，不要每次 hover 都走 IPC；预览窗仅维持一份 webview，复用切换内容。设置位 `Settings.clipboard.preview.{enabled, hover_delay_ms}`（默认 enabled=true, delay=600），关闭后 `Space` 也不响应。
 
+### 8.9 Windows 接管 Win+V
+
+- [ ] Windows 平台用 `Win+V` 唤出 EcoPaste，替代系统自带剪贴板历史
+  > Windows 系统自带 `Win+V` 剪贴板历史，需要让 EcoPaste 抢占这个组合键。`tauri-plugin-global-shortcut` 注册 `Win+V`（即 `Super+V`，rdev/global-hotkey 表述为 `Meta+V`）大概率失败——因为这是系统保留键；旧版 EcoPaste 同样踩过。
+  > Rust（`src-tauri/src/shortcut/windows.rs`，`#[cfg(target_os = "windows")]`）：① 先尝试 `RegisterHotKey(NULL, id, MOD_WIN, 'V')`（`windows` crate `Win32::UI::Input::KeyboardAndMouse`），它能抢在系统剪贴板历史之前；成功后开独立线程跑 message loop 等 `WM_HOTKEY`，收到就 `app.emit("shortcut://toggle_main")` 或直接调 `window::toggle_main_window`。② `RegisterHotKey` 失败（极少数情况）走兜底：用现有 `keyboard/windows.rs` 的低级键盘钩子（`SetWindowsHookExW(WH_KEYBOARD_LL)`）拦截 `VK_LWIN/RWIN + V` 组合——按下时返回非零阻断系统默认处理（这才能压住系统的 Win+V 面板），松开正常放行；命中后同样触发 toggle。③ 系统是否启用了「剪贴板历史」（`HKCU\Software\Microsoft\Clipboard\EnableClipboardHistory`）不影响接管，但启动时检测一次，若开启则 `log::info` 提示用户在设置里关闭以避免视觉冲突（不主动改注册表）。
+  > 设置：复用现有「全局快捷键」配置项——给「唤出主窗」快捷键的默认值在 Windows 下设为 `Win+V`（macOS 沿用现有默认，如 `Cmd+Shift+V`）；用户在设置面板里可改成其他组合，改成非 `Win+V` 时拆掉低级钩子兜底、仅走 `tauri-plugin-global-shortcut` 常规注册。
+  > 与现有模块联动：`keyboard/windows.rs` 的低级钩子已经在跑（用于 focusable=false 主窗时转发方向键），扩展它的事件分发逻辑即可，不要重复装两个 `WH_KEYBOARD_LL` 钩子（系统对单进程多钩子的顺序无保证，容易竞态）。`shortcut/mod.rs` 在注册阶段先检测组合是否等于「Win+V」，是则跳过 plugin 注册、走 `windows.rs::register_win_v`；否则走原 plugin 流程。
+  > 注意：不要尝试禁用系统剪贴板历史功能本身（涉及改注册表 / 组策略，越权且易触发杀软告警）；接管只通过抢注热键 + 低级钩子拦截即可，用户保留通过卸载 EcoPaste 立即恢复系统默认的能力。macOS 不实现本项（macOS 无对应保留键）。
+
 ---
 
 # 阶段 9 · 打包、签名与发布
