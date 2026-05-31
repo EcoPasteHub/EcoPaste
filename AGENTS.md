@@ -108,6 +108,11 @@ cargo clippy -- -D warnings   # Rust lint，警告即错误
 - 不要在前端写 SQL、不要做内容类型识别、不要算窗口坐标——这些调用 Rust 命令。
 - i18n 文案表：zh-CN（默认）/ en-US，新增文案两种语言同步补齐。
 - 列表用 `react-virtuoso` 虚拟滚动；HTML 内容必须经 DOMPurify sanitize 再渲染。
+- 跨端契约字符串必须走 `src/constants/` 集中维护，**禁止**在调用处写字面量。包括但不限于：
+  - Tauri 命令名 → `src/constants/commands.ts`（`TAURI_COMMAND`）
+  - Tauri 事件名 → `src/constants/events.ts`（`TAURI_EVENT`）
+  - 后续新增的 channel 名、storage key、与 Rust 双端共享的标识符同样集中到 `src/constants/`。
+  判断标准：**需要与 Rust 端字面量保持一致**或**在多个前端文件复用**的字符串就提常量；单文件局部用一次的 magic number / CSS 类名 / i18n key 不强求。
 
 ## 通用代码规范
 

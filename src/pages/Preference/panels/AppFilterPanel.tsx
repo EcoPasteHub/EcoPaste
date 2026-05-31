@@ -16,7 +16,7 @@ const patchExcluded = (excludedAppIds: string[]) =>
 const patchDirs = (scanDirs: string[]) =>
   updateSettings({ clipboard: { filters: { scanDirs } } });
 
-const FiltersPanel = () => {
+const AppFilterPanel = () => {
   const { t } = useTranslation();
   const { value } = useSnapshot(settingsState);
   const [apps, setApps] = useState<ClipboardApp[]>([]);
@@ -269,4 +269,4 @@ const AppRow = ({
   );
 };
 
-export default FiltersPanel;
+export default AppFilterPanel;

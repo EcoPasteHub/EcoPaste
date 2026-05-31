@@ -6,6 +6,7 @@ export const TAURI_COMMAND = {
   GET_CLIPBOARD_APP_ICON_PATH: "get_clipboard_app_icon_path",
   GET_CLIPBOARD_IMAGE_PATH: "get_clipboard_image_path",
   GET_CLIPBOARD_ITEM: "get_clipboard_item",
+  GET_FILE_ICON_PATH: "get_file_icon_path",
   GET_SETTINGS: "get_settings",
   HIDE_WINDOW: "hide_window",
   LIST_ALL_APPS: "list_all_apps",

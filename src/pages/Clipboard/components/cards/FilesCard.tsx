@@ -2,6 +2,7 @@ import { cn } from "@heroui/styles";
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { useEffect, useState } from "react";
 
+import { TAURI_COMMAND } from "@/constants/commands";
 import type { ClipboardItem } from "@/types/clipboard";
 import { isImage } from "@/utils/is";
 
@@ -76,7 +77,7 @@ const FileRow = ({
   const [exists, setExists] = useState<boolean>(true);
 
   useEffect(() => {
-    invoke<FileIconResult>("get_file_icon_path", {
+    invoke<FileIconResult>(TAURI_COMMAND.GET_FILE_ICON_PATH, {
       fileTypes,
       index,
       path,

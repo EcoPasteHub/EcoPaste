@@ -3,8 +3,8 @@ import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import AboutPanel from "./panels/AboutPanel";
 import AppearancePanel from "./panels/AppearancePanel";
+import AppFilterPanel from "./panels/AppFilterPanel";
 import ClipboardPanel from "./panels/ClipboardPanel";
-import FiltersPanel from "./panels/FiltersPanel";
 import GeneralPanel from "./panels/GeneralPanel";
 import ShortcutsPanel from "./panels/ShortcutsPanel";
 
@@ -19,7 +19,7 @@ type GroupKey =
 const GROUPS: { key: GroupKey; panel: ReactNode }[] = [
   { key: "general", panel: <GeneralPanel /> },
   { key: "clipboard", panel: <ClipboardPanel /> },
-  { key: "filters", panel: <FiltersPanel /> },
+  { key: "filters", panel: <AppFilterPanel /> },
   { key: "shortcuts", panel: <ShortcutsPanel /> },
   { key: "appearance", panel: <AppearancePanel /> },
   { key: "about", panel: <AboutPanel /> },
