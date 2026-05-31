@@ -46,6 +46,9 @@ pub struct ClipboardItem {
     /// 去重指纹：`sha256(kind:content)`，由 `db::items::content_hash` 计算并在入库前比对。
     pub content_hash: String,
     pub search_text: Option<String>,
+    /// Files 类型专用：紧凑格式记录每个路径的类型，如 "d,f,f" 表示 [dir, file, file]。
+    /// d=directory, f=file。用于删除文件后仍能准确显示 icon。
+    pub file_types: Option<String>,
     pub size: Option<i64>,
     pub width: Option<i64>,
     pub height: Option<i64>,
@@ -79,6 +82,7 @@ pub struct ClipboardGroup {
     pub name: String,
     pub sort_order: i64,
     pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

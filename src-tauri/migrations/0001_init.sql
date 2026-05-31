@@ -2,7 +2,8 @@ CREATE TABLE clipboard_groups (
     id          TEXT    PRIMARY KEY,
     name        TEXT    NOT NULL,
     sort_order  INTEGER NOT NULL DEFAULT 0,
-    created_at  TEXT    NOT NULL
+    created_at  TEXT    NOT NULL,
+    updated_at  TEXT    NOT NULL
 );
 
 CREATE TABLE clipboard_apps (
@@ -23,6 +24,7 @@ CREATE TABLE clipboard_items (
     content       TEXT    NOT NULL,
     content_hash  TEXT    NOT NULL,
     search_text   TEXT,
+    file_types    TEXT,
     size          INTEGER,
     width         INTEGER,
     height        INTEGER,
@@ -37,3 +39,12 @@ CREATE TABLE clipboard_items (
 
 CREATE INDEX idx_clipboard_items_content_hash ON clipboard_items (content_hash);
 CREATE INDEX idx_clipboard_items_source_app_id ON clipboard_items (source_app_id);
+
+CREATE TABLE file_type_icons (
+    cache_key   TEXT NOT NULL,
+    platform    TEXT NOT NULL,
+    icon_file   TEXT NOT NULL,
+    created_at  TEXT NOT NULL,
+    updated_at  TEXT NOT NULL,
+    PRIMARY KEY (cache_key, platform)
+);

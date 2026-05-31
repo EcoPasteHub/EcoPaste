@@ -25,6 +25,8 @@ export interface ClipboardItem {
   content: string;
   contentHash: string;
   searchText?: string | null;
+  // Files 类型专用：紧凑格式记录每个路径的类型，如 "d,f,f" 表示 [dir, file, file]。
+  fileTypes?: string | null;
   size?: number | null;
   width?: number | null;
   height?: number | null;
@@ -53,6 +55,7 @@ export interface ClipboardGroup {
   name: string;
   sortOrder: number;
   createdAt: string;
+  updatedAt: string;
 }
 
 // 对齐 Rust `#[serde(default)]`：全 optional，前端不传时由 Rust 侧填默认值

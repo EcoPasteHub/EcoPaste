@@ -4,7 +4,8 @@ use sqlx::SqlitePool;
 use crate::core::Result;
 use crate::db::models::ClipboardGroup;
 
-const LIST_GROUPS_SQL: &str = "SELECT id, name, sort_order, created_at FROM clipboard_groups \
+const LIST_GROUPS_SQL: &str =
+    "SELECT id, name, sort_order, created_at, updated_at FROM clipboard_groups \
      ORDER BY sort_order ASC, created_at ASC";
 
 /// 列出全部分组，按 `sort_order` 升序（同序时按 `created_at` 兜底，保证顺序稳定）。
@@ -20,12 +21,14 @@ pub async fn list_groups(pool: &SqlitePool) -> Result<Vec<ClipboardGroup>> {
 #[allow(dead_code)]
 pub async fn insert_group(pool: &SqlitePool, group: &ClipboardGroup) -> Result<()> {
     sqlx::query(
-        "INSERT INTO clipboard_groups (id, name, sort_order, created_at) VALUES (?, ?, ?, ?)",
+        "INSERT INTO clipboard_groups (id, name, sort_order, created_at, updated_at) \
+         VALUES (?, ?, ?, ?, ?)",
     )
     .bind(group.id.as_str())
     .bind(group.name.as_str())
     .bind(group.sort_order)
     .bind(group.created_at)
+    .bind(group.updated_at)
     .execute(pool)
     .await
     .context("failed to insert clipboard group")?;
@@ -35,8 +38,10 @@ pub async fn insert_group(pool: &SqlitePool, group: &ClipboardGroup) -> Result<(
 /// 重命名分组。
 #[allow(dead_code)]
 pub async fn rename_group(pool: &SqlitePool, id: &str, name: &str) -> Result<()> {
-    sqlx::query("UPDATE clipboard_groups SET name = ? WHERE id = ?")
+    let now = chrono::Utc::now();
+    sqlx::query("UPDATE clipboard_groups SET name = ?, updated_at = ? WHERE id = ?")
         .bind(name)
+        .bind(now)
         .bind(id)
         .execute(pool)
         .await
@@ -64,11 +69,13 @@ mod tests {
     use chrono::DateTime;
 
     fn sample_group(id: &str, sort_order: i64) -> ClipboardGroup {
+        let ts = DateTime::from_timestamp(1_700_000_000, 0).unwrap();
         ClipboardGroup {
             id: id.to_owned(),
             name: format!("name-{id}"),
             sort_order,
-            created_at: DateTime::from_timestamp(1_700_000_000, 0).unwrap(),
+            created_at: ts,
+            updated_at: ts,
         }
     }
 
@@ -124,6 +131,7 @@ mod tests {
             content: "content".to_owned(),
             content_hash: content_hash(ClipboardKind::Text, "content"),
             search_text: None,
+            file_types: None,
             size: None,
             width: None,
             height: None,

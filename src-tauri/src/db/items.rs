@@ -7,7 +7,7 @@ use crate::core::Result;
 use crate::db::models::{ClipboardItem, ClipboardItemQuery, ClipboardItemSort, ClipboardKind};
 
 const SELECT_ITEM: &str = "SELECT id, kind, sub_kind, group_id, source_app_id, content, \
-     content_hash, search_text, size, width, height, use_count, is_favorite, is_pinned, \
+     content_hash, search_text, file_types, size, width, height, use_count, is_favorite, is_pinned, \
      platform, note, created_at, updated_at FROM clipboard_items";
 
 /// 入库去重的结果：`id` 为生效行的主键（命中时是已有行，未命中时是新插入行），
@@ -80,9 +80,9 @@ pub async fn insert_item(pool: &SqlitePool, item: &ClipboardItem) -> Result<()> 
     sqlx::query(
         "INSERT INTO clipboard_items \
          (id, kind, sub_kind, group_id, source_app_id, content, content_hash, search_text, \
-          size, width, height, use_count, is_favorite, is_pinned, platform, note, \
+          file_types, size, width, height, use_count, is_favorite, is_pinned, platform, note, \
           created_at, updated_at) \
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
     )
     .bind(item.id.as_str())
     .bind(item.kind)
@@ -92,6 +92,7 @@ pub async fn insert_item(pool: &SqlitePool, item: &ClipboardItem) -> Result<()> 
     .bind(item.content.as_str())
     .bind(item.content_hash.as_str())
     .bind(item.search_text.as_deref())
+    .bind(item.file_types.as_deref())
     .bind(item.size)
     .bind(item.width)
     .bind(item.height)
@@ -403,6 +404,7 @@ mod tests {
             content_hash: content_hash(ClipboardKind::Text, &content),
             content,
             search_text: None,
+            file_types: None,
             size: None,
             width: None,
             height: None,

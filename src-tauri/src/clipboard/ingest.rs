@@ -40,6 +40,7 @@ struct Draft {
     sub_kind: Option<ClipboardSubKind>,
     content: String,
     search_text: Option<String>,
+    file_types: Option<String>,
     width: Option<i64>,
     height: Option<i64>,
     size: Option<i64>,
@@ -67,6 +68,7 @@ fn draft_from_text(text: &TextPayload) -> Option<Draft> {
             sub_kind: Some(ClipboardSubKind::Html),
             content: html.clone(),
             search_text: plain_search,
+            file_types: None,
             width: None,
             height: None,
             size: None,
@@ -79,6 +81,7 @@ fn draft_from_text(text: &TextPayload) -> Option<Draft> {
             sub_kind: Some(ClipboardSubKind::Rtf),
             content: rtf.clone(),
             search_text: plain_search,
+            file_types: None,
             width: None,
             height: None,
             size: None,
@@ -93,6 +96,7 @@ fn draft_from_text(text: &TextPayload) -> Option<Draft> {
         sub_kind: detect_text_sub_kind(plain),
         content: plain.to_owned(),
         search_text: None,
+        file_types: None,
         width: None,
         height: None,
         size: None,
@@ -113,11 +117,25 @@ pub fn build_item(store: &ImageStore, payload: &ClipboardPayload) -> Result<Opti
             if content.trim().is_empty() {
                 None
             } else {
+                // 记录每个路径的类型：d=directory, f=file
+                let file_types: Vec<&str> = files
+                    .iter()
+                    .map(|p| {
+                        if std::path::Path::new(p).is_dir() {
+                            "d"
+                        } else {
+                            "f"
+                        }
+                    })
+                    .collect();
+                let file_types_str = file_types.join(",");
+
                 Some(Draft {
                     kind: ClipboardKind::Files,
                     sub_kind: None,
                     content,
                     search_text: None,
+                    file_types: Some(file_types_str),
                     width: None,
                     height: None,
                     size: None,
@@ -131,6 +149,7 @@ pub fn build_item(store: &ImageStore, payload: &ClipboardPayload) -> Result<Opti
                 sub_kind: None,
                 content: stored.file_name,
                 search_text: None,
+                file_types: None,
                 width: Some(stored.width),
                 height: Some(stored.height),
                 size: Some(stored.size),
@@ -152,6 +171,7 @@ pub fn build_item(store: &ImageStore, payload: &ClipboardPayload) -> Result<Opti
         source_app_id: None,
         content: draft.content,
         search_text: draft.search_text,
+        file_types: draft.file_types,
         size: draft.size,
         width: draft.width,
         height: draft.height,

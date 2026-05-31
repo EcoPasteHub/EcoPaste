@@ -9,11 +9,11 @@ use tauri::{AppHandle, Manager, State};
 
 use crate::clipboard::{
     build_item, detect_frontmost, materialize_source, persist_and_notify, refresh_from_dirs,
-    AppIconStore, AppsRegistry, ClipboardReader, ImageStore, WritebackGuard,
+    AppIconStore, AppsRegistry, ClipboardReader, FileIconStore, ImageStore, WritebackGuard,
 };
 use crate::core::{AppError, Result};
 use crate::db::items::find_item_by_id;
-use crate::db::models::{ClipboardGroup, ClipboardItem, ClipboardItemQuery};
+use crate::db::models::{ClipboardGroup, ClipboardItem, ClipboardItemQuery, Platform};
 use crate::window::{self, MAIN_WINDOW_LABEL};
 
 /// `read_clipboard` 的返回：入库后的记录 + 是否命中去重（前端据此决定提示/滚动行为）。
@@ -118,6 +118,95 @@ pub async fn get_clipboard_app_icon_path(
         .to_str()
         .map(str::to_owned)
         .ok_or_else(|| AppError::Clipboard("app icon path is not valid utf-8".to_owned()))
+}
+
+/// `get_file_icon_path` 的返回：icon 绝对路径 + 文件当前是否存在于磁盘。
+/// 前端据 `exists = false` 给已删除的文件显示弱化样式 / 提示。
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FileIconResult {
+    /// icon 文件磁盘绝对路径；抽取失败 / 路径已删除且未缓存时为 `None`。
+    pub icon_path: Option<String>,
+    /// 当前路径是否仍存在于磁盘。
+    pub exists: bool,
+}
+
+/// 获取文件类型 icon 的磁盘绝对路径，供前端 FilesCard 渲染。
+///
+/// 懒加载：缓存 miss 时，若路径存在则抽取 icon 并缓存；路径已删除则 `iconPath = None`（前端显示弱化态）。
+/// `file_types` 来自 `clipboard_items.file_types`（如 "d,f,f"），`index` 为路径在列表中的索引（0-based）。
+#[tauri::command]
+pub async fn get_file_icon_path(
+    pool: State<'_, SqlitePool>,
+    file_icon_store: State<'_, FileIconStore>,
+    path: String,
+    file_types: Option<String>,
+    index: usize,
+) -> Result<FileIconResult> {
+    use std::path::Path;
+
+    let path_obj = Path::new(&path);
+    let exists = path_obj.exists();
+    let platform = if cfg!(target_os = "macos") {
+        Platform::Macos
+    } else {
+        Platform::Windows
+    };
+
+    // 从 file_types 推断类型（优先用入库时记录的类型）
+    let is_directory = file_types
+        .as_ref()
+        .and_then(|types| types.split(',').nth(index))
+        .map(|t| t == "d");
+
+    // 生成 cache_key
+    let cache_key = if is_directory == Some(true) {
+        crate::clipboard::DIR_CACHE_KEY.to_string()
+    } else {
+        // 路径存在时实时判断（覆盖入库后类型变化的情况）；已删除时按扩展名推断。
+        crate::clipboard::get_icon_cache_key(path_obj)
+    };
+
+    // 查缓存
+    if let Some(icon_file) = crate::db::file_icons::get_icon(&pool, &cache_key, platform).await? {
+        let icon_path = file_icon_store.icon_path(&icon_file);
+        return Ok(FileIconResult {
+            icon_path: icon_path.to_str().map(str::to_owned),
+            exists,
+        });
+    }
+
+    // 缓存 miss：路径存在则抽取 icon
+    if !exists {
+        return Ok(FileIconResult {
+            icon_path: None,
+            exists: false,
+        });
+    }
+
+    let path_for_extract = path_obj.to_path_buf();
+    let png_bytes = tauri::async_runtime::spawn_blocking(move || {
+        crate::clipboard::icon_png(&path_for_extract, None)
+    })
+    .await
+    .map_err(|err| AppError::Clipboard(format!("icon extract task join failed: {err}")))?;
+
+    let Some(png) = png_bytes else {
+        return Ok(FileIconResult {
+            icon_path: None,
+            exists,
+        });
+    };
+
+    // 落盘并缓存
+    let icon_file = file_icon_store.store(&png)?;
+    crate::db::file_icons::upsert_icon(&pool, &cache_key, platform, &icon_file).await?;
+
+    let icon_path = file_icon_store.icon_path(&icon_file);
+    Ok(FileIconResult {
+        icon_path: icon_path.to_str().map(str::to_owned),
+        exists,
+    })
 }
 
 /// 把指定历史记录写回系统剪贴板（不触发模拟粘贴，4.2 再补）。

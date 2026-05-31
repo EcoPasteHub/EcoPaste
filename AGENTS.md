@@ -86,15 +86,16 @@ pnpm lint               # Biome 检查
 pnpm format             # Biome 格式化
 cargo fmt               # Rust 格式化（在 src-tauri 下）
 cargo clippy -- -D warnings   # Rust lint，警告即错误
-sqlx prepare            # 生成离线 SQL 校验缓存（.sqlx），改动 SQL 后必跑
 ```
 
 ## Rust 侧约定
 
 - 所有命令与仓储函数用 `async`，返回统一的 `Result<T, AppError>`；`AppError` 实现 `serde::Serialize` 供前端接收。
 - 数据库走连接池 `SqlitePool`，存入 Tauri `State`，不要每次新建连接。
-- 用 `sqlx::query!` / `query_as!` 宏以获得编译期校验；改动 SQL 后跑 `sqlx prepare`。
-- migration 只增不改：已合并的迁移文件不要回头修改，新增变更写新文件。
+- SQL 用 `sqlx::query` / `query_as`（运行时校验），不用 `query!` 宏——避免维护 `.sqlx` 离线缓存与 `DATABASE_URL` 配置。
+- migration 只增不改：已合并的迁移文件不要回头修改，新增变更写新文件（**例外**：仓库未发版前，所有改动直接合并到 `0001_init.sql`，不新增文件）。
+- **改 schema 必须同步改所有相关 SQL 和测试**：新增/删除字段时，逐一检查 `SELECT` 列表、`INSERT` 列与 `bind` 参数、`UPDATE` 语句、以及 `db/*.rs` 测试里手写的结构体字面量。`sqlx::query_as` 是运行时映射，字段对不上时整个查询返回空结果而不报错——UI 上表现为"什么都不显示"。
+- 表必须有 `created_at` 和 `updated_at` 两个字段，类型 `TEXT NOT NULL`；`UPDATE` 语句要同步更新 `updated_at`。
 - 错误处理用 `thiserror`（定义错误类型）+ `anyhow`（内部传播），日志用 `tauri-plugin-log`。
 - `commands/` 层保持薄：参数校验 + 调用 `db`/`clipboard`/`window` 等模块，不写业务逻辑。
 - 处理自身写回剪贴板导致的监听回环（写回时打标记抑制下一次监听）。

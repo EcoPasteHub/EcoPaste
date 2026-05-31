@@ -9,6 +9,43 @@ use image::{codecs::png::PngEncoder, ColorType, ImageEncoder};
 /// 128 覆盖 retina 下 ~64pt 显示，文件 ~10–20KB；过小（64）放大会糊，过大（256+）落盘冗余。
 const DEFAULT_ICON_PIXEL_SIZE: u32 = 128;
 
+/// 目录的 icon 缓存 key。`<>` 是 macOS/Windows 文件名非法字符，不会与真实路径撞 key。
+pub const DIR_CACHE_KEY: &str = "<dir>";
+
+/// 生成文件 icon 的缓存 key，用于 `file_type_icons` 表查询。
+///
+/// 规则：
+/// - 目录：[`DIR_CACHE_KEY`]
+/// - `.app` / `.exe`：完整路径（每个 bundle 单独缓存）
+/// - 有扩展名：`.pdf`、`.txt`（小写、带点）
+/// - 无扩展名：文件名本身（`Makefile`、`README` 等由 OS 决定是否有专属 icon）
+pub fn get_icon_cache_key(path: &Path) -> String {
+    if path.is_dir() {
+        return DIR_CACHE_KEY.to_string();
+    }
+
+    let extname = path.extension().and_then(|s| s.to_str()).unwrap_or("");
+
+    // .app / .exe 用完整路径
+    if (cfg!(target_os = "macos") && extname == "app")
+        || (cfg!(target_os = "windows") && extname == "exe")
+    {
+        return path.to_string_lossy().to_string();
+    }
+
+    // 无扩展名：用文件名本身（OS 会按需给 Makefile 等返回专属 icon，其余返回通用文件 icon）
+    if extname.is_empty() {
+        return path
+            .file_name()
+            .and_then(|s| s.to_str())
+            .unwrap_or("")
+            .to_string();
+    }
+
+    // 普通扩展名：小写、带点
+    format!(".{}", extname.to_lowercase())
+}
+
 /// 抽取指定路径的图标 PNG 字节。`size` 为 `None` 时用内置默认值。
 /// 失败一律返回 `None`，由调用方决定回退。
 pub fn icon_png(path: &Path, size: Option<u32>) -> Option<Vec<u8>> {

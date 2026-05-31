@@ -143,6 +143,9 @@ pub fn init(app: &AppHandle, pool: SqlitePool) -> crate::core::Result<()> {
     let app_icon_store = AppIconStore::new(app)?;
     app.manage(app_icon_store.clone());
 
+    let file_icon_store = super::FileIconStore::new(app)?;
+    app.manage(file_icon_store);
+
     let registry = AppsRegistry::new(pool.clone(), app_icon_store.clone());
     app.manage(registry.clone());
 

@@ -49,6 +49,7 @@ pub fn run() {
             commands::refresh_apps,
             commands::get_clipboard_image_path,
             commands::get_clipboard_app_icon_path,
+            commands::get_file_icon_path,
             commands::write_to_clipboard,
             commands::paste_clipboard_item,
             commands::toggle_clipboard_item_favorite,

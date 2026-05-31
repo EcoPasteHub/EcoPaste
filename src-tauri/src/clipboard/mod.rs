@@ -2,6 +2,7 @@ mod app_store;
 mod apps_registry;
 mod cleanup;
 mod detect;
+mod file_icon_store;
 mod guard;
 mod icon;
 mod ingest;
@@ -15,7 +16,9 @@ mod write;
 
 pub use app_store::AppIconStore;
 pub use apps_registry::{refresh_from_dirs, AppsRegistry};
+pub use file_icon_store::FileIconStore;
 pub use guard::WritebackGuard;
+pub use icon::{get_icon_cache_key, icon_png, DIR_CACHE_KEY};
 pub use ingest::build_item;
 pub use read::ClipboardReader;
 pub use source::detect_frontmost;
