@@ -24,21 +24,16 @@
   "dependencies": {
     "@ant-design/icons": "^6.2.5",
     "@tauri-apps/api": "^2",
-    "@tauri-apps/plugin-log": "^2.8.0",
     "@tauri-apps/plugin-opener": "^2.5.4",
     "@tauri-apps/plugin-os": "^2.3.2",
     "ahooks": "^3.9.7",
     "antd": "6.4.3",
     "clsx": "^2.1.1",
-    "dompurify": "^3.4.7",
-    "i18next": "^26.3.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-i18next": "^17.0.8",
     "react-router": "^7.16.0",
     "react-virtuoso": "^4.18.7",
-    "tailwind-merge": "^3.6.0",
-    "valtio": "^2.3.2"
+    "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.16",
