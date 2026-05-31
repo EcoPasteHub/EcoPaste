@@ -1,5 +1,6 @@
+import { useAsyncEffect } from "@reactuses/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { useEffect } from "react";
+import { useRef } from "react";
 import { useSnapshot } from "valtio";
 import { settingsState } from "@/stores/settings";
 import { log } from "@/utils/log";
@@ -16,45 +17,35 @@ export function useApplyTheme(): void {
   const { value, loaded } = useSnapshot(settingsState);
   const theme = value?.appearance.theme;
 
-  useEffect(() => {
-    if (!loaded || !theme) {
-      return;
-    }
+  const unlistenRef = useRef<(() => void) | null>(null);
+
+  const applyClass = (mode: "light" | "dark") => {
+    const root = document.documentElement;
+    root.classList.toggle("dark", mode === "dark");
+    root.classList.toggle("light", mode === "light");
+    root.dataset.theme = mode;
+    root.style.colorScheme = mode;
+  };
+
+  useAsyncEffect(async () => {
+    if (!loaded || !theme) return;
 
     const appWindow = getCurrentWindow();
-    let unlisten: (() => void) | null = null;
-    let cancelled = false;
-
-    const applyClass = (mode: "light" | "dark") => {
-      const root = document.documentElement;
-      root.classList.toggle("dark", mode === "dark");
-      root.classList.toggle("light", mode === "light");
-      root.dataset.theme = mode;
-      root.style.colorScheme = mode;
-    };
-
-    (async () => {
+    try {
       // null = 跟随系统；显式 light/dark 则锁死窗口主题。
       await appWindow.setTheme(theme === "auto" ? null : theme);
-      if (cancelled) return;
-
-      const resolved = (await appWindow.theme()) ?? "light";
-      if (cancelled) return;
-      applyClass(resolved);
+      applyClass((await appWindow.theme()) ?? "light");
 
       if (theme === "auto") {
-        unlisten = await appWindow.onThemeChanged(({ payload }) => {
+        unlistenRef.current = await appWindow.onThemeChanged(({ payload }) => {
           applyClass(payload);
         });
-        if (cancelled) unlisten();
       }
-    })().catch((err) => {
+    } catch (err) {
       log.error("apply theme failed", err);
-    });
-
-    return () => {
-      cancelled = true;
-      unlisten?.();
-    };
+    }
+  }, async () => {
+    unlistenRef.current?.();
+    unlistenRef.current = null;
   }, [theme, loaded]);
 }
