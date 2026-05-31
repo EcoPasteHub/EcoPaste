@@ -153,8 +153,10 @@ pub async fn find_item_by_id(pool: &SqlitePool, id: &str) -> Result<Option<Clipb
     Ok(item)
 }
 
-/// 按 `id` 查找单条记录的「列表视图」副本（text 类型 content 置空）。
-/// 供前端响应 `clipboard://updated` 时按 id 拉取——保持与列表查询同款裁剪。
+/// 按 `id` 查找单条记录的「列表视图」副本——与 [`fetch_items`] 走同款 [`LIST_SELECT_ITEM`] 裁剪：
+/// text 类型条目的 `content` / `search_text` 一律置空，由前端用 `summary` 渲染。
+/// 供前端响应 `clipboard://updated` 事件时按 id 拉取使用，避免事件驱动刷新整页 refetch
+/// 时回传整段 HTML/RTF。需要完整 `content` 的写回 / 预览路径请走 [`find_item_by_id`]。
 pub async fn find_item_for_list_by_id(
     pool: &SqlitePool,
     id: &str,
