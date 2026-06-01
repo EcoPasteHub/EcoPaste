@@ -178,7 +178,8 @@ pub async fn write_to_clipboard(
 /// 窗口已是非激活面板（macOS NSPanel `nonactivating_panel` / Windows `focusable=false`），
 /// show 时不会把前台 App 推走，前台焦点始终在用户原窗口。
 /// macOS 上 panel 会成为 key window，CGEvent ⌘V 若不先 hide 会被 panel 自己吞掉，
-/// hide 后 key window 状态由 OS 同步切回上一个 App，无需额外让位等待。
+/// hide 后插入 50ms 让 panel 真正 order_out（hide_window 是 run_on_main_thread 异步派发，
+/// 右键菜单触发时主线程仍在处理菜单关闭，不等会出现 ⌘V 早于 hide 完成的竞态）。
 #[tauri::command]
 pub async fn paste_clipboard_item(
     app: AppHandle,
@@ -197,6 +198,10 @@ pub async fn paste_clipboard_item(
     if let Err(err) = window::hide_window(&app, MAIN_WINDOW_LABEL) {
         log::warn!("hide main window before paste failed: {err:?}");
     }
+
+    // hide_window 通过 run_on_main_thread 异步派发；右键菜单触发时主线程仍在处理菜单关闭，
+    // 若不等一拍，simulate_paste 的 ⌘V 会赶在 panel 真正 hide 前命中 panel 自己（webview 吞掉）。
+    tokio::time::sleep(std::time::Duration::from_millis(50)).await;
 
     crate::keystroke::simulate_paste()?;
     Ok(())

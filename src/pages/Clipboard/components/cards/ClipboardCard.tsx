@@ -4,10 +4,10 @@ import AssetImage from "@/components/AssetImage";
 import KeyHint from "@/components/KeyHint";
 import type { ClipboardItem } from "@/types/clipboard";
 import { cn } from "@/utils/cn";
+import { useContextMenu } from "../../hooks/useContextMenu";
 import FilesCard from "./FilesCard";
 import ImageCard from "./ImageCard";
 import TextCard from "./TextCard";
-import { useContextMenu } from "./useContextMenu";
 
 interface ClipboardCardProps {
   item: ClipboardItem;
