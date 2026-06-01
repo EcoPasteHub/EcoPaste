@@ -85,6 +85,17 @@ pub fn enable_navigation_keys(app: &AppHandle) {
 pub fn disable_navigation_keys() {
     NAV_ENABLED.store(false, Ordering::Relaxed);
 
+    // 隐藏窗口时主动通知前端 Ctrl 已松开：隐藏后钩子线程随即退出，
+    // 此后真实的 Ctrl keyup 不会再被捕获，否则前端会残留"Ctrl 按下"状态。
+    if let Some(app) = APP_HANDLE.get() {
+        if let Err(err) = app.emit(
+            NAV_EVENT,
+            json!({ "type": "keyup", "key": "Control", "ctrlKey": false }),
+        ) {
+            log::warn!("emit nav event failed: {err:?}");
+        }
+    }
+
     let tid = HOOK_THREAD_ID
         .lock()
         .expect("hook thread id poisoned")
