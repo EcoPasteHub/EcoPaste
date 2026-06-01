@@ -1,10 +1,8 @@
-import { invoke } from "@tauri-apps/api/core";
-import { App, Input, Modal } from "antd";
+import { Input, Modal } from "antd";
 import type { ChangeEvent, FC } from "react";
 import { useEffect, useState } from "react";
-import { TAURI_COMMAND } from "@/constants/commands";
+import { updateClipboardItemNote } from "@/commands";
 import type { ClipboardItem } from "@/types/clipboard";
-import { log } from "@/utils/log";
 
 interface NoteModalProps {
   /**
@@ -30,7 +28,6 @@ interface NoteModalProps {
 const NoteModal: FC<NoteModalProps> = (props) => {
   const { item, onClose, onSaved } = props;
 
-  const { message } = App.useApp();
   const [value, setValue] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -53,16 +50,12 @@ const NoteModal: FC<NoteModalProps> = (props) => {
     setSaving(true);
 
     try {
-      const autoFavorited = await invoke<boolean>(
-        TAURI_COMMAND.UPDATE_CLIPBOARD_ITEM_NOTE,
-        { id: item.id, note: normalized },
-      );
+      const autoFavorited = await updateClipboardItemNote(item.id, normalized);
 
       onSaved(item.id, normalized, autoFavorited);
       onClose();
-    } catch (error) {
-      log.error("update clipboard item note failed", error);
-      message.error("备注保存失败");
+    } catch {
+      // 错误 toast 由 commands 层统一处理。
     } finally {
       setSaving(false);
     }

@@ -1,8 +1,6 @@
-import { invoke } from "@tauri-apps/api/core";
 import { useInfiniteScroll } from "ahooks";
-import { TAURI_COMMAND } from "@/constants/commands";
+import { listClipboardItems } from "@/commands";
 import type { ClipboardItem, ClipboardItemQuery } from "@/types/clipboard";
-import { log } from "@/utils/log";
 
 /**
  * 单页大小。略大于一屏可见数，滚到底再触发下一页，体验更顺。
@@ -29,16 +27,16 @@ export const useClipboardItems = (query: ClipboardItemQuery) => {
   return useInfiniteScroll<ClipboardItemsPage>(
     async (current) => {
       const offset = current?.list.length ?? 0;
-      const list = await invoke<ClipboardItem[]>(
-        TAURI_COMMAND.LIST_CLIPBOARD_ITEMS,
-        { query: { ...query, limit: PAGE_SIZE, offset } },
-      );
+      const list = await listClipboardItems({
+        ...query,
+        limit: PAGE_SIZE,
+        offset,
+      });
 
       return { hasMore: list.length === PAGE_SIZE, list };
     },
     {
       isNoMore: (data) => data?.hasMore === false,
-      onError: (err) => log.error("list_clipboard_items failed", err),
       reloadDeps: [query],
     },
   );

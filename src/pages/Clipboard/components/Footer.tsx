@@ -1,12 +1,21 @@
+import { useMount } from "ahooks";
 import { Button, Popover, Tooltip } from "antd";
+import { useState } from "react";
+import { countClipboardItems } from "@/commands";
 import KeyHint from "@/components/KeyHint";
-import { useClipboardTotal } from "@/hooks/useClipboardTotal";
+import { TAURI_EVENT } from "@/constants/events";
+import { useTauriListen } from "@/hooks/useTauriListen";
 
 /**
  * 剪贴板窗口底部条：左侧统计总项数，右侧展示窗口快捷键提示。
  */
 const Footer = () => {
-  const total = useClipboardTotal();
+  const [total, setTotal] = useState(0);
+
+  const fetchTotal = async () => setTotal(await countClipboardItems());
+
+  useMount(fetchTotal);
+  useTauriListen(TAURI_EVENT.CLIPBOARD_UPDATED, fetchTotal);
 
   return (
     <div className="flex items-center justify-between p-3">

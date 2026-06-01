@@ -1,14 +1,12 @@
-import { invoke } from "@tauri-apps/api/core";
 import { useDebounceFn } from "ahooks";
 import { Button, Tooltip } from "antd";
 import type { ChangeEvent, FC } from "react";
 import { useState } from "react";
+import { setMainWindowPinned, showWindow } from "@/commands";
 import KeyHint from "@/components/KeyHint";
 import SearchInput from "@/components/SearchInput";
-import { TAURI_COMMAND } from "@/constants/commands";
 import { WINDOW_LABEL } from "@/constants/windows";
 import { clipboardViewState } from "@/stores/clipboardView";
-import { log } from "@/utils/log";
 
 /**
  * 剪贴板窗口顶部条：logo、搜索框（⌘F / Ctrl+F 聚焦）、固定窗口与更多操作入口。
@@ -19,15 +17,7 @@ const Header: FC = () => {
   /**
    * 统一处理偏好设置入口（按钮点击/快捷键）。
    */
-  const handleOpenPreference = async () => {
-    try {
-      await invoke<void>(TAURI_COMMAND.SHOW_WINDOW, {
-        label: WINDOW_LABEL.PREFERENCE,
-      });
-    } catch (error) {
-      log.error("Open preference window failed", error);
-    }
-  };
+  const handleOpenPreference = () => showWindow(WINDOW_LABEL.PREFERENCE);
 
   /**
    * 切换主窗口固定态：Rust 侧立即生效（resign_key / 外部点击钩子读取），本地态仅用于按钮渲染。
@@ -35,14 +25,8 @@ const Header: FC = () => {
   const handleTogglePinned = async () => {
     const next = !pinned;
 
-    try {
-      await invoke<void>(TAURI_COMMAND.SET_MAIN_WINDOW_PINNED, {
-        pinned: next,
-      });
-      setPinned(next);
-    } catch (error) {
-      log.error("Toggle main window pin state failed", error);
-    }
+    await setMainWindowPinned(next);
+    setPinned(next);
   };
 
   /**

@@ -1,11 +1,10 @@
-import { invoke } from "@tauri-apps/api/core";
 import { useCreation } from "ahooks";
 import { Empty, Spin } from "antd";
 import type { FC } from "react";
 import { useEffect, useRef, useState } from "react";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import { useSnapshot } from "valtio";
-import { TAURI_COMMAND } from "@/constants/commands";
+import { pasteClipboardItem } from "@/commands";
 import { TAURI_EVENT } from "@/constants/events";
 import { useClipboardItems } from "@/hooks/useClipboardItems";
 import { useKeyboardEvent } from "@/hooks/useKeyboardEvent";
@@ -124,10 +123,7 @@ const List: FC = () => {
 
       const activeId = selectedId === null ? items[0].id : selectedId;
 
-      invoke(TAURI_COMMAND.PASTE_CLIPBOARD_ITEM, {
-        id: activeId,
-        plain: false,
-      });
+      pasteClipboardItem(activeId, false);
 
       return;
     }
@@ -269,7 +265,7 @@ const List: FC = () => {
         : void 0;
 
     const handleQuickPaste = () => {
-      invoke(TAURI_COMMAND.PASTE_CLIPBOARD_ITEM, { id: item.id, plain: false });
+      pasteClipboardItem(item.id, false);
     };
 
     return (

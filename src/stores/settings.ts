@@ -1,8 +1,10 @@
-import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { proxy } from "valtio";
 
-import { TAURI_COMMAND } from "@/constants/commands";
+import {
+  getSettings,
+  updateSettings as invokeUpdateSettings,
+} from "@/commands";
 import { TAURI_EVENT } from "@/constants/events";
 import type { Settings, SettingsPatch } from "@/types/settings";
 
@@ -30,7 +32,7 @@ export const settingsReady: Promise<void> = (async () => {
     Object.assign(settingsState, event.payload);
   });
 
-  const initial = await invoke<Settings>(TAURI_COMMAND.GET_SETTINGS);
+  const initial = await getSettings();
 
   Object.assign(settingsState, initial);
 })();
@@ -40,5 +42,5 @@ export const settingsReady: Promise<void> = (async () => {
  * 返回的快照仅为调用方需要立即拿到结果时使用（如表单关闭前校验）。
  */
 export async function updateSettings(patch: SettingsPatch): Promise<Settings> {
-  return invoke<Settings>(TAURI_COMMAND.UPDATE_SETTINGS, { patch });
+  return invokeUpdateSettings(patch);
 }

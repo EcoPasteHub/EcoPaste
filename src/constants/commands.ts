@@ -1,6 +1,7 @@
 /**
  * 与 Rust `#[tauri::command]` 函数名一一对应的常量表。
- * 改名时两侧同步，且严禁在调用处直接写字面量。
+ * 仅在 `src/commands/index.ts` 内使用——业务代码请直接 import 各命令包装函数，
+ * 不要再裸写命令名字面量或在调用处引用这个表。
  */
 export const TAURI_COMMAND = {
   COUNT_CLIPBOARD_ITEMS: "count_clipboard_items",

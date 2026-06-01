@@ -1,4 +1,3 @@
-import { invoke } from "@tauri-apps/api/core";
 import {
   Menu,
   type MenuItemOptions,
@@ -7,7 +6,13 @@ import {
 import { openUrl, revealItemInDir } from "@tauri-apps/plugin-opener";
 import { App } from "antd";
 import type { MouseEvent } from "react";
-import { TAURI_COMMAND } from "@/constants/commands";
+import {
+  deleteClipboardItem,
+  getClipboardItemContent,
+  pasteClipboardItem,
+  toggleClipboardItemFavorite,
+  writeToClipboard,
+} from "@/commands";
 import { settingsState } from "@/stores/settings";
 import type { ClipboardItem } from "@/types/clipboard";
 import { isMac } from "@/utils/is";
@@ -51,43 +56,24 @@ export const useContextMenu = (props: UseContextMenuProps) => {
   const resolveContent = async () => {
     if (kind === "files") return item.content;
 
-    const content = await invoke<string | null>(
-      TAURI_COMMAND.GET_CLIPBOARD_ITEM_CONTENT,
-      { id: item.id },
-    );
+    const content = await getClipboardItemContent(item.id);
 
     return content ?? "";
   };
 
-  const paste = async (plain: boolean) => {
-    try {
-      await invoke(TAURI_COMMAND.PASTE_CLIPBOARD_ITEM, { id: item.id, plain });
-    } catch (error) {
-      log.error("paste clipboard item failed", error);
-      message.error("粘贴失败");
-    }
-  };
+  const pasteItem = (plain: boolean) => pasteClipboardItem(item.id, plain);
 
   const copy = async () => {
-    try {
-      await invoke(TAURI_COMMAND.WRITE_TO_CLIPBOARD, {
-        id: item.id,
-        plain: false,
-      });
-
-      message.success("已复制");
-    } catch (error) {
-      log.error("write to clipboard failed", error);
-      message.error("复制失败");
-    }
+    await writeToClipboard(item.id, false);
+    message.success("已复制");
   };
 
   const openLink = async (mailto: boolean) => {
+    const value = (await resolveContent()).trim();
+
+    if (!value) return;
+
     try {
-      const value = (await resolveContent()).trim();
-
-      if (!value) return;
-
       await openUrl(mailto ? `mailto:${value}` : value);
     } catch (error) {
       log.error("open url failed", error);
@@ -96,13 +82,13 @@ export const useContextMenu = (props: UseContextMenuProps) => {
   };
 
   const reveal = async () => {
+    const value = await resolveContent();
+    // files 的 content 是换行分隔的多路径，取首个定位。
+    const target = kind === "files" ? value.split("\n")[0] : value.trim();
+
+    if (!target) return;
+
     try {
-      const value = await resolveContent();
-      // files 的 content 是换行分隔的多路径，取首个定位。
-      const target = kind === "files" ? value.split("\n")[0] : value.trim();
-
-      if (!target) return;
-
       await revealItemInDir(target);
     } catch (error) {
       log.error("reveal item in dir failed", error);
@@ -111,27 +97,13 @@ export const useContextMenu = (props: UseContextMenuProps) => {
   };
 
   const toggleFavorite = async () => {
-    try {
-      await invoke(TAURI_COMMAND.TOGGLE_CLIPBOARD_ITEM_FAVORITE, {
-        id: item.id,
-      });
-
-      onFavoriteToggled(item.id, !isFavorite);
-    } catch (error) {
-      log.error("toggle clipboard item favorite failed", error);
-      message.error("操作失败");
-    }
+    await toggleClipboardItemFavorite(item.id);
+    onFavoriteToggled(item.id, !isFavorite);
   };
 
   const remove = async () => {
-    try {
-      await invoke(TAURI_COMMAND.DELETE_CLIPBOARD_ITEM, { id: item.id });
-
-      onRemoved(item.id);
-    } catch (error) {
-      log.error("delete clipboard item failed", error);
-      message.error("删除失败");
-    }
+    await deleteClipboardItem(item.id);
+    onRemoved(item.id);
   };
 
   const confirmRemove = () => {
@@ -175,9 +147,9 @@ export const useContextMenu = (props: UseContextMenuProps) => {
     }
 
     const items: Array<MenuItemOptions | PredefinedMenuItemOptions> = [
-      { action: () => paste(false), text: "粘贴" },
+      { action: () => pasteItem(false), text: "粘贴" },
       ...(kind === "text"
-        ? [{ action: () => paste(true), text: "粘贴为纯文本" }]
+        ? [{ action: () => pasteItem(true), text: "粘贴为纯文本" }]
         : []),
       { action: copy, text: "复制" },
       ...(typed.length > 0 ? [SEPARATOR, ...typed] : []),
