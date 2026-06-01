@@ -145,20 +145,32 @@ export const toggleClipboardItemFavorite = async (
 
 /**
  * 删除条目；命令**不**广播 `clipboard://updated`，调用方需本地移除该项。
+ * 成功后统一 toast「已删除」。
  */
-export const deleteClipboardItem = (id: string) => {
-  return call<void>(TAURI_COMMAND.DELETE_CLIPBOARD_ITEM, "删除", { id });
+export const deleteClipboardItem = async (id: string) => {
+  await call<void>(TAURI_COMMAND.DELETE_CLIPBOARD_ITEM, "删除", { id });
+
+  message.success("已删除");
 };
 
 /**
  * 更新备注；`note` 空串 / 全空白会被 Rust 归一化为 NULL。
  * 返回布尔表示是否因 auto-favorite 设置联动把 `is_favorite` 置为 true，调用方据此回填。
+ * 成功后统一 toast：触发 auto-favorite 时「已保存并收藏」，否则「已保存」。
  */
-export const updateClipboardItemNote = (id: string, note: string | null) => {
-  return call<boolean>(TAURI_COMMAND.UPDATE_CLIPBOARD_ITEM_NOTE, "保存备注", {
-    id,
-    note,
-  });
+export const updateClipboardItemNote = async (
+  id: string,
+  note: string | null,
+) => {
+  const autoFavorited = await call<boolean>(
+    TAURI_COMMAND.UPDATE_CLIPBOARD_ITEM_NOTE,
+    "保存备注",
+    { id, note },
+  );
+
+  message.success(autoFavorited ? "已保存并收藏" : "已保存");
+
+  return autoFavorited;
 };
 
 /**

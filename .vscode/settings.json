@@ -8,7 +8,7 @@
   "[typescriptreact]": {
     "editor.defaultFormatter": "biomejs.biome"
   },
-  "cSpell.words": ["focusable", "maximizable"],
+  "cSpell.words": ["Favorited", "focusable", "maximizable"],
   "editor.codeActionsOnSave": {
     "source.fixAll.biome": "explicit"
   },
