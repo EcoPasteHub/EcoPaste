@@ -6,8 +6,10 @@ import { useEffect, useRef, useState } from "react";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import { useSnapshot } from "valtio";
 import { TAURI_COMMAND } from "@/constants/commands";
+import { TAURI_EVENT } from "@/constants/events";
 import { useClipboardItems } from "@/hooks/useClipboardItems";
 import { useKeyboardEvent } from "@/hooks/useKeyboardEvent";
+import { useTauriListen } from "@/hooks/useTauriListen";
 import { clipboardViewState } from "@/stores/clipboardView";
 import type { ClipboardItem, ClipboardItemQuery } from "@/types/clipboard";
 import { cn } from "@/utils/cn";
@@ -23,7 +25,10 @@ const KEY_HINTS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
 const List: FC = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [firstVisibleIndex, setFirstVisibleIndex] = useState(0);
+  const [isAtTop, setIsAtTop] = useState(true);
+  const [pendingCount, setPendingCount] = useState(0);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
+  const isAtTopRef = useRef(true);
 
   const snapshot = useSnapshot(clipboardViewState);
   const { keyword, group, ...rest } = snapshot;
@@ -38,14 +43,30 @@ const List: FC = () => {
     [snapshot],
   );
 
-  const { data, loading, loadingMore, loadMore, noMore } =
+  const { data, loading, loadingMore, loadMore, noMore, reload } =
     useClipboardItems(query);
   const items = data?.list ?? [];
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: query 作触发器，不需在回调内读取
   useEffect(() => {
     setSelectedId(null);
+    setPendingCount(0);
   }, [query]);
+
+  /**
+   * 收到剪贴板更新：用户在顶部时直接刷新；否则累加待刷新计数，避免 Virtuoso 抖动。
+   * 用 ref 读取最新滚动位置，规避闭包陷旧值（事件订阅只挂载一次）。
+   */
+  const handleClipboardUpdated = () => {
+    if (isAtTopRef.current) {
+      reload();
+      return;
+    }
+
+    setPendingCount((n) => n + 1);
+  };
+
+  useTauriListen(TAURI_EVENT.CLIPBOARD_UPDATED, handleClipboardUpdated);
 
   const handleKeyDown = (e: KeyboardEvent) => {
     if (items.length === 0) return;
@@ -131,6 +152,22 @@ const List: FC = () => {
     if (!noMore && !loadingMore) loadMore();
   };
 
+  const handleAtTopStateChange = (atTop: boolean) => {
+    isAtTopRef.current = atTop;
+    setIsAtTop(atTop);
+
+    if (atTop && pendingCount > 0) {
+      setPendingCount(0);
+      reload();
+    }
+  };
+
+  const handleShowPending = () => {
+    setPendingCount(0);
+    reload();
+    virtuosoRef.current?.scrollToIndex({ behavior: "smooth", index: 0 });
+  };
+
   const renderFooter = () => {
     if (loadingMore) {
       return (
@@ -144,8 +181,9 @@ const List: FC = () => {
   };
 
   return (
-    <div className="flex-1 overflow-hidden">
+    <div className="relative flex-1 overflow-hidden">
       <Virtuoso
+        atTopStateChange={handleAtTopStateChange}
         components={{ Footer: renderFooter }}
         computeItemKey={computeItemKey}
         data={items}
@@ -154,6 +192,16 @@ const List: FC = () => {
         rangeChanged={handleRangeChanged}
         ref={virtuosoRef}
       />
+
+      {pendingCount > 0 && !isAtTop && (
+        <button
+          className="absolute top-2 left-1/2 z-10 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-text-light-solid text-xs shadow-md transition-opacity hover:opacity-90"
+          onClick={handleShowPending}
+          type="button"
+        >
+          {pendingCount} 条新记录，点击查看
+        </button>
+      )}
     </div>
   );
 
