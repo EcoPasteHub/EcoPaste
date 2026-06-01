@@ -63,10 +63,7 @@ export const useContextMenu = (props: UseContextMenuProps) => {
 
   const pasteItem = (plain: boolean) => pasteClipboardItem(item.id, plain);
 
-  const copy = async () => {
-    await writeToClipboard(item.id, false);
-    message.success("已复制");
-  };
+  const copy = () => writeToClipboard(item.id, false);
 
   const openLink = async (mailto: boolean) => {
     const value = (await resolveContent()).trim();
@@ -97,8 +94,8 @@ export const useContextMenu = (props: UseContextMenuProps) => {
   };
 
   const toggleFavorite = async () => {
-    await toggleClipboardItemFavorite(item.id);
-    onFavoriteToggled(item.id, !isFavorite);
+    const next = await toggleClipboardItemFavorite(item.id, !isFavorite);
+    onFavoriteToggled(item.id, next);
   };
 
   const remove = async () => {

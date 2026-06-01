@@ -181,14 +181,16 @@ pub async fn find_item_for_list_by_id(
     Ok(item)
 }
 
-/// 翻转 `is_favorite`（收藏 / 取消收藏）。
-pub async fn toggle_item_favorite(pool: &SqlitePool, id: &str) -> Result<()> {
-    sqlx::query("UPDATE clipboard_items SET is_favorite = NOT is_favorite WHERE id = ?")
-        .bind(id)
-        .execute(pool)
-        .await
-        .context("failed to toggle clipboard item favorite")?;
-    Ok(())
+/// 翻转 `is_favorite`（收藏 / 取消收藏），返回翻转后的新状态。
+pub async fn toggle_item_favorite(pool: &SqlitePool, id: &str) -> Result<bool> {
+    let new_value: bool = sqlx::query_scalar(
+        "UPDATE clipboard_items SET is_favorite = NOT is_favorite WHERE id = ? RETURNING is_favorite",
+    )
+    .bind(id)
+    .fetch_one(pool)
+    .await
+    .context("failed to toggle clipboard item favorite")?;
+    Ok(new_value)
 }
 
 /// 幂等地将 `is_favorite` 置为 true（已收藏的无变化）。auto-favorite 场景用。

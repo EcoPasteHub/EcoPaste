@@ -107,9 +107,12 @@ export const getClipboardItemContent = (id: string) => {
 
 /**
  * 写回剪贴板（不模拟粘贴）：右键菜单「复制」走此命令。
+ * 成功后统一 toast「已复制」，调用方无需再处理。
  */
-export const writeToClipboard = (id: string, plain: boolean) => {
-  return call<void>(TAURI_COMMAND.WRITE_TO_CLIPBOARD, "复制", { id, plain });
+export const writeToClipboard = async (id: string, plain: boolean) => {
+  await call<void>(TAURI_COMMAND.WRITE_TO_CLIPBOARD, "复制", { id, plain });
+
+  message.success("已复制");
 };
 
 /**
@@ -121,12 +124,23 @@ export const pasteClipboardItem = (id: string, plain: boolean) => {
 };
 
 /**
- * 翻转收藏态；返回 void，调用方按本地预期同步 UI。
+ * 翻转收藏态；`favorite` 表示本次期望的新状态（用于 toast 文案）。
+ * Rust 返回翻转后的真实状态，调用方据此同步 UI。
+ * 成功后统一 toast「已收藏 / 已取消收藏」，失败也按意图分开「收藏失败 / 取消收藏失败」。
  */
-export const toggleClipboardItemFavorite = (id: string) => {
-  return call<void>(TAURI_COMMAND.TOGGLE_CLIPBOARD_ITEM_FAVORITE, "收藏操作", {
-    id,
-  });
+export const toggleClipboardItemFavorite = async (
+  id: string,
+  favorite: boolean,
+) => {
+  const next = await call<boolean>(
+    TAURI_COMMAND.TOGGLE_CLIPBOARD_ITEM_FAVORITE,
+    favorite ? "收藏" : "取消收藏",
+    { id },
+  );
+
+  message.success(next ? "已收藏" : "已取消收藏");
+
+  return next;
 };
 
 /**
