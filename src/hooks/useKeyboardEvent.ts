@@ -1,4 +1,4 @@
-import { useEventListener } from "ahooks";
+import { useEventListener, useLatest } from "ahooks";
 import { TAURI_EVENT } from "@/constants/events";
 import { isWinMainWindow } from "@/utils/is";
 import { useTauriListen } from "./useTauriListen";
@@ -11,25 +11,6 @@ interface NavEventPayload {
   ctrlKey?: boolean;
   shiftKey?: boolean;
 }
-
-/**
- * 将 Rust nav payload 转成 KeyboardEvent 并分发到 window。
- */
-const dispatchNavPayloadAsKeyboardEvent = (event: {
-  payload: NavEventPayload;
-}) => {
-  const { type, ...rest } = event.payload;
-
-  if (!rest.key) return;
-
-  const syntheticEvent = new KeyboardEvent(type, {
-    bubbles: true,
-    cancelable: true,
-    ...rest,
-  });
-
-  window.dispatchEvent(syntheticEvent);
-};
 
 /**
  * 跨平台键盘事件监听 hook。
@@ -46,11 +27,20 @@ export const useKeyboardEvent = (
 ) => {
   const needsRustNavEvent = isWinMainWindow();
 
-  // 统一通过 window 事件分发，Windows 主窗口由 Rust 事件桥接补齐。
+  // useTauriListen 挂载时仅捕获一次回调，用 ref 确保始终调用最新 handler。
+  const handlerRef = useLatest(handler);
+
   useEventListener(type, handler);
 
-  useTauriListen(
-    TAURI_EVENT.KEYBOARD_NAV,
-    needsRustNavEvent ? dispatchNavPayloadAsKeyboardEvent : () => void 0,
-  );
+  useTauriListen<NavEventPayload>(TAURI_EVENT.KEYBOARD_NAV, (event) => {
+    if (!needsRustNavEvent) return;
+
+    const { type: payloadType, ...rest } = event.payload;
+
+    if (payloadType !== type || !rest.key) return;
+
+    handlerRef.current(
+      new KeyboardEvent(payloadType, { cancelable: true, ...rest }),
+    );
+  });
 };
