@@ -107,7 +107,7 @@ pub async fn get_clipboard_image_path(
         .ok_or_else(|| AppError::Clipboard("image path is not valid utf-8".to_owned()))
 }
 
-/// 把 `clipboard_apps.icon_file`（形如 `<sha256>.png`）解析为磁盘绝对路径，
+/// 把 `clipboard_apps.icon_file`（形如 `<hash>.png`）解析为磁盘绝对路径，
 /// 供前端用 `convertFileSrc` 渲染。文件名复用图片同款防穿越校验。
 #[tauri::command]
 pub async fn get_clipboard_app_icon_path(
@@ -259,21 +259,26 @@ async fn attach_image_thumbnail_path(store: &ImageStore, item: &mut ClipboardIte
     }
 
     let file_name = item.content.clone();
-    let store = store.clone();
-    let path = tauri::async_runtime::spawn_blocking(move || store.ensure_thumbnail(&file_name))
-        .await
-        .map_err(|err| AppError::Clipboard(format!("thumbnail task join failed: {err}")))?;
+    let thumb_path = store.thumbnail_path(&file_name);
+    let thumb_exists = thumb_path.exists();
 
-    item.image_thumbnail_path = match path {
-        Ok(path) => path.to_str().map(str::to_owned),
-        Err(err) => {
-            log::warn!(
-                "ensure image thumbnail failed for {:?}: {err}",
-                item.content
-            );
-            None
-        }
+    let immediate_path = if thumb_exists {
+        thumb_path
+    } else {
+        store.origin_path(&file_name)
     };
+
+    item.image_thumbnail_path = immediate_path.to_str().map(str::to_owned);
+
+    // 缩略图不存在时后台异步预热，避免把大图缩放阻塞在列表/单条查询的返回路径上。
+    if !thumb_exists {
+        let store = store.clone();
+        tauri::async_runtime::spawn_blocking(move || {
+            if let Err(err) = store.ensure_thumbnail(&file_name) {
+                log::warn!("ensure image thumbnail failed for {:?}: {err}", file_name);
+            }
+        });
+    }
 
     Ok(())
 }

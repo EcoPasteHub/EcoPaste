@@ -1,8 +1,8 @@
-//! 应用 icon 落盘：按 PNG 字节 sha256 命名，平铺在单层目录下。
+//! 应用 icon 落盘：按 PNG 字节 blake3 命名，平铺在单层目录下。
 //!
-//! 目录：`<app_local_data>/resources/app-icons/<sha256>.png`。
+//! 目录：`<app_local_data>/resources/app-icons/<hash>.png`。
 //! 同 icon（同字节）天然去重：不同应用若指向相同 icon 二进制只占一份。
-//! `clipboard_apps.icon_file` 存「`<sha256>.png`」纯文件名，不入库目录前缀。
+//! `clipboard_apps.icon_file` 存「`<hash>.png`」纯文件名，不入库目录前缀。
 //!
 //! 不像剪贴板图片那样按 hash 前缀分片：icon 数量受「用户从多少个不同应用复制过」约束，
 //! 撑死几十到低几百个，单层目录足够，分片只是徒增复杂度。
@@ -10,7 +10,7 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::Context;
-use sha2::{Digest, Sha256};
+use blake3::Hasher;
 use tauri::AppHandle;
 
 use crate::core::Result;
@@ -35,10 +35,10 @@ impl AppIconStore {
         Self { root }
     }
 
-    /// 落盘 PNG 字节，返回入库用文件名 `<sha256>.png`。已存在则跳过写入（幂等）。
+    /// 落盘 PNG 字节，返回入库用文件名 `<hash>.png`。已存在则跳过写入（幂等）。
     pub fn store(&self, png_bytes: &[u8]) -> Result<String> {
-        let sha = sha256_hex(png_bytes);
-        let file_name = format!("{sha}.png");
+        let digest = blake3_hex(png_bytes);
+        let file_name = format!("{digest}.png");
         write_if_absent(&self.root.join(&file_name), png_bytes)?;
         Ok(file_name)
     }
@@ -48,10 +48,10 @@ impl AppIconStore {
     }
 }
 
-fn sha256_hex(bytes: &[u8]) -> String {
-    let mut hasher = Sha256::new();
+fn blake3_hex(bytes: &[u8]) -> String {
+    let mut hasher = Hasher::new();
     hasher.update(bytes);
-    format!("{:x}", hasher.finalize())
+    hasher.finalize().to_hex().to_string()
 }
 
 fn write_if_absent(path: &Path, bytes: &[u8]) -> Result<()> {

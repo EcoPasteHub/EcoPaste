@@ -1,6 +1,6 @@
 use anyhow::Context;
+use blake3::Hasher;
 use chrono::Utc;
-use sha2::{Digest, Sha256};
 use sqlx::{QueryBuilder, Sqlite, SqlitePool};
 
 use crate::core::Result;
@@ -40,16 +40,16 @@ pub struct UpsertResult {
     pub deduplicated: bool,
 }
 
-/// 计算去重指纹：`sha256("<kind>:<content>")`。
+/// 计算去重指纹：`blake3("<kind>:<content>")`。
 /// 加 `kind` 前缀，避免 text 与 files 恰好同串内容被误判为重复。
 /// text 直接哈希内容串即可；image/files 的 `content` 是落盘引用/路径，
 /// 调用方持有原始字节时可改为对原始内容字节哈希后写入 `content_hash`。
 pub fn content_hash(kind: ClipboardKind, content: &str) -> String {
-    let mut hasher = Sha256::new();
+    let mut hasher = Hasher::new();
     hasher.update(kind_tag(kind).as_bytes());
     hasher.update(b":");
     hasher.update(content.as_bytes());
-    format!("{:x}", hasher.finalize())
+    hasher.finalize().to_hex().to_string()
 }
 
 fn kind_tag(kind: ClipboardKind) -> &'static str {
@@ -227,10 +227,10 @@ pub async fn increment_item_use_count(pool: &SqlitePool, id: &str) -> Result<()>
     Ok(())
 }
 
-/// 删除单条记录。若删除的是图片记录，返回其落盘文件名（`<sha256>.png`），供调用方删图；
+/// 删除单条记录。若删除的是图片记录，返回其落盘文件名（`<hash>.png`），供调用方删图；
 /// 否则返回 `None`。记录不存在时也返回 `None`。
 ///
-/// image 去重指纹源自 PNG 字节、落盘文件名即字节 sha256，故库里同图至多一行，
+/// image 去重指纹源自 PNG 字节、落盘文件名即字节哈希，故库里同图至多一行，
 /// 删行后该文件必为孤儿，调用方可直接删，无需引用计数。
 pub async fn delete_item(pool: &SqlitePool, id: &str) -> Result<Option<String>> {
     let row = sqlx::query_as::<_, (ClipboardKind, String)>(

@@ -43,7 +43,7 @@ pub struct ClipboardItem {
     /// 删除应用记录时置 NULL，不会级联删条目。
     pub source_app_id: Option<String>,
     pub content: String,
-    /// 去重指纹：`sha256(kind:content)`，由 `db::items::content_hash` 计算并在入库前比对。
+    /// 去重指纹：`blake3(kind:content)`，由 `db::items::content_hash` 计算并在入库前比对。
     pub content_hash: String,
     pub search_text: Option<String>,
     /// 列表渲染用的纯文本摘要（最多 512 字符）。HTML/RTF 也只存纯文本截断
@@ -69,7 +69,7 @@ pub struct ClipboardItem {
     #[sqlx(default)]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub source_app_name: Option<String>,
-    /// 来源应用图标文件名（`<sha256>.png`）。同 [`source_app_name`] 由 list 查询补齐，
+    /// 来源应用图标文件名（`<hash>.png`）。同 [`source_app_name`] 由 list 查询补齐，
     /// 命令层据此解析为绝对路径写入 [`source_app_icon_path`]。
     #[sqlx(default)]
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -99,7 +99,7 @@ pub struct ClipboardItem {
 pub struct ClipboardApp {
     pub id: String,
     pub name: String,
-    /// `app-icons/<sha256>.png` 形式的文件名（无分片目录前缀）；无图标则 `None`。
+    /// `app-icons/<hash>.png` 形式的文件名（无分片目录前缀）；无图标则 `None`。
     pub icon_file: Option<String>,
     pub platform: Platform,
     pub created_at: DateTime<Utc>,

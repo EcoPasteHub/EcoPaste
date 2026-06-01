@@ -1,12 +1,12 @@
 //! 图片落盘：按内容哈希分片存储原图与缩略图。
 //!
-//! 目录布局（`content` 字段存文件名 `<sha256>.png`，分片目录由此函数推导，不入库）：
+//! 目录布局（`content` 字段存文件名 `<hash>.png`，分片目录由此函数推导，不入库）：
 //! ```text
 //! <app_local_data>/resources/clipboard-images/
-//!   origin/<hash[..2]>/<sha256>.png       原图（PNG），复制时落盘
-//!   thumbnails/<hash[..2]>/<sha256>.png   缩略图（PNG，最长边 <= THUMBNAIL_MAX），首次预览时按需生成
+//!   origin/<hash[..2]>/<hash>.png       原图（PNG），复制时落盘
+//!   thumbnails/<hash[..2]>/<hash>.png   缩略图（PNG，最长边 <= THUMBNAIL_MAX），首次预览时按需生成
 //! ```
-//! 文件名取「PNG 字节的 sha256」：同一张图重复复制 → 同字节 → 同文件名，落盘幂等，
+//! 文件名取「PNG 字节的 blake3」：同一张图重复复制 → 同字节 → 同文件名，落盘幂等，
 //! 且与去重指纹同源（image 的 `content_hash` 即对 PNG 字节哈希）。
 //! 按 hash 前 2 位 hex 分 256 个子目录，避免重度使用下单目录文件爆量。
 //!
@@ -16,8 +16,8 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::Context;
+use blake3::Hasher;
 use clipboard_rs::common::{RustImage, RustImageData};
-use sha2::{Digest, Sha256};
 use tauri::AppHandle;
 
 use super::payload::ImagePayload;
@@ -33,11 +33,11 @@ const THUMBNAILS_DIR: &str = "thumbnails";
 
 /// 一次图片落盘的结果，交给 ingest 写入 `ClipboardItem`。
 pub struct StoredImage {
-    /// 入库 `content`：图片文件名 `<sha256>.png`（不含分片目录）。
+    /// 入库 `content`：图片文件名 `<hash>.png`（不含分片目录）。
     pub file_name: String,
-    /// 去重指纹来源：PNG 字节的 sha256（十六进制）。
+    /// 去重指纹来源：PNG 字节的 blake3（十六进制）。
     #[allow(dead_code)]
-    pub sha256: String,
+    pub content_digest: String,
     pub width: i64,
     pub height: i64,
     /// 原图字节数。
@@ -68,15 +68,15 @@ impl ImageStore {
     /// 缩略图**不在此生成**——它已移出复制热路径，改由 [`Self::ensure_thumbnail`] 在
     /// 前端首次预览时按需生成并缓存。复制路径只做「哈希 + 写原图」，避免大图编解码卡顿。
     pub fn store(&self, image: &ImagePayload) -> Result<StoredImage> {
-        let sha256 = sha256_hex(&image.bytes);
-        let file_name = format!("{sha256}.png");
+        let content_digest = blake3_hex(&image.bytes);
+        let file_name = format!("{content_digest}.png");
 
-        let origin_path = self.shard_path(ORIGIN_DIR, &sha256, &file_name);
+        let origin_path = self.shard_path(ORIGIN_DIR, &content_digest, &file_name);
         write_if_absent(&origin_path, &image.bytes)?;
 
         Ok(StoredImage {
             file_name,
-            sha256,
+            content_digest,
             width: i64::from(image.width),
             height: i64::from(image.height),
             size: image.bytes.len() as i64,
@@ -104,7 +104,7 @@ impl ImageStore {
     /// 删除一张图片的原图与缩略图。缩略图懒生成、可能不存在，缺失文件视作成功（幂等）。
     /// 删后顺手清理变空的分片目录（`origin/<ab>`、`thumbnails/<ab>`）。
     ///
-    /// 调用前提：库里该图至多一行（image 去重指纹源自 PNG 字节，落盘文件名即字节 sha256），
+    /// 调用前提：库里该图至多一行（image 去重指纹源自 PNG 字节，落盘文件名即字节哈希），
     /// 故删行后该文件必为孤儿，可直接删，无需引用计数。其余 IO 错误上抛由调用方记日志。
     pub fn remove(&self, file_name: &str) -> Result<()> {
         let origin = self.origin_path(file_name);
@@ -136,7 +136,7 @@ impl ImageStore {
     }
 }
 
-/// 分片子目录名：取来源串前 2 个字符（sha256 恒为 hex，必有 2 位）；
+/// 分片子目录名：取来源串前 2 个字符（hash 恒为 hex，必有 2 位）；
 /// 异常短串兜底为 `00`，保证始终有一层分片。
 fn shard_dir(src: &str) -> &str {
     if src.len() >= 2 {
@@ -146,15 +146,15 @@ fn shard_dir(src: &str) -> &str {
     }
 }
 
-/// 从文件名 `<sha256>.png` 取分片来源（即 sha256 本身）。
+/// 从文件名 `<hash>.png` 取分片来源（即 hash 本身）。
 fn shard_key(file_name: &str) -> &str {
     file_name.split('.').next().unwrap_or(file_name)
 }
 
-fn sha256_hex(bytes: &[u8]) -> String {
-    let mut hasher = Sha256::new();
+fn blake3_hex(bytes: &[u8]) -> String {
+    let mut hasher = Hasher::new();
     hasher.update(bytes);
-    format!("{:x}", hasher.finalize())
+    hasher.finalize().to_hex().to_string()
 }
 
 /// 写文件（自动建分片目录）；目标已存在则跳过，保证幂等且不重复 IO。
@@ -234,7 +234,7 @@ mod tests {
 
         let stored = store.store(&payload).unwrap();
         assert!(stored.file_name.ends_with(".png"));
-        assert_eq!(stored.file_name, format!("{}.png", stored.sha256));
+        assert_eq!(stored.file_name, format!("{}.png", stored.content_digest));
         assert_eq!(stored.width, 64);
         assert_eq!(stored.height, 48);
         assert!(stored.size > 0);
@@ -249,7 +249,7 @@ mod tests {
         );
         assert_eq!(
             origin.parent().unwrap().file_name().unwrap().to_str(),
-            Some(&stored.sha256[..2])
+            Some(&stored.content_digest[..2])
         );
         // 原图字节与输入一致（未改动）。
         assert_eq!(std::fs::read(&origin).unwrap(), payload.bytes);
@@ -297,9 +297,9 @@ mod tests {
 
         let a = store.store(&payload).unwrap();
         let b = store.store(&payload).unwrap();
-        // 同字节 → 同文件名 / 同 sha256，幂等。
+        // 同字节 → 同文件名 / 同 digest，幂等。
         assert_eq!(a.file_name, b.file_name);
-        assert_eq!(a.sha256, b.sha256);
+        assert_eq!(a.content_digest, b.content_digest);
     }
 
     #[test]
