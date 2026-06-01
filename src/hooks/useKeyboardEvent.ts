@@ -1,4 +1,4 @@
-import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { listen } from "@tauri-apps/api/event";
 import { useEventListener } from "ahooks";
 import { useEffect } from "react";
 import { TAURI_EVENT } from "@/constants/events";
@@ -16,16 +16,18 @@ interface NavEventPayload {
     | "nextTab"
     | "prevTab"
     | "ctrlDown"
-    | "ctrlUp";
+    | "ctrlUp"
+    | "shortcut";
+  key?: string;
 }
 
 /**
  * 将 Rust 侧 nav action 映射为标准 KeyboardEvent 初始化参数。
  */
 const navActionToKeyboardInit = (
-  action: NavEventPayload["action"],
+  payload: NavEventPayload,
 ): (KeyboardEventInit & { type: KeyboardEventType }) | null => {
-  switch (action) {
+  switch (payload.action) {
     case "up":
       return { key: "ArrowUp", type: "keydown" };
     case "down":
@@ -42,6 +44,10 @@ const navActionToKeyboardInit = (
       return { ctrlKey: true, key: "Control", type: "keydown" };
     case "ctrlUp":
       return { ctrlKey: false, key: "Control", type: "keyup" };
+    case "shortcut":
+      if (!payload.key) return null;
+
+      return { ctrlKey: true, key: payload.key, type: "keydown" };
     default:
       return null;
   }
@@ -73,10 +79,10 @@ export const useKeyboardEvent = (
 
     const setupListener = async () => {
       try {
-        unlistenFn = await getCurrentWebviewWindow().listen<NavEventPayload>(
+        unlistenFn = await listen<NavEventPayload>(
           TAURI_EVENT.KEYBOARD_NAV,
           ({ payload }) => {
-            const keyboardInit = navActionToKeyboardInit(payload.action);
+            const keyboardInit = navActionToKeyboardInit(payload);
             if (!keyboardInit) return;
             if (keyboardInit.type !== type) return;
 

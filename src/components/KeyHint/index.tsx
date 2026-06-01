@@ -1,4 +1,4 @@
-import { useEventListener, useKeyPress } from "ahooks";
+import { useEventListener } from "ahooks";
 import { type FC, type ReactNode, useState } from "react";
 import { useKeyboardEvent } from "@/hooks/useKeyboardEvent";
 import { cn } from "@/utils/cn";
@@ -32,16 +32,32 @@ const KeyHint: FC<KeyHintProps> = (props) => {
   const { hintKey, onKeyPress, children, className } = props;
 
   const [active, setActive] = useState(false);
+  const normalizedHintKey = hintKey.toLowerCase();
 
+  /**
+   * 修饰键按下时展示快捷键提示；完整组合键命中时触发业务回调。
+   */
   const handleKeyDown = (event: KeyboardEvent) => {
     const isModifierPressed = isMac ? event.metaKey : event.ctrlKey;
 
     if (!isModifierPressed) return;
 
     setActive(true);
+
+    if (event.key.toLowerCase() !== normalizedHintKey) return;
+
+    event.preventDefault();
+    onKeyPress?.(event);
   };
 
-  const handleKeyUp = () => {
+  /**
+   * 仅在修饰键真正松开后隐藏提示，避免按住 Ctrl/⌘ 再敲字母时闪烁。
+   */
+  const handleKeyUp = (event: KeyboardEvent) => {
+    const isModifierPressed = isMac ? event.metaKey : event.ctrlKey;
+
+    if (isModifierPressed) return;
+
     setActive(false);
   };
 
@@ -53,17 +69,6 @@ const KeyHint: FC<KeyHintProps> = (props) => {
   useKeyboardEvent("keyup", handleKeyUp);
 
   useEventListener("blur", handleBlur, { target: window });
-
-  const modifierKey = isMac ? "meta" : "ctrl";
-
-  useKeyPress(
-    `${modifierKey}.${hintKey.toLowerCase()}`,
-    (event) => {
-      event.preventDefault();
-      onKeyPress?.(event);
-    },
-    { exactMatch: true },
-  );
 
   return (
     <div className="relative">

@@ -25,6 +25,15 @@ fn consumed_keys() -> &'static Mutex<HashSet<u32>> {
     SET.get_or_init(|| Mutex::new(HashSet::new()))
 }
 
+/// 仅放行当前前端需要的 Ctrl 快捷键：F 与数字 1-9。
+fn ctrl_shortcut_key(vk: u32) -> Option<String> {
+    match vk {
+        0x46 => Some("f".to_string()),
+        0x31..=0x39 => Some(((vk as u8) as char).to_string()),
+        _ => None,
+    }
+}
+
 pub fn enable_navigation_keys(app: &AppHandle) {
     let _ = APP_HANDLE.set(app.clone());
     NAV_ENABLED.store(true, Ordering::Relaxed);
@@ -82,6 +91,7 @@ unsafe extern "system" fn hook_proc(code: i32, wparam: WPARAM, lparam: LPARAM) -
     let kbd = &*(lparam as *const KBDLLHOOKSTRUCT);
     let vk = kbd.vkCode;
     let msg = wparam as UINT;
+    let ctrl_down = (GetAsyncKeyState(VK_CONTROL) as u16) & 0x8000 != 0;
 
     let is_ctrl = matches!(vk as i32, VK_CONTROL | VK_LCONTROL | VK_RCONTROL);
 
@@ -123,8 +133,30 @@ unsafe extern "system" fn hook_proc(code: i32, wparam: WPARAM, lparam: LPARAM) -
         }),
         _ => None,
     };
+    let shortcut_key = if ctrl_down {
+        ctrl_shortcut_key(vk)
+    } else {
+        None
+    };
 
     if msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN {
+        if let Some(shortcut_key) = shortcut_key {
+            if let Some(app) = APP_HANDLE.get() {
+                if let Err(err) = app.emit(
+                    NAV_EVENT,
+                    json!({ "action": "shortcut", "key": shortcut_key }),
+                ) {
+                    log::warn!("emit nav event failed: {err:?}");
+                }
+            }
+
+            consumed_keys()
+                .lock()
+                .expect("consumed keys poisoned")
+                .insert(vk);
+            return 1;
+        }
+
         if let Some(action) = action {
             if let Some(app) = APP_HANDLE.get() {
                 if let Err(err) = app.emit(NAV_EVENT, json!({ "action": action })) {
