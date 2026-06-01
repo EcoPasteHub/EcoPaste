@@ -148,6 +148,9 @@ export const useContextMenu = (props: UseContextMenuProps) => {
       ...(kind === "text"
         ? [{ action: () => pasteItem(true), text: "粘贴为纯文本" }]
         : []),
+      ...(kind === "files"
+        ? [{ action: () => pasteItem(true), text: "粘贴为路径" }]
+        : []),
       { action: copy, text: "复制" },
       ...(typed.length > 0 ? [SEPARATOR, ...typed] : []),
       SEPARATOR,

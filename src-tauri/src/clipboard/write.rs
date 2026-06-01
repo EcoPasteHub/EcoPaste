@@ -36,6 +36,8 @@ pub fn write_to_clipboard(
     match item.kind {
         ClipboardKind::Text => write_text(&ctx, guard, item, plain)?,
         ClipboardKind::Image => write_image(&ctx, store, guard, item)?,
+        // files + plain：把路径列表当文本写回，供「粘贴为路径」使用。
+        ClipboardKind::Files if plain => write_files_as_text(&ctx, guard, item)?,
         ClipboardKind::Files => write_files(&ctx, guard, item)?,
     }
     Ok(())
@@ -117,6 +119,20 @@ fn write_files(ctx: &ClipboardContext, guard: &WritebackGuard, item: &ClipboardI
 
     guard.suppress(item.content_hash.clone());
     ctx.set_files(paths).map_err(clip_err)?;
+    Ok(())
+}
+
+/// 把 files 条目的路径列表当文本写回（换行分隔，多文件按行展开）。
+/// 与 `write_files` 共用 `content_hash` 抑制——OS 监听不会拿到与原文本完全一致的回环。
+fn write_files_as_text(
+    ctx: &ClipboardContext,
+    guard: &WritebackGuard,
+    item: &ClipboardItem,
+) -> Result<()> {
+    let text = item.content.clone();
+
+    guard.suppress(content_hash(ClipboardKind::Text, &text));
+    ctx.set_text(text).map_err(clip_err)?;
     Ok(())
 }
 
