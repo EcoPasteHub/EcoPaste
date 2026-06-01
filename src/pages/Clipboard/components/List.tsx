@@ -1,9 +1,11 @@
+import { invoke } from "@tauri-apps/api/core";
 import { useCreation } from "ahooks";
 import { Empty, Spin } from "antd";
 import type { FC } from "react";
 import { useEffect, useRef, useState } from "react";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import { useSnapshot } from "valtio";
+import { TAURI_COMMAND } from "@/constants/commands";
 import { useClipboardItems } from "@/hooks/useClipboardItems";
 import { useKeyboardEvent } from "@/hooks/useKeyboardEvent";
 import { clipboardViewState } from "@/stores/clipboardView";
@@ -42,8 +44,22 @@ const List: FC = () => {
   }, [query]);
 
   const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
     if (items.length === 0) return;
+
+    if (e.key === "Enter") {
+      e.preventDefault();
+
+      const activeId = selectedId === null ? items[0].id : selectedId;
+
+      invoke(TAURI_COMMAND.PASTE_CLIPBOARD_ITEM, {
+        id: activeId,
+        plain: false,
+      });
+
+      return;
+    }
+
+    if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
 
     e.preventDefault();
 
@@ -76,18 +92,24 @@ const List: FC = () => {
 
   if (items.length === 0) {
     const isSearching = keyword.length > 0;
+    const isFavorite = group === "favorite";
+
+    let description: string;
+
+    if (isSearching) {
+      description = isFavorite
+        ? `未找到「${keyword}」相关收藏`
+        : `未找到「${keyword}」相关记录`;
+    } else {
+      description = isFavorite ? "暂无收藏记录" : "暂无剪贴板历史";
+    }
 
     return (
       <div
         className="flex flex-1 flex-col items-center justify-center"
         data-tauri-drag-region
       >
-        <Empty
-          description={
-            isSearching ? `未找到「${keyword}」相关记录` : "暂无剪贴板历史"
-          }
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-        />
+        <Empty description={description} image={Empty.PRESENTED_IMAGE_SIMPLE} />
       </div>
     );
   }
