@@ -11,5 +11,9 @@ html {
     img {
       -webkit-user-drag: none;
     }
+
+    button {
+      outline: none !important;
+    }
   }
 }

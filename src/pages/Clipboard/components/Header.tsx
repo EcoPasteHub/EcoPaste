@@ -43,7 +43,7 @@ const Header: FC = () => {
           />
         </Tooltip>
 
-        <Tooltip title="偏好设置">
+        <Tooltip title="更多操作">
           <Button
             icon={
               <KeyHint
