@@ -23,7 +23,7 @@ const SearchInput: FC<Omit<InputProps, "prefix">> = (props) => {
     <Input
       prefix={
         <KeyHint hintKey="F" onKeyPress={focusSearch}>
-          <i className="i-lucide:search flex size-4" />
+          <i className="i-lucide:search size-4" />
         </KeyHint>
       }
       ref={inputRef}

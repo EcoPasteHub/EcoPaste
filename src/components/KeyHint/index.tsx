@@ -72,6 +72,8 @@ const KeyHint: FC<KeyHintProps> = (props) => {
 
   return (
     <div className="relative">
+      <div className="flex items-center justify-center">{children}</div>
+
       {active && (
         <span
           className={cn(
@@ -82,8 +84,6 @@ const KeyHint: FC<KeyHintProps> = (props) => {
           {hintKey.toUpperCase()}
         </span>
       )}
-
-      {children}
     </div>
   );
 };
