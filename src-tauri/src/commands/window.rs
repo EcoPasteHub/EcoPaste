@@ -34,16 +34,6 @@ pub async fn position_window(
 }
 
 #[tauri::command]
-pub async fn save_window_state(app: AppHandle, label: String) -> Result<()> {
-    window::save_window_state(&app, &label)
-}
-
-#[tauri::command]
-pub async fn restore_window_state(app: AppHandle, label: String) -> Result<bool> {
-    window::restore_window_state(&app, &label)
-}
-
-#[tauri::command]
 pub fn set_main_window_pinned(pinned: bool) {
     window::set_main_window_pinned(pinned);
 }

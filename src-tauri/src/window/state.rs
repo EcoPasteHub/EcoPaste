@@ -76,6 +76,8 @@ impl WindowStateStore {
     }
 }
 
+/// 读取窗口当前的实时几何（`outer_position` + `inner_size`）并落盘。
+/// 在隐藏 / 关闭 / 退出等可靠生命周期点调用即可捕获用户的移动与缩放。
 pub fn save_window_state(app: &AppHandle, label: &str) -> Result<()> {
     let window = app
         .get_webview_window(label)
@@ -96,6 +98,11 @@ pub fn save_window_state(app: &AppHandle, label: &str) -> Result<()> {
     )
 }
 
+/// 恢复窗口的尺寸 + 位置。无存档返回 `Ok(false)`。
+///
+/// 始终恢复存档尺寸；位置在恢复前校验是否仍位于可用显示器范围内：
+/// 若上次所在显示器已被拔出，则 fallback 到当前光标所在屏幕的中心，
+/// 避免窗口出现在不可见的虚拟坐标区域。
 pub fn restore_window_state(app: &AppHandle, label: &str) -> Result<bool> {
     let store = app.state::<WindowStateStore>();
     let Some(state) = store.get(label) else {
@@ -107,11 +114,27 @@ pub fn restore_window_state(app: &AppHandle, label: &str) -> Result<bool> {
         .ok_or_else(|| anyhow::anyhow!("window not found: {label}"))?;
 
     window
-        .set_position(PhysicalPosition::new(state.x, state.y))
-        .map_err(|e| anyhow::anyhow!(e))?;
-    window
         .set_size(PhysicalSize::new(state.width, state.height))
         .map_err(|e| anyhow::anyhow!(e))?;
+
+    let monitors = window
+        .available_monitors()
+        .map_err(|e| anyhow::anyhow!(e))?;
+    let on_screen = monitors.iter().any(|m| {
+        let mx = m.position().x;
+        let my = m.position().y;
+        let mw = m.size().width as i32;
+        let mh = m.size().height as i32;
+        state.x >= mx && state.x < mx + mw && state.y >= my && state.y < my + mh
+    });
+
+    if on_screen {
+        window
+            .set_position(PhysicalPosition::new(state.x, state.y))
+            .map_err(|e| anyhow::anyhow!(e))?;
+    } else {
+        super::position::center_on_cursor_monitor(&window)?;
+    }
 
     Ok(true)
 }

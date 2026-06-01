@@ -67,6 +67,15 @@ fn apply_follow(
     Ok(())
 }
 
+/// 将窗口居中到当前光标所在显示器。
+/// 用于存档位置已失效（显示器被拔出）时的 fallback。
+pub(super) fn center_on_cursor_monitor(window: &WebviewWindow) -> Result<()> {
+    let Some((monitor, _)) = monitor_from_cursor(window)? else {
+        return Ok(());
+    };
+    apply_center(window, &monitor)
+}
+
 fn apply_center(window: &WebviewWindow, monitor: &MonitorInfo) -> Result<()> {
     let win_size = window.inner_size().map_err(|e| anyhow::anyhow!(e))?;
     let mon_x = monitor.position.x as f64;

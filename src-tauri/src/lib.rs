@@ -73,8 +73,6 @@ pub fn run() {
             commands::toggle_window,
             commands::show_taskbar_icon,
             commands::position_window,
-            commands::save_window_state,
-            commands::restore_window_state,
             commands::set_main_window_pinned,
             commands::get_settings,
             commands::update_settings,
@@ -152,6 +150,9 @@ pub fn run() {
                 window::handle_reopen(app_handle, has_visible_windows);
             }
 
-            let _ = (app_handle, event);
+            // 退出前保存所有窗口几何，兜住「调整大小后不关窗直接退出」的场景。
+            if let tauri::RunEvent::ExitRequested { .. } = event {
+                window::save_all_window_states(app_handle);
+            }
         });
 }

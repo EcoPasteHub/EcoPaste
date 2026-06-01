@@ -1,4 +1,4 @@
-mod position;
+pub(super) mod position;
 mod state;
 
 #[cfg(target_os = "macos")]
@@ -63,6 +63,11 @@ pub fn show_window(app_handle: &AppHandle, label: &str) -> Result<()> {
         if let Err(err) = apply_main_layout(app_handle) {
             log::warn!("apply main window layout failed: {err}");
         }
+    } else {
+        // 次级窗口（如 preference）：恢复上次的位置 + 尺寸；无存档则落到配置的 center + 默认尺寸。
+        if let Err(err) = state::restore_window_state(app_handle, label) {
+            log::warn!("restore window state failed for {label}: {err}");
+        }
     }
 
     #[cfg(target_os = "macos")]
@@ -76,16 +81,11 @@ pub fn show_window(app_handle: &AppHandle, label: &str) -> Result<()> {
 }
 
 pub fn hide_window(app_handle: &AppHandle, label: &str) -> Result<()> {
-    if label == MAIN_WINDOW_LABEL {
-        if let Some(store) = app_handle.try_state::<SettingsStore>() {
-            let snap = store.snapshot();
-            if matches!(snap.clipboard.window.position, WindowPosition::Remember) {
-                if let Err(err) = state::save_window_state(app_handle, label) {
-                    log::warn!("save main window state on hide failed: {err}");
-                }
-            }
-        }
+    // 隐藏前保存任意窗口的实时几何：移动与缩放都在这里落盘，下次显示/启动可恢复。
+    if let Err(err) = state::save_window_state(app_handle, label) {
+        log::warn!("save window state on hide failed for {label}: {err}");
     }
+
     #[cfg(target_os = "macos")]
     let result = macos::hide_window(app_handle, label);
     #[cfg(target_os = "windows")]
@@ -118,7 +118,8 @@ pub fn position_window(app_handle: &AppHandle, label: &str, pos: WindowPosition)
 }
 
 /// 主窗显示前按设置应用窗口定位策略。
-/// Remember 走 `restore_window_state`；其它走 `position_window`。
+/// 始终先调用 `restore_window_state` 恢复尺寸与合法位置（含越界 fallback）；
+/// 非 Remember 策略再由 `position_window` 覆盖位置。
 /// 平台 `show_window` 需要在主线程闭包里调用，避免 set_position 与 show 异步交错产生闪烁。
 fn apply_main_layout(app_handle: &AppHandle) -> Result<()> {
     let Some(store) = app_handle.try_state::<SettingsStore>() else {
@@ -127,8 +128,9 @@ fn apply_main_layout(app_handle: &AppHandle) -> Result<()> {
     let snap = store.snapshot();
     let position = snap.clipboard.window.position;
 
+    let _ = state::restore_window_state(app_handle, MAIN_WINDOW_LABEL)?;
+
     if matches!(position, WindowPosition::Remember) {
-        let _ = state::restore_window_state(app_handle, MAIN_WINDOW_LABEL)?;
         return Ok(());
     }
 
@@ -136,17 +138,27 @@ fn apply_main_layout(app_handle: &AppHandle) -> Result<()> {
     position::position_window(&window, position)
 }
 
-pub fn save_window_state(app_handle: &AppHandle, label: &str) -> Result<()> {
-    state::save_window_state(app_handle, label)
-}
-
-pub fn restore_window_state(app_handle: &AppHandle, label: &str) -> Result<bool> {
-    state::restore_window_state(app_handle, label)
+/// 保存当前所有窗口的几何信息。供应用退出（`RunEvent::ExitRequested`）时调用，
+/// 覆盖「调整大小后不关窗直接退出」这一隐藏/关闭都漏掉的场景。
+pub fn save_all_window_states(app_handle: &AppHandle) {
+    for label in app_handle.webview_windows().into_keys() {
+        if let Err(err) = state::save_window_state(app_handle, &label) {
+            log::warn!("save window state on exit failed for {label}: {err}");
+        }
+    }
 }
 
 /// 关闭请求改为隐藏窗口，让应用常驻后台（系统托盘）。
 /// 返回 `true` 表示已拦截关闭，调用方需 `api.prevent_close()`。
 pub fn hide_on_close(window: &Window) -> bool {
+    // 关闭按钮不走 `hide_window`，需在此单独保存几何，否则 preference 的移动/缩放会丢失。
+    if let Err(err) = state::save_window_state(window.app_handle(), window.label()) {
+        log::warn!(
+            "save window state on close failed for {}: {err}",
+            window.label()
+        );
+    }
+
     if let Err(err) = window.hide() {
         log::error!("hide window on close failed: {err:?}");
     }
