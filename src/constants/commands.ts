@@ -3,6 +3,7 @@
  * 改名时两侧同步，且严禁在调用处直接写字面量。
  */
 export const TAURI_COMMAND = {
+  COUNT_CLIPBOARD_ITEMS: "count_clipboard_items",
   GET_CLIPBOARD_IMAGE_PATH: "get_clipboard_image_path",
   GET_CLIPBOARD_ITEM: "get_clipboard_item",
   GET_SETTINGS: "get_settings",

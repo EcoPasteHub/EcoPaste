@@ -139,6 +139,15 @@ pub async fn query_items(pool: &SqlitePool, q: &ClipboardItemQuery) -> Result<Ve
     fetch_items(pool, q, KeywordFilter::from_keyword(q.keyword.as_deref())).await
 }
 
+/// 返回剪贴板历史总条数（不含任何过滤）。
+pub async fn count_items(pool: &SqlitePool) -> Result<i64> {
+    let row: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM clipboard_items")
+        .fetch_one(pool)
+        .await
+        .context("failed to count clipboard items")?;
+    Ok(row.0)
+}
+
 /// 按 `id` 查找单条记录，不存在时返回 `None`。
 pub async fn find_item_by_id(pool: &SqlitePool, id: &str) -> Result<Option<ClipboardItem>> {
     let mut qb: QueryBuilder<Sqlite> = QueryBuilder::new(SELECT_ITEM);

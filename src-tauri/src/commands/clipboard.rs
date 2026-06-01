@@ -224,6 +224,12 @@ pub async fn list_clipboard_items(
     Ok(items)
 }
 
+/// 返回剪贴板历史总条数，供 Footer 展示「共 N 项」。
+#[tauri::command]
+pub async fn count_clipboard_items(pool: State<'_, SqlitePool>) -> Result<i64> {
+    crate::db::items::count_items(&pool).await
+}
+
 /// 单条查询命令：监听到 `clipboard://updated` 后前端按 id 拉单条，
 /// 避免事件驱动刷新时整页 refetch。不存在返回 `None`，前端按需降级。
 ///

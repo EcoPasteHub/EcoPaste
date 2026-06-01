@@ -146,6 +146,7 @@ cargo test                    # Rust 单测（在 src-tauri 下）
 - 涉及 UI 的快捷键处理必须区分平台/窗口：在 **Windows 主窗口** 场景一律走 Rust `keyboard/` 的系统键盘钩子（由 Rust emit `keyboard://nav` 等事件给前端），不要只依赖 Web `keydown`；其它场景（如 macOS 或非该主窗口场景）默认走 Web 键盘事件即可。
 - 表达「未定义」一律用 `void 0`，**禁止**写 `undefined` 字面量（包括判等 `x === undefined`、默认值、返回值等）。理由：`undefined` 在非严格作用域里可被遮蔽，`void 0` 是表达式恒等且更短。
 - 异步统一用 `async` / `await` + `try` / `catch`，**禁止**使用 `.then()` / `.catch()` / `.finally()` 链式写法（包括火并忘场景：`fn().catch(...)` 应改成 `async function wrapper() { try { await fn(); } catch {} }`）。理由：风格一致、错误处理与控制流在同一缩进、便于打断点。
+- **`useEffect` 回调禁止直接声明为 `async`**——React 不处理 async 回调返回的 Promise，cleanup 函数会丢失。需要在 `useEffect` 内调用异步逻辑时，统一改用 `useMount` + `useUnmount`（ahooks）：挂载时的异步初始化放 `useMount(async () => { ... })`，清理逻辑放对应的 `useUnmount`；需要持有清理句柄（如 `unlisten`）时用 `useRef` 跨两个 hook 传递。`useEffect` 只用于**纯同步**副作用或依赖项驱动的重新执行场景。
 - 不要在前端写 SQL、不要做内容类型识别、不要算窗口坐标——这些调用 Rust 命令。
 - i18n 文案表：zh-CN（默认）/ en-US，新增文案两种语言同步补齐。
 - 列表用 `react-virtuoso` 虚拟滚动；HTML 内容必须经 DOMPurify sanitize 再渲染。
