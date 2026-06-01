@@ -1,7 +1,7 @@
 use tauri::AppHandle;
 
 use crate::core::Result;
-use crate::settings::{WindowPosition, WindowStyle};
+use crate::settings::WindowPosition;
 use crate::window;
 
 #[tauri::command]
@@ -28,10 +28,9 @@ pub async fn show_taskbar_icon(app: AppHandle, visible: bool) -> Result<()> {
 pub async fn position_window(
     app: AppHandle,
     label: String,
-    style: WindowStyle,
     position: WindowPosition,
 ) -> Result<()> {
-    window::position_window(&app, &label, style, position)
+    window::position_window(&app, &label, position)
 }
 
 #[tauri::command]

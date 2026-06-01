@@ -1,9 +1,7 @@
 use tauri::{PhysicalPosition, PhysicalSize, WebviewWindow};
 
 use crate::core::Result;
-use crate::settings::{WindowPosition, WindowStyle};
-
-const DOCK_HEIGHT: u32 = 400;
+use crate::settings::WindowPosition;
 
 struct MonitorInfo {
     position: PhysicalPosition<i32>,
@@ -35,22 +33,15 @@ fn monitor_from_cursor(
     )))
 }
 
-pub fn position_window(
-    window: &WebviewWindow,
-    style: WindowStyle,
-    position: WindowPosition,
-) -> Result<()> {
+pub fn position_window(window: &WebviewWindow, position: WindowPosition) -> Result<()> {
     let Some((monitor, cursor)) = monitor_from_cursor(window)? else {
         return Ok(());
     };
 
-    match style {
-        WindowStyle::Dock => apply_dock(window, &monitor)?,
-        WindowStyle::Standard => match position {
-            WindowPosition::Remember => {}
-            WindowPosition::FollowCursor => apply_follow(window, &monitor, &cursor)?,
-            WindowPosition::Center => apply_center(window, &monitor)?,
-        },
+    match position {
+        WindowPosition::Remember => {}
+        WindowPosition::FollowCursor => apply_follow(window, &monitor, &cursor)?,
+        WindowPosition::Center => apply_center(window, &monitor)?,
     }
 
     Ok(())
@@ -88,23 +79,6 @@ fn apply_center(window: &WebviewWindow, monitor: &MonitorInfo) -> Result<()> {
 
     window
         .set_position(PhysicalPosition::new(x.round() as i32, y.round() as i32))
-        .map_err(|e| anyhow::anyhow!(e))?;
-    Ok(())
-}
-
-fn apply_dock(window: &WebviewWindow, monitor: &MonitorInfo) -> Result<()> {
-    let mon_x = monitor.position.x;
-    let mon_y = monitor.position.y;
-    let mon_w = monitor.size.width;
-    let mon_h = monitor.size.height;
-
-    let y = mon_y + mon_h as i32 - DOCK_HEIGHT as i32;
-
-    window
-        .set_size(PhysicalSize::new(mon_w, DOCK_HEIGHT))
-        .map_err(|e| anyhow::anyhow!(e))?;
-    window
-        .set_position(PhysicalPosition::new(mon_x, y))
         .map_err(|e| anyhow::anyhow!(e))?;
     Ok(())
 }

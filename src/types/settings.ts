@@ -22,8 +22,6 @@ export type RetentionUnit = "hours" | "days" | "weeks" | "months" | "forever";
 
 export type SearchPosition = "top" | "bottom";
 
-export type WindowStyle = "standard" | "dock";
-
 export type WindowPosition = "remember" | "followCursor" | "center";
 
 export interface General {
@@ -78,7 +76,6 @@ export interface Search {
 }
 
 export interface Window {
-  style: WindowStyle;
   position: WindowPosition;
   alwaysOnTop: boolean;
   allWorkspaces: boolean;

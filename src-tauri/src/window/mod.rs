@@ -13,7 +13,7 @@ pub use state::WindowStateStore;
 use tauri::{AppHandle, Emitter, Manager, WebviewWindow, Window};
 
 use crate::core::Result;
-use crate::settings::{SettingsStore, WindowPosition, WindowStyle};
+use crate::settings::{SettingsStore, WindowPosition};
 
 pub const MAIN_WINDOW_LABEL: &str = "main";
 pub const PREFERENCE_WINDOW_LABEL: &str = "preference";
@@ -65,9 +65,7 @@ pub fn hide_window(app_handle: &AppHandle, label: &str) -> Result<()> {
     if label == MAIN_WINDOW_LABEL {
         if let Some(store) = app_handle.try_state::<SettingsStore>() {
             let snap = store.snapshot();
-            if matches!(snap.clipboard.window.style, WindowStyle::Standard)
-                && matches!(snap.clipboard.window.position, WindowPosition::Remember)
-            {
+            if matches!(snap.clipboard.window.position, WindowPosition::Remember) {
                 if let Err(err) = state::save_window_state(app_handle, label) {
                     log::warn!("save main window state on hide failed: {err}");
                 }
@@ -100,34 +98,28 @@ pub fn show_taskbar_icon(app_handle: &AppHandle, visible: bool) -> Result<()> {
     return windows::show_taskbar_icon(app_handle, visible);
 }
 
-pub fn position_window(
-    app_handle: &AppHandle,
-    label: &str,
-    style: WindowStyle,
-    pos: WindowPosition,
-) -> Result<()> {
+pub fn position_window(app_handle: &AppHandle, label: &str, pos: WindowPosition) -> Result<()> {
     let window = get_window(app_handle, label)?;
-    position::position_window(&window, style, pos)
+    position::position_window(&window, pos)
 }
 
-/// 主窗显示前按设置应用窗口样式与定位。
-/// Standard + Remember 走 `restore_window_state`；其它走 `position_window`。
+/// 主窗显示前按设置应用窗口定位策略。
+/// Remember 走 `restore_window_state`；其它走 `position_window`。
 /// 平台 `show_window` 需要在主线程闭包里调用，避免 set_position 与 show 异步交错产生闪烁。
 fn apply_main_layout(app_handle: &AppHandle) -> Result<()> {
     let Some(store) = app_handle.try_state::<SettingsStore>() else {
         return Ok(());
     };
     let snap = store.snapshot();
-    let style = snap.clipboard.window.style;
     let position = snap.clipboard.window.position;
 
-    if matches!(style, WindowStyle::Standard) && matches!(position, WindowPosition::Remember) {
+    if matches!(position, WindowPosition::Remember) {
         let _ = state::restore_window_state(app_handle, MAIN_WINDOW_LABEL)?;
         return Ok(());
     }
 
     let window = get_window(app_handle, MAIN_WINDOW_LABEL)?;
-    position::position_window(&window, style, position)
+    position::position_window(&window, position)
 }
 
 pub fn save_window_state(app_handle: &AppHandle, label: &str) -> Result<()> {

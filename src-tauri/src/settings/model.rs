@@ -338,7 +338,6 @@ pub enum SearchPosition {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(default, rename_all = "camelCase")]
 pub struct Window {
-    pub style: WindowStyle,
     pub position: WindowPosition,
     pub always_on_top: bool,
     /// 在所有桌面/工作区可见（macOS Spaces / Windows 虚拟桌面）。
@@ -348,20 +347,11 @@ pub struct Window {
 impl Default for Window {
     fn default() -> Self {
         Self {
-            style: WindowStyle::Standard,
             position: WindowPosition::FollowCursor,
             always_on_top: true,
             all_workspaces: true,
         }
     }
-}
-
-#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub enum WindowStyle {
-    #[default]
-    Standard,
-    Dock,
 }
 
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
