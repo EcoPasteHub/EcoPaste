@@ -34,6 +34,17 @@ fn ctrl_shortcut_key(vk: u32) -> Option<String> {
     }
 }
 
+fn nav_key(vk: u32) -> Option<&'static str> {
+    match vk as i32 {
+        VK_UP => Some("ArrowUp"),
+        VK_DOWN => Some("ArrowDown"),
+        VK_RETURN => Some("Enter"),
+        VK_ESCAPE => Some("Escape"),
+        VK_TAB => Some("Tab"),
+        _ => None,
+    }
+}
+
 pub fn enable_navigation_keys(app: &AppHandle) {
     let _ = APP_HANDLE.set(app.clone());
     NAV_ENABLED.store(true, Ordering::Relaxed);
@@ -97,16 +108,19 @@ unsafe extern "system" fn hook_proc(code: i32, wparam: WPARAM, lparam: LPARAM) -
 
     if is_ctrl {
         if let Some(app) = APP_HANDLE.get() {
-            let action = if msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN {
-                Some("ctrlDown")
+            let event_type = if msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN {
+                Some("keydown")
             } else if msg == WM_KEYUP || msg == WM_SYSKEYUP {
-                Some("ctrlUp")
+                Some("keyup")
             } else {
                 None
             };
 
-            if let Some(action) = action {
-                if let Err(err) = app.emit(NAV_EVENT, json!({ "action": action })) {
+            if let Some(event_type) = event_type {
+                if let Err(err) = app.emit(
+                    NAV_EVENT,
+                    json!({ "type": event_type, "key": "Control", "ctrlKey": event_type == "keydown" }),
+                ) {
                     log::warn!("emit nav event failed: {err:?}");
                 }
             }
@@ -116,23 +130,7 @@ unsafe extern "system" fn hook_proc(code: i32, wparam: WPARAM, lparam: LPARAM) -
         return CallNextHookEx(null_mut(), code, wparam, lparam);
     }
 
-    let action = match vk as i32 {
-        VK_UP => Some("up"),
-        VK_DOWN => Some("down"),
-        VK_RETURN => Some("enter"),
-        VK_ESCAPE => Some("escape"),
-        // Tab / Shift+Tab：在前端 ClipboardTabs 里循环切换分组。
-        // GetAsyncKeyState 高位为按住状态；shift 同时按下视为反向。
-        VK_TAB => Some({
-            let shift_down = (GetAsyncKeyState(VK_SHIFT) as u16) & 0x8000 != 0;
-            if shift_down {
-                "prevTab"
-            } else {
-                "nextTab"
-            }
-        }),
-        _ => None,
-    };
+    let nav_key = nav_key(vk);
     let shortcut_key = if ctrl_down {
         ctrl_shortcut_key(vk)
     } else {
@@ -144,7 +142,7 @@ unsafe extern "system" fn hook_proc(code: i32, wparam: WPARAM, lparam: LPARAM) -
             if let Some(app) = APP_HANDLE.get() {
                 if let Err(err) = app.emit(
                     NAV_EVENT,
-                    json!({ "action": "ctrlShortcut", "key": shortcut_key }),
+                    json!({ "type": "keydown", "key": shortcut_key, "ctrlKey": true }),
                 ) {
                     log::warn!("emit nav event failed: {err:?}");
                 }
@@ -157,9 +155,18 @@ unsafe extern "system" fn hook_proc(code: i32, wparam: WPARAM, lparam: LPARAM) -
             return 1;
         }
 
-        if let Some(action) = action {
+        if let Some(nav_key) = nav_key {
             if let Some(app) = APP_HANDLE.get() {
-                if let Err(err) = app.emit(NAV_EVENT, json!({ "action": action })) {
+                let shift_down = if nav_key == "Tab" {
+                    (GetAsyncKeyState(VK_SHIFT) as u16) & 0x8000 != 0
+                } else {
+                    false
+                };
+
+                if let Err(err) = app.emit(
+                    NAV_EVENT,
+                    json!({ "type": "keydown", "key": nav_key, "shiftKey": shift_down }),
+                ) {
                     log::warn!("emit nav event failed: {err:?}");
                 }
             }

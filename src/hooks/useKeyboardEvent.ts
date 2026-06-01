@@ -7,53 +7,12 @@ import { log } from "@/utils/log";
 
 type KeyboardEventType = "keydown" | "keyup";
 
-type NavAction =
-  | "up"
-  | "down"
-  | "enter"
-  | "escape"
-  | "nextTab"
-  | "prevTab"
-  | "ctrlDown"
-  | "ctrlUp"
-  | "ctrlShortcut";
-
 interface NavEventPayload {
-  action: NavAction;
-  key?: string;
+  type: KeyboardEventType;
+  key: string;
+  ctrlKey?: boolean;
+  shiftKey?: boolean;
 }
-
-/**
- * 将 Rust 侧 nav action 映射为标准 KeyboardEvent 初始化参数。
- */
-const navActionToKeyboardInit = (
-  payload: NavEventPayload,
-): (KeyboardEventInit & { type: KeyboardEventType }) | null => {
-  switch (payload.action) {
-    case "up":
-      return { key: "ArrowUp", type: "keydown" };
-    case "down":
-      return { key: "ArrowDown", type: "keydown" };
-    case "enter":
-      return { key: "Enter", type: "keydown" };
-    case "escape":
-      return { key: "Escape", type: "keydown" };
-    case "nextTab":
-      return { key: "Tab", type: "keydown" };
-    case "prevTab":
-      return { key: "Tab", shiftKey: true, type: "keydown" };
-    case "ctrlDown":
-      return { ctrlKey: true, key: "Control", type: "keydown" };
-    case "ctrlUp":
-      return { ctrlKey: false, key: "Control", type: "keyup" };
-    case "ctrlShortcut":
-      if (!payload.key) return null;
-
-      return { ctrlKey: true, key: payload.key, type: "keydown" };
-    default:
-      return null;
-  }
-};
 
 /**
  * 将 Rust nav payload 转成 KeyboardEvent 并分发到 window。
@@ -61,16 +20,16 @@ const navActionToKeyboardInit = (
 const dispatchNavPayloadAsKeyboardEvent = (event: {
   payload: NavEventPayload;
 }) => {
-  const keyboardInit = navActionToKeyboardInit(event.payload);
+  const { ctrlKey, key, shiftKey, type } = event.payload;
 
-  if (!keyboardInit) return;
+  if (!key) return;
 
-  const syntheticEvent = new KeyboardEvent(keyboardInit.type, {
+  const syntheticEvent = new KeyboardEvent(type, {
     bubbles: true,
     cancelable: true,
-    ctrlKey: keyboardInit.ctrlKey,
-    key: keyboardInit.key,
-    shiftKey: keyboardInit.shiftKey,
+    ctrlKey,
+    key,
+    shiftKey,
   });
 
   window.dispatchEvent(syntheticEvent);
