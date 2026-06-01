@@ -150,7 +150,6 @@ const List: FC = () => {
         computeItemKey={computeItemKey}
         data={items}
         endReached={handleEndReached}
-        increaseViewportBy={400}
         itemContent={renderItemContent}
         rangeChanged={handleRangeChanged}
         ref={virtuosoRef}
