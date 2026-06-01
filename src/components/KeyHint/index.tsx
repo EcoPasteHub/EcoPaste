@@ -71,6 +71,7 @@ const KeyHint: FC<KeyHintProps> = (props) => {
   };
 
   useKeyboardEvent("keydown", handleKeyDown);
+
   useKeyboardEvent("keyup", handleKeyUp);
 
   useEventListener("blur", handleBlur, { target: window });
