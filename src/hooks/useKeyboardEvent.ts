@@ -16,7 +16,7 @@ type NavAction =
   | "prevTab"
   | "ctrlDown"
   | "ctrlUp"
-  | "shortcut";
+  | "ctrlShortcut";
 
 interface NavEventPayload {
   action: NavAction;
@@ -46,7 +46,7 @@ const navActionToKeyboardInit = (
       return { ctrlKey: true, key: "Control", type: "keydown" };
     case "ctrlUp":
       return { ctrlKey: false, key: "Control", type: "keyup" };
-    case "shortcut":
+    case "ctrlShortcut":
       if (!payload.key) return null;
 
       return { ctrlKey: true, key: payload.key, type: "keydown" };

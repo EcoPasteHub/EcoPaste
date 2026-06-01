@@ -144,7 +144,7 @@ unsafe extern "system" fn hook_proc(code: i32, wparam: WPARAM, lparam: LPARAM) -
             if let Some(app) = APP_HANDLE.get() {
                 if let Err(err) = app.emit(
                     NAV_EVENT,
-                    json!({ "action": "shortcut", "key": shortcut_key }),
+                    json!({ "action": "ctrlShortcut", "key": shortcut_key }),
                 ) {
                     log::warn!("emit nav event failed: {err:?}");
                 }
