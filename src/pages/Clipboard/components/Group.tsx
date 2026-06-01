@@ -49,7 +49,7 @@ const Group: FC = () => {
   useKeyboardEvent("keydown", handleKeyDown);
 
   return (
-    <div className="flex items-center gap-1 px-3 pb-2">
+    <div className="flex items-center gap-1 px-3 pb-2" data-tauri-drag-region>
       {GROUP_OPTIONS.map(({ label, value, icon }) => (
         <button
           className={cn(
