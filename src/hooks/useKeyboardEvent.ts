@@ -20,16 +20,14 @@ interface NavEventPayload {
 const dispatchNavPayloadAsKeyboardEvent = (event: {
   payload: NavEventPayload;
 }) => {
-  const { ctrlKey, key, shiftKey, type } = event.payload;
+  const { type, ...rest } = event.payload;
 
-  if (!key) return;
+  if (!rest.key) return;
 
   const syntheticEvent = new KeyboardEvent(type, {
     bubbles: true,
     cancelable: true,
-    ctrlKey,
-    key,
-    shiftKey,
+    ...rest,
   });
 
   window.dispatchEvent(syntheticEvent);

@@ -125,6 +125,8 @@ cargo test                    # Rust 单测（在 src-tauri 下）
 
   好处：默认值集中在函数体头部、便于调试时整体打印 `props`、便于后续 `rest` 透传。
 
+- **解构时优先用 `...rest` 收尾**：若剩余字段需要整体透传或展开，解构时用 `...rest` 而非逐一列举；反之（只用几个字段且无需透传）则按需解构，不强求加 `...rest`。
+
 - 状态：Valtio 只存 UI 状态和设置的本地镜像；业务数据从 Rust 命令拉取，不在前端建「数据库副本」。
 - 样式：UnoCSS。
 - **尺寸只走 wind4 数字制**（1 单位 = 0.25rem = 4px），写 `p-1` / `p-1.25` / `p-1.5` / `gap-2` / `rounded-2.5` / `w-36` 等数字原子类；**禁止**出现 `px` 字面量——不写 `rounded-[10px]` / `w-[144px]` / `text-[14px]` 这类任意值类，也不在 `style={{}}` 里塞数字像素（antd 组件 `tabBarStyle` 等 inline 样式同理，必要时改写 className 或在 `theme.token` 里调）。非常规尺寸通过 wind4 内置 fractional（`.25/.5/.75/.125`）拼，确实没有对应值再扩 `theme.spacing`。
