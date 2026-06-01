@@ -1,6 +1,7 @@
 import dayjs from "dayjs";
 import type { FC } from "react";
 import AssetImage from "@/components/AssetImage";
+import KeyHint from "@/components/KeyHint";
 import type { ClipboardItem } from "@/types/clipboard";
 import { cn } from "@/utils/cn";
 import FilesCard from "./FilesCard";
@@ -10,6 +11,15 @@ import TextCard from "./TextCard";
 interface ClipboardCardProps {
   item: ClipboardItem;
   isSelected?: boolean;
+  /**
+   * 快捷键提示字符（"1"–"9" / "0"），存在时在 app 图标上叠加 KeyHint；
+   * 按下修饰键（macOS ⌘ / Windows Ctrl）+ 该数字键触发快速粘贴。
+   */
+  hintKey?: string;
+  /**
+   * 快捷键触发时执行的粘贴操作，由父级列表注入。
+   */
+  onQuickPaste?: () => void;
   onMouseEnter?: () => void;
 }
 
@@ -18,7 +28,7 @@ interface ClipboardCardProps {
  * `isSelected` 为 true 时高亮背景与边框；`onMouseEnter` 由列表注入用于鼠标悬停选中。
  */
 const ClipboardCard: FC<ClipboardCardProps> = (props) => {
-  const { item, isSelected, onMouseEnter } = props;
+  const { item, isSelected, hintKey, onQuickPaste, onMouseEnter } = props;
   const { kind, subKind, sourceAppIconPath, sourceAppName } = item;
 
   return (
@@ -33,11 +43,21 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
     >
       <div className="flex items-center justify-between text-secondary text-xs">
         <div className="flex items-center gap-1 overflow-hidden">
-          <AssetImage
-            alt={sourceAppName}
-            className="size-4"
-            src={sourceAppIconPath}
-          />
+          {hintKey ? (
+            <KeyHint hintKey={hintKey} onKeyPress={onQuickPaste}>
+              <AssetImage
+                alt={sourceAppName}
+                className="size-4"
+                src={sourceAppIconPath}
+              />
+            </KeyHint>
+          ) : (
+            <AssetImage
+              alt={sourceAppName}
+              className="size-4"
+              src={sourceAppIconPath}
+            />
+          )}
 
           <span className="truncate uppercase">{subKind ?? kind}</span>
         </div>

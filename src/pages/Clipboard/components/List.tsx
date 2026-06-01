@@ -13,12 +13,16 @@ import type { ClipboardItem, ClipboardItemQuery } from "@/types/clipboard";
 import { cn } from "@/utils/cn";
 import ClipboardCard from "./cards/ClipboardCard";
 
+/** 前 10 项的快捷键：index 0-8 对应 1-9，index 9 对应 0 */
+const KEY_HINTS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
+
 /**
  * 剪贴板历史列表：虚拟滚动 + 分类型卡片 + 滚动到底分页加载，
  * 跟随关键词（Header 已防抖）检索。
  */
 const List: FC = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [firstVisibleIndex, setFirstVisibleIndex] = useState(0);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
 
   const snapshot = useSnapshot(clipboardViewState);
@@ -114,6 +118,15 @@ const List: FC = () => {
     );
   }
 
+  const handleRangeChanged = ({
+    startIndex,
+  }: {
+    startIndex: number;
+    endIndex: number;
+  }) => {
+    setFirstVisibleIndex(startIndex);
+  };
+
   const handleEndReached = () => {
     if (!noMore && !loadingMore) loadMore();
   };
@@ -139,6 +152,7 @@ const List: FC = () => {
         endReached={handleEndReached}
         increaseViewportBy={400}
         itemContent={renderItemContent}
+        rangeChanged={handleRangeChanged}
         ref={virtuosoRef}
       />
     </div>
@@ -147,14 +161,26 @@ const List: FC = () => {
   function renderItemContent(index: number, item: ClipboardItem) {
     const handleMouseEnter = () => setSelectedId(item.id);
 
+    const relativeIndex = index - firstVisibleIndex;
+    const hintKey =
+      relativeIndex >= 0 && relativeIndex < 10
+        ? KEY_HINTS[relativeIndex]
+        : void 0;
+
+    const handleQuickPaste = () => {
+      invoke(TAURI_COMMAND.PASTE_CLIPBOARD_ITEM, { id: item.id, plain: false });
+    };
+
     return (
       <div className={cn("px-3", { "pt-3": index !== 0 })}>
         <ClipboardCard
+          hintKey={hintKey}
           isSelected={
             selectedId === null ? index === 0 : item.id === selectedId
           }
           item={item}
           onMouseEnter={handleMouseEnter}
+          onQuickPaste={hintKey ? handleQuickPaste : void 0}
         />
       </div>
     );
