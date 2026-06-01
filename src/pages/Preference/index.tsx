@@ -4,7 +4,10 @@ import Sidebar from "./components/Sidebar";
 
 const Preference = () => {
   return (
-    <div className="flex h-screen gap-2" data-tauri-drag-region>
+    <div
+      className="flex h-screen gap-2 bg-fill-quaternary dark:bg-container"
+      data-tauri-drag-region
+    >
       <Sidebar />
 
       <div className="flex h-full flex-1 flex-col" data-tauri-drag-region>

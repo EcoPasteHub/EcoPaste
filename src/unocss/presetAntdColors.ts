@@ -55,6 +55,14 @@ export const presetAntdColors = (
     if (/^color[A-Z]/.test(key)) {
       const short = kebab(key.slice("color".length));
       colors[short] = `var(--${antPrefix}-color-${short})`;
+      // `colorBg*` / `colorText*` 等系列额外注册去掉同名前缀的别名，
+      // 让工具类能写成 `bg-container` / `text-secondary` 而不是 `bg-bg-container` / `text-text-secondary`。
+      for (const prefix of ["bg-", "text-", "border-", "fill-"]) {
+        if (short.startsWith(prefix) && short.length > prefix.length) {
+          const alias = short.slice(prefix.length);
+          colors[alias] ??= `var(--${antPrefix}-color-${short})`;
+        }
+      }
       continue;
     }
     const m = PALETTE_RE.exec(key);
@@ -95,6 +103,14 @@ export const presetAntdColors = (
     if (/^color[A-Z]/.test(k)) {
       const short = kebab(k.slice("color".length));
       antVarByFlat.set(short, `var(--${antPrefix}-color-${short})`);
+      for (const prefix of ["bg-", "text-", "border-", "fill-"]) {
+        if (short.startsWith(prefix) && short.length > prefix.length) {
+          const alias = short.slice(prefix.length);
+          if (!antVarByFlat.has(alias)) {
+            antVarByFlat.set(alias, `var(--${antPrefix}-color-${short})`);
+          }
+        }
+      }
     } else if (PALETTE_RE.test(k)) {
       antVarByFlat.set(k, `var(--${antPrefix}-${k})`);
     }

@@ -140,6 +140,7 @@ cargo test                    # Rust 单测（在 src-tauri 下）
   - **例外**：注册到 hook / API 而非 JSX prop 的一次性回调（如 `useEventListener("error", (e) => ...)`、`window.addEventListener` 回调），如果逻辑只有 2-3 行且不复用，可直接写成内联箭头函数——这类回调不在 JSX 里，没有渲染重建问题，提取成命名函数反而增加噪音。**但**：若该回调有「为什么这么做」的非显然意图（兜底、绕 bug、特殊顺序），仍需在 `useEventListener(...)` 上方写一行注释说明。
 - 日志统一走 `@/utils/log`（内部委托 `tauri-plugin-log`），禁止裸 `console.*`——保证前后端日志同源进 LogDir。
 - 平台 / 环境判断统一从 `@/utils/is` 引入（`isMac` / `isWin` / `isDev` 等），**禁止**在业务代码里散写 `platform() === "macos"` / `import.meta.env.DEV` 这类原始判断；新增一个判断时先去 `is.ts` 加常量，再 import 使用。
+- 取当前窗口一律用 `getCurrentWebviewWindow()`（`@tauri-apps/api/webviewWindow`），**禁止**用 `getCurrentWindow()`（`@tauri-apps/api/window`）。前者返回 `WebviewWindow`，既能调窗口方法又能调 webview 方法（如 `setZoom`、emit 到自身 webview），后者只有窗口能力，遇到要操作 webview 时还得二次拿实例。
 - 表达「未定义」一律用 `void 0`，**禁止**写 `undefined` 字面量（包括判等 `x === undefined`、默认值、返回值等）。理由：`undefined` 在非严格作用域里可被遮蔽，`void 0` 是表达式恒等且更短。
 - 异步统一用 `async` / `await` + `try` / `catch`，**禁止**使用 `.then()` / `.catch()` / `.finally()` 链式写法（包括火并忘场景：`fn().catch(...)` 应改成 `async function wrapper() { try { await fn(); } catch {} }`）。理由：风格一致、错误处理与控制流在同一缩进、便于打断点。
 - 不要在前端写 SQL、不要做内容类型识别、不要算窗口坐标——这些调用 Rust 命令。
@@ -184,6 +185,11 @@ cargo test                    # Rust 单测（在 src-tauri 下）
   - `// removed` / `// TODO 之前的逻辑` 之类的历史残留。
   - TS 用 `// xxx` 多行做声明上方文档（应改 JSDoc 块）、Rust 用 `// xxx` 做声明文档（应改 `///`）。
 - 不写超出当前需求的抽象、兜底、向后兼容垫片。三行相似代码胜过过早抽象。
+- **不过度设计 React hook / 工具函数**——优先用框架原生能力，本项目是 React 19，能用编译器自动 memo 就别手动包：
+  - 不为「调用方可能传内联函数」预先 `useMemoizedFn` / `useRef` 锁存回调——React 19 编译器已处理；真出现重复触发再说。
+  - 不为「可能传对象 / 数组」加 `useRef` 缓存 + `Object.is` 自比对——直接在类型签名上把入参约束成基础类型（`string | number | boolean | null`），从源头杜绝。
+  - 不手动 `subscribe` + `useMount` + `useUnmount` + 三个 `useRef` 重写 `useEffect`——能用 `useSnapshot` + `useEffect` 表达就别另起炉灶。
+  - 准则：先写最短能跑的版本，遇到真问题再加抽象；不要为想象中的调用方"贴心"。
 - 提交信息遵循 Conventional Commits（commitlint 校验）。
 - 改动 UI 后，在浏览器/窗口里实际操作验证主路径与边界，不要只靠类型检查就声称完成。
 

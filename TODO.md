@@ -482,6 +482,22 @@
   >    i18n：`onboarding.{step1..step5}.{title,desc,action}` 与按钮文案（next / prev / skip / finish）两份语言同步补齐。
   >    触发时机：① 首次启动（`Settings.onboarding.completed == false`）；② 设置面板「关于 / 帮助」加「重新查看引导」按钮 → 调 `open_onboarding`；③ 主动重置（清掉 settings 文件）等价首次启动。不要在每次升级后强制重弹——后续大版本若新增关键步骤，单独做「版本更新提示」而非整套重走。
 
+### 8.11 每应用规则（Per-App Rules）
+
+- [ ] 支持按来源应用设置独立行为规则（纯文本粘贴 / 整体禁用 / 仅不捕获）
+  > 目标场景：① WPS 内粘贴默认强制纯文本；② 某些游戏内 EcoPaste 全部能力关闭（不监听、不唤窗、不注入按键）；③ 某些应用仅「不捕获」复制内容，但保留手动唤出和历史粘贴能力。
+  > 规则模型（Rust，`settings/model.rs`）：新增 `clipboard.app_rules: Vec<AppRule>`，`AppRule { app_id: String, app_name: String, behavior: AppBehavior }`。`app_id` 统一用 macOS bundle id / Windows exe 名（小写）做主键，`app_name` 仅展示。`AppBehavior` 三档：`force_plain_paste`、`disable_all`、`ignore_capture`。按列表顺序匹配第一条命中规则，后续可扩展优先级但本步先不做。
+  > 命中时机（Rust）：
+  >
+  > 1. 捕获链路（watcher）在 `persist_and_notify` 前读取当前前台应用 id，命中 `ignore_capture` 或 `disable_all` 则直接 return，不入库。
+  > 2. 粘贴链路（`paste_clipboard_item`）在执行前读取当前前台应用 id，命中 `force_plain_paste` 时无条件把 `plain=true`；命中 `disable_all` 时返回 `AppError::AppRuleBlocked`。
+  > 3. 唤窗/快捷键链路（`toggle_window` / shortcut callback）命中 `disable_all` 时拒绝打开主窗，避免游戏内误触弹窗。
+  >    平台实现：复用 7.1.5 的前台应用采集基础（macOS 走 `NSWorkspace.frontmostApplication`；Windows 增补 `GetForegroundWindow + GetWindowThreadProcessId + QueryFullProcessImageNameW` 提取 exe 名）。仅支持 macOS + Windows，不新增 Linux 分支。
+  >    前端设置页：`Preference > Clipboard` 新增“应用规则”区块，列表展示「应用名 + 行为」并支持新增/删除。新增时从两路来源选择：① 最近来源应用（`clipboard_apps`）；② 当前前台应用（命令 `get_frontmost_app`）。行为文案：`force_plain_paste=纯文本粘贴`、`disable_all=在该应用中禁用 EcoPaste`、`ignore_capture=不捕获该应用复制`。
+  >    与现有设置联动：`copyPlain/pastePlain` 是全局默认，`force_plain_paste` 属于按应用覆盖，优先级更高；`disable_all` 优先级最高（覆盖其他规则和全局设置）。
+  >    事件与提示：命中 `disable_all` 导致操作被拒时 emit `app-rule://blocked`（payload 含 app 与行为），前端用轻提示说明“当前应用已禁用 EcoPaste”。
+  >    i18n：新增 `settings.appRules.*`（标题、行为名称、空状态、添加/删除按钮、命中提示）中英文两份。
+
 ---
 
 # 阶段 9 · 打包、签名与发布
