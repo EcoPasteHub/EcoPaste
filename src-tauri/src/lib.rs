@@ -126,10 +126,6 @@ pub fn run() {
             if let Err(err) = window::macos::setup_main(&handle) {
                 log::error!("setup main NSPanel failed: {err:?}");
             }
-            #[cfg(target_os = "windows")]
-            if let Err(err) = window::windows::setup_main(&handle) {
-                log::error!("setup main (windows) failed: {err:?}");
-            }
 
             Ok(())
         })

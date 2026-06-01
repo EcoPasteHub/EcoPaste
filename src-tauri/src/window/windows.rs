@@ -7,13 +7,6 @@ use super::{get_window, MAIN_WINDOW_LABEL};
 use crate::core::Result;
 use crate::keyboard;
 
-/// setup 末尾调用：主窗口运行时不可聚焦，show 不抢前台。
-pub fn setup_main(app_handle: &AppHandle) -> Result<()> {
-    let main = get_window(app_handle, MAIN_WINDOW_LABEL)?;
-    main.set_focusable(false).map_err(|e| anyhow::anyhow!(e))?;
-    Ok(())
-}
-
 pub fn show_window(app_handle: &AppHandle, label: &str) -> Result<()> {
     let window = get_window(app_handle, label)?;
     window.show().map_err(|e| anyhow::anyhow!(e))?;
