@@ -37,11 +37,7 @@ const Header: FC = () => {
 
         <Tooltip title="固定窗口">
           <Button
-            icon={
-              <KeyHint hintKey="P">
-                <i className="i-lets-icons:pin text-4" />
-              </KeyHint>
-            }
+            icon={<KeyHint hintKey="P" iconName="i-lets-icons:pin" />}
             size="small"
             type="text"
           />
@@ -50,9 +46,11 @@ const Header: FC = () => {
         <Tooltip title="偏好设置">
           <Button
             icon={
-              <KeyHint hintKey="," onKeyPress={handleOpenPreference}>
-                <i className="i-lets-icons:meatballs-menu text-4" />
-              </KeyHint>
+              <KeyHint
+                hintKey=","
+                iconName="i-lets-icons:meatballs-menu"
+                onKeyPress={handleOpenPreference}
+              />
             }
             size="small"
             type="text"

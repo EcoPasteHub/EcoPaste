@@ -7,9 +7,12 @@ import List from "./components/List";
 const Clipboard = () => {
   return (
     <div
-      className={cn("flex h-screen flex-col bg-container p-2", {
-        "rounded-4": isMac,
-      })}
+      className={cn(
+        "flex size-screen flex-col overflow-hidden bg-container p-2",
+        {
+          "rounded-4": isMac,
+        },
+      )}
       data-tauri-drag-region
     >
       <Header />

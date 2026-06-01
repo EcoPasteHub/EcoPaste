@@ -10,7 +10,12 @@ interface KeyHintProps {
    */
   className?: string;
   /**
-   * 默认渲染的内容（通常是图标），修饰键未按下时显示。
+   * 默认展示的 UnoCSS 图标类名（如 "i-lets-icons:pin"），存在时优先于 children 渲染，
+   * 默认尺寸 text-4，需要其它尺寸时拼到类名里（如 "i-lets-icons:pin text-5"）。
+   */
+  iconName?: string;
+  /**
+   * 默认渲染的内容（通常是图标），修饰键未按下时显示；iconName 存在时被忽略。
    */
   children?: ReactNode;
   /**
@@ -29,7 +34,7 @@ interface KeyHintProps {
  * 时调用 `onKeyPress`，调用方无需再额外注册一份 `useKeyPress`。
  */
 const KeyHint: FC<KeyHintProps> = (props) => {
-  const { hintKey, onKeyPress, children, className } = props;
+  const { hintKey, onKeyPress, iconName, children, className } = props;
 
   const [active, setActive] = useState(false);
 
@@ -72,7 +77,9 @@ const KeyHint: FC<KeyHintProps> = (props) => {
 
   return (
     <div className="relative">
-      <div className="flex items-center justify-center">{children}</div>
+      <div className="flex items-center justify-center">
+        {iconName ? <i className={cn("text-4", iconName)} /> : children}
+      </div>
 
       {active && (
         <span
