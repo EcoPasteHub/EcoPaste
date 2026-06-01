@@ -6,6 +6,8 @@ mod db;
 #[cfg(target_os = "windows")]
 mod keyboard;
 mod keystroke;
+#[cfg(target_os = "windows")]
+mod mouse;
 mod settings;
 mod shortcut;
 mod tray;

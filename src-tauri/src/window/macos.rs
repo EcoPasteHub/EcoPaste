@@ -1,20 +1,13 @@
 //! macOS 窗口管理：主窗口转 NSPanel（show_and_make_key 拿键盘焦点但不激活 App），
 //! 其它窗口走常规 show/hide。
 
-use tauri::{AppHandle, Emitter, EventTarget, Manager};
+use tauri::{AppHandle, Manager};
 use tauri_nspanel::{
     tauri_panel, CollectionBehavior, ManagerExt, PanelLevel, StyleMask, WebviewWindowExt,
 };
 
 use super::{get_window, MAIN_WINDOW_LABEL, PREFERENCE_WINDOW_LABEL};
 use crate::core::Result;
-
-/// 复用 Tauri 原生事件名，前端已有的 listen("tauri://focus" 等) 能直接接住——
-/// NSPanel 化后 Tauri 自身不再触发这些事件，由我们手动 emit 补齐。
-const WINDOW_FOCUS_EVENT: &str = "tauri://focus";
-const WINDOW_BLUR_EVENT: &str = "tauri://blur";
-const WINDOW_MOVED_EVENT: &str = "tauri://move";
-const WINDOW_RESIZED_EVENT: &str = "tauri://resize";
 
 tauri_panel! {
     panel!(MainPanel {
@@ -26,10 +19,7 @@ tauri_panel! {
     })
 
     panel_event!(MainPanelEventHandler {
-        window_did_become_key(notification: &NSNotification) -> (),
         window_did_resign_key(notification: &NSNotification) -> (),
-        window_did_resize(notification: &NSNotification) -> (),
-        window_did_move(notification: &NSNotification) -> (),
     })
 }
 
@@ -60,43 +50,12 @@ pub fn setup_main(app_handle: &AppHandle) -> Result<()> {
 
     let handler = MainPanelEventHandler::new();
 
-    let window = main_window.clone();
-    handler.window_did_become_key(move |_| {
-        let _ = window.emit_to(
-            EventTarget::labeled(MAIN_WINDOW_LABEL),
-            WINDOW_FOCUS_EVENT,
-            true,
-        );
-    });
-
-    let window = main_window.clone();
+    let resign_handle = app_handle.clone();
     handler.window_did_resign_key(move |_| {
-        let _ = window.emit_to(
-            EventTarget::labeled(MAIN_WINDOW_LABEL),
-            WINDOW_BLUR_EVENT,
-            true,
-        );
-    });
-
-    let window = main_window.clone();
-    handler.window_did_resize(move |_| {
-        let target = EventTarget::labeled(MAIN_WINDOW_LABEL);
-        if let Ok(position) = window.outer_position() {
-            let _ = window.emit_to(target.clone(), WINDOW_MOVED_EVENT, position);
-        }
-        if let Ok(size) = window.inner_size() {
-            let _ = window.emit_to(target, WINDOW_RESIZED_EVENT, size);
-        }
-    });
-
-    let window = main_window.clone();
-    handler.window_did_move(move |_| {
-        if let Ok(position) = window.outer_position() {
-            let _ = window.emit_to(
-                EventTarget::labeled(MAIN_WINDOW_LABEL),
-                WINDOW_MOVED_EVENT,
-                position,
-            );
+        // 失焦即隐藏：Tauri 不主动隐藏 NSPanel，统一走 window::hide_window
+        // 以触发 `window://visibility` 等下游副作用。
+        if let Err(err) = super::hide_window(&resign_handle, MAIN_WINDOW_LABEL) {
+            log::warn!("auto-hide main window on resign-key failed: {err}");
         }
     });
 
