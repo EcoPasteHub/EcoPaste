@@ -1,5 +1,6 @@
 import type { FC, MouseEvent } from "react";
 import { useSnapshot } from "valtio";
+import { useKeyboardEvent } from "@/hooks/useKeyboardEvent";
 import { clipboardViewState } from "@/stores/clipboardView";
 import type { ClipboardGroup } from "@/types/clipboard";
 import { cn } from "@/utils/cn";
@@ -30,6 +31,22 @@ const Group: FC = () => {
 
     clipboardViewState.group = value;
   };
+
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key !== "Tab") return;
+
+    e.preventDefault();
+
+    const values = GROUP_OPTIONS.map((o) => o.value);
+    const current = values.indexOf(clipboardViewState.group);
+    const next = e.shiftKey
+      ? (current - 1 + values.length) % values.length
+      : (current + 1) % values.length;
+
+    clipboardViewState.group = values[next];
+  };
+
+  useKeyboardEvent("keydown", handleKeyDown);
 
   return (
     <div className="flex items-center gap-1 px-3 pb-2">
