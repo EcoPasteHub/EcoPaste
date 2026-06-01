@@ -3,20 +3,19 @@ import {
   type MenuItemOptions,
   type PredefinedMenuItemOptions,
 } from "@tauri-apps/api/menu";
-import { openUrl, revealItemInDir } from "@tauri-apps/plugin-opener";
 import { App } from "antd";
 import type { MouseEvent } from "react";
 import {
   deleteClipboardItem,
-  getClipboardItemContent,
+  openClipboardItemLink,
   pasteClipboardItem,
+  revealClipboardItem,
   toggleClipboardItemFavorite,
   writeToClipboard,
 } from "@/commands";
 import { settingsState } from "@/stores/settings";
 import type { ClipboardItem } from "@/types/clipboard";
 import { isMac } from "@/utils/is";
-import { log } from "@/utils/log";
 
 interface UseContextMenuProps {
   item: ClipboardItem;
@@ -39,59 +38,23 @@ const SEPARATOR: PredefinedMenuItemOptions = { item: "Separator" };
 /**
  * 列表项右键菜单：返回 `handleContextMenu`，绑到卡片根节点的 `onContextMenu`，
  * 右键时用 Tauri 原生菜单（`Menu.popup`）按 kind / subKind 弹出。
- * 粘贴 / 复制走后端命令；打开链接 / 发邮件 / 文件管理器显示需要原始完整值
- * （列表视图 text 类 content 被置空、summary 又截断），故先用
- * get_clipboard_item_content 按 id 拉完整值。删除是否二次确认由
- * clipboard.content.deleteConfirm 设置决定。
+ * 所有动作都走 `@/commands` 包装：粘贴 / 复制 / 收藏 / 删除 / 备注 由 Rust 同名命令完成；
+ * 打开链接 / 发邮件 / 文件管理器显示也下沉到 Rust（按 id 查 content + opener 调用），
+ * 前端无需再回查完整 content。
  */
 export const useContextMenu = (props: UseContextMenuProps) => {
   const { item, onRemoved, onFavoriteToggled, onEditNote } = props;
   const { kind, subKind, isFavorite } = item;
 
-  const { message, modal } = App.useApp();
-
-  /**
-   * 取条目完整 content：text 类在列表视图被裁剪，按 id 回查；files 类未裁剪，直接用。
-   */
-  const resolveContent = async () => {
-    if (kind === "files") return item.content;
-
-    const content = await getClipboardItemContent(item.id);
-
-    return content ?? "";
-  };
+  const { modal } = App.useApp();
 
   const pasteItem = (plain: boolean) => pasteClipboardItem(item.id, plain);
 
   const copy = () => writeToClipboard(item.id, false);
 
-  const openLink = async (mailto: boolean) => {
-    const value = (await resolveContent()).trim();
+  const openLink = (mailto: boolean) => openClipboardItemLink(item.id, mailto);
 
-    if (!value) return;
-
-    try {
-      await openUrl(mailto ? `mailto:${value}` : value);
-    } catch (error) {
-      log.error("open url failed", error);
-      message.error("打开失败");
-    }
-  };
-
-  const reveal = async () => {
-    const value = await resolveContent();
-    // files 的 content 是换行分隔的多路径，取首个定位。
-    const target = kind === "files" ? value.split("\n")[0] : value.trim();
-
-    if (!target) return;
-
-    try {
-      await revealItemInDir(target);
-    } catch (error) {
-      log.error("reveal item in dir failed", error);
-      message.error("打开位置失败");
-    }
-  };
+  const reveal = () => revealClipboardItem(item.id);
 
   const toggleFavorite = async () => {
     const next = await toggleClipboardItemFavorite(item.id, !isFavorite);

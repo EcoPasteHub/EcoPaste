@@ -94,15 +94,21 @@ export const countClipboardItems = () => {
 };
 
 /**
- * 按 id 取条目完整 content：列表视图的 text 类型 `content` 被裁剪置空，
- * 右键复制 / 打开链接前需先回查拿原值。
+ * 打开条目 URL：`mailto = true` 时 Rust 侧自动裹 `mailto:`。
+ * 用于右键菜单「打开链接 / 发送邮件」。
  */
-export const getClipboardItemContent = (id: string) => {
-  return call<string | null>(
-    TAURI_COMMAND.GET_CLIPBOARD_ITEM_CONTENT,
-    "读取内容",
-    { id },
-  );
+export const openClipboardItemLink = (id: string, mailto: boolean) => {
+  return call<void>(TAURI_COMMAND.OPEN_CLIPBOARD_ITEM_LINK, "打开链接", {
+    id,
+    mailto,
+  });
+};
+
+/**
+ * 在系统文件管理器中定位条目对应文件；Rust 侧自动按 kind 提路径（files 取首个，text 取 content）。
+ */
+export const revealClipboardItem = (id: string) => {
+  return call<void>(TAURI_COMMAND.REVEAL_CLIPBOARD_ITEM, "打开位置", { id });
 };
 
 /**

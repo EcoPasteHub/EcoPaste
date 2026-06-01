@@ -102,6 +102,7 @@ cargo test                    # Rust 单测（在 src-tauri 下）
 - **改 schema 必须同步改所有相关 SQL 和测试**：新增/删除字段时，逐一检查 `SELECT` 列表、`INSERT` 列与 `bind` 参数、`UPDATE` 语句、以及 `db/*.rs` 测试里手写的结构体字面量。`sqlx::query_as` 是运行时映射，字段对不上时整个查询返回空结果而不报错——UI 上表现为"什么都不显示"。
 - 表必须有 `created_at` 和 `updated_at` 两个字段，类型 `TEXT NOT NULL`；`UPDATE` 语句要同步更新 `updated_at`。
 - 错误处理用 `thiserror`（定义错误类型）+ `anyhow`（内部传播），日志用 `tauri-plugin-log`。
+- `AppError` 序列化为 `{ kind, message }` 暴露给前端（见 `core/error.rs`）。其中 `message` 是**给用户看的根因文案**——**禁止**再叠加 `"xxx failed: {err}"` 这种英文动作前缀；动作上下文由前端 `commands/index.ts` 里的 `label`（"粘贴 / 复制 / 打开链接 …"）拼成 toast。错误构造时直接把根因丢进去即可：`AppError::Clipboard(err.to_string())` / `AppError::Clipboard(format!("clipboard item not found: {id}"))`（带必要参数 OK，不带「失败」字样即可）。需要开发期定位的额外上下文走 `log::error!` / `log::warn!`，不要塞进 `message`。
 - `commands/` 层保持薄：参数校验 + 调用 `db`/`clipboard`/`window` 等模块，不写业务逻辑。
 - 处理自身写回剪贴板导致的监听回环（写回时打标记抑制下一次监听）。
 

@@ -536,15 +536,68 @@ pub async fn update_clipboard_item_note(
     Ok(auto_favorited)
 }
 
-/// 按 `id` 返回完整 `content`（未经列表视图裁剪），不存在返回 `None`。
-/// 右键菜单「打开链接 / 发送邮件 / 文件管理器显示」据此取原始值——
-/// 列表视图 text 类 `content` 被置空、`summary` 又按字符截断，二者都不可靠。
+/// 打开条目 URL：按 `id` 取完整 `content`，trim 后用系统默认浏览器/邮件 client 打开。
+/// `mailto = true` 时自动补 `mailto:` 前缀，供右键菜单「发送邮件」复用。
+/// 仅适用于 text 类条目；files 类调用方应改用 `reveal_clipboard_item`。
 #[tauri::command]
-pub async fn get_clipboard_item_content(
+pub async fn open_clipboard_item_link(
+    app: AppHandle,
     pool: State<'_, SqlitePool>,
     id: String,
-) -> Result<Option<String>> {
-    Ok(find_item_by_id(&pool, &id).await?.map(|item| item.content))
+    mailto: bool,
+) -> Result<()> {
+    use tauri_plugin_opener::OpenerExt;
+
+    let item = find_item_by_id(&pool, &id)
+        .await?
+        .ok_or_else(|| AppError::Clipboard(format!("clipboard item not found: {id}")))?;
+
+    let value = item.content.trim();
+    if value.is_empty() {
+        return Ok(());
+    }
+
+    let url = if mailto {
+        format!("mailto:{value}")
+    } else {
+        value.to_owned()
+    };
+
+    app.opener()
+        .open_url(url, None::<&str>)
+        .map_err(|err| AppError::Clipboard(err.to_string()))
+}
+
+/// 在系统文件管理器中显示条目对应文件：files 类取第一条路径，text 类（subKind=path）按 trim 后的字面量。
+#[tauri::command]
+pub async fn reveal_clipboard_item(
+    app: AppHandle,
+    pool: State<'_, SqlitePool>,
+    id: String,
+) -> Result<()> {
+    use tauri_plugin_opener::OpenerExt;
+
+    let item = find_item_by_id(&pool, &id)
+        .await?
+        .ok_or_else(|| AppError::Clipboard(format!("clipboard item not found: {id}")))?;
+
+    let target = if item.kind == ClipboardKind::Files {
+        item.content
+            .split('\n')
+            .find(|s| !s.is_empty())
+            .unwrap_or("")
+            .to_owned()
+    } else {
+        item.content.trim().to_owned()
+    };
+
+    if target.is_empty() {
+        return Ok(());
+    }
+
+    app.opener()
+        .reveal_item_in_dir(&target)
+        .map_err(|err| AppError::Clipboard(err.to_string()))
 }
 
 /// 校验图片文件名：必须是单层 `<name>.png`，不含路径分隔符 / 父目录引用。
