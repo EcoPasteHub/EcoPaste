@@ -1,6 +1,6 @@
-import { convertFileSrc } from "@tauri-apps/api/core";
 import type { FC } from "react";
 import { useMemo } from "react";
+import AssetImage from "@/components/AssetImage";
 import type { ClipboardItem } from "@/types/clipboard";
 import { isImage } from "@/utils/is";
 
@@ -14,13 +14,7 @@ const FilesCard: FC<ClipboardItem> = (props) => {
   const singleImageFile = useMemo(() => getSingleImageFile(entries), [entries]);
 
   if (singleImageFile) {
-    return (
-      <img
-        alt={singleImageFile.path}
-        className="max-h-21"
-        src={convertFileSrc(singleImageFile.path)}
-      />
-    );
+    return <AssetImage className="max-h-21" src={singleImageFile.path} />;
   }
 
   return (
@@ -31,13 +25,9 @@ const FilesCard: FC<ClipboardItem> = (props) => {
           key={`${entry.path}-${entry.type}`}
           title={entry.path}
         >
-          <img
-            alt=""
-            className="size-5 shrink-0 rounded-0.5"
-            src={convertFileSrc(entry.iconPath)}
-          />
+          <AssetImage className="size-5" src={entry.iconPath} />
 
-          <span className="truncate">{entry.path}</span>
+          <span className="truncate">{getFileName(entry.path)}</span>
         </div>
       ))}
     </div>
@@ -85,6 +75,20 @@ const getSingleImageFile = (entries: FileEntry[]): FileEntry | null => {
   if (!isImage(entry.path)) return null;
 
   return entry;
+};
+
+/**
+ * 从完整路径中取出最后一级名称，兼容 macOS 的 `/` 和 Windows 的 `\`。
+ */
+const getFileName = (path: string) => {
+  const separatorIndex = Math.max(
+    path.lastIndexOf("/"),
+    path.lastIndexOf("\\"),
+  );
+
+  if (separatorIndex < 0) return path;
+
+  return path.slice(separatorIndex + 1);
 };
 
 export default FilesCard;

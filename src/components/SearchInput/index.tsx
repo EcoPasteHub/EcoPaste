@@ -45,6 +45,7 @@ const SearchInput: FC<Omit<InputProps, "prefix">> = (props) => {
 
   return (
     <Input
+      autoCorrect="off"
       onChange={handleChange}
       onCompositionEnd={handleCompositionEnd}
       onCompositionStart={handleCompositionStart}

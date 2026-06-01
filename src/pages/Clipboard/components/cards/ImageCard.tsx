@@ -1,5 +1,5 @@
-import { convertFileSrc } from "@tauri-apps/api/core";
 import type { FC } from "react";
+import AssetImage from "@/components/AssetImage";
 import type { ClipboardItem } from "@/types/clipboard";
 
 /**
@@ -9,13 +9,7 @@ import type { ClipboardItem } from "@/types/clipboard";
 const ImageCard: FC<ClipboardItem> = (props) => {
   const { imageThumbnailPath } = props;
 
-  return (
-    <img
-      alt="Clipboard content"
-      className="max-h-21"
-      src={convertFileSrc(imageThumbnailPath ?? "")}
-    />
-  );
+  return <AssetImage className="max-h-21" src={imageThumbnailPath} />;
 };
 
 export default ImageCard;

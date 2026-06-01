@@ -1,6 +1,6 @@
-import { convertFileSrc } from "@tauri-apps/api/core";
 import dayjs from "dayjs";
 import type { FC } from "react";
+import AssetImage from "@/components/AssetImage";
 import type { ClipboardItem } from "@/types/clipboard";
 import FilesCard from "./FilesCard";
 import ImageCard from "./ImageCard";
@@ -21,10 +21,10 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
     <div className="b b-border-secondary flex flex-col gap-1 rounded-2 p-2">
       <div className="flex items-center justify-between text-secondary text-xs">
         <div className="flex items-center gap-1 overflow-hidden">
-          <img
+          <AssetImage
             alt={sourceAppName}
             className="size-4"
-            src={convertFileSrc(sourceAppIconPath ?? "")}
+            src={sourceAppIconPath}
           />
 
           <span className="truncate uppercase">{subKind ?? kind}</span>
