@@ -32,7 +32,6 @@ const KeyHint: FC<KeyHintProps> = (props) => {
   const { hintKey, onKeyPress, children, className } = props;
 
   const [active, setActive] = useState(false);
-  const normalizedHintKey = hintKey.toLowerCase();
 
   /**
    * 修饰键按下时展示快捷键提示；完整组合键命中时触发业务回调。
@@ -44,9 +43,10 @@ const KeyHint: FC<KeyHintProps> = (props) => {
 
     setActive(true);
 
-    if (event.key.toLowerCase() !== normalizedHintKey) return;
+    if (event.key.toLowerCase() !== hintKey.toLowerCase()) return;
 
     event.preventDefault();
+
     onKeyPress?.(event);
   };
 
