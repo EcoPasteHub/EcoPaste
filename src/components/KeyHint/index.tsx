@@ -4,8 +4,6 @@ import { useKeyboardEvent } from "@/hooks/useKeyboardEvent";
 import { cn } from "@/utils/cn";
 import { isMac } from "@/utils/is";
 
-type Modifier = "auto" | "meta" | "ctrl" | "alt" | "shift";
-
 interface KeyHintProps {
   /**
    * 徽标自定义类名。
@@ -20,50 +18,25 @@ interface KeyHintProps {
    */
   hintKey: string;
   /**
-   * 触发的修饰键。`auto` 时 macOS 用 ⌘、Windows 用 Ctrl。
-   */
-  modifier?: Modifier;
-  /**
-   * 按下完整组合键（修饰键 + hintKey）时触发；事件默认会被 preventDefault。
+   * 按下完整组合键（macOS: ⌘+key / Windows: Ctrl+key）时触发；事件默认会被 preventDefault。
    */
   onKeyPress?: (event: KeyboardEvent) => void;
 }
 
 /**
- * 把 `auto` 解析为当前平台真实修饰键名。
- */
-const resolveModifier = (modifier: Modifier) => {
-  return modifier === "auto" ? (isMac ? "meta" : "ctrl") : modifier;
-};
-
-/**
- * 判断键盘事件中目标修饰键是否处于按下状态。
- */
-const isModifierPressed = (event: KeyboardEvent, modifier: Modifier) => {
-  switch (resolveModifier(modifier)) {
-    case "meta":
-      return event.metaKey;
-    case "ctrl":
-      return event.ctrlKey;
-    case "alt":
-      return event.altKey;
-    case "shift":
-      return event.shiftKey;
-  }
-};
-
-/**
  * 通用的快捷键提示包装：默认渲染 `children`（图标等），当用户按下修饰键时，
- * 切换为一个黑底白字的小徽标展示 `hintKey`；按下完整组合键（修饰键 + hintKey）
+ * 切换为一个黑底白字的小徽标展示 `hintKey`；按下完整组合键（macOS: ⌘+key / Windows: Ctrl+key）
  * 时调用 `onKeyPress`，调用方无需再额外注册一份 `useKeyPress`。
  */
 const KeyHint: FC<KeyHintProps> = (props) => {
-  const { hintKey, modifier = "auto", onKeyPress, children, className } = props;
+  const { hintKey, onKeyPress, children, className } = props;
 
   const [active, setActive] = useState(false);
 
   const handleKeyDown = (event: KeyboardEvent) => {
-    if (!isModifierPressed(event, modifier)) return;
+    const isModifierPressed = isMac ? event.metaKey : event.ctrlKey;
+
+    if (!isModifierPressed) return;
 
     setActive(true);
   };
@@ -81,8 +54,10 @@ const KeyHint: FC<KeyHintProps> = (props) => {
 
   useEventListener("blur", handleBlur, { target: window });
 
+  const modifierKey = isMac ? "meta" : "ctrl";
+
   useKeyPress(
-    `${resolveModifier(modifier)}.${hintKey.toLowerCase()}`,
+    `${modifierKey}.${hintKey.toLowerCase()}`,
     (event) => {
       event.preventDefault();
       onKeyPress?.(event);
