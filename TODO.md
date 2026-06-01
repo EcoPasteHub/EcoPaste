@@ -523,6 +523,14 @@
 
 - [ ] release-it 配置（release / release-rc / release-beta）
 
+### 9.5 Portable 版本
+
+- [ ] 范围限制：Portable 仅提供 Windows 版本
+- [ ] 增加 `--portable` 运行模式（数据目录切到可执行文件同级 `data/`，不写系统目录）
+- [ ] Windows 提供免安装压缩包（zip），解压即用
+- [ ] 便携模式与安装版并存：命令行参数、数据目录、自动启动能力互不影响
+- [ ] 发布清单补充 portable 包产物与校验（SHA256）
+
 ---
 
 # 阶段 10 · 测试与质量保障
