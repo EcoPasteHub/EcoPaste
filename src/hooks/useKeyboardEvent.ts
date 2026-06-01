@@ -2,7 +2,7 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { useEventListener } from "ahooks";
 import { useEffect } from "react";
 import { TAURI_EVENT } from "@/constants/events";
-import { isWin } from "@/utils/is";
+import { isWinMainWindow } from "@/utils/is";
 import { log } from "@/utils/log";
 
 type KeyboardEventType = "keydown" | "keyup";
@@ -37,7 +37,8 @@ const navActionToKey = (action: string): string => {
  * 跨平台键盘事件监听 hook。
  *
  * - macOS：直接监听 window 原生键盘事件（NSPanel 有焦点）
- * - Windows：监听 Rust 通过低级钩子 emit 的 `keyboard://nav` 事件（主窗口 focusable=false）
+ * - Windows 主窗口：监听 Rust 通过低级钩子 emit 的 `keyboard://nav` 事件（focusable=false）
+ * - Windows 其他窗口：直接监听 window 原生键盘事件（focusable=true）
  *
  * 对外暴露统一的 KeyboardEvent 接口，调用方无需关心平台差异。
  */
@@ -45,12 +46,14 @@ export const useKeyboardEvent = (
   type: KeyboardEventType,
   handler: (event: KeyboardEvent) => void,
 ) => {
-  // macOS：直接用 window 事件
-  useEventListener(type, handler, { enable: !isWin });
+  const needsRustNavEvent = isWinMainWindow();
 
-  // Windows：监听 Tauri nav 事件，转换成 KeyboardEvent 格式
+  // macOS 或 Windows 非主窗口：直接用 window 事件
+  useEventListener(type, handler, { enable: !needsRustNavEvent });
+
+  // Windows 主窗口：监听 Tauri nav 事件，转换成 KeyboardEvent 格式
   useEffect(() => {
-    if (!isWin || type !== "keydown") return;
+    if (!needsRustNavEvent || type !== "keydown") return;
 
     let unlistenFn: (() => void) | undefined;
 
@@ -81,5 +84,5 @@ export const useKeyboardEvent = (
         unlistenFn();
       }
     };
-  }, [type, handler]);
+  }, [type, handler, needsRustNavEvent]);
 };
