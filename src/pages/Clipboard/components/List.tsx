@@ -16,7 +16,7 @@ import ClipboardCard from "./cards/ClipboardCard";
  * 跟随关键词（Header 已防抖）检索。
  */
 const List: FC = () => {
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
 
   const snapshot = useSnapshot(clipboardViewState);
@@ -38,7 +38,7 @@ const List: FC = () => {
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: query 作触发器，不需在回调内读取
   useEffect(() => {
-    setSelectedIndex(0);
+    setSelectedId(null);
   }, [query]);
 
   const handleKeyDown = (e: KeyboardEvent) => {
@@ -47,12 +47,20 @@ const List: FC = () => {
 
     e.preventDefault();
 
+    const currentIndex =
+      selectedId === null
+        ? 0
+        : Math.max(
+            0,
+            items.findIndex((item) => item.id === selectedId),
+          );
+
     const next =
       e.key === "ArrowUp"
-        ? Math.max(0, selectedIndex - 1)
-        : Math.min(items.length - 1, selectedIndex + 1);
+        ? Math.max(0, currentIndex - 1)
+        : Math.min(items.length - 1, currentIndex + 1);
 
-    setSelectedIndex(next);
+    setSelectedId(items[next].id);
     virtuosoRef.current?.scrollIntoView({ behavior: "smooth", index: next });
   };
 
@@ -115,12 +123,14 @@ const List: FC = () => {
   );
 
   function renderItemContent(index: number, item: ClipboardItem) {
-    const handleMouseEnter = () => setSelectedIndex(index);
+    const handleMouseEnter = () => setSelectedId(item.id);
 
     return (
       <div className={cn("px-3", { "pt-3": index !== 0 })}>
         <ClipboardCard
-          isSelected={index === selectedIndex}
+          isSelected={
+            selectedId === null ? index === 0 : item.id === selectedId
+          }
           item={item}
           onMouseEnter={handleMouseEnter}
         />
