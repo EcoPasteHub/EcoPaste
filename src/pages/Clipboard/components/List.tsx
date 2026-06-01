@@ -12,6 +12,7 @@ import { useTauriListen } from "@/hooks/useTauriListen";
 import { clipboardViewState } from "@/stores/clipboardView";
 import type { ClipboardItem, ClipboardItemQuery } from "@/types/clipboard";
 import { cn } from "@/utils/cn";
+import { isMac } from "@/utils/is";
 import ClipboardCard from "./cards/ClipboardCard";
 import NoteModal from "./NoteModal";
 
@@ -122,8 +123,9 @@ const List: FC = () => {
       e.preventDefault();
 
       const activeId = selectedId === null ? items[0].id : selectedId;
+      const plain = isMac ? e.metaKey : e.ctrlKey;
 
-      pasteClipboardItem(activeId, false);
+      pasteClipboardItem(activeId, plain);
 
       return;
     }
