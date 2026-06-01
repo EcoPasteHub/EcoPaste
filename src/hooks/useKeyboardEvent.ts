@@ -1,23 +1,25 @@
 import { listen } from "@tauri-apps/api/event";
-import { useEventListener } from "ahooks";
-import { useEffect } from "react";
+import { useEventListener, useMount, useUnmount } from "ahooks";
+import { useRef } from "react";
 import { TAURI_EVENT } from "@/constants/events";
 import { isWinMainWindow } from "@/utils/is";
 import { log } from "@/utils/log";
 
 type KeyboardEventType = "keydown" | "keyup";
 
+type NavAction =
+  | "up"
+  | "down"
+  | "enter"
+  | "escape"
+  | "nextTab"
+  | "prevTab"
+  | "ctrlDown"
+  | "ctrlUp"
+  | "shortcut";
+
 interface NavEventPayload {
-  action:
-    | "up"
-    | "down"
-    | "enter"
-    | "escape"
-    | "nextTab"
-    | "prevTab"
-    | "ctrlDown"
-    | "ctrlUp"
-    | "shortcut";
+  action: NavAction;
   key?: string;
 }
 
@@ -54,6 +56,27 @@ const navActionToKeyboardInit = (
 };
 
 /**
+ * 将 Rust nav payload 转成 KeyboardEvent 并分发到 window。
+ */
+const dispatchNavPayloadAsKeyboardEvent = (event: {
+  payload: NavEventPayload;
+}) => {
+  const keyboardInit = navActionToKeyboardInit(event.payload);
+
+  if (!keyboardInit) return;
+
+  const syntheticEvent = new KeyboardEvent(keyboardInit.type, {
+    bubbles: true,
+    cancelable: true,
+    ctrlKey: keyboardInit.ctrlKey,
+    key: keyboardInit.key,
+    shiftKey: keyboardInit.shiftKey,
+  });
+
+  window.dispatchEvent(syntheticEvent);
+};
+
+/**
  * 跨平台键盘事件监听 hook。
  *
  * - macOS：直接监听 window 原生键盘事件（NSPanel 有焦点）
@@ -67,47 +90,41 @@ export const useKeyboardEvent = (
   handler: (event: KeyboardEvent) => void,
 ) => {
   const needsRustNavEvent = isWinMainWindow();
+  const unlistenRef = useRef<(() => void) | null>(null);
 
-  // macOS 或 Windows 非主窗口：直接用 window 事件
-  useEventListener(type, handler, { enable: !needsRustNavEvent });
+  // 统一通过 window 事件分发，Windows 主窗口由 Rust 事件桥接补齐。
+  useEventListener(type, handler);
 
-  // Windows 主窗口：监听 Tauri nav 事件，转换成 KeyboardEvent 格式
-  useEffect(() => {
+  /**
+   * 注册 Windows 主窗口的 Rust 键盘事件监听。
+   */
+  const setupRustNavListener = async () => {
     if (!needsRustNavEvent) return;
 
-    let unlistenFn: (() => void) | undefined;
+    try {
+      unlistenRef.current = await listen<NavEventPayload>(
+        TAURI_EVENT.KEYBOARD_NAV,
+        dispatchNavPayloadAsKeyboardEvent,
+      );
+    } catch (err) {
+      log.error("Failed to listen keyboard nav event", err);
+    }
+  };
 
-    const setupListener = async () => {
-      try {
-        unlistenFn = await listen<NavEventPayload>(
-          TAURI_EVENT.KEYBOARD_NAV,
-          ({ payload }) => {
-            const keyboardInit = navActionToKeyboardInit(payload);
-            if (!keyboardInit) return;
-            if (keyboardInit.type !== type) return;
+  /**
+   * 注销 Rust 键盘事件监听，避免窗口销毁后残留订阅。
+   */
+  const cleanupRustNavListener = () => {
+    const unlisten = unlistenRef.current;
 
-            const syntheticEvent = new KeyboardEvent(keyboardInit.type, {
-              bubbles: true,
-              cancelable: true,
-              ctrlKey: keyboardInit.ctrlKey,
-              key: keyboardInit.key,
-              shiftKey: keyboardInit.shiftKey,
-            });
+    if (!unlisten) return;
 
-            handler(syntheticEvent);
-          },
-        );
-      } catch (err) {
-        log.error("Failed to listen keyboard nav event", err);
-      }
-    };
+    unlisten();
 
-    setupListener();
+    unlistenRef.current = null;
+  };
 
-    return () => {
-      if (unlistenFn) {
-        unlistenFn();
-      }
-    };
-  }, [type, handler, needsRustNavEvent]);
+  useMount(setupRustNavListener);
+
+  useUnmount(cleanupRustNavListener);
 };
