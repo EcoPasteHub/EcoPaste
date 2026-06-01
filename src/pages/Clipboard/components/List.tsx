@@ -1,9 +1,11 @@
 import { useCreation } from "ahooks";
 import { Empty, Spin } from "antd";
 import type { FC } from "react";
-import { Virtuoso } from "react-virtuoso";
+import { useEffect, useRef, useState } from "react";
+import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import { useSnapshot } from "valtio";
 import { useClipboardItems } from "@/hooks/useClipboardItems";
+import { useKeyboardEvent } from "@/hooks/useKeyboardEvent";
 import { clipboardViewState } from "@/stores/clipboardView";
 import type { ClipboardItem, ClipboardItemQuery } from "@/types/clipboard";
 import { cn } from "@/utils/cn";
@@ -14,6 +16,9 @@ import ClipboardCard from "./cards/ClipboardCard";
  * 跟随关键词（Header 已防抖）检索。
  */
 const List: FC = () => {
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const virtuosoRef = useRef<VirtuosoHandle>(null);
+
   const snapshot = useSnapshot(clipboardViewState);
   const { keyword, ...rest } = snapshot;
 
@@ -25,6 +30,28 @@ const List: FC = () => {
   const { data, loading, loadingMore, loadMore, noMore } =
     useClipboardItems(query);
   const items = data?.list ?? [];
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: query 作触发器，不需在回调内读取
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [query]);
+
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
+    if (items.length === 0) return;
+
+    e.preventDefault();
+
+    const next =
+      e.key === "ArrowUp"
+        ? Math.max(0, selectedIndex - 1)
+        : Math.min(items.length - 1, selectedIndex + 1);
+
+    setSelectedIndex(next);
+    virtuosoRef.current?.scrollIntoView({ behavior: "smooth", index: next });
+  };
+
+  useKeyboardEvent("keydown", handleKeyDown);
 
   if (loading && items.length === 0) {
     return (
@@ -76,18 +103,27 @@ const List: FC = () => {
         data={items}
         endReached={handleEndReached}
         increaseViewportBy={400}
-        itemContent={renderItem}
+        itemContent={renderItemContent}
+        ref={virtuosoRef}
       />
     </div>
   );
+
+  function renderItemContent(index: number, item: ClipboardItem) {
+    const handleMouseEnter = () => setSelectedIndex(index);
+
+    return (
+      <div className={cn("px-3", { "pt-3": index !== 0 })}>
+        <ClipboardCard
+          isSelected={index === selectedIndex}
+          item={item}
+          onMouseEnter={handleMouseEnter}
+        />
+      </div>
+    );
+  }
 };
 
 const computeItemKey = (_: number, item: ClipboardItem) => item.id;
-
-const renderItem = (index: number, item: ClipboardItem) => (
-  <div className={cn("px-3", { "pt-3": index !== 0 })}>
-    <ClipboardCard item={item} />
-  </div>
-);
 
 export default List;
