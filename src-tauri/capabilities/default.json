@@ -8,7 +8,8 @@
     "log:default",
     "os:default",
     "core:window:allow-start-dragging",
-    "opener:default"
+    "opener:default",
+    "core:window:deny-internal-toggle-maximize"
   ],
   "windows": ["main", "preference"]
 }
