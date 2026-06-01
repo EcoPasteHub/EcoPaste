@@ -20,7 +20,7 @@ use crate::db::models::{ClipboardItem, ClipboardKind, ClipboardSubKind, Platform
 
 /// 列表渲染用摘要的最大字符数（按 Unicode 标量计，不是字节）。
 /// 超过此长度的文本会被截断，前端列表只渲染摘要，预览/写回时再读完整 `content`。
-pub const SUMMARY_MAX_CHARS: usize = 512;
+pub const SUMMARY_MAX_CHARS: usize = 256;
 
 /// 从纯文本生成列表摘要：trim 后按 [`SUMMARY_MAX_CHARS`] 字符截断。
 /// 输入空串返回 `None`。HTML/RTF 也用这个，输入是 OS 同时提供的纯文本，不解析富文本。
