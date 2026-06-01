@@ -1,4 +1,5 @@
 import { Button, Empty, Tooltip } from "antd";
+import KeyHint from "@/components/KeyHint";
 import SearchInput from "@/components/SearchInput";
 import { cn } from "@/utils/cn";
 import { isMac } from "@/utils/is";
@@ -23,7 +24,11 @@ const Clipboard = () => {
 
           <Tooltip title="固定窗口">
             <Button
-              icon={<i className="i-lets-icons:pin text-4" />}
+              icon={
+                <KeyHint hintKey="P">
+                  <i className="i-lets-icons:pin text-4" />
+                </KeyHint>
+              }
               size="small"
               type="text"
             />
