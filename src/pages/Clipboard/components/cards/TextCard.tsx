@@ -33,7 +33,7 @@ const TextCard: FC<ClipboardItem> = (props) => {
     );
   }
 
-  return <div className="line-clamp-4 whitespace-pre-wrap">{summary}</div>;
+  return <div className="line-clamp-3 whitespace-pre-wrap">{summary}</div>;
 };
 
 export default TextCard;
