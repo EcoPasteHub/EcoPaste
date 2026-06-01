@@ -14,12 +14,23 @@ const SELECT_ITEM: &str = "SELECT id, kind, sub_kind, group_id, source_app_id, c
 /// 由前端用 `summary` 渲染。HTML/RTF/长纯文本可能很大（用户复制整段文档），
 /// 整段过 IPC + 进 DOM 是这条链路最昂贵的一环；image/files 的 content 是
 /// 文件名 / 路径列表，保留原值。预览/写回走 [`find_item_by_id`] 拿完整 content。
-const LIST_SELECT_ITEM: &str = "SELECT id, kind, sub_kind, group_id, source_app_id, \
-     CASE WHEN kind = 'text' THEN '' ELSE content END AS content, \
-     content_hash, \
-     CASE WHEN kind = 'text' THEN NULL ELSE search_text END AS search_text, \
-     summary, file_types, size, width, height, use_count, is_favorite, is_pinned, \
-     platform, note, created_at, updated_at FROM clipboard_items";
+///
+/// LEFT JOIN `clipboard_apps` 顺带把来源应用名 / 图标文件名带回，前端直接渲染，
+/// 不再额外发 list_clipboard_apps + get_clipboard_app_icon_path 请求。
+const LIST_SELECT_ITEM: &str = "SELECT clipboard_items.id, clipboard_items.kind, \
+     clipboard_items.sub_kind, clipboard_items.group_id, clipboard_items.source_app_id, \
+     CASE WHEN clipboard_items.kind = 'text' THEN '' ELSE clipboard_items.content END AS content, \
+     clipboard_items.content_hash, \
+     CASE WHEN clipboard_items.kind = 'text' THEN NULL ELSE clipboard_items.search_text END AS search_text, \
+     clipboard_items.summary, clipboard_items.file_types, clipboard_items.size, \
+     clipboard_items.width, clipboard_items.height, clipboard_items.use_count, \
+     clipboard_items.is_favorite, clipboard_items.is_pinned, \
+     clipboard_items.platform, clipboard_items.note, \
+     clipboard_items.created_at, clipboard_items.updated_at, \
+     clipboard_apps.name AS source_app_name, \
+     clipboard_apps.icon_file AS source_app_icon_file \
+     FROM clipboard_items \
+     LEFT JOIN clipboard_apps ON clipboard_apps.id = clipboard_items.source_app_id";
 
 /// 入库去重的结果：`id` 为生效行的主键（命中时是已有行，未命中时是新插入行），
 /// `deduplicated` 表示是否命中了已有内容（命中则只 `use_count + 1` 未插入新行）。
@@ -122,22 +133,10 @@ pub async fn insert_item(pool: &SqlitePool, item: &ClipboardItem) -> Result<()> 
 }
 
 /// 统一列表查询：过滤 + 分页 + 排序（置顶项恒前置）。
-/// `keyword` 非空时委托 [`search_items_fts`] 走 FTS5，否则普通检索。
+/// `keyword` 按字符长度分流：≥3 走 FTS5（trigram 分词），1–2 走 `LIKE '%kw%'`
+/// （兜底短词；trigram 索引最短 3 字符，对 1–2 字符词永远 0 命中）。
 pub async fn query_items(pool: &SqlitePool, q: &ClipboardItemQuery) -> Result<Vec<ClipboardItem>> {
-    match fts_match_expr(q.keyword.as_deref()) {
-        Some(_) => search_items_fts(pool, q).await,
-        None => fetch_items(pool, q, None).await,
-    }
-}
-
-/// 基于 `clipboard_items_fts` 的关键词前缀检索，复用 [`query_items`] 的过滤/分页/排序。
-/// 由 [`query_items`] 在 `keyword` 非空时调用；直接调用且 `keyword` 为空时退化为普通查询。
-pub async fn search_items_fts(
-    pool: &SqlitePool,
-    q: &ClipboardItemQuery,
-) -> Result<Vec<ClipboardItem>> {
-    let match_expr = fts_match_expr(q.keyword.as_deref());
-    fetch_items(pool, q, match_expr).await
+    fetch_items(pool, q, KeywordFilter::from_keyword(q.keyword.as_deref())).await
 }
 
 /// 按 `id` 查找单条记录，不存在时返回 `None`。
@@ -162,7 +161,8 @@ pub async fn find_item_for_list_by_id(
     id: &str,
 ) -> Result<Option<ClipboardItem>> {
     let mut qb: QueryBuilder<Sqlite> = QueryBuilder::new(LIST_SELECT_ITEM);
-    qb.push(" WHERE id = ").push_bind(id.to_owned());
+    qb.push(" WHERE clipboard_items.id = ")
+        .push_bind(id.to_owned());
 
     let item = qb
         .build_query_as::<ClipboardItem>()
@@ -347,14 +347,37 @@ pub async fn clear_items(pool: &SqlitePool, keep_favorite: bool) -> Result<u64> 
     Ok(result.rows_affected())
 }
 
+/// 关键词过滤分流：≥3 字符走 FTS5（trigram），1–2 字符走 LIKE 兜底，空 / 仅空白不过滤。
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum KeywordFilter {
+    None,
+    /// `clipboard_items_fts MATCH ?` 的表达式，已含前缀通配。
+    Fts(String),
+    /// 已转义 `% _ \` 的关键词；下游统一拼成 `%<kw>%` 多列模糊匹配。
+    Like(String),
+}
+
+impl KeywordFilter {
+    /// 按字符数（非字节）判定走 FTS 还是 LIKE。CJK 一个字符也算 1，
+    /// 与 trigram 的 3 字符门槛保持一致。
+    fn from_keyword(keyword: Option<&str>) -> Self {
+        let Some(trimmed) = keyword.map(str::trim).filter(|s| !s.is_empty()) else {
+            return Self::None;
+        };
+
+        if trimmed.chars().count() >= 3 {
+            if let Some(expr) = build_fts_expr(trimmed) {
+                return Self::Fts(expr);
+            }
+        }
+
+        Self::Like(escape_like(trimmed))
+    }
+}
+
 /// 把用户关键词拆成 FTS5 前缀匹配表达式（如 `foo bar` -> `"foo"* "bar"*`）。
 /// 双引号包裹 + 转义，避免关键词中的 FTS5 语法字符被当作运算符。空白关键词返回 `None`。
-fn fts_match_expr(keyword: Option<&str>) -> Option<String> {
-    let keyword = keyword?.trim();
-    if keyword.is_empty() {
-        return None;
-    }
-
+fn build_fts_expr(keyword: &str) -> Option<String> {
     let expr = keyword
         .split_whitespace()
         .map(|token| format!("\"{}\"*", token.replace('"', "\"\"")))
@@ -364,43 +387,73 @@ fn fts_match_expr(keyword: Option<&str>) -> Option<String> {
     (!expr.is_empty()).then_some(expr)
 }
 
-/// 拼装查询：过滤（含可选 FTS 匹配） + 排序（置顶恒前置） + 分页。
+/// 转义 LIKE 的特殊字符（`\ % _`），配合 SQL 端 `ESCAPE '\\'`。
+fn escape_like(keyword: &str) -> String {
+    let mut out = String::with_capacity(keyword.len());
+    for ch in keyword.chars() {
+        if matches!(ch, '\\' | '%' | '_') {
+            out.push('\\');
+        }
+        out.push(ch);
+    }
+    out
+}
+
+/// 拼装查询：过滤（含可选关键词匹配） + 排序（置顶恒前置） + 分页。
 /// 所有 bind 均传入拥有所有权/Copy 的值，避免 `QueryBuilder` 借用 `q` 引发的生命周期问题。
 async fn fetch_items(
     pool: &SqlitePool,
     q: &ClipboardItemQuery,
-    match_expr: Option<String>,
+    keyword: KeywordFilter,
 ) -> Result<Vec<ClipboardItem>> {
     let mut qb: QueryBuilder<Sqlite> = QueryBuilder::new(LIST_SELECT_ITEM);
     qb.push(" WHERE 1 = 1");
 
-    if let Some(expr) = match_expr {
-        qb.push(
-            " AND rowid IN (SELECT rowid FROM clipboard_items_fts WHERE clipboard_items_fts MATCH ",
-        )
-        .push_bind(expr)
-        .push(")");
+    match keyword {
+        KeywordFilter::None => {}
+        KeywordFilter::Fts(expr) => {
+            qb.push(
+                " AND clipboard_items.rowid IN (SELECT rowid FROM clipboard_items_fts WHERE clipboard_items_fts MATCH ",
+            )
+            .push_bind(expr)
+            .push(")");
+        }
+        KeywordFilter::Like(kw) => {
+            // FTS 索引覆盖 content / search_text / note 三列，LIKE 兜底也跟齐，
+            // 让 1–2 字符短词的命中范围与长词一致。
+            let pattern = format!("%{kw}%");
+            qb.push(" AND (clipboard_items.content LIKE ")
+                .push_bind(pattern.clone())
+                .push(" ESCAPE '\\' OR clipboard_items.search_text LIKE ")
+                .push_bind(pattern.clone())
+                .push(" ESCAPE '\\' OR clipboard_items.note LIKE ")
+                .push_bind(pattern)
+                .push(" ESCAPE '\\')");
+        }
     }
     if let Some(kind) = q.kind {
-        qb.push(" AND kind = ").push_bind(kind);
+        qb.push(" AND clipboard_items.kind = ").push_bind(kind);
     }
     if let Some(group_id) = &q.group_id {
-        qb.push(" AND group_id = ").push_bind(group_id.clone());
+        qb.push(" AND clipboard_items.group_id = ")
+            .push_bind(group_id.clone());
     }
     if let Some(favorite) = q.favorite {
-        qb.push(" AND is_favorite = ").push_bind(favorite);
+        qb.push(" AND clipboard_items.is_favorite = ")
+            .push_bind(favorite);
     }
     if let Some(pinned) = q.pinned {
-        qb.push(" AND is_pinned = ").push_bind(pinned);
+        qb.push(" AND clipboard_items.is_pinned = ")
+            .push_bind(pinned);
     }
 
-    qb.push(" ORDER BY is_pinned DESC, ");
+    qb.push(" ORDER BY clipboard_items.is_pinned DESC, ");
     match q.sort {
         ClipboardItemSort::CreatedAtDesc => {
-            qb.push("created_at DESC");
+            qb.push("clipboard_items.created_at DESC");
         }
         ClipboardItemSort::UseCountDesc => {
-            qb.push("use_count DESC, created_at DESC");
+            qb.push("clipboard_items.use_count DESC, clipboard_items.created_at DESC");
         }
     }
 
@@ -447,6 +500,11 @@ mod tests {
             note: None,
             created_at: ts,
             updated_at: ts,
+            source_app_name: None,
+            source_app_icon_file: None,
+            source_app_icon_path: None,
+            image_thumbnail_path: None,
+            file_icon_paths: None,
         }
     }
 
@@ -999,14 +1057,42 @@ mod tests {
     }
 
     #[test]
-    fn fts_match_expr_builds_escaped_prefix_terms() {
-        assert_eq!(fts_match_expr(None), None);
-        assert_eq!(fts_match_expr(Some("   ")), None);
-        assert_eq!(fts_match_expr(Some("foo")).as_deref(), Some("\"foo\"*"));
+    fn keyword_filter_classifies_by_char_length() {
+        assert_eq!(KeywordFilter::from_keyword(None), KeywordFilter::None);
         assert_eq!(
-            fts_match_expr(Some("foo bar")).as_deref(),
-            Some("\"foo\"* \"bar\"*")
+            KeywordFilter::from_keyword(Some("   ")),
+            KeywordFilter::None
         );
-        assert_eq!(fts_match_expr(Some("a\"b")).as_deref(), Some("\"a\"\"b\"*"));
+
+        // 1–2 字符走 LIKE（含 CJK）。
+        assert_eq!(
+            KeywordFilter::from_keyword(Some("a")),
+            KeywordFilter::Like("a".to_owned())
+        );
+        assert_eq!(
+            KeywordFilter::from_keyword(Some("中文")),
+            KeywordFilter::Like("中文".to_owned())
+        );
+
+        // ≥3 字符走 FTS。
+        assert_eq!(
+            KeywordFilter::from_keyword(Some("foo")),
+            KeywordFilter::Fts("\"foo\"*".to_owned())
+        );
+        assert_eq!(
+            KeywordFilter::from_keyword(Some("foo bar")),
+            KeywordFilter::Fts("\"foo\"* \"bar\"*".to_owned())
+        );
+        assert_eq!(
+            KeywordFilter::from_keyword(Some("a\"b")),
+            KeywordFilter::Fts("\"a\"\"b\"*".to_owned())
+        );
+    }
+
+    #[test]
+    fn escape_like_escapes_special_chars() {
+        assert_eq!(escape_like("100%"), "100\\%");
+        assert_eq!(escape_like("a_b"), "a\\_b");
+        assert_eq!(escape_like("c:\\path"), "c:\\\\path");
     }
 }

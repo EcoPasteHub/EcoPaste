@@ -3,6 +3,7 @@
  * 命名采用 `domain://action` 形式（见 AGENTS.md）。
  */
 export const TAURI_EVENT = {
+  CLIPBOARD_UPDATED: "clipboard://updated",
   KEYBOARD_NAV: "keyboard://nav",
   SETTINGS_UPDATED: "settings://updated",
 } as const;

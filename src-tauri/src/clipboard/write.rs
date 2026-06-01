@@ -159,6 +159,11 @@ mod tests {
             note: None,
             created_at: Utc::now(),
             updated_at: Utc::now(),
+            source_app_name: None,
+            source_app_icon_file: None,
+            source_app_icon_path: None,
+            image_thumbnail_path: None,
+            file_icon_paths: None,
         }
     }
 
@@ -247,6 +252,11 @@ mod tests {
             note: None,
             created_at: Utc::now(),
             updated_at: Utc::now(),
+            source_app_name: None,
+            source_app_icon_file: None,
+            source_app_icon_path: None,
+            image_thumbnail_path: None,
+            file_icon_paths: None,
         };
 
         write_to_clipboard(&store, &guard, &item, false).unwrap();

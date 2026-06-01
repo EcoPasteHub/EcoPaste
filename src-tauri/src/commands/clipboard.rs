@@ -1,5 +1,6 @@
 //! 剪贴板相关命令：手动重新读取、解析图片路径。供前端按需触发。
 
+use std::path::Path;
 use std::sync::Arc;
 
 use serde::Serialize;
@@ -12,7 +13,9 @@ use crate::clipboard::{
 };
 use crate::core::{AppError, Result};
 use crate::db::items::{find_item_by_id, find_item_for_list_by_id};
-use crate::db::models::{ClipboardGroup, ClipboardItem, ClipboardItemQuery, Platform};
+use crate::db::models::{
+    ClipboardGroup, ClipboardItem, ClipboardItemQuery, ClipboardKind, Platform,
+};
 use crate::window::{self, MAIN_WINDOW_LABEL};
 
 /// `read_clipboard` 的返回：入库后的记录 + 是否命中去重（前端据此决定提示/滚动行为）。
@@ -142,65 +145,11 @@ pub async fn get_file_icon_path(
     file_types: Option<String>,
     index: usize,
 ) -> Result<FileIconResult> {
-    use std::path::Path;
+    let (icon_path, exists) =
+        resolve_file_icon_path(&pool, &file_icon_store, &path, file_types.as_deref(), index)
+            .await?;
 
-    let path_obj = Path::new(&path);
-    let exists = path_obj.exists();
-    let platform = if cfg!(target_os = "macos") {
-        Platform::Macos
-    } else {
-        Platform::Windows
-    };
-
-    let is_directory = file_types
-        .as_ref()
-        .and_then(|types| types.split(',').nth(index))
-        .map(|t| t == "d");
-
-    let cache_key = if is_directory == Some(true) {
-        crate::clipboard::DIR_CACHE_KEY.to_string()
-    } else {
-        // 路径存在时实时判断（覆盖入库后类型变化的情况）；已删除时按扩展名推断。
-        crate::clipboard::get_icon_cache_key(path_obj)
-    };
-
-    if let Some(icon_file) = crate::db::file_icons::get_icon(&pool, &cache_key, platform).await? {
-        let icon_path = file_icon_store.icon_path(&icon_file);
-        return Ok(FileIconResult {
-            icon_path: icon_path.to_str().map(str::to_owned),
-            exists,
-        });
-    }
-
-    if !exists {
-        return Ok(FileIconResult {
-            icon_path: None,
-            exists: false,
-        });
-    }
-
-    let path_for_extract = path_obj.to_path_buf();
-    let png_bytes = tauri::async_runtime::spawn_blocking(move || {
-        crate::clipboard::icon_png(&path_for_extract, None)
-    })
-    .await
-    .map_err(|err| AppError::Clipboard(format!("icon extract task join failed: {err}")))?;
-
-    let Some(png) = png_bytes else {
-        return Ok(FileIconResult {
-            icon_path: None,
-            exists,
-        });
-    };
-
-    let icon_file = file_icon_store.store(&png)?;
-    crate::db::file_icons::upsert_icon(&pool, &cache_key, platform, &icon_file).await?;
-
-    let icon_path = file_icon_store.icon_path(&icon_file);
-    Ok(FileIconResult {
-        icon_path: icon_path.to_str().map(str::to_owned),
-        exists,
-    })
+    Ok(FileIconResult { icon_path, exists })
 }
 
 /// 把指定历史记录写回系统剪贴板（不触发模拟粘贴）。
@@ -253,15 +202,26 @@ pub async fn paste_clipboard_item(
     Ok(())
 }
 
-/// 列表查询命令（薄封装）：参数缺省时走 Rust 端默认（limit=50, offset=0, createdAtDesc）；
+/// 列表查询命令（薄封装）：参数缺省时走 Rust 端默认（limit=20, offset=0, createdAtDesc）；
 /// `keyword` 非空时由 `query_items` 内部自动委派 FTS5。
+/// 顺带把 `source_app_icon_file` 解析为绝对路径写到 `source_app_icon_path`，
+/// 前端无需再拉 `get_clipboard_app_icon_path`。
 #[tauri::command]
 pub async fn list_clipboard_items(
     pool: State<'_, SqlitePool>,
+    image_store: State<'_, ImageStore>,
+    app_icon_store: State<'_, AppIconStore>,
+    file_icon_store: State<'_, FileIconStore>,
     query: Option<ClipboardItemQuery>,
 ) -> Result<Vec<ClipboardItem>> {
     let q = query.unwrap_or_default();
-    crate::db::items::query_items(&pool, &q).await
+    let mut items = crate::db::items::query_items(&pool, &q).await?;
+    for item in &mut items {
+        attach_image_thumbnail_path(&image_store, item).await?;
+        attach_source_app_icon_path(&app_icon_store, item);
+        attach_file_icon_paths(&pool, &file_icon_store, item).await?;
+    }
+    Ok(items)
 }
 
 /// 单条查询命令：监听到 `clipboard://updated` 后前端按 id 拉单条，
@@ -272,9 +232,144 @@ pub async fn list_clipboard_items(
 #[tauri::command]
 pub async fn get_clipboard_item(
     pool: State<'_, SqlitePool>,
+    image_store: State<'_, ImageStore>,
+    app_icon_store: State<'_, AppIconStore>,
+    file_icon_store: State<'_, FileIconStore>,
     id: String,
 ) -> Result<Option<ClipboardItem>> {
-    find_item_for_list_by_id(&pool, &id).await
+    let mut item = find_item_for_list_by_id(&pool, &id).await?;
+    if let Some(item) = item.as_mut() {
+        attach_image_thumbnail_path(&image_store, item).await?;
+        attach_source_app_icon_path(&app_icon_store, item);
+        attach_file_icon_paths(&pool, &file_icon_store, item).await?;
+    }
+    Ok(item)
+}
+
+/// 为 image 条目补齐缩略图绝对路径，前端可直接渲染。
+/// 历史脏数据（非 `<hash>.png`）或缩略图生成失败时降级为 `None`，不影响列表返回。
+async fn attach_image_thumbnail_path(store: &ImageStore, item: &mut ClipboardItem) -> Result<()> {
+    if item.kind != ClipboardKind::Image {
+        return Ok(());
+    }
+
+    if validate_image_file_name(&item.content).is_err() {
+        item.image_thumbnail_path = None;
+        return Ok(());
+    }
+
+    let file_name = item.content.clone();
+    let store = store.clone();
+    let path = tauri::async_runtime::spawn_blocking(move || store.ensure_thumbnail(&file_name))
+        .await
+        .map_err(|err| AppError::Clipboard(format!("thumbnail task join failed: {err}")))?;
+
+    item.image_thumbnail_path = match path {
+        Ok(path) => path.to_str().map(str::to_owned),
+        Err(err) => {
+            log::warn!(
+                "ensure image thumbnail failed for {:?}: {err}",
+                item.content
+            );
+            None
+        }
+    };
+
+    Ok(())
+}
+
+/// 把 `clipboard_apps.icon_file` 解析为磁盘绝对路径写回 [`ClipboardItem::source_app_icon_path`]，
+/// utf-8 转换失败时直接置 `None`（前端可降级到首字母占位）。
+fn attach_source_app_icon_path(store: &AppIconStore, item: &mut ClipboardItem) {
+    item.source_app_icon_path = item
+        .source_app_icon_file
+        .as_deref()
+        .and_then(|name| store.icon_path(name).to_str().map(str::to_owned));
+}
+
+/// 为 files 条目补齐最多前 3 个路径的 icon 绝对路径。
+/// 非 files 条目或无路径时保持 `file_icon_paths = None`。
+async fn attach_file_icon_paths(
+    pool: &SqlitePool,
+    store: &FileIconStore,
+    item: &mut ClipboardItem,
+) -> Result<()> {
+    if item.kind != ClipboardKind::Files {
+        return Ok(());
+    }
+
+    let paths = item.content.split('\n').filter(|p| !p.is_empty()).take(3);
+    let mut icons = Vec::new();
+
+    for (index, path) in paths.enumerate() {
+        let (icon_path, _exists) =
+            resolve_file_icon_path(pool, store, path, item.file_types.as_deref(), index).await?;
+        icons.push(icon_path);
+    }
+
+    item.file_icon_paths = if icons.is_empty() {
+        None
+    } else {
+        Some(serde_json::to_string(&icons).map_err(|err| {
+            AppError::Clipboard(format!("serialize file icon paths failed: {err}"))
+        })?)
+    };
+    Ok(())
+}
+
+/// 解析文件 icon 路径：优先命中缓存，未命中时在路径存在的前提下抽取并落盘缓存。
+/// 返回 `(icon_path, exists)`，其中 `icon_path` 可能为 `None`（抽取失败或已删除且无缓存）。
+async fn resolve_file_icon_path(
+    pool: &SqlitePool,
+    file_icon_store: &FileIconStore,
+    path: &str,
+    file_types: Option<&str>,
+    index: usize,
+) -> Result<(Option<String>, bool)> {
+    let path_obj = Path::new(path);
+    let exists = path_obj.exists();
+    let platform = if cfg!(target_os = "macos") {
+        Platform::Macos
+    } else {
+        Platform::Windows
+    };
+
+    let is_directory = file_types
+        .and_then(|types| types.split(',').nth(index))
+        .map(|t| t == "d");
+
+    let cache_key = if is_directory == Some(true) {
+        crate::clipboard::DIR_CACHE_KEY.to_string()
+    } else {
+        // 路径存在时实时判断（覆盖入库后类型变化的情况）；已删除时按扩展名推断。
+        crate::clipboard::get_icon_cache_key(path_obj)
+    };
+
+    if let Some(icon_file) = crate::db::file_icons::get_icon(pool, &cache_key, platform).await? {
+        let icon_path = file_icon_store.icon_path(&icon_file);
+        return Ok((icon_path.to_str().map(str::to_owned), exists));
+    }
+
+    if !exists {
+        return Ok((None, false));
+    }
+
+    let path_for_extract = path_obj.to_path_buf();
+    let png_bytes = tauri::async_runtime::spawn_blocking(move || {
+        crate::clipboard::icon_png(&path_for_extract, None)
+    })
+    .await
+    .map_err(|err| AppError::Clipboard(format!("icon extract task join failed: {err}")))?;
+
+    let Some(png) = png_bytes else {
+        return Ok((None, exists));
+    };
+
+    let icon_file = file_icon_store.store(&png)?;
+    crate::db::file_icons::upsert_icon(pool, &cache_key, platform, &icon_file).await?;
+
+    let icon_path = file_icon_store.icon_path(&icon_file);
+    Ok((icon_path.to_str().map(str::to_owned), exists))
 }
 
 /// 按 id 列表批量取来源应用——前端渲染卡片时一次性补齐图标/名称。

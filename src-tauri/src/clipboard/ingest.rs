@@ -72,10 +72,16 @@ fn files_to_content(files: &[String]) -> String {
 /// - 两者的 `search_text` 都直接用 OS 同时提供的纯文本（`get_text()`）——
 ///   复制富文本时剪贴板本就并存纯文本表示，无需自己解析 HTML/RTF；
 /// - plain：`content` = 纯文本，`sub_kind` = url/email/color/path 识别，`search_text` = None（content 自身可检索）。
+///
+/// 一律以 trim 后的纯文本作为「是否有可展示内容」的判据：纯文本为空就直接 `None`，
+/// 不管 HTML/RTF 源是否存在（只有样式/空白节点的源对用户没意义，列表也渲染不出来）。
 fn draft_from_text(text: &TextPayload) -> Option<Draft> {
     let plain = text.text.trim();
-    // 富文本场景的检索文本：OS 提供的纯文本表示，空则不存。
-    let plain_search = (!plain.is_empty()).then(|| plain.to_owned());
+    if plain.is_empty() {
+        return None;
+    }
+
+    let plain_search = Some(plain.to_owned());
     let summary = make_summary(plain);
 
     if let Some(html) = non_empty(&text.html) {
@@ -106,9 +112,6 @@ fn draft_from_text(text: &TextPayload) -> Option<Draft> {
         });
     }
 
-    if plain.is_empty() {
-        return None;
-    }
     Some(Draft {
         kind: ClipboardKind::Text,
         sub_kind: detect_text_sub_kind(plain),
@@ -204,6 +207,11 @@ pub fn build_item(store: &ImageStore, payload: &ClipboardPayload) -> Result<Opti
         note: None,
         created_at: now,
         updated_at: now,
+        source_app_name: None,
+        source_app_icon_file: None,
+        source_app_icon_path: None,
+        image_thumbnail_path: None,
+        file_icon_paths: None,
     }))
 }
 
@@ -255,15 +263,12 @@ mod tests {
     }
 
     #[test]
-    fn html_without_os_plain_has_no_search_text() {
-        // 无 OS 纯文本时不再自己解析 HTML：content 保留 HTML 源，search_text 为 None。
+    fn html_without_os_plain_is_skipped() {
+        // 无 OS 纯文本时整条丢弃：列表只能渲染 summary（基于 plain 文本），
+        // plain 为空意味着卡片渲染不出有效内容，不入库。
         let (_d, s) = store();
-        let item = build_item(&s, &text_payload("", Some("<p>only html</p>"), None))
-            .unwrap()
-            .unwrap();
-        assert_eq!(item.sub_kind, Some(ClipboardSubKind::Html));
-        assert_eq!(item.content, "<p>only html</p>");
-        assert_eq!(item.search_text, None);
+        let item = build_item(&s, &text_payload("", Some("<p>only html</p>"), None)).unwrap();
+        assert!(item.is_none());
     }
 
     #[test]

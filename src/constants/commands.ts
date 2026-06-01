@@ -3,7 +3,10 @@
  * 改名时两侧同步，且严禁在调用处直接写字面量。
  */
 export const TAURI_COMMAND = {
+  GET_CLIPBOARD_IMAGE_PATH: "get_clipboard_image_path",
+  GET_CLIPBOARD_ITEM: "get_clipboard_item",
   GET_SETTINGS: "get_settings",
+  LIST_CLIPBOARD_ITEMS: "list_clipboard_items",
   SHOW_WINDOW: "show_window",
   UPDATE_SETTINGS: "update_settings",
 } as const;

@@ -23,3 +23,12 @@ export const isDev = import.meta.env.DEV;
 export const isWinMainWindow = () => {
   return isWin && currentWindow.label === WINDOW_LABEL.MAIN;
 };
+
+/**
+ * 判断路径/文件名是否为常见图片类型（按扩展名匹配，大小写不敏感）。
+ */
+export const isImage = (value: string) => {
+  const regex = /\.(jpe?g|png|webp|avif|gif|svg|bmp|ico|tiff?|heic|apng)$/i;
+
+  return regex.test(value);
+};

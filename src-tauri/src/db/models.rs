@@ -63,6 +63,33 @@ pub struct ClipboardItem {
     pub note: Option<String>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+
+    /// 来源应用名称。仅 list 查询通过 LEFT JOIN `clipboard_apps` 填充；
+    /// 单条 `SELECT_ITEM` 路径与 `INSERT` 不读不写，`#[sqlx(default)]` 保证缺列时为 `None`。
+    #[sqlx(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_app_name: Option<String>,
+    /// 来源应用图标文件名（`<sha256>.png`）。同 [`source_app_name`] 由 list 查询补齐，
+    /// 命令层据此解析为绝对路径写入 [`source_app_icon_path`]。
+    #[sqlx(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_app_icon_file: Option<String>,
+    /// 命令层用 `AppIconStore` 把 `icon_file` 解析后的磁盘绝对路径；
+    /// 前端可直接 `convertFileSrc` 渲染。来源不在 SQL，纯后置填充。
+    #[sqlx(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_app_icon_path: Option<String>,
+    /// Image 类型条目的缩略图绝对路径；命令层按需确保缩略图存在后回填，
+    /// 前端可直接 `convertFileSrc` 渲染，避免逐条再发取图命令。
+    #[sqlx(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub image_thumbnail_path: Option<String>,
+    /// Files 类型条目对应的文件 icon 路径 JSON（与 `content` 里的路径顺序一致）；
+    /// 命令层在列表查询后按需填充，最多返回前 3 个，用于列表轻量渲染。
+    /// 形如 `["/abs/a.png", null, "/abs/c.png"]`。
+    #[sqlx(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub file_icon_paths: Option<String>,
 }
 
 /// 剪贴板来源应用（macOS bundle id / Windows exe 路径作主键），
@@ -124,7 +151,7 @@ impl Default for ClipboardItemQuery {
             pinned: None,
             keyword: None,
             sort: ClipboardItemSort::CreatedAtDesc,
-            limit: 50,
+            limit: 20,
             offset: 0,
         }
     }

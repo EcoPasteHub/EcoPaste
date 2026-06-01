@@ -4,7 +4,7 @@ CREATE VIRTUAL TABLE clipboard_items_fts USING fts5(
     note,
     content='clipboard_items',
     content_rowid='rowid',
-    tokenize='unicode61'
+    tokenize='trigram'
 );
 
 CREATE TRIGGER clipboard_items_ai AFTER INSERT ON clipboard_items BEGIN

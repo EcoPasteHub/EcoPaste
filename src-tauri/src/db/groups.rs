@@ -143,6 +143,11 @@ mod tests {
             note: None,
             created_at: ts,
             updated_at: ts,
+            source_app_name: None,
+            source_app_icon_file: None,
+            source_app_icon_path: None,
+            image_thumbnail_path: None,
+            file_icon_paths: None,
         };
         insert_item(&pool, &item).await.unwrap();
 
