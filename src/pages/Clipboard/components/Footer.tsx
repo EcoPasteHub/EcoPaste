@@ -5,6 +5,7 @@ import { countClipboardItems } from "@/commands";
 import KeyHint from "@/components/KeyHint";
 import { TAURI_EVENT } from "@/constants/events";
 import { useTauriListen } from "@/hooks/useTauriListen";
+import ShortcutList from "./ShortcutList";
 
 /**
  * 剪贴板窗口底部条：左侧统计总项数，右侧展示窗口快捷键提示。
@@ -21,7 +22,7 @@ const Footer = () => {
     <div className="flex items-center justify-between p-3">
       <span className="text-text-tertiary text-xs">共 {total} 项</span>
 
-      <Popover title="快捷键" trigger="click">
+      <Popover content={<ShortcutList />} title="快捷键" trigger="click">
         <Tooltip placement="left" title="快捷键">
           <Button
             icon={<KeyHint hintKey="K" iconName="i-lucide:keyboard" />}
