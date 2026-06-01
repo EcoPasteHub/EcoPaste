@@ -12,8 +12,9 @@
  */
 
 import { invoke } from "@tauri-apps/api/core";
-import { message } from "antd";
+import { Modal, message } from "antd";
 import { TAURI_COMMAND } from "@/constants/commands";
+import { settingsState } from "@/stores/settings";
 import type { ClipboardItem, ClipboardItemQuery } from "@/types/clipboard";
 import type { Settings, SettingsPatch } from "@/types/settings";
 import { log } from "@/utils/log";
@@ -150,13 +151,32 @@ export const toggleClipboardItemFavorite = async (
 };
 
 /**
- * 删除条目；命令**不**广播 `clipboard://updated`，调用方需本地移除该项。
+ * 删除条目；命令**不**广播 `clipboard://updated`，调用方需根据返回值本地移除该项。
+ * 设置 `clipboard.content.deleteConfirm = true` 时弹二次确认 modal；用户取消则 resolve false 且不调 Rust。
  * 成功后统一 toast「已删除」。
  */
-export const deleteClipboardItem = async (id: string) => {
+export const deleteClipboardItem = async (id: string): Promise<boolean> => {
+  if (settingsState.clipboard?.content?.deleteConfirm) {
+    const ok = await new Promise<boolean>((resolve) => {
+      Modal.confirm({
+        cancelText: "取消",
+        content: "删除后无法恢复，确定删除这条记录吗？",
+        okButtonProps: { danger: true },
+        okText: "删除",
+        onCancel: () => resolve(false),
+        onOk: () => resolve(true),
+        title: "删除记录",
+      });
+    });
+
+    if (!ok) return false;
+  }
+
   await call<void>(TAURI_COMMAND.DELETE_CLIPBOARD_ITEM, "删除", { id });
 
   message.success("已删除");
+
+  return true;
 };
 
 /**

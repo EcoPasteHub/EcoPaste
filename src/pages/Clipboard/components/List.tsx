@@ -4,7 +4,7 @@ import type { FC } from "react";
 import { useEffect, useRef, useState } from "react";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import { useSnapshot } from "valtio";
-import { pasteClipboardItem } from "@/commands";
+import { deleteClipboardItem, pasteClipboardItem } from "@/commands";
 import { TAURI_EVENT } from "@/constants/events";
 import { useClipboardItems } from "@/hooks/useClipboardItems";
 import { useKeyboardEvent } from "@/hooks/useKeyboardEvent";
@@ -116,16 +116,39 @@ const List: FC = () => {
 
   const handleCloseNote = () => setNoteTarget(null);
 
+  /**
+   * 快捷键触发的删除：复用 `deleteClipboardItem` 内置的二次确认弹窗，
+   * 仅当用户确认且 Rust 删除成功时才同步本地镜像。
+   */
+  const handleShortcutDelete = async (id: string) => {
+    const deleted = await deleteClipboardItem(id);
+
+    if (!deleted) return;
+
+    removeItem(id);
+  };
+
   const handleKeyDown = (e: KeyboardEvent) => {
     if (items.length === 0) return;
+
+    const isModifierPressed = isMac ? e.metaKey : e.ctrlKey;
 
     if (e.key === "Enter") {
       e.preventDefault();
 
       const activeId = selectedId === null ? items[0].id : selectedId;
-      const plain = isMac ? e.metaKey : e.ctrlKey;
 
-      pasteClipboardItem(activeId, plain);
+      pasteClipboardItem(activeId, isModifierPressed);
+
+      return;
+    }
+
+    if (isModifierPressed && (e.key === "Backspace" || e.key === "Delete")) {
+      e.preventDefault();
+
+      const activeId = selectedId === null ? items[0].id : selectedId;
+
+      handleShortcutDelete(activeId);
 
       return;
     }

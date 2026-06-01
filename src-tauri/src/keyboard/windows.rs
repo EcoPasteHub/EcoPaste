@@ -9,9 +9,9 @@ use winapi::shared::minwindef::{LPARAM, LRESULT, UINT, WPARAM};
 use winapi::um::processthreadsapi::GetCurrentThreadId;
 use winapi::um::winuser::{
     CallNextHookEx, GetAsyncKeyState, GetMessageW, PostThreadMessageW, SetWindowsHookExW,
-    UnhookWindowsHookEx, KBDLLHOOKSTRUCT, MSG, VK_CONTROL, VK_DOWN, VK_ESCAPE, VK_LCONTROL,
-    VK_RCONTROL, VK_RETURN, VK_SHIFT, VK_TAB, VK_UP, WH_KEYBOARD_LL, WM_KEYDOWN, WM_KEYUP, WM_QUIT,
-    WM_SYSKEYDOWN, WM_SYSKEYUP,
+    UnhookWindowsHookEx, KBDLLHOOKSTRUCT, MSG, VK_BACK, VK_CONTROL, VK_DELETE, VK_DOWN, VK_ESCAPE,
+    VK_LCONTROL, VK_RCONTROL, VK_RETURN, VK_SHIFT, VK_TAB, VK_UP, WH_KEYBOARD_LL, WM_KEYDOWN,
+    WM_KEYUP, WM_QUIT, WM_SYSKEYDOWN, WM_SYSKEYUP,
 };
 
 use super::NAV_EVENT;
@@ -25,7 +25,7 @@ fn consumed_keys() -> &'static Mutex<HashSet<u32>> {
     SET.get_or_init(|| Mutex::new(HashSet::new()))
 }
 
-/// 仅放行当前前端需要的 Ctrl 快捷键：F、P、Enter、逗号与数字 0-9。
+/// 仅放行当前前端需要的 Ctrl 快捷键：F、P、Enter、Backspace、Delete、逗号与数字 0-9。
 fn ctrl_shortcut_key(vk: u32) -> Option<String> {
     match vk as i32 {
         0x46 => Some("f".to_string()),
@@ -33,6 +33,8 @@ fn ctrl_shortcut_key(vk: u32) -> Option<String> {
         0xBC => Some(",".to_string()),
         0x30..=0x39 => Some(((vk as u8) as char).to_string()),
         VK_RETURN => Some("Enter".to_string()),
+        VK_BACK => Some("Backspace".to_string()),
+        VK_DELETE => Some("Delete".to_string()),
         _ => None,
     }
 }

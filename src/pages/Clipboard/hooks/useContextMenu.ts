@@ -3,7 +3,6 @@ import {
   type MenuItemOptions,
   type PredefinedMenuItemOptions,
 } from "@tauri-apps/api/menu";
-import { App } from "antd";
 import type { MouseEvent } from "react";
 import {
   deleteClipboardItem,
@@ -13,7 +12,6 @@ import {
   toggleClipboardItemFavorite,
   writeToClipboard,
 } from "@/commands";
-import { settingsState } from "@/stores/settings";
 import type { ClipboardItem } from "@/types/clipboard";
 import { isMac } from "@/utils/is";
 
@@ -46,8 +44,6 @@ export const useContextMenu = (props: UseContextMenuProps) => {
   const { item, onRemoved, onFavoriteToggled, onEditNote } = props;
   const { kind, subKind, isFavorite } = item;
 
-  const { modal } = App.useApp();
-
   const pasteItem = (plain: boolean) => pasteClipboardItem(item.id, plain);
 
   const copy = () => writeToClipboard(item.id, false);
@@ -62,24 +58,9 @@ export const useContextMenu = (props: UseContextMenuProps) => {
   };
 
   const remove = async () => {
-    await deleteClipboardItem(item.id);
-    onRemoved(item.id);
-  };
+    const deleted = await deleteClipboardItem(item.id);
 
-  const confirmRemove = () => {
-    if (!settingsState.clipboard.content.deleteConfirm) {
-      remove();
-      return;
-    }
-
-    modal.confirm({
-      cancelText: "取消",
-      content: "删除后无法恢复，确定删除这条记录吗？",
-      okButtonProps: { danger: true },
-      okText: "删除",
-      onOk: remove,
-      title: "删除记录",
-    });
+    if (deleted) onRemoved(item.id);
   };
 
   /**
@@ -120,7 +101,7 @@ export const useContextMenu = (props: UseContextMenuProps) => {
       { action: toggleFavorite, text: isFavorite ? "取消收藏" : "收藏" },
       { action: () => onEditNote(item), text: "编辑备注" },
       SEPARATOR,
-      { action: confirmRemove, text: "删除" },
+      { action: remove, text: "删除" },
     ];
 
     const menu = await Menu.new({ items });
