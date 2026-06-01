@@ -27,7 +27,7 @@ const FilesCard: FC<ClipboardItem> = (props) => {
         >
           <AssetImage className="size-5" src={entry.iconPath} />
 
-          <span className="truncate">{getFileName(entry.path)}</span>
+          <span className="truncate">{entry.name}</span>
         </div>
       ))}
     </div>
@@ -36,6 +36,7 @@ const FilesCard: FC<ClipboardItem> = (props) => {
 
 interface FileEntry {
   path: string;
+  name: string;
   type: "d" | "f";
   iconPath: string | null;
 }
@@ -44,9 +45,11 @@ const parseFiles = (item: ClipboardItem): FileEntry[] => {
   const paths = item.content.split("\n").filter(Boolean);
   const types = (item.fileTypes ?? "").split(",");
   const iconPaths = parseFileIconPaths(item.fileIconPaths);
+  const names = parseFileNames(item.summary);
 
   return paths.map((path, idx) => ({
     iconPath: iconPaths[idx] ?? null,
+    name: names[idx] ?? extractFileName(path),
     path,
     type: types[idx] === "d" ? "d" : "f",
   }));
@@ -65,6 +68,16 @@ const parseFileIconPaths = (raw?: string): Array<string | null> => {
   }
 };
 
+/**
+ * 解析 Rust 存入 `summary` 的文件名列表（与 `content` 同格式，`\n` 分隔）。
+ * 旧记录 `summary` 为 null 时返回空数组，调用方自行用路径 fallback。
+ */
+const parseFileNames = (raw?: string | null): string[] => {
+  if (!raw) return [];
+
+  return raw.split("\n").filter(Boolean);
+};
+
 const getSingleImageFile = (entries: FileEntry[]): FileEntry | null => {
   if (entries.length !== 1) return null;
 
@@ -78,9 +91,10 @@ const getSingleImageFile = (entries: FileEntry[]): FileEntry | null => {
 };
 
 /**
- * 从完整路径中取出最后一级名称，兼容 macOS 的 `/` 和 Windows 的 `\`。
+ * 兼容旧记录（`summary` 为 null）：从完整路径中提取最后一级名称，
+ * 兼容 macOS 的 `/` 和 Windows 的 `\`。
  */
-const getFileName = (path: string) => {
+const extractFileName = (path: string) => {
   const separatorIndex = Math.max(
     path.lastIndexOf("/"),
     path.lastIndexOf("\\"),

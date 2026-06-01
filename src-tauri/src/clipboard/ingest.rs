@@ -152,12 +152,26 @@ pub fn build_item(store: &ImageStore, payload: &ClipboardPayload) -> Result<Opti
                     .collect();
                 let file_types_str = file_types.join(",");
 
+                // 提取每个路径的文件名，存入 summary 供前端直接渲染，避免前端路径拼接
+                let summary = Some(
+                    files
+                        .iter()
+                        .map(|p| {
+                            std::path::Path::new(p)
+                                .file_name()
+                                .and_then(|n| n.to_str())
+                                .unwrap_or(p.as_str())
+                        })
+                        .collect::<Vec<_>>()
+                        .join("\n"),
+                );
+
                 Some(Draft {
                     kind: ClipboardKind::Files,
                     sub_kind: None,
                     content,
                     search_text: None,
-                    summary: None,
+                    summary,
                     file_types: Some(file_types_str),
                     width: None,
                     height: None,
