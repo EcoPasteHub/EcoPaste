@@ -9,8 +9,9 @@ use winapi::shared::minwindef::{LPARAM, LRESULT, UINT, WPARAM};
 use winapi::um::processthreadsapi::GetCurrentThreadId;
 use winapi::um::winuser::{
     CallNextHookEx, GetAsyncKeyState, GetMessageW, PostThreadMessageW, SetWindowsHookExW,
-    UnhookWindowsHookEx, KBDLLHOOKSTRUCT, MSG, VK_DOWN, VK_ESCAPE, VK_RETURN, VK_SHIFT, VK_TAB,
-    VK_UP, WH_KEYBOARD_LL, WM_KEYDOWN, WM_KEYUP, WM_QUIT, WM_SYSKEYDOWN, WM_SYSKEYUP,
+    UnhookWindowsHookEx, KBDLLHOOKSTRUCT, MSG, VK_CONTROL, VK_DOWN, VK_ESCAPE, VK_LCONTROL,
+    VK_RCONTROL, VK_RETURN, VK_SHIFT, VK_TAB, VK_UP, WH_KEYBOARD_LL, WM_KEYDOWN, WM_KEYUP, WM_QUIT,
+    WM_SYSKEYDOWN, WM_SYSKEYUP,
 };
 
 use super::NAV_EVENT;
@@ -81,6 +82,29 @@ unsafe extern "system" fn hook_proc(code: i32, wparam: WPARAM, lparam: LPARAM) -
     let kbd = &*(lparam as *const KBDLLHOOKSTRUCT);
     let vk = kbd.vkCode;
     let msg = wparam as UINT;
+
+    let is_ctrl = matches!(vk as i32, VK_CONTROL | VK_LCONTROL | VK_RCONTROL);
+
+    if is_ctrl {
+        if let Some(app) = APP_HANDLE.get() {
+            let action = if msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN {
+                Some("ctrlDown")
+            } else if msg == WM_KEYUP || msg == WM_SYSKEYUP {
+                Some("ctrlUp")
+            } else {
+                None
+            };
+
+            if let Some(action) = action {
+                if let Err(err) = app.emit(NAV_EVENT, json!({ "action": action })) {
+                    log::warn!("emit nav event failed: {err:?}");
+                }
+            }
+        }
+
+        // Ctrl 状态只用于前端展示与组合键识别，不在此处吞键，避免影响系统行为。
+        return CallNextHookEx(null_mut(), code, wparam, lparam);
+    }
 
     let action = match vk as i32 {
         VK_UP => Some("up"),

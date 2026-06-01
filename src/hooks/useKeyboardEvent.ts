@@ -8,28 +8,42 @@ import { log } from "@/utils/log";
 type KeyboardEventType = "keydown" | "keyup";
 
 interface NavEventPayload {
-  action: "up" | "down" | "enter" | "escape" | "nextTab" | "prevTab";
+  action:
+    | "up"
+    | "down"
+    | "enter"
+    | "escape"
+    | "nextTab"
+    | "prevTab"
+    | "ctrlDown"
+    | "ctrlUp";
 }
 
 /**
- * 将 Rust 侧 nav action 映射为标准 KeyboardEvent.key 值。
+ * 将 Rust 侧 nav action 映射为标准 KeyboardEvent 初始化参数。
  */
-const navActionToKey = (action: string): string => {
+const navActionToKeyboardInit = (
+  action: NavEventPayload["action"],
+): (KeyboardEventInit & { type: KeyboardEventType }) | null => {
   switch (action) {
     case "up":
-      return "ArrowUp";
+      return { key: "ArrowUp", type: "keydown" };
     case "down":
-      return "ArrowDown";
+      return { key: "ArrowDown", type: "keydown" };
     case "enter":
-      return "Enter";
+      return { key: "Enter", type: "keydown" };
     case "escape":
-      return "Escape";
+      return { key: "Escape", type: "keydown" };
     case "nextTab":
-      return "Tab";
+      return { key: "Tab", type: "keydown" };
     case "prevTab":
-      return "Tab";
+      return { key: "Tab", shiftKey: true, type: "keydown" };
+    case "ctrlDown":
+      return { ctrlKey: true, key: "Control", type: "keydown" };
+    case "ctrlUp":
+      return { ctrlKey: false, key: "Control", type: "keyup" };
     default:
-      return action;
+      return null;
   }
 };
 
@@ -53,7 +67,7 @@ export const useKeyboardEvent = (
 
   // Windows 主窗口：监听 Tauri nav 事件，转换成 KeyboardEvent 格式
   useEffect(() => {
-    if (!needsRustNavEvent || type !== "keydown") return;
+    if (!needsRustNavEvent) return;
 
     let unlistenFn: (() => void) | undefined;
 
@@ -62,11 +76,16 @@ export const useKeyboardEvent = (
         unlistenFn = await getCurrentWebviewWindow().listen<NavEventPayload>(
           TAURI_EVENT.KEYBOARD_NAV,
           ({ payload }) => {
-            const syntheticEvent = new KeyboardEvent("keydown", {
+            const keyboardInit = navActionToKeyboardInit(payload.action);
+            if (!keyboardInit) return;
+            if (keyboardInit.type !== type) return;
+
+            const syntheticEvent = new KeyboardEvent(keyboardInit.type, {
               bubbles: true,
               cancelable: true,
-              key: navActionToKey(payload.action),
-              shiftKey: payload.action === "prevTab",
+              ctrlKey: keyboardInit.ctrlKey,
+              key: keyboardInit.key,
+              shiftKey: keyboardInit.shiftKey,
             });
 
             handler(syntheticEvent);
