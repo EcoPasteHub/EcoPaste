@@ -1,13 +1,22 @@
-use serde::{Serialize, Serializer};
+use serde::{ser::SerializeStruct, Serialize, Serializer};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum AppError {
-    #[error("clipboard error: {0}")]
+    #[error("{0}")]
     Clipboard(String),
 
     #[error(transparent)]
     Other(#[from] anyhow::Error),
+}
+
+impl AppError {
+    fn kind(&self) -> &'static str {
+        match self {
+            AppError::Clipboard(_) => "Clipboard",
+            AppError::Other(_) => "Other",
+        }
+    }
 }
 
 impl Serialize for AppError {
@@ -15,7 +24,10 @@ impl Serialize for AppError {
     where
         S: Serializer,
     {
-        serializer.serialize_str(&self.to_string())
+        let mut s = serializer.serialize_struct("AppError", 2)?;
+        s.serialize_field("kind", self.kind())?;
+        s.serialize_field("message", &self.to_string())?;
+        s.end()
     }
 }
 

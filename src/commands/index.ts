@@ -19,8 +19,32 @@ import type { Settings, SettingsPatch } from "@/types/settings";
 import { log } from "@/utils/log";
 
 /**
+ * Rust 端 `AppError` 序列化后的形状：`kind` 用于按变体分流，`message` 给用户看。
+ */
+interface AppError {
+  kind: string;
+  message: string;
+}
+
+/**
+ * 把任意 invoke reject 的值归一化成 `AppError`：兼容旧路径（字符串）和未来扩展。
+ */
+const toAppError = (error: unknown): AppError => {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "kind" in error &&
+    "message" in error
+  ) {
+    return error as AppError;
+  }
+
+  return { kind: "Unknown", message: String(error) };
+};
+
+/**
  * invoke 的通用包装：失败 → log + toast + rethrow。
- * `label` 用于 toast 文案（"xxx 失败：error"）。
+ * `label` 用于 toast 文案（"xxx 失败：message"）。
  */
 const call = async <T>(
   command: string,
@@ -30,9 +54,12 @@ const call = async <T>(
   try {
     return await invoke<T>(command, args);
   } catch (error) {
-    log.error(`invoke ${command} failed`, error);
-    message.error(`${label}失败：${error}`);
-    throw error;
+    const appError = toAppError(error);
+
+    log.error(`invoke ${command} failed`, appError);
+    message.error(`${label}失败：${appError.message}`);
+
+    throw appError;
   }
 };
 
