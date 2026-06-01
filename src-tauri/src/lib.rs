@@ -68,6 +68,7 @@ pub fn run() {
             commands::toggle_clipboard_item_favorite,
             commands::delete_clipboard_item,
             commands::update_clipboard_item_note,
+            commands::get_clipboard_item_content,
             commands::show_window,
             commands::hide_window,
             commands::toggle_window,

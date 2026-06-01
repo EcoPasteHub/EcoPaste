@@ -1,5 +1,5 @@
 import { useEventListener } from "ahooks";
-import { ConfigProvider } from "antd";
+import { App as AntdApp, ConfigProvider } from "antd";
 import { use } from "react";
 import { RouterProvider } from "react-router";
 import { router } from "./router";
@@ -32,7 +32,9 @@ const App = () => {
 
   return (
     <ConfigProvider>
-      <RouterProvider router={router} />
+      <AntdApp component={false}>
+        <RouterProvider router={router} />
+      </AntdApp>
     </ConfigProvider>
   );
 };

@@ -7,6 +7,7 @@ import { cn } from "@/utils/cn";
 import FilesCard from "./FilesCard";
 import ImageCard from "./ImageCard";
 import TextCard from "./TextCard";
+import { useContextMenu } from "./useContextMenu";
 
 interface ClipboardCardProps {
   item: ClipboardItem;
@@ -21,15 +22,44 @@ interface ClipboardCardProps {
    */
   onQuickPaste?: () => void;
   onMouseEnter?: () => void;
+  /**
+   * 删除成功后通知列表移除该项（删除命令不广播 clipboard://updated，靠本地更新）。
+   */
+  onRemoved: (id: string) => void;
+  /**
+   * 收藏切换成功后通知列表同步 isFavorite。
+   */
+  onFavoriteToggled: (id: string, isFavorite: boolean) => void;
+  /**
+   * 打开备注编辑弹窗（列表层单例）。
+   */
+  onEditNote: (item: ClipboardItem) => void;
 }
 
 /**
  * 按 `kind` 分发到具体卡片组件，统一外层 padding / 时间戳 / 来源应用图标。
- * `isSelected` 为 true 时高亮背景与边框；`onMouseEnter` 由列表注入用于鼠标悬停选中。
+ * `isSelected` 为 true 时高亮背景与边框；`onMouseEnter` 由列表注入用于鼠标悬停选中；
+ * 右键根节点弹出 Tauri 原生菜单（见 useContextMenu）。
  */
 const ClipboardCard: FC<ClipboardCardProps> = (props) => {
-  const { item, isSelected, hintKey, onQuickPaste, onMouseEnter } = props;
+  const {
+    item,
+    isSelected,
+    hintKey,
+    onQuickPaste,
+    onMouseEnter,
+    onRemoved,
+    onFavoriteToggled,
+    onEditNote,
+  } = props;
   const { kind, subKind, sourceAppIconPath, sourceAppName } = item;
+
+  const handleContextMenu = useContextMenu({
+    item,
+    onEditNote,
+    onFavoriteToggled,
+    onRemoved,
+  });
 
   return (
     <div
@@ -37,6 +67,7 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
       className={cn("b b-border-secondary flex flex-col gap-1 rounded-2 p-2", {
         "b-primary bg-blue-1": isSelected,
       })}
+      onContextMenu={handleContextMenu}
       onMouseEnter={onMouseEnter}
       role="option"
       tabIndex={-1}

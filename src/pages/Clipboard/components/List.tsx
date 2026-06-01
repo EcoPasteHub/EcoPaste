@@ -14,6 +14,7 @@ import { clipboardViewState } from "@/stores/clipboardView";
 import type { ClipboardItem, ClipboardItemQuery } from "@/types/clipboard";
 import { cn } from "@/utils/cn";
 import ClipboardCard from "./cards/ClipboardCard";
+import NoteModal from "./NoteModal";
 
 /** 前 10 项的快捷键：index 0-8 对应 1-9，index 9 对应 0 */
 const KEY_HINTS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
@@ -27,6 +28,7 @@ const List: FC = () => {
   const [firstVisibleIndex, setFirstVisibleIndex] = useState(0);
   const [isAtTop, setIsAtTop] = useState(true);
   const [pendingCount, setPendingCount] = useState(0);
+  const [noteTarget, setNoteTarget] = useState<ClipboardItem | null>(null);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const isAtTopRef = useRef(true);
 
@@ -43,7 +45,7 @@ const List: FC = () => {
     [snapshot],
   );
 
-  const { data, loading, loadingMore, loadMore, noMore, reload } =
+  const { data, loading, loadingMore, loadMore, noMore, reload, mutate } =
     useClipboardItems(query);
   const items = data?.list ?? [];
 
@@ -67,6 +69,52 @@ const List: FC = () => {
   };
 
   useTauriListen(TAURI_EVENT.CLIPBOARD_UPDATED, handleClipboardUpdated);
+
+  /**
+   * 删除 / 收藏 / 备注命令均不广播 clipboard://updated，故就地改本地镜像，
+   * 避免整页 reload 打断滚动与选中态。
+   */
+  const removeItem = (id: string) => {
+    if (!data) return;
+
+    mutate({ ...data, list: data.list.filter((item) => item.id !== id) });
+  };
+
+  const patchItem = (id: string, patch: Partial<ClipboardItem>) => {
+    if (!data) return;
+
+    mutate({
+      ...data,
+      list: data.list.map((item) =>
+        item.id === id ? { ...item, ...patch } : item,
+      ),
+    });
+  };
+
+  /**
+   * 收藏切换后：favorite 分组下取消收藏的条目应即时移出列表，其余分组仅更新标记。
+   */
+  const handleFavoriteToggled = (id: string, isFavorite: boolean) => {
+    if (group === "favorite" && !isFavorite) {
+      removeItem(id);
+      return;
+    }
+
+    patchItem(id, { isFavorite });
+  };
+
+  /**
+   * 备注保存后同步本地镜像；后端可能因 autoFavorite 设置联动收藏，故一并回填。
+   */
+  const handleNoteSaved = (
+    id: string,
+    note: string | null,
+    autoFavorited: boolean,
+  ) => {
+    patchItem(id, autoFavorited ? { isFavorite: true, note } : { note });
+  };
+
+  const handleCloseNote = () => setNoteTarget(null);
 
   const handleKeyDown = (e: KeyboardEvent) => {
     if (items.length === 0) return;
@@ -202,6 +250,12 @@ const List: FC = () => {
           {pendingCount} 条新记录，点击查看
         </button>
       )}
+
+      <NoteModal
+        item={noteTarget}
+        onClose={handleCloseNote}
+        onSaved={handleNoteSaved}
+      />
     </div>
   );
 
@@ -226,8 +280,11 @@ const List: FC = () => {
             selectedId === null ? index === 0 : item.id === selectedId
           }
           item={item}
+          onEditNote={setNoteTarget}
+          onFavoriteToggled={handleFavoriteToggled}
           onMouseEnter={handleMouseEnter}
           onQuickPaste={hintKey ? handleQuickPaste : void 0}
+          onRemoved={removeItem}
         />
       </div>
     );

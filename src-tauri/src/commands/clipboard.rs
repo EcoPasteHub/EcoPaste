@@ -528,6 +528,17 @@ pub async fn update_clipboard_item_note(
     Ok(auto_favorited)
 }
 
+/// 按 `id` 返回完整 `content`（未经列表视图裁剪），不存在返回 `None`。
+/// 右键菜单「打开链接 / 发送邮件 / 文件管理器显示」据此取原始值——
+/// 列表视图 text 类 `content` 被置空、`summary` 又按字符截断，二者都不可靠。
+#[tauri::command]
+pub async fn get_clipboard_item_content(
+    pool: State<'_, SqlitePool>,
+    id: String,
+) -> Result<Option<String>> {
+    Ok(find_item_by_id(&pool, &id).await?.map(|item| item.content))
+}
+
 /// 校验图片文件名：必须是单层 `<name>.png`，不含路径分隔符 / 父目录引用。
 fn validate_image_file_name(file_name: &str) -> Result<()> {
     let invalid = file_name.is_empty()
