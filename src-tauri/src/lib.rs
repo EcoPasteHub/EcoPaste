@@ -121,7 +121,7 @@ pub fn run() {
                 log::error!("tray initialization failed: {err:?}");
             }
 
-            // 平台主窗口初始化：macOS 转 NSPanel；Windows 改 focusable=false。
+            // 平台主窗口初始化：macOS 转 NSPanel
             #[cfg(target_os = "macos")]
             if let Err(err) = window::macos::setup_main(&handle) {
                 log::error!("setup main NSPanel failed: {err:?}");
