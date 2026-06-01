@@ -1,5 +1,6 @@
 import { useEventListener, useKeyPress } from "ahooks";
 import { type FC, type ReactNode, useState } from "react";
+import { useKeyboardEvent } from "@/hooks/useKeyboardEvent";
 import { cn } from "@/utils/cn";
 import { isMac } from "@/utils/is";
 
@@ -61,15 +62,24 @@ const KeyHint: FC<KeyHintProps> = (props) => {
 
   const [active, setActive] = useState(false);
 
-  useEventListener("keydown", (event) => {
+  const handleKeyDown = (event: KeyboardEvent) => {
     if (!isModifierPressed(event, modifier)) return;
 
     setActive(true);
-  });
+  };
 
-  useEventListener("keyup", () => setActive(false));
+  const handleKeyUp = () => {
+    setActive(false);
+  };
 
-  useEventListener("blur", () => setActive(false), { target: window });
+  const handleBlur = () => {
+    setActive(false);
+  };
+
+  useKeyboardEvent("keydown", handleKeyDown);
+  useKeyboardEvent("keyup", handleKeyUp);
+
+  useEventListener("blur", handleBlur, { target: window });
 
   useKeyPress(
     `${resolveModifier(modifier)}.${hintKey.toLowerCase()}`,
