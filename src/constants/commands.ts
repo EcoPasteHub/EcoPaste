@@ -4,6 +4,7 @@
  */
 export const TAURI_COMMAND = {
   GET_SETTINGS: "get_settings",
+  SHOW_WINDOW: "show_window",
   UPDATE_SETTINGS: "update_settings",
 } as const;
 
