@@ -129,6 +129,7 @@ cargo test                    # Rust 单测（在 src-tauri 下）
 
 - 状态：Valtio 只存 UI 状态和设置的本地镜像；业务数据从 Rust 命令拉取，不在前端建「数据库副本」。
 - 样式：UnoCSS。
+- **颜色只用 antd Design Token 映射的语义色类名**（由 `presetAntdColors` 生成），**禁止**写任意色值——不写 `text-[#333]` / `bg-[rgba(0,0,0,.5)]` / `border-red-500` 等 Tailwind 原生色或 hex/rgb 字面量，也不在 `style={{}}` 里塞 `color` / `background` 属性。可用示例：`text-text-primary` / `text-text-secondary` / `text-text-tertiary` / `bg-container` / `bg-elevated` / `bg-fill` / `bg-fill-secondary` / `bg-fill-tertiary` / `border-border` / `text-primary` 等——完整列表见 `src/unocss/presetAntdColors.ts`。新增颜色需求时先查该文件是否已有对应 token，没有再扩充 preset，不要绕过直写色值。
 - **尺寸只走 wind4 数字制**（1 单位 = 0.25rem = 4px），写 `p-1` / `p-1.25` / `p-1.5` / `gap-2` / `rounded-2.5` / `w-36` 等数字原子类；**禁止**出现 `px` 字面量——不写 `rounded-[10px]` / `w-[144px]` / `text-[14px]` 这类任意值类，也不在 `style={{}}` 里塞数字像素（antd 组件 `tabBarStyle` 等 inline 样式同理，必要时改写 className 或在 `theme.token` 里调）。非常规尺寸通过 wind4 内置 fractional（`.25/.5/.75/.125`）拼，确实没有对应值再扩 `theme.spacing`。
 - 组件优先用 Ant Design v6（`antd`），避免重复造轮子；主题切换在根节点用 `ConfigProvider` 的 `theme.algorithm` 切 `defaultAlgorithm` / `darkAlgorithm`，并把同步的 `light` / `dark` 类挂到 `<html>` 上，供 UnoCSS `dark:` 变体使用。
 - antd prop 命名：`open` / `checked` / `disabled` / `onClick`（不要再用 HeroUI 的 `isOpen` / `isSelected` / `isDisabled` / `onPress`）。
