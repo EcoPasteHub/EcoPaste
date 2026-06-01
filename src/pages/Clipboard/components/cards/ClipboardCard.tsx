@@ -15,26 +15,22 @@ interface ClipboardCardProps {
  */
 const ClipboardCard: FC<ClipboardCardProps> = (props) => {
   const { item } = props;
-
-  const iconSrc = item.sourceAppIconPath
-    ? convertFileSrc(item.sourceAppIconPath)
-    : null;
-  const label = item.sourceAppName ?? item.kind.toUpperCase();
+  const { kind, subKind, sourceAppIconPath, sourceAppName } = item;
 
   return (
-    <div className="flex flex-col gap-1.5 rounded-2 border border-gray-200/60 bg-elevated px-2.5 py-2 transition-colors hover:bg-fill-tertiary dark:border-gray-700/40">
-      <div className="flex items-center justify-between gap-2 text-gray-400 text-xs">
-        <div className="flex items-center gap-1.5 overflow-hidden">
-          {iconSrc ? (
-            <img
-              alt={label}
-              className="size-3.5 shrink-0 rounded-0.5"
-              src={iconSrc}
-            />
-          ) : null}
-          <span className="truncate">{label}</span>
+    <div className="b b-border-secondary flex flex-col gap-1 rounded-2 p-2">
+      <div className="flex items-center justify-between text-secondary text-xs">
+        <div className="flex items-center gap-1 overflow-hidden">
+          <img
+            alt={sourceAppName}
+            className="size-4"
+            src={convertFileSrc(sourceAppIconPath ?? "")}
+          />
+
+          <span className="truncate uppercase">{subKind ?? kind}</span>
         </div>
-        <span className="shrink-0">{formatTime(item.createdAt)}</span>
+
+        <span>{formatTime(item.createdAt)}</span>
       </div>
 
       {renderBody(item)}

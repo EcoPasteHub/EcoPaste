@@ -13,48 +13,34 @@ const FilesCard: FC<ClipboardItem> = (props) => {
   const visibleEntries = entries.slice(0, 3);
   const singleImageFile = useMemo(() => getSingleImageFile(entries), [entries]);
 
-  if (entries.length === 0) {
-    return <span className="text-gray-400">(无文件)</span>;
-  }
-
   if (singleImageFile) {
     return (
-      <div className="flex items-center gap-2">
-        <img
-          alt={singleImageFile.path}
-          className="size-16 shrink-0 rounded-1.5 object-cover"
-          src={convertFileSrc(singleImageFile.path)}
-        />
-        <span className="truncate text-sm" title={singleImageFile.path}>
-          {singleImageFile.path}
-        </span>
-      </div>
+      <img
+        alt={singleImageFile.path}
+        className="max-h-21"
+        src={convertFileSrc(singleImageFile.path)}
+      />
     );
   }
 
   return (
-    <ul className="m-0 flex list-none flex-col gap-0.5 p-0">
+    <div className="flex flex-col gap-1">
       {visibleEntries.map((entry) => (
-        <li
-          className="flex items-center gap-1 truncate text-sm"
+        <div
+          className="flex items-center gap-1 truncate"
           key={`${entry.path}-${entry.type}`}
           title={entry.path}
         >
-          {entry.iconPath ? (
-            <img
-              alt=""
-              className="size-4 shrink-0 rounded-0.5"
-              src={convertFileSrc(entry.iconPath)}
-            />
-          ) : (
-            <span className="text-gray-400">
-              {entry.type === "d" ? "📁" : "📄"}
-            </span>
-          )}
+          <img
+            alt=""
+            className="size-5 shrink-0 rounded-0.5"
+            src={convertFileSrc(entry.iconPath)}
+          />
+
           <span className="truncate">{entry.path}</span>
-        </li>
+        </div>
       ))}
-    </ul>
+    </div>
   );
 };
 
@@ -93,7 +79,9 @@ const getSingleImageFile = (entries: FileEntry[]): FileEntry | null => {
   if (entries.length !== 1) return null;
 
   const [entry] = entries;
+
   if (entry.type !== "f") return null;
+
   if (!isImage(entry.path)) return null;
 
   return entry;

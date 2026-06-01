@@ -35,7 +35,8 @@ CREATE TABLE clipboard_items (
     platform      TEXT    NOT NULL,
     note          TEXT,
     created_at    TEXT    NOT NULL,
-    updated_at    TEXT    NOT NULL
+    updated_at    TEXT    NOT NULL,
+    CHECK (kind <> 'files' OR trim(content) <> '')
 );
 
 CREATE INDEX idx_clipboard_items_content_hash ON clipboard_items (content_hash);

@@ -6,6 +6,7 @@ import { useSnapshot } from "valtio";
 import { useClipboardItems } from "@/hooks/useClipboardItems";
 import { clipboardViewState } from "@/stores/clipboardView";
 import type { ClipboardItem, ClipboardItemQuery } from "@/types/clipboard";
+import { cn } from "@/utils/cn";
 import ClipboardCard from "./cards/ClipboardCard";
 
 /**
@@ -83,8 +84,8 @@ const List: FC = () => {
 
 const computeItemKey = (_: number, item: ClipboardItem) => item.id;
 
-const renderItem = (_: number, item: ClipboardItem) => (
-  <div className="px-2 pb-2">
+const renderItem = (index: number, item: ClipboardItem) => (
+  <div className={cn("px-3", { "pt-3": index !== 0 })}>
     <ClipboardCard item={item} />
   </div>
 );

@@ -6,7 +6,7 @@ import KeyHint from "@/components/KeyHint";
  */
 const Footer = () => {
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between p-3">
       <div>总项</div>
 
       <Popover title="快捷键" trigger="click">

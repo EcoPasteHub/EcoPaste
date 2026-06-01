@@ -10,13 +10,11 @@ const ImageCard: FC<ClipboardItem> = (props) => {
   const { imageThumbnailPath } = props;
 
   return (
-    <div className="flex items-center gap-2">
-      <img
-        alt="Clipboard content"
-        className="max-h-21"
-        src={convertFileSrc(imageThumbnailPath ?? "")}
-      />
-    </div>
+    <img
+      alt="Clipboard content"
+      className="max-h-21"
+      src={convertFileSrc(imageThumbnailPath ?? "")}
+    />
   );
 };
 

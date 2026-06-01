@@ -38,7 +38,10 @@ const Header: FC = () => {
   );
 
   return (
-    <div className="flex items-center justify-between" data-tauri-drag-region>
+    <div
+      className="flex items-center justify-between p-3"
+      data-tauri-drag-region
+    >
       <img alt="logo" className="size-5" src="/logo.png" />
 
       <div className="flex items-center gap-1">
