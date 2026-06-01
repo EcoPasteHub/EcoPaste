@@ -60,6 +60,9 @@ importers:
       '@commitlint/config-conventional':
         specifier: ^21.0.1
         version: 21.0.1
+      '@iconify-json/lets-icons':
+        specifier: ^1.2.2
+        version: 1.2.2
       '@iconify-json/lucide':
         specifier: ^1.2.111
         version: 1.2.111
@@ -700,6 +703,9 @@ packages:
     engines: {node: '>=18'}
     cpu: [x64]
     os: [win32]
+
+  '@iconify-json/lets-icons@1.2.2':
+    resolution: {integrity: sha512-GBCeFoWNLA5v1ZRIM54cZGpE/lHtFcSJjxXXCi2W5SxkJoPDonNoLGf61/z8eNxiBkegynClvEgCAs0YjLeZkA==}
 
   '@iconify-json/lucide@1.2.111':
     resolution: {integrity: sha512-S6oXom2YOKuXFxWofhHa2oq++Z3WeZ78dRFDA7aEEJqyNCJlQd1UGAfN8u2gD2NzvYotmm+j5kH678viWfZbGQ==}
@@ -3405,6 +3411,10 @@ snapshots:
 
   '@esbuild/win32-x64@0.28.0':
     optional: true
+
+  '@iconify-json/lets-icons@1.2.2':
+    dependencies:
+      '@iconify/types': 2.0.0
 
   '@iconify-json/lucide@1.2.111':
     dependencies:

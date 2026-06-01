@@ -41,6 +41,7 @@
     "@biomejs/biome": "2.4.16",
     "@commitlint/cli": "^21.0.1",
     "@commitlint/config-conventional": "^21.0.1",
+    "@iconify-json/lets-icons": "^1.2.2",
     "@iconify-json/lucide": "^1.2.111",
     "@tauri-apps/cli": "^2",
     "@types/node": "^25.9.1",

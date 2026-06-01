@@ -1,23 +1,14 @@
 import { GithubFilled } from "@ant-design/icons";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { Button, Input, type InputRef } from "antd";
-import { useRef } from "react";
+import { Button } from "antd";
 import KeyHint from "@/components/KeyHint";
+import SearchInput from "@/components/SearchInput";
 import { GITHUB_URL } from "@/constants/urls";
 
 /**
  * 偏好设置顶部条：logo、搜索框（支持 ⌘F / Ctrl+F 聚焦）、主题/语言切换、GitHub 入口。
  */
 const Header = () => {
-  const searchRef = useRef<InputRef>(null);
-
-  /**
-   * 聚焦搜索框并选中已有内容，便于直接覆盖输入。
-   */
-  const focusSearch = () => {
-    searchRef.current?.focus({ cursor: "all" });
-  };
-
   /**
    * 通过 opener 插件打开 GitHub 主页（走系统默认浏览器，避免 webview 内跳转）。
    */
@@ -37,16 +28,7 @@ const Header = () => {
       </div>
 
       <div className="flex gap-1">
-        <Input
-          className="w-40"
-          placeholder="搜索设置项..."
-          prefix={
-            <KeyHint hintKey="F" onKeyPress={focusSearch}>
-              <i className="i-lucide:search flex size-4" />
-            </KeyHint>
-          }
-          ref={searchRef}
-        />
+        <SearchInput className="w-40" placeholder="搜索设置项..." />
 
         <Button>
           <i className="i-lucide:contrast" />
