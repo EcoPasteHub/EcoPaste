@@ -29,6 +29,7 @@ const SHORTCUTS: Shortcut[] = [
   { keys: [ENTER], label: "粘贴选中项" },
   { keys: [MOD, ENTER], label: "粘贴选中项为纯文本" },
   { keys: [MOD, BACKSPACE], label: "删除选中项" },
+  { keys: [MOD, "D"], label: "收藏 / 取消收藏" },
   { keys: [UP, "/", DOWN], label: "上下导航" },
   { keys: [MOD, "N"], label: "粘贴第 N 项（N = 1…9, 0）" },
   { keys: [MOD, "F"], label: "聚焦搜索框" },

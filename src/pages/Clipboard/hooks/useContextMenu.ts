@@ -88,20 +88,44 @@ export const useContextMenu = (props: UseContextMenuProps) => {
     }
 
     const items: Array<MenuItemOptions | PredefinedMenuItemOptions> = [
-      { action: () => pasteItem(false), text: "粘贴" },
+      {
+        accelerator: "Enter",
+        action: () => pasteItem(false),
+        text: "粘贴",
+      },
       ...(kind === "text"
-        ? [{ action: () => pasteItem(true), text: "粘贴为纯文本" }]
+        ? [
+            {
+              accelerator: "CmdOrCtrl+Enter",
+              action: () => pasteItem(true),
+              text: "粘贴为纯文本",
+            },
+          ]
         : []),
       ...(kind === "files"
-        ? [{ action: () => pasteItem(true), text: "粘贴为路径" }]
+        ? [
+            {
+              accelerator: "CmdOrCtrl+Enter",
+              action: () => pasteItem(true),
+              text: "粘贴为路径",
+            },
+          ]
         : []),
       { action: copy, text: "复制" },
       ...(typed.length > 0 ? [SEPARATOR, ...typed] : []),
       SEPARATOR,
-      { action: toggleFavorite, text: isFavorite ? "取消收藏" : "收藏" },
+      {
+        accelerator: "CmdOrCtrl+D",
+        action: toggleFavorite,
+        text: isFavorite ? "取消收藏" : "收藏",
+      },
       { action: () => onEditNote(item), text: "编辑备注" },
       SEPARATOR,
-      { action: remove, text: "删除" },
+      {
+        accelerator: "CmdOrCtrl+Backspace",
+        action: remove,
+        text: "删除",
+      },
     ];
 
     const menu = await Menu.new({ items });

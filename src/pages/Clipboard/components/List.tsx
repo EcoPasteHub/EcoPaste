@@ -4,7 +4,11 @@ import type { FC } from "react";
 import { useEffect, useRef, useState } from "react";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import { useSnapshot } from "valtio";
-import { deleteClipboardItem, pasteClipboardItem } from "@/commands";
+import {
+  deleteClipboardItem,
+  pasteClipboardItem,
+  toggleClipboardItemFavorite,
+} from "@/commands";
 import { TAURI_EVENT } from "@/constants/events";
 import { useClipboardItems } from "@/hooks/useClipboardItems";
 import { useKeyboardEvent } from "@/hooks/useKeyboardEvent";
@@ -128,6 +132,20 @@ const List: FC = () => {
     removeItem(id);
   };
 
+  /**
+   * 快捷键触发的收藏切换：读当前项的 isFavorite 计算下一态，
+   * Rust 返回真实状态后走统一的 `handleFavoriteToggled`（favorite 分组内取消会移除）。
+   */
+  const handleShortcutToggleFavorite = async (id: string) => {
+    const current = items.find((item) => item.id === id);
+
+    if (!current) return;
+
+    const next = await toggleClipboardItemFavorite(id, !current.isFavorite);
+
+    handleFavoriteToggled(id, next);
+  };
+
   const handleKeyDown = (e: KeyboardEvent) => {
     if (items.length === 0) return;
 
@@ -149,6 +167,16 @@ const List: FC = () => {
       const activeId = selectedId === null ? items[0].id : selectedId;
 
       handleShortcutDelete(activeId);
+
+      return;
+    }
+
+    if (isModifierPressed && e.key.toLowerCase() === "d") {
+      e.preventDefault();
+
+      const activeId = selectedId === null ? items[0].id : selectedId;
+
+      handleShortcutToggleFavorite(activeId);
 
       return;
     }
