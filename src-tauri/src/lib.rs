@@ -75,6 +75,7 @@ pub fn run() {
             commands::position_window,
             commands::save_window_state,
             commands::restore_window_state,
+            commands::set_main_window_pinned,
             commands::get_settings,
             commands::update_settings,
             commands::get_autostart,

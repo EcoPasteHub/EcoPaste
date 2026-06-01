@@ -9,6 +9,7 @@ export const TAURI_COMMAND = {
   GET_SETTINGS: "get_settings",
   LIST_CLIPBOARD_ITEMS: "list_clipboard_items",
   PASTE_CLIPBOARD_ITEM: "paste_clipboard_item",
+  SET_MAIN_WINDOW_PINNED: "set_main_window_pinned",
   SHOW_WINDOW: "show_window",
   UPDATE_SETTINGS: "update_settings",
 } as const;

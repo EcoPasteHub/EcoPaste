@@ -10,6 +10,8 @@ pub mod windows;
 pub use macos::handle_reopen;
 pub use state::WindowStateStore;
 
+use std::sync::atomic::{AtomicBool, Ordering};
+
 use tauri::{AppHandle, Emitter, Manager, WebviewWindow, Window};
 
 use crate::core::Result;
@@ -17,6 +19,18 @@ use crate::settings::{SettingsStore, WindowPosition};
 
 pub const MAIN_WINDOW_LABEL: &str = "main";
 pub const PREFERENCE_WINDOW_LABEL: &str = "preference";
+
+/// 主窗口「固定」状态：true 时失焦不自动隐藏（点击窗外、切到其它 App 都不会隐藏），
+/// 由前端 Pin 按钮 / 快捷键切换；macOS resign_key 与 Windows 外部点击钩子都尊重这个开关。
+static MAIN_WINDOW_PINNED: AtomicBool = AtomicBool::new(false);
+
+pub fn is_main_window_pinned() -> bool {
+    MAIN_WINDOW_PINNED.load(Ordering::Relaxed)
+}
+
+pub fn set_main_window_pinned(pinned: bool) {
+    MAIN_WINDOW_PINNED.store(pinned, Ordering::Relaxed);
+}
 
 /// 主窗口显隐变化事件。前端用以做默认聚焦 / 自动清空搜索等 UI 副作用。
 /// 由 [`show_window`] / [`hide_window`] 在统一入口处发出，平台一致，

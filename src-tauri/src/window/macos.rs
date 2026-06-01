@@ -52,6 +52,10 @@ pub fn setup_main(app_handle: &AppHandle) -> Result<()> {
 
     let resign_handle = app_handle.clone();
     handler.window_did_resign_key(move |_| {
+        if super::is_main_window_pinned() {
+            return;
+        }
+
         // 失焦即隐藏：Tauri 不主动隐藏 NSPanel，统一走 window::hide_window
         // 以触发 `window://visibility` 等下游副作用。
         if let Err(err) = super::hide_window(&resign_handle, MAIN_WINDOW_LABEL) {

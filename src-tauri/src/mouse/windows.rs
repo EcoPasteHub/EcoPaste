@@ -77,7 +77,7 @@ unsafe extern "system" fn hook_proc(code: i32, wparam: WPARAM, lparam: LPARAM) -
     let cursor = data.pt;
 
     if let Some(app) = APP_HANDLE.get() {
-        if cursor_outside_main_window(app, cursor) {
+        if !window::is_main_window_pinned() && cursor_outside_main_window(app, cursor) {
             schedule_hide(app);
         }
     }

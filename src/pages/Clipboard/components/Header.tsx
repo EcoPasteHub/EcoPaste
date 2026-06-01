@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { useDebounceFn } from "ahooks";
 import { Button, Tooltip } from "antd";
 import type { ChangeEvent, FC } from "react";
+import { useState } from "react";
 import KeyHint from "@/components/KeyHint";
 import SearchInput from "@/components/SearchInput";
 import { TAURI_COMMAND } from "@/constants/commands";
@@ -13,6 +14,8 @@ import { log } from "@/utils/log";
  * 剪贴板窗口顶部条：logo、搜索框（⌘F / Ctrl+F 聚焦）、固定窗口与更多操作入口。
  */
 const Header: FC = () => {
+  const [pinned, setPinned] = useState(false);
+
   /**
    * 统一处理偏好设置入口（按钮点击/快捷键）。
    */
@@ -23,6 +26,22 @@ const Header: FC = () => {
       });
     } catch (error) {
       log.error("Open preference window failed", error);
+    }
+  };
+
+  /**
+   * 切换主窗口固定态：Rust 侧立即生效（resign_key / 外部点击钩子读取），本地态仅用于按钮渲染。
+   */
+  const handleTogglePinned = async () => {
+    const next = !pinned;
+
+    try {
+      await invoke<void>(TAURI_COMMAND.SET_MAIN_WINDOW_PINNED, {
+        pinned: next,
+      });
+      setPinned(next);
+    } catch (error) {
+      log.error("Toggle main window pin state failed", error);
     }
   };
 
@@ -53,11 +72,18 @@ const Header: FC = () => {
           size="small"
         />
 
-        <Tooltip title="固定窗口">
+        <Tooltip title={pinned ? "取消固定" : "固定窗口"}>
           <Button
-            icon={<KeyHint hintKey="P" iconName="i-lets-icons:pin" />}
+            icon={
+              <KeyHint
+                hintKey="P"
+                iconName="i-lets-icons:pin"
+                onKeyPress={handleTogglePinned}
+              />
+            }
+            onClick={handleTogglePinned}
             size="small"
-            type="text"
+            type={pinned ? "primary" : "text"}
           />
         </Tooltip>
 
