@@ -53,6 +53,8 @@ export interface ClipboardItem {
 
 export type ClipboardItemSort = "createdAtDesc" | "useCountDesc";
 
+export type ClipboardGroup = "all" | "text" | "image" | "files" | "favorite";
+
 export interface ClipboardItemQuery {
   kind?: ClipboardKind;
   groupId?: string;

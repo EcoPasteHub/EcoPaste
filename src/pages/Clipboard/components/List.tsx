@@ -20,10 +20,15 @@ const List: FC = () => {
   const virtuosoRef = useRef<VirtuosoHandle>(null);
 
   const snapshot = useSnapshot(clipboardViewState);
-  const { keyword, ...rest } = snapshot;
+  const { keyword, group, ...rest } = snapshot;
 
   const query = useCreation<ClipboardItemQuery>(
-    () => ({ ...rest, keyword: keyword || void 0 }),
+    () => ({
+      ...rest,
+      favorite: group === "favorite" ? true : void 0,
+      keyword: keyword || void 0,
+      kind: group === "all" || group === "favorite" ? void 0 : group,
+    }),
     [snapshot],
   );
 

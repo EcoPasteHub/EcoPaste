@@ -1,6 +1,7 @@
 import { cn } from "@/utils/cn";
 import { isMac } from "@/utils/is";
 import Footer from "./components/Footer";
+import Group from "./components/Group";
 import Header from "./components/Header";
 import List from "./components/List";
 
@@ -13,6 +14,8 @@ const Clipboard = () => {
       data-tauri-drag-region
     >
       <Header />
+
+      <Group />
 
       <List />
 
