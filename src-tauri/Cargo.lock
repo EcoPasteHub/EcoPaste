@@ -8,7 +8,6 @@ version = "0.6.0-beta.3"
 dependencies = [
  "anyhow",
  "auto-launch",
- "base64 0.22.1",
  "blake3",
  "chrono",
  "clipboard-rs",
