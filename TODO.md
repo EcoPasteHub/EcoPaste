@@ -551,6 +551,27 @@
   > 性能 / 鲁棒性注意：① 网络抖动：所有 WebDAV 请求带指数退避重试（最多 3 次）；②`manifest.json` 并发更新冲突（多设备同时推）：用 If-Match ETag 重试，最多 5 次后放弃本轮、下次同步补；③ 大量 blob 上传不阻塞主流程：用独立 `tokio::task` + 信号量限制并发 4；④ 同步状态全程 `log::info`，失败 `log::error`，方便用户提交日志排查；⑤ 设置项缺失（URL 空 / 凭据未设）时整个模块不启动，不抛错；⑥ 与 8.12 并存：本地变更走两条路同时推（局域网即时推 + WebDAV 周期推），合并逻辑保证幂等不会重复入库。
   > 与 8.12 的取舍：用户可只开 8.12（同网段足够）/ 只开 8.13（异地多设备）/ 两个都开（同网段秒级同步 + 异地分钟级同步）。建议默认只在引导里推荐 8.12，WebDAV 作为「想跨网络同步时再配」的进阶选项。
 
+### 8.14 列表条目显示上限
+
+- [ ] 文字最长显示行数 / 图片最大高度 / 文件最多显示数量，三项均可在设置里调整
+  > 当前 `cards/TextCard.tsx` 写死 `line-clamp-3`、`ImageCard.tsx` 与 `FilesCard.tsx` 写死 `max-h-20`，`FilesCard` 还只展示第一项缩略图。把这三个上限抽成设置项，让用户按习惯调整列表密度——爱看长文的开大文字行数，截图党加高图片预览，常拷多文件的多看几项。
+  > 设置模型（Rust，`settings/model.rs::Content`）：在现有 `Content` 结构里加三个字段：`text_max_lines: u8`（默认 3，范围 1–10，0 视为不限——内容超长时仍由虚拟滚动容器外层兜底，不让单条把整屏吃满）、`image_max_height_px: u16`（默认 80，范围 40–240，按 8 步进）、`files_max_visible: u8`（默认 1，范围 1–10）。三项都加 `#[serde(default)]` 走 `Default for Content`，配合现有合并逻辑即可向前兼容老配置文件。**仅展示偏好，不影响数据存储或捕获**，所以不需要 migration、不需要后端命令——前端通过现有 `get_settings` / `update_settings` 通道读写。
+  > 前端渲染：
+  >
+  > 1. `TextCard.tsx` 把 `line-clamp-3` 换成动态行数。Tailwind/UnoCSS 的 `line-clamp-N` 是预生成 1–6 的安全类，>6 需要走 inline style（`WebkitLineClamp`）或扩 preset；最简单的做法是 `style={{ WebkitLineClamp: maxLines, display: "-webkit-box", WebkitBoxOrient: "vertical", overflow: "hidden" }}` 配合 `whitespace-pre-wrap`，`maxLines === 0` 时去掉 clamp 样式。注意 inline style 仅放数字像素 / 行数无单位的属性，符合 AGENTS.md 的「样式只走 wind4 数字制」例外（行数不是尺寸单位）。
+  > 2. `ImageCard.tsx` 把 `max-h-20` 换成 `style={{ maxHeight: imageMaxHeightPx }}`——这里**确实**是像素字面量，属于「设置项驱动的动态数值」例外；保留 `self-start` 等其他 className。
+  > 3. `FilesCard.tsx` 重构：原本只渲染 `first?.path` 一个缩略图，改为遍历 `files.slice(0, filesMaxVisible)`，每项一行（图标 + 文件名 + 大小）；总数超出时尾部加「+N」徽章。布局沿用现有卡片结构，整体高度由项数与单行高度决定，无需额外 max-h 限制。缩略图 / 图标尺寸保持现状。
+  >    设置项读取：三项都属 `clipboard.content`，前端通过 `useSnapshot(settingsStore).clipboard.content` 拿。三个 Card 均是 `react-virtuoso` 的 row 内组件，避免每行 `useSnapshot` 全量订阅；最佳做法是在 `Clipboard/index.tsx` 顶层读一次，把三项通过 React Context（或直接作为 props 经 `itemContent` 闭包）传下去——本仓库 `ClipboardList` 已用闭包传 item 数据，沿用同一路径即可，不另起 Context。
+  >    设置面板（`Preference > 剪贴板`）新增「列表显示」分组，三项控件：① 文字行数：`Slider` 1–10 + 数字输入；② 图片高度：`Slider` 40–240（step 8）+ 单位 `px` 后缀；③ 文件显示数量：`Slider` 1–10 + 数字输入。每项右侧加「恢复默认」小按钮（沿用现有面板风格，如有）。**实时预览**：调整时立刻应用到列表（设置流已经是响应式的，无需额外处理）。
+  >    i18n：`preference.clipboard.display.{title, textMaxLines, imageMaxHeight, filesMaxVisible, unlimited, pxSuffix}` 中英文两份。
+  >    边界与注意：
+  >
+  > - 文字 `maxLines = 0`（不限）时仍要确保单条不挤爆容器——`react-virtuoso` 用「不固定高度」模式即可自适应，行数与单条高度的取舍由用户承担。
+  > - 图片高度上调到 240 时缩略图本身可能比原图还大，渲染时仍按 `object-contain` 不放大原图（`AssetImage` 当前默认行为如此则不动；否则补一行 `style={{ objectFit: "contain" }}`）。
+  > - `filesMaxVisible` 改大不会触发更多元数据读取——文件名 / 大小已经在 `clipboard_items.payload` 一次性返回，仅渲染数量变化。若后续把缩略图读取下沉 Rust（懒加载），再单独评估并发上限。
+  > - 三项都属纯展示偏好，**不需要** Rust 端联动逻辑、不需要事件通知、不影响同步（8.12/8.13）行为。
+  >   验证：手动用极端值跑一遍——文字设为 10 行 + 复制一篇长 Markdown / 图片设为 240 + 复制截图 / 文件设为 10 + 复制 Finder 多选——观察列表滚动是否仍流畅（虚拟滚动 row 高动态变化时偶发抖动，必要时给三类卡片各加一个外层 `min-h` 兜底），并切回默认值确认无残留样式。
+
 ---
 
 # 阶段 9 · 打包、签名与发布
