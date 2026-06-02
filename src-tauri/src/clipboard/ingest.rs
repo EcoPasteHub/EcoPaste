@@ -226,6 +226,7 @@ pub fn build_item(store: &ImageStore, payload: &ClipboardPayload) -> Result<Opti
         source_app_icon_path: None,
         image_thumbnail_path: None,
         file_entries: None,
+        available_actions: Vec::new(),
     }))
 }
 

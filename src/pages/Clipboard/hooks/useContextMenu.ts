@@ -12,7 +12,7 @@ import {
   toggleClipboardItemFavorite,
   writeToClipboard,
 } from "@/commands";
-import type { ClipboardItem } from "@/types/clipboard";
+import type { ClipboardAction, ClipboardItem } from "@/types/clipboard";
 import { isMac } from "@/utils/is";
 
 interface UseContextMenuProps {
@@ -34,15 +34,24 @@ interface UseContextMenuProps {
 const SEPARATOR: PredefinedMenuItemOptions = { item: "Separator" };
 
 /**
+ * 菜单视觉分组：组间插入分隔线，组内按 Rust 返回的 `availableActions` 顺序取交集。
+ * 所有「这条记录能做哪些动作」的判定都在 Rust，前端只负责把动作映射成文案/快捷键/平台差异。
+ */
+const ACTION_GROUPS: ClipboardAction[][] = [
+  ["paste", "pasteAsPlainText", "pasteAsPath", "copy"],
+  ["openLink", "sendEmail", "reveal"],
+  ["toggleFavorite", "editNote"],
+  ["delete"],
+];
+
+/**
  * 列表项右键菜单：返回 `handleContextMenu`，绑到卡片根节点的 `onContextMenu`，
- * 右键时用 Tauri 原生菜单（`Menu.popup`）按 kind / subKind 弹出。
- * 所有动作都走 `@/commands` 包装：粘贴 / 复制 / 收藏 / 删除 / 备注 由 Rust 同名命令完成；
- * 打开链接 / 发邮件 / 文件管理器显示也下沉到 Rust（按 id 查 content + opener 调用），
- * 前端无需再回查完整 content。
+ * 右键时按 Rust 计算好的 `availableActions` 顺序拼 Tauri 原生菜单（`Menu.popup`）。
  */
 export const useContextMenu = (props: UseContextMenuProps) => {
   const { item, onRemoved, onFavoriteToggled, onEditNote } = props;
-  const { kind, subKind, isFavorite } = item;
+  const { availableActions = [], isFavorite } = item;
+  const actionSet = new Set<ClipboardAction>(availableActions);
 
   const pasteItem = (plain: boolean) => pasteClipboardItem(item.id, plain);
 
@@ -63,70 +72,75 @@ export const useContextMenu = (props: UseContextMenuProps) => {
     if (deleted) onRemoved(item.id);
   };
 
-  /**
-   * 右键时即时构建并弹出原生菜单：通用项（粘贴 / 复制 / 收藏 / 备注 / 删除）恒在，
-   * 类型相关项（纯文本粘贴 / 打开链接 / 发邮件 / 文件管理器显示）按 kind / subKind 追加。
-   */
+  const buildMenuItem = (action: ClipboardAction): MenuItemOptions | null => {
+    switch (action) {
+      case "paste":
+        return {
+          accelerator: "Enter",
+          action: () => pasteItem(false),
+          text: "粘贴",
+        };
+      case "pasteAsPlainText":
+        return {
+          accelerator: "CmdOrCtrl+Enter",
+          action: () => pasteItem(true),
+          text: "粘贴为纯文本",
+        };
+      case "pasteAsPath":
+        return {
+          accelerator: "CmdOrCtrl+Enter",
+          action: () => pasteItem(true),
+          text: "粘贴为路径",
+        };
+      case "copy":
+        return { action: copy, text: "复制" };
+      case "openLink":
+        return { action: () => openLink(false), text: "打开链接" };
+      case "sendEmail":
+        return { action: () => openLink(true), text: "发送邮件" };
+      case "reveal":
+        return {
+          action: reveal,
+          text: isMac ? "在访达中显示" : "在资源管理器中显示",
+        };
+      case "toggleFavorite":
+        return {
+          accelerator: "CmdOrCtrl+D",
+          action: toggleFavorite,
+          text: isFavorite ? "取消收藏" : "收藏",
+        };
+      case "editNote":
+        return { action: () => onEditNote(item), text: "编辑备注" };
+      case "delete":
+        return {
+          accelerator: "CmdOrCtrl+Backspace",
+          action: remove,
+          text: "删除",
+        };
+      default:
+        return null;
+    }
+  };
+
   const handleContextMenu = async (event: MouseEvent) => {
     event.preventDefault();
 
-    const typed: MenuItemOptions[] = [];
+    const items: Array<MenuItemOptions | PredefinedMenuItemOptions> = [];
 
-    if (subKind === "url") {
-      typed.push({ action: () => openLink(false), text: "打开链接" });
+    for (const group of ACTION_GROUPS) {
+      const groupItems = group
+        .filter((action) => actionSet.has(action))
+        .map(buildMenuItem)
+        .filter((entry): entry is MenuItemOptions => entry !== null);
+
+      if (groupItems.length === 0) continue;
+
+      if (items.length > 0) items.push(SEPARATOR);
+
+      items.push(...groupItems);
     }
 
-    if (subKind === "email") {
-      typed.push({ action: () => openLink(true), text: "发送邮件" });
-    }
-
-    if (subKind === "path" || kind === "files") {
-      typed.push({
-        action: reveal,
-        text: isMac ? "在访达中显示" : "在资源管理器中显示",
-      });
-    }
-
-    const items: Array<MenuItemOptions | PredefinedMenuItemOptions> = [
-      {
-        accelerator: "Enter",
-        action: () => pasteItem(false),
-        text: "粘贴",
-      },
-      ...(kind === "text"
-        ? [
-            {
-              accelerator: "CmdOrCtrl+Enter",
-              action: () => pasteItem(true),
-              text: "粘贴为纯文本",
-            },
-          ]
-        : []),
-      ...(kind === "files"
-        ? [
-            {
-              accelerator: "CmdOrCtrl+Enter",
-              action: () => pasteItem(true),
-              text: "粘贴为路径",
-            },
-          ]
-        : []),
-      { action: copy, text: "复制" },
-      ...(typed.length > 0 ? [SEPARATOR, ...typed] : []),
-      SEPARATOR,
-      {
-        accelerator: "CmdOrCtrl+D",
-        action: toggleFavorite,
-        text: isFavorite ? "取消收藏" : "收藏",
-      },
-      { action: () => onEditNote(item), text: "编辑备注" },
-      SEPARATOR,
-      {
-        accelerator: "CmdOrCtrl+Backspace",
-        action: remove,
-        text: "删除",
-      },
-    ];
+    if (items.length === 0) return;
 
     const menu = await Menu.new({ items });
 

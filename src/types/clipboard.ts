@@ -15,6 +15,22 @@ export type ClipboardSubKind =
 
 export type ClipboardPlatform = "macos" | "windows";
 
+/**
+ * 右键菜单可用动作。与 Rust `ClipboardAction` 对应（`serde(rename_all = "camelCase")`）。
+ * 顺序由后端给出，前端按此顺序渲染。
+ */
+export type ClipboardAction =
+  | "paste"
+  | "pasteAsPlainText"
+  | "pasteAsPath"
+  | "copy"
+  | "openLink"
+  | "sendEmail"
+  | "reveal"
+  | "toggleFavorite"
+  | "editNote"
+  | "delete";
+
 export interface ClipboardItem {
   id: string;
   kind: ClipboardKind;
@@ -49,6 +65,8 @@ export interface ClipboardItem {
   imageThumbnailPath?: string;
   /** files 条目的预处理条目（与 content 中路径顺序一致，最多 3 项）。 */
   fileEntries?: FileEntry[];
+  /** 右键菜单可用动作；顺序由 Rust 给出，前端按序渲染并按 action 查文案/快捷键。 */
+  availableActions?: ClipboardAction[];
 }
 
 export interface FileEntry {

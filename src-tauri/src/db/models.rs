@@ -89,6 +89,38 @@ pub struct ClipboardItem {
     #[sqlx(skip)]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub file_entries: Option<Vec<FileEntry>>,
+    /// 当前条目右键菜单可用的动作列表（按 kind / sub_kind 计算），按建议展示顺序排列。
+    /// 前端只负责把动作映射成菜单项 + 文案 + 快捷键，不再判定「能否打开链接」等业务条件。
+    #[sqlx(skip)]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub available_actions: Vec<ClipboardAction>,
+}
+
+/// 右键菜单可执行的动作种类。
+/// 顺序约定见 [`crate::commands::clipboard::compute_available_actions`]。
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum ClipboardAction {
+    /// 普通粘贴（恒在）。
+    Paste,
+    /// 文本条目额外提供「粘贴为纯文本」。
+    PasteAsPlainText,
+    /// 文件条目额外提供「粘贴为路径」（写回纯文本路径列表）。
+    PasteAsPath,
+    /// 复制回剪贴板（恒在）。
+    Copy,
+    /// 在浏览器打开链接（`sub_kind = url`）。
+    OpenLink,
+    /// 调起邮件客户端（`sub_kind = email`）。
+    SendEmail,
+    /// 在 Finder / 资源管理器中显示（`sub_kind = path` 或 `kind = files`）。
+    Reveal,
+    /// 切换收藏（恒在；前端按 `is_favorite` 切「收藏 / 取消收藏」文案）。
+    ToggleFavorite,
+    /// 编辑备注（恒在）。
+    EditNote,
+    /// 删除条目（恒在）。
+    Delete,
 }
 
 /// Files 类型条目里的单条文件/目录元信息，由命令层组装后返回前端。

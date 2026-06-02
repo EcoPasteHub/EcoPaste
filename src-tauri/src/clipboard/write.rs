@@ -180,6 +180,7 @@ mod tests {
             source_app_icon_path: None,
             image_thumbnail_path: None,
             file_entries: None,
+            available_actions: Vec::new(),
         }
     }
 
@@ -273,6 +274,7 @@ mod tests {
             source_app_icon_path: None,
             image_thumbnail_path: None,
             file_entries: None,
+            available_actions: Vec::new(),
         };
 
         write_to_clipboard(&store, &guard, &item, false).unwrap();

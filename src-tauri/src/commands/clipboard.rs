@@ -14,7 +14,8 @@ use crate::clipboard::{
 use crate::core::{AppError, Result};
 use crate::db::items::{find_item_by_id, find_item_for_list_by_id};
 use crate::db::models::{
-    ClipboardGroup, ClipboardItem, ClipboardItemQuery, ClipboardKind, FileEntry, Platform,
+    ClipboardAction, ClipboardGroup, ClipboardItem, ClipboardItemQuery, ClipboardKind,
+    ClipboardSubKind, FileEntry, Platform,
 };
 use crate::window::{self, MAIN_WINDOW_LABEL};
 
@@ -225,6 +226,7 @@ pub async fn list_clipboard_items(
         attach_image_thumbnail_path(&image_store, item).await?;
         attach_source_app_icon_path(&app_icon_store, item);
         attach_file_entries(&pool, &file_icon_store, item).await?;
+        item.available_actions = compute_available_actions(item);
     }
     Ok(items)
 }
@@ -253,6 +255,7 @@ pub async fn get_clipboard_item(
         attach_image_thumbnail_path(&image_store, item).await?;
         attach_source_app_icon_path(&app_icon_store, item);
         attach_file_entries(&pool, &file_icon_store, item).await?;
+        item.available_actions = compute_available_actions(item);
     }
     Ok(item)
 }
@@ -301,6 +304,41 @@ fn attach_source_app_icon_path(store: &AppIconStore, item: &mut ClipboardItem) {
         .source_app_icon_file
         .as_deref()
         .and_then(|name| store.icon_path(name).to_str().map(str::to_owned));
+}
+
+/// 按 `kind` / `sub_kind` 计算右键菜单可用动作，按建议展示顺序返回。
+/// 前端只负责把每个动作映射成 `MenuItemOptions`（文案 + 快捷键），
+/// 不再自行判定「能否打开链接 / 是否文件可揭示」等业务规则。
+fn compute_available_actions(item: &ClipboardItem) -> Vec<ClipboardAction> {
+    let mut actions = Vec::with_capacity(10);
+
+    actions.push(ClipboardAction::Paste);
+
+    match item.kind {
+        ClipboardKind::Text => actions.push(ClipboardAction::PasteAsPlainText),
+        ClipboardKind::Files => actions.push(ClipboardAction::PasteAsPath),
+        ClipboardKind::Image => {}
+    }
+
+    actions.push(ClipboardAction::Copy);
+
+    match item.sub_kind {
+        Some(ClipboardSubKind::Url) => actions.push(ClipboardAction::OpenLink),
+        Some(ClipboardSubKind::Email) => actions.push(ClipboardAction::SendEmail),
+        _ => {}
+    }
+
+    let can_reveal =
+        item.kind == ClipboardKind::Files || item.sub_kind == Some(ClipboardSubKind::Path);
+    if can_reveal {
+        actions.push(ClipboardAction::Reveal);
+    }
+
+    actions.push(ClipboardAction::ToggleFavorite);
+    actions.push(ClipboardAction::EditNote);
+    actions.push(ClipboardAction::Delete);
+
+    actions
 }
 
 /// 为 files 条目组装最多前 3 项的 [`FileEntry`]：
