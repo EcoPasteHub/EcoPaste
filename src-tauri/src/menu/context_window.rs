@@ -76,7 +76,6 @@ fn build_window(app: &AppHandle) -> Result<()> {
     .focusable(false)
     .visible(false)
     .skip_taskbar(true)
-    .shadow(false)
     .drag_and_drop(false)
     .build()
     .map_err(|err| AppError::Other(anyhow::anyhow!("build context-menu window: {err}")))?;
