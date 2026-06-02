@@ -89,6 +89,11 @@ pub struct ClipboardItem {
     #[sqlx(skip)]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub file_entries: Option<Vec<FileEntry>>,
+    /// Files 卡片渲染模式：单文件且为图片走 `ImagePreview`，其它走 `List`。
+    /// 命令层在填充 `file_entries` 时一并计算，前端无需再判定。
+    #[sqlx(skip)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub files_preview_kind: Option<FilesPreviewKind>,
     /// 当前条目右键菜单可用的动作列表（按 kind / sub_kind 计算），按建议展示顺序排列。
     /// 前端只负责把动作映射成菜单项 + 文案 + 快捷键，不再判定「能否打开链接」等业务条件。
     #[sqlx(skip)]
@@ -144,6 +149,16 @@ pub struct FileEntry {
     pub is_image: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub icon_path: Option<String>,
+}
+
+/// Files 卡片的渲染模式（命令层计算后塞给前端）。
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum FilesPreviewKind {
+    /// 单文件且为图片，直接渲染图片预览。
+    ImagePreview,
+    /// 多文件或非图片，渲染图标 + 文件名列表。
+    List,
 }
 
 /// 剪贴板来源应用（macOS bundle id / Windows exe 路径作主键），

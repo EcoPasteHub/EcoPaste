@@ -434,6 +434,10 @@ async fn attach_file_entries(
     }
 
     item.file_entries = Some(entries);
+    item.files_preview_kind = Some(match item.file_entries.as_deref() {
+        Some([only]) if only.is_image => crate::db::models::FilesPreviewKind::ImagePreview,
+        _ => crate::db::models::FilesPreviewKind::List,
+    });
     Ok(())
 }
 

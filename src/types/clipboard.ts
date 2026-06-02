@@ -69,6 +69,8 @@ export interface ClipboardItem {
   availableActions?: ClipboardAction[];
   /** sub_kind = color 时由 Rust 校验过的 CSS 颜色串（合法才存在）。 */
   colorPreview?: string;
+  /** Files 卡片渲染模式，由 Rust 命令层根据 `fileEntries` 计算。 */
+  filesPreviewKind?: "imagePreview" | "list";
   /** Rust 按本地时区做三档格式化的 createdAt：HH:mm:ss / MM-DD HH:mm / YYYY-MM-DD HH:mm。 */
   displayCreatedAt?: string;
 }
