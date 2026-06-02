@@ -23,19 +23,12 @@ use std::sync::{Once, OnceLock};
 use tauri::WebviewWindow;
 use windows::core::{implement, Error as WinError, HRESULT, HSTRING, PCWSTR};
 use windows::Win32::Foundation::{
-    BOOL, COLORREF, DRAGDROP_S_CANCEL, DRAGDROP_S_DROP, DRAGDROP_S_USEDEFAULTCURSORS,
-    DV_E_FORMATETC, E_NOTIMPL, HANDLE, HWND, OLE_E_ADVISENOTSUPPORTED, POINT, RECT, SIZE, S_OK,
-};
-use windows::Win32::Graphics::Gdi::{
-    CreateDIBSection, CreateFontW, CreateRoundRectRgn, CreateSolidBrush, DeleteDC, DeleteObject,
-    DrawTextW, FillRgn, GetDC, GetSysColor, ReleaseDC, SelectClipRgn, SelectObject, SetBkMode,
-    SetTextColor, BITMAPINFO, BITMAPINFOHEADER, BI_RGB, CLEARTYPE_QUALITY, CLIP_DEFAULT_PRECIS,
-    COLOR_WINDOW, COLOR_WINDOWTEXT, DEFAULT_CHARSET, DIB_RGB_COLORS, DT_END_ELLIPSIS, DT_WORDBREAK,
-    FF_SWISS, FW_NORMAL, HBITMAP, HGDIOBJ, OUT_DEFAULT_PRECIS, TRANSPARENT, VARIABLE_PITCH,
+    BOOL, DRAGDROP_S_CANCEL, DRAGDROP_S_DROP, DRAGDROP_S_USEDEFAULTCURSORS, DV_E_FORMATETC,
+    E_NOTIMPL, OLE_E_ADVISENOTSUPPORTED, S_OK,
 };
 use windows::Win32::System::Com::{
-    CoCreateInstance, IAdviseSink, IDataObject, IDataObject_Impl, IEnumFORMATETC, IEnumSTATDATA,
-    CLSCTX_INPROC_SERVER, DVASPECT_CONTENT, FORMATETC, STGMEDIUM, STGMEDIUM_0, TYMED_HGLOBAL,
+    IAdviseSink, IDataObject, IDataObject_Impl, IEnumFORMATETC, IEnumSTATDATA, DVASPECT_CONTENT,
+    FORMATETC, STGMEDIUM, STGMEDIUM_0, TYMED_HGLOBAL,
 };
 use windows::Win32::System::DataExchange::RegisterClipboardFormatW;
 use windows::Win32::System::Memory::{
@@ -46,7 +39,6 @@ use windows::Win32::System::Ole::{
     DROPEFFECT, DROPEFFECT_COPY,
 };
 use windows::Win32::System::SystemServices::{MK_LBUTTON, MODIFIERKEYS_FLAGS};
-use windows::Win32::UI::Shell::{CLSID_DragDropHelper, IDragSourceHelper, SHDRAGIMAGE};
 
 use crate::core::{AppError, Result};
 
@@ -407,10 +399,6 @@ impl IDropSource_Impl for DropSource {
 
 /// 启动一次文本 drag-out（plain + 可选 html / rtf）。阻塞至 drop 完成；
 /// 调用方必须在 Tauri 主线程上跑。
-///
-/// 没有传入 `_preview_png` 时（当前 commands 层就是这样），用 GDI 现场把文本前几行
-/// 渲染成圆角 DIB，通过 `IDragSourceHelper::InitializeFromBitmap` 关联到 data object，
-/// 跟随光标显示——和 macOS 的视觉对齐。
 pub fn start_drag_text(
     window: &WebviewWindow,
     plain: &str,
@@ -428,14 +416,6 @@ pub fn start_drag_text(
     let data_object: IDataObject = RichDataObject::new(plain, html, rtf).into();
     let drop_source: IDropSource = DropSource.into();
 
-    // 关联预览图：用 GDI 把文本渲染成 DIB，再走 IDragSourceHelper。
-    // 失败不致命（外部 app 拖入时只是没有 ghost），打 warn 继续 DoDragDrop。
-    let scale = window.scale_factor().unwrap_or(1.0);
-    let size_px = (128.0 * scale).round() as i32;
-    if let Err(err) = attach_text_preview(&data_object, plain, size_px) {
-        log::warn!("attach drag preview failed: {err}");
-    }
-
     let mut out = DROPEFFECT::default();
     let hr = unsafe { DoDragDrop(&data_object, &drop_source, DROPEFFECT_COPY, &mut out) };
 
@@ -446,182 +426,6 @@ pub fn start_drag_text(
     }
 
     Ok(())
-}
-
-/// 把 GDI 渲染的文本 bitmap 通过 `IDragSourceHelper` 关联到 `data_object`，
-/// 由 Shell 接管 HBITMAP（成功后我们不再 `DeleteObject`，失败由本函数清理）。
-fn attach_text_preview(data_object: &IDataObject, text: &str, size_px: i32) -> Result<()> {
-    let hbmp = render_text_preview_bitmap(text, size_px)
-        .ok_or_else(|| AppError::Clipboard("render preview bitmap failed".to_string()))?;
-
-    unsafe {
-        let helper_res: windows::core::Result<IDragSourceHelper> =
-            CoCreateInstance(&CLSID_DragDropHelper, None, CLSCTX_INPROC_SERVER);
-        let helper = match helper_res {
-            Ok(h) => h,
-            Err(err) => {
-                let _ = DeleteObject(HGDIOBJ(hbmp.0));
-                return Err(AppError::Clipboard(format!(
-                    "create DragDropHelper failed: {err}"
-                )));
-            }
-        };
-
-        let img = SHDRAGIMAGE {
-            sizeDragImage: SIZE {
-                cx: size_px,
-                cy: size_px,
-            },
-            // 光标落在 bitmap 中心，与 macOS 一致。
-            ptOffset: POINT {
-                x: size_px / 2,
-                y: size_px / 2,
-            },
-            hbmpDragImage: hbmp,
-            // 0 == 不使用 color key 透明（我们的 bitmap 整张不透明）。
-            crColorKey: COLORREF(0),
-        };
-
-        if let Err(err) = helper.InitializeFromBitmap(&img, data_object) {
-            let _ = DeleteObject(HGDIOBJ(hbmp.0));
-            return Err(AppError::Clipboard(format!(
-                "InitializeFromBitmap failed: {err}"
-            )));
-        }
-    }
-
-    Ok(())
-}
-
-/// 用 GDI 把 `text` 前几行渲染成 size_px × size_px 的 32-bit top-down DIB，圆角白卡风格。
-///
-/// 颜色用 `GetSysColor(COLOR_WINDOW / COLOR_WINDOWTEXT)`，跟随系统主题（浅色/高对比度）。
-/// Windows 10/11 暗色模式下 `GetSysColor` 不会自动反转——这是 Win32 设计限制，
-/// 后续要更精确的暗色支持需要查 `AppsUseLightTheme` 注册表或用 UWP `UISettings`。
-fn render_text_preview_bitmap(text: &str, size_px: i32) -> Option<HBITMAP> {
-    unsafe {
-        let hdc_screen = GetDC(HWND(0));
-        if hdc_screen.is_invalid() {
-            return None;
-        }
-        let hdc_mem = windows::Win32::Graphics::Gdi::CreateCompatibleDC(hdc_screen);
-        if hdc_mem.is_invalid() {
-            ReleaseDC(HWND(0), hdc_screen);
-            return None;
-        }
-
-        let mut bmi: BITMAPINFO = std::mem::zeroed();
-        bmi.bmiHeader.biSize = std::mem::size_of::<BITMAPINFOHEADER>() as u32;
-        bmi.bmiHeader.biWidth = size_px;
-        // 负高度 = top-down DIB（左上为原点），DrawText 默认坐标也是 top-down。
-        bmi.bmiHeader.biHeight = -size_px;
-        bmi.bmiHeader.biPlanes = 1;
-        bmi.bmiHeader.biBitCount = 32;
-        bmi.bmiHeader.biCompression = BI_RGB.0;
-
-        let mut bits: *mut std::ffi::c_void = std::ptr::null_mut();
-        let hbmp = match CreateDIBSection(
-            hdc_screen,
-            &bmi,
-            DIB_RGB_COLORS,
-            &mut bits,
-            HANDLE::default(),
-            0,
-        ) {
-            Ok(h) if !h.is_invalid() => h,
-            _ => {
-                DeleteDC(hdc_mem);
-                ReleaseDC(HWND(0), hdc_screen);
-                return None;
-            }
-        };
-
-        let old_bmp = SelectObject(hdc_mem, HGDIOBJ(hbmp.0));
-
-        // 圆角白底：CreateRoundRectRgn 的右/下是开区间，+1 才覆盖整张图。
-        let radius = (size_px / 6).max(8);
-        let rgn = CreateRoundRectRgn(0, 0, size_px + 1, size_px + 1, radius, radius);
-        let bg_color = COLORREF(GetSysColor(COLOR_WINDOW));
-        let bg_brush = CreateSolidBrush(bg_color);
-        FillRgn(hdc_mem, rgn, bg_brush);
-        DeleteObject(HGDIOBJ(bg_brush.0));
-        SelectClipRgn(hdc_mem, rgn);
-
-        // 字体：高度按预览尺寸的 1/12 估算，约 7 行可见。
-        let font_height = (size_px / 12).max(12);
-        let font = CreateFontW(
-            font_height,
-            0,
-            0,
-            0,
-            FW_NORMAL.0 as i32,
-            0,
-            0,
-            0,
-            DEFAULT_CHARSET.0 as u32,
-            OUT_DEFAULT_PRECIS.0 as u32,
-            CLIP_DEFAULT_PRECIS.0 as u32,
-            CLEARTYPE_QUALITY.0 as u32,
-            (FF_SWISS.0 | VARIABLE_PITCH.0) as u32,
-            PCWSTR::null(),
-        );
-        let old_font = SelectObject(hdc_mem, HGDIOBJ(font.0));
-
-        SetTextColor(hdc_mem, COLORREF(GetSysColor(COLOR_WINDOWTEXT)));
-        SetBkMode(hdc_mem, TRANSPARENT);
-
-        let padding = (size_px / 8).max(8);
-        let mut text_rect = RECT {
-            left: padding,
-            top: padding,
-            right: size_px - padding,
-            bottom: size_px - padding,
-        };
-        let snippet = clamp_text(text, 280);
-        let mut wide: Vec<u16> = snippet.encode_utf16().collect();
-        DrawTextW(
-            hdc_mem,
-            &mut wide[..],
-            &mut text_rect,
-            DT_WORDBREAK | DT_END_ELLIPSIS,
-        );
-
-        // 还原 DC 状态，释放临时 GDI 对象。HBITMAP 留给调用方（IDragSourceHelper 接管）。
-        SelectClipRgn(hdc_mem, windows::Win32::Graphics::Gdi::HRGN::default());
-        DeleteObject(HGDIOBJ(rgn.0));
-        SelectObject(hdc_mem, old_font);
-        DeleteObject(HGDIOBJ(font.0));
-        SelectObject(hdc_mem, old_bmp);
-        DeleteDC(hdc_mem);
-        ReleaseDC(HWND(0), hdc_screen);
-
-        Some(hbmp)
-    }
-}
-
-/// 截断 + 折行规整：超长的添省略号；连续空行压成单个换行。
-fn clamp_text(text: &str, max_chars: usize) -> String {
-    let mut out = String::new();
-    let mut last_was_newline = false;
-    for ch in text.chars() {
-        if out.chars().count() >= max_chars {
-            out.push('…');
-            break;
-        }
-        if ch == '\n' {
-            if last_was_newline {
-                continue;
-            }
-            last_was_newline = true;
-            out.push('\n');
-        } else if ch == '\r' {
-            continue;
-        } else {
-            last_was_newline = false;
-            out.push(ch);
-        }
-    }
-    out
 }
 
 /// 启动一次文件 drag-out。直接转发到 `drag` crate（其 `CF_HDROP` 实现稳定），

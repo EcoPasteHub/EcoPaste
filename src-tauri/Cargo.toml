@@ -41,9 +41,6 @@ rodio = { version = "0.20", default-features = false, features = ["symphonia-mp3
 file_icon_provider = "1"
 image = { version = "0.25", default-features = false, features = ["png"] }
 tauri-plugin-os = "2"
-# 拖拽粘贴的底层实现：直接依赖 `drag` crate（而非 `tauri-plugin-drag`，后者拖 HTML 时
-# 出来是带标签的纯文本，是架构问题不是 bugfix）。文件类型 drag-out 这里复用其稳定实现；
-# 后续支持文本 / HTML 时按需在 `drag_out/` 内 vendor + 扩展多 pasteboard 类型。
 drag = "2.1"
 base64 = "0.22"
 
@@ -76,7 +73,6 @@ windows = { version = "0.52", features = [
     "Win32_System_SystemServices",
     "Win32_UI_WindowsAndMessaging",
     "Win32_UI_Shell",
-    "Win32_Graphics_Gdi",
 ] }
 
 [dev-dependencies]
