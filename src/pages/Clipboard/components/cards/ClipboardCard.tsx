@@ -1,9 +1,9 @@
-import type { FC } from "react";
+import type { FC, MouseEvent } from "react";
+import { popupClipboardItemMenu } from "@/commands";
 import AssetImage from "@/components/AssetImage";
 import KeyHint from "@/components/KeyHint";
 import type { ClipboardItem } from "@/types/clipboard";
 import { cn } from "@/utils/cn";
-import { useContextMenu } from "../../hooks/useContextMenu";
 import FilesCard from "./FilesCard";
 import ImageCard from "./ImageCard";
 import TextCard from "./TextCard";
@@ -21,44 +21,27 @@ interface ClipboardCardProps {
    */
   onQuickPaste?: () => void;
   onMouseEnter?: () => void;
-  /**
-   * 删除成功后通知列表移除该项（删除命令不广播 clipboard://updated，靠本地更新）。
-   */
-  onRemoved: (id: string) => void;
-  /**
-   * 收藏切换成功后通知列表同步 isFavorite。
-   */
-  onFavoriteToggled: (id: string, isFavorite: boolean) => void;
-  /**
-   * 打开备注编辑弹窗（列表层单例）。
-   */
-  onEditNote: (item: ClipboardItem) => void;
 }
 
 /**
  * 按 `kind` 分发到具体卡片组件，统一外层 padding / 时间戳 / 来源应用图标。
  * `isSelected` 为 true 时高亮背景与边框；`onMouseEnter` 由列表注入用于鼠标悬停选中；
- * 右键根节点弹出 Tauri 原生菜单（见 useContextMenu）。
+ * 右键根节点弹出 Rust 端原生菜单（避免 tauri-apps/tauri#9470 的 muda use-after-free），
+ * 点击菜单项后由列表层订阅 `clipboard://menu-action` 派发到实际处理逻辑。
  */
 const ClipboardCard: FC<ClipboardCardProps> = (props) => {
-  const {
-    item,
-    isSelected,
-    hintKey,
-    onQuickPaste,
-    onMouseEnter,
-    onRemoved,
-    onFavoriteToggled,
-    onEditNote,
-  } = props;
+  const { item, isSelected, hintKey, onQuickPaste, onMouseEnter } = props;
   const { kind, subKind, sourceAppIconPath, sourceAppName } = item;
 
-  const handleContextMenu = useContextMenu({
-    item,
-    onEditNote,
-    onFavoriteToggled,
-    onRemoved,
-  });
+  const handleContextMenu = async (event: MouseEvent) => {
+    event.preventDefault();
+
+    const { availableActions = [], isFavorite } = item;
+
+    if (availableActions.length === 0) return;
+
+    await popupClipboardItemMenu(item.id, [...availableActions], isFavorite);
+  };
 
   return (
     <div

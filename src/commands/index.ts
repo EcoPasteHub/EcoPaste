@@ -16,6 +16,7 @@ import { Modal, message } from "antd";
 import { TAURI_COMMAND } from "@/constants/commands";
 import { settingsState } from "@/stores/settings";
 import type {
+  ClipboardAction,
   ClipboardItemPage,
   ClipboardItemQuery,
   UpdateNoteResult,
@@ -211,5 +212,26 @@ export const showWindow = (label: string) => {
 export const setMainWindowPinned = (pinned: boolean) => {
   return call<void>(TAURI_COMMAND.SET_MAIN_WINDOW_PINNED, "固定窗口", {
     pinned,
+  });
+};
+
+/**
+ * 在主窗口当前光标处弹出列表项右键菜单（菜单实例由 Rust 持有）。
+ *
+ * 点击菜单项后 Rust 会 emit `clipboard://menu-action` 携带 `{action, itemId}`，
+ * 由 `List.tsx` 单点订阅后派发到既有处理逻辑（toast / 确认 modal / 本地镜像同步）。
+ *
+ * 把菜单生命周期搬到 Rust 是为了规避 tauri-apps/tauri#9470：前端 `Menu.new` 在
+ * `popup` 后立即被 GC 会导致 Windows muda 点击崩溃/卡顿。
+ */
+export const popupClipboardItemMenu = (
+  itemId: string,
+  availableActions: ClipboardAction[],
+  isFavorite: boolean,
+) => {
+  return call<void>(TAURI_COMMAND.POPUP_CLIPBOARD_ITEM_MENU, "打开菜单", {
+    availableActions,
+    isFavorite,
+    itemId,
   });
 };

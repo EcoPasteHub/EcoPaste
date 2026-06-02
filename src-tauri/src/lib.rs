@@ -6,6 +6,7 @@ mod db;
 #[cfg(target_os = "windows")]
 mod keyboard;
 mod keystroke;
+mod menu;
 #[cfg(target_os = "windows")]
 mod mouse;
 mod settings;
@@ -80,7 +81,11 @@ pub fn run() {
             commands::get_autostart,
             commands::set_autostart,
             commands::is_launched_via_autostart,
+            menu::clipboard_item::popup_clipboard_item_menu,
         ])
+        .on_menu_event(|app, event| {
+            menu::clipboard_item::handle_menu_event(app, event.id().as_ref());
+        })
         .setup(move |app| {
             let handle = app.handle().clone();
 
@@ -129,6 +134,8 @@ pub fn run() {
             if let Err(err) = window::macos::setup_main(&handle) {
                 log::error!("setup main NSPanel failed: {err:?}");
             }
+
+            menu::clipboard_item::init(&handle);
 
             Ok(())
         })

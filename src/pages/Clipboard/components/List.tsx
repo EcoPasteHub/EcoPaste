@@ -5,8 +5,11 @@ import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import { useSnapshot } from "valtio";
 import {
   deleteClipboardItem,
+  openClipboardItemLink,
   pasteClipboardItem,
+  revealClipboardItem,
   toggleClipboardItemFavorite,
+  writeToClipboard,
 } from "@/commands";
 import { TAURI_EVENT } from "@/constants/events";
 import { useClipboardItems } from "@/hooks/useClipboardItems";
@@ -14,7 +17,7 @@ import { useKeyboardEvent } from "@/hooks/useKeyboardEvent";
 import { useTauriListen } from "@/hooks/useTauriListen";
 import { clipboardStatsState } from "@/stores/clipboardStats";
 import { clipboardViewState } from "@/stores/clipboardView";
-import type { ClipboardItem } from "@/types/clipboard";
+import type { ClipboardAction, ClipboardItem } from "@/types/clipboard";
 import { cn } from "@/utils/cn";
 import { isMac } from "@/utils/is";
 import ClipboardCard from "./cards/ClipboardCard";
@@ -143,6 +146,61 @@ const List: FC = () => {
 
     handleFavoriteToggled(id, next);
   };
+
+  /**
+   * Rust 右键菜单点击事件：携带 `{action, itemId}`。
+   * 用 ref 持续指向「当前 render 的派发函数」，规避 `useTauriListen` 只在挂载时
+   * 抓一次闭包导致的状态过期（同款做法见 `handleClipboardUpdated`）。
+   */
+  const handleMenuActionRef = useRef<
+    (payload: { action: ClipboardAction; itemId: string }) => void
+  >(() => {});
+  handleMenuActionRef.current = (payload) => {
+    const { action, itemId } = payload;
+    const target = items.find((entry) => entry.id === itemId);
+
+    if (!target) return;
+
+    switch (action) {
+      case "paste":
+        pasteClipboardItem(target.id, false);
+        return;
+      case "pasteAsPlainText":
+      case "pasteAsPath":
+        pasteClipboardItem(target.id, true);
+        return;
+      case "copy":
+        writeToClipboard(target.id, false);
+        return;
+      case "openLink":
+        openClipboardItemLink(target.id, false);
+        return;
+      case "sendEmail":
+        openClipboardItemLink(target.id, true);
+        return;
+      case "revealInFinder":
+      case "revealInExplorer":
+        revealClipboardItem(target.id);
+        return;
+      case "toggleFavorite":
+        handleShortcutToggleFavorite(target.id);
+        return;
+      case "editNote":
+        setNoteTarget(target);
+        return;
+      case "delete":
+        handleShortcutDelete(target.id);
+        return;
+    }
+  };
+
+  const handleMenuActionEvent = (event: { payload: unknown }) => {
+    handleMenuActionRef.current(
+      event.payload as { action: ClipboardAction; itemId: string },
+    );
+  };
+
+  useTauriListen(TAURI_EVENT.CLIPBOARD_MENU_ACTION, handleMenuActionEvent);
 
   const handleKeyDown = (e: KeyboardEvent) => {
     if (items.length === 0) return;
@@ -330,11 +388,8 @@ const List: FC = () => {
             selectedId === null ? index === 0 : item.id === selectedId
           }
           item={item}
-          onEditNote={setNoteTarget}
-          onFavoriteToggled={handleFavoriteToggled}
           onMouseEnter={handleMouseEnter}
           onQuickPaste={hintKey ? handleQuickPaste : void 0}
-          onRemoved={removeItem}
         />
       </div>
     );
