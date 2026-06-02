@@ -1,4 +1,4 @@
-import type { FC, MouseEvent } from "react";
+import type { DragEvent, FC, MouseEvent } from "react";
 import { popupClipboardItemMenu } from "@/commands";
 import AssetImage from "@/components/AssetImage";
 import KeyHint from "@/components/KeyHint";
@@ -49,6 +49,14 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
     await popupClipboardItemMenu(item.id, [...availableActions], isFavorite);
   };
 
+  // 抑制 WebView 原生 HTML5 拖拽（<img> 默认 draggable=true）：在 Windows 上若不抑制，
+  // WebView2 的 dragstart 会先于我们的 mousemove 触发并抢走鼠标捕获，等 Rust DoDragDrop
+  // 跑起来时左键状态已不为按下，DropSource 立刻返回 DRAGDROP_S_CANCEL → 拖拽秒取消。
+  // macOS 上 AppKit dragging session 优先级高于 webview，可不抑制；统一抑制更稳。
+  const handleDragStart = (event: DragEvent) => {
+    event.preventDefault();
+  };
+
   return (
     <div
       aria-selected={isSelected}
@@ -56,6 +64,7 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
         "b-primary bg-blue-1": isSelected,
       })}
       onContextMenu={handleContextMenu}
+      onDragStart={draggable ? handleDragStart : void 0}
       onMouseDown={draggable ? handleDragMouseDown : void 0}
       onMouseEnter={onMouseEnter}
       role="option"
