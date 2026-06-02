@@ -1,4 +1,8 @@
-//! 原生菜单（Rust 侧）：解决前端 `Menu.new` 即用即丢导致的 Windows muda
-//! use-after-free（点击菜单项后崩溃/卡顿），并把菜单生命周期收回到 Rust。
+//! 列表项右键菜单（Rust 侧）：macOS 走原生 muda（[`clipboard_item::native`]），
+//! Windows 走自定义 webview 窗（[`context_window`]，避免 muda `TrackPopupMenu`
+//! 抢前台焦点）。
 
 pub mod clipboard_item;
+
+#[cfg(target_os = "windows")]
+pub mod context_window;

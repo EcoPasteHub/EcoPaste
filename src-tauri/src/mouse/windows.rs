@@ -77,7 +77,21 @@ unsafe extern "system" fn hook_proc(code: i32, wparam: WPARAM, lparam: LPARAM) -
     let cursor = data.pt;
 
     if let Some(app) = APP_HANDLE.get() {
-        if !window::is_main_window_pinned() && cursor_outside_main_window(app, cursor) {
+        // 右键菜单优先：菜单可见时，光标在菜单矩形外 → 关菜单（主窗不连带关，
+        // 避免「打开菜单后误点窗内空白处」直接收掉整个面板）。
+        let menu_handled = if crate::menu::context_window::is_visible(app) {
+            if cursor_outside_context_menu(app, cursor) {
+                schedule_hide_context_menu(app);
+            }
+            true
+        } else {
+            false
+        };
+
+        if !menu_handled
+            && !window::is_main_window_pinned()
+            && cursor_outside_main_window(app, cursor)
+        {
             schedule_hide(app);
         }
     }
@@ -107,6 +121,27 @@ fn cursor_outside_main_window(app: &AppHandle, cursor: POINT) -> bool {
         || cursor.y >= position.y + size.height as i32
 }
 
+/// 钩子收到的 `cursor` 是 physical 坐标，菜单矩形也用 physical 比对，
+/// 不走 logical 换算（避免边缘 1px 舍入误判）。
+fn cursor_outside_context_menu(app: &AppHandle, cursor: POINT) -> bool {
+    let Some(window) =
+        app.get_webview_window(crate::menu::context_window::CONTEXT_MENU_WINDOW_LABEL)
+    else {
+        return true;
+    };
+    let Ok(position) = window.outer_position() else {
+        return true;
+    };
+    let Ok(size) = window.outer_size() else {
+        return true;
+    };
+
+    cursor.x < position.x
+        || cursor.x >= position.x + size.width as i32
+        || cursor.y < position.y
+        || cursor.y >= position.y + size.height as i32
+}
+
 fn schedule_hide(app: &AppHandle) {
     let handle = app.clone();
     if let Err(err) = app.run_on_main_thread(move || {
@@ -115,5 +150,14 @@ fn schedule_hide(app: &AppHandle) {
         }
     }) {
         log::warn!("schedule auto-hide failed: {err}");
+    }
+}
+
+fn schedule_hide_context_menu(app: &AppHandle) {
+    let handle = app.clone();
+    if let Err(err) = app.run_on_main_thread(move || {
+        crate::menu::context_window::hide(&handle);
+    }) {
+        log::warn!("schedule auto-hide context menu failed: {err}");
     }
 }

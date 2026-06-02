@@ -5,6 +5,7 @@
 export const TAURI_EVENT = {
   CLIPBOARD_MENU_ACTION: "clipboard://menu-action",
   CLIPBOARD_UPDATED: "clipboard://updated",
+  CONTEXT_MENU_SHOW: "context-menu://show",
   KEYBOARD_NAV: "keyboard://nav",
   SETTINGS_UPDATED: "settings://updated",
 } as const;

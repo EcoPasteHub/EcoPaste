@@ -29,6 +29,8 @@ pub fn hide_window(app_handle: &AppHandle, label: &str) -> Result<()> {
     if label == MAIN_WINDOW_LABEL {
         keyboard::disable_navigation_keys();
         mouse::disable_outside_click_hide();
+        // 主窗隐藏时连带关菜单，避免菜单浮在桌面上没有载体可关。
+        crate::menu::context_window::hide(app_handle);
     }
     Ok(())
 }

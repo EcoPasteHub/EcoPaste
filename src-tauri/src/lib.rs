@@ -137,6 +137,9 @@ pub fn run() {
 
             menu::clipboard_item::init(&handle);
 
+            #[cfg(target_os = "windows")]
+            menu::context_window::init(&handle);
+
             Ok(())
         })
         .on_window_event(|window, event| {
