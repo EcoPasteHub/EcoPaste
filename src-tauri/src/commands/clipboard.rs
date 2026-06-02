@@ -3,6 +3,7 @@
 use std::path::Path;
 use std::sync::Arc;
 
+use chrono::{Datelike, Local};
 use serde::Serialize;
 use sqlx::SqlitePool;
 use tauri::{AppHandle, Manager, State};
@@ -223,11 +224,13 @@ pub async fn list_clipboard_items(
 ) -> Result<Vec<ClipboardItem>> {
     let q = query.unwrap_or_default();
     let mut items = crate::db::items::query_items(&pool, &q).await?;
+    let now = Local::now();
     for item in &mut items {
         attach_image_thumbnail_path(&image_store, item).await?;
         attach_source_app_icon_path(&app_icon_store, item);
         attach_file_entries(&pool, &file_icon_store, item).await?;
         attach_color_preview(item);
+        attach_display_created_at(item, &now);
         item.available_actions = compute_available_actions(item);
     }
     Ok(items)
@@ -258,6 +261,7 @@ pub async fn get_clipboard_item(
         attach_source_app_icon_path(&app_icon_store, item);
         attach_file_entries(&pool, &file_icon_store, item).await?;
         attach_color_preview(item);
+        attach_display_created_at(item, &Local::now());
         item.available_actions = compute_available_actions(item);
     }
     Ok(item)
@@ -318,6 +322,23 @@ fn attach_color_preview(item: &mut ClipboardItem) {
 
     let source = item.summary.as_deref().unwrap_or(&item.content);
     item.color_preview = sanitize_css_color(source);
+}
+
+/// 把 `created_at`（UTC）按本地时区做三档展示格式化：
+/// 今天 → `HH:mm:ss`，今年内 → `MM-DD HH:mm`，跨年 → `YYYY-MM-DD HH:mm`。
+/// `now` 由调用方在批处理外取一次，避免列表内逐条 syscall。
+fn attach_display_created_at(item: &mut ClipboardItem, now: &chrono::DateTime<Local>) {
+    let local = item.created_at.with_timezone(&Local);
+    let today = now.date_naive() == local.date_naive();
+    let same_year = now.year() == local.year();
+
+    item.display_created_at = if today {
+        local.format("%H:%M:%S").to_string()
+    } else if same_year {
+        local.format("%m-%d %H:%M").to_string()
+    } else {
+        local.format("%Y-%m-%d %H:%M").to_string()
+    };
 }
 
 /// 按 `kind` / `sub_kind` 计算右键菜单可用动作，按建议展示顺序返回。

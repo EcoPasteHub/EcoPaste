@@ -228,6 +228,7 @@ pub fn build_item(store: &ImageStore, payload: &ClipboardPayload) -> Result<Opti
         file_entries: None,
         available_actions: Vec::new(),
         color_preview: None,
+        display_created_at: String::new(),
     }))
 }
 

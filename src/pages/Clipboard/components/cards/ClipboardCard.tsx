@@ -1,4 +1,3 @@
-import dayjs from "dayjs";
 import type { FC } from "react";
 import AssetImage from "@/components/AssetImage";
 import KeyHint from "@/components/KeyHint";
@@ -93,7 +92,7 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
           <span className="truncate uppercase">{subKind ?? kind}</span>
         </div>
 
-        <span>{formatTime(item.createdAt)}</span>
+        <span>{item.displayCreatedAt ?? item.createdAt}</span>
       </div>
 
       {renderBody(item)}
@@ -107,20 +106,6 @@ const renderBody = (item: ClipboardItem) => {
   if (item.kind === "files") return <FilesCard {...item} />;
 
   return <TextCard {...item} />;
-};
-
-const formatTime = (iso: string) => {
-  const value = dayjs(iso);
-
-  if (!value.isValid()) return iso;
-
-  const now = dayjs();
-
-  if (value.isSame(now, "day")) return value.format("HH:mm:ss");
-
-  if (value.isSame(now, "year")) return value.format("MM-DD HH:mm");
-
-  return value.format("YYYY-MM-DD HH:mm");
 };
 
 export default ClipboardCard;

@@ -99,6 +99,12 @@ pub struct ClipboardItem {
     #[sqlx(skip)]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub color_preview: Option<String>,
+    /// 按本地时区对 `created_at` 做三档格式化，命令层填充供前端直接渲染：
+    /// 今天 → `HH:mm:ss`，今年内 → `MM-DD HH:mm`，跨年 → `YYYY-MM-DD HH:mm`。
+    /// 前端不再需要引入 dayjs。
+    #[sqlx(skip)]
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub display_created_at: String,
 }
 
 /// 右键菜单可执行的动作种类。

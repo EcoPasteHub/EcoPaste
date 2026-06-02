@@ -518,6 +518,7 @@ mod tests {
             file_entries: None,
             available_actions: Vec::new(),
             color_preview: None,
+            display_created_at: String::new(),
         }
     }
 

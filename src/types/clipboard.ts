@@ -69,6 +69,8 @@ export interface ClipboardItem {
   availableActions?: ClipboardAction[];
   /** sub_kind = color 时由 Rust 校验过的 CSS 颜色串（合法才存在）。 */
   colorPreview?: string;
+  /** Rust 按本地时区做三档格式化的 createdAt：HH:mm:ss / MM-DD HH:mm / YYYY-MM-DD HH:mm。 */
+  displayCreatedAt?: string;
 }
 
 export interface FileEntry {

@@ -182,6 +182,7 @@ mod tests {
             file_entries: None,
             available_actions: Vec::new(),
             color_preview: None,
+            display_created_at: String::new(),
         }
     }
 
@@ -277,6 +278,7 @@ mod tests {
             file_entries: None,
             available_actions: Vec::new(),
             color_preview: None,
+            display_created_at: String::new(),
         };
 
         write_to_clipboard(&store, &guard, &item, false).unwrap();
