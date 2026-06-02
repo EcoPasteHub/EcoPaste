@@ -72,11 +72,11 @@ const ContextMenu: FC = () => {
   if (!payload) return null;
 
   return (
-    <div className="w-full select-none rounded-2 bg-elevated px-1 py-1 shadow-lg">
+    <div className="w-full select-none rounded-2 bg-elevated p-1 shadow-lg">
       {payload.groups.map((group, gi) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: 分组顺序由后端写死，索引稳定。
         <Fragment key={gi}>
-          {gi > 0 && <div className="my-1 h-px bg-border" />}
+          {gi > 0 && <div className="my-1 h-px bg-split" />}
           {group.map((item) => (
             <ContextMenuItem
               accelerator={item.accelerator}
@@ -111,10 +111,10 @@ const ContextMenuItem: FC<ContextMenuItemProps> = (props) => {
   return (
     <button
       className={cn(
-        "flex h-8 w-full cursor-default items-center justify-between rounded-1 border-0 bg-transparent px-2 text-sm hover:bg-fill",
+        "flex h-8 w-full cursor-pointer items-center justify-between rounded-1.5 border-0 bg-transparent px-3 text-sm transition-colors",
         {
-          "text-error": isDanger,
-          "text-text-primary": !isDanger,
+          "hover:(text-white bg-error) text-error": isDanger,
+          "hover:bg-text-hover": !isDanger,
         },
       )}
       onClick={handleClick}
@@ -122,7 +122,7 @@ const ContextMenuItem: FC<ContextMenuItemProps> = (props) => {
     >
       <span className="truncate">{label}</span>
       {accelerator && (
-        <span className="ml-2 whitespace-nowrap text-text-tertiary text-xs">
+        <span className="ml-3 whitespace-nowrap text-3 text-text-description">
           {formatAccelerator(accelerator)}
         </span>
       )}
