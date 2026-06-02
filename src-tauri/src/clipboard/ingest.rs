@@ -71,7 +71,7 @@ fn files_to_content(files: &[String]) -> String {
 /// - rtf：`content` = RTF 源（`get_rich_text()` 原文），`sub_kind` = Rtf；
 /// - 两者的 `search_text` 都直接用 OS 同时提供的纯文本（`get_text()`）——
 ///   复制富文本时剪贴板本就并存纯文本表示，无需自己解析 HTML/RTF；
-/// - plain：`content` = 纯文本，`sub_kind` = url/email/color/path 识别，`search_text` = None（content 自身可检索）。
+/// - plain：`content` = 纯文本，`sub_kind` = url/email/color/path 识别，`search_text` 与 content 同串（统一由 FTS 索引 search_text）。
 ///
 /// 一律以 trim 后的纯文本作为「是否有可展示内容」的判据：纯文本为空就直接 `None`，
 /// 不管 HTML/RTF 源是否存在（只有样式/空白节点的源对用户没意义，列表也渲染不出来）。
@@ -116,7 +116,7 @@ fn draft_from_text(text: &TextPayload) -> Option<Draft> {
         kind: ClipboardKind::Text,
         sub_kind: detect_text_sub_kind(plain),
         content: plain.to_owned(),
-        search_text: None,
+        search_text: plain_search,
         summary,
         file_types: None,
         width: None,
@@ -152,26 +152,26 @@ pub fn build_item(store: &ImageStore, payload: &ClipboardPayload) -> Result<Opti
                     .collect();
                 let file_types_str = file_types.join(",");
 
-                // 提取每个路径的文件名，存入 summary 供前端直接渲染，避免前端路径拼接
-                let summary = Some(
-                    files
-                        .iter()
-                        .map(|p| {
-                            std::path::Path::new(p)
-                                .file_name()
-                                .and_then(|n| n.to_str())
-                                .unwrap_or(p.as_str())
-                        })
-                        .collect::<Vec<_>>()
-                        .join("\n"),
-                );
+                // 提取每个路径的文件名，存入 summary 供前端直接渲染，避免前端路径拼接；
+                // search_text 取相同串，使 FTS 按文件名命中（content 是绝对路径，
+                // 直接进 FTS 会被路径中段的随机 hash/分隔符干扰，意义不大）。
+                let basenames = files
+                    .iter()
+                    .map(|p| {
+                        std::path::Path::new(p)
+                            .file_name()
+                            .and_then(|n| n.to_str())
+                            .unwrap_or(p.as_str())
+                    })
+                    .collect::<Vec<_>>()
+                    .join("\n");
 
                 Some(Draft {
                     kind: ClipboardKind::Files,
                     sub_kind: None,
                     content,
-                    search_text: None,
-                    summary,
+                    search_text: Some(basenames.clone()),
+                    summary: Some(basenames),
                     file_types: Some(file_types_str),
                     width: None,
                     height: None,
@@ -262,7 +262,7 @@ mod tests {
         assert_eq!(item.kind, ClipboardKind::Text);
         assert_eq!(item.sub_kind, Some(ClipboardSubKind::Url));
         assert_eq!(item.content, "https://example.com");
-        assert_eq!(item.search_text, None);
+        assert_eq!(item.search_text.as_deref(), Some("https://example.com"));
     }
 
     #[test]

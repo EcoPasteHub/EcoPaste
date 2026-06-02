@@ -1,5 +1,4 @@
 CREATE VIRTUAL TABLE clipboard_items_fts USING fts5(
-    content,
     search_text,
     note,
     content='clipboard_items',
@@ -8,18 +7,18 @@ CREATE VIRTUAL TABLE clipboard_items_fts USING fts5(
 );
 
 CREATE TRIGGER clipboard_items_ai AFTER INSERT ON clipboard_items BEGIN
-    INSERT INTO clipboard_items_fts(rowid, content, search_text, note)
-    VALUES (new.rowid, new.content, new.search_text, new.note);
+    INSERT INTO clipboard_items_fts(rowid, search_text, note)
+    VALUES (new.rowid, new.search_text, new.note);
 END;
 
 CREATE TRIGGER clipboard_items_ad AFTER DELETE ON clipboard_items BEGIN
-    INSERT INTO clipboard_items_fts(clipboard_items_fts, rowid, content, search_text, note)
-    VALUES ('delete', old.rowid, old.content, old.search_text, old.note);
+    INSERT INTO clipboard_items_fts(clipboard_items_fts, rowid, search_text, note)
+    VALUES ('delete', old.rowid, old.search_text, old.note);
 END;
 
 CREATE TRIGGER clipboard_items_au AFTER UPDATE ON clipboard_items BEGIN
-    INSERT INTO clipboard_items_fts(clipboard_items_fts, rowid, content, search_text, note)
-    VALUES ('delete', old.rowid, old.content, old.search_text, old.note);
-    INSERT INTO clipboard_items_fts(rowid, content, search_text, note)
-    VALUES (new.rowid, new.content, new.search_text, new.note);
+    INSERT INTO clipboard_items_fts(clipboard_items_fts, rowid, search_text, note)
+    VALUES ('delete', old.rowid, old.search_text, old.note);
+    INSERT INTO clipboard_items_fts(rowid, search_text, note)
+    VALUES (new.rowid, new.search_text, new.note);
 END;

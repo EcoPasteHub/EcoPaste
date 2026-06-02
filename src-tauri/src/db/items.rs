@@ -483,12 +483,10 @@ fn push_filter_clauses(
             .push(")");
         }
         KeywordFilter::Like(kw) => {
-            // FTS 索引覆盖 content / search_text / note 三列，LIKE 兜底也跟齐，
+            // FTS 索引覆盖 search_text / note 两列，LIKE 兜底也跟齐，
             // 让 1–2 字符短词的命中范围与长词一致。
             let pattern = format!("%{kw}%");
-            qb.push(" AND (clipboard_items.content LIKE ")
-                .push_bind(pattern.clone())
-                .push(" ESCAPE '\\' OR clipboard_items.search_text LIKE ")
+            qb.push(" AND (clipboard_items.search_text LIKE ")
                 .push_bind(pattern.clone())
                 .push(" ESCAPE '\\' OR clipboard_items.note LIKE ")
                 .push_bind(pattern)
@@ -818,6 +816,7 @@ mod tests {
         let pool = memory_pool().await;
         let mut a = sample_item("a");
         a.content = "hello rustacean".to_owned();
+        a.search_text = Some("hello rustacean".to_owned());
         let mut b = sample_item("b");
         b.content = "goodbye world".to_owned();
         b.search_text = Some("searchable token".to_owned());
@@ -852,9 +851,11 @@ mod tests {
         let pool = memory_pool().await;
         let mut x = sample_item("x");
         x.content = "shared text".to_owned();
+        x.search_text = Some("shared text".to_owned());
         x.is_favorite = true;
         let mut y = sample_item("y");
         y.content = "shared note".to_owned();
+        y.search_text = Some("shared note".to_owned());
         insert_item(&pool, &x).await.unwrap();
         insert_item(&pool, &y).await.unwrap();
 
