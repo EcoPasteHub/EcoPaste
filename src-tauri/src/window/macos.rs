@@ -1,6 +1,8 @@
 //! macOS 窗口管理：主窗口转 NSPanel（show_and_make_key 拿键盘焦点但不激活 App），
 //! 其它窗口走常规 show/hide。
 
+#![allow(clippy::unused_unit)]
+
 use tauri::{AppHandle, Manager};
 use tauri_nspanel::{
     tauri_panel, CollectionBehavior, ManagerExt, PanelLevel, StyleMask, WebviewWindowExt,

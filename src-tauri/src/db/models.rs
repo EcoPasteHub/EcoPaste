@@ -187,17 +187,12 @@ pub struct ClipboardGroup {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub enum ClipboardItemSort {
+    #[default]
     CreatedAtDesc,
     UseCountDesc,
-}
-
-impl Default for ClipboardItemSort {
-    fn default() -> Self {
-        Self::CreatedAtDesc
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -17,8 +17,10 @@ pub struct AutostartManager {
 }
 
 pub fn init(app: &AppHandle) -> Result<()> {
-    let exe = env::current_exe()
-        .map_err(|err| AppError::Other(anyhow::anyhow!("current_exe failed: {err}")))?;
+    let exe = env::current_exe().map_err(|err| {
+        log::error!("autostart init: current_exe failed: {err}");
+        AppError::Other(anyhow::anyhow!("{err}"))
+    })?;
     let exe_path = exe.to_string_lossy().to_string();
 
     let app_name = app.package_info().name.clone();
@@ -28,7 +30,10 @@ pub fn init(app: &AppHandle) -> Result<()> {
         .set_app_path(&exe_path)
         .set_args(&[AUTO_LAUNCH_ARG])
         .build()
-        .map_err(|err| AppError::Other(anyhow::anyhow!("build AutoLaunch failed: {err}")))?;
+        .map_err(|err| {
+            log::error!("autostart init: build AutoLaunch failed: {err}");
+            AppError::Other(anyhow::anyhow!("{err}"))
+        })?;
 
     app.manage(AutostartManager { inner });
     Ok(())
@@ -36,24 +41,24 @@ pub fn init(app: &AppHandle) -> Result<()> {
 
 pub fn is_enabled(app: &AppHandle) -> Result<bool> {
     let manager = app.state::<AutostartManager>();
-    manager
-        .inner
-        .is_enabled()
-        .map_err(|err| AppError::Other(anyhow::anyhow!("is_enabled failed: {err}")))
+    manager.inner.is_enabled().map_err(|err| {
+        log::error!("autostart is_enabled failed: {err}");
+        AppError::Other(anyhow::anyhow!("{err}"))
+    })
 }
 
 pub fn set_enabled(app: &AppHandle, enabled: bool) -> Result<()> {
     let manager = app.state::<AutostartManager>();
     if enabled {
-        manager
-            .inner
-            .enable()
-            .map_err(|err| AppError::Other(anyhow::anyhow!("enable autostart failed: {err}")))
+        manager.inner.enable().map_err(|err| {
+            log::error!("autostart enable failed: {err}");
+            AppError::Other(anyhow::anyhow!("{err}"))
+        })
     } else {
-        manager
-            .inner
-            .disable()
-            .map_err(|err| AppError::Other(anyhow::anyhow!("disable autostart failed: {err}")))
+        manager.inner.disable().map_err(|err| {
+            log::error!("autostart disable failed: {err}");
+            AppError::Other(anyhow::anyhow!("{err}"))
+        })
     }
 }
 

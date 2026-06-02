@@ -100,7 +100,7 @@ cargo test                    # Rust 单测（在 src-tauri 下）
 - SQL 用 `sqlx::query` / `query_as`（运行时校验），不用 `query!` 宏——避免维护 `.sqlx` 离线缓存与 `DATABASE_URL` 配置。
 - migration 只增不改：已合并的迁移文件不要回头修改，新增变更写新文件（**例外**：仓库未发版前，所有改动直接合并到 `0001_init.sql`，不新增文件）。
 - **改 schema 必须同步改所有相关 SQL 和测试**：新增/删除字段时，逐一检查 `SELECT` 列表、`INSERT` 列与 `bind` 参数、`UPDATE` 语句、以及 `db/*.rs` 测试里手写的结构体字面量。`sqlx::query_as` 是运行时映射，字段对不上时整个查询返回空结果而不报错——UI 上表现为"什么都不显示"。
-- 表必须有 `created_at` 和 `updated_at` 两个字段，类型 `TEXT NOT NULL`；`UPDATE` 语句要同步更新 `updated_at`。
+- 表必须有 `created_at` 和 `updated_at` 两个字段，类型 `TEXT NOT NULL`。`updated_at` 语义是**「内容被重新使用」的时间戳**（剪贴板表里仅在重新复制同一份内容、命中去重时刷新），不是「任何字段被改」的时间戳——收藏 / 置顶 / 备注等元数据变更**不要**带上 `updated_at = ?`，避免污染 most-recent-use 排序。其它表按各自语义自行界定，但同样不强制每个 `UPDATE` 都刷新。
 - 错误处理用 `thiserror`（定义错误类型）+ `anyhow`（内部传播），日志用 `tauri-plugin-log`。
 - `AppError` 序列化为 `{ kind, message }`。`message` 是**给用户看的根因文案**，**禁止**叠加 `"xxx failed: {err}"` 这种动作前缀（动作上下文由前端 `commands/index.ts` 的 `label` 拼 toast）。需要额外上下文走 `log::error!` / `log::warn!`，不塞进 `message`。
 - `commands/` 层保持薄：参数校验 + 调用下层模块，不写业务逻辑。

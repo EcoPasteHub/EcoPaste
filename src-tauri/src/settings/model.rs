@@ -262,21 +262,12 @@ pub enum ItemAction {
     Delete,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
 #[serde(default, rename_all = "camelCase")]
 pub struct History {
     pub retention: Retention,
     /// 最多保留条数。`0` = 不限。
     pub max_count: u32,
-}
-
-impl Default for History {
-    fn default() -> Self {
-        Self {
-            retention: Retention::default(),
-            max_count: 0,
-        }
-    }
 }
 
 /// 历史保留时长。`unit = Forever` 时忽略 `value`。

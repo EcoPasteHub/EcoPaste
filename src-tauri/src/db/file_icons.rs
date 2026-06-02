@@ -21,7 +21,10 @@ pub async fn get_icon(
     .bind(platform)
     .fetch_optional(pool)
     .await
-    .map_err(|e| anyhow::anyhow!("query file_type_icons failed: {e}"))?;
+    .map_err(|e| {
+        log::error!("query file_type_icons failed: {e}");
+        anyhow::anyhow!("{e}")
+    })?;
     Ok(row.map(|r| r.0))
 }
 
@@ -47,6 +50,9 @@ pub async fn upsert_icon(
     .bind(now)
     .execute(pool)
     .await
-    .map_err(|e| anyhow::anyhow!("upsert file_type_icons failed: {e}"))?;
+    .map_err(|e| {
+        log::error!("upsert file_type_icons failed: {e}");
+        anyhow::anyhow!("{e}")
+    })?;
     Ok(())
 }

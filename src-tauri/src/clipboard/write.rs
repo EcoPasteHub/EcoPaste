@@ -97,8 +97,10 @@ fn write_image(
     item: &ClipboardItem,
 ) -> Result<()> {
     let path = store.origin_path(&item.content);
-    let bytes = std::fs::read(&path)
-        .map_err(|err| AppError::Clipboard(format!("read image {path:?} failed: {err}")))?;
+    let bytes = std::fs::read(&path).map_err(|err| {
+        log::error!("read image {path:?} failed: {err}");
+        AppError::Clipboard(err.to_string())
+    })?;
     let image = RustImageData::from_bytes(&bytes).map_err(clip_err)?;
 
     guard.suppress(item.content_hash.clone());
