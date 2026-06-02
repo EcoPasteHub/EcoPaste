@@ -105,7 +105,7 @@ pub struct ClipboardItem {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub color_preview: Option<String>,
     /// 按本地时区对 `created_at` 做三档格式化，命令层填充供前端直接渲染：
-    /// 今天 → `HH:mm:ss`，今年内 → `MM-DD HH:mm`，跨年 → `YYYY-MM-DD HH:mm`。
+    /// 今天 → `HH:mm`，今年内 → `MM-DD HH:mm`，跨年 → `YYYY-MM-DD HH:mm`。
     /// 前端不再需要引入 dayjs。
     #[sqlx(skip)]
     #[serde(default, skip_serializing_if = "String::is_empty")]
@@ -129,8 +129,10 @@ pub enum ClipboardAction {
     OpenLink,
     /// 调起邮件客户端（`sub_kind = email`）。
     SendEmail,
-    /// 在 Finder / 资源管理器中显示（`sub_kind = path` 或 `kind = files`）。
-    Reveal,
+    /// 在 Finder 中显示（macOS，`sub_kind = path` 或 `kind = files`）。
+    RevealInFinder,
+    /// 在资源管理器中显示（Windows，`sub_kind = path` 或 `kind = files`）。
+    RevealInExplorer,
     /// 切换收藏（恒在；前端按 `is_favorite` 切「收藏 / 取消收藏」文案）。
     ToggleFavorite,
     /// 编辑备注（恒在）。

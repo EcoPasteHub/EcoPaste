@@ -13,7 +13,6 @@ import {
   writeToClipboard,
 } from "@/commands";
 import type { ClipboardAction, ClipboardItem } from "@/types/clipboard";
-import { isMac } from "@/utils/is";
 
 interface UseContextMenuProps {
   item: ClipboardItem;
@@ -39,7 +38,7 @@ const SEPARATOR: PredefinedMenuItemOptions = { item: "Separator" };
  */
 const ACTION_GROUPS: ClipboardAction[][] = [
   ["paste", "pasteAsPlainText", "pasteAsPath", "copy"],
-  ["openLink", "sendEmail", "reveal"],
+  ["openLink", "sendEmail", "revealInFinder", "revealInExplorer"],
   ["toggleFavorite", "editNote"],
   ["delete"],
 ];
@@ -98,11 +97,10 @@ export const useContextMenu = (props: UseContextMenuProps) => {
         return { action: () => openLink(false), text: "打开链接" };
       case "sendEmail":
         return { action: () => openLink(true), text: "发送邮件" };
-      case "reveal":
-        return {
-          action: reveal,
-          text: isMac ? "在访达中显示" : "在资源管理器中显示",
-        };
+      case "revealInFinder":
+        return { action: reveal, text: "在访达中显示" };
+      case "revealInExplorer":
+        return { action: reveal, text: "在资源管理器中显示" };
       case "toggleFavorite":
         return {
           accelerator: "CmdOrCtrl+D",

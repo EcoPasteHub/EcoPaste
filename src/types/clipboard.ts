@@ -26,7 +26,8 @@ export type ClipboardAction =
   | "copy"
   | "openLink"
   | "sendEmail"
-  | "reveal"
+  | "revealInFinder"
+  | "revealInExplorer"
   | "toggleFavorite"
   | "editNote"
   | "delete";
@@ -71,7 +72,7 @@ export interface ClipboardItem {
   colorPreview?: string;
   /** Files 卡片渲染模式，由 Rust 命令层根据 `fileEntries` 计算。 */
   filesPreviewKind?: "imagePreview" | "list";
-  /** Rust 按本地时区做三档格式化的 createdAt：HH:mm:ss / MM-DD HH:mm / YYYY-MM-DD HH:mm。 */
+  /** Rust 按本地时区做三档格式化的 createdAt：HH:mm / MM-DD HH:mm / YYYY-MM-DD HH:mm。 */
   displayCreatedAt?: string;
 }
 

@@ -333,7 +333,7 @@ fn attach_display_created_at(item: &mut ClipboardItem, now: &chrono::DateTime<Lo
     let same_year = now.year() == local.year();
 
     item.display_created_at = if today {
-        local.format("%H:%M:%S").to_string()
+        local.format("%H:%M").to_string()
     } else if same_year {
         local.format("%m-%d %H:%M").to_string()
     } else {
@@ -366,7 +366,10 @@ fn compute_available_actions(item: &ClipboardItem) -> Vec<ClipboardAction> {
     let can_reveal =
         item.kind == ClipboardKind::Files || item.sub_kind == Some(ClipboardSubKind::Path);
     if can_reveal {
-        actions.push(ClipboardAction::Reveal);
+        #[cfg(target_os = "macos")]
+        actions.push(ClipboardAction::RevealInFinder);
+        #[cfg(target_os = "windows")]
+        actions.push(ClipboardAction::RevealInExplorer);
     }
 
     actions.push(ClipboardAction::ToggleFavorite);
