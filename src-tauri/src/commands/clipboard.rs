@@ -520,9 +520,13 @@ async fn resolve_file_icon_path(
         crate::clipboard::get_icon_cache_key(path_obj)
     };
 
+    // DB 命中后还要确认 icon 文件仍在磁盘上：用户清缓存 / 手动删 file-icons 目录后，
+    // 表里的 <hash>.png 映射就成了死引用，落到前端 convertFileSrc 会 404。缺了就当 miss 重抽。
     if let Some(icon_file) = crate::db::file_icons::get_icon(pool, &cache_key, platform).await? {
         let icon_path = file_icon_store.icon_path(&icon_file);
-        return Ok((icon_path.to_str().map(str::to_owned), exists));
+        if icon_path.exists() {
+            return Ok((icon_path.to_str().map(str::to_owned), exists));
+        }
     }
 
     if !exists {
