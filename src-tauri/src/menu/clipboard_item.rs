@@ -155,7 +155,7 @@ pub fn init(app: &AppHandle) {
 /// `await invoke()` 会一直挂到菜单关闭，期间所有 IPC（事件、其他命令）排队
 /// → UI 表现为卡顿。
 #[tauri::command]
-pub fn popup_clipboard_item_menu(
+pub async fn popup_clipboard_item_menu(
     app: AppHandle,
     window: WebviewWindow,
     item_id: String,

@@ -34,6 +34,6 @@ pub async fn position_window(
 }
 
 #[tauri::command]
-pub fn set_main_window_pinned(pinned: bool) {
+pub async fn set_main_window_pinned(pinned: bool) {
     window::set_main_window_pinned(pinned);
 }
