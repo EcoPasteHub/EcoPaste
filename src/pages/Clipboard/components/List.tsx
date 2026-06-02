@@ -309,7 +309,10 @@ const List: FC = () => {
   );
 
   function renderItemContent(index: number, item: ClipboardItem) {
-    const handleMouseEnter = () => setSelectedId(item.id);
+    const handleMouseEnter = () => {
+      setSelectedId(item.id);
+      virtuosoRef.current?.scrollIntoView({ behavior: "smooth", index });
+    };
 
     const relativeIndex = index - firstVisibleIndex;
     const hintKey =
