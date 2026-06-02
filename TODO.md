@@ -498,6 +498,51 @@
   >    事件与提示：命中 `disable_all` 导致操作被拒时 emit `app-rule://blocked`（payload 含 app 与行为），前端用轻提示说明“当前应用已禁用 EcoPaste”。
   >    i18n：新增 `settings.appRules.*`（标题、行为名称、空状态、添加/删除按钮、命中提示）中英文两份。
 
+### 8.12 局域网同步（LAN Sync）
+
+- [ ] 同网段设备间自动发现 + 配对 + 增量同步剪贴板历史
+  > 目标：两台及以上 EcoPaste 在同一局域网内自动发现彼此，配对后实时同步剪贴板新增条目与元数据变更（收藏 / 置顶 / 备注 / 删除），无需任何云服务。仅 macOS + Windows，沿用 Rust-First 原则——发现、传输、合并全在 Rust，前端只做配对 UI 与状态展示。
+  > 数据模型（写入 `0001_init.sql`，仓库未发版直接改 init）：`clipboard_items` 增列 `uuid TEXT UNIQUE NOT NULL`（建表后回填，新条目用 `Uuid::new_v4()`）、`origin_device_id TEXT NULL`（NULL 表示本机产生）、`lamport INTEGER NOT NULL DEFAULT 0`、`deleted_at TEXT NULL`（软删，物理清理交给 8.1 cleanup）。新表 `sync_devices(id TEXT PK, name TEXT, public_key BLOB, paired_at TEXT, last_seen_at TEXT, last_lamport INTEGER)` 记录配对过的对端。新表 `sync_outbox`/`sync_inbox` 不需要——拉模式按 `(device_id, since_lamport)` 直接查 `clipboard_items` 增量。
+  > 设备发现：用 `mdns-sd` crate 广播 `_ecopaste._tcp.local`，TXT 记录带 `device_id` / `device_name` / `version` / `pubkey_fp`（公钥指纹前 16 字节 hex）。`sync/discovery.rs` 启动后台 task：持续广播本机 + 监听同类型服务，把发现的对端塞进 `DashMap<device_id, PeerInfo>` 并 emit `sync://peer_updated` 通知前端刷列表。仅在「同步开关开启」时启动，关闭即停。
+  > 配对：首次配对走「PIN 码」流程——发起端 invoke `sync_request_pair(target_device_id)` 触发握手，对端弹出系统通知 + 主窗内 Modal 显示 6 位 PIN；发起端输入 PIN 后双方交换 X25519 公钥 + 配对元数据，写入各自 `sync_devices` 表。配对后建立长连接，PIN 仅用于一次性认证。
+  > 传输通道：用 QUIC（`quinn` crate），自签证书 + TOFU——每台设备启动时生成持久的 Ed25519 长期密钥 + 自签 TLS 证书（落到 `app_local_data_dir/sync/identity.{key,crt}`），证书指纹通过 mDNS TXT 广播，配对时双向校验指纹。后续会话用 X25519 ECDH 派生对称密钥 + ChaCha20-Poly1305 加密所有 payload（QUIC 自带 TLS 之外再加一层，确保即便 TLS 证书被中间人替换也安全）。
+  > 同步协议（`sync/protocol.rs`，bincode 编码消息）：① `Hello { device_id, lamport }` 握手互换当前 Lamport 时钟；② `RequestSince { since_lamport }` 拉取对端 `lamport > since` 的所有条目；③ `Items { batch: Vec<SyncItem> }` 推送增量（SyncItem = clipboard_items 行 + 必要元数据，但**不含**图片二进制——见下文）；④ `Ack { up_to_lamport }` 确认收到，对端更新 `sync_devices.last_lamport`；⑤ `MetaUpdate { uuid, fields: { is_favorite?, is_pinned?, note?, deleted_at? } }` 单条元数据变更，走 LWW + Lamport 比较合并。每次本地写库后 `sync/broadcaster.rs` 给所有在线对端 push `Items`/`MetaUpdate`；启动时 / 断线重连后走 pull 流程补差。
+  > 冲突合并：剪贴板内容本身 immutable，按 `uuid` 去重；元数据 LWW（保留更大 lamport，相同则按 device_id 字典序 tie-break）。Lamport 时钟：本地每次写库 `lamport = max(local, max_seen) + 1`；收到对端事件时同样更新。
+  > 图片 / 文件按需拉取：`SyncItem` 只带 `content_hash` + 元信息，不带二进制；前端首次展示该条目时 emit `sync://need_blob` → Rust 通过现有连接发 `RequestBlob { uuid }` → 对端流式回 `BlobChunk`；拿到后落到本地 `images/` 并写入 `clipboard_items.image_path`。本地缓存避免重复拉取。设置位 `Settings.sync.max_blob_size_mb`（默认 10）超限的不自动同步，列表给出「在源设备查看」提示。
+  > 隐私过滤：复用 `clipboard/detect.rs` 的类型识别 + 8.11 的应用规则，在 `sync/broadcaster.rs` 推送前再过一层「敏感内容黑名单」（设置位 `Settings.sync.exclude_types: ["password_like", "credit_card_like"]` + `Settings.sync.exclude_apps: [...]`）。锁定条目（8.6）按设计**不同步**——加密内容跨设备共享密钥的设计本步不做。
+  > 设置 / 命令 / 事件：① `Settings.sync.{enabled, device_name, max_blob_size_mb, exclude_types, exclude_apps}`；② 命令 `sync_list_peers` / `sync_list_paired_devices` / `sync_request_pair(target)` / `sync_confirm_pair(pin)` / `sync_unpair(device_id)` / `sync_force_full_resync(device_id)`；③ 事件 `sync://peer_updated`、`sync://pair_request`（对端请求配对，前端弹 PIN 输入框）、`sync://state`（连接 / 同步进度）。
+  > 前端 UI：① 设置页新增「同步」面板：开关 + 本机设备名 + 已配对设备列表（带 last_seen 与解绑按钮）+ 同网段发现的未配对设备列表（带「配对」按钮）；② 主窗顶部状态栏增同步状态小图标（同步中 / 已连接 N 台 / 离线），点击跳同步面板；③ 配对请求弹窗：显示对端设备名 + 6 位 PIN + 确认 / 拒绝按钮；④ i18n `settings.sync.*` 中英文两份。
+  > 平台 / 安全注意：① Windows 防火墙：首次启动监听 QUIC 端口（默认随机高位端口）会弹防火墙询问，安装器（NSIS）里申请规则减少打扰，并在引导里提示用户允许；② macOS 本地网络权限：macOS 14+ 访问局域网需要授权，首次 mDNS 广播会触发系统弹窗——`Info.plist` 加 `NSLocalNetworkUsageDescription` 与 `NSBonjourServices`，否则静默失败；③ 设备拓扑用 P2P mesh（每对配对设备建一条直连），设备数 ≤ 4 推荐配置，更多设备需要后续做 host 选举模式；④ 时钟漂移：内部排序统一用 Lamport，UI 显示时间仍用 `created_at`（wall clock）但接受不严格单调；⑤ Lamport 列加 `INDEX idx_items_lamport ON clipboard_items(lamport)` 保证增量查询 O(log n)。
+
+### 8.13 WebDAV 同步
+
+- [ ] 通过用户自有 WebDAV 服务器（坚果云 / Nextcloud / 自建）做异步备份与多设备合并
+  > 与 8.12 局域网同步互补：8.12 解决「同时在线设备实时同步」，8.13 解决「不同时在线 / 跨网络」场景——所有设备把自己的增量打包推到用户 WebDAV，启动 / 周期拉对端文件做合并。仅 macOS + Windows，无新增平台代码。
+  > 复用 8.12 的数据模型：`clipboard_items` 的 `uuid` / `origin_device_id` / `lamport` / `deleted_at` 与 `sync_devices` 表通用，本节不重复加列。新增表 `sync_webdav_state(device_id TEXT PK, last_pushed_lamport INTEGER, last_pulled_lamport INTEGER, last_pushed_at TEXT, last_pulled_at TEXT)` 记录与每个对端的 WebDAV 同步进度。
+  > WebDAV 客户端：用 `reqwest_dav` 或自封装 `reqwest` + WebDAV 方法（PROPFIND / GET / PUT / DELETE / MKCOL）——`reqwest_dav` 维护活跃可优先，否则手写一层薄封装。`sync/webdav/client.rs` 提供 `list_dir` / `get` / `put` / `delete` / `mkdir` 五个原语 + 重试 + 超时。鉴权支持 Basic（用户名 + 密码）和 Bearer（Token）两种，凭据由 `keyring` crate 存到 OS 钥匙串（macOS Keychain / Windows Credential Manager），**不**写明文到 settings 文件。
+  > 远端目录结构（约定）：用户配置一个根目录（如 `/EcoPaste/`），内部约定：
+  >
+  > ```
+  > /EcoPaste/
+  >   manifest.json                     # 顶层清单：所有 device_id + 最新文件名
+  >   devices/<device_id>/
+  >     identity.json                   # 设备元数据（name, public_key_fp, created_at）
+  >     pages/000000.bincode            # 增量页文件，按 lamport 切片
+  >     pages/000001.bincode            # 每页含若干 SyncItem（同 8.12 协议复用）
+  >     blobs/<sha256>.bin              # 图片 / 文件二进制（按 content_hash 命名去重）
+  > ```
+  >
+  > 页文件单文件上限 1MB，写满切下一个；`manifest.json` 用乐观锁（ETag）更新，避免多设备并发覆盖。
+  > 推送流程（`sync/webdav/pusher.rs`）：定时（默认 5 分钟）+ 事件触发——本地有新增 / 元数据变更时 debounce 30s 后触发。从 `sync_webdav_state.last_pushed_lamport` 起拉本地增量，序列化为 bincode 页文件，PUT 到 `devices/<self>/pages/`；blob 在该条目首次推送时一并 PUT 到 `blobs/<hash>.bin`（先 HEAD 判断存在则跳过）；最后更新 `manifest.json`。
+  > 拉取流程（`sync/webdav/puller.rs`）：定时（默认 5 分钟）+ 启动时立即触发。先 GET `manifest.json` 找出所有 `device_id != self` 的远端设备 + 各自最新页文件；对每台对端按 `last_pulled_lamport` 起逐页 GET → 合并入库（复用 8.12 的 LWW 合并函数）；blob 按需 GET（同 8.12 的「展示时拉取」策略，本地缓存命中跳过）。
+  > 冲突合并：与 8.12 完全相同——Lamport + LWW + uuid 去重；本节只是把传输从 QUIC 换成 WebDAV，合并逻辑共用 `sync/merge.rs`。
+  > 端到端加密：用户在设置里设置「同步密码」，本地用 argon2 派生主密钥（key 不出本机，落到 keyring）。所有上传的页文件 / blob 都用 AES-GCM 加密，nonce 随机前置；`manifest.json` 中只暴露不敏感字段（device_id / page count / 最大 lamport），不含内容预览。其他设备首次接入时输入同一密码恢复主密钥——这意味着用户必须自己记牢密码，**忘记即所有云端数据不可解密**（设置面板里强警示，并提供导出主密钥到本地文件的功能作为备份）。可选「不加密」模式（仅依赖 WebDAV 服务商的访问控制），默认开启加密。
+  > 远端清理：每台设备本地物理删除条目（被 8.1 cleanup 清掉 / 用户手动删）时，本步**不**立即删 WebDAV 上的页文件——避免别的设备还没拉到就丢失。改用「软删标记」（`deleted_at`）随增量同步出去，对端合并后也软删本地。物理压缩：单独命令 `sync_webdav_compact()` 由用户手动触发或每周后台跑一次，把多页旧文件重写为一个紧凑文件 + 删除被覆盖的 blob。
+  > 设置 / 命令 / 事件：① `Settings.sync.webdav.{enabled, server_url, username, root_path, push_interval_min, pull_interval_min, encrypt_enabled}`（密码 + Token 不写 settings 而是 keyring）；② 命令 `webdav_test_connection(server_url, username, password)` / `webdav_set_credentials(username, password_or_token)` / `webdav_set_encryption_password(password)` / `webdav_force_push()` / `webdav_force_pull()` / `webdav_compact()`；③ 事件 `sync://webdav_state`（同步进度 / 错误）。
+  > 前端 UI：① 设置页「同步」面板下增「WebDAV」子区块，分三段：服务器配置（URL / 用户名 / 密码 / 根目录 + 「测试连接」按钮）、加密配置（开关 + 密码输入 + 「备份密钥到文件」）、同步策略（推送间隔 / 拉取间隔 + 立即推 / 立即拉按钮 + 上次同步时间显示）；② 错误提示用 `Modal` 而非 toast（WebDAV 错误信息长，需要看完整 HTTP 响应）；③ i18n `settings.sync.webdav.*` 中英文两份。
+  > 性能 / 鲁棒性注意：① 网络抖动：所有 WebDAV 请求带指数退避重试（最多 3 次）；②`manifest.json` 并发更新冲突（多设备同时推）：用 If-Match ETag 重试，最多 5 次后放弃本轮、下次同步补；③ 大量 blob 上传不阻塞主流程：用独立 `tokio::task` + 信号量限制并发 4；④ 同步状态全程 `log::info`，失败 `log::error`，方便用户提交日志排查；⑤ 设置项缺失（URL 空 / 凭据未设）时整个模块不启动，不抛错；⑥ 与 8.12 并存：本地变更走两条路同时推（局域网即时推 + WebDAV 周期推），合并逻辑保证幂等不会重复入库。
+  > 与 8.12 的取舍：用户可只开 8.12（同网段足够）/ 只开 8.13（异地多设备）/ 两个都开（同网段秒级同步 + 异地分钟级同步）。建议默认只在引导里推荐 8.12，WebDAV 作为「想跨网络同步时再配」的进阶选项。
+
 ---
 
 # 阶段 9 · 打包、签名与发布
