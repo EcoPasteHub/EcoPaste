@@ -6,8 +6,9 @@ use std::path::Path;
 use image::{codecs::png::PngEncoder, ColorType, ImageEncoder};
 
 /// App 图标 / 文件类型图标统一默认像素尺寸。
-/// 128 覆盖 retina 下 ~64pt 显示，文件 ~10–20KB；过小（64）放大会糊，过大（256+）落盘冗余。
-const DEFAULT_ICON_PIXEL_SIZE: u32 = 128;
+/// 256 覆盖 Retina 下 ~96–128pt 高清显示（列表卡片 + 拖拽预览同源），
+/// 单张 PNG ~20–60KB；按文件类型缓存，整库通常几十张，总占用可忽略。
+const DEFAULT_ICON_PIXEL_SIZE: u32 = 256;
 
 /// 目录的 icon 缓存 key。`<>` 是 macOS/Windows 文件名非法字符，不会与真实路径撞 key。
 pub const DIR_CACHE_KEY: &str = "<dir>";

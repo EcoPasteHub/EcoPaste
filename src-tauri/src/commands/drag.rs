@@ -5,10 +5,10 @@ use std::path::PathBuf;
 use sqlx::SqlitePool;
 use tauri::{AppHandle, State};
 
-use crate::clipboard::{icon_png, ImageStore};
+use crate::clipboard::{icon_png, FileIconStore, ImageStore};
 use crate::core::{AppError, Result};
 use crate::db::items::find_item_by_id;
-use crate::db::models::{ClipboardItem, ClipboardKind, ClipboardSubKind};
+use crate::db::models::{ClipboardItem, ClipboardKind, ClipboardSubKind, Platform};
 use crate::drag_out;
 use crate::window::{self, MAIN_WINDOW_LABEL};
 
@@ -43,6 +43,7 @@ pub async fn start_drag_clipboard_item(
     app: AppHandle,
     pool: State<'_, SqlitePool>,
     store: State<'_, ImageStore>,
+    file_icon_store: State<'_, FileIconStore>,
     id: String,
 ) -> Result<()> {
     let item = find_item_by_id(&pool, &id)
@@ -53,20 +54,7 @@ pub async fn start_drag_clipboard_item(
 
     let window = window::get_window(&app, MAIN_WINDOW_LABEL)?;
 
-    // 平台差异：
-    // - macOS：固定 256px 源 → drag_out 内 NSImage::setSize(128pt)，借 Retina backing
-    //   提供 128pt 显示 + 256px 像素的清晰度。
-    // - Windows：SHDRAGIMAGE.sizeDragImage 直接用 bitmap 物理像素作显示尺寸（无 backing scale
-    //   概念），按窗口 DPI 算 128 * scale 物理像素。
-    #[cfg(target_os = "macos")]
-    let preview_size: u32 = 256;
-    #[cfg(target_os = "windows")]
-    let preview_size: u32 = {
-        let scale = window.scale_factor().unwrap_or(1.0);
-        (128.0 * scale).round() as u32
-    };
-
-    let preview = build_preview(&payload, preview_size);
+    let preview = build_preview(&item, &payload, &store, &file_icon_store, &pool).await;
 
     #[cfg(target_os = "macos")]
     {
@@ -160,13 +148,86 @@ fn resolve_drag_payload(item: &ClipboardItem, store: &ImageStore) -> Result<Drag
     }
 }
 
-/// 取拖拽预览图：
-/// - Files / Image：用首个路径抽 OS 文件 / 图片图标。
+/// 取拖拽预览图（拖拽必须秒响应，所有分支只读缓存文件，不做现场解码 / 编码）：
+/// - Image：读 [`ImageStore`] 已落盘的缩略图（最长边 300px，前端首次预览时已生成），
+///   命中就是「这张图本身的缩略图」，比通用 PNG 文件图标有辨识度。
+/// - Files：按首个路径的 [`crate::clipboard::get_icon_cache_key`] 查 `file_type_icons` 表，
+///   命中读 [`FileIconStore`] 的缓存 PNG；未命中（罕见，仅冷启动后未浏览过该扩展名时）
+///   退回 [`icon_png`] 做一次性 OS 图标抽取（默认 256px，与缓存一致），不写回 DB。
 /// - Text：返回 None，由 drag_out 平台层基于文本内容现场渲染（保证有辨识度），
 ///   避免用「来源 app 图标」这种所有文本长一样的兜底。
-fn build_preview(payload: &DragPayload, size: u32) -> Option<Vec<u8>> {
+async fn build_preview(
+    item: &ClipboardItem,
+    payload: &DragPayload,
+    image_store: &ImageStore,
+    file_icon_store: &FileIconStore,
+    pool: &SqlitePool,
+) -> Option<Vec<u8>> {
     match payload {
-        DragPayload::Files(paths) => icon_png(&paths[0], Some(size)),
         DragPayload::Text { .. } => None,
+        DragPayload::Files(paths) => {
+            if matches!(item.kind, ClipboardKind::Image) {
+                if let Some(bytes) = read_image_thumbnail(image_store, &item.content) {
+                    return Some(bytes);
+                }
+                // 缩略图缺失（首次拖拽 + 前端尚未浏览过）：回退 OS 图标，不阻塞拖拽启动。
+            }
+            read_cached_file_icon(pool, file_icon_store, &paths[0])
+                .await
+                .or_else(|| icon_png(&paths[0], None))
+        }
+    }
+}
+
+/// 读 `<thumbnails>/<hash[..2]>/<hash>.png` 字节。首次拖拽且前端未浏览过时缩略图可能不存在，
+/// 此时返回 None 让上层走 icon 回退——不要在这里同步生成（解码大图会卡住拖拽启动）。
+fn read_image_thumbnail(store: &ImageStore, file_name: &str) -> Option<Vec<u8>> {
+    let path = store.thumbnail_path(file_name);
+    match std::fs::read(&path) {
+        Ok(b) => Some(b),
+        Err(err) => {
+            log::debug!("thumbnail miss for drag preview {}: {err}", path.display());
+            None
+        }
+    }
+}
+
+/// 按文件路径的 cache_key + 当前平台查 `file_type_icons`，命中则读对应 PNG。
+async fn read_cached_file_icon(
+    pool: &SqlitePool,
+    store: &FileIconStore,
+    path: &std::path::Path,
+) -> Option<Vec<u8>> {
+    let cache_key = crate::clipboard::get_icon_cache_key(path);
+    let platform = current_platform();
+    let icon_file = match crate::db::file_icons::get_icon(pool, &cache_key, platform).await {
+        Ok(Some(name)) => name,
+        Ok(None) => return None,
+        Err(err) => {
+            log::warn!("query file_type_icons failed for drag preview: {err}");
+            return None;
+        }
+    };
+    let icon_path = store.icon_path(&icon_file);
+    match std::fs::read(&icon_path) {
+        Ok(b) => Some(b),
+        Err(err) => {
+            log::warn!(
+                "read cached file icon failed {}: {err}",
+                icon_path.display()
+            );
+            None
+        }
+    }
+}
+
+fn current_platform() -> Platform {
+    #[cfg(target_os = "macos")]
+    {
+        Platform::Macos
+    }
+    #[cfg(target_os = "windows")]
+    {
+        Platform::Windows
     }
 }
