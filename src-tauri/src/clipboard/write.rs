@@ -179,7 +179,7 @@ mod tests {
             source_app_icon_file: None,
             source_app_icon_path: None,
             image_thumbnail_path: None,
-            file_icon_paths: None,
+            file_entries: None,
         }
     }
 
@@ -272,7 +272,7 @@ mod tests {
             source_app_icon_file: None,
             source_app_icon_path: None,
             image_thumbnail_path: None,
-            file_icon_paths: None,
+            file_entries: None,
         };
 
         write_to_clipboard(&store, &guard, &item, false).unwrap();

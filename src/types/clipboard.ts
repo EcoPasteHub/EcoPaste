@@ -47,8 +47,16 @@ export interface ClipboardItem {
   sourceAppIconPath?: string;
   /** image 条目的缩略图绝对路径（后端预处理返回）。 */
   imageThumbnailPath?: string;
-  /** files 条目的文件 icon 路径 JSON（与 content 中路径顺序一致，最多 3 项）。 */
-  fileIconPaths?: string;
+  /** files 条目的预处理条目（与 content 中路径顺序一致，最多 3 项）。 */
+  fileEntries?: FileEntry[];
+}
+
+export interface FileEntry {
+  path: string;
+  name: string;
+  isDir: boolean;
+  isImage: boolean;
+  iconPath?: string;
 }
 
 export type ClipboardItemSort = "createdAtDesc" | "useCountDesc";

@@ -84,12 +84,23 @@ pub struct ClipboardItem {
     #[sqlx(default)]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub image_thumbnail_path: Option<String>,
-    /// Files 类型条目对应的文件 icon 路径 JSON（与 `content` 里的路径顺序一致）；
-    /// 命令层在列表查询后按需填充，最多返回前 3 个，用于列表轻量渲染。
-    /// 形如 `["/abs/a.png", null, "/abs/c.png"]`。
-    #[sqlx(default)]
+    /// Files 类型条目对应的预处理后的文件条目（最多前 3 项），命令层按需填充。
+    /// 前端 `FilesCard` 直接 map 渲染，无需再解析 `content` / `file_types` / `summary`。
+    #[sqlx(skip)]
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub file_icon_paths: Option<String>,
+    pub file_entries: Option<Vec<FileEntry>>,
+}
+
+/// Files 类型条目里的单条文件/目录元信息，由命令层组装后返回前端。
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FileEntry {
+    pub path: String,
+    pub name: String,
+    pub is_dir: bool,
+    pub is_image: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub icon_path: Option<String>,
 }
 
 /// 剪贴板来源应用（macOS bundle id / Windows exe 路径作主键），

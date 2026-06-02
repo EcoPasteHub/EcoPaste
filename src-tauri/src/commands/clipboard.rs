@@ -14,7 +14,7 @@ use crate::clipboard::{
 use crate::core::{AppError, Result};
 use crate::db::items::{find_item_by_id, find_item_for_list_by_id};
 use crate::db::models::{
-    ClipboardGroup, ClipboardItem, ClipboardItemQuery, ClipboardKind, Platform,
+    ClipboardGroup, ClipboardItem, ClipboardItemQuery, ClipboardKind, FileEntry, Platform,
 };
 use crate::window::{self, MAIN_WINDOW_LABEL};
 
@@ -224,7 +224,7 @@ pub async fn list_clipboard_items(
     for item in &mut items {
         attach_image_thumbnail_path(&image_store, item).await?;
         attach_source_app_icon_path(&app_icon_store, item);
-        attach_file_icon_paths(&pool, &file_icon_store, item).await?;
+        attach_file_entries(&pool, &file_icon_store, item).await?;
     }
     Ok(items)
 }
@@ -252,7 +252,7 @@ pub async fn get_clipboard_item(
     if let Some(item) = item.as_mut() {
         attach_image_thumbnail_path(&image_store, item).await?;
         attach_source_app_icon_path(&app_icon_store, item);
-        attach_file_icon_paths(&pool, &file_icon_store, item).await?;
+        attach_file_entries(&pool, &file_icon_store, item).await?;
     }
     Ok(item)
 }
@@ -303,9 +303,10 @@ fn attach_source_app_icon_path(store: &AppIconStore, item: &mut ClipboardItem) {
         .and_then(|name| store.icon_path(name).to_str().map(str::to_owned));
 }
 
-/// 为 files 条目补齐最多前 3 个路径的 icon 绝对路径。
-/// 非 files 条目或无路径时保持 `file_icon_paths = None`。
-async fn attach_file_icon_paths(
+/// 为 files 条目组装最多前 3 项的 [`FileEntry`]：
+/// 路径 / 文件名 / 目录标记 / 图片标记 / icon 绝对路径，前端直接渲染。
+/// 非 files 条目或无路径时保持 `file_entries = None`。
+async fn attach_file_entries(
     pool: &SqlitePool,
     store: &FileIconStore,
     item: &mut ClipboardItem,
@@ -314,23 +315,77 @@ async fn attach_file_icon_paths(
         return Ok(());
     }
 
-    let paths = item.content.split('\n').filter(|p| !p.is_empty()).take(3);
-    let mut icons = Vec::new();
-
-    for (index, path) in paths.enumerate() {
-        let (icon_path, _exists) =
-            resolve_file_icon_path(pool, store, path, item.file_types.as_deref(), index).await?;
-        icons.push(icon_path);
+    let paths: Vec<&str> = item
+        .content
+        .split('\n')
+        .filter(|p| !p.is_empty())
+        .take(3)
+        .collect();
+    if paths.is_empty() {
+        return Ok(());
     }
 
-    item.file_icon_paths = if icons.is_empty() {
-        None
-    } else {
-        Some(serde_json::to_string(&icons).map_err(|err| {
-            AppError::Clipboard(format!("serialize file icon paths failed: {err}"))
-        })?)
-    };
+    let names: Vec<&str> = item
+        .summary
+        .as_deref()
+        .unwrap_or("")
+        .split('\n')
+        .filter(|s| !s.is_empty())
+        .collect();
+    let types: Vec<&str> = item
+        .file_types
+        .as_deref()
+        .unwrap_or("")
+        .split(',')
+        .collect();
+
+    let mut entries = Vec::with_capacity(paths.len());
+    for (index, path) in paths.iter().enumerate() {
+        let (icon_path, _exists) =
+            resolve_file_icon_path(pool, store, path, item.file_types.as_deref(), index).await?;
+        let is_dir = types.get(index).copied() == Some("d");
+        let name = names
+            .get(index)
+            .copied()
+            .map(str::to_owned)
+            .unwrap_or_else(|| (*path).to_owned());
+        let is_image = !is_dir && is_image_path(path);
+
+        entries.push(FileEntry {
+            path: (*path).to_owned(),
+            name,
+            is_dir,
+            is_image,
+            icon_path,
+        });
+    }
+
+    item.file_entries = Some(entries);
     Ok(())
+}
+
+/// 与前端 `utils/is.ts` 的 `isImage` 同义：按扩展名（大小写不敏感）判断常见图片格式。
+fn is_image_path(path: &str) -> bool {
+    let Some(ext) = Path::new(path).extension().and_then(|e| e.to_str()) else {
+        return false;
+    };
+
+    matches!(
+        ext.to_ascii_lowercase().as_str(),
+        "jpg"
+            | "jpeg"
+            | "png"
+            | "webp"
+            | "avif"
+            | "gif"
+            | "svg"
+            | "bmp"
+            | "ico"
+            | "tif"
+            | "tiff"
+            | "heic"
+            | "apng"
+    )
 }
 
 /// 解析文件 icon 路径：优先命中缓存，未命中时在路径存在的前提下抽取并落盘缓存。
