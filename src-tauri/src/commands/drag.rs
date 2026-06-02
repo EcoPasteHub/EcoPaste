@@ -39,14 +39,24 @@ pub async fn start_drag_clipboard_item(
 
     let paths = resolve_drag_paths(&item, &store)?;
 
-    // 预览图：用首个路径抽 OS 文件图标；抽不到走 None（macOS 会 fallback 到 NSImage 自带识别）。
-    // 该调用在 macOS 走 NSWorkspace，spawn_blocking 阻塞活，但耗时通常 < 5ms，
-    // 这里同步取一次足够，不必落到 blocking pool。
-    // 像素 256 = 显示 128pt @2x：macos 端 `drag_out` 固定把 NSImage size 设为 128pt,
-    // 高分辨率源 PNG 作 Retina backing 提供清晰度（128pt 显示 + 256px 像素）。
-    let preview = icon_png(&paths[0], Some(256));
-
     let window = window::get_window(&app, MAIN_WINDOW_LABEL)?;
+
+    // 预览图：用首个路径抽 OS 文件图标；抽不到走 None（macOS 会 fallback 到 NSImage 自带识别）。
+    // 平台差异：
+    // - macOS：固定 256px 源 → `drag_out` 内 `NSImage::setSize(128pt)`，借 Retina backing
+    //   提供 128pt 显示 + 256px 像素的清晰度。
+    // - Windows：`SHDRAGIMAGE.sizeDragImage` 直接用 bitmap 物理像素作显示尺寸（无 backing scale
+    //   概念），按窗口 DPI 算 `128 * scale` 物理像素：100% DPI 显示 128px，200% 显示 256px——
+    //   既不会过大遮住窗口，也保留高 DPI 屏的清晰度。
+    #[cfg(target_os = "macos")]
+    let preview_size: u32 = 256;
+    #[cfg(target_os = "windows")]
+    let preview_size: u32 = {
+        let scale = window.scale_factor().unwrap_or(1.0);
+        (128.0 * scale).round() as u32
+    };
+
+    let preview = icon_png(&paths[0], Some(preview_size));
 
     #[cfg(target_os = "macos")]
     {
