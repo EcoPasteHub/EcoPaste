@@ -93,6 +93,8 @@ export interface ClipboardItemQuery {
   groupId?: string;
   favorite?: boolean;
   pinned?: boolean;
+  /** 列表顶部 Tab；Rust 侧翻译成 kind / favorite，前端不再手动映射。 */
+  group?: ClipboardGroup;
   keyword?: string;
   sort?: ClipboardItemSort;
   limit?: number;

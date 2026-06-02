@@ -207,10 +207,24 @@ pub struct ClipboardItemQuery {
     pub group_id: Option<String>,
     pub favorite: Option<bool>,
     pub pinned: Option<bool>,
+    /// 列表顶部 Tab 过滤（前端只需传这一个；Rust 侧翻译成 kind / favorite）。
+    /// 显式设置时覆盖 `kind` / `favorite`；为 None 时走显式字段（保留给单测）。
+    pub group: Option<ClipboardGroupFilter>,
     pub keyword: Option<String>,
     pub sort: ClipboardItemSort,
     pub limit: i64,
     pub offset: i64,
+}
+
+/// 列表顶部分组 Tab：UI 概念，与 `ClipboardGroup`（用户自建分组）不同。
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum ClipboardGroupFilter {
+    All,
+    Text,
+    Image,
+    Files,
+    Favorite,
 }
 
 impl Default for ClipboardItemQuery {
@@ -220,6 +234,7 @@ impl Default for ClipboardItemQuery {
             group_id: None,
             favorite: None,
             pinned: None,
+            group: None,
             keyword: None,
             sort: ClipboardItemSort::CreatedAtDesc,
             limit: 20,

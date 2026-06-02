@@ -1,4 +1,3 @@
-import { useCreation } from "ahooks";
 import { Empty, Spin } from "antd";
 import type { FC } from "react";
 import { useEffect, useRef, useState } from "react";
@@ -15,7 +14,7 @@ import { useKeyboardEvent } from "@/hooks/useKeyboardEvent";
 import { useTauriListen } from "@/hooks/useTauriListen";
 import { clipboardStatsState } from "@/stores/clipboardStats";
 import { clipboardViewState } from "@/stores/clipboardView";
-import type { ClipboardItem, ClipboardItemQuery } from "@/types/clipboard";
+import type { ClipboardItem } from "@/types/clipboard";
 import { cn } from "@/utils/cn";
 import { isMac } from "@/utils/is";
 import ClipboardCard from "./cards/ClipboardCard";
@@ -38,20 +37,10 @@ const List: FC = () => {
   const isAtTopRef = useRef(true);
 
   const snapshot = useSnapshot(clipboardViewState);
-  const { keyword, group, ...rest } = snapshot;
-
-  const query = useCreation<ClipboardItemQuery>(
-    () => ({
-      ...rest,
-      favorite: group === "favorite" ? true : void 0,
-      keyword: keyword || void 0,
-      kind: group === "all" || group === "favorite" ? void 0 : group,
-    }),
-    [snapshot],
-  );
+  const { keyword, group } = snapshot;
 
   const { data, loading, loadingMore, loadMore, noMore, reload, mutate } =
-    useClipboardItems(query);
+    useClipboardItems(snapshot);
   const items = data?.list ?? [];
 
   // 把 Rust 返回的同过滤下总数同步给 Footer（共享 store），避免 Footer 单独 IPC 计数。
@@ -59,11 +48,11 @@ const List: FC = () => {
     if (data?.total !== void 0) clipboardStatsState.total = data.total;
   }, [data?.total]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: query 作触发器，不需在回调内读取
+  // biome-ignore lint/correctness/useExhaustiveDependencies: snapshot 作触发器，不需在回调内读取
   useEffect(() => {
     setSelectedId(null);
     setPendingCount(0);
-  }, [query]);
+  }, [snapshot]);
 
   /**
    * 收到剪贴板更新：用户在顶部时直接刷新；否则累加待刷新计数，避免 Virtuoso 抖动。

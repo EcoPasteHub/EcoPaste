@@ -4,7 +4,9 @@ use chrono::Utc;
 use sqlx::{QueryBuilder, Sqlite, SqlitePool};
 
 use crate::core::Result;
-use crate::db::models::{ClipboardItem, ClipboardItemQuery, ClipboardItemSort, ClipboardKind};
+use crate::db::models::{
+    ClipboardGroupFilter, ClipboardItem, ClipboardItemQuery, ClipboardItemSort, ClipboardKind,
+};
 
 const SELECT_ITEM: &str = "SELECT id, kind, sub_kind, group_id, source_app_id, content, \
      content_hash, search_text, summary, file_types, size, width, height, use_count, is_favorite, is_pinned, \
@@ -493,14 +495,23 @@ fn push_filter_clauses(
                 .push(" ESCAPE '\\')");
         }
     }
-    if let Some(kind) = q.kind {
+    // group（UI Tab）覆盖显式 kind / favorite；为 None 时回退到显式字段（单测使用）。
+    let (effective_kind, effective_favorite) = match q.group {
+        Some(ClipboardGroupFilter::All) => (None, None),
+        Some(ClipboardGroupFilter::Text) => (Some(ClipboardKind::Text), None),
+        Some(ClipboardGroupFilter::Image) => (Some(ClipboardKind::Image), None),
+        Some(ClipboardGroupFilter::Files) => (Some(ClipboardKind::Files), None),
+        Some(ClipboardGroupFilter::Favorite) => (None, Some(true)),
+        None => (q.kind, q.favorite),
+    };
+    if let Some(kind) = effective_kind {
         qb.push(" AND clipboard_items.kind = ").push_bind(kind);
     }
     if let Some(group_id) = &q.group_id {
         qb.push(" AND clipboard_items.group_id = ")
             .push_bind(group_id.clone());
     }
-    if let Some(favorite) = q.favorite {
+    if let Some(favorite) = effective_favorite {
         qb.push(" AND clipboard_items.is_favorite = ")
             .push_bind(favorite);
     }
