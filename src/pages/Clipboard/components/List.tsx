@@ -90,9 +90,9 @@ const List: FC = () => {
 
     mutate({
       ...data,
-      list: data.list.map((item) =>
-        item.id === id ? { ...item, ...patch } : item,
-      ),
+      list: data.list.map((item) => {
+        return item.id === id ? { ...item, ...patch } : item;
+      }),
     });
   };
 

@@ -28,8 +28,9 @@ export interface PresetAntdColorsOptions {
   themes?: Record<string, ThemeConfig>;
 }
 
-const kebab = (s: string): string =>
-  s.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+const kebab = (s: string): string => {
+  return s.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+};
 
 const PALETTE_RE = /^([a-z]+)-(\d{1,2})$/;
 
@@ -119,11 +120,11 @@ export const presetAntdColors = (
     antVarByFlat.set(p, `var(--${antPrefix}-${p}-6)`);
   }
   const COLORS_VAR_RE = /var\(--colors-([\w-]+)\)/g;
-  const rewriteColorVar = (raw: string): string =>
-    raw.replace(
-      COLORS_VAR_RE,
-      (m, flat: string) => antVarByFlat.get(flat) ?? m,
-    );
+  const rewriteColorVar = (raw: string): string => {
+    return raw.replace(COLORS_VAR_RE, (m, flat: string) => {
+      return antVarByFlat.get(flat) ?? m;
+    });
+  };
 
   return {
     extendTheme: (theme: { colors?: ColorMap }) => {

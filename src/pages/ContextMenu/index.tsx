@@ -28,12 +28,13 @@ interface ShowPayload {
  * 把 Tauri 加速键写法 `"CmdOrCtrl+Enter"` 翻译为 Windows 文案 `"Ctrl + Enter"`。
  * 本窗口只在 Windows 出现，直接硬编码 Ctrl。
  */
-const formatAccelerator = (raw: string) =>
-  raw
+const formatAccelerator = (raw: string) => {
+  return raw
     .replace(/CmdOrCtrl/g, "Ctrl")
     .replace(/Cmd/g, "Ctrl")
     .replace(/Backspace/g, "⌫")
     .replace(/\+/g, " + ");
+};
 
 /**
  * Windows 自定义右键菜单页（路由 `/context-menu`，仅在 Windows 由 Rust 端建窗加载）。
