@@ -364,7 +364,7 @@ fn attach_text_preview(data_object: &IDataObject, text: &str, size_px: i32) -> R
             crColorKey: COLORREF(0),
         };
 
-        if let Err(err) = helper.InitializeFromBitmap(&img, data_object.clone()) {
+        if let Err(err) = helper.InitializeFromBitmap(&img, data_object) {
             let _ = DeleteObject(HGDIOBJ(hbmp.0));
             return Err(AppError::Clipboard(format!(
                 "InitializeFromBitmap failed: {err}"
