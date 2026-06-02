@@ -102,8 +102,8 @@ cargo test                    # Rust 单测（在 src-tauri 下）
 - **改 schema 必须同步改所有相关 SQL 和测试**：新增/删除字段时，逐一检查 `SELECT` 列表、`INSERT` 列与 `bind` 参数、`UPDATE` 语句、以及 `db/*.rs` 测试里手写的结构体字面量。`sqlx::query_as` 是运行时映射，字段对不上时整个查询返回空结果而不报错——UI 上表现为"什么都不显示"。
 - 表必须有 `created_at` 和 `updated_at` 两个字段，类型 `TEXT NOT NULL`；`UPDATE` 语句要同步更新 `updated_at`。
 - 错误处理用 `thiserror`（定义错误类型）+ `anyhow`（内部传播），日志用 `tauri-plugin-log`。
-- `AppError` 序列化为 `{ kind, message }` 暴露给前端（见 `core/error.rs`）。其中 `message` 是**给用户看的根因文案**——**禁止**再叠加 `"xxx failed: {err}"` 这种英文动作前缀；动作上下文由前端 `commands/index.ts` 里的 `label`（"粘贴 / 复制 / 打开链接 …"）拼成 toast。错误构造时直接把根因丢进去即可：`AppError::Clipboard(err.to_string())` / `AppError::Clipboard(format!("clipboard item not found: {id}"))`（带必要参数 OK，不带「失败」字样即可）。需要开发期定位的额外上下文走 `log::error!` / `log::warn!`，不要塞进 `message`。
-- `commands/` 层保持薄：参数校验 + 调用 `db`/`clipboard`/`window` 等模块，不写业务逻辑。
+- `AppError` 序列化为 `{ kind, message }`。`message` 是**给用户看的根因文案**，**禁止**叠加 `"xxx failed: {err}"` 这种动作前缀（动作上下文由前端 `commands/index.ts` 的 `label` 拼 toast）。需要额外上下文走 `log::error!` / `log::warn!`，不塞进 `message`。
+- `commands/` 层保持薄：参数校验 + 调用下层模块，不写业务逻辑。
 - 处理自身写回剪贴板导致的监听回环（写回时打标记抑制下一次监听）。
 
 ## 前端侧约定
@@ -148,58 +148,32 @@ cargo test                    # Rust 单测（在 src-tauri 下）
 
 ## 通用代码规范
 
-- 函数 / 方法必须写注释：每个导出的函数、Rust 的 `pub fn`、React 组件、hook、以及非平凡的内部函数都要在声明上方写一段说明「做什么 / 关键约束」。优先用语言原生的 doc 注释：
-  - TS / JS 用多行 JSDoc 块格式：
-    ```ts
-    /**
-     * xxx
-     */
-    ```
-    不要写成单行 `/** xxx */`。
-  - Rust 用 `///`，多行就连写多行 `///`。
-
-  Getter/setter、显然的 1 行包装、纯字面量常量可省略。
+- 函数 / 方法必须在声明上方写文档注释，说明「做什么 / 关键约束」：
+  - TS / JS 用多行 JSDoc（`/**` 独立一行 + `*/` 独立一行），不要单行 `/** xxx */`。
+  - Rust 用 `///`，多行连写多行 `///`。
+  - getter/setter、显然的 1 行包装、纯字面量常量可省。
 
 - 函数体内默认不写注释；仅当「为什么」不明显（隐藏约束、绕过特定 bug、反直觉行为）时写一行。
-- **守卫条件优先早返回（guard clause）**，不要把主逻辑塞进 `if` 体里：
-  - ❌ `if (cond) { doMainThing(); }` —— 主流程被嵌套一层。
-  - ✅ `if (!cond) return;` 空一行，然后写主逻辑。
-  - 同理：多个互斥分支用「条件不满足就 return」逐个剥离，避免 `if / else if / else` 金字塔。
-  - 反例：`if (isModifierPressed(e)) setActive(true);` —— 应改成 `if (!isModifierPressed(e)) return;` + `setActive(true);`。
-- 函数体内**给逻辑分组留空行**，不要把多步骤压成一坨：
-  - hooks 调用 / 变量声明 / 副作用 / `return` 之间至少留一空行。
-  - 连续的 `await`、`Object.assign`、`if` 块等，若属于**不同语义阶段**（如「先订阅再拉首屏」「先准备数据再渲染」），用空行分隔。
-  - `return` 之前留一空行——尤其是 React 组件 / hook，让早返回、JSX 与上面的逻辑视觉分离。
-  - 反例：`use(x); return <Foo />;` 一行接一行；正例：中间空一行。
-  - 同一组紧密相关的赋值（如解构 + 立即归一化）不强求空行，凭语义判断。
-- 不写下列注释——发现即删：
-  - 复述代码语义的废话（`// 查缓存` / `// 落盘`），well-named identifiers 已说明。
-  - 引用 TODO.md 阶段号、任务编号或外部行号（"阶段 1.4"、"见 xxx.rs:49"）——重构中会失效。
-  - 引用旧版 EcoPaste 的具体路径或实现（"参考旧版 `core/setup/macos.rs`"）——本仓库是重写，不背兼容包袱。
-  - `// removed` / `// TODO 之前的逻辑` 之类的历史残留。
+- **守卫条件优先早返回**：`if (!cond) return;` 然后写主逻辑，不要把主流程塞进 `if` 体里嵌套一层。多个互斥分支同理，避免 `if / else if / else` 金字塔。
+- 函数体内**给逻辑分组留空行**：hooks / 变量声明 / 副作用 / `return` 之间至少一空行；不同语义阶段的连续 `await` / `if` 块也用空行分隔。`return` 之前留一空行（尤其 React 组件 / hook）。
+- 不写下列注释：
+  - 复述代码语义的废话（`// 查缓存` / `// 落盘`）。
+  - 引用 TODO.md 阶段号、任务编号或外部行号（重构中会失效）。
+  - 引用旧版 EcoPaste 的具体路径或实现（本仓库不背兼容包袱）。
+  - `// removed` / `// TODO 之前的逻辑` 之类历史残留。
 - 不写超出当前需求的抽象、兜底、向后兼容垫片。三行相似代码胜过过早抽象。
-- **不过度设计 React hook / 工具函数**——优先用框架原生能力，本项目是 React 19，能用编译器自动 memo 就别手动包：
-  - 不为「调用方可能传内联函数」预先 `useMemoizedFn` / `useRef` 锁存回调——React 19 编译器已处理；真出现重复触发再说。
-  - 不为「可能传对象 / 数组」加 `useRef` 缓存 + `Object.is` 自比对——直接在类型签名上把入参约束成基础类型（`string | number | boolean | null`），从源头杜绝。
-  - 不手动 `subscribe` + `useMount` + `useUnmount` + 三个 `useRef` 重写 `useEffect`——能用 `useSnapshot` + `useEffect` 表达就别另起炉灶。
-  - 准则：先写最短能跑的版本，遇到真问题再加抽象；不要为想象中的调用方"贴心"。
+- **不过度设计 React hook / 工具函数**——React 19 能用编译器自动 memo 就别手动包：
+  - 不为「调用方可能传内联函数」预先 `useMemoizedFn` / `useRef` 锁存。
+  - 不为「可能传对象 / 数组」加 `useRef` 缓存 + 自比对——直接把入参类型约束成基础类型。
+  - 能用 `useSnapshot` + `useEffect` 表达就不要手写 `subscribe` + `useMount` + `useUnmount` 重造。
+  - 先写最短能跑的版本，遇到真问题再加抽象。
 - 提交信息遵循 Conventional Commits（commitlint 校验）。
 - 改动 UI 后，在浏览器/窗口里实际操作验证主路径与边界，不要只靠类型检查就声称完成。
 
 ## 外部文档参考（LLM 友好）
 
-> 以下为官方提供的 LLM 友好文档（`llms*.txt`）。**按需取用，不要整篇抄进仓库**——遇到相关问题时再拉取对应文件。
+> 官方 `llms*.txt`，**按需取用**，不要整篇抄进仓库。
 
-**Ant Design v6：**
-
-- 官方文档（站点搜索）：https://ant.design/components/overview-cn
-- 主题与 token：https://ant.design/docs/react/customize-theme-cn
-
-**UnoCSS：**
-
-- 官方文档：https://unocss.dev/
-- presetWind4：https://unocss.dev/presets/wind4
-
-**Tauri v2：**
-
-- 全量文档：https://tauri.app/llms-full.txt
+- Ant Design v6：https://ant.design/components/overview-cn · [主题与 token](https://ant.design/docs/react/customize-theme-cn)
+- UnoCSS：https://unocss.dev/ · [presetWind4](https://unocss.dev/presets/wind4)
+- Tauri v2：https://tauri.app/llms-full.txt
