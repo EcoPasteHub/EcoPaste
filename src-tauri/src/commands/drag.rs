@@ -22,8 +22,10 @@ use crate::window::{self, MAIN_WINDOW_LABEL};
 /// 平台差异：
 /// - macOS：`beginDraggingSession` 必须主线程；用 `run_on_main_thread` 派发后立即返回，
 ///   drop 结果走 OS 回调（在 `drag_out` 内仅 log）。
-/// - Windows：`DoDragDrop` 是阻塞调用直到 drop 完成；用 `spawn_blocking` 下沉到独立线程，
-///   命令本身仍 await 至 drop 完成（保持「拖拽中前端可见到状态」的一致体验）。
+/// - Windows：`DoDragDrop` 是 OLE STA 调用，**必须在拥有窗口的线程**（= Tauri 主线程）上执行，
+///   否则 `IDropSource::QueryContinueDrag` 立刻返回 `DRAGDROP_S_CANCEL` → 拖拽秒取消。
+///   `DoDragDrop` 内部会泵消息，期间主线程被阻塞但 UI 仍可响应；同步等回调完成即可。
+///   参考：drag-rs 官方 `tauri-plugin-drag` 也是这么写的。
 #[tauri::command]
 pub async fn start_drag_clipboard_item(
     app: AppHandle,
@@ -40,7 +42,7 @@ pub async fn start_drag_clipboard_item(
     // 预览图：用首个路径抽 OS 文件图标；抽不到走 None（macOS 会 fallback 到 NSImage 自带识别）。
     // 该调用在 macOS 走 NSWorkspace，spawn_blocking 阻塞活，但耗时通常 < 5ms，
     // 这里同步取一次足够，不必落到 blocking pool。
-    // 像素 256 = 显示 128pt @2x：macos 端 `drag_out` 固定把 NSImage size 设为 128pt，
+    // 像素 256 = 显示 128pt @2x：macos 端 `drag_out` 固定把 NSImage size 设为 128pt,
     // 高分辨率源 PNG 作 Retina backing 提供清晰度（128pt 显示 + 256px 像素）。
     let preview = icon_png(&paths[0], Some(256));
 
@@ -48,7 +50,7 @@ pub async fn start_drag_clipboard_item(
 
     #[cfg(target_os = "macos")]
     {
-        // run_on_main_thread 是 fire-and-forget；start_drag 本身仅注册 dragging session 后立即返回，
+        // run_on_main_thread 是 fire-and-forget；start_drag 仅注册 dragging session 后立即返回，
         // 后续光标跟随 / drop 全由 AppKit 接管。这里 await 也没意义。
         let window = window.clone();
         app.run_on_main_thread(move || {
@@ -61,15 +63,17 @@ pub async fn start_drag_clipboard_item(
 
     #[cfg(target_os = "windows")]
     {
-        // DoDragDrop 阻塞至 drop 完成，必须脱离 tokio worker；spawn_blocking 内部跑独立线程。
-        // STA + OleInitialize 由 drag crate 内部处理。
-        tauri::async_runtime::spawn_blocking(move || {
-            if let Err(err) = drag_out::start_drag_files(&window, paths, preview) {
-                log::error!("start drag (windows) failed: {err}");
-            }
+        // 必须主线程：DoDragDrop 走 OLE STA，且要求线程拥有窗口（= Tauri 主线程）。
+        // 闭包通过 mpsc 把结果回传当前 async 上下文，命令同步 await 直到 drop 完成。
+        let (tx, rx) = std::sync::mpsc::channel();
+        app.run_on_main_thread(move || {
+            let result = drag_out::start_drag_files(&window, paths, preview);
+            let _ = tx.send(result);
         })
-        .await
-        .map_err(|err| AppError::Clipboard(format!("drag blocking task join failed: {err}")))?;
+        .map_err(|err| AppError::Clipboard(format!("dispatch to main thread failed: {err}")))?;
+
+        rx.recv()
+            .map_err(|err| AppError::Clipboard(format!("drag result channel closed: {err}")))??;
     }
 
     Ok(())
