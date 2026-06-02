@@ -1,8 +1,7 @@
 import type { DragEvent, FC, MouseEvent } from "react";
-import { popupClipboardItemMenu } from "@/commands";
+import { popupClipboardItemMenu, startDragClipboardItem } from "@/commands";
 import AssetImage from "@/components/AssetImage";
 import KeyHint from "@/components/KeyHint";
-import { useDragOut } from "@/hooks/useDragOut";
 import type { ClipboardItem } from "@/types/clipboard";
 import { cn } from "@/utils/cn";
 import FilesCard from "./FilesCard";
@@ -37,7 +36,18 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
   // text 类型 drag-out 暂未支持（drag crate 的 Data 在 Windows 是 dummy 实现），只挂在
   // files / image 卡片上；text 卡片维持原有选中文字行为，避免误触。
   const draggable = kind === "files" || kind === "image";
-  const { onMouseDown: handleDragMouseDown } = useDragOut(item.id);
+
+  // Windows 上 DoDragDrop 必须在浏览器 dragstart 上下文里调用，否则 QueryContinueDrag
+  // 立刻返回 DRAGDROP_S_CANCEL；参考 drag-rs/examples/tauri/index.html。
+  const handleDragStart = async (event: DragEvent) => {
+    event.preventDefault();
+
+    try {
+      await startDragClipboardItem(item.id);
+    } catch {
+      // 错误 toast 已在 commands/index.ts 内统一处理。
+    }
+  };
 
   const handleContextMenu = async (event: MouseEvent) => {
     event.preventDefault();
@@ -49,23 +59,15 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
     await popupClipboardItemMenu(item.id, [...availableActions], isFavorite);
   };
 
-  // 抑制 WebView 原生 HTML5 拖拽（<img> 默认 draggable=true）：在 Windows 上若不抑制，
-  // WebView2 的 dragstart 会先于我们的 mousemove 触发并抢走鼠标捕获，等 Rust DoDragDrop
-  // 跑起来时左键状态已不为按下，DropSource 立刻返回 DRAGDROP_S_CANCEL → 拖拽秒取消。
-  // macOS 上 AppKit dragging session 优先级高于 webview，可不抑制；统一抑制更稳。
-  const handleDragStart = (event: DragEvent) => {
-    event.preventDefault();
-  };
-
   return (
     <div
       aria-selected={isSelected}
       className={cn("b b-border-secondary flex flex-col gap-1 rounded-2 p-2", {
         "b-primary bg-blue-1": isSelected,
       })}
+      draggable={draggable}
       onContextMenu={handleContextMenu}
       onDragStart={draggable ? handleDragStart : void 0}
-      onMouseDown={draggable ? handleDragMouseDown : void 0}
       onMouseEnter={onMouseEnter}
       role="option"
       tabIndex={-1}
