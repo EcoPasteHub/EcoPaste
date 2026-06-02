@@ -17,7 +17,7 @@ const FilesCard: FC<ClipboardItem> = (props) => {
 
   if (props.filesPreviewKind === "imagePreview") {
     const [first] = entries;
-    return <AssetImage className="max-h-21" src={first?.path} />;
+    return <AssetImage className="max-h-20 self-start" src={first?.path} />;
   }
 
   return (

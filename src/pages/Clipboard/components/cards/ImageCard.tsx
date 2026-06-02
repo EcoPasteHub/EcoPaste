@@ -9,7 +9,9 @@ import type { ClipboardItem } from "@/types/clipboard";
 const ImageCard: FC<ClipboardItem> = (props) => {
   const { imageThumbnailPath } = props;
 
-  return <AssetImage className="max-h-21" src={imageThumbnailPath} />;
+  return (
+    <AssetImage className="max-h-20 self-start" src={imageThumbnailPath} />
+  );
 };
 
 export default ImageCard;
