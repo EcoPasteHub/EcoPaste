@@ -1,6 +1,6 @@
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { platform } from "@tauri-apps/plugin-os";
 import { WINDOW_LABEL } from "@/constants/windows";
-import { currentWindow } from "./window";
 
 /**
  * 当前是否运行在 macOS 平台。
@@ -21,7 +21,7 @@ export const isDev = import.meta.env.DEV;
  * 当前是否为 Windows 平台的主窗口（focusable=false，需要低级键盘钩子）。
  */
 export const isWinMainWindow = () => {
-  return isWin && currentWindow.label === WINDOW_LABEL.MAIN;
+  return isWin && getCurrentWebviewWindow().label === WINDOW_LABEL.MAIN;
 };
 
 /**
