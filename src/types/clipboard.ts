@@ -67,6 +67,8 @@ export interface ClipboardItem {
   fileEntries?: FileEntry[];
   /** 右键菜单可用动作；顺序由 Rust 给出，前端按序渲染并按 action 查文案/快捷键。 */
   availableActions?: ClipboardAction[];
+  /** sub_kind = color 时由 Rust 校验过的 CSS 颜色串（合法才存在）。 */
+  colorPreview?: string;
 }
 
 export interface FileEntry {

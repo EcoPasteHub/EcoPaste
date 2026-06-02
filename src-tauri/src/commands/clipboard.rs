@@ -9,7 +9,8 @@ use tauri::{AppHandle, Manager, State};
 
 use crate::clipboard::{
     build_item, detect_frontmost, materialize_source, persist_and_notify, refresh_from_dirs,
-    AppIconStore, AppsRegistry, ClipboardReader, FileIconStore, ImageStore, WritebackGuard,
+    sanitize_css_color, AppIconStore, AppsRegistry, ClipboardReader, FileIconStore, ImageStore,
+    WritebackGuard,
 };
 use crate::core::{AppError, Result};
 use crate::db::items::{find_item_by_id, find_item_for_list_by_id};
@@ -226,6 +227,7 @@ pub async fn list_clipboard_items(
         attach_image_thumbnail_path(&image_store, item).await?;
         attach_source_app_icon_path(&app_icon_store, item);
         attach_file_entries(&pool, &file_icon_store, item).await?;
+        attach_color_preview(item);
         item.available_actions = compute_available_actions(item);
     }
     Ok(items)
@@ -255,6 +257,7 @@ pub async fn get_clipboard_item(
         attach_image_thumbnail_path(&image_store, item).await?;
         attach_source_app_icon_path(&app_icon_store, item);
         attach_file_entries(&pool, &file_icon_store, item).await?;
+        attach_color_preview(item);
         item.available_actions = compute_available_actions(item);
     }
     Ok(item)
@@ -304,6 +307,17 @@ fn attach_source_app_icon_path(store: &AppIconStore, item: &mut ClipboardItem) {
         .source_app_icon_file
         .as_deref()
         .and_then(|name| store.icon_path(name).to_str().map(str::to_owned));
+}
+
+/// 仅当 `sub_kind = Color` 时，把 `summary`（或 `content` 兜底）规范化为可信 CSS 颜色串
+/// 写入 `color_preview`，前端无需再自行校验即可塞 `style.background`。
+fn attach_color_preview(item: &mut ClipboardItem) {
+    if item.sub_kind != Some(ClipboardSubKind::Color) {
+        return;
+    }
+
+    let source = item.summary.as_deref().unwrap_or(&item.content);
+    item.color_preview = sanitize_css_color(source);
 }
 
 /// 按 `kind` / `sub_kind` 计算右键菜单可用动作，按建议展示顺序返回。

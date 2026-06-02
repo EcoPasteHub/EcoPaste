@@ -94,6 +94,11 @@ pub struct ClipboardItem {
     #[sqlx(skip)]
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub available_actions: Vec<ClipboardAction>,
+    /// `sub_kind = Color` 时的规范化 CSS 颜色串（命令层用 [`crate::clipboard::sanitize_css_color`] 校验后填充）。
+    /// 前端可直接塞 `style.background`，无需自行判断 `summary` 是否合法。
+    #[sqlx(skip)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub color_preview: Option<String>,
 }
 
 /// 右键菜单可执行的动作种类。

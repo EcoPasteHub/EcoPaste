@@ -16,6 +16,7 @@ mod write;
 
 pub use app_store::AppIconStore;
 pub use apps_registry::{refresh_from_dirs, AppsRegistry};
+pub use detect::sanitize_css_color;
 pub use file_icon_store::FileIconStore;
 pub use guard::WritebackGuard;
 pub use icon::{get_icon_cache_key, icon_png, DIR_CACHE_KEY};

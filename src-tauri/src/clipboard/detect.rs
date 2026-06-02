@@ -23,14 +23,25 @@ static EMAIL_RE: LazyLock<Regex> = LazyLock::new(|| {
         .expect("invalid email regex")
 });
 
-/// 颜色：hex(#RGB/#RGBA/#RRGGBB/#RRGGBBAA) 或 rgb()/rgba()/hsl()/hsla() 函数式。
-/// 只匹配这三类语法，故 CSS 关键字（none/inherit…）与含 `url(...)` 的值天然不命中，
-/// 无需旧项目的关键字排除表。
-static COLOR_RE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(
-        r"(?i)^#([0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$|^(rgb|rgba|hsl|hsla)\([^)]*\)$",
-    )
-    .expect("invalid color regex")
+/// Hex 颜色：#RGB / #RGBA / #RRGGBB / #RRGGBBAA。
+static HEX_COLOR_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)^#([0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$")
+        .expect("invalid hex color regex")
+});
+
+/// 颜色函数：覆盖经典 `rgb()/rgba()/hsl()/hsla()`（含逗号 / 空格语法）
+/// 以及 CSS Color 4/5：`hwb() / lab() / lch() / oklab() / oklch() / color() / color-mix()`。
+/// 括号内不限定（含嵌套函数），由 [`is_safe_css_value`] 做安全 + 括号平衡校验。
+static COLOR_FN_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)^(rgba?|hsla?|hwb|lab|lch|oklab|oklch|color|color-mix)\(.+\)$")
+        .expect("invalid color fn regex")
+});
+
+/// CSS 渐变：`linear-gradient(...)` / `radial-gradient(...)` / `conic-gradient(...)`
+/// 及其 `repeating-*` 变体。括号内不限定内容，由 [`is_safe_css_value`] 做安全/平衡校验。
+static GRADIENT_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)^(repeating-)?(linear|radial|conic)-gradient\(.+\)$")
+        .expect("invalid gradient regex")
 });
 
 /// 识别纯文本的子类型。判定顺序：url > email > color > path。
@@ -50,13 +61,75 @@ pub fn detect_text_sub_kind(text: &str) -> Option<ClipboardSubKind> {
     if EMAIL_RE.is_match(value) {
         return Some(ClipboardSubKind::Email);
     }
-    if COLOR_RE.is_match(value) {
+    if is_css_color_value(value) {
         return Some(ClipboardSubKind::Color);
     }
     if is_existing_absolute_path(value) {
         return Some(ClipboardSubKind::Path);
     }
     None
+}
+
+/// 把任意字符串规范化为可信的 CSS 颜色串：trim 后必须命中颜色 / 渐变规则
+/// 且通过 [`is_safe_css_value`] 才返回 `Some`。命令层用它给前端 `colorPreview` 兜底，
+/// 避免前端把任意文本塞进 CSS `background` 触发样式注入。
+pub fn sanitize_css_color(text: &str) -> Option<String> {
+    let value = text.trim();
+
+    if value.is_empty() || !is_css_color_value(value) {
+        return None;
+    }
+
+    Some(value.to_owned())
+}
+
+/// 统一判定：hex 直接命中即可（无括号无注入面）；
+/// 函数式 / 渐变需要再过 [`is_safe_css_value`] 防注入与括号平衡。
+fn is_css_color_value(value: &str) -> bool {
+    if HEX_COLOR_RE.is_match(value) {
+        return true;
+    }
+
+    if (COLOR_FN_RE.is_match(value) || GRADIENT_RE.is_match(value)) && is_safe_css_value(value) {
+        return true;
+    }
+
+    false
+}
+
+/// CSS background 值安全校验：用于 gradient 这类括号内容自由的语法。
+/// - 拒绝 `;` / `<` / `>` 等可能跳出声明 / 注入标签的字符；
+/// - 拒绝 `url(` / `expression(` / `javascript:` / `@import` 等已知风险 token；
+/// - 要求括号平衡，避免半截语法被浏览器宽松解析后吞掉后续 CSS。
+fn is_safe_css_value(value: &str) -> bool {
+    if value.contains(';') || value.contains('<') || value.contains('>') {
+        return false;
+    }
+
+    let lower = value.to_ascii_lowercase();
+    if lower.contains("url(")
+        || lower.contains("expression(")
+        || lower.contains("javascript:")
+        || lower.contains("@import")
+    {
+        return false;
+    }
+
+    let mut depth: i32 = 0;
+    for ch in value.chars() {
+        match ch {
+            '(' => depth += 1,
+            ')' => {
+                depth -= 1;
+                if depth < 0 {
+                    return false;
+                }
+            }
+            _ => {}
+        }
+    }
+
+    depth == 0
 }
 
 fn is_existing_absolute_path(value: &str) -> bool {
@@ -123,6 +196,60 @@ mod tests {
         assert_eq!(detect_text_sub_kind("inherit"), None);
         assert_eq!(detect_text_sub_kind("url(#abc)"), None);
         assert_eq!(detect_text_sub_kind("#xyz"), None);
+    }
+
+    #[test]
+    fn detects_modern_color_functions() {
+        for s in [
+            // rgb() / hsl() 现代空格语法 + slash alpha
+            "rgb(255 87 51)",
+            "rgb(255 87 51 / 0.5)",
+            "hsl(0 100% 50% / 80%)",
+            // CSS Color 4 现代色彩空间
+            "hwb(120 10% 20%)",
+            "lab(50% 40 30)",
+            "lch(50% 40 30)",
+            "oklab(0.7 0.1 0.05)",
+            "oklch(0.7 0.15 30)",
+            "color(display-p3 1 0 0)",
+            "color(rec2020 0.5 0.2 0.8 / 0.6)",
+            // CSS Color 5 color-mix（含嵌套函数）
+            "color-mix(in srgb, #fff 50%, #000)",
+            "color-mix(in oklch, oklch(0.7 0.15 30), red 20%)",
+        ] {
+            assert_eq!(
+                detect_text_sub_kind(s),
+                Some(ClipboardSubKind::Color),
+                "should be color (modern fn): {s:?}"
+            );
+            assert_eq!(sanitize_css_color(s).as_deref(), Some(s));
+        }
+    }
+
+    #[test]
+    fn detects_gradient_as_color() {
+        for s in [
+            "linear-gradient(to right, #ffdde1, #ee9ca7)",
+            "radial-gradient(circle, rgba(0,0,0,0.5) 0%, #fff 100%)",
+            "conic-gradient(from 45deg, red, blue)",
+            "repeating-linear-gradient(45deg, #000 0 10px, #fff 10px 20px)",
+        ] {
+            assert_eq!(
+                detect_text_sub_kind(s),
+                Some(ClipboardSubKind::Color),
+                "should be color (gradient): {s:?}"
+            );
+            assert_eq!(sanitize_css_color(s).as_deref(), Some(s));
+        }
+
+        // 含注入风险或括号不平衡的渐变串：识别命中但 sanitize 拒绝。
+        for bad in [
+            "linear-gradient(to right, url(http://x))",
+            "linear-gradient(to right, #fff;color:red)",
+            "linear-gradient(to right, #fff",
+        ] {
+            assert_eq!(sanitize_css_color(bad), None, "should reject: {bad:?}");
+        }
     }
 
     #[test]

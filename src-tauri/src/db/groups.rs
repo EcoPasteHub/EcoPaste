@@ -149,6 +149,7 @@ mod tests {
             image_thumbnail_path: None,
             file_entries: None,
             available_actions: Vec::new(),
+            color_preview: None,
         };
         insert_item(&pool, &item).await.unwrap();
 

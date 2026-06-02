@@ -7,11 +7,11 @@ import { cn } from "@/utils/cn";
  * 子类型（HTML/RTF/URL/Email/Color/Path）以小 Tag 提示。
  */
 const TextCard: FC<ClipboardItem> = (props) => {
-  const { summary, subKind } = props;
+  const { summary, subKind, colorPreview } = props;
 
-  if (subKind === "color") {
+  if (subKind === "color" && colorPreview) {
     const style: CSSProperties = {
-      background: summary ?? void 0,
+      background: colorPreview,
     };
 
     return (
@@ -28,7 +28,7 @@ const TextCard: FC<ClipboardItem> = (props) => {
           />
         </div>
 
-        {summary}
+        {colorPreview}
       </div>
     );
   }
