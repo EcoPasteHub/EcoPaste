@@ -98,3 +98,21 @@ export interface ClipboardItemQuery {
   limit?: number;
   offset?: number;
 }
+
+/**
+ * 列表查询的一页结果，Rust 直接给出 `total` 与 `hasMore`，
+ * 前端无需再用 `length === pageSize` 近似。
+ */
+export interface ClipboardItemPage {
+  list: ClipboardItem[];
+  total: number;
+  hasMore: boolean;
+}
+
+/**
+ * 备注更新结果：Rust 归一化后的 note + 是否触发 auto-favorite。
+ */
+export interface UpdateNoteResult {
+  note: string | null;
+  autoFavorited: boolean;
+}

@@ -132,20 +132,25 @@ pub async fn insert_item(pool: &SqlitePool, item: &ClipboardItem) -> Result<()> 
     Ok(())
 }
 
-/// 统一列表查询：过滤 + 分页 + 排序（置顶项恒前置）。
-/// `keyword` 按字符长度分流：≥3 走 FTS5（trigram 分词），1–2 走 `LIKE '%kw%'`
-/// （兜底短词；trigram 索引最短 3 字符，对 1–2 字符词永远 0 命中）。
+/// 仅返回项的轻量查询：生产路径走 [`query_items_page`]（顺带返回 total），
+/// 本函数留给单元测试做断言。
+#[cfg(test)]
 pub async fn query_items(pool: &SqlitePool, q: &ClipboardItemQuery) -> Result<Vec<ClipboardItem>> {
     fetch_items(pool, q, KeywordFilter::from_keyword(q.keyword.as_deref())).await
 }
 
-/// 返回剪贴板历史总条数（不含任何过滤）。
-pub async fn count_items(pool: &SqlitePool) -> Result<i64> {
-    let row: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM clipboard_items")
-        .fetch_one(pool)
-        .await
-        .context("failed to count clipboard items")?;
-    Ok(row.0)
+/// 列表 + 总数一次返回，供命令层组装 [`ClipboardItemPage`]：
+/// 一次 IPC 拿到「本页项 / 当前过滤下的总数 / 是否还有下一页」。
+/// `keyword` 按字符长度分流：≥3 走 FTS5（trigram 分词），1–2 走 `LIKE '%kw%'`
+/// （兜底短词；trigram 索引最短 3 字符，对 1–2 字符词永远 0 命中）。
+pub async fn query_items_page(
+    pool: &SqlitePool,
+    q: &ClipboardItemQuery,
+) -> Result<(Vec<ClipboardItem>, i64)> {
+    let keyword = KeywordFilter::from_keyword(q.keyword.as_deref());
+    let items = fetch_items(pool, q, keyword.clone()).await?;
+    let total = fetch_items_count(pool, q, keyword).await?;
+    Ok((items, total))
 }
 
 /// 按 `id` 查找单条记录，不存在时返回 `None`。
@@ -419,14 +424,60 @@ async fn fetch_items(
 ) -> Result<Vec<ClipboardItem>> {
     let mut qb: QueryBuilder<Sqlite> = QueryBuilder::new(LIST_SELECT_ITEM);
     qb.push(" WHERE 1 = 1");
+    push_filter_clauses(&mut qb, q, &keyword);
 
+    qb.push(" ORDER BY clipboard_items.is_pinned DESC, ");
+    match q.sort {
+        ClipboardItemSort::CreatedAtDesc => {
+            qb.push("clipboard_items.created_at DESC");
+        }
+        ClipboardItemSort::UseCountDesc => {
+            qb.push("clipboard_items.use_count DESC, clipboard_items.created_at DESC");
+        }
+    }
+
+    qb.push(" LIMIT ").push_bind(q.limit);
+    qb.push(" OFFSET ").push_bind(q.offset);
+
+    let items = qb
+        .build_query_as::<ClipboardItem>()
+        .fetch_all(pool)
+        .await
+        .context("failed to query clipboard items")?;
+    Ok(items)
+}
+
+/// 统计满足同样过滤条件的总条数（不参与排序 / 分页），与 [`fetch_items`] 共用 [`push_filter_clauses`]。
+async fn fetch_items_count(
+    pool: &SqlitePool,
+    q: &ClipboardItemQuery,
+    keyword: KeywordFilter,
+) -> Result<i64> {
+    let mut qb: QueryBuilder<Sqlite> = QueryBuilder::new("SELECT COUNT(*) FROM clipboard_items");
+    qb.push(" WHERE 1 = 1");
+    push_filter_clauses(&mut qb, q, &keyword);
+
+    let row: (i64,) = qb
+        .build_query_as()
+        .fetch_one(pool)
+        .await
+        .context("failed to count filtered clipboard items")?;
+    Ok(row.0)
+}
+
+/// 把当前查询的过滤条件追加到 `qb`（不含 ORDER BY / LIMIT / OFFSET），供列表查询与计数共用。
+fn push_filter_clauses(
+    qb: &mut QueryBuilder<Sqlite>,
+    q: &ClipboardItemQuery,
+    keyword: &KeywordFilter,
+) {
     match keyword {
         KeywordFilter::None => {}
         KeywordFilter::Fts(expr) => {
             qb.push(
                 " AND clipboard_items.rowid IN (SELECT rowid FROM clipboard_items_fts WHERE clipboard_items_fts MATCH ",
             )
-            .push_bind(expr)
+            .push_bind(expr.clone())
             .push(")");
         }
         KeywordFilter::Like(kw) => {
@@ -457,26 +508,6 @@ async fn fetch_items(
         qb.push(" AND clipboard_items.is_pinned = ")
             .push_bind(pinned);
     }
-
-    qb.push(" ORDER BY clipboard_items.is_pinned DESC, ");
-    match q.sort {
-        ClipboardItemSort::CreatedAtDesc => {
-            qb.push("clipboard_items.created_at DESC");
-        }
-        ClipboardItemSort::UseCountDesc => {
-            qb.push("clipboard_items.use_count DESC, clipboard_items.created_at DESC");
-        }
-    }
-
-    qb.push(" LIMIT ").push_bind(q.limit);
-    qb.push(" OFFSET ").push_bind(q.offset);
-
-    let items = qb
-        .build_query_as::<ClipboardItem>()
-        .fetch_all(pool)
-        .await
-        .context("failed to query clipboard items")?;
-    Ok(items)
 }
 
 #[cfg(test)]

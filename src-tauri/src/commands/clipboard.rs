@@ -16,8 +16,8 @@ use crate::clipboard::{
 use crate::core::{AppError, Result};
 use crate::db::items::{find_item_by_id, find_item_for_list_by_id};
 use crate::db::models::{
-    ClipboardAction, ClipboardGroup, ClipboardItem, ClipboardItemQuery, ClipboardKind,
-    ClipboardSubKind, FileEntry, Platform,
+    ClipboardAction, ClipboardGroup, ClipboardItem, ClipboardItemPage, ClipboardItemQuery,
+    ClipboardKind, ClipboardSubKind, FileEntry, Platform,
 };
 use crate::window::{self, MAIN_WINDOW_LABEL};
 
@@ -212,6 +212,8 @@ pub async fn paste_clipboard_item(
 
 /// 列表查询命令（薄封装）：参数缺省时走 Rust 端默认（limit=20, offset=0, createdAtDesc）；
 /// `keyword` 非空时由 `query_items` 内部自动委派 FTS5。
+/// 返回 [`ClipboardItemPage`]：顶页项 + 同过滤下的总数 + `hasMore`，
+/// 供前端一次 IPC 同时拿到「列表 / Footer 总数 / 是否还有下一页」。
 /// 顺带把 `source_app_icon_file` 解析为绝对路径写到 `source_app_icon_path`，
 /// 前端无需再拉 `get_clipboard_app_icon_path`。
 #[tauri::command]
@@ -221,9 +223,9 @@ pub async fn list_clipboard_items(
     app_icon_store: State<'_, AppIconStore>,
     file_icon_store: State<'_, FileIconStore>,
     query: Option<ClipboardItemQuery>,
-) -> Result<Vec<ClipboardItem>> {
+) -> Result<ClipboardItemPage> {
     let q = query.unwrap_or_default();
-    let mut items = crate::db::items::query_items(&pool, &q).await?;
+    let (mut items, total) = crate::db::items::query_items_page(&pool, &q).await?;
     let now = Local::now();
     for item in &mut items {
         attach_image_thumbnail_path(&image_store, item).await?;
@@ -233,13 +235,12 @@ pub async fn list_clipboard_items(
         attach_display_created_at(item, &now);
         item.available_actions = compute_available_actions(item);
     }
-    Ok(items)
-}
-
-/// 返回剪贴板历史总条数，供 Footer 展示「共 N 项」。
-#[tauri::command]
-pub async fn count_clipboard_items(pool: State<'_, SqlitePool>) -> Result<i64> {
-    crate::db::items::count_items(&pool).await
+    let has_more = q.offset + (items.len() as i64) < total;
+    Ok(ClipboardItemPage {
+        list: items,
+        total,
+        has_more,
+    })
 }
 
 /// 单条查询命令：监听到 `clipboard://updated` 后前端按 id 拉单条，
@@ -637,16 +638,25 @@ pub async fn delete_clipboard_item(
 /// 更新备注（薄封装）。`note = None` 或空串清空备注；空串归一化为 None，
 /// 保证「无备注」在库里只有一种表示（NULL），避免后续筛选/展示判别两套逻辑。
 ///
+/// 备注更新结果：归一化后的备注串（去前后空白；纯空白返回 `None`）+ 是否触发 auto-favorite。
+/// 前端用 `note` 直接回填本地镜像，避免「输入 `   ` 时前端镜像非空但 DB 为 NULL」的漂移。
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateNoteResult {
+    pub note: Option<String>,
+    pub auto_favorited: bool,
+}
+
+/// 写入备注；`note` 由 Rust 统一 trim + 空串归一化为 NULL。
 /// auto-favorite：写入非空备注时，若 `settings.clipboard.content.autoFavorite` 开启，
-/// 顺带把 `is_favorite` 置为 true（已收藏的无变化；清空备注不触发）。返回值表示本次
-/// 是否触发了 auto-favorite，供前端把乐观更新里的 `isFavorite` 一并设为 true。
+/// 顺带把 `is_favorite` 置为 true（已收藏的无变化；清空备注不触发）。
 #[tauri::command]
 pub async fn update_clipboard_item_note(
     app: AppHandle,
     pool: State<'_, SqlitePool>,
     id: String,
     note: Option<String>,
-) -> Result<bool> {
+) -> Result<UpdateNoteResult> {
     let normalized = note.as_deref().and_then(|s| {
         let trimmed = s.trim();
         if trimmed.is_empty() {
@@ -668,7 +678,10 @@ pub async fn update_clipboard_item_note(
             auto_favorited = true;
         }
     }
-    Ok(auto_favorited)
+    Ok(UpdateNoteResult {
+        note: normalized.map(str::to_owned),
+        auto_favorited,
+    })
 }
 
 /// 打开条目 URL：按 `id` 取完整 `content`，trim 后用系统默认浏览器/邮件 client 打开。

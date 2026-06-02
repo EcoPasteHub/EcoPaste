@@ -227,3 +227,15 @@ impl Default for ClipboardItemQuery {
         }
     }
 }
+
+/// 列表查询的一页结果：项 + 当前过滤下的总数 + 是否还有下一页。
+/// `total` 让 Footer 等 UI 无需再单独 IPC `count_clipboard_items`，
+/// `has_more` 由 Rust 用 `offset + list.len() < total` 精确计算，
+/// 避免前端用 `len == page_size` 近似（恰好整除时多一次空请求）。
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ClipboardItemPage {
+    pub list: Vec<ClipboardItem>,
+    pub total: i64,
+    pub has_more: bool,
+}

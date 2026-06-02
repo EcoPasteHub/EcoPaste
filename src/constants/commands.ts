@@ -4,7 +4,6 @@
  * 不要再裸写命令名字面量或在调用处引用这个表。
  */
 export const TAURI_COMMAND = {
-  COUNT_CLIPBOARD_ITEMS: "count_clipboard_items",
   DELETE_CLIPBOARD_ITEM: "delete_clipboard_item",
   GET_CLIPBOARD_IMAGE_PATH: "get_clipboard_image_path",
   GET_CLIPBOARD_ITEM: "get_clipboard_item",

@@ -1,26 +1,19 @@
-import { useMount } from "ahooks";
 import { Button, Popover, Tooltip } from "antd";
-import { useState } from "react";
-import { countClipboardItems } from "@/commands";
+import { useSnapshot } from "valtio";
 import KeyHint from "@/components/KeyHint";
-import { TAURI_EVENT } from "@/constants/events";
-import { useTauriListen } from "@/hooks/useTauriListen";
+import { clipboardStatsState } from "@/stores/clipboardStats";
 import ShortcutList from "./ShortcutList";
 
 /**
- * 剪贴板窗口底部条：左侧统计总项数，右侧展示窗口快捷键提示。
+ * 剪贴板窗口底部条：左侧统计当前过滤下的总条数（由 List 写入共享 store，
+ * Rust 列表查询附带返回），右侧展示窗口快捷键提示。
  */
 const Footer = () => {
-  const [total, setTotal] = useState(0);
-
-  const fetchTotal = async () => setTotal(await countClipboardItems());
-
-  useMount(fetchTotal);
-  useTauriListen(TAURI_EVENT.CLIPBOARD_UPDATED, fetchTotal);
+  const { total } = useSnapshot(clipboardStatsState);
 
   return (
     <div className="flex items-center justify-between p-3">
-      <span className="text-text-tertiary text-xs">共 {total} 项</span>
+      <span className="text-text-tertiary text-xs">共 {total ?? 0} 项</span>
 
       <Popover content={<ShortcutList />} title="快捷键" trigger="click">
         <Tooltip placement="left" title="快捷键">

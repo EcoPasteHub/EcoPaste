@@ -45,14 +45,15 @@ const NoteModal: FC<NoteModalProps> = (props) => {
   const handleSave = async () => {
     if (!item) return;
 
-    const normalized = value.trim() || null;
-
     setSaving(true);
 
     try {
-      const autoFavorited = await updateClipboardItemNote(item.id, normalized);
+      const { note, autoFavorited } = await updateClipboardItemNote(
+        item.id,
+        value,
+      );
 
-      onSaved(item.id, normalized, autoFavorited);
+      onSaved(item.id, note, autoFavorited);
       onClose();
     } catch {
       // 错误 toast 由 commands 层统一处理。

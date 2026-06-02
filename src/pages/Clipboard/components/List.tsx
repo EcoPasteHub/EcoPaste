@@ -13,6 +13,7 @@ import { TAURI_EVENT } from "@/constants/events";
 import { useClipboardItems } from "@/hooks/useClipboardItems";
 import { useKeyboardEvent } from "@/hooks/useKeyboardEvent";
 import { useTauriListen } from "@/hooks/useTauriListen";
+import { clipboardStatsState } from "@/stores/clipboardStats";
 import { clipboardViewState } from "@/stores/clipboardView";
 import type { ClipboardItem, ClipboardItemQuery } from "@/types/clipboard";
 import { cn } from "@/utils/cn";
@@ -53,6 +54,11 @@ const List: FC = () => {
     useClipboardItems(query);
   const items = data?.list ?? [];
 
+  // 把 Rust 返回的同过滤下总数同步给 Footer（共享 store），避免 Footer 单独 IPC 计数。
+  useEffect(() => {
+    if (data?.total !== void 0) clipboardStatsState.total = data.total;
+  }, [data?.total]);
+
   // biome-ignore lint/correctness/useExhaustiveDependencies: query 作触发器，不需在回调内读取
   useEffect(() => {
     setSelectedId(null);
@@ -69,6 +75,9 @@ const List: FC = () => {
       return;
     }
 
+    // 非顶部不 reload（避免 Virtuoso 抖动），但底部「共 N 项」要立即体现新增，
+    // 否则总数会停在最近一次拉取的快照上，直到用户点「N 条新记录」才刷新。
+    if (clipboardStatsState.total !== null) clipboardStatsState.total += 1;
     setPendingCount((n) => n + 1);
   };
 

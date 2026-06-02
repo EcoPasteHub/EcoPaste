@@ -15,7 +15,11 @@ import { invoke } from "@tauri-apps/api/core";
 import { Modal, message } from "antd";
 import { TAURI_COMMAND } from "@/constants/commands";
 import { settingsState } from "@/stores/settings";
-import type { ClipboardItem, ClipboardItemQuery } from "@/types/clipboard";
+import type {
+  ClipboardItemPage,
+  ClipboardItemQuery,
+  UpdateNoteResult,
+} from "@/types/clipboard";
 import type { Settings, SettingsPatch } from "@/types/settings";
 import { log } from "@/utils/log";
 
@@ -79,19 +83,14 @@ export const updateSettings = (patch: SettingsPatch) => {
 };
 
 /**
- * 列表查询；分页 / 关键词 / 分组等均通过 `query` 透传，缺省走 Rust 端默认。
+ * 列表查询；返回顶页项 + 总数 + `hasMore`，供列表分页与 Footer 共用。
  */
 export const listClipboardItems = (query: ClipboardItemQuery) => {
-  return call<ClipboardItem[]>(TAURI_COMMAND.LIST_CLIPBOARD_ITEMS, "加载列表", {
-    query,
-  });
-};
-
-/**
- * 历史总条数，Footer「共 N 项」用。
- */
-export const countClipboardItems = () => {
-  return call<number>(TAURI_COMMAND.COUNT_CLIPBOARD_ITEMS, "统计条目");
+  return call<ClipboardItemPage>(
+    TAURI_COMMAND.LIST_CLIPBOARD_ITEMS,
+    "加载列表",
+    { query },
+  );
 };
 
 /**
@@ -180,23 +179,23 @@ export const deleteClipboardItem = async (id: string): Promise<boolean> => {
 };
 
 /**
- * 更新备注；`note` 空串 / 全空白会被 Rust 归一化为 NULL。
- * 返回布尔表示是否因 auto-favorite 设置联动把 `is_favorite` 置为 true，调用方据此回填。
+ * 更新备注；Rust 统一 trim + 空串归一为 `null`，返回归一化后的 `note` 与 `autoFavorited`。
+ * 调用方用返回的 `note` 回填本地镜像，避免「输入纯空白时镜像非空但 DB 为 NULL」的漂移。
  * 成功后统一 toast：触发 auto-favorite 时「已保存并收藏」，否则「已保存」。
  */
 export const updateClipboardItemNote = async (
   id: string,
   note: string | null,
 ) => {
-  const autoFavorited = await call<boolean>(
+  const result = await call<UpdateNoteResult>(
     TAURI_COMMAND.UPDATE_CLIPBOARD_ITEM_NOTE,
     "保存备注",
     { id, note },
   );
 
-  message.success(autoFavorited ? "已保存并收藏" : "已保存");
+  message.success(result.autoFavorited ? "已保存并收藏" : "已保存");
 
-  return autoFavorited;
+  return result;
 };
 
 /**
