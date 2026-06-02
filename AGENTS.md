@@ -203,8 +203,3 @@ cargo test                    # Rust 单测（在 src-tauri 下）
 **Tauri v2：**
 
 - 全量文档：https://tauri.app/llms-full.txt
-
-## 注意事项
-
-- 旧版的自定义插件（eco-window / eco-paste / eco-autostart / clipboard-x / nspanel）可评估复用，但需先确认与 Tauri v2 + 仅双平台的约定兼容。
-- **`src copy/` 目录是作者废弃的草稿，AI 工具禁止读取、引用或以任何方式访问其中的文件**；该目录仅供作者本人查阅，不参与任何 AI 辅助编码流程。
