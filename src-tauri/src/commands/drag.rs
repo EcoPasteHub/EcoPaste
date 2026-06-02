@@ -1,6 +1,6 @@
-//! 拖拽相关命令：把条目作为文件 drag 出主窗口到外部应用。
+//! 拖拽相关命令：把条目作为 OS 级 drag-out 拖出主窗口到外部应用。
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use sqlx::SqlitePool;
 use tauri::{AppHandle, State};
@@ -12,20 +12,25 @@ use crate::db::models::{ClipboardItem, ClipboardKind};
 use crate::drag_out;
 use crate::window::{self, MAIN_WINDOW_LABEL};
 
-/// 把指定条目作为文件拖出主窗口。
+/// 拖拽载荷：按 kind 解析成统一表示，再分派到对应的 drag-out 实现。
+enum DragPayload {
+    /// 文件路径列表（Files / Image kind）。
+    Files(Vec<PathBuf>),
+    /// 纯文本（Text kind 的 plain text）。
+    Text(String),
+}
+
+/// 把指定条目作为 OS drag 拖出主窗口。
 ///
-/// 当前仅支持 `kind = Files / Image`：
-/// - Files：从 `content` 按 `\n` 切出路径列表，过滤已删除项；空 → 报错。
-/// - Image：从 `ImageStore` 解析 `<hash>.png` 的绝对路径，作为单文件 drag。
-/// - Text：直接报错（drag crate 的 Data 在 Windows 是 dummy，需要后续 vendor 平台代码扩展）。
+/// 支持 kind：
+/// - Files：从 `content` 按 `\n` 切出路径列表，过滤已删除项。
+/// - Image：从 `ImageStore` 解析 `<hash>.png` 绝对路径，作为单文件 drag。
+/// - Text：纯文本（`public.utf8-plain-text` / `CF_UNICODETEXT`）。
 ///
-/// 平台差异：
-/// - macOS：`beginDraggingSession` 必须主线程；用 `run_on_main_thread` 派发后立即返回，
-///   drop 结果走 OS 回调（在 `drag_out` 内仅 log）。
-/// - Windows：`DoDragDrop` 是 OLE STA 调用，**必须在拥有窗口的线程**（= Tauri 主线程）上执行，
-///   否则 `IDropSource::QueryContinueDrag` 立刻返回 `DRAGDROP_S_CANCEL` → 拖拽秒取消。
-///   `DoDragDrop` 内部会泵消息，期间主线程被阻塞但 UI 仍可响应；同步等回调完成即可。
-///   参考：drag-rs 官方 `tauri-plugin-drag` 也是这么写的。
+/// 平台差异（共用）：
+/// - macOS：`beginDraggingSession` 必须主线程；用 `run_on_main_thread` fire-and-forget。
+/// - Windows：`DoDragDrop` 必须在拥有窗口的线程（= Tauri 主线程）跑，否则 `QueryContinueDrag`
+///   立刻 `DRAGDROP_S_CANCEL`；这里用 `run_on_main_thread` + `mpsc` 同步等待。
 #[tauri::command]
 pub async fn start_drag_clipboard_item(
     app: AppHandle,
@@ -37,17 +42,15 @@ pub async fn start_drag_clipboard_item(
         .await?
         .ok_or_else(|| AppError::Clipboard(format!("clipboard item not found: {id}")))?;
 
-    let paths = resolve_drag_paths(&item, &store)?;
+    let payload = resolve_drag_payload(&item, &store)?;
 
     let window = window::get_window(&app, MAIN_WINDOW_LABEL)?;
 
-    // 预览图：用首个路径抽 OS 文件图标；抽不到走 None（macOS 会 fallback 到 NSImage 自带识别）。
     // 平台差异：
-    // - macOS：固定 256px 源 → `drag_out` 内 `NSImage::setSize(128pt)`，借 Retina backing
+    // - macOS：固定 256px 源 → drag_out 内 NSImage::setSize(128pt)，借 Retina backing
     //   提供 128pt 显示 + 256px 像素的清晰度。
-    // - Windows：`SHDRAGIMAGE.sizeDragImage` 直接用 bitmap 物理像素作显示尺寸（无 backing scale
-    //   概念），按窗口 DPI 算 `128 * scale` 物理像素：100% DPI 显示 128px，200% 显示 256px——
-    //   既不会过大遮住窗口，也保留高 DPI 屏的清晰度。
+    // - Windows：SHDRAGIMAGE.sizeDragImage 直接用 bitmap 物理像素作显示尺寸（无 backing scale
+    //   概念），按窗口 DPI 算 128 * scale 物理像素。
     #[cfg(target_os = "macos")]
     let preview_size: u32 = 256;
     #[cfg(target_os = "windows")]
@@ -56,15 +59,13 @@ pub async fn start_drag_clipboard_item(
         (128.0 * scale).round() as u32
     };
 
-    let preview = icon_png(&paths[0], Some(preview_size));
+    let preview = build_preview(&item, &payload, preview_size);
 
     #[cfg(target_os = "macos")]
     {
-        // run_on_main_thread 是 fire-and-forget；start_drag 仅注册 dragging session 后立即返回，
-        // 后续光标跟随 / drop 全由 AppKit 接管。这里 await 也没意义。
         let window = window.clone();
         app.run_on_main_thread(move || {
-            if let Err(err) = drag_out::start_drag_files(&window, paths, preview) {
+            if let Err(err) = dispatch_drag(&window, payload, preview) {
                 log::error!("start drag (macos) failed: {err}");
             }
         })
@@ -73,12 +74,9 @@ pub async fn start_drag_clipboard_item(
 
     #[cfg(target_os = "windows")]
     {
-        // 必须主线程：DoDragDrop 走 OLE STA，且要求线程拥有窗口（= Tauri 主线程）。
-        // 闭包通过 mpsc 把结果回传当前 async 上下文，命令同步 await 直到 drop 完成。
         let (tx, rx) = std::sync::mpsc::channel();
         app.run_on_main_thread(move || {
-            let result = drag_out::start_drag_files(&window, paths, preview);
-            let _ = tx.send(result);
+            let _ = tx.send(dispatch_drag(&window, payload, preview));
         })
         .map_err(|err| AppError::Clipboard(format!("dispatch to main thread failed: {err}")))?;
 
@@ -89,8 +87,20 @@ pub async fn start_drag_clipboard_item(
     Ok(())
 }
 
-/// 把条目解析成可拖拽的本地文件路径列表。
-fn resolve_drag_paths(item: &ClipboardItem, store: &ImageStore) -> Result<Vec<PathBuf>> {
+/// 把 DragPayload 派发到对应的 drag_out::* 实现。
+fn dispatch_drag(
+    window: &tauri::WebviewWindow,
+    payload: DragPayload,
+    preview: Option<Vec<u8>>,
+) -> Result<()> {
+    match payload {
+        DragPayload::Files(paths) => drag_out::start_drag_files(window, paths, preview),
+        DragPayload::Text(text) => drag_out::start_drag_text(window, text, preview),
+    }
+}
+
+/// 解析为统一的拖拽载荷。
+fn resolve_drag_payload(item: &ClipboardItem, store: &ImageStore) -> Result<DragPayload> {
     match item.kind {
         ClipboardKind::Files => {
             let paths: Vec<PathBuf> = item
@@ -104,15 +114,35 @@ fn resolve_drag_paths(item: &ClipboardItem, store: &ImageStore) -> Result<Vec<Pa
             if paths.is_empty() {
                 return Err(AppError::Clipboard("拖拽源文件已不存在".to_string()));
             }
-            Ok(paths)
+            Ok(DragPayload::Files(paths))
         }
         ClipboardKind::Image => {
             let path = store.origin_path(&item.content);
             if !path.exists() {
                 return Err(AppError::Clipboard("图片文件已不存在".to_string()));
             }
-            Ok(vec![path])
+            Ok(DragPayload::Files(vec![path]))
         }
-        ClipboardKind::Text => Err(AppError::Clipboard("文本拖拽暂未支持".to_string())),
+        ClipboardKind::Text => {
+            if item.content.is_empty() {
+                return Err(AppError::Clipboard("文本内容为空".to_string()));
+            }
+            Ok(DragPayload::Text(item.content.clone()))
+        }
+    }
+}
+
+/// 取拖拽预览图：
+/// - Files / Image：用首个路径抽 OS 文件 / 图片图标。
+/// - Text：用条目的 source_app_icon_path（来源 app 图标）；缺失则 None，由下层兜底。
+fn build_preview(item: &ClipboardItem, payload: &DragPayload, size: u32) -> Option<Vec<u8>> {
+    match payload {
+        DragPayload::Files(paths) => icon_png(&paths[0], Some(size)),
+        DragPayload::Text(_) => item
+            .source_app_icon_path
+            .as_deref()
+            .map(Path::new)
+            .filter(|p| p.exists())
+            .and_then(|p| icon_png(p, Some(size))),
     }
 }

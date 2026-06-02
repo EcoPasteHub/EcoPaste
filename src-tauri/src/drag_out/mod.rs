@@ -1,20 +1,21 @@
 //! OS 级 drag-out（把条目从列表拖到外部应用）。
 //!
-//! 当前只支持「文件类型」（Files / Image）：
-//! - macOS：自实现（[`macos::start_drag_files`]），vendor 自 `drag` v2.1.1 但解耦了
-//!   预览图像素与显示尺寸——`drag` crate 用 `NSImage::size()` 原样作显示尺寸，
-//!   高分辨率 PNG 飞起来就有那么大；我们固定 `NSImage::setSize(POINT_SIZE)`。
-//! - Windows：复用 `drag` crate（`IDataObject(CF_HDROP)` + `DoDragDrop`）。
+//! 支持类型：
+//! - Files / Image：拖出本地文件路径。
+//! - Text：纯文本（`public.utf8-plain-text` / `CF_UNICODETEXT`）。
 //!
-//! 文本 / HTML 暂不支持——`drag` crate 的 `DragItem::Data` 在 Windows 上是 dummy 实现，
-//! mac 端也只声明单一 type。后续在 [`macos`] 内扩 `NSPasteboardItem` 多类型即可
-//! （`public.html` / `public.utf8-plain-text` / `public.rtf`）。
+//! 平台实现：
+//! - macOS：自实现于 [`macos`]，vendor 自 `drag` v2.1.1 但解耦了预览图像素与显示尺寸——
+//!   `drag` crate 用 `NSImage::size()` 原样作显示尺寸，高分辨率 PNG 飞起来就有那么大；
+//!   我们固定 `NSImage::setSize(POINT_SIZE)`。
+//! - Windows：文件复用 `drag` crate（`IDataObject(CF_HDROP)` + `DoDragDrop`）；
+//!   文本自实现于 [`windows`]（`drag` 的 `DragItem::Data` 在 Windows 是 dummy 实现，
+//!   永远拖一个 "./" 目录而不是真实数据）。
 //!
 //! 线程模型：
-//! - macOS：`beginDraggingSession` 必须在主线程。命令层用 `app.run_on_main_thread`
-//!   派发，本函数本身不再切线程，由调用方保证。
-//! - Windows：`DoDragDrop` 阻塞至 drop 完成，且需要 STA + `OleInitialize`。命令层
-//!   用 `tauri::async_runtime::spawn_blocking` 把整段下沉到独立线程，本函数同步执行。
+//! - macOS：`beginDraggingSession` 必须在主线程。命令层用 `app.run_on_main_thread` 派发。
+//! - Windows：`DoDragDrop` 必须在拥有窗口的线程（= Tauri 主线程）跑，且会阻塞至 drop 完成；
+//!   命令层用 `run_on_main_thread` + `mpsc` 同步等待。
 
 use std::path::PathBuf;
 
@@ -24,6 +25,9 @@ use crate::core::{AppError, Result};
 
 #[cfg(target_os = "macos")]
 pub mod macos;
+
+#[cfg(target_os = "windows")]
+pub mod windows;
 
 /// 启动一次文件类型的 drag-out。
 ///
@@ -48,24 +52,32 @@ pub fn start_drag_files(
 
     #[cfg(target_os = "windows")]
     {
-        use drag::{DragItem, Image, Options};
+        windows::start_drag_files(window, paths, preview_png)
+    }
+}
 
-        let image = match preview_png {
-            Some(bytes) => Image::Raw(bytes),
-            None => Image::File(paths[0].clone()),
-        };
+/// 启动一次纯文本 drag-out（`public.utf8-plain-text` / `CF_UNICODETEXT`）。
+///
+/// `preview_png` 用作跟随光标的预览图；mac 缺省时退回空 NSImage，Windows 暂时忽略。
+pub fn start_drag_text(
+    window: &WebviewWindow,
+    text: String,
+    preview_png: Option<Vec<u8>>,
+) -> Result<()> {
+    if text.is_empty() {
+        return Err(AppError::Clipboard("drag-out: empty text".to_string()));
+    }
 
-        drag::start_drag(
-            window,
-            DragItem::Files(paths),
-            image,
-            |result, _cursor| {
-                log::debug!("drag-out finished: {result:?}");
-            },
-            Options::default(),
-        )
-        .map_err(|err| AppError::Clipboard(format!("drag-out failed: {err}")))?;
+    #[cfg(target_os = "macos")]
+    {
+        macos::start_drag_text(window, text, preview_png, |result| {
+            log::debug!("drag-out finished: {result:?}");
+        })
+    }
 
-        Ok(())
+    #[cfg(target_os = "windows")]
+    {
+        let _ = window;
+        windows::start_drag_text(&text, preview_png)
     }
 }

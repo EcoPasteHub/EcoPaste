@@ -33,20 +33,10 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
   const { item, isSelected, hintKey, onQuickPaste, onMouseEnter } = props;
   const { kind, subKind, sourceAppIconPath, sourceAppName } = item;
 
-  // text 类型 drag-out 暂未支持（drag crate 的 Data 在 Windows 是 dummy 实现），只挂在
-  // files / image 卡片上；text 卡片维持原有选中文字行为，避免误触。
-  const draggable = kind === "files" || kind === "image";
-
-  // Windows 上 DoDragDrop 必须在浏览器 dragstart 上下文里调用，否则 QueryContinueDrag
-  // 立刻返回 DRAGDROP_S_CANCEL；参考 drag-rs/examples/tauri/index.html。
   const handleDragStart = async (event: DragEvent) => {
     event.preventDefault();
 
-    try {
-      await startDragClipboardItem(item.id);
-    } catch {
-      // 错误 toast 已在 commands/index.ts 内统一处理。
-    }
+    await startDragClipboardItem(item.id);
   };
 
   const handleContextMenu = async (event: MouseEvent) => {
@@ -65,9 +55,9 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
       className={cn("b b-border-secondary flex flex-col gap-1 rounded-2 p-2", {
         "b-primary bg-blue-1": isSelected,
       })}
-      draggable={draggable}
+      draggable
       onContextMenu={handleContextMenu}
-      onDragStart={draggable ? handleDragStart : void 0}
+      onDragStart={handleDragStart}
       onMouseEnter={onMouseEnter}
       role="option"
       tabIndex={-1}
