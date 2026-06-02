@@ -1,4 +1,7 @@
 import type { CSSProperties, FC } from "react";
+import { useSnapshot } from "valtio";
+import Highlight from "@/components/Highlight";
+import { clipboardViewState } from "@/stores/clipboardView";
 import type { ClipboardItem } from "@/types/clipboard";
 import { cn } from "@/utils/cn";
 
@@ -8,6 +11,7 @@ import { cn } from "@/utils/cn";
  */
 const TextCard: FC<ClipboardItem> = (props) => {
   const { summary, subKind, colorPreview } = props;
+  const { keyword } = useSnapshot(clipboardViewState);
 
   if (subKind === "color" && colorPreview) {
     const style: CSSProperties = {
@@ -33,7 +37,11 @@ const TextCard: FC<ClipboardItem> = (props) => {
     );
   }
 
-  return <div className="line-clamp-3 whitespace-pre-wrap">{summary}</div>;
+  return (
+    <div className="line-clamp-3 whitespace-pre-wrap">
+      <Highlight keyword={keyword} text={summary ?? ""} />
+    </div>
+  );
 };
 
 export default TextCard;

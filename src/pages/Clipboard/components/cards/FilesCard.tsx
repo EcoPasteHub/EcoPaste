@@ -1,5 +1,8 @@
 import type { FC } from "react";
+import { useSnapshot } from "valtio";
 import AssetImage from "@/components/AssetImage";
+import Highlight from "@/components/Highlight";
+import { clipboardViewState } from "@/stores/clipboardView";
 import type { ClipboardItem } from "@/types/clipboard";
 
 /**
@@ -8,6 +11,7 @@ import type { ClipboardItem } from "@/types/clipboard";
  */
 const FilesCard: FC<ClipboardItem> = (props) => {
   const entries = props.fileEntries ?? [];
+  const { keyword } = useSnapshot(clipboardViewState);
 
   if (props.filesPreviewKind === "imagePreview") {
     const [first] = entries;
@@ -24,7 +28,7 @@ const FilesCard: FC<ClipboardItem> = (props) => {
         >
           <AssetImage className="size-5" src={entry.iconPath} />
 
-          <span className="truncate">{entry.name}</span>
+          <Highlight className="truncate" keyword={keyword} text={entry.name} />
         </div>
       ))}
     </div>
