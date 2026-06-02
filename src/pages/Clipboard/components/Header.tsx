@@ -1,10 +1,11 @@
 import { useDebounceFn } from "ahooks";
-import { Button, Tooltip } from "antd";
+import { Button } from "antd";
 import type { ChangeEvent, FC } from "react";
 import { useState } from "react";
 import { setMainWindowPinned, showWindow } from "@/commands";
 import KeyHint from "@/components/KeyHint";
 import SearchInput from "@/components/SearchInput";
+import Tooltip from "@/components/Tooltip";
 import { WINDOW_LABEL } from "@/constants/windows";
 import { clipboardViewState } from "@/stores/clipboardView";
 
