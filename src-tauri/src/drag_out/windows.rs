@@ -17,16 +17,18 @@ use std::sync::Once;
 
 use tauri::WebviewWindow;
 use windows::core::{implement, Error as WinError, HRESULT, HSTRING};
-use windows::Win32::Foundation::{BOOL, DV_E_FORMATETC, E_NOTIMPL, OLE_E_ADVISENOTSUPPORTED, S_OK};
+use windows::Win32::Foundation::{
+    BOOL, DRAGDROP_S_CANCEL, DRAGDROP_S_DROP, DRAGDROP_S_USEDEFAULTCURSORS, DV_E_FORMATETC,
+    E_NOTIMPL, OLE_E_ADVISENOTSUPPORTED, S_OK,
+};
 use windows::Win32::System::Com::{
     IAdviseSink, IDataObject, IDataObject_Impl, IEnumFORMATETC, IEnumSTATDATA, DVASPECT_CONTENT,
     FORMATETC, STGMEDIUM, STGMEDIUM_0, TYMED_HGLOBAL,
 };
-use windows::Win32::System::DataExchange::CF_UNICODETEXT;
 use windows::Win32::System::Memory::{GlobalAlloc, GlobalLock, GlobalUnlock, GMEM_FIXED};
 use windows::Win32::System::Ole::{
-    DoDragDrop, IDropSource, IDropSource_Impl, OleInitialize, DRAGDROP_S_CANCEL, DRAGDROP_S_DROP,
-    DROPEFFECT, DROPEFFECT_COPY,
+    DoDragDrop, IDropSource, IDropSource_Impl, OleInitialize, CF_UNICODETEXT, DROPEFFECT,
+    DROPEFFECT_COPY,
 };
 use windows::Win32::System::SystemServices::{MK_LBUTTON, MODIFIERKEYS_FLAGS};
 
@@ -167,7 +169,7 @@ impl IDropSource_Impl for DropSource {
     }
 
     fn GiveFeedback(&self, _dweffect: DROPEFFECT) -> HRESULT {
-        windows::Win32::System::Ole::DRAGDROP_S_USEDEFAULTCURSORS
+        DRAGDROP_S_USEDEFAULTCURSORS
     }
 }
 

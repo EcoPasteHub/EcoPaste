@@ -17,6 +17,7 @@ use tauri::AppHandle;
 use crate::core::Result;
 
 /// 前端订阅事件：携带 `{action, itemId}`，由 `List.tsx` 派发到现有处理逻辑。
+#[cfg(target_os = "macos")]
 pub const CLIPBOARD_MENU_ACTION_EVENT: &str = "clipboard://menu-action";
 
 /// 与前端 `ClipboardAction` 对齐（`serde(rename_all = "camelCase")`）。
@@ -95,6 +96,7 @@ pub(super) const ACTION_GROUPS: &[&[ClipboardMenuAction]] = &[
 
 /// 菜单点击后 emit 给前端的 payload。Windows 自定义菜单窗也复用这个结构发回
 /// 主窗，前端 `List.tsx` 只需订阅一次。
+#[cfg(target_os = "macos")]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(super) struct MenuActionPayload {
