@@ -1,59 +1,62 @@
 use anyhow::anyhow;
 use std::mem::{size_of, zeroed};
 use winapi::um::winuser::{
-    SendInput, INPUT, INPUT_KEYBOARD, KEYBDINPUT, KEYEVENTF_KEYUP, VK_INSERT, VK_SHIFT,
+    SendInput, INPUT, INPUT_KEYBOARD, KEYBDINPUT, KEYEVENTF_KEYUP, VK_CONTROL,
 };
 
 use crate::core::error::Result;
 
-/// 向系统事件队列投递一次 Shift+Insert，模拟「粘贴」。
+/// V 键的虚拟键码，winapi 未直接导出。
+const VK_V: u16 = 0x56;
+
+/// 向系统事件队列投递一次 Ctrl+V，模拟「粘贴」。
 ///
-/// 之所以选 Shift+Insert 而非 Ctrl+V：
-/// - 传统 Win32 控件、cmd/PowerShell 控制台、部分 Electron/终端类应用对
-///   Ctrl+V 不响应或被自定义快捷键吞掉，而 Shift+Insert 是 Windows 系统级
-///   编辑约定（NT 时代沿用），几乎所有可输入控件都接收。
-/// - 与剪贴板里的内容类型无关，纯触发系统粘贴行为。
+/// 之所以选 Ctrl+V 而非 Shift+Insert：
+/// - Monaco editor（VS Code 聊天输入、所有 Web 嵌入式代码编辑器）把 Insert 解释为
+///   「切换插入/改写模式」并吞掉 Shift 修饰，导致「粘贴失效 + 光标变成块状」。
+/// - Ctrl+V 是 Windows / Chromium / Electron / 现代 IDE 输入控件普遍约定，
+///   与剪贴板内容类型无关，覆盖面最广。
 pub fn simulate_paste() -> Result<()> {
     let mut inputs: [INPUT; 4] = unsafe { zeroed() };
 
-    // Shift 按下
+    // Ctrl 按下
     inputs[0].type_ = INPUT_KEYBOARD;
     unsafe {
         *inputs[0].u.ki_mut() = KEYBDINPUT {
-            wVk: VK_SHIFT as u16,
+            wVk: VK_CONTROL as u16,
             wScan: 0,
             dwFlags: 0,
             time: 0,
             dwExtraInfo: 0,
         };
     }
-    // Insert 按下
+    // V 按下
     inputs[1].type_ = INPUT_KEYBOARD;
     unsafe {
         *inputs[1].u.ki_mut() = KEYBDINPUT {
-            wVk: VK_INSERT as u16,
+            wVk: VK_V,
             wScan: 0,
             dwFlags: 0,
             time: 0,
             dwExtraInfo: 0,
         };
     }
-    // Insert 抬起
+    // V 抬起
     inputs[2].type_ = INPUT_KEYBOARD;
     unsafe {
         *inputs[2].u.ki_mut() = KEYBDINPUT {
-            wVk: VK_INSERT as u16,
+            wVk: VK_V,
             wScan: 0,
             dwFlags: KEYEVENTF_KEYUP,
             time: 0,
             dwExtraInfo: 0,
         };
     }
-    // Shift 抬起
+    // Ctrl 抬起
     inputs[3].type_ = INPUT_KEYBOARD;
     unsafe {
         *inputs[3].u.ki_mut() = KEYBDINPUT {
-            wVk: VK_SHIFT as u16,
+            wVk: VK_CONTROL as u16,
             wScan: 0,
             dwFlags: KEYEVENTF_KEYUP,
             time: 0,
