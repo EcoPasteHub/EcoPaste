@@ -438,7 +438,7 @@ async fn attach_file_entries(
 
     let mut entries = Vec::with_capacity(paths.len());
     for (index, path) in paths.iter().enumerate() {
-        let (icon_path, _exists) =
+        let (icon_path, exists) =
             resolve_file_icon_path(pool, store, path, item.file_types.as_deref(), index).await?;
         let is_dir = types.get(index).copied() == Some("d");
         let name = names
@@ -453,13 +453,16 @@ async fn attach_file_entries(
             name,
             is_dir,
             is_image,
+            exists,
             icon_path,
         });
     }
 
     item.file_entries = Some(entries);
     item.files_preview_kind = Some(match item.file_entries.as_deref() {
-        Some([only]) if only.is_image => crate::db::models::FilesPreviewKind::ImagePreview,
+        Some([only]) if only.is_image && only.exists => {
+            crate::db::models::FilesPreviewKind::ImagePreview
+        }
         _ => crate::db::models::FilesPreviewKind::List,
     });
     Ok(())

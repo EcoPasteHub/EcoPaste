@@ -149,6 +149,8 @@ pub struct FileEntry {
     pub name: String,
     pub is_dir: bool,
     pub is_image: bool,
+    /// 命令层组装时实时检测：路径是否仍存在于磁盘，前端据此对失效条目划删除线并回退预览。
+    pub exists: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub icon_path: Option<String>,
 }

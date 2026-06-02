@@ -81,6 +81,7 @@ export interface FileEntry {
   name: string;
   isDir: boolean;
   isImage: boolean;
+  exists: boolean;
   iconPath?: string;
 }
 
