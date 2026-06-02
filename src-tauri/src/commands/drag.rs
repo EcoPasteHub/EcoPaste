@@ -8,7 +8,7 @@ use tauri::{AppHandle, State};
 use crate::clipboard::{icon_png, ImageStore};
 use crate::core::{AppError, Result};
 use crate::db::items::find_item_by_id;
-use crate::db::models::{ClipboardItem, ClipboardKind};
+use crate::db::models::{ClipboardItem, ClipboardKind, ClipboardSubKind};
 use crate::drag_out;
 use crate::window::{self, MAIN_WINDOW_LABEL};
 
@@ -16,8 +16,15 @@ use crate::window::{self, MAIN_WINDOW_LABEL};
 enum DragPayload {
     /// 文件路径列表（Files / Image kind）。
     Files(Vec<PathBuf>),
-    /// 纯文本（Text kind 的 plain text）。
-    Text(String),
+    /// 文本类型。`plain` 总有；`html` / `rtf` 二选一或都无，由 sub_kind 决定（见 ingest）：
+    /// - sub_kind=Html → content=HTML 源，search_text=plain。
+    /// - sub_kind=Rtf  → content=RTF 源，search_text=plain。
+    /// - 其它          → content=plain。
+    Text {
+        plain: String,
+        html: Option<String>,
+        rtf: Option<String>,
+    },
 }
 
 /// 把指定条目作为 OS drag 拖出主窗口。
@@ -95,7 +102,9 @@ fn dispatch_drag(
 ) -> Result<()> {
     match payload {
         DragPayload::Files(paths) => drag_out::start_drag_files(window, paths, preview),
-        DragPayload::Text(text) => drag_out::start_drag_text(window, text, preview),
+        DragPayload::Text { plain, html, rtf } => {
+            drag_out::start_drag_text(window, plain, html, rtf, preview)
+        }
     }
 }
 
@@ -127,7 +136,26 @@ fn resolve_drag_payload(item: &ClipboardItem, store: &ImageStore) -> Result<Drag
             if item.content.is_empty() {
                 return Err(AppError::Clipboard("文本内容为空".to_string()));
             }
-            Ok(DragPayload::Text(item.content.clone()))
+            // sub_kind 语义（与 write.rs / ingest.rs 一致）：Html/Rtf 时 content 是富格式源，
+            // search_text 才是 OS 提供的 plain；其他 sub_kind（url/email/color/path/None）content 即 plain。
+            let (plain, html, rtf) = match item.sub_kind {
+                Some(ClipboardSubKind::Html) => (
+                    item.search_text
+                        .clone()
+                        .unwrap_or_else(|| item.content.clone()),
+                    Some(item.content.clone()),
+                    None,
+                ),
+                Some(ClipboardSubKind::Rtf) => (
+                    item.search_text
+                        .clone()
+                        .unwrap_or_else(|| item.content.clone()),
+                    None,
+                    Some(item.content.clone()),
+                ),
+                _ => (item.content.clone(), None, None),
+            };
+            Ok(DragPayload::Text { plain, html, rtf })
         }
     }
 }
@@ -138,7 +166,7 @@ fn resolve_drag_payload(item: &ClipboardItem, store: &ImageStore) -> Result<Drag
 fn build_preview(item: &ClipboardItem, payload: &DragPayload, size: u32) -> Option<Vec<u8>> {
     match payload {
         DragPayload::Files(paths) => icon_png(&paths[0], Some(size)),
-        DragPayload::Text(_) => item
+        DragPayload::Text { .. } => item
             .source_app_icon_path
             .as_deref()
             .map(Path::new)

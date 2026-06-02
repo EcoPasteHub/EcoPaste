@@ -31,6 +31,10 @@ const POINT_SIZE: f64 = 128.0;
 
 /// `public.utf8-plain-text` UTI；NSPasteboard 自带的 UTF-8 文本类型。
 const UTI_UTF8_PLAIN_TEXT: &str = "public.utf8-plain-text";
+/// `public.html` UTI；NSPasteboard 自带的 HTML 类型。
+const UTI_HTML: &str = "public.html";
+/// `public.rtf` UTI；NSPasteboard 自带的 RTF 类型。
+const UTI_RTF: &str = "public.rtf";
 
 type OnDropCallback = Box<dyn Fn(DragResult) + Send>;
 
@@ -129,18 +133,21 @@ pub fn start_drag_files<F: Fn(DragResult) + Send + 'static>(
     }
 }
 
-/// 在 `window` 上启动一次纯文本 drag-out。
+/// 在 `window` 上启动一次文本 drag-out（plain + 可选 html / rtf）。
 ///
-/// `preview_png` 同 [`start_drag_files`]，缺省时退回一张全透明 1×1 NSImage（AppKit 仍接受）。
+/// 同一个 `NSPasteboardItem` 多次 `setString:forType:`，AppKit 会让接收方按偏好选格式：
+/// Word / Pages 优先 RTF，浏览器 / 富文本编辑器优先 HTML，纯文本 app 退回 plain。
 ///
 /// **必须在主线程调用**。
 pub fn start_drag_text<F: Fn(DragResult) + Send + 'static>(
     window: &WebviewWindow,
-    text: String,
+    plain: String,
+    html: Option<String>,
+    rtf: Option<String>,
     preview_png: Option<Vec<u8>>,
     on_drop: F,
 ) -> Result<()> {
-    if text.is_empty() {
+    if plain.is_empty() {
         return Err(AppError::Clipboard("drag-out: empty text".to_string()));
     }
 
@@ -149,9 +156,17 @@ pub fn start_drag_text<F: Fn(DragResult) + Send + 'static>(
 
         let pb_item = NSPasteboardItem::new();
         let _ = pb_item.setString_forType(
-            &NSString::from_str(&text),
+            &NSString::from_str(&plain),
             &NSString::from_str(UTI_UTF8_PLAIN_TEXT),
         );
+        if let Some(html) = html.as_deref() {
+            let _ =
+                pb_item.setString_forType(&NSString::from_str(html), &NSString::from_str(UTI_HTML));
+        }
+        if let Some(rtf) = rtf.as_deref() {
+            let _ =
+                pb_item.setString_forType(&NSString::from_str(rtf), &NSString::from_str(UTI_RTF));
+        }
 
         let dragging_items = NSMutableArray::new();
         let item = NSDraggingItem::initWithPasteboardWriter(

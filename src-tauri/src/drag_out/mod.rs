@@ -56,21 +56,27 @@ pub fn start_drag_files(
     }
 }
 
-/// 启动一次纯文本 drag-out（`public.utf8-plain-text` / `CF_UNICODETEXT`）。
+/// 启动一次文本 drag-out。
+///
+/// 必传 `plain`（`public.utf8-plain-text` / `CF_UNICODETEXT`），`html` / `rtf` 可选，
+/// 为 `Some` 时同步声明对应的 pasteboard 类型——接收方按自身偏好选最合适的格式
+/// （Word / Pages 优先 RTF；浏览器 / 富文本编辑器优先 HTML；纯文本 app 退回 plain）。
 ///
 /// `preview_png` 用作跟随光标的预览图；mac 缺省时退回空 NSImage，Windows 暂时忽略。
 pub fn start_drag_text(
     window: &WebviewWindow,
-    text: String,
+    plain: String,
+    html: Option<String>,
+    rtf: Option<String>,
     preview_png: Option<Vec<u8>>,
 ) -> Result<()> {
-    if text.is_empty() {
+    if plain.is_empty() {
         return Err(AppError::Clipboard("drag-out: empty text".to_string()));
     }
 
     #[cfg(target_os = "macos")]
     {
-        macos::start_drag_text(window, text, preview_png, |result| {
+        macos::start_drag_text(window, plain, html, rtf, preview_png, |result| {
             log::debug!("drag-out finished: {result:?}");
         })
     }
@@ -78,6 +84,6 @@ pub fn start_drag_text(
     #[cfg(target_os = "windows")]
     {
         let _ = window;
-        windows::start_drag_text(&text, preview_png)
+        windows::start_drag_text(&plain, html.as_deref(), rtf.as_deref(), preview_png)
     }
 }
