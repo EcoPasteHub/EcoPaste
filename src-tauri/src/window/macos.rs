@@ -148,3 +148,30 @@ fn hide_main_panel(app_handle: &AppHandle) -> Result<()> {
         .map_err(|e| anyhow::anyhow!(e))?;
     Ok(())
 }
+
+/// 让主 panel 放弃 key 状态，但保持可见——用于固定窗口下的粘贴：
+/// panel 仍是 key window 时 CGEvent ⌘V 会被 panel 自身吞掉，resign 后键焦点回到前台 App 的窗口。
+pub fn resign_main_panel_key(app_handle: &AppHandle) -> Result<()> {
+    let handle = app_handle.clone();
+    app_handle
+        .run_on_main_thread(move || {
+            if let Ok(panel) = handle.get_webview_panel(MAIN_WINDOW_LABEL) {
+                panel.resign_key_window();
+            }
+        })
+        .map_err(|e| anyhow::anyhow!(e))?;
+    Ok(())
+}
+
+/// 粘贴完成后把 key 状态拿回来：固定窗口模式下用户还要继续用键盘 / 列表操作。
+pub fn make_main_panel_key(app_handle: &AppHandle) -> Result<()> {
+    let handle = app_handle.clone();
+    app_handle
+        .run_on_main_thread(move || {
+            if let Ok(panel) = handle.get_webview_panel(MAIN_WINDOW_LABEL) {
+                panel.make_key_window();
+            }
+        })
+        .map_err(|e| anyhow::anyhow!(e))?;
+    Ok(())
+}

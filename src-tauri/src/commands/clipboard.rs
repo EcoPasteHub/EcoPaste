@@ -198,15 +198,35 @@ pub async fn paste_clipboard_item(
 
     crate::clipboard::write_to_clipboard(&store, guard.inner().as_ref(), &item, plain)?;
 
-    if let Err(err) = window::hide_window(&app, MAIN_WINDOW_LABEL) {
+    if window::is_main_window_pinned() {
+        // 固定时窗口保持可见：macOS 上 panel 仍是 key window 会吞掉 ⌘V，需先 resign key
+        // 让键焦点回到前台 App 的窗口；Windows 主窗口 focusable=false，无需处理。
+        #[cfg(target_os = "macos")]
+        if let Err(err) = window::macos::resign_main_panel_key(&app) {
+            log::warn!("resign main panel key before paste failed: {err:?}");
+        }
+    } else if let Err(err) = window::hide_window(&app, MAIN_WINDOW_LABEL) {
         log::warn!("hide main window before paste failed: {err:?}");
     }
 
-    // hide_window 通过 run_on_main_thread 异步派发；右键菜单触发时主线程仍在处理菜单关闭，
-    // 若不等一拍，simulate_paste 的 ⌘V 会赶在 panel 真正 hide 前命中 panel 自己（webview 吞掉）。
+    // hide / resign 都是 run_on_main_thread 异步派发；不等一拍，simulate_paste 的 ⌘V
+    // 会赶在 panel 真正 order_out / 让出 key 前命中 panel 自己（webview 吞掉）。
     tokio::time::sleep(std::time::Duration::from_millis(50)).await;
 
     crate::keystroke::simulate_paste()?;
+
+    // 固定窗口下粘贴完把 key 拿回来，让用户继续用键盘 / 列表操作；
+    // 再等一拍让 ⌘V 事件被目标 App 消费完，避免 make_key 抢回焦点把按键吞回 panel。
+    if window::is_main_window_pinned() {
+        #[cfg(target_os = "macos")]
+        {
+            tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+            if let Err(err) = window::macos::make_main_panel_key(&app) {
+                log::warn!("restore main panel key after paste failed: {err:?}");
+            }
+        }
+    }
+
     Ok(())
 }
 
