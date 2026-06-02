@@ -131,6 +131,17 @@ export const pasteClipboardItem = (id: string, plain: boolean) => {
 };
 
 /**
+ * 启动一次 OS 级 drag-out：把条目作为文件拖出主窗口到外部应用（Finder / 编辑器等）。
+ *
+ * 仅 `kind = files / image` 可用；text 类型 Rust 端会直接报错（暂未支持）。
+ * macOS 立即返回（drop 由 OS 异步处理）；Windows 会 await 至 drop 完成。
+ * 失败已在 `call` 内统一 toast，调用方一般不需要再处理。
+ */
+export const startDragClipboardItem = (id: string) => {
+  return call<void>(TAURI_COMMAND.START_DRAG_CLIPBOARD_ITEM, "拖拽", { id });
+};
+
+/**
  * 翻转收藏态；`favorite` 表示本次期望的新状态（用于 toast 文案）。
  * Rust 返回翻转后的真实状态，调用方据此同步 UI。
  * 成功后统一 toast「已收藏 / 已取消收藏」，失败也按意图分开「收藏失败 / 取消收藏失败」。

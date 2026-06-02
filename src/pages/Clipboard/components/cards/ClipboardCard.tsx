@@ -2,6 +2,7 @@ import type { FC, MouseEvent } from "react";
 import { popupClipboardItemMenu } from "@/commands";
 import AssetImage from "@/components/AssetImage";
 import KeyHint from "@/components/KeyHint";
+import { useDragOut } from "@/hooks/useDragOut";
 import type { ClipboardItem } from "@/types/clipboard";
 import { cn } from "@/utils/cn";
 import FilesCard from "./FilesCard";
@@ -33,6 +34,11 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
   const { item, isSelected, hintKey, onQuickPaste, onMouseEnter } = props;
   const { kind, subKind, sourceAppIconPath, sourceAppName } = item;
 
+  // text 类型 drag-out 暂未支持（drag crate 的 Data 在 Windows 是 dummy 实现），只挂在
+  // files / image 卡片上；text 卡片维持原有选中文字行为，避免误触。
+  const draggable = kind === "files" || kind === "image";
+  const { onMouseDown: handleDragMouseDown } = useDragOut(item.id);
+
   const handleContextMenu = async (event: MouseEvent) => {
     event.preventDefault();
 
@@ -50,6 +56,7 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
         "b-primary bg-blue-1": isSelected,
       })}
       onContextMenu={handleContextMenu}
+      onMouseDown={draggable ? handleDragMouseDown : void 0}
       onMouseEnter={onMouseEnter}
       role="option"
       tabIndex={-1}

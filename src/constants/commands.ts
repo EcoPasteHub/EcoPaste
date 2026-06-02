@@ -15,6 +15,7 @@ export const TAURI_COMMAND = {
   REVEAL_CLIPBOARD_ITEM: "reveal_clipboard_item",
   SET_MAIN_WINDOW_PINNED: "set_main_window_pinned",
   SHOW_WINDOW: "show_window",
+  START_DRAG_CLIPBOARD_ITEM: "start_drag_clipboard_item",
   TOGGLE_CLIPBOARD_ITEM_FAVORITE: "toggle_clipboard_item_favorite",
   UPDATE_CLIPBOARD_ITEM_NOTE: "update_clipboard_item_note",
   UPDATE_SETTINGS: "update_settings",

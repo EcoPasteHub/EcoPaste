@@ -2,6 +2,7 @@
 
 mod autostart;
 mod clipboard;
+mod drag;
 mod settings;
 mod window;
 
@@ -9,5 +10,6 @@ mod window;
 // `generate_handler!` 依赖它们，故用 `*` 一并带出，而非逐个具名 re-export。
 pub use autostart::*;
 pub use clipboard::*;
+pub use drag::*;
 pub use settings::*;
 pub use window::*;
