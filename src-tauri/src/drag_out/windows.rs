@@ -38,7 +38,9 @@ use windows::Win32::System::Com::{
     CLSCTX_INPROC_SERVER, DVASPECT_CONTENT, FORMATETC, STGMEDIUM, STGMEDIUM_0, TYMED_HGLOBAL,
 };
 use windows::Win32::System::DataExchange::RegisterClipboardFormatW;
-use windows::Win32::System::Memory::{GlobalAlloc, GlobalLock, GlobalUnlock, GMEM_FIXED};
+use windows::Win32::System::Memory::{
+    GlobalAlloc, GlobalLock, GlobalSize, GlobalUnlock, GMEM_FIXED,
+};
 use windows::Win32::System::Ole::{
     DoDragDrop, IDropSource, IDropSource_Impl, OleInitialize, ReleaseStgMedium, CF_UNICODETEXT,
     DROPEFFECT, DROPEFFECT_COPY,
@@ -137,6 +139,37 @@ fn bytes_to_stgmedium(bytes: &[u8]) -> windows::core::Result<STGMEDIUM> {
     }
 }
 
+/// 深拷贝一份 TYMED_HGLOBAL 的 STGMEDIUM：新建 HGLOBAL 并 memcpy。
+/// 调用方拿到独立的句柄，释放它时不会影响我们持有的原始 medium。
+unsafe fn clone_hglobal_medium(src: &STGMEDIUM) -> windows::core::Result<STGMEDIUM> {
+    let src_handle = src.u.hGlobal;
+    let size = GlobalSize(src_handle);
+    let src_ptr = GlobalLock(src_handle) as *const u8;
+    if src_ptr.is_null() {
+        return Err(WinError::new(E_NOTIMPL, HSTRING::new()));
+    }
+
+    let new_handle = match GlobalAlloc(GMEM_FIXED, size) {
+        Ok(h) => h,
+        Err(err) => {
+            let _ = GlobalUnlock(src_handle);
+            return Err(err);
+        }
+    };
+    let dst_ptr = GlobalLock(new_handle) as *mut u8;
+    std::ptr::copy_nonoverlapping(src_ptr, dst_ptr, size);
+    let _ = GlobalUnlock(new_handle);
+    let _ = GlobalUnlock(src_handle);
+
+    Ok(STGMEDIUM {
+        tymed: TYMED_HGLOBAL.0 as u32,
+        u: STGMEDIUM_0 {
+            hGlobal: new_handle,
+        },
+        pUnkForRelease: std::mem::ManuallyDrop::new(None),
+    })
+}
+
 /// `IDragSourceHelper::InitializeFromBitmap` 内部会用 `SetData` 把若干私有格式
 /// （`DragImageBits` / `DragWindow` / `IsShowingLayered` 等）塞回 data object，
 /// `IDropTargetHelper` 在接收方一侧再 `GetData` 取出来渲染 ghost。所以我们必须
@@ -233,8 +266,9 @@ impl IDataObject_Impl for RichDataObject {
             return self.alloc_for(cf);
         }
 
-        // Shell 注入的私有格式（DragImageBits 等）：按 cfFormat + tymed 匹配存储项，
-        // 复制一份 STGMEDIUM 返回（pUnkForRelease 置空，由调用方走标准释放路径）。
+        // Shell 注入的私有格式（DragImageBits 等）：按 cfFormat + tymed 匹配存储项。
+        // 必须**深拷贝** HGLOBAL 后返回：pUnkForRelease=None 时接收方会 GlobalFree 该句柄，
+        // 浅拷贝会导致接收方释放后我们 StoredEntry::drop 再 ReleaseStgMedium，堆双重释放 → 崩溃。
         let req = unsafe {
             match pformatetc.as_ref() {
                 Some(f) => *f,
@@ -250,13 +284,10 @@ impl IDataObject_Impl for RichDataObject {
                 && (entry.format.tymed & req.tymed) != 0
                 && entry.format.dwAspect == req.dwAspect
             {
-                return Ok(STGMEDIUM {
-                    tymed: entry.medium.tymed,
-                    u: STGMEDIUM_0 {
-                        hGlobal: unsafe { entry.medium.u.hGlobal },
-                    },
-                    pUnkForRelease: std::mem::ManuallyDrop::new(None),
-                });
+                if entry.medium.tymed == TYMED_HGLOBAL.0 as u32 {
+                    return unsafe { clone_hglobal_medium(&entry.medium) };
+                }
+                return Err(WinError::new(DV_E_FORMATETC, HSTRING::new()));
             }
         }
         Err(WinError::new(DV_E_FORMATETC, HSTRING::new()))
