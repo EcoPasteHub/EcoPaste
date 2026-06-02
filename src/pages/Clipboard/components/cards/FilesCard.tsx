@@ -49,7 +49,7 @@ const parseFiles = (item: ClipboardItem): FileEntry[] => {
 
   return paths.map((path, idx) => ({
     iconPath: iconPaths[idx] ?? null,
-    name: names[idx] ?? extractFileName(path),
+    name: names[idx],
     path,
     type: types[idx] === "d" ? "d" : "f",
   }));
@@ -88,21 +88,6 @@ const getSingleImageFile = (entries: FileEntry[]): FileEntry | null => {
   if (!isImage(entry.path)) return null;
 
   return entry;
-};
-
-/**
- * 兼容旧记录（`summary` 为 null）：从完整路径中提取最后一级名称，
- * 兼容 macOS 的 `/` 和 Windows 的 `\`。
- */
-const extractFileName = (path: string) => {
-  const separatorIndex = Math.max(
-    path.lastIndexOf("/"),
-    path.lastIndexOf("\\"),
-  );
-
-  if (separatorIndex < 0) return path;
-
-  return path.slice(separatorIndex + 1);
 };
 
 export default FilesCard;
