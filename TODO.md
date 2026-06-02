@@ -476,7 +476,15 @@
   > 2. **权限**：macOS 重点页——「辅助功能」（模拟粘贴 ⌘V）/「屏幕录制」（截图类内容预览，如未来要做）/「输入监控」（OS 级键盘钩子）。每项一行：图标 + 名称 + 状态徽章（已授权 / 未授权 / 不适用）+「打开系统设置」按钮（用 `shell::open` 跳到对应 `x-apple.systempreferences:` URL）。Rust 命令 `check_permissions() -> { accessibility, screen_recording, input_monitoring }` 用 macOS API（`AXIsProcessTrusted` 等）查询；Windows 上整页跳过或仅显示「无需额外授权」。
   > 3. **快捷键**：核心快捷键速览 + 让用户当场录入「唤出主窗」组合；复用设置面板里的快捷键录入控件。展示当前默认（macOS `Cmd+Shift+V`、Windows `Win+V`，与 8.9 联动），用户可改可跳过。
   > 4. **忽略应用**：解释「在这些 App 复制时不入库」用途（密码管理器、银行 App 等），用 `list_known_apps` 命令（已有 `apps_registry.rs` 基础）列出近期出现过的应用 + 系统常见敏感 App 预设清单（macOS：1Password、Bitwarden、Keychain Access；Windows：1Password、Bitwarden、KeePass），多选写入 `Settings.clipboard.ignored_apps`。可全跳过。
-  > 5. **完成**：摘要前面选择 + 「打开主窗体验」按钮（触发 `toggle_main_window` 并 `finish_onboarding`）。
+  > 5. **导入旧版数据**：检测本机是否安装过旧版 EcoPaste，存在则提供「导入历史记录」选项，让用户自由勾选要同步的内容类型（text / html / rtf / image / files，多选 + 全选 / 全不选），并展示每种类型的预计条数与总占用空间作为参考；可全跳过。
+  >
+  > - 检测：Rust 新命令 `detect_legacy_data() -> Option<LegacyDataInfo>`。旧版数据路径按平台固定：macOS `~/Library/Application Support/com.eco.paste/EcoPaste.db` 与 `images/` 同级目录；Windows `%APPDATA%\com.eco.paste\EcoPaste.db`（具体路径以旧仓库 `tauri.conf.json` 的 `identifier` 为准，实现前先核对 `EcoPaste_bak` 本地副本）。命令返回 `{ db_path, image_dir, counts_by_type: { text, html, rtf, image, files }, total_size_bytes }`，找不到返回 `None`，整步在 UI 上隐藏跳到下一步。
+  > - 导入：Rust 新命令 `import_legacy_data(types: Vec<LegacyType>) -> ImportSummary`，模块 `clipboard/legacy_import.rs`。用 `rusqlite`（只读、`OpenFlags::SQLITE_OPEN_READ_ONLY`，避免触发 sqlx migration）打开旧 DB；按 `types` 过滤行；逐条转换为新 schema（旧字段名 → 新字段名映射在模块顶部常量表里集中）；image / files 类条目把旧 `image_dir` 下的文件复制到本仓库 `app_local_data_dir/images/` 并重算 hash；走现有 `clipboard/ingest.rs::persist_item` 入库，复用去重逻辑（同一 hash 已存在则跳过、不刷新 `updated_at`）。整批包在单个事务内，失败回滚不留半截数据。
+  > - 进度：导入耗时可能较长（万级条目 + 图片复制），命令本身 `async` 立即返回 `task_id`，实际工作放 `tokio::spawn`；过程中 emit `legacy://import_progress { processed, total, current_type }`，结束 emit `legacy://import_done { summary: ImportSummary }`（summary 含每类导入条数、跳过条数、失败条数）。前端展示进度条 + 取消按钮（命令 `cancel_legacy_import(task_id)` 设置 `AtomicBool`，工作线程下次循环检查后中止当前事务）。
+  > - 设置位：`Settings.onboarding.legacy_import: { detected: bool, imported_at: Option<String>, imported_types: Vec<LegacyType> }`，避免重复导入；用户在设置面板里也能重开此步骤（独立入口「从旧版 EcoPaste 导入」），但默认仅引导里出现一次。
+  > - i18n：`onboarding.legacyImport.{title, desc, detectFailed, typeLabels.*, totalSize, importBtn, skipBtn, progress, doneSummary}` 两份。
+  >
+  > 6. **完成**：摘要前面选择 + 「打开主窗体验」按钮（触发 `toggle_main_window` 并 `finish_onboarding`）。
   >    设计余量：步骤数组定义在前端常量（`src/pages/Onboarding/steps.ts`），新增步骤只追加数组项 + 一个组件文件，不动外壳，方便后续补「自启」「云同步」「数据迁移」等。
   >    视觉：左侧 1/3 竖向 stepper 显示步骤名 + 当前位置高亮，右侧 2/3 是当前步骤内容；macOS 用 `vibrancy` 背景，Windows 用纯色 `bg-content1`。底部进度条按 step 计算百分比，符合现代 onboarding 直觉。
   >    i18n：`onboarding.{step1..step5}.{title,desc,action}` 与按钮文案（next / prev / skip / finish）两份语言同步补齐。
