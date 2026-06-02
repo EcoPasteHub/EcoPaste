@@ -1,5 +1,6 @@
 import { convertFileSrc } from "@tauri-apps/api/core";
 import type { FC, ImgHTMLAttributes } from "react";
+import { cn } from "@/utils/cn";
 
 interface AssetImageProps
   extends Omit<ImgHTMLAttributes<HTMLImageElement>, "src"> {
@@ -11,11 +12,18 @@ interface AssetImageProps
  * 统一渲染 Tauri 本地文件图片：输入文件路径，内部转成 webview 可加载 URL。
  */
 const AssetImage: FC<AssetImageProps> = (props) => {
-  const { alt, protocol, src, ...rest } = props;
+  const { alt, protocol, src, className, ...rest } = props;
 
   if (!src) return null;
 
-  return <img alt={alt} src={toAssetUrl(src, protocol)} {...rest} />;
+  return (
+    <img
+      alt={alt}
+      src={toAssetUrl(src, protocol)}
+      {...rest}
+      className={cn("pointer-events-none", className)}
+    />
+  );
 };
 
 /**
