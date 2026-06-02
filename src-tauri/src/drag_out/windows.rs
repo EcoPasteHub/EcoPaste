@@ -40,8 +40,8 @@ use windows::Win32::System::Com::{
 use windows::Win32::System::DataExchange::RegisterClipboardFormatW;
 use windows::Win32::System::Memory::{GlobalAlloc, GlobalLock, GlobalUnlock, GMEM_FIXED};
 use windows::Win32::System::Ole::{
-    DoDragDrop, IDropSource, IDropSource_Impl, OleInitialize, CF_UNICODETEXT, DROPEFFECT,
-    DROPEFFECT_COPY,
+    DoDragDrop, IDropSource, IDropSource_Impl, OleInitialize, ReleaseStgMedium, CF_UNICODETEXT,
+    DROPEFFECT, DROPEFFECT_COPY,
 };
 use windows::Win32::System::SystemServices::{MK_LBUTTON, MODIFIERKEYS_FLAGS};
 use windows::Win32::UI::Shell::{CLSID_DragDropHelper, IDragSourceHelper, SHDRAGIMAGE};
@@ -137,6 +137,27 @@ fn bytes_to_stgmedium(bytes: &[u8]) -> windows::core::Result<STGMEDIUM> {
     }
 }
 
+/// `IDragSourceHelper::InitializeFromBitmap` 内部会用 `SetData` 把若干私有格式
+/// （`DragImageBits` / `DragWindow` / `IsShowingLayered` 等）塞回 data object，
+/// `IDropTargetHelper` 在接收方一侧再 `GetData` 取出来渲染 ghost。所以我们必须
+/// 支持任意 `SetData` 并在 `GetData` / `QueryGetData` 时回放——否则光标下没有预览图。
+struct StoredEntry {
+    format: FORMATETC,
+    medium: STGMEDIUM,
+}
+
+// COM 单线程公寓里 Shell 同线程回调；这里只是为了让 `Mutex` 满足类型约束。
+unsafe impl Send for StoredEntry {}
+unsafe impl Sync for StoredEntry {}
+
+impl Drop for StoredEntry {
+    fn drop(&mut self) {
+        unsafe {
+            ReleaseStgMedium(&mut self.medium);
+        }
+    }
+}
+
 #[implement(IDataObject)]
 struct RichDataObject {
     /// UTF-16 with trailing NUL，CF_UNICODETEXT 用。
@@ -145,6 +166,8 @@ struct RichDataObject {
     html_bytes: Option<Vec<u8>>,
     /// 原样的 RTF 字节流（ASCII），None 表示不提供 RTF。
     rtf_bytes: Option<Vec<u8>>,
+    /// Shell `IDragSourceHelper` 通过 `SetData` 注入的私有格式存储。
+    extras: std::sync::Mutex<Vec<StoredEntry>>,
 }
 
 impl RichDataObject {
@@ -157,6 +180,7 @@ impl RichDataObject {
             text_utf16,
             html_bytes: html.map(build_cf_html_payload),
             rtf_bytes: rtf.map(|s| s.as_bytes().to_vec()),
+            extras: std::sync::Mutex::new(Vec::new()),
         }
     }
 
@@ -205,10 +229,37 @@ impl RichDataObject {
 #[allow(non_snake_case)]
 impl IDataObject_Impl for RichDataObject {
     fn GetData(&self, pformatetc: *const FORMATETC) -> windows::core::Result<STGMEDIUM> {
-        match self.supported_format(pformatetc) {
-            Some(cf) => self.alloc_for(cf),
-            None => Err(WinError::new(DV_E_FORMATETC, HSTRING::new())),
+        if let Some(cf) = self.supported_format(pformatetc) {
+            return self.alloc_for(cf);
         }
+
+        // Shell 注入的私有格式（DragImageBits 等）：按 cfFormat + tymed 匹配存储项，
+        // 复制一份 STGMEDIUM 返回（pUnkForRelease 置空，由调用方走标准释放路径）。
+        let req = unsafe {
+            match pformatetc.as_ref() {
+                Some(f) => *f,
+                None => return Err(WinError::new(DV_E_FORMATETC, HSTRING::new())),
+            }
+        };
+        let extras = self
+            .extras
+            .lock()
+            .map_err(|_| WinError::new(E_NOTIMPL, HSTRING::new()))?;
+        for entry in extras.iter() {
+            if entry.format.cfFormat == req.cfFormat
+                && (entry.format.tymed & req.tymed) != 0
+                && entry.format.dwAspect == req.dwAspect
+            {
+                return Ok(STGMEDIUM {
+                    tymed: entry.medium.tymed,
+                    u: STGMEDIUM_0 {
+                        hGlobal: unsafe { entry.medium.u.hGlobal },
+                    },
+                    pUnkForRelease: std::mem::ManuallyDrop::new(None),
+                });
+            }
+        }
+        Err(WinError::new(DV_E_FORMATETC, HSTRING::new()))
     }
 
     fn GetDataHere(
@@ -221,10 +272,19 @@ impl IDataObject_Impl for RichDataObject {
 
     fn QueryGetData(&self, pformatetc: *const FORMATETC) -> HRESULT {
         if self.supported_format(pformatetc).is_some() {
-            S_OK
-        } else {
-            DV_E_FORMATETC
+            return S_OK;
         }
+        let Some(req) = (unsafe { pformatetc.as_ref() }) else {
+            return DV_E_FORMATETC;
+        };
+        if let Ok(extras) = self.extras.lock() {
+            for entry in extras.iter() {
+                if entry.format.cfFormat == req.cfFormat && entry.format.dwAspect == req.dwAspect {
+                    return S_OK;
+                }
+            }
+        }
+        DV_E_FORMATETC
     }
 
     fn GetCanonicalFormatEtc(
@@ -238,11 +298,37 @@ impl IDataObject_Impl for RichDataObject {
 
     fn SetData(
         &self,
-        _pformatetc: *const FORMATETC,
-        _pmedium: *const STGMEDIUM,
-        _frelease: BOOL,
+        pformatetc: *const FORMATETC,
+        pmedium: *const STGMEDIUM,
+        frelease: BOOL,
     ) -> windows::core::Result<()> {
-        Err(WinError::new(E_NOTIMPL, HSTRING::new()))
+        // Shell helper 总是 fRelease=TRUE：把 medium 所有权转给我们，由 StoredEntry::drop 释放。
+        // fRelease=FALSE 极少见，简单起见拒绝（Shell helper 不会走这条）。
+        if !frelease.as_bool() {
+            return Err(WinError::new(E_NOTIMPL, HSTRING::new()));
+        }
+        let format = unsafe {
+            match pformatetc.as_ref() {
+                Some(f) => *f,
+                None => return Err(WinError::new(E_NOTIMPL, HSTRING::new())),
+            }
+        };
+        let medium = unsafe {
+            match pmedium.as_ref() {
+                Some(m) => std::ptr::read(m),
+                None => return Err(WinError::new(E_NOTIMPL, HSTRING::new())),
+            }
+        };
+        let mut extras = self
+            .extras
+            .lock()
+            .map_err(|_| WinError::new(E_NOTIMPL, HSTRING::new()))?;
+        // 同格式覆盖：先删旧的（Drop 会 ReleaseStgMedium）。
+        extras.retain(|e| {
+            !(e.format.cfFormat == format.cfFormat && e.format.dwAspect == format.dwAspect)
+        });
+        extras.push(StoredEntry { format, medium });
+        Ok(())
     }
 
     fn EnumFormatEtc(&self, _dwdirection: u32) -> windows::core::Result<IEnumFORMATETC> {
