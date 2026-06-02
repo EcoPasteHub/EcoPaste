@@ -10,7 +10,9 @@ interface Shortcut {
 /**
  * 单个按键徽标：灰底圆角小方块，配合 monospace 显示符号或字母。
  */
-const Kbd: FC<{ children: ReactNode }> = ({ children }) => {
+const Kbd: FC<{ children: ReactNode }> = (props) => {
+  const { children } = props;
+
   return (
     <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-1.5 bg-fill-secondary px-1.5 font-mono text-text-secondary text-xs">
       {children}

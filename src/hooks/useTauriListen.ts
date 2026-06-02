@@ -15,7 +15,7 @@ export const useTauriListen = <T>(
   event: EventName,
   handler: EventCallback<T>,
 ) => {
-  const unlistenRef = useRef<(() => void) | undefined>(undefined);
+  const unlistenRef = useRef<(() => void) | undefined>(void 0);
 
   useMount(async () => {
     try {

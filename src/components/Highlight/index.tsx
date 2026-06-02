@@ -45,6 +45,8 @@ const Highlight: FC<HighlightProps> = (props) => {
     }
 
     nodes.push(
+      // 搜索命中高亮固定用 antd 默认的黄色高亮底色，不走主题 token——这是浏览器原生
+      // <mark> 的视觉惯例，明暗主题下都应保持稳定可见，不随强调色变化。
       <mark className="bg-[#ffe58f]" key={key++}>
         {text.slice(matchIndex, matchIndex + kwLen)}
       </mark>,
