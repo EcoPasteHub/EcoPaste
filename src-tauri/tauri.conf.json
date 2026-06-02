@@ -17,7 +17,6 @@
         "acceptFirstMouse": true,
         "alwaysOnTop": true,
         "decorations": false,
-        "dragDropEnabled": false,
         "focusable": false,
         "height": 600,
         "label": "main",
