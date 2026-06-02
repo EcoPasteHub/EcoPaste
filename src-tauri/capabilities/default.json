@@ -9,7 +9,8 @@
     "os:default",
     "core:window:allow-start-dragging",
     "opener:default",
-    "core:window:deny-internal-toggle-maximize"
+    "core:window:deny-internal-toggle-maximize",
+    "core:window:allow-hide"
   ],
-  "windows": ["main", "preference"]
+  "windows": ["main", "preference", "context-menu"]
 }
