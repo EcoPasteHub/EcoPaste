@@ -423,6 +423,7 @@ pub fn start_drag_text(
     }
 
     ensure_ole_init();
+    super::windows_ghost::install_for_window(window);
 
     let data_object: IDataObject = RichDataObject::new(plain, html, rtf).into();
     let drop_source: IDropSource = DropSource.into();
@@ -631,6 +632,8 @@ pub fn start_drag_files(
     preview_png: Option<Vec<u8>>,
 ) -> Result<()> {
     use drag::{DragItem, Image, Options};
+
+    super::windows_ghost::install_for_window(window);
 
     let image = match preview_png {
         Some(bytes) => Image::Raw(bytes),

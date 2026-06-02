@@ -29,6 +29,9 @@ pub mod macos;
 #[cfg(target_os = "windows")]
 pub mod windows;
 
+#[cfg(target_os = "windows")]
+mod windows_ghost;
+
 /// 启动一次文件类型的 drag-out。
 ///
 /// `preview_png` 是拖拽过程中跟随光标的预览图（PNG 字节）；为 `None` 时
