@@ -131,9 +131,12 @@ export const pasteClipboardItem = (id: string, plain: boolean) => {
 };
 
 /**
- * 启动一次 OS 级 drag-out：把条目作为文件拖出主窗口到外部应用（Finder / 编辑器等）。
+ * 启动一次 OS 级 drag-out：把条目拖出主窗口到外部应用。
  *
- * 仅 `kind = files / image` 可用；text 类型 Rust 端会直接报错（暂未支持）。
+ * - Files / Image：拖出为文件，预览用 OS 原生图标。
+ * - Text（含 HTML / RTF 富格式）：接收方按偏好选格式；Rust 端用文本首几行
+ *   现场渲染的 PNG 作预览，缺失则退回来源 app 图标。
+ *
  * macOS 立即返回（drop 由 OS 异步处理）；Windows 会 await 至 drop 完成。
  * 失败已在 `call` 内统一 toast，调用方一般不需要再处理。
  */

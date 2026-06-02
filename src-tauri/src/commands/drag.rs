@@ -1,6 +1,6 @@
 //! 拖拽相关命令：把条目作为 OS 级 drag-out 拖出主窗口到外部应用。
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use sqlx::SqlitePool;
 use tauri::{AppHandle, State};
@@ -66,7 +66,7 @@ pub async fn start_drag_clipboard_item(
         (128.0 * scale).round() as u32
     };
 
-    let preview = build_preview(&item, &payload, preview_size);
+    let preview = build_preview(&payload, preview_size);
 
     #[cfg(target_os = "macos")]
     {
@@ -162,15 +162,11 @@ fn resolve_drag_payload(item: &ClipboardItem, store: &ImageStore) -> Result<Drag
 
 /// 取拖拽预览图：
 /// - Files / Image：用首个路径抽 OS 文件 / 图片图标。
-/// - Text：用条目的 source_app_icon_path（来源 app 图标）；缺失则 None，由下层兜底。
-fn build_preview(item: &ClipboardItem, payload: &DragPayload, size: u32) -> Option<Vec<u8>> {
+/// - Text：返回 None，由 drag_out 平台层基于文本内容现场渲染（保证有辨识度），
+///   避免用「来源 app 图标」这种所有文本长一样的兜底。
+fn build_preview(payload: &DragPayload, size: u32) -> Option<Vec<u8>> {
     match payload {
         DragPayload::Files(paths) => icon_png(&paths[0], Some(size)),
-        DragPayload::Text { .. } => item
-            .source_app_icon_path
-            .as_deref()
-            .map(Path::new)
-            .filter(|p| p.exists())
-            .and_then(|p| icon_png(p, Some(size))),
+        DragPayload::Text { .. } => None,
     }
 }

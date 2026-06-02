@@ -83,7 +83,6 @@ pub fn start_drag_text(
 
     #[cfg(target_os = "windows")]
     {
-        let _ = window;
-        windows::start_drag_text(&plain, html.as_deref(), rtf.as_deref(), preview_png)
+        windows::start_drag_text(window, &plain, html.as_deref(), rtf.as_deref(), preview_png)
     }
 }

@@ -17,10 +17,14 @@ use objc2::rc::Retained;
 use objc2::runtime::{NSObject, NSObjectProtocol, ProtocolObject};
 use objc2::{define_class, msg_send, AnyThread, DefinedClass, MainThreadMarker, MainThreadOnly};
 use objc2_app_kit::{
-    NSApp, NSDraggingContext, NSDraggingItem, NSDraggingSession, NSDraggingSource, NSEvent,
-    NSEventModifierFlags, NSEventType, NSImage, NSPasteboardItem, NSView,
+    NSApp, NSAttributedStringNSStringDrawing, NSBezierPath, NSColor, NSDraggingContext,
+    NSDraggingItem, NSDraggingSession, NSDraggingSource, NSEvent, NSEventModifierFlags,
+    NSEventType, NSFont, NSFontAttributeName, NSForegroundColorAttributeName, NSImage,
+    NSMutableParagraphStyle, NSParagraphStyleAttributeName, NSPasteboardItem, NSView,
 };
-use objc2_foundation::{NSMutableArray, NSPoint, NSRect, NSSize, NSString, NSURL};
+use objc2_foundation::{
+    NSAttributedString, NSDictionary, NSMutableArray, NSPoint, NSRect, NSSize, NSString, NSURL,
+};
 use tauri::WebviewWindow;
 
 use crate::core::{AppError, Result};
@@ -152,7 +156,10 @@ pub fn start_drag_text<F: Fn(DragResult) + Send + 'static>(
     }
 
     unsafe {
-        let img = build_preview_image(preview_png, None).unwrap_or_else(|_| NSImage::new());
+        // 优先用上层传入的 PNG；缺失或解码失败时用 plain 现场渲染一张文本卡，
+        // 比通用 app 图标更有辨识度（参考 Safari 拖文字的预览）。
+        let img = build_preview_image(preview_png, None)
+            .unwrap_or_else(|_| render_text_preview_image(&plain));
 
         let pb_item = NSPasteboardItem::new();
         let _ = pb_item.setString_forType(
@@ -203,12 +210,22 @@ unsafe fn begin_drag_session<F: Fn(DragResult) + Send + 'static>(
 
     let cursor: NSPoint = ns_window.mouseLocationOutsideOfEventStream();
 
-    // 关键：把 NSImage 的逻辑 size 固定为 POINT_SIZE pt（与源 PNG 像素解耦）。
-    img.setSize(NSSize::new(POINT_SIZE, POINT_SIZE));
+    // 关键：把 NSImage 的逻辑 size 归一化——长边固定为 POINT_SIZE pt，短边按原 PNG 比例缩放，
+    // 与源 PNG 像素解耦。对正方形源图（如 OS 文件图标）就是 POINT_SIZE×POINT_SIZE；
+    // 对长矩形（如卡片截图）保持原比例不压扁。
+    let raw = img.size();
+    let (disp_w, disp_h) = if raw.width > 0.0 && raw.height > 0.0 {
+        let longest = raw.width.max(raw.height);
+        let scale = POINT_SIZE / longest;
+        (raw.width * scale, raw.height * scale)
+    } else {
+        (POINT_SIZE, POINT_SIZE)
+    };
+    img.setSize(NSSize::new(disp_w, disp_h));
 
     let image_rect = NSRect::new(
-        NSPoint::new(cursor.x - POINT_SIZE / 2.0, cursor.y - POINT_SIZE / 2.0),
-        NSSize::new(POINT_SIZE, POINT_SIZE),
+        NSPoint::new(cursor.x - disp_w / 2.0, cursor.y - disp_h / 2.0),
+        NSSize::new(disp_w, disp_h),
     );
     for i in 0..dragging_items.count() {
         let item = dragging_items.objectAtIndex(i);
@@ -261,4 +278,103 @@ unsafe fn build_preview_image(
         &NSString::from_str(&path.to_string_lossy()),
     )
     .ok_or_else(|| AppError::Clipboard("NSImage init failed".to_string()))
+}
+
+/// 文本预览图边长（pt，正方形）。外层 `begin_drag_session` 会按比例缩到 `POINT_SIZE`；
+/// 这里画在 2× `POINT_SIZE` 的 NSImage 上，让光标跟随预览保持 Retina 清晰度。
+const TEXT_PREVIEW_PT: f64 = POINT_SIZE * 2.0;
+/// 文本预览中最多显示的字符数；超出截断 + 加省略号，避免极长内容拖慢 layout。
+const TEXT_PREVIEW_MAX_CHARS: usize = 280;
+
+/// 把 `text` 现场渲染成一张文本卡片 NSImage 用作 drag 预览，
+/// 视觉模仿 Safari 拖选中文字（白底圆角 + 黑色正文 + 边距）。
+///
+/// 实现路径：`NSImage::lockFocus` → 填白底 → `NSAttributedString::drawInRect`。
+/// 必须在主线程（`begin_drag_session` 同侧）调用。
+#[allow(deprecated)] // lockFocus/unlockFocus 仍可用；block API（imageWithSize:flipped:drawingHandler:）在 Rust 侧写起来过重。
+unsafe fn render_text_preview_image(text: &str) -> Retained<NSImage> {
+    let size = NSSize::new(TEXT_PREVIEW_PT, TEXT_PREVIEW_PT);
+    let img = NSImage::initWithSize(NSImage::alloc(), size);
+
+    let snippet = clamp_text(text, TEXT_PREVIEW_MAX_CHARS);
+    let ns_text = NSString::from_str(&snippet);
+
+    // 字号按预览框估算：约 7 行可见，留点呼吸感。
+    let font = NSFont::systemFontOfSize(20.0);
+    let color = NSColor::labelColor();
+    let para = NSMutableParagraphStyle::new();
+    para.setLineBreakMode(objc2_app_kit::NSLineBreakMode::ByWordWrapping);
+
+    let keys: [&objc2_foundation::NSAttributedStringKey; 3] = [
+        NSFontAttributeName,
+        NSForegroundColorAttributeName,
+        NSParagraphStyleAttributeName,
+    ];
+    let values: [Retained<objc2::runtime::AnyObject>; 3] = [
+        Retained::cast_unchecked(font),
+        Retained::cast_unchecked(color),
+        Retained::cast_unchecked(para),
+    ];
+    let attrs = NSDictionary::from_retained_objects(&keys, &values);
+
+    let attr_str = NSAttributedString::initWithString_attributes(
+        NSAttributedString::alloc(),
+        &ns_text,
+        Some(&attrs),
+    );
+
+    img.lockFocus();
+
+    // 圆角白卡：先按圆角路径裁剪，再填背景色，文字绘制自然落在圆角内。
+    // 颜色用 NSColor 的语义色（textBackgroundColor / labelColor），
+    // 跟随系统外观自动深浅，与 app 内主题切换的视觉一致。
+    let full_rect = NSRect::new(NSPoint::ZERO, size);
+    let corner_radius = 20.0;
+    let clip_path = NSBezierPath::bezierPathWithRoundedRect_xRadius_yRadius(
+        full_rect,
+        corner_radius,
+        corner_radius,
+    );
+    clip_path.addClip();
+
+    let bg = NSColor::textBackgroundColor();
+    bg.setFill();
+    clip_path.fill();
+
+    // 文本绘制区域：四周留 16pt 边距
+    let padding = 16.0;
+    let text_rect = NSRect::new(
+        NSPoint::new(padding, padding),
+        NSSize::new(size.width - padding * 2.0, size.height - padding * 2.0),
+    );
+    attr_str.drawInRect(text_rect);
+
+    img.unlockFocus();
+
+    img
+}
+
+/// 截断 + 折行规整：超长的添省略号；连续空行压成单个换行，避免预览全是空白。
+fn clamp_text(text: &str, max_chars: usize) -> String {
+    let mut out = String::new();
+    let mut last_was_newline = false;
+    for ch in text.chars() {
+        if out.chars().count() >= max_chars {
+            out.push('…');
+            break;
+        }
+        if ch == '\n' {
+            if last_was_newline {
+                continue;
+            }
+            last_was_newline = true;
+            out.push('\n');
+        } else if ch == '\r' {
+            continue;
+        } else {
+            last_was_newline = false;
+            out.push(ch);
+        }
+    }
+    out
 }
