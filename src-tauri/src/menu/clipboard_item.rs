@@ -147,8 +147,15 @@ pub fn init(app: &AppHandle) {
 /// 在主窗口当前光标处弹出列表项右键菜单。
 /// 业务参数 `available_actions` 与 `is_favorite` 由前端传入（前端拿到的就是 Rust
 /// 端 `compute_available_actions` 的结果，菜单仅做展示过滤与文案翻转）。
+///
+/// 命令本身**立刻返回**：菜单的构建与弹出都被丢到主线程上异步执行。原因：
+/// `WebviewWindow::popup_menu` 在 macOS / Windows 都是模态阻塞调用（菜单关闭前
+/// 不返回），同时 `MenuItem::with_id` 等在 macOS 上必须主线程；如果在 tokio
+/// worker 上同步等待，会卡住一个 worker 几秒（菜单展示期间），并且前端的
+/// `await invoke()` 会一直挂到菜单关闭，期间所有 IPC（事件、其他命令）排队
+/// → UI 表现为卡顿。
 #[tauri::command]
-pub async fn popup_clipboard_item_menu(
+pub fn popup_clipboard_item_menu(
     app: AppHandle,
     window: WebviewWindow,
     item_id: String,
@@ -159,26 +166,41 @@ pub async fn popup_clipboard_item_menu(
         .try_state::<ClipboardItemMenuState>()
         .ok_or_else(|| AppError::Other(anyhow::anyhow!("ClipboardItemMenuState not managed")))?;
 
-    let menu = build_menu(&app, &available_actions, is_favorite)?;
+    *state.target_item_id.lock().unwrap() = Some(item_id);
 
-    {
-        let mut current = state.current.lock().unwrap();
-        // 替换：旧菜单在此 drop。上次 popup 的事件若已派发完成（用户已点击或菜单已关闭），
-        // 替换无副作用；新菜单立刻被持有，事件派发可见。
-        *current = Some(menu);
-    }
-    {
-        let mut target = state.target_item_id.lock().unwrap();
-        *target = Some(item_id);
-    }
-
-    let guard = state.current.lock().unwrap();
-    let menu_ref = guard
-        .as_ref()
-        .expect("menu just stored above and lock is held");
+    let app_for_main = app.clone();
+    let window_for_main = window.clone();
     window
-        .popup_menu(menu_ref)
-        .map_err(|err| AppError::Other(anyhow::anyhow!("popup clipboard item menu failed: {err}")))
+        .run_on_main_thread(move || {
+            let menu = match build_menu(&app_for_main, &available_actions, is_favorite) {
+                Ok(m) => m,
+                Err(err) => {
+                    log::warn!("build clipboard item menu failed: {err}");
+                    return;
+                }
+            };
+
+            let state = app_for_main.state::<ClipboardItemMenuState>();
+            // 替换：旧菜单在此 drop。事件已派发完成或菜单已关闭，替换无副作用；
+            // 新菜单在锁内被持有，事件派发期间永远存活，规避 muda use-after-free。
+            {
+                let mut current = state.current.lock().unwrap();
+                *current = Some(menu);
+            }
+
+            let guard = state.current.lock().unwrap();
+            let menu_ref = guard
+                .as_ref()
+                .expect("menu just stored above and lock is held");
+            if let Err(err) = window_for_main.popup_menu(menu_ref) {
+                log::warn!("popup clipboard item menu failed: {err}");
+            }
+        })
+        .map_err(|err| {
+            AppError::Other(anyhow::anyhow!(
+                "schedule popup_clipboard_item_menu on main thread failed: {err}"
+            ))
+        })
 }
 
 fn build_menu(
