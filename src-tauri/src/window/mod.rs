@@ -1,4 +1,5 @@
 pub(super) mod position;
+pub mod preview;
 mod state;
 
 #[cfg(target_os = "macos")]
@@ -19,6 +20,7 @@ use crate::settings::{SettingsStore, WindowPosition};
 
 pub const MAIN_WINDOW_LABEL: &str = "main";
 pub const PREFERENCE_WINDOW_LABEL: &str = "preference";
+pub const CLIPBOARD_PREVIEW_WINDOW_LABEL: &str = "clipboard-preview";
 
 /// 主窗口「固定」状态：true 时失焦不自动隐藏（点击窗外、切到其它 App 都不会隐藏），
 /// 由前端 Pin 按钮 / 快捷键切换；macOS resign_key 与 Windows 外部点击钩子都尊重这个开关。
@@ -75,6 +77,9 @@ pub fn show_window(app_handle: &AppHandle, label: &str) -> Result<()> {
     #[cfg(target_os = "windows")]
     let result = windows::show_window(app_handle, label);
     if result.is_ok() {
+        if label == MAIN_WINDOW_LABEL {
+            preview::resume_after_main_show();
+        }
         emit_visibility(app_handle, label, true);
     }
     result
@@ -84,6 +89,10 @@ pub fn hide_window(app_handle: &AppHandle, label: &str) -> Result<()> {
     // 隐藏前保存任意窗口的实时几何：移动与缩放都在这里落盘，下次显示/启动可恢复。
     if let Err(err) = state::save_window_state(app_handle, label) {
         log::warn!("save window state on hide failed for {label}: {err}");
+    }
+
+    if label == MAIN_WINDOW_LABEL {
+        preview::suppress_for_main_hide(app_handle);
     }
 
     #[cfg(target_os = "macos")]
@@ -161,6 +170,8 @@ pub fn hide_on_close(window: &Window) -> bool {
 
     if let Err(err) = window.hide() {
         log::error!("hide window on close failed: {err:?}");
+    } else {
+        emit_visibility(window.app_handle(), window.label(), false);
     }
     true
 }

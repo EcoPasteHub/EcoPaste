@@ -445,15 +445,94 @@
   > 平台注意：macOS 主窗目前是 NSPanel（`focusable=false`），slide_in 时不要抢焦点（保持 panel 行为）；Windows 上注意 DPI 缩放——`peek_strip_px` 用 `monitor.scale_factor()` 换算物理像素再 `set_position`，否则高 DPI 屏会肉眼看不到挂出的 strip。多屏切换：用窗口当前所在 `Monitor::work_area()` 而非主屏，dock 后用户拖窗到另一屏的逻辑在「拖动 → 解除 docked」一步已覆盖。
   > 与现有逻辑联动：用户按全局快捷键 / 托盘呼出窗口时，若 `hidden = true` 直接走 `slide_in`（视为唤出）；窗口隐藏（`hide_main_window`）时取消 docked 计时器，下次 show 重新依设置启用。
 
-### 8.8 系统级 Popover 预览
+### 8.8 系统级 Preview 预览系统
 
-- [ ] 选中条目按空格 或 鼠标悬停触发独立预览窗口（macOS Quick Look 风格）
-  > 需求对标 macOS Finder 空格预览：列表中焦点条目按 `Space` 或鼠标悬停 ≥ 600ms 时弹一个独立的、跟随主窗的浮层窗口展示完整内容，再次按 `Space` / 鼠标移开 / `Esc` 关闭。是「系统级窗口」而非主窗内 Popover——内容长 / 图片大时主窗内放不下，独立窗口可以拉到屏幕剩余空间。
-  > Rust：新窗口 label = `clipboard-preview`，用 `WebviewWindowBuilder` 在 `core/setup` 里预创建（hidden、`skip_taskbar`、`always_on_top`、macOS 上 `decorations(false)` + 自绘圆角阴影、Windows 上 `transparent(true) + decorations(false)`），URL `/#/preview` 复用同一 bundle 的另一路由。`window/preview.rs::show_preview(item_id, anchor: Rect)` 计算 popover 位置：优先放主窗右侧，空间不够则左侧 / 下方；尺寸自适应内容类型上限（text 480x600，image 按原始比例最长边 ≤ 720，files 列表 480x400）。`hide_preview()` 仅 `window.hide()` 不销毁（避免 webview 重建抖动）。
-  > 命令：`open_clipboard_preview(item_id, anchor: { x, y, width, height })` / `close_clipboard_preview()`；`anchor` 由前端在列表项 DOMRect + 主窗 outer position 算出，传屏幕绝对坐标。预览窗加载完成后通过 `invoke("get_clipboard_payload", { id })`（已存在）拉内容，不另开数据通道；锁定条目（见 8.6）按设计**不允许预览**，前端在 `Space` / hover 触发处过滤掉 `is_locked && !unlocked`。
-  > 前端：① `stores/clipboardView.ts` 增 `previewId: number | null`、`hoverIntentId`（带计时器）。② `ClipboardList` 在选中态变化或鼠标进入某行时启动 600ms 定时器；定时到 / 按 `Space` → 计算 anchor → invoke `open_clipboard_preview`；鼠标离开 / 滚动 / 切换选中 / 再按 `Space` / `Esc` → `close_clipboard_preview`。③ 多选模式（8.5）下禁用 hover 预览，避免误触；`Space` 仍可用作单条预览。④ 新页面 `pages/Preview/index.tsx` 一份精简渲染：text 用 `<pre>`，html 走 DOMPurify，image 直接 `<img>`，files 列表表格化；不带交互按钮（复制 / 粘贴留在主窗工具条）。⑤ 路由 `router/index.ts` 加 `/preview` 项，仅在该窗口加载，不出现在主窗导航。
-  > 视觉：背景色用 HeroUI `bg-content1` + 12px 圆角 + 主题阴影；macOS 下加细边框（dark / light 各一档）模拟系统弹窗。窗口失去焦点（点其他应用）立即关闭——通过 `WindowEvent::Focused(false)` 监听。
-  > 性能：hover 触发用前端 `setTimeout`，不要每次 hover 都走 IPC；预览窗仅维持一份 webview，复用切换内容。设置位 `Settings.clipboard.preview.{enabled, hover_delay_ms}`（默认 enabled=true, delay=600），关闭后 `Space` 也不响应。
+> 本节基于 `/Users/ayang/Downloads/QuickClipboard` 的预览窗口源码与三张截图拆解，不复刻其额外功能，只吸收「独立窗口、连接曲线、常驻内容容器、可打断动画」这几条核心思路。第一阶段只做 Content Viewer：文本、图片、文件三类展示；不做格式循环、Ctrl+滚轮缩放、提示条、编辑、拖拽、收藏等 QuickClipboard 扩展能力。
+
+#### QuickClipboard 拆解结论
+
+> 架构：QuickClipboard 的预览不是主窗内 Popover，而是一个透明、置顶、不可聚焦、忽略鼠标事件的独立 `preview-window`。Rust 把预览窗铺满当前显示器 work area，前端在这个透明画布里同时渲染预览面板和 SVG 曲线。主窗只把 `mode/source/itemId/itemRect` 传给 Rust，Rust 追加鼠标物理坐标、scale factor、work area、主窗 bounds 和单调 `request_id` 后 emit 给预览窗。优点是曲线可以跨越主窗和预览面板之间的桌面区域绘制；风险是透明全屏窗口必须严格 `focusable(false)` + `set_ignore_cursor_events(true)`，否则会抢输入。
+>
+> 状态：主窗侧每个列表项自己维护 hover timer，`onMouseEnter` 后延迟打开，`onMouseLeave` / 滚动 / 拖拽 / 多选时关闭；键盘导航只更新 active item，并未形成 Space 按下打开、松开关闭的统一状态机。预览窗侧维护 `previewData`、`previewItem`、`previewMode`、内容加载状态、图片加载状态、`isVisible`、鼠标位置和滚动能力。`request_id` 是跨窗口竞态保护，旧请求加载完成后不会 reveal 新窗口。
+>
+> 数据流：列表项 `getBoundingClientRect()` 得到 anchor rect → `showPreviewWindow` IPC → Rust 建立或复用透明预览窗 → `preview-window-data-updated` → 预览窗按 `itemId` 再走 Rust 命令取内容 → 内容 ready 后调用 `reveal_preview_window(request_id)` → Rust show 窗口 → 预览窗下一帧把 `isVisible = true` 触发 CSS transition。关闭时 Rust 先 emit `preview-window-will-hide`，预览窗同步清状态，再调用 `finalize_hide_preview_window`，Rust hide 并延迟销毁，避免频繁重建 webview。
+>
+> 曲线：截图中连接线是 SVG `<path>`。实现上把列表项可见矩形作为 source rect，把预览面板矩形作为 target rect，分别取四边中点作为候选锚点，两两组合共 16 条候选线；评分由距离、是否从矩形外法线方向出发/进入、是否穿过目标矩形内部决定。最终路径固定为一条 cubic Bezier：`M source C control1 control2 target`，控制点沿 source/target 所在边的 outward normal 推出，距离约为端点距离的 22%，并夹在 20 到 64 之间。端点圆点和三层 path stroke 叠加出截图里的细线、描边和高光。
+>
+> 坐标：Rust 收集物理 work area、主窗物理 bounds、鼠标物理坐标和 scale factor；预览窗前端统一除以 scale factor，得到 work-area-local logical 坐标。主窗内的 item rect 是 webview client 坐标，预览窗用 `mainWindowLogical + itemRect` 映射到屏幕 logical 坐标，并裁剪到主窗可见区域。这个思路能处理多 DPI，但依赖主窗 bounds 与 webview client 坐标的映射稳定。
+>
+> 动画：QuickClipboard 当前没有 Framer Motion / Motion Value，也没有真正的 path morphing。面板入口动画是根据连接边计算一个很窄的 anchor rectangle，然后用 CSS `transform 190ms cubic-bezier(0.22, 1, 0.36, 1)` 从该 anchor scale/translate 到最终面板；曲线只随状态重算并淡入淡出，`d` 本身不插值。连续切换时靠 request id 丢弃过期内容，视觉上仍可能出现重新生成感。EcoPaste 后续应把曲线端点、控制点、面板位置都做成 Motion Value，新的目标直接 retarget，不排队。
+>
+> 性能：曲线候选计算极轻，真正要避开的是 60fps IPC 轮询和频繁 DOM layout read。QuickClipboard 预览窗每 16ms invoke `get_mouse_position` 更新位置，这对单窗口可接受，但不适合作为 EcoPaste 的默认架构。EcoPaste 应使用事件驱动：打开、选中项变化、滚动结束、窗口 move/resize、DPI/monitor 变化时更新 geometry；滚动中第一阶段直接关闭预览。
+
+#### 推荐架构
+
+> Rust-first 边界：OS 窗口创建、work area / monitor / scale factor、主窗 bounds、预览面板可放置区域和最终 panel rect 计算放在 `src-tauri/src/window/preview.rs`。前端只负责列表 anchor 采集、触发意图、内容展示、SVG 曲线渲染与动画。数据库读取仍通过 Rust command，前端不接触 SQL。
+>
+> 窗口模型：采用 QuickClipboard 的「透明 work-area overlay 窗口」而不是小尺寸 popover 窗口。label 统一为 `clipboard-preview`，写入 `src/constants/windows.ts` 和 Rust 常量；URL 走 `/#/preview` 或现有 router 等价入口。窗口 hidden 常驻，`decorations(false)`、`transparent(true)`、`shadow(false)`、`always_on_top(true)`、`skip_taskbar(true)`、`focusable(false)`、`focused(false)`、`resizable(false)`，创建后立即设置 ignore cursor events。macOS / Windows 平台差异都封在 Rust `window/preview.rs` 内。
+>
+> 命令与事件：新增 `show_clipboard_preview(request)` / `close_clipboard_preview(reason)` / `reveal_clipboard_preview(request_id)` / `finalize_clipboard_preview_hide(request_id)` / `get_clipboard_preview_state()` / `get_clipboard_preview_payload(item_id)`。命令名字面量集中到 `src/constants/commands.ts`。事件集中到 `src/constants/events.ts`：`preview://updated`、`preview://will-hide`、必要时 `preview://geometry-updated`。`show_clipboard_preview` 同时承担 open 与 retarget，内部递增 `request_id`，旧请求自动失效。
+>
+> Preview state：前端 `clipboardViewState` 扩展 `activeItemId`，另建 `previewState` 或 `usePreviewController` 内部状态：`open`、`trigger: "keyboard" | "hover"`、`targetItemId`、`hoverItemId`、`pendingHoverTimer`、`requestId`、`anchorRectById`、`contentCache`、`geometry`、`animationPhase`。优先级固定：Space 按住时 keyboard preview 拥有最高优先级，hover 只能在 keyboard preview 关闭后生效；多选模式、拖拽中、锁定且未解锁条目、设置关闭时不触发。
+>
+> 内容模型：`get_clipboard_preview_payload` 返回 `PreviewPayload { id, kind, updated_at, text, image_path, image_size, files }`。图片路径由 Rust 解析为 asset 可访问路径或返回原图/缩略图双路径；文件 payload 包含 name/path/size/exists/is_dir/icon_path。预览窗用常驻 `PreviewSurface` 承载 `TextViewer` / `ImageViewer` / `FilesViewer`，切换内容时不销毁窗口，只更新 viewer props。缓存采用预览窗内 LRU，key = `item_id + updated_at`，容量 16；第一屏加载期间保留上一份内容并降低 opacity，避免空白闪烁。
+>
+> 布局数据：主窗前端传 `anchorRect`，坐标是主 webview client logical rect。Rust 读取主窗 outer/client bounds、monitor work area、scale factor 后转换成 work-area-local logical 坐标，并返回 `PreviewLayout { overlay_rect, panel_rect, source_rect, placement }`。第一阶段 panel 尺寸固定：text `480 x min(600, work_area * 0.66)`，image 最长边 `720` 且保持比例，files `640 x 400`；后续再允许预览窗上报 measured size 给 Rust 重算。
+>
+> 曲线系统：前端新增 `src/pages/Preview/geometry.ts`，导出纯函数 `resolveConnector(sourceRect, targetRect) -> { source, target, control1, control2, sourceSide, targetSide, path }`，算法沿用「四边锚点候选 + 评分 + cubic Bezier」，但所有输入来自 Rust layout。曲线绘制用一个绝对定位 SVG，viewBox 等于 overlay logical size；path 和端点圆都 pointer-events none。第一阶段 path 每次 layout 更新直接重算；Motion 阶段把数值点位交给 Motion Value 插值。
+>
+> 动画系统：第一阶段用 CSS transition 完成 reveal/hide，避免先引入新依赖。增强阶段引入 Motion for React，优先使用官方 `motion/react` 入口（实现前再按官方文档确认包名），使用 `useMotionValue` / `useSpring` 表示 `panelX/panelY/panelW/panelH/sourceX/sourceY/targetX/targetY`，用 `useTransform` 派生 Bezier `d`。不做字符串级 arbitrary morphing，统一维护 `M C` 四点结构，避免路径命令不一致导致跳变。新目标到来时只 set 新 target，不维护动画队列。
+>
+> 事件响应：Hover Preview 使用可配置 delay，仅在 delay 到期时 IPC；快速划过只更新 timer。Keyboard Preview 使用 Space `keydown` 打开、`keyup` 关闭，忽略 repeat；预览打开期间 ArrowUp/ArrowDown 改变 active item 时立即 retarget。Windows 主窗若 `focusable=false` 收不到 Web keydown，沿用 Rust `keyboard/` 系统钩子 emit `keyboard://nav`，新增 `preview-space-down` / `preview-space-up` action。Scroll 第一阶段一律关闭 hover preview 并取消 timer；Resize / 主窗 move / monitor 变化第一阶段关闭预览，Motion 阶段再做 geometry retarget。
+>
+> 设置：`Settings.clipboard.preview = { hoverEnabled: true, hoverDelayMs: 500, spaceEnabled: true }`，`hoverDelayMs` 只允许 `300 | 500 | 1000`。Rust `settings/model.rs`、前端 `src/types/settings.ts`、设置面板和 i18n 同步。设置实时生效：关闭 hover 时取消 pending timer 并关闭 hover 打开的预览；关闭 Space 时若当前 trigger 是 keyboard 则关闭。
+
+#### 分阶段任务
+
+- [x] 8.8.1 预览窗口与跨端契约骨架
+  > 范围：新增 Rust `window/preview.rs`、命令、事件、窗口 label 常量、前端 `/preview` 路由空页面。Rust 可创建 hidden 的透明 work-area overlay，并能通过 `show_clipboard_preview` 发送 `PreviewState` 到预览窗；`close_clipboard_preview` 能 hide，不加载真实内容。
+  > 验收：macOS 和 Windows 上调用测试按钮或临时命令能创建透明置顶窗口但不抢焦点、不拦截鼠标；连续 open/close 20 次无 webview 重建抖动、无残留窗口；主窗隐藏时预览窗必定关闭。
+  > 风险：透明全屏窗口在 Windows 上可能短暂抢焦点或吞输入；必须优先验证 `focusable(false)` 和 ignore cursor events。若失败，回滚本阶段只会移除新窗口模块和常量，不影响剪贴板主流程。
+  > 已实现：`src-tauri/src/window/preview.rs` 创建/复用 `clipboard-preview` 透明 work-area overlay，命令 `show_clipboard_preview` / `close_clipboard_preview` / `get_clipboard_preview_state` 已注册；前端补齐 `TAURI_COMMAND` / `TAURI_EVENT.PREVIEW_UPDATED` / `WINDOW_LABEL.PREVIEW`、命令包装和 `/preview` 路由。列表阶段性支持按 `Space` 打开当前选中项预览、再次 `Space` 或 `Esc` 关闭；预览页生产环境保持透明，dev 环境显示状态面板用于校准 request / anchor / work area / main window。
+
+- [x] 8.8.2 Content Viewer 基础内容展示
+  > 范围：新增 `get_clipboard_preview_payload(item_id)`，预览页实现常驻 `PreviewSurface`，只展示 text / image / files。文本用只读 `<pre>` 或轻量滚动容器，图片用 asset URL，文件用 Ant Design `Table` 或紧凑列表；不做 HTML/RTF/Markdown 深度渲染，不做交互按钮。预览窗内部维护最近 16 条 payload LRU。
+
+  > 已实现：Rust 新增 `get_clipboard_preview_payload(item_id)`，走完整 `find_item_by_id` 读取未裁剪内容，并归一化为 text / image / files 三类 payload；image 解析为原图绝对路径并返回尺寸/大小/存在状态，files 返回前 64 项路径、名称、目录/图片标记、存在状态、size 与 icon。前端 `/preview` 已升级为常驻 Content Viewer：按 `preview://updated` 二次加载 payload，用 `requestId` 丢弃旧请求，保留上一份内容避免切换白屏，并维护最近 16 条 `itemId + updatedAt` LRU 缓存；文本、图片、文件三类均可基础展示，曲线与动态布局留到 8.8.3。
+  > 验收：三类内容都能从真实剪贴板条目打开；图片条目使用已有 `get_clipboard_image_path` 或新 payload 返回的路径；大文本和多文件不会撑破固定容器；连续切换内容不出现空白闪烁，失败时展示 token 化错误占位并写日志。
+  > 风险：图片 asset scope 和 Windows 路径转义容易出错；文件图标读取可能慢，第一阶段允许只显示通用文件图标，确保主路径先稳定。
+
+- [x] 8.8.3 Anchor、布局与 SVG 曲线连接
+  > 范围：列表项注册 DOM ref，active/hover 触发时采集 `DOMRect`；Rust 计算 work-area-local `PreviewLayout`；预览页用 `geometry.ts` 生成 SVG Bezier 曲线。曲线端点吸附到列表项可见矩形与预览面板边缘，panel 优先放主窗右侧，其次左侧、下方、上方，最后在 work area 内 clamp。
+
+  > 已实现：Rust `window/preview.rs` 在 `show_clipboard_preview` 中返回 `PreviewLayout { overlayRect, sourceRect, panelRect, placement }`，把主窗 webview anchor 映射到 work-area-local logical 坐标，并用固定 480x480 面板按右/左/下/上优先级放置后 clamp 到 overlay margin 内；前端新增 `src/pages/Preview/geometry.ts`，用四边中点候选 + 外法线方向评分生成 cubic Bezier path，并在透明预览 overlay 内绘制三层 SVG path 与端点圆。预览面板改为消费 Rust `panelRect` 绝对定位，dev 调试面板显示 source/panel/placement/curve side。已补 Rust 纯函数单测覆盖右侧/左侧放置、clamp、主窗坐标映射；当前阶段 path 直接重算，不做 Motion 插值。
+  > 验收：对照三张 QuickClipboard 截图验证 text/image/files 三种尺寸下曲线都从当前条目连到面板最近合理边；主窗靠屏幕左/右/上/下、不同 DPI、多显示器时位置正确；滚动导致 anchor 不可见时关闭预览，不画悬空线。`geometry.ts` 至少覆盖 8 个纯函数单测：左右放置、上下放置、矩形相交裁剪、控制点方向、work area clamp。
+  > 风险：主窗 webview client 坐标与 Tauri window bounds 可能存在标题栏/阴影偏差；需要在 macOS NSPanel 与 Windows 无边框窗分别校准。如果偏差不可控，增加 Rust 命令读取 webview position 或前端传主窗 screen rect 作为临时补偿。
+
+- [x] 8.8.4 Hover Preview 与 Keyboard Space Preview 控制器
+  > 范围：新增 `usePreviewController`，统一管理 active item、hover intent、Space 按下状态、timer、open/retarget/close。`List` 的 `selectedId` 收敛到 `clipboardViewState.activeItemId`；`ClipboardCard` 暴露 ref 或 anchor 注册回调。Hover delay 从设置读取，只允许 300/500/1000ms；Space keydown 打开当前 active item，keyup 关闭，Esc 关闭。Windows 通过 `keyboard://nav` action 补齐 Space down/up。
+
+  > 已实现：设置模型新增 `clipboard.preview = { hoverEnabled, hoverDelayMs, spaceEnabled }`，Rust 与 TS 类型同步，默认 hover 开启、delay 500ms、Space 开启。列表页接入局部 preview controller：每个虚拟列表项注册 DOM ref；Hover 进入后按 300/500/1000ms 延迟打开，快速划过会取消旧 timer，离开当前 hover 项或滚动时关闭 hover preview；Space keydown 打开当前 active item，重复 keydown 不重复 IPC，keyup 关闭 keyboard preview，按住期间上下方向键会 retarget 到新 active item；配置实时生效，关闭 hover/space 会关闭对应 trigger 的当前预览。由于 Preference 页当前仍是占位，本阶段完成持久化契约和实时读取，设置 UI 留到偏好页成型时接入。
+  > 验收：快速滑过列表不会创建预览；停留超过配置 delay 才打开，移出立即关闭并取消 timer；按住 Space 打开，松开关闭，按住时用方向键切换能实时更新内容和曲线；多选模式、拖拽中、滚动中、设置关闭时不触发。设置面板修改后无需重启，当前预览按新配置立即响应。
+  > 风险：Web `keydown` 与 Rust keyboard hook 可能重复触发；用 `trigger` + `spacePressed` 状态去重。Virtuoso 行复用会让旧 ref 指向新 item，anchor map 必须在 unmount 或 item id 变化时清理。
+
+- [x] 8.8.5 Motion 连续动画系统
+  > 范围：引入 Motion for React，预览页把 panel rect、connector source/target/control points、opacity 都迁移到 Motion Value / Spring。新 layout 到来时 retarget motion values；content payload 与 geometry 解耦，几何先动，内容 ready 后淡入替换。保持单个 `PreviewSurface` 常驻，不因 item 切换重建容器。
+
+  > 已实现：按 Motion 官方当前入口引入 `motion` 依赖，并从 `motion/react` 使用 `motion`、`useMotionValue`、`useSpring`、`useTransform`。预览页新增 `usePreviewMotion`，将 panel x/y/width/height、connector source/target/control points 写入 Motion Value，首次 layout 直接 `jump` 到目标，后续 open/retarget 只更新目标值，由 spring 连续过渡。SVG path 保持固定 `M C` 结构，`geometry.ts` 新增 `buildConnectorPath` 让 path 从 spring 点位派生，避免字符串级任意 morphing；内容 payload 仍独立加载并保留上一份内容，几何动画不会等待内容返回。
+  > 验收：连续按方向键 20 次，曲线和面板从当前位置连续移动到新目标，不闪烁、不跳回初始点、不排队；中途关闭再打开不会残留上一轮动画；降低系统动画或设置 `uiAnimation=false` 时退回无动画/短淡入模式。性能目标：普通列表快速切换时主窗和预览窗都无明显掉帧，SVG path 每帧只更新一条曲线和两个端点。
+  > 风险：SVG `d` 动画属于 CPU 路径，未来若增加多条曲线或重滤镜会放大成本；只保留单条 path，drop-shadow 轻量化。Motion 依赖包名和 API 需按实现时官方文档确认，若依赖评估不通过，本阶段可独立回滚到 8.8.3 的 CSS 版本。
+
+- [x] 8.8.6 边界、回归与文档化
+  > 范围：补齐 resize/main move/monitor change 策略，第一版可关闭预览，增强版可 retarget；补齐锁定条目联动，8.6 完成后锁定且未解锁条目不允许预览；补齐 i18n、设置说明和开发文档。保留「曲线物理效果」为最后 TODO，不在本阶段实现 overshoot / inertia。
+
+  > 已实现：前端新增 `window://visibility` 常量并在列表页监听主窗隐藏事件，主窗隐藏、窗口 blur、窗口 resize、查看新记录、粘贴/复制/外部动作、删除、筛选切换和组件卸载都会清理 preview session / hover timer / overlay；Rust `hide_on_close` 补发 `window://visibility { visible: false }`，避免关闭按钮路径绕过统一 `hide_window`。滚动中关闭 hover preview，Space keyup 丢失时通过 window blur 兜底关闭 keyboard preview。最终验证覆盖 `pnpm lint`、`pnpm exec tsc --noEmit`、`cargo fmt --check && cargo check && cargo test window::preview`、`git diff --check`。
+  > 验收：macOS 与 Windows 都完成手动验证矩阵：文本/图片/文件、hover/Space、快速切换、滚动、窗口贴边、多显示器、高 DPI、主题切换、设置实时生效、主窗隐藏/显示。`pnpm lint`、`cargo fmt`、`cargo clippy -- -D warnings`、相关 Rust/TS 单测通过。TODO 中记录后续物理效果的入口，不把实验代码混进主路径。
+  > 风险：多显示器和 DPI 问题最容易在单机开发时漏测；本阶段必须把 geometry 日志做成 dev-only，可在截图里核对 source/target/panel rect。若某平台透明 overlay 行为无法稳定，降级为无曲线的小预览窗口，但保留控制器和 payload 架构。
+
+#### 暂缓到最后的创新项
+
+> 曲线物理效果不进入第一阶段。后续在 8.8.5 稳定后单独评估：`useSpring` 是否能提供足够自然的惯性、快速切换时 overshoot 是否影响端点准确性、SVG path 每帧更新是否仍在预算内。若要做更复杂的物理弹簧，只允许在 Motion Value 层替换运动模型，不改变 `PreviewLayout`、`resolveConnector` 和内容 viewer 的公共契约。
 
 ### 8.9 Windows 接管 Win+V
 

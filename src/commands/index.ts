@@ -19,6 +19,8 @@ import type {
   ClipboardAction,
   ClipboardItemPage,
   ClipboardItemQuery,
+  ClipboardKind,
+  ClipboardSubKind,
   UpdateNoteResult,
 } from "@/types/clipboard";
 import type { Settings, SettingsPatch } from "@/types/settings";
@@ -30,6 +32,76 @@ import { log } from "@/utils/log";
 interface AppError {
   kind: string;
   message: string;
+}
+
+export interface PreviewAnchorRect {
+  left: number;
+  pointerY?: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
+export interface ClipboardPreviewState {
+  requestId: number;
+  sessionId: number;
+  itemId: string;
+  anchor: PreviewAnchorRect;
+  scaleFactor: number;
+  workArea: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+  mainWindow: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null;
+  layout: ClipboardPreviewLayout;
+}
+
+export interface ClipboardPreviewRect {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
+export type ClipboardPreviewPlacement = "right" | "left" | "bottom" | "top";
+
+export interface ClipboardPreviewLayout {
+  overlayRect: ClipboardPreviewRect;
+  sourceRect: ClipboardPreviewRect;
+  panelRect: ClipboardPreviewRect;
+  placement: ClipboardPreviewPlacement;
+}
+
+export interface ClipboardPreviewFileEntry {
+  path: string;
+  name: string;
+  isDir: boolean;
+  isImage: boolean;
+  exists: boolean;
+  size: number | null;
+  iconPath?: string;
+}
+
+export interface ClipboardPreviewPayload {
+  id: string;
+  kind: ClipboardKind;
+  subKind: ClipboardSubKind | null;
+  updatedAt: string;
+  text: string | null;
+  imagePath: string | null;
+  imageWidth: number | null;
+  imageHeight: number | null;
+  imageSize: number | null;
+  imageExists: boolean;
+  files: ClipboardPreviewFileEntry[];
+  totalFiles: number;
 }
 
 /**
@@ -227,6 +299,49 @@ export const setMainWindowPinned = (pinned: boolean) => {
   return call<void>(TAURI_COMMAND.SET_MAIN_WINDOW_PINNED, "固定窗口", {
     pinned,
   });
+};
+
+/**
+ * 打开或重定向剪贴板系统级预览 overlay。
+ * `anchor` 是主窗口 webview client 坐标中的列表项矩形。
+ */
+export const showClipboardPreview = (
+  itemId: string,
+  anchor: PreviewAnchorRect,
+) => {
+  return call<ClipboardPreviewState | null>(
+    TAURI_COMMAND.SHOW_CLIPBOARD_PREVIEW,
+    "打开预览",
+    { anchor, itemId },
+  );
+};
+
+/**
+ * 关闭剪贴板系统级预览 overlay。
+ */
+export const closeClipboardPreview = () => {
+  return call<void>(TAURI_COMMAND.CLOSE_CLIPBOARD_PREVIEW, "关闭预览");
+};
+
+/**
+ * 预览窗口首屏补拉最近一次状态。
+ */
+export const getClipboardPreviewState = () => {
+  return call<ClipboardPreviewState | null>(
+    TAURI_COMMAND.GET_CLIPBOARD_PREVIEW_STATE,
+    "加载预览状态",
+  );
+};
+
+/**
+ * 读取预览窗口 Content Viewer 所需的归一化 payload。
+ */
+export const getClipboardPreviewPayload = (itemId: string) => {
+  return call<ClipboardPreviewPayload | null>(
+    TAURI_COMMAND.GET_CLIPBOARD_PREVIEW_PAYLOAD,
+    "加载预览内容",
+    { itemId },
+  );
 };
 
 /**

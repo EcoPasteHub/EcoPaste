@@ -1,5 +1,5 @@
 import { Empty, Spin } from "antd";
-import type { FC } from "react";
+import type { FC, PointerEvent as ReactPointerEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import { useSnapshot } from "valtio";
@@ -20,6 +20,10 @@ import { clipboardViewState } from "@/stores/clipboardView";
 import type { ClipboardAction, ClipboardItem } from "@/types/clipboard";
 import { cn } from "@/utils/cn";
 import { isMac } from "@/utils/is";
+import {
+  isSpaceKey,
+  useClipboardPreviewController,
+} from "../hooks/useClipboardPreviewController";
 import ClipboardCard from "./cards/ClipboardCard";
 import NoteModal from "./NoteModal";
 
@@ -38,6 +42,7 @@ const List: FC = () => {
   const [noteTarget, setNoteTarget] = useState<ClipboardItem | null>(null);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const isAtTopRef = useRef(true);
+  const itemElementMapRef = useRef(new Map<string, HTMLDivElement>());
 
   const snapshot = useSnapshot(clipboardViewState);
   const { keyword, group } = snapshot;
@@ -45,6 +50,21 @@ const List: FC = () => {
   const { data, loading, loadingMore, loadMore, noMore, reload, mutate } =
     useClipboardItems(snapshot);
   const items = data?.list ?? [];
+  const {
+    closeHoverPreviewForScroll,
+    closePreview,
+    handleItemPointerEnter,
+    handleItemPointerLeave,
+    handleItemPointerMove,
+    handleKeyboardPreviewMove,
+    handlePreviewAreaPointerLeave,
+    handlePreviewSpaceDown,
+    previewSession,
+  } = useClipboardPreviewController({
+    getActiveItem,
+    itemElementMapRef,
+    onHoverSelect: setSelectedId,
+  });
 
   // 把 Rust 返回的同过滤下总数同步给 Footer（共享 store），避免 Footer 单独 IPC 计数。
   useEffect(() => {
@@ -55,6 +75,7 @@ const List: FC = () => {
   useEffect(() => {
     setSelectedId(null);
     setPendingCount(0);
+    closePreview("filterChange");
   }, [snapshot]);
 
   /**
@@ -119,13 +140,46 @@ const List: FC = () => {
     patchItem(id, autoFavorited ? { isFavorite: true, note } : { note });
   };
 
-  const handleCloseNote = () => setNoteTarget(null);
+  const handleCloseNote = () => {
+    setNoteTarget(null);
+  };
+
+  /**
+   * 读取当前选中项。无显式选中时，列表第一项即键盘 active item。
+   */
+  function getActiveItem() {
+    if (items.length === 0) return null;
+
+    if (selectedId === null) return items[0];
+
+    return (
+      items.find((item) => {
+        return item.id === selectedId;
+      }) ?? null
+    );
+  }
+
+  /**
+   * 注册虚拟列表项对应的 DOM 节点，预览打开时用它采集 anchor rect。
+   */
+  const registerItemElement = (id: string) => {
+    return (node: HTMLDivElement | null) => {
+      if (node) {
+        itemElementMapRef.current.set(id, node);
+        return;
+      }
+
+      itemElementMapRef.current.delete(id);
+    };
+  };
 
   /**
    * 快捷键触发的删除：复用 `deleteClipboardItem` 内置的二次确认弹窗，
    * 仅当用户确认且 Rust 删除成功时才同步本地镜像。
    */
   const handleShortcutDelete = async (id: string) => {
+    if (previewSession?.itemId === id) closePreview("delete");
+
     const deleted = await deleteClipboardItem(id);
 
     if (!deleted) return;
@@ -163,29 +217,36 @@ const List: FC = () => {
 
     switch (action) {
       case "paste":
+        closePreview("paste");
         pasteClipboardItem(target.id, false);
         return;
       case "pasteAsPlainText":
       case "pasteAsPath":
+        closePreview("pastePlain");
         pasteClipboardItem(target.id, true);
         return;
       case "copy":
+        if (previewSession?.itemId === target.id) closePreview("copy");
         writeToClipboard(target.id, false);
         return;
       case "openLink":
+        if (previewSession?.itemId === target.id) closePreview("openLink");
         openClipboardItemLink(target.id, false);
         return;
       case "sendEmail":
+        if (previewSession?.itemId === target.id) closePreview("sendEmail");
         openClipboardItemLink(target.id, true);
         return;
       case "revealInFinder":
       case "revealInExplorer":
+        if (previewSession?.itemId === target.id) closePreview("reveal");
         revealClipboardItem(target.id);
         return;
       case "toggleFavorite":
         handleShortcutToggleFavorite(target.id);
         return;
       case "editNote":
+        if (previewSession?.itemId === target.id) closePreview("editNote");
         setNoteTarget(target);
         return;
       case "delete":
@@ -202,60 +263,78 @@ const List: FC = () => {
 
   useTauriListen(TAURI_EVENT.CLIPBOARD_MENU_ACTION, handleMenuActionEvent);
 
-  const handleKeyDown = (e: KeyboardEvent) => {
+  const handleKeyDown = (event: KeyboardEvent) => {
     if (items.length === 0) return;
 
-    const isModifierPressed = isMac ? e.metaKey : e.ctrlKey;
+    const isModifierPressed = isMac ? event.metaKey : event.ctrlKey;
 
-    if (e.key === "Enter") {
-      e.preventDefault();
+    if (event.key === "Enter") {
+      event.preventDefault();
 
-      const activeId = selectedId === null ? items[0].id : selectedId;
+      const activeItem = getActiveItem();
 
-      pasteClipboardItem(activeId, isModifierPressed);
+      if (!activeItem) return;
 
-      return;
-    }
-
-    if (isModifierPressed && (e.key === "Backspace" || e.key === "Delete")) {
-      e.preventDefault();
-
-      const activeId = selectedId === null ? items[0].id : selectedId;
-
-      handleShortcutDelete(activeId);
+      closePreview("enterPaste");
+      pasteClipboardItem(activeItem.id, isModifierPressed);
 
       return;
     }
 
-    if (isModifierPressed && e.key.toLowerCase() === "d") {
-      e.preventDefault();
+    if (isSpaceKey(event)) {
+      handlePreviewSpaceDown(event);
+      return;
+    }
 
-      const activeId = selectedId === null ? items[0].id : selectedId;
-
-      handleShortcutToggleFavorite(activeId);
+    if (event.key === "Escape" && previewSession !== null) {
+      event.preventDefault();
+      closePreview("escape");
 
       return;
     }
 
-    if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
+    if (
+      isModifierPressed &&
+      (event.key === "Backspace" || event.key === "Delete")
+    ) {
+      event.preventDefault();
 
-    e.preventDefault();
+      const activeItem = getActiveItem();
 
-    const currentIndex =
-      selectedId === null
-        ? 0
-        : Math.max(
-            0,
-            items.findIndex((item) => item.id === selectedId),
-          );
+      if (!activeItem) return;
 
-    const next =
-      e.key === "ArrowUp"
-        ? Math.max(0, currentIndex - 1)
-        : Math.min(items.length - 1, currentIndex + 1);
+      handleShortcutDelete(activeItem.id);
 
-    setSelectedId(items[next].id);
-    virtuosoRef.current?.scrollIntoView({ behavior: "smooth", index: next });
+      return;
+    }
+
+    if (isModifierPressed && event.key.toLowerCase() === "d") {
+      event.preventDefault();
+
+      const activeItem = getActiveItem();
+
+      if (!activeItem) return;
+
+      handleShortcutToggleFavorite(activeItem.id);
+
+      return;
+    }
+
+    if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+
+    event.preventDefault();
+
+    const next = getNextKeyboardTarget(event);
+
+    if (!next) return;
+
+    setSelectedId(next.item.id);
+    virtuosoRef.current?.scrollIntoView({
+      behavior: "smooth",
+      index: next.index,
+    });
+
+    handleKeyboardPreviewMove(next.item);
   };
 
   useKeyboardEvent("keydown", handleKeyDown);
@@ -269,18 +348,7 @@ const List: FC = () => {
   }
 
   if (items.length === 0) {
-    const isSearching = keyword.length > 0;
-    const isFavorite = group === "favorite";
-
-    let description: string;
-
-    if (isSearching) {
-      description = isFavorite
-        ? `未找到「${keyword}」相关收藏`
-        : `未找到「${keyword}」相关记录`;
-    } else {
-      description = isFavorite ? "暂无收藏记录" : "暂无剪贴板历史";
-    }
+    const description = getEmptyDescription(keyword, group);
 
     return (
       <div
@@ -299,6 +367,8 @@ const List: FC = () => {
     endIndex: number;
   }) => {
     setFirstVisibleIndex(startIndex);
+
+    closeHoverPreviewForScroll();
   };
 
   const handleEndReached = () => {
@@ -316,6 +386,7 @@ const List: FC = () => {
   };
 
   const handleShowPending = () => {
+    closePreview("showPending");
     setPendingCount(0);
     reload();
     virtuosoRef.current?.scrollToIndex({ behavior: "smooth", index: 0 });
@@ -334,7 +405,11 @@ const List: FC = () => {
   };
 
   return (
-    <div className="relative flex-1 overflow-hidden">
+    <div
+      className="relative flex-1 overflow-hidden"
+      onPointerLeave={handlePreviewAreaPointerLeave}
+      role="listbox"
+    >
       <Virtuoso
         atTopStateChange={handleAtTopStateChange}
         components={{ Footer: renderFooter }}
@@ -365,8 +440,16 @@ const List: FC = () => {
   );
 
   function renderItemContent(index: number, item: ClipboardItem) {
-    const handleMouseEnter = () => {
-      setSelectedId(item.id);
+    const handlePointerEnter = (event: ReactPointerEvent<HTMLDivElement>) => {
+      handleItemPointerEnter(item, event);
+    };
+
+    const handlePointerLeave = () => {
+      handleItemPointerLeave();
+    };
+
+    const handlePointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+      handleItemPointerMove(item, event);
     };
 
     const relativeIndex = index - firstVisibleIndex;
@@ -376,6 +459,7 @@ const List: FC = () => {
         : void 0;
 
     const handleQuickPaste = () => {
+      closePreview("quickPaste");
       pasteClipboardItem(item.id, false);
     };
 
@@ -387,14 +471,69 @@ const List: FC = () => {
             selectedId === null ? index === 0 : item.id === selectedId
           }
           item={item}
-          onMouseEnter={handleMouseEnter}
+          onPointerEnter={handlePointerEnter}
+          onPointerLeave={handlePointerLeave}
+          onPointerMove={handlePointerMove}
           onQuickPaste={hintKey ? handleQuickPaste : void 0}
+          rootRef={registerItemElement(item.id)}
         />
       </div>
     );
   }
+
+  /**
+   * 根据方向键计算下一项。
+   */
+  function getNextKeyboardTarget(event: KeyboardEvent) {
+    const nextIndex = getNextKeyboardIndex(items, selectedId, event.key);
+
+    return { index: nextIndex, item: items[nextIndex] };
+  }
 };
 
-const computeItemKey = (_: number, item: ClipboardItem) => item.id;
+/**
+ * 生成空列表文案，区分搜索、收藏分组和普通空历史。
+ */
+function getEmptyDescription(keyword: string, group: string) {
+  const isSearching = keyword.length > 0;
+  const isFavorite = group === "favorite";
+
+  if (isSearching) {
+    return isFavorite
+      ? `未找到「${keyword}」相关收藏`
+      : `未找到「${keyword}」相关记录`;
+  }
+
+  return isFavorite ? "暂无收藏记录" : "暂无剪贴板历史";
+}
+
+/**
+ * 根据方向键和当前选中 id 计算下一项索引。
+ */
+function getNextKeyboardIndex(
+  items: ClipboardItem[],
+  selectedId: string | null,
+  key: string,
+) {
+  const currentIndex =
+    selectedId === null
+      ? 0
+      : Math.max(
+          0,
+          items.findIndex((item) => {
+            return item.id === selectedId;
+          }),
+        );
+
+  if (key === "ArrowUp") {
+    return Math.max(0, currentIndex - 1);
+  }
+
+  return Math.min(items.length - 1, currentIndex + 1);
+}
+
+const computeItemKey = (_: number, item: ClipboardItem) => {
+  return item.id;
+};
 
 export default List;

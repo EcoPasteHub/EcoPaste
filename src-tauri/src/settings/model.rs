@@ -132,6 +132,7 @@ pub struct Clipboard {
     pub history: History,
     pub search: Search,
     pub window: Window,
+    pub preview: Preview,
     pub feedback: Feedback,
     pub filters: Filters,
 }
@@ -260,6 +261,33 @@ pub enum ItemAction {
     Note,
     Star,
     Delete,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(default, rename_all = "camelCase")]
+pub struct Preview {
+    pub hover_enabled: bool,
+    pub hover_delay_ms: PreviewHoverDelayMs,
+    pub space_enabled: bool,
+}
+
+impl Default for Preview {
+    fn default() -> Self {
+        Self {
+            hover_enabled: true,
+            hover_delay_ms: PreviewHoverDelayMs::Ms500,
+            space_enabled: true,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub enum PreviewHoverDelayMs {
+    Ms300,
+    #[default]
+    Ms500,
+    Ms1000,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]

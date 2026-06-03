@@ -1,4 +1,4 @@
-import type { DragEvent, FC, MouseEvent } from "react";
+import type { DragEvent, FC, MouseEvent, PointerEvent, Ref } from "react";
 import { popupClipboardItemMenu, startDragClipboardItem } from "@/commands";
 import AssetImage from "@/components/AssetImage";
 import KeyHint from "@/components/KeyHint";
@@ -20,17 +20,29 @@ interface ClipboardCardProps {
    * 快捷键触发时执行的粘贴操作，由父级列表注入。
    */
   onQuickPaste?: () => void;
-  onMouseEnter?: () => void;
+  onPointerEnter?: (event: PointerEvent<HTMLDivElement>) => void;
+  onPointerLeave?: () => void;
+  onPointerMove?: (event: PointerEvent<HTMLDivElement>) => void;
+  rootRef?: Ref<HTMLDivElement>;
 }
 
 /**
  * 按 `kind` 分发到具体卡片组件，统一外层 padding / 时间戳 / 来源应用图标。
- * `isSelected` 为 true 时高亮背景与边框；`onMouseEnter` 由列表注入用于鼠标悬停选中；
+ * `isSelected` 为 true 时高亮背景与边框；指针事件由列表注入用于 hover preview；
  * 右键根节点弹出 Rust 端原生菜单（避免 tauri-apps/tauri#9470 的 muda use-after-free），
  * 点击菜单项后由列表层订阅 `clipboard://menu-action` 派发到实际处理逻辑。
  */
 const ClipboardCard: FC<ClipboardCardProps> = (props) => {
-  const { item, isSelected, hintKey, onQuickPaste, onMouseEnter } = props;
+  const {
+    item,
+    isSelected,
+    hintKey,
+    onQuickPaste,
+    onPointerEnter,
+    onPointerLeave,
+    onPointerMove,
+    rootRef,
+  } = props;
   const { kind, subKind, sourceAppIconPath, sourceAppName } = item;
 
   const handleDragStart = async (event: DragEvent) => {
@@ -58,7 +70,10 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
       draggable
       onContextMenu={handleContextMenu}
       onDragStart={handleDragStart}
-      onMouseEnter={onMouseEnter}
+      onPointerEnter={onPointerEnter}
+      onPointerLeave={onPointerLeave}
+      onPointerMove={onPointerMove}
+      ref={rootRef}
       role="option"
       tabIndex={-1}
     >

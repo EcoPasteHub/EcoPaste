@@ -4,9 +4,12 @@
  * 不要再裸写命令名字面量或在调用处引用这个表。
  */
 export const TAURI_COMMAND = {
+  CLOSE_CLIPBOARD_PREVIEW: "close_clipboard_preview",
   DELETE_CLIPBOARD_ITEM: "delete_clipboard_item",
   GET_CLIPBOARD_IMAGE_PATH: "get_clipboard_image_path",
   GET_CLIPBOARD_ITEM: "get_clipboard_item",
+  GET_CLIPBOARD_PREVIEW_PAYLOAD: "get_clipboard_preview_payload",
+  GET_CLIPBOARD_PREVIEW_STATE: "get_clipboard_preview_state",
   GET_SETTINGS: "get_settings",
   LIST_CLIPBOARD_ITEMS: "list_clipboard_items",
   OPEN_CLIPBOARD_ITEM_LINK: "open_clipboard_item_link",
@@ -14,6 +17,7 @@ export const TAURI_COMMAND = {
   POPUP_CLIPBOARD_ITEM_MENU: "popup_clipboard_item_menu",
   REVEAL_CLIPBOARD_ITEM: "reveal_clipboard_item",
   SET_MAIN_WINDOW_PINNED: "set_main_window_pinned",
+  SHOW_CLIPBOARD_PREVIEW: "show_clipboard_preview",
   SHOW_WINDOW: "show_window",
   START_DRAG_CLIPBOARD_ITEM: "start_drag_clipboard_item",
   TOGGLE_CLIPBOARD_ITEM_FAVORITE: "toggle_clipboard_item_favorite",

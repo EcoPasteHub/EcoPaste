@@ -7,7 +7,9 @@ export const TAURI_EVENT = {
   CLIPBOARD_UPDATED: "clipboard://updated",
   CONTEXT_MENU_SHOW: "context-menu://show",
   KEYBOARD_NAV: "keyboard://nav",
+  PREVIEW_UPDATED: "preview://updated",
   SETTINGS_UPDATED: "settings://updated",
+  WINDOW_VISIBILITY: "window://visibility",
 } as const;
 
 export type TauriEvent = (typeof TAURI_EVENT)[keyof typeof TAURI_EVENT];

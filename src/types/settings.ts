@@ -24,6 +24,8 @@ export type SearchPosition = "top" | "bottom";
 
 export type WindowPosition = "remember" | "followCursor" | "center";
 
+export type PreviewHoverDelayMs = "ms300" | "ms500" | "ms1000";
+
 export interface General {
   autoStart: boolean;
   silentStart: boolean;
@@ -81,6 +83,12 @@ export interface Window {
   allWorkspaces: boolean;
 }
 
+export interface Preview {
+  hoverEnabled: boolean;
+  hoverDelayMs: PreviewHoverDelayMs;
+  spaceEnabled: boolean;
+}
+
 export interface Feedback {
   copySound: boolean;
 }
@@ -95,6 +103,7 @@ export interface Clipboard {
   history: History;
   search: Search;
   window: Window;
+  preview: Preview;
   feedback: Feedback;
   filters: Filters;
 }

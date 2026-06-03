@@ -14,4 +14,8 @@ export const WINDOW_LABEL = {
    * 偏好设置窗口。
    */
   PREFERENCE: "preference",
+  /**
+   * 剪贴板系统级预览 overlay 窗口。
+   */
+  PREVIEW: "clipboard-preview",
 } as const;

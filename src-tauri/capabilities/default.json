@@ -12,5 +12,5 @@
     "core:window:deny-internal-toggle-maximize",
     "core:window:allow-hide"
   ],
-  "windows": ["main", "preference", "context-menu"]
+  "windows": ["*"]
 }

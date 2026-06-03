@@ -3,7 +3,7 @@
 use std::path::Path;
 use std::sync::Arc;
 
-use chrono::{Datelike, Local};
+use chrono::{DateTime, Datelike, Local, Utc};
 use serde::Serialize;
 use sqlx::SqlitePool;
 use tauri::{AppHandle, Manager, State};
@@ -136,6 +136,40 @@ pub struct FileIconResult {
     pub exists: bool,
 }
 
+const PREVIEW_FILE_ENTRY_LIMIT: usize = 64;
+
+/// 预览窗口专用 payload：只暴露 Content Viewer 渲染所需的归一化字段。
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ClipboardPreviewPayload {
+    pub id: String,
+    pub kind: ClipboardKind,
+    pub sub_kind: Option<ClipboardSubKind>,
+    pub updated_at: DateTime<Utc>,
+    pub text: Option<String>,
+    pub image_path: Option<String>,
+    pub image_width: Option<i64>,
+    pub image_height: Option<i64>,
+    pub image_size: Option<i64>,
+    pub image_exists: bool,
+    pub files: Vec<ClipboardPreviewFileEntry>,
+    pub total_files: usize,
+}
+
+/// 预览窗口里的单个文件条目，比列表卡片保留更多文件并带上 size。
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ClipboardPreviewFileEntry {
+    pub path: String,
+    pub name: String,
+    pub is_dir: bool,
+    pub is_image: bool,
+    pub exists: bool,
+    pub size: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub icon_path: Option<String>,
+}
+
 /// 获取文件类型 icon 的磁盘绝对路径，供前端 FilesCard 渲染。
 ///
 /// 懒加载：缓存 miss 时，若路径存在则抽取 icon 并缓存；路径已删除则 `iconPath = None`（前端显示弱化态）。
@@ -153,6 +187,25 @@ pub async fn get_file_icon_path(
             .await?;
 
     Ok(FileIconResult { icon_path, exists })
+}
+
+/// 读取单条剪贴板记录的完整预览 payload。
+///
+/// 列表查询会裁剪 text content；预览必须走完整记录，再按 Content Viewer 的三类视图归一化。
+#[tauri::command]
+pub async fn get_clipboard_preview_payload(
+    pool: State<'_, SqlitePool>,
+    image_store: State<'_, ImageStore>,
+    file_icon_store: State<'_, FileIconStore>,
+    item_id: String,
+) -> Result<Option<ClipboardPreviewPayload>> {
+    let Some(item) = find_item_by_id(&pool, &item_id).await? else {
+        return Ok(None);
+    };
+
+    let payload =
+        build_clipboard_preview_payload(&pool, &image_store, &file_icon_store, item).await?;
+    Ok(Some(payload))
 }
 
 /// 把指定历史记录写回系统剪贴板（不触发模拟粘贴）。
@@ -459,6 +512,125 @@ async fn attach_file_entries(
         _ => crate::db::models::FilesPreviewKind::List,
     });
     Ok(())
+}
+
+/// 将完整 `ClipboardItem` 转为预览窗口的轻量数据模型。
+async fn build_clipboard_preview_payload(
+    pool: &SqlitePool,
+    image_store: &ImageStore,
+    file_icon_store: &FileIconStore,
+    item: ClipboardItem,
+) -> Result<ClipboardPreviewPayload> {
+    let mut text = None;
+    let mut image_path = None;
+    let mut image_exists = false;
+    let mut files = Vec::new();
+    let mut total_files = 0;
+
+    match item.kind {
+        ClipboardKind::Text => {
+            text = Some(item.content.clone());
+        }
+        ClipboardKind::Image => {
+            validate_image_file_name(&item.content)?;
+            let path = image_store.origin_path(&item.content);
+            image_exists = path.exists();
+            image_path = Some(path_to_string(&path, "image path")?);
+        }
+        ClipboardKind::Files => {
+            total_files = count_file_paths(&item.content);
+            files = build_preview_file_entries(pool, file_icon_store, &item).await?;
+        }
+    }
+
+    Ok(ClipboardPreviewPayload {
+        id: item.id,
+        kind: item.kind,
+        sub_kind: item.sub_kind,
+        updated_at: item.updated_at,
+        text,
+        image_path,
+        image_width: item.width,
+        image_height: item.height,
+        image_size: item.size,
+        image_exists,
+        files,
+        total_files,
+    })
+}
+
+/// 解析 files 类型记录中的路径列表，最多返回前 64 项以控制 IPC 与 icon 抽取成本。
+async fn build_preview_file_entries(
+    pool: &SqlitePool,
+    store: &FileIconStore,
+    item: &ClipboardItem,
+) -> Result<Vec<ClipboardPreviewFileEntry>> {
+    let paths: Vec<&str> = item
+        .content
+        .split('\n')
+        .filter(|path| !path.is_empty())
+        .take(PREVIEW_FILE_ENTRY_LIMIT)
+        .collect();
+
+    let mut entries = Vec::with_capacity(paths.len());
+    for (index, path) in paths.iter().enumerate() {
+        let (icon_path, exists) =
+            resolve_file_icon_path(pool, store, path, item.file_types.as_deref(), index).await?;
+        let path_obj = Path::new(path);
+        let is_dir = resolve_preview_file_is_dir(path_obj, item.file_types.as_deref(), index);
+        let is_image = !is_dir && is_image_path(path);
+        let size = resolve_preview_file_size(path_obj, is_dir);
+        let name = path_obj
+            .file_name()
+            .and_then(|n| n.to_str())
+            .map(str::to_owned)
+            .unwrap_or_else(|| (*path).to_owned());
+
+        entries.push(ClipboardPreviewFileEntry {
+            path: (*path).to_owned(),
+            name,
+            is_dir,
+            is_image,
+            exists,
+            size,
+            icon_path,
+        });
+    }
+
+    Ok(entries)
+}
+
+/// 统计 files payload 中的有效路径数量。
+fn count_file_paths(content: &str) -> usize {
+    content.split('\n').filter(|path| !path.is_empty()).count()
+}
+
+/// 解析文件是否为目录：存在时信任实时 metadata，缺失时回退到入库时保存的 file_types。
+fn resolve_preview_file_is_dir(path: &Path, file_types: Option<&str>, index: usize) -> bool {
+    if let Ok(metadata) = path.metadata() {
+        return metadata.is_dir();
+    }
+
+    file_types
+        .and_then(|types| types.split(',').nth(index))
+        .map(|file_type| file_type == "d")
+        .unwrap_or(false)
+}
+
+/// 解析普通文件大小；目录或缺失路径不显示 size。
+fn resolve_preview_file_size(path: &Path, is_dir: bool) -> Option<i64> {
+    if is_dir {
+        return None;
+    }
+
+    path.metadata().ok().map(|metadata| metadata.len() as i64)
+}
+
+/// 将本地路径转为 UTF-8 字符串，失败时返回面向用户的 clipboard 错误。
+fn path_to_string(path: &Path, label: &str) -> Result<String> {
+    path.to_str()
+        .map(str::to_owned)
+        .ok_or_else(|| AppError::Clipboard(format!("{label} is not valid utf-8")))
 }
 
 /// 与前端 `utils/is.ts` 的 `isImage` 同义：按扩展名（大小写不敏感）判断常见图片格式。
