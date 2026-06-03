@@ -706,9 +706,10 @@ fn inset_rect(rect: PreviewRect, amount: f64) -> PreviewRect {
     }
 }
 
+/// 返回主窗口内容区的屏幕几何，用于映射 WebView DOM rect 到预览 overlay 坐标。
 fn main_window_rect(app: &AppHandle) -> Option<PreviewMainWindowRect> {
     let window = app.get_webview_window(MAIN_WINDOW_LABEL)?;
-    let pos = window.outer_position().ok()?;
+    let pos = window.inner_position().ok()?;
     let size = window.inner_size().ok()?;
 
     Some(PreviewMainWindowRect {
