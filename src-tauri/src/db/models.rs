@@ -85,7 +85,7 @@ pub struct ClipboardItem {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub image_thumbnail_path: Option<String>,
     /// Files 类型条目对应的预处理后的文件条目（最多前 3 项），命令层按需填充。
-    /// 前端 `FilesCard` 直接 map 渲染，无需再解析 `content` / `file_types` / `summary`。
+    /// 前端 `FilesCard` 直接 map 渲染，无需再解析 `content` / `file_types`。
     #[sqlx(skip)]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub file_entries: Option<Vec<FileEntry>>,

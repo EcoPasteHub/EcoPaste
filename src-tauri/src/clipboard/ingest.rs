@@ -152,9 +152,7 @@ pub fn build_item(store: &ImageStore, payload: &ClipboardPayload) -> Result<Opti
                     .collect();
                 let file_types_str = file_types.join(",");
 
-                // 提取每个路径的文件名，存入 summary 供前端直接渲染，避免前端路径拼接；
-                // search_text 取相同串，使 FTS 按文件名命中（content 是绝对路径，
-                // 直接进 FTS 会被路径中段的随机 hash/分隔符干扰，意义不大）。
+                // 文件名写入 search_text 供 FTS 命中；列表名由命令层从 content 路径现算，summary 保持为空。
                 let basenames = files
                     .iter()
                     .map(|p| {
@@ -170,8 +168,8 @@ pub fn build_item(store: &ImageStore, payload: &ClipboardPayload) -> Result<Opti
                     kind: ClipboardKind::Files,
                     sub_kind: None,
                     content,
-                    search_text: Some(basenames.clone()),
-                    summary: Some(basenames),
+                    search_text: Some(basenames),
+                    summary: None,
                     file_types: Some(file_types_str),
                     width: None,
                     height: None,

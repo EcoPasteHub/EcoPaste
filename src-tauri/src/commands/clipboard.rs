@@ -422,13 +422,6 @@ async fn attach_file_entries(
         return Ok(());
     }
 
-    let names: Vec<&str> = item
-        .summary
-        .as_deref()
-        .unwrap_or("")
-        .split('\n')
-        .filter(|s| !s.is_empty())
-        .collect();
     let types: Vec<&str> = item
         .file_types
         .as_deref()
@@ -441,9 +434,9 @@ async fn attach_file_entries(
         let (icon_path, exists) =
             resolve_file_icon_path(pool, store, path, item.file_types.as_deref(), index).await?;
         let is_dir = types.get(index).copied() == Some("d");
-        let name = names
-            .get(index)
-            .copied()
+        let name = std::path::Path::new(path)
+            .file_name()
+            .and_then(|n| n.to_str())
             .map(str::to_owned)
             .unwrap_or_else(|| (*path).to_owned());
         let is_image = !is_dir && is_image_path(path);
