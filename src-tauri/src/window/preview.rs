@@ -23,6 +23,13 @@ use super::{get_window, CLIPBOARD_PREVIEW_WINDOW_LABEL, MAIN_WINDOW_LABEL};
 #[cfg(target_os = "macos")]
 use tauri_nspanel::{tauri_panel, ManagerExt, PanelLevel, WebviewWindowExt};
 
+#[cfg(target_os = "windows")]
+use windows::Win32::Foundation::HWND;
+#[cfg(target_os = "windows")]
+use windows::Win32::UI::WindowsAndMessaging::{
+    SetWindowPos, HWND_TOPMOST, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SWP_SHOWWINDOW,
+};
+
 const PREVIEW_UPDATED_EVENT: &str = "preview://updated";
 const PREVIEW_PANEL_WIDTH: f64 = 480.0;
 const PREVIEW_PANEL_HEIGHT: f64 = 480.0;
@@ -333,6 +340,7 @@ fn raise_preview_window(app: &AppHandle, window: &WebviewWindow) -> Result<()> {
         window
             .set_always_on_top(true)
             .map_err(|e| anyhow::anyhow!(e))?;
+        raise_windows_preview_window(window, false)?;
 
         Ok(())
     }
@@ -349,6 +357,7 @@ fn show_preview_window(app: &AppHandle, window: &WebviewWindow) -> Result<()> {
     {
         let _ = app;
         window.show().map_err(|e| anyhow::anyhow!(e))?;
+        raise_windows_preview_window(window, true)?;
 
         Ok(())
     }
@@ -441,6 +450,24 @@ fn hide_macos_preview_panel(app: &AppHandle) -> Result<()> {
         }
     })
     .map_err(|e| anyhow::anyhow!(e))?;
+
+    Ok(())
+}
+
+/// 将预览窗口重新压到 Windows topmost 栈顶，避免被同为 always-on-top 的主窗口盖住。
+#[cfg(target_os = "windows")]
+fn raise_windows_preview_window(window: &WebviewWindow, show: bool) -> Result<()> {
+    let raw_hwnd = window.hwnd().map_err(|e| anyhow::anyhow!(e))?;
+    let hwnd = HWND(raw_hwnd.0 as isize);
+    let mut flags = SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE;
+
+    if show {
+        flags |= SWP_SHOWWINDOW;
+    }
+
+    unsafe {
+        SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, flags).map_err(|e| anyhow::anyhow!(e))?;
+    }
 
     Ok(())
 }
