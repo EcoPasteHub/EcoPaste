@@ -94,7 +94,7 @@ const Preview: FC = () => {
   );
 
   if (!visibleState) {
-    return <div className="h-screen w-screen bg-transparent" />;
+    return <div className="fixed inset-0 overflow-hidden bg-transparent" />;
   }
 
   const isLoading = loadingItemId !== null;
@@ -103,7 +103,7 @@ const Preview: FC = () => {
   const svgStyle = rectStyle(layout.overlayRect);
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-transparent">
+    <div className="fixed inset-0 overflow-hidden bg-transparent">
       <motion.svg
         animate={active ? "open" : "closed"}
         aria-hidden="true"

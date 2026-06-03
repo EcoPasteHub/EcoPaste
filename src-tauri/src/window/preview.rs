@@ -499,19 +499,32 @@ fn apply_preview_window_bounds(
     window: &WebviewWindow,
     work_area: &PhysicalRect<i32, u32>,
 ) -> Result<()> {
+    let size = preview_window_size(work_area);
+
     window
         .set_position(PhysicalPosition::new(
             work_area.position.x,
             work_area.position.y,
         ))
         .map_err(|e| anyhow::anyhow!(e))?;
-    window
-        .set_size(PhysicalSize::new(
-            work_area.size.width,
-            work_area.size.height,
-        ))
-        .map_err(|e| anyhow::anyhow!(e))?;
+    window.set_size(size).map_err(|e| anyhow::anyhow!(e))?;
     Ok(())
+}
+
+/// 返回实际预览窗口尺寸；Windows 避免精确全屏触发系统勿扰模式。
+fn preview_window_size(work_area: &PhysicalRect<i32, u32>) -> PhysicalSize<u32> {
+    #[cfg(target_os = "windows")]
+    {
+        return PhysicalSize::new(
+            work_area.size.width.saturating_sub(1),
+            work_area.size.height,
+        );
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        PhysicalSize::new(work_area.size.width, work_area.size.height)
+    }
 }
 
 fn build_preview_layout(
