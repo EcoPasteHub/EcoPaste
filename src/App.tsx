@@ -32,7 +32,7 @@ const App = () => {
 
   return (
     <ConfigProvider>
-      <AntdApp component={false}>
+      <AntdApp>
         <RouterProvider router={router} />
       </AntdApp>
     </ConfigProvider>
