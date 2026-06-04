@@ -40,6 +40,7 @@ pub fn setup_main(app_handle: &AppHandle) -> Result<()> {
         .to_panel::<MainPanel>()
         .map_err(|e| anyhow::anyhow!("to_panel failed: {e:?}"))?;
 
+    panel.set_corner_radius(16.0);
     panel.set_level(PanelLevel::Dock.value());
     panel.set_style_mask(StyleMask::empty().resizable().nonactivating_panel().into());
     panel.set_collection_behavior(
