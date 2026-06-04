@@ -30,7 +30,15 @@ const Footer = () => {
       >
         <Tooltip open={popoverOpen ? false : void 0} title="快捷键">
           <Button
-            icon={<KeyHint hintKey="K" iconName="i-lucide:keyboard" />}
+            icon={
+              <KeyHint
+                hintKey="K"
+                iconName="i-lucide:keyboard"
+                onKeyPress={() => {
+                  setPopoverOpen((prev) => !prev);
+                }}
+              />
+            }
             size="small"
             type="text"
           />
