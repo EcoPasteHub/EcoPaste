@@ -423,7 +423,7 @@ const List: FC = () => {
 
       {pendingCount > 0 && !isAtTop && (
         <button
-          className="absolute top-2 left-1/2 z-10 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-text-light-solid text-xs shadow-md transition-opacity hover:opacity-90"
+          className="absolute top-2 left-1/2 z-10 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-light-solid text-xs shadow-md transition-opacity hover:opacity-90"
           onClick={handleShowPending}
           type="button"
         >

@@ -85,7 +85,7 @@ const KeyHint: FC<KeyHintProps> = (props) => {
       {active && (
         <span
           className={cn(
-            "-translate-1/2 absolute top-1/2 left-1/2 inline-flex size-4 items-center justify-center rounded-1 bg-black font-bold font-mono text-3! text-white",
+            "-translate-1/2 absolute top-1/2 left-1/2 inline-flex size-4 items-center justify-center rounded-1 bg-text font-bold font-mono text-3! text-light-solid",
             className,
           )}
         >

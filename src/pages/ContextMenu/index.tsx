@@ -113,7 +113,7 @@ const ContextMenuItem: FC<ContextMenuItemProps> = (props) => {
       className={cn(
         "flex h-8 w-full cursor-pointer items-center justify-between rounded-1.5 border-0 bg-transparent px-3 text-sm transition-colors",
         {
-          "hover:(text-white bg-error) text-error": isDanger,
+          "hover:(text-light-solid bg-error) text-error": isDanger,
           "hover:bg-text-hover": !isDanger,
         },
       )}
@@ -122,7 +122,7 @@ const ContextMenuItem: FC<ContextMenuItemProps> = (props) => {
     >
       <span className="truncate">{label}</span>
       {accelerator && (
-        <span className="ml-3 whitespace-nowrap text-3 text-text-description">
+        <span className="ml-3 whitespace-nowrap text-3 text-description">
           {formatAccelerator(accelerator)}
         </span>
       )}

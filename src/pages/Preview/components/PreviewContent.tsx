@@ -35,14 +35,12 @@ export const PreviewHeader: FC<PreviewHeaderProps> = (props) => {
   return (
     <div className="flex h-12 shrink-0 items-center justify-between gap-3 border-border border-b px-4">
       <div className="min-w-0">
-        <div className="truncate font-medium text-3.5 text-text-primary">
-          {title}
-        </div>
-        <div className="truncate text-3 text-text-tertiary">{meta}</div>
+        <div className="truncate font-medium text-3.5">{title}</div>
+        <div className="truncate text-3 text-secondary">{meta}</div>
       </div>
 
       {payload && (
-        <span className="shrink-0 rounded-1 bg-fill-secondary px-2 py-0.5 text-2.75 text-text-secondary uppercase">
+        <span className="shrink-0 rounded-1 bg-fill-secondary px-2 py-0.5 text-2.75 text-secondary uppercase">
           {payload.subKind ?? payload.kind}
         </span>
       )}
@@ -92,14 +90,14 @@ const TextViewer: FC<PayloadViewerProps> = (props) => {
   if (payload.subKind === "html") {
     return (
       <SafeHtml
-        className="overflow-auto break-words p-4 text-3.25 text-text-primary leading-5.5"
+        className="overflow-auto break-words p-4 text-3.25 leading-5.5"
         value={text}
       />
     );
   }
 
   return (
-    <pre className="m-0 whitespace-pre-wrap break-words p-4 font-mono text-3.25 text-text-primary leading-5.5">
+    <pre className="m-0 whitespace-pre-wrap break-words p-4 font-mono text-3.25 leading-5.5">
       {text}
     </pre>
   );
@@ -157,7 +155,7 @@ const FilesViewer: FC<PayloadViewerProps> = (props) => {
       </div>
 
       {payload.totalFiles > payload.files.length && (
-        <div className="px-2 py-2 text-3 text-text-tertiary">
+        <div className="px-2 py-2 text-3 text-secondary">
           仅显示前 {payload.files.length} 项，共 {payload.totalFiles} 项
         </div>
       )}
@@ -184,23 +182,23 @@ const FilePreviewRow: FC<FilePreviewRowProps> = (props) => {
       {file.iconPath ? (
         <AssetImage className="size-6 shrink-0" src={file.iconPath} />
       ) : (
-        <span className="i-lucide:file size-5 shrink-0 text-text-tertiary" />
+        <span className="i-lucide:file size-5 shrink-0 text-secondary" />
       )}
 
       <div className="min-w-0 flex-1">
         <div
-          className={cn("truncate text-3.25 text-text-primary", {
+          className={cn("truncate text-3.25", {
             "line-through": !file.exists,
           })}
         >
           {file.name}
         </div>
-        <div className="truncate text-2.75 text-text-tertiary">
+        <div className="truncate text-2.75 text-secondary">
           {file.exists ? file.path : "路径已失效"}
         </div>
       </div>
 
-      <span className="shrink-0 text-2.75 text-text-tertiary">{sizeLabel}</span>
+      <span className="shrink-0 text-2.75 text-secondary">{sizeLabel}</span>
     </div>
   );
 };

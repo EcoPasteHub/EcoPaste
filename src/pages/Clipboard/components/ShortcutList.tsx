@@ -14,7 +14,7 @@ const Kbd: FC<{ children: ReactNode }> = (props) => {
   const { children } = props;
 
   return (
-    <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-1.5 bg-fill-secondary px-1.5 font-mono text-text-secondary text-xs">
+    <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-1.5 bg-fill-secondary px-1.5 font-mono text-secondary text-xs">
       {children}
     </span>
   );
@@ -54,7 +54,7 @@ const ShortcutList: FC = () => {
           className="flex items-center justify-between gap-3 px-1 py-1"
           key={item.label}
         >
-          <span className="text-sm text-text-primary">{item.label}</span>
+          <span className="text-sm">{item.label}</span>
 
           <div className="flex items-center gap-1">
             {item.keys.map((key, index) => (
