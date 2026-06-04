@@ -21,6 +21,24 @@ import {
   type WindowVisibilityPayload,
 } from "./previewController";
 
+const KEYBOARD_PREVIEW_MAX_FRAMES = 36;
+const KEYBOARD_PREVIEW_STABLE_FRAMES = 2;
+const KEYBOARD_PREVIEW_RECT_EPSILON = 0.5;
+
+interface PreviewRectSnapshot {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
+interface KeyboardPreviewTarget {
+  frames: number;
+  item: ClipboardItem;
+  lastRect: PreviewRectSnapshot | null;
+  stableFrames: number;
+}
+
 /**
  * 管理剪贴板预览的 hover / keyboard 生命周期和窗口隐藏兜底。
  */
@@ -41,6 +59,8 @@ export function useClipboardPreviewController(
     item: ClipboardItem;
     pointerY: number;
   } | null>(null);
+  const keyboardPreviewFrameRef = useRef<number | null>(null);
+  const keyboardPreviewTargetRef = useRef<KeyboardPreviewTarget | null>(null);
   const pendingHoverTargetRef = useRef<{
     item: ClipboardItem;
     pointerY: number;
@@ -79,6 +99,11 @@ export function useClipboardPreviewController(
       clearHoverTimer(hoverTimerRef);
       clearHoverTimer(hoverHideTimerRef);
       pendingHoverTargetRef.current = null;
+      if (keyboardPreviewFrameRef.current !== null) {
+        window.cancelAnimationFrame(keyboardPreviewFrameRef.current);
+        keyboardPreviewFrameRef.current = null;
+      }
+      keyboardPreviewTargetRef.current = null;
       if (previewMoveFrameRef.current !== null) {
         window.cancelAnimationFrame(previewMoveFrameRef.current);
         previewMoveFrameRef.current = null;
@@ -122,12 +147,13 @@ export function useClipboardPreviewController(
     cancelHoverPreview();
     cancelHoverHide();
     cancelPreviewMoveFrame();
+    cancelKeyboardPreviewFrame();
     commitPreviewSession(null);
     closeClipboardPreviewSilently(reason);
   };
 
   /**
-   * Hover 进入：初次打开走 delay；已有 hover 预览时直接重定向到新条目。
+   * 卡片指针进入：keyboard 预览直接复用键盘重定向；hover 预览按延迟打开或重定向。
    */
   const handleItemPointerEnter = (
     item: ClipboardItem,
@@ -138,8 +164,19 @@ export function useClipboardPreviewController(
     onHoverSelect(item.id);
 
     if (!mainWindowVisibleRef.current) return;
+    if (previewSessionRef.current?.trigger === "keyboard") {
+      cancelHoverPreview();
+      cancelHoverHide();
+
+      if (previewSessionRef.current.itemId === item.id) {
+        cancelKeyboardPreviewFrame();
+        return;
+      }
+
+      scheduleKeyboardPreviewMove(item);
+      return;
+    }
     if (!previewSettings.hoverEnabled) return;
-    if (previewSessionRef.current?.trigger === "keyboard") return;
 
     cancelHoverPreview();
     cancelHoverHide();
@@ -278,9 +315,9 @@ export function useClipboardPreviewController(
    * 方向键移动到新 active item 时同步 keyboard preview。
    */
   const handleKeyboardPreviewMove = (item: ClipboardItem) => {
-    if (previewSession?.trigger !== "keyboard") return;
+    if (previewSessionRef.current?.trigger !== "keyboard") return;
 
-    void openPreviewForItem(item, "keyboard");
+    scheduleKeyboardPreviewMove(item);
   };
 
   /**
@@ -393,6 +430,117 @@ export function useClipboardPreviewController(
   }
 
   /**
+   * 方向键会先触发虚拟列表滚动，等待目标卡片位置稳定后再重定向预览。
+   */
+  function scheduleKeyboardPreviewMove(item: ClipboardItem) {
+    cancelKeyboardPreviewFrame();
+    keyboardPreviewTargetRef.current = {
+      frames: 0,
+      item,
+      lastRect: null,
+      stableFrames: 0,
+    };
+    requestKeyboardPreviewFrame();
+  }
+
+  /**
+   * 请求下一帧键盘预览位置采样。
+   */
+  function requestKeyboardPreviewFrame() {
+    keyboardPreviewFrameRef.current = window.requestAnimationFrame(
+      handleKeyboardPreviewFrame,
+    );
+  }
+
+  /**
+   * 等待目标卡片 DOMRect 在滚动后稳定，再用最新位置打开预览。
+   */
+  function handleKeyboardPreviewFrame() {
+    keyboardPreviewFrameRef.current = null;
+
+    const target = keyboardPreviewTargetRef.current;
+
+    if (!target) return;
+
+    if (previewSessionRef.current?.trigger !== "keyboard") {
+      keyboardPreviewTargetRef.current = null;
+      return;
+    }
+
+    target.frames += 1;
+
+    const rect = resolveItemRect(target.item.id);
+
+    if (!rect) {
+      retryKeyboardPreviewFrame(target);
+      return;
+    }
+
+    if (
+      target.lastRect &&
+      isPreviewRectStable(target.lastRect, rect, KEYBOARD_PREVIEW_RECT_EPSILON)
+    ) {
+      target.stableFrames += 1;
+    } else {
+      target.stableFrames = 0;
+    }
+
+    target.lastRect = rect;
+
+    if (
+      target.stableFrames >= KEYBOARD_PREVIEW_STABLE_FRAMES ||
+      target.frames >= KEYBOARD_PREVIEW_MAX_FRAMES
+    ) {
+      keyboardPreviewTargetRef.current = null;
+      void openPreviewForItem(target.item, "keyboard");
+      return;
+    }
+
+    requestKeyboardPreviewFrame();
+  }
+
+  /**
+   * 目标卡片尚未挂载或滚动仍在进行时继续等待，超过上限后放弃旧目标。
+   */
+  function retryKeyboardPreviewFrame(target: KeyboardPreviewTarget) {
+    if (target.frames >= KEYBOARD_PREVIEW_MAX_FRAMES) {
+      keyboardPreviewTargetRef.current = null;
+      return;
+    }
+
+    requestKeyboardPreviewFrame();
+  }
+
+  /**
+   * 取消等待中的键盘预览位置采样。
+   */
+  function cancelKeyboardPreviewFrame() {
+    if (keyboardPreviewFrameRef.current !== null) {
+      window.cancelAnimationFrame(keyboardPreviewFrameRef.current);
+      keyboardPreviewFrameRef.current = null;
+    }
+
+    keyboardPreviewTargetRef.current = null;
+  }
+
+  /**
+   * 读取列表项当前 DOMRect，并转成可比较的普通对象。
+   */
+  function resolveItemRect(id: string): PreviewRectSnapshot | null {
+    const element = itemElementMapRef.current.get(id);
+    const rect = element?.getBoundingClientRect();
+
+    if (!rect || rect.width <= 0 || rect.height <= 0) return null;
+
+    return {
+      height: rect.height,
+      left: rect.left,
+      top: rect.top,
+      width: rect.width,
+    };
+  }
+
+  /**
    * 同步预览会话 state 与 ref，供 hover 定时器和快速切换时读取最新会话。
    */
   function commitPreviewSession(session: PreviewSession | null) {
@@ -411,6 +559,22 @@ export function useClipboardPreviewController(
     handlePreviewSpaceDown,
     previewSession,
   };
+}
+
+/**
+ * 判断两帧 DOMRect 是否已经稳定，避免 smooth scroll 中途采样旧坐标。
+ */
+function isPreviewRectStable(
+  prev: PreviewRectSnapshot,
+  next: PreviewRectSnapshot,
+  epsilon: number,
+) {
+  return (
+    Math.abs(prev.left - next.left) <= epsilon &&
+    Math.abs(prev.top - next.top) <= epsilon &&
+    Math.abs(prev.width - next.width) <= epsilon &&
+    Math.abs(prev.height - next.height) <= epsilon
+  );
 }
 
 /**
