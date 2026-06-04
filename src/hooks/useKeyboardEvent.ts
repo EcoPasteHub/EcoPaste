@@ -6,6 +6,7 @@ import { useTauriListen } from "./useTauriListen";
 type KeyboardEventType = "keydown" | "keyup";
 
 interface NavEventPayload {
+  code?: string;
   type: KeyboardEventType;
   key: string;
   ctrlKey?: boolean;

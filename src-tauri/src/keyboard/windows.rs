@@ -10,8 +10,8 @@ use winapi::um::processthreadsapi::GetCurrentThreadId;
 use winapi::um::winuser::{
     CallNextHookEx, GetAsyncKeyState, GetMessageW, PostThreadMessageW, SetWindowsHookExW,
     UnhookWindowsHookEx, KBDLLHOOKSTRUCT, MSG, VK_BACK, VK_CONTROL, VK_DELETE, VK_DOWN, VK_ESCAPE,
-    VK_LCONTROL, VK_RCONTROL, VK_RETURN, VK_SHIFT, VK_TAB, VK_UP, WH_KEYBOARD_LL, WM_KEYDOWN,
-    WM_KEYUP, WM_QUIT, WM_SYSKEYDOWN, WM_SYSKEYUP,
+    VK_LCONTROL, VK_RCONTROL, VK_RETURN, VK_SHIFT, VK_SPACE, VK_TAB, VK_UP, WH_KEYBOARD_LL,
+    WM_KEYDOWN, WM_KEYUP, WM_QUIT, WM_SYSKEYDOWN, WM_SYSKEYUP,
 };
 
 use super::NAV_EVENT;
@@ -47,6 +47,14 @@ fn nav_key(vk: u32) -> Option<&'static str> {
         VK_RETURN => Some("Enter"),
         VK_ESCAPE => Some("Escape"),
         VK_TAB => Some("Tab"),
+        _ => None,
+    }
+}
+
+/// 预览按键需要 keydown / keyup 配对发送，供前端按住显示、松开关闭。
+fn preview_key(vk: u32) -> Option<&'static str> {
+    match vk as i32 {
+        VK_SPACE => Some(" "),
         _ => None,
     }
 }
@@ -148,6 +156,7 @@ unsafe extern "system" fn hook_proc(code: i32, wparam: WPARAM, lparam: LPARAM) -
     }
 
     let nav_key = nav_key(vk);
+    let preview_key = preview_key(vk);
     let shortcut_key = if ctrl_down {
         ctrl_shortcut_key(vk)
     } else {
@@ -169,6 +178,27 @@ unsafe extern "system" fn hook_proc(code: i32, wparam: WPARAM, lparam: LPARAM) -
                 .lock()
                 .expect("consumed keys poisoned")
                 .insert(vk);
+            return 1;
+        }
+
+        if let Some(preview_key) = preview_key {
+            let mut consumed = consumed_keys().lock().expect("consumed keys poisoned");
+            if consumed.contains(&vk) {
+                return 1;
+            }
+
+            consumed.insert(vk);
+            drop(consumed);
+
+            if let Some(app) = APP_HANDLE.get() {
+                if let Err(err) = app.emit(
+                    NAV_EVENT,
+                    json!({ "type": "keydown", "key": preview_key, "code": "Space" }),
+                ) {
+                    log::warn!("emit nav event failed: {err:?}");
+                }
+            }
+
             return 1;
         }
 
@@ -196,6 +226,25 @@ unsafe extern "system" fn hook_proc(code: i32, wparam: WPARAM, lparam: LPARAM) -
             return 1;
         }
     } else if msg == WM_KEYUP || msg == WM_SYSKEYUP {
+        if let Some(preview_key) = preview_key {
+            if consumed_keys()
+                .lock()
+                .expect("consumed keys poisoned")
+                .remove(&vk)
+            {
+                if let Some(app) = APP_HANDLE.get() {
+                    if let Err(err) = app.emit(
+                        NAV_EVENT,
+                        json!({ "type": "keyup", "key": preview_key, "code": "Space" }),
+                    ) {
+                        log::warn!("emit nav event failed: {err:?}");
+                    }
+                }
+
+                return 1;
+            }
+        }
+
         if consumed_keys()
             .lock()
             .expect("consumed keys poisoned")

@@ -33,7 +33,12 @@ export interface UseClipboardPreviewControllerOptions {
  * 判断 Space 键，兼容旧版 WebKit 的 Spacebar 命名。
  */
 export function isSpaceKey(event: KeyboardEvent) {
-  return event.key === " " || event.key === "Spacebar";
+  return (
+    event.key === " " ||
+    event.key === "Space" ||
+    event.key === "Spacebar" ||
+    event.code === "Space"
+  );
 }
 
 /**
