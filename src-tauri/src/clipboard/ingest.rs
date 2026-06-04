@@ -81,6 +81,7 @@ fn draft_from_text(text: &TextPayload) -> Option<Draft> {
         return None;
     }
 
+    let plain_size = Some(count_text_chars(plain));
     let plain_search = Some(plain.to_owned());
     let summary = make_summary(plain);
 
@@ -94,7 +95,7 @@ fn draft_from_text(text: &TextPayload) -> Option<Draft> {
             file_types: None,
             width: None,
             height: None,
-            size: None,
+            size: plain_size,
         });
     }
 
@@ -108,7 +109,7 @@ fn draft_from_text(text: &TextPayload) -> Option<Draft> {
             file_types: None,
             width: None,
             height: None,
-            size: None,
+            size: plain_size,
         });
     }
 
@@ -121,12 +122,17 @@ fn draft_from_text(text: &TextPayload) -> Option<Draft> {
         file_types: None,
         width: None,
         height: None,
-        size: None,
+        size: plain_size,
     })
 }
 
 fn non_empty(value: &Option<String>) -> Option<&String> {
     value.as_ref().filter(|s| !s.trim().is_empty())
+}
+
+/// 文本 size 统一按纯文本 Unicode 标量数量计算，不使用 HTML/RTF 源码长度。
+fn count_text_chars(text: &str) -> i64 {
+    text.chars().count() as i64
 }
 
 /// 把载荷转换为待入库记录，按需落盘图片。
@@ -261,6 +267,7 @@ mod tests {
         assert_eq!(item.sub_kind, Some(ClipboardSubKind::Url));
         assert_eq!(item.content, "https://example.com");
         assert_eq!(item.search_text.as_deref(), Some("https://example.com"));
+        assert_eq!(item.size, Some(19));
     }
 
     #[test]
@@ -276,6 +283,7 @@ mod tests {
         assert_eq!(item.content, "<b>Hello</b> World");
         // OS 提供的 plain 文本优先作为检索文本。
         assert_eq!(item.search_text.as_deref(), Some("Hello World"));
+        assert_eq!(item.size, Some(11));
     }
 
     #[test]
@@ -299,6 +307,7 @@ mod tests {
         assert_eq!(item.sub_kind, Some(ClipboardSubKind::Rtf));
         assert_eq!(item.content, r"{\rtf1 plain repr}");
         assert_eq!(item.search_text.as_deref(), Some("plain repr"));
+        assert_eq!(item.size, Some(10));
     }
 
     #[test]

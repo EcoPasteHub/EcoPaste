@@ -231,13 +231,12 @@ function previewMeta(payload: ClipboardPreviewPayload) {
       payload.imageWidth && payload.imageHeight
         ? `${payload.imageWidth} x ${payload.imageHeight}`
         : "未知尺寸";
-    const size =
-      payload.imageSize === null ? "" : ` · ${formatBytes(payload.imageSize)}`;
+    const size = payload.size === null ? "" : ` · ${formatBytes(payload.size)}`;
 
     return `${dimensions}${size}`;
   }
 
-  return `${payload.text?.length ?? 0} 字符`;
+  return `${payload.size ?? payload.text?.length ?? 0} 字符`;
 }
 
 /**
