@@ -1,31 +1,28 @@
-import { theme as antdTheme, type ThemeConfig } from "antd";
+import { theme as antdTheme } from "antd";
 import type { Preset } from "unocss";
 
 /**
  * UnoCSS preset：把 antd v6 颜色 token 接入 UnoCSS 的 `theme.colors`。
  *
- * 做两件事：
+ * antd v6 的 `ConfigProvider` 默认启用 cssVar，把 `--ant-*` 颜色变量生成在
+ * `<App>`（`.ant-app`）节点上；全应用都渲染在其内，靠继承即可取到变量值，
+ * 故本 preset 不再自行注入这些变量，只做两件事：
  *   1. `extendTheme`：把所有 `color*` 与 `{palette}-{1..10}` 写入
  *      `theme.colors`（值为 `var(--ant-...)`）。wind4 的 `parseColor`
  *      检测到 `var(` 时会原样保留色值，所以 wind4 自带的 **所有** 用色工具
  *      （text- / bg- / from- / via- / to- / border- / ring- / shadow-
  *      / outline- / decoration- / accent- / fill- / stroke- ...）
  *      都会自动支持 antd 颜色，无需我们再单独写规则。
- *   2. `preflights`：把 antd token 落到 `:root` / `.dark`，供上面那些
- *      `var(--ant-...)` 在运行时取到值；切主题只需在 `<html>` 切类名。
+ *   2. `postprocess`：wind4 生成颜色变量时强制用 `var(--colors-{key})`，
+ *      这里把我们注册过的键改写成 `var(--ant-{key})`，对接 antd 注入的变量。
  *
  * 调色板键以嵌套对象（`blue: { "1": ..., DEFAULT: ... }`）写入，避免
  * 整体覆盖 wind4 自带的 Tailwind 调色板（`blue-50`..`blue-950` 仍可用）。
  * 单调色板别名（`text-blue`）通过 `DEFAULT` 指向 `var(--ant-blue-6)`。
  */
 export interface PresetAntdColorsOptions {
-  /** CSS 变量前缀，默认 `"ant"`。 */
+  /** CSS 变量前缀，默认 `"ant"`，需与 antd `getPrefixCls()` 保持一致。 */
   antPrefix?: string;
-  /**
-   * 多主题输出。默认输出 light（`:root, .light`）与 dark（`.dark`）两套变量，
-   * 切主题只需在 `<html>` 上切 `light` / `dark` 类。
-   */
-  themes?: Record<string, ThemeConfig>;
 }
 
 const kebab = (s: string): string => {
@@ -41,12 +38,8 @@ export const presetAntdColors = (
   options: PresetAntdColorsOptions = {},
 ): Preset => {
   const antPrefix = options.antPrefix ?? "ant";
-  const themes = options.themes ?? {
-    ":root, .light": { algorithm: antdTheme.defaultAlgorithm },
-    ".dark": { algorithm: antdTheme.darkAlgorithm },
-  };
 
-  const baseToken = antdTheme.getDesignToken(Object.values(themes)[0]);
+  const baseToken = antdTheme.getDesignToken();
 
   type ColorMap = Record<string, string | Record<string, string>>;
   const colors: ColorMap = {};
@@ -79,22 +72,6 @@ export const presetAntdColors = (
     (colors[p] as Record<string, string>).DEFAULT =
       `var(--${antPrefix}-${p}-6)`;
   }
-
-  const toVarName = (key: string): string => {
-    if (/^color[A-Z]/.test(key)) {
-      return `--${antPrefix}-color-${kebab(key.slice("color".length))}`;
-    }
-    return `--${antPrefix}-${PALETTE_RE.test(key) ? key : kebab(key)}`;
-  };
-
-  const preflightCss = Object.entries(themes)
-    .map(([selector, cfg]) => {
-      const lines = Object.entries(antdTheme.getDesignToken(cfg))
-        .filter(([, v]) => typeof v === "string" || typeof v === "number")
-        .map(([k, v]) => `  ${toVarName(k)}: ${v};`);
-      return `${selector} {\n${lines.join("\n")}\n}`;
-    })
-    .join("\n");
 
   // wind4 内部生成颜色变量时强制用 `var(--colors-{key})`，
   // 这里在 postprocess 阶段把我们注册过的键改写成 `var(--ant-{key})`，
@@ -149,7 +126,6 @@ export const presetAntdColors = (
         }
       }
     },
-    preflights: [{ getCSS: () => preflightCss }],
   };
 };
 
