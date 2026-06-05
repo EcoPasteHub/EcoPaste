@@ -1,3 +1,4 @@
+/* @unocss-include */
 interface SettingVisual {
   tone: string;
   icon: string;

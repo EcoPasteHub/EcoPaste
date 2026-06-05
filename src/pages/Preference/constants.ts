@@ -1,3 +1,4 @@
+/* @unocss-include */
 import type { PreferenceTabId } from "./types/preferences";
 
 export const APP_NAME_PLACEHOLDER = "EcoPaste";

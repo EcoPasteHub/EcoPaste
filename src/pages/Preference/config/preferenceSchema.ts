@@ -1,3 +1,4 @@
+/* @unocss-include */
 import { isMac } from "@/utils/is";
 import type { PreferenceTab } from "../types/preferences";
 
