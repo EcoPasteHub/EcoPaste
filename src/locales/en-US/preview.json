@@ -11,8 +11,12 @@
     "missingPath": "Path unavailable",
     "shownCount": "Showing first {{shown}} of {{total}} items"
   },
+  "image": {
+    "alt": "Clipboard image preview"
+  },
   "meta": {
     "characters": "{{count}} characters",
+    "contentViewer": "Content Viewer",
     "filesLoaded": "{{count}} items loaded",
     "unknownSize": "Unknown size"
   },

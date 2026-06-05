@@ -70,6 +70,8 @@ const PreferenceHeader: FC<PreferenceHeaderProps> = (props) => {
           <div className="relative z-3 w-64">
             <Input
               allowClear
+              autoCapitalize="off"
+              autoCorrect="off"
               className="border-ant-border-secondary bg-ant-fill-quaternary text-ant-text"
               onChange={onSearchChange}
               placeholder={t("preferences:search.placeholder")}
@@ -79,6 +81,7 @@ const PreferenceHeader: FC<PreferenceHeaderProps> = (props) => {
                   className="i-lucide:search text-ant-secondary text-base"
                 />
               }
+              spellCheck={false}
               value={searchQuery}
             />
 

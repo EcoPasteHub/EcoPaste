@@ -30,7 +30,7 @@ const PreferenceSearchResults: FC<PreferenceSearchResultsProps> = (props) => {
   return (
     <motion.div
       animate={{ opacity: 1, y: 0 }}
-      className="absolute top-full right-0 z-10 mt-2 max-h-88 w-128 overflow-y-auto overscroll-contain rounded-2 border border-ant-border-secondary bg-ant-elevated shadow-sm"
+      className="absolute top-full right-0 z-10 mt-2 max-h-88 w-max min-w-full max-w-128 overflow-y-auto overscroll-contain rounded-2 border border-ant-border-secondary bg-ant-elevated shadow-sm"
       initial={{ opacity: 0, y: shouldReduceMotion ? 0 : -4 }}
       transition={{ duration: shouldReduceMotion ? 0 : 0.16, ease: "easeOut" }}
     >
@@ -49,7 +49,7 @@ const PreferenceSearchResults: FC<PreferenceSearchResultsProps> = (props) => {
 
           return (
             <button
-              className="flex w-full cursor-pointer items-center gap-3 border-0 border-ant-split border-b bg-transparent px-3.5 py-3 text-left text-ant-text transition-colors last:border-b-0 hover:bg-ant-fill-tertiary focus-visible:bg-ant-fill-tertiary motion-reduce:transition-none"
+              className="flex w-full min-w-0 cursor-pointer items-center gap-3 border-0 border-ant-split border-b bg-transparent px-3.5 py-3 text-left text-ant-text transition-colors last:border-b-0 hover:bg-ant-fill-tertiary focus-visible:bg-ant-fill-tertiary motion-reduce:transition-none"
               key={result.setting.id}
               onClick={handleClick}
               type="button"

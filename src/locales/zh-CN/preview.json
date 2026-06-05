@@ -11,8 +11,12 @@
     "missingPath": "路径已失效",
     "shownCount": "仅显示前 {{shown}} 项，共 {{total}} 项"
   },
+  "image": {
+    "alt": "剪贴板图片预览"
+  },
   "meta": {
     "characters": "{{count}} 字符",
+    "contentViewer": "内容预览器",
     "filesLoaded": "{{count}} 项已加载",
     "unknownSize": "未知尺寸"
   },

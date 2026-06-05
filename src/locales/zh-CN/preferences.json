@@ -436,38 +436,83 @@
         },
         "windowDelete": {
           "description": "删除当前选中的记录。",
+          "shortcuts": [
+            {
+              "label": "删除选中项"
+            }
+          ],
           "title": "删除选中项"
         },
         "windowFavorite": {
           "description": "切换当前记录的收藏状态。",
+          "shortcuts": [
+            {
+              "label": "收藏 / 取消收藏"
+            }
+          ],
           "title": "收藏 / 取消收藏"
         },
         "windowFocusSearch": {
           "description": "开始搜索历史记录。",
+          "shortcuts": [
+            {
+              "label": "聚焦搜索框"
+            }
+          ],
           "title": "聚焦搜索框"
         },
         "windowNavigate": {
           "description": "移动列表选中项。",
+          "shortcuts": [
+            {
+              "label": "上下导航"
+            }
+          ],
           "title": "上下导航"
         },
         "windowOpenPreference": {
           "description": "打开偏好设置窗口。",
+          "shortcuts": [
+            {
+              "label": "打开偏好设置"
+            }
+          ],
           "title": "打开偏好设置"
         },
         "windowPaste": {
           "description": "粘贴当前选中的记录。",
+          "shortcuts": [
+            {
+              "label": "粘贴选中项"
+            }
+          ],
           "title": "粘贴选中项"
         },
         "windowPastePlain": {
           "description": "粘贴当前记录的纯文本版本。",
+          "shortcuts": [
+            {
+              "label": "粘贴选中项为纯文本"
+            }
+          ],
           "title": "粘贴选中项为纯文本"
         },
         "windowPin": {
           "description": "让主窗口保持显示或恢复自动隐藏。",
+          "shortcuts": [
+            {
+              "label": "固定 / 取消固定窗口"
+            }
+          ],
           "title": "固定 / 取消固定窗口"
         },
         "windowQuickPaste": {
           "description": "按序号快速粘贴可见记录。",
+          "shortcuts": [
+            {
+              "label": "粘贴第 N 项（N = 1…9, 0）"
+            }
+          ],
           "title": "粘贴第 N 项（N = 1...9, 0）"
         }
       },

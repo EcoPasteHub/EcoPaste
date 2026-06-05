@@ -61,6 +61,7 @@ const SearchInput: FC<SearchInputProps> = (props) => {
 
   return (
     <Input
+      autoCapitalize="off"
       autoCorrect="off"
       onChange={handleChange}
       onCompositionEnd={handleCompositionEnd}
@@ -73,6 +74,7 @@ const SearchInput: FC<SearchInputProps> = (props) => {
         />
       }
       ref={inputRef}
+      spellCheck={false}
       {...rest}
     />
   );

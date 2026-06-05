@@ -1,5 +1,7 @@
 import type { FC } from "react";
+import { useTranslation } from "react-i18next";
 import type { PreferenceSetting } from "../../types/preferences";
+import { translatePreferenceShortcutLabel } from "../../utils/preferenceI18n";
 
 interface ShortcutTagsControlProps {
   setting: PreferenceSetting;
@@ -10,19 +12,27 @@ interface ShortcutTagsControlProps {
  */
 const ShortcutTagsControl: FC<ShortcutTagsControlProps> = (props) => {
   const { setting } = props;
+  const { t } = useTranslation("preferences");
 
   if (setting.control.type !== "shortcutTags") return null;
 
   return (
     <div className="flex max-w-78 flex-col items-end gap-1.5">
-      {setting.control.shortcuts.map((shortcut) => {
+      {setting.control.shortcuts.map((shortcut, shortcutIndex) => {
+        const label = translatePreferenceShortcutLabel(
+          t,
+          setting,
+          shortcutIndex,
+        );
+
         return (
-          <div className="flex items-center gap-1" key={shortcut.label}>
+          <div className="flex items-center gap-1" key={label}>
+            <span className="sr-only">{label}</span>
             {shortcut.keys.map((key) => {
               return (
                 <span
                   className="inline-flex h-6 min-w-6 items-center justify-center rounded-1.5 bg-ant-fill-secondary px-1.5 font-mono text-ant-secondary text-xs leading-none"
-                  key={`${shortcut.label}-${key}`}
+                  key={`${label}-${key}`}
                 >
                   {key}
                 </span>

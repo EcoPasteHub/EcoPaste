@@ -97,3 +97,18 @@ export function translatePreferencePlaceholder(
     defaultValue: setting.control.placeholder ?? "",
   });
 }
+
+/**
+ * 翻译只读快捷键说明；key 由 setting id + 快捷键序号推导。
+ */
+export function translatePreferenceShortcutLabel(
+  t: PreferenceTranslator,
+  setting: PreferenceSetting,
+  shortcutIndex: number,
+) {
+  if (setting.control.type !== "shortcutTags") return "";
+
+  return t(`schema.settings.${setting.id}.shortcuts.${shortcutIndex}.label`, {
+    defaultValue: setting.control.shortcuts[shortcutIndex]?.label ?? "",
+  });
+}

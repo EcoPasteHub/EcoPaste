@@ -80,7 +80,7 @@ const Header: FC = () => {
       className="flex items-center justify-between p-3"
       data-tauri-drag-region
     >
-      <img alt="logo" className="size-5" src="/logo.png" />
+      <img alt={t("header.logoAlt")} className="size-5" src="/logo.png" />
 
       <div className="flex items-center gap-1">
         <SearchInput

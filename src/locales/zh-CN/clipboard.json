@@ -17,6 +17,7 @@
     "text": "文本"
   },
   "header": {
+    "logoAlt": "EcoPaste 标志",
     "moreActions": "更多操作",
     "pin": "固定窗口",
     "searchPlaceholder": "搜索剪贴板...",

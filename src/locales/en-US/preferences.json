@@ -135,7 +135,7 @@
           "description": "Switch interface language.",
           "options": {
             "en-US": "English",
-            "zh-CN": "Simplified Chinese"
+            "zh-CN": "简体中文"
           },
           "title": "Language"
         },
@@ -436,38 +436,83 @@
         },
         "windowDelete": {
           "description": "Delete the currently selected record.",
+          "shortcuts": [
+            {
+              "label": "Delete selected item"
+            }
+          ],
           "title": "Delete Selected Item"
         },
         "windowFavorite": {
           "description": "Toggle favorite state for the current record.",
+          "shortcuts": [
+            {
+              "label": "Favorite / unfavorite"
+            }
+          ],
           "title": "Favorite / Unfavorite"
         },
         "windowFocusSearch": {
           "description": "Start searching history.",
+          "shortcuts": [
+            {
+              "label": "Focus search"
+            }
+          ],
           "title": "Focus Search"
         },
         "windowNavigate": {
           "description": "Move the selected list item.",
+          "shortcuts": [
+            {
+              "label": "Navigate up/down"
+            }
+          ],
           "title": "Navigate Up/Down"
         },
         "windowOpenPreference": {
           "description": "Open the preferences window.",
+          "shortcuts": [
+            {
+              "label": "Open preferences"
+            }
+          ],
           "title": "Open Preferences"
         },
         "windowPaste": {
           "description": "Paste the currently selected record.",
+          "shortcuts": [
+            {
+              "label": "Paste selected item"
+            }
+          ],
           "title": "Paste Selected Item"
         },
         "windowPastePlain": {
           "description": "Paste the current record as plain text.",
+          "shortcuts": [
+            {
+              "label": "Paste selected item as plain text"
+            }
+          ],
           "title": "Paste Selected Item as Plain Text"
         },
         "windowPin": {
           "description": "Keep the main window visible or restore auto-hide.",
+          "shortcuts": [
+            {
+              "label": "Pin / unpin window"
+            }
+          ],
           "title": "Pin / Unpin Window"
         },
         "windowQuickPaste": {
           "description": "Quickly paste visible records by number.",
+          "shortcuts": [
+            {
+              "label": "Paste item N (N = 1...9, 0)"
+            }
+          ],
           "title": "Paste Item N (N = 1...9, 0)"
         }
       },
@@ -524,13 +569,27 @@
       }
     },
     "tabs": {
-      "about": { "title": "About" },
-      "data": { "title": "Data" },
-      "organize": { "title": "History" },
-      "record": { "title": "Capture" },
-      "reuse": { "title": "Actions" },
-      "shortcuts": { "title": "Shortcuts" },
-      "workflow": { "title": "Interface" }
+      "about": {
+        "title": "About"
+      },
+      "data": {
+        "title": "Data"
+      },
+      "organize": {
+        "title": "History"
+      },
+      "record": {
+        "title": "Capture"
+      },
+      "reuse": {
+        "title": "Actions"
+      },
+      "shortcuts": {
+        "title": "Shortcuts"
+      },
+      "workflow": {
+        "title": "Interface"
+      }
     }
   },
   "search": {

@@ -17,6 +17,7 @@
     "text": "Text"
   },
   "header": {
+    "logoAlt": "EcoPaste logo",
     "moreActions": "More actions",
     "pin": "Pin window",
     "searchPlaceholder": "Search clipboard...",

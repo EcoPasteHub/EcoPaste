@@ -33,7 +33,7 @@ export const PreviewHeader: FC<PreviewHeaderProps> = (props) => {
   const { payload } = props;
   const { t } = useTranslation("preview");
   const title = payload ? previewTitle(t, payload) : t("title.loading");
-  const meta = payload ? previewMeta(t, payload) : "Content Viewer";
+  const meta = payload ? previewMeta(t, payload) : t("meta.contentViewer");
 
   return (
     <div className="flex h-12 shrink-0 items-center justify-between gap-3 border-ant-border border-b px-4">
@@ -132,7 +132,7 @@ const ImageViewer: FC<PayloadViewerProps> = (props) => {
   return (
     <div className="flex max-h-full items-center justify-center p-4">
       <AssetImage
-        alt="clipboard image preview"
+        alt={t("image.alt")}
         className="max-h-full max-w-full object-contain"
         draggable={false}
         src={payload.imagePath}
