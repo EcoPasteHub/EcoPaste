@@ -20,7 +20,7 @@ use tauri::{AppHandle, Emitter, Manager};
 use super::app_store::AppIconStore;
 use super::apps_registry::AppsRegistry;
 use super::guard::WritebackGuard;
-use super::ingest::build_item;
+use super::ingest::build_item_with_capture;
 use super::read::ClipboardReader;
 use super::sound;
 use super::source::{self, FrontmostApp};
@@ -295,7 +295,12 @@ impl ClipboardHandler for ClipboardChangeHandler {
             }
         };
 
-        let mut item = match build_item(&self.store, &payload) {
+        let capture = self
+            .app
+            .try_state::<SettingsStore>()
+            .map(|s| s.snapshot().clipboard.capture)
+            .unwrap_or_default();
+        let mut item = match build_item_with_capture(&self.store, &payload, &capture) {
             Ok(Some(item)) => item,
             Ok(None) => return,
             Err(err) => {
@@ -331,7 +336,7 @@ mod tests {
     use clipboard_rs::{Clipboard, ClipboardContext};
 
     use super::*;
-    use crate::clipboard::{ImageStore, WritebackGuard};
+    use crate::clipboard::{build_item, ImageStore, WritebackGuard};
     use crate::db::items::find_item_by_id;
     use crate::db::test_support::memory_pool;
 

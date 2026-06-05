@@ -168,28 +168,23 @@
       },
       "capture": {
         "files": {
-          "controlLabel": "Supported",
-          "description": "Save paths and show icons plus availability.",
+          "description": "Turn off to stop saving copied files and folders.",
           "title": "Files and Folders"
         },
         "html": {
-          "controlLabel": "Supported",
-          "description": "Preserve the original structure of web and rich text content.",
+          "description": "Turn off to save web rich text only as available plain text.",
           "title": "HTML Content"
         },
         "images": {
-          "controlLabel": "Supported",
-          "description": "Save original images and show thumbnails in the list.",
+          "description": "Turn off to stop saving clipboard images.",
           "title": "Images"
         },
         "rtf": {
-          "controlLabel": "Supported",
-          "description": "Preserve rich text formatting from document editors.",
+          "description": "Turn off to save document rich text only as available plain text.",
           "title": "RTF Content"
         },
         "text": {
-          "controlLabel": "Always capture",
-          "description": "Basic history type, always retained.",
+          "description": "Turn off to stop saving plain text content.",
           "title": "Plain Text"
         }
       },

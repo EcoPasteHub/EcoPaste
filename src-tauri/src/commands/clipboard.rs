@@ -9,9 +9,9 @@ use sqlx::SqlitePool;
 use tauri::{AppHandle, Manager, State};
 
 use crate::clipboard::{
-    build_item, detect_frontmost, materialize_source, persist_and_notify, refresh_from_dirs,
-    sanitize_css_color, AppIconStore, AppsRegistry, ClipboardReader, FileIconStore, ImageStore,
-    WritebackGuard,
+    build_item_with_capture, detect_frontmost, materialize_source, persist_and_notify,
+    refresh_from_dirs, sanitize_css_color, AppIconStore, AppsRegistry, ClipboardReader,
+    FileIconStore, ImageStore, WritebackGuard,
 };
 use crate::core::{AppError, Result};
 use crate::db::items::{find_item_by_id, find_item_for_list_by_id};
@@ -19,6 +19,7 @@ use crate::db::models::{
     ClipboardAction, ClipboardGroup, ClipboardItem, ClipboardItemPage, ClipboardItemQuery,
     ClipboardKind, ClipboardSubKind, FileEntry, Platform,
 };
+use crate::settings::SettingsStore;
 use crate::window::{self, MAIN_WINDOW_LABEL};
 
 /// `read_clipboard` 的返回：入库后的记录 + 是否命中去重（前端据此决定提示/滚动行为）。
@@ -54,8 +55,9 @@ pub async fn read_clipboard(
         let source = detect_frontmost();
         let reader = ClipboardReader::new()?;
         let payload = reader.read_all()?;
+        let capture = app.state::<SettingsStore>().snapshot().clipboard.capture;
         let item = match payload {
-            Some(payload) => build_item(&store, &payload)?,
+            Some(payload) => build_item_with_capture(&store, &payload, &capture)?,
             None => None,
         };
         (item, source)

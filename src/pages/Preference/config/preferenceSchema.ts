@@ -25,44 +25,59 @@ export const preferenceTabs: PreferenceTab[] = [
         id: "capture",
         settings: [
           {
-            control: { label: "始终记录", type: "status" },
-            description: "基础历史类型，始终保留。",
+            control: { type: "switch" },
+            description: "关闭后不再保存纯文本内容。",
             id: "capture.text",
             keywords: ["text", "plain", "record"],
-            status: "alwaysOn",
+            path: ["clipboard", "capture", "text"],
             title: "纯文本",
+            value: (settings) => {
+              return settings.clipboard.capture.text;
+            },
           },
           {
-            control: { label: "已支持", type: "status" },
-            description: "保留网页和富文本的原始结构。",
+            control: { type: "switch" },
+            description: "关闭后富文本网页内容只按可用纯文本处理。",
             id: "capture.html",
             keywords: ["html", "rich text", "format"],
-            status: "alwaysOn",
+            path: ["clipboard", "capture", "html"],
             title: "HTML 内容",
+            value: (settings) => {
+              return settings.clipboard.capture.html;
+            },
           },
           {
-            control: { label: "已支持", type: "status" },
-            description: "保留来自文档编辑器的富文本格式。",
+            control: { type: "switch" },
+            description: "关闭后文档富文本只按可用纯文本处理。",
             id: "capture.rtf",
             keywords: ["rtf", "rich text", "format"],
-            status: "alwaysOn",
+            path: ["clipboard", "capture", "rtf"],
             title: "RTF 内容",
+            value: (settings) => {
+              return settings.clipboard.capture.rtf;
+            },
           },
           {
-            control: { label: "已支持", type: "status" },
-            description: "保存原图，列表中显示缩略图。",
+            control: { type: "switch" },
+            description: "关闭后不再保存剪贴板图片。",
             id: "capture.images",
             keywords: ["image", "picture", "thumbnail"],
-            status: "alwaysOn",
+            path: ["clipboard", "capture", "images"],
             title: "图片",
+            value: (settings) => {
+              return settings.clipboard.capture.images;
+            },
           },
           {
-            control: { label: "已支持", type: "status" },
-            description: "保存路径，并显示图标与可用状态。",
+            control: { type: "switch" },
+            description: "关闭后不再保存复制的文件和文件夹。",
             id: "capture.files",
             keywords: ["file", "folder", "path"],
-            status: "alwaysOn",
+            path: ["clipboard", "capture", "files"],
             title: "文件和文件夹",
+            value: (settings) => {
+              return settings.clipboard.capture.files;
+            },
           },
         ],
         title: "内容类型",

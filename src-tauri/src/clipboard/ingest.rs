@@ -17,6 +17,7 @@ use super::storage::ImageStore;
 use crate::core::Result;
 use crate::db::items::content_hash;
 use crate::db::models::{ClipboardItem, ClipboardKind, ClipboardSubKind, Platform};
+use crate::settings::Capture;
 
 /// 列表渲染用摘要的最大字符数（按 Unicode 标量计，不是字节）。
 /// 超过此长度的文本会被截断，前端列表只渲染摘要，预览/写回时再读完整 `content`。
@@ -75,7 +76,11 @@ fn files_to_content(files: &[String]) -> String {
 ///
 /// 一律以 trim 后的纯文本作为「是否有可展示内容」的判据：纯文本为空就直接 `None`，
 /// 不管 HTML/RTF 源是否存在（只有样式/空白节点的源对用户没意义，列表也渲染不出来）。
-fn draft_from_text(text: &TextPayload) -> Option<Draft> {
+fn draft_from_text(text: &TextPayload, capture: &Capture) -> Option<Draft> {
+    if !capture.text && !capture.html && !capture.rtf {
+        return None;
+    }
+
     let plain = text.text.trim();
     if plain.is_empty() {
         return None;
@@ -85,32 +90,40 @@ fn draft_from_text(text: &TextPayload) -> Option<Draft> {
     let plain_search = Some(plain.to_owned());
     let summary = make_summary(plain);
 
-    if let Some(html) = non_empty(&text.html) {
-        return Some(Draft {
-            kind: ClipboardKind::Text,
-            sub_kind: Some(ClipboardSubKind::Html),
-            content: html.clone(),
-            search_text: plain_search,
-            summary,
-            file_types: None,
-            width: None,
-            height: None,
-            size: plain_size,
-        });
+    if capture.html {
+        if let Some(html) = non_empty(&text.html) {
+            return Some(Draft {
+                kind: ClipboardKind::Text,
+                sub_kind: Some(ClipboardSubKind::Html),
+                content: html.clone(),
+                search_text: plain_search.clone(),
+                summary: summary.clone(),
+                file_types: None,
+                width: None,
+                height: None,
+                size: plain_size,
+            });
+        }
     }
 
-    if let Some(rtf) = non_empty(&text.rtf) {
-        return Some(Draft {
-            kind: ClipboardKind::Text,
-            sub_kind: Some(ClipboardSubKind::Rtf),
-            content: rtf.clone(),
-            search_text: plain_search,
-            summary,
-            file_types: None,
-            width: None,
-            height: None,
-            size: plain_size,
-        });
+    if capture.rtf {
+        if let Some(rtf) = non_empty(&text.rtf) {
+            return Some(Draft {
+                kind: ClipboardKind::Text,
+                sub_kind: Some(ClipboardSubKind::Rtf),
+                content: rtf.clone(),
+                search_text: plain_search.clone(),
+                summary: summary.clone(),
+                file_types: None,
+                width: None,
+                height: None,
+                size: plain_size,
+            });
+        }
+    }
+
+    if !capture.text {
+        return None;
     }
 
     Some(Draft {
@@ -135,12 +148,26 @@ fn count_text_chars(text: &str) -> i64 {
     text.chars().count() as i64
 }
 
-/// 把载荷转换为待入库记录，按需落盘图片。
-/// 返回 `Ok(None)` 表示无可入库内容（空文本等）。
+/// 使用默认采集开关把载荷转换为待入库记录。
+#[cfg(test)]
 pub fn build_item(store: &ImageStore, payload: &ClipboardPayload) -> Result<Option<ClipboardItem>> {
+    build_item_with_capture(store, payload, &Capture::default())
+}
+
+/// 把载荷转换为待入库记录，按需落盘图片，并按内容类型采集开关过滤。
+/// 返回 `Ok(None)` 表示无可入库内容（空文本、关闭对应类型等）。
+pub fn build_item_with_capture(
+    store: &ImageStore,
+    payload: &ClipboardPayload,
+    capture: &Capture,
+) -> Result<Option<ClipboardItem>> {
     let draft = match payload {
-        ClipboardPayload::Text(text) => draft_from_text(text),
+        ClipboardPayload::Text(text) => draft_from_text(text, capture),
         ClipboardPayload::Files(files) => {
+            if !capture.files {
+                return Ok(None);
+            }
+
             let content = files_to_content(files);
             if content.trim().is_empty() {
                 None
@@ -184,6 +211,10 @@ pub fn build_item(store: &ImageStore, payload: &ClipboardPayload) -> Result<Opti
             }
         }
         ClipboardPayload::Image(image) => {
+            if !capture.images {
+                return Ok(None);
+            }
+
             let stored = store.store(image)?;
             Some(Draft {
                 kind: ClipboardKind::Image,
@@ -311,6 +342,56 @@ mod tests {
     }
 
     #[test]
+    fn disabled_plain_text_yields_none() {
+        let (_d, s) = store();
+        let capture = Capture {
+            text: false,
+            ..Capture::default()
+        };
+        let item =
+            build_item_with_capture(&s, &text_payload("hello", None, None), &capture).unwrap();
+        assert!(item.is_none());
+    }
+
+    #[test]
+    fn disabled_html_falls_back_to_plain_text() {
+        let (_d, s) = store();
+        let capture = Capture {
+            html: false,
+            ..Capture::default()
+        };
+        let item = build_item_with_capture(
+            &s,
+            &text_payload("Hello World", Some("<b>Hello</b> World"), None),
+            &capture,
+        )
+        .unwrap()
+        .unwrap();
+        assert_eq!(item.sub_kind, None);
+        assert_eq!(item.content, "Hello World");
+        assert_eq!(item.search_text.as_deref(), Some("Hello World"));
+    }
+
+    #[test]
+    fn disabled_rtf_falls_back_to_plain_text() {
+        let (_d, s) = store();
+        let capture = Capture {
+            rtf: false,
+            ..Capture::default()
+        };
+        let item = build_item_with_capture(
+            &s,
+            &text_payload("plain repr", None, Some(r"{\rtf1 plain repr}")),
+            &capture,
+        )
+        .unwrap()
+        .unwrap();
+        assert_eq!(item.sub_kind, None);
+        assert_eq!(item.content, "plain repr");
+        assert_eq!(item.search_text.as_deref(), Some("plain repr"));
+    }
+
+    #[test]
     fn files_join_with_newline() {
         let (_d, s) = store();
         let payload = ClipboardPayload::Files(vec!["/a/b.txt".to_owned(), "/c/d".to_owned()]);
@@ -343,6 +424,34 @@ mod tests {
         );
         // 原图确实落盘。
         assert!(s.origin_path(&item.content).exists());
+    }
+
+    #[test]
+    fn disabled_images_yields_none() {
+        let (_d, s) = store();
+        let capture = Capture {
+            images: false,
+            ..Capture::default()
+        };
+        let payload = ClipboardPayload::Image(ImagePayload {
+            bytes: sample_png(20, 10),
+            width: 20,
+            height: 10,
+        });
+        let item = build_item_with_capture(&s, &payload, &capture).unwrap();
+        assert!(item.is_none());
+    }
+
+    #[test]
+    fn disabled_files_yields_none() {
+        let (_d, s) = store();
+        let capture = Capture {
+            files: false,
+            ..Capture::default()
+        };
+        let payload = ClipboardPayload::Files(vec!["/a/b.txt".to_owned()]);
+        let item = build_item_with_capture(&s, &payload, &capture).unwrap();
+        assert!(item.is_none());
     }
 
     #[test]

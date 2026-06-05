@@ -128,6 +128,7 @@ impl Default for QuickPaste {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(default, rename_all = "camelCase")]
 pub struct Clipboard {
+    pub capture: Capture,
     pub content: Content,
     pub history: History,
     pub search: Search,
@@ -135,6 +136,29 @@ pub struct Clipboard {
     pub preview: Preview,
     pub feedback: Feedback,
     pub filters: Filters,
+}
+
+/// 剪贴板内容类型采集开关。关闭后监听与手动读取都不入库对应类型。
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(default, rename_all = "camelCase")]
+pub struct Capture {
+    pub text: bool,
+    pub html: bool,
+    pub rtf: bool,
+    pub images: bool,
+    pub files: bool,
+}
+
+impl Default for Capture {
+    fn default() -> Self {
+        Self {
+            text: true,
+            html: true,
+            rtf: true,
+            images: true,
+            files: true,
+        }
+    }
 }
 
 /// 应用过滤规则 + 应用扫描目录。

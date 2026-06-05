@@ -64,6 +64,14 @@ export interface Content {
   itemActions: ItemAction[];
 }
 
+export interface Capture {
+  text: boolean;
+  html: boolean;
+  rtf: boolean;
+  images: boolean;
+  files: boolean;
+}
+
 export interface Retention {
   value: number;
   unit: RetentionUnit;
@@ -101,6 +109,7 @@ export interface Filters {
 }
 
 export interface Clipboard {
+  capture: Capture;
   content: Content;
   history: History;
   search: Search;

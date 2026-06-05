@@ -20,7 +20,9 @@ pub use detect::sanitize_css_color;
 pub use file_icon_store::FileIconStore;
 pub use guard::WritebackGuard;
 pub use icon::{get_icon_cache_key, icon_png, DIR_CACHE_KEY};
+#[cfg(test)]
 pub use ingest::build_item;
+pub use ingest::build_item_with_capture;
 pub use read::ClipboardReader;
 pub use sound::play_copy_sound;
 pub use source::detect_frontmost;

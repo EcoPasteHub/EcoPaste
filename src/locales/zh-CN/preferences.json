@@ -168,28 +168,23 @@
       },
       "capture": {
         "files": {
-          "controlLabel": "已支持",
-          "description": "保存路径，并显示图标与可用状态。",
+          "description": "关闭后不再保存复制的文件和文件夹。",
           "title": "文件和文件夹"
         },
         "html": {
-          "controlLabel": "已支持",
-          "description": "保留网页和富文本的原始结构。",
+          "description": "关闭后富文本网页内容只按可用纯文本处理。",
           "title": "HTML 内容"
         },
         "images": {
-          "controlLabel": "已支持",
-          "description": "保存原图，列表中显示缩略图。",
+          "description": "关闭后不再保存剪贴板图片。",
           "title": "图片"
         },
         "rtf": {
-          "controlLabel": "已支持",
-          "description": "保留来自文档编辑器的富文本格式。",
+          "description": "关闭后文档富文本只按可用纯文本处理。",
           "title": "RTF 内容"
         },
         "text": {
-          "controlLabel": "始终记录",
-          "description": "基础历史类型，始终保留。",
+          "description": "关闭后不再保存纯文本内容。",
           "title": "纯文本"
         }
       },
