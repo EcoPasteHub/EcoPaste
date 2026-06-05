@@ -30,7 +30,7 @@ const PreferenceSearchResults: FC<PreferenceSearchResultsProps> = (props) => {
   return (
     <motion.div
       animate={{ opacity: 1, y: 0 }}
-      className="absolute top-full right-0 left-0 z-10 mt-2 max-h-88 overflow-y-auto overscroll-contain rounded-2 border border-ant-border-secondary bg-ant-elevated shadow-sm"
+      className="absolute top-full right-0 z-10 mt-2 max-h-88 w-128 overflow-y-auto overscroll-contain rounded-2 border border-ant-border-secondary bg-ant-elevated shadow-sm"
       initial={{ opacity: 0, y: shouldReduceMotion ? 0 : -4 }}
       transition={{ duration: shouldReduceMotion ? 0 : 0.16, ease: "easeOut" }}
     >
@@ -62,7 +62,7 @@ const PreferenceSearchResults: FC<PreferenceSearchResultsProps> = (props) => {
                   {translatePreferenceSetting(t, result.setting, "description")}
                 </small>
               </div>
-              <div className="whitespace-nowrap text-ant-tertiary text-xs">
+              <div className="max-w-56 truncate text-ant-tertiary text-xs">
                 {translatePreferenceTab(t, result.tab)} /{" "}
                 {translatePreferenceSection(t, result.section, "title")}
               </div>

@@ -45,13 +45,15 @@ export function translatePreferenceSetting(
 }
 
 /**
- * 翻译设置项控件里展示的选项；key 由 setting id + option value 推导。
+ * 翻译设置项控件里展示的选项；语言项固定显示语言原名，其余 key 由 setting id + option value 推导。
  */
 export function translatePreferenceOption(
   t: PreferenceTranslator,
   setting: PreferenceSetting,
   option: PreferenceOption,
 ) {
+  if (setting.id === "appearance.language") return option;
+
   return {
     ...option,
     label: t(`schema.settings.${setting.id}.options.${option.value}`, {
