@@ -1,20 +1,17 @@
-import type { Event, UnlistenFn } from "@tauri-apps/api/event";
-import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { useEventListener, useMount, useUnmount } from "ahooks";
-import { App as AntdApp, ConfigProvider, theme } from "antd";
+import { useEventListener } from "ahooks";
+import { App as AntdApp, ConfigProvider } from "antd";
 import enUS from "antd/locale/en_US";
 import zhCN from "antd/locale/zh_CN";
 import type { FC } from "react";
-import { use, useEffect, useRef, useState } from "react";
+import { use, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { RouterProvider } from "react-router";
 import { useSnapshot } from "valtio";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { router } from "./router";
 import { settingsReady, settingsState } from "./stores/settings";
-import type { Language, Theme as SettingsTheme } from "./types/settings";
+import type { Language } from "./types/settings";
 import { log } from "./utils/log";
-
-type ResolvedTheme = "light" | "dark";
 
 /**
  * 把设置语言映射到 Ant Design 内置 locale。
@@ -26,25 +23,6 @@ const resolveAntdLocale = (language: Language) => {
 };
 
 /**
- * 根据用户设置与系统偏好解析当前实际主题。
- */
-const resolveTheme = (mode: SettingsTheme, systemTheme: ResolvedTheme) => {
-  if (mode === "dark") return "dark";
-  if (mode === "light") return "light";
-
-  return systemTheme;
-};
-
-/**
- * 把 Tauri 返回的窗口主题归一到前端可用的 light / dark。
- */
-const normalizeTauriTheme = (value: ResolvedTheme | null): ResolvedTheme => {
-  if (value === "dark") return "dark";
-
-  return "light";
-};
-
-/**
  * 等待 Rust 设置首屏快照灌入后再渲染，避免组件读到空对象闪烁默认值。
  * `use()` 在 promise pending 时抛出，由父级（`main.tsx`）的 Suspense 接住。
  */
@@ -53,71 +31,10 @@ const App: FC = () => {
 
   const { i18n } = useTranslation();
   const settings = useSnapshot(settingsState);
-  const themeUnlistenRef = useRef<UnlistenFn | null>(null);
-  const themeMountedRef = useRef(false);
-  const [systemTheme, setSystemTheme] = useState<ResolvedTheme>("light");
   const mode = settings.appearance.theme;
   const language = settings.appearance.language;
-  const resolvedTheme = resolveTheme(mode, systemTheme);
-  const algorithm =
-    resolvedTheme === "dark" ? theme.darkAlgorithm : theme.defaultAlgorithm;
+  const antdTheme = useAppTheme(mode);
   const locale = resolveAntdLocale(language);
-
-  /**
-   * 接收 Tauri 系统主题变化事件，驱动 `auto` 模式的实际主题。
-   */
-  const handleTauriThemeChanged = (event: Event<ResolvedTheme>) => {
-    setSystemTheme(event.payload);
-  };
-
-  /**
-   * 初始化 Tauri 主题快照与系统主题变化监听。
-   */
-  const initializeTauriThemeListener = async () => {
-    try {
-      const currentWindow = getCurrentWebviewWindow();
-      const currentTheme = await currentWindow.theme();
-      const unlisten = await currentWindow.onThemeChanged(
-        handleTauriThemeChanged,
-      );
-
-      setSystemTheme(normalizeTauriTheme(currentTheme));
-
-      if (!themeMountedRef.current) {
-        unlisten();
-        return;
-      }
-
-      themeUnlistenRef.current = unlisten;
-    } catch (error) {
-      log.error("tauri theme listener failed", error);
-    }
-  };
-
-  /**
-   * 移除 Tauri 系统主题变化监听。
-   */
-  const cleanupTauriThemeListener = () => {
-    themeMountedRef.current = false;
-
-    if (!themeUnlistenRef.current) return;
-
-    themeUnlistenRef.current();
-    themeUnlistenRef.current = null;
-  };
-
-  useMount(() => {
-    themeMountedRef.current = true;
-    void initializeTauriThemeListener();
-  });
-
-  useUnmount(cleanupTauriThemeListener);
-
-  useEffect(() => {
-    const root = document.documentElement;
-    root.classList.toggle("dark", resolvedTheme === "dark");
-    root.classList.toggle("light", resolvedTheme === "light");
-  }, [resolvedTheme]);
 
   useEffect(() => {
     document.documentElement.lang = language;
@@ -145,10 +62,7 @@ const App: FC = () => {
   });
 
   return (
-    <ConfigProvider
-      locale={locale}
-      theme={{ algorithm, cssVar: { key: "eco-paste" } }}
-    >
+    <ConfigProvider locale={locale} theme={antdTheme}>
       <AntdApp>
         <RouterProvider router={router} />
       </AntdApp>
