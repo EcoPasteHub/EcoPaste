@@ -3,6 +3,7 @@ import { useMount } from "ahooks";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import type { ChangeEvent, FC } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useSnapshot } from "valtio";
 import { getStorageUsage, type StorageUsage } from "@/commands";
 import { settingsState } from "@/stores/settings";
@@ -47,6 +48,7 @@ type AppMetadata = {
  * EcoPaste 偏好设置：以用户心智组织设置，而非代码模块。
  */
 const Preference: FC = () => {
+  const { t } = useTranslation("preferences");
   const settings = useSnapshot(settingsState) as Settings;
   const shouldReduceMotion = useReducedMotion();
   const reduceMotion = shouldReduceMotion === true;
@@ -69,8 +71,8 @@ const Preference: FC = () => {
       return tab.id === activeTabId;
     }) ?? preferenceTabs[0];
   const searchResults = useMemo(() => {
-    return searchPreferenceSettings(searchQuery);
-  }, [searchQuery]);
+    return searchPreferenceSettings(searchQuery, t);
+  }, [searchQuery, t]);
   const totalSettings = activeTab.sections.reduce((total, section) => {
     return total + section.settings.length;
   }, 0);

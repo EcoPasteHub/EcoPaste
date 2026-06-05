@@ -1,0 +1,41 @@
+{
+  "empty": {
+    "favorites": "暂无收藏记录",
+    "history": "暂无剪贴板历史",
+    "searchFavorites": "未找到「{{keyword}}」相关收藏",
+    "searchHistory": "未找到「{{keyword}}」相关记录"
+  },
+  "footer": {
+    "shortcuts": "快捷键",
+    "total": "共 {{count}} 项"
+  },
+  "groups": {
+    "all": "全部",
+    "favorite": "收藏",
+    "files": "文件",
+    "image": "图片",
+    "text": "文本"
+  },
+  "header": {
+    "moreActions": "更多操作",
+    "pin": "固定窗口",
+    "searchPlaceholder": "搜索剪贴板...",
+    "unpin": "取消固定"
+  },
+  "note": {
+    "placeholder": "为这条记录添加备注...",
+    "title": "编辑备注"
+  },
+  "pending": "{{count}} 条新记录，点击查看",
+  "shortcuts": {
+    "deleteSelected": "删除选中项",
+    "favoriteSelected": "收藏 / 取消收藏",
+    "focusSearch": "聚焦搜索框",
+    "navigate": "上下导航",
+    "openPreference": "打开偏好设置",
+    "pasteNth": "粘贴第 N 项（N = 1…9, 0）",
+    "pasteSelected": "粘贴选中项",
+    "pasteSelectedPlain": "粘贴选中项为纯文本",
+    "pinWindow": "固定 / 取消固定窗口"
+  }
+}

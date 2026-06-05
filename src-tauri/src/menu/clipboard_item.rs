@@ -15,6 +15,7 @@ use serde::{Deserialize, Serialize};
 use tauri::AppHandle;
 
 use crate::core::Result;
+use crate::settings::Language;
 
 /// 前端订阅事件：携带 `{action, itemId}`，由 `List.tsx` 派发到现有处理逻辑。
 #[cfg(target_os = "macos")]
@@ -38,27 +39,31 @@ pub enum ClipboardMenuAction {
 }
 
 impl ClipboardMenuAction {
-    /// 中文文案；`ToggleFavorite` 根据当前收藏状态翻转。
-    pub(super) fn label(self, is_favorite: bool) -> &'static str {
-        match self {
-            Self::Paste => "粘贴",
-            Self::PasteAsPlainText => "粘贴为纯文本",
-            Self::PasteAsPath => "粘贴为路径",
-            Self::Copy => "复制",
-            Self::OpenLink => "打开链接",
-            Self::SendEmail => "发送邮件",
-            Self::RevealInFinder => "在访达中显示",
-            Self::RevealInExplorer => "在资源管理器中显示",
+    /// 返回当前语言下的菜单文案；`ToggleFavorite` 根据当前收藏状态翻转。
+    pub(super) fn label(self, lang: Language, is_favorite: bool) -> &'static str {
+        use crate::i18n::clipboard_menu::Key;
+
+        let key = match self {
+            Self::Paste => Key::Paste,
+            Self::PasteAsPlainText => Key::PasteAsPlainText,
+            Self::PasteAsPath => Key::PasteAsPath,
+            Self::Copy => Key::Copy,
+            Self::OpenLink => Key::OpenLink,
+            Self::SendEmail => Key::SendEmail,
+            Self::RevealInFinder => Key::RevealInFinder,
+            Self::RevealInExplorer => Key::RevealInExplorer,
             Self::ToggleFavorite => {
                 if is_favorite {
-                    "取消收藏"
+                    Key::Unfavorite
                 } else {
-                    "收藏"
+                    Key::Favorite
                 }
             }
-            Self::EditNote => "编辑备注",
-            Self::Delete => "删除",
-        }
+            Self::EditNote => Key::EditNote,
+            Self::Delete => Key::Delete,
+        };
+
+        crate::i18n::clipboard_menu::label(lang, key)
     }
 
     /// 加速键文案（muda 与前端菜单共用 `"CmdOrCtrl+X"` 平台无关写法）。
@@ -118,6 +123,7 @@ mod native {
     use tauri::{AppHandle, Emitter, Manager, Wry};
 
     use crate::core::{AppError, Result};
+    use crate::settings::Language;
     use crate::window::MAIN_WINDOW_LABEL;
 
     use super::{
@@ -194,9 +200,10 @@ mod native {
 
         let app_for_main = app.clone();
         let window_for_main = window.clone();
+        let lang = crate::i18n::current_language(app);
         window
             .run_on_main_thread(move || {
-                let menu = match build_menu(&app_for_main, &available_actions, is_favorite) {
+                let menu = match build_menu(&app_for_main, &available_actions, lang, is_favorite) {
                     Ok(m) => m,
                     Err(err) => {
                         log::warn!("build clipboard item menu failed: {err}");
@@ -228,6 +235,7 @@ mod native {
     fn build_menu(
         app: &AppHandle,
         actions: &[ClipboardMenuAction],
+        lang: Language,
         is_favorite: bool,
     ) -> Result<Menu<Wry>> {
         let active: HashSet<ClipboardMenuAction> = actions.iter().copied().collect();
@@ -259,7 +267,7 @@ mod native {
                 let item = MenuItem::with_id(
                     app,
                     action.id(),
-                    action.label(is_favorite),
+                    action.label(lang, is_favorite),
                     true,
                     action.accelerator(),
                 )

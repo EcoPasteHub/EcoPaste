@@ -1,0 +1,41 @@
+{
+  "empty": {
+    "favorites": "No favorites yet",
+    "history": "No clipboard history yet",
+    "searchFavorites": "No favorites found for \"{{keyword}}\"",
+    "searchHistory": "No records found for \"{{keyword}}\""
+  },
+  "footer": {
+    "shortcuts": "Shortcuts",
+    "total": "{{count}} items"
+  },
+  "groups": {
+    "all": "All",
+    "favorite": "Favorites",
+    "files": "Files",
+    "image": "Images",
+    "text": "Text"
+  },
+  "header": {
+    "moreActions": "More actions",
+    "pin": "Pin window",
+    "searchPlaceholder": "Search clipboard...",
+    "unpin": "Unpin"
+  },
+  "note": {
+    "placeholder": "Add a note for this item...",
+    "title": "Edit note"
+  },
+  "pending": "{{count}} new items, click to view",
+  "shortcuts": {
+    "deleteSelected": "Delete selected item",
+    "favoriteSelected": "Favorite / unfavorite",
+    "focusSearch": "Focus search",
+    "navigate": "Navigate up/down",
+    "openPreference": "Open preferences",
+    "pasteNth": "Paste item N (N = 1...9, 0)",
+    "pasteSelected": "Paste selected item",
+    "pasteSelectedPlain": "Paste selected item as plain text",
+    "pinWindow": "Pin / unpin window"
+  }
+}

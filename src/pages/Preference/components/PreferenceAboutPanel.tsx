@@ -1,5 +1,6 @@
 import { Button, message } from "antd";
 import type { FC } from "react";
+import { useTranslation } from "react-i18next";
 import { openExternalUrl } from "@/commands";
 import { GITHUB_URL } from "@/constants/urls";
 import { APP_NAME_PLACEHOLDER } from "../constants";
@@ -14,11 +15,12 @@ interface PreferenceAboutPanelProps {
  */
 const PreferenceAboutPanel: FC<PreferenceAboutPanelProps> = (props) => {
   const { appName, appVersion } = props;
+  const { t } = useTranslation(["common", "preferences"]);
   const nameLabel = appName.length > 0 ? appName : APP_NAME_PLACEHOLDER;
   const versionLabel = appVersion.length > 0 ? `v${appVersion}` : "";
 
   const handleCheckUpdates = () => {
-    message.info("检查更新暂未接入");
+    message.info(t("preferences:about.checkUpdatesUnavailable"));
   };
 
   const openGitHub = async () => {
@@ -49,7 +51,7 @@ const PreferenceAboutPanel: FC<PreferenceAboutPanelProps> = (props) => {
                   ) : null}
                 </div>
                 <p className="m-0 mt-1 text-ant-secondary text-sm leading-relaxed">
-                  跨平台剪贴板管理器
+                  {t("common:app.tagline")}
                 </p>
               </div>
             </div>
@@ -60,7 +62,7 @@ const PreferenceAboutPanel: FC<PreferenceAboutPanelProps> = (props) => {
                 onClick={handleCheckUpdates}
                 type="primary"
               >
-                检查更新
+                {t("preferences:about.checkUpdates")}
               </Button>
               <Button
                 icon={<i aria-hidden="true" className="i-lucide:github" />}
@@ -78,11 +80,11 @@ const PreferenceAboutPanel: FC<PreferenceAboutPanelProps> = (props) => {
                 className="i-ph:hand-heart text-ant-primary text-lg"
               />
               <h3 className="m-0 font-semibold text-ant-text text-sm leading-tight">
-                赞赏支持
+                {t("preferences:about.sponsor")}
               </h3>
             </div>
             <img
-              alt="赞赏二维码"
+              alt={t("preferences:about.sponsorQrAlt")}
               className="mt-4 size-36 rounded-1 object-contain"
               draggable={false}
               src="/sponsor-qr.png"

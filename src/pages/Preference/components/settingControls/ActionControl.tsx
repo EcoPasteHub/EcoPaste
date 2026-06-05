@@ -1,7 +1,9 @@
 import { Button } from "antd";
 import type { FC } from "react";
+import { useTranslation } from "react-i18next";
 import { openPreferenceDirectory } from "@/commands";
 import type { PreferenceSetting } from "../../types/preferences";
+import { translatePreferenceControlLabel } from "../../utils/preferenceI18n";
 import ControlFrame from "./ControlFrame";
 
 const DATA_DIRECTORY_SETTING_ID = "localData.dataDirectory";
@@ -16,6 +18,7 @@ interface ActionControlProps {
  * 展示右侧操作按钮，所有 action 控件保持同一尺寸。
  */
 const ActionControl: FC<ActionControlProps> = (props) => {
+  const { t } = useTranslation("preferences");
   const { disabled, setting } = props;
 
   if (setting.control.type !== "action") return null;
@@ -39,7 +42,7 @@ const ActionControl: FC<ActionControlProps> = (props) => {
         onClick={handleClick}
         type="default"
       >
-        {setting.control.label}
+        {translatePreferenceControlLabel(t, setting)}
       </Button>
     </ControlFrame>
   );

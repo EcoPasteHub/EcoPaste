@@ -16,6 +16,7 @@ use tauri::{
 };
 
 use crate::core::{AppError, Result};
+use crate::settings::Language;
 
 use super::clipboard_item::{ClipboardMenuAction, ACTION_GROUPS};
 
@@ -91,7 +92,8 @@ pub fn show_for_clipboard_item(
     available_actions: &[ClipboardMenuAction],
     is_favorite: bool,
 ) -> Result<()> {
-    let groups = build_groups(available_actions, is_favorite);
+    let lang = crate::i18n::current_language(app);
+    let groups = build_groups(available_actions, lang, is_favorite);
     if groups.is_empty() {
         return Ok(());
     }
@@ -125,7 +127,11 @@ pub fn show_for_clipboard_item(
     Ok(())
 }
 
-fn build_groups(available: &[ClipboardMenuAction], is_favorite: bool) -> Vec<Vec<MenuItemPayload>> {
+fn build_groups(
+    available: &[ClipboardMenuAction],
+    lang: Language,
+    is_favorite: bool,
+) -> Vec<Vec<MenuItemPayload>> {
     ACTION_GROUPS
         .iter()
         .map(|group| {
@@ -134,7 +140,7 @@ fn build_groups(available: &[ClipboardMenuAction], is_favorite: bool) -> Vec<Vec
                 .filter(|a| available.contains(a))
                 .map(|a| MenuItemPayload {
                     action: *a,
-                    label: a.label(is_favorite).into(),
+                    label: a.label(lang, is_favorite).into(),
                     accelerator: a.accelerator().map(String::from),
                 })
                 .collect::<Vec<_>>()

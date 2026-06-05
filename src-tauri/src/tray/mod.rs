@@ -1,10 +1,8 @@
 //! 系统托盘：Rust 侧实现。
 //!
 //! - icon 沿用 `assets/tray.ico`（Windows）/ `assets/tray-mac.ico`（macOS），作为 Tauri 资源打包。
-//! - 菜单文案做 i18n，跟随 `Appearance.language` 即时切换（见 `i18n.rs`）。
+//! - 菜单文案做 i18n，跟随 `Appearance.language` 即时切换（见 [`crate::i18n::tray`]）。
 //! - 显隐跟随 `General.tray_icon`；语言或显隐变更后由 `commands/settings.rs` 调用 [`apply`] 同步。
-
-mod i18n;
 
 use anyhow::Context;
 use tauri::image::Image;
@@ -18,12 +16,12 @@ use tauri_plugin_opener::OpenerExt;
 
 use crate::clipboard::WatcherPause;
 use crate::core::Result;
+use crate::i18n::tray as tray_i18n;
+use crate::i18n::tray::Key;
 use crate::settings::{Language, Settings};
 #[cfg(target_os = "windows")]
 use crate::window::MAIN_WINDOW_LABEL;
 use crate::window::{self, PREFERENCE_WINDOW_LABEL};
-
-use i18n::Key;
 
 const TRAY_ID: &str = "app-tray";
 const GITHUB_URL: &str = "https://github.com/EcoPasteHub/EcoPaste";
@@ -138,7 +136,7 @@ fn build_menu(
     let preference = MenuItem::with_id(
         app,
         MENU_PREFERENCE,
-        i18n::label(lang, Key::Preference),
+        tray_i18n::label(lang, Key::Preference),
         true,
         None::<&str>,
     )
@@ -146,7 +144,7 @@ fn build_menu(
     let toggle_listen = MenuItem::with_id(
         app,
         MENU_TOGGLE_LISTEN,
-        i18n::label(
+        tray_i18n::label(
             lang,
             if paused {
                 Key::StartListening
@@ -161,7 +159,7 @@ fn build_menu(
     let open_source = MenuItem::with_id(
         app,
         MENU_OPEN_SOURCE,
-        i18n::label(lang, Key::OpenSourceAddress),
+        tray_i18n::label(lang, Key::OpenSourceAddress),
         true,
         None::<&str>,
     )
@@ -169,7 +167,7 @@ fn build_menu(
     let version_item = MenuItem::with_id(
         app,
         "tray::version",
-        format!("{} {}", i18n::label(lang, Key::Version), version),
+        format!("{} {}", tray_i18n::label(lang, Key::Version), version),
         false,
         None::<&str>,
     )
@@ -177,7 +175,7 @@ fn build_menu(
     let relaunch = MenuItem::with_id(
         app,
         MENU_RELAUNCH,
-        i18n::label(lang, Key::Relaunch),
+        tray_i18n::label(lang, Key::Relaunch),
         true,
         None::<&str>,
     )
@@ -185,7 +183,7 @@ fn build_menu(
     let exit = MenuItem::with_id(
         app,
         MENU_EXIT,
-        i18n::label(lang, Key::Exit),
+        tray_i18n::label(lang, Key::Exit),
         true,
         None::<&str>,
     )

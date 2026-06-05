@@ -1,8 +1,9 @@
 import type { FC, ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { isMac } from "@/utils/is";
 
 interface Shortcut {
-  label: string;
+  labelKey: string;
   /** 按下顺序排列的按键，每个元素渲染为一个 kbd 徽标。 */
   keys: ReactNode[];
 }
@@ -28,15 +29,15 @@ const UP = "↑";
 const DOWN = "↓";
 
 const SHORTCUTS: Shortcut[] = [
-  { keys: [ENTER], label: "粘贴选中项" },
-  { keys: [MOD, ENTER], label: "粘贴选中项为纯文本" },
-  { keys: [MOD, BACKSPACE], label: "删除选中项" },
-  { keys: [MOD, "D"], label: "收藏 / 取消收藏" },
-  { keys: [UP, "/", DOWN], label: "上下导航" },
-  { keys: [MOD, "N"], label: "粘贴第 N 项（N = 1…9, 0）" },
-  { keys: [MOD, "F"], label: "聚焦搜索框" },
-  { keys: [MOD, "P"], label: "固定 / 取消固定窗口" },
-  { keys: [MOD, ","], label: "打开偏好设置" },
+  { keys: [ENTER], labelKey: "shortcuts.pasteSelected" },
+  { keys: [MOD, ENTER], labelKey: "shortcuts.pasteSelectedPlain" },
+  { keys: [MOD, BACKSPACE], labelKey: "shortcuts.deleteSelected" },
+  { keys: [MOD, "D"], labelKey: "shortcuts.favoriteSelected" },
+  { keys: [UP, "/", DOWN], labelKey: "shortcuts.navigate" },
+  { keys: [MOD, "N"], labelKey: "shortcuts.pasteNth" },
+  { keys: [MOD, "F"], labelKey: "shortcuts.focusSearch" },
+  { keys: [MOD, "P"], labelKey: "shortcuts.pinWindow" },
+  { keys: [MOD, ","], labelKey: "shortcuts.openPreference" },
 ];
 
 // 暂未实现但占位，方便后续补齐（注释提示，不渲染）：
@@ -47,14 +48,16 @@ const SHORTCUTS: Shortcut[] = [
  * 仅渲染纯文本与按键徽标，不绑定真实事件。
  */
 const ShortcutList: FC = () => {
+  const { t } = useTranslation("clipboard");
+
   return (
     <div className="flex w-72 flex-col gap-1">
       {SHORTCUTS.map((item) => (
         <div
           className="flex items-center justify-between gap-3 px-1 py-1"
-          key={item.label}
+          key={item.labelKey}
         >
-          <span className="text-sm">{item.label}</span>
+          <span className="text-sm">{t(item.labelKey)}</span>
 
           <div className="flex items-center gap-1">
             {item.keys.map((key, index) => (

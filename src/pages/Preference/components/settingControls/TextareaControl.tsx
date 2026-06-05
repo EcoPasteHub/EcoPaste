@@ -1,7 +1,9 @@
 import { Input } from "antd";
 import type { ChangeEvent, FC, FocusEvent } from "react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { PreferenceSetting } from "../../types/preferences";
+import { translatePreferencePlaceholder } from "../../utils/preferenceI18n";
 import type { ControlProps } from "./types";
 
 interface TextareaControlProps extends ControlProps {
@@ -13,11 +15,14 @@ interface TextareaControlProps extends ControlProps {
  * 多行规则输入：一行一个值，失焦后整体替换数组。
  */
 const TextareaControl: FC<TextareaControlProps> = (props) => {
+  const { t } = useTranslation("preferences");
   const { disabled, onChange, setting, value } = props;
   const [draft, setDraft] = useState(value.join("\n"));
 
   const placeholder =
-    setting.control.type === "textarea" ? setting.control.placeholder : "";
+    setting.control.type === "textarea"
+      ? translatePreferencePlaceholder(t, setting)
+      : "";
 
   useEffect(() => {
     setDraft(value.join("\n"));

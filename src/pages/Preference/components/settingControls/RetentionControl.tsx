@@ -1,6 +1,7 @@
 import { InputNumber, Select, Space } from "antd";
 import type { FC } from "react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { RetentionUnit } from "@/types/settings";
 import type {
   PreferenceSetting,
@@ -10,12 +11,7 @@ import type {
 import type { ControlProps } from "./types";
 
 const DEFAULT_RETENTION_UNIT: RetentionUnit = "days";
-const RETENTION_UNIT_OPTIONS = [
-  { label: "小时", value: "hours" },
-  { label: "天", value: "days" },
-  { label: "周", value: "weeks" },
-  { label: "月", value: "months" },
-];
+const RETENTION_UNITS: RetentionUnit[] = ["hours", "days", "weeks", "months"];
 
 interface RetentionControlProps extends ControlProps {
   setting: PreferenceSetting;
@@ -45,12 +41,19 @@ export function resolveRetentionValue(
  * 历史保留周期组合控件：0 写为永久保留，其余数值配合单位写回。
  */
 const RetentionControl: FC<RetentionControlProps> = (props) => {
+  const { t } = useTranslation("preferences");
   const { disabled, onChange, setting, value } = props;
   const initialUnit =
     value.unit === "forever" ? DEFAULT_RETENTION_UNIT : value.unit;
   const initialValue = value.unit === "forever" ? 0 : value.value;
   const [draftValue, setDraftValue] = useState<number | null>(initialValue);
   const [draftUnit, setDraftUnit] = useState<RetentionUnit>(initialUnit);
+  const options = RETENTION_UNITS.map((unit) => {
+    return {
+      label: t(`schema.retentionUnits.${unit}`),
+      value: unit,
+    };
+  });
 
   useEffect(() => {
     setDraftValue(value.unit === "forever" ? 0 : value.value);
@@ -106,7 +109,7 @@ const RetentionControl: FC<RetentionControlProps> = (props) => {
         className="h-8 flex-1"
         disabled={disabled}
         onChange={handleUnitChange}
-        options={RETENTION_UNIT_OPTIONS}
+        options={options}
         value={draftUnit}
       />
     </Space.Compact>

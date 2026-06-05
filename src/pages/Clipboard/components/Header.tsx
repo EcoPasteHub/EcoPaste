@@ -2,6 +2,7 @@ import { useDebounceFn } from "ahooks";
 import { Button } from "antd";
 import type { ChangeEvent, FC } from "react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useSnapshot } from "valtio";
 import { setMainWindowPinned, showWindow } from "@/commands";
 import KeyHint from "@/components/KeyHint";
@@ -22,6 +23,7 @@ interface WindowVisibilityPayload {
  * 剪贴板窗口顶部条：logo、搜索框（⌘F / Ctrl+F 聚焦）、固定窗口与更多操作入口。
  */
 const Header: FC = () => {
+  const { t } = useTranslation("clipboard");
   const settings = useSnapshot(settingsState);
   const [pinned, setPinned] = useState(false);
   const [searchFocusToken, setSearchFocusToken] = useState(0);
@@ -86,11 +88,11 @@ const Header: FC = () => {
           className="w-40"
           focusToken={searchFocusToken}
           onChange={handleKeywordChange}
-          placeholder="搜索剪贴板..."
+          placeholder={t("header.searchPlaceholder")}
           size="small"
         />
 
-        <Tooltip title={pinned ? "取消固定" : "固定窗口"}>
+        <Tooltip title={t(pinned ? "header.unpin" : "header.pin")}>
           <Button
             icon={
               <KeyHint
@@ -105,7 +107,7 @@ const Header: FC = () => {
           />
         </Tooltip>
 
-        <Tooltip title="更多操作">
+        <Tooltip title={t("header.moreActions")}>
           <Button
             icon={
               <KeyHint

@@ -10,6 +10,7 @@ use crate::core::{AppError, Result};
 use crate::db::items::find_item_by_id;
 use crate::db::models::{ClipboardItem, ClipboardKind, ClipboardSubKind, Platform};
 use crate::drag_out;
+use crate::settings::Language;
 use crate::window::{self, MAIN_WINDOW_LABEL};
 
 /// 拖拽载荷：按 kind 解析成统一表示，再分派到对应的 drag-out 实现。
@@ -50,7 +51,8 @@ pub async fn start_drag_clipboard_item(
         .await?
         .ok_or_else(|| AppError::Clipboard(format!("clipboard item not found: {id}")))?;
 
-    let payload = resolve_drag_payload(&item, &store)?;
+    let lang = crate::i18n::current_language(&app);
+    let payload = resolve_drag_payload(&item, &store, lang)?;
 
     let window = window::get_window(&app, MAIN_WINDOW_LABEL)?;
 
@@ -97,7 +99,13 @@ fn dispatch_drag(
 }
 
 /// 解析为统一的拖拽载荷。
-fn resolve_drag_payload(item: &ClipboardItem, store: &ImageStore) -> Result<DragPayload> {
+fn resolve_drag_payload(
+    item: &ClipboardItem,
+    store: &ImageStore,
+    lang: Language,
+) -> Result<DragPayload> {
+    use crate::i18n::commands::Key;
+
     match item.kind {
         ClipboardKind::Files => {
             let paths: Vec<PathBuf> = item
@@ -109,20 +117,26 @@ fn resolve_drag_payload(item: &ClipboardItem, store: &ImageStore) -> Result<Drag
                 .collect();
 
             if paths.is_empty() {
-                return Err(AppError::Clipboard("拖拽源文件已不存在".to_string()));
+                return Err(AppError::Clipboard(
+                    crate::i18n::commands::label(lang, Key::DragSourceFilesMissing).to_string(),
+                ));
             }
             Ok(DragPayload::Files(paths))
         }
         ClipboardKind::Image => {
             let path = store.origin_path(&item.content);
             if !path.exists() {
-                return Err(AppError::Clipboard("图片文件已不存在".to_string()));
+                return Err(AppError::Clipboard(
+                    crate::i18n::commands::label(lang, Key::DragImageMissing).to_string(),
+                ));
             }
             Ok(DragPayload::Files(vec![path]))
         }
         ClipboardKind::Text => {
             if item.content.is_empty() {
-                return Err(AppError::Clipboard("文本内容为空".to_string()));
+                return Err(AppError::Clipboard(
+                    crate::i18n::commands::label(lang, Key::DragTextEmpty).to_string(),
+                ));
             }
             // sub_kind 语义（与 write.rs / ingest.rs 一致）：Html/Rtf 时 content 是富格式源，
             // search_text 才是 OS 提供的 plain；其他 sub_kind（url/email/color/path/None）content 即 plain。

@@ -1,6 +1,7 @@
 import { Input, Modal } from "antd";
 import type { ChangeEvent, FC } from "react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { updateClipboardItemNote } from "@/commands";
 import type { ClipboardItem } from "@/types/clipboard";
 
@@ -27,6 +28,7 @@ interface NoteModalProps {
  */
 const NoteModal: FC<NoteModalProps> = (props) => {
   const { item, onClose, onSaved } = props;
+  const { t } = useTranslation(["clipboard", "common"]);
 
   const [value, setValue] = useState("");
   const [saving, setSaving] = useState(false);
@@ -64,18 +66,18 @@ const NoteModal: FC<NoteModalProps> = (props) => {
     <Modal
       confirmLoading={saving}
       destroyOnHidden
-      okText="保存"
+      okText={t("common:actions.save")}
       onCancel={onClose}
       onOk={handleSave}
       open={!!item}
-      title="编辑备注"
+      title={t("clipboard:note.title")}
     >
       <Input.TextArea
         autoFocus
         autoSize={{ maxRows: 6, minRows: 3 }}
         maxLength={256}
         onChange={handleChange}
-        placeholder="为这条记录添加备注..."
+        placeholder={t("clipboard:note.placeholder")}
         showCount
         value={value}
       />

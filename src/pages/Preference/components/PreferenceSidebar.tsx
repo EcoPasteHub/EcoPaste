@@ -1,4 +1,5 @@
 import type { FC } from "react";
+import { useTranslation } from "react-i18next";
 import type { StorageUsage } from "@/commands";
 import { cn } from "@/utils/cn";
 import { preferenceTabs } from "../config/preferenceSchema";
@@ -7,6 +8,7 @@ import type {
   PreferenceStorageState,
   PreferenceTabId,
 } from "../types/preferences";
+import { translatePreferenceTab } from "../utils/preferenceI18n";
 import PreferenceStorageUsagePanel from "./PreferenceStorageUsagePanel";
 
 interface PreferenceSidebarProps {
@@ -22,6 +24,7 @@ interface PreferenceSidebarProps {
  * 偏好窗口左侧导航栏：展示应用身份、一级分类和本地存储概览。
  */
 const PreferenceSidebar: FC<PreferenceSidebarProps> = (props) => {
+  const { t } = useTranslation("preferences");
   const {
     activeTabId,
     appName,
@@ -86,7 +89,7 @@ const PreferenceSidebar: FC<PreferenceSidebarProps> = (props) => {
                 <i aria-hidden="true" className={meta.icon} />
               </span>
               <span className="min-w-0 flex-1 truncate font-medium text-sm leading-tight">
-                {tab.title}
+                {translatePreferenceTab(t, tab)}
               </span>
               <span
                 className={cn(

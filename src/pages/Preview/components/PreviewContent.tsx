@@ -1,5 +1,7 @@
 import { Empty } from "antd";
+import type { TFunction } from "i18next";
 import type { FC } from "react";
+import { useTranslation } from "react-i18next";
 import type {
   ClipboardPreviewFileEntry,
   ClipboardPreviewPayload,
@@ -29,8 +31,9 @@ interface FilePreviewRowProps {
  */
 export const PreviewHeader: FC<PreviewHeaderProps> = (props) => {
   const { payload } = props;
-  const title = payload ? previewTitle(payload) : "正在加载";
-  const meta = payload ? previewMeta(payload) : "Content Viewer";
+  const { t } = useTranslation("preview");
+  const title = payload ? previewTitle(t, payload) : t("title.loading");
+  const meta = payload ? previewMeta(t, payload) : "Content Viewer";
 
   return (
     <div className="flex h-12 shrink-0 items-center justify-between gap-3 border-ant-border border-b px-4">
@@ -53,12 +56,13 @@ export const PreviewHeader: FC<PreviewHeaderProps> = (props) => {
  */
 export const PreviewContent: FC<PreviewContentProps> = (props) => {
   const { payload } = props;
+  const { t } = useTranslation("preview");
 
   if (!payload) {
     return (
       <div className="flex min-h-24 items-center justify-center">
         <Empty
-          description="暂无预览内容"
+          description={t("empty.content")}
           image={Empty.PRESENTED_IMAGE_SIMPLE}
         />
       </div>
@@ -77,12 +81,16 @@ export const PreviewContent: FC<PreviewContentProps> = (props) => {
  */
 const TextViewer: FC<PayloadViewerProps> = (props) => {
   const { payload } = props;
+  const { t } = useTranslation("preview");
   const text = payload.text ?? "";
 
   if (text.length === 0) {
     return (
       <div className="flex min-h-24 items-center justify-center">
-        <Empty description="空文本" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+        <Empty
+          description={t("empty.text")}
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+        />
       </div>
     );
   }
@@ -108,12 +116,13 @@ const TextViewer: FC<PayloadViewerProps> = (props) => {
  */
 const ImageViewer: FC<PayloadViewerProps> = (props) => {
   const { payload } = props;
+  const { t } = useTranslation("preview");
 
   if (!payload.imagePath || !payload.imageExists) {
     return (
       <div className="flex min-h-24 items-center justify-center">
         <Empty
-          description="图片文件不存在"
+          description={t("empty.imageMissing")}
           image={Empty.PRESENTED_IMAGE_SIMPLE}
         />
       </div>
@@ -137,11 +146,15 @@ const ImageViewer: FC<PayloadViewerProps> = (props) => {
  */
 const FilesViewer: FC<PayloadViewerProps> = (props) => {
   const { payload } = props;
+  const { t } = useTranslation("preview");
 
   if (payload.files.length === 0) {
     return (
       <div className="flex min-h-24 items-center justify-center">
-        <Empty description="无文件路径" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+        <Empty
+          description={t("empty.files")}
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+        />
       </div>
     );
   }
@@ -156,7 +169,10 @@ const FilesViewer: FC<PayloadViewerProps> = (props) => {
 
       {payload.totalFiles > payload.files.length && (
         <div className="px-2 py-2 text-ant-secondary text-xs">
-          仅显示前 {payload.files.length} 项，共 {payload.totalFiles} 项
+          {t("file.shownCount", {
+            shown: payload.files.length,
+            total: payload.totalFiles,
+          })}
         </div>
       )}
     </div>
@@ -168,7 +184,8 @@ const FilesViewer: FC<PayloadViewerProps> = (props) => {
  */
 const FilePreviewRow: FC<FilePreviewRowProps> = (props) => {
   const { file } = props;
-  const kindLabel = file.isDir ? "文件夹" : "文件";
+  const { t } = useTranslation("preview");
+  const kindLabel = file.isDir ? t("file.folder") : t("file.item");
   const sizeLabel = file.size === null ? kindLabel : formatBytes(file.size);
 
   return (
@@ -194,7 +211,7 @@ const FilePreviewRow: FC<FilePreviewRowProps> = (props) => {
           {file.name}
         </div>
         <div className="truncate text-ant-secondary text-xs">
-          {file.exists ? file.path : "路径已失效"}
+          {file.exists ? file.path : t("file.missingPath")}
         </div>
       </div>
 
@@ -206,37 +223,45 @@ const FilePreviewRow: FC<FilePreviewRowProps> = (props) => {
 /**
  * 生成 Content Viewer 标题。
  */
-function previewTitle(payload: ClipboardPreviewPayload) {
+function previewTitle(
+  t: TFunction<"preview">,
+  payload: ClipboardPreviewPayload,
+) {
   if (payload.kind === "files") {
-    return `${payload.totalFiles} 个项目`;
+    return t("title.files", { count: payload.totalFiles });
   }
 
   if (payload.kind === "image") {
-    return "图片预览";
+    return t("title.image");
   }
 
-  return "文本预览";
+  return t("title.text");
 }
 
 /**
  * 生成 Content Viewer 元信息。
  */
-function previewMeta(payload: ClipboardPreviewPayload) {
+function previewMeta(
+  t: TFunction<"preview">,
+  payload: ClipboardPreviewPayload,
+) {
   if (payload.kind === "files") {
-    return `${payload.files.length} 项已加载`;
+    return t("meta.filesLoaded", { count: payload.files.length });
   }
 
   if (payload.kind === "image") {
     const dimensions =
       payload.imageWidth && payload.imageHeight
         ? `${payload.imageWidth} x ${payload.imageHeight}`
-        : "未知尺寸";
+        : t("meta.unknownSize");
     const size = payload.size === null ? "" : ` · ${formatBytes(payload.size)}`;
 
     return `${dimensions}${size}`;
   }
 
-  return `${payload.size ?? payload.text?.length ?? 0} 字符`;
+  return t("meta.characters", {
+    count: payload.size ?? payload.text?.length ?? 0,
+  });
 }
 
 /**

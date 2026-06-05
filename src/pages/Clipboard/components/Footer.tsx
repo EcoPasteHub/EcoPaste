@@ -1,5 +1,6 @@
 import { Button } from "antd";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useSnapshot } from "valtio";
 import KeyHint from "@/components/KeyHint";
 import Popover from "@/components/Popover";
@@ -12,31 +13,41 @@ import ShortcutList from "./ShortcutList";
  * Rust 列表查询附带返回），右侧展示窗口快捷键提示。
  */
 const Footer = () => {
+  const { t } = useTranslation("clipboard");
   const { total } = useSnapshot(clipboardStatsState);
 
   // Popover 打开时强制收起 Tooltip，避免两层浮层叠加遮挡。
   const [popoverOpen, setPopoverOpen] = useState(false);
 
+  const handleShortcutKeyPress = () => {
+    setPopoverOpen((prev) => {
+      return !prev;
+    });
+  };
+
   return (
     <div className="flex items-center justify-between p-3">
-      <span className="text-ant-tertiary text-xs">共 {total ?? 0} 项</span>
+      <span className="text-ant-tertiary text-xs">
+        {t("footer.total", { count: total ?? 0 })}
+      </span>
 
       <Popover
         content={<ShortcutList />}
         onOpenChange={setPopoverOpen}
         open={popoverOpen}
-        title="快捷键"
+        title={t("footer.shortcuts")}
         trigger="click"
       >
-        <Tooltip open={popoverOpen ? false : void 0} title="快捷键">
+        <Tooltip
+          open={popoverOpen ? false : void 0}
+          title={t("footer.shortcuts")}
+        >
           <Button
             icon={
               <KeyHint
                 hintKey="K"
                 iconName="i-lucide:keyboard"
-                onKeyPress={() => {
-                  setPopoverOpen((prev) => !prev);
-                }}
+                onKeyPress={handleShortcutKeyPress}
               />
             }
             size="small"

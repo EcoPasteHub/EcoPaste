@@ -1,7 +1,13 @@
 import { Empty } from "antd";
 import { motion } from "motion/react";
 import type { FC } from "react";
+import { useTranslation } from "react-i18next";
 import type { allPreferenceSettings } from "../config/preferenceSchema";
+import {
+  translatePreferenceSection,
+  translatePreferenceSetting,
+  translatePreferenceTab,
+} from "../utils/preferenceI18n";
 
 type SearchResult = (typeof allPreferenceSettings)[number];
 
@@ -17,6 +23,7 @@ interface PreferenceSearchResultsProps {
  */
 const PreferenceSearchResults: FC<PreferenceSearchResultsProps> = (props) => {
   const { query, results, shouldReduceMotion, onPick } = props;
+  const { t } = useTranslation("preferences");
 
   if (!query) return null;
 
@@ -30,7 +37,7 @@ const PreferenceSearchResults: FC<PreferenceSearchResultsProps> = (props) => {
       {results.length === 0 ? (
         <div className="p-4">
           <Empty
-            description="没有找到相关设置"
+            description={t("search.empty")}
             image={Empty.PRESENTED_IMAGE_SIMPLE}
           />
         </div>
@@ -49,14 +56,15 @@ const PreferenceSearchResults: FC<PreferenceSearchResultsProps> = (props) => {
             >
               <div className="min-w-0 flex-1">
                 <span className="block truncate font-medium text-sm">
-                  {result.setting.title}
+                  {translatePreferenceSetting(t, result.setting, "title")}
                 </span>
                 <small className="mt-0.5 block truncate text-ant-secondary text-xs leading-snug">
-                  {result.setting.description}
+                  {translatePreferenceSetting(t, result.setting, "description")}
                 </small>
               </div>
               <div className="whitespace-nowrap text-ant-tertiary text-xs">
-                {result.tab.title} / {result.section.title}
+                {translatePreferenceTab(t, result.tab)} /{" "}
+                {translatePreferenceSection(t, result.section, "title")}
               </div>
             </button>
           );

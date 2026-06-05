@@ -1,5 +1,6 @@
 import { Divider, Switch } from "antd";
 import type { FC } from "react";
+import { useTranslation } from "react-i18next";
 import { playCopySound } from "@/commands";
 import Tooltip from "@/components/Tooltip";
 import { cn } from "@/utils/cn";
@@ -18,6 +19,7 @@ interface SwitchControlProps extends ControlProps {
  * 即时保存二元设置。
  */
 const SwitchControl: FC<SwitchControlProps> = (props) => {
+  const { t } = useTranslation("preferences");
   const { disabled, onChange, setting, value } = props;
   const canPreviewSound = setting.id === COPY_SOUND_SETTING_ID;
 
@@ -35,9 +37,9 @@ const SwitchControl: FC<SwitchControlProps> = (props) => {
       {canPreviewSound ? (
         <>
           <Divider type="vertical" />
-          <Tooltip title="试听提示音">
+          <Tooltip title={t("schema.settings.copy.sound.preview")}>
             <button
-              aria-label="试听提示音"
+              aria-label={t("schema.settings.copy.sound.preview")}
               className="inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-1.5 border-0 bg-transparent p-0 text-ant-secondary text-base transition-colors hover:bg-ant-fill-quaternary hover:text-ant-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ant-primary disabled:cursor-not-allowed disabled:text-ant-disabled motion-reduce:transition-none"
               disabled={disabled}
               onClick={handlePreviewSound}

@@ -4,6 +4,7 @@ mod commands;
 mod core;
 mod db;
 mod drag_out;
+mod i18n;
 #[cfg(target_os = "windows")]
 mod keyboard;
 mod keystroke;

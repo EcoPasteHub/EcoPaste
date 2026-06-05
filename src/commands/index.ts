@@ -14,6 +14,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { Modal, message } from "antd";
 import { TAURI_COMMAND } from "@/constants/commands";
+import i18n from "@/i18n";
 import { settingsState } from "@/stores/settings";
 import type {
   ClipboardAction,
@@ -135,7 +136,7 @@ const toAppError = (error: unknown): AppError => {
  */
 const call = async <T>(
   command: string,
-  label: string,
+  labelKey: string,
   args?: Record<string, unknown>,
 ): Promise<T> => {
   try {
@@ -144,7 +145,12 @@ const call = async <T>(
     const appError = toAppError(error);
 
     log.error(`invoke ${command} failed`, appError);
-    message.error(`${label}失败：${appError.message}`);
+    message.error(
+      i18n.t("commands:error", {
+        label: i18n.t(labelKey),
+        message: appError.message,
+      }),
+    );
 
     throw appError;
   }
@@ -154,60 +160,88 @@ const call = async <T>(
  * 拉取设置首屏快照；后续刷新走 `settings://updated` 事件。
  */
 export const getSettings = () => {
-  return call<Settings>(TAURI_COMMAND.GET_SETTINGS, "加载设置");
+  return call<Settings>(
+    TAURI_COMMAND.GET_SETTINGS,
+    "commands:labels.loadSettings",
+  );
 };
 
 /**
  * 提交设置补丁；Rust 落盘后广播 `settings://updated` 由各窗口回灌镜像。
  */
 export const updateSettings = (patch: SettingsPatch) => {
-  return call<Settings>(TAURI_COMMAND.UPDATE_SETTINGS, "保存设置", { patch });
+  return call<Settings>(
+    TAURI_COMMAND.UPDATE_SETTINGS,
+    "commands:labels.saveSettings",
+    { patch },
+  );
 };
 
 /**
  * 统计本地数据库、资源缓存与设置文件的占用。
  */
 export const getStorageUsage = () => {
-  return call<StorageUsage>(TAURI_COMMAND.GET_STORAGE_USAGE, "读取存储占用");
+  return call<StorageUsage>(
+    TAURI_COMMAND.GET_STORAGE_USAGE,
+    "commands:labels.loadStorageUsage",
+  );
 };
 
 /**
  * 打开偏好页固定本地目录：数据目录或日志目录。
  */
 export const openPreferenceDirectory = (target: PreferenceDirectoryTarget) => {
-  return call<void>(TAURI_COMMAND.OPEN_PREFERENCE_DIRECTORY, "打开目录", {
-    target,
-  });
+  return call<void>(
+    TAURI_COMMAND.OPEN_PREFERENCE_DIRECTORY,
+    "commands:labels.openDirectory",
+    {
+      target,
+    },
+  );
 };
 
 /**
  * 使用系统默认浏览器打开经过 Rust 侧校验的外部网页。
  */
 export const openExternalUrl = (url: string) => {
-  return call<void>(TAURI_COMMAND.OPEN_EXTERNAL_URL, "打开链接", { url });
+  return call<void>(
+    TAURI_COMMAND.OPEN_EXTERNAL_URL,
+    "commands:labels.openLink",
+    { url },
+  );
 };
 
 /**
  * 查询系统自启动真实状态（auto-launch 后端）。
  */
 export const getAutostart = () => {
-  return call<boolean>(TAURI_COMMAND.GET_AUTOSTART, "读取开机启动状态");
+  return call<boolean>(
+    TAURI_COMMAND.GET_AUTOSTART,
+    "commands:labels.loadAutostart",
+  );
 };
 
 /**
  * 设置系统自启动真实状态；偏好页需与 `general.autoStart` 一起更新。
  */
 export const setAutostart = (enabled: boolean) => {
-  return call<void>(TAURI_COMMAND.SET_AUTOSTART, "设置开机启动", {
-    enabled,
-  });
+  return call<void>(
+    TAURI_COMMAND.SET_AUTOSTART,
+    "commands:labels.setAutostart",
+    {
+      enabled,
+    },
+  );
 };
 
 /**
  * 查询本次是否由自启动参数唤起。
  */
 export const isLaunchedViaAutostart = () => {
-  return call<boolean>(TAURI_COMMAND.IS_LAUNCHED_VIA_AUTOSTART, "读取启动来源");
+  return call<boolean>(
+    TAURI_COMMAND.IS_LAUNCHED_VIA_AUTOSTART,
+    "commands:labels.loadLaunchSource",
+  );
 };
 
 /**
@@ -216,7 +250,7 @@ export const isLaunchedViaAutostart = () => {
 export const listClipboardItems = (query: ClipboardItemQuery) => {
   return call<ClipboardItemPage>(
     TAURI_COMMAND.LIST_CLIPBOARD_ITEMS,
-    "加载列表",
+    "commands:labels.loadClipboardList",
     { query },
   );
 };
@@ -226,17 +260,25 @@ export const listClipboardItems = (query: ClipboardItemQuery) => {
  * 用于右键菜单「打开链接 / 发送邮件」。
  */
 export const openClipboardItemLink = (id: string, mailto: boolean) => {
-  return call<void>(TAURI_COMMAND.OPEN_CLIPBOARD_ITEM_LINK, "打开链接", {
-    id,
-    mailto,
-  });
+  return call<void>(
+    TAURI_COMMAND.OPEN_CLIPBOARD_ITEM_LINK,
+    "commands:labels.openLink",
+    {
+      id,
+      mailto,
+    },
+  );
 };
 
 /**
  * 在系统文件管理器中定位条目对应文件；Rust 侧自动按 kind 提路径（files 取首个，text 取 content）。
  */
 export const revealClipboardItem = (id: string) => {
-  return call<void>(TAURI_COMMAND.REVEAL_CLIPBOARD_ITEM, "打开位置", { id });
+  return call<void>(
+    TAURI_COMMAND.REVEAL_CLIPBOARD_ITEM,
+    "commands:labels.reveal",
+    { id },
+  );
 };
 
 /**
@@ -244,9 +286,12 @@ export const revealClipboardItem = (id: string) => {
  * 成功后统一 toast「已复制」，调用方无需再处理。
  */
 export const writeToClipboard = async (id: string, plain: boolean) => {
-  await call<void>(TAURI_COMMAND.WRITE_TO_CLIPBOARD, "复制", { id, plain });
+  await call<void>(TAURI_COMMAND.WRITE_TO_CLIPBOARD, "commands:labels.copy", {
+    id,
+    plain,
+  });
 
-  message.success("已复制");
+  message.success(i18n.t("commands:messages.copied"));
 };
 
 /**
@@ -254,7 +299,11 @@ export const writeToClipboard = async (id: string, plain: boolean) => {
  * 回车 / 数字快捷键 / 右键菜单全部走这里。
  */
 export const pasteClipboardItem = (id: string, plain: boolean) => {
-  return call<void>(TAURI_COMMAND.PASTE_CLIPBOARD_ITEM, "粘贴", { id, plain });
+  return call<void>(
+    TAURI_COMMAND.PASTE_CLIPBOARD_ITEM,
+    "commands:labels.paste",
+    { id, plain },
+  );
 };
 
 /**
@@ -268,7 +317,11 @@ export const pasteClipboardItem = (id: string, plain: boolean) => {
  * 失败已在 `call` 内统一 toast，调用方一般不需要再处理。
  */
 export const startDragClipboardItem = (id: string) => {
-  return call<void>(TAURI_COMMAND.START_DRAG_CLIPBOARD_ITEM, "拖拽", { id });
+  return call<void>(
+    TAURI_COMMAND.START_DRAG_CLIPBOARD_ITEM,
+    "commands:labels.drag",
+    { id },
+  );
 };
 
 /**
@@ -282,11 +335,19 @@ export const toggleClipboardItemFavorite = async (
 ) => {
   const next = await call<boolean>(
     TAURI_COMMAND.TOGGLE_CLIPBOARD_ITEM_FAVORITE,
-    favorite ? "收藏" : "取消收藏",
+    favorite
+      ? "commands:labels.toggleFavorite"
+      : "commands:labels.cancelFavorite",
     { id },
   );
 
-  message.success(next ? "已收藏" : "已取消收藏");
+  message.success(
+    i18n.t(
+      next
+        ? "commands:messages.favoriteAdded"
+        : "commands:messages.favoriteRemoved",
+    ),
+  );
 
   return next;
 };
@@ -300,22 +361,26 @@ export const deleteClipboardItem = async (id: string): Promise<boolean> => {
   if (settingsState.clipboard?.content?.deleteConfirm) {
     const ok = await new Promise<boolean>((resolve) => {
       Modal.confirm({
-        cancelText: "取消",
-        content: "删除后无法恢复，确定删除这条记录吗？",
+        cancelText: i18n.t("common:actions.cancel"),
+        content: i18n.t("commands:deleteConfirm.content"),
         okButtonProps: { danger: true },
-        okText: "删除",
+        okText: i18n.t("common:actions.delete"),
         onCancel: () => resolve(false),
         onOk: () => resolve(true),
-        title: "删除记录",
+        title: i18n.t("commands:deleteConfirm.title"),
       });
     });
 
     if (!ok) return false;
   }
 
-  await call<void>(TAURI_COMMAND.DELETE_CLIPBOARD_ITEM, "删除", { id });
+  await call<void>(
+    TAURI_COMMAND.DELETE_CLIPBOARD_ITEM,
+    "commands:labels.delete",
+    { id },
+  );
 
-  message.success("已删除");
+  message.success(i18n.t("commands:messages.deleted"));
 
   return true;
 };
@@ -331,11 +396,17 @@ export const updateClipboardItemNote = async (
 ) => {
   const result = await call<UpdateNoteResult>(
     TAURI_COMMAND.UPDATE_CLIPBOARD_ITEM_NOTE,
-    "保存备注",
+    "commands:labels.saveNote",
     { id, note },
   );
 
-  message.success(result.autoFavorited ? "已保存并收藏" : "已保存");
+  message.success(
+    i18n.t(
+      result.autoFavorited
+        ? "commands:messages.noteSavedAndFavorited"
+        : "commands:messages.noteSaved",
+    ),
+  );
 
   return result;
 };
@@ -344,25 +415,35 @@ export const updateClipboardItemNote = async (
  * 按窗口 label 显示窗口（偏好窗口、剪贴板窗口等）。
  */
 export const showWindow = (label: string) => {
-  return call<void>(TAURI_COMMAND.SHOW_WINDOW, "打开窗口", { label });
+  return call<void>(TAURI_COMMAND.SHOW_WINDOW, "commands:labels.openWindow", {
+    label,
+  });
 };
 
 /**
  * 显示或隐藏 macOS Dock / Windows 任务栏图标。
  */
 export const showTaskbarIcon = (visible: boolean) => {
-  return call<void>(TAURI_COMMAND.SHOW_TASKBAR_ICON, "设置任务栏图标", {
-    visible,
-  });
+  return call<void>(
+    TAURI_COMMAND.SHOW_TASKBAR_ICON,
+    "commands:labels.setTaskbarIcon",
+    {
+      visible,
+    },
+  );
 };
 
 /**
  * 设置主窗口固定态：Rust 侧立即生效（影响 resign_key / 外部点击自动隐藏逻辑）。
  */
 export const setMainWindowPinned = (pinned: boolean) => {
-  return call<void>(TAURI_COMMAND.SET_MAIN_WINDOW_PINNED, "固定窗口", {
-    pinned,
-  });
+  return call<void>(
+    TAURI_COMMAND.SET_MAIN_WINDOW_PINNED,
+    "commands:labels.setMainWindowPinned",
+    {
+      pinned,
+    },
+  );
 };
 
 /**
@@ -375,7 +456,7 @@ export const showClipboardPreview = (
 ) => {
   return call<ClipboardPreviewState | null>(
     TAURI_COMMAND.SHOW_CLIPBOARD_PREVIEW,
-    "打开预览",
+    "commands:labels.openPreview",
     { anchor, itemId },
   );
 };
@@ -384,7 +465,10 @@ export const showClipboardPreview = (
  * 关闭剪贴板系统级预览 overlay。
  */
 export const closeClipboardPreview = () => {
-  return call<void>(TAURI_COMMAND.CLOSE_CLIPBOARD_PREVIEW, "关闭预览");
+  return call<void>(
+    TAURI_COMMAND.CLOSE_CLIPBOARD_PREVIEW,
+    "commands:labels.closePreview",
+  );
 };
 
 /**
@@ -393,7 +477,7 @@ export const closeClipboardPreview = () => {
 export const getClipboardPreviewState = () => {
   return call<ClipboardPreviewState | null>(
     TAURI_COMMAND.GET_CLIPBOARD_PREVIEW_STATE,
-    "加载预览状态",
+    "commands:labels.loadPreviewState",
   );
 };
 
@@ -403,7 +487,7 @@ export const getClipboardPreviewState = () => {
 export const getClipboardPreviewPayload = (itemId: string) => {
   return call<ClipboardPreviewPayload | null>(
     TAURI_COMMAND.GET_CLIPBOARD_PREVIEW_PAYLOAD,
-    "加载预览内容",
+    "commands:labels.loadPreviewContent",
     { itemId },
   );
 };
@@ -412,7 +496,10 @@ export const getClipboardPreviewPayload = (itemId: string) => {
  * 播放一次复制成功提示音，供偏好设置页试听。
  */
 export const playCopySound = () => {
-  return call<void>(TAURI_COMMAND.PLAY_COPY_SOUND, "播放提示音");
+  return call<void>(
+    TAURI_COMMAND.PLAY_COPY_SOUND,
+    "commands:labels.playCopySound",
+  );
 };
 
 /**
@@ -429,9 +516,13 @@ export const popupClipboardItemMenu = (
   availableActions: ClipboardAction[],
   isFavorite: boolean,
 ) => {
-  return call<void>(TAURI_COMMAND.POPUP_CLIPBOARD_ITEM_MENU, "打开菜单", {
-    availableActions,
-    isFavorite,
-    itemId,
-  });
+  return call<void>(
+    TAURI_COMMAND.POPUP_CLIPBOARD_ITEM_MENU,
+    "commands:labels.openMenu",
+    {
+      availableActions,
+      isFavorite,
+      itemId,
+    },
+  );
 };

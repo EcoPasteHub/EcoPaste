@@ -1,11 +1,13 @@
 import { motion } from "motion/react";
 import type { FC } from "react";
+import { useTranslation } from "react-i18next";
 import type { Settings } from "@/types/settings";
 import type {
   PreferenceSection as PreferenceSectionModel,
   PreferenceSetting,
   SettingValue,
 } from "../types/preferences";
+import { translatePreferenceSection } from "../utils/preferenceI18n";
 import PreferenceSettingRow from "./PreferenceSettingRow";
 
 interface PreferenceSectionProps {
@@ -25,6 +27,7 @@ interface SectionVisual {
  * 偏好页主内容里的一个语义分组。
  */
 const PreferenceSection: FC<PreferenceSectionProps> = (props) => {
+  const { t } = useTranslation(["preferences", "common"]);
   const {
     highlightedSettingId,
     highlightToken,
@@ -54,13 +57,13 @@ const PreferenceSection: FC<PreferenceSectionProps> = (props) => {
 
           <div className="min-w-0">
             <h2 className="m-0 truncate font-semibold text-ant-text text-sm leading-tight">
-              {section.title}
+              {translatePreferenceSection(t, section, "title")}
             </h2>
           </div>
         </div>
 
         <span className="shrink-0 rounded-full border border-ant-border-secondary bg-ant-fill-quaternary px-2 py-1 text-ant-secondary text-xs leading-none">
-          {section.settings.length} 项
+          {t("common:units.items", { count: section.settings.length })}
         </span>
       </div>
 

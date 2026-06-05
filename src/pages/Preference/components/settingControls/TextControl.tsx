@@ -1,7 +1,9 @@
 import { Input } from "antd";
 import type { ChangeEvent, FC } from "react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { PreferenceSetting } from "../../types/preferences";
+import { translatePreferencePlaceholder } from "../../utils/preferenceI18n";
 import type { ControlProps } from "./types";
 
 interface TextControlProps extends ControlProps {
@@ -13,6 +15,7 @@ interface TextControlProps extends ControlProps {
  * 短文本输入失焦保存，主要用于快捷键字面量。
  */
 const TextControl: FC<TextControlProps> = (props) => {
+  const { t } = useTranslation("preferences");
   const { disabled, onChange, setting, value } = props;
   const [draft, setDraft] = useState(value);
   const control = setting.control.type === "text" ? setting.control : null;
@@ -46,7 +49,7 @@ const TextControl: FC<TextControlProps> = (props) => {
       onBlur={handleBlur}
       onChange={handleChange}
       onPressEnter={handlePressEnter}
-      placeholder={control.placeholder}
+      placeholder={translatePreferencePlaceholder(t, setting)}
       value={draft}
     />
   );

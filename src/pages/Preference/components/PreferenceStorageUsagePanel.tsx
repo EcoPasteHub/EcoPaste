@@ -1,4 +1,5 @@
 import type { FC } from "react";
+import { useTranslation } from "react-i18next";
 import type { StorageUsage } from "@/commands";
 import { cn } from "@/utils/cn";
 import type { PreferenceStorageState } from "../types/preferences";
@@ -20,6 +21,7 @@ interface PreferenceStorageUsagePanelProps {
 const PreferenceStorageUsagePanel: FC<PreferenceStorageUsagePanelProps> = (
   props,
 ) => {
+  const { t } = useTranslation("preferences");
   const { state, storageUsage } = props;
   const isReady = state === "ready" && storageUsage !== null;
   const totalLabel = storageUsage ? formatBytes(storageUsage.totalBytes) : "--";
@@ -27,7 +29,9 @@ const PreferenceStorageUsagePanel: FC<PreferenceStorageUsagePanelProps> = (
     ? formatBytes(storageTargetBytes(storageUsage.totalBytes))
     : "--";
   const usageLabel =
-    state === "loading" ? "统计中" : `${totalLabel} / ${targetLabel}`;
+    state === "loading"
+      ? t("storage.loading")
+      : t("storage.usage", { target: targetLabel, total: totalLabel });
   const meterClassName = isReady
     ? storageMeterClass(storageUsage.totalBytes)
     : "w-1/5";
@@ -49,7 +53,7 @@ const PreferenceStorageUsagePanel: FC<PreferenceStorageUsagePanelProps> = (
           </span>
           <div className="min-w-0 flex-1">
             <div className="truncate font-medium text-ant-text text-sm leading-tight">
-              本地存储
+              {t("storage.title")}
             </div>
             <div
               className={cn(
@@ -57,7 +61,7 @@ const PreferenceStorageUsagePanel: FC<PreferenceStorageUsagePanelProps> = (
                 state === "error" ? "text-ant-error" : "text-ant-secondary",
               )}
             >
-              {state === "error" ? "统计失败" : usageLabel}
+              {state === "error" ? t("storage.error") : usageLabel}
             </div>
           </div>
         </div>

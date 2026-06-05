@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
+import "./i18n";
 
 import "virtual:uno.css";
 import "./styles/global.scss";

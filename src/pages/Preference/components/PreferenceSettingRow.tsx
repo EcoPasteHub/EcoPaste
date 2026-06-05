@@ -1,5 +1,6 @@
 import { motion } from "motion/react";
 import type { FC } from "react";
+import { useTranslation } from "react-i18next";
 import type { Settings } from "@/types/settings";
 import { cn } from "@/utils/cn";
 import type {
@@ -7,6 +8,7 @@ import type {
   PreferenceSettingChangeHandler,
   SettingValue,
 } from "../types/preferences";
+import { translatePreferenceSetting } from "../utils/preferenceI18n";
 import PreferenceStatusBadge from "./PreferenceStatusBadge";
 import ActionControl from "./settingControls/ActionControl";
 import NumberControl from "./settingControls/NumberControl";
@@ -37,6 +39,7 @@ interface PreferenceSettingRowProps {
  * 单个设置项行：左侧说明结果，右侧渲染对应控件。
  */
 const PreferenceSettingRow: FC<PreferenceSettingRowProps> = (props) => {
+  const { t } = useTranslation("preferences");
   const {
     highlighted,
     highlightToken,
@@ -123,7 +126,7 @@ const PreferenceSettingRow: FC<PreferenceSettingRowProps> = (props) => {
               disabled ? "text-ant-secondary" : "text-ant-text",
             )}
           >
-            {setting.title}
+            {translatePreferenceSetting(t, setting, "title")}
           </span>
           <PreferenceStatusBadge compact status={setting.status} />
         </div>
@@ -133,7 +136,7 @@ const PreferenceSettingRow: FC<PreferenceSettingRowProps> = (props) => {
             disabled ? "text-ant-disabled" : "text-ant-tertiary",
           )}
         >
-          {setting.description}
+          {translatePreferenceSetting(t, setting, "description")}
         </div>
       </div>
 

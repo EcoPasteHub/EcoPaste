@@ -1,0 +1,25 @@
+{
+  "empty": {
+    "content": "No preview content",
+    "files": "No file paths",
+    "imageMissing": "Image file does not exist",
+    "text": "Empty text"
+  },
+  "file": {
+    "folder": "Folder",
+    "item": "File",
+    "missingPath": "Path unavailable",
+    "shownCount": "Showing first {{shown}} of {{total}} items"
+  },
+  "meta": {
+    "characters": "{{count}} characters",
+    "filesLoaded": "{{count}} items loaded",
+    "unknownSize": "Unknown size"
+  },
+  "title": {
+    "files": "{{count}} items",
+    "image": "Image preview",
+    "loading": "Loading",
+    "text": "Text preview"
+  }
+}

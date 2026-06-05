@@ -1,4 +1,5 @@
 import type { FC } from "react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/utils/cn";
 import type { PreferenceSetting } from "../types/preferences";
 
@@ -9,18 +10,25 @@ interface PreferenceStatusBadgeProps {
 
 const STATUS_META: Record<
   NonNullable<PreferenceSetting["status"]>,
-  { icon: string; label: string }
+  { icon: string; labelKey: string }
 > = {
-  alwaysOn: { icon: "i-lucide:check", label: "默认能力" },
-  comingSoon: { icon: "i-lucide:sparkles", label: "未来能力" },
-  experimental: { icon: "i-lucide:flask-conical", label: "实验" },
-  requiresBackend: { icon: "i-lucide:plug", label: "待接入" },
+  alwaysOn: { icon: "i-lucide:check", labelKey: "status.alwaysOn" },
+  comingSoon: { icon: "i-lucide:sparkles", labelKey: "status.comingSoon" },
+  experimental: {
+    icon: "i-lucide:flask-conical",
+    labelKey: "status.experimental",
+  },
+  requiresBackend: {
+    icon: "i-lucide:plug",
+    labelKey: "status.requiresBackend",
+  },
 };
 
 /**
  * 设置项状态徽标：用文字和图标表达状态，避免只依赖颜色。
  */
 const PreferenceStatusBadge: FC<PreferenceStatusBadgeProps> = (props) => {
+  const { t } = useTranslation("preferences");
   const { compact = false, status } = props;
 
   if (!status) return null;
@@ -36,7 +44,7 @@ const PreferenceStatusBadge: FC<PreferenceStatusBadgeProps> = (props) => {
       )}
     >
       <i aria-hidden="true" className={meta.icon} />
-      {meta.label}
+      {t(meta.labelKey)}
     </span>
   );
 };

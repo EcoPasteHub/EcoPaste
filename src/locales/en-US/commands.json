@@ -1,0 +1,43 @@
+{
+  "deleteConfirm": {
+    "content": "This item cannot be restored after deletion. Delete it?",
+    "title": "Delete item"
+  },
+  "error": "{{label}} failed: {{message}}",
+  "labels": {
+    "cancelFavorite": "Unfavorite",
+    "closePreview": "Close preview",
+    "copy": "Copy",
+    "delete": "Delete",
+    "drag": "Drag",
+    "loadAutostart": "Load launch-at-login state",
+    "loadClipboardList": "Load list",
+    "loadLaunchSource": "Load launch source",
+    "loadPreviewContent": "Load preview content",
+    "loadPreviewState": "Load preview state",
+    "loadSettings": "Load settings",
+    "loadStorageUsage": "Load storage usage",
+    "openDirectory": "Open directory",
+    "openLink": "Open link",
+    "openMenu": "Open menu",
+    "openPreview": "Open preview",
+    "openWindow": "Open window",
+    "paste": "Paste",
+    "playCopySound": "Play sound",
+    "reveal": "Reveal location",
+    "saveNote": "Save note",
+    "saveSettings": "Save settings",
+    "setAutostart": "Set launch at login",
+    "setMainWindowPinned": "Pin window",
+    "setTaskbarIcon": "Set taskbar icon",
+    "toggleFavorite": "Favorite"
+  },
+  "messages": {
+    "copied": "Copied",
+    "deleted": "Deleted",
+    "favoriteAdded": "Added to favorites",
+    "favoriteRemoved": "Removed from favorites",
+    "noteSaved": "Saved",
+    "noteSavedAndFavorited": "Saved and favorited"
+  }
+}

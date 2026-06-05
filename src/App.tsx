@@ -2,16 +2,28 @@ import type { Event, UnlistenFn } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { useEventListener, useMount, useUnmount } from "ahooks";
 import { App as AntdApp, ConfigProvider, theme } from "antd";
+import enUS from "antd/locale/en_US";
+import zhCN from "antd/locale/zh_CN";
 import type { FC } from "react";
 import { use, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { RouterProvider } from "react-router";
 import { useSnapshot } from "valtio";
 import { router } from "./router";
 import { settingsReady, settingsState } from "./stores/settings";
-import type { Theme as SettingsTheme } from "./types/settings";
+import type { Language, Theme as SettingsTheme } from "./types/settings";
 import { log } from "./utils/log";
 
 type ResolvedTheme = "light" | "dark";
+
+/**
+ * 把设置语言映射到 Ant Design 内置 locale。
+ */
+const resolveAntdLocale = (language: Language) => {
+  if (language === "en-US") return enUS;
+
+  return zhCN;
+};
 
 /**
  * 根据用户设置与系统偏好解析当前实际主题。
@@ -39,14 +51,17 @@ const normalizeTauriTheme = (value: ResolvedTheme | null): ResolvedTheme => {
 const App: FC = () => {
   use(settingsReady);
 
+  const { i18n } = useTranslation();
   const settings = useSnapshot(settingsState);
   const themeUnlistenRef = useRef<UnlistenFn | null>(null);
   const themeMountedRef = useRef(false);
   const [systemTheme, setSystemTheme] = useState<ResolvedTheme>("light");
   const mode = settings.appearance.theme;
+  const language = settings.appearance.language;
   const resolvedTheme = resolveTheme(mode, systemTheme);
   const algorithm =
     resolvedTheme === "dark" ? theme.darkAlgorithm : theme.defaultAlgorithm;
+  const locale = resolveAntdLocale(language);
 
   /**
    * 接收 Tauri 系统主题变化事件，驱动 `auto` 模式的实际主题。
@@ -104,6 +119,14 @@ const App: FC = () => {
     root.classList.toggle("light", resolvedTheme === "light");
   }, [resolvedTheme]);
 
+  useEffect(() => {
+    document.documentElement.lang = language;
+
+    if (i18n.language === language) return;
+
+    void i18n.changeLanguage(language);
+  }, [i18n, language]);
+
   // 兜底未捕获的 Promise rejection：统一进日志通道，避免只在 devtools 红字闪过、生产环境完全无痕。
   useEventListener("unhandledrejection", (event) => {
     const { reason } = event;
@@ -122,7 +145,10 @@ const App: FC = () => {
   });
 
   return (
-    <ConfigProvider theme={{ algorithm, cssVar: { key: "eco-paste" } }}>
+    <ConfigProvider
+      locale={locale}
+      theme={{ algorithm, cssVar: { key: "eco-paste" } }}
+    >
       <AntdApp>
         <RouterProvider router={router} />
       </AntdApp>

@@ -1,10 +1,12 @@
 import { Empty, Spin } from "antd";
+import type { TFunction } from "i18next";
 import type {
   FC,
   MouseEvent as ReactMouseEvent,
   PointerEvent as ReactPointerEvent,
 } from "react";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import { useSnapshot } from "valtio";
 import {
@@ -40,6 +42,7 @@ const KEY_HINTS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
  * 跟随关键词（Header 已防抖）检索。
  */
 const List: FC = () => {
+  const { t } = useTranslation("clipboard");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [firstVisibleIndex, setFirstVisibleIndex] = useState(0);
   const [isAtTop, setIsAtTop] = useState(true);
@@ -355,7 +358,7 @@ const List: FC = () => {
   }
 
   if (items.length === 0) {
-    const description = getEmptyDescription(keyword, group);
+    const description = getEmptyDescription(t, keyword, group);
 
     return (
       <div
@@ -434,7 +437,7 @@ const List: FC = () => {
           onClick={handleShowPending}
           type="button"
         >
-          {pendingCount} 条新记录，点击查看
+          {t("pending", { count: pendingCount })}
         </button>
       )}
 
@@ -533,17 +536,21 @@ const List: FC = () => {
 /**
  * 生成空列表文案，区分搜索、收藏分组和普通空历史。
  */
-function getEmptyDescription(keyword: string, group: string) {
+function getEmptyDescription(
+  t: TFunction<"clipboard">,
+  keyword: string,
+  group: string,
+) {
   const isSearching = keyword.length > 0;
   const isFavorite = group === "favorite";
 
   if (isSearching) {
     return isFavorite
-      ? `未找到「${keyword}」相关收藏`
-      : `未找到「${keyword}」相关记录`;
+      ? t("empty.searchFavorites", { keyword })
+      : t("empty.searchHistory", { keyword });
   }
 
-  return isFavorite ? "暂无收藏记录" : "暂无剪贴板历史";
+  return t(isFavorite ? "empty.favorites" : "empty.history");
 }
 
 /**

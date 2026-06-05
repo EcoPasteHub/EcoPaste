@@ -1,8 +1,13 @@
 import { Input } from "antd";
 import type { ChangeEvent, FC } from "react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/utils/cn";
 import { PREFERENCE_TAB_META } from "../constants";
 import type { PreferenceSection, PreferenceTab } from "../types/preferences";
+import {
+  translatePreferenceSection,
+  translatePreferenceTab,
+} from "../utils/preferenceI18n";
 import type { PreferenceSearchResult } from "../utils/preferenceSearch";
 import PreferenceSearchResults from "./PreferenceSearchResults";
 
@@ -23,6 +28,7 @@ interface PreferenceHeaderProps {
  * 偏好窗口主区域头部：标题、全局搜索和二级分组导航。
  */
 const PreferenceHeader: FC<PreferenceHeaderProps> = (props) => {
+  const { t } = useTranslation(["preferences", "common"]);
   const {
     activeSectionId,
     activeTab,
@@ -54,7 +60,9 @@ const PreferenceHeader: FC<PreferenceHeaderProps> = (props) => {
                 PREFERENCE_TAB_META[activeTab.id].icon,
               )}
             />
-            <span className="truncate">{activeTab.title}</span>
+            <span className="truncate">
+              {translatePreferenceTab(t, activeTab)}
+            </span>
           </h1>
         </div>
 
@@ -64,7 +72,7 @@ const PreferenceHeader: FC<PreferenceHeaderProps> = (props) => {
               allowClear
               className="border-ant-border-secondary bg-ant-fill-quaternary text-ant-text"
               onChange={onSearchChange}
-              placeholder="搜索配置项"
+              placeholder={t("preferences:search.placeholder")}
               prefix={
                 <i
                   aria-hidden="true"
@@ -107,6 +115,7 @@ interface SectionTabsProps {
  * 偏好页二级分组导航，紧贴标题栏用于快速切换当前分类。
  */
 const SectionTabs: FC<SectionTabsProps> = (props) => {
+  const { t } = useTranslation(["preferences", "common"]);
   const { activeSectionId, sections, totalSettings, onSectionSelect } = props;
 
   return (
@@ -129,7 +138,7 @@ const SectionTabs: FC<SectionTabsProps> = (props) => {
             onClick={handleClick}
             type="button"
           >
-            {section.title}
+            {translatePreferenceSection(t, section, "title")}
             <span
               className={cn(
                 "absolute right-0 bottom-0 left-0 h-0.5 rounded-full transition-colors motion-reduce:transition-none",
@@ -141,7 +150,7 @@ const SectionTabs: FC<SectionTabsProps> = (props) => {
       })}
 
       <span className="ml-auto shrink-0 rounded-full border border-ant-border-secondary bg-ant-fill-quaternary px-2 py-1 text-ant-secondary text-xs leading-none">
-        {totalSettings} 项设置
+        {t("common:units.settings", { count: totalSettings })}
       </span>
     </div>
   );
