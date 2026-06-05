@@ -27,6 +27,11 @@ pub fn maybe_play_copy(app: &AppHandle) {
     spawn_play();
 }
 
+/// 异步播放一次复制成功提示音，供偏好设置试听使用。
+pub fn play_copy_sound() {
+    spawn_play();
+}
+
 fn spawn_play() {
     std::thread::Builder::new()
         .name("copy-sound".into())

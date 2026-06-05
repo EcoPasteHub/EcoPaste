@@ -116,21 +116,21 @@ const Preview: FC = () => {
         viewBox={`0 0 ${layout.overlayRect.width} ${layout.overlayRect.height}`}
       >
         <motion.path
-          className="stroke-primary"
+          className="stroke-ant-primary"
           d={motionLayout.path}
           fill="none"
           strokeLinecap="round"
           strokeWidth="2"
         />
         <motion.circle
-          className="fill-container stroke-primary"
+          className="fill-ant-container stroke-ant-primary"
           cx={motionLayout.sourceDotX}
           cy={motionLayout.sourceDotY}
           r="4"
           strokeWidth="2.5"
         />
         <motion.circle
-          className="fill-container stroke-primary"
+          className="fill-ant-container stroke-ant-primary"
           cx={motionLayout.targetDotX}
           cy={motionLayout.targetDotY}
           r="4"
@@ -140,7 +140,7 @@ const Preview: FC = () => {
 
       <div
         aria-hidden="true"
-        className="pointer-events-none invisible absolute top-0 left-0 z-0 flex w-fit min-w-72 max-w-120 flex-col overflow-visible rounded-2 border border-border bg-container/95 shadow-lg backdrop-blur"
+        className="pointer-events-none invisible absolute top-0 left-0 z-0 flex w-fit min-w-72 max-w-120 flex-col overflow-visible rounded-2 border border-ant-border bg-ant-container/95 shadow-lg backdrop-blur"
         ref={panelMeasureRef}
         style={panelMeasureStyle}
       >
@@ -153,7 +153,7 @@ const Preview: FC = () => {
 
       <motion.div
         animate={active ? "open" : "closed"}
-        className="absolute z-5 flex max-h-120 min-w-72 max-w-120 flex-col overflow-hidden rounded-2 border border-border bg-container/95 shadow-lg backdrop-blur"
+        className="absolute z-5 flex max-h-120 min-w-72 max-w-120 flex-col overflow-hidden rounded-2 border border-ant-border bg-ant-container/95 shadow-lg backdrop-blur"
         initial="closed"
         style={motionLayout.panelStyle}
         transition={PREVIEW_PANEL_TRANSITION}
@@ -172,7 +172,7 @@ const Preview: FC = () => {
         </div>
 
         {isLoading && (
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-mask/10">
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-ant-mask/10">
             <Spin size="small" />
           </div>
         )}

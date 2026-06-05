@@ -6,7 +6,7 @@ import List from "./components/List";
 const Clipboard = () => {
   return (
     <div
-      className="flex size-screen flex-col overflow-hidden bg-container"
+      className="flex size-screen flex-col overflow-hidden bg-ant-container"
       data-tauri-drag-region
     >
       <Header />

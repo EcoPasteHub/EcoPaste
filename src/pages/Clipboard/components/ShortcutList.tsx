@@ -14,7 +14,7 @@ const Kbd: FC<{ children: ReactNode }> = (props) => {
   const { children } = props;
 
   return (
-    <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-1.5 bg-fill-secondary px-1.5 font-mono text-secondary text-xs">
+    <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-1.5 bg-ant-fill-secondary px-1.5 font-mono text-ant-secondary text-xs">
       {children}
     </span>
   );

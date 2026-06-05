@@ -22,10 +22,8 @@
     "preinstall": "npx only-allow pnpm"
   },
   "dependencies": {
-    "@ant-design/icons": "^6.2.5",
     "@tauri-apps/api": "^2.11.0",
     "@tauri-apps/plugin-log": "^2.8.0",
-    "@tauri-apps/plugin-opener": "^2.5.4",
     "@tauri-apps/plugin-os": "^2.3.2",
     "ahooks": "^3.9.7",
     "antd": "^6.4.3",
@@ -45,6 +43,7 @@
     "@commitlint/config-conventional": "^21.0.2",
     "@iconify-json/lets-icons": "^1.2.2",
     "@iconify-json/lucide": "^1.2.111",
+    "@iconify-json/ph": "^1.2.2",
     "@tauri-apps/cli": "^2.11.2",
     "@types/node": "^25.9.1",
     "@types/react": "^19.2.15",

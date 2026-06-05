@@ -14,13 +14,16 @@ export type Theme = "auto" | "light" | "dark";
 /** Rust enum `Language`（手动 `serde(rename)`）。 */
 export type Language = "zh-CN" | "en-US";
 
-export type AutoPaste = "disabled" | "singleClick" | "doubleClick";
+export type AutoPaste =
+  | "disabled"
+  | "singleClickPaste"
+  | "doubleClickPaste"
+  | "singleClickCopy"
+  | "doubleClickCopy";
 
 export type ItemAction = "copy" | "pastePlain" | "note" | "star" | "delete";
 
 export type RetentionUnit = "hours" | "days" | "weeks" | "months" | "forever";
-
-export type SearchPosition = "top" | "bottom";
 
 export type WindowPosition = "remember" | "followCursor" | "center";
 
@@ -72,7 +75,6 @@ export interface History {
 }
 
 export interface Search {
-  position: SearchPosition;
   defaultFocus: boolean;
   clearOnHide: boolean;
 }

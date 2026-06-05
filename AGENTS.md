@@ -121,8 +121,9 @@ cargo test                    # Rust 单测（在 src-tauri 下）
 
 - 状态：Valtio 只存 UI 状态和设置的本地镜像；业务数据从 Rust 命令拉取，不在前端建「数据库副本」。
 - 样式：UnoCSS。
-- **颜色只用 antd Design Token 映射的语义色类名**（由 `presetAntdColors` 生成，如 `text-text` / `text-secondary` / `bg-container` / `border-border`，完整列表见 `src/unocss/presetAntdColors.ts`）。**禁止**任意色值：不写 `text-[#333]` / `border-red-500` 等 hex / rgb / Tailwind 原生色，也不在 `style={{}}` 里塞 `color` / `background`。需要新颜色先扩 preset，不要绕过。
-- 普通文本默认继承全局 `body` 的 `text-text`，不随意显式声明 Ant Design 主文本色；需要显式声明时优先用 `text-text`。次级信息优先用 `text-secondary`。只有经过设计确认且 `text-secondary` 无法满足视觉层级时，才允许使用 `text-tertiary` / `text-description` 等更浅文字色。
+- **颜色只用 antd Design Token 映射的 `ant-*` 语义色类名**（由 `presetAntdColors` 生成，如 `text-ant-text` / `text-ant-secondary` / `bg-ant-container` / `border-ant-border`，完整列表见 `src/unocss/presetAntdColors.ts`）。**禁止**任意色值：不写 `text-[#333]` / `border-red-500` 等 hex / rgb / Tailwind 原生色，也不在 `style={{}}` 里塞 `color` / `background`。需要新颜色先扩 preset，不要绕过。
+- 普通文本默认继承全局 `body` 的 `text-ant-text`，不随意显式声明 Ant Design 主文本色；需要显式声明时优先用 `text-ant-text`。次级信息优先用 `text-ant-secondary`。只有经过设计确认且 `text-ant-secondary` 无法满足视觉层级时，才允许使用 `text-ant-tertiary` / `text-ant-description` 等更浅文字色。
+- 字号使用 Tailwind / wind4 标准语义字号（如 `text-xs` / `text-sm` / `text-base` / `text-lg`），不要使用 `text-3` / `text-3.5` 这类数字字号，避免与 `text-ant-*` 颜色类在 `tailwind-merge` 中产生歧义。
 - **尺寸只走 wind4 数字制**（1 单位 = 0.25rem = 4px），如 `p-1.5` / `gap-2` / `rounded-2.5` / `w-36`。**禁止**`px` 字面量：不写 `w-[144px]` 这类任意值类，也不在 `style={{}}` 里塞数字像素（antd `tabBarStyle` 等 inline 样式同理，必要时改 className 或调 `theme.token`）。非常规尺寸用内置 fractional（`.25/.5/.75/.125`）拼，没有再扩 `theme.spacing`。
 - 组件优先用 Ant Design v6（`antd`），避免重复造轮子；主题切换在根节点用 `ConfigProvider` 的 `theme.algorithm` 切 `defaultAlgorithm` / `darkAlgorithm`，并把同步的 `light` / `dark` 类挂到 `<html>` 上，供 UnoCSS `dark:` 变体使用。
 - antd prop 命名：`open` / `checked` / `disabled` / `onClick`（不要再用 HeroUI 的 `isOpen` / `isSelected` / `isDisabled` / `onPress`）。

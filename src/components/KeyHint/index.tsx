@@ -11,7 +11,7 @@ interface KeyHintProps {
   className?: string;
   /**
    * 默认展示的 UnoCSS 图标类名（如 "i-lets-icons:pin"），存在时优先于 children 渲染，
-   * 默认尺寸 text-4，需要其它尺寸时拼到类名里（如 "i-lets-icons:pin text-5"）。
+   * 默认尺寸 text-base，需要其它尺寸时拼到类名里（如 "i-lets-icons:pin text-xl"）。
    */
   iconName?: string;
   /**
@@ -79,13 +79,13 @@ const KeyHint: FC<KeyHintProps> = (props) => {
   return (
     <div className="relative">
       <div className="flex items-center justify-center">
-        {iconName ? <i className={cn("text-4", iconName)} /> : children}
+        {iconName ? <i className={cn("text-base", iconName)} /> : children}
       </div>
 
       {active && (
         <span
           className={cn(
-            "-translate-1/2 absolute top-1/2 left-1/2 inline-flex size-4 items-center justify-center rounded-1 bg-text font-bold font-mono text-3! text-light-solid",
+            "-translate-1/2 absolute top-1/2 left-1/2 inline-flex size-4 items-center justify-center rounded-1 bg-ant-text font-bold font-mono text-ant-light-solid text-xs",
             className,
           )}
         >

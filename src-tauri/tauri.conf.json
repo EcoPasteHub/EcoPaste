@@ -38,17 +38,13 @@
         "label": "preference",
         "maximizable": false,
         "minHeight": 600,
-        "minWidth": 900,
+        "minWidth": 960,
         "skipTaskbar": true,
         "title": "EcoPaste Preference",
         "titleBarStyle": "Overlay",
-        "trafficLightPosition": {
-          "x": 15,
-          "y": 25
-        },
         "url": "index.html/#/preference",
         "visible": false,
-        "width": 900
+        "width": 960
       }
     ]
   },

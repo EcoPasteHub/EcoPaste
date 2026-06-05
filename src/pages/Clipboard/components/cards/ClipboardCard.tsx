@@ -23,6 +23,8 @@ interface ClipboardCardProps {
   onPointerEnter?: (event: PointerEvent<HTMLDivElement>) => void;
   onPointerLeave?: () => void;
   onPointerMove?: (event: PointerEvent<HTMLDivElement>) => void;
+  onMouseDown?: (event: MouseEvent<HTMLDivElement>) => void;
+  onDoubleClick?: (event: MouseEvent<HTMLDivElement>) => void;
   rootRef?: Ref<HTMLDivElement>;
 }
 
@@ -41,6 +43,8 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
     onPointerEnter,
     onPointerLeave,
     onPointerMove,
+    onMouseDown,
+    onDoubleClick,
     rootRef,
   } = props;
   const { kind, subKind, sourceAppIconPath, sourceAppName } = item;
@@ -64,12 +68,17 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
   return (
     <div
       aria-selected={isSelected}
-      className={cn("b b-border-secondary flex flex-col gap-1 rounded-2 p-2", {
-        "b-primary bg-blue-1": isSelected,
-      })}
+      className={cn(
+        "flex flex-col gap-1 rounded-2 border border-ant-border-secondary p-2",
+        {
+          "border-ant-primary bg-ant-blue-1": isSelected,
+        },
+      )}
       draggable
       onContextMenu={handleContextMenu}
+      onDoubleClick={onDoubleClick}
       onDragStart={handleDragStart}
+      onMouseDown={onMouseDown}
       onPointerEnter={onPointerEnter}
       onPointerLeave={onPointerLeave}
       onPointerMove={onPointerMove}
@@ -77,7 +86,7 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
       role="option"
       tabIndex={-1}
     >
-      <div className="flex items-center justify-between text-secondary text-xs">
+      <div className="flex items-center justify-between text-ant-secondary text-xs">
         <div className="flex items-center gap-1 overflow-hidden">
           {hintKey ? (
             <KeyHint hintKey={hintKey} onKeyPress={onQuickPaste}>

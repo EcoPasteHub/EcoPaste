@@ -11,6 +11,7 @@ export default defineConfig(async () => ({
   //
   // 1. prevent Vite from obscuring rust errors
   clearScreen: false,
+
   plugins: [UnoCSS(), react()],
 
   resolve: {

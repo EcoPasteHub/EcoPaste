@@ -22,6 +22,7 @@ pub use guard::WritebackGuard;
 pub use icon::{get_icon_cache_key, icon_png, DIR_CACHE_KEY};
 pub use ingest::build_item;
 pub use read::ClipboardReader;
+pub use sound::play_copy_sound;
 pub use source::detect_frontmost;
 pub use storage::ImageStore;
 pub use watcher::{init, materialize_source, persist_and_notify, WatcherPause};

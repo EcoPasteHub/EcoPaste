@@ -45,7 +45,7 @@ const Highlight: FC<HighlightProps> = (props) => {
     }
 
     nodes.push(
-      <mark className="bg-gold-3" key={key++}>
+      <mark className="bg-ant-gold-3" key={key++}>
         {text.slice(matchIndex, matchIndex + kwLen)}
       </mark>,
     );

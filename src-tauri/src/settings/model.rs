@@ -231,7 +231,7 @@ pub struct Content {
 impl Default for Content {
     fn default() -> Self {
         Self {
-            auto_paste: AutoPaste::DoubleClick,
+            auto_paste: AutoPaste::DoubleClickPaste,
             copy_plain: false,
             paste_plain: false,
             show_original_preview: false,
@@ -246,11 +246,13 @@ impl Default for Content {
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub enum AutoPaste {
-    /// 点击只选中，不自动粘贴。
+    /// 点击只选中，不自动执行动作。
     Disabled,
-    SingleClick,
+    SingleClickPaste,
     #[default]
-    DoubleClick,
+    DoubleClickPaste,
+    SingleClickCopy,
+    DoubleClickCopy,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
@@ -329,7 +331,6 @@ pub enum RetentionUnit {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(default, rename_all = "camelCase")]
 pub struct Search {
-    pub position: SearchPosition,
     /// 主窗每次显示时自动聚焦搜索框。
     pub default_focus: bool,
     /// 主窗隐藏时清空搜索关键词。
@@ -339,19 +340,10 @@ pub struct Search {
 impl Default for Search {
     fn default() -> Self {
         Self {
-            position: SearchPosition::Top,
             default_focus: false,
             clear_on_hide: true,
         }
     }
-}
-
-#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub enum SearchPosition {
-    #[default]
-    Top,
-    Bottom,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]

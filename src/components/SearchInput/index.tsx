@@ -1,15 +1,25 @@
 import { Input, type InputProps, type InputRef } from "antd";
 import type { ChangeEvent, CompositionEvent, FC } from "react";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import KeyHint from "@/components/KeyHint";
+
+interface SearchInputProps extends Omit<InputProps, "prefix"> {
+  focusToken?: number;
+}
 
 /**
  * 带快捷键提示的搜索输入框，支持 ⌘F / Ctrl+F 聚焦。
  * IME 拼音/日文组合输入期间抑制 onChange，待 compositionend 再补发一次，
  * 避免上层防抖/受控逻辑被中间态拼字串污染。
  */
-const SearchInput: FC<Omit<InputProps, "prefix">> = (props) => {
-  const { onChange, onCompositionStart, onCompositionEnd, ...rest } = props;
+const SearchInput: FC<SearchInputProps> = (props) => {
+  const {
+    focusToken = 0,
+    onChange,
+    onCompositionStart,
+    onCompositionEnd,
+    ...rest
+  } = props;
 
   const inputRef = useRef<InputRef>(null);
   const composingRef = useRef(false);
@@ -20,6 +30,12 @@ const SearchInput: FC<Omit<InputProps, "prefix">> = (props) => {
   const focusSearch = () => {
     inputRef.current?.focus({ cursor: "all" });
   };
+
+  useEffect(() => {
+    if (focusToken <= 0) return;
+
+    inputRef.current?.focus({ cursor: "all" });
+  }, [focusToken]);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (composingRef.current) return;

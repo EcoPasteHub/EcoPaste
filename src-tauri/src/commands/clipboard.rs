@@ -208,6 +208,12 @@ pub async fn get_clipboard_preview_payload(
     Ok(Some(payload))
 }
 
+/// 播放一次复制成功提示音，用于偏好设置页试听。
+#[tauri::command]
+pub async fn play_copy_sound() {
+    crate::clipboard::play_copy_sound();
+}
+
 /// 把指定历史记录写回系统剪贴板（不触发模拟粘贴）。
 /// `plain = true` 强制纯文本，剥离 HTML/RTF。
 ///

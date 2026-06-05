@@ -104,6 +104,15 @@ export interface ClipboardPreviewPayload {
   totalFiles: number;
 }
 
+export interface StorageUsage {
+  totalBytes: number;
+  databaseBytes: number;
+  resourcesBytes: number;
+  settingsBytes: number;
+}
+
+export type PreferenceDirectoryTarget = "data" | "logs";
+
 /**
  * 把任意 invoke reject 的值归一化成 `AppError`：兼容旧路径（字符串）和未来扩展。
  */
@@ -153,6 +162,52 @@ export const getSettings = () => {
  */
 export const updateSettings = (patch: SettingsPatch) => {
   return call<Settings>(TAURI_COMMAND.UPDATE_SETTINGS, "保存设置", { patch });
+};
+
+/**
+ * 统计本地数据库、资源缓存与设置文件的占用。
+ */
+export const getStorageUsage = () => {
+  return call<StorageUsage>(TAURI_COMMAND.GET_STORAGE_USAGE, "读取存储占用");
+};
+
+/**
+ * 打开偏好页固定本地目录：数据目录或日志目录。
+ */
+export const openPreferenceDirectory = (target: PreferenceDirectoryTarget) => {
+  return call<void>(TAURI_COMMAND.OPEN_PREFERENCE_DIRECTORY, "打开目录", {
+    target,
+  });
+};
+
+/**
+ * 使用系统默认浏览器打开经过 Rust 侧校验的外部网页。
+ */
+export const openExternalUrl = (url: string) => {
+  return call<void>(TAURI_COMMAND.OPEN_EXTERNAL_URL, "打开链接", { url });
+};
+
+/**
+ * 查询系统自启动真实状态（auto-launch 后端）。
+ */
+export const getAutostart = () => {
+  return call<boolean>(TAURI_COMMAND.GET_AUTOSTART, "读取开机启动状态");
+};
+
+/**
+ * 设置系统自启动真实状态；偏好页需与 `general.autoStart` 一起更新。
+ */
+export const setAutostart = (enabled: boolean) => {
+  return call<void>(TAURI_COMMAND.SET_AUTOSTART, "设置开机启动", {
+    enabled,
+  });
+};
+
+/**
+ * 查询本次是否由自启动参数唤起。
+ */
+export const isLaunchedViaAutostart = () => {
+  return call<boolean>(TAURI_COMMAND.IS_LAUNCHED_VIA_AUTOSTART, "读取启动来源");
 };
 
 /**
@@ -293,6 +348,15 @@ export const showWindow = (label: string) => {
 };
 
 /**
+ * 显示或隐藏 macOS Dock / Windows 任务栏图标。
+ */
+export const showTaskbarIcon = (visible: boolean) => {
+  return call<void>(TAURI_COMMAND.SHOW_TASKBAR_ICON, "设置任务栏图标", {
+    visible,
+  });
+};
+
+/**
  * 设置主窗口固定态：Rust 侧立即生效（影响 resign_key / 外部点击自动隐藏逻辑）。
  */
 export const setMainWindowPinned = (pinned: boolean) => {
@@ -342,6 +406,13 @@ export const getClipboardPreviewPayload = (itemId: string) => {
     "加载预览内容",
     { itemId },
   );
+};
+
+/**
+ * 播放一次复制成功提示音，供偏好设置页试听。
+ */
+export const playCopySound = () => {
+  return call<void>(TAURI_COMMAND.PLAY_COPY_SOUND, "播放提示音");
 };
 
 /**

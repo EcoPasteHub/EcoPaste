@@ -55,8 +55,8 @@ const Group: FC = () => {
           className={cn(
             "flex cursor-pointer items-center gap-1 rounded-full px-2.5 py-1 text-xs transition-colors",
             {
-              "bg-primary text-light-solid": group === value,
-              "text-secondary hover:bg-fill-tertiary": group !== value,
+              "bg-ant-primary text-ant-light-solid": group === value,
+              "text-ant-secondary hover:bg-ant-fill-tertiary": group !== value,
             },
           )}
           data-value={value}

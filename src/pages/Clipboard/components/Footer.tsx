@@ -19,7 +19,7 @@ const Footer = () => {
 
   return (
     <div className="flex items-center justify-between p-3">
-      <span className="text-tertiary text-xs">共 {total ?? 0} 项</span>
+      <span className="text-ant-tertiary text-xs">共 {total ?? 0} 项</span>
 
       <Popover
         content={<ShortcutList />}

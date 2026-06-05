@@ -1,5 +1,9 @@
 import { Empty, Spin } from "antd";
-import type { FC, PointerEvent as ReactPointerEvent } from "react";
+import type {
+  FC,
+  MouseEvent as ReactMouseEvent,
+  PointerEvent as ReactPointerEvent,
+} from "react";
 import { useEffect, useRef, useState } from "react";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import { useSnapshot } from "valtio";
@@ -17,6 +21,7 @@ import { useKeyboardEvent } from "@/hooks/useKeyboardEvent";
 import { useTauriListen } from "@/hooks/useTauriListen";
 import { clipboardStatsState } from "@/stores/clipboardStats";
 import { clipboardViewState } from "@/stores/clipboardView";
+import { settingsState } from "@/stores/settings";
 import type { ClipboardAction, ClipboardItem } from "@/types/clipboard";
 import { cn } from "@/utils/cn";
 import { isMac } from "@/utils/is";
@@ -45,7 +50,9 @@ const List: FC = () => {
   const itemElementMapRef = useRef(new Map<string, HTMLDivElement>());
 
   const snapshot = useSnapshot(clipboardViewState);
+  const settings = useSnapshot(settingsState);
   const { keyword, group } = snapshot;
+  const autoPaste = settings.clipboard.content.autoPaste;
 
   const { data, loading, loadingMore, loadMore, noMore, reload, mutate } =
     useClipboardItems(snapshot);
@@ -423,7 +430,7 @@ const List: FC = () => {
 
       {pendingCount > 0 && !isAtTop && (
         <button
-          className="absolute top-2 left-1/2 z-10 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-light-solid text-xs shadow-md transition-opacity hover:opacity-90"
+          className="absolute top-2 left-1/2 z-10 -translate-x-1/2 rounded-full bg-ant-primary px-3 py-1 text-ant-light-solid text-xs shadow-md transition-opacity hover:opacity-90"
           onClick={handleShowPending}
           type="button"
         >
@@ -463,6 +470,36 @@ const List: FC = () => {
       pasteClipboardItem(item.id, false);
     };
 
+    const handleMouseDown = (event: ReactMouseEvent<HTMLDivElement>) => {
+      if (event.button !== 0) return;
+
+      setSelectedId(item.id);
+
+      if (autoPaste === "singleClickPaste") {
+        closePreview("singleClickPaste");
+        pasteClipboardItem(item.id, false);
+        return;
+      }
+
+      if (autoPaste === "singleClickCopy") {
+        closePreview("singleClickCopy");
+        writeToClipboard(item.id, false);
+      }
+    };
+
+    const handleDoubleClick = () => {
+      if (autoPaste === "doubleClickPaste") {
+        closePreview("doubleClickPaste");
+        pasteClipboardItem(item.id, false);
+        return;
+      }
+
+      if (autoPaste === "doubleClickCopy") {
+        closePreview("doubleClickCopy");
+        writeToClipboard(item.id, false);
+      }
+    };
+
     return (
       <div className={cn("px-3", { "pt-3": index !== 0 })}>
         <ClipboardCard
@@ -471,6 +508,8 @@ const List: FC = () => {
             selectedId === null ? index === 0 : item.id === selectedId
           }
           item={item}
+          onDoubleClick={handleDoubleClick}
+          onMouseDown={handleMouseDown}
           onPointerEnter={handlePointerEnter}
           onPointerLeave={handlePointerLeave}
           onPointerMove={handlePointerMove}

@@ -3,7 +3,9 @@
 mod autostart;
 mod clipboard;
 mod drag;
+mod link;
 mod settings;
+mod storage;
 mod window;
 
 // glob 再导出：`#[tauri::command]` 会在函数旁生成隐藏辅助项（`__cmd__*`），
@@ -11,5 +13,7 @@ mod window;
 pub use autostart::*;
 pub use clipboard::*;
 pub use drag::*;
+pub use link::*;
 pub use settings::*;
+pub use storage::*;
 pub use window::*;
