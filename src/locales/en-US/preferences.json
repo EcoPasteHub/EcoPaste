@@ -6,6 +6,13 @@
     "sponsorQrAlt": "Sponsor QR code"
   },
   "schema": {
+    "numberSuffixes": {
+      "files": "files",
+      "gb": "GB",
+      "items": "items",
+      "lines": "lines",
+      "px": "px"
+    },
     "retentionUnits": {
       "days": "Days",
       "hours": "Hours",
@@ -243,26 +250,16 @@
         }
       },
       "history": {
-        "keepFavorite": {
-          "controlLabel": "Always keep",
-          "description": "Favorite records are not affected by retention period or item-count limits.",
-          "title": "Keep Favorites During Cleanup"
-        },
-        "keepPinned": {
-          "controlLabel": "Always keep",
-          "description": "Pinned records are not affected by retention period or item-count limits.",
-          "title": "Keep Pinned During Cleanup"
-        },
         "maxCount": {
-          "description": "When the limit is exceeded, older regular records are cleaned automatically.",
+          "description": "When the limit is exceeded, older regular records are cleaned automatically; favorites and pinned items are always kept. 0 means unlimited items.",
           "title": "Maximum Items"
         },
         "maxSize": {
-          "description": "Future option to skip clipboard content above the size limit.",
+          "description": "Future option to skip regular records above the size limit; favorites and pinned items are always kept. 0 means unlimited size.",
           "title": "Maximum Item Size"
         },
         "retention": {
-          "description": "Regular records older than this period are cleaned automatically.",
+          "description": "Regular records older than this many days are cleaned automatically; favorites and pinned items are always kept. 0 disables time-based cleanup.",
           "title": "Retention Period"
         }
       },

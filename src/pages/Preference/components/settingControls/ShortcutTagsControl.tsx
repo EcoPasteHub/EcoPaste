@@ -1,3 +1,4 @@
+import { Space, Tag } from "antd";
 import type { FC } from "react";
 import { useTranslation } from "react-i18next";
 import type { PreferenceSetting } from "../../types/preferences";
@@ -17,7 +18,7 @@ const ShortcutTagsControl: FC<ShortcutTagsControlProps> = (props) => {
   if (setting.control.type !== "shortcutTags") return null;
 
   return (
-    <div className="flex max-w-78 flex-col items-end gap-1.5">
+    <Space orientation="vertical">
       {setting.control.shortcuts.map((shortcut, shortcutIndex) => {
         const label = translatePreferenceShortcutLabel(
           t,
@@ -26,22 +27,14 @@ const ShortcutTagsControl: FC<ShortcutTagsControlProps> = (props) => {
         );
 
         return (
-          <div className="flex items-center gap-1" key={label}>
-            <span className="sr-only">{label}</span>
+          <Space key={label}>
             {shortcut.keys.map((key) => {
-              return (
-                <span
-                  className="inline-flex h-6 min-w-6 items-center justify-center rounded-1.5 bg-ant-fill-secondary px-1.5 font-mono text-ant-secondary text-xs leading-none"
-                  key={`${label}-${key}`}
-                >
-                  {key}
-                </span>
-              );
+              return <Tag key={`${label}-${key}`}>{key}</Tag>;
             })}
-          </div>
+          </Space>
         );
       })}
-    </div>
+    </Space>
   );
 };
 

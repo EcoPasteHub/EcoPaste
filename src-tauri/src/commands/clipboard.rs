@@ -367,7 +367,7 @@ async fn mark_item_reused_if_enabled(app: &AppHandle, pool: &SqlitePool, id: &st
     Ok(())
 }
 
-/// 列表查询命令（薄封装）：参数缺省时走 Rust 端默认（limit=20, offset=0, createdAtDesc）；
+/// 列表查询命令（薄封装）：参数缺省时走 Rust 端默认（limit=20, offset=0, updatedAtDesc）；
 /// `keyword` 非空时由 `query_items` 内部自动委派 FTS5。
 /// 返回 [`ClipboardItemPage`]：顶页项 + 同过滤下的总数 + `hasMore`，
 /// 供前端一次 IPC 同时拿到「列表 / Footer 总数 / 是否还有下一页」。

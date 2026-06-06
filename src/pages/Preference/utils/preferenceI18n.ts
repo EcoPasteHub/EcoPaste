@@ -128,6 +128,24 @@ export function translatePreferencePlaceholder(
 }
 
 /**
+ * 翻译数字控件后缀；有显式 suffixKey 时走公共单位表，否则回退到设置项本地默认值。
+ */
+export function translatePreferenceNumberSuffix(
+  t: PreferenceTranslator,
+  setting: PreferenceSetting,
+) {
+  if (setting.control.type !== "number") return "";
+
+  if (setting.control.suffixKey) {
+    return t(`schema.numberSuffixes.${setting.control.suffixKey}`, {
+      defaultValue: setting.control.suffix ?? setting.control.suffixKey,
+    });
+  }
+
+  return setting.control.suffix ?? "";
+}
+
+/**
  * 翻译只读快捷键说明；key 由 setting id + 快捷键序号推导。
  */
 export function translatePreferenceShortcutLabel(

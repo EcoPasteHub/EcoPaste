@@ -260,8 +260,8 @@ impl Default for Content {
             show_original_preview: false,
             delete_confirm: true,
             auto_favorite: false,
-            update_on_reuse: true,
-            sort: ClipboardItemSort::CreatedAt,
+            update_on_reuse: false,
+            sort: ClipboardItemSort::UpdatedAt,
             item_actions: vec![ItemAction::Copy, ItemAction::Star, ItemAction::Delete],
         }
     }

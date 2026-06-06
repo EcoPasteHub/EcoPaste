@@ -46,8 +46,6 @@ const TextareaControl: FC<TextareaControlProps> = (props) => {
 
   return (
     <Input.TextArea
-      autoSize={{ maxRows: 5, minRows: 2 }}
-      className="w-76"
       disabled={disabled}
       onBlur={handleBlur}
       onChange={handleChange}

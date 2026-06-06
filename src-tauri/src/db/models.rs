@@ -192,9 +192,9 @@ pub struct ClipboardGroup {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub enum ClipboardItemSort {
-    #[default]
     #[serde(rename = "createdAtDesc")]
     CreatedAt,
+    #[default]
     #[serde(rename = "updatedAtDesc")]
     UpdatedAt,
     #[serde(rename = "useCountDesc")]
@@ -237,7 +237,7 @@ impl Default for ClipboardItemQuery {
             pinned: None,
             group: None,
             keyword: None,
-            sort: ClipboardItemSort::CreatedAt,
+            sort: ClipboardItemSort::UpdatedAt,
             limit: 20,
             offset: 0,
         }

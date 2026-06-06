@@ -1,22 +1,16 @@
 import type { FC, ReactNode } from "react";
-import { cn } from "@/utils/cn";
 
 interface ControlFrameProps {
   children: ReactNode;
-  className?: string;
 }
 
 /**
- * 统一右侧控制区的可视节奏，让不同控件共享同一命中区域。
+ * 透传右侧控制内容，控件自身使用 antd 默认样式。
  */
 const ControlFrame: FC<ControlFrameProps> = (props) => {
-  const { children, className } = props;
+  const { children } = props;
 
-  return (
-    <span className={cn("flex h-8 w-28 items-center justify-end", className)}>
-      {children}
-    </span>
-  );
+  return <>{children}</>;
 };
 
 export default ControlFrame;

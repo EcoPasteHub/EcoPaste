@@ -6,6 +6,13 @@
     "sponsorQrAlt": "赞赏二维码"
   },
   "schema": {
+    "numberSuffixes": {
+      "files": "个",
+      "gb": "GB",
+      "items": "条",
+      "lines": "行",
+      "px": "px"
+    },
     "retentionUnits": {
       "days": "天",
       "hours": "小时",
@@ -243,26 +250,16 @@
         }
       },
       "history": {
-        "keepFavorite": {
-          "controlLabel": "始终保留",
-          "description": "收藏记录不受保留周期和数量上限影响。",
-          "title": "清理时保留收藏"
-        },
-        "keepPinned": {
-          "controlLabel": "始终保留",
-          "description": "置顶记录不受保留周期和数量上限影响。",
-          "title": "清理时保留置顶"
-        },
         "maxCount": {
-          "description": "超过上限后，自动清理较旧的普通记录。",
+          "description": "超过上限后，自动清理较旧的普通记录；收藏和置顶始终保留，0 表示不限数量。",
           "title": "最大保留条数"
         },
         "maxSize": {
-          "description": "未来可跳过超过大小限制的剪贴板内容。",
+          "description": "未来可跳过超过大小限制的普通记录；收藏和置顶始终保留，0 表示不限大小。",
           "title": "最大记录大小"
         },
         "retention": {
-          "description": "超过该时间的普通记录会自动清理。",
+          "description": "超过该天数的普通记录会自动清理；收藏和置顶始终保留，0 表示不按时间清理。",
           "title": "保留周期"
         }
       },

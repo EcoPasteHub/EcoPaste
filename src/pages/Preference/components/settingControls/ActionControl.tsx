@@ -115,11 +115,11 @@ const ActionControl: FC<ActionControlProps> = (props) => {
   return (
     <ControlFrame>
       <Button
-        danger={setting.control.danger}
+        color={setting.control.color ?? "primary"}
         disabled={disabled || loading}
         loading={loading}
         onClick={handleClick}
-        type="default"
+        variant="outlined"
       >
         {translatePreferenceControlLabel(t, setting)}
       </Button>

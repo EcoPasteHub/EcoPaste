@@ -223,5 +223,10 @@ mod tests {
             parsed.update.frequency,
             crate::settings::UpdateFrequency::Weekly
         );
+        assert_eq!(
+            parsed.clipboard.content.sort,
+            crate::db::models::ClipboardItemSort::UpdatedAt
+        );
+        assert!(!parsed.clipboard.content.update_on_reuse);
     }
 }

@@ -44,7 +44,6 @@ const TextControl: FC<TextControlProps> = (props) => {
 
   return (
     <Input
-      className="h-8 w-52"
       disabled={disabled}
       onBlur={handleBlur}
       onChange={handleChange}

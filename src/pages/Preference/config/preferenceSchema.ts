@@ -136,7 +136,8 @@ export const preferenceTabs: PreferenceTab[] = [
         settings: [
           {
             control: { type: "retention" },
-            description: "超过该时间的普通记录会自动清理。",
+            description:
+              "超过该天数的普通记录会自动清理；收藏和置顶始终保留，0 表示不按时间清理。",
             id: "history.retention",
             keywords: ["retention", "cleanup", "history"],
             path: ["clipboard", "history", "retention"],
@@ -146,8 +147,9 @@ export const preferenceTabs: PreferenceTab[] = [
             },
           },
           {
-            control: { min: 0, type: "number" },
-            description: "超过上限后，自动清理较旧的普通记录。",
+            control: { min: 0, suffixKey: "items", type: "number" },
+            description:
+              "超过上限后，自动清理较旧的普通记录；收藏和置顶始终保留，0 表示不限数量。",
             id: "history.maxCount",
             keywords: ["max", "count", "limit"],
             path: ["clipboard", "history", "maxCount"],
@@ -157,29 +159,14 @@ export const preferenceTabs: PreferenceTab[] = [
             },
           },
           {
-            control: { min: 0, suffix: "GB", type: "number" },
-            description: "未来可跳过超过大小限制的剪贴板内容。",
+            control: { min: 0, suffixKey: "gb", type: "number" },
+            description:
+              "未来可跳过超过大小限制的普通记录；收藏和置顶始终保留，0 表示不限大小。",
             disabled: true,
             id: "history.maxSize",
             keywords: ["size", "limit", "large"],
             status: "comingSoon",
             title: "最大记录大小",
-          },
-          {
-            control: { label: "始终保留", type: "status" },
-            description: "收藏记录不受保留周期和数量上限影响。",
-            id: "history.keepFavorite",
-            keywords: ["favorite", "cleanup", "keep"],
-            status: "alwaysOn",
-            title: "清理时保留收藏",
-          },
-          {
-            control: { label: "始终保留", type: "status" },
-            description: "置顶记录不受保留周期和数量上限影响。",
-            id: "history.keepPinned",
-            keywords: ["pinned", "cleanup", "keep"],
-            status: "alwaysOn",
-            title: "清理时保留置顶",
           },
         ],
         title: "保留与清理",
@@ -519,7 +506,7 @@ export const preferenceTabs: PreferenceTab[] = [
             },
           },
           {
-            control: { max: 5, min: 1, type: "number" },
+            control: { max: 5, min: 1, suffixKey: "lines", type: "number" },
             description: "限制文本记录在列表卡片中最多显示的行数。",
             id: "appearance.textMaxLines",
             keywords: ["density", "text", "line", "compact"],
@@ -530,7 +517,7 @@ export const preferenceTabs: PreferenceTab[] = [
             },
           },
           {
-            control: { max: 100, min: 20, type: "number" },
+            control: { max: 100, min: 20, suffixKey: "px", type: "number" },
             description: "限制图片记录在列表卡片中的缩略图高度。",
             id: "appearance.imageMaxHeight",
             keywords: ["density", "image", "height", "thumbnail"],
@@ -541,7 +528,7 @@ export const preferenceTabs: PreferenceTab[] = [
             },
           },
           {
-            control: { max: 5, min: 1, type: "number" },
+            control: { max: 5, min: 1, suffixKey: "files", type: "number" },
             description: "限制文件记录在列表卡片中最多显示的文件数量。",
             id: "appearance.fileMaxCount",
             keywords: ["density", "file", "count", "array"],
@@ -718,7 +705,7 @@ export const preferenceTabs: PreferenceTab[] = [
         id: "diagnostics",
         settings: [
           {
-            control: { danger: true, label: "重置", type: "action" },
+            control: { color: "danger", label: "重置", type: "action" },
             description: "恢复所有偏好默认值，同时保留历史记录。",
             id: "diagnostics.resetPreferences",
             keywords: ["reset", "preferences"],

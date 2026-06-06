@@ -1,7 +1,9 @@
-import { Input, InputNumber, Space } from "antd";
+import { InputNumber, Space } from "antd";
 import type { FC } from "react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { PreferenceSetting } from "../../types/preferences";
+import { translatePreferenceNumberSuffix } from "../../utils/preferenceI18n";
 import type { ControlProps } from "./types";
 
 interface NumberControlProps extends ControlProps {
@@ -13,6 +15,7 @@ interface NumberControlProps extends ControlProps {
  * 数字输入失焦保存，避免连续输入时频繁落盘。
  */
 const NumberControl: FC<NumberControlProps> = (props) => {
+  const { t } = useTranslation("preferences");
   const { disabled, onChange, setting, value } = props;
   const [draft, setDraft] = useState<number | null>(value);
   const control = setting.control.type === "number" ? setting.control : null;
@@ -22,6 +25,8 @@ const NumberControl: FC<NumberControlProps> = (props) => {
   }, [value]);
 
   if (!control) return null;
+
+  const suffix = translatePreferenceNumberSuffix(t, setting);
 
   const handleChange = (next: number | null) => {
     setDraft(next);
@@ -44,10 +49,9 @@ const NumberControl: FC<NumberControlProps> = (props) => {
     await commit();
   };
 
-  if (!control.suffix) {
+  if (!suffix) {
     return (
       <InputNumber
-        className="h-8 w-28"
         disabled={disabled}
         max={control.max}
         min={control.min}
@@ -60,9 +64,8 @@ const NumberControl: FC<NumberControlProps> = (props) => {
   }
 
   return (
-    <Space.Compact className="h-8 w-28">
+    <Space.Compact>
       <InputNumber
-        className="h-8 flex-1"
         disabled={disabled}
         max={control.max}
         min={control.min}
@@ -71,12 +74,7 @@ const NumberControl: FC<NumberControlProps> = (props) => {
         onPressEnter={handlePressEnter}
         value={draft}
       />
-      <Input
-        className="h-8 w-12"
-        disabled={disabled}
-        readOnly
-        value={control.suffix}
-      />
+      <Space.Addon>{suffix}</Space.Addon>
     </Space.Compact>
   );
 };

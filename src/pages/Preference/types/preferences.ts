@@ -43,12 +43,13 @@ export type PreferenceControl =
       min?: number;
       placeholder?: string;
       suffix?: string;
+      suffixKey?: string;
     }
   | { type: "retention" }
   | { type: "text"; placeholder?: string }
   | { type: "textarea"; placeholder?: string }
   | { type: "appExclusion" }
-  | { type: "action"; danger?: boolean; label: string }
+  | { type: "action"; color?: "danger" | "primary"; label: string }
   | { type: "status"; label: string }
   | { type: "shortcutTags"; shortcuts: PreferenceShortcutTag[] };
 

@@ -1,4 +1,4 @@
-import { InputNumber, Select, Space } from "antd";
+import { InputNumber, Space } from "antd";
 import type { FC } from "react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -11,7 +11,6 @@ import type {
 import type { ControlProps } from "./types";
 
 const DEFAULT_RETENTION_UNIT: RetentionUnit = "days";
-const RETENTION_UNITS: RetentionUnit[] = ["hours", "days", "weeks", "months"];
 
 interface RetentionControlProps extends ControlProps {
   setting: PreferenceSetting;
@@ -34,45 +33,29 @@ export function resolveRetentionValue(
     return value;
   }
 
-  return { unit: "forever", value: 0 };
+  return { unit: DEFAULT_RETENTION_UNIT, value: 0 };
 }
 
 /**
- * 历史保留周期组合控件：0 写为永久保留，其余数值配合单位写回。
+ * 历史保留周期控件：单位固定为天，0 表示不按时间清理。
  */
 const RetentionControl: FC<RetentionControlProps> = (props) => {
   const { t } = useTranslation("preferences");
   const { disabled, onChange, setting, value } = props;
-  const initialUnit =
-    value.unit === "forever" ? DEFAULT_RETENTION_UNIT : value.unit;
-  const initialValue = value.unit === "forever" ? 0 : value.value;
-  const [draftValue, setDraftValue] = useState<number | null>(initialValue);
-  const [draftUnit, setDraftUnit] = useState<RetentionUnit>(initialUnit);
-  const options = RETENTION_UNITS.map((unit) => {
-    return {
-      label: t(`schema.retentionUnits.${unit}`),
-      value: unit,
-    };
-  });
+  const [draftValue, setDraftValue] = useState<number | null>(value.value);
 
   useEffect(() => {
-    setDraftValue(value.unit === "forever" ? 0 : value.value);
-    setDraftUnit(
-      value.unit === "forever" ? DEFAULT_RETENTION_UNIT : value.unit,
-    );
+    setDraftValue(value.value);
   }, [value]);
 
-  const commit = async (nextValue: number | null, nextUnit: RetentionUnit) => {
+  const commit = async (nextValue: number | null) => {
     const normalizedValue = Math.max(0, nextValue ?? 0);
-    const normalizedUnit =
-      nextUnit === "forever" ? DEFAULT_RETENTION_UNIT : nextUnit;
-    const next: RetentionSettingValue =
-      normalizedValue === 0
-        ? { unit: "forever", value: 0 }
-        : { unit: normalizedUnit, value: normalizedValue };
+    const next: RetentionSettingValue = {
+      unit: DEFAULT_RETENTION_UNIT,
+      value: normalizedValue,
+    };
 
     setDraftValue(normalizedValue);
-    setDraftUnit(normalizedUnit);
     await onChange(setting, next);
   };
 
@@ -81,23 +64,16 @@ const RetentionControl: FC<RetentionControlProps> = (props) => {
   };
 
   const handleBlur = async () => {
-    await commit(draftValue, draftUnit);
+    await commit(draftValue);
   };
 
   const handlePressEnter = async () => {
-    await commit(draftValue, draftUnit);
-  };
-
-  const handleUnitChange = async (next: string | number) => {
-    const nextUnit = next as RetentionUnit;
-    setDraftUnit(nextUnit);
-    await commit(draftValue, nextUnit);
+    await commit(draftValue);
   };
 
   return (
-    <Space.Compact className="h-8 w-40">
+    <Space.Compact>
       <InputNumber
-        className="h-8 w-18"
         disabled={disabled}
         min={0}
         onBlur={handleBlur}
@@ -105,13 +81,7 @@ const RetentionControl: FC<RetentionControlProps> = (props) => {
         onPressEnter={handlePressEnter}
         value={draftValue}
       />
-      <Select
-        className="h-8 flex-1"
-        disabled={disabled}
-        onChange={handleUnitChange}
-        options={options}
-        value={draftUnit}
-      />
+      <Space.Addon>{t("schema.retentionUnits.days")}</Space.Addon>
     </Space.Compact>
   );
 };

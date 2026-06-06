@@ -1,9 +1,8 @@
-import { Divider, Switch } from "antd";
+import { Button, Divider, Space, Switch } from "antd";
 import type { FC } from "react";
 import { useTranslation } from "react-i18next";
 import { playCopySound } from "@/commands";
 import Tooltip from "@/components/Tooltip";
-import { cn } from "@/utils/cn";
 import type { PreferenceSetting } from "../../types/preferences";
 import ControlFrame from "./ControlFrame";
 import type { ControlProps } from "./types";
@@ -32,24 +31,25 @@ const SwitchControl: FC<SwitchControlProps> = (props) => {
   };
 
   return (
-    <ControlFrame className={cn({ "gap-2": canPreviewSound })}>
-      <Switch checked={value} disabled={disabled} onChange={handleChange} />
-      {canPreviewSound ? (
-        <>
-          <Divider type="vertical" />
-          <Tooltip title={t("schema.settings.copy.sound.preview")}>
-            <button
-              aria-label={t("schema.settings.copy.sound.preview")}
-              className="inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-1.5 border-0 bg-transparent p-0 text-ant-secondary text-base transition-colors hover:bg-ant-fill-quaternary hover:text-ant-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ant-primary disabled:cursor-not-allowed disabled:text-ant-disabled motion-reduce:transition-none"
-              disabled={disabled}
-              onClick={handlePreviewSound}
-              type="button"
-            >
-              <i aria-hidden="true" className="i-lucide:play" />
-            </button>
-          </Tooltip>
-        </>
-      ) : null}
+    <ControlFrame>
+      <Space size={0}>
+        <Switch checked={value} disabled={disabled} onChange={handleChange} />
+        {canPreviewSound ? (
+          <>
+            <Divider type="vertical" />
+            <Tooltip title={t("schema.settings.copy.sound.preview")}>
+              <Button
+                aria-label={t("schema.settings.copy.sound.preview")}
+                disabled={disabled}
+                htmlType="button"
+                icon={<i aria-hidden="true" className="i-lucide:play" />}
+                onClick={handlePreviewSound}
+                type="text"
+              />
+            </Tooltip>
+          </>
+        ) : null}
+      </Space>
     </ControlFrame>
   );
 };

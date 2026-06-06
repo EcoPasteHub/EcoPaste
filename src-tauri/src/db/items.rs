@@ -649,6 +649,14 @@ mod tests {
     }
 
     #[test]
+    fn query_default_sorts_by_updated_at() {
+        assert_eq!(
+            ClipboardItemQuery::default().sort,
+            ClipboardItemSort::UpdatedAt
+        );
+    }
+
+    #[test]
     fn content_hash_is_stable_and_kind_scoped() {
         // 同 kind 同内容 → 同哈希（稳定、可去重）。
         assert_eq!(

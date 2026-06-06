@@ -58,15 +58,18 @@ const PreferenceAboutPanel: FC<PreferenceAboutPanelProps> = (props) => {
 
             <div className="flex flex-wrap gap-2 border-ant-border-secondary border-t pt-4">
               <Button
+                color="primary"
                 icon={<i aria-hidden="true" className="i-lucide:refresh-cw" />}
                 onClick={handleCheckUpdates}
-                type="primary"
+                variant="outlined"
               >
                 {t("preferences:about.checkUpdates")}
               </Button>
               <Button
+                color="primary"
                 icon={<i aria-hidden="true" className="i-lucide:github" />}
                 onClick={openGitHub}
+                variant="outlined"
               >
                 GitHub
               </Button>

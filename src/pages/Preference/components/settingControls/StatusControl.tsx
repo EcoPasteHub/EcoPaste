@@ -1,4 +1,4 @@
-import { Switch } from "antd";
+import { Switch, Tag } from "antd";
 import type { FC } from "react";
 import { useTranslation } from "react-i18next";
 import type { PreferenceSetting } from "../../types/preferences";
@@ -26,9 +26,7 @@ const StatusControl: FC<StatusControlProps> = (props) => {
 
   return (
     <ControlFrame>
-      <span className="inline-flex h-8 w-28 items-center justify-center gap-1 whitespace-nowrap rounded-1.5 border border-ant-border-secondary bg-ant-fill-quaternary px-2.5 text-ant-secondary text-xs leading-none">
-        {translatePreferenceControlLabel(t, setting)}
-      </span>
+      <Tag>{translatePreferenceControlLabel(t, setting)}</Tag>
     </ControlFrame>
   );
 };
