@@ -59,6 +59,7 @@ const List: FC = () => {
   const settings = useSnapshot(settingsState);
   const { keyword, group } = snapshot;
   const autoPaste = settings.clipboard.content.autoPaste;
+  const middleClick = settings.clipboard.content.middleClick;
   const display = settings.clipboard.display;
   const sort = settings.clipboard.content.sort;
   const { fileMaxCount } = display;
@@ -498,7 +499,26 @@ const List: FC = () => {
     };
 
     const handleMouseDown = (event: ReactMouseEvent<HTMLDivElement>) => {
-      if (event.button !== 0) return;
+      if (event.button !== 0) {
+        if (event.button !== 1) return;
+
+        event.preventDefault();
+
+        if (middleClick === "singleClickPaste") {
+          setSelectedId(item.id);
+          closePreview("middleClickPaste");
+          pasteClipboardItem(item.id, false);
+          return;
+        }
+
+        if (middleClick === "singleClickCopy") {
+          setSelectedId(item.id);
+          closePreview("middleClickCopy");
+          writeToClipboard(item.id, false);
+        }
+
+        return;
+      }
 
       setSelectedId(item.id);
 
@@ -512,6 +532,12 @@ const List: FC = () => {
         closePreview("singleClickCopy");
         writeToClipboard(item.id, false);
       }
+    };
+
+    const handleAuxClick = (event: ReactMouseEvent<HTMLDivElement>) => {
+      if (event.button !== 1) return;
+
+      event.preventDefault();
     };
 
     const handleDoubleClick = () => {
@@ -535,6 +561,7 @@ const List: FC = () => {
             selectedId === null ? index === 0 : item.id === selectedId
           }
           item={item}
+          onAuxClick={handleAuxClick}
           onDoubleClick={handleDoubleClick}
           onMouseDown={handleMouseDown}
           onPointerEnter={handlePointerEnter}

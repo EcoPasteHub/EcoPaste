@@ -14,15 +14,15 @@
     },
     "sections": {
       "actions": {
-        "description": "Control which actions appear beside each item.",
+        "description": "Control which quick actions appear on history rows.",
         "title": "Quick Actions"
       },
       "appearance": {
-        "description": "Configure visual preferences for the interface.",
+        "description": "Configure theme, language, and list density.",
         "title": "Appearance & Language"
       },
       "backup": {
-        "description": "Import or export history data.",
+        "description": "Future migration for the history database and resource files.",
         "title": "Backup & Migration"
       },
       "capture": {
@@ -30,43 +30,43 @@
         "title": "Content Types"
       },
       "control": {
-        "description": "Control EcoPaste entry points in the system.",
+        "description": "Control startup behavior and system entry points for EcoPaste.",
         "title": "System Entry"
       },
       "copy": {
-        "description": "Configure copy format and feedback.",
+        "description": "Configure copy format and feedback when reusing history.",
         "title": "Copy Feedback"
       },
       "diagnostics": {
-        "description": "Restore default window and preference state.",
+        "description": "Future reset tools for window state and preferences.",
         "title": "Diagnostics"
       },
       "external": {
-        "description": "Allow external tools to read local history.",
+        "description": "Future read-only access for external tools.",
         "title": "External Tools"
       },
       "globalShortcuts": {
-        "description": "Available in any app.",
+        "description": "Configure system shortcuts that work from any app.",
         "title": "Global Shortcuts"
       },
       "history": {
-        "description": "Limit history size to avoid long-term buildup.",
+        "description": "Set retention time and item-count limits for history.",
         "title": "Retention & Cleanup"
       },
       "localData": {
-        "description": "Open local data and log directories.",
+        "description": "Open where EcoPaste stores local data, resources, and logs.",
         "title": "Storage Locations"
       },
       "organizing": {
-        "description": "Mark records that should be kept long-term.",
+        "description": "Configure favorites, notes, and grouping behavior.",
         "title": "Favorites & Notes"
       },
       "paste": {
-        "description": "Adjust default mouse and paste-format behavior.",
+        "description": "Configure copy, paste, and format behavior when clicking history records.",
         "title": "Paste Behavior"
       },
       "preview": {
-        "description": "Quickly view the full content of a record.",
+        "description": "Configure how full history records are previewed.",
         "title": "Content Preview"
       },
       "search": {
@@ -74,44 +74,40 @@
         "title": "Search & Sort"
       },
       "sensitive": {
-        "description": "Reduce the risk of accidentally saving private content.",
+        "description": "Avoid saving keys, tokens, and other sensitive content by mistake.",
         "title": "Privacy"
       },
       "source": {
-        "description": "Control capture scope by source app.",
+        "description": "Control which source apps can save copied content to history.",
         "title": "App Filters"
       },
       "updates": {
-        "description": "Configure update checking.",
+        "description": "Configure how EcoPaste checks for and receives new versions.",
         "title": "Updates"
       },
       "window": {
-        "description": "Set where the main window appears.",
+        "description": "Set where the clipboard main window opens each time.",
         "title": "Main Window"
-      },
-      "windowShortcuts": {
-        "description": "These shortcuts are display-only and cannot be edited.",
-        "title": "Main Window Shortcuts"
       }
     },
     "settings": {
       "actions": {
         "contextual": {
           "controlLabel": "Automatic by content",
-          "description": "Show open, send, reveal, and similar actions based on content.",
+          "description": "Show actions such as open link, send email, or reveal file based on content type.",
           "title": "Smart Actions"
         },
         "deleteConfirm": {
-          "description": "Ask for confirmation before deleting.",
+          "description": "Ask for confirmation before deleting a history record to prevent mistakes.",
           "title": "Confirm Before Delete"
         },
         "transforms": {
           "controlLabel": "Manage Transforms",
-          "description": "Add custom processing actions.",
+          "description": "Future custom actions for processing and transforming content.",
           "title": "Custom Transforms"
         },
         "visible": {
-          "description": "Choose buttons shown on hover.",
+          "description": "Choose which action buttons appear when hovering over a record.",
           "options": {
             "copy": "Copy",
             "delete": "Delete",
@@ -124,15 +120,15 @@
       },
       "appearance": {
         "fileMaxCount": {
-          "description": "Limit how many files are returned and shown for each file record.",
+          "description": "Limit how many files are shown in each file record card.",
           "title": "Maximum Files Shown"
         },
         "imageMaxHeight": {
-          "description": "Limit image thumbnail height in the history list.",
+          "description": "Limit thumbnail height for image records in the list.",
           "title": "Maximum Image Height"
         },
         "language": {
-          "description": "Switch interface language.",
+          "description": "Switch the EcoPaste interface language.",
           "options": {
             "en-US": "English",
             "zh-CN": "简体中文"
@@ -141,15 +137,15 @@
         },
         "reducedMotion": {
           "controlLabel": "Follow system",
-          "description": "Follow the system reduced-motion preference.",
+          "description": "Follow the system reduced-motion preference to reduce animation intensity.",
           "title": "Reduce Motion"
         },
         "textMaxLines": {
-          "description": "Limit how many lines text records can expand to in the list.",
+          "description": "Limit how many lines are shown in each text record card.",
           "title": "Maximum Text Lines"
         },
         "theme": {
-          "description": "Choose light, dark, or system theme.",
+          "description": "Use light mode, dark mode, or follow the system appearance.",
           "options": {
             "auto": "Follow system",
             "dark": "Dark",
@@ -161,169 +157,154 @@
       "backup": {
         "exportHistory": {
           "controlLabel": "Export",
-          "description": "Save a backup of history and resources.",
+          "description": "Future export for the history database and resource files.",
           "title": "Export History"
         },
         "importHistory": {
           "controlLabel": "Import",
-          "description": "Restore history from a backup.",
+          "description": "Future restore from a history database and resource backup.",
           "title": "Import History"
         }
       },
       "capture": {
         "files": {
-          "description": "Turn off to stop saving copied files and folders.",
+          "description": "When off, copied files and folders are not saved to history.",
           "title": "Files and Folders"
         },
         "html": {
-          "description": "Turn off to stop saving web rich text content.",
+          "description": "When off, rich text with HTML format is not saved to history.",
           "title": "HTML Content"
         },
         "image": {
-          "description": "Turn off to stop saving clipboard image content.",
+          "description": "When off, clipboard images are not saved to history.",
           "title": "Image"
         },
         "rtf": {
-          "description": "Turn off to stop saving document rich text content.",
+          "description": "When off, rich text with RTF format is not saved to history.",
           "title": "RTF Content"
         },
         "text": {
-          "description": "Turn off to stop saving plain text content.",
+          "description": "When off, copied plain text is not saved to history.",
           "title": "Plain Text"
         }
       },
       "control": {
         "autoStart": {
-          "description": "Run automatically after logging in.",
+          "description": "Start EcoPaste automatically after logging in to macOS or Windows.",
           "title": "Launch at Login"
         },
         "dockIcon": {
-          "description": "Show an icon in the macOS Dock or Windows taskbar.",
+          "description": "Show the EcoPaste icon in the macOS Dock or Windows taskbar.",
           "title": "Dock / Taskbar Icon"
         },
         "silentStart": {
-          "description": "Start in the background without showing the main window.",
+          "description": "When launched at login, run in the background without opening the clipboard window.",
           "title": "Silent Start"
         },
         "trayIcon": {
-          "description": "Show an icon in the macOS menu bar or Windows system tray.",
+          "description": "Show the EcoPaste icon in the macOS menu bar or Windows system tray.",
           "title": "Menu Bar / Tray Icon"
         }
       },
       "copy": {
         "plainDefault": {
-          "description": "Copy only text content by default.",
+          "description": "When copying text records, strip HTML/RTF formatting and copy plain text by default.",
           "title": "Copy as Plain Text by Default"
         },
         "sound": {
-          "description": "Play a sound when new content is captured.",
+          "description": "Play a sound when new clipboard content is saved to history.",
           "preview": "Preview sound",
           "title": "Copy Sound"
         },
         "updateOnReuse": {
-          "description": "Refresh updated time and usage count when copying or pasting from history.",
+          "description": "Refresh use time and usage count when copying or pasting a history record.",
           "title": "Update Record on Reuse"
         }
       },
       "diagnostics": {
         "resetPreferences": {
           "controlLabel": "Reset",
-          "description": "Restore default preferences while keeping history.",
+          "description": "Future reset for all preferences while keeping history records.",
           "title": "Reset All Preferences"
         },
         "resetWindow": {
           "controlLabel": "Reset",
-          "description": "Clear saved window positions.",
+          "description": "Future reset for saved window positions and sizes.",
           "title": "Reset Window Position"
         }
       },
       "external": {
         "ai": {
           "controlLabel": "Configure AI Access",
-          "description": "Allow AI tools to search history.",
+          "description": "Future access for AI tools to search local clipboard history.",
           "title": "AI Tool Access"
         },
         "cli": {
           "controlLabel": "Configure CLI",
-          "description": "Query history from the command line.",
+          "description": "Future command-line access to query local clipboard history.",
           "title": "CLI Access"
         },
         "mcp": {
           "controlLabel": "Configure MCP",
-          "description": "Provide read-only tools for MCP clients.",
+          "description": "Future read-only history query tools for MCP clients.",
           "title": "MCP Server"
         }
       },
       "history": {
         "keepFavorite": {
           "controlLabel": "Always keep",
-          "description": "Favorite records are not cleaned automatically.",
+          "description": "Favorite records are not affected by retention period or item-count limits.",
           "title": "Keep Favorites During Cleanup"
         },
         "keepPinned": {
           "controlLabel": "Always keep",
-          "description": "Pinned records are not cleaned automatically.",
+          "description": "Pinned records are not affected by retention period or item-count limits.",
           "title": "Keep Pinned During Cleanup"
         },
         "maxCount": {
-          "description": "Keep only the newest records after the limit is exceeded.",
+          "description": "When the limit is exceeded, older regular records are cleaned automatically.",
           "title": "Maximum Items"
         },
         "maxSize": {
-          "description": "Skip oversized clipboard content.",
+          "description": "Future option to skip clipboard content above the size limit.",
           "title": "Maximum Item Size"
         },
         "retention": {
-          "description": "Regular records older than this are cleaned automatically.",
+          "description": "Regular records older than this period are cleaned automatically.",
           "title": "Retention Period"
         }
       },
       "localData": {
         "cleanCache": {
           "controlLabel": "Clean Cache",
-          "description": "Remove unused resource cache.",
+          "description": "Future cleanup for resource files no longer referenced by history.",
           "title": "Clean Cache"
         },
         "dataDirectory": {
           "controlLabel": "Open",
-          "description": "Open the directory containing history, settings, and resources.",
+          "description": "Open the directory containing the history database, settings, and resource cache.",
           "title": "Data Directory"
         },
         "logDirectory": {
           "controlLabel": "Open",
-          "description": "Open the runtime log directory.",
+          "description": "Open the runtime log directory used for troubleshooting.",
           "title": "Log Directory"
         }
       },
       "organizing": {
         "autoFavorite": {
-          "description": "Automatically add records with notes to favorites.",
+          "description": "When saving a non-empty note, automatically add that record to favorites.",
           "title": "Auto-Favorite When Noted"
         },
         "customGroups": {
           "controlLabel": "Manage Groups",
-          "description": "Organize saved records by topic.",
+          "description": "Future custom groups for organizing history records by topic.",
           "title": "Custom Groups"
-        },
-        "favorite": {
-          "controlLabel": "Supported",
-          "description": "Put frequently used content in the favorites view.",
-          "title": "Favorite Records"
-        },
-        "notes": {
-          "controlLabel": "Supported",
-          "description": "Add context to records.",
-          "title": "Record Notes"
-        },
-        "pinned": {
-          "controlLabel": "Entry pending",
-          "description": "Keep important records near the top of the list.",
-          "title": "Pinned Records"
         }
       },
       "paste": {
         "autoPaste": {
-          "description": "Set the action for left-clicking a record.",
+          "description": "Choose what happens when left-clicking a history record.",
           "options": {
             "disabled": "Disabled",
             "doubleClickCopy": "Double-click to copy",
@@ -334,7 +315,7 @@
           "title": "Left Click"
         },
         "fileMode": {
-          "description": "Choose whether to paste files themselves or path text.",
+          "description": "Future option to paste files themselves or paste file paths as text.",
           "options": {
             "files": "Files",
             "paths": "Paths"
@@ -342,35 +323,22 @@
           "title": "File Paste Mode"
         },
         "middleClick": {
-          "description": "Set the action for middle-clicking a record.",
+          "description": "Choose what happens when middle-clicking a history record.",
           "options": {
             "disabled": "Disabled",
-            "doubleClickCopy": "Double-click to copy",
-            "doubleClickPaste": "Double-click to paste",
-            "singleClickCopy": "Single-click to copy",
-            "singleClickPaste": "Single-click to paste"
+            "singleClickCopy": "Copy",
+            "singleClickPaste": "Paste"
           },
           "title": "Middle Click"
         },
         "plainDefault": {
-          "description": "Paste only text content by default.",
+          "description": "When pasting text records, strip HTML/RTF formatting and paste plain text by default.",
           "title": "Paste as Plain Text by Default"
-        },
-        "secondaryClick": {
-          "description": "Set the action for right-clicking a record.",
-          "options": {
-            "disabled": "Disabled",
-            "doubleClickCopy": "Double-click to copy",
-            "doubleClickPaste": "Double-click to paste",
-            "singleClickCopy": "Single-click to copy",
-            "singleClickPaste": "Single-click to paste"
-          },
-          "title": "Right Click"
         }
       },
       "preview": {
         "delay": {
-          "description": "Set the delay before previews appear.",
+          "description": "Set how long to hover before the preview appears.",
           "options": {
             "ms300": "300ms",
             "ms500": "500ms",
@@ -379,139 +347,58 @@
           "title": "Hover Delay"
         },
         "hover": {
-          "description": "Show a preview while hovering.",
+          "description": "Show a full-content preview when hovering over a record.",
           "title": "Hover Preview"
         },
         "original": {
-          "description": "View the original source for rich text content.",
+          "description": "Show original HTML/RTF content in previews instead of the rendered result.",
           "title": "Show Original Content"
         },
         "space": {
-          "description": "Hold Space to preview the selected record.",
+          "description": "Hold Space to preview the currently selected record.",
           "title": "Space Preview"
         }
       },
       "search": {
         "clearOnHide": {
-          "description": "Return to the full list next time the window opens.",
-          "title": "Clear Search After Close"
+          "description": "Clear the search keyword and show the full list next time the clipboard window opens.",
+          "title": "Clear Search on Next Open"
         },
         "defaultFocus": {
-          "description": "Start typing keywords immediately after opening the main window.",
-          "title": "Focus Search on Open"
+          "description": "Select the search box when the clipboard window opens so you can type keywords right away.",
+          "title": "Focus Search on Window Open"
         },
         "sort": {
-          "description": "Choose the default order for history records.",
+          "description": "Choose the default order for history records when no search is active.",
           "options": {
             "createdAtDesc": "Created Time",
             "updatedAtDesc": "Updated Time",
             "useCountDesc": "Usage Frequency"
           },
-          "title": "Sort Order"
+          "title": "Default Sort Order"
         }
       },
       "sensitive": {
         "keywordRules": {
           "controlLabel": "Manage Rules",
-          "description": "Skip content by keyword or pattern.",
+          "description": "Skip matching content by keyword or rule.",
           "title": "Content Ignore Rules"
         },
         "secretDetection": {
-          "description": "Do not save high-confidence keys, tokens, and similar content.",
+          "description": "Skip saving content that looks like high-confidence keys, tokens, or similar secrets.",
           "title": "Detect Secrets and Tokens"
         }
       },
       "shortcuts": {
         "openClipboard": {
-          "description": "Open or hide the clipboard main window.",
+          "description": "Open or hide the clipboard main window from any app.",
           "placeholder": "Alt+C",
           "title": "Open Main Window"
         },
         "openPreference": {
-          "description": "Open or hide preferences.",
+          "description": "Open or hide the preferences window from any app.",
           "placeholder": "Alt+X",
           "title": "Open Preferences"
-        },
-        "windowDelete": {
-          "description": "Delete the currently selected record.",
-          "shortcuts": [
-            {
-              "label": "Delete selected item"
-            }
-          ],
-          "title": "Delete Selected Item"
-        },
-        "windowFavorite": {
-          "description": "Toggle favorite state for the current record.",
-          "shortcuts": [
-            {
-              "label": "Favorite / unfavorite"
-            }
-          ],
-          "title": "Favorite / Unfavorite"
-        },
-        "windowFocusSearch": {
-          "description": "Start searching history.",
-          "shortcuts": [
-            {
-              "label": "Focus search"
-            }
-          ],
-          "title": "Focus Search"
-        },
-        "windowNavigate": {
-          "description": "Move the selected list item.",
-          "shortcuts": [
-            {
-              "label": "Navigate up/down"
-            }
-          ],
-          "title": "Navigate Up/Down"
-        },
-        "windowOpenPreference": {
-          "description": "Open the preferences window.",
-          "shortcuts": [
-            {
-              "label": "Open preferences"
-            }
-          ],
-          "title": "Open Preferences"
-        },
-        "windowPaste": {
-          "description": "Paste the currently selected record.",
-          "shortcuts": [
-            {
-              "label": "Paste selected item"
-            }
-          ],
-          "title": "Paste Selected Item"
-        },
-        "windowPastePlain": {
-          "description": "Paste the current record as plain text.",
-          "shortcuts": [
-            {
-              "label": "Paste selected item as plain text"
-            }
-          ],
-          "title": "Paste Selected Item as Plain Text"
-        },
-        "windowPin": {
-          "description": "Keep the main window visible or restore auto-hide.",
-          "shortcuts": [
-            {
-              "label": "Pin / unpin window"
-            }
-          ],
-          "title": "Pin / Unpin Window"
-        },
-        "windowQuickPaste": {
-          "description": "Quickly paste visible records by number.",
-          "shortcuts": [
-            {
-              "label": "Paste item N (N = 1...9, 0)"
-            }
-          ],
-          "title": "Paste Item N (N = 1...9, 0)"
         }
       },
       "source": {
@@ -527,26 +414,26 @@
           "searchPlaceholder": "Search apps"
         },
         "excludedApps": {
-          "description": "Copies from these apps will not be saved.",
+          "description": "Content copied from these apps will not be saved to history.",
           "title": "Ignored Apps"
         },
         "scanDirs": {
-          "description": "Add app search locations for detecting names and icons.",
+          "description": "Add app scan directories for detecting source app names and icons.",
           "placeholder": "One directory per line",
           "title": "App Discovery Directories"
         }
       },
       "updates": {
         "autoCheck": {
-          "description": "Automatically check for new versions.",
+          "description": "Periodically check whether a new EcoPaste version is available.",
           "title": "Automatically Check for Updates"
         },
         "beta": {
-          "description": "Also receive beta updates.",
+          "description": "Receive beta test versions when checking for updates.",
           "title": "Include Beta Versions"
         },
         "frequency": {
-          "description": "Set the automatic check interval.",
+          "description": "Future option for how often EcoPaste checks for updates.",
           "options": {
             "daily": "Daily",
             "monthly": "Monthly",
@@ -557,7 +444,7 @@
       },
       "window": {
         "position": {
-          "description": "Choose where the main window opens each time.",
+          "description": "Choose where the clipboard main window opens each time.",
           "options": {
             "center": "Center of Screen",
             "followCursor": "Follow Cursor",

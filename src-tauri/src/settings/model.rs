@@ -249,6 +249,8 @@ fn default_scan_dirs() -> Vec<String> {
 pub struct Content {
     /// 点击列表项时的自动粘贴行为。
     pub auto_paste: AutoPaste,
+    /// 中键点击列表项时执行的动作。
+    pub middle_click: MiddleClickAction,
     /// 复制（写回剪贴板）时去除格式。
     pub copy_plain: bool,
     /// 粘贴时去除格式（与全局快捷键 `paste_plain` 等价的默认行为）。
@@ -269,6 +271,7 @@ impl Default for Content {
     fn default() -> Self {
         Self {
             auto_paste: AutoPaste::DoubleClickPaste,
+            middle_click: MiddleClickAction::Disabled,
             copy_plain: false,
             paste_plain: false,
             show_original_preview: false,
@@ -320,6 +323,16 @@ pub enum AutoPaste {
     DoubleClickPaste,
     SingleClickCopy,
     DoubleClickCopy,
+}
+
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub enum MiddleClickAction {
+    /// 中键点击仅选中，不自动执行动作。
+    #[default]
+    Disabled,
+    SingleClickPaste,
+    SingleClickCopy,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]

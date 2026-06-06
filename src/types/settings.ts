@@ -23,6 +23,11 @@ export type AutoPaste =
   | "singleClickCopy"
   | "doubleClickCopy";
 
+export type MiddleClickAction =
+  | "disabled"
+  | "singleClickPaste"
+  | "singleClickCopy";
+
 export type ItemAction = "copy" | "pastePlain" | "note" | "star" | "delete";
 
 export type RetentionUnit = "hours" | "days" | "weeks" | "months" | "forever";
@@ -57,6 +62,7 @@ export interface Shortcuts {
 
 export interface Content {
   autoPaste: AutoPaste;
+  middleClick: MiddleClickAction;
   copyPlain: boolean;
   pastePlain: boolean;
   showOriginalPreview: boolean;

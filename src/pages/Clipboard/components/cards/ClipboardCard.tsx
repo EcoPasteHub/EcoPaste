@@ -24,6 +24,7 @@ interface ClipboardCardProps {
   onPointerLeave?: () => void;
   onPointerMove?: (event: PointerEvent<HTMLDivElement>) => void;
   onMouseDown?: (event: MouseEvent<HTMLDivElement>) => void;
+  onAuxClick?: (event: MouseEvent<HTMLDivElement>) => void;
   onDoubleClick?: (event: MouseEvent<HTMLDivElement>) => void;
   rootRef?: Ref<HTMLDivElement>;
 }
@@ -44,6 +45,7 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
     onPointerLeave,
     onPointerMove,
     onMouseDown,
+    onAuxClick,
     onDoubleClick,
     rootRef,
   } = props;
@@ -75,6 +77,7 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
         },
       )}
       draggable
+      onAuxClick={onAuxClick}
       onContextMenu={handleContextMenu}
       onDoubleClick={onDoubleClick}
       onDragStart={handleDragStart}

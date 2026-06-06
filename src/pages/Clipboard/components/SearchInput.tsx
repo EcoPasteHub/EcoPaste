@@ -4,6 +4,8 @@ import { useEffect, useRef } from "react";
 import KeyHint from "@/components/KeyHint";
 
 interface SearchInputProps extends Omit<InputProps, "prefix"> {
+  blurToken?: number;
+  clearToken?: number;
   focusToken?: number;
 }
 
@@ -14,6 +16,8 @@ interface SearchInputProps extends Omit<InputProps, "prefix"> {
  */
 const SearchInput: FC<SearchInputProps> = (props) => {
   const {
+    blurToken = 0,
+    clearToken = 0,
     focusToken = 0,
     onChange,
     onCompositionStart,
@@ -32,9 +36,21 @@ const SearchInput: FC<SearchInputProps> = (props) => {
   };
 
   useEffect(() => {
+    if (blurToken <= 0) return;
+
+    inputRef.current?.blur();
+  }, [blurToken]);
+
+  useEffect(() => {
     if (focusToken <= 0) return;
 
-    inputRef.current?.focus({ cursor: "all" });
+    const frame = requestAnimationFrame(() => {
+      inputRef.current?.focus({ cursor: "all" });
+    });
+
+    return () => {
+      cancelAnimationFrame(frame);
+    };
   }, [focusToken]);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -63,6 +79,7 @@ const SearchInput: FC<SearchInputProps> = (props) => {
     <Input
       autoCapitalize="off"
       autoCorrect="off"
+      key={clearToken}
       onChange={handleChange}
       onCompositionEnd={handleCompositionEnd}
       onCompositionStart={handleCompositionStart}

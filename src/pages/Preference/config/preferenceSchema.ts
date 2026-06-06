@@ -1,18 +1,16 @@
-/* @unocss-include */
-import { isMac } from "@/utils/is";
 import type { PreferenceTab } from "../types/preferences";
 
-const MOD_KEY = isMac ? "⌘" : "Ctrl";
-const ENTER_KEY = isMac ? "⏎" : "Enter";
-const BACKSPACE_KEY = "⌫";
-const UP_KEY = "↑";
-const DOWN_KEY = "↓";
 const CLICK_ACTION_OPTIONS = [
   { label: "禁用", value: "disabled" },
   { label: "单击粘贴", value: "singleClickPaste" },
   { label: "双击粘贴", value: "doubleClickPaste" },
   { label: "单击复制", value: "singleClickCopy" },
   { label: "双击复制", value: "doubleClickCopy" },
+];
+const MIDDLE_CLICK_ACTION_OPTIONS = [
+  { label: "禁用", value: "disabled" },
+  { label: "粘贴", value: "singleClickPaste" },
+  { label: "复制", value: "singleClickCopy" },
 ];
 const CLIPBOARD_SORT_OPTIONS = [
   { label: "创建时间", value: "createdAtDesc" },
@@ -26,12 +24,12 @@ export const preferenceTabs: PreferenceTab[] = [
     id: "record",
     sections: [
       {
-        description: "决定哪些剪贴板类型会进入历史。",
+        description: "选择哪些剪贴板内容会保存到历史。",
         id: "capture",
         settings: [
           {
             control: { type: "switch" },
-            description: "关闭后不再保存纯文本内容。",
+            description: "关闭后，复制的纯文本不会进入历史。",
             id: "capture.text",
             keywords: ["text", "plain", "record"],
             path: ["clipboard", "capture", "text"],
@@ -42,7 +40,7 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { type: "switch" },
-            description: "关闭后不再保存富文本网页内容。",
+            description: "关闭后，带 HTML 格式的网页富文本不会进入历史。",
             id: "capture.html",
             keywords: ["html", "rich text", "format"],
             path: ["clipboard", "capture", "html"],
@@ -53,7 +51,7 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { type: "switch" },
-            description: "关闭后不再保存文档富文本内容。",
+            description: "关闭后，带 RTF 格式的文档富文本不会进入历史。",
             id: "capture.rtf",
             keywords: ["rtf", "rich text", "format"],
             path: ["clipboard", "capture", "rtf"],
@@ -64,7 +62,7 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { type: "switch" },
-            description: "关闭后不再保存剪贴板图片。",
+            description: "关闭后，剪贴板中的图片不会进入历史。",
             id: "capture.image",
             keywords: ["image", "picture", "thumbnail"],
             path: ["clipboard", "capture", "image"],
@@ -75,7 +73,7 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { type: "switch" },
-            description: "关闭后不再保存复制的文件和文件夹。",
+            description: "关闭后，复制的文件和文件夹不会进入历史。",
             id: "capture.files",
             keywords: ["file", "folder", "path"],
             path: ["clipboard", "capture", "files"],
@@ -88,12 +86,12 @@ export const preferenceTabs: PreferenceTab[] = [
         title: "内容类型",
       },
       {
-        description: "按来源应用控制记录范围。",
+        description: "按复制来源决定哪些应用的内容可以进入历史。",
         id: "source",
         settings: [
           {
             control: { type: "appExclusion" },
-            description: "这些应用中的复制不会保存。",
+            description: "从这些应用复制的内容不会进入历史。",
             id: "source.excludedApps",
             keywords: ["exclude", "ignore", "app", "source"],
             path: ["clipboard", "filters", "excludedAppIds"],
@@ -104,7 +102,7 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { placeholder: "每行一个目录", type: "textarea" },
-            description: "补充应用搜索范围，用于识别名称和图标。",
+            description: "添加应用扫描目录，用于识别来源应用名称和图标。",
             id: "source.scanDirs",
             keywords: ["scan", "applications", "directory"],
             path: ["clipboard", "filters", "scanDirs"],
@@ -117,12 +115,12 @@ export const preferenceTabs: PreferenceTab[] = [
         title: "应用过滤",
       },
       {
-        description: "减少误存隐私内容的风险。",
+        description: "避免把密钥、Token 等敏感内容误存进历史。",
         id: "sensitive",
         settings: [
           {
             control: { type: "switch" },
-            description: "发现高置信密钥、token 等内容时不保存。",
+            description: "检测到高置信度密钥、Token 等内容时跳过保存。",
             id: "sensitive.secretDetection",
             keywords: ["token", "key", "secret", "code"],
             path: ["clipboard", "sensitive", "secretDetection"],
@@ -133,7 +131,7 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { label: "管理规则", type: "action" },
-            description: "按关键词或模式跳过内容。",
+            description: "按关键词或规则跳过匹配内容。",
             disabled: true,
             id: "sensitive.keywordRules",
             keywords: ["keyword", "pattern", "ignore"],
@@ -151,12 +149,12 @@ export const preferenceTabs: PreferenceTab[] = [
     id: "organize",
     sections: [
       {
-        description: "限制历史规模，避免长期堆积。",
+        description: "设置历史记录的保留时间和数量上限。",
         id: "history",
         settings: [
           {
             control: { type: "retention" },
-            description: "超过时间的普通记录会自动清理。",
+            description: "超过该时间的普通记录会自动清理。",
             id: "history.retention",
             keywords: ["retention", "cleanup", "history"],
             path: ["clipboard", "history", "retention"],
@@ -167,7 +165,7 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { min: 0, type: "number" },
-            description: "超过数量后，仅保留最近记录。",
+            description: "超过上限后，自动清理较旧的普通记录。",
             id: "history.maxCount",
             keywords: ["max", "count", "limit"],
             path: ["clipboard", "history", "maxCount"],
@@ -178,7 +176,7 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { min: 0, suffix: "GB", type: "number" },
-            description: "跳过过大的剪贴板内容。",
+            description: "未来可跳过超过大小限制的剪贴板内容。",
             disabled: true,
             id: "history.maxSize",
             keywords: ["size", "limit", "large"],
@@ -187,7 +185,7 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { label: "始终保留", type: "status" },
-            description: "收藏记录不会被自动清理。",
+            description: "收藏记录不受保留周期和数量上限影响。",
             id: "history.keepFavorite",
             keywords: ["favorite", "cleanup", "keep"],
             status: "alwaysOn",
@@ -195,7 +193,7 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { label: "始终保留", type: "status" },
-            description: "置顶记录不会被自动清理。",
+            description: "置顶记录不受保留周期和数量上限影响。",
             id: "history.keepPinned",
             keywords: ["pinned", "cleanup", "keep"],
             status: "alwaysOn",
@@ -205,36 +203,12 @@ export const preferenceTabs: PreferenceTab[] = [
         title: "保留与清理",
       },
       {
-        description: "标记需要长期保留的记录。",
+        description: "设置收藏、备注和分组相关行为。",
         id: "organizing",
         settings: [
           {
-            control: { label: "已支持", type: "status" },
-            description: "把常用内容放进收藏视图。",
-            id: "organizing.favorite",
-            keywords: ["favorite", "star"],
-            status: "alwaysOn",
-            title: "收藏记录",
-          },
-          {
-            control: { label: "待开放入口", type: "status" },
-            description: "让重要记录保持在列表前面。",
-            id: "organizing.pinned",
-            keywords: ["pin", "pinned"],
-            status: "requiresBackend",
-            title: "置顶记录",
-          },
-          {
-            control: { label: "已支持", type: "status" },
-            description: "给记录补充上下文。",
-            id: "organizing.notes",
-            keywords: ["note", "memo", "comment"],
-            status: "alwaysOn",
-            title: "记录备注",
-          },
-          {
             control: { type: "switch" },
-            description: "有备注的记录自动加入收藏。",
+            description: "保存非空备注时，自动把该记录加入收藏。",
             id: "organizing.autoFavorite",
             keywords: ["note", "favorite", "auto"],
             path: ["clipboard", "content", "autoFavorite"],
@@ -245,7 +219,7 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { label: "管理分组", type: "action" },
-            description: "按主题归类保存的记录。",
+            description: "未来可按主题把历史记录归类到自定义分组。",
             disabled: true,
             id: "organizing.customGroups",
             keywords: ["group", "folder", "organize"],
@@ -256,44 +230,44 @@ export const preferenceTabs: PreferenceTab[] = [
         title: "收藏与备注",
       },
       {
-        description: "设置主窗口里的查找习惯。",
+        description: "设置主窗口里的搜索习惯。",
         id: "search",
         settings: [
           {
             control: { type: "switch" },
-            description: "打开主窗口后直接输入关键词。",
+            description: "打开剪贴板窗口时自动选中搜索框，方便直接输入关键词。",
             id: "search.defaultFocus",
             keywords: ["search", "focus", "open"],
             path: ["clipboard", "search", "defaultFocus"],
-            title: "打开时聚焦搜索",
+            title: "打开窗口时聚焦搜索",
             value: (settings) => {
               return settings.clipboard.search.defaultFocus;
             },
           },
           {
             control: { type: "switch" },
-            description: "下次打开时回到完整列表。",
+            description: "下次打开剪贴板窗口时清空搜索关键词，并显示完整列表。",
             id: "search.clearOnHide",
             keywords: ["search", "clear", "hide"],
             path: ["clipboard", "search", "clearOnHide"],
-            title: "关闭后清空搜索",
+            title: "下次打开时清空搜索",
             value: (settings) => {
               return settings.clipboard.search.clearOnHide;
             },
           },
           {
             control: { options: CLIPBOARD_SORT_OPTIONS, type: "select" },
-            description: "决定历史列表的默认展示顺序。",
+            description: "设置未搜索时历史列表的默认排序方式。",
             id: "search.sort",
             keywords: ["sort", "frequency", "usage", "created", "updated"],
             path: ["clipboard", "content", "sort"],
-            title: "排序方式",
+            title: "默认排序方式",
             value: (settings) => {
               return settings.clipboard.content.sort;
             },
           },
         ],
-        title: "查找与排序",
+        title: "搜索与排序",
       },
     ],
     title: "历史",
@@ -303,7 +277,7 @@ export const preferenceTabs: PreferenceTab[] = [
     id: "reuse",
     sections: [
       {
-        description: "调整鼠标和粘贴格式的默认行为。",
+        description: "设置点击历史记录时的复制、粘贴和格式处理方式。",
         id: "paste",
         settings: [
           {
@@ -311,7 +285,7 @@ export const preferenceTabs: PreferenceTab[] = [
               options: CLICK_ACTION_OPTIONS,
               type: "segmented",
             },
-            description: "设置左键点击记录时的动作。",
+            description: "选择左键点击历史记录时执行的动作。",
             id: "paste.autoPaste",
             keywords: ["paste", "click", "auto"],
             path: ["clipboard", "content", "autoPaste"],
@@ -322,37 +296,22 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: {
-              options: CLICK_ACTION_OPTIONS,
+              options: MIDDLE_CLICK_ACTION_OPTIONS,
               type: "segmented",
             },
-            description: "设置右键点击记录时的动作。",
-            disabled: true,
-            id: "paste.secondaryClick",
-            keywords: ["paste", "right click", "context menu"],
-            status: "comingSoon",
-            title: "右键点击",
-            value: () => {
-              return "disabled";
-            },
-          },
-          {
-            control: {
-              options: CLICK_ACTION_OPTIONS,
-              type: "segmented",
-            },
-            description: "设置中键点击记录时的动作。",
-            disabled: true,
+            description: "选择中键点击历史记录时执行的动作。",
             id: "paste.middleClick",
             keywords: ["paste", "middle click", "mouse"],
-            status: "comingSoon",
+            path: ["clipboard", "content", "middleClick"],
             title: "中键点击",
-            value: () => {
-              return "disabled";
+            value: (settings) => {
+              return settings.clipboard.content.middleClick;
             },
           },
           {
             control: { type: "switch" },
-            description: "默认只粘贴文字内容。",
+            description:
+              "粘贴文本记录时默认去除 HTML/RTF 等格式，只粘贴纯文本。",
             id: "paste.plainDefault",
             keywords: ["plain", "paste", "format"],
             path: ["clipboard", "content", "pastePlain"],
@@ -369,7 +328,7 @@ export const preferenceTabs: PreferenceTab[] = [
               ],
               type: "segmented",
             },
-            description: "选择粘贴文件本身或路径文本。",
+            description: "未来可选择粘贴文件本身，或粘贴文件路径文本。",
             disabled: true,
             id: "paste.fileMode",
             keywords: ["file", "path", "paste"],
@@ -380,12 +339,13 @@ export const preferenceTabs: PreferenceTab[] = [
         title: "粘贴行为",
       },
       {
-        description: "设置复制格式和提示反馈。",
+        description: "设置从历史复用内容时的复制格式和反馈。",
         id: "copy",
         settings: [
           {
             control: { type: "switch" },
-            description: "默认只复制文字内容。",
+            description:
+              "复制文本记录时默认去除 HTML/RTF 等格式，只复制纯文本。",
             id: "copy.plainDefault",
             keywords: ["copy", "plain", "format"],
             path: ["clipboard", "content", "copyPlain"],
@@ -396,7 +356,7 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { type: "switch" },
-            description: "从历史中复制或粘贴时，刷新更新时间和使用次数。",
+            description: "从历史复制或粘贴记录时，刷新使用时间和使用次数。",
             id: "copy.updateOnReuse",
             keywords: ["copy", "paste", "reuse", "sort", "frequency"],
             path: ["clipboard", "content", "updateOnReuse"],
@@ -407,7 +367,7 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { type: "switch" },
-            description: "记录新内容时播放提示音。",
+            description: "剪贴板新内容成功进入历史时播放提示音。",
             id: "copy.sound",
             keywords: ["sound", "feedback", "copy"],
             path: ["clipboard", "feedback", "copySound"],
@@ -420,7 +380,7 @@ export const preferenceTabs: PreferenceTab[] = [
         title: "复制反馈",
       },
       {
-        description: "控制记录旁边出现哪些操作。",
+        description: "控制历史记录行上显示哪些快捷操作。",
         id: "actions",
         settings: [
           {
@@ -435,7 +395,7 @@ export const preferenceTabs: PreferenceTab[] = [
               ],
               type: "select",
             },
-            description: "选择悬停时显示的按钮。",
+            description: "选择鼠标悬停在记录上时显示的操作按钮。",
             id: "actions.visible",
             keywords: ["action", "hover", "buttons"],
             path: ["clipboard", "content", "itemActions"],
@@ -446,7 +406,7 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { type: "switch" },
-            description: "删除前先确认一次。",
+            description: "删除历史记录前先弹出确认，避免误删。",
             id: "actions.deleteConfirm",
             keywords: ["delete", "confirm"],
             path: ["clipboard", "content", "deleteConfirm"],
@@ -457,7 +417,8 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { label: "按内容自动出现", type: "status" },
-            description: "按内容显示打开、发送或定位等动作。",
+            description:
+              "根据内容类型自动显示打开链接、发送邮件、定位文件等动作。",
             id: "actions.contextual",
             keywords: ["open", "link", "email", "reveal"],
             status: "alwaysOn",
@@ -465,7 +426,7 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { label: "管理转换", type: "action" },
-            description: "添加自定义处理动作。",
+            description: "未来可添加自定义内容处理和转换动作。",
             disabled: true,
             id: "actions.transforms",
             keywords: ["transform", "custom", "automation"],
@@ -483,7 +444,7 @@ export const preferenceTabs: PreferenceTab[] = [
     id: "workflow",
     sections: [
       {
-        description: "设置主窗口出现的位置。",
+        description: "设置剪贴板主窗口每次打开时的位置。",
         id: "window",
         settings: [
           {
@@ -495,7 +456,7 @@ export const preferenceTabs: PreferenceTab[] = [
               ],
               type: "segmented",
             },
-            description: "选择每次打开主窗口的位置。",
+            description: "选择每次打开剪贴板主窗口时的位置。",
             id: "window.position",
             keywords: ["window", "position", "cursor"],
             path: ["clipboard", "window", "position"],
@@ -508,12 +469,12 @@ export const preferenceTabs: PreferenceTab[] = [
         title: "主窗口",
       },
       {
-        description: "快速查看记录的完整内容。",
+        description: "设置如何预览历史记录的完整内容。",
         id: "preview",
         settings: [
           {
             control: { type: "switch" },
-            description: "鼠标停留时显示预览。",
+            description: "鼠标悬停在记录上时显示完整内容预览。",
             id: "preview.hover",
             keywords: ["preview", "hover"],
             path: ["clipboard", "preview", "hoverEnabled"],
@@ -531,7 +492,7 @@ export const preferenceTabs: PreferenceTab[] = [
               ],
               type: "segmented",
             },
-            description: "设置预览出现前的等待时间。",
+            description: "设置鼠标悬停多久后显示预览。",
             disabledWhen: (settings) => {
               return !settings.clipboard.preview.hoverEnabled;
             },
@@ -546,7 +507,7 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { type: "switch" },
-            description: "按住空格查看选中记录。",
+            description: "按住空格键时预览当前选中的记录。",
             id: "preview.space",
             keywords: ["space", "preview", "keyboard"],
             path: ["clipboard", "preview", "spaceEnabled"],
@@ -557,7 +518,8 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { type: "switch" },
-            description: "查看富文本的原始内容。",
+            description:
+              "预览 HTML/RTF 记录时显示原始内容，而不是渲染后的效果。",
             id: "preview.original",
             keywords: ["original", "html", "source"],
             path: ["clipboard", "content", "showOriginalPreview"],
@@ -570,7 +532,7 @@ export const preferenceTabs: PreferenceTab[] = [
         title: "内容预览",
       },
       {
-        description: "设置界面的视觉偏好。",
+        description: "设置界面主题、语言和列表显示密度。",
         id: "appearance",
         settings: [
           {
@@ -582,7 +544,7 @@ export const preferenceTabs: PreferenceTab[] = [
               ],
               type: "segmented",
             },
-            description: "选择浅色、深色或跟随系统。",
+            description: "选择界面使用浅色、深色，或跟随系统外观。",
             id: "appearance.theme",
             keywords: ["theme", "dark", "light"],
             path: ["appearance", "theme"],
@@ -599,7 +561,7 @@ export const preferenceTabs: PreferenceTab[] = [
               ],
               type: "segmented",
             },
-            description: "切换界面语言。",
+            description: "切换 EcoPaste 的界面语言。",
             id: "appearance.language",
             keywords: ["language", "locale", "english"],
             path: ["appearance", "language"],
@@ -610,7 +572,7 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { max: 5, min: 1, type: "number" },
-            description: "限制文本记录在列表中最多展开的行数。",
+            description: "限制文本记录在列表卡片中最多显示的行数。",
             id: "appearance.textMaxLines",
             keywords: ["density", "text", "line", "compact"],
             path: ["clipboard", "display", "textMaxLines"],
@@ -621,7 +583,7 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { max: 100, min: 20, type: "number" },
-            description: "限制图片缩略图在列表中的最大高度。",
+            description: "限制图片记录在列表卡片中的缩略图高度。",
             id: "appearance.imageMaxHeight",
             keywords: ["density", "image", "height", "thumbnail"],
             path: ["clipboard", "display", "imageMaxHeight"],
@@ -632,7 +594,7 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { max: 5, min: 1, type: "number" },
-            description: "限制文件记录返回并显示的文件数量。",
+            description: "限制文件记录在列表卡片中最多显示的文件数量。",
             id: "appearance.fileMaxCount",
             keywords: ["density", "file", "count", "array"],
             path: ["clipboard", "display", "fileMaxCount"],
@@ -643,7 +605,7 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { label: "跟随系统", type: "status" },
-            description: "跟随系统减少动态效果。",
+            description: "跟随系统的减少动态效果设置，降低动画强度。",
             id: "appearance.reducedMotion",
             keywords: ["motion", "accessibility"],
             status: "alwaysOn",
@@ -653,12 +615,12 @@ export const preferenceTabs: PreferenceTab[] = [
         title: "外观与语言",
       },
       {
-        description: "控制 EcoPaste 在系统中的入口。",
+        description: "控制 EcoPaste 是否随系统启动，以及显示哪些系统入口。",
         id: "control",
         settings: [
           {
             control: { type: "switch" },
-            description: "登录系统后自动运行。",
+            description: "登录 macOS 或 Windows 后自动启动 EcoPaste。",
             id: "control.autoStart",
             keywords: ["startup", "login", "autostart"],
             path: ["general", "autoStart"],
@@ -669,7 +631,7 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { type: "switch" },
-            description: "后台启动，不弹出主窗口。",
+            description: "开机启动时只在后台运行，不自动弹出剪贴板窗口。",
             disabledWhen: (settings) => {
               return !settings.general.autoStart;
             },
@@ -684,7 +646,8 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { type: "switch" },
-            description: "在 macOS 菜单栏或 Windows 系统托盘中显示图标。",
+            description:
+              "在 macOS 菜单栏或 Windows 系统托盘显示 EcoPaste 图标。",
             id: "control.trayIcon",
             keywords: ["tray", "menu bar", "system"],
             path: ["general", "trayIcon"],
@@ -695,7 +658,7 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { type: "switch" },
-            description: "在 macOS 程序坞或 Windows 任务栏中显示图标。",
+            description: "在 macOS 程序坞或 Windows 任务栏显示 EcoPaste 图标。",
             id: "control.dockIcon",
             keywords: ["dock", "taskbar", "icon"],
             path: ["general", "dockIcon"],
@@ -715,12 +678,12 @@ export const preferenceTabs: PreferenceTab[] = [
     id: "shortcuts",
     sections: [
       {
-        description: "可在任意应用中使用。",
+        description: "设置在任意应用中都能触发的系统快捷键。",
         id: "globalShortcuts",
         settings: [
           {
             control: { placeholder: "Alt+C", type: "text" },
-            description: "打开或隐藏剪贴板主窗口。",
+            description: "在任意应用中打开或隐藏剪贴板主窗口。",
             id: "shortcuts.openClipboard",
             keywords: ["shortcut", "hotkey", "open"],
             path: ["shortcuts", "openClipboard"],
@@ -731,7 +694,7 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { placeholder: "Alt+X", type: "text" },
-            description: "打开或隐藏偏好设置。",
+            description: "在任意应用中打开或隐藏偏好设置窗口。",
             id: "shortcuts.openPreference",
             keywords: ["shortcut", "hotkey", "preference"],
             path: ["shortcuts", "openPreference"],
@@ -743,120 +706,6 @@ export const preferenceTabs: PreferenceTab[] = [
         ],
         title: "全局快捷键",
       },
-      {
-        description: "这些快捷键仅展示，不能修改。",
-        id: "windowShortcuts",
-        settings: [
-          {
-            control: {
-              shortcuts: [{ keys: [ENTER_KEY], label: "粘贴选中项" }],
-              type: "shortcutTags",
-            },
-            description: "粘贴当前选中的记录。",
-            id: "shortcuts.windowPaste",
-            keywords: ["shortcut", "paste", "enter"],
-            title: "粘贴选中项",
-          },
-          {
-            control: {
-              shortcuts: [
-                {
-                  keys: [MOD_KEY, ENTER_KEY],
-                  label: "粘贴选中项为纯文本",
-                },
-              ],
-              type: "shortcutTags",
-            },
-            description: "粘贴当前记录的纯文本版本。",
-            id: "shortcuts.windowPastePlain",
-            keywords: ["shortcut", "paste", "plain", "enter"],
-            title: "粘贴选中项为纯文本",
-          },
-          {
-            control: {
-              shortcuts: [
-                {
-                  keys: [MOD_KEY, BACKSPACE_KEY],
-                  label: "删除选中项",
-                },
-              ],
-              type: "shortcutTags",
-            },
-            description: "删除当前选中的记录。",
-            id: "shortcuts.windowDelete",
-            keywords: ["shortcut", "delete", "backspace"],
-            title: "删除选中项",
-          },
-          {
-            control: {
-              shortcuts: [{ keys: [MOD_KEY, "D"], label: "收藏 / 取消收藏" }],
-              type: "shortcutTags",
-            },
-            description: "切换当前记录的收藏状态。",
-            id: "shortcuts.windowFavorite",
-            keywords: ["shortcut", "favorite", "star"],
-            title: "收藏 / 取消收藏",
-          },
-          {
-            control: {
-              shortcuts: [{ keys: [UP_KEY, "/", DOWN_KEY], label: "上下导航" }],
-              type: "shortcutTags",
-            },
-            description: "移动列表选中项。",
-            id: "shortcuts.windowNavigate",
-            keywords: ["shortcut", "navigate", "arrow"],
-            title: "上下导航",
-          },
-          {
-            control: {
-              shortcuts: [
-                {
-                  keys: [MOD_KEY, "N"],
-                  label: "粘贴第 N 项（N = 1…9, 0）",
-                },
-              ],
-              type: "shortcutTags",
-            },
-            description: "按序号快速粘贴可见记录。",
-            id: "shortcuts.windowQuickPaste",
-            keywords: ["shortcut", "quick paste", "number"],
-            title: "粘贴第 N 项（N = 1…9, 0）",
-          },
-          {
-            control: {
-              shortcuts: [{ keys: [MOD_KEY, "F"], label: "聚焦搜索框" }],
-              type: "shortcutTags",
-            },
-            description: "开始搜索历史记录。",
-            id: "shortcuts.windowFocusSearch",
-            keywords: ["shortcut", "search", "focus"],
-            title: "聚焦搜索框",
-          },
-          {
-            control: {
-              shortcuts: [
-                { keys: [MOD_KEY, "P"], label: "固定 / 取消固定窗口" },
-              ],
-              type: "shortcutTags",
-            },
-            description: "让主窗口保持显示或恢复自动隐藏。",
-            id: "shortcuts.windowPin",
-            keywords: ["shortcut", "pin", "window"],
-            title: "固定 / 取消固定窗口",
-          },
-          {
-            control: {
-              shortcuts: [{ keys: [MOD_KEY, ","], label: "打开偏好设置" }],
-              type: "shortcutTags",
-            },
-            description: "打开偏好设置窗口。",
-            id: "shortcuts.windowOpenPreference",
-            keywords: ["shortcut", "preference", "settings"],
-            title: "打开偏好设置",
-          },
-        ],
-        title: "主窗口快捷键",
-      },
     ],
     title: "快捷键",
   },
@@ -865,26 +714,26 @@ export const preferenceTabs: PreferenceTab[] = [
     id: "data",
     sections: [
       {
-        description: "打开本机数据和日志目录。",
+        description: "打开 EcoPaste 在本机保存数据、资源和日志的位置。",
         id: "localData",
         settings: [
           {
             control: { label: "打开", type: "action" },
-            description: "打开历史、设置和资源所在目录。",
+            description: "打开历史数据库、设置文件和资源缓存所在目录。",
             id: "localData.dataDirectory",
             keywords: ["database", "sqlite", "local", "cache", "image", "icon"],
             title: "数据目录",
           },
           {
             control: { label: "打开", type: "action" },
-            description: "打开运行日志目录。",
+            description: "打开用于排查问题的运行日志目录。",
             id: "localData.logDirectory",
             keywords: ["log", "diagnostic"],
             title: "日志目录",
           },
           {
             control: { label: "清理缓存", type: "action" },
-            description: "移除未使用的资源缓存。",
+            description: "未来可移除不再被历史记录引用的资源缓存。",
             disabled: true,
             id: "localData.cleanCache",
             keywords: ["cache", "clean", "storage"],
@@ -895,12 +744,12 @@ export const preferenceTabs: PreferenceTab[] = [
         title: "存储位置",
       },
       {
-        description: "导入或导出历史数据。",
+        description: "未来可迁移历史数据库和相关资源文件。",
         id: "backup",
         settings: [
           {
             control: { label: "导出", type: "action" },
-            description: "保存历史和资源备份。",
+            description: "未来可把历史数据库和资源文件导出为备份。",
             disabled: true,
             id: "backup.exportHistory",
             keywords: ["export", "backup", "history"],
@@ -909,7 +758,7 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { label: "导入", type: "action" },
-            description: "从备份恢复历史。",
+            description: "未来可从备份恢复历史数据库和资源文件。",
             disabled: true,
             id: "backup.importHistory",
             keywords: ["import", "backup", "history"],
@@ -920,12 +769,12 @@ export const preferenceTabs: PreferenceTab[] = [
         title: "备份迁移",
       },
       {
-        description: "恢复窗口和偏好默认状态。",
+        description: "未来可重置窗口位置或恢复偏好设置默认值。",
         id: "diagnostics",
         settings: [
           {
             control: { label: "重置", type: "action" },
-            description: "清除已保存的窗口位置。",
+            description: "未来可清除已保存的窗口位置和尺寸。",
             disabled: true,
             id: "diagnostics.resetWindow",
             keywords: ["reset", "window"],
@@ -934,7 +783,7 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { danger: true, label: "重置", type: "action" },
-            description: "恢复默认设置，保留历史记录。",
+            description: "未来可恢复所有偏好默认值，同时保留历史记录。",
             disabled: true,
             id: "diagnostics.resetPreferences",
             keywords: ["reset", "preferences"],
@@ -945,12 +794,12 @@ export const preferenceTabs: PreferenceTab[] = [
         title: "诊断恢复",
       },
       {
-        description: "授权外部工具读取本地历史。",
+        description: "未来可授权外部工具只读访问本地历史。",
         id: "external",
         settings: [
           {
             control: { label: "配置 CLI", type: "action" },
-            description: "通过命令行查询历史。",
+            description: "未来可通过命令行查询本地剪贴板历史。",
             disabled: true,
             id: "external.cli",
             keywords: ["cli", "terminal", "json"],
@@ -959,7 +808,7 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { label: "配置 AI 访问", type: "action" },
-            description: "允许 AI 工具搜索历史。",
+            description: "未来可允许 AI 工具搜索本地剪贴板历史。",
             disabled: true,
             id: "external.ai",
             keywords: ["ai", "agent", "tool"],
@@ -968,7 +817,7 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { label: "配置 MCP", type: "action" },
-            description: "为 MCP 客户端提供只读工具。",
+            description: "未来可为 MCP 客户端提供只读历史查询工具。",
             disabled: true,
             id: "external.mcp",
             keywords: ["mcp", "server", "agent"],
@@ -979,12 +828,12 @@ export const preferenceTabs: PreferenceTab[] = [
         title: "外部工具",
       },
       {
-        description: "设置版本检查方式。",
+        description: "设置 EcoPaste 如何检查和接收新版本。",
         id: "updates",
         settings: [
           {
             control: { type: "switch" },
-            description: "自动检查新版本。",
+            description: "定期检查 EcoPaste 是否有可用的新版本。",
             id: "updates.autoCheck",
             keywords: ["update", "version"],
             path: ["update", "autoCheck"],
@@ -1002,7 +851,7 @@ export const preferenceTabs: PreferenceTab[] = [
               ],
               type: "segmented",
             },
-            description: "设置自动检查的间隔。",
+            description: "未来可设置自动检查更新的时间间隔。",
             disabled: true,
             id: "updates.frequency",
             keywords: ["update", "frequency", "schedule"],
@@ -1014,7 +863,7 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { type: "switch" },
-            description: "同时接收测试版更新。",
+            description: "检查更新时同时接收 Beta 测试版本。",
             disabledWhen: (settings) => {
               return !settings.update.autoCheck;
             },
