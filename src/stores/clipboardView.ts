@@ -1,9 +1,8 @@
 import { proxy } from "valtio";
-import type { ClipboardGroup, ClipboardItemSort } from "@/types/clipboard";
+import type { ClipboardGroup } from "@/types/clipboard";
 
 interface ClipboardViewState {
   keyword: string;
-  sort: ClipboardItemSort;
   group: ClipboardGroup;
 }
 
@@ -17,5 +16,4 @@ interface ClipboardViewState {
 export const clipboardViewState = proxy<ClipboardViewState>({
   group: "all",
   keyword: "",
-  sort: "createdAtDesc",
 });

@@ -6,7 +6,7 @@ use std::sync::Arc;
 use chrono::{DateTime, Datelike, Local, Utc};
 use serde::Serialize;
 use sqlx::SqlitePool;
-use tauri::{AppHandle, Manager, State};
+use tauri::{AppHandle, Emitter, Manager, State};
 
 use crate::clipboard::{
     build_item_with_settings, detect_frontmost, materialize_source, persist_and_notify,
@@ -14,13 +14,16 @@ use crate::clipboard::{
     FileIconStore, ImageStore, WritebackGuard,
 };
 use crate::core::{AppError, Result};
-use crate::db::items::{find_item_by_id, find_item_for_list_by_id};
+use crate::db::items::{find_item_by_id, find_item_for_list_by_id, increment_item_use_count};
 use crate::db::models::{
     ClipboardAction, ClipboardGroup, ClipboardItem, ClipboardItemPage, ClipboardItemQuery,
     ClipboardKind, ClipboardSubKind, FileEntry, Platform,
 };
 use crate::settings::SettingsStore;
 use crate::window::{self, MAIN_WINDOW_LABEL};
+
+/// 与前端 `src/constants/events.ts` 的 `TAURI_EVENT.CLIPBOARD_UPDATED` 一一对应。
+const CLIPBOARD_UPDATED_EVENT: &str = "clipboard://updated";
 
 /// `read_clipboard` 的返回：入库后的记录 + 是否命中去重（前端据此决定提示/滚动行为）。
 #[derive(Debug, Serialize)]
@@ -228,6 +231,7 @@ pub async fn play_copy_sound() {
 /// 之后无 await，命令 future 仍满足 `Send`。
 #[tauri::command]
 pub async fn write_to_clipboard(
+    app: AppHandle,
     pool: State<'_, SqlitePool>,
     store: State<'_, ImageStore>,
     guard: State<'_, Arc<WritebackGuard>>,
@@ -239,6 +243,7 @@ pub async fn write_to_clipboard(
         .ok_or_else(|| AppError::Clipboard(format!("clipboard item not found: {id}")))?;
 
     crate::clipboard::write_to_clipboard(&store, guard.inner().as_ref(), &item, plain)?;
+    mark_item_reused_if_enabled(&app, &pool, &id).await?;
     Ok(())
 }
 
@@ -263,6 +268,7 @@ pub async fn paste_clipboard_item(
         .ok_or_else(|| AppError::Clipboard(format!("clipboard item not found: {id}")))?;
 
     crate::clipboard::write_to_clipboard(&store, guard.inner().as_ref(), &item, plain)?;
+    mark_item_reused_if_enabled(&app, &pool, &id).await?;
 
     if window::is_main_window_pinned() {
         // 固定时窗口保持可见：macOS 上 panel 仍是 key window 会吞掉 ⌘V，需先 resign key
@@ -291,6 +297,27 @@ pub async fn paste_clipboard_item(
                 log::warn!("restore main panel key after paste failed: {err:?}");
             }
         }
+    }
+
+    Ok(())
+}
+
+/// 按设置决定是否把复制 / 粘贴历史记录计为一次复用。
+async fn mark_item_reused_if_enabled(app: &AppHandle, pool: &SqlitePool, id: &str) -> Result<()> {
+    let settings = app.state::<SettingsStore>().snapshot();
+    if !settings.clipboard.content.update_on_reuse {
+        return Ok(());
+    }
+
+    increment_item_use_count(pool, id).await?;
+    if let Err(err) = app.emit(
+        CLIPBOARD_UPDATED_EVENT,
+        serde_json::json!({
+            "id": id,
+            "deduplicated": true,
+        }),
+    ) {
+        log::warn!("emit {CLIPBOARD_UPDATED_EVENT} after item reuse failed: {err}");
     }
 
     Ok(())

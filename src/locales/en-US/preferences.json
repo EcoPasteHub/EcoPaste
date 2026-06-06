@@ -215,6 +215,10 @@
           "description": "Play a sound when new content is captured.",
           "preview": "Preview sound",
           "title": "Copy Sound"
+        },
+        "updateOnReuse": {
+          "description": "Refresh updated time and usage count when copying or pasting from history.",
+          "title": "Update Record on Reuse"
         }
       },
       "diagnostics": {
@@ -392,9 +396,14 @@
           "description": "Start typing keywords immediately after opening the main window.",
           "title": "Focus Search on Open"
         },
-        "frequencySort": {
-          "description": "Show frequently used records first.",
-          "title": "Sort by Usage Frequency"
+        "sort": {
+          "description": "Choose the default order for history records.",
+          "options": {
+            "createdAtDesc": "Created Time",
+            "updatedAtDesc": "Updated Time",
+            "useCountDesc": "Usage Frequency"
+          },
+          "title": "Sort Order"
         }
       },
       "sensitive": {

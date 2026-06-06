@@ -56,9 +56,10 @@ const List: FC = () => {
   const settings = useSnapshot(settingsState);
   const { keyword, group } = snapshot;
   const autoPaste = settings.clipboard.content.autoPaste;
+  const sort = settings.clipboard.content.sort;
 
   const { data, loading, loadingMore, loadMore, noMore, reload, mutate } =
-    useClipboardItems(snapshot);
+    useClipboardItems({ ...snapshot, sort });
   const items = data?.list ?? [];
   const {
     closeHoverPreviewForScroll,
@@ -93,6 +94,11 @@ const List: FC = () => {
    * 用 ref 读取最新滚动位置，规避闭包陷旧值（事件订阅只挂载一次）。
    */
   const handleClipboardUpdated = () => {
+    if (sort !== "createdAtDesc") {
+      reload();
+      return;
+    }
+
     if (isAtTopRef.current) {
       reload();
       return;

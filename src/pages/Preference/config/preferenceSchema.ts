@@ -14,6 +14,11 @@ const CLICK_ACTION_OPTIONS = [
   { label: "单击复制", value: "singleClickCopy" },
   { label: "双击复制", value: "doubleClickCopy" },
 ];
+const CLIPBOARD_SORT_OPTIONS = [
+  { label: "创建时间", value: "createdAtDesc" },
+  { label: "更新时间", value: "updatedAtDesc" },
+  { label: "使用频率", value: "useCountDesc" },
+];
 
 export const preferenceTabs: PreferenceTab[] = [
   {
@@ -294,14 +299,14 @@ export const preferenceTabs: PreferenceTab[] = [
             },
           },
           {
-            control: { type: "switch" },
-            description: "常用记录优先显示。",
-            id: "search.frequencySort",
-            keywords: ["sort", "frequency", "usage"],
-            path: ["clipboard", "content", "autoSortByFrequency"],
-            title: "按使用频率排序",
+            control: { options: CLIPBOARD_SORT_OPTIONS, type: "select" },
+            description: "决定历史列表的默认展示顺序。",
+            id: "search.sort",
+            keywords: ["sort", "frequency", "usage", "created", "updated"],
+            path: ["clipboard", "content", "sort"],
+            title: "排序方式",
             value: (settings) => {
-              return settings.clipboard.content.autoSortByFrequency;
+              return settings.clipboard.content.sort;
             },
           },
         ],
@@ -404,6 +409,17 @@ export const preferenceTabs: PreferenceTab[] = [
             title: "默认复制为纯文本",
             value: (settings) => {
               return settings.clipboard.content.copyPlain;
+            },
+          },
+          {
+            control: { type: "switch" },
+            description: "从历史中复制或粘贴时，刷新更新时间和使用次数。",
+            id: "copy.updateOnReuse",
+            keywords: ["copy", "paste", "reuse", "sort", "frequency"],
+            path: ["clipboard", "content", "updateOnReuse"],
+            title: "复用时更新记录",
+            value: (settings) => {
+              return settings.clipboard.content.updateOnReuse;
             },
           },
           {

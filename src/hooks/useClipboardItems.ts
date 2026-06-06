@@ -43,7 +43,15 @@ export const useClipboardItems = (query: ClipboardItemQuery) => {
     },
     {
       isNoMore: (data) => data?.hasMore === false,
-      reloadDeps: [query],
+      reloadDeps: [
+        query.favorite,
+        query.group,
+        query.groupId,
+        query.keyword,
+        query.kind,
+        query.pinned,
+        query.sort,
+      ],
     },
   );
 };

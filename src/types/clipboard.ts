@@ -85,7 +85,10 @@ export interface FileEntry {
   iconPath?: string;
 }
 
-export type ClipboardItemSort = "createdAtDesc" | "useCountDesc";
+export type ClipboardItemSort =
+  | "createdAtDesc"
+  | "updatedAtDesc"
+  | "useCountDesc";
 
 export type ClipboardGroup = "all" | "text" | "image" | "files" | "favorite";
 

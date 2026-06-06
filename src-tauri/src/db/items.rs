@@ -430,10 +430,13 @@ async fn fetch_items(
 
     qb.push(" ORDER BY clipboard_items.is_pinned DESC, ");
     match q.sort {
-        ClipboardItemSort::CreatedAtDesc => {
+        ClipboardItemSort::CreatedAt => {
             qb.push("clipboard_items.created_at DESC");
         }
-        ClipboardItemSort::UseCountDesc => {
+        ClipboardItemSort::UpdatedAt => {
+            qb.push("clipboard_items.updated_at DESC, clipboard_items.created_at DESC");
+        }
+        ClipboardItemSort::UseCount => {
             qb.push("clipboard_items.use_count DESC, clipboard_items.created_at DESC");
         }
     }
@@ -745,13 +748,16 @@ mod tests {
         let pool = memory_pool().await;
         let mut a = sample_item("a");
         a.created_at = DateTime::from_timestamp(1_700_000_000, 0).unwrap();
+        a.updated_at = DateTime::from_timestamp(1_700_000_010, 0).unwrap();
         a.use_count = 9;
         let mut b = sample_item("b");
         b.created_at = DateTime::from_timestamp(1_700_000_010, 0).unwrap();
+        b.updated_at = DateTime::from_timestamp(1_700_000_020, 0).unwrap();
         b.is_pinned = true;
         b.use_count = 1;
         let mut c = sample_item("c");
         c.created_at = DateTime::from_timestamp(1_700_000_020, 0).unwrap();
+        c.updated_at = DateTime::from_timestamp(1_700_000_000, 0).unwrap();
         c.use_count = 5;
         for item in [&a, &b, &c] {
             insert_item(&pool, item).await.unwrap();
@@ -761,7 +767,7 @@ mod tests {
         let by_time = query_items(
             &pool,
             &ClipboardItemQuery {
-                sort: ClipboardItemSort::CreatedAtDesc,
+                sort: ClipboardItemSort::CreatedAt,
                 ..Default::default()
             },
         )
@@ -769,11 +775,23 @@ mod tests {
         .unwrap();
         assert_eq!(ids(&by_time), ["b", "c", "a"]);
 
+        // 置顶项 b 恒前置；其余按更新时间倒序 a(10) > c(0)。
+        let by_updated = query_items(
+            &pool,
+            &ClipboardItemQuery {
+                sort: ClipboardItemSort::UpdatedAt,
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap();
+        assert_eq!(ids(&by_updated), ["b", "a", "c"]);
+
         // 置顶项 b 恒前置；其余按使用次数倒序 a(9) > c(5)。
         let by_use = query_items(
             &pool,
             &ClipboardItemQuery {
-                sort: ClipboardItemSort::UseCountDesc,
+                sort: ClipboardItemSort::UseCount,
                 ..Default::default()
             },
         )

@@ -5,6 +5,8 @@
 
 use serde::{Deserialize, Serialize};
 
+use crate::db::models::ClipboardItemSort;
+
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(default, rename_all = "camelCase")]
 pub struct Settings {
@@ -254,8 +256,10 @@ pub struct Content {
     pub show_original_preview: bool,
     pub delete_confirm: bool,
     pub auto_favorite: bool,
-    /// 按使用频率而非时间排序。
-    pub auto_sort_by_frequency: bool,
+    /// 从历史中复制 / 粘贴时，是否刷新使用次数与 `updated_at`。
+    pub update_on_reuse: bool,
+    /// 历史列表默认排序，和 `ClipboardItemQuery.sort` 使用同一套契约字面量。
+    pub sort: ClipboardItemSort,
     /// 列表项悬停操作按钮 (顺序即显示顺序)。
     pub item_actions: Vec<ItemAction>,
 }
@@ -269,7 +273,8 @@ impl Default for Content {
             show_original_preview: false,
             delete_confirm: true,
             auto_favorite: false,
-            auto_sort_by_frequency: false,
+            update_on_reuse: true,
+            sort: ClipboardItemSort::CreatedAt,
             item_actions: vec![ItemAction::Copy, ItemAction::Star, ItemAction::Delete],
         }
     }

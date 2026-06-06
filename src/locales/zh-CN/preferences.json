@@ -215,6 +215,10 @@
           "description": "记录新内容时播放提示音。",
           "preview": "试听提示音",
           "title": "复制成功提示音"
+        },
+        "updateOnReuse": {
+          "description": "从历史中复制或粘贴时，刷新更新时间和使用次数。",
+          "title": "复用时更新记录"
         }
       },
       "diagnostics": {
@@ -392,9 +396,14 @@
           "description": "打开主窗口后直接输入关键词。",
           "title": "打开时聚焦搜索"
         },
-        "frequencySort": {
-          "description": "常用记录优先显示。",
-          "title": "按使用频率排序"
+        "sort": {
+          "description": "决定历史列表的默认展示顺序。",
+          "options": {
+            "createdAtDesc": "创建时间",
+            "updatedAtDesc": "更新时间",
+            "useCountDesc": "使用频率"
+          },
+          "title": "排序方式"
         }
       },
       "sensitive": {

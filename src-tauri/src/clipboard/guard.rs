@@ -6,7 +6,8 @@
 //!
 //! 用 `content_hash` 比对而非简单布尔标记：避免「写回事件尚未到达就来了一次真实复制」
 //! 误伤真实复制；同时带 TTL 兜底——若写回的内容与剪贴板现状完全相同（OS 可能不发变更事件），
-//! 登记的指纹不会永久滞留导致后续同内容复制被吞。
+//! 登记的指纹不会永久滞留导致后续同内容复制被吞。HTML/RTF 写回会同时写入纯文本回退，
+//! 因此 guard 支持短期登记多个指纹。
 
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
@@ -15,9 +16,8 @@ use std::time::{Duration, Instant};
 /// 给足冗余但不至于长到误吞后续的真实复制。
 const SUPPRESS_TTL: Duration = Duration::from_secs(2);
 
-#[derive(Default)]
 pub struct WritebackGuard {
-    pending: Mutex<Option<Pending>>,
+    pending: Mutex<Vec<Pending>>,
 }
 
 struct Pending {
@@ -25,15 +25,24 @@ struct Pending {
     at: Instant,
 }
 
+impl Default for WritebackGuard {
+    fn default() -> Self {
+        Self {
+            pending: Mutex::new(Vec::new()),
+        }
+    }
+}
+
 impl WritebackGuard {
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// 写回剪贴板前登记将写入内容的 `content_hash`。覆盖上一条未消费的登记。
+    /// 写回剪贴板前登记将写入内容的 `content_hash`。
     pub fn suppress(&self, content_hash: String) {
         let mut pending = self.pending.lock().expect("writeback guard poisoned");
-        *pending = Some(Pending {
+        pending.retain(|p| p.at.elapsed() <= SUPPRESS_TTL);
+        pending.push(Pending {
             content_hash,
             at: Instant::now(),
         });
@@ -43,17 +52,32 @@ impl WritebackGuard {
     /// 并消费掉登记；否则返回 `false`。过期的登记顺带清理。
     pub fn should_skip(&self, content_hash: &str) -> bool {
         let mut pending = self.pending.lock().expect("writeback guard poisoned");
-        match pending.as_ref() {
-            Some(p) if p.at.elapsed() > SUPPRESS_TTL => {
-                *pending = None;
-                false
-            }
-            Some(p) if p.content_hash == content_hash => {
-                *pending = None;
-                true
-            }
-            _ => false,
-        }
+        pending.retain(|p| p.at.elapsed() <= SUPPRESS_TTL);
+
+        let Some(index) = pending.iter().position(|p| p.content_hash == content_hash) else {
+            return false;
+        };
+        pending.remove(index);
+
+        true
+    }
+
+    /// 单测用：直接塞一条已过期登记。
+    #[cfg(test)]
+    fn suppress_expired_for_test(&self, content_hash: String) {
+        let mut pending = self.pending.lock().expect("writeback guard poisoned");
+        pending.push(Pending {
+            content_hash,
+            at: Instant::now() - SUPPRESS_TTL - Duration::from_millis(1),
+        });
+    }
+
+    /// 单测用：返回当前登记数量。
+    #[cfg(test)]
+    fn pending_len_for_test(&self) -> usize {
+        let pending = self.pending.lock().expect("writeback guard poisoned");
+
+        pending.len()
     }
 }
 
@@ -72,6 +96,17 @@ mod tests {
     }
 
     #[test]
+    fn supports_multiple_pending_hashes() {
+        let guard = WritebackGuard::new();
+        guard.suppress("hash-a".to_owned());
+        guard.suppress("hash-b".to_owned());
+
+        assert!(guard.should_skip("hash-a"));
+        assert!(guard.should_skip("hash-b"));
+        assert_eq!(guard.pending_len_for_test(), 0);
+    }
+
+    #[test]
     fn does_not_skip_unrelated_content() {
         let guard = WritebackGuard::new();
         guard.suppress("hash-a".to_owned());
@@ -84,13 +119,8 @@ mod tests {
     #[test]
     fn expired_suppression_is_ignored() {
         let guard = WritebackGuard::new();
-        {
-            let mut pending = guard.pending.lock().unwrap();
-            *pending = Some(Pending {
-                content_hash: "hash-a".to_owned(),
-                at: Instant::now() - SUPPRESS_TTL - Duration::from_millis(1),
-            });
-        }
+        guard.suppress_expired_for_test("hash-a".to_owned());
+
         assert!(!guard.should_skip("hash-a"));
     }
 }

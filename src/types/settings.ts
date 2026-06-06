@@ -1,3 +1,5 @@
+import type { ClipboardItemSort } from "./clipboard";
+
 /**
  * 设置数据契约，镜像 `src-tauri/src/settings/model.rs::Settings`。
  *
@@ -60,7 +62,8 @@ export interface Content {
   showOriginalPreview: boolean;
   deleteConfirm: boolean;
   autoFavorite: boolean;
-  autoSortByFrequency: boolean;
+  updateOnReuse: boolean;
+  sort: ClipboardItemSort;
   itemActions: ItemAction[];
 }
 

@@ -16,10 +16,14 @@ export const useTauriListen = <T>(
   handler: EventCallback<T>,
 ) => {
   const unlistenRef = useRef<(() => void) | undefined>(void 0);
+  const handlerRef = useRef(handler);
+  handlerRef.current = handler;
 
   useMount(async () => {
     try {
-      unlistenRef.current = await listen<T>(event, handler);
+      unlistenRef.current = await listen<T>(event, (payload) => {
+        handlerRef.current(payload);
+      });
     } catch (error) {
       log.error(`Failed to listen tauri event: ${event}`, error);
     }
