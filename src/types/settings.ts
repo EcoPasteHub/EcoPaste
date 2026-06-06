@@ -67,6 +67,12 @@ export interface Content {
   itemActions: ItemAction[];
 }
 
+export interface Display {
+  textMaxLines: number;
+  imageMaxHeight: number;
+  fileMaxCount: number;
+}
+
 export interface Capture {
   text: boolean;
   html: boolean;
@@ -118,6 +124,7 @@ export interface Filters {
 export interface Clipboard {
   capture: Capture;
   content: Content;
+  display: Display;
   sensitive: Sensitive;
   history: History;
   search: Search;

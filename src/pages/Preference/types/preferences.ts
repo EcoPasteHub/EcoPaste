@@ -37,7 +37,13 @@ export type PreferenceControl =
   | { type: "switch" }
   | { type: "segmented"; options: PreferenceOption[] }
   | { type: "select"; options: PreferenceOption[]; mode?: "multiple" }
-  | { type: "number"; min?: number; placeholder?: string; suffix?: string }
+  | {
+      type: "number";
+      max?: number;
+      min?: number;
+      placeholder?: string;
+      suffix?: string;
+    }
   | { type: "retention" }
   | { type: "text"; placeholder?: string }
   | { type: "textarea"; placeholder?: string }

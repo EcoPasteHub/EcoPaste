@@ -51,12 +51,17 @@ const List: FC = () => {
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const isAtTopRef = useRef(true);
   const itemElementMapRef = useRef(new Map<string, HTMLDivElement>());
+  const closePreviewRef = useRef<(reason: string) => void>(() => {});
+  const displaySettingsMountedRef = useRef(false);
+  const reloadRef = useRef<() => void>(() => {});
 
   const snapshot = useSnapshot(clipboardViewState);
   const settings = useSnapshot(settingsState);
   const { keyword, group } = snapshot;
   const autoPaste = settings.clipboard.content.autoPaste;
+  const display = settings.clipboard.display;
   const sort = settings.clipboard.content.sort;
+  const { fileMaxCount } = display;
 
   const { data, loading, loadingMore, loadMore, noMore, reload, mutate } =
     useClipboardItems({ ...snapshot, sort });
@@ -76,6 +81,8 @@ const List: FC = () => {
     itemElementMapRef,
     onHoverSelect: setSelectedId,
   });
+  closePreviewRef.current = closePreview;
+  reloadRef.current = reload;
 
   // 把 Rust 返回的同过滤下总数同步给 Footer（共享 store），避免 Footer 单独 IPC 计数。
   useEffect(() => {
@@ -88,6 +95,17 @@ const List: FC = () => {
     setPendingCount(0);
     closePreview("filterChange");
   }, [snapshot]);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: 仅按文件数量设置触发重拉，函数引用用 ref 读取最新值
+  useEffect(() => {
+    if (!displaySettingsMountedRef.current) {
+      displaySettingsMountedRef.current = true;
+      return;
+    }
+
+    closePreviewRef.current("displaySettingChange");
+    reloadRef.current();
+  }, [fileMaxCount]);
 
   /**
    * 收到剪贴板更新：用户在顶部时直接刷新；否则累加待刷新计数，避免 Virtuoso 抖动。

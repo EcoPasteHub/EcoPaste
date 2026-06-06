@@ -29,7 +29,9 @@ const NumberControl: FC<NumberControlProps> = (props) => {
 
   const commit = async () => {
     const min = control.min ?? 0;
-    const next = typeof draft === "number" ? Math.max(min, draft) : min;
+    const max = control.max ?? Number.POSITIVE_INFINITY;
+    const current = typeof draft === "number" ? draft : min;
+    const next = Math.min(max, Math.max(min, current));
     setDraft(next);
     await onChange(setting, next);
   };
@@ -47,6 +49,7 @@ const NumberControl: FC<NumberControlProps> = (props) => {
       <InputNumber
         className="h-8 w-28"
         disabled={disabled}
+        max={control.max}
         min={control.min}
         onBlur={handleBlur}
         onChange={handleChange}
@@ -61,6 +64,7 @@ const NumberControl: FC<NumberControlProps> = (props) => {
       <InputNumber
         className="h-8 flex-1"
         disabled={disabled}
+        max={control.max}
         min={control.min}
         onBlur={handleBlur}
         onChange={handleChange}

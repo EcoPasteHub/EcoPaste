@@ -331,6 +331,7 @@ async fn mark_item_reused_if_enabled(app: &AppHandle, pool: &SqlitePool, id: &st
 /// 前端无需再拉 `get_clipboard_app_icon_path`。
 #[tauri::command]
 pub async fn list_clipboard_items(
+    app: AppHandle,
     pool: State<'_, SqlitePool>,
     image_store: State<'_, ImageStore>,
     app_icon_store: State<'_, AppIconStore>,
@@ -340,10 +341,16 @@ pub async fn list_clipboard_items(
     let q = query.unwrap_or_default();
     let (mut items, total) = crate::db::items::query_items_page(&pool, &q).await?;
     let now = Local::now();
+    let file_entry_limit = app
+        .state::<SettingsStore>()
+        .snapshot()
+        .clipboard
+        .display
+        .file_entry_limit();
     for item in &mut items {
         attach_image_thumbnail_path(&image_store, item).await?;
         attach_source_app_icon_path(&app_icon_store, item);
-        attach_file_entries(&pool, &file_icon_store, item).await?;
+        attach_file_entries(&pool, &file_icon_store, item, file_entry_limit).await?;
         attach_color_preview(item);
         attach_display_created_at(item, &now);
         item.available_actions = compute_available_actions(item);
@@ -363,6 +370,7 @@ pub async fn list_clipboard_items(
 /// 需要完整 content 的写回/预览走各自专用命令。
 #[tauri::command]
 pub async fn get_clipboard_item(
+    app: AppHandle,
     pool: State<'_, SqlitePool>,
     image_store: State<'_, ImageStore>,
     app_icon_store: State<'_, AppIconStore>,
@@ -371,9 +379,15 @@ pub async fn get_clipboard_item(
 ) -> Result<Option<ClipboardItem>> {
     let mut item = find_item_for_list_by_id(&pool, &id).await?;
     if let Some(item) = item.as_mut() {
+        let file_entry_limit = app
+            .state::<SettingsStore>()
+            .snapshot()
+            .clipboard
+            .display
+            .file_entry_limit();
         attach_image_thumbnail_path(&image_store, item).await?;
         attach_source_app_icon_path(&app_icon_store, item);
-        attach_file_entries(&pool, &file_icon_store, item).await?;
+        attach_file_entries(&pool, &file_icon_store, item, file_entry_limit).await?;
         attach_color_preview(item);
         attach_display_created_at(item, &Local::now());
         item.available_actions = compute_available_actions(item);
@@ -493,13 +507,14 @@ fn compute_available_actions(item: &ClipboardItem) -> Vec<ClipboardAction> {
     actions
 }
 
-/// 为 files 条目组装最多前 3 项的 [`FileEntry`]：
+/// 为 files 条目按设置组装前若干项 [`FileEntry`]：
 /// 路径 / 文件名 / 目录标记 / 图片标记 / icon 绝对路径，前端直接渲染。
 /// 非 files 条目或无路径时保持 `file_entries = None`。
 async fn attach_file_entries(
     pool: &SqlitePool,
     store: &FileIconStore,
     item: &mut ClipboardItem,
+    limit: usize,
 ) -> Result<()> {
     if item.kind != ClipboardKind::Files {
         return Ok(());
@@ -509,7 +524,7 @@ async fn attach_file_entries(
         .content
         .split('\n')
         .filter(|p| !p.is_empty())
-        .take(3)
+        .take(limit)
         .collect();
     if paths.is_empty() {
         return Ok(());

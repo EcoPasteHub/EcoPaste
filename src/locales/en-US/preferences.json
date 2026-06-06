@@ -123,13 +123,13 @@
         }
       },
       "appearance": {
-        "density": {
-          "description": "Switch between comfortable and compact layouts.",
-          "options": {
-            "comfortable": "Comfortable",
-            "compact": "Compact"
-          },
-          "title": "Information Density"
+        "fileMaxCount": {
+          "description": "Limit how many files are returned and shown for each file record.",
+          "title": "Maximum Files Shown"
+        },
+        "imageMaxHeight": {
+          "description": "Limit image thumbnail height in the history list.",
+          "title": "Maximum Image Height"
         },
         "language": {
           "description": "Switch interface language.",
@@ -143,6 +143,10 @@
           "controlLabel": "Follow system",
           "description": "Follow the system reduced-motion preference.",
           "title": "Reduce Motion"
+        },
+        "textMaxLines": {
+          "description": "Limit how many lines text records can expand to in the list.",
+          "title": "Maximum Text Lines"
         },
         "theme": {
           "description": "Choose light, dark, or system theme.",

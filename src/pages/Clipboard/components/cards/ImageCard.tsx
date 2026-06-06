@@ -1,16 +1,22 @@
-import type { FC } from "react";
+import type { CSSProperties, FC } from "react";
+import { useSnapshot } from "valtio";
 import AssetImage from "@/components/AssetImage";
+import { settingsState } from "@/stores/settings";
 import type { ClipboardItem } from "@/types/clipboard";
 
 /**
  * 图片类卡片：按 `content`（文件名）向 Rust 取缩略图路径并 `convertFileSrc` 加载。
- * 宽高来自 DB（width/height），不存在时不展示尺寸文案。
+ * 高度按设置限制，宽高来自 DB（width/height），不存在时不展示尺寸文案。
  */
 const ImageCard: FC<ClipboardItem> = (props) => {
   const { imageThumbnailPath } = props;
+  const { clipboard } = useSnapshot(settingsState);
+  const style: CSSProperties = {
+    maxHeight: clipboard.display.imageMaxHeight,
+  };
 
   return (
-    <AssetImage className="max-h-20 self-start" src={imageThumbnailPath} />
+    <AssetImage className="self-start" src={imageThumbnailPath} style={style} />
   );
 };
 

@@ -5,6 +5,7 @@ import Highlight from "@/components/Highlight";
 import { clipboardViewState } from "@/stores/clipboardView";
 import type { ClipboardItem, FileEntry } from "@/types/clipboard";
 import { cn } from "@/utils/cn";
+import ImageCard from "./ImageCard";
 
 /**
  * 文件类卡片：`fileEntries` 与 `filesPreviewKind` 均由 Rust 命令层预处理，
@@ -17,7 +18,7 @@ const FilesCard: FC<ClipboardItem> = (props) => {
 
   if (props.filesPreviewKind === "imagePreview") {
     const [first] = entries;
-    return <AssetImage className="max-h-20 self-start" src={first?.path} />;
+    return <ImageCard {...props} imageThumbnailPath={first?.path} />;
   }
 
   return (

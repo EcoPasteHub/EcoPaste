@@ -132,6 +132,7 @@ impl Default for QuickPaste {
 pub struct Clipboard {
     pub capture: Capture,
     pub content: Content,
+    pub display: Display,
     pub sensitive: Sensitive,
     pub history: History,
     pub search: Search,
@@ -277,6 +278,35 @@ impl Default for Content {
             sort: ClipboardItemSort::CreatedAt,
             item_actions: vec![ItemAction::Copy, ItemAction::Star, ItemAction::Delete],
         }
+    }
+}
+
+/// 历史列表里不同内容类型的展示上限。
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(default, rename_all = "camelCase")]
+pub struct Display {
+    /// 文本摘要最多显示行数。
+    pub text_max_lines: u8,
+    /// 图片缩略图显示高度，单位 px。
+    pub image_max_height: u16,
+    /// 文件列表最多返回并显示的条目数。
+    pub file_max_count: u8,
+}
+
+impl Default for Display {
+    fn default() -> Self {
+        Self {
+            text_max_lines: 3,
+            image_max_height: 64,
+            file_max_count: 3,
+        }
+    }
+}
+
+impl Display {
+    /// 返回主列表文件条目上限，并夹在 UI 支持的范围内控制 IPC 与 icon 抽取成本。
+    pub fn file_entry_limit(self) -> usize {
+        usize::from(self.file_max_count.clamp(1, 5))
     }
 }
 

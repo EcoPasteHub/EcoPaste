@@ -626,19 +626,37 @@ export const preferenceTabs: PreferenceTab[] = [
             },
           },
           {
-            control: {
-              options: [
-                { label: "舒适", value: "comfortable" },
-                { label: "紧凑", value: "compact" },
-              ],
-              type: "segmented",
+            control: { max: 5, min: 1, type: "number" },
+            description: "限制文本记录在列表中最多展开的行数。",
+            id: "appearance.textMaxLines",
+            keywords: ["density", "text", "line", "compact"],
+            path: ["clipboard", "display", "textMaxLines"],
+            title: "文本内容最大显示行数",
+            value: (settings) => {
+              return settings.clipboard.display.textMaxLines;
             },
-            description: "切换舒适或紧凑布局。",
-            disabled: true,
-            id: "appearance.density",
-            keywords: ["density", "compact"],
-            status: "comingSoon",
-            title: "信息密度",
+          },
+          {
+            control: { max: 100, min: 20, type: "number" },
+            description: "限制图片缩略图在列表中的最大高度。",
+            id: "appearance.imageMaxHeight",
+            keywords: ["density", "image", "height", "thumbnail"],
+            path: ["clipboard", "display", "imageMaxHeight"],
+            title: "图片最大显示高度",
+            value: (settings) => {
+              return settings.clipboard.display.imageMaxHeight;
+            },
+          },
+          {
+            control: { max: 5, min: 1, type: "number" },
+            description: "限制文件记录返回并显示的文件数量。",
+            id: "appearance.fileMaxCount",
+            keywords: ["density", "file", "count", "array"],
+            path: ["clipboard", "display", "fileMaxCount"],
+            title: "文件最多显示数量",
+            value: (settings) => {
+              return settings.clipboard.display.fileMaxCount;
+            },
           },
           {
             control: { label: "跟随系统", type: "status" },

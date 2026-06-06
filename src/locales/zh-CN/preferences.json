@@ -123,13 +123,13 @@
         }
       },
       "appearance": {
-        "density": {
-          "description": "切换舒适或紧凑布局。",
-          "options": {
-            "comfortable": "舒适",
-            "compact": "紧凑"
-          },
-          "title": "信息密度"
+        "fileMaxCount": {
+          "description": "限制文件记录返回并显示的文件数量。",
+          "title": "文件最多显示数量"
+        },
+        "imageMaxHeight": {
+          "description": "限制图片缩略图在列表中的最大高度。",
+          "title": "图片最大显示高度"
         },
         "language": {
           "description": "切换界面语言。",
@@ -143,6 +143,10 @@
           "controlLabel": "跟随系统",
           "description": "跟随系统减少动态效果。",
           "title": "减少动画"
+        },
+        "textMaxLines": {
+          "description": "限制文本记录在列表中最多展开的行数。",
+          "title": "文本内容最大显示行数"
         },
         "theme": {
           "description": "选择浅色、深色或跟随系统。",

@@ -64,7 +64,7 @@ export interface ClipboardItem {
   sourceAppIconPath?: string;
   /** image 条目的缩略图绝对路径（后端预处理返回）。 */
   imageThumbnailPath?: string;
-  /** files 条目的预处理条目（与 content 中路径顺序一致，最多 3 项）。 */
+  /** files 条目的预处理条目（与 content 中路径顺序一致，数量由 Rust 按设置截断）。 */
   fileEntries?: FileEntry[];
   /** 右键菜单可用动作；顺序由 Rust 给出，前端按序渲染并按 action 查文案/快捷键。 */
   availableActions?: ClipboardAction[];
