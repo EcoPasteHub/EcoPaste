@@ -49,10 +49,10 @@ const PreferenceSettingRow: FC<PreferenceSettingRowProps> = (props) => {
     onChange,
   } = props;
   const value = setting.value?.(settings);
-  const disabled =
-    setting.disabled === true || setting.disabledWhen?.(settings) === true;
+  const parentDisabled = setting.disabledWhen?.(settings) === true;
+  const disabled = setting.disabled === true || parentDisabled;
   const childSetting = setting.parentId !== void 0;
-  const collapsed = childSetting && disabled;
+  const collapsed = childSetting && parentDisabled;
   const visual = resolveSettingVisual(setting.id);
   const highlightOpacity = shouldReduceMotion
     ? 0.08

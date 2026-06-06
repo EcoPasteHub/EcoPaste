@@ -38,7 +38,7 @@
         "title": "Copy Feedback"
       },
       "diagnostics": {
-        "description": "Reset window state or restore preference defaults.",
+        "description": "Restore preference defaults.",
         "title": "Diagnostics"
       },
       "external": {
@@ -242,11 +242,6 @@
           "controlLabel": "Reset",
           "description": "Restore all preference defaults while keeping history records.",
           "title": "Reset All Preferences"
-        },
-        "resetWindow": {
-          "controlLabel": "Reset",
-          "description": "Future reset for saved window positions and sizes.",
-          "title": "Reset Window Position"
         }
       },
       "external": {
@@ -389,11 +384,6 @@
         }
       },
       "sensitive": {
-        "keywordRules": {
-          "controlLabel": "Manage Rules",
-          "description": "Skip matching content by keyword or rule.",
-          "title": "Content Ignore Rules"
-        },
         "secretDetection": {
           "description": "Skip saving content that looks like high-confidence keys, tokens, or similar secrets.",
           "title": "Detect Secrets and Tokens"
@@ -443,7 +433,7 @@
           "title": "Include Beta Versions"
         },
         "frequency": {
-          "description": "Future option for how often EcoPaste checks for updates.",
+          "description": "Set how often EcoPaste checks for updates.",
           "options": {
             "daily": "Daily",
             "monthly": "Monthly",

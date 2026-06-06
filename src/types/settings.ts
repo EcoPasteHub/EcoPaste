@@ -38,6 +38,8 @@ export type WindowPosition = "remember" | "followCursor" | "center";
 
 export type PreviewHoverDelayMs = "ms300" | "ms500" | "ms1000";
 
+export type UpdateFrequency = "daily" | "weekly" | "monthly";
+
 export interface General {
   autoStart: boolean;
   silentStart: boolean;
@@ -145,6 +147,7 @@ export interface Clipboard {
 
 export interface Update {
   autoCheck: boolean;
+  frequency: UpdateFrequency;
   includeBeta: boolean;
 }
 

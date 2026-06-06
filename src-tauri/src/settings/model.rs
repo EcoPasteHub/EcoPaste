@@ -469,5 +469,15 @@ pub struct Feedback {
 #[serde(default, rename_all = "camelCase")]
 pub struct Update {
     pub auto_check: bool,
+    pub frequency: UpdateFrequency,
     pub include_beta: bool,
+}
+
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub enum UpdateFrequency {
+    Daily,
+    #[default]
+    Weekly,
+    Monthly,
 }

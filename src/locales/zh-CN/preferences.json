@@ -38,7 +38,7 @@
         "title": "复制反馈"
       },
       "diagnostics": {
-        "description": "重置窗口状态或恢复偏好设置默认值。",
+        "description": "恢复偏好设置默认值。",
         "title": "诊断恢复"
       },
       "external": {
@@ -242,11 +242,6 @@
           "controlLabel": "重置",
           "description": "恢复所有偏好默认值，同时保留历史记录。",
           "title": "重置所有偏好"
-        },
-        "resetWindow": {
-          "controlLabel": "重置",
-          "description": "未来可清除已保存的窗口位置和尺寸。",
-          "title": "重置窗口位置"
         }
       },
       "external": {
@@ -389,11 +384,6 @@
         }
       },
       "sensitive": {
-        "keywordRules": {
-          "controlLabel": "管理规则",
-          "description": "按关键词或规则跳过匹配内容。",
-          "title": "内容忽略规则"
-        },
         "secretDetection": {
           "description": "检测到高置信度密钥、Token 等内容时跳过保存。",
           "title": "识别密钥和 token"
@@ -443,7 +433,7 @@
           "title": "包含 Beta 版本"
         },
         "frequency": {
-          "description": "未来可设置自动检查更新的时间间隔。",
+          "description": "设置自动检查更新的时间间隔。",
           "options": {
             "daily": "每天",
             "monthly": "每月",

@@ -131,15 +131,6 @@ export const preferenceTabs: PreferenceTab[] = [
               return settings.clipboard.sensitive.secretDetection;
             },
           },
-          {
-            control: { label: "管理规则", type: "action" },
-            description: "按关键词或规则跳过匹配内容。",
-            disabled: true,
-            id: "sensitive.keywordRules",
-            keywords: ["keyword", "pattern", "ignore"],
-            status: "comingSoon",
-            title: "内容忽略规则",
-          },
         ],
         title: "隐私保护",
       },
@@ -736,18 +727,9 @@ export const preferenceTabs: PreferenceTab[] = [
         title: "备份迁移",
       },
       {
-        description: "重置窗口状态或恢复偏好设置默认值。",
+        description: "恢复偏好设置默认值。",
         id: "diagnostics",
         settings: [
-          {
-            control: { label: "重置", type: "action" },
-            description: "未来可清除已保存的窗口位置和尺寸。",
-            disabled: true,
-            id: "diagnostics.resetWindow",
-            keywords: ["reset", "window"],
-            status: "comingSoon",
-            title: "重置窗口位置",
-          },
           {
             control: { danger: true, label: "重置", type: "action" },
             description: "恢复所有偏好默认值，同时保留历史记录。",
@@ -808,25 +790,6 @@ export const preferenceTabs: PreferenceTab[] = [
             },
           },
           {
-            control: {
-              options: [
-                { label: "每天", value: "daily" },
-                { label: "每周", value: "weekly" },
-                { label: "每月", value: "monthly" },
-              ],
-              type: "segmented",
-            },
-            description: "未来可设置自动检查更新的时间间隔。",
-            disabled: true,
-            id: "updates.frequency",
-            keywords: ["update", "frequency", "schedule"],
-            status: "comingSoon",
-            title: "自动检查频率",
-            value: () => {
-              return "weekly";
-            },
-          },
-          {
             control: { type: "switch" },
             description: "检查更新时同时接收 Beta 测试版本。",
             disabledWhen: (settings) => {
@@ -839,6 +802,28 @@ export const preferenceTabs: PreferenceTab[] = [
             title: "包含 Beta 版本",
             value: (settings) => {
               return settings.update.includeBeta;
+            },
+          },
+          {
+            control: {
+              options: [
+                { label: "每天", value: "daily" },
+                { label: "每周", value: "weekly" },
+                { label: "每月", value: "monthly" },
+              ],
+              type: "segmented",
+            },
+            description: "设置自动检查更新的时间间隔。",
+            disabledWhen: (settings) => {
+              return !settings.update.autoCheck;
+            },
+            id: "updates.frequency",
+            keywords: ["update", "frequency", "schedule"],
+            parentId: "updates.autoCheck",
+            path: ["update", "frequency"],
+            title: "自动检查频率",
+            value: (settings) => {
+              return settings.update.frequency;
             },
           },
         ],
