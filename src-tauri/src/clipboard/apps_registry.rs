@@ -494,13 +494,14 @@ mod windows {
             ));
         }
 
-        let canonical = path
+        let normalized = path
             .canonicalize()
+            .map(normalize_verbatim_path)
             .map_err(|_| AppError::Clipboard("app path cannot be resolved".to_owned()))?;
         Ok(ScannedAppMeta {
-            id: canonical.to_string_lossy().to_string(),
-            name: exe_display_name(&canonical),
-            path: Some(canonical),
+            id: normalized.to_string_lossy().to_string(),
+            name: exe_display_name(&normalized),
+            path: Some(normalized),
             platform: Platform::Windows,
         })
     }
@@ -542,13 +543,30 @@ mod windows {
     }
 
     fn normalize_exe_path(path: PathBuf) -> PathBuf {
-        path.canonicalize().unwrap_or(path)
+        path.canonicalize()
+            .map(normalize_verbatim_path)
+            .unwrap_or(path)
+    }
+
+    /// Converts Windows verbatim paths back to paths accepted by Shell icon APIs.
+    fn normalize_verbatim_path(path: PathBuf) -> PathBuf {
+        let raw = path.to_string_lossy();
+
+        if let Some(rest) = raw.strip_prefix(r"\\?\UNC\") {
+            return PathBuf::from(format!(r"\\{rest}"));
+        }
+        if let Some(rest) = raw.strip_prefix(r"\\?\") {
+            return PathBuf::from(rest);
+        }
+
+        path
     }
 
     fn exe_display_name(path: &Path) -> String {
-        path.file_stem()
-            .and_then(|s| s.to_str())
-            .unwrap_or_else(|| path.to_string_lossy().as_ref())
-            .to_owned()
+        if let Some(name) = path.file_stem().and_then(|s| s.to_str()) {
+            return name.to_owned();
+        }
+
+        path.to_string_lossy().into_owned()
     }
 }

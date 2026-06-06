@@ -891,7 +891,12 @@ fn merge_clipboard_apps(
     for app in running_apps {
         merged.insert(app.id.clone(), app);
     }
-    for app in known_apps {
+    for mut app in known_apps {
+        if app.icon_file.is_none() {
+            app.icon_file = merged.get(&app.id).and_then(|running| {
+                return running.icon_file.clone();
+            });
+        }
         merged.insert(app.id.clone(), app);
     }
 
