@@ -175,7 +175,7 @@
           "description": "关闭后富文本网页内容只按可用纯文本处理。",
           "title": "HTML 内容"
         },
-        "images": {
+        "image": {
           "description": "关闭后不再保存剪贴板图片。",
           "title": "图片"
         },

@@ -17,7 +17,7 @@ const SETTING_ICON_MAP: Record<string, string> = {
   "backup.importHistory": "i-lucide:download",
   "capture.files": "i-lucide:files",
   "capture.html": "i-lucide:file-code-2",
-  "capture.images": "i-lucide:file-image",
+  "capture.image": "i-lucide:file-image",
   "capture.rtf": "i-lucide:file-type",
   "capture.text": "i-lucide:clipboard-type",
   "control.autoStart": "i-lucide:rocket",

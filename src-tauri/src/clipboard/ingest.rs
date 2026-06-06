@@ -211,7 +211,7 @@ pub fn build_item_with_capture(
             }
         }
         ClipboardPayload::Image(image) => {
-            if !capture.images {
+            if !capture.image {
                 return Ok(None);
             }
 
@@ -427,10 +427,10 @@ mod tests {
     }
 
     #[test]
-    fn disabled_images_yields_none() {
+    fn disabled_image_yields_none() {
         let (_d, s) = store();
         let capture = Capture {
-            images: false,
+            image: false,
             ..Capture::default()
         };
         let payload = ClipboardPayload::Image(ImagePayload {

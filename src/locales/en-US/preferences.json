@@ -175,9 +175,9 @@
           "description": "Turn off to save web rich text only as available plain text.",
           "title": "HTML Content"
         },
-        "images": {
-          "description": "Turn off to stop saving clipboard images.",
-          "title": "Images"
+        "image": {
+          "description": "Turn off to stop saving clipboard image content.",
+          "title": "Image"
         },
         "rtf": {
           "description": "Turn off to save document rich text only as available plain text.",

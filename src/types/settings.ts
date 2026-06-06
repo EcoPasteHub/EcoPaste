@@ -68,7 +68,7 @@ export interface Capture {
   text: boolean;
   html: boolean;
   rtf: boolean;
-  images: boolean;
+  image: boolean;
   files: boolean;
 }
 

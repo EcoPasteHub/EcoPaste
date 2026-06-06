@@ -145,7 +145,7 @@ pub struct Capture {
     pub text: bool,
     pub html: bool,
     pub rtf: bool,
-    pub images: bool,
+    pub image: bool,
     pub files: bool,
 }
 
@@ -155,7 +155,7 @@ impl Default for Capture {
             text: true,
             html: true,
             rtf: true,
-            images: true,
+            image: true,
             files: true,
         }
     }

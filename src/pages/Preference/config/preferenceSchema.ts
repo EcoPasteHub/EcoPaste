@@ -60,12 +60,12 @@ export const preferenceTabs: PreferenceTab[] = [
           {
             control: { type: "switch" },
             description: "关闭后不再保存剪贴板图片。",
-            id: "capture.images",
+            id: "capture.image",
             keywords: ["image", "picture", "thumbnail"],
-            path: ["clipboard", "capture", "images"],
+            path: ["clipboard", "capture", "image"],
             title: "图片",
             value: (settings) => {
-              return settings.clipboard.capture.images;
+              return settings.clipboard.capture.image;
             },
           },
           {
