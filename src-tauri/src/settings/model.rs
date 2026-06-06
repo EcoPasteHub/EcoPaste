@@ -357,12 +357,14 @@ pub enum PreviewHoverDelayMs {
     Ms1000,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(default, rename_all = "camelCase")]
 pub struct History {
     pub retention: Retention,
     /// 最多保留条数。`0` = 不限。
     pub max_count: u32,
+    /// 自动清理周期（小时）。`0` = 关闭周期清理，但启动时仍清理一次。
+    pub cleanup_interval_hours: u32,
 }
 
 /// 历史保留时长。`unit = Forever` 时忽略 `value`。

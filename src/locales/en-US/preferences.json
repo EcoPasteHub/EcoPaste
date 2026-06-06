@@ -9,6 +9,7 @@
     "numberSuffixes": {
       "files": "files",
       "gb": "GB",
+      "hours": "hours",
       "items": "items",
       "lines": "lines",
       "px": "px"
@@ -250,6 +251,10 @@
         }
       },
       "history": {
+        "cleanupIntervalHours": {
+          "description": "Check and clean history every specified number of hours. 0 disables periodic cleanup; startup cleanup still runs once.",
+          "title": "Auto Cleanup Interval"
+        },
         "maxCount": {
           "description": "When the limit is exceeded, older regular records are cleaned automatically; favorites and pinned items are always kept. 0 means unlimited items.",
           "title": "Maximum Items"

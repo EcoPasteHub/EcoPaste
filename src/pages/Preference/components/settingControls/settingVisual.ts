@@ -31,6 +31,7 @@ const SETTING_ICON_MAP: Record<string, string> = {
   "external.ai": "i-lucide:brain-circuit",
   "external.cli": "i-lucide:square-terminal",
   "external.mcp": "i-lucide:plug-zap",
+  "history.cleanupIntervalHours": "i-lucide:timer-reset",
   "history.maxCount": "i-lucide:list-ordered",
   "history.retention": "i-lucide:calendar-clock",
   "localData.cleanCache": "i-ph:broom",

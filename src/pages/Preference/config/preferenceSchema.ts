@@ -158,6 +158,18 @@ export const preferenceTabs: PreferenceTab[] = [
               return settings.clipboard.history.maxCount;
             },
           },
+          {
+            control: { min: 0, suffixKey: "hours", type: "number" },
+            description:
+              "每隔指定小时检查并清理一次历史记录，0 表示关闭周期性清理；应用启动时仍会清理一次。",
+            id: "history.cleanupIntervalHours",
+            keywords: ["cleanup", "interval", "schedule"],
+            path: ["clipboard", "history", "cleanupIntervalHours"],
+            title: "自动清理周期",
+            value: (settings) => {
+              return settings.clipboard.history.cleanupIntervalHours;
+            },
+          },
         ],
         title: "保留与清理",
       },

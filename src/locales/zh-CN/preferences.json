@@ -9,6 +9,7 @@
     "numberSuffixes": {
       "files": "个",
       "gb": "GB",
+      "hours": "小时",
       "items": "条",
       "lines": "行",
       "px": "px"
@@ -250,6 +251,10 @@
         }
       },
       "history": {
+        "cleanupIntervalHours": {
+          "description": "每隔指定小时检查并清理一次历史记录，0 表示关闭周期性清理；应用启动时仍会清理一次。",
+          "title": "自动清理周期"
+        },
         "maxCount": {
           "description": "超过上限后，自动清理较旧的普通记录；收藏和置顶始终保留，0 表示不限数量。",
           "title": "最大保留条数"

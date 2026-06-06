@@ -104,6 +104,7 @@ export interface Retention {
 export interface History {
   retention: Retention;
   maxCount: number;
+  cleanupIntervalHours: number;
 }
 
 export interface Search {

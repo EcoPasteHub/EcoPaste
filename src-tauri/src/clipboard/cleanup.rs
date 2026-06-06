@@ -1,9 +1,9 @@
 //! 历史清理后台任务：按 `clipboard.history.retention` + `maxCount` 定期裁剪。
 //!
-//! 启动即跑一次；之后每 [`TICK_INTERVAL`] 触发一次，每次都从 `SettingsStore` 取最新配置——
+//! 启动即跑一次；之后按用户设置的清理周期触发，每次都从 `SettingsStore` 取最新配置——
 //! 用户在偏好里调时长 / 上限后不必重启即可生效。置顶与收藏项一律保留（由 [`cleanup_history`] 保证）。
 
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use chrono::{DateTime, Duration as ChronoDuration, Utc};
 use serde_json::json;
@@ -15,19 +15,29 @@ use super::watcher::CLIPBOARD_UPDATED_EVENT;
 use crate::db::items::cleanup_history;
 use crate::settings::{Retention, RetentionUnit, SettingsStore};
 
-/// 周期触发间隔。比常见的「按小时保留」分辨率略粗，但避免空转烧电；
-/// 用户改设置后最坏延迟一个 tick 即生效。
-const TICK_INTERVAL: Duration = Duration::from_secs(60 * 60);
+/// 调度器检查设置与到期状态的频率；真正清理只在用户设置周期到期后执行。
+const SCHEDULER_TICK_INTERVAL: Duration = Duration::from_secs(60);
 
+/// 启动历史清理后台任务：启动立即清理一次，之后按设置周期到点清理。
 pub fn spawn(app: AppHandle, pool: SqlitePool) {
     tauri::async_runtime::spawn(async move {
         run_once(&app, &pool).await;
-        let mut ticker = tokio::time::interval(TICK_INTERVAL);
-        // interval 首个 tick 立即返回，丢弃避免与启动那次重复跑。
+        let mut last_cleanup_at = Instant::now();
+        let mut ticker = tokio::time::interval(SCHEDULER_TICK_INTERVAL);
         ticker.tick().await;
+
         loop {
             ticker.tick().await;
+            let Some(interval) = cleanup_interval(&app) else {
+                continue;
+            };
+
+            if last_cleanup_at.elapsed() < interval {
+                continue;
+            }
+
             run_once(&app, &pool).await;
+            last_cleanup_at = Instant::now();
         }
     });
 }
@@ -59,6 +69,18 @@ async fn run_once(app: &AppHandle, pool: &SqlitePool) {
         }
         Err(err) => log::warn!("history cleanup failed: {err}"),
     }
+}
+
+/// 读取当前清理周期。`0` 表示关闭周期性清理。
+fn cleanup_interval(app: &AppHandle) -> Option<Duration> {
+    let store = app.try_state::<SettingsStore>()?;
+    let hours = store.snapshot().clipboard.history.cleanup_interval_hours;
+
+    if hours == 0 {
+        return None;
+    }
+
+    Some(Duration::from_secs(u64::from(hours) * 60 * 60))
 }
 
 /// 删除被清理图片记录的落盘文件（原图 + 缩略图）。`ImageStore` 未注册或单个文件删除失败
