@@ -73,7 +73,9 @@ fn files_to_content(files: &[String]) -> String {
 /// - rtf：`content` = RTF 源（`get_rich_text()` 原文），`sub_kind` = Rtf；
 /// - 两者的 `search_text` 都直接用 OS 同时提供的纯文本（`get_text()`）——
 ///   复制富文本时剪贴板本就并存纯文本表示，无需自己解析 HTML/RTF；
-/// - plain：`content` = 纯文本，`sub_kind` = url/email/color/path 识别，`search_text` 与 content 同串（统一由 FTS 索引 search_text）。
+/// - 富文本存在但对应采集开关关闭时，整条文本载荷跳过，不降级保存为纯文本；
+/// - plain：仅在无富文本源时处理，`content` = 纯文本，`sub_kind` = url/email/color/path 识别，
+///   `search_text` 与 content 同串（统一由 FTS 索引 search_text）。
 ///
 /// 一律以 trim 后的纯文本作为「是否有可展示内容」的判据：纯文本为空就直接 `None`，
 /// 不管 HTML/RTF 源是否存在（只有样式/空白节点的源对用户没意义，列表也渲染不出来）。
@@ -91,8 +93,11 @@ fn draft_from_text(text: &TextPayload, capture: &Capture) -> Option<Draft> {
     let plain_search = Some(plain.to_owned());
     let summary = make_summary(plain);
 
-    if capture.html {
-        if let Some(html) = non_empty(&text.html) {
+    let html = non_empty(&text.html);
+    let rtf = non_empty(&text.rtf);
+
+    if let Some(html) = html {
+        if capture.html {
             return Some(Draft {
                 kind: ClipboardKind::Text,
                 sub_kind: Some(ClipboardSubKind::Html),
@@ -107,8 +112,8 @@ fn draft_from_text(text: &TextPayload, capture: &Capture) -> Option<Draft> {
         }
     }
 
-    if capture.rtf {
-        if let Some(rtf) = non_empty(&text.rtf) {
+    if let Some(rtf) = rtf {
+        if capture.rtf {
             return Some(Draft {
                 kind: ClipboardKind::Text,
                 sub_kind: Some(ClipboardSubKind::Rtf),
@@ -121,6 +126,10 @@ fn draft_from_text(text: &TextPayload, capture: &Capture) -> Option<Draft> {
                 size: plain_size,
             });
         }
+    }
+
+    if html.is_some() || rtf.is_some() {
+        return None;
     }
 
     if !capture.text {
@@ -366,7 +375,7 @@ mod tests {
     }
 
     #[test]
-    fn disabled_html_falls_back_to_plain_text() {
+    fn disabled_html_skips_rich_text_payload() {
         let (_d, s) = store();
         let capture = Capture {
             html: false,
@@ -378,15 +387,12 @@ mod tests {
             &capture,
             &Sensitive::default(),
         )
-        .unwrap()
         .unwrap();
-        assert_eq!(item.sub_kind, None);
-        assert_eq!(item.content, "Hello World");
-        assert_eq!(item.search_text.as_deref(), Some("Hello World"));
+        assert!(item.is_none());
     }
 
     #[test]
-    fn disabled_rtf_falls_back_to_plain_text() {
+    fn disabled_rtf_skips_rich_text_payload() {
         let (_d, s) = store();
         let capture = Capture {
             rtf: false,
@@ -398,10 +404,31 @@ mod tests {
             &capture,
             &Sensitive::default(),
         )
+        .unwrap();
+        assert!(item.is_none());
+    }
+
+    #[test]
+    fn disabled_html_still_allows_enabled_rtf_payload() {
+        let (_d, s) = store();
+        let capture = Capture {
+            html: false,
+            ..Capture::default()
+        };
+        let item = build_item_with_settings(
+            &s,
+            &text_payload(
+                "plain repr",
+                Some("<b>plain repr</b>"),
+                Some(r"{\rtf1 plain repr}"),
+            ),
+            &capture,
+            &Sensitive::default(),
+        )
         .unwrap()
         .unwrap();
-        assert_eq!(item.sub_kind, None);
-        assert_eq!(item.content, "plain repr");
+        assert_eq!(item.sub_kind, Some(ClipboardSubKind::Rtf));
+        assert_eq!(item.content, r"{\rtf1 plain repr}");
         assert_eq!(item.search_text.as_deref(), Some("plain repr"));
     }
 

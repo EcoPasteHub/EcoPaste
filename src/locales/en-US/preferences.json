@@ -176,7 +176,7 @@
           "title": "Files and Folders"
         },
         "html": {
-          "description": "Turn off to save web rich text only as available plain text.",
+          "description": "Turn off to stop saving web rich text content.",
           "title": "HTML Content"
         },
         "image": {
@@ -184,7 +184,7 @@
           "title": "Image"
         },
         "rtf": {
-          "description": "Turn off to save document rich text only as available plain text.",
+          "description": "Turn off to stop saving document rich text content.",
           "title": "RTF Content"
         },
         "text": {

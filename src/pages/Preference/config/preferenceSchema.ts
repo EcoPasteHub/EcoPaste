@@ -42,7 +42,7 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { type: "switch" },
-            description: "关闭后富文本网页内容只按可用纯文本处理。",
+            description: "关闭后不再保存富文本网页内容。",
             id: "capture.html",
             keywords: ["html", "rich text", "format"],
             path: ["clipboard", "capture", "html"],
@@ -53,7 +53,7 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { type: "switch" },
-            description: "关闭后文档富文本只按可用纯文本处理。",
+            description: "关闭后不再保存文档富文本内容。",
             id: "capture.rtf",
             keywords: ["rtf", "rich text", "format"],
             path: ["clipboard", "capture", "rtf"],
