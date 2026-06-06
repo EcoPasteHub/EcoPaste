@@ -268,8 +268,10 @@
       },
       "localData": {
         "cleanCache": {
+          "confirmContent": "将删除不再被历史记录引用的图片、缩略图和图标缓存。仍在使用的资源会保留。",
+          "confirmTitle": "清理资源缓存",
           "controlLabel": "清理缓存",
-          "description": "未来可移除不再被历史记录引用的资源缓存。",
+          "description": "移除不再被历史记录引用的图片、缩略图和图标缓存。",
           "title": "清理缓存"
         },
         "dataDirectory": {

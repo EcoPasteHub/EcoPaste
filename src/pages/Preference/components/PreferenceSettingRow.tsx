@@ -1,6 +1,7 @@
 import { motion } from "motion/react";
 import type { FC } from "react";
 import { useTranslation } from "react-i18next";
+import type { CleanCacheResult } from "@/commands";
 import type { Settings } from "@/types/settings";
 import { cn } from "@/utils/cn";
 import type {
@@ -32,6 +33,10 @@ interface PreferenceSettingRowProps {
   setting: PreferenceSetting;
   settings: Settings;
   shouldReduceMotion: boolean;
+  onActionComplete?: (
+    setting: PreferenceSetting,
+    result?: CleanCacheResult,
+  ) => void;
   onChange: PreferenceSettingChangeHandler;
 }
 
@@ -46,6 +51,7 @@ const PreferenceSettingRow: FC<PreferenceSettingRowProps> = (props) => {
     setting,
     settings,
     shouldReduceMotion,
+    onActionComplete,
     onChange,
   } = props;
   const value = setting.value?.(settings);
@@ -141,7 +147,7 @@ const PreferenceSettingRow: FC<PreferenceSettingRowProps> = (props) => {
       </div>
 
       <div className="relative flex shrink-0 justify-end opacity-90 transition-opacity group-hover:opacity-100 motion-reduce:transition-none">
-        {renderControl(setting, disabled, onChange, value)}
+        {renderControl(setting, disabled, onChange, value, onActionComplete)}
       </div>
     </motion.div>
   );
@@ -157,6 +163,10 @@ function renderControl(
   disabled: boolean,
   onChange: PreferenceSettingChangeHandler,
   value?: SettingValue,
+  onActionComplete?: (
+    setting: PreferenceSetting,
+    result?: CleanCacheResult,
+  ) => void,
 ) {
   switch (setting.control.type) {
     case "switch":
@@ -224,7 +234,13 @@ function renderControl(
         />
       );
     case "action":
-      return <ActionControl disabled={disabled} setting={setting} />;
+      return (
+        <ActionControl
+          disabled={disabled}
+          onActionComplete={onActionComplete}
+          setting={setting}
+        />
+      );
     case "status":
       return <StatusControl setting={setting} />;
     case "shortcutTags":

@@ -91,6 +91,7 @@ pub fn run() {
             commands::update_settings,
             commands::reset_settings,
             commands::get_storage_usage,
+            commands::clean_resource_cache,
             commands::open_preference_directory,
             commands::get_autostart,
             commands::set_autostart,

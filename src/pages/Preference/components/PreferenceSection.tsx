@@ -1,6 +1,7 @@
 import { motion } from "motion/react";
 import type { FC } from "react";
 import { useTranslation } from "react-i18next";
+import type { CleanCacheResult } from "@/commands";
 import type { Settings } from "@/types/settings";
 import type {
   PreferenceSection as PreferenceSectionModel,
@@ -18,6 +19,10 @@ interface PreferenceSectionProps {
   section: PreferenceSectionModel;
   settings: Settings;
   shouldReduceMotion: boolean;
+  onActionComplete?: (
+    setting: PreferenceSetting,
+    result?: CleanCacheResult,
+  ) => void;
   onChange: (setting: PreferenceSetting, value: SettingValue) => Promise<void>;
 }
 
@@ -36,6 +41,7 @@ const PreferenceSection: FC<PreferenceSectionProps> = (props) => {
     section,
     settings,
     shouldReduceMotion,
+    onActionComplete,
     onChange,
   } = props;
   const visual = resolveSectionVisual(section.id);
@@ -98,6 +104,7 @@ const PreferenceSection: FC<PreferenceSectionProps> = (props) => {
               highlighted={setting.id === highlightedSettingId}
               highlightToken={highlightToken}
               key={setting.id}
+              onActionComplete={onActionComplete}
               onChange={onChange}
               setting={setting}
               settings={settings}

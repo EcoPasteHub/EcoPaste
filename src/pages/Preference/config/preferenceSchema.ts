@@ -680,11 +680,9 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { label: "清理缓存", type: "action" },
-            description: "未来可移除不再被历史记录引用的资源缓存。",
-            disabled: true,
+            description: "移除不再被历史记录引用的图片、缩略图和图标缓存。",
             id: "localData.cleanCache",
             keywords: ["cache", "clean", "storage"],
-            status: "comingSoon",
             title: "清理缓存",
           },
         ],

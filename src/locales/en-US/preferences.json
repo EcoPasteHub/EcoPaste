@@ -268,8 +268,10 @@
       },
       "localData": {
         "cleanCache": {
+          "confirmContent": "This removes images, thumbnails, and icon cache files that are no longer referenced by history. Resources still in use are kept.",
+          "confirmTitle": "Clean Resource Cache",
           "controlLabel": "Clean Cache",
-          "description": "Future cleanup for resource files no longer referenced by history.",
+          "description": "Remove image, thumbnail, and icon cache files no longer referenced by history.",
           "title": "Clean Cache"
         },
         "dataDirectory": {

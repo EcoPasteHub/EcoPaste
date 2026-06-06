@@ -36,7 +36,7 @@ const SETTING_ICON_MAP: Record<string, string> = {
   "history.maxCount": "i-lucide:list-ordered",
   "history.maxSize": "i-lucide:gauge",
   "history.retention": "i-lucide:calendar-clock",
-  "localData.cleanCache": "i-lucide:eraser",
+  "localData.cleanCache": "i-ph:broom",
   "localData.dataDirectory": "i-lucide:folder-root",
   "localData.logDirectory": "i-lucide:folder-open-dot",
   "organizing.autoFavorite": "i-lucide:message-square-heart",

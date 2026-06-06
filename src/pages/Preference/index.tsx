@@ -5,7 +5,11 @@ import type { ChangeEvent, FC } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSnapshot } from "valtio";
-import { getStorageUsage, type StorageUsage } from "@/commands";
+import {
+  type CleanCacheResult,
+  getStorageUsage,
+  type StorageUsage,
+} from "@/commands";
 import { settingsState } from "@/stores/settings";
 import { preloadSourceApps, reloadSourceApps } from "@/stores/sourceApps";
 import type { Settings } from "@/types/settings";
@@ -132,6 +136,21 @@ const Preference: FC = () => {
     } catch {
       // 错误 toast 已由 commands 层统一处理；设置镜像等待 Rust 事件回灌。
     }
+  };
+
+  const handleActionComplete = (
+    setting: PreferenceSetting,
+    result?: CleanCacheResult,
+  ) => {
+    if (!setting.id.startsWith("localData.")) return;
+
+    if (result) {
+      setStorageUsage(result.storageUsage);
+      setStorageState("ready");
+      return;
+    }
+
+    void initializeStorageUsage();
   };
 
   /**
@@ -285,6 +304,7 @@ const Preference: FC = () => {
                   <PreferenceSection
                     highlightedSettingId={highlightTarget?.settingId ?? null}
                     highlightToken={highlightTarget?.token ?? 0}
+                    onActionComplete={handleActionComplete}
                     onChange={handleSettingChange}
                     section={activeSection}
                     settings={settings}

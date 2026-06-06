@@ -113,6 +113,12 @@ export interface StorageUsage {
   settingsBytes: number;
 }
 
+export interface CleanCacheResult {
+  removedFiles: number;
+  removedBytes: number;
+  storageUsage: StorageUsage;
+}
+
 export type PreferenceDirectoryTarget = "data" | "logs";
 
 /**
@@ -203,6 +209,30 @@ export const getStorageUsage = () => {
 };
 
 /**
+ * 清理不再被历史记录或资源索引引用的本地资源缓存。
+ */
+export const cleanResourceCache = async () => {
+  const result = await call<CleanCacheResult>(
+    TAURI_COMMAND.CLEAN_RESOURCE_CACHE,
+    "commands:labels.cleanCache",
+  );
+
+  const messageKey =
+    result.removedFiles === 0 && result.removedBytes === 0
+      ? "commands:messages.cacheAlreadyClean"
+      : "commands:messages.cacheCleaned";
+
+  message.success(
+    i18n.t(messageKey, {
+      count: result.removedFiles,
+      size: formatCommandBytes(result.removedBytes),
+    }),
+  );
+
+  return result;
+};
+
+/**
  * 打开偏好页固定本地目录：数据目录或日志目录。
  */
 export const openPreferenceDirectory = (target: PreferenceDirectoryTarget) => {
@@ -213,6 +243,24 @@ export const openPreferenceDirectory = (target: PreferenceDirectoryTarget) => {
       target,
     },
   );
+};
+
+/**
+ * 命令层 toast 使用的轻量字节格式化，避免偏好页工具反向依赖命令入口。
+ */
+const formatCommandBytes = (bytes: number) => {
+  if (bytes < 1024) return `${bytes} B`;
+
+  const units = ["KB", "MB", "GB", "TB"];
+  let value = bytes / 1024;
+  let unitIndex = 0;
+
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex += 1;
+  }
+
+  return `${value.toFixed(value >= 10 ? 1 : 2)} ${units[unitIndex]}`;
 };
 
 /**
