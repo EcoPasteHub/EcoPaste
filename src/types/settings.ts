@@ -26,7 +26,9 @@ export type AutoPaste =
 export type MiddleClickAction =
   | "disabled"
   | "singleClickPaste"
-  | "singleClickCopy";
+  | "singleClickPastePlain"
+  | "singleClickCopy"
+  | "singleClickCopyPlain";
 
 export type ItemAction = "copy" | "pastePlain" | "note" | "star" | "delete";
 
@@ -65,6 +67,7 @@ export interface Content {
   middleClick: MiddleClickAction;
   copyPlain: boolean;
   pastePlain: boolean;
+  pasteFilesAsPath: boolean;
   showOriginalPreview: boolean;
   deleteConfirm: boolean;
   autoFavorite: boolean;

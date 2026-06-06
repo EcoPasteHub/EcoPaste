@@ -304,6 +304,7 @@ export const revealClipboardItem = (id: string) => {
 
 /**
  * 写回剪贴板（不模拟粘贴）：右键菜单「复制」走此命令。
+ * `plain` 为显式纯文本动作；默认复制格式由 Rust 按设置与记录类型决定。
  * 成功后统一 toast「已复制」，调用方无需再处理。
  */
 export const writeToClipboard = async (id: string, plain: boolean) => {
@@ -317,6 +318,7 @@ export const writeToClipboard = async (id: string, plain: boolean) => {
 
 /**
  * 「写回剪贴板 + 隐藏主窗口 + 模拟系统粘贴」的组合命令。
+ * `plain` 为显式纯文本 / 路径粘贴动作；默认粘贴格式由 Rust 按设置与记录类型决定。
  * 回车 / 数字快捷键 / 右键菜单全部走这里。
  */
 export const pasteClipboardItem = (id: string, plain: boolean) => {

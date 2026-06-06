@@ -315,19 +315,17 @@
           "title": "左键点击"
         },
         "fileMode": {
-          "description": "未来可选择粘贴文件本身，或粘贴文件路径文本。",
-          "options": {
-            "files": "文件",
-            "paths": "路径"
-          },
-          "title": "文件粘贴方式"
+          "description": "粘贴文件记录时默认不粘贴文件本身，只粘贴文件路径。",
+          "title": "默认文件路径粘贴"
         },
         "middleClick": {
           "description": "选择中键点击历史记录时执行的动作。",
           "options": {
             "disabled": "禁用",
             "singleClickCopy": "复制",
-            "singleClickPaste": "粘贴"
+            "singleClickCopyPlain": "复制为纯文本",
+            "singleClickPaste": "粘贴",
+            "singleClickPastePlain": "粘贴为纯文本"
           },
           "title": "中键点击"
         },

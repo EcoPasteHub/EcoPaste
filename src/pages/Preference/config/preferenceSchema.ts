@@ -10,7 +10,9 @@ const CLICK_ACTION_OPTIONS = [
 const MIDDLE_CLICK_ACTION_OPTIONS = [
   { label: "禁用", value: "disabled" },
   { label: "粘贴", value: "singleClickPaste" },
+  { label: "粘贴为纯文本", value: "singleClickPastePlain" },
   { label: "复制", value: "singleClickCopy" },
+  { label: "复制为纯文本", value: "singleClickCopyPlain" },
 ];
 const CLIPBOARD_SORT_OPTIONS = [
   { label: "创建时间", value: "createdAtDesc" },
@@ -321,19 +323,15 @@ export const preferenceTabs: PreferenceTab[] = [
             },
           },
           {
-            control: {
-              options: [
-                { label: "文件", value: "files" },
-                { label: "路径", value: "paths" },
-              ],
-              type: "segmented",
-            },
-            description: "未来可选择粘贴文件本身，或粘贴文件路径文本。",
-            disabled: true,
+            control: { type: "switch" },
+            description: "粘贴文件记录时默认不粘贴文件本身，只粘贴文件路径。",
             id: "paste.fileMode",
             keywords: ["file", "path", "paste"],
-            status: "comingSoon",
-            title: "文件粘贴方式",
+            path: ["clipboard", "content", "pasteFilesAsPath"],
+            title: "默认文件路径粘贴",
+            value: (settings) => {
+              return settings.clipboard.content.pasteFilesAsPath;
+            },
           },
         ],
         title: "粘贴行为",

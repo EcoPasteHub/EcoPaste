@@ -511,10 +511,24 @@ const List: FC = () => {
           return;
         }
 
+        if (middleClick === "singleClickPastePlain") {
+          setSelectedId(item.id);
+          closePreview("middleClickPastePlain");
+          pasteClipboardItem(item.id, true);
+          return;
+        }
+
         if (middleClick === "singleClickCopy") {
           setSelectedId(item.id);
           closePreview("middleClickCopy");
           writeToClipboard(item.id, false);
+          return;
+        }
+
+        if (middleClick === "singleClickCopyPlain") {
+          setSelectedId(item.id);
+          closePreview("middleClickCopyPlain");
+          writeToClipboard(item.id, true);
         }
 
         return;

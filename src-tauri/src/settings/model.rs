@@ -255,6 +255,8 @@ pub struct Content {
     pub copy_plain: bool,
     /// 粘贴时去除格式（与全局快捷键 `paste_plain` 等价的默认行为）。
     pub paste_plain: bool,
+    /// 粘贴文件记录时，默认写入路径文本而不是文件本身。
+    pub paste_files_as_path: bool,
     /// 鼠标悬停时显示原始内容预览（HTML/RTF 渲染前的原文）。
     pub show_original_preview: bool,
     pub delete_confirm: bool,
@@ -274,6 +276,7 @@ impl Default for Content {
             middle_click: MiddleClickAction::Disabled,
             copy_plain: false,
             paste_plain: false,
+            paste_files_as_path: false,
             show_original_preview: false,
             delete_confirm: true,
             auto_favorite: false,
@@ -332,7 +335,9 @@ pub enum MiddleClickAction {
     #[default]
     Disabled,
     SingleClickPaste,
+    SingleClickPastePlain,
     SingleClickCopy,
+    SingleClickCopyPlain,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]

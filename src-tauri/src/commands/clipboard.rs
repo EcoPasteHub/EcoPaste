@@ -255,7 +255,11 @@ pub async fn write_to_clipboard(
         .await?
         .ok_or_else(|| AppError::Clipboard(format!("clipboard item not found: {id}")))?;
 
-    crate::clipboard::write_to_clipboard(&store, guard.inner().as_ref(), &item, plain)?;
+    let settings = app.state::<SettingsStore>().snapshot();
+    let write_plain =
+        plain || matches!(item.kind, ClipboardKind::Text) && settings.clipboard.content.copy_plain;
+
+    crate::clipboard::write_to_clipboard(&store, guard.inner().as_ref(), &item, write_plain)?;
     mark_item_reused_if_enabled(&app, &pool, &id).await?;
     Ok(())
 }
@@ -280,7 +284,13 @@ pub async fn paste_clipboard_item(
         .await?
         .ok_or_else(|| AppError::Clipboard(format!("clipboard item not found: {id}")))?;
 
-    crate::clipboard::write_to_clipboard(&store, guard.inner().as_ref(), &item, plain)?;
+    let settings = app.state::<SettingsStore>().snapshot();
+    let write_plain = plain
+        || matches!(item.kind, ClipboardKind::Text) && settings.clipboard.content.paste_plain
+        || matches!(item.kind, ClipboardKind::Files)
+            && settings.clipboard.content.paste_files_as_path;
+
+    crate::clipboard::write_to_clipboard(&store, guard.inner().as_ref(), &item, write_plain)?;
     mark_item_reused_if_enabled(&app, &pool, &id).await?;
 
     if window::is_main_window_pinned() {

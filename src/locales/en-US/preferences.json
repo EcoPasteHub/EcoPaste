@@ -315,19 +315,17 @@
           "title": "Left Click"
         },
         "fileMode": {
-          "description": "Future option to paste files themselves or paste file paths as text.",
-          "options": {
-            "files": "Files",
-            "paths": "Paths"
-          },
-          "title": "File Paste Mode"
+          "description": "When pasting file records, paste file paths by default instead of the files themselves.",
+          "title": "Paste File Paths by Default"
         },
         "middleClick": {
           "description": "Choose what happens when middle-clicking a history record.",
           "options": {
             "disabled": "Disabled",
             "singleClickCopy": "Copy",
-            "singleClickPaste": "Paste"
+            "singleClickCopyPlain": "Copy as Plain Text",
+            "singleClickPaste": "Paste",
+            "singleClickPastePlain": "Paste as Plain Text"
           },
           "title": "Middle Click"
         },

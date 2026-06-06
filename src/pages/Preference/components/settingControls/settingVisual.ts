@@ -45,7 +45,7 @@ const SETTING_ICON_MAP: Record<string, string> = {
   "organizing.autoFavorite": "i-lucide:message-square-heart",
   "organizing.customGroups": "i-lucide:folder-tree",
   "paste.autoPaste": "i-ph:mouse-left-click",
-  "paste.fileMode": "i-lucide:file-input",
+  "paste.fileMode": "i-lucide:file-symlink",
   "paste.middleClick": "i-ph:mouse-middle-click",
   "paste.plainDefault": "i-lucide:clipboard-type",
   "preview.delay": "i-lucide:timer",
