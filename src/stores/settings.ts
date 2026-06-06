@@ -3,6 +3,7 @@ import { proxy } from "valtio";
 
 import {
   getSettings,
+  resetSettings as invokeResetSettings,
   updateSettings as invokeUpdateSettings,
 } from "@/commands";
 import { TAURI_EVENT } from "@/constants/events";
@@ -43,4 +44,11 @@ export const settingsReady: Promise<void> = (async () => {
  */
 export async function updateSettings(patch: SettingsPatch): Promise<Settings> {
   return invokeUpdateSettings(patch);
+}
+
+/**
+ * 恢复所有设置默认值；镜像仍等待 Rust 广播统一回灌。
+ */
+export async function resetSettings(): Promise<Settings> {
+  return invokeResetSettings();
 }

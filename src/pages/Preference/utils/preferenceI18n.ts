@@ -1,4 +1,5 @@
 import type { TFunction } from "i18next";
+import { isMac, isWin } from "@/utils/is";
 import type {
   PreferenceOption,
   PreferenceSection,
@@ -39,9 +40,37 @@ export function translatePreferenceSetting(
   setting: PreferenceSetting,
   field: "description" | "title",
 ) {
+  const platformField = resolvePlatformPreferenceField(setting, field);
+  if (platformField) {
+    return t(platformField, {
+      defaultValue: setting[field],
+    });
+  }
+
   return t(`schema.settings.${setting.id}.${field}`, {
     defaultValue: setting[field],
   });
+}
+
+/**
+ * 返回平台特化设置文案 key；仅处理确实有平台差异的设置项。
+ */
+function resolvePlatformPreferenceField(
+  setting: PreferenceSetting,
+  field: "description" | "title",
+) {
+  const platform = isMac ? "macos" : isWin ? "windows" : null;
+  if (!platform) return null;
+
+  if (
+    setting.id !== "control.autoStart" &&
+    setting.id !== "control.trayIcon" &&
+    setting.id !== "control.dockIcon"
+  ) {
+    return null;
+  }
+
+  return `schema.settings.${setting.id}.${platform}.${field}`;
 }
 
 /**

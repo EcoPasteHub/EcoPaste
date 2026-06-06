@@ -26,6 +26,7 @@
     "paste": "粘贴",
     "playCopySound": "播放提示音",
     "refreshApps": "刷新应用",
+    "resetSettings": "重置偏好",
     "reveal": "打开位置",
     "saveNote": "保存备注",
     "saveSettings": "保存设置",
@@ -40,6 +41,7 @@
     "favoriteAdded": "已收藏",
     "favoriteRemoved": "已取消收藏",
     "noteSaved": "已保存",
-    "noteSavedAndFavorited": "已保存并收藏"
+    "noteSavedAndFavorited": "已保存并收藏",
+    "settingsReset": "偏好已重置"
   }
 }

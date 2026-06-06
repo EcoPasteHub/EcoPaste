@@ -38,7 +38,7 @@
         "title": "复制反馈"
       },
       "diagnostics": {
-        "description": "未来可重置窗口位置或恢复偏好设置默认值。",
+        "description": "重置窗口状态或恢复偏好设置默认值。",
         "title": "诊断恢复"
       },
       "external": {
@@ -92,19 +92,9 @@
     },
     "settings": {
       "actions": {
-        "contextual": {
-          "controlLabel": "按内容自动出现",
-          "description": "根据内容类型自动显示打开链接、发送邮件、定位文件等动作。",
-          "title": "智能动作"
-        },
         "deleteConfirm": {
           "description": "删除历史记录前先弹出确认，避免误删。",
           "title": "删除前确认"
-        },
-        "transforms": {
-          "controlLabel": "管理转换",
-          "description": "未来可添加自定义内容处理和转换动作。",
-          "title": "自定义转换"
         },
         "visible": {
           "description": "选择鼠标悬停在记录上时显示的操作按钮。",
@@ -190,20 +180,44 @@
       },
       "control": {
         "autoStart": {
-          "description": "登录 macOS 或 Windows 后自动启动 EcoPaste。",
-          "title": "开机启动"
+          "description": "登录系统后自动启动 EcoPaste。",
+          "macos": {
+            "description": "登录后自动启动 EcoPaste。",
+            "title": "登录时启动"
+          },
+          "title": "开机启动",
+          "windows": {
+            "description": "登录后自动启动 EcoPaste。",
+            "title": "开机启动"
+          }
         },
         "dockIcon": {
-          "description": "在 macOS 程序坞或 Windows 任务栏显示 EcoPaste 图标。",
-          "title": "程序坞 / 任务栏图标"
+          "description": "在系统桌面栏显示 EcoPaste 图标。",
+          "macos": {
+            "description": "在程序坞显示 EcoPaste 图标。",
+            "title": "程序坞图标"
+          },
+          "title": "桌面栏图标",
+          "windows": {
+            "description": "在任务栏显示 EcoPaste 图标。",
+            "title": "任务栏图标"
+          }
         },
         "silentStart": {
           "description": "开机启动时只在后台运行，不自动弹出剪贴板窗口。",
           "title": "静默启动"
         },
         "trayIcon": {
-          "description": "在 macOS 菜单栏或 Windows 系统托盘显示 EcoPaste 图标。",
-          "title": "菜单栏 / 系统托盘图标"
+          "description": "在系统状态栏显示 EcoPaste 图标。",
+          "macos": {
+            "description": "在菜单栏显示 EcoPaste 图标。",
+            "title": "菜单栏图标"
+          },
+          "title": "状态栏图标",
+          "windows": {
+            "description": "在系统托盘显示 EcoPaste 图标。",
+            "title": "系统托盘图标"
+          }
         }
       },
       "copy": {
@@ -223,8 +237,10 @@
       },
       "diagnostics": {
         "resetPreferences": {
+          "confirmContent": "这会恢复所有偏好默认值，但不会删除剪贴板历史记录。",
+          "confirmTitle": "重置所有偏好？",
           "controlLabel": "重置",
-          "description": "未来可恢复所有偏好默认值，同时保留历史记录。",
+          "description": "恢复所有偏好默认值，同时保留历史记录。",
           "title": "重置所有偏好"
         },
         "resetWindow": {
@@ -347,10 +363,6 @@
         "hover": {
           "description": "鼠标悬停在记录上时显示完整内容预览。",
           "title": "悬停预览"
-        },
-        "original": {
-          "description": "预览 HTML/RTF 记录时显示原始内容，而不是渲染后的效果。",
-          "title": "显示原始内容"
         },
         "space": {
           "description": "按住空格键时预览当前选中的记录。",

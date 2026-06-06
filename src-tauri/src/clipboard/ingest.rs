@@ -79,7 +79,7 @@ fn files_to_content(files: &[String]) -> String {
 ///
 /// 一律以 trim 后的纯文本作为「是否有可展示内容」的判据：纯文本为空就直接 `None`，
 /// 不管 HTML/RTF 源是否存在（只有样式/空白节点的源对用户没意义，列表也渲染不出来）。
-fn draft_from_text(text: &TextPayload, capture: &Capture) -> Option<Draft> {
+fn draft_from_text(text: &TextPayload, capture: &Capture, plain_only: bool) -> Option<Draft> {
     if !capture.text && !capture.html && !capture.rtf {
         return None;
     }
@@ -96,40 +96,42 @@ fn draft_from_text(text: &TextPayload, capture: &Capture) -> Option<Draft> {
     let html = non_empty(&text.html);
     let rtf = non_empty(&text.rtf);
 
-    if let Some(html) = html {
-        if capture.html {
-            return Some(Draft {
-                kind: ClipboardKind::Text,
-                sub_kind: Some(ClipboardSubKind::Html),
-                content: html.clone(),
-                search_text: plain_search.clone(),
-                summary: summary.clone(),
-                file_types: None,
-                width: None,
-                height: None,
-                size: plain_size,
-            });
+    if !plain_only {
+        if let Some(html) = html {
+            if capture.html {
+                return Some(Draft {
+                    kind: ClipboardKind::Text,
+                    sub_kind: Some(ClipboardSubKind::Html),
+                    content: html.clone(),
+                    search_text: plain_search.clone(),
+                    summary: summary.clone(),
+                    file_types: None,
+                    width: None,
+                    height: None,
+                    size: plain_size,
+                });
+            }
         }
-    }
 
-    if let Some(rtf) = rtf {
-        if capture.rtf {
-            return Some(Draft {
-                kind: ClipboardKind::Text,
-                sub_kind: Some(ClipboardSubKind::Rtf),
-                content: rtf.clone(),
-                search_text: plain_search.clone(),
-                summary: summary.clone(),
-                file_types: None,
-                width: None,
-                height: None,
-                size: plain_size,
-            });
+        if let Some(rtf) = rtf {
+            if capture.rtf {
+                return Some(Draft {
+                    kind: ClipboardKind::Text,
+                    sub_kind: Some(ClipboardSubKind::Rtf),
+                    content: rtf.clone(),
+                    search_text: plain_search.clone(),
+                    summary: summary.clone(),
+                    file_types: None,
+                    width: None,
+                    height: None,
+                    size: plain_size,
+                });
+            }
         }
-    }
 
-    if html.is_some() || rtf.is_some() {
-        return None;
+        if html.is_some() || rtf.is_some() {
+            return None;
+        }
     }
 
     if !capture.text {
@@ -161,7 +163,13 @@ fn count_text_chars(text: &str) -> i64 {
 /// 使用默认采集开关把载荷转换为待入库记录。
 #[cfg(test)]
 pub fn build_item(store: &ImageStore, payload: &ClipboardPayload) -> Result<Option<ClipboardItem>> {
-    build_item_with_settings(store, payload, &Capture::default(), &Sensitive::default())
+    build_item_with_settings(
+        store,
+        payload,
+        &Capture::default(),
+        &Sensitive::default(),
+        false,
+    )
 }
 
 /// 把载荷转换为待入库记录，同时应用内容类型与隐私过滤设置。
@@ -170,6 +178,7 @@ pub fn build_item_with_settings(
     payload: &ClipboardPayload,
     capture: &Capture,
     sensitive: &Sensitive,
+    plain_only: bool,
 ) -> Result<Option<ClipboardItem>> {
     let draft = match payload {
         ClipboardPayload::Text(text) => {
@@ -177,7 +186,7 @@ pub fn build_item_with_settings(
                 return Ok(None);
             }
 
-            draft_from_text(text, capture)
+            draft_from_text(text, capture, plain_only)
         }
         ClipboardPayload::Files(files) => {
             if !capture.files {
@@ -334,6 +343,25 @@ mod tests {
     }
 
     #[test]
+    fn plain_only_stores_html_payload_as_plain_text() {
+        let (_d, s) = store();
+        let item = build_item_with_settings(
+            &s,
+            &text_payload("Hello World", Some("<b>Hello</b> World"), None),
+            &Capture::default(),
+            &Sensitive::default(),
+            true,
+        )
+        .unwrap()
+        .unwrap();
+
+        assert_eq!(item.sub_kind, None);
+        assert_eq!(item.content, "Hello World");
+        assert_eq!(item.search_text.as_deref(), Some("Hello World"));
+        assert_eq!(item.summary.as_deref(), Some("Hello World"));
+    }
+
+    #[test]
     fn html_without_os_plain_is_skipped() {
         // 无 OS 纯文本时整条丢弃：列表只能渲染 summary（基于 plain 文本），
         // plain 为空意味着卡片渲染不出有效内容，不入库。
@@ -369,6 +397,7 @@ mod tests {
             &text_payload("hello", None, None),
             &capture,
             &Sensitive::default(),
+            false,
         )
         .unwrap();
         assert!(item.is_none());
@@ -386,6 +415,7 @@ mod tests {
             &text_payload("Hello World", Some("<b>Hello</b> World"), None),
             &capture,
             &Sensitive::default(),
+            false,
         )
         .unwrap();
         assert!(item.is_none());
@@ -403,6 +433,7 @@ mod tests {
             &text_payload("plain repr", None, Some(r"{\rtf1 plain repr}")),
             &capture,
             &Sensitive::default(),
+            false,
         )
         .unwrap();
         assert!(item.is_none());
@@ -424,6 +455,7 @@ mod tests {
             ),
             &capture,
             &Sensitive::default(),
+            false,
         )
         .unwrap()
         .unwrap();
@@ -442,6 +474,7 @@ mod tests {
             &Sensitive {
                 secret_detection: false,
             },
+            false,
         )
         .unwrap()
         .unwrap();
@@ -460,6 +493,7 @@ mod tests {
             &Sensitive {
                 secret_detection: true,
             },
+            false,
         )
         .unwrap();
 
@@ -513,7 +547,8 @@ mod tests {
             width: 20,
             height: 10,
         });
-        let item = build_item_with_settings(&s, &payload, &capture, &Sensitive::default()).unwrap();
+        let item =
+            build_item_with_settings(&s, &payload, &capture, &Sensitive::default(), false).unwrap();
         assert!(item.is_none());
     }
 
@@ -525,7 +560,8 @@ mod tests {
             ..Capture::default()
         };
         let payload = ClipboardPayload::Files(vec!["/a/b.txt".to_owned()]);
-        let item = build_item_with_settings(&s, &payload, &capture, &Sensitive::default()).unwrap();
+        let item =
+            build_item_with_settings(&s, &payload, &capture, &Sensitive::default(), false).unwrap();
         assert!(item.is_none());
     }
 

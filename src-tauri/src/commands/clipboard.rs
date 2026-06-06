@@ -65,6 +65,7 @@ pub async fn read_clipboard(
                 &payload,
                 &settings.clipboard.capture,
                 &settings.clipboard.sensitive,
+                settings.clipboard.content.copy_plain,
             )?,
             None => None,
         };
@@ -257,7 +258,7 @@ pub async fn write_to_clipboard(
 
     let settings = app.state::<SettingsStore>().snapshot();
     let write_plain =
-        plain || matches!(item.kind, ClipboardKind::Text) && settings.clipboard.content.copy_plain;
+        should_write_plain_for_copy(plain, item.kind, settings.clipboard.content.copy_plain);
 
     crate::clipboard::write_to_clipboard(&store, guard.inner().as_ref(), &item, write_plain)?;
     mark_item_reused_if_enabled(&app, &pool, &id).await?;
@@ -285,10 +286,12 @@ pub async fn paste_clipboard_item(
         .ok_or_else(|| AppError::Clipboard(format!("clipboard item not found: {id}")))?;
 
     let settings = app.state::<SettingsStore>().snapshot();
-    let write_plain = plain
-        || matches!(item.kind, ClipboardKind::Text) && settings.clipboard.content.paste_plain
-        || matches!(item.kind, ClipboardKind::Files)
-            && settings.clipboard.content.paste_files_as_path;
+    let write_plain = should_write_plain_for_paste(
+        plain,
+        item.kind,
+        settings.clipboard.content.paste_plain,
+        settings.clipboard.content.paste_files_as_path,
+    );
 
     crate::clipboard::write_to_clipboard(&store, guard.inner().as_ref(), &item, write_plain)?;
     mark_item_reused_if_enabled(&app, &pool, &id).await?;
@@ -323,6 +326,23 @@ pub async fn paste_clipboard_item(
     }
 
     Ok(())
+}
+
+/// 计算复制写回是否强制走纯文本；默认复制纯文本只作用于文本记录。
+fn should_write_plain_for_copy(force_plain: bool, kind: ClipboardKind, copy_plain: bool) -> bool {
+    force_plain || kind == ClipboardKind::Text && copy_plain
+}
+
+/// 计算粘贴写回是否强制走纯文本；文本去格式与文件路径粘贴分别由各自设置控制。
+fn should_write_plain_for_paste(
+    force_plain: bool,
+    kind: ClipboardKind,
+    paste_plain: bool,
+    paste_files_as_path: bool,
+) -> bool {
+    force_plain
+        || kind == ClipboardKind::Text && paste_plain
+        || kind == ClipboardKind::Files && paste_files_as_path
 }
 
 /// 按设置决定是否把复制 / 粘贴历史记录计为一次复用。
@@ -1065,6 +1085,82 @@ fn validate_image_file_name(file_name: &str) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn copy_plain_default_only_affects_text_items() {
+        assert!(should_write_plain_for_copy(
+            false,
+            ClipboardKind::Text,
+            true
+        ));
+        assert!(!should_write_plain_for_copy(
+            false,
+            ClipboardKind::Files,
+            true
+        ));
+        assert!(!should_write_plain_for_copy(
+            false,
+            ClipboardKind::Image,
+            true
+        ));
+        assert!(!should_write_plain_for_copy(
+            false,
+            ClipboardKind::Text,
+            false
+        ));
+    }
+
+    #[test]
+    fn force_plain_copy_overrides_item_kind() {
+        assert!(should_write_plain_for_copy(
+            true,
+            ClipboardKind::Files,
+            false
+        ));
+        assert!(should_write_plain_for_copy(
+            true,
+            ClipboardKind::Image,
+            false
+        ));
+    }
+
+    #[test]
+    fn paste_plain_defaults_follow_item_kind() {
+        assert!(should_write_plain_for_paste(
+            false,
+            ClipboardKind::Text,
+            true,
+            false,
+        ));
+        assert!(should_write_plain_for_paste(
+            false,
+            ClipboardKind::Files,
+            false,
+            true,
+        ));
+        assert!(!should_write_plain_for_paste(
+            false,
+            ClipboardKind::Files,
+            true,
+            false,
+        ));
+        assert!(!should_write_plain_for_paste(
+            false,
+            ClipboardKind::Image,
+            true,
+            true,
+        ));
+    }
+
+    #[test]
+    fn force_plain_paste_overrides_item_kind() {
+        assert!(should_write_plain_for_paste(
+            true,
+            ClipboardKind::Image,
+            false,
+            false,
+        ));
+    }
 
     #[test]
     fn accepts_plain_png_file_name() {

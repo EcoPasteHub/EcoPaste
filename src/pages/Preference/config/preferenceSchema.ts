@@ -413,24 +413,6 @@ export const preferenceTabs: PreferenceTab[] = [
               return settings.clipboard.content.deleteConfirm;
             },
           },
-          {
-            control: { label: "按内容自动出现", type: "status" },
-            description:
-              "根据内容类型自动显示打开链接、发送邮件、定位文件等动作。",
-            id: "actions.contextual",
-            keywords: ["open", "link", "email", "reveal"],
-            status: "alwaysOn",
-            title: "智能动作",
-          },
-          {
-            control: { label: "管理转换", type: "action" },
-            description: "未来可添加自定义内容处理和转换动作。",
-            disabled: true,
-            id: "actions.transforms",
-            keywords: ["transform", "custom", "automation"],
-            status: "comingSoon",
-            title: "自定义转换",
-          },
         ],
         title: "快捷动作",
       },
@@ -512,18 +494,6 @@ export const preferenceTabs: PreferenceTab[] = [
             title: "空格键预览",
             value: (settings) => {
               return settings.clipboard.preview.spaceEnabled;
-            },
-          },
-          {
-            control: { type: "switch" },
-            description:
-              "预览 HTML/RTF 记录时显示原始内容，而不是渲染后的效果。",
-            id: "preview.original",
-            keywords: ["original", "html", "source"],
-            path: ["clipboard", "content", "showOriginalPreview"],
-            title: "显示原始内容",
-            value: (settings) => {
-              return settings.clipboard.content.showOriginalPreview;
             },
           },
         ],
@@ -618,11 +588,11 @@ export const preferenceTabs: PreferenceTab[] = [
         settings: [
           {
             control: { type: "switch" },
-            description: "登录 macOS 或 Windows 后自动启动 EcoPaste。",
+            description: "登录后自动启动 EcoPaste。",
             id: "control.autoStart",
             keywords: ["startup", "login", "autostart"],
             path: ["general", "autoStart"],
-            title: "开机启动",
+            title: "登录时启动",
             value: (settings) => {
               return settings.general.autoStart;
             },
@@ -644,23 +614,22 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { type: "switch" },
-            description:
-              "在 macOS 菜单栏或 Windows 系统托盘显示 EcoPaste 图标。",
+            description: "在菜单栏显示 EcoPaste 图标。",
             id: "control.trayIcon",
             keywords: ["tray", "menu bar", "system"],
             path: ["general", "trayIcon"],
-            title: "菜单栏 / 系统托盘图标",
+            title: "菜单栏图标",
             value: (settings) => {
               return settings.general.trayIcon;
             },
           },
           {
             control: { type: "switch" },
-            description: "在 macOS 程序坞或 Windows 任务栏显示 EcoPaste 图标。",
+            description: "在程序坞显示 EcoPaste 图标。",
             id: "control.dockIcon",
             keywords: ["dock", "taskbar", "icon"],
             path: ["general", "dockIcon"],
-            title: "程序坞 / 任务栏图标",
+            title: "程序坞图标",
             value: (settings) => {
               return settings.general.dockIcon;
             },
@@ -767,7 +736,7 @@ export const preferenceTabs: PreferenceTab[] = [
         title: "备份迁移",
       },
       {
-        description: "未来可重置窗口位置或恢复偏好设置默认值。",
+        description: "重置窗口状态或恢复偏好设置默认值。",
         id: "diagnostics",
         settings: [
           {
@@ -781,11 +750,9 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { danger: true, label: "重置", type: "action" },
-            description: "未来可恢复所有偏好默认值，同时保留历史记录。",
-            disabled: true,
+            description: "恢复所有偏好默认值，同时保留历史记录。",
             id: "diagnostics.resetPreferences",
             keywords: ["reset", "preferences"],
-            status: "comingSoon",
             title: "重置所有偏好",
           },
         ],

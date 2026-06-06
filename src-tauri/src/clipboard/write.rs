@@ -63,6 +63,10 @@ fn write_text(
     guard.suppress(content_hash(ClipboardKind::Text, &content));
 
     match sub_kind {
+        // 纯文本模式必须只写 Text flavor，确保清掉剪贴板中可能残留的 HTML/RTF。
+        None if plain => ctx
+            .set(vec![ClipboardContent::Text(content)])
+            .map_err(clip_err)?,
         // HTML / RTF 必须同时写入纯文本回退：clipboard-rs 的 set_html / set_rich_text
         // 会先 clearContents，单独写时只剩富格式，多数应用读 plain/text 拿不到就拒绝粘贴。
         // 走 set(Vec<ClipboardContent>) 一次写多格式（内部不再相互清空）。

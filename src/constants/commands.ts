@@ -23,6 +23,7 @@ export const TAURI_COMMAND = {
   PLAY_COPY_SOUND: "play_copy_sound",
   POPUP_CLIPBOARD_ITEM_MENU: "popup_clipboard_item_menu",
   REFRESH_APPS: "refresh_apps",
+  RESET_SETTINGS: "reset_settings",
   REVEAL_CLIPBOARD_ITEM: "reveal_clipboard_item",
   SET_AUTOSTART: "set_autostart",
   SET_MAIN_WINDOW_PINNED: "set_main_window_pinned",

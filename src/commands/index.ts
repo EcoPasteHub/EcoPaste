@@ -179,6 +179,20 @@ export const updateSettings = (patch: SettingsPatch) => {
 };
 
 /**
+ * 恢复所有偏好默认值；历史记录和资源文件不受影响。
+ */
+export const resetSettings = async () => {
+  const settings = await call<Settings>(
+    TAURI_COMMAND.RESET_SETTINGS,
+    "commands:labels.resetSettings",
+  );
+
+  message.success(i18n.t("commands:messages.settingsReset"));
+
+  return settings;
+};
+
+/**
  * 统计本地数据库、资源缓存与设置文件的占用。
  */
 export const getStorageUsage = () => {

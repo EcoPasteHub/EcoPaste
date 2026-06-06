@@ -26,6 +26,7 @@
     "paste": "Paste",
     "playCopySound": "Play sound",
     "refreshApps": "Refresh apps",
+    "resetSettings": "Reset preferences",
     "reveal": "Reveal location",
     "saveNote": "Save note",
     "saveSettings": "Save settings",
@@ -40,6 +41,7 @@
     "favoriteAdded": "Added to favorites",
     "favoriteRemoved": "Removed from favorites",
     "noteSaved": "Saved",
-    "noteSavedAndFavorited": "Saved and favorited"
+    "noteSavedAndFavorited": "Saved and favorited",
+    "settingsReset": "Preferences reset"
   }
 }

@@ -5,9 +5,7 @@ interface SettingVisual {
 }
 
 const SETTING_ICON_MAP: Record<string, string> = {
-  "actions.contextual": "i-lucide:wand-sparkles",
   "actions.deleteConfirm": "i-lucide:trash-2",
-  "actions.transforms": "i-ph:magic-wand",
   "actions.visible": "i-lucide:square-mouse-pointer",
   "appearance.fileMaxCount": "i-lucide:files",
   "appearance.imageMaxHeight": "i-lucide:image",
@@ -26,7 +24,7 @@ const SETTING_ICON_MAP: Record<string, string> = {
   "control.dockIcon": "i-lucide:panel-bottom",
   "control.silentStart": "i-lucide:eye-off",
   "control.trayIcon": "i-lucide:panel-top",
-  "copy.plainDefault": "i-lucide:copy-slash",
+  "copy.plainDefault": "i-lucide:clipboard-copy",
   "copy.sound": "i-ph:speaker-high",
   "copy.updateOnReuse": "i-lucide:refresh-cw",
   "diagnostics.resetPreferences": "i-lucide:settings-2",
@@ -50,7 +48,6 @@ const SETTING_ICON_MAP: Record<string, string> = {
   "paste.plainDefault": "i-lucide:clipboard-type",
   "preview.delay": "i-lucide:timer",
   "preview.hover": "i-lucide:mouse-pointer-2",
-  "preview.original": "i-lucide:file-search",
   "preview.space": "i-lucide:space",
   "search.clearOnHide": "i-lucide:eraser",
   "search.defaultFocus": "i-lucide:scan-search",

@@ -43,14 +43,7 @@ impl SettingsStore {
             None => {
                 // 真·首次启动（主文件 + 备份都不存在）：用系统 locale 推导默认语言并落盘，
                 // 之后所有读取都走常规分支，避免每次启动都重算。
-                let mut settings = Settings::default();
-                if let Some(tag) = tauri_plugin_os::locale() {
-                    settings.appearance.language = Language::from_system_locale(&tag);
-                    log::info!(
-                        "first-run language from locale {tag}: {:?}",
-                        settings.appearance.language
-                    );
-                }
+                let settings = default_settings_with_system_locale();
                 if let Err(err) = write_atomic(&path, &backup_path, &settings) {
                     log::warn!("persist first-run settings failed: {err}");
                 }
@@ -68,6 +61,15 @@ impl SettingsStore {
 
     pub fn snapshot(&self) -> Settings {
         self.current.read().expect("settings poisoned").clone()
+    }
+
+    /// 恢复默认设置并落盘，返回新的完整快照。
+    pub fn reset(&self) -> Result<Settings> {
+        let next = default_settings_with_system_locale();
+
+        write_atomic(&self.path, &self.backup_path, &next)?;
+        *self.current.write().expect("settings poisoned") = next.clone();
+        Ok(next)
     }
 
     /// 用 JSON patch 深度合并到当前设置，落盘后返回新快照。
@@ -92,6 +94,19 @@ impl SettingsStore {
         *guard = next.clone();
         Ok(next)
     }
+}
+
+/// 生成默认设置，并沿用首次启动的系统语言推导规则。
+fn default_settings_with_system_locale() -> Settings {
+    let mut settings = Settings::default();
+    if let Some(tag) = tauri_plugin_os::locale() {
+        settings.appearance.language = Language::from_system_locale(&tag);
+        log::info!(
+            "default settings language from locale {tag}: {:?}",
+            settings.appearance.language
+        );
+    }
+    settings
 }
 
 /// 返回 `None` 表示主文件与备份都不存在（首次启动），调用方据此走「初始化默认」分支；

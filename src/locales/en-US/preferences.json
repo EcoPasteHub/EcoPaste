@@ -38,7 +38,7 @@
         "title": "Copy Feedback"
       },
       "diagnostics": {
-        "description": "Future reset tools for window state and preferences.",
+        "description": "Reset window state or restore preference defaults.",
         "title": "Diagnostics"
       },
       "external": {
@@ -92,19 +92,9 @@
     },
     "settings": {
       "actions": {
-        "contextual": {
-          "controlLabel": "Automatic by content",
-          "description": "Show actions such as open link, send email, or reveal file based on content type.",
-          "title": "Smart Actions"
-        },
         "deleteConfirm": {
           "description": "Ask for confirmation before deleting a history record to prevent mistakes.",
           "title": "Confirm Before Delete"
-        },
-        "transforms": {
-          "controlLabel": "Manage Transforms",
-          "description": "Future custom actions for processing and transforming content.",
-          "title": "Custom Transforms"
         },
         "visible": {
           "description": "Choose which action buttons appear when hovering over a record.",
@@ -190,20 +180,44 @@
       },
       "control": {
         "autoStart": {
-          "description": "Start EcoPaste automatically after logging in to macOS or Windows.",
-          "title": "Launch at Login"
+          "description": "Start EcoPaste automatically after logging in.",
+          "macos": {
+            "description": "Start EcoPaste automatically after login.",
+            "title": "Launch at Login"
+          },
+          "title": "Launch at Login",
+          "windows": {
+            "description": "Start EcoPaste automatically after login.",
+            "title": "Launch at Startup"
+          }
         },
         "dockIcon": {
-          "description": "Show the EcoPaste icon in the macOS Dock or Windows taskbar.",
-          "title": "Dock / Taskbar Icon"
+          "description": "Show the EcoPaste icon in the system desktop bar.",
+          "macos": {
+            "description": "Show the EcoPaste icon in the Dock.",
+            "title": "Dock Icon"
+          },
+          "title": "Desktop Bar Icon",
+          "windows": {
+            "description": "Show the EcoPaste icon in the taskbar.",
+            "title": "Taskbar Icon"
+          }
         },
         "silentStart": {
           "description": "When launched at login, run in the background without opening the clipboard window.",
           "title": "Silent Start"
         },
         "trayIcon": {
-          "description": "Show the EcoPaste icon in the macOS menu bar or Windows system tray.",
-          "title": "Menu Bar / Tray Icon"
+          "description": "Show the EcoPaste icon in the system status area.",
+          "macos": {
+            "description": "Show the EcoPaste icon in the menu bar.",
+            "title": "Menu Bar Icon"
+          },
+          "title": "Status Area Icon",
+          "windows": {
+            "description": "Show the EcoPaste icon in the system tray.",
+            "title": "System Tray Icon"
+          }
         }
       },
       "copy": {
@@ -223,8 +237,10 @@
       },
       "diagnostics": {
         "resetPreferences": {
+          "confirmContent": "This restores every preference to its default value, but keeps clipboard history records.",
+          "confirmTitle": "Reset all preferences?",
           "controlLabel": "Reset",
-          "description": "Future reset for all preferences while keeping history records.",
+          "description": "Restore all preference defaults while keeping history records.",
           "title": "Reset All Preferences"
         },
         "resetWindow": {
@@ -347,10 +363,6 @@
         "hover": {
           "description": "Show a full-content preview when hovering over a record.",
           "title": "Hover Preview"
-        },
-        "original": {
-          "description": "Show original HTML/RTF content in previews instead of the rendered result.",
-          "title": "Show Original Content"
         },
         "space": {
           "description": "Hold Space to preview the currently selected record.",

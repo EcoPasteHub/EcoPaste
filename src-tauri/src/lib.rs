@@ -87,6 +87,7 @@ pub fn run() {
             commands::get_clipboard_preview_state,
             commands::get_settings,
             commands::update_settings,
+            commands::reset_settings,
             commands::get_storage_usage,
             commands::open_preference_directory,
             commands::get_autostart,

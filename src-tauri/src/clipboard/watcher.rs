@@ -305,6 +305,7 @@ impl ClipboardHandler for ClipboardChangeHandler {
             &payload,
             &settings.clipboard.capture,
             &settings.clipboard.sensitive,
+            settings.clipboard.content.copy_plain,
         ) {
             Ok(Some(item)) => item,
             Ok(None) => return,
