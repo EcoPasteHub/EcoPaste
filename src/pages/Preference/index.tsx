@@ -237,6 +237,7 @@ const Preference: FC = () => {
               "min-h-0 flex-1 overflow-auto px-6",
               isAboutTab ? "py-5" : "py-6",
             )}
+            data-tauri-drag-region
             ref={contentRef}
           >
             <AnimatePresence mode="wait">

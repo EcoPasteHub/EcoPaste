@@ -50,7 +50,10 @@ const PreferenceHeader: FC<PreferenceHeaderProps> = (props) => {
       )}
       data-tauri-drag-region
     >
-      <div className="flex items-center justify-between gap-5">
+      <div
+        className="flex items-center justify-between gap-5"
+        data-tauri-drag-region
+      >
         <div className="min-w-0">
           <h1 className="m-0 flex items-center gap-2 font-semibold text-ant-text text-lg leading-snug">
             <i
@@ -122,7 +125,10 @@ const SectionTabs: FC<SectionTabsProps> = (props) => {
   const { activeSectionId, sections, totalSettings, onSectionSelect } = props;
 
   return (
-    <div className="mt-3 flex items-center gap-3 overflow-x-auto">
+    <div
+      className="mt-3 flex items-center gap-3 overflow-x-auto"
+      data-tauri-drag-region
+    >
       {sections.map((section) => {
         const selected = section.id === activeSectionId;
         const handleClick = () => {

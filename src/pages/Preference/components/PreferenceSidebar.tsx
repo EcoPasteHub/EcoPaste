@@ -58,7 +58,10 @@ const PreferenceSidebar: FC<PreferenceSidebarProps> = (props) => {
         </div>
       </div>
 
-      <nav className="flex flex-1 flex-col gap-0.5 px-3 pb-3">
+      <nav
+        className="flex flex-1 flex-col gap-0.5 px-3 pb-3"
+        data-tauri-drag-region
+      >
         {preferenceTabs.map((tab) => {
           const meta = PREFERENCE_TAB_META[tab.id];
           const selected = tab.id === activeTabId;
