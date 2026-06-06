@@ -282,10 +282,11 @@ export function useClipboardPreviewController(
    * Space 按下打开当前 active item；忽略重复 keydown，避免重复 IPC。
    */
   const handlePreviewSpaceDown = (event: KeyboardEvent) => {
+    event.preventDefault();
+
     if (!previewSettings.spaceEnabled) return;
     if (event.repeat && previewSession?.trigger === "keyboard") return;
 
-    event.preventDefault();
     cancelHoverPreview();
     cancelHoverHide();
 
