@@ -113,17 +113,8 @@ export const preferenceTabs: PreferenceTab[] = [
               return settings.clipboard.filters.scanDirs;
             },
           },
-          {
-            control: { label: "配置规则", type: "action" },
-            description: "为不同应用单独设置保存策略。",
-            disabled: true,
-            id: "source.perAppRules",
-            keywords: ["per app", "rule", "source"],
-            status: "comingSoon",
-            title: "单应用规则",
-          },
         ],
-        title: "来源应用",
+        title: "应用过滤",
       },
       {
         description: "减少误存隐私内容的风险。",

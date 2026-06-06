@@ -79,7 +79,7 @@
       },
       "source": {
         "description": "Control capture scope by source app.",
-        "title": "Source Apps"
+        "title": "App Filters"
       },
       "updates": {
         "description": "Configure update checking.",
@@ -515,14 +515,20 @@
         }
       },
       "source": {
+        "appTransfer": {
+          "allTitle": "All Apps",
+          "cancel": "Cancel",
+          "ignoredTitle": "Ignored Apps",
+          "itemsUnit": "items",
+          "itemUnit": "item",
+          "refreshApps": "Refresh Apps",
+          "save": "Save",
+          "scanDirs": "App Discovery Directories",
+          "searchPlaceholder": "Search apps"
+        },
         "excludedApps": {
           "description": "Copies from these apps will not be saved.",
           "title": "Ignored Apps"
-        },
-        "perAppRules": {
-          "controlLabel": "Configure Rules",
-          "description": "Set save policies per app.",
-          "title": "Per-App Rules"
         },
         "scanDirs": {
           "description": "Add app search locations for detecting names and icons.",

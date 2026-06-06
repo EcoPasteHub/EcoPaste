@@ -73,7 +73,6 @@ const SETTING_ICON_MAP: Record<string, string> = {
   "shortcuts.windowPin": "i-lucide:pin",
   "shortcuts.windowQuickPaste": "i-lucide:list-start",
   "source.excludedApps": "i-lucide:shield-ban",
-  "source.perAppRules": "i-lucide:sliders-horizontal",
   "source.scanDirs": "i-lucide:folder-search",
   "updates.autoCheck": "i-lucide:refresh-cw",
   "updates.beta": "i-lucide:flask-conical",

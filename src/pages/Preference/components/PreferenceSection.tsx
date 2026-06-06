@@ -8,7 +8,9 @@ import type {
   SettingValue,
 } from "../types/preferences";
 import { translatePreferenceSection } from "../utils/preferenceI18n";
+import PreferenceCountTag from "./PreferenceCountTag";
 import PreferenceSettingRow from "./PreferenceSettingRow";
+import SourceAppsTransfer from "./SourceAppsTransfer";
 
 interface PreferenceSectionProps {
   highlightedSettingId: string | null;
@@ -37,6 +39,29 @@ const PreferenceSection: FC<PreferenceSectionProps> = (props) => {
     onChange,
   } = props;
   const visual = resolveSectionVisual(section.id);
+  const sourceAppsSettings = resolveSourceAppsSettings(section.settings);
+
+  if (sourceAppsSettings) {
+    return (
+      <motion.section
+        animate={{ opacity: 1 }}
+        className="relative flex min-h-0 flex-1 scroll-mt-5 flex-col rounded-2 border border-ant-border-secondary bg-ant-container p-4"
+        id={section.id}
+        initial={{ opacity: 0 }}
+        transition={{
+          duration: shouldReduceMotion ? 0 : 0.12,
+          ease: "easeOut",
+        }}
+      >
+        <SourceAppsTransfer
+          excludedAppsSetting={sourceAppsSettings.excludedApps}
+          onChange={onChange}
+          scanDirsSetting={sourceAppsSettings.scanDirs}
+          settings={settings}
+        />
+      </motion.section>
+    );
+  }
 
   return (
     <motion.section
@@ -62,9 +87,9 @@ const PreferenceSection: FC<PreferenceSectionProps> = (props) => {
           </div>
         </div>
 
-        <span className="shrink-0 rounded-full border border-ant-border-secondary bg-ant-fill-quaternary px-2 py-1 text-ant-secondary text-xs leading-none">
+        <PreferenceCountTag>
           {t("common:units.items", { count: section.settings.length })}
-        </span>
+        </PreferenceCountTag>
       </div>
 
       <div>
@@ -185,4 +210,20 @@ function resolveSectionVisual(id: string): SectionVisual {
   return {
     icon: "i-lucide:clipboard-list",
   };
+}
+
+/**
+ * 识别来源应用分组所需的两个设置项，缺任一项则退回通用行渲染。
+ */
+function resolveSourceAppsSettings(settings: PreferenceSetting[]) {
+  const excludedApps = settings.find((setting) => {
+    return setting.id === "source.excludedApps";
+  });
+  const scanDirs = settings.find((setting) => {
+    return setting.id === "source.scanDirs";
+  });
+
+  if (!excludedApps || !scanDirs) return null;
+
+  return { excludedApps, scanDirs };
 }

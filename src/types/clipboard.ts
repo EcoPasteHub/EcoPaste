@@ -76,6 +76,16 @@ export interface ClipboardItem {
   displayCreatedAt?: string;
 }
 
+export interface ClipboardApp {
+  id: string;
+  name: string;
+  iconFile: string | null;
+  iconPath: string | null;
+  platform: ClipboardPlatform;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface FileEntry {
   path: string;
   name: string;

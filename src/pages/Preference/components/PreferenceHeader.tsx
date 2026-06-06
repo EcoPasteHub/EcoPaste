@@ -9,6 +9,7 @@ import {
   translatePreferenceTab,
 } from "../utils/preferenceI18n";
 import type { PreferenceSearchResult } from "../utils/preferenceSearch";
+import PreferenceCountTag from "./PreferenceCountTag";
 import PreferenceSearchResults from "./PreferenceSearchResults";
 
 interface PreferenceHeaderProps {
@@ -158,9 +159,9 @@ const SectionTabs: FC<SectionTabsProps> = (props) => {
         );
       })}
 
-      <span className="ml-auto shrink-0 rounded-full border border-ant-border-secondary bg-ant-fill-quaternary px-2 py-1 text-ant-secondary text-xs leading-none">
+      <PreferenceCountTag className="ml-auto">
         {t("common:units.settings", { count: totalSettings })}
-      </span>
+      </PreferenceCountTag>
     </div>
   );
 };

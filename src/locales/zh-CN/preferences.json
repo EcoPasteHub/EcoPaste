@@ -79,7 +79,7 @@
       },
       "source": {
         "description": "按来源应用控制记录范围。",
-        "title": "来源应用"
+        "title": "应用过滤"
       },
       "updates": {
         "description": "设置版本检查方式。",
@@ -515,14 +515,20 @@
         }
       },
       "source": {
+        "appTransfer": {
+          "allTitle": "全部应用",
+          "cancel": "取消",
+          "ignoredTitle": "已忽略的应用",
+          "itemsUnit": "项",
+          "itemUnit": "项",
+          "refreshApps": "刷新应用",
+          "save": "保存",
+          "scanDirs": "应用发现目录",
+          "searchPlaceholder": "搜索应用"
+        },
         "excludedApps": {
           "description": "这些应用中的复制不会保存。",
           "title": "忽略应用"
-        },
-        "perAppRules": {
-          "controlLabel": "配置规则",
-          "description": "为不同应用单独设置保存策略。",
-          "title": "单应用规则"
         },
         "scanDirs": {
           "description": "补充应用搜索范围，用于识别名称和图标。",

@@ -81,6 +81,7 @@ const Preference: FC = () => {
       return section.id === activeSectionId;
     }) ?? activeTab.sections[0];
   const isAboutTab = activeTabId === "about";
+  const isSourceSection = activeSection?.id === "source";
 
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(event.target.value);
@@ -261,7 +262,10 @@ const Preference: FC = () => {
               ) : activeSection ? (
                 <motion.div
                   animate={{ opacity: 1 }}
-                  className="flex max-w-228 flex-col"
+                  className={cn(
+                    "flex flex-col",
+                    isSourceSection ? "h-full max-w-none" : "max-w-228",
+                  )}
                   exit={{ opacity: 0 }}
                   initial={{ opacity: 0 }}
                   key={`${activeTabId}-${activeSection.id}`}

@@ -16,8 +16,8 @@ use crate::clipboard::{
 use crate::core::{AppError, Result};
 use crate::db::items::{find_item_by_id, find_item_for_list_by_id, increment_item_use_count};
 use crate::db::models::{
-    ClipboardAction, ClipboardGroup, ClipboardItem, ClipboardItemPage, ClipboardItemQuery,
-    ClipboardKind, ClipboardSubKind, FileEntry, Platform,
+    ClipboardAction, ClipboardApp, ClipboardGroup, ClipboardItem, ClipboardItemPage,
+    ClipboardItemQuery, ClipboardKind, ClipboardSubKind, FileEntry, Platform,
 };
 use crate::settings::SettingsStore;
 use crate::window::{self, MAIN_WINDOW_LABEL};
@@ -144,6 +144,19 @@ pub struct FileIconResult {
     pub icon_path: Option<String>,
     /// 当前路径是否仍存在于磁盘。
     pub exists: bool,
+}
+
+/// 偏好页来源应用列表项：在 DB 模型基础上补齐前端可直接渲染的 icon 绝对路径。
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ClipboardAppView {
+    pub id: String,
+    pub name: String,
+    pub icon_file: Option<String>,
+    pub icon_path: Option<String>,
+    pub platform: Platform,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
 }
 
 const PREVIEW_FILE_ENTRY_LIMIT: usize = 64;
@@ -439,6 +452,24 @@ fn attach_source_app_icon_path(store: &AppIconStore, item: &mut ClipboardItem) {
         .source_app_icon_file
         .as_deref()
         .and_then(|name| store.icon_path(name).to_str().map(str::to_owned));
+}
+
+/// 把来源应用 DB 模型转换为偏好页列表可直接渲染的视图模型。
+fn build_clipboard_app_view(store: &AppIconStore, app: ClipboardApp) -> ClipboardAppView {
+    let icon_path = app
+        .icon_file
+        .as_deref()
+        .and_then(|name| store.icon_path(name).to_str().map(str::to_owned));
+
+    ClipboardAppView {
+        id: app.id,
+        name: app.name,
+        icon_file: app.icon_file,
+        icon_path,
+        platform: app.platform,
+        created_at: app.created_at,
+        updated_at: app.updated_at,
+    }
 }
 
 /// 仅当 `sub_kind = Color` 时，把 `summary`（或 `content` 兜底）规范化为可信 CSS 颜色串
@@ -786,9 +817,10 @@ pub async fn list_clipboard_apps(
 #[tauri::command]
 pub async fn list_all_apps(
     app: AppHandle,
+    app_icon_store: State<'_, AppIconStore>,
     pool: State<'_, SqlitePool>,
-) -> Result<Vec<crate::db::models::ClipboardApp>> {
-    use crate::db::models::{ClipboardApp, Platform};
+) -> Result<Vec<ClipboardAppView>> {
+    use crate::db::models::Platform;
     use std::collections::HashSet;
 
     let mut apps = crate::db::apps::list_all_apps(&pool).await?;
@@ -828,7 +860,10 @@ pub async fn list_all_apps(
             .cmp(&b.name.to_lowercase())
             .then_with(|| a.id.cmp(&b.id))
     });
-    Ok(apps)
+    Ok(apps
+        .into_iter()
+        .map(|app| build_clipboard_app_view(&app_icon_store, app))
+        .collect())
 }
 
 /// 手动触发一次目录扫描：按当前 `settings.clipboard.filters.scanDirs` 重新枚举
@@ -837,8 +872,9 @@ pub async fn list_all_apps(
 #[tauri::command]
 pub async fn refresh_apps(
     app: AppHandle,
+    app_icon_store: State<'_, AppIconStore>,
     registry: State<'_, AppsRegistry>,
-) -> Result<Vec<crate::db::models::ClipboardApp>> {
+) -> Result<Vec<ClipboardAppView>> {
     let dirs = app
         .state::<crate::settings::SettingsStore>()
         .snapshot()
@@ -846,7 +882,12 @@ pub async fn refresh_apps(
         .filters
         .scan_dirs
         .clone();
-    refresh_from_dirs(app, registry.inner().clone(), dirs, true).await
+    let apps = refresh_from_dirs(app, registry.inner().clone(), dirs, true).await?;
+
+    Ok(apps
+        .into_iter()
+        .map(|app| build_clipboard_app_view(&app_icon_store, app))
+        .collect())
 }
 
 /// 列出全部分组（薄封装），供前端构建分组 tab 栏。

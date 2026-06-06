@@ -18,6 +18,7 @@ import i18n from "@/i18n";
 import { settingsState } from "@/stores/settings";
 import type {
   ClipboardAction,
+  ClipboardApp,
   ClipboardItemPage,
   ClipboardItemQuery,
   ClipboardKind,
@@ -241,6 +242,26 @@ export const isLaunchedViaAutostart = () => {
   return call<boolean>(
     TAURI_COMMAND.IS_LAUNCHED_VIA_AUTOSTART,
     "commands:labels.loadLaunchSource",
+  );
+};
+
+/**
+ * 列出系统扫描与历史监听中已知的全部来源应用。
+ */
+export const listAllApps = () => {
+  return call<ClipboardApp[]>(
+    TAURI_COMMAND.LIST_ALL_APPS,
+    "commands:labels.loadApps",
+  );
+};
+
+/**
+ * 重新扫描应用发现目录，并返回更新后的应用列表。
+ */
+export const refreshApps = () => {
+  return call<ClipboardApp[]>(
+    TAURI_COMMAND.REFRESH_APPS,
+    "commands:labels.refreshApps",
   );
 };
 
