@@ -126,6 +126,7 @@ cargo test                    # Rust 单测（在 src-tauri 下）
 - 字号使用 Tailwind / wind4 标准语义字号（如 `text-xs` / `text-sm` / `text-base` / `text-lg`），不要使用 `text-3` / `text-3.5` 这类数字字号，避免与 `text-ant-*` 颜色类在 `tailwind-merge` 中产生歧义。
 - **尺寸只走 wind4 数字制**（1 单位 = 0.25rem = 4px），如 `p-1.5` / `gap-2` / `rounded-2.5` / `w-36`。**禁止**`px` 字面量：不写 `w-[144px]` 这类任意值类，也不在 `style={{}}` 里塞数字像素（antd `tabBarStyle` 等 inline 样式同理，必要时改 className 或调 `theme.token`）。非常规尺寸用内置 fractional（`.25/.5/.75/.125`）拼，没有再扩 `theme.spacing`。
 - 组件优先用 Ant Design v6（`antd`），避免重复造轮子；主题切换在根节点用 `ConfigProvider` 的 `theme.algorithm` 切 `defaultAlgorithm` / `darkAlgorithm`，并把同步的 `light` / `dark` 类挂到 `<html>` 上，供 UnoCSS `dark:` 变体使用。
+- 自定义 antd v6 组件内部结构样式时，优先使用组件暴露的 `classNames` / `styles` 语义槽位；不要先写 `.ant-*` 全局选择器覆盖。只有组件没有对应语义槽位、且局部 wrapper/class 无法表达时，才用作用域明确的样式覆盖。
 - antd prop 命名：`open` / `checked` / `disabled` / `onClick`（不要再用 HeroUI 的 `isOpen` / `isSelected` / `isDisabled` / `onPress`）。
 - 条件 className 统一用 `cn from "@/utils/cn"`（内部 `clsx` + `tailwind-merge`，后写的同族原子类胜出）+ 对象语法 `{ "class": cond }`，不堆三元 / `&&`。**禁止**用模板字符串 / `+` 拼接 className（包括 `${className ?? ""}` 这种透传）——一律走 `cn("base...", condClass, propsClassName)`。
 - **JSX 中的事件回调优先提取为命名函数**，不在 JSX 里塞内联箭头函数 / 行内逻辑：
