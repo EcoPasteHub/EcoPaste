@@ -32,7 +32,6 @@ const SETTING_ICON_MAP: Record<string, string> = {
   "external.cli": "i-lucide:square-terminal",
   "external.mcp": "i-lucide:plug-zap",
   "history.maxCount": "i-lucide:list-ordered",
-  "history.maxSize": "i-lucide:gauge",
   "history.retention": "i-lucide:calendar-clock",
   "localData.cleanCache": "i-ph:broom",
   "localData.dataDirectory": "i-lucide:folder-root",

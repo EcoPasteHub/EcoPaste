@@ -254,10 +254,6 @@
           "description": "When the limit is exceeded, older regular records are cleaned automatically; favorites and pinned items are always kept. 0 means unlimited items.",
           "title": "Maximum Items"
         },
-        "maxSize": {
-          "description": "Future option to skip regular records above the size limit; favorites and pinned items are always kept. 0 means unlimited size.",
-          "title": "Maximum Item Size"
-        },
         "retention": {
           "description": "Regular records older than this many days are cleaned automatically; favorites and pinned items are always kept. 0 disables time-based cleanup.",
           "title": "Retention Period"

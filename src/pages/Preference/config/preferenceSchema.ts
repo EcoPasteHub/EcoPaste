@@ -158,16 +158,6 @@ export const preferenceTabs: PreferenceTab[] = [
               return settings.clipboard.history.maxCount;
             },
           },
-          {
-            control: { min: 0, suffixKey: "gb", type: "number" },
-            description:
-              "未来可跳过超过大小限制的普通记录；收藏和置顶始终保留，0 表示不限大小。",
-            disabled: true,
-            id: "history.maxSize",
-            keywords: ["size", "limit", "large"],
-            status: "comingSoon",
-            title: "最大记录大小",
-          },
         ],
         title: "保留与清理",
       },
