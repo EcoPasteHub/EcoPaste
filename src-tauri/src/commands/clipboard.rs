@@ -893,9 +893,9 @@ fn merge_clipboard_apps(
     }
     for mut app in known_apps {
         if app.icon_file.is_none() {
-            app.icon_file = merged.get(&app.id).and_then(|running| {
-                return running.icon_file.clone();
-            });
+            app.icon_file = merged
+                .get(&app.id)
+                .and_then(|running| running.icon_file.clone());
         }
         merged.insert(app.id.clone(), app);
     }
@@ -1018,6 +1018,8 @@ pub async fn open_clipboard_item_link(
 
     let url = if mailto {
         format!("mailto:{value}")
+    } else if value.starts_with("www.") {
+        format!("https://{value}")
     } else {
         value.to_owned()
     };

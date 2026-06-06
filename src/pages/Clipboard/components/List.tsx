@@ -46,6 +46,7 @@ const List: FC = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [firstVisibleIndex, setFirstVisibleIndex] = useState(0);
   const [isAtTop, setIsAtTop] = useState(true);
+  const [isModifierPressed, setIsModifierPressed] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
   const [noteTarget, setNoteTarget] = useState<ClipboardItem | null>(null);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
@@ -219,6 +220,7 @@ const List: FC = () => {
 
     if (!deleted) return;
 
+    setSelectedId(getSelectedIdAfterDelete(items, selectedId, id));
     removeItem(id);
   };
 
@@ -301,7 +303,9 @@ const List: FC = () => {
   const handleKeyDown = (event: KeyboardEvent) => {
     if (items.length === 0) return;
 
-    const isModifierPressed = isMac ? event.metaKey : event.ctrlKey;
+    const eventModifierPressed = isMac ? event.metaKey : event.ctrlKey;
+
+    setIsModifierPressed(eventModifierPressed);
 
     if (event.key === "Enter") {
       event.preventDefault();
@@ -311,7 +315,7 @@ const List: FC = () => {
       if (!activeItem) return;
 
       closePreview("enterPaste");
-      pasteClipboardItem(activeItem.id, isModifierPressed);
+      pasteClipboardItem(activeItem.id, eventModifierPressed);
 
       return;
     }
@@ -329,7 +333,7 @@ const List: FC = () => {
     }
 
     if (
-      isModifierPressed &&
+      eventModifierPressed &&
       (event.key === "Backspace" || event.key === "Delete")
     ) {
       event.preventDefault();
@@ -343,7 +347,7 @@ const List: FC = () => {
       return;
     }
 
-    if (isModifierPressed && event.key.toLowerCase() === "d") {
+    if (eventModifierPressed && event.key.toLowerCase() === "d") {
       event.preventDefault();
 
       const activeItem = getActiveItem();
@@ -373,6 +377,14 @@ const List: FC = () => {
   };
 
   useKeyboardEvent("keydown", handleKeyDown);
+
+  const handleKeyUp = (event: KeyboardEvent) => {
+    const eventModifierPressed = isMac ? event.metaKey : event.ctrlKey;
+
+    setIsModifierPressed(eventModifierPressed);
+  };
+
+  useKeyboardEvent("keyup", handleKeyUp);
 
   if (loading && items.length === 0) {
     return (
@@ -498,6 +510,11 @@ const List: FC = () => {
       pasteClipboardItem(item.id, false);
     };
 
+    const handleOpenLink = () => {
+      closePreview("openLink");
+      openClipboardItemLink(item.id, item.subKind === "email");
+    };
+
     const handleMouseDown = (event: ReactMouseEvent<HTMLDivElement>) => {
       if (event.button !== 0) {
         if (event.button !== 1) return;
@@ -571,6 +588,7 @@ const List: FC = () => {
       <div className={cn("px-3", { "pt-3": index !== 0 })}>
         <ClipboardCard
           hintKey={hintKey}
+          isLinkActive={isModifierPressed}
           isSelected={
             selectedId === null ? index === 0 : item.id === selectedId
           }
@@ -578,6 +596,7 @@ const List: FC = () => {
           onAuxClick={handleAuxClick}
           onDoubleClick={handleDoubleClick}
           onMouseDown={handleMouseDown}
+          onOpenLink={handleOpenLink}
           onPointerEnter={handlePointerEnter}
           onPointerLeave={handlePointerLeave}
           onPointerMove={handlePointerMove}
@@ -641,6 +660,30 @@ function getNextKeyboardIndex(
   }
 
   return Math.min(items.length - 1, currentIndex + 1);
+}
+
+/**
+ * 删除当前 active 项后优先选后一项；删除末尾时回退到前一项。
+ * 右键删除非 active 项时保留当前显式选中，避免意外跳选。
+ */
+function getSelectedIdAfterDelete(
+  items: ClipboardItem[],
+  selectedId: string | null,
+  deletedId: string,
+) {
+  const deletedIndex = items.findIndex((item) => {
+    return item.id === deletedId;
+  });
+
+  if (deletedIndex === -1) return selectedId;
+
+  const activeId = selectedId ?? items[0]?.id ?? null;
+
+  if (activeId !== deletedId) return selectedId;
+
+  const nextItem = items[deletedIndex + 1] ?? items[deletedIndex - 1] ?? null;
+
+  return nextItem?.id ?? null;
 }
 
 const computeItemKey = (_: number, item: ClipboardItem) => {

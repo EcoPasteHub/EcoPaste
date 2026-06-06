@@ -20,6 +20,14 @@ interface ClipboardCardProps {
    * 快捷键触发时执行的粘贴操作，由父级列表注入。
    */
   onQuickPaste?: () => void;
+  /**
+   * MOD 键按下时，URL / Email 文本以链接态展示。
+   */
+  isLinkActive?: boolean;
+  /**
+   * 点击 URL / Email 文本时打开外部链接。
+   */
+  onOpenLink?: () => void;
   onPointerEnter?: (event: PointerEvent<HTMLDivElement>) => void;
   onPointerLeave?: () => void;
   onPointerMove?: (event: PointerEvent<HTMLDivElement>) => void;
@@ -41,6 +49,8 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
     isSelected,
     hintKey,
     onQuickPaste,
+    isLinkActive,
+    onOpenLink,
     onPointerEnter,
     onPointerLeave,
     onPointerMove,
@@ -113,17 +123,23 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
         <span>{item.displayCreatedAt ?? item.createdAt}</span>
       </div>
 
-      {renderBody(item)}
+      {renderBody(item, isLinkActive, onOpenLink)}
     </div>
   );
 };
 
-const renderBody = (item: ClipboardItem) => {
+const renderBody = (
+  item: ClipboardItem,
+  isLinkActive?: boolean,
+  onOpenLink?: () => void,
+) => {
   if (item.kind === "image") return <ImageCard {...item} />;
 
   if (item.kind === "files") return <FilesCard {...item} />;
 
-  return <TextCard {...item} />;
+  return (
+    <TextCard {...item} isLinkActive={isLinkActive} onOpenLink={onOpenLink} />
+  );
 };
 
 export default ClipboardCard;
