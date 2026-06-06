@@ -14,79 +14,60 @@
     },
     "sections": {
       "actions": {
-        "description": "控制历史记录行上显示哪些快捷操作。",
         "title": "快捷动作"
       },
       "appearance": {
-        "description": "设置界面主题、语言和列表显示密度。",
         "title": "外观与语言"
       },
       "backup": {
-        "description": "未来可迁移历史数据库和相关资源文件。",
         "title": "备份迁移"
       },
       "capture": {
-        "description": "选择哪些剪贴板内容会保存到历史。",
         "title": "内容类型"
       },
       "control": {
-        "description": "控制 EcoPaste 是否随系统启动，以及显示哪些系统入口。",
         "title": "系统入口"
       },
       "copy": {
-        "description": "设置从历史复用内容时的复制格式和反馈。",
         "title": "复制反馈"
       },
       "diagnostics": {
-        "description": "恢复偏好设置默认值。",
         "title": "诊断恢复"
       },
       "external": {
-        "description": "未来可授权外部工具只读访问本地历史。",
         "title": "外部工具"
       },
       "globalShortcuts": {
-        "description": "设置在任意应用中都能触发的系统快捷键。",
         "title": "全局快捷键"
       },
       "history": {
-        "description": "设置历史记录的保留时间和数量上限。",
         "title": "保留与清理"
       },
       "localData": {
-        "description": "打开 EcoPaste 在本机保存数据、资源和日志的位置。",
         "title": "存储位置"
       },
       "organizing": {
-        "description": "设置收藏、备注和分组相关行为。",
         "title": "收藏与备注"
       },
       "paste": {
-        "description": "设置点击历史记录时的复制、粘贴和格式处理方式。",
         "title": "粘贴行为"
       },
       "preview": {
-        "description": "设置如何预览历史记录的完整内容。",
         "title": "内容预览"
       },
       "search": {
-        "description": "设置主窗口里的搜索习惯。",
         "title": "搜索与排序"
       },
       "sensitive": {
-        "description": "避免把密钥、Token 等敏感内容误存进历史。",
         "title": "隐私保护"
       },
       "source": {
-        "description": "按复制来源决定哪些应用的内容可以进入历史。",
         "title": "应用过滤"
       },
       "updates": {
-        "description": "设置 EcoPaste 如何检查和接收新版本。",
         "title": "更新"
       },
       "window": {
-        "description": "设置剪贴板主窗口每次打开时的位置。",
         "title": "主窗口"
       }
     },

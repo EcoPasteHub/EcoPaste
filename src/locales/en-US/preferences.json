@@ -14,79 +14,60 @@
     },
     "sections": {
       "actions": {
-        "description": "Control which quick actions appear on history rows.",
         "title": "Quick Actions"
       },
       "appearance": {
-        "description": "Configure theme, language, and list density.",
         "title": "Appearance & Language"
       },
       "backup": {
-        "description": "Future migration for the history database and resource files.",
         "title": "Backup & Migration"
       },
       "capture": {
-        "description": "Choose which clipboard types are saved to history.",
         "title": "Content Types"
       },
       "control": {
-        "description": "Control startup behavior and system entry points for EcoPaste.",
         "title": "System Entry"
       },
       "copy": {
-        "description": "Configure copy format and feedback when reusing history.",
         "title": "Copy Feedback"
       },
       "diagnostics": {
-        "description": "Restore preference defaults.",
         "title": "Diagnostics"
       },
       "external": {
-        "description": "Future read-only access for external tools.",
         "title": "External Tools"
       },
       "globalShortcuts": {
-        "description": "Configure system shortcuts that work from any app.",
         "title": "Global Shortcuts"
       },
       "history": {
-        "description": "Set retention time and item-count limits for history.",
         "title": "Retention & Cleanup"
       },
       "localData": {
-        "description": "Open where EcoPaste stores local data, resources, and logs.",
         "title": "Storage Locations"
       },
       "organizing": {
-        "description": "Configure favorites, notes, and grouping behavior.",
         "title": "Favorites & Notes"
       },
       "paste": {
-        "description": "Configure copy, paste, and format behavior when clicking history records.",
         "title": "Paste Behavior"
       },
       "preview": {
-        "description": "Configure how full history records are previewed.",
         "title": "Content Preview"
       },
       "search": {
-        "description": "Configure search habits in the main window.",
         "title": "Search & Sort"
       },
       "sensitive": {
-        "description": "Avoid saving keys, tokens, and other sensitive content by mistake.",
         "title": "Privacy"
       },
       "source": {
-        "description": "Control which source apps can save copied content to history.",
         "title": "App Filters"
       },
       "updates": {
-        "description": "Configure how EcoPaste checks for and receives new versions.",
         "title": "Updates"
       },
       "window": {
-        "description": "Set where the clipboard main window opens each time.",
         "title": "Main Window"
       }
     },
