@@ -313,7 +313,7 @@ pub struct Preview {
 impl Default for Preview {
     fn default() -> Self {
         Self {
-            hover_enabled: true,
+            hover_enabled: false,
             hover_delay_ms: PreviewHoverDelayMs::Ms500,
             space_enabled: true,
         }

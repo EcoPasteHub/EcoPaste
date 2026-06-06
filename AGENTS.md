@@ -170,7 +170,7 @@ cargo test                    # Rust 单测（在 src-tauri 下）
   - 不为「可能传对象 / 数组」加 `useRef` 缓存 + 自比对——直接把入参类型约束成基础类型。
   - 能用 `useSnapshot` + `useEffect` 表达就不要手写 `subscribe` + `useMount` + `useUnmount` 重造。
   - 先写最短能跑的版本，遇到真问题再加抽象。
-- 提交信息遵循 Conventional Commits（commitlint 校验）。
+- 提交信息遵循 Conventional Commits（commitlint 校验）：生成 commit message 时必须是**单行**；前缀必须符合规范（如 `feat` / `fix` / `refactor` / `style` / `chore` / `test` / `docs` 等）；scope 可按改动范围自行判断是否需要添加。
 - 改动 UI 后，在浏览器/窗口里实际操作验证主路径与边界，不要只靠类型检查就声称完成。
 
 ## 外部文档参考（LLM 友好）

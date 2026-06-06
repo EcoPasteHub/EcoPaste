@@ -194,7 +194,7 @@
           "title": "Launch at Login"
         },
         "dockIcon": {
-          "description": "Show a desktop task entry.",
+          "description": "Show an icon in the macOS Dock or Windows taskbar.",
           "title": "Dock / Taskbar Icon"
         },
         "silentStart": {
@@ -202,7 +202,7 @@
           "title": "Silent Start"
         },
         "trayIcon": {
-          "description": "Show a persistent system entry.",
+          "description": "Show an icon in the macOS menu bar or Windows system tray.",
           "title": "Menu Bar / Tray Icon"
         }
       },

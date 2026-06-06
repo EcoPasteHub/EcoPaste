@@ -194,16 +194,16 @@
           "title": "开机启动"
         },
         "dockIcon": {
-          "description": "显示桌面任务入口。",
-          "title": "Dock / 任务栏图标"
+          "description": "在 macOS 程序坞或 Windows 任务栏中显示图标。",
+          "title": "程序坞 / 任务栏图标"
         },
         "silentStart": {
           "description": "后台启动，不弹出主窗口。",
           "title": "静默启动"
         },
         "trayIcon": {
-          "description": "显示常驻系统入口。",
-          "title": "菜单栏 / 托盘图标"
+          "description": "在 macOS 菜单栏或 Windows 系统托盘中显示图标。",
+          "title": "菜单栏 / 系统托盘图标"
         }
       },
       "copy": {

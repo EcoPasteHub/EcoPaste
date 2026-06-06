@@ -683,22 +683,22 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { type: "switch" },
-            description: "显示常驻系统入口。",
+            description: "在 macOS 菜单栏或 Windows 系统托盘中显示图标。",
             id: "control.trayIcon",
             keywords: ["tray", "menu bar", "system"],
             path: ["general", "trayIcon"],
-            title: "菜单栏 / 托盘图标",
+            title: "菜单栏 / 系统托盘图标",
             value: (settings) => {
               return settings.general.trayIcon;
             },
           },
           {
             control: { type: "switch" },
-            description: "显示桌面任务入口。",
+            description: "在 macOS 程序坞或 Windows 任务栏中显示图标。",
             id: "control.dockIcon",
             keywords: ["dock", "taskbar", "icon"],
             path: ["general", "dockIcon"],
-            title: "Dock / 任务栏图标",
+            title: "程序坞 / 任务栏图标",
             value: (settings) => {
               return settings.general.dockIcon;
             },
