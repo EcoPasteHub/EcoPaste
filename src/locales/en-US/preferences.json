@@ -515,11 +515,6 @@
         }
       },
       "source": {
-        "detectApp": {
-          "controlLabel": "Enabled",
-          "description": "Show copy source in records.",
-          "title": "Detect Source App"
-        },
         "excludedApps": {
           "description": "Copies from these apps will not be saved.",
           "title": "Ignored Apps"

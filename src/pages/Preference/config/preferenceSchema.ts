@@ -103,14 +103,6 @@ export const preferenceTabs: PreferenceTab[] = [
             },
           },
           {
-            control: { label: "已启用", type: "status" },
-            description: "在记录中显示复制来源。",
-            id: "source.detectApp",
-            keywords: ["source", "app", "origin"],
-            status: "alwaysOn",
-            title: "识别来源应用",
-          },
-          {
             control: { placeholder: "每行一个目录", type: "textarea" },
             description: "补充应用搜索范围，用于识别名称和图标。",
             id: "source.scanDirs",

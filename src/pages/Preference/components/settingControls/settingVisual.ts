@@ -72,7 +72,6 @@ const SETTING_ICON_MAP: Record<string, string> = {
   "shortcuts.windowPastePlain": "i-lucide:clipboard-type",
   "shortcuts.windowPin": "i-lucide:pin",
   "shortcuts.windowQuickPaste": "i-lucide:list-start",
-  "source.detectApp": "i-lucide:app-window",
   "source.excludedApps": "i-lucide:shield-ban",
   "source.perAppRules": "i-lucide:sliders-horizontal",
   "source.scanDirs": "i-lucide:folder-search",

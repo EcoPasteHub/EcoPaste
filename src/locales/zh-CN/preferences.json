@@ -515,11 +515,6 @@
         }
       },
       "source": {
-        "detectApp": {
-          "controlLabel": "已启用",
-          "description": "在记录中显示复制来源。",
-          "title": "识别来源应用"
-        },
         "excludedApps": {
           "description": "这些应用中的复制不会保存。",
           "title": "忽略应用"
