@@ -55,7 +55,6 @@ const SETTING_ICON_MAP: Record<string, string> = {
   "shortcuts.openClipboard": "i-lucide:panel-top-open",
   "shortcuts.openPreference": "i-lucide:settings",
   "source.excludedApps": "i-lucide:shield-ban",
-  "source.scanDirs": "i-lucide:folder-search",
   "updates.autoCheck": "i-lucide:refresh-cw",
   "updates.beta": "i-lucide:flask-conical",
   "updates.frequency": "i-lucide:calendar-sync",

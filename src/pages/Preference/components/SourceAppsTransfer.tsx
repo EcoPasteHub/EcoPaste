@@ -1,15 +1,26 @@
-import { useMount } from "ahooks";
-import { Button, Empty, Input, Popover, Transfer } from "antd";
+import { open } from "@tauri-apps/plugin-dialog";
+import { Button, Empty, Transfer } from "antd";
 import type { TransferKey } from "antd/es/transfer/interface";
 import type { TFunction } from "i18next";
-import type { ChangeEvent, FC } from "react";
+import type { FC } from "react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { listAllApps, refreshApps } from "@/commands";
+import { useSnapshot } from "valtio";
+import {
+  addClipboardAppFromPath,
+  deleteUnreferencedClipboardApps,
+} from "@/commands";
 import AssetImage from "@/components/AssetImage";
 import Tooltip from "@/components/Tooltip";
+import {
+  mergeSourceApp,
+  refreshSourceApps,
+  removeSourceApps,
+  sourceAppsState,
+} from "@/stores/sourceApps";
 import type { ClipboardApp } from "@/types/clipboard";
 import type { Settings } from "@/types/settings";
+import { isMac } from "@/utils/is";
 import { log } from "@/utils/log";
 import type {
   PreferenceSetting,
@@ -19,7 +30,6 @@ import PreferenceCountTag from "./PreferenceCountTag";
 
 interface SourceAppsTransferProps {
   excludedAppsSetting: PreferenceSetting;
-  scanDirsSetting: PreferenceSetting;
   settings: Settings;
   onChange: PreferenceSettingChangeHandler;
 }
@@ -32,21 +42,18 @@ interface SourceAppTransferItem {
 }
 
 /**
- * 来源应用复合设置：左侧展示全部应用，右侧维护已忽略应用。
+ * 来源应用复合设置：左侧展示可忽略应用，右侧维护已忽略应用。
  */
 const SourceAppsTransfer: FC<SourceAppsTransferProps> = (props) => {
   const { t } = useTranslation("preferences");
-  const { excludedAppsSetting, scanDirsSetting, settings, onChange } = props;
+  const { excludedAppsSetting, settings, onChange } = props;
+  const sourceApps = useSnapshot(sourceAppsState);
   const excludedAppIds = settings.clipboard.filters.excludedAppIds;
-  const scanDirs = settings.clipboard.filters.scanDirs;
-  const [apps, setApps] = useState<ClipboardApp[]>([]);
-  const [refreshing, setRefreshing] = useState(false);
-  const [popoverOpen, setPopoverOpen] = useState(false);
-  const [scanDirsDraft, setScanDirsDraft] = useState(scanDirs.join("\n"));
+  const [adding, setAdding] = useState(false);
 
   const dataSource = useMemo(() => {
-    return buildTransferItems(apps, excludedAppIds);
-  }, [apps, excludedAppIds]);
+    return buildTransferItems(sourceApps.apps);
+  }, [sourceApps.apps]);
 
   const targetKeys = useMemo(() => {
     const knownKeys = new Set(
@@ -61,85 +68,61 @@ const SourceAppsTransfer: FC<SourceAppsTransferProps> = (props) => {
   }, [dataSource, excludedAppIds]);
 
   /**
-   * 拉取全部已知应用，并保留当前忽略列表中的占位项。
+   * 手动添加一个来源应用，成功后直接加入已忽略列表。
    */
-  const loadApps = async () => {
+  const handleAddApp = async () => {
+    setAdding(true);
+
     try {
-      setApps(await listAllApps());
+      const selected = await open({
+        directory: false,
+        filters: [
+          {
+            extensions: [isMac ? "app" : "exe"],
+            name: t("schema.settings.source.appTransfer.appFileFilter"),
+          },
+        ],
+        multiple: false,
+        title: t("schema.settings.source.appTransfer.addApp"),
+      });
+      if (!selected) return;
+
+      const added = await addClipboardAppFromPath(selected);
+      mergeSourceApp(added);
+      await onChange(
+        excludedAppsSetting,
+        mergeExcludedAppIds(excludedAppIds, added.id),
+      );
     } catch (error) {
-      log.warn("load source apps failed", error);
+      log.warn("add source app failed", error);
+    } finally {
+      setAdding(false);
     }
   };
 
   /**
-   * 手动触发 Rust 侧目录扫描，完成后刷新穿梭框数据。
+   * 手动触发可忽略应用刷新，完成后刷新穿梭框数据。
    */
   const handleRefreshApps = async () => {
-    setRefreshing(true);
-
-    try {
-      setApps(await refreshApps());
-    } catch (error) {
-      log.warn("refresh source apps failed", error);
-    } finally {
-      setRefreshing(false);
-    }
+    await refreshSourceApps(excludedAppIds);
   };
 
   /**
    * 根据穿梭框右侧 key 列表保存忽略应用。
    */
   const handleTransferChange = async (nextKeys: TransferKey[]) => {
-    await onChange(
-      excludedAppsSetting,
-      nextKeys.map((key) => {
-        return String(key);
-      }),
-    );
+    const nextExcludedAppIds = nextKeys.map((key) => {
+      return String(key);
+    });
+
+    await onChange(excludedAppsSetting, nextExcludedAppIds);
+
+    const removedIds = diffRemovedIds(excludedAppIds, nextExcludedAppIds);
+    if (removedIds.length === 0) return;
+
+    const deletedIds = await deleteUnreferencedClipboardApps(removedIds);
+    removeSourceApps(deletedIds);
   };
-
-  const handleScanDirsDraftChange = (
-    event: ChangeEvent<HTMLTextAreaElement>,
-  ) => {
-    setScanDirsDraft(event.target.value);
-  };
-
-  /**
-   * 关闭目录设置浮层时，把草稿重置回最新设置值。
-   */
-  const handlePopoverOpenChange = (nextOpen: boolean) => {
-    setPopoverOpen(nextOpen);
-
-    if (nextOpen) return;
-
-    setScanDirsDraft(scanDirs.join("\n"));
-  };
-
-  /**
-   * 保存应用发现目录；路径变更后主动扫描一次，保证左侧列表及时更新。
-   */
-  const handleSaveScanDirs = async () => {
-    const nextScanDirs = normalizeScanDirs(scanDirsDraft);
-
-    await onChange(scanDirsSetting, nextScanDirs);
-    setPopoverOpen(false);
-
-    if (arrayEqual(scanDirs, nextScanDirs)) return;
-
-    await handleRefreshApps();
-  };
-
-  /**
-   * 取消目录设置编辑并关闭浮层。
-   */
-  const handleCancelScanDirs = () => {
-    setScanDirsDraft(scanDirs.join("\n"));
-    setPopoverOpen(false);
-  };
-
-  useMount(() => {
-    void loadApps();
-  });
 
   const sourceCountLabel = formatCountLabel(t, dataSource.length);
   const targetCountLabel = formatCountLabel(t, targetKeys.length);
@@ -152,35 +135,11 @@ const SourceAppsTransfer: FC<SourceAppsTransferProps> = (props) => {
         <PreferenceCountTag>{sourceCountLabel}</PreferenceCountTag>
       </span>
       <div className="flex shrink-0 items-center gap-1">
-        <Popover
-          content={
-            <ScanDirsPopoverContent
-              draft={scanDirsDraft}
-              onCancel={handleCancelScanDirs}
-              onDraftChange={handleScanDirsDraftChange}
-              onSave={handleSaveScanDirs}
-            />
-          }
-          onOpenChange={handlePopoverOpenChange}
-          open={popoverOpen}
-          placement="bottomRight"
-          trigger="click"
-        >
-          <Tooltip title={t("schema.settings.source.appTransfer.scanDirs")}>
-            <Button
-              aria-label={t("schema.settings.source.appTransfer.scanDirs")}
-              icon={<i aria-hidden="true" className="i-lucide:folder-search" />}
-              size="small"
-              type="text"
-            />
-          </Tooltip>
-        </Popover>
-
         <Tooltip title={t("schema.settings.source.appTransfer.refreshApps")}>
           <Button
             aria-label={t("schema.settings.source.appTransfer.refreshApps")}
             icon={<i aria-hidden="true" className="i-lucide:refresh-cw" />}
-            loading={refreshing}
+            loading={sourceApps.loading}
             onClick={handleRefreshApps}
             size="small"
             type="text"
@@ -191,11 +150,23 @@ const SourceAppsTransfer: FC<SourceAppsTransferProps> = (props) => {
   );
 
   const targetTitle = (
-    <span className="flex min-w-0 items-center gap-1">
-      <span className="truncate">
-        {t("schema.settings.source.appTransfer.ignoredTitle")}
+    <span className="flex min-w-0 items-center justify-between gap-2">
+      <span className="flex min-w-0 items-center gap-1">
+        <span className="truncate">
+          {t("schema.settings.source.appTransfer.ignoredTitle")}
+        </span>
+        <PreferenceCountTag>{targetCountLabel}</PreferenceCountTag>
       </span>
-      <PreferenceCountTag>{targetCountLabel}</PreferenceCountTag>
+      <Tooltip title={t("schema.settings.source.appTransfer.addApp")}>
+        <Button
+          aria-label={t("schema.settings.source.appTransfer.addApp")}
+          icon={<i aria-hidden="true" className="i-ph:plus text-base" />}
+          loading={adding}
+          onClick={handleAddApp}
+          size="small"
+          type="text"
+        />
+      </Tooltip>
     </span>
   );
 
@@ -239,47 +210,10 @@ const SourceAppsTransfer: FC<SourceAppsTransferProps> = (props) => {
 
 export default SourceAppsTransfer;
 
-interface ScanDirsPopoverContentProps {
-  draft: string;
-  onCancel: () => void;
-  onDraftChange: (event: ChangeEvent<HTMLTextAreaElement>) => void;
-  onSave: () => Promise<void>;
-}
-
 /**
- * 应用发现目录编辑浮层，保存后由父组件提交设置并刷新列表。
+ * 把 Rust 返回的应用列表转换成 Transfer 数据。
  */
-const ScanDirsPopoverContent: FC<ScanDirsPopoverContentProps> = (props) => {
-  const { t } = useTranslation("preferences");
-  const { draft, onCancel, onDraftChange, onSave } = props;
-
-  return (
-    <div className="w-80">
-      <Input.TextArea
-        autoSize={{ maxRows: 8, minRows: 5 }}
-        onChange={onDraftChange}
-        placeholder={t("schema.settings.source.scanDirs.placeholder")}
-        value={draft}
-      />
-      <div className="mt-3 flex justify-end gap-2">
-        <Button onClick={onCancel} size="small">
-          {t("schema.settings.source.appTransfer.cancel")}
-        </Button>
-        <Button onClick={onSave} size="small" type="primary">
-          {t("schema.settings.source.appTransfer.save")}
-        </Button>
-      </div>
-    </div>
-  );
-};
-
-/**
- * 把 Rust 返回的应用列表与当前忽略列表合并成 Transfer 数据。
- */
-function buildTransferItems(
-  apps: ClipboardApp[],
-  excludedAppIds: string[],
-): SourceAppTransferItem[] {
+function buildTransferItems(apps: ClipboardApp[]): SourceAppTransferItem[] {
   const items = new Map(
     apps.map((app) => {
       return [
@@ -294,21 +228,30 @@ function buildTransferItems(
     }),
   );
 
-  for (const id of excludedAppIds) {
-    if (items.has(id)) continue;
-
-    items.set(id, {
-      description: id,
-      iconPath: null,
-      key: id,
-      title: id,
-    });
-  }
-
   return Array.from(items.values()).sort((left, right) => {
     return left.title
       .toLocaleLowerCase()
       .localeCompare(right.title.toLocaleLowerCase());
+  });
+}
+
+/**
+ * 把手动添加的应用 id 追加到忽略列表，已存在时保持原列表不变。
+ */
+function mergeExcludedAppIds(excludedAppIds: string[], appId: string) {
+  if (excludedAppIds.includes(appId)) return excludedAppIds;
+
+  return [...excludedAppIds, appId];
+}
+
+/**
+ * 计算这次从已忽略列表移除的应用 id。
+ */
+function diffRemovedIds(previousIds: string[], nextIds: string[]) {
+  const next = new Set(nextIds);
+
+  return previousIds.filter((id) => {
+    return !next.has(id);
   });
 }
 
@@ -363,35 +306,4 @@ function formatCountLabel(t: TFunction<"preferences">, count: number) {
       : "schema.settings.source.appTransfer.itemsUnit";
 
   return `${count} ${t(unitKey)}`;
-}
-
-/**
- * 把目录输入归一成非空、去重、保持顺序的数组。
- */
-function normalizeScanDirs(draft: string) {
-  const seen = new Set<string>();
-
-  return draft
-    .split("\n")
-    .map((line) => {
-      return line.trim();
-    })
-    .filter((line) => {
-      if (line.length === 0) return false;
-      if (seen.has(line)) return false;
-
-      seen.add(line);
-      return true;
-    });
-}
-
-/**
- * 比较字符串数组是否完全一致。
- */
-function arrayEqual(left: string[], right: string[]) {
-  if (left.length !== right.length) return false;
-
-  return left.every((item, index) => {
-    return item === right[index];
-  });
 }

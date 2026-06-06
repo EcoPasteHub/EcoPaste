@@ -129,7 +129,6 @@ export interface Feedback {
 
 export interface Filters {
   excludedAppIds: string[];
-  scanDirs: string[];
 }
 
 export interface Clipboard {

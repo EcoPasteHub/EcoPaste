@@ -8,6 +8,7 @@
     "log:default",
     "os:default",
     "core:window:allow-start-dragging",
+    "dialog:default",
     "opener:default",
     "core:window:deny-internal-toggle-maximize",
     "core:window:allow-hide"

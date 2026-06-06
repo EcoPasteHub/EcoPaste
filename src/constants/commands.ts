@@ -4,8 +4,10 @@
  * 不要再裸写命令名字面量或在调用处引用这个表。
  */
 export const TAURI_COMMAND = {
+  ADD_CLIPBOARD_APP_FROM_PATH: "add_clipboard_app_from_path",
   CLOSE_CLIPBOARD_PREVIEW: "close_clipboard_preview",
   DELETE_CLIPBOARD_ITEM: "delete_clipboard_item",
+  DELETE_UNREFERENCED_CLIPBOARD_APPS: "delete_unreferenced_clipboard_apps",
   GET_AUTOSTART: "get_autostart",
   GET_CLIPBOARD_IMAGE_PATH: "get_clipboard_image_path",
   GET_CLIPBOARD_ITEM: "get_clipboard_item",
@@ -22,7 +24,6 @@ export const TAURI_COMMAND = {
   PASTE_CLIPBOARD_ITEM: "paste_clipboard_item",
   PLAY_COPY_SOUND: "play_copy_sound",
   POPUP_CLIPBOARD_ITEM_MENU: "popup_clipboard_item_menu",
-  REFRESH_APPS: "refresh_apps",
   RESET_SETTINGS: "reset_settings",
   REVEAL_CLIPBOARD_ITEM: "reveal_clipboard_item",
   SET_AUTOSTART: "set_autostart",

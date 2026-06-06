@@ -384,24 +384,18 @@
       },
       "source": {
         "appTransfer": {
-          "allTitle": "全部应用",
-          "cancel": "取消",
+          "addApp": "添加应用",
+          "allTitle": "可忽略的应用",
+          "appFileFilter": "应用文件",
           "ignoredTitle": "已忽略的应用",
           "itemsUnit": "项",
           "itemUnit": "项",
-          "refreshApps": "刷新应用",
-          "save": "保存",
-          "scanDirs": "应用发现目录",
+          "refreshApps": "刷新可忽略应用",
           "searchPlaceholder": "搜索应用"
         },
         "excludedApps": {
           "description": "从这些应用复制的内容不会进入历史。",
           "title": "忽略应用"
-        },
-        "scanDirs": {
-          "description": "添加应用扫描目录，用于识别来源应用名称和图标。",
-          "placeholder": "每行一个目录",
-          "title": "应用发现目录"
         }
       },
       "updates": {

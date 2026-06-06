@@ -1,28 +1,19 @@
-//! 应用注册表：把「目录扫描发现的已安装应用」与「监听过程中捕获的前台应用」统一在
-//! `clipboard_apps` 表中，并在内存里维护一份 id → 应用的缓存，给两类场景共用：
-//!
-//! - 偏好设置「应用过滤」面板：一次性展示全部已知应用，让用户勾选要排除的应用。
-//! - 剪贴板监听回调：拿到前台应用 id 后先从缓存取（带 icon），缓存缺失再走原 FrontmostApp 路径
-//!   补齐图标并写入缓存——同步即可命中常见情况，避免每次复制都走「TIFF→PNG」编码。
-//!
-//! 启动期先把 DB 已有的应用全部读进缓存（覆盖上一会话扫描结果 + 历史捕获记录），
-//! 再后台启动一次目录扫描；之后用户在 UI 里点「刷新」会触发 [`refresh_from_dirs`] 重扫。
+//! 应用注册表：把「运行中应用」「监听过程中捕获的前台应用」「用户手动添加的应用」
+//! 统一物化为可展示的应用记录，并维护一份 id → 应用的内存缓存。
+//! 运行中应用只进缓存；复制捕获、手动添加和默认忽略物化的应用才写入 `clipboard_apps` 表。
 
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::{Arc, RwLock};
 
+use anyhow::anyhow;
 use chrono::Utc;
 use sqlx::SqlitePool;
-use tauri::{AppHandle, Emitter};
 
 use super::app_store::AppIconStore;
-use crate::core::Result;
+use crate::core::{AppError, Result};
 use crate::db::apps;
 use crate::db::models::{ClipboardApp, Platform};
-
-/// 应用注册表更新事件（前端 FiltersPanel 收到后重拉列表）。
-pub const APPS_UPDATED_EVENT: &str = "clipboard-apps://updated";
 
 #[derive(Clone)]
 pub struct AppsRegistry {
@@ -32,6 +23,7 @@ pub struct AppsRegistry {
 }
 
 impl AppsRegistry {
+    /// 创建来源应用注册表，共享 DB 连接池、图标仓库和内存缓存。
     pub fn new(pool: SqlitePool, icon_store: AppIconStore) -> Self {
         Self {
             pool,
@@ -51,6 +43,7 @@ impl AppsRegistry {
         Ok(())
     }
 
+    /// 按 id 从内存缓存读取来源应用记录。
     pub fn get(&self, id: &str) -> Option<ClipboardApp> {
         self.cache
             .read()
@@ -59,192 +52,140 @@ impl AppsRegistry {
             .cloned()
     }
 
-    /// 列出当前缓存中的全部应用（名称升序）。
-    pub fn list_all(&self) -> Vec<ClipboardApp> {
-        let mut v: Vec<_> = self
-            .cache
-            .read()
-            .expect("apps registry cache poisoned")
-            .values()
-            .cloned()
-            .collect();
-        v.sort_by(|a, b| {
-            a.name
-                .to_lowercase()
-                .cmp(&b.name.to_lowercase())
-                .then_with(|| a.id.cmp(&b.id))
-        });
-        v
-    }
-
+    /// 写入或替换内存缓存中的来源应用记录。
     pub fn insert_into_cache(&self, app: ClipboardApp) {
         self.cache
             .write()
             .expect("apps registry cache poisoned")
             .insert(app.id.clone(), app);
     }
+
+    /// 从内存缓存移除来源应用记录。
+    pub fn remove_from_cache(&self, id: &str) {
+        self.cache
+            .write()
+            .expect("apps registry cache poisoned")
+            .remove(id);
+    }
 }
 
-/// 扫描给定目录、对每个发现的应用 upsert DB 并写入缓存，返回更新后的完整列表。
-/// 元数据扫描很快（plist 解析），同步返回；图标提取（NSWorkspace + TIFF→PNG，单条数百毫秒）
-/// 放到后台 spawn_blocking 任务，完成后通过 [`APPS_UPDATED_EVENT`] 通知前端重拉。
-///
-/// 单条 upsert/icon 落盘失败仅 warn，不中断其它条目。
-pub async fn refresh_from_dirs(
-    app: AppHandle,
-    registry: AppsRegistry,
-    dirs: Vec<String>,
-    force_icons: bool,
-) -> Result<Vec<ClipboardApp>> {
-    // 将用户配置的目录与系统内建目录合并去重——系统目录列表会随版本升级，
-    // 老 settings.json 不会自动跟进，这里做一次 union 兜底，保证新加的系统目录
-    // （如 /System/Library/CoreServices/Applications）始终被扫到。
-    let mut merged: Vec<String> = Vec::new();
-    let mut seen = std::collections::HashSet::new();
-    for d in dirs.into_iter().chain(builtin_scan_dirs()) {
-        if seen.insert(d.clone()) {
-            merged.push(d);
-        }
-    }
-    let dirs = merged;
-    log::info!("app scan: refresh requested, dirs = {dirs:?}, force_icons = {force_icons}");
-    // 阶段 1：纯文件 IO + plist 解析，放到 blocking 线程池。
-    let dirs_for_scan = dirs.clone();
-    let metas = tauri::async_runtime::spawn_blocking(move || scanner::scan_dirs(&dirs_for_scan))
+/// 刷新当前运行中的用户应用，并返回本次枚举到的应用列表。
+pub async fn refresh_running_apps(registry: AppsRegistry) -> Result<Vec<ClipboardApp>> {
+    let metas = tauri::async_runtime::spawn_blocking(running_app_metas)
         .await
-        .map_err(|err| {
-            crate::core::AppError::Other(anyhow::anyhow!("app scan join failed: {err}"))
-        })?;
-    log::info!(
-        "app scan: discovered {} metas, upserting metadata...",
-        metas.len()
-    );
+        .map_err(|err| AppError::Other(anyhow!("running app refresh task join failed: {err}")))?;
 
-    // 阶段 2：upsert 元数据（保留旧 icon_file 不置空）。force_icons=true 时所有条目都进
-    // 重抓队列（用户点刷新）；false 时只针对「没图标」或「icon_file 指向的文件已不在磁盘」
-    // 的条目（启动场景，避免每次启动 60s，同时修复 DB 残留指向缺失文件的情况）。
+    Ok(materialize_metas(&registry, metas))
+}
+
+/// 从用户选择的应用路径构建来源应用并写入注册表。
+pub async fn add_app_from_path(registry: AppsRegistry, path: String) -> Result<ClipboardApp> {
+    let meta =
+        tauri::async_runtime::spawn_blocking(move || app_meta_from_path(PathBuf::from(path)))
+            .await
+            .map_err(|err| AppError::Other(anyhow!("app add task join failed: {err}")))??;
+    let mut apps = upsert_metas(&registry, vec![meta]).await?;
+
+    apps.pop()
+        .ok_or_else(|| AppError::Clipboard("app metadata is empty".to_owned()))
+}
+
+/// 按应用 id 批量补全应用信息，返回成功物化的应用。
+pub async fn add_apps_from_ids(
+    registry: AppsRegistry,
+    ids: Vec<String>,
+) -> Result<Vec<ClipboardApp>> {
+    let metas = tauri::async_runtime::spawn_blocking(move || {
+        ids.into_iter()
+            .filter_map(|id| app_meta_from_id(&id))
+            .collect::<Vec<_>>()
+    })
+    .await
+    .map_err(|err| AppError::Other(anyhow!("app lookup task join failed: {err}")))?;
+
+    upsert_metas(&registry, metas).await
+}
+
+/// 删除未被历史记录引用的来源应用，并同步移除注册表缓存。
+pub async fn delete_unreferenced_apps(
+    registry: AppsRegistry,
+    ids: Vec<String>,
+) -> Result<Vec<String>> {
+    let deleted = apps::delete_unreferenced_apps(&registry.pool, &ids).await?;
+
+    for id in &deleted {
+        registry.remove_from_cache(id);
+    }
+
+    Ok(deleted)
+}
+
+/// 将元数据列表物化为应用记录，写入内存缓存并同步抽取图标。
+fn materialize_metas(registry: &AppsRegistry, metas: Vec<ScannedAppMeta>) -> Vec<ClipboardApp> {
     let now = Utc::now();
-    let mut icon_targets: Vec<(String, PathBuf)> = Vec::new();
-    for meta in &metas {
-        let existing_icon = registry.get(&meta.id).and_then(|a| a.icon_file);
-        let icon_on_disk = existing_icon
-            .as_deref()
-            .map(|name| registry.icon_store.icon_path(name).exists())
-            .unwrap_or(false);
-        if force_icons || !icon_on_disk {
-            icon_targets.push((meta.id.clone(), meta.path.clone()));
-        }
-        let app_row = ClipboardApp {
-            id: meta.id.clone(),
-            name: meta.name.clone(),
-            icon_file: existing_icon,
+    let mut apps_out = Vec::with_capacity(metas.len());
+
+    for meta in metas {
+        let existing_icon = registry.get(&meta.id).and_then(|app| app.icon_file);
+        let icon_file = match existing_icon {
+            Some(icon_file) => Some(icon_file),
+            None => meta
+                .path
+                .as_deref()
+                .and_then(|path| super::icon::icon_png(path, None))
+                .as_deref()
+                .and_then(|bytes| match registry.icon_store.store(bytes) {
+                    Ok(name) => Some(name),
+                    Err(err) => {
+                        log::warn!("app icon store failed for {}: {err}", meta.id);
+                        None
+                    }
+                }),
+        };
+        let app = ClipboardApp {
+            id: meta.id,
+            name: meta.name,
+            icon_file,
             platform: meta.platform,
             created_at: now,
             updated_at: now,
         };
-        if let Err(err) = apps::upsert_app(&registry.pool, &app_row).await {
-            log::warn!("app scan: upsert meta {} failed: {err}", app_row.id);
-            continue;
-        }
-        registry.insert_into_cache(app_row);
+        registry.insert_into_cache(app.clone());
+        apps_out.push(app);
     }
 
-    let initial = registry.list_all();
-
-    // 阶段 3：后台并发提取每个条目的 PNG，再 upsert + emit 通知。
-    if !icon_targets.is_empty() {
-        let registry_bg = registry.clone();
-        let app_bg = app.clone();
-        tauri::async_runtime::spawn(async move {
-            fetch_icons_background(app_bg, registry_bg, icon_targets).await;
-        });
-    } else {
-        log::info!("app scan: nothing to extract icons for");
-    }
-
-    Ok(initial)
+    apps_out
 }
 
-async fn fetch_icons_background(
-    app: AppHandle,
-    registry: AppsRegistry,
-    targets: Vec<(String, PathBuf)>,
-) {
-    log::info!("app icons: fetching {} icons in background", targets.len());
-    // 一次 spawn_blocking 中串行处理（每个 NSImage→PNG 数百 ms），避免对主线程造成压力。
-    // 处理一批后 emit 一次事件让 UI 增量刷新。
-    const BATCH: usize = 16;
-    let mut buf: Vec<(String, Vec<u8>)> = Vec::new();
-    for chunk in targets.chunks(BATCH) {
-        let chunk_owned: Vec<(String, PathBuf)> = chunk.to_vec();
-        let extracted = tauri::async_runtime::spawn_blocking(move || {
-            let mut out: Vec<(String, Vec<u8>)> = Vec::new();
-            for (id, path) in chunk_owned {
-                if let Some(png) = scanner::icon_for_bundle(&path) {
-                    out.push((id, png));
-                }
-            }
-            out
-        })
-        .await
-        .unwrap_or_default();
-        buf.extend(extracted);
+/// 将元数据列表写入 DB 与缓存。
+async fn upsert_metas(
+    registry: &AppsRegistry,
+    metas: Vec<ScannedAppMeta>,
+) -> Result<Vec<ClipboardApp>> {
+    let apps = materialize_metas(registry, metas);
 
-        let now = Utc::now();
-        let mut touched = false;
-        for (id, png) in buf.drain(..) {
-            let icon_file = match registry.icon_store.store(&png) {
-                Ok(name) => name,
-                Err(err) => {
-                    log::warn!("app icons: store {id} failed: {err}");
-                    continue;
-                }
-            };
-            let Some(mut existing) = registry.get(&id) else {
-                continue;
-            };
-            existing.icon_file = Some(icon_file);
-            existing.updated_at = now;
-            if let Err(err) = apps::upsert_app(&registry.pool, &existing).await {
-                log::warn!("app icons: upsert {id} failed: {err}");
-                continue;
-            }
-            registry.insert_into_cache(existing);
-            touched = true;
-        }
-        if touched {
-            if let Err(err) = app.emit(APPS_UPDATED_EVENT, ()) {
-                log::warn!("emit {APPS_UPDATED_EVENT} failed: {err}");
-            }
-        }
+    for app in &apps {
+        apps::upsert_app(&registry.pool, app).await?;
     }
-    log::info!("app icons: done");
+
+    Ok(apps)
 }
 
-/// 平台内建扫描目录——与用户配置 union，确保系统更新后新增的目录自动接入。
-fn builtin_scan_dirs() -> Vec<String> {
+pub struct ScannedAppMeta {
+    pub id: String,
+    pub name: String,
+    pub path: Option<PathBuf>,
+    pub platform: Platform,
+}
+
+fn running_app_metas() -> Vec<ScannedAppMeta> {
     #[cfg(target_os = "macos")]
     {
-        let mut dirs = vec![
-            "/Applications".to_owned(),
-            "/System/Applications".to_owned(),
-            "/System/Applications/Utilities".to_owned(),
-            "/System/Library/CoreServices/Applications".to_owned(),
-        ];
-        if let Some(home) = std::env::var_os("HOME") {
-            let p = std::path::PathBuf::from(home).join("Applications");
-            if let Some(s) = p.to_str() {
-                dirs.push(s.to_owned());
-            }
-        }
-        dirs
+        macos::running_app_metas()
     }
     #[cfg(target_os = "windows")]
     {
-        vec![
-            "C:\\Program Files".to_owned(),
-            "C:\\Program Files (x86)".to_owned(),
-        ]
+        windows::running_app_metas()
     }
     #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     {
@@ -252,111 +193,122 @@ fn builtin_scan_dirs() -> Vec<String> {
     }
 }
 
-pub struct ScannedAppMeta {
-    pub id: String,
-    pub name: String,
-    pub path: PathBuf,
-    pub platform: Platform,
+fn app_meta_from_path(path: PathBuf) -> Result<ScannedAppMeta> {
+    #[cfg(target_os = "macos")]
+    {
+        macos::app_meta_from_path(&path)
+    }
+    #[cfg(target_os = "windows")]
+    {
+        windows::app_meta_from_path(&path)
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    {
+        let _ = path;
+        Err(AppError::Clipboard("unsupported platform".to_owned()))
+    }
 }
 
-mod scanner {
-    use super::ScannedAppMeta;
-    use std::path::Path;
+fn app_meta_from_id(id: &str) -> Option<ScannedAppMeta> {
+    #[cfg(target_os = "macos")]
+    {
+        macos::app_meta_from_id(id)
+    }
+    #[cfg(target_os = "windows")]
+    {
+        let _ = id;
+        None
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    {
+        let _ = id;
+        None
+    }
+}
 
-    pub fn scan_dirs(dirs: &[String]) -> Vec<ScannedAppMeta> {
-        #[cfg(target_os = "macos")]
-        {
-            super::macos::scan_dirs(dirs)
-        }
-        #[cfg(target_os = "windows")]
-        {
-            super::windows::scan_dirs(dirs)
-        }
-        #[cfg(not(any(target_os = "macos", target_os = "windows")))]
-        {
-            let _ = dirs;
-            Vec::new()
-        }
+fn validate_existing_path(path: &Path) -> Result<()> {
+    if !path.exists() {
+        return Err(AppError::Clipboard("app path does not exist".to_owned()));
     }
 
-    pub fn icon_for_bundle(path: &Path) -> Option<Vec<u8>> {
-        let png = super::super::icon::icon_png(path, None);
-        match &png {
-            Some(b) => log::debug!("icon_for_bundle: {} -> {} bytes", path.display(), b.len()),
-            None => log::warn!("icon_for_bundle: {} -> None", path.display()),
-        }
-        png
-    }
+    Ok(())
 }
 
 #[cfg(target_os = "macos")]
 mod macos {
-    use super::ScannedAppMeta;
+    use super::{validate_existing_path, ScannedAppMeta};
+    use crate::core::{AppError, Result};
     use crate::db::models::Platform;
+    use objc2::msg_send;
+    use objc2::rc::{autoreleasepool, Retained};
+    use objc2_app_kit::{NSApplicationActivationPolicy, NSRunningApplication, NSWorkspace};
+    use objc2_foundation::{NSString, NSURL};
     use std::collections::HashSet;
-    use std::path::Path;
+    use std::path::{Path, PathBuf};
 
-    /// 扫描深度：`/Applications` 下的 `.app` 一般为一级；`Adobe/Adobe Photoshop 2024.app`
-    /// 这类品牌子目录也很常见。允许两级足够，再深通常是 plug-in 之类的内嵌包，进了反而出错。
-    const MAX_DEPTH: usize = 2;
+    pub fn running_app_metas() -> Vec<ScannedAppMeta> {
+        autoreleasepool(|_| {
+            let workspace = NSWorkspace::sharedWorkspace();
+            let apps = workspace.runningApplications();
+            let mut out = Vec::new();
+            let mut seen = HashSet::new();
 
-    pub fn scan_dirs(dirs: &[String]) -> Vec<ScannedAppMeta> {
-        let mut out = Vec::new();
-        let mut visited: HashSet<String> = HashSet::new();
-        for dir in dirs {
-            let path = Path::new(dir);
-            if !path.is_dir() {
-                log::warn!("app scan: dir not found or not a dir: {dir}");
-                continue;
+            for app in apps.iter() {
+                if app.activationPolicy() != NSApplicationActivationPolicy::Regular {
+                    continue;
+                }
+                let Some(id) = app.bundleIdentifier().map(|s| s.to_string()) else {
+                    continue;
+                };
+                if !seen.insert(id.clone()) {
+                    continue;
+                }
+                let name = app
+                    .localizedName()
+                    .map(|s| s.to_string())
+                    .unwrap_or_else(|| id.clone());
+                let path = unsafe { bundle_path(&app) };
+
+                out.push(ScannedAppMeta {
+                    id,
+                    name,
+                    path,
+                    platform: Platform::Macos,
+                });
             }
-            let before = out.len();
-            scan_recursive(path, 0, &mut visited, &mut out);
-            log::info!(
-                "app scan: {} -> {} bundles",
-                dir,
-                out.len().saturating_sub(before)
-            );
-        }
-        log::info!("app scan: total {} bundles", out.len());
-        out
+
+            out
+        })
     }
 
-    fn scan_recursive(
-        dir: &Path,
-        depth: usize,
-        visited: &mut HashSet<String>,
-        out: &mut Vec<ScannedAppMeta>,
-    ) {
-        if depth > MAX_DEPTH {
-            return;
+    pub fn app_meta_from_path(path: &Path) -> Result<ScannedAppMeta> {
+        validate_existing_path(path)?;
+        if path.extension().and_then(|s| s.to_str()) != Some("app") {
+            return Err(AppError::Clipboard(
+                "please choose a macOS app bundle".to_owned(),
+            ));
         }
-        let entries = match std::fs::read_dir(dir) {
-            Ok(e) => e,
-            Err(_) => return,
-        };
-        for entry in entries.flatten() {
-            let p = entry.path();
-            if !p.is_dir() {
-                continue;
+
+        scan_app_bundle(path)
+            .ok_or_else(|| AppError::Clipboard("app bundle metadata is invalid".to_owned()))
+    }
+
+    pub fn app_meta_from_id(id: &str) -> Option<ScannedAppMeta> {
+        for path in known_app_bundle_paths(id) {
+            if let Some(meta) = scan_app_bundle(&path) {
+                return Some(meta);
             }
-            if p.extension().and_then(|s| s.to_str()) == Some("app") {
-                if let Some(app) = scan_app_bundle(&p) {
-                    if visited.insert(app.id.clone()) {
-                        out.push(app);
-                    }
-                }
-                continue;
-            }
-            scan_recursive(&p, depth + 1, visited, out);
         }
+
+        None
     }
 
     fn scan_app_bundle(path: &Path) -> Option<ScannedAppMeta> {
         let info_path = path.join("Contents/Info.plist");
         let info = match plist::Value::from_file(&info_path) {
-            Ok(v) => v,
+            Ok(value) => value,
             Err(err) => {
-                log::debug!("app scan: parse {} failed: {err}", info_path.display());
+                log::debug!("app meta: parse {} failed: {err}", info_path.display());
                 return None;
             }
         };
@@ -374,22 +326,25 @@ mod macos {
                     .unwrap_or(&id)
                     .to_owned()
             });
-
-        // 优先按系统语言取 .lproj/InfoPlist.strings 里的本地化名称
         let name = localized_bundle_name(path).unwrap_or(fallback_name);
 
         Some(ScannedAppMeta {
             id,
             name,
-            path: path.to_path_buf(),
+            path: Some(path.to_path_buf()),
             platform: Platform::Macos,
         })
     }
 
-    /// 取 Finder 展示的本地化名称：调用 `mdls -name kMDItemDisplayName -raw`，
-    /// Spotlight 元数据由系统按当前语言计算好，与 Finder 完全一致；70+ App 启动场景
-    /// 总耗时 ~2s，已在 `spawn_blocking` 里跑，不阻塞 UI。
-    /// 拿不到 / 等于文件名时返回 None，由调用方走 `Info.plist` fallback。
+    /// 通过 NSRunningApplication.bundleURL 拿到 .app 路径。
+    unsafe fn bundle_path(app: &NSRunningApplication) -> Option<PathBuf> {
+        let url: Option<Retained<NSURL>> = msg_send![app, bundleURL];
+        let url = url?;
+        let path: Option<Retained<NSString>> = msg_send![&*url, path];
+        Some(PathBuf::from(path?.to_string()))
+    }
+
+    /// 取 Finder 展示的本地化名称，拿不到时返回 None。
     fn localized_bundle_name(path: &Path) -> Option<String> {
         let output = std::process::Command::new("/usr/bin/mdls")
             .args(["-name", "kMDItemDisplayName", "-raw"])
@@ -412,24 +367,43 @@ mod macos {
         }
     }
 
+    fn known_app_bundle_paths(id: &str) -> Vec<PathBuf> {
+        if let Some(path) = path_from_spotlight(id) {
+            return vec![path];
+        }
+
+        match id {
+            "com.apple.keychainaccess" => {
+                vec![PathBuf::from(
+                    "/System/Library/CoreServices/Applications/Keychain Access.app",
+                )]
+            }
+            "com.apple.Passwords" => vec![PathBuf::from("/System/Applications/Passwords.app")],
+            _ => Vec::new(),
+        }
+    }
+
+    fn path_from_spotlight(id: &str) -> Option<PathBuf> {
+        let query = format!("kMDItemCFBundleIdentifier == \"{id}\"");
+        let output = std::process::Command::new("/usr/bin/mdfind")
+            .arg(query)
+            .output()
+            .ok()?;
+        if !output.status.success() {
+            return None;
+        }
+
+        String::from_utf8_lossy(&output.stdout)
+            .lines()
+            .map(str::trim)
+            .filter(|line| !line.is_empty())
+            .map(PathBuf::from)
+            .find(|path| path.extension().and_then(|s| s.to_str()) == Some("app"))
+    }
+
     #[cfg(test)]
     mod tests {
         use super::*;
-
-        #[test]
-        fn scan_applications_finds_at_least_one_app() {
-            let metas = scan_dirs(&["/Applications".to_owned()]);
-            assert!(
-                !metas.is_empty(),
-                "expected at least one app under /Applications"
-            );
-            for m in metas.iter().take(3) {
-                println!(
-                    "scanned meta: id={} name={} path={:?}",
-                    m.id, m.name, m.path
-                );
-            }
-        }
 
         #[test]
         fn passwords_app_uses_localized_name() {
@@ -438,20 +412,143 @@ mod macos {
                 eprintln!("skip: Passwords.app not present");
                 return;
             }
-            // 仅在 zh-* 系统语言下校验非英文名；其他环境只确保 mdls 至少能返回内容。
             let localized = localized_bundle_name(&path);
             println!("Passwords localized: {localized:?}");
             assert!(localized.is_some());
+        }
+
+        #[test]
+        fn keychain_access_can_be_found_by_bundle_id() {
+            let Some(meta) = app_meta_from_id("com.apple.keychainaccess") else {
+                eprintln!("skip: Keychain Access.app not indexed");
+                return;
+            };
+            let Some(path) = meta.path else {
+                panic!("expected Keychain Access path");
+            };
+
+            let png = crate::clipboard::icon_png(&path, None).expect("expected app icon");
+
+            assert_eq!(meta.id, "com.apple.keychainaccess");
+            assert!(png.len() > 100);
         }
     }
 }
 
 #[cfg(target_os = "windows")]
 mod windows {
-    use super::ScannedAppMeta;
-    /// Windows 端的可执行文件枚举还没接入（注册表 / Start Menu 都需要额外实现）。
-    /// 用户仍可通过监听捕获已用过的应用 id（exe 绝对路径）并在 UI 勾选过滤。
-    pub fn scan_dirs(_dirs: &[String]) -> Vec<ScannedAppMeta> {
-        Vec::new()
+    use super::{validate_existing_path, ScannedAppMeta};
+    use crate::core::{AppError, Result};
+    use crate::db::models::Platform;
+    use std::collections::HashSet;
+    use std::ffi::OsString;
+    use std::os::windows::ffi::OsStringExt;
+    use std::path::{Path, PathBuf};
+    use winapi::shared::minwindef::{BOOL, DWORD, FALSE, LPARAM, TRUE};
+    use winapi::shared::windef::HWND;
+    use winapi::um::handleapi::CloseHandle;
+    use winapi::um::processthreadsapi::OpenProcess;
+    use winapi::um::winbase::QueryFullProcessImageNameW;
+    use winapi::um::winnt::PROCESS_QUERY_LIMITED_INFORMATION;
+    use winapi::um::winuser::{
+        EnumWindows, GetWindowTextLengthW, GetWindowThreadProcessId, IsWindowVisible,
+    };
+
+    pub fn running_app_metas() -> Vec<ScannedAppMeta> {
+        let mut paths = Vec::<PathBuf>::new();
+        unsafe {
+            EnumWindows(
+                Some(enum_visible_window_paths),
+                &mut paths as *mut Vec<PathBuf> as LPARAM,
+            );
+        }
+
+        let mut out = Vec::new();
+        let mut seen = HashSet::new();
+        for path in paths {
+            let path = normalize_exe_path(path);
+            let id = path.to_string_lossy().to_string();
+            if !seen.insert(id.clone()) {
+                continue;
+            }
+            out.push(ScannedAppMeta {
+                id,
+                name: exe_display_name(&path),
+                path: Some(path),
+                platform: Platform::Windows,
+            });
+        }
+
+        out
+    }
+
+    pub fn app_meta_from_path(path: &Path) -> Result<ScannedAppMeta> {
+        validate_existing_path(path)?;
+        let extension = path
+            .extension()
+            .and_then(|s| s.to_str())
+            .map(str::to_ascii_lowercase);
+        if extension.as_deref() != Some("exe") {
+            return Err(AppError::Clipboard(
+                "please choose a Windows executable".to_owned(),
+            ));
+        }
+
+        let canonical = path
+            .canonicalize()
+            .map_err(|_| AppError::Clipboard("app path cannot be resolved".to_owned()))?;
+        Ok(ScannedAppMeta {
+            id: canonical.to_string_lossy().to_string(),
+            name: exe_display_name(&canonical),
+            path: Some(canonical),
+            platform: Platform::Windows,
+        })
+    }
+
+    unsafe extern "system" fn enum_visible_window_paths(hwnd: HWND, lparam: LPARAM) -> BOOL {
+        if IsWindowVisible(hwnd) == FALSE || GetWindowTextLengthW(hwnd) == 0 {
+            return TRUE;
+        }
+
+        let mut pid: DWORD = 0;
+        GetWindowThreadProcessId(hwnd, &mut pid);
+        if pid == 0 {
+            return TRUE;
+        }
+        if let Some(path) = process_exe_path(pid) {
+            let paths = &mut *(lparam as *mut Vec<PathBuf>);
+            paths.push(path);
+        }
+
+        TRUE
+    }
+
+    unsafe fn process_exe_path(pid: DWORD) -> Option<PathBuf> {
+        let handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+        if handle.is_null() {
+            return None;
+        }
+
+        let mut buf = [0u16; 1024];
+        let mut size: DWORD = buf.len() as DWORD;
+        let ok = QueryFullProcessImageNameW(handle, 0, buf.as_mut_ptr(), &mut size);
+        CloseHandle(handle);
+
+        if ok == 0 || size == 0 {
+            return None;
+        }
+
+        Some(PathBuf::from(OsString::from_wide(&buf[..size as usize])))
+    }
+
+    fn normalize_exe_path(path: PathBuf) -> PathBuf {
+        path.canonicalize().unwrap_or(path)
+    }
+
+    fn exe_display_name(path: &Path) -> String {
+        path.file_stem()
+            .and_then(|s| s.to_str())
+            .unwrap_or_else(|| path.to_string_lossy().as_ref())
+            .to_owned()
     }
 }

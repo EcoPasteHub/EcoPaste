@@ -102,17 +102,6 @@ export const preferenceTabs: PreferenceTab[] = [
               return settings.clipboard.filters.excludedAppIds;
             },
           },
-          {
-            control: { placeholder: "每行一个目录", type: "textarea" },
-            description: "添加应用扫描目录，用于识别来源应用名称和图标。",
-            id: "source.scanDirs",
-            keywords: ["scan", "applications", "directory"],
-            path: ["clipboard", "filters", "scanDirs"],
-            title: "应用发现目录",
-            value: (settings) => {
-              return settings.clipboard.filters.scanDirs;
-            },
-          },
         ],
         title: "应用过滤",
       },

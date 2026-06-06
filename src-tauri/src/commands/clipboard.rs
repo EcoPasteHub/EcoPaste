@@ -1,5 +1,6 @@
 //! 剪贴板相关命令：手动重新读取、解析图片路径。供前端按需触发。
 
+use std::collections::HashMap;
 use std::path::Path;
 use std::sync::Arc;
 
@@ -9,9 +10,9 @@ use sqlx::SqlitePool;
 use tauri::{AppHandle, Emitter, Manager, State};
 
 use crate::clipboard::{
-    build_item_with_settings, detect_frontmost, materialize_source, persist_and_notify,
-    refresh_from_dirs, sanitize_css_color, AppIconStore, AppsRegistry, ClipboardReader,
-    FileIconStore, ImageStore, WritebackGuard,
+    add_app_from_path, build_item_with_settings, delete_unreferenced_apps, detect_frontmost,
+    materialize_source, persist_and_notify, refresh_running_apps, sanitize_css_color, AppIconStore,
+    AppsRegistry, ClipboardReader, FileIconStore, ImageStore, WritebackGuard,
 };
 use crate::core::{AppError, Result};
 use crate::db::items::{find_item_by_id, find_item_for_list_by_id, increment_item_use_count};
@@ -841,83 +842,70 @@ pub async fn list_clipboard_apps(
     crate::db::apps::list_apps_by_ids(&pool, &ids).await
 }
 
-/// 列出全部已知应用（目录扫描发现 + 监听过程捕获的并集）+ 设置里勾选了但 DB 尚无记录的
-/// 「占位条目」，确保用户当前的过滤选择在 UI 上始终可见可取消。
-/// 直接走 DB 避免与启动期异步装载缓存的竞态。
+/// 列出可过滤应用：DB 已知应用加上本次运行中枚举到的临时应用。
 #[tauri::command]
 pub async fn list_all_apps(
-    app: AppHandle,
     app_icon_store: State<'_, AppIconStore>,
     pool: State<'_, SqlitePool>,
+    registry: State<'_, AppsRegistry>,
 ) -> Result<Vec<ClipboardAppView>> {
-    use crate::db::models::Platform;
-    use std::collections::HashSet;
+    let running_apps = refresh_running_apps(registry.inner().clone()).await?;
+    let known_apps = crate::db::apps::list_all_apps(&pool).await?;
+    let mut apps = merge_clipboard_apps(known_apps, running_apps);
 
-    let mut apps = crate::db::apps::list_all_apps(&pool).await?;
-    let known: HashSet<String> = apps.iter().map(|a| a.id.clone()).collect();
-
-    let excluded = app
-        .state::<crate::settings::SettingsStore>()
-        .snapshot()
-        .clipboard
-        .filters
-        .excluded_app_ids;
-
-    let now = chrono::Utc::now();
-    let platform = if cfg!(target_os = "macos") {
-        Platform::Macos
-    } else {
-        Platform::Windows
-    };
-    for id in excluded {
-        if known.contains(&id) {
-            continue;
-        }
-        apps.push(ClipboardApp {
-            name: id.clone(),
-            id,
-            icon_file: None,
-            platform,
-            created_at: now,
-            updated_at: now,
-        });
-    }
-
-    // 保持按名称升序，让占位项也归入正确位置。
-    apps.sort_by(|a, b| {
-        a.name
-            .to_lowercase()
-            .cmp(&b.name.to_lowercase())
-            .then_with(|| a.id.cmp(&b.id))
-    });
+    sort_clipboard_apps(&mut apps);
     Ok(apps
         .into_iter()
         .map(|app| build_clipboard_app_view(&app_icon_store, app))
         .collect())
 }
 
-/// 手动触发一次目录扫描：按当前 `settings.clipboard.filters.scanDirs` 重新枚举
-/// 已安装应用，更新 DB + 内存缓存，返回最新完整列表。耗时较长（取决于目录条目数），
-/// 前端按钮调用时建议带 loading 态。
+/// 从用户手动选择的应用路径写入来源应用注册表。
 #[tauri::command]
-pub async fn refresh_apps(
-    app: AppHandle,
+pub async fn add_clipboard_app_from_path(
     app_icon_store: State<'_, AppIconStore>,
     registry: State<'_, AppsRegistry>,
-) -> Result<Vec<ClipboardAppView>> {
-    let dirs = app
-        .state::<crate::settings::SettingsStore>()
-        .snapshot()
-        .clipboard
-        .filters
-        .scan_dirs
-        .clone();
-    let apps = refresh_from_dirs(app, registry.inner().clone(), dirs, true).await?;
+    path: String,
+) -> Result<ClipboardAppView> {
+    let app = add_app_from_path(registry.inner().clone(), path).await?;
 
-    Ok(apps
-        .into_iter()
-        .map(|app| build_clipboard_app_view(&app_icon_store, app))
-        .collect())
+    Ok(build_clipboard_app_view(&app_icon_store, app))
+}
+
+/// 删除未被历史记录引用的来源应用，通常用于从忽略列表移除手动/默认物化应用。
+#[tauri::command]
+pub async fn delete_unreferenced_clipboard_apps(
+    registry: State<'_, AppsRegistry>,
+    ids: Vec<String>,
+) -> Result<Vec<String>> {
+    delete_unreferenced_apps(registry.inner().clone(), ids).await
+}
+
+/// 合并 DB 已知应用与运行中临时应用，同 id 时保留 DB 行。
+fn merge_clipboard_apps(
+    known_apps: Vec<ClipboardApp>,
+    running_apps: Vec<ClipboardApp>,
+) -> Vec<ClipboardApp> {
+    let mut merged = HashMap::with_capacity(known_apps.len() + running_apps.len());
+
+    for app in running_apps {
+        merged.insert(app.id.clone(), app);
+    }
+    for app in known_apps {
+        merged.insert(app.id.clone(), app);
+    }
+
+    merged.into_values().collect()
+}
+
+/// 按名称和 id 稳定排序来源应用列表。
+fn sort_clipboard_apps(apps: &mut [ClipboardApp]) {
+    apps.sort_by(|left, right| {
+        left.name
+            .to_lowercase()
+            .cmp(&right.name.to_lowercase())
+            .then_with(|| left.id.cmp(&right.id))
+    });
 }
 
 /// 列出全部分组（薄封装），供前端构建分组 tab 栏。

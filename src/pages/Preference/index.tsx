@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { useSnapshot } from "valtio";
 import { getStorageUsage, type StorageUsage } from "@/commands";
 import { settingsState } from "@/stores/settings";
+import { preloadSourceApps, reloadSourceApps } from "@/stores/sourceApps";
 import type { Settings } from "@/types/settings";
 import { cn } from "@/utils/cn";
 import { log } from "@/utils/log";
@@ -164,6 +165,7 @@ const Preference: FC = () => {
   useMount(() => {
     void initializeStorageUsage();
     void initializeAppMetadata();
+    void preloadSourceApps();
   });
 
   useEffect(() => {
@@ -198,6 +200,12 @@ const Preference: FC = () => {
       window.clearTimeout(clearTimer);
     };
   }, [highlightTarget, reduceMotion]);
+
+  useEffect(() => {
+    if (!isSourceSection) return;
+
+    void reloadSourceApps();
+  }, [isSourceSection]);
 
   if (!activeTab) return null;
 

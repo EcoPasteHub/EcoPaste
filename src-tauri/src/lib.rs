@@ -53,6 +53,7 @@ pub fn run() {
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init())
         .plugin(core::prevent_default::init())
         .invoke_handler(tauri::generate_handler![
             commands::read_clipboard,
@@ -62,7 +63,8 @@ pub fn run() {
             commands::get_clipboard_item,
             commands::list_clipboard_apps,
             commands::list_all_apps,
-            commands::refresh_apps,
+            commands::add_clipboard_app_from_path,
+            commands::delete_unreferenced_clipboard_apps,
             commands::get_clipboard_preview_payload,
             commands::play_copy_sound,
             commands::get_clipboard_image_path,

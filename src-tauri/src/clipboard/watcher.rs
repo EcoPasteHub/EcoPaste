@@ -56,8 +56,8 @@ impl WatcherPause {
 /// 把同步抓到的 [`FrontmostApp`] 落 icon 字节 + 拼成可入库的 [`ClipboardApp`]。
 /// icon 落盘失败不阻断（仍保留应用名），仅 warn。
 ///
-/// `registry` 命中缓存时优先复用——通常包含目录扫描得到的更完整图标，
-/// 也省掉一次 PNG 字节 sha256/IO；缓存未命中再走 FrontmostApp.icon_png 路径，
+/// `registry` 命中缓存时优先复用，省掉一次 PNG 字节 sha256/IO；
+/// 缓存未命中再走 FrontmostApp.icon_png 路径，
 /// 并把结果回写缓存，让首次见到的应用后续直接命中。
 pub fn materialize_source(
     store: &AppIconStore,
@@ -152,30 +152,21 @@ pub fn init(app: &AppHandle, pool: SqlitePool) -> crate::core::Result<()> {
     let pause = WatcherPause::default();
     app.manage(pause.clone());
 
-    // 启动期：先把已落库的应用读进缓存，再后台跑一次目录扫描补齐已安装应用。
-    // 两段都失败时只 warn，不阻塞剪贴板监听主路径。
+    // 启动期只把已落库的应用读进缓存；运行中应用由偏好页打开/刷新时补齐。
     {
         let registry = registry.clone();
-        let app = app.clone();
+        let excluded_app_ids = app
+            .try_state::<SettingsStore>()
+            .map(|store| store.snapshot().clipboard.filters.excluded_app_ids)
+            .unwrap_or_default();
         tauri::async_runtime::spawn(async move {
             if let Err(err) = registry.load_from_db().await {
                 log::warn!("apps registry: initial DB load failed: {err}");
             }
-            let dirs = app
-                .try_state::<SettingsStore>()
-                .map(|s| s.snapshot().clipboard.filters.scan_dirs.clone())
-                .unwrap_or_default();
-            if !dirs.is_empty() {
-                if let Err(err) = super::apps_registry::refresh_from_dirs(
-                    app.clone(),
-                    registry.clone(),
-                    dirs,
-                    false,
-                )
-                .await
-                {
-                    log::warn!("apps registry: initial scan failed: {err}");
-                }
+            if let Err(err) =
+                super::apps_registry::add_apps_from_ids(registry.clone(), excluded_app_ids).await
+            {
+                log::warn!("apps registry: initial excluded app materialization failed: {err}");
             }
         });
     }

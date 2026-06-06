@@ -116,7 +116,7 @@ export interface StorageUsage {
 export type PreferenceDirectoryTarget = "data" | "logs";
 
 /**
- * 把任意 invoke reject 的值归一化成 `AppError`：兼容旧路径（字符串）和未来扩展。
+ * 把任意 invoke reject 的值归一化成前端可展示的 `AppError`。
  */
 const toAppError = (error: unknown): AppError => {
   if (
@@ -260,7 +260,7 @@ export const isLaunchedViaAutostart = () => {
 };
 
 /**
- * 列出系统扫描与历史监听中已知的全部来源应用。
+ * 列出可过滤应用：DB 已知应用加上当前运行中应用。
  */
 export const listAllApps = () => {
   return call<ClipboardApp[]>(
@@ -270,12 +270,24 @@ export const listAllApps = () => {
 };
 
 /**
- * 重新扫描应用发现目录，并返回更新后的应用列表。
+ * 手动添加一个来源应用，并返回写入后的应用信息。
  */
-export const refreshApps = () => {
-  return call<ClipboardApp[]>(
-    TAURI_COMMAND.REFRESH_APPS,
-    "commands:labels.refreshApps",
+export const addClipboardAppFromPath = (path: string) => {
+  return call<ClipboardApp>(
+    TAURI_COMMAND.ADD_CLIPBOARD_APP_FROM_PATH,
+    "commands:labels.addApp",
+    { path },
+  );
+};
+
+/**
+ * 删除没有被历史记录引用的来源应用，并返回实际删除的应用 id。
+ */
+export const deleteUnreferencedClipboardApps = (ids: string[]) => {
+  return call<string[]>(
+    TAURI_COMMAND.DELETE_UNREFERENCED_CLIPBOARD_APPS,
+    "commands:labels.deleteApps",
+    { ids },
   );
 };
 

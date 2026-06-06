@@ -56,7 +56,6 @@ const PreferenceSection: FC<PreferenceSectionProps> = (props) => {
         <SourceAppsTransfer
           excludedAppsSetting={sourceAppsSettings.excludedApps}
           onChange={onChange}
-          scanDirsSetting={sourceAppsSettings.scanDirs}
           settings={settings}
         />
       </motion.section>
@@ -213,17 +212,14 @@ function resolveSectionVisual(id: string): SectionVisual {
 }
 
 /**
- * 识别来源应用分组所需的两个设置项，缺任一项则退回通用行渲染。
+ * 识别来源应用分组所需的设置项，缺失则退回通用行渲染。
  */
 function resolveSourceAppsSettings(settings: PreferenceSetting[]) {
   const excludedApps = settings.find((setting) => {
     return setting.id === "source.excludedApps";
   });
-  const scanDirs = settings.find((setting) => {
-    return setting.id === "source.scanDirs";
-  });
 
-  if (!excludedApps || !scanDirs) return null;
+  if (!excludedApps) return null;
 
-  return { excludedApps, scanDirs };
+  return { excludedApps };
 }

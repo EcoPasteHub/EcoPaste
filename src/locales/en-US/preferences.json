@@ -384,24 +384,18 @@
       },
       "source": {
         "appTransfer": {
-          "allTitle": "All Apps",
-          "cancel": "Cancel",
+          "addApp": "Add App",
+          "allTitle": "Available Apps",
+          "appFileFilter": "Application files",
           "ignoredTitle": "Ignored Apps",
           "itemsUnit": "items",
           "itemUnit": "item",
-          "refreshApps": "Refresh Apps",
-          "save": "Save",
-          "scanDirs": "App Discovery Directories",
+          "refreshApps": "Refresh Available Apps",
           "searchPlaceholder": "Search apps"
         },
         "excludedApps": {
           "description": "Content copied from these apps will not be saved to history.",
           "title": "Ignored Apps"
-        },
-        "scanDirs": {
-          "description": "Add app scan directories for detecting source app names and icons.",
-          "placeholder": "One directory per line",
-          "title": "App Discovery Directories"
         }
       },
       "updates": {

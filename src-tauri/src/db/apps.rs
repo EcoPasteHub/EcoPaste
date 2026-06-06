@@ -46,7 +46,7 @@ pub async fn list_apps_by_ids(pool: &SqlitePool, ids: &[String]) -> Result<Vec<C
     Ok(rows)
 }
 
-/// 列出全部已知应用（来源既包含监听过程中捕获的前台应用，也包含目录扫描发现的安装应用）。
+/// 列出全部已知应用（监听过程中捕获、手动添加或默认忽略物化的应用）。
 /// 名称按大小写不敏感升序，给前端过滤选择 UI 一个稳定顺序。
 pub async fn list_all_apps(pool: &SqlitePool) -> Result<Vec<ClipboardApp>> {
     let mut qb: QueryBuilder<Sqlite> = QueryBuilder::new(SELECT_APP);
@@ -57,6 +57,30 @@ pub async fn list_all_apps(pool: &SqlitePool) -> Result<Vec<ClipboardApp>> {
         .await
         .context("failed to list all clipboard apps")?;
     Ok(rows)
+}
+
+/// 删除未被历史记录引用的来源应用，返回实际删除的应用 id。
+pub async fn delete_unreferenced_apps(pool: &SqlitePool, ids: &[String]) -> Result<Vec<String>> {
+    let mut deleted = Vec::new();
+
+    for id in ids {
+        let result = sqlx::query(
+            "DELETE FROM clipboard_apps \
+             WHERE id = ? \
+               AND NOT EXISTS (SELECT 1 FROM clipboard_items WHERE source_app_id = ? LIMIT 1)",
+        )
+        .bind(id)
+        .bind(id)
+        .execute(pool)
+        .await
+        .context("failed to delete unreferenced clipboard app")?;
+
+        if result.rows_affected() > 0 {
+            deleted.push(id.clone());
+        }
+    }
+
+    Ok(deleted)
 }
 
 /// upsert：id 已存在则只刷新 name / icon_file / updated_at；不存在则全量插入。

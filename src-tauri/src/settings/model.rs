@@ -172,21 +172,18 @@ pub struct Sensitive {
     pub secret_detection: bool,
 }
 
-/// 应用过滤规则 + 应用扫描目录。
+/// 应用过滤规则。
 /// `excluded_app_ids` 命中复制来源时，对应剪贴板内容不入库。
-/// `scan_dirs` 是启动时遍历查找已安装应用（macOS `.app` / Windows TBD）的根目录列表，可由用户编辑。
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(default, rename_all = "camelCase")]
 pub struct Filters {
     pub excluded_app_ids: Vec<String>,
-    pub scan_dirs: Vec<String>,
 }
 
 impl Default for Filters {
     fn default() -> Self {
         Self {
             excluded_app_ids: default_excluded_app_ids(),
-            scan_dirs: default_scan_dirs(),
         }
     }
 }
@@ -214,33 +211,16 @@ fn default_excluded_app_ids() -> Vec<String> {
     }
 }
 
-fn default_scan_dirs() -> Vec<String> {
-    #[cfg(target_os = "macos")]
-    {
-        let mut dirs = vec![
-            "/Applications".to_owned(),
-            "/System/Applications".to_owned(),
-            "/System/Applications/Utilities".to_owned(),
-            "/System/Library/CoreServices/Applications".to_owned(),
-        ];
-        if let Some(home) = std::env::var_os("HOME") {
-            let p = std::path::PathBuf::from(home).join("Applications");
-            if let Some(s) = p.to_str() {
-                dirs.push(s.to_owned());
-            }
-        }
-        dirs
-    }
-    #[cfg(target_os = "windows")]
-    {
-        vec![
-            "C:\\Program Files".to_owned(),
-            "C:\\Program Files (x86)".to_owned(),
-        ]
-    }
-    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
-    {
-        Vec::new()
+#[cfg(all(test, target_os = "macos"))]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn macos_defaults_keep_sensitive_system_apps_excluded() {
+        let ids = default_excluded_app_ids();
+
+        assert!(ids.contains(&"com.apple.keychainaccess".to_owned()));
+        assert!(ids.contains(&"com.apple.Passwords".to_owned()));
     }
 }
 
