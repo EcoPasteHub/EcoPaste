@@ -403,18 +403,8 @@
           "description": "Skip content by keyword or pattern.",
           "title": "Content Ignore Rules"
         },
-        "passwordApps": {
-          "controlLabel": "Default protection",
-          "description": "Password managers are ignored by default.",
-          "title": "Ignore Password Apps by Default"
-        },
-        "privateMode": {
-          "controlLabel": "Enter Private Mode",
-          "description": "Turn off clipboard capture temporarily.",
-          "title": "Temporarily Pause Capture"
-        },
         "secretDetection": {
-          "description": "Do not save detected keys, verification codes, and similar content.",
+          "description": "Do not save high-confidence keys, tokens, and similar content.",
           "title": "Detect Secrets and Tokens"
         }
       },

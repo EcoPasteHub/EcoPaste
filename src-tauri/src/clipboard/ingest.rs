@@ -13,11 +13,12 @@ use chrono::Utc;
 
 use super::detect::detect_text_sub_kind;
 use super::payload::{ClipboardPayload, TextPayload};
+use super::secrets::contains_secret;
 use super::storage::ImageStore;
 use crate::core::Result;
 use crate::db::items::content_hash;
 use crate::db::models::{ClipboardItem, ClipboardKind, ClipboardSubKind, Platform};
-use crate::settings::Capture;
+use crate::settings::{Capture, Sensitive};
 
 /// 列表渲染用摘要的最大字符数（按 Unicode 标量计，不是字节）。
 /// 超过此长度的文本会被截断，前端列表只渲染摘要，预览/写回时再读完整 `content`。
@@ -151,18 +152,24 @@ fn count_text_chars(text: &str) -> i64 {
 /// 使用默认采集开关把载荷转换为待入库记录。
 #[cfg(test)]
 pub fn build_item(store: &ImageStore, payload: &ClipboardPayload) -> Result<Option<ClipboardItem>> {
-    build_item_with_capture(store, payload, &Capture::default())
+    build_item_with_settings(store, payload, &Capture::default(), &Sensitive::default())
 }
 
-/// 把载荷转换为待入库记录，按需落盘图片，并按内容类型采集开关过滤。
-/// 返回 `Ok(None)` 表示无可入库内容（空文本、关闭对应类型等）。
-pub fn build_item_with_capture(
+/// 把载荷转换为待入库记录，同时应用内容类型与隐私过滤设置。
+pub fn build_item_with_settings(
     store: &ImageStore,
     payload: &ClipboardPayload,
     capture: &Capture,
+    sensitive: &Sensitive,
 ) -> Result<Option<ClipboardItem>> {
     let draft = match payload {
-        ClipboardPayload::Text(text) => draft_from_text(text, capture),
+        ClipboardPayload::Text(text) => {
+            if sensitive.secret_detection && contains_secret(&text.text) {
+                return Ok(None);
+            }
+
+            draft_from_text(text, capture)
+        }
         ClipboardPayload::Files(files) => {
             if !capture.files {
                 return Ok(None);
@@ -348,8 +355,13 @@ mod tests {
             text: false,
             ..Capture::default()
         };
-        let item =
-            build_item_with_capture(&s, &text_payload("hello", None, None), &capture).unwrap();
+        let item = build_item_with_settings(
+            &s,
+            &text_payload("hello", None, None),
+            &capture,
+            &Sensitive::default(),
+        )
+        .unwrap();
         assert!(item.is_none());
     }
 
@@ -360,10 +372,11 @@ mod tests {
             html: false,
             ..Capture::default()
         };
-        let item = build_item_with_capture(
+        let item = build_item_with_settings(
             &s,
             &text_payload("Hello World", Some("<b>Hello</b> World"), None),
             &capture,
+            &Sensitive::default(),
         )
         .unwrap()
         .unwrap();
@@ -379,16 +392,51 @@ mod tests {
             rtf: false,
             ..Capture::default()
         };
-        let item = build_item_with_capture(
+        let item = build_item_with_settings(
             &s,
             &text_payload("plain repr", None, Some(r"{\rtf1 plain repr}")),
             &capture,
+            &Sensitive::default(),
         )
         .unwrap()
         .unwrap();
         assert_eq!(item.sub_kind, None);
         assert_eq!(item.content, "plain repr");
         assert_eq!(item.search_text.as_deref(), Some("plain repr"));
+    }
+
+    #[test]
+    fn secret_detection_disabled_keeps_token_text() {
+        let (_d, s) = store();
+        let item = build_item_with_settings(
+            &s,
+            &text_payload("sk-abcdefghijklmnopqrstuvwxyzABCDE1234567890", None, None),
+            &Capture::default(),
+            &Sensitive {
+                secret_detection: false,
+            },
+        )
+        .unwrap()
+        .unwrap();
+
+        assert_eq!(item.kind, ClipboardKind::Text);
+        assert_eq!(item.content, "sk-abcdefghijklmnopqrstuvwxyzABCDE1234567890");
+    }
+
+    #[test]
+    fn secret_detection_enabled_skips_token_text() {
+        let (_d, s) = store();
+        let item = build_item_with_settings(
+            &s,
+            &text_payload("sk-abcdefghijklmnopqrstuvwxyzABCDE1234567890", None, None),
+            &Capture::default(),
+            &Sensitive {
+                secret_detection: true,
+            },
+        )
+        .unwrap();
+
+        assert!(item.is_none());
     }
 
     #[test]
@@ -438,7 +486,7 @@ mod tests {
             width: 20,
             height: 10,
         });
-        let item = build_item_with_capture(&s, &payload, &capture).unwrap();
+        let item = build_item_with_settings(&s, &payload, &capture, &Sensitive::default()).unwrap();
         assert!(item.is_none());
     }
 
@@ -450,7 +498,7 @@ mod tests {
             ..Capture::default()
         };
         let payload = ClipboardPayload::Files(vec!["/a/b.txt".to_owned()]);
-        let item = build_item_with_capture(&s, &payload, &capture).unwrap();
+        let item = build_item_with_settings(&s, &payload, &capture, &Sensitive::default()).unwrap();
         assert!(item.is_none());
     }
 

@@ -133,21 +133,15 @@ export const preferenceTabs: PreferenceTab[] = [
         id: "sensitive",
         settings: [
           {
-            control: { label: "默认保护", type: "status" },
-            description: "密码管理器默认不记录。",
-            id: "sensitive.passwordApps",
-            keywords: ["password", "private", "secret"],
-            status: "alwaysOn",
-            title: "默认忽略密码应用",
-          },
-          {
             control: { type: "switch" },
-            description: "发现密钥、验证码等内容时不保存。",
-            disabled: true,
+            description: "发现高置信密钥、token 等内容时不保存。",
             id: "sensitive.secretDetection",
             keywords: ["token", "key", "secret", "code"],
-            status: "comingSoon",
+            path: ["clipboard", "sensitive", "secretDetection"],
             title: "识别密钥和 token",
+            value: (settings) => {
+              return settings.clipboard.sensitive.secretDetection;
+            },
           },
           {
             control: { label: "管理规则", type: "action" },
@@ -157,15 +151,6 @@ export const preferenceTabs: PreferenceTab[] = [
             keywords: ["keyword", "pattern", "ignore"],
             status: "comingSoon",
             title: "内容忽略规则",
-          },
-          {
-            control: { label: "进入隐私模式", type: "action" },
-            description: "短时间关闭剪贴板记录。",
-            disabled: true,
-            id: "sensitive.privateMode",
-            keywords: ["private", "pause", "temporary"],
-            status: "comingSoon",
-            title: "临时暂停记录",
           },
         ],
         title: "隐私保护",

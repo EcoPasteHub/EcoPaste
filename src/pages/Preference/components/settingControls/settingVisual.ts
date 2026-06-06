@@ -57,8 +57,6 @@ const SETTING_ICON_MAP: Record<string, string> = {
   "search.defaultFocus": "i-lucide:scan-search",
   "search.frequencySort": "i-lucide:arrow-down-up",
   "sensitive.keywordRules": "i-lucide:list-filter-plus",
-  "sensitive.passwordApps": "i-lucide:lock-keyhole",
-  "sensitive.privateMode": "i-lucide:pause",
   "sensitive.secretDetection": "i-lucide:key-round",
   "shortcuts.openClipboard": "i-lucide:panel-top-open",
   "shortcuts.openPreference": "i-lucide:settings",

@@ -9,7 +9,7 @@ use sqlx::SqlitePool;
 use tauri::{AppHandle, Manager, State};
 
 use crate::clipboard::{
-    build_item_with_capture, detect_frontmost, materialize_source, persist_and_notify,
+    build_item_with_settings, detect_frontmost, materialize_source, persist_and_notify,
     refresh_from_dirs, sanitize_css_color, AppIconStore, AppsRegistry, ClipboardReader,
     FileIconStore, ImageStore, WritebackGuard,
 };
@@ -55,9 +55,14 @@ pub async fn read_clipboard(
         let source = detect_frontmost();
         let reader = ClipboardReader::new()?;
         let payload = reader.read_all()?;
-        let capture = app.state::<SettingsStore>().snapshot().clipboard.capture;
+        let settings = app.state::<SettingsStore>().snapshot();
         let item = match payload {
-            Some(payload) => build_item_with_capture(&store, &payload, &capture)?,
+            Some(payload) => build_item_with_settings(
+                &store,
+                &payload,
+                &settings.clipboard.capture,
+                &settings.clipboard.sensitive,
+            )?,
             None => None,
         };
         (item, source)

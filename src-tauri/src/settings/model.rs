@@ -130,6 +130,7 @@ impl Default for QuickPaste {
 pub struct Clipboard {
     pub capture: Capture,
     pub content: Content,
+    pub sensitive: Sensitive,
     pub history: History,
     pub search: Search,
     pub window: Window,
@@ -159,6 +160,13 @@ impl Default for Capture {
             files: true,
         }
     }
+}
+
+/// 隐私保护开关。命中规则的内容在入库前直接跳过。
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(default, rename_all = "camelCase")]
+pub struct Sensitive {
+    pub secret_detection: bool,
 }
 
 /// 应用过滤规则 + 应用扫描目录。

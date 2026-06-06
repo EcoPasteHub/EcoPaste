@@ -72,6 +72,10 @@ export interface Capture {
   files: boolean;
 }
 
+export interface Sensitive {
+  secretDetection: boolean;
+}
+
 export interface Retention {
   value: number;
   unit: RetentionUnit;
@@ -111,6 +115,7 @@ export interface Filters {
 export interface Clipboard {
   capture: Capture;
   content: Content;
+  sensitive: Sensitive;
   history: History;
   search: Search;
   window: Window;

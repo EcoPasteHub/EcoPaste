@@ -403,18 +403,8 @@
           "description": "按关键词或模式跳过内容。",
           "title": "内容忽略规则"
         },
-        "passwordApps": {
-          "controlLabel": "默认保护",
-          "description": "密码管理器默认不记录。",
-          "title": "默认忽略密码应用"
-        },
-        "privateMode": {
-          "controlLabel": "进入隐私模式",
-          "description": "短时间关闭剪贴板记录。",
-          "title": "临时暂停记录"
-        },
         "secretDetection": {
-          "description": "发现密钥、验证码等内容时不保存。",
+          "description": "发现高置信密钥、token 等内容时不保存。",
           "title": "识别密钥和 token"
         }
       },
