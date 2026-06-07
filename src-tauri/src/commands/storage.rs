@@ -15,6 +15,7 @@ use crate::settings::Settings;
 
 const SETTINGS_UPDATED_EVENT: &str = "settings://updated";
 const CLIPBOARD_UPDATED_EVENT: &str = "clipboard://updated";
+const STORAGE_CONTENT_DIRS: [&str; 4] = ["db", "resources", "config", "state"];
 
 /// 偏好页侧栏展示的本地存储占用概览。
 #[derive(Debug, Clone, Serialize)]
@@ -226,6 +227,7 @@ async fn switch_storage_location(
     }
 
     let settings = rebase_storage_states(&app).await?;
+    remove_old_storage_data(&app, &current)?;
     emit_settings_updated(&app, &settings);
     emit_clipboard_imported(&app);
 
@@ -245,20 +247,50 @@ fn reject_nested_storage_move(current: &Path, target: &Path) -> Result<()> {
 
 fn copy_storage_data(src: &Path, dst: &Path) -> Result<()> {
     fs::create_dir_all(dst).with_context(|| format!("failed to create storage dir {dst:?}"))?;
-    for name in ["db", "resources", "config", "state"] {
+    for name in STORAGE_CONTENT_DIRS {
         replace_path(&src.join(name), &dst.join(name))?;
     }
     crate::core::paths::write_storage_identity(dst)?;
     Ok(())
 }
 
+fn remove_old_storage_data(app: &AppHandle, old: &Path) -> Result<()> {
+    let default = crate::core::paths::default_data_dir(app)?;
+    if old == default {
+        remove_bootstrap_storage_payload(old)?;
+        return Ok(());
+    }
+
+    if old.exists() {
+        fs::remove_dir_all(old)
+            .with_context(|| format!("failed to remove old data dir {old:?}"))?;
+    }
+
+    Ok(())
+}
+
+fn remove_bootstrap_storage_payload(dir: &Path) -> Result<()> {
+    if !dir.exists() {
+        return Ok(());
+    }
+
+    for entry in
+        fs::read_dir(dir).with_context(|| format!("failed to read old data dir {dir:?}"))?
+    {
+        let entry = entry.with_context(|| format!("failed to read entry under {dir:?}"))?;
+        if entry.file_name() == "storage.json" {
+            continue;
+        }
+
+        remove_path(&entry.path())?;
+    }
+
+    Ok(())
+}
+
 fn replace_path(src: &Path, dst: &Path) -> Result<()> {
     if dst.exists() {
-        if dst.is_dir() {
-            fs::remove_dir_all(dst).with_context(|| format!("failed to remove {dst:?}"))?;
-        } else {
-            fs::remove_file(dst).with_context(|| format!("failed to remove {dst:?}"))?;
-        }
+        remove_path(dst)?;
     }
 
     if !src.exists() {
@@ -275,6 +307,16 @@ fn replace_path(src: &Path, dst: &Path) -> Result<()> {
             .with_context(|| format!("failed to create parent dir {parent:?}"))?;
     }
     fs::copy(src, dst).with_context(|| format!("failed to copy {src:?} to {dst:?}"))?;
+    Ok(())
+}
+
+fn remove_path(path: &Path) -> Result<()> {
+    if path.is_dir() {
+        fs::remove_dir_all(path).with_context(|| format!("failed to remove {path:?}"))?;
+        return Ok(());
+    }
+
+    fs::remove_file(path).with_context(|| format!("failed to remove {path:?}"))?;
     Ok(())
 }
 
@@ -578,5 +620,36 @@ mod tests {
         assert_eq!(removed.files, 1);
         assert!(!shard.exists());
         assert!(!root.exists());
+    }
+
+    #[test]
+    fn bootstrap_storage_cleanup_keeps_only_manifest() {
+        let temp = TempDir::new();
+        fs::write(temp.path().join("storage.json"), "{}").unwrap();
+        fs::write(temp.path().join(".ecopaste-storage.json"), "{}").unwrap();
+        fs::create_dir_all(temp.path().join("db")).unwrap();
+        fs::write(temp.path().join("db").join("clipboard.db"), b"db").unwrap();
+        fs::create_dir_all(temp.path().join("resources")).unwrap();
+        fs::write(temp.path().join("resources").join("image.png"), b"image").unwrap();
+
+        remove_bootstrap_storage_payload(temp.path()).unwrap();
+
+        assert!(temp.path().join("storage.json").exists());
+        assert!(!temp.path().join(".ecopaste-storage.json").exists());
+        assert!(!temp.path().join("db").exists());
+        assert!(!temp.path().join("resources").exists());
+    }
+
+    #[test]
+    fn remove_path_deletes_custom_storage_root() {
+        let temp = TempDir::new();
+        let root = temp.path().join("EcoPaste").join("dev");
+        fs::create_dir_all(root.join("config")).unwrap();
+        fs::write(root.join("config").join("settings.json"), "{}").unwrap();
+
+        remove_path(&root).unwrap();
+
+        assert!(!root.exists());
+        assert!(temp.path().join("EcoPaste").exists());
     }
 }

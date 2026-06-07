@@ -520,7 +520,7 @@
     "open": "Open data directory",
     "pickTitle": "Choose New Data Directory Location",
     "reset": "Reset to default directory",
-    "resetConfirmContent": "EcoPaste will move the current history database, settings, and resource cache back to the default data directory. The current custom directory will be kept and will not be deleted automatically.",
+    "resetConfirmContent": "EcoPaste will move the current history database, settings, and resource cache back to the default data directory, then delete the current custom data directory after migration succeeds.",
     "resetConfirmTitle": "Reset Data Directory"
   }
 }
