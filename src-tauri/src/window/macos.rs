@@ -118,7 +118,8 @@ pub fn handle_reopen(app_handle: &AppHandle, has_visible_windows: bool) {
 /// 所有 panel 方法必须在主线程。
 fn show_main_panel(app_handle: &AppHandle) -> Result<()> {
     let handle = app_handle.clone();
-    drop(tauri::async_runtime::spawn(async move {
+
+    tauri::async_runtime::spawn(async move {
         tokio::time::sleep(MAIN_PANEL_SHOW_DELAY).await;
 
         let panel_handle = handle.clone();
@@ -133,11 +134,13 @@ fn show_main_panel(app_handle: &AppHandle) -> Result<()> {
                         .full_screen_auxiliary()
                         .into(),
                 );
+                super::preview::resume_after_main_show();
+                super::emit_visibility(&panel_handle, MAIN_WINDOW_LABEL, true);
             }
         }) {
             log::warn!("show main panel on main thread failed: {err}");
         }
-    }));
+    });
 
     Ok(())
 }

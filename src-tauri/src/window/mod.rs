@@ -45,7 +45,7 @@ struct WindowVisibilityPayload<'a> {
     visible: bool,
 }
 
-fn emit_visibility(app_handle: &AppHandle, label: &str, visible: bool) {
+pub(super) fn emit_visibility(app_handle: &AppHandle, label: &str, visible: bool) {
     if let Err(err) = app_handle.emit(
         WINDOW_VISIBILITY_EVENT,
         WindowVisibilityPayload { label, visible },
@@ -81,13 +81,18 @@ pub fn show_window(app_handle: &AppHandle, label: &str) -> Result<()> {
     let result = macos::show_window(app_handle, label);
     #[cfg(target_os = "windows")]
     let result = windows::show_window(app_handle, label);
-    if result.is_ok() {
+    if result.is_ok() && !delays_main_visibility_event(label) {
         if label == MAIN_WINDOW_LABEL {
             preview::resume_after_main_show();
         }
         emit_visibility(app_handle, label, true);
     }
     result
+}
+
+/// macOS 主窗口有延迟 show，visibility 需等 NSPanel 真的显示后再 emit。
+fn delays_main_visibility_event(label: &str) -> bool {
+    cfg!(target_os = "macos") && label == MAIN_WINDOW_LABEL
 }
 
 pub fn hide_window(app_handle: &AppHandle, label: &str) -> Result<()> {
