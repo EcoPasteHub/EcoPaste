@@ -1,7 +1,14 @@
 import type { CSSProperties } from "react";
-import type { ClipboardPreviewRect, ClipboardPreviewState } from "@/commands";
+import type {
+  ClipboardPreviewPayload,
+  ClipboardPreviewRect,
+  ClipboardPreviewState,
+} from "@/commands";
 import {
   PREVIEW_PANEL_GAP,
+  PREVIEW_PANEL_HEADER_HEIGHT,
+  PREVIEW_PANEL_IMAGE_PADDING_X,
+  PREVIEW_PANEL_IMAGE_PADDING_Y,
   PREVIEW_PANEL_MARGIN,
   PREVIEW_PANEL_MAX_HEIGHT,
   PREVIEW_PANEL_MAX_WIDTH,
@@ -9,6 +16,26 @@ import {
   PREVIEW_PANEL_MIN_WIDTH,
 } from "./constants";
 import type { PreviewMeasuredSize } from "./measurement";
+
+/**
+ * 图片 payload 已有 DB 尺寸时，直接按比例估算面板尺寸，避免等图片加载后才撑开。
+ */
+export function resolveEffectivePanelSize(
+  layout: ClipboardPreviewState["layout"],
+  measuredSize: PreviewMeasuredSize,
+  payload: ClipboardPreviewPayload | null,
+): PreviewMeasuredSize {
+  if (payload?.kind !== "image") return measuredSize;
+
+  const imageSize = resolveImagePanelSize(
+    layout,
+    payload.imageWidth,
+    payload.imageHeight,
+  );
+  if (!imageSize) return measuredSize;
+
+  return imageSize;
+}
 
 /**
  * 根据内容自然尺寸生成实际面板 rect，保留 Rust 给出的 placement 和可用最大区域。
@@ -101,6 +128,58 @@ function rawDynamicPanelRect(
         width,
       };
   }
+}
+
+/**
+ * 按图片原始宽高、面板上限和固定内边距计算等比例展示尺寸。
+ */
+function resolveImagePanelSize(
+  layout: ClipboardPreviewState["layout"],
+  imageWidth: number | null,
+  imageHeight: number | null,
+): PreviewMeasuredSize | null {
+  if (!imageWidth || !imageHeight || imageWidth <= 0 || imageHeight <= 0) {
+    return null;
+  }
+
+  const maxPanelWidth = Math.min(
+    PREVIEW_PANEL_MAX_WIDTH,
+    layout.panelRect.width,
+  );
+  const maxPanelHeight = Math.min(
+    PREVIEW_PANEL_MAX_HEIGHT,
+    layout.panelRect.height,
+  );
+  const maxImageWidth = Math.max(
+    1,
+    maxPanelWidth - PREVIEW_PANEL_IMAGE_PADDING_X,
+  );
+  const maxImageHeight = Math.max(
+    1,
+    maxPanelHeight -
+      PREVIEW_PANEL_HEADER_HEIGHT -
+      PREVIEW_PANEL_IMAGE_PADDING_Y,
+  );
+  const scale = Math.min(
+    1,
+    maxImageWidth / imageWidth,
+    maxImageHeight / imageHeight,
+  );
+
+  return {
+    height: clamp(
+      Math.ceil(imageHeight * scale) +
+        PREVIEW_PANEL_HEADER_HEIGHT +
+        PREVIEW_PANEL_IMAGE_PADDING_Y,
+      PREVIEW_PANEL_MIN_HEIGHT,
+      maxPanelHeight,
+    ),
+    width: clamp(
+      Math.ceil(imageWidth * scale) + PREVIEW_PANEL_IMAGE_PADDING_X,
+      PREVIEW_PANEL_MIN_WIDTH,
+      maxPanelWidth,
+    ),
+  };
 }
 
 /**

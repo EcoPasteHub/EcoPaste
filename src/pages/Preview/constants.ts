@@ -5,6 +5,9 @@ export const PREVIEW_PANEL_MIN_HEIGHT = 96;
 export const PREVIEW_PANEL_MIN_WIDTH = 288;
 export const PREVIEW_PANEL_MAX_HEIGHT = 480;
 export const PREVIEW_PANEL_MAX_WIDTH = 480;
+export const PREVIEW_PANEL_HEADER_HEIGHT = 48;
+export const PREVIEW_PANEL_IMAGE_PADDING_X = 32;
+export const PREVIEW_PANEL_IMAGE_PADDING_Y = 32;
 export const PREVIEW_PANEL_FALLBACK_SIZE = {
   height: 160,
   width: 320,

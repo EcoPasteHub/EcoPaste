@@ -23,6 +23,7 @@ import { usePreviewPayload, usePreviewRenderState } from "./hooks";
 import {
   rectStyle,
   resolveDynamicPanelRect,
+  resolveEffectivePanelSize,
   resolveMeasurePanelStyle,
 } from "./layout";
 import { hasMeasuredPanelSize, useMeasuredPanelSize } from "./measurement";
@@ -60,8 +61,11 @@ const Preview: FC = () => {
   const measuredPanelSize = useMeasuredPanelSize(panelMeasureRef);
   const active = previewState !== null;
   const visibleState = previewState ?? renderState;
+  const effectivePanelSize = visibleState
+    ? resolveEffectivePanelSize(visibleState.layout, measuredPanelSize, payload)
+    : measuredPanelSize;
   const panelRect = visibleState
-    ? resolveDynamicPanelRect(visibleState.layout, measuredPanelSize)
+    ? resolveDynamicPanelRect(visibleState.layout, effectivePanelSize)
     : EMPTY_RECT;
   const panelMeasureStyle = visibleState
     ? resolveMeasurePanelStyle(visibleState.layout)
@@ -72,7 +76,7 @@ const Preview: FC = () => {
   const motionLayout = usePreviewMotion(
     active,
     visibleState?.sessionId ?? null,
-    hasMeasuredPanelSize(measuredPanelSize),
+    hasMeasuredPanelSize(effectivePanelSize),
     panelRect,
     connector,
   );

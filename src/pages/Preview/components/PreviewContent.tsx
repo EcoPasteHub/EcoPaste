@@ -119,6 +119,8 @@ const TextViewer: FC<PayloadViewerProps> = (props) => {
 const ImageViewer: FC<PayloadViewerProps> = (props) => {
   const { payload } = props;
   const { t } = useTranslation("preview");
+  const imageWidth = payload.imageWidth ?? void 0;
+  const imageHeight = payload.imageHeight ?? void 0;
 
   if (!payload.imagePath || !payload.imageExists) {
     return (
@@ -132,12 +134,14 @@ const ImageViewer: FC<PayloadViewerProps> = (props) => {
   }
 
   return (
-    <div className="flex max-h-full items-center justify-center p-4">
+    <div className="flex h-full min-h-0 items-center justify-center p-4">
       <AssetImage
         alt={t("image.alt")}
-        className="max-h-full max-w-full object-contain"
+        className="h-auto max-h-full max-w-full object-contain"
         draggable={false}
+        height={imageHeight}
         src={payload.imagePath}
+        width={imageWidth}
       />
     </div>
   );
