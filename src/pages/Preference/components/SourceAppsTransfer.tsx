@@ -142,6 +142,7 @@ const SourceAppsTransfer: FC<SourceAppsTransferProps> = (props) => {
             loading={sourceApps.loading}
             onClick={handleRefreshApps}
             size="small"
+            type="text"
           />
         </Tooltip>
       </div>
@@ -163,6 +164,7 @@ const SourceAppsTransfer: FC<SourceAppsTransferProps> = (props) => {
           loading={adding}
           onClick={handleAddApp}
           size="small"
+          type="text"
         />
       </Tooltip>
     </span>
@@ -176,13 +178,9 @@ const SourceAppsTransfer: FC<SourceAppsTransferProps> = (props) => {
       <Transfer<SourceAppTransferItem>
         className="source-apps-transfer h-full min-h-0"
         classNames={{
-          body: "min-h-0 flex-1",
-          header: "h-11 [&_.ant-transfer-list-header-selected]:hidden",
-          item: "h-10",
-          itemContent: "min-w-0",
-          list: "h-full",
-          root: "h-full min-h-0 w-full",
-          section: "h-full! min-w-0 flex-1",
+          header: "[&_.ant-transfer-list-header-selected]:hidden",
+          root: "h-full",
+          section: "h-full! flex-1",
           title: "ms-0! min-w-0 flex-1! text-start!",
         }}
         dataSource={dataSource}
