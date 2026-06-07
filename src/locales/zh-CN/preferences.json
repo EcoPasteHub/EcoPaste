@@ -262,6 +262,10 @@
         }
       },
       "copy": {
+        "hideWindow": {
+          "description": "从历史复制记录后，自动隐藏剪贴板主窗口。",
+          "title": "复制后隐藏窗口"
+        },
         "plainDefault": {
           "description": "复制文本记录时默认去除 HTML/RTF 等格式，只复制纯文本。",
           "title": "默认复制为纯文本"

@@ -262,6 +262,10 @@
         }
       },
       "copy": {
+        "hideWindow": {
+          "description": "After copying a history record, automatically hide the clipboard window.",
+          "title": "Hide Window After Copy"
+        },
         "plainDefault": {
           "description": "When copying text records, strip HTML/RTF formatting and copy plain text by default.",
           "title": "Copy as Plain Text by Default"

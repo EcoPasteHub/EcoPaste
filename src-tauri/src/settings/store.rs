@@ -244,6 +244,7 @@ mod tests {
             parsed.clipboard.content.sort,
             crate::db::models::ClipboardItemSort::UpdatedAt
         );
+        assert!(!parsed.clipboard.content.copy_then_hide_window);
         assert!(!parsed.clipboard.content.update_on_reuse);
         assert_eq!(parsed.clipboard.history.cleanup_interval_hours, 0);
         assert!(parsed.clipboard.window.scroll_to_top_on_open);

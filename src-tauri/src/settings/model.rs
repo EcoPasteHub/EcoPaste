@@ -283,6 +283,8 @@ pub struct Content {
     pub middle_click: MiddleClickAction,
     /// 复制（写回剪贴板）时去除格式。
     pub copy_plain: bool,
+    /// 从历史复制后隐藏主窗口。
+    pub copy_then_hide_window: bool,
     /// 粘贴时去除格式（与全局快捷键 `paste_plain` 等价的默认行为）。
     pub paste_plain: bool,
     /// 粘贴文件记录时，默认写入路径文本而不是文件本身。
@@ -307,6 +309,7 @@ impl Default for Content {
             auto_paste: AutoPaste::DoubleClickPaste,
             middle_click: MiddleClickAction::Disabled,
             copy_plain: false,
+            copy_then_hide_window: false,
             paste_plain: false,
             paste_files_as_path: false,
             show_original_preview: false,

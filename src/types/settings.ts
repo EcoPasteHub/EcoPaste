@@ -81,6 +81,7 @@ export interface Content {
   autoPaste: AutoPaste;
   middleClick: MiddleClickAction;
   copyPlain: boolean;
+  copyThenHideWindow: boolean;
   pastePlain: boolean;
   pasteFilesAsPath: boolean;
   showOriginalPreview: boolean;

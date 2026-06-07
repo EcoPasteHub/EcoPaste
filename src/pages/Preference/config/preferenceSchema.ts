@@ -341,6 +341,17 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { type: "switch" },
+            description: "从历史复制记录后，自动隐藏剪贴板主窗口。",
+            id: "copy.hideWindow",
+            keywords: ["copy", "hide", "window"],
+            path: ["clipboard", "content", "copyThenHideWindow"],
+            title: "复制后隐藏窗口",
+            value: (settings) => {
+              return settings.clipboard.content.copyThenHideWindow;
+            },
+          },
+          {
+            control: { type: "switch" },
             description: "从历史复制或粘贴记录时，刷新使用时间和使用次数。",
             id: "copy.updateOnReuse",
             keywords: ["copy", "paste", "reuse", "sort", "frequency"],

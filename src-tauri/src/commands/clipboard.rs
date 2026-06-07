@@ -265,9 +265,15 @@ pub async fn write_to_clipboard(
     let settings = app.state::<SettingsStore>().snapshot();
     let write_plain =
         should_write_plain_for_copy(plain, item.kind, settings.clipboard.content.copy_plain);
+    let hide_after_copy = settings.clipboard.content.copy_then_hide_window;
 
     crate::clipboard::write_to_clipboard(&store, guard.inner().as_ref(), &item, write_plain)?;
     mark_item_reused_if_enabled(&app, &pool, &id).await?;
+
+    if hide_after_copy {
+        hide_main_window_after_copy(&app);
+    }
+
     Ok(())
 }
 
@@ -371,6 +377,17 @@ async fn mark_item_reused_if_enabled(app: &AppHandle, pool: &SqlitePool, id: &st
     }
 
     Ok(())
+}
+
+/// 从历史复制后按设置隐藏主窗口；固定状态下尊重用户显式 pin。
+fn hide_main_window_after_copy(app: &AppHandle) {
+    if window::is_main_window_pinned() {
+        return;
+    }
+
+    if let Err(err) = window::hide_window(app, MAIN_WINDOW_LABEL) {
+        log::warn!("hide main window after copy failed: {err:?}");
+    }
 }
 
 /// 列表查询命令（薄封装）：参数缺省时走 Rust 端默认（limit=20, offset=0, updatedAtDesc）；
