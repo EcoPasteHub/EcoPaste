@@ -1,17 +1,20 @@
 use std::collections::HashSet;
 use std::fs;
-use std::path::Path;
-#[cfg(test)]
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
+use std::sync::{Arc, Mutex};
 
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_opener::OpenerExt;
 
 use crate::core::Result;
 use crate::db::DatabaseState;
+use crate::settings::Settings;
+
+const SETTINGS_UPDATED_EVENT: &str = "settings://updated";
+const CLIPBOARD_UPDATED_EVENT: &str = "clipboard://updated";
 
 /// 偏好页侧栏展示的本地存储占用概览。
 #[derive(Debug, Clone, Serialize)]
@@ -32,12 +35,29 @@ pub struct CleanCacheResult {
     pub storage_usage: StorageUsage,
 }
 
+/// 当前数据目录位置及是否已切到自定义目录。
+pub type StorageLocation = crate::core::paths::StorageLocation;
+
+/// 更改或还原数据目录后的刷新结果。
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ChangeStorageLocationResult {
+    pub location: StorageLocation,
+    pub storage_usage: StorageUsage,
+}
+
 /// 偏好页允许打开的固定本地目录，避免前端传入任意文件系统路径。
 #[derive(Debug, Clone, Copy, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum PreferenceDirectoryTarget {
     Data,
     Logs,
+}
+
+/// 读取当前真实数据目录位置。
+#[tauri::command]
+pub async fn get_storage_location(app: AppHandle) -> Result<StorageLocation> {
+    crate::core::paths::storage_location(&app)
 }
 
 /// 统计当前 `env_dir()` 数据目录的递归总占用，并拆分常见分项供侧栏展示。
@@ -54,6 +74,27 @@ pub async fn get_storage_usage(app: AppHandle) -> Result<StorageUsage> {
         resources_bytes,
         settings_bytes,
     })
+}
+
+/// 将数据目录迁移到用户选择的父目录下，并热切换当前运行时状态。
+#[tauri::command]
+pub async fn change_storage_location(
+    app: AppHandle,
+    db: tauri::State<'_, DatabaseState>,
+    target_parent_dir: String,
+) -> Result<ChangeStorageLocationResult> {
+    let target = crate::core::paths::custom_data_dir(Path::new(&target_parent_dir));
+    switch_storage_location(app, db.inner(), target).await
+}
+
+/// 将数据目录迁回默认位置，并热切换当前运行时状态。
+#[tauri::command]
+pub async fn reset_storage_location(
+    app: AppHandle,
+    db: tauri::State<'_, DatabaseState>,
+) -> Result<ChangeStorageLocationResult> {
+    let target = crate::core::paths::default_data_dir(&app)?;
+    switch_storage_location(app, db.inner(), target).await
 }
 
 /// 删除资源目录中不再被历史记录或资源索引引用的文件。
@@ -121,6 +162,196 @@ pub async fn open_preference_directory(
         .map_err(|err| anyhow::Error::msg(err.to_string()))?;
 
     Ok(())
+}
+
+async fn switch_storage_location(
+    app: AppHandle,
+    db: &DatabaseState,
+    target: PathBuf,
+) -> Result<ChangeStorageLocationResult> {
+    let current = crate::core::paths::app_data_dir(&app)?;
+    if current == target {
+        return Ok(ChangeStorageLocationResult {
+            location: crate::core::paths::storage_location(&app)?,
+            storage_usage: get_storage_usage(app).await?,
+        });
+    }
+
+    reject_nested_storage_move(&current, &target)?;
+    if target != crate::core::paths::default_data_dir(&app)? {
+        crate::core::paths::validate_storage_target(&target)?;
+    }
+
+    let _pause_guard = pause_watcher(&app);
+    let switch_error = Arc::new(Mutex::new(None::<String>));
+    let switch_error_for_task = switch_error.clone();
+    let app_for_db = app.clone();
+    let current_for_db = current.clone();
+    let target_for_db = target.clone();
+
+    db.close_and_replace(|| async move {
+        let switch_result = (|| -> Result<()> {
+            copy_storage_data(&current_for_db, &target_for_db)?;
+            crate::core::paths::set_app_data_dir(&app_for_db, target_for_db.clone())?;
+            Ok(())
+        })();
+
+        if let Err(err) = switch_result {
+            *switch_error_for_task
+                .lock()
+                .expect("storage switch error poisoned") = Some(err.to_string());
+            crate::core::paths::set_app_data_dir(&app_for_db, current_for_db.clone())?;
+            return crate::db::init(&app_for_db).await;
+        }
+
+        match crate::db::init(&app_for_db).await {
+            Ok(pool) => Ok(pool),
+            Err(err) => {
+                *switch_error_for_task
+                    .lock()
+                    .expect("storage switch error poisoned") = Some(err.to_string());
+                crate::core::paths::set_app_data_dir(&app_for_db, current_for_db.clone())?;
+                crate::db::init(&app_for_db).await
+            }
+        }
+    })
+    .await?;
+
+    if let Some(message) = switch_error
+        .lock()
+        .expect("storage switch error poisoned")
+        .take()
+    {
+        return Err(anyhow::anyhow!(message).into());
+    }
+
+    let settings = rebase_storage_states(&app).await?;
+    emit_settings_updated(&app, &settings);
+    emit_clipboard_imported(&app);
+
+    Ok(ChangeStorageLocationResult {
+        location: crate::core::paths::storage_location(&app)?,
+        storage_usage: get_storage_usage(app).await?,
+    })
+}
+
+fn reject_nested_storage_move(current: &Path, target: &Path) -> Result<()> {
+    if target.starts_with(current) || current.starts_with(target) {
+        return Err(anyhow::anyhow!("新旧数据目录不能互相包含").into());
+    }
+
+    Ok(())
+}
+
+fn copy_storage_data(src: &Path, dst: &Path) -> Result<()> {
+    fs::create_dir_all(dst).with_context(|| format!("failed to create storage dir {dst:?}"))?;
+    for name in ["db", "resources", "config", "state"] {
+        replace_path(&src.join(name), &dst.join(name))?;
+    }
+    crate::core::paths::write_storage_identity(dst)?;
+    Ok(())
+}
+
+fn replace_path(src: &Path, dst: &Path) -> Result<()> {
+    if dst.exists() {
+        if dst.is_dir() {
+            fs::remove_dir_all(dst).with_context(|| format!("failed to remove {dst:?}"))?;
+        } else {
+            fs::remove_file(dst).with_context(|| format!("failed to remove {dst:?}"))?;
+        }
+    }
+
+    if !src.exists() {
+        return Ok(());
+    }
+
+    if src.is_dir() {
+        copy_dir_all(src, dst)?;
+        return Ok(());
+    }
+
+    if let Some(parent) = dst.parent() {
+        fs::create_dir_all(parent)
+            .with_context(|| format!("failed to create parent dir {parent:?}"))?;
+    }
+    fs::copy(src, dst).with_context(|| format!("failed to copy {src:?} to {dst:?}"))?;
+    Ok(())
+}
+
+fn copy_dir_all(src: &Path, dst: &Path) -> Result<()> {
+    fs::create_dir_all(dst).with_context(|| format!("failed to create dir {dst:?}"))?;
+    for entry in fs::read_dir(src).with_context(|| format!("failed to read dir {src:?}"))? {
+        let entry = entry.with_context(|| format!("failed to read entry under {src:?}"))?;
+        let src_path = entry.path();
+        let dst_path = dst.join(entry.file_name());
+        let metadata = entry
+            .metadata()
+            .with_context(|| format!("failed to read metadata at {src_path:?}"))?;
+
+        if metadata.is_dir() {
+            copy_dir_all(&src_path, &dst_path)?;
+            continue;
+        }
+
+        fs::copy(&src_path, &dst_path)
+            .with_context(|| format!("failed to copy {src_path:?} to {dst_path:?}"))?;
+    }
+    Ok(())
+}
+
+async fn rebase_storage_states(app: &AppHandle) -> Result<Settings> {
+    let settings = app.state::<crate::settings::SettingsStore>().rebase(app)?;
+    app.state::<crate::window::WindowStateStore>().rebase(app)?;
+    app.state::<crate::clipboard::ImageStore>().rebase(app)?;
+    app.state::<crate::clipboard::AppIconStore>().rebase(app)?;
+    app.state::<crate::clipboard::FileIconStore>().rebase(app)?;
+
+    if let Some(registry) = app.try_state::<crate::clipboard::AppsRegistry>() {
+        registry.load_from_db().await?;
+    }
+
+    Ok(settings)
+}
+
+fn emit_settings_updated(app: &AppHandle, settings: &Settings) {
+    if let Err(err) = app.emit(SETTINGS_UPDATED_EVENT, settings) {
+        log::warn!("emit settings updated event failed: {err}");
+    }
+}
+
+fn emit_clipboard_imported(app: &AppHandle) {
+    if let Err(err) = app.emit(
+        CLIPBOARD_UPDATED_EVENT,
+        serde_json::json!({ "imported": true }),
+    ) {
+        log::warn!("emit clipboard imported event failed: {err}");
+    }
+}
+
+fn pause_watcher(app: &AppHandle) -> WatcherPauseRestore {
+    let pause = app.try_state::<crate::clipboard::WatcherPause>();
+    let previous = pause.as_ref().is_some_and(|state| state.is_paused());
+    if let Some(state) = pause.as_ref() {
+        state.set_paused(true);
+    }
+
+    WatcherPauseRestore {
+        pause: pause.map(|state| state.inner().clone()),
+        previous,
+    }
+}
+
+struct WatcherPauseRestore {
+    pause: Option<crate::clipboard::WatcherPause>,
+    previous: bool,
+}
+
+impl Drop for WatcherPauseRestore {
+    fn drop(&mut self) {
+        if let Some(pause) = &self.pause {
+            pause.set_paused(self.previous);
+        }
+    }
 }
 
 /// 查询仍被 image 历史记录引用的图片文件名。

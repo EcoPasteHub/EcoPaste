@@ -9,11 +9,14 @@ import { useTranslation } from "react-i18next";
 import { useSnapshot } from "valtio";
 import {
   type BackupReceivedPayload,
+  type ChangeStorageLocationResult,
   type CleanCacheResult,
   type ExportHistoryBackupResult,
+  getStorageLocation,
   getStorageUsage,
   type ImportHistoryBackupResult,
   inspectHistoryBackup,
+  type StorageLocation,
   type StorageUsage,
 } from "@/commands";
 import { TAURI_EVENT } from "@/constants/events";
@@ -80,6 +83,8 @@ const Preference: FC = () => {
   const [storageState, setStorageState] =
     useState<PreferenceStorageState>("loading");
   const [storageUsage, setStorageUsage] = useState<StorageUsage | null>(null);
+  const [storageLocation, setStorageLocation] =
+    useState<StorageLocation | null>(null);
   const [backupImportTarget, setBackupImportTarget] =
     useState<BackupReceivedPayload | null>(null);
 
@@ -183,8 +188,18 @@ const Preference: FC = () => {
 
   const handleActionComplete = (
     setting: PreferenceSetting,
-    result?: CleanCacheResult | ExportHistoryBackupResult,
+    result?:
+      | ChangeStorageLocationResult
+      | CleanCacheResult
+      | ExportHistoryBackupResult,
   ) => {
+    if (result && "location" in result) {
+      setStorageLocation(result.location);
+      setStorageUsage(result.storageUsage);
+      setStorageState("ready");
+      return;
+    }
+
     if (result && "storageUsage" in result) {
       setStorageUsage(result.storageUsage);
       setStorageState("ready");
@@ -226,7 +241,13 @@ const Preference: FC = () => {
     setStorageState("loading");
 
     try {
-      setStorageUsage(await getStorageUsage());
+      const [usage, location] = await Promise.all([
+        getStorageUsage(),
+        getStorageLocation(),
+      ]);
+
+      setStorageUsage(usage);
+      setStorageLocation(location);
       setStorageState("ready");
     } catch (error) {
       log.warn("load storage usage failed", error);
@@ -400,6 +421,7 @@ const Preference: FC = () => {
                     section={activeSection}
                     settings={settings}
                     shouldReduceMotion={reduceMotion}
+                    storageLocation={storageLocation}
                   />
                 </motion.div>
               ) : null}

@@ -8,6 +8,7 @@
 //! 撑死几十到低几百个，单层目录足够，分片只是徒增复杂度。
 
 use std::path::{Path, PathBuf};
+use std::sync::{Arc, RwLock};
 
 use anyhow::Context;
 use blake3::Hasher;
@@ -20,31 +21,52 @@ const APP_ICONS_DIR: &str = "app-icons";
 
 #[derive(Clone)]
 pub struct AppIconStore {
-    root: PathBuf,
+    root: Arc<RwLock<PathBuf>>,
 }
 
 impl AppIconStore {
     pub fn new(app: &AppHandle) -> Result<Self> {
         Ok(Self {
-            root: crate::core::paths::resources_dir(app)?.join(APP_ICONS_DIR),
+            root: Arc::new(RwLock::new(
+                crate::core::paths::resources_dir(app)?.join(APP_ICONS_DIR),
+            )),
         })
     }
 
     #[cfg(test)]
     pub(crate) fn for_test(root: PathBuf) -> Self {
-        Self { root }
+        Self {
+            root: Arc::new(RwLock::new(root)),
+        }
+    }
+
+    /// 重新绑定到当前真实数据根；数据目录热迁移后由存储命令调用。
+    pub fn rebase(&self, app: &AppHandle) -> Result<()> {
+        let next = crate::core::paths::resources_dir(app)?.join(APP_ICONS_DIR);
+        *self
+            .root
+            .write()
+            .unwrap_or_else(|poisoned| poisoned.into_inner()) = next;
+        Ok(())
     }
 
     /// 落盘 PNG 字节，返回入库用文件名 `<hash>.png`。已存在则跳过写入（幂等）。
     pub fn store(&self, png_bytes: &[u8]) -> Result<String> {
         let digest = blake3_hex(png_bytes);
         let file_name = format!("{digest}.png");
-        write_if_absent(&self.root.join(&file_name), png_bytes)?;
+        write_if_absent(&self.root().join(&file_name), png_bytes)?;
         Ok(file_name)
     }
 
     pub fn icon_path(&self, file_name: &str) -> PathBuf {
-        self.root.join(file_name)
+        self.root().join(file_name)
+    }
+
+    fn root(&self) -> PathBuf {
+        self.root
+            .read()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .clone()
     }
 }
 
@@ -90,7 +112,7 @@ mod tests {
         assert!(path.exists());
         assert_eq!(std::fs::read(&path).unwrap(), bytes);
         // 平铺：文件直接落在 root 下，无分片子目录。
-        assert_eq!(path, store.root.join(&a));
+        assert_eq!(path, store.root().join(&a));
     }
 
     struct TempDir(PathBuf);

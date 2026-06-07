@@ -5,6 +5,7 @@
 //! `file_type_icons.icon_file` 存「`<hash>.png`」纯文件名，不入库目录前缀。
 
 use std::path::{Path, PathBuf};
+use std::sync::{Arc, RwLock};
 
 use anyhow::Context;
 use blake3::Hasher;
@@ -16,31 +17,45 @@ const FILE_ICONS_DIR: &str = "file-icons";
 
 #[derive(Clone)]
 pub struct FileIconStore {
-    root: PathBuf,
+    root: Arc<RwLock<PathBuf>>,
 }
 
 impl FileIconStore {
     pub fn new(app: &AppHandle) -> Result<Self> {
         Ok(Self {
-            root: crate::core::paths::resources_dir(app)?.join(FILE_ICONS_DIR),
+            root: Arc::new(RwLock::new(
+                crate::core::paths::resources_dir(app)?.join(FILE_ICONS_DIR),
+            )),
         })
     }
 
-    #[cfg(test)]
-    pub(crate) fn for_test(root: PathBuf) -> Self {
-        Self { root }
+    /// 重新绑定到当前真实数据根；数据目录热迁移后由存储命令调用。
+    pub fn rebase(&self, app: &AppHandle) -> Result<()> {
+        let next = crate::core::paths::resources_dir(app)?.join(FILE_ICONS_DIR);
+        *self
+            .root
+            .write()
+            .unwrap_or_else(|poisoned| poisoned.into_inner()) = next;
+        Ok(())
     }
 
     /// 落盘 PNG 字节，返回入库用文件名 `<hash>.png`。已存在则跳过写入（幂等）。
     pub fn store(&self, png_bytes: &[u8]) -> Result<String> {
         let digest = blake3_hex(png_bytes);
         let file_name = format!("{digest}.png");
-        write_if_absent(&self.root.join(&file_name), png_bytes)?;
+        write_if_absent(&self.root().join(&file_name), png_bytes)?;
         Ok(file_name)
     }
 
     pub fn icon_path(&self, file_name: &str) -> PathBuf {
-        self.root.join(file_name)
+        self.root().join(file_name)
+    }
+
+    fn root(&self) -> PathBuf {
+        self.root
+            .read()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .clone()
     }
 }
 

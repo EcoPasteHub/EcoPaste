@@ -1,7 +1,12 @@
 import { motion } from "motion/react";
 import type { FC } from "react";
 import { useTranslation } from "react-i18next";
-import type { CleanCacheResult, ExportHistoryBackupResult } from "@/commands";
+import type {
+  ChangeStorageLocationResult,
+  CleanCacheResult,
+  ExportHistoryBackupResult,
+  StorageLocation,
+} from "@/commands";
 import type { Settings } from "@/types/settings";
 import type {
   PreferenceSection as PreferenceSectionModel,
@@ -19,9 +24,13 @@ interface PreferenceSectionProps {
   section: PreferenceSectionModel;
   settings: Settings;
   shouldReduceMotion: boolean;
+  storageLocation: StorageLocation | null;
   onActionComplete?: (
     setting: PreferenceSetting,
-    result?: CleanCacheResult | ExportHistoryBackupResult,
+    result?:
+      | ChangeStorageLocationResult
+      | CleanCacheResult
+      | ExportHistoryBackupResult,
   ) => void;
   onChange: (setting: PreferenceSetting, value: SettingValue) => Promise<void>;
 }
@@ -41,6 +50,7 @@ const PreferenceSection: FC<PreferenceSectionProps> = (props) => {
     section,
     settings,
     shouldReduceMotion,
+    storageLocation,
     onActionComplete,
     onChange,
   } = props;
@@ -109,6 +119,7 @@ const PreferenceSection: FC<PreferenceSectionProps> = (props) => {
               setting={setting}
               settings={settings}
               shouldReduceMotion={shouldReduceMotion}
+              storageLocation={storageLocation}
             />
           );
         })}

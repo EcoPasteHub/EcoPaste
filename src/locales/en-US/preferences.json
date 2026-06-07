@@ -514,5 +514,13 @@
     "loading": "Calculating",
     "title": "Local Storage",
     "usage": "{{total}} / {{target}}"
+  },
+  "storageLocation": {
+    "change": "Change data directory",
+    "open": "Open data directory",
+    "pickTitle": "Choose New Data Directory Location",
+    "reset": "Reset to default directory",
+    "resetConfirmContent": "EcoPaste will move the current history database, settings, and resource cache back to the default data directory. The current custom directory will be kept and will not be deleted automatically.",
+    "resetConfirmTitle": "Reset Data Directory"
   }
 }

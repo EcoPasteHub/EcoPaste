@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
-use std::sync::Mutex;
+use std::sync::{Mutex, RwLock};
 
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
@@ -20,7 +20,7 @@ pub struct WindowState {
 }
 
 pub struct WindowStateStore {
-    path: PathBuf,
+    path: RwLock<PathBuf>,
     states: Mutex<HashMap<String, WindowState>>,
 }
 
@@ -49,7 +49,7 @@ impl WindowStateStore {
 
         log::info!("window state store ready at {path:?}");
         Ok(Self {
-            path,
+            path: RwLock::new(path),
             states: Mutex::new(states),
         })
     }
@@ -62,8 +62,9 @@ impl WindowStateStore {
         states.insert(label.to_owned(), state);
         let json =
             serde_json::to_string_pretty(&*states).context("failed to serialize window states")?;
-        fs::write(&self.path, json)
-            .with_context(|| format!("failed to write window state to {:?}", self.path))?;
+        let path = self.path();
+        fs::write(&path, json)
+            .with_context(|| format!("failed to write window state to {:?}", path))?;
         Ok(())
     }
 
@@ -73,6 +74,45 @@ impl WindowStateStore {
             poisoned.into_inner()
         });
         states.get(label).cloned()
+    }
+
+    /// 数据目录热切换后重新绑定窗口状态文件，并重新读取新目录里的状态。
+    pub fn rebase(&self, app: &AppHandle) -> Result<()> {
+        let dir = crate::core::paths::state_dir(app)?;
+        fs::create_dir_all(&dir).with_context(|| format!("failed to create dir at {dir:?}"))?;
+        let path = dir.join(STATE_FILENAME);
+        let next_states = load_states(&path);
+
+        *self.path.write().expect("window state path poisoned") = path;
+        *self.states.lock().unwrap_or_else(|poisoned| {
+            log::error!("window state mutex poisoned on rebase, recovering");
+            poisoned.into_inner()
+        }) = next_states;
+        Ok(())
+    }
+
+    fn path(&self) -> PathBuf {
+        self.path
+            .read()
+            .expect("window state path poisoned")
+            .clone()
+    }
+}
+
+fn load_states(path: &PathBuf) -> HashMap<String, WindowState> {
+    if !path.exists() {
+        return HashMap::new();
+    }
+
+    match fs::read_to_string(path) {
+        Ok(content) => serde_json::from_str(&content).unwrap_or_else(|e| {
+            log::warn!("failed to parse window state at {path:?}, using defaults: {e}");
+            HashMap::new()
+        }),
+        Err(e) => {
+            log::warn!("failed to read window state at {path:?}, using defaults: {e}");
+            HashMap::new()
+        }
     }
 }
 

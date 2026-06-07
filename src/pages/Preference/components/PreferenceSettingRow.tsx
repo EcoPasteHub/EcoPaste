@@ -1,7 +1,13 @@
+import type { TFunction } from "i18next";
 import { motion } from "motion/react";
 import type { FC } from "react";
 import { useTranslation } from "react-i18next";
-import type { CleanCacheResult, ExportHistoryBackupResult } from "@/commands";
+import type {
+  ChangeStorageLocationResult,
+  CleanCacheResult,
+  ExportHistoryBackupResult,
+  StorageLocation,
+} from "@/commands";
 import type { Settings } from "@/types/settings";
 import { cn } from "@/utils/cn";
 import type {
@@ -33,9 +39,13 @@ interface PreferenceSettingRowProps {
   setting: PreferenceSetting;
   settings: Settings;
   shouldReduceMotion: boolean;
+  storageLocation: StorageLocation | null;
   onActionComplete?: (
     setting: PreferenceSetting,
-    result?: CleanCacheResult | ExportHistoryBackupResult,
+    result?:
+      | ChangeStorageLocationResult
+      | CleanCacheResult
+      | ExportHistoryBackupResult,
   ) => void;
   onChange: PreferenceSettingChangeHandler;
 }
@@ -51,6 +61,7 @@ const PreferenceSettingRow: FC<PreferenceSettingRowProps> = (props) => {
     setting,
     settings,
     shouldReduceMotion,
+    storageLocation,
     onActionComplete,
     onChange,
   } = props;
@@ -140,14 +151,22 @@ const PreferenceSettingRow: FC<PreferenceSettingRowProps> = (props) => {
           className={cn(
             "mt-0.5 text-xs leading-snug",
             disabled ? "text-ant-disabled" : "text-ant-tertiary",
+            { "break-all": setting.id === "localData.dataDirectory" },
           )}
         >
-          {translatePreferenceSetting(t, setting, "description")}
+          {resolveSettingDescription(t, setting, storageLocation)}
         </div>
       </div>
 
       <div className="relative flex shrink-0 justify-end opacity-90 transition-opacity group-hover:opacity-100 motion-reduce:transition-none">
-        {renderControl(setting, disabled, onChange, value, onActionComplete)}
+        {renderControl(
+          setting,
+          disabled,
+          onChange,
+          value,
+          onActionComplete,
+          storageLocation,
+        )}
       </div>
     </motion.div>
   );
@@ -165,8 +184,12 @@ function renderControl(
   value?: SettingValue,
   onActionComplete?: (
     setting: PreferenceSetting,
-    result?: CleanCacheResult | ExportHistoryBackupResult,
+    result?:
+      | ChangeStorageLocationResult
+      | CleanCacheResult
+      | ExportHistoryBackupResult,
   ) => void,
+  storageLocation?: StorageLocation | null,
 ) {
   switch (setting.control.type) {
     case "switch":
@@ -239,6 +262,7 @@ function renderControl(
           disabled={disabled}
           onActionComplete={onActionComplete}
           setting={setting}
+          storageLocation={storageLocation ?? null}
         />
       );
     case "status":
@@ -246,4 +270,19 @@ function renderControl(
     case "shortcutTags":
       return <ShortcutTagsControl setting={setting} />;
   }
+}
+
+/**
+ * 数据目录行展示当前真实路径，其它设置沿用 schema 文案。
+ */
+function resolveSettingDescription(
+  t: TFunction<"preferences">,
+  setting: PreferenceSetting,
+  storageLocation: StorageLocation | null,
+) {
+  if (setting.id === "localData.dataDirectory" && storageLocation) {
+    return storageLocation.currentPath;
+  }
+
+  return translatePreferenceSetting(t, setting, "description");
 }

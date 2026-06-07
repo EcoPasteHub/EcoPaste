@@ -14,6 +14,7 @@
 //! [`ImageStore::ensure_thumbnail`] 在前端首次取图时懒生成并缓存。
 
 use std::path::{Path, PathBuf};
+use std::sync::{Arc, RwLock};
 
 use anyhow::Context;
 use blake3::Hasher;
@@ -48,19 +49,33 @@ pub struct StoredImage {
 /// 放入 Tauri `State`，监听线程与命令共用。
 #[derive(Clone)]
 pub struct ImageStore {
-    images_root: PathBuf,
+    images_root: Arc<RwLock<PathBuf>>,
 }
 
 impl ImageStore {
     /// 从 `AppHandle` 解析 `<app_local_data>/resources/clipboard-images` 作为根。
     pub fn new(app: &AppHandle) -> Result<Self> {
         let images_root = crate::core::paths::resources_dir(app)?.join(IMAGES_DIR);
-        Ok(Self { images_root })
+        Ok(Self {
+            images_root: Arc::new(RwLock::new(images_root)),
+        })
     }
 
     #[cfg(test)]
     pub(crate) fn for_test(images_root: PathBuf) -> Self {
-        Self { images_root }
+        Self {
+            images_root: Arc::new(RwLock::new(images_root)),
+        }
+    }
+
+    /// 重新绑定到当前真实数据根；数据目录热迁移后由存储命令调用。
+    pub fn rebase(&self, app: &AppHandle) -> Result<()> {
+        let next = crate::core::paths::resources_dir(app)?.join(IMAGES_DIR);
+        *self
+            .images_root
+            .write()
+            .unwrap_or_else(|poisoned| poisoned.into_inner()) = next;
+        Ok(())
     }
 
     /// 落盘原图，返回 [`StoredImage`]。已存在的文件跳过写入（幂等）。
@@ -129,10 +144,17 @@ impl ImageStore {
     }
 
     fn shard_path(&self, kind_dir: &str, shard_src: &str, file_name: &str) -> PathBuf {
-        self.images_root
+        self.images_root()
             .join(kind_dir)
             .join(shard_dir(shard_src))
             .join(file_name)
+    }
+
+    fn images_root(&self) -> PathBuf {
+        self.images_root
+            .read()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .clone()
     }
 }
 
@@ -381,12 +403,16 @@ mod tests {
         let file_name = "abcdef0123456789.png";
         assert_eq!(
             store.origin_path(file_name),
-            store.images_root.join("origin").join("ab").join(file_name)
+            store
+                .images_root()
+                .join("origin")
+                .join("ab")
+                .join(file_name)
         );
         assert_eq!(
             store.thumbnail_path(file_name),
             store
-                .images_root
+                .images_root()
                 .join("thumbnails")
                 .join("ab")
                 .join(file_name)

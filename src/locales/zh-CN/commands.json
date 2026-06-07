@@ -7,6 +7,7 @@
   "labels": {
     "addApp": "添加应用",
     "cancelFavorite": "取消收藏",
+    "changeStorageLocation": "更改数据目录",
     "cleanCache": "清理缓存",
     "closePreview": "关闭预览",
     "copy": "复制",
@@ -23,6 +24,7 @@
     "loadPreviewContent": "加载预览内容",
     "loadPreviewState": "加载预览状态",
     "loadSettings": "加载设置",
+    "loadStorageLocation": "读取数据目录",
     "loadStorageUsage": "读取存储占用",
     "openDirectory": "打开目录",
     "openLink": "打开链接",
@@ -32,6 +34,7 @@
     "paste": "粘贴",
     "playCopySound": "播放提示音",
     "resetSettings": "重置偏好",
+    "resetStorageLocation": "还原数据目录",
     "reveal": "打开位置",
     "saveNote": "保存备注",
     "saveSettings": "保存设置",
@@ -52,6 +55,8 @@
     "favoriteRemoved": "已取消收藏",
     "noteSaved": "已保存",
     "noteSavedAndFavorited": "已保存并收藏",
-    "settingsReset": "偏好已重置"
+    "settingsReset": "偏好已重置",
+    "storageLocationChanged": "数据目录已更改",
+    "storageLocationReset": "数据目录已还原"
   }
 }

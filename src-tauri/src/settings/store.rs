@@ -19,7 +19,7 @@ use super::model::{Language, Settings};
 const FILENAME: &str = "settings.json";
 
 pub struct SettingsStore {
-    path: PathBuf,
+    path: RwLock<PathBuf>,
     current: RwLock<Settings>,
 }
 
@@ -44,7 +44,7 @@ impl SettingsStore {
         log::info!("settings store ready at {path:?}");
 
         Ok(Self {
-            path,
+            path: RwLock::new(path),
             current: RwLock::new(current),
         })
     }
@@ -57,7 +57,8 @@ impl SettingsStore {
     pub fn reset(&self) -> Result<Settings> {
         let next = default_settings_with_system_locale();
 
-        write_atomic(&self.path, &next)?;
+        let path = self.path();
+        write_atomic(&path, &next)?;
         *self.current.write().expect("settings poisoned") = next.clone();
         Ok(next)
     }
@@ -80,7 +81,8 @@ impl SettingsStore {
         let next: Settings = serde_json::from_value(merged)
             .map_err(|err| AppError::Other(anyhow::anyhow!("invalid settings patch: {err}")))?;
 
-        write_atomic(&self.path, &next)?;
+        let path = self.path();
+        write_atomic(&path, &next)?;
         *guard = next.clone();
         Ok(next)
     }
@@ -92,9 +94,33 @@ impl SettingsStore {
         let next: Settings = serde_json::from_str(&content)
             .map_err(|err| AppError::Other(anyhow::anyhow!("invalid settings file: {err}")))?;
 
-        write_atomic(&self.path, &next)?;
+        let path = self.path();
+        write_atomic(&path, &next)?;
         *self.current.write().expect("settings poisoned") = next.clone();
         Ok(next)
+    }
+
+    /// 数据目录热切换后重新绑定设置文件，并把新路径里的设置加载进内存。
+    pub fn rebase(&self, app: &AppHandle) -> Result<Settings> {
+        let dir = crate::core::paths::config_dir(app)?;
+        fs::create_dir_all(&dir).with_context(|| format!("failed to create dir at {dir:?}"))?;
+        let path = dir.join(FILENAME);
+        let current = match load_from_disk(&path) {
+            Some(settings) => settings,
+            None => {
+                let settings = default_settings_with_system_locale();
+                write_atomic(&path, &settings)?;
+                settings
+            }
+        };
+
+        *self.path.write().expect("settings path poisoned") = path;
+        *self.current.write().expect("settings poisoned") = current.clone();
+        Ok(current)
+    }
+
+    fn path(&self) -> PathBuf {
+        self.path.read().expect("settings path poisoned").clone()
     }
 }
 

@@ -1,14 +1,18 @@
 import { open } from "@tauri-apps/plugin-dialog";
-import { Button, Modal } from "antd";
+import { Button, Modal, Space, Tooltip } from "antd";
 import type { FC } from "react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  type ChangeStorageLocationResult,
   type CleanCacheResult,
+  changeStorageLocation,
   cleanResourceCache,
   type ExportHistoryBackupResult,
   inspectHistoryBackup,
   openPreferenceDirectory,
+  resetStorageLocation,
+  type StorageLocation,
 } from "@/commands";
 import { resetSettings } from "@/stores/settings";
 import { log } from "@/utils/log";
@@ -30,8 +34,12 @@ interface ActionControlProps {
   setting: PreferenceSetting;
   onActionComplete?: (
     setting: PreferenceSetting,
-    result?: CleanCacheResult | ExportHistoryBackupResult,
+    result?:
+      | ChangeStorageLocationResult
+      | CleanCacheResult
+      | ExportHistoryBackupResult,
   ) => void;
+  storageLocation: StorageLocation | null;
 }
 
 /**
@@ -39,14 +47,17 @@ interface ActionControlProps {
  */
 const ActionControl: FC<ActionControlProps> = (props) => {
   const { t } = useTranslation(["preferences", "common"]);
-  const { disabled, setting, onActionComplete } = props;
+  const { disabled, setting, storageLocation, onActionComplete } = props;
   const [loading, setLoading] = useState(false);
   const [exportModalOpen, setExportModalOpen] = useState(false);
 
   if (setting.control.type !== "action") return null;
 
   const markActionComplete = (
-    result?: CleanCacheResult | ExportHistoryBackupResult,
+    result?:
+      | ChangeStorageLocationResult
+      | CleanCacheResult
+      | ExportHistoryBackupResult,
   ) => {
     onActionComplete?.(setting, result);
   };
@@ -66,6 +77,33 @@ const ActionControl: FC<ActionControlProps> = (props) => {
     try {
       await resetSettings();
       markActionComplete();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const changeDataDirectory = async () => {
+    setLoading(true);
+    try {
+      const selected = await open({
+        directory: true,
+        multiple: false,
+        title: t("preferences:storageLocation.pickTitle"),
+      });
+      if (!selected || Array.isArray(selected)) return;
+
+      const result = await changeStorageLocation(selected);
+      markActionComplete(result);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetDataDirectory = async () => {
+    setLoading(true);
+    try {
+      const result = await resetStorageLocation();
+      markActionComplete(result);
     } finally {
       setLoading(false);
     }
@@ -97,6 +135,16 @@ const ActionControl: FC<ActionControlProps> = (props) => {
       title: t(
         "preferences:schema.settings.diagnostics.resetPreferences.confirmTitle",
       ),
+    });
+  };
+
+  const confirmResetDataDirectory = () => {
+    Modal.confirm({
+      cancelText: t("common:actions.cancel"),
+      content: t("preferences:storageLocation.resetConfirmContent"),
+      okText: t("preferences:storageLocation.reset"),
+      onOk: resetDataDirectory,
+      title: t("preferences:storageLocation.resetConfirmTitle"),
     });
   };
 
@@ -175,6 +223,56 @@ const ActionControl: FC<ActionControlProps> = (props) => {
       confirmResetPreferences();
     }
   };
+
+  const openDataDirectory = async () => {
+    setLoading(true);
+    try {
+      await openPreferenceDirectory("data");
+      markActionComplete();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (setting.id === DATA_DIRECTORY_SETTING_ID) {
+    const canReset = storageLocation?.isCustom === true;
+
+    return (
+      <ControlFrame>
+        <Space.Compact>
+          <Tooltip title={t("preferences:storageLocation.open")}>
+            <Button
+              disabled={disabled || loading}
+              icon={<i aria-hidden="true" className="i-lucide:folder-open" />}
+              loading={loading}
+              onClick={openDataDirectory}
+              type="default"
+            />
+          </Tooltip>
+
+          <Tooltip title={t("preferences:storageLocation.change")}>
+            <Button
+              disabled={disabled || loading}
+              icon={<i aria-hidden="true" className="i-lucide:folder-sync" />}
+              loading={loading}
+              onClick={changeDataDirectory}
+              type="default"
+            />
+          </Tooltip>
+
+          <Tooltip title={t("preferences:storageLocation.reset")}>
+            <Button
+              disabled={disabled || loading || !canReset}
+              icon={<i aria-hidden="true" className="i-lucide:rotate-ccw" />}
+              loading={loading}
+              onClick={confirmResetDataDirectory}
+              type="default"
+            />
+          </Tooltip>
+        </Space.Compact>
+      </ControlFrame>
+    );
+  }
 
   return (
     <>

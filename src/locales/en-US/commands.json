@@ -7,6 +7,7 @@
   "labels": {
     "addApp": "Add app",
     "cancelFavorite": "Unfavorite",
+    "changeStorageLocation": "Change data directory",
     "cleanCache": "Clean cache",
     "closePreview": "Close preview",
     "copy": "Copy",
@@ -23,6 +24,7 @@
     "loadPreviewContent": "Load preview content",
     "loadPreviewState": "Load preview state",
     "loadSettings": "Load settings",
+    "loadStorageLocation": "Load data directory",
     "loadStorageUsage": "Load storage usage",
     "openDirectory": "Open directory",
     "openLink": "Open link",
@@ -32,6 +34,7 @@
     "paste": "Paste",
     "playCopySound": "Play sound",
     "resetSettings": "Reset preferences",
+    "resetStorageLocation": "Reset data directory",
     "reveal": "Reveal location",
     "saveNote": "Save note",
     "saveSettings": "Save settings",
@@ -52,6 +55,8 @@
     "favoriteRemoved": "Removed from favorites",
     "noteSaved": "Saved",
     "noteSavedAndFavorited": "Saved and favorited",
-    "settingsReset": "Preferences reset"
+    "settingsReset": "Preferences reset",
+    "storageLocationChanged": "Data directory changed",
+    "storageLocationReset": "Data directory reset"
   }
 }

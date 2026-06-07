@@ -119,6 +119,17 @@ export interface CleanCacheResult {
   storageUsage: StorageUsage;
 }
 
+export interface StorageLocation {
+  currentPath: string;
+  defaultPath: string;
+  isCustom: boolean;
+}
+
+export interface ChangeStorageLocationResult {
+  location: StorageLocation;
+  storageUsage: StorageUsage;
+}
+
 export type PreferenceDirectoryTarget = "data" | "logs";
 export type BackupExportMode = "encrypted" | "plain";
 export type BackupContainerMode = "encrypted" | "plain";
@@ -256,6 +267,45 @@ export const getStorageUsage = () => {
     TAURI_COMMAND.GET_STORAGE_USAGE,
     "commands:labels.loadStorageUsage",
   );
+};
+
+/**
+ * 读取当前真实数据目录位置。
+ */
+export const getStorageLocation = () => {
+  return call<StorageLocation>(
+    TAURI_COMMAND.GET_STORAGE_LOCATION,
+    "commands:labels.loadStorageLocation",
+  );
+};
+
+/**
+ * 将数据迁移到用户选择的父目录下，并热切换运行时数据根。
+ */
+export const changeStorageLocation = async (targetParentDir: string) => {
+  const result = await call<ChangeStorageLocationResult>(
+    TAURI_COMMAND.CHANGE_STORAGE_LOCATION,
+    "commands:labels.changeStorageLocation",
+    { targetParentDir },
+  );
+
+  message.success(i18n.t("commands:messages.storageLocationChanged"));
+
+  return result;
+};
+
+/**
+ * 将数据迁回默认目录，并热切换运行时数据根。
+ */
+export const resetStorageLocation = async () => {
+  const result = await call<ChangeStorageLocationResult>(
+    TAURI_COMMAND.RESET_STORAGE_LOCATION,
+    "commands:labels.resetStorageLocation",
+  );
+
+  message.success(i18n.t("commands:messages.storageLocationReset"));
+
+  return result;
 };
 
 /**

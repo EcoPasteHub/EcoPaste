@@ -5,6 +5,7 @@
  */
 export const TAURI_COMMAND = {
   ADD_CLIPBOARD_APP_FROM_PATH: "add_clipboard_app_from_path",
+  CHANGE_STORAGE_LOCATION: "change_storage_location",
   CLEAN_RESOURCE_CACHE: "clean_resource_cache",
   CLOSE_CLIPBOARD_PREVIEW: "close_clipboard_preview",
   DELETE_CLIPBOARD_ITEM: "delete_clipboard_item",
@@ -16,6 +17,7 @@ export const TAURI_COMMAND = {
   GET_CLIPBOARD_PREVIEW_PAYLOAD: "get_clipboard_preview_payload",
   GET_CLIPBOARD_PREVIEW_STATE: "get_clipboard_preview_state",
   GET_SETTINGS: "get_settings",
+  GET_STORAGE_LOCATION: "get_storage_location",
   GET_STORAGE_USAGE: "get_storage_usage",
   IMPORT_HISTORY_BACKUP: "import_history_backup",
   INSPECT_HISTORY_BACKUP: "inspect_history_backup",
@@ -29,6 +31,7 @@ export const TAURI_COMMAND = {
   PLAY_COPY_SOUND: "play_copy_sound",
   POPUP_CLIPBOARD_ITEM_MENU: "popup_clipboard_item_menu",
   RESET_SETTINGS: "reset_settings",
+  RESET_STORAGE_LOCATION: "reset_storage_location",
   REVEAL_CLIPBOARD_ITEM: "reveal_clipboard_item",
   SET_AUTOSTART: "set_autostart",
   SET_MAIN_WINDOW_PINNED: "set_main_window_pinned",
