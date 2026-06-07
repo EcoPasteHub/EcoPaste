@@ -3,6 +3,8 @@
 
 #![allow(clippy::unused_unit)]
 
+use std::time::Duration;
+
 use tauri::{AppHandle, Manager};
 use tauri_nspanel::{
     tauri_panel, CollectionBehavior, ManagerExt, PanelLevel, StyleMask, WebviewWindowExt,
@@ -10,6 +12,8 @@ use tauri_nspanel::{
 
 use super::{get_window, MAIN_WINDOW_LABEL, PREFERENCE_WINDOW_LABEL};
 use crate::core::Result;
+
+const MAIN_PANEL_SHOW_DELAY: Duration = Duration::from_millis(16);
 
 tauri_panel! {
     panel!(MainPanel {
@@ -114,9 +118,12 @@ pub fn handle_reopen(app_handle: &AppHandle, has_visible_windows: bool) {
 /// 所有 panel 方法必须在主线程。
 fn show_main_panel(app_handle: &AppHandle) -> Result<()> {
     let handle = app_handle.clone();
-    app_handle
-        .run_on_main_thread(move || {
-            if let Ok(panel) = handle.get_webview_panel(MAIN_WINDOW_LABEL) {
+    drop(tauri::async_runtime::spawn(async move {
+        tokio::time::sleep(MAIN_PANEL_SHOW_DELAY).await;
+
+        let panel_handle = handle.clone();
+        if let Err(err) = handle.run_on_main_thread(move || {
+            if let Ok(panel) = panel_handle.get_webview_panel(MAIN_WINDOW_LABEL) {
                 panel.show_and_make_key();
                 // show 时切到 can_join_all_spaces：跟随用户当前 space 出现。
                 panel.set_collection_behavior(
@@ -127,8 +134,11 @@ fn show_main_panel(app_handle: &AppHandle) -> Result<()> {
                         .into(),
                 );
             }
-        })
-        .map_err(|e| anyhow::anyhow!(e))?;
+        }) {
+            log::warn!("show main panel on main thread failed: {err}");
+        }
+    }));
+
     Ok(())
 }
 
