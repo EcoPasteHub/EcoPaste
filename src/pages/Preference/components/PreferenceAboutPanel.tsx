@@ -35,7 +35,7 @@ const PreferenceAboutPanel: FC<PreferenceAboutPanelProps> = (props) => {
             <div className="flex min-w-0 items-start gap-4">
               <img
                 alt=""
-                className="size-16 shrink-0 object-contain"
+                className="size-18 shrink-0 object-contain"
                 draggable={false}
                 src="/logo.png"
               />
@@ -45,7 +45,7 @@ const PreferenceAboutPanel: FC<PreferenceAboutPanelProps> = (props) => {
                     {nameLabel}
                   </h2>
                   {versionLabel.length > 0 ? (
-                    <span className="rounded-full border border-ant-border-secondary bg-ant-fill-quaternary px-3 py-1 text-ant-secondary text-xs leading-none">
+                    <span className="rounded-full border border-ant-border-secondary bg-ant-fill-quaternary px-3 py-1 text-ant-tertiary text-xs leading-none">
                       {versionLabel}
                     </span>
                   ) : null}
