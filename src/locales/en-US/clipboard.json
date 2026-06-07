@@ -53,5 +53,16 @@
     "pasteSelected": "Paste selected item",
     "pasteSelectedPlain": "Paste selected item as plain text",
     "pinWindow": "Pin / unpin window"
+  },
+  "types": {
+    "color": "Color",
+    "email": "Email",
+    "files": "Files",
+    "html": "HTML",
+    "image": "Image",
+    "path": "Path",
+    "rtf": "RTF",
+    "text": "Text",
+    "url": "Link"
   }
 }

@@ -53,5 +53,16 @@
     "pasteSelected": "粘贴选中项",
     "pasteSelectedPlain": "粘贴选中项为纯文本",
     "pinWindow": "固定 / 取消固定窗口"
+  },
+  "types": {
+    "color": "颜色",
+    "email": "邮箱",
+    "files": "文件",
+    "html": "HTML",
+    "image": "图片",
+    "path": "路径",
+    "rtf": "RTF",
+    "text": "文本",
+    "url": "链接"
   }
 }

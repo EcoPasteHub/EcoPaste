@@ -31,9 +31,11 @@ interface FilePreviewRowProps {
  */
 export const PreviewHeader: FC<PreviewHeaderProps> = (props) => {
   const { payload } = props;
-  const { t } = useTranslation("preview");
+  const { t } = useTranslation(["preview", "clipboard"]);
   const title = payload ? previewTitle(t, payload) : t("title.loading");
   const meta = payload ? previewMeta(t, payload) : t("meta.contentViewer");
+  const typeKey = payload ? (payload.subKind ?? payload.kind) : null;
+  const typeLabel = typeKey ? t(`clipboard:types.${typeKey}`) : "";
 
   return (
     <div className="flex h-12 shrink-0 items-center justify-between gap-3 border-ant-border border-b px-4">
@@ -43,8 +45,8 @@ export const PreviewHeader: FC<PreviewHeaderProps> = (props) => {
       </div>
 
       {payload && (
-        <span className="shrink-0 rounded-1 bg-ant-fill-secondary px-2 py-0.5 text-ant-secondary text-xs uppercase">
-          {payload.subKind ?? payload.kind}
+        <span className="shrink-0 rounded-1 bg-ant-fill-secondary px-2 py-0.5 text-ant-secondary text-xs">
+          {typeLabel}
         </span>
       )}
     </div>

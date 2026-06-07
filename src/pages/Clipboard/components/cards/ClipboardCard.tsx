@@ -1,5 +1,6 @@
 import type { DragEvent, FC, MouseEvent, PointerEvent, Ref } from "react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { popupClipboardItemMenu, startDragClipboardItem } from "@/commands";
 import AssetImage from "@/components/AssetImage";
 import KeyHint from "@/components/KeyHint";
@@ -70,7 +71,10 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
     rootRef,
   } = props;
   const { kind, subKind, sourceAppIconPath, sourceAppName } = item;
+  const { t } = useTranslation("clipboard");
   const [hovered, setHovered] = useState(false);
+  const typeKey = subKind ?? kind;
+  const typeLabel = t(`types.${typeKey}`);
 
   const handleDragStart = async (event: DragEvent) => {
     event.preventDefault();
@@ -138,7 +142,7 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
             />
           )}
 
-          <span className="truncate uppercase">{subKind ?? kind}</span>
+          <span className="truncate">{typeLabel}</span>
         </div>
 
         <ClipboardQuickActions
