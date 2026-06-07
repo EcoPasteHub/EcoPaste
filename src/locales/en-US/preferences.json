@@ -46,7 +46,6 @@
     },
     "received": {
       "encrypted": "Encrypted backup recognized. Import requires the backup password.",
-      "invalidDrop": "Drop a single .ecopastebak backup file",
       "plain": "Plain backup recognized."
     }
   },

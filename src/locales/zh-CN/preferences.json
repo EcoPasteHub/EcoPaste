@@ -46,7 +46,6 @@
     },
     "received": {
       "encrypted": "已识别加密备份。导入时需要输入备份密码。",
-      "invalidDrop": "请拖入单个 .ecopastebak 备份文件",
       "plain": "已识别明文备份。"
     }
   },

@@ -1,7 +1,5 @@
 import { getName, getVersion } from "@tauri-apps/api/app";
-import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { useMount, useUnmount } from "ahooks";
-import { message } from "antd";
+import { useMount } from "ahooks";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import type { ChangeEvent, FC } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -15,7 +13,6 @@ import {
   getStorageLocation,
   getStorageUsage,
   type ImportHistoryBackupResult,
-  inspectHistoryBackup,
   type StorageLocation,
   type StorageUsage,
 } from "@/commands";
@@ -70,7 +67,6 @@ const Preference: FC = () => {
   const shouldReduceMotion = useReducedMotion();
   const reduceMotion = shouldReduceMotion === true;
   const contentRef = useRef<HTMLDivElement | null>(null);
-  const unlistenDropRef = useRef<(() => void) | null>(null);
   const [activeTabId, setActiveTabId] = useState<PreferenceTabId>("record");
   const [activeSectionId, setActiveSectionId] = useState("capture");
   const [searchQuery, setSearchQuery] = useState("");
@@ -214,26 +210,6 @@ const Preference: FC = () => {
     }
   };
 
-  const handleDropBackupPaths = async (paths: string[]) => {
-    const backupPaths = paths.filter((path) => {
-      return path.toLowerCase().endsWith(".ecopastebak");
-    });
-
-    if (backupPaths.length !== 1 || paths.length !== 1) {
-      message.warning(t("backup.received.invalidDrop"));
-      return;
-    }
-
-    try {
-      await inspectHistoryBackup({
-        path: backupPaths[0],
-        source: "dragDrop",
-      });
-    } catch {
-      // 错误 toast 已由 commands 层统一处理。
-    }
-  };
-
   /**
    * 加载当前环境数据目录的递归占用，用于侧栏低频状态展示。
    */
@@ -272,24 +248,6 @@ const Preference: FC = () => {
     void initializeStorageUsage();
     void initializeAppMetadata();
     void preloadSourceApps();
-  });
-
-  useMount(async () => {
-    try {
-      unlistenDropRef.current = await getCurrentWebviewWindow().onDragDropEvent(
-        (event) => {
-          if (event.payload.type !== "drop") return;
-
-          void handleDropBackupPaths(event.payload.paths);
-        },
-      );
-    } catch (error) {
-      log.warn("listen preference backup drop failed", error);
-    }
-  });
-
-  useUnmount(() => {
-    unlistenDropRef.current?.();
   });
 
   useTauriListen<BackupReceivedPayload>(
