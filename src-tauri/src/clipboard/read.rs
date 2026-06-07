@@ -1,7 +1,7 @@
 //! 剪贴板读取：基于 [`clipboard_rs`] 的薄封装，产出带类型标记的 [`ClipboardPayload`]。
 //!
 //! [`clipboard_rs`] 已内置 macOS（`NSPasteboard`）/ Windows 的平台读取，
-//! 这里只负责按 files > image > text 的优先级归类，并过滤掉空内容。
+//! 这里只负责按用户设置的优先级归类，并过滤掉空内容。
 //!
 //! 图片读取走「PNG 直通优先」：源本身是 PNG 时直取原始字节、从头部解析尺寸（零解码/编码）；
 //! 仅当源是 TIFF/DIB 等非 PNG 时才回退到库的解码 + 重编码 PNG。
@@ -11,6 +11,7 @@ use clipboard_rs::{Clipboard, ClipboardContext, ContentFormat};
 
 use super::payload::{ClipboardPayload, ImagePayload, TextPayload};
 use crate::core::{AppError, Result};
+use crate::settings::{Capture, CaptureKind};
 
 /// 持有一个 [`ClipboardContext`] 的读取器。轻量，可按需创建；
 /// 监听线程（2.2）会持有一个长生命周期实例复用。
@@ -24,53 +25,92 @@ impl ClipboardReader {
         Ok(Self { ctx })
     }
 
-    /// 读取当前剪贴板，按 files > image > text 优先级归类为单一载荷。
+    /// 读取当前剪贴板，按用户配置的内容类型顺序归类为单一载荷。
     ///
-    /// 返回 `None` 表示剪贴板为空或无可识别内容（监听回调应直接跳过，不入库）。
-    pub fn read_all(&self) -> Result<Option<ClipboardPayload>> {
-        // files 优先：复制文件时系统往往同时附带文件路径的文本表示，先判文件避免误判为 text。
-        if self.ctx.has(ContentFormat::Files) {
-            let files: Vec<String> = self
-                .ctx
-                .get_files()
-                .map_err(clip_err)?
-                .into_iter()
-                .filter(|path| !path.is_empty())
-                .collect();
-            if !files.is_empty() {
-                return Ok(Some(ClipboardPayload::Files(files)));
+    /// 同一次复制可能同时存在文件、图片、HTML、RTF、纯文本表示；这里只返回第一个启用且可读取的类型。
+    pub fn read_with_capture(&self, capture: &Capture) -> Result<Option<ClipboardPayload>> {
+        let mut text_payload: Option<Option<TextPayload>> = None;
+
+        for kind in capture.ordered_kinds() {
+            if !capture.is_enabled(kind) {
+                continue;
             }
-        }
 
-        // image 次之：从浏览器复制图片时常同时带 HTML，这里以图片为准。
-        if self.ctx.has(ContentFormat::Image) {
-            if let Some(image) = self.read_image()? {
-                return Ok(Some(ClipboardPayload::Image(image)));
-            }
-        }
+            match kind {
+                CaptureKind::Files => {
+                    if let Some(files) = self.read_files()? {
+                        return Ok(Some(ClipboardPayload::Files(files)));
+                    }
+                }
+                CaptureKind::Image => {
+                    if self.ctx.has(ContentFormat::Image) {
+                        if let Some(image) = self.read_image()? {
+                            return Ok(Some(ClipboardPayload::Image(image)));
+                        }
+                    }
+                }
+                CaptureKind::Html | CaptureKind::Rtf | CaptureKind::Text => {
+                    if text_payload.is_none() {
+                        text_payload = Some(self.read_text_payload()?);
+                    }
 
-        let has_text = self.ctx.has(ContentFormat::Text);
-        let has_html = self.ctx.has(ContentFormat::Html);
-        let has_rtf = self.ctx.has(ContentFormat::Rtf);
-        if has_text || has_html || has_rtf {
-            let text = if has_text {
-                self.ctx.get_text().map_err(clip_err)?
-            } else {
-                String::new()
-            };
-            let html = read_optional(has_html, || self.ctx.get_html());
-            let rtf = read_optional(has_rtf, || self.ctx.get_rich_text());
+                    let Some(text) = text_payload.as_ref().and_then(|payload| payload.as_ref())
+                    else {
+                        continue;
+                    };
 
-            if !text.is_empty() || html.is_some() || rtf.is_some() {
-                return Ok(Some(ClipboardPayload::Text(TextPayload {
-                    text,
-                    html,
-                    rtf,
-                })));
+                    if text_contains_kind(text, kind) {
+                        return Ok(Some(ClipboardPayload::Text(text.clone())));
+                    }
+                }
             }
         }
 
         Ok(None)
+    }
+
+    /// 读取剪贴板文件路径列表；空列表视为无可用文件内容。
+    fn read_files(&self) -> Result<Option<Vec<String>>> {
+        if !self.ctx.has(ContentFormat::Files) {
+            return Ok(None);
+        }
+
+        let files: Vec<String> = self
+            .ctx
+            .get_files()
+            .map_err(clip_err)?
+            .into_iter()
+            .filter(|path| !path.is_empty())
+            .collect();
+        if files.is_empty() {
+            return Ok(None);
+        }
+
+        Ok(Some(files))
+    }
+
+    /// 读取剪贴板中的文本族表示，包含纯文本、HTML 和 RTF。
+    fn read_text_payload(&self) -> Result<Option<TextPayload>> {
+        let has_text = self.ctx.has(ContentFormat::Text);
+        let has_html = self.ctx.has(ContentFormat::Html);
+        let has_rtf = self.ctx.has(ContentFormat::Rtf);
+        if !has_text && !has_html && !has_rtf {
+            return Ok(None);
+        }
+
+        let text = if has_text {
+            self.ctx.get_text().map_err(clip_err)?
+        } else {
+            String::new()
+        };
+        let html = read_optional(has_html, || self.ctx.get_html());
+        let rtf = read_optional(has_rtf, || self.ctx.get_rich_text());
+
+        if text.is_empty() && html.is_none() && rtf.is_none() {
+            return Ok(None);
+        }
+
+        Ok(Some(TextPayload { text, html, rtf }))
     }
 
     /// 读取图片为 PNG 载荷。
@@ -146,6 +186,26 @@ fn read_optional(
     read().ok().filter(|value| !value.is_empty())
 }
 
+/// 判断文本载荷中是否实际带有指定文本族表示。
+fn text_contains_kind(text: &TextPayload, kind: CaptureKind) -> bool {
+    let has_plain = !text.text.trim().is_empty();
+
+    match kind {
+        CaptureKind::Text => has_plain,
+        CaptureKind::Html => {
+            has_plain
+                && text
+                    .html
+                    .as_ref()
+                    .is_some_and(|html| !html.trim().is_empty())
+        }
+        CaptureKind::Rtf => {
+            has_plain && text.rtf.as_ref().is_some_and(|rtf| !rtf.trim().is_empty())
+        }
+        CaptureKind::Files | CaptureKind::Image => false,
+    }
+}
+
 fn clip_err<E: std::fmt::Display>(err: E) -> AppError {
     AppError::Clipboard(err.to_string())
 }
@@ -185,6 +245,19 @@ mod tests {
     }
 
     #[test]
+    fn rich_text_without_plain_is_not_captureable_text() {
+        let text = TextPayload {
+            text: String::new(),
+            html: Some("<b>only html</b>".to_owned()),
+            rtf: Some(r"{\rtf1 only rtf}".to_owned()),
+        };
+
+        assert!(!text_contains_kind(&text, CaptureKind::Html));
+        assert!(!text_contains_kind(&text, CaptureKind::Rtf));
+        assert!(!text_contains_kind(&text, CaptureKind::Text));
+    }
+
+    #[test]
     #[ignore = "touches the real system clipboard; run with --ignored on a desktop session"]
     fn round_trip_text() {
         let _guard = crate::clipboard::test_lock::serial();
@@ -193,7 +266,7 @@ mod tests {
 
         let payload = ClipboardReader::new()
             .unwrap()
-            .read_all()
+            .read_with_capture(&Capture::default())
             .unwrap()
             .expect("clipboard should contain text");
 

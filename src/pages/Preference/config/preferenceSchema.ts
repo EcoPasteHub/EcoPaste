@@ -1,3 +1,4 @@
+import { CAPTURE_KIND_OPTIONS } from "@/constants/captureKinds";
 import { ITEM_ACTION_OPTIONS } from "@/constants/itemActions";
 import type { PreferenceTab } from "../types/preferences";
 
@@ -83,6 +84,22 @@ export const preferenceTabs: PreferenceTab[] = [
             title: "文件和文件夹",
             value: (settings) => {
               return settings.clipboard.capture.files;
+            },
+          },
+          {
+            control: {
+              label: "管理",
+              options: CAPTURE_KIND_OPTIONS,
+              type: "sortableTree",
+            },
+            description:
+              "剪贴板同时包含多种格式时，按这个顺序选择要保存的内容。",
+            id: "capture.order",
+            keywords: ["priority", "order", "format", "rich text"],
+            path: ["clipboard", "capture", "order"],
+            title: "采集顺序",
+            value: (settings) => {
+              return settings.clipboard.capture.order;
             },
           },
         ],

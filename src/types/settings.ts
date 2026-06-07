@@ -43,6 +43,8 @@ export type ItemAction =
   | "star"
   | "delete";
 
+export type CaptureKind = "files" | "image" | "html" | "rtf" | "text";
+
 export type RetentionUnit = "hours" | "days" | "weeks" | "months" | "forever";
 
 export type WindowPosition = "remember" | "followCursor" | "center";
@@ -102,6 +104,7 @@ export interface Capture {
   rtf: boolean;
   image: boolean;
   files: boolean;
+  order: CaptureKind[];
 }
 
 export interface Sensitive {

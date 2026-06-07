@@ -143,7 +143,7 @@ pub struct Clipboard {
 }
 
 /// 剪贴板内容类型采集开关。关闭后监听与手动读取都不入库对应类型。
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(default, rename_all = "camelCase")]
 pub struct Capture {
     pub text: bool,
@@ -151,6 +151,8 @@ pub struct Capture {
     pub rtf: bool,
     pub image: bool,
     pub files: bool,
+    /// 剪贴板同时提供多种表示时的采集优先级。
+    pub order: Vec<CaptureKind>,
 }
 
 impl Default for Capture {
@@ -161,7 +163,55 @@ impl Default for Capture {
             rtf: true,
             image: true,
             files: true,
+            order: CaptureKind::default_order(),
         }
+    }
+}
+
+impl Capture {
+    /// 返回去重且补齐缺失项后的采集顺序，避免配置文件里手改出重复项后影响读取。
+    pub fn ordered_kinds(&self) -> Vec<CaptureKind> {
+        let mut order = Vec::new();
+        for kind in self
+            .order
+            .iter()
+            .copied()
+            .chain(CaptureKind::default_order())
+        {
+            if !order.contains(&kind) {
+                order.push(kind);
+            }
+        }
+
+        order
+    }
+
+    /// 判断某个采集类型当前是否开启。
+    pub fn is_enabled(&self, kind: CaptureKind) -> bool {
+        match kind {
+            CaptureKind::Text => self.text,
+            CaptureKind::Html => self.html,
+            CaptureKind::Rtf => self.rtf,
+            CaptureKind::Image => self.image,
+            CaptureKind::Files => self.files,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub enum CaptureKind {
+    Files,
+    Image,
+    Html,
+    Rtf,
+    Text,
+}
+
+impl CaptureKind {
+    /// 默认顺序保持历史硬编码语义：文件 > 图片 > HTML > RTF > 纯文本。
+    pub fn default_order() -> Vec<Self> {
+        vec![Self::Files, Self::Image, Self::Html, Self::Rtf, Self::Text]
     }
 }
 

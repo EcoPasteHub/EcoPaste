@@ -18,6 +18,7 @@ import type {
 import { translatePreferenceSetting } from "../utils/preferenceI18n";
 import PreferenceStatusBadge from "./PreferenceStatusBadge";
 import ActionControl from "./settingControls/ActionControl";
+import CaptureOrderControl from "./settingControls/CaptureOrderControl";
 import NumberControl from "./settingControls/NumberControl";
 import RetentionControl, {
   resolveRetentionValue,
@@ -223,6 +224,15 @@ function renderControl(
     case "sortableCheckboxTree":
       return (
         <SortableCheckboxTreeControl
+          disabled={disabled}
+          onChange={onChange}
+          setting={setting}
+          value={value}
+        />
+      );
+    case "sortableTree":
+      return (
+        <CaptureOrderControl
           disabled={disabled}
           onChange={onChange}
           setting={setting}

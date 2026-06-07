@@ -50,6 +50,13 @@
     }
   },
   "schema": {
+    "captureKinds": {
+      "files": "文件和文件夹",
+      "html": "HTML 内容",
+      "image": "图片",
+      "rtf": "RTF 内容",
+      "text": "纯文本"
+    },
     "numberSuffixes": {
       "files": "个",
       "gb": "GB",
@@ -196,6 +203,11 @@
         "image": {
           "description": "关闭后，剪贴板中的图片不会进入历史。",
           "title": "图片"
+        },
+        "order": {
+          "controlLabel": "管理",
+          "description": "剪贴板同时包含多种格式时，按这个顺序选择要保存的内容。",
+          "title": "采集顺序"
         },
         "rtf": {
           "description": "关闭后，带 RTF 格式的文档富文本不会进入历史。",

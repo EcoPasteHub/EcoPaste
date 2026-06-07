@@ -1,5 +1,5 @@
-import type { TreeDataNode, TreeProps } from "antd";
-import { Button, Modal, Tree } from "antd";
+import type { TreeDataNode } from "antd";
+import { Button } from "antd";
 import type { TFunction } from "i18next";
 import type { FC, Key } from "react";
 import { useState } from "react";
@@ -21,6 +21,7 @@ import {
   translatePreferenceOption,
   translatePreferenceSetting,
 } from "../../utils/preferenceI18n";
+import SortableTreeModal from "./SortableTreeModal";
 import type { ControlProps } from "./types";
 
 interface SortableCheckboxTreeControlProps extends ControlProps {
@@ -62,37 +63,15 @@ const SortableCheckboxTreeControl: FC<SortableCheckboxTreeControlProps> = (
     setOpen(false);
   };
 
-  const handleCheck: TreeProps["onCheck"] = (nextCheckedKeys) => {
-    if (!Array.isArray(nextCheckedKeys)) {
-      setCheckedKeys(nextCheckedKeys.checked);
-      return;
-    }
-
-    setCheckedKeys(nextCheckedKeys);
-  };
-
-  const handleDrop: TreeProps["onDrop"] = (info) => {
-    setTreeData((currentData) => {
-      return reorderTreeData(currentData, info);
-    });
-  };
-
-  const handleSave = async () => {
+  const handleSave = async (nextOrder: string[], nextCheckedKeys: string[]) => {
     const checkedSet = new Set(
-      checkedKeys.map((key) => {
+      nextCheckedKeys.map((key) => {
         return String(key);
       }),
     );
-    const nextOrder = treeData.map((node) => {
-      return String(node.key);
+    const nextSelected = nextOrder.filter((key) => {
+      return checkedSet.has(key);
     });
-    const nextSelected = nextOrder
-      .map((key) => {
-        return String(key);
-      })
-      .filter((key) => {
-        return checkedSet.has(key);
-      });
 
     await onChange(setting, { order: nextOrder, selected: nextSelected });
     setOpen(false);
@@ -106,30 +85,17 @@ const SortableCheckboxTreeControl: FC<SortableCheckboxTreeControlProps> = (
         </Button>
       </Tooltip>
 
-      <Modal
+      <SortableTreeModal
         cancelText={commonT("actions.cancel")}
+        checkable
+        checkedKeys={checkedKeys}
         okText={commonT("actions.save")}
         onCancel={closeModal}
-        onOk={handleSave}
+        onSave={handleSave}
         open={open}
         title={translatePreferenceSetting(t, setting, "title")}
-      >
-        <Tree
-          allowDrop={allowTreeReorderDrop}
-          blockNode
-          checkable
-          checkedKeys={checkedKeys}
-          classNames={{
-            item: "b b-ant-border-secondary rounded-md",
-            itemSwitcher: "hidden",
-          }}
-          draggable
-          onCheck={handleCheck}
-          onDrop={handleDrop}
-          selectable={false}
-          treeData={treeData}
-        />
-      </Modal>
+        treeData={treeData}
+      />
     </>
   );
 };
@@ -270,44 +236,4 @@ function resolveOptionLabel(
   if (isItemAction(value)) return translateItemActionLabel(clipboardT, value);
 
   return String(translatePreferenceOption(t, setting, option).label);
-}
-
-/**
- * 只允许拖到节点上方或下方，保持 Tree 为一列列表。
- */
-const allowTreeReorderDrop: TreeProps["allowDrop"] = (info) => {
-  return info.dropPosition !== 0;
-};
-
-/**
- * 按 Ant Design 官方 draggable Tree 示例的 dropPosition 逻辑调整单列顺序。
- */
-function reorderTreeData(
-  data: TreeDataNode[],
-  info: Parameters<NonNullable<TreeProps["onDrop"]>>[0],
-) {
-  const nextData = [...data];
-  const dropKey = String(info.node.key);
-  const dragKey = String(info.dragNode.key);
-  const dropPos = info.node.pos.split("-");
-  const dropPosition = info.dropPosition - Number(dropPos[dropPos.length - 1]);
-  const dragIndex = nextData.findIndex((node) => {
-    return node.key === dragKey;
-  });
-  const dropIndex = nextData.findIndex((node) => {
-    return node.key === dropKey;
-  });
-
-  if (dragIndex < 0 || dropIndex < 0) return nextData;
-
-  const [dragNode] = nextData.splice(dragIndex, 1);
-  const adjustedDropIndex = nextData.findIndex((node) => {
-    return node.key === dropKey;
-  });
-  const insertIndex =
-    dropPosition === -1 ? adjustedDropIndex : adjustedDropIndex + 1;
-
-  nextData.splice(insertIndex, 0, dragNode);
-
-  return nextData;
 }

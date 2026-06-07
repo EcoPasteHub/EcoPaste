@@ -1,7 +1,7 @@
 //! 把读取到的 [`ClipboardPayload`] 转换为可入库的 [`ClipboardItem`]：
 //! 编排子类型识别（[`super::detect`]）与图片落盘（[`super::storage`]）。
 //!
-//! 文本存储语义（对齐旧项目读取优先级 html > rtf > plain）：
+//! 文本存储语义（按用户采集顺序在 HTML / RTF / plain 之间择一）：
 //! - `content` 存**源表示**（HTML/RTF 原文、或纯文本），供前端渲染与写回；
 //! - `search_text` 存**纯文本**（HTML 去标签 / RTF 用 OS 提供的 plain 文本），供 FTS 检索与纯文本粘贴；
 //! - 纯文本无富文本时 `sub_kind` 走 url/email/color/path 识别。
@@ -18,7 +18,7 @@ use super::storage::ImageStore;
 use crate::core::Result;
 use crate::db::items::content_hash;
 use crate::db::models::{ClipboardItem, ClipboardKind, ClipboardSubKind, Platform};
-use crate::settings::{Capture, Sensitive};
+use crate::settings::{Capture, CaptureKind, Sensitive};
 
 /// 列表渲染用摘要的最大字符数（按 Unicode 标量计，不是字节）。
 /// 超过此长度的文本会被截断，前端列表只渲染摘要，预览/写回时再读完整 `content`。
@@ -68,13 +68,12 @@ fn files_to_content(files: &[String]) -> String {
     files.join("\n")
 }
 
-/// 文本载荷 → 草稿。优先级 html > rtf > plain（对齐参考插件 tauri-plugin-clipboard-x）：
+/// 文本载荷 → 草稿。优先级来自用户配置：
 /// - html：`content` = HTML 源（`get_html()` 原文，前端 DOMPurify 后渲染），`sub_kind` = Html；
 /// - rtf：`content` = RTF 源（`get_rich_text()` 原文），`sub_kind` = Rtf；
 /// - 两者的 `search_text` 都直接用 OS 同时提供的纯文本（`get_text()`）——
 ///   复制富文本时剪贴板本就并存纯文本表示，无需自己解析 HTML/RTF；
-/// - 富文本存在但对应采集开关关闭时，整条文本载荷跳过，不降级保存为纯文本；
-/// - plain：仅在无富文本源时处理，`content` = 纯文本，`sub_kind` = url/email/color/path 识别，
+/// - plain：被顺序选中时，`content` = 纯文本，`sub_kind` = url/email/color/path 识别，
 ///   `search_text` 与 content 同串（统一由 FTS 索引 search_text）。
 ///
 /// 一律以 trim 后的纯文本作为「是否有可展示内容」的判据：纯文本为空就直接 `None`，
@@ -97,48 +96,67 @@ fn draft_from_text(text: &TextPayload, capture: &Capture, plain_only: bool) -> O
     let rtf = non_empty(&text.rtf);
 
     if !plain_only {
-        if let Some(html) = html {
-            if capture.html {
-                return Some(Draft {
-                    kind: ClipboardKind::Text,
-                    sub_kind: Some(ClipboardSubKind::Html),
-                    content: html.clone(),
-                    search_text: plain_search.clone(),
-                    summary: summary.clone(),
-                    file_types: None,
-                    width: None,
-                    height: None,
-                    size: plain_size,
-                });
+        for kind in capture.ordered_kinds() {
+            if !capture.is_enabled(kind) {
+                continue;
+            }
+
+            match kind {
+                CaptureKind::Html => {
+                    if let Some(html) = html {
+                        return Some(Draft {
+                            kind: ClipboardKind::Text,
+                            sub_kind: Some(ClipboardSubKind::Html),
+                            content: html.clone(),
+                            search_text: plain_search.clone(),
+                            summary: summary.clone(),
+                            file_types: None,
+                            width: None,
+                            height: None,
+                            size: plain_size,
+                        });
+                    }
+                }
+                CaptureKind::Rtf => {
+                    if let Some(rtf) = rtf {
+                        return Some(Draft {
+                            kind: ClipboardKind::Text,
+                            sub_kind: Some(ClipboardSubKind::Rtf),
+                            content: rtf.clone(),
+                            search_text: plain_search.clone(),
+                            summary: summary.clone(),
+                            file_types: None,
+                            width: None,
+                            height: None,
+                            size: plain_size,
+                        });
+                    }
+                }
+                CaptureKind::Text => {
+                    return Some(draft_plain_text(plain, plain_search, summary, plain_size));
+                }
+                CaptureKind::Files | CaptureKind::Image => {}
             }
         }
 
-        if let Some(rtf) = rtf {
-            if capture.rtf {
-                return Some(Draft {
-                    kind: ClipboardKind::Text,
-                    sub_kind: Some(ClipboardSubKind::Rtf),
-                    content: rtf.clone(),
-                    search_text: plain_search.clone(),
-                    summary: summary.clone(),
-                    file_types: None,
-                    width: None,
-                    height: None,
-                    size: plain_size,
-                });
-            }
-        }
-
-        if html.is_some() || rtf.is_some() {
-            return None;
-        }
+        return None;
     }
 
     if !capture.text {
         return None;
     }
 
-    Some(Draft {
+    Some(draft_plain_text(plain, plain_search, summary, plain_size))
+}
+
+/// 根据纯文本表示生成文本草稿，并执行 URL / 邮箱 / 色值 / 路径子类型识别。
+fn draft_plain_text(
+    plain: &str,
+    plain_search: Option<String>,
+    summary: Option<String>,
+    plain_size: Option<i64>,
+) -> Draft {
+    Draft {
         kind: ClipboardKind::Text,
         sub_kind: detect_text_sub_kind(plain),
         content: plain.to_owned(),
@@ -148,7 +166,7 @@ fn draft_from_text(text: &TextPayload, capture: &Capture, plain_only: bool) -> O
         width: None,
         height: None,
         size: plain_size,
-    })
+    }
 }
 
 fn non_empty(value: &Option<String>) -> Option<&String> {
@@ -404,7 +422,7 @@ mod tests {
     }
 
     #[test]
-    fn disabled_html_skips_rich_text_payload() {
+    fn disabled_html_falls_back_to_plain_text_payload() {
         let (_d, s) = store();
         let capture = Capture {
             html: false,
@@ -417,12 +435,14 @@ mod tests {
             &Sensitive::default(),
             false,
         )
+        .unwrap()
         .unwrap();
-        assert!(item.is_none());
+        assert_eq!(item.sub_kind, None);
+        assert_eq!(item.content, "Hello World");
     }
 
     #[test]
-    fn disabled_rtf_skips_rich_text_payload() {
+    fn disabled_rtf_falls_back_to_plain_text_payload() {
         let (_d, s) = store();
         let capture = Capture {
             rtf: false,
@@ -435,8 +455,36 @@ mod tests {
             &Sensitive::default(),
             false,
         )
+        .unwrap()
         .unwrap();
-        assert!(item.is_none());
+        assert_eq!(item.sub_kind, None);
+        assert_eq!(item.content, "plain repr");
+    }
+
+    #[test]
+    fn custom_capture_order_can_prefer_plain_text_over_html() {
+        let (_d, s) = store();
+        let capture = Capture {
+            order: vec![
+                CaptureKind::Text,
+                CaptureKind::Html,
+                CaptureKind::Rtf,
+                CaptureKind::Image,
+                CaptureKind::Files,
+            ],
+            ..Capture::default()
+        };
+        let item = build_item_with_settings(
+            &s,
+            &text_payload("Hello World", Some("<b>Hello</b> World"), None),
+            &capture,
+            &Sensitive::default(),
+            false,
+        )
+        .unwrap()
+        .unwrap();
+        assert_eq!(item.sub_kind, None);
+        assert_eq!(item.content, "Hello World");
     }
 
     #[test]

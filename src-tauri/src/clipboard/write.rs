@@ -211,7 +211,10 @@ mod tests {
         write_to_clipboard(&store, &guard, &item, false).unwrap();
 
         let reader = ClipboardReader::new().unwrap();
-        let payload = reader.read_all().unwrap().expect("should read");
+        let payload = reader
+            .read_with_capture(&crate::settings::Capture::default())
+            .unwrap()
+            .expect("should read");
         let read_item = build_item(&store, &payload).unwrap().unwrap();
         assert_eq!(read_item.content, "hello write");
         assert!(guard.should_skip(&read_item.content_hash));
@@ -233,7 +236,10 @@ mod tests {
         write_to_clipboard(&store, &guard, &item, true).unwrap();
 
         let reader = ClipboardReader::new().unwrap();
-        let payload = reader.read_all().unwrap().expect("should read");
+        let payload = reader
+            .read_with_capture(&crate::settings::Capture::default())
+            .unwrap()
+            .expect("should read");
         let read_item = build_item(&store, &payload).unwrap().unwrap();
         assert_eq!(read_item.kind, ClipboardKind::Text);
         assert_eq!(read_item.sub_kind, None);
@@ -292,7 +298,10 @@ mod tests {
         write_to_clipboard(&store, &guard, &item, false).unwrap();
 
         let reader = ClipboardReader::new().unwrap();
-        let payload = reader.read_all().unwrap().expect("should read image");
+        let payload = reader
+            .read_with_capture(&crate::settings::Capture::default())
+            .unwrap()
+            .expect("should read image");
         let read_item = build_item(&store, &payload).unwrap().unwrap();
         assert_eq!(read_item.kind, ClipboardKind::Image);
         // 往返期望 PNG 字节哈希一致 → 同 content_hash → guard 抑制。

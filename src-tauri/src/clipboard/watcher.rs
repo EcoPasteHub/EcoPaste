@@ -265,8 +265,14 @@ impl ClipboardHandler for ClipboardChangeHandler {
             }
         }
 
+        let settings = self
+            .app
+            .try_state::<SettingsStore>()
+            .map(|s| s.snapshot())
+            .unwrap_or_default();
+
         // 同步读取 + 转换（含图片落盘）：拿到 content_hash 才能判定是否为自身写回。
-        let payload = match self.reader.read_all() {
+        let payload = match self.reader.read_with_capture(&settings.clipboard.capture) {
             Ok(Some(payload)) => payload,
             Ok(None) => return,
             Err(err) => {
@@ -275,11 +281,6 @@ impl ClipboardHandler for ClipboardChangeHandler {
             }
         };
 
-        let settings = self
-            .app
-            .try_state::<SettingsStore>()
-            .map(|s| s.snapshot())
-            .unwrap_or_default();
         let mut item = match build_item_with_settings(
             &self.store,
             &payload,
@@ -349,7 +350,10 @@ mod tests {
             ctx.set_text("e2e ecopaste watcher".to_owned()).unwrap();
 
             let reader = ClipboardReader::new().unwrap();
-            let payload = reader.read_all().unwrap().expect("should read text");
+            let payload = reader
+                .read_with_capture(&crate::settings::Capture::default())
+                .unwrap()
+                .expect("should read text");
             build_item(&store, &payload)
                 .unwrap()
                 .expect("should map to item")
@@ -391,9 +395,11 @@ mod tests {
         ctx.set_text("self writeback content".to_owned()).unwrap();
 
         let reader = ClipboardReader::new().unwrap();
-        let item = build_item(&store, &reader.read_all().unwrap().unwrap())
+        let payload = reader
+            .read_with_capture(&crate::settings::Capture::default())
             .unwrap()
             .unwrap();
+        let item = build_item(&store, &payload).unwrap().unwrap();
 
         // 模拟写回前登记 → 监听读到同内容 → 被抑制。
         let guard = WritebackGuard::new();
@@ -401,7 +407,7 @@ mod tests {
         assert!(guard.should_skip(&item.content_hash));
     }
 
-    // 验证真实剪贴板图片链路：set_image（OS 原生 TIFF）→ read_all 解码为 PNG →
+    // 验证真实剪贴板图片链路：set_image（OS 原生 TIFF）→ read_with_capture 解码为 PNG →
     // build_item 落盘原图/缩略图 → upsert 入库。覆盖合成 PNG 测不到的 OS 解码段。
     #[tokio::test(flavor = "multi_thread")]
     #[ignore = "touches the real system clipboard; run with --ignored on a desktop session"]
@@ -427,7 +433,10 @@ mod tests {
                 .unwrap();
 
             let reader = ClipboardReader::new().unwrap();
-            let payload = reader.read_all().unwrap().expect("should read image");
+            let payload = reader
+                .read_with_capture(&crate::settings::Capture::default())
+                .unwrap()
+                .expect("should read image");
             build_item(&store, &payload)
                 .unwrap()
                 .expect("image should map to item")

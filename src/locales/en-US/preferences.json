@@ -50,6 +50,13 @@
     }
   },
   "schema": {
+    "captureKinds": {
+      "files": "Files and Folders",
+      "html": "HTML Content",
+      "image": "Image",
+      "rtf": "RTF Content",
+      "text": "Plain Text"
+    },
     "numberSuffixes": {
       "files": "files",
       "gb": "GB",
@@ -196,6 +203,11 @@
         "image": {
           "description": "When off, clipboard images are not saved to history.",
           "title": "Image"
+        },
+        "order": {
+          "controlLabel": "Manage",
+          "description": "When the clipboard contains multiple formats, save the first matching type in this order.",
+          "title": "Capture Order"
         },
         "rtf": {
           "description": "When off, rich text with RTF format is not saved to history.",

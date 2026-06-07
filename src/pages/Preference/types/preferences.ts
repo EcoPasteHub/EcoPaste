@@ -44,6 +44,11 @@ export type PreferenceControl =
   | { type: "segmented"; options: PreferenceOption[] }
   | { type: "select"; options: PreferenceOption[]; mode?: "multiple" }
   | {
+      type: "sortableTree";
+      label: string;
+      options: PreferenceOption[];
+    }
+  | {
       type: "sortableCheckboxTree";
       label: string;
       options: PreferenceOption[];
