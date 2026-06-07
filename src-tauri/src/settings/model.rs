@@ -502,7 +502,7 @@ impl Default for Window {
         Self {
             position: WindowPosition::FollowCursor,
             scroll_to_top_on_open: true,
-            select_all_group_on_open: true,
+            select_all_group_on_open: false,
             always_on_top: true,
             all_workspaces: true,
         }
