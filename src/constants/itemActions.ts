@@ -59,7 +59,7 @@ export const ITEM_ACTION_META: Record<ItemAction, ItemActionMeta> = {
   },
   delete: {
     danger: true,
-    icon: "i-lucide:trash-2",
+    icon: "i-lucide:trash",
     labelKey: "quickActions.delete",
   },
   note: {
