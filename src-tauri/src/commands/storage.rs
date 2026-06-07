@@ -16,6 +16,7 @@ use crate::settings::Settings;
 const SETTINGS_UPDATED_EVENT: &str = "settings://updated";
 const CLIPBOARD_UPDATED_EVENT: &str = "clipboard://updated";
 const STORAGE_CONTENT_DIRS: [&str; 4] = ["db", "resources", "config", "state"];
+const CUSTOM_STORAGE_CONTAINER_DIR: &str = "EcoPaste";
 
 /// 偏好页侧栏展示的本地存储占用概览。
 #[derive(Debug, Clone, Serialize)]
@@ -261,12 +262,32 @@ fn remove_old_storage_data(app: &AppHandle, old: &Path) -> Result<()> {
         return Ok(());
     }
 
+    remove_custom_storage_root(old)?;
+
+    Ok(())
+}
+
+fn remove_custom_storage_root(old: &Path) -> Result<()> {
     if old.exists() {
         fs::remove_dir_all(old)
             .with_context(|| format!("failed to remove old data dir {old:?}"))?;
     }
 
-    Ok(())
+    let Some(container) = old.parent() else {
+        return Ok(());
+    };
+    if container.file_name().and_then(|name| name.to_str()) != Some(CUSTOM_STORAGE_CONTAINER_DIR) {
+        return Ok(());
+    }
+
+    match fs::remove_dir(container) {
+        Ok(()) => Ok(()),
+        Err(err) if err.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(err) if err.kind() == std::io::ErrorKind::DirectoryNotEmpty => Ok(()),
+        Err(err) => {
+            Err(anyhow::anyhow!("failed to remove old data container {container:?}: {err}").into())
+        }
+    }
 }
 
 fn remove_bootstrap_storage_payload(dir: &Path) -> Result<()> {
@@ -641,15 +662,31 @@ mod tests {
     }
 
     #[test]
-    fn remove_path_deletes_custom_storage_root() {
+    fn remove_custom_storage_root_deletes_empty_container() {
         let temp = TempDir::new();
         let root = temp.path().join("EcoPaste").join("dev");
         fs::create_dir_all(root.join("config")).unwrap();
         fs::write(root.join("config").join("settings.json"), "{}").unwrap();
 
-        remove_path(&root).unwrap();
+        remove_custom_storage_root(&root).unwrap();
 
         assert!(!root.exists());
-        assert!(temp.path().join("EcoPaste").exists());
+        assert!(!temp.path().join("EcoPaste").exists());
+    }
+
+    #[test]
+    fn remove_custom_storage_root_keeps_container_with_sibling_environment() {
+        let temp = TempDir::new();
+        let container = temp.path().join("EcoPaste");
+        let root = container.join("dev");
+        fs::create_dir_all(root.join("config")).unwrap();
+        fs::write(root.join("config").join("settings.json"), "{}").unwrap();
+        fs::create_dir_all(container.join("prod")).unwrap();
+
+        remove_custom_storage_root(&root).unwrap();
+
+        assert!(!root.exists());
+        assert!(container.exists());
+        assert!(container.join("prod").exists());
     }
 }
