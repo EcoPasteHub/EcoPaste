@@ -16,7 +16,7 @@ export function translatePreferenceTab(
   t: PreferenceTranslator,
   tab: PreferenceTab,
 ) {
-  return t(`schema.tabs.${tab.id}.title`, { defaultValue: tab.title });
+  return t(`schema.tabs.${tab.id}.title`);
 }
 
 /**
@@ -27,9 +27,7 @@ export function translatePreferenceSection(
   section: PreferenceSection,
   field: "description" | "title",
 ) {
-  return t(`schema.sections.${section.id}.${field}`, {
-    defaultValue: section[field],
-  });
+  return t(`schema.sections.${section.id}.${field}`);
 }
 
 /**
@@ -42,14 +40,10 @@ export function translatePreferenceSetting(
 ) {
   const platformField = resolvePlatformPreferenceField(setting, field);
   if (platformField) {
-    return t(platformField, {
-      defaultValue: setting[field],
-    });
+    return t(platformField);
   }
 
-  return t(`schema.settings.${setting.id}.${field}`, {
-    defaultValue: setting[field],
-  });
+  return t(`schema.settings.${setting.id}.${field}`);
 }
 
 /**
@@ -74,20 +68,16 @@ function resolvePlatformPreferenceField(
 }
 
 /**
- * 翻译设置项控件里展示的选项；语言项固定显示语言原名，其余 key 由 setting id + option value 推导。
+ * 翻译设置项控件里展示的选项；key 由 setting id + option value 推导。
  */
 export function translatePreferenceOption(
   t: PreferenceTranslator,
   setting: PreferenceSetting,
   option: PreferenceOption,
 ) {
-  if (setting.id === "appearance.language") return option;
-
   return {
     ...option,
-    label: t(`schema.settings.${setting.id}.options.${option.value}`, {
-      defaultValue: option.label,
-    }),
+    label: t(`schema.settings.${setting.id}.options.${option.value}`),
   };
 }
 
@@ -107,9 +97,7 @@ export function translatePreferenceControlLabel(
     return "";
   }
 
-  return t(`schema.settings.${setting.id}.controlLabel`, {
-    defaultValue: setting.control.label,
-  });
+  return t(`schema.settings.${setting.id}.controlLabel`);
 }
 
 /**
@@ -119,17 +107,11 @@ export function translatePreferencePlaceholder(
   t: PreferenceTranslator,
   setting: PreferenceSetting,
 ) {
-  if (
-    setting.control.type !== "text" &&
-    setting.control.type !== "textarea" &&
-    setting.control.type !== "number"
-  ) {
+  if (setting.control.type !== "text" && setting.control.type !== "textarea") {
     return "";
   }
 
-  return t(`schema.settings.${setting.id}.placeholder`, {
-    defaultValue: setting.control.placeholder ?? "",
-  });
+  return t(`schema.settings.${setting.id}.placeholder`);
 }
 
 /**
@@ -142,12 +124,10 @@ export function translatePreferenceNumberSuffix(
   if (setting.control.type !== "number") return "";
 
   if (setting.control.suffixKey) {
-    return t(`schema.numberSuffixes.${setting.control.suffixKey}`, {
-      defaultValue: setting.control.suffix ?? setting.control.suffixKey,
-    });
+    return t(`schema.numberSuffixes.${setting.control.suffixKey}`);
   }
 
-  return setting.control.suffix ?? "";
+  return "";
 }
 
 /**
@@ -160,7 +140,5 @@ export function translatePreferenceShortcutLabel(
 ) {
   if (setting.control.type !== "shortcutTags") return "";
 
-  return t(`schema.settings.${setting.id}.shortcuts.${shortcutIndex}.label`, {
-    defaultValue: setting.control.shortcuts[shortcutIndex]?.label ?? "",
-  });
+  return t(`schema.settings.${setting.id}.shortcuts.${shortcutIndex}.label`);
 }

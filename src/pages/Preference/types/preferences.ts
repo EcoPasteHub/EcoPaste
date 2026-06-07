@@ -30,12 +30,10 @@ export type SettingValue =
 export type PreferenceStorageState = "loading" | "ready" | "error";
 
 export interface PreferenceOption {
-  label: string;
   value: string | number;
 }
 
 export interface PreferenceShortcutTag {
-  label: string;
   keys: string[];
 }
 
@@ -45,12 +43,10 @@ export type PreferenceControl =
   | { type: "select"; options: PreferenceOption[]; mode?: "multiple" }
   | {
       type: "sortableTree";
-      label: string;
       options: PreferenceOption[];
     }
   | {
       type: "sortableCheckboxTree";
-      label: string;
       options: PreferenceOption[];
       orderPath: readonly string[];
     }
@@ -58,21 +54,18 @@ export type PreferenceControl =
       type: "number";
       max?: number;
       min?: number;
-      placeholder?: string;
-      suffix?: string;
       suffixKey?: string;
     }
   | { type: "retention" }
-  | { type: "text"; placeholder?: string }
-  | { type: "textarea"; placeholder?: string }
+  | { type: "text" }
+  | { type: "textarea" }
   | { type: "appExclusion" }
-  | { type: "action"; danger?: boolean; label: string }
-  | { type: "status"; label: string }
+  | { type: "action"; danger?: boolean }
+  | { type: "status" }
   | { type: "shortcutTags"; shortcuts: PreferenceShortcutTag[] };
 
 export interface PreferenceSetting {
   control: PreferenceControl;
-  description: string;
   disabled?: boolean;
   disabledWhen?: (settings: Settings) => boolean;
   id: string;
@@ -80,7 +73,6 @@ export interface PreferenceSetting {
   parentId?: string;
   path?: readonly string[];
   status?: "comingSoon" | "alwaysOn" | "requiresBackend" | "experimental";
-  title: string;
   value?: (settings: Settings) => SettingValue;
 }
 
@@ -90,15 +82,12 @@ export type PreferenceSettingChangeHandler = (
 ) => Promise<void>;
 
 export interface PreferenceSection {
-  description: string;
   id: string;
   settings: PreferenceSetting[];
-  title: string;
 }
 
 export interface PreferenceTab {
   icon: string;
   id: PreferenceTabId;
   sections: PreferenceSection[];
-  title: string;
 }

@@ -5,7 +5,6 @@ import type { CaptureKind } from "@/types/settings";
 type PreferenceTranslator = TFunction<"preferences">;
 
 interface CaptureKindMeta {
-  fallbackLabel: string;
   icon: string;
   labelKey: string;
 }
@@ -20,36 +19,29 @@ export const CAPTURE_KIND_ORDER: CaptureKind[] = [
 
 const CAPTURE_KIND_META: Record<CaptureKind, CaptureKindMeta> = {
   files: {
-    fallbackLabel: "文件和文件夹",
     icon: "i-lucide:files",
     labelKey: "schema.captureKinds.files",
   },
   html: {
-    fallbackLabel: "HTML 内容",
     icon: "i-lucide:file-code-2",
     labelKey: "schema.captureKinds.html",
   },
   image: {
-    fallbackLabel: "图片",
     icon: "i-lucide:file-image",
     labelKey: "schema.captureKinds.image",
   },
   rtf: {
-    fallbackLabel: "RTF 内容",
     icon: "i-lucide:file-type",
     labelKey: "schema.captureKinds.rtf",
   },
   text: {
-    fallbackLabel: "纯文本",
     icon: "i-lucide:clipboard-type",
     labelKey: "schema.captureKinds.text",
   },
 };
 
 export const CAPTURE_KIND_OPTIONS = CAPTURE_KIND_ORDER.map((kind) => {
-  const meta = CAPTURE_KIND_META[kind];
-
-  return { label: meta.fallbackLabel, value: kind };
+  return { value: kind };
 });
 
 const CAPTURE_KIND_KEYS = new Set<CaptureKind>(CAPTURE_KIND_ORDER);
@@ -77,5 +69,5 @@ export function translateCaptureKindLabel(
 ) {
   const meta = CAPTURE_KIND_META[kind];
 
-  return t(meta.labelKey, { defaultValue: meta.fallbackLabel });
+  return t(meta.labelKey);
 }

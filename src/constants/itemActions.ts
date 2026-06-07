@@ -8,9 +8,6 @@ type ClipboardTranslator = TFunction<"clipboard">;
 interface ItemActionMeta {
   activeLabelKey?: string;
   danger?: boolean;
-  fallbackActiveLabel?: string;
-  fallbackLabel: string;
-  fallbackSuccessLabel?: string;
   icon: string;
   labelKey: string;
   successIcon?: string;
@@ -49,16 +46,12 @@ export const ITEM_ACTION_ORDER: ItemAction[] = [
 
 export const ITEM_ACTION_META: Record<ItemAction, ItemActionMeta> = {
   copy: {
-    fallbackLabel: "复制",
-    fallbackSuccessLabel: "已复制",
     icon: "i-lucide:copy",
     labelKey: "quickActions.copy",
     successIcon: "i-lucide:circle-check",
     successLabelKey: "quickActions.copySuccess",
   },
   copyPlain: {
-    fallbackLabel: "复制为纯文本",
-    fallbackSuccessLabel: "已复制",
     icon: "i-lucide:copy-check",
     labelKey: "quickActions.copyPlain",
     successIcon: "i-lucide:circle-check",
@@ -66,58 +59,46 @@ export const ITEM_ACTION_META: Record<ItemAction, ItemActionMeta> = {
   },
   delete: {
     danger: true,
-    fallbackLabel: "删除",
     icon: "i-lucide:trash-2",
     labelKey: "quickActions.delete",
   },
   note: {
-    fallbackLabel: "备注",
     icon: "i-lucide:notebook-pen",
     labelKey: "quickActions.note",
   },
   openLink: {
-    fallbackLabel: "打开链接",
     icon: "i-lucide:square-arrow-out-up-right",
     labelKey: "quickActions.openLink",
   },
   paste: {
-    fallbackLabel: "粘贴",
     icon: "i-lucide:clipboard-paste",
     labelKey: "quickActions.paste",
   },
   pastePath: {
-    fallbackLabel: "粘贴为路径",
     icon: "i-lucide:file-symlink",
     labelKey: "quickActions.pastePath",
   },
   pastePlain: {
-    fallbackLabel: "纯文本粘贴",
     icon: "i-lucide:clipboard-type",
     labelKey: "quickActions.pastePlain",
   },
   reveal: {
-    fallbackLabel: "在文件管理器中显示",
     icon: "i-lucide:folder-open",
     labelKey: "quickActions.reveal",
   },
   sendEmail: {
-    fallbackLabel: "发送邮件",
     icon: "i-lucide:mail",
     labelKey: "quickActions.sendEmail",
   },
   star: {
     activeLabelKey: "quickActions.starActive",
-    fallbackActiveLabel: "取消收藏",
-    fallbackLabel: "收藏",
     icon: "i-lucide:star",
     labelKey: "quickActions.star",
   },
 };
 
 export const ITEM_ACTION_OPTIONS = ITEM_ACTION_ORDER.map((action) => {
-  const meta = ITEM_ACTION_META[action];
-
-  return { label: meta.fallbackLabel, value: action };
+  return { value: action };
 });
 
 const ITEM_ACTION_KEYS = new Set<ItemAction>(ITEM_ACTION_ORDER);
@@ -140,18 +121,14 @@ export function translateItemActionLabel(
   const meta = ITEM_ACTION_META[action];
 
   if (state.copied && meta.successLabelKey) {
-    return t(meta.successLabelKey, {
-      defaultValue: meta.fallbackSuccessLabel ?? meta.fallbackLabel,
-    });
+    return t(meta.successLabelKey);
   }
 
   if (state.isFavorite && meta.activeLabelKey) {
-    return t(meta.activeLabelKey, {
-      defaultValue: meta.fallbackActiveLabel ?? meta.fallbackLabel,
-    });
+    return t(meta.activeLabelKey);
   }
 
-  return t(meta.labelKey, { defaultValue: meta.fallbackLabel });
+  return t(meta.labelKey);
 }
 
 /**
