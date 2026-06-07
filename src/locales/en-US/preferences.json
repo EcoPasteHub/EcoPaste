@@ -477,6 +477,10 @@
             "remember": "Remember Position"
           },
           "title": "Open Position"
+        },
+        "scrollToTopOnOpen": {
+          "description": "Return to the newest items at the top whenever the clipboard window opens.",
+          "title": "Return to Top on Open"
         }
       }
     },

@@ -477,6 +477,10 @@
             "remember": "记住位置"
           },
           "title": "打开位置"
+        },
+        "scrollToTopOnOpen": {
+          "description": "每次打开剪贴板主窗口时，自动回到最新记录所在的顶部。",
+          "title": "打开时回到顶部"
         }
       }
     },

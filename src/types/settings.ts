@@ -129,6 +129,7 @@ export interface Search {
 
 export interface Window {
   position: WindowPosition;
+  scrollToTopOnOpen: boolean;
   alwaysOnTop: boolean;
   allWorkspaces: boolean;
 }

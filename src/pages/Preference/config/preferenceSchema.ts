@@ -430,6 +430,17 @@ export const preferenceTabs: PreferenceTab[] = [
               return settings.clipboard.window.position;
             },
           },
+          {
+            control: { type: "switch" },
+            description: "每次打开剪贴板主窗口时，自动回到最新记录所在的顶部。",
+            id: "window.scrollToTopOnOpen",
+            keywords: ["window", "scroll", "top", "open"],
+            path: ["clipboard", "window", "scrollToTopOnOpen"],
+            title: "打开时回到顶部",
+            value: (settings) => {
+              return settings.clipboard.window.scrollToTopOnOpen;
+            },
+          },
         ],
         title: "主窗口",
       },

@@ -19,6 +19,7 @@ import {
 } from "@/commands";
 import { TAURI_EVENT } from "@/constants/events";
 import { buildItemActionLabels } from "@/constants/itemActions";
+import { WINDOW_LABEL } from "@/constants/windows";
 import { useClipboardItems } from "@/hooks/useClipboardItems";
 import { useKeyboardEvent } from "@/hooks/useKeyboardEvent";
 import { useTauriListen } from "@/hooks/useTauriListen";
@@ -29,6 +30,7 @@ import type { ClipboardAction, ClipboardItem } from "@/types/clipboard";
 import type { ItemAction } from "@/types/settings";
 import { cn } from "@/utils/cn";
 import { isMac } from "@/utils/is";
+import type { WindowVisibilityPayload } from "../hooks/previewController";
 import {
   isSpaceKey,
   useClipboardPreviewController,
@@ -148,6 +150,32 @@ const List: FC = () => {
     (event) => {
       handleClipboardUpdated(event.payload);
     },
+  );
+
+  /**
+   * 主窗口显示时按偏好回到列表顶部；隐藏期间攒下的新记录先触发刷新。
+   */
+  const handleWindowVisibility = (event: {
+    payload: WindowVisibilityPayload;
+  }) => {
+    const { label, visible } = event.payload;
+    if (label !== WINDOW_LABEL.MAIN || !visible) return;
+    if (!settings.clipboard.window.scrollToTopOnOpen) return;
+
+    closePreview("windowOpenScrollTop");
+    setSelectedId(null);
+
+    if (pendingCount > 0) {
+      setPendingCount(0);
+      reload();
+    }
+
+    virtuosoRef.current?.scrollToIndex({ behavior: "auto", index: 0 });
+  };
+
+  useTauriListen<WindowVisibilityPayload>(
+    TAURI_EVENT.WINDOW_VISIBILITY,
+    handleWindowVisibility,
   );
 
   /**

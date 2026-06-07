@@ -488,6 +488,8 @@ impl Default for Search {
 #[serde(default, rename_all = "camelCase")]
 pub struct Window {
     pub position: WindowPosition,
+    /// 打开主窗口时把历史列表回到顶部。
+    pub scroll_to_top_on_open: bool,
     pub always_on_top: bool,
     /// 在所有桌面/工作区可见（macOS Spaces / Windows 虚拟桌面）。
     pub all_workspaces: bool,
@@ -497,6 +499,7 @@ impl Default for Window {
     fn default() -> Self {
         Self {
             position: WindowPosition::FollowCursor,
+            scroll_to_top_on_open: true,
             always_on_top: true,
             all_workspaces: true,
         }
