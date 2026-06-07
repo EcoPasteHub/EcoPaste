@@ -210,7 +210,9 @@ export default SourceAppsTransfer;
 /**
  * 把 Rust 返回的应用列表转换成 Transfer 数据。
  */
-function buildTransferItems(apps: ClipboardApp[]): SourceAppTransferItem[] {
+function buildTransferItems(
+  apps: ReadonlyArray<ClipboardApp>,
+): SourceAppTransferItem[] {
   const items = new Map(
     apps.map((app) => {
       return [

@@ -124,8 +124,10 @@ function buildTreeData(
 ) {
   if (setting.control.type !== "sortableTree") return [];
 
+  const options = setting.control.options;
+
   return order.reduce<TreeDataNode[]>((nodes, kind) => {
-    const option = setting.control.options.find((item) => {
+    const option = options.find((item) => {
       return item.value === kind;
     });
     if (!option) return nodes;
