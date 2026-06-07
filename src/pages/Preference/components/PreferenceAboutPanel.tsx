@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { openExternalUrl } from "@/commands";
 import { GITHUB_URL } from "@/constants/urls";
 import { APP_NAME_PLACEHOLDER } from "../constants";
+import PreferenceCountTag from "./PreferenceCountTag";
 
 interface PreferenceAboutPanelProps {
   appName: string;
@@ -28,63 +29,67 @@ const PreferenceAboutPanel: FC<PreferenceAboutPanelProps> = (props) => {
   };
 
   return (
-    <section className="flex min-h-full w-full items-center justify-center py-4">
-      <div className="w-full max-w-212 overflow-hidden rounded-2 border border-ant-border-secondary bg-ant-container">
-        <div className="grid gap-0 md:grid-cols-[minmax(0,1fr)_15rem]">
-          <div className="flex min-h-58 flex-col justify-between px-6 py-6">
-            <div className="flex min-w-0 items-start gap-4">
-              <img
-                alt=""
-                className="size-16 shrink-0 object-contain"
-                draggable={false}
-                src="/logo.png"
-              />
-              <div className="min-w-0 flex-1 pt-1">
-                <div className="flex flex-wrap items-center gap-3">
-                  <h2 className="m-0 font-semibold text-2xl text-ant-text leading-tight">
-                    {nameLabel}
-                  </h2>
-                  {versionLabel.length > 0 ? (
-                    <span className="rounded-full border border-ant-border-secondary bg-ant-fill-quaternary px-3 py-1 text-ant-secondary text-xs leading-none">
-                      {versionLabel}
-                    </span>
-                  ) : null}
-                </div>
-                <p className="m-0 mt-1 text-ant-secondary text-sm leading-relaxed">
-                  {t("common:app.tagline")}
-                </p>
+    <section className="w-full max-w-228 py-8">
+      <div className="flex flex-col gap-8">
+        <div className="flex min-w-0 flex-col gap-5 md:flex-row md:items-start md:justify-between">
+          <div className="flex min-w-0 items-center gap-5">
+            <img
+              alt=""
+              className="size-20 shrink-0 object-contain"
+              draggable={false}
+              src="/logo.png"
+            />
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="m-0 font-semibold text-3xl text-ant-text leading-tight">
+                  {nameLabel}
+                </h2>
+                {versionLabel.length > 0 ? (
+                  <PreferenceCountTag className="text-ant-tertiary">
+                    {versionLabel}
+                  </PreferenceCountTag>
+                ) : null}
               </div>
-            </div>
-
-            <div className="flex flex-wrap gap-2 border-ant-border-secondary border-t pt-4">
-              <Button
-                icon={<i aria-hidden="true" className="i-lucide:refresh-cw" />}
-                onClick={handleCheckUpdates}
-              >
-                {t("preferences:about.checkUpdates")}
-              </Button>
-              <Button
-                icon={<i aria-hidden="true" className="i-lucide:github" />}
-                onClick={openGitHub}
-              >
-                GitHub
-              </Button>
+              <p className="m-0 mt-2 text-ant-secondary text-base leading-relaxed">
+                {t("common:app.tagline")}
+              </p>
             </div>
           </div>
 
-          <div className="flex min-h-58 flex-col items-center justify-center border-ant-border-secondary border-t bg-ant-fill-quaternary px-5 py-5 md:border-t-0 md:border-l">
-            <div className="flex items-center gap-2">
-              <i
-                aria-hidden="true"
-                className="i-ph:hand-heart text-ant-primary text-lg"
-              />
-              <h3 className="m-0 font-semibold text-ant-text text-sm leading-tight">
-                {t("preferences:about.sponsor")}
-              </h3>
+          <div className="flex shrink-0 flex-wrap gap-2 md:pt-2">
+            <Button
+              icon={<i aria-hidden="true" className="i-lucide:refresh-cw" />}
+              onClick={handleCheckUpdates}
+            >
+              {t("preferences:about.checkUpdates")}
+            </Button>
+            <Button
+              icon={<i aria-hidden="true" className="i-lucide:github" />}
+              onClick={openGitHub}
+            >
+              GitHub
+            </Button>
+          </div>
+        </div>
+
+        <div className="border-ant-border-secondary border-t pt-6">
+          <div className="flex max-w-172 flex-col gap-5 rounded-2 border border-ant-border-secondary bg-ant-container px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-start gap-3">
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-ant-fill-tertiary text-ant-primary text-lg">
+                <i aria-hidden="true" className="i-ph:hand-heart" />
+              </span>
+              <div className="min-w-0">
+                <h3 className="m-0 font-semibold text-ant-text text-base leading-tight">
+                  {t("preferences:about.sponsor")}
+                </h3>
+                <p className="m-0 mt-1 text-ant-secondary text-sm leading-relaxed">
+                  {t("preferences:about.sponsorHint")}
+                </p>
+              </div>
             </div>
             <img
               alt={t("preferences:about.sponsorQrAlt")}
-              className="mt-4 size-36 rounded-1 object-contain"
+              className="size-32 self-center rounded-1 object-contain sm:self-auto"
               draggable={false}
               src="/sponsor-qr.png"
             />

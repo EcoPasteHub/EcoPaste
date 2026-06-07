@@ -3,6 +3,7 @@
     "checkUpdates": "检查更新",
     "checkUpdatesUnavailable": "检查更新暂未接入",
     "sponsor": "赞赏支持",
+    "sponsorHint": "如果 EcoPaste 帮到了你，可以给项目一点支持。",
     "sponsorQrAlt": "赞赏二维码"
   },
   "backup": {
