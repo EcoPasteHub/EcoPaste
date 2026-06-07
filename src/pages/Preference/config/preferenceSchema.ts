@@ -719,7 +719,7 @@ export const preferenceTabs: PreferenceTab[] = [
         id: "diagnostics",
         settings: [
           {
-            control: { color: "danger", label: "重置", type: "action" },
+            control: { danger: true, label: "重置", type: "action" },
             description: "恢复所有偏好默认值，同时保留历史记录。",
             id: "diagnostics.resetPreferences",
             keywords: ["reset", "preferences"],

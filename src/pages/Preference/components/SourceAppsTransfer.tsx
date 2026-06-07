@@ -138,12 +138,10 @@ const SourceAppsTransfer: FC<SourceAppsTransferProps> = (props) => {
         <Tooltip title={t("schema.settings.source.appTransfer.refreshApps")}>
           <Button
             aria-label={t("schema.settings.source.appTransfer.refreshApps")}
-            color="primary"
             icon={<i aria-hidden="true" className="i-lucide:refresh-cw" />}
             loading={sourceApps.loading}
             onClick={handleRefreshApps}
             size="small"
-            variant="outlined"
           />
         </Tooltip>
       </div>
@@ -161,12 +159,10 @@ const SourceAppsTransfer: FC<SourceAppsTransferProps> = (props) => {
       <Tooltip title={t("schema.settings.source.appTransfer.addApp")}>
         <Button
           aria-label={t("schema.settings.source.appTransfer.addApp")}
-          color="primary"
           icon={<i aria-hidden="true" className="i-ph:plus text-base" />}
           loading={adding}
           onClick={handleAddApp}
           size="small"
-          variant="outlined"
         />
       </Tooltip>
     </span>
