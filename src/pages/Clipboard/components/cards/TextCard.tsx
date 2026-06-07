@@ -36,20 +36,12 @@ const TextCard: FC<TextCardProps> = (props) => {
     };
 
     return (
-      <div className="flex items-center gap-2">
-        <div className="relative h-5.5 min-w-5.5">
-          <span
-            className={"absolute inset-0 rounded-full opacity-50"}
-            style={style}
-          />
-
-          <span
-            className={cn("absolute inset-0.5 rounded-full")}
-            style={style}
-          />
-        </div>
-
-        {colorPreview}
+      <div className="flex items-center gap-2 text-sm">
+        <span
+          className="size-4.5 shrink-0 rounded-1 border border-ant-border-secondary"
+          style={style}
+        />
+        <span className="font-mono leading-5">{colorPreview}</span>
       </div>
     );
   }
