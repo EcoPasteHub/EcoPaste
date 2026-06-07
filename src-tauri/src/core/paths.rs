@@ -35,7 +35,7 @@ const STORAGE_MANIFEST_FILENAME: &str = "storage.json";
 /// 写入真实数据根的 identity manifest 文件名，用于识别 EcoPaste 数据目录。
 const STORAGE_IDENTITY_FILENAME: &str = ".ecopaste-storage.json";
 /// 用户选择父目录后创建的数据子目录名。
-const CUSTOM_DATA_DIR_NAME: &str = "EcoPaste";
+const CUSTOM_DATA_DIR_NAME: &str = "EcoPasteData";
 /// 存储 manifest 格式版本。
 const STORAGE_MANIFEST_VERSION: u16 = 1;
 
@@ -338,6 +338,16 @@ mod tests {
         let temp = TempDir::new();
 
         validate_storage_target(temp.path()).unwrap();
+    }
+
+    #[test]
+    fn custom_data_dir_uses_named_data_container() {
+        let temp = TempDir::new();
+
+        assert_eq!(
+            custom_data_dir(temp.path()),
+            temp.path().join("EcoPasteData").join(env_dir())
+        );
     }
 
     #[test]

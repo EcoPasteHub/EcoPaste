@@ -16,7 +16,7 @@ use crate::settings::Settings;
 const SETTINGS_UPDATED_EVENT: &str = "settings://updated";
 const CLIPBOARD_UPDATED_EVENT: &str = "clipboard://updated";
 const STORAGE_CONTENT_DIRS: [&str; 4] = ["db", "resources", "config", "state"];
-const CUSTOM_STORAGE_CONTAINER_DIR: &str = "EcoPaste";
+const CUSTOM_STORAGE_CONTAINER_DIR: &str = "EcoPasteData";
 
 /// 偏好页侧栏展示的本地存储占用概览。
 #[derive(Debug, Clone, Serialize)]
@@ -664,20 +664,20 @@ mod tests {
     #[test]
     fn remove_custom_storage_root_deletes_empty_container() {
         let temp = TempDir::new();
-        let root = temp.path().join("EcoPaste").join("dev");
+        let root = temp.path().join("EcoPasteData").join("dev");
         fs::create_dir_all(root.join("config")).unwrap();
         fs::write(root.join("config").join("settings.json"), "{}").unwrap();
 
         remove_custom_storage_root(&root).unwrap();
 
         assert!(!root.exists());
-        assert!(!temp.path().join("EcoPaste").exists());
+        assert!(!temp.path().join("EcoPasteData").exists());
     }
 
     #[test]
     fn remove_custom_storage_root_keeps_container_with_sibling_environment() {
         let temp = TempDir::new();
-        let container = temp.path().join("EcoPaste");
+        let container = temp.path().join("EcoPasteData");
         let root = container.join("dev");
         fs::create_dir_all(root.join("config")).unwrap();
         fs::write(root.join("config").join("settings.json"), "{}").unwrap();
