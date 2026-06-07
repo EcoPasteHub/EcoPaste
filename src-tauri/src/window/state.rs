@@ -26,7 +26,7 @@ pub struct WindowStateStore {
 
 impl WindowStateStore {
     pub fn new(app: &AppHandle) -> Result<Self> {
-        let dir = crate::core::paths::app_data_dir(app)?;
+        let dir = crate::core::paths::state_dir(app)?;
 
         fs::create_dir_all(&dir).with_context(|| format!("failed to create dir at {dir:?}"))?;
 

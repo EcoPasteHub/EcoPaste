@@ -13,6 +13,9 @@
     "delete": "Delete",
     "deleteApps": "Delete apps",
     "drag": "Drag",
+    "exportBackup": "Export backup",
+    "importBackup": "Import backup",
+    "inspectBackup": "Inspect backup",
     "loadApps": "Load apps",
     "loadAutostart": "Load launch-at-login state",
     "loadClipboardList": "Load list",
@@ -38,6 +41,9 @@
     "toggleFavorite": "Favorite"
   },
   "messages": {
+    "backupExported": "Exported {{count}} history items, backup size {{size}}",
+    "backupImported": "Imported {{imported}} history items and skipped {{skipped}} duplicates",
+    "backupOverwriteImported": "Overwrite import completed",
     "cacheAlreadyClean": "No cache to clean",
     "cacheCleaned": "Cleaned {{count}} cache files and freed {{size}}",
     "copied": "Copied",

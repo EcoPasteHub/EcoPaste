@@ -3,6 +3,7 @@
  * 命名采用 `domain://action` 形式（见 AGENTS.md）。
  */
 export const TAURI_EVENT = {
+  BACKUP_RECEIVED: "backup://received",
   CLIPBOARD_MENU_ACTION: "clipboard://menu-action",
   CLIPBOARD_UPDATED: "clipboard://updated",
   CONTEXT_MENU_SHOW: "context-menu://show",

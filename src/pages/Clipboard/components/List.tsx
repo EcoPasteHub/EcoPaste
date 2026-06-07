@@ -37,6 +37,11 @@ import NoteModal from "./NoteModal";
 /** 前 10 项的快捷键：index 0-8 对应 1-9，index 9 对应 0 */
 const KEY_HINTS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
 
+interface ClipboardUpdatedPayload {
+  imported?: boolean;
+  cleanup?: number;
+}
+
 /**
  * 剪贴板历史列表：虚拟滚动 + 分类型卡片 + 滚动到底分页加载，
  * 跟随关键词（Header 已防抖）检索。
@@ -110,11 +115,15 @@ const List: FC = () => {
   }, [fileMaxCount]);
 
   /**
-   * 收到剪贴板更新：用户在顶部时直接刷新；否则累加待刷新计数，避免 Virtuoso 抖动。
+   * 收到剪贴板更新：导入强制刷新；普通新记录在顶部才刷新，否则只提示待查看。
    * 用 ref 读取最新滚动位置，规避闭包陷旧值（事件订阅只挂载一次）。
    */
-  const handleClipboardUpdated = () => {
-    if (sort !== "createdAtDesc") {
+  const handleClipboardUpdated = (payload: ClipboardUpdatedPayload) => {
+    if (payload.imported) {
+      closePreview("backupImport");
+      setSelectedId(null);
+      setPendingCount(0);
+      virtuosoRef.current?.scrollToIndex({ behavior: "auto", index: 0 });
       reload();
       return;
     }
@@ -130,7 +139,12 @@ const List: FC = () => {
     setPendingCount((n) => n + 1);
   };
 
-  useTauriListen(TAURI_EVENT.CLIPBOARD_UPDATED, handleClipboardUpdated);
+  useTauriListen<ClipboardUpdatedPayload>(
+    TAURI_EVENT.CLIPBOARD_UPDATED,
+    (event) => {
+      handleClipboardUpdated(event.payload);
+    },
+  );
 
   /**
    * 删除 / 收藏 / 备注命令均不广播 clipboard://updated，故就地改本地镜像，

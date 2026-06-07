@@ -7,7 +7,6 @@ use std::time::{Duration, Instant};
 
 use chrono::{DateTime, Duration as ChronoDuration, Utc};
 use serde_json::json;
-use sqlx::SqlitePool;
 use tauri::{AppHandle, Emitter, Manager};
 
 use super::storage::ImageStore;
@@ -19,9 +18,9 @@ use crate::settings::{Retention, RetentionUnit, SettingsStore};
 const SCHEDULER_TICK_INTERVAL: Duration = Duration::from_secs(60);
 
 /// 启动历史清理后台任务：启动立即清理一次，之后按设置周期到点清理。
-pub fn spawn(app: AppHandle, pool: SqlitePool) {
+pub fn spawn(app: AppHandle) {
     tauri::async_runtime::spawn(async move {
-        run_once(&app, &pool).await;
+        run_once(&app).await;
         let mut last_cleanup_at = Instant::now();
         let mut ticker = tokio::time::interval(SCHEDULER_TICK_INTERVAL);
         ticker.tick().await;
@@ -36,13 +35,13 @@ pub fn spawn(app: AppHandle, pool: SqlitePool) {
                 continue;
             }
 
-            run_once(&app, &pool).await;
+            run_once(&app).await;
             last_cleanup_at = Instant::now();
         }
     });
 }
 
-async fn run_once(app: &AppHandle, pool: &SqlitePool) {
+async fn run_once(app: &AppHandle) {
     let history = match app.try_state::<SettingsStore>() {
         Some(store) => store.snapshot().clipboard.history,
         None => return,
@@ -55,7 +54,8 @@ async fn run_once(app: &AppHandle, pool: &SqlitePool) {
         return;
     }
 
-    match cleanup_history(pool, cutoff, max).await {
+    let pool = app.state::<crate::db::DatabaseState>().pool().await;
+    match cleanup_history(&pool, cutoff, max).await {
         Ok(outcome) if outcome.removed == 0 => {}
         Ok(outcome) => {
             remove_images(app, &outcome.image_files);

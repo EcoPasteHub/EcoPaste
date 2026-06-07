@@ -57,6 +57,19 @@
   "bundle": {
     "active": true,
     "createUpdaterArtifacts": true,
+    "fileAssociations": [
+      {
+        "description": "EcoPaste history backup",
+        "exportedType": {
+          "conformsTo": ["public.data"],
+          "identifier": "com.ayangweb.eco-paste.backup"
+        },
+        "ext": ["ecopastebak"],
+        "mimeType": "application/vnd.ecopaste.backup",
+        "name": "EcoPaste Backup",
+        "role": "Editor"
+      }
+    ],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

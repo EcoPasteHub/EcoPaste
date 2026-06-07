@@ -9,6 +9,7 @@ use crate::clipboard::{icon_png, FileIconStore, ImageStore};
 use crate::core::{AppError, Result};
 use crate::db::items::find_item_by_id;
 use crate::db::models::{ClipboardItem, ClipboardKind, ClipboardSubKind, Platform};
+use crate::db::DatabaseState;
 use crate::drag_out;
 use crate::settings::Language;
 use crate::window::{self, MAIN_WINDOW_LABEL};
@@ -42,11 +43,12 @@ enum DragPayload {
 #[tauri::command]
 pub async fn start_drag_clipboard_item(
     app: AppHandle,
-    pool: State<'_, SqlitePool>,
+    db: State<'_, DatabaseState>,
     store: State<'_, ImageStore>,
     file_icon_store: State<'_, FileIconStore>,
     id: String,
 ) -> Result<()> {
+    let pool = db.pool().await;
     let item = find_item_by_id(&pool, &id)
         .await?
         .ok_or_else(|| AppError::Clipboard(format!("clipboard item not found: {id}")))?;

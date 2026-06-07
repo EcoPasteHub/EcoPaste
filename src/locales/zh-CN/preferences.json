@@ -5,6 +5,51 @@
     "sponsor": "赞赏支持",
     "sponsorQrAlt": "赞赏二维码"
   },
+  "backup": {
+    "export": {
+      "confirmPassword": "确认密码",
+      "confirmRequired": "请再次输入备份密码",
+      "encryptedHint": "备份会用你输入的密码加密。EcoPaste 不会保存密码，忘记后无法恢复。",
+      "modeEncrypted": "加密备份（推荐）",
+      "modePlain": "明文备份",
+      "ok": "选择保存位置",
+      "okReadConfirm": "阅读风险并勾选",
+      "okReadCountdown": "阅读风险并勾选（{{seconds}}s）",
+      "password": "备份密码",
+      "passwordMin": "备份密码至少需要 8 个字符",
+      "passwordMismatch": "两次输入的密码不一致",
+      "passwordRequired": "请输入备份密码",
+      "plainConfirm": "我已阅读风险提示，确认导出未加密备份",
+      "plainConfirmRequired": "请确认明文备份风险",
+      "plainWarning": "任何拿到文件的人都可以直接读取备份内容。",
+      "plainWarningTitle": "明文备份不受密码保护",
+      "title": "导出 EcoPaste 备份"
+    },
+    "fileFilter": "EcoPaste 备份",
+    "import": {
+      "fileFallback": "EcoPaste 备份文件",
+      "ok": "导入",
+      "overwriteConfirm": "我已阅读风险提示，确认覆盖当前数据",
+      "overwriteConfirmRequired": "请确认覆盖导入风险",
+      "overwriteOkConfirm": "阅读风险并勾选",
+      "overwriteOkCountdown": "阅读风险并勾选（{{seconds}}s）",
+      "overwriteWarning": "覆盖导入会立即替换已选择的当前数据。合并导入更适合日常恢复；只有确定要以备份为准时再选择覆盖。",
+      "password": "备份密码",
+      "passwordRequired": "请输入备份密码",
+      "pickTitle": "选择 EcoPaste 备份",
+      "strategy": "导入方式",
+      "strategyMerge": "合并导入",
+      "strategyOverwrite": "覆盖导入",
+      "title": "导入 EcoPaste 备份",
+      "typeEncrypted": "加密备份，导入时需要密码",
+      "typePlain": "未加密备份"
+    },
+    "received": {
+      "encrypted": "已识别加密备份。导入时需要输入备份密码。",
+      "invalidDrop": "请拖入单个 .ecopastebak 备份文件",
+      "plain": "已识别明文备份。"
+    }
+  },
   "schema": {
     "numberSuffixes": {
       "files": "个",
@@ -28,6 +73,7 @@
         "title": "外观与语言"
       },
       "backup": {
+        "description": "导出或导入 EcoPaste 备份包。",
         "title": "备份迁移"
       },
       "capture": {
@@ -136,13 +182,13 @@
       "backup": {
         "exportHistory": {
           "controlLabel": "导出",
-          "description": "未来可把历史数据库和资源文件导出为备份。",
-          "title": "导出历史"
+          "description": "导出 .ecopastebak 备份包，默认使用密码加密。",
+          "title": "导出备份"
         },
         "importHistory": {
           "controlLabel": "导入",
-          "description": "未来可从备份恢复历史数据库和资源文件。",
-          "title": "导入历史"
+          "description": "导入 .ecopastebak 备份包，支持合并或覆盖恢复。",
+          "title": "导入备份"
         }
       },
       "capture": {

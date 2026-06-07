@@ -1,4 +1,5 @@
 mod autostart;
+mod backup;
 mod clipboard;
 mod commands;
 mod core;
@@ -43,7 +44,18 @@ pub fn run() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(
-            |app_handle, _argv, _cwd| {
+            |app_handle, argv, _cwd| {
+                if let Some(path) = backup::backup_path_from_args(&argv) {
+                    if let Err(err) = backup::emit_received_backup(
+                        app_handle,
+                        path,
+                        backup::BackupReceiveSource::OpenFile,
+                    ) {
+                        log::error!("receive backup from second instance failed: {err:?}");
+                    }
+                    return;
+                }
+
                 if let Err(err) = window::show_window(app_handle, window::PREFERENCE_WINDOW_LABEL) {
                     log::error!("show preference window on second instance failed: {err:?}");
                 }
@@ -90,6 +102,9 @@ pub fn run() {
             commands::get_settings,
             commands::update_settings,
             commands::reset_settings,
+            commands::export_history_backup,
+            commands::inspect_history_backup,
+            commands::import_history_backup,
             commands::get_storage_usage,
             commands::clean_resource_cache,
             commands::open_preference_directory,
@@ -125,8 +140,8 @@ pub fn run() {
                     log::error!("database initialization failed: {err:?}");
                     err
                 })?;
-                handle_db.manage(pool.clone());
-                clipboard::init(&handle_db, pool)?;
+                handle_db.manage(db::DatabaseState::new(pool));
+                clipboard::init(&handle_db)?;
                 Ok::<_, anyhow::Error>(())
             })?;
 
@@ -174,6 +189,29 @@ pub fn run() {
             } = event
             {
                 window::handle_reopen(app_handle, has_visible_windows);
+            }
+
+            #[cfg(target_os = "macos")]
+            if let tauri::RunEvent::Opened { urls } = &event {
+                for url in urls {
+                    if url.scheme() != "file" {
+                        continue;
+                    }
+                    let Ok(path) = url.to_file_path() else {
+                        continue;
+                    };
+                    if !backup::is_backup_path(&path) {
+                        continue;
+                    }
+                    if let Err(err) = backup::emit_received_backup(
+                        app_handle,
+                        path,
+                        backup::BackupReceiveSource::OpenFile,
+                    ) {
+                        log::error!("receive backup from open file failed: {err:?}");
+                    }
+                    break;
+                }
             }
 
             // 退出前保存所有窗口几何，兜住「调整大小后不关窗直接退出」的场景。

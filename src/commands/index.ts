@@ -120,6 +120,56 @@ export interface CleanCacheResult {
 }
 
 export type PreferenceDirectoryTarget = "data" | "logs";
+export type BackupExportMode = "encrypted" | "plain";
+export type BackupContainerMode = "encrypted" | "plain";
+export type BackupReceiveSource = "dragDrop" | "openFile";
+export type BackupImportStrategy = "merge" | "overwrite";
+
+export interface ExportHistoryBackupOptions {
+  mode: BackupExportMode;
+  password?: string;
+}
+
+export interface ExportHistoryBackupResult {
+  path: string;
+  totalBytes: number;
+  itemCount: number;
+  textCount: number;
+  imageCount: number;
+  filesCount: number;
+  resourceBytes: number;
+  exportedAt: string;
+  mode: BackupExportMode;
+}
+
+export interface InspectHistoryBackupInput {
+  path: string;
+  source?: BackupReceiveSource;
+}
+
+export interface ImportHistoryBackupInput {
+  path: string;
+  password?: string;
+}
+
+export interface ImportHistoryBackupOptions {
+  strategy: BackupImportStrategy;
+}
+
+export interface ImportHistoryBackupResult {
+  strategy: BackupImportStrategy;
+  importedItems: number;
+  skippedItems: number;
+  importedResources: number;
+  importedSettings: boolean;
+  requiresRestart: boolean;
+}
+
+export interface BackupReceivedPayload {
+  path: string;
+  source: BackupReceiveSource;
+  mode: BackupContainerMode;
+}
 
 /**
  * 把任意 invoke reject 的值归一化成前端可展示的 `AppError`。
@@ -243,6 +293,74 @@ export const openPreferenceDirectory = (target: PreferenceDirectoryTarget) => {
       target,
     },
   );
+};
+
+/**
+ * 导出历史数据库、资源和设置为 `.ecopastebak` 备份包。
+ */
+export const exportHistoryBackup = async (
+  targetPath: string,
+  options: ExportHistoryBackupOptions,
+) => {
+  const result = await call<ExportHistoryBackupResult>(
+    TAURI_COMMAND.EXPORT_HISTORY_BACKUP,
+    "commands:labels.exportBackup",
+    {
+      options,
+      targetPath,
+    },
+  );
+
+  message.success(
+    i18n.t("commands:messages.backupExported", {
+      count: result.itemCount,
+      size: formatCommandBytes(result.totalBytes),
+    }),
+  );
+
+  return result;
+};
+
+/**
+ * 识别 `.ecopastebak` 文件并广播给偏好页导入接收壳。
+ */
+export const inspectHistoryBackup = (input: InspectHistoryBackupInput) => {
+  return call<BackupContainerMode>(
+    TAURI_COMMAND.INSPECT_HISTORY_BACKUP,
+    "commands:labels.inspectBackup",
+    { input },
+  );
+};
+
+/**
+ * 从 `.ecopastebak` 备份包导入历史和/或设置。
+ */
+export const importHistoryBackup = async (
+  input: ImportHistoryBackupInput,
+  options: ImportHistoryBackupOptions,
+) => {
+  const result = await call<ImportHistoryBackupResult>(
+    TAURI_COMMAND.IMPORT_HISTORY_BACKUP,
+    "commands:labels.importBackup",
+    {
+      input,
+      options,
+    },
+  );
+
+  message.success(
+    i18n.t(
+      result.strategy === "overwrite"
+        ? "commands:messages.backupOverwriteImported"
+        : "commands:messages.backupImported",
+      {
+        imported: result.importedItems,
+        skipped: result.skippedItems,
+      },
+    ),
+  );
+
+  return result;
 };
 
 /**

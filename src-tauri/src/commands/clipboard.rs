@@ -20,6 +20,7 @@ use crate::db::models::{
     ClipboardAction, ClipboardApp, ClipboardGroup, ClipboardItem, ClipboardItemPage,
     ClipboardItemQuery, ClipboardKind, ClipboardSubKind, FileEntry, Platform,
 };
+use crate::db::DatabaseState;
 use crate::settings::SettingsStore;
 use crate::window::{self, MAIN_WINDOW_LABEL};
 
@@ -46,7 +47,7 @@ pub struct ReadClipboardResult {
 #[tauri::command]
 pub async fn read_clipboard(
     app: AppHandle,
-    pool: State<'_, SqlitePool>,
+    db: State<'_, DatabaseState>,
     store: State<'_, ImageStore>,
     app_icon_store: State<'_, AppIconStore>,
     registry: State<'_, AppsRegistry>,
@@ -83,6 +84,7 @@ pub async fn read_clipboard(
         item.source_app_id = Some(src.id.clone());
     }
 
+    let pool = db.pool().await;
     let result = persist_and_notify(&app, &pool, &item, source_app.as_ref()).await?;
     Ok(Some(ReadClipboardResult {
         item,
@@ -201,12 +203,13 @@ pub struct ClipboardPreviewFileEntry {
 /// `file_types` 来自 `clipboard_items.file_types`（如 "d,f,f"），`index` 为路径在列表中的索引（0-based）。
 #[tauri::command]
 pub async fn get_file_icon_path(
-    pool: State<'_, SqlitePool>,
+    db: State<'_, DatabaseState>,
     file_icon_store: State<'_, FileIconStore>,
     path: String,
     file_types: Option<String>,
     index: usize,
 ) -> Result<FileIconResult> {
+    let pool = db.pool().await;
     let (icon_path, exists) =
         resolve_file_icon_path(&pool, &file_icon_store, &path, file_types.as_deref(), index)
             .await?;
@@ -219,11 +222,12 @@ pub async fn get_file_icon_path(
 /// 列表查询会裁剪 text content；预览必须走完整记录，再按 Content Viewer 的三类视图归一化。
 #[tauri::command]
 pub async fn get_clipboard_preview_payload(
-    pool: State<'_, SqlitePool>,
+    db: State<'_, DatabaseState>,
     image_store: State<'_, ImageStore>,
     file_icon_store: State<'_, FileIconStore>,
     item_id: String,
 ) -> Result<Option<ClipboardPreviewPayload>> {
+    let pool = db.pool().await;
     let Some(item) = find_item_by_id(&pool, &item_id).await? else {
         return Ok(None);
     };
@@ -247,12 +251,13 @@ pub async fn play_copy_sound() {
 #[tauri::command]
 pub async fn write_to_clipboard(
     app: AppHandle,
-    pool: State<'_, SqlitePool>,
+    db: State<'_, DatabaseState>,
     store: State<'_, ImageStore>,
     guard: State<'_, Arc<WritebackGuard>>,
     id: String,
     plain: bool,
 ) -> Result<()> {
+    let pool = db.pool().await;
     let item = find_item_by_id(&pool, &id)
         .await?
         .ok_or_else(|| AppError::Clipboard(format!("clipboard item not found: {id}")))?;
@@ -276,12 +281,13 @@ pub async fn write_to_clipboard(
 #[tauri::command]
 pub async fn paste_clipboard_item(
     app: AppHandle,
-    pool: State<'_, SqlitePool>,
+    db: State<'_, DatabaseState>,
     store: State<'_, ImageStore>,
     guard: State<'_, Arc<WritebackGuard>>,
     id: String,
     plain: bool,
 ) -> Result<()> {
+    let pool = db.pool().await;
     let item = find_item_by_id(&pool, &id)
         .await?
         .ok_or_else(|| AppError::Clipboard(format!("clipboard item not found: {id}")))?;
@@ -376,12 +382,13 @@ async fn mark_item_reused_if_enabled(app: &AppHandle, pool: &SqlitePool, id: &st
 #[tauri::command]
 pub async fn list_clipboard_items(
     app: AppHandle,
-    pool: State<'_, SqlitePool>,
+    db: State<'_, DatabaseState>,
     image_store: State<'_, ImageStore>,
     app_icon_store: State<'_, AppIconStore>,
     file_icon_store: State<'_, FileIconStore>,
     query: Option<ClipboardItemQuery>,
 ) -> Result<ClipboardItemPage> {
+    let pool = db.pool().await;
     let q = query.unwrap_or_default();
     let (mut items, total) = crate::db::items::query_items_page(&pool, &q).await?;
     let now = Local::now();
@@ -415,12 +422,13 @@ pub async fn list_clipboard_items(
 #[tauri::command]
 pub async fn get_clipboard_item(
     app: AppHandle,
-    pool: State<'_, SqlitePool>,
+    db: State<'_, DatabaseState>,
     image_store: State<'_, ImageStore>,
     app_icon_store: State<'_, AppIconStore>,
     file_icon_store: State<'_, FileIconStore>,
     id: String,
 ) -> Result<Option<ClipboardItem>> {
+    let pool = db.pool().await;
     let mut item = find_item_for_list_by_id(&pool, &id).await?;
     if let Some(item) = item.as_mut() {
         let file_entry_limit = app
@@ -836,9 +844,10 @@ async fn resolve_file_icon_path(
 /// 按 id 列表批量取来源应用——前端渲染卡片时一次性补齐图标/名称。
 #[tauri::command]
 pub async fn list_clipboard_apps(
-    pool: State<'_, SqlitePool>,
+    db: State<'_, DatabaseState>,
     ids: Vec<String>,
 ) -> Result<Vec<crate::db::models::ClipboardApp>> {
+    let pool = db.pool().await;
     crate::db::apps::list_apps_by_ids(&pool, &ids).await
 }
 
@@ -846,9 +855,10 @@ pub async fn list_clipboard_apps(
 #[tauri::command]
 pub async fn list_all_apps(
     app_icon_store: State<'_, AppIconStore>,
-    pool: State<'_, SqlitePool>,
+    db: State<'_, DatabaseState>,
     registry: State<'_, AppsRegistry>,
 ) -> Result<Vec<ClipboardAppView>> {
+    let pool = db.pool().await;
     let running_apps = refresh_running_apps(registry.inner().clone()).await?;
     let known_apps = crate::db::apps::list_all_apps(&pool).await?;
     let mut apps = merge_clipboard_apps(known_apps, running_apps);
@@ -916,7 +926,8 @@ fn sort_clipboard_apps(apps: &mut [ClipboardApp]) {
 /// 列出全部分组（薄封装），供前端构建分组 tab 栏。
 /// 按 `sort_order` 升序，同序按 `created_at` 兜底。
 #[tauri::command]
-pub async fn list_clipboard_groups(pool: State<'_, SqlitePool>) -> Result<Vec<ClipboardGroup>> {
+pub async fn list_clipboard_groups(db: State<'_, DatabaseState>) -> Result<Vec<ClipboardGroup>> {
+    let pool = db.pool().await;
     crate::db::groups::list_groups(&pool).await
 }
 
@@ -924,9 +935,10 @@ pub async fn list_clipboard_groups(pool: State<'_, SqlitePool>) -> Result<Vec<Cl
 /// 失败时前端按需回滚 / 重拉单条。
 #[tauri::command]
 pub async fn toggle_clipboard_item_favorite(
-    pool: State<'_, SqlitePool>,
+    db: State<'_, DatabaseState>,
     id: String,
 ) -> Result<bool> {
+    let pool = db.pool().await;
     crate::db::items::toggle_item_favorite(&pool, &id).await
 }
 
@@ -934,10 +946,11 @@ pub async fn toggle_clipboard_item_favorite(
 /// 行已删成功，删文件失败仅记日志、不回滚——残留文件最坏占用磁盘，不影响功能。
 #[tauri::command]
 pub async fn delete_clipboard_item(
-    pool: State<'_, SqlitePool>,
+    db: State<'_, DatabaseState>,
     store: State<'_, ImageStore>,
     id: String,
 ) -> Result<()> {
+    let pool = db.pool().await;
     if let Some(file_name) = crate::db::items::delete_item(&pool, &id).await? {
         if let Err(err) = store.remove(&file_name) {
             log::warn!("remove deleted image {file_name} failed: {err}");
@@ -964,10 +977,11 @@ pub struct UpdateNoteResult {
 #[tauri::command]
 pub async fn update_clipboard_item_note(
     app: AppHandle,
-    pool: State<'_, SqlitePool>,
+    db: State<'_, DatabaseState>,
     id: String,
     note: Option<String>,
 ) -> Result<UpdateNoteResult> {
+    let pool = db.pool().await;
     let normalized = note.as_deref().and_then(|s| {
         let trimmed = s.trim();
         if trimmed.is_empty() {
@@ -1001,12 +1015,13 @@ pub async fn update_clipboard_item_note(
 #[tauri::command]
 pub async fn open_clipboard_item_link(
     app: AppHandle,
-    pool: State<'_, SqlitePool>,
+    db: State<'_, DatabaseState>,
     id: String,
     mailto: bool,
 ) -> Result<()> {
     use tauri_plugin_opener::OpenerExt;
 
+    let pool = db.pool().await;
     let item = find_item_by_id(&pool, &id)
         .await?
         .ok_or_else(|| AppError::Clipboard(format!("clipboard item not found: {id}")))?;
@@ -1033,11 +1048,12 @@ pub async fn open_clipboard_item_link(
 #[tauri::command]
 pub async fn reveal_clipboard_item(
     app: AppHandle,
-    pool: State<'_, SqlitePool>,
+    db: State<'_, DatabaseState>,
     id: String,
 ) -> Result<()> {
     use tauri_plugin_opener::OpenerExt;
 
+    let pool = db.pool().await;
     let item = find_item_by_id(&pool, &id)
         .await?
         .ok_or_else(|| AppError::Clipboard(format!("clipboard item not found: {id}")))?;

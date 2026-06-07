@@ -1,8 +1,7 @@
 //! 设置持久化。
 //!
-//! - 落盘位置：`<app_data_dir>/settings.json`（dev/prod 由 `core::paths` 的环境子目录隔离，文件名不带后缀）。
-//! - 写入流程：先把当前盘内容备份到 `settings.json.bak`，再原子写入新文件。
-//!   读取时主文件解析失败回退到 `.bak`，再失败回退到 `Default`，避免一次坏盘把所有偏好弄丢。
+//! - 落盘位置：`<app_data_dir>/config/settings.json`（dev/prod 由 `core::paths` 的环境子目录隔离）。
+//! - 写入流程：先写到 `settings.json.tmp`，再原子替换主文件，避免中途断电留下半截 JSON。
 //! - 缺字段兼容：`Settings` 各结构体都 `#[serde(default)]`，新版本新增字段不影响旧文件。
 
 use std::fs;
@@ -18,33 +17,25 @@ use crate::core::{AppError, Result};
 use super::model::{Language, Settings};
 
 const FILENAME: &str = "settings.json";
-const BACKUP_SUFFIX: &str = ".bak";
 
 pub struct SettingsStore {
     path: PathBuf,
-    backup_path: PathBuf,
     current: RwLock<Settings>,
 }
 
 impl SettingsStore {
     pub fn new(app: &AppHandle) -> Result<Self> {
-        let dir = crate::core::paths::app_data_dir(app)?;
+        let dir = crate::core::paths::config_dir(app)?;
         fs::create_dir_all(&dir).with_context(|| format!("failed to create dir at {dir:?}"))?;
 
         let path = dir.join(FILENAME);
-        let backup_path = path.with_extension(format!(
-            "{}{}",
-            path.extension().and_then(|s| s.to_str()).unwrap_or("json"),
-            BACKUP_SUFFIX
-        ));
 
-        let current = match load_from_disk(&path, &backup_path) {
+        let current = match load_from_disk(&path) {
             Some(settings) => settings,
             None => {
-                // 真·首次启动（主文件 + 备份都不存在）：用系统 locale 推导默认语言并落盘，
-                // 之后所有读取都走常规分支，避免每次启动都重算。
+                // 真·首次启动：用系统 locale 推导默认语言并落盘，之后所有读取都走常规分支。
                 let settings = default_settings_with_system_locale();
-                if let Err(err) = write_atomic(&path, &backup_path, &settings) {
+                if let Err(err) = write_atomic(&path, &settings) {
                     log::warn!("persist first-run settings failed: {err}");
                 }
                 settings
@@ -54,7 +45,6 @@ impl SettingsStore {
 
         Ok(Self {
             path,
-            backup_path,
             current: RwLock::new(current),
         })
     }
@@ -67,7 +57,7 @@ impl SettingsStore {
     pub fn reset(&self) -> Result<Settings> {
         let next = default_settings_with_system_locale();
 
-        write_atomic(&self.path, &self.backup_path, &next)?;
+        write_atomic(&self.path, &next)?;
         *self.current.write().expect("settings poisoned") = next.clone();
         Ok(next)
     }
@@ -90,8 +80,20 @@ impl SettingsStore {
         let next: Settings = serde_json::from_value(merged)
             .map_err(|err| AppError::Other(anyhow::anyhow!("invalid settings patch: {err}")))?;
 
-        write_atomic(&self.path, &self.backup_path, &next)?;
+        write_atomic(&self.path, &next)?;
         *guard = next.clone();
+        Ok(next)
+    }
+
+    /// 用完整设置文件替换当前设置；覆盖导入专用。
+    pub fn replace_from_file(&self, path: &Path) -> Result<Settings> {
+        let content =
+            fs::read_to_string(path).with_context(|| format!("failed to read {path:?}"))?;
+        let next: Settings = serde_json::from_str(&content)
+            .map_err(|err| AppError::Other(anyhow::anyhow!("invalid settings file: {err}")))?;
+
+        write_atomic(&self.path, &next)?;
+        *self.current.write().expect("settings poisoned") = next.clone();
         Ok(next)
     }
 }
@@ -109,40 +111,29 @@ fn default_settings_with_system_locale() -> Settings {
     settings
 }
 
-/// 返回 `None` 表示主文件与备份都不存在（首次启动），调用方据此走「初始化默认」分支；
-/// 读取过程中遇到 IO/解析错误会逐个回退并打 warn，最终仍找不到可用文件时也返回 `Settings::default()` 包装在 `Some` 里——
+/// 返回 `None` 表示主文件不存在（首次启动），调用方据此走「初始化默认」分支；
+/// 读取过程中遇到 IO/解析错误会打 warn，并返回 `Settings::default()` 包装在 `Some` 里——
 /// 这条路径表示「文件存在但坏了」，不要当成首次启动覆盖系统 locale。
-fn load_from_disk(path: &Path, backup: &Path) -> Option<Settings> {
-    if !path.exists() && !backup.exists() {
+fn load_from_disk(path: &Path) -> Option<Settings> {
+    if !path.exists() {
         return None;
     }
-    for candidate in [path, backup] {
-        if !candidate.exists() {
-            continue;
-        }
-        match fs::read_to_string(candidate).and_then(|content| {
-            serde_json::from_str::<Settings>(&content)
-                .map_err(|err| std::io::Error::new(std::io::ErrorKind::InvalidData, err))
-        }) {
-            Ok(settings) => return Some(settings),
-            Err(err) => {
-                log::warn!("settings file {candidate:?} unreadable, falling back: {err}");
-            }
+
+    match fs::read_to_string(path).and_then(|content| {
+        serde_json::from_str::<Settings>(&content)
+            .map_err(|err| std::io::Error::new(std::io::ErrorKind::InvalidData, err))
+    }) {
+        Ok(settings) => Some(settings),
+        Err(err) => {
+            log::warn!("settings file {path:?} unreadable, using defaults: {err}");
+            Some(Settings::default())
         }
     }
-    Some(Settings::default())
 }
 
-/// 写入策略：先把现盘文件 rename 成 `.bak`（覆盖旧备份），再把新内容写到 tmp 后 rename 成主文件。
-/// rename 在同一文件系统下是原子的，避免中途断电留下半截 JSON。
-fn write_atomic(path: &Path, backup: &Path, settings: &Settings) -> Result<()> {
+/// 写入策略：把新内容写到 tmp 后 rename 成主文件；rename 在同一文件系统下是原子的。
+fn write_atomic(path: &Path, settings: &Settings) -> Result<()> {
     let json = serde_json::to_string_pretty(settings).context("failed to serialize settings")?;
-
-    if path.exists() {
-        if let Err(err) = fs::rename(path, backup) {
-            log::warn!("backup current settings to {backup:?} failed: {err}");
-        }
-    }
 
     let tmp = path.with_extension("json.tmp");
     {

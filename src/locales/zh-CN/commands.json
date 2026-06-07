@@ -13,6 +13,9 @@
     "delete": "删除",
     "deleteApps": "删除应用",
     "drag": "拖拽",
+    "exportBackup": "导出备份",
+    "importBackup": "导入备份",
+    "inspectBackup": "识别备份",
     "loadApps": "加载应用",
     "loadAutostart": "读取开机启动状态",
     "loadClipboardList": "加载列表",
@@ -38,6 +41,9 @@
     "toggleFavorite": "收藏"
   },
   "messages": {
+    "backupExported": "已导出 {{count}} 条历史记录，备份大小 {{size}}",
+    "backupImported": "已导入 {{imported}} 条历史记录，跳过 {{skipped}} 条重复记录",
+    "backupOverwriteImported": "覆盖导入已完成",
     "cacheAlreadyClean": "暂无可清理的缓存",
     "cacheCleaned": "已清理 {{count}} 个缓存文件，释放 {{size}}",
     "copied": "已复制",

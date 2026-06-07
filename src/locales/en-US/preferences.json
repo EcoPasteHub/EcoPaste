@@ -5,6 +5,51 @@
     "sponsor": "Sponsor",
     "sponsorQrAlt": "Sponsor QR code"
   },
+  "backup": {
+    "export": {
+      "confirmPassword": "Confirm password",
+      "confirmRequired": "Enter the backup password again",
+      "encryptedHint": "The backup will be encrypted with this password. EcoPaste will not save it, and forgotten passwords cannot be recovered.",
+      "modeEncrypted": "Encrypted backup (Recommended)",
+      "modePlain": "Plain backup",
+      "ok": "Choose Save Location",
+      "okReadConfirm": "Read the warning and check",
+      "okReadCountdown": "Read and check ({{seconds}}s)",
+      "password": "Backup password",
+      "passwordMin": "Backup password must be at least 8 characters",
+      "passwordMismatch": "The two passwords do not match",
+      "passwordRequired": "Enter a backup password",
+      "plainConfirm": "I have read the warning and confirm exporting an unencrypted backup",
+      "plainConfirmRequired": "Confirm the plain backup risk",
+      "plainWarning": "Anyone with the file can read the backup contents directly.",
+      "plainWarningTitle": "Plain backups are not password protected",
+      "title": "Export EcoPaste Backup"
+    },
+    "fileFilter": "EcoPaste Backup",
+    "import": {
+      "fileFallback": "EcoPaste backup file",
+      "ok": "Import",
+      "overwriteConfirm": "I have read the warning and confirm overwriting current data",
+      "overwriteConfirmRequired": "Confirm the overwrite import risk",
+      "overwriteOkConfirm": "Read the warning and check",
+      "overwriteOkCountdown": "Read and check ({{seconds}}s)",
+      "overwriteWarning": "Overwrite import replaces the selected current data immediately. Merge import is safer for everyday recovery; use overwrite only when the backup should become the source of truth.",
+      "password": "Backup password",
+      "passwordRequired": "Enter the backup password",
+      "pickTitle": "Choose EcoPaste Backup",
+      "strategy": "Import mode",
+      "strategyMerge": "Merge Import",
+      "strategyOverwrite": "Overwrite Import",
+      "title": "Import EcoPaste Backup",
+      "typeEncrypted": "Encrypted backup, password required",
+      "typePlain": "Unencrypted backup"
+    },
+    "received": {
+      "encrypted": "Encrypted backup recognized. Import requires the backup password.",
+      "invalidDrop": "Drop a single .ecopastebak backup file",
+      "plain": "Plain backup recognized."
+    }
+  },
   "schema": {
     "numberSuffixes": {
       "files": "files",
@@ -28,6 +73,7 @@
         "title": "Appearance & Language"
       },
       "backup": {
+        "description": "Export or import EcoPaste backup packages.",
         "title": "Backup & Migration"
       },
       "capture": {
@@ -136,13 +182,13 @@
       "backup": {
         "exportHistory": {
           "controlLabel": "Export",
-          "description": "Future export for the history database and resource files.",
-          "title": "Export History"
+          "description": "Export a .ecopastebak backup, encrypted with a password by default.",
+          "title": "Export Backup"
         },
         "importHistory": {
           "controlLabel": "Import",
-          "description": "Future restore from a history database and resource backup.",
-          "title": "Import History"
+          "description": "Import a .ecopastebak backup, with merge or overwrite recovery.",
+          "title": "Import Backup"
         }
       },
       "capture": {

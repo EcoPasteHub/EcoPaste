@@ -1,20 +1,29 @@
 import { getName, getVersion } from "@tauri-apps/api/app";
-import { useMount } from "ahooks";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { useMount, useUnmount } from "ahooks";
+import { message } from "antd";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import type { ChangeEvent, FC } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSnapshot } from "valtio";
 import {
+  type BackupReceivedPayload,
   type CleanCacheResult,
+  type ExportHistoryBackupResult,
   getStorageUsage,
+  type ImportHistoryBackupResult,
+  inspectHistoryBackup,
   type StorageUsage,
 } from "@/commands";
+import { TAURI_EVENT } from "@/constants/events";
+import { useTauriListen } from "@/hooks/useTauriListen";
 import { settingsState } from "@/stores/settings";
 import { preloadSourceApps, reloadSourceApps } from "@/stores/sourceApps";
 import type { Settings } from "@/types/settings";
 import { cn } from "@/utils/cn";
 import { log } from "@/utils/log";
+import BackupImportModal from "./components/BackupImportModal";
 import PreferenceAboutPanel from "./components/PreferenceAboutPanel";
 import PreferenceHeader from "./components/PreferenceHeader";
 import PreferenceSection from "./components/PreferenceSection";
@@ -58,6 +67,7 @@ const Preference: FC = () => {
   const shouldReduceMotion = useReducedMotion();
   const reduceMotion = shouldReduceMotion === true;
   const contentRef = useRef<HTMLDivElement | null>(null);
+  const unlistenDropRef = useRef<(() => void) | null>(null);
   const [activeTabId, setActiveTabId] = useState<PreferenceTabId>("record");
   const [activeSectionId, setActiveSectionId] = useState("capture");
   const [searchQuery, setSearchQuery] = useState("");
@@ -70,6 +80,8 @@ const Preference: FC = () => {
   const [storageState, setStorageState] =
     useState<PreferenceStorageState>("loading");
   const [storageUsage, setStorageUsage] = useState<StorageUsage | null>(null);
+  const [backupImportTarget, setBackupImportTarget] =
+    useState<BackupReceivedPayload | null>(null);
 
   const activeTab =
     preferenceTabs.find((tab) => {
@@ -138,19 +150,73 @@ const Preference: FC = () => {
     }
   };
 
+  const highlightBackupImport = () => {
+    setActiveTabId("data");
+    setActiveSectionId("backup");
+    setHighlightTarget((currentTarget) => {
+      return {
+        settingId: "backup.importHistory",
+        token: (currentTarget?.token ?? 0) + 1,
+      };
+    });
+  };
+
+  const handleBackupReceived = (payload: BackupReceivedPayload) => {
+    highlightBackupImport();
+    setBackupImportTarget(payload);
+  };
+
+  /**
+   * 关闭备份导入弹窗并丢弃当前接收的文件路径。
+   */
+  const closeBackupImportModal = () => {
+    setBackupImportTarget(null);
+  };
+
+  /**
+   * 导入完成后刷新存储占用。
+   */
+  const handleBackupImported = (_result: ImportHistoryBackupResult) => {
+    closeBackupImportModal();
+    void initializeStorageUsage();
+  };
+
   const handleActionComplete = (
     setting: PreferenceSetting,
-    result?: CleanCacheResult,
+    result?: CleanCacheResult | ExportHistoryBackupResult,
   ) => {
-    if (!setting.id.startsWith("localData.")) return;
-
-    if (result) {
+    if (result && "storageUsage" in result) {
       setStorageUsage(result.storageUsage);
       setStorageState("ready");
       return;
     }
 
-    void initializeStorageUsage();
+    if (
+      setting.id.startsWith("localData.") ||
+      setting.id.startsWith("backup.")
+    ) {
+      void initializeStorageUsage();
+    }
+  };
+
+  const handleDropBackupPaths = async (paths: string[]) => {
+    const backupPaths = paths.filter((path) => {
+      return path.toLowerCase().endsWith(".ecopastebak");
+    });
+
+    if (backupPaths.length !== 1 || paths.length !== 1) {
+      message.warning(t("backup.received.invalidDrop"));
+      return;
+    }
+
+    try {
+      await inspectHistoryBackup({
+        path: backupPaths[0],
+        source: "dragDrop",
+      });
+    } catch {
+      // 错误 toast 已由 commands 层统一处理。
+    }
   };
 
   /**
@@ -186,6 +252,31 @@ const Preference: FC = () => {
     void initializeAppMetadata();
     void preloadSourceApps();
   });
+
+  useMount(async () => {
+    try {
+      unlistenDropRef.current = await getCurrentWebviewWindow().onDragDropEvent(
+        (event) => {
+          if (event.payload.type !== "drop") return;
+
+          void handleDropBackupPaths(event.payload.paths);
+        },
+      );
+    } catch (error) {
+      log.warn("listen preference backup drop failed", error);
+    }
+  });
+
+  useUnmount(() => {
+    unlistenDropRef.current?.();
+  });
+
+  useTauriListen<BackupReceivedPayload>(
+    TAURI_EVENT.BACKUP_RECEIVED,
+    (event) => {
+      handleBackupReceived(event.payload);
+    },
+  );
 
   useEffect(() => {
     if (!highlightTarget) return;
@@ -316,6 +407,13 @@ const Preference: FC = () => {
           </div>
         </main>
       </motion.div>
+
+      <BackupImportModal
+        onCancel={closeBackupImportModal}
+        onImported={handleBackupImported}
+        open={backupImportTarget !== null}
+        target={backupImportTarget}
+      />
     </div>
   );
 };

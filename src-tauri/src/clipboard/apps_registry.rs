@@ -9,6 +9,7 @@ use std::sync::{Arc, RwLock};
 use anyhow::anyhow;
 use chrono::Utc;
 use sqlx::SqlitePool;
+use tauri::{AppHandle, Manager};
 
 use super::app_store::AppIconStore;
 use crate::core::{AppError, Result};
@@ -17,24 +18,30 @@ use crate::db::models::{ClipboardApp, Platform};
 
 #[derive(Clone)]
 pub struct AppsRegistry {
-    pool: SqlitePool,
+    app: AppHandle,
     icon_store: AppIconStore,
     cache: Arc<RwLock<HashMap<String, ClipboardApp>>>,
 }
 
 impl AppsRegistry {
-    /// 创建来源应用注册表，共享 DB 连接池、图标仓库和内存缓存。
-    pub fn new(pool: SqlitePool, icon_store: AppIconStore) -> Self {
+    /// 创建来源应用注册表，共享 App 句柄、图标仓库和内存缓存。
+    pub fn new(app: AppHandle, icon_store: AppIconStore) -> Self {
         Self {
-            pool,
+            app,
             icon_store,
             cache: Arc::new(RwLock::new(HashMap::new())),
         }
     }
 
+    /// 读取当前热替换后的数据库连接池。
+    async fn pool(&self) -> SqlitePool {
+        self.app.state::<crate::db::DatabaseState>().pool().await
+    }
+
     /// 把 DB 中已有的应用全部装进缓存。启动期调用一次，覆盖任何旧缓存内容。
     pub async fn load_from_db(&self) -> Result<()> {
-        let all = apps::list_all_apps(&self.pool).await?;
+        let pool = self.pool().await;
+        let all = apps::list_all_apps(&pool).await?;
         let mut cache = self.cache.write().expect("apps registry cache poisoned");
         cache.clear();
         for app in all {
@@ -111,7 +118,8 @@ pub async fn delete_unreferenced_apps(
     registry: AppsRegistry,
     ids: Vec<String>,
 ) -> Result<Vec<String>> {
-    let deleted = apps::delete_unreferenced_apps(&registry.pool, &ids).await?;
+    let pool = registry.pool().await;
+    let deleted = apps::delete_unreferenced_apps(&pool, &ids).await?;
 
     for id in &deleted {
         registry.remove_from_cache(id);
@@ -163,9 +171,10 @@ async fn upsert_metas(
     metas: Vec<ScannedAppMeta>,
 ) -> Result<Vec<ClipboardApp>> {
     let apps = materialize_metas(registry, metas);
+    let pool = registry.pool().await;
 
     for app in &apps {
-        apps::upsert_app(&registry.pool, app).await?;
+        apps::upsert_app(&pool, app).await?;
     }
 
     Ok(apps)

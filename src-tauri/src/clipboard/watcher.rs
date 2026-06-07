@@ -5,7 +5,7 @@
 //!
 //! 线程模型：`ClipboardWatcherContext::start_watch()` 是阻塞调用，故整个监听跑在独立
 //! `std::thread` 上。`ClipboardContext` 等平台句柄**在该线程内构造**，不跨线程移动，
-//! 从而绕开其 `Send` 约束；只有 `Send` 的数据（连接池克隆、`AppHandle`、`item`）会被
+//! 从而绕开其 `Send` 约束；只有 `Send` 的数据（`AppHandle`、`item`）会被
 //! 投递进 Tauri 异步运行时做 sqlx 入库与事件 emit。
 
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -133,7 +133,7 @@ pub async fn persist_and_notify(
 /// 启动监听：注册 [`WritebackGuard`] / [`ImageStore`] / [`AppIconStore`] 到 Tauri `State`
 /// （供写回时打标记 / 取图 / 取来源应用图标），并在独立线程上跑 OS 级监听。
 /// 应在 `setup` 中、连接池就绪后调用一次。store 创建失败属致命配置错误，直接返回错误。
-pub fn init(app: &AppHandle, pool: SqlitePool) -> crate::core::Result<()> {
+pub fn init(app: &AppHandle) -> crate::core::Result<()> {
     let guard = Arc::new(WritebackGuard::new());
     app.manage(guard.clone());
 
@@ -146,7 +146,7 @@ pub fn init(app: &AppHandle, pool: SqlitePool) -> crate::core::Result<()> {
     let file_icon_store = super::FileIconStore::new(app)?;
     app.manage(file_icon_store);
 
-    let registry = AppsRegistry::new(pool.clone(), app_icon_store.clone());
+    let registry = AppsRegistry::new(app.clone(), app_icon_store.clone());
     app.manage(registry.clone());
 
     let pause = WatcherPause::default();
@@ -171,22 +171,13 @@ pub fn init(app: &AppHandle, pool: SqlitePool) -> crate::core::Result<()> {
         });
     }
 
-    super::cleanup::spawn(app.clone(), pool.clone());
-    spawn_watch_thread(
-        app.clone(),
-        pool,
-        guard,
-        store,
-        app_icon_store,
-        registry,
-        pause,
-    );
+    super::cleanup::spawn(app.clone());
+    spawn_watch_thread(app.clone(), guard, store, app_icon_store, registry, pause);
     Ok(())
 }
 
 fn spawn_watch_thread(
     app: AppHandle,
-    pool: SqlitePool,
     guard: Arc<WritebackGuard>,
     store: ImageStore,
     app_icon_store: AppIconStore,
@@ -216,7 +207,6 @@ fn spawn_watch_thread(
 
             watcher.add_handler(ClipboardChangeHandler {
                 reader,
-                pool,
                 app,
                 guard,
                 store,
@@ -234,7 +224,6 @@ fn spawn_watch_thread(
 
 struct ClipboardChangeHandler {
     reader: ClipboardReader,
-    pool: SqlitePool,
     app: AppHandle,
     guard: Arc<WritebackGuard>,
     store: ImageStore,
@@ -318,9 +307,9 @@ impl ClipboardHandler for ClipboardChangeHandler {
         }
 
         // 入库与 emit 交给异步运行时；只移动 Send 数据，不碰平台句柄。
-        let pool = self.pool.clone();
         let app = self.app.clone();
         tauri::async_runtime::spawn(async move {
+            let pool = app.state::<crate::db::DatabaseState>().pool().await;
             if let Err(err) = persist_and_notify(&app, &pool, &item, source_app.as_ref()).await {
                 log::error!("clipboard watcher: persist failed: {err}");
             }

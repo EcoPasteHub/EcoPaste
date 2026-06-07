@@ -5,9 +5,11 @@ pub mod init;
 pub mod items;
 pub mod models;
 pub mod path;
+pub mod state;
 
 pub use init::init;
 pub use path::db_path;
+pub use state::DatabaseState;
 
 #[cfg(test)]
 pub(crate) mod test_support {

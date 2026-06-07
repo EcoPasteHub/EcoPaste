@@ -1,7 +1,7 @@
 import { motion } from "motion/react";
 import type { FC } from "react";
 import { useTranslation } from "react-i18next";
-import type { CleanCacheResult } from "@/commands";
+import type { CleanCacheResult, ExportHistoryBackupResult } from "@/commands";
 import type { Settings } from "@/types/settings";
 import { cn } from "@/utils/cn";
 import type {
@@ -35,7 +35,7 @@ interface PreferenceSettingRowProps {
   shouldReduceMotion: boolean;
   onActionComplete?: (
     setting: PreferenceSetting,
-    result?: CleanCacheResult,
+    result?: CleanCacheResult | ExportHistoryBackupResult,
   ) => void;
   onChange: PreferenceSettingChangeHandler;
 }
@@ -165,7 +165,7 @@ function renderControl(
   value?: SettingValue,
   onActionComplete?: (
     setting: PreferenceSetting,
-    result?: CleanCacheResult,
+    result?: CleanCacheResult | ExportHistoryBackupResult,
   ) => void,
 ) {
   switch (setting.control.type) {

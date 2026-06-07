@@ -11,6 +11,7 @@ use tauri::{AppHandle, Manager};
 use tauri_plugin_opener::OpenerExt;
 
 use crate::core::Result;
+use crate::db::DatabaseState;
 
 /// 偏好页侧栏展示的本地存储占用概览。
 #[derive(Debug, Clone, Serialize)]
@@ -59,8 +60,9 @@ pub async fn get_storage_usage(app: AppHandle) -> Result<StorageUsage> {
 #[tauri::command]
 pub async fn clean_resource_cache(
     app: AppHandle,
-    pool: tauri::State<'_, SqlitePool>,
+    db: tauri::State<'_, DatabaseState>,
 ) -> Result<CleanCacheResult> {
+    let pool = db.pool().await;
     let resources_dir = crate::core::paths::resources_dir(&app)?;
     let image_files = referenced_image_files(&pool).await?;
     let app_icon_files = referenced_app_icon_files(&pool).await?;
@@ -240,12 +242,11 @@ fn remove_dir_if_empty(path: &Path) {
     let _ = fs::remove_dir(path);
 }
 
-/// 统计设置主文件与备份文件大小。
+/// 统计设置主文件大小。
 fn settings_bytes(app: &AppHandle) -> Result<u64> {
-    let settings_path = crate::core::paths::app_data_dir(app)?.join("settings.json");
-    let backup_path = settings_path.with_extension("json.bak");
+    let settings_path = crate::core::paths::config_dir(app)?.join("settings.json");
 
-    Ok(file_size(&settings_path)? + file_size(&backup_path)?)
+    file_size(&settings_path)
 }
 
 /// 文件不存在时按 0 处理，避免首次启动时显示错误状态。

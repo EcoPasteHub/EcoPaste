@@ -43,6 +43,13 @@ file_icon_provider = "1"
 image = { version = "0.25", default-features = false, features = ["png"] }
 tauri-plugin-os = "2"
 drag = "2.1"
+zip = { version = "4.6", default-features = false, features = ["deflate"] }
+walkdir = "2"
+tempfile = "3"
+argon2 = { version = "0.5", features = ["std"] }
+chacha20poly1305 = { version = "0.10", features = ["std"] }
+rand = "0.8"
+zeroize = "1"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 core-graphics = "0.25"
