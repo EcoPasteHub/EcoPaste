@@ -33,6 +33,7 @@
       {
         "acceptFirstMouse": true,
         "center": true,
+        "dragDropEnabled": false,
         "height": 600,
         "hiddenTitle": true,
         "label": "preference",

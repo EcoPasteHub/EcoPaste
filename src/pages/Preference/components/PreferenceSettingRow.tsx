@@ -27,6 +27,7 @@ import {
   SelectControl,
 } from "./settingControls/SelectControls";
 import ShortcutTagsControl from "./settingControls/ShortcutTagsControl";
+import SortableCheckboxTreeControl from "./settingControls/SortableCheckboxTreeControl";
 import StatusControl from "./settingControls/StatusControl";
 import SwitchControl from "./settingControls/SwitchControl";
 import { resolveSettingVisual } from "./settingControls/settingVisual";
@@ -213,6 +214,15 @@ function renderControl(
     case "select":
       return (
         <SelectControl
+          disabled={disabled}
+          onChange={onChange}
+          setting={setting}
+          value={value}
+        />
+      );
+    case "sortableCheckboxTree":
+      return (
+        <SortableCheckboxTreeControl
           disabled={disabled}
           onChange={onChange}
           setting={setting}

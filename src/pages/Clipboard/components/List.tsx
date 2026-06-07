@@ -18,6 +18,7 @@ import {
   writeToClipboard,
 } from "@/commands";
 import { TAURI_EVENT } from "@/constants/events";
+import { buildItemActionLabels } from "@/constants/itemActions";
 import { useClipboardItems } from "@/hooks/useClipboardItems";
 import { useKeyboardEvent } from "@/hooks/useKeyboardEvent";
 import { useTauriListen } from "@/hooks/useTauriListen";
@@ -25,6 +26,7 @@ import { clipboardStatsState } from "@/stores/clipboardStats";
 import { clipboardViewState } from "@/stores/clipboardView";
 import { settingsState } from "@/stores/settings";
 import type { ClipboardAction, ClipboardItem } from "@/types/clipboard";
+import type { ItemAction } from "@/types/settings";
 import { cn } from "@/utils/cn";
 import { isMac } from "@/utils/is";
 import {
@@ -68,7 +70,9 @@ const List: FC = () => {
   const middleClick = settings.clipboard.content.middleClick;
   const display = settings.clipboard.display;
   const sort = settings.clipboard.content.sort;
+  const quickActions = settings.clipboard.content.itemActions;
   const { fileMaxCount } = display;
+  const quickActionLabels = buildItemActionLabels(t);
 
   const { data, loading, loadingMore, loadMore, noMore, reload, mutate } =
     useClipboardItems({ ...snapshot, sort });
@@ -529,6 +533,59 @@ const List: FC = () => {
       openClipboardItemLink(item.id, item.subKind === "email");
     };
 
+    const handleQuickAction = async (action: ItemAction) => {
+      switch (action) {
+        case "paste":
+          closePreview("quickPaste");
+          await pasteClipboardItem(item.id, false);
+          return;
+        case "pastePlain":
+          closePreview("quickPastePlain");
+          await pasteClipboardItem(item.id, true);
+          return;
+        case "pastePath":
+          closePreview("quickPastePath");
+          await pasteClipboardItem(item.id, true);
+          return;
+        case "copy":
+          if (previewSession?.itemId === item.id) closePreview("quickCopy");
+          await writeToClipboard(item.id, false);
+          return;
+        case "copyPlain":
+          if (previewSession?.itemId === item.id) {
+            closePreview("quickCopyPlain");
+          }
+          await writeToClipboard(item.id, true);
+          return;
+        case "openLink":
+          if (previewSession?.itemId === item.id) {
+            closePreview("quickOpenLink");
+          }
+          await openClipboardItemLink(item.id, false);
+          return;
+        case "sendEmail":
+          if (previewSession?.itemId === item.id) {
+            closePreview("quickSendEmail");
+          }
+          await openClipboardItemLink(item.id, true);
+          return;
+        case "reveal":
+          if (previewSession?.itemId === item.id) closePreview("quickReveal");
+          await revealClipboardItem(item.id);
+          return;
+        case "note":
+          if (previewSession?.itemId === item.id) closePreview("quickNote");
+          setNoteTarget(item);
+          return;
+        case "star":
+          await handleShortcutToggleFavorite(item.id);
+          return;
+        case "delete":
+          await handleShortcutDelete(item.id);
+          return;
+      }
+    };
+
     const handleMouseDown = (event: ReactMouseEvent<HTMLDivElement>) => {
       if (event.button !== 0) {
         if (event.button !== 1) return;
@@ -614,7 +671,10 @@ const List: FC = () => {
           onPointerEnter={handlePointerEnter}
           onPointerLeave={handlePointerLeave}
           onPointerMove={handlePointerMove}
+          onQuickAction={handleQuickAction}
           onQuickPaste={hintKey ? handleQuickPaste : void 0}
+          quickActionLabels={quickActionLabels}
+          quickActions={[...quickActions]}
           rootRef={registerItemElement(item.id)}
         />
       </div>

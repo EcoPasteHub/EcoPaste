@@ -1,9 +1,13 @@
 import type { DragEvent, FC, MouseEvent, PointerEvent, Ref } from "react";
+import { useState } from "react";
 import { popupClipboardItemMenu, startDragClipboardItem } from "@/commands";
 import AssetImage from "@/components/AssetImage";
 import KeyHint from "@/components/KeyHint";
+import type { ItemActionLabels } from "@/constants/itemActions";
 import type { ClipboardItem } from "@/types/clipboard";
+import type { ItemAction } from "@/types/settings";
 import { cn } from "@/utils/cn";
+import ClipboardQuickActions from "./ClipboardQuickActions";
 import FilesCard from "./FilesCard";
 import ImageCard from "./ImageCard";
 import TextCard from "./TextCard";
@@ -34,6 +38,9 @@ interface ClipboardCardProps {
   onMouseDown?: (event: MouseEvent<HTMLDivElement>) => void;
   onAuxClick?: (event: MouseEvent<HTMLDivElement>) => void;
   onDoubleClick?: (event: MouseEvent<HTMLDivElement>) => void;
+  quickActions?: ItemAction[];
+  quickActionLabels?: ItemActionLabels;
+  onQuickAction?: (action: ItemAction) => Promise<void> | void;
   rootRef?: Ref<HTMLDivElement>;
 }
 
@@ -57,9 +64,13 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
     onMouseDown,
     onAuxClick,
     onDoubleClick,
+    quickActions = [],
+    quickActionLabels,
+    onQuickAction,
     rootRef,
   } = props;
   const { kind, subKind, sourceAppIconPath, sourceAppName } = item;
+  const [hovered, setHovered] = useState(false);
 
   const handleDragStart = async (event: DragEvent) => {
     event.preventDefault();
@@ -77,6 +88,16 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
     await popupClipboardItemMenu(item.id, [...availableActions], isFavorite);
   };
 
+  const handlePointerEnter = (event: PointerEvent<HTMLDivElement>) => {
+    setHovered(true);
+    onPointerEnter?.(event);
+  };
+
+  const handlePointerLeave = () => {
+    setHovered(false);
+    onPointerLeave?.();
+  };
+
   return (
     <div
       aria-selected={isSelected}
@@ -92,15 +113,15 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
       onDoubleClick={onDoubleClick}
       onDragStart={handleDragStart}
       onMouseDown={onMouseDown}
-      onPointerEnter={onPointerEnter}
-      onPointerLeave={onPointerLeave}
+      onPointerEnter={handlePointerEnter}
+      onPointerLeave={handlePointerLeave}
       onPointerMove={onPointerMove}
       ref={rootRef}
       role="option"
       tabIndex={-1}
     >
       <div className="flex items-center justify-between text-ant-secondary text-xs">
-        <div className="flex items-center gap-1 overflow-hidden">
+        <div className="flex min-w-0 items-center gap-1 overflow-hidden">
           {hintKey ? (
             <KeyHint hintKey={hintKey} onKeyPress={onQuickPaste}>
               <AssetImage
@@ -120,7 +141,13 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
           <span className="truncate uppercase">{subKind ?? kind}</span>
         </div>
 
-        <span>{item.displayCreatedAt ?? item.createdAt}</span>
+        <ClipboardQuickActions
+          item={item}
+          labels={quickActionLabels}
+          onQuickAction={onQuickAction}
+          quickActions={quickActions}
+          visible={hovered}
+        />
       </div>
 
       {renderBody(item, isLinkActive, onOpenLink)}

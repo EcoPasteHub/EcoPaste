@@ -28,6 +28,21 @@
     "title": "编辑备注"
   },
   "pending": "{{count}} 条新记录，点击查看",
+  "quickActions": {
+    "copy": "复制",
+    "copyPlain": "复制为纯文本",
+    "copySuccess": "已复制",
+    "delete": "删除",
+    "note": "备注",
+    "openLink": "打开链接",
+    "paste": "粘贴",
+    "pastePath": "粘贴为路径",
+    "pastePlain": "纯文本粘贴",
+    "reveal": "在文件管理器中显示",
+    "sendEmail": "发送邮件",
+    "star": "收藏",
+    "starActive": "取消收藏"
+  },
   "shortcuts": {
     "deleteSelected": "删除选中项",
     "favoriteSelected": "收藏 / 取消收藏",

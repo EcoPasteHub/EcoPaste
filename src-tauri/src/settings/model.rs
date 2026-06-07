@@ -245,8 +245,10 @@ pub struct Content {
     pub update_on_reuse: bool,
     /// 历史列表默认排序，和 `ClipboardItemQuery.sort` 使用同一套契约字面量。
     pub sort: ClipboardItemSort,
-    /// 列表项悬停操作按钮 (顺序即显示顺序)。
+    /// 列表项悬停操作按钮（仅保存已启用项，顺序按 `item_action_order` 过滤）。
     pub item_actions: Vec<ItemAction>,
+    /// 列表项悬停操作按钮的完整排序，包含未启用项，供偏好弹框下次打开时恢复位置。
+    pub item_action_order: Vec<ItemAction>,
 }
 
 impl Default for Content {
@@ -263,6 +265,19 @@ impl Default for Content {
             update_on_reuse: false,
             sort: ClipboardItemSort::UpdatedAt,
             item_actions: vec![ItemAction::Copy, ItemAction::Star, ItemAction::Delete],
+            item_action_order: vec![
+                ItemAction::Paste,
+                ItemAction::PastePlain,
+                ItemAction::PastePath,
+                ItemAction::Copy,
+                ItemAction::CopyPlain,
+                ItemAction::OpenLink,
+                ItemAction::SendEmail,
+                ItemAction::Reveal,
+                ItemAction::Note,
+                ItemAction::Star,
+                ItemAction::Delete,
+            ],
         }
     }
 }
@@ -323,8 +338,14 @@ pub enum MiddleClickAction {
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub enum ItemAction {
-    Copy,
+    Paste,
     PastePlain,
+    PastePath,
+    Copy,
+    CopyPlain,
+    OpenLink,
+    SendEmail,
+    Reveal,
     Note,
     Star,
     Delete,

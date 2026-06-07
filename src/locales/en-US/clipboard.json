@@ -28,6 +28,21 @@
     "title": "Edit note"
   },
   "pending": "{{count}} new items, click to view",
+  "quickActions": {
+    "copy": "Copy",
+    "copyPlain": "Copy as Plain Text",
+    "copySuccess": "Copied",
+    "delete": "Delete",
+    "note": "Note",
+    "openLink": "Open Link",
+    "paste": "Paste",
+    "pastePath": "Paste as Path",
+    "pastePlain": "Paste as Plain Text",
+    "reveal": "Show in File Manager",
+    "sendEmail": "Send Email",
+    "star": "Favorite",
+    "starActive": "Unfavorite"
+  },
   "shortcuts": {
     "deleteSelected": "Delete selected item",
     "favoriteSelected": "Favorite / unfavorite",

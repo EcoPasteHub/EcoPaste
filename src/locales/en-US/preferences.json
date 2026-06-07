@@ -131,14 +131,8 @@
           "title": "Confirm Before Delete"
         },
         "visible": {
+          "controlLabel": "Manage",
           "description": "Choose which action buttons appear when hovering over a record.",
-          "options": {
-            "copy": "Copy",
-            "delete": "Delete",
-            "note": "Note",
-            "pastePlain": "Paste Plain Text",
-            "star": "Favorite"
-          },
           "title": "Visible Quick Actions"
         }
       },

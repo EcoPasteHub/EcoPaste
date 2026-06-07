@@ -131,14 +131,8 @@
           "title": "删除前确认"
         },
         "visible": {
+          "controlLabel": "管理",
           "description": "选择鼠标悬停在记录上时显示的操作按钮。",
-          "options": {
-            "copy": "复制",
-            "delete": "删除",
-            "note": "备注",
-            "pastePlain": "纯文本粘贴",
-            "star": "收藏"
-          },
           "title": "显示的快捷动作"
         }
       },

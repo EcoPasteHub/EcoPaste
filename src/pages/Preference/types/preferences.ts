@@ -14,11 +14,17 @@ export interface RetentionSettingValue {
   value: number;
 }
 
+export interface SortableCheckboxTreeSettingValue {
+  order: string[];
+  selected: string[];
+}
+
 export type SettingValue =
   | boolean
   | number
   | string
   | string[]
+  | SortableCheckboxTreeSettingValue
   | RetentionSettingValue;
 
 export type PreferenceStorageState = "loading" | "ready" | "error";
@@ -37,6 +43,12 @@ export type PreferenceControl =
   | { type: "switch" }
   | { type: "segmented"; options: PreferenceOption[] }
   | { type: "select"; options: PreferenceOption[]; mode?: "multiple" }
+  | {
+      type: "sortableCheckboxTree";
+      label: string;
+      options: PreferenceOption[];
+      orderPath: readonly string[];
+    }
   | {
       type: "number";
       max?: number;

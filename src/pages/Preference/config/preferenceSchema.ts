@@ -1,3 +1,4 @@
+import { ITEM_ACTION_OPTIONS } from "@/constants/itemActions";
 import type { PreferenceTab } from "../types/preferences";
 
 const CLICK_ACTION_OPTIONS = [
@@ -352,15 +353,10 @@ export const preferenceTabs: PreferenceTab[] = [
         settings: [
           {
             control: {
-              mode: "multiple",
-              options: [
-                { label: "复制", value: "copy" },
-                { label: "纯文本粘贴", value: "pastePlain" },
-                { label: "备注", value: "note" },
-                { label: "收藏", value: "star" },
-                { label: "删除", value: "delete" },
-              ],
-              type: "select",
+              label: "管理",
+              options: ITEM_ACTION_OPTIONS,
+              orderPath: ["clipboard", "content", "itemActionOrder"],
+              type: "sortableCheckboxTree",
             },
             description: "选择鼠标悬停在记录上时显示的操作按钮。",
             id: "actions.visible",
@@ -368,7 +364,10 @@ export const preferenceTabs: PreferenceTab[] = [
             path: ["clipboard", "content", "itemActions"],
             title: "显示的快捷动作",
             value: (settings) => {
-              return settings.clipboard.content.itemActions;
+              return {
+                order: settings.clipboard.content.itemActionOrder,
+                selected: settings.clipboard.content.itemActions,
+              };
             },
           },
           {

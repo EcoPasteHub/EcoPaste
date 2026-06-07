@@ -92,13 +92,17 @@ export function translatePreferenceOption(
 }
 
 /**
- * 翻译 action/status 控件标签；key 由 setting id 推导。
+ * 翻译带按钮/状态文案的控件标签；key 由 setting id 推导。
  */
 export function translatePreferenceControlLabel(
   t: PreferenceTranslator,
   setting: PreferenceSetting,
 ) {
-  if (setting.control.type !== "action" && setting.control.type !== "status") {
+  if (
+    setting.control.type !== "action" &&
+    setting.control.type !== "status" &&
+    setting.control.type !== "sortableCheckboxTree"
+  ) {
     return "";
   }
 

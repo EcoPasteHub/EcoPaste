@@ -30,7 +30,18 @@ export type MiddleClickAction =
   | "singleClickCopy"
   | "singleClickCopyPlain";
 
-export type ItemAction = "copy" | "pastePlain" | "note" | "star" | "delete";
+export type ItemAction =
+  | "paste"
+  | "pastePlain"
+  | "pastePath"
+  | "copy"
+  | "copyPlain"
+  | "openLink"
+  | "sendEmail"
+  | "reveal"
+  | "note"
+  | "star"
+  | "delete";
 
 export type RetentionUnit = "hours" | "days" | "weeks" | "months" | "forever";
 
@@ -76,6 +87,7 @@ export interface Content {
   updateOnReuse: boolean;
   sort: ClipboardItemSort;
   itemActions: ItemAction[];
+  itemActionOrder: ItemAction[];
 }
 
 export interface Display {
