@@ -194,6 +194,7 @@ const SourceAppsTransfer: FC<SourceAppsTransferProps> = (props) => {
           ),
         }}
         onChange={handleTransferChange}
+        oneWay
         render={renderTransferItem}
         showSearch
         showSelectAll={false}
