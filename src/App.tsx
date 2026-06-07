@@ -1,4 +1,5 @@
 import { useEventListener } from "ahooks";
+import type { ConfigProviderProps } from "antd";
 import { App as AntdApp, ConfigProvider } from "antd";
 import enUS from "antd/locale/en_US";
 import zhCN from "antd/locale/zh_CN";
@@ -12,6 +13,10 @@ import { router } from "./router";
 import { settingsReady, settingsState } from "./stores/settings";
 import type { Language } from "./types/settings";
 import { log } from "./utils/log";
+
+const ANTD_MODAL_CONFIG = {
+  centered: true,
+} satisfies ConfigProviderProps["modal"];
 
 /**
  * 把设置语言映射到 Ant Design 内置 locale。
@@ -62,7 +67,7 @@ const App: FC = () => {
   });
 
   return (
-    <ConfigProvider locale={locale} theme={antdTheme}>
+    <ConfigProvider locale={locale} modal={ANTD_MODAL_CONFIG} theme={antdTheme}>
       <AntdApp>
         <RouterProvider router={router} />
       </AntdApp>

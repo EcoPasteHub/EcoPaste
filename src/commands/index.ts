@@ -627,6 +627,7 @@ export const deleteClipboardItem = async (id: string): Promise<boolean> => {
     const ok = await new Promise<boolean>((resolve) => {
       Modal.confirm({
         cancelText: i18n.t("common:actions.cancel"),
+        centered: true,
         content: i18n.t("commands:deleteConfirm.content"),
         okButtonProps: { danger: true },
         okText: i18n.t("common:actions.delete"),

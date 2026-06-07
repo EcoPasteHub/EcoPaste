@@ -112,6 +112,7 @@ const ActionControl: FC<ActionControlProps> = (props) => {
   const confirmCleanCache = () => {
     Modal.confirm({
       cancelText: t("common:actions.cancel"),
+      centered: true,
       content: t(
         "preferences:schema.settings.localData.cleanCache.confirmContent",
       ),
@@ -126,6 +127,7 @@ const ActionControl: FC<ActionControlProps> = (props) => {
   const confirmResetPreferences = () => {
     Modal.confirm({
       cancelText: t("common:actions.cancel"),
+      centered: true,
       content: t(
         "preferences:schema.settings.diagnostics.resetPreferences.confirmContent",
       ),
@@ -141,6 +143,7 @@ const ActionControl: FC<ActionControlProps> = (props) => {
   const confirmResetDataDirectory = () => {
     Modal.confirm({
       cancelText: t("common:actions.cancel"),
+      centered: true,
       content: t("preferences:storageLocation.resetConfirmContent"),
       okText: t("preferences:storageLocation.reset"),
       onOk: resetDataDirectory,
