@@ -481,6 +481,10 @@
         "scrollToTopOnOpen": {
           "description": "每次打开剪贴板主窗口时，自动回到最新记录所在的顶部。",
           "title": "打开时回到顶部"
+        },
+        "selectAllGroupOnOpen": {
+          "description": "每次打开剪贴板主窗口时，自动切回全部历史分组。",
+          "title": "打开时选中全部"
         }
       }
     },

@@ -441,6 +441,17 @@ export const preferenceTabs: PreferenceTab[] = [
               return settings.clipboard.window.scrollToTopOnOpen;
             },
           },
+          {
+            control: { type: "switch" },
+            description: "每次打开剪贴板主窗口时，自动切回全部历史分组。",
+            id: "window.selectAllGroupOnOpen",
+            keywords: ["window", "group", "all", "open"],
+            path: ["clipboard", "window", "selectAllGroupOnOpen"],
+            title: "打开时选中全部",
+            value: (settings) => {
+              return settings.clipboard.window.selectAllGroupOnOpen;
+            },
+          },
         ],
         title: "主窗口",
       },

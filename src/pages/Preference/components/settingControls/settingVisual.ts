@@ -59,6 +59,7 @@ const SETTING_ICON_MAP: Record<string, string> = {
   "updates.frequency": "i-lucide:calendar-sync",
   "window.position": "i-lucide:move",
   "window.scrollToTopOnOpen": "i-lucide:arrow-up-to-line",
+  "window.selectAllGroupOnOpen": "i-lucide:layout-list",
 };
 
 /**

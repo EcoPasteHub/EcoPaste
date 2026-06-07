@@ -153,23 +153,32 @@ const List: FC = () => {
   );
 
   /**
-   * 主窗口显示时按偏好回到列表顶部；隐藏期间攒下的新记录先触发刷新。
+   * 主窗口显示时按偏好重置分组与滚动位置；隐藏期间攒下的新记录先触发刷新。
    */
   const handleWindowVisibility = (event: {
     payload: WindowVisibilityPayload;
   }) => {
     const { label, visible } = event.payload;
     if (label !== WINDOW_LABEL.MAIN || !visible) return;
-    if (!settings.clipboard.window.scrollToTopOnOpen) return;
 
-    closePreview("windowOpenScrollTop");
-    setSelectedId(null);
+    const { scrollToTopOnOpen, selectAllGroupOnOpen } =
+      settings.clipboard.window;
+    if (!scrollToTopOnOpen && !selectAllGroupOnOpen) return;
+
+    closePreview("windowOpenReset");
+
+    if (selectAllGroupOnOpen) {
+      clipboardViewState.group = "all";
+    }
 
     if (pendingCount > 0) {
       setPendingCount(0);
       reload();
     }
 
+    if (!scrollToTopOnOpen) return;
+
+    setSelectedId(null);
     virtuosoRef.current?.scrollToIndex({ behavior: "auto", index: 0 });
   };
 

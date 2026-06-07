@@ -481,6 +481,10 @@
         "scrollToTopOnOpen": {
           "description": "Return to the newest items at the top whenever the clipboard window opens.",
           "title": "Return to Top on Open"
+        },
+        "selectAllGroupOnOpen": {
+          "description": "Switch back to the All history group whenever the clipboard window opens.",
+          "title": "Select All on Open"
         }
       }
     },
