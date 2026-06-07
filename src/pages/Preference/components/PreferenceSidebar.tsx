@@ -9,7 +9,6 @@ import type {
   PreferenceTabId,
 } from "../types/preferences";
 import { translatePreferenceTab } from "../utils/preferenceI18n";
-import PreferenceCountTag from "./PreferenceCountTag";
 import PreferenceStorageUsagePanel from "./PreferenceStorageUsagePanel";
 
 interface PreferenceSidebarProps {
@@ -49,15 +48,13 @@ const PreferenceSidebar: FC<PreferenceSidebarProps> = (props) => {
           draggable={false}
           src="/logo.png"
         />
-        <div className="min-w-0">
-          <div className="font-semibold text-ant-text text-sm leading-none">
+        <div className="flex h-full flex-col justify-between">
+          <div className="font-semibold text-ant-text text-base leading-none">
             {appNameLabel}
           </div>
-          {appVersionLabel.length > 0 ? (
-            <PreferenceCountTag className="mt-1.5 text-ant-tertiary">
-              {appVersionLabel}
-            </PreferenceCountTag>
-          ) : null}
+          {appVersionLabel.length > 0 && (
+            <div className="text-ant-tertiary text-xs">{appVersionLabel}</div>
+          )}
         </div>
       </div>
 
