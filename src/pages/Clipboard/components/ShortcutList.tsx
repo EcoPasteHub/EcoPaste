@@ -26,6 +26,7 @@ const SHORTCUTS: Shortcut[] = [
   { keys: "CmdOrCtrl+Enter", labelKey: "shortcuts.pasteSelectedPlain" },
   { keys: "CmdOrCtrl+Backspace", labelKey: "shortcuts.deleteSelected" },
   { keys: "CmdOrCtrl+D", labelKey: "shortcuts.favoriteSelected" },
+  { keys: "CmdOrCtrl+T", labelKey: "shortcuts.pinSelected" },
   { keys: ["ArrowUp", "/", "ArrowDown"], labelKey: "shortcuts.navigate" },
   { keys: "CmdOrCtrl+N", labelKey: "shortcuts.pasteNth" },
   { keys: "CmdOrCtrl+F", labelKey: "shortcuts.focusSearch" },

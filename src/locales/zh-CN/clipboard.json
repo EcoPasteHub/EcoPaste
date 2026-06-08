@@ -56,6 +56,7 @@
     "pasteNth": "粘贴第 N 项（N = 1…9, 0）",
     "pasteSelected": "粘贴选中项",
     "pasteSelectedPlain": "粘贴选中项为纯文本",
+    "pinSelected": "置顶 / 取消置顶",
     "pinWindow": "固定 / 取消固定窗口"
   },
   "types": {

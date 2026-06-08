@@ -151,6 +151,10 @@ pub struct Capture {
     pub rtf: bool,
     pub image: bool,
     pub files: bool,
+    /// 文本最大收录大小，单位 MB。`0` = 不限制。
+    pub max_text_mb: u32,
+    /// 图片最大收录大小，单位 MB。`0` = 不限制。
+    pub max_image_mb: u32,
     /// 剪贴板同时提供多种表示时的采集优先级。
     pub order: Vec<CaptureKind>,
 }
@@ -163,12 +167,24 @@ impl Default for Capture {
             rtf: true,
             image: true,
             files: true,
+            max_text_mb: 4,
+            max_image_mb: 100,
             order: CaptureKind::default_order(),
         }
     }
 }
 
 impl Capture {
+    /// 返回文本最大收录字节数；`None` 表示不限制。
+    pub fn max_text_bytes(&self) -> Option<u64> {
+        mb_to_bytes(self.max_text_mb)
+    }
+
+    /// 返回图片最大收录字节数；`None` 表示不限制。
+    pub fn max_image_bytes(&self) -> Option<u64> {
+        mb_to_bytes(self.max_image_mb)
+    }
+
     /// 返回去重且补齐缺失项后的采集顺序，避免配置文件里手改出重复项后影响读取。
     pub fn ordered_kinds(&self) -> Vec<CaptureKind> {
         let mut order = Vec::new();
@@ -196,6 +212,15 @@ impl Capture {
             CaptureKind::Files => self.files,
         }
     }
+}
+
+/// 把用户设置的 MB 值转换为字节阈值；`0` 表示不限。
+fn mb_to_bytes(mb: u32) -> Option<u64> {
+    if mb == 0 {
+        return None;
+    }
+
+    Some(u64::from(mb) * 1024 * 1024)
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]

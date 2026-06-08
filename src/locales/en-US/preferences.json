@@ -64,6 +64,7 @@
       "hours": "hours",
       "items": "items",
       "lines": "lines",
+      "mb": "MB",
       "px": "px"
     },
     "retentionUnits": {
@@ -224,6 +225,14 @@
         "image": {
           "description": "When off, clipboard images are not saved to history.",
           "title": "Image"
+        },
+        "maxImageMb": {
+          "description": "Images larger than this are not saved to history. Set to 0 for no limit.",
+          "title": "Maximum Image Capture Size"
+        },
+        "maxTextMb": {
+          "description": "Text, HTML, or RTF larger than this is not saved to history. Set to 0 for no limit.",
+          "title": "Maximum Text Capture Size"
         },
         "order": {
           "controlLabel": "Manage",

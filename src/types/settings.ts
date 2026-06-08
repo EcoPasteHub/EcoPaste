@@ -111,6 +111,8 @@ export interface Capture {
   rtf: boolean;
   image: boolean;
   files: boolean;
+  maxTextMb: number;
+  maxImageMb: number;
   order: CaptureKind[];
 }
 

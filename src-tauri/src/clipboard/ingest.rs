@@ -88,7 +88,6 @@ fn draft_from_text(text: &TextPayload, capture: &Capture, plain_only: bool) -> O
         return None;
     }
 
-    let plain_size = Some(count_text_chars(plain));
     let plain_search = Some(plain.to_owned());
     let summary = make_summary(plain);
 
@@ -113,7 +112,7 @@ fn draft_from_text(text: &TextPayload, capture: &Capture, plain_only: bool) -> O
                             file_types: None,
                             width: None,
                             height: None,
-                            size: plain_size,
+                            size: Some(count_text_bytes(html)),
                         });
                     }
                 }
@@ -128,12 +127,12 @@ fn draft_from_text(text: &TextPayload, capture: &Capture, plain_only: bool) -> O
                             file_types: None,
                             width: None,
                             height: None,
-                            size: plain_size,
+                            size: Some(count_text_bytes(rtf)),
                         });
                     }
                 }
                 CaptureKind::Text => {
-                    return Some(draft_plain_text(plain, plain_search, summary, plain_size));
+                    return Some(draft_plain_text(plain, plain_search, summary));
                 }
                 CaptureKind::Files | CaptureKind::Image => {}
             }
@@ -146,16 +145,11 @@ fn draft_from_text(text: &TextPayload, capture: &Capture, plain_only: bool) -> O
         return None;
     }
 
-    Some(draft_plain_text(plain, plain_search, summary, plain_size))
+    Some(draft_plain_text(plain, plain_search, summary))
 }
 
 /// 根据纯文本表示生成文本草稿，并执行 URL / 邮箱 / 色值 / 路径子类型识别。
-fn draft_plain_text(
-    plain: &str,
-    plain_search: Option<String>,
-    summary: Option<String>,
-    plain_size: Option<i64>,
-) -> Draft {
+fn draft_plain_text(plain: &str, plain_search: Option<String>, summary: Option<String>) -> Draft {
     Draft {
         kind: ClipboardKind::Text,
         sub_kind: detect_text_sub_kind(plain),
@@ -165,7 +159,7 @@ fn draft_plain_text(
         file_types: None,
         width: None,
         height: None,
-        size: plain_size,
+        size: Some(count_text_bytes(plain)),
     }
 }
 
@@ -173,9 +167,14 @@ fn non_empty(value: &Option<String>) -> Option<&String> {
     value.as_ref().filter(|s| !s.trim().is_empty())
 }
 
-/// 文本 size 统一按纯文本 Unicode 标量数量计算，不使用 HTML/RTF 源码长度。
-fn count_text_chars(text: &str) -> i64 {
-    text.chars().count() as i64
+/// 文本 size 统一按最终入库内容的 UTF-8 字节数计算。
+fn count_text_bytes(text: &str) -> i64 {
+    text.len() as i64
+}
+
+/// 判断字节数是否超过 MB 设置换算出的限制；`None` 表示不限。
+fn exceeds_limit(size: usize, limit: Option<u64>) -> bool {
+    limit.is_some_and(|limit| size as u64 > limit)
 }
 
 /// 使用默认采集开关把载荷转换为待入库记录。
@@ -257,6 +256,14 @@ pub fn build_item_with_settings(
             if !capture.image {
                 return Ok(None);
             }
+            if exceeds_limit(image.bytes.len(), capture.max_image_bytes()) {
+                log::info!(
+                    "clipboard image skipped because size {} exceeds limit {:?}",
+                    image.bytes.len(),
+                    capture.max_image_bytes()
+                );
+                return Ok(None);
+            }
 
             let stored = store.store(image)?;
             Some(Draft {
@@ -276,6 +283,16 @@ pub fn build_item_with_settings(
     let Some(draft) = draft else {
         return Ok(None);
     };
+    if draft.kind == ClipboardKind::Text
+        && exceeds_limit(draft.content.len(), capture.max_text_bytes())
+    {
+        log::info!(
+            "clipboard text skipped because size {} exceeds limit {:?}",
+            draft.content.len(),
+            capture.max_text_bytes()
+        );
+        return Ok(None);
+    }
 
     let now = Utc::now();
     Ok(Some(ClipboardItem {
@@ -357,7 +374,7 @@ mod tests {
         assert_eq!(item.content, "<b>Hello</b> World");
         // OS 提供的 plain 文本优先作为检索文本。
         assert_eq!(item.search_text.as_deref(), Some("Hello World"));
-        assert_eq!(item.size, Some(11));
+        assert_eq!(item.size, Some(18));
     }
 
     #[test]
@@ -400,7 +417,108 @@ mod tests {
         assert_eq!(item.sub_kind, Some(ClipboardSubKind::Rtf));
         assert_eq!(item.content, r"{\rtf1 plain repr}");
         assert_eq!(item.search_text.as_deref(), Some("plain repr"));
-        assert_eq!(item.size, Some(10));
+        assert_eq!(item.size, Some(18));
+    }
+
+    #[test]
+    fn text_size_uses_utf8_bytes() {
+        let (_d, s) = store();
+        let item = build_item(&s, &text_payload("你好", None, None))
+            .unwrap()
+            .unwrap();
+
+        assert_eq!(item.size, Some(6));
+    }
+
+    #[test]
+    fn text_limit_allows_equal_size_and_skips_larger_content() {
+        let (_d, s) = store();
+        let capture = Capture {
+            max_text_mb: 1,
+            ..Capture::default()
+        };
+        let exact = "a".repeat(1024 * 1024);
+        let larger = format!("{exact}a");
+
+        let exact_item = build_item_with_settings(
+            &s,
+            &text_payload(&exact, None, None),
+            &capture,
+            &Sensitive::default(),
+            false,
+        )
+        .unwrap();
+        let larger_item = build_item_with_settings(
+            &s,
+            &text_payload(&larger, None, None),
+            &capture,
+            &Sensitive::default(),
+            false,
+        )
+        .unwrap();
+
+        assert!(exact_item.is_some());
+        assert!(larger_item.is_none());
+    }
+
+    #[test]
+    fn text_limit_zero_is_unlimited() {
+        let (_d, s) = store();
+        let capture = Capture {
+            max_text_mb: 0,
+            ..Capture::default()
+        };
+        let text = "a".repeat(1024 * 1024 + 1);
+        let item = build_item_with_settings(
+            &s,
+            &text_payload(&text, None, None),
+            &capture,
+            &Sensitive::default(),
+            false,
+        )
+        .unwrap();
+
+        assert!(item.is_some());
+    }
+
+    #[test]
+    fn rich_text_limit_uses_stored_source_bytes() {
+        let (_d, s) = store();
+        let capture = Capture {
+            max_text_mb: 1,
+            ..Capture::default()
+        };
+        let html = format!("<p>{}</p>", "a".repeat(1024 * 1024));
+        let item = build_item_with_settings(
+            &s,
+            &text_payload("visible", Some(&html), None),
+            &capture,
+            &Sensitive::default(),
+            false,
+        )
+        .unwrap();
+
+        assert!(item.is_none());
+    }
+
+    #[test]
+    fn plain_only_limit_uses_plain_text_bytes() {
+        let (_d, s) = store();
+        let capture = Capture {
+            max_text_mb: 1,
+            ..Capture::default()
+        };
+        let html = format!("<p>{}</p>", "a".repeat(1024 * 1024));
+        let item = build_item_with_settings(
+            &s,
+            &text_payload("visible", Some(&html), None),
+            &capture,
+            &Sensitive::default(),
+            true,
+        )
+        .unwrap();
+
+        assert!(item.is_some());
     }
 
     #[test]
@@ -562,6 +680,20 @@ mod tests {
     }
 
     #[test]
+    fn files_are_not_filtered_by_text_limit() {
+        let (_d, s) = store();
+        let capture = Capture {
+            max_text_mb: 1,
+            ..Capture::default()
+        };
+        let payload = ClipboardPayload::Files(vec!["/a/b.txt".to_owned()]);
+        let item =
+            build_item_with_settings(&s, &payload, &capture, &Sensitive::default(), false).unwrap();
+
+        assert!(item.is_some());
+    }
+
+    #[test]
     fn image_is_stored_and_recorded() {
         let (_d, s) = store();
         let payload = ClipboardPayload::Image(ImagePayload {
@@ -598,6 +730,28 @@ mod tests {
         let item =
             build_item_with_settings(&s, &payload, &capture, &Sensitive::default(), false).unwrap();
         assert!(item.is_none());
+    }
+
+    #[test]
+    fn image_limit_skips_before_writing_origin() {
+        let (_d, s) = store();
+        let capture = Capture {
+            max_image_mb: 1,
+            ..Capture::default()
+        };
+        let bytes = vec![1; 1024 * 1024 + 1];
+        let payload = ClipboardPayload::Image(ImagePayload {
+            bytes: bytes.clone(),
+            width: 20,
+            height: 10,
+        });
+        let item =
+            build_item_with_settings(&s, &payload, &capture, &Sensitive::default(), false).unwrap();
+
+        assert!(item.is_none());
+        assert!(!s
+            .origin_path(&format!("{}.png", blake3::hash(&bytes).to_hex()))
+            .exists());
     }
 
     #[test]

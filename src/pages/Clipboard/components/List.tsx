@@ -478,6 +478,18 @@ const List: FC = () => {
       return;
     }
 
+    if (eventModifierPressed && event.key.toLowerCase() === "t") {
+      event.preventDefault();
+
+      const activeItem = getActiveItem();
+
+      if (!activeItem) return;
+
+      handleTogglePinned(activeItem.id);
+
+      return;
+    }
+
     if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
 
     event.preventDefault();

@@ -76,6 +76,24 @@ export const preferenceTabs: PreferenceTab[] = [
             },
           },
           {
+            control: { min: 0, suffixKey: "mb", type: "number" },
+            id: "capture.maxTextMb",
+            keywords: ["text", "size", "limit", "mb"],
+            path: ["clipboard", "capture", "maxTextMb"],
+            value: (settings) => {
+              return settings.clipboard.capture.maxTextMb;
+            },
+          },
+          {
+            control: { min: 0, suffixKey: "mb", type: "number" },
+            id: "capture.maxImageMb",
+            keywords: ["image", "picture", "size", "limit", "mb"],
+            path: ["clipboard", "capture", "maxImageMb"],
+            value: (settings) => {
+              return settings.clipboard.capture.maxImageMb;
+            },
+          },
+          {
             control: {
               options: CAPTURE_KIND_OPTIONS,
               type: "sortableTree",

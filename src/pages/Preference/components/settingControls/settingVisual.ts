@@ -23,6 +23,8 @@ const SETTING_ICON_MAP: Record<string, string> = {
   "capture.files": "i-lucide:files",
   "capture.html": "i-lucide:file-code-2",
   "capture.image": "i-lucide:file-image",
+  "capture.maxImageMb": "i-lucide:image-up",
+  "capture.maxTextMb": "i-lucide:letter-text",
   "capture.order": "i-lucide:list-ordered",
   "capture.rtf": "i-lucide:file-type",
   "capture.text": "i-lucide:clipboard-type",

@@ -56,6 +56,7 @@
     "pasteNth": "Paste item N (N = 1...9, 0)",
     "pasteSelected": "Paste selected item",
     "pasteSelectedPlain": "Paste selected item as plain text",
+    "pinSelected": "Pin / unpin selected item",
     "pinWindow": "Pin / unpin window"
   },
   "types": {

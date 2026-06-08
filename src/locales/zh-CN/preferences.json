@@ -64,6 +64,7 @@
       "hours": "小时",
       "items": "条",
       "lines": "行",
+      "mb": "MB",
       "px": "px"
     },
     "retentionUnits": {
@@ -224,6 +225,14 @@
         "image": {
           "description": "关闭后，剪贴板中的图片不会进入历史。",
           "title": "图片"
+        },
+        "maxImageMb": {
+          "description": "图片超过此大小时不会进入历史。设为 0 表示不限制。",
+          "title": "图片最大收录大小"
+        },
+        "maxTextMb": {
+          "description": "文本、HTML 或 RTF 超过此大小时不会进入历史。设为 0 表示不限制。",
+          "title": "文本最大收录大小"
         },
         "order": {
           "controlLabel": "管理",
