@@ -29,7 +29,7 @@ export const confirmClearClipboardItems =
           <div className="flex flex-col gap-3">
             <p className="m-0">{i18n.t("commands:clearConfirm.content")}</p>
             <Checkbox.Group
-              className="flex flex-col gap-2"
+              className="flex flex-wrap gap-x-5 gap-y-2"
               defaultValue={[]}
               onChange={handleChoicesChange}
             >

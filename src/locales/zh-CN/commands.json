@@ -1,8 +1,8 @@
 {
   "clearConfirm": {
     "content": "清空后无法恢复，确定删除符合下方选项的剪贴板历史吗？",
-    "deleteFavorites": "同时删除收藏记录",
-    "deletePinned": "同时删除置顶记录",
+    "deleteFavorites": "删除收藏记录",
+    "deletePinned": "删除置顶记录",
     "title": "清空记录"
   },
   "deleteConfirm": {
