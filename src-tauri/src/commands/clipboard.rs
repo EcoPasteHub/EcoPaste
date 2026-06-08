@@ -995,9 +995,11 @@ pub async fn clear_clipboard_items(
     app: AppHandle,
     db: State<'_, DatabaseState>,
     store: State<'_, ImageStore>,
+    delete_favorites: bool,
+    delete_pinned: bool,
 ) -> Result<u64> {
     let pool = db.pool().await;
-    let outcome = clear_items(&pool, false).await?;
+    let outcome = clear_items(&pool, delete_favorites, delete_pinned).await?;
 
     for file_name in &outcome.image_files {
         if let Err(err) = store.remove(file_name) {

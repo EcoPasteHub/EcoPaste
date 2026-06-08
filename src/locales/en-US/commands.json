@@ -1,6 +1,8 @@
 {
   "clearConfirm": {
-    "content": "All clipboard history will be removed and cannot be restored. Clear it?",
+    "content": "Matching clipboard history will be removed and cannot be restored. Clear it?",
+    "deleteFavorites": "Also delete favorite records",
+    "deletePinned": "Also delete pinned records",
     "title": "Clear records"
   },
   "deleteConfirm": {

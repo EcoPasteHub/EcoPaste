@@ -12,7 +12,9 @@
  */
 
 import { invoke } from "@tauri-apps/api/core";
-import { Modal, message } from "antd";
+import type { CheckboxChangeEvent } from "antd";
+import { Checkbox, Modal, message } from "antd";
+import { createElement } from "react";
 import { TAURI_COMMAND } from "@/constants/commands";
 import i18n from "@/i18n";
 import { settingsState } from "@/stores/settings";
@@ -180,6 +182,11 @@ export interface BackupReceivedPayload {
   path: string;
   source: BackupReceiveSource;
   mode: BackupContainerMode;
+}
+
+interface ClearClipboardItemsOptions {
+  deleteFavorites: boolean;
+  deletePinned: boolean;
 }
 
 /**
@@ -694,14 +701,55 @@ export const deleteClipboardItem = async (
 };
 
 /**
- * 清空全部剪贴板历史；确认后由 Rust 删除数据库记录与图片资源，并广播列表刷新事件。
+ * 清空剪贴板历史；默认保留收藏和置顶，确认选项决定是否连带删除受保护记录。
  */
 export const clearClipboardItems = async (): Promise<boolean> => {
+  const options: ClearClipboardItemsOptions = {
+    deleteFavorites: false,
+    deletePinned: false,
+  };
+
   const ok = await new Promise<boolean>((resolve) => {
+    const handleDeleteFavoritesChange = (event: CheckboxChangeEvent) => {
+      options.deleteFavorites = event.target.checked;
+    };
+
+    const handleDeletePinnedChange = (event: CheckboxChangeEvent) => {
+      options.deletePinned = event.target.checked;
+    };
+
     Modal.confirm({
       cancelText: i18n.t("common:actions.cancel"),
       centered: true,
-      content: i18n.t("commands:clearConfirm.content"),
+      content: createElement(
+        "div",
+        { className: "flex flex-col gap-3" },
+        createElement(
+          "p",
+          { className: "m-0" },
+          i18n.t("commands:clearConfirm.content"),
+        ),
+        createElement(
+          "div",
+          { className: "flex flex-col gap-2" },
+          createElement(
+            Checkbox,
+            {
+              defaultChecked: false,
+              onChange: handleDeleteFavoritesChange,
+            },
+            i18n.t("commands:clearConfirm.deleteFavorites"),
+          ),
+          createElement(
+            Checkbox,
+            {
+              defaultChecked: false,
+              onChange: handleDeletePinnedChange,
+            },
+            i18n.t("commands:clearConfirm.deletePinned"),
+          ),
+        ),
+      ),
       okButtonProps: { danger: true },
       okText: i18n.t("common:actions.clear"),
       onCancel: () => resolve(false),
@@ -715,6 +763,7 @@ export const clearClipboardItems = async (): Promise<boolean> => {
   const removed = await call<number>(
     TAURI_COMMAND.CLEAR_CLIPBOARD_ITEMS,
     "commands:labels.clearClipboardItems",
+    options,
   );
 
   message.success(

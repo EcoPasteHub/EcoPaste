@@ -350,11 +350,22 @@ fn absorb_deleted(outcome: &mut CleanupOutcome, rows: Vec<(ClipboardKind, String
     );
 }
 
-/// 清空全部记录，返回删除行数与被删图片文件名；`keep_favorite` 为真时保留收藏项。
-pub async fn clear_items(pool: &SqlitePool, keep_favorite: bool) -> Result<CleanupOutcome> {
+/// 清空记录，返回删除行数与被删图片文件名；未显式删除的收藏 / 置顶项会保留。
+pub async fn clear_items(
+    pool: &SqlitePool,
+    delete_favorites: bool,
+    delete_pinned: bool,
+) -> Result<CleanupOutcome> {
     let mut qb: QueryBuilder<Sqlite> = QueryBuilder::new("DELETE FROM clipboard_items");
-    if keep_favorite {
+
+    let mut has_condition = false;
+    if !delete_favorites {
         qb.push(" WHERE is_favorite = 0");
+        has_condition = true;
+    }
+    if !delete_pinned {
+        qb.push(if has_condition { " AND " } else { " WHERE " });
+        qb.push("is_pinned = 0");
     }
     qb.push(" RETURNING kind, content");
 
@@ -1029,22 +1040,42 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn clear_items_optionally_keeps_favorites() {
+    async fn clear_items_optionally_keeps_favorites_and_pinned() {
         let pool = memory_pool().await;
         let mut fav = sample_item("fav");
         fav.is_favorite = true;
+        fav.created_at = DateTime::from_timestamp(1_700_000_001, 0).unwrap();
         insert_item(&pool, &fav).await.unwrap();
-        insert_item(&pool, &sample_item("plain")).await.unwrap();
+        let mut pin = sample_item("pin");
+        pin.is_pinned = true;
+        pin.created_at = DateTime::from_timestamp(1_700_000_002, 0).unwrap();
+        insert_item(&pool, &pin).await.unwrap();
+        let mut both = sample_item("both");
+        both.is_favorite = true;
+        both.is_pinned = true;
+        both.created_at = DateTime::from_timestamp(1_700_000_003, 0).unwrap();
+        insert_item(&pool, &both).await.unwrap();
+        let mut plain = sample_item("plain");
+        plain.created_at = DateTime::from_timestamp(1_700_000_004, 0).unwrap();
+        insert_item(&pool, &plain).await.unwrap();
 
-        assert_eq!(clear_items(&pool, true).await.unwrap().removed, 1);
+        assert_eq!(clear_items(&pool, false, false).await.unwrap().removed, 1);
         assert_eq!(
             ids(&query_items(&pool, &ClipboardItemQuery::default())
                 .await
                 .unwrap()),
-            ["fav"]
+            ["both", "pin", "fav"]
         );
 
-        assert_eq!(clear_items(&pool, false).await.unwrap().removed, 1);
+        assert_eq!(clear_items(&pool, true, false).await.unwrap().removed, 1);
+        assert_eq!(
+            ids(&query_items(&pool, &ClipboardItemQuery::default())
+                .await
+                .unwrap()),
+            ["both", "pin"]
+        );
+
+        assert_eq!(clear_items(&pool, true, true).await.unwrap().removed, 2);
         assert!(query_items(&pool, &ClipboardItemQuery::default())
             .await
             .unwrap()
