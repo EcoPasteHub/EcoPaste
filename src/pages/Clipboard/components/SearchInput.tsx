@@ -95,6 +95,7 @@ const SearchInput: FC<SearchInputProps> = (props) => {
     <Input
       autoCapitalize="off"
       autoCorrect="off"
+      data-allow-global-keyboard="true"
       key={clearToken}
       onBlur={handleInputBlur}
       onChange={handleChange}

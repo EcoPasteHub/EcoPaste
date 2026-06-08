@@ -14,7 +14,7 @@ interface NavEventPayload {
 }
 
 /**
- * 判断当前键盘事件是否来自可编辑元素；真实输入框聚焦时不应触发全局导航快捷键。
+ * 判断当前键盘事件是否来自可编辑元素；真实输入框聚焦时默认不应触发全局导航快捷键。
  */
 const isEditableTarget = (target: EventTarget | null) => {
   if (!(target instanceof HTMLElement)) return false;
@@ -24,6 +24,15 @@ const isEditableTarget = (target: EventTarget | null) => {
     target.tagName === "TEXTAREA" ||
     target.isContentEditable
   );
+};
+
+/**
+ * 搜索框需要沿用主窗口导航键；其它输入场景即使在 macOS 主窗口里也不放行。
+ */
+const allowsGlobalKeyboardInEditableTarget = (target: EventTarget | null) => {
+  if (!(target instanceof HTMLElement)) return false;
+
+  return target.closest("[data-allow-global-keyboard='true']") !== null;
 };
 
 /**
@@ -45,7 +54,12 @@ export const useKeyboardEvent = (
   const handlerRef = useLatest(handler);
 
   const handleNativeEvent = (event: KeyboardEvent) => {
-    if (needsRustNavEvent && isEditableTarget(event.target)) return;
+    if (
+      isEditableTarget(event.target) &&
+      !allowsGlobalKeyboardInEditableTarget(event.target)
+    ) {
+      return;
+    }
 
     handler(event);
   };
