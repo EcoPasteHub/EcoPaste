@@ -160,7 +160,7 @@ const SourceAppsTransfer: FC<SourceAppsTransferProps> = (props) => {
       <Tooltip title={t("schema.settings.source.appTransfer.addApp")}>
         <Button
           aria-label={t("schema.settings.source.appTransfer.addApp")}
-          icon={<i aria-hidden="true" className="i-ph:plus text-base" />}
+          icon={<i aria-hidden="true" className="i-ph:plus-bold text-base" />}
           loading={adding}
           onClick={handleAddApp}
           size="small"

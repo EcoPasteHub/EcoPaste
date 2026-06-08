@@ -134,91 +134,102 @@ export default PreferenceSection;
  * 根据分组语义选择小图标，保持区块标题和设置行图标尺寸一致。
  */
 function resolveSectionVisual(id: string): SectionVisual {
-  if (id.includes("capture")) {
+  const normalizedId = id.toLowerCase();
+
+  if (normalizedId.includes("capture")) {
     return {
       icon: "i-lucide:clipboard-plus",
     };
   }
 
-  if (id.includes("source")) {
+  if (normalizedId.includes("source")) {
     return {
       icon: "i-lucide:panels-top-left",
     };
   }
 
-  if (id.includes("sensitive") || id.includes("diagnostics")) {
+  if (
+    normalizedId.includes("sensitive") ||
+    normalizedId.includes("diagnostics")
+  ) {
     return {
       icon: "i-lucide:shield-check",
     };
   }
 
-  if (id.includes("history") || id.includes("localData")) {
+  if (normalizedId.includes("history") || normalizedId.includes("localdata")) {
     return {
       icon: "i-lucide:database",
     };
   }
 
-  if (id.includes("organizing")) {
+  if (normalizedId.includes("organizing")) {
     return {
       icon: "i-lucide:star",
     };
   }
 
-  if (id.includes("search")) {
+  if (normalizedId.includes("search")) {
     return {
       icon: "i-lucide:search",
     };
   }
 
-  if (id.includes("paste") || id.includes("actions")) {
+  if (normalizedId.includes("shortcuts")) {
+    return {
+      icon: "i-lucide:keyboard",
+    };
+  }
+
+  if (normalizedId.includes("paste") || normalizedId.includes("actions")) {
     return {
       icon: "i-lucide:mouse-pointer-click",
     };
   }
 
-  if (id.includes("copy")) {
+  if (normalizedId.includes("copy")) {
     return {
       icon: "i-lucide:copy",
     };
   }
 
-  if (id.includes("window")) {
+  if (normalizedId.includes("window")) {
     return {
       icon: "i-lucide:panel-left",
     };
   }
 
-  if (id.includes("preview")) {
+  if (normalizedId.includes("preview")) {
     return {
       icon: "i-lucide:eye",
     };
   }
 
-  if (id.includes("appearance")) {
+  if (normalizedId.includes("appearance")) {
     return {
       icon: "i-lucide:paintbrush",
     };
   }
 
-  if (id.includes("control")) {
+  if (normalizedId.includes("control")) {
     return {
       icon: "i-lucide:monitor",
     };
   }
 
-  if (id.includes("backup")) {
+  if (normalizedId.includes("backup")) {
     return {
       icon: "i-lucide:refresh-cw",
     };
   }
 
-  if (id.includes("external")) {
+  if (normalizedId.includes("external")) {
     return {
       icon: "i-lucide:plug",
     };
   }
 
-  if (id.includes("updates")) {
+  if (normalizedId.includes("updates")) {
     return {
       icon: "i-lucide:refresh-cw",
     };

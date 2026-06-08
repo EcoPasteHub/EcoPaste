@@ -1,8 +1,9 @@
-import { Button, Divider, Space, Switch } from "antd";
+import { Divider, Space, Switch } from "antd";
 import type { FC } from "react";
 import { useTranslation } from "react-i18next";
 import { playCopySound } from "@/commands";
 import Tooltip from "@/components/Tooltip";
+import { cn } from "@/utils/cn";
 import type { PreferenceSetting } from "../../types/preferences";
 import ControlFrame from "./ControlFrame";
 import type { ControlProps } from "./types";
@@ -38,14 +39,21 @@ const SwitchControl: FC<SwitchControlProps> = (props) => {
           <>
             <Divider type="vertical" />
             <Tooltip title={t("schema.settings.copy.sound.preview")}>
-              <Button
+              <button
                 aria-label={t("schema.settings.copy.sound.preview")}
+                className={cn(
+                  "flex cursor-pointer appearance-none items-center justify-center border-0 bg-transparent p-0 text-ant-tertiary text-xl transition-colors hover:text-ant-primary focus-visible:text-ant-primary motion-reduce:transition-none",
+                  {
+                    "cursor-not-allowed text-ant-disabled hover:text-ant-disabled focus-visible:text-ant-disabled":
+                      disabled,
+                  },
+                )}
                 disabled={disabled}
-                htmlType="button"
-                icon={<i aria-hidden="true" className="i-lucide:play" />}
                 onClick={handlePreviewSound}
-                type="text"
-              />
+                type="button"
+              >
+                <i aria-hidden="true" className="i-lucide:play" />
+              </button>
             </Tooltip>
           </>
         ) : null}
