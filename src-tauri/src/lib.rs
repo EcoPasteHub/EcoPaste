@@ -94,6 +94,8 @@ pub fn run() {
             commands::hide_window,
             commands::toggle_window,
             commands::show_taskbar_icon,
+            commands::focus_main_window_for_text_input,
+            commands::restore_main_window_non_focusable,
             commands::position_window,
             commands::set_main_window_pinned,
             commands::show_clipboard_preview,

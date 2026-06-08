@@ -42,3 +42,29 @@ pub fn show_taskbar_icon(app_handle: &AppHandle, visible: bool) -> Result<()> {
         .map_err(|e| anyhow::anyhow!(e))?;
     Ok(())
 }
+
+/// 进入主窗口文本编辑模式：Windows 上临时允许主窗口获得系统键盘焦点。
+pub fn focus_main_window_for_text_input(app_handle: &AppHandle) -> Result<()> {
+    let window = get_window(app_handle, MAIN_WINDOW_LABEL)?;
+
+    keyboard::disable_navigation_keys();
+    window.set_focusable(true).map_err(|e| anyhow::anyhow!(e))?;
+    window.set_focus().map_err(|e| anyhow::anyhow!(e))?;
+
+    Ok(())
+}
+
+/// 退出主窗口文本编辑模式：恢复不抢焦点窗口，并重新启用导航键钩子。
+pub fn restore_main_window_non_focusable(app_handle: &AppHandle) -> Result<()> {
+    let window = get_window(app_handle, MAIN_WINDOW_LABEL)?;
+
+    window
+        .set_focusable(false)
+        .map_err(|e| anyhow::anyhow!(e))?;
+
+    if window.is_visible().unwrap_or(false) {
+        keyboard::enable_navigation_keys(app_handle);
+    }
+
+    Ok(())
+}

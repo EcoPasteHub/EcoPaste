@@ -2,6 +2,7 @@ import { Input, type InputProps, type InputRef } from "antd";
 import type { ChangeEvent, CompositionEvent, FC } from "react";
 import { useEffect, useRef } from "react";
 import KeyHint from "@/components/KeyHint";
+import { useMainWindowTextInputFocus } from "@/hooks/useMainWindowTextInputFocus";
 
 interface SearchInputProps extends Omit<InputProps, "prefix"> {
   blurToken?: number;
@@ -22,16 +23,29 @@ const SearchInput: FC<SearchInputProps> = (props) => {
     onChange,
     onCompositionStart,
     onCompositionEnd,
+    onBlur,
+    onFocus,
     ...rest
   } = props;
 
   const inputRef = useRef<InputRef>(null);
   const composingRef = useRef(false);
+  const inputFocusHandlers = useMainWindowTextInputFocus<HTMLInputElement>({
+    onBlur,
+    onFocus,
+  });
+  const {
+    focusWindowForTextInput,
+    onBlur: handleInputBlur,
+    onFocus: handleInputFocus,
+  } = inputFocusHandlers;
 
   /**
    * 聚焦搜索框并选中已有内容，便于直接覆盖输入。
    */
-  const focusSearch = () => {
+  const focusSearch = async () => {
+    await focusWindowForTextInput();
+
     inputRef.current?.focus({ cursor: "all" });
   };
 
@@ -44,14 +58,16 @@ const SearchInput: FC<SearchInputProps> = (props) => {
   useEffect(() => {
     if (focusToken <= 0) return;
 
-    const frame = requestAnimationFrame(() => {
+    const frame = requestAnimationFrame(async () => {
+      await focusWindowForTextInput();
+
       inputRef.current?.focus({ cursor: "all" });
     });
 
     return () => {
       cancelAnimationFrame(frame);
     };
-  }, [focusToken]);
+  }, [focusToken, focusWindowForTextInput]);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (composingRef.current) return;
@@ -80,9 +96,11 @@ const SearchInput: FC<SearchInputProps> = (props) => {
       autoCapitalize="off"
       autoCorrect="off"
       key={clearToken}
+      onBlur={handleInputBlur}
       onChange={handleChange}
       onCompositionEnd={handleCompositionEnd}
       onCompositionStart={handleCompositionStart}
+      onFocus={handleInputFocus}
       prefix={
         <KeyHint
           hintKey="F"
