@@ -1,10 +1,15 @@
 import { useDebounceFn } from "ahooks";
-import { Button } from "antd";
+import type { DropdownProps, MenuProps } from "antd";
+import { Button, Dropdown } from "antd";
 import type { ChangeEvent, FC } from "react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSnapshot } from "valtio";
-import { setMainWindowPinned, showWindow } from "@/commands";
+import {
+  clearClipboardItems,
+  setMainWindowPinned,
+  showWindow,
+} from "@/commands";
 import KeyHint from "@/components/KeyHint";
 import Tooltip from "@/components/Tooltip";
 import { TAURI_EVENT } from "@/constants/events";
@@ -18,6 +23,10 @@ interface WindowVisibilityPayload {
   label: string;
   visible: boolean;
 }
+
+type HeaderMoreMenuKey = "clear" | "preference";
+
+const MORE_ACTION_TRIGGER: DropdownProps["trigger"] = ["click"];
 
 /**
  * 剪贴板窗口顶部条：logo、搜索框（⌘F / Ctrl+F 聚焦）、固定窗口与更多操作入口。
@@ -33,7 +42,31 @@ const Header: FC = () => {
   /**
    * 统一处理偏好设置入口（按钮点击/快捷键）。
    */
-  const handleOpenPreference = () => showWindow(WINDOW_LABEL.PREFERENCE);
+  const handleOpenPreference = () => {
+    return showWindow(WINDOW_LABEL.PREFERENCE);
+  };
+
+  /**
+   * 清空剪贴板历史；确认、toast 与后端调用统一收口在命令包装内。
+   */
+  const handleClearClipboardItems = async () => {
+    await clearClipboardItems();
+  };
+
+  /**
+   * 更多操作菜单分发：危险操作走确认弹窗，偏好设置打开独立窗口。
+   */
+  const handleMoreMenuClick: MenuProps["onClick"] = async (info) => {
+    const key = info.key as HeaderMoreMenuKey;
+
+    if (key === "clear") {
+      await handleClearClipboardItems();
+
+      return;
+    }
+
+    await handleOpenPreference();
+  };
 
   /**
    * 切换主窗口固定态：Rust 侧立即生效（resign_key / 外部点击钩子读取），本地态仅用于按钮渲染。
@@ -124,6 +157,20 @@ const Header: FC = () => {
     handleWindowVisibility,
   );
 
+  const moreMenuItems: MenuProps["items"] = [
+    {
+      danger: true,
+      icon: <span className="i-lucide:trash-2 text-base" />,
+      key: "clear",
+      label: t("header.clearRecords"),
+    },
+    {
+      icon: <span className="i-lucide:settings text-base" />,
+      key: "preference",
+      label: t("header.openPreference"),
+    },
+  ];
+
   return (
     <div
       className="flex items-center justify-between p-3"
@@ -158,7 +205,11 @@ const Header: FC = () => {
           />
         </Tooltip>
 
-        <Tooltip title={t("header.moreActions")}>
+        <Dropdown
+          menu={{ items: moreMenuItems, onClick: handleMoreMenuClick }}
+          placement="bottomRight"
+          trigger={MORE_ACTION_TRIGGER}
+        >
           <Button
             icon={
               <KeyHint
@@ -168,9 +219,10 @@ const Header: FC = () => {
               />
             }
             size="small"
+            title={t("header.moreActions")}
             type="text"
           />
-        </Tooltip>
+        </Dropdown>
       </div>
     </div>
   );

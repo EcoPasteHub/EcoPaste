@@ -694,6 +694,37 @@ export const deleteClipboardItem = async (
 };
 
 /**
+ * 清空全部剪贴板历史；确认后由 Rust 删除数据库记录与图片资源，并广播列表刷新事件。
+ */
+export const clearClipboardItems = async (): Promise<boolean> => {
+  const ok = await new Promise<boolean>((resolve) => {
+    Modal.confirm({
+      cancelText: i18n.t("common:actions.cancel"),
+      centered: true,
+      content: i18n.t("commands:clearConfirm.content"),
+      okButtonProps: { danger: true },
+      okText: i18n.t("common:actions.clear"),
+      onCancel: () => resolve(false),
+      onOk: () => resolve(true),
+      title: i18n.t("commands:clearConfirm.title"),
+    });
+  });
+
+  if (!ok) return false;
+
+  const removed = await call<number>(
+    TAURI_COMMAND.CLEAR_CLIPBOARD_ITEMS,
+    "commands:labels.clearClipboardItems",
+  );
+
+  message.success(
+    i18n.t("commands:messages.clipboardItemsCleared", { count: removed }),
+  );
+
+  return true;
+};
+
+/**
  * 更新备注；Rust 统一 trim + 空串归一为 `null`，返回归一化后的 `note` 与 `autoFavorited`。
  * 调用方用返回的 `note` 回填本地镜像，避免「输入纯空白时镜像非空但 DB 为 NULL」的漂移。
  * 成功后统一 toast：触发 auto-favorite 时「已保存并收藏」，否则「已保存」。

@@ -135,10 +135,25 @@ const List: FC = () => {
   }, [fileMaxCount]);
 
   /**
-   * 收到剪贴板更新：导入强制刷新；普通新记录在顶部才刷新，否则只提示待查看。
+   * 收到剪贴板更新：导入 / 清理强制刷新；普通新记录在顶部才刷新，否则只提示待查看。
    * 用 ref 读取最新滚动位置，规避闭包陷旧值（事件订阅只挂载一次）。
    */
   const handleClipboardUpdated = (payload: ClipboardUpdatedPayload) => {
+    if (payload.cleanup !== void 0) {
+      closePreview("cleanup");
+      setSelectedId(null);
+      setPendingCount(0);
+      if (clipboardStatsState.total !== null) {
+        clipboardStatsState.total = Math.max(
+          clipboardStatsState.total - payload.cleanup,
+          0,
+        );
+      }
+      virtuosoRef.current?.scrollToIndex({ behavior: "auto", index: 0 });
+      reload();
+      return;
+    }
+
     if (payload.imported) {
       closePreview("backupImport");
       setSelectedId(null);

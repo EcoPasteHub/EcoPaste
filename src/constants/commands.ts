@@ -7,6 +7,7 @@ export const TAURI_COMMAND = {
   ADD_CLIPBOARD_APP_FROM_PATH: "add_clipboard_app_from_path",
   CHANGE_STORAGE_LOCATION: "change_storage_location",
   CLEAN_RESOURCE_CACHE: "clean_resource_cache",
+  CLEAR_CLIPBOARD_ITEMS: "clear_clipboard_items",
   CLOSE_CLIPBOARD_PREVIEW: "close_clipboard_preview",
   DELETE_CLIPBOARD_ITEM: "delete_clipboard_item",
   DELETE_UNREFERENCED_CLIPBOARD_APPS: "delete_unreferenced_clipboard_apps",

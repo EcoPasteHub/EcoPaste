@@ -15,7 +15,9 @@ use crate::clipboard::{
     AppsRegistry, ClipboardReader, FileIconStore, ImageStore, WritebackGuard,
 };
 use crate::core::{AppError, Result};
-use crate::db::items::{find_item_by_id, find_item_for_list_by_id, increment_item_use_count};
+use crate::db::items::{
+    clear_items, find_item_by_id, find_item_for_list_by_id, increment_item_use_count,
+};
 use crate::db::models::{
     ClipboardAction, ClipboardApp, ClipboardGroup, ClipboardItem, ClipboardItemPage,
     ClipboardItemQuery, ClipboardKind, ClipboardSubKind, FileEntry, Platform,
@@ -985,6 +987,34 @@ pub async fn delete_clipboard_item(
         }
     }
     Ok(())
+}
+
+/// 清空全部历史记录，并删除对应图片资源。完成后广播列表刷新事件。
+#[tauri::command]
+pub async fn clear_clipboard_items(
+    app: AppHandle,
+    db: State<'_, DatabaseState>,
+    store: State<'_, ImageStore>,
+) -> Result<u64> {
+    let pool = db.pool().await;
+    let outcome = clear_items(&pool, false).await?;
+
+    for file_name in &outcome.image_files {
+        if let Err(err) = store.remove(file_name) {
+            log::warn!("remove cleared image {file_name} failed: {err}");
+        }
+    }
+
+    if let Err(err) = app.emit(
+        CLIPBOARD_UPDATED_EVENT,
+        serde_json::json!({
+            "cleanup": outcome.removed,
+        }),
+    ) {
+        log::warn!("emit {CLIPBOARD_UPDATED_EVENT} after clear failed: {err}");
+    }
+
+    Ok(outcome.removed)
 }
 
 /// 更新备注（薄封装）。`note = None` 或空串清空备注；空串归一化为 None，

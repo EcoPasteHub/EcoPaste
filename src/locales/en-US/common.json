@@ -1,6 +1,7 @@
 {
   "actions": {
     "cancel": "Cancel",
+    "clear": "Clear",
     "delete": "Delete",
     "open": "Open",
     "reset": "Reset",

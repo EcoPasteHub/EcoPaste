@@ -17,8 +17,10 @@
     "text": "Text"
   },
   "header": {
+    "clearRecords": "Clear records",
     "logoAlt": "EcoPaste logo",
     "moreActions": "More actions",
+    "openPreference": "Preferences",
     "pin": "Pin window",
     "searchPlaceholder": "Search clipboard...",
     "unpin": "Unpin"

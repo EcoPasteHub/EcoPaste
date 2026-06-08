@@ -1,4 +1,8 @@
 {
+  "clearConfirm": {
+    "content": "清空后无法恢复，确定删除全部剪贴板历史吗？",
+    "title": "清空记录"
+  },
   "deleteConfirm": {
     "content": "删除后无法恢复，确定删除这条记录吗？",
     "title": "删除记录"
@@ -9,6 +13,7 @@
     "cancelFavorite": "取消收藏",
     "changeStorageLocation": "更改数据目录",
     "cleanCache": "清理缓存",
+    "clearClipboardItems": "清空记录",
     "closePreview": "关闭预览",
     "copy": "复制",
     "delete": "删除",
@@ -53,6 +58,7 @@
     "backupOverwriteImported": "覆盖导入已完成",
     "cacheAlreadyClean": "暂无可清理的缓存",
     "cacheCleaned": "已清理 {{count}} 个缓存文件，释放 {{size}}",
+    "clipboardItemsCleared": "已清空 {{count}} 条记录",
     "copied": "已复制",
     "deleted": "已删除",
     "favoriteAdded": "已收藏",

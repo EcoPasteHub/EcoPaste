@@ -350,20 +350,23 @@ fn absorb_deleted(outcome: &mut CleanupOutcome, rows: Vec<(ClipboardKind, String
     );
 }
 
-/// 清空全部记录，返回删除行数；`keep_favorite` 为真时保留收藏项。
-#[allow(dead_code)]
-pub async fn clear_items(pool: &SqlitePool, keep_favorite: bool) -> Result<u64> {
+/// 清空全部记录，返回删除行数与被删图片文件名；`keep_favorite` 为真时保留收藏项。
+pub async fn clear_items(pool: &SqlitePool, keep_favorite: bool) -> Result<CleanupOutcome> {
     let mut qb: QueryBuilder<Sqlite> = QueryBuilder::new("DELETE FROM clipboard_items");
     if keep_favorite {
         qb.push(" WHERE is_favorite = 0");
     }
+    qb.push(" RETURNING kind, content");
 
-    let result = qb
-        .build()
-        .execute(pool)
+    let rows = qb
+        .build_query_as::<(ClipboardKind, String)>()
+        .fetch_all(pool)
         .await
         .context("failed to clear clipboard items")?;
-    Ok(result.rows_affected())
+
+    let mut outcome = CleanupOutcome::default();
+    absorb_deleted(&mut outcome, rows);
+    Ok(outcome)
 }
 
 /// 关键词过滤分流：≥3 字符走 FTS5（trigram），1–2 字符走 LIKE 兜底，空 / 仅空白不过滤。
@@ -1033,7 +1036,7 @@ mod tests {
         insert_item(&pool, &fav).await.unwrap();
         insert_item(&pool, &sample_item("plain")).await.unwrap();
 
-        assert_eq!(clear_items(&pool, true).await.unwrap(), 1);
+        assert_eq!(clear_items(&pool, true).await.unwrap().removed, 1);
         assert_eq!(
             ids(&query_items(&pool, &ClipboardItemQuery::default())
                 .await
@@ -1041,7 +1044,7 @@ mod tests {
             ["fav"]
         );
 
-        assert_eq!(clear_items(&pool, false).await.unwrap(), 1);
+        assert_eq!(clear_items(&pool, false).await.unwrap().removed, 1);
         assert!(query_items(&pool, &ClipboardItemQuery::default())
             .await
             .unwrap()

@@ -17,8 +17,10 @@
     "text": "文本"
   },
   "header": {
+    "clearRecords": "清空记录",
     "logoAlt": "EcoPaste 标志",
     "moreActions": "更多操作",
+    "openPreference": "偏好设置",
     "pin": "固定窗口",
     "searchPlaceholder": "搜索剪贴板...",
     "unpin": "取消固定"
