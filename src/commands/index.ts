@@ -12,9 +12,7 @@
  */
 
 import { invoke } from "@tauri-apps/api/core";
-import type { CheckboxChangeEvent } from "antd";
-import { Checkbox, Modal, message } from "antd";
-import { createElement } from "react";
+import { Modal, message } from "antd";
 import { TAURI_COMMAND } from "@/constants/commands";
 import i18n from "@/i18n";
 import { settingsState } from "@/stores/settings";
@@ -29,6 +27,7 @@ import type {
 } from "@/types/clipboard";
 import type { Settings, SettingsPatch } from "@/types/settings";
 import { log } from "@/utils/log";
+import { confirmClearClipboardItems } from "./confirmClearClipboardItems";
 
 /**
  * Rust 端 `AppError` 序列化后的形状：`kind` 用于按变体分流，`message` 给用户看。
@@ -182,11 +181,6 @@ export interface BackupReceivedPayload {
   path: string;
   source: BackupReceiveSource;
   mode: BackupContainerMode;
-}
-
-interface ClearClipboardItemsOptions {
-  deleteFavorites: boolean;
-  deletePinned: boolean;
 }
 
 /**
@@ -704,61 +698,9 @@ export const deleteClipboardItem = async (
  * 清空剪贴板历史；默认保留收藏和置顶，确认选项决定是否连带删除受保护记录。
  */
 export const clearClipboardItems = async (): Promise<boolean> => {
-  const options: ClearClipboardItemsOptions = {
-    deleteFavorites: false,
-    deletePinned: false,
-  };
+  const options = await confirmClearClipboardItems();
 
-  const ok = await new Promise<boolean>((resolve) => {
-    const handleDeleteFavoritesChange = (event: CheckboxChangeEvent) => {
-      options.deleteFavorites = event.target.checked;
-    };
-
-    const handleDeletePinnedChange = (event: CheckboxChangeEvent) => {
-      options.deletePinned = event.target.checked;
-    };
-
-    Modal.confirm({
-      cancelText: i18n.t("common:actions.cancel"),
-      centered: true,
-      content: createElement(
-        "div",
-        { className: "flex flex-col gap-3" },
-        createElement(
-          "p",
-          { className: "m-0" },
-          i18n.t("commands:clearConfirm.content"),
-        ),
-        createElement(
-          "div",
-          { className: "flex flex-col gap-2" },
-          createElement(
-            Checkbox,
-            {
-              defaultChecked: false,
-              onChange: handleDeleteFavoritesChange,
-            },
-            i18n.t("commands:clearConfirm.deleteFavorites"),
-          ),
-          createElement(
-            Checkbox,
-            {
-              defaultChecked: false,
-              onChange: handleDeletePinnedChange,
-            },
-            i18n.t("commands:clearConfirm.deletePinned"),
-          ),
-        ),
-      ),
-      okButtonProps: { danger: true },
-      okText: i18n.t("common:actions.clear"),
-      onCancel: () => resolve(false),
-      onOk: () => resolve(true),
-      title: i18n.t("commands:clearConfirm.title"),
-    });
-  });
-
-  if (!ok) return false;
+  if (!options) return false;
 
   const removed = await call<number>(
     TAURI_COMMAND.CLEAR_CLIPBOARD_ITEMS,
