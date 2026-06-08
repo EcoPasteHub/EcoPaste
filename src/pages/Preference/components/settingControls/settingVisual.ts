@@ -9,6 +9,8 @@ const SETTING_ICON_MAP: Record<string, string> = {
   "actions.deleteFavoriteConfirm": "i-lucide:shield-alert",
   "actions.deleteFavoriteItems": "i-lucide:star-off",
   "actions.deleteFavoriteItemsOnlyInFavoriteGroup": "i-lucide:shield-check",
+  "actions.deletePinnedConfirm": "i-lucide:shield-alert",
+  "actions.deletePinnedItems": "i-ph:push-pin-slash-bold",
   "actions.visible": "i-lucide:square-mouse-pointer",
   "appearance.fileMaxCount": "i-lucide:files",
   "appearance.imageMaxHeight": "i-lucide:image",

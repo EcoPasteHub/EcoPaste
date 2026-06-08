@@ -41,6 +41,7 @@ export type ItemAction =
   | "reveal"
   | "note"
   | "star"
+  | "pinItem"
   | "delete";
 
 export type CaptureKind = "files" | "image" | "html" | "rtf" | "text";
@@ -88,6 +89,8 @@ export interface Content {
   deleteConfirm: boolean;
   deleteFavoriteItems: boolean;
   deleteFavoriteConfirm: boolean;
+  deletePinnedItems: boolean;
+  deletePinnedConfirm: boolean;
   deleteFavoriteItemsOnlyInFavoriteGroup: boolean;
   autoFavorite: boolean;
   updateOnReuse: boolean;

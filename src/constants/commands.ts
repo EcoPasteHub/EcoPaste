@@ -42,6 +42,7 @@ export const TAURI_COMMAND = {
   SHOW_WINDOW: "show_window",
   START_DRAG_CLIPBOARD_ITEM: "start_drag_clipboard_item",
   TOGGLE_CLIPBOARD_ITEM_FAVORITE: "toggle_clipboard_item_favorite",
+  TOGGLE_CLIPBOARD_ITEM_PINNED: "toggle_clipboard_item_pinned",
   UPDATE_CLIPBOARD_ITEM_NOTE: "update_clipboard_item_note",
   UPDATE_SETTINGS: "update_settings",
   WRITE_TO_CLIPBOARD: "write_to_clipboard",

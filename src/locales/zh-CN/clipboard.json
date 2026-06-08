@@ -38,6 +38,8 @@
     "paste": "粘贴",
     "pastePath": "粘贴为路径",
     "pastePlain": "纯文本粘贴",
+    "pinItem": "置顶",
+    "pinItemActive": "取消置顶",
     "reveal": "在文件管理器中显示",
     "sendEmail": "发送邮件",
     "star": "收藏",

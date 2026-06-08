@@ -33,6 +33,7 @@
     "openPreview": "Open preview",
     "openWindow": "Open window",
     "paste": "Paste",
+    "pinItem": "Pin item",
     "playCopySound": "Play sound",
     "resetSettings": "Reset preferences",
     "resetStorageLocation": "Reset data directory",
@@ -43,7 +44,8 @@
     "setAutostart": "Set launch at login",
     "setMainWindowPinned": "Pin window",
     "setTaskbarIcon": "Set taskbar icon",
-    "toggleFavorite": "Favorite"
+    "toggleFavorite": "Favorite",
+    "unpinItem": "Unpin item"
   },
   "messages": {
     "backupExported": "Exported {{count}} history items, backup size {{size}}",
@@ -55,6 +57,8 @@
     "deleted": "Deleted",
     "favoriteAdded": "Added to favorites",
     "favoriteRemoved": "Removed from favorites",
+    "itemPinned": "Pinned to top",
+    "itemUnpinned": "Unpinned from top",
     "noteSaved": "Saved",
     "noteSavedAndFavorited": "Saved and favorited",
     "settingsReset": "Preferences reset",

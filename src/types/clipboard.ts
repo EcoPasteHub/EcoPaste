@@ -29,6 +29,7 @@ export type ClipboardAction =
   | "revealInFinder"
   | "revealInExplorer"
   | "toggleFavorite"
+  | "togglePinned"
   | "editNote"
   | "delete";
 

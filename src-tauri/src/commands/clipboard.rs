@@ -588,6 +588,7 @@ fn compute_available_actions(item: &ClipboardItem) -> Vec<ClipboardAction> {
     }
 
     actions.push(ClipboardAction::ToggleFavorite);
+    actions.push(ClipboardAction::TogglePinned);
     actions.push(ClipboardAction::EditNote);
     actions.push(ClipboardAction::Delete);
 
@@ -957,6 +958,16 @@ pub async fn toggle_clipboard_item_favorite(
 ) -> Result<bool> {
     let pool = db.pool().await;
     crate::db::items::toggle_item_favorite(&pool, &id).await
+}
+
+/// 翻转置顶状态（薄封装）。不更新 `updated_at`，避免污染最近使用排序。
+#[tauri::command]
+pub async fn toggle_clipboard_item_pinned(
+    db: State<'_, DatabaseState>,
+    id: String,
+) -> Result<bool> {
+    let pool = db.pool().await;
+    crate::db::items::toggle_item_pinned(&pool, &id).await
 }
 
 /// 删除单条记录（薄封装）。若删的是图片记录，连带删除其落盘文件（原图 + 缩略图）。

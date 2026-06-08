@@ -38,6 +38,8 @@
     "paste": "Paste",
     "pastePath": "Paste as Path",
     "pastePlain": "Paste as Plain Text",
+    "pinItem": "Pin to Top",
+    "pinItemActive": "Unpin from Top",
     "reveal": "Show in File Manager",
     "sendEmail": "Send Email",
     "star": "Favorite",

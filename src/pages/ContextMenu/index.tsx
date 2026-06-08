@@ -16,6 +16,7 @@ import { formatShortcutDisplay } from "@/utils/shortcut";
 interface ShowPayload {
   itemId: string;
   isFavorite: boolean;
+  isPinned: boolean;
   groups: Array<
     Array<{
       action: ClipboardAction;

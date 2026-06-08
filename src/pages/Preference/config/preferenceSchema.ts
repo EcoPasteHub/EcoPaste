@@ -350,6 +350,24 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { type: "switch" },
+            id: "actions.deletePinnedConfirm",
+            keywords: ["delete", "pinned", "pin", "confirm"],
+            path: ["clipboard", "content", "deletePinnedConfirm"],
+            value: (settings) => {
+              return settings.clipboard.content.deletePinnedConfirm;
+            },
+          },
+          {
+            control: { type: "switch" },
+            id: "actions.deletePinnedItems",
+            keywords: ["delete", "pinned", "pin", "allow"],
+            path: ["clipboard", "content", "deletePinnedItems"],
+            value: (settings) => {
+              return settings.clipboard.content.deletePinnedItems;
+            },
+          },
+          {
+            control: { type: "switch" },
             id: "actions.deleteFavoriteItemsOnlyInFavoriteGroup",
             keywords: ["delete", "favorite", "group"],
             path: [

@@ -210,15 +210,16 @@ pub async fn mark_item_favorite(pool: &SqlitePool, id: &str) -> Result<()> {
     Ok(())
 }
 
-/// 翻转 `is_pinned`（置顶 / 取消置顶）。
-#[allow(dead_code)]
-pub async fn toggle_item_pinned(pool: &SqlitePool, id: &str) -> Result<()> {
-    sqlx::query("UPDATE clipboard_items SET is_pinned = NOT is_pinned WHERE id = ?")
-        .bind(id)
-        .execute(pool)
-        .await
-        .context("failed to toggle clipboard item pinned")?;
-    Ok(())
+/// 翻转 `is_pinned`（置顶 / 取消置顶），返回翻转后的新状态。
+pub async fn toggle_item_pinned(pool: &SqlitePool, id: &str) -> Result<bool> {
+    let new_value: bool = sqlx::query_scalar(
+        "UPDATE clipboard_items SET is_pinned = NOT is_pinned WHERE id = ? RETURNING is_pinned",
+    )
+    .bind(id)
+    .fetch_one(pool)
+    .await
+    .context("failed to toggle clipboard item pinned")?;
+    Ok(new_value)
 }
 
 /// 更新备注，传 `None` 清空备注。

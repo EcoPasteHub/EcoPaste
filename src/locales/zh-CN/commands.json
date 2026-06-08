@@ -33,6 +33,7 @@
     "openPreview": "打开预览",
     "openWindow": "打开窗口",
     "paste": "粘贴",
+    "pinItem": "置顶",
     "playCopySound": "播放提示音",
     "resetSettings": "重置偏好",
     "resetStorageLocation": "还原数据目录",
@@ -43,7 +44,8 @@
     "setAutostart": "设置开机启动",
     "setMainWindowPinned": "固定窗口",
     "setTaskbarIcon": "设置任务栏图标",
-    "toggleFavorite": "收藏"
+    "toggleFavorite": "收藏",
+    "unpinItem": "取消置顶"
   },
   "messages": {
     "backupExported": "已导出 {{count}} 条历史记录，备份大小 {{size}}",
@@ -55,6 +57,8 @@
     "deleted": "已删除",
     "favoriteAdded": "已收藏",
     "favoriteRemoved": "已取消收藏",
+    "itemPinned": "已置顶",
+    "itemUnpinned": "已取消置顶",
     "noteSaved": "已保存",
     "noteSavedAndFavorited": "已保存并收藏",
     "settingsReset": "偏好已重置",

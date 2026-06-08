@@ -34,13 +34,14 @@ pub enum ClipboardMenuAction {
     RevealInFinder,
     RevealInExplorer,
     ToggleFavorite,
+    TogglePinned,
     EditNote,
     Delete,
 }
 
 impl ClipboardMenuAction {
-    /// 返回当前语言下的菜单文案；`ToggleFavorite` 根据当前收藏状态翻转。
-    pub(super) fn label(self, lang: Language, is_favorite: bool) -> &'static str {
+    /// 返回当前语言下的菜单文案；切换类动作按当前状态翻转。
+    pub(super) fn label(self, lang: Language, is_favorite: bool, is_pinned: bool) -> &'static str {
         use crate::i18n::clipboard_menu::Key;
 
         let key = match self {
@@ -59,6 +60,13 @@ impl ClipboardMenuAction {
                     Key::Favorite
                 }
             }
+            Self::TogglePinned => {
+                if is_pinned {
+                    Key::UnpinItem
+                } else {
+                    Key::PinItem
+                }
+            }
             Self::EditNote => Key::EditNote,
             Self::Delete => Key::Delete,
         };
@@ -72,6 +80,7 @@ impl ClipboardMenuAction {
             Self::Paste => Some("Enter"),
             Self::PasteAsPlainText | Self::PasteAsPath => Some("CmdOrCtrl+Enter"),
             Self::ToggleFavorite => Some("CmdOrCtrl+D"),
+            Self::TogglePinned => Some("CmdOrCtrl+T"),
             Self::Delete => Some("CmdOrCtrl+Backspace"),
             _ => None,
         }
@@ -94,6 +103,7 @@ pub(super) const ACTION_GROUPS: &[&[ClipboardMenuAction]] = &[
     ],
     &[
         ClipboardMenuAction::ToggleFavorite,
+        ClipboardMenuAction::TogglePinned,
         ClipboardMenuAction::EditNote,
     ],
     &[ClipboardMenuAction::Delete],
@@ -145,6 +155,7 @@ mod native {
                 Self::RevealInFinder => "cim::revealInFinder",
                 Self::RevealInExplorer => "cim::revealInExplorer",
                 Self::ToggleFavorite => "cim::toggleFavorite",
+                Self::TogglePinned => "cim::togglePinned",
                 Self::EditNote => "cim::editNote",
                 Self::Delete => "cim::delete",
             }
@@ -161,6 +172,7 @@ mod native {
                 ClipboardMenuAction::RevealInFinder,
                 ClipboardMenuAction::RevealInExplorer,
                 ClipboardMenuAction::ToggleFavorite,
+                ClipboardMenuAction::TogglePinned,
                 ClipboardMenuAction::EditNote,
                 ClipboardMenuAction::Delete,
             ];
@@ -188,6 +200,7 @@ mod native {
         item_id: String,
         available_actions: Vec<ClipboardMenuAction>,
         is_favorite: bool,
+        is_pinned: bool,
     ) -> Result<()> {
         let state = app.try_state::<ClipboardItemMenuState>().ok_or_else(|| {
             AppError::Other(anyhow::anyhow!("ClipboardItemMenuState not managed"))
@@ -203,7 +216,13 @@ mod native {
         let lang = crate::i18n::current_language(app);
         window
             .run_on_main_thread(move || {
-                let menu = match build_menu(&app_for_main, &available_actions, lang, is_favorite) {
+                let menu = match build_menu(
+                    &app_for_main,
+                    &available_actions,
+                    lang,
+                    is_favorite,
+                    is_pinned,
+                ) {
                     Ok(m) => m,
                     Err(err) => {
                         log::warn!("build clipboard item menu failed: {err}");
@@ -237,6 +256,7 @@ mod native {
         actions: &[ClipboardMenuAction],
         lang: Language,
         is_favorite: bool,
+        is_pinned: bool,
     ) -> Result<Menu<Wry>> {
         let active: HashSet<ClipboardMenuAction> = actions.iter().copied().collect();
 
@@ -267,7 +287,7 @@ mod native {
                 let item = MenuItem::with_id(
                     app,
                     action.id(),
-                    action.label(lang, is_favorite),
+                    action.label(lang, is_favorite, is_pinned),
                     true,
                     action.accelerator(),
                 )
@@ -338,17 +358,18 @@ pub fn init(app: &AppHandle) {
 }
 
 /// 在当前光标处弹出列表项右键菜单。`available_actions` / `is_favorite` 由
-/// 前端传入（来自 `ClipboardItem.availableActions` 与 `isFavorite` 字段）。
+/// 前端传入（来自 `ClipboardItem.availableActions` 与当前状态字段）。
 #[tauri::command]
 pub async fn popup_clipboard_item_menu(
     app: AppHandle,
     item_id: String,
     available_actions: Vec<ClipboardMenuAction>,
     is_favorite: bool,
+    is_pinned: bool,
 ) -> Result<()> {
     #[cfg(target_os = "macos")]
     {
-        native::popup(&app, item_id, available_actions, is_favorite)
+        native::popup(&app, item_id, available_actions, is_favorite, is_pinned)
     }
 
     #[cfg(target_os = "windows")]
@@ -358,6 +379,7 @@ pub async fn popup_clipboard_item_menu(
             item_id,
             &available_actions,
             is_favorite,
+            is_pinned,
         )
     }
 }

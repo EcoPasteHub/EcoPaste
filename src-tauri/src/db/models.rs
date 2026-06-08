@@ -135,6 +135,8 @@ pub enum ClipboardAction {
     RevealInExplorer,
     /// 切换收藏（恒在；前端按 `is_favorite` 切「收藏 / 取消收藏」文案）。
     ToggleFavorite,
+    /// 切换置顶（恒在；前端按 `is_pinned` 切「置顶 / 取消置顶」文案）。
+    TogglePinned,
     /// 编辑备注（恒在）。
     EditNote,
     /// 删除条目（恒在）。

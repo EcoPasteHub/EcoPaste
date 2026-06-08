@@ -45,6 +45,7 @@ struct MenuItemPayload {
 struct ContextMenuShowPayload {
     item_id: String,
     is_favorite: bool,
+    is_pinned: bool,
     /// 已按 `ACTION_GROUPS` 过滤排序好的分组；前端按二维结构渲染 + 自动加分隔符。
     groups: Vec<Vec<MenuItemPayload>>,
 }
@@ -91,9 +92,10 @@ pub fn show_for_clipboard_item(
     item_id: String,
     available_actions: &[ClipboardMenuAction],
     is_favorite: bool,
+    is_pinned: bool,
 ) -> Result<()> {
     let lang = crate::i18n::current_language(app);
-    let groups = build_groups(available_actions, lang, is_favorite);
+    let groups = build_groups(available_actions, lang, is_favorite, is_pinned);
     if groups.is_empty() {
         return Ok(());
     }
@@ -115,6 +117,7 @@ pub fn show_for_clipboard_item(
     let payload = ContextMenuShowPayload {
         item_id,
         is_favorite,
+        is_pinned,
         groups,
     };
     window
@@ -131,6 +134,7 @@ fn build_groups(
     available: &[ClipboardMenuAction],
     lang: Language,
     is_favorite: bool,
+    is_pinned: bool,
 ) -> Vec<Vec<MenuItemPayload>> {
     ACTION_GROUPS
         .iter()
@@ -140,7 +144,7 @@ fn build_groups(
                 .filter(|a| available.contains(a))
                 .map(|a| MenuItemPayload {
                     action: *a,
-                    label: a.label(lang, is_favorite).into(),
+                    label: a.label(lang, is_favorite, is_pinned).into(),
                     accelerator: a.accelerator().map(String::from),
                 })
                 .collect::<Vec<_>>()

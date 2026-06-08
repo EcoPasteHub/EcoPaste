@@ -88,11 +88,11 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
     event.preventDefault();
 
     const actions = availableActions ?? item.availableActions ?? [];
-    const { isFavorite } = item;
+    const { isFavorite, isPinned } = item;
 
     if (actions.length === 0) return;
 
-    await popupClipboardItemMenu(item.id, [...actions], isFavorite);
+    await popupClipboardItemMenu(item.id, [...actions], isFavorite, isPinned);
   };
 
   const handlePointerEnter = (event: PointerEvent<HTMLDivElement>) => {
@@ -112,6 +112,7 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
         "flex flex-col gap-1 rounded-2 border border-ant-border-secondary p-2",
         {
           "border-ant-primary bg-ant-blue-1": isSelected,
+          "border-ant-primary bg-ant-container": item.isPinned && !isSelected,
         },
       )}
       draggable
@@ -146,6 +147,12 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
           )}
 
           <span className="truncate">{typeLabel}</span>
+          {item.isPinned ? (
+            <i
+              aria-hidden="true"
+              className="i-ph:push-pin-bold size-3.5 shrink-0 -rotate-45 text-ant-primary"
+            />
+          ) : null}
         </div>
 
         <ClipboardQuickActions

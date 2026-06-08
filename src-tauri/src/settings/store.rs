@@ -253,6 +253,8 @@ mod tests {
         );
         assert!(!parsed.clipboard.content.delete_favorite_items);
         assert!(parsed.clipboard.content.delete_favorite_confirm);
+        assert!(!parsed.clipboard.content.delete_pinned_items);
+        assert!(parsed.clipboard.content.delete_pinned_confirm);
         assert!(!parsed.clipboard.content.update_on_reuse);
         assert_eq!(parsed.clipboard.history.cleanup_interval_hours, 0);
         assert!(parsed.clipboard.window.scroll_to_top_on_open);

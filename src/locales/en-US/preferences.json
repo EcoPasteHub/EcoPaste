@@ -135,7 +135,7 @@
     "settings": {
       "actions": {
         "deleteConfirm": {
-          "description": "Ask before deleting regular history records. Favorited records use their own switch.",
+          "description": "Ask before deleting regular history records. Favorited and pinned records use their own switches.",
           "title": "Confirm Regular Deletes"
         },
         "deleteFavoriteConfirm": {
@@ -149,6 +149,14 @@
         "deleteFavoriteItemsOnlyInFavoriteGroup": {
           "description": "When on, favorited records hide delete actions outside Favorites; regular records are unaffected.",
           "title": "Delete Favorites Only in Favorites"
+        },
+        "deletePinnedConfirm": {
+          "description": "Ask before deleting pinned records to prevent losing important items.",
+          "title": "Confirm Pinned Deletes"
+        },
+        "deletePinnedItems": {
+          "description": "When off, pinned records hide delete actions and ignore delete shortcuts.",
+          "title": "Allow Pinned Deletes"
         },
         "visible": {
           "controlLabel": "Manage",

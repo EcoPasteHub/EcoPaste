@@ -10,6 +10,8 @@ pub enum ClipboardMenuKey {
     RevealInExplorer,
     Favorite,
     Unfavorite,
+    PinItem,
+    UnpinItem,
     EditNote,
     Delete,
 }

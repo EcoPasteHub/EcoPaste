@@ -135,7 +135,7 @@
     "settings": {
       "actions": {
         "deleteConfirm": {
-          "description": "删除普通历史记录前先弹出确认，收藏记录不受此开关影响。",
+          "description": "删除普通历史记录前先弹出确认，收藏和置顶记录不受此开关影响。",
           "title": "普通条目删除前确认"
         },
         "deleteFavoriteConfirm": {
@@ -149,6 +149,14 @@
         "deleteFavoriteItemsOnlyInFavoriteGroup": {
           "description": "开启后，已收藏记录在其他分组隐藏删除入口；普通记录不受影响。",
           "title": "收藏项仅在收藏分组删除"
+        },
+        "deletePinnedConfirm": {
+          "description": "删除已置顶记录前先弹出确认，避免误删重要内容。",
+          "title": "置顶条目删除前确认"
+        },
+        "deletePinnedItems": {
+          "description": "关闭后，已置顶记录不会显示删除入口，也不会响应删除快捷操作。",
+          "title": "允许删除置顶条目"
         },
         "visible": {
           "controlLabel": "管理",

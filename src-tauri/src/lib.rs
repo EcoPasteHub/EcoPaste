@@ -86,6 +86,7 @@ pub fn run() {
             commands::paste_clipboard_item,
             commands::start_drag_clipboard_item,
             commands::toggle_clipboard_item_favorite,
+            commands::toggle_clipboard_item_pinned,
             commands::delete_clipboard_item,
             commands::update_clipboard_item_note,
             commands::open_clipboard_item_link,

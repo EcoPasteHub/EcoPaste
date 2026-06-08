@@ -24,6 +24,7 @@ interface ClipboardQuickActionsProps {
 interface QuickActionButtonProps {
   action: ItemAction;
   isFavorite: boolean;
+  isPinned: boolean;
   labels: ItemActionLabels;
   onQuickAction: (action: ItemAction) => Promise<void> | void;
   tabIndex: 0 | -1;
@@ -88,6 +89,7 @@ const ClipboardQuickActions: FC<ClipboardQuickActionsProps> = (props) => {
                   <QuickActionButton
                     action={action}
                     isFavorite={item.isFavorite}
+                    isPinned={item.isPinned}
                     labels={labels}
                     onQuickAction={onQuickAction}
                     tabIndex={tabIndex}
@@ -108,14 +110,17 @@ export default ClipboardQuickActions;
  * 单个 hover 快捷动作按钮；按下时阻止事件冒泡，避免触发卡片点击或自动粘贴。
  */
 const QuickActionButton: FC<QuickActionButtonProps> = (props) => {
-  const { action, isFavorite, labels, onQuickAction, tabIndex } = props;
+  const { action, isFavorite, isPinned, labels, onQuickAction, tabIndex } =
+    props;
   const [copied, setCopied] = useState(false);
   const resetTimerRef = useRef<number | null>(null);
   const activeFavorite = action === "star" && isFavorite;
+  const activePinned = action === "pinItem" && isPinned;
   const copyAction = isCopyItemAction(action);
   const presentation = resolveItemActionPresentation(action, labels, {
     copied,
     isFavorite: activeFavorite,
+    isPinned: activePinned,
   });
 
   const stopQuickActionEvent = (event: SyntheticEvent<HTMLButtonElement>) => {
@@ -163,6 +168,7 @@ const QuickActionButton: FC<QuickActionButtonProps> = (props) => {
           "flex size-5 items-center justify-center rounded-1.5 border-0 bg-transparent text-ant-secondary transition-colors hover:bg-ant-fill-tertiary hover:text-ant-text motion-reduce:transition-none",
           {
             "text-ant-error hover:text-ant-error": presentation.danger,
+            "text-ant-primary hover:text-ant-primary": activePinned,
             "text-ant-success hover:text-ant-success": copied,
             "text-ant-warning hover:text-ant-warning": activeFavorite,
           },

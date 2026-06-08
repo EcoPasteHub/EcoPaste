@@ -16,12 +16,14 @@ interface ItemActionMeta {
 
 export type ItemActionLabels = Record<ItemAction, string> & {
   copySuccess: string;
+  pinItemActive: string;
   starActive: string;
 };
 
 export interface ItemActionState {
   copied?: boolean;
   isFavorite?: boolean;
+  isPinned?: boolean;
 }
 
 export interface ItemActionPresentation {
@@ -41,6 +43,7 @@ export const ITEM_ACTION_ORDER: ItemAction[] = [
   "reveal",
   "note",
   "star",
+  "pinItem",
   "delete",
 ];
 
@@ -81,6 +84,11 @@ export const ITEM_ACTION_META: Record<ItemAction, ItemActionMeta> = {
   pastePlain: {
     icon: "i-lucide:clipboard-type",
     labelKey: "quickActions.pastePlain",
+  },
+  pinItem: {
+    activeLabelKey: "quickActions.pinItemActive",
+    icon: "i-ph:push-pin-bold -rotate-45",
+    labelKey: "quickActions.pinItem",
   },
   reveal: {
     icon: "i-lucide:folder-open",
@@ -124,7 +132,7 @@ export function translateItemActionLabel(
     return t(meta.successLabelKey);
   }
 
-  if (state.isFavorite && meta.activeLabelKey) {
+  if ((state.isFavorite || state.isPinned) && meta.activeLabelKey) {
     return t(meta.activeLabelKey);
   }
 
@@ -147,6 +155,9 @@ export function buildItemActionLabels(t: ClipboardTranslator) {
   return {
     ...labels,
     copySuccess: translateItemActionLabel(t, "copy", { copied: true }),
+    pinItemActive: translateItemActionLabel(t, "pinItem", {
+      isPinned: true,
+    }),
     starActive: translateItemActionLabel(t, "star", { isFavorite: true }),
   };
 }
@@ -177,6 +188,8 @@ export function resolveItemActionLabel(
   if (state.copied && isCopyItemAction(action)) return labels.copySuccess;
 
   if (state.isFavorite && action === "star") return labels.starActive;
+
+  if (state.isPinned && action === "pinItem") return labels.pinItemActive;
 
   return labels[action];
 }
@@ -249,6 +262,8 @@ export function isItemActionAvailable(action: ItemAction, item: ClipboardItem) {
       return hasClipboardAction(item, "delete");
     case "note":
       return hasClipboardAction(item, "editNote");
+    case "pinItem":
+      return hasClipboardAction(item, "togglePinned");
     case "star":
       return hasClipboardAction(item, "toggleFavorite");
   }

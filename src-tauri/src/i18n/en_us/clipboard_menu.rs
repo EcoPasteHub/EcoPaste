@@ -13,6 +13,8 @@ pub fn label(key: Key) -> &'static str {
         Key::RevealInExplorer => "Show in Explorer",
         Key::Favorite => "Favorite",
         Key::Unfavorite => "Unfavorite",
+        Key::PinItem => "Pin to Top",
+        Key::UnpinItem => "Unpin from Top",
         Key::EditNote => "Edit Note",
         Key::Delete => "Delete",
     }

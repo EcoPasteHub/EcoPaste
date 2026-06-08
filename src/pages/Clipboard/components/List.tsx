@@ -7,7 +7,11 @@ import type {
 } from "react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
+import {
+  type TopItemListProps,
+  Virtuoso,
+  type VirtuosoHandle,
+} from "react-virtuoso";
 import { useSnapshot } from "valtio";
 import {
   deleteClipboardItem,
@@ -15,6 +19,7 @@ import {
   pasteClipboardItem,
   revealClipboardItem,
   toggleClipboardItemFavorite,
+  toggleClipboardItemPinned,
   writeToClipboard,
 } from "@/commands";
 import { TAURI_EVENT } from "@/constants/events";
@@ -26,7 +31,11 @@ import { useTauriListen } from "@/hooks/useTauriListen";
 import { clipboardStatsState } from "@/stores/clipboardStats";
 import { clipboardViewState } from "@/stores/clipboardView";
 import { settingsState } from "@/stores/settings";
-import type { ClipboardAction, ClipboardItem } from "@/types/clipboard";
+import type {
+  ClipboardAction,
+  ClipboardItem,
+  ClipboardItemSort,
+} from "@/types/clipboard";
 import type { ItemAction } from "@/types/settings";
 import { cn } from "@/utils/cn";
 import { isMac } from "@/utils/is";
@@ -74,6 +83,7 @@ const List: FC = () => {
   const sort = settings.clipboard.content.sort;
   const quickActions = settings.clipboard.content.itemActions;
   const deleteFavoriteItems = settings.clipboard.content.deleteFavoriteItems;
+  const deletePinnedItems = settings.clipboard.content.deletePinnedItems;
   const deleteFavoriteItemsOnlyInFavoriteGroup =
     settings.clipboard.content.deleteFavoriteItemsOnlyInFavoriteGroup;
   const { fileMaxCount } = display;
@@ -82,6 +92,7 @@ const List: FC = () => {
   const { data, loading, loadingMore, loadMore, noMore, reload, mutate } =
     useClipboardItems({ ...snapshot, sort });
   const items = data?.list ?? [];
+  const topItemCount = countLeadingPinnedItems(items);
   const {
     closeHoverPreviewForScroll,
     closePreview,
@@ -205,9 +216,12 @@ const List: FC = () => {
 
     mutate({
       ...data,
-      list: data.list.map((item) => {
-        return item.id === id ? { ...item, ...patch } : item;
-      }),
+      list: sortClipboardItemsForView(
+        data.list.map((item) => {
+          return item.id === id ? { ...item, ...patch } : item;
+        }),
+        sort,
+      ),
     });
   };
 
@@ -280,7 +294,11 @@ const List: FC = () => {
 
     if (previewSession?.itemId === id) closePreview("delete");
 
-    const deleted = await deleteClipboardItem(id, target.isFavorite);
+    const deleted = await deleteClipboardItem(
+      id,
+      target.isFavorite,
+      target.isPinned,
+    );
 
     if (!deleted) return;
 
@@ -293,13 +311,30 @@ const List: FC = () => {
    * Rust 返回真实状态后走统一的 `handleFavoriteToggled`（favorite 分组内取消会移除）。
    */
   const handleShortcutToggleFavorite = async (id: string) => {
-    const current = items.find((item) => item.id === id);
+    const current = items.find((item) => {
+      return item.id === id;
+    });
 
     if (!current) return;
 
     const next = await toggleClipboardItemFavorite(id, !current.isFavorite);
 
     handleFavoriteToggled(id, next);
+  };
+
+  /**
+   * 切换条目置顶态；后端排序规则是置顶恒前置，本地镜像同步后按同规则重排。
+   */
+  const handleTogglePinned = async (id: string) => {
+    const current = items.find((item) => {
+      return item.id === id;
+    });
+
+    if (!current) return;
+
+    const next = await toggleClipboardItemPinned(id, !current.isPinned);
+
+    patchItem(id, { isPinned: next });
   };
 
   /**
@@ -345,6 +380,9 @@ const List: FC = () => {
         return;
       case "toggleFavorite":
         handleShortcutToggleFavorite(target.id);
+        return;
+      case "togglePinned":
+        handleTogglePinned(target.id);
         return;
       case "editNote":
         if (previewSession?.itemId === target.id) closePreview("editNote");
@@ -525,13 +563,14 @@ const List: FC = () => {
     >
       <Virtuoso
         atTopStateChange={handleAtTopStateChange}
-        components={{ Footer: renderFooter }}
+        components={{ Footer: renderFooter, TopItemList }}
         computeItemKey={computeItemKey}
         data={items}
         endReached={handleEndReached}
         itemContent={renderItemContent}
         rangeChanged={handleRangeChanged}
         ref={virtuosoRef}
+        topItemCount={topItemCount}
       />
 
       {pendingCount > 0 && !isAtTop && (
@@ -626,6 +665,9 @@ const List: FC = () => {
         case "note":
           if (previewSession?.itemId === item.id) closePreview("quickNote");
           setNoteTarget(item);
+          return;
+        case "pinItem":
+          await handleTogglePinned(item.id);
           return;
         case "star":
           await handleShortcutToggleFavorite(item.id);
@@ -753,9 +795,11 @@ const List: FC = () => {
   }
 
   /**
-   * 判断当前条目是否允许删除：普通条目始终允许；已收藏条目先受总开关保护。
+   * 判断当前条目是否允许删除：收藏 / 置顶条目分别受各自保护开关约束。
    */
   function canDeleteItem(item: ClipboardItem) {
+    if (item.isPinned && !deletePinnedItems) return false;
+
     if (!item.isFavorite) return true;
 
     if (!deleteFavoriteItems) return false;
@@ -812,7 +856,7 @@ function getNextKeyboardIndex(
 }
 
 /**
- * 按条目收藏保护规则过滤右键菜单动作，避免收藏项在其它分组出现删除入口。
+ * 按条目保护规则过滤右键菜单动作，避免受保护项出现删除入口。
  */
 function getAllowedClipboardActions(
   actions: ClipboardAction[] | undefined,
@@ -827,7 +871,7 @@ function getAllowedClipboardActions(
 }
 
 /**
- * 按条目收藏保护规则过滤悬停快捷动作，避免收藏项在其它分组出现删除按钮。
+ * 按条目保护规则过滤悬停快捷动作，避免受保护项出现删除按钮。
  */
 function getAllowedItemActions(
   actions: readonly ItemAction[],
@@ -868,5 +912,55 @@ function getSelectedIdAfterDelete(
 const computeItemKey = (_: number, item: ClipboardItem) => {
   return item.id;
 };
+
+/**
+ * Virtuoso 的置顶项会 sticky 覆盖滚动内容；这里补实底色避免下方条目透出。
+ */
+const TopItemList: FC<TopItemListProps> = (props) => {
+  const { children, style } = props;
+
+  return (
+    <div className="relative z-10 bg-ant-container" style={style}>
+      {children}
+    </div>
+  );
+};
+
+/**
+ * 统计当前已加载页开头连续置顶条目数，供 Virtuoso sticky top items 使用。
+ */
+function countLeadingPinnedItems(items: ClipboardItem[]) {
+  let count = 0;
+
+  for (const item of items) {
+    if (!item.isPinned) break;
+
+    count += 1;
+  }
+
+  return count;
+}
+
+/**
+ * 按 Rust 查询层同款规则重排本地镜像：置顶恒前置，组内按当前 sort 下降。
+ */
+function sortClipboardItemsForView(
+  items: ClipboardItem[],
+  sort: ClipboardItemSort,
+) {
+  return [...items].sort((left, right) => {
+    if (left.isPinned !== right.isPinned) {
+      return left.isPinned ? -1 : 1;
+    }
+
+    if (sort === "useCountDesc") {
+      return right.useCount - left.useCount;
+    }
+
+    const key = sort === "createdAtDesc" ? "createdAt" : "updatedAt";
+
+    return right[key].localeCompare(left[key]);
+  });
+}
 
 export default List;

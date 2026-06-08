@@ -291,12 +291,16 @@ pub struct Content {
     pub paste_files_as_path: bool,
     /// 鼠标悬停时显示原始内容预览（HTML/RTF 渲染前的原文）。
     pub show_original_preview: bool,
-    /// 删除普通条目前是否需要二次确认；收藏条目由 `delete_favorite_confirm` 单独控制。
+    /// 删除普通条目前是否需要二次确认；收藏 / 置顶条目由各自确认开关单独控制。
     pub delete_confirm: bool,
     /// 是否允许删除收藏条目；关闭时收藏条目不显示删除入口。
     pub delete_favorite_items: bool,
     /// 删除收藏条目前是否需要二次确认。
     pub delete_favorite_confirm: bool,
+    /// 是否允许删除置顶条目；关闭时置顶条目不显示删除入口。
+    pub delete_pinned_items: bool,
+    /// 删除置顶条目前是否需要二次确认。
+    pub delete_pinned_confirm: bool,
     /// 开启后已收藏条目仅能在收藏分组删除，普通条目不受影响。
     pub delete_favorite_items_only_in_favorite_group: bool,
     pub auto_favorite: bool,
@@ -323,11 +327,18 @@ impl Default for Content {
             delete_confirm: true,
             delete_favorite_items: false,
             delete_favorite_confirm: true,
+            delete_pinned_items: false,
+            delete_pinned_confirm: true,
             delete_favorite_items_only_in_favorite_group: true,
             auto_favorite: false,
             update_on_reuse: false,
             sort: ClipboardItemSort::UpdatedAt,
-            item_actions: vec![ItemAction::Copy, ItemAction::Star, ItemAction::Delete],
+            item_actions: vec![
+                ItemAction::Copy,
+                ItemAction::Star,
+                ItemAction::PinItem,
+                ItemAction::Delete,
+            ],
             item_action_order: vec![
                 ItemAction::Paste,
                 ItemAction::PastePlain,
@@ -339,6 +350,7 @@ impl Default for Content {
                 ItemAction::Reveal,
                 ItemAction::Note,
                 ItemAction::Star,
+                ItemAction::PinItem,
                 ItemAction::Delete,
             ],
         }
@@ -411,6 +423,7 @@ pub enum ItemAction {
     Reveal,
     Note,
     Star,
+    PinItem,
     Delete,
 }
 

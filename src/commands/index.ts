@@ -618,13 +618,37 @@ export const toggleClipboardItemFavorite = async (
 };
 
 /**
+ * 翻转置顶态；`pinned` 表示本次期望的新状态，用于失败 toast 文案。
+ * Rust 返回翻转后的真实状态，调用方据此同步 UI 和列表排序。
+ */
+export const toggleClipboardItemPinned = async (
+  id: string,
+  pinned: boolean,
+) => {
+  const next = await call<boolean>(
+    TAURI_COMMAND.TOGGLE_CLIPBOARD_ITEM_PINNED,
+    pinned ? "commands:labels.pinItem" : "commands:labels.unpinItem",
+    { id },
+  );
+
+  message.success(
+    i18n.t(
+      next ? "commands:messages.itemPinned" : "commands:messages.itemUnpinned",
+    ),
+  );
+
+  return next;
+};
+
+/**
  * 删除条目；命令**不**广播 `clipboard://updated`，调用方需根据返回值本地移除该项。
- * 普通条目与收藏条目分别读取对应确认开关；用户取消则 resolve false 且不调 Rust。
+ * 普通条目、收藏条目与置顶条目分别读取对应保护 / 确认开关。
  * 成功后统一 toast「已删除」。
  */
 export const deleteClipboardItem = async (
   id: string,
   isFavorite: boolean,
+  isPinned: boolean,
 ): Promise<boolean> => {
   const contentSettings = settingsState.clipboard?.content;
 
@@ -632,9 +656,14 @@ export const deleteClipboardItem = async (
     return false;
   }
 
-  const needConfirm = isFavorite
-    ? (contentSettings?.deleteFavoriteConfirm ?? true)
-    : (contentSettings?.deleteConfirm ?? true);
+  if (isPinned && !(contentSettings?.deletePinnedItems ?? false)) {
+    return false;
+  }
+
+  const needConfirm =
+    (isFavorite && (contentSettings?.deleteFavoriteConfirm ?? true)) ||
+    (isPinned && (contentSettings?.deletePinnedConfirm ?? true)) ||
+    (!isFavorite && !isPinned && (contentSettings?.deleteConfirm ?? true));
 
   if (needConfirm) {
     const ok = await new Promise<boolean>((resolve) => {
@@ -814,6 +843,7 @@ export const popupClipboardItemMenu = (
   itemId: string,
   availableActions: ClipboardAction[],
   isFavorite: boolean,
+  isPinned: boolean,
 ) => {
   return call<void>(
     TAURI_COMMAND.POPUP_CLIPBOARD_ITEM_MENU,
@@ -821,6 +851,7 @@ export const popupClipboardItemMenu = (
     {
       availableActions,
       isFavorite,
+      isPinned,
       itemId,
     },
   );
