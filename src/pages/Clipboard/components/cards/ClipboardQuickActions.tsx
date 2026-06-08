@@ -24,6 +24,7 @@ interface ClipboardQuickActionsProps {
 interface QuickActionButtonProps {
   action: ItemAction;
   isFavorite: boolean;
+  hasNote: boolean;
   isPinned: boolean;
   labels: ItemActionLabels;
   onQuickAction: (action: ItemAction) => Promise<void> | void;
@@ -88,6 +89,7 @@ const ClipboardQuickActions: FC<ClipboardQuickActionsProps> = (props) => {
                 >
                   <QuickActionButton
                     action={action}
+                    hasNote={Boolean(item.note)}
                     isFavorite={item.isFavorite}
                     isPinned={item.isPinned}
                     labels={labels}
@@ -110,12 +112,21 @@ export default ClipboardQuickActions;
  * 单个 hover 快捷动作按钮；按下时阻止事件冒泡，避免触发卡片点击或自动粘贴。
  */
 const QuickActionButton: FC<QuickActionButtonProps> = (props) => {
-  const { action, isFavorite, isPinned, labels, onQuickAction, tabIndex } =
-    props;
+  const {
+    action,
+    hasNote,
+    isFavorite,
+    isPinned,
+    labels,
+    onQuickAction,
+    tabIndex,
+  } = props;
   const [copied, setCopied] = useState(false);
   const resetTimerRef = useRef<number | null>(null);
   const activeFavorite = action === "star" && isFavorite;
+  const activeNote = action === "note" && hasNote;
   const activePinned = action === "pinItem" && isPinned;
+  const activePrimary = activeNote || activePinned;
   const copyAction = isCopyItemAction(action);
   const presentation = resolveItemActionPresentation(action, labels, {
     copied,
@@ -168,7 +179,7 @@ const QuickActionButton: FC<QuickActionButtonProps> = (props) => {
           "flex size-5 items-center justify-center rounded-1.5 border-0 bg-transparent text-ant-secondary transition-colors hover:bg-ant-fill-tertiary hover:text-ant-text motion-reduce:transition-none",
           {
             "text-ant-error hover:text-ant-error": presentation.danger,
-            "text-ant-primary hover:text-ant-primary": activePinned,
+            "text-ant-primary hover:text-ant-primary": activePrimary,
             "text-ant-success hover:text-ant-success": copied,
             "text-ant-warning hover:text-ant-warning": activeFavorite,
           },

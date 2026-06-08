@@ -187,6 +187,10 @@
           "description": "跟随系统的减少动态效果设置，降低动画强度。",
           "title": "减少动画"
         },
+        "showOriginalPreview": {
+          "description": "有备注的记录默认显示备注，鼠标移入卡片时临时显示原始内容。",
+          "title": "悬停显示原始内容"
+        },
         "textMaxLines": {
           "description": "限制文本记录在列表卡片中最多显示的行数。",
           "title": "文本内容最大显示行数"

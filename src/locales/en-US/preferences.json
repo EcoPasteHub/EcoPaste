@@ -187,6 +187,10 @@
           "description": "Follow the system reduced-motion preference to reduce animation intensity.",
           "title": "Reduce Motion"
         },
+        "showOriginalPreview": {
+          "description": "Records with notes show the note by default, then temporarily reveal original content when hovering over the card.",
+          "title": "Show Original on Hover"
+        },
         "textMaxLines": {
           "description": "Limit how many lines are shown in each text record card.",
           "title": "Maximum Text Lines"

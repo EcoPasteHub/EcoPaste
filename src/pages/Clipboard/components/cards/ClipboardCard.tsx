@@ -11,6 +11,7 @@ import { cn } from "@/utils/cn";
 import ClipboardQuickActions from "./ClipboardQuickActions";
 import FilesCard from "./FilesCard";
 import ImageCard from "./ImageCard";
+import NoteContentSwitcher from "./NoteContentSwitcher";
 import TextCard from "./TextCard";
 
 interface ClipboardCardProps {
@@ -43,6 +44,7 @@ interface ClipboardCardProps {
   quickActions?: ItemAction[];
   quickActionLabels?: ItemActionLabels;
   onQuickAction?: (action: ItemAction) => Promise<void> | void;
+  showOriginalOnHover?: boolean;
   rootRef?: Ref<HTMLDivElement>;
 }
 
@@ -70,6 +72,7 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
     quickActions = [],
     quickActionLabels,
     onQuickAction,
+    showOriginalOnHover = true,
     rootRef,
   } = props;
   const { kind, subKind, sourceAppIconPath, sourceAppName } = item;
@@ -77,6 +80,7 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
   const [hovered, setHovered] = useState(false);
   const typeKey = subKind ?? kind;
   const typeLabel = t(`types.${typeKey}`);
+  const body = renderBody(item, isLinkActive, onOpenLink);
 
   const handleDragStart = async (event: DragEvent) => {
     event.preventDefault();
@@ -164,7 +168,16 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
         />
       </div>
 
-      {renderBody(item, isLinkActive, onOpenLink)}
+      {item.note ? (
+        <NoteContentSwitcher
+          note={item.note}
+          showOriginal={showOriginalOnHover && hovered}
+        >
+          {body}
+        </NoteContentSwitcher>
+      ) : (
+        body
+      )}
     </div>
   );
 };

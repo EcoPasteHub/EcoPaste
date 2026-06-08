@@ -87,6 +87,7 @@ const List: FC = () => {
   const deleteFavoriteItemsOnlyInFavoriteGroup =
     settings.clipboard.content.deleteFavoriteItemsOnlyInFavoriteGroup;
   const { fileMaxCount } = display;
+  const showOriginalPreview = settings.clipboard.content.showOriginalPreview;
   const quickActionLabels = buildItemActionLabels(t);
 
   const { data, loading, loadingMore, loadMore, noMore, reload, mutate } =
@@ -647,6 +648,11 @@ const List: FC = () => {
       openClipboardItemLink(item.id, item.subKind === "email");
     };
 
+    const handleEditNote = () => {
+      if (previewSession?.itemId === item.id) closePreview("editNote");
+      setNoteTarget(item);
+    };
+
     const handleQuickAction = async (action: ItemAction) => {
       if (action === "delete" && !canDeleteItem(item)) return;
 
@@ -690,8 +696,7 @@ const List: FC = () => {
           await revealClipboardItem(item.id);
           return;
         case "note":
-          if (previewSession?.itemId === item.id) closePreview("quickNote");
-          setNoteTarget(item);
+          handleEditNote();
           return;
         case "pinItem":
           await handleTogglePinned(item.id);
@@ -807,6 +812,7 @@ const List: FC = () => {
           quickActionLabels={quickActionLabels}
           quickActions={visibleQuickActions}
           rootRef={registerItemElement(item.id)}
+          showOriginalOnHover={showOriginalPreview}
         />
       </div>
     );

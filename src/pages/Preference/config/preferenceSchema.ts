@@ -529,6 +529,15 @@ export const preferenceTabs: PreferenceTab[] = [
             },
           },
           {
+            control: { type: "switch" },
+            id: "appearance.showOriginalPreview",
+            keywords: ["note", "hover", "original", "preview"],
+            path: ["clipboard", "content", "showOriginalPreview"],
+            value: (settings) => {
+              return settings.clipboard.content.showOriginalPreview;
+            },
+          },
+          {
             control: { max: 100, min: 20, suffixKey: "px", type: "number" },
             id: "appearance.imageMaxHeight",
             keywords: ["density", "image", "height", "thumbnail"],

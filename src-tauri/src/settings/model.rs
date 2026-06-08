@@ -348,7 +348,7 @@ impl Default for Content {
             copy_then_hide_window: false,
             paste_plain: false,
             paste_files_as_path: false,
-            show_original_preview: false,
+            show_original_preview: true,
             delete_confirm: true,
             delete_favorite_items: false,
             delete_favorite_confirm: true,
