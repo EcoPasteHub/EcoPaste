@@ -7,6 +7,7 @@ import { WINDOW_LABEL } from "@/constants/windows";
 import { useTauriListen } from "@/hooks/useTauriListen";
 import type { ClipboardAction } from "@/types/clipboard";
 import { cn } from "@/utils/cn";
+import { formatShortcutDisplay } from "@/utils/shortcut";
 
 /**
  * Rust `menu::context_window::ContextMenuShowPayload` 的前端镜像。
@@ -23,18 +24,6 @@ interface ShowPayload {
     }>
   >;
 }
-
-/**
- * 把 Tauri 加速键写法 `"CmdOrCtrl+Enter"` 翻译为 Windows 文案 `"Ctrl + Enter"`。
- * 本窗口只在 Windows 出现，直接硬编码 Ctrl。
- */
-const formatAccelerator = (raw: string) => {
-  return raw
-    .replace(/CmdOrCtrl/g, "Ctrl")
-    .replace(/Cmd/g, "Ctrl")
-    .replace(/Backspace/g, "⌫")
-    .replace(/\+/g, " + ");
-};
 
 /**
  * Windows 自定义右键菜单页（路由 `/context-menu`，仅在 Windows 由 Rust 端建窗加载）。
@@ -123,7 +112,7 @@ const ContextMenuItem: FC<ContextMenuItemProps> = (props) => {
       <span className="truncate">{label}</span>
       {accelerator && (
         <span className="ml-3 whitespace-nowrap text-ant-description text-xs">
-          {formatAccelerator(accelerator)}
+          {formatShortcutDisplay(accelerator)}
         </span>
       )}
     </button>

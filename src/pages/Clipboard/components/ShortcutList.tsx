@@ -1,11 +1,11 @@
 import type { FC, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { isMac } from "@/utils/is";
+import { getShortcutKeyDisplays, type ShortcutPattern } from "@/utils/shortcut";
 
 interface Shortcut {
   labelKey: string;
   /** 按下顺序排列的按键，每个元素渲染为一个 kbd 徽标。 */
-  keys: ReactNode[];
+  keys: ShortcutPattern;
 }
 
 /**
@@ -21,23 +21,16 @@ const Kbd: FC<{ children: ReactNode }> = (props) => {
   );
 };
 
-/** 平台修饰键符号：macOS 用 ⌘，Windows 用文字。 */
-const MOD = isMac ? "⌘" : "Ctrl";
-const ENTER = isMac ? "⏎" : "Enter";
-const BACKSPACE = "⌫";
-const UP = "↑";
-const DOWN = "↓";
-
 const SHORTCUTS: Shortcut[] = [
-  { keys: [ENTER], labelKey: "shortcuts.pasteSelected" },
-  { keys: [MOD, ENTER], labelKey: "shortcuts.pasteSelectedPlain" },
-  { keys: [MOD, BACKSPACE], labelKey: "shortcuts.deleteSelected" },
-  { keys: [MOD, "D"], labelKey: "shortcuts.favoriteSelected" },
-  { keys: [UP, "/", DOWN], labelKey: "shortcuts.navigate" },
-  { keys: [MOD, "N"], labelKey: "shortcuts.pasteNth" },
-  { keys: [MOD, "F"], labelKey: "shortcuts.focusSearch" },
-  { keys: [MOD, "P"], labelKey: "shortcuts.pinWindow" },
-  { keys: [MOD, ","], labelKey: "shortcuts.openPreference" },
+  { keys: "Enter", labelKey: "shortcuts.pasteSelected" },
+  { keys: "CmdOrCtrl+Enter", labelKey: "shortcuts.pasteSelectedPlain" },
+  { keys: "CmdOrCtrl+Backspace", labelKey: "shortcuts.deleteSelected" },
+  { keys: "CmdOrCtrl+D", labelKey: "shortcuts.favoriteSelected" },
+  { keys: ["ArrowUp", "/", "ArrowDown"], labelKey: "shortcuts.navigate" },
+  { keys: "CmdOrCtrl+N", labelKey: "shortcuts.pasteNth" },
+  { keys: "CmdOrCtrl+F", labelKey: "shortcuts.focusSearch" },
+  { keys: "CmdOrCtrl+P", labelKey: "shortcuts.pinWindow" },
+  { keys: "CmdOrCtrl+,", labelKey: "shortcuts.openPreference" },
 ];
 
 // 暂未实现但占位，方便后续补齐（注释提示，不渲染）：
@@ -60,7 +53,7 @@ const ShortcutList: FC = () => {
           <span className="text-sm">{t(item.labelKey)}</span>
 
           <div className="flex items-center gap-1">
-            {item.keys.map((key, index) => (
+            {getShortcutKeyDisplays(item.keys).map((key, index) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: 静态序列且不会重排
               <Kbd key={index}>{key}</Kbd>
             ))}
