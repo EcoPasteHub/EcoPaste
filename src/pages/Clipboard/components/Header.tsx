@@ -176,7 +176,7 @@ const Header: FC = () => {
 
   return (
     <div
-      className="flex items-center justify-between p-3"
+      className="flex items-center justify-between p-3 pb-2"
       data-tauri-drag-region
     >
       <img alt={t("header.logoAlt")} className="size-5" src="/logo.png" />

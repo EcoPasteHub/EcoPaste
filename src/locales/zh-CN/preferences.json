@@ -389,7 +389,7 @@
       },
       "paste": {
         "autoPaste": {
-          "description": "选择左键点击历史记录时执行的动作。",
+          "description": "选择鼠标左键点击历史记录时执行的动作。",
           "options": {
             "disabled": "禁用",
             "doubleClickCopy": "双击复制",
@@ -397,14 +397,14 @@
             "singleClickCopy": "单击复制",
             "singleClickPaste": "单击粘贴"
           },
-          "title": "左键点击"
+          "title": "鼠标左键"
         },
         "fileMode": {
           "description": "粘贴文件记录时默认不粘贴文件本身，只粘贴文件路径。",
           "title": "默认文件路径粘贴"
         },
         "middleClick": {
-          "description": "选择中键点击历史记录时执行的动作。",
+          "description": "选择鼠标中键点击历史记录时执行的动作。",
           "options": {
             "disabled": "禁用",
             "singleClickCopy": "复制",
@@ -412,7 +412,7 @@
             "singleClickPaste": "粘贴",
             "singleClickPastePlain": "粘贴为纯文本"
           },
-          "title": "中键点击"
+          "title": "鼠标中键"
         },
         "plainDefault": {
           "description": "粘贴文本记录时默认去除 HTML/RTF 等格式，只粘贴纯文本。",

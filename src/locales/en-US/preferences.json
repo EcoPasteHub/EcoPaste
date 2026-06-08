@@ -389,7 +389,7 @@
       },
       "paste": {
         "autoPaste": {
-          "description": "Choose what happens when left-clicking a history record.",
+          "description": "Choose what happens when clicking a history record with the left mouse button.",
           "options": {
             "disabled": "Disabled",
             "doubleClickCopy": "Double-click to copy",
@@ -397,14 +397,14 @@
             "singleClickCopy": "Single-click to copy",
             "singleClickPaste": "Single-click to paste"
           },
-          "title": "Left Click"
+          "title": "Left Mouse Button"
         },
         "fileMode": {
           "description": "When pasting file records, paste file paths by default instead of the files themselves.",
           "title": "Paste File Paths by Default"
         },
         "middleClick": {
-          "description": "Choose what happens when middle-clicking a history record.",
+          "description": "Choose what happens when clicking a history record with the middle mouse button.",
           "options": {
             "disabled": "Disabled",
             "singleClickCopy": "Copy",
@@ -412,7 +412,7 @@
             "singleClickPaste": "Paste",
             "singleClickPastePlain": "Paste as Plain Text"
           },
-          "title": "Middle Click"
+          "title": "Middle Mouse Button"
         },
         "plainDefault": {
           "description": "When pasting text records, strip HTML/RTF formatting and paste plain text by default.",

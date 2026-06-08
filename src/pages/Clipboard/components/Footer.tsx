@@ -26,7 +26,7 @@ const Footer = () => {
   };
 
   return (
-    <div className="flex items-center justify-between p-3">
+    <div className="flex items-center justify-between px-3 py-1">
       <span className="text-ant-tertiary text-xs">
         {t("footer.total", { count: total ?? 0 })}
       </span>
