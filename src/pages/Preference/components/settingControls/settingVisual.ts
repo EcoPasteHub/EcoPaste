@@ -7,6 +7,7 @@ interface SettingVisual {
 const SETTING_ICON_MAP: Record<string, string> = {
   "actions.deleteConfirm": "i-lucide:trash-2",
   "actions.deleteFavoriteConfirm": "i-lucide:shield-alert",
+  "actions.deleteFavoriteItems": "i-lucide:star-off",
   "actions.deleteFavoriteItemsOnlyInFavoriteGroup": "i-lucide:shield-check",
   "actions.visible": "i-lucide:square-mouse-pointer",
   "appearance.fileMaxCount": "i-lucide:files",

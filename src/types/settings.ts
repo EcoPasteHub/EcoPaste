@@ -86,6 +86,7 @@ export interface Content {
   pasteFilesAsPath: boolean;
   showOriginalPreview: boolean;
   deleteConfirm: boolean;
+  deleteFavoriteItems: boolean;
   deleteFavoriteConfirm: boolean;
   deleteFavoriteItemsOnlyInFavoriteGroup: boolean;
   autoFavorite: boolean;

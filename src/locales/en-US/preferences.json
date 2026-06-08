@@ -142,6 +142,10 @@
           "description": "Ask before deleting favorited records to prevent losing important items.",
           "title": "Confirm Favorite Deletes"
         },
+        "deleteFavoriteItems": {
+          "description": "When off, favorited records hide delete actions and ignore delete shortcuts.",
+          "title": "Allow Favorite Deletes"
+        },
         "deleteFavoriteItemsOnlyInFavoriteGroup": {
           "description": "When on, favorited records hide delete actions outside Favorites; regular records are unaffected.",
           "title": "Delete Favorites Only in Favorites"

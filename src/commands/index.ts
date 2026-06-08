@@ -627,6 +627,11 @@ export const deleteClipboardItem = async (
   isFavorite: boolean,
 ): Promise<boolean> => {
   const contentSettings = settingsState.clipboard?.content;
+
+  if (isFavorite && !(contentSettings?.deleteFavoriteItems ?? false)) {
+    return false;
+  }
+
   const needConfirm = isFavorite
     ? (contentSettings?.deleteFavoriteConfirm ?? true)
     : (contentSettings?.deleteConfirm ?? true);

@@ -73,6 +73,7 @@ const List: FC = () => {
   const display = settings.clipboard.display;
   const sort = settings.clipboard.content.sort;
   const quickActions = settings.clipboard.content.itemActions;
+  const deleteFavoriteItems = settings.clipboard.content.deleteFavoriteItems;
   const deleteFavoriteItemsOnlyInFavoriteGroup =
     settings.clipboard.content.deleteFavoriteItemsOnlyInFavoriteGroup;
   const { fileMaxCount } = display;
@@ -752,12 +753,14 @@ const List: FC = () => {
   }
 
   /**
-   * 判断当前条目是否允许删除：普通条目始终允许；已收藏条目受收藏分组保护。
+   * 判断当前条目是否允许删除：普通条目始终允许；已收藏条目先受总开关保护。
    */
   function canDeleteItem(item: ClipboardItem) {
-    if (!deleteFavoriteItemsOnlyInFavoriteGroup) return true;
-
     if (!item.isFavorite) return true;
+
+    if (!deleteFavoriteItems) return false;
+
+    if (!deleteFavoriteItemsOnlyInFavoriteGroup) return true;
 
     return group === "favorite";
   }

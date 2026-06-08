@@ -293,6 +293,8 @@ pub struct Content {
     pub show_original_preview: bool,
     /// 删除普通条目前是否需要二次确认；收藏条目由 `delete_favorite_confirm` 单独控制。
     pub delete_confirm: bool,
+    /// 是否允许删除收藏条目；关闭时收藏条目不显示删除入口。
+    pub delete_favorite_items: bool,
     /// 删除收藏条目前是否需要二次确认。
     pub delete_favorite_confirm: bool,
     /// 开启后已收藏条目仅能在收藏分组删除，普通条目不受影响。
@@ -319,6 +321,7 @@ impl Default for Content {
             paste_files_as_path: false,
             show_original_preview: false,
             delete_confirm: true,
+            delete_favorite_items: false,
             delete_favorite_confirm: true,
             delete_favorite_items_only_in_favorite_group: true,
             auto_favorite: false,
