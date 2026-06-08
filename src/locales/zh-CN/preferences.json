@@ -187,6 +187,10 @@
           "description": "跟随系统的减少动态效果设置，降低动画强度。",
           "title": "减少动画"
         },
+        "showNewBadge": {
+          "description": "离开列表顶部时，在分组按钮上显示待查看的新记录数量。",
+          "title": "显示新记录角标"
+        },
         "showOriginalPreview": {
           "description": "有备注的记录默认显示备注，鼠标移入卡片时临时显示原始内容。",
           "title": "悬停显示原始内容"

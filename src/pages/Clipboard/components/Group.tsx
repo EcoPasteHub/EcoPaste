@@ -1,8 +1,16 @@
+import { Badge } from "antd";
 import type { FC, MouseEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useSnapshot } from "valtio";
 import { useKeyboardEvent } from "@/hooks/useKeyboardEvent";
+import {
+  clipboardPendingState,
+  getClipboardPendingCount,
+  hasClipboardPendingForGroup,
+  requestClipboardPendingRefresh,
+} from "@/stores/clipboardPending";
 import { clipboardViewState } from "@/stores/clipboardView";
+import { settingsState } from "@/stores/settings";
 import type { ClipboardGroup } from "@/types/clipboard";
 import { cn } from "@/utils/cn";
 
@@ -28,6 +36,12 @@ const GROUP_OPTIONS: GroupOption[] = [
   },
 ];
 
+interface GroupLabelProps {
+  count: number;
+  icon: string;
+  label: string;
+}
+
 /**
  * Header 下方的分组筛选栏：全部 / 文本 / 图片 / 文件 / 收藏，点击后写入 store，
  * List 监听 store 变化并重新查询。
@@ -35,11 +49,18 @@ const GROUP_OPTIONS: GroupOption[] = [
 const Group: FC = () => {
   const { t } = useTranslation("clipboard");
   const { group } = useSnapshot(clipboardViewState);
+  useSnapshot(clipboardPendingState);
+  const settings = useSnapshot(settingsState);
+  const showNewBadge = settings.clipboard.display.showNewBadge;
 
   const handleGroupClick = (e: MouseEvent<HTMLButtonElement>) => {
     const value = e.currentTarget.dataset.value as ClipboardGroup;
 
     clipboardViewState.group = value;
+
+    if (hasClipboardPendingForGroup(value)) {
+      requestClipboardPendingRefresh(value);
+    }
   };
 
   const handleKeyDown = (e: KeyboardEvent) => {
@@ -54,31 +75,58 @@ const Group: FC = () => {
       : (current + 1) % values.length;
 
     clipboardViewState.group = values[next];
+
+    if (hasClipboardPendingForGroup(values[next])) {
+      requestClipboardPendingRefresh(values[next]);
+    }
   };
 
   useKeyboardEvent("keydown", handleKeyDown);
 
   return (
     <div className="flex items-center gap-1 px-3 pb-2" data-tauri-drag-region>
-      {GROUP_OPTIONS.map(({ labelKey, value, icon }) => (
-        <button
-          className={cn(
-            "flex cursor-pointer items-center gap-1 rounded-full px-2.5 py-1 text-xs transition-colors",
-            {
-              "bg-ant-primary text-ant-light-solid": group === value,
-              "text-ant-secondary hover:bg-ant-fill-tertiary": group !== value,
-            },
-          )}
-          data-value={value}
-          key={value}
-          onClick={handleGroupClick}
-          type="button"
-        >
-          <span className={cn(icon, "size-3.5")} />
-          {t(labelKey)}
-        </button>
-      ))}
+      {GROUP_OPTIONS.map(({ labelKey, value, icon }) => {
+        const count = showNewBadge ? getClipboardPendingCount(value) : 0;
+
+        return (
+          <button
+            className={cn(
+              "flex cursor-pointer items-center gap-1 rounded-full px-2.5 py-1 text-xs transition-colors",
+              {
+                "bg-ant-primary text-ant-light-solid": group === value,
+                "text-ant-secondary hover:bg-ant-fill-tertiary":
+                  group !== value,
+              },
+            )}
+            data-value={value}
+            key={value}
+            onClick={handleGroupClick}
+            type="button"
+          >
+            <GroupLabel count={count} icon={icon} label={t(labelKey)} />
+          </button>
+        );
+      })}
     </div>
+  );
+};
+
+/**
+ * 分组按钮内部内容：保持原始横向排版，仅把 Badge 绝对定位到内容右上角。
+ */
+const GroupLabel: FC<GroupLabelProps> = (props) => {
+  const { count, icon, label } = props;
+
+  return (
+    <span className="relative inline-flex items-center gap-1 whitespace-nowrap">
+      <span className={cn(icon, "size-3.5")} />
+      <span>{label}</span>
+      <Badge
+        className="pointer-events-none absolute -top-2 -right-2"
+        count={count}
+        size="small"
+      />
+    </span>
   );
 };
 

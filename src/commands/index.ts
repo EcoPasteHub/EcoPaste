@@ -705,7 +705,10 @@ export const clearClipboardItems = async (): Promise<boolean> => {
   const removed = await call<number>(
     TAURI_COMMAND.CLEAR_CLIPBOARD_ITEMS,
     "commands:labels.clearClipboardItems",
-    options,
+    {
+      deleteFavorites: options.deleteFavorites,
+      deletePinned: options.deletePinned,
+    },
   );
 
   message.success(

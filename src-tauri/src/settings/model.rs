@@ -392,6 +392,8 @@ pub struct Display {
     pub image_max_height: u16,
     /// 文件列表最多返回并显示的条目数。
     pub file_max_count: u8,
+    /// 分组按钮上是否显示新记录 Badge。
+    pub show_new_badge: bool,
 }
 
 impl Default for Display {
@@ -400,6 +402,7 @@ impl Default for Display {
             text_max_lines: 3,
             image_max_height: 64,
             file_max_count: 3,
+            show_new_badge: true,
         }
     }
 }

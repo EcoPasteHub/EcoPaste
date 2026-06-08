@@ -187,6 +187,10 @@
           "description": "Follow the system reduced-motion preference to reduce animation intensity.",
           "title": "Reduce Motion"
         },
+        "showNewBadge": {
+          "description": "Show the number of unseen new records on group buttons when the list is away from the top.",
+          "title": "Show New Record Badges"
+        },
         "showOriginalPreview": {
           "description": "Records with notes show the note by default, then temporarily reveal original content when hovering over the card.",
           "title": "Show Original on Hover"

@@ -29,7 +29,6 @@
     "placeholder": "为这条记录添加备注...",
     "title": "编辑备注"
   },
-  "pending": "{{count}} 条新记录，点击查看",
   "quickActions": {
     "copy": "复制",
     "copyPlain": "复制为纯文本",

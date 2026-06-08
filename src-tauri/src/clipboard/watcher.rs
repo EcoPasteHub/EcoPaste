@@ -122,6 +122,7 @@ pub async fn persist_and_notify(
         CLIPBOARD_UPDATED_EVENT,
         json!({
             "id": result.id,
+            "kind": item_to_write.kind,
             "deduplicated": result.deduplicated,
         }),
     ) {

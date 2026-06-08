@@ -270,7 +270,7 @@ pub async fn write_to_clipboard(
     let hide_after_copy = settings.clipboard.content.copy_then_hide_window;
 
     crate::clipboard::write_to_clipboard(&store, guard.inner().as_ref(), &item, write_plain)?;
-    mark_item_reused_if_enabled(&app, &pool, &id).await?;
+    mark_item_reused_if_enabled(&app, &pool, &id, item.kind).await?;
 
     if hide_after_copy {
         hide_main_window_after_copy(&app);
@@ -309,7 +309,7 @@ pub async fn paste_clipboard_item(
     );
 
     crate::clipboard::write_to_clipboard(&store, guard.inner().as_ref(), &item, write_plain)?;
-    mark_item_reused_if_enabled(&app, &pool, &id).await?;
+    mark_item_reused_if_enabled(&app, &pool, &id, item.kind).await?;
 
     if window::is_main_window_pinned() {
         // 固定时窗口保持可见：macOS 上 panel 仍是 key window 会吞掉 ⌘V，需先 resign key
@@ -361,7 +361,12 @@ fn should_write_plain_for_paste(
 }
 
 /// 按设置决定是否把复制 / 粘贴历史记录计为一次复用。
-async fn mark_item_reused_if_enabled(app: &AppHandle, pool: &SqlitePool, id: &str) -> Result<()> {
+async fn mark_item_reused_if_enabled(
+    app: &AppHandle,
+    pool: &SqlitePool,
+    id: &str,
+    kind: ClipboardKind,
+) -> Result<()> {
     let settings = app.state::<SettingsStore>().snapshot();
     if !settings.clipboard.content.update_on_reuse {
         return Ok(());
@@ -372,6 +377,7 @@ async fn mark_item_reused_if_enabled(app: &AppHandle, pool: &SqlitePool, id: &st
         CLIPBOARD_UPDATED_EVENT,
         serde_json::json!({
             "id": id,
+            "kind": kind,
             "deduplicated": true,
         }),
     ) {

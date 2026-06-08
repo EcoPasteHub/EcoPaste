@@ -70,7 +70,8 @@ export const getShortcutKeyDisplay = (key: string) => {
  * 把快捷键组合拆成当前平台的按键展示数组，供 kbd 徽标逐个渲染。
  */
 export const getShortcutKeyDisplays = (shortcut: ShortcutPattern) => {
-  const keys = Array.isArray(shortcut) ? shortcut : shortcut.split("+");
+  const keys: readonly string[] =
+    typeof shortcut === "string" ? shortcut.split("+") : shortcut;
 
   return keys.map((key) => {
     return getShortcutKeyDisplay(key);

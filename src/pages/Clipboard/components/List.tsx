@@ -28,13 +28,23 @@ import { WINDOW_LABEL } from "@/constants/windows";
 import { useClipboardItems } from "@/hooks/useClipboardItems";
 import { useKeyboardEvent } from "@/hooks/useKeyboardEvent";
 import { useTauriListen } from "@/hooks/useTauriListen";
+import {
+  addClipboardPending,
+  clearAllClipboardPending,
+  clearClipboardPendingGroup,
+  clipboardPendingState,
+  hasAnyClipboardPending,
+  hasClipboardPendingForGroup,
+} from "@/stores/clipboardPending";
 import { clipboardStatsState } from "@/stores/clipboardStats";
 import { clipboardViewState } from "@/stores/clipboardView";
 import { settingsState } from "@/stores/settings";
 import type {
   ClipboardAction,
+  ClipboardGroup,
   ClipboardItem,
   ClipboardItemSort,
+  ClipboardKind,
 } from "@/types/clipboard";
 import type { ItemAction } from "@/types/settings";
 import { cn } from "@/utils/cn";
@@ -51,8 +61,11 @@ import NoteModal from "./NoteModal";
 const KEY_HINTS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
 
 interface ClipboardUpdatedPayload {
-  imported?: boolean;
   cleanup?: number;
+  deduplicated?: boolean;
+  id?: string;
+  imported?: boolean;
+  kind?: ClipboardKind;
 }
 
 /**
@@ -63,20 +76,21 @@ const List: FC = () => {
   const { t } = useTranslation("clipboard");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [firstVisibleIndex, setFirstVisibleIndex] = useState(0);
-  const [isAtTop, setIsAtTop] = useState(true);
   const [isModifierPressed, setIsModifierPressed] = useState(false);
-  const [pendingCount, setPendingCount] = useState(0);
   const [noteTarget, setNoteTarget] = useState<ClipboardItem | null>(null);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const isAtTopRef = useRef(true);
   const itemElementMapRef = useRef(new Map<string, HTMLDivElement>());
   const closePreviewRef = useRef<(reason: string) => void>(() => {});
   const displaySettingsMountedRef = useRef(false);
+  const keywordRef = useRef("");
   const reloadRef = useRef<() => void>(() => {});
 
   const snapshot = useSnapshot(clipboardViewState);
+  const pendingSnapshot = useSnapshot(clipboardPendingState);
   const settings = useSnapshot(settingsState);
   const { keyword, group } = snapshot;
+  const { refreshGroup, refreshToken } = pendingSnapshot;
   const autoPaste = settings.clipboard.content.autoPaste;
   const middleClick = settings.clipboard.content.middleClick;
   const display = settings.clipboard.display;
@@ -87,6 +101,7 @@ const List: FC = () => {
   const deleteFavoriteItemsOnlyInFavoriteGroup =
     settings.clipboard.content.deleteFavoriteItemsOnlyInFavoriteGroup;
   const { fileMaxCount } = display;
+  const showNewBadge = display.showNewBadge;
   const showOriginalPreview = settings.clipboard.content.showOriginalPreview;
   const quickActionLabels = buildItemActionLabels(t);
 
@@ -117,12 +132,32 @@ const List: FC = () => {
     if (data?.total !== void 0) clipboardStatsState.total = data.total;
   }, [data?.total]);
 
+  useEffect(() => {
+    if (showNewBadge) return;
+
+    clearAllClipboardPending();
+  }, [showNewBadge]);
+
   // biome-ignore lint/correctness/useExhaustiveDependencies: snapshot 作触发器，不需在回调内读取
   useEffect(() => {
     setSelectedId(null);
-    setPendingCount(0);
+    if (keywordRef.current !== keyword) {
+      keywordRef.current = keyword;
+      clearAllClipboardPending();
+    }
     closePreview("filterChange");
   }, [snapshot]);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: refreshToken 是 Group 点击 Badge 后的刷新信号
+  useEffect(() => {
+    if (refreshToken === 0) return;
+    if (refreshGroup !== group) return;
+
+    closePreview("showPending");
+    setSelectedId(null);
+    reloadRef.current();
+    virtuosoRef.current?.scrollToIndex({ behavior: "smooth", index: 0 });
+  }, [refreshToken, group, refreshGroup]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: 仅按文件数量设置触发重拉，函数引用用 ref 读取最新值
   useEffect(() => {
@@ -136,14 +171,15 @@ const List: FC = () => {
   }, [fileMaxCount]);
 
   /**
-   * 收到剪贴板更新：导入 / 清理强制刷新；普通新记录在顶部才刷新，否则只提示待查看。
+   * 收到剪贴板更新：导入 / 清理强制刷新；普通新记录只在命中当前分组时刷新，
+   * 其它分组的新内容累计到对应 Badge。
    * 用 ref 读取最新滚动位置，规避闭包陷旧值（事件订阅只挂载一次）。
    */
   const handleClipboardUpdated = (payload: ClipboardUpdatedPayload) => {
     if (payload.cleanup !== void 0) {
       closePreview("cleanup");
       setSelectedId(null);
-      setPendingCount(0);
+      clearAllClipboardPending();
       if (clipboardStatsState.total !== null) {
         clipboardStatsState.total = Math.max(
           clipboardStatsState.total - payload.cleanup,
@@ -158,21 +194,40 @@ const List: FC = () => {
     if (payload.imported) {
       closePreview("backupImport");
       setSelectedId(null);
-      setPendingCount(0);
+      clearAllClipboardPending();
       virtuosoRef.current?.scrollToIndex({ behavior: "auto", index: 0 });
       reload();
       return;
     }
 
-    if (isAtTopRef.current) {
+    if (payload.deduplicated) {
+      if (
+        isAtTopRef.current &&
+        shouldRefreshCurrentGroup(clipboardViewState.group, payload.kind)
+      ) {
+        reload();
+      }
+
+      return;
+    }
+
+    if (!isAtTopRef.current) {
+      if (!showNewBadge) return;
+      if (payload.kind === void 0) return;
+
+      addClipboardPending(payload.kind);
+      return;
+    }
+
+    if (shouldRefreshCurrentGroup(clipboardViewState.group, payload.kind)) {
       reload();
       return;
     }
 
-    // 非顶部不 reload（避免 Virtuoso 抖动），但底部「共 N 项」要立即体现新增，
-    // 否则总数会停在最近一次拉取的快照上，直到用户点「N 条新记录」才刷新。
-    if (clipboardStatsState.total !== null) clipboardStatsState.total += 1;
-    setPendingCount((n) => n + 1);
+    if (!showNewBadge) return;
+    if (payload.kind === void 0) return;
+
+    addClipboardPending(payload.kind);
   };
 
   useTauriListen<ClipboardUpdatedPayload>(
@@ -201,8 +256,8 @@ const List: FC = () => {
       clipboardViewState.group = "all";
     }
 
-    if (pendingCount > 0) {
-      setPendingCount(0);
+    if (hasAnyClipboardPending()) {
+      clearAllClipboardPending();
       reload();
     }
 
@@ -518,6 +573,43 @@ const List: FC = () => {
 
   useKeyboardEvent("keyup", handleKeyUp);
 
+  const handleRangeChanged = ({
+    startIndex,
+  }: {
+    startIndex: number;
+    endIndex: number;
+  }) => {
+    setFirstVisibleIndex(startIndex);
+
+    closeHoverPreviewForScroll();
+  };
+
+  const handleEndReached = () => {
+    if (!noMore && !loadingMore) loadMore();
+  };
+
+  const handleAtTopStateChange = (atTop: boolean) => {
+    isAtTopRef.current = atTop;
+
+    if (!atTop) return;
+    if (!hasClipboardPendingForGroup(group)) return;
+
+    clearClipboardPendingGroup(group);
+    reload();
+  };
+
+  const renderFooter = () => {
+    if (loadingMore) {
+      return (
+        <div className="flex justify-center py-2">
+          <Spin size="small" />
+        </div>
+      );
+    }
+
+    return null;
+  };
+
   if (loading && items.length === 0) {
     return (
       <div className="flex flex-1 items-center justify-center">
@@ -539,50 +631,6 @@ const List: FC = () => {
     );
   }
 
-  const handleRangeChanged = ({
-    startIndex,
-  }: {
-    startIndex: number;
-    endIndex: number;
-  }) => {
-    setFirstVisibleIndex(startIndex);
-
-    closeHoverPreviewForScroll();
-  };
-
-  const handleEndReached = () => {
-    if (!noMore && !loadingMore) loadMore();
-  };
-
-  const handleAtTopStateChange = (atTop: boolean) => {
-    isAtTopRef.current = atTop;
-    setIsAtTop(atTop);
-
-    if (atTop && pendingCount > 0) {
-      setPendingCount(0);
-      reload();
-    }
-  };
-
-  const handleShowPending = () => {
-    closePreview("showPending");
-    setPendingCount(0);
-    reload();
-    virtuosoRef.current?.scrollToIndex({ behavior: "smooth", index: 0 });
-  };
-
-  const renderFooter = () => {
-    if (loadingMore) {
-      return (
-        <div className="flex justify-center py-2">
-          <Spin size="small" />
-        </div>
-      );
-    }
-
-    return null;
-  };
-
   return (
     <div
       className="relative flex-1 overflow-hidden"
@@ -600,16 +648,6 @@ const List: FC = () => {
         ref={virtuosoRef}
         topItemCount={topItemCount}
       />
-
-      {pendingCount > 0 && !isAtTop && (
-        <button
-          className="absolute top-2 left-1/2 z-10 -translate-x-1/2 rounded-full bg-ant-primary px-3 py-1 text-ant-light-solid text-xs shadow-md transition-opacity hover:opacity-90"
-          onClick={handleShowPending}
-          type="button"
-        >
-          {t("pending", { count: pendingCount })}
-        </button>
-      )}
 
       <NoteModal
         item={noteTarget}
@@ -972,6 +1010,20 @@ function countLeadingPinnedItems(items: ClipboardItem[]) {
   }
 
   return count;
+}
+
+/**
+ * 判断普通剪贴板更新是否会出现在当前分组列表中。
+ */
+function shouldRefreshCurrentGroup(
+  group: ClipboardGroup,
+  kind?: ClipboardKind,
+) {
+  if (group === "all") return true;
+  if (group === "favorite") return false;
+  if (kind === void 0) return false;
+
+  return group === kind;
 }
 
 /**

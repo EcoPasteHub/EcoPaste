@@ -10,7 +10,8 @@
   },
   "scripts": {
     "dev": "run-s build:icon dev:vite",
-    "build": "run-s build:*",
+    "build": "run-s tsc build:*",
+    "tsc": "tsc --noEmit",
     "dev:vite": "vite",
     "build:icon": "tsx scripts/buildIcon.ts",
     "build:vite": "vite build",

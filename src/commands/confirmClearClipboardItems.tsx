@@ -1,4 +1,3 @@
-import type { CheckboxGroupProps } from "antd";
 import { Checkbox, Modal } from "antd";
 import i18n from "@/i18n";
 
@@ -16,10 +15,9 @@ export const confirmClearClipboardItems =
   async (): Promise<ClearClipboardItemsOptions | null> => {
     let choices: ClearClipboardItemsChoice[] = [];
 
-    const handleChoicesChange: CheckboxGroupProps<ClearClipboardItemsChoice>["onChange"] =
-      (nextChoices) => {
-        choices = [...nextChoices];
-      };
+    const handleChoicesChange = (nextChoices: ClearClipboardItemsChoice[]) => {
+      choices = [...nextChoices];
+    };
 
     return await new Promise<ClearClipboardItemsOptions | null>((resolve) => {
       Modal.confirm({

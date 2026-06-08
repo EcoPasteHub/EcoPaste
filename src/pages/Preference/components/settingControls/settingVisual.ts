@@ -16,6 +16,7 @@ const SETTING_ICON_MAP: Record<string, string> = {
   "appearance.imageMaxHeight": "i-lucide:image",
   "appearance.language": "i-lucide:languages",
   "appearance.reducedMotion": "i-lucide:accessibility",
+  "appearance.showNewBadge": "i-lucide:bell-dot",
   "appearance.showOriginalPreview": "i-lucide:mouse-pointer-2",
   "appearance.textMaxLines": "i-lucide:rows-3",
   "appearance.theme": "i-lucide:paintbrush-vertical",

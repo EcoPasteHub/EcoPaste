@@ -103,6 +103,7 @@ export interface Display {
   textMaxLines: number;
   imageMaxHeight: number;
   fileMaxCount: number;
+  showNewBadge: boolean;
 }
 
 export interface Capture {

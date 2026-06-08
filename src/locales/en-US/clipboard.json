@@ -29,7 +29,6 @@
     "placeholder": "Add a note for this item...",
     "title": "Edit note"
   },
-  "pending": "{{count}} new items, click to view",
   "quickActions": {
     "copy": "Copy",
     "copyPlain": "Copy as Plain Text",
