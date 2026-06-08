@@ -291,7 +291,10 @@ pub struct Content {
     pub paste_files_as_path: bool,
     /// 鼠标悬停时显示原始内容预览（HTML/RTF 渲染前的原文）。
     pub show_original_preview: bool,
+    /// 删除普通条目前是否需要二次确认；收藏条目由 `delete_favorite_confirm` 单独控制。
     pub delete_confirm: bool,
+    /// 删除收藏条目前是否需要二次确认。
+    pub delete_favorite_confirm: bool,
     /// 开启后已收藏条目仅能在收藏分组删除，普通条目不受影响。
     pub delete_favorite_items_only_in_favorite_group: bool,
     pub auto_favorite: bool,
@@ -316,6 +319,7 @@ impl Default for Content {
             paste_files_as_path: false,
             show_original_preview: false,
             delete_confirm: true,
+            delete_favorite_confirm: true,
             delete_favorite_items_only_in_favorite_group: true,
             auto_favorite: false,
             update_on_reuse: false,

@@ -135,8 +135,12 @@
     "settings": {
       "actions": {
         "deleteConfirm": {
-          "description": "Ask for confirmation before deleting a history record to prevent mistakes.",
-          "title": "Confirm Before Delete"
+          "description": "Ask before deleting regular history records. Favorited records use their own switch.",
+          "title": "Confirm Regular Deletes"
+        },
+        "deleteFavoriteConfirm": {
+          "description": "Ask before deleting favorited records to prevent losing important items.",
+          "title": "Confirm Favorite Deletes"
         },
         "deleteFavoriteItemsOnlyInFavoriteGroup": {
           "description": "When on, favorited records hide delete actions outside Favorites; regular records are unaffected.",

@@ -332,6 +332,15 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { type: "switch" },
+            id: "actions.deleteFavoriteConfirm",
+            keywords: ["delete", "favorite", "confirm"],
+            path: ["clipboard", "content", "deleteFavoriteConfirm"],
+            value: (settings) => {
+              return settings.clipboard.content.deleteFavoriteConfirm;
+            },
+          },
+          {
+            control: { type: "switch" },
             id: "actions.deleteFavoriteItemsOnlyInFavoriteGroup",
             keywords: ["delete", "favorite", "group"],
             path: [

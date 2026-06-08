@@ -135,8 +135,12 @@
     "settings": {
       "actions": {
         "deleteConfirm": {
-          "description": "删除历史记录前先弹出确认，避免误删。",
-          "title": "删除前确认"
+          "description": "删除普通历史记录前先弹出确认，收藏记录不受此开关影响。",
+          "title": "普通条目删除前确认"
+        },
+        "deleteFavoriteConfirm": {
+          "description": "删除已收藏记录前先弹出确认，避免误删重要内容。",
+          "title": "收藏条目删除前确认"
         },
         "deleteFavoriteItemsOnlyInFavoriteGroup": {
           "description": "开启后，已收藏记录在其他分组隐藏删除入口；普通记录不受影响。",

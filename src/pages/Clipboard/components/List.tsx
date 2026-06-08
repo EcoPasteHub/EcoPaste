@@ -279,7 +279,7 @@ const List: FC = () => {
 
     if (previewSession?.itemId === id) closePreview("delete");
 
-    const deleted = await deleteClipboardItem(id);
+    const deleted = await deleteClipboardItem(id, target.isFavorite);
 
     if (!deleted) return;
 

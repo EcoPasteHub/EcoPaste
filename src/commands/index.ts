@@ -619,11 +619,19 @@ export const toggleClipboardItemFavorite = async (
 
 /**
  * 删除条目；命令**不**广播 `clipboard://updated`，调用方需根据返回值本地移除该项。
- * 设置 `clipboard.content.deleteConfirm = true` 时弹二次确认 modal；用户取消则 resolve false 且不调 Rust。
+ * 普通条目与收藏条目分别读取对应确认开关；用户取消则 resolve false 且不调 Rust。
  * 成功后统一 toast「已删除」。
  */
-export const deleteClipboardItem = async (id: string): Promise<boolean> => {
-  if (settingsState.clipboard?.content?.deleteConfirm) {
+export const deleteClipboardItem = async (
+  id: string,
+  isFavorite: boolean,
+): Promise<boolean> => {
+  const contentSettings = settingsState.clipboard?.content;
+  const needConfirm = isFavorite
+    ? (contentSettings?.deleteFavoriteConfirm ?? true)
+    : (contentSettings?.deleteConfirm ?? true);
+
+  if (needConfirm) {
     const ok = await new Promise<boolean>((resolve) => {
       Modal.confirm({
         cancelText: i18n.t("common:actions.cancel"),
