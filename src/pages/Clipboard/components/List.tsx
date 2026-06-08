@@ -73,6 +73,8 @@ const List: FC = () => {
   const display = settings.clipboard.display;
   const sort = settings.clipboard.content.sort;
   const quickActions = settings.clipboard.content.itemActions;
+  const deleteFavoriteItemsOnlyInFavoriteGroup =
+    settings.clipboard.content.deleteFavoriteItemsOnlyInFavoriteGroup;
   const { fileMaxCount } = display;
   const quickActionLabels = buildItemActionLabels(t);
 
@@ -269,6 +271,12 @@ const List: FC = () => {
    * 仅当用户确认且 Rust 删除成功时才同步本地镜像。
    */
   const handleShortcutDelete = async (id: string) => {
+    const target = items.find((item) => {
+      return item.id === id;
+    });
+
+    if (!target || !canDeleteItem(target)) return;
+
     if (previewSession?.itemId === id) closePreview("delete");
 
     const deleted = await deleteClipboardItem(id);
@@ -342,6 +350,8 @@ const List: FC = () => {
         setNoteTarget(target);
         return;
       case "delete":
+        if (!canDeleteItem(target)) return;
+
         handleShortcutDelete(target.id);
         return;
     }
@@ -571,6 +581,8 @@ const List: FC = () => {
     };
 
     const handleQuickAction = async (action: ItemAction) => {
+      if (action === "delete" && !canDeleteItem(item)) return;
+
       switch (action) {
         case "paste":
           closePreview("quickPaste");
@@ -692,9 +704,21 @@ const List: FC = () => {
       }
     };
 
+    const availableActions = getAllowedClipboardActions(
+      item.availableActions,
+      item,
+      canDeleteItem,
+    );
+    const visibleQuickActions = getAllowedItemActions(
+      quickActions,
+      item,
+      canDeleteItem,
+    );
+
     return (
       <div className={cn("px-3", { "pt-3": index !== 0 })}>
         <ClipboardCard
+          availableActions={availableActions}
           hintKey={hintKey}
           isLinkActive={isModifierPressed}
           isSelected={
@@ -711,7 +735,7 @@ const List: FC = () => {
           onQuickAction={handleQuickAction}
           onQuickPaste={hintKey ? handleQuickPaste : void 0}
           quickActionLabels={quickActionLabels}
-          quickActions={[...quickActions]}
+          quickActions={visibleQuickActions}
           rootRef={registerItemElement(item.id)}
         />
       </div>
@@ -725,6 +749,17 @@ const List: FC = () => {
     const nextIndex = getNextKeyboardIndex(items, selectedId, event.key);
 
     return { index: nextIndex, item: items[nextIndex] };
+  }
+
+  /**
+   * 判断当前条目是否允许删除：普通条目始终允许；已收藏条目受收藏分组保护。
+   */
+  function canDeleteItem(item: ClipboardItem) {
+    if (!deleteFavoriteItemsOnlyInFavoriteGroup) return true;
+
+    if (!item.isFavorite) return true;
+
+    return group === "favorite";
   }
 };
 
@@ -771,6 +806,36 @@ function getNextKeyboardIndex(
   }
 
   return Math.min(items.length - 1, currentIndex + 1);
+}
+
+/**
+ * 按条目收藏保护规则过滤右键菜单动作，避免收藏项在其它分组出现删除入口。
+ */
+function getAllowedClipboardActions(
+  actions: ClipboardAction[] | undefined,
+  item: ClipboardItem,
+  canDeleteItem: (item: ClipboardItem) => boolean,
+) {
+  if (canDeleteItem(item)) return actions;
+
+  return actions?.filter((action) => {
+    return action !== "delete";
+  });
+}
+
+/**
+ * 按条目收藏保护规则过滤悬停快捷动作，避免收藏项在其它分组出现删除按钮。
+ */
+function getAllowedItemActions(
+  actions: readonly ItemAction[],
+  item: ClipboardItem,
+  canDeleteItem: (item: ClipboardItem) => boolean,
+) {
+  if (canDeleteItem(item)) return [...actions];
+
+  return actions.filter((action) => {
+    return action !== "delete";
+  });
 }
 
 /**

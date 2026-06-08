@@ -1,4 +1,5 @@
 import { useUnmount } from "ahooks";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import type { FC, MouseEvent, SyntheticEvent } from "react";
 import { useRef, useState } from "react";
 import Tooltip from "@/components/Tooltip";
@@ -33,11 +34,16 @@ interface QuickActionButtonProps {
  */
 const ClipboardQuickActions: FC<ClipboardQuickActionsProps> = (props) => {
   const { item, labels, onQuickAction, quickActions, visible } = props;
+  const shouldReduceMotion = useReducedMotion();
   const availableActions = filterAvailableItemActions(quickActions, item);
   const enabled =
     availableActions.length > 0 && Boolean(labels && onQuickAction);
   const actionsVisible = visible && enabled;
   const tabIndex = actionsVisible ? 0 : -1;
+  const actionTransition = {
+    duration: shouldReduceMotion ? 0 : 0.16,
+    ease: "easeOut",
+  } as const;
 
   return (
     <div className="grid h-6 shrink-0 items-center justify-items-end overflow-hidden">
@@ -45,7 +51,7 @@ const ClipboardQuickActions: FC<ClipboardQuickActionsProps> = (props) => {
         className={cn(
           "col-start-1 row-start-1 transition-all duration-150 ease-out motion-reduce:transition-none",
           {
-            "-translate-y-0.5 opacity-0": actionsVisible,
+            "-translate-x-1 opacity-0": actionsVisible,
           },
         )}
       >
@@ -56,24 +62,40 @@ const ClipboardQuickActions: FC<ClipboardQuickActionsProps> = (props) => {
         <div
           aria-hidden={!actionsVisible}
           className={cn(
-            "pointer-events-none col-start-1 row-start-1 flex translate-y-0.5 items-center gap-0.5 opacity-0 transition-all duration-150 ease-out motion-reduce:transition-none",
+            "pointer-events-none col-start-1 row-start-1 flex translate-x-1 items-center gap-0.5 opacity-0 transition-all duration-150 ease-out motion-reduce:transition-none",
             {
-              "pointer-events-auto translate-y-0 opacity-100": actionsVisible,
+              "pointer-events-auto translate-x-0 opacity-100": actionsVisible,
             },
           )}
         >
-          {availableActions.map((action) => {
-            return (
-              <QuickActionButton
-                action={action}
-                isFavorite={item.isFavorite}
-                key={action}
-                labels={labels}
-                onQuickAction={onQuickAction}
-                tabIndex={tabIndex}
-              />
-            );
-          })}
+          <AnimatePresence initial={false} mode="popLayout">
+            {availableActions.map((action) => {
+              return (
+                <motion.span
+                  animate={{ opacity: 1, scale: 1, width: "1.25rem", x: 0 }}
+                  className="flex overflow-hidden"
+                  exit={{
+                    opacity: 0,
+                    scale: shouldReduceMotion ? 1 : 0.9,
+                    width: 0,
+                    x: shouldReduceMotion ? 0 : 4,
+                  }}
+                  initial={{ opacity: 0, scale: 0.9, width: 0, x: 4 }}
+                  key={action}
+                  layout
+                  transition={actionTransition}
+                >
+                  <QuickActionButton
+                    action={action}
+                    isFavorite={item.isFavorite}
+                    labels={labels}
+                    onQuickAction={onQuickAction}
+                    tabIndex={tabIndex}
+                  />
+                </motion.span>
+              );
+            })}
+          </AnimatePresence>
         </div>
       ) : null}
     </div>

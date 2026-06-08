@@ -138,6 +138,10 @@
           "description": "删除历史记录前先弹出确认，避免误删。",
           "title": "删除前确认"
         },
+        "deleteFavoriteItemsOnlyInFavoriteGroup": {
+          "description": "开启后，已收藏记录在其他分组隐藏删除入口；普通记录不受影响。",
+          "title": "收藏项仅在收藏分组删除"
+        },
         "visible": {
           "controlLabel": "管理",
           "description": "选择鼠标悬停在记录上时显示的操作按钮。",
