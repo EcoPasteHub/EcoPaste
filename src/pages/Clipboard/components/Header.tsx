@@ -28,30 +28,7 @@ interface WindowVisibilityPayload {
 type HeaderMoreMenuKey = "clear" | "preference";
 
 const MORE_ACTION_TRIGGER: DropdownProps["trigger"] = ["click"];
-const PREFERENCE_SHORTCUT = "CmdOrCtrl+,";
-
-interface MoreMenuLabelProps {
-  label: string;
-  shortcut?: string;
-}
-
-/**
- * 更多操作菜单项内容：左侧动作名称，右侧展示快捷键。
- */
-const MoreMenuLabel: FC<MoreMenuLabelProps> = (props) => {
-  const { label, shortcut } = props;
-
-  return (
-    <span className="flex min-w-40 items-center justify-between gap-6">
-      <span>{label}</span>
-      {shortcut && (
-        <span className="font-mono text-ant-secondary text-xs">
-          {formatShortcutDisplay(shortcut, " ")}
-        </span>
-      )}
-    </span>
-  );
-};
+const PREFERENCE_SHORTCUT = formatShortcutDisplay("CmdOrCtrl+,", " ");
 
 /**
  * 剪贴板窗口顶部条：logo、搜索框（⌘F / Ctrl+F 聚焦）、固定窗口与更多操作入口。
@@ -184,20 +161,16 @@ const Header: FC = () => {
 
   const moreMenuItems: MenuProps["items"] = [
     {
+      extra: PREFERENCE_SHORTCUT,
       icon: <span className="i-lucide:settings text-base" />,
       key: "preference",
-      label: (
-        <MoreMenuLabel
-          label={t("header.openPreference")}
-          shortcut={PREFERENCE_SHORTCUT}
-        />
-      ),
+      label: t("header.openPreference"),
     },
     {
       danger: true,
       icon: <span className="i-lucide:trash-2 text-base" />,
       key: "clear",
-      label: <MoreMenuLabel label={t("header.clearRecords")} />,
+      label: t("header.clearRecords"),
     },
   ];
 
