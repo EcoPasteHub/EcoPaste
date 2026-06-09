@@ -32,6 +32,7 @@ CREATE TABLE clipboard_items (
     use_count     INTEGER NOT NULL DEFAULT 1,
     is_favorite   INTEGER NOT NULL DEFAULT 0,
     is_pinned     INTEGER NOT NULL DEFAULT 0,
+    is_sensitive  INTEGER NOT NULL DEFAULT 0,
     platform      TEXT    NOT NULL,
     note          TEXT,
     created_at    TEXT    NOT NULL,

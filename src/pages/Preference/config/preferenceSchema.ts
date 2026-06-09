@@ -21,6 +21,11 @@ const CLIPBOARD_SORT_OPTIONS = [
   { value: "updatedAtDesc" },
   { value: "useCountDesc" },
 ];
+const SECRET_HANDLING_OPTIONS = [
+  { value: "skip" },
+  { value: "redact" },
+  { value: "include" },
+];
 
 export const preferenceTabs: PreferenceTab[] = [
   {
@@ -125,12 +130,12 @@ export const preferenceTabs: PreferenceTab[] = [
         id: "sensitive",
         settings: [
           {
-            control: { type: "switch" },
-            id: "sensitive.secretDetection",
+            control: { options: SECRET_HANDLING_OPTIONS, type: "select" },
+            id: "sensitive.secretHandling",
             keywords: ["token", "key", "secret", "code"],
-            path: ["clipboard", "sensitive", "secretDetection"],
+            path: ["clipboard", "sensitive", "secretHandling"],
             value: (settings) => {
-              return settings.clipboard.sensitive.secretDetection;
+              return settings.clipboard.sensitive.secretHandling;
             },
           },
         ],

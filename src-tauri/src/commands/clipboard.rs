@@ -180,6 +180,7 @@ pub struct ClipboardPreviewPayload {
     pub image_width: Option<i64>,
     pub image_height: Option<i64>,
     pub size: Option<i64>,
+    pub is_sensitive: bool,
     pub image_exists: bool,
     pub files: Vec<ClipboardPreviewFileEntry>,
     pub total_files: usize,
@@ -429,6 +430,7 @@ pub async fn list_clipboard_items(
         attach_file_entries(&pool, &file_icon_store, item, file_entry_limit).await?;
         attach_color_preview(item);
         attach_display_created_at(item, &now);
+        mask_sensitive_list_item(item);
         item.available_actions = compute_available_actions(item);
     }
     let has_more = q.offset + (items.len() as i64) < total;
@@ -467,6 +469,7 @@ pub async fn get_clipboard_item(
         attach_file_entries(&pool, &file_icon_store, item, file_entry_limit).await?;
         attach_color_preview(item);
         attach_display_created_at(item, &Local::now());
+        mask_sensitive_list_item(item);
         item.available_actions = compute_available_actions(item);
     }
     Ok(item)
@@ -545,6 +548,56 @@ fn attach_color_preview(item: &mut ClipboardItem) {
 
     let source = item.summary.as_deref().unwrap_or(&item.content);
     item.color_preview = sanitize_css_color(source);
+}
+
+/// 对敏感文本列表项只返回遮罩摘要，避免前端列表暴露完整凭据。
+fn mask_sensitive_list_item(item: &mut ClipboardItem) {
+    if !item.is_sensitive || item.kind != ClipboardKind::Text {
+        return;
+    }
+
+    if let Some(summary) = item.summary.as_mut() {
+        *summary = mask_sensitive_text(summary);
+    }
+    item.color_preview = None;
+}
+
+/// 生成敏感文本遮罩：每行保留头尾少量字符，中间以星号替换。
+fn mask_sensitive_text(text: &str) -> String {
+    text.split('\n')
+        .map(mask_sensitive_line)
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+/// 遮罩单行敏感文本；短文本全量替换，长文本保留前后 4 个字符。
+fn mask_sensitive_line(line: &str) -> String {
+    const VISIBLE_EDGE_CHARS: usize = 4;
+    const MAX_MASK_CHARS: usize = 16;
+
+    let chars: Vec<char> = line.chars().collect();
+    let len = chars.len();
+    if len == 0 {
+        return String::new();
+    }
+    if len <= VISIBLE_EDGE_CHARS * 2 {
+        return "*".repeat(len);
+    }
+
+    let head = chars[..VISIBLE_EDGE_CHARS].iter().collect::<String>();
+    let tail = chars[len - VISIBLE_EDGE_CHARS..].iter().collect::<String>();
+    let mask_len = (len - VISIBLE_EDGE_CHARS * 2).min(MAX_MASK_CHARS);
+
+    [head, "*".repeat(mask_len), tail].concat()
+}
+
+/// 返回预览 payload 的文本子类型；敏感内容强制按纯文本展示脱敏结果。
+fn preview_sub_kind(item: &ClipboardItem) -> Option<ClipboardSubKind> {
+    if item.is_sensitive && item.kind == ClipboardKind::Text {
+        return None;
+    }
+
+    item.sub_kind
 }
 
 /// 把 `created_at`（UTC）按本地时区做三档展示格式化：
@@ -680,7 +733,11 @@ async fn build_clipboard_preview_payload(
 
     match item.kind {
         ClipboardKind::Text => {
-            text = Some(item.content.clone());
+            text = Some(if item.is_sensitive {
+                mask_sensitive_text(&item.content)
+            } else {
+                item.content.clone()
+            });
         }
         ClipboardKind::Image => {
             validate_image_file_name(&item.content)?;
@@ -693,17 +750,19 @@ async fn build_clipboard_preview_payload(
             files = build_preview_file_entries(pool, file_icon_store, &item).await?;
         }
     }
+    let preview_sub_kind = preview_sub_kind(&item);
 
     Ok(ClipboardPreviewPayload {
         id: item.id,
         kind: item.kind,
-        sub_kind: item.sub_kind,
+        sub_kind: preview_sub_kind,
         updated_at: item.updated_at,
         text,
         image_path,
         image_width: item.width,
         image_height: item.height,
         size: item.size,
+        is_sensitive: item.is_sensitive,
         image_exists,
         files,
         total_files,
@@ -1162,6 +1221,46 @@ fn validate_image_file_name(file_name: &str) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::db::items::content_hash;
+    use crate::db::models::Platform;
+    use chrono::Utc;
+
+    fn text_item(sub_kind: Option<ClipboardSubKind>, is_sensitive: bool) -> ClipboardItem {
+        let content = "<b>secret</b>".to_owned();
+
+        ClipboardItem {
+            id: "item".to_owned(),
+            kind: ClipboardKind::Text,
+            sub_kind,
+            group_id: None,
+            source_app_id: None,
+            content_hash: content_hash(ClipboardKind::Text, &content),
+            content,
+            search_text: None,
+            summary: None,
+            file_types: None,
+            size: None,
+            width: None,
+            height: None,
+            use_count: 1,
+            is_favorite: false,
+            is_pinned: false,
+            is_sensitive,
+            platform: Platform::Macos,
+            note: None,
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+            source_app_name: None,
+            source_app_icon_file: None,
+            source_app_icon_path: None,
+            image_thumbnail_path: None,
+            file_entries: None,
+            files_preview_kind: None,
+            available_actions: Vec::new(),
+            color_preview: None,
+            display_created_at: String::new(),
+        }
+    }
 
     #[test]
     fn copy_plain_default_only_affects_text_items() {
@@ -1237,6 +1336,41 @@ mod tests {
             false,
             false,
         ));
+    }
+
+    #[test]
+    fn mask_sensitive_text_replaces_middle_with_stars() {
+        assert_eq!(
+            mask_sensitive_text("sk-abcdefghijklmnopqrstuvwxyzABCDE1234567890"),
+            "sk-a****************7890"
+        );
+    }
+
+    #[test]
+    fn mask_sensitive_text_replaces_short_lines_fully() {
+        assert_eq!(mask_sensitive_text("secret"), "******");
+    }
+
+    #[test]
+    fn mask_sensitive_text_masks_each_line() {
+        assert_eq!(
+            mask_sensitive_text("abcd1234xyz\nshort"),
+            "abcd***4xyz\n*****"
+        );
+    }
+
+    #[test]
+    fn preview_sub_kind_drops_sensitive_text_subtype() {
+        let item = text_item(Some(ClipboardSubKind::Html), true);
+
+        assert_eq!(preview_sub_kind(&item), None);
+    }
+
+    #[test]
+    fn preview_sub_kind_keeps_regular_text_subtype() {
+        let item = text_item(Some(ClipboardSubKind::Html), false);
+
+        assert_eq!(preview_sub_kind(&item), Some(ClipboardSubKind::Html));
     }
 
     #[test]

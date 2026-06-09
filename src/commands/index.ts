@@ -102,6 +102,7 @@ export interface ClipboardPreviewPayload {
   imageWidth: number | null;
   imageHeight: number | null;
   size: number | null;
+  isSensitive: boolean;
   imageExists: boolean;
   files: ClipboardPreviewFileEntry[];
   totalFiles: number;

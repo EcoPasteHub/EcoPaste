@@ -139,6 +139,7 @@ mod tests {
             use_count: 1,
             is_favorite: false,
             is_pinned: false,
+            is_sensitive: false,
             platform: Platform::Macos,
             note: None,
             created_at: ts,

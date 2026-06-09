@@ -240,11 +240,24 @@ impl CaptureKind {
     }
 }
 
-/// 隐私保护开关。命中规则的内容在入库前直接跳过。
+/// 命中高置信密钥 / Token 时的收录与展示策略。
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub enum SecretHandling {
+    /// 不保存命中规则的敏感内容。
+    Skip,
+    /// 保存完整内容，但列表与预览默认脱敏显示。
+    #[default]
+    Redact,
+    /// 不做敏感内容拦截或隐藏。
+    Include,
+}
+
+/// 隐私保护设置。命中规则的内容可跳过、隐藏展示或完整收录。
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(default, rename_all = "camelCase")]
 pub struct Sensitive {
-    pub secret_detection: bool,
+    pub secret_handling: SecretHandling,
 }
 
 /// 应用过滤规则。

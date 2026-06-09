@@ -50,6 +50,7 @@ export interface ClipboardItem {
   useCount: number;
   isFavorite: boolean;
   isPinned: boolean;
+  isSensitive: boolean;
   platform: ClipboardPlatform;
   note: string | null;
   createdAt: string;

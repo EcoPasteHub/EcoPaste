@@ -81,6 +81,8 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
   const typeKey = subKind ?? kind;
   const typeLabel = t(`types.${typeKey}`);
   const body = renderBody(item, isLinkActive, onOpenLink);
+  const showSensitiveIndicator = item.isSensitive && item.kind === "text";
+  const showStatusIndicators = item.isPinned || showSensitiveIndicator;
 
   const handleDragStart = async (event: DragEvent) => {
     event.preventDefault();
@@ -113,7 +115,7 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
     <div
       aria-selected={isSelected}
       className={cn(
-        "flex flex-col gap-1 rounded-2 border border-ant-border-secondary p-2",
+        "relative flex flex-col gap-1 overflow-hidden rounded-2 border border-ant-border-secondary p-2",
         {
           "border-ant-primary bg-ant-blue-1": isSelected,
           "border-ant-primary bg-ant-container": item.isPinned && !isSelected,
@@ -151,12 +153,6 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
           )}
 
           <span className="truncate">{typeLabel}</span>
-          {item.isPinned ? (
-            <i
-              aria-hidden="true"
-              className="i-ph:push-pin-bold size-3.5 shrink-0 -rotate-45 text-ant-primary"
-            />
-          ) : null}
         </div>
 
         <ClipboardQuickActions
@@ -178,9 +174,28 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
       ) : (
         body
       )}
+      {showStatusIndicators
+        ? renderStatusIndicators(item.isPinned, showSensitiveIndicator)
+        : null}
     </div>
   );
 };
+
+/**
+ * 渲染卡片右下角的状态水印；仅表达状态，不参与交互。
+ */
+function renderStatusIndicators(isPinned: boolean, isSensitive: boolean) {
+  return (
+    <div className="pointer-events-none absolute right-2 bottom-2 flex items-end gap-1 text-ant-quaternary">
+      {isPinned ? (
+        <i aria-hidden="true" className="i-ph:push-pin-bold size-5" />
+      ) : null}
+      {isSensitive ? (
+        <i aria-hidden="true" className="i-lucide:key-round size-5" />
+      ) : null}
+    </div>
+  );
+}
 
 const renderBody = (
   item: ClipboardItem,

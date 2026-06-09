@@ -18,7 +18,7 @@ use super::storage::ImageStore;
 use crate::core::Result;
 use crate::db::items::content_hash;
 use crate::db::models::{ClipboardItem, ClipboardKind, ClipboardSubKind, Platform};
-use crate::settings::{Capture, CaptureKind, Sensitive};
+use crate::settings::{Capture, CaptureKind, SecretHandling, Sensitive};
 
 /// 列表渲染用摘要的最大字符数（按 Unicode 标量计，不是字节）。
 /// 超过此长度的文本会被截断，前端列表只渲染摘要，预览/写回时再读完整 `content`。
@@ -197,10 +197,19 @@ pub fn build_item_with_settings(
     sensitive: &Sensitive,
     plain_only: bool,
 ) -> Result<Option<ClipboardItem>> {
+    let mut is_sensitive = false;
     let draft = match payload {
         ClipboardPayload::Text(text) => {
-            if sensitive.secret_detection && contains_secret(&text.text) {
-                return Ok(None);
+            if contains_secret(&text.text) {
+                match sensitive.secret_handling {
+                    SecretHandling::Skip => {
+                        return Ok(None);
+                    }
+                    SecretHandling::Redact => {
+                        is_sensitive = true;
+                    }
+                    SecretHandling::Include => {}
+                }
             }
 
             draft_from_text(text, capture, plain_only)
@@ -312,6 +321,7 @@ pub fn build_item_with_settings(
         use_count: 1,
         is_favorite: false,
         is_pinned: false,
+        is_sensitive,
         platform: current_platform(),
         note: None,
         created_at: now,
@@ -631,14 +641,14 @@ mod tests {
     }
 
     #[test]
-    fn secret_detection_disabled_keeps_token_text() {
+    fn secret_handling_include_keeps_token_text() {
         let (_d, s) = store();
         let item = build_item_with_settings(
             &s,
             &text_payload("sk-abcdefghijklmnopqrstuvwxyzABCDE1234567890", None, None),
             &Capture::default(),
             &Sensitive {
-                secret_detection: false,
+                secret_handling: SecretHandling::Include,
             },
             false,
         )
@@ -647,23 +657,79 @@ mod tests {
 
         assert_eq!(item.kind, ClipboardKind::Text);
         assert_eq!(item.content, "sk-abcdefghijklmnopqrstuvwxyzABCDE1234567890");
+        assert!(!item.is_sensitive);
     }
 
     #[test]
-    fn secret_detection_enabled_skips_token_text() {
+    fn secret_handling_skip_skips_token_text() {
         let (_d, s) = store();
         let item = build_item_with_settings(
             &s,
             &text_payload("sk-abcdefghijklmnopqrstuvwxyzABCDE1234567890", None, None),
             &Capture::default(),
             &Sensitive {
-                secret_detection: true,
+                secret_handling: SecretHandling::Skip,
             },
             false,
         )
         .unwrap();
 
         assert!(item.is_none());
+    }
+
+    #[test]
+    fn secret_handling_redact_marks_token_text_sensitive() {
+        let (_d, s) = store();
+        let item = build_item_with_settings(
+            &s,
+            &text_payload("sk-abcdefghijklmnopqrstuvwxyzABCDE1234567890", None, None),
+            &Capture::default(),
+            &Sensitive {
+                secret_handling: SecretHandling::Redact,
+            },
+            false,
+        )
+        .unwrap()
+        .unwrap();
+
+        assert_eq!(item.kind, ClipboardKind::Text);
+        assert_eq!(item.content, "sk-abcdefghijklmnopqrstuvwxyzABCDE1234567890");
+        assert!(item.is_sensitive);
+    }
+
+    #[test]
+    fn default_secret_handling_redacts_token_text() {
+        let (_d, s) = store();
+        let item = build_item_with_settings(
+            &s,
+            &text_payload("sk-abcdefghijklmnopqrstuvwxyzABCDE1234567890", None, None),
+            &Capture::default(),
+            &Sensitive::default(),
+            false,
+        )
+        .unwrap()
+        .unwrap();
+
+        assert!(item.is_sensitive);
+    }
+
+    #[test]
+    fn secret_handling_redact_keeps_plain_text_unmarked() {
+        let (_d, s) = store();
+        let item = build_item_with_settings(
+            &s,
+            &text_payload("hello clipboard", None, None),
+            &Capture::default(),
+            &Sensitive {
+                secret_handling: SecretHandling::Redact,
+            },
+            false,
+        )
+        .unwrap()
+        .unwrap();
+
+        assert_eq!(item.content, "hello clipboard");
+        assert!(!item.is_sensitive);
     }
 
     #[test]

@@ -54,6 +54,8 @@ export type PreviewHoverDelayMs = "ms300" | "ms500" | "ms1000";
 
 export type UpdateFrequency = "daily" | "weekly" | "monthly";
 
+export type SecretHandling = "skip" | "redact" | "include";
+
 export interface General {
   autoStart: boolean;
   silentStart: boolean;
@@ -118,7 +120,7 @@ export interface Capture {
 }
 
 export interface Sensitive {
-  secretDetection: boolean;
+  secretHandling: SecretHandling;
 }
 
 export interface Retention {

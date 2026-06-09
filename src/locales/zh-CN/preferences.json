@@ -443,9 +443,14 @@
         }
       },
       "sensitive": {
-        "secretDetection": {
-          "description": "检测到高置信度密钥、Token 等内容时跳过保存。",
-          "title": "识别密钥和 token"
+        "secretHandling": {
+          "description": "检测到高置信度密钥、Token 等内容时，决定是否保存以及如何展示。",
+          "options": {
+            "include": "完整显示",
+            "redact": "脱敏显示",
+            "skip": "不收录"
+          },
+          "title": "敏感内容处理"
         }
       },
       "shortcuts": {
