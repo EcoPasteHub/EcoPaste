@@ -10,6 +10,12 @@
   "app": {
     "tagline": "跨平台剪贴板管理器"
   },
+  "shortcutRecorder": {
+    "clear": "清除快捷键",
+    "click": "点击录制快捷键",
+    "conflict": "{{shortcut}} 已被「{{label}}」占用",
+    "press": "按下录入快捷键"
+  },
   "units": {
     "items": "{{count}} 项",
     "settings": "{{count}} 项设置"

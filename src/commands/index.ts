@@ -236,6 +236,26 @@ export const getSettings = () => {
 };
 
 /**
+ * 暂停全局快捷键注册；录入快捷键期间避免旧绑定被直接触发。
+ */
+export const suspendGlobalShortcuts = () => {
+  return call<void>(
+    TAURI_COMMAND.SUSPEND_GLOBAL_SHORTCUTS,
+    "commands:labels.suspendGlobalShortcuts",
+  );
+};
+
+/**
+ * 按 Rust 当前设置恢复全局快捷键注册；录入完成、取消或失焦后调用。
+ */
+export const resumeGlobalShortcuts = () => {
+  return call<void>(
+    TAURI_COMMAND.RESUME_GLOBAL_SHORTCUTS,
+    "commands:labels.resumeGlobalShortcuts",
+  );
+};
+
+/**
  * 提交设置补丁；Rust 落盘后广播 `settings://updated` 由各窗口回灌镜像。
  */
 export const updateSettings = (patch: SettingsPatch) => {

@@ -104,6 +104,8 @@ pub fn run() {
             commands::close_clipboard_preview,
             commands::get_clipboard_preview_state,
             commands::get_settings,
+            commands::suspend_global_shortcuts,
+            commands::resume_global_shortcuts,
             commands::update_settings,
             commands::reset_settings,
             commands::export_history_backup,

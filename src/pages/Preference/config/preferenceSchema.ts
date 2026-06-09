@@ -627,7 +627,7 @@ export const preferenceTabs: PreferenceTab[] = [
         id: "globalShortcuts",
         settings: [
           {
-            control: { type: "text" },
+            control: { type: "shortcutRecorder" },
             id: "shortcuts.openClipboard",
             keywords: ["shortcut", "hotkey", "open"],
             path: ["shortcuts", "openClipboard"],
@@ -636,7 +636,7 @@ export const preferenceTabs: PreferenceTab[] = [
             },
           },
           {
-            control: { type: "text" },
+            control: { type: "shortcutRecorder" },
             id: "shortcuts.openPreference",
             keywords: ["shortcut", "hotkey", "preference"],
             path: ["shortcuts", "openPreference"],

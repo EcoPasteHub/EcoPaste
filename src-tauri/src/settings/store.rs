@@ -81,6 +81,8 @@ impl SettingsStore {
         let next: Settings = serde_json::from_value(merged)
             .map_err(|err| AppError::Other(anyhow::anyhow!("invalid settings patch: {err}")))?;
 
+        validate_settings(&next)?;
+
         let path = self.path();
         write_atomic(&path, &next)?;
         *guard = next.clone();
@@ -93,6 +95,8 @@ impl SettingsStore {
             fs::read_to_string(path).with_context(|| format!("failed to read {path:?}"))?;
         let next: Settings = serde_json::from_str(&content)
             .map_err(|err| AppError::Other(anyhow::anyhow!("invalid settings file: {err}")))?;
+
+        validate_settings(&next)?;
 
         let path = self.path();
         write_atomic(&path, &next)?;
@@ -174,6 +178,35 @@ fn write_atomic(path: &Path, settings: &Settings) -> Result<()> {
     Ok(())
 }
 
+/// 校验设置之间的跨字段约束，避免非法配置写入磁盘。
+fn validate_settings(settings: &Settings) -> Result<()> {
+    let open_clipboard = normalize_shortcut_value(&settings.shortcuts.open_clipboard);
+    let open_preference = normalize_shortcut_value(&settings.shortcuts.open_preference);
+
+    if open_clipboard.is_empty() || open_preference.is_empty() {
+        return Ok(());
+    }
+
+    if open_clipboard == open_preference {
+        return Err(AppError::Other(anyhow::anyhow!(
+            "global shortcuts must be unique"
+        )));
+    }
+
+    Ok(())
+}
+
+/// 归一化快捷键字面量，供跨字段校验忽略大小写和多余空白。
+fn normalize_shortcut_value(value: &str) -> String {
+    value
+        .split('+')
+        .map(str::trim)
+        .filter(|key| !key.is_empty())
+        .map(str::to_ascii_lowercase)
+        .collect::<Vec<_>>()
+        .join("+")
+}
+
 fn deep_merge(base: &mut serde_json::Value, patch: serde_json::Value) {
     match (base, patch) {
         (serde_json::Value::Object(base_map), serde_json::Value::Object(patch_map)) => {
@@ -227,6 +260,22 @@ mod tests {
             base,
             serde_json::json!({"itemActions": ["copy", "pastePlain"]})
         );
+    }
+
+    #[test]
+    fn validate_settings_rejects_duplicate_global_shortcuts() {
+        let mut settings = Settings::default();
+        settings.shortcuts.open_preference = settings.shortcuts.open_clipboard.clone();
+
+        assert!(validate_settings(&settings).is_err());
+    }
+
+    #[test]
+    fn validate_settings_allows_empty_global_shortcuts() {
+        let mut settings = Settings::default();
+        settings.shortcuts.open_preference = String::new();
+
+        assert!(validate_settings(&settings).is_ok());
     }
 
     #[test]

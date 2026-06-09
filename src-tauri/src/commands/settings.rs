@@ -12,6 +12,18 @@ pub async fn get_settings(app: AppHandle) -> Result<Settings> {
     Ok(app.state::<SettingsStore>().snapshot())
 }
 
+/// 暂停当前全局快捷键注册；用于前端录入快捷键期间避免旧绑定被触发。
+#[tauri::command]
+pub async fn suspend_global_shortcuts(app: AppHandle) -> Result<()> {
+    shortcut::suspend(&app)
+}
+
+/// 按当前设置快照恢复全局快捷键注册；录入结束、取消或失焦时调用。
+#[tauri::command]
+pub async fn resume_global_shortcuts(app: AppHandle) -> Result<()> {
+    shortcut::resume(&app)
+}
+
 /// 用 JSON patch 深度合并到现设置。返回合并后的完整快照。
 /// 若 `shortcuts` 段被改动，会顺带重注册全局快捷键；
 /// 若 `general.trayIcon` 或 `appearance.language` 被改动，重建托盘菜单/显隐。

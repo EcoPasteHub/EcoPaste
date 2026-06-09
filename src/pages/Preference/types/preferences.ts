@@ -58,6 +58,7 @@ export type PreferenceControl =
     }
   | { type: "retention" }
   | { type: "text" }
+  | { type: "shortcutRecorder" }
   | { type: "textarea" }
   | { type: "appExclusion" }
   | { type: "action"; danger?: boolean }

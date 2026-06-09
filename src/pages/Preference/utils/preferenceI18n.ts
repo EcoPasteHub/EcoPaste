@@ -107,7 +107,11 @@ export function translatePreferencePlaceholder(
   t: PreferenceTranslator,
   setting: PreferenceSetting,
 ) {
-  if (setting.control.type !== "text" && setting.control.type !== "textarea") {
+  if (
+    setting.control.type !== "text" &&
+    setting.control.type !== "textarea" &&
+    setting.control.type !== "shortcutRecorder"
+  ) {
     return "";
   }
 

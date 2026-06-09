@@ -27,6 +27,7 @@ import {
   SegmentedSelectControl,
   SelectControl,
 } from "./settingControls/SelectControls";
+import ShortcutRecorderControl from "./settingControls/ShortcutRecorderControl";
 import ShortcutTagsControl from "./settingControls/ShortcutTagsControl";
 import SortableCheckboxTreeControl from "./settingControls/SortableCheckboxTreeControl";
 import StatusControl from "./settingControls/StatusControl";
@@ -163,6 +164,7 @@ const PreferenceSettingRow: FC<PreferenceSettingRowProps> = (props) => {
       <div className="relative flex shrink-0 justify-end opacity-90 transition-opacity group-hover:opacity-100 motion-reduce:transition-none">
         {renderControl(
           setting,
+          settings,
           disabled,
           onChange,
           value,
@@ -181,6 +183,7 @@ export default PreferenceSettingRow;
  */
 function renderControl(
   setting: PreferenceSetting,
+  settings: Settings,
   disabled: boolean,
   onChange: PreferenceSettingChangeHandler,
   value?: SettingValue,
@@ -263,6 +266,16 @@ function renderControl(
           disabled={disabled}
           onChange={onChange}
           setting={setting}
+          value={typeof value === "string" ? value : ""}
+        />
+      );
+    case "shortcutRecorder":
+      return (
+        <ShortcutRecorderControl
+          disabled={disabled}
+          onChange={onChange}
+          setting={setting}
+          settings={settings}
           value={typeof value === "string" ? value : ""}
         />
       );
