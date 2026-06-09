@@ -589,8 +589,8 @@ pub struct Update {
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub enum UpdateFrequency {
-    Daily,
     #[default]
+    Daily,
     Weekly,
     Monthly,
 }
