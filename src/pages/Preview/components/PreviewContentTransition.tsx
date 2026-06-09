@@ -1,4 +1,4 @@
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import type { FC, ReactNode } from "react";
 import { PREVIEW_CONTENT_TRANSITION } from "../constants";
 
@@ -8,21 +8,24 @@ interface PreviewContentTransitionProps {
 }
 
 /**
- * 内容切换时做轻量淡入位移，避免 payload 更换出现硬切。
+ * 内容切换时做轻量淡出 / 淡入位移，避免 payload 更换出现硬切。
  */
 const PreviewContentTransition: FC<PreviewContentTransitionProps> = (props) => {
   const { children, contentKey } = props;
 
   return (
-    <motion.div
-      animate={{ opacity: 1, y: 0 }}
-      className="min-h-full"
-      initial={{ opacity: 0, y: 1 }}
-      key={contentKey}
-      transition={PREVIEW_CONTENT_TRANSITION}
-    >
-      {children}
-    </motion.div>
+    <AnimatePresence initial={false} mode="wait">
+      <motion.div
+        animate={{ opacity: 1, y: 0 }}
+        className="flex min-h-0 flex-1 flex-col"
+        exit={{ opacity: 0, y: -1 }}
+        initial={{ opacity: 0, y: 1 }}
+        key={contentKey}
+        transition={PREVIEW_CONTENT_TRANSITION}
+      >
+        {children}
+      </motion.div>
+    </AnimatePresence>
   );
 };
 

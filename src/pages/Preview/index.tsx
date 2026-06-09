@@ -167,17 +167,17 @@ const Preview: FC = () => {
         transition={PREVIEW_PANEL_TRANSITION}
         variants={PREVIEW_PANEL_VARIANTS}
       >
-        <PreviewHeader payload={payload} />
+        <PreviewContentTransition contentKey={payloadKey}>
+          <PreviewHeader payload={payload} />
 
-        <div
-          className={cn("min-h-0 flex-1 overflow-auto transition-opacity", {
-            "opacity-60": isLoading && payload !== null,
-          })}
-        >
-          <PreviewContentTransition contentKey={payloadKey}>
+          <div
+            className={cn("min-h-0 flex-1 overflow-auto transition-opacity", {
+              "opacity-60": isLoading && payload !== null,
+            })}
+          >
             <PreviewContent payload={payload} />
-          </PreviewContentTransition>
-        </div>
+          </div>
+        </PreviewContentTransition>
 
         {isLoading && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-ant-mask/10">
