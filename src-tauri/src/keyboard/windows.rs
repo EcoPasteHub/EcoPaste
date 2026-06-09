@@ -25,9 +25,10 @@ fn consumed_keys() -> &'static Mutex<HashSet<u32>> {
     SET.get_or_init(|| Mutex::new(HashSet::new()))
 }
 
-/// 仅放行当前前端需要的 Ctrl 快捷键：D、F、K、M、P、T、Enter、Backspace、Delete、逗号与数字 0-9。
+/// 仅放行当前前端需要的 Ctrl 快捷键：C、D、F、K、M、P、T、Enter、Backspace、Delete、逗号与数字 0-9。
 fn ctrl_shortcut_key(vk: u32) -> Option<String> {
     match vk as i32 {
+        0x43 => Some("c".to_string()),
         0x44 => Some("d".to_string()),
         0x46 => Some("f".to_string()),
         0x4B => Some("k".to_string()),

@@ -531,6 +531,25 @@ const List: FC = () => {
       return;
     }
 
+    if (
+      eventModifierPressed &&
+      event.key.toLowerCase() === "c" &&
+      !shouldUseNativeCopy(event)
+    ) {
+      event.preventDefault();
+
+      const activeItem = getActiveItem();
+
+      if (!activeItem) return;
+
+      if (previewSession?.itemId === activeItem.id)
+        closePreview("shortcutCopy");
+
+      writeToClipboard(activeItem.id, false);
+
+      return;
+    }
+
     if (eventModifierPressed && event.key.toLowerCase() === "d") {
       event.preventDefault();
 
@@ -998,6 +1017,22 @@ function getSelectedIdAfterDelete(
   const nextItem = items[deletedIndex + 1] ?? items[deletedIndex - 1] ?? null;
 
   return nextItem?.id ?? null;
+}
+
+/**
+ * 判断 Cmd/Ctrl+C 是否应交给浏览器原生复制，避免覆盖输入框或文本选区复制。
+ */
+function shouldUseNativeCopy(event: KeyboardEvent) {
+  const target = event.target;
+  if (target instanceof HTMLElement) {
+    const tagName = target.tagName.toLowerCase();
+    if (target.isContentEditable) return true;
+    if (tagName === "input" || tagName === "textarea") return true;
+  }
+
+  const selection = window.getSelection();
+
+  return Boolean(selection && !selection.isCollapsed);
 }
 
 const computeItemKey = (_: number, item: ClipboardItem) => {

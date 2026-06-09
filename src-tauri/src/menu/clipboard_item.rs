@@ -91,6 +91,7 @@ impl ClipboardMenuAction {
         match self {
             Self::Paste => Some("Enter"),
             Self::PasteAsPlainText | Self::PasteAsPath => Some("CmdOrCtrl+Enter"),
+            Self::Copy => Some("CmdOrCtrl+C"),
             Self::ToggleFavorite => Some("CmdOrCtrl+D"),
             Self::TogglePinned => Some("CmdOrCtrl+T"),
             Self::EditNote => Some("CmdOrCtrl+M"),

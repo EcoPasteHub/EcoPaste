@@ -47,6 +47,7 @@
     "starActive": "Unfavorite"
   },
   "shortcuts": {
+    "copySelected": "Copy selected item",
     "deleteSelected": "Delete selected item",
     "favoriteSelected": "Favorite / unfavorite",
     "focusSearch": "Focus search",

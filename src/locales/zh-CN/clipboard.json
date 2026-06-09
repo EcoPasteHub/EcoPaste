@@ -47,6 +47,7 @@
     "starActive": "取消收藏"
   },
   "shortcuts": {
+    "copySelected": "复制选中项",
     "deleteSelected": "删除选中项",
     "favoriteSelected": "收藏 / 取消收藏",
     "focusSearch": "聚焦搜索框",
