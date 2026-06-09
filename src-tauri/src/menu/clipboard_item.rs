@@ -41,7 +41,13 @@ pub enum ClipboardMenuAction {
 
 impl ClipboardMenuAction {
     /// 返回当前语言下的菜单文案；切换类动作按当前状态翻转。
-    pub(super) fn label(self, lang: Language, is_favorite: bool, is_pinned: bool) -> &'static str {
+    pub(super) fn label(
+        self,
+        lang: Language,
+        is_favorite: bool,
+        is_pinned: bool,
+        has_note: bool,
+    ) -> &'static str {
         use crate::i18n::clipboard_menu::Key;
 
         let key = match self {
@@ -67,7 +73,13 @@ impl ClipboardMenuAction {
                     Key::PinItem
                 }
             }
-            Self::EditNote => Key::EditNote,
+            Self::EditNote => {
+                if has_note {
+                    Key::EditNote
+                } else {
+                    Key::AddNote
+                }
+            }
             Self::Delete => Key::Delete,
         };
 
@@ -81,6 +93,7 @@ impl ClipboardMenuAction {
             Self::PasteAsPlainText | Self::PasteAsPath => Some("CmdOrCtrl+Enter"),
             Self::ToggleFavorite => Some("CmdOrCtrl+D"),
             Self::TogglePinned => Some("CmdOrCtrl+T"),
+            Self::EditNote => Some("CmdOrCtrl+M"),
             Self::Delete => Some("CmdOrCtrl+Backspace"),
             _ => None,
         }
@@ -201,6 +214,7 @@ mod native {
         available_actions: Vec<ClipboardMenuAction>,
         is_favorite: bool,
         is_pinned: bool,
+        has_note: bool,
     ) -> Result<()> {
         let state = app.try_state::<ClipboardItemMenuState>().ok_or_else(|| {
             AppError::Other(anyhow::anyhow!("ClipboardItemMenuState not managed"))
@@ -222,6 +236,7 @@ mod native {
                     lang,
                     is_favorite,
                     is_pinned,
+                    has_note,
                 ) {
                     Ok(m) => m,
                     Err(err) => {
@@ -257,6 +272,7 @@ mod native {
         lang: Language,
         is_favorite: bool,
         is_pinned: bool,
+        has_note: bool,
     ) -> Result<Menu<Wry>> {
         let active: HashSet<ClipboardMenuAction> = actions.iter().copied().collect();
 
@@ -287,7 +303,7 @@ mod native {
                 let item = MenuItem::with_id(
                     app,
                     action.id(),
-                    action.label(lang, is_favorite, is_pinned),
+                    action.label(lang, is_favorite, is_pinned, has_note),
                     true,
                     action.accelerator(),
                 )
@@ -366,10 +382,18 @@ pub async fn popup_clipboard_item_menu(
     available_actions: Vec<ClipboardMenuAction>,
     is_favorite: bool,
     is_pinned: bool,
+    has_note: bool,
 ) -> Result<()> {
     #[cfg(target_os = "macos")]
     {
-        native::popup(&app, item_id, available_actions, is_favorite, is_pinned)
+        native::popup(
+            &app,
+            item_id,
+            available_actions,
+            is_favorite,
+            is_pinned,
+            has_note,
+        )
     }
 
     #[cfg(target_os = "windows")]
@@ -380,6 +404,7 @@ pub async fn popup_clipboard_item_menu(
             &available_actions,
             is_favorite,
             is_pinned,
+            has_note,
         )
     }
 }

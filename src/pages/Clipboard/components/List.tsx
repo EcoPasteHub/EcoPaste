@@ -325,6 +325,15 @@ const List: FC = () => {
   };
 
   /**
+   * 打开条目备注编辑框；若该条正在预览，先关闭预览避免窗口层级互相遮挡。
+   */
+  const handleOpenNote = (item: ClipboardItem, reason: string) => {
+    if (previewSession?.itemId === item.id) closePreview(reason);
+
+    setNoteTarget(item);
+  };
+
+  /**
    * 读取当前选中项。无显式选中时，列表第一项即键盘 active item。
    */
   function getActiveItem() {
@@ -457,8 +466,7 @@ const List: FC = () => {
         handleTogglePinned(target.id);
         return;
       case "editNote":
-        if (previewSession?.itemId === target.id) closePreview("editNote");
-        setNoteTarget(target);
+        handleOpenNote(target, "editNote");
         return;
       case "delete":
         if (!canDeleteItem(target)) return;
@@ -543,6 +551,18 @@ const List: FC = () => {
       if (!activeItem) return;
 
       handleTogglePinned(activeItem.id);
+
+      return;
+    }
+
+    if (eventModifierPressed && event.key.toLowerCase() === "m") {
+      event.preventDefault();
+
+      const activeItem = getActiveItem();
+
+      if (!activeItem) return;
+
+      handleOpenNote(activeItem, "shortcutNote");
 
       return;
     }
@@ -688,8 +708,7 @@ const List: FC = () => {
     };
 
     const handleEditNote = () => {
-      if (previewSession?.itemId === item.id) closePreview("editNote");
-      setNoteTarget(item);
+      handleOpenNote(item, "editNote");
     };
 
     const handleQuickAction = async (action: ItemAction) => {

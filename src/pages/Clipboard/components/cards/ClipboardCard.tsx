@@ -94,11 +94,17 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
     event.preventDefault();
 
     const actions = availableActions ?? item.availableActions ?? [];
-    const { isFavorite, isPinned } = item;
+    const { isFavorite, isPinned, note } = item;
 
     if (actions.length === 0) return;
 
-    await popupClipboardItemMenu(item.id, [...actions], isFavorite, isPinned);
+    await popupClipboardItemMenu(
+      item.id,
+      [...actions],
+      isFavorite,
+      isPinned,
+      Boolean(note),
+    );
   };
 
   const handlePointerEnter = (event: PointerEvent<HTMLDivElement>) => {

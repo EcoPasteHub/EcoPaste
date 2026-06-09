@@ -15,6 +15,7 @@ pub fn label(key: Key) -> &'static str {
         Key::Unfavorite => "取消收藏",
         Key::PinItem => "置顶",
         Key::UnpinItem => "取消置顶",
+        Key::AddNote => "添加备注",
         Key::EditNote => "编辑备注",
         Key::Delete => "删除",
     }

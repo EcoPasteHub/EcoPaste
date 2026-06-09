@@ -870,12 +870,14 @@ export const popupClipboardItemMenu = (
   availableActions: ClipboardAction[],
   isFavorite: boolean,
   isPinned: boolean,
+  hasNote: boolean,
 ) => {
   return call<void>(
     TAURI_COMMAND.POPUP_CLIPBOARD_ITEM_MENU,
     "commands:labels.openMenu",
     {
       availableActions,
+      hasNote,
       isFavorite,
       isPinned,
       itemId,

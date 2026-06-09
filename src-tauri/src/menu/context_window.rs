@@ -93,9 +93,10 @@ pub fn show_for_clipboard_item(
     available_actions: &[ClipboardMenuAction],
     is_favorite: bool,
     is_pinned: bool,
+    has_note: bool,
 ) -> Result<()> {
     let lang = crate::i18n::current_language(app);
-    let groups = build_groups(available_actions, lang, is_favorite, is_pinned);
+    let groups = build_groups(available_actions, lang, is_favorite, is_pinned, has_note);
     if groups.is_empty() {
         return Ok(());
     }
@@ -135,6 +136,7 @@ fn build_groups(
     lang: Language,
     is_favorite: bool,
     is_pinned: bool,
+    has_note: bool,
 ) -> Vec<Vec<MenuItemPayload>> {
     ACTION_GROUPS
         .iter()
@@ -144,7 +146,7 @@ fn build_groups(
                 .filter(|a| available.contains(a))
                 .map(|a| MenuItemPayload {
                     action: *a,
-                    label: a.label(lang, is_favorite, is_pinned).into(),
+                    label: a.label(lang, is_favorite, is_pinned, has_note).into(),
                     accelerator: a.accelerator().map(String::from),
                 })
                 .collect::<Vec<_>>()

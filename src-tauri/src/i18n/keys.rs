@@ -12,6 +12,7 @@ pub enum ClipboardMenuKey {
     Unfavorite,
     PinItem,
     UnpinItem,
+    AddNote,
     EditNote,
     Delete,
 }
