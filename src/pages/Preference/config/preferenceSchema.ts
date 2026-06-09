@@ -529,24 +529,6 @@ export const preferenceTabs: PreferenceTab[] = [
             },
           },
           {
-            control: { type: "switch" },
-            id: "appearance.showNewBadge",
-            keywords: ["badge", "new", "record", "group"],
-            path: ["clipboard", "display", "showNewBadge"],
-            value: (settings) => {
-              return settings.clipboard.display.showNewBadge;
-            },
-          },
-          {
-            control: { type: "switch" },
-            id: "appearance.showOriginalPreview",
-            keywords: ["note", "hover", "original", "preview"],
-            path: ["clipboard", "content", "showOriginalPreview"],
-            value: (settings) => {
-              return settings.clipboard.content.showOriginalPreview;
-            },
-          },
-          {
             control: { max: 100, min: 20, suffixKey: "px", type: "number" },
             id: "appearance.imageMaxHeight",
             keywords: ["density", "image", "height", "thumbnail"],
@@ -562,6 +544,24 @@ export const preferenceTabs: PreferenceTab[] = [
             path: ["clipboard", "display", "fileMaxCount"],
             value: (settings) => {
               return settings.clipboard.display.fileMaxCount;
+            },
+          },
+          {
+            control: { type: "switch" },
+            id: "appearance.showNewBadge",
+            keywords: ["badge", "new", "record", "group"],
+            path: ["clipboard", "display", "showNewBadge"],
+            value: (settings) => {
+              return settings.clipboard.display.showNewBadge;
+            },
+          },
+          {
+            control: { type: "switch" },
+            id: "appearance.showOriginalPreview",
+            keywords: ["note", "hover", "original", "preview"],
+            path: ["clipboard", "content", "showOriginalPreview"],
+            value: (settings) => {
+              return settings.clipboard.content.showOriginalPreview;
             },
           },
           {
