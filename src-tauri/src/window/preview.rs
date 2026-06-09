@@ -1,6 +1,7 @@
 //! 系统级剪贴板预览窗口骨架。
 //!
-//! 预览窗口是透明的 full-screen overlay：Rust 负责创建/复用窗口、收集坐标上下文并广播，
+//! 预览窗口是透明的 full-screen overlay：Tauri 配置负责预创建隐藏窗口，
+//! Rust 负责复用窗口、收集坐标上下文并广播，
 //! 前端在该窗口内渲染预览内容与连接曲线。
 
 #![allow(clippy::unused_unit)]
@@ -12,8 +13,7 @@ use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 use tauri::{
-    AppHandle, Emitter, Manager, PhysicalPosition, PhysicalRect, PhysicalSize, WebviewUrl,
-    WebviewWindow, WebviewWindowBuilder,
+    AppHandle, Emitter, Manager, PhysicalPosition, PhysicalRect, PhysicalSize, WebviewWindow,
 };
 
 use crate::core::Result;
@@ -145,11 +145,7 @@ pub fn show_clipboard_preview(
     let main_window = main_window_rect(app);
     let layout = build_preview_layout(&anchor, scale_factor, &work_area, main_window.as_ref());
 
-    apply_preview_window_bounds(&window, &work_area)?;
-    window
-        .set_ignore_cursor_events(true)
-        .map_err(|e| anyhow::anyhow!(e))?;
-    raise_preview_window(app, &window)?;
+    prepare_preview_window_for_show(app, &window, &work_area)?;
 
     let state = ClipboardPreviewState {
         request_id,
@@ -171,7 +167,7 @@ pub fn show_clipboard_preview(
     window
         .emit(PREVIEW_UPDATED_EVENT, &state)
         .map_err(|e| anyhow::anyhow!(e))?;
-    show_preview_window(app, &window)?;
+    show_preview_window(app, &window, &work_area)?;
 
     Ok(Some(state))
 }
@@ -227,6 +223,13 @@ pub fn get_clipboard_preview_state() -> Result<Option<ClipboardPreviewState>> {
     });
 
     Ok(guard.clone())
+}
+
+/// 初始化配置预创建的预览窗口；macOS 下提前转为不会抢焦点的 NSPanel。
+#[cfg(target_os = "macos")]
+pub fn setup_preview_window(app: &AppHandle) -> Result<()> {
+    let window = ensure_preview_window(app)?;
+    ensure_macos_preview_panel(app, &window)
 }
 
 fn set_preview_state(state: Option<ClipboardPreviewState>) {
@@ -299,32 +302,10 @@ fn ensure_preview_window(app: &AppHandle) -> Result<WebviewWindow> {
         return Ok(window);
     }
 
-    let window = WebviewWindowBuilder::new(
-        app,
-        CLIPBOARD_PREVIEW_WINDOW_LABEL,
-        WebviewUrl::App("index.html/#/preview".into()),
+    Err(
+        anyhow::anyhow!("configured preview window not found: {CLIPBOARD_PREVIEW_WINDOW_LABEL}")
+            .into(),
     )
-    .title("EcoPaste Preview")
-    .inner_size(1.0, 1.0)
-    .position(0.0, 0.0)
-    .resizable(false)
-    .maximizable(false)
-    .minimizable(false)
-    .decorations(false)
-    .transparent(true)
-    .shadow(false)
-    .always_on_top(true)
-    .skip_taskbar(true)
-    .focused(false)
-    .focusable(false)
-    .visible(false)
-    .build()
-    .map_err(|e| anyhow::anyhow!(e))?;
-
-    #[cfg(target_os = "macos")]
-    ensure_macos_preview_panel(app, &window)?;
-
-    Ok(window)
 }
 
 fn raise_preview_window(app: &AppHandle, window: &WebviewWindow) -> Result<()> {
@@ -346,15 +327,32 @@ fn raise_preview_window(app: &AppHandle, window: &WebviewWindow) -> Result<()> {
     }
 }
 
-fn show_preview_window(app: &AppHandle, window: &WebviewWindow) -> Result<()> {
+fn prepare_preview_window_for_show(
+    app: &AppHandle,
+    window: &WebviewWindow,
+    work_area: &PhysicalRect<i32, u32>,
+) -> Result<()> {
+    apply_preview_window_bounds(window, work_area)?;
+    window
+        .set_ignore_cursor_events(true)
+        .map_err(|e| anyhow::anyhow!(e))?;
+    raise_preview_window(app, window)
+}
+
+fn show_preview_window(
+    app: &AppHandle,
+    window: &WebviewWindow,
+    work_area: &PhysicalRect<i32, u32>,
+) -> Result<()> {
     #[cfg(target_os = "macos")]
     {
         let _ = window;
-        show_macos_preview_panel(app)
+        show_macos_preview_panel(app, work_area)
     }
 
     #[cfg(target_os = "windows")]
     {
+        let _ = work_area;
         let _ = app;
         window.show().map_err(|e| anyhow::anyhow!(e))?;
         raise_windows_preview_window(window, true)?;
@@ -426,18 +424,29 @@ fn set_macos_preview_panel_level(app: &AppHandle) -> Result<()> {
 }
 
 #[cfg(target_os = "macos")]
-fn show_macos_preview_panel(app: &AppHandle) -> Result<()> {
+fn show_macos_preview_panel(app: &AppHandle, work_area: &PhysicalRect<i32, u32>) -> Result<()> {
     let handle = app.clone();
+    let preview_window = get_window(app, CLIPBOARD_PREVIEW_WINDOW_LABEL)?;
+    let work_area = *work_area;
+    let (tx, rx) = std::sync::mpsc::channel();
 
     app.run_on_main_thread(move || {
-        if let Ok(panel) = handle.get_webview_panel(CLIPBOARD_PREVIEW_WINDOW_LABEL) {
+        let result = (|| -> Result<()> {
+            apply_preview_window_bounds(&preview_window, &work_area)?;
+            let panel = handle
+                .get_webview_panel(CLIPBOARD_PREVIEW_WINDOW_LABEL)
+                .map_err(|e| anyhow::anyhow!("preview panel not found: {e:?}"))?;
             panel.set_ignores_mouse_events(true);
+            panel.set_level(PanelLevel::Status.value());
             panel.show();
-        }
+            Ok(())
+        })();
+        let _ = tx.send(result);
     })
     .map_err(|e| anyhow::anyhow!(e))?;
 
-    Ok(())
+    rx.recv()
+        .map_err(|e| anyhow::anyhow!("preview panel show channel closed: {e}"))?
 }
 
 #[cfg(target_os = "macos")]
