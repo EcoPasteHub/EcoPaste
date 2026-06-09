@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import { useSnapshot } from "valtio";
 import {
   type ClipboardPreviewPayload,
   type ClipboardPreviewState,
   getClipboardPreviewPayload,
 } from "@/commands";
+import { settingsState } from "@/stores/settings";
 import { log } from "@/utils/log";
 import { readCachedPayload, writeCachedPayload } from "./cache";
 import { PREVIEW_EXIT_ANIMATION_MS } from "./constants";
@@ -54,6 +56,8 @@ export function usePreviewPayload(previewState: ClipboardPreviewState | null) {
   const [loadingItemId, setLoadingItemId] = useState<string | null>(null);
   const latestRequestIdRef = useRef(0);
   const cacheRef = useRef(new Map<string, ClipboardPreviewPayload>());
+  const { clipboard } = useSnapshot(settingsState);
+  const redactSecrets = clipboard.sensitive.redactSecrets;
 
   useEffect(() => {
     if (!previewState) {
@@ -65,7 +69,11 @@ export function usePreviewPayload(previewState: ClipboardPreviewState | null) {
     let cancelled = false;
     latestRequestIdRef.current = state.requestId;
 
-    const cached = readCachedPayload(cacheRef.current, state.itemId);
+    const cached = readCachedPayload(
+      cacheRef.current,
+      state.itemId,
+      redactSecrets,
+    );
     if (cached) {
       setPayload(cached);
       setLoadingItemId(null);
@@ -88,7 +96,7 @@ export function usePreviewPayload(previewState: ClipboardPreviewState | null) {
           return;
         }
 
-        writeCachedPayload(cacheRef.current, nextPayload);
+        writeCachedPayload(cacheRef.current, nextPayload, redactSecrets);
         setPayload(nextPayload);
         setLoadingItemId(null);
       } catch (error) {
@@ -106,7 +114,7 @@ export function usePreviewPayload(previewState: ClipboardPreviewState | null) {
     return () => {
       cancelled = true;
     };
-  }, [previewState]);
+  }, [previewState, redactSecrets]);
 
   return { loadingItemId, payload };
 }

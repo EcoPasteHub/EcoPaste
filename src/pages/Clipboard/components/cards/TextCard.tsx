@@ -22,22 +22,15 @@ interface TextCardProps extends ClipboardItem {
  * 子类型（HTML/RTF/URL/Email/Color/Path）以小 Tag 提示。
  */
 const TextCard: FC<TextCardProps> = (props) => {
-  const {
-    summary,
-    subKind,
-    colorPreview,
-    isLinkActive,
-    isSensitive,
-    onOpenLink,
-  } = props;
+  const { summary, subKind, colorPreview, isLinkActive, onOpenLink } = props;
   const { keyword } = useSnapshot(clipboardViewState);
   const { clipboard } = useSnapshot(settingsState);
   const textMaxLines = clipboard.display.textMaxLines;
   const lineClampClass = textLineClampClass(textMaxLines);
   const isOpenableLink =
-    !isSensitive && isLinkActive && (subKind === "url" || subKind === "email");
+    isLinkActive && (subKind === "url" || subKind === "email");
 
-  if (!isSensitive && subKind === "color" && colorPreview) {
+  if (subKind === "color" && colorPreview) {
     const style: CSSProperties = {
       background: colorPreview,
     };

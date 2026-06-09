@@ -21,12 +21,6 @@ const CLIPBOARD_SORT_OPTIONS = [
   { value: "updatedAtDesc" },
   { value: "useCountDesc" },
 ];
-const SECRET_HANDLING_OPTIONS = [
-  { value: "skip" },
-  { value: "redact" },
-  { value: "include" },
-];
-
 export const preferenceTabs: PreferenceTab[] = [
   {
     icon: "i-lucide:clipboard-plus",
@@ -130,12 +124,21 @@ export const preferenceTabs: PreferenceTab[] = [
         id: "sensitive",
         settings: [
           {
-            control: { options: SECRET_HANDLING_OPTIONS, type: "select" },
-            id: "sensitive.secretHandling",
+            control: { type: "switch" },
+            id: "sensitive.collectSecrets",
             keywords: ["token", "key", "secret", "code"],
-            path: ["clipboard", "sensitive", "secretHandling"],
+            path: ["clipboard", "sensitive", "collectSecrets"],
             value: (settings) => {
-              return settings.clipboard.sensitive.secretHandling;
+              return settings.clipboard.sensitive.collectSecrets;
+            },
+          },
+          {
+            control: { type: "switch" },
+            id: "sensitive.redactSecrets",
+            keywords: ["token", "key", "secret", "redact", "mask"],
+            path: ["clipboard", "sensitive", "redactSecrets"],
+            value: (settings) => {
+              return settings.clipboard.sensitive.redactSecrets;
             },
           },
         ],

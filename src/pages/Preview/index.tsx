@@ -2,12 +2,14 @@ import { useMount } from "ahooks";
 import { Spin } from "antd";
 import { motion } from "motion/react";
 import { type FC, useRef, useState } from "react";
+import { useSnapshot } from "valtio";
 import {
   type ClipboardPreviewState,
   getClipboardPreviewState,
 } from "@/commands";
 import { TAURI_EVENT } from "@/constants/events";
 import { useTauriListen } from "@/hooks/useTauriListen";
+import { settingsState } from "@/stores/settings";
 import { cn } from "@/utils/cn";
 import { log } from "@/utils/log";
 import { cacheKey } from "./cache";
@@ -56,6 +58,8 @@ const Preview: FC = () => {
   const [previewState, setPreviewState] =
     useState<ClipboardPreviewState | null>(null);
   const panelMeasureRef = useRef<HTMLDivElement>(null);
+  const { clipboard } = useSnapshot(settingsState);
+  const redactSecrets = clipboard.sensitive.redactSecrets;
   const renderState = usePreviewRenderState(previewState);
   const { loadingItemId, payload } = usePreviewPayload(previewState);
   const measuredPanelSize = useMeasuredPanelSize(panelMeasureRef);
@@ -102,7 +106,7 @@ const Preview: FC = () => {
   }
 
   const isLoading = loadingItemId !== null;
-  const payloadKey = payload ? cacheKey(payload) : "empty";
+  const payloadKey = payload ? cacheKey(payload, redactSecrets) : "empty";
   const { layout } = visibleState;
   const svgStyle = rectStyle(layout.overlayRect);
 

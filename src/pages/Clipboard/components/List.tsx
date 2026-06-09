@@ -95,6 +95,7 @@ const List: FC = () => {
   const middleClick = settings.clipboard.content.middleClick;
   const display = settings.clipboard.display;
   const sort = settings.clipboard.content.sort;
+  const redactSecrets = settings.clipboard.sensitive.redactSecrets;
   const quickActions = settings.clipboard.content.itemActions;
   const deleteFavoriteItems = settings.clipboard.content.deleteFavoriteItems;
   const deletePinnedItems = settings.clipboard.content.deletePinnedItems;
@@ -159,7 +160,7 @@ const List: FC = () => {
     virtuosoRef.current?.scrollToIndex({ behavior: "smooth", index: 0 });
   }, [refreshToken, group, refreshGroup]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: 仅按文件数量设置触发重拉，函数引用用 ref 读取最新值
+  // biome-ignore lint/correctness/useExhaustiveDependencies: 仅按影响列表 payload 的展示设置触发重拉，函数引用用 ref 读取最新值
   useEffect(() => {
     if (!displaySettingsMountedRef.current) {
       displaySettingsMountedRef.current = true;
@@ -168,7 +169,7 @@ const List: FC = () => {
 
     closePreviewRef.current("displaySettingChange");
     reloadRef.current();
-  }, [fileMaxCount]);
+  }, [fileMaxCount, redactSecrets]);
 
   /**
    * 收到剪贴板更新：导入 / 清理强制刷新；普通新记录只在命中当前分组时刷新，

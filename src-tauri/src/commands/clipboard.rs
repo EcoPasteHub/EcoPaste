@@ -225,6 +225,7 @@ pub async fn get_file_icon_path(
 /// 列表查询会裁剪 text content；预览必须走完整记录，再按 Content Viewer 的三类视图归一化。
 #[tauri::command]
 pub async fn get_clipboard_preview_payload(
+    app: AppHandle,
     db: State<'_, DatabaseState>,
     image_store: State<'_, ImageStore>,
     file_icon_store: State<'_, FileIconStore>,
@@ -235,8 +236,20 @@ pub async fn get_clipboard_preview_payload(
         return Ok(None);
     };
 
-    let payload =
-        build_clipboard_preview_payload(&pool, &image_store, &file_icon_store, item).await?;
+    let redact_sensitive = app
+        .state::<SettingsStore>()
+        .snapshot()
+        .clipboard
+        .sensitive
+        .redact_secrets;
+    let payload = build_clipboard_preview_payload(
+        &pool,
+        &image_store,
+        &file_icon_store,
+        item,
+        redact_sensitive,
+    )
+    .await?;
     Ok(Some(payload))
 }
 
@@ -418,19 +431,16 @@ pub async fn list_clipboard_items(
     let q = query.unwrap_or_default();
     let (mut items, total) = crate::db::items::query_items_page(&pool, &q).await?;
     let now = Local::now();
-    let file_entry_limit = app
-        .state::<SettingsStore>()
-        .snapshot()
-        .clipboard
-        .display
-        .file_entry_limit();
+    let settings = app.state::<SettingsStore>().snapshot();
+    let file_entry_limit = settings.clipboard.display.file_entry_limit();
+    let redact_sensitive = settings.clipboard.sensitive.redact_secrets;
     for item in &mut items {
         attach_image_thumbnail_path(&image_store, item).await?;
         attach_source_app_icon_path(&app_icon_store, item);
         attach_file_entries(&pool, &file_icon_store, item, file_entry_limit).await?;
         attach_color_preview(item);
         attach_display_created_at(item, &now);
-        mask_sensitive_list_item(item);
+        redact_sensitive_list_item(item, redact_sensitive);
         item.available_actions = compute_available_actions(item);
     }
     let has_more = q.offset + (items.len() as i64) < total;
@@ -458,18 +468,15 @@ pub async fn get_clipboard_item(
     let pool = db.pool().await;
     let mut item = find_item_for_list_by_id(&pool, &id).await?;
     if let Some(item) = item.as_mut() {
-        let file_entry_limit = app
-            .state::<SettingsStore>()
-            .snapshot()
-            .clipboard
-            .display
-            .file_entry_limit();
+        let settings = app.state::<SettingsStore>().snapshot();
+        let file_entry_limit = settings.clipboard.display.file_entry_limit();
+        let redact_sensitive = settings.clipboard.sensitive.redact_secrets;
         attach_image_thumbnail_path(&image_store, item).await?;
         attach_source_app_icon_path(&app_icon_store, item);
         attach_file_entries(&pool, &file_icon_store, item, file_entry_limit).await?;
         attach_color_preview(item);
         attach_display_created_at(item, &Local::now());
-        mask_sensitive_list_item(item);
+        redact_sensitive_list_item(item, redact_sensitive);
         item.available_actions = compute_available_actions(item);
     }
     Ok(item)
@@ -550,9 +557,9 @@ fn attach_color_preview(item: &mut ClipboardItem) {
     item.color_preview = sanitize_css_color(source);
 }
 
-/// 对敏感文本列表项只返回遮罩摘要，避免前端列表暴露完整凭据。
-fn mask_sensitive_list_item(item: &mut ClipboardItem) {
-    if !item.is_sensitive || item.kind != ClipboardKind::Text {
+/// 按当前设置对敏感文本列表项返回脱敏摘要，避免前端列表暴露完整凭据。
+fn redact_sensitive_list_item(item: &mut ClipboardItem, redact_sensitive: bool) {
+    if !redact_sensitive || !item.is_sensitive || item.kind != ClipboardKind::Text {
         return;
     }
 
@@ -573,7 +580,7 @@ fn mask_sensitive_text(text: &str) -> String {
 /// 遮罩单行敏感文本；短文本全量替换，长文本保留前后 4 个字符。
 fn mask_sensitive_line(line: &str) -> String {
     const VISIBLE_EDGE_CHARS: usize = 4;
-    const MAX_MASK_CHARS: usize = 16;
+    const MAX_MASK_CHARS: usize = 8;
 
     let chars: Vec<char> = line.chars().collect();
     let len = chars.len();
@@ -591,9 +598,9 @@ fn mask_sensitive_line(line: &str) -> String {
     [head, "*".repeat(mask_len), tail].concat()
 }
 
-/// 返回预览 payload 的文本子类型；敏感内容强制按纯文本展示脱敏结果。
-fn preview_sub_kind(item: &ClipboardItem) -> Option<ClipboardSubKind> {
-    if item.is_sensitive && item.kind == ClipboardKind::Text {
+/// 返回预览 payload 的文本子类型；脱敏展示时敏感内容强制按纯文本展示。
+fn preview_sub_kind(item: &ClipboardItem, redact_sensitive: bool) -> Option<ClipboardSubKind> {
+    if redact_sensitive && item.is_sensitive && item.kind == ClipboardKind::Text {
         return None;
     }
 
@@ -724,6 +731,7 @@ async fn build_clipboard_preview_payload(
     image_store: &ImageStore,
     file_icon_store: &FileIconStore,
     item: ClipboardItem,
+    redact_sensitive: bool,
 ) -> Result<ClipboardPreviewPayload> {
     let mut text = None;
     let mut image_path = None;
@@ -733,7 +741,7 @@ async fn build_clipboard_preview_payload(
 
     match item.kind {
         ClipboardKind::Text => {
-            text = Some(if item.is_sensitive {
+            text = Some(if redact_sensitive && item.is_sensitive {
                 mask_sensitive_text(&item.content)
             } else {
                 item.content.clone()
@@ -750,7 +758,7 @@ async fn build_clipboard_preview_payload(
             files = build_preview_file_entries(pool, file_icon_store, &item).await?;
         }
     }
-    let preview_sub_kind = preview_sub_kind(&item);
+    let preview_sub_kind = preview_sub_kind(&item, redact_sensitive);
 
     Ok(ClipboardPreviewPayload {
         id: item.id,
@@ -1342,7 +1350,7 @@ mod tests {
     fn mask_sensitive_text_replaces_middle_with_stars() {
         assert_eq!(
             mask_sensitive_text("sk-abcdefghijklmnopqrstuvwxyzABCDE1234567890"),
-            "sk-a****************7890"
+            "sk-a********7890"
         );
     }
 
@@ -1360,17 +1368,47 @@ mod tests {
     }
 
     #[test]
-    fn preview_sub_kind_drops_sensitive_text_subtype() {
+    fn redact_sensitive_list_item_masks_summary_when_enabled() {
+        let mut item = text_item(None, true);
+        item.summary = Some("sk-abcdefghijklmnopqrstuvwxyzABCDE1234567890".to_owned());
+
+        redact_sensitive_list_item(&mut item, true);
+
+        assert_eq!(item.summary.as_deref(), Some("sk-a********7890"));
+    }
+
+    #[test]
+    fn redact_sensitive_list_item_keeps_summary_when_disabled() {
+        let mut item = text_item(None, true);
+        item.summary = Some("sk-abcdefghijklmnopqrstuvwxyzABCDE1234567890".to_owned());
+
+        redact_sensitive_list_item(&mut item, false);
+
+        assert_eq!(
+            item.summary.as_deref(),
+            Some("sk-abcdefghijklmnopqrstuvwxyzABCDE1234567890")
+        );
+    }
+
+    #[test]
+    fn preview_sub_kind_drops_sensitive_text_subtype_when_redacted() {
         let item = text_item(Some(ClipboardSubKind::Html), true);
 
-        assert_eq!(preview_sub_kind(&item), None);
+        assert_eq!(preview_sub_kind(&item, true), None);
+    }
+
+    #[test]
+    fn preview_sub_kind_keeps_sensitive_text_subtype_when_not_redacted() {
+        let item = text_item(Some(ClipboardSubKind::Html), true);
+
+        assert_eq!(preview_sub_kind(&item, false), Some(ClipboardSubKind::Html));
     }
 
     #[test]
     fn preview_sub_kind_keeps_regular_text_subtype() {
         let item = text_item(Some(ClipboardSubKind::Html), false);
 
-        assert_eq!(preview_sub_kind(&item), Some(ClipboardSubKind::Html));
+        assert_eq!(preview_sub_kind(&item, true), Some(ClipboardSubKind::Html));
     }
 
     #[test]

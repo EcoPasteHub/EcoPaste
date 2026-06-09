@@ -443,14 +443,13 @@
         }
       },
       "sensitive": {
-        "secretHandling": {
-          "description": "检测到高置信度密钥、Token 等内容时，决定是否保存以及如何展示。",
-          "options": {
-            "include": "完整显示",
-            "redact": "脱敏显示",
-            "skip": "不收录"
-          },
-          "title": "敏感内容处理"
+        "collectSecrets": {
+          "description": "检测到高置信度密钥、Token 等内容时，是否保存到历史记录。",
+          "title": "收录敏感内容"
+        },
+        "redactSecrets": {
+          "description": "对已收录的敏感内容保留头尾字符，中间用 * 显示。",
+          "title": "脱敏显示"
         }
       },
       "shortcuts": {

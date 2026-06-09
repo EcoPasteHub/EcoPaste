@@ -59,7 +59,7 @@ pub struct ClipboardItem {
     pub use_count: i64,
     pub is_favorite: bool,
     pub is_pinned: bool,
-    /// 命中敏感内容规则且按「脱敏显示」策略保存的条目。
+    /// 命中敏感内容规则且被收录的条目；展示是否脱敏由当前设置决定。
     pub is_sensitive: bool,
     pub platform: Platform,
     pub note: Option<String>,

@@ -7,9 +7,12 @@ import { PREVIEW_CACHE_LIMIT } from "./constants";
 export function readCachedPayload(
   cache: Map<string, ClipboardPreviewPayload>,
   itemId: string,
+  redactSecrets: boolean,
 ) {
+  const keyPrefix = `${itemId}:`;
+  const keySuffix = `:${redactSecrets ? "redacted" : "full"}`;
   const key = [...cache.keys()].find((entryKey) => {
-    return entryKey.startsWith(`${itemId}:`);
+    return entryKey.startsWith(keyPrefix) && entryKey.endsWith(keySuffix);
   });
 
   if (!key) return null;
@@ -29,8 +32,9 @@ export function readCachedPayload(
 export function writeCachedPayload(
   cache: Map<string, ClipboardPreviewPayload>,
   nextPayload: ClipboardPreviewPayload,
+  redactSecrets: boolean,
 ) {
-  cache.set(cacheKey(nextPayload), nextPayload);
+  cache.set(cacheKey(nextPayload, redactSecrets), nextPayload);
 
   while (cache.size > PREVIEW_CACHE_LIMIT) {
     const [oldestKey] = cache.keys();
@@ -43,6 +47,9 @@ export function writeCachedPayload(
 /**
  * 生成预览 payload 的缓存 key。
  */
-export function cacheKey(payload: ClipboardPreviewPayload) {
-  return `${payload.id}:${payload.updatedAt}`;
+export function cacheKey(
+  payload: ClipboardPreviewPayload,
+  redactSecrets = payload.isSensitive,
+) {
+  return `${payload.id}:${payload.updatedAt}:${redactSecrets ? "redacted" : "full"}`;
 }

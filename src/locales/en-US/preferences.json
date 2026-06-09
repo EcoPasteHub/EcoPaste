@@ -443,14 +443,13 @@
         }
       },
       "sensitive": {
-        "secretHandling": {
-          "description": "Choose whether high-confidence keys, tokens, and similar secrets are saved and how they appear.",
-          "options": {
-            "include": "Full Display",
-            "redact": "Redacted Display",
-            "skip": "Do Not Save"
-          },
-          "title": "Sensitive Content Handling"
+        "collectSecrets": {
+          "description": "Choose whether high-confidence keys, tokens, and similar secrets are saved to history.",
+          "title": "Save Sensitive Content"
+        },
+        "redactSecrets": {
+          "description": "Show saved sensitive content with only the first and last characters visible, replacing the middle with *.",
+          "title": "Redacted Display"
         }
       },
       "shortcuts": {
