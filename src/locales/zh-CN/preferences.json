@@ -327,20 +327,10 @@
         }
       },
       "external": {
-        "ai": {
-          "controlLabel": "配置 AI 访问",
-          "description": "未来可允许 AI 工具搜索本地剪贴板历史。",
-          "title": "AI 工具访问"
-        },
         "cli": {
           "controlLabel": "配置 CLI",
           "description": "未来可通过命令行查询本地剪贴板历史。",
           "title": "CLI 访问"
-        },
-        "mcp": {
-          "controlLabel": "配置 MCP",
-          "description": "未来可为 MCP 客户端提供只读历史查询工具。",
-          "title": "MCP Server"
         }
       },
       "history": {

@@ -327,20 +327,10 @@
         }
       },
       "external": {
-        "ai": {
-          "controlLabel": "Configure AI Access",
-          "description": "Future access for AI tools to search local clipboard history.",
-          "title": "AI Tool Access"
-        },
         "cli": {
           "controlLabel": "Configure CLI",
           "description": "Future command-line access to query local clipboard history.",
           "title": "CLI Access"
-        },
-        "mcp": {
-          "controlLabel": "Configure MCP",
-          "description": "Future read-only history query tools for MCP clients.",
-          "title": "MCP Server"
         }
       },
       "history": {

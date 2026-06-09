@@ -707,20 +707,6 @@ export const preferenceTabs: PreferenceTab[] = [
             keywords: ["cli", "terminal", "json"],
             status: "comingSoon",
           },
-          {
-            control: { type: "action" },
-            disabled: true,
-            id: "external.ai",
-            keywords: ["ai", "agent", "tool"],
-            status: "comingSoon",
-          },
-          {
-            control: { type: "action" },
-            disabled: true,
-            id: "external.mcp",
-            keywords: ["mcp", "server", "agent"],
-            status: "comingSoon",
-          },
         ],
       },
       {
