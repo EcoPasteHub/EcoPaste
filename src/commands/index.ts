@@ -787,26 +787,6 @@ export const showTaskbarIcon = (visible: boolean) => {
 };
 
 /**
- * 让主窗口进入文本输入模式；Windows 主窗口会临时变为可聚焦以接收真实字符输入。
- */
-export const focusMainWindowForTextInput = () => {
-  return call<void>(
-    TAURI_COMMAND.FOCUS_MAIN_WINDOW_FOR_TEXT_INPUT,
-    "commands:labels.focusTextInput",
-  );
-};
-
-/**
- * 让主窗口退出文本输入模式；Windows 主窗口恢复不抢焦点并重新启用导航键钩子。
- */
-export const restoreMainWindowNonFocusable = () => {
-  return call<void>(
-    TAURI_COMMAND.RESTORE_MAIN_WINDOW_NON_FOCUSABLE,
-    "commands:labels.restoreWindowFocusMode",
-  );
-};
-
-/**
  * 设置主窗口固定态：Rust 侧立即生效（影响 resign_key / 外部点击自动隐藏逻辑）。
  */
 export const setMainWindowPinned = (pinned: boolean) => {

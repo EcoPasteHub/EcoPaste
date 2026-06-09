@@ -131,31 +131,6 @@ pub fn show_taskbar_icon(app_handle: &AppHandle, visible: bool) -> Result<()> {
     return windows::show_taskbar_icon(app_handle, visible);
 }
 
-/// 让主窗口进入文本输入模式；Windows 会临时切到可聚焦窗口，macOS 保持普通聚焦行为。
-pub fn focus_main_window_for_text_input(app_handle: &AppHandle) -> Result<()> {
-    #[cfg(target_os = "macos")]
-    {
-        let window = get_window(app_handle, MAIN_WINDOW_LABEL)?;
-        window.set_focus().map_err(|e| anyhow::anyhow!(e))?;
-        Ok(())
-    }
-
-    #[cfg(target_os = "windows")]
-    return windows::focus_main_window_for_text_input(app_handle);
-}
-
-/// 让主窗口退出文本输入模式；Windows 恢复不抢焦点窗口，macOS 无需额外处理。
-pub fn restore_main_window_non_focusable(app_handle: &AppHandle) -> Result<()> {
-    #[cfg(target_os = "macos")]
-    {
-        let _ = app_handle;
-        Ok(())
-    }
-
-    #[cfg(target_os = "windows")]
-    return windows::restore_main_window_non_focusable(app_handle);
-}
-
 pub fn position_window(app_handle: &AppHandle, label: &str, pos: WindowPosition) -> Result<()> {
     let window = get_window(app_handle, label)?;
     position::position_window(&window, pos)

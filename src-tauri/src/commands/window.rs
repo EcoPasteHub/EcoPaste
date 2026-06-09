@@ -26,18 +26,6 @@ pub async fn show_taskbar_icon(app: AppHandle, visible: bool) -> Result<()> {
     window::show_taskbar_icon(&app, visible)
 }
 
-/// 让主窗口进入文本输入模式，供 Windows `focusable=false` 主窗口里的搜索框使用。
-#[tauri::command]
-pub async fn focus_main_window_for_text_input(app: AppHandle) -> Result<()> {
-    window::focus_main_window_for_text_input(&app)
-}
-
-/// 让主窗口退出文本输入模式，恢复 Windows 主窗口不抢焦点的导航模式。
-#[tauri::command]
-pub async fn restore_main_window_non_focusable(app: AppHandle) -> Result<()> {
-    window::restore_main_window_non_focusable(&app)
-}
-
 #[tauri::command]
 pub async fn position_window(
     app: AppHandle,
