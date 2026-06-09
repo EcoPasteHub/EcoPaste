@@ -182,11 +182,6 @@
           },
           "title": "语言"
         },
-        "reducedMotion": {
-          "controlLabel": "跟随系统",
-          "description": "跟随系统的减少动态效果设置，降低动画强度。",
-          "title": "减少动画"
-        },
         "showNewBadge": {
           "description": "离开列表顶部时，在分组按钮上显示待查看的新记录数量。",
           "title": "显示新记录角标"

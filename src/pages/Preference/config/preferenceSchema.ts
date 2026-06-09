@@ -564,12 +564,6 @@ export const preferenceTabs: PreferenceTab[] = [
               return settings.clipboard.content.showOriginalPreview;
             },
           },
-          {
-            control: { type: "status" },
-            id: "appearance.reducedMotion",
-            keywords: ["motion", "accessibility"],
-            status: "alwaysOn",
-          },
         ],
       },
       {
