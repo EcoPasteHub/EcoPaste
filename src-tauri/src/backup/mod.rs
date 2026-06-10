@@ -5,6 +5,7 @@
 use std::fs::{self, File};
 use std::io::{BufReader, BufWriter, Cursor, Read, Seek, Write};
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{LazyLock, Mutex};
 
 use anyhow::{anyhow, Context};
@@ -52,6 +53,18 @@ const MANIFEST_FILENAME: &str = "manifest.json";
 /// 两条路径（存活 push / 销毁 pull）互斥，避免事件丢失。
 static PENDING_BACKUP: LazyLock<Mutex<Option<BackupReceivedPayload>>> =
     LazyLock::new(|| Mutex::new(None));
+
+/// 应用是否已进入可安全建窗的就绪态（由 `RunEvent::Ready` 置位）。
+///
+/// macOS 冷启动用文件关联打开 app 时，系统会在事件循环刚起步、`setup` 尚未跑完时，
+/// 经 ObjC `application:openURLs:` **同步**投递 `RunEvent::Opened`。此刻去建偏好窗口会
+/// panic，而该回调跨 `extern "C"` 边界不可 unwind，直接 abort（应用闪退）。
+/// 故未就绪时只把文件路径压入 [`PENDING_OPEN_FILES`]，待 `Ready` 后由
+/// [`mark_app_ready`] 统一补投。
+static APP_READY: AtomicBool = AtomicBool::new(false);
+
+/// 就绪前到达的待处理打开文件路径队列（仅冷启动文件关联场景会用到）。
+static PENDING_OPEN_FILES: LazyLock<Mutex<Vec<PathBuf>>> = LazyLock::new(|| Mutex::new(Vec::new()));
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -316,6 +329,55 @@ pub fn take_pending_backup() -> Option<BackupReceivedPayload> {
         poisoned.into_inner()
     });
     guard.take()
+}
+
+/// 处理一次「系统打开文件」请求，对应用就绪状态鲁棒。
+///
+/// macOS 冷启动双击文件关联时，系统会在 `setup` 完成前从 ObjC `application:openURLs:`
+/// 同步投递 `RunEvent::Opened`。此时建窗会读取尚未 `manage` 的 state 而 panic，且 panic
+/// 无法穿过 tao 的 `extern "C"` 回调边界（`panic_cannot_unwind`）→ abort。
+///
+/// 故未就绪时只把路径压入 [`PENDING_OPEN_FILES`]，待 [`mark_app_ready`] 在 `RunEvent::Ready`
+/// 时排空处理；已就绪则立即处理。调用方仍应额外用 `catch_unwind` 兜底，杜绝任何残余 panic 越界。
+pub fn handle_open_file(app: &AppHandle, path: PathBuf, source: BackupReceiveSource) {
+    if !is_backup_path(&path) {
+        return;
+    }
+
+    if !APP_READY.load(Ordering::Acquire) {
+        let mut guard = PENDING_OPEN_FILES.lock().unwrap_or_else(|poisoned| {
+            log::error!("pending open files mutex poisoned on push, recovering");
+            poisoned.into_inner()
+        });
+        guard.push(path);
+        return;
+    }
+
+    if let Err(err) = emit_received_backup(app, path, source) {
+        log::error!("handle open file failed: {err:?}");
+    }
+}
+
+/// 标记应用已就绪并排空启动期暂存的待打开文件。
+///
+/// 在 `RunEvent::Ready` 调用——此时事件循环已运行、所有 state 已 `manage`，建窗安全。
+/// 排空前先置位 [`APP_READY`]，使其后到达的 `Opened` 直接走立即处理路径。
+pub fn mark_app_ready(app: &AppHandle) {
+    APP_READY.store(true, Ordering::Release);
+
+    let pending: Vec<PathBuf> = {
+        let mut guard = PENDING_OPEN_FILES.lock().unwrap_or_else(|poisoned| {
+            log::error!("pending open files mutex poisoned on drain, recovering");
+            poisoned.into_inner()
+        });
+        std::mem::take(&mut *guard)
+    };
+
+    for path in pending {
+        if let Err(err) = emit_received_backup(app, path, BackupReceiveSource::OpenFile) {
+            log::error!("drain pending open file failed: {err:?}");
+        }
+    }
 }
 
 /// 从进程参数中查找 `.ecopastebak` 路径，供 Windows 文件关联和第二实例回调使用。

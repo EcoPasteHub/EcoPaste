@@ -211,6 +211,13 @@ pub fn run() {
         .build(tauri::generate_context!())
         .expect("error while running tauri application")
         .run(|app_handle, event| {
+            // macOS 冷启动文件关联：`RunEvent::Ready` 早于系统投递的 `Opened`（多数情况），
+            // 但二者顺序不保证。两端都经 backup 模块的就绪闸协调，谁先到都不会在未就绪时建窗。
+            #[cfg(target_os = "macos")]
+            if let tauri::RunEvent::Ready = &event {
+                backup::mark_app_ready(app_handle);
+            }
+
             #[cfg(target_os = "macos")]
             if let tauri::RunEvent::Reopen {
                 has_visible_windows,
@@ -222,24 +229,31 @@ pub fn run() {
 
             #[cfg(target_os = "macos")]
             if let tauri::RunEvent::Opened { urls } = &event {
-                for url in urls {
-                    if url.scheme() != "file" {
-                        continue;
+                // 处理体整体包 catch_unwind：本回调由 tao 从 ObjC `application:openURLs:`
+                // 经 `extern "C"` 边界同步调用，任何 panic 都无法 unwind（`panic_cannot_unwind`）
+                // 而直接 abort。即便就绪闸已规避主要 panic 源，这里仍兜底杜绝进程崩溃。
+                let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                    for url in urls {
+                        if url.scheme() != "file" {
+                            continue;
+                        }
+                        let Ok(path) = url.to_file_path() else {
+                            continue;
+                        };
+                        if !backup::is_backup_path(&path) {
+                            continue;
+                        }
+                        backup::handle_open_file(
+                            app_handle,
+                            path,
+                            backup::BackupReceiveSource::OpenFile,
+                        );
+                        break;
                     }
-                    let Ok(path) = url.to_file_path() else {
-                        continue;
-                    };
-                    if !backup::is_backup_path(&path) {
-                        continue;
-                    }
-                    if let Err(err) = backup::emit_received_backup(
-                        app_handle,
-                        path,
-                        backup::BackupReceiveSource::OpenFile,
-                    ) {
-                        log::error!("receive backup from open file failed: {err:?}");
-                    }
-                    break;
+                }));
+
+                if result.is_err() {
+                    log::error!("panic while handling Opened event (caught at C boundary)");
                 }
             }
 
