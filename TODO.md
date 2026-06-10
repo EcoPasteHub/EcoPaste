@@ -15,7 +15,6 @@
 ## P1 · 近期用户体验
 
 - [列表多选与批量删除](./TODO-Multi-Select-Delete.md)
-- [分组 UI 重建](./TODO-Clipboard-Group-UI-Refactor.md)
 - [贴边隐藏](./TODO-Edge-Hide.md)
 - [Windows 接管 Win+V](./TODO-Windows-Win-V.md)
 - [首次启动引导](./TODO-Onboarding.md)
