@@ -751,6 +751,8 @@ mod tests {
         let group = ClipboardGroup {
             id: "g1".to_owned(),
             name: "G1".to_owned(),
+            icon: "i-lets-icons:folder".to_owned(),
+            is_hidden: false,
             sort_order: 0,
             created_at: DateTime::from_timestamp(1_700_000_000, 0).unwrap(),
             updated_at: DateTime::from_timestamp(1_700_000_000, 0).unwrap(),

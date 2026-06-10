@@ -26,6 +26,7 @@
     "inspectBackup": "Inspect backup",
     "loadApps": "Load apps",
     "loadAutostart": "Load launch-at-login state",
+    "loadClipboardGroups": "Load groups",
     "loadClipboardList": "Load list",
     "loadLaunchSource": "Load launch source",
     "loadPreviewContent": "Load preview content",

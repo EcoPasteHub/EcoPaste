@@ -5,7 +5,7 @@ use crate::core::Result;
 use crate::db::models::ClipboardGroup;
 
 const LIST_GROUPS_SQL: &str =
-    "SELECT id, name, sort_order, created_at, updated_at FROM clipboard_groups \
+    "SELECT id, name, icon, is_hidden, sort_order, created_at, updated_at FROM clipboard_groups \
      ORDER BY sort_order ASC, created_at ASC";
 
 /// 列出全部分组，按 `sort_order` 升序（同序时按 `created_at` 兜底，保证顺序稳定）。
@@ -21,11 +21,13 @@ pub async fn list_groups(pool: &SqlitePool) -> Result<Vec<ClipboardGroup>> {
 #[allow(dead_code)]
 pub async fn insert_group(pool: &SqlitePool, group: &ClipboardGroup) -> Result<()> {
     sqlx::query(
-        "INSERT INTO clipboard_groups (id, name, sort_order, created_at, updated_at) \
-         VALUES (?, ?, ?, ?, ?)",
+        "INSERT INTO clipboard_groups (id, name, icon, is_hidden, sort_order, created_at, updated_at) \
+         VALUES (?, ?, ?, ?, ?, ?, ?)",
     )
     .bind(group.id.as_str())
     .bind(group.name.as_str())
+    .bind(group.icon.as_str())
+    .bind(group.is_hidden)
     .bind(group.sort_order)
     .bind(group.created_at)
     .bind(group.updated_at)
@@ -73,6 +75,8 @@ mod tests {
         ClipboardGroup {
             id: id.to_owned(),
             name: format!("name-{id}"),
+            icon: "i-lets-icons:folder".to_owned(),
+            is_hidden: false,
             sort_order,
             created_at: ts,
             updated_at: ts,

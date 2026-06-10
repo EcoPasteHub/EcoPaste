@@ -188,6 +188,8 @@ pub struct ClipboardApp {
 pub struct ClipboardGroup {
     pub id: String,
     pub name: String,
+    pub icon: String,
+    pub is_hidden: bool,
     pub sort_order: i64,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,

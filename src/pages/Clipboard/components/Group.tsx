@@ -1,15 +1,19 @@
 import type { FC, MouseEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useSnapshot } from "valtio";
+import ClipboardGroupIcon from "@/components/ClipboardGroupIcon";
 import { useKeyboardEvent } from "@/hooks/useKeyboardEvent";
 import { clipboardViewState } from "@/stores/clipboardView";
-import type { ClipboardGroup } from "@/types/clipboard";
+import type {
+  ClipboardGroup,
+  ClipboardGroupIcon as ClipboardGroupIconValue,
+} from "@/types/clipboard";
 import { cn } from "@/utils/cn";
 
 interface GroupOption {
   labelKey: string;
   value: ClipboardGroup;
-  icon: string;
+  icon: ClipboardGroupIconValue;
 }
 
 const GROUP_OPTIONS: GroupOption[] = [
@@ -29,8 +33,9 @@ const GROUP_OPTIONS: GroupOption[] = [
 ];
 
 interface GroupLabelProps {
-  icon: string;
+  icon: ClipboardGroupIconValue;
   label: string;
+  selected: boolean;
 }
 
 /**
@@ -81,7 +86,11 @@ const Group: FC = () => {
             onClick={handleGroupClick}
             type="button"
           >
-            <GroupLabel icon={icon} label={t(labelKey)} />
+            <GroupLabel
+              icon={icon}
+              label={t(labelKey)}
+              selected={group === value}
+            />
           </button>
         );
       })}
@@ -93,11 +102,11 @@ const Group: FC = () => {
  * 分组按钮内部内容：保持图标与分组名称的稳定横向排版。
  */
 const GroupLabel: FC<GroupLabelProps> = (props) => {
-  const { icon, label } = props;
+  const { icon, label, selected } = props;
 
   return (
     <span className="inline-flex items-center gap-1 whitespace-nowrap">
-      <span className={cn(icon, "size-3.5")} />
+      <ClipboardGroupIcon icon={icon} selected={selected} />
       <span>{label}</span>
     </span>
   );

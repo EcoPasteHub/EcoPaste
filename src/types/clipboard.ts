@@ -104,6 +104,18 @@ export type ClipboardItemSort =
 
 export type ClipboardGroup = "all" | "text" | "image" | "files" | "favorite";
 
+export type ClipboardGroupIcon = string;
+
+export interface ClipboardGroupRecord {
+  id: string;
+  name: string;
+  icon: ClipboardGroupIcon;
+  isHidden: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ClipboardItemQuery {
   kind?: ClipboardKind;
   groupId?: string;

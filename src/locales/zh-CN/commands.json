@@ -26,6 +26,7 @@
     "inspectBackup": "识别备份",
     "loadApps": "加载应用",
     "loadAutostart": "读取开机启动状态",
+    "loadClipboardGroups": "加载分组",
     "loadClipboardList": "加载列表",
     "loadLaunchSource": "读取启动来源",
     "loadPreviewContent": "加载预览内容",

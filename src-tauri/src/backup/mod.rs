@@ -952,8 +952,19 @@ async fn merge_history(current: &SqlitePool, backup: &SqlitePool) -> Result<Merg
 }
 
 async fn merge_groups(tx: &mut sqlx::Transaction<'_, Sqlite>, backup: &SqlitePool) -> Result<()> {
-    let rows = sqlx::query_as::<_, (String, String, i64, DateTime<Utc>, DateTime<Utc>)>(
-        "SELECT id, name, sort_order, created_at, updated_at FROM clipboard_groups",
+    let rows = sqlx::query_as::<
+        _,
+        (
+            String,
+            String,
+            String,
+            bool,
+            i64,
+            DateTime<Utc>,
+            DateTime<Utc>,
+        ),
+    >(
+        "SELECT id, name, icon, is_hidden, sort_order, created_at, updated_at FROM clipboard_groups",
     )
     .fetch_all(backup)
     .await
@@ -962,13 +973,16 @@ async fn merge_groups(tx: &mut sqlx::Transaction<'_, Sqlite>, backup: &SqlitePoo
     for row in rows {
         sqlx::query(
             "INSERT OR IGNORE INTO clipboard_groups \
-             (id, name, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
+             (id, name, icon, is_hidden, sort_order, created_at, updated_at) \
+             VALUES (?, ?, ?, ?, ?, ?, ?)",
         )
         .bind(row.0)
         .bind(row.1)
         .bind(row.2)
         .bind(row.3)
         .bind(row.4)
+        .bind(row.5)
+        .bind(row.6)
         .execute(&mut **tx)
         .await
         .context("failed to import group")?;

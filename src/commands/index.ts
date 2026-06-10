@@ -19,6 +19,7 @@ import { settingsState } from "@/stores/settings";
 import type {
   ClipboardAction,
   ClipboardApp,
+  ClipboardGroupRecord,
   ClipboardItemPage,
   ClipboardItemQuery,
   ClipboardKind,
@@ -537,6 +538,16 @@ export const listClipboardItems = (query: ClipboardItemQuery) => {
     TAURI_COMMAND.LIST_CLIPBOARD_ITEMS,
     "commands:labels.loadClipboardList",
     { query },
+  );
+};
+
+/**
+ * 列出自定义剪贴板分组；隐藏态由调用方按场景决定是否过滤。
+ */
+export const listClipboardGroups = () => {
+  return call<ClipboardGroupRecord[]>(
+    TAURI_COMMAND.LIST_CLIPBOARD_GROUPS,
+    "commands:labels.loadClipboardGroups",
   );
 };
 

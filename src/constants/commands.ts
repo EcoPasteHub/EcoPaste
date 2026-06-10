@@ -24,6 +24,7 @@ export const TAURI_COMMAND = {
   INSPECT_HISTORY_BACKUP: "inspect_history_backup",
   IS_LAUNCHED_VIA_AUTOSTART: "is_launched_via_autostart",
   LIST_ALL_APPS: "list_all_apps",
+  LIST_CLIPBOARD_GROUPS: "list_clipboard_groups",
   LIST_CLIPBOARD_ITEMS: "list_clipboard_items",
   OPEN_CLIPBOARD_ITEM_LINK: "open_clipboard_item_link",
   OPEN_EXTERNAL_URL: "open_external_url",
