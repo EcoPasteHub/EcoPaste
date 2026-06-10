@@ -1,5 +1,5 @@
 import DOMPurify from "dompurify";
-import type { FC } from "react";
+import type { CSSProperties, FC } from "react";
 import type { ClipboardGroupIcon as ClipboardGroupIconValue } from "@/types/clipboard";
 import { cn } from "@/utils/cn";
 
@@ -10,7 +10,12 @@ const GROUP_ICON_SIZE_CLASS = {
   sm: "size-3.5",
 } as const;
 
+const GROUP_ICON_MASK_VARIABLE = "--clipboard-group-icon-mask";
+
 type ClipboardGroupIconSize = keyof typeof GROUP_ICON_SIZE_CLASS;
+type ClipboardGroupIconMaskStyle = CSSProperties & {
+  [GROUP_ICON_MASK_VARIABLE]: string;
+};
 
 interface ClipboardGroupIconProps {
   className?: string;
@@ -40,6 +45,18 @@ const sanitizeGroupSvg = (icon: ClipboardGroupIconValue) => {
 };
 
 /**
+ * 生成 SVG mask 的动态样式，内部颜色由 `bg-current` 接管。
+ */
+const buildGroupSvgMaskStyle = (
+  icon: ClipboardGroupIconValue,
+): ClipboardGroupIconMaskStyle => {
+  const svg = sanitizeGroupSvg(icon);
+  const mask = `url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}")`;
+
+  return { [GROUP_ICON_MASK_VARIABLE]: mask };
+};
+
+/**
  * 统一渲染自定义分组图标，兼容 lets-icons 预设图标和自定义 SVG。
  */
 const ClipboardGroupIcon: FC<ClipboardGroupIconProps> = (props) => {
@@ -64,12 +81,12 @@ const ClipboardGroupIcon: FC<ClipboardGroupIconProps> = (props) => {
       <span
         aria-hidden
         className={cn(
-          "inline-flex shrink-0 items-center justify-center [&_svg]:block [&_svg]:h-full [&_svg]:w-full",
+          "inline-block shrink-0 bg-current [-webkit-mask-image:var(--clipboard-group-icon-mask)] [-webkit-mask-position:center] [-webkit-mask-repeat:no-repeat] [-webkit-mask-size:contain] [mask-image:var(--clipboard-group-icon-mask)] [mask-position:center] [mask-repeat:no-repeat] [mask-size:contain]",
           sizeClassName,
           stateClassName,
           className,
         )}
-        dangerouslySetInnerHTML={{ __html: sanitizeGroupSvg(icon) }}
+        style={buildGroupSvgMaskStyle(icon)}
       />
     );
   }
