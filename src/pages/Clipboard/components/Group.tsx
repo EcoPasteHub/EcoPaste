@@ -110,11 +110,6 @@ const Group: FC = () => {
   const [customGroups, setCustomGroups] = useState<ClipboardGroupRecord[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<GroupModalMode>("create");
-  const [createMenuOpen, setCreateMenuOpen] = useState(false);
-  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
-  const [contextMenuGroupId, setContextMenuGroupId] = useState<string | null>(
-    null,
-  );
   const [visibleCustomGroupCount, setVisibleCustomGroupCount] = useState(
     Number.POSITIVE_INFINITY,
   );
@@ -255,15 +250,6 @@ const Group: FC = () => {
       customGroups.find((record) => {
         return record.id === nextGroupId;
       }) ?? null;
-  };
-
-  /**
-   * 同步自定义分组右键菜单展开状态，用于打开菜单时隐藏按钮 Tooltip。
-   */
-  const handleCustomGroupMenuOpenChange = (open: boolean) => {
-    const record = contextGroupRef.current;
-
-    setContextMenuGroupId(open ? (record?.id ?? null) : null);
   };
 
   /**
@@ -428,9 +414,6 @@ const Group: FC = () => {
    * 执行更多菜单动作：新增 / 管理分组，或切换到溢出的自定义分组。
    */
   const handleMoreMenuClick = async (info: { key: string }) => {
-    setMoreMenuOpen(false);
-    setCreateMenuOpen(false);
-
     const action = parseMoreMenuAction(info.key);
     if (action === MORE_MENU_ACTION.NEW_GROUP) {
       handleCreateGroupAction();
@@ -509,20 +492,6 @@ const Group: FC = () => {
   });
 
   /**
-   * 同步更多菜单展开状态，用于打开菜单时压掉按钮 Tooltip。
-   */
-  const handleMoreOpenChange = (open: boolean) => {
-    setMoreMenuOpen(open);
-  };
-
-  /**
-   * 同步新增按钮右键菜单展开状态，用于打开菜单时压掉按钮 Tooltip。
-   */
-  const handleCreateMenuOpenChange = (open: boolean) => {
-    setCreateMenuOpen(open);
-  };
-
-  /**
    * 渲染溢出分组菜单按钮。
    */
   const renderMoreButton = () => {
@@ -535,25 +504,19 @@ const Group: FC = () => {
           onClick: handleMoreMenuClick,
           selectedKeys: moreMenuSelectedKeys,
         }}
-        onOpenChange={handleMoreOpenChange}
-        open={moreMenuOpen}
+        tooltip={t("clipboard:groups.more")}
         trigger={["click"]}
       >
-        <Tooltip
-          open={moreMenuOpen ? false : void 0}
-          title={t("clipboard:groups.more")}
+        <button
+          className={cn(GROUP_BUTTON_BASE_CLASS, {
+            "bg-ant-primary text-ant-light-solid": moreButtonSelected,
+            "text-ant-secondary hover:bg-ant-fill-tertiary":
+              !moreButtonSelected,
+          })}
+          type="button"
         >
-          <button
-            className={cn(GROUP_BUTTON_BASE_CLASS, {
-              "bg-ant-primary text-ant-light-solid": moreButtonSelected,
-              "text-ant-secondary hover:bg-ant-fill-tertiary":
-                !moreButtonSelected,
-            })}
-            type="button"
-          >
-            <i aria-hidden className="i-lucide:more-horizontal text-sm!" />
-          </button>
-        </Tooltip>
+          <i aria-hidden className="i-lucide:more-horizontal text-sm!" />
+        </button>
       </Dropdown>
     );
   };
@@ -570,25 +533,19 @@ const Group: FC = () => {
           items: createMenuItems,
           onClick: handleMoreMenuClick,
         }}
-        onOpenChange={handleCreateMenuOpenChange}
-        open={createMenuOpen}
+        tooltip={t("clipboard:groups.add")}
         trigger={["contextMenu"]}
       >
-        <Tooltip
-          open={createMenuOpen ? false : void 0}
-          title={t("clipboard:groups.add")}
+        <button
+          className={cn(
+            GROUP_BUTTON_BASE_CLASS,
+            "text-ant-secondary hover:bg-ant-fill-tertiary",
+          )}
+          onClick={handleCreateGroupAction}
+          type="button"
         >
-          <button
-            className={cn(
-              GROUP_BUTTON_BASE_CLASS,
-              "text-ant-secondary hover:bg-ant-fill-tertiary",
-            )}
-            onClick={handleCreateGroupAction}
-            type="button"
-          >
-            <i aria-hidden className="i-lucide:plus text-sm!" />
-          </button>
-        </Tooltip>
+          <i aria-hidden className="i-lucide:plus text-sm!" />
+        </button>
       </Dropdown>
     );
   };
@@ -694,30 +651,21 @@ const Group: FC = () => {
                   items: groupMenuItems,
                   onClick: handleGroupMenuClick,
                 }}
-                onOpenChange={handleCustomGroupMenuOpenChange}
+                tooltip={record.name}
                 trigger={["contextMenu"]}
               >
-                <Tooltip
-                  open={contextMenuGroupId === record.id ? false : void 0}
-                  title={record.name}
+                <button
+                  className={cn(GROUP_ICON_BUTTON_CLASS, {
+                    "bg-ant-primary text-ant-light-solid": selected,
+                    "text-ant-secondary hover:bg-ant-fill-tertiary": !selected,
+                  })}
+                  data-group-id={record.id}
+                  onClick={handleGroupClick}
+                  onContextMenu={handleCustomGroupContextMenu}
+                  type="button"
                 >
-                  <button
-                    className={cn(GROUP_ICON_BUTTON_CLASS, {
-                      "bg-ant-primary text-ant-light-solid": selected,
-                      "text-ant-secondary hover:bg-ant-fill-tertiary":
-                        !selected,
-                    })}
-                    data-group-id={record.id}
-                    onClick={handleGroupClick}
-                    onContextMenu={handleCustomGroupContextMenu}
-                    type="button"
-                  >
-                    <ClipboardGroupIcon
-                      icon={record.icon}
-                      selected={selected}
-                    />
-                  </button>
-                </Tooltip>
+                  <ClipboardGroupIcon icon={record.icon} selected={selected} />
+                </button>
               </Dropdown>
             );
           })}

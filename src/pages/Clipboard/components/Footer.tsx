@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 import { useSnapshot } from "valtio";
 import KeyHint from "@/components/KeyHint";
 import Popover from "@/components/Popover";
-import Tooltip from "@/components/Tooltip";
 import { clipboardStatsState } from "@/stores/clipboardStats";
 import ShortcutList from "./ShortcutList";
 
@@ -36,24 +35,20 @@ const Footer = () => {
         onOpenChange={setPopoverOpen}
         open={popoverOpen}
         title={t("footer.shortcuts")}
+        tooltip={t("footer.shortcuts")}
         trigger="click"
       >
-        <Tooltip
-          open={popoverOpen ? false : void 0}
-          title={t("footer.shortcuts")}
-        >
-          <Button
-            icon={
-              <KeyHint
-                hintKey="K"
-                iconName="i-lucide:keyboard"
-                onKeyPress={handleShortcutKeyPress}
-              />
-            }
-            size="small"
-            type="text"
-          />
-        </Tooltip>
+        <Button
+          icon={
+            <KeyHint
+              hintKey="K"
+              iconName="i-lucide:keyboard"
+              onKeyPress={handleShortcutKeyPress}
+            />
+          }
+          size="small"
+          type="text"
+        />
       </Popover>
     </div>
   );

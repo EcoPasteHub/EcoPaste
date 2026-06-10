@@ -214,6 +214,7 @@ const Header: FC = () => {
 
         <Dropdown
           menu={{ items: moreMenuItems, onClick: handleMoreMenuClick }}
+          tooltip={t("header.moreActions")}
           trigger={MORE_ACTION_TRIGGER}
         >
           <Button
@@ -225,7 +226,6 @@ const Header: FC = () => {
               />
             }
             size="small"
-            title={t("header.moreActions")}
             type="text"
           />
         </Dropdown>
