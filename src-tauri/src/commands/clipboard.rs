@@ -56,6 +56,14 @@ pub struct ClipboardGroupInput {
     pub is_hidden: bool,
 }
 
+/// 批量保存自定义分组排序和主界面显隐状态的输入。
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ClipboardGroupLayoutInput {
+    pub order: Vec<String>,
+    pub visible_ids: Vec<String>,
+}
+
 /// 手动读取当前剪贴板并入库（「重新读取」按钮）。
 ///
 /// 复用监听管线：read_all → build_item（含图片落盘）→ persist_and_notify（去重入库 + emit）。
@@ -1137,6 +1145,21 @@ pub async fn update_clipboard_group(
     let icon = normalize_group_icon(&input.icon)?;
 
     crate::db::groups::update_group(&pool, &id, &name, &icon, input.is_hidden).await?;
+    emit_clipboard_groups_updated(&app);
+
+    Ok(())
+}
+
+/// 批量更新自定义剪贴板分组排序和显示状态。
+#[tauri::command]
+pub async fn update_clipboard_groups_layout(
+    app: AppHandle,
+    db: State<'_, DatabaseState>,
+    input: ClipboardGroupLayoutInput,
+) -> Result<()> {
+    let pool = db.pool().await;
+
+    crate::db::groups::update_group_layout(&pool, &input.order, &input.visible_ids).await?;
     emit_clipboard_groups_updated(&app);
 
     Ok(())

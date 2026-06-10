@@ -102,6 +102,9 @@
       "globalShortcuts": {
         "title": "Global Shortcuts"
       },
+      "groups": {
+        "title": "Group Management"
+      },
       "history": {
         "title": "Retention & Cleanup"
       },
@@ -363,8 +366,8 @@
           "title": "Auto-Favorite When Noted"
         },
         "customGroups": {
-          "controlLabel": "Manage Groups",
-          "description": "Future custom groups for organizing history records by topic.",
+          "controlLabel": "Manage",
+          "description": "Adjust custom group order, visibility, names, and icons.",
           "title": "Custom Groups"
         }
       },

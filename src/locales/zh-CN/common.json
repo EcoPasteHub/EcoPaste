@@ -1,5 +1,6 @@
 {
   "actions": {
+    "add": "新增",
     "cancel": "取消",
     "clear": "清空",
     "delete": "删除",

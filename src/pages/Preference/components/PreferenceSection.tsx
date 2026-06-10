@@ -169,6 +169,12 @@ function resolveSectionVisual(id: string): SectionVisual {
     };
   }
 
+  if (normalizedId.includes("groups")) {
+    return {
+      icon: "i-lucide:folder-tree",
+    };
+  }
+
   if (normalizedId.includes("search")) {
     return {
       icon: "i-lucide:search",

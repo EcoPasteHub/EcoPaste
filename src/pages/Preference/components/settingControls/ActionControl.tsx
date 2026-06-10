@@ -10,19 +10,23 @@ import {
   cleanResourceCache,
   type ExportHistoryBackupResult,
   inspectHistoryBackup,
+  listClipboardGroups,
   openPreferenceDirectory,
   resetStorageLocation,
   type StorageLocation,
 } from "@/commands";
 import { resetSettings } from "@/stores/settings";
+import type { ClipboardGroupRecord } from "@/types/clipboard";
 import { log } from "@/utils/log";
 import type { PreferenceSetting } from "../../types/preferences";
 import { translatePreferenceControlLabel } from "../../utils/preferenceI18n";
 import BackupExportModal from "../BackupExportModal";
+import ClipboardGroupManagerModal from "../ClipboardGroupManagerModal";
 import ControlFrame from "./ControlFrame";
 
 const BACKUP_EXTENSION = "ecopastebak";
 const CLEAN_CACHE_SETTING_ID = "localData.cleanCache";
+const CUSTOM_GROUPS_SETTING_ID = "organizing.customGroups";
 const DATA_DIRECTORY_SETTING_ID = "localData.dataDirectory";
 const EXPORT_BACKUP_SETTING_ID = "backup.exportHistory";
 const IMPORT_BACKUP_SETTING_ID = "backup.importHistory";
@@ -50,6 +54,10 @@ const ActionControl: FC<ActionControlProps> = (props) => {
   const { disabled, setting, storageLocation, onActionComplete } = props;
   const [loading, setLoading] = useState(false);
   const [exportModalOpen, setExportModalOpen] = useState(false);
+  const [groupManagerOpen, setGroupManagerOpen] = useState(false);
+  const [groupManagerGroups, setGroupManagerGroups] = useState<
+    ClipboardGroupRecord[]
+  >([]);
 
   if (setting.control.type !== "action") return null;
 
@@ -155,6 +163,18 @@ const ActionControl: FC<ActionControlProps> = (props) => {
     setExportModalOpen(true);
   };
 
+  const openGroupManager = async () => {
+    setLoading(true);
+    try {
+      const groups = await listClipboardGroups();
+
+      setGroupManagerGroups(groups);
+      setGroupManagerOpen(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   /**
    * 选择 `.ecopastebak` 文件并交给 Rust 识别，识别事件会打开统一导入弹窗。
    */
@@ -189,9 +209,18 @@ const ActionControl: FC<ActionControlProps> = (props) => {
     setExportModalOpen(false);
   };
 
+  const closeGroupManager = () => {
+    setGroupManagerOpen(false);
+  };
+
   const handleBackupExported = (result: ExportHistoryBackupResult) => {
     setExportModalOpen(false);
     markActionComplete(result);
+  };
+
+  const handleGroupManagerSaved = () => {
+    setGroupManagerOpen(false);
+    markActionComplete();
   };
 
   const handleClick = async () => {
@@ -202,6 +231,11 @@ const ActionControl: FC<ActionControlProps> = (props) => {
 
     if (setting.id === IMPORT_BACKUP_SETTING_ID) {
       await pickImportBackup();
+      return;
+    }
+
+    if (setting.id === CUSTOM_GROUPS_SETTING_ID) {
+      await openGroupManager();
       return;
     }
 
@@ -295,6 +329,15 @@ const ActionControl: FC<ActionControlProps> = (props) => {
           onCancel={closeExportModal}
           onExported={handleBackupExported}
           open={exportModalOpen}
+        />
+      ) : null}
+
+      {setting.id === CUSTOM_GROUPS_SETTING_ID ? (
+        <ClipboardGroupManagerModal
+          groups={groupManagerGroups}
+          onCancel={closeGroupManager}
+          onSaved={handleGroupManagerSaved}
+          open={groupManagerOpen}
         />
       ) : null}
     </>

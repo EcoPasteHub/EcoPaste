@@ -193,12 +193,15 @@ export const preferenceTabs: PreferenceTab[] = [
               return settings.clipboard.content.autoFavorite;
             },
           },
+        ],
+      },
+      {
+        id: "groups",
+        settings: [
           {
             control: { type: "action" },
-            disabled: true,
             id: "organizing.customGroups",
             keywords: ["group", "folder", "organize"],
-            status: "comingSoon",
           },
         ],
       },

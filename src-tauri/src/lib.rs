@@ -74,6 +74,7 @@ pub fn run() {
             commands::list_clipboard_groups,
             commands::create_clipboard_group,
             commands::update_clipboard_group,
+            commands::update_clipboard_groups_layout,
             commands::delete_clipboard_group,
             commands::import_clipboard_group_svg,
             commands::get_clipboard_item,

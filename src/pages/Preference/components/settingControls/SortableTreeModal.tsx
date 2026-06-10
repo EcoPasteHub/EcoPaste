@@ -7,12 +7,17 @@ interface SortableTreeModalProps {
   cancelText: string;
   checkedKeys?: Key[];
   checkable?: boolean;
+  extra?: ReactNode;
+  footerExtra?: ReactNode;
   okText: string;
   open: boolean;
+  resetKey?: Key;
   title: ReactNode;
   treeData: TreeDataNode[];
   onCancel: () => void;
+  onCheckedKeysChange?: (checkedKeys: Key[]) => void;
   onSave: (order: string[], checkedKeys: string[]) => Promise<void>;
+  onTreeDataChange?: (treeData: TreeDataNode[]) => void;
 }
 
 const EMPTY_CHECKED_KEYS: Key[] = [];
@@ -25,40 +30,55 @@ const SortableTreeModal: FC<SortableTreeModalProps> = (props) => {
     cancelText,
     checkedKeys: initialCheckedKeys = EMPTY_CHECKED_KEYS,
     checkable = false,
+    extra,
+    footerExtra,
     okText,
     open,
+    resetKey,
     title,
     treeData: initialTreeData,
     onCancel,
+    onCheckedKeysChange,
     onSave,
+    onTreeDataChange,
   } = props;
   const [treeData, setTreeData] = useState<TreeDataNode[]>(initialTreeData);
   const [checkedKeys, setCheckedKeys] = useState<Key[]>(initialCheckedKeys);
   const [saving, setSaving] = useState(false);
   const openRef = useRef(open);
+  const resetKeyRef = useRef<Key | null>(resetKey ?? null);
 
   useEffect(() => {
+    const normalizedResetKey = resetKey ?? null;
     const justOpened = open && !openRef.current;
+    const resetKeyChanged = open && normalizedResetKey !== resetKeyRef.current;
     openRef.current = open;
+    resetKeyRef.current = normalizedResetKey;
 
-    if (!justOpened) return;
+    if (!justOpened && !resetKeyChanged) return;
 
     setTreeData(initialTreeData);
     setCheckedKeys(initialCheckedKeys);
-  }, [open, initialTreeData, initialCheckedKeys]);
+  }, [open, resetKey, initialTreeData, initialCheckedKeys]);
 
   const handleCheck: TreeProps["onCheck"] = (nextCheckedKeys) => {
     if (!Array.isArray(nextCheckedKeys)) {
       setCheckedKeys(nextCheckedKeys.checked);
+      onCheckedKeysChange?.(nextCheckedKeys.checked);
       return;
     }
 
     setCheckedKeys(nextCheckedKeys);
+    onCheckedKeysChange?.(nextCheckedKeys);
   };
 
   const handleDrop: TreeProps["onDrop"] = (info) => {
     setTreeData((currentData) => {
-      return reorderTreeData(currentData, info);
+      const nextData = reorderTreeData(currentData, info);
+
+      onTreeDataChange?.(nextData);
+
+      return nextData;
     });
   };
 
@@ -84,19 +104,30 @@ const SortableTreeModal: FC<SortableTreeModalProps> = (props) => {
     <Modal
       cancelText={cancelText}
       confirmLoading={saving}
+      footer={(_, { CancelBtn, OkBtn }) => {
+        return (
+          <div className="flex items-center justify-end gap-2">
+            {footerExtra}
+            <CancelBtn />
+            <OkBtn />
+          </div>
+        );
+      }}
       okText={okText}
       onCancel={onCancel}
       onOk={saveChanges}
       open={open}
       title={title}
     >
+      {extra}
+
       <Tree
         allowDrop={allowTreeReorderDrop}
         blockNode
         checkable={checkable}
         checkedKeys={checkedKeys}
         classNames={{
-          item: "py-1 b b-ant-border-secondary rounded-md",
+          item: "group py-1 b b-ant-border-secondary rounded-md",
           itemSwitcher: "hidden",
         }}
         draggable

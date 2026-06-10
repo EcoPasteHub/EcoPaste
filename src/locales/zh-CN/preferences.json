@@ -102,6 +102,9 @@
       "globalShortcuts": {
         "title": "全局快捷键"
       },
+      "groups": {
+        "title": "分组管理"
+      },
       "history": {
         "title": "保留与清理"
       },
@@ -363,8 +366,8 @@
           "title": "有备注时自动收藏"
         },
         "customGroups": {
-          "controlLabel": "管理分组",
-          "description": "未来可按主题把历史记录归类到自定义分组。",
+          "controlLabel": "管理",
+          "description": "调整自定义分组的顺序、显示状态、名称和图标。",
           "title": "自定义分组"
         }
       },

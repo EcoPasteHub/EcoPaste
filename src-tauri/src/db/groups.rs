@@ -69,6 +69,32 @@ pub async fn update_group(
     Ok(())
 }
 
+/// 批量更新分组排序和隐藏状态。
+pub async fn update_group_layout(
+    pool: &SqlitePool,
+    ordered_ids: &[String],
+    visible_ids: &[String],
+) -> Result<()> {
+    let now = chrono::Utc::now();
+    let visible_set: std::collections::HashSet<&str> =
+        visible_ids.iter().map(String::as_str).collect();
+
+    for (index, id) in ordered_ids.iter().enumerate() {
+        sqlx::query(
+            "UPDATE clipboard_groups SET sort_order = ?, is_hidden = ?, updated_at = ? WHERE id = ?",
+        )
+        .bind(index as i64)
+        .bind(!visible_set.contains(id.as_str()))
+        .bind(now)
+        .bind(id)
+        .execute(pool)
+        .await
+        .context("failed to update clipboard group layout")?;
+    }
+
+    Ok(())
+}
+
 /// 删除分组；其下记录的 `group_id` 由外键 `ON DELETE SET NULL` 自动置空（已启用 `foreign_keys`）。
 pub async fn delete_group(pool: &SqlitePool, id: &str) -> Result<()> {
     sqlx::query("DELETE FROM clipboard_groups WHERE id = ?")
@@ -140,6 +166,28 @@ mod tests {
         assert_eq!(group.name, "renamed");
         assert_eq!(group.icon, "i-lets-icons:star");
         assert!(group.is_hidden);
+    }
+
+    #[tokio::test]
+    async fn update_group_layout_reorders_and_hides_groups() {
+        let pool = memory_pool().await;
+        insert_group(&pool, &sample_group("a", 0)).await.unwrap();
+        insert_group(&pool, &sample_group("b", 1)).await.unwrap();
+        insert_group(&pool, &sample_group("c", 2)).await.unwrap();
+
+        update_group_layout(
+            &pool,
+            &["c".to_owned(), "a".to_owned(), "b".to_owned()],
+            &["a".to_owned(), "c".to_owned()],
+        )
+        .await
+        .unwrap();
+
+        let groups = list_groups(&pool).await.unwrap();
+        assert_eq!(ids(&groups), ["c", "a", "b"]);
+        assert!(!groups[0].is_hidden);
+        assert!(!groups[1].is_hidden);
+        assert!(groups[2].is_hidden);
     }
 
     #[tokio::test]

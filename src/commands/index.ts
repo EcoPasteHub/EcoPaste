@@ -584,6 +584,22 @@ export const updateClipboardGroup = async (
 };
 
 /**
+ * 保存自定义剪贴板分组的排序和主界面显隐状态。
+ */
+export const updateClipboardGroupsLayout = async (
+  order: string[],
+  visibleIds: string[],
+) => {
+  await call<void>(
+    TAURI_COMMAND.UPDATE_CLIPBOARD_GROUPS_LAYOUT,
+    "commands:labels.saveClipboardGroupsLayout",
+    { input: { order, visibleIds } },
+  );
+
+  message.success(i18n.t("commands:messages.clipboardGroupsLayoutSaved"));
+};
+
+/**
  * 删除自定义剪贴板分组。
  */
 export const deleteClipboardGroup = async (id: string) => {
