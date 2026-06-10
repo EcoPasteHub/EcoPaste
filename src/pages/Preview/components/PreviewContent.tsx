@@ -205,7 +205,10 @@ const FilePreviewRow: FC<FilePreviewRowProps> = (props) => {
       {file.iconPath ? (
         <AssetImage className="size-6 shrink-0" src={file.iconPath} />
       ) : (
-        <span className="i-lucide:file size-5 shrink-0 text-ant-secondary" />
+        <i
+          aria-hidden
+          className="i-lucide:file size-5 shrink-0 text-ant-secondary"
+        />
       )}
 
       <div className="min-w-0 flex-1">

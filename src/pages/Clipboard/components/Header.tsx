@@ -1,6 +1,6 @@
 import { useDebounceFn } from "ahooks";
-import type { DropdownProps, MenuProps } from "antd";
-import { Button, Dropdown } from "antd";
+import type { MenuProps } from "antd";
+import { Button } from "antd";
 import type { ChangeEvent, FC } from "react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -10,6 +10,10 @@ import {
   setMainWindowPinned,
   showWindow,
 } from "@/commands";
+import Dropdown, {
+  type AppDropdownProps,
+  type DropdownMenuItems,
+} from "@/components/Dropdown";
 import KeyHint from "@/components/KeyHint";
 import Tooltip from "@/components/Tooltip";
 import { TAURI_EVENT } from "@/constants/events";
@@ -27,7 +31,7 @@ interface WindowVisibilityPayload {
 
 type HeaderMoreMenuKey = "clear" | "preference";
 
-const MORE_ACTION_TRIGGER: DropdownProps["trigger"] = ["click"];
+const MORE_ACTION_TRIGGER: AppDropdownProps["trigger"] = ["click"];
 const PREFERENCE_SHORTCUT = formatShortcutDisplay("CmdOrCtrl+,", " ");
 
 /**
@@ -159,16 +163,16 @@ const Header: FC = () => {
     handleWindowVisibility,
   );
 
-  const moreMenuItems: MenuProps["items"] = [
+  const moreMenuItems: DropdownMenuItems = [
     {
       extra: PREFERENCE_SHORTCUT,
-      icon: <span className="i-lucide:settings text-base" />,
+      icon: "i-lucide:settings",
       key: "preference",
       label: t("header.openPreference"),
     },
     {
       danger: true,
-      icon: <span className="i-lucide:trash-2 text-base" />,
+      icon: "i-lucide:trash-2",
       key: "clear",
       label: t("header.clearRecords"),
     },
@@ -210,7 +214,6 @@ const Header: FC = () => {
 
         <Dropdown
           menu={{ items: moreMenuItems, onClick: handleMoreMenuClick }}
-          placement="bottomRight"
           trigger={MORE_ACTION_TRIGGER}
         >
           <Button
