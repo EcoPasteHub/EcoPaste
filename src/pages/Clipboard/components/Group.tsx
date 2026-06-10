@@ -1,16 +1,8 @@
-import { Badge } from "antd";
 import type { FC, MouseEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useSnapshot } from "valtio";
 import { useKeyboardEvent } from "@/hooks/useKeyboardEvent";
-import {
-  clipboardPendingState,
-  getClipboardPendingCount,
-  hasClipboardPendingForGroup,
-  requestClipboardPendingRefresh,
-} from "@/stores/clipboardPending";
 import { clipboardViewState } from "@/stores/clipboardView";
-import { settingsState } from "@/stores/settings";
 import type { ClipboardGroup } from "@/types/clipboard";
 import { cn } from "@/utils/cn";
 
@@ -37,7 +29,6 @@ const GROUP_OPTIONS: GroupOption[] = [
 ];
 
 interface GroupLabelProps {
-  count: number;
   icon: string;
   label: string;
 }
@@ -49,18 +40,11 @@ interface GroupLabelProps {
 const Group: FC = () => {
   const { t } = useTranslation("clipboard");
   const { group } = useSnapshot(clipboardViewState);
-  useSnapshot(clipboardPendingState);
-  const settings = useSnapshot(settingsState);
-  const showNewBadge = settings.clipboard.display.showNewBadge;
 
   const handleGroupClick = (e: MouseEvent<HTMLButtonElement>) => {
     const value = e.currentTarget.dataset.value as ClipboardGroup;
 
     clipboardViewState.group = value;
-
-    if (hasClipboardPendingForGroup(value)) {
-      requestClipboardPendingRefresh(value);
-    }
   };
 
   const handleKeyDown = (e: KeyboardEvent) => {
@@ -75,10 +59,6 @@ const Group: FC = () => {
       : (current + 1) % values.length;
 
     clipboardViewState.group = values[next];
-
-    if (hasClipboardPendingForGroup(values[next])) {
-      requestClipboardPendingRefresh(values[next]);
-    }
   };
 
   useKeyboardEvent("keydown", handleKeyDown);
@@ -86,8 +66,6 @@ const Group: FC = () => {
   return (
     <div className="flex items-center gap-1 px-3 pb-2" data-tauri-drag-region>
       {GROUP_OPTIONS.map(({ labelKey, value, icon }) => {
-        const count = showNewBadge ? getClipboardPendingCount(value) : 0;
-
         return (
           <button
             className={cn(
@@ -103,7 +81,7 @@ const Group: FC = () => {
             onClick={handleGroupClick}
             type="button"
           >
-            <GroupLabel count={count} icon={icon} label={t(labelKey)} />
+            <GroupLabel icon={icon} label={t(labelKey)} />
           </button>
         );
       })}
@@ -112,20 +90,15 @@ const Group: FC = () => {
 };
 
 /**
- * 分组按钮内部内容：保持原始横向排版，仅把 Badge 绝对定位到内容右上角。
+ * 分组按钮内部内容：保持图标与分组名称的稳定横向排版。
  */
 const GroupLabel: FC<GroupLabelProps> = (props) => {
-  const { count, icon, label } = props;
+  const { icon, label } = props;
 
   return (
-    <span className="relative inline-flex items-center gap-1 whitespace-nowrap">
+    <span className="inline-flex items-center gap-1 whitespace-nowrap">
       <span className={cn(icon, "size-3.5")} />
       <span>{label}</span>
-      <Badge
-        className="pointer-events-none absolute -top-2 -right-2"
-        count={count}
-        size="small"
-      />
     </span>
   );
 };

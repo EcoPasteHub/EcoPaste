@@ -556,15 +556,6 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { type: "switch" },
-            id: "appearance.showNewBadge",
-            keywords: ["badge", "new", "record", "group"],
-            path: ["clipboard", "display", "showNewBadge"],
-            value: (settings) => {
-              return settings.clipboard.display.showNewBadge;
-            },
-          },
-          {
-            control: { type: "switch" },
             id: "appearance.showOriginalPreview",
             keywords: ["note", "hover", "original", "preview"],
             path: ["clipboard", "content", "showOriginalPreview"],

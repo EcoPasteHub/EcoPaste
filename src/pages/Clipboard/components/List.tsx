@@ -28,14 +28,6 @@ import { WINDOW_LABEL } from "@/constants/windows";
 import { useClipboardItems } from "@/hooks/useClipboardItems";
 import { useKeyboardEvent } from "@/hooks/useKeyboardEvent";
 import { useTauriListen } from "@/hooks/useTauriListen";
-import {
-  addClipboardPending,
-  clearAllClipboardPending,
-  clearClipboardPendingGroup,
-  clipboardPendingState,
-  hasAnyClipboardPending,
-  hasClipboardPendingForGroup,
-} from "@/stores/clipboardPending";
 import { clipboardStatsState } from "@/stores/clipboardStats";
 import { clipboardViewState } from "@/stores/clipboardView";
 import { settingsState } from "@/stores/settings";
@@ -85,12 +77,11 @@ const List: FC = () => {
   const displaySettingsMountedRef = useRef(false);
   const keywordRef = useRef("");
   const reloadRef = useRef<() => void>(() => {});
+  const deferredReloadRef = useRef(false);
 
   const snapshot = useSnapshot(clipboardViewState);
-  const pendingSnapshot = useSnapshot(clipboardPendingState);
   const settings = useSnapshot(settingsState);
   const { keyword, group } = snapshot;
-  const { refreshGroup, refreshToken } = pendingSnapshot;
   const autoPaste = settings.clipboard.content.autoPaste;
   const middleClick = settings.clipboard.content.middleClick;
   const display = settings.clipboard.display;
@@ -102,7 +93,6 @@ const List: FC = () => {
   const deleteFavoriteItemsOnlyInFavoriteGroup =
     settings.clipboard.content.deleteFavoriteItemsOnlyInFavoriteGroup;
   const { fileMaxCount } = display;
-  const showNewBadge = display.showNewBadge;
   const showOriginalPreview = settings.clipboard.content.showOriginalPreview;
   const quickActionLabels = buildItemActionLabels(t);
 
@@ -133,32 +123,13 @@ const List: FC = () => {
     if (data?.total !== void 0) clipboardStatsState.total = data.total;
   }, [data?.total]);
 
-  useEffect(() => {
-    if (showNewBadge) return;
-
-    clearAllClipboardPending();
-  }, [showNewBadge]);
-
   // biome-ignore lint/correctness/useExhaustiveDependencies: snapshot 作触发器，不需在回调内读取
   useEffect(() => {
     setSelectedId(null);
-    if (keywordRef.current !== keyword) {
-      keywordRef.current = keyword;
-      clearAllClipboardPending();
-    }
+    if (keywordRef.current !== keyword) keywordRef.current = keyword;
+    deferredReloadRef.current = false;
     closePreview("filterChange");
   }, [snapshot]);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: refreshToken 是 Group 点击 Badge 后的刷新信号
-  useEffect(() => {
-    if (refreshToken === 0) return;
-    if (refreshGroup !== group) return;
-
-    closePreview("showPending");
-    setSelectedId(null);
-    reloadRef.current();
-    virtuosoRef.current?.scrollToIndex({ behavior: "smooth", index: 0 });
-  }, [refreshToken, group, refreshGroup]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: 仅按影响列表 payload 的展示设置触发重拉，函数引用用 ref 读取最新值
   useEffect(() => {
@@ -172,15 +143,15 @@ const List: FC = () => {
   }, [fileMaxCount, redactSecrets]);
 
   /**
-   * 收到剪贴板更新：导入 / 清理强制刷新；普通新记录只在命中当前分组时刷新，
-   * 其它分组的新内容累计到对应 Badge。
+   * 收到剪贴板更新：导入 / 清理强制刷新；普通新记录只在列表位于顶部时刷新，
+   * 否则延后到用户回到顶部后再刷新，避免打断当前浏览位置。
    * 用 ref 读取最新滚动位置，规避闭包陷旧值（事件订阅只挂载一次）。
    */
   const handleClipboardUpdated = (payload: ClipboardUpdatedPayload) => {
     if (payload.cleanup !== void 0) {
       closePreview("cleanup");
       setSelectedId(null);
-      clearAllClipboardPending();
+      deferredReloadRef.current = false;
       if (clipboardStatsState.total !== null) {
         clipboardStatsState.total = Math.max(
           clipboardStatsState.total - payload.cleanup,
@@ -195,40 +166,36 @@ const List: FC = () => {
     if (payload.imported) {
       closePreview("backupImport");
       setSelectedId(null);
-      clearAllClipboardPending();
+      deferredReloadRef.current = false;
       virtuosoRef.current?.scrollToIndex({ behavior: "auto", index: 0 });
       reload();
       return;
     }
 
     if (payload.deduplicated) {
-      if (
-        isAtTopRef.current &&
-        shouldRefreshCurrentGroup(clipboardViewState.group, payload.kind)
-      ) {
-        reload();
+      if (!shouldRefreshCurrentGroup(clipboardViewState.group, payload.kind)) {
+        return;
       }
 
-      return;
-    }
+      if (!isAtTopRef.current) {
+        deferredReloadRef.current = true;
+        return;
+      }
 
-    if (!isAtTopRef.current) {
-      if (!showNewBadge) return;
-      if (payload.kind === void 0) return;
-
-      addClipboardPending(payload.kind);
-      return;
-    }
-
-    if (shouldRefreshCurrentGroup(clipboardViewState.group, payload.kind)) {
       reload();
       return;
     }
 
-    if (!showNewBadge) return;
-    if (payload.kind === void 0) return;
+    if (!shouldRefreshCurrentGroup(clipboardViewState.group, payload.kind)) {
+      return;
+    }
 
-    addClipboardPending(payload.kind);
+    if (!isAtTopRef.current) {
+      deferredReloadRef.current = true;
+      return;
+    }
+
+    reload();
   };
 
   useTauriListen<ClipboardUpdatedPayload>(
@@ -239,7 +206,7 @@ const List: FC = () => {
   );
 
   /**
-   * 主窗口显示时按偏好重置分组与滚动位置；隐藏期间攒下的新记录先触发刷新。
+   * 主窗口显示时按偏好重置分组与滚动位置；若列表曾延后刷新则先补一次重拉。
    */
   const handleWindowVisibility = (event: {
     payload: WindowVisibilityPayload;
@@ -257,8 +224,8 @@ const List: FC = () => {
       clipboardViewState.group = "all";
     }
 
-    if (hasAnyClipboardPending()) {
-      clearAllClipboardPending();
+    if (deferredReloadRef.current) {
+      deferredReloadRef.current = false;
       reload();
     }
 
@@ -672,9 +639,10 @@ const List: FC = () => {
     isAtTopRef.current = atTop;
 
     if (!atTop) return;
-    if (!hasClipboardPendingForGroup(group)) return;
 
-    clearClipboardPendingGroup(group);
+    if (!deferredReloadRef.current) return;
+
+    deferredReloadRef.current = false;
     reload();
   };
 
