@@ -3,16 +3,8 @@ import type { CSSProperties, FC } from "react";
 import type { ClipboardGroupIcon as ClipboardGroupIconValue } from "@/types/clipboard";
 import { cn } from "@/utils/cn";
 
-const GROUP_ICON_SIZE_CLASS = {
-  base: "size-3.75",
-  lg: "size-5",
-  md: "size-4",
-  sm: "size-3.5",
-} as const;
-
 const GROUP_ICON_MASK_VARIABLE = "--clipboard-group-icon-mask";
 
-type ClipboardGroupIconSize = keyof typeof GROUP_ICON_SIZE_CLASS;
 type ClipboardGroupIconMaskStyle = CSSProperties & {
   [GROUP_ICON_MASK_VARIABLE]: string;
 };
@@ -23,7 +15,6 @@ interface ClipboardGroupIconProps {
   icon: ClipboardGroupIconValue;
   inheritColor?: boolean;
   selected?: boolean;
-  size?: ClipboardGroupIconSize;
 }
 
 /**
@@ -66,7 +57,6 @@ const ClipboardGroupIcon: FC<ClipboardGroupIconProps> = (props) => {
     icon,
     inheritColor = false,
     selected = false,
-    size = "sm",
   } = props;
 
   const stateClassName = cn({
@@ -74,15 +64,13 @@ const ClipboardGroupIcon: FC<ClipboardGroupIconProps> = (props) => {
     "text-ant-light-solid": selected && !disabled && !inheritColor,
     "text-ant-secondary": !selected && !disabled && !inheritColor,
   });
-  const sizeClassName = GROUP_ICON_SIZE_CLASS[size];
 
   if (isCustomSvgIcon(icon)) {
     return (
-      <span
+      <i
         aria-hidden
         className={cn(
-          "inline-block shrink-0 bg-current [-webkit-mask-image:var(--clipboard-group-icon-mask)] [-webkit-mask-position:center] [-webkit-mask-repeat:no-repeat] [-webkit-mask-size:contain] [mask-image:var(--clipboard-group-icon-mask)] [mask-position:center] [mask-repeat:no-repeat] [mask-size:contain]",
-          sizeClassName,
+          "inline-block shrink-0 bg-current text-base [-webkit-mask-image:var(--clipboard-group-icon-mask)] [-webkit-mask-position:center] [-webkit-mask-repeat:no-repeat] [-webkit-mask-size:contain] [height:1em] [mask-image:var(--clipboard-group-icon-mask)] [mask-position:center] [mask-repeat:no-repeat] [mask-size:contain] [width:1em]",
           stateClassName,
           className,
         )}
@@ -92,12 +80,11 @@ const ClipboardGroupIcon: FC<ClipboardGroupIconProps> = (props) => {
   }
 
   return (
-    <span
+    <i
       aria-hidden
       className={cn(
         icon.trim(),
-        "inline-block shrink-0",
-        sizeClassName,
+        "inline-block shrink-0 text-base",
         stateClassName,
         className,
       )}

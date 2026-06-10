@@ -227,7 +227,6 @@ const ClipboardGroupModal: FC<ClipboardGroupModalProps> = (props) => {
                       <ClipboardGroupIcon
                         icon={presetIcon}
                         selected={selected}
-                        size="md"
                       />
                     </button>
                   );
@@ -239,7 +238,6 @@ const ClipboardGroupModal: FC<ClipboardGroupModalProps> = (props) => {
                   <ClipboardGroupIcon
                     icon={icon}
                     selected={customIconSelected}
-                    size="md"
                   />
                 }
                 onClick={openSvgModal}
@@ -265,7 +263,7 @@ const ClipboardGroupModal: FC<ClipboardGroupModalProps> = (props) => {
       >
         <div className="flex flex-col gap-4">
           <div className="flex min-h-24 items-center justify-center rounded-2 border border-ant-border bg-ant-fill-quaternary">
-            <ClipboardGroupIcon icon={icon} size="lg" />
+            <ClipboardGroupIcon className="text-5!" icon={icon} />
           </div>
 
           <div className="flex flex-wrap items-center gap-2">

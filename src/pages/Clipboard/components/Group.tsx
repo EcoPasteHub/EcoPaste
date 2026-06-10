@@ -594,10 +594,10 @@ const Group: FC = () => {
         >
           {showShortcutHint ? (
             <KeyHint hintKey="Q">
-              <ClipboardGroupIcon icon={icon} selected={selected} size="md" />
+              <ClipboardGroupIcon icon={icon} selected={selected} />
             </KeyHint>
           ) : (
-            <ClipboardGroupIcon icon={icon} selected={selected} size="md" />
+            <ClipboardGroupIcon icon={icon} selected={selected} />
           )}
         </button>
       </Tooltip>
@@ -647,7 +647,6 @@ const Group: FC = () => {
                     <ClipboardGroupIcon
                       icon={record.icon}
                       selected={selected}
-                      size="md"
                     />
                   </button>
                 </Tooltip>
