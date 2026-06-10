@@ -50,12 +50,6 @@ interface CategoryGroupOption {
   icon: ClipboardGroupIconValue;
 }
 
-interface SelectableGroupOption {
-  id: string;
-  type: "category" | "custom" | "range";
-  value: ClipboardCategory | ClipboardRange;
-}
-
 interface OverflowGroupMenuLabelProps {
   menuItems: DropdownMenuItems;
   onContext: (record: ClipboardGroupRecord) => void;
@@ -250,7 +244,7 @@ const Group: FC = () => {
   };
 
   /**
-   * 处理分组栏快捷键：Cmd/Ctrl+Q 切换范围，左右键切分类，Tab / Shift+Tab 在可见分组间循环。
+   * 处理分组栏快捷键：Cmd/Ctrl+Q 切换范围，左右键切分类，Tab / Shift+Tab 仅在可见自定义分组间循环。
    */
   const handleKeyDown = (event: KeyboardEvent) => {
     const eventModifierPressed = event.metaKey || event.ctrlKey;
@@ -276,26 +270,15 @@ const Group: FC = () => {
 
     event.preventDefault();
 
-    const values = buildSelectableGroups(visibleCustomGroups);
-    const current = findSelectedGroupIndex(values, range, category, groupId);
-    const next = event.shiftKey
-      ? (current - 1 + values.length) % values.length
-      : (current + 1) % values.length;
-    const option = values[next];
+    const nextGroupId = selectAdjacentCustomGroup(
+      visibleCustomGroups,
+      groupId,
+      event.shiftKey,
+    );
 
-    if (option.type === "custom") {
-      toggleCustomGroup(option.id);
-      return;
-    }
+    if (!nextGroupId) return;
 
-    if (option.type === "category" && isCategoryGroup(option.value)) {
-      toggleCategory(option.value);
-      return;
-    }
-
-    if (isRangeGroup(option.value)) {
-      selectRange(option.value);
-    }
+    toggleCustomGroup(nextGroupId);
   };
 
   useKeyboardEvent("keydown", handleKeyDown);
@@ -793,61 +776,6 @@ function computeCustomGroupCapacity(
 }
 
 /**
- * 生成键盘循环需要的可选分组序列。
- */
-function buildSelectableGroups(
-  customGroups: ClipboardGroupRecord[],
-): SelectableGroupOption[] {
-  const rangeOptions = RANGE_GROUP_OPTIONS.map((option) => {
-    return {
-      id: option.value,
-      type: "range" as const,
-      value: option.value,
-    };
-  });
-  const categoryOptions = CATEGORY_GROUP_OPTIONS.map((option) => {
-    return {
-      id: option.value,
-      type: "category" as const,
-      value: option.value,
-    };
-  });
-  const customOptions = customGroups.map((record) => {
-    return {
-      id: record.id,
-      type: "custom" as const,
-      value: "all" as ClipboardRange,
-    };
-  });
-
-  return [...rangeOptions, ...categoryOptions, ...customOptions];
-}
-
-/**
- * 查找当前分组在可选分组序列中的位置。
- */
-function findSelectedGroupIndex(
-  values: SelectableGroupOption[],
-  range: ClipboardRange,
-  category: ClipboardCategory | null,
-  groupId: string | null,
-) {
-  const index = values.findIndex((option) => {
-    if (groupId) {
-      return option.type === "custom" && option.id === groupId;
-    }
-
-    if (category) {
-      return option.type === "category" && option.value === category;
-    }
-
-    return option.type === "range" && option.value === range;
-  });
-
-  return Math.max(index, 0);
-}
-
-/**
  * 构建更多菜单项：新增入口 + 全部分组快速入口。
  */
 function buildMoreMenuItems(
@@ -924,6 +852,35 @@ function isCategoryGroup(value: unknown): value is ClipboardCategory {
   return CATEGORY_GROUP_OPTIONS.some((option) => {
     return option.value === value;
   });
+}
+
+/**
+ * 在可见自定义分组间前后循环；当前未选中分组时，正向取第一个，反向取最后一个。
+ */
+function selectAdjacentCustomGroup(
+  groups: ClipboardGroupRecord[],
+  groupId: string | null,
+  reverse: boolean,
+) {
+  if (groups.length === 0) return null;
+
+  const currentIndex = groupId
+    ? groups.findIndex((record) => {
+        return record.id === groupId;
+      })
+    : -1;
+
+  if (reverse) {
+    if (currentIndex === -1) return groups[groups.length - 1]?.id ?? null;
+
+    return (
+      groups[(currentIndex - 1 + groups.length) % groups.length]?.id ?? null
+    );
+  }
+
+  if (currentIndex === -1) return groups[0]?.id ?? null;
+
+  return groups[(currentIndex + 1) % groups.length]?.id ?? null;
 }
 
 /**

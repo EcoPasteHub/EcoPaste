@@ -93,6 +93,8 @@
     "pasteSelectedPlain": "粘贴选中项为纯文本",
     "pinSelected": "置顶 / 取消置顶",
     "pinWindow": "固定 / 取消固定窗口",
+    "switchCategory": "切换分类",
+    "switchCustomGroup": "切换自定义分组",
     "toggleRange": "切换全部 / 收藏"
   },
   "types": {

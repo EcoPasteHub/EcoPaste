@@ -93,6 +93,8 @@
     "pasteSelectedPlain": "Paste selected item as plain text",
     "pinSelected": "Pin / unpin selected item",
     "pinWindow": "Pin / unpin window",
+    "switchCategory": "Switch category",
+    "switchCustomGroup": "Switch custom group",
     "toggleRange": "Toggle all / favorites"
   },
   "types": {
