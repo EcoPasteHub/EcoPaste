@@ -13,7 +13,7 @@ use super::super::{
 use crate::core::Result;
 
 #[cfg(target_os = "windows")]
-use crate::menu::context_window::CONTEXT_MENU_WINDOW_LABEL;
+use crate::menu::context_window::{CONTEXT_MENU_WINDOW_LABEL, CONTEXT_SUBMENU_WINDOW_LABEL};
 
 /// 窗口保留 / 销毁策略。
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -61,6 +61,13 @@ static DESCRIPTORS: &[WindowDescriptor] = &[
     #[cfg(target_os = "windows")]
     WindowDescriptor {
         label: CONTEXT_MENU_WINDOW_LABEL,
+        emits_lifecycle: true,
+        retain_policy: RetainPolicy::Permanent,
+        build: None,
+    },
+    #[cfg(target_os = "windows")]
+    WindowDescriptor {
+        label: CONTEXT_SUBMENU_WINDOW_LABEL,
         emits_lifecycle: true,
         retain_policy: RetainPolicy::Permanent,
         build: None,

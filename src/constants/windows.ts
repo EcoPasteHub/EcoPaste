@@ -7,6 +7,10 @@ export const WINDOW_LABEL = {
    */
   CONTEXT_MENU: "context-menu",
   /**
+   * Custom context submenu window on Windows.
+   */
+  CONTEXT_SUBMENU: "context-submenu",
+  /**
    * 主窗口（剪贴板历史列表）。
    */
   MAIN: "main",

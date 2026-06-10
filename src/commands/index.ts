@@ -47,6 +47,26 @@ export interface PreviewAnchorRect {
   height: number;
 }
 
+export interface ContextSubmenuAnchor {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
+export interface ContextSubmenuGroupInput {
+  checked: boolean;
+  id: string;
+  label: string;
+}
+
+export interface ShowContextSubmenuInput {
+  action: ClipboardAction;
+  anchor: ContextSubmenuAnchor;
+  groups: ContextSubmenuGroupInput[];
+  itemId: string;
+}
+
 export interface ClipboardPreviewState {
   requestId: number;
   sessionId: number;
@@ -1034,4 +1054,38 @@ export const popupClipboardItemMenu = (
       },
     },
   );
+};
+
+/**
+ * 显示 Windows 自定义右键菜单的二级窗口。
+ * 内部菜单生命周期命令失败只记日志，避免 hover 过程中打扰用户。
+ */
+export const showContextSubmenu = async (input: ShowContextSubmenuInput) => {
+  try {
+    await invoke<void>(TAURI_COMMAND.SHOW_CONTEXT_SUBMENU, { input });
+  } catch (error) {
+    log.error("show context submenu failed", toAppError(error));
+  }
+};
+
+/**
+ * 隐藏 Windows 自定义右键菜单的二级窗口。
+ */
+export const hideContextSubmenu = async () => {
+  try {
+    await invoke<void>(TAURI_COMMAND.HIDE_CONTEXT_SUBMENU);
+  } catch (error) {
+    log.error("hide context submenu failed", toAppError(error));
+  }
+};
+
+/**
+ * 隐藏 Windows 自定义右键菜单的一级和二级窗口。
+ */
+export const hideContextMenus = async () => {
+  try {
+    await invoke<void>(TAURI_COMMAND.HIDE_CONTEXT_MENUS);
+  } catch (error) {
+    log.error("hide context menus failed", toAppError(error));
+  }
 };

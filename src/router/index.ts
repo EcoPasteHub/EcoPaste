@@ -1,6 +1,6 @@
 import { createHashRouter } from "react-router";
 import Clipboard from "@/pages/Clipboard";
-import ContextMenu from "@/pages/ContextMenu";
+import ContextMenu, { ContextSubmenu } from "@/pages/ContextMenu";
 import Preference from "@/pages/Preference";
 import Preview from "@/pages/Preview";
 
@@ -16,6 +16,10 @@ export const router = createHashRouter([
   {
     Component: ContextMenu,
     path: "/context-menu",
+  },
+  {
+    Component: ContextSubmenu,
+    path: "/context-submenu",
   },
   {
     Component: Preview,

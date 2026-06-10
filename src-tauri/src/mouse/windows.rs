@@ -124,22 +124,7 @@ fn cursor_outside_main_window(app: &AppHandle, cursor: POINT) -> bool {
 /// 钩子收到的 `cursor` 是 physical 坐标，菜单矩形也用 physical 比对，
 /// 不走 logical 换算（避免边缘 1px 舍入误判）。
 fn cursor_outside_context_menu(app: &AppHandle, cursor: POINT) -> bool {
-    let Some(window) =
-        app.get_webview_window(crate::menu::context_window::CONTEXT_MENU_WINDOW_LABEL)
-    else {
-        return true;
-    };
-    let Ok(position) = window.outer_position() else {
-        return true;
-    };
-    let Ok(size) = window.outer_size() else {
-        return true;
-    };
-
-    cursor.x < position.x
-        || cursor.x >= position.x + size.width as i32
-        || cursor.y < position.y
-        || cursor.y >= position.y + size.height as i32
+    !crate::menu::context_window::contains_physical_point(app, cursor.x, cursor.y)
 }
 
 fn schedule_hide(app: &AppHandle) {

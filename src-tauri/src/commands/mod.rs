@@ -3,6 +3,7 @@
 mod autostart;
 mod backup;
 mod clipboard;
+mod context_menu;
 mod drag;
 mod link;
 mod settings;
@@ -14,6 +15,7 @@ mod window;
 pub use autostart::*;
 pub use backup::*;
 pub use clipboard::*;
+pub use context_menu::*;
 pub use drag::*;
 pub use link::*;
 pub use settings::*;
