@@ -32,6 +32,7 @@
     "all": "All",
     "customIcon": "Custom SVG",
     "delete": "Delete group",
+    "deleteConfirmDescription": "After deleting \"{{group}}\", the group will be removed from the group bar. Existing clipboard records will be kept and moved back to an ungrouped state.",
     "edit": "Edit group",
     "favorite": "Favorites",
     "files": "Files",

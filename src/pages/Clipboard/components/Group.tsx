@@ -36,7 +36,9 @@ import type {
 import { cn } from "@/utils/cn";
 
 type GroupModalMode = "create" | "edit";
+type MoreMenuAction = "newGroup";
 type GroupMenuAction = "delete" | "edit" | "hide";
+type MoreMenuGroupKey = `group:${string}`;
 
 interface RangeGroupOption {
   labelKey: string;
@@ -82,13 +84,15 @@ const GROUP_MENU_ACTION = {
   HIDE: "hide",
 } as const satisfies Record<string, GroupMenuAction>;
 
+const MORE_MENU_ACTION = {
+  NEW_GROUP: "newGroup",
+} as const satisfies Record<string, MoreMenuAction>;
+
 const GROUP_BUTTON_BASE_CLASS =
   "flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-1.5 border-0 bg-transparent p-0 transition-colors";
 const GROUP_ICON_BUTTON_CLASS = GROUP_BUTTON_BASE_CLASS;
 const GROUP_BUTTON_WIDTH = 24;
 const GROUP_BUTTON_GAP = 4;
-
-const MORE_MENU_NEW_GROUP_KEY = "newGroup";
 
 /**
  * Header 下方的分组筛选栏：内置类型分组 + 自定义分组入口。
@@ -358,12 +362,15 @@ const Group: FC = () => {
     const record = contextGroupRef.current;
     if (!record) return;
 
-    if (info.key === GROUP_MENU_ACTION.EDIT) {
+    const action = parseGroupMenuAction(info.key);
+    if (!action) return;
+
+    if (action === GROUP_MENU_ACTION.EDIT) {
       openEditModal(record);
       return;
     }
 
-    if (info.key === GROUP_MENU_ACTION.HIDE) {
+    if (action === GROUP_MENU_ACTION.HIDE) {
       void updateClipboardGroup(record.id, {
         icon: record.icon,
         isHidden: true,
@@ -372,19 +379,27 @@ const Group: FC = () => {
       return;
     }
 
-    if (info.key === GROUP_MENU_ACTION.DELETE) {
+    if (action === GROUP_MENU_ACTION.DELETE) {
       requestDeleteGroup(record);
     }
   };
 
   /**
-   * 执行更多菜单动作。
+   * 执行新增分组动作。
+   */
+  const handleCreateGroupAction = () => {
+    openCreateModal();
+  };
+
+  /**
+   * 执行更多菜单动作：新增分组或切换到溢出的自定义分组。
    */
   const handleMoreMenuClick = (info: { key: string }) => {
     setMoreMenuOpen(false);
 
-    if (info.key === MORE_MENU_NEW_GROUP_KEY) {
-      openCreateModal();
+    const action = parseMoreMenuAction(info.key);
+    if (action === MORE_MENU_ACTION.NEW_GROUP) {
+      handleCreateGroupAction();
       return;
     }
 
@@ -401,7 +416,14 @@ const Group: FC = () => {
     deleteGroupRef.current = record;
 
     Modal.confirm({
-      content: record.name,
+      centered: true,
+      content: (
+        <span className="text-ant-secondary text-sm">
+          {t("clipboard:groups.deleteConfirmDescription", {
+            group: record.name,
+          })}
+        </span>
+      ),
       okButtonProps: { danger: true },
       okText: t("common:actions.delete"),
       onOk: confirmDeleteGroup,
@@ -425,25 +447,7 @@ const Group: FC = () => {
     deleteGroupRef.current = null;
   };
 
-  const groupMenuItems: DropdownMenuItems = [
-    {
-      icon: "i-lucide:pencil",
-      key: GROUP_MENU_ACTION.EDIT,
-      label: t("clipboard:groups.edit"),
-    },
-    {
-      icon: "i-lucide:eye-off",
-      key: GROUP_MENU_ACTION.HIDE,
-      label: t("clipboard:groups.hide"),
-    },
-    { type: "divider" },
-    {
-      danger: true,
-      icon: "i-lucide:trash-2",
-      key: GROUP_MENU_ACTION.DELETE,
-      label: t("clipboard:groups.delete"),
-    },
-  ];
+  const groupMenuItems = buildGroupActionMenuItems(t);
 
   /**
    * 记录溢出菜单中右键菜单所属分组。
@@ -520,7 +524,7 @@ const Group: FC = () => {
             GROUP_BUTTON_BASE_CLASS,
             "text-ant-secondary hover:bg-ant-fill-tertiary",
           )}
-          onClick={openCreateModal}
+          onClick={handleCreateGroupAction}
           type="button"
         >
           <i aria-hidden className="i-lucide:plus text-sm!" />
@@ -775,7 +779,34 @@ function computeCustomGroupCapacity(
 }
 
 /**
- * 构建更多菜单项：新增入口 + 全部分组快速入口。
+ * 构建自定义分组右键菜单；内联分组和溢出菜单分组共用这一份定义。
+ */
+function buildGroupActionMenuItems(
+  t: TFunction<["clipboard", "common"]>,
+): DropdownMenuItems {
+  return [
+    {
+      icon: "i-lucide:pencil",
+      key: GROUP_MENU_ACTION.EDIT,
+      label: t("clipboard:groups.edit"),
+    },
+    {
+      icon: "i-lucide:eye-off",
+      key: GROUP_MENU_ACTION.HIDE,
+      label: t("clipboard:groups.hide"),
+    },
+    { type: "divider" },
+    {
+      danger: true,
+      icon: "i-lucide:trash-2",
+      key: GROUP_MENU_ACTION.DELETE,
+      label: t("clipboard:groups.delete"),
+    },
+  ];
+}
+
+/**
+ * 构建更多菜单项：新增入口 + 溢出分组快速入口。
  */
 function buildMoreMenuItems(
   groups: ClipboardGroupRecord[],
@@ -802,7 +833,7 @@ function buildMoreMenuItems(
     return [
       {
         icon: "i-lucide:plus",
-        key: MORE_MENU_NEW_GROUP_KEY,
+        key: MORE_MENU_ACTION.NEW_GROUP,
         label: t("clipboard:groups.add"),
       },
     ];
@@ -811,7 +842,7 @@ function buildMoreMenuItems(
   return [
     {
       icon: "i-lucide:plus",
-      key: MORE_MENU_NEW_GROUP_KEY,
+      key: MORE_MENU_ACTION.NEW_GROUP,
       label: t("clipboard:groups.add"),
     },
     { type: "divider" },
@@ -820,9 +851,29 @@ function buildMoreMenuItems(
 }
 
 /**
+ * 解析自定义分组右键菜单动作。
+ */
+function parseGroupMenuAction(key: string): GroupMenuAction | null {
+  const actions = Object.values(GROUP_MENU_ACTION);
+  if (!actions.includes(key as GroupMenuAction)) return null;
+
+  return key as GroupMenuAction;
+}
+
+/**
+ * 解析更多菜单动作。
+ */
+function parseMoreMenuAction(key: string): MoreMenuAction | null {
+  const actions = Object.values(MORE_MENU_ACTION);
+  if (!actions.includes(key as MoreMenuAction)) return null;
+
+  return key as MoreMenuAction;
+}
+
+/**
  * 生成更多菜单中的分组 key。
  */
-function buildMoreMenuGroupKey(id: string) {
+function buildMoreMenuGroupKey(id: string): MoreMenuGroupKey {
   return `group:${id}`;
 }
 

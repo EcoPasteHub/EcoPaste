@@ -32,6 +32,7 @@
     "all": "全部",
     "customIcon": "自定义 SVG",
     "delete": "删除分组",
+    "deleteConfirmDescription": "删除「{{group}}」后，该分组会从分组栏移除；已有剪贴板记录会保留，并回到未分组状态。",
     "edit": "编辑分组",
     "favorite": "收藏",
     "files": "文件",
