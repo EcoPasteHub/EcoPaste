@@ -515,7 +515,9 @@ const Group: FC = () => {
           })}
           type="button"
         >
-          <i aria-hidden className="i-lucide:more-horizontal text-sm!" />
+          <KeyHint hintKey="N" onKeyPress={handleCreateGroupAction}>
+            <i aria-hidden className="i-lucide:more-horizontal text-sm!" />
+          </KeyHint>
         </button>
       </Dropdown>
     );
@@ -544,7 +546,9 @@ const Group: FC = () => {
           onClick={handleCreateGroupAction}
           type="button"
         >
-          <i aria-hidden className="i-lucide:plus text-sm!" />
+          <KeyHint hintKey="N" onKeyPress={handleCreateGroupAction}>
+            <i aria-hidden className="i-lucide:plus text-sm!" />
+          </KeyHint>
         </button>
       </Dropdown>
     );
