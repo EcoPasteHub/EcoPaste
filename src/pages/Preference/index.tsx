@@ -53,6 +53,10 @@ type PreferenceHighlightTarget = {
   token: number;
 };
 
+interface PreferenceHighlightSettingPayload {
+  settingId: string;
+}
+
 type AppMetadata = {
   name: string;
   version: string;
@@ -126,9 +130,22 @@ const Preference: FC = () => {
     setActiveTabId(result.tab.id);
     setActiveSectionId(result.section.id);
     setSearchQuery("");
+    highlightSetting(result.setting.id);
+  };
+
+  /**
+   * 切换到指定设置项所属分类，并触发滚动高亮。
+   */
+  const highlightSetting = (settingId: string) => {
+    const target = findPreferenceSetting(settingId);
+    if (!target) return;
+
+    setActiveTabId(target.tab.id);
+    setActiveSectionId(target.section.id);
+    setSearchQuery("");
     setHighlightTarget((currentTarget) => {
       return {
-        settingId: result.setting.id,
+        settingId,
         token: (currentTarget?.token ?? 0) + 1,
       };
     });
@@ -254,6 +271,13 @@ const Preference: FC = () => {
     TAURI_EVENT.BACKUP_RECEIVED,
     (event) => {
       handleBackupReceived(event.payload);
+    },
+  );
+
+  useTauriListen<PreferenceHighlightSettingPayload>(
+    TAURI_EVENT.PREFERENCE_HIGHLIGHT_SETTING,
+    (event) => {
+      highlightSetting(event.payload.settingId);
     },
   );
 
@@ -397,5 +421,23 @@ const Preference: FC = () => {
     </div>
   );
 };
+
+/**
+ * 从完整偏好设置 schema 中找到指定设置项及其所属层级。
+ */
+function findPreferenceSetting(settingId: string) {
+  for (const tab of preferenceTabs) {
+    for (const section of tab.sections) {
+      const setting = section.settings.find((item) => {
+        return item.id === settingId;
+      });
+      if (!setting) continue;
+
+      return { section, setting, tab };
+    }
+  }
+
+  return null;
+}
 
 export default Preference;

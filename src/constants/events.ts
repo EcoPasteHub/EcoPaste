@@ -9,6 +9,7 @@ export const TAURI_EVENT = {
   CLIPBOARD_UPDATED: "clipboard://updated",
   CONTEXT_MENU_SHOW: "context-menu://show",
   KEYBOARD_NAV: "keyboard://nav",
+  PREFERENCE_HIGHLIGHT_SETTING: "preference://highlight-setting",
   PREVIEW_UPDATED: "preview://updated",
   SETTINGS_UPDATED: "settings://updated",
   WINDOW_VISIBILITY: "window://visibility",

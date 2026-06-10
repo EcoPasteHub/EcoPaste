@@ -1,3 +1,4 @@
+import { emitTo } from "@tauri-apps/api/event";
 import { useMount } from "ahooks";
 import { Modal } from "antd";
 import type { TFunction } from "i18next";
@@ -15,6 +16,7 @@ import {
   createClipboardGroup,
   deleteClipboardGroup,
   listClipboardGroups,
+  showWindow,
   updateClipboardGroup,
 } from "@/commands";
 import ClipboardGroupIcon from "@/components/ClipboardGroupIcon";
@@ -23,6 +25,7 @@ import Dropdown, { type DropdownMenuItems } from "@/components/Dropdown";
 import KeyHint from "@/components/KeyHint";
 import Tooltip from "@/components/Tooltip";
 import { TAURI_EVENT } from "@/constants/events";
+import { WINDOW_LABEL } from "@/constants/windows";
 import { useKeyboardEvent } from "@/hooks/useKeyboardEvent";
 import { useTauriListen } from "@/hooks/useTauriListen";
 import { clipboardViewState } from "@/stores/clipboardView";
@@ -36,7 +39,7 @@ import type {
 import { cn } from "@/utils/cn";
 
 type GroupModalMode = "create" | "edit";
-type MoreMenuAction = "newGroup";
+type MoreMenuAction = "manageGroups" | "newGroup";
 type GroupMenuAction = "delete" | "edit" | "hide";
 type MoreMenuGroupKey = `group:${string}`;
 
@@ -85,8 +88,11 @@ const GROUP_MENU_ACTION = {
 } as const satisfies Record<string, GroupMenuAction>;
 
 const MORE_MENU_ACTION = {
+  MANAGE_GROUPS: "manageGroups",
   NEW_GROUP: "newGroup",
 } as const satisfies Record<string, MoreMenuAction>;
+
+const CUSTOM_GROUPS_SETTING_ID = "organizing.customGroups";
 
 const GROUP_BUTTON_BASE_CLASS =
   "flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-1.5 border-0 bg-transparent p-0 transition-colors";
@@ -104,7 +110,11 @@ const Group: FC = () => {
   const [customGroups, setCustomGroups] = useState<ClipboardGroupRecord[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<GroupModalMode>("create");
+  const [createMenuOpen, setCreateMenuOpen] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+  const [contextMenuGroupId, setContextMenuGroupId] = useState<string | null>(
+    null,
+  );
   const [visibleCustomGroupCount, setVisibleCustomGroupCount] = useState(
     Number.POSITIVE_INFINITY,
   );
@@ -245,6 +255,15 @@ const Group: FC = () => {
       customGroups.find((record) => {
         return record.id === nextGroupId;
       }) ?? null;
+  };
+
+  /**
+   * 同步自定义分组右键菜单展开状态，用于打开菜单时隐藏按钮 Tooltip。
+   */
+  const handleCustomGroupMenuOpenChange = (open: boolean) => {
+    const record = contextGroupRef.current;
+
+    setContextMenuGroupId(open ? (record?.id ?? null) : null);
   };
 
   /**
@@ -392,14 +411,34 @@ const Group: FC = () => {
   };
 
   /**
-   * 执行更多菜单动作：新增分组或切换到溢出的自定义分组。
+   * 打开偏好设置并定位到自定义分组管理项。
    */
-  const handleMoreMenuClick = (info: { key: string }) => {
+  const openGroupPreference = async () => {
+    await showWindow(WINDOW_LABEL.PREFERENCE);
+    await emitTo(
+      WINDOW_LABEL.PREFERENCE,
+      TAURI_EVENT.PREFERENCE_HIGHLIGHT_SETTING,
+      {
+        settingId: CUSTOM_GROUPS_SETTING_ID,
+      },
+    );
+  };
+
+  /**
+   * 执行更多菜单动作：新增 / 管理分组，或切换到溢出的自定义分组。
+   */
+  const handleMoreMenuClick = async (info: { key: string }) => {
     setMoreMenuOpen(false);
+    setCreateMenuOpen(false);
 
     const action = parseMoreMenuAction(info.key);
     if (action === MORE_MENU_ACTION.NEW_GROUP) {
       handleCreateGroupAction();
+      return;
+    }
+
+    if (action === MORE_MENU_ACTION.MANAGE_GROUPS) {
+      await openGroupPreference();
       return;
     }
 
@@ -448,6 +487,7 @@ const Group: FC = () => {
   };
 
   const groupMenuItems = buildGroupActionMenuItems(t);
+  const createMenuItems = buildCreateMenuItems(t);
 
   /**
    * 记录溢出菜单中右键菜单所属分组。
@@ -473,6 +513,13 @@ const Group: FC = () => {
    */
   const handleMoreOpenChange = (open: boolean) => {
     setMoreMenuOpen(open);
+  };
+
+  /**
+   * 同步新增按钮右键菜单展开状态，用于打开菜单时压掉按钮 Tooltip。
+   */
+  const handleCreateMenuOpenChange = (open: boolean) => {
+    setCreateMenuOpen(open);
   };
 
   /**
@@ -518,18 +565,31 @@ const Group: FC = () => {
     if (overflowCustomGroups.length > 0) return null;
 
     return (
-      <Tooltip title={t("clipboard:groups.add")}>
-        <button
-          className={cn(
-            GROUP_BUTTON_BASE_CLASS,
-            "text-ant-secondary hover:bg-ant-fill-tertiary",
-          )}
-          onClick={handleCreateGroupAction}
-          type="button"
+      <Dropdown
+        menu={{
+          items: createMenuItems,
+          onClick: handleMoreMenuClick,
+        }}
+        onOpenChange={handleCreateMenuOpenChange}
+        open={createMenuOpen}
+        trigger={["contextMenu"]}
+      >
+        <Tooltip
+          open={createMenuOpen ? false : void 0}
+          title={t("clipboard:groups.add")}
         >
-          <i aria-hidden className="i-lucide:plus text-sm!" />
-        </button>
-      </Tooltip>
+          <button
+            className={cn(
+              GROUP_BUTTON_BASE_CLASS,
+              "text-ant-secondary hover:bg-ant-fill-tertiary",
+            )}
+            onClick={handleCreateGroupAction}
+            type="button"
+          >
+            <i aria-hidden className="i-lucide:plus text-sm!" />
+          </button>
+        </Tooltip>
+      </Dropdown>
     );
   };
 
@@ -634,9 +694,13 @@ const Group: FC = () => {
                   items: groupMenuItems,
                   onClick: handleGroupMenuClick,
                 }}
+                onOpenChange={handleCustomGroupMenuOpenChange}
                 trigger={["contextMenu"]}
               >
-                <Tooltip title={record.name}>
+                <Tooltip
+                  open={contextMenuGroupId === record.id ? false : void 0}
+                  title={record.name}
+                >
                   <button
                     className={cn(GROUP_ICON_BUTTON_CLASS, {
                       "bg-ant-primary text-ant-light-solid": selected,
@@ -806,7 +870,22 @@ function buildGroupActionMenuItems(
 }
 
 /**
- * 构建更多菜单项：新增入口 + 溢出分组快速入口。
+ * 构建新增按钮右键菜单；左键继续新增，右键提供管理入口。
+ */
+function buildCreateMenuItems(
+  t: TFunction<["clipboard", "common"]>,
+): DropdownMenuItems {
+  return [
+    {
+      icon: "i-lucide:settings-2",
+      key: MORE_MENU_ACTION.MANAGE_GROUPS,
+      label: t("clipboard:groups.manage"),
+    },
+  ];
+}
+
+/**
+ * 构建更多菜单项：新增 / 管理入口 + 溢出分组快速入口。
  */
 function buildMoreMenuItems(
   groups: ClipboardGroupRecord[],
@@ -836,6 +915,11 @@ function buildMoreMenuItems(
         key: MORE_MENU_ACTION.NEW_GROUP,
         label: t("clipboard:groups.add"),
       },
+      {
+        icon: "i-lucide:settings-2",
+        key: MORE_MENU_ACTION.MANAGE_GROUPS,
+        label: t("clipboard:groups.manage"),
+      },
     ];
   }
 
@@ -844,6 +928,11 @@ function buildMoreMenuItems(
       icon: "i-lucide:plus",
       key: MORE_MENU_ACTION.NEW_GROUP,
       label: t("clipboard:groups.add"),
+    },
+    {
+      icon: "i-lucide:settings-2",
+      key: MORE_MENU_ACTION.MANAGE_GROUPS,
+      label: t("clipboard:groups.manage"),
     },
     { type: "divider" },
     ...groupItems,
