@@ -100,7 +100,10 @@ fn build_window(app: &AppHandle) -> Result<()> {
 
 /// 在当前光标处弹出列表项右键菜单。算好 size + position → `set_size`
 /// → `set_position` → emit 数据 → `show`。
-pub fn show_for_clipboard_item(app: &AppHandle, request: &ClipboardItemMenuRequest) -> Result<()> {
+pub(super) fn show_for_clipboard_item(
+    app: &AppHandle,
+    request: &ClipboardItemMenuRequest,
+) -> Result<()> {
     let lang = crate::i18n::current_language(app);
     let groups = build_groups(
         &request.available_actions,
