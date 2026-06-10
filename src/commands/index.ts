@@ -407,6 +407,23 @@ export const inspectHistoryBackup = (input: InspectHistoryBackupInput) => {
 };
 
 /**
+ * 取走偏好窗口重建前 Rust 暂存的备份接收事件，供重建后首屏补发。
+ * 偏好窗口空闲销毁后再触发备份打开时，事件无法 push 给尚未挂载的前端，改由此主动拉取。
+ * 失败不弹 toast：属内部补发信号，失败只记日志。
+ */
+export const takePendingBackup = async () => {
+  try {
+    return await invoke<BackupReceivedPayload | null>(
+      TAURI_COMMAND.TAKE_PENDING_BACKUP,
+    );
+  } catch (error) {
+    log.error("take pending backup failed", toAppError(error));
+
+    return null;
+  }
+};
+
+/**
  * 从 `.ecopastebak` 备份包导入历史和/或设置。
  */
 export const importHistoryBackup = async (
@@ -877,6 +894,18 @@ export const hideWindow = (label: string) => {
   return call<void>(TAURI_COMMAND.HIDE_WINDOW, "commands:labels.closeWindow", {
     label,
   });
+};
+
+/**
+ * 上报当前 WebView 已完成基础初始化，由 Rust 生命周期管理器把窗口推进到 ready 阶段。
+ * 失败不弹 toast：ready handshake 属内部信号，失败只记日志，不打扰用户。
+ */
+export const notifyWindowReady = async (label: string) => {
+  try {
+    await invoke<void>(TAURI_COMMAND.NOTIFY_WINDOW_READY, { label });
+  } catch (error) {
+    log.error("notify window ready failed", toAppError(error));
+  }
 };
 
 /**

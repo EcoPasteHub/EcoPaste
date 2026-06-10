@@ -1,3 +1,4 @@
+pub mod lifecycle;
 pub(super) mod position;
 pub mod preview;
 mod state;
@@ -13,7 +14,7 @@ pub use state::WindowStateStore;
 
 use std::sync::atomic::{AtomicBool, Ordering};
 
-use tauri::{AppHandle, Emitter, Manager, WebviewWindow, Window};
+use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindow, WebviewWindowBuilder, Window};
 
 use crate::core::Result;
 use crate::settings::{SettingsStore, WindowPosition};
@@ -76,6 +77,14 @@ pub(super) fn get_window(app_handle: &AppHandle, label: &str) -> Result<WebviewW
 }
 
 pub fn show_window(app_handle: &AppHandle, label: &str) -> Result<()> {
+    // 销毁后重建：`DestroyWhenIdle` 窗口空闲超时后 WebView 已被销毁，打开时按 descriptor
+    // 的 build fn 重新建窗。重建后窗口为 `visible: false`，下方走与既有一致的恢复 + show 流程。
+    if app_handle.get_webview_window(label).is_none() {
+        if let Some(build) = lifecycle::rebuild_fn(label) {
+            build(app_handle)?;
+        }
+    }
+
     if label == MAIN_WINDOW_LABEL {
         if let Err(err) = apply_main_layout(app_handle) {
             log::warn!("apply main window layout failed: {err}");
@@ -101,6 +110,7 @@ pub fn show_window(app_handle: &AppHandle, label: &str) -> Result<()> {
             preview::resume_after_main_show();
         }
         emit_visibility(app_handle, label, true);
+        lifecycle::on_shown(app_handle, label);
     }
     result
 }
@@ -126,12 +136,17 @@ pub fn hide_window(app_handle: &AppHandle, label: &str) -> Result<()> {
     let result = windows::hide_window(app_handle, label);
     if result.is_ok() {
         emit_visibility(app_handle, label, false);
+        lifecycle::on_hidden(app_handle, label, "hide");
     }
     result
 }
 
 pub fn toggle_window(app_handle: &AppHandle, label: &str) -> Result<()> {
-    let visible = get_window(app_handle, label)?.is_visible().unwrap_or(false);
+    // 已销毁的按需窗口（如空闲超时后的 preference）取不到实例，视为不可见 → 走 show 重建。
+    let visible = app_handle
+        .get_webview_window(label)
+        .and_then(|window| window.is_visible().ok())
+        .unwrap_or(false);
     if visible {
         hide_window(app_handle, label)
     } else {
@@ -184,6 +199,10 @@ pub fn save_all_window_states(app_handle: &AppHandle) {
 
 /// 关闭请求改为隐藏窗口，让应用常驻后台（系统托盘）。
 /// 返回 `true` 表示已拦截关闭，调用方需 `api.prevent_close()`。
+///
+/// 所有窗口的关闭按钮统一 hide，不直接销毁。`DestroyWhenIdle` 窗口（preference）
+/// 在 hide 触发的 `on_hidden` 里启动空闲计时器，超时后才由生命周期管理器 `destroy`，
+/// 故无需在 close 路径区分销毁分支。
 pub fn hide_on_close(window: &Window) -> bool {
     // 关闭按钮不走 `hide_window`，需在此单独保存几何，否则 preference 的移动/缩放会丢失。
     if let Err(err) = state::save_window_state(window.app_handle(), window.label()) {
@@ -197,6 +216,47 @@ pub fn hide_on_close(window: &Window) -> bool {
         log::error!("hide window on close failed: {err:?}");
     } else {
         emit_visibility(window.app_handle(), window.label(), false);
+        lifecycle::on_hidden(window.app_handle(), window.label(), "close");
     }
     true
+}
+
+/// 按需重建 preference 窗口。preference 不再由 Tauri 配置预创建（改为 `DestroyWhenIdle`），
+/// 故所有选项必须在此用 builder 完整复刻原 `tauri.conf.json` 声明，否则重建后行为漂移。
+///
+/// 建窗后保持 `visible: false`：由 [`show_window`] 统一走恢复几何 + 平台 show 流程，
+/// 与其它窗口的显示路径一致。
+pub fn build_preference_window(app_handle: &AppHandle) -> Result<()> {
+    if app_handle
+        .get_webview_window(PREFERENCE_WINDOW_LABEL)
+        .is_some()
+    {
+        return Ok(());
+    }
+
+    let builder = WebviewWindowBuilder::new(
+        app_handle,
+        PREFERENCE_WINDOW_LABEL,
+        WebviewUrl::App("index.html/#/preference".into()),
+    )
+    .title("EcoPaste Preference")
+    .inner_size(960.0, 600.0)
+    .min_inner_size(960.0, 600.0)
+    .center()
+    .maximizable(false)
+    .skip_taskbar(true)
+    .accept_first_mouse(true)
+    .disable_drag_drop_handler()
+    .visible(false);
+
+    #[cfg(target_os = "macos")]
+    let builder = builder
+        .title_bar_style(tauri::TitleBarStyle::Overlay)
+        .hidden_title(true);
+
+    builder
+        .build()
+        .map_err(|err| anyhow::anyhow!("build preference window: {err}"))?;
+
+    Ok(())
 }

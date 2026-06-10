@@ -21,6 +21,13 @@ pub async fn toggle_window(app: AppHandle, label: String) -> Result<()> {
     window::toggle_window(&app, &label)
 }
 
+/// 前端 WebView 完成基础初始化后回报 ready，由生命周期管理器把窗口推进到 `Ready` 阶段。
+/// label 由前端取自身窗口传入，避免硬编码。
+#[tauri::command]
+pub async fn notify_window_ready(app: AppHandle, label: String) {
+    window::lifecycle::on_ready(&app, &label);
+}
+
 #[tauri::command]
 pub async fn show_taskbar_icon(app: AppHandle, visible: bool) -> Result<()> {
     window::show_taskbar_icon(&app, visible)

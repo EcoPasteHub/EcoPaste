@@ -101,6 +101,7 @@ pub fn run() {
             commands::show_window,
             commands::hide_window,
             commands::toggle_window,
+            commands::notify_window_ready,
             commands::show_taskbar_icon,
             commands::position_window,
             commands::set_main_window_pinned,
@@ -115,6 +116,7 @@ pub fn run() {
             commands::reset_settings,
             commands::export_history_backup,
             commands::inspect_history_backup,
+            commands::take_pending_backup,
             commands::import_history_backup,
             commands::get_storage_usage,
             commands::get_storage_location,
@@ -142,6 +144,8 @@ pub fn run() {
                 err
             })?;
             handle.manage(window_state_store);
+
+            handle.manage(window::lifecycle::WindowLifecycleManager::new());
 
             let settings = settings::init(&handle).map_err(|err| {
                 log::error!("settings initialization failed: {err:?}");

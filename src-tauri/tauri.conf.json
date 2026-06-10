@@ -31,23 +31,6 @@
         "width": 360
       },
       {
-        "acceptFirstMouse": true,
-        "center": true,
-        "dragDropEnabled": false,
-        "height": 600,
-        "hiddenTitle": true,
-        "label": "preference",
-        "maximizable": false,
-        "minHeight": 600,
-        "minWidth": 960,
-        "skipTaskbar": true,
-        "title": "EcoPaste Preference",
-        "titleBarStyle": "Overlay",
-        "url": "index.html/#/preference",
-        "visible": false,
-        "width": 960
-      },
-      {
         "alwaysOnTop": true,
         "decorations": false,
         "dragDropEnabled": false,

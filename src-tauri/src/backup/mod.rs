@@ -5,6 +5,7 @@
 use std::fs::{self, File};
 use std::io::{BufReader, BufWriter, Cursor, Read, Seek, Write};
 use std::path::{Path, PathBuf};
+use std::sync::{LazyLock, Mutex};
 
 use anyhow::{anyhow, Context};
 use argon2::{Algorithm, Argon2, Params, Version};
@@ -43,6 +44,14 @@ const DB_ARCHIVE_DIR: &str = "db";
 const RESOURCES_ARCHIVE_DIR: &str = "resources";
 const CONFIG_ARCHIVE_DIR: &str = "config";
 const MANIFEST_FILENAME: &str = "manifest.json";
+
+/// 偏好窗口被销毁时暂存的待处理备份接收事件。
+///
+/// `emit_received_backup` 在 preference 不存在（已空闲销毁）时无法 push 事件——重建是异步的，
+/// 前端 listener 尚未挂载。改为存入此 slot，由前端重建后通过 `take_pending_backup` 主动拉取，
+/// 两条路径（存活 push / 销毁 pull）互斥，避免事件丢失。
+static PENDING_BACKUP: LazyLock<Mutex<Option<BackupReceivedPayload>>> =
+    LazyLock::new(|| Mutex::new(None));
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -256,6 +265,10 @@ pub fn inspect_backup_file(path: &Path) -> Result<BackupContainerMode> {
 }
 
 /// 将系统打开文件或拖入文件统一转成偏好页接收事件。
+///
+/// preference 已改为空闲可销毁窗口：若窗口仍存活，照常 show + push 事件；
+/// 若已销毁，先把 payload 存入 [`PENDING_BACKUP`]，再 show 触发重建——
+/// 前端重建后经 `take_pending_backup` 主动拉取，规避「重建异步、push 丢失」竞态。
 pub fn emit_received_backup(
     app: &AppHandle,
     path: PathBuf,
@@ -263,18 +276,46 @@ pub fn emit_received_backup(
 ) -> Result<()> {
     let mode = inspect_backup_file(&path)?;
 
+    let payload = BackupReceivedPayload {
+        path: path.to_string_lossy().into_owned(),
+        source,
+        mode,
+    };
+
+    let exists = app
+        .get_webview_window(crate::window::PREFERENCE_WINDOW_LABEL)
+        .is_some();
+
+    if !exists {
+        set_pending_backup(payload.clone());
+    }
+
     crate::window::show_window(app, crate::window::PREFERENCE_WINDOW_LABEL)?;
-    app.emit(
-        BACKUP_RECEIVED_EVENT,
-        BackupReceivedPayload {
-            path: path.to_string_lossy().into_owned(),
-            source,
-            mode,
-        },
-    )
-    .context("failed to emit backup received event")?;
+
+    if exists {
+        app.emit(BACKUP_RECEIVED_EVENT, payload)
+            .context("failed to emit backup received event")?;
+    }
 
     Ok(())
+}
+
+/// 存入待处理备份接收事件，覆盖旧值（仅保留最近一次）。
+fn set_pending_backup(payload: BackupReceivedPayload) {
+    let mut guard = PENDING_BACKUP.lock().unwrap_or_else(|poisoned| {
+        log::error!("pending backup mutex poisoned on set, recovering");
+        poisoned.into_inner()
+    });
+    *guard = Some(payload);
+}
+
+/// 取走并清空待处理备份接收事件，供偏好窗口重建后首屏拉取。
+pub fn take_pending_backup() -> Option<BackupReceivedPayload> {
+    let mut guard = PENDING_BACKUP.lock().unwrap_or_else(|poisoned| {
+        log::error!("pending backup mutex poisoned on take, recovering");
+        poisoned.into_inner()
+    });
+    guard.take()
 }
 
 /// 从进程参数中查找 `.ecopastebak` 路径，供 Windows 文件关联和第二实例回调使用。

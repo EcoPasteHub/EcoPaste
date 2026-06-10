@@ -15,6 +15,7 @@ import {
   type ImportHistoryBackupResult,
   type StorageLocation,
   type StorageUsage,
+  takePendingBackup,
 } from "@/commands";
 import { TAURI_EVENT } from "@/constants/events";
 import { useTauriListen } from "@/hooks/useTauriListen";
@@ -261,10 +262,17 @@ const Preference: FC = () => {
     }
   };
 
-  useMount(() => {
+  useMount(async () => {
     void initializeStorageUsage();
     void initializeAppMetadata();
     void preloadSourceApps();
+
+    // 窗口空闲销毁后重建时，备份接收事件已无法 push 给刚挂载的前端，改为主动拉取暂存值。
+    const pending = await takePendingBackup();
+
+    if (pending) {
+      handleBackupReceived(pending);
+    }
   });
 
   useTauriListen<BackupReceivedPayload>(

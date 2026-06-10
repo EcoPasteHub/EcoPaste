@@ -90,6 +90,9 @@ const List: FC = () => {
   const keywordRef = useRef("");
   const reloadRef = useRef<() => void>(() => {});
   const deferredReloadRef = useRef(false);
+  // 主窗启动即隐藏，初值取 false；首个 `window://visibility` show 事件会翻正。
+  // dormant（隐藏）期间到达的剪贴板更新一律延后，不 reload 隐藏窗口。
+  const mainWindowVisibleRef = useRef(false);
 
   const snapshot = useSnapshot(clipboardViewState);
   const settings = useSnapshot(settingsState);
@@ -192,6 +195,13 @@ const List: FC = () => {
    * 用 ref 读取最新滚动位置，规避闭包陷旧值（事件订阅只挂载一次）。
    */
   const handleClipboardUpdated = (payload: ClipboardUpdatedPayload) => {
+    // 主窗口隐藏（冻结态）期间不立即 reload：只记 pending，等再次显示时由
+    // handleWindowVisibility 统一补刷一次，避免隐藏期间频繁复制触发反复 IPC + 重渲染。
+    if (!mainWindowVisibleRef.current) {
+      deferredReloadRef.current = true;
+      return;
+    }
+
     if (payload.cleanup !== void 0) {
       closePreview("cleanup");
       setSelectedId(null);
@@ -264,13 +274,23 @@ const List: FC = () => {
   );
 
   /**
-   * 主窗口显示时按偏好重置分组与滚动位置；若列表曾延后刷新则先补一次重拉。
+   * 主窗口显隐变化：更新可见性镜像；显示时先补刷隐藏期间延后的重拉，再按偏好重置分组与滚动位置。
+   * 可见性 ref 供 `handleClipboardUpdated` 判断是否处于冻结态——隐藏期间只记 pending，不立即 reload。
    */
   const handleWindowVisibility = (event: {
     payload: WindowVisibilityPayload;
   }) => {
     const { label, visible } = event.payload;
-    if (label !== WINDOW_LABEL.MAIN || !visible) return;
+    if (label !== WINDOW_LABEL.MAIN) return;
+
+    mainWindowVisibleRef.current = visible;
+    if (!visible) return;
+
+    // 隐藏期间累积的剪贴板更新统一在此补刷一次，确保再次打开时列表准确（无论是否开启打开重置）。
+    if (deferredReloadRef.current) {
+      deferredReloadRef.current = false;
+      reload();
+    }
 
     const { scrollToTopOnOpen, selectAllGroupOnOpen } =
       settings.clipboard.window;
@@ -282,11 +302,6 @@ const List: FC = () => {
       clipboardViewState.range = "all";
       clipboardViewState.category = null;
       clipboardViewState.groupId = null;
-    }
-
-    if (deferredReloadRef.current) {
-      deferredReloadRef.current = false;
-      reload();
     }
 
     if (!scrollToTopOnOpen) return;

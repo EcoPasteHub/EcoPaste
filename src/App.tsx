@@ -1,4 +1,5 @@
-import { useEventListener } from "ahooks";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { useEventListener, useMount } from "ahooks";
 import type { ConfigProviderProps } from "antd";
 import { App as AntdApp, ConfigProvider } from "antd";
 import enUS from "antd/locale/en_US";
@@ -8,9 +9,11 @@ import { use, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { RouterProvider } from "react-router";
 import { useSnapshot } from "valtio";
+import { notifyWindowReady } from "@/commands";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { router } from "./router";
 import { settingsReady, settingsState } from "./stores/settings";
+import "./stores/windowLifecycle";
 import type { Language } from "./types/settings";
 import { log } from "./utils/log";
 
@@ -48,6 +51,12 @@ const App: FC = () => {
 
     void i18n.changeLanguage(language);
   }, [i18n, language]);
+
+  // settingsReady 已由 use() gate，挂载即视为前端基础初始化完成；回报 Rust 推进窗口到 ready 阶段。
+  // notifyWindowReady 内部已吞掉并记录失败，这里无需再 try/catch。
+  useMount(async () => {
+    await notifyWindowReady(getCurrentWebviewWindow().label);
+  });
 
   // 兜底未捕获的 Promise rejection：统一进日志通道，避免只在 devtools 红字闪过、生产环境完全无痕。
   useEventListener("unhandledrejection", (event) => {

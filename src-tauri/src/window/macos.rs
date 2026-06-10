@@ -136,6 +136,7 @@ fn show_main_panel(app_handle: &AppHandle) -> Result<()> {
                 );
                 super::preview::resume_after_main_show();
                 super::emit_visibility(&panel_handle, MAIN_WINDOW_LABEL, true);
+                super::lifecycle::on_shown(&panel_handle, MAIN_WINDOW_LABEL);
             }
         }) {
             log::warn!("show main panel on main thread failed: {err}");

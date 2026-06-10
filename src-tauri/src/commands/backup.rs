@@ -6,7 +6,7 @@ use serde::Deserialize;
 use tauri::AppHandle;
 
 use crate::backup::{
-    BackupContainerMode, BackupReceiveSource, ExportHistoryBackupOptions,
+    BackupContainerMode, BackupReceiveSource, BackupReceivedPayload, ExportHistoryBackupOptions,
     ExportHistoryBackupResult, ImportHistoryBackupInput, ImportHistoryBackupOptions,
     ImportHistoryBackupResult,
 };
@@ -65,6 +65,13 @@ pub async fn inspect_history_backup(
     crate::backup::emit_received_backup(&app, path, source)?;
 
     Ok(mode)
+}
+
+/// 取走偏好窗口重建前暂存的备份接收事件。偏好窗口空闲销毁后再触发备份打开时，
+/// 事件无法 push 给尚未挂载的前端，改由前端重建后主动拉取。无暂存时返回 `null`。
+#[tauri::command]
+pub async fn take_pending_backup() -> Option<BackupReceivedPayload> {
+    crate::backup::take_pending_backup()
 }
 
 /// 导入 `.ecopastebak` 备份包；合并立即写入，覆盖热替换当前数据。
