@@ -44,6 +44,7 @@ const SHORTCUTS: Shortcut[] = [
   { keys: "CmdOrCtrl+F", labelKey: "shortcuts.focusSearch" },
   { keys: "CmdOrCtrl+P", labelKey: "shortcuts.pinWindow" },
   { keys: "CmdOrCtrl+,", labelKey: "shortcuts.openPreference" },
+  { keys: "Escape", labelKey: "shortcuts.closePreviewFilterWindow" },
 ];
 
 // 暂未实现但占位，方便后续补齐（注释提示，不渲染）：

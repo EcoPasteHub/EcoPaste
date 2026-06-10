@@ -81,6 +81,7 @@
     "starActive": "Unfavorite"
   },
   "shortcuts": {
+    "closePreviewFilterWindow": "Close preview / filters / window",
     "copySelected": "Copy selected item",
     "deleteSelected": "Delete selected item",
     "favoriteSelected": "Favorite / unfavorite",

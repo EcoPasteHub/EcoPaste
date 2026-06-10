@@ -22,6 +22,7 @@ export const TAURI_COMMAND = {
   GET_SETTINGS: "get_settings",
   GET_STORAGE_LOCATION: "get_storage_location",
   GET_STORAGE_USAGE: "get_storage_usage",
+  HIDE_WINDOW: "hide_window",
   IMPORT_CLIPBOARD_GROUP_SVG: "import_clipboard_group_svg",
   IMPORT_HISTORY_BACKUP: "import_history_backup",
   INSPECT_HISTORY_BACKUP: "inspect_history_backup",

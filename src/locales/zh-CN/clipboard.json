@@ -81,6 +81,7 @@
     "starActive": "取消收藏"
   },
   "shortcuts": {
+    "closePreviewFilterWindow": "关闭预览 / 筛选 / 窗口",
     "copySelected": "复制选中项",
     "deleteSelected": "删除选中项",
     "favoriteSelected": "收藏 / 取消收藏",

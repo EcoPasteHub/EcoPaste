@@ -16,6 +16,7 @@ import {
 import { useSnapshot } from "valtio";
 import {
   deleteClipboardItem,
+  hideWindow,
   listClipboardGroups,
   openClipboardItemLink,
   pasteClipboardItem,
@@ -558,11 +559,18 @@ const List: FC = () => {
   useTauriListen(TAURI_EVENT.CLIPBOARD_MENU_ACTION, handleMenuActionEvent);
 
   const handleKeyDown = (event: KeyboardEvent) => {
-    if (items.length === 0) return;
-
     const eventModifierPressed = isMac ? event.metaKey : event.ctrlKey;
 
     setIsModifierPressed(eventModifierPressed);
+
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeTopEscapeLayer();
+
+      return;
+    }
+
+    if (items.length === 0) return;
 
     if (event.key === "Enter") {
       event.preventDefault();
@@ -579,13 +587,6 @@ const List: FC = () => {
 
     if (isSpaceKey(event)) {
       handlePreviewSpaceDown(event);
-      return;
-    }
-
-    if (event.key === "Escape" && previewSession !== null) {
-      event.preventDefault();
-      closePreview("escape");
-
       return;
     }
 
@@ -1013,6 +1014,28 @@ const List: FC = () => {
     if (!deleteFavoriteItemsOnlyInFavoriteGroup) return true;
 
     return range === "favorite";
+  }
+
+  /**
+   * ESC 按预览、分组、分类、窗口的顺序逐层退出。
+   */
+  function closeTopEscapeLayer() {
+    if (previewSession !== null) {
+      closePreview("escape");
+      return;
+    }
+
+    if (clipboardViewState.groupId !== null) {
+      clipboardViewState.groupId = null;
+      return;
+    }
+
+    if (clipboardViewState.category !== null) {
+      clipboardViewState.category = null;
+      return;
+    }
+
+    void hideWindow(WINDOW_LABEL.MAIN);
   }
 };
 

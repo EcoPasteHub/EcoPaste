@@ -871,6 +871,15 @@ export const showWindow = (label: string) => {
 };
 
 /**
+ * 按窗口 label 隐藏窗口（偏好窗口、剪贴板窗口等）。
+ */
+export const hideWindow = (label: string) => {
+  return call<void>(TAURI_COMMAND.HIDE_WINDOW, "commands:labels.closeWindow", {
+    label,
+  });
+};
+
+/**
  * 显示或隐藏 macOS Dock / Windows 任务栏图标。
  */
 export const showTaskbarIcon = (visible: boolean) => {
