@@ -17,8 +17,17 @@ pub async fn list_groups(pool: &SqlitePool) -> Result<Vec<ClipboardGroup>> {
     Ok(groups)
 }
 
+/// 读取下一条自定义分组的排序值。
+pub async fn next_group_sort_order(pool: &SqlitePool) -> Result<i64> {
+    let row: (Option<i64>,) = sqlx::query_as("SELECT MAX(sort_order) FROM clipboard_groups")
+        .fetch_one(pool)
+        .await
+        .context("failed to read max clipboard group sort order")?;
+
+    Ok(row.0.unwrap_or(-1) + 1)
+}
+
 /// 新建分组。
-#[allow(dead_code)]
 pub async fn insert_group(pool: &SqlitePool, group: &ClipboardGroup) -> Result<()> {
     sqlx::query(
         "INSERT INTO clipboard_groups (id, name, icon, is_hidden, sort_order, created_at, updated_at) \
@@ -37,22 +46,30 @@ pub async fn insert_group(pool: &SqlitePool, group: &ClipboardGroup) -> Result<(
     Ok(())
 }
 
-/// 重命名分组。
-#[allow(dead_code)]
-pub async fn rename_group(pool: &SqlitePool, id: &str, name: &str) -> Result<()> {
+/// 更新分组基础信息。
+pub async fn update_group(
+    pool: &SqlitePool,
+    id: &str,
+    name: &str,
+    icon: &str,
+    is_hidden: bool,
+) -> Result<()> {
     let now = chrono::Utc::now();
-    sqlx::query("UPDATE clipboard_groups SET name = ?, updated_at = ? WHERE id = ?")
+    sqlx::query(
+        "UPDATE clipboard_groups SET name = ?, icon = ?, is_hidden = ?, updated_at = ? WHERE id = ?",
+    )
         .bind(name)
+        .bind(icon)
+        .bind(is_hidden)
         .bind(now)
         .bind(id)
         .execute(pool)
         .await
-        .context("failed to rename clipboard group")?;
+        .context("failed to update clipboard group")?;
     Ok(())
 }
 
 /// 删除分组；其下记录的 `group_id` 由外键 `ON DELETE SET NULL` 自动置空（已启用 `foreign_keys`）。
-#[allow(dead_code)]
 pub async fn delete_group(pool: &SqlitePool, id: &str) -> Result<()> {
     sqlx::query("DELETE FROM clipboard_groups WHERE id = ?")
         .bind(id)
@@ -111,13 +128,18 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn rename_group_updates_name() {
+    async fn update_group_updates_metadata() {
         let pool = memory_pool().await;
         insert_group(&pool, &sample_group("g", 0)).await.unwrap();
 
-        rename_group(&pool, "g", "renamed").await.unwrap();
+        update_group(&pool, "g", "renamed", "i-lets-icons:star", true)
+            .await
+            .unwrap();
 
-        assert_eq!(list_groups(&pool).await.unwrap()[0].name, "renamed");
+        let group = list_groups(&pool).await.unwrap().remove(0);
+        assert_eq!(group.name, "renamed");
+        assert_eq!(group.icon, "i-lets-icons:star");
+        assert!(group.is_hidden);
     }
 
     #[tokio::test]

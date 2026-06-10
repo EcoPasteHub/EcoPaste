@@ -1,3 +1,4 @@
+import { useMount } from "ahooks";
 import { Empty, Spin } from "antd";
 import type { TFunction } from "i18next";
 import type {
@@ -15,6 +16,7 @@ import {
 import { useSnapshot } from "valtio";
 import {
   deleteClipboardItem,
+  listClipboardGroups,
   openClipboardItemLink,
   pasteClipboardItem,
   revealClipboardItem,
@@ -33,10 +35,11 @@ import { clipboardViewState } from "@/stores/clipboardView";
 import { settingsState } from "@/stores/settings";
 import type {
   ClipboardAction,
-  ClipboardGroup,
+  ClipboardGroupRecord,
   ClipboardItem,
   ClipboardItemSort,
   ClipboardKind,
+  ClipboardRange,
 } from "@/types/clipboard";
 import type { ItemAction } from "@/types/settings";
 import { cn } from "@/utils/cn";
@@ -69,6 +72,7 @@ const List: FC = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [firstVisibleIndex, setFirstVisibleIndex] = useState(0);
   const [isModifierPressed, setIsModifierPressed] = useState(false);
+  const [customGroups, setCustomGroups] = useState<ClipboardGroupRecord[]>([]);
   const [noteTarget, setNoteTarget] = useState<ClipboardItem | null>(null);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const isAtTopRef = useRef(true);
@@ -81,7 +85,7 @@ const List: FC = () => {
 
   const snapshot = useSnapshot(clipboardViewState);
   const settings = useSnapshot(settingsState);
-  const { keyword, group } = snapshot;
+  const { category, keyword, groupId, range } = snapshot;
   const autoPaste = settings.clipboard.content.autoPaste;
   const middleClick = settings.clipboard.content.middleClick;
   const display = settings.clipboard.display;
@@ -95,9 +99,16 @@ const List: FC = () => {
   const { fileMaxCount } = display;
   const showOriginalPreview = settings.clipboard.content.showOriginalPreview;
   const quickActionLabels = buildItemActionLabels(t);
+  const currentGroupName = getCurrentGroupName(customGroups, groupId);
 
   const { data, loading, loadingMore, loadMore, noMore, reload, mutate } =
-    useClipboardItems({ ...snapshot, sort });
+    useClipboardItems({
+      favorite: range === "favorite" ? true : void 0,
+      groupId: groupId ?? void 0,
+      keyword,
+      kind: category ?? void 0,
+      sort,
+    });
   const items = data?.list ?? [];
   const topItemCount = countLeadingPinnedItems(items);
   const {
@@ -143,6 +154,31 @@ const List: FC = () => {
   }, [fileMaxCount, redactSecrets]);
 
   /**
+   * 从 Rust 拉取自定义分组，用于空状态展示当前分组名称。
+   */
+  const loadGroups = async () => {
+    const groups = await listClipboardGroups();
+
+    setCustomGroups(groups);
+  };
+
+  /**
+   * 首次挂载时拉取分组名称。
+   */
+  useMount(() => {
+    void loadGroups();
+  });
+
+  /**
+   * 自定义分组变化后同步刷新空状态文案可用的分组名。
+   */
+  const handleGroupsUpdated = () => {
+    void loadGroups();
+  };
+
+  useTauriListen(TAURI_EVENT.CLIPBOARD_GROUPS_UPDATED, handleGroupsUpdated);
+
+  /**
    * 收到剪贴板更新：导入 / 清理强制刷新；普通新记录只在列表位于顶部时刷新，
    * 否则延后到用户回到顶部后再刷新，避免打断当前浏览位置。
    * 用 ref 读取最新滚动位置，规避闭包陷旧值（事件订阅只挂载一次）。
@@ -173,7 +209,14 @@ const List: FC = () => {
     }
 
     if (payload.deduplicated) {
-      if (!shouldRefreshCurrentGroup(clipboardViewState.group, payload.kind)) {
+      if (
+        !shouldRefreshCurrentGroup(
+          clipboardViewState.range,
+          clipboardViewState.category,
+          clipboardViewState.groupId,
+          payload.kind,
+        )
+      ) {
         return;
       }
 
@@ -186,7 +229,14 @@ const List: FC = () => {
       return;
     }
 
-    if (!shouldRefreshCurrentGroup(clipboardViewState.group, payload.kind)) {
+    if (
+      !shouldRefreshCurrentGroup(
+        clipboardViewState.range,
+        clipboardViewState.category,
+        clipboardViewState.groupId,
+        payload.kind,
+      )
+    ) {
       return;
     }
 
@@ -221,7 +271,9 @@ const List: FC = () => {
     closePreview("windowOpenReset");
 
     if (selectAllGroupOnOpen) {
-      clipboardViewState.group = "all";
+      clipboardViewState.range = "all";
+      clipboardViewState.category = null;
+      clipboardViewState.groupId = null;
     }
 
     if (deferredReloadRef.current) {
@@ -268,7 +320,7 @@ const List: FC = () => {
    * 收藏切换后：favorite 分组下取消收藏的条目应即时移出列表，其余分组仅更新标记。
    */
   const handleFavoriteToggled = (id: string, isFavorite: boolean) => {
-    if (group === "favorite" && !isFavorite) {
+    if (range === "favorite" && !isFavorite) {
       removeItem(id);
       return;
     }
@@ -667,7 +719,14 @@ const List: FC = () => {
   }
 
   if (items.length === 0) {
-    const description = getEmptyDescription(t, keyword, group);
+    const description = getEmptyDescription(
+      t,
+      keyword,
+      range,
+      category,
+      groupId,
+      currentGroupName,
+    );
 
     return (
       <div
@@ -924,28 +983,143 @@ const List: FC = () => {
 
     if (!deleteFavoriteItemsOnlyInFavoriteGroup) return true;
 
-    return group === "favorite";
+    return range === "favorite";
   }
 };
 
 /**
- * 生成空列表文案，区分搜索、收藏分组和普通空历史。
+ * 生成空列表文案，按搜索词、范围、分类和自定义分组组合出具体提示。
  */
 function getEmptyDescription(
   t: TFunction<"clipboard">,
   keyword: string,
-  group: string,
+  range: ClipboardRange,
+  category: ClipboardKind | null,
+  groupId: string | null,
+  groupName: string | null,
 ) {
   const isSearching = keyword.length > 0;
-  const isFavorite = group === "favorite";
+  const isFavorite = range === "favorite";
+  const hasGroup = groupId !== null;
+  const categoryLabel = category ? t(`empty.categories.${category}`) : "";
+  const groupLabel = groupName ?? t("empty.groupFallback");
 
   if (isSearching) {
-    return isFavorite
-      ? t("empty.searchFavorites", { keyword })
-      : t("empty.searchHistory", { keyword });
+    return getSearchingEmptyDescription(
+      t,
+      keyword,
+      isFavorite,
+      hasGroup,
+      groupLabel,
+      categoryLabel,
+    );
+  }
+
+  if (hasGroup) {
+    if (isFavorite && category) {
+      return t("empty.groupFavoriteCategory", {
+        category: categoryLabel,
+        group: groupLabel,
+      });
+    }
+
+    if (isFavorite) {
+      return t("empty.groupFavorites", { group: groupLabel });
+    }
+
+    if (category) {
+      return t("empty.groupCategory", {
+        category: categoryLabel,
+        group: groupLabel,
+      });
+    }
+
+    return t("empty.group", { group: groupLabel });
+  }
+
+  if (isFavorite && category) {
+    return t("empty.favoriteCategory", { category: categoryLabel });
+  }
+
+  if (category) {
+    return t("empty.category", { category: categoryLabel });
   }
 
   return t(isFavorite ? "empty.favorites" : "empty.history");
+}
+
+/**
+ * 生成搜索空状态文案，覆盖范围 / 分类 / 分组三种过滤维度。
+ */
+function getSearchingEmptyDescription(
+  t: TFunction<"clipboard">,
+  keyword: string,
+  isFavorite: boolean,
+  hasGroup: boolean,
+  groupLabel: string,
+  categoryLabel: string,
+) {
+  const hasCategory = categoryLabel.length > 0;
+
+  if (hasGroup) {
+    if (isFavorite && hasCategory) {
+      return t("empty.searchGroupFavoriteCategory", {
+        category: categoryLabel,
+        group: groupLabel,
+        keyword,
+      });
+    }
+
+    if (isFavorite) {
+      return t("empty.searchGroupFavorites", {
+        group: groupLabel,
+        keyword,
+      });
+    }
+
+    if (hasCategory) {
+      return t("empty.searchGroupCategory", {
+        category: categoryLabel,
+        group: groupLabel,
+        keyword,
+      });
+    }
+
+    return t("empty.searchGroup", { group: groupLabel, keyword });
+  }
+
+  if (isFavorite && hasCategory) {
+    return t("empty.searchFavoriteCategory", {
+      category: categoryLabel,
+      keyword,
+    });
+  }
+
+  if (isFavorite) {
+    return t("empty.searchFavorites", { keyword });
+  }
+
+  if (hasCategory) {
+    return t("empty.searchCategory", { category: categoryLabel, keyword });
+  }
+
+  return t("empty.searchHistory", { keyword });
+}
+
+/**
+ * 从当前已加载分组列表中取出选中分组名称；找不到时交给文案层兜底。
+ */
+function getCurrentGroupName(
+  groups: ClipboardGroupRecord[],
+  groupId: string | null,
+) {
+  if (!groupId) return null;
+
+  const current = groups.find((record) => {
+    return record.id === groupId;
+  });
+
+  return current?.name ?? null;
 }
 
 /**
@@ -1095,14 +1269,17 @@ function countLeadingPinnedItems(items: ClipboardItem[]) {
  * 判断普通剪贴板更新是否会出现在当前分组列表中。
  */
 function shouldRefreshCurrentGroup(
-  group: ClipboardGroup,
+  range: ClipboardRange,
+  category: ClipboardKind | null,
+  groupId: string | null,
   kind?: ClipboardKind,
 ) {
-  if (group === "all") return true;
-  if (group === "favorite") return false;
+  if (groupId) return false;
+  if (range === "favorite") return false;
+  if (!category) return true;
   if (kind === void 0) return false;
 
-  return group === kind;
+  return category === kind;
 }
 
 /**

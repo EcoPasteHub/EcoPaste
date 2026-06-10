@@ -1,8 +1,26 @@
 {
   "empty": {
+    "categories": {
+      "files": "file",
+      "image": "image",
+      "text": "text"
+    },
+    "category": "No {{category}} records yet",
+    "favoriteCategory": "No favorite {{category}} records yet",
     "favorites": "No favorites yet",
+    "group": "No matching records in \"{{group}}\"",
+    "groupCategory": "No {{category}} records in \"{{group}\"",
+    "groupFallback": "this group",
+    "groupFavoriteCategory": "No favorite {{category}} records in \"{{group}\"",
+    "groupFavorites": "No favorites in \"{{group}\"",
     "history": "No clipboard history yet",
+    "searchCategory": "No {{category}} records found for \"{{keyword}}\"",
+    "searchFavoriteCategory": "No favorite {{category}} records found for \"{{keyword}}\"",
     "searchFavorites": "No favorites found for \"{{keyword}}\"",
+    "searchGroup": "No records in \"{{group}}\" match \"{{keyword}}\"",
+    "searchGroupCategory": "No {{category}} records in \"{{group}}\" match \"{{keyword}}\"",
+    "searchGroupFavoriteCategory": "No favorite {{category}} records in \"{{group}}\" match \"{{keyword}}\"",
+    "searchGroupFavorites": "No favorites in \"{{group}}\" match \"{{keyword}}\"",
     "searchHistory": "No records found for \"{{keyword}}\""
   },
   "footer": {
@@ -10,11 +28,26 @@
     "total": "{{count}} items"
   },
   "groups": {
+    "add": "New group",
     "all": "All",
+    "customIcon": "Custom SVG",
+    "delete": "Delete group",
+    "edit": "Edit group",
     "favorite": "Favorites",
     "files": "Files",
+    "hide": "Hide group",
+    "icon": "Icon",
+    "iconHelp": "Download SVG icons",
     "image": "Image",
-    "text": "Text"
+    "importSvg": "Choose SVG file",
+    "manage": "Manage groups",
+    "more": "More groups",
+    "name": "Name",
+    "namePlaceholder": "Enter group name",
+    "removeIcon": "Remove custom icon",
+    "text": "Text",
+    "uploadSvg": "Upload SVG",
+    "useCustomIcon": "Use custom SVG"
   },
   "header": {
     "clearRecords": "Clear records",

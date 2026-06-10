@@ -5,7 +5,7 @@ use std::path::Path;
 use std::sync::Arc;
 
 use chrono::{DateTime, Datelike, Local, Utc};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
 use tauri::{AppHandle, Emitter, Manager, State};
 
@@ -29,6 +29,13 @@ use crate::window::{self, MAIN_WINDOW_LABEL};
 /// 与前端 `src/constants/events.ts` 的 `TAURI_EVENT.CLIPBOARD_UPDATED` 一一对应。
 const CLIPBOARD_UPDATED_EVENT: &str = "clipboard://updated";
 
+/// 与前端 `src/constants/events.ts` 的 `TAURI_EVENT.CLIPBOARD_GROUPS_UPDATED` 一一对应。
+const CLIPBOARD_GROUPS_UPDATED_EVENT: &str = "clipboard-groups://updated";
+
+const DEFAULT_CLIPBOARD_GROUP_ICON: &str = "i-lets-icons:folder";
+const MAX_GROUP_NAME_CHARS: usize = 32;
+const MAX_GROUP_ICON_BYTES: usize = 256 * 1024;
+
 /// `read_clipboard` 的返回：入库后的记录 + 是否命中去重（前端据此决定提示/滚动行为）。
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -37,6 +44,16 @@ pub struct ReadClipboardResult {
     pub deduplicated: bool,
     /// 剪贴板为空 / 无可识别内容时为 `false`，此时 `item` 为 `None`。
     pub captured: bool,
+}
+
+/// 新建或更新自定义剪贴板分组的输入。
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ClipboardGroupInput {
+    pub name: String,
+    pub icon: String,
+    #[serde(default)]
+    pub is_hidden: bool,
 }
 
 /// 手动读取当前剪贴板并入库（「重新读取」按钮）。
@@ -1016,12 +1033,154 @@ fn sort_clipboard_apps(apps: &mut [ClipboardApp]) {
     });
 }
 
+/// 归一化分组名称，保证持久化前去除首尾空白并限制长度。
+fn normalize_group_name(name: &str) -> Result<String> {
+    let normalized = name.trim();
+    if normalized.is_empty() {
+        return Err(AppError::Clipboard("分组名称不能为空".to_owned()));
+    }
+
+    if normalized.chars().count() > MAX_GROUP_NAME_CHARS {
+        return Err(AppError::Clipboard("分组名称不能超过 32 个字符".to_owned()));
+    }
+
+    Ok(normalized.to_owned())
+}
+
+/// 归一化分组图标；空值回退到默认预设图标，自定义 SVG 做基础校验。
+fn normalize_group_icon(icon: &str) -> Result<String> {
+    let normalized = icon.trim();
+    if normalized.is_empty() {
+        return Ok(DEFAULT_CLIPBOARD_GROUP_ICON.to_owned());
+    }
+
+    if normalized.len() > MAX_GROUP_ICON_BYTES {
+        return Err(AppError::Clipboard("SVG 图标不能超过 256 KB".to_owned()));
+    }
+
+    if normalized.starts_with("<svg") {
+        normalize_group_svg(normalized)?;
+    }
+
+    Ok(normalized.to_owned())
+}
+
+/// 校验自定义 SVG 图标的基础形态。
+fn normalize_group_svg(icon: &str) -> Result<()> {
+    let normalized = icon.trim_start();
+    if !normalized.starts_with("<svg") {
+        return Err(AppError::Clipboard("请选择有效的 SVG 图标".to_owned()));
+    }
+
+    let lower = normalized.to_ascii_lowercase();
+    if lower.contains("<script") || lower.contains("<foreignobject") {
+        return Err(AppError::Clipboard(
+            "SVG 图标不能包含脚本或 foreignObject".to_owned(),
+        ));
+    }
+
+    Ok(())
+}
+
+/// 广播自定义分组变更，打开的前端窗口据此刷新分组列表。
+fn emit_clipboard_groups_updated(app: &AppHandle) {
+    if let Err(err) = app.emit(CLIPBOARD_GROUPS_UPDATED_EVENT, ()) {
+        log::warn!("emit clipboard groups updated failed: {err}");
+    }
+}
+
 /// 列出全部分组（薄封装），供前端构建分组 tab 栏。
 /// 按 `sort_order` 升序，同序按 `created_at` 兜底。
 #[tauri::command]
 pub async fn list_clipboard_groups(db: State<'_, DatabaseState>) -> Result<Vec<ClipboardGroup>> {
     let pool = db.pool().await;
     crate::db::groups::list_groups(&pool).await
+}
+
+/// 新建自定义剪贴板分组。
+#[tauri::command]
+pub async fn create_clipboard_group(
+    app: AppHandle,
+    db: State<'_, DatabaseState>,
+    input: ClipboardGroupInput,
+) -> Result<ClipboardGroup> {
+    let pool = db.pool().await;
+    let name = normalize_group_name(&input.name)?;
+    let icon = normalize_group_icon(&input.icon)?;
+    let now = Utc::now();
+    let group = ClipboardGroup {
+        id: uuid::Uuid::new_v4().to_string(),
+        name,
+        icon,
+        is_hidden: input.is_hidden,
+        sort_order: crate::db::groups::next_group_sort_order(&pool).await?,
+        created_at: now,
+        updated_at: now,
+    };
+
+    crate::db::groups::insert_group(&pool, &group).await?;
+    emit_clipboard_groups_updated(&app);
+
+    Ok(group)
+}
+
+/// 更新自定义剪贴板分组名称、图标和显示状态。
+#[tauri::command]
+pub async fn update_clipboard_group(
+    app: AppHandle,
+    db: State<'_, DatabaseState>,
+    id: String,
+    input: ClipboardGroupInput,
+) -> Result<()> {
+    let pool = db.pool().await;
+    let name = normalize_group_name(&input.name)?;
+    let icon = normalize_group_icon(&input.icon)?;
+
+    crate::db::groups::update_group(&pool, &id, &name, &icon, input.is_hidden).await?;
+    emit_clipboard_groups_updated(&app);
+
+    Ok(())
+}
+
+/// 删除自定义剪贴板分组。
+#[tauri::command]
+pub async fn delete_clipboard_group(
+    app: AppHandle,
+    db: State<'_, DatabaseState>,
+    id: String,
+) -> Result<()> {
+    let pool = db.pool().await;
+
+    crate::db::groups::delete_group(&pool, &id).await?;
+    emit_clipboard_groups_updated(&app);
+
+    Ok(())
+}
+
+/// 读取用户通过 Tauri dialog 选择的 SVG 文件内容，供前端作为自定义分组图标保存。
+#[tauri::command]
+pub async fn import_clipboard_group_svg(path: String) -> Result<String> {
+    let path = Path::new(&path);
+    let extension = path
+        .extension()
+        .and_then(|value| value.to_str())
+        .unwrap_or_default()
+        .to_ascii_lowercase();
+    if extension != "svg" {
+        return Err(AppError::Clipboard("请选择 SVG 文件".to_owned()));
+    }
+
+    let bytes = std::fs::read(path)
+        .map_err(|err| AppError::Clipboard(format!("无法读取 SVG 文件：{err}")))?;
+    if bytes.len() > MAX_GROUP_ICON_BYTES {
+        return Err(AppError::Clipboard("SVG 文件不能超过 256 KB".to_owned()));
+    }
+
+    let icon = String::from_utf8(bytes)
+        .map_err(|_| AppError::Clipboard("SVG 文件必须是 UTF-8 文本".to_owned()))?;
+    normalize_group_svg(&icon)?;
+
+    Ok(icon)
 }
 
 /// 翻转收藏状态（薄封装）。前端在调用前/后做乐观更新；这里不返回新状态，

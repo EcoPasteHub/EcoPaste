@@ -4,6 +4,7 @@ import type { ClipboardGroupIcon as ClipboardGroupIconValue } from "@/types/clip
 import { cn } from "@/utils/cn";
 
 const GROUP_ICON_SIZE_CLASS = {
+  base: "size-3.75",
   lg: "size-5",
   md: "size-4",
   sm: "size-3.5",
@@ -15,6 +16,7 @@ interface ClipboardGroupIconProps {
   className?: string;
   disabled?: boolean;
   icon: ClipboardGroupIconValue;
+  inheritColor?: boolean;
   selected?: boolean;
   size?: ClipboardGroupIconSize;
 }
@@ -45,14 +47,15 @@ const ClipboardGroupIcon: FC<ClipboardGroupIconProps> = (props) => {
     className,
     disabled = false,
     icon,
+    inheritColor = false,
     selected = false,
     size = "sm",
   } = props;
 
   const stateClassName = cn({
-    "text-ant-disabled": disabled,
-    "text-ant-light-solid": selected && !disabled,
-    "text-ant-secondary": !selected && !disabled,
+    "text-ant-disabled": disabled && !inheritColor,
+    "text-ant-light-solid": selected && !disabled && !inheritColor,
+    "text-ant-secondary": !selected && !disabled && !inheritColor,
   });
   const sizeClassName = GROUP_ICON_SIZE_CLASS[size];
 

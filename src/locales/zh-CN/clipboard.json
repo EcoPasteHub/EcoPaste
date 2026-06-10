@@ -1,8 +1,26 @@
 {
   "empty": {
+    "categories": {
+      "files": "文件",
+      "image": "图片",
+      "text": "文本"
+    },
+    "category": "暂无{{category}}记录",
+    "favoriteCategory": "暂无收藏的{{category}}记录",
     "favorites": "暂无收藏记录",
-    "history": "暂无剪贴板历史",
+    "group": "「{{group}}」分组暂无相关记录",
+    "groupCategory": "「{{group}}」分组下暂无{{category}}记录",
+    "groupFallback": "该分组",
+    "groupFavoriteCategory": "「{{group}}」分组下暂无收藏的{{category}}记录",
+    "groupFavorites": "「{{group}}」分组下暂无收藏记录",
+    "history": "暂无剪贴板历史记录",
+    "searchCategory": "未找到与「{{keyword}}」相关的{{category}}记录",
+    "searchFavoriteCategory": "收藏中未找到与「{{keyword}}」相关的{{category}}记录",
     "searchFavorites": "未找到「{{keyword}}」相关收藏",
+    "searchGroup": "「{{group}}」分组下未找到与「{{keyword}}」相关的记录",
+    "searchGroupCategory": "「{{group}}」分组下未找到与「{{keyword}}」相关的{{category}}记录",
+    "searchGroupFavoriteCategory": "「{{group}}」分组下的收藏中未找到与「{{keyword}}」相关的{{category}}记录",
+    "searchGroupFavorites": "「{{group}}」分组下的收藏中未找到与「{{keyword}}」相关的记录",
     "searchHistory": "未找到「{{keyword}}」相关记录"
   },
   "footer": {
@@ -10,11 +28,26 @@
     "total": "共 {{count}} 项"
   },
   "groups": {
+    "add": "新增分组",
     "all": "全部",
+    "customIcon": "自定义 SVG",
+    "delete": "删除分组",
+    "edit": "编辑分组",
     "favorite": "收藏",
     "files": "文件",
+    "hide": "隐藏分组",
+    "icon": "图标",
+    "iconHelp": "下载 SVG 图标",
     "image": "图片",
-    "text": "文本"
+    "importSvg": "选择 SVG 文件",
+    "manage": "管理分组",
+    "more": "更多分组",
+    "name": "名称",
+    "namePlaceholder": "输入分组名称",
+    "removeIcon": "删除自定义图标",
+    "text": "文本",
+    "uploadSvg": "上传 SVG",
+    "useCustomIcon": "使用自定义 SVG"
   },
   "header": {
     "clearRecords": "清空记录",

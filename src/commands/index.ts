@@ -19,6 +19,7 @@ import { settingsState } from "@/stores/settings";
 import type {
   ClipboardAction,
   ClipboardApp,
+  ClipboardGroupInput,
   ClipboardGroupRecord,
   ClipboardItemPage,
   ClipboardItemQuery,
@@ -548,6 +549,61 @@ export const listClipboardGroups = () => {
   return call<ClipboardGroupRecord[]>(
     TAURI_COMMAND.LIST_CLIPBOARD_GROUPS,
     "commands:labels.loadClipboardGroups",
+  );
+};
+
+/**
+ * 新建自定义剪贴板分组。
+ */
+export const createClipboardGroup = async (input: ClipboardGroupInput) => {
+  const group = await call<ClipboardGroupRecord>(
+    TAURI_COMMAND.CREATE_CLIPBOARD_GROUP,
+    "commands:labels.saveClipboardGroup",
+    { input },
+  );
+
+  message.success(i18n.t("commands:messages.clipboardGroupSaved"));
+
+  return group;
+};
+
+/**
+ * 更新自定义剪贴板分组。
+ */
+export const updateClipboardGroup = async (
+  id: string,
+  input: ClipboardGroupInput,
+) => {
+  await call<void>(
+    TAURI_COMMAND.UPDATE_CLIPBOARD_GROUP,
+    "commands:labels.saveClipboardGroup",
+    { id, input },
+  );
+
+  message.success(i18n.t("commands:messages.clipboardGroupSaved"));
+};
+
+/**
+ * 删除自定义剪贴板分组。
+ */
+export const deleteClipboardGroup = async (id: string) => {
+  await call<void>(
+    TAURI_COMMAND.DELETE_CLIPBOARD_GROUP,
+    "commands:labels.deleteClipboardGroup",
+    { id },
+  );
+
+  message.success(i18n.t("commands:messages.clipboardGroupDeleted"));
+};
+
+/**
+ * 读取 Tauri dialog 选中的 SVG 文件内容。
+ */
+export const importClipboardGroupSvg = (path: string) => {
+  return call<string>(
+    TAURI_COMMAND.IMPORT_CLIPBOARD_GROUP_SVG,
+    "commands:labels.importClipboardGroupSvg",
+    { path },
   );
 };
 
