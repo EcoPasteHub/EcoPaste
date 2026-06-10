@@ -10,8 +10,8 @@ use winapi::um::processthreadsapi::GetCurrentThreadId;
 use winapi::um::winuser::{
     CallNextHookEx, GetAsyncKeyState, GetMessageW, PostThreadMessageW, SetWindowsHookExW,
     UnhookWindowsHookEx, KBDLLHOOKSTRUCT, MSG, VK_BACK, VK_CONTROL, VK_DELETE, VK_DOWN, VK_ESCAPE,
-    VK_LCONTROL, VK_RCONTROL, VK_RETURN, VK_SHIFT, VK_SPACE, VK_TAB, VK_UP, WH_KEYBOARD_LL,
-    WM_KEYDOWN, WM_KEYUP, WM_QUIT, WM_SYSKEYDOWN, WM_SYSKEYUP,
+    VK_LCONTROL, VK_LEFT, VK_RCONTROL, VK_RETURN, VK_RIGHT, VK_SHIFT, VK_SPACE, VK_TAB, VK_UP,
+    WH_KEYBOARD_LL, WM_KEYDOWN, WM_KEYUP, WM_QUIT, WM_SYSKEYDOWN, WM_SYSKEYUP,
 };
 
 use super::NAV_EVENT;
@@ -48,6 +48,8 @@ fn ctrl_shortcut_key(vk: u32) -> Option<String> {
 
 fn nav_key(vk: u32) -> Option<&'static str> {
     match vk as i32 {
+        VK_LEFT => Some("ArrowLeft"),
+        VK_RIGHT => Some("ArrowRight"),
         VK_UP => Some("ArrowUp"),
         VK_DOWN => Some("ArrowDown"),
         VK_RETURN => Some("Enter"),

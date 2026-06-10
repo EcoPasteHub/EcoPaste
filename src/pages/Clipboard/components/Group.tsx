@@ -250,7 +250,7 @@ const Group: FC = () => {
   };
 
   /**
-   * 处理分组栏快捷键：Cmd/Ctrl+Q 切换范围，Tab / Shift+Tab 在可见分组间循环。
+   * 处理分组栏快捷键：Cmd/Ctrl+Q 切换范围，左右键切分类，Tab / Shift+Tab 在可见分组间循环。
    */
   const handleKeyDown = (event: KeyboardEvent) => {
     const eventModifierPressed = event.metaKey || event.ctrlKey;
@@ -258,6 +258,16 @@ const Group: FC = () => {
     if (eventModifierPressed && event.key.toLowerCase() === "q") {
       event.preventDefault();
       toggleRange();
+
+      return;
+    }
+
+    if (
+      (event.key === "ArrowLeft" || event.key === "ArrowRight") &&
+      !shouldUseNativeHorizontalNavigation(event)
+    ) {
+      event.preventDefault();
+      selectAdjacentCategory(event.key === "ArrowLeft" ? -1 : 1);
 
       return;
     }
@@ -296,6 +306,24 @@ const Group: FC = () => {
   const toggleRange = () => {
     clipboardViewState.range =
       clipboardViewState.range === "all" ? "favorite" : "all";
+  };
+
+  /**
+   * 按方向键在固定分类序列内循环；未选分类时从方向对应的端点进入。
+   */
+  const selectAdjacentCategory = (direction: -1 | 1) => {
+    const options = CATEGORY_GROUP_OPTIONS.map((option) => {
+      return option.value;
+    });
+    const currentCategory = clipboardViewState.category;
+    const current = currentCategory ? options.indexOf(currentCategory) : -1;
+    const startIndex = direction === 1 ? -1 : options.length;
+    const nextIndex =
+      (current === -1 ? startIndex + direction : current + direction) %
+      options.length;
+    const normalizedIndex = (nextIndex + options.length) % options.length;
+
+    clipboardViewState.category = options[normalizedIndex];
   };
 
   /**
@@ -896,6 +924,19 @@ function isCategoryGroup(value: unknown): value is ClipboardCategory {
   return CATEGORY_GROUP_OPTIONS.some((option) => {
     return option.value === value;
   });
+}
+
+/**
+ * 判断左右键是否应交给输入控件原生光标导航。
+ */
+function shouldUseNativeHorizontalNavigation(event: KeyboardEvent) {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) return false;
+
+  const tagName = target.tagName.toLowerCase();
+  if (target.isContentEditable) return true;
+
+  return tagName === "input" || tagName === "textarea";
 }
 
 /**
