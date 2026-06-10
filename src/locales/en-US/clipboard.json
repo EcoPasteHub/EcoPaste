@@ -92,7 +92,8 @@
     "pasteSelected": "Paste selected item",
     "pasteSelectedPlain": "Paste selected item as plain text",
     "pinSelected": "Pin / unpin selected item",
-    "pinWindow": "Pin / unpin window"
+    "pinWindow": "Pin / unpin window",
+    "toggleRange": "Toggle all / favorites"
   },
   "types": {
     "color": "Color",

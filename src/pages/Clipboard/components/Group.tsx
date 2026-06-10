@@ -20,6 +20,7 @@ import {
 import ClipboardGroupIcon from "@/components/ClipboardGroupIcon";
 import ClipboardGroupModal from "@/components/ClipboardGroupModal";
 import Dropdown, { type DropdownMenuItems } from "@/components/Dropdown";
+import KeyHint from "@/components/KeyHint";
 import Tooltip from "@/components/Tooltip";
 import { TAURI_EVENT } from "@/constants/events";
 import { useKeyboardEvent } from "@/hooks/useKeyboardEvent";
@@ -249,9 +250,18 @@ const Group: FC = () => {
   };
 
   /**
-   * Tab / Shift+Tab 在可见分组间循环切换。
+   * 处理分组栏快捷键：Cmd/Ctrl+Q 切换范围，Tab / Shift+Tab 在可见分组间循环。
    */
   const handleKeyDown = (event: KeyboardEvent) => {
+    const eventModifierPressed = event.metaKey || event.ctrlKey;
+
+    if (eventModifierPressed && event.key.toLowerCase() === "q") {
+      event.preventDefault();
+      toggleRange();
+
+      return;
+    }
+
     if (event.key !== "Tab") return;
 
     event.preventDefault();
@@ -279,6 +289,14 @@ const Group: FC = () => {
   };
 
   useKeyboardEvent("keydown", handleKeyDown);
+
+  /**
+   * 在全部 / 收藏范围之间循环切换，不影响分类与自定义分组筛选。
+   */
+  const toggleRange = () => {
+    clipboardViewState.range =
+      clipboardViewState.range === "all" ? "favorite" : "all";
+  };
 
   /**
    * 打开新增分组弹框。
@@ -505,11 +523,15 @@ const Group: FC = () => {
    */
   const renderRangeButton = ({ labelKey, value, icon }: RangeGroupOption) => {
     const selected = range === value;
+    const nextRange =
+      range === "all" ? "favorite" : range === "favorite" ? "all" : void 0;
+    const showShortcutHint = nextRange === value;
 
     return renderFilterButton({
       icon,
       label: t(`clipboard:${labelKey}`),
       selected,
+      showShortcutHint,
       type: "range",
       value,
     });
@@ -541,10 +563,11 @@ const Group: FC = () => {
     icon: ClipboardGroupIconValue;
     label: string;
     selected: boolean;
+    showShortcutHint?: boolean;
     type: "category" | "range";
     value: ClipboardCategory | ClipboardRange;
   }) => {
-    const { icon, label, selected, type, value } = options;
+    const { icon, label, selected, showShortcutHint, type, value } = options;
 
     return (
       <Tooltip key={`${type}:${value}`} title={label}>
@@ -558,7 +581,13 @@ const Group: FC = () => {
           onClick={handleGroupClick}
           type="button"
         >
-          <ClipboardGroupIcon icon={icon} selected={selected} size="md" />
+          {showShortcutHint ? (
+            <KeyHint hintKey="Q">
+              <ClipboardGroupIcon icon={icon} selected={selected} size="md" />
+            </KeyHint>
+          ) : (
+            <ClipboardGroupIcon icon={icon} selected={selected} size="md" />
+          )}
         </button>
       </Tooltip>
     );

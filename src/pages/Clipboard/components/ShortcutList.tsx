@@ -30,6 +30,7 @@ const SHORTCUTS: Shortcut[] = [
   { keys: "CmdOrCtrl+D", labelKey: "shortcuts.favoriteSelected" },
   { keys: "CmdOrCtrl+T", labelKey: "shortcuts.pinSelected" },
   { keys: "CmdOrCtrl+M", labelKey: "shortcuts.noteSelected" },
+  { keys: "CmdOrCtrl+Q", labelKey: "shortcuts.toggleRange" },
   { keys: ["ArrowUp", "/", "ArrowDown"], labelKey: "shortcuts.navigate" },
   { keys: "CmdOrCtrl+N", labelKey: "shortcuts.pasteNth" },
   { keys: "CmdOrCtrl+F", labelKey: "shortcuts.focusSearch" },

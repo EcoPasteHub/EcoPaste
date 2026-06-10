@@ -92,7 +92,8 @@
     "pasteSelected": "粘贴选中项",
     "pasteSelectedPlain": "粘贴选中项为纯文本",
     "pinSelected": "置顶 / 取消置顶",
-    "pinWindow": "固定 / 取消固定窗口"
+    "pinWindow": "固定 / 取消固定窗口",
+    "toggleRange": "切换全部 / 收藏"
   },
   "types": {
     "color": "颜色",
