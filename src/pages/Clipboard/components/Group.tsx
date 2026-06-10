@@ -924,6 +924,8 @@ function buildMoreMenuItems(
   }
 
   return [
+    ...groupItems,
+    { type: "divider" },
     {
       icon: "i-lucide:plus",
       key: MORE_MENU_ACTION.NEW_GROUP,
@@ -934,8 +936,6 @@ function buildMoreMenuItems(
       key: MORE_MENU_ACTION.MANAGE_GROUPS,
       label: t("clipboard:groups.manage"),
     },
-    { type: "divider" },
-    ...groupItems,
   ];
 }
 
