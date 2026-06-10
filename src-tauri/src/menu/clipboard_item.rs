@@ -92,11 +92,13 @@ impl ClipboardMenuAction {
             Self::Paste => Some("Enter"),
             Self::PasteAsPlainText | Self::PasteAsPath => Some("CmdOrCtrl+Enter"),
             Self::Copy => Some("CmdOrCtrl+C"),
+            Self::OpenLink | Self::SendEmail | Self::RevealInFinder | Self::RevealInExplorer => {
+                Some("CmdOrCtrl+O")
+            }
             Self::ToggleFavorite => Some("CmdOrCtrl+D"),
             Self::TogglePinned => Some("CmdOrCtrl+T"),
             Self::EditNote => Some("CmdOrCtrl+M"),
             Self::Delete => Some("CmdOrCtrl+Backspace"),
-            _ => None,
         }
     }
 }

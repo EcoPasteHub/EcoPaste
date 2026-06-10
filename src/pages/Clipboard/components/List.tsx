@@ -419,6 +419,31 @@ const List: FC = () => {
   };
 
   /**
+   * 按当前条目后端声明的可用动作执行“打开”：链接 / 邮箱 / 定位文件共用 Cmd/Ctrl+O。
+   */
+  const handleShortcutOpen = async (
+    item: ClipboardItem,
+    action: ClipboardAction,
+  ) => {
+    if (previewSession?.itemId === item.id) closePreview("shortcutOpen");
+
+    switch (action) {
+      case "openLink":
+        await openClipboardItemLink(item.id, false);
+        return;
+      case "sendEmail":
+        await openClipboardItemLink(item.id, true);
+        return;
+      case "revealInFinder":
+      case "revealInExplorer":
+        await revealClipboardItem(item.id);
+        return;
+      default:
+        return;
+    }
+  };
+
+  /**
    * Rust 右键菜单点击事件：携带 `{action, itemId}`。
    * 用 ref 持续指向「当前 render 的派发函数」，规避 `useTauriListen` 只在挂载时
    * 抓一次闭包导致的状态过期（同款做法见 `handleClipboardUpdated`）。
@@ -546,6 +571,21 @@ const List: FC = () => {
         closePreview("shortcutCopy");
 
       writeToClipboard(activeItem.id, false);
+
+      return;
+    }
+
+    if (eventModifierPressed && event.key.toLowerCase() === "o") {
+      const activeItem = getActiveItem();
+
+      if (!activeItem) return;
+
+      const openAction = getOpenClipboardAction(activeItem.availableActions);
+
+      if (!openAction) return;
+
+      event.preventDefault();
+      void handleShortcutOpen(activeItem, openAction);
 
       return;
     }
@@ -977,6 +1017,22 @@ function getAllowedClipboardActions(
 
   return actions?.filter((action) => {
     return action !== "delete";
+  });
+}
+
+/**
+ * 从后端声明的右键动作中取出可由 Cmd/Ctrl+O 触发的“打开”动作。
+ */
+function getOpenClipboardAction(actions: ClipboardAction[] | undefined) {
+  const openActions: ClipboardAction[] = [
+    "openLink",
+    "sendEmail",
+    "revealInFinder",
+    "revealInExplorer",
+  ];
+
+  return actions?.find((action) => {
+    return openActions.includes(action);
   });
 }
 

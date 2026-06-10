@@ -54,6 +54,7 @@
     "navigate": "Navigate up/down",
     "noteSelected": "Add / edit note",
     "openPreference": "Open preferences",
+    "openSelected": "Open link / email / file location",
     "pasteNth": "Paste item N (N = 1...9, 0)",
     "pasteSelected": "Paste selected item",
     "pasteSelectedPlain": "Paste selected item as plain text",
