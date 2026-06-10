@@ -444,6 +444,34 @@ export const takePendingBackup = async () => {
 };
 
 /**
+ * 打开偏好窗口并定位到指定设置项。偏好窗口空闲销毁后也能在重建后正确跳转，
+ * 替代前端 `showWindow` 后直接 `emitTo`（重建异步会丢事件）。
+ */
+export const openPreferenceWithHighlight = (settingId: string) => {
+  return call<void>(
+    TAURI_COMMAND.OPEN_PREFERENCE_WITH_HIGHLIGHT,
+    "commands:labels.openWindow",
+    { settingId },
+  );
+};
+
+/**
+ * 取走偏好窗口重建前 Rust 暂存的高亮目标设置项，供重建后首屏补发跳转。
+ * 失败不弹 toast：属内部补发信号，失败只记日志。
+ */
+export const takePendingPreferenceHighlight = async () => {
+  try {
+    return await invoke<string | null>(
+      TAURI_COMMAND.TAKE_PENDING_PREFERENCE_HIGHLIGHT,
+    );
+  } catch (error) {
+    log.error("take pending preference highlight failed", toAppError(error));
+
+    return null;
+  }
+};
+
+/**
  * 从 `.ecopastebak` 备份包导入历史和/或设置。
  */
 export const importHistoryBackup = async (

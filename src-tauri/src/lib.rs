@@ -105,6 +105,8 @@ pub fn run() {
             commands::hide_context_menus,
             commands::toggle_window,
             commands::notify_window_ready,
+            commands::open_preference_with_highlight,
+            commands::take_pending_preference_highlight,
             commands::show_taskbar_icon,
             commands::position_window,
             commands::set_main_window_pinned,

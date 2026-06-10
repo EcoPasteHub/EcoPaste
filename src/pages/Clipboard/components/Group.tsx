@@ -1,4 +1,3 @@
-import { emitTo } from "@tauri-apps/api/event";
 import { useMount } from "ahooks";
 import { Modal } from "antd";
 import type { TFunction } from "i18next";
@@ -16,7 +15,7 @@ import {
   createClipboardGroup,
   deleteClipboardGroup,
   listClipboardGroups,
-  showWindow,
+  openPreferenceWithHighlight,
   updateClipboardGroup,
 } from "@/commands";
 import ClipboardGroupIcon from "@/components/ClipboardGroupIcon";
@@ -25,7 +24,6 @@ import Dropdown, { type DropdownMenuItems } from "@/components/Dropdown";
 import KeyHint from "@/components/KeyHint";
 import Tooltip from "@/components/Tooltip";
 import { TAURI_EVENT } from "@/constants/events";
-import { WINDOW_LABEL } from "@/constants/windows";
 import { useKeyboardEvent } from "@/hooks/useKeyboardEvent";
 import { useTauriListen } from "@/hooks/useTauriListen";
 import { clipboardViewState } from "@/stores/clipboardView";
@@ -400,14 +398,7 @@ const Group: FC = () => {
    * 打开偏好设置并定位到自定义分组管理项。
    */
   const openGroupPreference = async () => {
-    await showWindow(WINDOW_LABEL.PREFERENCE);
-    await emitTo(
-      WINDOW_LABEL.PREFERENCE,
-      TAURI_EVENT.PREFERENCE_HIGHLIGHT_SETTING,
-      {
-        settingId: CUSTOM_GROUPS_SETTING_ID,
-      },
-    );
+    await openPreferenceWithHighlight(CUSTOM_GROUPS_SETTING_ID);
   };
 
   /**

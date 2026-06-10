@@ -16,6 +16,7 @@ import {
   type StorageLocation,
   type StorageUsage,
   takePendingBackup,
+  takePendingPreferenceHighlight,
 } from "@/commands";
 import { TAURI_EVENT } from "@/constants/events";
 import { useTauriListen } from "@/hooks/useTauriListen";
@@ -267,11 +268,17 @@ const Preference: FC = () => {
     void initializeAppMetadata();
     void preloadSourceApps();
 
-    // 窗口空闲销毁后重建时，备份接收事件已无法 push 给刚挂载的前端，改为主动拉取暂存值。
-    const pending = await takePendingBackup();
+    // 窗口空闲销毁后重建时，备份接收 / 定位高亮事件已无法 push 给刚挂载的前端，改为主动拉取暂存值。
+    const pendingBackup = await takePendingBackup();
 
-    if (pending) {
-      handleBackupReceived(pending);
+    if (pendingBackup) {
+      handleBackupReceived(pendingBackup);
+    }
+
+    const pendingHighlight = await takePendingPreferenceHighlight();
+
+    if (pendingHighlight) {
+      highlightSetting(pendingHighlight);
     }
   });
 

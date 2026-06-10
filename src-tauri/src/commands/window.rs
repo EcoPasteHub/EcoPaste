@@ -28,6 +28,19 @@ pub async fn notify_window_ready(app: AppHandle, label: String) {
     window::lifecycle::on_ready(&app, &label);
 }
 
+/// 打开偏好窗口并定位到指定设置项。偏好已空闲销毁时也能正确重建后跳转，
+/// 替代前端 `show_window` 后直接 `emitTo`（重建异步会丢事件）。
+#[tauri::command]
+pub async fn open_preference_with_highlight(app: AppHandle, setting_id: String) -> Result<()> {
+    window::open_preference_with_highlight(&app, setting_id)
+}
+
+/// 取走偏好窗口重建前暂存的高亮目标设置项；无暂存时返回 `null`。
+#[tauri::command]
+pub async fn take_pending_preference_highlight() -> Option<String> {
+    window::take_pending_preference_highlight()
+}
+
 #[tauri::command]
 pub async fn show_taskbar_icon(app: AppHandle, visible: bool) -> Result<()> {
     window::show_taskbar_icon(&app, visible)

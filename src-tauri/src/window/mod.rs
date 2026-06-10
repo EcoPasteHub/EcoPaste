@@ -13,6 +13,7 @@ pub use macos::handle_reopen;
 pub use state::WindowStateStore;
 
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{LazyLock, Mutex};
 
 use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindow, WebviewWindowBuilder, Window};
 
@@ -22,6 +23,23 @@ use crate::settings::{SettingsStore, WindowPosition};
 pub const MAIN_WINDOW_LABEL: &str = "main";
 pub const PREFERENCE_WINDOW_LABEL: &str = "preference";
 pub const CLIPBOARD_PREVIEW_WINDOW_LABEL: &str = "clipboard-preview";
+
+/// 偏好页定位高亮事件。前端收到后切到目标设置项所在分类并滚动高亮。
+const PREFERENCE_HIGHLIGHT_EVENT: &str = "preference://highlight-setting";
+
+/// 偏好窗口重建前暂存的高亮目标设置项。
+///
+/// preference 改为空闲可销毁后，「打开偏好并定位到某设置项」这类一次性投递存在竞态：
+/// 窗口已销毁时重建是异步的，直接 `emit` 会丢给尚未挂载的前端（与 backup 接收同源）。
+/// 故窗口不存在时先存入此 slot，由前端重建后经 `take_pending_preference_highlight` 主动拉取。
+static PENDING_PREFERENCE_HIGHLIGHT: LazyLock<Mutex<Option<String>>> =
+    LazyLock::new(|| Mutex::new(None));
+
+#[derive(Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct PreferenceHighlightPayload {
+    setting_id: String,
+}
 
 /// 主窗口「固定」状态：true 时失焦不自动隐藏（点击窗外、切到其它 App 都不会隐藏），
 /// 由前端 Pin 按钮 / 快捷键切换；macOS resign_key 与 Windows 外部点击钩子都尊重这个开关。
@@ -259,4 +277,56 @@ pub fn build_preference_window(app_handle: &AppHandle) -> Result<()> {
         .map_err(|err| anyhow::anyhow!("build preference window: {err}"))?;
 
     Ok(())
+}
+
+/// 打开偏好窗口并定位到指定设置项。
+///
+/// 偏好窗口存活时直接 emit 高亮事件；已空闲销毁时先把目标存入 pending slot，再 show
+/// 触发重建——前端重建后经 [`take_pending_preference_highlight`] 主动拉取，规避
+/// 「重建异步、push 丢失」竞态。所有「打开偏好并跳转某设置项」的入口都应走这里，
+/// 不要在前端 `show_window` 后直接 `emitTo`。
+pub fn open_preference_with_highlight(app_handle: &AppHandle, setting_id: String) -> Result<()> {
+    let exists = app_handle
+        .get_webview_window(PREFERENCE_WINDOW_LABEL)
+        .is_some();
+
+    if !exists {
+        set_pending_preference_highlight(setting_id.clone());
+    }
+
+    show_window(app_handle, PREFERENCE_WINDOW_LABEL)?;
+
+    if exists {
+        app_handle
+            .emit_to(
+                PREFERENCE_WINDOW_LABEL,
+                PREFERENCE_HIGHLIGHT_EVENT,
+                PreferenceHighlightPayload { setting_id },
+            )
+            .map_err(|err| anyhow::anyhow!("emit preference highlight: {err}"))?;
+    }
+
+    Ok(())
+}
+
+/// 存入待定位的高亮目标，覆盖旧值（仅保留最近一次）。
+fn set_pending_preference_highlight(setting_id: String) {
+    let mut guard = PENDING_PREFERENCE_HIGHLIGHT
+        .lock()
+        .unwrap_or_else(|poisoned| {
+            log::error!("pending preference highlight mutex poisoned on set, recovering");
+            poisoned.into_inner()
+        });
+    *guard = Some(setting_id);
+}
+
+/// 取走并清空待定位的高亮目标，供偏好窗口重建后首屏拉取。
+pub fn take_pending_preference_highlight() -> Option<String> {
+    let mut guard = PENDING_PREFERENCE_HIGHLIGHT
+        .lock()
+        .unwrap_or_else(|poisoned| {
+            log::error!("pending preference highlight mutex poisoned on take, recovering");
+            poisoned.into_inner()
+        });
+    guard.take()
 }
