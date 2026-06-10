@@ -52,6 +52,7 @@
     "saveNote": "Save note",
     "saveSettings": "Save settings",
     "setAutostart": "Set launch at login",
+    "setMainWindowAutoHideSuspended": "Keep window visible",
     "setMainWindowPinned": "Pin window",
     "setTaskbarIcon": "Set taskbar icon",
     "suspendGlobalShortcuts": "Suspend global shortcuts",

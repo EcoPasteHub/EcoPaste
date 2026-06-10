@@ -102,6 +102,7 @@ pub fn run() {
             commands::show_taskbar_icon,
             commands::position_window,
             commands::set_main_window_pinned,
+            commands::set_main_window_auto_hide_suspended,
             commands::show_clipboard_preview,
             commands::close_clipboard_preview,
             commands::get_clipboard_preview_state,

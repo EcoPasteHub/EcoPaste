@@ -3,8 +3,10 @@ import { Button, Form, type GetRef, Input, Modal } from "antd";
 import type { FC, MouseEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { importClipboardGroupSvg, openExternalUrl } from "@/commands";
-import { SVG_ICON_HELP_URL } from "@/constants/urls";
+import {
+  importClipboardGroupSvg,
+  setMainWindowAutoHideSuspended,
+} from "@/commands";
 import type {
   ClipboardGroupIcon as ClipboardGroupIconValue,
   ClipboardGroupInput,
@@ -74,7 +76,6 @@ const ClipboardGroupModal: FC<ClipboardGroupModalProps> = (props) => {
   const [form] = Form.useForm<ClipboardGroupFormValues>();
 
   const [submitting, setSubmitting] = useState(false);
-  const [svgModalOpen, setSvgModalOpen] = useState(false);
   const nameInputRef = useRef<InputRef>(null);
   const icon = Form.useWatch("icon", form) ?? DEFAULT_GROUP_ICON;
 
@@ -125,31 +126,23 @@ const ClipboardGroupModal: FC<ClipboardGroupModalProps> = (props) => {
   };
 
   /**
-   * 打开自定义 SVG 管理弹框。
-   */
-  const openSvgModal = () => {
-    setSvgModalOpen(true);
-  };
-
-  /**
-   * 关闭自定义 SVG 管理弹框。
-   */
-  const closeSvgModal = () => {
-    setSvgModalOpen(false);
-  };
-
-  /**
    * 使用 Tauri dialog 选择 SVG 文件，并交给 Rust 读取和校验。
    */
   const importSvg = async () => {
-    const selected = await openFileDialog({
-      filters: [{ extensions: ["svg"], name: "SVG" }],
-      multiple: false,
-    });
-    if (typeof selected !== "string") return;
+    await setMainWindowAutoHideSuspended(true);
 
-    const svg = await importClipboardGroupSvg(selected);
-    form.setFieldValue("icon", svg);
+    try {
+      const selected = await openFileDialog({
+        filters: [{ extensions: ["svg"], name: "SVG" }],
+        multiple: false,
+      });
+      if (typeof selected !== "string") return;
+
+      const svg = await importClipboardGroupSvg(selected);
+      form.setFieldValue("icon", svg);
+    } finally {
+      await setMainWindowAutoHideSuspended(false);
+    }
   };
 
   /**
@@ -159,88 +152,79 @@ const ClipboardGroupModal: FC<ClipboardGroupModalProps> = (props) => {
     form.setFieldValue("icon", DEFAULT_GROUP_ICON);
   };
 
-  /**
-   * 打开 SVG 图标下载说明链接。
-   */
-  const openIconHelp = async () => {
-    await openExternalUrl(SVG_ICON_HELP_URL);
-  };
-
   const title =
     mode === "create" ? t("clipboard:groups.add") : t("clipboard:groups.edit");
   const customIconSelected = isCustomSvgIcon(icon);
 
   return (
-    <>
-      <Modal
-        afterOpenChange={handleAfterOpenChange}
-        confirmLoading={submitting}
-        destroyOnHidden
-        mask={{ closable: false }}
-        okText={t("common:actions.save")}
-        onCancel={onCancel}
-        onOk={handleSubmit}
-        open={open}
-        title={title}
+    <Modal
+      afterOpenChange={handleAfterOpenChange}
+      confirmLoading={submitting}
+      destroyOnHidden
+      mask={{ closable: false }}
+      okText={t("common:actions.save")}
+      onCancel={onCancel}
+      onOk={handleSubmit}
+      open={open}
+      title={title}
+    >
+      <Form<ClipboardGroupFormValues>
+        form={form}
+        initialValues={buildInitialValues(group)}
+        layout="vertical"
       >
-        <Form<ClipboardGroupFormValues>
-          form={form}
-          initialValues={buildInitialValues(group)}
-          layout="vertical"
+        <Form.Item
+          label={t("clipboard:groups.name")}
+          name="name"
+          rules={[{ required: true, whitespace: true }]}
         >
-          <Form.Item
-            label={t("clipboard:groups.name")}
-            name="name"
-            rules={[{ required: true, whitespace: true }]}
-          >
-            <Input
-              maxLength={32}
-              placeholder={t("clipboard:groups.namePlaceholder")}
-              ref={nameInputRef}
-            />
-          </Form.Item>
+          <Input
+            maxLength={32}
+            placeholder={t("clipboard:groups.namePlaceholder")}
+            ref={nameInputRef}
+          />
+        </Form.Item>
 
-          <Form.Item hidden name="icon">
-            <Input />
-          </Form.Item>
+        <Form.Item hidden name="icon">
+          <Input />
+        </Form.Item>
 
-          <Form.Item label={t("clipboard:groups.icon")}>
-            <div className="flex flex-col gap-3">
-              <div className="grid grid-cols-6 gap-2">
-                {PRESET_GROUP_ICONS.map((presetIcon) => {
-                  const selected = icon === presetIcon;
+        <Form.Item label={t("clipboard:groups.icon")}>
+          <div className="flex flex-col gap-3">
+            <div className="grid grid-cols-6 gap-2">
+              {PRESET_GROUP_ICONS.map((presetIcon) => {
+                const selected = icon === presetIcon;
 
-                  return (
-                    <button
-                      className={cn(
-                        "flex size-9 cursor-pointer items-center justify-center rounded-2 border border-ant-border bg-ant-container transition-colors",
-                        {
-                          "border-ant-primary bg-ant-primary": selected,
-                          "hover:bg-ant-fill-tertiary": !selected,
-                        },
-                      )}
-                      data-icon={presetIcon}
-                      key={presetIcon}
-                      onClick={handlePresetIconClick}
-                      type="button"
-                    >
-                      <ClipboardGroupIcon
-                        icon={presetIcon}
-                        selected={selected}
-                      />
-                    </button>
-                  );
-                })}
-              </div>
+                return (
+                  <button
+                    className={cn(
+                      "flex size-9 cursor-pointer items-center justify-center rounded-2 border border-ant-border bg-ant-container transition-colors",
+                      {
+                        "border-ant-primary bg-ant-primary": selected,
+                        "hover:bg-ant-fill-tertiary": !selected,
+                      },
+                    )}
+                    data-icon={presetIcon}
+                    key={presetIcon}
+                    onClick={handlePresetIconClick}
+                    type="button"
+                  >
+                    <ClipboardGroupIcon icon={presetIcon} selected={selected} />
+                  </button>
+                );
+              })}
+            </div>
 
+            <div className="flex gap-2">
               <Button
+                className="flex-1"
                 icon={
                   <ClipboardGroupIcon
                     icon={icon}
                     selected={customIconSelected}
                   />
                 }
-                onClick={openSvgModal}
+                onClick={importSvg}
               >
                 {t(
                   customIconSelected
@@ -248,51 +232,19 @@ const ClipboardGroupModal: FC<ClipboardGroupModalProps> = (props) => {
                     : "clipboard:groups.useCustomIcon",
                 )}
               </Button>
+
+              {customIconSelected ? (
+                <Button
+                  icon={<i className="i-lucide:trash-2 text-sm!" />}
+                  onClick={removeCustomIcon}
+                  title={t("clipboard:groups.removeIcon")}
+                />
+              ) : null}
             </div>
-          </Form.Item>
-        </Form>
-      </Modal>
-
-      <Modal
-        destroyOnHidden
-        footer={null}
-        mask={{ closable: false }}
-        onCancel={closeSvgModal}
-        open={svgModalOpen}
-        title={t("clipboard:groups.customIcon")}
-      >
-        <div className="flex flex-col gap-4">
-          <div className="flex min-h-24 items-center justify-center rounded-2 border border-ant-border bg-ant-fill-quaternary">
-            <ClipboardGroupIcon className="text-5!" icon={icon} />
           </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              icon={<i className="i-lucide:upload text-sm!" />}
-              onClick={importSvg}
-            >
-              {t("clipboard:groups.importSvg")}
-            </Button>
-
-            <Button
-              disabled={!customIconSelected}
-              icon={<i className="i-lucide:trash-2 text-sm!" />}
-              onClick={removeCustomIcon}
-            >
-              {t("clipboard:groups.removeIcon")}
-            </Button>
-          </div>
-
-          <Button
-            icon={<i className="i-lucide:external-link text-sm!" />}
-            onClick={openIconHelp}
-            type="link"
-          >
-            {t("clipboard:groups.iconHelp")}
-          </Button>
-        </div>
-      </Modal>
-    </>
+        </Form.Item>
+      </Form>
+    </Modal>
   );
 };
 

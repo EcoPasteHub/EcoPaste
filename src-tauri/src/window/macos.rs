@@ -59,7 +59,7 @@ pub fn setup_main(app_handle: &AppHandle) -> Result<()> {
 
     let resign_handle = app_handle.clone();
     handler.window_did_resign_key(move |_| {
-        if super::is_main_window_pinned() {
+        if !super::should_auto_hide_main_window() {
             return;
         }
 

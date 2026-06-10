@@ -25,13 +25,28 @@ pub const CLIPBOARD_PREVIEW_WINDOW_LABEL: &str = "clipboard-preview";
 /// 主窗口「固定」状态：true 时失焦不自动隐藏（点击窗外、切到其它 App 都不会隐藏），
 /// 由前端 Pin 按钮 / 快捷键切换；macOS resign_key 与 Windows 外部点击钩子都尊重这个开关。
 static MAIN_WINDOW_PINNED: AtomicBool = AtomicBool::new(false);
+/// 主窗口自动隐藏的临时暂停状态，用于系统文件选择等会短暂转移焦点的原生交互。
+static MAIN_WINDOW_AUTO_HIDE_SUSPENDED: AtomicBool = AtomicBool::new(false);
 
+/// 返回用户是否显式固定主窗口；复制后隐藏等路径仍需读取这个用户态开关。
 pub fn is_main_window_pinned() -> bool {
     MAIN_WINDOW_PINNED.load(Ordering::Relaxed)
 }
 
+/// 判断主窗口当前是否允许因失焦或外部点击自动隐藏。
+pub fn should_auto_hide_main_window() -> bool {
+    !MAIN_WINDOW_PINNED.load(Ordering::Relaxed)
+        && !MAIN_WINDOW_AUTO_HIDE_SUSPENDED.load(Ordering::Relaxed)
+}
+
+/// 设置用户控制的主窗口固定态。
 pub fn set_main_window_pinned(pinned: bool) {
     MAIN_WINDOW_PINNED.store(pinned, Ordering::Relaxed);
+}
+
+/// 临时暂停主窗口自动隐藏，不改变用户控制的固定态。
+pub fn set_main_window_auto_hide_suspended(suspended: bool) {
+    MAIN_WINDOW_AUTO_HIDE_SUSPENDED.store(suspended, Ordering::Relaxed);
 }
 
 /// 主窗口显隐变化事件。前端用以做默认聚焦 / 自动清空搜索等 UI 副作用。

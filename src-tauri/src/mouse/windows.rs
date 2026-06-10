@@ -89,7 +89,7 @@ unsafe extern "system" fn hook_proc(code: i32, wparam: WPARAM, lparam: LPARAM) -
         };
 
         if !menu_handled
-            && !window::is_main_window_pinned()
+            && window::should_auto_hide_main_window()
             && cursor_outside_main_window(app, cursor)
         {
             schedule_hide(app);

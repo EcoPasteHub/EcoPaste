@@ -868,6 +868,19 @@ export const setMainWindowPinned = (pinned: boolean) => {
 };
 
 /**
+ * 临时暂停主窗口自动隐藏，供系统文件选择等原生交互保持主窗口可见。
+ */
+export const setMainWindowAutoHideSuspended = (suspended: boolean) => {
+  return call<void>(
+    TAURI_COMMAND.SET_MAIN_WINDOW_AUTO_HIDE_SUSPENDED,
+    "commands:labels.setMainWindowAutoHideSuspended",
+    {
+      suspended,
+    },
+  );
+};
+
+/**
  * 打开或重定向剪贴板系统级预览 overlay。
  * `anchor` 是主窗口 webview client 坐标中的列表项矩形。
  */

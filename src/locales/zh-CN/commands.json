@@ -52,6 +52,7 @@
     "saveNote": "保存备注",
     "saveSettings": "保存设置",
     "setAutostart": "设置开机启动",
+    "setMainWindowAutoHideSuspended": "保持窗口显示",
     "setMainWindowPinned": "固定窗口",
     "setTaskbarIcon": "设置任务栏图标",
     "suspendGlobalShortcuts": "暂停全局快捷键",

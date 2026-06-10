@@ -40,6 +40,12 @@ pub async fn set_main_window_pinned(pinned: bool) {
     window::set_main_window_pinned(pinned);
 }
 
+/// 临时暂停主窗口自动隐藏，避免系统文件选择等原生交互触发失焦收窗。
+#[tauri::command]
+pub async fn set_main_window_auto_hide_suspended(suspended: bool) {
+    window::set_main_window_auto_hide_suspended(suspended);
+}
+
 #[tauri::command]
 pub async fn show_clipboard_preview(
     app: AppHandle,
