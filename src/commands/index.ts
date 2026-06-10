@@ -597,6 +597,19 @@ export const deleteClipboardGroup = async (id: string) => {
 };
 
 /**
+ * 将单条剪贴板记录移动到指定自定义分组。
+ */
+export const updateClipboardItemGroup = async (id: string, groupId: string) => {
+  await call<void>(
+    TAURI_COMMAND.UPDATE_CLIPBOARD_ITEM_GROUP,
+    "commands:labels.moveToGroup",
+    { groupId, id },
+  );
+
+  message.success(i18n.t("commands:messages.itemMovedToGroup"));
+};
+
+/**
  * 读取 Tauri dialog 选中的 SVG 文件内容。
  */
 export const importClipboardGroupSvg = (path: string) => {
@@ -948,6 +961,7 @@ export const playCopySound = () => {
 export const popupClipboardItemMenu = (
   itemId: string,
   availableActions: ClipboardAction[],
+  currentGroupId: string | null,
   isFavorite: boolean,
   isPinned: boolean,
   hasNote: boolean,
@@ -956,11 +970,14 @@ export const popupClipboardItemMenu = (
     TAURI_COMMAND.POPUP_CLIPBOARD_ITEM_MENU,
     "commands:labels.openMenu",
     {
-      availableActions,
-      hasNote,
-      isFavorite,
-      isPinned,
-      itemId,
+      input: {
+        availableActions,
+        currentGroupId,
+        hasNote,
+        isFavorite,
+        isPinned,
+        itemId,
+      },
     },
   );
 };

@@ -94,6 +94,7 @@ pub fn run() {
             commands::delete_clipboard_item,
             commands::clear_clipboard_items,
             commands::update_clipboard_item_note,
+            commands::update_clipboard_item_group,
             commands::open_clipboard_item_link,
             commands::reveal_clipboard_item,
             commands::show_window,

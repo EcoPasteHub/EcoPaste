@@ -1301,6 +1301,25 @@ pub async fn update_clipboard_item_note(
     })
 }
 
+/// 更新条目所属分组；分组 id 来自右键菜单的实时分组列表。
+#[tauri::command]
+pub async fn update_clipboard_item_group(
+    db: State<'_, DatabaseState>,
+    id: String,
+    group_id: String,
+) -> Result<()> {
+    let pool = db.pool().await;
+    let exists = crate::db::groups::list_groups(&pool)
+        .await?
+        .iter()
+        .any(|group| group.id == group_id);
+    if !exists {
+        return Err(AppError::Clipboard("分组不存在".to_owned()));
+    }
+
+    crate::db::items::update_item_group(&pool, &id, Some(&group_id)).await
+}
+
 /// 打开条目 URL：按 `id` 取完整 `content`，trim 后用系统默认浏览器/邮件 client 打开。
 /// `mailto = true` 时自动补 `mailto:` 前缀，供右键菜单「发送邮件」复用。
 /// 仅适用于 text 类条目；files 类调用方应改用 `reveal_clipboard_item`。

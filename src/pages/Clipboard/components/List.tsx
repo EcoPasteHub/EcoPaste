@@ -22,6 +22,7 @@ import {
   revealClipboardItem,
   toggleClipboardItemFavorite,
   toggleClipboardItemPinned,
+  updateClipboardItemGroup,
   writeToClipboard,
 } from "@/commands";
 import { TAURI_EVENT } from "@/constants/events";
@@ -61,6 +62,12 @@ interface ClipboardUpdatedPayload {
   id?: string;
   imported?: boolean;
   kind?: ClipboardKind;
+}
+
+interface ClipboardMenuActionPayload {
+  action: ClipboardAction;
+  groupId?: string;
+  itemId: string;
 }
 
 /**
@@ -353,6 +360,25 @@ const List: FC = () => {
   };
 
   /**
+   * 右键菜单移动分组后同步本地镜像；当前分组视图下移出其它分组时直接移除。
+   */
+  const handleMoveToGroup = async (
+    item: ClipboardItem,
+    nextGroupId: string,
+  ) => {
+    if (previewSession?.itemId === item.id) closePreview("moveToGroup");
+
+    await updateClipboardItemGroup(item.id, nextGroupId);
+
+    if (groupId !== null && groupId !== nextGroupId) {
+      removeItem(item.id);
+      return;
+    }
+
+    patchItem(item.id, { groupId: nextGroupId });
+  };
+
+  /**
    * 读取当前选中项。无显式选中时，列表第一项即键盘 active item。
    */
   function getActiveItem() {
@@ -468,10 +494,10 @@ const List: FC = () => {
    * 抓一次闭包导致的状态过期（同款做法见 `handleClipboardUpdated`）。
    */
   const handleMenuActionRef = useRef<
-    (payload: { action: ClipboardAction; itemId: string }) => void
+    (payload: ClipboardMenuActionPayload) => void
   >(() => {});
   handleMenuActionRef.current = (payload) => {
-    const { action, itemId } = payload;
+    const { action, groupId: targetGroupId, itemId } = payload;
     const target = items.find((entry) => entry.id === itemId);
 
     if (!target) return;
@@ -509,6 +535,11 @@ const List: FC = () => {
       case "togglePinned":
         handleTogglePinned(target.id);
         return;
+      case "moveToGroup":
+        if (!targetGroupId) return;
+
+        void handleMoveToGroup(target, targetGroupId);
+        return;
       case "editNote":
         handleOpenNote(target, "editNote");
         return;
@@ -521,9 +552,7 @@ const List: FC = () => {
   };
 
   const handleMenuActionEvent = (event: { payload: unknown }) => {
-    handleMenuActionRef.current(
-      event.payload as { action: ClipboardAction; itemId: string },
-    );
+    handleMenuActionRef.current(event.payload as ClipboardMenuActionPayload);
   };
 
   useTauriListen(TAURI_EVENT.CLIPBOARD_MENU_ACTION, handleMenuActionEvent);

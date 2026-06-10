@@ -101,6 +101,7 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
     await popupClipboardItemMenu(
       item.id,
       [...actions],
+      item.groupId,
       isFavorite,
       isPinned,
       Boolean(note),

@@ -30,6 +30,7 @@ export type ClipboardAction =
   | "revealInExplorer"
   | "toggleFavorite"
   | "togglePinned"
+  | "moveToGroup"
   | "editNote"
   | "delete";
 

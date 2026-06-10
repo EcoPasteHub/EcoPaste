@@ -12,9 +12,10 @@
 //! 维护，本模块只负责「弹菜单 + 点击后 emit `clipboard://menu-action` 给前端」。
 
 use serde::{Deserialize, Serialize};
-use tauri::AppHandle;
+use tauri::{AppHandle, State};
 
 use crate::core::Result;
+use crate::db::DatabaseState;
 use crate::settings::Language;
 
 /// 前端订阅事件：携带 `{action, itemId}`，由 `List.tsx` 派发到现有处理逻辑。
@@ -35,6 +36,7 @@ pub enum ClipboardMenuAction {
     RevealInExplorer,
     ToggleFavorite,
     TogglePinned,
+    MoveToGroup,
     EditNote,
     Delete,
 }
@@ -73,6 +75,7 @@ impl ClipboardMenuAction {
                     Key::PinItem
                 }
             }
+            Self::MoveToGroup => Key::MoveToGroup,
             Self::EditNote => {
                 if has_note {
                     Key::EditNote
@@ -97,6 +100,7 @@ impl ClipboardMenuAction {
             }
             Self::ToggleFavorite => Some("CmdOrCtrl+D"),
             Self::TogglePinned => Some("CmdOrCtrl+T"),
+            Self::MoveToGroup => None,
             Self::EditNote => Some("CmdOrCtrl+M"),
             Self::Delete => Some("CmdOrCtrl+Backspace"),
         }
@@ -120,10 +124,43 @@ pub(super) const ACTION_GROUPS: &[&[ClipboardMenuAction]] = &[
     &[
         ClipboardMenuAction::ToggleFavorite,
         ClipboardMenuAction::TogglePinned,
+        ClipboardMenuAction::MoveToGroup,
         ClipboardMenuAction::EditNote,
     ],
     &[ClipboardMenuAction::Delete],
 ];
+
+/// 右键菜单里的可选自定义分组；由命令入口从数据库实时读取。
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub(super) struct ClipboardMenuGroup {
+    pub id: String,
+    pub name: String,
+}
+
+/// 前端弹出右键菜单命令的入参。
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PopupClipboardItemMenuInput {
+    pub item_id: String,
+    pub available_actions: Vec<ClipboardMenuAction>,
+    pub current_group_id: Option<String>,
+    pub is_favorite: bool,
+    pub is_pinned: bool,
+    pub has_note: bool,
+}
+
+/// 构建右键菜单所需的完整上下文，包含命令参数与实时读取的分组列表。
+#[derive(Debug, Clone)]
+pub(super) struct ClipboardItemMenuRequest {
+    pub item_id: String,
+    pub available_actions: Vec<ClipboardMenuAction>,
+    pub groups: Vec<ClipboardMenuGroup>,
+    pub current_group_id: Option<String>,
+    pub is_favorite: bool,
+    pub is_pinned: bool,
+    pub has_note: bool,
+}
 
 /// 菜单点击后 emit 给前端的 payload。Windows 自定义菜单窗也复用这个结构发回
 /// 主窗，前端 `List.tsx` 只需订阅一次。
@@ -133,6 +170,7 @@ pub(super) const ACTION_GROUPS: &[&[ClipboardMenuAction]] = &[
 pub(super) struct MenuActionPayload {
     pub action: ClipboardMenuAction,
     pub item_id: String,
+    pub group_id: Option<String>,
 }
 
 // ============================================================================
@@ -145,7 +183,9 @@ mod native {
     use std::sync::Mutex;
 
     use anyhow::Context;
-    use tauri::menu::{IsMenuItem, Menu, MenuBuilder, MenuItem, PredefinedMenuItem};
+    use tauri::menu::{
+        CheckMenuItem, IsMenuItem, Menu, MenuBuilder, MenuItem, PredefinedMenuItem, Submenu,
+    };
     use tauri::{AppHandle, Emitter, Manager, Wry};
 
     use crate::core::{AppError, Result};
@@ -153,11 +193,13 @@ mod native {
     use crate::window::MAIN_WINDOW_LABEL;
 
     use super::{
-        ClipboardMenuAction, MenuActionPayload, ACTION_GROUPS, CLIPBOARD_MENU_ACTION_EVENT,
+        ClipboardItemMenuRequest, ClipboardMenuAction, ClipboardMenuGroup, MenuActionPayload,
+        ACTION_GROUPS, CLIPBOARD_MENU_ACTION_EVENT,
     };
 
     /// 菜单项 id 前缀；`on_menu_event` 按前缀分流到本模块，避免与托盘菜单 id 冲突。
     const MENU_PREFIX: &str = "cim::";
+    const MOVE_GROUP_PREFIX: &str = "cim::moveToGroup::";
 
     impl ClipboardMenuAction {
         fn id(self) -> &'static str {
@@ -172,6 +214,7 @@ mod native {
                 Self::RevealInExplorer => "cim::revealInExplorer",
                 Self::ToggleFavorite => "cim::toggleFavorite",
                 Self::TogglePinned => "cim::togglePinned",
+                Self::MoveToGroup => "cim::moveToGroup",
                 Self::EditNote => "cim::editNote",
                 Self::Delete => "cim::delete",
             }
@@ -189,11 +232,24 @@ mod native {
                 ClipboardMenuAction::RevealInExplorer,
                 ClipboardMenuAction::ToggleFavorite,
                 ClipboardMenuAction::TogglePinned,
+                ClipboardMenuAction::MoveToGroup,
                 ClipboardMenuAction::EditNote,
                 ClipboardMenuAction::Delete,
             ];
+            if id.starts_with(MOVE_GROUP_PREFIX) {
+                return Some(ClipboardMenuAction::MoveToGroup);
+            }
+
             ALL.iter().copied().find(|a| a.id() == id)
         }
+    }
+
+    fn move_group_id(group_id: &str) -> String {
+        format!("{MOVE_GROUP_PREFIX}{group_id}")
+    }
+
+    fn group_id_from_menu_id(menu_id: &str) -> Option<String> {
+        menu_id.strip_prefix(MOVE_GROUP_PREFIX).map(str::to_owned)
     }
 
     /// 当前活跃的菜单 + 正在弹菜单的目标项 id；菜单持有到下次 popup 前替换，
@@ -211,18 +267,11 @@ mod native {
     /// 命令本身**立刻返回**：菜单的构建与弹出都被丢到主线程上异步执行。
     /// muda 的 `MenuItem::with_id` 与 `popup_menu` 都必须主线程，且
     /// `popup_menu` 在菜单关闭前不返回（模态阻塞）。
-    pub(super) fn popup(
-        app: &AppHandle,
-        item_id: String,
-        available_actions: Vec<ClipboardMenuAction>,
-        is_favorite: bool,
-        is_pinned: bool,
-        has_note: bool,
-    ) -> Result<()> {
+    pub(super) fn popup(app: &AppHandle, request: ClipboardItemMenuRequest) -> Result<()> {
         let state = app.try_state::<ClipboardItemMenuState>().ok_or_else(|| {
             AppError::Other(anyhow::anyhow!("ClipboardItemMenuState not managed"))
         })?;
-        *state.target_item_id.lock().unwrap() = Some(item_id);
+        *state.target_item_id.lock().unwrap() = Some(request.item_id.clone());
 
         let window = app
             .get_webview_window(MAIN_WINDOW_LABEL)
@@ -233,14 +282,7 @@ mod native {
         let lang = crate::i18n::current_language(app);
         window
             .run_on_main_thread(move || {
-                let menu = match build_menu(
-                    &app_for_main,
-                    &available_actions,
-                    lang,
-                    is_favorite,
-                    is_pinned,
-                    has_note,
-                ) {
+                let menu = match build_menu(&app_for_main, &request, lang) {
                     Ok(m) => m,
                     Err(err) => {
                         log::warn!("build clipboard item menu failed: {err}");
@@ -271,16 +313,18 @@ mod native {
 
     fn build_menu(
         app: &AppHandle,
-        actions: &[ClipboardMenuAction],
+        request: &ClipboardItemMenuRequest,
         lang: Language,
-        is_favorite: bool,
-        is_pinned: bool,
-        has_note: bool,
     ) -> Result<Menu<Wry>> {
-        let active: HashSet<ClipboardMenuAction> = actions.iter().copied().collect();
+        let mut active: HashSet<ClipboardMenuAction> =
+            request.available_actions.iter().copied().collect();
+        if !request.groups.is_empty() {
+            active.insert(ClipboardMenuAction::MoveToGroup);
+        }
 
         enum Entry {
             Item(MenuItem<Wry>),
+            Submenu(Submenu<Wry>),
             Sep(PredefinedMenuItem<Wry>),
         }
         let mut entries: Vec<Entry> = Vec::new();
@@ -303,10 +347,31 @@ mod native {
             first_group = false;
 
             for action in group_items {
+                if action == ClipboardMenuAction::MoveToGroup {
+                    let submenu = build_group_submenu(
+                        app,
+                        &request.groups,
+                        request.current_group_id.as_deref(),
+                        action.label(
+                            lang,
+                            request.is_favorite,
+                            request.is_pinned,
+                            request.has_note,
+                        ),
+                    )?;
+                    entries.push(Entry::Submenu(submenu));
+                    continue;
+                }
+
                 let item = MenuItem::with_id(
                     app,
                     action.id(),
-                    action.label(lang, is_favorite, is_pinned, has_note),
+                    action.label(
+                        lang,
+                        request.is_favorite,
+                        request.is_pinned,
+                        request.has_note,
+                    ),
                     true,
                     action.accelerator(),
                 )
@@ -319,6 +384,7 @@ mod native {
             .iter()
             .map(|e| match e {
                 Entry::Item(i) => i as &dyn IsMenuItem<Wry>,
+                Entry::Submenu(s) => s as &dyn IsMenuItem<Wry>,
                 Entry::Sep(s) => s as &dyn IsMenuItem<Wry>,
             })
             .collect();
@@ -330,6 +396,38 @@ mod native {
         builder
             .build()
             .context("build clipboard item menu")
+            .map_err(Into::into)
+    }
+
+    fn build_group_submenu(
+        app: &AppHandle,
+        groups: &[ClipboardMenuGroup],
+        current_group_id: Option<&str>,
+        label: &str,
+    ) -> Result<Submenu<Wry>> {
+        let items = groups
+            .iter()
+            .map(|group| {
+                let checked = current_group_id == Some(group.id.as_str());
+
+                CheckMenuItem::with_id(
+                    app,
+                    move_group_id(&group.id),
+                    group.name.as_str(),
+                    true,
+                    checked,
+                    None::<&str>,
+                )
+                .with_context(|| format!("build move group menu item {}", group.id))
+            })
+            .collect::<anyhow::Result<Vec<_>>>()?;
+        let refs: Vec<&dyn IsMenuItem<Wry>> = items
+            .iter()
+            .map(|item| item as &dyn IsMenuItem<Wry>)
+            .collect();
+
+        Submenu::with_items(app, label, true, &refs)
+            .context("build move group submenu")
             .map_err(Into::into)
     }
 
@@ -353,7 +451,11 @@ mod native {
             return;
         };
 
-        let payload = MenuActionPayload { action, item_id };
+        let payload = MenuActionPayload {
+            action,
+            item_id,
+            group_id: group_id_from_menu_id(menu_id),
+        };
         let Some(main) = app.get_webview_window(MAIN_WINDOW_LABEL) else {
             log::warn!("main window missing on clipboard menu dispatch");
             return;
@@ -381,34 +483,37 @@ pub fn init(app: &AppHandle) {
 #[tauri::command]
 pub async fn popup_clipboard_item_menu(
     app: AppHandle,
-    item_id: String,
-    available_actions: Vec<ClipboardMenuAction>,
-    is_favorite: bool,
-    is_pinned: bool,
-    has_note: bool,
+    db: State<'_, DatabaseState>,
+    input: PopupClipboardItemMenuInput,
 ) -> Result<()> {
+    let pool = db.pool().await;
+    let groups = crate::db::groups::list_groups(&pool)
+        .await?
+        .into_iter()
+        .filter(|group| !group.is_hidden)
+        .map(|group| ClipboardMenuGroup {
+            id: group.id,
+            name: group.name,
+        })
+        .collect::<Vec<_>>();
+    let request = ClipboardItemMenuRequest {
+        item_id: input.item_id,
+        available_actions: input.available_actions,
+        groups,
+        current_group_id: input.current_group_id,
+        is_favorite: input.is_favorite,
+        is_pinned: input.is_pinned,
+        has_note: input.has_note,
+    };
+
     #[cfg(target_os = "macos")]
     {
-        native::popup(
-            &app,
-            item_id,
-            available_actions,
-            is_favorite,
-            is_pinned,
-            has_note,
-        )
+        native::popup(&app, request)
     }
 
     #[cfg(target_os = "windows")]
     {
-        super::context_window::show_for_clipboard_item(
-            &app,
-            item_id,
-            &available_actions,
-            is_favorite,
-            is_pinned,
-            has_note,
-        )
+        super::context_window::show_for_clipboard_item(&app, &request)
     }
 }
 

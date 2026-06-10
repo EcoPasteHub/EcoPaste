@@ -1,7 +1,7 @@
 import { emitTo } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { useEventListener } from "ahooks";
-import { type FC, Fragment, useState } from "react";
+import { type FC, Fragment, type MouseEvent, useState } from "react";
 import { TAURI_EVENT } from "@/constants/events";
 import { WINDOW_LABEL } from "@/constants/windows";
 import { useTauriListen } from "@/hooks/useTauriListen";
@@ -22,6 +22,11 @@ interface ShowPayload {
       action: ClipboardAction;
       label: string;
       accelerator: string | null;
+      groups?: Array<{
+        checked: boolean;
+        id: string;
+        label: string;
+      }>;
     }>
   >;
 }
@@ -48,13 +53,18 @@ const ContextMenu: FC = () => {
     void getCurrentWebviewWindow().hide();
   });
 
-  const handlePick = async (action: ClipboardAction) => {
+  const handlePick = async (action: ClipboardAction, groupId?: string) => {
     if (!payload) return;
 
-    await emitTo(WINDOW_LABEL.MAIN, TAURI_EVENT.CLIPBOARD_MENU_ACTION, {
-      action,
-      itemId: payload.itemId,
-    });
+    const eventPayload = groupId
+      ? { action, groupId, itemId: payload.itemId }
+      : { action, itemId: payload.itemId };
+
+    await emitTo(
+      WINDOW_LABEL.MAIN,
+      TAURI_EVENT.CLIPBOARD_MENU_ACTION,
+      eventPayload,
+    );
 
     await getCurrentWebviewWindow().hide();
   };
@@ -62,7 +72,7 @@ const ContextMenu: FC = () => {
   if (!payload) return null;
 
   return (
-    <div className="w-full select-none rounded-2 bg-ant-elevated p-1 shadow-lg">
+    <div className="w-55 select-none rounded-2 bg-ant-elevated p-1 shadow-lg">
       {payload.groups.map((group, gi) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: 分组顺序由后端写死，索引稳定。
         <Fragment key={gi}>
@@ -71,6 +81,7 @@ const ContextMenu: FC = () => {
             <ContextMenuItem
               accelerator={item.accelerator}
               action={item.action}
+              groups={item.groups ?? []}
               isDanger={item.action === "delete"}
               key={item.action}
               label={item.label}
@@ -87,36 +98,79 @@ interface ContextMenuItemProps {
   action: ClipboardAction;
   label: string;
   accelerator: string | null;
+  groups: Array<{
+    checked: boolean;
+    id: string;
+    label: string;
+  }>;
   isDanger: boolean;
-  onPick: (action: ClipboardAction) => void;
+  onPick: (action: ClipboardAction, groupId?: string) => void;
 }
 
 const ContextMenuItem: FC<ContextMenuItemProps> = (props) => {
-  const { action, label, accelerator, isDanger, onPick } = props;
+  const { action, label, accelerator, groups, isDanger, onPick } = props;
+  const hasGroups = groups.length > 0;
 
   const handleClick = () => {
+    if (hasGroups) return;
+
     onPick(action);
   };
 
+  const handleGroupClick = (event: MouseEvent<HTMLButtonElement>) => {
+    const groupId = event.currentTarget.dataset.groupId;
+    if (!groupId) return;
+
+    onPick(action, groupId);
+  };
+
   return (
-    <button
-      className={cn(
-        "flex h-8 w-full cursor-pointer items-center justify-between rounded-1.5 border-0 bg-transparent px-3 text-sm transition-colors",
-        {
-          "hover:(text-ant-light-solid bg-ant-error) text-ant-error": isDanger,
-          "hover:bg-ant-text-hover": !isDanger,
-        },
+    <div className="group relative">
+      <button
+        className={cn(
+          "flex h-8 w-full cursor-pointer items-center justify-between rounded-1.5 border-0 bg-transparent px-3 text-sm transition-colors",
+          {
+            "hover:(text-ant-light-solid bg-ant-error) text-ant-error":
+              isDanger,
+            "hover:bg-ant-text-hover": !isDanger,
+          },
+        )}
+        onClick={handleClick}
+        type="button"
+      >
+        <span className="truncate">{label}</span>
+        {hasGroups ? (
+          <span className="i-lucide:chevron-right ml-3 size-4 text-ant-description" />
+        ) : (
+          accelerator && (
+            <span className="ml-3 whitespace-nowrap text-ant-description text-xs">
+              {formatShortcutDisplay(accelerator)}
+            </span>
+          )
+        )}
+      </button>
+
+      {hasGroups && (
+        <div className="invisible absolute top-0 left-full w-55 rounded-2 bg-ant-elevated p-1 opacity-0 shadow-lg transition-opacity group-hover:visible group-hover:opacity-100">
+          {groups.map((group) => (
+            <button
+              className="flex h-8 w-full cursor-pointer items-center gap-2 rounded-1.5 border-0 bg-transparent px-3 text-left text-sm transition-colors hover:bg-ant-text-hover"
+              data-group-id={group.id}
+              key={group.id}
+              onClick={handleGroupClick}
+              type="button"
+            >
+              <span
+                className={cn("size-4 text-ant-primary", {
+                  "i-lucide:check": group.checked,
+                })}
+              />
+              <span className="truncate">{group.label}</span>
+            </button>
+          ))}
+        </div>
       )}
-      onClick={handleClick}
-      type="button"
-    >
-      <span className="truncate">{label}</span>
-      {accelerator && (
-        <span className="ml-3 whitespace-nowrap text-ant-description text-xs">
-          {formatShortcutDisplay(accelerator)}
-        </span>
-      )}
-    </button>
+    </div>
   );
 };
 

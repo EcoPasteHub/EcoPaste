@@ -18,7 +18,9 @@ use tauri::{
 use crate::core::{AppError, Result};
 use crate::settings::Language;
 
-use super::clipboard_item::{ClipboardMenuAction, ACTION_GROUPS};
+use super::clipboard_item::{
+    ClipboardItemMenuRequest, ClipboardMenuAction, ClipboardMenuGroup, ACTION_GROUPS,
+};
 
 pub const CONTEXT_MENU_WINDOW_LABEL: &str = "context-menu";
 
@@ -28,9 +30,18 @@ const CONTEXT_MENU_SHOW_EVENT: &str = "context-menu://show";
 // 几何常量（logical px）：跟前端 `ContextMenu` 的 CSS 必须一致，否则 hit-test
 // 与裁切会错位。前端那侧用同名 token 写在 `ContextMenu/index.tsx` 头部。
 const MENU_WIDTH: u32 = 220;
+const SUBMENU_WIDTH: u32 = 220;
 const ITEM_HEIGHT: u32 = 32;
 const SEPARATOR_HEIGHT: u32 = 9;
 const MENU_PADDING_Y: u32 = 8; // 上下各 4
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct GroupMenuItemPayload {
+    checked: bool,
+    id: String,
+    label: String,
+}
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -38,6 +49,8 @@ struct MenuItemPayload {
     action: ClipboardMenuAction,
     label: String,
     accelerator: Option<String>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    groups: Vec<GroupMenuItemPayload>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -87,16 +100,17 @@ fn build_window(app: &AppHandle) -> Result<()> {
 
 /// 在当前光标处弹出列表项右键菜单。算好 size + position → `set_size`
 /// → `set_position` → emit 数据 → `show`。
-pub fn show_for_clipboard_item(
-    app: &AppHandle,
-    item_id: String,
-    available_actions: &[ClipboardMenuAction],
-    is_favorite: bool,
-    is_pinned: bool,
-    has_note: bool,
-) -> Result<()> {
+pub fn show_for_clipboard_item(app: &AppHandle, request: &ClipboardItemMenuRequest) -> Result<()> {
     let lang = crate::i18n::current_language(app);
-    let groups = build_groups(available_actions, lang, is_favorite, is_pinned, has_note);
+    let groups = build_groups(
+        &request.available_actions,
+        &request.groups,
+        request.current_group_id.as_deref(),
+        lang,
+        request.is_favorite,
+        request.is_pinned,
+        request.has_note,
+    );
     if groups.is_empty() {
         return Ok(());
     }
@@ -116,9 +130,9 @@ pub fn show_for_clipboard_item(
         .map_err(|err| AppError::Other(anyhow::anyhow!("context-menu set_position: {err}")))?;
 
     let payload = ContextMenuShowPayload {
-        item_id,
-        is_favorite,
-        is_pinned,
+        item_id: request.item_id.clone(),
+        is_favorite: request.is_favorite,
+        is_pinned: request.is_pinned,
         groups,
     };
     window
@@ -133,21 +147,29 @@ pub fn show_for_clipboard_item(
 
 fn build_groups(
     available: &[ClipboardMenuAction],
+    clipboard_groups: &[ClipboardMenuGroup],
+    current_group_id: Option<&str>,
     lang: Language,
     is_favorite: bool,
     is_pinned: bool,
     has_note: bool,
 ) -> Vec<Vec<MenuItemPayload>> {
+    let mut active = available.to_vec();
+    if !clipboard_groups.is_empty() {
+        active.push(ClipboardMenuAction::MoveToGroup);
+    }
+
     ACTION_GROUPS
         .iter()
         .map(|group| {
             group
                 .iter()
-                .filter(|a| available.contains(a))
+                .filter(|a| active.contains(a))
                 .map(|a| MenuItemPayload {
                     action: *a,
                     label: a.label(lang, is_favorite, is_pinned, has_note).into(),
                     accelerator: a.accelerator().map(String::from),
+                    groups: build_group_items(*a, clipboard_groups, current_group_id),
                 })
                 .collect::<Vec<_>>()
         })
@@ -155,11 +177,42 @@ fn build_groups(
         .collect()
 }
 
+fn build_group_items(
+    action: ClipboardMenuAction,
+    clipboard_groups: &[ClipboardMenuGroup],
+    current_group_id: Option<&str>,
+) -> Vec<GroupMenuItemPayload> {
+    if action != ClipboardMenuAction::MoveToGroup {
+        return Vec::new();
+    }
+
+    clipboard_groups
+        .iter()
+        .map(|group| GroupMenuItemPayload {
+            checked: current_group_id == Some(group.id.as_str()),
+            id: group.id.clone(),
+            label: group.name.clone(),
+        })
+        .collect()
+}
+
 fn compute_size(groups: &[Vec<MenuItemPayload>]) -> (u32, u32) {
     let item_count: u32 = groups.iter().map(|g| g.len() as u32).sum();
     let separator_count = groups.len().saturating_sub(1) as u32;
-    let h = MENU_PADDING_Y + item_count * ITEM_HEIGHT + separator_count * SEPARATOR_HEIGHT;
-    (MENU_WIDTH, h)
+    let root_height =
+        MENU_PADDING_Y + item_count * ITEM_HEIGHT + separator_count * SEPARATOR_HEIGHT;
+    let submenu_count = groups
+        .iter()
+        .flat_map(|group| group.iter())
+        .find(|item| !item.groups.is_empty())
+        .map(|item| item.groups.len() as u32)
+        .unwrap_or(0);
+    if submenu_count == 0 {
+        return (MENU_WIDTH, root_height);
+    }
+
+    let submenu_height = MENU_PADDING_Y + submenu_count * ITEM_HEIGHT;
+    (MENU_WIDTH + SUBMENU_WIDTH, root_height.max(submenu_height))
 }
 
 /// 取光标所在显示器，把菜单矩形 clamp 在显示器内（鼠标处尽量为菜单左上角，

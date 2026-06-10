@@ -235,6 +235,17 @@ pub async fn update_item_note(pool: &SqlitePool, id: &str, note: Option<&str>) -
     Ok(())
 }
 
+/// 更新条目所属分组；不刷新 `updated_at`，避免污染最近使用排序。
+pub async fn update_item_group(pool: &SqlitePool, id: &str, group_id: Option<&str>) -> Result<()> {
+    sqlx::query("UPDATE clipboard_items SET group_id = ? WHERE id = ?")
+        .bind(group_id)
+        .bind(id)
+        .execute(pool)
+        .await
+        .context("failed to update clipboard item group")?;
+    Ok(())
+}
+
 /// `use_count + 1` 并刷新 `updated_at`（命中去重时复用）。
 pub async fn increment_item_use_count(pool: &SqlitePool, id: &str) -> Result<()> {
     sqlx::query(
@@ -769,6 +780,31 @@ mod tests {
             ..Default::default()
         };
         assert_eq!(ids(&query_items(&pool, &q).await.unwrap()), ["grouped"]);
+    }
+
+    #[tokio::test]
+    async fn update_item_group_does_not_refresh_updated_at() {
+        let pool = memory_pool().await;
+        let group = ClipboardGroup {
+            id: "g1".to_owned(),
+            name: "G1".to_owned(),
+            icon: "i-lets-icons:folder".to_owned(),
+            is_hidden: false,
+            sort_order: 0,
+            created_at: DateTime::from_timestamp(1_700_000_000, 0).unwrap(),
+            updated_at: DateTime::from_timestamp(1_700_000_000, 0).unwrap(),
+        };
+        insert_group(&pool, &group).await.unwrap();
+
+        let item = sample_item("item");
+        let original_updated_at = item.updated_at;
+        insert_item(&pool, &item).await.unwrap();
+
+        update_item_group(&pool, "item", Some("g1")).await.unwrap();
+
+        let moved = find_item_by_id(&pool, "item").await.unwrap().unwrap();
+        assert_eq!(moved.group_id, Some("g1".to_owned()));
+        assert_eq!(moved.updated_at, original_updated_at);
     }
 
     #[tokio::test]
