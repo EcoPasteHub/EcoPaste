@@ -7,7 +7,7 @@
 use tauri::AppHandle;
 
 use super::super::{
-    build_preference_window, CLIPBOARD_PREVIEW_WINDOW_LABEL, MAIN_WINDOW_LABEL,
+    build_preference_window, preview, CLIPBOARD_PREVIEW_WINDOW_LABEL, MAIN_WINDOW_LABEL,
     PREFERENCE_WINDOW_LABEL,
 };
 use crate::core::Result;
@@ -18,7 +18,7 @@ use crate::menu::context_window::{CONTEXT_MENU_WINDOW_LABEL, CONTEXT_SUBMENU_WIN
 /// 窗口保留 / 销毁策略。
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RetainPolicy {
-    /// 永久保留实例，隐藏后不销毁（main / preview / context-menu）。
+    /// 永久保留实例，隐藏后不销毁（main / context-menu）。
     Permanent,
     /// 隐藏空闲超过 [`IDLE_DESTROY_SECS`](super::IDLE_DESTROY_SECS) 后销毁 WebView，打开时重建。
     DestroyWhenIdle,
@@ -33,8 +33,8 @@ pub struct WindowDescriptor {
     pub emits_lifecycle: bool,
     /// 保留 / 销毁策略。
     pub retain_policy: RetainPolicy,
-    /// 按需重建函数。`DestroyWhenIdle` 窗口被销毁后，`show_window` 用它重新建窗；
-    /// `Permanent` 窗口由 Tauri 配置预创建，无需重建，为 `None`。
+    /// 按需重建函数。`DestroyWhenIdle` 窗口被销毁后由各自打开入口用它重新建窗；
+    /// `Permanent` 窗口无需重建，为 `None`。
     pub build: Option<fn(&AppHandle) -> Result<()>>,
 }
 
@@ -55,8 +55,8 @@ static DESCRIPTORS: &[WindowDescriptor] = &[
     WindowDescriptor {
         label: CLIPBOARD_PREVIEW_WINDOW_LABEL,
         emits_lifecycle: true,
-        retain_policy: RetainPolicy::Permanent,
-        build: None,
+        retain_policy: RetainPolicy::DestroyWhenIdle,
+        build: Some(preview::build_clipboard_preview_window),
     },
     #[cfg(target_os = "windows")]
     WindowDescriptor {

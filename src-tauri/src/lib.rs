@@ -188,12 +188,6 @@ pub fn run() {
                 log::error!("setup main NSPanel failed: {err:?}");
             }
 
-            // 预览窗口由 Tauri 配置预创建；macOS 启动时先转 NSPanel，避免首次预览时动态建窗。
-            #[cfg(target_os = "macos")]
-            if let Err(err) = window::preview::setup_preview_window(&handle) {
-                log::error!("setup preview NSPanel failed: {err:?}");
-            }
-
             menu::clipboard_item::init(&handle);
 
             #[cfg(target_os = "windows")]
@@ -205,9 +199,11 @@ pub fn run() {
             #[cfg(target_os = "windows")]
             if let Some(path) = backup::backup_path_from_args(&std::env::args().collect::<Vec<_>>())
             {
-                if let Err(err) =
-                    backup::emit_received_backup(&handle, path, backup::BackupReceiveSource::OpenFile)
-                {
+                if let Err(err) = backup::emit_received_backup(
+                    &handle,
+                    path,
+                    backup::BackupReceiveSource::OpenFile,
+                ) {
                     log::error!("receive backup from launch args failed: {err:?}");
                 }
             }

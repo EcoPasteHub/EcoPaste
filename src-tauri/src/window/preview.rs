@@ -1,8 +1,9 @@
 //! 系统级剪贴板预览窗口骨架。
 //!
-//! 预览窗口是透明的 full-screen overlay：Tauri 配置负责预创建隐藏窗口，
-//! Rust 负责复用窗口、收集坐标上下文并广播，
-//! 前端在该窗口内渲染预览内容与连接曲线。
+//! 预览窗口是透明的 full-screen overlay：Rust 负责按需建窗、复用窗口、
+//! 收集坐标上下文并广播，前端在该窗口内渲染预览内容与连接曲线。
+//! 窗口接入生命周期管理（`DestroyWhenIdle`）：隐藏空闲后销毁 WebView 释放内存，
+//! 仅在预览请求到达时按需建窗，不随主窗口显示预热。
 
 #![allow(clippy::unused_unit)]
 
@@ -13,12 +14,13 @@ use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 use tauri::{
-    AppHandle, Emitter, Manager, PhysicalPosition, PhysicalRect, PhysicalSize, WebviewWindow,
+    AppHandle, Emitter, Manager, PhysicalPosition, PhysicalRect, PhysicalSize, WebviewUrl,
+    WebviewWindow, WebviewWindowBuilder,
 };
 
 use crate::core::Result;
 
-use super::{get_window, CLIPBOARD_PREVIEW_WINDOW_LABEL, MAIN_WINDOW_LABEL};
+use super::{get_window, lifecycle, CLIPBOARD_PREVIEW_WINDOW_LABEL, MAIN_WINDOW_LABEL};
 
 #[cfg(target_os = "macos")]
 use tauri_nspanel::{tauri_panel, ManagerExt, PanelLevel, WebviewWindowExt};
@@ -43,6 +45,10 @@ static PREVIEW_SESSION_ID: AtomicU64 = AtomicU64::new(0);
 static PREVIEW_SUPPRESSED: AtomicBool = AtomicBool::new(false);
 static PREVIEW_STATE: LazyLock<Mutex<Option<ClipboardPreviewState>>> =
     LazyLock::new(|| Mutex::new(None));
+/// 串行化建窗：多个预览请求（如连续 hover）可能并发走到「检查不存在 → 建窗」，
+/// 都过了存在性检查会触发重复 label 建窗报错。建窗都来自命令/后台线程、主线程从不持锁，
+/// 不会与 builder 内部的主线程派发互锁。
+static PREVIEW_BUILD_LOCK: Mutex<()> = Mutex::new(());
 
 #[cfg(target_os = "macos")]
 tauri_panel! {
@@ -210,7 +216,8 @@ pub fn suppress_for_main_hide(app: &AppHandle) {
     }
 }
 
-/// 主窗口重新显示后允许新的预览请求进入。
+/// 主窗口重新显示后允许新的预览请求进入。预览窗口不随主窗口预创建，
+/// 由首次 [`show_clipboard_preview`] 经 `ensure_preview_window` 按需建窗。
 pub fn resume_after_main_show() {
     PREVIEW_SUPPRESSED.store(false, Ordering::SeqCst);
 }
@@ -225,11 +232,47 @@ pub fn get_clipboard_preview_state() -> Result<Option<ClipboardPreviewState>> {
     Ok(guard.clone())
 }
 
-/// 初始化配置预创建的预览窗口；macOS 下提前转为不会抢焦点的 NSPanel。
-#[cfg(target_os = "macos")]
-pub fn setup_preview_window(app: &AppHandle) -> Result<()> {
-    let window = ensure_preview_window(app)?;
-    ensure_macos_preview_panel(app, &window)
+/// 按需重建预览窗口。预览窗口不再由 Tauri 配置预创建（改为空闲销毁 + 按需重建），
+/// 所有选项必须在此用 builder 完整复刻原 `tauri.conf.json` 声明，否则重建后行为漂移。
+///
+/// 建窗后保持 `visible: false`：定位与显示由预览 show 流程统一处理；
+/// macOS 的 NSPanel 转换由 [`ensure_preview_window`] 在每次取窗时兜底执行。
+pub fn build_clipboard_preview_window(app: &AppHandle) -> Result<()> {
+    let _guard = PREVIEW_BUILD_LOCK.lock().unwrap_or_else(|poisoned| {
+        log::error!("preview build mutex poisoned, recovering");
+        poisoned.into_inner()
+    });
+
+    if app
+        .get_webview_window(CLIPBOARD_PREVIEW_WINDOW_LABEL)
+        .is_some()
+    {
+        return Ok(());
+    }
+
+    WebviewWindowBuilder::new(
+        app,
+        CLIPBOARD_PREVIEW_WINDOW_LABEL,
+        WebviewUrl::App("index.html/#/preview".into()),
+    )
+    .title("EcoPaste Preview")
+    .inner_size(1.0, 1.0)
+    .resizable(false)
+    .maximizable(false)
+    .minimizable(false)
+    .always_on_top(true)
+    .decorations(false)
+    .shadow(false)
+    .transparent(true)
+    .skip_taskbar(true)
+    .focused(false)
+    .focusable(false)
+    .disable_drag_drop_handler()
+    .visible(false)
+    .build()
+    .map_err(|err| anyhow::anyhow!("build clipboard preview window: {err}"))?;
+
+    Ok(())
 }
 
 fn set_preview_state(state: Option<ClipboardPreviewState>) {
@@ -294,18 +337,22 @@ fn validate_anchor(anchor: &PreviewAnchorRect) -> Result<()> {
     Ok(())
 }
 
+/// 取预览窗口；已被空闲销毁（或尚未创建）时按需重建。
+/// macOS 下每次都兜底确保 NSPanel 转换完成，覆盖重建后的全新窗口。
 fn ensure_preview_window(app: &AppHandle) -> Result<WebviewWindow> {
-    if let Some(window) = app.get_webview_window(CLIPBOARD_PREVIEW_WINDOW_LABEL) {
-        #[cfg(target_os = "macos")]
-        ensure_macos_preview_panel(app, &window)?;
-
-        return Ok(window);
+    if app
+        .get_webview_window(CLIPBOARD_PREVIEW_WINDOW_LABEL)
+        .is_none()
+    {
+        build_clipboard_preview_window(app)?;
     }
 
-    Err(
-        anyhow::anyhow!("configured preview window not found: {CLIPBOARD_PREVIEW_WINDOW_LABEL}")
-            .into(),
-    )
+    let window = get_window(app, CLIPBOARD_PREVIEW_WINDOW_LABEL)?;
+
+    #[cfg(target_os = "macos")]
+    ensure_macos_preview_panel(app, &window)?;
+
+    Ok(window)
 }
 
 fn raise_preview_window(app: &AppHandle, window: &WebviewWindow) -> Result<()> {
@@ -339,6 +386,7 @@ fn prepare_preview_window_for_show(
     raise_preview_window(app, window)
 }
 
+/// 平台 show 收口点；成功后推进生命周期到 `Visible`，使未触发的空闲销毁计时器过期。
 fn show_preview_window(
     app: &AppHandle,
     window: &WebviewWindow,
@@ -347,34 +395,37 @@ fn show_preview_window(
     #[cfg(target_os = "macos")]
     {
         let _ = window;
-        show_macos_preview_panel(app, work_area)
+        show_macos_preview_panel(app, work_area)?;
     }
 
     #[cfg(target_os = "windows")]
     {
         let _ = work_area;
-        let _ = app;
         window.show().map_err(|e| anyhow::anyhow!(e))?;
         raise_windows_preview_window(window, true)?;
-
-        Ok(())
     }
+
+    lifecycle::on_shown(app, CLIPBOARD_PREVIEW_WINDOW_LABEL);
+
+    Ok(())
 }
 
+/// 平台 hide 收口点；成功后推进生命周期到 `HiddenWarm`，启动空闲销毁计时。
+/// 对已隐藏窗口的重复 hide（如主窗口隐藏时的压制路径）也会走到这里，
+/// 由生命周期管理器对重复进入 `HiddenWarm` 去重计时。
 fn hide_preview_window(app: &AppHandle, window: &WebviewWindow) -> Result<()> {
     #[cfg(target_os = "macos")]
     {
         let _ = window;
-        hide_macos_preview_panel(app)
+        hide_macos_preview_panel(app)?;
     }
 
     #[cfg(target_os = "windows")]
-    {
-        let _ = app;
-        window.hide().map_err(|e| anyhow::anyhow!(e))?;
+    window.hide().map_err(|e| anyhow::anyhow!(e))?;
 
-        Ok(())
-    }
+    lifecycle::on_hidden(app, CLIPBOARD_PREVIEW_WINDOW_LABEL, "preview-hide");
+
+    Ok(())
 }
 
 #[cfg(target_os = "macos")]

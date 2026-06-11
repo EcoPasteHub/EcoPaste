@@ -4,10 +4,10 @@
 //! 路径收口到这里。在 `window://visibility` 之外广播单一 `window://lifecycle` 事件
 //! （带 `phase` 字段），前端据此镜像每个窗口的生命周期阶段。
 //!
-//! 销毁策略：`DestroyWhenIdle` 窗口（当前为 preference）隐藏后启动空闲计时器，
-//! 超过 [`IDLE_DESTROY_SECS`] 仍隐藏则销毁 WebView 释放资源；再次打开时由
-//! `show_window` 经 descriptor 的 `build` 重建。`generation` 用于让「显示又隐藏」
-//! 期间的过期计时器自动失效。
+//! 销毁策略：`DestroyWhenIdle` 窗口（当前为 preference 与 clipboard-preview）隐藏后
+//! 启动空闲计时器，超过 [`IDLE_DESTROY_SECS`] 仍隐藏则销毁 WebView 释放资源；再次打开时
+//! 经 descriptor 的 `build` 重建（preference 走 `show_window`，preview 走预览模块按需 ensure
+//! 建窗）。`generation` 用于让「显示又隐藏」期间的过期计时器自动失效。
 
 mod descriptor;
 
@@ -112,8 +112,12 @@ impl WindowLifecycleManager {
             "window lifecycle: {label} {previous:?} -> {phase:?} (gen {generation}, reason {reason})"
         );
 
-        // 进入 HiddenWarm 的 DestroyWhenIdle 窗口：启动空闲销毁计时器。
+        // 首次进入 HiddenWarm 的 DestroyWhenIdle 窗口：启动空闲销毁计时器。
+        // 重复进入 HiddenWarm（如主窗口隐藏时对已收起的预览窗口再次 hide）不再补计时器：
+        // 每代次只需首次进入时启动的那一条，到点按代次校验决定销毁或放弃，
+        // 重复启动只会堆积休眠线程。
         if matches!(phase, LifecyclePhase::HiddenWarm)
+            && previous != LifecyclePhase::HiddenWarm
             && descriptor.retain_policy == RetainPolicy::DestroyWhenIdle
         {
             schedule_idle_destroy(app, label, generation);
@@ -217,9 +221,26 @@ fn try_destroy_idle(app: &AppHandle, label: &str, generation: u64) {
         log::warn!("save window state before idle destroy failed for {label}: {err}");
     }
 
+    // nspanel 的 to_panel 用 object_setClass 把 NSWindow 改成动态生成的 panel 子类，再额外
+    // retain 一份存进注册表。若带着这个子类让 tao 析构，dealloc 会在 Rust 落地处抛出无法跨
+    // FFI 捕获的 ObjC 异常直接 abort（“Rust cannot catch foreign exceptions”）。to_window 是
+    // to_panel 的逆操作：还原原始类与 delegate、从注册表移除句柄，使随后的 destroy 与普通窗口
+    // （如 preference）走完全相同的释放路径——destroy 与 nspanel 示例用的 close 共用 tao 的
+    // close_async 收尾，只少发一个会被 hide-on-close 拦截的 CloseRequested。
+    // 非 panel 窗口 get_webview_panel 返回 Err，此处跳过即为 no-op。当前已在主线程，满足 AppKit 要求。
+    #[cfg(target_os = "macos")]
+    {
+        use tauri_nspanel::ManagerExt;
+
+        if let Ok(panel) = app.get_webview_panel(label) {
+            let _ = panel.to_window();
+        }
+    }
+
     if let Some(window) = app.get_webview_window(label) {
         // 用 `destroy` 而非 `close`：close 会触发 `CloseRequested` 被 hide-on-close 拦截，
-        // destroy 直接释放 WebView，绕过拦截。
+        // destroy 直接释放 WebView，绕过拦截。macOS 上 panel 窗口须先经上方 to_window 还原类，
+        // 否则带着 swizzle 子类析构会 abort。
         if let Err(err) = window.destroy() {
             log::error!("idle destroy window failed for {label}: {err}");
             return;

@@ -29,25 +29,6 @@
         "url": "index.html/#/",
         "visible": false,
         "width": 360
-      },
-      {
-        "alwaysOnTop": true,
-        "decorations": false,
-        "dragDropEnabled": false,
-        "focus": false,
-        "focusable": false,
-        "height": 1,
-        "label": "clipboard-preview",
-        "maximizable": false,
-        "minimizable": false,
-        "resizable": false,
-        "shadow": false,
-        "skipTaskbar": true,
-        "title": "EcoPaste Preview",
-        "transparent": true,
-        "url": "index.html/#/preview",
-        "visible": false,
-        "width": 1
       }
     ]
   },
