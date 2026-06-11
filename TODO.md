@@ -22,11 +22,3 @@
 ## P2 · 数据安全与运行时架构
 
 - [Clipboard Recycling 回收站](./TODO-Clipboard-Recycling.md)
-- [内容访问密码保护](./TODO-Item-Password-Protection.md)
-- [Windows Portable 版本](./TODO-Windows-Portable.md)
-
-## P3 · 同步与 AI/CLI 扩展
-
-- [局域网同步](./TODO-LAN-Sync.md)
-- [WebDAV 同步](./TODO-WebDAV-Sync.md)
-- [CLI / AI Agent Roadmap](./TODO_CLI_AI.md)
