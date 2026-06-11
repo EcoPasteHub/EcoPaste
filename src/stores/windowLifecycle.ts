@@ -9,6 +9,7 @@ import { log } from "@/utils/log";
  * 窗口生命周期阶段，与 Rust `LifecyclePhase` 一一对应（camelCase）。
  */
 export type LifecyclePhase =
+  | "notCreated"
   | "created"
   | "ready"
   | "visible"

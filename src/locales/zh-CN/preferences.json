@@ -322,7 +322,7 @@
         },
         "windowLifecycle": {
           "columns": {
-            "generation": "代次",
+            "generation": "打开次数",
             "label": "窗口",
             "locks": "保护",
             "phase": "阶段",
@@ -330,9 +330,17 @@
           },
           "controlLabel": "查看",
           "description": "查看窗口生命周期、销毁保护和轻量模式状态，用于排查隐藏窗口资源占用。",
+          "durationSeparator": " ",
+          "durationUnits": {
+            "days": "{{count}} 天",
+            "hours": "{{count}} 小时",
+            "minutes": "{{count}} 分钟",
+            "seconds": "{{count}} 秒"
+          },
           "empty": "暂无窗口生命周期数据",
-          "hiddenFor": "已隐藏 {{seconds}} 秒",
-          "lastActive": "最近活跃 {{seconds}} 秒前",
+          "generationHint": "窗口每次打开到可见状态时加 1，用来让隐藏和销毁定时器跳过过期检查。",
+          "hiddenFor": "已隐藏 {{duration}}",
+          "lastActive": "最近活跃 {{duration}}前",
           "modalTitle": "窗口生命周期",
           "phases": {
             "created": "已创建",
@@ -340,6 +348,7 @@
             "destroyPending": "等待销毁",
             "dormant": "休眠",
             "hiddenWarm": "隐藏待机",
+            "notCreated": "未创建",
             "ready": "已就绪",
             "visible": "可见"
           },

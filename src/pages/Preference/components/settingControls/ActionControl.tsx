@@ -43,6 +43,13 @@ const RESET_PREFERENCES_SETTING_ID = "diagnostics.resetPreferences";
 const WINDOW_LIFECYCLE_SETTING_ID = "diagnostics.windowLifecycle";
 const WINDOW_LIFECYCLE_I18N_PREFIX =
   "schema.settings.diagnostics.windowLifecycle";
+const WINDOW_LIFECYCLE_DURATION_PART_LIMIT = 2;
+const WINDOW_LIFECYCLE_DURATION_UNITS = [
+  { key: "days", seconds: 86_400 },
+  { key: "hours", seconds: 3_600 },
+  { key: "minutes", seconds: 60 },
+  { key: "seconds", seconds: 1 },
+] as const;
 const WINDOW_LIFECYCLE_PHASE_LABEL_KEYS: Record<WindowLifecyclePhase, string> =
   {
     created: `${WINDOW_LIFECYCLE_I18N_PREFIX}.phases.created`,
@@ -50,6 +57,7 @@ const WINDOW_LIFECYCLE_PHASE_LABEL_KEYS: Record<WindowLifecyclePhase, string> =
     destroyPending: `${WINDOW_LIFECYCLE_I18N_PREFIX}.phases.destroyPending`,
     dormant: `${WINDOW_LIFECYCLE_I18N_PREFIX}.phases.dormant`,
     hiddenWarm: `${WINDOW_LIFECYCLE_I18N_PREFIX}.phases.hiddenWarm`,
+    notCreated: `${WINDOW_LIFECYCLE_I18N_PREFIX}.phases.notCreated`,
     ready: `${WINDOW_LIFECYCLE_I18N_PREFIX}.phases.ready`,
     visible: `${WINDOW_LIFECYCLE_I18N_PREFIX}.phases.visible`,
   };
@@ -429,6 +437,7 @@ const ActionControl: FC<ActionControlProps> = (props) => {
 
       {setting.id === WINDOW_LIFECYCLE_SETTING_ID ? (
         <Modal
+          className="w-184!"
           footer={null}
           onCancel={closeLifecycleModal}
           open={lifecycleModalOpen}
@@ -477,10 +486,22 @@ const WindowLifecycleSnapshotTable: FC<WindowLifecycleSnapshotTableProps> = (
             <th className="w-25 py-2 pr-2 text-left font-medium">
               {t("schema.settings.diagnostics.windowLifecycle.columns.phase")}
             </th>
-            <th className="w-14 py-2 pr-2 text-left font-medium">
-              {t(
-                "schema.settings.diagnostics.windowLifecycle.columns.generation",
-              )}
+            <th className="w-24 whitespace-nowrap py-2 pr-2 text-left font-medium">
+              <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                {t(
+                  "schema.settings.diagnostics.windowLifecycle.columns.generation",
+                )}
+                <Tooltip
+                  title={t(
+                    "schema.settings.diagnostics.windowLifecycle.generationHint",
+                  )}
+                >
+                  <i
+                    aria-hidden="true"
+                    className="i-lucide:circle-help shrink-0 text-ant-tertiary"
+                  />
+                </Tooltip>
+              </span>
             </th>
             <th className="w-16 py-2 pr-2 text-left font-medium">
               {t("schema.settings.diagnostics.windowLifecycle.columns.locks")}
@@ -545,6 +566,39 @@ function formatLifecyclePhase(
 }
 
 /**
+ * 把毫秒时长压缩为最多两个单位的本地化短文本。
+ */
+function formatLifecycleDuration(
+  t: TFunction<"preferences">,
+  durationMs: number,
+) {
+  let remainingSeconds = Math.max(0, Math.round(durationMs / 1000));
+  const parts: string[] = [];
+
+  for (const unit of WINDOW_LIFECYCLE_DURATION_UNITS) {
+    const value = Math.floor(remainingSeconds / unit.seconds);
+    if (value === 0 && parts.length > 0) {
+      continue;
+    }
+
+    if (value === 0 && unit.key !== "seconds") {
+      continue;
+    }
+
+    parts.push(
+      t(`${WINDOW_LIFECYCLE_I18N_PREFIX}.durationUnits.${unit.key}`, {
+        count: value,
+      }),
+    );
+    remainingSeconds -= value * unit.seconds;
+
+    if (parts.length >= WINDOW_LIFECYCLE_DURATION_PART_LIMIT) break;
+  }
+
+  return parts.join(t(`${WINDOW_LIFECYCLE_I18N_PREFIX}.durationSeparator`));
+}
+
+/**
  * 格式化生命周期调试时间信息。
  */
 function formatLifecycleTiming(
@@ -553,11 +607,11 @@ function formatLifecycleTiming(
 ) {
   if (row.hiddenForMs !== null) {
     return t("schema.settings.diagnostics.windowLifecycle.hiddenFor", {
-      seconds: Math.round(row.hiddenForMs / 1000),
+      duration: formatLifecycleDuration(t, row.hiddenForMs),
     });
   }
 
   return t("schema.settings.diagnostics.windowLifecycle.lastActive", {
-    seconds: Math.round(row.lastActiveAgoMs / 1000),
+    duration: formatLifecycleDuration(t, row.lastActiveAgoMs),
   });
 }

@@ -41,6 +41,8 @@ const MAX_KEEPALIVE_TIMEOUT_MS: u64 = 10 * 60 * 1000;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum LifecyclePhase {
+    /// 窗口仅存在于 descriptor 声明中，尚未创建 WebView 实例。
+    NotCreated,
     /// 窗口已登记但尚未收到任何转换：作为首次转换日志的「来源」哨兵阶段。
     Created,
     /// 前端完成基础初始化，可安全 show / emit payload。
@@ -411,14 +413,29 @@ pub fn snapshot(app: &AppHandle) -> Vec<LifecycleSnapshot> {
         descriptors()
             .iter()
             .map(|descriptor| {
-                let state = states
-                    .entry(descriptor.label.to_owned())
-                    .or_insert_with(RuntimeState::new);
-                let keepalive_count = state.purge_expired_leases();
-                let visible = app
-                    .get_webview_window(descriptor.label)
+                let window = app.get_webview_window(descriptor.label);
+                let visible = window
+                    .as_ref()
                     .and_then(|window| window.is_visible().ok())
                     .unwrap_or(false);
+                let Some(state) = states.get_mut(descriptor.label) else {
+                    return LifecycleSnapshot {
+                        dirty_owner_count: 0,
+                        generation: 0,
+                        hidden_for_ms: None,
+                        keepalive_count: 0,
+                        label: descriptor.label.to_owned(),
+                        last_active_ago_ms: 0,
+                        phase: if window.is_some() {
+                            LifecyclePhase::Created
+                        } else {
+                            LifecyclePhase::NotCreated
+                        },
+                        retain_policy: descriptor.retain_policy.as_str(),
+                        visible,
+                    };
+                };
+                let keepalive_count = state.purge_expired_leases();
 
                 LifecycleSnapshot {
                     dirty_owner_count: state.dirty_owners.len(),
@@ -431,13 +448,22 @@ pub fn snapshot(app: &AppHandle) -> Vec<LifecycleSnapshot> {
                     last_active_ago_ms: now
                         .saturating_duration_since(state.last_active_at)
                         .as_millis(),
-                    phase: state.phase,
+                    phase: snapshot_phase(state, window.is_some()),
                     retain_policy: descriptor.retain_policy.as_str(),
                     visible,
                 }
             })
             .collect()
     })
+}
+
+/// 解析诊断快照展示阶段；`Created` 仅在真实 WebView 存在时表示已创建。
+fn snapshot_phase(state: &RuntimeState, has_window: bool) -> LifecyclePhase {
+    if !has_window && state.phase == LifecyclePhase::Created && state.generation == 0 {
+        return LifecyclePhase::NotCreated;
+    }
+
+    state.phase
 }
 
 /// 取窗口的按需重建函数；非 `DestroyWhenIdle` 或未登记窗口返回 `None`。
@@ -712,5 +738,22 @@ mod tests {
 
         assert!(!state.destroy_blocked());
         assert!(state.keepalive_leases.is_empty());
+    }
+
+    #[test]
+    fn created_state_without_webview_snapshots_as_not_created() {
+        let state = RuntimeState::new();
+
+        assert_eq!(snapshot_phase(&state, false), LifecyclePhase::NotCreated);
+        assert_eq!(snapshot_phase(&state, true), LifecyclePhase::Created);
+    }
+
+    #[test]
+    fn destroyed_state_without_webview_stays_destroyed() {
+        let mut state = RuntimeState::new();
+
+        state.phase = LifecyclePhase::Destroyed;
+
+        assert_eq!(snapshot_phase(&state, false), LifecyclePhase::Destroyed);
     }
 }

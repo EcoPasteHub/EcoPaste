@@ -221,6 +221,7 @@ export interface BackupReceivedPayload {
 }
 
 export type WindowLifecyclePhase =
+  | "notCreated"
   | "created"
   | "ready"
   | "visible"

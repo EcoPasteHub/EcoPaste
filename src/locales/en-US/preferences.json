@@ -322,7 +322,7 @@
         },
         "windowLifecycle": {
           "columns": {
-            "generation": "Gen",
+            "generation": "Open count",
             "label": "Window",
             "locks": "Locks",
             "phase": "Phase",
@@ -330,9 +330,17 @@
           },
           "controlLabel": "View",
           "description": "Inspect window lifecycle, destroy protection, and lightweight-mode state for troubleshooting hidden-window resource usage.",
+          "durationSeparator": " ",
+          "durationUnits": {
+            "days": "{{count}}d",
+            "hours": "{{count}}h",
+            "minutes": "{{count}}m",
+            "seconds": "{{count}}s"
+          },
           "empty": "No window lifecycle data yet",
-          "hiddenFor": "Hidden for {{seconds}}s",
-          "lastActive": "Active {{seconds}}s ago",
+          "generationHint": "Increases each time the window opens into a visible state, so hide and destroy timers can skip stale checks.",
+          "hiddenFor": "Hidden for {{duration}}",
+          "lastActive": "Active {{duration}} ago",
           "modalTitle": "Window Lifecycle",
           "phases": {
             "created": "Created",
@@ -340,6 +348,7 @@
             "destroyPending": "Destroy pending",
             "dormant": "Dormant",
             "hiddenWarm": "Hidden warm",
+            "notCreated": "Not created",
             "ready": "Ready",
             "visible": "Visible"
           },
