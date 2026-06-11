@@ -16,7 +16,6 @@
 
 - [列表多选与批量删除](./TODO-Multi-Select-Delete.md)
 - [贴边隐藏](./TODO-Edge-Hide.md)
-- [Windows 接管 Win+V](./TODO-Windows-Win-V.md)
 - [首次启动引导](./TODO-Onboarding.md)
 - [每应用规则](./TODO-Per-App-Rules.md)
 

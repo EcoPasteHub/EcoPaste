@@ -14,6 +14,9 @@ use crate::core::{AppError, Result};
 use crate::settings::{SettingsStore, Shortcuts};
 use crate::window::{self, MAIN_WINDOW_LABEL, PREFERENCE_WINDOW_LABEL};
 
+#[cfg(target_os = "windows")]
+mod win_v;
+
 pub const CONFLICT_EVENT: &str = "shortcut://conflict";
 const RESUME_DEBOUNCE: Duration = Duration::from_millis(160);
 
@@ -128,6 +131,9 @@ pub fn apply(app: &AppHandle, shortcuts: &Shortcuts) -> Result<()> {
         ("open_clipboard", &shortcuts.open_clipboard),
         ("open_preference", &shortcuts.open_preference),
     ];
+
+    #[cfg(target_os = "windows")]
+    win_v::set_enabled(app, shortcuts.win_v);
 
     let mut active = Vec::new();
     for (action, binding) in desired {

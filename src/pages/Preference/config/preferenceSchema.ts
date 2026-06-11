@@ -1,5 +1,6 @@
 import { CAPTURE_KIND_OPTIONS } from "@/constants/captureKinds";
 import { ITEM_ACTION_OPTIONS } from "@/constants/itemActions";
+import { isWin } from "@/utils/is";
 import type { PreferenceTab } from "../types/preferences";
 
 const CLICK_ACTION_OPTIONS = [
@@ -667,6 +668,25 @@ export const preferenceTabs: PreferenceTab[] = [
               return settings.shortcuts.openPreference;
             },
           },
+          ...(isWin
+            ? [
+                {
+                  control: { type: "switch" } as const,
+                  id: "shortcuts.winV",
+                  keywords: [
+                    "win",
+                    "winv",
+                    "windows",
+                    "clipboard history",
+                    "super",
+                  ],
+                  path: ["shortcuts", "winV"] as const,
+                  value: (settings) => {
+                    return settings.shortcuts.winV;
+                  },
+                },
+              ]
+            : []),
         ],
       },
     ],

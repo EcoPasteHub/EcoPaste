@@ -76,6 +76,7 @@ export interface Shortcuts {
   openPreference: string;
   pastePlain: string;
   quickPaste: QuickPaste;
+  winV: boolean;
 }
 
 export interface Content {

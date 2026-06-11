@@ -97,6 +97,8 @@ pub struct Shortcuts {
     /// 主窗内局部：粘贴时强制走纯文本（不在 OS 级注册）。
     pub paste_plain: String,
     pub quick_paste: QuickPaste,
+    /// 仅 Windows：用 Win+V 唤起主窗口，替代系统剪贴板历史面板。默认关闭。
+    pub win_v: bool,
 }
 
 impl Default for Shortcuts {
@@ -106,6 +108,7 @@ impl Default for Shortcuts {
             open_preference: "Alt+X".into(),
             paste_plain: String::new(),
             quick_paste: QuickPaste::default(),
+            win_v: false,
         }
     }
 }
