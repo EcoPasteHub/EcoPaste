@@ -199,6 +199,19 @@ pub fn run() {
             #[cfg(target_os = "windows")]
             menu::context_window::init(&handle);
 
+            // Windows 冷启动文件关联：第一个实例从自身启动参数里取 `.ecopastebak` 路径。
+            // 已运行时双击由 `single_instance` 回调处理；此处覆盖应用未启动时双击的冷启动场景，
+            // 否则路径会被丢弃——程序被唤起但偏好窗口不弹。macOS 走 `RunEvent::Opened`，不经此路。
+            #[cfg(target_os = "windows")]
+            if let Some(path) = backup::backup_path_from_args(&std::env::args().collect::<Vec<_>>())
+            {
+                if let Err(err) =
+                    backup::emit_received_backup(&handle, path, backup::BackupReceiveSource::OpenFile)
+                {
+                    log::error!("receive backup from launch args failed: {err:?}");
+                }
+            }
+
             Ok(())
         })
         .on_window_event(|window, event| {

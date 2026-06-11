@@ -5,6 +5,7 @@
 use std::fs::{self, File};
 use std::io::{BufReader, BufWriter, Cursor, Read, Seek, Write};
 use std::path::{Path, PathBuf};
+#[cfg(target_os = "macos")]
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{LazyLock, Mutex};
 
@@ -61,9 +62,11 @@ static PENDING_BACKUP: LazyLock<Mutex<Option<BackupReceivedPayload>>> =
 /// panic，而该回调跨 `extern "C"` 边界不可 unwind，直接 abort（应用闪退）。
 /// 故未就绪时只把文件路径压入 [`PENDING_OPEN_FILES`]，待 `Ready` 后由
 /// [`mark_app_ready`] 统一补投。
+#[cfg(target_os = "macos")]
 static APP_READY: AtomicBool = AtomicBool::new(false);
 
 /// 就绪前到达的待处理打开文件路径队列（仅冷启动文件关联场景会用到）。
+#[cfg(target_os = "macos")]
 static PENDING_OPEN_FILES: LazyLock<Mutex<Vec<PathBuf>>> = LazyLock::new(|| Mutex::new(Vec::new()));
 
 #[derive(Debug, Clone, Deserialize)]
@@ -339,6 +342,7 @@ pub fn take_pending_backup() -> Option<BackupReceivedPayload> {
 ///
 /// 故未就绪时只把路径压入 [`PENDING_OPEN_FILES`]，待 [`mark_app_ready`] 在 `RunEvent::Ready`
 /// 时排空处理；已就绪则立即处理。调用方仍应额外用 `catch_unwind` 兜底，杜绝任何残余 panic 越界。
+#[cfg(target_os = "macos")]
 pub fn handle_open_file(app: &AppHandle, path: PathBuf, source: BackupReceiveSource) {
     if !is_backup_path(&path) {
         return;
@@ -362,6 +366,7 @@ pub fn handle_open_file(app: &AppHandle, path: PathBuf, source: BackupReceiveSou
 ///
 /// 在 `RunEvent::Ready` 调用——此时事件循环已运行、所有 state 已 `manage`，建窗安全。
 /// 排空前先置位 [`APP_READY`]，使其后到达的 `Opened` 直接走立即处理路径。
+#[cfg(target_os = "macos")]
 pub fn mark_app_ready(app: &AppHandle) {
     APP_READY.store(true, Ordering::Release);
 
