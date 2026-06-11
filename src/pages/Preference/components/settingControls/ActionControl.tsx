@@ -19,8 +19,10 @@ import {
   releaseWindowKeepalive,
   resetStorageLocation,
   type StorageLocation,
+  type WindowLifecyclePhase,
   type WindowLifecycleSnapshot,
 } from "@/commands";
+import { WINDOW_LABEL } from "@/constants/windows";
 import { resetSettings } from "@/stores/settings";
 import type { ClipboardGroupRecord } from "@/types/clipboard";
 import { log } from "@/utils/log";
@@ -39,6 +41,25 @@ const IMPORT_BACKUP_SETTING_ID = "backup.importHistory";
 const LOG_DIRECTORY_SETTING_ID = "localData.logDirectory";
 const RESET_PREFERENCES_SETTING_ID = "diagnostics.resetPreferences";
 const WINDOW_LIFECYCLE_SETTING_ID = "diagnostics.windowLifecycle";
+const WINDOW_LIFECYCLE_I18N_PREFIX =
+  "schema.settings.diagnostics.windowLifecycle";
+const WINDOW_LIFECYCLE_PHASE_LABEL_KEYS: Record<WindowLifecyclePhase, string> =
+  {
+    created: `${WINDOW_LIFECYCLE_I18N_PREFIX}.phases.created`,
+    destroyed: `${WINDOW_LIFECYCLE_I18N_PREFIX}.phases.destroyed`,
+    destroyPending: `${WINDOW_LIFECYCLE_I18N_PREFIX}.phases.destroyPending`,
+    dormant: `${WINDOW_LIFECYCLE_I18N_PREFIX}.phases.dormant`,
+    hiddenWarm: `${WINDOW_LIFECYCLE_I18N_PREFIX}.phases.hiddenWarm`,
+    ready: `${WINDOW_LIFECYCLE_I18N_PREFIX}.phases.ready`,
+    visible: `${WINDOW_LIFECYCLE_I18N_PREFIX}.phases.visible`,
+  };
+const WINDOW_LIFECYCLE_WINDOW_LABEL_KEYS: Record<string, string> = {
+  [WINDOW_LABEL.CONTEXT_MENU]: `${WINDOW_LIFECYCLE_I18N_PREFIX}.windows.contextMenu`,
+  [WINDOW_LABEL.CONTEXT_SUBMENU]: `${WINDOW_LIFECYCLE_I18N_PREFIX}.windows.contextSubmenu`,
+  [WINDOW_LABEL.MAIN]: `${WINDOW_LIFECYCLE_I18N_PREFIX}.windows.main`,
+  [WINDOW_LABEL.PREFERENCE]: `${WINDOW_LIFECYCLE_I18N_PREFIX}.windows.preference`,
+  [WINDOW_LABEL.PREVIEW]: `${WINDOW_LIFECYCLE_I18N_PREFIX}.windows.preview`,
+};
 
 interface ActionControlProps {
   disabled: boolean;
@@ -477,10 +498,10 @@ const WindowLifecycleSnapshotTable: FC<WindowLifecycleSnapshotTableProps> = (
                 key={row.label}
               >
                 <td className="truncate py-2 pr-2 text-ant-text">
-                  {row.label}
+                  {formatLifecycleWindowLabel(t, row.label)}
                 </td>
                 <td className="truncate py-2 pr-2 text-ant-secondary">
-                  {row.phase}
+                  {formatLifecyclePhase(t, row.phase)}
                 </td>
                 <td className="py-2 pr-2 text-ant-secondary">
                   {row.generation}
@@ -499,6 +520,29 @@ const WindowLifecycleSnapshotTable: FC<WindowLifecycleSnapshotTableProps> = (
     </div>
   );
 };
+
+/**
+ * 把内部窗口 label 转换为当前语言的诊断显示名；未知 label 保留原值便于排查。
+ */
+function formatLifecycleWindowLabel(
+  t: TFunction<"preferences">,
+  label: string,
+) {
+  const key = WINDOW_LIFECYCLE_WINDOW_LABEL_KEYS[label];
+  if (!key) return label;
+
+  return t(key);
+}
+
+/**
+ * 把 Rust 生命周期阶段枚举转换为当前语言的诊断显示文案。
+ */
+function formatLifecyclePhase(
+  t: TFunction<"preferences">,
+  phase: WindowLifecyclePhase,
+) {
+  return t(WINDOW_LIFECYCLE_PHASE_LABEL_KEYS[phase]);
+}
 
 /**
  * 格式化生命周期调试时间信息。

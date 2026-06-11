@@ -334,7 +334,23 @@
           "hiddenFor": "已隐藏 {{seconds}} 秒",
           "lastActive": "最近活跃 {{seconds}} 秒前",
           "modalTitle": "窗口生命周期",
-          "title": "窗口生命周期"
+          "phases": {
+            "created": "已创建",
+            "destroyed": "已销毁",
+            "destroyPending": "等待销毁",
+            "dormant": "休眠",
+            "hiddenWarm": "隐藏待机",
+            "ready": "已就绪",
+            "visible": "可见"
+          },
+          "title": "窗口生命周期",
+          "windows": {
+            "contextMenu": "右键菜单",
+            "contextSubmenu": "右键子菜单",
+            "main": "主窗口",
+            "preference": "偏好设置",
+            "preview": "剪贴板预览"
+          }
         }
       },
       "external": {

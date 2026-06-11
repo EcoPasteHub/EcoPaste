@@ -334,7 +334,23 @@
           "hiddenFor": "Hidden for {{seconds}}s",
           "lastActive": "Active {{seconds}}s ago",
           "modalTitle": "Window Lifecycle",
-          "title": "Window Lifecycle"
+          "phases": {
+            "created": "Created",
+            "destroyed": "Destroyed",
+            "destroyPending": "Destroy pending",
+            "dormant": "Dormant",
+            "hiddenWarm": "Hidden warm",
+            "ready": "Ready",
+            "visible": "Visible"
+          },
+          "title": "Window Lifecycle",
+          "windows": {
+            "contextMenu": "Context menu",
+            "contextSubmenu": "Context submenu",
+            "main": "Main window",
+            "preference": "Preferences",
+            "preview": "Clipboard preview"
+          }
         }
       },
       "external": {
