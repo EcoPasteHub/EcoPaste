@@ -83,6 +83,7 @@
   "shortcuts": {
     "closePreviewFilterWindow": "Close preview / filters / window",
     "copySelected": "Copy selected item",
+    "createGroup": "Create group",
     "deleteSelected": "Delete selected item",
     "favoriteSelected": "Favorite / unfavorite",
     "focusSearch": "Focus search",
@@ -90,11 +91,13 @@
     "noteSelected": "Add / edit note",
     "openPreference": "Open preferences",
     "openSelected": "Open link / email / file location",
-    "pasteNth": "Paste item N (N = 1...9, 0)",
+    "pasteNth": "Paste one of first 10 items",
     "pasteSelected": "Paste selected item",
     "pasteSelectedPlain": "Paste selected item as plain text",
     "pinSelected": "Pin / unpin selected item",
     "pinWindow": "Pin / unpin window",
+    "previewSelected": "Hold to preview selected item",
+    "showShortcuts": "Show shortcuts",
     "switchCategory": "Switch category",
     "switchCustomGroup": "Switch custom group",
     "toggleRange": "Toggle all / favorites"
