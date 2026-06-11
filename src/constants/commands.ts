@@ -19,6 +19,8 @@ export const TAURI_COMMAND = {
   GET_CLIPBOARD_ITEM: "get_clipboard_item",
   GET_CLIPBOARD_PREVIEW_PAYLOAD: "get_clipboard_preview_payload",
   GET_CLIPBOARD_PREVIEW_STATE: "get_clipboard_preview_state",
+  GET_CONTEXT_MENU_PAYLOAD: "get_context_menu_payload",
+  GET_CONTEXT_SUBMENU_PAYLOAD: "get_context_submenu_payload",
   GET_SETTINGS: "get_settings",
   GET_STORAGE_LOCATION: "get_storage_location",
   GET_STORAGE_USAGE: "get_storage_usage",

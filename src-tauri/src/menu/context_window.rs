@@ -4,20 +4,25 @@
 //! 菜单 owner 拉到前台，会把用户原本聚焦的目标 App（资源管理器重命名编辑框、
 //! 浏览器地址栏 IME 等）挤掉焦点。本窗口不抢焦，跟主窗口一样隐形挂在桌面上。
 //!
-//! - 启动期建窗一次（`init`），常驻隐藏；右键时 `set_size + set_position + emit + show`。
+//! - 首次右键 / 悬停二级菜单时按需建窗；右键时 `set_size + set_position + emit + show`。
 //! - 外部点击关闭：复用 [`crate::mouse`] 的全局鼠标钩子，菜单可见且光标在矩形外
 //!   即 hide（不用轮询）。
 //! - 菜单项点击：前端直接 emit `clipboard://menu-action` 给主窗，业务派发与
 //!   macOS 路径走同一套。
 
-use serde::Serialize;
+use std::sync::{LazyLock, Mutex};
+
 use tauri::{
     AppHandle, Emitter, LogicalPosition, LogicalSize, Manager, WebviewUrl, WebviewWindowBuilder,
 };
 
-use crate::commands::ShowContextSubmenuInput;
+use crate::commands::{
+    ContextMenuItemPayload, ContextMenuShowPayload, ContextSubmenuGroupInput,
+    ShowContextSubmenuInput,
+};
 use crate::core::{AppError, Result};
 use crate::settings::Language;
+use crate::window::lifecycle;
 
 use super::clipboard_item::{
     ClipboardItemMenuRequest, ClipboardMenuAction, ClipboardMenuGroup, ACTION_GROUPS,
@@ -40,43 +45,21 @@ const MENU_PADDING_Y: u32 = 8; // 上下各 4
 const SURFACE_BORDER: u32 = 2;
 const SUBMENU_GAP: u32 = 4;
 
-#[derive(Debug, Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
-struct GroupMenuItemPayload {
-    checked: bool,
-    id: String,
-    label: String,
-}
+static CONTEXT_BUILD_LOCK: Mutex<()> = Mutex::new(());
+static CONTEXT_MENU_PAYLOAD: LazyLock<Mutex<Option<ContextMenuShowPayload>>> =
+    LazyLock::new(|| Mutex::new(None));
+static CONTEXT_SUBMENU_PAYLOAD: LazyLock<Mutex<Option<ShowContextSubmenuInput>>> =
+    LazyLock::new(|| Mutex::new(None));
 
-#[derive(Debug, Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
-struct MenuItemPayload {
-    action: ClipboardMenuAction,
-    label: String,
-    accelerator: Option<String>,
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    groups: Vec<GroupMenuItemPayload>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
-struct ContextMenuShowPayload {
-    item_id: String,
-    is_favorite: bool,
-    is_pinned: bool,
-    /// 已按 `ACTION_GROUPS` 过滤排序好的分组；前端按二维结构渲染 + 自动加分隔符。
-    groups: Vec<Vec<MenuItemPayload>>,
-}
-
-/// setup 阶段建窗（仅 Windows）。失败只 log，不影响主流程：菜单首次右键时
-/// `get_webview_window` 拿不到会返回错误，前端走 toast。
+/// setup 阶段初始化 Windows 自定义右键菜单模块。
+///
+/// 菜单窗口改为按需创建，避免应用启动时加载隐藏 WebView。
 pub fn init(app: &AppHandle) {
-    if let Err(err) = build_window(app) {
-        log::error!("init context-menu window failed: {err:?}");
-    }
+    let _ = app;
 }
 
-fn build_window(app: &AppHandle) -> Result<()> {
+/// 按需重建一级右键菜单窗口。
+pub fn build_context_menu_window(app: &AppHandle) -> Result<()> {
     build_menu_window(
         app,
         CONTEXT_MENU_WINDOW_LABEL,
@@ -84,15 +67,19 @@ fn build_window(app: &AppHandle) -> Result<()> {
         MENU_WIDTH,
         240,
     )?;
+
+    Ok(())
+}
+
+/// 按需重建二级右键菜单窗口。
+pub fn build_context_submenu_window(app: &AppHandle) -> Result<()> {
     build_menu_window(
         app,
         CONTEXT_SUBMENU_WINDOW_LABEL,
         "index.html/#/context-submenu",
         SUBMENU_WIDTH,
         120,
-    )?;
-
-    Ok(())
+    )
 }
 
 fn build_menu_window(
@@ -102,6 +89,11 @@ fn build_menu_window(
     width: u32,
     height: u32,
 ) -> Result<()> {
+    let _guard = CONTEXT_BUILD_LOCK.lock().unwrap_or_else(|poisoned| {
+        log::error!("context menu build mutex poisoned, recovering");
+        poisoned.into_inner()
+    });
+
     if app.get_webview_window(label).is_some() {
         return Ok(());
     }
@@ -144,13 +136,22 @@ pub(super) fn show_for_clipboard_item(
         return Ok(());
     }
 
+    let (width, height) = compute_size(&groups);
+    let payload = ContextMenuShowPayload {
+        item_id: request.item_id.clone(),
+        is_favorite: request.is_favorite,
+        is_pinned: request.is_pinned,
+        groups,
+    };
+    set_context_menu_payload(Some(payload.clone()));
+
     hide_submenu(app);
+    build_context_menu_window(app)?;
 
     let window = app
         .get_webview_window(CONTEXT_MENU_WINDOW_LABEL)
         .ok_or_else(|| AppError::Other(anyhow::anyhow!("context-menu window missing")))?;
 
-    let (width, height) = compute_size(&groups);
     let (x, y) = compute_position(&window, width, height)?;
 
     window
@@ -160,18 +161,13 @@ pub(super) fn show_for_clipboard_item(
         .set_position(LogicalPosition::new(x as f64, y as f64))
         .map_err(|err| AppError::Other(anyhow::anyhow!("context-menu set_position: {err}")))?;
 
-    let payload = ContextMenuShowPayload {
-        item_id: request.item_id.clone(),
-        is_favorite: request.is_favorite,
-        is_pinned: request.is_pinned,
-        groups,
-    };
     window
         .emit(CONTEXT_MENU_SHOW_EVENT, payload)
         .map_err(|err| AppError::Other(anyhow::anyhow!("context-menu emit show: {err}")))?;
     window
         .show()
         .map_err(|err| AppError::Other(anyhow::anyhow!("context-menu show: {err}")))?;
+    lifecycle::on_shown(app, CONTEXT_MENU_WINDOW_LABEL);
 
     Ok(())
 }
@@ -183,6 +179,9 @@ pub fn show_submenu(app: &AppHandle, input: ShowContextSubmenuInput) -> Result<(
 
         return Ok(());
     }
+
+    set_context_submenu_payload(Some(input.clone()));
+    build_context_submenu_window(app)?;
 
     let root = app
         .get_webview_window(CONTEXT_MENU_WINDOW_LABEL)
@@ -200,12 +199,14 @@ pub fn show_submenu(app: &AppHandle, input: ShowContextSubmenuInput) -> Result<(
     submenu
         .set_position(LogicalPosition::new(x as f64, y as f64))
         .map_err(|err| AppError::Other(anyhow::anyhow!("context-submenu set_position: {err}")))?;
+
     submenu
         .emit(CONTEXT_SUBMENU_SHOW_EVENT, input)
         .map_err(|err| AppError::Other(anyhow::anyhow!("context-submenu emit show: {err}")))?;
     submenu
         .show()
         .map_err(|err| AppError::Other(anyhow::anyhow!("context-submenu show: {err}")))?;
+    lifecycle::on_shown(app, CONTEXT_SUBMENU_WINDOW_LABEL);
 
     Ok(())
 }
@@ -218,7 +219,7 @@ fn build_groups(
     is_favorite: bool,
     is_pinned: bool,
     has_note: bool,
-) -> Vec<Vec<MenuItemPayload>> {
+) -> Vec<Vec<ContextMenuItemPayload>> {
     let mut active = available.to_vec();
     if !clipboard_groups.is_empty() {
         active.push(ClipboardMenuAction::MoveToGroup);
@@ -230,7 +231,7 @@ fn build_groups(
             group
                 .iter()
                 .filter(|a| active.contains(a))
-                .map(|a| MenuItemPayload {
+                .map(|a| ContextMenuItemPayload {
                     action: *a,
                     label: a.label(lang, is_favorite, is_pinned, has_note).into(),
                     accelerator: a.accelerator().map(String::from),
@@ -246,14 +247,14 @@ fn build_group_items(
     action: ClipboardMenuAction,
     clipboard_groups: &[ClipboardMenuGroup],
     current_group_id: Option<&str>,
-) -> Vec<GroupMenuItemPayload> {
+) -> Vec<ContextSubmenuGroupInput> {
     if action != ClipboardMenuAction::MoveToGroup {
         return Vec::new();
     }
 
     clipboard_groups
         .iter()
-        .map(|group| GroupMenuItemPayload {
+        .map(|group| ContextSubmenuGroupInput {
             checked: current_group_id == Some(group.id.as_str()),
             id: group.id.clone(),
             label: group.name.clone(),
@@ -261,7 +262,7 @@ fn build_group_items(
         .collect()
 }
 
-fn compute_size(groups: &[Vec<MenuItemPayload>]) -> (u32, u32) {
+fn compute_size(groups: &[Vec<ContextMenuItemPayload>]) -> (u32, u32) {
     let item_count: u32 = groups.iter().map(|g| g.len() as u32).sum();
     let separator_count = groups.len().saturating_sub(1) as u32;
     let root_height = compute_surface_height(item_count, separator_count);
@@ -396,26 +397,75 @@ fn compute_submenu_position_in_monitor(
     )
 }
 
+/// 返回最近一次一级右键菜单 show 请求的 payload，供重建后的 WebView 首屏补拉。
+pub fn context_menu_payload() -> Option<ContextMenuShowPayload> {
+    CONTEXT_MENU_PAYLOAD
+        .lock()
+        .unwrap_or_else(|poisoned| {
+            log::error!("context menu payload mutex poisoned, recovering");
+            poisoned.into_inner()
+        })
+        .clone()
+}
+
+/// 返回最近一次二级右键菜单 show 请求的 payload，供重建后的 WebView 首屏补拉。
+pub fn context_submenu_payload() -> Option<ShowContextSubmenuInput> {
+    CONTEXT_SUBMENU_PAYLOAD
+        .lock()
+        .unwrap_or_else(|poisoned| {
+            log::error!("context submenu payload mutex poisoned, recovering");
+            poisoned.into_inner()
+        })
+        .clone()
+}
+
+/// 更新一级右键菜单首屏补拉 payload。
+fn set_context_menu_payload(payload: Option<ContextMenuShowPayload>) {
+    let mut guard = CONTEXT_MENU_PAYLOAD.lock().unwrap_or_else(|poisoned| {
+        log::error!("context menu payload mutex poisoned on set, recovering");
+        poisoned.into_inner()
+    });
+    *guard = payload;
+}
+
+/// 更新二级右键菜单首屏补拉 payload。
+fn set_context_submenu_payload(payload: Option<ShowContextSubmenuInput>) {
+    let mut guard = CONTEXT_SUBMENU_PAYLOAD.lock().unwrap_or_else(|poisoned| {
+        log::error!("context submenu payload mutex poisoned on set, recovering");
+        poisoned.into_inner()
+    });
+    *guard = payload;
+}
+
 /// 隐藏菜单窗。给鼠标钩子 / 主窗隐藏等外部触发处用。
 pub fn hide(app: &AppHandle) {
+    set_context_menu_payload(None);
+    set_context_submenu_payload(None);
+
     for label in [CONTEXT_SUBMENU_WINDOW_LABEL, CONTEXT_MENU_WINDOW_LABEL] {
         let Some(window) = app.get_webview_window(label) else {
             continue;
         };
         if let Err(err) = window.hide() {
             log::warn!("hide {label} window failed: {err}");
+            continue;
         }
+        lifecycle::on_hidden(app, label, "context-menu-hide");
     }
 }
 
 /// 隐藏二级菜单窗。
 pub fn hide_submenu(app: &AppHandle) {
+    set_context_submenu_payload(None);
+
     let Some(window) = app.get_webview_window(CONTEXT_SUBMENU_WINDOW_LABEL) else {
         return;
     };
     if let Err(err) = window.hide() {
         log::warn!("hide context-submenu window failed: {err}");
+        return;
     }
+    lifecycle::on_hidden(app, CONTEXT_SUBMENU_WINDOW_LABEL, "context-submenu-hide");
 }
 
 /// 菜单窗当前是否可见。给鼠标钩子判断「是否需要做外部点击关闭」。
@@ -470,17 +520,17 @@ mod tests {
     #[test]
     fn compute_size_keeps_root_menu_single_column() {
         let groups = vec![
-            vec![MenuItemPayload {
+            vec![ContextMenuItemPayload {
                 action: ClipboardMenuAction::Paste,
                 label: "Paste".to_owned(),
                 accelerator: None,
                 groups: Vec::new(),
             }],
-            vec![MenuItemPayload {
+            vec![ContextMenuItemPayload {
                 action: ClipboardMenuAction::MoveToGroup,
                 label: "Move".to_owned(),
                 accelerator: None,
-                groups: vec![GroupMenuItemPayload {
+                groups: vec![ContextSubmenuGroupInput {
                     checked: false,
                     id: "g1".to_owned(),
                     label: "Group".to_owned(),

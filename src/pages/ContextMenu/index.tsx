@@ -1,5 +1,5 @@
 import { emitTo } from "@tauri-apps/api/event";
-import { useEventListener } from "ahooks";
+import { useEventListener, useMount } from "ahooks";
 import {
   type FC,
   Fragment,
@@ -9,7 +9,10 @@ import {
   useState,
 } from "react";
 import {
+  type ContextMenuShowPayload,
   type ContextSubmenuGroupInput,
+  getContextMenuPayload,
+  getContextSubmenuPayload,
   hideContextMenus,
   hideContextSubmenu,
   type ShowContextSubmenuInput,
@@ -21,32 +24,6 @@ import { useTauriListen } from "@/hooks/useTauriListen";
 import type { ClipboardAction } from "@/types/clipboard";
 import { cn } from "@/utils/cn";
 import { formatShortcutDisplay } from "@/utils/shortcut";
-
-interface MenuItemPayload {
-  action: ClipboardAction;
-  label: string;
-  accelerator: string | null;
-  groups?: ContextSubmenuGroupInput[];
-}
-
-/**
- * Frontend mirror of Rust `ContextMenuShowPayload`.
- */
-interface ShowPayload {
-  itemId: string;
-  isFavorite: boolean;
-  isPinned: boolean;
-  groups: Array<Array<MenuItemPayload>>;
-}
-
-/**
- * Frontend mirror of Rust `ShowContextSubmenuInput`.
- */
-interface SubmenuShowPayload {
-  action: ClipboardAction;
-  groups: ContextSubmenuGroupInput[];
-  itemId: string;
-}
 
 interface MenuSurfaceProps {
   children: ReactNode;
@@ -71,12 +48,23 @@ const MenuSurface: FC<MenuSurfaceProps> = (props) => {
  * Renders the root Windows custom context menu window.
  */
 const ContextMenu: FC = () => {
-  const [payload, setPayload] = useState<ShowPayload | null>(null);
+  const [payload, setPayload] = useState<ContextMenuShowPayload | null>(null);
   const [activeSubmenuAction, setActiveSubmenuAction] =
     useState<ClipboardAction | null>(null);
 
-  useTauriListen<ShowPayload>(TAURI_EVENT.CONTEXT_MENU_SHOW, (event) => {
-    setPayload(event.payload);
+  useTauriListen<ContextMenuShowPayload>(
+    TAURI_EVENT.CONTEXT_MENU_SHOW,
+    (event) => {
+      setPayload(event.payload);
+      setActiveSubmenuAction(null);
+    },
+  );
+
+  useMount(async () => {
+    const latestPayload = await getContextMenuPayload();
+    if (!latestPayload) return;
+
+    setPayload(latestPayload);
     setActiveSubmenuAction(null);
   });
 
@@ -230,14 +218,21 @@ const ContextMenuItem: FC<ContextMenuItemProps> = (props) => {
  * Renders the secondary Windows custom context menu window.
  */
 export const ContextSubmenu: FC = () => {
-  const [payload, setPayload] = useState<SubmenuShowPayload | null>(null);
+  const [payload, setPayload] = useState<ShowContextSubmenuInput | null>(null);
 
-  useTauriListen<SubmenuShowPayload>(
+  useTauriListen<ShowContextSubmenuInput>(
     TAURI_EVENT.CONTEXT_SUBMENU_SHOW,
     (event) => {
       setPayload(event.payload);
     },
   );
+
+  useMount(async () => {
+    const latestPayload = await getContextSubmenuPayload();
+    if (!latestPayload) return;
+
+    setPayload(latestPayload);
+  });
 
   useEventListener("keydown", (event) => {
     if (event.key !== "Escape") return;

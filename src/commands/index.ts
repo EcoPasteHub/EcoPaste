@@ -60,6 +60,20 @@ export interface ContextSubmenuGroupInput {
   label: string;
 }
 
+export interface ContextMenuItemPayload {
+  action: ClipboardAction;
+  label: string;
+  accelerator: string | null;
+  groups?: ContextSubmenuGroupInput[];
+}
+
+export interface ContextMenuShowPayload {
+  itemId: string;
+  isFavorite: boolean;
+  isPinned: boolean;
+  groups: Array<Array<ContextMenuItemPayload>>;
+}
+
 export interface ShowContextSubmenuInput {
   action: ClipboardAction;
   anchor: ContextSubmenuAnchor;
@@ -1082,6 +1096,38 @@ export const popupClipboardItemMenu = (
       },
     },
   );
+};
+
+/**
+ * 读取 Windows 自定义右键菜单一级窗口的待渲染 payload。
+ * 窗口被自动销毁后重建时用于首屏补拉，失败只记录日志。
+ */
+export const getContextMenuPayload = async () => {
+  try {
+    return await invoke<ContextMenuShowPayload | null>(
+      TAURI_COMMAND.GET_CONTEXT_MENU_PAYLOAD,
+    );
+  } catch (error) {
+    log.error("get context menu payload failed", toAppError(error));
+
+    return null;
+  }
+};
+
+/**
+ * 读取 Windows 自定义右键菜单二级窗口的待渲染 payload。
+ * 窗口被自动销毁后重建时用于首屏补拉，失败只记录日志。
+ */
+export const getContextSubmenuPayload = async () => {
+  try {
+    return await invoke<ShowContextSubmenuInput | null>(
+      TAURI_COMMAND.GET_CONTEXT_SUBMENU_PAYLOAD,
+    );
+  } catch (error) {
+    log.error("get context submenu payload failed", toAppError(error));
+
+    return null;
+  }
 };
 
 /**

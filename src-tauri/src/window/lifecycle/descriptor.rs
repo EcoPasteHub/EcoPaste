@@ -13,12 +13,15 @@ use super::super::{
 use crate::core::Result;
 
 #[cfg(target_os = "windows")]
-use crate::menu::context_window::{CONTEXT_MENU_WINDOW_LABEL, CONTEXT_SUBMENU_WINDOW_LABEL};
+use crate::menu::context_window::{
+    build_context_menu_window, build_context_submenu_window, CONTEXT_MENU_WINDOW_LABEL,
+    CONTEXT_SUBMENU_WINDOW_LABEL,
+};
 
 /// 窗口保留 / 销毁策略。
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RetainPolicy {
-    /// 永久保留实例，隐藏后不销毁（main / context-menu）。
+    /// 永久保留实例，隐藏后不销毁（main）。
     Permanent,
     /// 隐藏空闲超过 [`IDLE_DESTROY_SECS`](super::IDLE_DESTROY_SECS) 后销毁 WebView，打开时重建。
     DestroyWhenIdle,
@@ -62,15 +65,15 @@ static DESCRIPTORS: &[WindowDescriptor] = &[
     WindowDescriptor {
         label: CONTEXT_MENU_WINDOW_LABEL,
         emits_lifecycle: true,
-        retain_policy: RetainPolicy::Permanent,
-        build: None,
+        retain_policy: RetainPolicy::DestroyWhenIdle,
+        build: Some(build_context_menu_window),
     },
     #[cfg(target_os = "windows")]
     WindowDescriptor {
         label: CONTEXT_SUBMENU_WINDOW_LABEL,
         emits_lifecycle: true,
-        retain_policy: RetainPolicy::Permanent,
-        build: None,
+        retain_policy: RetainPolicy::DestroyWhenIdle,
+        build: Some(build_context_submenu_window),
     },
 ];
 

@@ -103,6 +103,8 @@ pub fn run() {
             commands::show_context_submenu,
             commands::hide_context_submenu,
             commands::hide_context_menus,
+            commands::get_context_menu_payload,
+            commands::get_context_submenu_payload,
             commands::toggle_window,
             commands::notify_window_ready,
             commands::open_preference_with_highlight,

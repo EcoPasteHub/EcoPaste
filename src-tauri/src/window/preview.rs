@@ -575,10 +575,10 @@ fn apply_preview_window_bounds(
 fn preview_window_size(work_area: &PhysicalRect<i32, u32>) -> PhysicalSize<u32> {
     #[cfg(target_os = "windows")]
     {
-        return PhysicalSize::new(
+        PhysicalSize::new(
             work_area.size.width.saturating_sub(1),
             work_area.size.height,
-        );
+        )
     }
 
     #[cfg(target_os = "macos")]
