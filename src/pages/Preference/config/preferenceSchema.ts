@@ -595,6 +595,33 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { type: "switch" },
+            id: "window.lightweightMode",
+            keywords: ["system", "performance", "memory", "idle"],
+            path: ["clipboard", "window", "lightweightMode"],
+            value: (settings) => {
+              return settings.clipboard.window.lightweightMode;
+            },
+          },
+          {
+            control: {
+              max: 86400,
+              min: 5,
+              suffixKey: "seconds",
+              type: "number",
+            },
+            disabledWhen: (settings) => {
+              return !settings.clipboard.window.lightweightMode;
+            },
+            id: "window.idleDestroySeconds",
+            keywords: ["system", "idle", "destroy", "seconds"],
+            parentId: "window.lightweightMode",
+            path: ["clipboard", "window", "idleDestroySeconds"],
+            value: (settings) => {
+              return settings.clipboard.window.idleDestroySeconds;
+            },
+          },
+          {
+            control: { type: "switch" },
             id: "control.trayIcon",
             keywords: ["tray", "menu bar", "system"],
             path: ["general", "trayIcon"],
@@ -686,6 +713,11 @@ export const preferenceTabs: PreferenceTab[] = [
       {
         id: "diagnostics",
         settings: [
+          {
+            control: { type: "action" },
+            id: "diagnostics.windowLifecycle",
+            keywords: ["window", "lifecycle", "debug", "phase"],
+          },
           {
             control: { danger: true, type: "action" },
             id: "diagnostics.resetPreferences",

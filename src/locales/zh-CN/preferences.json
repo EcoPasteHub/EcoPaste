@@ -65,7 +65,8 @@
       "items": "条",
       "lines": "行",
       "mb": "MB",
-      "px": "px"
+      "px": "px",
+      "seconds": "秒"
     },
     "retentionUnits": {
       "days": "天",
@@ -318,6 +319,22 @@
           "controlLabel": "重置",
           "description": "恢复所有偏好默认值，同时保留历史记录。",
           "title": "重置所有偏好"
+        },
+        "windowLifecycle": {
+          "columns": {
+            "generation": "代次",
+            "label": "窗口",
+            "locks": "保护",
+            "phase": "阶段",
+            "timing": "时间"
+          },
+          "controlLabel": "查看",
+          "description": "查看窗口生命周期、销毁保护和轻量模式状态，用于排查隐藏窗口资源占用。",
+          "empty": "暂无窗口生命周期数据",
+          "hiddenFor": "已隐藏 {{seconds}} 秒",
+          "lastActive": "最近活跃 {{seconds}} 秒前",
+          "modalTitle": "窗口生命周期",
+          "title": "窗口生命周期"
         }
       },
       "external": {
@@ -499,6 +516,14 @@
         }
       },
       "window": {
+        "idleDestroySeconds": {
+          "description": "偏好设置、预览和右键菜单等非主窗口隐藏超过此时间后释放 WebView，下次使用时自动重建。",
+          "title": "非主窗口空闲释放"
+        },
+        "lightweightMode": {
+          "description": "隐藏主窗口后暂停无谓刷新，非主窗口空闲后释放渲染资源。",
+          "title": "轻量模式"
+        },
         "position": {
           "description": "选择每次打开剪贴板主窗口时的位置。",
           "options": {

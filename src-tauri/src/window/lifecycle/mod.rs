@@ -5,23 +5,37 @@
 //! （带 `phase` 字段），前端据此镜像每个窗口的生命周期阶段。
 //!
 //! 销毁策略：`DestroyWhenIdle` 窗口（当前为 preference 与 clipboard-preview）隐藏后
-//! 启动空闲计时器，超过 [`IDLE_DESTROY_SECS`] 仍隐藏则销毁 WebView 释放资源；再次打开时
+//! 启动空闲计时器，超过用户设置的空闲秒数仍隐藏则销毁 WebView 释放资源；再次打开时
 //! 经 descriptor 的 `build` 重建（preference 走 `show_window`，preview 走预览模块按需 ensure
 //! 建窗）。`generation` 用于让「显示又隐藏」期间的过期计时器自动失效。
 
 mod descriptor;
 
-pub use descriptor::{descriptor_for, RetainPolicy};
+pub use descriptor::{descriptor_for, descriptors, RetainPolicy};
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::Mutex;
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use tauri::{AppHandle, Emitter, Manager};
 
+use crate::settings::SettingsStore;
+
 /// 非主窗口隐藏空闲超过此时长后销毁 WebView。
-pub const IDLE_DESTROY_SECS: u64 = 60;
+pub const DEFAULT_IDLE_DESTROY_SECS: u64 = 60;
+/// 非主窗口最短销毁空闲时间，避免用户把窗口设置成近乎瞬时销毁导致重建闪烁。
+const MIN_IDLE_DESTROY_SECS: u64 = 5;
+/// 非主窗口最长销毁空闲时间，限制异常配置导致计时器长时间悬挂。
+const MAX_IDLE_DESTROY_SECS: u64 = 24 * 60 * 60;
+/// 主窗口隐藏后进入 dormant 的宽限时间；主窗不销毁，只暂停非必要工作。
+const MAIN_DORMANT_SECS: u64 = 5;
+/// 销毁前给前端保存草稿 / 申请 keepalive 的时间。
+const BEFORE_DESTROY_DEADLINE_MS: u64 = 500;
+/// keepalive lease 的默认兜底时长。
+const DEFAULT_KEEPALIVE_TIMEOUT_MS: u64 = 30_000;
+/// keepalive lease 的最长兜底时长，防止异常路径永久阻止销毁。
+const MAX_KEEPALIVE_TIMEOUT_MS: u64 = 10 * 60 * 1000;
 
 /// 生命周期阶段。
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize)]
@@ -35,6 +49,10 @@ pub enum LifecyclePhase {
     Visible,
     /// 刚隐藏，保留实例，允许快速恢复；`DestroyWhenIdle` 窗口在此阶段计时销毁。
     HiddenWarm,
+    /// 主窗口隐藏一小段时间后进入休眠：保留实例，但前端应暂停非必要刷新。
+    Dormant,
+    /// 非主窗口空闲到期，已通知前端 before-destroy，等待最后保护状态确认。
+    DestroyPending,
     /// WebView 已销毁，仅保留 descriptor；再次打开时重建。
     Destroyed,
 }
@@ -45,11 +63,69 @@ struct RuntimeState {
     /// 单调递增代次：每次进入 `Visible` 自增。空闲销毁计时器捕获进入 `HiddenWarm` 时的
     /// 代次，到点若代次已变（窗口期间被重新显示过），说明计时器已过期，直接放弃销毁。
     generation: u64,
+    hidden_at: Option<Instant>,
+    last_active_at: Instant,
+    dirty_owners: HashSet<String>,
+    keepalive_leases: HashMap<String, KeepaliveLease>,
+}
+
+/// 前端申请的窗口保活租约。`expires_at` 是异常路径兜底，不是业务完成信号。
+struct KeepaliveLease {
+    reason: String,
+    expires_at: Instant,
+}
+
+enum DestroyCheck {
+    Proceed,
+    Protected,
+    Stale,
+}
+
+impl RuntimeState {
+    /// 构造窗口运行时状态；窗口首次被 manager 观察到时创建。
+    fn new() -> Self {
+        let now = Instant::now();
+
+        Self {
+            dirty_owners: HashSet::new(),
+            generation: 0,
+            hidden_at: None,
+            keepalive_leases: HashMap::new(),
+            last_active_at: now,
+            phase: LifecyclePhase::Created,
+        }
+    }
+
+    /// 清理过期 keepalive，返回仍然有效的数量。
+    fn purge_expired_leases(&mut self) -> usize {
+        let now = Instant::now();
+        self.keepalive_leases.retain(|owner, lease| {
+            let active = lease.expires_at > now;
+            if !active {
+                log::warn!(
+                    "window keepalive expired: owner={owner}, reason={}",
+                    lease.reason
+                );
+            }
+
+            active
+        });
+
+        self.keepalive_leases.len()
+    }
+
+    /// 当前窗口是否有前端声明的未保存状态或保活租约。
+    fn destroy_blocked(&mut self) -> bool {
+        self.purge_expired_leases();
+
+        !self.dirty_owners.is_empty() || !self.keepalive_leases.is_empty()
+    }
 }
 
 /// 生命周期事件名。与 `window://visibility` 并存：visibility 只表达布尔可见性，
 /// lifecycle 表达完整阶段。
 const WINDOW_LIFECYCLE_EVENT: &str = "window://lifecycle";
+const WINDOW_BEFORE_DESTROY_EVENT: &str = "window://before-destroy";
 
 #[derive(Clone, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -59,6 +135,29 @@ struct LifecyclePayload<'a> {
     generation: u64,
     reason: &'a str,
     visible: bool,
+}
+
+#[derive(Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct BeforeDestroyPayload<'a> {
+    label: &'a str,
+    generation: u64,
+    deadline_ms: u64,
+}
+
+/// 单个窗口的生命周期调试快照。
+#[derive(Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LifecycleSnapshot {
+    pub label: String,
+    pub phase: LifecyclePhase,
+    pub generation: u64,
+    pub visible: bool,
+    pub retain_policy: &'static str,
+    pub dirty_owner_count: usize,
+    pub keepalive_count: usize,
+    pub hidden_for_ms: Option<u128>,
+    pub last_active_ago_ms: u128,
 }
 
 /// 窗口生命周期管理器，存入 Tauri `State`。
@@ -91,16 +190,30 @@ impl WindowLifecycleManager {
         };
 
         let (previous, generation) = self.with_states(|states| {
-            let entry = states.entry(label.to_owned()).or_insert(RuntimeState {
-                phase: LifecyclePhase::Created,
-                generation: 0,
-            });
+            let entry = states
+                .entry(label.to_owned())
+                .or_insert_with(RuntimeState::new);
 
             let previous = entry.phase;
+            let now = Instant::now();
 
             // 每次进入 Visible 开启新代次，使尚未触发的旧销毁计时器失效。
             if matches!(phase, LifecyclePhase::Visible) {
                 entry.generation += 1;
+                entry.hidden_at = None;
+                entry.last_active_at = now;
+            }
+
+            if matches!(phase, LifecyclePhase::HiddenWarm) && previous != LifecyclePhase::HiddenWarm
+            {
+                entry.hidden_at = Some(now);
+                entry.last_active_at = now;
+            }
+
+            if matches!(phase, LifecyclePhase::Destroyed) {
+                entry.hidden_at = None;
+                entry.dirty_owners.clear();
+                entry.keepalive_leases.clear();
             }
 
             entry.phase = phase;
@@ -119,8 +232,17 @@ impl WindowLifecycleManager {
         if matches!(phase, LifecyclePhase::HiddenWarm)
             && previous != LifecyclePhase::HiddenWarm
             && descriptor.retain_policy == RetainPolicy::DestroyWhenIdle
+            && lightweight_mode_enabled(app)
         {
-            schedule_idle_destroy(app, label, generation);
+            schedule_idle_destroy(app, label, generation, idle_destroy_secs(app));
+        }
+
+        if matches!(phase, LifecyclePhase::HiddenWarm)
+            && previous != LifecyclePhase::HiddenWarm
+            && label == super::MAIN_WINDOW_LABEL
+            && lightweight_mode_enabled(app)
+        {
+            schedule_main_dormant(app, label, generation);
         }
 
         if !descriptor.emits_lifecycle {
@@ -170,9 +292,152 @@ pub fn on_hidden(app: &AppHandle, label: &str, reason: &str) {
 
 /// 前端 ready handshake：标记窗口前端已完成基础初始化。
 pub fn on_ready(app: &AppHandle, label: &str) {
-    if let Some(manager) = manager(app) {
-        manager.transition(app, label, LifecyclePhase::Ready, "ready");
+    if descriptor_for(label).is_none() {
+        return;
     }
+
+    if let Some(manager) = manager(app) {
+        let should_transition = manager.with_states(|states| {
+            let entry = states
+                .entry(label.to_owned())
+                .or_insert_with(RuntimeState::new);
+
+            !matches!(
+                entry.phase,
+                LifecyclePhase::Visible
+                    | LifecyclePhase::HiddenWarm
+                    | LifecyclePhase::Dormant
+                    | LifecyclePhase::DestroyPending
+            )
+        });
+
+        if should_transition {
+            manager.transition(app, label, LifecyclePhase::Ready, "ready");
+        } else {
+            log::debug!("window ready acknowledged without phase change: {label}");
+        }
+    }
+}
+
+/// 设置窗口 dirty owner；任一 owner 未清除时，空闲销毁会被延后。
+pub fn set_dirty(app: &AppHandle, label: &str, owner: &str, dirty: bool) {
+    if descriptor_for(label).is_none() {
+        return;
+    }
+
+    if let Some(manager) = manager(app) {
+        manager.with_states(|states| {
+            let entry = states
+                .entry(label.to_owned())
+                .or_insert_with(RuntimeState::new);
+
+            if dirty {
+                entry.dirty_owners.insert(owner.to_owned());
+            } else {
+                entry.dirty_owners.remove(owner);
+            }
+
+            log::debug!(
+                "window dirty: {label} owner={owner} dirty={dirty} count={}",
+                entry.dirty_owners.len()
+            );
+        });
+    }
+}
+
+/// 申请窗口保活租约；租约到期会自动失效，前端正常完成后应主动 release。
+pub fn acquire_keepalive(
+    app: &AppHandle,
+    label: &str,
+    owner: &str,
+    reason: &str,
+    timeout_ms: Option<u64>,
+) {
+    if descriptor_for(label).is_none() {
+        return;
+    }
+
+    let timeout = timeout_ms
+        .unwrap_or(DEFAULT_KEEPALIVE_TIMEOUT_MS)
+        .clamp(1_000, MAX_KEEPALIVE_TIMEOUT_MS);
+    let lease = KeepaliveLease {
+        expires_at: Instant::now() + Duration::from_millis(timeout),
+        reason: reason.to_owned(),
+    };
+
+    if let Some(manager) = manager(app) {
+        manager.with_states(|states| {
+            let entry = states
+                .entry(label.to_owned())
+                .or_insert_with(RuntimeState::new);
+            entry.keepalive_leases.insert(owner.to_owned(), lease);
+
+            log::debug!(
+                "window keepalive acquired: {label} owner={owner} reason={reason} timeoutMs={timeout}"
+            );
+        });
+    }
+}
+
+/// 释放窗口保活租约；不存在时 no-op。
+pub fn release_keepalive(app: &AppHandle, label: &str, owner: &str) {
+    if descriptor_for(label).is_none() {
+        return;
+    }
+
+    if let Some(manager) = manager(app) {
+        manager.with_states(|states| {
+            let Some(entry) = states.get_mut(label) else {
+                return;
+            };
+            entry.keepalive_leases.remove(owner);
+
+            log::debug!(
+                "window keepalive released: {label} owner={owner} count={}",
+                entry.keepalive_leases.len()
+            );
+        });
+    }
+}
+
+/// 返回所有登记窗口的生命周期调试快照。
+pub fn snapshot(app: &AppHandle) -> Vec<LifecycleSnapshot> {
+    let now = Instant::now();
+    let Some(manager) = manager(app) else {
+        return Vec::new();
+    };
+
+    manager.with_states(|states| {
+        descriptors()
+            .iter()
+            .map(|descriptor| {
+                let state = states
+                    .entry(descriptor.label.to_owned())
+                    .or_insert_with(RuntimeState::new);
+                let keepalive_count = state.purge_expired_leases();
+                let visible = app
+                    .get_webview_window(descriptor.label)
+                    .and_then(|window| window.is_visible().ok())
+                    .unwrap_or(false);
+
+                LifecycleSnapshot {
+                    dirty_owner_count: state.dirty_owners.len(),
+                    generation: state.generation,
+                    hidden_for_ms: state
+                        .hidden_at
+                        .map(|instant| now.saturating_duration_since(instant).as_millis()),
+                    keepalive_count,
+                    label: descriptor.label.to_owned(),
+                    last_active_ago_ms: now
+                        .saturating_duration_since(state.last_active_at)
+                        .as_millis(),
+                    phase: state.phase,
+                    retain_policy: descriptor.retain_policy.as_str(),
+                    visible,
+                }
+            })
+            .collect()
+    })
 }
 
 /// 取窗口的按需重建函数；非 `DestroyWhenIdle` 或未登记窗口返回 `None`。
@@ -181,28 +446,30 @@ pub fn rebuild_fn(label: &str) -> Option<fn(&AppHandle) -> crate::core::Result<(
     descriptor_for(label).and_then(|descriptor| descriptor.build)
 }
 
-/// 启动一次性空闲销毁计时器。捕获进入隐藏态时的 `generation`，到点回主线程校验后销毁。
-/// 用独立线程 + `thread::sleep`（与 `preview.rs` 同模式），不依赖 async runtime。
-fn schedule_idle_destroy(app: &AppHandle, label: &str, generation: u64) {
+/// 启动一次性主窗口 dormant 计时器。捕获进入隐藏态时的 `generation`，到点回主线程校验。
+fn schedule_main_dormant(app: &AppHandle, label: &str, generation: u64) {
     let app = app.clone();
     let label = label.to_owned();
 
     thread::spawn(move || {
-        thread::sleep(Duration::from_secs(IDLE_DESTROY_SECS));
+        thread::sleep(Duration::from_secs(MAIN_DORMANT_SECS));
 
         let main_app = app.clone();
         let main_label = label.clone();
         if let Err(err) = app.run_on_main_thread(move || {
-            try_destroy_idle(&main_app, &main_label, generation);
+            try_enter_dormant(&main_app, &main_label, generation);
         }) {
-            log::warn!("idle destroy main-thread dispatch failed for {label}: {err}");
+            log::warn!("main dormant main-thread dispatch failed for {label}: {err}");
         }
     });
 }
 
-/// 计时器到点的销毁判定（主线程）：代次未变且仍处于 HiddenWarm 才销毁，
-/// 否则说明窗口已被重新显示或已销毁，放弃本次销毁。
-fn try_destroy_idle(app: &AppHandle, label: &str, generation: u64) {
+/// 计时器到点的 dormant 判定：主窗口仍隐藏且代次未变才进入 dormant。
+fn try_enter_dormant(app: &AppHandle, label: &str, generation: u64) {
+    if !lightweight_mode_enabled(app) {
+        return;
+    }
+
     let Some(manager) = manager(app) else {
         return;
     };
@@ -214,6 +481,134 @@ fn try_destroy_idle(app: &AppHandle, label: &str, generation: u64) {
 
     if !proceed {
         return;
+    }
+
+    manager.transition(app, label, LifecyclePhase::Dormant, "idle-dormant");
+}
+
+/// 启动一次性空闲销毁计时器。捕获进入隐藏态时的 `generation`，到点回主线程校验后销毁。
+/// 用独立线程 + `thread::sleep`（与 `preview.rs` 同模式），不依赖 async runtime。
+fn schedule_idle_destroy(app: &AppHandle, label: &str, generation: u64, timeout_secs: u64) {
+    let app = app.clone();
+    let label = label.to_owned();
+
+    thread::spawn(move || {
+        thread::sleep(Duration::from_secs(timeout_secs));
+
+        let main_app = app.clone();
+        let main_label = label.clone();
+        if let Err(err) = app.run_on_main_thread(move || {
+            try_destroy_idle(&main_app, &main_label, generation);
+        }) {
+            log::warn!("idle destroy main-thread dispatch failed for {label}: {err}");
+        }
+    });
+}
+
+/// 计时器到点的销毁判定（主线程）：代次未变且仍处于 HiddenWarm 才进入 DestroyPending，
+/// 否则说明窗口已被重新显示或已销毁，放弃本次销毁。
+fn try_destroy_idle(app: &AppHandle, label: &str, generation: u64) {
+    if !lightweight_mode_enabled(app) {
+        return;
+    }
+
+    let Some(manager) = manager(app) else {
+        return;
+    };
+
+    let check = manager.with_states(|states| match states.get_mut(label) {
+        Some(state) => {
+            if state.generation != generation || state.phase != LifecyclePhase::HiddenWarm {
+                return DestroyCheck::Stale;
+            }
+
+            if state.destroy_blocked() {
+                DestroyCheck::Protected
+            } else {
+                DestroyCheck::Proceed
+            }
+        }
+        None => DestroyCheck::Stale,
+    });
+
+    match check {
+        DestroyCheck::Proceed => {}
+        DestroyCheck::Protected => {
+            schedule_idle_destroy(app, label, generation, idle_destroy_secs(app));
+            return;
+        }
+        DestroyCheck::Stale => return,
+    }
+
+    manager.transition(app, label, LifecyclePhase::DestroyPending, "before-destroy");
+    emit_before_destroy(app, label, generation);
+    schedule_destroy_after_deadline(app, label, generation);
+}
+
+/// 广播销毁前事件，给前端保存草稿或申请 keepalive 的短暂窗口。
+fn emit_before_destroy(app: &AppHandle, label: &str, generation: u64) {
+    if let Err(err) = app.emit(
+        WINDOW_BEFORE_DESTROY_EVENT,
+        BeforeDestroyPayload {
+            deadline_ms: BEFORE_DESTROY_DEADLINE_MS,
+            generation,
+            label,
+        },
+    ) {
+        log::error!("emit window before destroy failed for {label}: {err:?}");
+    }
+}
+
+/// 销毁前宽限到期后回主线程完成最终校验与释放。
+fn schedule_destroy_after_deadline(app: &AppHandle, label: &str, generation: u64) {
+    let app = app.clone();
+    let label = label.to_owned();
+
+    thread::spawn(move || {
+        thread::sleep(Duration::from_millis(BEFORE_DESTROY_DEADLINE_MS));
+
+        let main_app = app.clone();
+        let main_label = label.clone();
+        if let Err(err) = app.run_on_main_thread(move || {
+            finish_destroy_idle(&main_app, &main_label, generation);
+        }) {
+            log::warn!("finish destroy main-thread dispatch failed for {label}: {err}");
+        }
+    });
+}
+
+/// 最终销毁判定：仍处于 DestroyPending、代次未变且没有 dirty / keepalive 才释放 WebView。
+fn finish_destroy_idle(app: &AppHandle, label: &str, generation: u64) {
+    if !lightweight_mode_enabled(app) {
+        return;
+    }
+
+    let Some(manager) = manager(app) else {
+        return;
+    };
+
+    let check = manager.with_states(|states| match states.get_mut(label) {
+        Some(state) => {
+            if state.generation != generation || state.phase != LifecyclePhase::DestroyPending {
+                return DestroyCheck::Stale;
+            }
+
+            if state.destroy_blocked() {
+                DestroyCheck::Protected
+            } else {
+                DestroyCheck::Proceed
+            }
+        }
+        None => DestroyCheck::Stale,
+    });
+
+    match check {
+        DestroyCheck::Proceed => {}
+        DestroyCheck::Protected => {
+            manager.transition(app, label, LifecyclePhase::HiddenWarm, "destroy-protected");
+            return;
+        }
+        DestroyCheck::Stale => return,
     }
 
     // 销毁前落盘几何，重建时可恢复上次位置与尺寸。
@@ -248,4 +643,74 @@ fn try_destroy_idle(app: &AppHandle, label: &str, generation: u64) {
     }
 
     manager.transition(app, label, LifecyclePhase::Destroyed, "idle-destroy");
+}
+
+/// 当前是否启用轻量模式。设置缺失时默认启用，匹配 `Settings::default()`。
+fn lightweight_mode_enabled(app: &AppHandle) -> bool {
+    app.try_state::<SettingsStore>()
+        .map(|settings| settings.snapshot().clipboard.window.lightweight_mode)
+        .unwrap_or(true)
+}
+
+/// 从设置读取非主窗口空闲销毁秒数，并做边界收敛。
+fn idle_destroy_secs(app: &AppHandle) -> u64 {
+    app.try_state::<SettingsStore>()
+        .map(|settings| {
+            u64::from(settings.snapshot().clipboard.window.idle_destroy_seconds)
+                .clamp(MIN_IDLE_DESTROY_SECS, MAX_IDLE_DESTROY_SECS)
+        })
+        .unwrap_or(DEFAULT_IDLE_DESTROY_SECS)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn dirty_owner_blocks_destroy_until_cleared() {
+        let mut state = RuntimeState::new();
+
+        state.dirty_owners.insert("draft".to_owned());
+
+        assert!(state.destroy_blocked());
+
+        state.dirty_owners.clear();
+
+        assert!(!state.destroy_blocked());
+    }
+
+    #[test]
+    fn keepalive_blocks_destroy_until_released() {
+        let mut state = RuntimeState::new();
+
+        state.keepalive_leases.insert(
+            "dialog".to_owned(),
+            KeepaliveLease {
+                expires_at: Instant::now() + Duration::from_secs(10),
+                reason: "file-dialog".to_owned(),
+            },
+        );
+
+        assert!(state.destroy_blocked());
+
+        state.keepalive_leases.remove("dialog");
+
+        assert!(!state.destroy_blocked());
+    }
+
+    #[test]
+    fn expired_keepalive_no_longer_blocks_destroy() {
+        let mut state = RuntimeState::new();
+
+        state.keepalive_leases.insert(
+            "dialog".to_owned(),
+            KeepaliveLease {
+                expires_at: Instant::now() - Duration::from_secs(1),
+                reason: "file-dialog".to_owned(),
+            },
+        );
+
+        assert!(!state.destroy_blocked());
+        assert!(state.keepalive_leases.is_empty());
+    }
 }

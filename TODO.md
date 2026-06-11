@@ -24,7 +24,6 @@
 
 - [Clipboard Recycling 回收站](./TODO-Clipboard-Recycling.md)
 - [内容访问密码保护](./TODO-Item-Password-Protection.md)
-- [Lightweight Mode 轻量模式](./TODO-Lightweight-Mode.md)
 - [Windows Portable 版本](./TODO-Windows-Portable.md)
 
 ## P3 · 同步与 AI/CLI 扩展

@@ -1,7 +1,9 @@
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { InputNumber, Space } from "antd";
 import type { FC } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { setWindowDirty } from "@/commands";
 import type { PreferenceSetting } from "../../types/preferences";
 import { translatePreferenceNumberSuffix } from "../../utils/preferenceI18n";
 import type { ControlProps } from "./types";
@@ -18,11 +20,31 @@ const NumberControl: FC<NumberControlProps> = (props) => {
   const { t } = useTranslation("preferences");
   const { disabled, onChange, setting, value } = props;
   const [draft, setDraft] = useState<number | null>(value);
+  const dirtyRef = useRef(false);
+  const windowLabelRef = useRef(getCurrentWebviewWindow().label);
   const control = setting.control.type === "number" ? setting.control : null;
+  const dirtyOwner = `number:${setting.id}`;
 
   useEffect(() => {
     setDraft(value);
   }, [value]);
+
+  useEffect(() => {
+    const dirty = draft !== value;
+    if (dirtyRef.current === dirty) return;
+
+    dirtyRef.current = dirty;
+    void setWindowDirty(windowLabelRef.current, dirtyOwner, dirty);
+  }, [dirtyOwner, draft, value]);
+
+  useEffect(() => {
+    return () => {
+      if (!dirtyRef.current) return;
+
+      dirtyRef.current = false;
+      void setWindowDirty(windowLabelRef.current, dirtyOwner, false);
+    };
+  }, [dirtyOwner]);
 
   if (!control) return null;
 

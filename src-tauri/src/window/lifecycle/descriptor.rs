@@ -23,8 +23,18 @@ use crate::menu::context_window::{
 pub enum RetainPolicy {
     /// 永久保留实例，隐藏后不销毁（main）。
     Permanent,
-    /// 隐藏空闲超过 [`IDLE_DESTROY_SECS`](super::IDLE_DESTROY_SECS) 后销毁 WebView，打开时重建。
+    /// 隐藏空闲超过用户设置秒数后销毁 WebView，打开时重建。
     DestroyWhenIdle,
+}
+
+impl RetainPolicy {
+    /// 返回用于调试快照的稳定字面量。
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Permanent => "permanent",
+            Self::DestroyWhenIdle => "destroyWhenIdle",
+        }
+    }
 }
 
 /// 单个窗口的声明式描述。
@@ -80,4 +90,9 @@ static DESCRIPTORS: &[WindowDescriptor] = &[
 /// 按 label 查 descriptor；未登记的 label 返回 `None`。
 pub fn descriptor_for(label: &str) -> Option<&'static WindowDescriptor> {
     DESCRIPTORS.iter().find(|d| d.label == label)
+}
+
+/// 返回所有窗口 descriptor，供生命周期调试快照遍历。
+pub fn descriptors() -> &'static [WindowDescriptor] {
+    DESCRIPTORS
 }

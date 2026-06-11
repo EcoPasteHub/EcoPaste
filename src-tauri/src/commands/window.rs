@@ -4,6 +4,7 @@ use crate::core::Result;
 use crate::settings::WindowPosition;
 use crate::window;
 
+pub use window::lifecycle::LifecycleSnapshot;
 pub use window::preview::{ClipboardPreviewState, PreviewAnchorRect};
 
 #[tauri::command]
@@ -26,6 +27,48 @@ pub async fn toggle_window(app: AppHandle, label: String) -> Result<()> {
 #[tauri::command]
 pub async fn notify_window_ready(app: AppHandle, label: String) {
     window::lifecycle::on_ready(&app, &label);
+}
+
+/// 标记当前窗口是否存在未保存草稿。相同 owner 可重复设置；所有 owner 清除后才允许销毁。
+#[tauri::command]
+pub async fn set_window_dirty(app: AppHandle, label: String, owner: String, dirty: bool) {
+    if label.is_empty() || owner.is_empty() {
+        return;
+    }
+
+    window::lifecycle::set_dirty(&app, &label, &owner, dirty);
+}
+
+/// 为当前窗口申请短期保活租约，防止原生对话框或后台动作进行中被 idle destroy。
+#[tauri::command]
+pub async fn acquire_window_keepalive(
+    app: AppHandle,
+    label: String,
+    owner: String,
+    reason: String,
+    timeout_ms: Option<u64>,
+) {
+    if label.is_empty() || owner.is_empty() {
+        return;
+    }
+
+    window::lifecycle::acquire_keepalive(&app, &label, &owner, &reason, timeout_ms);
+}
+
+/// 释放窗口保活租约。不存在时 no-op。
+#[tauri::command]
+pub async fn release_window_keepalive(app: AppHandle, label: String, owner: String) {
+    if label.is_empty() || owner.is_empty() {
+        return;
+    }
+
+    window::lifecycle::release_keepalive(&app, &label, &owner);
+}
+
+/// 返回生命周期调试快照，供偏好页诊断面板展示。
+#[tauri::command]
+pub async fn get_window_lifecycle_snapshot(app: AppHandle) -> Vec<LifecycleSnapshot> {
+    window::lifecycle::snapshot(&app)
 }
 
 /// 打开偏好窗口并定位到指定设置项。偏好已空闲销毁时也能正确重建后跳转，

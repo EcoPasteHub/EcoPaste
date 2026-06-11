@@ -13,6 +13,8 @@ export type LifecyclePhase =
   | "ready"
   | "visible"
   | "hiddenWarm"
+  | "dormant"
+  | "destroyPending"
   | "destroyed";
 
 /**

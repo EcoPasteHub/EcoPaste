@@ -29,6 +29,10 @@ interface MenuSurfaceProps {
   children: ReactNode;
 }
 
+interface BeforeDestroyPayload {
+  label: string;
+}
+
 /**
  * Renders the menu surface flush to the transparent webview bounds.
  */
@@ -58,6 +62,18 @@ const ContextMenu: FC = () => {
       setPayload(event.payload);
       setActiveSubmenuAction(null);
     },
+  );
+
+  const handleBeforeDestroy = (event: { payload: BeforeDestroyPayload }) => {
+    if (event.payload.label !== WINDOW_LABEL.CONTEXT_MENU) return;
+
+    setPayload(null);
+    setActiveSubmenuAction(null);
+  };
+
+  useTauriListen<BeforeDestroyPayload>(
+    TAURI_EVENT.WINDOW_BEFORE_DESTROY,
+    handleBeforeDestroy,
   );
 
   useMount(async () => {
@@ -225,6 +241,17 @@ export const ContextSubmenu: FC = () => {
     (event) => {
       setPayload(event.payload);
     },
+  );
+
+  const handleBeforeDestroy = (event: { payload: BeforeDestroyPayload }) => {
+    if (event.payload.label !== WINDOW_LABEL.CONTEXT_SUBMENU) return;
+
+    setPayload(null);
+  };
+
+  useTauriListen<BeforeDestroyPayload>(
+    TAURI_EVENT.WINDOW_BEFORE_DESTROY,
+    handleBeforeDestroy,
   );
 
   useMount(async () => {

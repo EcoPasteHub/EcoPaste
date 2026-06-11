@@ -51,13 +51,24 @@ export function usePreviewRenderState(
 /**
  * 按预览状态加载 payload，并用 LRU cache 复用最近内容。
  */
-export function usePreviewPayload(previewState: ClipboardPreviewState | null) {
+export function usePreviewPayload(
+  previewState: ClipboardPreviewState | null,
+  resetToken = 0,
+) {
   const [payload, setPayload] = useState<ClipboardPreviewPayload | null>(null);
   const [loadingItemId, setLoadingItemId] = useState<string | null>(null);
   const latestRequestIdRef = useRef(0);
   const cacheRef = useRef(new Map<string, ClipboardPreviewPayload>());
   const { clipboard } = useSnapshot(settingsState);
   const redactSecrets = clipboard.sensitive.redactSecrets;
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: resetToken 是销毁前清缓存的纯触发器。
+  useEffect(() => {
+    cacheRef.current.clear();
+    latestRequestIdRef.current += 1;
+    setLoadingItemId(null);
+    setPayload(null);
+  }, [resetToken]);
 
   useEffect(() => {
     if (!previewState) {

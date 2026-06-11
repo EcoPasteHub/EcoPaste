@@ -8,6 +8,7 @@ import {
   getClipboardPreviewState,
 } from "@/commands";
 import { TAURI_EVENT } from "@/constants/events";
+import { WINDOW_LABEL } from "@/constants/windows";
 import { useTauriListen } from "@/hooks/useTauriListen";
 import { settingsState } from "@/stores/settings";
 import { cn } from "@/utils/cn";
@@ -50,6 +51,10 @@ const EMPTY_CONNECTOR = {
   targetSide: "left",
 } as const;
 
+interface BeforeDestroyPayload {
+  label: string;
+}
+
 /**
  * 系统级剪贴板预览窗口。
  * 预览窗口自身常驻透明 overlay，按 `itemId + updatedAt` 缓存最近内容并渲染基础 Content Viewer。
@@ -57,11 +62,15 @@ const EMPTY_CONNECTOR = {
 const Preview: FC = () => {
   const [previewState, setPreviewState] =
     useState<ClipboardPreviewState | null>(null);
+  const [payloadResetToken, setPayloadResetToken] = useState(0);
   const panelMeasureRef = useRef<HTMLDivElement>(null);
   const { clipboard } = useSnapshot(settingsState);
   const redactSecrets = clipboard.sensitive.redactSecrets;
   const renderState = usePreviewRenderState(previewState);
-  const { loadingItemId, payload } = usePreviewPayload(previewState);
+  const { loadingItemId, payload } = usePreviewPayload(
+    previewState,
+    payloadResetToken,
+  );
   const measuredPanelSize = useMeasuredPanelSize(panelMeasureRef);
   const active = previewState !== null;
   const visibleState = previewState ?? renderState;
@@ -99,6 +108,20 @@ const Preview: FC = () => {
     (event) => {
       setPreviewState(event.payload);
     },
+  );
+
+  const handleBeforeDestroy = (event: { payload: BeforeDestroyPayload }) => {
+    if (event.payload.label !== WINDOW_LABEL.PREVIEW) return;
+
+    setPreviewState(null);
+    setPayloadResetToken((current) => {
+      return current + 1;
+    });
+  };
+
+  useTauriListen<BeforeDestroyPayload>(
+    TAURI_EVENT.WINDOW_BEFORE_DESTROY,
+    handleBeforeDestroy,
   );
 
   if (!visibleState) {

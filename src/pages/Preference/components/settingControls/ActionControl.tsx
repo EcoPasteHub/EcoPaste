@@ -1,19 +1,25 @@
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { open } from "@tauri-apps/plugin-dialog";
 import { Button, Modal, Space, Tooltip } from "antd";
+import type { TFunction } from "i18next";
 import type { FC } from "react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  acquireWindowKeepalive,
   type ChangeStorageLocationResult,
   type CleanCacheResult,
   changeStorageLocation,
   cleanResourceCache,
   type ExportHistoryBackupResult,
+  getWindowLifecycleSnapshot,
   inspectHistoryBackup,
   listClipboardGroups,
   openPreferenceDirectory,
+  releaseWindowKeepalive,
   resetStorageLocation,
   type StorageLocation,
+  type WindowLifecycleSnapshot,
 } from "@/commands";
 import { resetSettings } from "@/stores/settings";
 import type { ClipboardGroupRecord } from "@/types/clipboard";
@@ -32,6 +38,7 @@ const EXPORT_BACKUP_SETTING_ID = "backup.exportHistory";
 const IMPORT_BACKUP_SETTING_ID = "backup.importHistory";
 const LOG_DIRECTORY_SETTING_ID = "localData.logDirectory";
 const RESET_PREFERENCES_SETTING_ID = "diagnostics.resetPreferences";
+const WINDOW_LIFECYCLE_SETTING_ID = "diagnostics.windowLifecycle";
 
 interface ActionControlProps {
   disabled: boolean;
@@ -58,8 +65,27 @@ const ActionControl: FC<ActionControlProps> = (props) => {
   const [groupManagerGroups, setGroupManagerGroups] = useState<
     ClipboardGroupRecord[]
   >([]);
+  const [lifecycleModalOpen, setLifecycleModalOpen] = useState(false);
+  const [lifecycleSnapshot, setLifecycleSnapshot] = useState<
+    WindowLifecycleSnapshot[]
+  >([]);
+  const windowLabel = getCurrentWebviewWindow().label;
 
   if (setting.control.type !== "action") return null;
+
+  /**
+   * 操作进行中保活当前窗口；隐藏后 idle destroy 会等租约释放或超时兜底。
+   */
+  async function runWithKeepalive<T>(reason: string, task: () => Promise<T>) {
+    const owner = `action:${setting.id}`;
+
+    await acquireWindowKeepalive(windowLabel, owner, reason, 120_000);
+    try {
+      return await task();
+    } finally {
+      await releaseWindowKeepalive(windowLabel, owner);
+    }
+  }
 
   const markActionComplete = (
     result?:
@@ -73,7 +99,7 @@ const ActionControl: FC<ActionControlProps> = (props) => {
   const cleanCache = async () => {
     setLoading(true);
     try {
-      const result = await cleanResourceCache();
+      const result = await runWithKeepalive("clean-cache", cleanResourceCache);
       markActionComplete(result);
     } finally {
       setLoading(false);
@@ -83,7 +109,7 @@ const ActionControl: FC<ActionControlProps> = (props) => {
   const resetPreferenceSettings = async () => {
     setLoading(true);
     try {
-      await resetSettings();
+      await runWithKeepalive("reset-preferences", resetSettings);
       markActionComplete();
     } finally {
       setLoading(false);
@@ -93,14 +119,18 @@ const ActionControl: FC<ActionControlProps> = (props) => {
   const changeDataDirectory = async () => {
     setLoading(true);
     try {
-      const selected = await open({
-        directory: true,
-        multiple: false,
-        title: t("preferences:storageLocation.pickTitle"),
+      const selected = await runWithKeepalive("change-data-directory", () => {
+        return open({
+          directory: true,
+          multiple: false,
+          title: t("preferences:storageLocation.pickTitle"),
+        });
       });
       if (!selected || Array.isArray(selected)) return;
 
-      const result = await changeStorageLocation(selected);
+      const result = await runWithKeepalive("change-data-directory", () => {
+        return changeStorageLocation(selected);
+      });
       markActionComplete(result);
     } finally {
       setLoading(false);
@@ -110,7 +140,10 @@ const ActionControl: FC<ActionControlProps> = (props) => {
   const resetDataDirectory = async () => {
     setLoading(true);
     try {
-      const result = await resetStorageLocation();
+      const result = await runWithKeepalive(
+        "reset-data-directory",
+        resetStorageLocation,
+      );
       markActionComplete(result);
     } finally {
       setLoading(false);
@@ -166,10 +199,25 @@ const ActionControl: FC<ActionControlProps> = (props) => {
   const openGroupManager = async () => {
     setLoading(true);
     try {
-      const groups = await listClipboardGroups();
+      const groups = await runWithKeepalive(
+        "open-group-manager",
+        listClipboardGroups,
+      );
 
       setGroupManagerGroups(groups);
       setGroupManagerOpen(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const openWindowLifecycleDiagnostics = async () => {
+    setLoading(true);
+    try {
+      const snapshot = await getWindowLifecycleSnapshot();
+
+      setLifecycleSnapshot(snapshot);
+      setLifecycleModalOpen(true);
     } finally {
       setLoading(false);
     }
@@ -181,22 +229,26 @@ const ActionControl: FC<ActionControlProps> = (props) => {
   const pickImportBackup = async () => {
     setLoading(true);
     try {
-      const selected = await open({
-        directory: false,
-        filters: [
-          {
-            extensions: [BACKUP_EXTENSION],
-            name: t("preferences:backup.fileFilter"),
-          },
-        ],
-        multiple: false,
-        title: t("preferences:backup.import.pickTitle"),
+      const selected = await runWithKeepalive("pick-import-backup", () => {
+        return open({
+          directory: false,
+          filters: [
+            {
+              extensions: [BACKUP_EXTENSION],
+              name: t("preferences:backup.fileFilter"),
+            },
+          ],
+          multiple: false,
+          title: t("preferences:backup.import.pickTitle"),
+        });
       });
       if (!selected || Array.isArray(selected)) return;
 
-      await inspectHistoryBackup({
-        path: selected,
-        source: "openFile",
+      await runWithKeepalive("inspect-import-backup", () => {
+        return inspectHistoryBackup({
+          path: selected,
+          source: "openFile",
+        });
       });
     } catch (error) {
       log.warn("pick backup import file failed", error);
@@ -211,6 +263,10 @@ const ActionControl: FC<ActionControlProps> = (props) => {
 
   const closeGroupManager = () => {
     setGroupManagerOpen(false);
+  };
+
+  const closeLifecycleModal = () => {
+    setLifecycleModalOpen(false);
   };
 
   const handleBackupExported = (result: ExportHistoryBackupResult) => {
@@ -246,7 +302,9 @@ const ActionControl: FC<ActionControlProps> = (props) => {
     }
 
     if (setting.id === LOG_DIRECTORY_SETTING_ID) {
-      await openPreferenceDirectory("logs");
+      await runWithKeepalive("open-log-directory", () => {
+        return openPreferenceDirectory("logs");
+      });
       markActionComplete();
       return;
     }
@@ -258,13 +316,20 @@ const ActionControl: FC<ActionControlProps> = (props) => {
 
     if (setting.id === RESET_PREFERENCES_SETTING_ID) {
       confirmResetPreferences();
+      return;
+    }
+
+    if (setting.id === WINDOW_LIFECYCLE_SETTING_ID) {
+      await openWindowLifecycleDiagnostics();
     }
   };
 
   const openDataDirectory = async () => {
     setLoading(true);
     try {
-      await openPreferenceDirectory("data");
+      await runWithKeepalive("open-data-directory", () => {
+        return openPreferenceDirectory("data");
+      });
       markActionComplete();
     } finally {
       setLoading(false);
@@ -340,8 +405,115 @@ const ActionControl: FC<ActionControlProps> = (props) => {
           open={groupManagerOpen}
         />
       ) : null}
+
+      {setting.id === WINDOW_LIFECYCLE_SETTING_ID ? (
+        <Modal
+          footer={null}
+          onCancel={closeLifecycleModal}
+          open={lifecycleModalOpen}
+          title={t(
+            "preferences:schema.settings.diagnostics.windowLifecycle.modalTitle",
+          )}
+        >
+          <WindowLifecycleSnapshotTable rows={lifecycleSnapshot} />
+        </Modal>
+      ) : null}
     </>
   );
 };
 
 export default ActionControl;
+
+interface WindowLifecycleSnapshotTableProps {
+  rows: WindowLifecycleSnapshot[];
+}
+
+/**
+ * 渲染窗口生命周期调试快照。
+ */
+const WindowLifecycleSnapshotTable: FC<WindowLifecycleSnapshotTableProps> = (
+  props,
+) => {
+  const { t } = useTranslation("preferences");
+  const { rows } = props;
+
+  if (rows.length === 0) {
+    return (
+      <div className="py-6 text-center text-ant-secondary text-sm">
+        {t("schema.settings.diagnostics.windowLifecycle.empty")}
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-h-100 overflow-auto">
+      <table className="w-full table-fixed border-collapse text-xs">
+        <thead className="text-ant-secondary">
+          <tr className="border-ant-split border-b">
+            <th className="w-22 py-2 pr-2 text-left font-medium">
+              {t("schema.settings.diagnostics.windowLifecycle.columns.label")}
+            </th>
+            <th className="w-25 py-2 pr-2 text-left font-medium">
+              {t("schema.settings.diagnostics.windowLifecycle.columns.phase")}
+            </th>
+            <th className="w-14 py-2 pr-2 text-left font-medium">
+              {t(
+                "schema.settings.diagnostics.windowLifecycle.columns.generation",
+              )}
+            </th>
+            <th className="w-16 py-2 pr-2 text-left font-medium">
+              {t("schema.settings.diagnostics.windowLifecycle.columns.locks")}
+            </th>
+            <th className="py-2 text-left font-medium">
+              {t("schema.settings.diagnostics.windowLifecycle.columns.timing")}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => {
+            return (
+              <tr
+                className="border-ant-split border-b last:border-b-0"
+                key={row.label}
+              >
+                <td className="truncate py-2 pr-2 text-ant-text">
+                  {row.label}
+                </td>
+                <td className="truncate py-2 pr-2 text-ant-secondary">
+                  {row.phase}
+                </td>
+                <td className="py-2 pr-2 text-ant-secondary">
+                  {row.generation}
+                </td>
+                <td className="py-2 pr-2 text-ant-secondary">
+                  {row.dirtyOwnerCount}/{row.keepaliveCount}
+                </td>
+                <td className="truncate py-2 text-ant-secondary">
+                  {formatLifecycleTiming(t, row)}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+/**
+ * 格式化生命周期调试时间信息。
+ */
+function formatLifecycleTiming(
+  t: TFunction<"preferences">,
+  row: WindowLifecycleSnapshot,
+) {
+  if (row.hiddenForMs !== null) {
+    return t("schema.settings.diagnostics.windowLifecycle.hiddenFor", {
+      seconds: Math.round(row.hiddenForMs / 1000),
+    });
+  }
+
+  return t("schema.settings.diagnostics.windowLifecycle.lastActive", {
+    seconds: Math.round(row.lastActiveAgoMs / 1000),
+  });
+}

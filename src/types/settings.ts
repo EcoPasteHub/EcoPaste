@@ -141,6 +141,8 @@ export interface Window {
   position: WindowPosition;
   scrollToTopOnOpen: boolean;
   selectAllGroupOnOpen: boolean;
+  lightweightMode: boolean;
+  idleDestroySeconds: number;
   alwaysOnTop: boolean;
   allWorkspaces: boolean;
 }

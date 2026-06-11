@@ -4,6 +4,7 @@
  * 不要再裸写命令名字面量或在调用处引用这个表。
  */
 export const TAURI_COMMAND = {
+  ACQUIRE_WINDOW_KEEPALIVE: "acquire_window_keepalive",
   ADD_CLIPBOARD_APP_FROM_PATH: "add_clipboard_app_from_path",
   CHANGE_STORAGE_LOCATION: "change_storage_location",
   CLEAN_RESOURCE_CACHE: "clean_resource_cache",
@@ -24,6 +25,7 @@ export const TAURI_COMMAND = {
   GET_SETTINGS: "get_settings",
   GET_STORAGE_LOCATION: "get_storage_location",
   GET_STORAGE_USAGE: "get_storage_usage",
+  GET_WINDOW_LIFECYCLE_SNAPSHOT: "get_window_lifecycle_snapshot",
   HIDE_CONTEXT_MENUS: "hide_context_menus",
   HIDE_CONTEXT_SUBMENU: "hide_context_submenu",
   HIDE_WINDOW: "hide_window",
@@ -42,6 +44,7 @@ export const TAURI_COMMAND = {
   PASTE_CLIPBOARD_ITEM: "paste_clipboard_item",
   PLAY_COPY_SOUND: "play_copy_sound",
   POPUP_CLIPBOARD_ITEM_MENU: "popup_clipboard_item_menu",
+  RELEASE_WINDOW_KEEPALIVE: "release_window_keepalive",
   RESET_SETTINGS: "reset_settings",
   RESET_STORAGE_LOCATION: "reset_storage_location",
   RESUME_GLOBAL_SHORTCUTS: "resume_global_shortcuts",
@@ -49,6 +52,7 @@ export const TAURI_COMMAND = {
   SET_AUTOSTART: "set_autostart",
   SET_MAIN_WINDOW_AUTO_HIDE_SUSPENDED: "set_main_window_auto_hide_suspended",
   SET_MAIN_WINDOW_PINNED: "set_main_window_pinned",
+  SET_WINDOW_DIRTY: "set_window_dirty",
   SHOW_CLIPBOARD_PREVIEW: "show_clipboard_preview",
   SHOW_CONTEXT_SUBMENU: "show_context_submenu",
   SHOW_TASKBAR_ICON: "show_taskbar_icon",

@@ -220,6 +220,27 @@ export interface BackupReceivedPayload {
   mode: BackupContainerMode;
 }
 
+export type WindowLifecyclePhase =
+  | "created"
+  | "ready"
+  | "visible"
+  | "hiddenWarm"
+  | "dormant"
+  | "destroyPending"
+  | "destroyed";
+
+export interface WindowLifecycleSnapshot {
+  label: string;
+  phase: WindowLifecyclePhase;
+  generation: number;
+  visible: boolean;
+  retainPolicy: "permanent" | "destroyWhenIdle";
+  dirtyOwnerCount: number;
+  keepaliveCount: number;
+  hiddenForMs: number | null;
+  lastActiveAgoMs: number;
+}
+
 /**
  * 把任意 invoke reject 的值归一化成前端可展示的 `AppError`。
  */
@@ -967,6 +988,75 @@ export const notifyWindowReady = async (label: string) => {
     await invoke<void>(TAURI_COMMAND.NOTIFY_WINDOW_READY, { label });
   } catch (error) {
     log.error("notify window ready failed", toAppError(error));
+  }
+};
+
+/**
+ * 标记窗口是否存在未保存草稿；任一 owner 未清除时 Rust 会延后 idle destroy。
+ */
+export const setWindowDirty = async (
+  label: string,
+  owner: string,
+  dirty: boolean,
+) => {
+  try {
+    await invoke<void>(TAURI_COMMAND.SET_WINDOW_DIRTY, {
+      dirty,
+      label,
+      owner,
+    });
+  } catch (error) {
+    log.error("set window dirty failed", toAppError(error));
+  }
+};
+
+/**
+ * 申请窗口短期保活租约；用于原生对话框或长任务进行中避免被 idle destroy。
+ */
+export const acquireWindowKeepalive = async (
+  label: string,
+  owner: string,
+  reason: string,
+  timeoutMs?: number,
+) => {
+  try {
+    await invoke<void>(TAURI_COMMAND.ACQUIRE_WINDOW_KEEPALIVE, {
+      label,
+      owner,
+      reason,
+      timeoutMs,
+    });
+  } catch (error) {
+    log.error("acquire window keepalive failed", toAppError(error));
+  }
+};
+
+/**
+ * 释放窗口保活租约。
+ */
+export const releaseWindowKeepalive = async (label: string, owner: string) => {
+  try {
+    await invoke<void>(TAURI_COMMAND.RELEASE_WINDOW_KEEPALIVE, {
+      label,
+      owner,
+    });
+  } catch (error) {
+    log.error("release window keepalive failed", toAppError(error));
+  }
+};
+
+/**
+ * 读取窗口生命周期调试快照。
+ */
+export const getWindowLifecycleSnapshot = async () => {
+  try {
+    return await invoke<WindowLifecycleSnapshot[]>(
+      TAURI_COMMAND.GET_WINDOW_LIFECYCLE_SNAPSHOT,
+    );
+  } catch (error) {
+    log.error("get window lifecycle snapshot failed", toAppError(error));
+
+    return [];
   }
 };
 

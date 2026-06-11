@@ -65,7 +65,8 @@
       "items": "items",
       "lines": "lines",
       "mb": "MB",
-      "px": "px"
+      "px": "px",
+      "seconds": "seconds"
     },
     "retentionUnits": {
       "days": "Days",
@@ -318,6 +319,22 @@
           "controlLabel": "Reset",
           "description": "Restore all preference defaults while keeping history records.",
           "title": "Reset All Preferences"
+        },
+        "windowLifecycle": {
+          "columns": {
+            "generation": "Gen",
+            "label": "Window",
+            "locks": "Locks",
+            "phase": "Phase",
+            "timing": "Timing"
+          },
+          "controlLabel": "View",
+          "description": "Inspect window lifecycle, destroy protection, and lightweight-mode state for troubleshooting hidden-window resource usage.",
+          "empty": "No window lifecycle data yet",
+          "hiddenFor": "Hidden for {{seconds}}s",
+          "lastActive": "Active {{seconds}}s ago",
+          "modalTitle": "Window Lifecycle",
+          "title": "Window Lifecycle"
         }
       },
       "external": {
@@ -499,6 +516,14 @@
         }
       },
       "window": {
+        "idleDestroySeconds": {
+          "description": "Release secondary WebViews such as preferences, preview, and context menus after they have been hidden for this long; they rebuild automatically next time.",
+          "title": "Secondary Window Idle Release"
+        },
+        "lightweightMode": {
+          "description": "Pause unnecessary refresh work after the main window hides, and release secondary rendering resources after they become idle.",
+          "title": "Lightweight Mode"
+        },
         "position": {
           "description": "Choose where the clipboard main window opens each time.",
           "options": {
