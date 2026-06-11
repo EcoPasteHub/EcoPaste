@@ -62,8 +62,8 @@ pub enum LifecyclePhase {
 /// 单个窗口的运行时生命周期状态。
 struct RuntimeState {
     phase: LifecyclePhase,
-    /// 单调递增代次：每次进入 `Visible` 自增。空闲销毁计时器捕获进入 `HiddenWarm` 时的
-    /// 代次，到点若代次已变（窗口期间被重新显示过），说明计时器已过期，直接放弃销毁。
+    /// 单调递增代次：每次从非可见状态进入 `Visible` 自增。空闲销毁计时器捕获进入
+    /// `HiddenWarm` 时的代次，到点若代次已变，说明计时器已过期，直接放弃销毁。
     generation: u64,
     hidden_at: Option<Instant>,
     last_active_at: Instant,
@@ -96,6 +96,30 @@ impl RuntimeState {
             last_active_at: now,
             phase: LifecyclePhase::Created,
         }
+    }
+
+    /// 应用一次生命周期阶段转换，并维护计时器判定所需的派生状态。
+    fn transition_phase(&mut self, phase: LifecyclePhase, now: Instant) {
+        let previous = self.phase;
+
+        if matches!(phase, LifecyclePhase::Visible) && previous != LifecyclePhase::Visible {
+            self.generation += 1;
+            self.hidden_at = None;
+            self.last_active_at = now;
+        }
+
+        if matches!(phase, LifecyclePhase::HiddenWarm) && previous != LifecyclePhase::HiddenWarm {
+            self.hidden_at = Some(now);
+            self.last_active_at = now;
+        }
+
+        if matches!(phase, LifecyclePhase::Destroyed) {
+            self.hidden_at = None;
+            self.dirty_owners.clear();
+            self.keepalive_leases.clear();
+        }
+
+        self.phase = phase;
     }
 
     /// 清理过期 keepalive，返回仍然有效的数量。
@@ -199,26 +223,7 @@ impl WindowLifecycleManager {
             let previous = entry.phase;
             let now = Instant::now();
 
-            // 每次进入 Visible 开启新代次，使尚未触发的旧销毁计时器失效。
-            if matches!(phase, LifecyclePhase::Visible) {
-                entry.generation += 1;
-                entry.hidden_at = None;
-                entry.last_active_at = now;
-            }
-
-            if matches!(phase, LifecyclePhase::HiddenWarm) && previous != LifecyclePhase::HiddenWarm
-            {
-                entry.hidden_at = Some(now);
-                entry.last_active_at = now;
-            }
-
-            if matches!(phase, LifecyclePhase::Destroyed) {
-                entry.hidden_at = None;
-                entry.dirty_owners.clear();
-                entry.keepalive_leases.clear();
-            }
-
-            entry.phase = phase;
+            entry.transition_phase(phase, now);
 
             (previous, entry.generation)
         });
@@ -738,6 +743,22 @@ mod tests {
 
         assert!(!state.destroy_blocked());
         assert!(state.keepalive_leases.is_empty());
+    }
+
+    #[test]
+    fn repeated_visible_transition_keeps_generation() {
+        let mut state = RuntimeState::new();
+        let now = Instant::now();
+
+        state.transition_phase(LifecyclePhase::Visible, now);
+        state.transition_phase(LifecyclePhase::Visible, now + Duration::from_secs(1));
+
+        assert_eq!(state.generation, 1);
+
+        state.transition_phase(LifecyclePhase::HiddenWarm, now + Duration::from_secs(2));
+        state.transition_phase(LifecyclePhase::Visible, now + Duration::from_secs(3));
+
+        assert_eq!(state.generation, 2);
     }
 
     #[test]

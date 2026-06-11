@@ -322,9 +322,9 @@
         },
         "windowLifecycle": {
           "columns": {
-            "generation": "打开次数",
+            "generation": "可见代次",
             "label": "窗口",
-            "locks": "保护",
+            "locks": "销毁保护",
             "phase": "阶段",
             "timing": "时间"
           },
@@ -338,9 +338,10 @@
             "seconds": "{{count}} 秒"
           },
           "empty": "暂无窗口生命周期数据",
-          "generationHint": "窗口每次打开到可见状态时加 1，用来让隐藏和销毁定时器跳过过期检查。",
+          "generationHint": "从非可见变为可见时加 1；重复显示已可见窗口不增加。",
           "hiddenFor": "已隐藏 {{duration}}",
           "lastActive": "最近活跃 {{duration}}前",
+          "locksHint": "格式为脏状态/保活租约；任一不为 0 时会暂缓销毁。",
           "modalTitle": "窗口生命周期",
           "phases": {
             "created": "已创建",

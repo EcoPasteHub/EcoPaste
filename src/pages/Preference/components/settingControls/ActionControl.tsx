@@ -1,6 +1,7 @@
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { open } from "@tauri-apps/plugin-dialog";
-import { Button, Modal, Space, Tooltip } from "antd";
+import type { TableColumnsType, TableProps } from "antd";
+import { Button, Modal, Space, Table, Tooltip } from "antd";
 import type { TFunction } from "i18next";
 import type { FC } from "react";
 import { useState } from "react";
@@ -437,7 +438,6 @@ const ActionControl: FC<ActionControlProps> = (props) => {
 
       {setting.id === WINDOW_LIFECYCLE_SETTING_ID ? (
         <Modal
-          className="w-184!"
           footer={null}
           onCancel={closeLifecycleModal}
           open={lifecycleModalOpen}
@@ -466,79 +466,90 @@ const WindowLifecycleSnapshotTable: FC<WindowLifecycleSnapshotTableProps> = (
 ) => {
   const { t } = useTranslation("preferences");
   const { rows } = props;
-
-  if (rows.length === 0) {
-    return (
-      <div className="py-6 text-center text-ant-secondary text-sm">
-        {t("schema.settings.diagnostics.windowLifecycle.empty")}
-      </div>
-    );
-  }
+  const columns: TableColumnsType<WindowLifecycleSnapshot> = [
+    {
+      dataIndex: "label",
+      ellipsis: true,
+      key: "label",
+      render: (_value, row) => {
+        return formatLifecycleWindowLabel(t, row.label);
+      },
+      title: t("schema.settings.diagnostics.windowLifecycle.columns.label"),
+    },
+    {
+      dataIndex: "phase",
+      ellipsis: true,
+      key: "phase",
+      render: (_value, row) => {
+        return formatLifecyclePhase(t, row.phase);
+      },
+      title: t("schema.settings.diagnostics.windowLifecycle.columns.phase"),
+    },
+    {
+      dataIndex: "generation",
+      key: "generation",
+      title: (
+        <span className="inline-flex items-center gap-1 whitespace-nowrap">
+          {t("schema.settings.diagnostics.windowLifecycle.columns.generation")}
+          <Tooltip
+            title={t(
+              "schema.settings.diagnostics.windowLifecycle.generationHint",
+            )}
+          >
+            <i
+              aria-hidden="true"
+              className="i-lucide:circle-help shrink-0 text-ant-tertiary"
+            />
+          </Tooltip>
+        </span>
+      ),
+    },
+    {
+      key: "locks",
+      render: (_value, row) => {
+        return `${row.dirtyOwnerCount}/${row.keepaliveCount}`;
+      },
+      title: (
+        <span className="inline-flex items-center gap-1 whitespace-nowrap">
+          {t("schema.settings.diagnostics.windowLifecycle.columns.locks")}
+          <Tooltip
+            title={t("schema.settings.diagnostics.windowLifecycle.locksHint")}
+          >
+            <i
+              aria-hidden="true"
+              className="i-lucide:circle-help shrink-0 text-ant-tertiary"
+            />
+          </Tooltip>
+        </span>
+      ),
+    },
+    {
+      ellipsis: true,
+      key: "timing",
+      render: (_value, row) => {
+        return formatLifecycleTiming(t, row);
+      },
+      title: t("schema.settings.diagnostics.windowLifecycle.columns.timing"),
+    },
+  ];
+  const tableLocale = {
+    emptyText: t("schema.settings.diagnostics.windowLifecycle.empty"),
+  } satisfies TableProps<WindowLifecycleSnapshot>["locale"];
+  const tableScroll = {
+    x: "max-content",
+  } satisfies TableProps<WindowLifecycleSnapshot>["scroll"];
 
   return (
-    <div className="max-h-100 overflow-auto">
-      <table className="w-full table-fixed border-collapse text-xs">
-        <thead className="text-ant-secondary">
-          <tr className="border-ant-split border-b">
-            <th className="w-22 py-2 pr-2 text-left font-medium">
-              {t("schema.settings.diagnostics.windowLifecycle.columns.label")}
-            </th>
-            <th className="w-25 py-2 pr-2 text-left font-medium">
-              {t("schema.settings.diagnostics.windowLifecycle.columns.phase")}
-            </th>
-            <th className="w-24 whitespace-nowrap py-2 pr-2 text-left font-medium">
-              <span className="inline-flex items-center gap-1 whitespace-nowrap">
-                {t(
-                  "schema.settings.diagnostics.windowLifecycle.columns.generation",
-                )}
-                <Tooltip
-                  title={t(
-                    "schema.settings.diagnostics.windowLifecycle.generationHint",
-                  )}
-                >
-                  <i
-                    aria-hidden="true"
-                    className="i-lucide:circle-help shrink-0 text-ant-tertiary"
-                  />
-                </Tooltip>
-              </span>
-            </th>
-            <th className="w-16 py-2 pr-2 text-left font-medium">
-              {t("schema.settings.diagnostics.windowLifecycle.columns.locks")}
-            </th>
-            <th className="py-2 text-left font-medium">
-              {t("schema.settings.diagnostics.windowLifecycle.columns.timing")}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => {
-            return (
-              <tr
-                className="border-ant-split border-b last:border-b-0"
-                key={row.label}
-              >
-                <td className="truncate py-2 pr-2 text-ant-text">
-                  {formatLifecycleWindowLabel(t, row.label)}
-                </td>
-                <td className="truncate py-2 pr-2 text-ant-secondary">
-                  {formatLifecyclePhase(t, row.phase)}
-                </td>
-                <td className="py-2 pr-2 text-ant-secondary">
-                  {row.generation}
-                </td>
-                <td className="py-2 pr-2 text-ant-secondary">
-                  {row.dirtyOwnerCount}/{row.keepaliveCount}
-                </td>
-                <td className="truncate py-2 text-ant-secondary">
-                  {formatLifecycleTiming(t, row)}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
+    <Table
+      bordered
+      columns={columns}
+      dataSource={rows}
+      locale={tableLocale}
+      pagination={false}
+      rowKey="label"
+      scroll={tableScroll}
+      size="small"
+    />
   );
 };
 

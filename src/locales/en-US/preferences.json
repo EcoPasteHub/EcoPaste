@@ -322,9 +322,9 @@
         },
         "windowLifecycle": {
           "columns": {
-            "generation": "Open count",
+            "generation": "Visible generation",
             "label": "Window",
-            "locks": "Locks",
+            "locks": "Destroy guards",
             "phase": "Phase",
             "timing": "Timing"
           },
@@ -338,9 +338,10 @@
             "seconds": "{{count}}s"
           },
           "empty": "No window lifecycle data yet",
-          "generationHint": "Increases each time the window opens into a visible state, so hide and destroy timers can skip stale checks.",
+          "generationHint": "Adds 1 when moving from non-visible to visible; re-showing an already visible window does not add.",
           "hiddenFor": "Hidden for {{duration}}",
           "lastActive": "Active {{duration}} ago",
+          "locksHint": "Shown as dirty owners / keepalive leases; any nonzero value delays destroy.",
           "modalTitle": "Window Lifecycle",
           "phases": {
             "created": "Created",
