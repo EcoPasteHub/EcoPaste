@@ -60,6 +60,10 @@ interface OverflowGroupMenuLabelProps {
   record: ClipboardGroupRecord;
 }
 
+interface GroupSeparatorProps {
+  separatorRef?: RefObject<HTMLSpanElement | null>;
+}
+
 const RANGE_GROUP_OPTIONS: RangeGroupOption[] = [
   { icon: "i-lets-icons:widget", labelKey: "groups.all", value: "all" },
   {
@@ -97,6 +101,7 @@ const GROUP_BUTTON_BASE_CLASS =
 const GROUP_ICON_BUTTON_CLASS = GROUP_BUTTON_BASE_CLASS;
 const GROUP_BUTTON_WIDTH = 24;
 const GROUP_BUTTON_GAP = 4;
+const GROUP_SEPARATOR_MARGIN = 4;
 
 /**
  * Header 下方的分组筛选栏：内置类型分组 + 自定义分组入口。
@@ -115,7 +120,7 @@ const Group: FC = () => {
     null,
   );
   const toolbarRef = useRef<HTMLDivElement>(null);
-  const customGroupListRef = useRef<HTMLDivElement>(null);
+  const customGroupAnchorRef = useRef<HTMLSpanElement>(null);
   const contextGroupRef = useRef<ClipboardGroupRecord | null>(null);
   const deleteGroupRef = useRef<ClipboardGroupRecord | null>(null);
 
@@ -139,7 +144,7 @@ const Group: FC = () => {
     setCustomGroups(groups);
     scheduleVisibleCustomGroupCountUpdate(
       toolbarRef,
-      customGroupListRef,
+      customGroupAnchorRef,
       setVisibleCustomGroupCount,
       groups.filter((record) => {
         return !record.isHidden;
@@ -169,13 +174,13 @@ const Group: FC = () => {
    */
   useEffect(() => {
     const toolbar = toolbarRef.current;
-    const customList = customGroupListRef.current;
-    if (!toolbar || !customList) return;
+    const customAnchor = customGroupAnchorRef.current;
+    if (!toolbar || !customAnchor) return;
 
     const updateVisibleCustomGroupCount = () => {
       commitVisibleCustomGroupCount(
         toolbar,
-        customList,
+        customAnchor,
         setVisibleCustomGroupCount,
         visibleCustomGroups.length,
       );
@@ -630,41 +635,44 @@ const Group: FC = () => {
         {RANGE_GROUP_OPTIONS.map(renderRangeButton)}
         <GroupSeparator />
         {CATEGORY_GROUP_OPTIONS.map(renderCategoryButton)}
-        <GroupSeparator />
+        <GroupSeparator separatorRef={customGroupAnchorRef} />
 
-        <div
-          className="flex min-w-0 shrink-0 items-center gap-1 overflow-hidden"
-          ref={customGroupListRef}
-        >
-          {inlineCustomGroups.map((record) => {
-            const selected = groupId === record.id;
+        {inlineCustomGroups.length > 0 && (
+          <div className="flex min-w-0 shrink-0 items-center gap-1 overflow-hidden">
+            {inlineCustomGroups.map((record) => {
+              const selected = groupId === record.id;
 
-            return (
-              <Dropdown
-                key={record.id}
-                menu={{
-                  items: groupMenuItems,
-                  onClick: handleGroupMenuClick,
-                }}
-                tooltip={record.name}
-                trigger={["contextMenu"]}
-              >
-                <button
-                  className={cn(GROUP_ICON_BUTTON_CLASS, {
-                    "bg-ant-primary text-ant-light-solid": selected,
-                    "text-ant-secondary hover:bg-ant-fill-tertiary": !selected,
-                  })}
-                  data-group-id={record.id}
-                  onClick={handleGroupClick}
-                  onContextMenu={handleCustomGroupContextMenu}
-                  type="button"
+              return (
+                <Dropdown
+                  key={record.id}
+                  menu={{
+                    items: groupMenuItems,
+                    onClick: handleGroupMenuClick,
+                  }}
+                  tooltip={record.name}
+                  trigger={["contextMenu"]}
                 >
-                  <ClipboardGroupIcon icon={record.icon} selected={selected} />
-                </button>
-              </Dropdown>
-            );
-          })}
-        </div>
+                  <button
+                    className={cn(GROUP_ICON_BUTTON_CLASS, {
+                      "bg-ant-primary text-ant-light-solid": selected,
+                      "text-ant-secondary hover:bg-ant-fill-tertiary":
+                        !selected,
+                    })}
+                    data-group-id={record.id}
+                    onClick={handleGroupClick}
+                    onContextMenu={handleCustomGroupContextMenu}
+                    type="button"
+                  >
+                    <ClipboardGroupIcon
+                      icon={record.icon}
+                      selected={selected}
+                    />
+                  </button>
+                </Dropdown>
+              );
+            })}
+          </div>
+        )}
 
         {renderMoreButton()}
         {renderCreateButton()}
@@ -684,8 +692,16 @@ const Group: FC = () => {
 /**
  * 分隔范围、分类、自定义分组三段。
  */
-const GroupSeparator: FC = () => {
-  return <span aria-hidden className="mx-1 h-4 w-px shrink-0 bg-ant-split" />;
+const GroupSeparator: FC<GroupSeparatorProps> = (props) => {
+  const { separatorRef } = props;
+
+  return (
+    <span
+      aria-hidden
+      className="mx-1 h-4 w-px shrink-0 bg-ant-split"
+      ref={separatorRef}
+    />
+  );
 };
 
 /**
@@ -724,14 +740,14 @@ const OverflowGroupMenuLabel: FC<OverflowGroupMenuLabelProps> = (props) => {
  */
 function scheduleVisibleCustomGroupCountUpdate(
   toolbarRef: RefObject<HTMLDivElement | null>,
-  groupListRef: RefObject<HTMLDivElement | null>,
+  customAnchorRef: RefObject<HTMLSpanElement | null>,
   setVisibleCustomGroupCount: Dispatch<SetStateAction<number>>,
   groupCount: number,
 ) {
   requestAnimationFrame(() => {
     commitVisibleCustomGroupCount(
       toolbarRef.current,
-      groupListRef.current,
+      customAnchorRef.current,
       setVisibleCustomGroupCount,
       groupCount,
     );
@@ -743,13 +759,13 @@ function scheduleVisibleCustomGroupCountUpdate(
  */
 function commitVisibleCustomGroupCount(
   toolbar: HTMLDivElement | null,
-  customList: HTMLDivElement | null,
+  customAnchor: HTMLSpanElement | null,
   setVisibleCustomGroupCount: Dispatch<SetStateAction<number>>,
   groupCount: number,
 ) {
   const rawCapacity =
-    toolbar && customList
-      ? computeCustomGroupCapacity(toolbar, customList)
+    toolbar && customAnchor
+      ? computeCustomGroupCapacity(toolbar, customAnchor)
       : groupCount;
   const visibleCount = Math.min(groupCount, rawCapacity);
 
@@ -765,11 +781,15 @@ function commitVisibleCustomGroupCount(
  */
 function computeCustomGroupCapacity(
   toolbar: HTMLDivElement,
-  customList: HTMLDivElement,
+  customAnchor: HTMLSpanElement,
 ) {
   const toolbarRect = toolbar.getBoundingClientRect();
-  const customRect = customList.getBoundingClientRect();
-  const customStart = customRect.left - toolbarRect.left;
+  const customRect = customAnchor.getBoundingClientRect();
+  const customStart =
+    customRect.right -
+    toolbarRect.left +
+    GROUP_SEPARATOR_MARGIN +
+    GROUP_BUTTON_GAP;
   const actionSlotWidth = GROUP_BUTTON_GAP + GROUP_BUTTON_WIDTH;
   const availableWidth = Math.max(
     0,
