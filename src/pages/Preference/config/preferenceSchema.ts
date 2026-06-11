@@ -1,5 +1,6 @@
 import { CAPTURE_KIND_OPTIONS } from "@/constants/captureKinds";
 import { ITEM_ACTION_OPTIONS } from "@/constants/itemActions";
+import type { Settings } from "@/types/settings";
 import { isWin } from "@/utils/is";
 import type { PreferenceTab } from "../types/preferences";
 
@@ -681,7 +682,7 @@ export const preferenceTabs: PreferenceTab[] = [
                     "super",
                   ],
                   path: ["shortcuts", "winV"] as const,
-                  value: (settings) => {
+                  value: (settings: Settings) => {
                     return settings.shortcuts.winV;
                   },
                 },
