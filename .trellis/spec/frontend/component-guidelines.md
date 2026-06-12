@@ -51,6 +51,23 @@ className={cn("rounded-2 border border-ant-border-secondary", {
 Do not concatenate class strings manually or add arbitrary pixel utilities when
 Wind4 numeric spacing works.
 
+## Virtualized Scrollbars
+
+Use `src/components/VirtuosoScroller` when wiring OverlayScrollbars into
+`react-virtuoso`. The wrapper owns the OverlayScrollbars root and passes its
+`scrollerRef` render-prop result directly to `Virtuoso`, so Virtuoso keeps its
+native scroll viewport for range calculation, programmatic scroll, and keyboard
+navigation.
+
+The default virtual-list scrollbar behavior should use OverlayScrollbars'
+`scrollbars.autoHide: "move"` option: hidden at rest, visible while the pointer
+moves over the list, and hidden again when the pointer leaves or stops moving.
+
+Keep ordinary non-virtual scroll containers separate from this component. Add a
+plain scroll-area component only when a real non-virtual call site is being
+converted, instead of stretching `VirtuosoScroller` across incompatible scroll
+contracts.
+
 ## HTML Safety
 
 Any clipboard HTML rendered into the DOM must go through

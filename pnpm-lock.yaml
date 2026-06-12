@@ -38,6 +38,12 @@ importers:
       motion:
         specifier: ^12.40.0
         version: 12.40.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      overlayscrollbars:
+        specifier: ^2.16.0
+        version: 2.16.0
+      overlayscrollbars-react:
+        specifier: ^0.5.6
+        version: 0.5.6(overlayscrollbars@2.16.0)(react@19.2.6)
       react:
         specifier: ^19.2.6
         version: 19.2.6
@@ -2435,6 +2441,15 @@ packages:
   onetime@7.0.0:
     resolution: {integrity: sha512-VXJjc87FScF88uafS3JllDgvAm+c/Slfz06lorj2uAY34rlUu0Nt+v8wreiImcrgAjjIHp1rXpTDlLOGw29WwQ==}
     engines: {node: '>=18'}
+
+  overlayscrollbars-react@0.5.6:
+    resolution: {integrity: sha512-E5To04bL5brn9GVCZ36SnfGanxa2I2MDkWoa4Cjo5wol7l+diAgi4DBc983V7l2nOk/OLJ6Feg4kySspQEGDBw==}
+    peerDependencies:
+      overlayscrollbars: ^2.0.0
+      react: '>=16.8.0'
+
+  overlayscrollbars@2.16.0:
+    resolution: {integrity: sha512-N03oje/q7j93D0aLZtoCdsDSYLmhheSsv8H7oSLE7HhdV9P/bmCURtLV/KbPye7P/bpfyt/obSfDpGUYoJ0OWg==}
 
   own-keys@1.0.1:
     resolution: {integrity: sha512-qFOyK5PjiWZd+QQIh+1jhdb9LpxTF0qs7Pm8o5QHYZ0M3vKqSqzsZaEB6oWlxZ+q2sJBMI/Ktgd2N5ZwQoRHfg==}
@@ -5302,6 +5317,13 @@ snapshots:
   onetime@7.0.0:
     dependencies:
       mimic-function: 5.0.1
+
+  overlayscrollbars-react@0.5.6(overlayscrollbars@2.16.0)(react@19.2.6):
+    dependencies:
+      overlayscrollbars: 2.16.0
+      react: 19.2.6
+
+  overlayscrollbars@2.16.0: {}
 
   own-keys@1.0.1:
     dependencies:

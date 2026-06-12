@@ -17,3 +17,9 @@ html {
     }
   }
 }
+
+.os-scrollbar-handle {
+  --os-handle-bg: var(--ant-color-text-quaternary);
+  --os-handle-bg-hover: var(--ant-color-text-tertiary);
+  --os-handle-bg-active: var(--ant-color-text-secondary);
+}

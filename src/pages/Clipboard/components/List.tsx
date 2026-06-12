@@ -26,6 +26,9 @@ import {
   updateClipboardItemGroup,
   writeToClipboard,
 } from "@/commands";
+import VirtuosoScroller, {
+  type VirtuosoScrollerChildrenProps,
+} from "@/components/VirtuosoScroller";
 import { TAURI_EVENT } from "@/constants/events";
 import { buildItemActionLabels } from "@/constants/itemActions";
 import { WINDOW_LABEL } from "@/constants/windows";
@@ -773,16 +776,7 @@ const List: FC = () => {
       onPointerLeave={handlePreviewAreaPointerLeave}
       role="listbox"
     >
-      <Virtuoso
-        atTopStateChange={handleAtTopStateChange}
-        components={{ TopItemList }}
-        computeItemKey={computeItemKey}
-        itemContent={renderItemContent}
-        rangeChanged={handleRangeChanged}
-        ref={virtuosoRef}
-        topItemCount={topItemCount}
-        totalCount={total}
-      />
+      <VirtuosoScroller>{renderVirtuoso}</VirtuosoScroller>
 
       <NoteModal
         item={noteTarget}
@@ -791,6 +785,24 @@ const List: FC = () => {
       />
     </div>
   );
+
+  function renderVirtuoso(props: VirtuosoScrollerChildrenProps) {
+    const { scrollerRef } = props;
+
+    return (
+      <Virtuoso
+        atTopStateChange={handleAtTopStateChange}
+        components={{ TopItemList }}
+        computeItemKey={computeItemKey}
+        itemContent={renderItemContent}
+        rangeChanged={handleRangeChanged}
+        ref={virtuosoRef}
+        scrollerRef={scrollerRef}
+        topItemCount={topItemCount}
+        totalCount={total}
+      />
+    );
+  }
 
   function renderItemContent(index: number) {
     const item = getItem(index);
