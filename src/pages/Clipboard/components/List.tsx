@@ -39,7 +39,6 @@ import type {
   ClipboardAction,
   ClipboardGroupRecord,
   ClipboardItem,
-  ClipboardItemSort,
   ClipboardKind,
   ClipboardRange,
 } from "@/types/clipboard";
@@ -72,7 +71,7 @@ interface ClipboardMenuActionPayload {
 }
 
 /**
- * 剪贴板历史列表：虚拟滚动 + 分类型卡片 + 滚动到底分页加载，
+ * 剪贴板历史列表：虚拟滚动 + 分类型卡片 + 可视范围分页加载，
  * 跟随关键词（Header 已防抖）检索。
  */
 const List: FC = () => {
@@ -88,7 +87,7 @@ const List: FC = () => {
   const closePreviewRef = useRef<(reason: string) => void>(() => {});
   const displaySettingsMountedRef = useRef(false);
   const keywordRef = useRef("");
-  const reloadRef = useRef<() => void>(() => {});
+  const reloadCurrentRangeRef = useRef<() => void>(() => {});
   const deferredReloadRef = useRef(false);
   // 主窗启动即隐藏，初值取 false；首个 `window://visibility` show 事件会翻正。
   // dormant（隐藏）期间到达的剪贴板更新一律延后，不 reload 隐藏窗口。
@@ -112,16 +111,26 @@ const List: FC = () => {
   const quickActionLabels = buildItemActionLabels(t);
   const currentGroupName = getCurrentGroupName(customGroups, groupId);
 
-  const { data, loading, loadingMore, loadMore, noMore, reload, mutate } =
-    useClipboardItems({
-      favorite: range === "favorite" ? true : void 0,
-      groupId: groupId ?? void 0,
-      keyword,
-      kind: category ?? void 0,
-      sort,
-    });
-  const items = data?.list ?? [];
-  const topItemCount = countLeadingPinnedItems(items);
+  const {
+    findItemById,
+    getItem,
+    getItemIndexById,
+    loadRange,
+    loadedInitial,
+    loading,
+    patchItemById,
+    reload,
+    reloadCurrentRange,
+    removeItemById,
+    total,
+  } = useClipboardItems({
+    favorite: range === "favorite" ? true : void 0,
+    groupId: groupId ?? void 0,
+    keyword,
+    kind: category ?? void 0,
+    sort,
+  });
+  const topItemCount = countLeadingPinnedItems(getItem);
   const {
     closeHoverPreviewForScroll,
     closePreview,
@@ -138,12 +147,12 @@ const List: FC = () => {
     onHoverSelect: setSelectedId,
   });
   closePreviewRef.current = closePreview;
-  reloadRef.current = reload;
+  reloadCurrentRangeRef.current = reloadCurrentRange;
 
   // 把 Rust 返回的同过滤下总数同步给 Footer（共享 store），避免 Footer 单独 IPC 计数。
   useEffect(() => {
-    if (data?.total !== void 0) clipboardStatsState.total = data.total;
-  }, [data?.total]);
+    if (loadedInitial) clipboardStatsState.total = total;
+  }, [loadedInitial, total]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: snapshot 作触发器，不需在回调内读取
   useEffect(() => {
@@ -161,7 +170,7 @@ const List: FC = () => {
     }
 
     closePreviewRef.current("displaySettingChange");
-    reloadRef.current();
+    reloadCurrentRangeRef.current();
   }, [fileMaxCount, redactSecrets]);
 
   /**
@@ -289,7 +298,7 @@ const List: FC = () => {
     // 隐藏期间累积的剪贴板更新统一在此补刷一次，确保再次打开时列表准确（无论是否开启打开重置）。
     if (deferredReloadRef.current) {
       deferredReloadRef.current = false;
-      reload();
+      reloadCurrentRange();
     }
 
     const { scrollToTopOnOpen, selectAllGroupOnOpen } =
@@ -320,23 +329,11 @@ const List: FC = () => {
    * 避免整页 reload 打断滚动与选中态。
    */
   const removeItem = (id: string) => {
-    if (!data) return;
-
-    mutate({ ...data, list: data.list.filter((item) => item.id !== id) });
+    removeItemById(id);
   };
 
   const patchItem = (id: string, patch: Partial<ClipboardItem>) => {
-    if (!data) return;
-
-    mutate({
-      ...data,
-      list: sortClipboardItemsForView(
-        data.list.map((item) => {
-          return item.id === id ? { ...item, ...patch } : item;
-        }),
-        sort,
-      ),
-    });
+    patchItemById(id, patch);
   };
 
   /**
@@ -395,18 +392,16 @@ const List: FC = () => {
   };
 
   /**
-   * 读取当前选中项。无显式选中时，列表第一项即键盘 active item。
+   * 读取当前选中项。无显式选中时，优先取当前可视范围第一项。
    */
   function getActiveItem() {
-    if (items.length === 0) return null;
+    if (total === 0) return null;
 
-    if (selectedId === null) return items[0];
+    if (selectedId === null) {
+      return getItem(firstVisibleIndex) ?? getItem(0);
+    }
 
-    return (
-      items.find((item) => {
-        return item.id === selectedId;
-      }) ?? null
-    );
+    return findItemById(selectedId);
   }
 
   /**
@@ -428,9 +423,7 @@ const List: FC = () => {
    * 仅当用户确认且 Rust 删除成功时才同步本地镜像。
    */
   const handleShortcutDelete = async (id: string) => {
-    const target = items.find((item) => {
-      return item.id === id;
-    });
+    const target = findItemById(id);
 
     if (!target || !canDeleteItem(target)) return;
 
@@ -444,7 +437,15 @@ const List: FC = () => {
 
     if (!deleted) return;
 
-    setSelectedId(getSelectedIdAfterDelete(items, selectedId, id));
+    setSelectedId(
+      getSelectedIdAfterDelete(
+        getItem,
+        getItemIndexById,
+        firstVisibleIndex,
+        selectedId,
+        id,
+      ),
+    );
     removeItem(id);
   };
 
@@ -453,9 +454,7 @@ const List: FC = () => {
    * Rust 返回真实状态后走统一的 `handleFavoriteToggled`（favorite 分组内取消会移除）。
    */
   const handleShortcutToggleFavorite = async (id: string) => {
-    const current = items.find((item) => {
-      return item.id === id;
-    });
+    const current = findItemById(id);
 
     if (!current) return;
 
@@ -465,18 +464,17 @@ const List: FC = () => {
   };
 
   /**
-   * 切换条目置顶态；后端排序规则是置顶恒前置，本地镜像同步后按同规则重排。
+   * 切换条目置顶态；置顶影响排序，成功后刷新当前范围以继续信任后端顺序。
    */
   const handleTogglePinned = async (id: string) => {
-    const current = items.find((item) => {
-      return item.id === id;
-    });
+    const current = findItemById(id);
 
     if (!current) return;
 
     const next = await toggleClipboardItemPinned(id, !current.isPinned);
 
     patchItem(id, { isPinned: next });
+    reloadCurrentRange();
   };
 
   /**
@@ -514,7 +512,7 @@ const List: FC = () => {
   >(() => {});
   handleMenuActionRef.current = (payload) => {
     const { action, groupId: targetGroupId, itemId } = payload;
-    const target = items.find((entry) => entry.id === itemId);
+    const target = findItemById(itemId);
 
     if (!target) return;
 
@@ -585,7 +583,7 @@ const List: FC = () => {
       return;
     }
 
-    if (items.length === 0) return;
+    if (total === 0) return;
 
     if (event.key === "Enter") {
       event.preventDefault();
@@ -718,6 +716,7 @@ const List: FC = () => {
   useKeyboardEvent("keyup", handleKeyUp);
 
   const handleRangeChanged = ({
+    endIndex,
     startIndex,
   }: {
     startIndex: number;
@@ -726,10 +725,7 @@ const List: FC = () => {
     setFirstVisibleIndex(startIndex);
 
     closeHoverPreviewForScroll();
-  };
-
-  const handleEndReached = () => {
-    if (!noMore && !loadingMore) loadMore();
+    loadRange(startIndex, endIndex);
   };
 
   const handleAtTopStateChange = (atTop: boolean) => {
@@ -743,19 +739,7 @@ const List: FC = () => {
     reload();
   };
 
-  const renderFooter = () => {
-    if (loadingMore) {
-      return (
-        <div className="flex justify-center py-2">
-          <Spin size="small" />
-        </div>
-      );
-    }
-
-    return null;
-  };
-
-  if (loading && items.length === 0) {
+  if (loading && !loadedInitial) {
     return (
       <div className="flex flex-1 items-center justify-center">
         <Spin />
@@ -763,7 +747,7 @@ const List: FC = () => {
     );
   }
 
-  if (items.length === 0) {
+  if (loadedInitial && total === 0) {
     const description = getEmptyDescription(
       t,
       keyword,
@@ -791,14 +775,13 @@ const List: FC = () => {
     >
       <Virtuoso
         atTopStateChange={handleAtTopStateChange}
-        components={{ Footer: renderFooter, TopItemList }}
+        components={{ TopItemList }}
         computeItemKey={computeItemKey}
-        data={items}
-        endReached={handleEndReached}
         itemContent={renderItemContent}
         rangeChanged={handleRangeChanged}
         ref={virtuosoRef}
         topItemCount={topItemCount}
+        totalCount={total}
       />
 
       <NoteModal
@@ -809,7 +792,10 @@ const List: FC = () => {
     </div>
   );
 
-  function renderItemContent(index: number, item: ClipboardItem) {
+  function renderItemContent(index: number) {
+    const item = getItem(index);
+    if (!item) return renderPlaceholderItem(index);
+
     const handlePointerEnter = (event: ReactPointerEvent<HTMLDivElement>) => {
       handleItemPointerEnter(item, event);
     };
@@ -986,7 +972,9 @@ const List: FC = () => {
           hintKey={hintKey}
           isLinkActive={isModifierPressed}
           isSelected={
-            selectedId === null ? index === 0 : item.id === selectedId
+            selectedId === null
+              ? index === firstVisibleIndex
+              : item.id === selectedId
           }
           item={item}
           onAuxClick={handleAuxClick}
@@ -1007,13 +995,41 @@ const List: FC = () => {
     );
   }
 
+  function renderPlaceholderItem(index: number) {
+    return (
+      <div aria-hidden="true" className={cn("px-3", { "pt-3": index !== 0 })}>
+        <div className="min-h-24 rounded-2 border border-ant-border-secondary bg-ant-fill-quaternary p-2">
+          <div className="flex items-center gap-1 text-ant-secondary text-xs">
+            <span className="size-4 rounded-1 bg-ant-fill-secondary" />
+            <span className="h-3 w-16 rounded-1 bg-ant-fill-secondary" />
+          </div>
+          <div className="mt-3 flex flex-col gap-2">
+            <span className="h-3 w-9/12 rounded-1 bg-ant-fill-secondary" />
+            <span className="h-3 w-6/12 rounded-1 bg-ant-fill-secondary" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   /**
    * 根据方向键计算下一项。
    */
   function getNextKeyboardTarget(event: KeyboardEvent) {
-    const nextIndex = getNextKeyboardIndex(items, selectedId, event.key);
+    const nextIndex = getNextKeyboardIndex(
+      getItemIndexById,
+      firstVisibleIndex,
+      selectedId,
+      total,
+      event.key,
+    );
+    const item = getItem(nextIndex);
+    if (!item) {
+      loadRange(nextIndex, nextIndex);
+      return null;
+    }
 
-    return { index: nextIndex, item: items[nextIndex] };
+    return { index: nextIndex, item };
   }
 
   /**
@@ -1193,25 +1209,21 @@ function getCurrentGroupName(
  * 根据方向键和当前选中 id 计算下一项索引。
  */
 function getNextKeyboardIndex(
-  items: ClipboardItem[],
+  getItemIndexById: (id: string) => number | null,
+  firstVisibleIndex: number,
   selectedId: string | null,
+  total: number,
   key: string,
 ) {
-  const currentIndex =
-    selectedId === null
-      ? 0
-      : Math.max(
-          0,
-          items.findIndex((item) => {
-            return item.id === selectedId;
-          }),
-        );
+  const selectedIndex =
+    selectedId === null ? null : getItemIndexById(selectedId);
+  const currentIndex = selectedIndex ?? firstVisibleIndex;
 
   if (key === "ArrowUp") {
     return Math.max(0, currentIndex - 1);
   }
 
-  return Math.min(items.length - 1, currentIndex + 1);
+  return Math.min(total - 1, currentIndex + 1);
 }
 
 /**
@@ -1265,21 +1277,21 @@ function getAllowedItemActions(
  * 右键删除非 active 项时保留当前显式选中，避免意外跳选。
  */
 function getSelectedIdAfterDelete(
-  items: ClipboardItem[],
+  getItem: (index: number) => ClipboardItem | null,
+  getItemIndexById: (id: string) => number | null,
+  activeFallbackIndex: number,
   selectedId: string | null,
   deletedId: string,
 ) {
-  const deletedIndex = items.findIndex((item) => {
-    return item.id === deletedId;
-  });
+  const deletedIndex = getItemIndexById(deletedId);
+  if (deletedIndex === null) return selectedId;
 
-  if (deletedIndex === -1) return selectedId;
-
-  const activeId = selectedId ?? items[0]?.id ?? null;
+  const activeId =
+    selectedId ?? getItem(activeFallbackIndex)?.id ?? getItem(0)?.id ?? null;
 
   if (activeId !== deletedId) return selectedId;
 
-  const nextItem = items[deletedIndex + 1] ?? items[deletedIndex - 1] ?? null;
+  const nextItem = getItem(deletedIndex + 1) ?? getItem(deletedIndex - 1);
 
   return nextItem?.id ?? null;
 }
@@ -1300,8 +1312,8 @@ function shouldUseNativeCopy(event: KeyboardEvent) {
   return Boolean(selection && !selection.isCollapsed);
 }
 
-const computeItemKey = (_: number, item: ClipboardItem) => {
-  return item.id;
+const computeItemKey = (index: number, item?: ClipboardItem) => {
+  return item?.id ?? `placeholder-${index}`;
 };
 
 /**
@@ -1320,11 +1332,14 @@ const TopItemList: FC<TopItemListProps> = (props) => {
 /**
  * 统计当前已加载页开头连续置顶条目数，供 Virtuoso sticky top items 使用。
  */
-function countLeadingPinnedItems(items: ClipboardItem[]) {
+function countLeadingPinnedItems(
+  getItem: (index: number) => ClipboardItem | null,
+) {
   let count = 0;
 
-  for (const item of items) {
-    if (!item.isPinned) break;
+  while (true) {
+    const item = getItem(count);
+    if (!item?.isPinned) break;
 
     count += 1;
   }
@@ -1347,28 +1362,6 @@ function shouldRefreshCurrentGroup(
   if (kind === void 0) return false;
 
   return category === kind;
-}
-
-/**
- * 按 Rust 查询层同款规则重排本地镜像：置顶恒前置，组内按当前 sort 下降。
- */
-function sortClipboardItemsForView(
-  items: ClipboardItem[],
-  sort: ClipboardItemSort,
-) {
-  return [...items].sort((left, right) => {
-    if (left.isPinned !== right.isPinned) {
-      return left.isPinned ? -1 : 1;
-    }
-
-    if (sort === "useCountDesc") {
-      return right.useCount - left.useCount;
-    }
-
-    const key = sort === "createdAtDesc" ? "createdAt" : "updatedAt";
-
-    return right[key].localeCompare(left[key]);
-  });
 }
 
 export default List;
