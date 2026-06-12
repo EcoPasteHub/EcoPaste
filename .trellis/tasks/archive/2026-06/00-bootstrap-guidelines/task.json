@@ -4,7 +4,7 @@
   "branch": null,
   "children": [],
   "commit": null,
-  "completedAt": null,
+  "completedAt": "2026-06-12",
   "createdAt": "2026-06-12",
   "creator": "ayangweb",
   "description": "Fill in project development guidelines for AI agents",
@@ -19,7 +19,7 @@
   "priority": "P1",
   "relatedFiles": [".trellis/spec/frontend/"],
   "scope": null,
-  "status": "in_progress",
+  "status": "completed",
   "subtasks": [],
   "title": "Bootstrap Guidelines",
   "worktree_path": null
