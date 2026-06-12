@@ -747,18 +747,6 @@ export const preferenceTabs: PreferenceTab[] = [
         ],
       },
       {
-        id: "external",
-        settings: [
-          {
-            control: { type: "action" },
-            disabled: true,
-            id: "external.cli",
-            keywords: ["cli", "terminal", "json"],
-            status: "comingSoon",
-          },
-        ],
-      },
-      {
         id: "updates",
         settings: [
           {

@@ -97,9 +97,6 @@
       "diagnostics": {
         "title": "Diagnostics"
       },
-      "external": {
-        "title": "External Tools"
-      },
       "globalShortcuts": {
         "title": "Global Shortcuts"
       },
@@ -361,13 +358,6 @@
             "preference": "Preferences",
             "preview": "Clipboard preview"
           }
-        }
-      },
-      "external": {
-        "cli": {
-          "controlLabel": "Configure CLI",
-          "description": "Future command-line access to query local clipboard history.",
-          "title": "CLI Access"
         }
       },
       "history": {

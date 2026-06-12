@@ -97,9 +97,6 @@
       "diagnostics": {
         "title": "诊断恢复"
       },
-      "external": {
-        "title": "外部工具"
-      },
       "globalShortcuts": {
         "title": "全局快捷键"
       },
@@ -361,13 +358,6 @@
             "preference": "偏好设置",
             "preview": "剪贴板预览"
           }
-        }
-      },
-      "external": {
-        "cli": {
-          "controlLabel": "配置 CLI",
-          "description": "未来可通过命令行查询本地剪贴板历史。",
-          "title": "CLI 访问"
         }
       },
       "history": {

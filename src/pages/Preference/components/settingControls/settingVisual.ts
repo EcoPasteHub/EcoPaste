@@ -38,7 +38,6 @@ const SETTING_ICON_MAP: Record<string, string> = {
   "copy.updateOnReuse": "i-lucide:refresh-cw",
   "diagnostics.resetPreferences": "i-lucide:settings-2",
   "diagnostics.windowLifecycle": "i-lucide:activity",
-  "external.cli": "i-lucide:square-terminal",
   "history.cleanupIntervalHours": "i-lucide:timer-reset",
   "history.maxCount": "i-lucide:list-ordered",
   "history.retention": "i-lucide:calendar-clock",
