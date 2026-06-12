@@ -46,8 +46,8 @@ const PreferenceHeader: FC<PreferenceHeaderProps> = (props) => {
   return (
     <header
       className={cn(
-        "shrink-0 border-ant-border-secondary border-b bg-ant-container px-6 pt-5",
-        isAboutTab ? "pb-4" : "pb-2.5",
+        "shrink-0 border-ant-border-secondary border-b bg-ant-container px-6 pt-4",
+        isAboutTab ? "pb-4" : "pb-2",
       )}
       data-tauri-drag-region
     >

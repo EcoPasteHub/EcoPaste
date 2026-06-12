@@ -2,6 +2,7 @@ import type { FC } from "react";
 import { useTranslation } from "react-i18next";
 import type { StorageUsage } from "@/commands";
 import { cn } from "@/utils/cn";
+import { isMac } from "@/utils/is";
 import { preferenceTabs } from "../config/preferenceSchema";
 import { APP_NAME_PLACEHOLDER, PREFERENCE_TAB_META } from "../constants";
 import type {
@@ -41,7 +42,11 @@ const PreferenceSidebar: FC<PreferenceSidebarProps> = (props) => {
       className="flex w-56 shrink-0 flex-col border-ant-border-secondary border-r bg-ant-container"
       data-tauri-drag-region
     >
-      <div className="flex items-center gap-2.5 px-4 pt-10 pb-4">
+      <div
+        className={cn("flex items-center gap-2 px-4 py-4", {
+          "pt-10": isMac,
+        })}
+      >
         <img
           alt=""
           className="size-10 shrink-0 object-contain"
