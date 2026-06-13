@@ -202,13 +202,12 @@ const List: FC = () => {
   useTauriListen(TAURI_EVENT.CLIPBOARD_GROUPS_UPDATED, handleGroupsUpdated);
 
   /**
-   * 收到剪贴板更新：导入 / 清理强制刷新；普通新记录只在列表位于顶部时刷新，
-   * 否则延后到用户回到顶部后再刷新，避免打断当前浏览位置。
+   * 收到剪贴板更新：仅在列表位于顶部时刷新；否则延后到用户回到顶部后再刷新，
+   * 避免打断当前浏览位置。
    * 用 ref 读取最新滚动位置，规避闭包陷旧值（事件订阅只挂载一次）。
    */
   const handleClipboardUpdated = (payload: ClipboardUpdatedPayload) => {
-    // 主窗口隐藏（冻结态）期间不立即 reload：只记 pending，等再次显示时由
-    // handleWindowVisibility 统一补刷一次，避免隐藏期间频繁复制触发反复 IPC + 重渲染。
+    // 主窗口隐藏（冻结态）期间不立即 reload：只记 pending，避免隐藏期间频繁复制触发反复 IPC + 重渲染。
     if (!mainWindowVisibleRef.current) {
       deferredReloadRef.current = true;
       return;
@@ -224,17 +223,14 @@ const List: FC = () => {
           0,
         );
       }
-      virtuosoRef.current?.scrollToIndex({ behavior: "auto", index: 0 });
-      reload();
+      requestReloadAtTop();
       return;
     }
 
     if (payload.imported) {
       closePreview("backupImport");
       setSelectedId(null);
-      deferredReloadRef.current = false;
-      virtuosoRef.current?.scrollToIndex({ behavior: "auto", index: 0 });
-      reload();
+      requestReloadAtTop();
       return;
     }
 
@@ -250,12 +246,7 @@ const List: FC = () => {
         return;
       }
 
-      if (!isAtTopRef.current) {
-        deferredReloadRef.current = true;
-        return;
-      }
-
-      reload();
+      requestReloadAtTop();
       return;
     }
 
@@ -270,12 +261,7 @@ const List: FC = () => {
       return;
     }
 
-    if (!isAtTopRef.current) {
-      deferredReloadRef.current = true;
-      return;
-    }
-
-    reload();
+    requestReloadAtTop();
   };
 
   useTauriListen<ClipboardUpdatedPayload>(
@@ -286,7 +272,7 @@ const List: FC = () => {
   );
 
   /**
-   * 主窗口显隐变化：更新可见性镜像；显示时先补刷隐藏期间延后的重拉，再按偏好重置分组与滚动位置。
+   * 主窗口显隐变化：更新可见性镜像；显示时按偏好重置分组与滚动位置。
    * 可见性 ref 供 `handleClipboardUpdated` 判断是否处于冻结态——隐藏期间只记 pending，不立即 reload。
    */
   const handleWindowVisibility = (event: {
@@ -297,12 +283,6 @@ const List: FC = () => {
 
     mainWindowVisibleRef.current = visible;
     if (!visible) return;
-
-    // 隐藏期间累积的剪贴板更新统一在此补刷一次，确保再次打开时列表准确（无论是否开启打开重置）。
-    if (deferredReloadRef.current) {
-      deferredReloadRef.current = false;
-      reloadCurrentRange();
-    }
 
     const { scrollToTopOnOpen, selectAllGroupOnOpen } =
       settings.clipboard.window;
@@ -320,6 +300,7 @@ const List: FC = () => {
 
     setSelectedId(null);
     virtuosoRef.current?.scrollToIndex({ behavior: "auto", index: 0 });
+    consumeDeferredReloadAtTop();
   };
 
   useTauriListen<WindowVisibilityPayload>(
@@ -736,11 +717,30 @@ const List: FC = () => {
 
     if (!atTop) return;
 
-    if (!deferredReloadRef.current) return;
+    consumeDeferredReloadAtTop();
+  };
+
+  /**
+   * 自动刷新请求只在顶部执行；离开顶部时保留 pending，等待回顶后消费。
+   */
+  function requestReloadAtTop() {
+    if (!isAtTopRef.current) {
+      deferredReloadRef.current = true;
+      return;
+    }
 
     deferredReloadRef.current = false;
     reload();
-  };
+  }
+
+  /**
+   * 消费已有 pending；用于窗口回顶偏好或用户手动回到顶部后的补刷。
+   */
+  function consumeDeferredReloadAtTop() {
+    if (!deferredReloadRef.current) return;
+
+    requestReloadAtTop();
+  }
 
   if (loading && !loadedInitial) {
     return (
