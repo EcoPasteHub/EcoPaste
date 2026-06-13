@@ -5,6 +5,10 @@ import type {
   ClipboardPreviewState,
 } from "@/commands";
 import {
+  PREVIEW_EMPTY_CONTENT_HEIGHT,
+  PREVIEW_FILE_MORE_FOOTER_HEIGHT,
+  PREVIEW_FILE_ROW_HEIGHT,
+  PREVIEW_FILE_VERTICAL_PADDING,
   PREVIEW_PANEL_GAP,
   PREVIEW_PANEL_HEADER_HEIGHT,
   PREVIEW_PANEL_IMAGE_PADDING_X,
@@ -14,6 +18,9 @@ import {
   PREVIEW_PANEL_MAX_WIDTH,
   PREVIEW_PANEL_MIN_HEIGHT,
   PREVIEW_PANEL_MIN_WIDTH,
+  PREVIEW_TEXT_ROW_HEIGHT,
+  PREVIEW_TEXT_SOFT_WRAP_CHARS,
+  PREVIEW_TEXT_VERTICAL_PADDING,
 } from "./constants";
 import type { PreviewMeasuredSize } from "./measurement";
 
@@ -25,7 +32,21 @@ export function resolveEffectivePanelSize(
   measuredSize: PreviewMeasuredSize,
   payload: ClipboardPreviewPayload | null,
 ): PreviewMeasuredSize {
-  if (payload?.kind !== "image") return measuredSize;
+  if (!payload) return measuredSize;
+
+  if (payload.kind === "text") {
+    return resolveTextPanelSize(layout, payload.text ?? "");
+  }
+
+  if (payload.kind === "files") {
+    return resolveFilesPanelSize(
+      layout,
+      payload.files.length,
+      payload.totalFiles,
+    );
+  }
+
+  if (payload.kind !== "image") return measuredSize;
 
   const imageSize = resolveImagePanelSize(
     layout,
@@ -180,6 +201,87 @@ function resolveImagePanelSize(
       maxPanelWidth,
     ),
   };
+}
+
+/**
+ * 文本 viewer 使用虚拟行渲染，测量层不再渲染整段内容；这里按同款软切行估算面板尺寸。
+ */
+function resolveTextPanelSize(
+  layout: ClipboardPreviewState["layout"],
+  text: string,
+): PreviewMeasuredSize {
+  const maxPanelWidth = Math.min(
+    PREVIEW_PANEL_MAX_WIDTH,
+    layout.panelRect.width,
+  );
+  const maxPanelHeight = Math.min(
+    PREVIEW_PANEL_MAX_HEIGHT,
+    layout.panelRect.height,
+  );
+  const rowCount = countTextPreviewRows(text);
+  const contentHeight =
+    rowCount === 0
+      ? PREVIEW_EMPTY_CONTENT_HEIGHT
+      : rowCount * PREVIEW_TEXT_ROW_HEIGHT + PREVIEW_TEXT_VERTICAL_PADDING;
+
+  return {
+    height: clamp(
+      PREVIEW_PANEL_HEADER_HEIGHT + contentHeight,
+      PREVIEW_PANEL_MIN_HEIGHT,
+      maxPanelHeight,
+    ),
+    width: clamp(maxPanelWidth, PREVIEW_PANEL_MIN_WIDTH, maxPanelWidth),
+  };
+}
+
+/**
+ * 文件 viewer 也走虚拟列表；尺寸只按已返回的行数和截断提示估算。
+ */
+function resolveFilesPanelSize(
+  layout: ClipboardPreviewState["layout"],
+  shownCount: number,
+  totalCount: number,
+): PreviewMeasuredSize {
+  const maxPanelWidth = Math.min(
+    PREVIEW_PANEL_MAX_WIDTH,
+    layout.panelRect.width,
+  );
+  const maxPanelHeight = Math.min(
+    PREVIEW_PANEL_MAX_HEIGHT,
+    layout.panelRect.height,
+  );
+  const contentHeight =
+    shownCount === 0
+      ? PREVIEW_EMPTY_CONTENT_HEIGHT
+      : shownCount * PREVIEW_FILE_ROW_HEIGHT +
+        PREVIEW_FILE_VERTICAL_PADDING +
+        (totalCount > shownCount ? PREVIEW_FILE_MORE_FOOTER_HEIGHT : 0);
+
+  return {
+    height: clamp(
+      PREVIEW_PANEL_HEADER_HEIGHT + contentHeight,
+      PREVIEW_PANEL_MIN_HEIGHT,
+      maxPanelHeight,
+    ),
+    width: clamp(maxPanelWidth, PREVIEW_PANEL_MIN_WIDTH, maxPanelWidth),
+  };
+}
+
+/**
+ * 统计虚拟文本行数，和 `TextViewer` 的软切块规则保持一致。
+ */
+function countTextPreviewRows(text: string) {
+  if (text.length === 0) return 0;
+
+  let rowCount = 0;
+  for (const line of text.split("\n")) {
+    rowCount += Math.max(
+      1,
+      Math.ceil(line.length / PREVIEW_TEXT_SOFT_WRAP_CHARS),
+    );
+  }
+
+  return rowCount;
 }
 
 /**

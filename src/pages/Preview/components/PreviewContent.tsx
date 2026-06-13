@@ -1,14 +1,19 @@
 import { Empty } from "antd";
 import type { TFunction } from "i18next";
 import type { FC } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { Virtuoso } from "react-virtuoso";
 import type {
   ClipboardPreviewFileEntry,
   ClipboardPreviewPayload,
 } from "@/commands";
 import AssetImage from "@/components/AssetImage";
-import SafeHtml from "@/components/SafeHtml";
+import VirtuosoScroller, {
+  type VirtuosoScrollerChildrenProps,
+} from "@/components/VirtuosoScroller";
 import { cn } from "@/utils/cn";
+import { PREVIEW_TEXT_SOFT_WRAP_CHARS } from "../constants";
 
 export interface PreviewContentProps {
   payload: ClipboardPreviewPayload | null;
@@ -25,6 +30,16 @@ interface PayloadViewerProps {
 interface FilePreviewRowProps {
   file: ClipboardPreviewFileEntry;
 }
+
+const TEXT_VIRTUOSO_COMPONENTS = {
+  Footer: PreviewTextPadding,
+  Header: PreviewTextPadding,
+};
+
+const FILES_VIRTUOSO_COMPONENTS = {
+  Footer: PreviewFilesPadding,
+  Header: PreviewFilesPadding,
+};
 
 /**
  * Content Viewer 顶部元信息区。
@@ -79,12 +94,15 @@ export const PreviewContent: FC<PreviewContentProps> = (props) => {
 };
 
 /**
- * 文本预览：保留换行与空白，只提供只读滚动展示。
+ * 文本预览：所有文本族内容都按纯文本虚拟行展示，避免长 HTML / RTF 构造大 DOM。
  */
 const TextViewer: FC<PayloadViewerProps> = (props) => {
   const { payload } = props;
   const { t } = useTranslation("preview");
   const text = payload.text ?? "";
+  const rows = useMemo(() => {
+    return buildTextPreviewRows(text);
+  }, [text]);
 
   if (text.length === 0) {
     return (
@@ -97,20 +115,35 @@ const TextViewer: FC<PayloadViewerProps> = (props) => {
     );
   }
 
-  if (payload.subKind === "html") {
+  return <VirtuosoScroller>{renderTextVirtuoso}</VirtuosoScroller>;
+
+  function renderTextVirtuoso(props: VirtuosoScrollerChildrenProps) {
+    const { scrollerRef } = props;
+
     return (
-      <SafeHtml
-        className="overflow-auto break-words p-4 text-xs leading-5.5"
-        value={text}
+      <Virtuoso
+        components={TEXT_VIRTUOSO_COMPONENTS}
+        computeItemKey={computeTextRowKey}
+        itemContent={renderTextRow}
+        scrollerRef={scrollerRef}
+        totalCount={rows.length}
       />
     );
   }
 
-  return (
-    <pre className="m-0 whitespace-pre-wrap break-words p-4 font-mono text-xs leading-5.5">
-      {text}
-    </pre>
-  );
+  function computeTextRowKey(index: number) {
+    return index;
+  }
+
+  function renderTextRow(index: number) {
+    const row = rows[index] ?? "";
+
+    return (
+      <div className="min-h-5.5 whitespace-pre px-4 font-mono text-xs leading-5.5">
+        {row.length === 0 ? " " : row}
+      </div>
+    );
+  }
 };
 
 /**
@@ -148,7 +181,7 @@ const ImageViewer: FC<PayloadViewerProps> = (props) => {
 };
 
 /**
- * 文件预览：紧凑列表展示路径、文件名、存在状态与基础大小。
+ * 文件预览：虚拟列表展示路径、文件名、存在状态与基础大小。
  */
 const FilesViewer: FC<PayloadViewerProps> = (props) => {
   const { payload } = props;
@@ -165,25 +198,69 @@ const FilesViewer: FC<PayloadViewerProps> = (props) => {
     );
   }
 
-  return (
-    <div className="overflow-auto p-2">
-      <div className="flex flex-col gap-1">
-        {payload.files.map((file) => {
-          return <FilePreviewRow file={file} key={file.path} />;
+  return <VirtuosoScroller>{renderFilesVirtuoso}</VirtuosoScroller>;
+
+  function renderFilesVirtuoso(props: VirtuosoScrollerChildrenProps) {
+    const { scrollerRef } = props;
+    const components =
+      payload.totalFiles > payload.files.length
+        ? {
+            Footer: renderFilesFooter,
+            Header: PreviewFilesPadding,
+          }
+        : FILES_VIRTUOSO_COMPONENTS;
+
+    return (
+      <Virtuoso
+        components={components}
+        computeItemKey={computeFileRowKey}
+        itemContent={renderFileRow}
+        scrollerRef={scrollerRef}
+        totalCount={payload.files.length}
+      />
+    );
+  }
+
+  function computeFileRowKey(index: number) {
+    return payload.files[index]?.path ?? index;
+  }
+
+  function renderFileRow(index: number) {
+    const file = payload.files[index];
+    if (!file) return <div className="h-10" />;
+
+    return (
+      <div className="px-2">
+        <FilePreviewRow file={file} />
+      </div>
+    );
+  }
+
+  function renderFilesFooter() {
+    return (
+      <div className="px-4 py-2 text-ant-secondary text-xs">
+        {t("file.shownCount", {
+          shown: payload.files.length,
+          total: payload.totalFiles,
         })}
       </div>
-
-      {payload.totalFiles > payload.files.length && (
-        <div className="px-2 py-2 text-ant-secondary text-xs">
-          {t("file.shownCount", {
-            shown: payload.files.length,
-            total: payload.totalFiles,
-          })}
-        </div>
-      )}
-    </div>
-  );
+    );
+  }
 };
+
+/**
+ * 虚拟文本列表上下留白。
+ */
+function PreviewTextPadding() {
+  return <div className="h-4" />;
+}
+
+/**
+ * 虚拟文件列表顶部留白。
+ */
+function PreviewFilesPadding() {
+  return <div className="h-2" />;
+}
 
 /**
  * 文件 viewer 的单行展示。
@@ -228,6 +305,30 @@ const FilePreviewRow: FC<FilePreviewRowProps> = (props) => {
     </div>
   );
 };
+
+/**
+ * 将长文本拆成虚拟行，超长单行按固定字符数软切块。
+ */
+function buildTextPreviewRows(text: string) {
+  const rows: string[] = [];
+
+  for (const line of text.split("\n")) {
+    if (line.length === 0) {
+      rows.push("");
+      continue;
+    }
+
+    for (
+      let start = 0;
+      start < line.length;
+      start += PREVIEW_TEXT_SOFT_WRAP_CHARS
+    ) {
+      rows.push(line.slice(start, start + PREVIEW_TEXT_SOFT_WRAP_CHARS));
+    }
+  }
+
+  return rows;
+}
 
 /**
  * 生成 Content Viewer 标题。

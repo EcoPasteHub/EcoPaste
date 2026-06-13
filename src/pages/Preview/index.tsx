@@ -177,9 +177,11 @@ const Preview: FC = () => {
       >
         <PreviewHeader payload={payload} />
 
-        <div className="min-h-0">
-          <PreviewContent payload={payload} />
-        </div>
+        {shouldRenderMeasuredContent(payload) && (
+          <div className="min-h-0">
+            <PreviewContent payload={payload} />
+          </div>
+        )}
       </div>
 
       <motion.div
@@ -194,7 +196,7 @@ const Preview: FC = () => {
           <PreviewHeader payload={payload} />
 
           <div
-            className={cn("min-h-0 flex-1 overflow-auto transition-opacity", {
+            className={cn("min-h-0 flex-1 overflow-hidden transition-opacity", {
               "opacity-60": isLoading && payload !== null,
             })}
           >
@@ -211,5 +213,13 @@ const Preview: FC = () => {
     </div>
   );
 };
+
+function shouldRenderMeasuredContent(
+  payload: ReturnType<typeof usePreviewPayload>["payload"],
+) {
+  if (!payload) return true;
+
+  return payload.kind === "image";
+}
 
 export default Preview;

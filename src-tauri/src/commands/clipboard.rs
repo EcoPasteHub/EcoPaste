@@ -200,6 +200,7 @@ pub struct ClipboardPreviewPayload {
     pub kind: ClipboardKind,
     pub sub_kind: Option<ClipboardSubKind>,
     pub updated_at: DateTime<Utc>,
+    /// 预览窗口展示用纯文本。HTML / RTF 条目返回 `search_text`，不返回富文本源。
     pub text: Option<String>,
     pub image_path: Option<String>,
     pub image_width: Option<i64>,
@@ -632,6 +633,22 @@ fn preview_sub_kind(item: &ClipboardItem, redact_sensitive: bool) -> Option<Clip
     item.sub_kind
 }
 
+/// 返回预览窗口展示用文本；HTML / RTF 使用 OS 提供的纯文本表示，避免前端渲染富文本源。
+fn preview_text(item: &ClipboardItem, redact_sensitive: bool) -> String {
+    let source = match item.sub_kind {
+        Some(ClipboardSubKind::Html | ClipboardSubKind::Rtf) => {
+            item.search_text.as_deref().unwrap_or(&item.content)
+        }
+        _ => &item.content,
+    };
+
+    if redact_sensitive && item.is_sensitive {
+        return mask_sensitive_text(source);
+    }
+
+    source.to_owned()
+}
+
 /// 把 `created_at`（UTC）按本地时区做三档展示格式化：
 /// 今天 → `HH:mm:ss`，今年内 → `MM-DD HH:mm`，跨年 → `YYYY-MM-DD HH:mm`。
 /// `now` 由调用方在批处理外取一次，避免列表内逐条 syscall。
@@ -766,11 +783,7 @@ async fn build_clipboard_preview_payload(
 
     match item.kind {
         ClipboardKind::Text => {
-            text = Some(if redact_sensitive && item.is_sensitive {
-                mask_sensitive_text(&item.content)
-            } else {
-                item.content.clone()
-            });
+            text = Some(preview_text(&item, redact_sensitive));
         }
         ClipboardKind::Image => {
             validate_image_file_name(&item.content)?;
@@ -1610,6 +1623,41 @@ mod tests {
         let item = text_item(Some(ClipboardSubKind::Html), false);
 
         assert_eq!(preview_sub_kind(&item, true), Some(ClipboardSubKind::Html));
+    }
+
+    #[test]
+    fn preview_text_keeps_plain_text_content() {
+        let mut item = text_item(None, false);
+        item.content = "plain text".to_owned();
+
+        assert_eq!(preview_text(&item, false), "plain text");
+    }
+
+    #[test]
+    fn preview_text_uses_search_text_for_html() {
+        let mut item = text_item(Some(ClipboardSubKind::Html), false);
+        item.content = "<b>Hello</b> World".to_owned();
+        item.search_text = Some("Hello World".to_owned());
+
+        assert_eq!(preview_text(&item, false), "Hello World");
+    }
+
+    #[test]
+    fn preview_text_uses_search_text_for_rtf() {
+        let mut item = text_item(Some(ClipboardSubKind::Rtf), false);
+        item.content = r"{\rtf1 Hello World}".to_owned();
+        item.search_text = Some("Hello World".to_owned());
+
+        assert_eq!(preview_text(&item, false), "Hello World");
+    }
+
+    #[test]
+    fn preview_text_masks_sensitive_plain_source() {
+        let mut item = text_item(Some(ClipboardSubKind::Html), true);
+        item.content = "<b>sk-abcdefghijklmnopqrstuvwxyzABCDE1234567890</b>".to_owned();
+        item.search_text = Some("sk-abcdefghijklmnopqrstuvwxyzABCDE1234567890".to_owned());
+
+        assert_eq!(preview_text(&item, true), "sk-a********7890");
     }
 
     #[test]
