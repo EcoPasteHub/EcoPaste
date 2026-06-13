@@ -1,5 +1,9 @@
 import { CAPTURE_KIND_OPTIONS } from "@/constants/captureKinds";
 import { ITEM_ACTION_OPTIONS } from "@/constants/itemActions";
+import {
+  WINDOW_OPEN_CATEGORY_OPTIONS,
+  WINDOW_OPEN_RANGE_OPTIONS,
+} from "@/constants/windowOpenSelection";
 import type { Settings } from "@/types/settings";
 import { isWin } from "@/utils/is";
 import type { PreferenceTab } from "../types/preferences";
@@ -448,12 +452,30 @@ export const preferenceTabs: PreferenceTab[] = [
             },
           },
           {
-            control: { type: "switch" },
-            id: "window.selectAllGroupOnOpen",
-            keywords: ["window", "group", "all", "open"],
-            path: ["clipboard", "window", "selectAllGroupOnOpen"],
+            control: { options: WINDOW_OPEN_RANGE_OPTIONS, type: "select" },
+            id: "window.selectRangeOnOpen",
+            keywords: ["window", "range", "all", "favorite", "open"],
+            path: ["clipboard", "window", "selectRangeOnOpen"],
             value: (settings) => {
-              return settings.clipboard.window.selectAllGroupOnOpen;
+              return settings.clipboard.window.selectRangeOnOpen;
+            },
+          },
+          {
+            control: { options: WINDOW_OPEN_CATEGORY_OPTIONS, type: "select" },
+            id: "window.selectCategoryOnOpen",
+            keywords: ["window", "category", "kind", "all", "open"],
+            path: ["clipboard", "window", "selectCategoryOnOpen"],
+            value: (settings) => {
+              return settings.clipboard.window.selectCategoryOnOpen;
+            },
+          },
+          {
+            control: { type: "clipboardGroupSelect" },
+            id: "window.selectGroupOnOpen",
+            keywords: ["window", "group", "folder", "all", "open"],
+            path: ["clipboard", "window", "selectGroupOnOpen"],
+            value: (settings) => {
+              return settings.clipboard.window.selectGroupOnOpen;
             },
           },
         ],

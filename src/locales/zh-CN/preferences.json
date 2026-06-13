@@ -557,9 +557,34 @@
           "description": "每次打开剪贴板主窗口时，自动回到最新记录所在的顶部。",
           "title": "打开时回到顶部"
         },
-        "selectAllGroupOnOpen": {
-          "description": "每次打开剪贴板主窗口时，自动切回全部历史分组。",
-          "title": "打开时选中全部"
+        "selectCategoryOnOpen": {
+          "description": "每次打开剪贴板主窗口时，选择要切换到的内容分类。",
+          "options": {
+            "all": "全部",
+            "files": "文件",
+            "image": "图片",
+            "preserve": "保持上次选择",
+            "text": "文本"
+          },
+          "title": "打开时选中分类"
+        },
+        "selectGroupOnOpen": {
+          "description": "每次打开剪贴板主窗口时，选择要切换到的自定义分组。",
+          "options": {
+            "all": "全部",
+            "missingGroup": "已删除的分组",
+            "preserve": "保持上次选择"
+          },
+          "title": "打开时选中分组"
+        },
+        "selectRangeOnOpen": {
+          "description": "每次打开剪贴板主窗口时，选择要切换到的历史范围。",
+          "options": {
+            "all": "全部",
+            "favorite": "收藏",
+            "preserve": "保持上次选择"
+          },
+          "title": "打开时选中范围"
         }
       }
     },

@@ -1,4 +1,8 @@
-import type { ClipboardItemSort } from "./clipboard";
+import type {
+  ClipboardCategory,
+  ClipboardItemSort,
+  ClipboardRange,
+} from "./clipboard";
 
 /**
  * 设置数据契约，镜像 `src-tauri/src/settings/model.rs::Settings`。
@@ -49,6 +53,15 @@ export type CaptureKind = "files" | "image" | "html" | "rtf" | "text";
 export type RetentionUnit = "hours" | "days" | "weeks" | "months" | "forever";
 
 export type WindowPosition = "remember" | "followCursor" | "center";
+
+export type WindowOpenRangeSelection = "preserve" | ClipboardRange;
+
+export type WindowOpenCategorySelection =
+  | "preserve"
+  | "all"
+  | ClipboardCategory;
+
+export type WindowOpenGroupSelection = "preserve" | "all" | `group:${string}`;
 
 export type PreviewHoverDelayMs = "ms300" | "ms500" | "ms1000";
 
@@ -141,7 +154,9 @@ export interface Search {
 export interface Window {
   position: WindowPosition;
   scrollToTopOnOpen: boolean;
-  selectAllGroupOnOpen: boolean;
+  selectRangeOnOpen: WindowOpenRangeSelection;
+  selectCategoryOnOpen: WindowOpenCategorySelection;
+  selectGroupOnOpen: WindowOpenGroupSelection;
   lightweightMode: boolean;
   idleDestroySeconds: number;
   alwaysOnTop: boolean;

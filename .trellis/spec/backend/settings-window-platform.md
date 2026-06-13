@@ -25,6 +25,70 @@ When adding a setting, update:
   `src/pages/Preference/services/preferenceSettings.ts` when OS state changes
   immediately.
 
+### Window Open Selection Settings
+
+#### 1. Scope / Trigger
+
+Changing the default filter applied when the main clipboard window opens is a
+settings contract change. Rust owns the persisted shape; React only mirrors it
+and applies the transient `clipboardViewState` side effect on `window://visibility`.
+
+#### 2. Signatures
+
+- Rust fields:
+  - `Window.select_range_on_open: WindowOpenRangeSelection`
+  - `Window.select_category_on_open: WindowOpenCategorySelection`
+  - `Window.select_group_on_open: String`
+- TypeScript mirror:
+  - `Window.selectRangeOnOpen: "preserve" | ClipboardRange`
+  - `Window.selectCategoryOnOpen: "preserve" | "all" | ClipboardCategory`
+  - `Window.selectGroupOnOpen: "preserve" | "all" | \`group:${string}\``
+
+#### 3. Contracts
+
+- `preserve` means keep the user's last selected value for that dimension.
+- `all` means clear that dimension to the built-in All state.
+- `group:<id>` means select the custom clipboard group with that id.
+- Range options are `preserve`, `all`, and `favorite`.
+- Category options are `preserve`, `all`, `text`, `image`, and `files`.
+
+#### 4. Validation & Error Matrix
+
+- Invalid range/category literals fail serde deserialization.
+- `select_group_on_open = "preserve"` -> valid.
+- `select_group_on_open = "all"` -> valid.
+- `select_group_on_open = "group:<non-empty id>"` -> valid.
+- Any other group string, including `group:` -> `AppError::Other("open group selection is invalid")`.
+
+#### 5. Good/Base/Bad Cases
+
+- Good: selecting `favorite`, `image`, and `group:<uuid>` opens into favorites,
+  image category, and that custom group.
+- Base: all three fields default to `preserve`, so opening the window keeps the
+  user's last filters.
+- Bad: storing a raw group UUID without the `group:` prefix is rejected.
+
+#### 6. Tests Required
+
+- Missing-field defaults assert all three fields default to `preserve`.
+- Settings validation rejects invalid `select_group_on_open` strings.
+- Frontend type-check covers the mirrored selection unions and the dynamic group
+  Select value shape.
+
+#### 7. Wrong vs Correct
+
+Wrong:
+
+```json
+{ "clipboard": { "window": { "selectGroupOnOpen": "550e8400-e29b" } } }
+```
+
+Correct:
+
+```json
+{ "clipboard": { "window": { "selectGroupOnOpen": "group:550e8400-e29b" } } }
+```
+
 ## Settings Events and Mirrors
 
 Rust is the source of truth. `commands::settings::update_settings` and

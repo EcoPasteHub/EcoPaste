@@ -31,6 +31,11 @@ import VirtuosoScroller, {
 } from "@/components/VirtuosoScroller";
 import { TAURI_EVENT } from "@/constants/events";
 import { buildItemActionLabels } from "@/constants/itemActions";
+import {
+  parseWindowOpenGroupId,
+  WINDOW_OPEN_SELECTION_ALL,
+  WINDOW_OPEN_SELECTION_PRESERVE,
+} from "@/constants/windowOpenSelection";
 import { WINDOW_LABEL } from "@/constants/windows";
 import { useClipboardItems } from "@/hooks/useClipboardItems";
 import { useKeyboardEvent } from "@/hooks/useKeyboardEvent";
@@ -284,16 +289,35 @@ const List: FC = () => {
     mainWindowVisibleRef.current = visible;
     if (!visible) return;
 
-    const { scrollToTopOnOpen, selectAllGroupOnOpen } =
-      settings.clipboard.window;
-    if (!scrollToTopOnOpen && !selectAllGroupOnOpen) return;
+    const {
+      scrollToTopOnOpen,
+      selectCategoryOnOpen,
+      selectGroupOnOpen,
+      selectRangeOnOpen,
+    } = settings.clipboard.window;
+    const shouldResetSelection =
+      selectRangeOnOpen !== WINDOW_OPEN_SELECTION_PRESERVE ||
+      selectCategoryOnOpen !== WINDOW_OPEN_SELECTION_PRESERVE ||
+      selectGroupOnOpen !== WINDOW_OPEN_SELECTION_PRESERVE;
+    if (!scrollToTopOnOpen && !shouldResetSelection) return;
 
     closePreview("windowOpenReset");
 
-    if (selectAllGroupOnOpen) {
-      clipboardViewState.range = "all";
+    if (selectRangeOnOpen !== WINDOW_OPEN_SELECTION_PRESERVE) {
+      clipboardViewState.range = selectRangeOnOpen;
+    }
+
+    if (selectCategoryOnOpen === WINDOW_OPEN_SELECTION_ALL) {
       clipboardViewState.category = null;
+    } else if (selectCategoryOnOpen !== WINDOW_OPEN_SELECTION_PRESERVE) {
+      clipboardViewState.category = selectCategoryOnOpen;
+    }
+
+    const openGroupId = parseWindowOpenGroupId(selectGroupOnOpen);
+    if (selectGroupOnOpen === WINDOW_OPEN_SELECTION_ALL) {
       clipboardViewState.groupId = null;
+    } else if (openGroupId) {
+      clipboardViewState.groupId = openGroupId;
     }
 
     if (!scrollToTopOnOpen) return;

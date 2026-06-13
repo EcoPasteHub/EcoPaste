@@ -19,6 +19,7 @@ import { translatePreferenceSetting } from "../utils/preferenceI18n";
 import PreferenceStatusBadge from "./PreferenceStatusBadge";
 import ActionControl from "./settingControls/ActionControl";
 import CaptureOrderControl from "./settingControls/CaptureOrderControl";
+import ClipboardGroupSelectControl from "./settingControls/ClipboardGroupSelectControl";
 import NumberControl from "./settingControls/NumberControl";
 import RetentionControl, {
   resolveRetentionValue,
@@ -222,6 +223,15 @@ function renderControl(
           onChange={onChange}
           setting={setting}
           value={value}
+        />
+      );
+    case "clipboardGroupSelect":
+      return (
+        <ClipboardGroupSelectControl
+          disabled={disabled}
+          onChange={onChange}
+          setting={setting}
+          value={typeof value === "string" ? value : "preserve"}
         />
       );
     case "sortableCheckboxTree":

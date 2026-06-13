@@ -7,6 +7,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::db::models::ClipboardItemSort;
 
+pub const WINDOW_OPEN_SELECTION_PRESERVE: &str = "preserve";
+pub const WINDOW_OPEN_SELECTION_ALL: &str = "all";
+pub const WINDOW_OPEN_GROUP_PREFIX: &str = "group:";
+
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(default, rename_all = "camelCase")]
 pub struct Settings {
@@ -556,8 +560,12 @@ pub struct Window {
     pub position: WindowPosition,
     /// 打开主窗口时把历史列表回到顶部。
     pub scroll_to_top_on_open: bool,
-    /// 打开主窗口时把历史分组切回全部。
-    pub select_all_group_on_open: bool,
+    /// 打开主窗口时切换到指定范围；`Preserve` 表示保持上次状态。
+    pub select_range_on_open: WindowOpenRangeSelection,
+    /// 打开主窗口时切换到指定分类；`Preserve` 表示保持上次状态。
+    pub select_category_on_open: WindowOpenCategorySelection,
+    /// 打开主窗口时切换到指定自定义分组；可为 preserve / all / group:<id>。
+    pub select_group_on_open: String,
     /// 隐藏窗口轻量化：主窗口隐藏后进入 dormant，非主窗口空闲后释放 WebView。
     pub lightweight_mode: bool,
     /// 非主窗口隐藏后释放 WebView 的空闲秒数。
@@ -572,13 +580,35 @@ impl Default for Window {
         Self {
             position: WindowPosition::FollowCursor,
             scroll_to_top_on_open: true,
-            select_all_group_on_open: false,
+            select_range_on_open: WindowOpenRangeSelection::Preserve,
+            select_category_on_open: WindowOpenCategorySelection::Preserve,
+            select_group_on_open: WINDOW_OPEN_SELECTION_PRESERVE.to_owned(),
             lightweight_mode: true,
             idle_destroy_seconds: 60,
             always_on_top: true,
             all_workspaces: true,
         }
     }
+}
+
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub enum WindowOpenRangeSelection {
+    #[default]
+    Preserve,
+    All,
+    Favorite,
+}
+
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub enum WindowOpenCategorySelection {
+    #[default]
+    Preserve,
+    All,
+    Text,
+    Image,
+    Files,
 }
 
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]

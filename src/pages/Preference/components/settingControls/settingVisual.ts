@@ -69,7 +69,9 @@ const SETTING_ICON_MAP: Record<string, string> = {
   "window.lightweightMode": "i-lucide:leaf",
   "window.position": "i-lucide:move",
   "window.scrollToTopOnOpen": "i-lucide:arrow-up-to-line",
-  "window.selectAllGroupOnOpen": "i-lucide:layout-list",
+  "window.selectCategoryOnOpen": "i-lucide:shapes",
+  "window.selectGroupOnOpen": "i-lucide:folder-tree",
+  "window.selectRangeOnOpen": "i-lucide:list-filter",
 };
 
 /**

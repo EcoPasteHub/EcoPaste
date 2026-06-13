@@ -557,9 +557,34 @@
           "description": "Return to the newest items at the top whenever the clipboard window opens.",
           "title": "Return to Top on Open"
         },
-        "selectAllGroupOnOpen": {
-          "description": "Switch back to the All history group whenever the clipboard window opens.",
-          "title": "Select All on Open"
+        "selectCategoryOnOpen": {
+          "description": "Choose which content category to switch to whenever the clipboard window opens.",
+          "options": {
+            "all": "All",
+            "files": "Files",
+            "image": "Image",
+            "preserve": "Keep Last Selection",
+            "text": "Text"
+          },
+          "title": "Select Category on Open"
+        },
+        "selectGroupOnOpen": {
+          "description": "Choose which custom group to switch to whenever the clipboard window opens.",
+          "options": {
+            "all": "All",
+            "missingGroup": "Deleted Group",
+            "preserve": "Keep Last Selection"
+          },
+          "title": "Select Group on Open"
+        },
+        "selectRangeOnOpen": {
+          "description": "Choose which history range to switch to whenever the clipboard window opens.",
+          "options": {
+            "all": "All",
+            "favorite": "Favorites",
+            "preserve": "Keep Last Selection"
+          },
+          "title": "Select Range on Open"
         }
       }
     },

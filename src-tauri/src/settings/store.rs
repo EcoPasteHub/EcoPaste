@@ -14,7 +14,10 @@ use tauri::AppHandle;
 
 use crate::core::{AppError, Result};
 
-use super::model::{Language, Settings};
+use super::model::{
+    Language, Settings, WINDOW_OPEN_GROUP_PREFIX, WINDOW_OPEN_SELECTION_ALL,
+    WINDOW_OPEN_SELECTION_PRESERVE,
+};
 
 const FILENAME: &str = "settings.json";
 
@@ -180,6 +183,8 @@ fn write_atomic(path: &Path, settings: &Settings) -> Result<()> {
 
 /// 校验设置之间的跨字段约束，避免非法配置写入磁盘。
 fn validate_settings(settings: &Settings) -> Result<()> {
+    validate_window_open_group(&settings.clipboard.window.select_group_on_open)?;
+
     let open_clipboard = normalize_shortcut_value(&settings.shortcuts.open_clipboard);
     let open_preference = normalize_shortcut_value(&settings.shortcuts.open_preference);
 
@@ -190,6 +195,27 @@ fn validate_settings(settings: &Settings) -> Result<()> {
     if open_clipboard == open_preference {
         return Err(AppError::Other(anyhow::anyhow!(
             "global shortcuts must be unique"
+        )));
+    }
+
+    Ok(())
+}
+
+/// 校验打开主窗口时选中分组的字符串编码，避免非法设置值落盘。
+fn validate_window_open_group(value: &str) -> Result<()> {
+    if value == WINDOW_OPEN_SELECTION_PRESERVE || value == WINDOW_OPEN_SELECTION_ALL {
+        return Ok(());
+    }
+
+    let Some(group_id) = value.strip_prefix(WINDOW_OPEN_GROUP_PREFIX) else {
+        return Err(AppError::Other(anyhow::anyhow!(
+            "open group selection is invalid"
+        )));
+    };
+
+    if group_id.trim().is_empty() {
+        return Err(AppError::Other(anyhow::anyhow!(
+            "open group selection is invalid"
         )));
     }
 
@@ -307,6 +333,25 @@ mod tests {
         assert!(!parsed.clipboard.content.update_on_reuse);
         assert_eq!(parsed.clipboard.history.cleanup_interval_hours, 0);
         assert!(parsed.clipboard.window.scroll_to_top_on_open);
-        assert!(!parsed.clipboard.window.select_all_group_on_open);
+        assert_eq!(
+            parsed.clipboard.window.select_range_on_open,
+            crate::settings::WindowOpenRangeSelection::Preserve
+        );
+        assert_eq!(
+            parsed.clipboard.window.select_category_on_open,
+            crate::settings::WindowOpenCategorySelection::Preserve
+        );
+        assert_eq!(
+            parsed.clipboard.window.select_group_on_open,
+            crate::settings::WINDOW_OPEN_SELECTION_PRESERVE
+        );
+    }
+
+    #[test]
+    fn validate_settings_rejects_invalid_open_group_selection() {
+        let mut settings = Settings::default();
+        settings.clipboard.window.select_group_on_open = "invalid".to_owned();
+
+        assert!(validate_settings(&settings).is_err());
     }
 }

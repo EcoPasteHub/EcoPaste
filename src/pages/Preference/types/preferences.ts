@@ -41,6 +41,7 @@ export type PreferenceControl =
   | { type: "switch" }
   | { type: "segmented"; options: PreferenceOption[] }
   | { type: "select"; options: PreferenceOption[]; mode?: "multiple" }
+  | { type: "clipboardGroupSelect" }
   | {
       type: "sortableTree";
       options: PreferenceOption[];
