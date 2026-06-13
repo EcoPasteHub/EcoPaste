@@ -71,3 +71,43 @@ Replaced the default Tauri README with English and Simplified Chinese EcoPaste d
 ### Next Steps
 
 - None - task complete
+
+
+## Session 3: OverlayScrollbars preview virtualization
+
+**Date**: 2026-06-13
+**Task**: OverlayScrollbars preview virtualization
+**Branch**: `next`
+
+### Summary
+
+Integrated OverlayScrollbars for virtual and ordinary custom scroll areas, virtualized preview text/files, switched HTML/RTF preview to plain text, and removed unused SafeHtml.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `903f9330` | (see git log) |
+| `7c8bfebd` | (see git log) |
+| `b26a7422` | (see git log) |
+| `4ff75b52` | (see git log) |
+| `9500a691` | (see git log) |
+| `40f66547` | (see git log) |
+| `dec25414` | (see git log) |
+| `30687ed0` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
