@@ -111,3 +111,36 @@ Integrated OverlayScrollbars for virtual and ordinary custom scroll areas, virtu
 ### Next Steps
 
 - None - task complete
+
+
+## Session 4: Open selection preferences
+
+**Date**: 2026-06-13
+**Task**: Open selection preferences
+**Branch**: `next`
+
+### Summary
+
+Implemented Select-based open-time range, category, and group preferences for the clipboard main window; validated frontend build and Rust tests.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `f9113f8b` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
