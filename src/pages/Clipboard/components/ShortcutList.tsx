@@ -1,5 +1,6 @@
 import type { FC, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+import ScrollArea from "@/components/ScrollArea";
 import { getShortcutKeyDisplays, type ShortcutPattern } from "@/utils/shortcut";
 
 interface Shortcut {
@@ -64,7 +65,7 @@ const ShortcutList: FC = () => {
   const { t } = useTranslation("clipboard");
 
   return (
-    <div className="-mx-3 flex max-h-120 w-72 flex-col gap-1 overflow-y-auto px-3">
+    <ScrollArea className="-mx-3 flex max-h-120 w-72 flex-col gap-1 px-3">
       {SHORTCUTS.map((item) => (
         <div
           className="flex items-center justify-between gap-3 px-1 py-1"
@@ -80,7 +81,7 @@ const ShortcutList: FC = () => {
           </div>
         </div>
       ))}
-    </div>
+    </ScrollArea>
   );
 };
 
