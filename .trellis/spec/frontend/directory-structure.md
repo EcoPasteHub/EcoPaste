@@ -37,8 +37,8 @@ Use the page directory when a component is only meaningful inside that workflow:
 - Preference schema, controls, services, and search helpers live under
   `src/pages/Preference/`.
 
-Use `src/components/` only for shared primitives such as `SafeHtml`,
-`ShortcutRecorder`, `AssetImage`, `Tooltip`, and `KeyHint`.
+Use `src/components/` only for shared primitives such as `ShortcutRecorder`,
+`AssetImage`, `Tooltip`, `KeyHint`, and `ClipboardGroupIcon`.
 
 ## Command and Contract Files
 

@@ -26,8 +26,8 @@ cargo test
 
 `biome.json` enforces sorted imports/classes/properties, no unused imports or
 variables, no `console.*`, self-closing JSX, and strict unused template literal
-cleanup. `noDangerouslySetInnerHtml` is disabled because `SafeHtml` owns the
-sanitized path.
+cleanup. `noDangerouslySetInnerHtml` is disabled for narrow, sanitizer-owned
+escape hatches; page components should still avoid direct raw HTML injection.
 
 Use `@/utils/log` instead of console logging. Keep imports organized by Biome
 rather than hand-sorting in a different style.
@@ -41,7 +41,7 @@ rather than hand-sorting in a different style.
 - Keep i18n in both `src/locales/zh-CN/` and `src/locales/en-US/`.
 - Use `getCurrentWebviewWindow()` for the current window.
 - Use `cn` for conditional classes.
-- Sanitize HTML through `SafeHtml`.
+- Sanitize user-provided HTML/SVG with DOMPurify at the rendering boundary.
 
 ## UI Verification
 

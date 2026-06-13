@@ -29,4 +29,4 @@ or storage persistence.
 - Clipboard UI state: `src/stores/clipboardView.ts`
 - Virtualized list: `src/pages/Clipboard/components/List.tsx`
 - Preference schema: `src/pages/Preference/config/preferenceSchema.ts`
-- HTML rendering: `src/components/SafeHtml/index.tsx`
+- User-provided SVG sanitizing: `src/components/ClipboardGroupIcon/index.tsx`

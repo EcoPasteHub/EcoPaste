@@ -3,7 +3,7 @@
 ## Component Shape
 
 Components use `FC<Props>` and destructure `props` inside the function body.
-This is the local style in `ClipboardCard`, `SafeHtml`, and `App`.
+This is the local style in `ClipboardCard`, `ClipboardGroupIcon`, and `App`.
 
 ```tsx
 const ClipboardCard: FC<ClipboardCardProps> = (props) => {
@@ -68,14 +68,19 @@ plain scroll-area component only when a real non-virtual call site is being
 converted, instead of stretching `VirtuosoScroller` across incompatible scroll
 contracts.
 
-## HTML Safety
+## HTML / SVG Safety
 
-Any clipboard HTML rendered into the DOM must go through
-`src/components/SafeHtml/index.tsx`, which wraps DOMPurify and forbids risky
-attributes such as `target`, `controls`, and autoplay variants.
+Clipboard HTML preview is rendered as plain text. Do not add a generic shared
+HTML renderer unless a real feature needs rich HTML DOM again.
 
-Do not use `dangerouslySetInnerHTML` directly in page components. Biome allows
-the syntax because `SafeHtml` owns the safe escape hatch.
+Any user-provided HTML or SVG rendered into the DOM must be sanitized with
+DOMPurify at the rendering boundary. Keep the sanitizer narrow to the feature
+and forbid risky tags or attributes there; for example, `ClipboardGroupIcon`
+sanitizes custom SVG icons before turning them into a mask image.
+
+Do not use `dangerouslySetInnerHTML` directly in page components. If a future
+feature needs it, add a small owning component that wraps DOMPurify and document
+the allowed tags / forbidden attributes beside that component.
 
 ## Native Menus and Drag
 
