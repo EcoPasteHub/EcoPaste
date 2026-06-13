@@ -2,6 +2,7 @@ import { Empty } from "antd";
 import { AnimatePresence, motion } from "motion/react";
 import { type FC, useLayoutEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import ScrollArea from "@/components/ScrollArea";
 import type { allPreferenceSettings } from "../config/preferenceSchema";
 import {
   translatePreferenceSection,
@@ -108,7 +109,7 @@ const PreferenceSearchResults: FC<PreferenceSearchResultsProps> = (props) => {
     }
 
     return (
-      <div className="max-h-88 w-max min-w-64 max-w-128 overflow-y-auto overflow-x-hidden overscroll-contain">
+      <ScrollArea className="max-h-88 w-max min-w-64 max-w-128 overflow-x-hidden overscroll-contain">
         {results.map((result) => {
           const handleClick = () => {
             onPick(result);
@@ -136,7 +137,7 @@ const PreferenceSearchResults: FC<PreferenceSearchResultsProps> = (props) => {
             </button>
           );
         })}
-      </div>
+      </ScrollArea>
     );
   };
 
