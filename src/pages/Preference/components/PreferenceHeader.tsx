@@ -126,10 +126,7 @@ const SectionTabs: FC<SectionTabsProps> = (props) => {
   const { activeSectionId, sections, totalSettings, onSectionSelect } = props;
 
   return (
-    <div
-      className="mt-3 flex items-center gap-3 overflow-x-auto"
-      data-tauri-drag-region
-    >
+    <div className="mt-3 flex items-center gap-3" data-tauri-drag-region>
       {sections.map((section) => {
         const selected = section.id === activeSectionId;
         const handleClick = () => {
