@@ -65,7 +65,10 @@ const ShortcutList: FC = () => {
   const { t } = useTranslation("clipboard");
 
   return (
-    <ScrollArea className="-mx-3 flex max-h-120 w-72 flex-col gap-1 px-3">
+    <ScrollArea
+      className="-mx-3 max-h-120 w-72 px-3"
+      contentClassName="flex flex-col gap-1"
+    >
       {SHORTCUTS.map((item) => (
         <div
           className="flex items-center justify-between gap-3 px-1 py-1"

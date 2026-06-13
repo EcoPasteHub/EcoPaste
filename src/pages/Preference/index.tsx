@@ -18,6 +18,7 @@ import {
   takePendingBackup,
   takePendingPreferenceHighlight,
 } from "@/commands";
+import ScrollArea from "@/components/ScrollArea";
 import { TAURI_EVENT } from "@/constants/events";
 import { useTauriListen } from "@/hooks/useTauriListen";
 import { settingsState } from "@/stores/settings";
@@ -369,8 +370,9 @@ const Preference: FC = () => {
             totalSettings={totalSettings}
           />
 
-          <div
-            className="min-h-0 flex-1 overflow-auto p-6"
+          <ScrollArea
+            className="min-h-0 flex-1"
+            contentClassName="p-6"
             data-tauri-drag-region
             ref={contentRef}
           >
@@ -420,7 +422,7 @@ const Preference: FC = () => {
                 </motion.div>
               ) : null}
             </AnimatePresence>
-          </div>
+          </ScrollArea>
         </main>
       </motion.div>
 

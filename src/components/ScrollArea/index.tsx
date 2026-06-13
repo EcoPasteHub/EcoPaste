@@ -1,7 +1,10 @@
 import type { PartialOptions } from "overlayscrollbars";
-import { useOverlayScrollbars } from "overlayscrollbars-react";
-import type { ComponentPropsWithoutRef, FC } from "react";
-import { useEffect, useRef } from "react";
+import {
+  OverlayScrollbarsComponent,
+  type OverlayScrollbarsComponentRef,
+} from "overlayscrollbars-react";
+import type { ComponentPropsWithoutRef, FC, Ref } from "react";
+import { useImperativeHandle, useRef, useState } from "react";
 import { cn } from "@/utils/cn";
 
 const SCROLL_AREA_OPTIONS = {
@@ -10,39 +13,42 @@ const SCROLL_AREA_OPTIONS = {
   },
 } satisfies PartialOptions;
 
-type ScrollAreaProps = ComponentPropsWithoutRef<"div">;
+type ScrollAreaProps = ComponentPropsWithoutRef<"div"> & {
+  contentClassName?: string;
+  ref?: Ref<HTMLDivElement>;
+};
 
 /**
  * OverlayScrollbars-backed scroll container for ordinary non-virtual content.
  */
 const ScrollArea: FC<ScrollAreaProps> = (props) => {
-  const { children, className, ...rest } = props;
-  const rootRef = useRef<HTMLDivElement>(null);
-  const [initialize, osInstance] = useOverlayScrollbars({
-    defer: true,
-    options: SCROLL_AREA_OPTIONS,
-  });
+  const { children, className, contentClassName, ref, ...rest } = props;
+  const componentRef = useRef<OverlayScrollbarsComponentRef<"div">>(null);
+  const [viewport, setViewport] = useState<HTMLElement | null>(null);
 
-  useEffect(() => {
-    const { current: root } = rootRef;
-    if (!root) return;
-
-    initialize(root);
-
-    return () => {
-      osInstance()?.destroy();
-    };
-  }, [initialize, osInstance]);
+  useImperativeHandle(ref, () => {
+    return (viewport ?? componentRef.current?.getElement()) as HTMLDivElement;
+  }, [viewport]);
 
   return (
-    <div
+    <OverlayScrollbarsComponent
       className={cn("overflow-auto", className)}
-      data-overlayscrollbars-initialize=""
-      ref={rootRef}
+      defer
+      events={{
+        initialized(instance) {
+          setViewport(instance.elements().viewport);
+        },
+      }}
+      options={SCROLL_AREA_OPTIONS}
+      ref={componentRef}
       {...rest}
     >
-      {children}
-    </div>
+      {contentClassName ? (
+        <div className={contentClassName}>{children}</div>
+      ) : (
+        children
+      )}
+    </OverlayScrollbarsComponent>
   );
 };
 
