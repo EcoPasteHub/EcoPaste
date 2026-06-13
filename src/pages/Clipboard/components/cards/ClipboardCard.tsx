@@ -122,7 +122,7 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
     <div
       aria-selected={isSelected}
       className={cn(
-        "relative flex flex-col gap-1 overflow-hidden rounded-2 border border-ant-border-secondary p-2",
+        "relative flex flex-col gap-1 overflow-hidden rounded-2 border border-ant-border-secondary p-2 transition-colors duration-150 ease-out motion-reduce:transition-none",
         {
           "border-ant-primary bg-ant-blue-1": isSelected,
           "border-ant-primary bg-ant-container": item.isPinned && !isSelected,
