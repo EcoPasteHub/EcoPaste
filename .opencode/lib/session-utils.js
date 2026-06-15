@@ -1,9 +1,9 @@
 /* global process */
 
-import { execFileSync } from "child_process";
-import { existsSync, readdirSync, readFileSync, statSync } from "fs";
-import { platform } from "os";
-import { basename, join } from "path";
+import { execFileSync } from "node:child_process";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { platform } from "node:os";
+import { basename, join } from "node:path";
 import { debugLog } from "./trellis-context.js";
 
 const PYTHON_CMD = platform() === "win32" ? "python" : "python3";
@@ -429,7 +429,7 @@ function markPartAsSessionStart(part) {
 }
 
 function hasSessionStartMarker(part) {
-  if (!part || part.type !== "text" || typeof part.text !== "string") {
+  if (part?.type !== "text" || typeof part.text !== "string") {
     return false;
   }
 
@@ -442,11 +442,7 @@ export function hasInjectedTrellisContext(messages) {
   }
 
   return messages.some((message) => {
-    if (
-      !message?.info ||
-      message.info.role !== "user" ||
-      !Array.isArray(message.parts)
-    ) {
+    if (message.info?.role !== "user" || !Array.isArray(message.parts)) {
       return false;
     }
 

@@ -5,12 +5,12 @@
  * JSONL parsing, and context building capabilities.
  */
 
-import { execSync } from "child_process";
-import { createHash } from "crypto";
-import { appendFileSync, existsSync, readdirSync, readFileSync } from "fs";
-import { platform } from "os";
-import { isAbsolute, join } from "path";
-import process from "process";
+import { execSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { appendFileSync, existsSync, readdirSync, readFileSync } from "node:fs";
+import { platform } from "node:os";
+import { isAbsolute, join } from "node:path";
+import process from "node:process";
 
 const PYTHON_CMD = platform() === "win32" ? "python" : "python3";
 // Debug logging

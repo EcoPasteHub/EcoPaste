@@ -6,8 +6,8 @@
  * Uses OpenCode's tool.execute.before hook.
  */
 
-import { existsSync, readdirSync } from "fs";
-import { join } from "path";
+import { existsSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 import { debugLog, TrellisContext } from "../lib/trellis-context.js";
 
 // Supported subagent types
