@@ -159,6 +159,35 @@ keyboard and mouse hooks while the main window is visible:
 React code uses `useKeyboardEvent` so components do not need to know whether the
 event came from the browser or Rust.
 
+## Platform-Specific Tauri Capabilities
+
+Platform-specific plugin permissions must live in their own capability file with
+an explicit `platforms` guard. Keep `src-tauri/capabilities/default.json`
+limited to permissions valid on both macOS and Windows; otherwise Windows
+capability validation can reject macOS-only identifiers before runtime cfgs take
+effect.
+
+Wrong:
+
+```json
+{
+  "identifier": "default",
+  "permissions": ["core:default", "macos-permissions:default"],
+  "windows": ["*"]
+}
+```
+
+Correct:
+
+```json
+{
+  "identifier": "macos-permissions",
+  "permissions": ["macos-permissions:default"],
+  "platforms": ["macOS"],
+  "windows": ["*"]
+}
+```
+
 ## Native Integration Side Effects
 
 Settings changes that affect OS state must be applied in Rust or through the

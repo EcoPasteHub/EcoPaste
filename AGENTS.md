@@ -95,6 +95,7 @@ cargo test
 - `message` 写用户可读根因，不加 `"xxx failed: {err}"` 动作前缀；动作上下文由前端 toast label 拼接，技术上下文写日志。
 - 错误处理用 `thiserror` 定义错误类型、`anyhow` 做内部传播、`tauri-plugin-log` 记录上下文。
 - 数据库使用 Tauri `State<SqlitePool>`；不要每次新建连接。
+- Cargo 依赖版本不要写 patch 级完整版本；所有依赖优先写主版本号，如 `"2"`，确需收窄时最多写到 minor，如 `"0.9"`，除非有明确锁定原因。
 - SQL 用 `sqlx::query` / `query_as`，不用 `query!` 宏，避免维护离线缓存。
 - migration 在未发版期直接合并进 `0001_init.sql`；发版后才新增 migration，已合并迁移不回改。
 - 改 schema 时同步检查所有 `SELECT`、`INSERT`、`UPDATE`、`bind`、测试结构体字面量；`query_as` 字段不匹配可能表现为 UI 空结果。

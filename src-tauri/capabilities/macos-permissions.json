@@ -1,0 +1,8 @@
+{
+  "$schema": "../gen/schemas/macOS-schema.json",
+  "description": "macOS-only permissions used by onboarding to check and request system access.",
+  "identifier": "macos-permissions",
+  "permissions": ["macos-permissions:default"],
+  "platforms": ["macOS"],
+  "windows": ["*"]
+}
