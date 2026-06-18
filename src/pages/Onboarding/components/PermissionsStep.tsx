@@ -1,4 +1,4 @@
-import { useMount, useUnmount } from "ahooks";
+import { useMount } from "ahooks";
 import { Tag } from "antd";
 import type { FC } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -45,15 +45,13 @@ const STATUS_ICONS = {
   unknown: "i-lucide:circle-help text-base",
 } as const;
 
-const PermissionsStep: FC<OnboardingStepProps> = (props) => {
-  const { onActionLoadingChange } = props;
+const PermissionsStep: FC<OnboardingStepProps> = () => {
   const { t } = useTranslation("onboarding");
   const [permissions, setPermissions] = useState<OnboardingPermissionState[]>(
     () => {
       return buildInitialPermissions();
     },
   );
-  const [loading, setLoading] = useState(false);
   const checkingRef = useRef(false);
 
   const allGranted = useMemo(() => {
@@ -66,19 +64,10 @@ const PermissionsStep: FC<OnboardingStepProps> = (props) => {
     });
   }, [permissions]);
 
-  useEffect(() => {
-    onActionLoadingChange?.(loading);
-  }, [loading, onActionLoadingChange]);
-
-  useUnmount(() => {
-    onActionLoadingChange?.(false);
-  });
-
   const checkPermissions = useCallback(async () => {
     if (checkingRef.current) return;
 
     checkingRef.current = true;
-    setLoading(true);
 
     try {
       setPermissions(await readPermissionStates());
@@ -86,7 +75,6 @@ const PermissionsStep: FC<OnboardingStepProps> = (props) => {
       log.warn("check onboarding permissions failed", error);
     } finally {
       checkingRef.current = false;
-      setLoading(false);
     }
   }, []);
 

@@ -31,7 +31,9 @@ const OnboardingCard: FC<OnboardingCardProps> = (props) => {
           </p>
         </div>
 
-        {control ? <div className="ml-8 shrink-0">{control}</div> : null}
+        {control ? (
+          <div className="ml-8 flex shrink-0 items-center">{control}</div>
+        ) : null}
       </div>
     </Card>
   );
