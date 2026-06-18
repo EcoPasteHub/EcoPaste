@@ -42,7 +42,7 @@ pub fn run() {
         .targets(log_targets)
         .build();
 
-    let mut builder = tauri::Builder::default()
+    let builder = tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(
             |app_handle, argv, _cwd| {
                 if let Some(path) = backup::backup_path_from_args(&argv) {
@@ -66,9 +66,7 @@ pub fn run() {
         .plugin(tauri_plugin_global_shortcut::Builder::new().build());
 
     #[cfg(target_os = "macos")]
-    {
-        builder = builder.plugin(tauri_plugin_macos_permissions::init());
-    }
+    let builder = builder.plugin(tauri_plugin_macos_permissions::init());
 
     builder
         .plugin(tauri_plugin_opener::init())
