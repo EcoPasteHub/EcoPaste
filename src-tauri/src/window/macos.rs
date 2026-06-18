@@ -10,8 +10,9 @@ use tauri_nspanel::{
     tauri_panel, CollectionBehavior, ManagerExt, PanelLevel, StyleMask, WebviewWindowExt,
 };
 
-use super::{get_window, MAIN_WINDOW_LABEL, PREFERENCE_WINDOW_LABEL};
+use super::{get_window, MAIN_WINDOW_LABEL, ONBOARDING_WINDOW_LABEL, PREFERENCE_WINDOW_LABEL};
 use crate::core::Result;
+use crate::settings::SettingsStore;
 
 const MAIN_PANEL_SHOW_DELAY: Duration = Duration::from_millis(16);
 
@@ -110,6 +111,16 @@ pub fn handle_reopen(app_handle: &AppHandle, has_visible_windows: bool) {
     if has_visible_windows {
         return;
     }
+
+    if let Some(settings_store) = app_handle.try_state::<SettingsStore>() {
+        if !settings_store.snapshot().onboarding.completed {
+            if let Err(err) = super::show_window(app_handle, ONBOARDING_WINDOW_LABEL) {
+                log::error!("show onboarding window on reopen failed: {err:?}");
+            }
+            return;
+        }
+    }
+
     if let Err(err) = show_window(app_handle, PREFERENCE_WINDOW_LABEL) {
         log::error!("show preference window on reopen failed: {err:?}");
     }

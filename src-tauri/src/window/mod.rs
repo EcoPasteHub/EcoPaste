@@ -23,6 +23,7 @@ use crate::settings::{SettingsStore, WindowPosition};
 pub const MAIN_WINDOW_LABEL: &str = "main";
 pub const PREFERENCE_WINDOW_LABEL: &str = "preference";
 pub const CLIPBOARD_PREVIEW_WINDOW_LABEL: &str = "clipboard-preview";
+pub const ONBOARDING_WINDOW_LABEL: &str = "onboarding";
 
 /// 偏好页定位高亮事件。前端收到后切到目标设置项所在分类并滚动高亮。
 const PREFERENCE_HIGHLIGHT_EVENT: &str = "preference://highlight-setting";
@@ -106,6 +107,10 @@ pub fn show_window(app_handle: &AppHandle, label: &str) -> Result<()> {
     if label == MAIN_WINDOW_LABEL {
         if let Err(err) = apply_main_layout(app_handle) {
             log::warn!("apply main window layout failed: {err}");
+        }
+    } else if label == ONBOARDING_WINDOW_LABEL {
+        if let Err(err) = position_window(app_handle, label, WindowPosition::Center) {
+            log::warn!("center onboarding window failed: {err}");
         }
     } else {
         let visible = get_window(app_handle, label)?.is_visible().unwrap_or(false);
@@ -215,13 +220,17 @@ pub fn save_all_window_states(app_handle: &AppHandle) {
     }
 }
 
-/// 关闭请求改为隐藏窗口，让应用常驻后台（系统托盘）。
+/// 处理窗口关闭请求，让应用常驻后台（系统托盘）。
 /// 返回 `true` 表示已拦截关闭，调用方需 `api.prevent_close()`。
 ///
-/// 所有窗口的关闭按钮统一 hide，不直接销毁。`DestroyWhenIdle` 窗口（preference）
-/// 在 hide 触发的 `on_hidden` 里启动空闲计时器，超时后才由生命周期管理器 `destroy`，
-/// 故无需在 close 路径区分销毁分支。
-pub fn hide_on_close(window: &Window) -> bool {
+/// 引导窗口属于强制流程，关闭请求只拦截不隐藏；其它窗口的关闭按钮统一 hide，不直接销毁。
+/// `DestroyWhenIdle` 窗口在 hide 触发的 `on_hidden` 里启动空闲计时器，超时后才由生命周期
+/// 管理器 `destroy`，故无需在 close 路径区分销毁分支。
+pub fn intercept_close_request(window: &Window) -> bool {
+    if window.label() == ONBOARDING_WINDOW_LABEL {
+        return true;
+    }
+
     // 关闭按钮不走 `hide_window`，需在此单独保存几何，否则 preference 的移动/缩放会丢失。
     if let Err(err) = state::save_window_state(window.app_handle(), window.label()) {
         log::warn!(
@@ -277,6 +286,51 @@ pub fn build_preference_window(app_handle: &AppHandle) -> Result<()> {
         .map_err(|err| anyhow::anyhow!("build preference window: {err}"))?;
 
     Ok(())
+}
+
+/// 按需创建首次启动引导窗口。引导窗口始终无边框、深色 UI、打开时居中。
+pub fn build_onboarding_window(app_handle: &AppHandle) -> Result<()> {
+    if app_handle
+        .get_webview_window(ONBOARDING_WINDOW_LABEL)
+        .is_some()
+    {
+        return Ok(());
+    }
+
+    WebviewWindowBuilder::new(
+        app_handle,
+        ONBOARDING_WINDOW_LABEL,
+        WebviewUrl::App("index.html/#/onboarding".into()),
+    )
+    .title("EcoPaste Onboarding")
+    .inner_size(900.0, 600.0)
+    .min_inner_size(900.0, 600.0)
+    .max_inner_size(900.0, 600.0)
+    .center()
+    .resizable(false)
+    .maximizable(false)
+    .decorations(false)
+    .shadow(false)
+    .transparent(cfg!(target_os = "macos"))
+    .accept_first_mouse(true)
+    .disable_drag_drop_handler()
+    .visible(false)
+    .build()
+    .map_err(|err| anyhow::anyhow!("build onboarding window: {err}"))?;
+
+    Ok(())
+}
+
+/// 创建并显示首次启动引导窗口。
+pub fn open_onboarding(app_handle: &AppHandle) -> Result<()> {
+    if app_handle
+        .get_webview_window(ONBOARDING_WINDOW_LABEL)
+        .is_none()
+    {
+        build_onboarding_window(app_handle)?;
+    }
+
+    show_window(app_handle, ONBOARDING_WINDOW_LABEL)
 }
 
 /// 打开偏好窗口并定位到指定设置项。

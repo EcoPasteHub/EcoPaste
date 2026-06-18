@@ -8,6 +8,7 @@ import type {
   ExportHistoryBackupResult,
   StorageLocation,
 } from "@/commands";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import type { Settings } from "@/types/settings";
 import { cn } from "@/utils/cn";
 import type {
@@ -208,6 +209,18 @@ function renderControl(
         />
       );
     case "segmented":
+      if (setting.id === "appearance.language") {
+        return (
+          <LanguageSwitcher
+            disabled={disabled}
+            onChange={async (nextLanguage) => {
+              await onChange(setting, nextLanguage);
+            }}
+            value={settings.appearance.language}
+          />
+        );
+      }
+
       return (
         <SegmentedSelectControl
           disabled={disabled}

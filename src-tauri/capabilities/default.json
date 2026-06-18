@@ -9,6 +9,7 @@
     "os:default",
     "core:window:allow-start-dragging",
     "dialog:default",
+    "macos-permissions:default",
     "opener:default",
     "core:window:deny-internal-toggle-maximize",
     "core:window:allow-hide"

@@ -1,5 +1,6 @@
 import { CAPTURE_KIND_OPTIONS } from "@/constants/captureKinds";
 import { ITEM_ACTION_OPTIONS } from "@/constants/itemActions";
+import { LANGUAGE_OPTIONS } from "@/constants/languages";
 import {
   WINDOW_OPEN_CATEGORY_OPTIONS,
   WINDOW_OPEN_RANGE_OPTIONS,
@@ -544,7 +545,7 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: {
-              options: [{ value: "zh-CN" }, { value: "en-US" }],
+              options: LANGUAGE_OPTIONS,
               type: "segmented",
             },
             id: "appearance.language",

@@ -15,6 +15,10 @@ export const WINDOW_LABEL = {
    */
   MAIN: "main",
   /**
+   * 首次启动引导窗口。
+   */
+  ONBOARDING: "onboarding",
+  /**
    * 偏好设置窗口。
    */
   PREFERENCE: "preference",

@@ -62,6 +62,9 @@ importers:
       tailwind-merge:
         specifier: ^3.6.0
         version: 3.6.0
+      tauri-plugin-macos-permissions-api:
+        specifier: 2.3.0
+        version: 2.3.0
       valtio:
         specifier: ^2.3.2
         version: 2.3.2(@types/react@19.2.15)(react@19.2.6)
@@ -2807,6 +2810,9 @@ packages:
 
   tailwind-merge@3.6.0:
     resolution: {integrity: sha512-uxL7qAVQriqRQPAyK3pj66VqskWqoZ37PW94jwOTwNfq/z9oyu1V+eqrZqtR2+fCiXdYOZe/Modt8GtvqNzu+w==}
+
+  tauri-plugin-macos-permissions-api@2.3.0:
+    resolution: {integrity: sha512-pZp0jmDySysBqrGueknd1a7Rr4XEO9aXpMv9TNrT2PDHP0MSH20njieOagsFYJ5MCVb8A+wcaK0cIkjUC2dOww==}
 
   throttle-debounce@5.0.2:
     resolution: {integrity: sha512-B71/4oyj61iNH0KeCamLuE2rmKuTO5byTOSVwECM5FA7TiAiAW+UqTKZ9ERueC4qvgSttUhdmq1mXC3kJqGX7A==}
@@ -5739,6 +5745,10 @@ snapshots:
   supports-preserve-symlinks-flag@1.0.0: {}
 
   tailwind-merge@3.6.0: {}
+
+  tauri-plugin-macos-permissions-api@2.3.0:
+    dependencies:
+      '@tauri-apps/api': 2.11.0
 
   throttle-debounce@5.0.2: {}
 

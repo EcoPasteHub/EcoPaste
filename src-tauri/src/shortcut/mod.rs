@@ -1,6 +1,6 @@
 //! 全局快捷键：注册由 Rust 主导，前端在偏好设置里改完通过 `update_settings` 触发重注册。
 //!
-//! 配置来自 `settings::Shortcuts`。本模块只负责 OS 级注册——`paste_plain` / `quick_paste`
+//! 配置来自 `settings::Shortcuts`。本模块只负责 OS 级注册——`paste_plain`
 //! 是窗口内交互（前端 `useKeyPress`），不在这里处理。
 
 use std::sync::Mutex;

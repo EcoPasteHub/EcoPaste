@@ -67,6 +67,8 @@ export type PreviewHoverDelayMs = "ms300" | "ms500" | "ms1000";
 
 export type UpdateFrequency = "daily" | "weekly" | "monthly";
 
+export type OnboardingLegacyImportType = "normal" | "favorite";
+
 export interface General {
   autoStart: boolean;
   silentStart: boolean;
@@ -79,16 +81,10 @@ export interface Appearance {
   language: Language;
 }
 
-export interface QuickPaste {
-  enabled: boolean;
-  modifier: string;
-}
-
 export interface Shortcuts {
   openClipboard: string;
   openPreference: string;
   pastePlain: string;
-  quickPaste: QuickPaste;
   winV: boolean;
 }
 
@@ -177,6 +173,19 @@ export interface Filters {
   excludedAppIds: string[];
 }
 
+export interface OnboardingLegacyImport {
+  checked: boolean;
+  imported: boolean;
+  importTypes: OnboardingLegacyImportType[];
+  importedAt: string | null;
+}
+
+export interface Onboarding {
+  completed: boolean;
+  lastStep: number;
+  legacyImport: OnboardingLegacyImport;
+}
+
 export interface Clipboard {
   capture: Capture;
   content: Content;
@@ -201,6 +210,7 @@ export interface Settings {
   appearance: Appearance;
   shortcuts: Shortcuts;
   clipboard: Clipboard;
+  onboarding: Onboarding;
   update: Update;
 }
 

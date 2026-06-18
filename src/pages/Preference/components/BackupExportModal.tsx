@@ -197,8 +197,8 @@ const BackupExportModal: FC<BackupExportModalProps> = (props) => {
           <>
             <Alert
               className="mb-4"
-              message={t("preferences:backup.export.encryptedHint")}
               showIcon
+              title={t("preferences:backup.export.encryptedHint")}
               type="info"
             />
             <Form.Item
@@ -251,8 +251,8 @@ const BackupExportModal: FC<BackupExportModalProps> = (props) => {
             <Alert
               className="mb-4"
               description={t("preferences:backup.export.plainWarning")}
-              message={t("preferences:backup.export.plainWarningTitle")}
               showIcon
+              title={t("preferences:backup.export.plainWarningTitle")}
               type="warning"
             />
             <Form.Item

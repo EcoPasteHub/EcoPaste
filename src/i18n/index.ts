@@ -3,11 +3,13 @@ import { initReactI18next } from "react-i18next";
 import clipboardEnUS from "@/locales/en-US/clipboard.json";
 import commandsEnUS from "@/locales/en-US/commands.json";
 import commonEnUS from "@/locales/en-US/common.json";
+import onboardingEnUS from "@/locales/en-US/onboarding.json";
 import preferencesEnUS from "@/locales/en-US/preferences.json";
 import previewEnUS from "@/locales/en-US/preview.json";
 import clipboardZhCN from "@/locales/zh-CN/clipboard.json";
 import commandsZhCN from "@/locales/zh-CN/commands.json";
 import commonZhCN from "@/locales/zh-CN/common.json";
+import onboardingZhCN from "@/locales/zh-CN/onboarding.json";
 import preferencesZhCN from "@/locales/zh-CN/preferences.json";
 import previewZhCN from "@/locales/zh-CN/preview.json";
 import type { Language } from "@/types/settings";
@@ -17,6 +19,7 @@ export const I18N_NAMESPACES = [
   "common",
   "commands",
   "clipboard",
+  "onboarding",
   "preferences",
   "preview",
 ] as const;
@@ -37,6 +40,7 @@ void i18n.use(initReactI18next).init({
       clipboard: clipboardEnUS,
       commands: commandsEnUS,
       common: commonEnUS,
+      onboarding: onboardingEnUS,
       preferences: preferencesEnUS,
       preview: previewEnUS,
     },
@@ -44,6 +48,7 @@ void i18n.use(initReactI18next).init({
       clipboard: clipboardZhCN,
       commands: commandsZhCN,
       common: commonZhCN,
+      onboarding: onboardingZhCN,
       preferences: preferencesZhCN,
       preview: previewZhCN,
     },

@@ -94,7 +94,7 @@ fn apply_reset_side_effects(app: &AppHandle, settings: &Settings) {
 }
 
 /// 广播最新设置快照给所有前端窗口。
-fn emit_settings_updated(app: &AppHandle, settings: &Settings) {
+pub(super) fn emit_settings_updated(app: &AppHandle, settings: &Settings) {
     if let Err(err) = app.emit(SETTINGS_UPDATED_EVENT, settings) {
         log::warn!("emit settings updated event failed: {err}");
     }

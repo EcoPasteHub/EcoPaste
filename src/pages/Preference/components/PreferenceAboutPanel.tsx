@@ -1,8 +1,9 @@
-import { Button, message } from "antd";
+import { Button } from "antd";
 import type { FC } from "react";
 import { useTranslation } from "react-i18next";
 import { openExternalUrl } from "@/commands";
 import { GITHUB_URL } from "@/constants/urls";
+import { getMessageApi } from "@/utils/feedback";
 import { APP_NAME_PLACEHOLDER } from "../constants";
 import PreferenceCountTag from "./PreferenceCountTag";
 
@@ -21,7 +22,7 @@ const PreferenceAboutPanel: FC<PreferenceAboutPanelProps> = (props) => {
   const versionLabel = appVersion.length > 0 ? `v${appVersion}` : "";
 
   const handleCheckUpdates = () => {
-    message.info(t("preferences:about.checkUpdatesUnavailable"));
+    getMessageApi().info(t("preferences:about.checkUpdatesUnavailable"));
   };
 
   const openGitHub = async () => {

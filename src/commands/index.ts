@@ -4,15 +4,12 @@
  * 约定：
  * - 每个 `#[tauri::command]` 在此文件**只**有一个对应的 TS 包装函数，命名与 Rust 函数同名转 camelCase。
  * - 调用方一律 `import { foo } from "@/commands"`，**禁止**裸调 `invoke` 或引用 `TAURI_COMMAND` 常量。
- * - 错误处理在本文件统一收口：失败时 log + antd `message.error("xxx 失败：${error}")`，
+ * - 错误处理在本文件统一收口：失败时 log + antd message error toast，
  *   然后再 rethrow。调用方按需用 `try/catch` 决定成功后做什么，**不要再写错误 toast**。
- *
- * 注：用 antd v6 静态 `message` API，不读 ConfigProvider 主题——错误 toast 一致即可，
- * 不必跟随主题精修。希望集成主题再换 `App.useApp()` 拿到的实例 + 模块级 holder。
  */
 
 import { invoke } from "@tauri-apps/api/core";
-import { Modal, message } from "antd";
+import { Modal } from "antd";
 import { TAURI_COMMAND } from "@/constants/commands";
 import i18n from "@/i18n";
 import { settingsState } from "@/stores/settings";
@@ -28,6 +25,7 @@ import type {
   UpdateNoteResult,
 } from "@/types/clipboard";
 import type { Settings, SettingsPatch } from "@/types/settings";
+import { getMessageApi } from "@/utils/feedback";
 import { log } from "@/utils/log";
 import { confirmClearClipboardItems } from "./confirmClearClipboardItems";
 
@@ -242,6 +240,29 @@ export interface WindowLifecycleSnapshot {
   lastActiveAgoMs: number;
 }
 
+export interface OnboardingLegacyDataDetection {
+  found: boolean;
+  favoriteItemCount: number;
+  importableDatabase: string | null;
+  importableItemCount: number;
+  normalItemCount: number;
+  databaseFiles: string[];
+  checkedAt: string;
+  path: string | null;
+  totalBytes: number;
+}
+
+export type LegacyImportSelection = "normal" | "favorite";
+
+export interface OnboardingLegacyImportResult {
+  importedAt: string;
+  importedFavorite: number;
+  importedNormal: number;
+  imported: number;
+  selectedTypes: LegacyImportSelection[];
+  skipped: number;
+}
+
 /**
  * 把任意 invoke reject 的值归一化成前端可展示的 `AppError`。
  */
@@ -273,7 +294,7 @@ const call = async <T>(
     const appError = toAppError(error);
 
     log.error(`invoke ${command} failed`, appError);
-    message.error(
+    getMessageApi().error(
       i18n.t("commands:error", {
         label: i18n.t(labelKey),
         message: appError.message,
@@ -292,6 +313,67 @@ export const getSettings = () => {
     TAURI_COMMAND.GET_SETTINGS,
     "commands:labels.loadSettings",
   );
+};
+
+/**
+ * 创建并显示首次启动引导窗口。
+ */
+export const openOnboarding = () => {
+  return call<void>(
+    TAURI_COMMAND.OPEN_ONBOARDING,
+    "commands:labels.openOnboarding",
+  );
+};
+
+/**
+ * 保存引导当前步骤，供中途关闭后恢复。
+ */
+export const setOnboardingStep = (step: number) => {
+  return call<Settings>(
+    TAURI_COMMAND.SET_ONBOARDING_STEP,
+    "commands:labels.saveOnboarding",
+    { step },
+  );
+};
+
+/**
+ * 标记引导完成并打开主窗口。
+ */
+export const finishOnboarding = () => {
+  return call<Settings>(
+    TAURI_COMMAND.FINISH_ONBOARDING,
+    "commands:labels.finishOnboarding",
+  );
+};
+
+/**
+ * 只读检测旧版 EcoPaste 数据目录，不执行导入。
+ */
+export const detectLegacyData = () => {
+  return call<OnboardingLegacyDataDetection>(
+    TAURI_COMMAND.DETECT_LEGACY_DATA,
+    "commands:labels.detectLegacyData",
+  );
+};
+
+/**
+ * 按用户选择导入旧版普通条目和/或收藏条目。
+ */
+export const importLegacyData = async (types: LegacyImportSelection[]) => {
+  const result = await call<OnboardingLegacyImportResult>(
+    TAURI_COMMAND.IMPORT_LEGACY_DATA,
+    "commands:labels.importLegacyData",
+    { types },
+  );
+
+  getMessageApi().success(
+    i18n.t("commands:messages.legacyDataImported", {
+      imported: result.imported,
+      skipped: result.skipped,
+    }),
+  );
+
+  return result;
 };
 
 /**
@@ -334,7 +416,7 @@ export const resetSettings = async () => {
     "commands:labels.resetSettings",
   );
 
-  message.success(i18n.t("commands:messages.settingsReset"));
+  getMessageApi().success(i18n.t("commands:messages.settingsReset"));
 
   return settings;
 };
@@ -369,7 +451,7 @@ export const changeStorageLocation = async (targetParentDir: string) => {
     { targetParentDir },
   );
 
-  message.success(i18n.t("commands:messages.storageLocationChanged"));
+  getMessageApi().success(i18n.t("commands:messages.storageLocationChanged"));
 
   return result;
 };
@@ -383,7 +465,7 @@ export const resetStorageLocation = async () => {
     "commands:labels.resetStorageLocation",
   );
 
-  message.success(i18n.t("commands:messages.storageLocationReset"));
+  getMessageApi().success(i18n.t("commands:messages.storageLocationReset"));
 
   return result;
 };
@@ -402,7 +484,7 @@ export const cleanResourceCache = async () => {
       ? "commands:messages.cacheAlreadyClean"
       : "commands:messages.cacheCleaned";
 
-  message.success(
+  getMessageApi().success(
     i18n.t(messageKey, {
       count: result.removedFiles,
       size: formatCommandBytes(result.removedBytes),
@@ -441,7 +523,7 @@ export const exportHistoryBackup = async (
     },
   );
 
-  message.success(
+  getMessageApi().success(
     i18n.t("commands:messages.backupExported", {
       count: result.itemCount,
       size: formatCommandBytes(result.totalBytes),
@@ -523,7 +605,7 @@ export const importHistoryBackup = async (
     },
   );
 
-  message.success(
+  getMessageApi().success(
     i18n.t(
       result.strategy === "overwrite"
         ? "commands:messages.backupOverwriteImported"
@@ -663,7 +745,7 @@ export const createClipboardGroup = async (input: ClipboardGroupInput) => {
     { input },
   );
 
-  message.success(i18n.t("commands:messages.clipboardGroupSaved"));
+  getMessageApi().success(i18n.t("commands:messages.clipboardGroupSaved"));
 
   return group;
 };
@@ -681,7 +763,7 @@ export const updateClipboardGroup = async (
     { id, input },
   );
 
-  message.success(i18n.t("commands:messages.clipboardGroupSaved"));
+  getMessageApi().success(i18n.t("commands:messages.clipboardGroupSaved"));
 };
 
 /**
@@ -697,7 +779,9 @@ export const updateClipboardGroupsLayout = async (
     { input: { order, visibleIds } },
   );
 
-  message.success(i18n.t("commands:messages.clipboardGroupsLayoutSaved"));
+  getMessageApi().success(
+    i18n.t("commands:messages.clipboardGroupsLayoutSaved"),
+  );
 };
 
 /**
@@ -710,7 +794,7 @@ export const deleteClipboardGroup = async (id: string) => {
     { id },
   );
 
-  message.success(i18n.t("commands:messages.clipboardGroupDeleted"));
+  getMessageApi().success(i18n.t("commands:messages.clipboardGroupDeleted"));
 };
 
 /**
@@ -723,7 +807,7 @@ export const updateClipboardItemGroup = async (id: string, groupId: string) => {
     { groupId, id },
   );
 
-  message.success(i18n.t("commands:messages.itemMovedToGroup"));
+  getMessageApi().success(i18n.t("commands:messages.itemMovedToGroup"));
 };
 
 /**
@@ -774,7 +858,7 @@ export const writeToClipboard = async (id: string, plain: boolean) => {
     plain,
   });
 
-  message.success(i18n.t("commands:messages.copied"));
+  getMessageApi().success(i18n.t("commands:messages.copied"));
 };
 
 /**
@@ -825,7 +909,7 @@ export const toggleClipboardItemFavorite = async (
     { id },
   );
 
-  message.success(
+  getMessageApi().success(
     i18n.t(
       next
         ? "commands:messages.favoriteAdded"
@@ -850,7 +934,7 @@ export const toggleClipboardItemPinned = async (
     { id },
   );
 
-  message.success(
+  getMessageApi().success(
     i18n.t(
       next ? "commands:messages.itemPinned" : "commands:messages.itemUnpinned",
     ),
@@ -907,7 +991,7 @@ export const deleteClipboardItem = async (
     { id },
   );
 
-  message.success(i18n.t("commands:messages.deleted"));
+  getMessageApi().success(i18n.t("commands:messages.deleted"));
 
   return true;
 };
@@ -929,7 +1013,7 @@ export const clearClipboardItems = async (): Promise<boolean> => {
     },
   );
 
-  message.success(
+  getMessageApi().success(
     i18n.t("commands:messages.clipboardItemsCleared", { count: removed }),
   );
 
@@ -951,7 +1035,7 @@ export const updateClipboardItemNote = async (
     { id, note },
   );
 
-  message.success(
+  getMessageApi().success(
     i18n.t(
       result.autoFavorited
         ? "commands:messages.noteSavedAndFavorited"

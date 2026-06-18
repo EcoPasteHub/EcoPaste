@@ -42,7 +42,7 @@ pub fn run() {
         .targets(log_targets)
         .build();
 
-    tauri::Builder::default()
+    let mut builder = tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(
             |app_handle, argv, _cwd| {
                 if let Some(path) = backup::backup_path_from_args(&argv) {
@@ -56,14 +56,21 @@ pub fn run() {
                     return;
                 }
 
-                if let Err(err) = window::show_window(app_handle, window::PREFERENCE_WINDOW_LABEL) {
-                    log::error!("show preference window on second instance failed: {err:?}");
+                if let Err(err) = show_default_foreground_window(app_handle) {
+                    log::error!("show foreground window on second instance failed: {err:?}");
                 }
             },
         ))
         .plugin(log_plugin)
         .plugin(tauri_plugin_os::init())
-        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build());
+
+    #[cfg(target_os = "macos")]
+    {
+        builder = builder.plugin(tauri_plugin_macos_permissions::init());
+    }
+
+    builder
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(core::prevent_default::init())
@@ -113,6 +120,11 @@ pub fn run() {
             commands::get_window_lifecycle_snapshot,
             commands::open_preference_with_highlight,
             commands::take_pending_preference_highlight,
+            commands::open_onboarding,
+            commands::set_onboarding_step,
+            commands::finish_onboarding,
+            commands::detect_legacy_data,
+            commands::import_legacy_data,
             commands::show_taskbar_icon,
             commands::position_window,
             commands::set_main_window_pinned,
@@ -199,6 +211,12 @@ pub fn run() {
             #[cfg(target_os = "windows")]
             menu::context_window::init(&handle);
 
+            if !settings.onboarding.completed {
+                if let Err(err) = window::open_onboarding(&handle) {
+                    log::error!("open onboarding window failed: {err:?}");
+                }
+            }
+
             // Windows 冷启动文件关联：第一个实例从自身启动参数里取 `.ecopastebak` 路径。
             // 已运行时双击由 `single_instance` 回调处理；此处覆盖应用未启动时双击的冷启动场景，
             // 否则路径会被丢弃——程序被唤起但偏好窗口不弹。macOS 走 `RunEvent::Opened`，不经此路。
@@ -218,7 +236,7 @@ pub fn run() {
         })
         .on_window_event(|window, event| {
             if let WindowEvent::CloseRequested { api, .. } = event {
-                if window::hide_on_close(window) {
+                if window::intercept_close_request(window) {
                     api.prevent_close();
                 }
             }
@@ -277,4 +295,14 @@ pub fn run() {
                 window::save_all_window_states(app_handle);
             }
         });
+}
+
+fn show_default_foreground_window(app_handle: &tauri::AppHandle) -> core::Result<()> {
+    if let Some(settings_store) = app_handle.try_state::<settings::SettingsStore>() {
+        if !settings_store.snapshot().onboarding.completed {
+            return window::open_onboarding(app_handle);
+        }
+    }
+
+    window::show_window(app_handle, window::PREFERENCE_WINDOW_LABEL)
 }

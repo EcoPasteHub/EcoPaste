@@ -1,0 +1,115 @@
+{
+  "actions": {
+    "close": "关闭引导",
+    "finish": "开始使用",
+    "next": "下一步",
+    "previous": "上一步",
+    "skip": "跳过",
+    "start": "开始设置"
+  },
+  "done": {
+    "description": "关键设置已经准备好。之后你仍然可以在偏好设置里调整快捷键、忽略应用、数据导入和窗口行为。",
+    "logoAlt": "EcoPaste 图标",
+    "title": "欢迎使用 EcoPaste"
+  },
+  "ignoreApps": {
+    "description": "选择不需要记录的来源应用，密码管理器、密钥工具或临时窗口都可以放到忽略列表；右侧列表中的应用不会被写入剪贴板历史。",
+    "title": "设置忽略应用"
+  },
+  "legacyImport": {
+    "cardDescription": "EcoPaste 会只读扫描旧版默认数据目录，不会修改旧目录或导入任何内容。",
+    "cardTitle": "旧版数据检测",
+    "description": "只保留导入决策需要的最少信息，并按需选择导入普通条目或收藏条目。",
+    "detecting": "正在检测旧版数据...",
+    "emptyDescription": "未发现旧版数据",
+    "importAction": "导入",
+    "importSectionTitle": "选择导入内容",
+    "importSummary": "已导入 {{imported}} 条，跳过 {{skipped}} 条；其中普通 {{normal}} 条，收藏 {{favorite}} 条。",
+    "noImportableNote": "检测到了旧目录，但还没有找到可导入的历史数据库。",
+    "refresh": "重新检测",
+    "safeNote": "导入只会读取你勾选的旧版条目类型；未勾选的类型不会被带入当前库。",
+    "summary": {
+      "compactItems": "{{count}} 条可导入",
+      "compactSize": "大小 {{size}}",
+      "detected": "检测结果",
+      "detectedValue": "已发现旧版数据",
+      "importable": "可导入条目",
+      "itemUnit": "条记录",
+      "size": "估算大小 {{size}}"
+    },
+    "title": "旧版数据",
+    "types": {
+      "favorite": "收藏条目",
+      "normal": "普通条目"
+    }
+  },
+  "permissions": {
+    "description": {
+      "macos": "EcoPaste 在 macOS 上需要辅助功能和完全磁盘访问权限来完成核心工作流。",
+      "windows": "EcoPaste 在 Windows 上需要管理员权限启动来完成部分系统级工作流。"
+    },
+    "items": {
+      "accessibility": {
+        "description": "用于快捷粘贴、窗口控制和更稳定的系统交互。",
+        "title": "辅助功能"
+      },
+      "fullDiskAccess": {
+        "description": "用于读取必要的本地数据和访问受系统保护的应用资源。",
+        "title": "完全磁盘访问"
+      },
+      "runAsAdministrator": {
+        "description": "用于后续接入需要提升权限的系统能力；当前先保留入口，待 Windows 实机测试后接入。",
+        "title": "管理员权限启动"
+      }
+    },
+    "status": {
+      "denied": "未授权",
+      "granted": "已授权",
+      "notRequired": "无需授权",
+      "pendingIntegration": "待接入",
+      "unknown": "待确认"
+    },
+    "title": "开启必要权限"
+  },
+  "shortcuts": {
+    "description": "设置常用快捷键，之后也可以在偏好设置中随时修改。",
+    "items": {
+      "openClipboard": {
+        "description": "随时唤起剪贴板历史窗口。",
+        "title": "打开剪贴板"
+      },
+      "openPreference": {
+        "description": "快速打开偏好设置。",
+        "title": "打开偏好设置"
+      }
+    },
+    "title": "设置快捷键"
+  },
+  "steps": {
+    "done": "完成",
+    "ignoreApps": "忽略应用",
+    "legacyImport": "旧版数据",
+    "permissions": "权限",
+    "shortcuts": "快捷键",
+    "welcome": "欢迎"
+  },
+  "welcome": {
+    "description": "跨平台剪贴板管理器，帮你更快搜索、整理和复用复制过的内容。",
+    "features": {
+      "capture": {
+        "description": "自动收录文本、图片和文件记录，重要内容不用再反复复制。",
+        "title": "自动记录"
+      },
+      "reuse": {
+        "description": "通过快捷键、预览和快速操作，把常用内容直接送回当前工作流。",
+        "title": "高效复用"
+      },
+      "search": {
+        "description": "按关键词、类型和来源快速定位历史记录。",
+        "title": "即时搜索"
+      }
+    },
+    "logoAlt": "EcoPaste 图标",
+    "title": "欢迎使用 EcoPaste"
+  }
+}

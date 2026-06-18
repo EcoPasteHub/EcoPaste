@@ -6,12 +6,19 @@
 
 ## Scope
 
+- 引导 UI 参考 HapiGo 的深色无边框设置向导：大标题、中心化内容、底部主按钮、权限截图式说明、完成页。
+- 引导窗口始终使用 dark 模式，不跟随全局主题。
+- 引导窗口设置 `decorations: false`，固定尺寸并在打开时居中显示。
+- macOS 引导窗口用 CSS `rounded-4` 做圆角；Windows 保持普通无边框矩形。
+- 右上角语言切换使用下拉菜单，不使用分段按钮。
+- 引导未完成前不提供关闭按钮，并拦截原生关闭请求，属于强制引导。
 - 新增 `Settings.onboarding.completed: bool`，默认 false。
 - 新增 `Settings.onboarding.lastStep: number`，用于中途关闭后恢复。
 - 旧版导入状态可放在 `Settings.onboarding.legacyImport` 下，记录是否检测、是否导入、导入类型和时间。
 - 新窗口 label 为 `onboarding`，URL 为 `/#/onboarding`。
 - 启动时根据 `SettingsStore.snapshot().onboarding.completed` 决定是否创建。
 - 新增 `pages/Onboarding`。
+- 引导步骤拆分为独立组件，步骤数组集中定义；能用 Ant Design 组件实现的交互优先使用 Ant Design，不重复造基础控件。
 
 ## Implementation Notes
 
@@ -31,7 +38,8 @@
 ## Acceptance Criteria
 
 - 首次启动自动弹出，引导完成后不再自动弹。
-- 中途关闭后下次从上次步骤继续。
+- 引导未完成时不能通过关闭按钮或原生关闭请求隐藏/销毁窗口。
+- 中途异常退出后下次从上次步骤继续。
 - 设置页可重新打开引导。
 - 旧版导入可取消，失败不会留下半截数据。
 - macOS 与 Windows 都有合理降级路径。

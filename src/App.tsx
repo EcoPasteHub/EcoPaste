@@ -10,11 +10,13 @@ import { useTranslation } from "react-i18next";
 import { RouterProvider } from "react-router";
 import { useSnapshot } from "valtio";
 import { notifyWindowReady } from "@/commands";
+import { WINDOW_LABEL } from "@/constants/windows";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { router } from "./router";
 import { settingsReady, settingsState } from "./stores/settings";
 import "./stores/windowLifecycle";
 import type { Language } from "./types/settings";
+import { setMessageApi } from "./utils/feedback";
 import { log } from "./utils/log";
 
 const ANTD_MODAL_CONFIG = {
@@ -30,6 +32,16 @@ const resolveAntdLocale = (language: Language) => {
   return zhCN;
 };
 
+const AppContent: FC = () => {
+  const { message } = AntdApp.useApp();
+
+  useEffect(() => {
+    setMessageApi(message);
+  }, [message]);
+
+  return <RouterProvider router={router} />;
+};
+
 /**
  * 等待 Rust 设置首屏快照灌入后再渲染，避免组件读到空对象闪烁默认值。
  * `use()` 在 promise pending 时抛出，由父级（`main.tsx`）的 Suspense 接住。
@@ -39,7 +51,11 @@ const App: FC = () => {
 
   const { i18n } = useTranslation();
   const settings = useSnapshot(settingsState);
-  const mode = settings.appearance.theme;
+  const windowLabel = getCurrentWebviewWindow().label;
+  const mode =
+    windowLabel === WINDOW_LABEL.ONBOARDING
+      ? "dark"
+      : settings.appearance.theme;
   const language = settings.appearance.language;
   const antdTheme = useAppTheme(mode);
   const locale = resolveAntdLocale(language);
@@ -78,7 +94,7 @@ const App: FC = () => {
   return (
     <ConfigProvider locale={locale} modal={ANTD_MODAL_CONFIG} theme={antdTheme}>
       <AntdApp>
-        <RouterProvider router={router} />
+        <AppContent />
       </AntdApp>
     </ConfigProvider>
   );

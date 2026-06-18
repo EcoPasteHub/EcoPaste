@@ -18,6 +18,7 @@ pub struct Settings {
     pub appearance: Appearance,
     pub shortcuts: Shortcuts,
     pub clipboard: Clipboard,
+    pub onboarding: Onboarding,
     pub update: Update,
 }
 
@@ -42,6 +43,32 @@ impl Default for General {
             dock_icon: false,
         }
     }
+}
+
+/// 首次启动引导状态。业务数据仍由各自设置项持久化，本结构只记录引导进度。
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(default, rename_all = "camelCase")]
+pub struct Onboarding {
+    pub completed: bool,
+    pub last_step: u32,
+    pub legacy_import: OnboardingLegacyImport,
+}
+
+/// 旧版数据导入的轻量状态记录；真实历史数据导入由 onboarding 导入流程负责。
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(default, rename_all = "camelCase")]
+pub struct OnboardingLegacyImport {
+    pub checked: bool,
+    pub imported: bool,
+    pub import_types: Vec<OnboardingLegacyImportType>,
+    pub imported_at: Option<String>,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub enum OnboardingLegacyImportType {
+    Normal,
+    Favorite,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -100,7 +127,6 @@ pub struct Shortcuts {
     pub open_preference: String,
     /// 主窗内局部：粘贴时强制走纯文本（不在 OS 级注册）。
     pub paste_plain: String,
-    pub quick_paste: QuickPaste,
     /// 仅 Windows：用 Win+V 唤起主窗口，替代系统剪贴板历史面板。默认关闭。
     pub win_v: bool,
 }
@@ -111,25 +137,7 @@ impl Default for Shortcuts {
             open_clipboard: "Alt+C".into(),
             open_preference: "Alt+X".into(),
             paste_plain: String::new(),
-            quick_paste: QuickPaste::default(),
             win_v: false,
-        }
-    }
-}
-
-/// 「按住修饰键 + 数字键」粘贴第 N 条历史，配合主窗显示序号用。
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(default, rename_all = "camelCase")]
-pub struct QuickPaste {
-    pub enabled: bool,
-    pub modifier: String,
-}
-
-impl Default for QuickPaste {
-    fn default() -> Self {
-        Self {
-            enabled: false,
-            modifier: "Cmd+Shift".into(),
         }
     }
 }

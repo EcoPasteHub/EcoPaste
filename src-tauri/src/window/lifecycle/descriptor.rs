@@ -7,8 +7,8 @@
 use tauri::AppHandle;
 
 use super::super::{
-    build_preference_window, preview, CLIPBOARD_PREVIEW_WINDOW_LABEL, MAIN_WINDOW_LABEL,
-    PREFERENCE_WINDOW_LABEL,
+    build_onboarding_window, build_preference_window, preview, CLIPBOARD_PREVIEW_WINDOW_LABEL,
+    MAIN_WINDOW_LABEL, ONBOARDING_WINDOW_LABEL, PREFERENCE_WINDOW_LABEL,
 };
 use crate::core::Result;
 
@@ -64,6 +64,12 @@ static DESCRIPTORS: &[WindowDescriptor] = &[
         emits_lifecycle: true,
         retain_policy: RetainPolicy::DestroyWhenIdle,
         build: Some(build_preference_window),
+    },
+    WindowDescriptor {
+        label: ONBOARDING_WINDOW_LABEL,
+        emits_lifecycle: true,
+        retain_policy: RetainPolicy::DestroyWhenIdle,
+        build: Some(build_onboarding_window),
     },
     WindowDescriptor {
         label: CLIPBOARD_PREVIEW_WINDOW_LABEL,

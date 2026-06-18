@@ -1,4 +1,4 @@
-import { Input, type InputRef, message } from "antd";
+import { Input, type InputRef } from "antd";
 import { AnimatePresence, motion } from "motion/react";
 import {
   type FC,
@@ -11,6 +11,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { resumeGlobalShortcuts, suspendGlobalShortcuts } from "@/commands";
 import { cn } from "@/utils/cn";
+import { getMessageApi } from "@/utils/feedback";
 import { log } from "@/utils/log";
 import {
   buildShortcutFromEvent,
@@ -135,7 +136,7 @@ const ShortcutRecorder: FC<ShortcutRecorderProps> = (props) => {
     conflict: ShortcutRecorderConflict,
     nextValue: string,
   ) => {
-    message.warning(
+    getMessageApi().warning(
       t("shortcutRecorder.conflict", {
         label: conflict.label,
         shortcut: formatRecordedShortcut(nextValue),
