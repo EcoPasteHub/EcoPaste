@@ -44,6 +44,9 @@
     }
   },
   "permissions": {
+    "action": {
+      "authorize": "Grant Access"
+    },
     "description": {
       "macos": "On macOS, EcoPaste needs Accessibility and Full Disk Access for the core workflow.",
       "windows": "On Windows, EcoPaste needs administrator launch for some system-level workflows."

@@ -44,6 +44,9 @@
     }
   },
   "permissions": {
+    "action": {
+      "authorize": "去授权"
+    },
     "description": {
       "macos": "EcoPaste 在 macOS 上需要辅助功能和完全磁盘访问权限来完成核心工作流。",
       "windows": "EcoPaste 在 Windows 上需要管理员权限启动来完成部分系统级工作流。"

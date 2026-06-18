@@ -1,11 +1,13 @@
 import { useMount } from "ahooks";
-import { Tag } from "antd";
+import { Button } from "antd";
 import type { FC } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   checkAccessibilityPermission,
   checkFullDiskAccessPermission,
+  requestAccessibilityPermission,
+  requestFullDiskAccessPermission,
 } from "tauri-plugin-macos-permissions-api";
 import { isMac } from "@/utils/is";
 import { log } from "@/utils/log";
@@ -35,14 +37,6 @@ const PERMISSION_ICONS = {
   accessibility: "i-lucide:accessibility",
   fullDiskAccess: "i-lucide:hard-drive",
   runAsAdministrator: "i-lucide:shield-alert",
-} as const;
-
-const STATUS_ICONS = {
-  denied: "i-lucide:circle-alert text-base",
-  granted: "i-lucide:circle-check text-base",
-  notRequired: "i-lucide:circle-check text-base",
-  pendingIntegration: "i-lucide:circle-dashed text-base",
-  unknown: "i-lucide:circle-help text-base",
 } as const;
 
 const PermissionsStep: FC<OnboardingStepProps> = () => {
@@ -78,6 +72,18 @@ const PermissionsStep: FC<OnboardingStepProps> = () => {
     }
   }, []);
 
+  const handleAuthorize = useCallback(
+    async (kind: OnboardingPermissionKind) => {
+      try {
+        await requestPermission(kind);
+        await checkPermissions();
+      } catch (error) {
+        log.warn("request onboarding permission failed", error);
+      }
+    },
+    [checkPermissions],
+  );
+
   useMount(() => {
     void checkPermissions();
   });
@@ -102,7 +108,13 @@ const PermissionsStep: FC<OnboardingStepProps> = () => {
       title={t("permissions.title")}
     >
       {permissions.map((permission) => {
-        return <PermissionCard key={permission.kind} permission={permission} />;
+        return (
+          <PermissionCard
+            key={permission.kind}
+            onAuthorize={handleAuthorize}
+            permission={permission}
+          />
+        );
       })}
     </OnboardingStepLayout>
   );
@@ -111,26 +123,33 @@ const PermissionsStep: FC<OnboardingStepProps> = () => {
 export default PermissionsStep;
 
 interface PermissionCardProps {
+  onAuthorize: (kind: OnboardingPermissionKind) => void;
   permission: OnboardingPermissionState;
 }
 
 const PermissionCard: FC<PermissionCardProps> = (props) => {
-  const { permission } = props;
+  const { onAuthorize, permission } = props;
   const { t } = useTranslation("onboarding");
+
+  const handleAuthorizeClick = () => {
+    onAuthorize(permission.kind);
+  };
 
   return (
     <OnboardingCard
       action={
-        <Tag
-          className="m-0"
-          color={getPermissionStatusColor(permission.status)}
-          icon={
-            <i aria-hidden="true" className={STATUS_ICONS[permission.status]} />
+        <Button
+          color={getPermissionButtonColor(permission.status)}
+          onClick={
+            permission.status === "denied" ? handleAuthorizeClick : void 0
           }
+          tabIndex={permission.status === "denied" ? void 0 : -1}
           variant="outlined"
         >
-          {t(`permissions.status.${permission.status}`)}
-        </Tag>
+          {permission.status === "denied"
+            ? t("permissions.action.authorize")
+            : t(`permissions.status.${permission.status}`)}
+        </Button>
       }
       description={t(`permissions.items.${permission.kind}.description`)}
       icon={PERMISSION_ICONS[permission.kind]}
@@ -139,17 +158,17 @@ const PermissionCard: FC<PermissionCardProps> = (props) => {
   );
 };
 
-function getPermissionStatusColor(status: OnboardingPermissionStatus) {
+function getPermissionButtonColor(status: OnboardingPermissionStatus) {
   if (status === "granted" || status === "notRequired") {
-    return "success";
+    return "green";
   }
 
   if (status === "denied") {
-    return "error";
+    return "danger";
   }
 
   if (status === "unknown") {
-    return "processing";
+    return "primary";
   }
 
   return "default";
@@ -202,4 +221,17 @@ async function readPermissionStates(): Promise<OnboardingPermissionState[]> {
       status: fullDiskAccessGranted ? "granted" : "denied",
     },
   ];
+}
+
+async function requestPermission(
+  kind: OnboardingPermissionKind,
+): Promise<void> {
+  if (kind === "accessibility") {
+    await requestAccessibilityPermission();
+    return;
+  }
+
+  if (kind === "fullDiskAccess") {
+    await requestFullDiskAccessPermission();
+  }
 }
