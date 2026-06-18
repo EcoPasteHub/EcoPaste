@@ -1,4 +1,4 @@
-import { Alert, Checkbox, Form, Input, Modal, Radio, Typography } from "antd";
+import { Alert, Checkbox, Form, Input, Modal, Radio } from "antd";
 import type { FC } from "react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -173,14 +173,14 @@ const BackupImportModal: FC<BackupImportModalProps> = (props) => {
         layout="vertical"
       >
         <div className="mb-4 rounded-2 border border-ant-border-secondary bg-ant-fill-quaternary px-3 py-2.5">
-          <Typography.Text className="block text-sm" strong>
+          <div className="font-semibold text-sm">
             {backupName || t("preferences:backup.import.fileFallback")}
-          </Typography.Text>
-          <Typography.Text className="block text-ant-secondary text-xs">
+          </div>
+          <div className="text-ant-secondary text-xs">
             {isEncryptedBackup
               ? t("preferences:backup.import.typeEncrypted")
               : t("preferences:backup.import.typePlain")}
-          </Typography.Text>
+          </div>
         </div>
 
         {isEncryptedBackup ? (
