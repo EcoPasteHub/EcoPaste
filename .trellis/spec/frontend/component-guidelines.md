@@ -111,3 +111,6 @@ For Ant Design controls, prefer built-in components and their `disabled`,
 - Styling Ant Design internals with global `.ant-*` selectors when semantic
   `classNames` or `styles` slots are available.
 - Rendering locale text in only one language.
+- Unmounting measured clipboard-card content during hover animations inside the
+  virtualized list. Keep alternate note/original layers mounted and measure the
+  active layer so Virtuoso never records a transient zero-height item.

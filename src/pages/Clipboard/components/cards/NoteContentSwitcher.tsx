@@ -1,6 +1,7 @@
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import type { FC, ReactNode } from "react";
 import { useLayoutEffect, useRef, useState } from "react";
+import { cn } from "@/utils/cn";
 import NoteAnnotation from "./NoteAnnotation";
 
 interface NoteContentSwitcherProps {
@@ -20,21 +21,22 @@ interface NoteContentSwitcherProps {
 
 /**
  * 有备注条目的内容切换器：默认显示备注，鼠标进入内容区时预览原始内容；
- * motion layout 负责高度变化时的过渡，高度不变时只做内容淡入淡出。
+ * 备注和原内容常驻 DOM，仅测量当前可见层，避免虚拟列表在 hover
+ * 切换瞬间读到卸载后的空内容高度。
  */
 const NoteContentSwitcher: FC<NoteContentSwitcherProps> = (props) => {
   const { children, note, showOriginal } = props;
   const shouldReduceMotion = useReducedMotion();
-  const contentRef = useRef<HTMLDivElement>(null);
+  const noteRef = useRef<HTMLDivElement>(null);
+  const originalRef = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState<number | "auto">("auto");
-  const activeKey = showOriginal ? "original" : "note";
   const transition = {
     duration: shouldReduceMotion ? 0 : 0.18,
     ease: "easeOut",
   } as const;
 
   useLayoutEffect(() => {
-    const node = contentRef.current;
+    const node = showOriginal ? originalRef.current : noteRef.current;
 
     if (!node) return;
 
@@ -56,27 +58,40 @@ const NoteContentSwitcher: FC<NoteContentSwitcherProps> = (props) => {
     return () => {
       observer.disconnect();
     };
-  });
+  }, [showOriginal]);
 
   return (
     <motion.div
       animate={{ height }}
-      className="overflow-hidden"
+      className="relative overflow-hidden"
       initial={false}
       transition={transition}
     >
-      <AnimatePresence initial={false} mode="popLayout">
-        <motion.div
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          initial={{ opacity: 0 }}
-          key={activeKey}
-          ref={contentRef}
-          transition={transition}
-        >
-          {showOriginal ? children : <NoteAnnotation note={note} />}
-        </motion.div>
-      </AnimatePresence>
+      <motion.div
+        animate={{ opacity: showOriginal ? 0 : 1 }}
+        aria-hidden={showOriginal}
+        className={cn("absolute inset-x-0 top-0", {
+          "pointer-events-none invisible": showOriginal,
+        })}
+        initial={false}
+        ref={noteRef}
+        transition={transition}
+      >
+        <NoteAnnotation note={note} />
+      </motion.div>
+
+      <motion.div
+        animate={{ opacity: showOriginal ? 1 : 0 }}
+        aria-hidden={!showOriginal}
+        className={cn("absolute inset-x-0 top-0", {
+          "pointer-events-none invisible": !showOriginal,
+        })}
+        initial={false}
+        ref={originalRef}
+        transition={transition}
+      >
+        {children}
+      </motion.div>
     </motion.div>
   );
 };
