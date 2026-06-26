@@ -136,6 +136,12 @@ export default PreferenceSection;
 function resolveSectionVisual(id: string): SectionVisual {
   const normalizedId = id.toLowerCase();
 
+  if (normalizedId.includes("about")) {
+    return {
+      icon: "i-lucide:info",
+    };
+  }
+
   if (normalizedId.includes("capture")) {
     return {
       icon: "i-lucide:clipboard-plus",

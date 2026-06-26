@@ -27,7 +27,6 @@ import type { Settings } from "@/types/settings";
 import { cn } from "@/utils/cn";
 import { log } from "@/utils/log";
 import BackupImportModal from "./components/BackupImportModal";
-import PreferenceAboutPanel from "./components/PreferenceAboutPanel";
 import PreferenceHeader from "./components/PreferenceHeader";
 import PreferenceSection from "./components/PreferenceSection";
 import PreferenceSidebar from "./components/PreferenceSidebar";
@@ -60,10 +59,10 @@ interface PreferenceHighlightSettingPayload {
   settingId: string;
 }
 
-type AppMetadata = {
+interface AppMetadata {
   name: string;
   version: string;
-};
+}
 
 /**
  * EcoPaste 偏好设置：以用户心智组织设置，而非代码模块。
@@ -105,7 +104,6 @@ const Preference: FC = () => {
     activeTab.sections.find((section) => {
       return section.id === activeSectionId;
     }) ?? activeTab.sections[0];
-  const isAboutTab = activeTabId === "about";
   const isSourceSection = activeSection?.id === "source";
 
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -360,7 +358,6 @@ const Preference: FC = () => {
           <PreferenceHeader
             activeSectionId={activeSectionId}
             activeTab={activeTab}
-            isAboutTab={isAboutTab}
             onPickSearchResult={handlePickSearchResult}
             onSearchChange={handleSearchChange}
             onSectionSelect={handleSectionSelect}
@@ -377,24 +374,7 @@ const Preference: FC = () => {
             ref={contentRef}
           >
             <AnimatePresence mode="wait">
-              {isAboutTab ? (
-                <motion.div
-                  animate={{ opacity: 1 }}
-                  className="flex max-w-252 flex-col"
-                  exit={{ opacity: 0 }}
-                  initial={{ opacity: 0 }}
-                  key="about"
-                  transition={{
-                    duration: reduceMotion ? 0 : 0.12,
-                    ease: "easeOut",
-                  }}
-                >
-                  <PreferenceAboutPanel
-                    appName={appMetadata.name}
-                    appVersion={appMetadata.version}
-                  />
-                </motion.div>
-              ) : activeSection ? (
+              {activeSection ? (
                 <motion.div
                   animate={{ opacity: 1 }}
                   className={cn(

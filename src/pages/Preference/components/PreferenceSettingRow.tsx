@@ -18,6 +18,7 @@ import type {
 } from "../types/preferences";
 import { translatePreferenceSetting } from "../utils/preferenceI18n";
 import PreferenceStatusBadge from "./PreferenceStatusBadge";
+import { SponsorQrControl } from "./settingControls/AboutControls";
 import ActionControl from "./settingControls/ActionControl";
 import CaptureOrderControl from "./settingControls/CaptureOrderControl";
 import ClipboardGroupSelectControl from "./settingControls/ClipboardGroupSelectControl";
@@ -199,6 +200,8 @@ function renderControl(
   storageLocation?: StorageLocation | null,
 ) {
   switch (setting.control.type) {
+    case "sponsorQr":
+      return <SponsorQrControl setting={setting} />;
     case "switch":
       return (
         <SwitchControl

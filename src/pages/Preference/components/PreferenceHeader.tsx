@@ -15,7 +15,6 @@ import PreferenceSearchResults from "./PreferenceSearchResults";
 interface PreferenceHeaderProps {
   activeSectionId: string;
   activeTab: PreferenceTab;
-  isAboutTab: boolean;
   searchQuery: string;
   searchResults: PreferenceSearchResult[];
   shouldReduceMotion: boolean;
@@ -33,7 +32,6 @@ const PreferenceHeader: FC<PreferenceHeaderProps> = (props) => {
   const {
     activeSectionId,
     activeTab,
-    isAboutTab,
     searchQuery,
     searchResults,
     shouldReduceMotion,
@@ -45,10 +43,7 @@ const PreferenceHeader: FC<PreferenceHeaderProps> = (props) => {
 
   return (
     <header
-      className={cn(
-        "shrink-0 border-ant-border-secondary border-b bg-ant-container px-6 pt-4",
-        isAboutTab ? "pb-4" : "pb-2",
-      )}
+      className="shrink-0 border-ant-border-secondary border-b bg-ant-container px-6 pt-4 pb-2"
       data-tauri-drag-region
     >
       <div
@@ -99,14 +94,12 @@ const PreferenceHeader: FC<PreferenceHeaderProps> = (props) => {
         </div>
       </div>
 
-      {!isAboutTab ? (
-        <SectionTabs
-          activeSectionId={activeSectionId}
-          onSectionSelect={onSectionSelect}
-          sections={activeTab.sections}
-          totalSettings={totalSettings}
-        />
-      ) : null}
+      <SectionTabs
+        activeSectionId={activeSectionId}
+        onSectionSelect={onSectionSelect}
+        sections={activeTab.sections}
+        totalSettings={totalSettings}
+      />
     </header>
   );
 };

@@ -16,6 +16,7 @@ import {
   getWindowLifecycleSnapshot,
   inspectHistoryBackup,
   listClipboardGroups,
+  openExternalUrl,
   openPreferenceDirectory,
   releaseWindowKeepalive,
   resetStorageLocation,
@@ -23,9 +24,11 @@ import {
   type WindowLifecyclePhase,
   type WindowLifecycleSnapshot,
 } from "@/commands";
+import { GITHUB_URL } from "@/constants/urls";
 import { WINDOW_LABEL } from "@/constants/windows";
 import { resetSettings } from "@/stores/settings";
 import type { ClipboardGroupRecord } from "@/types/clipboard";
+import { getMessageApi } from "@/utils/feedback";
 import { log } from "@/utils/log";
 import type { PreferenceSetting } from "../../types/preferences";
 import { translatePreferenceControlLabel } from "../../utils/preferenceI18n";
@@ -34,6 +37,8 @@ import ClipboardGroupManagerModal from "../ClipboardGroupManagerModal";
 import ControlFrame from "./ControlFrame";
 
 const BACKUP_EXTENSION = "ecopastebak";
+const ABOUT_CHECK_UPDATES_SETTING_ID = "about.checkUpdates";
+const ABOUT_GITHUB_SETTING_ID = "about.github";
 const CLEAN_CACHE_SETTING_ID = "localData.cleanCache";
 const CUSTOM_GROUPS_SETTING_ID = "organizing.customGroups";
 const DATA_DIRECTORY_SETTING_ID = "localData.dataDirectory";
@@ -310,6 +315,19 @@ const ActionControl: FC<ActionControlProps> = (props) => {
   };
 
   const handleClick = async () => {
+    if (setting.id === ABOUT_CHECK_UPDATES_SETTING_ID) {
+      getMessageApi().info(t("preferences:about.checkUpdatesUnavailable"));
+      return;
+    }
+
+    if (setting.id === ABOUT_GITHUB_SETTING_ID) {
+      await runWithKeepalive("open-github", () => {
+        return openExternalUrl(GITHUB_URL);
+      });
+      markActionComplete();
+      return;
+    }
+
     if (setting.id === EXPORT_BACKUP_SETTING_ID) {
       openExportModal();
       return;

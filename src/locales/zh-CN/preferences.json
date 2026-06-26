@@ -75,6 +75,9 @@
       "weeks": "周"
     },
     "sections": {
+      "about": {
+        "title": "应用信息"
+      },
       "actions": {
         "title": "快捷动作"
       },
@@ -135,6 +138,21 @@
       }
     },
     "settings": {
+      "about": {
+        "checkUpdates": {
+          "controlLabel": "检查更新",
+          "description": "检查 EcoPaste 是否有可用的新版本。",
+          "title": "检查更新"
+        },
+        "github": {
+          "controlLabel": "打开",
+          "title": "GitHub"
+        },
+        "sponsor": {
+          "description": "如果 EcoPaste 帮到了你，可以给项目一点支持。",
+          "title": "赞赏支持"
+        }
+      },
       "actions": {
         "deleteConfirm": {
           "description": "删除普通历史记录前先弹出确认，收藏和置顶记录不受此开关影响。",

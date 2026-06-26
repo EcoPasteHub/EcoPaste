@@ -75,6 +75,9 @@
       "weeks": "Weeks"
     },
     "sections": {
+      "about": {
+        "title": "App Info"
+      },
       "actions": {
         "title": "Quick Actions"
       },
@@ -135,6 +138,21 @@
       }
     },
     "settings": {
+      "about": {
+        "checkUpdates": {
+          "controlLabel": "Check",
+          "description": "Check whether a new EcoPaste version is available.",
+          "title": "Check for Updates"
+        },
+        "github": {
+          "controlLabel": "Open",
+          "title": "GitHub"
+        },
+        "sponsor": {
+          "description": "If EcoPaste helps your workflow, you can support the project.",
+          "title": "Sponsor"
+        }
+      },
       "actions": {
         "deleteConfirm": {
           "description": "Ask before deleting regular history records. Favorited and pinned records use their own switches.",

@@ -821,7 +821,28 @@ export const preferenceTabs: PreferenceTab[] = [
   {
     icon: "i-lucide:info",
     id: "about",
-    sections: [],
+    sections: [
+      {
+        id: "about",
+        settings: [
+          {
+            control: { type: "action" },
+            id: "about.checkUpdates",
+            keywords: ["update", "version"],
+          },
+          {
+            control: { type: "action" },
+            id: "about.github",
+            keywords: ["github", "source", "repository"],
+          },
+          {
+            control: { type: "sponsorQr" },
+            id: "about.sponsor",
+            keywords: ["sponsor", "donate", "support"],
+          },
+        ],
+      },
+    ],
   },
 ];
 

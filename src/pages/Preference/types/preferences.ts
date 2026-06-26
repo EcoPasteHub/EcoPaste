@@ -63,6 +63,7 @@ export type PreferenceControl =
   | { type: "textarea" }
   | { type: "appExclusion" }
   | { type: "action"; danger?: boolean }
+  | { type: "sponsorQr" }
   | { type: "status" }
   | { type: "shortcutTags"; shortcuts: PreferenceShortcutTag[] };
 
