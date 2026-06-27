@@ -8,9 +8,23 @@
     "start": "Start setup"
   },
   "done": {
-    "description": "The key setup is ready. You can still adjust shortcuts, ignored apps, data import, and window behavior in Preferences later.",
+    "cards": {
+      "open": {
+        "description": "Use your shortcut to open clipboard history anytime.",
+        "title": "Quick Open"
+      },
+      "preferences": {
+        "description": "Adjust shortcuts, ignored apps, and window behavior later in Preferences.",
+        "title": "Adjust Anytime"
+      },
+      "search": {
+        "description": "After copying, find content quickly by keyword, type, or source app.",
+        "title": "Instant Search"
+      }
+    },
+    "description": "The key setup is ready. You can start recording, searching, and reusing copied content.",
     "logoAlt": "EcoPaste icon",
-    "title": "Welcome to EcoPaste"
+    "title": "Start Using EcoPaste"
   },
   "ignoreApps": {
     "description": "Choose source apps that should not be recorded. Password managers, key tools, or temporary windows are good candidates; apps on the right will not be written to clipboard history.",

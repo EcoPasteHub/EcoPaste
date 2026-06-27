@@ -8,9 +8,23 @@
     "start": "开始设置"
   },
   "done": {
-    "description": "关键设置已经准备好。之后你仍然可以在偏好设置里调整快捷键、忽略应用、数据导入和窗口行为。",
+    "cards": {
+      "open": {
+        "description": "用快捷键随时唤起剪贴板历史窗口。",
+        "title": "快速打开"
+      },
+      "preferences": {
+        "description": "之后仍可在偏好设置里调整快捷键、忽略应用和窗口行为。",
+        "title": "随时调整"
+      },
+      "search": {
+        "description": "复制内容后，可按关键词、类型或来源快速定位。",
+        "title": "立即搜索"
+      }
+    },
+    "description": "关键设置已经准备好，接下来就可以开始记录、搜索和复用复制过的内容。",
     "logoAlt": "EcoPaste 图标",
-    "title": "欢迎使用 EcoPaste"
+    "title": "开始使用 EcoPaste"
   },
   "ignoreApps": {
     "description": "选择不需要记录的来源应用，密码管理器、密钥工具或临时窗口都可以放到忽略列表；右侧列表中的应用不会被写入剪贴板历史。",
