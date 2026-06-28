@@ -1,0 +1,657 @@
+{
+  "about": {
+    "checkUpdates": "检查更新",
+    "checkUpdatesUnavailable": "检查更新暂未接入",
+    "sponsor": "赞赏支持",
+    "sponsorHint": "如果 EcoPaste 帮到了你，可以给项目一点支持。",
+    "sponsorQrAlt": "赞赏二维码"
+  },
+  "backup": {
+    "export": {
+      "confirmPassword": "确认密码",
+      "confirmRequired": "请再次输入备份密码",
+      "encryptedHint": "备份会用你输入的密码加密。EcoPaste 不会保存密码，忘记后无法恢复。",
+      "modeEncrypted": "加密备份（推荐）",
+      "modePlain": "明文备份",
+      "ok": "选择保存位置",
+      "okReadConfirm": "阅读风险并勾选",
+      "okReadCountdown": "阅读风险并勾选（{{seconds}}s）",
+      "password": "备份密码",
+      "passwordMin": "备份密码至少需要 8 个字符",
+      "passwordMismatch": "两次输入的密码不一致",
+      "passwordRequired": "请输入备份密码",
+      "plainConfirm": "我已阅读风险提示，确认导出未加密备份",
+      "plainConfirmRequired": "请确认明文备份风险",
+      "plainWarning": "任何拿到文件的人都可以直接读取备份内容。",
+      "plainWarningTitle": "明文备份不受密码保护",
+      "title": "导出 EcoPaste 备份"
+    },
+    "fileFilter": "EcoPaste 备份",
+    "import": {
+      "fileFallback": "EcoPaste 备份文件",
+      "ok": "导入",
+      "overwriteConfirm": "我已阅读风险提示，确认覆盖当前数据",
+      "overwriteConfirmRequired": "请确认覆盖导入风险",
+      "overwriteOkConfirm": "阅读风险并勾选",
+      "overwriteOkCountdown": "阅读风险并勾选（{{seconds}}s）",
+      "overwriteWarning": "覆盖导入会立即替换已选择的当前数据。合并导入更适合日常恢复；只有确定要以备份为准时再选择覆盖。",
+      "password": "备份密码",
+      "passwordRequired": "请输入备份密码",
+      "pickTitle": "选择 EcoPaste 备份",
+      "strategy": "导入方式",
+      "strategyMerge": "合并导入",
+      "strategyOverwrite": "覆盖导入",
+      "title": "导入 EcoPaste 备份",
+      "typeEncrypted": "加密备份，导入时需要密码",
+      "typePlain": "未加密备份"
+    },
+    "received": {
+      "encrypted": "已识别加密备份。导入时需要输入备份密码。",
+      "plain": "已识别明文备份。"
+    }
+  },
+  "schema": {
+    "captureKinds": {
+      "files": "文件和文件夹",
+      "html": "HTML 内容",
+      "image": "图片",
+      "rtf": "RTF 内容",
+      "text": "纯文本"
+    },
+    "numberSuffixes": {
+      "files": "个",
+      "gb": "GB",
+      "hours": "小时",
+      "items": "条",
+      "lines": "行",
+      "mb": "MB",
+      "px": "px",
+      "seconds": "秒"
+    },
+    "retentionUnits": {
+      "days": "天",
+      "hours": "小时",
+      "months": "月",
+      "weeks": "周"
+    },
+    "sections": {
+      "about": {
+        "title": "应用信息"
+      },
+      "actions": {
+        "title": "快捷动作"
+      },
+      "appearance": {
+        "title": "外观与语言"
+      },
+      "backup": {
+        "description": "导出或导入 EcoPaste 备份包。",
+        "title": "备份迁移"
+      },
+      "capture": {
+        "title": "内容类型"
+      },
+      "control": {
+        "title": "系统入口"
+      },
+      "copy": {
+        "title": "复制反馈"
+      },
+      "diagnostics": {
+        "title": "诊断恢复"
+      },
+      "globalShortcuts": {
+        "title": "全局快捷键"
+      },
+      "groups": {
+        "title": "分组管理"
+      },
+      "history": {
+        "title": "保留与清理"
+      },
+      "localData": {
+        "title": "存储位置"
+      },
+      "organizing": {
+        "title": "收藏与备注"
+      },
+      "paste": {
+        "title": "粘贴行为"
+      },
+      "preview": {
+        "title": "内容预览"
+      },
+      "search": {
+        "title": "搜索与排序"
+      },
+      "sensitive": {
+        "title": "隐私保护"
+      },
+      "source": {
+        "title": "应用过滤"
+      },
+      "updates": {
+        "title": "更新"
+      },
+      "window": {
+        "title": "主窗口"
+      }
+    },
+    "settings": {
+      "about": {
+        "checkUpdates": {
+          "controlLabel": "检查更新",
+          "description": "检查 EcoPaste 是否有可用的新版本。",
+          "title": "检查更新"
+        },
+        "github": {
+          "controlLabel": "打开",
+          "title": "GitHub"
+        },
+        "sponsor": {
+          "description": "如果 EcoPaste 帮到了你，可以给项目一点支持。",
+          "title": "赞赏支持"
+        }
+      },
+      "actions": {
+        "deleteConfirm": {
+          "description": "删除普通历史记录前先弹出确认，收藏和置顶记录不受此开关影响。",
+          "title": "普通条目删除前确认"
+        },
+        "deleteFavoriteConfirm": {
+          "description": "删除已收藏记录前先弹出确认，避免误删重要内容。",
+          "title": "收藏条目删除前确认"
+        },
+        "deleteFavoriteItems": {
+          "description": "关闭后，已收藏记录不会显示删除入口，也不会响应删除快捷操作。",
+          "title": "允许删除收藏条目"
+        },
+        "deleteFavoriteItemsOnlyInFavoriteGroup": {
+          "description": "开启后，已收藏记录在其他分组隐藏删除入口；普通记录不受影响。",
+          "title": "收藏项仅在收藏分组删除"
+        },
+        "deletePinnedConfirm": {
+          "description": "删除已置顶记录前先弹出确认，避免误删重要内容。",
+          "title": "置顶条目删除前确认"
+        },
+        "deletePinnedItems": {
+          "description": "关闭后，已置顶记录不会显示删除入口，也不会响应删除快捷操作。",
+          "title": "允许删除置顶条目"
+        },
+        "visible": {
+          "controlLabel": "管理",
+          "description": "选择鼠标悬停在记录上时显示的操作按钮。",
+          "title": "显示的快捷动作"
+        }
+      },
+      "appearance": {
+        "fileMaxCount": {
+          "description": "限制文件记录在列表卡片中最多显示的文件数量。",
+          "title": "文件最多显示数量"
+        },
+        "imageMaxHeight": {
+          "description": "限制图片记录在列表卡片中的缩略图高度。",
+          "title": "图片最大显示高度"
+        },
+        "language": {
+          "description": "切换 EcoPaste 的界面语言。",
+          "options": {
+            "en-US": "English",
+            "zh-CN": "简体中文"
+          },
+          "title": "语言"
+        },
+        "showOriginalPreview": {
+          "description": "有备注的记录默认显示备注，鼠标移入卡片时临时显示原始内容。",
+          "title": "悬停显示原始内容"
+        },
+        "textMaxLines": {
+          "description": "限制文本记录在列表卡片中最多显示的行数。",
+          "title": "文本内容最大显示行数"
+        },
+        "theme": {
+          "description": "选择界面使用浅色、深色，或跟随系统外观。",
+          "options": {
+            "auto": "跟随系统",
+            "dark": "深色",
+            "light": "浅色"
+          },
+          "title": "主题"
+        }
+      },
+      "backup": {
+        "exportHistory": {
+          "controlLabel": "导出",
+          "description": "导出 .ecopastebak 备份包，默认使用密码加密。",
+          "title": "导出备份"
+        },
+        "importHistory": {
+          "controlLabel": "导入",
+          "description": "导入 .ecopastebak 备份包，支持合并或覆盖恢复。",
+          "title": "导入备份"
+        }
+      },
+      "capture": {
+        "files": {
+          "description": "关闭后，复制的文件和文件夹不会进入历史。",
+          "title": "文件和文件夹"
+        },
+        "html": {
+          "description": "关闭后，带 HTML 格式的网页富文本不会进入历史。",
+          "title": "HTML 内容"
+        },
+        "image": {
+          "description": "关闭后，剪贴板中的图片不会进入历史。",
+          "title": "图片"
+        },
+        "maxImageMb": {
+          "description": "图片超过此大小时不会进入历史。设为 0 表示不限制。",
+          "title": "图片最大收录大小"
+        },
+        "maxTextMb": {
+          "description": "文本、HTML 或 RTF 超过此大小时不会进入历史。设为 0 表示不限制。",
+          "title": "文本最大收录大小"
+        },
+        "order": {
+          "controlLabel": "管理",
+          "description": "剪贴板同时包含多种格式时，按这个顺序选择要保存的内容。",
+          "title": "采集顺序"
+        },
+        "rtf": {
+          "description": "关闭后，带 RTF 格式的文档富文本不会进入历史。",
+          "title": "RTF 内容"
+        },
+        "text": {
+          "description": "关闭后，复制的纯文本不会进入历史。",
+          "title": "纯文本"
+        }
+      },
+      "control": {
+        "autoStart": {
+          "description": "登录系统后自动启动 EcoPaste。",
+          "macos": {
+            "description": "登录后自动启动 EcoPaste。",
+            "title": "登录时启动"
+          },
+          "title": "开机启动",
+          "windows": {
+            "description": "登录后自动启动 EcoPaste。",
+            "title": "开机启动"
+          }
+        },
+        "dockIcon": {
+          "description": "在系统桌面栏显示 EcoPaste 图标。",
+          "macos": {
+            "description": "在程序坞显示 EcoPaste 图标。",
+            "title": "程序坞图标"
+          },
+          "title": "桌面栏图标",
+          "windows": {
+            "description": "在任务栏显示 EcoPaste 图标。",
+            "title": "任务栏图标"
+          }
+        },
+        "silentStart": {
+          "description": "开机启动时只在后台运行，不自动弹出剪贴板窗口。",
+          "title": "静默启动"
+        },
+        "trayIcon": {
+          "description": "在系统状态栏显示 EcoPaste 图标。",
+          "macos": {
+            "description": "在菜单栏显示 EcoPaste 图标。",
+            "title": "菜单栏图标"
+          },
+          "title": "状态栏图标",
+          "windows": {
+            "description": "在系统托盘显示 EcoPaste 图标。",
+            "title": "系统托盘图标"
+          }
+        }
+      },
+      "copy": {
+        "hideWindow": {
+          "description": "从历史复制记录后，自动隐藏剪贴板主窗口。",
+          "title": "复制后隐藏窗口"
+        },
+        "plainDefault": {
+          "description": "复制文本记录时默认去除 HTML/RTF 等格式，只复制纯文本。",
+          "title": "默认复制为纯文本"
+        },
+        "sound": {
+          "description": "剪贴板新内容成功进入历史时播放提示音。",
+          "preview": "试听提示音",
+          "title": "复制成功提示音"
+        },
+        "updateOnReuse": {
+          "description": "从历史复制或粘贴记录时，刷新使用时间和使用次数。",
+          "title": "复用时更新记录"
+        }
+      },
+      "diagnostics": {
+        "resetPreferences": {
+          "confirmContent": "这会恢复所有偏好默认值，但不会删除剪贴板历史记录。",
+          "confirmTitle": "重置所有偏好？",
+          "controlLabel": "重置",
+          "description": "恢复所有偏好默认值，同时保留历史记录。",
+          "title": "重置所有偏好"
+        },
+        "windowLifecycle": {
+          "columns": {
+            "generation": "可见代次",
+            "label": "窗口",
+            "locks": "销毁保护",
+            "phase": "阶段",
+            "timing": "时间"
+          },
+          "controlLabel": "查看",
+          "description": "查看窗口生命周期、销毁保护和轻量模式状态，用于排查隐藏窗口资源占用。",
+          "durationSeparator": " ",
+          "durationUnits": {
+            "days": "{{count}} 天",
+            "hours": "{{count}} 小时",
+            "minutes": "{{count}} 分钟",
+            "seconds": "{{count}} 秒"
+          },
+          "empty": "暂无窗口生命周期数据",
+          "generationHint": "从非可见变为可见时加 1；重复显示已可见窗口不增加。",
+          "hiddenFor": "已隐藏 {{duration}}",
+          "lastActive": "最近活跃 {{duration}}前",
+          "locksHint": "格式为脏状态/保活租约；任一不为 0 时会暂缓销毁。",
+          "modalTitle": "窗口生命周期",
+          "phases": {
+            "created": "已创建",
+            "destroyed": "已销毁",
+            "destroyPending": "等待销毁",
+            "dormant": "休眠",
+            "hiddenWarm": "隐藏待机",
+            "notCreated": "未创建",
+            "ready": "已就绪",
+            "visible": "可见"
+          },
+          "title": "窗口生命周期",
+          "windows": {
+            "contextMenu": "右键菜单",
+            "contextSubmenu": "右键子菜单",
+            "main": "主窗口",
+            "preference": "偏好设置",
+            "preview": "剪贴板预览"
+          }
+        }
+      },
+      "history": {
+        "cleanupIntervalHours": {
+          "description": "每隔指定小时检查并清理一次历史记录，0 表示关闭周期性清理；应用启动时仍会清理一次。",
+          "title": "自动清理周期"
+        },
+        "maxCount": {
+          "description": "超过上限后，自动清理较旧的普通记录；收藏和置顶始终保留，0 表示不限数量。",
+          "title": "最大保留条数"
+        },
+        "retention": {
+          "description": "超过该天数的普通记录会自动清理；收藏和置顶始终保留，0 表示不按时间清理。",
+          "title": "保留周期"
+        }
+      },
+      "localData": {
+        "cleanCache": {
+          "confirmContent": "将删除不再被历史记录引用的图片、缩略图和图标缓存。仍在使用的资源会保留。",
+          "confirmTitle": "清理资源缓存",
+          "controlLabel": "清理缓存",
+          "description": "移除不再被历史记录引用的图片、缩略图和图标缓存。",
+          "title": "清理缓存"
+        },
+        "dataDirectory": {
+          "controlLabel": "打开",
+          "description": "打开历史数据库、设置文件和资源缓存所在目录。",
+          "title": "数据目录"
+        },
+        "logDirectory": {
+          "controlLabel": "打开",
+          "description": "打开用于排查问题的运行日志目录。",
+          "title": "日志目录"
+        }
+      },
+      "organizing": {
+        "autoFavorite": {
+          "description": "保存非空备注时，自动把该记录加入收藏。",
+          "title": "有备注时自动收藏"
+        },
+        "customGroups": {
+          "controlLabel": "管理",
+          "description": "调整自定义分组的顺序、显示状态、名称和图标。",
+          "title": "自定义分组"
+        }
+      },
+      "paste": {
+        "autoPaste": {
+          "description": "选择鼠标左键点击历史记录时执行的动作。",
+          "options": {
+            "disabled": "禁用",
+            "doubleClickCopy": "双击复制",
+            "doubleClickPaste": "双击粘贴",
+            "singleClickCopy": "单击复制",
+            "singleClickPaste": "单击粘贴"
+          },
+          "title": "鼠标左键"
+        },
+        "fileMode": {
+          "description": "粘贴文件记录时默认不粘贴文件本身，只粘贴文件路径。",
+          "title": "默认文件路径粘贴"
+        },
+        "middleClick": {
+          "description": "选择鼠标中键点击历史记录时执行的动作。",
+          "options": {
+            "disabled": "禁用",
+            "singleClickCopy": "复制",
+            "singleClickCopyPlain": "复制为纯文本",
+            "singleClickPaste": "粘贴",
+            "singleClickPastePlain": "粘贴为纯文本"
+          },
+          "title": "鼠标中键"
+        },
+        "plainDefault": {
+          "description": "粘贴文本记录时默认去除 HTML/RTF 等格式，只粘贴纯文本。",
+          "title": "默认纯文本粘贴"
+        }
+      },
+      "preview": {
+        "delay": {
+          "description": "设置鼠标悬停多久后显示预览。",
+          "options": {
+            "ms300": "300ms",
+            "ms500": "500ms",
+            "ms1000": "1000ms"
+          },
+          "title": "悬停延迟"
+        },
+        "hover": {
+          "description": "鼠标悬停在记录上时显示完整内容预览。",
+          "title": "悬停预览"
+        },
+        "space": {
+          "description": "按住空格键时预览当前选中的记录。",
+          "title": "空格键预览"
+        }
+      },
+      "search": {
+        "clearOnHide": {
+          "description": "下次打开剪贴板窗口时清空搜索关键词，并显示完整列表。",
+          "title": "下次打开时清空搜索"
+        },
+        "defaultFocus": {
+          "description": "打开剪贴板窗口时自动选中搜索框，方便直接输入关键词。",
+          "title": "打开窗口时聚焦搜索"
+        },
+        "sort": {
+          "description": "设置未搜索时历史列表的默认排序方式。",
+          "options": {
+            "createdAtDesc": "创建时间",
+            "updatedAtDesc": "更新时间",
+            "useCountDesc": "使用频率"
+          },
+          "title": "默认排序方式"
+        }
+      },
+      "sensitive": {
+        "collectSecrets": {
+          "description": "检测到高置信度密钥、Token 等内容时，是否保存到历史记录。",
+          "title": "收录敏感内容"
+        },
+        "redactSecrets": {
+          "description": "对已收录的敏感内容保留头尾字符，中间用 * 显示。",
+          "title": "脱敏显示"
+        }
+      },
+      "shortcuts": {
+        "openClipboard": {
+          "description": "在任意应用中打开或隐藏剪贴板主窗口。",
+          "placeholder": "Alt+C",
+          "title": "打开主窗口"
+        },
+        "openPreference": {
+          "description": "在任意应用中打开或隐藏偏好设置窗口。",
+          "placeholder": "Alt+X",
+          "title": "打开偏好设置"
+        },
+        "winV": {
+          "description": "开启后按 Win+V 唤起 EcoPaste 主窗口，替代 Windows 系统剪贴板历史面板。",
+          "title": "用 Win+V 打开剪贴板"
+        }
+      },
+      "source": {
+        "appTransfer": {
+          "addApp": "添加应用",
+          "allTitle": "可忽略的应用",
+          "appFileFilter": "应用文件",
+          "ignoredTitle": "已忽略的应用",
+          "itemsUnit": "项",
+          "itemUnit": "项",
+          "refreshApps": "刷新可忽略应用",
+          "searchPlaceholder": "搜索应用"
+        },
+        "excludedApps": {
+          "description": "从这些应用复制的内容不会进入历史。",
+          "title": "忽略应用"
+        }
+      },
+      "updates": {
+        "autoCheck": {
+          "description": "定期检查 EcoPaste 是否有可用的新版本。",
+          "title": "自动检查更新"
+        },
+        "beta": {
+          "description": "检查更新时同时接收 Beta 测试版本。",
+          "title": "包含 Beta 版本"
+        },
+        "frequency": {
+          "description": "设置自动检查更新的时间间隔。",
+          "options": {
+            "daily": "每天",
+            "monthly": "每月",
+            "weekly": "每周"
+          },
+          "title": "自动检查频率"
+        }
+      },
+      "window": {
+        "idleDestroySeconds": {
+          "description": "偏好设置、预览和右键菜单等非主窗口隐藏超过此时间后释放 WebView，下次使用时自动重建。",
+          "title": "非主窗口空闲释放"
+        },
+        "lightweightMode": {
+          "description": "隐藏主窗口后暂停无谓刷新，非主窗口空闲后释放渲染资源。",
+          "title": "轻量模式"
+        },
+        "position": {
+          "description": "选择每次打开剪贴板主窗口时的位置。",
+          "options": {
+            "center": "屏幕中间",
+            "followCursor": "跟随光标",
+            "remember": "记住位置"
+          },
+          "title": "打开位置"
+        },
+        "scrollToTopOnOpen": {
+          "description": "每次打开剪贴板主窗口时，自动回到最新记录所在的顶部。",
+          "title": "打开时回到顶部"
+        },
+        "selectCategoryOnOpen": {
+          "description": "每次打开剪贴板主窗口时，选择要切换到的内容分类。",
+          "options": {
+            "all": "全部",
+            "files": "文件",
+            "image": "图片",
+            "preserve": "保持上次选择",
+            "text": "文本"
+          },
+          "title": "打开时选中分类"
+        },
+        "selectGroupOnOpen": {
+          "description": "每次打开剪贴板主窗口时，选择要切换到的自定义分组。",
+          "options": {
+            "all": "全部",
+            "missingGroup": "已删除的分组",
+            "preserve": "保持上次选择"
+          },
+          "title": "打开时选中分组"
+        },
+        "selectRangeOnOpen": {
+          "description": "每次打开剪贴板主窗口时，选择要切换到的历史范围。",
+          "options": {
+            "all": "全部",
+            "favorite": "收藏",
+            "preserve": "保持上次选择"
+          },
+          "title": "打开时选中范围"
+        }
+      }
+    },
+    "tabs": {
+      "about": {
+        "title": "关于"
+      },
+      "data": {
+        "title": "数据"
+      },
+      "organize": {
+        "title": "历史"
+      },
+      "record": {
+        "title": "采集"
+      },
+      "reuse": {
+        "title": "操作"
+      },
+      "shortcuts": {
+        "title": "快捷键"
+      },
+      "workflow": {
+        "title": "界面"
+      }
+    }
+  },
+  "search": {
+    "empty": "没有找到相关设置",
+    "placeholder": "搜索配置项"
+  },
+  "status": {
+    "alwaysOn": "默认能力",
+    "comingSoon": "未来能力",
+    "experimental": "实验",
+    "requiresBackend": "待接入"
+  },
+  "storage": {
+    "error": "统计失败",
+    "loading": "统计中",
+    "title": "本地存储",
+    "usage": "{{total}} / {{target}}"
+  },
+  "storageLocation": {
+    "change": "更改数据目录",
+    "open": "打开数据目录",
+    "pickTitle": "选择新的数据目录位置",
+    "reset": "还原默认目录",
+    "resetConfirmContent": "将把当前历史数据库、设置文件和资源缓存迁回默认数据目录，并在迁移成功后删除当前自定义数据目录。",
+    "resetConfirmTitle": "还原默认数据目录"
+  }
+}

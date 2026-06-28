@@ -1,5 +1,5 @@
 {
-  "$schema": "https://schema.tauri.app/config/2.0.0",
+  "$schema": "https://schema.tauri.app/config/2",
   "app": {
     "macOSPrivateApi": true,
     "security": {
@@ -10,14 +10,14 @@
           "requireLiteralLeadingDot": false
         }
       },
-      "csp": null,
-      "dangerousDisableAssetCspModification": true
+      "csp": null
     },
     "windows": [
       {
         "acceptFirstMouse": true,
         "alwaysOnTop": true,
         "decorations": false,
+        "focusable": false,
         "height": 600,
         "label": "main",
         "maximizable": false,
@@ -28,28 +28,7 @@
         "transparent": true,
         "url": "index.html/#/",
         "visible": false,
-        "visibleOnAllWorkspaces": true,
         "width": 360
-      },
-      {
-        "center": true,
-        "dragDropEnabled": false,
-        "height": 480,
-        "hiddenTitle": true,
-        "label": "preference",
-        "maximizable": false,
-        "minHeight": 480,
-        "minWidth": 700,
-        "skipTaskbar": true,
-        "titleBarStyle": "Overlay",
-        "transparent": true,
-        "url": "index.html/#/preference",
-        "visible": false,
-        "width": 700,
-        "windowEffects": {
-          "effects": ["sidebar"],
-          "state": "active"
-        }
       }
     ]
   },
@@ -62,6 +41,19 @@
   "bundle": {
     "active": true,
     "createUpdaterArtifacts": true,
+    "fileAssociations": [
+      {
+        "description": "EcoPaste history backup",
+        "exportedType": {
+          "conformsTo": ["public.data"],
+          "identifier": "com.ayangweb.eco-paste.backup"
+        },
+        "ext": ["ecopastebak"],
+        "mimeType": "application/vnd.ecopaste.backup",
+        "name": "EcoPaste Backup",
+        "role": "Editor"
+      }
+    ],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -71,19 +63,9 @@
     ],
     "resources": ["assets/tray.ico"],
     "shortDescription": "EcoPaste",
-    "targets": ["nsis", "dmg", "app", "appimage", "deb", "rpm"]
+    "targets": ["nsis", "dmg", "app"]
   },
-  "identifier": "com.ayangweb.EcoPaste",
-  "mainBinaryName": "EcoPaste",
-  "plugins": {
-    "fs": {
-      "requireLiteralLeadingDot": false
-    },
-    "updater": {
-      "endpoints": ["https://api.ecopaste.cn/update"],
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDcwNEIyQkUwRjNEMTg4NgpSV1NHR0QwUHZySUVCeXFRQzZ4aEpNRWdFdThVQ2I4b2dSQktRcmNtV1dYTFJJV1h2VmVVZXBWSgo="
-    }
-  },
+  "identifier": "com.ayangweb.eco-paste",
   "productName": "EcoPaste",
   "version": "../package.json"
 }

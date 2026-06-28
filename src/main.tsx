@@ -1,10 +1,14 @@
+import { Suspense } from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
+import "./i18n";
+
+import "overlayscrollbars/overlayscrollbars.css";
 import "virtual:uno.css";
-import "@unocss/reset/tailwind-compat.css";
-import "./assets/css/global.scss";
-import "mac-scrollbar/dist/mac-scrollbar.css";
+import "./styles/global.scss";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-  <App />,
+  <Suspense fallback={null}>
+    <App />
+  </Suspense>,
 );

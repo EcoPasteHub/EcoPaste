@@ -1,0 +1,24 @@
+{
+  "actions": {
+    "add": "Add",
+    "cancel": "Cancel",
+    "clear": "Clear",
+    "delete": "Delete",
+    "open": "Open",
+    "reset": "Reset",
+    "save": "Save"
+  },
+  "app": {
+    "tagline": "Cross-platform clipboard manager"
+  },
+  "shortcutRecorder": {
+    "clear": "Clear shortcut",
+    "click": "Click to record",
+    "conflict": "{{shortcut}} is already used by \"{{label}}\"",
+    "press": "Press shortcut"
+  },
+  "units": {
+    "items": "{{count}} items",
+    "settings": "{{count}} settings"
+  }
+}

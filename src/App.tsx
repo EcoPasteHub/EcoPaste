@@ -1,104 +1,101 @@
-import { HappyProvider } from "@ant-design/happy-work-theme";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { error } from "@tauri-apps/plugin-log";
-import { openUrl } from "@tauri-apps/plugin-opener";
-import { useBoolean, useEventListener, useKeyPress, useMount } from "ahooks";
-import { ConfigProvider, theme } from "antd";
-import { isString } from "es-toolkit";
-import { RouterProvider } from "react-router-dom";
+import { useEventListener, useMount } from "ahooks";
+import type { ConfigProviderProps } from "antd";
+import { App as AntdApp, ConfigProvider } from "antd";
+import enUS from "antd/locale/en_US";
+import zhCN from "antd/locale/zh_CN";
+import type { FC } from "react";
+import { use, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { RouterProvider } from "react-router";
 import { useSnapshot } from "valtio";
-import { LISTEN_KEY, PRESET_SHORTCUT } from "./constants";
-import { destroyDatabase } from "./database";
-import { useImmediateKey } from "./hooks/useImmediateKey";
-import { useTauriListen } from "./hooks/useTauriListen";
-import { useWindowState } from "./hooks/useWindowState";
-import { getAntdLocale, i18n } from "./locales";
-import { hideWindow, showWindow } from "./plugins/window";
+import { notifyWindowReady } from "@/commands";
+import { WINDOW_LABEL } from "@/constants/windows";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { router } from "./router";
-import { globalStore } from "./stores/global";
-import { generateColorVars } from "./utils/color";
-import { isURL } from "./utils/is";
-import { restoreStore } from "./utils/store";
+import { settingsReady, settingsState } from "./stores/settings";
+import "./stores/windowLifecycle";
+import type { Language } from "./types/settings";
+import { setMessageApi } from "./utils/feedback";
+import { log } from "./utils/log";
 
-const { defaultAlgorithm, darkAlgorithm } = theme;
+const ANTD_MODAL_CONFIG = {
+  centered: true,
+} satisfies ConfigProviderProps["modal"];
 
-const App = () => {
-  const { appearance } = useSnapshot(globalStore);
-  const { restoreState } = useWindowState();
-  const [ready, { toggle }] = useBoolean();
+/**
+ * 把设置语言映射到 Ant Design 内置 locale。
+ */
+const resolveAntdLocale = (language: Language) => {
+  if (language === "en-US") return enUS;
 
+  return zhCN;
+};
+
+const AppContent: FC = () => {
+  const { message } = AntdApp.useApp();
+
+  useEffect(() => {
+    setMessageApi(message);
+  }, [message]);
+
+  return <RouterProvider router={router} />;
+};
+
+/**
+ * 等待 Rust 设置首屏快照灌入后再渲染，避免组件读到空对象闪烁默认值。
+ * `use()` 在 promise pending 时抛出，由父级（`main.tsx`）的 Suspense 接住。
+ */
+const App: FC = () => {
+  use(settingsReady);
+
+  const { i18n } = useTranslation();
+  const settings = useSnapshot(settingsState);
+  const windowLabel = getCurrentWebviewWindow().label;
+  const mode =
+    windowLabel === WINDOW_LABEL.ONBOARDING
+      ? "dark"
+      : settings.appearance.theme;
+  const language = settings.appearance.language;
+  const antdTheme = useAppTheme(mode);
+  const locale = resolveAntdLocale(language);
+
+  useEffect(() => {
+    document.documentElement.lang = language;
+
+    if (i18n.language === language) return;
+
+    void i18n.changeLanguage(language);
+  }, [i18n, language]);
+
+  // settingsReady 已由 use() gate，挂载即视为前端基础初始化完成；回报 Rust 推进窗口到 ready 阶段。
+  // notifyWindowReady 内部已吞掉并记录失败，这里无需再 try/catch。
   useMount(async () => {
-    await restoreState();
-
-    await restoreStore();
-
-    toggle();
-
-    // 生成 antd 的颜色变量
-    generateColorVars();
+    await notifyWindowReady(getCurrentWebviewWindow().label);
   });
 
-  // 监听语言的变化
-  useImmediateKey(globalStore.appearance, "language", i18n.changeLanguage);
+  // 兜底未捕获的 Promise rejection：统一进日志通道，避免只在 devtools 红字闪过、生产环境完全无痕。
+  useEventListener("unhandledrejection", (event) => {
+    const { reason } = event;
 
-  // 监听是否是暗黑模式
-  useImmediateKey(globalStore.appearance, "isDark", (value) => {
-    if (value) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
+    log.error(
+      "unhandled promise rejection",
+      reason instanceof Error ? reason : { reason },
+    );
   });
 
-  // 监听显示窗口的事件
-  useTauriListen(LISTEN_KEY.SHOW_WINDOW, ({ payload }) => {
-    const appWindow = getCurrentWebviewWindow();
+  // 兜底未捕获的同步异常（含资源加载错误）。React 渲染错误由 ErrorBoundary 接，不会走到这里。
+  useEventListener("error", (event) => {
+    const { error, ...rest } = event;
 
-    if (appWindow.label !== payload) return;
-
-    showWindow();
-  });
-
-  // 监听关闭数据库的事件
-  useTauriListen(LISTEN_KEY.CLOSE_DATABASE, destroyDatabase);
-
-  // 链接跳转到系统浏览器
-  useEventListener("click", (event) => {
-    const link = (event.target as HTMLElement).closest("a");
-
-    if (!link) return;
-
-    const { href, target } = link;
-
-    if (target === "_blank") return;
-
-    event.preventDefault();
-
-    if (!isURL(href)) return;
-
-    openUrl(href);
-  });
-
-  // 隐藏窗口
-  useKeyPress(["esc", PRESET_SHORTCUT.HIDE_WINDOW], hideWindow);
-
-  // 监听 promise 的错误，输出到日志
-  useEventListener("unhandledrejection", ({ reason }) => {
-    const message = isString(reason) ? reason : JSON.stringify(reason);
-
-    error(message);
+    log.error("uncaught error", error instanceof Error ? error : rest);
   });
 
   return (
-    <ConfigProvider
-      locale={getAntdLocale(appearance.language)}
-      theme={{
-        algorithm: appearance.isDark ? darkAlgorithm : defaultAlgorithm,
-      }}
-    >
-      <HappyProvider>
-        {ready && <RouterProvider router={router} />}
-      </HappyProvider>
+    <ConfigProvider locale={locale} modal={ANTD_MODAL_CONFIG} theme={antdTheme}>
+      <AntdApp>
+        <AppContent />
+      </AntdApp>
     </ConfigProvider>
   );
 };

@@ -1,163 +1,155 @@
-<a href="https://github.com/EcoPasteHub/EcoPaste">
-  <img src="https://socialify.git.ci/EcoPasteHub/EcoPaste/image?description=1&descriptionEditable=%E9%80%82%E7%94%A8%E4%BA%8E%20Windows%E3%80%81MacOS%20%E5%92%8C%20Linux(x11)%20%E7%9A%84%E5%BC%80%E6%BA%90%E5%89%AA%E8%B4%B4%E6%9D%BF%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7%E3%80%82&font=Source%20Code%20Pro&forks=1&issues=1&logo=https%3A%2F%2Fgithub.com%2FEcoPasteHub%2FEcoPaste%2Fblob%2Fmaster%2Fpublic%2Flogo.png%3Fraw%3Dtrue&name=1&owner=1&pattern=Floating%20Cogs&pulls=1&stargazers=1&theme=Auto" alt="EcoPaste" />
-</a>
-
 <div align="center">
-  <br/>
+  <img src="./public/logo.png" alt="EcoPaste" width="96" height="96" />
 
-  <div>
-      简体中文 | <a href="./README.zh-TW.md">繁體中文</a> | <a href="./README.en-US.md">English</a> | <a href="./README.ja-JP.md">日本語</a>
-  </div>
+  # EcoPaste
 
-  <br/>
-    
-  <div>
-    <a href="https://github.com/EcoPasteHub/EcoPaste/releases">
-      <img
-        alt="Windows"
-        src="https://img.shields.io/badge/-Windows-blue?style=flat-square&logo=data:image/svg+xml;base64,PHN2ZyB0PSIxNzI2MzA1OTcxMDA2IiBjbGFzcz0iaWNvbiIgdmlld0JveD0iMCAwIDEwMjQgMTAyNCIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHAtaWQ9IjE1NDgiIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4Ij48cGF0aCBkPSJNNTI3LjI3NTU1MTYxIDk2Ljk3MTAzMDEzdjM3My45OTIxMDY2N2g0OTQuNTEzNjE5NzVWMTUuMDI2NzU3NTN6TTUyNy4yNzU1NTE2MSA5MjguMzIzNTA4MTVsNDk0LjUxMzYxOTc1IDgwLjUyMDI4MDQ5di00NTUuNjc3NDcxNjFoLTQ5NC41MTM2MTk3NXpNNC42NzA0NTEzNiA0NzAuODMzNjgyOTdINDIyLjY3Njg1OTI1VjExMC41NjM2ODE5N2wtNDE4LjAwNjQwNzg5IDY5LjI1Nzc5NzUzek00LjY3MDQ1MTM2IDg0Ni43Njc1OTcwM0w0MjIuNjc2ODU5MjUgOTE0Ljg2MDMxMDEzVjU1My4xNjYzMTcwM0g0LjY3MDQ1MTM2eiIgcC1pZD0iMTU0OSIgZmlsbD0iI2ZmZmZmZiI+PC9wYXRoPjwvc3ZnPg=="
-      />
-    </a >
-    <a href="https://github.com/EcoPasteHub/EcoPaste/releases">
-      <img
-        alt="MacOS"
-        src="https://img.shields.io/badge/-MacOS-black?style=flat-square&logo=apple&logoColor=white"
-      />
-    </a >
-    <a href="https://github.com/EcoPasteHub/EcoPaste/releases">
-      <img 
-        alt="Linux"
-        src="https://img.shields.io/badge/-Linux-yellow?style=flat-square&logo=linux&logoColor=white" 
-      />
-    </a>
-  </div>
+  **A local-first clipboard manager for macOS and Windows.**
 
-  <div>
-    <a href="./LICENSE">
-      <img
-        src="https://img.shields.io/github/license/EcoPasteHub/EcoPaste?style=flat-square"
-      />
-    </a >
-    <a href="https://github.com/EcoPasteHub/EcoPaste/releases">
-      <img
-        src="https://img.shields.io/github/package-json/v/EcoPasteHub/EcoPaste?style=flat-square"
-      />
-    </a >
-    <a href="https://github.com/EcoPasteHub/EcoPaste/releases">
-      <img
-        src="https://img.shields.io/github/downloads/EcoPasteHub/EcoPaste/total?style=flat-square"
-      />  
-    </a >
-  </div>
+  English | [简体中文](./README.zh-CN.md)
 
-  <br/>
+  <br />
 
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./static/app-dark.zh-CN.png" />
-    <source media="(prefers-color-scheme: light)" srcset="./static/app-light.zh-CN.png" />
-    <img src="./static/app-light.zh-CN.png" />
-  </picture>
+  <img alt="Tauri v2" src="https://img.shields.io/badge/Tauri-v2-24c8db?style=flat-square" />
+  <img alt="Rust first" src="https://img.shields.io/badge/Rust-first-b7410e?style=flat-square" />
+  <img alt="React 19" src="https://img.shields.io/badge/React-19-61dafb?style=flat-square" />
+  <img alt="macOS" src="https://img.shields.io/badge/macOS-supported-000000?style=flat-square&logo=apple&logoColor=white" />
+  <img alt="Windows" src="https://img.shields.io/badge/Windows-supported-0078d4?style=flat-square&logo=windows&logoColor=white" />
 </div>
 
-## 下载
+## About
 
-### Windows
+EcoPaste is an open-source desktop clipboard manager. This repository is the Rust-first refactor of EcoPaste: durable behavior lives in Rust, while the React frontend focuses on rendering and interaction.
 
-手动下载：[x86](https://api.ecopaste.cn/download?platform=windows-x86) | [x64](https://api.ecopaste.cn/download?platform=windows-x64) | [ARM64](https://api.ecopaste.cn/download?platform=windows-arm)
+The rewrite is designed for a faster, lighter, and more maintainable app with local storage, SQLite search, native shortcuts, tray integration, backup support, and a focused cross-platform surface for macOS and Windows.
 
-### MacOS
+## Project Status
 
-手动下载：[Apple Silicon](https://api.ecopaste.cn/download?platform=macos-arm) | [Intel](https://api.ecopaste.cn/download?platform=macos-x64)
+This repository is currently a beta refactor (`0.6.0-beta.3`). It is not a stable release channel yet.
 
-HomeBrew：[点击查看](https://ecopaste.cn/guide/install#%E4%BD%BF%E7%94%A8-homebrew-%E5%AE%89%E8%A3%85)
+Before trying this version, back up important data from any older EcoPaste installation. The refactor changes the runtime architecture, settings model, storage layout, and database schema, so legacy data compatibility is not guaranteed during the beta period.
 
-### Linux(x11)
+## Platform Scope
 
-手动下载：[deb](https://api.ecopaste.cn/download?platform=linux-deb) | [AppImage](https://api.ecopaste.cn/download?platform=linux-appimage) | [rpm](https://api.ecopaste.cn/download?platform=linux-rpm)
+The Rust-first refactor supports macOS and Windows only.
 
-安装指南：[点击查看](https://ecopaste.cn/guide/install#linux)
+Linux support from the legacy EcoPaste app has been dropped in this refactor, and there are no current plans to support Linux again. Please use the legacy release line if you need Linux support.
 
-## 功能介绍
+## Features
 
-- 🎉 基于 Tauri v2 开发，轻量高效，跨平台体验更进一步。
-- 💻 支持 Windows、macOS 和 Linux（x11），在多设备间无缝切换。
-- ✨ 简洁直观的用户界面，操作简单，零门槛上手，开箱即用。
-- 📋 支持纯文本、富文本、HTML、图片和文件类型的剪贴板内容。
-- 🔒 数据本地存储，确保用户隐私安全，数据完全掌控在用户手中。
-- 📝 支持备注功能，轻松分类、管理和检索，让工作更高效。
-- ⚙️ 丰富的个性化设置，满足不同用户需求，打造专属体验。
-- 🤝 完善的文档与社区支持，与开发者共同探索与成长。
-- 🧩 持续优化中，更多惊喜功能等你发现。
+- Capture clipboard history for plain text, HTML, RTF, images, files, and folders.
+- Search clipboard content and notes with SQLite FTS5.
+- Filter history by source application and content type.
+- Protect sensitive content by skipping high-confidence secrets such as private keys, service tokens, AWS keys, and JWTs.
+- Preview text, images, and files in a dedicated preview window.
+- Paste, copy, copy as plain text, reveal files, open links, add notes, pin, favorite, delete, and drag items out to other apps.
+- Organize history with favorites, pinned items, notes, custom groups, and configurable item actions.
+- Tune capture order, size limits, retention, display density, list sorting, and window behavior.
+- Export and import `.ecopastebak` backups, including encrypted backup containers.
+- Keep clipboard data, resources, and settings local to your machine.
 
-## 问题反馈
+## Architecture
 
-1. 🔍 优先查阅[常见问题](https://ecopaste.cn/problem/macos/damage)或浏览已有 [issues](https://github.com/EcoPasteHub/EcoPaste/issues)。
+EcoPaste uses a Rust-first Tauri architecture:
 
-2. ❓ 如果问题仍未解决，请提交新的 [issue](https://github.com/EcoPasteHub/EcoPaste/issues/new/choose)，并附上详细描述，方便我们快速定位和解决。
+- `src-tauri/src/clipboard/` owns clipboard capture, content detection, writeback, source apps, resource storage, and loop suppression.
+- `src-tauri/src/db/` owns SQLite repositories, models, migrations, and FTS search.
+- `src-tauri/src/settings/`, `window/`, `shortcut/`, `tray/`, `menu/`, `autostart/`, and `backup/` own native behavior and persistent app state.
+- `src/` contains the React UI, Ant Design components, UnoCSS styling, Valtio UI/settings mirrors, i18n resources, and typed Tauri command wrappers.
 
-## 历史星标
+The frontend calls Rust through Tauri commands and receives refresh signals through namespaced events such as `clipboard://updated`, `settings://updated`, and `window://visibility`.
 
-<a href="https://star-history.com/#EcoPasteHub/EcoPaste&Date">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=EcoPasteHub/EcoPaste&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=EcoPasteHub/EcoPaste&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=EcoPasteHub/EcoPaste&type=Date" />
- </picture>
-</a>
+## Tech Stack
 
-## 社区交流
+| Area | Stack |
+| --- | --- |
+| Desktop shell | Tauri v2 |
+| Frontend | React 19, Ant Design 6, UnoCSS `presetWind4` |
+| State | Valtio for UI state and settings mirrors |
+| Backend | Rust, sqlx, SQLite |
+| Build | Vite, pnpm |
+| Quality | Biome, TypeScript, rustfmt, clippy, cargo test |
 
-⚠️ 温馨提示：群聊仅限日常讨论和经验分享，如需反馈问题或提交新需求，请查看[问题反馈](#问题反馈)。
+## Getting Started
 
-<table>
-  <thead>
-    <tr>
-      <th width="33.3%">微信群</th>
-      <th width="33.3%">QQ 群</th>
-      <th width="33.3%">Telegram</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>
-        <picture>
-          <source media="(prefers-color-scheme: dark)" srcset="https://ecopaste.cn/community/wechat-group-dark.png" />
-          <source media="(prefers-color-scheme: light)" srcset="https://ecopaste.cn/community/wechat-group-light.png" />
-          <img src="https://ecopaste.cn/community/wechat-group-light.png" />
-        </picture>
-      </td>
-      <td>
-        <picture>
-          <source media="(prefers-color-scheme: dark)" srcset="https://ecopaste.cn/community/qq-group-dark.png" />
-          <source media="(prefers-color-scheme: light)" srcset="https://ecopaste.cn/community/qq-group-light.png" />
-          <img src="https://ecopaste.cn/community/qq-group-light.png" />
-        </picture>
-      </td>
-      <td>
-        <picture>
-          <source media="(prefers-color-scheme: dark)" srcset="https://ecopaste.cn/community/telegram-chat-dark.png" />
-          <source media="(prefers-color-scheme: light)" srcset="https://ecopaste.cn/community/telegram-chat-light.png" />
-          <img src="https://ecopaste.cn/community/telegram-chat-light.png" />
-        </picture>
-      </td>
-    </tr>
-  </tbody>
-</table>
+### Prerequisites
 
-## 贡献者
+- macOS or Windows.
+- Node.js 20 or newer.
+- pnpm 10 or newer.
+- Rust toolchain from `rust-toolchain.toml` (`1.96.0`, with `rustfmt` and `clippy`).
+- Native dependencies required by Tauri v2. See the [Tauri prerequisites](https://tauri.app/start/prerequisites/) for your operating system.
 
-感谢大家为 EcoPaste 做出的宝贵贡献！如果你也希望为 EcoPaste 做出贡献，请查阅[贡献指南](./.github/CONTRIBUTING/zh-CN.md)。
+### Install
 
-<a href="https://openomy.com/EcoPasteHub/EcoPaste" target="_blank" style="display: block; width: 100%;" align="center">
-  <img src="https://openomy.com/svg?repo=EcoPasteHub/EcoPaste&chart=bubble" alt="Contribution Leaderboard" style="display: block; width: 100%;" />
-</a>
+```bash
+pnpm install
+```
 
-## 赞助
+### Run in Development
 
-如果您觉得这个项目对您有帮助，可以考虑赞助支持我们！您的支持将帮助我们更好地维护和发展项目，让 EcoPaste 持续为社区创造价值。
+```bash
+pnpm tauri dev
+```
 
-赞助时请务必填写留言，以便我们收录到[赞助名单](https://ecopaste.cn/sponsor/list)中，感谢您的支持与鼓励！
+### Build
 
-|                           微信                            |                       支付宝                        |
-| :-------------------------------------------------------: | :-------------------------------------------------: |
-| ![wehcat-pay](https://ecopaste.cn/sponsor/wechat-pay.png) | ![ali-pay](https://ecopaste.cn/sponsor/ali-pay.png) |
+```bash
+pnpm tauri build
+```
+
+## Quality Checks
+
+Frontend:
+
+```bash
+pnpm lint
+pnpm tsc
+```
+
+Rust:
+
+```bash
+cd src-tauri
+cargo fmt
+cargo clippy -- -D warnings
+cargo test
+```
+
+Format frontend files:
+
+```bash
+pnpm format
+```
+
+## Repository Layout
+
+```text
+src-tauri/
+  src/
+    commands/    # Tauri command entry points
+    clipboard/   # clipboard read/write, capture, detection, storage
+    db/          # SQLite repositories, models, migrations
+    settings/    # settings model and persistence
+    window/      # window state, positioning, lifecycle
+    shortcut/    # global shortcuts
+    tray/        # tray menu
+    menu/        # item context menus
+    backup/      # backup import/export
+    i18n/        # Rust-side user-visible text
+  migrations/
+src/
+  commands/      # typed Tauri invoke wrappers
+  components/    # shared React components
+  constants/     # mirrored cross-layer constants
+  hooks/         # shared hooks
+  locales/       # zh-CN and en-US translations
+  pages/         # Clipboard, Preference, Preview, ContextMenu
+  stores/        # Valtio UI state and settings mirrors
+  types/         # TypeScript contract mirrors
+```
+
+## Contributing
+
+Read [AGENTS.md](./AGENTS.md) before changing code. It is the source of truth for this refactor's architecture, platform scope, coding conventions, and quality expectations.
+
+For user-visible feature changes, update [CHANGELOG.md](./CHANGELOG.md). Keep documentation aligned with the current beta status and supported platforms.

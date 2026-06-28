@@ -1,0 +1,657 @@
+{
+  "about": {
+    "checkUpdates": "Check for updates",
+    "checkUpdatesUnavailable": "Update checking is not connected yet",
+    "sponsor": "Sponsor",
+    "sponsorHint": "If EcoPaste helps your workflow, you can support the project.",
+    "sponsorQrAlt": "Sponsor QR code"
+  },
+  "backup": {
+    "export": {
+      "confirmPassword": "Confirm password",
+      "confirmRequired": "Enter the backup password again",
+      "encryptedHint": "The backup will be encrypted with this password. EcoPaste will not save it, and forgotten passwords cannot be recovered.",
+      "modeEncrypted": "Encrypted backup (Recommended)",
+      "modePlain": "Plain backup",
+      "ok": "Choose Save Location",
+      "okReadConfirm": "Read the warning and check",
+      "okReadCountdown": "Read and check ({{seconds}}s)",
+      "password": "Backup password",
+      "passwordMin": "Backup password must be at least 8 characters",
+      "passwordMismatch": "The two passwords do not match",
+      "passwordRequired": "Enter a backup password",
+      "plainConfirm": "I have read the warning and confirm exporting an unencrypted backup",
+      "plainConfirmRequired": "Confirm the plain backup risk",
+      "plainWarning": "Anyone with the file can read the backup contents directly.",
+      "plainWarningTitle": "Plain backups are not password protected",
+      "title": "Export EcoPaste Backup"
+    },
+    "fileFilter": "EcoPaste Backup",
+    "import": {
+      "fileFallback": "EcoPaste backup file",
+      "ok": "Import",
+      "overwriteConfirm": "I have read the warning and confirm overwriting current data",
+      "overwriteConfirmRequired": "Confirm the overwrite import risk",
+      "overwriteOkConfirm": "Read the warning and check",
+      "overwriteOkCountdown": "Read and check ({{seconds}}s)",
+      "overwriteWarning": "Overwrite import replaces the selected current data immediately. Merge import is safer for everyday recovery; use overwrite only when the backup should become the source of truth.",
+      "password": "Backup password",
+      "passwordRequired": "Enter the backup password",
+      "pickTitle": "Choose EcoPaste Backup",
+      "strategy": "Import mode",
+      "strategyMerge": "Merge Import",
+      "strategyOverwrite": "Overwrite Import",
+      "title": "Import EcoPaste Backup",
+      "typeEncrypted": "Encrypted backup, password required",
+      "typePlain": "Unencrypted backup"
+    },
+    "received": {
+      "encrypted": "Encrypted backup recognized. Import requires the backup password.",
+      "plain": "Plain backup recognized."
+    }
+  },
+  "schema": {
+    "captureKinds": {
+      "files": "Files and Folders",
+      "html": "HTML Content",
+      "image": "Image",
+      "rtf": "RTF Content",
+      "text": "Plain Text"
+    },
+    "numberSuffixes": {
+      "files": "files",
+      "gb": "GB",
+      "hours": "hours",
+      "items": "items",
+      "lines": "lines",
+      "mb": "MB",
+      "px": "px",
+      "seconds": "seconds"
+    },
+    "retentionUnits": {
+      "days": "Days",
+      "hours": "Hours",
+      "months": "Months",
+      "weeks": "Weeks"
+    },
+    "sections": {
+      "about": {
+        "title": "App Info"
+      },
+      "actions": {
+        "title": "Quick Actions"
+      },
+      "appearance": {
+        "title": "Appearance & Language"
+      },
+      "backup": {
+        "description": "Export or import EcoPaste backup packages.",
+        "title": "Backup & Migration"
+      },
+      "capture": {
+        "title": "Content Types"
+      },
+      "control": {
+        "title": "System Entry"
+      },
+      "copy": {
+        "title": "Copy Feedback"
+      },
+      "diagnostics": {
+        "title": "Diagnostics"
+      },
+      "globalShortcuts": {
+        "title": "Global Shortcuts"
+      },
+      "groups": {
+        "title": "Group Management"
+      },
+      "history": {
+        "title": "Retention & Cleanup"
+      },
+      "localData": {
+        "title": "Storage Locations"
+      },
+      "organizing": {
+        "title": "Favorites & Notes"
+      },
+      "paste": {
+        "title": "Paste Behavior"
+      },
+      "preview": {
+        "title": "Content Preview"
+      },
+      "search": {
+        "title": "Search & Sort"
+      },
+      "sensitive": {
+        "title": "Privacy"
+      },
+      "source": {
+        "title": "App Filters"
+      },
+      "updates": {
+        "title": "Updates"
+      },
+      "window": {
+        "title": "Main Window"
+      }
+    },
+    "settings": {
+      "about": {
+        "checkUpdates": {
+          "controlLabel": "Check",
+          "description": "Check whether a new EcoPaste version is available.",
+          "title": "Check for Updates"
+        },
+        "github": {
+          "controlLabel": "Open",
+          "title": "GitHub"
+        },
+        "sponsor": {
+          "description": "If EcoPaste helps your workflow, you can support the project.",
+          "title": "Sponsor"
+        }
+      },
+      "actions": {
+        "deleteConfirm": {
+          "description": "Ask before deleting regular history records. Favorited and pinned records use their own switches.",
+          "title": "Confirm Regular Deletes"
+        },
+        "deleteFavoriteConfirm": {
+          "description": "Ask before deleting favorited records to prevent losing important items.",
+          "title": "Confirm Favorite Deletes"
+        },
+        "deleteFavoriteItems": {
+          "description": "When off, favorited records hide delete actions and ignore delete shortcuts.",
+          "title": "Allow Favorite Deletes"
+        },
+        "deleteFavoriteItemsOnlyInFavoriteGroup": {
+          "description": "When on, favorited records hide delete actions outside Favorites; regular records are unaffected.",
+          "title": "Delete Favorites Only in Favorites"
+        },
+        "deletePinnedConfirm": {
+          "description": "Ask before deleting pinned records to prevent losing important items.",
+          "title": "Confirm Pinned Deletes"
+        },
+        "deletePinnedItems": {
+          "description": "When off, pinned records hide delete actions and ignore delete shortcuts.",
+          "title": "Allow Pinned Deletes"
+        },
+        "visible": {
+          "controlLabel": "Manage",
+          "description": "Choose which action buttons appear when hovering over a record.",
+          "title": "Visible Quick Actions"
+        }
+      },
+      "appearance": {
+        "fileMaxCount": {
+          "description": "Limit how many files are shown in each file record card.",
+          "title": "Maximum Files Shown"
+        },
+        "imageMaxHeight": {
+          "description": "Limit thumbnail height for image records in the list.",
+          "title": "Maximum Image Height"
+        },
+        "language": {
+          "description": "Switch the EcoPaste interface language.",
+          "options": {
+            "en-US": "English",
+            "zh-CN": "简体中文"
+          },
+          "title": "Language"
+        },
+        "showOriginalPreview": {
+          "description": "Records with notes show the note by default, then temporarily reveal original content when hovering over the card.",
+          "title": "Show Original on Hover"
+        },
+        "textMaxLines": {
+          "description": "Limit how many lines are shown in each text record card.",
+          "title": "Maximum Text Lines"
+        },
+        "theme": {
+          "description": "Use light mode, dark mode, or follow the system appearance.",
+          "options": {
+            "auto": "Follow system",
+            "dark": "Dark",
+            "light": "Light"
+          },
+          "title": "Theme"
+        }
+      },
+      "backup": {
+        "exportHistory": {
+          "controlLabel": "Export",
+          "description": "Export a .ecopastebak backup, encrypted with a password by default.",
+          "title": "Export Backup"
+        },
+        "importHistory": {
+          "controlLabel": "Import",
+          "description": "Import a .ecopastebak backup, with merge or overwrite recovery.",
+          "title": "Import Backup"
+        }
+      },
+      "capture": {
+        "files": {
+          "description": "When off, copied files and folders are not saved to history.",
+          "title": "Files and Folders"
+        },
+        "html": {
+          "description": "When off, rich text with HTML format is not saved to history.",
+          "title": "HTML Content"
+        },
+        "image": {
+          "description": "When off, clipboard images are not saved to history.",
+          "title": "Image"
+        },
+        "maxImageMb": {
+          "description": "Images larger than this are not saved to history. Set to 0 for no limit.",
+          "title": "Maximum Image Capture Size"
+        },
+        "maxTextMb": {
+          "description": "Text, HTML, or RTF larger than this is not saved to history. Set to 0 for no limit.",
+          "title": "Maximum Text Capture Size"
+        },
+        "order": {
+          "controlLabel": "Manage",
+          "description": "When the clipboard contains multiple formats, save the first matching type in this order.",
+          "title": "Capture Order"
+        },
+        "rtf": {
+          "description": "When off, rich text with RTF format is not saved to history.",
+          "title": "RTF Content"
+        },
+        "text": {
+          "description": "When off, copied plain text is not saved to history.",
+          "title": "Plain Text"
+        }
+      },
+      "control": {
+        "autoStart": {
+          "description": "Start EcoPaste automatically after logging in.",
+          "macos": {
+            "description": "Start EcoPaste automatically after login.",
+            "title": "Launch at Login"
+          },
+          "title": "Launch at Login",
+          "windows": {
+            "description": "Start EcoPaste automatically after login.",
+            "title": "Launch at Startup"
+          }
+        },
+        "dockIcon": {
+          "description": "Show the EcoPaste icon in the system desktop bar.",
+          "macos": {
+            "description": "Show the EcoPaste icon in the Dock.",
+            "title": "Dock Icon"
+          },
+          "title": "Desktop Bar Icon",
+          "windows": {
+            "description": "Show the EcoPaste icon in the taskbar.",
+            "title": "Taskbar Icon"
+          }
+        },
+        "silentStart": {
+          "description": "When launched at login, run in the background without opening the clipboard window.",
+          "title": "Silent Start"
+        },
+        "trayIcon": {
+          "description": "Show the EcoPaste icon in the system status area.",
+          "macos": {
+            "description": "Show the EcoPaste icon in the menu bar.",
+            "title": "Menu Bar Icon"
+          },
+          "title": "Status Area Icon",
+          "windows": {
+            "description": "Show the EcoPaste icon in the system tray.",
+            "title": "System Tray Icon"
+          }
+        }
+      },
+      "copy": {
+        "hideWindow": {
+          "description": "After copying a history record, automatically hide the clipboard window.",
+          "title": "Hide Window After Copy"
+        },
+        "plainDefault": {
+          "description": "When copying text records, strip HTML/RTF formatting and copy plain text by default.",
+          "title": "Copy as Plain Text by Default"
+        },
+        "sound": {
+          "description": "Play a sound when new clipboard content is saved to history.",
+          "preview": "Preview sound",
+          "title": "Copy Sound"
+        },
+        "updateOnReuse": {
+          "description": "Refresh use time and usage count when copying or pasting a history record.",
+          "title": "Update Record on Reuse"
+        }
+      },
+      "diagnostics": {
+        "resetPreferences": {
+          "confirmContent": "This restores every preference to its default value, but keeps clipboard history records.",
+          "confirmTitle": "Reset all preferences?",
+          "controlLabel": "Reset",
+          "description": "Restore all preference defaults while keeping history records.",
+          "title": "Reset All Preferences"
+        },
+        "windowLifecycle": {
+          "columns": {
+            "generation": "Visible generation",
+            "label": "Window",
+            "locks": "Destroy guards",
+            "phase": "Phase",
+            "timing": "Timing"
+          },
+          "controlLabel": "View",
+          "description": "Inspect window lifecycle, destroy protection, and lightweight-mode state for troubleshooting hidden-window resource usage.",
+          "durationSeparator": " ",
+          "durationUnits": {
+            "days": "{{count}}d",
+            "hours": "{{count}}h",
+            "minutes": "{{count}}m",
+            "seconds": "{{count}}s"
+          },
+          "empty": "No window lifecycle data yet",
+          "generationHint": "Adds 1 when moving from non-visible to visible; re-showing an already visible window does not add.",
+          "hiddenFor": "Hidden for {{duration}}",
+          "lastActive": "Active {{duration}} ago",
+          "locksHint": "Shown as dirty owners / keepalive leases; any nonzero value delays destroy.",
+          "modalTitle": "Window Lifecycle",
+          "phases": {
+            "created": "Created",
+            "destroyed": "Destroyed",
+            "destroyPending": "Destroy pending",
+            "dormant": "Dormant",
+            "hiddenWarm": "Hidden warm",
+            "notCreated": "Not created",
+            "ready": "Ready",
+            "visible": "Visible"
+          },
+          "title": "Window Lifecycle",
+          "windows": {
+            "contextMenu": "Context menu",
+            "contextSubmenu": "Context submenu",
+            "main": "Main window",
+            "preference": "Preferences",
+            "preview": "Clipboard preview"
+          }
+        }
+      },
+      "history": {
+        "cleanupIntervalHours": {
+          "description": "Check and clean history every specified number of hours. 0 disables periodic cleanup; startup cleanup still runs once.",
+          "title": "Auto Cleanup Interval"
+        },
+        "maxCount": {
+          "description": "When the limit is exceeded, older regular records are cleaned automatically; favorites and pinned items are always kept. 0 means unlimited items.",
+          "title": "Maximum Items"
+        },
+        "retention": {
+          "description": "Regular records older than this many days are cleaned automatically; favorites and pinned items are always kept. 0 disables time-based cleanup.",
+          "title": "Retention Period"
+        }
+      },
+      "localData": {
+        "cleanCache": {
+          "confirmContent": "This removes images, thumbnails, and icon cache files that are no longer referenced by history. Resources still in use are kept.",
+          "confirmTitle": "Clean Resource Cache",
+          "controlLabel": "Clean Cache",
+          "description": "Remove image, thumbnail, and icon cache files no longer referenced by history.",
+          "title": "Clean Cache"
+        },
+        "dataDirectory": {
+          "controlLabel": "Open",
+          "description": "Open the directory containing the history database, settings, and resource cache.",
+          "title": "Data Directory"
+        },
+        "logDirectory": {
+          "controlLabel": "Open",
+          "description": "Open the runtime log directory used for troubleshooting.",
+          "title": "Log Directory"
+        }
+      },
+      "organizing": {
+        "autoFavorite": {
+          "description": "When saving a non-empty note, automatically add that record to favorites.",
+          "title": "Auto-Favorite When Noted"
+        },
+        "customGroups": {
+          "controlLabel": "Manage",
+          "description": "Adjust custom group order, visibility, names, and icons.",
+          "title": "Custom Groups"
+        }
+      },
+      "paste": {
+        "autoPaste": {
+          "description": "Choose what happens when clicking a history record with the left mouse button.",
+          "options": {
+            "disabled": "Disabled",
+            "doubleClickCopy": "Double-click to copy",
+            "doubleClickPaste": "Double-click to paste",
+            "singleClickCopy": "Single-click to copy",
+            "singleClickPaste": "Single-click to paste"
+          },
+          "title": "Left Mouse Button"
+        },
+        "fileMode": {
+          "description": "When pasting file records, paste file paths by default instead of the files themselves.",
+          "title": "Paste File Paths by Default"
+        },
+        "middleClick": {
+          "description": "Choose what happens when clicking a history record with the middle mouse button.",
+          "options": {
+            "disabled": "Disabled",
+            "singleClickCopy": "Copy",
+            "singleClickCopyPlain": "Copy as Plain Text",
+            "singleClickPaste": "Paste",
+            "singleClickPastePlain": "Paste as Plain Text"
+          },
+          "title": "Middle Mouse Button"
+        },
+        "plainDefault": {
+          "description": "When pasting text records, strip HTML/RTF formatting and paste plain text by default.",
+          "title": "Paste as Plain Text by Default"
+        }
+      },
+      "preview": {
+        "delay": {
+          "description": "Set how long to hover before the preview appears.",
+          "options": {
+            "ms300": "300ms",
+            "ms500": "500ms",
+            "ms1000": "1000ms"
+          },
+          "title": "Hover Delay"
+        },
+        "hover": {
+          "description": "Show a full-content preview when hovering over a record.",
+          "title": "Hover Preview"
+        },
+        "space": {
+          "description": "Hold Space to preview the currently selected record.",
+          "title": "Space Preview"
+        }
+      },
+      "search": {
+        "clearOnHide": {
+          "description": "Clear the search keyword and show the full list next time the clipboard window opens.",
+          "title": "Clear Search on Next Open"
+        },
+        "defaultFocus": {
+          "description": "Select the search box when the clipboard window opens so you can type keywords right away.",
+          "title": "Focus Search on Window Open"
+        },
+        "sort": {
+          "description": "Choose the default order for history records when no search is active.",
+          "options": {
+            "createdAtDesc": "Created Time",
+            "updatedAtDesc": "Updated Time",
+            "useCountDesc": "Usage Frequency"
+          },
+          "title": "Default Sort Order"
+        }
+      },
+      "sensitive": {
+        "collectSecrets": {
+          "description": "Choose whether high-confidence keys, tokens, and similar secrets are saved to history.",
+          "title": "Save Sensitive Content"
+        },
+        "redactSecrets": {
+          "description": "Show saved sensitive content with only the first and last characters visible, replacing the middle with *.",
+          "title": "Redacted Display"
+        }
+      },
+      "shortcuts": {
+        "openClipboard": {
+          "description": "Open or hide the clipboard main window from any app.",
+          "placeholder": "Alt+C",
+          "title": "Open Main Window"
+        },
+        "openPreference": {
+          "description": "Open or hide the preferences window from any app.",
+          "placeholder": "Alt+X",
+          "title": "Open Preferences"
+        },
+        "winV": {
+          "description": "When enabled, press Win+V to summon the EcoPaste main window, replacing the Windows system clipboard history panel.",
+          "title": "Open Clipboard with Win+V"
+        }
+      },
+      "source": {
+        "appTransfer": {
+          "addApp": "Add App",
+          "allTitle": "Available Apps",
+          "appFileFilter": "Application files",
+          "ignoredTitle": "Ignored Apps",
+          "itemsUnit": "items",
+          "itemUnit": "item",
+          "refreshApps": "Refresh Available Apps",
+          "searchPlaceholder": "Search apps"
+        },
+        "excludedApps": {
+          "description": "Content copied from these apps will not be saved to history.",
+          "title": "Ignored Apps"
+        }
+      },
+      "updates": {
+        "autoCheck": {
+          "description": "Periodically check whether a new EcoPaste version is available.",
+          "title": "Automatically Check for Updates"
+        },
+        "beta": {
+          "description": "Receive beta test versions when checking for updates.",
+          "title": "Include Beta Versions"
+        },
+        "frequency": {
+          "description": "Set how often EcoPaste checks for updates.",
+          "options": {
+            "daily": "Daily",
+            "monthly": "Monthly",
+            "weekly": "Weekly"
+          },
+          "title": "Update Check Frequency"
+        }
+      },
+      "window": {
+        "idleDestroySeconds": {
+          "description": "Release secondary WebViews such as preferences, preview, and context menus after they have been hidden for this long; they rebuild automatically next time.",
+          "title": "Secondary Window Idle Release"
+        },
+        "lightweightMode": {
+          "description": "Pause unnecessary refresh work after the main window hides, and release secondary rendering resources after they become idle.",
+          "title": "Lightweight Mode"
+        },
+        "position": {
+          "description": "Choose where the clipboard main window opens each time.",
+          "options": {
+            "center": "Center of Screen",
+            "followCursor": "Follow Cursor",
+            "remember": "Remember Position"
+          },
+          "title": "Open Position"
+        },
+        "scrollToTopOnOpen": {
+          "description": "Return to the newest items at the top whenever the clipboard window opens.",
+          "title": "Return to Top on Open"
+        },
+        "selectCategoryOnOpen": {
+          "description": "Choose which content category to switch to whenever the clipboard window opens.",
+          "options": {
+            "all": "All",
+            "files": "Files",
+            "image": "Image",
+            "preserve": "Keep Last Selection",
+            "text": "Text"
+          },
+          "title": "Select Category on Open"
+        },
+        "selectGroupOnOpen": {
+          "description": "Choose which custom group to switch to whenever the clipboard window opens.",
+          "options": {
+            "all": "All",
+            "missingGroup": "Deleted Group",
+            "preserve": "Keep Last Selection"
+          },
+          "title": "Select Group on Open"
+        },
+        "selectRangeOnOpen": {
+          "description": "Choose which history range to switch to whenever the clipboard window opens.",
+          "options": {
+            "all": "All",
+            "favorite": "Favorites",
+            "preserve": "Keep Last Selection"
+          },
+          "title": "Select Range on Open"
+        }
+      }
+    },
+    "tabs": {
+      "about": {
+        "title": "About"
+      },
+      "data": {
+        "title": "Data"
+      },
+      "organize": {
+        "title": "History"
+      },
+      "record": {
+        "title": "Capture"
+      },
+      "reuse": {
+        "title": "Actions"
+      },
+      "shortcuts": {
+        "title": "Shortcuts"
+      },
+      "workflow": {
+        "title": "Interface"
+      }
+    }
+  },
+  "search": {
+    "empty": "No matching settings",
+    "placeholder": "Search settings"
+  },
+  "status": {
+    "alwaysOn": "Default",
+    "comingSoon": "Coming soon",
+    "experimental": "Experimental",
+    "requiresBackend": "Pending"
+  },
+  "storage": {
+    "error": "Calculation failed",
+    "loading": "Calculating",
+    "title": "Local Storage",
+    "usage": "{{total}} / {{target}}"
+  },
+  "storageLocation": {
+    "change": "Change data directory",
+    "open": "Open data directory",
+    "pickTitle": "Choose New Data Directory Location",
+    "reset": "Reset to default directory",
+    "resetConfirmContent": "EcoPaste will move the current history database, settings, and resource cache back to the default data directory, then delete the current custom data directory after migration succeeds.",
+    "resetConfirmTitle": "Reset Data Directory"
+  }
+}

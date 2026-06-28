@@ -1,0 +1,19 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "command": "python3 .github/copilot/hooks/session-start.py",
+        "timeout": 30,
+        "type": "command"
+      }
+    ],
+    "userPromptSubmitted": [
+      {
+        "bash": "python3 .github/copilot/hooks/inject-workflow-state.py",
+        "powershell": "python3 .github/copilot/hooks/inject-workflow-state.py",
+        "timeoutSec": 15,
+        "type": "command"
+      }
+    ]
+  }
+}

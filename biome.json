@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.2.6/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.4.16/schema.json",
   "assist": {
     "actions": {
       "source": {
@@ -10,36 +10,40 @@
       }
     }
   },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  },
   "files": {
-    "includes": ["**", "!package.json", "!.release-it.ts"]
+    "includes": [
+      "**",
+      "!**/node_modules",
+      "!**/dist",
+      "!src-tauri/target",
+      "!src-tauri/.sqlx",
+      "!src-tauri/gen",
+      "!package.json",
+      "!pnpm-lock.yaml"
+    ]
   },
   "formatter": {
     "indentStyle": "space"
   },
   "linter": {
     "enabled": true,
-    "includes": ["**", "!package.json"],
     "rules": {
-      "a11y": {
-        "noStaticElementInteractions": "off",
-        "useAltText": "off",
-        "useKeyWithClickEvents": "off",
-        "useMediaCaption": "off"
-      },
       "correctness": {
         "noUnusedImports": {
           "fix": "safe",
-          "level": "error",
-          "options": {}
+          "level": "error"
         },
-        "noUnusedVariables": "error",
-        "useExhaustiveDependencies": "off"
+        "noUnusedVariables": "error"
       },
       "nursery": {
         "useSortedClasses": {
           "fix": "safe",
-          "level": "error",
-          "options": {}
+          "level": "error"
         }
       },
       "recommended": true,
@@ -47,21 +51,17 @@
         "noDangerouslySetInnerHtml": "off"
       },
       "style": {
-        "noNonNullAssertion": "off",
         "noUnusedTemplateLiteral": {
           "fix": "safe",
-          "level": "error",
-          "options": {}
+          "level": "error"
         },
         "useSelfClosingElements": {
           "fix": "safe",
-          "level": "error",
-          "options": {}
+          "level": "error"
         },
         "useTemplate": {
           "fix": "safe",
-          "level": "error",
-          "options": {}
+          "level": "error"
         }
       },
       "suspicious": {

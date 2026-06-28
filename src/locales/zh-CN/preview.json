@@ -1,0 +1,29 @@
+{
+  "empty": {
+    "content": "暂无预览内容",
+    "files": "无文件路径",
+    "imageMissing": "图片文件不存在",
+    "text": "空文本"
+  },
+  "file": {
+    "folder": "文件夹",
+    "item": "文件",
+    "missingPath": "路径已失效",
+    "shownCount": "仅显示前 {{shown}} 项，共 {{total}} 项"
+  },
+  "image": {
+    "alt": "剪贴板图片预览"
+  },
+  "meta": {
+    "characters": "{{count}} 字符",
+    "contentViewer": "内容预览器",
+    "filesLoaded": "{{count}} 项已加载",
+    "unknownSize": "未知尺寸"
+  },
+  "title": {
+    "files": "{{count}} 个项目",
+    "image": "图片预览",
+    "loading": "正在加载",
+    "text": "文本预览"
+  }
+}

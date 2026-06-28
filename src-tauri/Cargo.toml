@@ -1,8 +1,8 @@
 [package]
 name = "EcoPaste"
 version = "0.6.0-beta.3"
-description = "一款开源的跨平台剪贴板管理工具"
-authors = []
+description = "A Tauri App"
+authors = ["you"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -18,31 +18,70 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { workspace = true, features = ["tray-icon", "protocol-asset", "macos-private-api", "image-ico"] }
-serde = { workspace = true, features = ["derive"] }
-serde_json.workspace = true
-tauri-plugin-single-instance = "2"
-tauri-plugin-autostart = "2"
-tauri-plugin-sql = { version = "2", features = ["sqlite"] }
+tauri = { version = "2", features = ["macos-private-api", "protocol-asset", "tray-icon", "image-ico"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+anyhow = "1"
 tauri-plugin-log = "2"
+log = "0.4"
+sqlx = { version = "0.9", default-features = false, features = ["runtime-tokio", "sqlite", "macros", "chrono", "migrate"] }
+chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
+blake3 = "1"
+clipboard-rs = { git = "https://github.com/ayangweb/clipboard-rs", branch = "feat/configurable-watch-interval" }
+uuid = { version = "1", features = ["v4"] }
+regex = "1"
+tokio = { version = "1", features = ["time"] }
 tauri-plugin-global-shortcut = "2"
-tauri-plugin-os = "2"
-tauri-plugin-dialog = "2"   
-tauri-plugin-fs = "2"
-tauri-plugin-updater = "2"
-tauri-plugin-process = "2"
-tauri-plugin-macos-permissions = "2"
-tauri-plugin-locale = "2"
+tauri-plugin-single-instance = "2"
 tauri-plugin-opener = "2"
-tauri-plugin-prevent-default = "1"
-tauri-plugin-clipboard-x = "2"
-tauri-plugin-fs-pro.workspace = true
-tauri-plugin-eco-window.workspace = true
-tauri-plugin-eco-paste.workspace = true
-tauri-plugin-eco-autostart.workspace = true
+tauri-plugin-dialog = "2"
+tauri-plugin-prevent-default = "5"
+auto-launch = "0.6"
+rodio = { version = "0.20", default-features = false, features = ["symphonia-mp3"] }
+file_icon_provider = "1"
+image = { version = "0.25", default-features = false, features = ["png"] }
+tauri-plugin-os = "2"
+drag = "2.1"
+zip = { version = "4.6", default-features = false, features = ["deflate"] }
+walkdir = "2"
+tempfile = "3"
+argon2 = { version = "0.5", features = ["std"] }
+chacha20poly1305 = { version = "0.10", features = ["std"] }
+rand = "0.8"
+zeroize = "1"
 
-[target."cfg(target_os = \"macos\")".dependencies]
-tauri-nspanel.workspace = true
+[target.'cfg(target_os = "macos")'.dependencies]
+core-graphics = "0.25"
+objc2 = "0.6"
+objc2-foundation = { version = "0.3", features = ["NSString", "NSData", "NSDictionary", "NSURL", "NSArray", "NSGeometry", "NSAttributedString"] }
+objc2-app-kit = { version = "0.3", features = ["NSWorkspace", "NSRunningApplication", "NSImage", "NSView", "NSWindow", "NSEvent", "NSApplication", "NSResponder", "NSPasteboard", "NSPasteboardItem", "NSDraggingItem", "NSDraggingSession", "NSAttributedString", "NSStringDrawing", "NSColor", "NSFont", "NSParagraphStyle", "NSBezierPath", "NSGraphics"] }
+tauri-nspanel = { git = "https://github.com/ahkohd/tauri-nspanel", branch = "v2.1" }
+plist = { version = "1", default-features = false }
+tauri-plugin-macos-permissions = "2"
 
-[features]
-cargo-clippy = []
+[target.'cfg(target_os = "windows")'.dependencies]
+winapi = { version = "0.3", features = [
+    "winuser",
+    "processthreadsapi",
+    "handleapi",
+    "winbase",
+    "winnt",
+    "minwindef",
+    "windef",
+] }
+# 文本 drag-out 需要自实现 IDataObject(CF_UNICODETEXT)；drag crate 的 DragItem::Data
+# 在 Windows 是 dummy（永远拖一个 "./" 目录）。与 drag crate 的 windows 0.52 对齐。
+windows = { version = "0.52", features = [
+    "Win32_Foundation",
+    "Win32_System_Com",
+    "Win32_System_Ole",
+    "Win32_System_Memory",
+    "Win32_System_DataExchange",
+    "Win32_System_SystemServices",
+    "Win32_UI_WindowsAndMessaging",
+    "Win32_UI_Shell",
+] }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt"] }
