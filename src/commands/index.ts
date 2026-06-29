@@ -240,6 +240,27 @@ export interface WindowLifecycleSnapshot {
   lastActiveAgoMs: number;
 }
 
+export interface UpdateMetadata {
+  currentVersion: string;
+  version: string;
+  date: string | null;
+  body: string | null;
+  target: string;
+  downloadUrl: string;
+  downloaded: boolean;
+}
+
+export interface AppUpdateStatus {
+  currentVersion: string;
+  update: UpdateMetadata | null;
+}
+
+export interface UpdateDownloadProgress {
+  downloaded: number;
+  total: number | null;
+  progress: number | null;
+}
+
 export interface OnboardingLegacyDataDetection {
   found: boolean;
   favoriteItemCount: number;
@@ -419,6 +440,69 @@ export const resetSettings = async () => {
   getMessageApi().success(i18n.t("commands:messages.settingsReset"));
 
   return settings;
+};
+
+/**
+ * 打开独立软件更新窗口。
+ */
+export const openUpdateWindow = () => {
+  return call<void>(
+    TAURI_COMMAND.OPEN_UPDATE_WINDOW,
+    "commands:labels.openUpdateWindow",
+  );
+};
+
+/**
+ * 读取当前更新状态；不触发网络请求。
+ */
+export const getUpdateStatus = () => {
+  return call<AppUpdateStatus>(
+    TAURI_COMMAND.GET_UPDATE_STATUS,
+    "commands:labels.loadUpdateStatus",
+  );
+};
+
+/**
+ * 手动检查更新。
+ */
+export const checkForUpdates = () => {
+  return call<AppUpdateStatus>(
+    TAURI_COMMAND.CHECK_FOR_UPDATES,
+    "commands:labels.checkForUpdates",
+  );
+};
+
+/**
+ * 下载并校验当前更新包，进度通过 `update://progress` 推送。
+ */
+export const downloadUpdate = (version: string) => {
+  return call<UpdateMetadata>(
+    TAURI_COMMAND.DOWNLOAD_UPDATE,
+    "commands:labels.downloadUpdate",
+    { version },
+  );
+};
+
+/**
+ * 安装已下载更新。Tauri updater 会按平台重启/退出当前应用。
+ */
+export const installUpdate = (version: string) => {
+  return call<void>(
+    TAURI_COMMAND.INSTALL_UPDATE,
+    "commands:labels.installUpdate",
+    { version },
+  );
+};
+
+/**
+ * 跳过当前发现的版本。
+ */
+export const skipUpdateVersion = (version: string) => {
+  return call<AppUpdateStatus>(
+    TAURI_COMMAND.SKIP_UPDATE_VERSION,
+    "commands:labels.skipUpdateVersion",
+    { version },
+  );
 };
 
 /**

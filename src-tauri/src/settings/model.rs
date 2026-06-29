@@ -640,6 +640,8 @@ pub struct Update {
     pub auto_check: bool,
     pub frequency: UpdateFrequency,
     pub include_beta: bool,
+    pub last_checked_at: Option<String>,
+    pub skipped_version: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]

@@ -24,6 +24,7 @@ pub const MAIN_WINDOW_LABEL: &str = "main";
 pub const PREFERENCE_WINDOW_LABEL: &str = "preference";
 pub const CLIPBOARD_PREVIEW_WINDOW_LABEL: &str = "clipboard-preview";
 pub const ONBOARDING_WINDOW_LABEL: &str = "onboarding";
+pub const UPDATE_WINDOW_LABEL: &str = "update";
 
 /// 偏好页定位高亮事件。前端收到后切到目标设置项所在分类并滚动高亮。
 const PREFERENCE_HIGHLIGHT_EVENT: &str = "preference://highlight-setting";
@@ -284,6 +285,42 @@ pub fn build_preference_window(app_handle: &AppHandle) -> Result<()> {
     builder
         .build()
         .map_err(|err| anyhow::anyhow!("build preference window: {err}"))?;
+
+    Ok(())
+}
+
+/// 按需创建软件更新窗口。更新流程由 Rust updater 命令驱动，窗口只负责渲染状态。
+pub fn build_update_window(app_handle: &AppHandle) -> Result<()> {
+    if app_handle.get_webview_window(UPDATE_WINDOW_LABEL).is_some() {
+        return Ok(());
+    }
+
+    let builder = WebviewWindowBuilder::new(
+        app_handle,
+        UPDATE_WINDOW_LABEL,
+        WebviewUrl::App("index.html/#/update".into()),
+    )
+    .title("EcoPaste Update")
+    .inner_size(520.0, 230.0)
+    .min_inner_size(520.0, 230.0)
+    .center()
+    .maximizable(false)
+    .resizable(false)
+    .skip_taskbar(true)
+    .accept_first_mouse(true)
+    .disable_drag_drop_handler()
+    .decorations(true)
+    .transparent(false)
+    .visible(false);
+
+    #[cfg(target_os = "macos")]
+    let builder = builder
+        .title_bar_style(tauri::TitleBarStyle::Overlay)
+        .hidden_title(true);
+
+    builder
+        .build()
+        .map_err(|err| anyhow::anyhow!("build update window: {err}"))?;
 
     Ok(())
 }

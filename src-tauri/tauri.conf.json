@@ -66,6 +66,18 @@
     "targets": ["nsis", "dmg", "app"]
   },
   "identifier": "com.ayangweb.eco-paste",
+  "plugins": {
+    "updater": {
+      "active": true,
+      "endpoints": [
+        "https://github.com/EcoPasteHub/EcoPaste/releases/latest/download/latest.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDIwMzUzRkJCQUI3NjY4RgpSV1NQWnJlNisxTURBbFE2WWJpUlBJR0x0OXJOclVuUGlVYVhoNjJPZitYN0Q4V05GeW1aU2w0Zwo=",
+      "windows": {
+        "installMode": "passive"
+      }
+    }
+  },
   "productName": "EcoPaste",
   "version": "../package.json"
 }

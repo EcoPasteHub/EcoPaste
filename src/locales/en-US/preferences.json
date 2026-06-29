@@ -1,7 +1,6 @@
 {
   "about": {
     "checkUpdates": "Check for updates",
-    "checkUpdatesUnavailable": "Update checking is not connected yet",
     "sponsor": "Sponsor",
     "sponsorHint": "If EcoPaste helps your workflow, you can support the project.",
     "sponsorQrAlt": "Sponsor QR code"
@@ -374,7 +373,8 @@
             "contextSubmenu": "Context submenu",
             "main": "Main window",
             "preference": "Preferences",
-            "preview": "Clipboard preview"
+            "preview": "Clipboard preview",
+            "update": "Software update"
           }
         }
       },
