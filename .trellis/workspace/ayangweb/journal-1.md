@@ -206,3 +206,36 @@ Archived the completed onboarding, Windows capability permissions, and onboardin
 ### Next Steps
 
 - None - task complete
+
+
+## Session 7: Auto updater implementation
+
+**Date**: 2026-06-30
+**Task**: Auto updater implementation
+**Branch**: `feat/auto-updater`
+
+### Summary
+
+Implemented Tauri updater integration, Sparkle-style update window, update settings, beta channel handling, skip-version behavior, background scheduled checks, release notes link, and verification/spec updates.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `c06ef06b` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

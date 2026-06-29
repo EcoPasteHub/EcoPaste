@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 6
-- **Last Active**: 2026-06-29
+- **Total Sessions**: 7
+- **Last Active**: 2026-06-30
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~208 | Active |
+| `journal-1.md` | ~241 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 7 | 2026-06-30 | Auto updater implementation | `c06ef06b` | `feat/auto-updater` |
 | 6 | 2026-06-29 | Archive completed onboarding tasks | - | `codex/remove-obsolete-trellis-tasks` |
 | 5 | 2026-06-29 | Session wrap-up | - | `codex/remove-obsolete-trellis-tasks` |
 | 4 | 2026-06-13 | Open selection preferences | `f9113f8b` | `next` |
