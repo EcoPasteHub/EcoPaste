@@ -175,3 +175,34 @@ Checked active tasks and working tree; no code changes were pending, so the sess
 ### Next Steps
 
 - None - task complete
+
+
+## Session 6: Archive completed onboarding tasks
+
+**Date**: 2026-06-29
+**Task**: Archive completed onboarding tasks
+**Branch**: `codex/remove-obsolete-trellis-tasks`
+
+### Summary
+
+Archived the completed onboarding, Windows capability permissions, and onboarding final richness Trellis tasks after confirming the working tree was clean.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+(No commits - planning session)
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
