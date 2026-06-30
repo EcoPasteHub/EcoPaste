@@ -3,7 +3,7 @@
 //! 预览窗口是透明的 full-screen overlay：Rust 负责按需建窗、复用窗口、
 //! 收集坐标上下文并广播，前端在该窗口内渲染预览内容与连接曲线。
 //! 窗口接入生命周期管理（`DestroyWhenIdle`）：隐藏空闲后销毁 WebView 释放内存，
-//! 仅在预览请求到达时按需建窗，不随主窗口显示预热。
+//! 仅在预览请求到达时按需建窗，不随剪贴板窗口显示预热。
 
 #![allow(clippy::unused_unit)]
 
@@ -20,7 +20,7 @@ use tauri::{
 
 use crate::core::Result;
 
-use super::{get_window, lifecycle, CLIPBOARD_PREVIEW_WINDOW_LABEL, MAIN_WINDOW_LABEL};
+use super::{get_window, lifecycle, CLIPBOARD_PREVIEW_WINDOW_LABEL, CLIPBOARD_WINDOW_LABEL};
 
 #[cfg(target_os = "macos")]
 use tauri_nspanel::{tauri_panel, ManagerExt, PanelLevel, WebviewWindowExt};
@@ -82,7 +82,7 @@ pub struct PreviewWorkArea {
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct PreviewMainWindowRect {
+pub struct PreviewClipboardWindowRect {
     pub x: i32,
     pub y: i32,
     pub width: u32,
@@ -125,7 +125,7 @@ pub struct ClipboardPreviewState {
     pub anchor: PreviewAnchorRect,
     pub scale_factor: f64,
     pub work_area: PreviewWorkArea,
-    pub main_window: Option<PreviewMainWindowRect>,
+    pub clipboard_window: Option<PreviewClipboardWindowRect>,
     pub layout: PreviewLayout,
 }
 
@@ -137,7 +137,7 @@ pub fn show_clipboard_preview(
 ) -> Result<Option<ClipboardPreviewState>> {
     validate_anchor(&anchor)?;
 
-    if PREVIEW_SUPPRESSED.load(Ordering::SeqCst) || !is_main_window_visible(app) {
+    if PREVIEW_SUPPRESSED.load(Ordering::SeqCst) || !is_clipboard_window_visible(app) {
         close_clipboard_preview_now(app)?;
         return Ok(None);
     }
@@ -148,8 +148,8 @@ pub fn show_clipboard_preview(
     let monitor = resolve_preview_monitor(app)?;
     let work_area = preview_overlay_bounds(&monitor);
     let scale_factor = monitor.scale_factor();
-    let main_window = main_window_rect(app);
-    let layout = build_preview_layout(&anchor, scale_factor, &work_area, main_window.as_ref());
+    let clipboard_window = clipboard_window_rect(app);
+    let layout = build_preview_layout(&anchor, scale_factor, &work_area, clipboard_window.as_ref());
 
     prepare_preview_window_for_show(app, &window, &work_area)?;
 
@@ -166,7 +166,7 @@ pub fn show_clipboard_preview(
             height: work_area.size.height,
         },
         layout,
-        main_window,
+        clipboard_window,
     };
 
     set_preview_state(Some(state.clone()));
@@ -193,7 +193,7 @@ pub fn close_clipboard_preview(app: &AppHandle) -> Result<()> {
     Ok(())
 }
 
-/// 立即隐藏预览窗口并清空状态；用于主窗口隐藏等不需要退出动画的路径。
+/// 立即隐藏预览窗口并清空状态；用于剪贴板窗口隐藏等不需要退出动画的路径。
 pub fn close_clipboard_preview_now(app: &AppHandle) -> Result<()> {
     PREVIEW_REQUEST_ID.fetch_add(1, Ordering::SeqCst);
     set_preview_state(None);
@@ -208,17 +208,17 @@ pub fn close_clipboard_preview_now(app: &AppHandle) -> Result<()> {
     Ok(())
 }
 
-/// 主窗口开始隐藏时压制后续过期 show 请求，并立即收起预览窗口。
-pub fn suppress_for_main_hide(app: &AppHandle) {
+/// 剪贴板窗口开始隐藏时压制后续过期 show 请求，并立即收起预览窗口。
+pub fn suppress_for_clipboard_hide(app: &AppHandle) {
     PREVIEW_SUPPRESSED.store(true, Ordering::SeqCst);
     if let Err(error) = close_clipboard_preview_now(app) {
-        log::error!("suppress preview on main hide failed: {error}");
+        log::error!("suppress preview on clipboard hide failed: {error}");
     }
 }
 
-/// 主窗口重新显示后允许新的预览请求进入。预览窗口不随主窗口预创建，
+/// 剪贴板窗口重新显示后允许新的预览请求进入。预览窗口不随剪贴板窗口预创建，
 /// 由首次 [`show_clipboard_preview`] 经 `ensure_preview_window` 按需建窗。
-pub fn resume_after_main_show() {
+pub fn resume_after_clipboard_show() {
     PREVIEW_SUPPRESSED.store(false, Ordering::SeqCst);
 }
 
@@ -283,9 +283,9 @@ fn set_preview_state(state: Option<ClipboardPreviewState>) {
     *guard = state;
 }
 
-/// 判断主窗口是否仍处于可见状态，防止过期 hover 请求在主窗口隐藏后唤起预览。
-fn is_main_window_visible(app: &AppHandle) -> bool {
-    app.get_webview_window(MAIN_WINDOW_LABEL)
+/// 判断剪贴板窗口是否仍处于可见状态，防止过期 hover 请求在剪贴板窗口隐藏后唤起预览。
+fn is_clipboard_window_visible(app: &AppHandle) -> bool {
+    app.get_webview_window(CLIPBOARD_WINDOW_LABEL)
         .and_then(|window| window.is_visible().ok())
         .unwrap_or(false)
 }
@@ -411,7 +411,7 @@ fn show_preview_window(
 }
 
 /// 平台 hide 收口点；成功后推进生命周期到 `HiddenWarm`，启动空闲销毁计时。
-/// 对已隐藏窗口的重复 hide（如主窗口隐藏时的压制路径）也会走到这里，
+/// 对已隐藏窗口的重复 hide（如剪贴板窗口隐藏时的压制路径）也会走到这里，
 /// 由生命周期管理器对重复进入 `HiddenWarm` 去重计时。
 fn hide_preview_window(app: &AppHandle, window: &WebviewWindow) -> Result<()> {
     #[cfg(target_os = "macos")]
@@ -514,7 +514,7 @@ fn hide_macos_preview_panel(app: &AppHandle) -> Result<()> {
     Ok(())
 }
 
-/// 将预览窗口重新压到 Windows topmost 栈顶，避免被同为 always-on-top 的主窗口盖住。
+/// 将预览窗口重新压到 Windows topmost 栈顶，避免被同为 always-on-top 的剪贴板窗口盖住。
 #[cfg(target_os = "windows")]
 fn raise_windows_preview_window(window: &WebviewWindow, show: bool) -> Result<()> {
     let raw_hwnd = window.hwnd().map_err(|e| anyhow::anyhow!(e))?;
@@ -533,15 +533,15 @@ fn raise_windows_preview_window(window: &WebviewWindow, show: bool) -> Result<()
 }
 
 fn resolve_preview_monitor(app: &AppHandle) -> Result<tauri::Monitor> {
-    let main_window = get_window(app, MAIN_WINDOW_LABEL)?;
-    if let Some(monitor) = main_window
+    let clipboard_window = get_window(app, CLIPBOARD_WINDOW_LABEL)?;
+    if let Some(monitor) = clipboard_window
         .current_monitor()
         .map_err(|e| anyhow::anyhow!(e))?
     {
         return Ok(monitor);
     }
 
-    main_window
+    clipboard_window
         .primary_monitor()
         .map_err(|e| anyhow::anyhow!(e))?
         .ok_or_else(|| anyhow::anyhow!("primary monitor not found").into())
@@ -591,7 +591,7 @@ fn build_preview_layout(
     anchor: &PreviewAnchorRect,
     scale_factor: f64,
     work_area: &PhysicalRect<i32, u32>,
-    main_window: Option<&PreviewMainWindowRect>,
+    clipboard_window: Option<&PreviewClipboardWindowRect>,
 ) -> PreviewLayout {
     let overlay_rect = PreviewRect {
         left: 0.0,
@@ -599,8 +599,13 @@ fn build_preview_layout(
         width: work_area.size.width as f64 / scale_factor,
         height: work_area.size.height as f64 / scale_factor,
     };
-    let source_rect =
-        resolve_source_rect(anchor, scale_factor, work_area, main_window, overlay_rect);
+    let source_rect = resolve_source_rect(
+        anchor,
+        scale_factor,
+        work_area,
+        clipboard_window,
+        overlay_rect,
+    );
     let (panel_rect, placement) = resolve_panel_rect(source_rect, overlay_rect);
 
     PreviewLayout {
@@ -615,15 +620,15 @@ fn resolve_source_rect(
     anchor: &PreviewAnchorRect,
     scale_factor: f64,
     work_area: &PhysicalRect<i32, u32>,
-    main_window: Option<&PreviewMainWindowRect>,
+    clipboard_window: Option<&PreviewClipboardWindowRect>,
     overlay_rect: PreviewRect,
 ) -> PreviewRect {
-    let source = if let Some(main_window) = main_window {
+    let source = if let Some(clipboard_window) = clipboard_window {
         let main_rect = PreviewRect {
-            left: (main_window.x - work_area.position.x) as f64 / scale_factor,
-            top: (main_window.y - work_area.position.y) as f64 / scale_factor,
-            width: main_window.width as f64 / scale_factor,
-            height: main_window.height as f64 / scale_factor,
+            left: (clipboard_window.x - work_area.position.x) as f64 / scale_factor,
+            top: (clipboard_window.y - work_area.position.y) as f64 / scale_factor,
+            width: clipboard_window.width as f64 / scale_factor,
+            height: clipboard_window.height as f64 / scale_factor,
         };
         let source = PreviewRect {
             left: main_rect.left + anchor.left,
@@ -779,13 +784,13 @@ fn inset_rect(rect: PreviewRect, amount: f64) -> PreviewRect {
     }
 }
 
-/// 返回主窗口内容区的屏幕几何，用于映射 WebView DOM rect 到预览 overlay 坐标。
-fn main_window_rect(app: &AppHandle) -> Option<PreviewMainWindowRect> {
-    let window = app.get_webview_window(MAIN_WINDOW_LABEL)?;
+/// 返回剪贴板窗口内容区的屏幕几何，用于映射 WebView DOM rect 到预览 overlay 坐标。
+fn clipboard_window_rect(app: &AppHandle) -> Option<PreviewClipboardWindowRect> {
+    let window = app.get_webview_window(CLIPBOARD_WINDOW_LABEL)?;
     let pos = window.inner_position().ok()?;
     let size = window.inner_size().ok()?;
 
-    Some(PreviewMainWindowRect {
+    Some(PreviewClipboardWindowRect {
         x: pos.x,
         y: pos.y,
         width: size.width,
@@ -869,12 +874,12 @@ mod tests {
     }
 
     #[test]
-    fn maps_anchor_from_main_window_to_overlay_local_rect() {
+    fn maps_anchor_from_clipboard_window_to_overlay_local_rect() {
         let work_area = PhysicalRect {
             position: PhysicalPosition::new(100, 50),
             size: PhysicalSize::new(2400, 1600),
         };
-        let main = PreviewMainWindowRect {
+        let clipboard = PreviewClipboardWindowRect {
             x: 300,
             y: 250,
             width: 800,
@@ -891,7 +896,7 @@ mod tests {
             &anchor,
             2.0,
             &work_area,
-            Some(&main),
+            Some(&clipboard),
             PreviewRect {
                 left: 0.0,
                 top: 0.0,
@@ -912,7 +917,7 @@ mod tests {
             position: PhysicalPosition::new(100, 50),
             size: PhysicalSize::new(2400, 1600),
         };
-        let main = PreviewMainWindowRect {
+        let clipboard = PreviewClipboardWindowRect {
             x: 300,
             y: 250,
             width: 800,
@@ -929,7 +934,7 @@ mod tests {
             &anchor,
             2.0,
             &work_area,
-            Some(&main),
+            Some(&clipboard),
             PreviewRect {
                 left: 0.0,
                 top: 0.0,
@@ -948,7 +953,7 @@ mod tests {
             position: PhysicalPosition::new(100, 50),
             size: PhysicalSize::new(2400, 1600),
         };
-        let main = PreviewMainWindowRect {
+        let clipboard = PreviewClipboardWindowRect {
             x: 300,
             y: 250,
             width: 800,
@@ -965,7 +970,7 @@ mod tests {
             &anchor,
             2.0,
             &work_area,
-            Some(&main),
+            Some(&clipboard),
             PreviewRect {
                 left: 0.0,
                 top: 0.0,

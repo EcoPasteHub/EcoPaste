@@ -52,9 +52,9 @@ redaction, the boundary has drifted.
 EcoPaste supports macOS and Windows only. Platform code uses
 `#[cfg(target_os = "macos")]` and `#[cfg(target_os = "windows")]` modules:
 
-- `window/macos.rs` turns the main window into an NSPanel and uses main-thread
+- `window/macos.rs` turns the clipboard window into an NSPanel and uses main-thread
   panel operations.
-- `window/windows.rs` keeps the main window non-focusable and enables keyboard
+- `window/windows.rs` keeps the clipboard window non-focusable and enables keyboard
   and mouse hooks while visible.
 - `keystroke/macos.rs` and `keystroke/windows.rs` simulate paste.
 - `drag_out/macos.rs` and `drag_out/windows.rs` implement platform drag-out.

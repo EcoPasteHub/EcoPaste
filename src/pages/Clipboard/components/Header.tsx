@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 import { useSnapshot } from "valtio";
 import {
   clearClipboardItems,
-  setMainWindowPinned,
+  setClipboardWindowPinned,
   showWindow,
 } from "@/commands";
 import Dropdown, {
@@ -75,12 +75,12 @@ const Header: FC = () => {
   };
 
   /**
-   * 切换主窗口固定态：Rust 侧立即生效（resign_key / 外部点击钩子读取），本地态仅用于按钮渲染。
+   * 切换剪贴板窗口固定态：Rust 侧立即生效（resign_key / 外部点击钩子读取），本地态仅用于按钮渲染。
    */
   const handleTogglePinned = async () => {
     const next = !pinned;
 
-    await setMainWindowPinned(next);
+    await setClipboardWindowPinned(next);
     setPinned(next);
   };
 
@@ -127,13 +127,13 @@ const Header: FC = () => {
   };
 
   /**
-   * 主窗口显隐变化时执行搜索框偏好：下次显示时清空关键词，显示后按设置自动聚焦。
+   * 剪贴板窗口显隐变化时执行搜索框偏好：下次显示时清空关键词，显示后按设置自动聚焦。
    */
   const handleWindowVisibility = (event: {
     payload: WindowVisibilityPayload;
   }) => {
     const { label, visible } = event.payload;
-    if (label !== WINDOW_LABEL.MAIN) return;
+    if (label !== WINDOW_LABEL.CLIPBOARD) return;
 
     if (!visible) {
       blurSearch();

@@ -26,7 +26,7 @@ pub struct Settings {
 #[serde(default, rename_all = "camelCase")]
 pub struct General {
     pub auto_start: bool,
-    /// 启动后不显示主窗（配合 `auto_start` 用，开机静默驻留托盘）。
+    /// 启动后不显示剪贴板窗口（配合 `auto_start` 用，开机静默驻留托盘）。
     pub silent_start: bool,
     /// macOS 菜单栏 / Windows 系统托盘图标。
     pub tray_icon: bool,
@@ -121,13 +121,13 @@ impl Language {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(default, rename_all = "camelCase")]
 pub struct Shortcuts {
-    /// 全局：唤起剪贴板主窗。
+    /// 全局：唤起剪贴板窗口。
     pub open_clipboard: String,
-    /// 全局：打开偏好窗。
+    /// 全局：打开偏好设置窗口。
     pub open_preference: String,
-    /// 主窗内局部：粘贴时强制走纯文本（不在 OS 级注册）。
+    /// 剪贴板窗口内局部：粘贴时强制走纯文本（不在 OS 级注册）。
     pub paste_plain: String,
-    /// 仅 Windows：用 Win+V 唤起主窗口，替代系统剪贴板历史面板。默认关闭。
+    /// 仅 Windows：用 Win+V 唤起剪贴板窗口，替代系统剪贴板历史面板。默认关闭。
     pub win_v: bool,
 }
 
@@ -335,7 +335,7 @@ pub struct Content {
     pub middle_click: MiddleClickAction,
     /// 复制（写回剪贴板）时去除格式。
     pub copy_plain: bool,
-    /// 从历史复制后隐藏主窗口。
+    /// 从历史复制后隐藏剪贴板窗口。
     pub copy_then_hide_window: bool,
     /// 粘贴时去除格式（与全局快捷键 `paste_plain` 等价的默认行为）。
     pub paste_plain: bool,
@@ -547,9 +547,9 @@ pub enum RetentionUnit {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(default, rename_all = "camelCase")]
 pub struct Search {
-    /// 主窗每次显示时自动聚焦搜索框。
+    /// 剪贴板窗口每次显示时自动聚焦搜索框。
     pub default_focus: bool,
-    /// 主窗隐藏时清空搜索关键词。
+    /// 剪贴板窗口隐藏时清空搜索关键词。
     pub clear_on_hide: bool,
 }
 
@@ -566,17 +566,17 @@ impl Default for Search {
 #[serde(default, rename_all = "camelCase")]
 pub struct Window {
     pub position: WindowPosition,
-    /// 打开主窗口时把历史列表回到顶部。
+    /// 打开剪贴板窗口时把历史列表回到顶部。
     pub scroll_to_top_on_open: bool,
-    /// 打开主窗口时切换到指定范围；`Preserve` 表示保持上次状态。
+    /// 打开剪贴板窗口时切换到指定范围；`Preserve` 表示保持上次状态。
     pub select_range_on_open: WindowOpenRangeSelection,
-    /// 打开主窗口时切换到指定分类；`Preserve` 表示保持上次状态。
+    /// 打开剪贴板窗口时切换到指定分类；`Preserve` 表示保持上次状态。
     pub select_category_on_open: WindowOpenCategorySelection,
-    /// 打开主窗口时切换到指定自定义分组；可为 preserve / all / group:<id>。
+    /// 打开剪贴板窗口时切换到指定自定义分组；可为 preserve / all / group:<id>。
     pub select_group_on_open: String,
-    /// 隐藏窗口轻量化：主窗口隐藏后进入 dormant，非主窗口空闲后释放 WebView。
+    /// 隐藏窗口轻量化：剪贴板窗口隐藏后进入 dormant，非剪贴板窗口空闲后释放 WebView。
     pub lightweight_mode: bool,
-    /// 非主窗口隐藏后释放 WebView 的空闲秒数。
+    /// 非剪贴板窗口隐藏后释放 WebView 的空闲秒数。
     pub idle_destroy_seconds: u32,
     pub always_on_top: bool,
     /// 在所有桌面/工作区可见（macOS Spaces / Windows 虚拟桌面）。

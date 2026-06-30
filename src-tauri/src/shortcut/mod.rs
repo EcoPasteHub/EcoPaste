@@ -12,7 +12,7 @@ use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutEvent, S
 
 use crate::core::{AppError, Result};
 use crate::settings::{SettingsStore, Shortcuts};
-use crate::window::{self, MAIN_WINDOW_LABEL, PREFERENCE_WINDOW_LABEL};
+use crate::window::{self, CLIPBOARD_WINDOW_LABEL, PREFERENCE_WINDOW_LABEL};
 
 #[cfg(target_os = "windows")]
 mod win_v;
@@ -247,7 +247,7 @@ fn handle_event(app: &AppHandle, action: &'static str, event: ShortcutEvent) {
         return;
     }
     let label = match action {
-        "open_clipboard" => MAIN_WINDOW_LABEL,
+        "open_clipboard" => CLIPBOARD_WINDOW_LABEL,
         "open_preference" => PREFERENCE_WINDOW_LABEL,
         _ => return,
     };

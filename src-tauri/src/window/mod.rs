@@ -20,7 +20,7 @@ use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindow, WebviewWindo
 use crate::core::Result;
 use crate::settings::{SettingsStore, WindowPosition};
 
-pub const MAIN_WINDOW_LABEL: &str = "main";
+pub const CLIPBOARD_WINDOW_LABEL: &str = "clipboard";
 pub const PREFERENCE_WINDOW_LABEL: &str = "preference";
 pub const CLIPBOARD_PREVIEW_WINDOW_LABEL: &str = "clipboard-preview";
 pub const ONBOARDING_WINDOW_LABEL: &str = "onboarding";
@@ -43,36 +43,36 @@ struct PreferenceHighlightPayload {
     setting_id: String,
 }
 
-/// 主窗口「固定」状态：true 时失焦不自动隐藏（点击窗外、切到其它 App 都不会隐藏），
+/// 剪贴板窗口「固定」状态：true 时失焦不自动隐藏（点击窗外、切到其它 App 都不会隐藏），
 /// 由前端 Pin 按钮 / 快捷键切换；macOS resign_key 与 Windows 外部点击钩子都尊重这个开关。
-static MAIN_WINDOW_PINNED: AtomicBool = AtomicBool::new(false);
-/// 主窗口自动隐藏的临时暂停状态，用于系统文件选择等会短暂转移焦点的原生交互。
-static MAIN_WINDOW_AUTO_HIDE_SUSPENDED: AtomicBool = AtomicBool::new(false);
+static CLIPBOARD_WINDOW_PINNED: AtomicBool = AtomicBool::new(false);
+/// 剪贴板窗口自动隐藏的临时暂停状态，用于系统文件选择等会短暂转移焦点的原生交互。
+static CLIPBOARD_WINDOW_AUTO_HIDE_SUSPENDED: AtomicBool = AtomicBool::new(false);
 
-/// 返回用户是否显式固定主窗口；复制后隐藏等路径仍需读取这个用户态开关。
-pub fn is_main_window_pinned() -> bool {
-    MAIN_WINDOW_PINNED.load(Ordering::Relaxed)
+/// 返回用户是否显式固定剪贴板窗口；复制后隐藏等路径仍需读取这个用户态开关。
+pub fn is_clipboard_window_pinned() -> bool {
+    CLIPBOARD_WINDOW_PINNED.load(Ordering::Relaxed)
 }
 
-/// 判断主窗口当前是否允许因失焦或外部点击自动隐藏。
-pub fn should_auto_hide_main_window() -> bool {
-    !MAIN_WINDOW_PINNED.load(Ordering::Relaxed)
-        && !MAIN_WINDOW_AUTO_HIDE_SUSPENDED.load(Ordering::Relaxed)
+/// 判断剪贴板窗口当前是否允许因失焦或外部点击自动隐藏。
+pub fn should_auto_hide_clipboard_window() -> bool {
+    !CLIPBOARD_WINDOW_PINNED.load(Ordering::Relaxed)
+        && !CLIPBOARD_WINDOW_AUTO_HIDE_SUSPENDED.load(Ordering::Relaxed)
 }
 
-/// 设置用户控制的主窗口固定态。
-pub fn set_main_window_pinned(pinned: bool) {
-    MAIN_WINDOW_PINNED.store(pinned, Ordering::Relaxed);
+/// 设置用户控制的剪贴板窗口固定态。
+pub fn set_clipboard_window_pinned(pinned: bool) {
+    CLIPBOARD_WINDOW_PINNED.store(pinned, Ordering::Relaxed);
 }
 
-/// 临时暂停主窗口自动隐藏，不改变用户控制的固定态。
-pub fn set_main_window_auto_hide_suspended(suspended: bool) {
-    MAIN_WINDOW_AUTO_HIDE_SUSPENDED.store(suspended, Ordering::Relaxed);
+/// 临时暂停剪贴板窗口自动隐藏，不改变用户控制的固定态。
+pub fn set_clipboard_window_auto_hide_suspended(suspended: bool) {
+    CLIPBOARD_WINDOW_AUTO_HIDE_SUSPENDED.store(suspended, Ordering::Relaxed);
 }
 
-/// 主窗口显隐变化事件。前端用以做默认聚焦 / 自动清空搜索等 UI 副作用。
+/// 剪贴板窗口显隐变化事件。前端用以做默认聚焦 / 自动清空搜索等 UI 副作用。
 /// 由 [`show_window`] / [`hide_window`] 在统一入口处发出，平台一致，
-/// 不依赖 `tauri://focus` / `tauri://blur`（Windows 主窗口 `focusable: false` 不可靠）。
+/// 不依赖 `tauri://focus` / `tauri://blur`（Windows 剪贴板窗口 `focusable: false` 不可靠）。
 const WINDOW_VISIBILITY_EVENT: &str = "window://visibility";
 
 #[derive(Clone, serde::Serialize)]
@@ -105,9 +105,9 @@ pub fn show_window(app_handle: &AppHandle, label: &str) -> Result<()> {
         }
     }
 
-    if label == MAIN_WINDOW_LABEL {
-        if let Err(err) = apply_main_layout(app_handle) {
-            log::warn!("apply main window layout failed: {err}");
+    if label == CLIPBOARD_WINDOW_LABEL {
+        if let Err(err) = apply_clipboard_window_layout(app_handle) {
+            log::warn!("apply clipboard window layout failed: {err}");
         }
     } else if label == ONBOARDING_WINDOW_LABEL {
         if let Err(err) = position_window(app_handle, label, WindowPosition::Center) {
@@ -129,9 +129,9 @@ pub fn show_window(app_handle: &AppHandle, label: &str) -> Result<()> {
     let result = macos::show_window(app_handle, label);
     #[cfg(target_os = "windows")]
     let result = windows::show_window(app_handle, label);
-    if result.is_ok() && !delays_main_visibility_event(label) {
-        if label == MAIN_WINDOW_LABEL {
-            preview::resume_after_main_show();
+    if result.is_ok() && !delays_clipboard_visibility_event(label) {
+        if label == CLIPBOARD_WINDOW_LABEL {
+            preview::resume_after_clipboard_show();
         }
         emit_visibility(app_handle, label, true);
         lifecycle::on_shown(app_handle, label);
@@ -139,9 +139,9 @@ pub fn show_window(app_handle: &AppHandle, label: &str) -> Result<()> {
     result
 }
 
-/// macOS 主窗口有延迟 show，visibility 需等 NSPanel 真的显示后再 emit。
-fn delays_main_visibility_event(label: &str) -> bool {
-    cfg!(target_os = "macos") && label == MAIN_WINDOW_LABEL
+/// macOS 剪贴板窗口有延迟 show，visibility 需等 NSPanel 真的显示后再 emit。
+fn delays_clipboard_visibility_event(label: &str) -> bool {
+    cfg!(target_os = "macos") && label == CLIPBOARD_WINDOW_LABEL
 }
 
 pub fn hide_window(app_handle: &AppHandle, label: &str) -> Result<()> {
@@ -150,8 +150,8 @@ pub fn hide_window(app_handle: &AppHandle, label: &str) -> Result<()> {
         log::warn!("save window state on hide failed for {label}: {err}");
     }
 
-    if label == MAIN_WINDOW_LABEL {
-        preview::suppress_for_main_hide(app_handle);
+    if label == CLIPBOARD_WINDOW_LABEL {
+        preview::suppress_for_clipboard_hide(app_handle);
     }
 
     #[cfg(target_os = "macos")]
@@ -190,24 +190,24 @@ pub fn position_window(app_handle: &AppHandle, label: &str, pos: WindowPosition)
     position::position_window(&window, pos)
 }
 
-/// 主窗显示前按设置应用窗口定位策略。
+/// 剪贴板窗口显示前按设置应用窗口定位策略。
 /// 始终先调用 `restore_window_state` 恢复尺寸与合法位置（含越界 fallback）；
 /// 非 Remember 策略再由 `position_window` 覆盖位置。
 /// 平台 `show_window` 需要在主线程闭包里调用，避免 set_position 与 show 异步交错产生闪烁。
-fn apply_main_layout(app_handle: &AppHandle) -> Result<()> {
+fn apply_clipboard_window_layout(app_handle: &AppHandle) -> Result<()> {
     let Some(store) = app_handle.try_state::<SettingsStore>() else {
         return Ok(());
     };
     let snap = store.snapshot();
     let position = snap.clipboard.window.position;
 
-    let _ = state::restore_window_state(app_handle, MAIN_WINDOW_LABEL)?;
+    let _ = state::restore_window_state(app_handle, CLIPBOARD_WINDOW_LABEL)?;
 
     if matches!(position, WindowPosition::Remember) {
         return Ok(());
     }
 
-    let window = get_window(app_handle, MAIN_WINDOW_LABEL)?;
+    let window = get_window(app_handle, CLIPBOARD_WINDOW_LABEL)?;
     position::position_window(&window, position)
 }
 

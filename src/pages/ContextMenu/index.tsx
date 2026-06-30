@@ -93,7 +93,7 @@ const ContextMenu: FC = () => {
   const handlePick = async (action: ClipboardAction) => {
     if (!payload) return;
 
-    await emitTo(WINDOW_LABEL.MAIN, TAURI_EVENT.CLIPBOARD_MENU_ACTION, {
+    await emitTo(WINDOW_LABEL.CLIPBOARD, TAURI_EVENT.CLIPBOARD_MENU_ACTION, {
       action,
       itemId: payload.itemId,
     });
@@ -273,7 +273,7 @@ export const ContextSubmenu: FC = () => {
     const groupId = event.currentTarget.dataset.groupId;
     if (!groupId) return;
 
-    await emitTo(WINDOW_LABEL.MAIN, TAURI_EVENT.CLIPBOARD_MENU_ACTION, {
+    await emitTo(WINDOW_LABEL.CLIPBOARD, TAURI_EVENT.CLIPBOARD_MENU_ACTION, {
       action: payload.action,
       groupId,
       itemId: payload.itemId,

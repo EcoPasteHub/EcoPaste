@@ -22,14 +22,14 @@ use tauri::{AppHandle, Emitter, Manager};
 
 use crate::settings::SettingsStore;
 
-/// 非主窗口隐藏空闲超过此时长后销毁 WebView。
+/// 非剪贴板窗口隐藏空闲超过此时长后销毁 WebView。
 pub const DEFAULT_IDLE_DESTROY_SECS: u64 = 60;
-/// 非主窗口最短销毁空闲时间，避免用户把窗口设置成近乎瞬时销毁导致重建闪烁。
+/// 非剪贴板窗口最短销毁空闲时间，避免用户把窗口设置成近乎瞬时销毁导致重建闪烁。
 const MIN_IDLE_DESTROY_SECS: u64 = 5;
-/// 非主窗口最长销毁空闲时间，限制异常配置导致计时器长时间悬挂。
+/// 非剪贴板窗口最长销毁空闲时间，限制异常配置导致计时器长时间悬挂。
 const MAX_IDLE_DESTROY_SECS: u64 = 24 * 60 * 60;
-/// 主窗口隐藏后进入 dormant 的宽限时间；主窗不销毁，只暂停非必要工作。
-const MAIN_DORMANT_SECS: u64 = 5;
+/// 剪贴板窗口隐藏后进入 dormant 的宽限时间；剪贴板窗口不销毁，只暂停非必要工作。
+const CLIPBOARD_DORMANT_SECS: u64 = 5;
 /// 销毁前给前端保存草稿 / 申请 keepalive 的时间。
 const BEFORE_DESTROY_DEADLINE_MS: u64 = 500;
 /// keepalive lease 的默认兜底时长。
@@ -51,9 +51,9 @@ pub enum LifecyclePhase {
     Visible,
     /// 刚隐藏，保留实例，允许快速恢复；`DestroyWhenIdle` 窗口在此阶段计时销毁。
     HiddenWarm,
-    /// 主窗口隐藏一小段时间后进入休眠：保留实例，但前端应暂停非必要刷新。
+    /// 剪贴板窗口隐藏一小段时间后进入休眠：保留实例，但前端应暂停非必要刷新。
     Dormant,
-    /// 非主窗口空闲到期，已通知前端 before-destroy，等待最后保护状态确认。
+    /// 非剪贴板窗口空闲到期，已通知前端 before-destroy，等待最后保护状态确认。
     DestroyPending,
     /// WebView 已销毁，仅保留 descriptor；再次打开时重建。
     Destroyed,
@@ -233,7 +233,7 @@ impl WindowLifecycleManager {
         );
 
         // 首次进入 HiddenWarm 的 DestroyWhenIdle 窗口：启动空闲销毁计时器。
-        // 重复进入 HiddenWarm（如主窗口隐藏时对已收起的预览窗口再次 hide）不再补计时器：
+        // 重复进入 HiddenWarm（如剪贴板窗口隐藏时对已收起的预览窗口再次 hide）不再补计时器：
         // 每代次只需首次进入时启动的那一条，到点按代次校验决定销毁或放弃，
         // 重复启动只会堆积休眠线程。
         if matches!(phase, LifecyclePhase::HiddenWarm)
@@ -246,10 +246,10 @@ impl WindowLifecycleManager {
 
         if matches!(phase, LifecyclePhase::HiddenWarm)
             && previous != LifecyclePhase::HiddenWarm
-            && label == super::MAIN_WINDOW_LABEL
+            && label == super::CLIPBOARD_WINDOW_LABEL
             && lightweight_mode_enabled(app)
         {
-            schedule_main_dormant(app, label, generation);
+            schedule_clipboard_dormant(app, label, generation);
         }
 
         if !descriptor.emits_lifecycle {
@@ -477,13 +477,13 @@ pub fn rebuild_fn(label: &str) -> Option<fn(&AppHandle) -> crate::core::Result<(
     descriptor_for(label).and_then(|descriptor| descriptor.build)
 }
 
-/// 启动一次性主窗口 dormant 计时器。捕获进入隐藏态时的 `generation`，到点回主线程校验。
-fn schedule_main_dormant(app: &AppHandle, label: &str, generation: u64) {
+/// 启动一次性剪贴板窗口 dormant 计时器。捕获进入隐藏态时的 `generation`，到点回主线程校验。
+fn schedule_clipboard_dormant(app: &AppHandle, label: &str, generation: u64) {
     let app = app.clone();
     let label = label.to_owned();
 
     thread::spawn(move || {
-        thread::sleep(Duration::from_secs(MAIN_DORMANT_SECS));
+        thread::sleep(Duration::from_secs(CLIPBOARD_DORMANT_SECS));
 
         let main_app = app.clone();
         let main_label = label.clone();
@@ -495,7 +495,7 @@ fn schedule_main_dormant(app: &AppHandle, label: &str, generation: u64) {
     });
 }
 
-/// 计时器到点的 dormant 判定：主窗口仍隐藏且代次未变才进入 dormant。
+/// 计时器到点的 dormant 判定：剪贴板窗口仍隐藏且代次未变才进入 dormant。
 fn try_enter_dormant(app: &AppHandle, label: &str, generation: u64) {
     if !lightweight_mode_enabled(app) {
         return;
@@ -683,7 +683,7 @@ fn lightweight_mode_enabled(app: &AppHandle) -> bool {
         .unwrap_or(true)
 }
 
-/// 从设置读取非主窗口空闲销毁秒数，并做边界收敛。
+/// 从设置读取非剪贴板窗口空闲销毁秒数，并做边界收敛。
 fn idle_destroy_secs(app: &AppHandle) -> u64 {
     app.try_state::<SettingsStore>()
         .map(|settings| {

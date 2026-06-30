@@ -1,4 +1,4 @@
-//! macOS 窗口管理：主窗口转 NSPanel（show_and_make_key 拿键盘焦点但不激活 App），
+//! macOS 窗口管理：剪贴板窗口转 NSPanel（show_and_make_key 拿键盘焦点但不激活 App），
 //! 其它窗口走常规 show/hide。
 
 #![allow(clippy::unused_unit)]
@@ -10,11 +10,11 @@ use tauri_nspanel::{
     tauri_panel, CollectionBehavior, ManagerExt, PanelLevel, StyleMask, WebviewWindowExt,
 };
 
-use super::{get_window, MAIN_WINDOW_LABEL, ONBOARDING_WINDOW_LABEL, PREFERENCE_WINDOW_LABEL};
+use super::{get_window, CLIPBOARD_WINDOW_LABEL, ONBOARDING_WINDOW_LABEL, PREFERENCE_WINDOW_LABEL};
 use crate::core::Result;
 use crate::settings::SettingsStore;
 
-const MAIN_PANEL_SHOW_DELAY: Duration = Duration::from_millis(16);
+const CLIPBOARD_PANEL_SHOW_DELAY: Duration = Duration::from_millis(16);
 
 tauri_panel! {
     panel!(MainPanel {
@@ -36,12 +36,12 @@ pub fn register_plugin(app_handle: &AppHandle) {
 }
 
 /// setup 末尾调用：转 NSPanel + 绑事件 emit。
-pub fn setup_main(app_handle: &AppHandle) -> Result<()> {
+pub fn setup_clipboard_panel(app_handle: &AppHandle) -> Result<()> {
     show_taskbar_icon(app_handle, false)?;
 
-    let main_window = get_window(app_handle, MAIN_WINDOW_LABEL)?;
+    let clipboard_window = get_window(app_handle, CLIPBOARD_WINDOW_LABEL)?;
 
-    let panel = main_window
+    let panel = clipboard_window
         .to_panel::<MainPanel>()
         .map_err(|e| anyhow::anyhow!("to_panel failed: {e:?}"))?;
 
@@ -60,14 +60,14 @@ pub fn setup_main(app_handle: &AppHandle) -> Result<()> {
 
     let resign_handle = app_handle.clone();
     handler.window_did_resign_key(move |_| {
-        if !super::should_auto_hide_main_window() {
+        if !super::should_auto_hide_clipboard_window() {
             return;
         }
 
         // 失焦即隐藏：Tauri 不主动隐藏 NSPanel，统一走 window::hide_window
         // 以触发 `window://visibility` 等下游副作用。
-        if let Err(err) = super::hide_window(&resign_handle, MAIN_WINDOW_LABEL) {
-            log::warn!("auto-hide main window on resign-key failed: {err}");
+        if let Err(err) = super::hide_window(&resign_handle, CLIPBOARD_WINDOW_LABEL) {
+            log::warn!("auto-hide clipboard window on resign-key failed: {err}");
         }
     });
 
@@ -77,8 +77,8 @@ pub fn setup_main(app_handle: &AppHandle) -> Result<()> {
 }
 
 pub fn show_window(app_handle: &AppHandle, label: &str) -> Result<()> {
-    if label == MAIN_WINDOW_LABEL {
-        show_main_panel(app_handle)
+    if label == CLIPBOARD_WINDOW_LABEL {
+        show_clipboard_panel(app_handle)
     } else {
         let window = get_window(app_handle, label)?;
         window.show().map_err(|e| anyhow::anyhow!(e))?;
@@ -89,8 +89,8 @@ pub fn show_window(app_handle: &AppHandle, label: &str) -> Result<()> {
 }
 
 pub fn hide_window(app_handle: &AppHandle, label: &str) -> Result<()> {
-    if label == MAIN_WINDOW_LABEL {
-        hide_main_panel(app_handle)
+    if label == CLIPBOARD_WINDOW_LABEL {
+        hide_clipboard_panel(app_handle)
     } else {
         get_window(app_handle, label)?
             .hide()
@@ -127,15 +127,15 @@ pub fn handle_reopen(app_handle: &AppHandle, has_visible_windows: bool) {
 }
 
 /// 所有 panel 方法必须在主线程。
-fn show_main_panel(app_handle: &AppHandle) -> Result<()> {
+fn show_clipboard_panel(app_handle: &AppHandle) -> Result<()> {
     let handle = app_handle.clone();
 
     tauri::async_runtime::spawn(async move {
-        tokio::time::sleep(MAIN_PANEL_SHOW_DELAY).await;
+        tokio::time::sleep(CLIPBOARD_PANEL_SHOW_DELAY).await;
 
         let panel_handle = handle.clone();
         if let Err(err) = handle.run_on_main_thread(move || {
-            if let Ok(panel) = panel_handle.get_webview_panel(MAIN_WINDOW_LABEL) {
+            if let Ok(panel) = panel_handle.get_webview_panel(CLIPBOARD_WINDOW_LABEL) {
                 panel.show_and_make_key();
                 // show 时切到 can_join_all_spaces：跟随用户当前 space 出现。
                 panel.set_collection_behavior(
@@ -145,23 +145,23 @@ fn show_main_panel(app_handle: &AppHandle) -> Result<()> {
                         .full_screen_auxiliary()
                         .into(),
                 );
-                super::preview::resume_after_main_show();
-                super::emit_visibility(&panel_handle, MAIN_WINDOW_LABEL, true);
-                super::lifecycle::on_shown(&panel_handle, MAIN_WINDOW_LABEL);
+                super::preview::resume_after_clipboard_show();
+                super::emit_visibility(&panel_handle, CLIPBOARD_WINDOW_LABEL, true);
+                super::lifecycle::on_shown(&panel_handle, CLIPBOARD_WINDOW_LABEL);
             }
         }) {
-            log::warn!("show main panel on main thread failed: {err}");
+            log::warn!("show clipboard panel on main thread failed: {err}");
         }
     });
 
     Ok(())
 }
 
-fn hide_main_panel(app_handle: &AppHandle) -> Result<()> {
+fn hide_clipboard_panel(app_handle: &AppHandle) -> Result<()> {
     let handle = app_handle.clone();
     app_handle
         .run_on_main_thread(move || {
-            if let Ok(panel) = handle.get_webview_panel(MAIN_WINDOW_LABEL) {
+            if let Ok(panel) = handle.get_webview_panel(CLIPBOARD_WINDOW_LABEL) {
                 panel.hide();
                 // hide 后切回 move_to_active_space：下次 show 时按当前 space 重新落位。
                 panel.set_collection_behavior(
@@ -179,11 +179,11 @@ fn hide_main_panel(app_handle: &AppHandle) -> Result<()> {
 
 /// 让主 panel 放弃 key 状态，但保持可见——用于固定窗口下的粘贴：
 /// panel 仍是 key window 时 CGEvent ⌘V 会被 panel 自身吞掉，resign 后键焦点回到前台 App 的窗口。
-pub fn resign_main_panel_key(app_handle: &AppHandle) -> Result<()> {
+pub fn resign_clipboard_panel_key(app_handle: &AppHandle) -> Result<()> {
     let handle = app_handle.clone();
     app_handle
         .run_on_main_thread(move || {
-            if let Ok(panel) = handle.get_webview_panel(MAIN_WINDOW_LABEL) {
+            if let Ok(panel) = handle.get_webview_panel(CLIPBOARD_WINDOW_LABEL) {
                 panel.resign_key_window();
             }
         })
@@ -192,11 +192,11 @@ pub fn resign_main_panel_key(app_handle: &AppHandle) -> Result<()> {
 }
 
 /// 粘贴完成后把 key 状态拿回来：固定窗口模式下用户还要继续用键盘 / 列表操作。
-pub fn make_main_panel_key(app_handle: &AppHandle) -> Result<()> {
+pub fn make_clipboard_panel_key(app_handle: &AppHandle) -> Result<()> {
     let handle = app_handle.clone();
     app_handle
         .run_on_main_thread(move || {
-            if let Ok(panel) = handle.get_webview_panel(MAIN_WINDOW_LABEL) {
+            if let Ok(panel) = handle.get_webview_panel(CLIPBOARD_WINDOW_LABEL) {
                 panel.make_key_window();
             }
         })

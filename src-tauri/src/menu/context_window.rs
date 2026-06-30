@@ -2,12 +2,12 @@
 //!
 //! 用 `focusable: false` 的 webview 窗替代 muda：muda 的 `TrackPopupMenu` 必须把
 //! 菜单 owner 拉到前台，会把用户原本聚焦的目标 App（资源管理器重命名编辑框、
-//! 浏览器地址栏 IME 等）挤掉焦点。本窗口不抢焦，跟主窗口一样隐形挂在桌面上。
+//! 浏览器地址栏 IME 等）挤掉焦点。本窗口不抢焦，跟剪贴板窗口一样隐形挂在桌面上。
 //!
 //! - 首次右键 / 悬停二级菜单时按需建窗；右键时 `set_size + set_position + emit + show`。
 //! - 外部点击关闭：复用 [`crate::mouse`] 的全局鼠标钩子，菜单可见且光标在矩形外
 //!   即 hide（不用轮询）。
-//! - 菜单项点击：前端直接 emit `clipboard://menu-action` 给主窗，业务派发与
+//! - 菜单项点击：前端直接 emit `clipboard://menu-action` 给剪贴板窗口，业务派发与
 //!   macOS 路径走同一套。
 
 use std::sync::{LazyLock, Mutex};
@@ -437,7 +437,7 @@ fn set_context_submenu_payload(payload: Option<ShowContextSubmenuInput>) {
     *guard = payload;
 }
 
-/// 隐藏菜单窗。给鼠标钩子 / 主窗隐藏等外部触发处用。
+/// 隐藏菜单窗。给鼠标钩子 / 剪贴板窗口隐藏等外部触发处用。
 pub fn hide(app: &AppHandle) {
     set_context_menu_payload(None);
     set_context_submenu_payload(None);

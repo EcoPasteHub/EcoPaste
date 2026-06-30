@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSnapshot } from "valtio";
 import { showClipboardPreview } from "@/commands";
 import { TAURI_EVENT } from "@/constants/events";
+import { WINDOW_LABEL } from "@/constants/windows";
 import { useKeyboardEvent } from "@/hooks/useKeyboardEvent";
 import { useTauriListen } from "@/hooks/useTauriListen";
 import { settingsState } from "@/stores/settings";
@@ -51,7 +52,7 @@ export function useClipboardPreviewController(
   );
   const hoverTimerRef = useRef<number | null>(null);
   const hoverHideTimerRef = useRef<number | null>(null);
-  const mainWindowVisibleRef = useRef(true);
+  const clipboardWindowVisibleRef = useRef(true);
   const previewSessionRef = useRef<PreviewSession | null>(null);
   const previewOpenRequestIdRef = useRef(0);
   const previewMoveFrameRef = useRef<number | null>(null);
@@ -115,9 +116,9 @@ export function useClipboardPreviewController(
   const handleWindowVisibility = (event: {
     payload: WindowVisibilityPayload;
   }) => {
-    if (event.payload.label !== "main") return;
+    if (event.payload.label !== WINDOW_LABEL.CLIPBOARD) return;
 
-    mainWindowVisibleRef.current = event.payload.visible;
+    clipboardWindowVisibleRef.current = event.payload.visible;
     if (event.payload.visible) return;
 
     closePreview("windowHidden");
@@ -163,7 +164,7 @@ export function useClipboardPreviewController(
 
     onHoverSelect(item.id);
 
-    if (!mainWindowVisibleRef.current) return;
+    if (!clipboardWindowVisibleRef.current) return;
     if (previewSessionRef.current?.trigger === "keyboard") {
       cancelHoverPreview();
       cancelHoverHide();
@@ -192,7 +193,7 @@ export function useClipboardPreviewController(
     hoverTimerRef.current = window.setTimeout(() => {
       hoverTimerRef.current = null;
 
-      if (!mainWindowVisibleRef.current) return;
+      if (!clipboardWindowVisibleRef.current) return;
       if (!settingsState.clipboard.preview.hoverEnabled) return;
 
       const target = pendingHoverTargetRef.current;
@@ -349,7 +350,7 @@ export function useClipboardPreviewController(
     trigger: PreviewTrigger,
     pointerY?: number,
   ) => {
-    if (!mainWindowVisibleRef.current) return;
+    if (!clipboardWindowVisibleRef.current) return;
 
     const element = itemElementMapRef.current.get(item.id);
     const rect = element?.getBoundingClientRect();
@@ -361,7 +362,7 @@ export function useClipboardPreviewController(
     commitPreviewSession({ itemId: item.id, trigger });
 
     try {
-      if (!mainWindowVisibleRef.current) return;
+      if (!clipboardWindowVisibleRef.current) return;
 
       const state = await showClipboardPreview(item.id, {
         height: rect.height,
@@ -372,7 +373,7 @@ export function useClipboardPreviewController(
       });
 
       if (requestId !== previewOpenRequestIdRef.current) return;
-      if (!state || !mainWindowVisibleRef.current) {
+      if (!state || !clipboardWindowVisibleRef.current) {
         closePreview("previewShowSuppressed");
       }
     } catch (error) {

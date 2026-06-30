@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   importClipboardGroupSvg,
-  setMainWindowAutoHideSuspended,
+  setClipboardWindowAutoHideSuspended,
 } from "@/commands";
 import type {
   ClipboardGroupIcon as ClipboardGroupIconValue,
@@ -129,7 +129,7 @@ const ClipboardGroupModal: FC<ClipboardGroupModalProps> = (props) => {
    * 使用 Tauri dialog 选择 SVG 文件，并交给 Rust 读取和校验。
    */
   const importSvg = async () => {
-    await setMainWindowAutoHideSuspended(true);
+    await setClipboardWindowAutoHideSuspended(true);
 
     try {
       const selected = await openFileDialog({
@@ -141,7 +141,7 @@ const ClipboardGroupModal: FC<ClipboardGroupModalProps> = (props) => {
       const svg = await importClipboardGroupSvg(selected);
       form.setFieldValue("icon", svg);
     } finally {
-      await setMainWindowAutoHideSuspended(false);
+      await setClipboardWindowAutoHideSuspended(false);
     }
   };
 

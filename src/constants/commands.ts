@@ -59,8 +59,9 @@ export const TAURI_COMMAND = {
   RESUME_GLOBAL_SHORTCUTS: "resume_global_shortcuts",
   REVEAL_CLIPBOARD_ITEM: "reveal_clipboard_item",
   SET_AUTOSTART: "set_autostart",
-  SET_MAIN_WINDOW_AUTO_HIDE_SUSPENDED: "set_main_window_auto_hide_suspended",
-  SET_MAIN_WINDOW_PINNED: "set_main_window_pinned",
+  SET_CLIPBOARD_WINDOW_AUTO_HIDE_SUSPENDED:
+    "set_clipboard_window_auto_hide_suspended",
+  SET_CLIPBOARD_WINDOW_PINNED: "set_clipboard_window_pinned",
   SET_ONBOARDING_STEP: "set_onboarding_step",
   SET_WINDOW_DIRTY: "set_window_dirty",
   SHOW_CLIPBOARD_PREVIEW: "show_clipboard_preview",

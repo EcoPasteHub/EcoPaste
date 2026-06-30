@@ -10,7 +10,7 @@
   "done": {
     "cards": {
       "open": {
-        "description": "用快捷键随时唤起剪贴板历史窗口。",
+        "description": "用快捷键随时唤起剪贴板窗口。",
         "title": "快速打开"
       },
       "preferences": {
@@ -92,12 +92,12 @@
     "description": "设置常用快捷键，之后也可以在偏好设置中随时修改。",
     "items": {
       "openClipboard": {
-        "description": "随时唤起剪贴板历史窗口。",
-        "title": "打开剪贴板"
+        "description": "随时唤起剪贴板窗口。",
+        "title": "打开剪贴板窗口"
       },
       "openPreference": {
-        "description": "快速打开偏好设置。",
-        "title": "打开偏好设置"
+        "description": "快速打开偏好设置窗口。",
+        "title": "打开偏好设置窗口"
       }
     },
     "title": "设置快捷键"

@@ -97,9 +97,9 @@ const List: FC = () => {
   const keywordRef = useRef("");
   const reloadCurrentRangeRef = useRef<() => void>(() => {});
   const deferredReloadRef = useRef(false);
-  // 主窗启动即隐藏，初值取 false；首个 `window://visibility` show 事件会翻正。
+  // 剪贴板窗口启动即隐藏，初值取 false；首个 `window://visibility` show 事件会翻正。
   // dormant（隐藏）期间到达的剪贴板更新一律延后，不 reload 隐藏窗口。
-  const mainWindowVisibleRef = useRef(false);
+  const clipboardWindowVisibleRef = useRef(false);
 
   const snapshot = useSnapshot(clipboardViewState);
   const settings = useSnapshot(settingsState);
@@ -212,8 +212,8 @@ const List: FC = () => {
    * 用 ref 读取最新滚动位置，规避闭包陷旧值（事件订阅只挂载一次）。
    */
   const handleClipboardUpdated = (payload: ClipboardUpdatedPayload) => {
-    // 主窗口隐藏（冻结态）期间不立即 reload：只记 pending，避免隐藏期间频繁复制触发反复 IPC + 重渲染。
-    if (!mainWindowVisibleRef.current) {
+    // 剪贴板窗口隐藏（冻结态）期间不立即 reload：只记 pending，避免隐藏期间频繁复制触发反复 IPC + 重渲染。
+    if (!clipboardWindowVisibleRef.current) {
       deferredReloadRef.current = true;
       return;
     }
@@ -277,16 +277,16 @@ const List: FC = () => {
   );
 
   /**
-   * 主窗口显隐变化：更新可见性镜像；显示时按偏好重置分组与滚动位置。
+   * 剪贴板窗口显隐变化：更新可见性镜像；显示时按偏好重置分组与滚动位置。
    * 可见性 ref 供 `handleClipboardUpdated` 判断是否处于冻结态——隐藏期间只记 pending，不立即 reload。
    */
   const handleWindowVisibility = (event: {
     payload: WindowVisibilityPayload;
   }) => {
     const { label, visible } = event.payload;
-    if (label !== WINDOW_LABEL.MAIN) return;
+    if (label !== WINDOW_LABEL.CLIPBOARD) return;
 
-    mainWindowVisibleRef.current = visible;
+    clipboardWindowVisibleRef.current = visible;
     if (!visible) return;
 
     const {
@@ -1102,7 +1102,7 @@ const List: FC = () => {
       return;
     }
 
-    void hideWindow(WINDOW_LABEL.MAIN);
+    void hideWindow(WINDOW_LABEL.CLIPBOARD);
   }
 };
 
