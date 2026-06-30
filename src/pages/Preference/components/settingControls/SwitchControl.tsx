@@ -37,7 +37,7 @@ const SwitchControl: FC<SwitchControlProps> = (props) => {
         <Switch checked={value} disabled={disabled} onChange={handleChange} />
         {canPreviewSound ? (
           <>
-            <Divider type="vertical" />
+            <Divider orientation="vertical" />
             <Tooltip title={t("schema.settings.copy.sound.preview")}>
               <button
                 aria-label={t("schema.settings.copy.sound.preview")}
