@@ -58,7 +58,7 @@ Current high-value events:
 | `settings://updated` | `commands/settings.rs`, `commands/storage.rs`, `backup/mod.rs` | `src/stores/settings.ts` mirror |
 | `window://visibility` | `window/mod.rs` | Clipboard focus/search and dormant refresh gates |
 | `window://lifecycle` and `window://before-destroy` | `window/lifecycle/mod.rs` | Window lifecycle mirror and destroy protection |
-| `keyboard://nav` | `keyboard/windows.rs` | `useKeyboardEvent` on Windows main window |
+| `keyboard://nav` | `keyboard/windows.rs` | `useKeyboardEvent` on Windows clipboard window |
 | `backup://received` | `backup/mod.rs` | Preference backup import flow |
 
 When adding an event, define the payload shape in Rust and in TypeScript near

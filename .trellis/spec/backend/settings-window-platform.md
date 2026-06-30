@@ -29,7 +29,7 @@ When adding a setting, update:
 
 #### 1. Scope / Trigger
 
-Changing the default filter applied when the main clipboard window opens is a
+Changing the default filter applied when the clipboard window opens is a
 settings contract change. Rust owns the persisted shape; React only mirrors it
 and applies the transient `clipboardViewState` side effect on `window://visibility`.
 
@@ -103,7 +103,7 @@ window waits for the broadcast so all windows share the same snapshot.
 Window labels are constants in `window/mod.rs` and mirrored in
 `src/constants/windows.ts`. Current labels are:
 
-- `main`
+- `clipboard`
 - `preference`
 - `clipboard-preview`
 - `onboarding`
@@ -117,7 +117,7 @@ Keep raw-label fallback only for unknown or unregistered labels so diagnostics
 remain useful.
 
 Use `window::show_window`, `hide_window`, and `toggle_window` instead of direct
-webview calls. These functions restore/save geometry, apply main-window
+webview calls. These functions restore/save geometry, apply clipboard-window
 position settings, emit `window://visibility`, update lifecycle state, and
 handle platform-specific show/hide.
 
@@ -125,6 +125,74 @@ handle platform-specific show/hide.
 `hiddenWarm`, `dormant`, `destroyPending`, and `destroyed`. Destroyable windows
 use descriptors and can rebuild after idle destruction. Frontend windows report
 readiness through `notify_window_ready` once `settingsReady` has resolved.
+
+### Scenario: Clipboard Window Label Contract
+
+#### 1. Scope / Trigger
+
+Changing the primary clipboard-history window label touches Tauri config, Rust
+window constants, frontend constants, commands, events, lifecycle diagnostics,
+and preview payloads. Treat it as a cross-layer contract change.
+
+#### 2. Signatures
+
+- Runtime label:
+  - Rust `window::CLIPBOARD_WINDOW_LABEL = "clipboard"`
+  - TypeScript `WINDOW_LABEL.CLIPBOARD = "clipboard"`
+  - Tauri config window label `"clipboard"`
+- Commands:
+  - `set_clipboard_window_pinned(pinned: bool) -> ()`
+  - `set_clipboard_window_auto_hide_suspended(suspended: bool) -> ()`
+- Preview payload:
+  - `ClipboardPreviewState.clipboardWindow: PreviewClipboardWindowRect | null`
+
+#### 3. Contracts
+
+- User-visible copy should say clipboard window, not main window.
+- User-visible names for concrete window entities should include the window
+  suffix, for example `剪贴板窗口` / `Clipboard Window` and
+  `偏好设置窗口` / `Preferences Window`.
+- Do not use raw `"clipboard"` in React components; compare with
+  `WINDOW_LABEL.CLIPBOARD`.
+- Keep platform terms such as Rust `main()`, `run_on_main_thread`, and Cocoa
+  `can_become_main_window` unchanged.
+
+#### 4. Validation & Error Matrix
+
+- Stale `"main"` label in a consumer -> lifecycle or emit target is ignored.
+- Stale command name -> frontend invoke fails with an unknown command.
+- Stale preview field name -> preview layout loses clipboard-window geometry.
+
+#### 5. Good/Base/Bad Cases
+
+- Good: tray, shortcut, onboarding, context menu, preview, and copy-after-hide
+  all target `CLIPBOARD_WINDOW_LABEL` / `WINDOW_LABEL.CLIPBOARD`.
+- Base: secondary windows still use their existing labels and lifecycle rules.
+- Bad: component code checks `event.payload.label === "main"` directly.
+
+#### 6. Tests Required
+
+- `rg` verifies no stale `MAIN_WINDOW_LABEL`, `WINDOW_LABEL.MAIN`, raw
+  `"main"` label, or old command names remain outside platform terminology.
+- Frontend: `pnpm lint` and `pnpm tsc`.
+- Backend: `cargo fmt`, `cargo clippy -- -D warnings`, and `cargo test`.
+- Manual desktop checks for clipboard show/hide/toggle, pin, auto-hide,
+  preview, tray click, context menu dispatch, onboarding completion, and
+  shortcuts.
+
+#### 7. Wrong vs Correct
+
+Wrong:
+
+```tsx
+if (event.payload.label !== "main") return;
+```
+
+Correct:
+
+```tsx
+if (event.payload.label !== WINDOW_LABEL.CLIPBOARD) return;
+```
 
 ## Pending-Slot Pattern
 
@@ -141,29 +209,29 @@ mounted listeners.
 
 ## macOS Window Rules
 
-The main window becomes an NSPanel in `window/macos.rs`. It can become key
+The clipboard window becomes an NSPanel in `window/macos.rs`. It can become key
 without activating the app. Hidden constraints:
 
 - The tauri-nspanel plugin must be registered before `to_panel`.
-- Main panel show is delayed briefly, then executed on the main thread.
-- Visibility and lifecycle events for the main panel are emitted after the panel
+- Clipboard panel show is delayed briefly, then executed on the main thread.
+- Visibility and lifecycle events for the clipboard panel are emitted after the panel
   actually shows.
 - Pinned-window paste must resign key before simulated paste, then restore key
   after the target app consumes the keystroke.
 
-Changing main-window behavior on macOS requires manual testing of show/hide,
+Changing clipboard-window behavior on macOS requires manual testing of show/hide,
 keyboard navigation, auto-hide, pinned paste, and Spaces behavior.
 
 ## Windows Window Rules
 
-The main window is non-focusable on Windows. `window/windows.rs` enables low-level
-keyboard and mouse hooks while the main window is visible:
+The clipboard window is non-focusable on Windows. `window/windows.rs` enables low-level
+keyboard and mouse hooks while the clipboard window is visible:
 
 - `keyboard/windows.rs` emits `keyboard://nav` for navigation keys and selected
   Ctrl shortcuts.
-- `mouse/windows.rs` hides the main window on outside click when auto-hide is
+- `mouse/windows.rs` hides the clipboard window on outside click when auto-hide is
   allowed.
-- Hiding the main window disables hooks and hides context menus.
+- Hiding the clipboard window disables hooks and hides context menus.
 
 React code uses `useKeyboardEvent` so components do not need to know whether the
 event came from the browser or Rust.

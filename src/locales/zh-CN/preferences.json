@@ -133,7 +133,7 @@
         "title": "更新"
       },
       "window": {
-        "title": "主窗口"
+        "title": "剪贴板窗口"
       }
     },
     "settings": {
@@ -309,7 +309,7 @@
       },
       "copy": {
         "hideWindow": {
-          "description": "从历史复制记录后，自动隐藏剪贴板主窗口。",
+          "description": "从历史复制记录后，自动隐藏剪贴板窗口。",
           "title": "复制后隐藏窗口"
         },
         "plainDefault": {
@@ -369,13 +369,13 @@
           },
           "title": "窗口生命周期",
           "windows": {
-            "contextMenu": "右键菜单",
-            "contextSubmenu": "右键子菜单",
-            "main": "主窗口",
-            "onboarding": "首次启动引导",
-            "preference": "偏好设置",
-            "preview": "剪贴板预览",
-            "update": "软件更新"
+            "clipboard": "剪贴板窗口",
+            "contextMenu": "右键菜单窗口",
+            "contextSubmenu": "右键子菜单窗口",
+            "onboarding": "引导窗口",
+            "preference": "偏好设置窗口",
+            "preview": "剪贴板预览窗口",
+            "update": "软件更新窗口"
           }
         }
       },
@@ -505,18 +505,18 @@
       },
       "shortcuts": {
         "openClipboard": {
-          "description": "在任意应用中打开或隐藏剪贴板主窗口。",
+          "description": "在任意应用中打开或隐藏剪贴板窗口。",
           "placeholder": "Alt+C",
-          "title": "打开主窗口"
+          "title": "打开剪贴板窗口"
         },
         "openPreference": {
           "description": "在任意应用中打开或隐藏偏好设置窗口。",
           "placeholder": "Alt+X",
-          "title": "打开偏好设置"
+          "title": "打开偏好设置窗口"
         },
         "winV": {
-          "description": "开启后按 Win+V 唤起 EcoPaste 主窗口，替代 Windows 系统剪贴板历史面板。",
-          "title": "用 Win+V 打开剪贴板"
+          "description": "开启后按 Win+V 唤起 EcoPaste 剪贴板窗口，替代 Windows 系统剪贴板历史面板。",
+          "title": "用 Win+V 打开剪贴板窗口"
         }
       },
       "source": {
@@ -556,15 +556,15 @@
       },
       "window": {
         "idleDestroySeconds": {
-          "description": "偏好设置、预览和右键菜单等非主窗口隐藏超过此时间后释放 WebView，下次使用时自动重建。",
-          "title": "非主窗口空闲释放"
+          "description": "偏好设置、预览和右键菜单等非剪贴板窗口隐藏超过此时间后释放 WebView，下次使用时自动重建。",
+          "title": "非剪贴板窗口空闲释放"
         },
         "lightweightMode": {
-          "description": "隐藏主窗口后暂停无谓刷新，非主窗口空闲后释放渲染资源。",
+          "description": "隐藏剪贴板窗口后暂停无谓刷新，非剪贴板窗口空闲后释放渲染资源。",
           "title": "轻量模式"
         },
         "position": {
-          "description": "选择每次打开剪贴板主窗口时的位置。",
+          "description": "选择每次打开剪贴板窗口时的位置。",
           "options": {
             "center": "屏幕中间",
             "followCursor": "跟随光标",
@@ -573,11 +573,11 @@
           "title": "打开位置"
         },
         "scrollToTopOnOpen": {
-          "description": "每次打开剪贴板主窗口时，自动回到最新记录所在的顶部。",
+          "description": "每次打开剪贴板窗口时，自动回到最新记录所在的顶部。",
           "title": "打开时回到顶部"
         },
         "selectCategoryOnOpen": {
-          "description": "每次打开剪贴板主窗口时，选择要切换到的内容分类。",
+          "description": "每次打开剪贴板窗口时，选择要切换到的内容分类。",
           "options": {
             "all": "全部",
             "files": "文件",
@@ -588,7 +588,7 @@
           "title": "打开时选中分类"
         },
         "selectGroupOnOpen": {
-          "description": "每次打开剪贴板主窗口时，选择要切换到的自定义分组。",
+          "description": "每次打开剪贴板窗口时，选择要切换到的自定义分组。",
           "options": {
             "all": "全部",
             "missingGroup": "已删除的分组",
@@ -597,7 +597,7 @@
           "title": "打开时选中分组"
         },
         "selectRangeOnOpen": {
-          "description": "每次打开剪贴板主窗口时，选择要切换到的历史范围。",
+          "description": "每次打开剪贴板窗口时，选择要切换到的历史范围。",
           "options": {
             "all": "全部",
             "favorite": "收藏",

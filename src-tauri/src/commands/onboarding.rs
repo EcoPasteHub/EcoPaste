@@ -113,7 +113,7 @@ pub async fn finish_onboarding(app: AppHandle) -> Result<Settings> {
         log::warn!("hide onboarding window after finish failed: {err}");
     }
 
-    window::show_window(&app, window::MAIN_WINDOW_LABEL)?;
+    window::show_window(&app, window::CLIPBOARD_WINDOW_LABEL)?;
 
     Ok(next)
 }

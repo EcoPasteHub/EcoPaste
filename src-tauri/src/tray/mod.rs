@@ -20,7 +20,7 @@ use crate::i18n::tray as tray_i18n;
 use crate::i18n::tray::Key;
 use crate::settings::{Language, Settings};
 #[cfg(target_os = "windows")]
-use crate::window::MAIN_WINDOW_LABEL;
+use crate::window::CLIPBOARD_WINDOW_LABEL;
 use crate::window::{self, PREFERENCE_WINDOW_LABEL};
 
 const TRAY_ID: &str = "app-tray";
@@ -52,7 +52,7 @@ pub fn init(app: &AppHandle, settings: &Settings) -> Result<()> {
         .on_menu_event(|app, event| handle_menu_event(app, event.id().as_ref()))
         .on_tray_icon_event(|tray, event| {
             // macOS 左键已经走 show_menu_on_left_click，不在这里处理；
-            // Windows 左键单击显主窗。
+            // Windows 左键单击显剪贴板窗口。
             #[cfg(target_os = "windows")]
             if let TrayIconEvent::Click {
                 button: MouseButton::Left,
@@ -61,7 +61,7 @@ pub fn init(app: &AppHandle, settings: &Settings) -> Result<()> {
             } = event
             {
                 let app = tray.app_handle().clone();
-                if let Err(err) = window::show_window(&app, MAIN_WINDOW_LABEL) {
+                if let Err(err) = window::show_window(&app, CLIPBOARD_WINDOW_LABEL) {
                     log::error!("tray left-click show main failed: {err:?}");
                 }
             }

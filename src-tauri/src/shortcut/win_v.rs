@@ -2,10 +2,10 @@
 //!
 //! `Win+V` 是 Windows 系统保留热键，`RegisterHotKey(MOD_WIN, V)`（全局快捷键插件底层）
 //! 无法拦截、也无法阻止系统剪贴板历史面板弹出。因此这里装一颗 `WH_KEYBOARD_LL` 钩子，
-//! 在 V 按下时若检测到 Win 键按住就吞掉该按键并 toggle 主窗口，使系统面板不再触发。
+//! 在 V 按下时若检测到 Win 键按住就吞掉该按键并 toggle 剪贴板窗口，使系统面板不再触发。
 //!
-//! 与 `keyboard/`（主窗可见期间捕获导航键）不同：本钩子的生命周期由设置开关驱动，
-//! 开启即常驻，与主窗口可见性无关。
+//! 与 `keyboard/`（剪贴板窗口可见期间捕获导航键）不同：本钩子的生命周期由设置开关驱动，
+//! 开启即常驻，与剪贴板窗口可见性无关。
 
 use std::ptr::null_mut;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -21,7 +21,7 @@ use winapi::um::winuser::{
     WM_QUIT, WM_SYSKEYDOWN, WM_SYSKEYUP,
 };
 
-use crate::window::{self, MAIN_WINDOW_LABEL};
+use crate::window::{self, CLIPBOARD_WINDOW_LABEL};
 
 /// V 键的虚拟键码，winapi 未直接导出。
 const VK_V: u32 = 0x56;
@@ -179,7 +179,7 @@ fn suppress_start_menu() {
     }
 }
 
-/// 钩子线程不能直接操作窗口，回到主线程 toggle 主窗口。
+/// 钩子线程不能直接操作窗口，回到主线程 toggle 剪贴板窗口。
 fn schedule_toggle() {
     let Some(app) = APP_HANDLE.get() else {
         return;
@@ -187,8 +187,8 @@ fn schedule_toggle() {
 
     let handle = app.clone();
     if let Err(err) = app.run_on_main_thread(move || {
-        if let Err(err) = window::toggle_window(&handle, MAIN_WINDOW_LABEL) {
-            log::warn!("toggle main window via win+v failed: {err}");
+        if let Err(err) = window::toggle_window(&handle, CLIPBOARD_WINDOW_LABEL) {
+            log::warn!("toggle clipboard window via win+v failed: {err}");
         }
     }) {
         log::warn!("schedule win+v toggle failed: {err}");

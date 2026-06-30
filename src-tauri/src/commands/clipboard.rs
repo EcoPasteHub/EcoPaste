@@ -24,7 +24,7 @@ use crate::db::models::{
 };
 use crate::db::DatabaseState;
 use crate::settings::SettingsStore;
-use crate::window::{self, MAIN_WINDOW_LABEL};
+use crate::window::{self, CLIPBOARD_WINDOW_LABEL};
 
 /// 与前端 `src/constants/events.ts` 的 `TAURI_EVENT.CLIPBOARD_UPDATED` 一一对应。
 const CLIPBOARD_UPDATED_EVENT: &str = "clipboard://updated";
@@ -313,13 +313,13 @@ pub async fn write_to_clipboard(
     mark_item_reused_if_enabled(&app, &pool, &id, item.kind).await?;
 
     if hide_after_copy {
-        hide_main_window_after_copy(&app);
+        hide_clipboard_window_after_copy(&app);
     }
 
     Ok(())
 }
 
-/// 「点击列表项 → 自动粘贴」的组合命令：写回剪贴板 + 隐藏主窗口 + 触发系统级粘贴。
+/// 「点击列表项 → 自动粘贴」的组合命令：写回剪贴板 + 隐藏剪贴板窗口 + 触发系统级粘贴。
 ///
 /// 窗口已是非激活面板（macOS NSPanel `nonactivating_panel` / Windows `focusable=false`），
 /// show 时不会把前台 App 推走，前台焦点始终在用户原窗口。
@@ -351,15 +351,15 @@ pub async fn paste_clipboard_item(
     crate::clipboard::write_to_clipboard(&store, guard.inner().as_ref(), &item, write_plain)?;
     mark_item_reused_if_enabled(&app, &pool, &id, item.kind).await?;
 
-    if window::is_main_window_pinned() {
+    if window::is_clipboard_window_pinned() {
         // 固定时窗口保持可见：macOS 上 panel 仍是 key window 会吞掉 ⌘V，需先 resign key
-        // 让键焦点回到前台 App 的窗口；Windows 主窗口 focusable=false，无需处理。
+        // 让键焦点回到前台 App 的窗口；Windows 剪贴板窗口 focusable=false，无需处理。
         #[cfg(target_os = "macos")]
-        if let Err(err) = window::macos::resign_main_panel_key(&app) {
-            log::warn!("resign main panel key before paste failed: {err:?}");
+        if let Err(err) = window::macos::resign_clipboard_panel_key(&app) {
+            log::warn!("resign clipboard panel key before paste failed: {err:?}");
         }
-    } else if let Err(err) = window::hide_window(&app, MAIN_WINDOW_LABEL) {
-        log::warn!("hide main window before paste failed: {err:?}");
+    } else if let Err(err) = window::hide_window(&app, CLIPBOARD_WINDOW_LABEL) {
+        log::warn!("hide clipboard window before paste failed: {err:?}");
     }
 
     // hide / resign 都是 run_on_main_thread 异步派发；不等一拍，simulate_paste 的 ⌘V
@@ -370,12 +370,12 @@ pub async fn paste_clipboard_item(
 
     // 固定窗口下粘贴完把 key 拿回来，让用户继续用键盘 / 列表操作；
     // 再等一拍让 ⌘V 事件被目标 App 消费完，避免 make_key 抢回焦点把按键吞回 panel。
-    if window::is_main_window_pinned() {
+    if window::is_clipboard_window_pinned() {
         #[cfg(target_os = "macos")]
         {
             tokio::time::sleep(std::time::Duration::from_millis(50)).await;
-            if let Err(err) = window::macos::make_main_panel_key(&app) {
-                log::warn!("restore main panel key after paste failed: {err:?}");
+            if let Err(err) = window::macos::make_clipboard_panel_key(&app) {
+                log::warn!("restore clipboard panel key after paste failed: {err:?}");
             }
         }
     }
@@ -427,14 +427,14 @@ async fn mark_item_reused_if_enabled(
     Ok(())
 }
 
-/// 从历史复制后按设置隐藏主窗口；固定状态下尊重用户显式 pin。
-fn hide_main_window_after_copy(app: &AppHandle) {
-    if window::is_main_window_pinned() {
+/// 从历史复制后按设置隐藏剪贴板窗口；固定状态下尊重用户显式 pin。
+fn hide_clipboard_window_after_copy(app: &AppHandle) {
+    if window::is_clipboard_window_pinned() {
         return;
     }
 
-    if let Err(err) = window::hide_window(app, MAIN_WINDOW_LABEL) {
-        log::warn!("hide main window after copy failed: {err:?}");
+    if let Err(err) = window::hide_window(app, CLIPBOARD_WINDOW_LABEL) {
+        log::warn!("hide clipboard window after copy failed: {err:?}");
     }
 }
 

@@ -10,7 +10,7 @@
   "done": {
     "cards": {
       "open": {
-        "description": "Use your shortcut to open clipboard history anytime.",
+        "description": "Use your shortcut to open the clipboard window anytime.",
         "title": "Quick Open"
       },
       "preferences": {
@@ -92,12 +92,12 @@
     "description": "Set common shortcuts. You can change them in Preferences at any time.",
     "items": {
       "openClipboard": {
-        "description": "Open the clipboard history window from anywhere.",
-        "title": "Open Clipboard"
+        "description": "Open the clipboard window from anywhere.",
+        "title": "Open Clipboard Window"
       },
       "openPreference": {
-        "description": "Open Preferences quickly.",
-        "title": "Open Preferences"
+        "description": "Open the preferences window quickly.",
+        "title": "Open Preferences Window"
       }
     },
     "title": "Set Shortcuts"

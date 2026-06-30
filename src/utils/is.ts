@@ -18,10 +18,10 @@ export const isWin = platform() === "windows";
 export const isDev = import.meta.env.DEV;
 
 /**
- * 当前是否为 Windows 平台的主窗口（focusable=false，需要低级键盘钩子）。
+ * 当前是否为 Windows 平台的剪贴板窗口（focusable=false，需要低级键盘钩子）。
  */
-export const isWinMainWindow = () => {
-  return isWin && getCurrentWebviewWindow().label === WINDOW_LABEL.MAIN;
+export const isWinClipboardWindow = () => {
+  return isWin && getCurrentWebviewWindow().label === WINDOW_LABEL.CLIPBOARD;
 };
 
 /**

@@ -137,8 +137,8 @@ pub fn run() {
             commands::import_legacy_data,
             commands::show_taskbar_icon,
             commands::position_window,
-            commands::set_main_window_pinned,
-            commands::set_main_window_auto_hide_suspended,
+            commands::set_clipboard_window_pinned,
+            commands::set_clipboard_window_auto_hide_suspended,
             commands::show_clipboard_preview,
             commands::close_clipboard_preview,
             commands::get_clipboard_preview_state,
@@ -216,10 +216,10 @@ pub fn run() {
                 log::error!("tray initialization failed: {err:?}");
             }
 
-            // 平台主窗口初始化：macOS 转 NSPanel
+            // 平台剪贴板窗口初始化：macOS 转 NSPanel
             #[cfg(target_os = "macos")]
-            if let Err(err) = window::macos::setup_main(&handle) {
-                log::error!("setup main NSPanel failed: {err:?}");
+            if let Err(err) = window::macos::setup_clipboard_panel(&handle) {
+                log::error!("setup clipboard NSPanel failed: {err:?}");
             }
 
             menu::clipboard_item::init(&handle);

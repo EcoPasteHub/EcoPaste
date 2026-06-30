@@ -3,6 +3,10 @@
  */
 export const WINDOW_LABEL = {
   /**
+   * 剪贴板窗口（剪贴板历史列表）。
+   */
+  CLIPBOARD: "clipboard",
+  /**
    * 自定义右键菜单窗口（仅 Windows，绕开 muda `TrackPopupMenu` 抢焦点的问题）。
    */
   CONTEXT_MENU: "context-menu",
@@ -10,10 +14,6 @@ export const WINDOW_LABEL = {
    * Custom context submenu window on Windows.
    */
   CONTEXT_SUBMENU: "context-submenu",
-  /**
-   * 主窗口（剪贴板历史列表）。
-   */
-  MAIN: "main",
   /**
    * 首次启动引导窗口。
    */

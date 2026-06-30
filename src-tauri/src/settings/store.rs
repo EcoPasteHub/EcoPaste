@@ -201,7 +201,7 @@ fn validate_settings(settings: &Settings) -> Result<()> {
     Ok(())
 }
 
-/// 校验打开主窗口时选中分组的字符串编码，避免非法设置值落盘。
+/// 校验打开剪贴板窗口时选中分组的字符串编码，避免非法设置值落盘。
 fn validate_window_open_group(value: &str) -> Result<()> {
     if value == WINDOW_OPEN_SELECTION_PRESERVE || value == WINDOW_OPEN_SELECTION_ALL {
         return Ok(());

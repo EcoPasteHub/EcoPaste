@@ -133,7 +133,7 @@
         "title": "Updates"
       },
       "window": {
-        "title": "Main Window"
+        "title": "Clipboard Window"
       }
     },
     "settings": {
@@ -369,13 +369,13 @@
           },
           "title": "Window Lifecycle",
           "windows": {
-            "contextMenu": "Context menu",
-            "contextSubmenu": "Context submenu",
-            "main": "Main window",
-            "onboarding": "Onboarding",
-            "preference": "Preferences",
-            "preview": "Clipboard preview",
-            "update": "Software update"
+            "clipboard": "Clipboard Window",
+            "contextMenu": "Context Menu Window",
+            "contextSubmenu": "Context Submenu Window",
+            "onboarding": "Onboarding Window",
+            "preference": "Preferences Window",
+            "preview": "Clipboard Preview Window",
+            "update": "Software Update Window"
           }
         }
       },
@@ -505,18 +505,18 @@
       },
       "shortcuts": {
         "openClipboard": {
-          "description": "Open or hide the clipboard main window from any app.",
+          "description": "Open or hide the clipboard window from any app.",
           "placeholder": "Alt+C",
-          "title": "Open Main Window"
+          "title": "Open Clipboard Window"
         },
         "openPreference": {
           "description": "Open or hide the preferences window from any app.",
           "placeholder": "Alt+X",
-          "title": "Open Preferences"
+          "title": "Open Preferences Window"
         },
         "winV": {
-          "description": "When enabled, press Win+V to summon the EcoPaste main window, replacing the Windows system clipboard history panel.",
-          "title": "Open Clipboard with Win+V"
+          "description": "When enabled, press Win+V to summon the EcoPaste clipboard window, replacing the Windows system clipboard history panel.",
+          "title": "Open Clipboard Window with Win+V"
         }
       },
       "source": {
@@ -560,11 +560,11 @@
           "title": "Secondary Window Idle Release"
         },
         "lightweightMode": {
-          "description": "Pause unnecessary refresh work after the main window hides, and release secondary rendering resources after they become idle.",
+          "description": "Pause unnecessary refresh work after the clipboard window hides, and release secondary rendering resources after they become idle.",
           "title": "Lightweight Mode"
         },
         "position": {
-          "description": "Choose where the clipboard main window opens each time.",
+          "description": "Choose where the clipboard window opens each time.",
           "options": {
             "center": "Center of Screen",
             "followCursor": "Follow Cursor",

@@ -8,7 +8,7 @@ use tauri::AppHandle;
 
 use super::super::{
     build_onboarding_window, build_preference_window, build_update_window, preview,
-    CLIPBOARD_PREVIEW_WINDOW_LABEL, MAIN_WINDOW_LABEL, ONBOARDING_WINDOW_LABEL,
+    CLIPBOARD_PREVIEW_WINDOW_LABEL, CLIPBOARD_WINDOW_LABEL, ONBOARDING_WINDOW_LABEL,
     PREFERENCE_WINDOW_LABEL, UPDATE_WINDOW_LABEL,
 };
 use crate::core::Result;
@@ -55,7 +55,7 @@ pub struct WindowDescriptor {
 /// 全部窗口的静态声明表。新增窗口在此追加。
 static DESCRIPTORS: &[WindowDescriptor] = &[
     WindowDescriptor {
-        label: MAIN_WINDOW_LABEL,
+        label: CLIPBOARD_WINDOW_LABEL,
         emits_lifecycle: true,
         retain_policy: RetainPolicy::Permanent,
         build: None,

@@ -163,7 +163,7 @@ pub(super) struct ClipboardItemMenuRequest {
 }
 
 /// 菜单点击后 emit 给前端的 payload。Windows 自定义菜单窗也复用这个结构发回
-/// 主窗，前端 `List.tsx` 只需订阅一次。
+/// 剪贴板窗口，前端 `List.tsx` 只需订阅一次。
 #[cfg(target_os = "macos")]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -190,7 +190,7 @@ mod native {
 
     use crate::core::{AppError, Result};
     use crate::settings::Language;
-    use crate::window::MAIN_WINDOW_LABEL;
+    use crate::window::CLIPBOARD_WINDOW_LABEL;
 
     use super::{
         ClipboardItemMenuRequest, ClipboardMenuAction, ClipboardMenuGroup, MenuActionPayload,
@@ -274,8 +274,8 @@ mod native {
         *state.target_item_id.lock().unwrap() = Some(request.item_id.clone());
 
         let window = app
-            .get_webview_window(MAIN_WINDOW_LABEL)
-            .ok_or_else(|| AppError::Other(anyhow::anyhow!("main window missing")))?;
+            .get_webview_window(CLIPBOARD_WINDOW_LABEL)
+            .ok_or_else(|| AppError::Other(anyhow::anyhow!("clipboard window missing")))?;
 
         let app_for_main = app.clone();
         let window_for_main = window.clone();
@@ -456,8 +456,8 @@ mod native {
             item_id,
             group_id: group_id_from_menu_id(menu_id),
         };
-        let Some(main) = app.get_webview_window(MAIN_WINDOW_LABEL) else {
-            log::warn!("main window missing on clipboard menu dispatch");
+        let Some(main) = app.get_webview_window(CLIPBOARD_WINDOW_LABEL) else {
+            log::warn!("clipboard window missing on clipboard menu dispatch");
             return;
         };
         if let Err(err) = main.emit(CLIPBOARD_MENU_ACTION_EVENT, payload) {

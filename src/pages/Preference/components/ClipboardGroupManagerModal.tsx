@@ -303,7 +303,7 @@ function resolveInitialOrder(groups: ClipboardGroupRecord[]) {
 }
 
 /**
- * 初始化 Tree 勾选状态：勾选表示显示在主窗口分组栏。
+ * 初始化 Tree 勾选状态：勾选表示显示在剪贴板窗口分组栏。
  */
 function resolveVisibleGroupIds(groups: ClipboardGroupRecord[]) {
   return groups

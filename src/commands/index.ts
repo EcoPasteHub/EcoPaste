@@ -91,7 +91,7 @@ export interface ClipboardPreviewState {
     width: number;
     height: number;
   };
-  mainWindow: {
+  clipboardWindow: {
     x: number;
     y: number;
     width: number;
@@ -358,7 +358,7 @@ export const setOnboardingStep = (step: number) => {
 };
 
 /**
- * 标记引导完成并打开主窗口。
+ * 标记引导完成并打开剪贴板窗口。
  */
 export const finishOnboarding = () => {
   return call<Settings>(
@@ -946,7 +946,7 @@ export const writeToClipboard = async (id: string, plain: boolean) => {
 };
 
 /**
- * 「写回剪贴板 + 隐藏主窗口 + 模拟系统粘贴」的组合命令。
+ * 「写回剪贴板 + 隐藏剪贴板窗口 + 模拟系统粘贴」的组合命令。
  * `plain` 为显式纯文本 / 路径粘贴动作；默认粘贴格式由 Rust 按设置与记录类型决定。
  * 回车 / 数字快捷键 / 右键菜单全部走这里。
  */
@@ -959,7 +959,7 @@ export const pasteClipboardItem = (id: string, plain: boolean) => {
 };
 
 /**
- * 启动一次 OS 级 drag-out：把条目拖出主窗口到外部应用。
+ * 启动一次 OS 级 drag-out：把条目拖出剪贴板窗口到外部应用。
  *
  * - Files / Image：拖出为文件，预览用 OS 原生图标。
  * - Text（含 HTML / RTF 富格式）：接收方按偏好选格式；Rust 端用文本首几行
@@ -1243,12 +1243,12 @@ export const showTaskbarIcon = (visible: boolean) => {
 };
 
 /**
- * 设置主窗口固定态：Rust 侧立即生效（影响 resign_key / 外部点击自动隐藏逻辑）。
+ * 设置剪贴板窗口固定态：Rust 侧立即生效（影响 resign_key / 外部点击自动隐藏逻辑）。
  */
-export const setMainWindowPinned = (pinned: boolean) => {
+export const setClipboardWindowPinned = (pinned: boolean) => {
   return call<void>(
-    TAURI_COMMAND.SET_MAIN_WINDOW_PINNED,
-    "commands:labels.setMainWindowPinned",
+    TAURI_COMMAND.SET_CLIPBOARD_WINDOW_PINNED,
+    "commands:labels.setClipboardWindowPinned",
     {
       pinned,
     },
@@ -1256,12 +1256,12 @@ export const setMainWindowPinned = (pinned: boolean) => {
 };
 
 /**
- * 临时暂停主窗口自动隐藏，供系统文件选择等原生交互保持主窗口可见。
+ * 临时暂停剪贴板窗口自动隐藏，供系统文件选择等原生交互保持剪贴板窗口可见。
  */
-export const setMainWindowAutoHideSuspended = (suspended: boolean) => {
+export const setClipboardWindowAutoHideSuspended = (suspended: boolean) => {
   return call<void>(
-    TAURI_COMMAND.SET_MAIN_WINDOW_AUTO_HIDE_SUSPENDED,
-    "commands:labels.setMainWindowAutoHideSuspended",
+    TAURI_COMMAND.SET_CLIPBOARD_WINDOW_AUTO_HIDE_SUSPENDED,
+    "commands:labels.setClipboardWindowAutoHideSuspended",
     {
       suspended,
     },
@@ -1270,7 +1270,7 @@ export const setMainWindowAutoHideSuspended = (suspended: boolean) => {
 
 /**
  * 打开或重定向剪贴板系统级预览 overlay。
- * `anchor` 是主窗口 webview client 坐标中的列表项矩形。
+ * `anchor` 是剪贴板窗口 webview client 坐标中的列表项矩形。
  */
 export const showClipboardPreview = (
   itemId: string,
@@ -1325,7 +1325,7 @@ export const playCopySound = () => {
 };
 
 /**
- * 在主窗口当前光标处弹出列表项右键菜单（菜单实例由 Rust 持有）。
+ * 在剪贴板窗口当前光标处弹出列表项右键菜单（菜单实例由 Rust 持有）。
  *
  * 点击菜单项后 Rust 会 emit `clipboard://menu-action` 携带 `{action, itemId}`，
  * 由 `List.tsx` 单点订阅后派发到既有处理逻辑（toast / 确认 modal / 本地镜像同步）。

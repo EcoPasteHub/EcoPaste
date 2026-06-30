@@ -47,7 +47,7 @@ near the consumer:
 - Keyboard payloads in `useKeyboardEvent`.
 - Window visibility payloads in clipboard preview hooks.
 
-When an event can arrive while the main window is hidden, decide whether to
+When an event can arrive while the clipboard window is hidden, decide whether to
 defer work. The clipboard list defers reload while hidden or scrolled away from
 the top to avoid hidden-window IPC churn and scroll jumps.
 
@@ -57,7 +57,7 @@ Use `@/utils/is` for platform/window checks. `useKeyboardEvent` is the standard
 keyboard abstraction:
 
 - macOS and focusable windows use browser keyboard events.
-- Windows main window receives Rust `keyboard://nav` events because the window is
+- Windows clipboard window receives Rust `keyboard://nav` events because the window is
   non-focusable.
 
 Components should not inspect Tauri window labels directly unless they are

@@ -11,7 +11,7 @@ use winapi::um::winuser::{
     MSLLHOOKSTRUCT, WH_MOUSE_LL, WM_LBUTTONDOWN, WM_MBUTTONDOWN, WM_QUIT, WM_RBUTTONDOWN,
 };
 
-use crate::window::{self, MAIN_WINDOW_LABEL};
+use crate::window::{self, CLIPBOARD_WINDOW_LABEL};
 
 static ENABLED: AtomicBool = AtomicBool::new(false);
 static HOOK_THREAD_ID: Mutex<Option<u32>> = Mutex::new(None);
@@ -77,7 +77,7 @@ unsafe extern "system" fn hook_proc(code: i32, wparam: WPARAM, lparam: LPARAM) -
     let cursor = data.pt;
 
     if let Some(app) = APP_HANDLE.get() {
-        // 右键菜单优先：菜单可见时，光标在菜单矩形外 → 关菜单（主窗不连带关，
+        // 右键菜单优先：菜单可见时，光标在菜单矩形外 → 关菜单（剪贴板窗口不连带关，
         // 避免「打开菜单后误点窗内空白处」直接收掉整个面板）。
         let menu_handled = if crate::menu::context_window::is_visible(app) {
             if cursor_outside_context_menu(app, cursor) {
@@ -89,8 +89,8 @@ unsafe extern "system" fn hook_proc(code: i32, wparam: WPARAM, lparam: LPARAM) -
         };
 
         if !menu_handled
-            && window::should_auto_hide_main_window()
-            && cursor_outside_main_window(app, cursor)
+            && window::should_auto_hide_clipboard_window()
+            && cursor_outside_clipboard_window(app, cursor)
         {
             schedule_hide(app);
         }
@@ -100,8 +100,8 @@ unsafe extern "system" fn hook_proc(code: i32, wparam: WPARAM, lparam: LPARAM) -
     CallNextHookEx(null_mut(), code, wparam, lparam)
 }
 
-fn cursor_outside_main_window(app: &AppHandle, cursor: POINT) -> bool {
-    let Some(window) = app.get_webview_window(MAIN_WINDOW_LABEL) else {
+fn cursor_outside_clipboard_window(app: &AppHandle, cursor: POINT) -> bool {
+    let Some(window) = app.get_webview_window(CLIPBOARD_WINDOW_LABEL) else {
         return false;
     };
     if !window.is_visible().unwrap_or(false) {
@@ -130,8 +130,8 @@ fn cursor_outside_context_menu(app: &AppHandle, cursor: POINT) -> bool {
 fn schedule_hide(app: &AppHandle) {
     let handle = app.clone();
     if let Err(err) = app.run_on_main_thread(move || {
-        if let Err(err) = window::hide_window(&handle, MAIN_WINDOW_LABEL) {
-            log::warn!("auto-hide main window failed: {err}");
+        if let Err(err) = window::hide_window(&handle, CLIPBOARD_WINDOW_LABEL) {
+            log::warn!("auto-hide clipboard window failed: {err}");
         }
     }) {
         log::warn!("schedule auto-hide failed: {err}");

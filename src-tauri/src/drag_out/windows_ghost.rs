@@ -100,7 +100,7 @@ impl IDropTarget_Impl for ForwardingDropTarget {
     }
 }
 
-/// 进程级一次性安装：包装主窗口及其所有子窗（含 WebView2 内部）注册的 IDropTarget。
+/// 进程级一次性安装：包装剪贴板窗口及其所有子窗（含 WebView2 内部）注册的 IDropTarget。
 ///
 /// 用 OnceLock 兜底——WebView2 的子窗注册是异步的，所以本函数应该在窗口已显示、
 /// 用户首次触发拖拽时调用，那时 WebView2 已 ready；万一更早调用没有捕到，
@@ -135,7 +135,7 @@ pub fn install_for_window(window: &WebviewWindow) {
     let mut installed = GHOST_INSTALL_RESULT.lock().unwrap();
     if !*installed {
         *installed = true;
-        log::debug!("drag ghost: installed on main window tree");
+        log::debug!("drag ghost: installed on clipboard window tree");
     }
 }
 

@@ -1,4 +1,4 @@
-//! 拖拽相关命令：把条目作为 OS 级 drag-out 拖出主窗口到外部应用。
+//! 拖拽相关命令：把条目作为 OS 级 drag-out 拖出剪贴板窗口到外部应用。
 
 use std::path::PathBuf;
 
@@ -12,7 +12,7 @@ use crate::db::models::{ClipboardItem, ClipboardKind, ClipboardSubKind, Platform
 use crate::db::DatabaseState;
 use crate::drag_out;
 use crate::settings::Language;
-use crate::window::{self, MAIN_WINDOW_LABEL};
+use crate::window::{self, CLIPBOARD_WINDOW_LABEL};
 
 /// 拖拽载荷：按 kind 解析成统一表示，再分派到对应的 drag-out 实现。
 enum DragPayload {
@@ -29,7 +29,7 @@ enum DragPayload {
     },
 }
 
-/// 把指定条目作为 OS drag 拖出主窗口。
+/// 把指定条目作为 OS drag 拖出剪贴板窗口。
 ///
 /// 支持 kind：
 /// - Files：从 `content` 按 `\n` 切出路径列表，过滤已删除项。
@@ -56,7 +56,7 @@ pub async fn start_drag_clipboard_item(
     let lang = crate::i18n::current_language(&app);
     let payload = resolve_drag_payload(&item, &store, lang)?;
 
-    let window = window::get_window(&app, MAIN_WINDOW_LABEL)?;
+    let window = window::get_window(&app, CLIPBOARD_WINDOW_LABEL)?;
 
     let preview = build_preview(&item, &payload, &store, &file_icon_store, &pool).await;
 
