@@ -305,3 +305,36 @@ Replaced deprecated Ant Design Divider type prop with orientation in the prefere
 ### Next Steps
 
 - None - task complete
+
+
+## Session 10: Reopen onboarding action
+
+**Date**: 2026-06-30
+**Task**: Reopen onboarding action
+**Branch**: `feat/reopen-onboarding-entry`
+
+### Summary
+
+Added a preference action to reopen the onboarding window, wired it to the existing onboarding command, filled locale/icon metadata, and documented the action-setting convention. Verified with pnpm tsc; pnpm lint only reports an existing global.scss warning.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `5a90c9e2` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
