@@ -33,6 +33,7 @@ const SETTING_ICON_MAP: Record<string, string> = {
   "capture.text": "i-lucide:clipboard-type",
   "control.autoStart": "i-lucide:log-in",
   "control.dockIcon": "i-lucide:panel-bottom",
+  "control.reopenOnboarding": "i-lucide:route",
   "control.silentStart": "i-lucide:eye-off",
   "control.trayIcon": "i-lucide:panel-top",
   "copy.hideWindow": "i-lucide:panel-top-close",

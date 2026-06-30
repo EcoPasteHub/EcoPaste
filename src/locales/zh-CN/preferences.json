@@ -290,6 +290,11 @@
             "title": "任务栏图标"
           }
         },
+        "reopenOnboarding": {
+          "controlLabel": "打开",
+          "description": "再次查看首次使用引导，不会重置当前设置或历史记录。",
+          "title": "重新打开引导"
+        },
         "silentStart": {
           "description": "开机启动时只在后台运行，不自动弹出剪贴板窗口。",
           "title": "静默启动"
