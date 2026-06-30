@@ -92,11 +92,11 @@
     "description": "Set common shortcuts. You can change them in Preferences at any time.",
     "items": {
       "openClipboard": {
-        "description": "Open the clipboard window from anywhere.",
+        "description": "Open or hide the clipboard window.",
         "title": "Open Clipboard Window"
       },
       "openPreference": {
-        "description": "Open the preferences window quickly.",
+        "description": "Open or hide the preferences window.",
         "title": "Open Preferences Window"
       }
     },
