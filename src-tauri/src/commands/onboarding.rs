@@ -5,7 +5,7 @@ use anyhow::Context;
 use chrono::{DateTime, NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use sqlx::sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions};
+use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
 use sqlx::SqlitePool;
 use tauri::{AppHandle, Emitter, Manager};
 use uuid::Uuid;
@@ -30,12 +30,12 @@ pub struct OnboardingLegacyDataDetection {
     found: bool,
     path: Option<String>,
     database_files: Vec<String>,
-    total_bytes: u64,
     checked_at: String,
     importable_database: Option<String>,
     importable_item_count: u64,
     normal_item_count: u64,
     favorite_item_count: u64,
+    scan_messages: Vec<String>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
@@ -60,7 +60,6 @@ pub struct OnboardingLegacyImportResult {
 struct LegacyDataMatch {
     path: PathBuf,
     database_files: Vec<PathBuf>,
-    total_bytes: u64,
     importable_database: Option<PathBuf>,
     importable_item_count: u64,
     normal_item_count: u64,
@@ -254,15 +253,22 @@ fn update_onboarding_settings(app: &AppHandle, patch: serde_json::Value) -> Resu
 
 async fn inspect_legacy_data() -> Result<OnboardingLegacyDataDetection> {
     let mut best_match: Option<LegacyDataMatch> = None;
+    let mut scan_messages = Vec::new();
+    let candidates = legacy_data_candidates(&mut scan_messages);
 
-    for dir in legacy_data_candidates() {
-        let Some(candidate) = inspect_legacy_dir(&dir).await? else {
+    record_legacy_scan(
+        &mut scan_messages,
+        format!("checking {} legacy data candidate(s)", candidates.len()),
+    );
+
+    for dir in candidates {
+        let Some(candidate) = inspect_legacy_dir(&dir, &mut scan_messages).await? else {
             continue;
         };
 
         if best_match
             .as_ref()
-            .is_none_or(|current| candidate.total_bytes > current.total_bytes)
+            .is_none_or(|current| is_better_legacy_match(&candidate, current))
         {
             best_match = Some(candidate);
         }
@@ -274,14 +280,23 @@ async fn inspect_legacy_data() -> Result<OnboardingLegacyDataDetection> {
             found: false,
             path: None,
             database_files: Vec::new(),
-            total_bytes: 0,
             checked_at,
             importable_database: None,
             importable_item_count: 0,
             normal_item_count: 0,
             favorite_item_count: 0,
+            scan_messages,
         });
     };
+
+    record_legacy_scan(
+        &mut scan_messages,
+        format!(
+            "selected legacy data candidate {} with {} importable item(s)",
+            match_data.path.display(),
+            match_data.importable_item_count
+        ),
+    );
 
     Ok(OnboardingLegacyDataDetection {
         found: true,
@@ -291,7 +306,6 @@ async fn inspect_legacy_data() -> Result<OnboardingLegacyDataDetection> {
             .into_iter()
             .map(|path| path.display().to_string())
             .collect(),
-        total_bytes: match_data.total_bytes,
         checked_at,
         importable_database: match_data
             .importable_database
@@ -299,33 +313,69 @@ async fn inspect_legacy_data() -> Result<OnboardingLegacyDataDetection> {
         importable_item_count: match_data.importable_item_count,
         normal_item_count: match_data.normal_item_count,
         favorite_item_count: match_data.favorite_item_count,
+        scan_messages,
     })
 }
 
-async fn inspect_legacy_dir(dir: &Path) -> Result<Option<LegacyDataMatch>> {
+fn is_better_legacy_match(candidate: &LegacyDataMatch, current: &LegacyDataMatch) -> bool {
+    candidate.importable_item_count > current.importable_item_count
+}
+
+fn record_legacy_scan(scan_messages: &mut Vec<String>, message: impl Into<String>) {
+    let message = message.into();
+    log::info!("legacy data detection: {message}");
+    scan_messages.push(message);
+}
+
+fn record_legacy_scan_warn(scan_messages: &mut Vec<String>, message: impl Into<String>) {
+    let message = message.into();
+    log::warn!("legacy data detection: {message}");
+    scan_messages.push(message);
+}
+
+async fn inspect_legacy_dir(
+    dir: &Path,
+    scan_messages: &mut Vec<String>,
+) -> Result<Option<LegacyDataMatch>> {
+    record_legacy_scan(
+        scan_messages,
+        format!("checking legacy data directory {}", dir.display()),
+    );
+
     if !dir.exists() {
+        record_legacy_scan(
+            scan_messages,
+            format!("legacy data directory missing: {}", dir.display()),
+        );
         return Ok(None);
     }
 
     let mut database_files = Vec::new();
-    let mut total_bytes = 0;
-
     for entry in WalkDir::new(dir).max_depth(4).into_iter().flatten() {
         let path = entry.path();
         if !path.is_file() {
             continue;
         }
 
-        if let Ok(metadata) = fs::metadata(path) {
-            total_bytes += metadata.len();
-        }
-
         if is_legacy_database_file(path) {
+            record_legacy_scan(
+                scan_messages,
+                format!("found legacy database candidate {}", path.display()),
+            );
             database_files.push(path.to_path_buf());
         }
     }
 
-    if database_files.is_empty() && total_bytes == 0 {
+    record_legacy_scan(
+        scan_messages,
+        format!(
+            "scanned legacy data directory {}: {} database file(s)",
+            dir.display(),
+            database_files.len()
+        ),
+    );
+
+    if database_files.is_empty() {
         return Ok(None);
     }
 
@@ -335,7 +385,8 @@ async fn inspect_legacy_dir(dir: &Path) -> Result<Option<LegacyDataMatch>> {
     let mut favorite_item_count = 0;
 
     for db_path in &database_files {
-        let Some(stats) = inspect_legacy_database(db_path).await? else {
+        let Some(stats) = inspect_legacy_database_with_messages(db_path, scan_messages).await?
+        else {
             continue;
         };
 
@@ -350,7 +401,6 @@ async fn inspect_legacy_dir(dir: &Path) -> Result<Option<LegacyDataMatch>> {
     Ok(Some(LegacyDataMatch {
         path: dir.to_path_buf(),
         database_files,
-        total_bytes,
         importable_database,
         importable_item_count,
         normal_item_count,
@@ -364,40 +414,107 @@ struct LegacyDatabaseStats {
     favorite_item_count: u64,
 }
 
-async fn inspect_legacy_database(path: &Path) -> Result<Option<LegacyDatabaseStats>> {
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum LegacyEnvironment {
+    Dev,
+    Prod,
+}
+
+const fn current_legacy_environment() -> LegacyEnvironment {
+    if cfg!(dev) {
+        LegacyEnvironment::Dev
+    } else {
+        LegacyEnvironment::Prod
+    }
+}
+
+async fn inspect_legacy_database_with_messages(
+    path: &Path,
+    scan_messages: &mut Vec<String>,
+) -> Result<Option<LegacyDatabaseStats>> {
+    record_legacy_scan(
+        scan_messages,
+        format!("opening legacy database candidate {}", path.display()),
+    );
+
     let pool = match open_legacy_pool(path).await {
         Ok(pool) => pool,
         Err(err) => {
-            log::warn!(
-                "inspect legacy database failed for {}: {err}",
-                path.display()
+            record_legacy_scan_warn(
+                scan_messages,
+                format!(
+                    "failed to open legacy database candidate {}: {err}",
+                    path.display()
+                ),
             );
             return Ok(None);
         }
     };
 
-    let table_exists: Option<String> = sqlx::query_scalar(
+    let table_exists: Option<String> = match sqlx::query_scalar(
         "SELECT name FROM sqlite_master WHERE type = 'table' AND name = ? LIMIT 1",
     )
     .bind(LEGACY_HISTORY_TABLE)
     .fetch_optional(&pool)
     .await
-    .context("failed to inspect legacy schema")?;
+    {
+        Ok(table_exists) => table_exists,
+        Err(err) => {
+            record_legacy_scan_warn(
+                scan_messages,
+                format!(
+                    "failed to inspect legacy database schema {}: {err}",
+                    path.display()
+                ),
+            );
+            return Ok(None);
+        }
+    };
 
     if table_exists.is_none() {
+        record_legacy_scan(
+            scan_messages,
+            format!(
+                "legacy database candidate {} has no history table",
+                path.display()
+            ),
+        );
         return Ok(None);
     }
 
-    let row = sqlx::query_as::<_, (i64, i64, i64)>(
+    let row = match sqlx::query_as::<_, (i64, i64, i64)>(
         "SELECT \
             COUNT(*) AS total, \
-            SUM(CASE WHEN favorite = 0 THEN 1 ELSE 0 END) AS normal_count, \
-            SUM(CASE WHEN favorite = 1 THEN 1 ELSE 0 END) AS favorite_count \
+            COALESCE(SUM(CASE WHEN favorite IS NULL OR favorite = 0 THEN 1 ELSE 0 END), 0) AS normal_count, \
+            COALESCE(SUM(CASE WHEN favorite = 1 THEN 1 ELSE 0 END), 0) AS favorite_count \
          FROM history",
     )
     .fetch_one(&pool)
     .await
-    .context("failed to count legacy history rows")?;
+    {
+        Ok(row) => row,
+        Err(err) => {
+            record_legacy_scan_warn(
+                scan_messages,
+                format!(
+                    "failed to count legacy history rows {}: {err}",
+                    path.display()
+                ),
+            );
+            return Ok(None);
+        }
+    };
+
+    record_legacy_scan(
+        scan_messages,
+        format!(
+            "legacy database candidate {} has {} item(s), {} normal, {} favorite",
+            path.display(),
+            row.0.max(0),
+            row.1.max(0),
+            row.2.max(0)
+        ),
+    );
 
     Ok(Some(LegacyDatabaseStats {
         item_count: row.0.max(0) as u64,
@@ -410,7 +527,6 @@ async fn open_legacy_pool(path: &Path) -> Result<SqlitePool> {
     let options = SqliteConnectOptions::new()
         .filename(path)
         .read_only(true)
-        .journal_mode(SqliteJournalMode::Wal)
         .create_if_missing(false);
 
     SqlitePoolOptions::new()
@@ -426,22 +542,91 @@ fn is_legacy_database_file(path: &Path) -> bool {
         return false;
     };
 
-    matches!(
-        file_name,
-        ".store.db"
-            | ".store.dev.db"
-            | ".window-state.db"
-            | ".window-state.dev.db"
-            | "EcoPaste.db"
-            | "EcoPaste.dev.db"
-            | "EcoPaste.v2.db"
-            | "EcoPaste.v2.dev.db"
-    ) || file_name.ends_with(".sqlite")
+    let env = current_legacy_environment();
+    let expected_names = legacy_database_file_names(env);
+    if expected_names.contains(&file_name) {
+        return true;
+    }
+
+    if legacy_other_environment_database_file_names(env).contains(&file_name) {
+        return false;
+    }
+
+    let is_sqlite = file_name.ends_with(".sqlite")
         || file_name.ends_with(".sqlite3")
-        || file_name.ends_with(".db")
+        || file_name.ends_with(".db");
+    if !is_sqlite {
+        return false;
+    }
+
+    env == LegacyEnvironment::Prod
+        && !file_name.contains(".dev.")
+        && !file_name.ends_with(".dev.db")
 }
 
-fn legacy_data_candidates() -> Vec<PathBuf> {
+fn legacy_database_file_names(env: LegacyEnvironment) -> &'static [&'static str] {
+    match env {
+        LegacyEnvironment::Dev => &[
+            ".store.dev.db",
+            ".window-state.dev.db",
+            "EcoPaste.dev.db",
+            "EcoPaste.v2.dev.db",
+        ],
+        LegacyEnvironment::Prod => &[
+            ".store.db",
+            ".window-state.db",
+            "EcoPaste.db",
+            "EcoPaste.v2.db",
+        ],
+    }
+}
+
+fn legacy_other_environment_database_file_names(env: LegacyEnvironment) -> &'static [&'static str] {
+    match env {
+        LegacyEnvironment::Dev => &[
+            ".store.db",
+            ".window-state.db",
+            "EcoPaste.db",
+            "EcoPaste.v2.db",
+        ],
+        LegacyEnvironment::Prod => &[
+            ".store.dev.db",
+            ".window-state.dev.db",
+            "EcoPaste.dev.db",
+            "EcoPaste.v2.dev.db",
+        ],
+    }
+}
+
+fn legacy_store_file_names(env: LegacyEnvironment) -> &'static [&'static str] {
+    match env {
+        LegacyEnvironment::Dev => &[".store.dev.json"],
+        LegacyEnvironment::Prod => &[".store.json"],
+    }
+}
+
+fn legacy_data_candidates(scan_messages: &mut Vec<String>) -> Vec<PathBuf> {
+    legacy_data_candidates_from_defaults(default_legacy_data_candidates(), scan_messages)
+}
+
+fn legacy_data_candidates_from_defaults(
+    defaults: Vec<PathBuf>,
+    scan_messages: &mut Vec<String>,
+) -> Vec<PathBuf> {
+    let mut candidates = Vec::new();
+
+    for dir in defaults {
+        push_unique_path(&mut candidates, dir.clone());
+
+        for custom_dir in custom_legacy_data_candidates(&dir, scan_messages) {
+            push_unique_path(&mut candidates, custom_dir);
+        }
+    }
+
+    candidates
+}
+
+fn default_legacy_data_candidates() -> Vec<PathBuf> {
     let mut candidates = Vec::new();
 
     #[cfg(target_os = "macos")]
@@ -463,6 +648,85 @@ fn legacy_data_candidates() -> Vec<PathBuf> {
     }
 
     candidates
+}
+
+fn custom_legacy_data_candidates(
+    default_dir: &Path,
+    scan_messages: &mut Vec<String>,
+) -> Vec<PathBuf> {
+    let mut candidates = Vec::new();
+
+    for file_name in legacy_store_file_names(current_legacy_environment()) {
+        let store_path = default_dir.join(file_name);
+        if !store_path.exists() {
+            continue;
+        }
+
+        let content = match fs::read_to_string(&store_path) {
+            Ok(content) => content,
+            Err(err) => {
+                record_legacy_scan_warn(
+                    scan_messages,
+                    format!(
+                        "failed to read legacy store {}: {err}",
+                        store_path.display()
+                    ),
+                );
+                continue;
+            }
+        };
+
+        let value: serde_json::Value = match serde_json::from_str(&content) {
+            Ok(value) => value,
+            Err(err) => {
+                record_legacy_scan_warn(
+                    scan_messages,
+                    format!(
+                        "failed to parse legacy store {}: {err}",
+                        store_path.display()
+                    ),
+                );
+                continue;
+            }
+        };
+
+        let Some(data_dir) = value
+            .pointer("/globalStore/env/saveDataDir")
+            .and_then(|value| value.as_str())
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+        else {
+            record_legacy_scan(
+                scan_messages,
+                format!(
+                    "legacy store {} has no custom saveDataDir",
+                    store_path.display()
+                ),
+            );
+            continue;
+        };
+
+        let data_dir = PathBuf::from(data_dir);
+        record_legacy_scan(
+            scan_messages,
+            format!(
+                "legacy store {} points to data directory {}",
+                store_path.display(),
+                data_dir.display()
+            ),
+        );
+        push_unique_path(&mut candidates, data_dir);
+    }
+
+    candidates
+}
+
+fn push_unique_path(paths: &mut Vec<PathBuf>, path: PathBuf) {
+    if paths.contains(&path) {
+        return;
+    }
+
+    paths.push(path);
 }
 
 fn normalize_import_types(types: Vec<LegacyImportSelection>) -> Vec<LegacyImportSelection> {
@@ -567,4 +831,307 @@ fn parse_legacy_datetime(value: Option<&str>) -> Option<DateTime<Utc>> {
     NaiveDateTime::parse_from_str(raw, "%Y-%m-%d %H:%M:%S")
         .ok()
         .map(|time| DateTime::<Utc>::from_naive_utc_and_offset(time, Utc))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use tempfile::TempDir;
+
+    async fn create_legacy_history_db(path: &Path, rows: &[(i64, &str)]) {
+        let pool = SqlitePoolOptions::new()
+            .max_connections(1)
+            .connect_with(
+                SqliteConnectOptions::new()
+                    .filename(path)
+                    .create_if_missing(true),
+            )
+            .await
+            .unwrap();
+
+        sqlx::query(
+            "CREATE TABLE history (
+                id TEXT PRIMARY KEY,
+                type TEXT,
+                value TEXT,
+                favorite INTEGER,
+                createTime TEXT,
+                note TEXT,
+                width INTEGER,
+                height INTEGER
+            )",
+        )
+        .execute(&pool)
+        .await
+        .unwrap();
+
+        for (index, (favorite, value)) in rows.iter().enumerate() {
+            sqlx::query(
+                "INSERT INTO history (id, type, value, favorite, createTime)
+                 VALUES (?, 'text', ?, ?, '2026-01-01 00:00:00')",
+            )
+            .bind(format!("item-{index}"))
+            .bind(value)
+            .bind(favorite)
+            .execute(&pool)
+            .await
+            .unwrap();
+        }
+
+        pool.close().await;
+    }
+
+    async fn create_sqlite_without_history(path: &Path) {
+        let pool = SqlitePoolOptions::new()
+            .max_connections(1)
+            .connect_with(
+                SqliteConnectOptions::new()
+                    .filename(path)
+                    .create_if_missing(true),
+            )
+            .await
+            .unwrap();
+
+        sqlx::query("CREATE TABLE window_state (id TEXT PRIMARY KEY)")
+            .execute(&pool)
+            .await
+            .unwrap();
+
+        pool.close().await;
+    }
+
+    fn write_legacy_store(default_dir: &Path, data_dir: &Path) {
+        let content = json!({
+            "globalStore": {
+                "env": {
+                    "saveDataDir": data_dir,
+                },
+            },
+        });
+
+        fs::write(
+            default_dir.join(legacy_store_file_names(current_legacy_environment())[0]),
+            serde_json::to_string_pretty(&content).unwrap(),
+        )
+        .unwrap();
+    }
+
+    #[tokio::test]
+    async fn inspect_legacy_dir_counts_default_history_database() {
+        let temp = TempDir::new().unwrap();
+        let db_path = temp
+            .path()
+            .join(legacy_database_file_names(current_legacy_environment())[2]);
+        create_legacy_history_db(&db_path, &[(0, "normal"), (1, "favorite")]).await;
+
+        let mut messages = Vec::new();
+        let result = inspect_legacy_dir(temp.path(), &mut messages)
+            .await
+            .unwrap()
+            .unwrap();
+
+        assert_eq!(result.importable_database, Some(db_path));
+        assert_eq!(result.importable_item_count, 2);
+        assert_eq!(result.normal_item_count, 1);
+        assert_eq!(result.favorite_item_count, 1);
+        assert!(messages
+            .iter()
+            .any(|message| message.contains("has 2 item(s)")));
+    }
+
+    #[tokio::test]
+    async fn inspect_legacy_dir_reports_found_directory_without_history() {
+        let temp = TempDir::new().unwrap();
+        fs::create_dir_all(temp.path().join("images")).unwrap();
+        fs::write(temp.path().join("images").join("old.png"), [1_u8, 2, 3]).unwrap();
+        create_sqlite_without_history(
+            &temp
+                .path()
+                .join(legacy_database_file_names(current_legacy_environment())[1]),
+        )
+        .await;
+
+        let mut messages = Vec::new();
+        let result = inspect_legacy_dir(temp.path(), &mut messages)
+            .await
+            .unwrap()
+            .unwrap();
+
+        assert!(result.importable_database.is_none());
+        assert_eq!(result.importable_item_count, 0);
+        assert!(messages
+            .iter()
+            .any(|message| message.contains("has no history table")));
+    }
+
+    #[tokio::test]
+    async fn custom_store_directory_is_added_as_candidate() {
+        let temp = TempDir::new().unwrap();
+        let default_dir = temp.path().join("default");
+        let custom_dir = temp.path().join("custom");
+        fs::create_dir_all(&default_dir).unwrap();
+        fs::create_dir_all(&custom_dir).unwrap();
+        write_legacy_store(&default_dir, &custom_dir);
+
+        let mut messages = Vec::new();
+        let candidates =
+            legacy_data_candidates_from_defaults(vec![default_dir.clone()], &mut messages);
+
+        assert_eq!(candidates, vec![default_dir, custom_dir]);
+        assert!(messages
+            .iter()
+            .any(|message| message.contains("points to data directory")));
+    }
+
+    #[tokio::test]
+    async fn custom_candidate_with_items_beats_larger_default_residue() {
+        let temp = TempDir::new().unwrap();
+        let default_dir = temp.path().join("default");
+        let custom_dir = temp.path().join("custom");
+        fs::create_dir_all(default_dir.join("images")).unwrap();
+        fs::create_dir_all(&custom_dir).unwrap();
+        fs::write(
+            default_dir.join("images").join("large.bin"),
+            vec![7_u8; 4096],
+        )
+        .unwrap();
+        write_legacy_store(&default_dir, &custom_dir);
+        create_legacy_history_db(
+            &custom_dir.join(legacy_database_file_names(current_legacy_environment())[2]),
+            &[(0, "custom")],
+        )
+        .await;
+
+        let mut best_match: Option<LegacyDataMatch> = None;
+        let mut messages = Vec::new();
+        for dir in legacy_data_candidates_from_defaults(vec![default_dir], &mut messages) {
+            let Some(candidate) = inspect_legacy_dir(&dir, &mut messages).await.unwrap() else {
+                continue;
+            };
+
+            if best_match
+                .as_ref()
+                .is_none_or(|current| is_better_legacy_match(&candidate, current))
+            {
+                best_match = Some(candidate);
+            }
+        }
+
+        let result = best_match.unwrap();
+        assert_eq!(result.path, custom_dir);
+        assert_eq!(result.importable_item_count, 1);
+    }
+
+    #[tokio::test]
+    async fn broken_legacy_store_does_not_stop_default_candidate() {
+        let temp = TempDir::new().unwrap();
+        let default_dir = temp.path().join("default");
+        fs::create_dir_all(&default_dir).unwrap();
+        fs::write(
+            default_dir.join(legacy_store_file_names(current_legacy_environment())[0]),
+            "{bad json",
+        )
+        .unwrap();
+
+        let mut messages = Vec::new();
+        let candidates =
+            legacy_data_candidates_from_defaults(vec![default_dir.clone()], &mut messages);
+
+        assert_eq!(candidates, vec![default_dir]);
+        assert!(messages
+            .iter()
+            .any(|message| message.contains("failed to parse legacy store")));
+    }
+
+    #[test]
+    fn legacy_database_file_filter_matches_current_environment_only() {
+        assert_eq!(
+            legacy_database_file_names(LegacyEnvironment::Dev),
+            [
+                ".store.dev.db",
+                ".window-state.dev.db",
+                "EcoPaste.dev.db",
+                "EcoPaste.v2.dev.db",
+            ]
+        );
+        assert_eq!(
+            legacy_database_file_names(LegacyEnvironment::Prod),
+            [
+                ".store.db",
+                ".window-state.db",
+                "EcoPaste.db",
+                "EcoPaste.v2.db"
+            ]
+        );
+
+        assert_eq!(
+            legacy_other_environment_database_file_names(LegacyEnvironment::Dev),
+            [
+                ".store.db",
+                ".window-state.db",
+                "EcoPaste.db",
+                "EcoPaste.v2.db"
+            ]
+        );
+        assert_eq!(
+            legacy_other_environment_database_file_names(LegacyEnvironment::Prod),
+            [
+                ".store.dev.db",
+                ".window-state.dev.db",
+                "EcoPaste.dev.db",
+                "EcoPaste.v2.dev.db",
+            ]
+        );
+
+        assert_eq!(
+            is_legacy_database_file(Path::new("EcoPaste.dev.db")),
+            current_legacy_environment() == LegacyEnvironment::Dev
+        );
+        assert_eq!(
+            is_legacy_database_file(Path::new("EcoPaste.db")),
+            current_legacy_environment() == LegacyEnvironment::Prod
+        );
+    }
+
+    #[test]
+    fn legacy_store_file_filter_matches_current_environment_only() {
+        assert_eq!(
+            legacy_store_file_names(LegacyEnvironment::Dev),
+            [".store.dev.json"]
+        );
+        assert_eq!(
+            legacy_store_file_names(LegacyEnvironment::Prod),
+            [".store.json"]
+        );
+
+        let temp = TempDir::new().unwrap();
+        let default_dir = temp.path().join("default");
+        let custom_dir = temp.path().join("custom");
+        fs::create_dir_all(&default_dir).unwrap();
+        fs::create_dir_all(&custom_dir).unwrap();
+
+        fs::write(
+            default_dir.join(if cfg!(dev) {
+                ".store.json"
+            } else {
+                ".store.dev.json"
+            }),
+            serde_json::to_string_pretty(&json!({
+                "globalStore": {
+                    "env": {
+                        "saveDataDir": custom_dir,
+                    },
+                },
+            }))
+            .unwrap(),
+        )
+        .unwrap();
+
+        let mut messages = Vec::new();
+        let candidates =
+            legacy_data_candidates_from_defaults(vec![default_dir.clone()], &mut messages);
+
+        assert_eq!(candidates, vec![default_dir]);
+    }
 }

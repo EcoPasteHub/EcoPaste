@@ -31,7 +31,7 @@
     "title": "设置忽略应用"
   },
   "legacyImport": {
-    "cardDescription": "EcoPaste 会只读扫描旧版默认数据目录，不会修改旧目录或导入任何内容。",
+    "cardDescription": "EcoPaste 会只读扫描旧版默认数据目录，并尝试跟随旧版配置中的自定义存储目录；不会修改旧目录或导入任何内容。",
     "cardTitle": "旧版数据检测",
     "description": "只保留导入决策需要的最少信息，并按需选择导入普通条目或收藏条目。",
     "detecting": "正在检测旧版数据...",
@@ -39,17 +39,15 @@
     "importAction": "导入",
     "importSectionTitle": "选择导入内容",
     "importSummary": "已导入 {{imported}} 条，跳过 {{skipped}} 条；其中普通 {{normal}} 条，收藏 {{favorite}} 条。",
-    "noImportableNote": "检测到了旧目录，但还没有找到可导入的历史数据库。",
+    "noImportableNote": "检测到了旧目录，但还没有找到可导入的历史数据库或历史记录。详细检测过程已写入日志，便于排查自定义存储目录或数据库读取问题。",
     "refresh": "重新检测",
     "safeNote": "导入只会读取你勾选的旧版条目类型；未勾选的类型不会被带入当前库。",
     "summary": {
       "compactItems": "{{count}} 条可导入",
-      "compactSize": "大小 {{size}}",
       "detected": "检测结果",
       "detectedValue": "已发现旧版数据",
       "importable": "可导入条目",
-      "itemUnit": "条记录",
-      "size": "估算大小 {{size}}"
+      "itemUnit": "条记录"
     },
     "title": "旧版数据",
     "types": {

@@ -270,7 +270,7 @@ export interface OnboardingLegacyDataDetection {
   databaseFiles: string[];
   checkedAt: string;
   path: string | null;
-  totalBytes: number;
+  scanMessages: string[];
 }
 
 export type LegacyImportSelection = "normal" | "favorite";

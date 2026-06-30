@@ -31,7 +31,7 @@
     "title": "Set Ignored Apps"
   },
   "legacyImport": {
-    "cardDescription": "EcoPaste scans the old default data directory in read-only mode. It will not modify or import anything here.",
+    "cardDescription": "EcoPaste scans the old default data directory in read-only mode and follows custom storage directories recorded by the old settings. It will not modify or import anything here.",
     "cardTitle": "Legacy Data Detection",
     "description": "Keep only the minimum information needed for the import decision, then choose normal items, favorite items, or both.",
     "detecting": "Detecting legacy data...",
@@ -39,17 +39,15 @@
     "importAction": "Import",
     "importSectionTitle": "Choose what to import",
     "importSummary": "Imported {{imported}}, skipped {{skipped}}; normal {{normal}}, favorite {{favorite}}.",
-    "noImportableNote": "A legacy directory was found, but no importable history database is available yet.",
+    "noImportableNote": "A legacy directory was found, but no importable history database or history records were found. The detailed scan has been written to the logs for custom storage or database access troubleshooting.",
     "refresh": "Detect again",
     "safeNote": "Import only reads the legacy item types you checked. Unchecked types stay out of the current database.",
     "summary": {
       "compactItems": "{{count}} importable",
-      "compactSize": "Size {{size}}",
       "detected": "Detection result",
       "detectedValue": "Legacy data found",
       "importable": "Importable items",
-      "itemUnit": "records",
-      "size": "Estimated size {{size}}"
+      "itemUnit": "records"
     },
     "title": "Legacy Data",
     "types": {
