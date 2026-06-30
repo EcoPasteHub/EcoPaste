@@ -239,3 +239,36 @@ Implemented Tauri updater integration, Sparkle-style update window, update setti
 ### Next Steps
 
 - None - task complete
+
+
+## Session 8: Localize window lifecycle onboarding label
+
+**Date**: 2026-06-30
+**Task**: Localize window lifecycle onboarding label
+**Branch**: `fix/i18n-window-lifecycle-name`
+
+### Summary
+
+Localized the onboarding window name in the Preferences diagnostics lifecycle table, added zh-CN/en-US strings, synced the window-label spec, verified frontend checks, then pushed the fix branch.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `18f45f7e` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
