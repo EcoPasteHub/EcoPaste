@@ -6,8 +6,56 @@ name: PR Check
       - master
 
 jobs:
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+      backend: ${{ steps.filter.outputs.backend }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Filter changed paths
+        id: filter
+        shell: bash
+        run: |
+          frontend=false
+          backend=false
+          base_sha="${{ github.event.pull_request.base.sha }}"
+
+          while IFS= read -r file; do
+            case "$file" in
+              src/*|public/*|scripts/*)
+                frontend=true
+                ;;
+            esac
+
+            case "$file" in
+              */*) ;;
+              *.html|*.json|*.jsonc|*.ts|*.mts|*.cts|pnpm-lock.yaml)
+                frontend=true
+                ;;
+            esac
+
+            case "$file" in
+              src-tauri/*|rust-toolchain.toml|package.json|pnpm-lock.yaml|scripts/buildIcon.ts)
+                backend=true
+                ;;
+            esac
+          done < <(git diff --name-only "$base_sha" HEAD)
+
+          {
+            echo "frontend=$frontend"
+            echo "backend=$backend"
+          } >> "$GITHUB_OUTPUT"
+
   frontend:
     name: Frontend Check
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -33,6 +81,8 @@ jobs:
 
   backend:
     name: Rust Check
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
