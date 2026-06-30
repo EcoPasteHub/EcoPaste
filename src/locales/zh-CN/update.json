@@ -1,0 +1,47 @@
+{
+  "actions": {
+    "cancel": "取消",
+    "checkAgain": "重新检查",
+    "download": "安装更新",
+    "install": "安装并重新启动",
+    "later": "稍后提醒我",
+    "ok": "好",
+    "releaseNotes": "查看更新日志",
+    "skip": "跳过这个版本"
+  },
+  "description": {
+    "available": "EcoPaste {{version}} 现已可用，您当前使用的是 {{currentVersion}}。要现在安装这个更新吗？",
+    "checkError": "无法检查可用更新，请稍后再试。",
+    "checking": "正在连接更新服务器，请稍候。",
+    "downloaded": "更新已经下载完成，可以安装并重新启动 EcoPaste。",
+    "downloading": "正在下载 EcoPaste {{version}}，请稍候。",
+    "error": "检查或安装更新时遇到问题。",
+    "idle": "检查 EcoPaste 是否有可用的新版本。",
+    "latest": "您当前使用的是最新版本 {{currentVersion}}。",
+    "updateError": "更新过程中遇到问题，请重新尝试。"
+  },
+  "options": {
+    "autoCheck": "以后自动检查更新"
+  },
+  "releaseNotes": {
+    "empty": "这个版本没有提供更新说明。",
+    "title": "更新说明："
+  },
+  "status": {
+    "available": "EcoPaste 有新版本可用！",
+    "checkError": "检查更新失败",
+    "checking": "正在检查更新...",
+    "downloaded": "可以开始安装了",
+    "downloading": "正在下载更新...",
+    "error": "更新失败",
+    "idle": "软件更新",
+    "latest": "EcoPaste 已是最新版本",
+    "updateError": "更新失败"
+  },
+  "title": {
+    "checking": "软件更新",
+    "downloading": "正在更新 EcoPaste",
+    "idle": "软件更新",
+    "ready": "正在更新 EcoPaste"
+  }
+}

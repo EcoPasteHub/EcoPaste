@@ -4,7 +4,7 @@
   "branch": null,
   "children": [],
   "commit": null,
-  "completedAt": null,
+  "completedAt": "2026-06-30",
   "createdAt": "2026-06-12",
   "creator": "ayangweb",
   "description": "",
@@ -19,7 +19,7 @@
   "priority": "P0",
   "relatedFiles": [],
   "scope": null,
-  "status": "planning",
+  "status": "completed",
   "subtasks": [],
   "title": "Auto Updater",
   "worktree_path": null

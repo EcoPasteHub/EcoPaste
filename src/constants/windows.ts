@@ -26,4 +26,8 @@ export const WINDOW_LABEL = {
    * 剪贴板系统级预览 overlay 窗口。
    */
   PREVIEW: "clipboard-preview",
+  /**
+   * 软件更新窗口。
+   */
+  UPDATE: "update",
 } as const;

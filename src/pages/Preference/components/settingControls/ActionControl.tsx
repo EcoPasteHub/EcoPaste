@@ -18,6 +18,7 @@ import {
   listClipboardGroups,
   openExternalUrl,
   openPreferenceDirectory,
+  openUpdateWindow,
   releaseWindowKeepalive,
   resetStorageLocation,
   type StorageLocation,
@@ -28,7 +29,6 @@ import { GITHUB_URL } from "@/constants/urls";
 import { WINDOW_LABEL } from "@/constants/windows";
 import { resetSettings } from "@/stores/settings";
 import type { ClipboardGroupRecord } from "@/types/clipboard";
-import { getMessageApi } from "@/utils/feedback";
 import { log } from "@/utils/log";
 import type { PreferenceSetting } from "../../types/preferences";
 import { translatePreferenceControlLabel } from "../../utils/preferenceI18n";
@@ -73,6 +73,7 @@ const WINDOW_LIFECYCLE_WINDOW_LABEL_KEYS: Record<string, string> = {
   [WINDOW_LABEL.MAIN]: `${WINDOW_LIFECYCLE_I18N_PREFIX}.windows.main`,
   [WINDOW_LABEL.PREFERENCE]: `${WINDOW_LIFECYCLE_I18N_PREFIX}.windows.preference`,
   [WINDOW_LABEL.PREVIEW]: `${WINDOW_LIFECYCLE_I18N_PREFIX}.windows.preview`,
+  [WINDOW_LABEL.UPDATE]: `${WINDOW_LIFECYCLE_I18N_PREFIX}.windows.update`,
 };
 
 interface ActionControlProps {
@@ -316,7 +317,8 @@ const ActionControl: FC<ActionControlProps> = (props) => {
 
   const handleClick = async () => {
     if (setting.id === ABOUT_CHECK_UPDATES_SETTING_ID) {
-      getMessageApi().info(t("preferences:about.checkUpdatesUnavailable"));
+      await runWithKeepalive("open-update-window", openUpdateWindow);
+      markActionComplete();
       return;
     }
 

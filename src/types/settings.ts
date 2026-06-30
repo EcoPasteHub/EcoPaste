@@ -203,6 +203,8 @@ export interface Update {
   autoCheck: boolean;
   frequency: UpdateFrequency;
   includeBeta: boolean;
+  lastCheckedAt: string | null;
+  skippedVersion: string | null;
 }
 
 export interface Settings {

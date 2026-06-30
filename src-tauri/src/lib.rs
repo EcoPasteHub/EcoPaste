@@ -15,6 +15,7 @@ mod mouse;
 mod settings;
 mod shortcut;
 mod tray;
+mod update;
 mod window;
 
 use tauri::{Manager, WindowEvent};
@@ -68,9 +69,19 @@ pub fn run() {
     #[cfg(target_os = "macos")]
     let builder = builder.plugin(tauri_plugin_macos_permissions::init());
 
+    let updater_plugin = match std::env::var("TAURI_UPDATER_PUBLIC_KEY")
+        .or_else(|_| std::env::var("TAURI_SIGNING_PUBLIC_KEY"))
+    {
+        Ok(pubkey) if !pubkey.trim().is_empty() => {
+            tauri_plugin_updater::Builder::new().pubkey(pubkey).build()
+        }
+        _ => tauri_plugin_updater::Builder::new().build(),
+    };
+
     builder
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(updater_plugin)
         .plugin(core::prevent_default::init())
         .invoke_handler(tauri::generate_handler![
             commands::read_clipboard,
@@ -118,6 +129,7 @@ pub fn run() {
             commands::get_window_lifecycle_snapshot,
             commands::open_preference_with_highlight,
             commands::take_pending_preference_highlight,
+            commands::open_update_window,
             commands::open_onboarding,
             commands::set_onboarding_step,
             commands::finish_onboarding,
@@ -148,6 +160,11 @@ pub fn run() {
             commands::get_autostart,
             commands::set_autostart,
             commands::is_launched_via_autostart,
+            commands::get_update_status,
+            commands::check_for_updates,
+            commands::download_update,
+            commands::install_update,
+            commands::skip_update_version,
             menu::clipboard_item::popup_clipboard_item_menu,
         ])
         .on_menu_event(|app, event| {
@@ -167,6 +184,7 @@ pub fn run() {
             handle.manage(window_state_store);
 
             handle.manage(window::lifecycle::WindowLifecycleManager::new());
+            update::init(&handle);
 
             let settings = settings::init(&handle).map_err(|err| {
                 log::error!("settings initialization failed: {err:?}");
@@ -214,6 +232,8 @@ pub fn run() {
                     log::error!("open onboarding window failed: {err:?}");
                 }
             }
+
+            update::schedule_auto_check(&handle);
 
             // Windows 冷启动文件关联：第一个实例从自身启动参数里取 `.ecopastebak` 路径。
             // 已运行时双击由 `single_instance` 回调处理；此处覆盖应用未启动时双击的冷启动场景，

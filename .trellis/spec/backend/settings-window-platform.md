@@ -201,3 +201,115 @@ existing command layer:
 Failures in side-effect refresh after a successful settings write are logged and
 do not roll back the persisted settings unless the called command itself is the
 direct user action, such as `set_autostart`.
+
+## Scenario: Auto Updater Window
+
+### 1. Scope / Trigger
+
+Adding or changing automatic update behavior touches Tauri plugin setup, Rust
+commands, stored update settings, Tauri window lifecycle, TypeScript command
+mirrors, and localized UI strings. Treat it as a cross-layer contract change,
+not a frontend-only preference action.
+
+### 2. Signatures
+
+- Window label:
+  - Rust `window::UPDATE_WINDOW_LABEL = "update"`
+  - TypeScript `WINDOW_LABEL.UPDATE = "update"`
+- Commands:
+  - `get_update_status() -> AppUpdateStatus`
+  - `check_for_updates() -> AppUpdateStatus`
+  - `download_update(version: String) -> UpdateMetadata`
+  - `install_update(version: String) -> ()`
+  - `skip_update_version(version: String) -> AppUpdateStatus`
+  - `open_update_window() -> ()`
+- Event:
+  - `update://progress` with `{ downloaded, total, progress }`
+- Settings fields:
+  - `update.autoCheck: bool`
+  - `update.includeBeta: bool`
+  - `update.frequency: daily | weekly | monthly`
+  - `update.lastCheckedAt: Option<String>`
+  - `update.skippedVersion: Option<String>`
+
+### 3. Contracts
+
+- Rust owns update checks, signature verification, downloaded bytes, install,
+  auto-check throttling, skipped-version persistence, and automatic update
+  window display.
+- `update::schedule_auto_check` must run for the whole app session: it performs
+  the initial delayed background check, then computes the next due time from
+  `update.lastCheckedAt + update.frequency` so the configured cadence is honored
+  even when EcoPaste stays open for days. The scheduler may cap long sleeps to
+  refresh settings, but network checks must still pass through Rust-side
+  `should_auto_check` throttling.
+- `update.skippedVersion` suppresses that exact version for both manual and
+  automatic checks; a newer different version is shown normally.
+- React renders `AppUpdateStatus` and sends user intent through command wrappers
+  only. Do not call updater plugin APIs directly from React components.
+- Stable endpoint default:
+  `https://github.com/EcoPasteHub/EcoPaste/releases/latest/download/latest.json`.
+- Optional environment overrides:
+  - `ECOPASTE_UPDATE_ENDPOINT`: stable channel endpoint.
+  - `ECOPASTE_UPDATE_BETA_ENDPOINT`: beta channel endpoint; checked before the
+    stable endpoint when `includeBeta` is true.
+  - `TAURI_UPDATER_PUBLIC_KEY` or `TAURI_SIGNING_PUBLIC_KEY`: public updater
+    verification key injected into the plugin at runtime.
+  - `TAURI_SIGNING_PRIVATE_KEY`: build-time private key used by Tauri bundling
+    to sign artifacts; never read it from app runtime code.
+
+### 4. Validation & Error Matrix
+
+- Invalid endpoint URL -> command error `update endpoint is invalid: ...`.
+- No configured endpoint or updater build failure -> command error from Rust
+  updater setup.
+- No pending update when downloading/installing -> `no update is ready`.
+- Version mismatch between UI request and Rust pending update ->
+  `the selected update is no longer current`.
+- Install before successful download -> `update is not downloaded`.
+- Signature mismatch -> propagated from `tauri-plugin-updater` download
+  verification; frontend should show the command error and remain in error
+  state.
+
+### 5. Good/Base/Bad Cases
+
+- Good: user opens About -> Check for Updates; Rust opens the `update` window,
+  checks stable/beta endpoint according to settings, downloads through Rust,
+  emits progress, verifies signature, then installs.
+- Base: no update is available; Rust clears pending update state and the window
+  renders the latest-version state.
+- Bad: React stores downloaded bytes, performs signature checks, or decides
+  auto-check frequency locally.
+
+### 6. Tests Required
+
+- Backend checks: `cargo clippy -- -D warnings` and `cargo test`.
+- Auto-check scheduling changes must verify that the background task loops after
+  the first check and still delegates frequency/auto-check gating to
+  `should_auto_check`.
+- Frontend checks: `pnpm tsc` and `pnpm lint`.
+- Packaging/build check: `pnpm build` for route and locale integration.
+- Manual update-server checks when release artifacts exist:
+  - mock endpoint returns newer signed version -> update found and install path
+    starts.
+  - mock endpoint returns bad signature -> download refuses install.
+  - `includeBeta=false` -> stable endpoint only.
+  - `includeBeta=true` -> beta endpoint is attempted before stable fallback.
+
+### 7. Wrong vs Correct
+
+Wrong:
+
+```tsx
+import { check } from "@tauri-apps/plugin-updater";
+
+await check();
+```
+
+Correct:
+
+```tsx
+import { checkForUpdates } from "@/commands";
+
+const status = await checkForUpdates();
+```
