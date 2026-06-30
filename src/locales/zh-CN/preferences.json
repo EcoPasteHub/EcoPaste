@@ -372,6 +372,7 @@
             "contextMenu": "右键菜单",
             "contextSubmenu": "右键子菜单",
             "main": "主窗口",
+            "onboarding": "首次启动引导",
             "preference": "偏好设置",
             "preview": "剪贴板预览",
             "update": "软件更新"

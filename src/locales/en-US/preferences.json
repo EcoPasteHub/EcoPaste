@@ -372,6 +372,7 @@
             "contextMenu": "Context menu",
             "contextSubmenu": "Context submenu",
             "main": "Main window",
+            "onboarding": "Onboarding",
             "preference": "Preferences",
             "preview": "Clipboard preview",
             "update": "Software update"

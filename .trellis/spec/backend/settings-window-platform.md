@@ -106,6 +106,15 @@ Window labels are constants in `window/mod.rs` and mirrored in
 - `main`
 - `preference`
 - `clipboard-preview`
+- `onboarding`
+- `update`
+- `context-menu`
+- `context-submenu`
+
+When a known window label is displayed in diagnostics UI, map it through
+`src/locales/*/preferences.json` instead of rendering the raw internal label.
+Keep raw-label fallback only for unknown or unregistered labels so diagnostics
+remain useful.
 
 Use `window::show_window`, `hide_window`, and `toggle_window` instead of direct
 webview calls. These functions restore/save geometry, apply main-window
