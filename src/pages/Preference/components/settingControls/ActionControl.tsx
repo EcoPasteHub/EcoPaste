@@ -25,6 +25,7 @@ import {
   type WindowLifecyclePhase,
   type WindowLifecycleSnapshot,
 } from "@/commands";
+import CustomIconButton from "@/components/CustomIconButton";
 import { GITHUB_URL } from "@/constants/urls";
 import { WINDOW_LABEL } from "@/constants/windows";
 import { resetSettings } from "@/stores/settings";
@@ -394,7 +395,7 @@ const ActionControl: FC<ActionControlProps> = (props) => {
       <ControlFrame>
         <Space.Compact>
           <Tooltip title={t("preferences:storageLocation.open")}>
-            <Button
+            <CustomIconButton
               disabled={disabled || loading}
               icon={<i aria-hidden="true" className="i-lucide:folder-open" />}
               loading={loading}
@@ -404,7 +405,7 @@ const ActionControl: FC<ActionControlProps> = (props) => {
           </Tooltip>
 
           <Tooltip title={t("preferences:storageLocation.change")}>
-            <Button
+            <CustomIconButton
               disabled={disabled || loading}
               icon={<i aria-hidden="true" className="i-lucide:folder-sync" />}
               loading={loading}
@@ -414,7 +415,7 @@ const ActionControl: FC<ActionControlProps> = (props) => {
           </Tooltip>
 
           <Tooltip title={t("preferences:storageLocation.reset")}>
-            <Button
+            <CustomIconButton
               disabled={disabled || loading || !canReset}
               icon={<i aria-hidden="true" className="i-lucide:rotate-ccw" />}
               loading={loading}

@@ -1,5 +1,5 @@
 import { open as openFileDialog } from "@tauri-apps/plugin-dialog";
-import { Button, Form, type GetRef, Input, Modal } from "antd";
+import { Form, type GetRef, Input, Modal } from "antd";
 import type { FC, MouseEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -7,6 +7,7 @@ import {
   importClipboardGroupSvg,
   setClipboardWindowAutoHideSuspended,
 } from "@/commands";
+import CustomIconButton from "@/components/CustomIconButton";
 import type {
   ClipboardGroupIcon as ClipboardGroupIconValue,
   ClipboardGroupInput,
@@ -216,7 +217,7 @@ const ClipboardGroupModal: FC<ClipboardGroupModalProps> = (props) => {
             </div>
 
             <div className="flex gap-2">
-              <Button
+              <CustomIconButton
                 className="flex-1"
                 icon={
                   <ClipboardGroupIcon
@@ -231,11 +232,16 @@ const ClipboardGroupModal: FC<ClipboardGroupModalProps> = (props) => {
                     ? "clipboard:groups.customIcon"
                     : "clipboard:groups.useCustomIcon",
                 )}
-              </Button>
+              </CustomIconButton>
 
               {customIconSelected ? (
-                <Button
-                  icon={<i className="i-lucide:trash-2 text-sm!" />}
+                <CustomIconButton
+                  icon={
+                    <i
+                      aria-hidden="true"
+                      className="i-lucide:trash-2 text-sm!"
+                    />
+                  }
                   onClick={removeCustomIcon}
                   title={t("clipboard:groups.removeIcon")}
                 />

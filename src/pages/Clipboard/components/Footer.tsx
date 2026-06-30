@@ -1,7 +1,7 @@
-import { Button } from "antd";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSnapshot } from "valtio";
+import CustomIconButton from "@/components/CustomIconButton";
 import KeyHint from "@/components/KeyHint";
 import Popover from "@/components/Popover";
 import { clipboardStatsState } from "@/stores/clipboardStats";
@@ -38,7 +38,7 @@ const Footer = () => {
         tooltip={t("footer.shortcuts")}
         trigger="click"
       >
-        <Button
+        <CustomIconButton
           icon={
             <KeyHint
               hintKey="K"

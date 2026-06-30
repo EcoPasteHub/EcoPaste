@@ -12,6 +12,7 @@ import {
 } from "@/commands";
 import ClipboardGroupIcon from "@/components/ClipboardGroupIcon";
 import ClipboardGroupModal from "@/components/ClipboardGroupModal";
+import CustomIconButton from "@/components/CustomIconButton";
 import Dropdown, { type DropdownMenuItems } from "@/components/Dropdown";
 import type {
   ClipboardGroupInput,
@@ -278,7 +279,7 @@ const ClipboardGroupTreeTitle: FC<ClipboardGroupTreeTitleProps> = (props) => {
           }}
           trigger={["click"]}
         >
-          <Button
+          <CustomIconButton
             className="size-6"
             icon={<i aria-hidden="true" className="i-lucide:more-horizontal" />}
             onClick={stopTreeInteraction}

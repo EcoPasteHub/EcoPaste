@@ -1,6 +1,5 @@
 import { useDebounceFn } from "ahooks";
 import type { MenuProps } from "antd";
-import { Button } from "antd";
 import type { ChangeEvent, FC } from "react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -10,6 +9,7 @@ import {
   setClipboardWindowPinned,
   showWindow,
 } from "@/commands";
+import CustomIconButton from "@/components/CustomIconButton";
 import Dropdown, {
   type AppDropdownProps,
   type DropdownMenuItems,
@@ -198,7 +198,7 @@ const Header: FC = () => {
         />
 
         <Tooltip title={t(pinned ? "header.unpin" : "header.pin")}>
-          <Button
+          <CustomIconButton
             icon={
               <KeyHint
                 hintKey="P"
@@ -217,7 +217,7 @@ const Header: FC = () => {
           tooltip={t("header.moreActions")}
           trigger={MORE_ACTION_TRIGGER}
         >
-          <Button
+          <CustomIconButton
             icon={
               <KeyHint
                 hintKey=","

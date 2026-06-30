@@ -51,6 +51,29 @@ className={cn("rounded-2 border border-ant-border-secondary", {
 Do not concatenate class strings manually or add arbitrary pixel utilities when
 Wind4 numeric spacing works.
 
+### Ant Design Button Custom Icons
+
+Use `src/components/CustomIconButton` whenever an Ant Design `Button` receives
+a custom icon node, such as an UnoCSS `<i>` icon, `KeyHint`, or
+`ClipboardGroupIcon`.
+
+```tsx
+<CustomIconButton
+  icon={<i aria-hidden="true" className="i-lucide:refresh-cw" />}
+  onClick={handleRefresh}
+  size="small"
+  type="text"
+/>
+```
+
+Plain text-only buttons can keep using `Button`. Non-button layout icons, such
+as onboarding hero icons or card badges, do not need this wrapper.
+
+Ant Design v6.5 only resets direct `svg` children inside `.ant-btn-icon`; it no
+longer gives the icon slot an inline-flex centering box. The wrapper restores
+the slot styling through `Button`'s `classNames.icon` semantic slot without
+adding extra DOM wrappers or global `.ant-*` overrides.
+
 ## Virtualized Scrollbars
 
 Use `src/components/VirtuosoScroller` when wiring OverlayScrollbars into
