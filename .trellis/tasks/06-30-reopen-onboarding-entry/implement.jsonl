@@ -1,0 +1,5 @@
+{"file":".trellis/spec/guides/index.md","reason":"Shared cross-layer guidance for commands, constants, and UI patterns."}
+{"file":".trellis/spec/frontend/index.md","reason":"Preference schema and UI component conventions for the action entry."}
+{"file":".trellis/spec/frontend/type-safety.md","reason":"TypeScript mirrors for command wrappers and preference schema additions."}
+{"file":".trellis/spec/backend/index.md","reason":"Rust command/window ownership boundaries for reusing onboarding open behavior."}
+{"file":".trellis/spec/backend/settings-window-platform.md","reason":"Window lifecycle and command contracts for onboarding and preference windows."}

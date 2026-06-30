@@ -17,6 +17,7 @@ import {
   inspectHistoryBackup,
   listClipboardGroups,
   openExternalUrl,
+  openOnboarding,
   openPreferenceDirectory,
   openUpdateWindow,
   releaseWindowKeepalive,
@@ -46,6 +47,7 @@ const DATA_DIRECTORY_SETTING_ID = "localData.dataDirectory";
 const EXPORT_BACKUP_SETTING_ID = "backup.exportHistory";
 const IMPORT_BACKUP_SETTING_ID = "backup.importHistory";
 const LOG_DIRECTORY_SETTING_ID = "localData.logDirectory";
+const REOPEN_ONBOARDING_SETTING_ID = "control.reopenOnboarding";
 const RESET_PREFERENCES_SETTING_ID = "diagnostics.resetPreferences";
 const WINDOW_LIFECYCLE_SETTING_ID = "diagnostics.windowLifecycle";
 const WINDOW_LIFECYCLE_I18N_PREFIX =
@@ -349,6 +351,12 @@ const ActionControl: FC<ActionControlProps> = (props) => {
 
     if (setting.id === DATA_DIRECTORY_SETTING_ID) {
       await openPreferenceDirectory("data");
+      markActionComplete();
+      return;
+    }
+
+    if (setting.id === REOPEN_ONBOARDING_SETTING_ID) {
+      await runWithKeepalive("reopen-onboarding", openOnboarding);
       markActionComplete();
       return;
     }

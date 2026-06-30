@@ -1,0 +1,4 @@
+{"file":".trellis/spec/guides/index.md","reason":"Shared cross-layer guidance for commands, constants, and UI patterns."}
+{"file":".trellis/spec/frontend/quality-guidelines.md","reason":"Frontend verification checklist for preference UI changes."}
+{"file":".trellis/spec/frontend/type-safety.md","reason":"Validate command wrappers and type mirrors for the onboarding action."}
+{"file":".trellis/spec/backend/settings-window-platform.md","reason":"Verify onboarding window lifecycle and command contracts."}

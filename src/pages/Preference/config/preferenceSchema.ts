@@ -663,6 +663,11 @@ export const preferenceTabs: PreferenceTab[] = [
               return settings.general.dockIcon;
             },
           },
+          {
+            control: { type: "action" },
+            id: "control.reopenOnboarding",
+            keywords: ["onboarding", "guide", "welcome", "help"],
+          },
         ],
       },
     ],
