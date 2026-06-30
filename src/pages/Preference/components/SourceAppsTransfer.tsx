@@ -1,5 +1,5 @@
 import { open } from "@tauri-apps/plugin-dialog";
-import { Button, Empty, Transfer } from "antd";
+import { Empty, Transfer } from "antd";
 import type { TransferKey } from "antd/es/transfer/interface";
 import type { TFunction } from "i18next";
 import type { FC } from "react";
@@ -11,6 +11,7 @@ import {
   deleteUnreferencedClipboardApps,
 } from "@/commands";
 import AssetImage from "@/components/AssetImage";
+import CustomIconButton from "@/components/CustomIconButton";
 import Tooltip from "@/components/Tooltip";
 import {
   mergeSourceApp,
@@ -136,7 +137,7 @@ const SourceAppsTransfer: FC<SourceAppsTransferProps> = (props) => {
       </span>
       <div className="flex shrink-0 items-center gap-1">
         <Tooltip title={t("schema.settings.source.appTransfer.refreshApps")}>
-          <Button
+          <CustomIconButton
             aria-label={t("schema.settings.source.appTransfer.refreshApps")}
             icon={<i aria-hidden="true" className="i-lucide:refresh-cw" />}
             loading={sourceApps.loading}
@@ -158,7 +159,7 @@ const SourceAppsTransfer: FC<SourceAppsTransferProps> = (props) => {
         <PreferenceCountTag>{targetCountLabel}</PreferenceCountTag>
       </span>
       <Tooltip title={t("schema.settings.source.appTransfer.addApp")}>
-        <Button
+        <CustomIconButton
           aria-label={t("schema.settings.source.appTransfer.addApp")}
           icon={<i aria-hidden="true" className="i-ph:plus-bold text-base" />}
           loading={adding}

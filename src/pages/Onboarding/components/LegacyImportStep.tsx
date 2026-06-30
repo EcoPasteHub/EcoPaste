@@ -1,5 +1,5 @@
 import { useMount, useUnmount } from "ahooks";
-import { Button, Checkbox, Empty } from "antd";
+import { Checkbox, Empty } from "antd";
 import type { FC } from "react";
 import { useEffect, useEffectEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -9,6 +9,7 @@ import {
   type LegacyImportSelection,
   type OnboardingLegacyDataDetection,
 } from "@/commands";
+import CustomIconButton from "@/components/CustomIconButton";
 import { log } from "@/utils/log";
 import type { OnboardingStepProps } from "../types";
 import OnboardingStepLayout from "./OnboardingStepLayout";
@@ -124,13 +125,13 @@ const LegacyImportStep: FC<OnboardingStepProps> = (props) => {
               {t("legacyImport.cardDescription")}
             </p>
           </div>
-          <Button
+          <CustomIconButton
             icon={<i aria-hidden="true" className="i-lucide:refresh-cw" />}
             loading={loading}
             onClick={handleRefreshClick}
           >
             {t("legacyImport.refresh")}
-          </Button>
+          </CustomIconButton>
         </div>
 
         {detection?.found ? (
