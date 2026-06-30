@@ -98,6 +98,8 @@ const LegacyImportStep: FC<OnboardingStepProps> = (props) => {
   const hasImportableData =
     detection?.importableItemCount !== void 0 &&
     detection.importableItemCount > 0;
+  const hasLegacyDataWithoutImportableItems =
+    detection?.found === true && !hasImportableData;
 
   useEffect(() => {
     onActionsChange?.({
@@ -135,23 +137,25 @@ const LegacyImportStep: FC<OnboardingStepProps> = (props) => {
         </div>
 
         {detection?.found ? (
-          <div className="rounded-2 border border-ant-border-secondary bg-ant-bg-layout/30 px-4 py-3 text-ant-secondary text-sm">
-            <span className="font-medium text-ant-text">
-              {t("legacyImport.summary.detectedValue")}
-            </span>
-            <span className="mx-2">·</span>
-            <span>
-              {t("legacyImport.summary.compactItems", {
-                count: detection.importableItemCount,
-              })}
-            </span>
-            <span className="mx-2">·</span>
-            <span>
-              {t("legacyImport.summary.compactSize", {
-                size: formatBytes(detection.totalBytes),
-              })}
-            </span>
-          </div>
+          <>
+            <div className="rounded-2 border border-ant-border-secondary bg-ant-bg-layout/30 px-4 py-3 text-ant-secondary text-sm">
+              <span className="font-medium text-ant-text">
+                {t("legacyImport.summary.detectedValue")}
+              </span>
+              <span className="mx-2">·</span>
+              <span>
+                {t("legacyImport.summary.compactItems", {
+                  count: detection.importableItemCount,
+                })}
+              </span>
+            </div>
+
+            {hasLegacyDataWithoutImportableItems ? (
+              <p className="m-0 rounded-2 border border-ant-border-secondary/70 bg-ant-bg-layout/30 px-4 py-3 text-ant-secondary text-sm">
+                {t("legacyImport.noImportableNote")}
+              </p>
+            ) : null}
+          </>
         ) : (
           <Empty
             description={
@@ -200,18 +204,3 @@ const LegacyImportStep: FC<OnboardingStepProps> = (props) => {
 };
 
 export default LegacyImportStep;
-
-function formatBytes(bytes: number) {
-  if (bytes < 1024) return `${bytes} B`;
-
-  const units = ["KB", "MB", "GB", "TB"];
-  let value = bytes / 1024;
-  let unitIndex = 0;
-
-  while (value >= 1024 && unitIndex < units.length - 1) {
-    value /= 1024;
-    unitIndex += 1;
-  }
-
-  return `${value.toFixed(value >= 10 ? 1 : 2)} ${units[unitIndex]}`;
-}
