@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 8
+- **Total Sessions**: 9
 - **Last Active**: 2026-06-30
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~274 | Active |
+| `journal-1.md` | ~307 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 9 | 2026-06-30 | Fix Divider deprecation warning | `907c995d` | `fix/divider-deprecation-warning` |
 | 8 | 2026-06-30 | Localize window lifecycle onboarding label | `18f45f7e` | `fix/i18n-window-lifecycle-name` |
 | 7 | 2026-06-30 | Auto updater implementation | `c06ef06b` | `feat/auto-updater` |
 | 6 | 2026-06-29 | Archive completed onboarding tasks | - | `codex/remove-obsolete-trellis-tasks` |

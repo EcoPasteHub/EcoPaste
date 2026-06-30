@@ -272,3 +272,36 @@ Localized the onboarding window name in the Preferences diagnostics lifecycle ta
 ### Next Steps
 
 - None - task complete
+
+
+## Session 9: Fix Divider deprecation warning
+
+**Date**: 2026-06-30
+**Task**: Fix Divider deprecation warning
+**Branch**: `fix/divider-deprecation-warning`
+
+### Summary
+
+Replaced deprecated Ant Design Divider type prop with orientation in the preference switch control, then committed and pushed the fix branch.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `907c995d` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
