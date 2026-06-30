@@ -505,12 +505,12 @@
       },
       "shortcuts": {
         "openClipboard": {
-          "description": "在任意应用中打开或隐藏剪贴板窗口。",
+          "description": "打开或隐藏剪贴板窗口。",
           "placeholder": "Alt+C",
           "title": "打开剪贴板窗口"
         },
         "openPreference": {
-          "description": "在任意应用中打开或隐藏偏好设置窗口。",
+          "description": "打开或隐藏偏好设置窗口。",
           "placeholder": "Alt+X",
           "title": "打开偏好设置窗口"
         },

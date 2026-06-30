@@ -92,11 +92,11 @@
     "description": "设置常用快捷键，之后也可以在偏好设置中随时修改。",
     "items": {
       "openClipboard": {
-        "description": "随时唤起剪贴板窗口。",
+        "description": "打开或隐藏剪贴板窗口。",
         "title": "打开剪贴板窗口"
       },
       "openPreference": {
-        "description": "快速打开偏好设置窗口。",
+        "description": "打开或隐藏偏好设置窗口。",
         "title": "打开偏好设置窗口"
       }
     },

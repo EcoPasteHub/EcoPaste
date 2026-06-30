@@ -505,12 +505,12 @@
       },
       "shortcuts": {
         "openClipboard": {
-          "description": "Open or hide the clipboard window from any app.",
+          "description": "Open or hide the clipboard window.",
           "placeholder": "Alt+C",
           "title": "Open Clipboard Window"
         },
         "openPreference": {
-          "description": "Open or hide the preferences window from any app.",
+          "description": "Open or hide the preferences window.",
           "placeholder": "Alt+X",
           "title": "Open Preferences Window"
         },
