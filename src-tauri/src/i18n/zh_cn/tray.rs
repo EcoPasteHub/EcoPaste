@@ -7,6 +7,7 @@ pub fn label(key: Key) -> &'static str {
         Key::StartListening => "开启监听",
         Key::StopListening => "停止监听",
         Key::OpenSourceAddress => "开源地址",
+        Key::CheckForUpdates => "检查更新",
         Key::Version => "版本",
         Key::Relaunch => "重启应用",
         Key::Exit => "退出应用",

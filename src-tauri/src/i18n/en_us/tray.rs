@@ -7,6 +7,7 @@ pub fn label(key: Key) -> &'static str {
         Key::StartListening => "Start Listening",
         Key::StopListening => "Stop Listening",
         Key::OpenSourceAddress => "Open Source Address",
+        Key::CheckForUpdates => "Check for Updates",
         Key::Version => "Version",
         Key::Relaunch => "Relaunch",
         Key::Exit => "Exit",

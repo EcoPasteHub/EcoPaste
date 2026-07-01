@@ -29,6 +29,7 @@ const GITHUB_URL: &str = "https://github.com/EcoPasteHub/EcoPaste";
 const MENU_PREFERENCE: &str = "tray::preference";
 const MENU_TOGGLE_LISTEN: &str = "tray::toggle_listen";
 const MENU_OPEN_SOURCE: &str = "tray::open_source";
+const MENU_CHECK_FOR_UPDATES: &str = "tray::check_for_updates";
 const MENU_RELAUNCH: &str = "tray::relaunch";
 const MENU_EXIT: &str = "tray::exit";
 
@@ -164,6 +165,14 @@ fn build_menu(
         None::<&str>,
     )
     .context("build open_source menu item")?;
+    let check_for_updates = MenuItem::with_id(
+        app,
+        MENU_CHECK_FOR_UPDATES,
+        tray_i18n::label(lang, Key::CheckForUpdates),
+        true,
+        None::<&str>,
+    )
+    .context("build check_for_updates menu item")?;
     let version_item = MenuItem::with_id(
         app,
         "tray::version",
@@ -197,6 +206,7 @@ fn build_menu(
             &toggle_listen,
             &sep1,
             &open_source,
+            &check_for_updates,
             &sep2,
             &version_item,
             &relaunch,
@@ -227,6 +237,11 @@ fn handle_menu_event(app: &AppHandle, id: &str) {
         MENU_OPEN_SOURCE => {
             if let Err(err) = app.opener().open_url(GITHUB_URL, None::<&str>) {
                 log::error!("tray open url failed: {err:?}");
+            }
+        }
+        MENU_CHECK_FOR_UPDATES => {
+            if let Err(err) = window::show_window(app, window::UPDATE_WINDOW_LABEL) {
+                log::error!("tray open update window failed: {err:?}");
             }
         }
         MENU_RELAUNCH => app.restart(),
