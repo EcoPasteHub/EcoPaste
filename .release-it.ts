@@ -35,10 +35,10 @@ const config = {
       preset: {
         name: "conventionalcommits",
         types: [
-          { section: "🚀 Features", type: "feat" },
-          { section: "🐞 Bug Fixes", type: "fix" },
-          { section: "🏎️ Performance", type: "perf" },
-          { section: "⏪ Reverts", type: "revert" },
+          { section: "✨ Features", type: "feat" },
+          { section: "🐛 Bug Fixes", type: "fix" },
+          { section: "⚡️ Performance", type: "perf" },
+          { section: "⏪️ Reverts", type: "revert" },
         ],
       },
     },
