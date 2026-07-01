@@ -73,8 +73,6 @@ winapi = { version = "0.3", features = [
     "minwindef",
     "windef",
 ] }
-# 文本 drag-out 需要自实现 IDataObject(CF_UNICODETEXT)；drag crate 的 DragItem::Data
-# 在 Windows 是 dummy（永远拖一个 "./" 目录）。与 drag crate 的 windows 0.52 对齐。
 windows = { version = "0.52", features = [
     "Win32_Foundation",
     "Win32_System_Com",
