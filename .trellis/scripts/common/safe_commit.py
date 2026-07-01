@@ -58,7 +58,10 @@ TRELLIS_IGNORED_SUBPATHS = (
 )
 
 
-def safe_trellis_paths_to_add(repo_root: Path) -> list[str]:
+def safe_trellis_paths_to_add(
+    repo_root: Path,
+    task_name: str | None = None,
+) -> list[str]:
     """Return the list of repo-relative paths the auto-commit should stage.
 
     Only includes paths that exist on disk so callers don't pass non-existent
@@ -68,12 +71,23 @@ def safe_trellis_paths_to_add(repo_root: Path) -> list[str]:
     Included:
       - .trellis/workspace/<developer>/journal-*.md
       - .trellis/workspace/<developer>/index.md
-      - .trellis/tasks/<task-dir>/   (every active task directory)
-      - .trellis/tasks/archive/      (whole archive subtree, if present)
+      - .trellis/tasks/<task_name>/   (ONLY the current task dir when
+        ``task_name`` is passed; plus its archive location if the task
+        already lives under archive/)
 
     Excluded (intentionally — these must not be staged):
       - .trellis/.backup-*, .trellis/worktrees/,
         .trellis/.template-hashes.json, .trellis/.runtime/, .trellis/.cache/
+
+    Scope contract (see #303 / break-loop analysis): when ``task_name`` is
+    passed, the task segment stages ONLY that task directory — it never walks
+    ``tasks_dir.iterdir()`` over all active tasks. This mirrors
+    :func:`safe_archive_paths_to_add` and prevents dirty changes in OTHER
+    parallel-window task dirs from being bundled into the session auto-commit.
+
+    Backwards-compat: with no ``task_name``, the function walks every active
+    task directory (+ the archive subtree) the old wide way. New callers
+    should always pass ``task_name``.
     """
     paths: list[str] = []
 
@@ -93,20 +107,36 @@ def safe_trellis_paths_to_add(repo_root: Path) -> list[str]:
                     f"{DIR_WORKFLOW}/{DIR_WORKSPACE}/{developer}/index.md"
                 )
 
-    # Active tasks: each direct child of tasks/ that is a directory and not
-    # the archive root. The archive subtree is added as a single path below.
     tasks_dir = repo_root / DIR_WORKFLOW / DIR_TASKS
-    if tasks_dir.is_dir():
-        for child in sorted(tasks_dir.iterdir()):
-            if not child.is_dir():
-                continue
-            if child.name == DIR_ARCHIVE:
-                continue
-            paths.append(f"{DIR_WORKFLOW}/{DIR_TASKS}/{child.name}")
+    if not tasks_dir.is_dir():
+        return paths
 
-        archive_dir = tasks_dir / DIR_ARCHIVE
-        if archive_dir.is_dir():
-            paths.append(f"{DIR_WORKFLOW}/{DIR_TASKS}/{DIR_ARCHIVE}")
+    if task_name is not None:
+        # Narrow scope — ONLY the current task directory (active or archived).
+        # Never iterdir() all tasks: parallel-window dirty task dirs must not
+        # leak into the session auto-commit.
+        active_task = tasks_dir / task_name
+        if active_task.is_dir():
+            paths.append(f"{DIR_WORKFLOW}/{DIR_TASKS}/{task_name}")
+        archived_task = tasks_dir / DIR_ARCHIVE / task_name
+        if archived_task.is_dir():
+            paths.append(
+                f"{DIR_WORKFLOW}/{DIR_TASKS}/{DIR_ARCHIVE}/{task_name}"
+            )
+        return paths
+
+    # Legacy wide scope (no task_name): each direct child of tasks/ that is a
+    # directory and not the archive root, plus the whole archive subtree.
+    for child in sorted(tasks_dir.iterdir()):
+        if not child.is_dir():
+            continue
+        if child.name == DIR_ARCHIVE:
+            continue
+        paths.append(f"{DIR_WORKFLOW}/{DIR_TASKS}/{child.name}")
+
+    archive_dir = tasks_dir / DIR_ARCHIVE
+    if archive_dir.is_dir():
+        paths.append(f"{DIR_WORKFLOW}/{DIR_TASKS}/{DIR_ARCHIVE}")
 
     return paths
 

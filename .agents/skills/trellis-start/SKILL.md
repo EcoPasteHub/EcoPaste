@@ -5,7 +5,7 @@ description: "Initializes an AI development session by reading workflow guides, 
 
 # Start Session
 
-Initialize a Trellis-managed development session. This platform has no session-start hook, so manually load the equivalent context by following these steps (each one mirrors a section the hook would otherwise inject).
+Initialize a Trellis-managed development session. This platform has no session-start hook, so manually load the equivalent compact context by following these steps.
 
 ---
 
@@ -19,7 +19,7 @@ python3 ./.trellis/scripts/get_context.py
 If this output includes a line beginning `Trellis update available:`, copy the full line verbatim when summarizing session context. Do not shorten operational command hints.
 
 ## Step 2: Workflow overview
-Phase Index + skill routing table + DO-NOT-skip rules.
+Compact Phase Index, request triage rules, planning artifact contract, and the step-detail command.
 
 ```bash
 python3 ./.trellis/scripts/get_context.py --mode phase
@@ -39,14 +39,15 @@ cat .trellis/spec/<package>/<layer>/index.md   # for each relevant layer
 Index files list the specific guideline docs to read when you actually start coding.
 
 ## Step 4: Decide next action
-From Step 1 you know the current task. Check the task directory:
+From Step 1 you know the current task and status. Check the task directory:
 
-- **Active task + `prd.md` exists** → Phase 2 step 2.1. Load the step detail:
+- **Active task status `planning` + no `prd.md`** → Phase 1.1. Load the `trellis-brainstorm` skill.
+- **Active task status `planning` + `prd.md` exists** → stay in Phase 1. Lightweight tasks can be PRD-only; complex tasks need `design.md` + `implement.md`. Load the relevant Phase 1 step detail before `task.py start`.
+- **Active task status `in_progress`** → Phase 2 step 2.1. Load the step detail:
   ```bash
   python3 ./.trellis/scripts/get_context.py --mode phase --step 2.1 --platform codex
   ```
-- **Active task + no `prd.md`** → Phase 1.1. Load the `trellis-brainstorm` skill.
-- **No active task** → when the user describes multi-step work, load the `trellis-brainstorm` skill to clarify requirements, then create a task via `task.py create`. For simple one-off questions or trivial edits, skip this and just answer directly — no task needed.
+- **No active task** → classify first. For simple conversation / small task, ask only whether this turn should create a Trellis task. For complex work, ask whether you may create a Trellis task and enter planning. If the user says no, skip Trellis for this session.
 
 ---
 
