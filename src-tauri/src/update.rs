@@ -12,10 +12,8 @@ use crate::settings::{SettingsStore, Update as UpdateSettings, UpdateFrequency};
 const UPDATE_PROGRESS_EVENT: &str = "update://progress";
 const STABLE_ENDPOINT_ENV: &str = "ECOPASTE_UPDATE_ENDPOINT";
 const BETA_ENDPOINT_ENV: &str = "ECOPASTE_UPDATE_BETA_ENDPOINT";
-const DEFAULT_STABLE_ENDPOINT: &str =
-    "https://github.com/EcoPasteHub/EcoPaste/releases/latest/download/latest.json";
-const DEFAULT_BETA_ENDPOINT: &str =
-    "https://github.com/EcoPasteHub/EcoPaste/releases/download/beta/latest.json";
+const DEFAULT_STABLE_ENDPOINT: &str = "https://releases.ecopaste.cn/update?channel=stable";
+const DEFAULT_BETA_ENDPOINT: &str = "https://releases.ecopaste.cn/update?channel=beta";
 const AUTO_CHECK_INITIAL_DELAY_SECONDS: u64 = 8;
 const AUTO_CHECK_SETTINGS_REFRESH_SECONDS: u64 = 60 * 60;
 const AUTO_CHECK_FAILURE_RETRY_SECONDS: u64 = 60 * 60;
