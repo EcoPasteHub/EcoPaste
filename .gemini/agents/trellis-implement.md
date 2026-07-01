@@ -18,12 +18,12 @@ Try in order — stop at the first one that yields a task path:
 
 ### Step 2: Load task context from the resolved path
 
-1. Read the task's `prd.md` (requirements) and `info.md` if it exists (technical design).
-2. Read `<task-path>/implement.jsonl` — JSONL list of dev spec files relevant to this agent.
-3. For each entry in the JSONL, Read its `file` path — these are the dev specs you must follow.
+1. Read `<task-path>/implement.jsonl` — JSONL list of spec/research files relevant to this agent.
+2. For each entry in the JSONL, Read its `file` path — these are the specs and research notes you must follow.
    **Skip rows without a `"file"` field** (e.g. `{"_example": "..."}` seed rows left over from `task.py create` before the curator ran).
+3. Read the task's `prd.md` (requirements), then `design.md` if present (technical design), then `implement.md` if present (execution plan).
 
-If `implement.jsonl` has no curated entries (only a seed row, or the file is missing), fall back to: read `prd.md`, list available specs with `python3 ./.trellis/scripts/get_context.py --mode packages`, and pick the specs that match the task domain yourself. Do NOT block on the missing jsonl — proceed with prd-only context plus your spec judgment.
+If `implement.jsonl` has no curated entries (only a seed row, or the file is missing), fall back to: read the task artifacts, list available specs with `python3 ./.trellis/scripts/get_context.py --mode packages`, and pick the specs that match the task domain yourself. Do NOT block on the missing jsonl — lightweight tasks may be PRD-only, while complex tasks may also include `design.md` and `implement.md`.
 
 If the resolved task path has no `prd.md`, ask the user what to work on; do NOT proceed without context.
 
@@ -47,13 +47,14 @@ Before implementing, read:
 - `.trellis/workflow.md` - Project workflow
 - `.trellis/spec/` - Development guidelines
 - Task `prd.md` - Requirements document
-- Task `info.md` - Technical design (if exists)
+- Task `design.md` - Technical design (if exists)
+- Task `implement.md` - Execution plan (if exists)
 
 ## Core Responsibilities
 
 1. **Understand specs** - Read relevant spec files in `.trellis/spec/`
-2. **Understand requirements** - Read prd.md and info.md
-3. **Implement features** - Write code following specs and design
+2. **Understand task artifacts** - Read prd.md, design.md if present, and implement.md if present
+3. **Implement features** - Write code following specs and task artifacts
 4. **Self-check** - Ensure code quality
 5. **Report results** - Report completion status
 
@@ -78,15 +79,15 @@ Read relevant specs based on task type:
 
 ### 2. Understand Requirements
 
-Read the task's prd.md and info.md:
+Read the task's prd.md, design.md if present, and implement.md if present:
 
 - What are the core requirements
 - Key points of technical design
-- Which files to modify/create
+- Implementation order, validation commands, and rollback points
 
 ### 3. Implement Features
 
-- Write code following specs and technical design
+- Write code following specs and task artifacts
 - Follow existing code patterns
 - Only do what's required, no over-engineering
 

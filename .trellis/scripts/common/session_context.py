@@ -412,7 +412,7 @@ def _get_update_hint(repo_root: Path) -> str | None:
 
     return (
         f"Trellis update available: {current_version} -> {latest_version}, "
-        f"run npm install -g {_PACKAGE_NAME}@latest"
+        "run trellis upgrade"
     )
 
 

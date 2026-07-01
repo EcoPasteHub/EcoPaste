@@ -115,7 +115,7 @@ def _repo_relative_path(path: Path, repo_root: Path) -> str:
 # Keep in sync with src/types/ai-tools.ts AI_TOOLS entries — these are the
 # platforms listed in workflow.md's "agent-capable" Skill Routing block
 # (Class-1 hook-inject + Class-2 pull-based preludes). Kilo / Antigravity /
-# Windsurf are NOT in this list: they do not consume JSONL.
+# Devin are NOT in this list: they do not consume JSONL.
 _SUBAGENT_CONFIG_DIRS: tuple[str, ...] = (
     ".claude",
     ".cursor",
@@ -128,6 +128,7 @@ _SUBAGENT_CONFIG_DIRS: tuple[str, ...] = (
     ".factory",   # Factory Droid
     ".github/copilot",
     ".pi",        # Pi Agent
+    ".trae",      # Trae IDE
 )
 
 _SEED_EXAMPLE = (
@@ -160,6 +161,32 @@ def _write_seed_jsonl(path: Path) -> None:
     """
     seed = {"_example": _SEED_EXAMPLE}
     path.write_text(json.dumps(seed, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+def _default_prd_content(title: str, description: str | None = None) -> str:
+    """Return the default PRD skeleton created with every task."""
+    goal = (description or "").strip() or "TBD."
+    heading = title.strip() or "Untitled task"
+    return f"""# {heading}
+
+## Goal
+
+{goal}
+
+## Requirements
+
+- TBD
+
+## Acceptance Criteria
+
+- [ ] TBD
+
+## Notes
+
+- Keep `prd.md` focused on requirements, constraints, and acceptance criteria.
+- Lightweight tasks can remain PRD-only.
+- For complex tasks, add `design.md` for technical design and `implement.md` for execution planning before `task.py start`.
+"""
 
 
 # =============================================================================
@@ -264,9 +291,16 @@ def cmd_create(args: argparse.Namespace) -> int:
 
     write_json(task_json_path, task_data)
 
+    prd_path = task_dir / "prd.md"
+    if not prd_path.exists():
+        prd_path.write_text(
+            _default_prd_content(args.title, args.description),
+            encoding="utf-8",
+        )
+
     # Seed implement.jsonl / check.jsonl for sub-agent-capable platforms.
-    # Agent curates real entries in Phase 1.3 (see .trellis/workflow.md).
-    # Agent-less platforms (Kilo / Antigravity / Windsurf) skip this — they
+    # Agent curates real entries during planning when the task needs them.
+    # Agent-less platforms (Kilo / Antigravity / Devin) skip this — they
     # load specs via the trellis-before-dev skill instead of JSONL.
     seeded_jsonl = False
     if _has_subagent_platform(repo_root):
@@ -317,16 +351,15 @@ def cmd_create(args: argparse.Namespace) -> int:
     print(colored(f"Created task: {dir_name}", Colors.GREEN), file=sys.stderr)
     print("", file=sys.stderr)
     print(colored("Next steps:", Colors.BLUE), file=sys.stderr)
-    print("  1. Create prd.md with requirements", file=sys.stderr)
+    print("  - Fill prd.md with requirements and acceptance criteria", file=sys.stderr)
+    print("  - Lightweight task: PRD-only is valid", file=sys.stderr)
+    print("  - Complex task: add design.md and implement.md before task.py start", file=sys.stderr)
     if seeded_jsonl:
         print(
-            "  2. Curate implement.jsonl / check.jsonl (spec + research files only — "
-            "see .trellis/workflow.md Phase 1.3)",
+            "  - Curate implement.jsonl / check.jsonl as spec/research manifests when sub-agents need context",
             file=sys.stderr,
         )
-        print("  3. Run: python3 task.py start <dir>", file=sys.stderr)
-    else:
-        print("  2. Run: python3 task.py start <dir>", file=sys.stderr)
+    print("  - Use /trellis:continue or phase context to decide the next step", file=sys.stderr)
     print("", file=sys.stderr)
 
     # Output relative path for script chaining
@@ -410,7 +443,16 @@ def cmd_archive(args: argparse.Namespace) -> int:
 
         # Auto-commit unless --no-commit
         if not getattr(args, "no_commit", False):
-            _auto_commit_archive(dir_name, repo_root, modified_children)
+            if not _auto_commit_archive(dir_name, repo_root, modified_children):
+                print(
+                    colored(
+                        "Archive moved on disk, but git auto-commit did not complete. "
+                        "Resolve `git status` before continuing.",
+                        Colors.RED,
+                    ),
+                    file=sys.stderr,
+                )
+                return 1
 
         # Return the archive path
         print(f"{DIR_WORKFLOW}/{DIR_TASKS}/{DIR_ARCHIVE}/{year_month}/{dir_name}")
@@ -427,7 +469,7 @@ def _auto_commit_archive(
     task_name: str,
     repo_root: Path,
     modified_children: list[str] | None = None,
-) -> None:
+) -> bool:
     """Stage Trellis-owned task paths and commit after archive.
 
     Scoped narrowly to the archived task's source + destination paths
@@ -449,14 +491,21 @@ def _auto_commit_archive(
             "[OK] session_auto_commit: false — skipping git stage/commit.",
             file=sys.stderr,
         )
-        return
+        return True
+
+    source_rel = f"{DIR_WORKFLOW}/{DIR_TASKS}/{task_name}"
+    rc, tracked_out, _ = run_git(
+        ["ls-files", "--", source_rel],
+        cwd=repo_root,
+    )
+    source_was_tracked = rc == 0 and bool(tracked_out.strip())
 
     paths = safe_archive_paths_to_add(
         repo_root, task_name=task_name, modified_children=modified_children
     )
     if not paths:
         print("[OK] No task changes to commit.", file=sys.stderr)
-        return
+        return True
 
     success, _, err = safe_git_add(paths, repo_root)
     if not success:
@@ -467,7 +516,7 @@ def _auto_commit_archive(
                 f"[WARN] git add failed: {err.strip() if err else 'unknown error'}",
                 file=sys.stderr,
             )
-        return
+        return not source_was_tracked
 
     # Belt-and-suspenders for the phantom-delete bug: `safe_git_add` uses
     # `git add` (no -A) which only stages additions/modifications. The
@@ -478,7 +527,6 @@ def _auto_commit_archive(
     #
     # `--ignore-unmatch` makes this a no-op when the task was never tracked
     # (e.g. archiving a task that lived only in working tree).
-    source_rel = f"{DIR_WORKFLOW}/{DIR_TASKS}/{task_name}"
     run_git(
         ["rm", "-r", "--cached", "--ignore-unmatch", "--", source_rel],
         cwd=repo_root,
@@ -490,14 +538,16 @@ def _auto_commit_archive(
     )
     if rc == 0:
         print("[OK] No task changes to commit.", file=sys.stderr)
-        return
+        return True
 
     commit_msg = f"chore(task): archive {task_name}"
     rc, _, err = run_git(["commit", "-m", commit_msg], cwd=repo_root)
     if rc == 0:
         print(f"[OK] Auto-committed: {commit_msg}", file=sys.stderr)
+        return True
     else:
         print(f"[WARN] Auto-commit failed: {err.strip()}", file=sys.stderr)
+        return not source_was_tracked
 
 
 # =============================================================================

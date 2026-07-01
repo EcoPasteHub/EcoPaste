@@ -1,0 +1,14 @@
+{
+  "version": "1.0.0",
+  "enabled": true,
+  "name": "trellis-workflow-state",
+  "description": "Inject Trellis workflow state on each prompt",
+  "when": {
+    "type": "promptSubmit"
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "python3 .kiro/hooks/inject-workflow-state.py",
+    "timeout": 30
+  }
+}

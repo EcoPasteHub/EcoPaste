@@ -28,6 +28,8 @@ from datetime import datetime
 from pathlib import Path
 
 from common.paths import (
+    DIR_TASKS,
+    DIR_WORKFLOW,
     FILE_JOURNAL_PREFIX,
     get_repo_root,
     get_current_task,
@@ -319,12 +321,14 @@ def update_index(
 # =============================================================================
 
 def _auto_commit_workspace(repo_root: Path) -> None:
-    """Stage Trellis-owned workspace + task paths and commit.
+    """Stage Trellis-owned workspace + current-task paths and commit.
 
-    Path scope is restricted to specific products (journal files, index.md,
-    active task dirs, the archive subtree). We never `git add` the whole
-    `.trellis/` tree, and if `.gitignore` blocks the specific paths we
-    warn + skip — never retry with ``-f``.
+    Path scope is restricted to specific products: the current developer's
+    journal files + index.md, and ONLY the current task directory (resolved
+    via ``get_current_task``). We never `git add` the whole `.trellis/` tree
+    or iterate over all active task dirs (#303: parallel-window dirty task
+    dirs must not be bundled into the session auto-commit). If `.gitignore`
+    blocks the specific paths we warn + skip — never retry with ``-f``.
 
     Honors ``session_auto_commit`` in ``.trellis/config.yaml``: when set to
     ``false``, this function returns immediately without touching git
@@ -338,7 +342,23 @@ def _auto_commit_workspace(repo_root: Path) -> None:
         return
 
     commit_msg = get_session_commit_message(repo_root)
-    paths = safe_trellis_paths_to_add(repo_root)
+    # Resolve the current task so staging is scoped to its dir only. The ref
+    # is ``.trellis/tasks/<name>`` (or under archive/) — pass the bare name.
+    current = get_current_task(repo_root)
+    if current:
+        task_name = Path(current).name
+        paths = safe_trellis_paths_to_add(repo_root, task_name=task_name)
+    else:
+        # Current task unknown (0 or >=2 parallel sessions — exactly the
+        # parallel-window case #303 is about). Do NOT fall back to the wide
+        # `tasks_dir.iterdir()` scan; that would re-leak other tasks' dirty
+        # dirs into the session commit. Stage only the developer's journal/
+        # index and skip every task dir.
+        paths = [
+            p
+            for p in safe_trellis_paths_to_add(repo_root, task_name=None)
+            if not p.startswith(f"{DIR_WORKFLOW}/{DIR_TASKS}/")
+        ]
     if not paths:
         print("[OK] No workspace changes to commit.", file=sys.stderr)
         return

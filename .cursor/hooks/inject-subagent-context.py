@@ -16,7 +16,8 @@ Context Source: Trellis active task resolver points to task directory
 - implement.jsonl - Implement agent dedicated context
 - check.jsonl     - Check agent dedicated context
 - prd.md          - Requirements document
-- info.md         - Technical design
+- design.md       - Technical design for complex tasks
+- implement.md    - Execution plan for complex tasks
 - codex-review-output.txt - Code Review results
 """
 from __future__ import annotations
@@ -207,7 +208,7 @@ def read_jsonl_entries(base_path: str, jsonl_path: str) -> list[tuple[str, str]]
     if not os.path.exists(full_path):
         print(
             f"[inject-subagent-context] WARN: {jsonl_path} not found — "
-            f"sub-agent will receive only prd.md",
+            f"sub-agent will receive only task artifacts",
             file=sys.stderr,
         )
         return []
@@ -248,7 +249,7 @@ def read_jsonl_entries(base_path: str, jsonl_path: str) -> list[tuple[str, str]]
         print(
             f"[inject-subagent-context] WARN: {jsonl_path} has no curated "
             f"entries (only seed / empty) — sub-agent will receive only "
-            f"prd.md. See workflow.md Phase 1.3 for curation guidance.",
+            f"task artifacts. See workflow.md planning artifact guidance.",
             file=sys.stderr,
         )
 
@@ -276,9 +277,10 @@ def get_implement_context(repo_root: str, task_dir: str) -> str:
     Complete context for Implement Agent
 
     Read order:
-    1. All files in implement.jsonl (dev specs)
+    1. All files in implement.jsonl (spec/research manifests)
     2. prd.md (requirements)
-    3. info.md (technical design)
+    3. design.md if present (technical design)
+    4. implement.md if present (execution plan)
     """
     context_parts = []
 
@@ -292,11 +294,18 @@ def get_implement_context(repo_root: str, task_dir: str) -> str:
     if prd_content:
         context_parts.append(f"=== {task_dir}/prd.md (Requirements) ===\n{prd_content}")
 
-    # 3. Technical design
-    info_content = read_file_content(repo_root, f"{task_dir}/info.md")
-    if info_content:
+    # 3. Technical design for complex tasks
+    design_content = read_file_content(repo_root, f"{task_dir}/design.md")
+    if design_content:
         context_parts.append(
-            f"=== {task_dir}/info.md (Technical Design) ===\n{info_content}"
+            f"=== {task_dir}/design.md (Technical Design) ===\n{design_content}"
+        )
+
+    # 4. Execution plan for complex tasks
+    implement_plan_content = read_file_content(repo_root, f"{task_dir}/implement.md")
+    if implement_plan_content:
+        context_parts.append(
+            f"=== {task_dir}/implement.md (Execution Plan) ===\n{implement_plan_content}"
         )
 
     return "\n\n".join(context_parts)
@@ -304,7 +313,7 @@ def get_implement_context(repo_root: str, task_dir: str) -> str:
 
 def get_check_context(repo_root: str, task_dir: str) -> str:
     """
-    Context for Check Agent: check.jsonl + prd.md
+    Context for Check Agent: check.jsonl + task artifacts.
     """
     context_parts = []
 
@@ -314,6 +323,18 @@ def get_check_context(repo_root: str, task_dir: str) -> str:
     prd_content = read_file_content(repo_root, f"{task_dir}/prd.md")
     if prd_content:
         context_parts.append(f"=== {task_dir}/prd.md (Requirements) ===\n{prd_content}")
+
+    design_content = read_file_content(repo_root, f"{task_dir}/design.md")
+    if design_content:
+        context_parts.append(
+            f"=== {task_dir}/design.md (Technical Design) ===\n{design_content}"
+        )
+
+    implement_plan_content = read_file_content(repo_root, f"{task_dir}/implement.md")
+    if implement_plan_content:
+        context_parts.append(
+            f"=== {task_dir}/implement.md (Execution Plan) ===\n{implement_plan_content}"
+        )
 
     return "\n\n".join(context_parts)
 
@@ -351,8 +372,8 @@ All the information you need has been prepared for you:
 ## Workflow
 
 1. **Understand specs** - All dev specs are injected above, understand them
-2. **Understand requirements** - Read requirements document and technical design
-3. **Implement feature** - Implement following specs and design
+    2. **Understand task artifacts** - Read requirements, technical design if present, and execution plan if present
+    3. **Implement feature** - Implement following specs and task artifacts
 4. **Self-check** - Ensure code quality against check specs
 
 ## Important Constraints
@@ -421,7 +442,7 @@ Finish checklist and requirements:
 ## Workflow
 
 1. **Review changes** - Run `git diff --name-only` to see all changed files
-2. **Verify requirements** - Check each requirement in prd.md is implemented
+	2. **Verify task artifacts** - Check requirements in prd.md and, when present, design.md / implement.md
 3. **Spec sync** - Analyze whether changes introduce new patterns, contracts, or conventions
    - If new pattern/convention found: read target spec file → update it → update index.md if needed
    - If infra/cross-layer change: follow the 7-section mandatory template from update-spec.md
@@ -435,7 +456,8 @@ Finish checklist and requirements:
 - MUST read the target spec file BEFORE editing (avoid duplicating existing content)
 - Do NOT update specs for trivial changes (typos, formatting, obvious fixes)
 - If critical CODE issues found, report them clearly (fix specs, not code)
-- Verify all acceptance criteria in prd.md are met"""
+- Verify all acceptance criteria in prd.md are met
+- Verify design.md and implement.md constraints when those files are present"""
 
 
 

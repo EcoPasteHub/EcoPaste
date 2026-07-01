@@ -18,9 +18,11 @@ missing or a tag is absent, the breadcrumb degrades to a generic
 the broken state instead of the hook silently masking it.
 
 Shared across all hook-capable platforms (Claude, Cursor, Codex, Qoder,
-CodeBuddy, Droid, Gemini, Copilot). Kiro is not wired (no per-turn
-hook entry point). Written to each platform's hooks directory via
-writeSharedHooks() at init time.
+CodeBuddy, Droid, Gemini, Copilot, Kiro). Kiro wires this via the CLI
+custom agent's ``hooks.userPromptSubmit`` and the IDE ``.kiro.hook``
+``promptSubmit`` event; its output branch emits a plain-text breadcrumb
+(Kiro adds hook stdout directly to the conversation context). Written to
+each platform's hooks directory via writeSharedHooks() at init time.
 
 Silent exit 0 cases (no output):
   - No .trellis/ directory found (not a Trellis project)
@@ -32,6 +34,8 @@ import json
 import os
 import re
 import sys
+import queue
+import threading
 from pathlib import Path
 
 # Force UTF-8 on stdin/stdout/stderr on Windows. Default codepage there is
@@ -58,44 +62,11 @@ if sys.platform.startswith("win"):
 from typing import Optional
 
 
-CODEX_SUB_AGENT_NOTICE = """<sub-agent-notice>
-SUB-AGENT NOTICE - READ FIRST IF SPAWNED VIA spawn_agent
-
-If your parent session spawned you via spawn_agent with an explicit task
-message above this hook output, that message is your only job.
-- Execute the parent message exactly as written, then return.
-- Ignore all Trellis workflow guidance below this notice.
-- Do NOT call task.py start, task.py add-context, or task.py archive.
-- Do NOT call wait_agent or spawn_agent.
-- Do NOT modify .trellis/tasks/* or any other file unless the parent message
-  explicitly asks for that.
-
-If you are the main interactive Codex session and the user is typing at the
-terminal with no parent agent, use the workflow guidance below normally.
-</sub-agent-notice>"""
-
-
-# Bootstrap notice for Codex while the session has no active task. Replaces the
-# heavyweight SessionStart context injection — instead of pushing 9.5 KB of
-# workflow text up front, we just nudge the AI to read the `trellis-start` skill once.
-# The nudge keeps showing up while status == "no_task" (cheap text, AI won't
-# re-read after the first time). Once a task is created the breadcrumb status
-# flips and this notice stops appearing automatically. Sub-agents are warded
-# off by the <sub-agent-notice> above plus the explicit exemption below.
+# Bootstrap notice for Codex while the session has no active task. Codex does not
+# get the full SessionStart overview; this short reminder points the main session
+# at the start skill once and leaves the per-turn state block compact.
 CODEX_NO_TASK_BOOTSTRAP_NOTICE = """<trellis-bootstrap>
-You are running in a Trellis-managed Codex session and there is no active task yet.
-If you have not already loaded Trellis context this session, read the `trellis-start` skill once:
-
-  $trellis-start
-
-(equivalent to reading `.agents/skills/trellis-start/SKILL.md` and following its Steps 1-3)
-
-The skill walks you through workflow.md, dev profile, git status, active tasks, and spec
-indexes. Then route the user's request per the <workflow-state> A/B/C rules below.
-
-Sub-agent exemption: if you are a sub-agent (spawned via spawn_agent with a parent task
-message), DO NOT read `$trellis-start`. Execute the parent message directly as instructed by the
-<sub-agent-notice> above.
+If you have not already loaded Trellis context this session, read the `trellis-start` skill once.
 </trellis-bootstrap>"""
 
 
@@ -133,6 +104,7 @@ def _detect_platform(input_data: dict) -> str | None:
         "QODER_PROJECT_DIR": "qoder",
         "KIRO_PROJECT_DIR": "kiro",
         "COPILOT_PROJECT_DIR": "copilot",
+        "TRAE_PROJECT_DIR": "trae",
     }
     for env_name, platform in env_map.items():
         if os.environ.get(env_name):
@@ -154,6 +126,8 @@ def _detect_platform(input_data: dict) -> str | None:
         return "droid"
     if ".kiro" in script_parts:
         return "kiro"
+    if ".trae" in script_parts:
+        return "trae"
     return None
 
 
@@ -267,7 +241,17 @@ def _codex_mode_banner(config: dict) -> str:
             cfg_mode = codex_cfg.get("dispatch_mode")
             if cfg_mode in ("inline", "sub-agent"):
                 mode = cfg_mode
-    return f"<codex-mode>{mode}</codex-mode>"
+    if mode == "sub-agent":
+        meaning = (
+            "sub-agent: implement/check work defaults to Trellis sub-agents; "
+            "the main session still coordinates, clarifies, updates specs, commits, and finishes."
+        )
+    else:
+        meaning = (
+            "inline: the main session implements/checks directly; "
+            "do not dispatch implement/check sub-agents."
+        )
+    return f"<codex-mode>{meaning}</codex-mode>"
 
 
 def resolve_breadcrumb_key(
@@ -316,8 +300,6 @@ def build_breadcrumb(
     if body is None:
         body = "Refer to workflow.md for current step."
     header = f"Status: {status}" if task_id is None else f"Task: {task_id} ({status})"
-    if source:
-        header = f"{header}\nSource: {source}"
     return f"<workflow-state>\n{header}\n{body}\n</workflow-state>"
 
 
@@ -325,14 +307,44 @@ def build_breadcrumb(
 # Entry
 # ---------------------------------------------------------------------------
 
+def _load_hook_input() -> dict:
+    """Read hook JSON without trusting host runners to close stdin.
+
+    Kiro IDE `runCommand` and similar hook runners can leave stdin open while
+    sending no payload. A plain `json.load(sys.stdin)` then blocks forever.
+    Normal hook runners write the complete JSON payload and close stdin, so the
+    short daemon read preserves that path while failing closed to `{}` for
+    non-piping hosts.
+    """
+    result_queue: "queue.Queue[str | BaseException]" = queue.Queue(maxsize=1)
+
+    def _read() -> None:
+        try:
+            result_queue.put(sys.stdin.read())
+        except BaseException as exc:
+            result_queue.put(exc)
+
+    reader = threading.Thread(target=_read, daemon=True)
+    reader.start()
+    try:
+        raw = result_queue.get(timeout=0.2)
+    except queue.Empty:
+        return {}
+
+    if isinstance(raw, BaseException):
+        return {}
+    try:
+        data = json.loads(raw) if raw.strip() else {}
+    except (json.JSONDecodeError, ValueError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
 def main() -> int:
     if os.environ.get("TRELLIS_HOOKS") == "0" or os.environ.get("TRELLIS_DISABLE_HOOKS") == "1":
         return 0
 
-    try:
-        data = json.load(sys.stdin)
-    except (json.JSONDecodeError, ValueError):
-        data = {}
+    data = _load_hook_input()
 
     cwd_str = data.get("cwd") or os.getcwd()
     cwd = Path(cwd_str)
@@ -355,16 +367,25 @@ def main() -> int:
     else:
         task_id, status, source = task
         status_key = resolve_breadcrumb_key(status, platform, config)
+        source_for_breadcrumb = None if platform == "codex" else source
         breadcrumb = build_breadcrumb(
-            task_id, status, templates, source, breadcrumb_key=status_key
+            task_id, status, templates, source_for_breadcrumb, breadcrumb_key=status_key
         )
     if platform == "codex":
-        parts: list[str] = [CODEX_SUB_AGENT_NOTICE]
+        parts: list[str] = []
         if task is None:
             parts.append(CODEX_NO_TASK_BOOTSTRAP_NOTICE)
         parts.append(_codex_mode_banner(config))
         parts.append(breadcrumb)
         breadcrumb = "\n\n".join(parts)
+
+    # Kiro (CLI userPromptSubmit / IDE promptSubmit) adds a hook's stdout
+    # directly to the conversation context — no JSON envelope. Emit the bare
+    # breadcrumb text. Conditionally isolated: all other platforms keep the
+    # hookSpecificOutput JSON path below unchanged.
+    if platform == "kiro":
+        print(breadcrumb)
+        return 0
 
     # Gemini CLI 0.40.x rejects "UserPromptSubmit" — its per-turn event is
     # named "BeforeAgent". Other platforms (Claude/Cursor/Qoder/CodeBuddy/
