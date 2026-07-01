@@ -1,5 +1,4 @@
 import { useMount } from "ahooks";
-import { Modal } from "antd";
 import type { TFunction } from "i18next";
 import type {
   Dispatch,
@@ -35,6 +34,7 @@ import type {
   ClipboardRange,
 } from "@/types/clipboard";
 import { cn } from "@/utils/cn";
+import { getModalApi } from "@/utils/feedback";
 
 type GroupModalMode = "create" | "edit";
 type MoreMenuAction = "manageGroups" | "newGroup";
@@ -433,7 +433,7 @@ const Group: FC = () => {
   const requestDeleteGroup = (record: ClipboardGroupRecord) => {
     deleteGroupRef.current = record;
 
-    Modal.confirm({
+    getModalApi().confirm({
       centered: true,
       content: (
         <span className="text-ant-secondary text-sm">
