@@ -78,20 +78,25 @@ const KeyHint: FC<KeyHintProps> = (props) => {
 
   return (
     <div className="relative">
-      <div className="flex items-center justify-center">
+      <div
+        className={cn("flex items-center justify-center", {
+          "opacity-0": active,
+        })}
+      >
         {iconName ? <i className={cn("text-base", iconName)} /> : children}
       </div>
 
-      {active && (
-        <span
-          className={cn(
-            "-translate-1/2 absolute top-1/2 left-1/2 inline-flex size-4 items-center justify-center rounded-1 bg-ant-text font-bold font-mono text-ant-light-solid text-xs",
-            className,
-          )}
-        >
-          {hintKey.toUpperCase()}
-        </span>
-      )}
+      <span
+        className={cn(
+          "-translate-1/2 absolute top-1/2 left-1/2 inline-flex size-4 items-center justify-center rounded-1 bg-ant-bg-spotlight font-bold font-mono text-ant-light-solid text-xs",
+          {
+            "opacity-0": !active,
+          },
+          className,
+        )}
+      >
+        {hintKey.toUpperCase()}
+      </span>
     </div>
   );
 };
