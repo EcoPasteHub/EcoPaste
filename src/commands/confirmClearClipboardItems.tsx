@@ -1,5 +1,6 @@
-import { Checkbox, Modal } from "antd";
+import { Checkbox } from "antd";
 import i18n from "@/i18n";
+import { getModalApi } from "@/utils/feedback";
 
 type ClearClipboardItemsChoice = "favorites" | "pinned";
 
@@ -20,7 +21,7 @@ export const confirmClearClipboardItems =
     };
 
     return await new Promise<ClearClipboardItemsOptions | null>((resolve) => {
-      Modal.confirm({
+      getModalApi().confirm({
         cancelText: i18n.t("common:actions.cancel"),
         centered: true,
         content: (

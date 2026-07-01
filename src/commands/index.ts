@@ -9,7 +9,6 @@
  */
 
 import { invoke } from "@tauri-apps/api/core";
-import { Modal } from "antd";
 import { TAURI_COMMAND } from "@/constants/commands";
 import i18n from "@/i18n";
 import { settingsState } from "@/stores/settings";
@@ -25,7 +24,7 @@ import type {
   UpdateNoteResult,
 } from "@/types/clipboard";
 import type { Settings, SettingsPatch } from "@/types/settings";
-import { getMessageApi } from "@/utils/feedback";
+import { getMessageApi, getModalApi } from "@/utils/feedback";
 import { log } from "@/utils/log";
 import { confirmClearClipboardItems } from "./confirmClearClipboardItems";
 
@@ -1054,7 +1053,7 @@ export const deleteClipboardItem = async (
 
   if (needConfirm) {
     const ok = await new Promise<boolean>((resolve) => {
-      Modal.confirm({
+      getModalApi().confirm({
         cancelText: i18n.t("common:actions.cancel"),
         centered: true,
         content: i18n.t("commands:deleteConfirm.content"),

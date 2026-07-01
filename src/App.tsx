@@ -16,7 +16,7 @@ import { router } from "./router";
 import { settingsReady, settingsState } from "./stores/settings";
 import "./stores/windowLifecycle";
 import type { Language } from "./types/settings";
-import { setMessageApi } from "./utils/feedback";
+import { setMessageApi, setModalApi } from "./utils/feedback";
 import { log } from "./utils/log";
 
 const ANTD_MODAL_CONFIG = {
@@ -33,11 +33,12 @@ const resolveAntdLocale = (language: Language) => {
 };
 
 const AppContent: FC = () => {
-  const { message } = AntdApp.useApp();
+  const { message, modal } = AntdApp.useApp();
 
   useEffect(() => {
     setMessageApi(message);
-  }, [message]);
+    setModalApi(modal);
+  }, [message, modal]);
 
   return <RouterProvider router={router} />;
 };

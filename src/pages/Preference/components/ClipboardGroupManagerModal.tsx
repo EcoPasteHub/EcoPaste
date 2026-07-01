@@ -1,5 +1,5 @@
 import type { TreeDataNode } from "antd";
-import { Button, Modal } from "antd";
+import { Button } from "antd";
 import type { TFunction } from "i18next";
 import type { FC, Key, MouseEvent } from "react";
 import { useEffect, useRef, useState } from "react";
@@ -18,6 +18,7 @@ import type {
   ClipboardGroupInput,
   ClipboardGroupRecord,
 } from "@/types/clipboard";
+import { getModalApi } from "@/utils/feedback";
 import SortableTreeModal from "./settingControls/SortableTreeModal";
 
 type GroupModalMode = "create" | "edit";
@@ -126,7 +127,7 @@ const ClipboardGroupManagerModal: FC<ClipboardGroupManagerModalProps> = (
   const requestDeleteGroup = (record: ClipboardGroupRecord) => {
     deleteGroupRef.current = record;
 
-    Modal.confirm({
+    getModalApi().confirm({
       centered: true,
       content: (
         <span className="text-ant-secondary text-sm">

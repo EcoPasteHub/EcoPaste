@@ -31,6 +31,7 @@ import { GITHUB_URL } from "@/constants/urls";
 import { WINDOW_LABEL } from "@/constants/windows";
 import { resetSettings } from "@/stores/settings";
 import type { ClipboardGroupRecord } from "@/types/clipboard";
+import { getModalApi } from "@/utils/feedback";
 import { log } from "@/utils/log";
 import type { PreferenceSetting } from "../../types/preferences";
 import { translatePreferenceControlLabel } from "../../utils/preferenceI18n";
@@ -191,7 +192,7 @@ const ActionControl: FC<ActionControlProps> = (props) => {
   };
 
   const confirmCleanCache = () => {
-    Modal.confirm({
+    getModalApi().confirm({
       cancelText: t("common:actions.cancel"),
       centered: true,
       content: t(
@@ -206,7 +207,7 @@ const ActionControl: FC<ActionControlProps> = (props) => {
   };
 
   const confirmResetPreferences = () => {
-    Modal.confirm({
+    getModalApi().confirm({
       cancelText: t("common:actions.cancel"),
       centered: true,
       content: t(
@@ -222,7 +223,7 @@ const ActionControl: FC<ActionControlProps> = (props) => {
   };
 
   const confirmResetDataDirectory = () => {
-    Modal.confirm({
+    getModalApi().confirm({
       cancelText: t("common:actions.cancel"),
       centered: true,
       content: t("preferences:storageLocation.resetConfirmContent"),
