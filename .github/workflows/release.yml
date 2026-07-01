@@ -1,0 +1,224 @@
+name: Release CI
+
+"on":
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Release tag to build, for example v0.6.0-beta.4"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  release-metadata:
+    name: Prepare Release
+    runs-on: ubuntu-latest
+    outputs:
+      prerelease: ${{ steps.release.outputs.prerelease }}
+      release_id: ${{ steps.release.outputs.release_id }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create draft release from CHANGELOG
+        id: release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          INPUT_TAG_NAME: ${{ inputs.tag_name }}
+        run: |
+          set -euo pipefail
+
+          tag_name="${GITHUB_REF_NAME}"
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            tag_name="${INPUT_TAG_NAME}"
+          fi
+
+          if [[ ! "${tag_name}" =~ ^v[0-9]+ ]]; then
+            echo "::error::Release tag must start with v followed by a version, got '${tag_name}'."
+            exit 1
+          fi
+
+          git fetch --force --tags
+          if ! git rev-parse --verify --quiet "refs/tags/${tag_name}" >/dev/null; then
+            echo "::error::Tag '${tag_name}' does not exist."
+            exit 1
+          fi
+
+          git checkout --detach "refs/tags/${tag_name}"
+
+          if [[ ! -f CHANGELOG.md ]]; then
+            echo "::error::CHANGELOG.md is required. Run release-it before pushing the release tag."
+            exit 1
+          fi
+
+          version="${tag_name#v}"
+          awk -v version="${version}" '
+            function is_target_heading(line) {
+              return line ~ "^##[[:space:]]+\\[?" version "\\]?"
+            }
+
+            /^##[[:space:]]+/ {
+              if (capture) {
+                exit
+              }
+
+              if (is_target_heading($0)) {
+                capture = 1
+                next
+              }
+            }
+
+            capture {
+              print
+            }
+          ' CHANGELOG.md | sed '/./,$!d' > release-body.md
+
+          if [[ ! -s release-body.md ]]; then
+            echo "::error::CHANGELOG.md does not contain a release section for ${version}."
+            exit 1
+          fi
+
+          prerelease=false
+          if [[ "${version}" == *-* ]]; then
+            prerelease=true
+          fi
+
+          title="EcoPaste ${tag_name}"
+          if gh release view "${tag_name}" >/dev/null 2>&1; then
+            if [[ "${prerelease}" == "true" ]]; then
+              gh release edit "${tag_name}" --draft --prerelease --title "${title}" --notes-file release-body.md
+            else
+              gh release edit "${tag_name}" --draft --title "${title}" --notes-file release-body.md
+            fi
+          else
+            if [[ "${prerelease}" == "true" ]]; then
+              gh release create "${tag_name}" --draft --prerelease --title "${title}" --notes-file release-body.md --verify-tag
+            else
+              gh release create "${tag_name}" --draft --title "${title}" --notes-file release-body.md --verify-tag
+            fi
+          fi
+
+          release_id="$(gh release view "${tag_name}" --json databaseId --jq .databaseId)"
+
+          {
+            echo "prerelease=${prerelease}"
+            echo "release_id=${release_id}"
+            echo "tag_name=${tag_name}"
+          } >> "${GITHUB_OUTPUT}"
+
+  build-app:
+    name: Build ${{ matrix.label }}
+    needs: release-metadata
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: macOS Apple Silicon
+            os: macos-latest
+            target: aarch64-apple-darwin
+          - label: macOS Intel
+            os: macos-latest
+            target: x86_64-apple-darwin
+          - label: Windows x64
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref }}
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@1.96.0
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Tauri icons
+        run: pnpm build:icon
+        env:
+          PLATFORM: ${{ matrix.os }}
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Extract changelog body
+        id: changelog
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          tag_name="${{ needs.release-metadata.outputs.tag_name }}"
+          version="${tag_name#v}"
+          awk -v version="${version}" '
+            function is_target_heading(line) {
+              return line ~ "^##[[:space:]]+\\[?" version "\\]?"
+            }
+
+            /^##[[:space:]]+/ {
+              if (capture) {
+                exit
+              }
+
+              if (is_target_heading($0)) {
+                capture = 1
+                next
+              }
+            }
+
+            capture {
+              print
+            }
+          ' CHANGELOG.md | sed '/./,$!d' > release-body.md
+
+          delimiter="CHANGELOG_BODY_${RANDOM}_${RANDOM}"
+          {
+            echo "body<<${delimiter}"
+            cat release-body.md
+            echo "${delimiter}"
+          } >> "${GITHUB_OUTPUT}"
+
+      - name: Build and upload app
+        uses: tauri-apps/tauri-action@v1
+        env:
+          CI: false
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          PLATFORM: ${{ matrix.os }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          args: --target ${{ matrix.target }}
+          prerelease: ${{ needs.release-metadata.outputs.prerelease }}
+          releaseBody: ${{ steps.changelog.outputs.body }}
+          releaseId: ${{ needs.release-metadata.outputs.release_id }}
+          retryAttempts: 3
+          tagName: ${{ needs.release-metadata.outputs.tag_name }}
