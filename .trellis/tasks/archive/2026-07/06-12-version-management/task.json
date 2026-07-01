@@ -4,7 +4,7 @@
   "branch": null,
   "children": [],
   "commit": null,
-  "completedAt": null,
+  "completedAt": "2026-07-01",
   "createdAt": "2026-06-12",
   "creator": "ayangweb",
   "description": "",
@@ -19,7 +19,7 @@
   "priority": "P0",
   "relatedFiles": [],
   "scope": null,
-  "status": "in_progress",
+  "status": "completed",
   "subtasks": [],
   "title": "Version Management and release-it",
   "worktree_path": null
