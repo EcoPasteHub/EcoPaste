@@ -38,7 +38,7 @@ const config = {
           { section: "✨ Features", type: "feat" },
           { section: "🐛 Bug Fixes", type: "fix" },
           { section: "⚡️ Performance", type: "perf" },
-          { section: "⏪️ Reverts", type: "revert" },
+          { section: "⏪ Reverts", type: "revert" },
         ],
       },
     },
