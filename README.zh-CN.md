@@ -152,4 +152,4 @@ src/
 
 修改代码前请先阅读 [AGENTS.md](./AGENTS.md)。它是本重构版架构边界、平台范围、编码规范和质量要求的单一真相源。
 
-涉及用户可见能力变更时，请同步更新 [CHANGELOG.md](./CHANGELOG.md)。文档内容也应与当前 beta 状态和受支持平台保持一致。
+涉及下个版本的用户可见能力变更时，请同步更新 [RELEASE-NEXT.md](./RELEASE-NEXT.md)。文档内容也应与当前 beta 状态和受支持平台保持一致。

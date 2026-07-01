@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 10
-- **Last Active**: 2026-06-30
+- **Total Sessions**: 11
+- **Last Active**: 2026-07-01
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~340 | Active |
+| `journal-1.md` | ~375 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 11 | 2026-07-01 | Version management release-it setup | `52cce990`, `66ad97e8`, `dce63f4d` | `codex/version-management-release-it` |
 | 10 | 2026-06-30 | Reopen onboarding action | `5a90c9e2` | `feat/reopen-onboarding-entry` |
 | 9 | 2026-06-30 | Fix Divider deprecation warning | `907c995d` | `fix/divider-deprecation-warning` |
 | 8 | 2026-06-30 | Localize window lifecycle onboarding label | `18f45f7e` | `fix/i18n-window-lifecycle-name` |

@@ -35,13 +35,13 @@ jobs:
 
             case "$file" in
               */*) ;;
-              *.html|*.json|*.jsonc|*.ts|*.mts|*.cts|pnpm-lock.yaml)
+              *.cjs|*.html|*.json|*.jsonc|*.ts|*.mts|*.cts|pnpm-lock.yaml|pnpm-workspace.yaml)
                 frontend=true
                 ;;
             esac
 
             case "$file" in
-              src-tauri/*|rust-toolchain.toml|package.json|pnpm-lock.yaml|scripts/buildIcon.ts)
+              src-tauri/*|rust-toolchain.toml|package.json|pnpm-lock.yaml|pnpm-workspace.yaml|.release-it.ts|scripts/buildIcon.ts)
                 backend=true
                 ;;
             esac
