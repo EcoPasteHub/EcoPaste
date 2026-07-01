@@ -325,11 +325,12 @@ not a frontend-only preference action.
 - React renders `AppUpdateStatus` and sends user intent through command wrappers
   only. Do not call updater plugin APIs directly from React components.
 - Stable endpoint default:
-  `https://github.com/EcoPasteHub/EcoPaste/releases/latest/download/latest.json`.
+  `https://releases.ecopaste.cn/update?channel=stable`.
 - Optional environment overrides:
   - `ECOPASTE_UPDATE_ENDPOINT`: stable channel endpoint.
-  - `ECOPASTE_UPDATE_BETA_ENDPOINT`: beta channel endpoint; checked before the
-    stable endpoint when `includeBeta` is true.
+  - `ECOPASTE_UPDATE_BETA_ENDPOINT`: beta channel endpoint; defaults to
+    `https://releases.ecopaste.cn/update?channel=beta` and is checked before
+    the stable endpoint when `includeBeta` is true.
   - `TAURI_UPDATER_PUBLIC_KEY` or `TAURI_SIGNING_PUBLIC_KEY`: public updater
     verification key injected into the plugin at runtime.
   - `TAURI_SIGNING_PRIVATE_KEY`: build-time private key used by Tauri bundling
