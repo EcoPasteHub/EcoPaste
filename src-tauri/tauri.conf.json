@@ -40,6 +40,7 @@
   },
   "bundle": {
     "active": true,
+    "copyright": "Copyright 2026 ayangweb",
     "createUpdaterArtifacts": true,
     "fileAssociations": [
       {
@@ -61,6 +62,8 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
+    "license": "Apache-2.0",
+    "licenseFile": "../LICENSE",
     "resources": ["assets/tray.ico"],
     "shortDescription": "EcoPaste",
     "targets": ["nsis", "dmg", "app"]
