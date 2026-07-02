@@ -20,6 +20,7 @@ import {
   listClipboardGroups,
   openClipboardItemLink,
   pasteClipboardItem,
+  playCopySound,
   revealClipboardItem,
   toggleClipboardItemFavorite,
   toggleClipboardItemPinned,
@@ -58,6 +59,7 @@ import {
   isSpaceKey,
   useClipboardPreviewController,
 } from "../hooks/useClipboardPreviewController";
+import { isClipboardBottomSheet, usesClipboardSheetLayout } from "../layout";
 import ClipboardCard from "./cards/ClipboardCard";
 import NoteModal from "./NoteModal";
 
@@ -107,6 +109,12 @@ const List: FC = () => {
   const autoPaste = settings.clipboard.content.autoPaste;
   const middleClick = settings.clipboard.content.middleClick;
   const display = settings.clipboard.display;
+  const isHorizontalList = isClipboardBottomSheet(
+    settings.clipboard.window.position,
+  );
+  const isSheetLayout = usesClipboardSheetLayout(
+    settings.clipboard.window.position,
+  );
   const sort = settings.clipboard.content.sort;
   const redactSecrets = settings.clipboard.sensitive.redactSecrets;
   const quickActions = settings.clipboard.content.itemActions;
@@ -696,7 +704,7 @@ const List: FC = () => {
       return;
     }
 
-    if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+    if (!isNavigationKey(event.key, isHorizontalList)) return;
 
     event.preventDefault();
 
@@ -796,11 +804,20 @@ const List: FC = () => {
 
   return (
     <div
-      className="relative flex-1 overflow-hidden"
+      className={cn("relative flex-1 overflow-hidden", {
+        "bg-ant-layout": isSheetLayout,
+      })}
       onPointerLeave={handlePreviewAreaPointerLeave}
       role="listbox"
     >
-      <VirtuosoScroller>{renderVirtuoso}</VirtuosoScroller>
+      <VirtuosoScroller
+        className={cn({
+          "[&_[data-virtuoso-scroller='true']]:overflow-x-auto [&_[data-virtuoso-scroller='true']]:overflow-y-hidden":
+            isHorizontalList,
+        })}
+      >
+        {renderVirtuoso}
+      </VirtuosoScroller>
 
       <NoteModal
         item={noteTarget}
@@ -818,6 +835,7 @@ const List: FC = () => {
         atTopStateChange={handleAtTopStateChange}
         components={{ TopItemList }}
         computeItemKey={computeItemKey}
+        horizontalDirection={isHorizontalList}
         itemContent={renderItemContent}
         rangeChanged={handleRangeChanged}
         ref={virtuosoRef}
@@ -980,12 +998,14 @@ const List: FC = () => {
     const handleDoubleClick = () => {
       if (autoPaste === "doubleClickPaste") {
         closePreview("doubleClickPaste");
+        void playCopySound();
         pasteClipboardItem(item.id, false);
         return;
       }
 
       if (autoPaste === "doubleClickCopy") {
         closePreview("doubleClickCopy");
+        void playCopySound();
         writeToClipboard(item.id, false);
       }
     };
@@ -1002,9 +1022,22 @@ const List: FC = () => {
     );
 
     return (
-      <div className={cn("px-3", { "pt-3": index !== 0 })}>
+      <div
+        className={cn({
+          "h-full w-80 shrink-0 px-2.5 pt-2 pb-3": isHorizontalList,
+          "pt-2": isSheetLayout && !isHorizontalList && index === 0,
+          "pt-3": !isHorizontalList && index !== 0,
+          "px-3": !isSheetLayout,
+          "px-5 pb-3": isSheetLayout && !isHorizontalList,
+        })}
+      >
         <ClipboardCard
           availableActions={availableActions}
+          bottomSheet={isSheetLayout}
+          className={cn({
+            "h-full": isHorizontalList,
+            "min-h-52": isSheetLayout && !isHorizontalList,
+          })}
           hintKey={hintKey}
           isLinkActive={isModifierPressed}
           isSelected={
@@ -1033,8 +1066,25 @@ const List: FC = () => {
 
   function renderPlaceholderItem(index: number) {
     return (
-      <div aria-hidden="true" className={cn("px-3", { "pt-3": index !== 0 })}>
-        <div className="min-h-24 rounded-2 border border-ant-border-secondary bg-ant-fill-quaternary p-2">
+      <div
+        aria-hidden="true"
+        className={cn({
+          "h-full w-80 shrink-0 px-2.5 pt-2 pb-3": isHorizontalList,
+          "pt-2": isSheetLayout && !isHorizontalList && index === 0,
+          "pt-3": !isHorizontalList && index !== 0,
+          "px-3": !isSheetLayout,
+          "px-5 pb-3": isSheetLayout && !isHorizontalList,
+        })}
+      >
+        <div
+          className={cn(
+            "min-h-24 rounded-2 border border-ant-border-secondary bg-ant-fill-quaternary p-2",
+            {
+              "h-full": isHorizontalList,
+              "min-h-52": isSheetLayout && !isHorizontalList,
+            },
+          )}
+        >
           <div className="flex items-center gap-1 text-ant-secondary text-xs">
             <span className="size-4 rounded-1 bg-ant-fill-secondary" />
             <span className="h-3 w-16 rounded-1 bg-ant-fill-secondary" />
@@ -1255,11 +1305,17 @@ function getNextKeyboardIndex(
     selectedId === null ? null : getItemIndexById(selectedId);
   const currentIndex = selectedIndex ?? firstVisibleIndex;
 
-  if (key === "ArrowUp") {
+  if (key === "ArrowUp" || key === "ArrowLeft") {
     return Math.max(0, currentIndex - 1);
   }
 
   return Math.min(total - 1, currentIndex + 1);
+}
+
+function isNavigationKey(key: string, horizontal: boolean) {
+  if (horizontal) return key === "ArrowLeft" || key === "ArrowRight";
+
+  return key === "ArrowUp" || key === "ArrowDown";
 }
 
 /**

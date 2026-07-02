@@ -7,40 +7,76 @@ import type { ClipboardItem, FileEntry } from "@/types/clipboard";
 import { cn } from "@/utils/cn";
 import ImageCard from "./ImageCard";
 
+interface FilesCardProps extends ClipboardItem {
+  bottomSheet?: boolean;
+}
+
 /**
  * 文件类卡片：`fileEntries` 与 `filesPreviewKind` 均由 Rust 命令层预处理，
  * 前端只按 kind 分支渲染：`imagePreview` 走单图预览，`list` 走文件列表；
  * 路径已删除（`exists = false`）的条目一律走 list 并对文件名划删除线。
  */
-const FilesCard: FC<ClipboardItem> = (props) => {
+const FilesCard: FC<FilesCardProps> = (props) => {
   const entries = props.fileEntries ?? [];
+  const { bottomSheet = false } = props;
   const { keyword } = useSnapshot(clipboardViewState);
 
   if (props.filesPreviewKind === "imagePreview") {
     const [first] = entries;
-    return <ImageCard {...props} imageThumbnailPath={first?.path} />;
+    return (
+      <ImageCard
+        {...props}
+        bottomSheet={bottomSheet}
+        imageThumbnailPath={first?.path}
+      />
+    );
   }
 
   return (
-    <div className="flex flex-col gap-1">
+    <div
+      className={cn("flex flex-col", {
+        "gap-1": !bottomSheet,
+        "items-center gap-2 font-medium text-lg": bottomSheet,
+      })}
+    >
       {entries.map((entry) => {
-        return <FileRow entry={entry} key={entry.path} keyword={keyword} />;
+        return (
+          <FileRow
+            bottomSheet={bottomSheet}
+            entry={entry}
+            key={entry.path}
+            keyword={keyword}
+          />
+        );
       })}
     </div>
   );
 };
 
 interface FileRowProps {
+  bottomSheet?: boolean;
   entry: FileEntry;
   keyword: string;
 }
 
 const FileRow: FC<FileRowProps> = (props) => {
-  const { entry, keyword } = props;
+  const { bottomSheet = false, entry, keyword } = props;
 
   return (
-    <div className="flex items-center gap-1 truncate" title={entry.path}>
-      <AssetImage className="size-5" src={entry.iconPath} />
+    <div
+      className={cn("flex items-center truncate", {
+        "gap-1": !bottomSheet,
+        "gap-2": bottomSheet,
+      })}
+      title={entry.path}
+    >
+      <AssetImage
+        className={cn({
+          "size-5": !bottomSheet,
+          "size-7": bottomSheet,
+        })}
+        src={entry.iconPath}
+      />
 
       <Highlight
         className={cn("truncate", { "line-through": !entry.exists })}

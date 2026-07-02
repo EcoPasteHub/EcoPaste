@@ -26,6 +26,7 @@ import { TAURI_EVENT } from "@/constants/events";
 import { useKeyboardEvent } from "@/hooks/useKeyboardEvent";
 import { useTauriListen } from "@/hooks/useTauriListen";
 import { clipboardViewState } from "@/stores/clipboardView";
+import { settingsState } from "@/stores/settings";
 import type {
   ClipboardCategory,
   ClipboardGroupIcon as ClipboardGroupIconValue,
@@ -35,6 +36,7 @@ import type {
 } from "@/types/clipboard";
 import { cn } from "@/utils/cn";
 import { getModalApi } from "@/utils/feedback";
+import { usesClipboardSheetLayout } from "../layout";
 
 type GroupModalMode = "create" | "edit";
 type MoreMenuAction = "manageGroups" | "newGroup";
@@ -98,7 +100,6 @@ const CUSTOM_GROUPS_SETTING_ID = "organizing.customGroups";
 
 const GROUP_BUTTON_BASE_CLASS =
   "flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-1.5 border-0 bg-transparent p-0 transition-colors";
-const GROUP_ICON_BUTTON_CLASS = GROUP_BUTTON_BASE_CLASS;
 const GROUP_BUTTON_WIDTH = 24;
 const GROUP_BUTTON_GAP = 4;
 const GROUP_SEPARATOR_MARGIN = 4;
@@ -109,6 +110,7 @@ const GROUP_SEPARATOR_MARGIN = 4;
 const Group: FC = () => {
   const { t } = useTranslation(["clipboard", "common"]);
   const { category, groupId, range } = useSnapshot(clipboardViewState);
+  const settings = useSnapshot(settingsState);
 
   const [customGroups, setCustomGroups] = useState<ClipboardGroupRecord[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -123,17 +125,19 @@ const Group: FC = () => {
   const customGroupAnchorRef = useRef<HTMLSpanElement>(null);
   const contextGroupRef = useRef<ClipboardGroupRecord | null>(null);
   const deleteGroupRef = useRef<ClipboardGroupRecord | null>(null);
+  const isSheetLayout = usesClipboardSheetLayout(
+    settings.clipboard.window.position,
+  );
 
   const visibleCustomGroups = customGroups.filter((record) => {
     return !record.isHidden;
   });
-  const inlineCustomGroups = visibleCustomGroups.slice(
-    0,
-    visibleCustomGroupCount,
-  );
-  const overflowCustomGroups = visibleCustomGroups.slice(
-    visibleCustomGroupCount,
-  );
+  const inlineCustomGroups = isSheetLayout
+    ? visibleCustomGroups
+    : visibleCustomGroups.slice(0, visibleCustomGroupCount);
+  const overflowCustomGroups = isSheetLayout
+    ? []
+    : visibleCustomGroups.slice(visibleCustomGroupCount);
 
   /**
    * 从 Rust 拉取自定义分组。
@@ -504,15 +508,25 @@ const Group: FC = () => {
         trigger={["click"]}
       >
         <button
-          className={cn(GROUP_BUTTON_BASE_CLASS, {
-            "bg-ant-primary text-ant-light-solid": moreButtonSelected,
-            "text-ant-secondary hover:bg-ant-fill-tertiary":
-              !moreButtonSelected,
-          })}
+          className={getGroupButtonClassName(moreButtonSelected, isSheetLayout)}
           type="button"
         >
           <KeyHint hintKey="N" onKeyPress={handleCreateGroupAction}>
-            <i aria-hidden className="i-lucide:more-horizontal text-sm!" />
+            <span
+              className={cn("flex items-center", {
+                "gap-1": isSheetLayout,
+                "gap-1.5": !isSheetLayout,
+              })}
+            >
+              <i
+                aria-hidden
+                className={cn("i-lucide:more-horizontal", {
+                  "text-base!": isSheetLayout,
+                  "text-sm!": !isSheetLayout,
+                })}
+              />
+              {isSheetLayout ? <span>{t("clipboard:groups.more")}</span> : null}
+            </span>
           </KeyHint>
         </button>
       </Dropdown>
@@ -535,15 +549,26 @@ const Group: FC = () => {
         trigger={["contextMenu"]}
       >
         <button
-          className={cn(
-            GROUP_BUTTON_BASE_CLASS,
-            "text-ant-secondary hover:bg-ant-fill-tertiary",
-          )}
+          className={cn(getGroupButtonClassName(false, isSheetLayout))}
           onClick={handleCreateGroupAction}
           type="button"
         >
           <KeyHint hintKey="N" onKeyPress={handleCreateGroupAction}>
-            <i aria-hidden className="i-lucide:plus text-sm!" />
+            <span
+              className={cn("flex items-center", {
+                "gap-1": isSheetLayout,
+                "gap-1.5": !isSheetLayout,
+              })}
+            >
+              <i
+                aria-hidden
+                className={cn("i-lucide:plus", {
+                  "text-base!": isSheetLayout,
+                  "text-sm!": !isSheetLayout,
+                })}
+              />
+              {isSheetLayout ? <span>{t("clipboard:groups.add")}</span> : null}
+            </span>
           </KeyHint>
         </button>
       </Dropdown>
@@ -604,10 +629,7 @@ const Group: FC = () => {
     return (
       <Tooltip key={`${type}:${value}`} title={label}>
         <button
-          className={cn(GROUP_ICON_BUTTON_CLASS, {
-            "bg-ant-primary text-ant-light-solid": selected,
-            "text-ant-secondary hover:bg-ant-fill-tertiary": !selected,
-          })}
+          className={getGroupButtonClassName(selected, isSheetLayout)}
           data-type={type}
           data-value={value}
           onClick={handleGroupClick}
@@ -615,10 +637,34 @@ const Group: FC = () => {
         >
           {showShortcutHint ? (
             <KeyHint hintKey="Q">
-              <ClipboardGroupIcon icon={icon} selected={selected} />
+              <span
+                className={cn("flex items-center", {
+                  "gap-1": isSheetLayout,
+                  "gap-1.5": !isSheetLayout,
+                })}
+              >
+                <ClipboardGroupIcon
+                  className={cn({ "text-base": isSheetLayout })}
+                  icon={icon}
+                  selected={selected}
+                />
+                {isSheetLayout ? <span>{label}</span> : null}
+              </span>
             </KeyHint>
           ) : (
-            <ClipboardGroupIcon icon={icon} selected={selected} />
+            <span
+              className={cn("flex items-center", {
+                "gap-1": isSheetLayout,
+                "gap-1.5": !isSheetLayout,
+              })}
+            >
+              <ClipboardGroupIcon
+                className={cn({ "text-base": isSheetLayout })}
+                icon={icon}
+                selected={selected}
+              />
+              {isSheetLayout ? <span>{label}</span> : null}
+            </span>
           )}
         </button>
       </Tooltip>
@@ -628,7 +674,9 @@ const Group: FC = () => {
   return (
     <>
       <div
-        className="flex items-center gap-1 overflow-hidden px-3 pb-2"
+        className={cn("flex items-center gap-1 overflow-hidden px-3 pb-2", {
+          "gap-1.5 overflow-x-auto px-5 pb-2.5": isSheetLayout,
+        })}
         data-tauri-drag-region
         ref={toolbarRef}
       >
@@ -653,20 +701,18 @@ const Group: FC = () => {
                   trigger={["contextMenu"]}
                 >
                   <button
-                    className={cn(GROUP_ICON_BUTTON_CLASS, {
-                      "bg-ant-primary text-ant-light-solid": selected,
-                      "text-ant-secondary hover:bg-ant-fill-tertiary":
-                        !selected,
-                    })}
+                    className={getGroupButtonClassName(selected, isSheetLayout)}
                     data-group-id={record.id}
                     onClick={handleGroupClick}
                     onContextMenu={handleCustomGroupContextMenu}
                     type="button"
                   >
                     <ClipboardGroupIcon
+                      className={cn({ "text-base": isSheetLayout })}
                       icon={record.icon}
                       selected={selected}
                     />
+                    {isSheetLayout ? <span>{record.name}</span> : null}
                   </button>
                 </Dropdown>
               );
@@ -703,6 +749,14 @@ const GroupSeparator: FC<GroupSeparatorProps> = (props) => {
     />
   );
 };
+
+function getGroupButtonClassName(selected: boolean, expanded: boolean) {
+  return cn(GROUP_BUTTON_BASE_CLASS, {
+    "bg-ant-primary text-ant-light-solid": selected,
+    "h-7 w-auto gap-1 px-2 text-xs": expanded,
+    "text-ant-secondary hover:bg-ant-fill-tertiary": !selected,
+  });
+}
 
 /**
  * 溢出菜单里的分组行：左键选择分组，右键打开同一套分组管理菜单。

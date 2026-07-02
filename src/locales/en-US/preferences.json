@@ -209,11 +209,11 @@
           "title": "Maximum Text Lines"
         },
         "theme": {
-          "description": "Use light mode, dark mode, or follow the system appearance.",
+          "description": "Use normal mode, night mode, or follow the system appearance.",
           "options": {
             "auto": "Follow system",
-            "dark": "Dark",
-            "light": "Light"
+            "dark": "Night",
+            "light": "Normal"
           },
           "title": "Theme"
         }
@@ -571,6 +571,7 @@
         "position": {
           "description": "Choose where the clipboard window opens each time.",
           "options": {
+            "bottomSheet": "Bottom Sheet",
             "center": "Center of Screen",
             "followCursor": "Follow Cursor",
             "remember": "Remember Position"

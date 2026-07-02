@@ -18,17 +18,17 @@
         "alwaysOnTop": true,
         "decorations": false,
         "focusable": false,
-        "height": 600,
+        "height": 576,
         "label": "clipboard",
         "maximizable": false,
-        "minHeight": 600,
-        "minWidth": 360,
+        "minHeight": 320,
+        "minWidth": 480,
         "skipTaskbar": true,
         "title": "EcoPaste",
         "transparent": true,
         "url": "index.html/#/",
         "visible": false,
-        "width": 360
+        "width": 480
       }
     ]
   },

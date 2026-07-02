@@ -7,6 +7,7 @@ import type { ClipboardItem } from "@/types/clipboard";
 import { cn } from "@/utils/cn";
 
 interface TextCardProps extends ClipboardItem {
+  bottomSheet?: boolean;
   /**
    * MOD 键按下时，URL / Email 以可点击链接样式渲染。
    */
@@ -22,7 +23,14 @@ interface TextCardProps extends ClipboardItem {
  * 子类型（HTML/RTF/URL/Email/Color/Path）以小 Tag 提示。
  */
 const TextCard: FC<TextCardProps> = (props) => {
-  const { summary, subKind, colorPreview, isLinkActive, onOpenLink } = props;
+  const {
+    summary,
+    subKind,
+    colorPreview,
+    bottomSheet = false,
+    isLinkActive,
+    onOpenLink,
+  } = props;
   const { keyword } = useSnapshot(clipboardViewState);
   const { clipboard } = useSnapshot(settingsState);
   const textMaxLines = clipboard.display.textMaxLines;
@@ -36,9 +44,20 @@ const TextCard: FC<TextCardProps> = (props) => {
     };
 
     return (
-      <div className="flex items-center gap-2 text-sm">
+      <div
+        className={cn("flex items-center", {
+          "gap-2 text-sm": !bottomSheet,
+          "gap-3 text-lg": bottomSheet,
+        })}
+      >
         <span
-          className="size-4.5 shrink-0 rounded-1 border border-ant-border-secondary"
+          className={cn(
+            "shrink-0 rounded-1 border border-ant-border-secondary",
+            {
+              "size-4.5": !bottomSheet,
+              "size-7": bottomSheet,
+            },
+          )}
           style={style}
         />
         <span className="font-mono leading-5">{colorPreview}</span>
@@ -62,7 +81,12 @@ const TextCard: FC<TextCardProps> = (props) => {
     return (
       <button
         className={cn(
-          "block w-full cursor-pointer whitespace-pre-wrap border-0 bg-transparent p-0 text-left text-ant-primary underline underline-offset-2",
+          "block w-full cursor-pointer whitespace-pre-wrap border-0 bg-transparent p-0 text-ant-primary underline underline-offset-2",
+          {
+            "font-medium text-lg leading-6": bottomSheet,
+            "text-center": bottomSheet,
+            "text-left": !bottomSheet,
+          },
           lineClampClass,
         )}
         onClick={handleLinkClick}
@@ -75,7 +99,15 @@ const TextCard: FC<TextCardProps> = (props) => {
   }
 
   return (
-    <div className={cn("whitespace-pre-wrap", lineClampClass)}>
+    <div
+      className={cn(
+        "whitespace-pre-wrap",
+        {
+          "font-medium text-lg leading-6": bottomSheet,
+        },
+        lineClampClass,
+      )}
+    >
       <Highlight keyword={keyword} text={summary ?? ""} />
     </div>
   );

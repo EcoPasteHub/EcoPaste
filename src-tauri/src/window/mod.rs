@@ -146,8 +146,12 @@ fn delays_clipboard_visibility_event(label: &str) -> bool {
 
 pub fn hide_window(app_handle: &AppHandle, label: &str) -> Result<()> {
     // 隐藏前保存任意窗口的实时几何：移动与缩放都在这里落盘，下次显示/启动可恢复。
-    if let Err(err) = state::save_window_state(app_handle, label) {
-        log::warn!("save window state on hide failed for {label}: {err}");
+    if should_save_window_state(app_handle, label) {
+        if let Err(err) = state::save_window_state(app_handle, label) {
+            log::warn!("save window state on hide failed for {label}: {err}");
+        }
+    } else {
+        log::debug!("skip saving transient window state for {label}");
     }
 
     if label == CLIPBOARD_WINDOW_LABEL {
@@ -163,6 +167,21 @@ pub fn hide_window(app_handle: &AppHandle, label: &str) -> Result<()> {
         lifecycle::on_hidden(app_handle, label, "hide");
     }
     result
+}
+
+fn should_save_window_state(app_handle: &AppHandle, label: &str) -> bool {
+    if label != CLIPBOARD_WINDOW_LABEL {
+        return true;
+    }
+
+    let Some(store) = app_handle.try_state::<SettingsStore>() else {
+        return true;
+    };
+
+    !matches!(
+        store.snapshot().clipboard.window.position,
+        WindowPosition::BottomSheet
+    )
 }
 
 pub fn toggle_window(app_handle: &AppHandle, label: &str) -> Result<()> {
@@ -200,12 +219,12 @@ fn apply_clipboard_window_layout(app_handle: &AppHandle) -> Result<()> {
     };
     let snap = store.snapshot();
     let position = snap.clipboard.window.position;
+    let is_bottom_sheet = matches!(position, WindowPosition::BottomSheet);
 
     let _ = state::restore_window_state(app_handle, CLIPBOARD_WINDOW_LABEL)?;
 
-    if matches!(position, WindowPosition::Remember) {
-        return Ok(());
-    }
+    #[cfg(target_os = "macos")]
+    macos::set_clipboard_panel_bottom_sheet_style(app_handle, is_bottom_sheet)?;
 
     let window = get_window(app_handle, CLIPBOARD_WINDOW_LABEL)?;
     position::position_window(&window, position)
@@ -215,6 +234,10 @@ fn apply_clipboard_window_layout(app_handle: &AppHandle) -> Result<()> {
 /// 覆盖「调整大小后不关窗直接退出」这一隐藏/关闭都漏掉的场景。
 pub fn save_all_window_states(app_handle: &AppHandle) {
     for label in app_handle.webview_windows().into_keys() {
+        if !should_save_window_state(app_handle, &label) {
+            continue;
+        }
+
         if let Err(err) = state::save_window_state(app_handle, &label) {
             log::warn!("save window state on exit failed for {label}: {err}");
         }
@@ -233,19 +256,22 @@ pub fn intercept_close_request(window: &Window) -> bool {
     }
 
     // 关闭按钮不走 `hide_window`，需在此单独保存几何，否则 preference 的移动/缩放会丢失。
-    if let Err(err) = state::save_window_state(window.app_handle(), window.label()) {
-        log::warn!(
-            "save window state on close failed for {}: {err}",
-            window.label()
-        );
+    if should_save_window_state(window.app_handle(), window.label()) {
+        if let Err(err) = state::save_window_state(window.app_handle(), window.label()) {
+            log::warn!(
+                "save window state on close failed for {}: {err}",
+                window.label()
+            );
+        }
     }
 
     if let Err(err) = window.hide() {
-        log::error!("hide window on close failed: {err:?}");
+        log::error!("hide on close failed for {}: {err}", window.label());
     } else {
         emit_visibility(window.app_handle(), window.label(), false);
         lifecycle::on_hidden(window.app_handle(), window.label(), "close");
     }
+
     true
 }
 

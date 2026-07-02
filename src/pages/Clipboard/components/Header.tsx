@@ -15,14 +15,19 @@ import Dropdown, {
   type DropdownMenuItems,
 } from "@/components/Dropdown";
 import KeyHint from "@/components/KeyHint";
+import Popover from "@/components/Popover";
 import Tooltip from "@/components/Tooltip";
 import { TAURI_EVENT } from "@/constants/events";
 import { WINDOW_LABEL } from "@/constants/windows";
 import { useTauriListen } from "@/hooks/useTauriListen";
+import { clipboardStatsState } from "@/stores/clipboardStats";
 import { clipboardViewState } from "@/stores/clipboardView";
 import { settingsState } from "@/stores/settings";
+import { cn } from "@/utils/cn";
 import { formatShortcutDisplay } from "@/utils/shortcut";
+import { isClipboardBottomSheet, usesClipboardSheetLayout } from "../layout";
 import SearchInput from "./SearchInput";
+import ShortcutList from "./ShortcutList";
 
 interface WindowVisibilityPayload {
   label: string;
@@ -40,10 +45,17 @@ const PREFERENCE_SHORTCUT = formatShortcutDisplay("CmdOrCtrl+,", " ");
 const Header: FC = () => {
   const { t } = useTranslation("clipboard");
   const settings = useSnapshot(settingsState);
+  const { total } = useSnapshot(clipboardStatsState);
   const [pinned, setPinned] = useState(false);
+  const [shortcutPopoverOpen, setShortcutPopoverOpen] = useState(false);
   const [searchBlurToken, setSearchBlurToken] = useState(0);
   const [searchClearToken, setSearchClearToken] = useState(0);
   const [searchFocusToken, setSearchFocusToken] = useState(0);
+  const windowPosition = settings.clipboard.window.position;
+  const isBottomSheet = isClipboardBottomSheet(windowPosition);
+  const isFloatingSheet =
+    usesClipboardSheetLayout(windowPosition) && !isBottomSheet;
+  const isSheetLayout = usesClipboardSheetLayout(windowPosition);
 
   /**
    * 统一处理偏好设置入口（按钮点击/快捷键）。
@@ -82,6 +94,12 @@ const Header: FC = () => {
 
     await setClipboardWindowPinned(next);
     setPinned(next);
+  };
+
+  const handleShortcutKeyPress = () => {
+    setShortcutPopoverOpen((current) => {
+      return !current;
+    });
   };
 
   /**
@@ -180,36 +198,113 @@ const Header: FC = () => {
 
   return (
     <div
-      className="flex items-center justify-between p-3 pb-2"
+      className={cn("p-3 pb-2", {
+        "flex items-center": !isFloatingSheet,
+        "justify-between": !isSheetLayout,
+        "relative flex flex-col gap-2 px-5 pt-3 pb-2": isFloatingSheet,
+        "relative h-16 justify-center px-5 py-2.5": isBottomSheet,
+      })}
       data-tauri-drag-region
     >
-      <img alt={t("header.logoAlt")} className="size-5" src="/logo.png" />
+      <div
+        className={cn("flex items-center", {
+          "absolute left-5 gap-2": isBottomSheet,
+          "gap-2": isFloatingSheet,
+        })}
+      >
+        <img
+          alt={t("header.logoAlt")}
+          className={cn({
+            "size-5": !isSheetLayout,
+            "size-6": isSheetLayout,
+          })}
+          src="/logo.png"
+        />
 
-      <div className="flex items-center gap-1">
+        {isSheetLayout ? (
+          <>
+            <span className="text-ant-tertiary text-xs">
+              {t("footer.total", { count: total ?? 0 })}
+            </span>
+
+            <Popover
+              content={<ShortcutList bottomSheet />}
+              onOpenChange={setShortcutPopoverOpen}
+              open={shortcutPopoverOpen}
+              placement="bottomLeft"
+              styles={{ content: { padding: 0 } }}
+              title={t("footer.shortcuts")}
+              tooltip={t("footer.shortcuts")}
+              trigger="click"
+            >
+              <button
+                className="flex h-8 cursor-pointer items-center gap-1 rounded-1.5 border-0 bg-transparent px-2 text-ant-text text-xs shadow-none outline-none transition-colors hover:bg-ant-fill-tertiary focus-visible:bg-ant-fill-tertiary motion-reduce:transition-none"
+                tabIndex={-1}
+                type="button"
+              >
+                <KeyHint
+                  className="size-4"
+                  hintKey="K"
+                  iconName="i-lucide:keyboard text-base"
+                  onKeyPress={handleShortcutKeyPress}
+                />
+                {t("footer.shortcuts")}
+              </button>
+            </Popover>
+          </>
+        ) : null}
+      </div>
+
+      <div
+        className={cn("flex items-center", {
+          "w-96 max-w-[38vw]": isBottomSheet,
+          "w-full": isFloatingSheet,
+        })}
+      >
         <SearchInput
           allowClear
           blurToken={searchBlurToken}
-          className="w-40"
+          className={cn({
+            "w-40": !isSheetLayout,
+            "w-96 max-w-[38vw]": isBottomSheet,
+            "w-full": isFloatingSheet,
+          })}
           clearToken={searchClearToken}
           focusToken={searchFocusToken}
           onChange={handleKeywordChange}
           placeholder={t("header.searchPlaceholder")}
-          size="small"
+          size={isSheetLayout ? "large" : "small"}
         />
+      </div>
 
+      <div
+        className={cn("flex items-center gap-1", {
+          "absolute right-5 gap-1.5": isBottomSheet,
+          "absolute top-3 right-5 gap-1.5": isFloatingSheet,
+        })}
+      >
         <Tooltip title={t(pinned ? "header.unpin" : "header.pin")}>
           <CustomIconButton
+            className={cn({
+              "h-8 px-2 text-xs": isSheetLayout,
+            })}
             icon={
               <KeyHint
+                className={cn({ "size-4": isSheetLayout })}
                 hintKey="P"
-                iconName="i-lets-icons:pin"
+                iconName={cn("i-lets-icons:pin", {
+                  "text-base": isSheetLayout,
+                })}
                 onKeyPress={handleTogglePinned}
               />
             }
+            iconClassName={cn({ "text-base": isSheetLayout })}
             onClick={handleTogglePinned}
             size="small"
             type={pinned ? "primary" : "text"}
-          />
+          >
+            {isSheetLayout ? t(pinned ? "header.unpin" : "header.pin") : null}
+          </CustomIconButton>
         </Tooltip>
 
         <Dropdown
@@ -218,16 +313,25 @@ const Header: FC = () => {
           trigger={MORE_ACTION_TRIGGER}
         >
           <CustomIconButton
+            className={cn({
+              "h-8 px-2 text-xs": isSheetLayout,
+            })}
             icon={
               <KeyHint
+                className={cn({ "size-4": isSheetLayout })}
                 hintKey=","
-                iconName="i-lets-icons:meatballs-menu"
+                iconName={cn("i-lets-icons:meatballs-menu", {
+                  "text-base": isSheetLayout,
+                })}
                 onKeyPress={handleOpenPreference}
               />
             }
+            iconClassName={cn({ "text-base": isSheetLayout })}
             size="small"
             type="text"
-          />
+          >
+            {isSheetLayout ? t("header.moreActions") : null}
+          </CustomIconButton>
         </Dropdown>
       </div>
     </div>
