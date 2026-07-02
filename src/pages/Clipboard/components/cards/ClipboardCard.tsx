@@ -14,7 +14,21 @@ import ImageCard from "./ImageCard";
 import NoteContentSwitcher from "./NoteContentSwitcher";
 import TextCard from "./TextCard";
 
+const TYPE_ICON_CLASS_BY_KEY: Record<string, string> = {
+  color: "i-lucide:palette",
+  email: "i-lucide:mail",
+  files: "i-lucide:files",
+  html: "i-lucide:code-xml",
+  image: "i-lucide:image",
+  path: "i-lucide:folder",
+  rtf: "i-lucide:file-type",
+  text: "i-lucide:text",
+  url: "i-lucide:link",
+};
+
 interface ClipboardCardProps {
+  bottomSheet?: boolean;
+  className?: string;
   item: ClipboardItem;
   isSelected?: boolean;
   /**
@@ -57,6 +71,8 @@ interface ClipboardCardProps {
 const ClipboardCard: FC<ClipboardCardProps> = (props) => {
   const {
     item,
+    bottomSheet = false,
+    className,
     isSelected,
     hintKey,
     onQuickPaste,
@@ -80,7 +96,7 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
   const [hovered, setHovered] = useState(false);
   const typeKey = subKind ?? kind;
   const typeLabel = t(`types.${typeKey}`);
-  const body = renderBody(item, isLinkActive, onOpenLink);
+  const body = renderBody(item, isLinkActive, onOpenLink, bottomSheet);
   const showSensitiveIndicator = item.isSensitive && item.kind === "text";
   const showStatusIndicators = item.isPinned || showSensitiveIndicator;
 
@@ -124,9 +140,13 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
       className={cn(
         "relative flex flex-col gap-1 overflow-hidden rounded-2 border border-ant-border-secondary p-2 transition-colors duration-150 ease-out motion-reduce:transition-none",
         {
+          "bg-ant-container shadow-md hover:shadow-lg": bottomSheet,
           "border-ant-primary bg-ant-blue-1": isSelected,
           "border-ant-primary bg-ant-container": item.isPinned && !isSelected,
+          "gap-3 rounded-2.5 p-4": bottomSheet,
+          "gap-4": bottomSheet && item.kind === "image",
         },
+        className,
       )}
       draggable
       onAuxClick={onAuxClick}
@@ -142,24 +162,23 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
       tabIndex={-1}
     >
       <div className="flex items-center justify-between text-ant-secondary text-xs">
-        <div className="flex min-w-0 items-center gap-1 overflow-hidden">
-          {hintKey ? (
-            <KeyHint hintKey={hintKey} onKeyPress={onQuickPaste}>
-              <AssetImage
-                alt={sourceAppName}
-                className="size-4"
-                src={sourceAppIconPath}
-              />
-            </KeyHint>
-          ) : (
-            <AssetImage
-              alt={sourceAppName}
-              className="size-4"
-              src={sourceAppIconPath}
-            />
-          )}
+        <div
+          className={cn("flex min-w-0 items-center overflow-hidden", {
+            "gap-1": !bottomSheet,
+            "gap-1.5": bottomSheet,
+          })}
+        >
+          {bottomSheet
+            ? null
+            : renderSourceIcon(
+                sourceAppIconPath,
+                sourceAppName,
+                hintKey,
+                onQuickPaste,
+                bottomSheet,
+              )}
 
-          <span className="truncate">{typeLabel}</span>
+          {renderTypeLabel(typeKey, typeLabel, bottomSheet)}
         </div>
 
         <ClipboardQuickActions
@@ -172,17 +191,51 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
       </div>
 
       {item.note ? (
-        <NoteContentSwitcher
-          note={item.note}
-          showOriginal={showOriginalOnHover && hovered}
+        <div
+          className={cn({
+            "flex min-h-0 w-full flex-1 items-center justify-center px-2 pb-7 text-center":
+              bottomSheet,
+          })}
+        >
+          <NoteContentSwitcher
+            note={item.note}
+            showOriginal={showOriginalOnHover && hovered}
+          >
+            <div
+              className={cn({
+                "flex min-h-0 w-full flex-1 items-center justify-center px-2 pb-7 text-center":
+                  bottomSheet,
+              })}
+            >
+              {body}
+            </div>
+          </NoteContentSwitcher>
+        </div>
+      ) : (
+        <div
+          className={cn({
+            "flex min-h-0 w-full flex-1 items-center justify-center px-2 pb-7 text-center":
+              bottomSheet,
+          })}
         >
           {body}
-        </NoteContentSwitcher>
-      ) : (
-        body
+        </div>
       )}
       {showStatusIndicators
-        ? renderStatusIndicators(item.isPinned, showSensitiveIndicator)
+        ? renderStatusIndicators(
+            item.isPinned,
+            showSensitiveIndicator,
+            bottomSheet,
+          )
+        : null}
+      {bottomSheet
+        ? renderSourceIcon(
+            sourceAppIconPath,
+            sourceAppName,
+            hintKey,
+            onQuickPaste,
+            bottomSheet,
+          )
         : null}
     </div>
   );
@@ -191,9 +244,21 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
 /**
  * 渲染卡片右下角的状态水印；仅表达状态，不参与交互。
  */
-function renderStatusIndicators(isPinned: boolean, isSensitive: boolean) {
+function renderStatusIndicators(
+  isPinned: boolean,
+  isSensitive: boolean,
+  bottomSheet: boolean,
+) {
   return (
-    <div className="pointer-events-none absolute right-2 bottom-2 flex items-end gap-1 text-ant-quaternary">
+    <div
+      className={cn(
+        "pointer-events-none absolute bottom-2 flex items-end gap-1 text-ant-quaternary",
+        {
+          "left-3": bottomSheet,
+          "right-2": !bottomSheet,
+        },
+      )}
+    >
       {isPinned ? (
         <i aria-hidden="true" className="i-ph:push-pin-bold size-5" />
       ) : null}
@@ -204,17 +269,79 @@ function renderStatusIndicators(isPinned: boolean, isSensitive: boolean) {
   );
 }
 
+function renderTypeLabel(
+  typeKey: string,
+  typeLabel: string,
+  bottomSheet: boolean,
+) {
+  const iconClassName =
+    TYPE_ICON_CLASS_BY_KEY[typeKey] ?? TYPE_ICON_CLASS_BY_KEY.text;
+
+  if (!bottomSheet) return <span className="truncate">{typeLabel}</span>;
+
+  return (
+    <span className="inline-flex max-w-full items-center gap-1.5 truncate rounded-full border border-ant-border-secondary bg-ant-fill-secondary px-2.5 py-1 font-medium text-ant-text text-sm shadow-sm">
+      <i aria-hidden="true" className={cn("shrink-0 text-lg", iconClassName)} />
+      <span className="truncate">{typeLabel}</span>
+    </span>
+  );
+}
+
+function renderSourceIcon(
+  sourceAppIconPath: string | null | undefined,
+  sourceAppName: string | undefined,
+  hintKey: string | undefined,
+  onQuickPaste: (() => void) | undefined,
+  bottomSheet: boolean,
+) {
+  const icon = (
+    <AssetImage
+      alt={sourceAppName ?? ""}
+      className={cn({
+        "size-4": !bottomSheet,
+        "size-7 rounded-1.5": bottomSheet,
+      })}
+      src={sourceAppIconPath}
+    />
+  );
+
+  const content = hintKey ? (
+    <KeyHint hintKey={hintKey} onKeyPress={onQuickPaste}>
+      {icon}
+    </KeyHint>
+  ) : (
+    icon
+  );
+
+  if (!bottomSheet) return content;
+
+  return (
+    <div className="absolute right-2 bottom-2 flex size-9 items-center justify-center rounded-2 bg-ant-container shadow-md">
+      {content}
+    </div>
+  );
+}
+
 const renderBody = (
   item: ClipboardItem,
   isLinkActive?: boolean,
   onOpenLink?: () => void,
+  bottomSheet?: boolean,
 ) => {
-  if (item.kind === "image") return <ImageCard {...item} />;
+  if (item.kind === "image") {
+    return <ImageCard {...item} bottomSheet={bottomSheet} />;
+  }
 
-  if (item.kind === "files") return <FilesCard {...item} />;
+  if (item.kind === "files")
+    return <FilesCard {...item} bottomSheet={bottomSheet} />;
 
   return (
-    <TextCard {...item} isLinkActive={isLinkActive} onOpenLink={onOpenLink} />
+    <TextCard
+      {...item}
+      bottomSheet={bottomSheet}
+      isLinkActive={isLinkActive}
+      onOpenLink={onOpenLink}
+    />
   );
 };
 

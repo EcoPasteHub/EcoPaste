@@ -626,6 +626,7 @@ pub enum WindowPosition {
     #[default]
     FollowCursor,
     Center,
+    BottomSheet,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]

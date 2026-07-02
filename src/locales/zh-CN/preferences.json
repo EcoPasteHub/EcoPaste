@@ -209,11 +209,11 @@
           "title": "文本内容最大显示行数"
         },
         "theme": {
-          "description": "选择界面使用浅色、深色，或跟随系统外观。",
+          "description": "选择界面使用正常、夜间，或跟随系统外观。",
           "options": {
             "auto": "跟随系统",
-            "dark": "深色",
-            "light": "浅色"
+            "dark": "夜间",
+            "light": "正常"
           },
           "title": "主题"
         }
@@ -571,6 +571,7 @@
         "position": {
           "description": "选择每次打开剪贴板窗口时的位置。",
           "options": {
+            "bottomSheet": "底部面板",
             "center": "屏幕中间",
             "followCursor": "跟随光标",
             "remember": "记住位置"

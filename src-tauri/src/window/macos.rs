@@ -15,6 +15,8 @@ use crate::core::Result;
 use crate::settings::SettingsStore;
 
 const CLIPBOARD_PANEL_SHOW_DELAY: Duration = Duration::from_millis(16);
+const CLIPBOARD_PANEL_CORNER_RADIUS: f64 = 16.0;
+const CLIPBOARD_SHEET_CORNER_RADIUS: f64 = 0.0;
 
 tauri_panel! {
     panel!(MainPanel {
@@ -45,7 +47,7 @@ pub fn setup_clipboard_panel(app_handle: &AppHandle) -> Result<()> {
         .to_panel::<MainPanel>()
         .map_err(|e| anyhow::anyhow!("to_panel failed: {e:?}"))?;
 
-    panel.set_corner_radius(16.0);
+    panel.set_corner_radius(CLIPBOARD_PANEL_CORNER_RADIUS);
     panel.set_level(PanelLevel::Dock.value());
     panel.set_style_mask(StyleMask::empty().resizable().nonactivating_panel().into());
     panel.set_collection_behavior(
@@ -102,6 +104,26 @@ pub fn hide_window(app_handle: &AppHandle, label: &str) -> Result<()> {
 pub fn show_taskbar_icon(app_handle: &AppHandle, visible: bool) -> Result<()> {
     app_handle
         .set_dock_visibility(visible)
+        .map_err(|e| anyhow::anyhow!(e))?;
+    Ok(())
+}
+
+pub fn set_clipboard_panel_bottom_sheet_style(
+    app_handle: &AppHandle,
+    bottom_sheet: bool,
+) -> Result<()> {
+    let handle = app_handle.clone();
+
+    app_handle
+        .run_on_main_thread(move || {
+            if let Ok(panel) = handle.get_webview_panel(CLIPBOARD_WINDOW_LABEL) {
+                panel.set_corner_radius(if bottom_sheet {
+                    CLIPBOARD_SHEET_CORNER_RADIUS
+                } else {
+                    CLIPBOARD_PANEL_CORNER_RADIUS
+                });
+            }
+        })
         .map_err(|e| anyhow::anyhow!(e))?;
     Ok(())
 }

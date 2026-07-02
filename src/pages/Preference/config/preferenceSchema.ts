@@ -433,6 +433,7 @@ export const preferenceTabs: PreferenceTab[] = [
                 { value: "followCursor" },
                 { value: "center" },
                 { value: "remember" },
+                { value: "bottomSheet" },
               ],
               type: "segmented",
             },
@@ -530,14 +531,14 @@ export const preferenceTabs: PreferenceTab[] = [
           {
             control: {
               options: [
-                { value: "auto" },
                 { value: "light" },
                 { value: "dark" },
+                { value: "auto" },
               ],
               type: "segmented",
             },
             id: "appearance.theme",
-            keywords: ["theme", "dark", "light"],
+            keywords: ["theme", "normal", "night", "system", "dark", "light"],
             path: ["appearance", "theme"],
             value: (settings) => {
               return settings.appearance.theme;

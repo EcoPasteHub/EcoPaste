@@ -52,7 +52,11 @@ export type CaptureKind = "files" | "image" | "html" | "rtf" | "text";
 
 export type RetentionUnit = "hours" | "days" | "weeks" | "months" | "forever";
 
-export type WindowPosition = "remember" | "followCursor" | "center";
+export type WindowPosition =
+  | "remember"
+  | "followCursor"
+  | "center"
+  | "bottomSheet";
 
 export type WindowOpenRangeSelection = "preserve" | ClipboardRange;
 

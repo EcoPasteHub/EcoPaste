@@ -1,7 +1,12 @@
 import type { FC, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import ScrollArea from "@/components/ScrollArea";
+import { cn } from "@/utils/cn";
 import { getShortcutKeyDisplays, type ShortcutPattern } from "@/utils/shortcut";
+
+interface ShortcutListProps {
+  bottomSheet?: boolean;
+}
 
 interface Shortcut {
   labelKey: string;
@@ -61,12 +66,16 @@ const SHORTCUTS: Shortcut[] = [
  * 快捷键速查面板：列出当前剪贴板窗口已支持的所有键盘操作；
  * 仅渲染纯文本与按键徽标，不绑定真实事件。
  */
-const ShortcutList: FC = () => {
+const ShortcutList: FC<ShortcutListProps> = (props) => {
+  const { bottomSheet = false } = props;
   const { t } = useTranslation("clipboard");
 
   return (
     <ScrollArea
-      className="-mx-3 max-h-120 w-72 px-3"
+      className={cn("w-72 overflow-x-hidden overscroll-contain px-3 py-2", {
+        "max-h-56": bottomSheet,
+        "max-h-120": !bottomSheet,
+      })}
       contentClassName="flex flex-col gap-1"
     >
       {SHORTCUTS.map((item) => (

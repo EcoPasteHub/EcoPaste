@@ -1,12 +1,16 @@
 html {
-  --uno: scheme-light select-none overscroll-none antialiased;
+  --uno: scheme-light select-none overflow-hidden overscroll-none antialiased;
 
   &.dark {
     --uno: scheme-dark;
   }
 
   body {
-    --uno: text-sm text-ant-text;
+    --uno: m-0 size-screen overflow-hidden text-sm text-ant-text;
+
+    #root {
+      --uno: size-full overflow-hidden;
+    }
 
     img {
       -webkit-user-drag: none;

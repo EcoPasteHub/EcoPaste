@@ -5,6 +5,8 @@ import CustomIconButton from "@/components/CustomIconButton";
 import KeyHint from "@/components/KeyHint";
 import Popover from "@/components/Popover";
 import { clipboardStatsState } from "@/stores/clipboardStats";
+import { settingsState } from "@/stores/settings";
+import { usesClipboardSheetLayout } from "../layout";
 import ShortcutList from "./ShortcutList";
 
 /**
@@ -14,6 +16,10 @@ import ShortcutList from "./ShortcutList";
 const Footer = () => {
   const { t } = useTranslation("clipboard");
   const { total } = useSnapshot(clipboardStatsState);
+  const settings = useSnapshot(settingsState);
+  const isSheetLayout = usesClipboardSheetLayout(
+    settings.clipboard.window.position,
+  );
 
   // Popover 打开时强制收起 Tooltip，避免两层浮层叠加遮挡。
   const [popoverOpen, setPopoverOpen] = useState(false);
@@ -23,6 +29,8 @@ const Footer = () => {
       return !prev;
     });
   };
+
+  if (isSheetLayout) return null;
 
   return (
     <div className="flex items-center justify-between px-3 py-1">
