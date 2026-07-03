@@ -1,3 +1,4 @@
+mod admin;
 mod autostart;
 mod backup;
 mod clipboard;
@@ -22,6 +23,8 @@ use tauri::{Manager, WindowEvent};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    admin::handle_startup_auto_elevation();
+
     // Webview target 把日志回灌到前端 devtools console，只在 dev 启用；
     // 生产环境只落 LogDir 文件 + Stdout，避免向用户的 webview console 喷日志。
     let mut log_targets = vec![
@@ -84,6 +87,9 @@ pub fn run() {
         .plugin(updater_plugin)
         .plugin(core::prevent_default::init())
         .invoke_handler(tauri::generate_handler![
+            commands::get_run_as_admin_status,
+            commands::set_run_as_admin,
+            commands::restart_as_admin,
             commands::read_clipboard,
             commands::list_clipboard_items,
             commands::open_external_url,

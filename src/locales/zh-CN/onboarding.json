@@ -59,6 +59,11 @@
     "action": {
       "authorize": "去授权"
     },
+    "adminRestartConfirm": {
+      "content": "EcoPaste 需要以管理员权限重启后，此设置才会生效。Windows 可能会弹出用户账户控制确认窗口。",
+      "ok": "重启",
+      "title": "需要重启"
+    },
     "description": {
       "macos": "EcoPaste 在 macOS 上需要辅助功能和完全磁盘访问权限来完成核心工作流。",
       "windows": "EcoPaste 在 Windows 上需要管理员权限启动来完成部分系统级工作流。"
@@ -73,7 +78,7 @@
         "title": "完全磁盘访问"
       },
       "runAsAdministrator": {
-        "description": "用于后续接入需要提升权限的系统能力；当前先保留入口，待 Windows 实机测试后接入。",
+        "description": "用于以管理员权限重启 EcoPaste，并在需要时让后续启动保持提权运行。",
         "title": "管理员权限启动"
       }
     },
@@ -81,7 +86,6 @@
       "denied": "未授权",
       "granted": "已授权",
       "notRequired": "无需授权",
-      "pendingIntegration": "待接入",
       "unknown": "待确认"
     },
     "title": "开启必要权限"

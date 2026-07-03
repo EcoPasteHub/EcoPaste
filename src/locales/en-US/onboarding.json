@@ -59,6 +59,11 @@
     "action": {
       "authorize": "Grant Access"
     },
+    "adminRestartConfirm": {
+      "content": "EcoPaste needs to restart with administrator privileges for this change to take effect. Windows may show a User Account Control prompt.",
+      "ok": "Restart",
+      "title": "Restart required"
+    },
     "description": {
       "macos": "On macOS, EcoPaste needs Accessibility and Full Disk Access for the core workflow.",
       "windows": "On Windows, EcoPaste needs administrator launch for some system-level workflows."
@@ -73,7 +78,7 @@
         "title": "Full Disk Access"
       },
       "runAsAdministrator": {
-        "description": "Reserved for elevated system capabilities. The actual integration will be added after Windows device testing.",
+        "description": "Used to restart EcoPaste with administrator privileges and keep future launches elevated when needed.",
         "title": "Run as Administrator"
       }
     },
@@ -81,7 +86,6 @@
       "denied": "Not granted",
       "granted": "Granted",
       "notRequired": "Not required",
-      "pendingIntegration": "Pending",
       "unknown": "Pending"
     },
     "title": "Enable Permissions"

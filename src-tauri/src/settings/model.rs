@@ -26,6 +26,8 @@ pub struct Settings {
 #[serde(default, rename_all = "camelCase")]
 pub struct General {
     pub auto_start: bool,
+    /// Windows: persist the user's intent to run EcoPaste with administrator privileges.
+    pub run_as_admin: bool,
     /// 启动后不显示剪贴板窗口（配合 `auto_start` 用，开机静默驻留托盘）。
     pub silent_start: bool,
     /// macOS 菜单栏 / Windows 系统托盘图标。
@@ -38,6 +40,7 @@ impl Default for General {
     fn default() -> Self {
         Self {
             auto_start: false,
+            run_as_admin: false,
             silent_start: false,
             tray_icon: true,
             dock_icon: false,

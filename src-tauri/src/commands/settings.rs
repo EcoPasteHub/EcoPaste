@@ -2,7 +2,7 @@ use tauri::{AppHandle, Emitter, Manager};
 
 use crate::core::Result;
 use crate::settings::{Settings, SettingsStore};
-use crate::{autostart, shortcut, tray, window};
+use crate::{admin, autostart, shortcut, tray, window};
 
 /// 与前端 `src/constants/events.ts` 的 `TAURI_EVENT.SETTINGS_UPDATED` 一一对应。
 const SETTINGS_UPDATED_EVENT: &str = "settings://updated";
@@ -43,6 +43,13 @@ pub async fn update_settings(app: AppHandle, patch: serde_json::Value) -> Result
                     .is_some_and(|a| a.contains_key("language"))
         })
         .unwrap_or(false);
+    let touches_run_as_admin = patch_obj
+        .map(|m| {
+            m.get("general")
+                .and_then(|v| v.as_object())
+                .is_some_and(|g| g.contains_key("runAsAdmin"))
+        })
+        .unwrap_or(false);
 
     let next = app.state::<SettingsStore>().update(patch)?;
 
@@ -56,6 +63,10 @@ pub async fn update_settings(app: AppHandle, patch: serde_json::Value) -> Result
         if let Err(err) = tray::apply(&app, &next) {
             log::warn!("re-apply tray after settings update failed: {err}");
         }
+    }
+
+    if touches_run_as_admin {
+        admin::sync_scheduled_task(next.general.run_as_admin);
     }
 
     emit_settings_updated(&app, &next);
@@ -91,6 +102,8 @@ fn apply_reset_side_effects(app: &AppHandle, settings: &Settings) {
     if let Err(err) = window::show_taskbar_icon(app, settings.general.dock_icon) {
         log::warn!("reset taskbar icon failed: {err}");
     }
+
+    admin::sync_scheduled_task(settings.general.run_as_admin);
 }
 
 /// 广播最新设置快照给所有前端窗口。

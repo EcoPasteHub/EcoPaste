@@ -274,10 +274,107 @@ existing command layer:
 - Tray menu and language: `tray::apply`.
 - Autostart: `autostart::set_enabled`.
 - Dock/taskbar icon: `window::show_taskbar_icon`.
+- Windows administrator launch: `admin::sync_scheduled_task` and
+  `admin::launch_elevated_current_process`.
 
 Failures in side-effect refresh after a successful settings write are logged and
 do not roll back the persisted settings unless the called command itself is the
 direct user action, such as `set_autostart`.
+
+## Scenario: Windows Administrator Launch
+
+### 1. Scope / Trigger
+
+Adding or changing administrator launch behavior touches startup order, Windows
+process APIs, scheduled tasks, persisted settings, Tauri commands, TypeScript
+command wrappers, and onboarding UI. Treat it as a Rust-owned platform contract,
+not a frontend-only permission prompt.
+
+### 2. Signatures
+
+- Setting:
+  - Rust `Settings.general.run_as_admin: bool`
+  - TypeScript `Settings.general.runAsAdmin: boolean`
+- Commands:
+  - `get_run_as_admin_status() -> AdminLaunchStatus`
+  - `set_run_as_admin(enabled: bool) -> Settings`
+  - `restart_as_admin() -> ()`
+- Response:
+  - `AdminLaunchStatus.configured: bool`
+  - `AdminLaunchStatus.runningAsAdmin: bool`
+  - `AdminLaunchStatus.taskReady: bool`
+- Internal restart marker:
+  - `--ecopaste-admin-restarted`
+
+### 3. Contracts
+
+- `runAsAdmin` records persistent user intent. The current Windows access token
+  is the source of truth for whether EcoPaste is actually elevated.
+- Windows elevation detection uses `OpenProcessToken` and
+  `GetTokenInformation(TokenElevation)`.
+- Release startup calls the admin auto-elevation check before normal Tauri setup
+  initializes windows, tray, database, clipboard watcher, or hooks.
+- If `runAsAdmin=true` and the process is already elevated, Rust best-effort
+  syncs the highest-privilege scheduled task and continues startup.
+- If `runAsAdmin=true` and the process is not elevated, Rust tries to launch an
+  elevated process and exits the unelevated process only after launch succeeds.
+- Relaunch prefers a valid scheduled task only when current arguments are safe
+  for the static task action, meaning no external arguments beyond the internal
+  restart marker. Dynamic arguments such as file-open backup paths or
+  `--auto-launch` fall back to `ShellExecuteW` with the `runas` verb so they can
+  be preserved.
+- React renders `AdminLaunchStatus` and sends user intent through command
+  wrappers. It must not call Windows APIs or infer token elevation itself.
+
+### 4. Validation & Error Matrix
+
+- `restart_as_admin` on non-Windows -> command error `administrator launch is only available on Windows`.
+- UAC cancelled or elevated launch fails -> command error
+  `administrator permission request was cancelled or failed`; current process
+  remains open.
+- Scheduled task path mismatch -> task is not considered ready; fallback to UAC.
+- `set_run_as_admin(false)` while elevated -> Rust deletes the scheduled task
+  best-effort after settings update.
+- Early settings or storage manifest read failure -> auto-elevation is skipped
+  and normal startup continues.
+
+### 5. Good/Base/Bad Cases
+
+- Good: onboarding on Windows shows the administrator card as actionable, the
+  user grants access, Rust persists `runAsAdmin`, launches an elevated instance,
+  exits the old process, and the elevated instance reopens onboarding with the
+  card granted.
+- Base: app already runs elevated; onboarding reports granted and startup keeps
+  the scheduled task aligned with the current executable.
+- Bad: frontend marks administrator permission granted because `runAsAdmin=true`
+  even though `runningAsAdmin=false`.
+
+### 6. Tests Required
+
+- Backend: unit-test Windows command-line quoting for scheduled task / UAC
+  arguments.
+- Backend: `cargo clippy -- -D warnings` must pass on Windows-specific code.
+- Backend: `cargo test` must include settings default coverage for
+  `general.run_as_admin`.
+- Frontend: `pnpm tsc` must cover `AdminLaunchStatus` and the mirrored
+  `runAsAdmin` setting.
+- Manual Windows validation is required for UAC approval/cancel and scheduled
+  task launch behavior.
+
+### 7. Wrong vs Correct
+
+Wrong:
+
+```tsx
+const granted = settings.general.runAsAdmin;
+```
+
+Correct:
+
+```tsx
+const status = await getRunAsAdminStatus();
+const granted = status.runningAsAdmin;
+```
 
 ## Scenario: Auto Updater Window
 
