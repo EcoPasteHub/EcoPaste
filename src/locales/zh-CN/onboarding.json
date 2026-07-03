@@ -100,6 +100,10 @@
       "openPreference": {
         "description": "打开或隐藏偏好设置窗口。",
         "title": "打开偏好设置窗口"
+      },
+      "winV": {
+        "description": "按 Win+V 唤起 EcoPaste，替代 Windows 系统剪贴板历史面板。",
+        "title": "接管 Win+V"
       }
     },
     "title": "设置快捷键"
