@@ -153,3 +153,7 @@ src/
 Read [AGENTS.md](./AGENTS.md) before changing code. It is the source of truth for this refactor's architecture, platform scope, coding conventions, and quality expectations.
 
 For user-visible feature changes in the next release, update [RELEASE-NEXT.md](./RELEASE-NEXT.md). Keep documentation aligned with the current beta status and supported platforms.
+
+## License
+
+EcoPaste is licensed under the [Apache License 2.0](./LICENSE).
