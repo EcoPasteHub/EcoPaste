@@ -71,6 +71,7 @@ export type OnboardingLegacyImportType = "normal" | "favorite";
 
 export interface General {
   autoStart: boolean;
+  runAsAdmin: boolean;
   silentStart: boolean;
   trayIcon: boolean;
   dockIcon: boolean;

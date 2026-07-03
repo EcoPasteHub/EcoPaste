@@ -254,6 +254,12 @@ export interface AppUpdateStatus {
   update: UpdateMetadata | null;
 }
 
+export interface AdminLaunchStatus {
+  configured: boolean;
+  runningAsAdmin: boolean;
+  taskReady: boolean;
+}
+
 export interface UpdateDownloadProgress {
   downloaded: number;
   total: number | null;
@@ -332,6 +338,37 @@ export const getSettings = () => {
   return call<Settings>(
     TAURI_COMMAND.GET_SETTINGS,
     "commands:labels.loadSettings",
+  );
+};
+
+/**
+ * 读取 Windows 管理员启动状态：配置、当前进程权限和计划任务准备状态。
+ */
+export const getRunAsAdminStatus = () => {
+  return call<AdminLaunchStatus>(
+    TAURI_COMMAND.GET_RUN_AS_ADMIN_STATUS,
+    "commands:labels.loadRunAsAdminStatus",
+  );
+};
+
+/**
+ * 保存是否以管理员权限启动的持久意图。
+ */
+export const setRunAsAdmin = (enabled: boolean) => {
+  return call<Settings>(
+    TAURI_COMMAND.SET_RUN_AS_ADMIN,
+    "commands:labels.setRunAsAdmin",
+    { enabled },
+  );
+};
+
+/**
+ * 拉起一个已提权的新进程；成功后 Rust 会退出当前进程。
+ */
+export const restartAsAdmin = () => {
+  return call<void>(
+    TAURI_COMMAND.RESTART_AS_ADMIN,
+    "commands:labels.restartAsAdmin",
   );
 };
 

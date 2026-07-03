@@ -309,6 +309,7 @@ mod tests {
         let partial = r#"{"general": {"autoStart": true}}"#;
         let parsed: Settings = serde_json::from_str(partial).unwrap();
         assert!(parsed.general.auto_start);
+        assert!(!parsed.general.run_as_admin);
         assert!(parsed.general.tray_icon, "default kept");
         assert_eq!(parsed.shortcuts.open_clipboard, "Alt+C");
         assert_eq!(
