@@ -8,37 +8,16 @@ import type {
   ExportHistoryBackupResult,
   StorageLocation,
 } from "@/commands";
-import LanguageSwitcher from "@/components/LanguageSwitcher";
 import type { Settings } from "@/types/settings";
 import { cn } from "@/utils/cn";
 import type {
   PreferenceSetting,
   PreferenceSettingChangeHandler,
-  SettingValue,
 } from "../types/preferences";
 import { translatePreferenceSetting } from "../utils/preferenceI18n";
 import PreferenceStatusBadge from "./PreferenceStatusBadge";
-import { SponsorQrControl } from "./settingControls/AboutControls";
-import ActionControl from "./settingControls/ActionControl";
-import CaptureOrderControl from "./settingControls/CaptureOrderControl";
-import ClipboardGroupSelectControl from "./settingControls/ClipboardGroupSelectControl";
-import NumberControl from "./settingControls/NumberControl";
-import PermissionControl from "./settingControls/PermissionControl";
-import RetentionControl, {
-  resolveRetentionValue,
-} from "./settingControls/RetentionControl";
-import {
-  SegmentedSelectControl,
-  SelectControl,
-} from "./settingControls/SelectControls";
-import ShortcutRecorderControl from "./settingControls/ShortcutRecorderControl";
-import ShortcutTagsControl from "./settingControls/ShortcutTagsControl";
-import SortableCheckboxTreeControl from "./settingControls/SortableCheckboxTreeControl";
-import StatusControl from "./settingControls/StatusControl";
-import SwitchControl from "./settingControls/SwitchControl";
+import PreferenceSettingControl from "./settingControls/PreferenceSettingControl";
 import { resolveSettingVisual } from "./settingControls/settingVisual";
-import TextareaControl from "./settingControls/TextareaControl";
-import TextControl from "./settingControls/TextControl";
 
 interface PreferenceSettingRowProps {
   highlighted: boolean;
@@ -166,173 +145,21 @@ const PreferenceSettingRow: FC<PreferenceSettingRowProps> = (props) => {
       </div>
 
       <div className="relative flex shrink-0 justify-end opacity-90 transition-opacity group-hover:opacity-100 motion-reduce:transition-none">
-        {renderControl(
-          setting,
-          settings,
-          disabled,
-          onChange,
-          value,
-          onActionComplete,
-          storageLocation,
-        )}
+        <PreferenceSettingControl
+          disabled={disabled}
+          onActionComplete={onActionComplete}
+          onChange={onChange}
+          setting={setting}
+          settings={settings}
+          storageLocation={storageLocation}
+          value={value}
+        />
       </div>
     </motion.div>
   );
 };
 
 export default PreferenceSettingRow;
-
-/**
- * 根据 schema 中声明的控件类型分发到具体设置控件。
- */
-function renderControl(
-  setting: PreferenceSetting,
-  settings: Settings,
-  disabled: boolean,
-  onChange: PreferenceSettingChangeHandler,
-  value?: SettingValue,
-  onActionComplete?: (
-    setting: PreferenceSetting,
-    result?:
-      | ChangeStorageLocationResult
-      | CleanCacheResult
-      | ExportHistoryBackupResult,
-  ) => void,
-  storageLocation?: StorageLocation | null,
-) {
-  switch (setting.control.type) {
-    case "sponsorQr":
-      return <SponsorQrControl setting={setting} />;
-    case "switch":
-      return (
-        <SwitchControl
-          disabled={disabled}
-          onChange={onChange}
-          setting={setting}
-          value={Boolean(value)}
-        />
-      );
-    case "permission":
-      return <PermissionControl disabled={disabled} setting={setting} />;
-    case "segmented":
-      if (setting.id === "appearance.language") {
-        return (
-          <LanguageSwitcher
-            disabled={disabled}
-            onChange={async (nextLanguage) => {
-              await onChange(setting, nextLanguage);
-            }}
-            value={settings.appearance.language}
-          />
-        );
-      }
-
-      return (
-        <SegmentedSelectControl
-          disabled={disabled}
-          onChange={onChange}
-          setting={setting}
-          value={String(value ?? "")}
-        />
-      );
-    case "select":
-      return (
-        <SelectControl
-          disabled={disabled}
-          onChange={onChange}
-          setting={setting}
-          value={value}
-        />
-      );
-    case "clipboardGroupSelect":
-      return (
-        <ClipboardGroupSelectControl
-          disabled={disabled}
-          onChange={onChange}
-          setting={setting}
-          value={typeof value === "string" ? value : "preserve"}
-        />
-      );
-    case "sortableCheckboxTree":
-      return (
-        <SortableCheckboxTreeControl
-          disabled={disabled}
-          onChange={onChange}
-          setting={setting}
-          value={value}
-        />
-      );
-    case "sortableTree":
-      return (
-        <CaptureOrderControl
-          disabled={disabled}
-          onChange={onChange}
-          setting={setting}
-          value={value}
-        />
-      );
-    case "number":
-      return (
-        <NumberControl
-          disabled={disabled}
-          onChange={onChange}
-          setting={setting}
-          value={typeof value === "number" ? value : 0}
-        />
-      );
-    case "retention":
-      return (
-        <RetentionControl
-          disabled={disabled}
-          onChange={onChange}
-          setting={setting}
-          value={resolveRetentionValue(value)}
-        />
-      );
-    case "text":
-      return (
-        <TextControl
-          disabled={disabled}
-          onChange={onChange}
-          setting={setting}
-          value={typeof value === "string" ? value : ""}
-        />
-      );
-    case "shortcutRecorder":
-      return (
-        <ShortcutRecorderControl
-          disabled={disabled}
-          onChange={onChange}
-          setting={setting}
-          settings={settings}
-          value={typeof value === "string" ? value : ""}
-        />
-      );
-    case "textarea":
-    case "appExclusion":
-      return (
-        <TextareaControl
-          disabled={disabled}
-          onChange={onChange}
-          setting={setting}
-          value={Array.isArray(value) ? value : []}
-        />
-      );
-    case "action":
-      return (
-        <ActionControl
-          disabled={disabled}
-          onActionComplete={onActionComplete}
-          setting={setting}
-          storageLocation={storageLocation ?? null}
-        />
-      );
-    case "status":
-      return <StatusControl setting={setting} />;
-    case "shortcutTags":
-      return <ShortcutTagsControl setting={setting} />;
-  }
-}
 
 /**
  * 数据目录行展示当前真实路径，其它设置沿用 schema 文案。
