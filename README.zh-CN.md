@@ -1,11 +1,11 @@
 <div align="center">
   <img src="./public/logo.png" alt="EcoPaste" width="96" height="96" />
 
-  # EcoPaste
+# EcoPaste
 
-  **适用于 macOS 与 Windows 的本地优先剪贴板管理器。**
+**适用于 macOS 与 Windows 的本地优先剪贴板管理器。**
 
-  [English](./README.md) | 简体中文
+[English](./README.md) | 简体中文
 
   <br />
 
@@ -60,66 +60,14 @@ EcoPaste 采用 Rust-First 的 Tauri 架构：
 
 ## 技术栈
 
-| 维度 | 选型 |
-| --- | --- |
-| 桌面外壳 | Tauri v2 |
-| 前端 | React 19、Ant Design 6、UnoCSS `presetWind4` |
-| 状态 | Valtio，仅用于 UI 状态与设置镜像 |
-| 后端 | Rust、sqlx、SQLite |
-| 构建 | Vite、pnpm |
-| 质量 | Biome、TypeScript、rustfmt、clippy、cargo test |
-
-## 开始开发
-
-### 环境要求
-
-- macOS 或 Windows。
-- Node.js 20 或更高版本。
-- pnpm 10 或更高版本。
-- `rust-toolchain.toml` 指定的 Rust 工具链（`1.96.0`，包含 `rustfmt` 和 `clippy`）。
-- Tauri v2 所需的系统原生依赖。请参考 [Tauri prerequisites](https://tauri.app/start/prerequisites/) 中对应系统的说明。
-
-### 安装依赖
-
-```bash
-pnpm install
-```
-
-### 开发运行
-
-```bash
-pnpm tauri dev
-```
-
-### 构建
-
-```bash
-pnpm tauri build
-```
-
-## 质量检查
-
-前端：
-
-```bash
-pnpm lint
-pnpm tsc
-```
-
-Rust：
-
-```bash
-cd src-tauri
-cargo fmt
-cargo clippy -- -D warnings
-cargo test
-```
-
-格式化前端文件：
-
-```bash
-pnpm format
-```
+| 维度     | 选型                                           |
+| -------- | ---------------------------------------------- |
+| 桌面外壳 | Tauri v2                                       |
+| 前端     | React 19、Ant Design 6、UnoCSS `presetWind4`   |
+| 状态     | Valtio，仅用于 UI 状态与设置镜像               |
+| 后端     | Rust、sqlx、SQLite                             |
+| 构建     | Vite、pnpm                                     |
+| 质量     | Biome、TypeScript、rustfmt、clippy、cargo test |
 
 ## 仓库结构
 
@@ -150,6 +98,6 @@ src/
 
 ## 参与贡献
 
-修改代码前请先阅读 [AGENTS.md](./AGENTS.md)。它是本重构版架构边界、平台范围、编码规范和质量要求的单一真相源。
+修改代码前请先阅读 [CONTRIBUTING](./CONTRIBUTING.zh-CN.md)。它说明了普通开发流程、AI 辅助开发必须使用的 Trellis 流程，以及 AI 贡献者首次参与时的个人身份初始化步骤。
 
 涉及下个版本的用户可见能力变更时，请同步更新 [RELEASE-NEXT.md](./RELEASE-NEXT.md)。文档内容也应与当前 beta 状态和受支持平台保持一致。

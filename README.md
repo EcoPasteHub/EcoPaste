@@ -1,11 +1,11 @@
 <div align="center">
   <img src="./public/logo.png" alt="EcoPaste" width="96" height="96" />
 
-  # EcoPaste
+# EcoPaste
 
-  **A local-first clipboard manager for macOS and Windows.**
+**A local-first clipboard manager for macOS and Windows.**
 
-  English | [简体中文](./README.zh-CN.md)
+English | [简体中文](./README.zh-CN.md)
 
   <br />
 
@@ -60,66 +60,14 @@ The frontend calls Rust through Tauri commands and receives refresh signals thro
 
 ## Tech Stack
 
-| Area | Stack |
-| --- | --- |
-| Desktop shell | Tauri v2 |
-| Frontend | React 19, Ant Design 6, UnoCSS `presetWind4` |
-| State | Valtio for UI state and settings mirrors |
-| Backend | Rust, sqlx, SQLite |
-| Build | Vite, pnpm |
-| Quality | Biome, TypeScript, rustfmt, clippy, cargo test |
-
-## Getting Started
-
-### Prerequisites
-
-- macOS or Windows.
-- Node.js 20 or newer.
-- pnpm 10 or newer.
-- Rust toolchain from `rust-toolchain.toml` (`1.96.0`, with `rustfmt` and `clippy`).
-- Native dependencies required by Tauri v2. See the [Tauri prerequisites](https://tauri.app/start/prerequisites/) for your operating system.
-
-### Install
-
-```bash
-pnpm install
-```
-
-### Run in Development
-
-```bash
-pnpm tauri dev
-```
-
-### Build
-
-```bash
-pnpm tauri build
-```
-
-## Quality Checks
-
-Frontend:
-
-```bash
-pnpm lint
-pnpm tsc
-```
-
-Rust:
-
-```bash
-cd src-tauri
-cargo fmt
-cargo clippy -- -D warnings
-cargo test
-```
-
-Format frontend files:
-
-```bash
-pnpm format
-```
+| Area          | Stack                                          |
+| ------------- | ---------------------------------------------- |
+| Desktop shell | Tauri v2                                       |
+| Frontend      | React 19, Ant Design 6, UnoCSS `presetWind4`   |
+| State         | Valtio for UI state and settings mirrors       |
+| Backend       | Rust, sqlx, SQLite                             |
+| Build         | Vite, pnpm                                     |
+| Quality       | Biome, TypeScript, rustfmt, clippy, cargo test |
 
 ## Repository Layout
 
@@ -150,6 +98,6 @@ src/
 
 ## Contributing
 
-Read [AGENTS.md](./AGENTS.md) before changing code. It is the source of truth for this refactor's architecture, platform scope, coding conventions, and quality expectations.
+Read [CONTRIBUTING](./CONTRIBUTING.md) before changing code. It describes the ordinary development flow, the required Trellis workflow for AI-assisted development, and the first-time AI contributor setup.
 
 For user-visible feature changes in the next release, update [RELEASE-NEXT.md](./RELEASE-NEXT.md). Keep documentation aligned with the current beta status and supported platforms.
