@@ -117,6 +117,9 @@
       "paste": {
         "title": "Paste Behavior"
       },
+      "permissions": {
+        "title": "System Permissions"
+      },
       "preview": {
         "title": "Content Preview"
       },
@@ -454,6 +457,25 @@
         "plainDefault": {
           "description": "When pasting text records, strip HTML/RTF formatting and paste plain text by default.",
           "title": "Paste as Plain Text by Default"
+        }
+      },
+      "permissions": {
+        "accessibility": {
+          "description": "Used for quick paste, window control, and more reliable system interactions.",
+          "title": "Accessibility Permission"
+        },
+        "adminRestartConfirm": {
+          "content": "EcoPaste needs to restart with administrator privileges for this change to take effect. Windows may show a User Account Control prompt.",
+          "ok": "Restart",
+          "title": "Restart required"
+        },
+        "fullDiskAccess": {
+          "description": "Used to read required local data and access system-protected app resources.",
+          "title": "Full Disk Access Permission"
+        },
+        "runAsAdministrator": {
+          "description": "Used to restart EcoPaste with administrator privileges and keep future launches elevated when needed.",
+          "title": "Run as Administrator"
         }
       },
       "preview": {

@@ -23,6 +23,7 @@ import ActionControl from "./settingControls/ActionControl";
 import CaptureOrderControl from "./settingControls/CaptureOrderControl";
 import ClipboardGroupSelectControl from "./settingControls/ClipboardGroupSelectControl";
 import NumberControl from "./settingControls/NumberControl";
+import PermissionControl from "./settingControls/PermissionControl";
 import RetentionControl, {
   resolveRetentionValue,
 } from "./settingControls/RetentionControl";
@@ -211,6 +212,8 @@ function renderControl(
           value={Boolean(value)}
         />
       );
+    case "permission":
+      return <PermissionControl disabled={disabled} setting={setting} />;
     case "segmented":
       if (setting.id === "appearance.language") {
         return (

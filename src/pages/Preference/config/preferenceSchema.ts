@@ -6,7 +6,7 @@ import {
   WINDOW_OPEN_RANGE_OPTIONS,
 } from "@/constants/windowOpenSelection";
 import type { Settings } from "@/types/settings";
-import { isWin } from "@/utils/is";
+import { isMac, isWin } from "@/utils/is";
 import type { PreferenceTab } from "../types/preferences";
 
 const CLICK_ACTION_OPTIONS = [
@@ -657,6 +657,63 @@ export const preferenceTabs: PreferenceTab[] = [
           },
         ],
       },
+      ...(isMac || isWin
+        ? [
+            {
+              id: "permissions",
+              settings: [
+                ...(isMac
+                  ? [
+                      {
+                        control: {
+                          kind: "accessibility",
+                          type: "permission",
+                        } as const,
+                        id: "permissions.accessibility",
+                        keywords: [
+                          "accessibility",
+                          "permission",
+                          "paste",
+                          "macos",
+                        ],
+                      },
+                      {
+                        control: {
+                          kind: "fullDiskAccess",
+                          type: "permission",
+                        } as const,
+                        id: "permissions.fullDiskAccess",
+                        keywords: [
+                          "full disk",
+                          "permission",
+                          "privacy",
+                          "macos",
+                        ],
+                      },
+                    ]
+                  : []),
+                ...(isWin
+                  ? [
+                      {
+                        control: {
+                          kind: "runAsAdministrator",
+                          type: "permission",
+                        } as const,
+                        id: "permissions.runAsAdministrator",
+                        keywords: [
+                          "administrator",
+                          "admin",
+                          "permission",
+                          "windows",
+                          "uac",
+                        ],
+                      },
+                    ]
+                  : []),
+              ],
+            },
+          ]
+        : []),
     ],
   },
   {
