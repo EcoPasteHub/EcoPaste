@@ -1,7 +1,7 @@
 //! 自启动：直接用 `auto-launch` crate 实现，绕过 `tauri-plugin-autostart` 上游 bug
 //! （tauri-apps/plugins-workspace#1922：macOS 下 `is_enabled` 误报、`enable` 路径写错）。
 //!
-//! 启动参数固定追加 `--auto-launch`，让前端在「静默启动」场景里识别本次启动来源。
+//! 启动参数固定追加 `--auto-launch`，用于识别本次启动来源。
 
 use std::env;
 
