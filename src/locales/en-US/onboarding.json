@@ -71,11 +71,11 @@
     "items": {
       "accessibility": {
         "description": "Used for quick paste, window control, and more reliable system interactions.",
-        "title": "Accessibility"
+        "title": "Accessibility Permission"
       },
       "fullDiskAccess": {
         "description": "Used to read required local data and access system-protected app resources.",
-        "title": "Full Disk Access"
+        "title": "Full Disk Access Permission"
       },
       "runAsAdministrator": {
         "description": "Used to restart EcoPaste with administrator privileges and keep future launches elevated when needed.",
