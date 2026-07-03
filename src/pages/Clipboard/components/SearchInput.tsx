@@ -1,7 +1,8 @@
 import { Input, type InputProps, type InputRef } from "antd";
 import type { ChangeEvent, CompositionEvent, FC } from "react";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import KeyHint from "@/components/KeyHint";
+import { prepareClipboardWindowEditableFocus } from "@/hooks/useClipboardWindowEditableFocus";
 
 interface SearchInputProps extends Omit<InputProps, "prefix"> {
   blurToken?: number;
@@ -31,9 +32,12 @@ const SearchInput: FC<SearchInputProps> = (props) => {
   /**
    * 聚焦搜索框并选中已有内容，便于直接覆盖输入。
    */
-  const focusSearch = () => {
+  const focusSearch = useCallback(async () => {
+    if (!inputRef.current) return;
+
+    await prepareClipboardWindowEditableFocus();
     inputRef.current?.focus({ cursor: "all" });
-  };
+  }, []);
 
   useEffect(() => {
     if (blurToken <= 0) return;
@@ -45,13 +49,13 @@ const SearchInput: FC<SearchInputProps> = (props) => {
     if (focusToken <= 0) return;
 
     const frame = requestAnimationFrame(() => {
-      inputRef.current?.focus({ cursor: "all" });
+      void focusSearch();
     });
 
     return () => {
       cancelAnimationFrame(frame);
     };
-  }, [focusToken]);
+  }, [focusToken, focusSearch]);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (composingRef.current) return;

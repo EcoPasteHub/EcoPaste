@@ -1,8 +1,8 @@
-import { useEventListener } from "ahooks";
-import { type FC, type ReactNode, useState } from "react";
+import { useEventListener, useUnmount } from "ahooks";
+import { type FC, type ReactNode, useRef, useState } from "react";
 import { useKeyboardEvent } from "@/hooks/useKeyboardEvent";
 import { cn } from "@/utils/cn";
-import { isMac } from "@/utils/is";
+import { isMac, isWinClipboardWindow } from "@/utils/is";
 
 interface KeyHintProps {
   /**
@@ -37,6 +37,16 @@ const KeyHint: FC<KeyHintProps> = (props) => {
   const { hintKey, onKeyPress, iconName, children, className } = props;
 
   const [active, setActive] = useState(false);
+  const isWindowsClipboardWindow = isWinClipboardWindow();
+  const modifierPressedRef = useRef(false);
+  const blurResetTimerRef = useRef(0);
+
+  const clearBlurResetTimer = () => {
+    if (blurResetTimerRef.current === 0) return;
+
+    window.clearTimeout(blurResetTimerRef.current);
+    blurResetTimerRef.current = 0;
+  };
 
   /**
    * 修饰键按下时展示快捷键提示；完整组合键命中时触发业务回调。
@@ -46,6 +56,8 @@ const KeyHint: FC<KeyHintProps> = (props) => {
 
     if (!isModifierPressed) return;
 
+    modifierPressedRef.current = true;
+    clearBlurResetTimer();
     setActive(true);
 
     if (event.key.toLowerCase() !== hintKey.toLowerCase()) return;
@@ -63,11 +75,28 @@ const KeyHint: FC<KeyHintProps> = (props) => {
 
     if (isModifierPressed) return;
 
+    modifierPressedRef.current = false;
+    clearBlurResetTimer();
     setActive(false);
   };
 
   const handleBlur = () => {
-    setActive(false);
+    if (!isWindowsClipboardWindow) {
+      modifierPressedRef.current = false;
+      clearBlurResetTimer();
+      setActive(false);
+
+      return;
+    }
+
+    if (modifierPressedRef.current) return;
+
+    blurResetTimerRef.current = window.setTimeout(() => {
+      blurResetTimerRef.current = 0;
+      if (modifierPressedRef.current) return;
+
+      setActive(false);
+    });
   };
 
   useKeyboardEvent("keydown", handleKeyDown);
@@ -75,6 +104,10 @@ const KeyHint: FC<KeyHintProps> = (props) => {
   useKeyboardEvent("keyup", handleKeyUp);
 
   useEventListener("blur", handleBlur, { target: window });
+
+  useUnmount(() => {
+    clearBlurResetTimer();
+  });
 
   return (
     <div className="relative">
