@@ -565,7 +565,7 @@
         },
         "beta": {
           "description": "Receive beta test versions when checking for updates.",
-          "title": "Include Beta Versions"
+          "title": "Receive Beta Updates"
         },
         "frequency": {
           "description": "Set how often EcoPaste checks for updates.",

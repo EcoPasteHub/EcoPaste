@@ -564,8 +564,8 @@
           "title": "自动检查更新"
         },
         "beta": {
-          "description": "检查更新时同时接收 Beta 测试版本。",
-          "title": "包含 Beta 版本"
+          "description": "检查更新时同时接收测试版。",
+          "title": "接收测试版更新"
         },
         "frequency": {
           "description": "设置自动检查更新的时间间隔。",
