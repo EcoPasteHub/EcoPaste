@@ -71,11 +71,11 @@
     "items": {
       "accessibility": {
         "description": "用于快捷粘贴、窗口控制和更稳定的系统交互。",
-        "title": "辅助功能"
+        "title": "辅助功能访问权限"
       },
       "fullDiskAccess": {
         "description": "用于读取必要的本地数据和访问受系统保护的应用资源。",
-        "title": "完全磁盘访问"
+        "title": "完全磁盘访问权限"
       },
       "runAsAdministrator": {
         "description": "用于以管理员权限重启 EcoPaste，并在需要时让后续启动保持提权运行。",

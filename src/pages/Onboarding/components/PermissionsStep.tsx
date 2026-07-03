@@ -1,5 +1,5 @@
 import { useMount } from "ahooks";
-import { Button, Switch } from "antd";
+import { Switch } from "antd";
 import type { FC } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -182,13 +182,19 @@ const PermissionCard: FC<PermissionCardProps> = (props) => {
   const { authorizing, onAdminLaunchChange, onAuthorize, permission } = props;
   const { t } = useTranslation("onboarding");
 
-  const handleAuthorizeClick = () => {
-    onAuthorize(permission.kind);
-  };
-
   const handleAdminSwitchChange = (checked: boolean) => {
     onAdminLaunchChange(checked);
   };
+
+  const handlePermissionSwitchChange = (checked: boolean) => {
+    if (!checked) return;
+
+    onAuthorize(permission.kind);
+  };
+
+  const checked =
+    permission.status === "granted" || permission.status === "notRequired";
+  const disabled = permission.status === "unknown" || authorizing;
 
   return (
     <OnboardingCard
@@ -202,19 +208,13 @@ const PermissionCard: FC<PermissionCardProps> = (props) => {
             onChange={handleAdminSwitchChange}
           />
         ) : (
-          <Button
-            color={getPermissionButtonColor(permission.status)}
+          <Switch
+            aria-label={t(`permissions.items.${permission.kind}.title`)}
+            checked={checked}
+            disabled={disabled}
             loading={authorizing}
-            onClick={
-              permission.status === "denied" ? handleAuthorizeClick : void 0
-            }
-            tabIndex={permission.status === "denied" ? void 0 : -1}
-            variant="outlined"
-          >
-            {permission.status === "denied"
-              ? t("permissions.action.authorize")
-              : t(`permissions.status.${permission.status}`)}
-          </Button>
+            onChange={handlePermissionSwitchChange}
+          />
         )
       }
       description={t(`permissions.items.${permission.kind}.description`)}
@@ -223,22 +223,6 @@ const PermissionCard: FC<PermissionCardProps> = (props) => {
     />
   );
 };
-
-function getPermissionButtonColor(status: OnboardingPermissionStatus) {
-  if (status === "granted" || status === "notRequired") {
-    return "green";
-  }
-
-  if (status === "denied") {
-    return "danger";
-  }
-
-  if (status === "unknown") {
-    return "primary";
-  }
-
-  return "default";
-}
 
 function buildInitialPermissions(): OnboardingPermissionState[] {
   if (isWin) {
