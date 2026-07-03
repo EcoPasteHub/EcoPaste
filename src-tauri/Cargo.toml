@@ -1,9 +1,13 @@
 [package]
 name = "EcoPaste"
 version = "0.6.0-beta.3"
-description = "A Tauri App"
+description = "A local-first clipboard manager for macOS and Windows."
 authors = ["ayangweb"]
 license = "Apache-2.0"
+homepage = "https://github.com/EcoPasteHub/EcoPaste"
+repository = "https://github.com/EcoPasteHub/EcoPaste"
+readme = "../README.md"
+publish = false
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
