@@ -49,6 +49,13 @@ Do not update it for metadata-only edits:
 This distinction feeds the default `updatedAtDesc` sort used by the clipboard
 list.
 
+Legacy EcoPaste imports are a special timestamp boundary: old `history.createTime`
+values are dayjs-formatted local wall-clock strings like
+`YYYY-MM-DD HH:mm:ss` with no offset. Parse them as local time first, then store
+the converted UTC `created_at` / `updated_at`. Treating the naive value as UTC
+adds the user's timezone offset again when list commands format it back to local
+time.
+
 ## Search and Pagination
 
 List search is owned by `db::items::query_items_page`:

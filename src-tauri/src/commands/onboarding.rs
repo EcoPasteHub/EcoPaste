@@ -2,7 +2,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::Context;
-use chrono::{DateTime, NaiveDateTime, Utc};
+use chrono::{DateTime, Local, LocalResult, NaiveDateTime, TimeZone, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
@@ -822,15 +822,20 @@ fn map_legacy_row_to_item(
     Ok(Some(item))
 }
 
+/// 旧版 `createTime` 是 dayjs 生成的本地无时区字符串；导入时先按本地时间解释，再转 UTC 入库。
 fn parse_legacy_datetime(value: Option<&str>) -> Option<DateTime<Utc>> {
     let raw = value?.trim();
     if raw.is_empty() {
         return None;
     }
 
-    NaiveDateTime::parse_from_str(raw, "%Y-%m-%d %H:%M:%S")
-        .ok()
-        .map(|time| DateTime::<Utc>::from_naive_utc_and_offset(time, Utc))
+    let time = NaiveDateTime::parse_from_str(raw, "%Y-%m-%d %H:%M:%S").ok()?;
+
+    match Local.from_local_datetime(&time) {
+        LocalResult::Single(time) => Some(time.with_timezone(&Utc)),
+        LocalResult::Ambiguous(earliest, _) => Some(earliest.with_timezone(&Utc)),
+        LocalResult::None => Some(DateTime::<Utc>::from_naive_utc_and_offset(time, Utc)),
+    }
 }
 
 #[cfg(test)]
@@ -1133,5 +1138,19 @@ mod tests {
             legacy_data_candidates_from_defaults(vec![default_dir.clone()], &mut messages);
 
         assert_eq!(candidates, vec![default_dir]);
+    }
+
+    #[test]
+    fn parse_legacy_datetime_treats_naive_value_as_local_time() {
+        let raw = "2026-07-03 18:00:00";
+        let parsed = parse_legacy_datetime(Some(raw)).unwrap();
+
+        assert_eq!(
+            parsed
+                .with_timezone(&Local)
+                .format("%Y-%m-%d %H:%M:%S")
+                .to_string(),
+            raw
+        );
     }
 }
