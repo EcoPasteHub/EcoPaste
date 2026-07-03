@@ -22,8 +22,9 @@ Migrations live in `src-tauri/migrations/`. `0001_init.sql` defines
 `clipboard_groups`, `clipboard_apps`, `clipboard_items`, and `file_type_icons`.
 `0002_fts.sql` defines the FTS5 table and triggers.
 
-The current app version is still `0.6.0-beta.3`, so schema can be reshaped
-directly during the rewrite. When changing schema, update all of these together:
+The app has shipped a stable release line, so schema changes must be expressed
+as new migrations with an explicit upgrade path. When changing schema, update all
+of these together:
 
 - SQL migrations.
 - `src-tauri/src/db/models.rs`.
