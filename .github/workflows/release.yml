@@ -32,7 +32,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Create draft release from CHANGELOG
+      - name: Create draft release from changelogs
         id: release
         shell: bash
         env:
@@ -63,9 +63,17 @@ jobs:
             echo "::error::CHANGELOG.md is required. Run release-it before pushing the release tag."
             exit 1
           fi
+          if [[ ! -f CHANGELOG.zh-CN.md ]]; then
+            echo "::error::CHANGELOG.zh-CN.md is required. Run release-it before pushing the release tag."
+            exit 1
+          fi
 
           version="${tag_name#v}"
-          awk -v version="${version}" '
+          extract_changelog_section() {
+            local file="$1"
+            local output="$2"
+
+            awk -v version="${version}" '
             function is_target_heading(line) {
               return line ~ "^##[[:space:]]+\\[?" version "\\]?"
             }
@@ -84,12 +92,26 @@ jobs:
             capture {
               print
             }
-          ' CHANGELOG.md | sed '/./,$!d' > release-body.md
+            ' "${file}" | sed '/./,$!d' > "${output}"
+          }
 
-          if [[ ! -s release-body.md ]]; then
+          extract_changelog_section CHANGELOG.md release-body-en.md
+          extract_changelog_section CHANGELOG.zh-CN.md release-body-zh.md
+
+          if [[ ! -s release-body-en.md ]]; then
             echo "::error::CHANGELOG.md does not contain a release section for ${version}."
             exit 1
           fi
+          if [[ ! -s release-body-zh.md ]]; then
+            echo "::error::CHANGELOG.zh-CN.md does not contain a release section for ${version}."
+            exit 1
+          fi
+
+          {
+            cat release-body-en.md
+            printf '\n\n<hr>\n\n'
+            cat release-body-zh.md
+          } > release-body.md
 
           prerelease=false
           if [[ "${version}" == *-* ]]; then
@@ -179,7 +201,12 @@ jobs:
 
           tag_name="${{ needs.release-metadata.outputs.tag_name }}"
           version="${tag_name#v}"
-          awk -v version="${version}" '
+
+          extract_changelog_section() {
+            local file="$1"
+            local output="$2"
+
+            awk -v version="${version}" '
             function is_target_heading(line) {
               return line ~ "^##[[:space:]]+\\[?" version "\\]?"
             }
@@ -198,7 +225,26 @@ jobs:
             capture {
               print
             }
-          ' CHANGELOG.md | sed '/./,$!d' > release-body.md
+            ' "${file}" | sed '/./,$!d' > "${output}"
+          }
+
+          extract_changelog_section CHANGELOG.md release-body-en.md
+          extract_changelog_section CHANGELOG.zh-CN.md release-body-zh.md
+
+          if [[ ! -s release-body-en.md ]]; then
+            echo "::error::CHANGELOG.md does not contain a release section for ${version}."
+            exit 1
+          fi
+          if [[ ! -s release-body-zh.md ]]; then
+            echo "::error::CHANGELOG.zh-CN.md does not contain a release section for ${version}."
+            exit 1
+          fi
+
+          {
+            cat release-body-en.md
+            printf '\n\n<hr>\n\n'
+            cat release-body-zh.md
+          } > release-body.md
 
           delimiter="CHANGELOG_BODY_${RANDOM}_${RANDOM}"
           {
