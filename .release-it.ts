@@ -1,7 +1,14 @@
 const changelogFile = "CHANGELOG.md";
+const zhChangelogFile = "CHANGELOG.zh-CN.md";
 const versionVariable = "$" + "{version}";
 
 import type { Config } from "release-it";
+
+type ReleaseItHooks = NonNullable<Config["hooks"]> & Record<string, string>;
+
+const hooks: ReleaseItHooks = {
+  "after:@release-it/conventional-changelog:beforeRelease": `tsx scripts/release/waitZhChangelog.ts ${versionVariable} ${zhChangelogFile}`,
+};
 
 const config = {
   git: {
@@ -13,6 +20,7 @@ const config = {
   github: {
     release: false,
   },
+  hooks,
   npm: {
     publish: false,
   },
