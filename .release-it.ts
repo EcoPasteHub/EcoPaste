@@ -7,7 +7,7 @@ import type { Config } from "release-it";
 type ReleaseItHooks = NonNullable<Config["hooks"]> & Record<string, string>;
 
 const hooks: ReleaseItHooks = {
-  "after:@release-it/conventional-changelog:beforeRelease": `tsx scripts/release/waitZhChangelog.ts ${versionVariable} ${zhChangelogFile}`,
+  "after:@release-it/conventional-changelog:beforeRelease": `bash -c 'printf "\\nCHANGELOG.md has been generated. Update ${zhChangelogFile}, then press Enter to continue release-it..." > /dev/tty; IFS= read -r _ < /dev/tty'`,
 };
 
 const config = {
