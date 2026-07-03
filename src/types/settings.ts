@@ -72,7 +72,6 @@ export type OnboardingLegacyImportType = "normal" | "favorite";
 export interface General {
   autoStart: boolean;
   runAsAdmin: boolean;
-  silentStart: boolean;
   trayIcon: boolean;
   dockIcon: boolean;
 }
@@ -85,7 +84,6 @@ export interface Appearance {
 export interface Shortcuts {
   openClipboard: string;
   openPreference: string;
-  pastePlain: string;
   winV: boolean;
 }
 
@@ -156,8 +154,6 @@ export interface Window {
   selectGroupOnOpen: WindowOpenGroupSelection;
   lightweightMode: boolean;
   idleDestroySeconds: number;
-  alwaysOnTop: boolean;
-  allWorkspaces: boolean;
 }
 
 export interface Preview {

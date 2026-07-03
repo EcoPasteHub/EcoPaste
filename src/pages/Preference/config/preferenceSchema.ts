@@ -607,19 +607,6 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { type: "switch" },
-            disabledWhen: (settings) => {
-              return !settings.general.autoStart;
-            },
-            id: "control.silentStart",
-            keywords: ["startup", "silent", "login"],
-            parentId: "control.autoStart",
-            path: ["general", "silentStart"],
-            value: (settings) => {
-              return settings.general.silentStart;
-            },
-          },
-          {
-            control: { type: "switch" },
             id: "window.lightweightMode",
             keywords: ["system", "performance", "memory", "idle"],
             path: ["clipboard", "window", "lightweightMode"],

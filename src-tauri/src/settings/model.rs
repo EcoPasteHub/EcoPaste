@@ -28,8 +28,6 @@ pub struct General {
     pub auto_start: bool,
     /// Windows: persist the user's intent to run EcoPaste with administrator privileges.
     pub run_as_admin: bool,
-    /// 启动后不显示剪贴板窗口（配合 `auto_start` 用，开机静默驻留托盘）。
-    pub silent_start: bool,
     /// macOS 菜单栏 / Windows 系统托盘图标。
     pub tray_icon: bool,
     /// macOS Dock / Windows 任务栏图标。
@@ -41,7 +39,6 @@ impl Default for General {
         Self {
             auto_start: false,
             run_as_admin: false,
-            silent_start: false,
             tray_icon: true,
             dock_icon: false,
         }
@@ -128,8 +125,6 @@ pub struct Shortcuts {
     pub open_clipboard: String,
     /// 全局：打开偏好设置窗口。
     pub open_preference: String,
-    /// 剪贴板窗口内局部：粘贴时强制走纯文本（不在 OS 级注册）。
-    pub paste_plain: String,
     /// 仅 Windows：用 Win+V 唤起剪贴板窗口，替代系统剪贴板历史面板。默认关闭。
     pub win_v: bool,
 }
@@ -139,7 +134,6 @@ impl Default for Shortcuts {
         Self {
             open_clipboard: "Alt+C".into(),
             open_preference: "Alt+X".into(),
-            paste_plain: String::new(),
             win_v: false,
         }
     }
@@ -340,7 +334,7 @@ pub struct Content {
     pub copy_plain: bool,
     /// 从历史复制后隐藏剪贴板窗口。
     pub copy_then_hide_window: bool,
-    /// 粘贴时去除格式（与全局快捷键 `paste_plain` 等价的默认行为）。
+    /// 粘贴时去除格式。
     pub paste_plain: bool,
     /// 粘贴文件记录时，默认写入路径文本而不是文件本身。
     pub paste_files_as_path: bool,
@@ -581,9 +575,6 @@ pub struct Window {
     pub lightweight_mode: bool,
     /// 非剪贴板窗口隐藏后释放 WebView 的空闲秒数。
     pub idle_destroy_seconds: u32,
-    pub always_on_top: bool,
-    /// 在所有桌面/工作区可见（macOS Spaces / Windows 虚拟桌面）。
-    pub all_workspaces: bool,
 }
 
 impl Default for Window {
@@ -596,8 +587,6 @@ impl Default for Window {
             select_group_on_open: WINDOW_OPEN_SELECTION_PRESERVE.to_owned(),
             lightweight_mode: true,
             idle_destroy_seconds: 60,
-            always_on_top: true,
-            all_workspaces: true,
         }
     }
 }

@@ -295,10 +295,6 @@
           "description": "View the first-time onboarding again without resetting your current settings or history.",
           "title": "Reopen Onboarding"
         },
-        "silentStart": {
-          "description": "When launched at login, run in the background without opening the clipboard window.",
-          "title": "Silent Start"
-        },
         "trayIcon": {
           "description": "Show the EcoPaste icon in the system status area.",
           "macos": {
