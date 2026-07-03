@@ -100,6 +100,10 @@
       "openPreference": {
         "description": "Open or hide the preferences window.",
         "title": "Open Preferences Window"
+      },
+      "winV": {
+        "description": "Press Win+V to summon EcoPaste instead of the Windows clipboard history panel.",
+        "title": "Take Over Win+V"
       }
     },
     "title": "Set Shortcuts"

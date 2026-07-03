@@ -516,8 +516,8 @@
           "title": "Open Preferences Window"
         },
         "winV": {
-          "description": "When enabled, press Win+V to summon the EcoPaste clipboard window, replacing the Windows system clipboard history panel.",
-          "title": "Open Clipboard Window with Win+V"
+          "description": "Press Win+V to summon EcoPaste instead of the Windows clipboard history panel.",
+          "title": "Take Over Win+V"
         }
       },
       "source": {
