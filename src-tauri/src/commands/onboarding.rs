@@ -803,14 +803,16 @@ fn map_legacy_row_to_item(
         }
     };
 
-    let mut item = build_item_with_settings(
+    let Some(mut item) = build_item_with_settings(
         image_store,
         &payload,
         &settings.clipboard.capture,
         &settings.clipboard.sensitive,
         false,
     )?
-    .ok_or_else(|| AppError::Clipboard("旧版条目无法转换为当前记录".to_owned()))?;
+    else {
+        return Ok(None);
+    };
 
     item.id = item_id;
     item.note = note;
@@ -938,6 +940,27 @@ mod tests {
         assert!(messages
             .iter()
             .any(|message| message.contains("has 2 item(s)")));
+    }
+
+    #[test]
+    fn legacy_text_over_capture_limit_is_skipped() {
+        let temp = TempDir::new().unwrap();
+        let image_store = ImageStore::for_test(temp.path().join("images"));
+        let mut settings = Settings::default();
+        settings.clipboard.capture.max_text_mb = 1;
+        let row = LegacyHistoryRow {
+            item_type: Some("text".to_owned()),
+            value: Some("a".repeat(1024 * 1024 + 1)),
+            favorite: Some(0),
+            create_time: Some("2026-01-01 00:00:00".to_owned()),
+            note: None,
+            width: None,
+            height: None,
+        };
+
+        let result = map_legacy_row_to_item(&row, None, &image_store, &settings).unwrap();
+
+        assert!(result.is_none());
     }
 
     #[tokio::test]
