@@ -28,7 +28,7 @@ interface PermissionState {
 }
 
 interface PermissionControlProps {
-  disabled: boolean;
+  disabled?: boolean;
   setting: PreferenceSetting;
 }
 
@@ -37,7 +37,7 @@ interface PermissionControlProps {
  */
 const PermissionControl: FC<PermissionControlProps> = (props) => {
   const { t } = useTranslation(["preferences", "common"]);
-  const { disabled, setting } = props;
+  const { disabled = false, setting } = props;
   const [permissionState, setPermissionState] = useState<PermissionState>({
     configured: false,
     status: "unknown",

@@ -20,7 +20,7 @@ interface SwitchControlProps extends ControlProps {
  */
 const SwitchControl: FC<SwitchControlProps> = (props) => {
   const { t } = useTranslation("preferences");
-  const { disabled, onChange, setting, value } = props;
+  const { disabled = false, onChange, setting, value } = props;
   const canPreviewSound = setting.id === COPY_SOUND_SETTING_ID;
 
   const handleChange = async (checked: boolean) => {

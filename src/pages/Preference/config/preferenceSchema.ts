@@ -902,3 +902,24 @@ export const allPreferenceSettings = preferenceTabs.flatMap((tab) => {
     });
   });
 });
+
+/**
+ * 按稳定设置 id 查找偏好设置定义，供设置搜索、引导页等跨页面入口复用。
+ */
+export function findPreferenceSetting(id: string) {
+  return allPreferenceSettings.find(({ setting }) => {
+    return setting.id === id;
+  })?.setting;
+}
+
+/**
+ * 按稳定设置 id 读取偏好设置定义；缺失说明 schema 与调用方已经漂移。
+ */
+export function resolvePreferenceSetting(id: string) {
+  const setting = findPreferenceSetting(id);
+  if (!setting) {
+    throw new Error(`Missing preference setting: ${id}`);
+  }
+
+  return setting;
+}

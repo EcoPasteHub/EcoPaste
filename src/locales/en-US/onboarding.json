@@ -56,56 +56,14 @@
     }
   },
   "permissions": {
-    "action": {
-      "authorize": "Grant Access"
-    },
-    "adminRestartConfirm": {
-      "content": "EcoPaste needs to restart with administrator privileges for this change to take effect. Windows may show a User Account Control prompt.",
-      "ok": "Restart",
-      "title": "Restart required"
-    },
     "description": {
       "macos": "On macOS, EcoPaste needs Accessibility and Full Disk Access for the core workflow.",
       "windows": "On Windows, EcoPaste needs administrator launch for some system-level workflows."
-    },
-    "items": {
-      "accessibility": {
-        "description": "Used for quick paste, window control, and more reliable system interactions.",
-        "title": "Accessibility Permission"
-      },
-      "fullDiskAccess": {
-        "description": "Used to read required local data and access system-protected app resources.",
-        "title": "Full Disk Access Permission"
-      },
-      "runAsAdministrator": {
-        "description": "Used to restart EcoPaste with administrator privileges and keep future launches elevated when needed.",
-        "title": "Run as Administrator"
-      }
-    },
-    "status": {
-      "denied": "Not granted",
-      "granted": "Granted",
-      "notRequired": "Not required",
-      "unknown": "Pending"
     },
     "title": "Enable Permissions"
   },
   "shortcuts": {
     "description": "Set common shortcuts. You can change them in Preferences at any time.",
-    "items": {
-      "openClipboard": {
-        "description": "Open or hide the clipboard window.",
-        "title": "Open Clipboard Window"
-      },
-      "openPreference": {
-        "description": "Open or hide the preferences window.",
-        "title": "Open Preferences Window"
-      },
-      "winV": {
-        "description": "Press Win+V to summon EcoPaste instead of the Windows clipboard history panel.",
-        "title": "Take Over Win+V"
-      }
-    },
     "title": "Set Shortcuts"
   },
   "steps": {
