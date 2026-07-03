@@ -1,7 +1,6 @@
 //! 设置数据模型。
 //!
 //! 每个字段都 `#[serde(default)]`，缺字段时回落到 `Default`，这样新增字段不破坏旧配置文件。
-//! 不为旧版本数据做迁移——本项目是重写，没有兼容包袱。
 
 use serde::{Deserialize, Serialize};
 

@@ -3,15 +3,14 @@
 > 本文件是本项目 AI 编码工具的**单一真相源**。其它工具入口若存在，只应引用本文件，不要重复维护规则。
 > 分阶段 backlog 已迁移到 `.trellis/tasks/`，每个任务的 PRD 与研究资料以 Trellis task 为准。
 
-EcoPaste 是跨平台剪贴板管理器；本仓库是 Rust-First 重构版本。
+EcoPaste 是跨平台剪贴板管理器，采用 Rust-First 的 Tauri 架构。
 
 ## 快速原则
 
 - **Rust-First**：业务、系统能力、数据库与持久化优先放 Rust；前端只做展示与交互。
 - **仅支持 macOS + Windows**：不要新增 Linux 代码、依赖、构建产物或文档承诺。
-- **当前未发版**：只要 `package.json` 仍是 `0.6.0-beta.3`，可直接改数据结构、配置格式、默认值和 migration，不写兼容层；版本变更后再按发布数据处理迁移。
-- **旧版只读参考**：公开仓库 <https://github.com/EcoPasteHub/EcoPaste>，本地副本优先用 `/Users/ayang/Documents/PersonalProject/2024/EcoPaste_bak`，不要修改旧版。
-- **用户可见新增能力要写 CHANGELOG**：以旧版为参照；同一能力的细节合并为一条。
+- **已发布版本按发布数据处理**：数据结构、配置格式、默认值和 migration 变更必须有明确迁移策略，不再直接覆盖已发布数据契约。
+- **主动演进当前项目**：实现新能力时以当前代码、产品需求和平台约束为准，把当前仓库作为唯一实现基线。
 - **尊重 dirty worktree**：不要回滚或覆盖非本轮改动；需要动到已修改文件时先读清楚。
 - **提交与推送分支策略**：需要推送代码且当前分支是 `master` 时，自动新建工作分支，在新分支提交并推送；当前分支不是 `master` 时，先询问用户是在当前分支提交并推送，还是新建分支后提交并推送。
 
@@ -98,7 +97,7 @@ cargo test
 - 数据库使用 Tauri `State<SqlitePool>`；不要每次新建连接。
 - Cargo 依赖版本不要写 patch 级完整版本；所有依赖优先写主版本号，如 `"2"`，确需收窄时最多写到 minor，如 `"0.9"`，除非有明确锁定原因。
 - SQL 用 `sqlx::query` / `query_as`，不用 `query!` 宏，避免维护离线缓存。
-- migration 在未发版期直接合并进 `0001_init.sql`；发版后才新增 migration，已合并迁移不回改。
+- 已发布版本的 schema 变更必须新增 migration；已发布 migration 不回改。
 - 改 schema 时同步检查所有 `SELECT`、`INSERT`、`UPDATE`、`bind`、测试结构体字面量；`query_as` 字段不匹配可能表现为 UI 空结果。
 - 表必须有 `created_at` / `updated_at`，类型 `TEXT NOT NULL`；剪贴板 `updated_at` 表示内容重新使用时间，收藏、置顶、备注等元数据更新不要刷新它。
 - `commands/` 保持薄层：参数校验 + 调用下层模块，不写业务逻辑。
@@ -147,7 +146,7 @@ cargo test
 - 优先早返回，避免把主流程包进嵌套 `if`。
 - hooks、变量声明、副作用、不同语义阶段和 `return` 前用空行分组。
 - 函数体内少写注释；只解释隐藏约束、反直觉行为或规避原因。
-- 不写历史残留注释，不引用 TODO 阶段号、外部行号或旧版具体实现路径。
+- 不写历史残留注释，不引用 TODO 阶段号或外部行号。
 - 不做超出当前需求的抽象、兼容垫片或提前优化；React hook / 工具函数遇到真实复杂度再抽象。
 - 提交信息用单行 Conventional Commits，如 `feat:`、`fix:`、`refactor:`、`docs:`。
 - 改 UI 后必须实际操作验证主路径与边界，不只靠类型检查。

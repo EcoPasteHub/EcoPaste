@@ -18,21 +18,19 @@
 
 ## About
 
-EcoPaste is an open-source desktop clipboard manager. This repository is the Rust-first refactor of EcoPaste: durable behavior lives in Rust, while the React frontend focuses on rendering and interaction.
+EcoPaste is an open-source desktop clipboard manager built with a Rust-first Tauri architecture: durable behavior lives in Rust, while the React frontend focuses on rendering and interaction.
 
-The rewrite is designed for a faster, lighter, and more maintainable app with local storage, SQLite search, native shortcuts, tray integration, backup support, and a focused cross-platform surface for macOS and Windows.
+The app is designed to be fast, lightweight, and maintainable, with local storage, SQLite search, native shortcuts, tray integration, backup support, and a focused cross-platform surface for macOS and Windows.
 
 ## Project Status
 
-This repository is currently a beta refactor (`0.6.0-beta.3`). It is not a stable release channel yet.
-
-Before trying this version, back up important data from any older EcoPaste installation. The refactor changes the runtime architecture, settings model, storage layout, and database schema, so legacy data compatibility is not guaranteed during the beta period.
+EcoPaste has entered its stable release line. Future changes should evolve the current app directly and include migrations or upgrade handling for released user data when storage, settings, or database contracts change.
 
 ## Platform Scope
 
-The Rust-first refactor supports macOS and Windows only.
+EcoPaste supports macOS and Windows only.
 
-Linux support from the legacy EcoPaste app has been dropped in this refactor, and there are no current plans to support Linux again. Please use the legacy release line if you need Linux support.
+Linux is not supported, and new code, dependencies, builds, and documentation should stay focused on macOS and Windows.
 
 ## Features
 
@@ -150,7 +148,7 @@ src/
 
 ## Contributing
 
-Read [AGENTS.md](./AGENTS.md) before changing code. It is the source of truth for this refactor's architecture, platform scope, coding conventions, and quality expectations.
+Read [AGENTS.md](./AGENTS.md) before changing code. It is the source of truth for architecture, platform scope, coding conventions, and quality expectations.
 
 ## License
 

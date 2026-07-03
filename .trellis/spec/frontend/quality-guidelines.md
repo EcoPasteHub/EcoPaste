@@ -113,7 +113,7 @@ those paths.
 - Good: `pnpm release-beta` opens release-it's version prompt with beta choices.
 - Base: `pnpm release-rc` opens release-it's version prompt with RC choices.
 - Bad: letting the conventional-changelog recommended bump choose the prerelease
-  base can jump from `0.6.0-beta.3` to `1.0.0-beta.0` after feature commits.
+  base can jump to an unintended prerelease version after feature commits.
 
 ### 6. Tests Required
 
@@ -145,5 +145,5 @@ replace the prompt with its recommended bump.
 "release-beta": "release-it --preRelease=beta --preReleaseBase=1"
 ```
 
-The command stays interactive like the legacy project while keeping changelog
-generation separate from version selection.
+The command stays interactive while keeping changelog generation separate from
+version selection.

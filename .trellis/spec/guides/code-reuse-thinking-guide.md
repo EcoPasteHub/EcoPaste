@@ -73,6 +73,3 @@ Ant Design-specific labels leaks UI concerns.
   option labels stale.
 - Adding SQL fields but missing `LIST_SELECT_ITEM`, `SELECT_ITEM`, or test model
   literals.
-- Adding a user-visible feature without updating the release changelog when it
-  changes visible behavior relative to the old EcoPaste app before the next
-  release.

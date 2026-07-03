@@ -1,7 +1,6 @@
 //! 文本子类型识别与富文本转纯文本（纯逻辑，便于单测）。
 //!
-//! 对应旧项目前端的 `getClipboardTextSubtype` / `utils/is`，本次下沉到 Rust。
-//! 判定顺序与旧项目一致：`url` > `email` > `color` > `path`。
+//! 判定顺序：`url` > `email` > `color` > `path`。
 
 use std::path::Path;
 use std::sync::LazyLock;
@@ -11,13 +10,13 @@ use regex::Regex;
 use crate::db::models::ClipboardSubKind;
 
 /// URL：要求带协议头（http/https/ftp/file）或 `www.` 开头的单行串。
-/// 比旧项目 `is-url` 收紧，避免把任意带点的词误判为链接。
+/// 规则保持收紧，避免把任意带点的词误判为链接。
 static URL_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"(?i)^(https?|ftp|file)://[^\s]+$|^www\.[^\s]+\.[^\s]+$")
         .expect("invalid URL regex")
 });
 
-/// Email：沿用旧项目 `utils/is.ts` 的正则（允许中文用户名）。
+/// Email：允许中文用户名。
 static EMAIL_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"^[A-Za-z0-9\u{4e00}-\u{9fa5}]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$")
         .expect("invalid email regex")
