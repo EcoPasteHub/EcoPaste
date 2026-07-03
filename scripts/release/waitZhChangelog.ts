@@ -1,8 +1,6 @@
-import { createReadStream, createWriteStream, existsSync } from "node:fs";
+import { closeSync, existsSync, openSync, readSync, writeSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { createInterface } from "node:readline/promises";
-import type { Readable, Writable } from "node:stream";
 
 const [version, zhChangelogFile = "CHANGELOG.zh-CN.md"] = process.argv.slice(2);
 
@@ -25,6 +23,10 @@ function hasReleaseHeading(content: string, targetVersion: string): boolean {
   );
 }
 
+function sleepSync(ms: number): void {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+}
+
 async function readText(path: string): Promise<string> {
   if (!existsSync(path)) {
     return "";
@@ -39,61 +41,93 @@ async function ensureFile(): Promise<void> {
   }
 }
 
-function createPromptIo(): {
+function openTerminalFd(kind: "input" | "output"): {
   close: () => void;
-  input: Readable;
-  output: Writable;
+  fd: number;
 } {
-  if (process.stdin.isTTY && process.stdout.isTTY) {
+  if (kind === "input" && process.stdin.isTTY) {
     return {
       close: () => {},
-      input: process.stdin,
-      output: process.stdout,
+      fd: process.stdin.fd,
     };
   }
 
-  const input = createReadStream(
-    process.platform === "win32" ? "CONIN$" : "/dev/tty",
-  );
-  const output = createWriteStream(
-    process.platform === "win32" ? "CONOUT$" : "/dev/tty",
-  );
+  if (kind === "output" && process.stdout.isTTY) {
+    return {
+      close: () => {},
+      fd: process.stdout.fd,
+    };
+  }
+
+  const path =
+    process.platform === "win32"
+      ? kind === "input"
+        ? "CONIN$"
+        : "CONOUT$"
+      : "/dev/tty";
+  const fd = openSync(path, kind === "input" ? "r" : "w");
 
   return {
-    close: () => {
-      input.close();
-      output.close();
-    },
-    input,
-    output,
+    close: () => closeSync(fd),
+    fd,
   };
 }
 
-async function waitForEnter(): Promise<void> {
+function waitForEnter(): void {
   if (process.env.CI) {
     throw new Error(
       `${zhChangelogFile} must be updated before running release-it in CI.`,
     );
   }
 
-  const { close, input, output } = createPromptIo();
-  const prompt = createInterface({
-    input,
-    output,
-  });
+  const input = openTerminalFd("input");
+  const output = openTerminalFd("output");
+  const buffer = Buffer.alloc(1);
 
   try {
-    await prompt.question(
+    writeSync(
+      output.fd,
       `\nUpdate ${zhChangelogFile} with a ## [${version}] section, then press Enter to continue release-it...`,
     );
+
+    while (true) {
+      let bytesRead = 0;
+
+      try {
+        bytesRead = readSync(input.fd, buffer, 0, 1, null);
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          "code" in error &&
+          error.code === "EAGAIN"
+        ) {
+          sleepSync(50);
+          continue;
+        }
+
+        throw error;
+      }
+
+      if (bytesRead === 0 || buffer[0] === 10 || buffer[0] === 13) {
+        break;
+      }
+
+      if (buffer[0] === 3) {
+        throw new Error(
+          "Release cancelled while waiting for Chinese changelog.",
+        );
+      }
+    }
+
+    writeSync(output.fd, "\n");
   } finally {
-    prompt.close();
-    close();
+    input.close();
+    output.close();
   }
 }
 
 await ensureFile();
-await waitForEnter();
+waitForEnter();
 
 const zhChangelog = await readText(zhChangelogPath);
 
