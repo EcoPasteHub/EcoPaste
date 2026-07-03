@@ -118,7 +118,7 @@ jobs:
             prerelease=true
           fi
 
-          title="EcoPaste ${tag_name}"
+          title="${tag_name}"
           if gh release view "${tag_name}" >/dev/null 2>&1; then
             if [[ "${prerelease}" == "true" ]]; then
               gh release edit "${tag_name}" --draft --prerelease --title "${title}" --notes-file release-body.md
