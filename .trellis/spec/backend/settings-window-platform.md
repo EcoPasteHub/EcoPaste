@@ -236,6 +236,110 @@ keyboard and mouse hooks while the clipboard window is visible:
 React code uses `useKeyboardEvent` so components do not need to know whether the
 event came from the browser or Rust.
 
+### Scenario: Windows Clipboard Editable Focus
+
+#### 1. Scope / Trigger
+
+Changing text input behavior inside the Windows clipboard window touches the
+window focusability flag, low-level keyboard hooks, foreground-window restore,
+Tauri command registration, and the React keyboard abstraction.
+
+#### 2. Signatures
+
+- Rust command:
+  - `set_clipboard_window_editing(app: AppHandle, editing: bool) -> Result<()>`
+- Rust platform owner:
+  - `window::set_clipboard_window_editing(app_handle: &AppHandle, editing: bool) -> Result<()>`
+  - `window/windows.rs::set_clipboard_window_editing(...)`
+- TypeScript wrapper:
+  - `setClipboardWindowEditing(editing: boolean): Promise<void>`
+- Frontend owner:
+  - `useClipboardWindowEditableFocus()` mounted by the clipboard page.
+
+#### 3. Contracts
+
+- The clipboard window remains non-focusable by default on Windows and
+  `show_window` must force it back to `focusable=false` before showing.
+- `editing=true` stores the current foreground HWND when it is not the clipboard
+  window, disables Windows navigation-key hooks, sets the clipboard window
+  focusable, and focuses it so editable controls can receive normal text input.
+- `editing=false` sets the clipboard window non-focusable again, restores the
+  navigation and outside-click hooks while the window remains visible, and only
+  restores the stored foreground HWND when the clipboard window is still the
+  foreground window.
+- The frontend reports editable focus at the clipboard page level using
+  `focusin`, `focusout`, `pointerdown`, window `blur`, and `visibilitychange`;
+  individual input components should not call the command directly.
+- `useKeyboardEvent` must let `input`, `textarea`, and `contenteditable`
+  targets keep native browser keyboard behavior while editing is active.
+- In the Windows clipboard window only, editable controls with
+  `data-allow-global-keyboard="true"` are handoff inputs: when they receive
+  navigation/function keys such as Ctrl, Arrow keys, Enter, Escape, or Tab,
+  `useKeyboardEvent` must blur the control before running the global keyboard
+  handler so clipboard shortcuts keep working. macOS keeps its existing browser
+  keyboard bubbling path.
+- Shortcut hint components must not clear their active state on the Windows
+  clipboard window blur caused by Ctrl handoff while the modifier key is still
+  pressed; they should remain active until the matching modifier keyup arrives.
+- Programmatic focus paths such as Ctrl+F must call
+  `prepareClipboardWindowEditableFocus()` before focusing the input, so Windows
+  can temporarily make the clipboard window focusable first.
+
+#### 4. Validation & Error Matrix
+
+- Missing clipboard window -> command returns `window not found: clipboard`.
+- `editing=true` with no foreground HWND or the clipboard already foreground ->
+  no foreground HWND is stored.
+- Stored HWND no longer exists -> skip restore and clear the stored handle.
+- Windows rejects `SetForegroundWindow` -> log debug only; editing mode still
+  ends and hooks are restored.
+- Non-Windows platform -> command is a no-op success.
+
+#### 5. Good/Base/Bad Cases
+
+- Good: user opens the clipboard window from another app, focuses search or a
+  note input, types normally, then blur restores the clipboard window to
+  non-focusable and returns focus to the prior app.
+- Good: user focuses search, presses ArrowDown, and the search input blurs
+  before the list selection shortcut runs.
+- Good: user focuses search, holds Ctrl, the search input blurs, and shortcut
+  hints stay visible until Ctrl is released.
+- Good: user presses Ctrl+F while the Windows clipboard window is non-focusable,
+  the window enters editing mode first, and the search input receives focus.
+- Base: no editable control is focused; Windows navigation continues through
+  `keyboard://nav` and the clipboard window does not steal focus.
+- Bad: leaving `WH_KEYBOARD_LL` navigation enabled during editing consumes arrow,
+  Tab, Enter, or selected Ctrl shortcuts before the input can handle them.
+- Bad: applying `data-allow-global-keyboard` to note or group-name editors makes
+  editing keys leave the field unexpectedly.
+
+#### 6. Tests Required
+
+- Backend: `cargo clippy -- -D warnings` covers the Windows command and cfg
+  branches; `cargo test` must still pass.
+- Frontend: `pnpm tsc` and `pnpm lint` cover command mirrors and hook typing.
+- Manual Windows checks: open without focus steal, type in search, type/edit a
+  note, type/edit a group name, blur each field, verify the prior app receives
+  focus, and verify list navigation still works after blur.
+
+#### 7. Wrong vs Correct
+
+Wrong:
+
+```tsx
+<Input onFocus={() => setClipboardWindowEditing(true)} />
+```
+
+Correct:
+
+```tsx
+const Clipboard = () => {
+  useClipboardWindowEditableFocus();
+
+  return <ClipboardWindowContent />;
+};
+```
+
 ## Platform-Specific Tauri Capabilities
 
 Platform-specific plugin permissions must live in their own capability file with

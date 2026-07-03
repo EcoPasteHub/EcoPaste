@@ -70,6 +70,19 @@ pub fn set_clipboard_window_auto_hide_suspended(suspended: bool) {
     CLIPBOARD_WINDOW_AUTO_HIDE_SUSPENDED.store(suspended, Ordering::Relaxed);
 }
 
+pub fn set_clipboard_window_editing(app_handle: &AppHandle, editing: bool) -> Result<()> {
+    #[cfg(target_os = "windows")]
+    return windows::set_clipboard_window_editing(app_handle, editing);
+
+    #[cfg(target_os = "macos")]
+    {
+        let _ = app_handle;
+        let _ = editing;
+
+        Ok(())
+    }
+}
+
 /// 剪贴板窗口显隐变化事件。前端用以做默认聚焦 / 自动清空搜索等 UI 副作用。
 /// 由 [`show_window`] / [`hide_window`] 在统一入口处发出，平台一致，
 /// 不依赖 `tauri://focus` / `tauri://blur`（Windows 剪贴板窗口 `focusable: false` 不可靠）。

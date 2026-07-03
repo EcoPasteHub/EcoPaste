@@ -63,6 +63,7 @@ export const TAURI_COMMAND = {
   SET_AUTOSTART: "set_autostart",
   SET_CLIPBOARD_WINDOW_AUTO_HIDE_SUSPENDED:
     "set_clipboard_window_auto_hide_suspended",
+  SET_CLIPBOARD_WINDOW_EDITING: "set_clipboard_window_editing",
   SET_CLIPBOARD_WINDOW_PINNED: "set_clipboard_window_pinned",
   SET_ONBOARDING_STEP: "set_onboarding_step",
   SET_RUN_AS_ADMIN: "set_run_as_admin",

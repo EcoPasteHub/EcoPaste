@@ -1305,6 +1305,19 @@ export const setClipboardWindowAutoHideSuspended = (suspended: boolean) => {
 };
 
 /**
+ * Windows 剪贴板窗口输入编辑模式：输入控件激活期间临时可聚焦，编辑结束后恢复不可聚焦。
+ */
+export const setClipboardWindowEditing = async (editing: boolean) => {
+  try {
+    await invoke<void>(TAURI_COMMAND.SET_CLIPBOARD_WINDOW_EDITING, {
+      editing,
+    });
+  } catch (error) {
+    log.error("set clipboard window editing failed", toAppError(error));
+  }
+};
+
+/**
  * 打开或重定向剪贴板系统级预览 overlay。
  * `anchor` 是剪贴板窗口 webview client 坐标中的列表项矩形。
  */
