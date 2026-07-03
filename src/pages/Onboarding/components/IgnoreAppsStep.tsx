@@ -3,23 +3,18 @@ import type { FC } from "react";
 import { useTranslation } from "react-i18next";
 import { useSnapshot } from "valtio";
 import SourceAppsTransfer from "@/pages/Preference/components/SourceAppsTransfer";
+import { requirePreferenceSetting } from "@/pages/Preference/config/preferenceSchema";
+import { commitSettingChange } from "@/pages/Preference/services/preferenceSettings";
 import type {
   PreferenceSetting,
   SettingValue,
 } from "@/pages/Preference/types/preferences";
-import { settingsState, updateSettings } from "@/stores/settings";
+import { settingsState } from "@/stores/settings";
 import { preloadSourceApps } from "@/stores/sourceApps";
 import type { Settings } from "@/types/settings";
 import OnboardingStepLayout from "./OnboardingStepLayout";
 
-const EXCLUDED_APPS_SETTING: PreferenceSetting = {
-  control: { type: "appExclusion" },
-  id: "source.excludedApps",
-  path: ["clipboard", "filters", "excludedAppIds"],
-  value: (settings) => {
-    return settings.clipboard.filters.excludedAppIds;
-  },
-};
+const EXCLUDED_APPS_SETTING = requirePreferenceSetting("source.excludedApps");
 
 const IgnoreAppsStep: FC = () => {
   const { t } = useTranslation("onboarding");
@@ -30,18 +25,10 @@ const IgnoreAppsStep: FC = () => {
   });
 
   const handleExcludedAppsChange = async (
-    _setting: PreferenceSetting,
+    setting: PreferenceSetting,
     value: SettingValue,
   ) => {
-    const excludedAppIds = Array.isArray(value) ? value.map(String) : [];
-
-    await updateSettings({
-      clipboard: {
-        filters: {
-          excludedAppIds,
-        },
-      },
-    });
+    await commitSettingChange(setting, value);
   };
 
   return (

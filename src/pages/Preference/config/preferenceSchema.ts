@@ -7,7 +7,7 @@ import {
 } from "@/constants/windowOpenSelection";
 import type { Settings } from "@/types/settings";
 import { isMac, isWin } from "@/utils/is";
-import type { PreferenceTab } from "../types/preferences";
+import type { PreferenceSetting, PreferenceTab } from "../types/preferences";
 
 const CLICK_ACTION_OPTIONS = [
   { value: "disabled" },
@@ -894,6 +894,54 @@ export const preferenceTabs: PreferenceTab[] = [
     ],
   },
 ];
+
+/**
+ * 按稳定 setting id 查找偏好设置项，供其它窗口复用偏好 schema。
+ */
+export function findPreferenceSetting(
+  settingId: string,
+): PreferenceSetting | null {
+  for (const tab of preferenceTabs) {
+    for (const section of tab.sections) {
+      const setting = section.settings.find((item) => {
+        return item.id === settingId;
+      });
+
+      if (setting) return setting;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * 按稳定 section id 取偏好设置项；平台条件已由 schema 自身处理。
+ */
+export function findPreferenceSectionSettings(
+  sectionId: string,
+): PreferenceSetting[] {
+  for (const tab of preferenceTabs) {
+    const section = tab.sections.find((item) => {
+      return item.id === sectionId;
+    });
+
+    if (section) return section.settings;
+  }
+
+  return [];
+}
+
+/**
+ * 必需设置缺失属于 schema 维护错误，调用方无需静默降级。
+ */
+export function requirePreferenceSetting(settingId: string): PreferenceSetting {
+  const setting = findPreferenceSetting(settingId);
+  if (!setting) {
+    throw new Error(`Preference setting not found: ${settingId}`);
+  }
+
+  return setting;
+}
 
 export const allPreferenceSettings = preferenceTabs.flatMap((tab) => {
   return tab.sections.flatMap((section) => {

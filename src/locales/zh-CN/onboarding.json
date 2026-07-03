@@ -56,56 +56,14 @@
     }
   },
   "permissions": {
-    "action": {
-      "authorize": "去授权"
-    },
-    "adminRestartConfirm": {
-      "content": "EcoPaste 需要以管理员权限重启后，此设置才会生效。Windows 可能会弹出用户账户控制确认窗口。",
-      "ok": "重启",
-      "title": "需要重启"
-    },
     "description": {
       "macos": "EcoPaste 在 macOS 上需要辅助功能和完全磁盘访问权限来完成核心工作流。",
       "windows": "EcoPaste 在 Windows 上需要管理员权限启动来完成部分系统级工作流。"
-    },
-    "items": {
-      "accessibility": {
-        "description": "用于快捷粘贴、窗口控制和更稳定的系统交互。",
-        "title": "辅助功能访问权限"
-      },
-      "fullDiskAccess": {
-        "description": "用于读取必要的本地数据和访问受系统保护的应用资源。",
-        "title": "完全磁盘访问权限"
-      },
-      "runAsAdministrator": {
-        "description": "用于以管理员权限重启 EcoPaste，并在需要时让后续启动保持提权运行。",
-        "title": "管理员权限启动"
-      }
-    },
-    "status": {
-      "denied": "未授权",
-      "granted": "已授权",
-      "notRequired": "无需授权",
-      "unknown": "待确认"
     },
     "title": "开启必要权限"
   },
   "shortcuts": {
     "description": "设置常用快捷键，之后也可以在偏好设置中随时修改。",
-    "items": {
-      "openClipboard": {
-        "description": "打开或隐藏剪贴板窗口。",
-        "title": "打开剪贴板窗口"
-      },
-      "openPreference": {
-        "description": "打开或隐藏偏好设置窗口。",
-        "title": "打开偏好设置窗口"
-      },
-      "winV": {
-        "description": "按 Win+V 唤起 EcoPaste，替代 Windows 系统剪贴板历史面板。",
-        "title": "接管 Win+V"
-      }
-    },
     "title": "设置快捷键"
   },
   "steps": {
