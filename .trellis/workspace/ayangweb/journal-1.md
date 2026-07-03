@@ -373,3 +373,36 @@ Configured release-it with beta, RC, and stable release commands; added bumper-b
 ### Next Steps
 
 - None - task complete
+
+
+## Session 12: Onboarding administrator launch flow
+
+**Date**: 2026-07-03
+**Task**: Onboarding administrator launch flow
+**Branch**: `feat/onboarding-admin-launch`
+
+### Summary
+
+Implemented Windows administrator launch support for onboarding, including Rust elevation status/restart flow, settings persistence, command wrappers, UI switch confirmation, release note, specs, and validation.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `e356bba` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
