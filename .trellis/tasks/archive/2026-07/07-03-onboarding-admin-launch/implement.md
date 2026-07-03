@@ -27,7 +27,7 @@
   - [x] keep macOS permission flow unchanged
   - [x] update onboarding locale copy and statuses
 - [x] Update release note
-  - [x] add concise user-visible `RELEASE-NEXT.md` entry
+  - [x] add concise user-visible release note entry
 
 ## Validation
 

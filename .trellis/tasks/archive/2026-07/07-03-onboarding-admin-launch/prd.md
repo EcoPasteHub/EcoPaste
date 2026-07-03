@@ -15,7 +15,7 @@ This is a cross-layer Windows system feature. Rust owns detection, launch/restar
 - EcoPaste currently has no persisted `general.runAsAdmin` field, no admin command wrapper, and no admin module. The current Windows onboarding permission card in `src/pages/Onboarding/components/PermissionsStep.tsx` uses `pendingIntegration`.
 - EcoPaste's onboarding window opens automatically when `settings.onboarding.completed` is false in `src-tauri/src/lib.rs`, and `show_default_foreground_window` reopens onboarding while setup is incomplete.
 - EcoPaste centralizes command names in `src/constants/commands.ts`, command wrappers in `src/commands/index.ts`, and Rust commands through `src-tauri/src/commands/mod.rs` plus `tauri::generate_handler!`.
-- Relevant project constraints from `AGENTS.md` and `.trellis/spec/`: support macOS plus Windows only; platform behavior must be Rust-first; user-visible new capability requires `RELEASE-NEXT.md`; command names and TypeScript mirrors must stay centralized.
+- Relevant project constraints from `AGENTS.md` and `.trellis/spec/`: support macOS plus Windows only; platform behavior must be Rust-first; user-visible new capability requires a changelog note; command names and TypeScript mirrors must stay centralized.
 
 ## Requirements
 
@@ -56,7 +56,7 @@ This is a cross-layer Windows system feature. Rust owns detection, launch/restar
 - [ ] Future release launches with `general.runAsAdmin = true` auto-elevate before normal setup if the process is unelevated.
 - [ ] macOS Accessibility and Full Disk Access checks still work as they do today.
 - [ ] Existing onboarding completion still hides onboarding and opens the clipboard window.
-- [ ] `RELEASE-NEXT.md` includes a concise user-visible change note.
+- [ ] Release notes include a concise user-visible change note.
 - [ ] Verification covers `cargo fmt`, focused Rust checks, `pnpm lint`, and `pnpm tsc`; manual Windows validation is listed if it cannot be run in this environment.
 
 ## Decisions
