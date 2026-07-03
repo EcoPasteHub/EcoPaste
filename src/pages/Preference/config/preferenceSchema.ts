@@ -832,12 +832,8 @@ export const preferenceTabs: PreferenceTab[] = [
           },
           {
             control: { type: "switch" },
-            disabledWhen: (settings) => {
-              return !settings.update.autoCheck;
-            },
             id: "updates.beta",
             keywords: ["beta", "update"],
-            parentId: "updates.autoCheck",
             path: ["update", "includeBeta"],
             value: (settings) => {
               return settings.update.includeBeta;
