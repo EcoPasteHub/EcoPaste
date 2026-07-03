@@ -156,7 +156,8 @@ function resolveSectionVisual(id: string): SectionVisual {
 
   if (
     normalizedId.includes("sensitive") ||
-    normalizedId.includes("diagnostics")
+    normalizedId.includes("diagnostics") ||
+    normalizedId.includes("permissions")
   ) {
     return {
       icon: "i-lucide:shield-check",

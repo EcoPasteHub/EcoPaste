@@ -117,6 +117,9 @@
       "paste": {
         "title": "粘贴行为"
       },
+      "permissions": {
+        "title": "系统权限"
+      },
       "preview": {
         "title": "内容预览"
       },
@@ -454,6 +457,25 @@
         "plainDefault": {
           "description": "粘贴文本记录时默认去除 HTML/RTF 等格式，只粘贴纯文本。",
           "title": "默认纯文本粘贴"
+        }
+      },
+      "permissions": {
+        "accessibility": {
+          "description": "用于快捷粘贴、窗口控制和更稳定的系统交互。",
+          "title": "辅助功能访问权限"
+        },
+        "adminRestartConfirm": {
+          "content": "EcoPaste 需要以管理员权限重启后，此设置才会生效。Windows 可能会弹出用户账户控制确认窗口。",
+          "ok": "重启",
+          "title": "需要重启"
+        },
+        "fullDiskAccess": {
+          "description": "用于读取必要的本地数据和访问受系统保护的应用资源。",
+          "title": "完全磁盘访问权限"
+        },
+        "runAsAdministrator": {
+          "description": "用于以管理员权限重启 EcoPaste，并在需要时让后续启动保持提权运行。",
+          "title": "管理员权限启动"
         }
       },
       "preview": {
