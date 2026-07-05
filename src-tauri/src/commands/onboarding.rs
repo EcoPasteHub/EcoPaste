@@ -2,7 +2,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::Context;
-use chrono::{DateTime, NaiveDateTime, Utc};
+use chrono::{DateTime, Local, NaiveDateTime, TimeZone, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
@@ -832,7 +832,8 @@ fn parse_legacy_datetime(value: Option<&str>) -> Option<DateTime<Utc>> {
 
     NaiveDateTime::parse_from_str(raw, "%Y-%m-%d %H:%M:%S")
         .ok()
-        .map(|time| DateTime::<Utc>::from_naive_utc_and_offset(time, Utc))
+        .and_then(|naive| Local.from_local_datetime(&naive).earliest())
+        .map(|local| local.with_timezone(&Utc))
 }
 
 #[cfg(test)]
