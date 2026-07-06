@@ -1,5 +1,7 @@
 use anyhow::Context;
+use log::LevelFilter;
 use sqlx::sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions, SqliteSynchronous};
+use sqlx::ConnectOptions;
 use sqlx::SqlitePool;
 use tauri::AppHandle;
 
@@ -14,7 +16,9 @@ pub async fn init(app: &AppHandle) -> Result<SqlitePool> {
         .create_if_missing(true)
         .journal_mode(SqliteJournalMode::Wal)
         .synchronous(SqliteSynchronous::Normal)
-        .foreign_keys(true);
+        .foreign_keys(true)
+        .log_statements(LevelFilter::Off)
+        .log_slow_statements(LevelFilter::Off, std::time::Duration::from_secs(1));
 
     let pool = SqlitePoolOptions::new()
         .connect_with(options)
