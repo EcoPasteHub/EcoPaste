@@ -1,5 +1,6 @@
 use anyhow::Context;
 use sqlx::sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions, SqliteSynchronous};
+use sqlx::ConnectOptions;
 use sqlx::SqlitePool;
 use tauri::AppHandle;
 
@@ -14,7 +15,8 @@ pub async fn init(app: &AppHandle) -> Result<SqlitePool> {
         .create_if_missing(true)
         .journal_mode(SqliteJournalMode::Wal)
         .synchronous(SqliteSynchronous::Normal)
-        .foreign_keys(true);
+        .foreign_keys(true)
+        .disable_statement_logging();
 
     let pool = SqlitePoolOptions::new()
         .connect_with(options)

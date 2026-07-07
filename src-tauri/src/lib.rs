@@ -26,12 +26,14 @@ pub fn run() {
     admin::handle_startup_auto_elevation();
 
     // Webview target 把日志回灌到前端 devtools console，只在 dev 启用；
-    // 生产环境只落 LogDir 文件 + Stdout，避免向用户的 webview console 喷日志。
-    let mut log_targets = vec![
-        tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Stdout),
-        tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::LogDir { file_name: None }),
-    ];
+    // 生产环境只落 LogDir 文件；Stdout 仅在 debug 启用，避免 Windows Release stdout 缓冲区阻塞，也避免向用户的 webview console 喷日志。
+    let mut log_targets = vec![tauri_plugin_log::Target::new(
+        tauri_plugin_log::TargetKind::LogDir { file_name: None },
+    )];
     if cfg!(debug_assertions) {
+        log_targets.push(tauri_plugin_log::Target::new(
+            tauri_plugin_log::TargetKind::Stdout,
+        ));
         log_targets.push(tauri_plugin_log::Target::new(
             tauri_plugin_log::TargetKind::Webview,
         ));
