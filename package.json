@@ -85,10 +85,5 @@
   "simple-git-hooks": {
     "commit-msg": "npx --no-install commitlint -e",
     "pre-commit": "npx lint-staged"
-  },
-  "lint-staged": {
-    "**/*.{ts,tsx,js,jsx,json,jsonc,css}": [
-      "biome check --write --no-errors-on-unmatched"
-    ]
   }
 }
