@@ -81,9 +81,5 @@
     "typescript": "~5.8.3",
     "unocss": "^66.7.3",
     "vite": "^7.3.6"
-  },
-  "simple-git-hooks": {
-    "commit-msg": "npx --no-install commitlint -e",
-    "pre-commit": "npx lint-staged"
   }
 }
