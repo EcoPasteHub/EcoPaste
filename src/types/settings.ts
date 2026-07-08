@@ -200,6 +200,7 @@ export interface Update {
   autoCheck: boolean;
   frequency: UpdateFrequency;
   includeBeta: boolean;
+  includeNightly: boolean;
   lastCheckedAt: string | null;
   skippedVersion: string | null;
 }

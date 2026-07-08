@@ -71,6 +71,7 @@ const SETTING_ICON_MAP: Record<string, string> = {
   "updates.autoCheck": "i-lucide:refresh-cw",
   "updates.beta": "i-lucide:flask-conical",
   "updates.frequency": "i-lucide:calendar-sync",
+  "updates.nightly": "i-lucide:moon",
   "window.idleDestroySeconds": "i-lucide:timer-reset",
   "window.lightweightMode": "i-lucide:leaf",
   "window.position": "i-lucide:move",

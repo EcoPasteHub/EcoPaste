@@ -631,6 +631,7 @@ pub struct Update {
     pub auto_check: bool,
     pub frequency: UpdateFrequency,
     pub include_beta: bool,
+    pub include_nightly: bool,
     pub last_checked_at: Option<String>,
     pub skipped_version: Option<String>,
 }

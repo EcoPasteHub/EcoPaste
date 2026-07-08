@@ -12,8 +12,10 @@ use crate::settings::{SettingsStore, Update as UpdateSettings, UpdateFrequency};
 const UPDATE_PROGRESS_EVENT: &str = "update://progress";
 const STABLE_ENDPOINT_ENV: &str = "ECOPASTE_UPDATE_ENDPOINT";
 const BETA_ENDPOINT_ENV: &str = "ECOPASTE_UPDATE_BETA_ENDPOINT";
+const NIGHTLY_ENDPOINT_ENV: &str = "ECOPASTE_UPDATE_NIGHTLY_ENDPOINT";
 const DEFAULT_STABLE_ENDPOINT: &str = "https://releases.ecopaste.cn/update?channel=stable";
 const DEFAULT_BETA_ENDPOINT: &str = "https://releases.ecopaste.cn/update?channel=beta";
+const DEFAULT_NIGHTLY_ENDPOINT: &str = "https://releases.ecopaste.cn/update?channel=nightly";
 const AUTO_CHECK_INITIAL_DELAY_SECONDS: u64 = 8;
 const AUTO_CHECK_SETTINGS_REFRESH_SECONDS: u64 = 60 * 60;
 const AUTO_CHECK_FAILURE_RETRY_SECONDS: u64 = 60 * 60;
@@ -158,7 +160,10 @@ pub async fn check(app: &AppHandle, mode: CheckMode) -> Result<AppUpdateStatus> 
     }
 
     let settings = app.state::<SettingsStore>().snapshot();
-    let endpoints = update_endpoints(settings.update.include_beta)?;
+    let endpoints = update_endpoints(
+        settings.update.include_beta,
+        settings.update.include_nightly,
+    )?;
     let updater = app
         .updater_builder()
         .endpoints(endpoints)
@@ -298,17 +303,38 @@ fn metadata_from_update(update: &TauriUpdate) -> UpdateMetadata {
     }
 }
 
-fn update_endpoints(include_beta: bool) -> Result<Vec<Url>> {
+fn update_endpoints(include_beta: bool, include_nightly: bool) -> Result<Vec<Url>> {
     let stable_endpoint =
         std::env::var(STABLE_ENDPOINT_ENV).unwrap_or_else(|_| DEFAULT_STABLE_ENDPOINT.to_owned());
     let beta_endpoint =
         std::env::var(BETA_ENDPOINT_ENV).unwrap_or_else(|_| DEFAULT_BETA_ENDPOINT.to_owned());
+    let nightly_endpoint =
+        std::env::var(NIGHTLY_ENDPOINT_ENV).unwrap_or_else(|_| DEFAULT_NIGHTLY_ENDPOINT.to_owned());
 
+    update_endpoints_from_values(
+        include_beta,
+        include_nightly,
+        &stable_endpoint,
+        &beta_endpoint,
+        &nightly_endpoint,
+    )
+}
+
+fn update_endpoints_from_values(
+    include_beta: bool,
+    include_nightly: bool,
+    stable_endpoint: &str,
+    beta_endpoint: &str,
+    nightly_endpoint: &str,
+) -> Result<Vec<Url>> {
     let mut endpoints = Vec::new();
-    if include_beta {
-        endpoints.push(parse_endpoint(&beta_endpoint)?);
+    if include_nightly {
+        endpoints.push(parse_endpoint(nightly_endpoint)?);
     }
-    endpoints.push(parse_endpoint(&stable_endpoint)?);
+    if include_beta {
+        endpoints.push(parse_endpoint(beta_endpoint)?);
+    }
+    endpoints.push(parse_endpoint(stable_endpoint)?);
 
     Ok(endpoints)
 }
@@ -406,6 +432,7 @@ mod tests {
             auto_check,
             frequency,
             include_beta: false,
+            include_nightly: false,
             last_checked_at,
             skipped_version: None,
         }
@@ -463,6 +490,27 @@ mod tests {
         assert_eq!(
             next_auto_check_delay_for_settings(&settings, now),
             Duration::from_secs(30 * 60)
+        );
+    }
+
+    #[test]
+    fn update_endpoints_include_enabled_channels_before_stable() {
+        let endpoints = update_endpoints_from_values(
+            true,
+            true,
+            "https://example.com/update?channel=stable",
+            "https://example.com/update?channel=beta",
+            "https://example.com/update?channel=nightly",
+        )
+        .unwrap();
+
+        assert_eq!(
+            endpoints.iter().map(Url::as_str).collect::<Vec<_>>(),
+            [
+                "https://example.com/update?channel=nightly",
+                "https://example.com/update?channel=beta",
+                "https://example.com/update?channel=stable",
+            ]
         );
     }
 }
