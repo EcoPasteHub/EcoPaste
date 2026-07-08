@@ -131,7 +131,7 @@ jobs:
           {
             echo "release_body<<${delimiter}"
             cat release-body.md
-            echo "${delimiter}"
+            printf '\n%s\n' "${delimiter}"
             echo "release_id=${release_id}"
           } >> "${GITHUB_OUTPUT}"
 
