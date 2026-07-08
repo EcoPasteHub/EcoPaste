@@ -21,6 +21,7 @@ import {
   openClipboardItemLink,
   pasteClipboardItem,
   revealClipboardItem,
+  saveClipboardImageToFile,
   toggleClipboardItemFavorite,
   toggleClipboardItemPinned,
   updateClipboardItemGroup,
@@ -537,6 +538,10 @@ const List: FC = () => {
       case "copy":
         if (previewSession?.itemId === target.id) closePreview("copy");
         writeToClipboard(target.id, false);
+        return;
+      case "saveImage":
+        if (previewSession?.itemId === target.id) closePreview("saveImage");
+        saveClipboardImageToFile(target.id);
         return;
       case "openLink":
         if (previewSession?.itemId === target.id) closePreview("openLink");

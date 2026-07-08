@@ -30,6 +30,7 @@ pub enum ClipboardMenuAction {
     PasteAsPlainText,
     PasteAsPath,
     Copy,
+    SaveImage,
     OpenLink,
     SendEmail,
     RevealInFinder,
@@ -57,6 +58,7 @@ impl ClipboardMenuAction {
             Self::PasteAsPlainText => Key::PasteAsPlainText,
             Self::PasteAsPath => Key::PasteAsPath,
             Self::Copy => Key::Copy,
+            Self::SaveImage => Key::SaveImage,
             Self::OpenLink => Key::OpenLink,
             Self::SendEmail => Key::SendEmail,
             Self::RevealInFinder => Key::RevealInFinder,
@@ -95,6 +97,7 @@ impl ClipboardMenuAction {
             Self::Paste => Some("Enter"),
             Self::PasteAsPlainText | Self::PasteAsPath => Some("CmdOrCtrl+Enter"),
             Self::Copy => Some("CmdOrCtrl+C"),
+            Self::SaveImage => None,
             Self::OpenLink | Self::SendEmail | Self::RevealInFinder | Self::RevealInExplorer => {
                 Some("CmdOrCtrl+O")
             }
@@ -114,6 +117,7 @@ pub(super) const ACTION_GROUPS: &[&[ClipboardMenuAction]] = &[
         ClipboardMenuAction::PasteAsPlainText,
         ClipboardMenuAction::PasteAsPath,
         ClipboardMenuAction::Copy,
+        ClipboardMenuAction::SaveImage,
     ],
     &[
         ClipboardMenuAction::OpenLink,
@@ -208,6 +212,7 @@ mod native {
                 Self::PasteAsPlainText => "cim::pasteAsPlainText",
                 Self::PasteAsPath => "cim::pasteAsPath",
                 Self::Copy => "cim::copy",
+                Self::SaveImage => "cim::saveImage",
                 Self::OpenLink => "cim::openLink",
                 Self::SendEmail => "cim::sendEmail",
                 Self::RevealInFinder => "cim::revealInFinder",
@@ -226,6 +231,7 @@ mod native {
                 ClipboardMenuAction::PasteAsPlainText,
                 ClipboardMenuAction::PasteAsPath,
                 ClipboardMenuAction::Copy,
+                ClipboardMenuAction::SaveImage,
                 ClipboardMenuAction::OpenLink,
                 ClipboardMenuAction::SendEmail,
                 ClipboardMenuAction::RevealInFinder,
