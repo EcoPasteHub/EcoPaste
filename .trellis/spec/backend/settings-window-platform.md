@@ -506,6 +506,7 @@ not a frontend-only preference action.
 - Settings fields:
   - `update.autoCheck: bool`
   - `update.includeBeta: bool`
+  - `update.includeNightly: bool`
   - `update.frequency: daily | weekly | monthly`
   - `update.lastCheckedAt: Option<String>`
   - `update.skippedVersion: Option<String>`
@@ -532,6 +533,9 @@ not a frontend-only preference action.
   - `ECOPASTE_UPDATE_BETA_ENDPOINT`: beta channel endpoint; defaults to
     `https://releases.ecopaste.cn/update?channel=beta` and is checked before
     the stable endpoint when `includeBeta` is true.
+  - `ECOPASTE_UPDATE_NIGHTLY_ENDPOINT`: nightly channel endpoint; defaults to
+    `https://releases.ecopaste.cn/update?channel=nightly` and is checked before
+    beta and stable endpoints when `includeNightly` is true.
   - `TAURI_UPDATER_PUBLIC_KEY` or `TAURI_SIGNING_PUBLIC_KEY`: public updater
     verification key injected into the plugin at runtime.
   - `TAURI_SIGNING_PRIVATE_KEY`: build-time private key used by Tauri bundling
@@ -574,6 +578,8 @@ not a frontend-only preference action.
   - mock endpoint returns bad signature -> download refuses install.
   - `includeBeta=false` -> stable endpoint only.
   - `includeBeta=true` -> beta endpoint is attempted before stable fallback.
+  - `includeNightly=true` -> nightly endpoint is attempted before beta and
+    stable fallback.
 
 ### 7. Wrong vs Correct
 

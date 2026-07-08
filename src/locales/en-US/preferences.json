@@ -575,6 +575,10 @@
             "weekly": "Weekly"
           },
           "title": "Update Check Frequency"
+        },
+        "nightly": {
+          "description": "Receive nightly versions when checking for updates.",
+          "title": "Receive Nightly Updates"
         }
       },
       "window": {

@@ -575,6 +575,10 @@
             "weekly": "每周"
           },
           "title": "自动检查频率"
+        },
+        "nightly": {
+          "description": "检查更新时同时接收每日构建版本。",
+          "title": "接收每日构建更新"
         }
       },
       "window": {
