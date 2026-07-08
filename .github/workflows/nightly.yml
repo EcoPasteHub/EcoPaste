@@ -2,7 +2,7 @@ name: Nightly Release CI
 
 "on":
   schedule:
-    - cron: "0 18 * * *"
+    - cron: "0 0 * * *"
   workflow_dispatch:
 
 permissions:
@@ -18,6 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       previous_tag: ${{ steps.version.outputs.previous_tag }}
+      release_body: ${{ steps.notes.outputs.release_body }}
       release_id: ${{ steps.notes.outputs.release_id }}
       should_release: ${{ steps.version.outputs.should_release }}
       tag_name: ${{ steps.version.outputs.tag_name }}
@@ -100,8 +101,9 @@ jobs:
 
           args=(
             --to "${{ steps.version.outputs.tag_name }}"
-            --name "Nightly ${{ steps.version.outputs.version }}"
+            --name "${{ steps.version.outputs.tag_name }}"
             --prerelease
+            --output release-body.md
           )
 
           if [[ -n "${{ steps.version.outputs.previous_tag }}" ]]; then
@@ -109,8 +111,29 @@ jobs:
           fi
 
           npx --yes changelogithub@14.0.0 "${args[@]}"
+
+          if gh release view "${{ steps.version.outputs.tag_name }}" >/dev/null 2>&1; then
+            gh release edit "${{ steps.version.outputs.tag_name }}" \
+              --prerelease \
+              --title "${{ steps.version.outputs.tag_name }}" \
+              --notes-file release-body.md
+          else
+            gh release create "${{ steps.version.outputs.tag_name }}" \
+              --prerelease \
+              --title "${{ steps.version.outputs.tag_name }}" \
+              --notes-file release-body.md \
+              --verify-tag
+          fi
+
           release_id="$(gh release view "${{ steps.version.outputs.tag_name }}" --json databaseId --jq .databaseId)"
-          echo "release_id=${release_id}" >> "${GITHUB_OUTPUT}"
+
+          delimiter="RELEASE_BODY_${RANDOM}_${RANDOM}"
+          {
+            echo "release_body<<${delimiter}"
+            cat release-body.md
+            echo "${delimiter}"
+            echo "release_id=${release_id}"
+          } >> "${GITHUB_OUTPUT}"
 
   build-app:
     name: Build ${{ matrix.label }}
@@ -214,6 +237,7 @@ jobs:
         with:
           args: --target ${{ matrix.target }}
           prerelease: true
+          releaseBody: ${{ needs.prepare-nightly.outputs.release_body }}
           releaseId: ${{ needs.prepare-nightly.outputs.release_id }}
           retryAttempts: 3
           tagName: ${{ needs.prepare-nightly.outputs.tag_name }}
