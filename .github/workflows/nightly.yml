@@ -1,0 +1,219 @@
+name: Nightly Release CI
+
+"on":
+  schedule:
+    - cron: "0 18 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nightly-release
+  cancel-in-progress: false
+
+jobs:
+  prepare-nightly:
+    name: Prepare Nightly
+    runs-on: ubuntu-latest
+    outputs:
+      previous_tag: ${{ steps.version.outputs.previous_tag }}
+      release_id: ${{ steps.notes.outputs.release_id }}
+      should_release: ${{ steps.version.outputs.should_release }}
+      tag_name: ${{ steps.version.outputs.tag_name }}
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Resolve nightly version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git fetch --force --tags
+
+          target_sha="$(git rev-parse HEAD)"
+          base_version="$(node -p "require('./package.json').version.split('-')[0]")"
+          IFS=. read -r major minor patch extra <<< "${base_version}"
+
+          if [[ -n "${extra:-}" || ! "${major}" =~ ^[0-9]+$ || ! "${minor}" =~ ^[0-9]+$ || ! "${patch}" =~ ^[0-9]+$ ]]; then
+            echo "::error::package.json version must be a three-part semver version, got '${base_version}'."
+            exit 1
+          fi
+
+          nightly_version="${major}.${minor}.$((patch + 1))-nightly.$(date -u +%Y%m%d).${GITHUB_RUN_NUMBER}"
+          tag_name="v${nightly_version}"
+          previous_tag="$(git describe --tags --abbrev=0 --match 'v[0-9]*' --exclude "${tag_name}" "${target_sha}" 2>/dev/null || true)"
+
+          if git rev-parse --verify --quiet "refs/tags/${tag_name}" >/dev/null; then
+            tag_sha="$(git rev-list -n 1 "${tag_name}")"
+            if [[ "${tag_sha}" != "${target_sha}" ]]; then
+              echo "::error::Nightly tag '${tag_name}' already exists at ${tag_sha}, expected ${target_sha}."
+              exit 1
+            fi
+
+            should_release=true
+          else
+            if [[ -n "${previous_tag}" ]]; then
+              changed_count="$(git rev-list --count "${previous_tag}..${target_sha}")"
+            else
+              changed_count="$(git rev-list --count "${target_sha}")"
+            fi
+
+            if [[ "${changed_count}" == "0" ]]; then
+              echo "No commits since ${previous_tag:-repository start}; skipping nightly release."
+              should_release=false
+            else
+              git config user.name "github-actions[bot]"
+              git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+              git tag "${tag_name}" "${target_sha}"
+              git push origin "refs/tags/${tag_name}"
+              should_release=true
+            fi
+          fi
+
+          {
+            echo "previous_tag=${previous_tag}"
+            echo "should_release=${should_release}"
+            echo "tag_name=${tag_name}"
+            echo "version=${nightly_version}"
+          } >> "${GITHUB_OUTPUT}"
+
+      - name: Generate release notes
+        id: notes
+        if: steps.version.outputs.should_release == 'true'
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN || github.token }}
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || github.token }}
+        run: |
+          set -euo pipefail
+
+          args=(
+            --to "${{ steps.version.outputs.tag_name }}"
+            --name "Nightly ${{ steps.version.outputs.version }}"
+            --prerelease
+          )
+
+          if [[ -n "${{ steps.version.outputs.previous_tag }}" ]]; then
+            args+=(--from "${{ steps.version.outputs.previous_tag }}")
+          fi
+
+          npx --yes changelogithub@14.0.0 "${args[@]}"
+          release_id="$(gh release view "${{ steps.version.outputs.tag_name }}" --json databaseId --jq .databaseId)"
+          echo "release_id=${release_id}" >> "${GITHUB_OUTPUT}"
+
+  build-app:
+    name: Build ${{ matrix.label }}
+    needs: prepare-nightly
+    if: needs.prepare-nightly.outputs.should_release == 'true'
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: macOS Apple Silicon
+            os: macos-latest
+            target: aarch64-apple-darwin
+          - label: macOS Intel
+            os: macos-latest
+            target: x86_64-apple-darwin
+          - label: Windows x64
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
+          - label: Windows ARM64
+            os: windows-latest
+            target: aarch64-pc-windows-msvc
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare-nightly.outputs.tag_name }}
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@1.96.0
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply nightly version
+        shell: bash
+        env:
+          NIGHTLY_VERSION: ${{ needs.prepare-nightly.outputs.version }}
+        run: |
+          set -euo pipefail
+
+          node <<'NODE'
+          const fs = require("node:fs");
+
+          const version = process.env.NIGHTLY_VERSION;
+          if (!version) {
+            throw new Error("NIGHTLY_VERSION is required.");
+          }
+
+          const packageJsonPath = "package.json";
+          const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
+          packageJson.version = version;
+          fs.writeFileSync(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`);
+
+          const cargoTomlPath = "src-tauri/Cargo.toml";
+          const cargoToml = fs.readFileSync(cargoTomlPath, "utf8").replace(
+            /(^version = ")[^"]+(")/m,
+            `$1${version}$2`,
+          );
+          fs.writeFileSync(cargoTomlPath, cargoToml);
+
+          const cargoLockPath = "src-tauri/Cargo.lock";
+          const cargoLock = fs.readFileSync(cargoLockPath, "utf8").replace(
+            /(name = "EcoPaste"\nversion = ")[^"]+(")/,
+            `$1${version}$2`,
+          );
+          fs.writeFileSync(cargoLockPath, cargoLock);
+          NODE
+
+      - name: Generate Tauri icons
+        run: pnpm build:icon
+        env:
+          PLATFORM: ${{ matrix.os }}
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Build and upload app
+        uses: tauri-apps/tauri-action@v1
+        env:
+          CI: false
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN || github.token }}
+          PLATFORM: ${{ matrix.os }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          args: --target ${{ matrix.target }}
+          prerelease: true
+          releaseId: ${{ needs.prepare-nightly.outputs.release_id }}
+          retryAttempts: 3
+          tagName: ${{ needs.prepare-nightly.outputs.tag_name }}
