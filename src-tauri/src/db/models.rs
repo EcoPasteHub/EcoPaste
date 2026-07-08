@@ -127,6 +127,8 @@ pub enum ClipboardAction {
     PasteAsPath,
     /// 复制回剪贴板（恒在）。
     Copy,
+    /// 将图片条目另存到本地文件（`kind = image`）。
+    SaveImage,
     /// 在浏览器打开链接（`sub_kind = url`）。
     OpenLink,
     /// 调起邮件客户端（`sub_kind = email`）。

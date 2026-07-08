@@ -968,6 +968,23 @@ export const revealClipboardItem = (id: string) => {
 };
 
 /**
+ * 将图片历史记录另存为本地 PNG 文件；用户取消保存时返回 `null` 且不提示成功。
+ */
+export const saveClipboardImageToFile = async (id: string) => {
+  const path = await call<string | null>(
+    TAURI_COMMAND.SAVE_CLIPBOARD_IMAGE_TO_FILE,
+    "commands:labels.saveImage",
+    { id },
+  );
+
+  if (path !== null) {
+    getMessageApi().success(i18n.t("commands:messages.imageSaved"));
+  }
+
+  return path;
+};
+
+/**
  * 写回剪贴板（不模拟粘贴）：右键菜单「复制」走此命令。
  * `plain` 为显式纯文本动作；默认复制格式由 Rust 按设置与记录类型决定。
  * 成功后统一 toast「已复制」，调用方无需再处理。

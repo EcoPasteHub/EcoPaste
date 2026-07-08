@@ -8,6 +8,7 @@ use chrono::{DateTime, Datelike, Local, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
 use tauri::{AppHandle, Emitter, Manager, State};
+use tauri_plugin_dialog::DialogExt;
 
 use crate::clipboard::{
     add_app_from_path, build_item_with_settings, delete_unreferenced_apps, detect_frontmost,
@@ -164,6 +165,77 @@ pub async fn get_clipboard_app_icon_path(
         .to_str()
         .map(str::to_owned)
         .ok_or_else(|| AppError::Clipboard("app icon path is not valid utf-8".to_owned()))
+}
+
+/// 将图片历史记录另存为本地 PNG 文件。
+///
+/// 保存对话框默认打开系统下载目录，用户可在对话框中自由选择最终位置。
+#[tauri::command]
+pub async fn save_clipboard_image_to_file(
+    app: AppHandle,
+    db: State<'_, DatabaseState>,
+    store: State<'_, ImageStore>,
+    id: String,
+) -> Result<Option<String>> {
+    let pool = db.pool().await;
+    let item = find_item_by_id(&pool, &id)
+        .await?
+        .ok_or_else(|| AppError::Clipboard(format!("clipboard item not found: {id}")))?;
+
+    if item.kind != ClipboardKind::Image {
+        return Err(AppError::Clipboard(
+            "selected item is not an image".to_owned(),
+        ));
+    }
+
+    validate_image_file_name(&item.content)?;
+
+    let source = store.origin_path(&item.content);
+    if !source.is_file() {
+        return Err(AppError::Clipboard("image file does not exist".to_owned()));
+    }
+
+    let _auto_hide_guard = ClipboardAutoHideSuspendGuard::new();
+    let mut dialog = app
+        .dialog()
+        .file()
+        .add_filter("PNG", &["png"])
+        .set_can_create_directories(true)
+        .set_file_name(default_saved_image_file_name(&item))
+        .set_title(crate::i18n::clipboard_menu::label(
+            crate::i18n::current_language(&app),
+            crate::i18n::clipboard_menu::Key::SaveImage,
+        ));
+
+    match app.path().download_dir() {
+        Ok(download_dir) => {
+            dialog = dialog.set_directory(download_dir);
+        }
+        Err(err) => {
+            log::warn!("resolve download directory for image save failed: {err}");
+        }
+    }
+
+    let Some(target_path) = dialog.blocking_save_file() else {
+        return Ok(None);
+    };
+
+    let target = target_path
+        .into_path()
+        .map_err(|err| AppError::Clipboard(format!("save path is invalid: {err}")))?;
+    let source_for_copy = source.clone();
+    let target_for_copy = target.clone();
+
+    tauri::async_runtime::spawn_blocking(move || std::fs::copy(source_for_copy, target_for_copy))
+        .await
+        .map_err(|err| AppError::Clipboard(format!("save image task join failed: {err}")))?
+        .map_err(|err| AppError::Clipboard(format!("save image failed: {err}")))?;
+
+    target
+        .to_str()
+        .map(str::to_owned)
+        .map(Some)
+        .ok_or_else(|| AppError::Clipboard("save path is not valid utf-8".to_owned()))
 }
 
 /// `get_file_icon_path` 的返回：icon 绝对路径 + 文件当前是否存在于磁盘。
@@ -681,6 +753,9 @@ fn compute_available_actions(item: &ClipboardItem) -> Vec<ClipboardAction> {
     }
 
     actions.push(ClipboardAction::Copy);
+    if item.kind == ClipboardKind::Image {
+        actions.push(ClipboardAction::SaveImage);
+    }
 
     match item.sub_kind {
         Some(ClipboardSubKind::Url) => actions.push(ClipboardAction::OpenLink),
@@ -703,6 +778,30 @@ fn compute_available_actions(item: &ClipboardItem) -> Vec<ClipboardAction> {
     actions.push(ClipboardAction::Delete);
 
     actions
+}
+
+/// 生成图片另存为对话框默认文件名。
+fn default_saved_image_file_name(item: &ClipboardItem) -> String {
+    let local = item.created_at.with_timezone(&Local);
+
+    format!("EcoPaste-image-{}.png", local.format("%Y%m%d-%H%M%S"))
+}
+
+/// 保存文件对话框会短暂转移焦点；期间暂停剪贴板窗口失焦/外部点击自动隐藏。
+struct ClipboardAutoHideSuspendGuard;
+
+impl ClipboardAutoHideSuspendGuard {
+    fn new() -> Self {
+        window::set_clipboard_window_auto_hide_suspended(true);
+
+        Self
+    }
+}
+
+impl Drop for ClipboardAutoHideSuspendGuard {
+    fn drop(&mut self) {
+        window::set_clipboard_window_auto_hide_suspended(false);
+    }
 }
 
 /// 为 files 条目按设置组装前若干项 [`FileEntry`]：
@@ -1484,6 +1583,16 @@ mod tests {
         }
     }
 
+    fn image_item() -> ClipboardItem {
+        let content = "abcdef0123.png".to_owned();
+        let mut item = text_item(None, false);
+
+        item.kind = ClipboardKind::Image;
+        item.content_hash = content_hash(ClipboardKind::Image, &content);
+        item.content = content;
+        item
+    }
+
     #[test]
     fn copy_plain_default_only_affects_text_items() {
         assert!(should_write_plain_for_copy(
@@ -1658,6 +1767,20 @@ mod tests {
         item.search_text = Some("sk-abcdefghijklmnopqrstuvwxyzABCDE1234567890".to_owned());
 
         assert_eq!(preview_text(&item, true), "sk-a********7890");
+    }
+
+    #[test]
+    fn image_actions_include_save_image() {
+        let actions = compute_available_actions(&image_item());
+
+        assert!(actions.contains(&ClipboardAction::SaveImage));
+    }
+
+    #[test]
+    fn text_actions_do_not_include_save_image() {
+        let actions = compute_available_actions(&text_item(None, false));
+
+        assert!(!actions.contains(&ClipboardAction::SaveImage));
     }
 
     #[test]
