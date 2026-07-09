@@ -385,6 +385,106 @@ Failures in side-effect refresh after a successful settings write are logged and
 do not roll back the persisted settings unless the called command itself is the
 direct user action, such as `set_autostart`.
 
+## Scenario: Windows Autostart Entry Deduplication
+
+### 1. Scope / Trigger
+
+Changing Windows autostart behavior touches registry Run keys, Task Manager
+startup approval records, persisted settings, and the administrator relaunch
+task. Keep this Rust-owned; React only toggles `general.autoStart`.
+
+### 2. Signatures
+
+- Setting: `Settings.general.auto_start: bool`.
+- Commands:
+  - `get_autostart() -> bool`
+  - `set_autostart(enabled: bool) -> ()`
+- Startup sync:
+  - `autostart::sync_enabled(app: &AppHandle, enabled: bool) -> Result<()>`
+- Windows Run value name: app package name, currently `EcoPaste`.
+- Windows autostart launch arg: `--auto-launch`.
+
+### 3. Contracts
+
+- Normal Windows autostart uses one effective Run entry only.
+- New Run entries are written with `WindowsEnableMode::CurrentUser`, so an
+  elevated EcoPaste process must not create a fresh HKLM Run value.
+- Startup initialization syncs the OS Run entries with
+  `settings.general.auto_start`, so upgrades can repair stale entries from older
+  versions.
+- When enabling autostart and an HKLM Run value already exists, Rust first tries
+  to delete HKLM. If access is denied, Rust deletes HKCU and keeps HKLM as the
+  only effective startup entry instead of creating a duplicate.
+- When disabling autostart, Rust must remove HKCU and HKLM Run entries. If HKLM
+  cannot be removed because the process is not elevated, the direct
+  `set_autostart(false)` action fails instead of persisting a false setting while
+  Windows can still start the app.
+- Remove matching `StartupApproved\Run` shadow values best-effort when deleting
+  Run values so Task Manager and Autoruns do not keep stale EcoPaste rows.
+- `admin::sync_scheduled_task` owns the `EcoPasteAdmin` task for administrator
+  relaunch support. Do not use that task as a second normal autostart path
+  without redesigning the interaction with `general.auto_start`.
+
+### 4. Validation & Error Matrix
+
+- HKCU Run missing -> cleanup succeeds.
+- HKLM Run missing -> cleanup succeeds.
+- Enable with removable HKLM Run -> delete HKLM, then create/update HKCU.
+- Enable with inaccessible HKLM Run -> delete HKCU, return success with HKLM as
+  the only startup entry.
+- Disable with inaccessible HKLM Run -> command error from registry access;
+  frontend should not persist `general.autoStart=false`.
+- Startup sync failure after settings load -> log warning and continue app
+  startup.
+
+### 5. Good/Base/Bad Cases
+
+- Good: user enables autostart from an elevated process and only HKCU Run is
+  created.
+- Good: user upgrades with both HKCU and HKLM Run values; next startup removes
+  the duplicate when permissions allow.
+- Base: user has a locked HKLM Run value from an older install; EcoPaste keeps
+  that single entry and avoids adding HKCU.
+- Bad: `auto-launch` stays in dynamic Windows mode and creates HKLM when the app
+  happens to be elevated.
+- Bad: disabling autostart reports success while an inaccessible HKLM Run value
+  remains active.
+
+### 6. Tests Required
+
+- Backend: `cargo check`, `cargo clippy -- -D warnings`, and `cargo test`.
+- Windows validation: enable autostart as normal user and elevated user, inspect
+  Autoruns for a single EcoPaste Run entry, then disable and verify no Run entry
+  remains.
+- Upgrade validation: seed both HKCU and HKLM `...\Run\EcoPaste` values, launch
+  EcoPaste once, and verify duplicate cleanup or single-entry fallback.
+- Administrator validation: with `general.runAsAdmin=true`, confirm
+  `EcoPasteAdmin` remains a relaunch helper and does not combine with duplicate
+  Run entries to start multiple processes at login.
+
+### 7. Wrong vs Correct
+
+Wrong:
+
+```rust
+AutoLaunchBuilder::new()
+    .set_app_name(&app_name)
+    .set_app_path(&exe_path)
+    .set_args(&[AUTO_LAUNCH_ARG])
+    .build()?;
+```
+
+Correct:
+
+```rust
+let mut builder = AutoLaunchBuilder::new();
+builder
+    .set_app_name(&app_name)
+    .set_app_path(&exe_path)
+    .set_args(&[AUTO_LAUNCH_ARG]);
+builder.set_windows_enable_mode(WindowsEnableMode::CurrentUser);
+```
+
 ## Scenario: Windows Administrator Launch
 
 ### 1. Scope / Trigger

@@ -221,6 +221,9 @@ pub fn run() {
                 log::error!("autostart initialization failed: {err:?}");
                 err
             })?;
+            if let Err(err) = autostart::sync_enabled(&handle, settings.general.auto_start) {
+                log::warn!("autostart setting sync failed: {err}");
+            }
 
             if let Err(err) = tray::init(&handle, &settings) {
                 log::error!("tray initialization failed: {err:?}");
