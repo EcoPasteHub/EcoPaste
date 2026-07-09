@@ -51,7 +51,22 @@ jobs:
             exit 1
           fi
 
-          nightly_version="${major}.${minor}.$((patch + 1))-nightly.$(date -u +%Y%m%d).${GITHUB_RUN_NUMBER}"
+          nightly_date="$(date -u +%Y%m%d)"
+          nightly_base="${major}.${minor}.$((patch + 1))-nightly.${nightly_date}"
+          tag_prefix="v${nightly_base}."
+          daily_sequence=1
+
+          while IFS= read -r existing_tag; do
+            sequence="${existing_tag#"${tag_prefix}"}"
+            if [[ "${sequence}" =~ ^[0-9]+$ ]]; then
+              sequence_number=$((10#${sequence}))
+              if (( sequence_number >= daily_sequence )); then
+                daily_sequence=$((sequence_number + 1))
+              fi
+            fi
+          done < <(git tag --list "${tag_prefix}*")
+
+          nightly_version="${nightly_base}.${daily_sequence}"
           tag_name="v${nightly_version}"
           previous_tag="$(git describe --tags --abbrev=0 --match 'v[0-9]*' --exclude "${tag_name}" "${target_sha}" 2>/dev/null || true)"
 
