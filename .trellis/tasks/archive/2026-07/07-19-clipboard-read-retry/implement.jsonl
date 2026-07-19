@@ -1,2 +1,0 @@
-{"file":".trellis/spec/backend/index.md","reason":"Backend ownership and quality requirements for the Rust-only change."}
-{"file":".trellis/spec/backend/clipboard-pipeline.md","reason":"Clipboard capture, loop suppression, persistence, and native test contracts."}

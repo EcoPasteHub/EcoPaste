@@ -1,2 +1,0 @@
-{"file":".trellis/spec/backend/index.md","reason":"Backend quality-check entry point."}
-{"file":".trellis/spec/backend/clipboard-pipeline.md","reason":"Verify the retry preserves clipboard pipeline and test semantics."}
