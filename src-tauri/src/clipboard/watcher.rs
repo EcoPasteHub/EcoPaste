@@ -10,6 +10,7 @@
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::time::Duration;
 
 use chrono::Utc;
 use clipboard_rs::{ClipboardHandler, ClipboardWatcher, ClipboardWatcherContext};
@@ -37,6 +38,29 @@ pub const CLIPBOARD_UPDATED_EVENT: &str = "clipboard://updated";
 /// 偏慢；我们 fork 出 `new_with_interval` 后调到 120ms，跟手且 CPU 开销可忽略。
 /// Windows 走事件驱动（`WM_CLIPBOARDUPDATE`），此值被忽略。
 const CLIPBOARD_POLL_INTERVAL: std::time::Duration = std::time::Duration::from_millis(120);
+
+/// Another clipboard listener can briefly hold the Windows clipboard open. Retry those read
+/// failures within a bounded window before dropping the update.
+const CLIPBOARD_READ_RETRY_DELAYS: [Duration; 3] = [
+    Duration::from_millis(15),
+    Duration::from_millis(35),
+    Duration::from_millis(75),
+];
+
+fn read_with_retry<T, E>(
+    retry_delays: &[Duration],
+    mut read: impl FnMut() -> Result<Option<T>, E>,
+) -> Result<Option<T>, E> {
+    let mut result = read();
+    for delay in retry_delays {
+        if result.is_ok() {
+            return result;
+        }
+        std::thread::sleep(*delay);
+        result = read();
+    }
+    result
+}
 
 /// 监听暂停开关。托盘菜单「停止监听」翻转，handler 早返回跳过整条入库链路。
 /// 用 `Arc<AtomicBool>` 跨线程共享；不停 watcher 线程本身，避免反复重建平台句柄。
@@ -273,7 +297,9 @@ impl ClipboardHandler for ClipboardChangeHandler {
             .unwrap_or_default();
 
         // 同步读取 + 转换（含图片落盘）：拿到 content_hash 才能判定是否为自身写回。
-        let payload = match self.reader.read_with_capture(&settings.clipboard.capture) {
+        let payload = match read_with_retry(&CLIPBOARD_READ_RETRY_DELAYS, || {
+            self.reader.read_with_capture(&settings.clipboard.capture)
+        }) {
             Ok(Some(payload)) => payload,
             Ok(None) => return,
             Err(err) => {
@@ -321,12 +347,72 @@ impl ClipboardHandler for ClipboardChangeHandler {
 
 #[cfg(test)]
 mod tests {
+    use std::cell::Cell;
+
     use clipboard_rs::{Clipboard, ClipboardContext};
 
     use super::*;
     use crate::clipboard::{build_item, ImageStore, WritebackGuard};
     use crate::db::items::find_item_by_id;
     use crate::db::test_support::memory_pool;
+
+    const ZERO_DELAY_RETRIES: [Duration; 3] = [Duration::ZERO; 3];
+
+    #[test]
+    fn clipboard_read_retry_returns_immediate_success() {
+        let attempts = Cell::new(0);
+
+        let result = read_with_retry(&ZERO_DELAY_RETRIES, || {
+            attempts.set(attempts.get() + 1);
+            Ok::<_, &'static str>(Some("captured"))
+        });
+
+        assert_eq!(result, Ok(Some("captured")));
+        assert_eq!(attempts.get(), 1);
+    }
+
+    #[test]
+    fn clipboard_read_retry_recovers_after_transient_error() {
+        let attempts = Cell::new(0);
+
+        let result = read_with_retry(&ZERO_DELAY_RETRIES, || {
+            attempts.set(attempts.get() + 1);
+            if attempts.get() == 1 {
+                Err("clipboard busy")
+            } else {
+                Ok(Some("captured"))
+            }
+        });
+
+        assert_eq!(result, Ok(Some("captured")));
+        assert_eq!(attempts.get(), 2);
+    }
+
+    #[test]
+    fn clipboard_read_retry_does_not_retry_empty_content() {
+        let attempts = Cell::new(0);
+
+        let result = read_with_retry(&ZERO_DELAY_RETRIES, || {
+            attempts.set(attempts.get() + 1);
+            Ok::<Option<&'static str>, &'static str>(None)
+        });
+
+        assert_eq!(result, Ok(None));
+        assert_eq!(attempts.get(), 1);
+    }
+
+    #[test]
+    fn clipboard_read_retry_returns_final_error_after_exhaustion() {
+        let attempts = Cell::new(0);
+
+        let result = read_with_retry(&ZERO_DELAY_RETRIES, || {
+            attempts.set(attempts.get() + 1);
+            Err::<Option<&'static str>, _>(attempts.get())
+        });
+
+        assert_eq!(result, Err(4));
+        assert_eq!(attempts.get(), 4);
+    }
 
     fn temp_image_store() -> (TempDir, ImageStore) {
         let dir = TempDir::new();

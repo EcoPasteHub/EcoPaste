@@ -27,6 +27,30 @@ Reference files:
 - `src-tauri/src/db/items.rs`
 - `src-tauri/src/commands/clipboard.rs`
 
+## Transient Clipboard Read Failures
+
+On Windows, a clipboard change notification can arrive while another listener
+briefly holds the clipboard open. The watcher must treat a reader `Err` as
+transient and retry within a bounded window before dropping that update. The
+current policy performs one initial read followed by delays of 15 ms, 35 ms,
+and 75 ms (four attempts and at most 125 ms total delay).
+
+`read_with_retry` returns immediately for both `Ok(Some(payload))` and
+`Ok(None)`. Only `Err` is retried, and an exhausted sequence is returned to the
+existing watcher error branch so it emits one final warning rather than one
+warning per attempt.
+
+```rust
+read_with_retry(&CLIPBOARD_READ_RETRY_DELAYS, || {
+    reader.read_with_capture(capture_settings)
+})
+```
+
+Tests must assert the attempt count for immediate success, transient recovery,
+empty content, and exhaustion. Use zero-duration delays in unit tests; native
+clipboard contention belongs in ignored desktop-session tests or manual Windows
+validation with another clipboard listener enabled.
+
 ## Payload and Storage Semantics
 
 `ClipboardPayload` is a typed read result, not a database model. The read layer
