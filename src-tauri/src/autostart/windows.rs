@@ -1,6 +1,6 @@
 use auto_launch::{AutoLaunch, AutoLaunchBuilder, WindowsEnableMode};
 
-use crate::core::{AppError, Result};
+use crate::core::{windows_args, AppError, Result};
 
 use super::AUTO_LAUNCH_ARG;
 
@@ -16,10 +16,11 @@ pub(super) struct PlatformAutostart {
 
 impl PlatformAutostart {
     pub(super) fn new(app_name: &str, exe_path: &str) -> Result<Self> {
+        let quoted_exe_path = windows_args::quote_arg(exe_path);
         let mut builder = AutoLaunchBuilder::new();
         builder
             .set_app_name(app_name)
-            .set_app_path(exe_path)
+            .set_app_path(&quoted_exe_path)
             .set_args(&[AUTO_LAUNCH_ARG])
             .set_windows_enable_mode(WindowsEnableMode::CurrentUser);
 
