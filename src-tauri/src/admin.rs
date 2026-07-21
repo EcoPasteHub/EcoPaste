@@ -11,6 +11,8 @@ use anyhow::Context;
 #[cfg(target_os = "windows")]
 use serde::Deserialize;
 
+#[cfg(target_os = "windows")]
+use crate::core::windows_args;
 use crate::core::{AppError, Result};
 
 #[cfg(target_os = "windows")]
@@ -311,7 +313,7 @@ fn try_launch_with_uac() -> bool {
     };
     let params = restart_args()
         .into_iter()
-        .map(|arg| quote_windows_arg(&arg))
+        .map(|arg| windows_args::quote_arg(&arg))
         .collect::<Vec<_>>()
         .join(" ");
 
@@ -383,8 +385,8 @@ fn early_data_dir(bootstrap: &Path) -> Result<PathBuf> {
 fn scheduled_task_action(exe: &Path) -> String {
     format!(
         "{} {}",
-        quote_windows_arg(exe.to_string_lossy()),
-        quote_windows_arg(ADMIN_RESTARTED_ARG)
+        windows_args::quote_arg(exe.to_string_lossy()),
+        windows_args::quote_arg(ADMIN_RESTARTED_ARG)
     )
 }
 
@@ -427,66 +429,4 @@ fn wide_null(value: &str) -> Vec<u16> {
         .encode_wide()
         .chain(std::iter::once(0))
         .collect()
-}
-
-#[cfg(target_os = "windows")]
-fn quote_windows_arg(value: impl AsRef<str>) -> String {
-    let value = value.as_ref();
-    if value.is_empty() {
-        return "\"\"".to_owned();
-    }
-
-    if !value
-        .bytes()
-        .any(|byte| matches!(byte, b' ' | b'\t' | b'\n' | b'\r' | b'"'))
-    {
-        return value.to_owned();
-    }
-
-    let mut result = String::from("\"");
-    let mut backslashes = 0;
-    for ch in value.chars() {
-        if ch == '\\' {
-            backslashes += 1;
-            continue;
-        }
-
-        if ch == '"' {
-            result.push_str(&"\\".repeat(backslashes * 2 + 1));
-            result.push('"');
-            backslashes = 0;
-            continue;
-        }
-
-        result.push_str(&"\\".repeat(backslashes));
-        backslashes = 0;
-        result.push(ch);
-    }
-
-    result.push_str(&"\\".repeat(backslashes * 2));
-    result.push('"');
-    result
-}
-
-#[cfg(all(test, target_os = "windows"))]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn quote_windows_arg_keeps_simple_values_plain() {
-        assert_eq!(quote_windows_arg("--auto-launch"), "--auto-launch");
-    }
-
-    #[test]
-    fn quote_windows_arg_wraps_spaces() {
-        assert_eq!(
-            quote_windows_arg(r"C:\Program Files\EcoPaste\EcoPaste.exe"),
-            r#""C:\Program Files\EcoPaste\EcoPaste.exe""#
-        );
-    }
-
-    #[test]
-    fn quote_windows_arg_escapes_quotes() {
-        assert_eq!(quote_windows_arg(r#"value"tail"#), r#""value\"tail""#);
-    }
 }
