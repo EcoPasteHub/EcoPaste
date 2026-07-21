@@ -8,6 +8,7 @@ import type { ItemActionLabels } from "@/constants/itemActions";
 import type { ClipboardAction, ClipboardItem } from "@/types/clipboard";
 import type { ItemAction } from "@/types/settings";
 import { cn } from "@/utils/cn";
+import { isMac } from "@/utils/is";
 import ClipboardQuickActions from "./ClipboardQuickActions";
 import FilesCard from "./FilesCard";
 import ImageCard from "./ImageCard";
@@ -75,7 +76,7 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
     showOriginalOnHover = true,
     rootRef,
   } = props;
-  const { kind, subKind, sourceAppIconPath, sourceAppName } = item;
+  const { kind, sourceAppId, subKind, sourceAppIconPath, sourceAppName } = item;
   const { t } = useTranslation("clipboard");
   const [hovered, setHovered] = useState(false);
   const typeKey = subKind ?? kind;
@@ -83,6 +84,19 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
   const body = renderBody(item, isLinkActive, onOpenLink);
   const showSensitiveIndicator = item.isSensitive && item.kind === "text";
   const showStatusIndicators = item.isPinned || showSensitiveIndicator;
+  const sourceAppIcon = sourceAppId ? (
+    <AssetImage
+      alt={sourceAppName}
+      className="size-4"
+      src={sourceAppIconPath}
+    />
+  ) : (
+    <img
+      alt="EcoPaste"
+      className="pointer-events-none size-4"
+      src={isMac ? "/logo-mac.png" : "/logo.png"}
+    />
+  );
 
   const handleDragStart = async (event: DragEvent) => {
     event.preventDefault();
@@ -145,18 +159,10 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
         <div className="flex min-w-0 items-center gap-1 overflow-hidden">
           {hintKey ? (
             <KeyHint hintKey={hintKey} onKeyPress={onQuickPaste}>
-              <AssetImage
-                alt={sourceAppName}
-                className="size-4"
-                src={sourceAppIconPath}
-              />
+              {sourceAppIcon}
             </KeyHint>
           ) : (
-            <AssetImage
-              alt={sourceAppName}
-              className="size-4"
-              src={sourceAppIconPath}
-            />
+            sourceAppIcon
           )}
 
           <span className="truncate">{typeLabel}</span>
