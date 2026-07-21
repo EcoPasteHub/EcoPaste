@@ -1,6 +1,7 @@
 const changelogFile = "CHANGELOG.md";
 const zhChangelogFile = "CHANGELOG.zh-CN.md";
 const versionVariable = "$" + "{version}";
+const nightlyVersionMarker = "-nightly.";
 
 import type { Config } from "release-it";
 
@@ -13,8 +14,9 @@ const hooks: ReleaseItHooks = {
 const config = {
   git: {
     commitMessage: `chore: release v${versionVariable}`,
-    getLatestTagFromAllRefs: true,
+    getLatestTagFromAllRefs: false,
     tagAnnotation: `Release v${versionVariable}`,
+    tagExclude: "v*-nightly.*",
     tagName: `v${versionVariable}`,
   },
   github: {
@@ -48,6 +50,13 @@ const config = {
           { section: "⚡️ Performance", type: "perf" },
           { section: "⏪ Reverts", type: "revert" },
         ],
+      },
+      writerOpts: {
+        generateOn: (commit: { version?: string }) => {
+          return Boolean(
+            commit.version && !commit.version.includes(nightlyVersionMarker),
+          );
+        },
       },
     },
   },
