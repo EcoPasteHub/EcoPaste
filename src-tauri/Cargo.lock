@@ -49,6 +49,8 @@ dependencies = [
  "walkdir",
  "winapi",
  "windows 0.52.0",
+ "windows-registry",
+ "windows-result 0.4.1",
  "zeroize",
  "zip",
 ]
