@@ -1,0 +1,4 @@
+interface:
+  display_name: "同步中文更新日志"
+  short_description: "根据英文 CHANGELOG 自动生成并校验对应中文版本段落"
+  default_prompt: "使用 $sync-zh-changelog 同步最新版本的中文更新日志。"
