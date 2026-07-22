@@ -616,6 +616,11 @@ not a frontend-only preference action.
 - Rust owns update checks, signature verification, downloaded bytes, install,
   auto-check throttling, skipped-version persistence, and automatic update
   window display.
+- On macOS, `tauri-plugin-updater` installation APIs replace the application
+  files and return without relaunching the process. `install_update` must
+  request an application restart after installation succeeds and must not
+  restart after an install error. On Windows the updater exits and delegates
+  relaunch to the spawned installer before this call can return.
 - `update::schedule_auto_check` must run for the whole app session: it performs
   the initial delayed background check, then computes the next due time from
   `update.lastCheckedAt + update.frequency` so the configured cadence is honored
@@ -650,6 +655,10 @@ not a frontend-only preference action.
 - Version mismatch between UI request and Rust pending update ->
   `the selected update is no longer current`.
 - Install before successful download -> `update is not downloaded`.
+- Install failure -> propagated command error; the current process stays open.
+- Successful macOS install -> Rust logs the installed version and requests an
+  application restart. Successful Windows install -> the updater exits and the
+  installer owns relaunch.
 - Signature mismatch -> propagated from `tauri-plugin-updater` download
   verification; frontend should show the command error and remain in error
   state.
@@ -658,11 +667,14 @@ not a frontend-only preference action.
 
 - Good: user opens About -> Check for Updates; Rust opens the `update` window,
   checks stable/beta endpoint according to settings, downloads through Rust,
-  emits progress, verifies signature, then installs.
+  emits progress, verifies signature, installs, then requests an application
+  restart.
 - Base: no update is available; Rust clears pending update state and the window
   renders the latest-version state.
 - Bad: React stores downloaded bytes, performs signature checks, or decides
   auto-check frequency locally.
+- Bad: Rust assumes `Update::install` or `Update::download_and_install`
+  automatically relaunches the application on macOS.
 
 ### 6. Tests Required
 
@@ -672,6 +684,9 @@ not a frontend-only preference action.
   `should_auto_check`.
 - Frontend checks: `pnpm tsc` and `pnpm lint`.
 - Packaging/build check: `pnpm build` for route and locale integration.
+- Manual signed-artifact check must assert that a successful install terminates
+  the old process, relaunches EcoPaste, and reports the new version after
+  startup.
 - Manual update-server checks when release artifacts exist:
   - mock endpoint returns newer signed version -> update found and install path
     starts.
@@ -697,4 +712,19 @@ Correct:
 import { checkForUpdates } from "@/commands";
 
 const status = await checkForUpdates();
+```
+
+Wrong:
+
+```rust
+app.state::<UpdateState>().install_downloaded(&version)?;
+Ok(())
+```
+
+Correct:
+
+```rust
+app.state::<UpdateState>().install_downloaded(&version)?;
+app.request_restart();
+Ok(())
 ```
