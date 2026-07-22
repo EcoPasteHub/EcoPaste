@@ -238,7 +238,12 @@ pub async fn download(app: &AppHandle, version: String) -> Result<UpdateMetadata
 }
 
 pub fn install(app: &AppHandle, version: String) -> Result<()> {
-    app.state::<UpdateState>().install_downloaded(&version)
+    log::info!("installing downloaded update {version}");
+    app.state::<UpdateState>().install_downloaded(&version)?;
+    log::info!("update {version} installed, requesting app restart");
+    app.request_restart();
+
+    Ok(())
 }
 
 pub fn skip(app: &AppHandle, version: String) -> Result<AppUpdateStatus> {
