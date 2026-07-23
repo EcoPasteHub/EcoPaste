@@ -37,7 +37,6 @@
     "loadAutostart": "Load launch-at-login state",
     "loadClipboardGroups": "Load groups",
     "loadClipboardList": "Load list",
-    "loadLaunchSource": "Load launch source",
     "loadPreviewContent": "Load preview content",
     "loadPreviewState": "Load preview state",
     "loadRunAsAdminStatus": "Load administrator launch state",

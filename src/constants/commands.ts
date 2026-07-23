@@ -40,7 +40,6 @@ export const TAURI_COMMAND = {
   IMPORT_LEGACY_DATA: "import_legacy_data",
   INSPECT_HISTORY_BACKUP: "inspect_history_backup",
   INSTALL_UPDATE: "install_update",
-  IS_LAUNCHED_VIA_AUTOSTART: "is_launched_via_autostart",
   LIST_ALL_APPS: "list_all_apps",
   LIST_CLIPBOARD_GROUPS: "list_clipboard_groups",
   LIST_CLIPBOARD_ITEMS: "list_clipboard_items",

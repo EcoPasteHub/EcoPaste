@@ -385,7 +385,7 @@ Failures in side-effect refresh after a successful settings write are logged and
 do not roll back the persisted settings unless the called command itself is the
 direct user action, such as `set_autostart`.
 
-## Scenario: Windows Autostart Entry Deduplication
+## Scenario: Windows Autostart Entry Deduplication and Duplicate Launches
 
 ### 1. Scope / Trigger
 
@@ -401,6 +401,8 @@ task. Keep this Rust-owned; React only toggles `general.autoStart`.
   - `set_autostart(enabled: bool) -> ()`
 - Startup sync:
   - `autostart::sync_enabled(app: &AppHandle, enabled: bool) -> Result<()>`
+- Launch-source matcher:
+  - `autostart::is_autostart_launch(args: &[String]) -> bool`
 - Windows Run value name: app package name, currently `EcoPaste`.
 - Windows autostart launch arg: `--auto-launch`.
 
@@ -412,6 +414,12 @@ task. Keep this Rust-owned; React only toggles `general.autoStart`.
 - Startup initialization syncs the OS Run entries with
   `settings.general.auto_start`, so upgrades can repair stale entries from older
   versions.
+- Registry cleanup cannot prevent two legacy Run entries from racing before the
+  primary instance finishes setup. The single-instance callback must ignore a
+  secondary process whose arguments contain `--auto-launch`; it must not show
+  the preference window for that process.
+- A regular second launch without `--auto-launch` remains an explicit user
+  action and opens the default foreground window.
 - When enabling autostart and an HKLM Run value already exists, Rust first tries
   to delete HKLM. If access is denied, Rust deletes HKCU and keeps HKLM as the
   only effective startup entry instead of creating a duplicate.
@@ -436,15 +444,22 @@ task. Keep this Rust-owned; React only toggles `general.autoStart`.
   frontend should not persist `general.autoStart=false`.
 - Startup sync failure after settings load -> log warning and continue app
   startup.
+- Secondary instance with `--auto-launch` -> return from the single-instance
+  callback without showing a window.
+- Secondary instance without `--auto-launch` -> show the default foreground
+  window.
 
 ### 5. Good/Base/Bad Cases
 
 - Good: user enables autostart from an elevated process and only HKCU Run is
   created.
 - Good: user upgrades with both HKCU and HKLM Run values; next startup removes
-  the duplicate when permissions allow.
+  the duplicate when permissions allow, while the already-racing secondary
+  instance exits without opening preferences.
 - Base: user has a locked HKLM Run value from an older install; EcoPaste keeps
   that single entry and avoids adding HKCU.
+- Base: user manually launches EcoPaste while it is running; the primary
+  instance opens preferences as expected.
 - Bad: `auto-launch` stays in dynamic Windows mode and creates HKLM when the app
   happens to be elevated.
 - Bad: disabling autostart reports success while an inaccessible HKLM Run value
@@ -453,6 +468,8 @@ task. Keep this Rust-owned; React only toggles `general.autoStart`.
 ### 6. Tests Required
 
 - Backend: `cargo check`, `cargo clippy -- -D warnings`, and `cargo test`.
+- Unit tests: `is_autostart_launch` returns true when `--auto-launch` is present
+  and false for a regular executable-only argument list.
 - Windows validation: enable autostart as normal user and elevated user, inspect
   Autoruns for a single EcoPaste Run entry, then disable and verify no Run entry
   remains.
@@ -483,6 +500,23 @@ builder
     .set_app_path(&exe_path)
     .set_args(&[AUTO_LAUNCH_ARG]);
 builder.set_windows_enable_mode(WindowsEnableMode::CurrentUser);
+```
+
+Wrong:
+
+```rust
+if backup::backup_path_from_args(&argv).is_none() {
+    show_default_foreground_window(app_handle)?;
+}
+```
+
+Correct:
+
+```rust
+if autostart::is_autostart_launch(&argv) {
+    return;
+}
+show_default_foreground_window(app_handle)?;
 ```
 
 ## Scenario: Windows Administrator Launch
