@@ -62,6 +62,12 @@ pub fn run() {
                     return;
                 }
 
+                // 登录时历史遗留的多个启动项可能并发拉起实例。第二实例只负责退出，
+                // 不应按用户手动重复打开处理，否则会意外显示偏好设置窗口。
+                if autostart::is_autostart_launch(&argv) {
+                    return;
+                }
+
                 if let Err(err) = show_default_foreground_window(app_handle) {
                     log::error!("show foreground window on second instance failed: {err:?}");
                 }
@@ -169,7 +175,6 @@ pub fn run() {
             commands::open_preference_directory,
             commands::get_autostart,
             commands::set_autostart,
-            commands::is_launched_via_autostart,
             commands::get_update_status,
             commands::check_for_updates,
             commands::download_update,

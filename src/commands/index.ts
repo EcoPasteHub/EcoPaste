@@ -793,16 +793,6 @@ export const setAutostart = (enabled: boolean) => {
 };
 
 /**
- * 查询本次是否由自启动参数唤起。
- */
-export const isLaunchedViaAutostart = () => {
-  return call<boolean>(
-    TAURI_COMMAND.IS_LAUNCHED_VIA_AUTOSTART,
-    "commands:labels.loadLaunchSource",
-  );
-};
-
-/**
  * 列出可过滤应用：DB 已知应用加上当前运行中应用。
  */
 export const listAllApps = () => {
