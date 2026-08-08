@@ -16,9 +16,9 @@ static URL_RE: LazyLock<Regex> = LazyLock::new(|| {
         .expect("invalid URL regex")
 });
 
-/// Email：允许中文用户名。
+/// Email：本地部分允许字母、数字、中文及 `.` `+` `_` `-` `%`（RFC 5321 常见字符）。
 static EMAIL_RE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"^[A-Za-z0-9\u{4e00}-\u{9fa5}]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$")
+    Regex::new(r"^[A-Za-z0-9._%+\-\u{4e00}-\u{9fa5}]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$")
         .expect("invalid email regex")
 });
 
@@ -169,6 +169,32 @@ mod tests {
         assert_eq!(
             detect_text_sub_kind("张三@example.com.cn"),
             Some(ClipboardSubKind::Email)
+        );
+        // 常见但此前被 EMAIL_RE 漏判的本地部分：含 . + _ - %
+        assert_eq!(
+            detect_text_sub_kind("first.last@example.com"),
+            Some(ClipboardSubKind::Email),
+            "dotted local part (first.last@)"
+        );
+        assert_eq!(
+            detect_text_sub_kind("user+tag@gmail.com"),
+            Some(ClipboardSubKind::Email),
+            "plus-tagged local part (user+tag@)"
+        );
+        assert_eq!(
+            detect_text_sub_kind("name_surname@example.com"),
+            Some(ClipboardSubKind::Email),
+            "underscore local part (name_surname@)"
+        );
+        assert_eq!(
+            detect_text_sub_kind("user-name@example.com"),
+            Some(ClipboardSubKind::Email),
+            "hyphen local part (user-name@)"
+        );
+        assert_eq!(
+            detect_text_sub_kind("user%tag@example.com"),
+            Some(ClipboardSubKind::Email),
+            "percent local part (user%tag@)"
         );
         assert_eq!(detect_text_sub_kind("not@an@email"), None);
     }
