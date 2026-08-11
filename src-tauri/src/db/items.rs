@@ -406,12 +406,21 @@ enum KeywordFilter {
 impl KeywordFilter {
     /// 按字符数（非字节）判定走 FTS 还是 LIKE。CJK 一个字符也算 1，
     /// 与 trigram 的 3 字符门槛保持一致。
+    ///
+    /// 注意：门槛按**每个空白分词**判定，而非整串字符数。trigram 索引对 <3 字符的
+    /// token 永远 0 命中，而 FTS5 表达式里多 token 之间默认是 AND —— 只要有一个短词，
+    /// 整条表达式就被拖成 0 结果（例如 `a b` 会生成 `"a"* "b"*`，二者皆 <3 字符）。
+    /// 因此仅当所有分词均 ≥3 字符时才走 FTS，否则降级到 LIKE 兜底。
     fn from_keyword(keyword: Option<&str>) -> Self {
         let Some(trimmed) = keyword.map(str::trim).filter(|s| !s.is_empty()) else {
             return Self::None;
         };
 
-        if trimmed.chars().count() >= 3 {
+        let fts_viable = trimmed
+            .split_whitespace()
+            .all(|token| token.chars().count() >= 3);
+
+        if fts_viable {
             if let Some(expr) = build_fts_expr(trimmed) {
                 return Self::Fts(expr);
             }
@@ -1247,6 +1256,50 @@ mod tests {
             KeywordFilter::from_keyword(Some("a\"b")),
             KeywordFilter::Fts("\"a\"\"b\"*".to_owned())
         );
+    }
+
+    #[test]
+    fn keyword_filter_drops_multi_token_short_words_to_like() {
+        // 整串 ≥3 字符，但每个空白分词都 <3 字符：trigram 对 <3 字符 token 永远 0 命中，
+        // 且 FTS5 多 token 默认 AND，整条表达式会被任一短词拖成 0 结果 → 必须降级 LIKE。
+        assert_eq!(
+            KeywordFilter::from_keyword(Some("a b")),
+            KeywordFilter::Like("a b".to_owned())
+        );
+        assert_eq!(
+            KeywordFilter::from_keyword(Some("ab cd")),
+            KeywordFilter::Like("ab cd".to_owned())
+        );
+        // 混合长度：只要有一个分词 <3 字符，整条 FTS 表达式就会被拖成 0 命中 → LIKE。
+        assert_eq!(
+            KeywordFilter::from_keyword(Some("foo b")),
+            KeywordFilter::Like("foo b".to_owned())
+        );
+        // 所有分词均 ≥3 字符仍走 FTS（回归保障，语义不变）。
+        assert_eq!(
+            KeywordFilter::from_keyword(Some("foo bar baz")),
+            KeywordFilter::Fts("\"foo\"* \"bar\"* \"baz\"*".to_owned())
+        );
+    }
+
+    #[tokio::test]
+    async fn multi_token_short_keyword_falls_back_to_like() {
+        let pool = memory_pool().await;
+        let mut item = sample_item("short");
+        item.content = "ab cd ef".to_owned();
+        item.content_hash = content_hash(ClipboardKind::Text, &item.content);
+        item.search_text = Some("ab cd ef".to_owned());
+        insert_item(&pool, &item).await.unwrap();
+
+        let q = ClipboardItemQuery {
+            keyword: Some("ab cd".to_owned()),
+            ..Default::default()
+        };
+
+        // 旧逻辑按整串字符数（5 ≥ 3）判走 FTS：`"ab"* "cd"*`，两个 token 均 <3 字符，
+        // trigram 返回 0 行 → 搜不到刚插入的记录。现按分词长度降级 LIKE `%ab cd%`，命中。
+        let found = query_items(&pool, &q).await.unwrap();
+        assert_eq!(ids(&found), ["short"]);
     }
 
     #[test]
