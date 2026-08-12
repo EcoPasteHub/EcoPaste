@@ -71,7 +71,8 @@ fn has_jwt(text: &str) -> bool {
         .is_match(text)
 }
 
-/// 识别带明确字段名的 secret 赋值。
+/// 识别带明确字段名的 secret 赋值。字段名与分隔符之间允许一个可选的闭合引号，
+/// 以覆盖 JSON / 引号包裹的配置（`"api_key": "..."`、`'secret_key': '...'`）。
 fn has_labeled_secret(text: &str) -> bool {
     static LABELED_SECRET_RE: OnceLock<Regex> = OnceLock::new();
     LABELED_SECRET_RE
@@ -81,7 +82,7 @@ fn has_labeled_secret(text: &str) -> bool {
                 \b
                 (?:api[_-]?key|secret[_-]?key|client[_-]?secret|access[_-]?token|refresh[_-]?token|auth[_-]?token|bearer)
                 \b
-                \s*[:=]\s*
+                ['"]?\s*[:=]\s*
                 ['"]?
                 [A-Za-z0-9][A-Za-z0-9._~+/=-]{23,}
                 ['"]?
@@ -135,6 +136,21 @@ mod tests {
 
         assert!(contains_secret(&labeled_secret));
         assert!(contains_secret(&bearer_token));
+    }
+
+    #[test]
+    fn detects_labeled_secrets_with_quoted_keys() {
+        // JSON / 引号包裹的字段名：label 与分隔符之间的闭合引号此前断开了正则，导致漏判。
+        // 值用明显的假串（无任何服务商前缀），仅用于驱动 has_labeled_secret 命中。
+        let json_double = r#"{"api_key": "dummy_secret_value_abcdefghijklmnopqr"}"#;
+        assert!(contains_secret(json_double));
+
+        let single_quoted_key = r#"'secret_key': "abcdefghijklmnopqrstuvwxyz12345678""#;
+        assert!(contains_secret(single_quoted_key));
+
+        // 单引号 key + 单引号 value（部分 shell / dotenv 风格）。
+        let single_quoted_both = r#"'access_token': 'abcdefghijklmnopqrstuvwxyz123456'"#;
+        assert!(contains_secret(single_quoted_both));
     }
 
     #[test]
