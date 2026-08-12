@@ -1171,7 +1171,7 @@ async fn merge_items(
 ) -> Result<MergeOutcome> {
     let rows = sqlx::query_as::<_, BackupItemRow>(
         "SELECT id, kind, sub_kind, group_id, source_app_id, content, content_hash, search_text, \
-         summary, file_types, size, width, height, use_count, is_favorite, is_pinned, platform, note, \
+         summary, file_types, size, width, height, use_count, is_favorite, is_pinned, is_sensitive, platform, note, \
          created_at, updated_at FROM clipboard_items ORDER BY created_at ASC",
     )
     .fetch_all(backup)
@@ -1197,9 +1197,9 @@ async fn merge_items(
         sqlx::query(
             "INSERT OR IGNORE INTO clipboard_items \
              (id, kind, sub_kind, group_id, source_app_id, content, content_hash, search_text, \
-              summary, file_types, size, width, height, use_count, is_favorite, is_pinned, platform, note, \
+              summary, file_types, size, width, height, use_count, is_favorite, is_pinned, is_sensitive, platform, note, \
               created_at, updated_at) \
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         )
         .bind(row.id)
         .bind(row.kind)
@@ -1217,6 +1217,7 @@ async fn merge_items(
         .bind(row.use_count)
         .bind(row.is_favorite)
         .bind(row.is_pinned)
+        .bind(row.is_sensitive)
         .bind(row.platform)
         .bind(row.note)
         .bind(row.created_at)
@@ -1251,6 +1252,7 @@ struct BackupItemRow {
     use_count: i64,
     is_favorite: bool,
     is_pinned: bool,
+    is_sensitive: bool,
     platform: String,
     note: Option<String>,
     created_at: DateTime<Utc>,
@@ -1565,6 +1567,76 @@ mod tests {
                 "manifest.json",
                 "resources/clipboard-images/origin/demo.png",
             ]
+        );
+    }
+
+    #[tokio::test]
+    async fn merge_preserves_is_sensitive_flag() {
+        use crate::db::items::{content_hash, insert_item};
+        use crate::db::models::{ClipboardItem, ClipboardKind, Platform};
+        use crate::db::test_support::memory_pool;
+        use chrono::DateTime;
+
+        // The backup pool stands in for a real backup database, which is a
+        // snapshot of the live clipboard.db and therefore already carries the
+        // `is_sensitive` flag written by the production insert path.
+        let backup = memory_pool().await;
+        let current = memory_pool().await;
+
+        let ts = DateTime::from_timestamp(1_700_000_000, 0).unwrap();
+        let content = "AKIAIOSFODNN7EXAMPLE".to_owned();
+        let item = ClipboardItem {
+            id: "secret-1".to_owned(),
+            kind: ClipboardKind::Text,
+            sub_kind: None,
+            group_id: None,
+            source_app_id: None,
+            content_hash: content_hash(ClipboardKind::Text, &content),
+            content,
+            search_text: None,
+            summary: None,
+            file_types: None,
+            size: None,
+            width: None,
+            height: None,
+            use_count: 1,
+            is_favorite: false,
+            is_pinned: false,
+            is_sensitive: true,
+            platform: Platform::Macos,
+            note: None,
+            created_at: ts,
+            updated_at: ts,
+            source_app_name: None,
+            source_app_icon_file: None,
+            source_app_icon_path: None,
+            image_thumbnail_path: None,
+            file_entries: None,
+            files_preview_kind: None,
+            available_actions: Vec::new(),
+            color_preview: None,
+            display_created_at: String::new(),
+        };
+        insert_item(&backup, &item).await.unwrap();
+
+        let outcome = merge_history(&current, &backup).await.unwrap();
+        assert_eq!(
+            outcome.imported_items, 1,
+            "sensitive item should be imported"
+        );
+
+        // Regression: the merge SELECT/INSERT used to omit `is_sensitive`, so
+        // every imported row silently fell back to the column DEFAULT (0) and
+        // secrets were rendered in plaintext. The flag must survive the merge.
+        let imported: bool =
+            sqlx::query_scalar("SELECT is_sensitive FROM clipboard_items WHERE id = ?")
+                .bind("secret-1")
+                .fetch_one(&current)
+                .await
+                .unwrap();
+        assert!(
+            imported,
+            "merged sensitive item must keep is_sensitive = true"
         );
     }
 }
