@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### 🐛 Bug Fixes
+
+- Detect secrets in rich text sources, so tokens carried only in HTML or RTF markup are no longer saved in the clear.
+- Report global shortcut registration conflicts in Preferences instead of failing silently.
+- Fix the group name placeholder in English empty state messages.
+
 ## [1.1.0](https://github.com/EcoPasteHub/EcoPaste/compare/v1.0.0...v1.1.0) (2026-07-22)
 
 ### ✨ Features

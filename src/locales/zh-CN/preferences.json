@@ -662,6 +662,9 @@
     "empty": "没有找到相关设置",
     "placeholder": "搜索配置项"
   },
+  "shortcuts": {
+    "conflictMessage": "快捷键 {{binding}} 已被其它应用占用，「{{label}}」未能生效。请换一个组合键。"
+  },
   "status": {
     "alwaysOn": "默认能力",
     "comingSoon": "未来能力",

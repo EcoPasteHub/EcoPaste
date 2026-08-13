@@ -13,10 +13,12 @@ import {
   getStorageLocation,
   getStorageUsage,
   type ImportHistoryBackupResult,
+  type ShortcutConflict,
   type StorageLocation,
   type StorageUsage,
   takePendingBackup,
   takePendingPreferenceHighlight,
+  takePendingShortcutConflicts,
 } from "@/commands";
 import ScrollArea from "@/components/ScrollArea";
 import { TAURI_EVENT } from "@/constants/events";
@@ -25,6 +27,7 @@ import { settingsState } from "@/stores/settings";
 import { preloadSourceApps, reloadSourceApps } from "@/stores/sourceApps";
 import type { Settings } from "@/types/settings";
 import { cn } from "@/utils/cn";
+import { getMessageApi } from "@/utils/feedback";
 import { log } from "@/utils/log";
 import BackupImportModal from "./components/BackupImportModal";
 import PreferenceHeader from "./components/PreferenceHeader";
@@ -63,6 +66,15 @@ interface AppMetadata {
   name: string;
   version: string;
 }
+
+/** Rust `ShortcutConflict.action` → 对应设置项标题的文案 key，用于把冲突说成人话。 */
+const SHORTCUT_CONFLICT_LABEL_KEY: Record<string, string> = {
+  open_clipboard: "schema.settings.shortcuts.openClipboard.title",
+  open_preference: "schema.settings.shortcuts.openPreference.title",
+};
+
+/** 冲突提示比普通操作反馈更需要被看到，给足阅读时间（秒）。 */
+const SHORTCUT_CONFLICT_TOAST_DURATION = 6;
 
 /**
  * EcoPaste 偏好设置：以用户心智组织设置，而非代码模块。
@@ -186,6 +198,26 @@ const Preference: FC = () => {
   };
 
   /**
+   * 提示全局快捷键注册失败。被其它应用抢占是 OS 级冲突，录入时无从预判——
+   * 只有 Rust 真正 register 之后才知道，这里是用户唯一能拿到的反馈。
+   */
+  const notifyShortcutConflicts = (conflicts: ShortcutConflict[]) => {
+    for (const conflict of conflicts) {
+      log.warn("global shortcut registration conflict", conflict);
+
+      const labelKey = SHORTCUT_CONFLICT_LABEL_KEY[conflict.action];
+
+      getMessageApi().error({
+        content: t("shortcuts.conflictMessage", {
+          binding: conflict.binding,
+          label: labelKey ? t(labelKey) : conflict.action,
+        }),
+        duration: SHORTCUT_CONFLICT_TOAST_DURATION,
+      });
+    }
+  };
+
+  /**
    * 关闭备份导入弹窗并丢弃当前接收的文件路径。
    */
   const closeBackupImportModal = () => {
@@ -279,6 +311,9 @@ const Preference: FC = () => {
     if (pendingHighlight) {
       highlightSetting(pendingHighlight);
     }
+
+    // 启动时的注册冲突发生在偏好窗口存在之前，事件推不过来，只能挂载后主动拉。
+    notifyShortcutConflicts(await takePendingShortcutConflicts());
   });
 
   useTauriListen<BackupReceivedPayload>(
@@ -287,6 +322,10 @@ const Preference: FC = () => {
       handleBackupReceived(event.payload);
     },
   );
+
+  useTauriListen<ShortcutConflict[]>(TAURI_EVENT.SHORTCUT_CONFLICT, (event) => {
+    notifyShortcutConflicts(event.payload);
+  });
 
   useTauriListen<PreferenceHighlightSettingPayload>(
     TAURI_EVENT.PREFERENCE_HIGHLIGHT_SETTING,

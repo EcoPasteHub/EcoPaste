@@ -77,6 +77,7 @@ export const TAURI_COMMAND = {
   SUSPEND_GLOBAL_SHORTCUTS: "suspend_global_shortcuts",
   TAKE_PENDING_BACKUP: "take_pending_backup",
   TAKE_PENDING_PREFERENCE_HIGHLIGHT: "take_pending_preference_highlight",
+  TAKE_PENDING_SHORTCUT_CONFLICTS: "take_pending_shortcut_conflicts",
   TOGGLE_CLIPBOARD_ITEM_FAVORITE: "toggle_clipboard_item_favorite",
   TOGGLE_CLIPBOARD_ITEM_PINNED: "toggle_clipboard_item_pinned",
   UPDATE_CLIPBOARD_GROUP: "update_clipboard_group",

@@ -288,6 +288,24 @@ pub fn build_item_with_settings(
     let Some(draft) = draft else {
         return Ok(None);
     };
+
+    // html / rtf 草稿的 `content` 是富文本源，与上面扫过的纯文本表示是两串内容：
+    // 锚文本为「点这里」、href 里带 token 的链接，纯文本命中不了，只有扫最终入库内容才拦得住。
+    // 纯文本草稿的 content 与已扫过的串相同，不重复扫。
+    if !is_sensitive
+        && matches!(
+            draft.sub_kind,
+            Some(ClipboardSubKind::Html) | Some(ClipboardSubKind::Rtf)
+        )
+        && contains_secret(&draft.content)
+    {
+        if !sensitive.collect_secrets {
+            return Ok(None);
+        }
+
+        is_sensitive = true;
+    }
+
     if draft.kind == ClipboardKind::Text
         && exceeds_limit(draft.content.len(), capture.max_text_bytes())
     {
@@ -710,6 +728,104 @@ mod tests {
         .unwrap();
 
         assert!(item.is_sensitive);
+    }
+
+    /// 回归：secret 检测此前只扫纯文本表示，而 html 草稿入库的 `content` 是富文本源。
+    /// 锚文本干净、href 带 token 的链接会整段明文入库且不标记敏感。
+    #[test]
+    fn html_source_secret_is_detected_when_plain_text_is_clean() {
+        let (_d, s) = store();
+        let html = concat!(
+            r#"<a href="https://example.com/?access_token="#,
+            "sk-abcdefghijklmnopqrstuvwxyzABCDE1234567890",
+            r#"">click here</a>"#
+        );
+        let item = build_item_with_settings(
+            &s,
+            &text_payload("click here", Some(html), None),
+            &Capture::default(),
+            &Sensitive {
+                collect_secrets: true,
+                redact_secrets: true,
+            },
+            false,
+        )
+        .unwrap()
+        .unwrap();
+
+        assert_eq!(item.sub_kind, Some(ClipboardSubKind::Html));
+        assert_eq!(item.content, html);
+        // 纯文本表示本身不含 token，命中必须来自对最终入库内容的扫描。
+        assert!(!contains_secret("click here"));
+        assert!(item.is_sensitive);
+    }
+
+    #[test]
+    fn html_source_secret_is_skipped_when_collect_disabled() {
+        let (_d, s) = store();
+        let html = concat!(
+            r#"<a href="https://example.com/?access_token="#,
+            "sk-abcdefghijklmnopqrstuvwxyzABCDE1234567890",
+            r#"">click here</a>"#
+        );
+        let item = build_item_with_settings(
+            &s,
+            &text_payload("click here", Some(html), None),
+            &Capture::default(),
+            &Sensitive {
+                collect_secrets: false,
+                redact_secrets: true,
+            },
+            false,
+        )
+        .unwrap();
+
+        assert!(item.is_none());
+    }
+
+    #[test]
+    fn rtf_source_secret_is_detected_when_plain_text_is_clean() {
+        let (_d, s) = store();
+        let rtf = concat!(
+            r#"{\rtf1{\field{\*\fldinst HYPERLINK "https://example.com/?access_token="#,
+            "sk-abcdefghijklmnopqrstuvwxyzABCDE1234567890",
+            r#""}}click here}"#
+        );
+        let item = build_item_with_settings(
+            &s,
+            &text_payload("click here", None, Some(rtf)),
+            &Capture::default(),
+            &Sensitive::default(),
+            false,
+        )
+        .unwrap()
+        .unwrap();
+
+        assert_eq!(item.sub_kind, Some(ClipboardSubKind::Rtf));
+        assert!(item.is_sensitive);
+    }
+
+    /// plain_only（纯文本粘贴顺序）下 content 退回纯文本，干净内容不应被富文本里的 token 连坐。
+    #[test]
+    fn plain_only_ignores_secret_in_discarded_html_source() {
+        let (_d, s) = store();
+        let html = concat!(
+            r#"<a href="https://example.com/?access_token="#,
+            "sk-abcdefghijklmnopqrstuvwxyzABCDE1234567890",
+            r#"">click here</a>"#
+        );
+        let item = build_item_with_settings(
+            &s,
+            &text_payload("click here", Some(html), None),
+            &Capture::default(),
+            &Sensitive::default(),
+            true,
+        )
+        .unwrap()
+        .unwrap();
+
+        assert_eq!(item.content, "click here");
+        assert!(!item.is_sensitive);
     }
 
     #[test]
