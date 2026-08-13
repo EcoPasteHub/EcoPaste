@@ -161,6 +161,7 @@ pub fn run() {
             commands::get_settings,
             commands::suspend_global_shortcuts,
             commands::resume_global_shortcuts,
+            commands::take_pending_shortcut_conflicts,
             commands::update_settings,
             commands::reset_settings,
             commands::export_history_backup,

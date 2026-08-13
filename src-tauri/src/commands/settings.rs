@@ -24,6 +24,13 @@ pub async fn resume_global_shortcuts(app: AppHandle) -> Result<()> {
     shortcut::resume(&app)
 }
 
+/// 取走 Rust 暂存的全局快捷键注册冲突，供偏好窗口挂载后首屏补发提示。
+/// 启动时的冲突发生在偏好窗口存在之前，只能靠前端主动拉取。
+#[tauri::command]
+pub async fn take_pending_shortcut_conflicts() -> Vec<shortcut::ShortcutConflict> {
+    shortcut::take_pending_conflicts()
+}
+
 /// 用 JSON patch 深度合并到现设置。返回合并后的完整快照。
 /// 若 `shortcuts` 段被改动，会顺带重注册全局快捷键；
 /// 若 `general.trayIcon` 或 `appearance.language` 被改动，重建托盘菜单/显隐。

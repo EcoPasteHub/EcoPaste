@@ -662,6 +662,9 @@
     "empty": "No matching settings",
     "placeholder": "Search settings"
   },
+  "shortcuts": {
+    "conflictMessage": "Shortcut {{binding}} is already in use by another app, so \"{{label}}\" did not take effect. Try a different combination."
+  },
   "status": {
     "alwaysOn": "Default",
     "comingSoon": "Coming soon",

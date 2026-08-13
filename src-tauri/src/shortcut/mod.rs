@@ -3,7 +3,7 @@
 //! 配置来自 `settings::Shortcuts`。本模块只负责 OS 级注册——`paste_plain`
 //! 是窗口内交互（前端 `useKeyPress`），不在这里处理。
 
-use std::sync::Mutex;
+use std::sync::{LazyLock, Mutex};
 use std::time::Duration;
 
 use serde::Serialize;
@@ -17,8 +17,22 @@ use crate::window::{self, CLIPBOARD_WINDOW_LABEL, PREFERENCE_WINDOW_LABEL};
 #[cfg(target_os = "windows")]
 mod win_v;
 
+/// 与前端 `src/constants/events.ts` 的 `TAURI_EVENT.SHORTCUT_CONFLICT` 一一对应。
+/// 载荷是本轮 [`apply`] 的完整冲突集合（`Vec<ShortcutConflict>`），空集合不发。
 pub const CONFLICT_EVENT: &str = "shortcut://conflict";
 const RESUME_DEBOUNCE: Duration = Duration::from_millis(160);
+
+/// 最近一次 [`apply`] 的注册冲突集合，供偏好窗口挂载后主动拉取。
+///
+/// 冲突绝大多数发生在启动时注册（快捷键已被别的应用占用），此时偏好窗口根本不存在；
+/// 偏好窗口又是空闲可销毁的，直接 `emit` 会丢给尚未挂载的前端（与 backup 接收、
+/// 定位高亮同源）。故每轮 apply 都把结果写入此 slot，由前端经
+/// `take_pending_shortcut_conflicts` 主动拉取。
+///
+/// 语义是「覆盖」而非「追加」：每轮 apply 产出的都是当前完整冲突集，
+/// 写入空集合即表示冲突已解决，能顺带清掉过期的待提示。
+static PENDING_CONFLICTS: LazyLock<Mutex<Vec<ShortcutConflict>>> =
+    LazyLock::new(|| Mutex::new(Vec::new()));
 
 #[derive(Debug, Clone, Serialize)]
 pub struct ShortcutConflict {
@@ -136,6 +150,7 @@ pub fn apply(app: &AppHandle, shortcuts: &Shortcuts) -> Result<()> {
     win_v::set_enabled(app, shortcuts.win_v);
 
     let mut active = Vec::new();
+    let mut conflicts = Vec::new();
     for (action, binding) in desired {
         if binding.trim().is_empty() {
             continue;
@@ -144,14 +159,11 @@ pub fn apply(app: &AppHandle, shortcuts: &Shortcuts) -> Result<()> {
             Ok(shortcut) => active.push((action, shortcut)),
             Err(err) => {
                 log::warn!("register shortcut {action}={binding} failed: {err}");
-                let _ = app.emit(
-                    CONFLICT_EVENT,
-                    ShortcutConflict {
-                        action,
-                        binding: binding.into(),
-                        reason: err.to_string(),
-                    },
-                );
+                conflicts.push(ShortcutConflict {
+                    action,
+                    binding: binding.into(),
+                    reason: err.to_string(),
+                });
             }
         }
     }
@@ -160,7 +172,46 @@ pub fn apply(app: &AppHandle, shortcuts: &Shortcuts) -> Result<()> {
         .active
         .lock()
         .expect("shortcut state poisoned") = active;
+
+    dispatch_conflicts(app, conflicts);
+
     Ok(())
+}
+
+/// 投递本轮注册冲突：始终写入 pending slot（空集合即清除过期提示），
+/// 偏好窗口存活时再额外推一次事件，让用户改完快捷键当场就能看到反馈。
+///
+/// 两条路径都走是有意为之：事件覆盖「窗口开着」的即时反馈，pending 覆盖
+/// 「启动时冲突」与「窗口空闲销毁后重开」。冲突未解决时重开偏好页再提示一次是正确的
+/// ——那个快捷键此刻确实仍然没注册上。
+fn dispatch_conflicts(app: &AppHandle, conflicts: Vec<ShortcutConflict>) {
+    let preference_alive = app.get_webview_window(PREFERENCE_WINDOW_LABEL).is_some();
+
+    if !conflicts.is_empty() && preference_alive {
+        if let Err(err) = app.emit_to(PREFERENCE_WINDOW_LABEL, CONFLICT_EVENT, &conflicts) {
+            log::warn!("emit shortcut conflict event failed: {err}");
+        }
+    }
+
+    set_pending_conflicts(conflicts);
+}
+
+/// 覆盖式写入待提示的冲突集合（只保留最近一轮 apply 的结果）。
+fn set_pending_conflicts(conflicts: Vec<ShortcutConflict>) {
+    let mut guard = PENDING_CONFLICTS.lock().unwrap_or_else(|poisoned| {
+        log::error!("pending shortcut conflicts mutex poisoned on set, recovering");
+        poisoned.into_inner()
+    });
+    *guard = conflicts;
+}
+
+/// 取走并清空待提示的冲突集合，供偏好窗口挂载后首屏补发。
+pub fn take_pending_conflicts() -> Vec<ShortcutConflict> {
+    let mut guard = PENDING_CONFLICTS.lock().unwrap_or_else(|poisoned| {
+        log::error!("pending shortcut conflicts mutex poisoned on take, recovering");
+        poisoned.into_inner()
+    });
+    std::mem::take(&mut *guard)
 }
 
 /// 判断是否仍有录入器持有全局快捷键暂停。

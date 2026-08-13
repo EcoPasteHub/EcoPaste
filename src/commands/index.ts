@@ -217,6 +217,16 @@ export interface BackupReceivedPayload {
   mode: BackupContainerMode;
 }
 
+/** Rust `shortcut::ShortcutConflict` 的 action 取值（snake_case，与设置字段名一一对应）。 */
+export type ShortcutConflictAction = "open_clipboard" | "open_preference";
+
+/** 一条全局快捷键注册失败记录；`reason` 是 OS / 插件返回的原始错误串，仅进日志。 */
+export interface ShortcutConflict {
+  action: ShortcutConflictAction;
+  binding: string;
+  reason: string;
+}
+
 export type WindowLifecyclePhase =
   | "notCreated"
   | "created"
@@ -706,6 +716,23 @@ export const takePendingPreferenceHighlight = async () => {
     log.error("take pending preference highlight failed", toAppError(error));
 
     return null;
+  }
+};
+
+/**
+ * 取走 Rust 暂存的全局快捷键注册冲突，供偏好窗口挂载后首屏补发提示。
+ * 启动时的冲突发生在偏好窗口存在之前，事件推不到前端，只能主动拉取。
+ * 失败不弹 toast：属内部补发信号，失败只记日志。
+ */
+export const takePendingShortcutConflicts = async () => {
+  try {
+    return await invoke<ShortcutConflict[]>(
+      TAURI_COMMAND.TAKE_PENDING_SHORTCUT_CONFLICTS,
+    );
+  } catch (error) {
+    log.error("take pending shortcut conflicts failed", toAppError(error));
+
+    return [];
   }
 };
 
