@@ -300,7 +300,12 @@ const List: FC = () => {
       selectRangeOnOpen !== WINDOW_OPEN_SELECTION_PRESERVE ||
       selectCategoryOnOpen !== WINDOW_OPEN_SELECTION_PRESERVE ||
       selectGroupOnOpen !== WINDOW_OPEN_SELECTION_PRESERVE;
-    if (!scrollToTopOnOpen && !shouldResetSelection) return;
+    if (!scrollToTopOnOpen && !shouldResetSelection) {
+      // 打开时不滚动到顶部也不重置视图选择时，仍需消费隐藏期间积压的剪贴板更新：
+      // 保留浏览位置，仅刷新可视范围数据，避免「新复制内容不出现、滚动才加载」。
+      consumeDeferredReload();
+      return;
+    }
 
     closePreview("windowOpenReset");
 
@@ -326,6 +331,12 @@ const List: FC = () => {
     setSelectedId(null);
     virtuosoRef.current?.scrollToIndex({ behavior: "auto", index: 0 });
     consumeDeferredReloadAtTop();
+
+    // scrollToIndex 是异步的，窗口刚显示时 atTopStateChange 可能未及时触发，
+    // pending 会一直挂起到下次滚动；保留位置兜底刷新，避免更新积压。
+    if (deferredReloadRef.current) {
+      consumeDeferredReload();
+    }
   };
 
   useTauriListen<WindowVisibilityPayload>(
@@ -769,6 +780,17 @@ const List: FC = () => {
     if (!deferredReloadRef.current) return;
 
     requestReloadAtTop();
+  }
+
+  /**
+   * 消费 pending 剪贴板更新：不改变滚动位置，仅刷新当前可视范围数据。
+   * 供「打开窗口但不滚动到顶部」等场景使用，避免 pending 永远挂起。
+   */
+  function consumeDeferredReload() {
+    if (!deferredReloadRef.current) return;
+
+    deferredReloadRef.current = false;
+    reloadCurrentRangeRef.current();
   }
 
   if (loading && !loadedInitial) {
