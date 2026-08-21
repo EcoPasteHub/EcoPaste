@@ -149,8 +149,8 @@ impl RuntimeState {
 }
 
 /// 生命周期事件名。与 `window://visibility` 并存：visibility 只表达布尔可见性，
-/// lifecycle 表达完整阶段。
-const WINDOW_LIFECYCLE_EVENT: &str = "window://lifecycle";
+/// lifecycle 表达完整阶段。供托盘等模块订阅以联动刷新菜单。
+pub const WINDOW_LIFECYCLE_EVENT: &str = "window://lifecycle";
 const WINDOW_BEFORE_DESTROY_EVENT: &str = "window://before-destroy";
 
 #[derive(Clone, serde::Serialize)]
@@ -407,6 +407,61 @@ pub fn release_keepalive(app: &AppHandle, label: &str, owner: &str) {
     }
 }
 
+/// 当前是否存在可被「立即轻量」销毁的窗口：处于 HiddenWarm 或 Dormant 的窗口。
+/// 既没有可见 WebView、又没有挂起的空闲销毁计时器时返回 `false`，托盘据此把菜单项变灰。
+pub fn has_destroyable_windows(app: &AppHandle) -> bool {
+    let Some(manager) = manager(app) else {
+        return false;
+    };
+
+    manager.with_states(|states| {
+        states.values().any(|state| {
+            matches!(
+                state.phase,
+                LifecyclePhase::HiddenWarm | LifecyclePhase::Dormant
+            )
+        })
+    })
+}
+
+/// 立即把所有 HiddenWarm / Dormant 窗口推进销毁流水线，跳过空闲计时器等待。
+/// 复用 [`try_destroy_idle`] 路径：仍走 dirty / keepalive 检查与 500ms before-destroy
+/// 宽限，保护前端未保存的草稿。Visible 窗口不动（用户正在用），Destroyed 窗口本就无 WebView。
+/// 轻量模式未启用时整体 no-op（`try_destroy_idle` 自身会早退）。
+pub fn force_destroy_idle_windows(app: &AppHandle) {
+    let Some(manager) = manager(app) else {
+        return;
+    };
+
+    let pending: Vec<(String, u64)> = manager.with_states(|states| {
+        states
+            .iter()
+            .filter_map(|(label, state)| {
+                if matches!(
+                    state.phase,
+                    LifecyclePhase::HiddenWarm | LifecyclePhase::Dormant
+                ) {
+                    Some((label.clone(), state.generation))
+                } else {
+                    None
+                }
+            })
+            .collect()
+    });
+
+    for (label, generation) in pending {
+        // run_on_main_thread 把闭包派发回主线程执行（macOS destroy / nspanel to_window
+        // 都要求主线程）。label 会被 move 进闭包，日志侧用 clone 留一份给警告文案。
+        let log_label = label.clone();
+        let app_clone = app.clone();
+        if let Err(err) = app.run_on_main_thread(move || {
+            try_destroy_idle(&app_clone, &label, generation);
+        }) {
+            log::warn!("force destroy dispatch failed for {log_label}: {err}");
+        }
+    }
+}
+
 /// 返回所有登记窗口的生命周期调试快照。
 pub fn snapshot(app: &AppHandle) -> Vec<LifecycleSnapshot> {
     let now = Instant::now();
@@ -496,6 +551,8 @@ fn schedule_clipboard_dormant(app: &AppHandle, label: &str, generation: u64) {
 }
 
 /// 计时器到点的 dormant 判定：剪贴板窗口仍隐藏且代次未变才进入 dormant。
+/// 进入 dormant 后再启动一条空闲销毁计时器，到点释放 WebView，对齐
+/// ClashVerge 的「无 webview 后台」；非轻量模式时 [`try_destroy_idle`] 自身会早退。
 fn try_enter_dormant(app: &AppHandle, label: &str, generation: u64) {
     if !lightweight_mode_enabled(app) {
         return;
@@ -515,6 +572,12 @@ fn try_enter_dormant(app: &AppHandle, label: &str, generation: u64) {
     }
 
     manager.transition(app, label, LifecyclePhase::Dormant, "idle-dormant");
+
+    // dormant 是剪贴板窗口专属阶段：进入后再启动一条独立的空闲销毁计时器，
+    // 到点由 [`try_destroy_idle`] 走与 `DestroyWhenIdle` 窗口相同的 DestroyPending →
+    // before-destroy → finish_destroy_idle 路径释放 WebView。复用同一条销毁流水线，
+    // 不重复实现 to_window 还原 / dirty keepalive 检查 / 几何落盘等收尾。
+    schedule_idle_destroy(app, label, generation, idle_destroy_secs(app));
 }
 
 /// 启动一次性空闲销毁计时器。捕获进入隐藏态时的 `generation`，到点回主线程校验后销毁。
@@ -536,8 +599,12 @@ fn schedule_idle_destroy(app: &AppHandle, label: &str, generation: u64, timeout_
     });
 }
 
-/// 计时器到点的销毁判定（主线程）：代次未变且仍处于 HiddenWarm 才进入 DestroyPending，
-/// 否则说明窗口已被重新显示或已销毁，放弃本次销毁。
+/// 计时器到点的销毁判定（主线程）：代次未变且仍处于 HiddenWarm 或 Dormant 才进入
+/// DestroyPending，否则说明窗口已被重新显示或已销毁，放弃本次销毁。
+///
+/// `DestroyWhenIdle` 窗口（preference / preview / context menu 等）隐藏后停留在
+/// `HiddenWarm`；剪贴板窗口隐藏后先进入 `Dormant` 再由 [`try_enter_dormant`] 启动
+/// 本计时器，故同时接受 `Dormant`。两类窗口到点都汇入同一销毁流水线。
 fn try_destroy_idle(app: &AppHandle, label: &str, generation: u64) {
     if !lightweight_mode_enabled(app) {
         return;
@@ -549,7 +616,12 @@ fn try_destroy_idle(app: &AppHandle, label: &str, generation: u64) {
 
     let check = manager.with_states(|states| match states.get_mut(label) {
         Some(state) => {
-            if state.generation != generation || state.phase != LifecyclePhase::HiddenWarm {
+            if state.generation != generation
+                || !matches!(
+                    state.phase,
+                    LifecyclePhase::HiddenWarm | LifecyclePhase::Dormant
+                )
+            {
                 return DestroyCheck::Stale;
             }
 

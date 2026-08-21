@@ -262,6 +262,60 @@ pub fn intercept_close_request(window: &Window) -> bool {
     true
 }
 
+/// 按需重建剪贴板窗口。轻量模式下剪贴板窗口进入 dormant 后会按空闲秒数销毁 WebView
+/// 释放资源（对齐 ClashVerge 的"无 webview 后台"），打开时经此函数重建。
+///
+/// 选项需完整复刻 `tauri.conf.json` 中预创建的剪贴板窗口声明，否则重建后行为漂移。
+/// macOS 上还需把新建窗口转回 NSPanel（`attach_clipboard_panel`），否则平台 show 流程
+/// 取不到 panel。
+///
+/// 建窗后保持 `visible: false`：由 [`show_window`] 统一走恢复几何 + 平台 show 流程，
+/// 与其它窗口的显示路径一致。
+pub fn build_clipboard_window(app_handle: &AppHandle) -> Result<()> {
+    if app_handle
+        .get_webview_window(CLIPBOARD_WINDOW_LABEL)
+        .is_some()
+    {
+        return Ok(());
+    }
+
+    let builder = WebviewWindowBuilder::new(
+        app_handle,
+        CLIPBOARD_WINDOW_LABEL,
+        WebviewUrl::App("index.html/#/".into()),
+    )
+    .title("EcoPaste")
+    .inner_size(360.0, 600.0)
+    .min_inner_size(360.0, 600.0)
+    .maximizable(false)
+    .decorations(false)
+    .transparent(true)
+    .always_on_top(true)
+    .skip_taskbar(true)
+    .accept_first_mouse(true)
+    .focusable(false)
+    .disable_drag_drop_handler()
+    .visible(false);
+
+    builder
+        .build()
+        .map_err(|err| anyhow::anyhow!("build clipboard window: {err}"))?;
+
+    // macOS：转 NSPanel + 绑 resign-key 事件，与 setup 阶段首次建窗走相同路径。
+    // 已 to_panel 的窗口重复调用会被 nspanel 视作幂等，重建场景下窗口是新建的，必走转换。
+    #[cfg(target_os = "macos")]
+    {
+        use tauri::Manager;
+        if let Some(window) = app_handle.get_webview_window(CLIPBOARD_WINDOW_LABEL) {
+            if let Err(err) = macos::attach_clipboard_panel(app_handle, &window) {
+                log::error!("attach clipboard panel on rebuild failed: {err:?}");
+            }
+        }
+    }
+
+    Ok(())
+}
+
 /// 按需重建 preference 窗口。preference 不再由 Tauri 配置预创建（改为 `DestroyWhenIdle`），
 /// 故所有选项必须在此用 builder 完整复刻原 `tauri.conf.json` 声明，否则重建后行为漂移。
 ///

@@ -5,13 +5,15 @@
 //! - 显隐跟随 `General.tray_icon`；语言或显隐变更后由 `commands/settings.rs` 调用 [`apply`] 同步。
 
 use anyhow::Context;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Mutex;
 use tauri::image::Image;
 use tauri::menu::{Menu, MenuBuilder, MenuItem, PredefinedMenuItem};
 use tauri::path::BaseDirectory;
 use tauri::tray::TrayIconBuilder;
 #[cfg(target_os = "windows")]
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconEvent};
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Listener, Manager};
 use tauri_plugin_opener::OpenerExt;
 
 use crate::clipboard::WatcherPause;
@@ -19,6 +21,9 @@ use crate::core::Result;
 use crate::i18n::tray as tray_i18n;
 use crate::i18n::tray::Key;
 use crate::settings::{Language, Settings};
+use crate::window::lifecycle::{
+    force_destroy_idle_windows, has_destroyable_windows, WINDOW_LIFECYCLE_EVENT,
+};
 #[cfg(target_os = "windows")]
 use crate::window::CLIPBOARD_WINDOW_LABEL;
 use crate::window::{self, PREFERENCE_WINDOW_LABEL};
@@ -28,10 +33,45 @@ const GITHUB_URL: &str = "https://github.com/EcoPasteHub/EcoPaste";
 
 const MENU_PREFERENCE: &str = "tray::preference";
 const MENU_TOGGLE_LISTEN: &str = "tray::toggle_listen";
+const MENU_INSTANT_LIGHTWEIGHT: &str = "tray::instant_lightweight";
 const MENU_OPEN_SOURCE: &str = "tray::open_source";
 const MENU_CHECK_FOR_UPDATES: &str = "tray::check_for_updates";
 const MENU_RELAUNCH: &str = "tray::relaunch";
 const MENU_EXIT: &str = "tray::exit";
+
+/// 用户主动退出标记。`app.exit(0)` 会触发 `RunEvent::ExitRequested`，
+/// 需要区分「用户主动退出」与「destroy 后无主窗口触发的退出」：前者放行，后者 prevent。
+pub static USER_EXIT_REQUESTED: AtomicBool = AtomicBool::new(false);
+
+/// 全局保存「轻量模式」菜单项引用，便于 phase 变化时直接调
+/// [`MenuItem::set_enabled`] 刷新可点性，无需 [`rebuild_menu`] 重建整张菜单。
+/// `rebuild_menu` 会替换整张菜单导致正在浏览的右键菜单被平台关闭。
+static INSTANT_LIGHTWEIGHT_ITEM: Mutex<Option<MenuItem<tauri::Wry>>> = Mutex::new(None);
+
+/// 计算「轻量模式」项当前的 enabled 状态：
+/// 轻量模式总开关启用 && 至少有一个 HiddenWarm / Dormant 窗口可被销毁。
+fn instant_lightweight_enabled(app: &AppHandle) -> bool {
+    let lightweight_enabled = app
+        .try_state::<crate::settings::SettingsStore>()
+        .map(|s| s.snapshot().clipboard.window.lightweight_mode)
+        .unwrap_or(true);
+    lightweight_enabled && has_destroyable_windows(app)
+}
+
+/// 直接刷新「轻量模式」项的 enabled 状态，不重建整张菜单。
+/// lifecycle phase 变化时调用：销毁完变灰，重新隐藏窗口后恢复可点。
+pub fn update_instant_lightweight_enabled(app: &AppHandle) {
+    let enabled = instant_lightweight_enabled(app);
+    let Ok(slot) = INSTANT_LIGHTWEIGHT_ITEM.lock() else {
+        return;
+    };
+    let Some(item) = slot.as_ref() else {
+        return;
+    };
+    if let Err(err) = item.set_enabled(enabled) {
+        log::warn!("set instant_lightweight enabled failed: {err}");
+    }
+}
 
 pub fn init(app: &AppHandle, settings: &Settings) -> Result<()> {
     let lang = settings.appearance.language;
@@ -75,6 +115,20 @@ pub fn init(app: &AppHandle, settings: &Settings) -> Result<()> {
     if let Err(err) = tray.set_visible(settings.general.tray_icon) {
         log::warn!("tray set_visible on init failed: {err}");
     }
+
+    // 订阅窗口生命周期：phase 变化会影响「轻量模式」项的可点性（有 HiddenWarm /
+    // Dormant 窗口时可点，全部 Destroyed 时变灰）。listen 回调跑在异步运行时线程，
+    // set_enabled 涉及平台 menu API，故 run_on_main_thread 派发回主线程。直接刷 item
+    // 而非 rebuild_menu，避免替换整张菜单导致正在浏览的右键菜单被平台关闭。
+    let listener_app = app.clone();
+    let _ = app.listen(WINDOW_LIFECYCLE_EVENT, move |_| {
+        let app = listener_app.clone();
+        if let Err(err) = listener_app.run_on_main_thread(move || {
+            update_instant_lightweight_enabled(&app);
+        }) {
+            log::warn!("dispatch tray menu update to main thread failed: {err}");
+        }
+    });
 
     Ok(())
 }
@@ -157,6 +211,24 @@ fn build_menu(
         None::<&str>,
     )
     .context("build toggle_listen menu item")?;
+
+    // 「轻量模式」可点条件：轻量模式启用且当前存在 HiddenWarm / Dormant 窗口。
+    // 任意条件不满足（轻量未开 / 全部 Destroyed / 全部 Visible）都变灰。
+    // phase 变化时由 lifecycle 事件订阅调 update_instant_lightweight_enabled
+    // 直接刷 set_enabled，不重建整张菜单（避免关闭正在浏览的右键菜单）。
+    let instant_lightweight_enabled = instant_lightweight_enabled(app);
+    let instant_lightweight = MenuItem::with_id(
+        app,
+        MENU_INSTANT_LIGHTWEIGHT,
+        tray_i18n::label(lang, Key::EnterLightweight),
+        instant_lightweight_enabled,
+        None::<&str>,
+    )
+    .context("build instant_lightweight menu item")?;
+    if let Ok(mut slot) = INSTANT_LIGHTWEIGHT_ITEM.lock() {
+        *slot = Some(instant_lightweight.clone());
+    }
+
     let open_source = MenuItem::with_id(
         app,
         MENU_OPEN_SOURCE,
@@ -204,6 +276,7 @@ fn build_menu(
         .items(&[
             &preference,
             &toggle_listen,
+            &instant_lightweight,
             &sep1,
             &open_source,
             &check_for_updates,
@@ -234,6 +307,12 @@ fn handle_menu_event(app: &AppHandle, id: &str) {
                 }
             }
         }
+        MENU_INSTANT_LIGHTWEIGHT => {
+            // 立即销毁所有 HiddenWarm / Dormant 窗口的 WebView。force 路径复用
+            // try_destroy_idle，含 dirty / keepalive 保护与 500ms before-destroy 宽限，
+            // 销毁完成后 lifecycle 事件订阅会自动 rebuild_menu 把此项刷成不可点。
+            force_destroy_idle_windows(app);
+        }
         MENU_OPEN_SOURCE => {
             if let Err(err) = app.opener().open_url(GITHUB_URL, None::<&str>) {
                 log::error!("tray open url failed: {err:?}");
@@ -244,8 +323,16 @@ fn handle_menu_event(app: &AppHandle, id: &str) {
                 log::error!("tray open update window failed: {err:?}");
             }
         }
-        MENU_RELAUNCH => app.restart(),
-        MENU_EXIT => app.exit(0),
+        MENU_RELAUNCH => {
+            // restart 内部也会触发 ExitRequested，需同样放行。
+            USER_EXIT_REQUESTED.store(true, Ordering::SeqCst);
+            app.restart();
+        }
+        MENU_EXIT => {
+            // 标记用户主动退出，让 lib.rs 的 ExitRequested 放行（不调 prevent_exit）。
+            USER_EXIT_REQUESTED.store(true, Ordering::SeqCst);
+            app.exit(0);
+        }
         _ => {}
     }
 }

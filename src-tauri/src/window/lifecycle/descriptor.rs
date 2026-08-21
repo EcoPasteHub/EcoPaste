@@ -7,8 +7,8 @@
 use tauri::AppHandle;
 
 use super::super::{
-    build_onboarding_window, build_preference_window, build_update_window, preview,
-    CLIPBOARD_PREVIEW_WINDOW_LABEL, CLIPBOARD_WINDOW_LABEL, ONBOARDING_WINDOW_LABEL,
+    build_clipboard_window, build_onboarding_window, build_preference_window, build_update_window,
+    preview, CLIPBOARD_PREVIEW_WINDOW_LABEL, CLIPBOARD_WINDOW_LABEL, ONBOARDING_WINDOW_LABEL,
     PREFERENCE_WINDOW_LABEL, UPDATE_WINDOW_LABEL,
 };
 use crate::core::Result;
@@ -47,18 +47,20 @@ pub struct WindowDescriptor {
     pub emits_lifecycle: bool,
     /// 保留 / 销毁策略。
     pub retain_policy: RetainPolicy,
-    /// 按需重建函数。`DestroyWhenIdle` 窗口被销毁后由各自打开入口用它重新建窗；
-    /// `Permanent` 窗口无需重建，为 `None`。
+    /// 按需重建函数。窗口被销毁后由各自打开入口（如 [`super::super::show_window`]）
+    /// 用它重新建窗；`Permanent` 窗口也可提供 build 以支持轻量模式下的销毁重建。
     pub build: Option<fn(&AppHandle) -> Result<()>>,
 }
 
 /// 全部窗口的静态声明表。新增窗口在此追加。
 static DESCRIPTORS: &[WindowDescriptor] = &[
+    // 剪贴板窗口：默认保留实例（`Permanent`），但轻量模式下进入 dormant 后仍会按
+    // `idle_destroy_seconds` 销毁 WebView 释放资源，故也提供 build 供 show_window 重建。
     WindowDescriptor {
         label: CLIPBOARD_WINDOW_LABEL,
         emits_lifecycle: true,
         retain_policy: RetainPolicy::Permanent,
-        build: None,
+        build: Some(build_clipboard_window),
     },
     WindowDescriptor {
         label: PREFERENCE_WINDOW_LABEL,

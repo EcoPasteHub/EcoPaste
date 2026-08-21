@@ -327,8 +327,16 @@ pub fn run() {
             }
 
             // 退出前保存所有窗口几何，兜住「调整大小后不关窗直接退出」的场景。
-            if let tauri::RunEvent::ExitRequested { .. } = event {
+            // 轻量模式下剪贴板窗口会被 destroy 释放 WebView，destroy 路径不走 close 拦截，
+            // 当最后一个可见窗口销毁时 Tauri 可能投递 ExitRequested。需区分两条路径：
+            //   - 用户主动退出（托盘菜单「退出应用」）：tray 设了 USER_EXIT_REQUESTED，放行。
+            //   - destroy 触发的无主窗口退出：prevent_exit 让应用继续驻留托盘。
+            // `app.exit(0)` 也会触发 ExitRequested，所以必须用 flag 而非无条件放行。
+            if let tauri::RunEvent::ExitRequested { api, .. } = event {
                 window::save_all_window_states(app_handle);
+                if !crate::tray::USER_EXIT_REQUESTED.load(std::sync::atomic::Ordering::SeqCst) {
+                    api.prevent_exit();
+                }
             }
         });
 }
