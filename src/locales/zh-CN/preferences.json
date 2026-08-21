@@ -583,11 +583,11 @@
       },
       "window": {
         "idleDestroySeconds": {
-          "description": "偏好设置、预览和右键菜单等非剪贴板窗口隐藏超过此时间后释放 WebView，下次使用时自动重建。",
-          "title": "非剪贴板窗口空闲释放"
+          "description": "剪贴板窗口进入休眠后，以及偏好设置、预览和右键菜单等次级窗口隐藏超过此时间后，都会释放 WebView 进程以降低内存占用，下次使用时自动重建。",
+          "title": "窗口空闲释放"
         },
         "lightweightMode": {
-          "description": "隐藏剪贴板窗口后暂停无谓刷新，非剪贴板窗口空闲后释放渲染资源。",
+          "description": "隐藏剪贴板窗口后暂停无谓刷新，并在空闲后释放包括剪贴板窗口在内的 WebView 渲染进程，实现无 webview 后台运行。",
           "title": "轻量模式"
         },
         "position": {

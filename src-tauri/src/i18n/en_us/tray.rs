@@ -11,5 +11,6 @@ pub fn label(key: Key) -> &'static str {
         Key::Version => "Version",
         Key::Relaunch => "Relaunch",
         Key::Exit => "Exit",
+        Key::EnterLightweight => "Lightweight Mode",
     }
 }

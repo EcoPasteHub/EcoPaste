@@ -37,4 +37,6 @@ pub enum TrayKey {
     Version,
     Relaunch,
     Exit,
+    /// 立即把后台驻留的 WebView 释放（强制销毁 HiddenWarm / Dormant 窗口）。
+    EnterLightweight,
 }

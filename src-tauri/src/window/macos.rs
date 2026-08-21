@@ -35,13 +35,21 @@ pub fn register_plugin(app_handle: &AppHandle) {
     let _ = app_handle.plugin(tauri_nspanel::init());
 }
 
-/// setup 末尾调用：转 NSPanel + 绑事件 emit。
+/// setup 末尾调用：dock 显隐初始化 + 转剪贴板窗口为 NSPanel 并绑事件。
 pub fn setup_clipboard_panel(app_handle: &AppHandle) -> Result<()> {
     show_taskbar_icon(app_handle, false)?;
 
     let clipboard_window = get_window(app_handle, CLIPBOARD_WINDOW_LABEL)?;
+    attach_clipboard_panel(app_handle, &clipboard_window)
+}
 
-    let panel = clipboard_window
+/// 把给定窗口转成 NSPanel 并绑 resign-key 自动隐藏事件。
+///
+/// setup 与轻量模式销毁重建均走此函数：to_panel + 圆角 / 层级 / 行为配置 + 事件绑定，
+/// 不触碰 dock 显隐等应用级状态。重复对已 to_panel 的窗口调用由 nspanel 内部判定，
+/// 重建场景下窗口是全新建出的，必然走转换分支。
+pub fn attach_clipboard_panel(app_handle: &AppHandle, window: &tauri::WebviewWindow) -> Result<()> {
+    let panel = window
         .to_panel::<MainPanel>()
         .map_err(|e| anyhow::anyhow!("to_panel failed: {e:?}"))?;
 

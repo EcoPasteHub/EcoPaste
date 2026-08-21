@@ -583,11 +583,11 @@
       },
       "window": {
         "idleDestroySeconds": {
-          "description": "Release secondary WebViews such as preferences, preview, and context menus after they have been hidden for this long; they rebuild automatically next time.",
-          "title": "Secondary Window Idle Release"
+          "description": "Release WebViews (including the clipboard window after it goes dormant, plus secondary windows such as preferences, preview, and context menus) once they have been hidden for this long; they rebuild automatically next time.",
+          "title": "Window Idle Release"
         },
         "lightweightMode": {
-          "description": "Pause unnecessary refresh work after the clipboard window hides, and release secondary rendering resources after they become idle.",
+          "description": "Pause unnecessary refresh work after the clipboard window hides, then release WebViews (including the clipboard window itself) once idle to keep the app running in the background without a webview process.",
           "title": "Lightweight Mode"
         },
         "position": {
