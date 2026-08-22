@@ -16,6 +16,7 @@ export const TAURI_EVENT = {
   UPDATE_PROGRESS: "update://progress",
   WINDOW_BEFORE_DESTROY: "window://before-destroy",
   WINDOW_LIFECYCLE: "window://lifecycle",
+  WINDOW_PREPARE_HIDE: "window://prepare-hide",
   WINDOW_VISIBILITY: "window://visibility",
 } as const;
 

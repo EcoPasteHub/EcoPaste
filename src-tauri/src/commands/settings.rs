@@ -50,6 +50,14 @@ pub async fn update_settings(app: AppHandle, patch: serde_json::Value) -> Result
                 .is_some_and(|g| g.contains_key("runAsAdmin"))
         })
         .unwrap_or(false);
+    let touches_clipboard_window = patch_obj
+        .map(|m| {
+            m.get("clipboard")
+                .and_then(|v| v.get("window"))
+                .and_then(|v| v.as_object())
+                .is_some_and(|window| window.contains_key("position"))
+        })
+        .unwrap_or(false);
 
     let next = app.state::<SettingsStore>().update(patch)?;
 
@@ -67,6 +75,12 @@ pub async fn update_settings(app: AppHandle, patch: serde_json::Value) -> Result
 
     if touches_run_as_admin {
         admin::sync_scheduled_task(next.general.run_as_admin);
+    }
+
+    if touches_clipboard_window {
+        if let Err(err) = window::apply_clipboard_window_layout(&app) {
+            log::warn!("apply clipboard window layout after settings update failed: {err}");
+        }
     }
 
     emit_settings_updated(&app, &next);
@@ -101,6 +115,10 @@ fn apply_reset_side_effects(app: &AppHandle, settings: &Settings) {
 
     if let Err(err) = window::show_taskbar_icon(app, settings.general.dock_icon) {
         log::warn!("reset taskbar icon failed: {err}");
+    }
+
+    if let Err(err) = window::apply_clipboard_window_layout(app) {
+        log::warn!("reset clipboard window layout failed: {err}");
     }
 
     admin::sync_scheduled_task(settings.general.run_as_admin);

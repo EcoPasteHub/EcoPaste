@@ -335,6 +335,10 @@ mod tests {
         assert_eq!(parsed.clipboard.history.cleanup_interval_hours, 0);
         assert!(parsed.clipboard.window.scroll_to_top_on_open);
         assert_eq!(
+            parsed.clipboard.window.position,
+            crate::settings::WindowPosition::Bottom
+        );
+        assert_eq!(
             parsed.clipboard.window.select_range_on_open,
             crate::settings::WindowOpenRangeSelection::Preserve
         );

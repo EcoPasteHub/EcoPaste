@@ -21,7 +21,7 @@
         "height": 600,
         "label": "clipboard",
         "maximizable": false,
-        "minHeight": 600,
+        "minHeight": 220,
         "minWidth": 360,
         "skipTaskbar": true,
         "title": "EcoPaste",

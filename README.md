@@ -31,7 +31,7 @@ The app is designed to be fast, lightweight, and maintainable, with local storag
 - Preview text, images, and files in a dedicated preview window.
 - Paste, copy, copy as plain text, reveal files, open links, add notes, pin, favorite, delete, and drag items out to other apps.
 - Organize history with favorites, pinned items, notes, custom groups, and configurable item actions.
-- Tune capture order, size limits, retention, display density, list sorting, and window behavior.
+- Tune capture order, size limits, retention, display density, list sorting, and window behavior, including a Paste-style bottom history shelf.
 - Export and import `.ecopastebak` backups, including encrypted backup containers.
 - Keep clipboard data, resources, and settings local to your machine.
 

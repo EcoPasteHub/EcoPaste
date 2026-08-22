@@ -119,16 +119,21 @@ fn load_states(path: &PathBuf) -> HashMap<String, WindowState> {
 /// 读取窗口当前的实时几何（`outer_position` + `inner_size`）并落盘。
 /// 在隐藏 / 关闭 / 退出等可靠生命周期点调用即可捕获用户的移动与缩放。
 pub fn save_window_state(app: &AppHandle, label: &str) -> Result<()> {
+    save_window_state_as(app, label, label)
+}
+
+/// Save the live geometry of `window_label` under a possibly different state key.
+pub fn save_window_state_as(app: &AppHandle, window_label: &str, state_label: &str) -> Result<()> {
     let window = app
-        .get_webview_window(label)
-        .ok_or_else(|| anyhow::anyhow!("window not found: {label}"))?;
+        .get_webview_window(window_label)
+        .ok_or_else(|| anyhow::anyhow!("window not found: {window_label}"))?;
 
     let pos = window.outer_position().map_err(|e| anyhow::anyhow!(e))?;
     let size = window.inner_size().map_err(|e| anyhow::anyhow!(e))?;
 
     let store = app.state::<WindowStateStore>();
     store.save(
-        label,
+        state_label,
         WindowState {
             x: pos.x,
             y: pos.y,
@@ -136,6 +141,12 @@ pub fn save_window_state(app: &AppHandle, label: &str) -> Result<()> {
             height: size.height,
         },
     )
+}
+
+/// Read a previously saved window geometry without restoring it.
+pub fn get_window_state(app: &AppHandle, label: &str) -> Option<WindowState> {
+    app.try_state::<WindowStateStore>()
+        .and_then(|store| store.get(label))
 }
 
 /// 恢复窗口的尺寸 + 位置。无存档返回 `Ok(false)`。

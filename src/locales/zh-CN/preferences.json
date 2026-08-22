@@ -591,8 +591,9 @@
           "title": "轻量模式"
         },
         "position": {
-          "description": "选择每次打开剪贴板窗口时的位置。",
+          "description": "选择每次打开剪贴板窗口时的位置。屏幕底部会以横向卡片条展示历史记录。",
           "options": {
+            "bottom": "屏幕底部",
             "center": "屏幕中间",
             "followCursor": "跟随光标",
             "remember": "记住位置"

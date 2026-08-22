@@ -433,11 +433,19 @@ export const preferenceTabs: PreferenceTab[] = [
                 { value: "followCursor" },
                 { value: "center" },
                 { value: "remember" },
+                { value: "bottom" },
               ],
               type: "segmented",
             },
             id: "window.position",
-            keywords: ["window", "position", "cursor"],
+            keywords: [
+              "window",
+              "position",
+              "cursor",
+              "bottom",
+              "dock",
+              "shelf",
+            ],
             path: ["clipboard", "window", "position"],
             value: (settings) => {
               return settings.clipboard.window.position;

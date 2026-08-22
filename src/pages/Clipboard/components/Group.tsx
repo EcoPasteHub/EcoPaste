@@ -26,6 +26,7 @@ import { TAURI_EVENT } from "@/constants/events";
 import { useKeyboardEvent } from "@/hooks/useKeyboardEvent";
 import { useTauriListen } from "@/hooks/useTauriListen";
 import { clipboardViewState } from "@/stores/clipboardView";
+import { settingsState } from "@/stores/settings";
 import type {
   ClipboardCategory,
   ClipboardGroupIcon as ClipboardGroupIconValue,
@@ -33,6 +34,7 @@ import type {
   ClipboardGroupRecord,
   ClipboardRange,
 } from "@/types/clipboard";
+import { isClipboardDockLayout } from "@/types/settings";
 import { cn } from "@/utils/cn";
 import { getModalApi } from "@/utils/feedback";
 
@@ -109,6 +111,8 @@ const GROUP_SEPARATOR_MARGIN = 4;
 const Group: FC = () => {
   const { t } = useTranslation(["clipboard", "common"]);
   const { category, groupId, range } = useSnapshot(clipboardViewState);
+  const settings = useSnapshot(settingsState);
+  const isDock = isClipboardDockLayout(settings.clipboard.window.position);
 
   const [customGroups, setCustomGroups] = useState<ClipboardGroupRecord[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -272,6 +276,8 @@ const Group: FC = () => {
       (event.key === "ArrowLeft" || event.key === "ArrowRight") &&
       !shouldUseNativeHorizontalNavigation(event)
     ) {
+      if (isDock && !eventModifierPressed) return;
+
       event.preventDefault();
       selectAdjacentCategory(event.key === "ArrowLeft" ? -1 : 1);
 
@@ -628,7 +634,9 @@ const Group: FC = () => {
   return (
     <>
       <div
-        className="flex items-center gap-1 overflow-hidden px-3 pb-2"
+        className={cn("flex items-center gap-1 overflow-hidden px-3 pb-2", {
+          "p-0": isDock,
+        })}
         data-tauri-drag-region
         ref={toolbarRef}
       >

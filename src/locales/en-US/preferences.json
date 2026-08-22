@@ -591,8 +591,9 @@
           "title": "Lightweight Mode"
         },
         "position": {
-          "description": "Choose where the clipboard window opens each time.",
+          "description": "Choose where the clipboard window opens each time. Bottom of Screen shows a horizontal history shelf like Paste.",
           "options": {
+            "bottom": "Bottom of Screen",
             "center": "Center of Screen",
             "followCursor": "Follow Cursor",
             "remember": "Remember Position"
