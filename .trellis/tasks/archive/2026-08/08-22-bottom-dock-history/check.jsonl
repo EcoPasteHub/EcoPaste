@@ -1,0 +1,2 @@
+{"file":".trellis/spec/backend/settings-window-platform.md","reason":"Verify the implementation matches the dock contract."}
+{"file":".trellis/spec/backend/commands-and-events.md","reason":"Verify the cross-layer hide event remains documented."}

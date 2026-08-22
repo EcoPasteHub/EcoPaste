@@ -12,8 +12,9 @@ pub mod windows;
 pub use macos::handle_reopen;
 pub use state::WindowStateStore;
 
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{LazyLock, Mutex};
+use std::time::Duration;
 
 use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindow, WebviewWindowBuilder, Window};
 
@@ -21,6 +22,8 @@ use crate::core::Result;
 use crate::settings::{SettingsStore, WindowPosition};
 
 pub const CLIPBOARD_WINDOW_LABEL: &str = "clipboard";
+/// Saved geometry for the bottom history shelf; kept separate from the floating panel size.
+pub const CLIPBOARD_DOCK_STATE_LABEL: &str = "clipboard-dock";
 pub const PREFERENCE_WINDOW_LABEL: &str = "preference";
 pub const CLIPBOARD_PREVIEW_WINDOW_LABEL: &str = "clipboard-preview";
 pub const ONBOARDING_WINDOW_LABEL: &str = "onboarding";
@@ -48,6 +51,13 @@ struct PreferenceHighlightPayload {
 static CLIPBOARD_WINDOW_PINNED: AtomicBool = AtomicBool::new(false);
 /// 剪贴板窗口自动隐藏的临时暂停状态，用于系统文件选择等会短暂转移焦点的原生交互。
 static CLIPBOARD_WINDOW_AUTO_HIDE_SUSPENDED: AtomicBool = AtomicBool::new(false);
+/// Prevent resize/move snapping from recursively applying dock geometry.
+static SNAPPING_CLIPBOARD_DOCK: AtomicBool = AtomicBool::new(false);
+/// Dock shelf hide animation: bumped on show so an in-flight slide-down can cancel.
+static DOCK_HIDE_GENERATION: AtomicU64 = AtomicU64::new(0);
+static DOCK_HIDE_PENDING: AtomicBool = AtomicBool::new(false);
+const DOCK_SLIDE_HIDE_MS: u64 = 320;
+const WINDOW_PREPARE_HIDE_EVENT: &str = "window://prepare-hide";
 
 /// 返回用户是否显式固定剪贴板窗口；复制后隐藏等路径仍需读取这个用户态开关。
 pub fn is_clipboard_window_pinned() -> bool {
@@ -119,6 +129,7 @@ pub fn show_window(app_handle: &AppHandle, label: &str) -> Result<()> {
     }
 
     if label == CLIPBOARD_WINDOW_LABEL {
+        cancel_dock_slide_hide();
         if let Err(err) = apply_clipboard_window_layout(app_handle) {
             log::warn!("apply clipboard window layout failed: {err}");
         }
@@ -159,14 +170,22 @@ fn delays_clipboard_visibility_event(label: &str) -> bool {
 
 pub fn hide_window(app_handle: &AppHandle, label: &str) -> Result<()> {
     // 隐藏前保存任意窗口的实时几何：移动与缩放都在这里落盘，下次显示/启动可恢复。
-    if let Err(err) = state::save_window_state(app_handle, label) {
+    if let Err(err) = save_window_geometry(app_handle, label) {
         log::warn!("save window state on hide failed for {label}: {err}");
     }
 
     if label == CLIPBOARD_WINDOW_LABEL {
         preview::suppress_for_clipboard_hide(app_handle);
+        if clipboard_uses_dock(app_handle) {
+            schedule_dock_slide_hide(app_handle.clone());
+            return Ok(());
+        }
     }
 
+    finish_hide_window(app_handle, label)
+}
+
+fn finish_hide_window(app_handle: &AppHandle, label: &str) -> Result<()> {
     #[cfg(target_os = "macos")]
     let result = macos::hide_window(app_handle, label);
     #[cfg(target_os = "windows")]
@@ -178,7 +197,53 @@ pub fn hide_window(app_handle: &AppHandle, label: &str) -> Result<()> {
     result
 }
 
+fn clipboard_uses_dock(app_handle: &AppHandle) -> bool {
+    app_handle
+        .try_state::<SettingsStore>()
+        .is_some_and(|store| store.snapshot().clipboard.window.position.is_bottom_dock())
+}
+
+fn cancel_dock_slide_hide() {
+    DOCK_HIDE_GENERATION.fetch_add(1, Ordering::SeqCst);
+    DOCK_HIDE_PENDING.store(false, Ordering::SeqCst);
+}
+
+/// Let the frontend slide the shelf down, then hide the NSPanel/window.
+fn schedule_dock_slide_hide(app_handle: AppHandle) {
+    if DOCK_HIDE_PENDING.swap(true, Ordering::SeqCst) {
+        return;
+    }
+
+    let generation = DOCK_HIDE_GENERATION.load(Ordering::SeqCst);
+    if let Err(err) = app_handle.emit(
+        WINDOW_PREPARE_HIDE_EVENT,
+        WindowVisibilityPayload {
+            label: CLIPBOARD_WINDOW_LABEL,
+            visible: false,
+        },
+    ) {
+        log::warn!("emit window prepare-hide failed: {err:?}");
+    }
+
+    tauri::async_runtime::spawn(async move {
+        tokio::time::sleep(Duration::from_millis(DOCK_SLIDE_HIDE_MS)).await;
+
+        if DOCK_HIDE_GENERATION.load(Ordering::SeqCst) != generation {
+            return;
+        }
+
+        DOCK_HIDE_PENDING.store(false, Ordering::SeqCst);
+        if let Err(err) = finish_hide_window(&app_handle, CLIPBOARD_WINDOW_LABEL) {
+            log::warn!("finish dock slide hide failed: {err}");
+        }
+    });
+}
+
 pub fn toggle_window(app_handle: &AppHandle, label: &str) -> Result<()> {
+    if label == CLIPBOARD_WINDOW_LABEL && DOCK_HIDE_PENDING.load(Ordering::SeqCst) {
+        return show_window(app_handle, label);
+    }
+
     // 已销毁的按需窗口（如空闲超时后的 preference）取不到实例，视为不可见 → 走 show 重建。
     let visible = app_handle
         .get_webview_window(label)
@@ -204,34 +269,98 @@ pub fn position_window(app_handle: &AppHandle, label: &str, pos: WindowPosition)
 }
 
 /// 剪贴板窗口显示前按设置应用窗口定位策略。
-/// 始终先调用 `restore_window_state` 恢复尺寸与合法位置（含越界 fallback）；
-/// 非 Remember 策略再由 `position_window` 覆盖位置。
+/// 面板模式先恢复存档尺寸与合法位置（含越界 fallback）；
+/// 底部 shelf 使用独立存档高度，避免和浮动面板互相覆盖。
 /// 平台 `show_window` 需要在主线程闭包里调用，避免 set_position 与 show 异步交错产生闪烁。
-fn apply_clipboard_window_layout(app_handle: &AppHandle) -> Result<()> {
+pub fn apply_clipboard_window_layout(app_handle: &AppHandle) -> Result<()> {
     let Some(store) = app_handle.try_state::<SettingsStore>() else {
         return Ok(());
     };
+    if app_handle
+        .get_webview_window(CLIPBOARD_WINDOW_LABEL)
+        .is_none()
+    {
+        return Ok(());
+    }
     let snap = store.snapshot();
     let position = snap.clipboard.window.position;
+    let window = get_window(app_handle, CLIPBOARD_WINDOW_LABEL)?;
 
+    if position.is_bottom_dock() {
+        let dock_height = state::get_window_state(app_handle, CLIPBOARD_DOCK_STATE_LABEL)
+            .map(|saved| saved.height);
+        return position::apply_bottom_dock(&window, dock_height);
+    }
+
+    position::apply_panel_constraints(&window)?;
     let _ = state::restore_window_state(app_handle, CLIPBOARD_WINDOW_LABEL)?;
 
     if matches!(position, WindowPosition::Remember) {
         return Ok(());
     }
 
-    let window = get_window(app_handle, CLIPBOARD_WINDOW_LABEL)?;
     position::position_window(&window, position)
+}
+
+/// Keep a visible bottom shelf snapped to the work-area bottom after the user resizes or moves it.
+pub fn snap_clipboard_dock_if_needed(app_handle: &AppHandle) {
+    let Some(store) = app_handle.try_state::<SettingsStore>() else {
+        return;
+    };
+    if !store.snapshot().clipboard.window.position.is_bottom_dock() {
+        return;
+    }
+    let Some(window) = app_handle.get_webview_window(CLIPBOARD_WINDOW_LABEL) else {
+        return;
+    };
+    if SNAPPING_CLIPBOARD_DOCK.swap(true, Ordering::SeqCst) {
+        return;
+    }
+    let result = (|| -> Result<()> {
+        let height = window
+            .inner_size()
+            .map_err(|err| anyhow::anyhow!(err))?
+            .height;
+
+        position::apply_bottom_dock(&window, Some(height))
+    })();
+    SNAPPING_CLIPBOARD_DOCK.store(false, Ordering::SeqCst);
+    if let Err(err) = result {
+        log::warn!("snap clipboard dock failed: {err}");
+    }
+}
+
+/// Persist clipboard geometry into the panel or dock slot that matches the current layout.
+pub fn save_clipboard_window_state(app_handle: &AppHandle) -> Result<()> {
+    let position = app_handle
+        .try_state::<SettingsStore>()
+        .map(|store| store.snapshot().clipboard.window.position)
+        .unwrap_or_default();
+    let label = if position.is_bottom_dock() {
+        CLIPBOARD_DOCK_STATE_LABEL
+    } else {
+        CLIPBOARD_WINDOW_LABEL
+    };
+
+    state::save_window_state_as(app_handle, CLIPBOARD_WINDOW_LABEL, label)
 }
 
 /// 保存当前所有窗口的几何信息。供应用退出（`RunEvent::ExitRequested`）时调用，
 /// 覆盖「调整大小后不关窗直接退出」这一隐藏/关闭都漏掉的场景。
 pub fn save_all_window_states(app_handle: &AppHandle) {
     for label in app_handle.webview_windows().into_keys() {
-        if let Err(err) = state::save_window_state(app_handle, &label) {
+        if let Err(err) = save_window_geometry(app_handle, &label) {
             log::warn!("save window state on exit failed for {label}: {err}");
         }
     }
+}
+
+fn save_window_geometry(app_handle: &AppHandle, label: &str) -> Result<()> {
+    if label == CLIPBOARD_WINDOW_LABEL {
+        return save_clipboard_window_state(app_handle);
+    }
+
+    state::save_window_state(app_handle, label)
 }
 
 /// 处理窗口关闭请求，让应用常驻后台（系统托盘）。
@@ -245,8 +374,15 @@ pub fn intercept_close_request(window: &Window) -> bool {
         return true;
     }
 
+    if window.label() == CLIPBOARD_WINDOW_LABEL {
+        if let Err(err) = hide_window(window.app_handle(), CLIPBOARD_WINDOW_LABEL) {
+            log::warn!("hide clipboard window on close failed: {err}");
+        }
+        return true;
+    }
+
     // 关闭按钮不走 `hide_window`，需在此单独保存几何，否则 preference 的移动/缩放会丢失。
-    if let Err(err) = state::save_window_state(window.app_handle(), window.label()) {
+    if let Err(err) = save_window_geometry(window.app_handle(), window.label()) {
         log::warn!(
             "save window state on close failed for {}: {err}",
             window.label()

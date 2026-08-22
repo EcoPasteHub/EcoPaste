@@ -270,12 +270,18 @@ pub fn run() {
 
             Ok(())
         })
-        .on_window_event(|window, event| {
-            if let WindowEvent::CloseRequested { api, .. } = event {
+        .on_window_event(|window, event| match event {
+            WindowEvent::CloseRequested { api, .. } => {
                 if window::intercept_close_request(window) {
                     api.prevent_close();
                 }
             }
+            WindowEvent::Resized(_) | WindowEvent::Moved(_)
+                if window.label() == window::CLIPBOARD_WINDOW_LABEL =>
+            {
+                window::snap_clipboard_dock_if_needed(window.app_handle());
+            }
+            _ => {}
         })
         .build(tauri::generate_context!())
         .expect("error while running tauri application")

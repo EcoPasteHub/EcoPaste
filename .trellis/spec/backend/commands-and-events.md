@@ -57,6 +57,7 @@ Current high-value events:
 | `clipboard-groups://updated` | `commands/clipboard.rs` | Group lists and empty state labels |
 | `settings://updated` | `commands/settings.rs`, `commands/storage.rs`, `backup/mod.rs` | `src/stores/settings.ts` mirror |
 | `window://visibility` | `window/mod.rs` | Clipboard focus/search and dormant refresh gates |
+| `window://prepare-hide` | `window/mod.rs` | Dock shelf plays the slide-down before the window actually hides |
 | `window://lifecycle` and `window://before-destroy` | `window/lifecycle/mod.rs` | Window lifecycle mirror and destroy protection |
 | `keyboard://nav` | `keyboard/windows.rs` | `useKeyboardEvent` on Windows clipboard window |
 | `backup://received` | `backup/mod.rs` | Preference backup import flow |

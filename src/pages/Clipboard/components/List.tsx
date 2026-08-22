@@ -6,7 +6,7 @@ import type {
   MouseEvent as ReactMouseEvent,
   PointerEvent as ReactPointerEvent,
 } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   type TopItemListProps,
@@ -53,7 +53,7 @@ import type {
 } from "@/types/clipboard";
 import type { ItemAction } from "@/types/settings";
 import { cn } from "@/utils/cn";
-import { isMac } from "@/utils/is";
+import { isClipboardDockLayout, isMac } from "@/utils/is";
 import type { WindowVisibilityPayload } from "../hooks/previewController";
 import {
   isSpaceKey,
@@ -91,6 +91,8 @@ const List: FC = () => {
   const [customGroups, setCustomGroups] = useState<ClipboardGroupRecord[]>([]);
   const [noteTarget, setNoteTarget] = useState<ClipboardItem | null>(null);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
+  const dockListRef = useRef<HTMLDivElement>(null);
+  const [dockItemHeight, setDockItemHeight] = useState(220);
   const isAtTopRef = useRef(true);
   const itemElementMapRef = useRef(new Map<string, HTMLDivElement>());
   const closePreviewRef = useRef<(reason: string) => void>(() => {});
@@ -116,6 +118,33 @@ const List: FC = () => {
   const deleteFavoriteItemsOnlyInFavoriteGroup =
     settings.clipboard.content.deleteFavoriteItemsOnlyInFavoriteGroup;
   const { fileMaxCount } = display;
+  const isDock = isClipboardDockLayout(settings.clipboard.window.position);
+
+  useLayoutEffect(() => {
+    if (!isDock) return;
+
+    const node = dockListRef.current;
+    if (!node) return;
+
+    const updateHeight = () => {
+      const nextHeight = Math.max(node.clientHeight, 160);
+
+      setDockItemHeight((current) => {
+        return current === nextHeight ? current : nextHeight;
+      });
+    };
+
+    updateHeight();
+
+    if (typeof ResizeObserver === "undefined") return;
+
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(node);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [isDock]);
   const showOriginalPreview = settings.clipboard.content.showOriginalPreview;
   const quickActionLabels = buildItemActionLabels(t);
   const currentGroupName = getCurrentGroupName(customGroups, groupId);
@@ -701,7 +730,12 @@ const List: FC = () => {
       return;
     }
 
-    if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+    const isItemNavigationKey = isDock
+      ? !event.metaKey &&
+        !event.ctrlKey &&
+        (event.key === "ArrowLeft" || event.key === "ArrowRight")
+      : event.key === "ArrowUp" || event.key === "ArrowDown";
+    if (!isItemNavigationKey) return;
 
     event.preventDefault();
 
@@ -801,8 +835,11 @@ const List: FC = () => {
 
   return (
     <div
-      className="relative flex-1 overflow-hidden"
+      className={cn("relative flex-1 overflow-hidden", {
+        "px-2 pb-2": isDock,
+      })}
       onPointerLeave={handlePreviewAreaPointerLeave}
+      ref={dockListRef}
       role="listbox"
     >
       <VirtuosoScroller>{renderVirtuoso}</VirtuosoScroller>
@@ -823,6 +860,8 @@ const List: FC = () => {
         atTopStateChange={handleAtTopStateChange}
         components={{ TopItemList }}
         computeItemKey={computeItemKey}
+        fixedItemHeight={isDock ? 240 : void 0}
+        horizontalDirection={isDock}
         itemContent={renderItemContent}
         rangeChanged={handleRangeChanged}
         ref={virtuosoRef}
@@ -1007,7 +1046,14 @@ const List: FC = () => {
     );
 
     return (
-      <div className={cn("px-3", { "pt-3": index !== 0 })}>
+      <div
+        className={cn({
+          "box-border h-full w-60 shrink-0 px-1.5 py-1": isDock,
+          "pt-3": !isDock && index !== 0,
+          "px-3": !isDock,
+        })}
+        style={isDock ? { height: dockItemHeight } : void 0}
+      >
         <ClipboardCard
           availableActions={availableActions}
           hintKey={hintKey}
@@ -1018,6 +1064,7 @@ const List: FC = () => {
               : item.id === selectedId
           }
           item={item}
+          layout={isDock ? "dock" : "list"}
           onAuxClick={handleAuxClick}
           onDoubleClick={handleDoubleClick}
           onMouseDown={handleMouseDown}
@@ -1038,8 +1085,24 @@ const List: FC = () => {
 
   function renderPlaceholderItem(index: number) {
     return (
-      <div aria-hidden="true" className={cn("px-3", { "pt-3": index !== 0 })}>
-        <div className="min-h-24 rounded-2 border border-ant-border-secondary bg-ant-fill-quaternary p-2">
+      <div
+        aria-hidden="true"
+        className={cn({
+          "box-border h-full w-60 shrink-0 px-1.5 py-1": isDock,
+          "pt-3": !isDock && index !== 0,
+          "px-3": !isDock,
+        })}
+        style={isDock ? { height: dockItemHeight } : void 0}
+      >
+        <div
+          className={cn(
+            "rounded-2 border border-ant-border-secondary bg-ant-fill-quaternary p-2",
+            {
+              "h-full min-h-24": isDock,
+              "min-h-24": !isDock,
+            },
+          )}
+        >
           <div className="flex items-center gap-1 text-ant-secondary text-xs">
             <span className="size-4 rounded-1 bg-ant-fill-secondary" />
             <span className="h-3 w-16 rounded-1 bg-ant-fill-secondary" />
@@ -1260,7 +1323,7 @@ function getNextKeyboardIndex(
     selectedId === null ? null : getItemIndexById(selectedId);
   const currentIndex = selectedIndex ?? firstVisibleIndex;
 
-  if (key === "ArrowUp") {
+  if (key === "ArrowUp" || key === "ArrowLeft") {
     return Math.max(0, currentIndex - 1);
   }
 

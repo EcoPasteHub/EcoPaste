@@ -46,6 +46,10 @@ interface ClipboardCardProps {
   quickActionLabels?: ItemActionLabels;
   onQuickAction?: (action: ItemAction) => Promise<void> | void;
   showOriginalOnHover?: boolean;
+  /**
+   * `dock` fills a fixed-width shelf card; `list` is the classic vertical item.
+   */
+  layout?: "dock" | "list";
   rootRef?: Ref<HTMLDivElement>;
 }
 
@@ -74,14 +78,16 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
     quickActionLabels,
     onQuickAction,
     showOriginalOnHover = true,
+    layout = "list",
     rootRef,
   } = props;
+  const isDock = layout === "dock";
   const { kind, sourceAppId, subKind, sourceAppIconPath, sourceAppName } = item;
   const { t } = useTranslation("clipboard");
   const [hovered, setHovered] = useState(false);
   const typeKey = subKind ?? kind;
   const typeLabel = t(`types.${typeKey}`);
-  const body = renderBody(item, isLinkActive, onOpenLink);
+  const body = renderBody(item, isLinkActive, onOpenLink, isDock);
   const showSensitiveIndicator = item.isSensitive && item.kind === "text";
   const showStatusIndicators = item.isPinned || showSensitiveIndicator;
   const sourceAppIcon = sourceAppId ? (
@@ -140,6 +146,7 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
         {
           "border-ant-primary bg-ant-blue-1": isSelected,
           "border-ant-primary bg-ant-container": item.isPinned && !isSelected,
+          "h-full": isDock,
         },
       )}
       draggable
@@ -178,14 +185,18 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
       </div>
 
       {item.note ? (
-        <NoteContentSwitcher
-          note={item.note}
-          showOriginal={showOriginalOnHover && hovered}
-        >
-          {body}
-        </NoteContentSwitcher>
+        <div className={cn({ "min-h-0 flex-1": isDock })}>
+          <NoteContentSwitcher
+            note={item.note}
+            showOriginal={showOriginalOnHover && hovered}
+          >
+            {body}
+          </NoteContentSwitcher>
+        </div>
       ) : (
-        body
+        <div className={cn("min-w-0", { "min-h-0 flex-1": isDock })}>
+          {body}
+        </div>
       )}
       {showStatusIndicators
         ? renderStatusIndicators(item.isPinned, showSensitiveIndicator)
@@ -214,13 +225,19 @@ const renderBody = (
   item: ClipboardItem,
   isLinkActive?: boolean,
   onOpenLink?: () => void,
+  isDock?: boolean,
 ) => {
-  if (item.kind === "image") return <ImageCard {...item} />;
+  if (item.kind === "image") return <ImageCard fill={isDock} {...item} />;
 
-  if (item.kind === "files") return <FilesCard {...item} />;
+  if (item.kind === "files") return <FilesCard fill={isDock} {...item} />;
 
   return (
-    <TextCard {...item} isLinkActive={isLinkActive} onOpenLink={onOpenLink} />
+    <TextCard
+      {...item}
+      fill={isDock}
+      isLinkActive={isLinkActive}
+      onOpenLink={onOpenLink}
+    />
   );
 };
 

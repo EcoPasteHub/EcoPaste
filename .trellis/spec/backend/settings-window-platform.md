@@ -36,6 +36,7 @@ and applies the transient `clipboardViewState` side effect on `window://visibili
 #### 2. Signatures
 
 - Rust fields:
+  - `Window.position: WindowPosition` (`remember` | `followCursor` | `center` | `bottom`)
   - `Window.select_range_on_open: WindowOpenRangeSelection`
   - `Window.select_category_on_open: WindowOpenCategorySelection`
   - `Window.select_group_on_open: String`
@@ -87,6 +88,79 @@ Correct:
 
 ```json
 { "clipboard": { "window": { "selectGroupOnOpen": "group:550e8400-e29b" } } }
+```
+
+### Bottom Clipboard Dock
+
+#### 1. Scope / Trigger
+
+Changing `clipboard.window.position = "bottom"` affects the persisted Rust
+setting, native window geometry/state, the hide lifecycle event, and React list
+orientation. Treat the layout as one cross-layer contract.
+
+#### 2. Signatures
+
+- Rust: `WindowPosition::Bottom`, serialized as `"bottom"`.
+- TypeScript: `WindowPosition = "remember" | "followCursor" | "center" | "bottom"`.
+- Geometry: `compute_dock_rect(work_area_position, work_area_size, height) -> DockRect`.
+- State keys: panel `clipboard`; dock `clipboard-dock`.
+- Event: `window://prepare-hide` with `{ label: string, visible: false }`.
+
+#### 3. Contracts
+
+- Rust docks to the cursor monitor's work area, falling back to the primary
+  monitor, with width equal to the work-area width and the window on its bottom
+  edge.
+- Dock height defaults to 320 logical pixels and is clamped from 220 logical
+  pixels through 50% of the work-area height. User resize/move events resnap the
+  window while preserving the current height.
+- Dock geometry saves under `clipboard-dock`; leaving dock mode restores the
+  independent `clipboard` panel geometry and 360x600 logical minimum.
+- React uses horizontal Virtuoso items of fixed 240-pixel width. Unmodified
+  Left/Right navigate cards; modifier+Left/Right continue to change category.
+- Before a dock hide, Rust emits `window://prepare-hide`, waits 320 ms for the
+  slide-down, then hides. Showing during that delay cancels the pending hide.
+
+#### 4. Validation & Error Matrix
+
+- Unknown position literal -> serde deserialization error.
+- Missing position in an existing settings file -> current Rust default.
+- Missing dock state -> use the 320-logical-pixel default.
+- Saved/requested height below minimum or above half the work area -> clamp.
+- Missing clipboard window or monitor during layout application -> no-op success.
+- `window://prepare-hide` for another label -> clipboard hook ignores it.
+
+#### 5. Good/Base/Bad Cases
+
+- Good: switching to `bottom` immediately produces a full-width horizontal
+  shelf and later restores its independently saved height.
+- Base: `followCursor`, `center`, and `remember` retain the vertical panel list
+  and panel state.
+- Bad: restoring the `clipboard` panel frame in dock mode turns a 360x600 panel
+  into the dock's saved geometry, or vice versa.
+
+#### 6. Tests Required
+
+- Rust unit tests assert work-area bottom alignment, full width, and the
+  half-work-area height clamp.
+- Settings tests assert missing-field/default deserialization.
+- Frontend checks: `pnpm lint`, `pnpm tsc`, and manual horizontal scrolling plus
+  Left/Right navigation in the macOS and Windows clipboard windows.
+- Backend checks: `cargo fmt --all --check`, `cargo clippy --all-targets
+  --all-features -- -D warnings`, and `cargo test --all-targets --all-features`.
+
+#### 7. Wrong vs Correct
+
+Wrong:
+
+```rust
+state::save_window_state(app, CLIPBOARD_WINDOW_LABEL)?;
+```
+
+Correct:
+
+```rust
+state::save_window_state_as(app, CLIPBOARD_WINDOW_LABEL, CLIPBOARD_DOCK_STATE_LABEL)?;
 ```
 
 ## Settings Events and Mirrors

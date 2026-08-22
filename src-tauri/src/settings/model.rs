@@ -579,7 +579,7 @@ pub struct Window {
 impl Default for Window {
     fn default() -> Self {
         Self {
-            position: WindowPosition::FollowCursor,
+            position: WindowPosition::Bottom,
             scroll_to_top_on_open: true,
             select_range_on_open: WindowOpenRangeSelection::Preserve,
             select_category_on_open: WindowOpenCategorySelection::Preserve,
@@ -614,9 +614,18 @@ pub enum WindowOpenCategorySelection {
 #[serde(rename_all = "camelCase")]
 pub enum WindowPosition {
     Remember,
-    #[default]
     FollowCursor,
     Center,
+    /// Full-width horizontal history shelf at the bottom of the current display.
+    #[default]
+    Bottom,
+}
+
+impl WindowPosition {
+    /// Docked bottom shelf: window geometry and the horizontal card list both switch together.
+    pub fn is_bottom_dock(self) -> bool {
+        matches!(self, Self::Bottom)
+    }
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]

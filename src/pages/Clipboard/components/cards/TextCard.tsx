@@ -15,6 +15,10 @@ interface TextCardProps extends ClipboardItem {
    * 点击 URL / Email 文本时由列表层打开系统浏览器或邮件客户端。
    */
   onOpenLink?: () => void;
+  /**
+   * Fill a tall dock card with more preview lines.
+   */
+  fill?: boolean;
 }
 
 /**
@@ -22,10 +26,11 @@ interface TextCardProps extends ClipboardItem {
  * 子类型（HTML/RTF/URL/Email/Color/Path）以小 Tag 提示。
  */
 const TextCard: FC<TextCardProps> = (props) => {
-  const { summary, subKind, colorPreview, isLinkActive, onOpenLink } = props;
+  const { summary, subKind, colorPreview, isLinkActive, onOpenLink, fill } =
+    props;
   const { keyword } = useSnapshot(clipboardViewState);
   const { clipboard } = useSnapshot(settingsState);
-  const textMaxLines = clipboard.display.textMaxLines;
+  const textMaxLines = fill ? 6 : clipboard.display.textMaxLines;
   const lineClampClass = textLineClampClass(textMaxLines);
   const isOpenableLink =
     isLinkActive && (subKind === "url" || subKind === "email");
@@ -34,6 +39,18 @@ const TextCard: FC<TextCardProps> = (props) => {
     const style: CSSProperties = {
       background: colorPreview,
     };
+
+    if (fill) {
+      return (
+        <div className="flex h-full min-h-16 flex-col gap-2">
+          <span
+            className="min-h-16 w-full flex-1 rounded-1.5 border border-ant-border-secondary"
+            style={style}
+          />
+          <span className="font-mono text-xs leading-5">{colorPreview}</span>
+        </div>
+      );
+    }
 
     return (
       <div className="flex items-center gap-2 text-sm">
@@ -91,6 +108,7 @@ function textLineClampClass(lines: number): string {
   if (lines === 2) return "line-clamp-2";
   if (lines === 3) return "line-clamp-3";
   if (lines === 4) return "line-clamp-4";
+  if (lines === 5) return "line-clamp-5";
 
-  return "line-clamp-5";
+  return "line-clamp-6";
 }

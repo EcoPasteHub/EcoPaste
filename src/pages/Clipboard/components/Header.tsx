@@ -21,6 +21,8 @@ import { WINDOW_LABEL } from "@/constants/windows";
 import { useTauriListen } from "@/hooks/useTauriListen";
 import { clipboardViewState } from "@/stores/clipboardView";
 import { settingsState } from "@/stores/settings";
+import { cn } from "@/utils/cn";
+import { isClipboardDockLayout } from "@/utils/is";
 import { formatShortcutDisplay } from "@/utils/shortcut";
 import SearchInput from "./SearchInput";
 
@@ -178,9 +180,13 @@ const Header: FC = () => {
     },
   ];
 
+  const isDock = isClipboardDockLayout(settings.clipboard.window.position);
+
   return (
     <div
-      className="flex items-center justify-between p-3 pb-2"
+      className={cn("flex items-center justify-between p-3 pb-2", {
+        "shrink-0 p-0": isDock,
+      })}
       data-tauri-drag-region
     >
       <img alt={t("header.logoAlt")} className="size-5" src="/logo.png" />
@@ -189,7 +195,7 @@ const Header: FC = () => {
         <SearchInput
           allowClear
           blurToken={searchBlurToken}
-          className="w-40"
+          className={cn("w-40", { "w-72": isDock })}
           clearToken={searchClearToken}
           focusToken={searchFocusToken}
           onChange={handleKeywordChange}

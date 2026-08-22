@@ -1,6 +1,9 @@
 import type { FC, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+import { useSnapshot } from "valtio";
 import ScrollArea from "@/components/ScrollArea";
+import { settingsState } from "@/stores/settings";
+import { isClipboardDockLayout } from "@/utils/is";
 import { getShortcutKeyDisplays, type ShortcutPattern } from "@/utils/shortcut";
 
 interface Shortcut {
@@ -37,6 +40,10 @@ const SHORTCUTS: Shortcut[] = [
     labelKey: "shortcuts.deleteSelected",
   },
   { keys: ["ArrowUp", "/", "ArrowDown"], labelKey: "shortcuts.navigate" },
+  {
+    keys: ["ArrowLeft", "/", "ArrowRight"],
+    labelKey: "shortcuts.navigateHorizontal",
+  },
   { keys: "CmdOrCtrl+F", labelKey: "shortcuts.focusSearch" },
   { keys: "CmdOrCtrl+Q", labelKey: "shortcuts.toggleRange" },
   {
@@ -63,13 +70,23 @@ const SHORTCUTS: Shortcut[] = [
  */
 const ShortcutList: FC = () => {
   const { t } = useTranslation("clipboard");
+  const settings = useSnapshot(settingsState);
+  const isDock = isClipboardDockLayout(settings.clipboard.window.position);
+  const shortcuts = SHORTCUTS.filter((item) => {
+    if (isDock && item.labelKey === "shortcuts.navigate") return false;
+    if (!isDock && item.labelKey === "shortcuts.navigateHorizontal") {
+      return false;
+    }
+
+    return true;
+  });
 
   return (
     <ScrollArea
       className="-mx-3 max-h-120 w-72 px-3"
       contentClassName="flex flex-col gap-1"
     >
-      {SHORTCUTS.map((item) => (
+      {shortcuts.map((item) => (
         <div
           className="flex items-center justify-between gap-3 px-1 py-1"
           key={item.labelKey}

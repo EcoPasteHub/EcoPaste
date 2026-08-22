@@ -7,18 +7,31 @@ import type { ClipboardItem, FileEntry } from "@/types/clipboard";
 import { cn } from "@/utils/cn";
 import ImageCard from "./ImageCard";
 
+interface FilesCardProps extends ClipboardItem {
+  /**
+   * Fill a dock card when the file set is an image preview.
+   */
+  fill?: boolean;
+}
+
 /**
  * 文件类卡片：`fileEntries` 与 `filesPreviewKind` 均由 Rust 命令层预处理，
  * 前端只按 kind 分支渲染：`imagePreview` 走单图预览，`list` 走文件列表；
  * 路径已删除（`exists = false`）的条目一律走 list 并对文件名划删除线。
  */
-const FilesCard: FC<ClipboardItem> = (props) => {
+const FilesCard: FC<FilesCardProps> = (props) => {
   const entries = props.fileEntries ?? [];
   const { keyword } = useSnapshot(clipboardViewState);
 
   if (props.filesPreviewKind === "imagePreview") {
     const [first] = entries;
-    return <ImageCard {...props} imageThumbnailPath={first?.path} />;
+    return (
+      <ImageCard
+        {...props}
+        fill={props.fill}
+        imageThumbnailPath={first?.path}
+      />
+    );
   }
 
   return (

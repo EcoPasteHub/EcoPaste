@@ -45,8 +45,7 @@ pub fn setup_clipboard_panel(app_handle: &AppHandle) -> Result<()> {
         .to_panel::<MainPanel>()
         .map_err(|e| anyhow::anyhow!("to_panel failed: {e:?}"))?;
 
-    panel.set_corner_radius(16.0);
-    panel.set_level(PanelLevel::Dock.value());
+    apply_clipboard_panel_chrome(app_handle);
     panel.set_style_mask(StyleMask::empty().resizable().nonactivating_panel().into());
     panel.set_collection_behavior(
         CollectionBehavior::new()
@@ -126,6 +125,27 @@ pub fn handle_reopen(app_handle: &AppHandle, has_visible_windows: bool) {
     }
 }
 
+/// Match panel chrome to the current clipboard layout.
+/// Dock mode uses a higher window level so the shelf stays above normal apps,
+/// like Paste.app; the floating panel keeps the existing Dock-level treatment.
+fn apply_clipboard_panel_chrome(app_handle: &AppHandle) {
+    let is_dock = app_handle
+        .try_state::<SettingsStore>()
+        .is_some_and(|store| store.snapshot().clipboard.window.position.is_bottom_dock());
+
+    let Ok(panel) = app_handle.get_webview_panel(CLIPBOARD_WINDOW_LABEL) else {
+        return;
+    };
+
+    if is_dock {
+        panel.set_level(PanelLevel::Status.value());
+        panel.set_corner_radius(12.0);
+    } else {
+        panel.set_level(PanelLevel::Dock.value());
+        panel.set_corner_radius(16.0);
+    }
+}
+
 /// 所有 panel 方法必须在主线程。
 fn show_clipboard_panel(app_handle: &AppHandle) -> Result<()> {
     let handle = app_handle.clone();
@@ -135,6 +155,13 @@ fn show_clipboard_panel(app_handle: &AppHandle) -> Result<()> {
 
         let panel_handle = handle.clone();
         if let Err(err) = handle.run_on_main_thread(move || {
+            // NSPanel restores its last frame on show. Size/position must land on
+            // the main thread immediately before (and after) show_and_make_key.
+            if let Err(err) = super::apply_clipboard_window_layout(&panel_handle) {
+                log::warn!("apply clipboard window layout before panel show failed: {err}");
+            }
+            apply_clipboard_panel_chrome(&panel_handle);
+
             if let Ok(panel) = panel_handle.get_webview_panel(CLIPBOARD_WINDOW_LABEL) {
                 panel.show_and_make_key();
                 // show 时切到 can_join_all_spaces：跟随用户当前 space 出现。
@@ -145,6 +172,9 @@ fn show_clipboard_panel(app_handle: &AppHandle) -> Result<()> {
                         .full_screen_auxiliary()
                         .into(),
                 );
+                if let Err(err) = super::apply_clipboard_window_layout(&panel_handle) {
+                    log::warn!("apply clipboard window layout after panel show failed: {err}");
+                }
                 super::preview::resume_after_clipboard_show();
                 super::emit_visibility(&panel_handle, CLIPBOARD_WINDOW_LABEL, true);
                 super::lifecycle::on_shown(&panel_handle, CLIPBOARD_WINDOW_LABEL);
