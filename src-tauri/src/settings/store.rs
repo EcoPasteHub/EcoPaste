@@ -312,6 +312,7 @@ mod tests {
         assert!(!parsed.general.run_as_admin);
         assert!(parsed.general.tray_icon, "default kept");
         assert_eq!(parsed.shortcuts.open_clipboard, "Alt+C");
+        assert!(parsed.shortcuts.show_hints, "missing showHints stays on");
         assert_eq!(
             parsed.update.frequency,
             crate::settings::UpdateFrequency::Daily
@@ -346,6 +347,13 @@ mod tests {
             parsed.clipboard.window.select_group_on_open,
             crate::settings::WINDOW_OPEN_SELECTION_PRESERVE
         );
+    }
+
+    #[test]
+    fn explicit_show_hints_false_is_preserved() {
+        let parsed: Settings =
+            serde_json::from_str(r#"{"shortcuts":{"showHints":false}}"#).unwrap();
+        assert!(!parsed.shortcuts.show_hints);
     }
 
     #[test]

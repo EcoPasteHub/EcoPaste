@@ -124,6 +124,8 @@ pub struct Shortcuts {
     pub open_clipboard: String,
     /// 全局：打开偏好设置窗口。
     pub open_preference: String,
+    /// 按住 Command/Ctrl 时，在剪贴板窗口按钮上叠加对应按键提示。关闭后快捷键仍可用。
+    pub show_hints: bool,
     /// 仅 Windows：用 Win+V 唤起剪贴板窗口，替代系统剪贴板历史面板。默认关闭。
     pub win_v: bool,
 }
@@ -133,6 +135,7 @@ impl Default for Shortcuts {
         Self {
             open_clipboard: "Alt+C".into(),
             open_preference: "Alt+X".into(),
+            show_hints: true,
             win_v: false,
         }
     }

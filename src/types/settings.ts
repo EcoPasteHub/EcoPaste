@@ -84,6 +84,7 @@ export interface Appearance {
 export interface Shortcuts {
   openClipboard: string;
   openPreference: string;
+  showHints: boolean;
   winV: boolean;
 }
 
