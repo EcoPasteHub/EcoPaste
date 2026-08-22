@@ -25,6 +25,67 @@ When adding a setting, update:
   `src/pages/Preference/services/preferenceSettings.ts` when OS state changes
   immediately.
 
+### Shortcut Hint Overlay Setting
+
+#### 1. Scope / Trigger
+
+Changing the in-window shortcut-hint preference touches the persisted Rust
+settings model, its TypeScript mirror, the Preferences schema, and `KeyHint`
+rendering. It must never change shortcut execution.
+
+#### 2. Signatures
+
+- Rust: `Shortcuts.show_hints: bool`, serialized as `shortcuts.showHints`.
+- TypeScript: `Shortcuts.showHints: boolean`.
+- Settings patch: `{ shortcuts: { showHints: boolean } }`.
+
+#### 3. Contracts
+
+- The default is `true`; existing settings files that omit the field keep hints
+  enabled through `#[serde(default)]`.
+- `KeyHint` always tracks the physical Command/Ctrl state in `active`.
+  `showHints` only controls whether the overlay or normal icon renders.
+- Matching modifier shortcuts still invoke `onKeyPress` when hints are off.
+- The Preferences switch commits through the existing settings patch flow and
+  waits for `settings://updated` to refresh every window's mirror.
+
+#### 4. Validation & Error Matrix
+
+- Missing `showHints` -> deserialize to `true`.
+- Explicit `showHints: false` -> preserve `false`.
+- Non-boolean `showHints` -> serde deserialization error.
+- Hints disabled while a modifier is held -> hide the overlay without changing
+  the modifier state or shortcut callback path.
+
+#### 5. Good/Base/Bad Cases
+
+- Good: hints are off, Command/Ctrl plus a matching key still runs the action.
+- Base: a fresh or older settings file shows the existing overlays.
+- Bad: skipping `setActive(true)` when hints are off couples physical key state
+  to rendering and can leave the overlay stale when the setting changes.
+
+#### 6. Tests Required
+
+- Rust settings test: omitted field asserts `show_hints == true`.
+- Rust settings test: explicit false asserts `show_hints == false`.
+- Frontend: `pnpm lint`, `pnpm tsc`, and manual checks with the switch on and
+  off while confirming the same shortcut action fires.
+
+#### 7. Wrong vs Correct
+
+Wrong:
+
+```tsx
+if (showHints) setActive(true);
+```
+
+Correct:
+
+```tsx
+setActive(true);
+const visible = active && showHints;
+```
+
 ### Window Open Selection Settings
 
 #### 1. Scope / Trigger

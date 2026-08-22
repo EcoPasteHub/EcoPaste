@@ -90,6 +90,9 @@
       "capture": {
         "title": "Content Types"
       },
+      "clipboardShortcuts": {
+        "title": "Clipboard Window"
+      },
       "control": {
         "title": "System Entry"
       },
@@ -536,6 +539,10 @@
           "description": "Open or hide the preferences window.",
           "placeholder": "Alt+X",
           "title": "Open Preferences Window"
+        },
+        "showHints": {
+          "description": "Hold Command on macOS or Ctrl on Windows to overlay matching keys on clipboard window buttons. Keyboard shortcuts still work when this is off.",
+          "title": "Show Shortcut Hints"
         },
         "winV": {
           "description": "Press Win+V to summon EcoPaste instead of the Windows clipboard history panel.",

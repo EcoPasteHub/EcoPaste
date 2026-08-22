@@ -90,6 +90,9 @@
       "capture": {
         "title": "内容类型"
       },
+      "clipboardShortcuts": {
+        "title": "剪贴板窗口"
+      },
       "control": {
         "title": "系统入口"
       },
@@ -536,6 +539,10 @@
           "description": "打开或隐藏偏好设置窗口。",
           "placeholder": "Alt+X",
           "title": "打开偏好设置窗口"
+        },
+        "showHints": {
+          "description": "按住 Command（macOS）或 Ctrl（Windows）时，在剪贴板窗口按钮上叠加对应按键。关闭后快捷键仍可使用。",
+          "title": "显示快捷键提示"
         },
         "winV": {
           "description": "按 Win+V 唤起 EcoPaste，替代 Windows 系统剪贴板历史面板。",

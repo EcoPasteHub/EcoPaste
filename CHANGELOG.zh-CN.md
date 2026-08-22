@@ -1,5 +1,11 @@
 # 更新日志
 
+## Unreleased
+
+### ✨ 新功能
+
+* 新增偏好设置，可在按住 Command 或 Ctrl 时隐藏窗口内快捷键提示
+
 ## [1.1.0](https://github.com/EcoPasteHub/EcoPaste/compare/v1.0.0...v1.1.0) (2026-07-22)
 
 ### ✨ 新功能

@@ -762,6 +762,28 @@ export const preferenceTabs: PreferenceTab[] = [
             : []),
         ],
       },
+      {
+        id: "clipboardShortcuts",
+        settings: [
+          {
+            control: { type: "switch" },
+            id: "shortcuts.showHints",
+            keywords: [
+              "badge",
+              "command",
+              "ctrl",
+              "hint",
+              "overlay",
+              "preview",
+              "shortcut",
+            ],
+            path: ["shortcuts", "showHints"],
+            value: (settings) => {
+              return settings.shortcuts.showHints;
+            },
+          },
+        ],
+      },
     ],
   },
   {
