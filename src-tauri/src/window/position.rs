@@ -241,9 +241,12 @@ fn apply_bottom(window: &WebviewWindow, monitor: &MonitorInfo, height: Option<u3
 }
 
 fn apply_dock_constraints(window: &WebviewWindow, monitor: &MonitorInfo, scale: f64) -> Result<()> {
+    let work_area_logical_width = monitor.work_area_size.width as f64 / scale;
+    let min_width = CLIPBOARD_DOCK_MIN_WIDTH.min(work_area_logical_width.max(1.0));
+
     window
         .set_min_size(Some(Size::Logical(LogicalSize::new(
-            CLIPBOARD_DOCK_MIN_WIDTH,
+            min_width,
             CLIPBOARD_DOCK_MIN_HEIGHT_LOGICAL,
         ))))
         .map_err(|e| anyhow::anyhow!(e))?;
