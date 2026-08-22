@@ -2,7 +2,7 @@ import { motion } from "motion/react";
 import { useSnapshot } from "valtio";
 import { useClipboardWindowEditableFocus } from "@/hooks/useClipboardWindowEditableFocus";
 import { settingsState } from "@/stores/settings";
-import { isClipboardDockLayout } from "@/types/settings";
+import { isClipboardDockLayout } from "@/utils/is";
 import Footer from "./components/Footer";
 import Group from "./components/Group";
 import Header from "./components/Header";

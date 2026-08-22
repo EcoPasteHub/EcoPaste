@@ -1,6 +1,7 @@
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { platform } from "@tauri-apps/plugin-os";
 import { WINDOW_LABEL } from "@/constants/windows";
+import type { WindowPosition } from "@/types/settings";
 
 /**
  * 当前是否运行在 macOS 平台。
@@ -22,6 +23,13 @@ export const isDev = import.meta.env.DEV;
  */
 export const isWinClipboardWindow = () => {
   return isWin && getCurrentWebviewWindow().label === WINDOW_LABEL.CLIPBOARD;
+};
+
+/**
+ * 当前剪贴板窗口是否使用屏幕底部横向布局。
+ */
+export const isClipboardDockLayout = (position: WindowPosition) => {
+  return position === "bottom";
 };
 
 /**

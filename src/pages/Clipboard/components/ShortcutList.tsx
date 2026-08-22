@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useSnapshot } from "valtio";
 import ScrollArea from "@/components/ScrollArea";
 import { settingsState } from "@/stores/settings";
-import { isClipboardDockLayout } from "@/types/settings";
+import { isClipboardDockLayout } from "@/utils/is";
 import { getShortcutKeyDisplays, type ShortcutPattern } from "@/utils/shortcut";
 
 interface Shortcut {

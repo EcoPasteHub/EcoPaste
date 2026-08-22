@@ -51,9 +51,9 @@ import type {
   ClipboardKind,
   ClipboardRange,
 } from "@/types/clipboard";
-import { type ItemAction, isClipboardDockLayout } from "@/types/settings";
+import type { ItemAction } from "@/types/settings";
 import { cn } from "@/utils/cn";
-import { isMac } from "@/utils/is";
+import { isClipboardDockLayout, isMac } from "@/utils/is";
 import type { WindowVisibilityPayload } from "../hooks/previewController";
 import {
   isSpaceKey,

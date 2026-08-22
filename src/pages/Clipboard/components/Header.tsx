@@ -21,8 +21,8 @@ import { WINDOW_LABEL } from "@/constants/windows";
 import { useTauriListen } from "@/hooks/useTauriListen";
 import { clipboardViewState } from "@/stores/clipboardView";
 import { settingsState } from "@/stores/settings";
-import { isClipboardDockLayout } from "@/types/settings";
 import { cn } from "@/utils/cn";
+import { isClipboardDockLayout } from "@/utils/is";
 import { formatShortcutDisplay } from "@/utils/shortcut";
 import SearchInput from "./SearchInput";
 

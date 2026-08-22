@@ -54,13 +54,6 @@ export type RetentionUnit = "hours" | "days" | "weeks" | "months" | "forever";
 
 export type WindowPosition = "remember" | "followCursor" | "center" | "bottom";
 
-/**
- * Bottom-of-screen horizontal history shelf, matching the Paste.app recall layout.
- */
-export function isClipboardDockLayout(position: WindowPosition) {
-  return position === "bottom";
-}
-
 export type WindowOpenRangeSelection = "preserve" | ClipboardRange;
 
 export type WindowOpenCategorySelection =

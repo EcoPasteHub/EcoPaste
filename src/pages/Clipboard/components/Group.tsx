@@ -34,9 +34,9 @@ import type {
   ClipboardGroupRecord,
   ClipboardRange,
 } from "@/types/clipboard";
-import { isClipboardDockLayout } from "@/types/settings";
 import { cn } from "@/utils/cn";
 import { getModalApi } from "@/utils/feedback";
+import { isClipboardDockLayout } from "@/utils/is";
 
 type GroupModalMode = "create" | "edit";
 type MoreMenuAction = "manageGroups" | "newGroup";
