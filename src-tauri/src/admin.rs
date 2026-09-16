@@ -392,9 +392,15 @@ fn scheduled_task_action(exe: &Path) -> String {
 
 #[cfg(target_os = "windows")]
 fn can_use_scheduled_task_for_current_args() -> bool {
+    // Allow scheduled task elevation when:
+    // 1. No arguments (manual launch)
+    // 2. Only --ecopaste-admin-restarted (already elevated via task)
+    // 3. Only --auto-launch (autostart launch - this fixes UAC prompt on boot)
+    const AUTO_LAUNCH_ARG: &str = "--auto-launch";
+
     std::env::args()
         .skip(1)
-        .all(|arg| arg == ADMIN_RESTARTED_ARG)
+        .all(|arg| arg == ADMIN_RESTARTED_ARG || arg == AUTO_LAUNCH_ARG)
 }
 
 #[cfg(target_os = "windows")]
