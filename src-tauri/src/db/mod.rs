@@ -4,6 +4,7 @@ pub mod groups;
 pub mod init;
 pub mod items;
 pub mod models;
+pub mod ocr;
 pub mod path;
 pub mod state;
 

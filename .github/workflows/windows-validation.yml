@@ -1,0 +1,110 @@
+name: Windows Validation
+
+"on":
+  workflow_dispatch:
+  push:
+    paths:
+      - "src/**"
+      - "src-tauri/**"
+      - ".cargo/config.toml"
+      - "scripts/prepare-windows-ocr.ps1"
+      - ".github/workflows/windows-validation.yml"
+      - "Cargo.lock"
+      - "pnpm-lock.yaml"
+
+concurrency:
+  group: windows-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    name: Windows x64 build and native tests
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@1.96.0
+        with:
+          components: rustfmt, clippy
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build:icon
+        env:
+          PLATFORM: windows-latest
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+          cache-on-failure: true
+      - uses: actions/cache@v4
+        id: ocr-cache
+        with:
+          path: .cache/windows-ocr/binary-cache
+          key: windows-ocr-vcpkg-9e3427bc-x64-static-release-v1
+      - name: Prepare bundled OCR when present
+        shell: pwsh
+        run: |
+          if (Test-Path scripts/prepare-windows-ocr.ps1) {
+            ./scripts/prepare-windows-ocr.ps1 -Architecture x64
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+      - name: Save prepared OCR dependencies
+        if: steps.ocr-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: .cache/windows-ocr/binary-cache
+          key: windows-ocr-vcpkg-9e3427bc-x64-static-release-v1
+      - run: pnpm tsc
+      - run: pnpm lint
+      - name: Rust formatting
+        working-directory: src-tauri
+        run: cargo fmt --all --check
+      - name: Windows native compile and lint
+        working-directory: src-tauri
+        run: cargo clippy --all-targets --all-features -- -D warnings
+      - name: Windows native tests
+        working-directory: src-tauri
+        run: cargo test --all-targets --all-features
+      - name: Build Windows NSIS installer
+        shell: pwsh
+        run: |
+          $ocrBundleConfig = Join-Path $env:RUNNER_TEMP 'ecopaste-unsigned-bundle.json'
+          Set-Content $ocrBundleConfig '{"bundle":{"createUpdaterArtifacts":false}}' -Encoding utf8
+          pnpm tauri build --target $env:CARGO_BUILD_TARGET --bundles nsis --config $ocrBundleConfig
+      - name: Verify native runtime dependencies
+        shell: pwsh
+        run: |
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/vswhere.exe'
+          $vsPath = (& $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath).Trim()
+          $dumpbin = Get-ChildItem "$vsPath/VC/Tools/MSVC/*/bin/Hostx64/x64/dumpbin.exe" | Sort-Object FullName -Descending | Select-Object -First 1
+          if (-not $dumpbin) { throw 'Missing dumpbin' }
+          $binary = Join-Path 'src-tauri/target' "$env:CARGO_BUILD_TARGET/release/EcoPaste.exe"
+          $imports = & $dumpbin.FullName /DEPENDENTS $binary
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot inspect binary imports' }
+          $imports
+          if ($imports -match '(?i)(msvcp[0-9_]+|vcruntime[0-9_]+|concrt[0-9]+|libtesseract[^ ]*|lept[^ ]*|vcomp[0-9]+)\.dll') {
+            throw 'Unexpected dependency on an external C++/OCR runtime DLL'
+          }
+      - name: Verify bundled models and licenses
+        shell: pwsh
+        run: |
+          $bundleRoot = Join-Path 'src-tauri/target' "$env:CARGO_BUILD_TARGET/release/bundle/nsis"
+          $installer = Get-ChildItem "$bundleRoot/*-setup.exe" | Select-Object -First 1
+          if (-not $installer) { throw 'Missing NSIS installer' }
+          $listing = & 7z l $installer.FullName
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot inspect installer' }
+          foreach ($resource in @('eng.traineddata', 'chi_sim.traineddata', 'tessdata-fast.txt', 'tesseract.txt')) {
+            if (-not ($listing -match [regex]::Escape($resource))) { throw "Installer missing $resource" }
+          }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: EcoPaste-Windows-x64-OCR
+          path: src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*-setup.exe
+          if-no-files-found: error
+          retention-days: 7

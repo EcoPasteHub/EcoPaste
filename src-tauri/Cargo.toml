@@ -22,6 +22,9 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
+[target.'cfg(target_os = "windows")'.build-dependencies]
+vcpkg = "0.2"
+
 [dependencies]
 tauri = { version = "2", features = ["macos-private-api", "protocol-asset", "tray-icon", "image-ico"] }
 serde = { version = "1", features = ["derive"] }
@@ -62,6 +65,7 @@ url = "2"
 [target.'cfg(target_os = "macos")'.dependencies]
 core-graphics = "0.25"
 objc2 = "0.6"
+objc2-vision = { version = "0.3", default-features = false, features = ["std", "VNRequest", "VNRecognizeTextRequest", "VNRequestHandler", "VNObservation", "VNTypes"] }
 objc2-foundation = { version = "0.3", features = ["NSString", "NSData", "NSDictionary", "NSURL", "NSArray", "NSGeometry", "NSAttributedString"] }
 objc2-app-kit = { version = "0.3", features = ["NSWorkspace", "NSRunningApplication", "NSImage", "NSView", "NSWindow", "NSEvent", "NSApplication", "NSResponder", "NSPasteboard", "NSPasteboardItem", "NSDraggingItem", "NSDraggingSession", "NSAttributedString", "NSStringDrawing", "NSColor", "NSFont", "NSParagraphStyle", "NSBezierPath", "NSGraphics"] }
 tauri-nspanel = { git = "https://github.com/ahkohd/tauri-nspanel", branch = "v2.1" }
@@ -69,6 +73,7 @@ plist = { version = "1", default-features = false }
 tauri-plugin-macos-permissions = "2"
 
 [target.'cfg(target_os = "windows")'.dependencies]
+sha2 = "0.10"
 winapi = { version = "0.3", features = [
     "winuser",
     "processthreadsapi",

@@ -1478,3 +1478,35 @@ export const hideContextMenus = async () => {
     log.error("hide context menus failed", toAppError(error));
   }
 };
+
+/** Rust OCR queue snapshot; recognized text stays in the backend. */
+export interface ImageOcrStatus {
+  supported: boolean;
+  enabled: boolean;
+  paused: boolean;
+  total: number;
+  pending: number;
+  completed: number;
+  failed: number;
+}
+
+export async function getImageOcrStatus(): Promise<ImageOcrStatus> {
+  return call<ImageOcrStatus>(
+    TAURI_COMMAND.GET_IMAGE_OCR_STATUS,
+    "commands:labels.getImageOcrStatus",
+  );
+}
+
+export async function queueImageOcrHistory(): Promise<ImageOcrStatus> {
+  return call<ImageOcrStatus>(
+    TAURI_COMMAND.QUEUE_IMAGE_OCR_HISTORY,
+    "commands:labels.queueImageOcrHistory",
+  );
+}
+
+export async function clearImageOcrIndex(): Promise<ImageOcrStatus> {
+  return call<ImageOcrStatus>(
+    TAURI_COMMAND.CLEAR_IMAGE_OCR_INDEX,
+    "commands:labels.clearImageOcrIndex",
+  );
+}

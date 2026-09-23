@@ -212,6 +212,9 @@ pub enum ClipboardItemSort {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", default)]
 pub struct ClipboardItemQuery {
+    /// Backend-owned setting; IPC callers cannot enable derived OCR search.
+    #[serde(skip)]
+    pub include_image_ocr: bool,
     pub kind: Option<ClipboardKind>,
     pub group_id: Option<String>,
     pub favorite: Option<bool>,
@@ -239,6 +242,7 @@ pub enum ClipboardGroupFilter {
 impl Default for ClipboardItemQuery {
     fn default() -> Self {
         Self {
+            include_image_ocr: false,
             kind: None,
             group_id: None,
             favorite: None,

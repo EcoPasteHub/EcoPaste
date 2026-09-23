@@ -236,6 +236,13 @@ jobs:
         env:
           PLATFORM: ${{ matrix.os }}
 
+      - name: Prepare Windows OCR resources
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          $architecture = if ("${{ matrix.target }}".StartsWith('aarch64')) { 'arm64' } else { 'x64' }
+          ./scripts/prepare-windows-ocr.ps1 -Architecture $architecture
+
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
         with:

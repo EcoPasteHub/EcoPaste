@@ -147,10 +147,19 @@ pub struct Clipboard {
     pub sensitive: Sensitive,
     pub history: History,
     pub search: Search,
+    pub ocr: Ocr,
     pub window: Window,
     pub preview: Preview,
     pub feedback: Feedback,
     pub filters: Filters,
+}
+
+/// Local derived image search. Defaults are off for both existing and new users.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(default, rename_all = "camelCase")]
+pub struct Ocr {
+    pub enabled: bool,
+    pub paused: bool,
 }
 
 /// 剪贴板内容类型采集开关。关闭后监听与手动读取都不入库对应类型。

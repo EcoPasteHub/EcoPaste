@@ -141,6 +141,11 @@ pub async fn persist_and_notify(
         }
     }
     let result = upsert_item(pool, &item_to_write).await?;
+    if item_to_write.kind == crate::db::models::ClipboardKind::Image {
+        if let Err(err) = crate::ocr::on_capture(app, pool, &result.id).await {
+            log::warn!("enqueue captured image OCR failed: {err}");
+        }
+    }
     sound::maybe_play_copy(app);
     if let Err(err) = app.emit(
         CLIPBOARD_UPDATED_EVENT,

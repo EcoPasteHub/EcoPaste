@@ -13,6 +13,7 @@ mod keystroke;
 mod menu;
 #[cfg(target_os = "windows")]
 mod mouse;
+mod ocr;
 mod settings;
 mod shortcut;
 mod tray;
@@ -159,6 +160,9 @@ pub fn run() {
             commands::close_clipboard_preview,
             commands::get_clipboard_preview_state,
             commands::get_settings,
+            commands::get_image_ocr_status,
+            commands::queue_image_ocr_history,
+            commands::clear_image_ocr_index,
             commands::suspend_global_shortcuts,
             commands::resume_global_shortcuts,
             commands::update_settings,
@@ -213,7 +217,10 @@ pub fn run() {
                     err
                 })?;
                 handle_db.manage(db::DatabaseState::new(pool));
+                handle_db.manage(ocr::OcrRuntime::default());
+                ocr::configure(&handle_db);
                 clipboard::init(&handle_db)?;
+                ocr::spawn(handle_db.clone());
                 Ok::<_, anyhow::Error>(())
             })?;
 

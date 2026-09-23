@@ -526,7 +526,14 @@ pub async fn list_clipboard_items(
     query: Option<ClipboardItemQuery>,
 ) -> Result<ClipboardItemPage> {
     let pool = db.pool().await;
-    let q = query.unwrap_or_default();
+    let mut q = query.unwrap_or_default();
+    q.include_image_ocr = app
+        .state::<SettingsStore>()
+        .snapshot()
+        .clipboard
+        .ocr
+        .enabled
+        && crate::ocr::native::supported();
     let (mut items, total) = crate::db::items::query_items_page(&pool, &q).await?;
     let now = Local::now();
     let settings = app.state::<SettingsStore>().snapshot();

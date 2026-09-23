@@ -49,6 +49,25 @@
       "plain": "已识别明文备份。"
     }
   },
+  "imageOcr": {
+    "active": "处理已启用",
+    "clearDescription": "删除已识别文字和排队任务，并暂停处理。原图、剪贴板记录、收藏、备注和分组均保留。继续处理可识别新排队图片；重新索引历史图片可重建已有图片索引。",
+    "clearTitle": "清空图片文字索引？",
+    "completed": "已完成：{{count}}",
+    "disabled": "已停用",
+    "failed": "失败：{{count}}",
+    "localHint": "在本机识别剪贴板图片中的中英文，图片和识别文字均不上传。不处理文件、PDF 或 Word 文档。",
+    "pause": "暂停",
+    "paused": "处理已暂停",
+    "pending": "待处理：{{count}}",
+    "progress": "已处理 {{processed}} / {{total}} 项（含失败任务）",
+    "resume": "继续",
+    "retryStatus": "重试",
+    "statusError": "无法加载识别状态，请重试后管理索引。",
+    "total": "已索引 / 已排队：{{count}}",
+    "unavailable": "暂不支持",
+    "unsupported": "本地文字识别组件未就绪，请重新安装包含 OCR 组件和模型的完整安装包。"
+  },
   "schema": {
     "captureKinds": {
       "files": "文件和文件夹",
@@ -107,6 +126,9 @@
       },
       "history": {
         "title": "保留与清理"
+      },
+      "imageOcr": {
+        "title": "图片文字识别"
       },
       "localData": {
         "title": "存储位置"
@@ -395,6 +417,26 @@
         "retention": {
           "description": "超过该天数的普通记录会自动清理；收藏和置顶始终保留，0 表示不按时间清理。",
           "title": "保留周期"
+        }
+      },
+      "imageOcr": {
+        "clear": {
+          "controlLabel": "清空索引",
+          "description": "仅删除识别文字与任务，并暂停处理，保留原始剪贴板数据。",
+          "title": "清空文字识别索引"
+        },
+        "enabled": {
+          "description": "开启后仅识别新采集的图片。关闭后隐藏文字识别匹配结果，已有索引仍保留。",
+          "title": "搜索图片中的文字"
+        },
+        "history": {
+          "controlLabel": "索引 / 重试",
+          "description": "将尚未索引的历史图片加入队列，并重试失败任务。暂停期间加入的任务会等待继续处理。",
+          "title": "索引历史图片"
+        },
+        "paused": {
+          "description": "暂停后台处理，已有识别结果仍可搜索。清空索引后，可继续处理新排队的图片。",
+          "title": "暂停图片识别"
         }
       },
       "localData": {

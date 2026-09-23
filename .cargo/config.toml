@@ -1,0 +1,7 @@
+# Match the bundled Windows OCR libraries and avoid a separate VC++ runtime install.
+# The preparation script sets an explicit target so these flags do not affect host proc macros.
+[target.x86_64-pc-windows-msvc]
+rustflags = ["-C", "target-feature=+crt-static"]
+
+[target.aarch64-pc-windows-msvc]
+rustflags = ["-C", "target-feature=+crt-static"]

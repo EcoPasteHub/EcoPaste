@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Generated Windows OCR dependencies/resources (prepared with pinned checksums)
+/.cache/windows-ocr/
+/src-tauri/assets/ocr/tessdata/
+/src-tauri/assets/ocr/licenses/

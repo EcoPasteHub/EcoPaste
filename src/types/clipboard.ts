@@ -158,3 +158,13 @@ export interface UpdateNoteResult {
   note: string | null;
   autoFavorited: boolean;
 }
+
+/** Cross-window clipboard refresh events; OCR changes can affect every filter. */
+export interface ClipboardUpdatedPayload {
+  cleanup?: number;
+  deduplicated?: boolean;
+  id?: string;
+  imported?: boolean;
+  kind?: ClipboardKind;
+  ocr?: "updated" | "cleared";
+}

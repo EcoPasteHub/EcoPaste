@@ -244,6 +244,47 @@ export const preferenceTabs: PreferenceTab[] = [
           },
         ],
       },
+      {
+        id: "imageOcr",
+        settings: [
+          {
+            control: { type: "switch" },
+            id: "imageOcr.enabled",
+            keywords: [
+              "OCR",
+              "image",
+              "text",
+              "search",
+              "图片",
+              "文字",
+              "识别",
+            ],
+            path: ["clipboard", "ocr", "enabled"],
+            value: (settings) => {
+              return settings.clipboard.ocr.enabled;
+            },
+          },
+          {
+            control: { type: "switch" },
+            id: "imageOcr.paused",
+            keywords: ["OCR", "pause", "resume", "暂停", "继续"],
+            path: ["clipboard", "ocr", "paused"],
+            value: (settings) => {
+              return settings.clipboard.ocr.paused;
+            },
+          },
+          {
+            control: { type: "action" },
+            id: "imageOcr.history",
+            keywords: ["OCR", "history", "retry", "历史", "重试"],
+          },
+          {
+            control: { danger: true, type: "action" },
+            id: "imageOcr.clear",
+            keywords: ["OCR", "clear", "index", "清空", "索引"],
+          },
+        ],
+      },
     ],
   },
   {

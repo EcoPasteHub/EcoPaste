@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSnapshot } from "valtio";
 import { listClipboardItems } from "@/commands";
+import { settingsState } from "@/stores/settings";
 import type { ClipboardItem, ClipboardItemQuery } from "@/types/clipboard";
 
 /**
@@ -26,6 +28,7 @@ interface FetchRangeOptions {
  * 前端只按 Virtuoso 的可视范围缓存少量已加载行，避免无限滚动后持有完整列表。
  */
 export const useClipboardItems = (query: ClipboardItemQuery) => {
+  const { enabled: imageOcrEnabled } = useSnapshot(settingsState).clipboard.ocr;
   const queryRef = useRef(query);
 
   const requestTokenRef = useRef(0);
@@ -310,8 +313,11 @@ export const useClipboardItems = (query: ClipboardItemQuery) => {
       pinned: query.pinned,
       sort: query.sort,
     };
+    // OCR enablement changes search membership even when the query is unchanged.
+    void imageOcrEnabled;
     resetAndReload();
   }, [
+    imageOcrEnabled,
     resetAndReload,
     query.favorite,
     query.group,
@@ -334,6 +340,7 @@ export const useClipboardItems = (query: ClipboardItemQuery) => {
     reload,
     reloadCurrentRange,
     removeItemById,
+    resetAndReload,
     total,
   };
 };

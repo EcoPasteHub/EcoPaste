@@ -141,6 +141,11 @@ export interface History {
   cleanupIntervalHours: number;
 }
 
+export interface ImageOcr {
+  enabled: boolean;
+  paused: boolean;
+}
+
 export interface Search {
   defaultFocus: boolean;
   clearOnHide: boolean;
@@ -189,6 +194,7 @@ export interface Clipboard {
   display: Display;
   sensitive: Sensitive;
   history: History;
+  ocr: ImageOcr;
   search: Search;
   window: Window;
   preview: Preview;

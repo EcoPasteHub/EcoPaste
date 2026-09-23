@@ -516,21 +516,26 @@ fn push_filter_clauses(
     match keyword {
         KeywordFilter::None => {}
         KeywordFilter::Fts(expr) => {
-            qb.push(
-                " AND clipboard_items.rowid IN (SELECT rowid FROM clipboard_items_fts WHERE clipboard_items_fts MATCH ",
-            )
-            .push_bind(expr.clone())
-            .push(")");
+            qb.push(" AND (clipboard_items.rowid IN (SELECT rowid FROM clipboard_items_fts WHERE clipboard_items_fts MATCH ")
+                .push_bind(expr.clone()).push(")");
+            if q.include_image_ocr {
+                qb.push(" OR (clipboard_items.kind = 'image' AND clipboard_items.id IN (SELECT item_id FROM image_ocr WHERE status='completed' AND rowid IN (SELECT rowid FROM image_ocr_fts WHERE image_ocr_fts MATCH ")
+                    .push_bind(expr.clone()).push(")))");
+            }
+            qb.push(")");
         }
         KeywordFilter::Like(kw) => {
-            // FTS 索引覆盖 search_text / note 两列，LIKE 兜底也跟齐，
-            // 让 1–2 字符短词的命中范围与长词一致。
             let pattern = format!("%{kw}%");
             qb.push(" AND (clipboard_items.search_text LIKE ")
                 .push_bind(pattern.clone())
                 .push(" ESCAPE '\\' OR clipboard_items.note LIKE ")
-                .push_bind(pattern)
-                .push(" ESCAPE '\\')");
+                .push_bind(pattern.clone())
+                .push(" ESCAPE '\\'");
+            if q.include_image_ocr {
+                qb.push(" OR (clipboard_items.kind = 'image' AND clipboard_items.id IN (SELECT item_id FROM image_ocr WHERE status='completed' AND text LIKE ")
+                    .push_bind(pattern).push(" ESCAPE '\\'))");
+            }
+            qb.push(")");
         }
     }
     // group（UI Tab）覆盖显式 kind / favorite；为 None 时回退到显式字段（单测使用）。
@@ -606,6 +611,61 @@ mod tests {
 
     fn ids(items: &[ClipboardItem]) -> Vec<&str> {
         items.iter().map(|item| item.id.as_str()).collect()
+    }
+
+    #[tokio::test]
+    async fn image_ocr_search_respects_switch_short_keywords_and_metadata() {
+        let pool = memory_pool().await;
+        let mut image = sample_item("ocr-image");
+        image.kind = ClipboardKind::Image;
+        image.content = "a.png".to_owned();
+        image.note = Some("saved note".to_owned());
+        insert_item(&pool, &image).await.unwrap();
+        sqlx::query("INSERT INTO image_ocr(item_id, token, status, text, created_at, updated_at) VALUES(?, 'job', 'completed', '发票金额 invoice total', 'now', 'now')")
+            .bind(&image.id).execute(&pool).await.unwrap();
+        for keyword in ["发票", "发票金额", "invoice", "total"] {
+            let mut q = ClipboardItemQuery {
+                keyword: Some(keyword.to_owned()),
+                include_image_ocr: true,
+                ..Default::default()
+            };
+            let (found, total) = query_items_page(&pool, &q).await.unwrap();
+            assert_eq!(total, 1, "OCR keyword {keyword} should match");
+            assert_eq!(ids(&found), vec!["ocr-image"]);
+            q.include_image_ocr = false;
+            assert_eq!(query_items_page(&pool, &q).await.unwrap().1, 0);
+        }
+        let q = ClipboardItemQuery {
+            keyword: Some("saved".into()),
+            ..Default::default()
+        };
+        assert_eq!(query_items_page(&pool, &q).await.unwrap().1, 1);
+        let q = ClipboardItemQuery {
+            keyword: Some("invoice".into()),
+            include_image_ocr: true,
+            kind: Some(ClipboardKind::Text),
+            ..Default::default()
+        };
+        assert_eq!(query_items_page(&pool, &q).await.unwrap().1, 0);
+        let found = find_item_by_id(&pool, &image.id).await.unwrap().unwrap();
+        assert_eq!(found.updated_at, image.updated_at);
+        assert_eq!(found.search_text, image.search_text);
+        assert_eq!(found.content, image.content);
+    }
+
+    #[tokio::test]
+    async fn image_ocr_migration_adds_separate_derived_storage() {
+        let pool = memory_pool().await;
+        let exists: i64 = sqlx::query_scalar(
+            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'image_ocr'",
+        )
+        .fetch_one(&pool)
+        .await
+        .unwrap();
+        assert_eq!(
+            exists, 1,
+            "OCR needs separate derived storage without modifying clipboard content"
+        );
     }
 
     #[tokio::test]

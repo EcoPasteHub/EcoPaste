@@ -14,6 +14,7 @@ import type {
   SettingValue,
 } from "../types/preferences";
 import { translatePreferenceSection } from "../utils/preferenceI18n";
+import ImageOcrPanel from "./ImageOcrPanel";
 import PreferenceCountTag from "./PreferenceCountTag";
 import PreferenceSettingRow from "./PreferenceSettingRow";
 import SourceAppsTransfer from "./SourceAppsTransfer";
@@ -108,21 +109,28 @@ const PreferenceSection: FC<PreferenceSectionProps> = (props) => {
       </div>
 
       <div>
-        {section.settings.map((setting) => {
-          return (
-            <PreferenceSettingRow
-              highlighted={setting.id === highlightedSettingId}
-              highlightToken={highlightToken}
-              key={setting.id}
-              onActionComplete={onActionComplete}
-              onChange={onChange}
-              setting={setting}
-              settings={settings}
-              shouldReduceMotion={shouldReduceMotion}
-              storageLocation={storageLocation}
-            />
-          );
-        })}
+        {section.id === "imageOcr" ? (
+          <ImageOcrPanel
+            highlightedSettingId={highlightedSettingId}
+            settings={settings}
+          />
+        ) : (
+          section.settings.map((setting) => {
+            return (
+              <PreferenceSettingRow
+                highlighted={setting.id === highlightedSettingId}
+                highlightToken={highlightToken}
+                key={setting.id}
+                onActionComplete={onActionComplete}
+                onChange={onChange}
+                setting={setting}
+                settings={settings}
+                shouldReduceMotion={shouldReduceMotion}
+                storageLocation={storageLocation}
+              />
+            );
+          })
+        )}
       </div>
     </motion.section>
   );
@@ -135,6 +143,10 @@ export default PreferenceSection;
  */
 function resolveSectionVisual(id: string): SectionVisual {
   const normalizedId = id.toLowerCase();
+
+  if (normalizedId.includes("ocr")) {
+    return { icon: "i-lucide:scan-text" };
+  }
 
   if (normalizedId.includes("about")) {
     return {

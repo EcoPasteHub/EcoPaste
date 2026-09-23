@@ -35,6 +35,10 @@ The app is designed to be fast, lightweight, and maintainable, with local storag
 - Export and import `.ecopastebak` backups, including encrypted backup containers.
 - Keep clipboard data, resources, and settings local to your machine.
 
+### Image text search (macOS, optional local OCR)
+
+[Usage and limitations](docs/image-ocr.md)
+
 ## Contributing
 
 Development setup, architecture notes, quality checks, and contribution

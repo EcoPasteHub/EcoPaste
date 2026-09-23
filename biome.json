@@ -21,6 +21,7 @@
       "!**/node_modules",
       "!**/dist",
       "!.trellis/.runtime",
+      "!.cache/windows-ocr",
       "!src-tauri/target",
       "!src-tauri/.sqlx",
       "!src-tauri/gen",

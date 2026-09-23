@@ -50,10 +50,12 @@ import type {
   ClipboardItem,
   ClipboardKind,
   ClipboardRange,
+  ClipboardUpdatedPayload,
 } from "@/types/clipboard";
 import type { ItemAction } from "@/types/settings";
 import { cn } from "@/utils/cn";
 import { isMac } from "@/utils/is";
+import { resolveImageOcrRefresh } from "../hooks/clipboardOcrRefresh";
 import type { WindowVisibilityPayload } from "../hooks/previewController";
 import {
   isSpaceKey,
@@ -64,14 +66,6 @@ import NoteModal from "./NoteModal";
 
 /** 前 10 项的快捷键：index 0-8 对应 1-9，index 9 对应 0 */
 const KEY_HINTS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
-
-interface ClipboardUpdatedPayload {
-  cleanup?: number;
-  deduplicated?: boolean;
-  id?: string;
-  imported?: boolean;
-  kind?: ClipboardKind;
-}
 
 interface ClipboardMenuActionPayload {
   action: ClipboardAction;
@@ -98,6 +92,7 @@ const List: FC = () => {
   const keywordRef = useRef("");
   const reloadCurrentRangeRef = useRef<() => void>(() => {});
   const deferredReloadRef = useRef(false);
+  const deferredOcrReloadRef = useRef(false);
   // 剪贴板窗口启动即隐藏，初值取 false；首个 `window://visibility` show 事件会翻正。
   // dormant（隐藏）期间到达的剪贴板更新一律延后，不 reload 隐藏窗口。
   const clipboardWindowVisibleRef = useRef(false);
@@ -130,6 +125,7 @@ const List: FC = () => {
     patchItemById,
     reload,
     reloadCurrentRange,
+    resetAndReload,
     removeItemById,
     total,
   } = useClipboardItems({
@@ -168,6 +164,7 @@ const List: FC = () => {
     setSelectedId(null);
     if (keywordRef.current !== keyword) keywordRef.current = keyword;
     deferredReloadRef.current = false;
+    deferredOcrReloadRef.current = false;
     closePreview("filterChange");
   }, [snapshot]);
 
@@ -208,11 +205,34 @@ const List: FC = () => {
   useTauriListen(TAURI_EVENT.CLIPBOARD_GROUPS_UPDATED, handleGroupsUpdated);
 
   /**
-   * 收到剪贴板更新：仅在列表位于顶部时刷新；否则延后到用户回到顶部后再刷新，
-   * 避免打断当前浏览位置。
+   * 普通更新与 OCR 新结果在顶部刷新，避免打断浏览；OCR 清空立即丢弃
+   * 搜索缓存，以免已失效的匹配结果继续显示。
    * 用 ref 读取最新滚动位置，规避闭包陷旧值（事件订阅只挂载一次）。
    */
   const handleClipboardUpdated = (payload: ClipboardUpdatedPayload) => {
+    if (payload.ocr) {
+      const action = resolveImageOcrRefresh(payload.ocr, {
+        atTop: isAtTopRef.current,
+        enabled: settings.clipboard.ocr.enabled,
+        keyword: clipboardViewState.keyword,
+        visible: clipboardWindowVisibleRef.current,
+      });
+
+      if (action === "defer") {
+        deferredOcrReloadRef.current = true;
+      } else if (action === "reset") {
+        closePreview("ocrIndexCleared");
+        setSelectedId(null);
+        deferredReloadRef.current = false;
+        deferredOcrReloadRef.current = false;
+        resetAndReload();
+      } else if (action === "reload") {
+        requestReloadAtTop();
+      }
+
+      return;
+    }
+
     // 剪贴板窗口隐藏（冻结态）期间不立即 reload：只记 pending，避免隐藏期间频繁复制触发反复 IPC + 重渲染。
     if (!clipboardWindowVisibleRef.current) {
       deferredReloadRef.current = true;
@@ -300,7 +320,10 @@ const List: FC = () => {
       selectRangeOnOpen !== WINDOW_OPEN_SELECTION_PRESERVE ||
       selectCategoryOnOpen !== WINDOW_OPEN_SELECTION_PRESERVE ||
       selectGroupOnOpen !== WINDOW_OPEN_SELECTION_PRESERVE;
-    if (!scrollToTopOnOpen && !shouldResetSelection) return;
+    if (!scrollToTopOnOpen && !shouldResetSelection) {
+      if (deferredOcrReloadRef.current) requestReloadAtTop();
+      return;
+    }
 
     closePreview("windowOpenReset");
 
@@ -321,7 +344,10 @@ const List: FC = () => {
       clipboardViewState.groupId = openGroupId;
     }
 
-    if (!scrollToTopOnOpen) return;
+    if (!scrollToTopOnOpen) {
+      if (deferredOcrReloadRef.current) requestReloadAtTop();
+      return;
+    }
 
     setSelectedId(null);
     virtuosoRef.current?.scrollToIndex({ behavior: "auto", index: 0 });
@@ -759,6 +785,7 @@ const List: FC = () => {
     }
 
     deferredReloadRef.current = false;
+    deferredOcrReloadRef.current = false;
     reload();
   }
 
@@ -766,7 +793,7 @@ const List: FC = () => {
    * 消费已有 pending；用于窗口回顶偏好或用户手动回到顶部后的补刷。
    */
   function consumeDeferredReloadAtTop() {
-    if (!deferredReloadRef.current) return;
+    if (!deferredReloadRef.current && !deferredOcrReloadRef.current) return;
 
     requestReloadAtTop();
   }

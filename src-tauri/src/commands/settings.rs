@@ -29,6 +29,9 @@ pub async fn resume_global_shortcuts(app: AppHandle) -> Result<()> {
 /// 若 `general.trayIcon` 或 `appearance.language` 被改动，重建托盘菜单/显隐。
 #[tauri::command]
 pub async fn update_settings(app: AppHandle, patch: serde_json::Value) -> Result<Settings> {
+    let runtime = app.state::<crate::ocr::OcrRuntime>();
+    let _ocr_guard = runtime.gate.lock().await;
+    let before_ocr = app.state::<SettingsStore>().snapshot().clipboard.ocr;
     let patch_obj = patch.as_object();
     let touches_shortcuts = patch_obj
         .map(|m| m.contains_key("shortcuts"))
@@ -69,6 +72,10 @@ pub async fn update_settings(app: AppHandle, patch: serde_json::Value) -> Result
         admin::sync_scheduled_task(next.general.run_as_admin);
     }
 
+    if before_ocr != next.clipboard.ocr {
+        runtime.invalidate();
+        crate::ocr::notify_search(&app, !next.clipboard.ocr.enabled);
+    }
     emit_settings_updated(&app, &next);
 
     Ok(next)
@@ -77,7 +84,11 @@ pub async fn update_settings(app: AppHandle, patch: serde_json::Value) -> Result
 /// 恢复所有设置默认值，保留历史记录与资源文件。
 #[tauri::command]
 pub async fn reset_settings(app: AppHandle) -> Result<Settings> {
+    let runtime = app.state::<crate::ocr::OcrRuntime>();
+    let _ocr_guard = runtime.gate.lock().await;
     let next = app.state::<SettingsStore>().reset()?;
+    runtime.invalidate();
+    crate::ocr::notify_search(&app, !next.clipboard.ocr.enabled);
 
     apply_reset_side_effects(&app, &next);
     emit_settings_updated(&app, &next);
