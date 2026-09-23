@@ -39,7 +39,11 @@ import {
 } from "@/constants/windowOpenSelection";
 import { WINDOW_LABEL } from "@/constants/windows";
 import { useClipboardItems } from "@/hooks/useClipboardItems";
-import { useKeyboardEvent } from "@/hooks/useKeyboardEvent";
+import {
+  findEditableElement,
+  isEditableHandoffTarget,
+  useKeyboardEvent,
+} from "@/hooks/useKeyboardEvent";
 import { useTauriListen } from "@/hooks/useTauriListen";
 import { clipboardStatsState } from "@/stores/clipboardStats";
 import { clipboardViewState } from "@/stores/clipboardView";
@@ -596,6 +600,21 @@ const List: FC = () => {
       return;
     }
 
+    // 输入控件内的回车不粘贴：搜索框等交接控件只结束输入并让出焦点，焦点回到
+    // 列表后再次回车才粘贴选中项；备注等普通输入控件保留原生回车行为。
+    if (event.key === "Enter") {
+      const editableTarget = findEditableElement(event.target);
+
+      if (editableTarget) {
+        if (!isEditableHandoffTarget(editableTarget)) return;
+
+        event.preventDefault();
+        editableTarget.blur();
+
+        return;
+      }
+    }
+
     if (total === 0) return;
 
     if (event.key === "Enter") {
@@ -702,6 +721,16 @@ const List: FC = () => {
     }
 
     if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+
+    // 搜索框内上下移动视为把焦点交给列表，之后直接回车即可粘贴；
+    // 备注等普通输入控件保留原生光标移动。
+    const editableTarget = findEditableElement(event.target);
+
+    if (editableTarget) {
+      if (!isEditableHandoffTarget(editableTarget)) return;
+
+      editableTarget.blur();
+    }
 
     event.preventDefault();
 
@@ -1341,12 +1370,7 @@ function getSelectedIdAfterDelete(
  * 判断 Cmd/Ctrl+C 是否应交给浏览器原生复制，避免覆盖输入框或文本选区复制。
  */
 function shouldUseNativeCopy(event: KeyboardEvent) {
-  const target = event.target;
-  if (target instanceof HTMLElement) {
-    const tagName = target.tagName.toLowerCase();
-    if (target.isContentEditable) return true;
-    if (tagName === "input" || tagName === "textarea") return true;
-  }
+  if (findEditableElement(event.target)) return true;
 
   const selection = window.getSelection();
 

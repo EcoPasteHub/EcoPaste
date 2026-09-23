@@ -3,14 +3,14 @@
 //! 时序约束：[`ClipboardContext`] 是 `!Send`，调用方需在不跨 await 的同步段内完成调用
 //! （命令层照 `read_clipboard` 的写法处理）。
 //!
-//! 回环抑制：写回前向 [`WritebackGuard`] 登记将写入内容的 `content_hash`，
+//! 回环抑制：写回前向 [`WritebackGuard`] 登记内容指纹，
 //! OS 监听重新读到同内容时跳过入库，避免「点击粘贴 → 自动新增一条」回环。
 //! 哈希必须与 [`crate::clipboard::ingest::build_item`] 在 watcher 路径上将算出的哈希一致：
 //! - text / html / rtf：watcher 拿到的 plain/html/rtf 经 `draft_from_text` 后 `content` 即我们写入的串，
 //!   `content_hash(Text, written)` 自然匹配；
 //! - files：watcher 把路径列表用 `\n` 连接后哈希，与我们 `item.content` 一致；
-//! - image：watcher 把 PNG 字节再 sha256 → 文件名 → 哈希。前提是 OS pasteboard 不改像素，
-//!   且 clipboard-rs 的 PNG 重新编码确定。绝大多数复制路径满足，极端情况可能漏抑制一次（最多多入一条新行）。
+//! - image：按尺寸和 RGBA 像素登记；PNG 重编码或元数据变化不应变成新历史。
+//!   watcher 在落盘前消费像素指纹；已有数据库的文件名和哈希不变。
 //!
 //! 纯文本模式（`plain = true`）：忽略 `sub_kind`，写 `search_text`（OS 提供的纯文本表示），
 //! 缺失时退回 `content`。供「纯文本粘贴」快捷路径使用。
@@ -107,7 +107,7 @@ fn write_image(
     })?;
     let image = RustImageData::from_bytes(&bytes).map_err(clip_err)?;
 
-    guard.suppress(item.content_hash.clone());
+    guard.suppress(super::guard::image_writeback_fingerprint(&bytes)?);
     ctx.set_image(image).map_err(clip_err)?;
     Ok(())
 }
@@ -148,7 +148,7 @@ fn clip_err<E: std::fmt::Display>(err: E) -> AppError {
 
 #[cfg(test)]
 mod tests {
-    use super::super::payload::ImagePayload;
+    use super::super::payload::{ClipboardPayload, ImagePayload};
     use super::super::read::ClipboardReader;
     use super::*;
     use crate::clipboard::{build_item, ImageStore, WritebackGuard};
@@ -247,11 +247,50 @@ mod tests {
         assert_eq!(read_item.content, "Hello World");
     }
 
-    // 图片往返：写盘上的 PNG → 写剪贴板 → 读回 → 落盘的文件名应一致（去重哈希命中）。
+    /// Preserve all currently advertised clipboard formats around the opt-in native test.
+    struct ClipboardRestore(Vec<clipboard_rs::ClipboardContent>);
+
+    impl ClipboardRestore {
+        fn capture() -> Self {
+            let ctx = ClipboardContext::new().unwrap();
+            let formats = ctx.available_formats().unwrap();
+            let snapshot = formats
+                .iter()
+                .filter(|format| {
+                    // AppKit advertises legacy aliases alongside their writable UTI.
+                    !((format.as_str() == "Apple PNG pasteboard type"
+                        && formats.iter().any(|f| f == "public.png"))
+                        || (format.as_str() == "NeXT TIFF v4.0 pasteboard type"
+                            && formats.iter().any(|f| f == "public.tiff")))
+                })
+                .cloned()
+                .map(|format| {
+                    let bytes = ctx.get_buffer(&format).expect("snapshot clipboard format");
+                    clipboard_rs::ClipboardContent::Other(format, bytes)
+                })
+                .collect();
+            Self(snapshot)
+        }
+    }
+
+    impl Drop for ClipboardRestore {
+        fn drop(&mut self) {
+            let ctx = ClipboardContext::new().expect("restore clipboard context");
+            if self.0.is_empty() {
+                ctx.clear().expect("restore empty clipboard");
+            } else {
+                ctx.set(std::mem::take(&mut self.0))
+                    .expect("restore clipboard formats");
+            }
+        }
+    }
+
+    // 图片往返：写入系统剪贴板后即使重新编码，也必须识别为自身写回。
     #[test]
     #[ignore = "touches the real system clipboard; run with --ignored on a desktop session"]
     fn round_trip_image_matches_hash() {
         let _serial = crate::clipboard::test_lock::serial();
+        let _restore = ClipboardRestore::capture();
         let (_dir, store) = temp_store();
         let guard = WritebackGuard::new();
 
@@ -306,19 +345,22 @@ mod tests {
             .expect("should read image");
         let read_item = build_item(&store, &payload).unwrap().unwrap();
         assert_eq!(read_item.kind, ClipboardKind::Image);
-        // 往返期望 PNG 字节哈希一致 → 同 content_hash → guard 抑制。
-        assert_eq!(read_item.content_hash, item.content_hash);
-        assert!(guard.should_skip(&read_item.content_hash));
+        // Clipboard image encoding may change; decoded pixel identity must still suppress it.
+        let ClipboardPayload::Image(read_image) = payload else {
+            panic!("expected image");
+        };
+        assert!(guard.should_skip_image(&read_image.bytes).unwrap());
     }
 
     fn sample_png(w: u32, h: u32) -> Vec<u8> {
-        use std::io::Cursor;
+        use image::codecs::png::{CompressionType, FilterType, PngEncoder};
+        use image::ImageEncoder;
         let buf = image::RgbaImage::from_pixel(w, h, image::Rgba([4, 5, 6, 255]));
-        let mut out = Cursor::new(Vec::new());
-        image::DynamicImage::ImageRgba8(buf)
-            .write_to(&mut out, image::ImageFormat::Png)
+        let mut out = Vec::new();
+        PngEncoder::new_with_quality(&mut out, CompressionType::Best, FilterType::NoFilter)
+            .write_image(buf.as_raw(), w, h, image::ExtendedColorType::Rgba8)
             .unwrap();
-        out.into_inner()
+        out
     }
 
     struct TempDir(std::path::PathBuf);

@@ -308,6 +308,15 @@ impl ClipboardHandler for ClipboardChangeHandler {
             }
         };
 
+        // Match before materializing a second PNG file: the OS may re-encode our image.
+        if let super::payload::ClipboardPayload::Image(image) = &payload {
+            match self.guard.should_skip_image(&image.bytes) {
+                Ok(true) => return,
+                Ok(false) => {}
+                Err(err) => log::warn!("image writeback comparison failed: {err}"),
+            }
+        }
+
         let mut item = match build_item_with_settings(
             &self.store,
             &payload,

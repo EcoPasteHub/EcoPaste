@@ -3,7 +3,12 @@
 
 #![allow(clippy::unused_unit)]
 
-use std::time::Duration;
+use std::sync::{LazyLock, Mutex};
+use std::time::{Duration, Instant};
+
+use objc2_app_kit::{
+    NSApplication, NSApplicationActivationOptions, NSRunningApplication, NSWorkspace,
+};
 
 use tauri::{AppHandle, Manager};
 use tauri_nspanel::{
@@ -14,7 +19,14 @@ use super::{get_window, CLIPBOARD_WINDOW_LABEL, ONBOARDING_WINDOW_LABEL, PREFERE
 use crate::core::Result;
 use crate::settings::SettingsStore;
 
+#[path = "paste_target.rs"]
+mod paste_target;
+
 const CLIPBOARD_PANEL_SHOW_DELAY: Duration = Duration::from_millis(16);
+const PASTE_HANDOFF_TIMEOUT: Duration = Duration::from_secs(1);
+const PASTE_READINESS_POLL: Duration = Duration::from_millis(10);
+static PASTE_SESSION: LazyLock<Mutex<paste_target::PasteSession<Retained<NSRunningApplication>>>> =
+    LazyLock::new(|| Mutex::new(paste_target::PasteSession::default()));
 
 tauri_panel! {
     panel!(MainPanel {
@@ -128,6 +140,16 @@ pub fn handle_reopen(app_handle: &AppHandle, has_visible_windows: bool) {
 
 /// 所有 panel 方法必须在主线程。
 fn show_clipboard_panel(app_handle: &AppHandle) -> Result<()> {
+    let external = NSWorkspace::sharedWorkspace()
+        .frontmostApplication()
+        .filter(|app| is_external_paste_target(app));
+    let visible = get_window(app_handle, CLIPBOARD_WINDOW_LABEL)?
+        .is_visible()
+        .map_err(|err| anyhow::anyhow!(err))?;
+    let generation = PASTE_SESSION
+        .lock()
+        .unwrap_or_else(|err| err.into_inner())
+        .begin_show(external, visible);
     let handle = app_handle.clone();
 
     tauri::async_runtime::spawn(async move {
@@ -135,6 +157,13 @@ fn show_clipboard_panel(app_handle: &AppHandle) -> Result<()> {
 
         let panel_handle = handle.clone();
         if let Err(err) = handle.run_on_main_thread(move || {
+            {
+                let mut session = PASTE_SESSION.lock().unwrap_or_else(|err| err.into_inner());
+                if !session.is_current(generation) {
+                    return;
+                }
+                session.mark_shown();
+            }
             if let Ok(panel) = panel_handle.get_webview_panel(CLIPBOARD_WINDOW_LABEL) {
                 panel.show_and_make_key();
                 // show 时切到 can_join_all_spaces：跟随用户当前 space 出现。
@@ -158,48 +187,166 @@ fn show_clipboard_panel(app_handle: &AppHandle) -> Result<()> {
 }
 
 fn hide_clipboard_panel(app_handle: &AppHandle) -> Result<()> {
+    let panel = app_handle
+        .get_webview_panel(CLIPBOARD_WINDOW_LABEL)
+        .map_err(|err| anyhow::anyhow!("clipboard panel is unavailable: {err:?}"))?;
+    PASTE_SESSION
+        .lock()
+        .unwrap_or_else(|err| err.into_inner())
+        .close();
+    app_handle
+        .run_on_main_thread(move || {
+            panel.hide();
+            // hide 后切回 move_to_active_space：下次 show 时按当前 space 重新落位。
+            panel.set_collection_behavior(
+                CollectionBehavior::new()
+                    .stationary()
+                    .move_to_active_space()
+                    .full_screen_auxiliary()
+                    .into(),
+            );
+        })
+        .map_err(|e| anyhow::anyhow!(e))?;
+    Ok(())
+}
+
+fn is_external_paste_target(app: &NSRunningApplication) -> bool {
+    app.processIdentifier() != std::process::id() as i32 && !app.isTerminated()
+}
+
+/// Await the actual main-thread operation, not merely successful event-loop submission.
+async fn on_main_thread<T: Send + 'static>(
+    app_handle: &AppHandle,
+    operation: impl FnOnce(AppHandle) -> Result<T> + Send + 'static,
+) -> Result<T> {
+    let (sender, receiver) = tokio::sync::oneshot::channel();
     let handle = app_handle.clone();
     app_handle
         .run_on_main_thread(move || {
-            if let Ok(panel) = handle.get_webview_panel(CLIPBOARD_WINDOW_LABEL) {
-                panel.hide();
-                // hide 后切回 move_to_active_space：下次 show 时按当前 space 重新落位。
-                panel.set_collection_behavior(
-                    CollectionBehavior::new()
-                        .stationary()
-                        .move_to_active_space()
-                        .full_screen_auxiliary()
-                        .into(),
+            if !sender.is_closed() {
+                let _ = sender.send(operation(handle));
+            }
+        })
+        .map_err(|err| anyhow::anyhow!(err))?;
+    tokio::time::timeout(PASTE_HANDOFF_TIMEOUT, receiver)
+        .await
+        .map_err(|_| anyhow::anyhow!("paste main-thread acknowledgment timed out"))?
+        .map_err(|_| anyhow::anyhow!("paste main-thread acknowledgment was lost"))?
+}
+
+/// Retain the destination instance, hand off keyboard focus, then verify and post on the same main-thread turn.
+pub async fn paste_to_external_application(app_handle: &AppHandle, pinned: bool) -> Result<()> {
+    let (target, generation) = on_main_thread(app_handle, move |handle| {
+        let current = NSWorkspace::sharedWorkspace().frontmostApplication();
+        let origin = PASTE_SESSION
+            .lock()
+            .unwrap_or_else(|err| err.into_inner())
+            .origin()
+            .cloned();
+        let target =
+            paste_target::select_target(current, origin, |app| is_external_paste_target(app))
+                .ok_or_else(|| anyhow::anyhow!("no live external paste target"))?;
+        let panel = handle
+            .get_webview_panel(CLIPBOARD_WINDOW_LABEL)
+            .map_err(|err| anyhow::anyhow!("paste panel is unavailable: {err:?}"))?;
+
+        if pinned {
+            PASTE_SESSION
+                .lock()
+                .unwrap_or_else(|err| err.into_inner())
+                .cancel_pending_show();
+            panel.resign_key_window();
+        } else {
+            // Keep geometry, preview and visibility/lifecycle effects of normal hiding.
+            super::hide_window(&handle, CLIPBOARD_WINDOW_LABEL)?;
+        }
+
+        let mtm = MainThreadMarker::new()
+            .ok_or_else(|| anyhow::anyhow!("paste handoff is not on main thread"))?;
+        let application = NSApplication::sharedApplication(mtm);
+        if application.respondsToSelector(objc2::sel!(yieldActivationToApplication:)) {
+            application.yieldActivationToApplication(&target);
+        }
+        if !target.activateWithOptions(NSApplicationActivationOptions::empty()) {
+            return Err(anyhow::anyhow!("paste target activation was refused").into());
+        }
+        let generation = PASTE_SESSION
+            .lock()
+            .unwrap_or_else(|err| err.into_inner())
+            .generation();
+        Ok((target, generation))
+    })
+    .await?;
+
+    let deadline = Instant::now() + PASTE_HANDOFF_TIMEOUT;
+    loop {
+        let target = target.clone();
+        let posted = on_main_thread(app_handle, move |handle| {
+            if !PASTE_SESSION
+                .lock()
+                .unwrap_or_else(|err| err.into_inner())
+                .is_current(generation)
+            {
+                return Err(
+                    anyhow::anyhow!("paste handoff was superseded by a window change").into(),
                 );
             }
-        })
-        .map_err(|e| anyhow::anyhow!(e))?;
-    Ok(())
-}
-
-/// 让主 panel 放弃 key 状态，但保持可见——用于固定窗口下的粘贴：
-/// panel 仍是 key window 时 CGEvent ⌘V 会被 panel 自身吞掉，resign 后键焦点回到前台 App 的窗口。
-pub fn resign_clipboard_panel_key(app_handle: &AppHandle) -> Result<()> {
-    let handle = app_handle.clone();
-    app_handle
-        .run_on_main_thread(move || {
-            if let Ok(panel) = handle.get_webview_panel(CLIPBOARD_WINDOW_LABEL) {
-                panel.resign_key_window();
+            if !is_external_paste_target(&target) {
+                return Err(anyhow::anyhow!("paste target is no longer running").into());
             }
-        })
-        .map_err(|e| anyhow::anyhow!(e))?;
-    Ok(())
-}
-
-/// 粘贴完成后把 key 状态拿回来：固定窗口模式下用户还要继续用键盘 / 列表操作。
-pub fn make_clipboard_panel_key(app_handle: &AppHandle) -> Result<()> {
-    let handle = app_handle.clone();
-    app_handle
-        .run_on_main_thread(move || {
-            if let Ok(panel) = handle.get_webview_panel(CLIPBOARD_WINDOW_LABEL) {
-                panel.make_key_window();
+            let panel = handle
+                .get_webview_panel(CLIPBOARD_WINDOW_LABEL)
+                .map_err(|err| anyhow::anyhow!("paste panel is unavailable: {err:?}"))?;
+            let frontmost = NSWorkspace::sharedWorkspace().frontmostApplication();
+            if !paste_target::ready_to_paste(
+                is_external_paste_target(&target),
+                frontmost.as_deref() == Some(&*target) && target.isActive(),
+                panel.as_panel().isKeyWindow(),
+                panel.is_visible(),
+                pinned,
+            ) {
+                return Ok(false);
             }
+            crate::keystroke::simulate_paste()?;
+            Ok(true)
         })
-        .map_err(|e| anyhow::anyhow!(e))?;
+        .await?;
+        if posted {
+            break;
+        }
+        if Instant::now() >= deadline {
+            return Err(anyhow::anyhow!("paste target did not acquire keyboard focus").into());
+        }
+        tokio::time::sleep(PASTE_READINESS_POLL).await;
+    }
+
+    if pinned {
+        tokio::time::sleep(Duration::from_millis(50)).await;
+        let restore_result = on_main_thread(app_handle, move |handle| {
+            if super::is_clipboard_window_pinned()
+                && PASTE_SESSION
+                    .lock()
+                    .unwrap_or_else(|err| err.into_inner())
+                    .is_current(generation)
+                && is_external_paste_target(&target)
+                && NSWorkspace::sharedWorkspace()
+                    .frontmostApplication()
+                    .as_deref()
+                    == Some(&*target)
+            {
+                let panel = handle
+                    .get_webview_panel(CLIPBOARD_WINDOW_LABEL)
+                    .map_err(|err| anyhow::anyhow!("paste panel is unavailable: {err:?}"))?;
+                if panel.is_visible() {
+                    panel.make_key_window();
+                }
+            }
+            Ok(())
+        })
+        .await;
+        if let Err(err) = restore_result {
+            log::warn!("restore pinned panel after completed paste failed: {err:?}");
+        }
+    }
     Ok(())
 }

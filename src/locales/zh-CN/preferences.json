@@ -461,7 +461,7 @@
       },
       "permissions": {
         "accessibility": {
-          "description": "用于快捷粘贴、窗口控制和更稳定的系统交互。",
+          "description": "用于快捷粘贴、窗口控制和更稳定的系统交互。若系统设置中已开启但此处仍为关闭，说明授权绑定的是旧版本，请在「辅助功能」列表中移除 EcoPaste 后重新添加。",
           "title": "辅助功能访问权限"
         },
         "adminRestartConfirm": {

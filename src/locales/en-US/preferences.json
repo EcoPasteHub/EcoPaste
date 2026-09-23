@@ -461,7 +461,7 @@
       },
       "permissions": {
         "accessibility": {
-          "description": "Used for quick paste, window control, and more reliable system interactions.",
+          "description": "Used for quick paste, window control, and more reliable system interactions. If it is enabled in System Settings but still shows off here, the grant belongs to an older build: remove EcoPaste from the Accessibility list and add it again.",
           "title": "Accessibility Permission"
         },
         "adminRestartConfirm": {

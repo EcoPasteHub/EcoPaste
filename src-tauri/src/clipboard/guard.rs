@@ -62,6 +62,22 @@ impl WritebackGuard {
         true
     }
 
+    /// Compare decoded pixels only while an image writeback is pending. PNG encoders and
+    /// clipboard format conversion can change bytes without changing the image.
+    pub fn should_skip_image(&self, bytes: &[u8]) -> anyhow::Result<bool> {
+        let has_pending_image = {
+            let mut pending = self.pending.lock().expect("writeback guard poisoned");
+            pending.retain(|p| p.at.elapsed() <= SUPPRESS_TTL);
+            pending
+                .iter()
+                .any(|p| p.content_hash.starts_with("image-pixels:"))
+        };
+        if !has_pending_image {
+            return Ok(false);
+        }
+        Ok(self.should_skip(&image_writeback_fingerprint(bytes)?))
+    }
+
     /// 单测用：直接塞一条已过期登记。
     #[cfg(test)]
     fn suppress_expired_for_test(&self, content_hash: String) {
@@ -81,9 +97,55 @@ impl WritebackGuard {
     }
 }
 
+/// Pixel identity, independent of PNG compression/metadata; does not alter stored history hashes.
+pub(super) fn image_writeback_fingerprint(bytes: &[u8]) -> anyhow::Result<String> {
+    let pixels = image::load_from_memory(bytes)?.into_rgba8();
+    let mut hasher = blake3::Hasher::new();
+    hasher.update(&pixels.width().to_le_bytes());
+    hasher.update(&pixels.height().to_le_bytes());
+    hasher.update(pixels.as_raw());
+    Ok(format!("image-pixels:{}", hasher.finalize().to_hex()))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn encoded_image(compression: image::codecs::png::CompressionType, red: u8) -> Vec<u8> {
+        use image::ImageEncoder;
+        let mut bytes = Vec::new();
+        let pixels = image::RgbaImage::from_pixel(64, 48, image::Rgba([red, 10, 20, 255]));
+        image::codecs::png::PngEncoder::new_with_quality(
+            &mut bytes,
+            compression,
+            image::codecs::png::FilterType::NoFilter,
+        )
+        .write_image(pixels.as_raw(), 64, 48, image::ExtendedColorType::Rgba8)
+        .unwrap();
+        bytes
+    }
+
+    #[test]
+    fn image_compare_does_not_decode_when_no_writeback_is_pending() {
+        let guard = WritebackGuard::new();
+        assert!(!guard.should_skip_image(b"not an image").unwrap());
+        guard.suppress_expired_for_test("image-pixels:expired".to_owned());
+        assert!(!guard.should_skip_image(b"not an image").unwrap());
+    }
+
+    #[test]
+    fn image_writeback_matches_pixels_after_png_reencoding() {
+        use image::codecs::png::CompressionType;
+        let original = encoded_image(CompressionType::Fast, 50);
+        let rewritten = encoded_image(CompressionType::Best, 50);
+        let other = encoded_image(CompressionType::Fast, 90);
+        assert_ne!(original, rewritten);
+        let guard = WritebackGuard::new();
+        guard.suppress(image_writeback_fingerprint(&original).unwrap());
+        assert!(!guard.should_skip_image(&other).unwrap());
+        assert!(guard.should_skip_image(&rewritten).unwrap());
+        assert!(!guard.should_skip_image(&rewritten).unwrap());
+    }
 
     #[test]
     fn skips_once_then_resets() {

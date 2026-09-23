@@ -18,6 +18,7 @@ dependencies = [
  "file_icon_provider",
  "image",
  "log",
+ "macos-accessibility-client",
  "objc2",
  "objc2-app-kit",
  "objc2-foundation",

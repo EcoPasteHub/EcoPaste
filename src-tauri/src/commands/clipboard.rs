@@ -391,13 +391,7 @@ pub async fn write_to_clipboard(
     Ok(())
 }
 
-/// 「点击列表项 → 自动粘贴」的组合命令：写回剪贴板 + 隐藏剪贴板窗口 + 触发系统级粘贴。
-///
-/// 窗口已是非激活面板（macOS NSPanel `nonactivating_panel` / Windows `focusable=false`），
-/// show 时不会把前台 App 推走，前台焦点始终在用户原窗口。
-/// macOS 上 panel 会成为 key window，CGEvent ⌘V 若不先 hide 会被 panel 自己吞掉，
-/// hide 后插入 50ms 让 panel 真正 order_out（hide_window 是 run_on_main_thread 异步派发，
-/// 右键菜单触发时主线程仍在处理菜单关闭，不等会出现 ⌘V 早于 hide 完成的竞态）。
+/// 写回剪贴板并粘贴到外部应用；macOS 等待实际焦点交接，失败时保留剪贴板供手动粘贴。
 #[tauri::command]
 pub async fn paste_clipboard_item(
     app: AppHandle,
@@ -423,33 +417,42 @@ pub async fn paste_clipboard_item(
     crate::clipboard::write_to_clipboard(&store, guard.inner().as_ref(), &item, write_plain)?;
     mark_item_reused_if_enabled(&app, &pool, &id, item.kind).await?;
 
-    if window::is_clipboard_window_pinned() {
-        // 固定时窗口保持可见：macOS 上 panel 仍是 key window 会吞掉 ⌘V，需先 resign key
-        // 让键焦点回到前台 App 的窗口；Windows 剪贴板窗口 focusable=false，无需处理。
-        #[cfg(target_os = "macos")]
-        if let Err(err) = window::macos::resign_clipboard_panel_key(&app) {
-            log::warn!("resign clipboard panel key before paste failed: {err:?}");
-        }
-    } else if let Err(err) = window::hide_window(&app, CLIPBOARD_WINDOW_LABEL) {
-        log::warn!("hide clipboard window before paste failed: {err:?}");
+    // 未获授权时系统会静默丢弃模拟按键，表现为「窗口关了却没粘贴」。这里提前拦截：
+    // 内容已写入剪贴板，窗口保持可见以展示提示，并引导用户完成授权。
+    if !crate::keystroke::is_paste_permitted() {
+        log::warn!("simulated paste skipped: accessibility permission not granted");
+        crate::keystroke::prompt_paste_permission();
+
+        let lang = crate::i18n::current_language(&app);
+
+        return Err(AppError::Clipboard(
+            crate::i18n::commands::label(
+                lang,
+                crate::i18n::commands::Key::PasteAccessibilityDenied,
+            )
+            .to_string(),
+        ));
     }
 
-    // hide / resign 都是 run_on_main_thread 异步派发；不等一拍，simulate_paste 的 ⌘V
-    // 会赶在 panel 真正 order_out / 让出 key 前命中 panel 自己（webview 吞掉）。
-    tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+    #[cfg(target_os = "macos")]
+    let paste_result =
+        window::macos::paste_to_external_application(&app, window::is_clipboard_window_pinned())
+            .await;
 
-    crate::keystroke::simulate_paste()?;
+    #[cfg(target_os = "windows")]
+    let paste_result =
+        window::windows::paste_to_external_application(&app, window::is_clipboard_window_pinned())
+            .await;
 
-    // 固定窗口下粘贴完把 key 拿回来，让用户继续用键盘 / 列表操作；
-    // 再等一拍让 ⌘V 事件被目标 App 消费完，避免 make_key 抢回焦点把按键吞回 panel。
-    if window::is_clipboard_window_pinned() {
-        #[cfg(target_os = "macos")]
-        {
-            tokio::time::sleep(std::time::Duration::from_millis(50)).await;
-            if let Err(err) = window::macos::make_clipboard_panel_key(&app) {
-                log::warn!("restore clipboard panel key after paste failed: {err:?}");
-            }
-        }
+    if let Err(err) = paste_result {
+        log::warn!("external paste handoff failed: {err:?}");
+        return Err(AppError::Clipboard(
+            crate::i18n::commands::label(
+                crate::i18n::current_language(&app),
+                crate::i18n::commands::Key::PasteTargetUnavailable,
+            )
+            .to_string(),
+        ));
     }
 
     Ok(())
