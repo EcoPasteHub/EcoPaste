@@ -1,5 +1,6 @@
 import { useMotionValue, useSpring, useTransform } from "motion/react";
 import { useLayoutEffect, useRef } from "react";
+import { useReduceMotion } from "@/hooks/useReduceMotion";
 import { PREVIEW_SPRING } from "./constants";
 import { buildConnectorPath, type PreviewConnector } from "./geometry";
 
@@ -20,6 +21,7 @@ export function usePreviewMotion(
   panelRect: PreviewPanelRect,
   connector: PreviewConnector,
 ) {
+  const reduceMotion = useReduceMotion();
   const activeSessionRef = useRef<number | null>(null);
   const jumpUntilMeasuredSessionRef = useRef<number | null>(null);
   const panelX = useMotionValue(panelRect.left);
@@ -64,8 +66,11 @@ export function usePreviewMotion(
     if (sessionId === null) return;
 
     const isNewSession = activeSessionRef.current !== sessionId;
+    // 减少动效时不做 spring 跟随，面板与连接线直接跳到目标位置。
     const shouldJump =
-      isNewSession || jumpUntilMeasuredSessionRef.current === sessionId;
+      reduceMotion ||
+      isNewSession ||
+      jumpUntilMeasuredSessionRef.current === sessionId;
 
     const values = [
       [panelX, panelRect.left],
@@ -157,6 +162,7 @@ export function usePreviewMotion(
     panelWidth,
     panelX,
     panelY,
+    reduceMotion,
     sessionId,
     sourceDotX,
     sourceDotXValue,

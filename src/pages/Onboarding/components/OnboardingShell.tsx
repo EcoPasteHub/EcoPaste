@@ -1,7 +1,8 @@
 import { Progress } from "antd";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import type { FC, ReactNode } from "react";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { useReduceMotion } from "@/hooks/useReduceMotion";
 import { cn } from "@/utils/cn";
 import { isMac } from "@/utils/is";
 import type { OnboardingStepDefinition } from "../types";
@@ -18,8 +19,7 @@ interface OnboardingShellProps {
 const OnboardingShell: FC<OnboardingShellProps> = (props) => {
   const { actions, activeIndex, activeStepId, children, direction, steps } =
     props;
-  const shouldReduceMotion = useReducedMotion();
-  const reduceMotion = shouldReduceMotion === true;
+  const reduceMotion = useReduceMotion();
 
   const progress = Math.round(((activeIndex + 1) / steps.length) * 100);
   const contentVariants = reduceMotion

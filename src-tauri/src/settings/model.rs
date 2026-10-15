@@ -75,6 +75,8 @@ pub enum OnboardingLegacyImportType {
 pub struct Appearance {
     pub theme: Theme,
     pub language: Language,
+    /// 减少界面动效：过渡与动画压缩到几乎不可见，列表跟随滚动改为瞬时。
+    pub reduce_motion: bool,
 }
 
 impl Default for Appearance {
@@ -82,6 +84,7 @@ impl Default for Appearance {
         Self {
             theme: Theme::Auto,
             language: Language::ZhCN,
+            reduce_motion: false,
         }
     }
 }

@@ -4,20 +4,23 @@ import type { ConfigProviderProps } from "antd";
 import { App as AntdApp, ConfigProvider } from "antd";
 import enUS from "antd/locale/en_US";
 import zhCN from "antd/locale/zh_CN";
+import { MotionConfig } from "motion/react";
 import type { FC } from "react";
-import { use, useEffect } from "react";
+import { use, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { RouterProvider } from "react-router";
 import { useSnapshot } from "valtio";
 import { notifyWindowReady } from "@/commands";
 import { WINDOW_LABEL } from "@/constants/windows";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { useReduceMotion } from "@/hooks/useReduceMotion";
 import { router } from "./router";
 import { settingsReady, settingsState } from "./stores/settings";
 import "./stores/windowLifecycle";
 import type { Language } from "./types/settings";
 import { setMessageApi, setModalApi } from "./utils/feedback";
 import { log } from "./utils/log";
+import { REDUCE_MOTION_CLASS } from "./utils/motion";
 
 const ANTD_MODAL_CONFIG = {
   centered: true,
@@ -60,6 +63,21 @@ const App: FC = () => {
   const language = settings.appearance.language;
   const antdTheme = useAppTheme(mode);
   const locale = resolveAntdLocale(language);
+  const reduceMotion = useReduceMotion();
+  // antd 弹层动画由 rc-motion 驱动，其状态机靠 transitionend 推进；
+  // 走官方 motion token 关闭，避免被全局 CSS 压成 0 时长后卡在隐藏态。
+  const themeConfig = useMemo(
+    () => ({ ...antdTheme, token: { motion: !reduceMotion } }),
+    [antdTheme, reduceMotion],
+  );
+
+  // 与 isReduceMotionEnabled() 共用同一标记类：CSS 抑制与命令式滚动判定走同一份状态。
+  useEffect(() => {
+    document.documentElement.classList.toggle(
+      REDUCE_MOTION_CLASS,
+      reduceMotion,
+    );
+  }, [reduceMotion]);
 
   useEffect(() => {
     document.documentElement.lang = language;
@@ -93,11 +111,17 @@ const App: FC = () => {
   });
 
   return (
-    <ConfigProvider locale={locale} modal={ANTD_MODAL_CONFIG} theme={antdTheme}>
-      <AntdApp>
-        <AppContent />
-      </AntdApp>
-    </ConfigProvider>
+    <MotionConfig reducedMotion={reduceMotion ? "always" : "never"}>
+      <ConfigProvider
+        locale={locale}
+        modal={ANTD_MODAL_CONFIG}
+        theme={themeConfig}
+      >
+        <AntdApp>
+          <AppContent />
+        </AntdApp>
+      </ConfigProvider>
+    </MotionConfig>
   );
 };
 

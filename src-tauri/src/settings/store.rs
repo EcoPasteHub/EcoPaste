@@ -346,6 +346,10 @@ mod tests {
             parsed.clipboard.window.select_group_on_open,
             crate::settings::WINDOW_OPEN_SELECTION_PRESERVE
         );
+        assert!(
+            !parsed.appearance.reduce_motion,
+            "reduce motion stays opt-in for settings files written before the field existed"
+        );
     }
 
     #[test]

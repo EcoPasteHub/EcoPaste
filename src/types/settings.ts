@@ -79,6 +79,7 @@ export interface General {
 export interface Appearance {
   theme: Theme;
   language: Language;
+  reduceMotion: boolean;
 }
 
 export interface Shortcuts {

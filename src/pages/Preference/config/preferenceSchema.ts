@@ -556,6 +556,15 @@ export const preferenceTabs: PreferenceTab[] = [
             },
           },
           {
+            control: { type: "switch" },
+            id: "appearance.reduceMotion",
+            keywords: ["animation", "motion", "transition", "performance"],
+            path: ["appearance", "reduceMotion"],
+            value: (settings) => {
+              return settings.appearance.reduceMotion;
+            },
+          },
+          {
             control: { max: 5, min: 1, suffixKey: "lines", type: "number" },
             id: "appearance.textMaxLines",
             keywords: ["density", "text", "line", "compact"],

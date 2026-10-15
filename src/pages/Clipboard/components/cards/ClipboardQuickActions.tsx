@@ -1,5 +1,5 @@
 import { useUnmount } from "ahooks";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import type { FC, MouseEvent, SyntheticEvent } from "react";
 import { useRef, useState } from "react";
 import Tooltip from "@/components/Tooltip";
@@ -9,6 +9,7 @@ import {
   isCopyItemAction,
   resolveItemActionPresentation,
 } from "@/constants/itemActions";
+import { useReduceMotion } from "@/hooks/useReduceMotion";
 import type { ClipboardItem } from "@/types/clipboard";
 import type { ItemAction } from "@/types/settings";
 import { cn } from "@/utils/cn";
@@ -36,7 +37,7 @@ interface QuickActionButtonProps {
  */
 const ClipboardQuickActions: FC<ClipboardQuickActionsProps> = (props) => {
   const { item, labels, onQuickAction, quickActions, visible } = props;
-  const shouldReduceMotion = useReducedMotion();
+  const shouldReduceMotion = useReduceMotion();
   const availableActions = filterAvailableItemActions(quickActions, item);
   const enabled =
     availableActions.length > 0 && Boolean(labels && onQuickAction);
