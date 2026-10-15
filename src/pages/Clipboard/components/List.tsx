@@ -54,6 +54,7 @@ import type {
 import type { ItemAction } from "@/types/settings";
 import { cn } from "@/utils/cn";
 import { isMac } from "@/utils/is";
+import { isReduceMotionEnabled } from "@/utils/motion";
 import type { WindowVisibilityPayload } from "../hooks/previewController";
 import {
   isSpaceKey,
@@ -710,8 +711,10 @@ const List: FC = () => {
     if (!next) return;
 
     setSelectedId(next.item.id);
+    // 跟随「减少动画效果」偏好：关闭时平滑滚动；开启或系统偏好减少动效时瞬时到位。
+    // smooth 是按距离计算时长的动画，按住方向键连按时会被反复重启，选中框追不上按键。
     virtuosoRef.current?.scrollIntoView({
-      behavior: "smooth",
+      behavior: isReduceMotionEnabled() ? "auto" : "smooth",
       index: next.index,
     });
 

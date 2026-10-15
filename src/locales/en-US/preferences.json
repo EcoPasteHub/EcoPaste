@@ -203,6 +203,10 @@
           },
           "title": "Language"
         },
+        "reduceMotion": {
+          "description": "Turn off interface transitions and make list scrolling snap into place.",
+          "title": "Reduce Motion"
+        },
         "showOriginalPreview": {
           "description": "Records with notes show the note by default, then temporarily reveal original content when hovering over the card.",
           "title": "Show Original on Hover"

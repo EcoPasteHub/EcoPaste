@@ -1,6 +1,7 @@
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
 import type { FC, ReactNode } from "react";
 import { useLayoutEffect, useRef, useState } from "react";
+import { useReduceMotion } from "@/hooks/useReduceMotion";
 import { cn } from "@/utils/cn";
 import NoteAnnotation from "./NoteAnnotation";
 
@@ -26,7 +27,7 @@ interface NoteContentSwitcherProps {
  */
 const NoteContentSwitcher: FC<NoteContentSwitcherProps> = (props) => {
   const { children, note, showOriginal } = props;
-  const shouldReduceMotion = useReducedMotion();
+  const shouldReduceMotion = useReduceMotion();
   const noteRef = useRef<HTMLDivElement>(null);
   const originalRef = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState<number | "auto">("auto");

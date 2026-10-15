@@ -1,6 +1,6 @@
 import { getName, getVersion } from "@tauri-apps/api/app";
 import { useMount } from "ahooks";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import type { ChangeEvent, FC } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -20,6 +20,7 @@ import {
 } from "@/commands";
 import ScrollArea from "@/components/ScrollArea";
 import { TAURI_EVENT } from "@/constants/events";
+import { useReduceMotion } from "@/hooks/useReduceMotion";
 import { useTauriListen } from "@/hooks/useTauriListen";
 import { settingsState } from "@/stores/settings";
 import { preloadSourceApps, reloadSourceApps } from "@/stores/sourceApps";
@@ -70,8 +71,7 @@ interface AppMetadata {
 const Preference: FC = () => {
   const { t } = useTranslation("preferences");
   const settings = useSnapshot(settingsState) as Settings;
-  const shouldReduceMotion = useReducedMotion();
-  const reduceMotion = shouldReduceMotion === true;
+  const reduceMotion = useReduceMotion();
   const contentRef = useRef<HTMLDivElement | null>(null);
   const [activeTabId, setActiveTabId] = useState<PreferenceTabId>("record");
   const [activeSectionId, setActiveSectionId] = useState("capture");

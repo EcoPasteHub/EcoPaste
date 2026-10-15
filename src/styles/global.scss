@@ -5,6 +5,23 @@ html {
     --uno: scheme-dark;
   }
 
+  // 类名与 src/utils/motion.ts 的 REDUCE_MOTION_CLASS 对应，由 useReduceMotion 写入。
+  // 应用开关打开或系统偏好减少动效时，统一压缩过渡与动画。
+  //
+  // 排除带 `ant-` 类前缀的元素：antd 弹层动画由 rc-motion 驱动，其状态机靠过渡结束
+  // 事件推进；外部把时长压成非零的极短值会让它等不到事件而卡住。antd 自身的动画改由
+  // ConfigProvider 的 theme token `motion` 关闭（见 src/App.tsx）。
+  &.reduce-motion {
+    *:not([class^="ant-"]):not([class*=" ant-"]),
+    *:not([class^="ant-"]):not([class*=" ant-"])::before,
+    *:not([class^="ant-"]):not([class*=" ant-"])::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
   body {
     --uno: text-sm text-ant-text;
 
