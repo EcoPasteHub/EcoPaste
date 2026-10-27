@@ -48,6 +48,7 @@ pub fn setup_clipboard_panel(app_handle: &AppHandle) -> Result<()> {
     panel.set_corner_radius(16.0);
     panel.set_level(PanelLevel::Dock.value());
     panel.set_style_mask(StyleMask::empty().resizable().nonactivating_panel().into());
+    sync_prevents_activation(panel.as_panel());
     panel.set_collection_behavior(
         CollectionBehavior::new()
             .stationary()
@@ -74,6 +75,24 @@ pub fn setup_clipboard_panel(app_handle: &AppHandle) -> Result<()> {
     panel.set_event_handler(Some(handler.as_ref()));
 
     Ok(())
+}
+
+/// 同步 WindowServer 侧的「禁止激活」标记。
+///
+/// panel 由普通 NSWindow 经 `object_setClass` 转来，创建后再设置的 `nonactivating_panel`
+/// 只改了 AppKit 侧 style mask，WindowServer 仍按可激活窗口处理：点击 panel 会激活 EcoPaste，
+/// 前台 App 随之失活，其输入框失焦，后续模拟的 ⌘V 也落不到原输入框。
+fn sync_prevents_activation(panel: &NSPanel) {
+    let selector = objc2::sel!(_setPreventsActivation:);
+
+    if !panel.respondsToSelector(selector) {
+        log::warn!("NSPanel does not respond to _setPreventsActivation:");
+        return;
+    }
+
+    unsafe {
+        let _: () = msg_send![panel, _setPreventsActivation: true];
+    }
 }
 
 pub fn show_window(app_handle: &AppHandle, label: &str) -> Result<()> {
