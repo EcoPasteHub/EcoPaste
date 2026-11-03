@@ -99,7 +99,7 @@ pub async fn sync_now(app: &AppHandle) -> Result<WebDavSyncResult> {
                 let _ = app.emit("settings://updated", &next);
                 let _ = app.emit(WEBDAV_STATUS_UPDATED_EVENT, &next.webdav);
             }
-            Err(AppError::Other(anyhow!("WebDAV 同步失败: {err_msg}")))
+            Err(AppError::Other(anyhow!("{err_msg}")))
         }
     }
 }

@@ -136,6 +136,8 @@ impl WebDavClient {
 
         let mkcol_method = Method::from_bytes(b"MKCOL")
             .map_err(|err| AppError::Other(anyhow!("无效 HTTP 方法: {err}")))?;
+        let propfind_method = Method::from_bytes(b"PROPFIND")
+            .map_err(|err| AppError::Other(anyhow!("无效 HTTP 方法: {err}")))?;
 
         for part in parts {
             if !current.is_empty() {
@@ -145,9 +147,25 @@ impl WebDavClient {
             let dir_url = format!("{current}/");
             let url = self.build_url(&dir_url)?;
 
+            // 优先通过 PROPFIND 检查目录是否已存在
+            let mut prop_headers = self.headers();
+            prop_headers.insert("Depth", HeaderValue::from_static("0"));
+            if let Ok(check_resp) = self
+                .client
+                .request(propfind_method.clone(), url.clone())
+                .headers(prop_headers)
+                .send()
+                .await
+            {
+                let check_status = check_resp.status();
+                if check_status.is_success() || check_status == StatusCode::MULTI_STATUS {
+                    continue;
+                }
+            }
+
             let resp = self
                 .client
-                .request(mkcol_method.clone(), url)
+                .request(mkcol_method.clone(), url.clone())
                 .headers(self.headers())
                 .send()
                 .await
@@ -160,7 +178,18 @@ impl WebDavClient {
                 && status != StatusCode::NO_CONTENT
                 && status != StatusCode::METHOD_NOT_ALLOWED
             {
-                log::warn!("MKCOL for {current} returned status {status}");
+                let error_text = resp.text().await.unwrap_or_default();
+                log::warn!("MKCOL for {url} returned status {status}: {error_text}");
+
+                if status == StatusCode::FORBIDDEN
+                    || status == StatusCode::UNAUTHORIZED
+                    || status == StatusCode::INTERNAL_SERVER_ERROR
+                {
+                    return Err(AppError::Other(anyhow!(
+                        "创建 WebDAV 目录 '{current}' 失败: {}",
+                        format_http_error(status, &error_text)
+                    )));
+                }
             }
         }
 
@@ -177,7 +206,7 @@ impl WebDavClient {
 
         let resp = self
             .client
-            .put(url)
+            .put(url.clone())
             .headers(headers)
             .body(data)
             .send()
@@ -188,8 +217,10 @@ impl WebDavClient {
         if !status.is_success() && status != StatusCode::CREATED && status != StatusCode::NO_CONTENT
         {
             let error_text = resp.text().await.unwrap_or_default();
+            log::error!("WebDAV PUT {url} failed: HTTP {status}, body: {error_text}");
             return Err(AppError::Other(anyhow!(
-                "WebDAV 上传文件失败 (HTTP {status}): {error_text}"
+                "WebDAV 上传文件失败: {}",
+                format_http_error(status, &error_text)
             )));
         }
 
@@ -201,7 +232,7 @@ impl WebDavClient {
         let url = self.build_url(path)?;
         let resp = self
             .client
-            .get(url)
+            .get(url.clone())
             .headers(self.headers())
             .send()
             .await
@@ -214,8 +245,10 @@ impl WebDavClient {
 
         if !status.is_success() {
             let error_text = resp.text().await.unwrap_or_default();
+            log::error!("WebDAV GET {url} failed: HTTP {status}, body: {error_text}");
             return Err(AppError::Other(anyhow!(
-                "WebDAV 下载文件失败 (HTTP {status}): {error_text}"
+                "WebDAV 下载文件失败: {}",
+                format_http_error(status, &error_text)
             )));
         }
 
@@ -243,9 +276,46 @@ impl WebDavClient {
     }
 }
 
+/// 格式化 HTTP 错误响应，避免直接向用户界面抛出大段未转义的 HTML 报错页面。
+fn format_http_error(status: StatusCode, body: &str) -> String {
+    let trimmed = body.trim();
+    if trimmed.is_empty() {
+        return format!("HTTP {status}");
+    }
+
+    if trimmed.contains("<html") || trimmed.contains("<!DOCTYPE") || trimmed.contains("<body") {
+        if status == StatusCode::INTERNAL_SERVER_ERROR {
+            return "HTTP 500 (服务端内部错误。若为自建 Apache/Nextcloud/WebDAV 服务，通常为目录写入权限不足、只读挂载或服务端 DavLockDB 锁数据库未配置)".to_string();
+        }
+        if status == StatusCode::FORBIDDEN {
+            return "HTTP 403 (权限不足或禁止访问)".to_string();
+        }
+        if status == StatusCode::NOT_FOUND {
+            return "HTTP 404 (远端路径未找到)".to_string();
+        }
+        if let Some(start) = trimmed.find("<title>") {
+            if let Some(end) = trimmed[start..].find("</title>") {
+                let title = &trimmed[start + 7..start + end];
+                return format!("HTTP {status}: {}", title.trim());
+            }
+        }
+        return format!("HTTP {status} (服务端返回错误页面)");
+    }
+
+    format!("HTTP {status}: {trimmed}")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_format_http_error_html_stripping() {
+        let html = "<!DOCTYPE HTML><html><head><title>500 Internal Server Error</title></head><body><h1>Error</h1></body></html>";
+        let formatted = format_http_error(StatusCode::INTERNAL_SERVER_ERROR, html);
+        assert!(!formatted.contains("<html"));
+        assert!(formatted.contains("HTTP 500"));
+    }
 
     #[test]
     fn test_client_url_construction() {
