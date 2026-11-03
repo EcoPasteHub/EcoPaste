@@ -80,3 +80,4 @@ export class PreferenceManager {
     await this.pref.flush();
   }
 }
+

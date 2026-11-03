@@ -196,9 +196,10 @@ export class SyncManager {
       this.notifyStatus({ syncing: true, message: '正在同步手机复制到电脑...' });
 
       if (this.webDavService) {
-        const ok = await this.webDavService.uploadLiveText(text);
-        if (ok) {
+        const res = await this.webDavService.uploadLiveText(text);
+        if (res.success) {
           this.notifyStatus({
+            online: true,
             syncing: false,
             currentText: text,
             sourceDevice: '本机复制',
@@ -206,7 +207,7 @@ export class SyncManager {
             message: '已同步至云端，电脑端可直接粘贴'
           });
         } else {
-          this.notifyStatus({ syncing: false, message: '上传云端失败' });
+          this.notifyStatus({ syncing: false, message: res.message || '上传云端失败' });
         }
       }
     } catch (err) {
@@ -228,7 +229,16 @@ export class SyncManager {
       const payload: LivePayload | null = await this.webDavService.fetchLiveText();
       if (!payload || !payload.text || !payload.text.trim()) {
         if (manual) {
-          this.notifyStatus({ syncing: false, message: '云端暂无可粘贴文本' });
+          const code = this.webDavService.getLastFetchCode();
+          if (code === 401) {
+            this.notifyStatus({ syncing: false, online: false, message: '认证失败 (HTTP 401)，请检查账号密码' });
+          } else if (code === 403) {
+            this.notifyStatus({ syncing: false, online: false, message: '权限不足 (HTTP 403)，请检查目录读写权限' });
+          } else if (code === 404) {
+            this.notifyStatus({ syncing: false, online: true, message: '云端暂无同步文本（在电脑复制一次即可）' });
+          } else {
+            this.notifyStatus({ syncing: false, message: '云端暂无可粘贴文本' });
+          }
         }
         return;
       }
@@ -284,9 +294,10 @@ export class SyncManager {
       this.notifyStatus({ syncing: true, message: '正在上传手机剪贴板...' });
 
       if (this.webDavService) {
-        const ok = await this.webDavService.uploadLiveText(text);
-        if (ok) {
+        const res = await this.webDavService.uploadLiveText(text);
+        if (res.success) {
           this.notifyStatus({
+            online: true,
             syncing: false,
             currentText: text,
             sourceDevice: '本机推送',
@@ -294,7 +305,7 @@ export class SyncManager {
             message: '推送成功！电脑端直接 Ctrl+V 即可粘贴'
           });
         } else {
-          this.notifyStatus({ syncing: false, message: '上传失败，请检查设置' });
+          this.notifyStatus({ syncing: false, message: res.message || '上传失败，请检查设置' });
         }
       }
     } catch (err) {

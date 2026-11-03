@@ -42,3 +42,4 @@ export default class EntryAbility extends UIAbility {
     console.info('EcoPaste EntryAbility onBackground');
   }
 }
+
