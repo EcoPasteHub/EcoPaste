@@ -1,0 +1,20 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "EcoPaste 鸿蒙端剪贴板无感同步"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "EcoPaste 随行同步"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "EcoPaste"
+    },
+    {
+      "name": "pasteboard_reason",
+      "value": "用于读取与写入系统剪贴板，实现跨设备无感粘贴"
+    }
+  ]
+}

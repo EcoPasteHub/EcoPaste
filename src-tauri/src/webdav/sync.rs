@@ -429,7 +429,7 @@ pub async fn restore_from_webdav(app: &AppHandle) -> Result<WebDavRestoreResult>
     })
 }
 
-fn normalize_dir(dir: &str) -> String {
+pub(crate) fn normalize_dir(dir: &str) -> String {
     let trimmed = dir.trim().trim_matches('/');
     if trimmed.is_empty() {
         "EcoPaste".to_owned()
