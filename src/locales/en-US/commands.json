@@ -58,6 +58,7 @@
     "resetSettings": "Reset preferences",
     "resetStorageLocation": "Reset data directory",
     "restartAsAdmin": "Restart as administrator",
+    "restoreFromWebDav": "Restore from WebDAV",
     "resumeGlobalShortcuts": "Resume global shortcuts",
     "reveal": "Reveal location",
     "saveClipboardGroup": "Save group",
@@ -73,6 +74,8 @@
     "setTaskbarIcon": "Set taskbar icon",
     "skipUpdateVersion": "Skip update version",
     "suspendGlobalShortcuts": "Suspend global shortcuts",
+    "syncWebDavNow": "WebDAV Sync",
+    "testWebDavConnection": "Test WebDAV Connection",
     "toggleFavorite": "Favorite",
     "unpinItem": "Unpin item"
   },

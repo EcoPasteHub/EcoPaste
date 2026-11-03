@@ -58,6 +58,7 @@
     "resetSettings": "重置偏好",
     "resetStorageLocation": "还原数据目录",
     "restartAsAdmin": "以管理员权限重启",
+    "restoreFromWebDav": "从 WebDAV 恢复",
     "resumeGlobalShortcuts": "恢复全局快捷键",
     "reveal": "打开位置",
     "saveClipboardGroup": "保存分组",
@@ -73,6 +74,8 @@
     "setTaskbarIcon": "设置任务栏图标",
     "skipUpdateVersion": "跳过更新版本",
     "suspendGlobalShortcuts": "暂停全局快捷键",
+    "syncWebDavNow": "WebDAV 同步",
+    "testWebDavConnection": "测试 WebDAV 连接",
     "toggleFavorite": "收藏",
     "unpinItem": "取消置顶"
   },

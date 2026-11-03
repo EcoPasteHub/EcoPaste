@@ -62,7 +62,7 @@ export type PreferenceControl =
       suffixKey?: string;
     }
   | { type: "retention" }
-  | { type: "text" }
+  | { type: "text"; password?: boolean }
   | { type: "shortcutRecorder" }
   | { type: "textarea" }
   | { type: "appExclusion" }

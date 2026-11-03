@@ -5,6 +5,14 @@
     "sponsorHint": "如果 EcoPaste 帮到了你，可以给项目一点支持。",
     "sponsorQrAlt": "赞赏二维码"
   },
+  "webdav": {
+    "restoreConfirmContent": "将从 WebDAV 下载云端历史条目与设置并合并入当前应用。此操作不会删除本地现有数据。",
+    "restoreConfirmOk": "确认恢复",
+    "restoreConfirmTitle": "确认从 WebDAV 恢复备份？",
+    "restoreSuccess": "WebDAV 恢复成功，已恢复 {{count}} 条记录",
+    "syncSuccess": "WebDAV 同步成功，已上传 {{count}} 条记录",
+    "testSuccess": "WebDAV 连接成功"
+  },
   "backup": {
     "export": {
       "confirmPassword": "确认密码",
@@ -87,6 +95,10 @@
         "description": "导出或导入 EcoPaste 备份包。",
         "title": "备份迁移"
       },
+      "webdav": {
+        "description": "自动或定时将剪贴板历史与软件配置备份至 WebDAV 云端服务器。",
+        "title": "WebDAV 备份"
+      },
       "capture": {
         "title": "内容类型"
       },
@@ -134,6 +146,10 @@
       },
       "updates": {
         "title": "更新"
+      },
+      "webdav": {
+        "description": "自动或定时将剪贴板历史与软件配置备份至 WebDAV 云端服务器。",
+        "title": "WebDAV 备份"
       },
       "window": {
         "title": "剪贴板窗口"
@@ -231,6 +247,75 @@
           "controlLabel": "导入",
           "description": "导入 .ecopastebak 备份包，支持合并或覆盖恢复。",
           "title": "导入备份"
+        }
+      },
+      "webdav": {
+        "autoSyncOnChange": {
+          "description": "剪贴板或设置更新后，在短暂停顿后自动同步增量数据到 WebDAV。",
+          "title": "变动自动同步"
+        },
+        "backupClipboard": {
+          "description": "将剪贴板历史记录与图片等关联资源同步备份到 WebDAV。",
+          "title": "备份剪贴板历史"
+        },
+        "backupSettings": {
+          "description": "将当前软件的所有偏好设置备份到 WebDAV 服务器。",
+          "title": "备份软件配置"
+        },
+        "enabled": {
+          "description": "开启后支持自动或定时将剪贴板历史与设置备份至 WebDAV 服务器。",
+          "title": "启用 WebDAV 备份"
+        },
+        "endpoint": {
+          "description": "WebDAV 服务器完整 URL，例如坚果云、Nextcloud、群晖等提供的 WebDAV 地址。",
+          "placeholder": "https://dav.example.com/remote.php/webdav/",
+          "title": "服务器地址"
+        },
+        "incremental": {
+          "description": "仅同步自上次备份以来新增或发生变更的数据，大幅节省网络流量并提升同步速度。",
+          "title": "增量同步"
+        },
+        "password": {
+          "description": "WebDAV 应用专用密码或授权 Token。",
+          "placeholder": "••••••••",
+          "title": "密码 / Token"
+        },
+        "remoteDir": {
+          "description": "WebDAV 服务器上的保存路径目录，默认为 /EcoPaste/。",
+          "placeholder": "/EcoPaste/",
+          "title": "远端目录"
+        },
+        "restore": {
+          "controlLabel": "从云端恢复",
+          "description": "从 WebDAV 服务器下载并合并历史记录与设置到当前应用。",
+          "title": "从云端恢复"
+        },
+        "syncIntervalMins": {
+          "description": "后台自动定时执行增量备份的频率。",
+          "options": {
+            "0": "关闭定时同步",
+            "15": "每 15 分钟",
+            "30": "每 30 分钟",
+            "60": "每 1 小时",
+            "360": "每 6 小时",
+            "1440": "每天"
+          },
+          "title": "定时同步周期"
+        },
+        "syncNow": {
+          "controlLabel": "立即同步",
+          "description": "立即执行一次云端增量备份与同步。",
+          "title": "立即同步"
+        },
+        "testConnection": {
+          "controlLabel": "测试连接",
+          "description": "测试当前填写的服务器地址、账号和密码是否可正常连接。",
+          "title": "测试连接"
+        },
+        "username": {
+          "description": "WebDAV 账号用户名。",
+          "placeholder": "用户名",
+          "title": "用户名"
         }
       },
       "capture": {
@@ -581,6 +666,75 @@
           "title": "接收每日构建更新"
         }
       },
+      "webdav": {
+        "autoSyncOnChange": {
+          "description": "剪贴板或设置更新后，在短暂停顿后自动同步增量数据到 WebDAV。",
+          "title": "变动自动同步"
+        },
+        "backupClipboard": {
+          "description": "将剪贴板历史记录与图片等关联资源同步备份到 WebDAV。",
+          "title": "备份剪贴板历史"
+        },
+        "backupSettings": {
+          "description": "将当前软件的所有偏好设置备份到 WebDAV 服务器。",
+          "title": "备份软件配置"
+        },
+        "enabled": {
+          "description": "开启后支持自动或定时将剪贴板历史与设置备份至 WebDAV 服务器。",
+          "title": "启用 WebDAV 备份"
+        },
+        "endpoint": {
+          "description": "WebDAV 服务器完整 URL，例如坚果云、Nextcloud、群晖等提供的 WebDAV 地址。",
+          "placeholder": "https://dav.example.com/remote.php/webdav/",
+          "title": "服务器地址"
+        },
+        "incremental": {
+          "description": "仅同步自上次备份以来新增或发生变更的数据，大幅节省网络流量并提升同步速度。",
+          "title": "增量同步"
+        },
+        "password": {
+          "description": "WebDAV 应用专用密码或授权 Token。",
+          "placeholder": "••••••••",
+          "title": "密码 / Token"
+        },
+        "remoteDir": {
+          "description": "WebDAV 服务器上的保存路径目录，默认为 /EcoPaste/。",
+          "placeholder": "/EcoPaste/",
+          "title": "远端目录"
+        },
+        "restore": {
+          "controlLabel": "从云端恢复",
+          "description": "从 WebDAV 服务器下载并合并历史记录与设置到当前应用。",
+          "title": "从云端恢复"
+        },
+        "syncIntervalMins": {
+          "description": "后台自动定时执行增量备份的频率。",
+          "options": {
+            "0": "关闭定时同步",
+            "15": "每 15 分钟",
+            "30": "每 30 分钟",
+            "60": "每 1 小时",
+            "360": "每 6 小时",
+            "1440": "每天"
+          },
+          "title": "定时同步周期"
+        },
+        "syncNow": {
+          "controlLabel": "立即同步",
+          "description": "立即执行一次云端增量备份与同步。",
+          "title": "立即同步"
+        },
+        "testConnection": {
+          "controlLabel": "测试连接",
+          "description": "测试当前填写的服务器地址、账号和密码是否可正常连接。",
+          "title": "测试连接"
+        },
+        "username": {
+          "description": "WebDAV 账号用户名。",
+          "placeholder": "用户名",
+          "title": "用户名"
+        }
+      },
       "window": {
         "idleDestroySeconds": {
           "description": "偏好设置、预览和右键菜单等非剪贴板窗口隐藏超过此时间后释放 WebView，下次使用时自动重建。",
@@ -681,5 +835,13 @@
     "reset": "还原默认目录",
     "resetConfirmContent": "将把当前历史数据库、设置文件和资源缓存迁回默认数据目录，并在迁移成功后删除当前自定义数据目录。",
     "resetConfirmTitle": "还原默认数据目录"
+  },
+  "webdav": {
+    "restoreConfirmContent": "将从 WebDAV 下载云端历史条目与设置并合并入当前应用。此操作不会删除本地现有数据。",
+    "restoreConfirmOk": "确认恢复",
+    "restoreConfirmTitle": "确认从 WebDAV 恢复备份？",
+    "restoreSuccess": "WebDAV 恢复成功，已恢复 {{count}} 条记录",
+    "syncSuccess": "WebDAV 同步成功，已上传 {{count}} 条记录",
+    "testSuccess": "WebDAV 连接成功"
   }
 }

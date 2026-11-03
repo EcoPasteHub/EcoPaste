@@ -205,6 +205,22 @@ export interface Update {
   skippedVersion: string | null;
 }
 
+export interface WebDav {
+  enabled: boolean;
+  endpoint: string;
+  username: string;
+  password: string;
+  remoteDir: string;
+  syncIntervalMins: number;
+  incremental: boolean;
+  autoSyncOnChange: boolean;
+  backupClipboard: boolean;
+  backupSettings: boolean;
+  lastSyncAt: string | null;
+  lastSyncStatus: string | null;
+  lastSyncError: string | null;
+}
+
 export interface Settings {
   general: General;
   appearance: Appearance;
@@ -212,6 +228,7 @@ export interface Settings {
   clipboard: Clipboard;
   onboarding: Onboarding;
   update: Update;
+  webdav: WebDav;
 }
 
 /**

@@ -19,6 +19,7 @@ pub struct Settings {
     pub clipboard: Clipboard,
     pub onboarding: Onboarding,
     pub update: Update,
+    pub webdav: WebDav,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -643,4 +644,43 @@ pub enum UpdateFrequency {
     Daily,
     Weekly,
     Monthly,
+}
+
+/// WebDAV 备份与同步配置。
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(default, rename_all = "camelCase")]
+pub struct WebDav {
+    pub enabled: bool,
+    pub endpoint: String,
+    pub username: String,
+    pub password: String,
+    pub remote_dir: String,
+    pub sync_interval_mins: u32,
+    pub incremental: bool,
+    pub auto_sync_on_change: bool,
+    pub backup_clipboard: bool,
+    pub backup_settings: bool,
+    pub last_sync_at: Option<String>,
+    pub last_sync_status: Option<String>,
+    pub last_sync_error: Option<String>,
+}
+
+impl Default for WebDav {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            endpoint: String::new(),
+            username: String::new(),
+            password: String::new(),
+            remote_dir: "/EcoPaste/".to_owned(),
+            sync_interval_mins: 30,
+            incremental: true,
+            auto_sync_on_change: true,
+            backup_clipboard: true,
+            backup_settings: true,
+            last_sync_at: None,
+            last_sync_status: None,
+            last_sync_error: None,
+        }
+    }
 }

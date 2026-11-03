@@ -58,6 +58,8 @@ chacha20poly1305 = { version = "0.10", features = ["std"] }
 rand = "0.8"
 zeroize = "1"
 url = "2"
+reqwest = { version = "0.13", default-features = false, features = ["rustls", "json"] }
+base64 = "0.22"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 core-graphics = "0.25"

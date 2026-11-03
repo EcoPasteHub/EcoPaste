@@ -17,6 +17,7 @@ mod settings;
 mod shortcut;
 mod tray;
 mod update;
+pub mod webdav;
 mod window;
 
 use tauri::{Manager, WindowEvent};
@@ -180,6 +181,9 @@ pub fn run() {
             commands::download_update,
             commands::install_update,
             commands::skip_update_version,
+            commands::test_webdav_connection,
+            commands::sync_webdav_now,
+            commands::restore_from_webdav,
             menu::clipboard_item::popup_clipboard_item_menu,
         ])
         .on_menu_event(|app, event| {
@@ -214,6 +218,7 @@ pub fn run() {
                 })?;
                 handle_db.manage(db::DatabaseState::new(pool));
                 clipboard::init(&handle_db)?;
+                webdav::init(&handle_db);
                 Ok::<_, anyhow::Error>(())
             })?;
 
