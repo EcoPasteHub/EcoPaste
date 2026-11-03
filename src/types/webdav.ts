@@ -19,4 +19,3 @@ export interface WebDavTestResult {
   success: boolean;
   message: string;
 }
-

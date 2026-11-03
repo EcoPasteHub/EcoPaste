@@ -216,6 +216,11 @@ export interface WebDav {
   autoSyncOnChange: boolean;
   backupClipboard: boolean;
   backupSettings: boolean;
+  syncText: boolean;
+  syncHtml: boolean;
+  syncRtf: boolean;
+  syncImage: boolean;
+  syncFiles: boolean;
   lastSyncAt: string | null;
   lastSyncStatus: string | null;
   lastSyncError: string | null;

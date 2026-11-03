@@ -924,6 +924,76 @@ export const preferenceTabs: PreferenceTab[] = [
           {
             control: { type: "switch" },
             disabledWhen: (settings) => {
+              return (
+                !settings.webdav.enabled || !settings.webdav.backupClipboard
+              );
+            },
+            id: "webdav.syncText",
+            keywords: ["webdav", "text", "plain"],
+            path: ["webdav", "syncText"],
+            value: (settings) => {
+              return settings.webdav.syncText;
+            },
+          },
+          {
+            control: { type: "switch" },
+            disabledWhen: (settings) => {
+              return (
+                !settings.webdav.enabled || !settings.webdav.backupClipboard
+              );
+            },
+            id: "webdav.syncHtml",
+            keywords: ["webdav", "html", "rich text"],
+            path: ["webdav", "syncHtml"],
+            value: (settings) => {
+              return settings.webdav.syncHtml;
+            },
+          },
+          {
+            control: { type: "switch" },
+            disabledWhen: (settings) => {
+              return (
+                !settings.webdav.enabled || !settings.webdav.backupClipboard
+              );
+            },
+            id: "webdav.syncRtf",
+            keywords: ["webdav", "rtf", "rich text"],
+            path: ["webdav", "syncRtf"],
+            value: (settings) => {
+              return settings.webdav.syncRtf;
+            },
+          },
+          {
+            control: { type: "switch" },
+            disabledWhen: (settings) => {
+              return (
+                !settings.webdav.enabled || !settings.webdav.backupClipboard
+              );
+            },
+            id: "webdav.syncImage",
+            keywords: ["webdav", "image", "picture"],
+            path: ["webdav", "syncImage"],
+            value: (settings) => {
+              return settings.webdav.syncImage;
+            },
+          },
+          {
+            control: { type: "switch" },
+            disabledWhen: (settings) => {
+              return (
+                !settings.webdav.enabled || !settings.webdav.backupClipboard
+              );
+            },
+            id: "webdav.syncFiles",
+            keywords: ["webdav", "file", "folder"],
+            path: ["webdav", "syncFiles"],
+            value: (settings) => {
+              return settings.webdav.syncFiles;
+            },
+          },
+          {
+            control: { type: "switch" },
+            disabledWhen: (settings) => {
               return !settings.webdav.enabled;
             },
             id: "webdav.backupSettings",

@@ -156,6 +156,12 @@ async fn execute_sync(app: &AppHandle, settings: &Settings) -> Result<WebDavSync
             fetch_all_items(&pool).await?
         };
 
+        // 按 WebDAV 内容类型配置过滤条目（如过滤文件、图片等）
+        let items: Vec<ClipboardItem> = items
+            .into_iter()
+            .filter(|item| webdav.is_item_type_enabled(item.kind, item.sub_kind))
+            .collect();
+
         let groups = fetch_all_groups(&pool).await?;
         let apps = fetch_all_apps(&pool).await?;
 
@@ -290,6 +296,10 @@ pub async fn restore_from_webdav(app: &AppHandle) -> Result<WebDavRestoreResult>
             if let Ok(batch) = serde_json::from_slice::<WebDavBatch>(&bytes) {
                 // 恢复条目和图片
                 for item in batch.items {
+                    if !webdav.is_item_type_enabled(item.kind, item.sub_kind) {
+                        continue;
+                    }
+
                     if item.kind == ClipboardKind::Image {
                         let file_name = &item.content;
                         let local_image_path = image_store.origin_path(file_name);

@@ -81,4 +81,15 @@ mod tests {
         assert!(state.last_synced_at.is_none());
         assert!(state.synced_image_hashes.is_empty());
     }
+
+    #[test]
+    fn test_webdav_item_type_filter() {
+        let mut webdav = crate::settings::WebDav::default();
+        assert!(webdav.is_item_type_enabled(crate::db::models::ClipboardKind::Files, None));
+        assert!(webdav.is_item_type_enabled(crate::db::models::ClipboardKind::Image, None));
+
+        webdav.sync_files = false;
+        assert!(!webdav.is_item_type_enabled(crate::db::models::ClipboardKind::Files, None));
+        assert!(webdav.is_item_type_enabled(crate::db::models::ClipboardKind::Image, None));
+    }
 }

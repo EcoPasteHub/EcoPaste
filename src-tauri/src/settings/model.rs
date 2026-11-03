@@ -4,7 +4,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::db::models::ClipboardItemSort;
+use crate::db::models::{ClipboardItemSort, ClipboardKind, ClipboardSubKind};
 
 pub const WINDOW_OPEN_SELECTION_PRESERVE: &str = "preserve";
 pub const WINDOW_OPEN_SELECTION_ALL: &str = "all";
@@ -660,6 +660,11 @@ pub struct WebDav {
     pub auto_sync_on_change: bool,
     pub backup_clipboard: bool,
     pub backup_settings: bool,
+    pub sync_text: bool,
+    pub sync_html: bool,
+    pub sync_rtf: bool,
+    pub sync_image: bool,
+    pub sync_files: bool,
     pub last_sync_at: Option<String>,
     pub last_sync_status: Option<String>,
     pub last_sync_error: Option<String>,
@@ -678,9 +683,33 @@ impl Default for WebDav {
             auto_sync_on_change: true,
             backup_clipboard: true,
             backup_settings: true,
+            sync_text: true,
+            sync_html: true,
+            sync_rtf: true,
+            sync_image: true,
+            sync_files: true,
             last_sync_at: None,
             last_sync_status: None,
             last_sync_error: None,
+        }
+    }
+}
+
+impl WebDav {
+    /// 检查指定条目类型是否允许同步到 WebDAV。
+    pub fn is_item_type_enabled(
+        &self,
+        kind: ClipboardKind,
+        sub_kind: Option<ClipboardSubKind>,
+    ) -> bool {
+        match kind {
+            ClipboardKind::Files => self.sync_files,
+            ClipboardKind::Image => self.sync_image,
+            ClipboardKind::Text => match sub_kind {
+                Some(ClipboardSubKind::Html) => self.sync_html,
+                Some(ClipboardSubKind::Rtf) => self.sync_rtf,
+                _ => self.sync_text,
+            },
         }
     }
 }

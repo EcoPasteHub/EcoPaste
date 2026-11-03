@@ -5,14 +5,6 @@
     "sponsorHint": "If EcoPaste helps your workflow, you can support the project.",
     "sponsorQrAlt": "Sponsor QR code"
   },
-  "webdav": {
-    "restoreConfirmContent": "This will download remote history items and settings from WebDAV and merge them into the current app. Existing local data will not be deleted.",
-    "restoreConfirmOk": "Restore",
-    "restoreConfirmTitle": "Restore backup from WebDAV?",
-    "restoreSuccess": "Restored successfully, {{count}} records imported",
-    "syncSuccess": "WebDAV synced successfully, {{count}} records uploaded",
-    "testSuccess": "WebDAV connection successful"
-  },
   "backup": {
     "export": {
       "confirmPassword": "Confirm password",
@@ -94,10 +86,6 @@
       "backup": {
         "description": "Export or import EcoPaste backup packages.",
         "title": "Backup & Migration"
-      },
-      "webdav": {
-        "description": "Automatically or periodically back up clipboard history and settings to a WebDAV server.",
-        "title": "WebDAV Backup"
       },
       "capture": {
         "title": "Content Types"
@@ -247,75 +235,6 @@
           "controlLabel": "Import",
           "description": "Import a .ecopastebak backup, with merge or overwrite recovery.",
           "title": "Import Backup"
-        }
-      },
-      "webdav": {
-        "autoSyncOnChange": {
-          "description": "Automatically sync delta data to WebDAV after clipboard or settings are updated.",
-          "title": "Auto Sync on Changes"
-        },
-        "backupClipboard": {
-          "description": "Sync and back up clipboard history and images to WebDAV.",
-          "title": "Backup Clipboard History"
-        },
-        "backupSettings": {
-          "description": "Back up app preference settings to the WebDAV server.",
-          "title": "Backup App Settings"
-        },
-        "enabled": {
-          "description": "Enable automatic or scheduled backup of clipboard history and settings to WebDAV.",
-          "title": "Enable WebDAV Backup"
-        },
-        "endpoint": {
-          "description": "Full WebDAV server URL, e.g. Nextcloud, Synology, Jianguoyun, etc.",
-          "placeholder": "https://dav.example.com/remote.php/webdav/",
-          "title": "Server Address"
-        },
-        "incremental": {
-          "description": "Only sync newly added or modified data since last backup, saving network traffic and time.",
-          "title": "Incremental Sync"
-        },
-        "password": {
-          "description": "WebDAV app password or access token.",
-          "placeholder": "••••••••",
-          "title": "Password / Token"
-        },
-        "remoteDir": {
-          "description": "Target folder on WebDAV server, default is /EcoPaste/.",
-          "placeholder": "/EcoPaste/",
-          "title": "Remote Directory"
-        },
-        "restore": {
-          "controlLabel": "Restore",
-          "description": "Download and merge clipboard history and settings from WebDAV into the app.",
-          "title": "Restore from WebDAV"
-        },
-        "syncIntervalMins": {
-          "description": "Frequency for background automated incremental sync.",
-          "options": {
-            "0": "Disable Scheduled Sync",
-            "15": "Every 15 minutes",
-            "30": "Every 30 minutes",
-            "60": "Every 1 hour",
-            "360": "Every 6 hours",
-            "1440": "Daily"
-          },
-          "title": "Sync Interval"
-        },
-        "syncNow": {
-          "controlLabel": "Sync Now",
-          "description": "Immediately trigger a WebDAV incremental backup and sync.",
-          "title": "Sync Now"
-        },
-        "testConnection": {
-          "controlLabel": "Test Connection",
-          "description": "Test connectivity and authentication with the current WebDAV server settings.",
-          "title": "Test Connection"
-        },
-        "username": {
-          "description": "WebDAV account username.",
-          "placeholder": "Username",
-          "title": "Username"
         }
       },
       "capture": {
@@ -707,6 +626,18 @@
           "description": "Download and merge clipboard history and settings from WebDAV into the app.",
           "title": "Restore from WebDAV"
         },
+        "syncFiles": {
+          "description": "Sync copied files and folders. You can turn this off if you do not want files to be uploaded.",
+          "title": "Sync Files and Folders"
+        },
+        "syncHtml": {
+          "description": "Sync rich text content with HTML formatting.",
+          "title": "Sync HTML Content"
+        },
+        "syncImage": {
+          "description": "Sync clipboard images and thumbnail resources.",
+          "title": "Sync Images"
+        },
         "syncIntervalMins": {
           "description": "Frequency for background automated incremental sync.",
           "options": {
@@ -723,6 +654,14 @@
           "controlLabel": "Sync Now",
           "description": "Immediately trigger a WebDAV incremental backup and sync.",
           "title": "Sync Now"
+        },
+        "syncRtf": {
+          "description": "Sync rich text content with RTF formatting.",
+          "title": "Sync RTF Content"
+        },
+        "syncText": {
+          "description": "Sync plain text and text extensions (URLs, colors, etc.).",
+          "title": "Sync Plain Text"
         },
         "testConnection": {
           "controlLabel": "Test Connection",
