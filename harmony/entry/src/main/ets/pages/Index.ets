@@ -2,6 +2,7 @@ import promptAction from '@ohos.promptAction';
 import pasteboard from '@ohos.pasteboard';
 import { SyncManager, SyncStatus } from '../services/SyncManager';
 import { PreferenceManager, WebDavConfig } from '../services/PreferenceManager';
+import { cleanToPlainText } from '../utils/TextFormatUtils';
 
 @Entry
 @Component
@@ -91,12 +92,13 @@ struct Index {
       }
       return;
     }
+    const cleanText = cleanToPlainText(this.syncStatus.currentText);
     const board = pasteboard.getSystemPasteboard();
-    const data = pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, this.syncStatus.currentText);
+    const data = pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, cleanText);
     await board.setData(data);
     try {
       promptAction.showToast({
-        message: '已复制到手机剪贴板，长按即可粘贴',
+        message: '已复制纯文本到手机剪贴板，长按即可粘贴',
         duration: 2000
       });
     } catch (e) {
@@ -164,11 +166,18 @@ struct Index {
           // 当前同步核心卡片
           Column() {
             Row() {
-              Row() {
+              Row({ space: 8 }) {
                 Text(this.syncStatus.sourceDevice ? `📡 ${this.syncStatus.sourceDevice}` : '📡 同步剪贴板')
                   .fontSize(14)
                   .fontWeight(FontWeight.Bold)
                   .fontColor('#1F2329')
+
+                Text('已自动清洗为纯文本')
+                  .fontSize(10)
+                  .fontColor('#0A59F7')
+                  .backgroundColor('#E8F3FF')
+                  .padding({ left: 6, right: 6, top: 2, bottom: 2 })
+                  .borderRadius(4)
               }
 
               Text(this.formatTime(this.syncStatus.lastSyncTime))

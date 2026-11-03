@@ -5,6 +5,7 @@ import backgroundTaskManager from '@ohos.resourceschedule.backgroundTaskManager'
 import wantAgent from '@ohos.app.ability.wantAgent';
 import { WebDavService, LivePayload } from './WebDavService';
 import { PreferenceManager, WebDavConfig } from './PreferenceManager';
+import { cleanToPlainText } from '../utils/TextFormatUtils';
 
 export interface SyncStatus {
   online: boolean;
@@ -180,15 +181,16 @@ export class SyncManager {
   }
 
   /**
-   * 当手机复制新文本时，自动上传 WebDAV
+   * 当手机复制新文本时，自动清洗格式并上传 WebDAV
    */
   private async handleLocalClipboardChange(): Promise<void> {
     try {
       const board = pasteboard.getSystemPasteboard();
       const data = await board.getData();
-      const text = data.getPrimaryText();
+      const rawText = data.getPrimaryText();
 
-      if (!text || !text.trim() || text === this.lastLocalText) {
+      const text = cleanToPlainText(rawText);
+      if (!text || text === this.lastLocalText) {
         return;
       }
 
@@ -216,7 +218,7 @@ export class SyncManager {
   }
 
   /**
-   * 从 WebDAV 拉取电脑端复制的新文本
+   * 从 WebDAV 拉取电脑端复制的新文本，自动过滤格式转为纯文本并写入手机剪贴板
    */
   public async pullLatestFromCloud(manual: boolean = false): Promise<void> {
     if (!this.webDavService) return;
@@ -243,26 +245,32 @@ export class SyncManager {
         return;
       }
 
+      // 自动清洗并规范化为纯文本，剥离 HTML、RTF、不换行空格及不可见字符
+      const cleanedText = cleanToPlainText(payload.text);
+      if (!cleanedText) {
+        return;
+      }
+
       // 如果来源是电脑，且时间戳较新，或者手动拉取且内容不同
       const isFromDesktop = payload.device === 'desktop';
       const isNewer = payload.timestamp > this.lastSeenRemoteTimestamp;
 
-      if ((isFromDesktop && isNewer) || (manual && payload.text !== this.lastLocalText)) {
+      if ((isFromDesktop && isNewer) || (manual && cleanedText !== this.lastLocalText)) {
         this.lastSeenRemoteTimestamp = payload.timestamp;
-        this.lastLocalText = payload.text;
+        this.lastLocalText = cleanedText;
 
-        // 写入手机剪贴板
+        // 写入手机剪贴板（写入纯文本 MIMETYPE_TEXT_PLAIN）
         const board = pasteboard.getSystemPasteboard();
-        const pData = pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, payload.text);
+        const pData = pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, cleanedText);
         await board.setData(pData);
 
         this.notifyStatus({
           online: true,
           syncing: false,
-          currentText: payload.text,
-          sourceDevice: isFromDesktop ? '电脑复制' : '手机复制',
+          currentText: cleanedText,
+          sourceDevice: isFromDesktop ? '电脑复制 (已转纯文本)' : '手机复制',
           lastSyncTime: payload.timestamp,
-          message: '已同步到手机剪贴板，长按即可粘贴'
+          message: '已自动转为纯文本并同步到剪贴板，长按即可粘贴'
         });
       } else {
         if (manual) {
@@ -283,9 +291,10 @@ export class SyncManager {
     try {
       const board = pasteboard.getSystemPasteboard();
       const data = await board.getData();
-      const text = data.getPrimaryText();
+      const rawText = data.getPrimaryText();
 
-      if (!text || !text.trim()) {
+      const text = cleanToPlainText(rawText);
+      if (!text) {
         this.notifyStatus({ message: '手机剪贴板为空' });
         return;
       }

@@ -124,21 +124,32 @@ async fn push_desktop_live_text(
     let webdav = &settings.webdav;
     let pool = app.state::<crate::db::DatabaseState>().pool().await;
 
-    // 获取本地最新的一条文本类型条目
-    let row: Option<(String, String)> = sqlx::query_as(
-        "SELECT content, content_hash FROM clipboard_items \
+    // 获取本地最新的一条文本类型条目（若为 HTML/RTF 富文本，优先使用提取的 search_text 纯文本）
+    let row: Option<(String, Option<String>, Option<String>, String)> = sqlx::query_as(
+        "SELECT content, sub_kind, search_text, content_hash FROM clipboard_items \
          WHERE kind = 'text' ORDER BY created_at DESC LIMIT 1",
     )
     .fetch_optional(&pool)
     .await
     .unwrap_or(None);
 
-    let (content, hash) = match row {
+    let (content, sub_kind, search_text, hash) = match row {
         Some(r) => r,
         None => return Ok(()),
     };
 
-    if content.trim().is_empty() {
+    let plain_content = match sub_kind.as_deref() {
+        Some("html") | Some("rtf") => {
+            if let Some(plain) = search_text.filter(|s| !s.trim().is_empty()) {
+                plain
+            } else {
+                content
+            }
+        }
+        _ => content,
+    };
+
+    if plain_content.trim().is_empty() {
         return Ok(());
     }
 
@@ -156,7 +167,7 @@ async fn push_desktop_live_text(
     let remote_file_path = format!("{remote_dir}/{LIVE_TEXT_FILENAME}");
 
     let payload = LiveClipboardPayload {
-        text: content,
+        text: plain_content,
         device: "desktop".to_owned(),
         timestamp: Utc::now().timestamp_millis(),
     };
