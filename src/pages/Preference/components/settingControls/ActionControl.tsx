@@ -22,7 +22,10 @@ import {
   openUpdateWindow,
   releaseWindowKeepalive,
   resetStorageLocation,
+  restoreFromWebDav,
   type StorageLocation,
+  syncWebDavNow,
+  testWebDavConnection,
   type WindowLifecyclePhase,
   type WindowLifecycleSnapshot,
 } from "@/commands";
@@ -50,6 +53,9 @@ const IMPORT_BACKUP_SETTING_ID = "backup.importHistory";
 const LOG_DIRECTORY_SETTING_ID = "localData.logDirectory";
 const REOPEN_ONBOARDING_SETTING_ID = "control.reopenOnboarding";
 const RESET_PREFERENCES_SETTING_ID = "diagnostics.resetPreferences";
+const WEBDAV_TEST_CONNECTION_SETTING_ID = "webdav.testConnection";
+const WEBDAV_SYNC_NOW_SETTING_ID = "webdav.syncNow";
+const WEBDAV_RESTORE_SETTING_ID = "webdav.restore";
 const WINDOW_LIFECYCLE_SETTING_ID = "diagnostics.windowLifecycle";
 const WINDOW_LIFECYCLE_I18N_PREFIX =
   "schema.settings.diagnostics.windowLifecycle";
@@ -377,6 +383,54 @@ const ActionControl: FC<ActionControlProps> = (props) => {
 
     if (setting.id === RESET_PREFERENCES_SETTING_ID) {
       confirmResetPreferences();
+      return;
+    }
+
+    if (setting.id === WEBDAV_TEST_CONNECTION_SETTING_ID) {
+      setLoading(true);
+      try {
+        await runWithKeepalive("test-webdav-connection", testWebDavConnection);
+        markActionComplete();
+      } catch (error) {
+        log.warn("test webdav connection failed", error);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    if (setting.id === WEBDAV_SYNC_NOW_SETTING_ID) {
+      setLoading(true);
+      try {
+        await runWithKeepalive("sync-webdav-now", syncWebDavNow);
+        markActionComplete();
+      } catch (error) {
+        log.warn("sync webdav now failed", error);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    if (setting.id === WEBDAV_RESTORE_SETTING_ID) {
+      getModalApi().confirm({
+        cancelText: t("common:cancel"),
+        content: t("preferences:webdav.restoreConfirmContent"),
+        okButtonProps: { danger: true },
+        okText: t("preferences:webdav.restoreConfirmOk"),
+        onOk: async () => {
+          setLoading(true);
+          try {
+            await runWithKeepalive("restore-webdav", restoreFromWebDav);
+            markActionComplete();
+          } catch (error) {
+            log.warn("restore from webdav failed", error);
+          } finally {
+            setLoading(false);
+          }
+        },
+        title: t("preferences:webdav.restoreConfirmTitle"),
+      });
       return;
     }
 

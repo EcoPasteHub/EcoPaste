@@ -24,6 +24,11 @@ import type {
   UpdateNoteResult,
 } from "@/types/clipboard";
 import type { Settings, SettingsPatch } from "@/types/settings";
+import type {
+  WebDavRestoreResult,
+  WebDavSyncResult,
+  WebDavTestResult,
+} from "@/types/webdav";
 import { getMessageApi, getModalApi } from "@/utils/feedback";
 import { log } from "@/utils/log";
 import { confirmClearClipboardItems } from "./confirmClearClipboardItems";
@@ -1477,4 +1482,51 @@ export const hideContextMenus = async () => {
   } catch (error) {
     log.error("hide context menus failed", toAppError(error));
   }
+};
+
+/**
+ * 测试 WebDAV 服务器连接。
+ */
+export const testWebDavConnection = async () => {
+  const result = await call<WebDavTestResult>(
+    TAURI_COMMAND.TEST_WEBDAV_CONNECTION,
+    "commands:labels.testWebDavConnection",
+  );
+
+  getMessageApi().success(i18n.t("preferences:webdav.testSuccess"));
+  return result;
+};
+
+/**
+ * 立即执行 WebDAV 备份与同步。
+ */
+export const syncWebDavNow = async () => {
+  const result = await call<WebDavSyncResult>(
+    TAURI_COMMAND.SYNC_WEBDAV_NOW,
+    "commands:labels.syncWebDavNow",
+  );
+
+  getMessageApi().success(
+    i18n.t("preferences:webdav.syncSuccess", {
+      count: result.uploadedItems,
+    }),
+  );
+  return result;
+};
+
+/**
+ * 从 WebDAV 远端恢复备份。
+ */
+export const restoreFromWebDav = async () => {
+  const result = await call<WebDavRestoreResult>(
+    TAURI_COMMAND.RESTORE_FROM_WEBDAV,
+    "commands:labels.restoreFromWebDav",
+  );
+
+  getMessageApi().success(
+    i18n.t("preferences:webdav.restoreSuccess", {
+      count: result.restoredItems,
+    }),
+  );
+  return result;
 };

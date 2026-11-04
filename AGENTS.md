@@ -151,6 +151,12 @@ cargo test
 - 提交信息用单行 Conventional Commits，如 `feat:`、`fix:`、`refactor:`、`docs:`。
 - 改 UI 后必须实际操作验证主路径与边界，不只靠类型检查。
 
+## 鸿蒙（HarmonyOS）客户端约定
+
+- **版本号自动递增**：每次更新或修改鸿蒙端代码时，必须递增版本号（`harmony/AppScope/app.json5` 中的 `versionCode` + 1，`versionName` 递增 patch；同步更新 `harmony/entry/oh-package.json5` 中的 `version`）。
+- **自动化构建**：统一通过根目录 `build_harmony.bat`（或 `harmony/build_hap.bat`）构建，脚本自动执行 `bump_version.cjs` 递增版本号，并规避 hvigor 对非 ASCII 路径的限制。
+- **产物命名**：输出文件自动带有当前版本号，如 `EcoPaste-HarmonyOS-v{version}.hap`、`EcoPaste-HarmonyOS-v{version}-debug.hap` 以及通用别名 `EcoPaste-HarmonyOS-latest.hap`。
+
 ## 外部文档
 
 - Ant Design v6：<https://ant.design/components/overview-cn> · <https://ant.design/docs/react/customize-theme-cn>

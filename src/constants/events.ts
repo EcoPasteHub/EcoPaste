@@ -14,6 +14,7 @@ export const TAURI_EVENT = {
   PREVIEW_UPDATED: "preview://updated",
   SETTINGS_UPDATED: "settings://updated",
   UPDATE_PROGRESS: "update://progress",
+  WEBDAV_STATUS_UPDATED: "webdav://status_updated",
   WINDOW_BEFORE_DESTROY: "window://before-destroy",
   WINDOW_LIFECYCLE: "window://lifecycle",
   WINDOW_VISIBILITY: "window://visibility",

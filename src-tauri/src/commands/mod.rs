@@ -11,6 +11,7 @@ mod onboarding;
 mod settings;
 mod storage;
 pub mod update;
+mod webdav;
 mod window;
 
 // glob 再导出：`#[tauri::command]` 会在函数旁生成隐藏辅助项（`__cmd__*`），
@@ -26,4 +27,5 @@ pub use onboarding::*;
 pub use settings::*;
 pub use storage::*;
 pub use update::*;
+pub use webdav::*;
 pub use window::*;

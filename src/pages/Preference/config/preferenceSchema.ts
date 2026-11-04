@@ -804,6 +804,232 @@ export const preferenceTabs: PreferenceTab[] = [
         ],
       },
       {
+        id: "webdav",
+        settings: [
+          {
+            control: { type: "switch" },
+            id: "webdav.enabled",
+            keywords: ["webdav", "cloud", "backup", "sync"],
+            path: ["webdav", "enabled"],
+            value: (settings) => {
+              return settings.webdav.enabled;
+            },
+          },
+          {
+            control: { type: "text" },
+            disabledWhen: (settings) => {
+              return !settings.webdav.enabled;
+            },
+            id: "webdav.endpoint",
+            keywords: ["webdav", "server", "url", "endpoint"],
+            path: ["webdav", "endpoint"],
+            value: (settings) => {
+              return settings.webdav.endpoint;
+            },
+          },
+          {
+            control: { type: "text" },
+            disabledWhen: (settings) => {
+              return !settings.webdav.enabled;
+            },
+            id: "webdav.username",
+            keywords: ["webdav", "user", "username", "account"],
+            path: ["webdav", "username"],
+            value: (settings) => {
+              return settings.webdav.username;
+            },
+          },
+          {
+            control: { password: true, type: "text" },
+            disabledWhen: (settings) => {
+              return !settings.webdav.enabled;
+            },
+            id: "webdav.password",
+            keywords: ["webdav", "password", "token"],
+            path: ["webdav", "password"],
+            value: (settings) => {
+              return settings.webdav.password;
+            },
+          },
+          {
+            control: { type: "text" },
+            disabledWhen: (settings) => {
+              return !settings.webdav.enabled;
+            },
+            id: "webdav.remoteDir",
+            keywords: ["webdav", "path", "directory", "folder"],
+            path: ["webdav", "remoteDir"],
+            value: (settings) => {
+              return settings.webdav.remoteDir;
+            },
+          },
+          {
+            control: {
+              options: [
+                { value: 0 },
+                { value: 15 },
+                { value: 30 },
+                { value: 60 },
+                { value: 360 },
+                { value: 1440 },
+              ],
+              type: "select",
+            },
+            disabledWhen: (settings) => {
+              return !settings.webdav.enabled;
+            },
+            id: "webdav.syncIntervalMins",
+            keywords: ["webdav", "interval", "time", "schedule"],
+            path: ["webdav", "syncIntervalMins"],
+            value: (settings) => {
+              return settings.webdav.syncIntervalMins;
+            },
+          },
+          {
+            control: { type: "switch" },
+            disabledWhen: (settings) => {
+              return !settings.webdav.enabled;
+            },
+            id: "webdav.incremental",
+            keywords: ["webdav", "incremental", "delta"],
+            path: ["webdav", "incremental"],
+            value: (settings) => {
+              return settings.webdav.incremental;
+            },
+          },
+          {
+            control: { type: "switch" },
+            disabledWhen: (settings) => {
+              return !settings.webdav.enabled;
+            },
+            id: "webdav.autoSyncOnChange",
+            keywords: ["webdav", "auto", "change", "trigger"],
+            path: ["webdav", "autoSyncOnChange"],
+            value: (settings) => {
+              return settings.webdav.autoSyncOnChange;
+            },
+          },
+          {
+            control: { type: "switch" },
+            disabledWhen: (settings) => {
+              return !settings.webdav.enabled;
+            },
+            id: "webdav.backupClipboard",
+            keywords: ["webdav", "clipboard", "history"],
+            path: ["webdav", "backupClipboard"],
+            value: (settings) => {
+              return settings.webdav.backupClipboard;
+            },
+          },
+          {
+            control: { type: "switch" },
+            disabledWhen: (settings) => {
+              return (
+                !settings.webdav.enabled || !settings.webdav.backupClipboard
+              );
+            },
+            id: "webdav.syncText",
+            keywords: ["webdav", "text", "plain"],
+            path: ["webdav", "syncText"],
+            value: (settings) => {
+              return settings.webdav.syncText;
+            },
+          },
+          {
+            control: { type: "switch" },
+            disabledWhen: (settings) => {
+              return (
+                !settings.webdav.enabled || !settings.webdav.backupClipboard
+              );
+            },
+            id: "webdav.syncHtml",
+            keywords: ["webdav", "html", "rich text"],
+            path: ["webdav", "syncHtml"],
+            value: (settings) => {
+              return settings.webdav.syncHtml;
+            },
+          },
+          {
+            control: { type: "switch" },
+            disabledWhen: (settings) => {
+              return (
+                !settings.webdav.enabled || !settings.webdav.backupClipboard
+              );
+            },
+            id: "webdav.syncRtf",
+            keywords: ["webdav", "rtf", "rich text"],
+            path: ["webdav", "syncRtf"],
+            value: (settings) => {
+              return settings.webdav.syncRtf;
+            },
+          },
+          {
+            control: { type: "switch" },
+            disabledWhen: (settings) => {
+              return (
+                !settings.webdav.enabled || !settings.webdav.backupClipboard
+              );
+            },
+            id: "webdav.syncImage",
+            keywords: ["webdav", "image", "picture"],
+            path: ["webdav", "syncImage"],
+            value: (settings) => {
+              return settings.webdav.syncImage;
+            },
+          },
+          {
+            control: { type: "switch" },
+            disabledWhen: (settings) => {
+              return (
+                !settings.webdav.enabled || !settings.webdav.backupClipboard
+              );
+            },
+            id: "webdav.syncFiles",
+            keywords: ["webdav", "file", "folder"],
+            path: ["webdav", "syncFiles"],
+            value: (settings) => {
+              return settings.webdav.syncFiles;
+            },
+          },
+          {
+            control: { type: "switch" },
+            disabledWhen: (settings) => {
+              return !settings.webdav.enabled;
+            },
+            id: "webdav.backupSettings",
+            keywords: ["webdav", "settings", "config"],
+            path: ["webdav", "backupSettings"],
+            value: (settings) => {
+              return settings.webdav.backupSettings;
+            },
+          },
+          {
+            control: { type: "action" },
+            disabledWhen: (settings) => {
+              return !settings.webdav.enabled;
+            },
+            id: "webdav.testConnection",
+            keywords: ["webdav", "test", "connect"],
+          },
+          {
+            control: { type: "action" },
+            disabledWhen: (settings) => {
+              return !settings.webdav.enabled;
+            },
+            id: "webdav.syncNow",
+            keywords: ["webdav", "sync", "backup", "now"],
+          },
+          {
+            control: { danger: true, type: "action" },
+            disabledWhen: (settings) => {
+              return !settings.webdav.enabled;
+            },
+            id: "webdav.restore",
+            keywords: ["webdav", "restore", "import", "recover"],
+          },
+        ],
+      },
+      {
         id: "diagnostics",
         settings: [
           {

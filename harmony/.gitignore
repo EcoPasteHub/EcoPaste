@@ -1,0 +1,9 @@
+.hvigor/
+.idea/
+build/
+oh_modules/
+node_modules/
+local.properties
+*-debug.hap
+*-release.hap
+*.app

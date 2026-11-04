@@ -1,0 +1,10 @@
+{
+  "name": "entry",
+  "version": "1.0.2",
+  "description": "EcoPaste entry module",
+  "main": "",
+  "author": "EcoPaste",
+  "license": "Apache-2.0",
+  "dependencies": {}
+}
+

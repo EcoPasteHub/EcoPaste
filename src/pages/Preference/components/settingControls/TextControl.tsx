@@ -42,6 +42,19 @@ const TextControl: FC<TextControlProps> = (props) => {
     await commit();
   };
 
+  if (control.password) {
+    return (
+      <Input.Password
+        disabled={disabled}
+        onBlur={handleBlur}
+        onChange={handleChange}
+        onPressEnter={handlePressEnter}
+        placeholder={translatePreferencePlaceholder(t, setting)}
+        value={draft}
+      />
+    );
+  }
+
   return (
     <Input
       disabled={disabled}

@@ -1,0 +1,10 @@
+{
+  "modelVersion": "6.0.0",
+  "description": "EcoPaste lightweight HarmonyOS client",
+  "dependencies": {},
+  "devDependencies": {
+    "@ohos/hypium": "1.0.25",
+    "@ohos/hamock": "1.0.0"
+  }
+}
+
