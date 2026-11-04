@@ -1,5 +1,6 @@
 import promptAction from '@ohos.promptAction';
 import pasteboard from '@ohos.pasteboard';
+import bundleManager from '@ohos.bundle.bundleManager';
 import { SyncManager, SyncStatus } from '../services/SyncManager';
 import { PreferenceManager, WebDavConfig } from '../services/PreferenceManager';
 import { cleanToPlainText } from '../utils/TextFormatUtils';
@@ -7,6 +8,7 @@ import { cleanToPlainText } from '../utils/TextFormatUtils';
 @Entry
 @Component
 struct Index {
+  @State appVersion: string = '1.0.1';
   @State syncStatus: SyncStatus = {
     online: false,
     syncing: false,
@@ -38,10 +40,22 @@ struct Index {
   aboutToAppear(): void {
     this.syncManager.addListener(this.statusCallback);
     this.loadSavedConfig();
+    this.loadAppVersion();
   }
 
   aboutToDisappear(): void {
     this.syncManager.removeListener(this.statusCallback);
+  }
+
+  async loadAppVersion(): Promise<void> {
+    try {
+      const bundleInfo = await bundleManager.getBundleInfoForSelf(bundleManager.BundleFlag.GET_BUNDLE_INFO_DEFAULT);
+      if (bundleInfo && bundleInfo.versionName) {
+        this.appVersion = bundleInfo.versionName;
+      }
+    } catch (e) {
+      // fallback
+    }
   }
 
   async loadSavedConfig(): Promise<void> {
@@ -128,13 +142,25 @@ struct Index {
             .margin({ right: 10 })
 
           Column() {
-            Text('EcoPaste 随行同步')
-              .fontSize(19)
-              .fontWeight(FontWeight.Bold)
-              .fontColor('#182431')
+            Row({ space: 6 }) {
+              Text('EcoPaste 随行同步')
+                .fontSize(19)
+                .fontWeight(FontWeight.Bold)
+                .fontColor('#182431')
+
+              Text(`v${this.appVersion}`)
+                .fontSize(10)
+                .fontColor('#0A59F7')
+                .backgroundColor('#E8F3FF')
+                .padding({ left: 6, right: 6, top: 2, bottom: 2 })
+                .borderRadius(4)
+            }
+            .alignItems(VerticalAlign.Center)
+
             Text('电脑 ⇄ 手机 剪贴板实时无感同步')
               .fontSize(12)
               .fontColor('#7E868E')
+              .margin({ top: 2 })
           }
           .alignItems(HorizontalAlign.Start)
         }
@@ -215,8 +241,8 @@ struct Index {
             .margin({ bottom: 12 })
 
             // 动作按钮栏
-            Row({ space: 10 }) {
-              Button('📋 复制内容')
+            Row({ space: 8 }) {
+              Button('📋 复制')
                 .layoutWeight(1)
                 .height(38)
                 .fontSize(13)
@@ -226,7 +252,7 @@ struct Index {
                   this.copyCurrentText();
                 })
 
-              Button('⬇️ 从电脑拉取')
+              Button('⬇️ 拉取')
                 .layoutWeight(1)
                 .height(38)
                 .fontSize(13)
@@ -237,7 +263,7 @@ struct Index {
                   this.syncManager.pullLatestFromCloud(true);
                 })
 
-              Button('⬆️ 推送本机')
+              Button('⬆️ 推送')
                 .layoutWeight(1)
                 .height(38)
                 .fontSize(13)
