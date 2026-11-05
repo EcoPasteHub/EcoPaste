@@ -106,27 +106,37 @@ unsafe extern "system" fn hook_proc(code: i32, wparam: WPARAM, lparam: LPARAM) -
     }
 
     let vk = kbd.vkCode;
-    if vk != VK_V {
+    let msg = wparam as UINT;
+
+    // Win 按下/抬起是一次组合的边界；仅靠 V up 复位时，一旦抬起事件丢失，
+    // 下一次 Win+V 会被误判成自动重复，跳过占位键注入并在 Win 抬起时弹出开始菜单。
+    if vk as i32 == VK_LWIN || vk as i32 == VK_RWIN {
+        V_CONSUMED.store(false, Ordering::Relaxed);
         return CallNextHookEx(null_mut(), code, wparam, lparam);
     }
 
-    let msg = wparam as UINT;
+    if vk != VK_V {
+        return CallNextHookEx(null_mut(), code, wparam, lparam);
+    }
 
     if msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN {
         let win_down = (GetAsyncKeyState(VK_LWIN) as u16) & 0x8000 != 0
             || (GetAsyncKeyState(VK_RWIN) as u16) & 0x8000 != 0;
         if !win_down {
+            V_CONSUMED.store(false, Ordering::Relaxed);
             return CallNextHookEx(null_mut(), code, wparam, lparam);
         }
 
         // 按住 V 会持续触发 WM_KEYDOWN；swap 把首次按下与自动重复区分开，
         // 只在首次 toggle，避免连续开合。重复期间仍吞键。
-        if V_CONSUMED.swap(true, Ordering::Relaxed) {
-            return 1;
-        }
+        let repeat = V_CONSUMED.swap(true, Ordering::Relaxed);
 
+        // 自动重复分支同样要注入占位键：若上一次 V 抬起丢失，这次按下会被吞掉，
+        // 但缺少占位键时 Win 抬起会被系统当成单击，弹出开始菜单。
         suppress_start_menu();
-        schedule_toggle();
+        if !repeat {
+            schedule_toggle();
+        }
 
         return 1;
     }
