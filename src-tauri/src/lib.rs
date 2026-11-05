@@ -49,6 +49,9 @@ pub fn run() {
         .build();
 
     let builder = tauri::Builder::default()
+        // WebView2 聚焦时，Tao 默认注册的 Raw Input 会让本进程的 WH_KEYBOARD_LL 钩子收不到按键，
+        // 导致 Win+V 接管窗口聚焦后失效。Always 会注销 Raw Input（RIDEV_REMOVE），钩子恢复全局生效。
+        .device_event_filter(tauri::DeviceEventFilter::Always)
         .plugin(tauri_plugin_single_instance::init(
             |app_handle, argv, _cwd| {
                 if let Some(path) = backup::backup_path_from_args(&argv) {
