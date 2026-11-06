@@ -102,6 +102,12 @@
     "switchCustomGroup": "切换自定义分组",
     "toggleRange": "切换全部 / 收藏"
   },
+  "textCard": {
+    "collapse": "收起",
+    "copied": "已复制",
+    "copySelection": "复制选中文字",
+    "expand": "展开"
+  },
   "types": {
     "color": "颜色",
     "email": "邮箱",

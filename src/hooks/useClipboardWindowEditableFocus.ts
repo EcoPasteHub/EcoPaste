@@ -11,7 +11,7 @@ export const prepareClipboardWindowEditableFocus = async () => {
 };
 
 /**
- * Windows 剪贴板窗口输入控件激活期间临时允许窗口聚焦，编辑结束后恢复不可聚焦。
+ * Windows 剪贴板窗口在编辑或选中文本期间临时允许聚焦，保留 WebView 的原生复制。
  */
 export const useClipboardWindowEditableFocus = () => {
   useEffect(() => {
@@ -65,10 +65,22 @@ export const useClipboardWindowEditableFocus = () => {
 
       restoreTimer = window.setTimeout(() => {
         restoreTimer = 0;
-        if (findEditableElement(document.activeElement)) return;
+        if (findEditableElement(document.activeElement) || hasCardSelection()) {
+          return;
+        }
 
         void setEditing(false);
       }, EDITABLE_BLUR_RESTORE_DELAY_MS);
+    };
+
+    const handleSelectionChange = () => {
+      if (hasCardSelection() && document.visibilityState === "visible") {
+        clearRestoreTimer();
+        void setEditing(true);
+        return;
+      }
+
+      if (editing) scheduleRestore();
     };
 
     const handleVisibilityChange = () => {
@@ -82,6 +94,7 @@ export const useClipboardWindowEditableFocus = () => {
     window.addEventListener("focusin", handleFocusIn, true);
     window.addEventListener("focusout", scheduleRestore, true);
     window.addEventListener("blur", scheduleRestore);
+    document.addEventListener("selectionchange", handleSelectionChange);
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
@@ -90,11 +103,31 @@ export const useClipboardWindowEditableFocus = () => {
       window.removeEventListener("focusin", handleFocusIn, true);
       window.removeEventListener("focusout", scheduleRestore, true);
       window.removeEventListener("blur", scheduleRestore);
+      document.removeEventListener("selectionchange", handleSelectionChange);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       void setClipboardWindowEditing(false);
     };
   }, []);
 };
+
+/**
+ * 只有起止点在同一卡片的正文内，才为原生 Ctrl+C 保持窗口聚焦。
+ */
+function hasCardSelection() {
+  const selection = window.getSelection();
+  if (!selection || selection.isCollapsed || selection.rangeCount !== 1) {
+    return false;
+  }
+
+  const { startContainer, endContainer } = selection.getRangeAt(0);
+  const startElement =
+    startContainer instanceof Element
+      ? startContainer
+      : startContainer.parentElement;
+  const textRoot = startElement?.closest("[data-clipboard-text]");
+
+  return textRoot?.contains(endContainer) ?? false;
+}
 
 function findEditableElement(target: EventTarget | null): HTMLElement | null {
   if (!(target instanceof Element)) return null;
