@@ -81,7 +81,7 @@ const ClipboardCard: FC<ClipboardCardProps> = (props) => {
   const [hovered, setHovered] = useState(false);
   const typeKey = subKind ?? kind;
   const typeLabel = t(`types.${typeKey}`);
-  const body = renderBody(item, isLinkActive, onOpenLink);
+  const body = renderBody(item, isLinkActive, onOpenLink, onMouseDown);
   const showSensitiveIndicator = item.isSensitive && item.kind === "text";
   const showStatusIndicators = item.isPinned || showSensitiveIndicator;
   const sourceAppIcon = sourceAppId ? (
@@ -214,13 +214,19 @@ const renderBody = (
   item: ClipboardItem,
   isLinkActive?: boolean,
   onOpenLink?: () => void,
+  onMouseDown?: (event: MouseEvent<HTMLDivElement>) => void,
 ) => {
   if (item.kind === "image") return <ImageCard {...item} />;
 
   if (item.kind === "files") return <FilesCard {...item} />;
 
   return (
-    <TextCard {...item} isLinkActive={isLinkActive} onOpenLink={onOpenLink} />
+    <TextCard
+      {...item}
+      isLinkActive={isLinkActive}
+      onCardMouseDown={onMouseDown}
+      onOpenLink={onOpenLink}
+    />
   );
 };
 

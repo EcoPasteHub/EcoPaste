@@ -102,6 +102,12 @@
     "switchCustomGroup": "Switch custom group",
     "toggleRange": "Toggle all / favorites"
   },
+  "textCard": {
+    "collapse": "Collapse",
+    "copied": "Copied",
+    "copySelection": "Copy selected text",
+    "expand": "Expand"
+  },
   "types": {
     "color": "Color",
     "email": "Email",
