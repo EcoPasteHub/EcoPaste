@@ -91,6 +91,11 @@ plain scroll-area component only when a real non-virtual call site is being
 converted, instead of stretching `VirtuosoScroller` across incompatible scroll
 contracts.
 
+The preference sidebar navigation uses `ScrollArea` with `min-h-0 flex-1`; the
+logo and storage summary remain fixed. This keeps every navigation item reachable
+at high DPI or short window heights. Do not rely on `overflow-hidden` plus a
+flex column to make all items fit.
+
 ## HTML / SVG Safety
 
 Clipboard HTML preview is rendered as plain text. Do not add a generic shared

@@ -30,26 +30,63 @@ Reference files:
 ## Transient Clipboard Read Failures
 
 On Windows, a clipboard change notification can arrive while another listener
-briefly holds the clipboard open. The watcher must treat a reader `Err` as
-transient and retry within a bounded window before dropping that update. The
-current policy performs one initial read followed by delays of 15 ms, 35 ms,
-and 75 ms (four attempts and at most 125 ms total delay).
+briefly holds the clipboard open or before an application has finished rendering
+delayed clipboard formats. The watcher treats both a reader `Err` and an initial
+`Ok(None)` as retryable on Windows. The current policy performs one initial read
+followed by delays of 15 ms, 35 ms, 75 ms, and 150 ms (five attempts and at most
+275 ms total delay).
 
-`read_with_retry` returns immediately for both `Ok(Some(payload))` and
-`Ok(None)`. Only `Err` is retried, and an exhausted sequence is returned to the
-existing watcher error branch so it emits one final warning rather than one
+On macOS, `Ok(None)` remains final because the watcher already polls
+`changeCount`; only `Err` is retried. An exhausted error sequence is returned to
+the existing watcher error branch so it emits one final warning rather than one
 warning per attempt.
 
 ```rust
-read_with_retry(&CLIPBOARD_READ_RETRY_DELAYS, || {
-    reader.read_with_capture(capture_settings)
-})
+read_with_retry(
+    &CLIPBOARD_READ_RETRY_DELAYS,
+    cfg!(target_os = "windows"),
+    || {
+        reader.read_with_capture_for_source(
+            capture_settings,
+            source_app_id,
+        )
+    },
+)
 ```
 
-Tests must assert the attempt count for immediate success, transient recovery,
-empty content, and exhaustion. Use zero-duration delays in unit tests; native
+Tests must assert the attempt count for immediate success, transient error
+recovery, non-Windows empty-content early return, Windows delayed-empty
+recovery, and exhaustion. Use zero-duration delays in unit tests; native
 clipboard contention belongs in ignored desktop-session tests or manual Windows
 validation with another clipboard listener enabled.
+
+## Office/WPS Text Over Image
+
+Office and WPS text selections can expose both rich text and a rendered image.
+Without a source hint, the default `files > image > html > rtf > text` order
+stores the image and loses editable text. `read_with_capture_for_source` accepts
+the foreground executable path and checks `winword.exe`, `powerpnt.exe`,
+`excel.exe`, `outlook.exe`, `wps.exe`, `wpp.exe`, `et.exe`, `wpspdf.exe`, and
+`soffice.exe`.
+
+For those sources only, if an enabled text-family representation exists, the
+image candidate is skipped and the configured HTML/RTF/text order is used. The
+override does not apply to browsers, screenshots, or other applications.
+
+Tests must cover:
+
+- All supported Office/WPS executable names.
+- An enabled text representation causing image priority to be skipped.
+- No text representation falling back to image capture.
+- Non-Office sources retaining their configured capture order.
+
+```rust
+// Wrong: source-unaware capture turns selected presentation text into an image.
+reader.read_with_capture(capture)
+
+// Correct: pass the already-detected foreground source before reading formats.
+reader.read_with_capture_for_source(capture, source.as_ref().map(|app| app.id.as_str()))
+```
 
 ## Payload and Storage Semantics
 

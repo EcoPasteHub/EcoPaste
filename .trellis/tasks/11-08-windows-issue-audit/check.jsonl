@@ -1,0 +1,5 @@
+{"_example": "Fill with {\"file\": \"<path>\", \"reason\": \"<why>\"}. Put spec/research files only — no code paths. Run `python3 .trellis/scripts/get_context.py --mode packages` to list available specs. Delete this line once real entries are added."}
+{"file": ".trellis/spec/backend/index.md", "reason": "Backend quality gate and ownership boundaries"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend layout and keyboard behavior gates"}
+{"file": ".trellis/spec/backend/settings-window-platform.md", "reason": "Verify native contracts and Windows manual checks"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Verify no duplicated state or event contract drift"}
