@@ -30,7 +30,7 @@ const VK_V: u32 = 0x56;
 const VK_DUMMY: u16 = 0xE8;
 
 static ENABLED: AtomicBool = AtomicBool::new(false);
-static V_CONSUMED: AtomicBool = AtomicBool::new(false);
+static WIN_CHORD_ACTIVE: AtomicBool = AtomicBool::new(false);
 static HOOK_THREAD_ID: Mutex<Option<u32>> = Mutex::new(None);
 static APP_HANDLE: OnceLock<AppHandle> = OnceLock::new();
 
@@ -75,7 +75,7 @@ fn enable(app: &AppHandle) {
         *HOOK_THREAD_ID
             .lock()
             .expect("win_v hook thread id poisoned") = None;
-        V_CONSUMED.store(false, Ordering::Relaxed);
+        WIN_CHORD_ACTIVE.store(false, Ordering::Relaxed);
     });
 }
 
@@ -99,6 +99,12 @@ unsafe extern "system" fn hook_proc(code: i32, wparam: WPARAM, lparam: LPARAM) -
     }
 
     let kbd = &*(lparam as *const KBDLLHOOKSTRUCT);
+    let win_down = (GetAsyncKeyState(VK_LWIN) as u16) & 0x8000 != 0
+        || (GetAsyncKeyState(VK_RWIN) as u16) & 0x8000 != 0;
+
+    if !win_down {
+        WIN_CHORD_ACTIVE.store(false, Ordering::Relaxed);
+    }
 
     // 自己注入的占位键放行，避免与真实按键混淆。
     if kbd.flags & LLKHF_INJECTED != 0 {
@@ -113,16 +119,13 @@ unsafe extern "system" fn hook_proc(code: i32, wparam: WPARAM, lparam: LPARAM) -
     let msg = wparam as UINT;
 
     if msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN {
-        let win_down = (GetAsyncKeyState(VK_LWIN) as u16) & 0x8000 != 0
-            || (GetAsyncKeyState(VK_RWIN) as u16) & 0x8000 != 0;
-        if !win_down {
-            return CallNextHookEx(null_mut(), code, wparam, lparam);
-        }
+        let should_toggle = begin_win_v_chord(win_down, &WIN_CHORD_ACTIVE);
+        if !win_down || !should_toggle {
+            if win_down {
+                return 1;
+            }
 
-        // 按住 V 会持续触发 WM_KEYDOWN；swap 把首次按下与自动重复区分开，
-        // 只在首次 toggle，避免连续开合。重复期间仍吞键。
-        if V_CONSUMED.swap(true, Ordering::Relaxed) {
-            return 1;
+            return CallNextHookEx(null_mut(), code, wparam, lparam);
         }
 
         suppress_start_menu();
@@ -131,12 +134,34 @@ unsafe extern "system" fn hook_proc(code: i32, wparam: WPARAM, lparam: LPARAM) -
         return 1;
     }
 
-    if (msg == WM_KEYUP || msg == WM_SYSKEYUP) && V_CONSUMED.swap(false, Ordering::Relaxed) {
+    if (msg == WM_KEYUP || msg == WM_SYSKEYUP)
+        && should_consume_win_v_keyup(win_down, &WIN_CHORD_ACTIVE)
+    {
         // 配对吞掉 V 抬起：按下已被拦截，放行抬起会让前台应用收到孤立 KEYUP。
         return 1;
     }
 
     CallNextHookEx(null_mut(), code, wparam, lparam)
+}
+
+/// 按住 Win 期间只允许第一颗 V 触发 toggle，后续自动重复与再次按下都继续吞掉。
+fn begin_win_v_chord(win_down: bool, chord_active: &AtomicBool) -> bool {
+    if !win_down {
+        chord_active.store(false, Ordering::Relaxed);
+        return false;
+    }
+
+    !chord_active.swap(true, Ordering::Relaxed)
+}
+
+/// Win 仍按住时吞掉 V 抬起；Win 已松开则清空 latch，让下一轮 Win+V 重新触发。
+fn should_consume_win_v_keyup(win_down: bool, chord_active: &AtomicBool) -> bool {
+    if !win_down {
+        chord_active.store(false, Ordering::Relaxed);
+        return false;
+    }
+
+    chord_active.load(Ordering::Relaxed)
 }
 
 /// 注入一次占位键的按下/抬起，打断「Win 单击」语义，阻止系统在 Win 抬起时弹开始菜单。
@@ -192,5 +217,32 @@ fn schedule_toggle() {
         }
     }) {
         log::warn!("schedule win+v toggle failed: {err}");
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{begin_win_v_chord, should_consume_win_v_keyup};
+    use std::sync::atomic::AtomicBool;
+
+    #[test]
+    fn win_v_toggles_once_until_win_is_released() {
+        let active = AtomicBool::new(false);
+
+        assert!(begin_win_v_chord(true, &active));
+        assert!(!begin_win_v_chord(true, &active));
+        assert!(should_consume_win_v_keyup(true, &active));
+        assert!(!begin_win_v_chord(true, &active));
+
+        assert!(!should_consume_win_v_keyup(false, &active));
+        assert!(begin_win_v_chord(true, &active));
+    }
+
+    #[test]
+    fn plain_v_is_not_consumed() {
+        let active = AtomicBool::new(true);
+
+        assert!(!begin_win_v_chord(false, &active));
+        assert!(!active.load(std::sync::atomic::Ordering::Relaxed));
     }
 }

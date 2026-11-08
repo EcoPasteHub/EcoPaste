@@ -11,7 +11,10 @@ use winapi::um::winuser::{
     MSLLHOOKSTRUCT, WH_MOUSE_LL, WM_LBUTTONDOWN, WM_MBUTTONDOWN, WM_QUIT, WM_RBUTTONDOWN,
 };
 
-use crate::window::{self, CLIPBOARD_WINDOW_LABEL};
+use crate::{
+    keyboard,
+    window::{self, CLIPBOARD_WINDOW_LABEL},
+};
 
 static ENABLED: AtomicBool = AtomicBool::new(false);
 static HOOK_THREAD_ID: Mutex<Option<u32>> = Mutex::new(None);
@@ -83,16 +86,29 @@ unsafe extern "system" fn hook_proc(code: i32, wparam: WPARAM, lparam: LPARAM) -
             if cursor_outside_context_menu(app, cursor) {
                 schedule_hide_context_menu(app);
             }
+            if cursor_outside_clipboard_window(app, cursor) && clipboard_window_visible(app) {
+                keyboard::disable_navigation_keys();
+            }
             true
         } else {
             false
         };
 
-        if !menu_handled
-            && window::should_auto_hide_clipboard_window()
-            && cursor_outside_clipboard_window(app, cursor)
-        {
-            schedule_hide(app);
+        if !menu_handled {
+            let outside = cursor_outside_clipboard_window(app, cursor);
+
+            if outside && window::should_auto_hide_clipboard_window() {
+                schedule_hide(app);
+            } else if clipboard_window_visible(app) {
+                if outside {
+                    // 固定窗口会继续显示，但用户已经切到别的应用；此时不能让全局
+                    // Space / Ctrl / 方向键继续被剪贴板窗口吞掉。
+                    keyboard::disable_navigation_keys();
+                } else {
+                    // 点回剪贴板窗口后恢复键盘导航；重复 enable 是幂等的。
+                    keyboard::enable_navigation_keys(app);
+                }
+            }
         }
     }
 
@@ -108,6 +124,16 @@ fn cursor_outside_clipboard_window(app: &AppHandle, cursor: POINT) -> bool {
         return false;
     }
 
+    cursor_outside_window(&window, cursor)
+}
+
+fn clipboard_window_visible(app: &AppHandle) -> bool {
+    app.get_webview_window(CLIPBOARD_WINDOW_LABEL)
+        .and_then(|window| window.is_visible().ok())
+        .unwrap_or(false)
+}
+
+fn cursor_outside_window(window: &tauri::WebviewWindow, cursor: POINT) -> bool {
     let Ok(position) = window.outer_position() else {
         return false;
     };

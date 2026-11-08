@@ -41,12 +41,37 @@ pub fn init(app: &AppHandle) -> Result<()> {
 }
 
 pub fn is_enabled(app: &AppHandle) -> Result<bool> {
+    #[cfg(target_os = "windows")]
+    if app
+        .state::<crate::settings::SettingsStore>()
+        .snapshot()
+        .general
+        .run_as_admin
+    {
+        return Ok(crate::admin::is_scheduled_task_ready());
+    }
+
     let manager = app.state::<AutostartManager>();
     manager.platform.is_enabled()
 }
 
 pub fn set_enabled(app: &AppHandle, enabled: bool) -> Result<()> {
     let manager = app.state::<AutostartManager>();
+
+    #[cfg(target_os = "windows")]
+    {
+        let run_as_admin = app
+            .state::<crate::settings::SettingsStore>()
+            .snapshot()
+            .general
+            .run_as_admin;
+        let task_ready = crate::admin::sync_scheduled_task(run_as_admin, enabled);
+
+        if enabled && run_as_admin && task_ready {
+            return manager.platform.set_enabled(false);
+        }
+    }
+
     manager.platform.set_enabled(enabled)
 }
 

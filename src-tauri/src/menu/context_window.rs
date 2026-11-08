@@ -118,7 +118,7 @@ fn build_menu_window(
 
 /// 在当前光标处弹出列表项右键菜单。算好 size + position → `set_size`
 /// → `set_position` → emit 数据 → `show`。
-pub(super) fn show_for_clipboard_item(
+pub(super) async fn show_for_clipboard_item(
     app: &AppHandle,
     request: &ClipboardItemMenuRequest,
 ) -> Result<()> {
@@ -148,9 +148,7 @@ pub(super) fn show_for_clipboard_item(
     hide_submenu(app);
     build_context_menu_window(app)?;
 
-    let window = app
-        .get_webview_window(CONTEXT_MENU_WINDOW_LABEL)
-        .ok_or_else(|| AppError::Other(anyhow::anyhow!("context-menu window missing")))?;
+    let window = crate::window::wait_for_webview_usable(app, CONTEXT_MENU_WINDOW_LABEL).await?;
 
     let (x, y) = compute_position(&window, width, height)?;
 
@@ -173,7 +171,7 @@ pub(super) fn show_for_clipboard_item(
 }
 
 /// 根据一级菜单项矩形显示二级菜单窗口。
-pub fn show_submenu(app: &AppHandle, input: ShowContextSubmenuInput) -> Result<()> {
+pub async fn show_submenu(app: &AppHandle, input: ShowContextSubmenuInput) -> Result<()> {
     if input.groups.is_empty() {
         hide_submenu(app);
 
@@ -183,12 +181,8 @@ pub fn show_submenu(app: &AppHandle, input: ShowContextSubmenuInput) -> Result<(
     set_context_submenu_payload(Some(input.clone()));
     build_context_submenu_window(app)?;
 
-    let root = app
-        .get_webview_window(CONTEXT_MENU_WINDOW_LABEL)
-        .ok_or_else(|| AppError::Other(anyhow::anyhow!("context-menu window missing")))?;
-    let submenu = app
-        .get_webview_window(CONTEXT_SUBMENU_WINDOW_LABEL)
-        .ok_or_else(|| AppError::Other(anyhow::anyhow!("context-submenu window missing")))?;
+    let root = crate::window::wait_for_webview_usable(app, CONTEXT_MENU_WINDOW_LABEL).await?;
+    let submenu = crate::window::wait_for_webview_usable(app, CONTEXT_SUBMENU_WINDOW_LABEL).await?;
 
     let (width, height) = compute_submenu_size(input.groups.len() as u32);
     let (x, y) = compute_submenu_position(&root, &input.anchor, width, height)?;

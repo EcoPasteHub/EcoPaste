@@ -144,11 +144,9 @@ pub fn app_data_dir(app: &AppHandle) -> Result<PathBuf> {
 
     if !manifest.data_dir.exists() {
         log::warn!(
-            "storage data dir {:?} is missing, falling back to default data dir",
-            manifest.data_dir
+            "storage data dir {:?} is unavailable, using default data dir for this run; keeping manifest for recovery",
+            manifest.data_dir,
         );
-        let manifest = storage_manifest(default.clone());
-        write_storage_manifest(&manifest_path, &manifest)?;
         return Ok(default);
     }
 

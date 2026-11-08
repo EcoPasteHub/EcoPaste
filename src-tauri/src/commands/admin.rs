@@ -20,7 +20,9 @@ pub async fn set_run_as_admin(app: AppHandle, enabled: bool) -> Result<Settings>
         },
     }))?;
 
-    admin::sync_scheduled_task(enabled);
+    if let Err(err) = crate::autostart::sync_enabled(&app, next.general.auto_start) {
+        log::warn!("sync autostart after administrator setting change failed: {err}");
+    }
     super::settings::emit_settings_updated(&app, &next);
 
     Ok(next)

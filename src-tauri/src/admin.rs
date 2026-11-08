@@ -49,6 +49,7 @@ struct EarlySettings {
 #[derive(Debug, Default, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
 struct EarlyGeneral {
+    auto_start: bool,
     run_as_admin: bool,
 }
 
@@ -116,26 +117,40 @@ pub fn is_scheduled_task_ready() -> bool {
     }
 }
 
-pub fn sync_scheduled_task(configured: bool) {
+/// Keep the highest-privilege logon task aligned with both persisted intents.
+/// The task is used as the Windows autostart entry only when administrator mode
+/// and autostart are both enabled.
+pub fn sync_scheduled_task(configured: bool, auto_start: bool) -> bool {
     #[cfg(target_os = "windows")]
     {
-        if configured && is_running_as_admin() {
+        if configured && auto_start {
+            if !is_running_as_admin() {
+                return is_scheduled_task_ready();
+            }
+            if is_scheduled_task_ready() {
+                return true;
+            }
+
             if let Err(err) = create_scheduled_task() {
                 log::warn!("sync admin scheduled task failed: {err}");
+                return false;
             }
-            return;
+            return is_scheduled_task_ready();
         }
 
-        if !configured && is_running_as_admin() {
+        if is_scheduled_task_exists() {
             if let Err(err) = delete_scheduled_task() {
                 log::warn!("delete admin scheduled task failed: {err}");
             }
         }
+        false
     }
 
     #[cfg(not(target_os = "windows"))]
     {
         let _ = configured;
+        let _ = auto_start;
+        false
     }
 }
 
@@ -166,16 +181,16 @@ pub fn handle_startup_auto_elevation() {
             return;
         }
 
-        let Ok(configured) = early_run_as_admin_enabled() else {
+        let Ok(early) = early_admin_settings() else {
             return;
         };
-        if !configured {
+        if !early.general.run_as_admin {
             return;
         }
 
         if is_running_as_admin() {
-            if let Err(err) = create_scheduled_task() {
-                log::warn!("startup admin scheduled task sync failed: {err}");
+            if early.general.auto_start {
+                sync_scheduled_task(true, true);
             }
             return;
         }
@@ -213,7 +228,7 @@ fn is_scheduled_task_path_valid() -> bool {
         Err(_) => return false,
     };
     let output = Command::new("schtasks")
-        .args(["/Query", "/TN", TASK_NAME, "/FO", "LIST", "/V"])
+        .args(["/Query", "/TN", TASK_NAME, "/XML", "ONE"])
         .creation_flags(CREATE_NO_WINDOW)
         .output();
 
@@ -224,9 +239,14 @@ fn is_scheduled_task_path_valid() -> bool {
         return false;
     }
 
-    String::from_utf8_lossy(&output.stdout)
-        .to_lowercase()
-        .contains(&current_exe)
+    scheduled_task_xml_is_valid(&decode_command_output(&output.stdout), &current_exe)
+}
+
+#[cfg(target_os = "windows")]
+fn scheduled_task_xml_is_valid(task_xml: &str, current_exe: &str) -> bool {
+    let task_xml = task_xml.to_lowercase();
+
+    task_xml.contains(&current_exe.to_lowercase()) && task_xml.contains("<logontrigger")
 }
 
 #[cfg(target_os = "windows")]
@@ -244,8 +264,7 @@ fn create_scheduled_task() -> Result<()> {
 
     let output = Command::new("schtasks")
         .args([
-            "/Create", "/TN", TASK_NAME, "/TR", &action, "/SC", "ONCE", "/ST", "00:00", "/RL",
-            "HIGHEST", "/F",
+            "/Create", "/TN", TASK_NAME, "/TR", &action, "/SC", "ONLOGON", "/RL", "HIGHEST", "/F",
         ])
         .creation_flags(CREATE_NO_WINDOW)
         .output()
@@ -255,7 +274,7 @@ fn create_scheduled_task() -> Result<()> {
         return Ok(());
     }
 
-    let stderr = String::from_utf8_lossy(&output.stderr);
+    let stderr = decode_command_output(&output.stderr);
     Err(AppError::Other(anyhow::anyhow!(
         "failed to create administrator launch task: {stderr}"
     )))
@@ -266,13 +285,45 @@ fn delete_scheduled_task() -> Result<()> {
     use std::os::windows::process::CommandExt;
     use std::process::Command;
 
-    let _ = Command::new("schtasks")
+    let output = Command::new("schtasks")
         .args(["/Delete", "/TN", TASK_NAME, "/F"])
         .creation_flags(CREATE_NO_WINDOW)
         .output()
         .context("failed to delete administrator launch task")?;
 
-    Ok(())
+    if output.status.success() {
+        return Ok(());
+    }
+
+    let stderr = decode_command_output(&output.stderr);
+    Err(AppError::Other(anyhow::anyhow!(
+        "failed to delete administrator launch task: {stderr}"
+    )))
+}
+
+#[cfg(target_os = "windows")]
+fn decode_command_output(bytes: &[u8]) -> String {
+    let utf16 = bytes.len() >= 2
+        && bytes.len().is_multiple_of(2)
+        && (bytes.starts_with(&[0xff, 0xfe])
+            || bytes
+                .chunks_exact(2)
+                .take(64)
+                .filter(|chunk| chunk[1] == 0)
+                .count()
+                > 16);
+
+    if !utf16 {
+        return String::from_utf8_lossy(bytes).into_owned();
+    }
+
+    let bytes = bytes.strip_prefix(&[0xff, 0xfe]).unwrap_or(bytes);
+    let units = bytes
+        .chunks_exact(2)
+        .map(|chunk| u16::from_le_bytes([chunk[0], chunk[1]]))
+        .collect::<Vec<_>>();
+
+    String::from_utf16_lossy(&units)
 }
 
 #[cfg(target_os = "windows")]
@@ -340,9 +391,9 @@ fn try_launch_with_uac() -> bool {
 }
 
 #[cfg(target_os = "windows")]
-fn early_run_as_admin_enabled() -> Result<bool> {
+fn early_admin_settings() -> Result<EarlySettings> {
     let Some(base) = std::env::var_os("LOCALAPPDATA") else {
-        return Ok(false);
+        return Ok(EarlySettings::default());
     };
 
     let bootstrap = PathBuf::from(base)
@@ -351,7 +402,7 @@ fn early_run_as_admin_enabled() -> Result<bool> {
     let data_dir = early_data_dir(&bootstrap)?;
     let settings_path = data_dir.join("config").join(SETTINGS_FILENAME);
     if !settings_path.exists() {
-        return Ok(false);
+        return Ok(EarlySettings::default());
     }
 
     let content = std::fs::read_to_string(&settings_path)
@@ -359,7 +410,7 @@ fn early_run_as_admin_enabled() -> Result<bool> {
     let settings: EarlySettings =
         serde_json::from_str(&content).context("failed to parse early settings")?;
 
-    Ok(settings.general.run_as_admin)
+    Ok(settings)
 }
 
 #[cfg(target_os = "windows")]
@@ -429,4 +480,38 @@ fn wide_null(value: &str) -> Vec<u16> {
         .encode_wide()
         .chain(std::iter::once(0))
         .collect()
+}
+
+#[cfg(all(test, target_os = "windows"))]
+mod tests {
+    use super::{decode_command_output, scheduled_task_xml_is_valid};
+
+    #[test]
+    fn admin_task_requires_logon_trigger_and_current_executable() {
+        let exe = r"c:\program files\ecopaste\ecopaste.exe";
+        let valid = format!(
+            "<Task><Triggers><LogonTrigger/></Triggers><Actions><Exec><Command>{exe}</Command></Exec></Actions></Task>"
+        );
+        let one_time = format!(
+            "<Task><Triggers><TimeTrigger/></Triggers><Actions><Exec><Command>{exe}</Command></Exec></Actions></Task>"
+        );
+
+        assert!(scheduled_task_xml_is_valid(&valid, exe));
+        assert!(!scheduled_task_xml_is_valid(&one_time, exe));
+        assert!(!scheduled_task_xml_is_valid(
+            &valid,
+            r"c:\other\ecopaste.exe"
+        ));
+    }
+
+    #[test]
+    fn decodes_utf16_schtasks_output() {
+        let text = "<Task><LogonTrigger/></Task>";
+        let mut bytes = vec![0xff, 0xfe];
+        for unit in text.encode_utf16() {
+            bytes.extend_from_slice(&unit.to_le_bytes());
+        }
+
+        assert_eq!(decode_command_output(&bytes), text);
+    }
 }

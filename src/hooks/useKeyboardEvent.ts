@@ -17,6 +17,20 @@ const EDITABLE_GLOBAL_HANDOFF_KEYS = new Set([
   "Escape",
   "Tab",
 ]);
+const IME_COMPOSITION_GUARD_MS = 50;
+
+let compositionActive = false;
+let compositionEndedAt = Number.NEGATIVE_INFINITY;
+
+if (typeof document !== "undefined") {
+  document.addEventListener("compositionstart", () => {
+    compositionActive = true;
+  });
+  document.addEventListener("compositionend", () => {
+    compositionActive = false;
+    compositionEndedAt = performance.now();
+  });
+}
 
 interface NavEventPayload {
   code?: string;
@@ -40,6 +54,8 @@ export const useKeyboardEvent = (
   const handlerRef = useLatest(handler);
 
   const handleBrowserEvent = (event: KeyboardEvent) => {
+    if (isImeCompositionEvent(event)) return;
+
     if (isWindowsClipboardWindow) {
       const editableTarget = findEditableElement(event.target);
       if (editableTarget) {
@@ -62,11 +78,29 @@ export const useKeyboardEvent = (
 
     if (payloadType !== type || !rest.key) return;
 
-    handlerRef.current(
-      new KeyboardEvent(payloadType, { cancelable: true, ...rest }),
-    );
+    const keyboardEvent = new KeyboardEvent(payloadType, {
+      cancelable: true,
+      ...rest,
+    });
+
+    if (isImeCompositionEvent(keyboardEvent)) return;
+
+    handlerRef.current(keyboardEvent);
   });
 };
+
+/**
+ * 输入法组合期间浏览器可能用 Enter 确认候选词；这类事件必须留在输入框内。
+ * Chromium 在部分 Windows IME 下只暴露 keyCode 229，isComposing 不一定为 true。
+ */
+function isImeCompositionEvent(event: KeyboardEvent) {
+  return (
+    event.isComposing ||
+    event.keyCode === 229 ||
+    compositionActive ||
+    performance.now() - compositionEndedAt < IME_COMPOSITION_GUARD_MS
+  );
+}
 
 function findEditableElement(target: EventTarget | null): HTMLElement | null {
   if (!(target instanceof Element)) return null;

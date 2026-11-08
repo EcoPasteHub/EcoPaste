@@ -270,12 +270,23 @@ pub fn run() {
 
             Ok(())
         })
-        .on_window_event(|window, event| {
-            if let WindowEvent::CloseRequested { api, .. } = event {
+        .on_window_event(|window, event| match event {
+            WindowEvent::CloseRequested { api, .. } => {
                 if window::intercept_close_request(window) {
                     api.prevent_close();
                 }
             }
+            WindowEvent::Moved(_) | WindowEvent::Resized(_) => {
+                window::remember_window_metrics(window);
+            }
+            WindowEvent::ScaleFactorChanged {
+                scale_factor,
+                new_inner_size,
+                ..
+            } => {
+                window::handle_scale_factor_changed(window, *scale_factor, *new_inner_size);
+            }
+            _ => {}
         })
         .build(tauri::generate_context!())
         .expect("error while running tauri application")

@@ -8,15 +8,17 @@ use tauri::{AppHandle, Emitter};
 use winapi::shared::minwindef::{LPARAM, LRESULT, UINT, WPARAM};
 use winapi::um::processthreadsapi::GetCurrentThreadId;
 use winapi::um::winuser::{
-    CallNextHookEx, GetAsyncKeyState, GetMessageW, PostThreadMessageW, SetWindowsHookExW,
-    UnhookWindowsHookEx, KBDLLHOOKSTRUCT, MSG, VK_BACK, VK_CONTROL, VK_DELETE, VK_DOWN, VK_ESCAPE,
-    VK_LCONTROL, VK_LEFT, VK_RCONTROL, VK_RETURN, VK_RIGHT, VK_SHIFT, VK_SPACE, VK_TAB, VK_UP,
-    WH_KEYBOARD_LL, WM_KEYDOWN, WM_KEYUP, WM_QUIT, WM_SYSKEYDOWN, WM_SYSKEYUP,
+    CallNextHookEx, GetAsyncKeyState, GetForegroundWindow, GetMessageW, PostThreadMessageW,
+    SetWindowsHookExW, UnhookWindowsHookEx, KBDLLHOOKSTRUCT, MSG, VK_BACK, VK_CONTROL, VK_DELETE,
+    VK_DOWN, VK_ESCAPE, VK_LCONTROL, VK_LEFT, VK_LWIN, VK_MENU, VK_RCONTROL, VK_RETURN, VK_RIGHT,
+    VK_RWIN, VK_SHIFT, VK_SPACE, VK_TAB, VK_UP, WH_KEYBOARD_LL, WM_KEYDOWN, WM_KEYUP, WM_QUIT,
+    WM_SYSKEYDOWN, WM_SYSKEYUP,
 };
 
 use super::NAV_EVENT;
 
 static NAV_ENABLED: AtomicBool = AtomicBool::new(false);
+static EXPECTED_FOREGROUND: std::sync::atomic::AtomicIsize = std::sync::atomic::AtomicIsize::new(0);
 static HOOK_THREAD_ID: Mutex<Option<u32>> = Mutex::new(None);
 static APP_HANDLE: OnceLock<AppHandle> = OnceLock::new();
 
@@ -71,6 +73,7 @@ fn preview_key(vk: u32) -> Option<&'static str> {
 pub fn enable_navigation_keys(app: &AppHandle) {
     let _ = APP_HANDLE.set(app.clone());
     NAV_ENABLED.store(true, Ordering::Relaxed);
+    EXPECTED_FOREGROUND.store(unsafe { GetForegroundWindow() as isize }, Ordering::Relaxed);
 
     // 已有钩子线程时不再起新线程；NAV_ENABLED 的恢复就够了。
     if HOOK_THREAD_ID
@@ -105,6 +108,7 @@ pub fn enable_navigation_keys(app: &AppHandle) {
 
 pub fn disable_navigation_keys() {
     NAV_ENABLED.store(false, Ordering::Relaxed);
+    EXPECTED_FOREGROUND.store(0, Ordering::Relaxed);
 
     // 隐藏窗口时主动通知前端 Ctrl 已松开：隐藏后钩子线程随即退出，
     // 此后真实的 Ctrl keyup 不会再被捕获，否则前端会残留"Ctrl 按下"状态。
@@ -137,6 +141,18 @@ unsafe extern "system" fn hook_proc(code: i32, wparam: WPARAM, lparam: LPARAM) -
     let vk = kbd.vkCode;
     let msg = wparam as UINT;
     let ctrl_down = (GetAsyncKeyState(VK_CONTROL) as u16) & 0x8000 != 0;
+    let alt_down = (GetAsyncKeyState(VK_MENU) as u16) & 0x8000 != 0;
+    let win_down = (GetAsyncKeyState(VK_LWIN) as u16) & 0x8000 != 0
+        || (GetAsyncKeyState(VK_RWIN) as u16) & 0x8000 != 0;
+    let expected_foreground = EXPECTED_FOREGROUND.load(Ordering::Relaxed);
+    let foreground_matches = expected_foreground != 0
+        && unsafe { GetForegroundWindow() as isize } == expected_foreground;
+
+    // Alt+Tab / Win shortcuts and an app switch without clicking must remain
+    // native. Navigation resumes after the mouse hook records an inside click.
+    if !foreground_matches || alt_down || win_down {
+        return CallNextHookEx(null_mut(), code, wparam, lparam);
+    }
 
     let is_ctrl = matches!(vk as i32, VK_CONTROL | VK_LCONTROL | VK_RCONTROL);
 

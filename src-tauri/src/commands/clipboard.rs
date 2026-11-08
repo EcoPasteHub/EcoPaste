@@ -88,7 +88,10 @@ pub async fn read_clipboard(
         let source = detect_frontmost();
         let reader = ClipboardReader::new()?;
         let settings = app.state::<SettingsStore>().snapshot();
-        let payload = reader.read_with_capture(&settings.clipboard.capture)?;
+        let payload = reader.read_with_capture_for_source(
+            &settings.clipboard.capture,
+            source.as_ref().map(|app| app.id.as_str()),
+        )?;
         let item = match payload {
             Some(payload) => build_item_with_settings(
                 &store,

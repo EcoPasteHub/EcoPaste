@@ -41,19 +41,25 @@ const CLIPBOARD_POLL_INTERVAL: std::time::Duration = std::time::Duration::from_m
 
 /// Another clipboard listener can briefly hold the Windows clipboard open. Retry those read
 /// failures within a bounded window before dropping the update.
-const CLIPBOARD_READ_RETRY_DELAYS: [Duration; 3] = [
+const CLIPBOARD_READ_RETRY_DELAYS: [Duration; 4] = [
     Duration::from_millis(15),
     Duration::from_millis(35),
     Duration::from_millis(75),
+    Duration::from_millis(150),
 ];
 
 fn read_with_retry<T, E>(
     retry_delays: &[Duration],
+    retry_empty: bool,
     mut read: impl FnMut() -> Result<Option<T>, E>,
 ) -> Result<Option<T>, E> {
     let mut result = read();
     for delay in retry_delays {
-        if result.is_ok() {
+        let can_return = match &result {
+            Ok(None) => !retry_empty,
+            _ => result.is_ok(),
+        };
+        if can_return {
             return result;
         }
         std::thread::sleep(*delay);
@@ -297,9 +303,16 @@ impl ClipboardHandler for ClipboardChangeHandler {
             .unwrap_or_default();
 
         // 同步读取 + 转换（含图片落盘）：拿到 content_hash 才能判定是否为自身写回。
-        let payload = match read_with_retry(&CLIPBOARD_READ_RETRY_DELAYS, || {
-            self.reader.read_with_capture(&settings.clipboard.capture)
-        }) {
+        let payload = match read_with_retry(
+            &CLIPBOARD_READ_RETRY_DELAYS,
+            cfg!(target_os = "windows"),
+            || {
+                self.reader.read_with_capture_for_source(
+                    &settings.clipboard.capture,
+                    source.as_ref().map(|app| app.id.as_str()),
+                )
+            },
+        ) {
             Ok(Some(payload)) => payload,
             Ok(None) => return,
             Err(err) => {
@@ -356,13 +369,13 @@ mod tests {
     use crate::db::items::find_item_by_id;
     use crate::db::test_support::memory_pool;
 
-    const ZERO_DELAY_RETRIES: [Duration; 3] = [Duration::ZERO; 3];
+    const ZERO_DELAY_RETRIES: [Duration; 4] = [Duration::ZERO; 4];
 
     #[test]
     fn clipboard_read_retry_returns_immediate_success() {
         let attempts = Cell::new(0);
 
-        let result = read_with_retry(&ZERO_DELAY_RETRIES, || {
+        let result = read_with_retry(&ZERO_DELAY_RETRIES, false, || {
             attempts.set(attempts.get() + 1);
             Ok::<_, &'static str>(Some("captured"))
         });
@@ -375,7 +388,7 @@ mod tests {
     fn clipboard_read_retry_recovers_after_transient_error() {
         let attempts = Cell::new(0);
 
-        let result = read_with_retry(&ZERO_DELAY_RETRIES, || {
+        let result = read_with_retry(&ZERO_DELAY_RETRIES, false, || {
             attempts.set(attempts.get() + 1);
             if attempts.get() == 1 {
                 Err("clipboard busy")
@@ -392,7 +405,7 @@ mod tests {
     fn clipboard_read_retry_does_not_retry_empty_content() {
         let attempts = Cell::new(0);
 
-        let result = read_with_retry(&ZERO_DELAY_RETRIES, || {
+        let result = read_with_retry(&ZERO_DELAY_RETRIES, false, || {
             attempts.set(attempts.get() + 1);
             Ok::<Option<&'static str>, &'static str>(None)
         });
@@ -405,13 +418,30 @@ mod tests {
     fn clipboard_read_retry_returns_final_error_after_exhaustion() {
         let attempts = Cell::new(0);
 
-        let result = read_with_retry(&ZERO_DELAY_RETRIES, || {
+        let result = read_with_retry(&ZERO_DELAY_RETRIES, false, || {
             attempts.set(attempts.get() + 1);
             Err::<Option<&'static str>, _>(attempts.get())
         });
 
-        assert_eq!(result, Err(4));
-        assert_eq!(attempts.get(), 4);
+        assert_eq!(result, Err(5));
+        assert_eq!(attempts.get(), 5);
+    }
+
+    #[test]
+    fn clipboard_read_retry_can_recover_after_delayed_empty_result() {
+        let attempts = Cell::new(0);
+
+        let result = read_with_retry(&ZERO_DELAY_RETRIES, true, || {
+            attempts.set(attempts.get() + 1);
+            if attempts.get() < 3 {
+                Ok::<Option<&'static str>, &'static str>(None)
+            } else {
+                Ok(Some("captured"))
+            }
+        });
+
+        assert_eq!(result, Ok(Some("captured")));
+        assert_eq!(attempts.get(), 3);
     }
 
     fn temp_image_store() -> (TempDir, ImageStore) {

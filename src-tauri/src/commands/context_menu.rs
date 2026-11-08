@@ -90,7 +90,7 @@ pub async fn get_context_submenu_payload() -> Result<Option<ShowContextSubmenuIn
 pub async fn show_context_submenu(app: AppHandle, input: ShowContextSubmenuInput) -> Result<()> {
     #[cfg(target_os = "windows")]
     {
-        crate::menu::context_window::show_submenu(&app, input)
+        crate::menu::context_window::show_submenu(&app, input).await
     }
 
     #[cfg(not(target_os = "windows"))]

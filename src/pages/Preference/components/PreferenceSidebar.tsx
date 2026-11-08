@@ -1,6 +1,7 @@
 import type { FC } from "react";
 import { useTranslation } from "react-i18next";
 import type { StorageUsage } from "@/commands";
+import ScrollArea from "@/components/ScrollArea";
 import { cn } from "@/utils/cn";
 import { isMac } from "@/utils/is";
 import { preferenceTabs } from "../config/preferenceSchema";
@@ -63,52 +64,55 @@ const PreferenceSidebar: FC<PreferenceSidebarProps> = (props) => {
         </div>
       </div>
 
-      <nav
-        className="flex flex-1 flex-col gap-0.5 px-3 pb-3"
+      <ScrollArea
+        className="min-h-0 flex-1"
+        contentClassName="flex flex-col gap-0.5 px-3 pb-3"
         data-tauri-drag-region
       >
-        {preferenceTabs.map((tab) => {
-          const meta = PREFERENCE_TAB_META[tab.id];
-          const selected = tab.id === activeTabId;
-          const handleClick = () => {
-            onTabSelect(tab.id);
-          };
+        <nav className="flex flex-col gap-0.5">
+          {preferenceTabs.map((tab) => {
+            const meta = PREFERENCE_TAB_META[tab.id];
+            const selected = tab.id === activeTabId;
+            const handleClick = () => {
+              onTabSelect(tab.id);
+            };
 
-          return (
-            <button
-              className={cn(
-                "group relative flex h-10 w-full cursor-pointer items-center gap-2 rounded-1.75 border-0 bg-transparent px-2 text-left transition-colors focus-visible:ring-1 focus-visible:ring-ant-primary motion-reduce:transition-none",
-                selected
-                  ? meta.activeClass
-                  : "text-ant-secondary hover:bg-ant-fill-tertiary hover:text-ant-text",
-              )}
-              key={tab.id}
-              onClick={handleClick}
-              type="button"
-            >
-              <span
+            return (
+              <button
                 className={cn(
-                  "flex size-7.5 shrink-0 items-center justify-center text-lg transition-colors motion-reduce:transition-none",
+                  "group relative flex h-10 w-full cursor-pointer items-center gap-2 rounded-1.75 border-0 bg-transparent px-2 text-left transition-colors focus-visible:ring-1 focus-visible:ring-ant-primary motion-reduce:transition-none",
                   selected
-                    ? "text-ant-primary"
-                    : "text-ant-tertiary group-hover:text-ant-secondary",
+                    ? meta.activeClass
+                    : "text-ant-secondary hover:bg-ant-fill-tertiary hover:text-ant-text",
                 )}
+                key={tab.id}
+                onClick={handleClick}
+                type="button"
               >
-                <i aria-hidden="true" className={meta.icon} />
-              </span>
-              <span className="min-w-0 flex-1 truncate font-medium text-sm leading-tight">
-                {translatePreferenceTab(t, tab)}
-              </span>
-              <span
-                className={cn(
-                  "h-5 w-0.75 rounded-full transition-colors motion-reduce:transition-none",
-                  selected ? "bg-ant-primary" : "bg-transparent",
-                )}
-              />
-            </button>
-          );
-        })}
-      </nav>
+                <span
+                  className={cn(
+                    "flex size-7.5 shrink-0 items-center justify-center text-lg transition-colors motion-reduce:transition-none",
+                    selected
+                      ? "text-ant-primary"
+                      : "text-ant-tertiary group-hover:text-ant-secondary",
+                  )}
+                >
+                  <i aria-hidden="true" className={meta.icon} />
+                </span>
+                <span className="min-w-0 flex-1 truncate font-medium text-sm leading-tight">
+                  {translatePreferenceTab(t, tab)}
+                </span>
+                <span
+                  className={cn(
+                    "h-5 w-0.75 rounded-full transition-colors motion-reduce:transition-none",
+                    selected ? "bg-ant-primary" : "bg-transparent",
+                  )}
+                />
+              </button>
+            );
+          })}
+        </nav>
+      </ScrollArea>
 
       <PreferenceStorageUsagePanel
         state={storageState}

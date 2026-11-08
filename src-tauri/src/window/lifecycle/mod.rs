@@ -4,10 +4,10 @@
 //! 路径收口到这里。在 `window://visibility` 之外广播单一 `window://lifecycle` 事件
 //! （带 `phase` 字段），前端据此镜像每个窗口的生命周期阶段。
 //!
-//! 销毁策略：`DestroyWhenIdle` 窗口（当前为 preference 与 clipboard-preview）隐藏后
-//! 启动空闲计时器，超过用户设置的空闲秒数仍隐藏则销毁 WebView 释放资源；再次打开时
-//! 经 descriptor 的 `build` 重建（preference 走 `show_window`，preview 走预览模块按需 ensure
-//! 建窗）。`generation` 用于让「显示又隐藏」期间的过期计时器自动失效。
+//! 销毁策略：`DestroyWhenIdle` 窗口（preference、preview 等较大页面）隐藏后启动
+//! 空闲计时器，超过用户设置的空闲秒数仍隐藏则销毁 WebView 释放资源；再次打开时经
+//! descriptor 的 `build` 重建。Windows 右键菜单保持首次创建后的热态，避免长期空闲后
+//! 右键需要重新加载 WebView。`generation` 用于让过期计时器自动失效。
 
 mod descriptor;
 

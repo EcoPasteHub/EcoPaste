@@ -11,9 +11,11 @@ pub mod windows;
 #[cfg(target_os = "macos")]
 pub use macos::handle_reopen;
 pub use state::WindowStateStore;
+pub(crate) use state::{handle_scale_factor_changed, remember_window_metrics};
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{LazyLock, Mutex};
+use std::time::{Duration, Instant};
 
 use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindow, WebviewWindowBuilder, Window};
 
@@ -25,6 +27,9 @@ pub const PREFERENCE_WINDOW_LABEL: &str = "preference";
 pub const CLIPBOARD_PREVIEW_WINDOW_LABEL: &str = "clipboard-preview";
 pub const ONBOARDING_WINDOW_LABEL: &str = "onboarding";
 pub const UPDATE_WINDOW_LABEL: &str = "update";
+
+const WEBVIEW_USABLE_TIMEOUT: Duration = Duration::from_secs(5);
+const WEBVIEW_USABLE_POLL_INTERVAL: Duration = Duration::from_millis(10);
 
 /// 偏好页定位高亮事件。前端收到后切到目标设置项所在分类并滚动高亮。
 const PREFERENCE_HIGHLIGHT_EVENT: &str = "preference://highlight-setting";
@@ -109,6 +114,34 @@ pub(super) fn get_window(app_handle: &AppHandle, label: &str) -> Result<WebviewW
         .ok_or_else(|| anyhow::anyhow!("window not found: {label}").into())
 }
 
+/// Wait until Tauri can proxy a native WebView call after an on-demand rebuild.
+///
+/// `WebviewWindowBuilder::build` can return before the WebView IPC runtime is
+/// ready. Calling `scale_factor`, emit, or positioning helpers too early fails
+/// with "failed to receive message from webview" / "underlying handle is not
+/// available". A successful scale-factor probe is the first reliable point for
+/// those APIs.
+pub(crate) async fn wait_for_webview_usable(
+    app_handle: &AppHandle,
+    label: &str,
+) -> Result<WebviewWindow> {
+    let deadline = Instant::now() + WEBVIEW_USABLE_TIMEOUT;
+
+    loop {
+        if let Some(window) = app_handle.get_webview_window(label) {
+            if window.scale_factor().is_ok() {
+                return Ok(window);
+            }
+        }
+
+        if Instant::now() >= deadline {
+            return Err(anyhow::anyhow!("webview is not ready: {label}").into());
+        }
+
+        tokio::time::sleep(WEBVIEW_USABLE_POLL_INTERVAL).await;
+    }
+}
+
 pub fn show_window(app_handle: &AppHandle, label: &str) -> Result<()> {
     // 销毁后重建：`DestroyWhenIdle` 窗口空闲超时后 WebView 已被销毁，打开时按 descriptor
     // 的 build fn 重新建窗。重建后窗口为 `visible: false`，下方走与既有一致的恢复 + show 流程。
@@ -123,6 +156,10 @@ pub fn show_window(app_handle: &AppHandle, label: &str) -> Result<()> {
             log::warn!("apply clipboard window layout failed: {err}");
         }
     } else if label == ONBOARDING_WINDOW_LABEL {
+        let window = get_window(app_handle, label)?;
+        if let Err(err) = state::constrain_window_to_current_monitor(&window) {
+            log::warn!("constrain onboarding window to monitor failed: {err}");
+        }
         if let Err(err) = position_window(app_handle, label, WindowPosition::Center) {
             log::warn!("center onboarding window failed: {err}");
         }
@@ -282,7 +319,7 @@ pub fn build_preference_window(app_handle: &AppHandle) -> Result<()> {
     )
     .title("EcoPaste Preference")
     .inner_size(960.0, 600.0)
-    .min_inner_size(960.0, 600.0)
+    .min_inner_size(560.0, 320.0)
     .center()
     .maximizable(false)
     .skip_taskbar(true)
