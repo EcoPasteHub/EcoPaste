@@ -107,6 +107,8 @@ operating system outside the project's supported baseline.
 - The machine-wide replace is blocked on Windows UAC approval; the package is
   built and verified, but the installed executable remains the previous build
   until the elevation prompt is accepted.
+- Branch `codex/windows-remote-dpi-fixes` was pushed to `origin` with commits
+  `0986cbf`, `58fbb9d`, and `7d61377`.
 
 ## Out of Scope
 
