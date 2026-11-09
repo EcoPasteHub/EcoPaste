@@ -401,6 +401,8 @@ task. Keep this Rust-owned; React only toggles `general.autoStart`.
   - `set_autostart(enabled: bool) -> ()`
 - Startup sync:
   - `autostart::sync_enabled(app: &AppHandle, enabled: bool) -> Result<()>`
+- Administrator task sync:
+  - `admin::sync_scheduled_task(configured: bool, auto_start: bool) -> bool`
 - Launch-source matcher:
   - `autostart::is_autostart_launch(args: &[String]) -> bool`
 - Windows Run value name: app package name, currently `EcoPaste`.
@@ -408,12 +410,17 @@ task. Keep this Rust-owned; React only toggles `general.autoStart`.
 
 ### 3. Contracts
 
-- Normal Windows autostart uses one effective Run entry only.
+- Windows autostart uses exactly one effective login mechanism: HKCU Run in
+  normal mode, or the `EcoPasteAdmin` logon task when both `autoStart` and
+  `runAsAdmin` are enabled.
 - New Run entries are written with `WindowsEnableMode::CurrentUser`, so an
   elevated EcoPaste process must not create a fresh HKLM Run value.
-- Startup initialization syncs the OS Run entries with
-  `settings.general.auto_start`, so upgrades can repair stale entries from older
-  versions.
+- Startup initialization syncs the OS entries with both persisted settings so
+  upgrades can repair stale entries from older versions.
+- If the current-user Run value already equals the exact quoted executable plus
+  `--auto-launch`, enabling autostart is a no-op. `auto-launch` 0.6 rewrites the
+  StartupApproved enabled bytes on every `enable()` call, which would undo a user
+  disable performed in Windows Settings.
 - Registry cleanup cannot prevent two legacy Run entries from racing before the
   primary instance finishes setup. The single-instance callback must ignore a
   secondary process whose arguments contain `--auto-launch`; it must not show
@@ -429,9 +436,14 @@ task. Keep this Rust-owned; React only toggles `general.autoStart`.
   Windows can still start the app.
 - Remove matching `StartupApproved\Run` shadow values best-effort when deleting
   Run values so Task Manager and Autoruns do not keep stale EcoPaste rows.
-- `admin::sync_scheduled_task` owns the `EcoPasteAdmin` task for administrator
-  relaunch support. Do not use that task as a second normal autostart path
-  without redesigning the interaction with `general.auto_start`.
+- `admin::sync_scheduled_task` owns the `EcoPasteAdmin` task. It creates an
+  `ONLOGON` `HIGHEST` task only when `runAsAdmin && autoStart`; otherwise it
+  deletes the task. When the task is ready, the normal Run entry is removed to
+  avoid two launches.
+- A task is considered ready only when `schtasks /XML ONE` contains the current
+  executable and a `LogonTrigger`. This also migrates older `ONCE` tasks without
+  rewriting a correctly configured task on every launch.
+- If the elevated task cannot be created, normal HKCU Run remains the fallback.
 
 ### 4. Validation & Error Matrix
 
@@ -442,6 +454,12 @@ task. Keep this Rust-owned; React only toggles `general.autoStart`.
   the only startup entry.
 - Disable with inaccessible HKLM Run -> command error from registry access;
   frontend should not persist `general.autoStart=false`.
+- Existing exact HKCU Run value -> skip `AutoLaunch::enable`; preserve
+  StartupApproved bytes.
+- `runAsAdmin=true` + `autoStart=true` + valid logon task -> remove Run entries.
+- `runAsAdmin=true` + `autoStart=false` -> no logon task and no startup entry.
+- Logon task creation failure -> retain/use HKCU Run fallback and log the task
+  error.
 - Startup sync failure after settings load -> log warning and continue app
   startup.
 - Secondary instance with `--auto-launch` -> return from the single-instance
@@ -451,8 +469,10 @@ task. Keep this Rust-owned; React only toggles `general.autoStart`.
 
 ### 5. Good/Base/Bad Cases
 
-- Good: user enables autostart from an elevated process and only HKCU Run is
-  created.
+- Good: normal-mode autostart creates only HKCU Run, and repeated startup sync
+  leaves the exact value untouched.
+- Good: administrator-mode autostart creates one `ONLOGON` task and no Run
+  entry.
 - Good: user upgrades with both HKCU and HKLM Run values; next startup removes
   the duplicate when permissions allow, while the already-racing secondary
   instance exits without opening preferences.
@@ -475,9 +495,10 @@ task. Keep this Rust-owned; React only toggles `general.autoStart`.
   remains.
 - Upgrade validation: seed both HKCU and HKLM `...\Run\EcoPaste` values, launch
   EcoPaste once, and verify duplicate cleanup or single-entry fallback.
-- Administrator validation: with `general.runAsAdmin=true`, confirm
-  `EcoPasteAdmin` remains a relaunch helper and does not combine with duplicate
-  Run entries to start multiple processes at login.
+- Unit tests: exact Run-value formatting and task XML require the current
+  executable plus a logon trigger.
+- Administrator validation: enable both `runAsAdmin` and `autoStart`, inspect
+  Task Scheduler and Autoruns, and confirm exactly one logon mechanism exists.
 
 ### 7. Wrong vs Correct
 
@@ -500,6 +521,22 @@ builder
     .set_app_path(&exe_path)
     .set_args(&[AUTO_LAUNCH_ARG]);
 builder.set_windows_enable_mode(WindowsEnableMode::CurrentUser);
+```
+
+Wrong:
+
+```rust
+// Re-enables a value the user disabled in Windows Settings.
+inner.enable()?;
+```
+
+Correct:
+
+```rust
+if current_user_run_entry_matches(app_name, expected)? {
+    return Ok(());
+}
+inner.enable()?;
 ```
 
 Wrong:
@@ -553,7 +590,8 @@ not a frontend-only permission prompt.
 - Release startup calls the admin auto-elevation check before normal Tauri setup
   initializes windows, tray, database, clipboard watcher, or hooks.
 - If `runAsAdmin=true` and the process is already elevated, Rust best-effort
-  syncs the highest-privilege scheduled task and continues startup.
+  syncs the `ONLOGON` highest-privilege task when `autoStart=true` and continues
+  startup.
 - If `runAsAdmin=true` and the process is not elevated, Rust tries to launch an
   elevated process and exits the unelevated process only after launch succeeds.
 - Relaunch prefers a valid scheduled task only when current arguments are safe
@@ -571,8 +609,8 @@ not a frontend-only permission prompt.
   `administrator permission request was cancelled or failed`; current process
   remains open.
 - Scheduled task path mismatch -> task is not considered ready; fallback to UAC.
-- `set_run_as_admin(false)` while elevated -> Rust deletes the scheduled task
-  best-effort after settings update.
+- `set_run_as_admin(false)` or `autoStart=false` -> Rust deletes the scheduled
+  task best-effort and returns to the normal Run-entry policy.
 - Early settings or storage manifest read failure -> auto-elevation is skipped
   and normal startup continues.
 
@@ -583,7 +621,7 @@ not a frontend-only permission prompt.
   exits the old process, and the elevated instance reopens onboarding with the
   card granted.
 - Base: app already runs elevated; onboarding reports granted and startup keeps
-  the scheduled task aligned with the current executable.
+  the scheduled task aligned with both settings and the current executable.
 - Bad: frontend marks administrator permission granted because `runAsAdmin=true`
   even though `runningAsAdmin=false`.
 
@@ -761,4 +799,154 @@ Correct:
 app.state::<UpdateState>().install_downloaded(&version)?;
 app.request_restart();
 Ok(())
+```
+
+## Scenario: Destroyable Windows WebViews and Global Keyboard Hooks
+
+### 1. Scope / Trigger
+
+Changing lightweight-mode window destruction, context menus, preview windows, or
+Windows low-level keyboard/mouse hooks can race native handles or consume keys
+meant for another foreground application.
+
+### 2. Signatures
+
+- `window::wait_for_webview_usable(app: &AppHandle, label: &str) -> Result<WebviewWindow>`
+- `shortcut::win_v::set_enabled(app: &AppHandle, enabled: bool)`
+- `keyboard::enable_navigation_keys(app: &AppHandle)`
+- `keyboard::disable_navigation_keys()`
+- Context/preview show functions are `async` and await WebView usability before
+  sizing, positioning, emitting, or showing.
+
+### 3. Contracts
+
+- `WebviewWindowBuilder::build` may return before native IPC is available.
+  Rebuilt context-menu and preview windows must be probed with `scale_factor()`
+  for up to five seconds before native window operations.
+- Payload pull-on-mount remains the fallback when the frontend listener outlives
+  the show command.
+- Windows navigation hooks consume keys only while the foreground HWND matches
+  the HWND recorded by the latest show/inside-click activation. Alt/Win shortcuts
+  and foreground changes pass through.
+- Clicking outside a pinned clipboard window disables navigation handling;
+  clicking inside re-records the expected foreground and reenables it.
+- `Win+V` stays latched for the entire physical Win-held chord. Only the first V
+  toggles; auto-repeat and later V presses remain consumed until Win is released.
+- Windows context-menu and submenu WebViews are `Permanent` after first lazy
+  creation. They are not part of `DestroyWhenIdle`; preference and preview keep
+  the resource-releasing behavior.
+
+### 4. Validation & Error Matrix
+
+- Rebuilt WebView not usable within five seconds -> command returns
+  `webview is not ready: <label>`.
+- Foreground changed without a mouse click -> keyboard and Alt/Win combinations
+  pass through.
+- Pinned window outside click -> window remains visible and keyboard hooks stop.
+- Inside click -> navigation hooks resume with the current foreground HWND.
+- Win released -> reset Win+V latch; next Win+V may toggle again.
+
+### 5. Good/Base/Bad Cases
+
+- Good: context menu is created on first use, stays warm after hiding, and shows
+  immediately after long idle.
+- Good: preview was idle-destroyed, Space rebuilds and displays it without an
+  `underlying handle is not available` error.
+- Base: normal V without Win passes to the foreground application.
+- Bad: query `scale_factor()` immediately after rebuilding and fail.
+- Bad: keep global Space/Ctrl hooks active while a pinned panel is ignored and
+  the user types in another app.
+
+### 6. Tests Required
+
+- Unit-test Win+V first-press toggle, repeated press consumption, keyup
+  consumption, and release/reset behavior.
+- Manual Windows test: regenerate preview via lightweight mode and assert no
+  handle error; wait beyond the prior idle timeout and assert the context menu
+  remains hot and responsive.
+- Manual Windows test: pin the panel, activate another app, type Space/Ctrl, then
+  click back into the panel and restore navigation.
+
+### 7. Wrong vs Correct
+
+Wrong:
+
+```rust
+build_context_menu_window(app)?;
+let scale = app.get_webview_window(label)?.scale_factor()?;
+```
+
+Correct:
+
+```rust
+build_context_menu_window(app)?;
+let window = window::wait_for_webview_usable(app, label).await?;
+let scale = window.scale_factor()?;
+```
+
+## Scenario: Remote Desktop Resolution and DPI Changes
+
+### 1. Scope / Trigger
+
+Changing Remote Desktop resolution, Windows display scaling, or moving between
+monitors can change both monitor bounds and per-window scale factors.
+
+### 2. Signatures
+
+- Persisted `WindowState`: `{ x, y, width, height, scaleFactor? }`.
+- `window::remember_window_metrics(window: &Window)`.
+- `window::handle_scale_factor_changed(window, scaleFactor, suggestedSize)`.
+- `window::constrain_window_to_current_monitor(window)`.
+- Tauri events: `WindowEvent::Moved`, `Resized`, `ScaleFactorChanged`.
+
+### 3. Contracts
+
+- Persist physical position, physical inner size, and the scale factor used to
+  capture it. Missing `scaleFactor` remains valid for legacy state files.
+- On restore and scale change, derive logical size from
+  `physical_size / saved_scale`, then apply the target monitor's current scale.
+- Clamp size and position with a 16-logical-pixel margin so the complete window
+  remains inside the active monitor.
+- `monitor_from_point` receives physical cursor coordinates. Do not convert the
+  cursor to logical coordinates before the lookup.
+- `Moved` / `Resized` update an in-memory anchor without immediate disk writes;
+  hide/close/exit still persist the latest snapshot.
+
+### 4. Validation & Error Matrix
+
+- Legacy state without scale -> use the current scale without reinterpretation.
+- Saved scale differs from current scale -> preserve logical size.
+- Window exceeds monitor bounds -> shrink to bounds and clamp position.
+- Saved position no longer exists -> center on the cursor monitor.
+- Monitor/cursor lookup fails -> leave the window at its current geometry.
+
+### 5. Good/Base/Bad Cases
+
+- Good: 540x900 physical at 150% restores as 360x600 physical at 100%.
+- Good: Remote Desktop lowers the logical viewport and a 960x600 preference
+  window is clamped while its content remains scrollable.
+- Base: same-scale restore keeps the user's chosen size and position.
+- Bad: restore raw physical pixels after a DPI change.
+- Bad: pass logical cursor coordinates to a physical monitor lookup.
+
+### 6. Tests Required
+
+- Unit-test 150% -> 100% and 150% -> 200% physical-size conversion.
+- Unit-test legacy state with no scale falling back to current pixels.
+- Manual Remote Desktop test: connect at a different resolution/DPI, move the
+  window between monitors, and verify size and position remain fully visible.
+
+### 7. Wrong vs Correct
+
+Wrong:
+
+```rust
+window.set_size(PhysicalSize::new(state.width, state.height))?;
+```
+
+Correct:
+
+```rust
+let size = state.physical_size_at_scale(target_monitor.scale_factor());
+window.set_size(constrain_size_to_monitor(size, Some(&target_monitor)))?;
 ```

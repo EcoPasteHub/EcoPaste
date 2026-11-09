@@ -28,8 +28,28 @@ impl ClipboardReader {
     /// 读取当前剪贴板，按用户配置的内容类型顺序归类为单一载荷。
     ///
     /// 同一次复制可能同时存在文件、图片、HTML、RTF、纯文本表示；这里只返回第一个启用且可读取的类型。
+    #[cfg(test)]
     pub fn read_with_capture(&self, capture: &Capture) -> Result<Option<ClipboardPayload>> {
+        self.read_with_capture_for_source(capture, None)
+    }
+
+    /// Read with a source-application hint so Office/WPS text selections do not
+    /// become images merely because those apps expose an image fallback first.
+    pub fn read_with_capture_for_source(
+        &self,
+        capture: &Capture,
+        source_app_id: Option<&str>,
+    ) -> Result<Option<ClipboardPayload>> {
         let mut text_payload: Option<Option<TextPayload>> = None;
+        let prefer_office_text = source_app_id.is_some_and(is_office_clipboard_source);
+
+        if prefer_office_text
+            && (self.ctx.has(ContentFormat::Text)
+                || self.ctx.has(ContentFormat::Html)
+                || self.ctx.has(ContentFormat::Rtf))
+        {
+            text_payload = Some(self.read_text_payload()?);
+        }
 
         for kind in capture.ordered_kinds() {
             if !capture.is_enabled(kind) {
@@ -44,6 +64,16 @@ impl ClipboardReader {
                 }
                 CaptureKind::Image => {
                     if self.ctx.has(ContentFormat::Image) {
+                        if prefer_office_text
+                            && text_payload.as_ref().is_some_and(|payload| {
+                                payload.as_ref().is_some_and(|text| {
+                                    capture_text_representation_exists(text, capture)
+                                })
+                            })
+                        {
+                            continue;
+                        }
+
                         if let Some(image) = self.read_image()? {
                             return Ok(Some(ClipboardPayload::Image(image)));
                         }
@@ -151,6 +181,38 @@ impl ClipboardReader {
     }
 }
 
+/// Office/WPS selections commonly publish both rich text and a rendered image.
+fn is_office_clipboard_source(source_app_id: &str) -> bool {
+    let executable = std::path::Path::new(source_app_id)
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or(source_app_id)
+        .to_ascii_lowercase();
+
+    matches!(
+        executable.as_str(),
+        "winword.exe"
+            | "powerpnt.exe"
+            | "excel.exe"
+            | "outlook.exe"
+            | "wps.exe"
+            | "wpp.exe"
+            | "et.exe"
+            | "wpspdf.exe"
+            | "soffice.exe"
+    )
+}
+
+fn capture_text_representation_exists(text: &TextPayload, capture: &Capture) -> bool {
+    capture.ordered_kinds().into_iter().any(|kind| {
+        matches!(
+            kind,
+            CaptureKind::Html | CaptureKind::Rtf | CaptureKind::Text
+        ) && capture.is_enabled(kind)
+            && text_contains_kind(text, kind)
+    })
+}
+
 /// 平台剪贴板里 PNG 的原始格式标识符，用于 `get_buffer` 直取原始字节。
 #[cfg(target_os = "macos")]
 const PNG_FORMAT: &str = "public.png";
@@ -255,6 +317,43 @@ mod tests {
         assert!(!text_contains_kind(&text, CaptureKind::Html));
         assert!(!text_contains_kind(&text, CaptureKind::Rtf));
         assert!(!text_contains_kind(&text, CaptureKind::Text));
+    }
+
+    #[test]
+    fn detects_office_clipboard_sources() {
+        for path in [
+            r"C:\Program Files\Microsoft Office\root\Office16\WINWORD.EXE",
+            r"C:\Program Files\WPS Office\wps.exe",
+            r"C:\Program Files\LibreOffice\program\soffice.exe",
+        ] {
+            assert!(is_office_clipboard_source(path), "should match {path}");
+        }
+
+        assert!(!is_office_clipboard_source(
+            r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+        ));
+    }
+
+    #[test]
+    fn office_text_preference_requires_an_enabled_text_representation() {
+        let text = TextPayload {
+            text: "plain".to_owned(),
+            html: Some("<b>rich</b>".to_owned()),
+            rtf: None,
+        };
+
+        assert!(capture_text_representation_exists(
+            &text,
+            &Capture::default()
+        ));
+
+        let text_only = Capture {
+            html: false,
+            rtf: false,
+            text: false,
+            ..Capture::default()
+        };
+        assert!(!capture_text_representation_exists(&text, &text_only));
     }
 
     #[test]

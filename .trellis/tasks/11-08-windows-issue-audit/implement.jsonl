@@ -1,0 +1,5 @@
+{"_example": "Fill with {\"file\": \"<path>\", \"reason\": \"<why>\"}. Put spec/research files only — no code paths. Run `python3 .trellis/scripts/get_context.py --mode packages` to list available specs. Delete this line once real entries are added."}
+{"file": ".trellis/spec/backend/settings-window-platform.md", "reason": "Windows autostart, scheduled task, shortcut, and window lifecycle contracts"}
+{"file": ".trellis/spec/backend/clipboard-pipeline.md", "reason": "Clipboard retry, source app, and capture priority behavior"}
+{"file": ".trellis/spec/backend/database-and-storage.md", "reason": "Safe custom data directory switching and adoption"}
+{"file": ".trellis/tasks/11-08-windows-issue-audit/research/github-windows-issue-audit.md", "reason": "Issue triage and current-code evidence"}

@@ -109,3 +109,76 @@ The backup receive flow uses a pending slot when the preference window has been
 destroyed, mirroring the preference-highlight pending-slot pattern in
 `window/mod.rs`. Do not emit directly to a possibly rebuilding preference
 window.
+
+## Scenario: Recovering an Existing Custom Data Directory
+
+### 1. Scope / Trigger
+
+Changing bootstrap manifest fallback or custom storage-directory switching can
+delete a user's database, settings, image resources, or window state.
+
+### 2. Signatures
+
+- `core::paths::app_data_dir(app: &AppHandle) -> Result<PathBuf>`
+- `commands::storage::change_storage_location(target_parent_dir: String)`
+- `commands::storage::reset_storage_location()`
+- Internal decision:
+  `should_adopt_existing_target(target: &Path, default: &Path) -> bool`
+
+### 3. Contracts
+
+- A manifest pointing to a temporarily missing/unavailable custom root falls back
+  to the default root for the current run but must not overwrite the manifest.
+  This preserves automatic recovery when a drive letter or mount returns.
+- A validated non-default target with any non-empty `db`, `resources`, `config`,
+  or `state` directory is adopted in place.
+- Adoption sets the manifest to the target and initializes the SQLite pool
+  without calling the copy/remove helpers.
+- Copy mode is only used for an empty target or reset-to-default flow.
+- Successful adoption keeps the previous root instead of deleting it.
+
+### 4. Validation & Error Matrix
+
+- Custom root missing -> use default for this process; keep manifest unchanged.
+- Target identity mismatch -> reject as invalid.
+- Non-empty target without identity -> reject as invalid.
+- Valid custom target with payload -> adopt; do not remove target content.
+- Valid empty custom target -> copy current known content directories.
+- Target database initialization failure -> restore the previous manifest and
+  reopen the previous database pool.
+
+### 5. Good/Base/Bad Cases
+
+- Good: drive temporarily becomes unavailable, app opens on default data, later
+  the original custom path returns and the manifest still points to it.
+- Good: user selects an old valid EcoPaste directory and its history appears
+  unchanged.
+- Base: selecting an empty custom parent creates a fresh data root.
+- Bad: delete each target content directory before copying current data over it.
+- Bad: reset the manifest to default merely because the custom drive is missing.
+
+### 6. Tests Required
+
+- `storage_payload_detection_requires_content` asserts empty known directories
+  are not adoption candidates.
+- `valid_custom_payload_is_adopted_instead_of_overwritten` asserts a non-default
+  populated root is adopted and the default root is not.
+- Windows manual validation uses a temporary custom root with a marker database,
+  switches to it, and verifies the marker survives.
+
+### 7. Wrong vs Correct
+
+Wrong:
+
+```rust
+copy_storage_data(&current, &target)?;
+```
+
+Correct:
+
+```rust
+if !should_adopt_existing_target(&target, &default) {
+    copy_storage_data(&current, &target)?;
+}
+core::paths::set_app_data_dir(app, target)?;
+```

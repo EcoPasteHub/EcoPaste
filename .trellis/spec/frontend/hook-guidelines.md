@@ -59,9 +59,23 @@ keyboard abstraction:
 - macOS and focusable windows use browser keyboard events.
 - Windows clipboard window receives Rust `keyboard://nav` events because the window is
   non-focusable.
+- `useKeyboardEvent` drops events while IME composition is active and for 50 ms
+  after `compositionend`. This includes Chromium's Windows IME `keyCode === 229`
+  fallback. Composition Enter must stay in the input; the next ordinary Enter may
+  execute clipboard actions.
 
 Components should not inspect Tauri window labels directly unless they are
 building a reusable platform hook.
+
+```tsx
+// Wrong: IME confirmation Enter closes the window or pastes an item.
+if (event.key === "Enter") pasteActiveItem();
+
+// Correct: the shared hook filters composition before this handler runs.
+useKeyboardEvent("keydown", (event) => {
+  if (event.key === "Enter") pasteActiveItem();
+});
+```
 
 ## Effects Checklist
 

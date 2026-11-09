@@ -130,7 +130,7 @@ pub struct ClipboardPreviewState {
 }
 
 /// 打开或重定向预览窗口，并把最新预览状态广播到预览 webview。
-pub fn show_clipboard_preview(
+pub async fn show_clipboard_preview(
     app: &AppHandle,
     item_id: String,
     anchor: PreviewAnchorRect,
@@ -144,7 +144,7 @@ pub fn show_clipboard_preview(
 
     let request_id = PREVIEW_REQUEST_ID.fetch_add(1, Ordering::SeqCst) + 1;
     let session_id = preview_session_id_for_show();
-    let window = ensure_preview_window(app)?;
+    let window = ensure_preview_window(app).await?;
     let monitor = resolve_preview_monitor(app)?;
     let work_area = preview_overlay_bounds(&monitor);
     let scale_factor = monitor.scale_factor();
@@ -339,7 +339,7 @@ fn validate_anchor(anchor: &PreviewAnchorRect) -> Result<()> {
 
 /// 取预览窗口；已被空闲销毁（或尚未创建）时按需重建。
 /// macOS 下每次都兜底确保 NSPanel 转换完成，覆盖重建后的全新窗口。
-fn ensure_preview_window(app: &AppHandle) -> Result<WebviewWindow> {
+async fn ensure_preview_window(app: &AppHandle) -> Result<WebviewWindow> {
     if app
         .get_webview_window(CLIPBOARD_PREVIEW_WINDOW_LABEL)
         .is_none()
@@ -347,7 +347,7 @@ fn ensure_preview_window(app: &AppHandle) -> Result<WebviewWindow> {
         build_clipboard_preview_window(app)?;
     }
 
-    let window = get_window(app, CLIPBOARD_PREVIEW_WINDOW_LABEL)?;
+    let window = super::wait_for_webview_usable(app, CLIPBOARD_PREVIEW_WINDOW_LABEL).await?;
 
     #[cfg(target_os = "macos")]
     ensure_macos_preview_panel(app, &window)?;

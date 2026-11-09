@@ -12,6 +12,7 @@ const WIN32_ERROR_ACCESS_DENIED: u32 = 5;
 
 pub(super) struct PlatformAutostart {
     inner: AutoLaunch,
+    expected_run_value: String,
 }
 
 impl PlatformAutostart {
@@ -28,8 +29,12 @@ impl PlatformAutostart {
             log::error!("autostart init: build AutoLaunch failed: {err}");
             AppError::Other(anyhow::anyhow!("{err}"))
         })?;
+        let expected_run_value = autostart_run_value(&quoted_exe_path);
 
-        Ok(Self { inner })
+        Ok(Self {
+            inner,
+            expected_run_value,
+        })
     }
 
     pub(super) fn is_enabled(&self) -> Result<bool> {
@@ -44,6 +49,10 @@ impl PlatformAutostart {
             if keep_existing_system_run_entry_if_needed(self.inner.get_app_name())? {
                 return Ok(());
             }
+            if current_user_run_entry_matches(self.inner.get_app_name(), &self.expected_run_value)?
+            {
+                return Ok(());
+            }
 
             return self.inner.enable().map_err(|err| {
                 log::error!("autostart enable failed: {err}");
@@ -52,6 +61,30 @@ impl PlatformAutostart {
         }
 
         cleanup_windows_run_entries(self.inner.get_app_name())
+    }
+}
+
+fn autostart_run_value(quoted_exe_path: &str) -> String {
+    format!(
+        "{} {}",
+        quoted_exe_path,
+        windows_args::quote_arg(AUTO_LAUNCH_ARG)
+    )
+}
+
+/// An unchanged Run value is already the desired autostart state. Avoid calling
+/// `AutoLaunch::enable` again because rewriting the value can reset Windows'
+/// user-controlled StartupApproved disabled bit.
+fn current_user_run_entry_matches(app_name: &str, expected: &str) -> Result<bool> {
+    use windows_registry::CURRENT_USER;
+
+    match CURRENT_USER
+        .open(WINDOWS_RUN_KEY)
+        .and_then(|key| key.get_string(app_name))
+    {
+        Ok(value) => Ok(value.trim().eq_ignore_ascii_case(expected.trim())),
+        Err(err) if registry_error_is_file_not_found(&err) => Ok(false),
+        Err(err) => Err(registry_app_error("read current-user autostart entry", err)),
     }
 }
 
@@ -151,4 +184,19 @@ fn registry_error_is_file_not_found(err: &windows_result::Error) -> bool {
 fn registry_app_error(action: &str, err: windows_result::Error) -> AppError {
     log::error!("autostart: {action} failed: {err}");
     AppError::Other(anyhow::anyhow!("{err}"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::autostart_run_value;
+
+    #[test]
+    fn expected_run_value_preserves_path_quoting_and_launch_arg() {
+        let value = autostart_run_value(r#""C:\Program Files\EcoPaste\EcoPaste.exe""#);
+
+        assert_eq!(
+            value,
+            r#""C:\Program Files\EcoPaste\EcoPaste.exe" --auto-launch"#
+        );
+    }
 }

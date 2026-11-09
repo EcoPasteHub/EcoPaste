@@ -190,10 +190,14 @@ async fn switch_storage_location(
     let app_for_db = app.clone();
     let current_for_db = current.clone();
     let target_for_db = target.clone();
+    let adopt_existing =
+        should_adopt_existing_target(&target_for_db, &crate::core::paths::default_data_dir(&app)?);
 
     db.close_and_replace(|| async move {
         let switch_result = (|| -> Result<()> {
-            copy_storage_data(&current_for_db, &target_for_db)?;
+            if !adopt_existing {
+                copy_storage_data(&current_for_db, &target_for_db)?;
+            }
             crate::core::paths::set_app_data_dir(&app_for_db, target_for_db.clone())?;
             Ok(())
         })();
@@ -228,7 +232,9 @@ async fn switch_storage_location(
     }
 
     let settings = rebase_storage_states(&app).await?;
-    remove_old_storage_data(&app, &current)?;
+    if !adopt_existing {
+        remove_old_storage_data(&app, &current)?;
+    }
     emit_settings_updated(&app, &settings);
     emit_clipboard_imported(&app);
 
@@ -253,6 +259,23 @@ fn copy_storage_data(src: &Path, dst: &Path) -> Result<()> {
     }
     crate::core::paths::write_storage_identity(dst)?;
     Ok(())
+}
+
+/// Whether a validated custom target already contains an EcoPaste data payload.
+/// Such a target is adopted in place; copying into it would first delete its
+/// database/settings/resources and destroy the data the user intended to recover.
+fn storage_payload_exists(root: &Path) -> bool {
+    STORAGE_CONTENT_DIRS.iter().any(|name| {
+        let path = root.join(name);
+        path.exists()
+            && fs::read_dir(&path)
+                .ok()
+                .is_some_and(|mut entries| entries.next().is_some())
+    })
+}
+
+fn should_adopt_existing_target(target: &Path, default: &Path) -> bool {
+    target != default && storage_payload_exists(target)
 }
 
 fn remove_old_storage_data(app: &AppHandle, old: &Path) -> Result<()> {
@@ -659,6 +682,32 @@ mod tests {
         assert!(!temp.path().join(".ecopaste-storage.json").exists());
         assert!(!temp.path().join("db").exists());
         assert!(!temp.path().join("resources").exists());
+    }
+
+    #[test]
+    fn storage_payload_detection_requires_content() {
+        let temp = TempDir::new();
+        let root = temp.path();
+
+        assert!(!storage_payload_exists(root));
+
+        fs::create_dir_all(root.join("db")).unwrap();
+        assert!(!storage_payload_exists(root));
+
+        fs::write(root.join("db").join("clipboard.db"), b"db").unwrap();
+        assert!(storage_payload_exists(root));
+    }
+
+    #[test]
+    fn valid_custom_payload_is_adopted_instead_of_overwritten() {
+        let temp = TempDir::new();
+        let default = temp.path().join("default");
+        let custom = temp.path().join("custom");
+        fs::create_dir_all(custom.join("db")).unwrap();
+        fs::write(custom.join("db").join("clipboard.db"), b"existing").unwrap();
+
+        assert!(should_adopt_existing_target(&custom, &default));
+        assert!(!should_adopt_existing_target(&default, &default));
     }
 
     #[test]

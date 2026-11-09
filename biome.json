@@ -21,6 +21,8 @@
       "!**/node_modules",
       "!**/dist",
       "!.trellis/.runtime",
+      "!.trellis/tasks",
+      "!.trellis/workspace",
       "!src-tauri/target",
       "!src-tauri/.sqlx",
       "!src-tauri/gen",

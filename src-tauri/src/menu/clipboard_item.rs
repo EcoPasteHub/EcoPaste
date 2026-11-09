@@ -519,7 +519,7 @@ pub async fn popup_clipboard_item_menu(
 
     #[cfg(target_os = "windows")]
     {
-        super::context_window::show_for_clipboard_item(&app, &request)
+        super::context_window::show_for_clipboard_item(&app, &request).await
     }
 }
 

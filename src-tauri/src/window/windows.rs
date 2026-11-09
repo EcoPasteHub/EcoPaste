@@ -53,15 +53,15 @@ pub fn set_clipboard_window_editing(app_handle: &AppHandle, editing: bool) -> Re
         .set_focusable(false)
         .map_err(|e| anyhow::anyhow!(e))?;
 
-    if window.is_visible().unwrap_or(false) {
-        keyboard::enable_navigation_keys(app_handle);
-        mouse::enable_outside_click_hide(app_handle);
-    }
-
     if should_restore_foreground {
         restore_pre_edit_foreground(hwnd);
     } else {
         clear_pre_edit_foreground();
+    }
+
+    if window.is_visible().unwrap_or(false) {
+        keyboard::enable_navigation_keys(app_handle);
+        mouse::enable_outside_click_hide(app_handle);
     }
 
     Ok(())

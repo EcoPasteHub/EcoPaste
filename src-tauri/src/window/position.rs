@@ -12,12 +12,9 @@ fn monitor_from_cursor(
     window: &WebviewWindow,
 ) -> Result<Option<(MonitorInfo, PhysicalPosition<f64>)>> {
     let cursor = window.cursor_position().map_err(|e| anyhow::anyhow!(e))?;
-    let scale = window.scale_factor().map_err(|e| anyhow::anyhow!(e))?;
-
-    let logical = cursor.to_logical::<f64>(scale);
 
     let monitor = window
-        .monitor_from_point(logical.x, logical.y)
+        .monitor_from_point(cursor.x, cursor.y)
         .map_err(|e| anyhow::anyhow!(e))?;
 
     let Some(monitor) = monitor else {
@@ -58,22 +55,15 @@ fn apply_follow(
     let mon_w = monitor.size.width as f64;
     let mon_h = monitor.size.height as f64;
 
-    let x = cursor.x.min(mon_x + mon_w - win_size.width as f64);
-    let y = cursor.y.min(mon_y + mon_h - win_size.height as f64);
+    let max_x = (mon_x + mon_w - win_size.width as f64).max(mon_x);
+    let max_y = (mon_y + mon_h - win_size.height as f64).max(mon_y);
+    let x = cursor.x.clamp(mon_x, max_x);
+    let y = cursor.y.clamp(mon_y, max_y);
 
     window
         .set_position(PhysicalPosition::new(x.round() as i32, y.round() as i32))
         .map_err(|e| anyhow::anyhow!(e))?;
     Ok(())
-}
-
-/// 将窗口居中到当前光标所在显示器。
-/// 用于存档位置已失效（显示器被拔出）时的 fallback。
-pub(super) fn center_on_cursor_monitor(window: &WebviewWindow) -> Result<()> {
-    let Some((monitor, _)) = monitor_from_cursor(window)? else {
-        return Ok(());
-    };
-    apply_center(window, &monitor)
 }
 
 fn apply_center(window: &WebviewWindow, monitor: &MonitorInfo) -> Result<()> {
