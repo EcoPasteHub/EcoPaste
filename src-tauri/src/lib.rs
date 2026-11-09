@@ -16,6 +16,8 @@ mod mouse;
 mod settings;
 mod shortcut;
 mod tray;
+#[cfg(target_os = "windows")]
+mod uia;
 mod update;
 mod window;
 
