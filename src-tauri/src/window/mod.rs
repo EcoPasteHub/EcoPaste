@@ -83,6 +83,25 @@ pub fn set_clipboard_window_editing(app_handle: &AppHandle, editing: bool) -> Re
     }
 }
 
+/// 粘贴回填开始:hide 与前端 editing(false) 的异步恢复路径让位给 paste 流程串行掌控。
+#[cfg(target_os = "windows")]
+pub fn begin_paste_restore() {
+    windows::begin_paste_restore();
+}
+
+/// 粘贴回填结束:清掉粘贴接管标志与 pre-edit 记录。
+#[cfg(target_os = "windows")]
+pub fn end_paste_restore() {
+    windows::end_paste_restore();
+}
+
+/// 粘贴回填:显式恢复 pre-edit 前台 + UIA 元素级聚焦唤醒目标输入框,
+/// 调用方随后再模拟 Ctrl+V。
+#[cfg(target_os = "windows")]
+pub fn restore_pre_edit_for_paste() {
+    windows::restore_pre_edit_for_paste();
+}
+
 /// 剪贴板窗口显隐变化事件。前端用以做默认聚焦 / 自动清空搜索等 UI 副作用。
 /// 由 [`show_window`] / [`hide_window`] 在统一入口处发出，平台一致，
 /// 不依赖 `tauri://focus` / `tauri://blur`（Windows 剪贴板窗口 `focusable: false` 不可靠）。

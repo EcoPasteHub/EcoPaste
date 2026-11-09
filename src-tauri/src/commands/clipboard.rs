@@ -438,7 +438,25 @@ pub async fn paste_clipboard_item(
     // 会赶在 panel 真正 order_out / 让出 key 前命中 panel 自己（webview 吞掉）。
     tokio::time::sleep(std::time::Duration::from_millis(50)).await;
 
+    // Windows：窗口曾在搜索编辑期抢走前台时，前台与 web 内部焦点都发生过迁移。
+    // 隐藏后系统虽自动切回前台，但 Chromium 类应用的光标已丢，Ctrl+V 会落空（实测）；
+    // 必须在模拟粘贴前显式恢复 pre-edit 前台并对记住的聚焦元素做 UIA SetFocus。
+    // 固定窗口路径保持原行为不走恢复序列。
+    #[cfg(target_os = "windows")]
+    if !window::is_clipboard_window_pinned() {
+        window::begin_paste_restore();
+        window::restore_pre_edit_for_paste();
+
+        // 给目标应用处理窗口激活与 UIA 聚焦留出时间，期间发 Ctrl+V 会被旧光标位置吞掉。
+        tokio::time::sleep(std::time::Duration::from_millis(150)).await;
+    }
+
     crate::keystroke::simulate_paste()?;
+
+    #[cfg(target_os = "windows")]
+    if !window::is_clipboard_window_pinned() {
+        window::end_paste_restore();
+    }
 
     // 固定窗口下粘贴完把 key 拿回来，让用户继续用键盘 / 列表操作；
     // 再等一拍让 ⌘V 事件被目标 App 消费完，避免 make_key 抢回焦点把按键吞回 panel。
