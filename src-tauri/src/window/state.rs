@@ -10,6 +10,9 @@ use tauri::{AppHandle, Manager, PhysicalPosition, PhysicalSize};
 use crate::core::Result;
 
 const STATE_FILENAME: &str = "window-state.json";
+/// 可恢复窗口的最小边长（物理像素）。最小化等状态下 `inner_size` 会返回 0（或个位数），
+/// 一旦落盘，下次 `set_size` 会把窗口恢复成无法操作的细条，因此两个方向都要守住下限。
+const MIN_RESTORABLE_SIDE: u32 = 100;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WindowState {
@@ -17,6 +20,13 @@ pub struct WindowState {
     pub y: i32,
     pub width: u32,
     pub height: u32,
+}
+
+impl WindowState {
+    /// 尺寸是否为可恢复的真实窗口几何。
+    fn is_restorable(&self) -> bool {
+        self.width >= MIN_RESTORABLE_SIDE && self.height >= MIN_RESTORABLE_SIDE
+    }
 }
 
 pub struct WindowStateStore {
@@ -126,16 +136,25 @@ pub fn save_window_state(app: &AppHandle, label: &str) -> Result<()> {
     let pos = window.outer_position().map_err(|e| anyhow::anyhow!(e))?;
     let size = window.inner_size().map_err(|e| anyhow::anyhow!(e))?;
 
+    let state = WindowState {
+        x: pos.x,
+        y: pos.y,
+        width: size.width,
+        height: size.height,
+    };
+    if !state.is_restorable() {
+        log::warn!(
+            "skip saving degraded window state for {label}: {}x{} at ({}, {})",
+            state.width,
+            state.height,
+            state.x,
+            state.y
+        );
+        return Ok(());
+    }
+
     let store = app.state::<WindowStateStore>();
-    store.save(
-        label,
-        WindowState {
-            x: pos.x,
-            y: pos.y,
-            width: size.width,
-            height: size.height,
-        },
-    )
+    store.save(label, state)
 }
 
 /// 恢复窗口的尺寸 + 位置。无存档返回 `Ok(false)`。
@@ -148,6 +167,18 @@ pub fn restore_window_state(app: &AppHandle, label: &str) -> Result<bool> {
     let Some(state) = store.get(label) else {
         return Ok(false);
     };
+    if !state.is_restorable() {
+        // 旧版本可能把最小化窗口的 0×0 几何落盘；整条存档都不可信，
+        // 交给 builder 的默认尺寸与居中位置，避免把窗口恢复成细条或放到屏幕外。
+        log::warn!(
+            "ignore degraded window state for {label}: {}x{} at ({}, {})",
+            state.width,
+            state.height,
+            state.x,
+            state.y
+        );
+        return Ok(false);
+    }
 
     let window = app
         .get_webview_window(label)
@@ -177,4 +208,31 @@ pub fn restore_window_state(app: &AppHandle, label: &str) -> Result<bool> {
     }
 
     Ok(true)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn state(width: u32, height: u32) -> WindowState {
+        WindowState {
+            x: 0,
+            y: 0,
+            width,
+            height,
+        }
+    }
+
+    #[test]
+    fn zero_sized_state_is_not_restorable() {
+        assert!(!state(0, 0).is_restorable());
+        assert!(!state(0, 600).is_restorable());
+        assert!(!state(960, 0).is_restorable());
+    }
+
+    #[test]
+    fn real_window_size_is_restorable() {
+        assert!(state(MIN_RESTORABLE_SIDE, MIN_RESTORABLE_SIDE).is_restorable());
+        assert!(state(960, 600).is_restorable());
+    }
 }

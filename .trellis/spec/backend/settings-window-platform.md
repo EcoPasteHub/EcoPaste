@@ -126,6 +126,23 @@ handle platform-specific show/hide.
 use descriptors and can rebuild after idle destruction. Frontend windows report
 readiness through `notify_window_ready` once `settingsReady` has resolved.
 
+### Geometry Persistence Guard
+
+`window/state.rs` persists `outer_position` + `inner_size` for every window and
+restores it before showing. A minimized window reports a 0×0 client rect, so
+saving that geometry would restore the window as an unusable sliver on the next
+open.
+
+- `save_window_state` skips writes whose width or height is below
+  `MIN_RESTORABLE_SIDE` (100 physical px).
+- `restore_window_state` ignores such stored entries entirely and lets the
+  builder's declared size and centering apply; it returns `Ok(false)`.
+- Tests: `cargo test --lib window::state` covers zero-width, zero-height, and
+  valid sizes.
+
+Keep the guard in both directions; a save-only or restore-only check still lets
+the other path reintroduce or apply a degraded record.
+
 ### Scenario: Clipboard Window Label Contract
 
 #### 1. Scope / Trigger
