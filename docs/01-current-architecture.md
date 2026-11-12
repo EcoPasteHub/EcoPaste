@@ -243,4 +243,3 @@ macOS 上列表项右键菜单走原生 muda，不使用 `/context-menu`。
 4. macOS NSPanel 的交互语义、写回回环抑制和粘贴时序。
 
 React 只应作为行为参考，不能作为目标 UI 的实现基础。
-

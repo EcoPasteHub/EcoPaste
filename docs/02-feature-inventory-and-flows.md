@@ -9,7 +9,7 @@
 | 行为 | macOS | Windows |
 | --- | --- | --- |
 | 剪贴板监听 | `clipboard-rs` 轮询 `NSPasteboard.changeCount`，间隔 120ms | `WM_CLIPBOARDUPDATE` 事件 |
-| 读取失败重试 | 无专门重试延迟 | 15ms、35ms、75ms，最多 4 次尝试 |
+| 读取失败重试 | 走统一 `read_with_retry`：首次失败后按 15ms、35ms、75ms 重试，最多 4 次；注释主要针对 Windows 剪贴板占用 | 同左，Windows 事件驱动下用于规避其他监听器短暂占用 |
 | 主窗口 | WebViewWindow 转 NSPanel | `focusable=false` 的 WebView 窗口 |
 | 列表项菜单 | 原生 muda 菜单 | 无焦点 WebView 菜单窗口 |
 | 模拟粘贴 | `CGEvent` ⌘V | 平台键盘注入 |
@@ -450,4 +450,3 @@ import overwrite
 | NSPanel 插件 | AppKit 自建 panel 或 nsgo `desktop.OpenPanel` 外壳 |
 
 迁移时应围绕功能语义和数据库契约设计，不应围绕 React 组件结构设计。
-

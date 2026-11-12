@@ -16,7 +16,7 @@
 
 ## 2. nsgo 的默认 macOS 渲染方式
 
-### 2.1 不是 AppKit 控件库
+### 2.1 不是完整的 AppKit 控件库
 
 nsgo 默认 macOS 后端的实现说明：
 
@@ -27,7 +27,8 @@ nsgo 默认 macOS 后端的实现说明：
 - 每个节点对应一个翻转的 `NSView`。
 - 背景、边框、圆角等通过 `CALayer`。
 - 文本由 nsgo 用 CoreText 排版后在主线程绘制。
-- `base` / `ui` 的按钮、输入框、列表是 nsgo 自己绘制和布局的组件，不是 `NSButton`、`NSTextField`、`NSTableView`。
+- `base` / `ui` 的按钮、列表等主要是 nsgo 自己绘制和布局的组件，不是稳定的 `NSButton` / `NSControl` / `NSTableView` 封装。
+- 源码个别位置会借用 `NSTextField` 处理输入或粘贴，但不能据此把 nsgo 默认组件整体视为 AppKit 控件体系，也不能假设每个组件都具备原生控件语义。
 
 因此：
 
@@ -115,6 +116,15 @@ examples/gallery/components_macos.go
 ```
 
 其中通过 `core.Native` 注册并创建了真正的 `NSSlider`。这证明 `core.Native` 不是理论接口，而是现有可用通道。
+
+### 3.4 结论
+
+nsgo **可以直接承载完整的 AppKit 原生控件树**，入口是 `core.Native`，而不是 `base` / `ui`：
+
+- `NativeComponent.View()` 可以返回 `objc.ID` / `uintptr`，宿主会把它加入当前窗口的 `NSView`。
+- 在返回的 AppKit 视图中，可以继续创建 `NSButton`、`NSTextField`、`NSScrollView`、`NSTableView`、`NSMenu` 等原生控件。
+- 这意味着不需要为了“能不能嵌入 AppKit”额外引入 Objective-C 中间层；如果 purego 的 selector、delegate、内存管理成本可控，纯 Go 方案即可。
+- nsgo 本身仍只承担应用壳和原生视图承载，不提供 EcoPaste 需要的完整 AppKit 控件、表格、菜单和窗口控制器，这些必须由项目自建。
 
 ## 4. 推荐 UI 形态
 
@@ -399,4 +409,3 @@ EcoPaste 当前：
 - 执行 FTS5 trigram、LIKE 降级、WAL、trigger 更新测试。
 
 只有这五个 spike 都通过，才能进入模块迁移。
-

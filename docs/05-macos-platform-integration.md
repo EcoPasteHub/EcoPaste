@@ -311,4 +311,3 @@ AppKit 版本应使用 `application:openURLs:` 或 `NSApplicationDelegate` 的�
 6. 拖出到 Finder、浏览器、Word/Pages、纯文本编辑器。
 7. 复制图片、HTML、RTF、文件列表后立即切换前台应用。
 8. 系统截图、浏览器复制图片、密码管理器复制等边界来源。
-

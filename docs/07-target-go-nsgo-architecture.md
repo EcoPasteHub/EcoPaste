@@ -56,7 +56,7 @@ cmd/ecopaste
 | `internal/ui` | 窗口控制器、列表、设置页、菜单 | SQL/文件格式 |
 | `internal/update` | 更新协议、Sparkle/Tauri 迁移适配 | 剪贴板业务 |
 
-现有空目录 `cmd/ecopaste/`、`internal/model/`、`internal/settings/`、`internal/storage/` 可能是用户预留的 Go 骨架，不应删除；新结构可以在其基础上调整。
+当前仓库尚未建立 Go 实现骨架；本阶段不创建 `cmd/` 或 `internal/`。未来可按上述结构落地，实际目录名在实现阶段再确定。
 
 ## 3. 进程与主线程
 
@@ -497,4 +497,3 @@ com.ayangweb.eco-paste
 6. 敏感内容在 Rust 旧版和 Go 新版中的处理语义一致。
 7. 迁移失败不会破坏原数据库。
 8. 所有平台行为在真实 macOS 桌面会话、Retina、多显示器和权限状态下验证。
-

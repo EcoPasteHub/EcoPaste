@@ -120,4 +120,3 @@ Go 通过 purego/objc（必要时 cgo bridge）构建完整 AppKit 控件树
 | 前端事件契约 | `src/constants/events.ts` |
 | 剪贴板列表 | `src/pages/Clipboard/components/List.tsx` |
 | 分页缓存 | `src/hooks/useClipboardItems.ts` |
-

@@ -420,4 +420,3 @@ PRAGMA index_list(clipboard_items)
 - 旧版导入只覆盖历史记录，不应被描述成完整设置/数据迁移。
 
 这些漂移不影响当前产品运行，但 Go 端实现和后续文档必须以源码常量和实际 migration 为准。
-
