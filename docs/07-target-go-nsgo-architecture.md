@@ -251,7 +251,7 @@ watcher
 ```text
 nsgo Window/Panel
   -> full-size nsgo container
-       -> core.Native("ecopaste-appkit-root")
+       -> core.Native{Component: "ecopaste-appkit-root"}
             -> NSView root
                  -> AppKit controls
 ```

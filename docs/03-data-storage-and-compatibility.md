@@ -182,13 +182,19 @@ Trigger 维护 external-content FTS 的 delete/insert 语义。`UPDATE` 必须�
 ### 2.4 时间格式
 
 - Rust 模型使用 `DateTime<Utc>`。
-- sqlx/SQLite 以 TEXT 存储。
+- sqlx/SQLite 以 TEXT 存储，实际探测到的格式带微秒和显式 UTC 偏移，例如：
+
+  ```text
+  2026-11-12T13:43:15.414023+00:00
+  ```
+
+- 这不是 RFC3339 的 `Z` 后缀形式。`storage.json.updatedAt` 走 serde/chrono，单独使用 `Z` 结尾；两套字符串不要混用或互相覆盖。
 - 旧版 `history.createTime` 使用 `%Y-%m-%d %H:%M:%S`，按本地时区解析后转 UTC。
 
 Go 端必须保证：
 
 - 读取旧库时不把时间字符串误当 Unix 时间。
-- 写入新记录时保持与现有 TEXT 可比较格式一致。
+- 写入新记录时保持与现有 TEXT 可比较格式一致，至少保留 UTC 偏移语义；不要改成无时区的本地时间。
 - 比较排序、保留清理和 FTS 不受时区偏移影响。
 
 ## 3. 搜索语义
@@ -321,7 +327,7 @@ Go 版本不应改变：
 - 默认排除 macOS 钥匙串访问和“密码”App。
 - `collectSecrets = true`，`redactSecrets = true`。
 - `autoPaste = DoubleClickPaste`。
-- `autoCheck = true`，频率 daily。
+- `autoCheck = false`，频率 daily。Rust `Update` 使用 `derive(Default)`，源码默认不自动检查更新；用户已保存的配置可能为 `true`，不要把本机配置当作源码默认值。
 - `copySound = false`。
 - 主窗口跟随光标，隐藏后 lightweight/dormant 开启。
 
@@ -354,6 +360,12 @@ SELECT * FROM _sqlx_migrations
 PRAGMA table_info(clipboard_items)
 PRAGMA index_list(clipboard_items)
 ```
+
+探测时注意：
+
+- `PRAGMA foreign_keys` 是连接级设置。用独立 `sqlite3` 连接探测到 `0`，不代表应用运行时没有开启；Go 端必须在每个连接上执行 `PRAGMA foreign_keys = ON`。
+- 当前真实库的 `PRAGMA user_version` 为 `0`。EcoPaste 的 schema 身份记录在 `_sqlx_migrations`，不能用 `user_version` 判断是否已初始化。
+- 真实库已观察到 `journal_mode=wal`、`_sqlx_migrations` 有 `version=1, success=1`、`clipboard_items` 与 `clipboard_items_fts` 行数一致。探测结果只读，不要对现有库重放 `0001_init.sql`。
 
 然后判断：
 

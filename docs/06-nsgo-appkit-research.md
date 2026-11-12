@@ -2,11 +2,18 @@
 
 ## 1. 调研对象
 
-本机 module cache：
+调研基于锁定到具体 commit 的 pseudo-version：
 
 ```text
-/Users/ayang/go/pkg/mod/github.com/nsgo-dev/nsgo@v0.0.0-20261112101601-739024de687d
+github.com/nsgo-dev/nsgo@v0.0.0-20261112101601-739024de687d
 ```
+
+使用的源码入口：
+
+- `internal/platform/macos/media.go`
+- `examples/gallery/components_apple.go`
+- `examples/gallery/components_macos.go`
+- `cmd/nsgo/build.go`
 
 这是 pseudo-version，不是稳定 release。README 当前明确写明：
 
@@ -218,7 +225,7 @@ nsgo Window/Panel
 
 风险：
 
-- 引入 cgo，和 nsgo 的默认无 cgo 构建不同。
+- 引入 cgo，和 nsgo 的默认无 cgo 构建不同。`cmd/nsgo/build.go` 的 macOS 构建路径使用 `CGO_ENABLED=0`，采用 cgo 方案必须修改或绕开该路径，并重新验证签名、打包和 CI。
 - 需要处理 build tags、C 头文件、框架链接、符号和统一日志。
 - 交叉编译和 CI 复杂度上升。
 - 需要明确 Objective-C 与 Go 之间的对象所有权和回调线程。
