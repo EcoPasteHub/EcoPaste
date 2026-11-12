@@ -19,6 +19,13 @@ type Database struct {
 	sql *sql.DB
 }
 
+// ErrLegacySchema means the database contains only the pre-EcoPaste
+// history table and must go through the legacy import path.
+var ErrLegacySchema = errors.New("legacy EcoPaste history schema")
+
+// ErrUnknownSchema means the database is not a supported EcoPaste schema.
+var ErrUnknownSchema = errors.New("unknown EcoPaste database schema")
+
 // Probe describes the schema found at startup.
 type Probe struct {
 	Version     int
@@ -32,7 +39,11 @@ type Probe struct {
 
 // Open opens an existing database read-write. It never replays migrations.
 func Open(path string) (*Database, error) {
-	dsn := "file:" + url.PathEscape(path) + "?_pragma=busy_timeout(5000)&_pragma=foreign_keys(1)"
+	dsn := (&url.URL{
+		Scheme:   "file",
+		Path:     path,
+		RawQuery: "mode=rwc&_pragma=busy_timeout(5000)&_pragma=foreign_keys(1)&_pragma=journal_mode(wal)&_pragma=synchronous(normal)",
+	}).String()
 	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("open sqlite: %w", err)
@@ -43,6 +54,55 @@ func Open(path string) (*Database, error) {
 		return nil, fmt.Errorf("ping sqlite: %w", err)
 	}
 	return &Database{sql: db}, nil
+}
+
+// OpenExisting opens a database and verifies that it has a supported schema.
+func OpenExisting(path string) (*Database, error) {
+	db, err := Open(path)
+	if err != nil {
+		return nil, err
+	}
+	if err := db.Initialize(context.Background()); err != nil {
+		db.Close()
+		return nil, err
+	}
+	return db, nil
+}
+
+// Initialize creates the schema for a brand-new database and leaves
+// recognized existing databases untouched.
+func (d *Database) Initialize(ctx context.Context) error {
+	var tables int
+	if err := d.sql.QueryRowContext(ctx,
+		"SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'",
+	).Scan(&tables); err != nil {
+		return err
+	}
+	if tables == 0 {
+		return d.createSchema(ctx)
+	}
+
+	var hasItems, hasFTS, hasHistory int
+	_ = d.sql.QueryRowContext(ctx,
+		"SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='clipboard_items'",
+	).Scan(&hasItems)
+	_ = d.sql.QueryRowContext(ctx,
+		"SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='clipboard_items_fts'",
+	).Scan(&hasFTS)
+	_ = d.sql.QueryRowContext(ctx,
+		"SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='history'",
+	).Scan(&hasHistory)
+
+	switch {
+	case hasItems == 1 && hasFTS == 1:
+		return nil
+	case hasItems == 1:
+		return fmt.Errorf("%w: clipboard_items exists without FTS", ErrUnknownSchema)
+	case hasHistory == 1:
+		return ErrLegacySchema
+	default:
+		return ErrUnknownSchema
+	}
 }
 
 // Close releases the database handle.
