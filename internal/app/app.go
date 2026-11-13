@@ -205,6 +205,9 @@ func Run(app *core.Scope) {
 				log.Printf("start clipboard: %v", err)
 			} else {
 				history = newHistoryModel(runtime, store)
+				if model, ok := history.(*historyModel); ok {
+					model.openSettings = openSettings
+				}
 			}
 		}
 	}
@@ -445,7 +448,9 @@ func Run(app *core.Scope) {
 		openSettings()
 	}
 
-	if os.Getenv("ECOPASTE_SHOW_ON_LAUNCH") == "1" {
+	if store != nil && !store.Snapshot().Onboarding.Completed {
+		showPanel()
+	} else if os.Getenv("ECOPASTE_SHOW_ON_LAUNCH") == "1" {
 		showPanel()
 	}
 

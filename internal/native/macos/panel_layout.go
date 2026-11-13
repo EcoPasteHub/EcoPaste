@@ -49,6 +49,7 @@ func layoutPanel(p *Panel, width, height float64) {
 		setFrame(p.preview, 0, footerHeight+4, width, previewHeight)
 		layoutPreview(p, width, previewHeight)
 	}
+	p.layoutOnboarding(width, height)
 
 	p.empty.Send(sel("sizeToFit"))
 	text := objc.Send[CGRect](p.empty, sel("frame"))

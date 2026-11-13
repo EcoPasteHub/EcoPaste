@@ -16,8 +16,9 @@ import (
 )
 
 type historyModel struct {
-	runtime *clipboardRuntime
-	store   *settings.Store
+	runtime      *clipboardRuntime
+	store        *settings.Store
+	openSettings func()
 }
 
 var inputTrusted = keystroke.Trusted
@@ -159,6 +160,53 @@ func (m *historyModel) QuickActions() []string {
 		}
 	}
 	return actions
+}
+
+// Onboarding reports the first-run flow state persisted in settings.
+func (m *historyModel) Onboarding() ui.HistoryOnboarding {
+	data := ui.HistoryOnboarding{}
+	if m.store == nil {
+		return data
+	}
+	snapshot := m.store.Snapshot()
+	step := int(snapshot.Onboarding.LastStep)
+	if step < 0 {
+		step = 0
+	}
+	if step > 4 {
+		step = 4
+	}
+	data.Active = !snapshot.Onboarding.Completed
+	data.Step = step
+	data.OpenShortcut = snapshot.Shortcuts.OpenClipboard
+	data.PreferenceShortcut = snapshot.Shortcuts.OpenPreference
+	data.ExcludedApps = len(snapshot.Clipboard.Filters.ExcludedAppIDs)
+	return data
+}
+
+// SaveOnboarding records the current step, or completes the flow.
+func (m *historyModel) SaveOnboarding(step int, completed bool) error {
+	if m.store == nil {
+		return nil
+	}
+	if step < 0 {
+		step = 0
+	}
+	if step > 4 {
+		step = 4
+	}
+	patch := map[string]any{"lastStep": step}
+	if completed {
+		patch["completed"] = true
+	}
+	_, err := m.store.Update(map[string]any{"onboarding": patch})
+	return err
+}
+
+func (m *historyModel) OpenSettings() {
+	if m.openSettings != nil {
+		m.openSettings()
+	}
 }
 
 func clampInt(value, low, high int) int {

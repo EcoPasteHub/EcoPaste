@@ -353,6 +353,7 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 			PropsFunc: func() map[string]any {
 				display := macos.PanelDisplay{TextMaxLines: 1, ImageMaxHeight: 32, FileMaxCount: 3}
 				var actions []string
+				var onboarding macos.PanelOnboarding
 				if model != nil {
 					density := model.Display()
 					display = macos.PanelDisplay{
@@ -361,25 +362,68 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 						FileMaxCount:   density.FileMaxCount,
 					}
 					actions = model.QuickActions()
+					state := model.Onboarding()
+					onboarding = macos.PanelOnboarding{
+						Active:             state.Active,
+						Step:               state.Step,
+						OpenShortcut:       state.OpenShortcut,
+						PreferenceShortcut: state.PreferenceShortcut,
+						ExcludedApps:       state.ExcludedApps,
+					}
 				}
 				return map[string]any{
-					"rows":     rows.Get(),
-					"total":    total.Get(),
-					"loading":  loading.Get(),
-					"error":    errorText.Get(),
-					"preview":  preview.Get(),
-					"groups":   groups.Get(),
-					"group":    group.Get(),
-					"filter":   filter.Get(),
-					"query":    query,
-					"behavior": behavior,
-					"drag":     dragProvider,
-					"display":  display,
-					"actions":  actions,
+					"rows":       rows.Get(),
+					"total":      total.Get(),
+					"loading":    loading.Get(),
+					"error":      errorText.Get(),
+					"preview":    preview.Get(),
+					"groups":     groups.Get(),
+					"group":      group.Get(),
+					"filter":     filter.Get(),
+					"query":      query,
+					"behavior":   behavior,
+					"drag":       dragProvider,
+					"display":    display,
+					"actions":    actions,
+					"onboarding": onboarding,
 				}
 			},
 			OnEvent: func(name string, data any) {
 				switch name {
+				case "onboardingStep":
+					if model == nil {
+						return
+					}
+					step, ok := eventInt(data)
+					if !ok {
+						return
+					}
+					go func() {
+						err := model.SaveOnboarding(step, false)
+						cx.Post(func() {
+							if err != nil {
+								errorText.Set(err.Error())
+							}
+							reload()
+						})
+					}()
+				case "onboardingFinish":
+					if model == nil {
+						return
+					}
+					go func() {
+						err := model.SaveOnboarding(4, true)
+						cx.Post(func() {
+							if err != nil {
+								errorText.Set(err.Error())
+							}
+							reload()
+						})
+					}()
+				case "openSettings":
+					if model != nil {
+						model.OpenSettings()
+					}
 				case "opened":
 					if model == nil {
 						return
@@ -665,5 +709,18 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 				}
 			},
 		}
+	}
+}
+
+func eventInt(value any) (int, bool) {
+	switch number := value.(type) {
+	case int:
+		return number, true
+	case int64:
+		return int(number), true
+	case float64:
+		return int(number), true
+	default:
+		return 0, false
 	}
 }

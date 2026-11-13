@@ -114,15 +114,19 @@ func (p *Panel) buildPreview() {
 
 func (p *Panel) setPreview(content PreviewContent) {
 	p.previewing = content.Active
-	p.search.Send(sel("setHidden:"), p.previewing)
-	p.pin.Send(sel("setHidden:"), p.previewing)
-	p.filter.Send(sel("setHidden:"), p.previewing)
-	p.groupsPopup.Send(sel("setHidden:"), p.previewing)
-	p.groupActions.Send(sel("setHidden:"), p.previewing)
-	p.divider.Send(sel("setHidden:"), p.previewing)
-	p.scroll.Send(sel("setHidden:"), p.previewing)
+	hidden := p.previewing || p.onboardingActive
+	p.search.Send(sel("setHidden:"), hidden)
+	p.pin.Send(sel("setHidden:"), hidden)
+	p.filter.Send(sel("setHidden:"), hidden)
+	p.groupsPopup.Send(sel("setHidden:"), hidden)
+	p.groupActions.Send(sel("setHidden:"), hidden)
+	p.divider.Send(sel("setHidden:"), hidden)
+	p.scroll.Send(sel("setHidden:"), hidden)
 	p.preview.Send(sel("setHidden:"), !p.previewing)
 	if !p.previewing {
+		if p.onboardingActive {
+			return
+		}
 		p.hint.Send(sel("setStringValue:"), nsString("↵ 复制   esc 关闭"))
 		p.makeSearchFirstResponder()
 		p.updateStatus()

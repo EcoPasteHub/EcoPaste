@@ -117,7 +117,7 @@
 | W-06 | P1 | 窗口几何持久化 | `window/state.rs` | 同 `state/window-state.json` | 已通过（格式调整） | 隐藏时写入 `clipboard` 帧并重启恢复；旧版存物理像素、左上原点，新版存 AppKit points、左下原点，JSON 字段与路径不变；旧坐标不在任一屏幕时回退到光标所在屏幕居中 |
 | W-07 | P1 | 偏好窗口 | `window/mod.rs` | 原生 `NSTabView` 设置窗口 | 迁移中 | 通用/采集/历史与隐私已可用；深链与高亮待补 |
 | W-08 | P1 | 更新窗口 | `window/mod.rs` | Sparkle 交互或独立窗口 | 待迁移 | 检查/下载/安装 |
-| W-09 | P1 | 引导窗口 | `window/mod.rs` | 6 步原生流程 | 待迁移 | 回退/恢复/完成 |
+| W-09 | P1 | 引导窗口 | `window/mod.rs` | 原生 5 步流程（面板内浮层） | 已通过（产品调整） | 真机首次启动自动展示欢迎/权限/快捷键/排除应用/完成 5 步；上一步、`lastStep` 中断恢复、完成后回到列表面板均通过；旧版导入步骤转为 D-24 单独立项 |
 | W-10 | P0 | 托盘 | `tray/mod.rs` | `NSStatusItem` + `NSMenu`：偏好、暂停、开源、更新、版本、重启、退出 | 迁移中 | 显示/暂停/设置/清除/开源/版本/重启/退出已接；更新项待更新模块完成后补 |
 | W-11 | P0 | 全局快捷键 | `shortcut/mod.rs` | `desktop.RegisterHotKey` | 迁移中 | `Alt+C`、`Alt+X` 已注册；冲突与热更新待验证 |
 | W-12 | P1 | 快捷键录制 | 前端录制器 | 原生 `NSTextField` 捕获 | 待迁移 | 组合键/冲突/清除 |
@@ -138,7 +138,7 @@
 | U-01 | P0 | Clipboard 主页面 | `legacy/frontend/src/pages/Clipboard` | AppKit 搜索/分类/分组/列表/卡片/Footer | 迁移中 | 原生搜索、分类、自定义分组筛选、列表、Footer、实时刷新与复制已真机验证；卡片待补 |
 | U-02 | P1 | Preview 页面 | `legacy/frontend/src/pages/Preview` | 面板内原生预览 | 已通过 | 真机 Space/Esc；`TestPreviewRedactsSensitiveText` |
 | U-03 | P1 | Preference 页面 | `legacy/frontend/src/pages/Preference` | 原生 Tab/表单/搜索/高亮 | 待迁移 | 7 个 Tab 全项 |
-| U-04 | P1 | Onboarding 页面 | `legacy/frontend/src/pages/Onboarding` | 原生 6 步流程 | 待迁移 | 全流程/回退 |
+| U-04 | P1 | Onboarding 页面 | `legacy/frontend/src/pages/Onboarding` | 原生 5 步流程 | 已通过（产品调整） | `TestOnboardingDefaultsAndPersistence`、`TestOnboardingFinishAndClamp`、`TestOnboardingReportsShortcutsAndExcludedApps`；真机完成全流程、权限状态与快捷键展示、排除应用数量、打开设置入口 |
 | U-05 | P1 | Update 页面 | `legacy/frontend/src/pages/Update` | 原生更新状态/进度 | 待迁移 | 各状态 |
 | U-06 | P2 | ContextMenu 页面 | `legacy/frontend/src/pages/ContextMenu` | macOS 使用 `NSMenu`，不迁移 WebView 菜单窗 | 参考 | 对比菜单结构 |
 | U-07 | P0 | 列表虚拟滚动 | `react-virtuoso` | `NSTableView` 原生虚拟化 | 迁移中 | `NSTableView` 已启用原生复用与 80 条分页；待 10k 条压测 |
@@ -176,7 +176,7 @@
 | S-11 | clipboard.preview | `hoverEnabled`、`hoverDelayMs`、`spaceEnabled` | Space 已接；hover 暂不实现 | 迁移中 | 延迟边界 |
 | S-12 | clipboard.feedback | `copySound` | 音效开关一致 | 已通过 | 设置“通用”页开关即时写入 `settings.json`；开启后监听/手动读取入库成功播放系统提示音，关闭后静音；`TestSettingsModelAppliesPaths` 覆盖读写 |
 | S-13 | clipboard.filters | `excludedAppIds` | bundle id 过滤一致 | 待迁移 | 默认排除/自定义 |
-| S-14 | onboarding | `completed`、`lastStep`、`legacyImport{checked,imported,importTypes,importedAt}` | 首次启动与导入状态一致 | 待迁移 | 中断/恢复/完成 |
+| S-14 | onboarding | `completed`、`lastStep`、`legacyImport{checked,imported,importTypes,importedAt}` | 首次启动与导入状态一致 | 迁移中 | `completed`/`lastStep` 已按 `settings.json` 持久化并支持中断恢复、完成；`legacyImport` 字段保持读写，旧版导入实现随 D-24 补齐 |
 | S-15 | update | `autoCheck`、`frequency`、`includeBeta`、`includeNightly`、`lastCheckedAt`、`skippedVersion` | 渠道与跳过逻辑一致 | 待迁移 | 测试 appcast |
 | S-16 | 默认值 | 所有 `serde(default)` | 缺字段时行为与旧版一致 | 待迁移 | 空文件/缺字段 |
 | S-17 | 写入语义 | 对象深合并、数组替换、`.tmp` + rename | patch 语义与原子写一致 | 待迁移 | 并发/崩溃模拟 |

@@ -79,6 +79,15 @@ type HistoryOpenBehavior struct {
 	GroupID   string
 }
 
+// HistoryOnboarding describes the persisted first-run flow state.
+type HistoryOnboarding struct {
+	Active             bool
+	Step               int
+	OpenShortcut       string
+	PreferenceShortcut string
+	ExcludedApps       int
+}
+
 // HistoryModel is the app service the history panel consumes. Copy
 // reports whether the panel should close after copying.
 type HistoryModel interface {
@@ -110,5 +119,8 @@ type HistoryModel interface {
 	Display() HistoryDisplay
 	OpenBehavior() HistoryOpenBehavior
 	QuickActions() []string
+	Onboarding() HistoryOnboarding
+	SaveOnboarding(step int, completed bool) error
+	OpenSettings()
 	Updates() <-chan struct{}
 }
