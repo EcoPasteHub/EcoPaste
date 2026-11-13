@@ -15,6 +15,7 @@ import (
 	"github.com/EcoPasteHub/EcoPaste/internal/database"
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/EcoPasteHub/EcoPaste/internal/logging"
+	"github.com/EcoPasteHub/EcoPaste/internal/menu"
 	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
 	"github.com/EcoPasteHub/EcoPaste/internal/settings"
 	"github.com/EcoPasteHub/EcoPaste/internal/storage"
@@ -50,6 +51,14 @@ func Run(app *core.Scope) {
 	var rebuildPanel func()
 	hotKeys := macos.NewHotKeyManager()
 	app.OnQuit(func(context.Context) { hotKeys.Close() })
+	applyApplicationMenu := func() {
+		desktop.SetApplicationMenu(app, menu.Application(string(i18n.Current()), func() {
+			if openSettings != nil {
+				openSettings()
+			}
+		}))
+	}
+	applyApplicationMenu()
 	var store *settings.Store
 	var windowState *storage.WindowState
 	if paths, err := storage.Default(); err != nil {
@@ -212,6 +221,7 @@ func Run(app *core.Scope) {
 				model.setLanguage = func(language string) error {
 					i18n.SetLanguage(language)
 					app.SetLocale(language)
+					applyApplicationMenu()
 					app.Post(func() {
 						if settingsWindow != nil && !settingsWindow.Closed() {
 							settingsWindow.Close()
