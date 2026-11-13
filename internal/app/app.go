@@ -1,8 +1,13 @@
 package app
 
 import (
+	"log"
 	"os"
+	"path/filepath"
+	"strings"
 
+	"github.com/EcoPasteHub/EcoPaste/internal/settings"
+	"github.com/EcoPasteHub/EcoPaste/internal/storage"
 	"github.com/EcoPasteHub/EcoPaste/internal/ui"
 	"github.com/nsgo-dev/nsgo/core"
 	"github.com/nsgo-dev/nsgo/desktop"
@@ -15,6 +20,16 @@ const panelHotKey = "alt+c"
 func Run(app *core.Scope) {
 	desktop.SetShutdownMode(app, desktop.ShutdownOnExplicit)
 	hotKey := panelHotKey
+	if paths, err := storage.Default(); err != nil {
+		log.Printf("resolve storage: %v", err)
+	} else {
+		log.Printf("data root %s", paths.Root)
+		if store, err := settings.Open(filepath.Join(paths.Config, settings.FileName)); err != nil {
+			log.Printf("open settings: %v", err)
+		} else if configured := store.Snapshot().Shortcuts.OpenClipboard; configured != "" {
+			hotKey = strings.ToLower(configured)
+		}
+	}
 	if custom := os.Getenv("ECOPASTE_HOTKEY"); custom != "" {
 		hotKey = custom
 	}
