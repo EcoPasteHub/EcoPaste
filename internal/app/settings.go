@@ -23,6 +23,7 @@ type settingsModel struct {
 	onShortcutsChanged   func()
 	onShortcutsSuspended func(bool)
 	onDisplayChanged     func()
+	onActionsChanged     func()
 	dataDir              func() string
 	changeDataDir        func(string) error
 	restoreDataDir       func() error
@@ -76,6 +77,8 @@ func (m *settingsModel) Load() macos.SettingsValues {
 		RedactSecrets:          cfg.Sensitive.RedactSecrets,
 		ExcludedAppIDs:         excluded,
 		Apps:                   m.loadSourceApps(excluded),
+		ItemActions:            actionValues(cfg.Content.ItemActions),
+		ItemActionOrder:        actionValues(resolvedActionOrder(cfg.Content.ItemActionOrder)),
 		OpenClipboardShortcut:  snapshot.Shortcuts.OpenClipboard,
 		OpenPreferenceShortcut: snapshot.Shortcuts.OpenPreference,
 	}
@@ -94,6 +97,8 @@ func (m *settingsModel) Apply(path string, value any) error {
 		return m.applyExcludedApps(value)
 	case "shortcuts.openClipboard", "shortcuts.openPreference":
 		return m.applyShortcut(path, value)
+	case "actions.update":
+		return m.applyActions(value)
 	}
 	if path == "general.dataDir" {
 		parent, _ := value.(string)
@@ -169,6 +174,95 @@ func (m *settingsModel) Apply(path string, value any) error {
 		m.onDisplayChanged()
 	}
 	return nil
+}
+
+// applyActions stores the hover action selection and order. Unknown
+// actions are rejected so a hand-edited file cannot hide a whole menu.
+func (m *settingsModel) applyActions(value any) error {
+	update, ok := value.(macos.SettingsItemActions)
+	if !ok {
+		return fmt.Errorf("无效的动作配置")
+	}
+	known := map[settings.ItemAction]struct{}{}
+	for _, action := range resolvedActionOrder(nil) {
+		known[action] = struct{}{}
+	}
+	order := make([]settings.ItemAction, 0, len(update.Order))
+	seen := map[settings.ItemAction]struct{}{}
+	for _, key := range update.Order {
+		action := settings.ItemAction(key)
+		if _, ok := known[action]; !ok {
+			return fmt.Errorf("未知动作 %q", key)
+		}
+		if _, ok := seen[action]; ok {
+			continue
+		}
+		seen[action] = struct{}{}
+		order = append(order, action)
+	}
+	for _, action := range resolvedActionOrder(nil) {
+		if _, ok := seen[action]; !ok {
+			seen[action] = struct{}{}
+			order = append(order, action)
+		}
+	}
+	enabled := make([]settings.ItemAction, 0, len(update.Enabled))
+	for _, key := range update.Enabled {
+		action := settings.ItemAction(key)
+		if _, ok := known[action]; !ok {
+			return fmt.Errorf("未知动作 %q", key)
+		}
+		if _, ok := seen[action]; ok {
+			enabled = append(enabled, action)
+		}
+	}
+	if err := m.update(map[string]any{"clipboard": map[string]any{"content": map[string]any{
+		"itemActions":     enabled,
+		"itemActionOrder": order,
+	}}}); err != nil {
+		return err
+	}
+	if m.onActionsChanged != nil {
+		m.onActionsChanged()
+	}
+	return nil
+}
+
+func actionValues(actions []settings.ItemAction) []string {
+	values := make([]string, 0, len(actions))
+	for _, action := range actions {
+		values = append(values, string(action))
+	}
+	return values
+}
+
+func resolvedActionOrder(order []settings.ItemAction) []settings.ItemAction {
+	full := settings.Default().Clipboard.Content.ItemActionOrder
+	if len(order) == 0 {
+		return full
+	}
+	known := map[settings.ItemAction]struct{}{}
+	for _, action := range full {
+		known[action] = struct{}{}
+	}
+	resolved := make([]settings.ItemAction, 0, len(full))
+	seen := map[settings.ItemAction]struct{}{}
+	for _, action := range order {
+		if _, ok := known[action]; !ok {
+			continue
+		}
+		if _, ok := seen[action]; ok {
+			continue
+		}
+		seen[action] = struct{}{}
+		resolved = append(resolved, action)
+	}
+	for _, action := range full {
+		if _, ok := seen[action]; !ok {
+			resolved = append(resolved, action)
+		}
+	}
+	return resolved
 }
 
 // resetSettings restores the published defaults and re-applies the

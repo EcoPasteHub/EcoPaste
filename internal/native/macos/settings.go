@@ -49,6 +49,8 @@ type SettingsValues struct {
 	RedactSecrets          bool
 	ExcludedAppIDs         []string
 	Apps                   []SettingsApp
+	ItemActions            []string
+	ItemActionOrder        []string
 	OpenClipboardShortcut  string
 	OpenPreferenceShortcut string
 }
@@ -90,6 +92,8 @@ type SettingsView struct {
 	appsTable           objc.ID
 	appsEmpty           objc.ID
 	apps                []SettingsApp
+	actionsTable        objc.ID
+	actions             []settingsAction
 	groupField          *settingsField
 	extraExcluded       []string
 	shortcutFields      []*shortcutControl
@@ -133,6 +137,7 @@ var settingsTabIdentifiers = map[string]struct{}{
 	"history":     {},
 	"permissions": {},
 	"apps":        {},
+	"actions":     {},
 	"shortcuts":   {},
 }
 
@@ -189,6 +194,7 @@ func NewSettings(cx *core.NativeContext) core.NativeComponent {
 	v.buildGeneral()
 	v.buildCapture()
 	v.buildDisplay()
+	v.buildActions()
 	v.buildWindow()
 	v.buildHistory()
 	v.buildPermissions()
@@ -672,6 +678,7 @@ func (v *SettingsView) apply(values SettingsValues) {
 	v.dataDir.Send(sel("setToolTip:"), nsString(values.DataDir))
 	v.restore.Send(sel("setEnabled:"), values.CanRestoreDataDir)
 	v.applyApps(values)
+	v.applyActions(values)
 	v.applyShortcuts(values)
 	v.applyGroups(values)
 	for _, field := range v.fields {
@@ -765,9 +772,17 @@ func (v *SettingsView) Close() {
 	if v.appsTable != 0 {
 		delete(settingsAppsByTable, v.appsTable)
 	}
+	if v.actionsTable != 0 {
+		delete(settingsActionsByTable, v.actionsTable)
+	}
 	for control, owner := range settingsAppControls {
 		if owner == v {
 			delete(settingsAppControls, control)
+		}
+	}
+	for control, owner := range settingsActionControls {
+		if owner == v {
+			delete(settingsActionControls, control)
 		}
 	}
 	for control, binding := range settingsShortcutBindings {

@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
 	"github.com/EcoPasteHub/EcoPaste/internal/settings"
 )
 
@@ -76,6 +77,54 @@ func TestSettingsModelRejectsUnknownPath(t *testing.T) {
 	}
 	if err := newSettingsModel(store).Apply("missing", true); err == nil {
 		t.Error("unknown path was accepted")
+	}
+}
+
+func TestSettingsModelAppliesItemActions(t *testing.T) {
+	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	model := newSettingsModel(store)
+	changed := 0
+	model.onActionsChanged = func() { changed++ }
+	order := []string{
+		"star", "copy", "paste", "pastePlain", "pastePath", "copyPlain",
+		"openLink", "sendEmail", "reveal", "note", "pinItem", "delete",
+	}
+	if err := model.Apply("actions.update", macos.SettingsItemActions{
+		Enabled: []string{"star", "copy"},
+		Order:   order,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	cfg := store.Snapshot().Clipboard.Content
+	if len(cfg.ItemActions) != 2 || cfg.ItemActions[0] != settings.ActionStar || cfg.ItemActions[1] != settings.ActionCopy {
+		t.Errorf("item actions = %v", cfg.ItemActions)
+	}
+	if len(cfg.ItemActionOrder) != len(order) || cfg.ItemActionOrder[0] != settings.ActionStar {
+		t.Errorf("item action order = %v", cfg.ItemActionOrder)
+	}
+	if changed != 1 {
+		t.Errorf("change signal = %d", changed)
+	}
+	values := model.Load()
+	if len(values.ItemActions) != 2 || values.ItemActions[0] != "star" || values.ItemActionOrder[0] != "star" {
+		t.Errorf("values = %+v", values)
+	}
+}
+
+func TestSettingsModelRejectsUnknownItemAction(t *testing.T) {
+	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = newSettingsModel(store).Apply("actions.update", macos.SettingsItemActions{
+		Enabled: []string{"missing"},
+		Order:   []string{"missing"},
+	})
+	if err == nil {
+		t.Fatal("unknown action accepted")
 	}
 }
 
