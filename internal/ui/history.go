@@ -298,11 +298,13 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 						return
 					}
 					preview.Set(macos.PreviewContent{
-						Active:    true,
-						Title:     content.Title,
-						Meta:      content.Meta,
-						Text:      content.Text,
-						ImagePath: content.ImagePath,
+						Active:     true,
+						Title:      content.Title,
+						Meta:       content.Meta,
+						Text:       content.Text,
+						RichText:   content.RichText,
+						RichFormat: content.RichFormat,
+						ImagePath:  content.ImagePath,
 					})
 				})
 			}()

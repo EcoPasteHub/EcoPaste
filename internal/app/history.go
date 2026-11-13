@@ -516,6 +516,13 @@ func (m *historyModel) Preview(ctx context.Context, id string) (ui.HistoryPrevie
 			preview.Title = *item.Summary
 		}
 		preview.Text = previewText(item)
+		if item.SubKind != nil && !redact {
+			switch *item.SubKind {
+			case database.SubHTML, database.SubRTF:
+				preview.RichFormat = string(*item.SubKind)
+				preview.RichText = item.Content
+			}
+		}
 		if redact {
 			preview.Title = clipboard.MaskSecret(preview.Title)
 			preview.Text = clipboard.MaskSecret(preview.Text)

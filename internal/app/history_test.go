@@ -174,10 +174,14 @@ func TestPreviewRedactsSensitiveText(t *testing.T) {
 		t.Fatal(err)
 	}
 	secret := "sk-" + strings.Repeat("z", 32)
+	html := database.SubHTML
+	plain := "token: " + secret
 	item := &database.Item{
 		Kind:        database.KindText,
-		Content:     "token: " + secret,
+		Content:     "<p>token: " + secret + "</p>",
 		Summary:     &secret,
+		SearchText:  &plain,
+		SubKind:     &html,
 		IsSensitive: true,
 		Platform:    "macos",
 	}
@@ -199,6 +203,9 @@ func TestPreviewRedactsSensitiveText(t *testing.T) {
 	if strings.Contains(preview.Text, secret) || strings.Contains(preview.Title, secret) {
 		t.Errorf("preview leaked secret: %+v", preview)
 	}
+	if preview.RichText != "" {
+		t.Error("sensitive preview kept raw rich text")
+	}
 
 	if _, err := store.Update(map[string]any{
 		"clipboard": map[string]any{"preview": map[string]any{"spaceEnabled": false}},
@@ -211,6 +218,60 @@ func TestPreviewRedactsSensitiveText(t *testing.T) {
 	}
 	if preview.Enabled {
 		t.Error("preview stayed enabled after the setting was turned off")
+	}
+}
+
+func TestPreviewIncludesRichText(t *testing.T) {
+	root := t.TempDir()
+	db, err := database.Open(filepath.Join(root, "clipboard.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { db.Close() })
+	store, err := settings.Open(filepath.Join(root, settings.FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	model := &historyModel{
+		runtime: &clipboardRuntime{db: db, images: storage.NewImageStore(filepath.Join(root, "resources"))},
+		store:   store,
+	}
+	cases := []struct {
+		name    string
+		subKind database.SubKind
+		content string
+		format  string
+	}{
+		{"html", database.SubHTML, "<p>Hello <b>world</b></p>", "html"},
+		{"rtf", database.SubRTF, `{\rtf1\ansi Hello \b world\b0}`, "rtf"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			plain := "Hello world"
+			subKind := tc.subKind
+			id, _, err := db.Upsert(context.Background(), &database.Item{
+				Kind:       database.KindText,
+				Content:    tc.content,
+				Summary:    &plain,
+				SearchText: &plain,
+				SubKind:    &subKind,
+				Platform:   "macos",
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+			preview, err := model.Preview(context.Background(), id)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if preview.RichFormat != tc.format || preview.RichText != tc.content {
+				t.Errorf("rich preview = %q/%q, want %q/%q",
+					preview.RichFormat, preview.RichText, tc.format, tc.content)
+			}
+			if preview.Text != plain {
+				t.Errorf("plain fallback = %q, want %q", preview.Text, plain)
+			}
+		})
 	}
 }
 

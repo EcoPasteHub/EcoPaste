@@ -2,15 +2,19 @@
 
 package macos
 
-import "github.com/ebitengine/purego/objc"
+import (
+	"github.com/ebitengine/purego/objc"
+)
 
 // PreviewContent is the in-panel content preview.
 type PreviewContent struct {
-	Active    bool
-	Title     string
-	Meta      string
-	Text      string
-	ImagePath string
+	Active     bool
+	Title      string
+	Meta       string
+	Text       string
+	RichText   string
+	RichFormat string
+	ImagePath  string
 }
 
 const (
@@ -20,10 +24,8 @@ const (
 
 var (
 	previewViewClass objc.Class
-	previewTextClass objc.Class
 
 	panelsByPreviewView = map[objc.ID]*Panel{}
-	panelsByPreviewText = map[objc.ID]*Panel{}
 )
 
 func registerPreviewTargets() {
@@ -40,19 +42,6 @@ func registerPreviewTargets() {
 				sendSuper[objc.ID](self, previewViewClass, sel("keyDown:"), event)
 			}},
 		})
-	if err != nil {
-		panic(err)
-	}
-
-	previewTextClass, err = objc.RegisterClass("EcoPastePreviewText", class("NSTextView"), nil, nil,
-		[]objc.MethodDef{{Cmd: sel("keyDown:"), Fn: func(self objc.ID, _ objc.SEL, event objc.ID) {
-			p := panelsByPreviewText[self]
-			if p != nil && objc.Send[uint16](event, sel("keyCode")) == 53 {
-				p.cx.Emit("hidePreview", nil)
-				return
-			}
-			sendSuper[objc.ID](self, previewTextClass, sel("keyDown:"), event)
-		}}})
 	if err != nil {
 		panic(err)
 	}
@@ -76,12 +65,13 @@ func (p *Panel) buildPreview() {
 	p.previewMeta.Send(sel("setLineBreakMode:"), int64(4))
 	p.previewMeta.Send(sel("setMaximumNumberOfLines:"), int64(1))
 
-	p.previewText = objc.ID(previewTextClass).Send(sel("alloc")).Send(sel("initWithFrame:"), CGRect{})
+	p.previewText = objc.ID(class("NSTextView")).Send(sel("alloc")).Send(sel("initWithFrame:"),
+		CGRect{})
 	p.previewText.Send(sel("setEditable:"), false)
 	p.previewText.Send(sel("setSelectable:"), true)
-	p.previewText.Send(sel("setRichText:"), false)
 	p.previewText.Send(sel("setDrawsBackground:"), false)
 	p.previewText.Send(sel("setFont:"), systemFont(13))
+	p.previewText.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("labelColor")))
 	p.previewText.Send(sel("setTextContainerInset:"), CGSize{Width: 10, Height: 10})
 	p.previewText.Send(sel("setVerticallyResizable:"), true)
 	p.previewText.Send(sel("setHorizontallyResizable:"), false)
@@ -109,7 +99,6 @@ func (p *Panel) buildPreview() {
 	p.preview.Send(sel("addSubview:"), p.previewImage)
 
 	panelsByPreviewView[p.preview] = p
-	panelsByPreviewText[p.previewText] = p
 }
 
 func (p *Panel) setPreview(content PreviewContent) {
@@ -142,7 +131,7 @@ func (p *Panel) setPreview(content PreviewContent) {
 		image = loadImage(content.ImagePath)
 	}
 	hasImage := image != 0
-	p.previewText.Send(sel("setString:"), nsString(content.Text))
+	p.setTextPreview(content)
 	p.previewScroll.Send(sel("setHidden:"), hasImage)
 	p.previewImage.Send(sel("setHidden:"), !hasImage)
 	if hasImage {
@@ -152,6 +141,33 @@ func (p *Panel) setPreview(content PreviewContent) {
 		p.makePreviewFirstResponder(p.previewText)
 	}
 	p.updateStatus()
+}
+
+func (p *Panel) setTextPreview(content PreviewContent) {
+	if attr := attributedPreview(content.RichText, content.RichFormat); attr != 0 {
+		if storage := p.previewText.Send(sel("textStorage")); storage != 0 {
+			storage.Send(sel("setAttributedString:"), attr)
+		}
+		return
+	}
+	p.previewText.Send(sel("setString:"), nsString(content.Text))
+}
+
+func attributedPreview(text, format string) objc.ID {
+	if text == "" {
+		return 0
+	}
+	data := nsData([]byte(text))
+	switch format {
+	case "html":
+		return objc.ID(class("NSAttributedString")).Send(sel("alloc")).
+			Send(sel("initWithHTML:documentAttributes:"), data, objc.ID(0))
+	case "rtf":
+		return objc.ID(class("NSAttributedString")).Send(sel("alloc")).
+			Send(sel("initWithRTF:documentAttributes:"), data, objc.ID(0))
+	default:
+		return 0
+	}
 }
 
 func (p *Panel) makePreviewFirstResponder(view objc.ID) {

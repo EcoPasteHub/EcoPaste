@@ -562,7 +562,6 @@ func (p *Panel) Close() {
 	delete(panelsByOnboarding, p.onboardingView)
 	delete(panelsByTable, p.table)
 	delete(panelsByPreviewView, p.preview)
-	delete(panelsByPreviewText, p.previewText)
 	p.observer.Send(sel("release"))
 	if p.preview != 0 {
 		p.preview.Send(sel("release"))

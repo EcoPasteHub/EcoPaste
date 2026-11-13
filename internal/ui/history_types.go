@@ -51,11 +51,13 @@ type GroupOption struct {
 
 // HistoryPreview is the full content behind one list row.
 type HistoryPreview struct {
-	Enabled   bool
-	Title     string
-	Meta      string
-	Text      string
-	ImagePath string
+	Enabled    bool
+	Title      string
+	Meta       string
+	Text       string
+	RichText   string
+	RichFormat string
+	ImagePath  string
 }
 
 // HistorySearchBehavior controls where focus starts and whether a hidden

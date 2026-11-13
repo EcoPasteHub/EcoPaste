@@ -77,7 +77,7 @@
 | P-08 | P1 | 文件条目 | `commands/clipboard.rs` | 路径、名称、目录/图片标记、存在性、大小 | 已通过 | `TestDescribeFileEntries`；真机列表显示 PDF/TXT/图片大小与“已丢失” |
 | P-09 | P1 | 文件预览模式 | `FilesPreviewKind` | 单图片走图片预览，其余列表 | 已通过 | 单图片、单非图片、多文件测试覆盖；真机图片文件 Space 预览通过 |
 | P-10 | P1 | 预览窗口 | `window/preview.rs`、`pages/Preview` | 面板内预览视图，Space/Esc，文本/图片/文件 | 已通过 | 真机文本/图片预览与 Esc 返回；产品调整记录在迁移计划 |
-| P-11 | P2 | HTML/RTF 富文本预览 | 当前只用纯文本摘要 | `NSAttributedString` + `NSTextView`（增强项） | 待迁移 | 与旧版行为差异需记录 |
+| P-11 | P2 | HTML/RTF 富文本预览 | 当前只用纯文本摘要 | `NSAttributedString` + `NSTextView`（增强项） | 已通过 | 真机 Space 预览 HTML/RTF，粗体、字号、颜色和段落生效，Esc 返回；敏感条目继续使用脱敏纯文本且不传递原始富文本；`TestPreviewIncludesRichText`、`TestAttributedPreview`；仅渲染文本样式，不加载外部资源 |
 
 ## 4. 历史复用动作
 
