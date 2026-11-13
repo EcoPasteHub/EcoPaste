@@ -33,6 +33,25 @@ const (
 	rowHeight      = 58.0
 )
 
+const (
+	keyF             uint16 = 3
+	keyC             uint16 = 8
+	keyV             uint16 = 9
+	keyP             uint16 = 35
+	keyReturn        uint16 = 36
+	keySpace         uint16 = 49
+	keyDelete        uint16 = 51
+	keyEscape        uint16 = 53
+	keyEnter         uint16 = 76
+	keyHome          uint16 = 115
+	keyPageUp        uint16 = 116
+	keyForwardDelete uint16 = 117
+	keyEnd           uint16 = 119
+	keyPageDown      uint16 = 121
+	keyDownArrow     uint16 = 125
+	keyUpArrow       uint16 = 126
+)
+
 var (
 	historyTarget     objc.ID
 	historyTableClass objc.Class
@@ -44,6 +63,16 @@ func registerHistoryTargets() {
 	var err error
 	historyTableClass, err = objc.RegisterClass("EcoPasteHistoryTable", class("NSTableView"), nil, nil,
 		[]objc.MethodDef{
+			{Cmd: sel("copy:"), Fn: func(self objc.ID, _ objc.SEL, _ objc.ID) {
+				if p := panelsByTable[self]; p != nil && p.selection != "" {
+					p.cx.Emit("copy", p.selection)
+				}
+			}},
+			{Cmd: sel("paste:"), Fn: func(self objc.ID, _ objc.SEL, _ objc.ID) {
+				if p := panelsByTable[self]; p != nil && p.selection != "" {
+					p.cx.Emit("activate", p.selection)
+				}
+			}},
 			{Cmd: sel("rightMouseDown:"), Fn: func(self objc.ID, _ objc.SEL, event objc.ID) {
 				if p := panelsByTable[self]; p != nil {
 					location := objc.Send[CGPoint](event, sel("locationInWindow"))
@@ -62,24 +91,40 @@ func registerHistoryTargets() {
 					return
 				}
 				key := objc.Send[uint16](event, sel("keyCode"))
-				flags := objc.Send[uint](event, sel("modifierFlags"))
+				flags := uint64(objc.Send[uint](event, sel("modifierFlags")))
+				row := HistoryRow{}
+				for _, candidate := range p.rows {
+					if candidate.ID == p.selection {
+						row = candidate
+						break
+					}
+				}
+				action, handled := historyKeyAction(key, flags, row)
 				switch {
-				case key == 36 || key == 76:
-					p.cx.Emit("activate", p.selection)
-				case key == 35 && flags&((1<<20)|(1<<19)|(1<<18)|(1<<17)) == 0:
-					p.togglePinned()
-				case key == 49 && flags&((1<<20)|(1<<19)|(1<<18)|(1<<17)) == 0:
-					p.cx.Emit("preview", p.selection)
-				case key == 53:
-					p.cx.Emit("hide", nil)
-				case key == 51 || key == 117:
+				case !handled:
+					sendSuper[objc.ID](self, historyTableClass, sel("keyDown:"), event)
+				case action == "focusSearch":
+					p.focusSearch()
+				case action == "firstRow":
+					p.selectRow(0)
+				case action == "lastRow":
+					p.selectRow(len(p.rows) - 1)
+				case action == "pageUp" || action == "pageDown":
+					current := p.selectedIndex()
+					if current < 0 {
+						current = 0
+					}
+					delta := p.pageSize()
+					if action == "pageUp" {
+						delta = -delta
+					}
+					p.selectRow(current + delta)
+				case action == "delete":
 					if confirmDelete() {
 						p.cx.Emit("delete", p.selection)
 					}
-				case key == 8 && flags&(1<<20) != 0:
-					p.cx.Emit("copy", p.selection)
 				default:
-					sendSuper[objc.ID](self, historyTableClass, sel("keyDown:"), event)
+					p.cx.Emit(action, p.selection)
 				}
 			}},
 			{Cmd: sel("menuNeedsUpdate:"), Fn: func(self objc.ID, _ objc.SEL, menu objc.ID) {
@@ -237,6 +282,45 @@ func newHistoryTable(p *Panel) objc.ID {
 	scroll.Send(sel("setDocumentView:"), table)
 	panelsByTable[table] = p
 	return scroll
+}
+
+func historyKeyAction(key uint16, flags uint64, row HistoryRow) (string, bool) {
+	command := flags&commandModifier != 0
+	option := flags&alternateModifier != 0
+	unmodified := flags&(shiftModifier|controlModifier|alternateModifier|commandModifier) == 0
+	switch {
+	case key == keyReturn || key == keyEnter:
+		return "activate", true
+	case key == keyP && unmodified:
+		return "togglePinned", true
+	case key == keySpace && unmodified:
+		return "preview", true
+	case key == keyEscape:
+		return "hide", true
+	case key == keyDelete || key == keyForwardDelete:
+		return "delete", true
+	case key == keyHome && unmodified:
+		return "firstRow", true
+	case key == keyEnd && unmodified:
+		return "lastRow", true
+	case (key == keyPageUp || key == keyUpArrow && flags&functionModifier != 0) && unmodified:
+		return "pageUp", true
+	case (key == keyPageDown || key == keyDownArrow && flags&functionModifier != 0) && unmodified:
+		return "pageDown", true
+	case command && option && key == keyC && row.Kind == "text":
+		return "copyPlain", true
+	case command && option && key == keyV && row.Kind == "text":
+		return "pastePlain", true
+	case command && option && key == keyV && row.Kind == "files":
+		return "pastePath", true
+	case command && key == keyC:
+		return "copy", true
+	case command && key == keyV:
+		return "activate", true
+	case command && key == keyF:
+		return "focusSearch", true
+	}
+	return "", false
 }
 
 func newHistoryRow() objc.ID {
@@ -449,6 +533,7 @@ const (
 	controlModifier   uint64 = 1 << 18
 	alternateModifier uint64 = 1 << 19
 	commandModifier   uint64 = 1 << 20
+	functionModifier  uint64 = 1 << 23
 )
 
 func setMenuModifiers(item objc.ID, modifiers uint64) {

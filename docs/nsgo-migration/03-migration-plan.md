@@ -209,7 +209,7 @@ internal/native/macos/
 ### 工作项
 
 1. `NSTableView` / `NSCollectionView`：
-   - 原生虚拟化、选中态、键盘上下移动、PageUp/PageDown、Home/End。
+   - 原生虚拟化、选中态、键盘上下移动、PageUp/PageDown、Home/End；同时兼容 macOS 的 Fn+↑/↓ 翻页。
    - 文本/图片/文件卡片使用 `NSTableCellView` 或自定义 `NSView`。
    - 空状态、加载态、分组切换。
 2. 搜索与筛选：
@@ -224,6 +224,7 @@ internal/native/macos/
    - 菜单动作回到 Go 业务层，不在 UI 内写业务逻辑。
    - 按内容动态精简菜单：URL/邮件提供打开，路径/文件提供 Finder 定位，图片提供另存，避免所有条目堆同一套无关动作。
    - 文本提供“纯文本粘贴/复制为纯文本”，文件提供“粘贴为路径”；动作只在对应内容类型出现，避免菜单噪音。
+   - 标准编辑菜单的复制/粘贴作用于当前历史行；`⌘C`、`⌘V`、`⌥⌘C`、`⌥⌘V` 与右键菜单动作保持一致。
    - 备注使用原生模态编辑，移除备注会归一为 NULL；非空备注遵循 `autoFavorite` 联动收藏。
 5. 拖出：
    - `NSDraggingSession` + `NSPasteboardItem`。

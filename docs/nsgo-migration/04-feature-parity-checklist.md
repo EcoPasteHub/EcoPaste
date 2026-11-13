@@ -125,7 +125,7 @@
 | W-14 | P1 | Dock 图标显隐 | `show_taskbar_icon` | `NSApplication.setActivationPolicy` | 待迁移 | 显示/隐藏/重启 |
 | W-15 | P1 | 单实例 | `tauri-plugin-single-instance` | macOS bundle 单实例 + `OnReopen` | 待迁移 | 二次启动/文件打开 |
 | W-16 | P1 | 文件关联 | `tauri.conf.json`、`backup/*` | `nsgo.yaml file_types` + `OnOpenFiles` | 待迁移 | 双击/拖到 Dock |
-| W-17 | P1 | 原生右键菜单 | `menu/clipboard_item.rs` | `NSMenu` 按内容动态生成动作 | 迁移中 | URL/图片/路径菜单与分组子菜单已真机验证；快捷键待补 |
+| W-17 | P1 | 原生右键菜单 | `menu/clipboard_item.rs` | `NSMenu` 按内容动态生成动作 | 已通过 | URL/图片/路径菜单与分组子菜单已真机验证；`⌘C`/`⌘V`/`⌥⌘C`/`⌥⌘V` 与标准编辑菜单复制/粘贴已真机验证 |
 | W-18 | P1 | 权限 | `PermissionControl` | 辅助功能/完全磁盘访问检测与跳转 | 迁移中 | 辅助功能检测、原生说明弹窗与系统设置跳转已接；FDA 待补 |
 | W-19 | P2 | 防默认行为 | `core/prevent_default.rs` | 无 WebView，不需要 | 不纳入 macOS 首版 | 确认无 WebView 入口 |
 | W-20 | P1 | 更新 | `update.rs` | NSGo updater + Sparkle appcast | 待迁移 | 测试源真实升级 |
@@ -142,7 +142,7 @@
 | U-05 | P1 | Update 页面 | `legacy/frontend/src/pages/Update` | 原生更新状态/进度 | 待迁移 | 各状态 |
 | U-06 | P2 | ContextMenu 页面 | `legacy/frontend/src/pages/ContextMenu` | macOS 使用 `NSMenu`，不迁移 WebView 菜单窗 | 参考 | 对比菜单结构 |
 | U-07 | P0 | 列表虚拟滚动 | `react-virtuoso` | `NSTableView` 原生虚拟化 | 迁移中 | `NSTableView` 已启用原生复用与 80 条分页；待 10k 条压测 |
-| U-08 | P1 | 键盘导航 | `legacy/frontend/src/hooks` 的键盘逻辑 | 上下/Page/Home/End/Enter/Esc | 迁移中 | Enter/Esc/⌘C 已接；系统方向键与翻页待真机逐项验收 |
+| U-08 | P1 | 键盘导航 | `legacy/frontend/src/hooks` 的键盘逻辑 | 上下/Page/Home/End/Enter/Esc | 迁移中 | 真机 ↑/↓、Home/End、⌘F、⌘C、⌥⌘C、⌘V、⌥⌘V 通过；PageUp/PageDown 已兼容专用键与 Fn+↑/↓，自动化环境未产生对应按键事件 |
 | U-09 | P1 | 主题 | antd token + `light/dark` | AppKit 语义色 + `NSAppearance` | 待迁移 | 跟随系统/强制 |
 | U-10 | P1 | 动画 | `motion` | AppKit 动画/`NSAnimationContext` | 待迁移 | 面板出现/预览连接线 |
 | U-11 | P2 | 滚动条 | `overlayscrollbars` | 系统 overlay scroller | 待迁移 | 深浅色 |
