@@ -85,9 +85,9 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | A-01 | P0 | 写回纯文本 | `clipboard/write.rs` | `NSPasteboard` plain text | 已通过 | 真机选中列表项 Enter 写入，`pbpaste` 校验一致 |
 | A-02 | P0 | 写回 HTML | `write.rs` | plain + `public.html` 同一 item | 已通过 | 真机复制 `<b>rich hello</b>` 后剪贴板含 HTML + plain，`pbpaste` 得到 `rich hello`，DB 不新增回环 |
-| A-03 | P0 | 写回 RTF | `write.rs` | plain + `public.rtf` 同一 item | 迁移中 | 同一 pasteboard item 与回环登记已实现；待真机 Pages/Word 验证 |
-| A-04 | P0 | 写回图片 | `write.rs` | `public.png` + TIFF（按需） | 迁移中 | PNG 写回已实现；待真机验证 |
-| A-05 | P0 | 写回文件 | `write.rs` | `public.file-url` 多文件 | 迁移中 | `NSURL` 多文件写回已实现；待真机验证 |
+| A-03 | P0 | 写回 RTF | `write.rs` | plain + `public.rtf` 同一 item | 已通过 | 隔离实例复制历史 RTF 条目后，`NSPasteboard` 同时提供 `public.utf8-plain-text` 与 `public.rtf`，RTF 数据 148 B；未新增自身回环 |
+| A-04 | P0 | 写回图片 | `write.rs` | `public.png` + TIFF（按需） | 已通过 | 隔离实例复制 520×520 历史图片后，剪贴板提供 `public.png` 5467 B，并由系统合成 `public.tiff`；未新增自身回环 |
+| A-05 | P0 | 写回文件 | `write.rs` | `public.file-url` 多文件 | 已通过 | 隔离实例复制两项文件记录后，`NSPasteboard` 按 item 提供 `file:///tmp/ecopaste-a.txt` 与 `file:///tmp/ecopaste-b.txt`，同时提供 `NSFilenamesPboardType` |
 | A-06 | P0 | 粘贴 | `paste_clipboard_item` | 写回 + 让出 key + `CGEvent` ⌘V | 迁移中 | 回车/双击已接 `CGEvent`；权限拒绝路径已验证，待授权后真机验收 |
 | A-07 | P0 | 纯文本粘贴 | `paste_plain` | 文本只写 plain；HTML/RTF 带 plain 回退 | 迁移中 | 菜单“纯文本粘贴/复制为纯文本”已真机验证只写 plain；自动按键待辅助功能授权 |
 | A-08 | P1 | 文件路径粘贴 | `paste_files_as_path` | 文件记录写回换行路径文本 | 已通过 | `TestBuildWritePreservesRepresentations`；真机“粘贴为路径”与 `pasteFilesAsPath=true` 正常粘贴均写入换行路径，未新增回环 |
