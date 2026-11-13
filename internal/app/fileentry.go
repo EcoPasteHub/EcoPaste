@@ -1,10 +1,11 @@
 package app
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 )
 
 const (
@@ -50,15 +51,15 @@ func describeFileEntries(paths []string, types *string, limit int) []fileEntry {
 func fileEntryLabel(entry fileEntry) string {
 	switch {
 	case !entry.Exists:
-		return "已丢失"
+		return i18n.T(i18n.FileMissing)
 	case entry.IsDir:
-		return "文件夹"
+		return i18n.T(i18n.FileFolder)
 	case entry.IsImage:
-		return "图片"
+		return i18n.T(i18n.KindImage)
 	default:
 		ext := strings.TrimPrefix(filepath.Ext(entry.Name), ".")
 		if ext == "" {
-			return "文件"
+			return i18n.T(i18n.KindFiles)
 		}
 		return strings.ToUpper(ext)
 	}
@@ -77,7 +78,7 @@ func fileSummary(entries []fileEntry, total int) string {
 		}
 		return label
 	}
-	summary := fmt.Sprintf("%d 项", total)
+	summary := i18n.Tf(i18n.FileSummaryCount, total)
 	if total == len(entries) {
 		missing := 0
 		for _, entry := range entries {
@@ -86,7 +87,7 @@ func fileSummary(entries []fileEntry, total int) string {
 			}
 		}
 		if missing > 0 {
-			summary += fmt.Sprintf(" · %d 项已丢失", missing)
+			summary += i18n.Tf(i18n.FileSummaryMissing, missing)
 		}
 	}
 	return summary
@@ -104,7 +105,7 @@ func filePreviewText(entries []fileEntry, total int) string {
 		lines = append(lines, entry.Name+" · "+label, entry.Path, "")
 	}
 	if total > len(entries) {
-		lines = append(lines, fmt.Sprintf("仅显示前 %d 项，共 %d 项。", len(entries), total))
+		lines = append(lines, i18n.Tf(i18n.FilePreviewTruncated, len(entries), total))
 	}
 	return strings.TrimRight(strings.Join(lines, "\n"), "\n")
 }

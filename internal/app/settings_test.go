@@ -269,6 +269,31 @@ func TestSettingsModelAppliesTheme(t *testing.T) {
 	}
 }
 
+func TestSettingsModelAppliesLanguage(t *testing.T) {
+	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	model := newSettingsModel(store)
+	var applied []string
+	model.setLanguage = func(language string) error {
+		applied = append(applied, language)
+		return nil
+	}
+	if err := model.Apply("appearance.language", "en-US"); err != nil {
+		t.Fatal(err)
+	}
+	if store.Snapshot().Appearance.Language != settings.LanguageEnUS {
+		t.Errorf("language = %q", store.Snapshot().Appearance.Language)
+	}
+	if model.Load().Language != "en-US" {
+		t.Errorf("loaded language = %q", model.Load().Language)
+	}
+	if len(applied) != 1 || applied[0] != "en-US" {
+		t.Errorf("language applications = %v", applied)
+	}
+}
+
 func TestSettingsModelChangesDataDir(t *testing.T) {
 	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
 	if err != nil {

@@ -16,6 +16,7 @@ type settingsModel struct {
 	setTrayIcon          func(bool) error
 	setAutoStart         func(bool) error
 	setAppearance        func(string) error
+	setLanguage          func(string) error
 	listApps             func() ([]database.App, error)
 	listGroups           func() ([]database.Group, error)
 	addApp               func(string) (database.App, error)
@@ -48,6 +49,7 @@ func (m *settingsModel) Load() macos.SettingsValues {
 		TrayIcon:               snapshot.General.TrayIcon,
 		AutoStart:              snapshot.General.AutoStart,
 		Theme:                  string(snapshot.Appearance.Theme),
+		Language:               string(snapshot.Appearance.Language),
 		DataDir:                m.currentDataDir(),
 		CanRestoreDataDir:      m.canRestoreDataDir != nil && m.canRestoreDataDir(),
 		CopyPlain:              cfg.Content.CopyPlain,
@@ -192,6 +194,12 @@ func (m *settingsModel) Apply(path string, value any) error {
 	node[keys[len(keys)-1]] = value
 	if err := m.update(patch); err != nil {
 		return err
+	}
+	if path == "appearance.language" && m.setLanguage != nil {
+		language, _ := value.(string)
+		if err := m.setLanguage(language); err != nil {
+			return err
+		}
 	}
 	if strings.HasPrefix(path, "display.") && m.onDisplayChanged != nil {
 		m.onDisplayChanged()
@@ -397,6 +405,7 @@ var settingsPaths = map[string][]string{
 	"general.trayIcon":              {"general", "trayIcon"},
 	"general.autoStart":             {"general", "autoStart"},
 	"appearance.theme":              {"appearance", "theme"},
+	"appearance.language":           {"appearance", "language"},
 	"copyPlain":                     {"clipboard", "content", "copyPlain"},
 	"copyThenHideWindow":            {"clipboard", "content", "copyThenHideWindow"},
 	"feedback.copySound":            {"clipboard", "feedback", "copySound"},

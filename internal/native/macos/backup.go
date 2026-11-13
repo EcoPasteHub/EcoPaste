@@ -2,7 +2,10 @@
 
 package macos
 
-import "github.com/ebitengine/purego/objc"
+import (
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
+	"github.com/ebitengine/purego/objc"
+)
 
 // BackupExportChoice is how the user wants to write a backup.
 type BackupExportChoice int
@@ -29,12 +32,12 @@ func ChooseBackupImport() BackupImportChoice {
 	onMain(func() {
 		alert := objc.ID(class("NSAlert")).Send(sel("new"))
 		defer alert.Send(sel("release"))
-		alert.Send(sel("setMessageText:"), nsString("导入 EcoPaste 备份"))
+		alert.Send(sel("setMessageText:"), nsString(i18n.T(i18n.BackupImportTitle)))
 		alert.Send(sel("setInformativeText:"),
-			nsString("合并会保留当前历史，只添加缺失记录并补齐资源。覆盖会替换当前历史、设置和资源。"))
-		alert.Send(sel("addButtonWithTitle:"), nsString("合并导入"))
-		alert.Send(sel("addButtonWithTitle:"), nsString("覆盖导入"))
-		alert.Send(sel("addButtonWithTitle:"), nsString("取消"))
+			nsString(i18n.T(i18n.BackupImportBody)))
+		alert.Send(sel("addButtonWithTitle:"), nsString(i18n.T(i18n.BackupImportMerge)))
+		alert.Send(sel("addButtonWithTitle:"), nsString(i18n.T(i18n.BackupImportOverwrite)))
+		alert.Send(sel("addButtonWithTitle:"), nsString(i18n.T(i18n.CommonCancel)))
 		switch alert.Send(sel("runModal")) {
 		case 1000:
 			choice = BackupImportMerge
@@ -51,11 +54,11 @@ func ChooseBackupExport() BackupExportChoice {
 	onMain(func() {
 		alert := objc.ID(class("NSAlert")).Send(sel("new"))
 		defer alert.Send(sel("release"))
-		alert.Send(sel("setMessageText:"), nsString("导出 EcoPaste 备份"))
-		alert.Send(sel("setInformativeText:"), nsString("加密备份需要密码；明文备份不加密，任何拿到文件的人都能读取。"))
-		alert.Send(sel("addButtonWithTitle:"), nsString("加密备份"))
-		alert.Send(sel("addButtonWithTitle:"), nsString("明文备份"))
-		alert.Send(sel("addButtonWithTitle:"), nsString("取消"))
+		alert.Send(sel("setMessageText:"), nsString(i18n.T(i18n.BackupExportTitle)))
+		alert.Send(sel("setInformativeText:"), nsString(i18n.T(i18n.BackupExportBody)))
+		alert.Send(sel("addButtonWithTitle:"), nsString(i18n.T(i18n.BackupExportEncrypted)))
+		alert.Send(sel("addButtonWithTitle:"), nsString(i18n.T(i18n.BackupExportPlain)))
+		alert.Send(sel("addButtonWithTitle:"), nsString(i18n.T(i18n.CommonCancel)))
 		switch alert.Send(sel("runModal")) {
 		case 1000:
 			choice = BackupExportEncrypted
@@ -75,12 +78,12 @@ func PromptPassword(title, text string) (string, bool) {
 		defer alert.Send(sel("release"))
 		alert.Send(sel("setMessageText:"), nsString(title))
 		alert.Send(sel("setInformativeText:"), nsString(text))
-		alert.Send(sel("addButtonWithTitle:"), nsString("确定"))
-		alert.Send(sel("addButtonWithTitle:"), nsString("取消"))
+		alert.Send(sel("addButtonWithTitle:"), nsString(i18n.T(i18n.CommonConfirm)))
+		alert.Send(sel("addButtonWithTitle:"), nsString(i18n.T(i18n.CommonCancel)))
 		field := objc.ID(class("NSSecureTextField")).Send(sel("alloc")).
 			Send(sel("initWithFrame:"), CGRect{Size: CGSize{Width: 300, Height: 24}})
 		defer field.Send(sel("release"))
-		field.Send(sel("setPlaceholderString:"), nsString("备份密码"))
+		field.Send(sel("setPlaceholderString:"), nsString(i18n.T(i18n.BackupPasswordField)))
 		alert.Send(sel("setAccessoryView:"), field)
 		window := objc.Send[objc.ID](alert, sel("window"))
 		window.Send(sel("setInitialFirstResponder:"), field)

@@ -5,6 +5,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
 	"github.com/nsgo-dev/nsgo/core"
 )
@@ -49,7 +50,7 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 
 		load := func(keyword, activeFilter, groupID string, appendRows bool) {
 			if model == nil {
-				errorText.Set("无法打开剪贴板数据库")
+				errorText.Set(i18n.T(i18n.DatabaseOpenFailed))
 				loading.Set(false)
 				return
 			}

@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/ebitengine/purego"
 	"github.com/ebitengine/purego/objc"
 )
@@ -67,11 +68,11 @@ func probeReadable(path string) error {
 func showAccessibilityAlert() {
 	alert := objc.ID(class("NSAlert")).Send(sel("new"))
 	defer alert.Send(sel("release"))
-	alert.Send(sel("setMessageText:"), nsString("需要辅助功能权限"))
+	alert.Send(sel("setMessageText:"), nsString(i18n.T(i18n.AccessibilityTitle)))
 	alert.Send(sel("setInformativeText:"),
-		nsString("EcoPaste 需要辅助功能权限才能自动粘贴。请在“系统设置 > 隐私与安全性 > 辅助功能”中允许 EcoPaste。"))
-	alert.Send(sel("addButtonWithTitle:"), nsString("打开系统设置"))
-	alert.Send(sel("addButtonWithTitle:"), nsString("稍后"))
+		nsString(i18n.T(i18n.AccessibilityBody)))
+	alert.Send(sel("addButtonWithTitle:"), nsString(i18n.T(i18n.OnboardingOpenSettings)))
+	alert.Send(sel("addButtonWithTitle:"), nsString(i18n.T(i18n.CommonLater)))
 	if alert.Send(sel("runModal")) == 1000 {
 		OpenAccessibilitySettings()
 	}

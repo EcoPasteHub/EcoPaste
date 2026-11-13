@@ -43,12 +43,16 @@ func (v *SettingsView) buildInteraction() {
 		func(s SettingsValues) bool { return s.AutoFavorite })
 	v.addSwitch(content, y-180, i18n.T(i18n.SettingsShowOriginal), "content.showOriginalPreview",
 		func(s SettingsValues) bool { return s.ShowOriginalPreview })
+	v.addSwitch(content, y-218, i18n.T(i18n.SettingsCopyTextPlain), "copyPlain",
+		func(s SettingsValues) bool { return s.CopyPlain })
+	v.addSwitch(content, y-256, i18n.T(i18n.SettingsPasteTextPlain), "pastePlain",
+		func(s SettingsValues) bool { return s.PastePlain })
 
 	note := objc.ID(classNSTextField).Send(sel("labelWithString:"),
 		nsString(i18n.T(i18n.SettingsInteractionNote)))
 	note.Send(sel("setFont:"), systemFont(11))
 	note.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
-	note.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: y - 234}, Size: CGSize{Width: tabContentW - 48, Height: 32}})
+	note.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: y - 294}, Size: CGSize{Width: tabContentW - 48, Height: 32}})
 	content.Send(sel("addSubview:"), note)
 }
 

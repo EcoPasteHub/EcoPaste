@@ -2,7 +2,10 @@
 
 package macos
 
-import "github.com/ebitengine/purego/objc"
+import (
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
+	"github.com/ebitengine/purego/objc"
+)
 
 // ClearHistoryChoice is the result of the clear-history dialog.
 type ClearHistoryChoice int
@@ -20,11 +23,11 @@ func ConfirmClearHistory() ClearHistoryChoice {
 	onMain(func() {
 		alert := objc.ID(class("NSAlert")).Send(sel("new"))
 		defer alert.Send(sel("release"))
-		alert.Send(sel("setMessageText:"), nsString("清除剪贴板历史？"))
-		alert.Send(sel("setInformativeText:"), nsString("可以保留收藏和置顶的记录。"))
-		alert.Send(sel("addButtonWithTitle:"), nsString("取消"))
-		alert.Send(sel("addButtonWithTitle:"), nsString("保留收藏与置顶"))
-		alert.Send(sel("addButtonWithTitle:"), nsString("清除全部"))
+		alert.Send(sel("setMessageText:"), nsString(i18n.T(i18n.ClearHistoryTitle)))
+		alert.Send(sel("setInformativeText:"), nsString(i18n.T(i18n.ClearHistoryBody)))
+		alert.Send(sel("addButtonWithTitle:"), nsString(i18n.T(i18n.CommonCancel)))
+		alert.Send(sel("addButtonWithTitle:"), nsString(i18n.T(i18n.ClearHistoryProtected)))
+		alert.Send(sel("addButtonWithTitle:"), nsString(i18n.T(i18n.ClearHistoryAll)))
 		switch alert.Send(sel("runModal")) {
 		case 1001:
 			choice = ClearHistoryKeepProtected
@@ -42,7 +45,7 @@ func ShowMessage(title, text string) {
 		defer alert.Send(sel("release"))
 		alert.Send(sel("setMessageText:"), nsString(title))
 		alert.Send(sel("setInformativeText:"), nsString(text))
-		alert.Send(sel("addButtonWithTitle:"), nsString("好"))
+		alert.Send(sel("addButtonWithTitle:"), nsString(i18n.T(i18n.CommonOK)))
 		alert.Send(sel("runModal"))
 	})
 }
@@ -55,7 +58,7 @@ func Confirm(title, text, confirmTitle string) bool {
 		defer alert.Send(sel("release"))
 		alert.Send(sel("setMessageText:"), nsString(title))
 		alert.Send(sel("setInformativeText:"), nsString(text))
-		alert.Send(sel("addButtonWithTitle:"), nsString("取消"))
+		alert.Send(sel("addButtonWithTitle:"), nsString(i18n.T(i18n.CommonCancel)))
 		alert.Send(sel("addButtonWithTitle:"), nsString(confirmTitle))
 		confirmed = alert.Send(sel("runModal")) == 1001
 	})

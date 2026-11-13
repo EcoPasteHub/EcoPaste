@@ -46,6 +46,8 @@ func Run(app *core.Scope) {
 	var openSettings func()
 	var reloadHotkeys func() error
 	var tray *desktop.Tray
+	var settingsWindow *desktop.Window
+	var rebuildPanel func()
 	hotKeys := macos.NewHotKeyManager()
 	app.Cleanup(hotKeys.Close)
 	var store *settings.Store
@@ -86,6 +88,7 @@ func Run(app *core.Scope) {
 			log.Printf("open settings: %v", err)
 		} else {
 			i18n.SetLanguage(string(store.Snapshot().Appearance.Language))
+			app.SetLocale(string(store.Snapshot().Appearance.Language))
 			if err := macos.SetAppearance(string(store.Snapshot().Appearance.Theme)); err != nil {
 				log.Printf("sync appearance: %v", err)
 			}
@@ -206,6 +209,24 @@ func Run(app *core.Scope) {
 						runtime.Signal()
 					}
 				}
+				model.setLanguage = func(language string) error {
+					i18n.SetLanguage(language)
+					app.SetLocale(language)
+					app.Post(func() {
+						if settingsWindow != nil && !settingsWindow.Closed() {
+							settingsWindow.Close()
+							settingsWindow = nil
+						}
+						if rebuildPanel != nil {
+							rebuildPanel()
+						}
+						macos.SelectSettingsTab("general")
+						if openSettings != nil {
+							openSettings()
+						}
+					})
+					return nil
+				}
 				model.setTrayIcon = func(visible bool) error {
 					if tray == nil {
 						return fmt.Errorf("菜单栏图标尚未初始化")
@@ -223,7 +244,7 @@ func Run(app *core.Scope) {
 						desktop.Restart(app)
 					})
 				}
-				desktop.OpenWindow(app, desktop.WindowOptions{
+				settingsWindow = desktop.OpenWindow(app, desktop.WindowOptions{
 					Title:       i18n.T(i18n.SettingsWindowTitle),
 					Width:       560,
 					Height:      600,
@@ -290,11 +311,23 @@ func Run(app *core.Scope) {
 		}
 	}
 	content := ui.ClipboardPanel(history, hidePanel)
-	panel = desktop.OpenPanel(app, desktop.PanelOptions{
-		Width:    420,
-		Height:   560,
-		Material: desktop.WindowMaterialPopover,
-	}, content)
+	openPanel := func() {
+		panel = desktop.OpenPanel(app, desktop.PanelOptions{
+			Width:    420,
+			Height:   560,
+			Material: desktop.WindowMaterialPopover,
+		}, content)
+	}
+	openPanel()
+	rebuildPanel = func() {
+		if panel != nil && !panel.Closed() {
+			if panel.Visible() {
+				savePanelFrame()
+			}
+			panel.Close()
+		}
+		openPanel()
+	}
 
 	showPanel := func() {
 		if runtime != nil {
