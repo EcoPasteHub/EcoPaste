@@ -42,6 +42,50 @@ func TestSetRootPointsManifestAtCustomDir(t *testing.T) {
 	}
 }
 
+func TestResolveReadsPublishedCustomManifest(t *testing.T) {
+	base := t.TempDir()
+	custom := filepath.Join(t.TempDir(), "EcoPasteData", Prod)
+	if err := os.MkdirAll(custom, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	identityData, err := json.Marshal(map[string]any{
+		"version": 1, "environment": Prod, "createdAt": "2025-01-02T03:04:05Z",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(custom, identityName), identityData, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	bootstrap := filepath.Join(base, Prod)
+	if err := os.MkdirAll(bootstrap, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	manifestData, err := json.Marshal(map[string]any{
+		"version": 1, "environment": Prod, "dataDir": custom,
+		"updatedAt": "2025-01-02T03:04:05Z",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(bootstrap, manifestName), manifestData, 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	paths, err := Resolve(base, Prod)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if paths.Bootstrap != bootstrap || paths.Root != custom {
+		t.Fatalf("bootstrap = %q root = %q", paths.Bootstrap, paths.Root)
+	}
+	for _, dir := range []string{paths.DB, paths.Resources, paths.Config, paths.State, paths.Logs} {
+		if info, err := os.Stat(dir); err != nil || !info.IsDir() {
+			t.Errorf("%s is not a directory: %v", dir, err)
+		}
+	}
+}
+
 func TestResolveFallsBackFromBrokenManifest(t *testing.T) {
 	base := t.TempDir()
 	bootstrap := filepath.Join(base, Prod)
