@@ -3,6 +3,7 @@
 package macos
 
 import (
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/ebitengine/purego/objc"
 )
 
@@ -91,7 +92,7 @@ func (p *Panel) buildPreview() {
 	p.previewImage = objc.ID(class("NSImageView")).Send(sel("new"))
 	p.previewImage.Send(sel("setImageScaling:"), int64(3))
 	p.previewImage.Send(sel("setImageAlignment:"), int64(5))
-	p.previewImage.Send(sel("setAccessibilityLabel:"), nsString("剪贴板图片预览"))
+	p.previewImage.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.PreviewImageLabel)))
 
 	p.preview.Send(sel("addSubview:"), p.previewTitle)
 	p.preview.Send(sel("addSubview:"), p.previewMeta)
@@ -116,13 +117,13 @@ func (p *Panel) setPreview(content PreviewContent) {
 		if p.onboardingActive {
 			return
 		}
-		p.hint.Send(sel("setStringValue:"), nsString("↵ 复制   esc 关闭"))
+		p.hint.Send(sel("setStringValue:"), nsString(i18n.T(i18n.PreviewHintCopy)))
 		p.makeSearchFirstResponder()
 		p.updateStatus()
 		return
 	}
 
-	p.hint.Send(sel("setStringValue:"), nsString("esc 返回"))
+	p.hint.Send(sel("setStringValue:"), nsString(i18n.T(i18n.PreviewHintBack)))
 	p.previewTitle.Send(sel("setStringValue:"), nsString(content.Title))
 	p.previewMeta.Send(sel("setStringValue:"), nsString(content.Meta))
 	animateIn(p.preview, previewFadeDuration)

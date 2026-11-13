@@ -352,7 +352,7 @@ func newHistoryTable(p *Panel) objc.ID {
 	table.Send(sel("setDelegate:"), historyTarget)
 	table.Send(sel("setDataSource:"), historyTarget)
 	table.Send(sel("setTarget:"), historyTarget)
-	table.Send(sel("setAccessibilityLabel:"), nsString("剪贴板历史"))
+	table.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.PanelHistoryLabel)))
 	menu := objc.ID(class("NSMenu")).Send(sel("new"))
 	menu.Send(sel("setAutoenablesItems:"), false)
 	menu.Send(sel("setDelegate:"), table)
@@ -530,11 +530,11 @@ func historyRowText(row HistoryRow, display PanelDisplay, revealOriginal bool) (
 	if !display.ShowOriginal {
 		return row.Title, appendHistoryDetail(row.Detail, note)
 	}
-	detail := appendHistoryDetail(row.Detail, "备注")
+	detail := appendHistoryDetail(row.Detail, i18n.T(i18n.NoteDetail))
 	if revealOriginal {
 		return row.Title, detail
 	}
-	return "备注：" + note, detail
+	return i18n.T(i18n.NoteDetailPrefix) + note, detail
 }
 
 func appendHistoryDetail(detail, value string) string {

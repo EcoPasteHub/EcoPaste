@@ -4,6 +4,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 )
 
 func TestRelativeTimeBuckets(t *testing.T) {
@@ -89,6 +91,25 @@ func TestHistoryRowTypeLabels(t *testing.T) {
 			t.Errorf("type label for %s/%s = %q, want prefix %q",
 				tc.kind, tc.subKind, row.Detail, tc.want)
 		}
+	}
+}
+
+func TestHistoryPresentationFollowsLanguage(t *testing.T) {
+	i18n.SetLanguage("en-US")
+	t.Cleanup(func() { i18n.SetLanguage("zh-CN") })
+
+	row := historyRow(HistoryItem{
+		ID:        "1",
+		Kind:      "text",
+		Title:     "hello",
+		CreatedAt: time.Now(),
+		Pinned:    true,
+	})
+	if row.Detail != "Text · Just now · Pinned" {
+		t.Errorf("detail = %q", row.Detail)
+	}
+	if got := FileTitle([]string{"/tmp/a.txt", "/tmp/b.txt", "/tmp/c.txt"}, 2); got != "a.txt, b.txt and 3 more" {
+		t.Errorf("file title = %q", got)
 	}
 }
 

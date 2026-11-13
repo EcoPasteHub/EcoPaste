@@ -5,6 +5,7 @@ package macos
 import (
 	"strings"
 
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/ebitengine/purego/objc"
 )
 
@@ -21,10 +22,10 @@ func EditNote(note string) (string, bool) {
 
 		alert := objc.ID(class("NSAlert")).Send(sel("new"))
 		defer alert.Send(sel("release"))
-		alert.Send(sel("setMessageText:"), nsString("编辑备注"))
-		alert.Send(sel("setInformativeText:"), nsString("备注会显示在列表中，并参与剪贴板搜索。"))
-		alert.Send(sel("addButtonWithTitle:"), nsString("保存"))
-		alert.Send(sel("addButtonWithTitle:"), nsString("取消"))
+		alert.Send(sel("setMessageText:"), nsString(i18n.T(i18n.NoteEditTitle)))
+		alert.Send(sel("setInformativeText:"), nsString(i18n.T(i18n.NoteEditBody)))
+		alert.Send(sel("addButtonWithTitle:"), nsString(i18n.T(i18n.CommonSave)))
+		alert.Send(sel("addButtonWithTitle:"), nsString(i18n.T(i18n.CommonCancel)))
 
 		text := objc.ID(class("NSTextView")).Send(sel("alloc")).
 			Send(sel("initWithFrame:"), CGRect{Size: CGSize{Width: 360, Height: 96}})

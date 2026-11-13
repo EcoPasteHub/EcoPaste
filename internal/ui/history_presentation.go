@@ -1,11 +1,11 @@
 package ui
 
 import (
-	"fmt"
 	"path/filepath"
 	"strings"
 	"time"
 
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
 )
 
@@ -41,10 +41,10 @@ func historyRow(item HistoryItem) macos.HistoryRow {
 		detail = append(detail, relativeTime(time.Now(), item.CreatedAt))
 	}
 	if item.Pinned {
-		detail = append(detail, "已固定")
+		detail = append(detail, i18n.T(i18n.RowPinned))
 	}
 	if item.Favorite {
-		detail = append(detail, "收藏")
+		detail = append(detail, i18n.T(i18n.RowFavorite))
 	}
 	return macos.HistoryRow{
 		ID:             item.ID,
@@ -66,11 +66,11 @@ func historyRow(item HistoryItem) macos.HistoryRow {
 func kindName(kind string) string {
 	switch kind {
 	case "image":
-		return "图片"
+		return i18n.T(i18n.KindImage)
 	case "files":
-		return "文件"
+		return i18n.T(i18n.KindFiles)
 	default:
-		return "文本"
+		return i18n.T(i18n.KindText)
 	}
 }
 
@@ -81,13 +81,13 @@ func typeName(kind, subKind string) string {
 	case "rtf":
 		return "RTF"
 	case "url":
-		return "链接"
+		return i18n.T(i18n.SubKindURL)
 	case "email":
-		return "邮件"
+		return i18n.T(i18n.SubKindEmail)
 	case "color":
-		return "颜色"
+		return i18n.T(i18n.SubKindColor)
 	case "path":
-		return "路径"
+		return i18n.T(i18n.SubKindPath)
 	}
 	return kindName(kind)
 }
@@ -99,15 +99,15 @@ func relativeTime(now, then time.Time) string {
 	diff := now.Sub(then)
 	switch {
 	case diff < time.Minute:
-		return "刚刚"
+		return i18n.T(i18n.TimeNow)
 	case diff < time.Hour:
-		return fmt.Sprintf("%d 分钟前", int(diff/time.Minute))
+		return i18n.Tf(i18n.TimeMinutesAgo, int(diff/time.Minute))
 	case diff < 24*time.Hour:
-		return fmt.Sprintf("%d 小时前", int(diff/time.Hour))
+		return i18n.Tf(i18n.TimeHoursAgo, int(diff/time.Hour))
 	case diff < 48*time.Hour:
-		return "昨天"
+		return i18n.T(i18n.TimeYesterday)
 	case diff < 7*24*time.Hour:
-		return fmt.Sprintf("%d 天前", int(diff/(24*time.Hour)))
+		return i18n.Tf(i18n.TimeDaysAgo, int(diff/(24*time.Hour)))
 	default:
 		return then.Local().Format("01-02")
 	}
@@ -126,9 +126,9 @@ func FileTitle(paths []string, max int) string {
 		}
 		names = append(names, filepath.Base(path))
 	}
-	title := strings.Join(names, "、")
+	title := strings.Join(names, i18n.T(i18n.FilesSeparator))
 	if max > 0 && len(paths) > max {
-		title += fmt.Sprintf(" 等 %d 个", len(paths))
+		title += i18n.Tf(i18n.FilesMore, len(paths))
 	}
 	return title
 }

@@ -9,6 +9,7 @@ import (
 
 	"github.com/EcoPasteHub/EcoPaste/internal/clipboard"
 	"github.com/EcoPasteHub/EcoPaste/internal/database"
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
 )
 
@@ -80,7 +81,7 @@ func (m *historyModel) SaveImage(ctx context.Context, id string) error {
 		return fmt.Errorf("该记录不是图片")
 	}
 	defaultName := fmt.Sprintf("EcoPaste-%s.png", item.CreatedAt.Local().Format("20060102-150405"))
-	path, ok := chooseSave(defaultName, "存储剪贴板图片")
+	path, ok := chooseSave(defaultName, i18n.T(i18n.SaveImagePanel))
 	if !ok {
 		return nil
 	}

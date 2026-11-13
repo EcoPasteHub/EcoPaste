@@ -9,6 +9,7 @@ import (
 
 	"github.com/EcoPasteHub/EcoPaste/internal/clipboard"
 	"github.com/EcoPasteHub/EcoPaste/internal/database"
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/EcoPasteHub/EcoPaste/internal/keystroke"
 	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
 	"github.com/EcoPasteHub/EcoPaste/internal/onboarding"
@@ -492,9 +493,9 @@ func (m *historyModel) Preview(ctx context.Context, id string) (ui.HistoryPrevie
 	preview.Meta = previewMeta(item, "")
 	switch item.Kind {
 	case database.KindImage:
-		preview.Title = "图片"
+		preview.Title = i18n.T(i18n.KindImage)
 		if item.Width != nil && item.Height != nil {
-			preview.Title = fmt.Sprintf("图片 %d × %d", *item.Width, *item.Height)
+			preview.Title = i18n.Tf(i18n.ImageSizeTitle, *item.Width, *item.Height)
 		}
 		preview.ImagePath = m.runtime.images.OriginPath(item.Content)
 	case database.KindFiles:
@@ -503,7 +504,7 @@ func (m *historyModel) Preview(ctx context.Context, id string) (ui.HistoryPrevie
 		if len(entries) == 1 {
 			preview.Title = entries[0].Name
 		} else {
-			preview.Title = fmt.Sprintf("%d 个文件", len(files))
+			preview.Title = i18n.Tf(i18n.FilesCountTitle, len(files))
 		}
 		preview.Meta = previewMeta(item, fileSummary(entries, len(files)))
 		preview.Text = filePreviewText(entries, len(files))
@@ -511,7 +512,7 @@ func (m *historyModel) Preview(ctx context.Context, id string) (ui.HistoryPrevie
 			preview.ImagePath = entries[0].Path
 		}
 	default:
-		preview.Title = "文本"
+		preview.Title = i18n.T(i18n.KindText)
 		if item.Summary != nil {
 			preview.Title = *item.Summary
 		}
@@ -550,13 +551,13 @@ func previewMeta(item *database.Item, leading string) string {
 		case database.SubRTF:
 			parts[0] = "RTF"
 		case database.SubURL:
-			parts[0] = "链接"
+			parts[0] = i18n.T(i18n.SubKindURL)
 		case database.SubEmail:
-			parts[0] = "邮件"
+			parts[0] = i18n.T(i18n.SubKindEmail)
 		case database.SubColor:
-			parts[0] = "颜色"
+			parts[0] = i18n.T(i18n.SubKindColor)
 		case database.SubPath:
-			parts[0] = "路径"
+			parts[0] = i18n.T(i18n.SubKindPath)
 		}
 	}
 	if item.Size != nil && item.Kind != database.KindImage {
@@ -572,11 +573,11 @@ func previewMeta(item *database.Item, leading string) string {
 func kindLabel(kind database.Kind) string {
 	switch kind {
 	case database.KindImage:
-		return "图片"
+		return i18n.T(i18n.KindImage)
 	case database.KindFiles:
-		return "文件"
+		return i18n.T(i18n.KindFiles)
 	default:
-		return "文本"
+		return i18n.T(i18n.KindText)
 	}
 }
 
@@ -639,9 +640,9 @@ func (m *historyModel) historyItem(ctx context.Context, item database.Item) ui.H
 		}
 	case database.KindImage:
 		if item.Width != nil && item.Height != nil {
-			row.Title = fmt.Sprintf("图片 %d × %d", *item.Width, *item.Height)
+			row.Title = i18n.Tf(i18n.ImageSizeTitle, *item.Width, *item.Height)
 		} else {
-			row.Title = "图片"
+			row.Title = i18n.T(i18n.KindImage)
 		}
 		if err := m.runtime.images.EnsureThumbnail(item.Content); err == nil {
 			row.ImagePath = m.runtime.images.ThumbPath(item.Content)
@@ -655,7 +656,7 @@ func (m *historyModel) historyItem(ctx context.Context, item database.Item) ui.H
 		entries := describeFileEntries(files, item.FileTypes, display.FileMaxCount)
 		row.FileSummary = fileSummary(entries, len(files))
 		if len(files) == 1 && len(entries) == 1 && !entries[0].Exists {
-			row.Title += "（已丢失）"
+			row.Title += i18n.T(i18n.ItemMissing)
 		}
 		if len(entries) > 0 && m.runtime.fileIconCache != nil {
 			row.ImagePath = m.runtime.fileIconCache.Path(ctx, entries[0].Path, entries[0].IsDir)

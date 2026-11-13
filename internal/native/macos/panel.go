@@ -3,10 +3,10 @@
 package macos
 
 import (
-	"fmt"
 	"sync"
 	"sync/atomic"
 
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/ebitengine/purego/objc"
 	"github.com/nsgo-dev/nsgo/core"
 )
@@ -138,7 +138,7 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.view.Send(sel("setAutoresizesSubviews:"), false)
 
 	p.search = objc.ID(classNSSearchField).Send(sel("new"))
-	p.search.Send(sel("setPlaceholderString:"), nsString("搜索剪贴板"))
+	p.search.Send(sel("setPlaceholderString:"), nsString(i18n.T(i18n.PanelSearchPlaceholder)))
 	p.search.Send(sel("setFont:"), systemFont(13))
 	p.search.Send(sel("setSendsSearchStringImmediately:"), true)
 	p.search.Send(sel("setSendsWholeSearchString:"), false)
@@ -150,25 +150,28 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.pin.Send(sel("setImage:"), systemSymbol("pin"))
 	p.pin.Send(sel("setTarget:"), searchTarget)
 	p.pin.Send(sel("setAction:"), sel("pinPressed:"))
-	p.pin.Send(sel("setAccessibilityLabel:"), nsString("固定窗口"))
+	p.pin.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.PanelPinWindow)))
 
 	p.filter = objc.ID(class("NSSegmentedControl")).Send(sel("alloc")).
 		Send(sel("initWithFrame:"), CGRect{})
 	p.filter.Send(sel("setSegmentCount:"), int64(5))
-	for index, label := range []string{"全部", "收藏", "文本", "图片", "文件"} {
+	for index, label := range []string{
+		i18n.T(i18n.PanelAll), i18n.T(i18n.PanelFavorites), i18n.T(i18n.PanelTextCategory),
+		i18n.T(i18n.PanelImageCategory), i18n.T(i18n.PanelFilesCategory),
+	} {
 		p.filter.Send(sel("setLabel:forSegment:"), nsString(label), int64(index))
 	}
 	p.filter.Send(sel("setTrackingMode:"), int64(0))
 	p.filter.Send(sel("setSelectedSegment:"), int64(0))
 	p.filter.Send(sel("setTarget:"), searchTarget)
 	p.filter.Send(sel("setAction:"), sel("filterChanged:"))
-	p.filter.Send(sel("setAccessibilityLabel:"), nsString("剪贴板分类"))
+	p.filter.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.PanelCategoryLabel)))
 
 	p.groupsPopup = objc.ID(class("NSPopUpButton")).Send(sel("alloc")).
 		Send(sel("initWithFrame:pullsDown:"), CGRect{}, false)
 	p.groupsPopup.Send(sel("setTarget:"), searchTarget)
 	p.groupsPopup.Send(sel("setAction:"), sel("groupChanged:"))
-	p.groupsPopup.Send(sel("setAccessibilityLabel:"), nsString("自定义分组"))
+	p.groupsPopup.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.PanelGroupsLabel)))
 	p.rebuildGroupMenu()
 
 	p.groupActions = objc.ID(class("NSButton")).Send(sel("alloc")).Send(sel("initWithFrame:"), CGRect{})
@@ -176,13 +179,13 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.groupActions.Send(sel("setImage:"), systemSymbol("ellipsis.circle"))
 	p.groupActions.Send(sel("setTarget:"), searchTarget)
 	p.groupActions.Send(sel("setAction:"), sel("groupActions:"))
-	p.groupActions.Send(sel("setAccessibilityLabel:"), nsString("分组操作"))
+	p.groupActions.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.PanelGroupActions)))
 
 	p.divider = objc.ID(classNSBox).Send(sel("new"))
 	p.divider.Send(sel("setBoxType:"), 2)
 	p.divider.Send(sel("setTitlePosition:"), 0)
 
-	p.empty = objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString("暂无剪贴板记录"))
+	p.empty = objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(i18n.PanelEmpty)))
 	p.empty.Send(sel("setFont:"), systemFont(13))
 	p.empty.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
 
@@ -190,7 +193,7 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.footer.Send(sel("setFont:"), systemFont(11))
 	p.footer.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
 
-	p.hint = objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString("↵ 复制 · ⌘F 搜索 · esc 关闭"))
+	p.hint = objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(i18n.PanelHint)))
 	p.hint.Send(sel("setFont:"), systemFont(11))
 	p.hint.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
 	p.hint.Send(sel("setAlignment:"), int64(1))
@@ -579,11 +582,11 @@ func (p *Panel) Close() {
 func (p *Panel) togglePinned() {
 	p.pinned = !p.pinned
 	name := "pin"
-	label := "固定窗口"
+	label := i18n.T(i18n.PanelPinWindow)
 	tint := objc.ID(0)
 	if p.pinned {
 		name = "pin.fill"
-		label = "取消固定窗口"
+		label = i18n.T(i18n.PanelUnpinWindow)
 		tint = objc.ID(classNSColor).Send(sel("controlAccentColor"))
 	}
 	p.pin.Send(sel("setImage:"), systemSymbol(name))
@@ -597,7 +600,7 @@ func (p *Panel) rebuildGroupMenu() {
 		return
 	}
 	p.groupsPopup.Send(sel("removeAllItems"))
-	p.groupsPopup.Send(sel("addItemWithTitle:"), nsString("全部分组"))
+	p.groupsPopup.Send(sel("addItemWithTitle:"), nsString(i18n.T(i18n.PanelAllGroups)))
 	for _, group := range p.groups {
 		p.groupsPopup.Send(sel("addItemWithTitle:"), nsString(group.Name))
 	}
@@ -632,9 +635,9 @@ func (p *Panel) showGroupActions(anchor objc.ID) {
 	menu := objc.ID(class("NSMenu")).Send(sel("new"))
 	defer menu.Send(sel("release"))
 	menu.Send(sel("setAutoenablesItems:"), false)
-	addGroupAction(menu, p, "新建分组…", "menuNewGroup:", true)
-	addGroupAction(menu, p, "重命名当前分组…", "menuRenameGroup:", p.groupID != "")
-	addGroupAction(menu, p, "删除当前分组…", "menuDeleteGroup:", p.groupID != "")
+	addGroupAction(menu, p, i18n.T(i18n.PanelNewGroup), "menuNewGroup:", true)
+	addGroupAction(menu, p, i18n.T(i18n.PanelRenameGroup), "menuRenameGroup:", p.groupID != "")
+	addGroupAction(menu, p, i18n.T(i18n.PanelDeleteGroup), "menuDeleteGroup:", p.groupID != "")
 	menu.Send(sel("popUpMenuPositioningItem:atLocation:inView:"), objc.ID(0),
 		CGPoint{X: 0, Y: bounds(anchor).Size.Height}, anchor)
 }
@@ -666,12 +669,12 @@ func (p *Panel) updateStatus() {
 			p.empty.Send(sel("setHidden:"), true)
 		}
 	} else if len(p.rows) == 0 {
-		text := "暂无剪贴板记录"
+		text := i18n.T(i18n.PanelEmpty)
 		if p.query != "" {
-			text = "没有匹配结果"
+			text = i18n.T(i18n.PanelNoMatches)
 		}
 		if p.loading {
-			text = "正在加载…"
+			text = i18n.T(i18n.PanelLoading)
 		}
 		p.empty.Send(sel("setStringValue:"), nsString(text))
 		p.empty.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
@@ -683,10 +686,10 @@ func (p *Panel) updateStatus() {
 		p.footer.Send(sel("setStringValue:"), nsString(p.errText))
 		p.footer.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("systemRedColor")))
 	} else if p.loading {
-		p.footer.Send(sel("setStringValue:"), nsString("正在加载…"))
+		p.footer.Send(sel("setStringValue:"), nsString(i18n.T(i18n.PanelLoading)))
 		p.footer.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
 	} else {
-		p.footer.Send(sel("setStringValue:"), nsString(fmt.Sprintf("%d 条记录", p.total)))
+		p.footer.Send(sel("setStringValue:"), nsString(i18n.Tf(i18n.PanelCount, p.total)))
 		p.footer.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
 	}
 	p.empty.Send(sel("sizeToFit"))

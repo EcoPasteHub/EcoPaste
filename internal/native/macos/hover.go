@@ -5,6 +5,7 @@ package macos
 import (
 	"strings"
 
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/ebitengine/purego/objc"
 )
 
@@ -191,56 +192,56 @@ func hoverActionFor(action string, row HistoryRow) (hoverAction, bool) {
 	spec := hoverAction{Symbol: symbol}
 	switch action {
 	case "paste":
-		spec.Event, spec.Tooltip = "activate", "粘贴"
+		spec.Event, spec.Tooltip = "activate", i18n.T(i18n.MenuPaste)
 	case "pastePlain":
 		if row.Kind != "text" {
 			return hoverAction{}, false
 		}
-		spec.Event, spec.Tooltip = "pastePlain", "纯文本粘贴"
+		spec.Event, spec.Tooltip = "pastePlain", i18n.T(i18n.MenuPastePlain)
 	case "pastePath":
 		if row.Kind != "files" {
 			return hoverAction{}, false
 		}
-		spec.Event, spec.Tooltip = "pastePath", "粘贴为路径"
+		spec.Event, spec.Tooltip = "pastePath", i18n.T(i18n.MenuPastePath)
 	case "copy":
-		spec.Event, spec.Tooltip = "copy", "复制"
+		spec.Event, spec.Tooltip = "copy", i18n.T(i18n.MenuCopy)
 	case "copyPlain":
 		if row.Kind != "text" {
 			return hoverAction{}, false
 		}
-		spec.Event, spec.Tooltip = "copyPlain", "复制为纯文本"
+		spec.Event, spec.Tooltip = "copyPlain", i18n.T(i18n.MenuCopyPlain)
 	case "openLink":
 		if row.SubKind != "url" {
 			return hoverAction{}, false
 		}
-		spec.Event, spec.Tooltip = "open", "打开链接"
+		spec.Event, spec.Tooltip = "open", i18n.T(i18n.MenuOpenLink)
 	case "sendEmail":
 		if row.SubKind != "email" {
 			return hoverAction{}, false
 		}
-		spec.Event, spec.Tooltip = "open", "发送邮件"
+		spec.Event, spec.Tooltip = "open", i18n.T(i18n.MenuSendEmail)
 	case "reveal":
 		if row.Kind != "files" && row.SubKind != "path" {
 			return hoverAction{}, false
 		}
-		spec.Event, spec.Tooltip = "reveal", "在 Finder 中显示"
+		spec.Event, spec.Tooltip = "reveal", i18n.T(i18n.MenuReveal)
 	case "note":
-		spec.Event, spec.Tooltip = "editNote", "备注"
+		spec.Event, spec.Tooltip = "editNote", i18n.T(i18n.RowNote)
 	case "star":
-		spec.Event, spec.Tooltip = "toggleFavorite", "收藏"
+		spec.Event, spec.Tooltip = "toggleFavorite", i18n.T(i18n.MenuFavorite)
 		if row.Favorite {
-			spec.Symbol, spec.Tooltip = "star.fill", "取消收藏"
+			spec.Symbol, spec.Tooltip = "star.fill", i18n.T(i18n.MenuUnfavorite)
 		}
 	case "pinItem":
-		spec.Event, spec.Tooltip = "togglePinned", "置顶"
+		spec.Event, spec.Tooltip = "togglePinned", i18n.T(i18n.MenuPin)
 		if row.Pinned {
-			spec.Symbol, spec.Tooltip = "pin.fill", "取消置顶"
+			spec.Symbol, spec.Tooltip = "pin.fill", i18n.T(i18n.MenuUnpin)
 		}
 	case "delete":
 		if !row.CanDelete {
 			return hoverAction{}, false
 		}
-		spec.Event, spec.Tooltip = "delete", "删除"
+		spec.Event, spec.Tooltip = "delete", i18n.T(i18n.CommonDelete)
 	default:
 		return hoverAction{}, false
 	}

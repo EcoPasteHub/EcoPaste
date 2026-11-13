@@ -152,7 +152,7 @@
 
 | ID | 优先级 | 功能 | 现有实现 | NSGo/AppKit 目标 | 状态 | 验证方式 |
 | --- | --- | --- | --- | --- | --- | --- |
-| I-01 | P1 | 前端文案 | `legacy/frontend/src/locales/zh-CN`、`en-US` | Go i18n 目录，复用文案内容 | 待迁移 | 逐 key 对比 |
+| I-01 | P1 | 前端文案 | `legacy/frontend/src/locales/zh-CN`、`en-US` | Go i18n 目录，复用文案内容 | 迁移中 | 剪贴板面板已接入目录：搜索/分类/分组/空状态/加载/条数、右键与悬停动作、备注与分组弹窗、预览提示、类型/时间/文件摘要；`TestHistoryPresentationFollowsLanguage` 覆盖英文渲染；设置页、引导页文案继续迁移 |
 | I-02 | P1 | Rust 侧文案 | `src-tauri/src/i18n/` | Go 文案目录 | 迁移中 | 新增 `internal/i18n` 中英文目录，托盘菜单、列表右键菜单、删除确认、应用级备份/存储/清理提示已接入并按 `appearance.language` 选择；`TestCatalogsShareEveryKey`、`TestSetLanguageSelectsCatalog`、`TestTfFormatsArguments`；设置页、引导页与其余 toast 文案继续迁移 |
 | I-03 | P1 | 语言切换 | `appearance.language` | 原生菜单/设置切换，立即生效 | 待迁移 | 重启/即时 |
 | I-04 | P2 | 系统本地化 | 部分系统菜单 | AppKit 本地化角色项 | 待迁移 | 中英文系统 |
