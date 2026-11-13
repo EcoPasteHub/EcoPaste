@@ -26,9 +26,11 @@ const panelHotKey = "alt+c"
 func Run(app *core.Scope) {
 	desktop.SetShutdownMode(app, desktop.ShutdownOnExplicit)
 	hotKey := panelHotKey
+	preferenceHotKey := "alt+x"
 	var paused atomic.Bool
 	var history ui.HistoryModel
 	var runtime *clipboardRuntime
+	var openSettings func()
 	if paths, err := storage.Default(); err != nil {
 		log.Printf("resolve storage: %v", err)
 	} else {
@@ -39,6 +41,18 @@ func Run(app *core.Scope) {
 		} else {
 			if configured := store.Snapshot().Shortcuts.OpenClipboard; configured != "" {
 				hotKey = strings.ToLower(configured)
+			}
+			if configured := store.Snapshot().Shortcuts.OpenPreference; configured != "" {
+				preferenceHotKey = strings.ToLower(configured)
+			}
+			openSettings = func() {
+				desktop.OpenWindow(app, desktop.WindowOptions{
+					Title:       "EcoPaste 设置",
+					Width:       560,
+					Height:      560,
+					Key:         "settings",
+					Constraints: core.WindowConstraints{NoResize: true, NoMaximize: true},
+				}, ui.SettingsWindow(newSettingsModel(store)))
 			}
 			runtime, err = startClipboard(app, paths, store, &paused)
 			if err != nil {
@@ -87,6 +101,11 @@ func Run(app *core.Scope) {
 			return []desktop.MenuItem{
 				{Label: "显示 EcoPaste", Shortcut: hotKey, OnSelect: showPanel},
 				{Label: pauseLabel, OnSelect: func() { paused.Store(!paused.Load()) }},
+				{Label: "设置…", Shortcut: preferenceHotKey, OnSelect: func() {
+					if openSettings != nil {
+						openSettings()
+					}
+				}},
 				{Separator: true},
 				{Label: "清除历史…", OnSelect: func() {
 					choice := macos.ConfirmClearHistory()
@@ -107,6 +126,12 @@ func Run(app *core.Scope) {
 	})
 
 	desktop.RegisterHotKey(app, hotKey, togglePanel)
+	if openSettings != nil && preferenceHotKey != "" {
+		desktop.RegisterHotKey(app, preferenceHotKey, openSettings)
+	}
+	if os.Getenv("ECOPASTE_SHOW_SETTINGS") == "1" && openSettings != nil {
+		openSettings()
+	}
 
 	if os.Getenv("ECOPASTE_SHOW_ON_LAUNCH") == "1" {
 		panel.Show()

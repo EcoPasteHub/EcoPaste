@@ -115,11 +115,11 @@
 | W-04 | P0 | 固定窗口 | `set_clipboard_window_pinned` | 固定不隐藏；粘贴时 resign/restore key | 待迁移 | 固定后连续粘贴 |
 | W-05 | P1 | 窗口生命周期 | `window/lifecycle/*` | 原生窗口状态机，无 WebView 重建 | 待迁移 | 冷启/热显/隐藏/退出 |
 | W-06 | P1 | 窗口几何持久化 | `window/state.rs` | 同 `state/window-state.json` | 待迁移 | 重启/换屏 |
-| W-07 | P1 | 偏好窗口 | `window/mod.rs` | 独立窗口，定位到设置项 | 待迁移 | 深链/高亮 |
+| W-07 | P1 | 偏好窗口 | `window/mod.rs` | 原生 `NSTabView` 设置窗口 | 迁移中 | 通用/采集/历史与隐私已可用；深链与高亮待补 |
 | W-08 | P1 | 更新窗口 | `window/mod.rs` | Sparkle 交互或独立窗口 | 待迁移 | 检查/下载/安装 |
 | W-09 | P1 | 引导窗口 | `window/mod.rs` | 6 步原生流程 | 待迁移 | 回退/恢复/完成 |
-| W-10 | P0 | 托盘 | `tray/mod.rs` | `NSStatusItem` + `NSMenu`：偏好、暂停、开源、更新、版本、重启、退出 | 待迁移 | 菜单项逐项 |
-| W-11 | P0 | 全局快捷键 | `shortcut/mod.rs` | `desktop.RegisterHotKey` | 待迁移 | 冲突/暂停/重启 |
+| W-10 | P0 | 托盘 | `tray/mod.rs` | `NSStatusItem` + `NSMenu`：偏好、暂停、开源、更新、版本、重启、退出 | 迁移中 | 显示/暂停/设置/清除/退出已接；开源/更新/版本/重启待补 |
+| W-11 | P0 | 全局快捷键 | `shortcut/mod.rs` | `desktop.RegisterHotKey` | 迁移中 | `Alt+C`、`Alt+X` 已注册；冲突与热更新待验证 |
 | W-12 | P1 | 快捷键录制 | 前端录制器 | 原生 `NSTextField` 捕获 | 待迁移 | 组合键/冲突/清除 |
 | W-13 | P1 | 开机自启 | `autostart/macos.rs` | `SMAppService` | 待迁移 | 开启/关闭/重启 |
 | W-14 | P1 | Dock 图标显隐 | `show_taskbar_icon` | `NSApplication.setActivationPolicy` | 待迁移 | 显示/隐藏/重启 |
@@ -165,12 +165,12 @@
 | --- | --- | --- | --- | --- | --- |
 | S-01 | general | `autoStart`、`runAsAdmin`、`trayIcon`、`dockIcon` | 保留字段；`runAsAdmin` 仅 Windows 参考 | 待迁移 | 旧文件回环/系统行为 |
 | S-02 | appearance | `theme`、`language` | `auto/light/dark`、`zh-CN/en-US` | 待迁移 | 即时切换/重启 |
-| S-03 | shortcuts | `openClipboard`、`openPreference`、`winV` | 保留；`winV` 仅 Windows 参考 | 待迁移 | 注册/冲突/暂停 |
-| S-04 | clipboard.capture | `text/html/rtf/image/files`、`maxTextMb`、`maxImageMb`、`order` | 采集顺序与上限一致 | 待迁移 | 格式矩阵 |
-| S-05 | clipboard.content | `autoPaste`、`middleClick`、`copyPlain`、`copyThenHideWindow`、`pastePlain`、`pasteFilesAsPath`、`showOriginalPreview`、删除保护、`autoFavorite`、`updateOnReuse`、`sort`、`itemActions`、`itemActionOrder` | 行为语义逐项一致 | 待迁移 | 每项单独验收 |
+| S-03 | shortcuts | `openClipboard`、`openPreference`、`winV` | 保留；`winV` 仅 Windows 参考 | 迁移中 | 两个快捷键均已读取并注册；编辑 UI 待补 |
+| S-04 | clipboard.capture | `text/html/rtf/image/files`、`maxTextMb`、`maxImageMb`、`order` | 采集顺序与上限一致 | 迁移中 | 五个开关与两个上限已接设置 UI；顺序编辑待补 |
+| S-05 | clipboard.content | `autoPaste`、`middleClick`、`copyPlain`、`copyThenHideWindow`、`pastePlain`、`pasteFilesAsPath`、`showOriginalPreview`、删除保护、`autoFavorite`、`updateOnReuse`、`sort`、`itemActions`、`itemActionOrder` | 行为语义逐项一致 | 迁移中 | 纯文本复制/粘贴、复制后隐藏、复用排序、排序方式已接设置 UI |
 | S-06 | clipboard.display | `textMaxLines`、`imageMaxHeight`、`fileMaxCount` | 列表展示上限一致 | 待迁移 | 边界值 |
-| S-07 | clipboard.sensitive | `collectSecrets`、`redactSecrets` | 两种策略互斥语义一致 | 待迁移 | 敏感样本 |
-| S-08 | clipboard.history | `retention{value,unit}`、`maxCount`、`cleanupIntervalHours` | 清理规则一致 | 待迁移 | 时间/条数夹具 |
+| S-07 | clipboard.sensitive | `collectSecrets`、`redactSecrets` | 两种策略互斥语义一致 | 已通过 | 设置 UI 可切换；敏感样本与预览脱敏测试 |
+| S-08 | clipboard.history | `retention{value,unit}`、`maxCount`、`cleanupIntervalHours` | 清理规则一致 | 已通过 | 设置 UI 可调；`TestCleanupHistoryByRetentionKeepsProtectedItems`、`TestCleanupHistoryByMaxCount` |
 | S-09 | clipboard.search | `defaultFocus`、`clearOnHide` | 面板打开/隐藏行为一致 | 待迁移 | 键盘/鼠标路径 |
 | S-10 | clipboard.window | `position`、`scrollToTopOnOpen`、`selectRangeOnOpen`、`selectCategoryOnOpen`、`selectGroupOnOpen`、`lightweightMode`、`idleDestroySeconds` | 原生窗口等价行为；无 WebView 时重新解释轻量化 | 待迁移 | 多屏/重启/空闲 |
 | S-11 | clipboard.preview | `hoverEnabled`、`hoverDelayMs`、`spaceEnabled` | Space 已接；hover 暂不实现 | 迁移中 | 延迟边界 |
