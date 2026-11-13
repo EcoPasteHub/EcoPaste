@@ -337,6 +337,7 @@ const (
 	SettingsInvalidShortcut   = Key("settings.shortcuts.invalid")
 
 	SettingsSearchPlaceholder = Key("settings.search.placeholder")
+	SettingsSidebarLabel      = Key("settings.sidebar.label")
 	SettingsSearchA11y        = Key("settings.search.a11y")
 	SettingsSearchHelp        = Key("settings.search.help")
 	SettingsSearchResults     = Key("settings.search.results")

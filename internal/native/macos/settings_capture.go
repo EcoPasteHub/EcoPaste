@@ -130,6 +130,7 @@ func (v *SettingsView) applyCaptureOrder(values SettingsValues) {
 	}
 	selected := int(objc.Send[int64](v.captureTable, sel("selectedRow")))
 	v.captureTable.Send(sel("reloadData"))
+	sizeSettingsTable(v.captureTable, tabContentW-108, settingsCaptureRowHeight, len(order))
 	if selected >= len(order) {
 		selected = len(order) - 1
 	}

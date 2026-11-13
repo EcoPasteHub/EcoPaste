@@ -98,6 +98,9 @@ type SettingsView struct {
 	cx                   *core.NativeContext
 	view                 objc.ID
 	tabs                 objc.ID
+	sidebar              objc.ID
+	sidebarTable         objc.ID
+	sectionTitle         objc.ID
 	footer               objc.ID
 	searchField          objc.ID
 	searchResults        objc.ID
@@ -142,9 +145,11 @@ type settingsField struct {
 }
 
 const (
-	settingsWidth    = 560.0
-	settingsHeight   = 600.0
-	settingsTabAreaH = 528.0
+	settingsWidth    = 720.0
+	settingsHeight   = 560.0
+	settingsSidebarW = 200.0
+	settingsFooterH  = 32.0
+	settingsTabAreaH = 470.0
 	tabContentW      = 520.0
 	tabContentH      = 470.0
 )
@@ -231,19 +236,29 @@ func NewSettings(cx *core.NativeContext) core.NativeComponent {
 	v.view.Send(sel("setAutoresizesSubviews:"), false)
 
 	v.tabs = objc.ID(class("NSTabView")).Send(sel("new"))
-	v.tabs.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 0, Y: 32}, Size: CGSize{Width: settingsWidth, Height: settingsTabAreaH}})
+	v.tabs.Send(sel("setTabViewType:"), int64(6))
+	v.tabs.Send(sel("setFrame:"), CGRect{
+		Origin: CGPoint{X: settingsSidebarW, Y: settingsFooterH},
+		Size:   CGSize{Width: settingsWidth - settingsSidebarW, Height: settingsTabAreaH},
+	})
 	v.tabs.Send(sel("setAutoresizingMask:"), int64(18))
 	v.view.Send(sel("addSubview:"), v.tabs)
 
 	v.footer = objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(i18n.SettingsFooter)))
 	v.footer.Send(sel("setFont:"), systemFont(11))
 	v.footer.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
-	v.footer.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 20, Y: 8}, Size: CGSize{Width: settingsWidth - 210, Height: 16}})
+	v.footer.Send(sel("setFrame:"), CGRect{
+		Origin: CGPoint{X: settingsSidebarW + 20, Y: 8},
+		Size:   CGSize{Width: settingsWidth - settingsSidebarW - 200, Height: 16},
+	})
 	v.view.Send(sel("addSubview:"), v.footer)
 
 	v.reset = objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
 		nsString(i18n.T(i18n.SettingsReset)), settingsTarget, sel("resetSettingsPressed:"))
-	v.reset.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: settingsWidth - 168, Y: 2}, Size: CGSize{Width: 150, Height: 24}})
+	v.reset.Send(sel("setFrame:"), CGRect{
+		Origin: CGPoint{X: settingsWidth - 168, Y: 2},
+		Size:   CGSize{Width: 150, Height: 24},
+	})
 	v.reset.Send(sel("setBezelStyle:"), int64(1))
 	v.view.Send(sel("addSubview:"), v.reset)
 	settingsViews[v.reset] = v
@@ -261,15 +276,18 @@ func NewSettings(cx *core.NativeContext) core.NativeComponent {
 	v.buildApps()
 	v.buildShortcuts()
 	v.buildPreview()
+	v.buildSidebar()
+	v.buildSettingsHeader()
 	v.buildSearch()
 	settingsTabMu.Lock()
 	settingsOpenViews[v] = struct{}{}
 	tab := pendingSettingsTab
 	pendingSettingsTab = ""
 	settingsTabMu.Unlock()
-	if tab != "" {
-		v.selectTab(tab)
+	if tab == "" {
+		tab = "general"
 	}
+	v.selectTab(tab)
 	return v
 }
 
@@ -567,8 +585,28 @@ func (v *SettingsView) newTab(identifier, title string) objc.ID {
 	return content
 }
 
+func sizeSettingsTable(table objc.ID, width, rowHeight float64, rows int) {
+	if table == 0 {
+		return
+	}
+	height := float64(rows) * rowHeight
+	if height < 1 {
+		height = 1
+	}
+	table.Send(sel("setFrame:"), CGRect{Size: CGSize{Width: width, Height: height}})
+	table.Send(sel("setAutoresizingMask:"), int64(2))
+}
+
 func (v *SettingsView) selectTab(name string) {
+	v.applyTab(name)
+	v.selectSidebarRow(name)
+}
+
+func (v *SettingsView) applyTab(name string) {
 	v.tabs.Send(sel("selectTabViewItemWithIdentifier:"), nsString(name))
+	if v.sectionTitle != 0 {
+		v.sectionTitle.Send(sel("setStringValue:"), nsString(settingsTabTitle(name)))
+	}
 }
 
 func (v *SettingsView) addSwitch(content objc.ID, y float64, title, path string, get func(SettingsValues) bool) {

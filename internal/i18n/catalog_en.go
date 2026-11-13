@@ -337,6 +337,7 @@ var catalogEnUS = map[Key]string{
 	SettingsInvalidShortcut:   "Include ⌘ / ⌥ / ⌃",
 
 	SettingsSearchPlaceholder: "Search settings",
+	SettingsSidebarLabel:      "Settings sections",
 	SettingsSearchA11y:        "Search all settings",
 	SettingsSearchHelp:        "Type a name, description or settings path, then pick a result on the right to jump there",
 	SettingsSearchResults:     "Settings search results",

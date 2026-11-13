@@ -51,7 +51,7 @@ func (v *SettingsView) buildSearch() {
 	v.searchField.Send(sel("setPlaceholderString:"), nsString(i18n.T(i18n.SettingsSearchPlaceholder)))
 	v.searchField.Send(sel("setFont:"), systemFont(13))
 	v.searchField.Send(sel("setFrame:"), CGRect{
-		Origin: CGPoint{X: 24, Y: settingsHeight - 35},
+		Origin: CGPoint{X: settingsWidth - 304, Y: settingsHeight - 35},
 		Size:   CGSize{Width: 280, Height: 28},
 	})
 	v.searchField.Send(sel("setSendsSearchStringImmediately:"), true)
@@ -66,8 +66,8 @@ func (v *SettingsView) buildSearch() {
 
 	v.searchResults = objc.ID(class("NSPopUpButton")).Send(sel("alloc")).
 		Send(sel("initWithFrame:pullsDown:"), CGRect{
-			Origin: CGPoint{X: 312, Y: settingsHeight - 38},
-			Size:   CGSize{Width: 224, Height: 32},
+			Origin: CGPoint{X: settingsWidth - 304, Y: settingsHeight - 72},
+			Size:   CGSize{Width: 280, Height: 30},
 		}, false)
 	v.searchResults.Send(sel("setFont:"), systemFont(12))
 	v.searchResults.Send(sel("setTarget:"), settingsTarget)
@@ -142,7 +142,7 @@ func (v *SettingsView) updateSearchResults(query string) {
 	if menu := v.searchResults.Send(sel("menu")); menu != 0 {
 		menu.Send(sel("setMinimumWidth:"), 380.0)
 	}
-	v.searchResults.Send(sel("selectItemAtIndex:"), 0)
+	v.searchResults.Send(sel("selectItemAtIndex:"), 1)
 	v.searchResults.Send(sel("setToolTip:"), nsString(i18n.T(i18n.SettingsPickMatchTip)))
 }
 

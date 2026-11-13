@@ -262,8 +262,8 @@ func Run(app *core.Scope) {
 				}
 				settingsWindow = desktop.OpenWindow(app, desktop.WindowOptions{
 					Title:       i18n.T(i18n.SettingsWindowTitle),
-					Width:       560,
-					Height:      600,
+					Width:       720,
+					Height:      560,
 					Key:         "settings",
 					Constraints: core.WindowConstraints{NoResize: true, NoMaximize: true},
 				}, ui.SettingsWindow(model))

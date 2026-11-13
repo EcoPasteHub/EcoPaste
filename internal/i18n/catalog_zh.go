@@ -337,6 +337,7 @@ var catalogZhCN = map[Key]string{
 	SettingsInvalidShortcut:   "需包含 ⌘ / ⌥ / ⌃",
 
 	SettingsSearchPlaceholder: "搜索设置",
+	SettingsSidebarLabel:      "设置分类",
 	SettingsSearchA11y:        "搜索所有设置",
 	SettingsSearchHelp:        "输入名称、说明或设置路径，然后从右侧结果中选择要跳转的设置",
 	SettingsSearchResults:     "设置搜索结果",

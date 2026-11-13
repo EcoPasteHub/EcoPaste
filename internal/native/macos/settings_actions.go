@@ -171,6 +171,7 @@ func (v *SettingsView) applyActions(values SettingsValues) {
 	if v.actionsTable != 0 {
 		selected := int(objc.Send[int64](v.actionsTable, sel("selectedRow")))
 		v.actionsTable.Send(sel("reloadData"))
+		sizeSettingsTable(v.actionsTable, tabContentW-40, 30, len(actions))
 		if selected >= len(actions) {
 			selected = len(actions) - 1
 		}

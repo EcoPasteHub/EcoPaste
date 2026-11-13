@@ -117,6 +117,7 @@ func (v *SettingsView) applyApps(values SettingsValues) {
 	}
 	if v.appsTable != 0 {
 		v.appsTable.Send(sel("reloadData"))
+		sizeSettingsTable(v.appsTable, tabContentW-40, settingsAppRowHeight, len(values.Apps))
 	}
 	if v.appsEmpty != 0 {
 		v.appsEmpty.Send(sel("setHidden:"), len(v.apps) > 0)
