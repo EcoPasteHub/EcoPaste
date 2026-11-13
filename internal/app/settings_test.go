@@ -74,3 +74,28 @@ func TestSettingsModelRejectsUnknownPath(t *testing.T) {
 		t.Error("unknown path was accepted")
 	}
 }
+
+func TestSettingsModelAppliesDockIcon(t *testing.T) {
+	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	model := newSettingsModel(store)
+	var applied []bool
+	model.setDockIcon = func(visible bool) error {
+		applied = append(applied, visible)
+		return nil
+	}
+	if err := model.Apply("general.dockIcon", true); err != nil {
+		t.Fatal(err)
+	}
+	if !store.Snapshot().General.DockIcon {
+		t.Error("dock icon setting was not persisted")
+	}
+	if len(applied) != 1 || !applied[0] {
+		t.Errorf("dock icon applications = %v", applied)
+	}
+	if !model.Load().DockIcon {
+		t.Error("dock icon setting was not loaded")
+	}
+}

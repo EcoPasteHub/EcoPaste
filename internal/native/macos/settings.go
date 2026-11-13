@@ -15,6 +15,7 @@ const SettingsComponent = "ecopaste.settings"
 
 // SettingsValues is the view state of the settings window.
 type SettingsValues struct {
+	DockIcon             bool
 	CopyPlain            bool
 	CopyThenHideWindow   bool
 	PastePlain           bool
@@ -101,7 +102,10 @@ func NewSettings(cx *core.NativeContext) core.NativeComponent {
 
 func (v *SettingsView) buildGeneral() {
 	content := v.newTab("通用")
-	y := 408.0
+	y := 450.0
+	v.addSwitch(content, y, "显示 Dock 图标", "general.dockIcon",
+		func(s SettingsValues) bool { return s.DockIcon })
+	y -= 42
 	v.addSwitch(content, y, "复制后隐藏面板", "copyThenHideWindow",
 		func(s SettingsValues) bool { return s.CopyThenHideWindow })
 	v.addSwitch(content, y-42, "复制文本为纯文本", "copyPlain",
