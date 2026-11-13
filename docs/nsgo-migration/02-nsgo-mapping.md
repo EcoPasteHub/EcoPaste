@@ -30,8 +30,8 @@ NSGo 是一个 **Go 原生 UI 引擎**，不是 Tauri 的前端替代品：
 | Tauri global shortcut | `desktop.RegisterHotKey` | macOS Carbon `RegisterEventHotKey`，不需要辅助功能权限 |
 | Tauri app menu | `desktop.SetApplicationMenu` | macOS `NSMenu` |
 | Tauri context menu | `desktop.PopupMenu` | macOS `NSMenu`；动作通过 ID 回到 Go |
-| Tauri autostart | `desktop.SetLaunchAtLogin` | macOS `SMAppService.mainAppService` |
-| Tauri single instance | macOS bundle 单实例 + `desktop.OnReopen` | macOS 一个 bundle 只运行一个实例 |
+| Tauri autostart | `internal/native/macos` 的 `SMAppService` 状态感知桥接 | NSGo 封装忽略失败且读取 `NSError`；自研桥接避免 `NotFound` 时误 unregister |
+| Tauri single instance | 数据根 `flock` + `desktop.OnReopen` | 二次实例通过 `SIGUSR1` 让主实例打开设置后退出 |
 | Tauri file open | `desktop.OnOpenFiles` + `nsgo.yaml` `file_types` | macOS `application:openURLs:` |
 | React 组件树 | NSGo `core` elements + signals | 组件只运行一次，signal 驱动局部 region 重建 |
 | Valtio | NSGo signals / `core.Storage` | UI 状态用 signal；持久化用 JSON/SQLite |
@@ -182,7 +182,7 @@ NSGo 是一个 **Go 原生 UI 引擎**，不是 Tauri 的前端替代品：
 | 备份加密 | Go 标准库可做 | `archive/zip` + `golang.org/x/crypto/argon2` + `chacha20poly1305` |
 | 更新 appcast | 现有 endpoint 不兼容 | 增加 appcast 生成；保留旧 Tauri endpoint 直到切换 |
 | 日志 | NSGo 无统一日志 | `log/slog` + `lumberjack` 轮转，路径 `<data_root>/logs` |
-| 单实例 | macOS bundle 天然单实例 | `desktop.OnReopen`；文件打开走 `desktop.OnOpenFiles` |
+| 单实例 | 数据根 `flock`；`desktop.OnReopen` 处理 LaunchServices 重入 | 直接执行第二个二进制也会被拦截，避免两个进程同时写 DB |
 | 防默认行为 | NSGo 无 WebView | 不需要；键盘事件由 AppKit/NSGo 处理 |
 | 轻量化 | NSGo 无 WebView 重建 | 不需要销毁 WebView；可改为释放大图缓存/暂停刷新 |
 

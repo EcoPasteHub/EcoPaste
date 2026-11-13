@@ -123,7 +123,7 @@
 | W-12 | P1 | 快捷键录制 | 前端录制器 | 原生 `NSTextField` 捕获 | 待迁移 | 组合键/冲突/清除 |
 | W-13 | P1 | 开机自启 | `autostart/macos.rs` | `SMAppService` | 迁移中 | `TestAutostartNeedsChange`；真机开关、持久化通过；重启登录需签名安装包验收 |
 | W-14 | P1 | Dock 图标显隐 | `show_taskbar_icon` | `NSApplication.setActivationPolicy` | 已通过 | `TestSettingsModelAppliesDockIcon`；真机切换立即生效，重启后恢复持久化状态 |
-| W-15 | P1 | 单实例 | `tauri-plugin-single-instance` | macOS bundle 单实例 + `OnReopen` | 待迁移 | 二次启动/文件打开 |
+| W-15 | P1 | 单实例 | `tauri-plugin-single-instance` | 数据根 `flock` + `OnReopen` | 已通过 | `TestLockInstanceRejectsSecond`；真机二次进程 0.1s 退出，主实例打开设置；`open` 重入同样打开设置 |
 | W-16 | P1 | 文件关联 | `tauri.conf.json`、`backup/*` | `nsgo.yaml file_types` + `OnOpenFiles` | 待迁移 | 双击/拖到 Dock |
 | W-17 | P1 | 原生右键菜单 | `menu/clipboard_item.rs` | `NSMenu` 按内容动态生成动作 | 已通过 | URL/图片/路径菜单与分组子菜单已真机验证；`⌘C`/`⌘V`/`⌥⌘C`/`⌥⌘V` 与标准编辑菜单复制/粘贴已真机验证 |
 | W-18 | P1 | 权限 | `PermissionControl` | 辅助功能/完全磁盘访问检测与跳转 | 迁移中 | 辅助功能检测、原生说明弹窗与系统设置跳转已接；FDA 待补 |

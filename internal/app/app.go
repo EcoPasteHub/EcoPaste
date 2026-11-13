@@ -30,6 +30,7 @@ const sourceURL = "https://github.com/EcoPasteHub/EcoPaste"
 // keeps running without windows until the user quits it.
 func Run(app *core.Scope) {
 	desktop.SetShutdownMode(app, desktop.ShutdownOnExplicit)
+	activation := instanceRequests(app)
 	hotKey := panelHotKey
 	preferenceHotKey := "alt+x"
 	var paused atomic.Bool
@@ -41,6 +42,18 @@ func Run(app *core.Scope) {
 	if paths, err := storage.Default(); err != nil {
 		log.Printf("resolve storage: %v", err)
 	} else {
+		lock, running, err := lockInstance(paths.State)
+		switch {
+		case err != nil:
+			log.Printf("lock instance: %v", err)
+		case running:
+			if err := signalInstance(paths.State); err != nil {
+				log.Printf("signal instance: %v", err)
+			}
+			os.Exit(0)
+		default:
+			app.Cleanup(func() { lock.Close() })
+		}
 		log.Printf("data root %s", paths.Root)
 		if state, err := storage.OpenWindowState(paths.State); err != nil {
 			log.Printf("open window state: %v", err)
@@ -241,6 +254,24 @@ func Run(app *core.Scope) {
 	if os.Getenv("ECOPASTE_SHOW_ON_LAUNCH") == "1" {
 		showPanel()
 	}
+
+	desktop.OnReopen(app, func() {
+		if openSettings != nil {
+			openSettings()
+		}
+	})
+	go func() {
+		for {
+			select {
+			case <-app.Context().Done():
+				return
+			case <-activation:
+				if openSettings != nil {
+					app.Post(openSettings)
+				}
+			}
+		}
+	}()
 }
 
 type clipboardRuntime struct {
