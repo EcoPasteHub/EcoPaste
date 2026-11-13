@@ -181,7 +181,7 @@ NSGo 是一个 **Go 原生 UI 引擎**，不是 Tauri 的前端替代品：
 | 旧版导入 | 纯业务 | Go 打开 v0.6 `history` 表，复用数据映射规则 |
 | 备份加密 | Go 标准库可做 | `archive/zip` + `golang.org/x/crypto/argon2` + `chacha20poly1305` |
 | 更新 appcast | 现有 endpoint 不兼容 | 增加 appcast 生成；保留旧 Tauri endpoint 直到切换 |
-| 日志 | NSGo 无统一日志 | `log/slog` + `lumberjack` 轮转，路径 `<data_root>/logs` |
+| 日志 | NSGo 无统一日志 | 标准 `log` + `lumberjack` 轮转（5 MB × 3，14 天），路径 `<data_root>/logs`，写入前脱敏 |
 | 单实例 | 数据根 `flock`；`desktop.OnReopen` 处理 LaunchServices 重入 | 直接执行第二个二进制也会被拦截，避免两个进程同时写 DB |
 | 防默认行为 | NSGo 无 WebView | 不需要；键盘事件由 AppKit/NSGo 处理 |
 | 轻量化 | NSGo 无 WebView 重建 | 不需要销毁 WebView；可改为释放大图缓存/暂停刷新 |

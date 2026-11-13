@@ -129,7 +129,7 @@
 | W-18 | P1 | 权限 | `PermissionControl` | 辅助功能/完全磁盘访问检测与跳转 | 迁移中 | 辅助功能检测、原生说明弹窗与系统设置跳转已接；FDA 待补 |
 | W-19 | P2 | 防默认行为 | `core/prevent_default.rs` | 无 WebView，不需要 | 不纳入 macOS 首版 | 确认无 WebView 入口 |
 | W-20 | P1 | 更新 | `update.rs` | NSGo updater + Sparkle appcast | 待迁移 | 测试源真实升级 |
-| W-21 | P1 | 日志 | `tauri-plugin-log` | `log/slog` + 轮转，敏感信息脱敏 | 待迁移 | 路径/轮转/脱敏 |
+| W-21 | P1 | 日志 | `tauri-plugin-log` | 标准 `log` + lumberjack 轮转，写入前脱敏 | 已通过 | `TestRedact`、`TestOpenWritesRedactedLogFile`；真机落盘 `<data_root>/logs/ecopaste.log`，托盘可打开日志目录 |
 
 ## 6. UI 页面与交互
 

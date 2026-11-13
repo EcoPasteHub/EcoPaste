@@ -7,6 +7,7 @@ require (
 	github.com/nsgo-dev/nsgo v0.0.0-20261112150101-70cef6a4ed17
 	github.com/zeebo/blake3 v0.2.4
 	golang.org/x/image v0.45.0
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	modernc.org/sqlite v1.62.0
 )
 

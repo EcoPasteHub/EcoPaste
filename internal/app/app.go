@@ -12,6 +12,7 @@ import (
 
 	"github.com/EcoPasteHub/EcoPaste/internal/clipboard"
 	"github.com/EcoPasteHub/EcoPaste/internal/database"
+	"github.com/EcoPasteHub/EcoPaste/internal/logging"
 	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
 	"github.com/EcoPasteHub/EcoPaste/internal/settings"
 	"github.com/EcoPasteHub/EcoPaste/internal/storage"
@@ -53,6 +54,11 @@ func Run(app *core.Scope) {
 			os.Exit(0)
 		default:
 			app.Cleanup(func() { lock.Close() })
+		}
+		if logger, err := logging.Open(paths.Logs); err != nil {
+			log.Printf("open logs: %v", err)
+		} else {
+			app.Cleanup(func() { logger.Close() })
 		}
 		log.Printf("data root %s", paths.Root)
 		if state, err := storage.OpenWindowState(paths.State); err != nil {
@@ -227,6 +233,14 @@ func Run(app *core.Scope) {
 					}
 					if err := macos.OpenPath(runtime.paths.Root); err != nil {
 						macos.ShowMessage("无法打开数据目录", err.Error())
+					}
+				}},
+				{Label: "打开日志目录", OnSelect: func() {
+					if runtime == nil {
+						return
+					}
+					if err := macos.OpenPath(runtime.paths.Logs); err != nil {
+						macos.ShowMessage("无法打开日志目录", err.Error())
 					}
 				}},
 				{Separator: true},
