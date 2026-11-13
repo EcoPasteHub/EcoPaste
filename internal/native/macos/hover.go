@@ -96,6 +96,7 @@ func (p *Panel) updateHover(row int) {
 		p.hideHover()
 		return
 	}
+	p.setHoveredRow(row)
 	p.setOriginalRow(row)
 	specs := hoverActionsFor(p.rows[row], p.actions)
 	if len(specs) == 0 {
@@ -127,6 +128,7 @@ func (p *Panel) updateHover(row int) {
 }
 
 func (p *Panel) hideHover() {
+	p.setHoveredRow(-1)
 	p.hideHoverBar()
 	p.setOriginalRow(-1)
 }
@@ -159,6 +161,31 @@ func (p *Panel) refreshHistoryRow(row int) {
 	rows := objc.ID(class("NSIndexSet")).Send(sel("indexSetWithIndex:"), int64(row))
 	columns := objc.ID(class("NSIndexSet")).Send(sel("indexSetWithIndex:"), int64(0))
 	p.table.Send(sel("reloadDataForRowIndexes:columnIndexes:"), rows, columns)
+	p.applyHoveredRow(row, row == p.hoveredRow)
+}
+
+func (p *Panel) setHoveredRow(row int) {
+	if row < 0 || row >= len(p.rows) {
+		row = -1
+	}
+	if p.hoveredRow == row {
+		return
+	}
+	previous := p.hoveredRow
+	p.hoveredRow = row
+	p.applyHoveredRow(previous, false)
+	p.applyHoveredRow(row, true)
+}
+
+func (p *Panel) applyHoveredRow(row int, hovered bool) {
+	if row < 0 || row >= len(p.rows) {
+		return
+	}
+	rowView := p.table.Send(sel("rowViewAtRow:makeIfNecessary:"), int64(row), false)
+	if rowView == 0 {
+		return
+	}
+	setHistoryRowHovered(rowView, hovered)
 }
 
 func (p *Panel) runHoverAction(index int) {

@@ -75,6 +75,7 @@ type Panel struct {
 	dragFiles                     []string
 	actions                       []string
 	hoverRow                      int
+	hoveredRow                    int
 	hoverBar                      objc.ID
 	hoverButtons                  []objc.ID
 	hoverSpecs                    []hoverAction
@@ -142,6 +143,7 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 		behavior:    PanelBehavior{SpacePreview: true},
 		originalRow: -1,
 		hoverRow:    -1,
+		hoveredRow:  -1,
 	}
 	p.view.Send(sel("setAutoresizesSubviews:"), false)
 
