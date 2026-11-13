@@ -118,7 +118,7 @@
 | W-07 | P1 | 偏好窗口 | `window/mod.rs` | 原生 `NSTabView` 设置窗口 | 迁移中 | 通用/采集/历史与隐私已可用；深链与高亮待补 |
 | W-08 | P1 | 更新窗口 | `window/mod.rs` | Sparkle 交互或独立窗口 | 待迁移 | 检查/下载/安装 |
 | W-09 | P1 | 引导窗口 | `window/mod.rs` | 6 步原生流程 | 待迁移 | 回退/恢复/完成 |
-| W-10 | P0 | 托盘 | `tray/mod.rs` | `NSStatusItem` + `NSMenu`：偏好、暂停、开源、更新、版本、重启、退出 | 迁移中 | 显示/暂停/设置/清除/退出已接；开源/更新/版本/重启待补 |
+| W-10 | P0 | 托盘 | `tray/mod.rs` | `NSStatusItem` + `NSMenu`：偏好、暂停、开源、更新、版本、重启、退出 | 迁移中 | 显示/暂停/设置/清除/开源/版本/重启/退出已接；更新项待更新模块完成后补 |
 | W-11 | P0 | 全局快捷键 | `shortcut/mod.rs` | `desktop.RegisterHotKey` | 迁移中 | `Alt+C`、`Alt+X` 已注册；冲突与热更新待验证 |
 | W-12 | P1 | 快捷键录制 | 前端录制器 | 原生 `NSTextField` 捕获 | 待迁移 | 组合键/冲突/清除 |
 | W-13 | P1 | 开机自启 | `autostart/macos.rs` | `SMAppService` | 待迁移 | 开启/关闭/重启 |

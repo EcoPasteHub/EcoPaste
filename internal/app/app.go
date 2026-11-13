@@ -23,6 +23,8 @@ const panelHotKey = "alt+c"
 
 const panelStateLabel = "clipboard"
 
+const sourceURL = "https://github.com/EcoPasteHub/EcoPaste"
+
 // Run opens EcoPaste's panel, tray icon and global shortcut. The app
 // keeps running without windows until the user quits it.
 func Run(app *core.Scope) {
@@ -167,6 +169,14 @@ func Run(app *core.Scope) {
 					}
 					runtime.Signal()
 				}},
+				{Separator: true},
+				{Label: "开源地址", OnSelect: func() {
+					if err := macos.OpenURL(sourceURL); err != nil {
+						log.Printf("open source: %v", err)
+					}
+				}},
+				{Label: "版本 " + macos.AppVersion(), Disabled: true},
+				{Label: "重新启动", OnSelect: func() { desktop.Restart(app) }},
 				{Separator: true},
 				{Label: "退出 EcoPaste", Shortcut: "mod+q", OnSelect: app.Quit},
 			}
