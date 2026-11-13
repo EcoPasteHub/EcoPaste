@@ -13,6 +13,7 @@ import (
 	"github.com/EcoPasteHub/EcoPaste/internal/backup"
 	"github.com/EcoPasteHub/EcoPaste/internal/clipboard"
 	"github.com/EcoPasteHub/EcoPaste/internal/database"
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/EcoPasteHub/EcoPaste/internal/logging"
 	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
 	"github.com/EcoPasteHub/EcoPaste/internal/settings"
@@ -84,6 +85,7 @@ func Run(app *core.Scope) {
 		if err != nil {
 			log.Printf("open settings: %v", err)
 		} else {
+			i18n.SetLanguage(string(store.Snapshot().Appearance.Language))
 			if err := macos.SetAppearance(string(store.Snapshot().Appearance.Theme)); err != nil {
 				log.Printf("sync appearance: %v", err)
 			}
@@ -217,13 +219,12 @@ func Run(app *core.Scope) {
 				}
 				model.restart = func() {
 					app.Post(func() {
-						macos.ShowMessage("数据目录已更改",
-							"历史、设置和资源已迁移，EcoPaste 将重新启动。旧目录数据仍然保留。")
+						macos.ShowMessage(i18n.T(i18n.DataDirChangedTitle), i18n.T(i18n.DataDirChangedBody))
 						desktop.Restart(app)
 					})
 				}
 				desktop.OpenWindow(app, desktop.WindowOptions{
-					Title:       "EcoPaste 设置",
+					Title:       i18n.T(i18n.SettingsWindowTitle),
 					Width:       560,
 					Height:      600,
 					Key:         "settings",
@@ -328,14 +329,14 @@ func Run(app *core.Scope) {
 		Tooltip:  "EcoPaste",
 		Panel:    panel,
 		Menu: func() []desktop.MenuItem {
-			pauseLabel := "暂停记录"
+			pauseLabel := i18n.T(i18n.TrayPause)
 			if paused.Load() {
-				pauseLabel = "继续记录"
+				pauseLabel = i18n.T(i18n.TrayResume)
 			}
 			return []desktop.MenuItem{
-				{Label: "显示 EcoPaste", Shortcut: hotKey, OnSelect: showPanel},
+				{Label: i18n.T(i18n.TrayShow), Shortcut: hotKey, OnSelect: showPanel},
 				{Label: pauseLabel, OnSelect: func() { paused.Store(!paused.Load()) }},
-				{Label: "读取剪贴板", OnSelect: func() {
+				{Label: i18n.T(i18n.TrayReadClipboard), OnSelect: func() {
 					if runtime == nil {
 						return
 					}
@@ -349,13 +350,13 @@ func Run(app *core.Scope) {
 						runtime.Signal()
 					}()
 				}},
-				{Label: "设置…", Shortcut: preferenceHotKey, OnSelect: func() {
+				{Label: i18n.T(i18n.TraySettings), Shortcut: preferenceHotKey, OnSelect: func() {
 					if openSettings != nil {
 						openSettings()
 					}
 				}},
 				{Separator: true},
-				{Label: "导出备份…", OnSelect: func() {
+				{Label: i18n.T(i18n.TrayExportBackup), OnSelect: func() {
 					if runtime == nil {
 						return
 					}
@@ -366,41 +367,41 @@ func Run(app *core.Scope) {
 						return
 					case macos.BackupExportEncrypted:
 						var confirmed bool
-						password, confirmed = macos.PromptPassword("加密备份密码",
-							"密码丢失后备份无法恢复，请妥善保管。")
+						password, confirmed = macos.PromptPassword(i18n.T(i18n.BackupPasswordTitle),
+							i18n.T(i18n.BackupPasswordBody))
 						if !confirmed {
 							return
 						}
 						if password == "" {
-							macos.ShowMessage("无法导出备份", "密码不能为空。")
+							macos.ShowMessage(i18n.T(i18n.BackupExportFailed), i18n.T(i18n.BackupPasswordRequired))
 							return
 						}
 						mode = backup.ModeEncrypted
 					case macos.BackupExportPlain:
-						if !macos.Confirm("导出明文备份？",
-							"明文备份不加密，任何拿到文件的人都能读取其中的剪贴板历史。", "继续导出") {
+						if !macos.Confirm(i18n.T(i18n.BackupUnencryptedTitle),
+							i18n.T(i18n.BackupUnencryptedBody), i18n.T(i18n.BackupUnencryptedConfirm)) {
 							return
 						}
 					}
 					path, ok := macos.SavePanel(
 						fmt.Sprintf("EcoPaste-%s.ecopastebak", time.Now().Format("2006-01-02")),
-						"导出 EcoPaste 备份")
+						i18n.T(i18n.BackupExportPanelTitle))
 					if !ok {
 						return
 					}
 					runBackupExport(app, runtime, path, mode, password)
 				}},
-				{Label: "导入备份…", OnSelect: func() {
+				{Label: i18n.T(i18n.TrayImportBackup), OnSelect: func() {
 					if runtime == nil {
 						return
 					}
-					path, ok := macos.OpenBackupPanel("导入 EcoPaste 备份")
+					path, ok := macos.OpenBackupPanel(i18n.T(i18n.BackupImportPanelTitle))
 					if !ok {
 						return
 					}
 					runBackupImport(app, runtime, path, store, reloadHotkeys)
 				}},
-				{Label: "清除历史…", OnSelect: func() {
+				{Label: i18n.T(i18n.TrayClearHistory), OnSelect: func() {
 					choice := macos.ConfirmClearHistory()
 					if choice == macos.ClearHistoryCancel || runtime == nil {
 						return
@@ -413,63 +414,63 @@ func Run(app *core.Scope) {
 					runtime.Signal()
 				}},
 				{Separator: true},
-				{Label: "存储占用…", OnSelect: func() {
+				{Label: i18n.T(i18n.TrayStorageUsage), OnSelect: func() {
 					if runtime == nil {
 						return
 					}
 					usage, err := runtime.storageUsage()
 					if err != nil {
-						macos.ShowMessage("无法读取存储占用", err.Error())
+						macos.ShowMessage(i18n.T(i18n.StorageUsageFailed), err.Error())
 						return
 					}
-					macos.ShowMessage("存储占用",
-						fmt.Sprintf("数据库 %s · 资源 %s · 设置 %s\n总计 %s",
+					macos.ShowMessage(i18n.T(i18n.StorageUsageTitle),
+						i18n.Tf(i18n.StorageUsageBody,
 							formatBytes(usage.Database), formatBytes(usage.Resource),
 							formatBytes(usage.Config), formatBytes(usage.Total)))
 				}},
-				{Label: "清理未引用缓存…", OnSelect: func() {
-					if runtime == nil || !macos.Confirm("清理未引用缓存？",
-						"仅删除未被历史记录引用的图片和来源应用图标。", "清理") {
+				{Label: i18n.T(i18n.TrayCleanCache), OnSelect: func() {
+					if runtime == nil || !macos.Confirm(i18n.T(i18n.CleanCacheTitle),
+						i18n.T(i18n.CleanCacheBody), i18n.T(i18n.CleanCacheConfirm)) {
 						return
 					}
 					files, freed, err := runtime.cleanCache(context.Background())
 					if err != nil {
-						macos.ShowMessage("清理缓存失败", err.Error())
+						macos.ShowMessage(i18n.T(i18n.CleanCacheFailed), err.Error())
 						return
 					}
 					if files == 0 {
-						macos.ShowMessage("缓存已是最新", "没有需要清理的文件。")
+						macos.ShowMessage(i18n.T(i18n.CleanCacheEmptyTitle), i18n.T(i18n.CleanCacheEmptyBody))
 						return
 					}
-					macos.ShowMessage("清理完成",
-						fmt.Sprintf("已删除 %d 个文件，释放 %s。", files, formatBytes(freed)))
+					macos.ShowMessage(i18n.T(i18n.CleanCacheDoneTitle),
+						i18n.Tf(i18n.CleanCacheDoneBody, files, formatBytes(freed)))
 				}},
-				{Label: "打开数据目录", OnSelect: func() {
+				{Label: i18n.T(i18n.TrayOpenDataDir), OnSelect: func() {
 					if runtime == nil {
 						return
 					}
 					if err := macos.OpenPath(runtime.paths.Root); err != nil {
-						macos.ShowMessage("无法打开数据目录", err.Error())
+						macos.ShowMessage(i18n.T(i18n.OpenDataDirFailed), err.Error())
 					}
 				}},
-				{Label: "打开日志目录", OnSelect: func() {
+				{Label: i18n.T(i18n.TrayOpenLogs), OnSelect: func() {
 					if runtime == nil {
 						return
 					}
 					if err := macos.OpenPath(runtime.paths.Logs); err != nil {
-						macos.ShowMessage("无法打开日志目录", err.Error())
+						macos.ShowMessage(i18n.T(i18n.OpenLogsFailed), err.Error())
 					}
 				}},
 				{Separator: true},
-				{Label: "开源地址", OnSelect: func() {
+				{Label: i18n.T(i18n.TraySource), OnSelect: func() {
 					if err := macos.OpenURL(sourceURL); err != nil {
 						log.Printf("open source: %v", err)
 					}
 				}},
-				{Label: "版本 " + macos.AppVersion(), Disabled: true},
-				{Label: "重新启动", OnSelect: func() { desktop.Restart(app) }},
+				{Label: i18n.Tf(i18n.TrayVersion, macos.AppVersion()), Disabled: true},
+				{Label: i18n.T(i18n.TrayRestart), OnSelect: func() { desktop.Restart(app) }},
 				{Separator: true},
-				{Label: "退出 EcoPaste", Shortcut: "mod+q", OnSelect: app.Quit},
+				{Label: i18n.T(i18n.TrayQuit), Shortcut: "mod+q", OnSelect: app.Quit},
 			}
 		},
 	})

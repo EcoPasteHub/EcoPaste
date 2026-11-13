@@ -6,6 +6,7 @@ import (
 	"strings"
 	"unsafe"
 
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/ebitengine/purego/objc"
 )
 
@@ -648,52 +649,52 @@ func layoutHistoryRow(cell objc.ID, size CGSize) {
 
 func (p *Panel) populateMenu(menu objc.ID, row HistoryRow) {
 	menu.Send(sel("removeAllItems"))
-	addMenuItem(menu, p.table, "粘贴", "menuPaste:", "arrow.down.doc", "")
-	addMenuItem(menu, p.table, "复制", "menuCopy:", "doc.on.doc", "c")
+	addMenuItem(menu, p.table, i18n.T(i18n.MenuPaste), "menuPaste:", "arrow.down.doc", "")
+	addMenuItem(menu, p.table, i18n.T(i18n.MenuCopy), "menuCopy:", "doc.on.doc", "c")
 	if row.Kind == "text" {
-		plainPaste := addMenuItem(menu, p.table, "纯文本粘贴", "menuPastePlain:", "textformat", "v")
+		plainPaste := addMenuItem(menu, p.table, i18n.T(i18n.MenuPastePlain), "menuPastePlain:", "textformat", "v")
 		setMenuModifiers(plainPaste, commandModifier|alternateModifier)
-		plainCopy := addMenuItem(menu, p.table, "复制为纯文本", "menuCopyPlain:", "doc.plaintext", "c")
+		plainCopy := addMenuItem(menu, p.table, i18n.T(i18n.MenuCopyPlain), "menuCopyPlain:", "doc.plaintext", "c")
 		setMenuModifiers(plainCopy, commandModifier|alternateModifier)
 	}
 	if row.Kind == "files" {
-		pathPaste := addMenuItem(menu, p.table, "粘贴为路径", "menuPastePath:", "point.topleft.down.to.point.bottomright.curvepath", "v")
+		pathPaste := addMenuItem(menu, p.table, i18n.T(i18n.MenuPastePath), "menuPastePath:", "point.topleft.down.to.point.bottomright.curvepath", "v")
 		setMenuModifiers(pathPaste, commandModifier|alternateModifier)
 	}
 	switch row.SubKind {
 	case "url":
-		addMenuItem(menu, p.table, "打开链接", "menuOpen:", "arrow.up.right.square", "")
+		addMenuItem(menu, p.table, i18n.T(i18n.MenuOpenLink), "menuOpen:", "arrow.up.right.square", "")
 	case "email":
-		addMenuItem(menu, p.table, "发送邮件", "menuOpen:", "envelope", "")
+		addMenuItem(menu, p.table, i18n.T(i18n.MenuSendEmail), "menuOpen:", "envelope", "")
 	}
 	if row.SubKind == "path" || row.Kind == "files" {
-		addMenuItem(menu, p.table, "在 Finder 中显示", "menuReveal:", "folder", "")
+		addMenuItem(menu, p.table, i18n.T(i18n.MenuReveal), "menuReveal:", "folder", "")
 	}
 	if row.Kind == "image" {
-		addMenuItem(menu, p.table, "存储图片…", "menuSaveImage:", "square.and.arrow.down", "")
+		addMenuItem(menu, p.table, i18n.T(i18n.MenuSaveImage), "menuSaveImage:", "square.and.arrow.down", "")
 	}
-	note := "添加备注…"
+	note := i18n.T(i18n.MenuAddNote)
 	if strings.TrimSpace(row.Note) != "" {
-		note = "编辑备注…"
+		note = i18n.T(i18n.MenuEditNote)
 	}
 	addMenuItem(menu, p.table, note, "menuNote:", "note.text", "")
 	menu.Send(sel("addItem:"), objc.ID(class("NSMenuItem")).Send(sel("separatorItem")))
 
-	favorite := "收藏"
+	favorite := i18n.T(i18n.MenuFavorite)
 	if row.Favorite {
-		favorite = "取消收藏"
+		favorite = i18n.T(i18n.MenuUnfavorite)
 	}
 	addMenuItem(menu, p.table, favorite, "menuFavorite:", "star", "")
-	pin := "置顶"
+	pin := i18n.T(i18n.MenuPin)
 	if row.Pinned {
-		pin = "取消置顶"
+		pin = i18n.T(i18n.MenuUnpin)
 	}
 	addMenuItem(menu, p.table, pin, "menuPin:", "pin", "")
 	moveItem := objc.ID(class("NSMenuItem")).Send(sel("alloc")).
-		Send(sel("initWithTitle:action:keyEquivalent:"), nsString("移动到分组"), objc.SEL(0), nsString(""))
+		Send(sel("initWithTitle:action:keyEquivalent:"), nsString(i18n.T(i18n.MenuMoveToGroup)), objc.SEL(0), nsString(""))
 	moveItem.Send(sel("setImage:"), systemSymbol("folder"))
 	submenu := objc.ID(class("NSMenu")).Send(sel("new"))
-	addMoveGroupItem(submenu, p, "未分组", "", row.GroupID == "")
+	addMoveGroupItem(submenu, p, i18n.T(i18n.MenuUngrouped), "", row.GroupID == "")
 	if len(p.groups) > 0 {
 		submenu.Send(sel("addItem:"), objc.ID(class("NSMenuItem")).Send(sel("separatorItem")))
 	}
@@ -706,7 +707,7 @@ func (p *Panel) populateMenu(menu objc.ID, row HistoryRow) {
 	moveItem.Send(sel("release"))
 	if row.CanDelete {
 		menu.Send(sel("addItem:"), objc.ID(class("NSMenuItem")).Send(sel("separatorItem")))
-		addMenuItem(menu, p.table, "删除", "menuDelete:", "trash", "")
+		addMenuItem(menu, p.table, i18n.T(i18n.CommonDelete), "menuDelete:", "trash", "")
 	}
 }
 
@@ -771,10 +772,10 @@ func menuAction(event string) func(objc.ID, objc.SEL, objc.ID) {
 func confirmDelete() bool {
 	alert := objc.ID(class("NSAlert")).Send(sel("new"))
 	defer alert.Send(sel("release"))
-	alert.Send(sel("setMessageText:"), nsString("删除这条记录？"))
-	alert.Send(sel("setInformativeText:"), nsString("删除后无法恢复。"))
-	alert.Send(sel("addButtonWithTitle:"), nsString("删除"))
-	alert.Send(sel("addButtonWithTitle:"), nsString("取消"))
+	alert.Send(sel("setMessageText:"), nsString(i18n.T(i18n.DeleteItemTitle)))
+	alert.Send(sel("setInformativeText:"), nsString(i18n.T(i18n.DeleteItemDetail)))
+	alert.Send(sel("addButtonWithTitle:"), nsString(i18n.T(i18n.CommonDelete)))
+	alert.Send(sel("addButtonWithTitle:"), nsString(i18n.T(i18n.CommonCancel)))
 	return alert.Send(sel("runModal")) == 1000
 }
 

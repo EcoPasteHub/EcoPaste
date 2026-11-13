@@ -2,13 +2,13 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/backup"
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
 	"github.com/EcoPasteHub/EcoPaste/internal/settings"
 	"github.com/nsgo-dev/nsgo/core"
@@ -28,11 +28,11 @@ func runBackupExport(app *core.Scope, runtime *clipboardRuntime, path string, mo
 		}, path, backup.ExportOptions{Mode: mode, Password: password})
 		app.Post(func() {
 			if err != nil {
-				macos.ShowMessage("导出备份失败", err.Error())
+				macos.ShowMessage(i18n.T(i18n.BackupExportFailed), err.Error())
 				return
 			}
-			macos.ShowMessage("备份已导出",
-				fmt.Sprintf("%s\n%d 条记录 · %s", result.Path, result.Items, formatBytes(result.TotalBytes)))
+			macos.ShowMessage(i18n.T(i18n.BackupExportedTitle),
+				i18n.Tf(i18n.BackupExportedBody, result.Path, result.Items, formatBytes(result.TotalBytes)))
 		})
 	}()
 }
@@ -45,13 +45,13 @@ func runBackupImport(app *core.Scope, runtime *clipboardRuntime, path string, st
 	}
 	mode, err := backup.Inspect(path)
 	if err != nil {
-		macos.ShowMessage("无法导入备份", err.Error())
+		macos.ShowMessage(i18n.T(i18n.BackupImportFailed), err.Error())
 		return
 	}
 	password := ""
 	if mode == backup.ModeEncrypted {
 		var confirmed bool
-		password, confirmed = macos.PromptPassword("备份密码", "请输入备份文件的密码。")
+		password, confirmed = macos.PromptPassword(i18n.T(i18n.BackupPasswordTitle), i18n.T(i18n.BackupPasswordBody))
 		if !confirmed {
 			return
 		}
@@ -63,12 +63,12 @@ func runBackupImport(app *core.Scope, runtime *clipboardRuntime, path string, st
 		runBackupMerge(app, runtime, path, password, store, reloadHotkeys)
 		return
 	}
-	if !macos.Confirm("覆盖当前数据？",
-		"覆盖导入会替换当前历史、设置和资源，然后重启 EcoPaste。", "导入并重启") {
+	if !macos.Confirm(i18n.T(i18n.BackupOverwriteTitle),
+		i18n.T(i18n.BackupOverwriteBody), i18n.T(i18n.BackupOverwriteConfirm)) {
 		return
 	}
 	if _, err := backup.StageImport(path, password, runtime.paths.State); err != nil {
-		macos.ShowMessage("无法导入备份", err.Error())
+		macos.ShowMessage(i18n.T(i18n.BackupImportFailed), err.Error())
 		return
 	}
 	desktop.Restart(app)
@@ -81,7 +81,7 @@ func runBackupMerge(app *core.Scope, runtime *clipboardRuntime, path, password s
 		result, err := backup.Merge(ctx, path, password, runtime.db, runtime.paths.Resources)
 		if err != nil {
 			app.Post(func() {
-				macos.ShowMessage("无法合并备份", err.Error())
+				macos.ShowMessage(i18n.T(i18n.BackupMergeFailed), err.Error())
 			})
 			return
 		}
@@ -94,9 +94,10 @@ func runBackupMerge(app *core.Scope, runtime *clipboardRuntime, path, password s
 		}
 		app.Post(func() {
 			if settingsErr != nil {
-				macos.ShowMessage("备份已合并，设置未应用", settingsErr.Error())
+				macos.ShowMessage(i18n.T(i18n.BackupMergedNoSettings), settingsErr.Error())
 			} else if store == nil {
-				macos.ShowMessage("备份已合并", mergeSummary(result)+"\n当前设置未更新。")
+				macos.ShowMessage(i18n.T(i18n.BackupMergedTitle),
+					mergeSummary(result)+"\n"+i18n.T(i18n.BackupMergedSettingsNote))
 				runtime.Signal()
 				return
 			}
@@ -113,10 +114,10 @@ func runBackupMerge(app *core.Scope, runtime *clipboardRuntime, path, password s
 				summary := mergeSummary(result)
 				if reloadHotkeys != nil {
 					if err := reloadHotkeys(); err != nil {
-						summary += "\n快捷键未生效：" + err.Error()
+						summary += "\n" + i18n.T(i18n.BackupShortcutFailed) + err.Error()
 					}
 				}
-				macos.ShowMessage("备份合并完成", summary)
+				macos.ShowMessage(i18n.T(i18n.BackupMergedDoneTitle), summary)
 			}
 			runtime.Signal()
 		})
@@ -124,8 +125,7 @@ func runBackupMerge(app *core.Scope, runtime *clipboardRuntime, path, password s
 }
 
 func mergeSummary(result backup.MergeResult) string {
-	return fmt.Sprintf("已合并 %d 条记录，跳过 %d 条重复记录，补充 %d 个资源文件。",
-		result.Items, result.Skipped, result.Resources)
+	return i18n.Tf(i18n.BackupMergeSummary, result.Items, result.Skipped, result.Resources)
 }
 
 // firstBackupPath picks the first .ecopastebak file the system opened.
