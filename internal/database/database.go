@@ -64,7 +64,7 @@ func (d *DB) ensureSchema(ctx context.Context) error {
 	err := d.sql.QueryRowContext(ctx,
 		"SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'clipboard_items'").Scan(&name)
 	if err == nil {
-		return nil
+		return d.ensureSQLxBaseline(ctx)
 	}
 	if err != sql.ErrNoRows {
 		return fmt.Errorf("inspect database schema: %w", err)
@@ -72,7 +72,7 @@ func (d *DB) ensureSchema(ctx context.Context) error {
 	if _, err := d.sql.ExecContext(ctx, schema); err != nil {
 		return fmt.Errorf("create database schema: %w", err)
 	}
-	return nil
+	return d.ensureSQLxBaseline(ctx)
 }
 
 func now() string { return time.Now().UTC().Format(time.RFC3339Nano) }

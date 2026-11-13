@@ -35,7 +35,7 @@
 | ID | 优先级 | 功能 | 现有实现 | NSGo/AppKit 目标 | 状态 | 验证方式 |
 | --- | --- | --- | --- | --- | --- | --- |
 | D-01 | P0 | SQLite 主库 | `db/init.rs`、`db/path.rs` | `modernc.org/sqlite`，同路径同 schema | 已通过 | `go test ./internal/database`：新库创建、旧时间格式读取 |
-| D-02 | P0 | Migration 兼容 | `_sqlx_migrations`、`0001_init.sql` | 识别旧 migration，不重复建表 | 已通过 | 检测 `clipboard_items` 后跳过建表；待补 `_sqlx_migrations` 显式记录 |
+| D-02 | P0 | Migration 兼容 | `_sqlx_migrations`、`0001_init.sql` | 识别旧 migration，不重复建表 | 已通过 | 新库与仅含 `clipboard_items` 的旧库都会创建/补齐 `_sqlx_migrations` v1，保留已有 SQLx 元数据；以 SQLx CLI 对新建库执行 `migrate run` 无重复迁移；`TestOpenRecordsLegacyMigrationBaseline`、`TestOpenAddsBaselineToDatabaseWithoutMigrationTable`、`TestOpenKeepsExistingMigrationMetadata` |
 | D-03 | P0 | 全文搜索 | FTS5 trigram | 同 FTS 表与触发器 | 已通过 | `TestSearchUsesFTSAndLikeFallback` |
 | D-04 | P0 | 短词搜索 | `LIKE` 兜底 | 1–2 字符走 `LIKE` | 已通过 | 中文单字、英文双字测试 |
 | D-05 | P0 | 历史筛选 | `db/items.rs` | kind/group/favorite/pinned/keyword | 已通过 | 仓储层 `Query` 已覆盖；原生分类/自定义分组筛选真机通过 |
