@@ -51,18 +51,23 @@ func (p *Panel) pasteboardWriter(row HistoryRow) objc.ID {
 	return 0
 }
 
-// appendDragFiles adds the remaining files of a multi-file row once the
-// dragging session exists. The table view asks for only one writer per
-// row, so extra file URLs have to be appended to the session pasteboard.
+// appendDragFiles writes every file of a multi-file row once the dragging
+// session exists. The table view asks for only one writer per row, so the
+// session pasteboard is replaced with the complete URL list.
 func (p *Panel) appendDragFiles(session objc.ID) {
 	files := p.dragFiles
 	p.dragFiles = nil
 	if len(files) <= 1 {
 		return
 	}
+	writeDragFiles(session.Send(sel("draggingPasteboard")), files)
+}
+
+func writeDragFiles(pasteboard objc.ID, files []string) {
 	urls := objc.ID(class("NSMutableArray")).Send(sel("array"))
-	for _, path := range files[1:] {
+	for _, path := range files {
 		urls.Send(sel("addObject:"), objc.ID(class("NSURL")).Send(sel("fileURLWithPath:"), nsString(path)))
 	}
-	session.Send(sel("draggingPasteboard")).Send(sel("writeObjects:"), urls)
+	pasteboard.Send(sel("clearContents"))
+	pasteboard.Send(sel("writeObjects:"), urls)
 }

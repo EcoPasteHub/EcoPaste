@@ -94,7 +94,7 @@
 | A-09 | P1 | 打开链接/邮件 | `open_clipboard_item_link` | `NSWorkspace.open` | 已通过 | `TestOpenDispatchesBySubKind`；URL/路径条目右键菜单显示对应动作 |
 | A-10 | P1 | Finder 显示 | `reveal_clipboard_item` | `NSWorkspace.activateFileViewerSelecting` | 已通过 | `TestRevealFilesAndPath`；真机对路径条目执行后 Finder 选中目标目录 |
 | A-11 | P1 | 图片另存 | `save_clipboard_image_to_file` | `NSSavePanel`，默认文件名规则 | 已通过 | `TestSaveImageWritesChosenFile`；真机保存 3456×2234 PNG，文件头与尺寸校验通过 |
-| A-12 | P1 | 拖出文件 | `drag_out/macos.rs` | `NSTableView` 拖拽源 + file URL，多文件在 `willBegin` 追加 item | 迁移中 | `TestDragOffersFiles`；待真机拖到 Finder/浏览器/聊天工具 |
+| A-12 | P1 | 拖出文件 | `drag_out/macos.rs` | `NSTableView` 拖拽源 + file URL，多文件在 `willBegin` 一次性写入全部 URL | 迁移中 | `TestDragOffersFiles`、`TestWriteDragFilesWritesEveryURL`；修正多文件拖拽只写后续文件的问题；待真机拖到 Finder/浏览器/聊天工具 |
 | A-13 | P1 | 拖出图片 | `drag_out/macos.rs` | 拖拽源写 `public.png` | 迁移中 | `TestDragOffersImageBytes`；待真机拖到图片/富文本目标 |
 | A-14 | P1 | 拖出文本 | `drag_out/macos.rs` | plain/HTML/RTF 多表示同一 `NSPasteboardItem` | 迁移中 | `TestDragOffersRichText`；待真机拖到富文本目标 |
 | A-15 | P1 | 备注编辑 | `NoteModal` | 原生备注弹窗，256 字符上限 | 已通过 | `TestEditNoteNormalizesAndAutoFavorites`、`TestEditNoteCancelAndClear`、`TestEditNoteLimitsLength`；保存/取消/空值/自动收藏已覆盖 |
