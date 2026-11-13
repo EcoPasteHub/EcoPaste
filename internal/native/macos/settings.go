@@ -82,6 +82,7 @@ type SettingsView struct {
 	dataDir             objc.ID
 	change              objc.ID
 	restore             objc.ID
+	reset               objc.ID
 	accessibilityStatus objc.ID
 	fullDiskStatus      objc.ID
 	permissionTimer     objc.ID
@@ -137,8 +138,15 @@ func NewSettings(cx *core.NativeContext) core.NativeComponent {
 	v.footer = objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString("更改会立即保存"))
 	v.footer.Send(sel("setFont:"), systemFont(11))
 	v.footer.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
-	v.footer.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 20, Y: 8}, Size: CGSize{Width: settingsWidth - 40, Height: 16}})
+	v.footer.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 20, Y: 8}, Size: CGSize{Width: settingsWidth - 210, Height: 16}})
 	v.view.Send(sel("addSubview:"), v.footer)
+
+	v.reset = objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
+		nsString("恢复默认设置…"), settingsTarget, sel("resetSettingsPressed:"))
+	v.reset.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: settingsWidth - 168, Y: 2}, Size: CGSize{Width: 150, Height: 24}})
+	v.reset.Send(sel("setBezelStyle:"), int64(1))
+	v.view.Send(sel("addSubview:"), v.reset)
+	settingsViews[v.reset] = v
 
 	v.buildGeneral()
 	v.buildCapture()
@@ -561,6 +569,17 @@ func registerSettingsTargets() {
 				return
 			}
 			v.cx.Emit("change", SettingsChange{Path: "apps.refresh", Value: true})
+		}},
+		{Cmd: sel("resetSettingsPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
+			v := settingsViews[sender]
+			if v == nil {
+				return
+			}
+			if !Confirm("恢复默认设置？",
+				"所有偏好会恢复为默认值。剪贴板历史、数据目录与备份不受影响。", "恢复默认") {
+				return
+			}
+			v.cx.Emit("change", SettingsChange{Path: "settings.reset", Value: true})
 		}},
 	})
 	if err != nil {

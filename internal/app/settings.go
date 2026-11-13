@@ -82,6 +82,8 @@ func (m *settingsModel) Load() macos.SettingsValues {
 
 func (m *settingsModel) Apply(path string, value any) error {
 	switch path {
+	case "settings.reset":
+		return m.resetSettings()
 	case "apps.refresh":
 		return nil
 	case "apps.add":
@@ -163,6 +165,37 @@ func (m *settingsModel) Apply(path string, value any) error {
 		return err
 	}
 	if strings.HasPrefix(path, "display.") && m.onDisplayChanged != nil {
+		m.onDisplayChanged()
+	}
+	return nil
+}
+
+// resetSettings restores the published defaults and re-applies the
+// system side effects so the running app matches the new file.
+func (m *settingsModel) resetSettings() error {
+	next, err := m.store.Reset()
+	if err != nil {
+		return fmt.Errorf("恢复默认设置: %w", err)
+	}
+	if m.setDockIcon != nil {
+		if err := m.setDockIcon(next.General.DockIcon); err != nil {
+			return err
+		}
+	}
+	if m.setAutoStart != nil {
+		if err := m.setAutoStart(next.General.AutoStart); err != nil {
+			return err
+		}
+	}
+	if m.setAppearance != nil {
+		if err := m.setAppearance(string(next.Appearance.Theme)); err != nil {
+			return err
+		}
+	}
+	if m.onShortcutsChanged != nil {
+		m.onShortcutsChanged()
+	}
+	if m.onDisplayChanged != nil {
 		m.onDisplayChanged()
 	}
 	return nil

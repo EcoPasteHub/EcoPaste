@@ -181,7 +181,7 @@
 | S-16 | 默认值 | 所有 `serde(default)` | 缺字段时行为与旧版一致 | 待迁移 | 空文件/缺字段 |
 | S-17 | 写入语义 | 对象深合并、数组替换、`.tmp` + rename | patch 语义与原子写一致 | 待迁移 | 并发/崩溃模拟 |
 | S-18 | 跨字段校验 | 快捷键不重复、`selectGroupOnOpen` 编码合法 | 错误可定位且不破坏旧值 | 待迁移 | 非法输入 |
-| S-19 | 重置 | `reset_settings` | 恢复默认但保留必要身份/数据 | 待迁移 | 重置后重启 |
+| S-19 | 重置 | `reset_settings` | 恢复默认但保留必要身份/数据；设置窗口底部确认后立即生效 | 已通过 | `TestResetSettingsRestoresDefaultsAndSideEffects`：默认值、Dock、自启、主题与快捷键/列表刷新均恢复；数据目录与历史不受影响 |
 
 ## 9. 数据契约与兼容
 

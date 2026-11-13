@@ -207,3 +207,45 @@ func TestSettingsModelKeepsAutostartWhenNativeApplyFails(t *testing.T) {
 		t.Error("autostart setting was persisted after native failure")
 	}
 }
+
+func TestResetSettingsRestoresDefaultsAndSideEffects(t *testing.T) {
+	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.Update(map[string]any{
+		"clipboard": map[string]any{"content": map[string]any{"copyPlain": true}},
+		"general":   map[string]any{"dockIcon": true, "autoStart": true},
+		"appearance": map[string]any{
+			"theme": "dark",
+		},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	model := newSettingsModel(store)
+	var dockIcon, autoStart bool
+	var theme string
+	rebound, redisplayed := false, false
+	model.setDockIcon = func(on bool) error { dockIcon = on; return nil }
+	model.setAutoStart = func(on bool) error { autoStart = on; return nil }
+	model.setAppearance = func(name string) error { theme = name; return nil }
+	model.onShortcutsChanged = func() { rebound = true }
+	model.onDisplayChanged = func() { redisplayed = true }
+
+	if err := model.Apply("settings.reset", true); err != nil {
+		t.Fatal(err)
+	}
+	defaults := settings.Default()
+	if store.Snapshot().Clipboard.Content.CopyPlain {
+		t.Error("copyPlain was not reset")
+	}
+	if dockIcon != defaults.General.DockIcon || autoStart != defaults.General.AutoStart {
+		t.Errorf("dock icon = %v, autostart = %v", dockIcon, autoStart)
+	}
+	if theme != string(defaults.Appearance.Theme) {
+		t.Errorf("theme = %q", theme)
+	}
+	if !rebound || !redisplayed {
+		t.Errorf("rebound = %v, redisplayed = %v", rebound, redisplayed)
+	}
+}
