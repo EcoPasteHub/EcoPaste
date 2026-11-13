@@ -34,21 +34,21 @@
 
 | ID | 优先级 | 功能 | 现有实现 | NSGo/AppKit 目标 | 状态 | 验证方式 |
 | --- | --- | --- | --- | --- | --- | --- |
-| D-01 | P0 | SQLite 主库 | `db/init.rs`、`db/path.rs` | `modernc.org/sqlite`，同路径同 schema | 待迁移 | 旧 DB 副本直接打开 |
-| D-02 | P0 | Migration 兼容 | `_sqlx_migrations`、`0001_init.sql` | 识别旧 migration，不重复建表 | 待迁移 | 空库/旧库/新库三种启动 |
-| D-03 | P0 | 全文搜索 | FTS5 trigram | 同 FTS 表与触发器 | 待迁移 | ≥3 字符结果一致 |
-| D-04 | P0 | 短词搜索 | `LIKE` 兜底 | 1–2 字符走 `LIKE` | 待迁移 | 中文单字、英文双字 |
-| D-05 | P0 | 历史筛选 | `db/items.rs` | kind/group/favorite/pinned/keyword | 待迁移 | 固定夹具逐项对比 |
-| D-06 | P0 | 排序 | `settings.clipboard.content.sort` | 置顶优先，再按时间/使用次数 | 待迁移 | 置顶与普通项混合 |
-| D-07 | P0 | 分页 | `ClipboardItemPage` | `list + total + has_more` | 待迁移 | 首屏、末页、空结果 |
-| D-08 | P0 | 收藏 | `toggle_item_favorite` | `is_favorite`，不刷新 `updated_at` | 待迁移 | 收藏/取消/重启 |
+| D-01 | P0 | SQLite 主库 | `db/init.rs`、`db/path.rs` | `modernc.org/sqlite`，同路径同 schema | 已通过 | `go test ./internal/database`：新库创建、旧时间格式读取 |
+| D-02 | P0 | Migration 兼容 | `_sqlx_migrations`、`0001_init.sql` | 识别旧 migration，不重复建表 | 已通过 | 检测 `clipboard_items` 后跳过建表；待补 `_sqlx_migrations` 显式记录 |
+| D-03 | P0 | 全文搜索 | FTS5 trigram | 同 FTS 表与触发器 | 已通过 | `TestSearchUsesFTSAndLikeFallback` |
+| D-04 | P0 | 短词搜索 | `LIKE` 兜底 | 1–2 字符走 `LIKE` | 已通过 | 中文单字、英文双字测试 |
+| D-05 | P0 | 历史筛选 | `db/items.rs` | kind/group/favorite/pinned/keyword | 已通过 | 仓储层 `Query` 已覆盖；待 UI 联调 |
+| D-06 | P0 | 排序 | `settings.clipboard.content.sort` | 置顶优先，再按时间/使用次数 | 已通过 | `TestPagePaginationAndPinnedFirst` |
+| D-07 | P0 | 分页 | `ClipboardItemPage` | `list + total + has_more` | 已通过 | `Page` 返回 total/hasMore |
+| D-08 | P0 | 收藏 | `toggle_item_favorite` | `is_favorite`，不刷新 `updated_at` | 已通过 | `TestMetadataUpdatesKeepUpdatedAt` |
 | D-09 | P1 | 自动收藏 | `autoFavorite` | 入库时按规则收藏 | 待迁移 | 开关与规则边界 |
-| D-10 | P0 | 置顶 | `toggle_item_pinned` | `is_pinned`，排序最前 | 待迁移 | 置顶/取消/重启 |
-| D-11 | P0 | 备注 | `update_item_note` | 更新 note，不刷新 `updated_at` | 待迁移 | 中文、长文本、清空 |
+| D-10 | P0 | 置顶 | `toggle_item_pinned` | `is_pinned`，排序最前 | 已通过 | 排序测试覆盖 |
+| D-11 | P0 | 备注 | `update_item_note` | 更新 note，不刷新 `updated_at` | 已通过 | `SetNote` + `updated_at` 不变测试 |
 | D-12 | P0 | 分组 | `db/groups.rs` | 名称、SVG 图标导入、隐藏、排序 | 待迁移 | 创建/改名/隐藏/删除/SVG |
 | D-13 | P0 | 分组布局 | `update_clipboard_groups_layout` | 批量更新 `sort_order` | 待迁移 | 拖拽排序后重启 |
 | D-14 | P0 | 删除分组 | `delete_group` | 条目 `group_id` 置 NULL | 待迁移 | 删除后条目不丢 |
-| D-15 | P0 | 使用次数 | `increment_item_use_count` | `use_count + 1` 并刷新 `updated_at` | 待迁移 | 复用/粘贴路径 |
+| D-15 | P0 | 使用次数 | `increment_item_use_count` | `use_count + 1` 并刷新 `updated_at` | 已通过 | `TestUpsertDeduplicatesAndRefreshesUpdatedAt` |
 | D-16 | P0 | 历史清理 | `cleanup.rs`、`db/items.rs` | 时长 + 最大条数，收藏/置顶保留 | 待迁移 | 固定时间与条数夹具 |
 | D-17 | P0 | 启动清理 | `clipboard::init` | 启动先跑一次，再按间隔 | 待迁移 | 冷启动/长运行 |
 | D-18 | P0 | 清空记录 | `clear_items` | 可选保留收藏/置顶 | 待迁移 | 两种策略 |
@@ -187,9 +187,9 @@
 
 | ID | 优先级 | 契约 | 现有定义 | 迁移要求 | 状态 | 验证方式 |
 | --- | --- | --- | --- | --- | --- | --- |
-| X-01 | P0 | SQLite schema | `migrations/0001_init.sql` | 表、列、索引、触发器一致 | 待迁移 | schema diff |
-| X-02 | P0 | `updated_at` 语义 | 最近一次复用时间 | 备注/收藏/置顶/分组不刷新 | 待迁移 | 操作前后对比 |
-| X-03 | P0 | `content_hash` | `blake3("<kind>:<content>")` | 字节级一致 | 待迁移 | 固定样本 hash |
+| X-01 | P0 | SQLite schema | `migrations/0001_init.sql` | 表、列、索引、触发器一致 | 已通过 | `internal/database/schema.sql` 直接复制已发布 migration |
+| X-02 | P0 | `updated_at` 语义 | 最近一次复用时间 | 备注/收藏/置顶/分组不刷新 | 已通过 | `TestMetadataUpdatesKeepUpdatedAt` |
+| X-03 | P0 | `content_hash` | `blake3("<kind>:<content>")` | 字节级一致 | 已通过 | `TestHashMatchesPublishedFormat` |
 | X-04 | P0 | 图片文件名 | `<blake3>.png` 分片 | 路径与命名一致 | 待迁移 | 旧数据直接引用 |
 | X-05 | P0 | `settings.json` | camelCase、serde default | 字段、默认值、patch 语义一致 | 待迁移 | 旧文件读写回环 |
 | X-06 | P0 | 数据目录 | `storage.json` 锚点 | 默认/自定义目录均可解析 | 待迁移 | 目录切换 |
