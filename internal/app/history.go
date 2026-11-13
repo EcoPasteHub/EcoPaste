@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
+	"time"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/clipboard"
 	"github.com/EcoPasteHub/EcoPaste/internal/database"
@@ -108,6 +110,102 @@ func (m *historyModel) Delete(ctx context.Context, id string) error {
 		}
 	}
 	return nil
+}
+
+func (m *historyModel) Preview(ctx context.Context, id string) (ui.HistoryPreview, error) {
+	if m.store == nil || !m.store.Snapshot().Clipboard.Preview.SpaceEnabled {
+		return ui.HistoryPreview{}, nil
+	}
+	item, err := m.runtime.db.FindByID(ctx, id)
+	if err != nil {
+		return ui.HistoryPreview{}, err
+	}
+	if item == nil {
+		return ui.HistoryPreview{}, fmt.Errorf("剪贴板记录不存在")
+	}
+	redact := item.IsSensitive && m.store.Snapshot().Clipboard.Sensitive.RedactSecrets
+	preview := ui.HistoryPreview{Enabled: true}
+	preview.Meta = previewMeta(item)
+	switch item.Kind {
+	case database.KindImage:
+		preview.Title = "图片"
+		if item.Width != nil && item.Height != nil {
+			preview.Title = fmt.Sprintf("图片 %d × %d", *item.Width, *item.Height)
+		}
+		preview.ImagePath = m.runtime.images.OriginPath(item.Content)
+	case database.KindFiles:
+		files := clipboard.DecodeFiles(item.Content)
+		preview.Title = ui.FileTitle(files, 3)
+		preview.Text = strings.Join(files, "\n")
+	default:
+		preview.Title = "文本"
+		if item.Summary != nil {
+			preview.Title = *item.Summary
+		}
+		preview.Text = previewText(item)
+		if redact {
+			preview.Title = clipboard.MaskSecret(preview.Title)
+			preview.Text = clipboard.MaskSecret(preview.Text)
+		}
+	}
+	return preview, nil
+}
+
+func previewText(item *database.Item) string {
+	if item.SubKind != nil && (*item.SubKind == database.SubHTML || *item.SubKind == database.SubRTF) && item.SearchText != nil {
+		return *item.SearchText
+	}
+	return item.Content
+}
+
+func previewMeta(item *database.Item) string {
+	parts := []string{kindLabel(item.Kind)}
+	if item.SubKind != nil {
+		switch *item.SubKind {
+		case database.SubHTML:
+			parts[0] = "HTML"
+		case database.SubRTF:
+			parts[0] = "RTF"
+		case database.SubURL:
+			parts[0] = "链接"
+		case database.SubEmail:
+			parts[0] = "邮件"
+		case database.SubColor:
+			parts[0] = "颜色"
+		case database.SubPath:
+			parts[0] = "路径"
+		}
+	}
+	if item.Size != nil && item.Kind != database.KindImage {
+		parts = append(parts, formatBytes(*item.Size))
+	}
+	if item.SourceAppName != nil && *item.SourceAppName != "" {
+		parts = append(parts, *item.SourceAppName)
+	}
+	parts = append(parts, item.CreatedAt.Local().Format(time.DateTime))
+	return strings.Join(parts, " · ")
+}
+
+func kindLabel(kind database.Kind) string {
+	switch kind {
+	case database.KindImage:
+		return "图片"
+	case database.KindFiles:
+		return "文件"
+	default:
+		return "文本"
+	}
+}
+
+func formatBytes(size int64) string {
+	switch {
+	case size >= 1024*1024:
+		return fmt.Sprintf("%.1f MB", float64(size)/(1024*1024))
+	case size >= 1024:
+		return fmt.Sprintf("%.1f KB", float64(size)/1024)
+	default:
+		return fmt.Sprintf("%d B", size)
+	}
 }
 
 func (m *historyModel) write(ctx context.Context, item *database.Item, plain, countReuse bool) error {

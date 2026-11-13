@@ -40,6 +40,15 @@ type HistoryQuery struct {
 	Offset  int
 }
 
+// HistoryPreview is the full content behind one list row.
+type HistoryPreview struct {
+	Enabled   bool
+	Title     string
+	Meta      string
+	Text      string
+	ImagePath string
+}
+
 // HistoryModel is the app service the history panel consumes. Copy
 // reports whether the panel should close after copying.
 type HistoryModel interface {
@@ -51,6 +60,7 @@ type HistoryModel interface {
 	ToggleFavorite(context.Context, string) (bool, error)
 	TogglePinned(context.Context, string) (bool, error)
 	Delete(context.Context, string) error
+	Preview(context.Context, string) (HistoryPreview, error)
 	Updates() <-chan struct{}
 }
 
@@ -63,6 +73,7 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 		loading := core.NewSignal(cx, true)
 		errorText := core.NewSignal(cx, "")
 		hasMore := core.NewSignal(cx, false)
+		preview := core.NewSignal(cx, macos.PreviewContent{})
 		ref := &core.Ref{}
 
 		var (
@@ -190,6 +201,32 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 			}()
 		}
 
+		showPreview := func(id string) {
+			if id == "" || model == nil {
+				return
+			}
+			ctx := cx.Context()
+			go func() {
+				content, err := model.Preview(ctx, id)
+				cx.Post(func() {
+					if err != nil {
+						errorText.Set(err.Error())
+						return
+					}
+					if !content.Enabled {
+						return
+					}
+					preview.Set(macos.PreviewContent{
+						Active:    true,
+						Title:     content.Title,
+						Meta:      content.Meta,
+						Text:      content.Text,
+						ImagePath: content.ImagePath,
+					})
+				})
+			}()
+		}
+
 		var pendingSearch func() bool
 		cx.Cleanup(func() {
 			if pendingSearch != nil {
@@ -207,7 +244,10 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 						case <-ctx.Done():
 							return
 						case <-updates:
-							cx.Post(func() { load(query, false) })
+							cx.Post(func() {
+								preview.Set(macos.PreviewContent{})
+								load(query, false)
+							})
 						}
 					}
 				}()
@@ -223,6 +263,7 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 					"total":   total.Get(),
 					"loading": loading.Get(),
 					"error":   errorText.Get(),
+					"preview": preview.Get(),
 				}
 			},
 			OnEvent: func(name string, data any) {
@@ -279,6 +320,14 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 							load(query, false)
 						})
 					}()
+				case "preview":
+					if preview.GetUntracked().Active {
+						preview.Set(macos.PreviewContent{})
+						return
+					}
+					showPreview(selectedID)
+				case "hidePreview":
+					preview.Set(macos.PreviewContent{})
 				case "loadMore":
 					if hasMore.GetUntracked() && !loading.GetUntracked() {
 						load(query, true)

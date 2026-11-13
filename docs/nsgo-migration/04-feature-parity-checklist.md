@@ -24,7 +24,7 @@
 | C-13 | P1 | 来源应用图标 | `clipboard/icon.rs`、`app_store.rs` | `NSWorkspace` 取图标，PNG 缓存 | 待迁移 | 图标存在、去重、失效清理 |
 | C-14 | P0 | 忽略应用 | `Filters.excluded_app_ids` | bundle id 命中即跳过 | 已通过 | 默认排除密码类 App；`TestIgnoredAppIsNotCaptured` |
 | C-15 | P0 | 敏感内容识别 | `clipboard/secrets.rs` | 私钥、token、AWS key、JWT、标签 secret | 已通过 | `TestContainsSecret` 固定样本矩阵 |
-| C-16 | P0 | 敏感内容策略 | `collectSecrets`、`redactSecrets` | 跳过或脱敏，日志不落原文 | 迁移中 | `TestSecretCapturePolicy`；列表已脱敏，预览待接 |
+| C-16 | P0 | 敏感内容策略 | `collectSecrets`、`redactSecrets` | 跳过或脱敏，日志不落原文 | 已通过 | `TestSecretCapturePolicy`、`TestPreviewRedactsSensitiveText` |
 | C-17 | P0 | 回环抑制 | `clipboard/guard.rs` | 写回前登记 hash，2 秒 TTL | 已通过 | `TestWriteItemSuppressesItsOwnCapture` |
 | C-18 | P1 | 监听暂停 | `WatcherPause`、托盘 | 暂停期间跳过入库，watcher 不退出 | 迁移中 | 托盘菜单已接；待真机验证 |
 | C-19 | P2 | 复制音效 | `clipboard/sound.rs` | `AVAudioPlayer` 或 Go 音频库 | 待迁移 | 开关、静音、缺失文件 |
@@ -76,7 +76,7 @@
 | P-07 | P1 | 图片缩略图 | `storage.rs` | 最长边 300px，懒生成 | 待迁移 | 尺寸、格式、缓存命中 |
 | P-08 | P1 | 文件条目 | `commands/clipboard.rs` | 路径、名称、目录/图片标记、存在性、大小 | 待迁移 | 单文件/多文件/丢失文件 |
 | P-09 | P1 | 文件预览模式 | `FilesPreviewKind` | 单图片走图片预览，其余列表 | 待迁移 | 三种组合 |
-| P-10 | P1 | 预览窗口 | `window/preview.rs`、`pages/Preview` | 独立 `NSPanel`，不抢焦点，hover/Space | 待迁移 | 多屏、边缘、快速切换 |
+| P-10 | P1 | 预览窗口 | `window/preview.rs`、`pages/Preview` | 面板内预览视图，Space/Esc，文本/图片/文件 | 已通过 | 真机文本/图片预览与 Esc 返回；产品调整记录在迁移计划 |
 | P-11 | P2 | HTML/RTF 富文本预览 | 当前只用纯文本摘要 | `NSAttributedString` + `NSTextView`（增强项） | 待迁移 | 与旧版行为差异需记录 |
 
 ## 4. 历史复用动作
@@ -136,7 +136,7 @@
 | ID | 优先级 | 功能 | 现有实现 | NSGo/AppKit 目标 | 状态 | 验证方式 |
 | --- | --- | --- | --- | --- | --- | --- |
 | U-01 | P0 | Clipboard 主页面 | `legacy/frontend/src/pages/Clipboard` | AppKit 搜索/分类/列表/卡片/Footer | 迁移中 | 原生搜索、列表、Footer、实时刷新与复制已真机验证；分类与卡片待补 |
-| U-02 | P1 | Preview 页面 | `legacy/frontend/src/pages/Preview` | 原生预览面板 | 待迁移 | hover/Space/边缘 |
+| U-02 | P1 | Preview 页面 | `legacy/frontend/src/pages/Preview` | 面板内原生预览 | 已通过 | 真机 Space/Esc；`TestPreviewRedactsSensitiveText` |
 | U-03 | P1 | Preference 页面 | `legacy/frontend/src/pages/Preference` | 原生 Tab/表单/搜索/高亮 | 待迁移 | 7 个 Tab 全项 |
 | U-04 | P1 | Onboarding 页面 | `legacy/frontend/src/pages/Onboarding` | 原生 6 步流程 | 待迁移 | 全流程/回退 |
 | U-05 | P1 | Update 页面 | `legacy/frontend/src/pages/Update` | 原生更新状态/进度 | 待迁移 | 各状态 |
@@ -173,7 +173,7 @@
 | S-08 | clipboard.history | `retention{value,unit}`、`maxCount`、`cleanupIntervalHours` | 清理规则一致 | 待迁移 | 时间/条数夹具 |
 | S-09 | clipboard.search | `defaultFocus`、`clearOnHide` | 面板打开/隐藏行为一致 | 待迁移 | 键盘/鼠标路径 |
 | S-10 | clipboard.window | `position`、`scrollToTopOnOpen`、`selectRangeOnOpen`、`selectCategoryOnOpen`、`selectGroupOnOpen`、`lightweightMode`、`idleDestroySeconds` | 原生窗口等价行为；无 WebView 时重新解释轻量化 | 待迁移 | 多屏/重启/空闲 |
-| S-11 | clipboard.preview | `hoverEnabled`、`hoverDelayMs`、`spaceEnabled` | hover/Space 触发一致 | 待迁移 | 延迟边界 |
+| S-11 | clipboard.preview | `hoverEnabled`、`hoverDelayMs`、`spaceEnabled` | Space 已接；hover 暂不实现 | 迁移中 | 延迟边界 |
 | S-12 | clipboard.feedback | `copySound` | 音效开关一致 | 待迁移 | 开/关 |
 | S-13 | clipboard.filters | `excludedAppIds` | bundle id 过滤一致 | 待迁移 | 默认排除/自定义 |
 | S-14 | onboarding | `completed`、`lastStep`、`legacyImport{checked,imported,importTypes,importedAt}` | 首次启动与导入状态一致 | 待迁移 | 中断/恢复/完成 |

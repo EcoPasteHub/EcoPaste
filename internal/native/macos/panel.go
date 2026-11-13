@@ -17,23 +17,31 @@ const PanelComponent = "ecopaste.panel"
 // Panel is the AppKit content view of the clipboard panel: search, the
 // native history list and a compact footer.
 type Panel struct {
-	cx        *core.NativeContext
-	view      objc.ID
-	search    objc.ID
-	divider   objc.ID
-	scroll    objc.ID
-	table     objc.ID
-	empty     objc.ID
-	footer    objc.ID
-	hint      objc.ID
-	observer  objc.ID
-	timer     objc.ID
-	query     string
-	rows      []HistoryRow
-	total     int64
-	loading   bool
-	errText   string
-	selection string
+	cx            *core.NativeContext
+	view          objc.ID
+	search        objc.ID
+	divider       objc.ID
+	scroll        objc.ID
+	table         objc.ID
+	empty         objc.ID
+	footer        objc.ID
+	hint          objc.ID
+	preview       objc.ID
+	observer      objc.ID
+	timer         objc.ID
+	monitor       objc.ID
+	previewTitle  objc.ID
+	previewMeta   objc.ID
+	previewText   objc.ID
+	previewScroll objc.ID
+	previewImage  objc.ID
+	query         string
+	rows          []HistoryRow
+	total         int64
+	loading       bool
+	errText       string
+	selection     string
+	previewing    bool
 }
 
 var (
@@ -80,8 +88,9 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.hint.Send(sel("setAlignment:"), int64(1))
 
 	p.scroll = newHistoryTable(p)
+	p.buildPreview()
 
-	for _, v := range []objc.ID{p.search, p.divider, p.scroll, p.empty, p.footer, p.hint} {
+	for _, v := range []objc.ID{p.search, p.divider, p.scroll, p.empty, p.preview, p.footer, p.hint} {
 		p.view.Send(sel("addSubview:"), v)
 	}
 
@@ -96,6 +105,14 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 		nsString(windowDidBecomeKey), objc.ID(0))
 	p.timer = objc.ID(class("NSTimer")).Send(sel("scheduledTimerWithTimeInterval:target:selector:userInfo:repeats:"),
 		0.1, p.observer, sel("pollSearch:"), objc.ID(0), true)
+	p.monitor = objc.ID(objc.NewBlock(func(_ objc.Block, event objc.ID) objc.ID {
+		if p.previewing && objc.Send[uint16](event, sel("keyCode")) == 53 {
+			p.cx.Emit("hidePreview", nil)
+			return 0
+		}
+		return event
+	}))
+	objc.ID(class("NSEvent")).Send(sel("addLocalMonitorForEventsMatchingMask:handler:"), uint64(1<<10), p.monitor)
 
 	return p
 }
@@ -103,12 +120,30 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 func registerPanelTargets() {
 	var err error
 	panelViewClass, err = objc.RegisterClass("EcoPastePanelView", class("NSView"), nil, nil,
-		[]objc.MethodDef{{Cmd: sel("setFrameSize:"), Fn: func(self objc.ID, _ objc.SEL, size CGSize) {
-			sendSuper[objc.ID](self, panelViewClass, sel("setFrameSize:"), size)
-			if p := panelsByView[self]; p != nil {
-				layoutPanel(p, size.Width, size.Height)
-			}
-		}}})
+		[]objc.MethodDef{
+			{Cmd: sel("setFrameSize:"), Fn: func(self objc.ID, _ objc.SEL, size CGSize) {
+				sendSuper[objc.ID](self, panelViewClass, sel("setFrameSize:"), size)
+				if p := panelsByView[self]; p != nil {
+					layoutPanel(p, size.Width, size.Height)
+				}
+			}},
+			{Cmd: sel("keyDown:"), Fn: func(self objc.ID, _ objc.SEL, event objc.ID) {
+				p := panelsByView[self]
+				if p != nil && p.previewing && objc.Send[uint16](event, sel("keyCode")) == 53 {
+					p.cx.Emit("hidePreview", nil)
+					return
+				}
+				sendSuper[objc.ID](self, panelViewClass, sel("keyDown:"), event)
+			}},
+			{Cmd: sel("cancelOperation:"), Fn: func(self objc.ID, _ objc.SEL, sender objc.ID) {
+				p := panelsByView[self]
+				if p != nil && p.previewing {
+					p.cx.Emit("hidePreview", nil)
+					return
+				}
+				sendSuper[objc.ID](self, panelViewClass, sel("cancelOperation:"), sender)
+			}},
+		})
 	if err != nil {
 		panic(err)
 	}
@@ -153,6 +188,7 @@ func registerPanelTargets() {
 		panic(err)
 	}
 	registerHistoryTargets()
+	registerPreviewTargets()
 }
 
 func layoutPanel(p *Panel, width, height float64) {
@@ -180,6 +216,11 @@ func layoutPanel(p *Panel, width, height float64) {
 		if column := p.table.Send(sel("tableColumnWithIdentifier:"), nsString("history")); column != 0 {
 			column.Send(sel("setWidth:"), width)
 		}
+	}
+	if p.preview != 0 {
+		previewHeight := height - (footerHeight + 4) - pad
+		setFrame(p.preview, 0, footerHeight+4, width, previewHeight)
+		layoutPreview(p, width, previewHeight)
 	}
 
 	p.empty.Send(sel("sizeToFit"))
@@ -224,6 +265,10 @@ func (p *Panel) SetProp(name string, value any) {
 			p.errText = s
 			p.updateStatus()
 		}
+	case "preview":
+		if content, ok := value.(PreviewContent); ok {
+			p.setPreview(content)
+		}
 	}
 }
 
@@ -247,13 +292,21 @@ func (p *Panel) Close() {
 	center := objc.ID(class("NSNotificationCenter")).Send(sel("defaultCenter"))
 	center.Send(sel("removeObserver:"), p.observer)
 	p.timer.Send(sel("invalidate"))
+	if p.monitor != 0 {
+		objc.ID(class("NSEvent")).Send(sel("removeMonitor:"), p.monitor)
+	}
 	delete(panelsByObserver, p.observer)
 	delete(panelsBySearch, p.search)
 	delete(panelsByView, p.view)
 	delete(panelsByTable, p.table)
+	delete(panelsByPreviewView, p.preview)
+	delete(panelsByPreviewText, p.previewText)
 	p.observer.Send(sel("release"))
 	p.hint.Send(sel("release"))
 	p.footer.Send(sel("release"))
+	if p.preview != 0 {
+		p.preview.Send(sel("release"))
+	}
 	p.empty.Send(sel("release"))
 	p.divider.Send(sel("release"))
 	p.scroll.Send(sel("release"))
@@ -262,7 +315,9 @@ func (p *Panel) Close() {
 }
 
 func (p *Panel) updateStatus() {
-	if p.errText != "" {
+	if p.previewing {
+		p.empty.Send(sel("setHidden:"), true)
+	} else if p.errText != "" {
 		if len(p.rows) == 0 {
 			p.empty.Send(sel("setStringValue:"), nsString(p.errText))
 			p.empty.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("systemRedColor")))

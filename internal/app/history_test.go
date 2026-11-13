@@ -65,6 +65,58 @@ func TestHistoryItemRedactsSensitiveSummary(t *testing.T) {
 	}
 }
 
+func TestPreviewRedactsSensitiveText(t *testing.T) {
+	root := t.TempDir()
+	db, err := database.Open(filepath.Join(root, "clipboard.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { db.Close() })
+	store, err := settings.Open(filepath.Join(root, settings.FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	secret := "sk-" + strings.Repeat("z", 32)
+	item := &database.Item{
+		Kind:        database.KindText,
+		Content:     "token: " + secret,
+		Summary:     &secret,
+		IsSensitive: true,
+		Platform:    "macos",
+	}
+	id, _, err := db.Upsert(context.Background(), item)
+	if err != nil {
+		t.Fatal(err)
+	}
+	model := &historyModel{
+		runtime: &clipboardRuntime{db: db, images: storage.NewImageStore(filepath.Join(root, "resources"))},
+		store:   store,
+	}
+	preview, err := model.Preview(context.Background(), id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !preview.Enabled {
+		t.Fatal("preview was disabled")
+	}
+	if strings.Contains(preview.Text, secret) || strings.Contains(preview.Title, secret) {
+		t.Errorf("preview leaked secret: %+v", preview)
+	}
+
+	if _, err := store.Update(map[string]any{
+		"clipboard": map[string]any{"preview": map[string]any{"spaceEnabled": false}},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	preview, err = model.Preview(context.Background(), id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if preview.Enabled {
+		t.Error("preview stayed enabled after the setting was turned off")
+	}
+}
+
 func TestDeleteRemovesImageFile(t *testing.T) {
 	root := t.TempDir()
 	db, err := database.Open(filepath.Join(root, "db", "clipboard.db"))

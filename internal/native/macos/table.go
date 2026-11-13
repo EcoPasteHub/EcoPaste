@@ -48,6 +48,8 @@ func registerHistoryTargets() {
 				switch {
 				case key == 36 || key == 76:
 					p.cx.Emit("activate", p.selection)
+				case key == 49 && flags&((1<<20)|(1<<19)|(1<<18)|(1<<17)) == 0:
+					p.cx.Emit("preview", p.selection)
 				case key == 53:
 					p.cx.Emit("hide", nil)
 				case key == 51 || key == 117:
@@ -198,6 +200,7 @@ func newHistoryRow() objc.ID {
 	icon := objc.ID(class("NSImageView")).Send(sel("new"))
 	icon.Send(sel("setTag:"), int64(rowIconTag))
 	icon.Send(sel("setImageScaling:"), int64(3))
+	icon.Send(sel("setAccessibilityElement:"), false)
 	cell.Send(sel("addSubview:"), icon)
 	icon.Send(sel("release"))
 
@@ -229,7 +232,7 @@ func fillHistoryRow(cell objc.ID, row HistoryRow) {
 
 	var image objc.ID
 	if row.ImagePath != "" {
-		image = objc.ID(class("NSImage")).Send(sel("imageWithContentsOfFile:"), nsString(row.ImagePath))
+		image = loadImage(row.ImagePath)
 	}
 	if image != 0 {
 		icon.Send(sel("setImage:"), image)
@@ -238,6 +241,14 @@ func fillHistoryRow(cell objc.ID, row HistoryRow) {
 	}
 	icon.Send(sel("setImage:"), symbolImage(row.Kind))
 	icon.Send(sel("setContentTintColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
+}
+
+func loadImage(path string) objc.ID {
+	image := objc.ID(class("NSImage")).Send(sel("alloc")).Send(sel("initWithContentsOfFile:"), nsString(path))
+	if image == 0 {
+		return 0
+	}
+	return image.Send(sel("autorelease"))
 }
 
 func symbolImage(kind string) objc.ID {
