@@ -175,14 +175,16 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 		nsString(windowDidOrderOnScreen), objc.ID(0))
 	p.timer = objc.ID(class("NSTimer")).Send(sel("scheduledTimerWithTimeInterval:target:selector:userInfo:repeats:"),
 		0.1, p.observer, sel("pollSearch:"), objc.ID(0), true)
-	p.monitor = objc.ID(objc.NewBlock(func(_ objc.Block, event objc.ID) objc.ID {
+	monitorBlock := objc.NewBlock(func(_ objc.Block, event objc.ID) objc.ID {
 		if p.previewing && objc.Send[uint16](event, sel("keyCode")) == 53 {
 			p.cx.Emit("hidePreview", nil)
 			return 0
 		}
 		return event
-	}))
-	objc.ID(class("NSEvent")).Send(sel("addLocalMonitorForEventsMatchingMask:handler:"), uint64(1<<10), p.monitor)
+	})
+	p.monitor = objc.ID(class("NSEvent")).Send(sel("addLocalMonitorForEventsMatchingMask:handler:"),
+		uint64(1<<10), objc.ID(monitorBlock))
+	monitorBlock.Release()
 
 	return p
 }
@@ -405,12 +407,9 @@ func (p *Panel) Close() {
 	delete(panelsByPreviewView, p.preview)
 	delete(panelsByPreviewText, p.previewText)
 	p.observer.Send(sel("release"))
-	p.hint.Send(sel("release"))
-	p.footer.Send(sel("release"))
 	if p.preview != 0 {
 		p.preview.Send(sel("release"))
 	}
-	p.empty.Send(sel("release"))
 	p.divider.Send(sel("release"))
 	p.scroll.Send(sel("release"))
 	p.search.Send(sel("release"))
