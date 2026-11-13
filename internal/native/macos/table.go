@@ -36,25 +36,43 @@ var (
 func registerHistoryTargets() {
 	var err error
 	historyTableClass, err = objc.RegisterClass("EcoPasteHistoryTable", class("NSTableView"), nil, nil,
-		[]objc.MethodDef{{Cmd: sel("keyDown:"), Fn: func(self objc.ID, _ objc.SEL, event objc.ID) {
-			p := panelsByTable[self]
-			if p == nil {
-				sendSuper[objc.ID](self, historyTableClass, sel("keyDown:"), event)
-				return
-			}
-			key := objc.Send[uint16](event, sel("keyCode"))
-			flags := objc.Send[uint](event, sel("modifierFlags"))
-			switch {
-			case key == 36 || key == 76:
-				p.cx.Emit("activate", p.selection)
-			case key == 53:
-				p.cx.Emit("hide", nil)
-			case key == 8 && flags&(1<<20) != 0:
-				p.cx.Emit("copy", p.selection)
-			default:
-				sendSuper[objc.ID](self, historyTableClass, sel("keyDown:"), event)
-			}
-		}}})
+		[]objc.MethodDef{
+			{Cmd: sel("keyDown:"), Fn: func(self objc.ID, _ objc.SEL, event objc.ID) {
+				p := panelsByTable[self]
+				if p == nil {
+					sendSuper[objc.ID](self, historyTableClass, sel("keyDown:"), event)
+					return
+				}
+				key := objc.Send[uint16](event, sel("keyCode"))
+				flags := objc.Send[uint](event, sel("modifierFlags"))
+				switch {
+				case key == 36 || key == 76:
+					p.cx.Emit("activate", p.selection)
+				case key == 53:
+					p.cx.Emit("hide", nil)
+				case key == 51 || key == 117:
+					if confirmDelete() {
+						p.cx.Emit("delete", p.selection)
+					}
+				case key == 8 && flags&(1<<20) != 0:
+					p.cx.Emit("copy", p.selection)
+				default:
+					sendSuper[objc.ID](self, historyTableClass, sel("keyDown:"), event)
+				}
+			}},
+			{Cmd: sel("menuForEvent:"), Fn: func(self objc.ID, _ objc.SEL, event objc.ID) objc.ID {
+				p := panelsByTable[self]
+				if p == nil {
+					return 0
+				}
+				row := int(objc.Send[int64](self, sel("clickedRow")))
+				if row < 0 || row >= len(p.rows) {
+					return 0
+				}
+				p.selectRow(row)
+				return p.contextMenu(p.rows[row])
+			}},
+		})
 	if err != nil {
 		panic(err)
 	}
@@ -114,6 +132,16 @@ func registerHistoryTargets() {
 			p.selectRow(row)
 			if row >= 0 && row < len(p.rows) {
 				p.cx.Emit("activate", p.rows[row].ID)
+			}
+		}},
+		{Cmd: sel("menuPaste:"), Fn: menuAction("activate")},
+		{Cmd: sel("menuCopy:"), Fn: menuAction("copy")},
+		{Cmd: sel("menuFavorite:"), Fn: menuAction("toggleFavorite")},
+		{Cmd: sel("menuPin:"), Fn: menuAction("togglePinned")},
+		{Cmd: sel("menuDelete:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
+			p := menuPanel(sender)
+			if p != nil && confirmDelete() {
+				p.cx.Emit("delete", p.selection)
 			}
 		}},
 	})
@@ -220,8 +248,7 @@ func symbolImage(kind string) objc.ID {
 	case "files":
 		name = "folder"
 	}
-	return objc.ID(class("NSImage")).Send(sel("imageWithSystemSymbolName:accessibilityDescription:"),
-		nsString(name), nsString(""))
+	return systemSymbol(name)
 }
 
 func layoutHistoryRow(cell objc.ID, size CGSize) {
@@ -234,4 +261,65 @@ func layoutHistoryRow(cell objc.ID, size CGSize) {
 	setFrame(icon, left, (size.Height-iconSize)/2, iconSize, iconSize)
 	setFrame(title, textX, size.Height-30, size.Width-textX-14, 18)
 	setFrame(detail, textX, 12, size.Width-textX-14, 15)
+}
+
+func (p *Panel) contextMenu(row HistoryRow) objc.ID {
+	menu := objc.ID(class("NSMenu")).Send(sel("new"))
+	menu.Send(sel("setAutoenablesItems:"), false)
+	addMenuItem(menu, p.table, "粘贴", "menuPaste:", "arrow.down.doc", "")
+	addMenuItem(menu, p.table, "复制", "menuCopy:", "doc.on.doc", "c")
+	menu.Send(sel("addItem:"), objc.ID(class("NSMenuItem")).Send(sel("separatorItem")))
+
+	favorite := "收藏"
+	if row.Favorite {
+		favorite = "取消收藏"
+	}
+	addMenuItem(menu, p.table, favorite, "menuFavorite:", "star", "")
+	pin := "置顶"
+	if row.Pinned {
+		pin = "取消置顶"
+	}
+	addMenuItem(menu, p.table, pin, "menuPin:", "pin", "")
+	menu.Send(sel("addItem:"), objc.ID(class("NSMenuItem")).Send(sel("separatorItem")))
+	addMenuItem(menu, p.table, "删除", "menuDelete:", "trash", "")
+	return menu.Send(sel("autorelease"))
+}
+
+func addMenuItem(menu, table objc.ID, title, action, icon, key string) objc.ID {
+	item := objc.ID(class("NSMenuItem")).Send(sel("initWithTitle:action:keyEquivalent:"),
+		nsString(title), sel(action), nsString(key))
+	item.Send(sel("setTarget:"), historyTarget)
+	item.Send(sel("setRepresentedObject:"), table)
+	item.Send(sel("setImage:"), systemSymbol(icon))
+	menu.Send(sel("addItem:"), item)
+	item.Send(sel("release"))
+	return item
+}
+
+func menuPanel(item objc.ID) *Panel {
+	table := objc.Send[objc.ID](item, sel("representedObject"))
+	return panelsByTable[table]
+}
+
+func menuAction(event string) func(objc.ID, objc.SEL, objc.ID) {
+	return func(_ objc.ID, _ objc.SEL, sender objc.ID) {
+		if p := menuPanel(sender); p != nil {
+			p.cx.Emit(event, p.selection)
+		}
+	}
+}
+
+func confirmDelete() bool {
+	alert := objc.ID(class("NSAlert")).Send(sel("new"))
+	defer alert.Send(sel("release"))
+	alert.Send(sel("setMessageText:"), nsString("删除这条记录？"))
+	alert.Send(sel("setInformativeText:"), nsString("删除后无法恢复。"))
+	alert.Send(sel("addButtonWithTitle:"), nsString("删除"))
+	alert.Send(sel("addButtonWithTitle:"), nsString("取消"))
+	return alert.Send(sel("runModal")) == 1000
+}
+
+func systemSymbol(name string) objc.ID {
+	return objc.ID(class("NSImage")).Send(sel("imageWithSystemSymbolName:accessibilityDescription:"),
+		nsString(name), nsString(""))
 }

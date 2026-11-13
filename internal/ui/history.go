@@ -48,6 +48,9 @@ type HistoryModel interface {
 	Activate(context.Context, string) (paste bool, hide bool, err error)
 	SendPaste() error
 	NeedsAccessibility(error) bool
+	ToggleFavorite(context.Context, string) (bool, error)
+	TogglePinned(context.Context, string) (bool, error)
+	Delete(context.Context, string) error
 	Updates() <-chan struct{}
 }
 
@@ -170,6 +173,23 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 			}()
 		}
 
+		applyAction := func(id string, run func(context.Context, string) error) {
+			if id == "" || model == nil {
+				return
+			}
+			ctx := cx.Context()
+			go func() {
+				err := run(ctx, id)
+				cx.Post(func() {
+					if err != nil {
+						errorText.Set(err.Error())
+						return
+					}
+					load(query, false)
+				})
+			}()
+		}
+
 		var pendingSearch func() bool
 		cx.Cleanup(func() {
 			if pendingSearch != nil {
@@ -230,6 +250,35 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 						id = value
 					}
 					copyItem(id)
+				case "toggleFavorite":
+					applyAction(selectedID, func(ctx context.Context, id string) error {
+						_, err := model.ToggleFavorite(ctx, id)
+						return err
+					})
+				case "togglePinned":
+					applyAction(selectedID, func(ctx context.Context, id string) error {
+						_, err := model.TogglePinned(ctx, id)
+						return err
+					})
+				case "delete":
+					if selectedID == "" || model == nil {
+						return
+					}
+					id := selectedID
+					ctx := cx.Context()
+					go func() {
+						err := model.Delete(ctx, id)
+						cx.Post(func() {
+							if err != nil {
+								errorText.Set(err.Error())
+								return
+							}
+							if selectedID == id {
+								selectedID = ""
+							}
+							load(query, false)
+						})
+					}()
 				case "loadMore":
 					if hasMore.GetUntracked() && !loading.GetUntracked() {
 						load(query, true)

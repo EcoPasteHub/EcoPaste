@@ -83,6 +83,33 @@ func (m *historyModel) NeedsAccessibility(err error) bool {
 	return errors.Is(err, keystroke.ErrPermission)
 }
 
+func (m *historyModel) ToggleFavorite(ctx context.Context, id string) (bool, error) {
+	return m.runtime.db.ToggleFavorite(ctx, id)
+}
+
+func (m *historyModel) TogglePinned(ctx context.Context, id string) (bool, error) {
+	return m.runtime.db.TogglePinned(ctx, id)
+}
+
+func (m *historyModel) Delete(ctx context.Context, id string) error {
+	item, err := m.runtime.db.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if item == nil {
+		return nil
+	}
+	if err := m.runtime.db.Delete(ctx, id); err != nil {
+		return err
+	}
+	if item.Kind == database.KindImage {
+		if err := m.runtime.images.Remove(item.Content); err != nil {
+			return fmt.Errorf("删除图片文件: %w", err)
+		}
+	}
+	return nil
+}
+
 func (m *historyModel) write(ctx context.Context, item *database.Item, plain, countReuse bool) error {
 	if err := m.runtime.service.WriteItem(ctx, item, plain); err != nil {
 		return err

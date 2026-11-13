@@ -22,7 +22,7 @@
 | C-11 | P0 | 内容去重 | `db/items::upsert_item` | `blake3("<kind>:<content>")` 命中更新 | 已通过 | 真机重复复制 `use_count` 2；数据库测试 |
 | C-12 | P0 | 来源应用同步抓取 | `clipboard/source.rs` | 监听回调内取 frontmost app | 已通过 | 真机来源记录为 `com.openai.codex` |
 | C-13 | P1 | 来源应用图标 | `clipboard/icon.rs`、`app_store.rs` | `NSWorkspace` 取图标，PNG 缓存 | 待迁移 | 图标存在、去重、失效清理 |
-| C-14 | P0 | 忽略应用 | `Filters.excluded_app_ids` | bundle id 命中即跳过 | 待迁移 | 钥匙串/密码 App 默认排除 |
+| C-14 | P0 | 忽略应用 | `Filters.excluded_app_ids` | bundle id 命中即跳过 | 已通过 | 默认排除密码类 App；`TestIgnoredAppIsNotCaptured` |
 | C-15 | P0 | 敏感内容识别 | `clipboard/secrets.rs` | 私钥、token、AWS key、JWT、标签 secret | 待迁移 | 固定样本矩阵 |
 | C-16 | P0 | 敏感内容策略 | `collectSecrets`、`redactSecrets` | 跳过或脱敏，日志不落原文 | 待迁移 | 两种策略分别验证 |
 | C-17 | P0 | 回环抑制 | `clipboard/guard.rs` | 写回前登记 hash，2 秒 TTL | 已通过 | `TestWriteItemSuppressesItsOwnCapture` |
@@ -99,7 +99,7 @@
 | A-14 | P1 | 拖出文本 | `drag_out/macos.rs` | plain/HTML/RTF 多表示 | 待迁移 | 富文本目标 |
 | A-15 | P1 | 备注编辑 | `NoteModal` | 原生行内编辑或 `NSPanel` | 待迁移 | 保存/取消/空值 |
 | A-16 | P1 | 移动到分组 | 右键子菜单 | `NSMenu` 动态分组列表 | 待迁移 | 分组增删后菜单 |
-| A-17 | P0 | 删除条目 | `delete_clipboard_item` | 删除 DB 行 + 图片文件 | 待迁移 | 图片/文本/文件 |
+| A-17 | P0 | 删除条目 | `delete_clipboard_item` | 删除 DB 行 + 图片文件 | 已通过 | 右键/Delete 确认；`TestDeleteRemovesImageFile` |
 | A-18 | P1 | 自动粘贴 | `Content.auto_paste` | 单击/双击、粘贴/复制、禁用 | 迁移中 | 双击/回车与复制/禁用已接；单击触发待补 |
 | A-19 | P1 | 中键动作 | `Content.middle_click` | 粘贴/纯文本粘贴/复制/纯文本复制/禁用 | 待迁移 | 真实鼠标 |
 | A-20 | P1 | 悬停快捷动作 | `Content.item_actions` | 可配置、可排序 | 待迁移 | 配置变更即时生效 |
