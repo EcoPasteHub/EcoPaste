@@ -104,6 +104,8 @@ type SettingsView struct {
 	reset                objc.ID
 	accessibilityStatus  objc.ID
 	fullDiskStatus       objc.ID
+	diagnosticsDir       objc.ID
+	diagnosticsHint      objc.ID
 	permissionTimer      objc.ID
 	appsTable            objc.ID
 	appsEmpty            objc.ID
@@ -437,6 +439,7 @@ func (v *SettingsView) buildPermissions() {
 		"自动粘贴需要模拟 Command-V 快捷键。", "accessibilityPermissionPressed:")
 	v.fullDiskStatus = v.addPermission(content, y-80, "完全磁盘访问",
 		"读取受系统保护的目录和文件时需要。", "fullDiskAccessPermissionPressed:")
+	v.buildDiagnostics(content)
 	v.refreshPermissionLabels()
 	v.startPermissionTimer()
 }
@@ -702,6 +705,11 @@ func registerSettingsTargets() {
 				v.refreshPermissionLabels()
 			}
 		}},
+		{Cmd: sel("copyDiagnosticsPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
+			if v := settingsViews[sender]; v != nil {
+				v.copyDiagnostics()
+			}
+		}},
 		{Cmd: sel("addAppPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
 			v := settingsViews[sender]
 			if v == nil {
@@ -768,6 +776,7 @@ func (v *SettingsView) Command(string, any) {}
 func (v *SettingsView) apply(values SettingsValues) {
 	v.dataDir.Send(sel("setStringValue:"), nsString(values.DataDir))
 	v.dataDir.Send(sel("setToolTip:"), nsString(values.DataDir))
+	v.applyDiagnostics(values)
 	v.restore.Send(sel("setEnabled:"), values.CanRestoreDataDir)
 	v.applyApps(values)
 	v.applyActions(values)

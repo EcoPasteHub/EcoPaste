@@ -146,7 +146,7 @@
 | U-09 | P1 | 主题 | antd token + `light/dark` | AppKit 语义色 + `NSAppearance` | 已通过 | `TestSettingsModelAppliesTheme`；真机设置内切换深色立即生效并持久化，重启后面板与设置窗口保持深色；浅色下次启动验证 |
 | U-10 | P1 | 动画 | `motion` | AppKit 动画/`NSAnimationContext` | 待迁移 | 面板出现/预览连接线 |
 | U-11 | P2 | 滚动条 | `overlayscrollbars` | 系统 overlay scroller | 待迁移 | 深浅色 |
-| U-12 | P2 | 诊断 | `pages/Preference` 诊断区 | 原生诊断面板/复制信息 | 待迁移 | 数据目录/版本/权限 |
+| U-12 | P2 | 诊断 | `pages/Preference` 诊断区 | 原生诊断面板/复制信息 | 已通过 | “权限”页展示版本、macOS 版本、数据目录与两项权限状态，“复制诊断信息”写入剪贴板并显示反馈；真机 `pbpaste` 校验五项内容完整；`TestFormatDiagnosticReport` |
 
 ## 7. 国际化与文案
 
