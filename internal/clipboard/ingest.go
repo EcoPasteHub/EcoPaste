@@ -52,6 +52,13 @@ func (s *Service) Capture(ctx context.Context, payload Payload, source SourceApp
 	return id, true, nil
 }
 
+// BuildItem maps a payload to a history row with the current capture and
+// sensitive settings, without storing it. Importers use it to keep the
+// same size limits, detection and image handling as live capture.
+func (s *Service) BuildItem(payload Payload) (*database.Item, error) {
+	return s.buildItem(payload, SourceApp{})
+}
+
 func (s *Service) buildItem(payload Payload, source SourceApp) (*database.Item, error) {
 	capture := settings.Capture{}
 	sensitiveCfg := settings.Sensitive{CollectSecrets: true}
