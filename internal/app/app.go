@@ -40,6 +40,7 @@ func Run(app *core.Scope) {
 	var runtime *clipboardRuntime
 	var openSettings func()
 	var reloadHotkeys func() error
+	var tray *desktop.Tray
 	hotKeys := macos.NewHotKeyManager()
 	app.Cleanup(hotKeys.Close)
 	var store *settings.Store
@@ -199,6 +200,17 @@ func Run(app *core.Scope) {
 						runtime.Signal()
 					}
 				}
+				model.setTrayIcon = func(visible bool) error {
+					if tray == nil {
+						return fmt.Errorf("菜单栏图标尚未初始化")
+					}
+					icon := []byte(nil)
+					if visible {
+						icon = trayIcon()
+					}
+					tray.SetIcon(icon, true)
+					return nil
+				}
 				model.restart = func() {
 					app.Post(func() {
 						macos.ShowMessage("数据目录已更改",
@@ -290,8 +302,16 @@ func Run(app *core.Scope) {
 		panel.Toggle()
 	}
 
-	desktop.NewTray(app, desktop.TrayOptions{
-		Icon:     trayIcon(),
+	trayVisible := settings.Default().General.TrayIcon
+	if store != nil {
+		trayVisible = store.Snapshot().General.TrayIcon
+	}
+	var trayImage []byte
+	if trayVisible {
+		trayImage = trayIcon()
+	}
+	tray = desktop.NewTray(app, desktop.TrayOptions{
+		Icon:     trayImage,
 		Template: true,
 		Tooltip:  "EcoPaste",
 		Panel:    panel,

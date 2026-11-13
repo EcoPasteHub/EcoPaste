@@ -13,6 +13,7 @@ import (
 type settingsModel struct {
 	store                *settings.Store
 	setDockIcon          func(bool) error
+	setTrayIcon          func(bool) error
 	setAutoStart         func(bool) error
 	setAppearance        func(string) error
 	listApps             func() ([]database.App, error)
@@ -44,6 +45,7 @@ func (m *settingsModel) Load() macos.SettingsValues {
 	excluded := cfg.Filters.ExcludedAppIDs
 	return macos.SettingsValues{
 		DockIcon:               snapshot.General.DockIcon,
+		TrayIcon:               snapshot.General.TrayIcon,
 		AutoStart:              snapshot.General.AutoStart,
 		Theme:                  string(snapshot.Appearance.Theme),
 		DataDir:                m.currentDataDir(),
@@ -165,6 +167,12 @@ func (m *settingsModel) Apply(path string, value any) error {
 	if path == "general.dockIcon" && m.setDockIcon != nil {
 		visible, _ := value.(bool)
 		if err := m.setDockIcon(visible); err != nil {
+			return err
+		}
+	}
+	if path == "general.trayIcon" && m.setTrayIcon != nil {
+		visible, _ := value.(bool)
+		if err := m.setTrayIcon(visible); err != nil {
 			return err
 		}
 	}
@@ -323,6 +331,11 @@ func (m *settingsModel) resetSettings() error {
 			return err
 		}
 	}
+	if m.setTrayIcon != nil {
+		if err := m.setTrayIcon(next.General.TrayIcon); err != nil {
+			return err
+		}
+	}
 	if m.setAutoStart != nil {
 		if err := m.setAutoStart(next.General.AutoStart); err != nil {
 			return err
@@ -381,6 +394,7 @@ func (m *settingsModel) loadGroups() []macos.SettingsGroup {
 
 var settingsPaths = map[string][]string{
 	"general.dockIcon":              {"general", "dockIcon"},
+	"general.trayIcon":              {"general", "trayIcon"},
 	"general.autoStart":             {"general", "autoStart"},
 	"appearance.theme":              {"appearance", "theme"},
 	"copyPlain":                     {"clipboard", "content", "copyPlain"},

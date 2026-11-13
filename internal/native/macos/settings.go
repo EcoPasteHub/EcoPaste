@@ -17,6 +17,7 @@ const SettingsComponent = "ecopaste.settings"
 // SettingsValues is the view state of the settings window.
 type SettingsValues struct {
 	DockIcon               bool
+	TrayIcon               bool
 	AutoStart              bool
 	Theme                  string
 	DataDir                string
@@ -265,41 +266,42 @@ func (v *SettingsView) buildGeneral() {
 	y := 450.0
 	v.addSwitch(content, y, "显示 Dock 图标", "general.dockIcon",
 		func(s SettingsValues) bool { return s.DockIcon })
-	y -= 38
-	v.addSwitch(content, y, "复制后隐藏面板", "copyThenHideWindow",
+	v.addSwitch(content, y-38, "显示菜单栏图标", "general.trayIcon",
+		func(s SettingsValues) bool { return s.TrayIcon })
+	v.addSwitch(content, y-76, "复制后隐藏面板", "copyThenHideWindow",
 		func(s SettingsValues) bool { return s.CopyThenHideWindow })
-	v.addSwitch(content, y-38, "复制提示音", "feedback.copySound",
+	v.addSwitch(content, y-114, "复制提示音", "feedback.copySound",
 		func(s SettingsValues) bool { return s.CopySound })
-	v.addSwitch(content, y-76, "复制文本为纯文本", "copyPlain",
+	v.addSwitch(content, y-152, "复制文本为纯文本", "copyPlain",
 		func(s SettingsValues) bool { return s.CopyPlain })
-	v.addSwitch(content, y-114, "粘贴文本为纯文本", "pastePlain",
+	v.addSwitch(content, y-190, "粘贴文本为纯文本", "pastePlain",
 		func(s SettingsValues) bool { return s.PastePlain })
-	v.addSwitch(content, y-152, "复用后刷新排序", "updateOnReuse",
+	v.addSwitch(content, y-228, "复用后刷新排序", "updateOnReuse",
 		func(s SettingsValues) bool { return s.UpdateOnReuse })
-	v.addSwitch(content, y-190, "登录时启动", "general.autoStart",
+	v.addSwitch(content, y-266, "登录时启动", "general.autoStart",
 		func(s SettingsValues) bool { return s.AutoStart })
-	v.addPopup(content, y-228, "排序方式", "sort",
+	v.addPopup(content, y-304, "排序方式", "sort",
 		[]settingsOption{
 			{Title: "最近使用", Value: "updatedAtDesc"},
 			{Title: "创建时间", Value: "createdAtDesc"},
 			{Title: "使用次数", Value: "useCountDesc"},
 		},
 		func(s SettingsValues) string { return s.Sort })
-	v.addPopup(content, y-266, "面板打开位置", "window.position",
+	v.addPopup(content, y-342, "面板打开位置", "window.position",
 		[]settingsOption{
 			{Title: "跟随光标", Value: "followCursor"},
 			{Title: "屏幕居中", Value: "center"},
 			{Title: "记住位置", Value: "remember"},
 		},
 		func(s SettingsValues) string { return s.WindowPosition })
-	v.addPopup(content, y-304, "外观主题", "appearance.theme",
+	v.addPopup(content, y-380, "外观主题", "appearance.theme",
 		[]settingsOption{
 			{Title: "跟随系统", Value: "auto"},
 			{Title: "浅色", Value: "light"},
 			{Title: "深色", Value: "dark"},
 		},
 		func(s SettingsValues) string { return s.Theme })
-	v.buildDataDir(content, y-342)
+	v.buildDataDir(content, y-418)
 }
 
 func (v *SettingsView) buildDataDir(content objc.ID, y float64) {

@@ -163,7 +163,7 @@
 
 | ID | 设置组 | 字段 | 迁移要求 | 状态 | 验证方式 |
 | --- | --- | --- | --- | --- | --- |
-| S-01 | general | `autoStart`、`runAsAdmin`、`trayIcon`、`dockIcon` | `autoStart`/`dockIcon` 已接系统副作用；`trayIcon` 保留字段，`runAsAdmin` 仅 Windows 参考 | 迁移中 | 旧文件回环/系统行为 |
+| S-01 | general | `autoStart`、`runAsAdmin`、`trayIcon`、`dockIcon` | `autoStart`/`trayIcon`/`dockIcon` 已接系统副作用；`runAsAdmin` 仅 Windows 参考 | 已通过（产品调整） | `TestSettingsModelAppliesTrayIcon`；真机开发版切换“显示菜单栏图标”后状态即时落盘，重启后保持隐藏，再次开启可恢复图标；默认值、原子写回与重置副作用沿用设置层测试 |
 | S-02 | appearance | `theme`、`language` | `auto/light/dark`、`zh-CN/en-US` | 迁移中 | 主题三档已接入并即时应用；语言切换待补 |
 | S-03 | shortcuts | `openClipboard`、`openPreference`、`winV` | 保留；`winV` 仅 Windows 参考 | 已通过 | 两个快捷键均已读取并注册；“快捷键”页原生录制、清空、非法组合和重复校验可用；`TestSettingsModelAppliesShortcutAndRejectsDuplicate`、`TestSettingsModelRollsBackShortcutWhenRebindFails`；真机 `Alt+K` 改为 `Alt+J` 后立即写盘并重绑 |
 | S-04 | clipboard.capture | `text/html/rtf/image/files`、`maxTextMb`、`maxImageMb`、`order` | 采集顺序与上限一致 | 已通过 | `TestCaptureOrderAndTypeSwitches`、`TestSettingsModelAppliesCaptureOrder`；真机设置“采集”页选择纯文本上移/下移后，`settings.json` 即时写入完整五类顺序 |

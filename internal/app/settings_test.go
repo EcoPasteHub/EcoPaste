@@ -219,6 +219,31 @@ func TestSettingsModelAppliesDockIcon(t *testing.T) {
 	}
 }
 
+func TestSettingsModelAppliesTrayIcon(t *testing.T) {
+	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	model := newSettingsModel(store)
+	var applied []bool
+	model.setTrayIcon = func(visible bool) error {
+		applied = append(applied, visible)
+		return nil
+	}
+	if err := model.Apply("general.trayIcon", false); err != nil {
+		t.Fatal(err)
+	}
+	if store.Snapshot().General.TrayIcon {
+		t.Error("tray icon setting was not persisted")
+	}
+	if len(applied) != 1 || applied[0] {
+		t.Errorf("tray icon applications = %v", applied)
+	}
+	if model.Load().TrayIcon {
+		t.Error("tray icon setting was not loaded")
+	}
+}
+
 func TestSettingsModelAppliesTheme(t *testing.T) {
 	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
 	if err != nil {
@@ -341,10 +366,11 @@ func TestResetSettingsRestoresDefaultsAndSideEffects(t *testing.T) {
 		t.Fatal(err)
 	}
 	model := newSettingsModel(store)
-	var dockIcon, autoStart bool
+	var dockIcon, trayIcon, autoStart bool
 	var theme string
 	rebound, redisplayed := false, false
 	model.setDockIcon = func(on bool) error { dockIcon = on; return nil }
+	model.setTrayIcon = func(on bool) error { trayIcon = on; return nil }
 	model.setAutoStart = func(on bool) error { autoStart = on; return nil }
 	model.setAppearance = func(name string) error { theme = name; return nil }
 	model.onShortcutsChanged = func(string) error { rebound = true; return nil }
@@ -357,8 +383,9 @@ func TestResetSettingsRestoresDefaultsAndSideEffects(t *testing.T) {
 	if store.Snapshot().Clipboard.Content.CopyPlain {
 		t.Error("copyPlain was not reset")
 	}
-	if dockIcon != defaults.General.DockIcon || autoStart != defaults.General.AutoStart {
-		t.Errorf("dock icon = %v, autostart = %v", dockIcon, autoStart)
+	if dockIcon != defaults.General.DockIcon || trayIcon != defaults.General.TrayIcon ||
+		autoStart != defaults.General.AutoStart {
+		t.Errorf("dock icon = %v, tray icon = %v, autostart = %v", dockIcon, trayIcon, autoStart)
 	}
 	if theme != string(defaults.Appearance.Theme) {
 		t.Errorf("theme = %q", theme)
