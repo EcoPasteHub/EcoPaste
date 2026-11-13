@@ -24,7 +24,7 @@ func panelObserverMethods() []objc.MethodDef {
 		}},
 		{Cmd: sel("windowResignedKey:"), Fn: func(self objc.ID, _ objc.SEL, note objc.ID) {
 			p := panelsByObserver[self]
-			if p == nil || suppressPanelBlur.Load() || p.pinned || p.onboardingActive {
+			if p == nil || suppressPanelBlur.Load() || p.pinned || p.dragging || p.onboardingActive {
 				return
 			}
 			window := p.view.Send(sel("window"))

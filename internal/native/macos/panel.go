@@ -84,6 +84,7 @@ type Panel struct {
 	groups                        []GroupOption
 	display                       PanelDisplay
 	pinned                        bool
+	dragging                      bool
 }
 
 // PanelBehavior controls focus and query persistence when the panel opens

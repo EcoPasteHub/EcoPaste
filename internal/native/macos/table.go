@@ -253,8 +253,24 @@ func registerHistoryTargets() {
 			// so the queued single-click action must not fire.
 			cancelPendingClick(table)
 			p.pendingClick = ""
+			p.dragging = true
 			p.hideHover()
 			p.appendDragFiles(session)
+		}},
+		{Cmd: sel("tableView:draggingSession:endedAtPoint:operation:"), Fn: func(_ objc.ID, _ objc.SEL, table, _ objc.ID, _ CGPoint, _ uint64) {
+			p := panelsByTable[table]
+			if p == nil {
+				return
+			}
+			p.dragging = false
+			if p.pinned || p.onboardingActive || suppressPanelBlur.Load() {
+				return
+			}
+			window := p.view.Send(sel("window"))
+			if window != 0 && objc.Send[bool](window, sel("isVisible")) &&
+				!objc.Send[bool](window, sel("isKeyWindow")) {
+				p.cx.Emit("blurHide", nil)
+			}
 		}},
 		{Cmd: sel("tableView:willDisplayCell:forTableColumn:row:"), Fn: func(_ objc.ID, _ objc.SEL, table, _ objc.ID, _ objc.ID, row int64) {
 			p := panelsByTable[table]
