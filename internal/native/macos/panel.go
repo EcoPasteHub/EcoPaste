@@ -163,8 +163,15 @@ func layoutPanel(p *Panel, width, height float64) {
 	setFrame(p.divider, 0, dividerY, width, 1)
 
 	footerHeight := 28.0
-	setFrame(p.footer, pad, 8, width/2-pad, 16)
-	setFrame(p.hint, width/2, 8, width/2-pad, 16)
+	footerWidth := width/2 - pad
+	hintWidth := width/2 - pad
+	if p.errText != "" {
+		footerWidth = width - 2*pad
+		hintWidth = 0
+	}
+	p.hint.Send(sel("setHidden:"), p.errText != "")
+	setFrame(p.footer, pad, 8, footerWidth, 16)
+	setFrame(p.hint, width/2, 8, hintWidth, 16)
 	scrollY := footerHeight + 4
 	scrollHeight := dividerY - scrollY - 4
 	setFrame(p.scroll, 0, scrollY, width, scrollHeight)
@@ -254,9 +261,13 @@ func (p *Panel) Close() {
 
 func (p *Panel) updateStatus() {
 	if p.errText != "" {
-		p.empty.Send(sel("setStringValue:"), nsString(p.errText))
-		p.empty.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("systemRedColor")))
-		p.empty.Send(sel("setHidden:"), false)
+		if len(p.rows) == 0 {
+			p.empty.Send(sel("setStringValue:"), nsString(p.errText))
+			p.empty.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("systemRedColor")))
+			p.empty.Send(sel("setHidden:"), false)
+		} else {
+			p.empty.Send(sel("setHidden:"), true)
+		}
 	} else if len(p.rows) == 0 {
 		text := "暂无剪贴板记录"
 		if p.query != "" {
@@ -271,10 +282,15 @@ func (p *Panel) updateStatus() {
 	} else {
 		p.empty.Send(sel("setHidden:"), true)
 	}
-	if p.loading {
+	if p.errText != "" {
+		p.footer.Send(sel("setStringValue:"), nsString(p.errText))
+		p.footer.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("systemRedColor")))
+	} else if p.loading {
 		p.footer.Send(sel("setStringValue:"), nsString("正在加载…"))
+		p.footer.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
 	} else {
 		p.footer.Send(sel("setStringValue:"), nsString(fmt.Sprintf("%d 条记录", p.total)))
+		p.footer.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
 	}
 	p.empty.Send(sel("sizeToFit"))
 	frame := bounds(p.view)

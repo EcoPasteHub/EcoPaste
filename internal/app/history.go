@@ -6,6 +6,7 @@ import (
 
 	"github.com/EcoPasteHub/EcoPaste/internal/clipboard"
 	"github.com/EcoPasteHub/EcoPaste/internal/database"
+	"github.com/EcoPasteHub/EcoPaste/internal/keystroke"
 	"github.com/EcoPasteHub/EcoPaste/internal/settings"
 	"github.com/EcoPasteHub/EcoPaste/internal/ui"
 )
@@ -47,18 +48,49 @@ func (m *historyModel) Copy(ctx context.Context, id string) (bool, error) {
 	}
 	cfg := m.store.Snapshot().Clipboard
 	plain := item.Kind == database.KindText && cfg.Content.CopyPlain
-	if err := m.runtime.service.WriteItem(ctx, item, plain); err != nil {
+	if err := m.write(ctx, item, plain, cfg.Content.UpdateOnReuse); err != nil {
 		return false, err
-	}
-	if cfg.Content.UpdateOnReuse {
-		if err := m.runtime.db.IncrementUseCount(ctx, id); err != nil {
-			return false, err
-		}
 	}
 	return cfg.Content.CopyThenHideWindow, nil
 }
 
 func (m *historyModel) Updates() <-chan struct{} { return m.runtime.changed }
+
+func (m *historyModel) Activate(ctx context.Context, id string) (bool, bool, error) {
+	item, err := m.runtime.db.FindByID(ctx, id)
+	if err != nil {
+		return false, false, err
+	}
+	if item == nil {
+		return false, false, fmt.Errorf("剪贴板记录不存在")
+	}
+	cfg := m.store.Snapshot().Clipboard
+	paste := autoPaste(cfg.Content.AutoPaste)
+	if paste && !keystroke.Trusted() {
+		return false, false, keystroke.ErrPermission
+	}
+	plain := item.Kind == database.KindText && (cfg.Content.CopyPlain || cfg.Content.PastePlain)
+	if err := m.write(ctx, item, plain, cfg.Content.UpdateOnReuse); err != nil {
+		return false, false, err
+	}
+	return paste, paste || cfg.Content.CopyThenHideWindow, nil
+}
+
+func (m *historyModel) SendPaste() error { return keystroke.SendPaste() }
+
+func (m *historyModel) write(ctx context.Context, item *database.Item, plain, countReuse bool) error {
+	if err := m.runtime.service.WriteItem(ctx, item, plain); err != nil {
+		return err
+	}
+	if countReuse {
+		return m.runtime.db.IncrementUseCount(ctx, item.ID)
+	}
+	return nil
+}
+
+func autoPaste(action settings.AutoPaste) bool {
+	return action == settings.AutoPasteSingleClickPaste || action == settings.AutoPasteDoubleClickPaste
+}
 
 func (m *historyModel) historyItem(item database.Item) ui.HistoryItem {
 	row := ui.HistoryItem{

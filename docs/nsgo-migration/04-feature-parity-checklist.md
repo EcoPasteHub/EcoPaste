@@ -88,8 +88,8 @@
 | A-03 | P0 | 写回 RTF | `write.rs` | plain + `public.rtf` 同一 item | 迁移中 | 同上 |
 | A-04 | P0 | 写回图片 | `write.rs` | `public.png` + TIFF（按需） | 迁移中 | PNG 写回已实现；待真机验证 |
 | A-05 | P0 | 写回文件 | `write.rs` | `public.file-url` 多文件 | 迁移中 | `NSURL` 多文件写回已实现；待真机验证 |
-| A-06 | P0 | 粘贴 | `paste_clipboard_item` | 写回 + 让出 key + `CGEvent` ⌘V | 待迁移 | 固定/非固定窗口 |
-| A-07 | P0 | 纯文本粘贴 | `paste_plain` | 文本只写 plain；HTML/RTF 带 plain 回退 | 待迁移 | 每种类型 |
+| A-06 | P0 | 粘贴 | `paste_clipboard_item` | 写回 + 让出 key + `CGEvent` ⌘V | 迁移中 | 回车/双击已接 `CGEvent`；权限拒绝路径已验证，待授权后真机验收 |
+| A-07 | P0 | 纯文本粘贴 | `paste_plain` | 文本只写 plain；HTML/RTF 带 plain 回退 | 迁移中 | `PastePlain` 已接写回；待授权后逐类型验证 |
 | A-08 | P1 | 文件路径粘贴 | `paste_files_as_path` | 文件记录写回换行路径文本 | 待迁移 | 单/多文件 |
 | A-09 | P1 | 打开链接/邮件 | `open_clipboard_item_link` | `NSWorkspace.open` | 待迁移 | URL/mailto |
 | A-10 | P1 | Finder 显示 | `reveal_clipboard_item` | `NSWorkspace.activateFileViewerSelecting` | 待迁移 | 单/多文件 |
@@ -100,7 +100,7 @@
 | A-15 | P1 | 备注编辑 | `NoteModal` | 原生行内编辑或 `NSPanel` | 待迁移 | 保存/取消/空值 |
 | A-16 | P1 | 移动到分组 | 右键子菜单 | `NSMenu` 动态分组列表 | 待迁移 | 分组增删后菜单 |
 | A-17 | P0 | 删除条目 | `delete_clipboard_item` | 删除 DB 行 + 图片文件 | 待迁移 | 图片/文本/文件 |
-| A-18 | P1 | 自动粘贴 | `Content.auto_paste` | 单击/双击、粘贴/复制、禁用 | 待迁移 | 每种组合 |
+| A-18 | P1 | 自动粘贴 | `Content.auto_paste` | 单击/双击、粘贴/复制、禁用 | 迁移中 | 双击/回车与复制/禁用已接；单击触发待补 |
 | A-19 | P1 | 中键动作 | `Content.middle_click` | 粘贴/纯文本粘贴/复制/纯文本复制/禁用 | 待迁移 | 真实鼠标 |
 | A-20 | P1 | 悬停快捷动作 | `Content.item_actions` | 可配置、可排序 | 待迁移 | 配置变更即时生效 |
 | A-21 | P1 | 复制后隐藏 | `copyThenHideWindow` | 复制后按设置隐藏 | 迁移中 | 已接 `copyThenHideWindow`；待固定窗口例外 |

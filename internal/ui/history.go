@@ -45,6 +45,8 @@ type HistoryQuery struct {
 type HistoryModel interface {
 	List(context.Context, HistoryQuery) (HistoryPage, error)
 	Copy(context.Context, string) (hide bool, err error)
+	Activate(context.Context, string) (paste bool, hide bool, err error)
+	SendPaste() error
 	Updates() <-chan struct{}
 }
 
@@ -129,6 +131,37 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 			}()
 		}
 
+		activateItem := func(id string) {
+			if id == "" || model == nil {
+				return
+			}
+			ctx := cx.Context()
+			go func() {
+				paste, hideAfter, err := model.Activate(ctx, id)
+				cx.Post(func() {
+					if err != nil {
+						errorText.Set(err.Error())
+						loading.Set(false)
+						return
+					}
+					if hideAfter && hide != nil {
+						hide()
+					}
+					if paste {
+						cx.AfterFunc(70*time.Millisecond, func() {
+							if err := model.SendPaste(); err != nil {
+								errorText.Set(err.Error())
+								return
+							}
+							load(query, false)
+						})
+					} else {
+						load(query, false)
+					}
+				})
+			}()
+		}
+
 		var pendingSearch func() bool
 		cx.Cleanup(func() {
 			if pendingSearch != nil {
@@ -176,7 +209,13 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 					})
 				case "select":
 					selectedID, _ = data.(string)
-				case "activate", "copy":
+				case "activate":
+					id := selectedID
+					if value, ok := data.(string); ok && value != "" {
+						id = value
+					}
+					activateItem(id)
+				case "copy":
 					id := selectedID
 					if value, ok := data.(string); ok && value != "" {
 						id = value
