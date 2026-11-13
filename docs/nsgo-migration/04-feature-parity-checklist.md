@@ -135,7 +135,7 @@
 
 | ID | 优先级 | 功能 | 现有实现 | NSGo/AppKit 目标 | 状态 | 验证方式 |
 | --- | --- | --- | --- | --- | --- | --- |
-| U-01 | P0 | Clipboard 主页面 | `legacy/frontend/src/pages/Clipboard` | AppKit 搜索/分类/分组/列表/卡片/Footer | 迁移中 | 原生搜索、分类、自定义分组筛选、列表、Footer、实时刷新与复制已真机验证；卡片待补 |
+| U-01 | P0 | Clipboard 主页面 | `legacy/frontend/src/pages/Clipboard` | AppKit 搜索/分类/分组/列表/卡片/Footer | 已通过（产品调整） | 原生 `NSTableView` 行替代 WebView 卡片；类型标签、来源/时间、置顶/收藏状态、备注切换、悬停动作、搜索/分类/分组筛选、Footer、实时刷新与复制已真机验证；不再复刻圆角卡片边框，选择与密度遵循 AppKit；`TestHistoryRowIncludesMetadata`、`TestHistoryRowTypeLabels` |
 | U-02 | P1 | Preview 页面 | `legacy/frontend/src/pages/Preview` | 面板内原生预览 | 已通过 | 真机 Space/Esc；`TestPreviewRedactsSensitiveText` |
 | U-03 | P1 | Preference 页面 | `legacy/frontend/src/pages/Preference` | 原生 Tab/表单/搜索/高亮 | 迁移中 | 12 个原生 Tab、表单控件、全局搜索和高亮已可用；新增“预览”页控制 Space 预览；语言切换、更新/备份入口与其余 schema 设置项继续逐项对齐 |
 | U-04 | P1 | Onboarding 页面 | `legacy/frontend/src/pages/Onboarding` | 原生 6 步流程 | 已通过（产品调整） | `TestOnboardingDefaultsAndPersistence`、`TestOnboardingFinishAndClamp`、`TestOnboardingReportsShortcutsAndExcludedApps`；真机完成欢迎/权限/快捷键/排除应用/旧版导入/完成全流程，权限状态、快捷键展示、打开设置深链与旧版导入均通过；产品调整为导入步骤内展示结果、不自动跳步 |

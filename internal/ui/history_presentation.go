@@ -29,7 +29,8 @@ func historyRow(item HistoryItem) macos.HistoryRow {
 	if title == "" {
 		title = kindName(item.Kind)
 	}
-	detail := make([]string, 0, 4)
+	detail := make([]string, 0, 5)
+	detail = append(detail, typeName(item.Kind, item.SubKind))
 	if item.FileSummary != "" {
 		detail = append(detail, item.FileSummary)
 	}
@@ -71,6 +72,24 @@ func kindName(kind string) string {
 	default:
 		return "文本"
 	}
+}
+
+func typeName(kind, subKind string) string {
+	switch subKind {
+	case "html":
+		return "HTML"
+	case "rtf":
+		return "RTF"
+	case "url":
+		return "链接"
+	case "email":
+		return "邮件"
+	case "color":
+		return "颜色"
+	case "path":
+		return "路径"
+	}
+	return kindName(kind)
 }
 
 func relativeTime(now, then time.Time) string {

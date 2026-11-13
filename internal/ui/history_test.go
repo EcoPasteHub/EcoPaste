@@ -38,7 +38,7 @@ func TestHistoryRowIncludesMetadata(t *testing.T) {
 		Favorite:      true,
 		Pinned:        true,
 	})
-	if row.Title != "hello" || row.Detail != "Safari · 2 分钟前 · 已固定 · 收藏" {
+	if row.Title != "hello" || row.Detail != "文本 · Safari · 2 分钟前 · 已固定 · 收藏" {
 		t.Errorf("row = %+v", row)
 	}
 	if row.SourceIconPath != "/tmp/safari.png" {
@@ -64,8 +64,31 @@ func TestHistoryRowIncludesFileSummary(t *testing.T) {
 		FileSummary: "PDF · 2.0 KB",
 		CreatedAt:   time.Now(),
 	})
-	if !strings.HasPrefix(row.Detail, "PDF · 2.0 KB · 刚刚") {
+	if !strings.HasPrefix(row.Detail, "文件 · PDF · 2.0 KB · 刚刚") {
 		t.Errorf("detail = %q", row.Detail)
+	}
+}
+
+func TestHistoryRowTypeLabels(t *testing.T) {
+	cases := []struct {
+		kind, subKind, want string
+	}{
+		{"text", "", "文本"},
+		{"text", "html", "HTML"},
+		{"text", "rtf", "RTF"},
+		{"text", "url", "链接"},
+		{"text", "email", "邮件"},
+		{"text", "color", "颜色"},
+		{"text", "path", "路径"},
+		{"image", "", "图片"},
+		{"files", "", "文件"},
+	}
+	for _, tc := range cases {
+		row := historyRow(HistoryItem{Kind: tc.kind, SubKind: tc.subKind, Title: "content"})
+		if !strings.HasPrefix(row.Detail, tc.want) {
+			t.Errorf("type label for %s/%s = %q, want prefix %q",
+				tc.kind, tc.subKind, row.Detail, tc.want)
+		}
 	}
 }
 
