@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/database"
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 )
 
 const (
@@ -59,20 +60,20 @@ type ExportResult struct {
 func Export(ctx context.Context, src Source, target string, opts ExportOptions) (ExportResult, error) {
 	var result ExportResult
 	if src.Database == nil {
-		return result, errors.New("备份缺少数据库")
+		return result, errors.New(i18n.T(i18n.BackupMissingDatabase))
 	}
 	if opts.Mode != ModePlain && opts.Mode != ModeEncrypted {
-		return result, fmt.Errorf("未知备份模式 %q", opts.Mode)
+		return result, fmt.Errorf(i18n.T(i18n.BackupUnknownMode), opts.Mode)
 	}
 	if opts.Mode == ModeEncrypted && opts.Password == "" {
-		return result, errors.New("请输入备份密码")
+		return result, errors.New(i18n.T(i18n.BackupPasswordMissing))
 	}
 	path, err := NormalizePath(target)
 	if err != nil {
 		return result, err
 	}
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		return result, fmt.Errorf("创建备份目录: %w", err)
+		return result, fmt.Errorf(i18n.T(i18n.BackupCreateDirectory), err)
 	}
 	counts, err := src.Database.Counts(ctx)
 	if err != nil {
@@ -80,7 +81,7 @@ func Export(ctx context.Context, src Source, target string, opts ExportOptions) 
 	}
 	resourceBytes, err := dirSize(src.Resources)
 	if err != nil {
-		return result, fmt.Errorf("统计备份资源: %w", err)
+		return result, fmt.Errorf(i18n.T(i18n.BackupMeasureResources), err)
 	}
 	exportedAt := time.Now().UTC()
 	manifest := backupManifest{
@@ -108,7 +109,7 @@ func Export(ctx context.Context, src Source, target string, opts ExportOptions) 
 
 	work, err := os.MkdirTemp("", "ecopaste-backup-")
 	if err != nil {
-		return result, fmt.Errorf("创建备份临时目录: %w", err)
+		return result, fmt.Errorf(i18n.T(i18n.BackupCreateTemp), err)
 	}
 	defer os.RemoveAll(work)
 
@@ -128,7 +129,7 @@ func Export(ctx context.Context, src Source, target string, opts ExportOptions) 
 	}
 	info, err := os.Stat(path)
 	if err != nil {
-		return result, fmt.Errorf("读取备份文件: %w", err)
+		return result, fmt.Errorf(i18n.T(i18n.BackupReadFile), err)
 	}
 	result = ExportResult{
 		Path: path, TotalBytes: info.Size(),
@@ -143,7 +144,7 @@ func Export(ctx context.Context, src Source, target string, opts ExportOptions) 
 func NormalizePath(path string) (string, error) {
 	path = strings.TrimSpace(path)
 	if path == "" {
-		return "", errors.New("请选择备份文件位置")
+		return "", errors.New(i18n.T(i18n.BackupChoosePath))
 	}
 	ext := strings.ToLower(filepath.Ext(path))
 	switch ext {
@@ -152,7 +153,7 @@ func NormalizePath(path string) (string, error) {
 	case "." + Extension:
 		return path, nil
 	default:
-		return "", fmt.Errorf("备份文件后缀必须是 .%s", Extension)
+		return "", fmt.Errorf(i18n.T(i18n.BackupExtension), Extension)
 	}
 }
 
@@ -160,7 +161,7 @@ func writeContainer(target, payload string, opts ExportOptions) error {
 	parent := filepath.Dir(target)
 	temp, err := os.CreateTemp(parent, ".ecopastebak-*")
 	if err != nil {
-		return fmt.Errorf("创建备份文件: %w", err)
+		return fmt.Errorf(i18n.T(i18n.BackupCreateFile), err)
 	}
 	tempName := temp.Name()
 	defer os.Remove(tempName)
@@ -171,7 +172,7 @@ func writeContainer(target, payload string, opts ExportOptions) error {
 	case ModeEncrypted:
 		err = writeEncrypted(temp, payload, opts.Password)
 	default:
-		err = fmt.Errorf("未知备份模式 %q", opts.Mode)
+		err = fmt.Errorf(i18n.T(i18n.BackupUnknownMode), opts.Mode)
 	}
 	if err != nil {
 		temp.Close()
@@ -179,13 +180,13 @@ func writeContainer(target, payload string, opts ExportOptions) error {
 	}
 	if err := temp.Sync(); err != nil {
 		temp.Close()
-		return fmt.Errorf("同步备份文件: %w", err)
+		return fmt.Errorf(i18n.T(i18n.BackupSyncFile), err)
 	}
 	if err := temp.Close(); err != nil {
-		return fmt.Errorf("关闭备份文件: %w", err)
+		return fmt.Errorf(i18n.T(i18n.BackupCloseFile), err)
 	}
 	if err := os.Rename(tempName, target); err != nil {
-		return fmt.Errorf("保存备份文件: %w", err)
+		return fmt.Errorf(i18n.T(i18n.BackupSaveFile), err)
 	}
 	return nil
 }
@@ -193,11 +194,11 @@ func writeContainer(target, payload string, opts ExportOptions) error {
 func copyFile(dst *os.File, path string) error {
 	src, err := os.Open(path)
 	if err != nil {
-		return fmt.Errorf("打开备份载荷: %w", err)
+		return fmt.Errorf(i18n.T(i18n.BackupOpenPayload), err)
 	}
 	defer src.Close()
 	if _, err := dst.ReadFrom(src); err != nil {
-		return fmt.Errorf("写入备份载荷: %w", err)
+		return fmt.Errorf(i18n.T(i18n.BackupWritePayload), err)
 	}
 	return nil
 }

@@ -11,6 +11,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 )
 
 type backupManifest struct {
@@ -37,7 +39,7 @@ type payloadSource struct {
 func writePayload(path string, src payloadSource) error {
 	file, err := os.Create(path)
 	if err != nil {
-		return fmt.Errorf("创建备份载荷: %w", err)
+		return fmt.Errorf(i18n.T(i18n.BackupCreatePayload), err)
 	}
 	defer file.Close()
 
@@ -59,7 +61,7 @@ func writePayload(path string, src payloadSource) error {
 		return err
 	}
 	if err := writer.Close(); err != nil {
-		return fmt.Errorf("完成备份载荷: %w", err)
+		return fmt.Errorf(i18n.T(i18n.BackupFinishPayload), err)
 	}
 	return nil
 }
@@ -69,14 +71,14 @@ func writeManifest(writer *zip.Writer, manifest backupManifest) error {
 		Name: "manifest.json", Method: zip.Deflate, Modified: time.Now(),
 	})
 	if err != nil {
-		return fmt.Errorf("写入备份清单: %w", err)
+		return fmt.Errorf(i18n.T(i18n.BackupWriteManifest), err)
 	}
 	data, err := json.MarshalIndent(manifest, "", "  ")
 	if err != nil {
-		return fmt.Errorf("编码备份清单: %w", err)
+		return fmt.Errorf(i18n.T(i18n.BackupEncodeManifest), err)
 	}
 	if _, err := entry.Write(data); err != nil {
-		return fmt.Errorf("写入备份清单: %w", err)
+		return fmt.Errorf(i18n.T(i18n.BackupWriteManifest), err)
 	}
 	return nil
 }
@@ -84,7 +86,7 @@ func writeManifest(writer *zip.Writer, manifest backupManifest) error {
 func addFile(writer *zip.Writer, path, name string, required bool) error {
 	if path == "" {
 		if required {
-			return fmt.Errorf("备份缺少 %s", name)
+			return fmt.Errorf(i18n.T(i18n.BackupMissingEntry), name)
 		}
 		return nil
 	}
@@ -93,10 +95,10 @@ func addFile(writer *zip.Writer, path, name string, required bool) error {
 		if os.IsNotExist(err) && !required {
 			return nil
 		}
-		return fmt.Errorf("读取备份源 %s: %w", name, err)
+		return fmt.Errorf(i18n.T(i18n.BackupReadSource), name, err)
 	}
 	if info.IsDir() {
-		return fmt.Errorf("备份源 %s 是目录", name)
+		return fmt.Errorf(i18n.T(i18n.BackupSourceDirectory), name)
 	}
 	if skipName(info.Name()) {
 		return nil
@@ -105,15 +107,15 @@ func addFile(writer *zip.Writer, path, name string, required bool) error {
 		Name: name, Method: zip.Deflate, Modified: info.ModTime(),
 	})
 	if err != nil {
-		return fmt.Errorf("写入备份条目 %s: %w", name, err)
+		return fmt.Errorf(i18n.T(i18n.BackupWriteEntry), name, err)
 	}
 	file, err := os.Open(path)
 	if err != nil {
-		return fmt.Errorf("打开备份源 %s: %w", name, err)
+		return fmt.Errorf(i18n.T(i18n.BackupOpenSource), name, err)
 	}
 	defer file.Close()
 	if _, err := io.Copy(entry, file); err != nil {
-		return fmt.Errorf("写入备份条目 %s: %w", name, err)
+		return fmt.Errorf(i18n.T(i18n.BackupWriteEntry), name, err)
 	}
 	return nil
 }
@@ -143,13 +145,13 @@ func addDir(writer *zip.Writer, root, prefix string) error {
 		return nil
 	})
 	if err != nil {
-		return fmt.Errorf("读取备份资源: %w", err)
+		return fmt.Errorf(i18n.T(i18n.BackupReadResources), err)
 	}
 	sort.Strings(files)
 	for _, path := range files {
 		relative, err := filepath.Rel(root, path)
 		if err != nil {
-			return fmt.Errorf("计算备份资源路径: %w", err)
+			return fmt.Errorf(i18n.T(i18n.BackupResourcePath), err)
 		}
 		name, err := archiveName(prefix, relative)
 		if err != nil {
@@ -165,7 +167,7 @@ func addDir(writer *zip.Writer, root, prefix string) error {
 func archiveName(prefix, relative string) (string, error) {
 	clean := filepath.Clean(relative)
 	if clean == "." || filepath.IsAbs(clean) || strings.HasPrefix(clean, "..") {
-		return "", errors.New("备份路径越界")
+		return "", errors.New(i18n.T(i18n.BackupPathEscape))
 	}
 	return prefix + "/" + filepath.ToSlash(clean), nil
 }

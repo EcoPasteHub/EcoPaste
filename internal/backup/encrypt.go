@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"golang.org/x/crypto/argon2"
 	"golang.org/x/crypto/chacha20poly1305"
 )
@@ -66,7 +67,7 @@ func (b *byteList) UnmarshalJSON(data []byte) error {
 	result := make([]byte, len(values))
 	for i, value := range values {
 		if value < 0 || value > 255 {
-			return fmt.Errorf("备份字节值 %d 越界", value)
+			return fmt.Errorf(i18n.T(i18n.BackupByteOutOfRange), value)
 		}
 		result[i] = byte(value)
 	}
@@ -77,7 +78,7 @@ func (b *byteList) UnmarshalJSON(data []byte) error {
 func writeEncrypted(dst io.Writer, payload, password string) error {
 	data, err := os.ReadFile(payload)
 	if err != nil {
-		return fmt.Errorf("读取备份载荷: %w", err)
+		return fmt.Errorf(i18n.T(i18n.BackupReadPayload), err)
 	}
 	header, ciphertext, err := encryptPayload(data, password)
 	if err != nil {
@@ -85,22 +86,22 @@ func writeEncrypted(dst io.Writer, payload, password string) error {
 	}
 	headerBytes, err := json.Marshal(header)
 	if err != nil {
-		return fmt.Errorf("编码备份文件头: %w", err)
+		return fmt.Errorf(i18n.T(i18n.BackupEncodeHeader), err)
 	}
 	if len(headerBytes) > 1<<20 {
-		return errors.New("备份文件头过大")
+		return errors.New(i18n.T(i18n.BackupHeaderTooLarge))
 	}
 	if _, err := io.WriteString(dst, magic); err != nil {
-		return fmt.Errorf("写入备份文件: %w", err)
+		return fmt.Errorf(i18n.T(i18n.BackupWriteFile), err)
 	}
 	if err := binary.Write(dst, binary.LittleEndian, uint32(len(headerBytes))); err != nil {
-		return fmt.Errorf("写入备份文件: %w", err)
+		return fmt.Errorf(i18n.T(i18n.BackupWriteFile), err)
 	}
 	if _, err := dst.Write(headerBytes); err != nil {
-		return fmt.Errorf("写入备份文件: %w", err)
+		return fmt.Errorf(i18n.T(i18n.BackupWriteFile), err)
 	}
 	if _, err := dst.Write(ciphertext); err != nil {
-		return fmt.Errorf("写入备份文件: %w", err)
+		return fmt.Errorf(i18n.T(i18n.BackupWriteFile), err)
 	}
 	return nil
 }
@@ -109,15 +110,15 @@ func encryptPayload(payload []byte, password string) (*containerHeader, []byte, 
 	salt := make([]byte, saltLength)
 	nonce := make([]byte, nonceLength)
 	if _, err := rand.Read(salt); err != nil {
-		return nil, nil, fmt.Errorf("生成备份盐: %w", err)
+		return nil, nil, fmt.Errorf(i18n.T(i18n.BackupGenerateSalt), err)
 	}
 	if _, err := rand.Read(nonce); err != nil {
-		return nil, nil, fmt.Errorf("生成备份随机数: %w", err)
+		return nil, nil, fmt.Errorf(i18n.T(i18n.BackupGenerateNonce), err)
 	}
 	key := argon2.IDKey([]byte(password), salt, argonTimeCost, argonMemoryKiB, argonThreads, keyLength)
 	aead, err := chacha20poly1305.NewX(key)
 	if err != nil {
-		return nil, nil, fmt.Errorf("初始化备份加密: %w", err)
+		return nil, nil, fmt.Errorf(i18n.T(i18n.BackupInitEncrypt), err)
 	}
 	ciphertext := aead.Seal(nil, nonce, payload, nil)
 	header := &containerHeader{
@@ -136,7 +137,7 @@ func encryptPayload(payload []byte, password string) (*containerHeader, []byte, 
 func readPayload(path, password string) ([]byte, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("读取备份文件: %w", err)
+		return nil, fmt.Errorf(i18n.T(i18n.BackupReadFile), err)
 	}
 	return decodePayload(data, password)
 }
@@ -146,39 +147,39 @@ func decodePayload(data []byte, password string) ([]byte, error) {
 		return data, nil
 	}
 	if len(data) < len(magic)+4 || string(data[:len(magic)]) != magic {
-		return nil, errors.New("不是有效的 EcoPaste 备份文件")
+		return nil, errors.New(i18n.T(i18n.BackupInvalidFile))
 	}
 	header, headerSize, err := readHeaderWithSize(data[len(magic):])
 	if err != nil {
 		return nil, err
 	}
 	if header.Mode != ModeEncrypted || header.KDF == nil || header.Cipher == nil {
-		return nil, errors.New("加密备份文件头无效")
+		return nil, errors.New(i18n.T(i18n.BackupInvalidHeader))
 	}
 	if header.KDF.Algorithm != "argon2id" || header.Cipher.Algorithm != "xchacha20poly1305" {
-		return nil, errors.New("暂不支持该备份加密格式")
+		return nil, errors.New(i18n.T(i18n.BackupUnsupportedEncrypt))
 	}
 	if len(header.KDF.Salt) != saltLength || len(header.Cipher.Nonce) != nonceLength {
-		return nil, errors.New("加密备份文件头无效")
+		return nil, errors.New(i18n.T(i18n.BackupInvalidHeader))
 	}
 	if header.KDF.TimeCost < 1 || header.KDF.TimeCost > 10 ||
 		header.KDF.MemoryKiB < 8*1024 || header.KDF.MemoryKiB > 256*1024 ||
 		header.KDF.Parallelism < 1 || header.KDF.Parallelism > 8 {
-		return nil, errors.New("加密备份参数无效")
+		return nil, errors.New(i18n.T(i18n.BackupInvalidEncryption))
 	}
 	if password == "" {
-		return nil, errors.New("请输入备份密码")
+		return nil, errors.New(i18n.T(i18n.BackupPasswordMissing))
 	}
 	key := argon2.IDKey([]byte(password), header.KDF.Salt,
 		header.KDF.TimeCost, header.KDF.MemoryKiB, uint8(header.KDF.Parallelism), keyLength)
 	aead, err := chacha20poly1305.NewX(key)
 	if err != nil {
-		return nil, fmt.Errorf("初始化备份解密: %w", err)
+		return nil, fmt.Errorf(i18n.T(i18n.BackupInitDecrypt), err)
 	}
 	start := len(magic) + 4 + headerSize
 	payload, err := aead.Open(nil, header.Cipher.Nonce, data[start:], nil)
 	if err != nil {
-		return nil, errors.New("备份密码不正确或文件已损坏")
+		return nil, errors.New(i18n.T(i18n.BackupWrongPassword))
 	}
 	return payload, nil
 }
@@ -191,17 +192,17 @@ func readHeader(data []byte) (containerHeader, error) {
 func readHeaderWithSize(data []byte) (containerHeader, int, error) {
 	var header containerHeader
 	if len(data) < 4 {
-		return header, 0, errors.New("加密备份文件头无效")
+		return header, 0, errors.New(i18n.T(i18n.BackupInvalidHeader))
 	}
 	headerSize := int(binary.LittleEndian.Uint32(data[:4]))
 	if headerSize <= 0 || headerSize > 64*1024 || 4+headerSize > len(data) {
-		return header, 0, errors.New("加密备份文件头无效")
+		return header, 0, errors.New(i18n.T(i18n.BackupInvalidHeader))
 	}
 	if err := json.Unmarshal(data[4:4+headerSize], &header); err != nil {
-		return header, 0, fmt.Errorf("解析备份文件头: %w", err)
+		return header, 0, fmt.Errorf(i18n.T(i18n.BackupParseHeader), err)
 	}
 	if header.FormatVersion != formatVersion {
-		return header, 0, fmt.Errorf("暂不支持备份格式版本 %d", header.FormatVersion)
+		return header, 0, fmt.Errorf(i18n.T(i18n.BackupUnsupportedVersion), header.FormatVersion)
 	}
 	return header, headerSize, nil
 }

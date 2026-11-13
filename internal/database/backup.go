@@ -3,6 +3,8 @@ package database
 import (
 	"context"
 	"fmt"
+
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 )
 
 // ItemCounts are the manifest totals of a backup.
@@ -18,7 +20,7 @@ type ItemCounts struct {
 // untouched.
 func (d *DB) Snapshot(ctx context.Context, path string) error {
 	if _, err := d.sql.ExecContext(ctx, "VACUUM INTO ?", path); err != nil {
-		return fmt.Errorf("快照数据库: %w", err)
+		return fmt.Errorf(i18n.T(i18n.DatabaseSnapshot), err)
 	}
 	return nil
 }
@@ -33,7 +35,7 @@ func (d *DB) Counts(ctx context.Context) (ItemCounts, error) {
 			COALESCE(SUM(kind = 'files'), 0)
 		FROM clipboard_items`)
 	if err := row.Scan(&counts.Items, &counts.Text, &counts.Images, &counts.Files); err != nil {
-		return counts, fmt.Errorf("统计备份条目: %w", err)
+		return counts, fmt.Errorf(i18n.T(i18n.DatabaseCountBackup), err)
 	}
 	return counts, nil
 }

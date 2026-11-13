@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/database"
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 )
 
 func testSource(t *testing.T) (Source, string) {
@@ -134,6 +135,20 @@ func TestNormalizePath(t *testing.T) {
 	}
 	if _, err := NormalizePath("/tmp/a.zip"); err == nil {
 		t.Error("NormalizePath accepted another extension")
+	}
+}
+
+func TestBackupErrorsFollowLanguage(t *testing.T) {
+	previous := i18n.Current()
+	t.Cleanup(func() { i18n.SetLanguage(string(previous)) })
+	i18n.SetLanguage("en-US")
+
+	if _, err := NormalizePath(" "); err == nil || err.Error() != "Choose a location for the backup file" {
+		t.Fatalf("empty path error = %v", err)
+	}
+	if _, err := NormalizePath("backup.zip"); err == nil ||
+		err.Error() != "Backup file extension must be .ecopastebak" {
+		t.Fatalf("extension error = %v", err)
 	}
 }
 
