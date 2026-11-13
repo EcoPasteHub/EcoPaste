@@ -43,6 +43,9 @@ func TestHistoryRowIncludesMetadata(t *testing.T) {
 	if row.SourceIconPath != "/tmp/safari.png" {
 		t.Errorf("source icon = %q", row.SourceIconPath)
 	}
+	if row.Note != "greeting" {
+		t.Errorf("note = %q", row.Note)
+	}
 }
 
 func TestFileTitleLimitsNames(t *testing.T) {

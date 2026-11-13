@@ -360,6 +360,15 @@ func (d *DB) SetNote(ctx context.Context, id string, note *string) error {
 	return nil
 }
 
+// MarkFavorite sets the favorite flag without touching updated_at.
+func (d *DB) MarkFavorite(ctx context.Context, id string) error {
+	if _, err := d.sql.ExecContext(ctx,
+		"UPDATE clipboard_items SET is_favorite = 1 WHERE id = ?", id); err != nil {
+		return fmt.Errorf("mark item favorite: %w", err)
+	}
+	return nil
+}
+
 // SetGroup moves an item into a group without touching updated_at.
 func (d *DB) SetGroup(ctx context.Context, id string, groupID *string) error {
 	_, err := d.sql.ExecContext(ctx, "UPDATE clipboard_items SET group_id = ? WHERE id = ?", groupID, id)

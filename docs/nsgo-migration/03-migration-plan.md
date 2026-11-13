@@ -223,6 +223,7 @@ internal/native/macos/
    - `NSMenu` 动作分组、快捷键、分组子菜单。
    - 菜单动作回到 Go 业务层，不在 UI 内写业务逻辑。
    - 按内容动态精简菜单：URL/邮件提供打开，路径/文件提供 Finder 定位，图片提供另存，避免所有条目堆同一套无关动作。
+   - 备注使用原生模态编辑，移除备注会归一为 NULL；非空备注遵循 `autoFavorite` 联动收藏。
 5. 拖出：
    - `NSDraggingSession` + `NSPasteboardItem`。
    - 文件、图片、纯文本、HTML/RTF 多格式。

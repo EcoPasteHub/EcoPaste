@@ -3,6 +3,8 @@
 package macos
 
 import (
+	"strings"
+
 	"github.com/ebitengine/purego/objc"
 )
 
@@ -15,6 +17,7 @@ type HistoryRow struct {
 	Detail         string
 	ImagePath      string
 	SourceIconPath string
+	Note           string
 	Favorite       bool
 	Pinned         bool
 }
@@ -157,6 +160,7 @@ func registerHistoryTargets() {
 		{Cmd: sel("menuOpen:"), Fn: menuAction("open")},
 		{Cmd: sel("menuReveal:"), Fn: menuAction("reveal")},
 		{Cmd: sel("menuSaveImage:"), Fn: menuAction("saveImage")},
+		{Cmd: sel("menuNote:"), Fn: menuAction("editNote")},
 		{Cmd: sel("menuDelete:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
 			p := menuPanel(sender)
 			if p != nil && confirmDelete() {
@@ -341,6 +345,11 @@ func (p *Panel) populateMenu(menu objc.ID, row HistoryRow) {
 	if row.Kind == "image" {
 		addMenuItem(menu, p.table, "存储图片…", "menuSaveImage:", "square.and.arrow.down", "")
 	}
+	note := "添加备注…"
+	if strings.TrimSpace(row.Note) != "" {
+		note = "编辑备注…"
+	}
+	addMenuItem(menu, p.table, note, "menuNote:", "note.text", "")
 	menu.Send(sel("addItem:"), objc.ID(class("NSMenuItem")).Send(sel("separatorItem")))
 
 	favorite := "收藏"

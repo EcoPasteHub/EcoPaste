@@ -65,6 +65,7 @@ type HistoryModel interface {
 	Open(context.Context, string) error
 	Reveal(context.Context, string) error
 	SaveImage(context.Context, string) error
+	EditNote(context.Context, string) (bool, error)
 	Preview(context.Context, string) (HistoryPreview, error)
 	Updates() <-chan struct{}
 }
@@ -366,6 +367,24 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 							}
 						})
 					}()
+				case "editNote":
+					if selectedID == "" || model == nil {
+						return
+					}
+					id := selectedID
+					ctx := cx.Context()
+					go func() {
+						saved, err := model.EditNote(ctx, id)
+						cx.Post(func() {
+							if err != nil {
+								errorText.Set(err.Error())
+								return
+							}
+							if saved {
+								load(query, false)
+							}
+						})
+					}()
 				case "loadMore":
 					if hasMore.GetUntracked() && !loading.GetUntracked() {
 						load(query, true)
@@ -413,6 +432,7 @@ func historyRow(item HistoryItem) macos.HistoryRow {
 		Detail:         strings.Join(detail, " · "),
 		ImagePath:      item.ImagePath,
 		SourceIconPath: item.SourceAppIcon,
+		Note:           item.Note,
 		Favorite:       item.Favorite,
 		Pinned:         item.Pinned,
 	}

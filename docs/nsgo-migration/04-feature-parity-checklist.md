@@ -42,7 +42,7 @@
 | D-06 | P0 | 排序 | `settings.clipboard.content.sort` | 置顶优先，再按时间/使用次数 | 已通过 | `TestPagePaginationAndPinnedFirst` |
 | D-07 | P0 | 分页 | `ClipboardItemPage` | `list + total + has_more` | 已通过 | `Page` 返回 total/hasMore |
 | D-08 | P0 | 收藏 | `toggle_item_favorite` | `is_favorite`，不刷新 `updated_at` | 已通过 | `TestMetadataUpdatesKeepUpdatedAt` |
-| D-09 | P1 | 自动收藏 | `autoFavorite` | 入库时按规则收藏 | 待迁移 | 开关与规则边界 |
+| D-09 | P1 | 自动收藏 | `autoFavorite` | 写非空备注时联动收藏 | 已通过 | `TestEditNoteNormalizesAndAutoFavorites`；清空备注不触发 |
 | D-10 | P0 | 置顶 | `toggle_item_pinned` | `is_pinned`，排序最前 | 已通过 | 排序测试覆盖 |
 | D-11 | P0 | 备注 | `update_item_note` | 更新 note，不刷新 `updated_at` | 已通过 | `SetNote` + `updated_at` 不变测试 |
 | D-12 | P0 | 分组 | `db/groups.rs` | 名称、SVG 图标导入、隐藏、排序 | 待迁移 | 创建/改名/隐藏/删除/SVG |
@@ -97,7 +97,7 @@
 | A-12 | P1 | 拖出文件 | `drag_out/macos.rs` | `NSDraggingSession` + file URL | 待迁移 | Finder/浏览器/聊天工具 |
 | A-13 | P1 | 拖出图片 | `drag_out/macos.rs` | `NSDraggingSession` + PNG | 待迁移 | 同上 |
 | A-14 | P1 | 拖出文本 | `drag_out/macos.rs` | plain/HTML/RTF 多表示 | 待迁移 | 富文本目标 |
-| A-15 | P1 | 备注编辑 | `NoteModal` | 原生行内编辑或 `NSPanel` | 待迁移 | 保存/取消/空值 |
+| A-15 | P1 | 备注编辑 | `NoteModal` | 原生备注弹窗，256 字符上限 | 已通过 | `TestEditNoteNormalizesAndAutoFavorites`、`TestEditNoteCancelAndClear`、`TestEditNoteLimitsLength`；保存/取消/空值/自动收藏已覆盖 |
 | A-16 | P1 | 移动到分组 | 右键子菜单 | `NSMenu` 动态分组列表 | 待迁移 | 分组增删后菜单 |
 | A-17 | P0 | 删除条目 | `delete_clipboard_item` | 删除 DB 行 + 图片文件 | 已通过 | 右键/Delete 确认；`TestDeleteRemovesImageFile` |
 | A-18 | P1 | 自动粘贴 | `Content.auto_paste` | 单击/双击、粘贴/复制、禁用 | 迁移中 | 双击/回车与复制/禁用已接；单击触发待补 |
@@ -111,7 +111,7 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | W-01 | P0 | 剪贴板面板 | `window/macos.rs` | `NSPanel`，非激活、可 key、置顶、无边框、透明 | 待迁移 | 全屏/多 Space/多屏 |
 | W-02 | P0 | 窗口定位 | `window/position.rs` | 跟随鼠标/居中/记住位置 | 待迁移 | 三种模式 |
-| W-03 | P0 | 失焦隐藏 | `window/macos.rs` | 自定义 resign-key 隐藏 + modal 期间暂停 | 迁移中 | 真机切换 Finder 后面板隐藏；系统另存面板打开期间面板保持；固定窗口、备注编辑、拖拽保护待补 |
+| W-03 | P0 | 失焦隐藏 | `window/macos.rs` | 自定义 resign-key 隐藏 + modal 期间暂停 | 迁移中 | 真机切换 Finder 后面板隐藏；系统另存面板打开期间面板保持；备注弹窗已接入暂停，固定窗口、拖拽保护待补 |
 | W-04 | P0 | 固定窗口 | `set_clipboard_window_pinned` | 固定不隐藏；粘贴时 resign/restore key | 待迁移 | 固定后连续粘贴 |
 | W-05 | P1 | 窗口生命周期 | `window/lifecycle/*` | 原生窗口状态机，无 WebView 重建 | 待迁移 | 冷启/热显/隐藏/退出 |
 | W-06 | P1 | 窗口几何持久化 | `window/state.rs` | 同 `state/window-state.json` | 待迁移 | 重启/换屏 |
@@ -125,7 +125,7 @@
 | W-14 | P1 | Dock 图标显隐 | `show_taskbar_icon` | `NSApplication.setActivationPolicy` | 待迁移 | 显示/隐藏/重启 |
 | W-15 | P1 | 单实例 | `tauri-plugin-single-instance` | macOS bundle 单实例 + `OnReopen` | 待迁移 | 二次启动/文件打开 |
 | W-16 | P1 | 文件关联 | `tauri.conf.json`、`backup/*` | `nsgo.yaml file_types` + `OnOpenFiles` | 待迁移 | 双击/拖到 Dock |
-| W-17 | P1 | 原生右键菜单 | `menu/clipboard_item.rs` | `NSMenu` 按内容动态生成动作 | 迁移中 | URL/图片/路径菜单已真机验证；粘贴、复制、打开、Finder、另存、收藏、置顶、删除已接；分组/备注/快捷键待补 |
+| W-17 | P1 | 原生右键菜单 | `menu/clipboard_item.rs` | `NSMenu` 按内容动态生成动作 | 迁移中 | URL/图片/路径菜单已真机验证；粘贴、复制、打开、Finder、另存、备注、收藏、置顶、删除已接；分组/快捷键待补 |
 | W-18 | P1 | 权限 | `PermissionControl` | 辅助功能/完全磁盘访问检测与跳转 | 迁移中 | 辅助功能检测、原生说明弹窗与系统设置跳转已接；FDA 待补 |
 | W-19 | P2 | 防默认行为 | `core/prevent_default.rs` | 无 WebView，不需要 | 不纳入 macOS 首版 | 确认无 WebView 入口 |
 | W-20 | P1 | 更新 | `update.rs` | NSGo updater + Sparkle appcast | 待迁移 | 测试源真实升级 |

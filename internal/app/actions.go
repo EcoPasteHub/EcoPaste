@@ -17,7 +17,10 @@ var (
 	openFile     = macos.OpenPath
 	revealFiles  = macos.RevealPaths
 	chooseSave   = macos.SavePanel
+	editNote     = macos.EditNote
 )
+
+const noteMaxChars = 256
 
 // Open opens a link, email or existing path.
 func (m *historyModel) Open(ctx context.Context, id string) error {
@@ -89,6 +92,43 @@ func (m *historyModel) SaveImage(ctx context.Context, id string) error {
 		return fmt.Errorf("保存图片: %w", err)
 	}
 	return nil
+}
+
+// EditNote opens the native note editor, normalizes the value and applies
+// auto-favorite when the setting is enabled.
+func (m *historyModel) EditNote(ctx context.Context, id string) (bool, error) {
+	item, err := m.runtime.db.FindByID(ctx, id)
+	if err != nil {
+		return false, err
+	}
+	if item == nil {
+		return false, fmt.Errorf("剪贴板记录不存在")
+	}
+	current := ""
+	if item.Note != nil {
+		current = *item.Note
+	}
+	value, ok := editNote(current)
+	if !ok {
+		return false, nil
+	}
+	value = strings.TrimSpace(value)
+	var note *string
+	if value != "" {
+		if runes := []rune(value); len(runes) > noteMaxChars {
+			value = string(runes[:noteMaxChars])
+		}
+		note = &value
+	}
+	if err := m.runtime.db.SetNote(ctx, id, note); err != nil {
+		return false, err
+	}
+	if note != nil && m.store != nil && m.store.Snapshot().Clipboard.Content.AutoFavorite {
+		if err := m.runtime.db.MarkFavorite(ctx, id); err != nil {
+			return false, err
+		}
+	}
+	return true, nil
 }
 
 func writeAtomic(path string, data []byte) error {
