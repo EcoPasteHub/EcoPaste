@@ -50,6 +50,29 @@ func TestImageStoreIsIdempotent(t *testing.T) {
 	}
 }
 
+func TestImageStoreUsesPublishedBLAKE3NameAndShard(t *testing.T) {
+	const emptyBLAKE3 = "af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262"
+	if got := imageDigest(nil); got != emptyBLAKE3 {
+		t.Fatalf("image digest = %q, want %q", got, emptyBLAKE3)
+	}
+	store := NewImageStore(t.TempDir())
+	data := testPNG(t, 5, 4)
+	stored, err := store.StorePNG(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if stored.FileName != stored.Digest+".png" {
+		t.Errorf("file name = %q, digest = %q", stored.FileName, stored.Digest)
+	}
+	want := filepath.Join(store.root, "origin", stored.Digest[:2], stored.FileName)
+	if got := store.OriginPath(stored.FileName); got != want {
+		t.Errorf("origin path = %q, want %q", got, want)
+	}
+	if _, err := os.Stat(store.OriginPath(stored.FileName)); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestPNGDimensionsRejectsOtherData(t *testing.T) {
 	if w, h := PNGDimensions([]byte("not a png")); w != 0 || h != 0 {
 		t.Errorf("dimensions = %d×%d", w, h)
