@@ -3,8 +3,7 @@
 package macos
 
 import (
-	"fmt"
-
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/ebitengine/purego/objc"
 )
 
@@ -75,9 +74,9 @@ func (p *Panel) buildOnboarding() {
 	view.Send(sel("addSubview:"), p.onboardingAccessibility)
 	view.Send(sel("addSubview:"), p.onboardingFullDisk)
 
-	p.onboardingAccessibilityButton = onboardingButton("打开设置", "onboardingPermissionPressed:")
+	p.onboardingAccessibilityButton = onboardingButton(i18n.T(i18n.OnboardingOpenSettings), "onboardingPermissionPressed:")
 	p.onboardingAccessibilityButton.Send(sel("setTag:"), int64(0))
-	p.onboardingFullDiskButton = onboardingButton("打开设置", "onboardingPermissionPressed:")
+	p.onboardingFullDiskButton = onboardingButton(i18n.T(i18n.OnboardingOpenSettings), "onboardingPermissionPressed:")
 	p.onboardingFullDiskButton.Send(sel("setTag:"), int64(1))
 	view.Send(sel("addSubview:"), p.onboardingAccessibilityButton)
 	view.Send(sel("addSubview:"), p.onboardingFullDiskButton)
@@ -87,8 +86,8 @@ func (p *Panel) buildOnboarding() {
 	view.Send(sel("addSubview:"), p.onboardingShortcutOpen)
 	view.Send(sel("addSubview:"), p.onboardingShortcutPreference)
 
-	p.onboardingLegacyNormal = onboardingCheckbox("普通记录", "onboardingLegacyNormalPressed:")
-	p.onboardingLegacyFavorite = onboardingCheckbox("收藏记录", "onboardingLegacyFavoritePressed:")
+	p.onboardingLegacyNormal = onboardingCheckbox(i18n.T(i18n.OnboardingLegacyNormal), "onboardingLegacyNormalPressed:")
+	p.onboardingLegacyFavorite = onboardingCheckbox(i18n.T(i18n.OnboardingLegacyFavorite), "onboardingLegacyFavoritePressed:")
 	p.onboardingLegacyNormalOn = true
 	p.onboardingLegacyFavoriteOn = true
 	p.onboardingLegacyNormal.Send(sel("setState:"), int64(1))
@@ -105,9 +104,9 @@ func (p *Panel) buildOnboarding() {
 	p.onboardingProgress.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
 	view.Send(sel("addSubview:"), p.onboardingProgress)
 
-	p.onboardingBack = onboardingButton("上一步", "onboardingPrevPressed:")
+	p.onboardingBack = onboardingButton(i18n.T(i18n.OnboardingBack), "onboardingPrevPressed:")
 	p.onboardingExtra = onboardingButton("", "onboardingExtraPressed:")
-	p.onboardingNext = onboardingButton("继续", "onboardingNextPressed:")
+	p.onboardingNext = onboardingButton(i18n.T(i18n.OnboardingContinue), "onboardingNextPressed:")
 	view.Send(sel("addSubview:"), p.onboardingBack)
 	view.Send(sel("addSubview:"), p.onboardingExtra)
 	view.Send(sel("addSubview:"), p.onboardingNext)
@@ -195,15 +194,15 @@ func (p *Panel) setOnboarding(data PanelOnboarding) {
 func (p *Panel) applyOnboardingText() {
 	step := p.onboardingStep
 	p.onboardingProgress.Send(sel("setStringValue:"),
-		nsString(fmt.Sprintf("第 %d 步，共 %d 步", step+1, onboardingStepCount)))
+		nsString(i18n.Tf(i18n.OnboardingProgress, step+1, onboardingStepCount)))
 	p.onboardingExtra.Send(sel("setHidden:"), true)
 	p.onboardingBack.Send(sel("setHidden:"), step == 0)
-	next := "继续"
+	next := i18n.T(i18n.OnboardingContinue)
 	if step == 0 {
-		next = "开始"
+		next = i18n.T(i18n.OnboardingStart)
 	}
 	if step == onboardingStepCount-1 {
-		next = "开始使用"
+		next = i18n.T(i18n.OnboardingStartUsing)
 	}
 	p.onboardingNext.Send(sel("setTitle:"), nsString(next))
 	p.onboardingAccessibility.Send(sel("setHidden:"), true)
@@ -220,119 +219,115 @@ func (p *Panel) applyOnboardingText() {
 
 	switch step {
 	case 0:
-		p.onboardingTitle.Send(sel("setStringValue:"), nsString("欢迎使用 EcoPaste"))
-		p.onboardingDetail.Send(sel("setStringValue:"), nsString("简单、原生、安全的 macOS 剪贴板管理器。"))
-		p.onboardingBody.Send(sel("setStringValue:"), nsString(
-			"EcoPaste 会自动记录你复制的文本、图片和文件。按快捷键随时打开面板，选中记录后回车即可粘贴。\n\n接下来的几步会帮你完成权限、快捷键和隐私设置。"))
+		p.onboardingTitle.Send(sel("setStringValue:"), nsString(i18n.T(i18n.OnboardingWelcomeTitle)))
+		p.onboardingDetail.Send(sel("setStringValue:"), nsString(i18n.T(i18n.OnboardingWelcomeDetail)))
+		p.onboardingBody.Send(sel("setStringValue:"), nsString(i18n.T(i18n.OnboardingWelcomeBody)))
 	case 1:
-		p.onboardingTitle.Send(sel("setStringValue:"), nsString("授予必要权限"))
-		p.onboardingDetail.Send(sel("setStringValue:"), nsString("自动粘贴和完整读取需要两项系统权限。"))
+		p.onboardingTitle.Send(sel("setStringValue:"), nsString(i18n.T(i18n.OnboardingPermissionTitle)))
+		p.onboardingDetail.Send(sel("setStringValue:"), nsString(i18n.T(i18n.OnboardingPermissionDetail)))
 		p.onboardingBody.Send(sel("setHidden:"), true)
 		p.onboardingAccessibilityButton.Send(sel("setHidden:"), false)
 		p.onboardingFullDiskButton.Send(sel("setHidden:"), false)
 		p.onboardingAccessibility.Send(sel("setHidden:"), false)
 		p.onboardingFullDisk.Send(sel("setHidden:"), false)
 		p.onboardingNote.Send(sel("setHidden:"), false)
-		p.onboardingNote.Send(sel("setStringValue:"), nsString(
-			"没有任何权限也能浏览和复制历史；自动粘贴需要辅助功能权限，完整磁盘访问用于读取部分应用复制的文件。授权后返回本窗口，状态会自动刷新。"))
+		p.onboardingNote.Send(sel("setStringValue:"), nsString(i18n.T(i18n.OnboardingPermissionNote)))
 		p.refreshOnboardingPermissions()
 	case 2:
-		p.onboardingTitle.Send(sel("setStringValue:"), nsString("记住全局快捷键"))
-		p.onboardingDetail.Send(sel("setStringValue:"), nsString("在任何应用里都能快速唤起 EcoPaste。"))
+		p.onboardingTitle.Send(sel("setStringValue:"), nsString(i18n.T(i18n.OnboardingShortcutTitle)))
+		p.onboardingDetail.Send(sel("setStringValue:"), nsString(i18n.T(i18n.OnboardingShortcutDetail)))
 		p.onboardingBody.Send(sel("setHidden:"), true)
 		p.onboardingShortcutOpen.Send(sel("setHidden:"), false)
 		p.onboardingShortcutPreference.Send(sel("setHidden:"), false)
 		p.onboardingShortcutOpen.Send(sel("setStringValue:"),
-			nsString(fmt.Sprintf("打开剪贴板面板    %s", onboardingShortcut(p.onboardingData.OpenShortcut))))
+			nsString(i18n.Tf(i18n.OnboardingShortcutOpen, onboardingShortcut(p.onboardingData.OpenShortcut))))
 		p.onboardingShortcutPreference.Send(sel("setStringValue:"),
-			nsString(fmt.Sprintf("打开设置    %s", onboardingShortcut(p.onboardingData.PreferenceShortcut))))
-		p.onboardingExtra.Send(sel("setTitle:"), nsString("修改快捷键"))
+			nsString(i18n.Tf(i18n.OnboardingShortcutPreference, onboardingShortcut(p.onboardingData.PreferenceShortcut))))
+		p.onboardingExtra.Send(sel("setTitle:"), nsString(i18n.T(i18n.OnboardingShortcutEdit)))
 		p.onboardingExtra.Send(sel("setHidden:"), false)
 		p.onboardingNote.Send(sel("setHidden:"), false)
-		p.onboardingNote.Send(sel("setStringValue:"), nsString("快捷键可以随时在设置的“快捷键”页重新录制。"))
+		p.onboardingNote.Send(sel("setStringValue:"), nsString(i18n.T(i18n.OnboardingShortcutNote)))
 	case 3:
-		p.onboardingTitle.Send(sel("setStringValue:"), nsString("排除敏感应用"))
-		p.onboardingDetail.Send(sel("setStringValue:"), nsString("密码管理器和银行类应用默认不会被记录。"))
-		p.onboardingBody.Send(sel("setStringValue:"), nsString(fmt.Sprintf(
-			"当前已排除 %d 个应用。\n\n你可以在设置的应用页勾选更多来源，或取消默认排除。", p.onboardingData.ExcludedApps)))
-		p.onboardingExtra.Send(sel("setTitle:"), nsString("管理应用"))
+		p.onboardingTitle.Send(sel("setStringValue:"), nsString(i18n.T(i18n.OnboardingExcludedTitle)))
+		p.onboardingDetail.Send(sel("setStringValue:"), nsString(i18n.T(i18n.OnboardingExcludedDetail)))
+		p.onboardingBody.Send(sel("setStringValue:"),
+			nsString(i18n.Tf(i18n.OnboardingExcludedBody, p.onboardingData.ExcludedApps)))
+		p.onboardingExtra.Send(sel("setTitle:"), nsString(i18n.T(i18n.OnboardingManageApps)))
 		p.onboardingExtra.Send(sel("setHidden:"), false)
 	case 4:
 		p.applyLegacyText()
 	case 5:
-		p.onboardingTitle.Send(sel("setStringValue:"), nsString("准备就绪"))
-		p.onboardingDetail.Send(sel("setStringValue:"), nsString("EcoPaste 已在菜单栏运行。"))
-		p.onboardingBody.Send(sel("setStringValue:"), nsString(
-			"按快捷键打开面板，双击或回车即可粘贴到当前应用。\n\n如果自动粘贴没有生效，请回到上一步的权限设置检查辅助功能授权。"))
+		p.onboardingTitle.Send(sel("setStringValue:"), nsString(i18n.T(i18n.OnboardingReadyTitle)))
+		p.onboardingDetail.Send(sel("setStringValue:"), nsString(i18n.T(i18n.OnboardingReadyDetail)))
+		p.onboardingBody.Send(sel("setStringValue:"), nsString(i18n.T(i18n.OnboardingReadyBody)))
 	}
 }
 
 func (p *Panel) applyLegacyText() {
 	legacy := p.onboardingData.Legacy
-	p.onboardingTitle.Send(sel("setStringValue:"), nsString("导入旧版数据"))
-	p.onboardingDetail.Send(sel("setStringValue:"), nsString("把旧版 EcoPaste 的历史记录带到新版本。"))
+	p.onboardingTitle.Send(sel("setStringValue:"), nsString(i18n.T(i18n.OnboardingLegacyTitle)))
+	p.onboardingDetail.Send(sel("setStringValue:"), nsString(i18n.T(i18n.OnboardingLegacyDetail)))
 	p.onboardingBody.Send(sel("setHidden:"), false)
 	p.onboardingNote.Send(sel("setHidden:"), false)
 	p.onboardingExtra.Send(sel("setHidden:"), true)
-	p.onboardingNext.Send(sel("setTitle:"), nsString("继续"))
+	p.onboardingNext.Send(sel("setTitle:"), nsString(i18n.T(i18n.OnboardingContinue)))
 	p.onboardingNext.Send(sel("setEnabled:"), true)
 
 	showOptions := legacy.Found && legacy.ImportableItemCount > 0 && !legacy.Imported
 	if showOptions {
 		p.onboardingLegacyNormal.Send(sel("setTitle:"),
-			nsString(fmt.Sprintf("普通记录（%d 条）", legacy.NormalItemCount)))
+			nsString(i18n.Tf(i18n.OnboardingLegacyNormalCount, legacy.NormalItemCount)))
 		p.onboardingLegacyFavorite.Send(sel("setTitle:"),
-			nsString(fmt.Sprintf("收藏记录（%d 条）", legacy.FavoriteItemCount)))
+			nsString(i18n.Tf(i18n.OnboardingLegacyFavoriteCount, legacy.FavoriteItemCount)))
 		p.onboardingLegacyNormal.Send(sel("setState:"), boolInt(p.onboardingLegacyNormalOn))
 		p.onboardingLegacyFavorite.Send(sel("setState:"), boolInt(p.onboardingLegacyFavoriteOn))
 	}
 
 	switch {
 	case legacy.Importing:
-		p.onboardingBody.Send(sel("setStringValue:"), nsString("正在导入，请稍候…"))
-		p.onboardingNote.Send(sel("setStringValue:"), nsString("导入过程中请保持 EcoPaste 运行。"))
-		p.onboardingNext.Send(sel("setTitle:"), nsString("正在导入…"))
+		p.onboardingBody.Send(sel("setStringValue:"), nsString(i18n.T(i18n.OnboardingLegacyImportingBody)))
+		p.onboardingNote.Send(sel("setStringValue:"), nsString(i18n.T(i18n.OnboardingLegacyImportingNote)))
+		p.onboardingNext.Send(sel("setTitle:"), nsString(i18n.T(i18n.OnboardingLegacyImportingButton)))
 		p.onboardingNext.Send(sel("setEnabled:"), false)
 	case legacy.Scanning:
-		p.onboardingBody.Send(sel("setStringValue:"), nsString("正在扫描旧版数据…"))
-		p.onboardingNote.Send(sel("setStringValue:"), nsString("只会读取旧版数据库，不会修改原数据。"))
-		p.onboardingNext.Send(sel("setTitle:"), nsString("正在扫描…"))
+		p.onboardingBody.Send(sel("setStringValue:"), nsString(i18n.T(i18n.OnboardingLegacyScanningBody)))
+		p.onboardingNote.Send(sel("setStringValue:"), nsString(i18n.T(i18n.OnboardingLegacyScanningNote)))
+		p.onboardingNext.Send(sel("setTitle:"), nsString(i18n.T(i18n.OnboardingLegacyScanningButton)))
 		p.onboardingNext.Send(sel("setEnabled:"), false)
 	case legacy.Imported:
-		body := fmt.Sprintf("已导入 %d 条普通记录和 %d 条收藏记录。",
+		body := i18n.Tf(i18n.OnboardingLegacyImportedBody,
 			legacy.ImportedNormal, legacy.ImportedFavorite)
 		if legacy.Skipped > 0 {
-			body += fmt.Sprintf("\n\n有 %d 条记录因重复或内容无效被跳过。", legacy.Skipped)
+			body += i18n.Tf(i18n.OnboardingLegacySkippedBody, legacy.Skipped)
 		}
 		p.onboardingBody.Send(sel("setStringValue:"), nsString(body))
-		p.onboardingNote.Send(sel("setStringValue:"), nsString("导入的记录会出现在剪贴板列表中，原有的分组与使用次数不会迁移。"))
+		p.onboardingNote.Send(sel("setStringValue:"), nsString(i18n.T(i18n.OnboardingLegacyImportedNote)))
 	case legacy.Error != "":
-		p.onboardingBody.Send(sel("setStringValue:"), nsString("导入没有完成："+legacy.Error))
-		p.onboardingNote.Send(sel("setStringValue:"), nsString("可以重试，或跳过这一步稍后再导入。"))
+		p.onboardingBody.Send(sel("setStringValue:"), nsString(i18n.Tf(i18n.OnboardingLegacyErrorBody, legacy.Error)))
+		p.onboardingNote.Send(sel("setStringValue:"), nsString(i18n.T(i18n.OnboardingLegacyErrorNote)))
 		if showOptions {
 			p.onboardingLegacyNormal.Send(sel("setHidden:"), false)
 			p.onboardingLegacyFavorite.Send(sel("setHidden:"), false)
-			p.onboardingExtra.Send(sel("setTitle:"), nsString("跳过"))
+			p.onboardingExtra.Send(sel("setTitle:"), nsString(i18n.T(i18n.OnboardingLegacySkip)))
 			p.onboardingExtra.Send(sel("setHidden:"), false)
-			p.onboardingNext.Send(sel("setTitle:"), nsString("重试"))
+			p.onboardingNext.Send(sel("setTitle:"), nsString(i18n.T(i18n.OnboardingLegacyRetry)))
 		}
 	case showOptions:
-		p.onboardingBody.Send(sel("setStringValue:"), nsString(fmt.Sprintf(
-			"在 %s 找到 %d 条可导入记录。", legacy.Path, legacy.ImportableItemCount)))
-		p.onboardingNote.Send(sel("setStringValue:"), nsString(
-			"导入会沿用当前采集与敏感内容设置；重复和无效记录会自动跳过。"))
+		p.onboardingBody.Send(sel("setStringValue:"),
+			nsString(i18n.Tf(i18n.OnboardingLegacyFoundBody, legacy.Path, legacy.ImportableItemCount)))
+		p.onboardingNote.Send(sel("setStringValue:"), nsString(i18n.T(i18n.OnboardingLegacyFoundNote)))
 		p.onboardingLegacyNormal.Send(sel("setHidden:"), false)
 		p.onboardingLegacyFavorite.Send(sel("setHidden:"), false)
-		p.onboardingExtra.Send(sel("setTitle:"), nsString("跳过"))
+		p.onboardingExtra.Send(sel("setTitle:"), nsString(i18n.T(i18n.OnboardingLegacySkip)))
 		p.onboardingExtra.Send(sel("setHidden:"), false)
-		p.onboardingNext.Send(sel("setTitle:"), nsString("导入并继续"))
+		p.onboardingNext.Send(sel("setTitle:"), nsString(i18n.T(i18n.OnboardingLegacyImport)))
 		p.updateLegacyNext()
 	case legacy.Found:
-		p.onboardingBody.Send(sel("setStringValue:"), nsString("找到旧版数据目录，但没有可导入的记录。"))
-		p.onboardingNote.Send(sel("setStringValue:"), nsString("继续即可完成引导。"))
+		p.onboardingBody.Send(sel("setStringValue:"), nsString(i18n.T(i18n.OnboardingLegacyEmptyBody)))
+		p.onboardingNote.Send(sel("setStringValue:"), nsString(i18n.T(i18n.OnboardingLegacyEmptyNote)))
 	default:
-		p.onboardingBody.Send(sel("setStringValue:"), nsString("未发现旧版数据。"))
-		p.onboardingNote.Send(sel("setStringValue:"), nsString("如果你是首次使用 EcoPaste，可以直接继续。"))
+		p.onboardingBody.Send(sel("setStringValue:"), nsString(i18n.T(i18n.OnboardingLegacyMissingBody)))
+		p.onboardingNote.Send(sel("setStringValue:"), nsString(i18n.T(i18n.OnboardingLegacyMissingNote)))
 	}
 }
 
@@ -354,7 +349,7 @@ func (p *Panel) updateLegacyNext() {
 
 func onboardingShortcut(value string) string {
 	if value == "" {
-		return "未设置"
+		return i18n.T(i18n.OnboardingShortcutNotSet)
 	}
 	return value
 }
@@ -377,18 +372,18 @@ func (p *Panel) refreshOnboardingPermissions() {
 	accessibility := AccessibilityGranted()
 	fullDisk := FullDiskAccessGranted()
 	p.onboardingAccessibility.Send(sel("setStringValue:"),
-		nsString("辅助功能    "+onboardingPermissionText(accessibility)))
+		nsString(i18n.T(i18n.OnboardingAccessibility)+"    "+onboardingPermissionText(accessibility)))
 	p.onboardingFullDisk.Send(sel("setStringValue:"),
-		nsString("完全磁盘访问    "+onboardingPermissionText(fullDisk)))
+		nsString(i18n.T(i18n.OnboardingFullDisk)+"    "+onboardingPermissionText(fullDisk)))
 	p.onboardingAccessibilityButton.Send(sel("setHidden:"), accessibility)
 	p.onboardingFullDiskButton.Send(sel("setHidden:"), fullDisk)
 }
 
 func onboardingPermissionText(granted bool) string {
 	if granted {
-		return "已授权"
+		return i18n.T(i18n.OnboardingGranted)
 	}
-	return "未授权"
+	return i18n.T(i18n.OnboardingNotGranted)
 }
 
 func (p *Panel) onboardingAdvance() {
