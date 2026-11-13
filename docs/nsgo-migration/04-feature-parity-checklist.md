@@ -55,13 +55,13 @@
 | D-19 | P0 | 数据根解析 | `core/paths.rs` | `<app_local_data>/<dev\|prod>` + `storage.json` | 已通过 | `internal/storage` 测试覆盖默认根、锚点与自定义目录 |
 | D-20 | P0 | 自定义数据目录 | `commands/storage.rs` | 迁移 db/resources/config/state 并热切换 | 待迁移 | 切换、失败回滚、重启 |
 | D-21 | P0 | 资源目录 | `core/paths.rs` | 同目录结构，图片按 hash 分片 | 已通过 | `TestImageStoreIsIdempotent`；真机图片落盘 |
-| D-22 | P1 | 存储占用 | `get_storage_usage` | total/database/resources/settings 分项 | 待迁移 | 与 `du` 误差可解释 |
-| D-23 | P1 | 缓存清理 | `clean_resource_cache` | 删除未被 DB 引用的图片/图标 | 待迁移 | 孤儿文件清理、引用保留 |
+| D-22 | P1 | 存储占用 | `get_storage_usage` | total/database/resources/settings 分项 | 已通过 | `TestMeasureUsageSumsParts`；真机托盘显示 136.9 KB，与 `du` 结果可解释 |
+| D-23 | P1 | 缓存清理 | `clean_resource_cache` | 删除未被 DB 引用的图片/图标 | 已通过 | `TestCleanCacheKeepsReferencedFiles`；真机清理 3 个孤儿文件且保留引用 |
 | D-24 | P1 | 旧版数据导入 | `commands/onboarding.rs` | 读 v0.6 `history` + `images/` | 待迁移 | 普通/收藏选择性导入 |
 | D-25 | P1 | 来源应用注册表 | `db/apps.rs`、`apps_registry.rs` | 列表、全部应用、从路径添加、清理未引用 | 待迁移 | 增删与去重 |
 | D-26 | P1 | 文件图标缓存 | `db/file_icons.rs`、`file_icon_store.rs` | `NSWorkspace` 图标 + cache key | 待迁移 | 不同扩展名/同扩展名 |
 | D-27 | P1 | 备份入口 | `commands/backup.rs` | 导出、检查、导入、pending slot | 待迁移 | 明文/加密/取消/恢复 |
-| D-28 | P1 | 打开数据目录 | `commands/storage.rs` | `NSWorkspace` 打开目录 | 待迁移 | 默认/自定义目录 |
+| D-28 | P1 | 打开数据目录 | `commands/storage.rs` | `NSWorkspace` 打开目录 | 已通过 | 真机从托盘打开当前数据根 |
 
 ## 3. 内容识别与预览
 

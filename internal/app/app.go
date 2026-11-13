@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -170,6 +171,46 @@ func Run(app *core.Scope) {
 					runtime.Signal()
 				}},
 				{Separator: true},
+				{Label: "存储占用…", OnSelect: func() {
+					if runtime == nil {
+						return
+					}
+					usage, err := runtime.storageUsage()
+					if err != nil {
+						macos.ShowMessage("无法读取存储占用", err.Error())
+						return
+					}
+					macos.ShowMessage("存储占用",
+						fmt.Sprintf("数据库 %s · 资源 %s · 设置 %s\n总计 %s",
+							formatBytes(usage.Database), formatBytes(usage.Resource),
+							formatBytes(usage.Config), formatBytes(usage.Total)))
+				}},
+				{Label: "清理未引用缓存…", OnSelect: func() {
+					if runtime == nil || !macos.Confirm("清理未引用缓存？",
+						"仅删除未被历史记录引用的图片和来源应用图标。", "清理") {
+						return
+					}
+					files, freed, err := runtime.cleanCache(context.Background())
+					if err != nil {
+						macos.ShowMessage("清理缓存失败", err.Error())
+						return
+					}
+					if files == 0 {
+						macos.ShowMessage("缓存已是最新", "没有需要清理的文件。")
+						return
+					}
+					macos.ShowMessage("清理完成",
+						fmt.Sprintf("已删除 %d 个文件，释放 %s。", files, formatBytes(freed)))
+				}},
+				{Label: "打开数据目录", OnSelect: func() {
+					if runtime == nil {
+						return
+					}
+					if err := macos.OpenPath(runtime.paths.Root); err != nil {
+						macos.ShowMessage("无法打开数据目录", err.Error())
+					}
+				}},
+				{Separator: true},
 				{Label: "开源地址", OnSelect: func() {
 					if err := macos.OpenURL(sourceURL); err != nil {
 						log.Printf("open source: %v", err)
@@ -201,6 +242,7 @@ type clipboardRuntime struct {
 	service  *clipboard.Service
 	images   *storage.ImageStore
 	appIcons *storage.AppIconStore
+	paths    *storage.Paths
 	changed  chan struct{}
 }
 
@@ -251,7 +293,7 @@ func startClipboard(app *core.Scope, paths *storage.Paths, store *settings.Store
 		watcher.Run(ctx)
 		close(done)
 	}()
-	runtime := &clipboardRuntime{db: db, service: service, images: images, appIcons: appIcons, changed: changed}
+	runtime := &clipboardRuntime{db: db, service: service, images: images, appIcons: appIcons, paths: paths, changed: changed}
 	startCleanup(ctx, runtime, store)
 	app.OnQuit(func(context.Context) {
 		cancel()

@@ -227,14 +227,17 @@ func kindLabel(kind database.Kind) string {
 }
 
 func formatBytes(size int64) string {
-	switch {
-	case size >= 1024*1024:
-		return fmt.Sprintf("%.1f MB", float64(size)/(1024*1024))
-	case size >= 1024:
-		return fmt.Sprintf("%.1f KB", float64(size)/1024)
-	default:
+	if size < 1024 {
 		return fmt.Sprintf("%d B", size)
 	}
+	value := float64(size)
+	for _, unit := range []string{"KB", "MB", "GB", "TB"} {
+		value /= 1024
+		if value < 1024 {
+			return fmt.Sprintf("%.1f %s", value, unit)
+		}
+	}
+	return fmt.Sprintf("%.1f PB", value/1024)
 }
 
 func (m *historyModel) write(ctx context.Context, item *database.Item, plain, countReuse bool) error {

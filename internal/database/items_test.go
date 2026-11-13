@@ -131,6 +131,24 @@ func TestPageReturnsSourceAppName(t *testing.T) {
 	}
 }
 
+func TestImageFilesListsReferencedRows(t *testing.T) {
+	db := openTestDB(t)
+	ctx := context.Background()
+	if _, _, err := db.Upsert(ctx, &Item{Kind: KindImage, Content: "aabb.png"}); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := db.Upsert(ctx, &Item{Kind: KindText, Content: "plain text"}); err != nil {
+		t.Fatal(err)
+	}
+	files, err := db.ImageFiles(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := files["aabb.png"]; !ok || len(files) != 1 {
+		t.Fatalf("image files = %v", files)
+	}
+}
+
 func TestSearchUsesFTSAndLikeFallback(t *testing.T) {
 	db := openTestDB(t)
 	ctx := context.Background()

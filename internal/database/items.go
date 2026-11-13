@@ -34,6 +34,25 @@ const (
 	SubPath  SubKind = "path"
 )
 
+// ImageFiles lists the image file names clipboard rows reference.
+func (d *DB) ImageFiles(ctx context.Context) (map[string]struct{}, error) {
+	rows, err := d.sql.QueryContext(ctx, "SELECT content FROM clipboard_items WHERE kind = ?", string(KindImage))
+	if err != nil {
+		return nil, fmt.Errorf("list image files: %w", err)
+	}
+	defer rows.Close()
+
+	files := map[string]struct{}{}
+	for rows.Next() {
+		var name string
+		if err := rows.Scan(&name); err != nil {
+			return nil, err
+		}
+		files[name] = struct{}{}
+	}
+	return files, rows.Err()
+}
+
 // Item is one clipboard history row.
 type Item struct {
 	ID            string    `json:"id"`

@@ -118,3 +118,32 @@ func TestEnsureThumbnailBackfillsMissingFile(t *testing.T) {
 		t.Fatalf("thumbnail was not recreated: %v", err)
 	}
 }
+
+func TestRemoveUnreferencedImages(t *testing.T) {
+	root := t.TempDir()
+	store := NewImageStore(root)
+	kept, err := store.StorePNG(testPNG(t, 32, 32))
+	if err != nil {
+		t.Fatal(err)
+	}
+	orphan, err := store.StorePNG(testPNG(t, 16, 16))
+	if err != nil {
+		t.Fatal(err)
+	}
+	files, removedBytes, err := store.RemoveUnreferenced(map[string]struct{}{kept.FileName: {}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if files != 2 || removedBytes <= 0 {
+		t.Fatalf("removed files=%d bytes=%d", files, removedBytes)
+	}
+	if _, err := os.Stat(store.OriginPath(kept.FileName)); err != nil {
+		t.Fatalf("referenced image removed: %v", err)
+	}
+	if _, err := os.Stat(store.OriginPath(orphan.FileName)); !os.IsNotExist(err) {
+		t.Fatalf("orphan image kept: %v", err)
+	}
+	if _, err := os.Stat(store.ThumbPath(orphan.FileName)); !os.IsNotExist(err) {
+		t.Fatalf("orphan thumbnail kept: %v", err)
+	}
+}

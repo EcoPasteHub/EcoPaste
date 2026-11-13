@@ -21,7 +21,7 @@
 | R-02 | 框架 | NSGo 内部实现变更影响 `core.Native`、`desktop`、`Scope` | 高 | 高 | 业务层不直接依赖 NSGo 细节；adapter 收口；保留替换能力 | 需要改业务代码才能适配 NSGo 升级 |
 | R-03 | 工具链 | NSGo 要求 Go 1.26+，本机/CI 版本不一致 | 中 | 中 | `go.mod` 固定最低版本；CI 固定 Go 版本；记录验证版本 | 本机能构建、CI 失败或反之 |
 | R-04 | 原生桥 | `purego` + Objective-C runtime 调用复杂，签名/内存管理易错 | 高 | 高 | 每个桥接函数小步验证；统一封装；开启 race/崩溃日志；优先使用 NSGo 已有封装 | 随机 crash、selector 不存在、对象提前释放 |
-| R-05 | 线程 | 从后台 goroutine 直接操作 AppKit | 高 | 高 | 所有 UI 操作 dispatch 到 main queue；DB/剪贴板回调只发消息 | 非主线程断言、界面卡死、崩溃 |
+| R-05 | 线程 | 从后台 goroutine 直接操作 AppKit | 高 | 高 | 所有 UI 操作 dispatch 到 main queue；托盘菜单回调统一走 `onMain`；DB/剪贴板回调只发消息 | 非主线程断言、界面卡死、崩溃 |
 | R-06 | 线程 | SQLite 写入阻塞主线程 | 中 | 中 | 单写 worker + WAL；读写分离；批量事务 | 搜索/滚动时卡顿 |
 | R-07 | 数据 | SQLx migration 表与 Go migration 冲突 | 高 | 高 | 启动检测 `_sqlx_migrations`；先备份；把 `0001` 标记已应用；不改旧 migration | 重复建表、schema 不一致 |
 | R-08 | 数据 | schema/列顺序/类型漂移 | 高 | 中 | 固定 schema 断言；旧 DB 副本测试；所有 SELECT/INSERT 显式列名 | `query_as` 空结果、字段错位 |

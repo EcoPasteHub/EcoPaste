@@ -101,6 +101,65 @@ func (s *ImageStore) Remove(fileName string) error {
 	return nil
 }
 
+// RemoveUnreferenced deletes originals and thumbnails whose file names
+// no history row references. It returns the removed file count and
+// bytes.
+func (s *ImageStore) RemoveUnreferenced(referenced map[string]struct{}) (int, int64, error) {
+	var (
+		files int
+		bytes int64
+	)
+	for _, dir := range []string{"origin", "thumbnails"} {
+		root := filepath.Join(s.root, dir)
+		entries, err := os.ReadDir(root)
+		if err != nil {
+			if os.IsNotExist(err) {
+				continue
+			}
+			return files, bytes, fmt.Errorf("list images: %w", err)
+		}
+		for _, shard := range entries {
+			if !shard.IsDir() {
+				continue
+			}
+			shardPath := filepath.Join(root, shard.Name())
+			names, err := os.ReadDir(shardPath)
+			if err != nil {
+				return files, bytes, fmt.Errorf("list image shard: %w", err)
+			}
+			for _, entry := range names {
+				if entry.IsDir() {
+					continue
+				}
+				if _, ok := referenced[entry.Name()]; ok {
+					continue
+				}
+				info, err := entry.Info()
+				if err != nil {
+					return files, bytes, fmt.Errorf("read image info: %w", err)
+				}
+				if err := os.Remove(filepath.Join(shardPath, entry.Name())); err != nil {
+					return files, bytes, fmt.Errorf("remove unreferenced image: %w", err)
+				}
+				files++
+				bytes += info.Size()
+			}
+			if empty, err := dirEmpty(shardPath); err == nil && empty {
+				os.Remove(shardPath)
+			}
+		}
+	}
+	return files, bytes, nil
+}
+
+func dirEmpty(path string) (bool, error) {
+	entries, err := os.ReadDir(path)
+	if err != nil {
+		return false, err
+	}
+	return len(entries) == 0, nil
+}
+
 func shardName(fileName string) string {
 	if len(fileName) > 2 {
 		return fileName[:2]
