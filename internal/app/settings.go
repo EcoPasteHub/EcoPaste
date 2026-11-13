@@ -10,18 +10,23 @@ import (
 )
 
 type settingsModel struct {
-	store       *settings.Store
-	setDockIcon func(bool) error
+	store        *settings.Store
+	setDockIcon  func(bool) error
+	setAutoStart func(bool) error
 }
 
 func newSettingsModel(store *settings.Store) *settingsModel {
-	return &settingsModel{store: store, setDockIcon: macos.SetDockIconVisible}
+	return &settingsModel{
+		store: store, setDockIcon: macos.SetDockIconVisible,
+		setAutoStart: macos.SetAutostart,
+	}
 }
 
 func (m *settingsModel) Load() macos.SettingsValues {
 	cfg := m.store.Snapshot().Clipboard
 	return macos.SettingsValues{
 		DockIcon:             m.store.Snapshot().General.DockIcon,
+		AutoStart:            m.store.Snapshot().General.AutoStart,
 		CopyPlain:            cfg.Content.CopyPlain,
 		CopyThenHideWindow:   cfg.Content.CopyThenHideWindow,
 		PastePlain:           cfg.Content.PastePlain,
@@ -60,6 +65,18 @@ func (m *settingsModel) Apply(path string, value any) error {
 	if !ok {
 		return fmt.Errorf("未知设置项 %q", path)
 	}
+	if path == "general.autoStart" && m.setAutoStart != nil {
+		enabled, _ := value.(bool)
+		if err := m.setAutoStart(enabled); err != nil {
+			return err
+		}
+	}
+	if path == "general.dockIcon" && m.setDockIcon != nil {
+		visible, _ := value.(bool)
+		if err := m.setDockIcon(visible); err != nil {
+			return err
+		}
+	}
 	patch := map[string]any{}
 	node := patch
 	for _, key := range keys[:len(keys)-1] {
@@ -68,14 +85,7 @@ func (m *settingsModel) Apply(path string, value any) error {
 		node = next
 	}
 	node[keys[len(keys)-1]] = value
-	if err := m.update(patch); err != nil {
-		return err
-	}
-	if path == "general.dockIcon" && m.setDockIcon != nil {
-		visible, _ := value.(bool)
-		return m.setDockIcon(visible)
-	}
-	return nil
+	return m.update(patch)
 }
 
 func (m *settingsModel) update(patch map[string]any) error {
@@ -85,6 +95,7 @@ func (m *settingsModel) update(patch map[string]any) error {
 
 var settingsPaths = map[string][]string{
 	"general.dockIcon":             {"general", "dockIcon"},
+	"general.autoStart":            {"general", "autoStart"},
 	"copyPlain":                    {"clipboard", "content", "copyPlain"},
 	"copyThenHideWindow":           {"clipboard", "content", "copyThenHideWindow"},
 	"pastePlain":                   {"clipboard", "content", "pastePlain"},

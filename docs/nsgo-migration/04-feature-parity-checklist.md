@@ -121,7 +121,7 @@
 | W-10 | P0 | 托盘 | `tray/mod.rs` | `NSStatusItem` + `NSMenu`：偏好、暂停、开源、更新、版本、重启、退出 | 迁移中 | 显示/暂停/设置/清除/开源/版本/重启/退出已接；更新项待更新模块完成后补 |
 | W-11 | P0 | 全局快捷键 | `shortcut/mod.rs` | `desktop.RegisterHotKey` | 迁移中 | `Alt+C`、`Alt+X` 已注册；冲突与热更新待验证 |
 | W-12 | P1 | 快捷键录制 | 前端录制器 | 原生 `NSTextField` 捕获 | 待迁移 | 组合键/冲突/清除 |
-| W-13 | P1 | 开机自启 | `autostart/macos.rs` | `SMAppService` | 待迁移 | 开启/关闭/重启 |
+| W-13 | P1 | 开机自启 | `autostart/macos.rs` | `SMAppService` | 迁移中 | `TestAutostartNeedsChange`；真机开关、持久化通过；重启登录需签名安装包验收 |
 | W-14 | P1 | Dock 图标显隐 | `show_taskbar_icon` | `NSApplication.setActivationPolicy` | 已通过 | `TestSettingsModelAppliesDockIcon`；真机切换立即生效，重启后恢复持久化状态 |
 | W-15 | P1 | 单实例 | `tauri-plugin-single-instance` | macOS bundle 单实例 + `OnReopen` | 待迁移 | 二次启动/文件打开 |
 | W-16 | P1 | 文件关联 | `tauri.conf.json`、`backup/*` | `nsgo.yaml file_types` + `OnOpenFiles` | 待迁移 | 双击/拖到 Dock |
@@ -163,7 +163,7 @@
 
 | ID | 设置组 | 字段 | 迁移要求 | 状态 | 验证方式 |
 | --- | --- | --- | --- | --- | --- |
-| S-01 | general | `autoStart`、`runAsAdmin`、`trayIcon`、`dockIcon` | 保留字段；`runAsAdmin` 仅 Windows 参考 | 待迁移 | 旧文件回环/系统行为 |
+| S-01 | general | `autoStart`、`runAsAdmin`、`trayIcon`、`dockIcon` | `autoStart`/`dockIcon` 已接系统副作用；`trayIcon` 保留字段，`runAsAdmin` 仅 Windows 参考 | 迁移中 | 旧文件回环/系统行为 |
 | S-02 | appearance | `theme`、`language` | `auto/light/dark`、`zh-CN/en-US` | 待迁移 | 即时切换/重启 |
 | S-03 | shortcuts | `openClipboard`、`openPreference`、`winV` | 保留；`winV` 仅 Windows 参考 | 迁移中 | 两个快捷键均已读取并注册；编辑 UI 待补 |
 | S-04 | clipboard.capture | `text/html/rtf/image/files`、`maxTextMb`、`maxImageMb`、`order` | 采集顺序与上限一致 | 迁移中 | 五个开关与两个上限已接设置 UI；顺序编辑待补 |

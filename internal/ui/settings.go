@@ -15,7 +15,7 @@ type SettingsModel interface {
 // SettingsWindow builds the native settings window.
 func SettingsWindow(model SettingsModel) func(*core.Scope) core.Node {
 	return func(cx *core.Scope) core.Node {
-		values := core.NewSignal(cx, model.Load())
+		values := core.NewSignalFunc(cx, model.Load(), nil)
 		errorText := core.NewSignal(cx, "")
 		return core.Native{
 			Component: macos.SettingsComponent,
@@ -36,6 +36,7 @@ func SettingsWindow(model SettingsModel) func(*core.Scope) core.Node {
 					cx.Post(func() {
 						if err != nil {
 							errorText.Set(err.Error())
+							values.Set(model.Load())
 							return
 						}
 						errorText.Set("")

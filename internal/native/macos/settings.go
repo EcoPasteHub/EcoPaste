@@ -16,6 +16,7 @@ const SettingsComponent = "ecopaste.settings"
 // SettingsValues is the view state of the settings window.
 type SettingsValues struct {
 	DockIcon             bool
+	AutoStart            bool
 	CopyPlain            bool
 	CopyThenHideWindow   bool
 	PastePlain           bool
@@ -114,14 +115,16 @@ func (v *SettingsView) buildGeneral() {
 		func(s SettingsValues) bool { return s.PastePlain })
 	v.addSwitch(content, y-126, "复用后刷新排序", "updateOnReuse",
 		func(s SettingsValues) bool { return s.UpdateOnReuse })
-	v.addPopup(content, y-168, "排序方式", "sort",
+	v.addSwitch(content, y-168, "登录时启动", "general.autoStart",
+		func(s SettingsValues) bool { return s.AutoStart })
+	v.addPopup(content, y-210, "排序方式", "sort",
 		[]settingsOption{
 			{Title: "最近使用", Value: "updatedAtDesc"},
 			{Title: "创建时间", Value: "createdAtDesc"},
 			{Title: "使用次数", Value: "useCountDesc"},
 		},
 		func(s SettingsValues) string { return s.Sort })
-	v.addPopup(content, y-210, "面板打开位置", "window.position",
+	v.addPopup(content, y-252, "面板打开位置", "window.position",
 		[]settingsOption{
 			{Title: "跟随光标", Value: "followCursor"},
 			{Title: "屏幕居中", Value: "center"},

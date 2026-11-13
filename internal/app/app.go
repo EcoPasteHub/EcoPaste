@@ -54,6 +54,9 @@ func Run(app *core.Scope) {
 			if err := macos.SetDockIconVisible(store.Snapshot().General.DockIcon); err != nil {
 				log.Printf("sync dock icon: %v", err)
 			}
+			if err := macos.SyncAutostart(store.Snapshot().General.AutoStart); err != nil {
+				log.Printf("sync autostart: %v", err)
+			}
 			if configured := store.Snapshot().Shortcuts.OpenClipboard; configured != "" {
 				hotKey = strings.ToLower(configured)
 			}

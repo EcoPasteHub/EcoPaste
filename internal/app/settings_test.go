@@ -1,6 +1,7 @@
 package app
 
 import (
+	"errors"
 	"path/filepath"
 	"testing"
 
@@ -97,5 +98,45 @@ func TestSettingsModelAppliesDockIcon(t *testing.T) {
 	}
 	if !model.Load().DockIcon {
 		t.Error("dock icon setting was not loaded")
+	}
+}
+
+func TestSettingsModelAppliesAutostart(t *testing.T) {
+	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	model := newSettingsModel(store)
+	var applied []bool
+	model.setAutoStart = func(enabled bool) error {
+		applied = append(applied, enabled)
+		return nil
+	}
+	if err := model.Apply("general.autoStart", true); err != nil {
+		t.Fatal(err)
+	}
+	if !store.Snapshot().General.AutoStart {
+		t.Error("autostart setting was not persisted")
+	}
+	if len(applied) != 1 || !applied[0] {
+		t.Errorf("autostart applications = %v", applied)
+	}
+	if !model.Load().AutoStart {
+		t.Error("autostart setting was not loaded")
+	}
+}
+
+func TestSettingsModelKeepsAutostartWhenNativeApplyFails(t *testing.T) {
+	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	model := newSettingsModel(store)
+	model.setAutoStart = func(bool) error { return errors.New("not permitted") }
+	if err := model.Apply("general.autoStart", true); err == nil {
+		t.Fatal("native failure was ignored")
+	}
+	if store.Snapshot().General.AutoStart {
+		t.Error("autostart setting was persisted after native failure")
 	}
 }
