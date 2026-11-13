@@ -31,6 +31,10 @@ const sourceURL = "https://github.com/EcoPasteHub/EcoPaste"
 // Run opens EcoPaste's panel, tray icon and global shortcut. The app
 // keeps running without windows until the user quits it.
 func Run(app *core.Scope) {
+	if err := developmentIdentityError(core.App()); err != nil {
+		log.Print(err)
+		os.Exit(1)
+	}
 	desktop.SetShutdownMode(app, desktop.ShutdownOnExplicit)
 	activation := instanceRequests(app)
 	hotKey := panelHotKey
@@ -275,10 +279,16 @@ func Run(app *core.Scope) {
 			log.Printf("save window state: %v", err)
 		}
 	}
-	content := ui.ClipboardPanel(history, func() {
+	hidePanel := func() {
 		savePanelFrame()
 		panel.Hide()
-	})
+		// Window commands issued from a Carbon callback need a tree update
+		// before NSGo applies them.
+		if runtime != nil {
+			runtime.Signal()
+		}
+	}
+	content := ui.ClipboardPanel(history, hidePanel)
 	panel = desktop.OpenPanel(app, desktop.PanelOptions{
 		Width:    420,
 		Height:   560,
@@ -293,13 +303,15 @@ func Run(app *core.Scope) {
 		panel.Show()
 	}
 	togglePanel := func() {
-		if !panel.Visible() {
-			if runtime != nil {
-				runtime.Signal()
-			}
-			placePanel()
+		if panel.Visible() {
+			hidePanel()
+			return
 		}
-		panel.Toggle()
+		if runtime != nil {
+			runtime.Signal()
+		}
+		placePanel()
+		panel.Show()
 	}
 
 	trayVisible := settings.Default().General.TrayIcon

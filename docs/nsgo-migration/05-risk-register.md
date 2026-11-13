@@ -54,7 +54,7 @@
 | R-35 | 更新 | Tauri JSON endpoint 与 Sparkle appcast 不兼容 | 高 | 高 | 新增 appcast 生成；双端点并行；测试源验证 | 新版本检测不到或安装失败 |
 | R-36 | 更新 | Sparkle EdDSA 签名/公钥配置错误 | 高 | 中 | 固定 key 管理流程；CI 校验；测试升级 | 签名校验失败 |
 | R-37 | 发布 | Developer ID/公证/权限描述缺失 | 高 | 中 | 提前在测试机跑签名+公证；保留旧流水线 | Gatekeeper 拦截、TCC 弹窗异常 |
-| R-38 | 发布 | Bundle ID 与旧版冲突导致数据串用 | 高 | 中 | 正式版同 ID；开发版独立 ID；启动校验数据根；`nsgo dev` 包当前仍复用 `com.ayangweb.eco-paste`，登录项会指向 dev 路径，发布前必须拆分 | 开发版写进正式数据或改写正式 App 的登录项 |
+| R-38 | 发布 | Bundle ID 与旧版冲突导致数据串用 | 高 | 中 | 正式版同 ID；开发版独立 ID；启动校验数据根；`make dev`/`make build-dev` 已使用 `com.ayangweb.eco-paste.dev`，开发构建误用正式 ID 时退出；开发 bundle ID 优先映射 `dev` 数据根，`ECOPASTE_MODE=prod` 不能覆盖；曾因 `nsgo build` 无 `nsgodev` tag 误用正式数据根，已修复并用 `lsof` 验证；正式包登录项与升级路径待签名环境验收 | 开发版写进正式数据或改写正式 App 的登录项 |
 | R-39 | 基线 | 旧工程归档后与迁移文档/夹具漂移 | 中 | 高 | 固定归档路径与 commit；文档记录归档位置；数据夹具独立保存 | 归档找不到或与文档不一致 |
 | R-40 | 安全 | 日志记录完整剪贴板内容/密钥 | 高 | 中 | 统一脱敏 logger；禁止 debug 打印 content；日志审查 | 日志出现 token/私钥 |
 | R-41 | 安全 | 备份密码/密钥进入仓库或 CI 日志 | 高 | 中 | 不提交样本密码；CI secret 注入；日志 mask | 仓库/日志出现密码 |

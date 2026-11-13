@@ -7,6 +7,33 @@ import (
 	"testing"
 )
 
+func TestResolveModeSeparatesDevelopmentBuilds(t *testing.T) {
+	cases := []struct {
+		name     string
+		bundleID string
+		devBuild bool
+		override string
+		bundled  bool
+		want     string
+	}{
+		{name: "development bundle", bundleID: DevelopmentBundleID, bundled: true, want: Dev},
+		{name: "development tag", devBuild: true, bundled: true, want: Dev},
+		{name: "development bundle ignores production override", bundleID: DevelopmentBundleID, override: Prod, bundled: true, want: Dev},
+		{name: "development tag ignores production override", devBuild: true, override: Prod, bundled: true, want: Dev},
+		{name: "release bundle", bundleID: "com.ayangweb.eco-paste", bundled: true, want: Prod},
+		{name: "release bundle dev override", bundleID: "com.ayangweb.eco-paste", override: Dev, bundled: true, want: Dev},
+		{name: "release bundle prod override", bundleID: "com.ayangweb.eco-paste", override: Prod, bundled: true, want: Prod},
+		{name: "unpackaged executable", bundleID: "com.ayangweb.eco-paste", override: Prod, want: Dev},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := resolveMode(tc.bundleID, tc.devBuild, tc.override, tc.bundled); got != tc.want {
+				t.Errorf("resolveMode(%q, %t, %q, %t) = %q, want %q", tc.bundleID, tc.devBuild, tc.override, tc.bundled, got, tc.want)
+			}
+		})
+	}
+}
+
 func TestResolveCreatesDefaultTree(t *testing.T) {
 	base := t.TempDir()
 	paths, err := Resolve(base, Dev)

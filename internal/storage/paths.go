@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/nsgo-dev/nsgo/core"
 )
 
 const (
@@ -18,6 +20,9 @@ const (
 
 	Dev  = "dev"
 	Prod = "prod"
+
+	// DevelopmentBundleID separates local builds from the published app.
+	DevelopmentBundleID = "com.ayangweb.eco-paste.dev"
 )
 
 // Paths are the directories EcoPaste persists to. The bootstrap directory
@@ -50,13 +55,25 @@ type identity struct {
 // Mode reports the data environment of this build: dev builds keep their
 // data apart from a release install.
 func Mode() string {
-	if mode := os.Getenv("ECOPASTE_MODE"); mode == Dev || mode == Prod {
-		return mode
+	bundled := false
+	if exe, err := os.Executable(); err == nil {
+		bundled = strings.Contains(exe, ".app/Contents/MacOS/")
 	}
-	if isDevBuild {
+	return resolveMode(core.App().ID, isDevBuild, os.Getenv("ECOPASTE_MODE"), bundled)
+}
+
+func resolveMode(bundleID string, devBuild bool, override string, bundled bool) string {
+	if modeForIdentity(bundleID, devBuild) == Dev || !bundled {
 		return Dev
 	}
-	if exe, err := os.Executable(); err == nil && !strings.Contains(exe, ".app/Contents/MacOS/") {
+	if override == Dev || override == Prod {
+		return override
+	}
+	return Prod
+}
+
+func modeForIdentity(bundleID string, devBuild bool) string {
+	if bundleID == DevelopmentBundleID || devBuild {
 		return Dev
 	}
 	return Prod

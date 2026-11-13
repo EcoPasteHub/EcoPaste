@@ -113,7 +113,7 @@
 | W-02 | P0 | 窗口定位 | `window/position.rs` | 跟随鼠标/居中/记住位置 | 已通过 | 设置“面板打开位置”三档；真机 `osascript` 读取窗口 frame：居中 `654,217`、跟随光标 `300,393`（光标 `300,400`）、记住位置恢复 `654,217` |
 | W-03 | P0 | 失焦隐藏 | `window/macos.rs` | 自定义 resign-key 隐藏 + modal/固定窗口期间暂停 | 迁移中 | 真机切换 Finder 后隐藏；系统另存/备注弹窗期间保持；固定窗口保持可见；拖拽会话期间暂停失焦隐藏，结束后未获 key 则隐藏；跨应用拖放仍待真机复核 |
 | W-04 | P0 | 固定窗口 | `set_clipboard_window_pinned` | 固定不隐藏；粘贴时 resign/restore key | 迁移中 | 原生按钮与 `P` 键切换已接；真机固定后失焦/复制均保持可见；粘贴 key 让出/恢复待授权后验收 |
-| W-05 | P1 | 窗口生命周期 | `window/lifecycle/*` | 原生窗口状态机，无 WebView 重建 | 待迁移 | 冷启/热显/隐藏/退出 |
+| W-05 | P1 | 窗口生命周期 | `window/lifecycle/*` | 原生窗口状态机，无 WebView 重建 | 迁移中 | 冷启动不显示面板、全局快捷键显示/隐藏、隐藏后写 `window-state.json` 已实测；快捷键切换改为显式 `Show()`/`Hide()`，避免 Carbon 回调中的窗口命令未刷新；Esc 隐藏和应用菜单退出/重启待稳定复测 |
 | W-06 | P1 | 窗口几何持久化 | `window/state.rs` | 同 `state/window-state.json` | 已通过（格式调整） | 隐藏时写入 `clipboard` 帧并重启恢复；旧版存物理像素、左上原点，新版存 AppKit points、左下原点，JSON 字段与路径不变；旧坐标不在任一屏幕时回退到光标所在屏幕居中 |
 | W-07 | P1 | 偏好窗口 | `window/mod.rs` | 原生 `NSTabView` 设置窗口 | 已通过 | 通用/采集/显示/动作/交互/删除/窗口/历史与隐私/权限/应用/快捷键已可用；引导页“修改快捷键/管理应用”已真机深链到对应 Tab，已打开窗口同步切换；顶部 `NSSearchField` 跨全部 Tab 搜索标题、说明、选项、路径，结果下拉跳转并在目标行短暂高亮；`TestMatchSettingsSearch*` 覆盖多词、路径分词、去重和 8 条上限，真机验证 `dock`、`capture order` 跳转及无匹配状态 |
 | W-08 | P1 | 更新窗口 | `window/mod.rs` | Sparkle 交互或独立窗口 | 待迁移 | 检查/下载/安装 |
@@ -195,7 +195,7 @@
 | X-06 | P0 | 数据目录 | `storage.json` 锚点 | 默认/自定义目录均可解析 | 已通过 | `TestResolveReadsPublishedCustomManifest` 直接读取旧版 camelCase `storage.json` 与 `.ecopaste-storage.json` 并解析自定义根；`TestSetRootPointsManifestAtCustomDir`、`TestResolveFallsBackFromBrokenManifest`、`TestResolveRejectsForeignIdentity` 覆盖重写、损坏回退和环境隔离 |
 | X-07 | P0 | `.ecopastebak` | ZIP / 自定义加密容器 | 双向读写兼容 | 迁移中 | 明文 ZIP 布局、加密容器、merge/overwrite 导入已兼容；旧版生成/读取 NSGo 包的双向样本验证待补 |
 | X-08 | P0 | 文件关联 | `.ecopastebak` | 同扩展名/UTI | 已通过 | `nsgo.yaml` 声明 `com.ayangweb.eco-paste.backup`，构建产物 Info.plist 校验 `CFBundleDocumentTypes`；真机运行中/冷启动 `open -a` 均进入导入确认，导入后重启校验 DB |
-| X-09 | P0 | Bundle ID | `com.ayangweb.eco-paste` | 正式版一致；开发版隔离 | 待迁移 | 安装/升级/数据目录 |
+| X-09 | P0 | Bundle ID | `com.ayangweb.eco-paste` | 正式版一致；开发版隔离 | 迁移中 | `make dev`/`make build-dev` 使用 `com.ayangweb.eco-paste.dev`；开发构建误用正式 ID 时启动退出；开发 bundle ID 在 `ECOPASTE_MODE` 之前映射到 `dev` 数据根，避免覆写正式数据；`lsof` 实测开发实例只访问 `dev/db`、`dev/logs`、`dev/state`；正式版安装/升级与登录项迁移待签名包验收 |
 
 ## 10. Windows/Linux 专用能力
 

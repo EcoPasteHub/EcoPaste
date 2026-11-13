@@ -35,13 +35,13 @@ macOS 优先的本地剪贴板管理器。
 ```bash
 go install github.com/nsgo-dev/nsgo/cmd/nsgo@70cef6a4ed17f7c8428faabc9bb419ff4223745b
 nsgo check cmd/ecopaste
-nsgo dev cmd/ecopaste
-nsgo build cmd/ecopaste
+nsgo dev -id com.ayangweb.eco-paste.dev cmd/ecopaste
+nsgo build -id com.ayangweb.eco-paste.dev -output build/dev cmd/ecopaste
 ```
 
-也可以用 `make` 执行同样的命令：`make dev`、`make build`、`make check`，`make help` 查看全部。
+也可以优先使用 `make`：`make dev`、`make build-dev`、`make check`，`make help` 查看全部。`make build` 只用于正式身份构建。
 
-本地开发数据写入 `~/Library/Application Support/com.ayangweb.eco-paste/dev`；设置 `ECOPASTE_MODE=prod` 才会使用正式数据目录。`ECOPASTE_HOME` 可指向测试用目录。
+本地开发构建使用独立 bundle ID `com.ayangweb.eco-paste.dev`，数据写入 `~/Library/Application Support/com.ayangweb.eco-paste/dev`。开发身份优先于 `ECOPASTE_MODE`，即使设置 `ECOPASTE_MODE=prod` 也不会读取正式数据。开发构建如果误用正式 bundle ID 会直接退出，避免与已安装版本共享 LaunchServices、登录项或设置。`ECOPASTE_HOME` 可指向测试用目录。
 
 迁移优先级与验收项见 `docs/nsgo-migration/03-migration-plan.md` 与 `04-feature-parity-checklist.md`。
 
