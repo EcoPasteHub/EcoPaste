@@ -59,3 +59,21 @@ func TestSpacePreviewHonorsSetting(t *testing.T) {
 		t.Errorf("disabled space = %q, %v", action, handled)
 	}
 }
+
+func TestNeedsMoreRowsNearEnd(t *testing.T) {
+	cases := []struct {
+		row, count int
+		want       bool
+	}{
+		{70, 80, false},
+		{72, 80, true},
+		{79, 80, true},
+		{-1, 80, false},
+		{0, 0, false},
+	}
+	for _, tc := range cases {
+		if got := needsMoreRows(tc.row, tc.count); got != tc.want {
+			t.Errorf("needsMoreRows(%d, %d) = %v, want %v", tc.row, tc.count, got, tc.want)
+		}
+	}
+}

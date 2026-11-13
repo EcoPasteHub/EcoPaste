@@ -741,6 +741,32 @@ func (p *Panel) pageSize() int {
 	return size
 }
 
+// pollLoadMore asks for the next page when the last visible row nears the
+// end of the loaded rows. NSTableView's willDisplayCell callback is not
+// reliable for programmatic selection and native scroll gestures, so the
+// panel checks its visible row on the existing poll.
+func (p *Panel) pollLoadMore() {
+	if p.loading || len(p.rows) == 0 {
+		return
+	}
+	visible := objc.Send[CGRect](p.table, sel("visibleRect"))
+	if visible.Size.Height <= 0 {
+		return
+	}
+	point := CGPoint{
+		X: visible.Origin.X + 1,
+		Y: visible.Origin.Y + visible.Size.Height - 1,
+	}
+	row := int(objc.Send[int64](p.table, sel("rowAtPoint:"), point))
+	if needsMoreRows(row, len(p.rows)) {
+		p.cx.Emit("loadMore", nil)
+	}
+}
+
+func needsMoreRows(row, count int) bool {
+	return row >= 0 && count > 0 && row >= count-8
+}
+
 func int64Value(value any) (int64, bool) {
 	switch n := value.(type) {
 	case int64:

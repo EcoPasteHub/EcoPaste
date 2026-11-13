@@ -66,6 +66,7 @@ func panelObserverMethods() []objc.MethodDef {
 				p.cx.Emit("query", next)
 			}
 			p.pollHover()
+			p.pollLoadMore()
 		}},
 	}
 }
