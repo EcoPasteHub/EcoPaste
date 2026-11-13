@@ -11,6 +11,7 @@ import (
 // HistoryRow is one row the native table draws.
 type HistoryRow struct {
 	ID             string
+	GroupID        string
 	Kind           string
 	SubKind        string
 	Title          string
@@ -161,6 +162,20 @@ func registerHistoryTargets() {
 		{Cmd: sel("menuReveal:"), Fn: menuAction("reveal")},
 		{Cmd: sel("menuSaveImage:"), Fn: menuAction("saveImage")},
 		{Cmd: sel("menuNote:"), Fn: menuAction("editNote")},
+		{Cmd: sel("menuMoveGroup:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
+			p := menuPanel(sender)
+			if p == nil {
+				return
+			}
+			tag := int(objc.Send[int64](sender, sel("tag")))
+			if tag == 0 {
+				p.cx.Emit("moveGroup", "")
+				return
+			}
+			if tag-1 >= 0 && tag-1 < len(p.groups) {
+				p.cx.Emit("moveGroup", p.groups[tag-1].ID)
+			}
+		}},
 		{Cmd: sel("menuDelete:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
 			p := menuPanel(sender)
 			if p != nil && confirmDelete() {
@@ -362,8 +377,45 @@ func (p *Panel) populateMenu(menu objc.ID, row HistoryRow) {
 		pin = "取消置顶"
 	}
 	addMenuItem(menu, p.table, pin, "menuPin:", "pin", "")
+	moveItem := objc.ID(class("NSMenuItem")).Send(sel("alloc")).
+		Send(sel("initWithTitle:action:keyEquivalent:"), nsString("移动到分组"), objc.SEL(0), nsString(""))
+	moveItem.Send(sel("setImage:"), systemSymbol("folder"))
+	submenu := objc.ID(class("NSMenu")).Send(sel("new"))
+	addMoveGroupItem(submenu, p, "未分组", "", row.GroupID == "")
+	if len(p.groups) > 0 {
+		submenu.Send(sel("addItem:"), objc.ID(class("NSMenuItem")).Send(sel("separatorItem")))
+	}
+	for _, group := range p.groups {
+		addMoveGroupItem(submenu, p, group.Name, group.ID, row.GroupID == group.ID)
+	}
+	moveItem.Send(sel("setSubmenu:"), submenu)
+	submenu.Send(sel("release"))
+	menu.Send(sel("addItem:"), moveItem)
+	moveItem.Send(sel("release"))
 	menu.Send(sel("addItem:"), objc.ID(class("NSMenuItem")).Send(sel("separatorItem")))
 	addMenuItem(menu, p.table, "删除", "menuDelete:", "trash", "")
+}
+
+func addMoveGroupItem(menu objc.ID, p *Panel, title, groupID string, selected bool) {
+	item := objc.ID(class("NSMenuItem")).Send(sel("alloc")).
+		Send(sel("initWithTitle:action:keyEquivalent:"), nsString(title), sel("menuMoveGroup:"), nsString(""))
+	item.Send(sel("setTarget:"), historyTarget)
+	item.Send(sel("setRepresentedObject:"), p.table)
+	tag := int64(0)
+	if groupID != "" {
+		for index, group := range p.groups {
+			if group.ID == groupID {
+				tag = int64(index + 1)
+				break
+			}
+		}
+	}
+	item.Send(sel("setTag:"), tag)
+	if selected {
+		item.Send(sel("setState:"), int64(1))
+	}
+	menu.Send(sel("addItem:"), item)
+	item.Send(sel("release"))
 }
 
 func addMenuItem(menu, table objc.ID, title, action, icon, key string) objc.ID {

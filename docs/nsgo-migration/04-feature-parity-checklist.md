@@ -38,16 +38,16 @@
 | D-02 | P0 | Migration 兼容 | `_sqlx_migrations`、`0001_init.sql` | 识别旧 migration，不重复建表 | 已通过 | 检测 `clipboard_items` 后跳过建表；待补 `_sqlx_migrations` 显式记录 |
 | D-03 | P0 | 全文搜索 | FTS5 trigram | 同 FTS 表与触发器 | 已通过 | `TestSearchUsesFTSAndLikeFallback` |
 | D-04 | P0 | 短词搜索 | `LIKE` 兜底 | 1–2 字符走 `LIKE` | 已通过 | 中文单字、英文双字测试 |
-| D-05 | P0 | 历史筛选 | `db/items.rs` | kind/group/favorite/pinned/keyword | 已通过 | 仓储层 `Query` 已覆盖；待 UI 联调 |
+| D-05 | P0 | 历史筛选 | `db/items.rs` | kind/group/favorite/pinned/keyword | 已通过 | 仓储层 `Query` 已覆盖；原生分类/自定义分组筛选真机通过 |
 | D-06 | P0 | 排序 | `settings.clipboard.content.sort` | 置顶优先，再按时间/使用次数 | 已通过 | `TestPagePaginationAndPinnedFirst` |
 | D-07 | P0 | 分页 | `ClipboardItemPage` | `list + total + has_more` | 已通过 | `Page` 返回 total/hasMore |
 | D-08 | P0 | 收藏 | `toggle_item_favorite` | `is_favorite`，不刷新 `updated_at` | 已通过 | `TestMetadataUpdatesKeepUpdatedAt` |
 | D-09 | P1 | 自动收藏 | `autoFavorite` | 写非空备注时联动收藏 | 已通过 | `TestEditNoteNormalizesAndAutoFavorites`；清空备注不触发 |
 | D-10 | P0 | 置顶 | `toggle_item_pinned` | `is_pinned`，排序最前 | 已通过 | 排序测试覆盖 |
 | D-11 | P0 | 备注 | `update_item_note` | 更新 note，不刷新 `updated_at` | 已通过 | `SetNote` + `updated_at` 不变测试 |
-| D-12 | P0 | 分组 | `db/groups.rs` | 名称、SVG 图标导入、隐藏、排序 | 待迁移 | 创建/改名/隐藏/删除/SVG |
-| D-13 | P0 | 分组布局 | `update_clipboard_groups_layout` | 批量更新 `sort_order` | 待迁移 | 拖拽排序后重启 |
-| D-14 | P0 | 删除分组 | `delete_group` | 条目 `group_id` 置 NULL | 待迁移 | 删除后条目不丢 |
+| D-12 | P0 | 分组 | `db/groups.rs` | 原生创建、重命名、筛选；保留 schema 的图标/隐藏字段 | 已通过（产品调整） | `TestCreateGroupAppendsAndListsInOrder`、`TestRenameGroupCancelAndDuplicate`；真机创建“工作”、重命名为“项目”成功 |
+| D-13 | P0 | 分组布局 | `update_clipboard_groups_layout` | 首版按创建顺序稳定展示，不做拖拽排序/隐藏 | 不纳入 macOS 首版（产品调整） | 决定与理由见 `03-migration-plan.md` Phase 4 分组产品调整 |
+| D-14 | P0 | 删除分组 | `delete_group` | 条目 `group_id` 置 NULL | 已通过 | `TestDeleteGroupKeepsItemsAndClearsGroupID`；真机删除后 15 条记录保留，SQLite 校验 `group_id = NULL` |
 | D-15 | P0 | 使用次数 | `increment_item_use_count` | `use_count + 1` 并刷新 `updated_at` | 已通过 | `TestUpsertDeduplicatesAndRefreshesUpdatedAt` |
 | D-16 | P0 | 历史清理 | `cleanup.rs`、`db/items.rs` | 时长 + 最大条数，收藏/置顶保留 | 已通过 | `TestCleanupHistoryByRetentionKeepsProtectedItems`、`TestCleanupRemovesExpiredImage` |
 | D-17 | P0 | 启动清理 | `clipboard::init` | 启动先跑一次，再按间隔 | 迁移中 | 启动与周期调度已接；待真机长运行验证 |
@@ -98,7 +98,7 @@
 | A-13 | P1 | 拖出图片 | `drag_out/macos.rs` | `NSDraggingSession` + PNG | 待迁移 | 同上 |
 | A-14 | P1 | 拖出文本 | `drag_out/macos.rs` | plain/HTML/RTF 多表示 | 待迁移 | 富文本目标 |
 | A-15 | P1 | 备注编辑 | `NoteModal` | 原生备注弹窗，256 字符上限 | 已通过 | `TestEditNoteNormalizesAndAutoFavorites`、`TestEditNoteCancelAndClear`、`TestEditNoteLimitsLength`；保存/取消/空值/自动收藏已覆盖 |
-| A-16 | P1 | 移动到分组 | 右键子菜单 | `NSMenu` 动态分组列表 | 待迁移 | 分组增删后菜单 |
+| A-16 | P1 | 移动到分组 | 右键子菜单 | `NSMenu` 动态分组列表与当前分组勾选 | 已通过 | `TestMoveToGroupAndBackToUngrouped`；真机移动到“工作”后分组筛选仅显示 1 条 |
 | A-17 | P0 | 删除条目 | `delete_clipboard_item` | 删除 DB 行 + 图片文件 | 已通过 | 右键/Delete 确认；`TestDeleteRemovesImageFile` |
 | A-18 | P1 | 自动粘贴 | `Content.auto_paste` | 单击/双击、粘贴/复制、禁用 | 迁移中 | 双击/回车与复制/禁用已接；单击触发待补 |
 | A-19 | P1 | 中键动作 | `Content.middle_click` | 粘贴/纯文本粘贴/复制/纯文本复制/禁用 | 待迁移 | 真实鼠标 |
@@ -125,7 +125,7 @@
 | W-14 | P1 | Dock 图标显隐 | `show_taskbar_icon` | `NSApplication.setActivationPolicy` | 待迁移 | 显示/隐藏/重启 |
 | W-15 | P1 | 单实例 | `tauri-plugin-single-instance` | macOS bundle 单实例 + `OnReopen` | 待迁移 | 二次启动/文件打开 |
 | W-16 | P1 | 文件关联 | `tauri.conf.json`、`backup/*` | `nsgo.yaml file_types` + `OnOpenFiles` | 待迁移 | 双击/拖到 Dock |
-| W-17 | P1 | 原生右键菜单 | `menu/clipboard_item.rs` | `NSMenu` 按内容动态生成动作 | 迁移中 | URL/图片/路径菜单已真机验证；粘贴、复制、打开、Finder、另存、备注、收藏、置顶、删除已接；分组/快捷键待补 |
+| W-17 | P1 | 原生右键菜单 | `menu/clipboard_item.rs` | `NSMenu` 按内容动态生成动作 | 迁移中 | URL/图片/路径菜单与分组子菜单已真机验证；快捷键待补 |
 | W-18 | P1 | 权限 | `PermissionControl` | 辅助功能/完全磁盘访问检测与跳转 | 迁移中 | 辅助功能检测、原生说明弹窗与系统设置跳转已接；FDA 待补 |
 | W-19 | P2 | 防默认行为 | `core/prevent_default.rs` | 无 WebView，不需要 | 不纳入 macOS 首版 | 确认无 WebView 入口 |
 | W-20 | P1 | 更新 | `update.rs` | NSGo updater + Sparkle appcast | 待迁移 | 测试源真实升级 |
@@ -135,7 +135,7 @@
 
 | ID | 优先级 | 功能 | 现有实现 | NSGo/AppKit 目标 | 状态 | 验证方式 |
 | --- | --- | --- | --- | --- | --- | --- |
-| U-01 | P0 | Clipboard 主页面 | `legacy/frontend/src/pages/Clipboard` | AppKit 搜索/分类/列表/卡片/Footer | 迁移中 | 原生搜索、列表、Footer、实时刷新与复制已真机验证；分类与卡片待补 |
+| U-01 | P0 | Clipboard 主页面 | `legacy/frontend/src/pages/Clipboard` | AppKit 搜索/分类/分组/列表/卡片/Footer | 迁移中 | 原生搜索、分类、自定义分组筛选、列表、Footer、实时刷新与复制已真机验证；卡片待补 |
 | U-02 | P1 | Preview 页面 | `legacy/frontend/src/pages/Preview` | 面板内原生预览 | 已通过 | 真机 Space/Esc；`TestPreviewRedactsSensitiveText` |
 | U-03 | P1 | Preference 页面 | `legacy/frontend/src/pages/Preference` | 原生 Tab/表单/搜索/高亮 | 待迁移 | 7 个 Tab 全项 |
 | U-04 | P1 | Onboarding 页面 | `legacy/frontend/src/pages/Onboarding` | 原生 6 步流程 | 待迁移 | 全流程/回退 |

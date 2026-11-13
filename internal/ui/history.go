@@ -16,6 +16,7 @@ import (
 // is stored.
 type HistoryItem struct {
 	ID            string
+	GroupID       string
 	Kind          string
 	SubKind       string
 	Title         string
@@ -38,8 +39,16 @@ type HistoryPage struct {
 // HistoryQuery selects a page of history.
 type HistoryQuery struct {
 	Keyword string
+	Filter  string
+	GroupID string
 	Limit   int
 	Offset  int
+}
+
+// GroupOption is one user-created group shown in the panel.
+type GroupOption struct {
+	ID   string
+	Name string
 }
 
 // HistoryPreview is the full content behind one list row.
@@ -67,6 +76,11 @@ type HistoryModel interface {
 	SaveImage(context.Context, string) error
 	EditNote(context.Context, string) (bool, error)
 	Preview(context.Context, string) (HistoryPreview, error)
+	Groups(context.Context) ([]GroupOption, error)
+	CreateGroup(context.Context) (*GroupOption, bool, error)
+	RenameGroup(context.Context, string) (bool, error)
+	DeleteGroup(context.Context, string) (bool, error)
+	MoveToGroup(context.Context, string, string) error
 	Updates() <-chan struct{}
 }
 
@@ -80,16 +94,21 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 		errorText := core.NewSignal(cx, "")
 		hasMore := core.NewSignal(cx, false)
 		preview := core.NewSignal(cx, macos.PreviewContent{})
+		groups := core.NewSignalFunc(cx, []macos.GroupOption(nil), nil)
+		filter := core.NewSignal(cx, "")
+		group := core.NewSignal(cx, "")
 		ref := &core.Ref{}
 
 		var (
-			query      string
-			selectedID string
-			pageSize   = 80
-			request    atomic.Int64
+			query         string
+			filterValue   string
+			selectedGroup string
+			selectedID    string
+			pageSize      = 80
+			request       atomic.Int64
 		)
 
-		load := func(keyword string, appendRows bool) {
+		load := func(keyword, activeFilter, groupID string, appendRows bool) {
 			if model == nil {
 				errorText.Set("无法打开剪贴板数据库")
 				loading.Set(false)
@@ -103,9 +122,11 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 			}
 			serial := request.Add(1)
 			ctx := cx.Context()
-			go func(keyword string, offset int, appendRows bool, serial int64) {
+			go func(keyword, activeFilter, groupID string, offset int, appendRows bool, serial int64) {
 				page, err := model.List(ctx, HistoryQuery{
 					Keyword: keyword,
+					Filter:  activeFilter,
+					GroupID: groupID,
 					Limit:   pageSize,
 					Offset:  offset,
 				})
@@ -130,7 +151,45 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 					hasMore.Set(page.HasMore)
 					loading.Set(false)
 				})
-			}(keyword, offset, appendRows, serial)
+			}(keyword, activeFilter, groupID, offset, appendRows, serial)
+		}
+		reload := func() { load(query, filterValue, selectedGroup, false) }
+
+		loadGroups := func(selectID string, reloadRows bool) {
+			if model == nil {
+				return
+			}
+			ctx := cx.Context()
+			go func() {
+				nextGroups, err := model.Groups(ctx)
+				cx.Post(func() {
+					if err != nil {
+						errorText.Set(err.Error())
+						return
+					}
+					options := make([]macos.GroupOption, 0, len(nextGroups))
+					foundSelected := selectID == ""
+					for _, option := range nextGroups {
+						options = append(options, macos.GroupOption{ID: option.ID, Name: option.Name})
+						if option.ID == selectID {
+							foundSelected = true
+						}
+					}
+					groups.Set(options)
+					if selectID != "" && foundSelected {
+						selectedGroup = selectID
+						filterValue = ""
+						group.Set(selectedGroup)
+						filter.Set("")
+					} else if selectedGroup != "" && !groupExists(nextGroups, selectedGroup) {
+						selectedGroup = ""
+						group.Set("")
+					}
+					if reloadRows {
+						reload()
+					}
+				})
+			}()
 		}
 
 		copyItem := func(id string) {
@@ -148,7 +207,7 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 					if hideAfter && hide != nil {
 						hide()
 					}
-					load(query, false)
+					reload()
 				})
 			}()
 		}
@@ -181,10 +240,10 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 								}
 								return
 							}
-							load(query, false)
+							reload()
 						})
 					} else {
-						load(query, false)
+						reload()
 					}
 				})
 			}()
@@ -202,7 +261,7 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 						errorText.Set(err.Error())
 						return
 					}
-					load(query, false)
+					reload()
 				})
 			}()
 		}
@@ -255,7 +314,8 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 			}
 		})
 
-		load("", false)
+		load("", "", "", false)
+		loadGroups("", false)
 		if model != nil {
 			if updates := model.Updates(); updates != nil {
 				ctx := cx.Context()
@@ -267,7 +327,7 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 						case <-updates:
 							cx.Post(func() {
 								preview.Set(macos.PreviewContent{})
-								load(query, false)
+								reload()
 							})
 						}
 					}
@@ -285,6 +345,9 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 					"loading": loading.Get(),
 					"error":   errorText.Get(),
 					"preview": preview.Get(),
+					"groups":  groups.Get(),
+					"group":   group.Get(),
+					"filter":  filter.Get(),
 				}
 			},
 			OnEvent: func(name string, data any) {
@@ -296,8 +359,23 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 					}
 					pendingSearch = cx.AfterFunc(120*time.Millisecond, func() {
 						query = text
-						load(query, false)
+						reload()
 					})
+				case "filter":
+					value, _ := data.(string)
+					filterValue = value
+					selectedGroup = ""
+					filter.Set(value)
+					group.Set("")
+					reload()
+				case "group":
+					value, _ := data.(string)
+					selectedGroup = value
+					filterValue = ""
+					group.Set(value)
+					filter.Set("")
+					preview.Set(macos.PreviewContent{})
+					reload()
 				case "select":
 					selectedID, _ = data.(string)
 				case "activate":
@@ -338,7 +416,7 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 							if selectedID == id {
 								selectedID = ""
 							}
-							load(query, false)
+							reload()
 						})
 					}()
 				case "preview":
@@ -381,13 +459,82 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 								return
 							}
 							if saved {
-								load(query, false)
+								reload()
 							}
 						})
 					}()
+				case "newGroup":
+					if model == nil {
+						return
+					}
+					ctx := cx.Context()
+					go func() {
+						created, ok, err := model.CreateGroup(ctx)
+						cx.Post(func() {
+							if err != nil {
+								errorText.Set(err.Error())
+								return
+							}
+							if ok && created != nil {
+								loadGroups(created.ID, true)
+							}
+						})
+					}()
+				case "renameGroup":
+					if model == nil || selectedGroup == "" {
+						return
+					}
+					ctx := cx.Context()
+					go func(id string) {
+						renamed, err := model.RenameGroup(ctx, id)
+						cx.Post(func() {
+							if err != nil {
+								errorText.Set(err.Error())
+								return
+							}
+							if renamed {
+								loadGroups(id, false)
+							}
+						})
+					}(selectedGroup)
+				case "deleteGroup":
+					if model == nil || selectedGroup == "" {
+						return
+					}
+					ctx := cx.Context()
+					go func(id string) {
+						deleted, err := model.DeleteGroup(ctx, id)
+						cx.Post(func() {
+							if err != nil {
+								errorText.Set(err.Error())
+								return
+							}
+							if deleted {
+								selectedGroup = ""
+								group.Set("")
+								loadGroups("", true)
+							}
+						})
+					}(selectedGroup)
+				case "moveGroup":
+					if selectedID == "" || model == nil {
+						return
+					}
+					value, _ := data.(string)
+					ctx := cx.Context()
+					go func(id, groupID string) {
+						err := model.MoveToGroup(ctx, id, groupID)
+						cx.Post(func() {
+							if err != nil {
+								errorText.Set(err.Error())
+								return
+							}
+							reload()
+						})
+					}(selectedID, value)
 				case "loadMore":
 					if hasMore.GetUntracked() && !loading.GetUntracked() {
-						load(query, true)
+						load(query, filterValue, selectedGroup, true)
 					}
 				case "hide":
 					if hide != nil {
@@ -401,6 +548,15 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 			},
 		}
 	}
+}
+
+func groupExists(groups []GroupOption, id string) bool {
+	for _, group := range groups {
+		if group.ID == id {
+			return true
+		}
+	}
+	return false
 }
 
 func historyRow(item HistoryItem) macos.HistoryRow {
@@ -426,6 +582,7 @@ func historyRow(item HistoryItem) macos.HistoryRow {
 	}
 	return macos.HistoryRow{
 		ID:             item.ID,
+		GroupID:        item.GroupID,
 		Kind:           item.Kind,
 		SubKind:        item.SubKind,
 		Title:          title,

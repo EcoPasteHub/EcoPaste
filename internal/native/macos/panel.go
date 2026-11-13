@@ -21,6 +21,9 @@ type Panel struct {
 	cx            *core.NativeContext
 	view          objc.ID
 	search        objc.ID
+	filter        objc.ID
+	groupsPopup   objc.ID
+	groupActions  objc.ID
 	divider       objc.ID
 	scroll        objc.ID
 	table         objc.ID
@@ -43,6 +46,15 @@ type Panel struct {
 	errText       string
 	selection     string
 	previewing    bool
+	filterValue   string
+	groupID       string
+	groups        []GroupOption
+}
+
+// GroupOption is one custom group in the panel toolbar and item menu.
+type GroupOption struct {
+	ID   string
+	Name string
 }
 
 var (
@@ -54,6 +66,7 @@ var (
 	panelViewClass    objc.Class
 
 	panelsBySearch   = map[objc.ID]*Panel{}
+	panelsByControl  = map[objc.ID]*Panel{}
 	panelsByObserver = map[objc.ID]*Panel{}
 	panelsByView     = map[objc.ID]*Panel{}
 )
@@ -72,6 +85,32 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.search.Send(sel("setSendsWholeSearchString:"), false)
 	p.search.Send(sel("setTarget:"), searchTarget)
 	p.search.Send(sel("setAction:"), sel("searchChanged:"))
+
+	p.filter = objc.ID(class("NSSegmentedControl")).Send(sel("alloc")).
+		Send(sel("initWithFrame:"), CGRect{})
+	p.filter.Send(sel("setSegmentCount:"), int64(5))
+	for index, label := range []string{"全部", "收藏", "文本", "图片", "文件"} {
+		p.filter.Send(sel("setLabel:forSegment:"), nsString(label), int64(index))
+	}
+	p.filter.Send(sel("setTrackingMode:"), int64(0))
+	p.filter.Send(sel("setSelectedSegment:"), int64(0))
+	p.filter.Send(sel("setTarget:"), searchTarget)
+	p.filter.Send(sel("setAction:"), sel("filterChanged:"))
+	p.filter.Send(sel("setAccessibilityLabel:"), nsString("剪贴板分类"))
+
+	p.groupsPopup = objc.ID(class("NSPopUpButton")).Send(sel("alloc")).
+		Send(sel("initWithFrame:pullsDown:"), CGRect{}, false)
+	p.groupsPopup.Send(sel("setTarget:"), searchTarget)
+	p.groupsPopup.Send(sel("setAction:"), sel("groupChanged:"))
+	p.groupsPopup.Send(sel("setAccessibilityLabel:"), nsString("自定义分组"))
+	p.rebuildGroupMenu()
+
+	p.groupActions = objc.ID(class("NSButton")).Send(sel("alloc")).Send(sel("initWithFrame:"), CGRect{})
+	p.groupActions.Send(sel("setBordered:"), false)
+	p.groupActions.Send(sel("setImage:"), systemSymbol("ellipsis.circle"))
+	p.groupActions.Send(sel("setTarget:"), searchTarget)
+	p.groupActions.Send(sel("setAction:"), sel("groupActions:"))
+	p.groupActions.Send(sel("setAccessibilityLabel:"), nsString("分组操作"))
 
 	p.divider = objc.ID(classNSBox).Send(sel("new"))
 	p.divider.Send(sel("setBoxType:"), 2)
@@ -93,11 +132,15 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.scroll = newHistoryTable(p)
 	p.buildPreview()
 
-	for _, v := range []objc.ID{p.search, p.divider, p.scroll, p.empty, p.preview, p.footer, p.hint} {
+	for _, v := range []objc.ID{p.search, p.filter, p.groupsPopup, p.groupActions,
+		p.divider, p.scroll, p.empty, p.preview, p.footer, p.hint} {
 		p.view.Send(sel("addSubview:"), v)
 	}
 
 	panelsBySearch[p.search] = p
+	panelsByControl[p.filter] = p
+	panelsByControl[p.groupsPopup] = p
+	panelsByControl[p.groupActions] = p
 	panelsByView[p.view] = p
 	layoutPanel(p, 420, 560)
 
@@ -156,16 +199,63 @@ func registerPanelTargets() {
 	}
 
 	target, err := objc.RegisterClass("EcoPasteSearchTarget", class("NSObject"), nil, nil,
-		[]objc.MethodDef{{Cmd: sel("searchChanged:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
-			if p := panelsBySearch[sender]; p != nil {
-				p.query = goString(sender.Send(sel("stringValue")))
-				p.cx.Emit("query", p.query)
-			}
-		}}})
+		[]objc.MethodDef{
+			{Cmd: sel("searchChanged:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
+				if p := panelsBySearch[sender]; p != nil {
+					p.query = goString(sender.Send(sel("stringValue")))
+					p.cx.Emit("query", p.query)
+				}
+			}},
+			{Cmd: sel("filterChanged:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
+				p := panelsByControl[sender]
+				if p == nil {
+					return
+				}
+				index := int(objc.Send[int64](sender, sel("selectedSegment")))
+				filters := []string{"", "favorite", "text", "image", "files"}
+				if index >= 0 && index < len(filters) {
+					p.cx.Emit("filter", filters[index])
+				}
+			}},
+			{Cmd: sel("groupChanged:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
+				p := panelsByControl[sender]
+				if p == nil {
+					return
+				}
+				index := int(objc.Send[int64](sender, sel("indexOfSelectedItem")))
+				groupID := ""
+				if index > 0 && index-1 < len(p.groups) {
+					groupID = p.groups[index-1].ID
+				}
+				p.cx.Emit("group", groupID)
+			}},
+			{Cmd: sel("groupActions:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
+				p := panelsByControl[sender]
+				if p == nil {
+					return
+				}
+				p.showGroupActions(sender)
+			}},
+			{Cmd: sel("menuNewGroup:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
+				if p := menuPanel(sender); p != nil {
+					p.cx.Emit("newGroup", nil)
+				}
+			}},
+			{Cmd: sel("menuRenameGroup:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
+				if p := menuPanel(sender); p != nil && p.groupID != "" {
+					p.cx.Emit("renameGroup", p.groupID)
+				}
+			}},
+			{Cmd: sel("menuDeleteGroup:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
+				if p := menuPanel(sender); p != nil && p.groupID != "" {
+					p.cx.Emit("deleteGroup", p.groupID)
+				}
+			}},
+		})
 	if err != nil {
 		panic(err)
 	}
-	searchTarget = objc.ID(target)
+	searchTarget = objc.ID(target).Send(sel("new"))
 
 	observerClass, err = objc.RegisterClass("EcoPastePanelObserver", class("NSObject"), nil, nil,
 		[]objc.MethodDef{
@@ -212,8 +302,20 @@ func registerPanelTargets() {
 func layoutPanel(p *Panel, width, height float64) {
 	const pad = 12.0
 	searchHeight := 28.0
-	setFrame(p.search, pad, height-pad-searchHeight, width-2*pad, searchHeight)
-	dividerY := height - pad - searchHeight - 10
+	searchY := height - pad - searchHeight
+	setFrame(p.search, pad, searchY, width-2*pad, searchHeight)
+
+	controlHeight := 24.0
+	controlY := searchY - controlHeight - 8
+	actionWidth := 26.0
+	groupWidth := 106.0
+	gap := 8.0
+	filterWidth := width - 2*pad - actionWidth - groupWidth - 2*gap
+	setFrame(p.filter, pad, controlY, filterWidth, controlHeight)
+	setFrame(p.groupsPopup, pad+filterWidth+gap, controlY, groupWidth, controlHeight)
+	setFrame(p.groupActions, width-pad-actionWidth, controlY, actionWidth, controlHeight)
+
+	dividerY := controlY - 10
 	setFrame(p.divider, 0, dividerY, width, 1)
 
 	footerHeight := 28.0
@@ -287,6 +389,19 @@ func (p *Panel) SetProp(name string, value any) {
 		if content, ok := value.(PreviewContent); ok {
 			p.setPreview(content)
 		}
+	case "groups":
+		if groups, ok := value.([]GroupOption); ok {
+			p.groups = groups
+			p.rebuildGroupMenu()
+		}
+	case "group":
+		if id, ok := value.(string); ok {
+			p.setGroupSelection(id)
+		}
+	case "filter":
+		if filter, ok := value.(string); ok {
+			p.setFilterSelection(filter)
+		}
 	}
 }
 
@@ -315,6 +430,9 @@ func (p *Panel) Close() {
 	}
 	delete(panelsByObserver, p.observer)
 	delete(panelsBySearch, p.search)
+	delete(panelsByControl, p.filter)
+	delete(panelsByControl, p.groupsPopup)
+	delete(panelsByControl, p.groupActions)
 	delete(panelsByView, p.view)
 	delete(panelsByTable, p.table)
 	delete(panelsByPreviewView, p.preview)
@@ -329,7 +447,67 @@ func (p *Panel) Close() {
 	p.divider.Send(sel("release"))
 	p.scroll.Send(sel("release"))
 	p.search.Send(sel("release"))
+	p.filter.Send(sel("release"))
+	p.groupsPopup.Send(sel("release"))
+	p.groupActions.Send(sel("release"))
 	p.view.Send(sel("release"))
+}
+
+func (p *Panel) rebuildGroupMenu() {
+	if p.groupsPopup == 0 {
+		return
+	}
+	p.groupsPopup.Send(sel("removeAllItems"))
+	p.groupsPopup.Send(sel("addItemWithTitle:"), nsString("全部分组"))
+	for _, group := range p.groups {
+		p.groupsPopup.Send(sel("addItemWithTitle:"), nsString(group.Name))
+	}
+	p.setGroupSelection(p.groupID)
+}
+
+func (p *Panel) setGroupSelection(id string) {
+	p.groupID = id
+	index := int64(0)
+	for i, group := range p.groups {
+		if group.ID == id {
+			index = int64(i + 1)
+			break
+		}
+	}
+	p.groupsPopup.Send(sel("selectItemAtIndex:"), index)
+}
+
+func (p *Panel) setFilterSelection(filter string) {
+	p.filterValue = filter
+	index := int64(0)
+	for i, value := range []string{"", "favorite", "text", "image", "files"} {
+		if value == filter {
+			index = int64(i)
+			break
+		}
+	}
+	p.filter.Send(sel("setSelectedSegment:"), index)
+}
+
+func (p *Panel) showGroupActions(anchor objc.ID) {
+	menu := objc.ID(class("NSMenu")).Send(sel("new"))
+	defer menu.Send(sel("release"))
+	menu.Send(sel("setAutoenablesItems:"), false)
+	addGroupAction(menu, p, "新建分组…", "menuNewGroup:", true)
+	addGroupAction(menu, p, "重命名当前分组…", "menuRenameGroup:", p.groupID != "")
+	addGroupAction(menu, p, "删除当前分组…", "menuDeleteGroup:", p.groupID != "")
+	menu.Send(sel("popUpMenuPositioningItem:atLocation:inView:"), objc.ID(0),
+		CGPoint{X: 0, Y: bounds(anchor).Size.Height}, anchor)
+}
+
+func addGroupAction(menu objc.ID, p *Panel, title, action string, enabled bool) {
+	item := objc.ID(class("NSMenuItem")).Send(sel("alloc")).
+		Send(sel("initWithTitle:action:keyEquivalent:"), nsString(title), sel(action), nsString(""))
+	item.Send(sel("setTarget:"), searchTarget)
+	item.Send(sel("setRepresentedObject:"), p.table)
+	item.Send(sel("setEnabled:"), enabled)
+	menu.Send(sel("addItem:"), item)
+	item.Send(sel("release"))
 }
 
 func (p *Panel) updateStatus() {

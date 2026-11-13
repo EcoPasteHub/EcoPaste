@@ -25,8 +25,14 @@ func newHistoryModel(runtime *clipboardRuntime, store *settings.Store) *historyM
 
 func (m *historyModel) List(ctx context.Context, q ui.HistoryQuery) (ui.HistoryPage, error) {
 	cfg := m.store.Snapshot().Clipboard
+	var groupID *string
+	if q.GroupID != "" {
+		groupID = &q.GroupID
+	}
 	page, err := m.runtime.db.Page(ctx, database.Query{
 		Keyword: q.Keyword,
+		Group:   q.Filter,
+		GroupID: groupID,
 		Sort:    database.Sort(cfg.Content.Sort),
 		Limit:   q.Limit,
 		Offset:  q.Offset,
@@ -229,6 +235,9 @@ func (m *historyModel) historyItem(item database.Item) ui.HistoryItem {
 		CreatedAt: item.CreatedAt,
 		Favorite:  item.IsFavorite,
 		Pinned:    item.IsPinned,
+	}
+	if item.GroupID != nil {
+		row.GroupID = *item.GroupID
 	}
 	if item.SubKind != nil {
 		row.SubKind = string(*item.SubKind)
