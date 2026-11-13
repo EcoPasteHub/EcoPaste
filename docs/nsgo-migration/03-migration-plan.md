@@ -306,6 +306,8 @@ internal/native/macos/
    - stable/beta/nightly 渠道映射。
    - 下载进度、安装、重启、跳过版本。
    - 保留旧 Tauri update endpoint 到 cutover。
+
+   实现调整：macOS 首版只用单一 stable appcast，不恢复独立更新窗口；设置、应用菜单和托盘共用检查入口，下载/安装/重启/跳过由 Sparkle 管理。beta/nightly 需要独立 appcast 与签名渠道，单独立项后再接入。
 3. 其他：
    - 复制音效、i18n（zh-CN/en-US）、日志轮转、诊断信息。
    - 缓存清理、存储占用、图片另存、Finder reveal、打开链接/邮件。

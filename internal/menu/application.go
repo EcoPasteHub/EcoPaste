@@ -8,18 +8,25 @@ import (
 )
 
 // Application returns the menu bar in language. Settings opens the
-// preference window and is left out when nil.
-func Application(language string, settings func()) []desktop.MenuItem {
+// preference window and Check for Updates starts an update check; each
+// is left out when nil.
+func Application(language string, settings, checkUpdates func()) []desktop.MenuItem {
 	msgs := locales.In(language)
 	appItems := []desktop.MenuItem{
 		{Role: desktop.MenuAbout},
 		{Separator: true},
 	}
+	if checkUpdates != nil {
+		appItems = append(appItems,
+			desktop.MenuItem{Label: i18n.T(i18n.TrayCheckUpdates), OnSelect: checkUpdates})
+	}
 	if settings != nil {
 		appItems = append(appItems,
 			desktop.MenuItem{Label: i18n.T(i18n.TraySettings), Shortcut: "meta+,", OnSelect: settings},
-			desktop.MenuItem{Separator: true},
 		)
+	}
+	if checkUpdates != nil || settings != nil {
+		appItems = append(appItems, desktop.MenuItem{Separator: true})
 	}
 	appItems = append(appItems,
 		desktop.MenuItem{Role: desktop.MenuHide},

@@ -34,6 +34,7 @@ type settingsModel struct {
 	restart              func()
 	exportBackup         func()
 	importBackup         func()
+	checkUpdates         func()
 }
 
 func newSettingsModel(store *settings.Store) *settingsModel {
@@ -132,6 +133,12 @@ func (m *settingsModel) Apply(path string, value any) error {
 			return fmt.Errorf("%s", i18n.T(i18n.ErrorBackupUnavailable))
 		}
 		m.importBackup()
+		return nil
+	case "update.check":
+		if m.checkUpdates == nil {
+			return fmt.Errorf("%s", i18n.T(i18n.UpdateCheckFailedBody))
+		}
+		m.checkUpdates()
 		return nil
 	}
 	if path == "general.dataDir" {

@@ -18,7 +18,7 @@ const (
 
 var settingsTabOrder = []string{
 	"general", "data", "capture", "display", "actions", "interaction", "deletion",
-	"window", "history", "permissions", "apps", "shortcuts", "preview",
+	"window", "history", "permissions", "apps", "shortcuts", "preview", "update",
 }
 
 var settingsTabSymbols = map[string]string{
@@ -35,6 +35,7 @@ var settingsTabSymbols = map[string]string{
 	"apps":        "square.grid.2x2",
 	"shortcuts":   "keyboard",
 	"preview":     "eye",
+	"update":      "arrow.triangle.2.circlepath",
 }
 
 var (

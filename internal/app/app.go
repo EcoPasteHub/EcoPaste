@@ -20,6 +20,7 @@ import (
 	"github.com/EcoPasteHub/EcoPaste/internal/settings"
 	"github.com/EcoPasteHub/EcoPaste/internal/storage"
 	"github.com/EcoPasteHub/EcoPaste/internal/ui"
+	"github.com/EcoPasteHub/EcoPaste/internal/update"
 	"github.com/nsgo-dev/nsgo/core"
 	"github.com/nsgo-dev/nsgo/desktop"
 )
@@ -56,7 +57,7 @@ func Run(app *core.Scope) {
 			if openSettings != nil {
 				openSettings()
 			}
-		}))
+		}, func() { update.CheckNow(app) }))
 	}
 	applyApplicationMenu()
 	var store *settings.Store
@@ -253,6 +254,9 @@ func Run(app *core.Scope) {
 				}
 				model.importBackup = func() {
 					importBackupWithUI(app, runtime, store, reloadHotkeys)
+				}
+				model.checkUpdates = func() {
+					update.CheckNow(app)
 				}
 				model.restart = func() {
 					app.Post(func() {
@@ -477,6 +481,7 @@ func Run(app *core.Scope) {
 						log.Printf("open source: %v", err)
 					}
 				}},
+				{Label: i18n.T(i18n.TrayCheckUpdates), OnSelect: func() { update.CheckNow(app) }},
 				{Label: i18n.Tf(i18n.TrayVersion, macos.AppVersion()), Disabled: true},
 				{Label: i18n.T(i18n.TrayRestart), OnSelect: func() { desktop.Restart(app) }},
 				{Separator: true},

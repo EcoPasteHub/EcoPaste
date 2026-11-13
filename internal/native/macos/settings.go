@@ -168,6 +168,7 @@ var settingsTabTitleKeys = map[string]i18n.Key{
 	"deletion":    i18n.SettingsTabDeletion,
 	"shortcuts":   i18n.SettingsTabShortcuts,
 	"preview":     i18n.SettingsTabPreview,
+	"update":      i18n.SettingsTabUpdate,
 }
 
 func settingsTabTitle(name string) string {
@@ -201,6 +202,7 @@ var settingsTabIdentifiers = map[string]struct{}{
 	"deletion":    {},
 	"shortcuts":   {},
 	"preview":     {},
+	"update":      {},
 }
 
 // SelectSettingsTab shows the named tab when the settings window is open,
@@ -276,6 +278,7 @@ func NewSettings(cx *core.NativeContext) core.NativeComponent {
 	v.buildApps()
 	v.buildShortcuts()
 	v.buildPreview()
+	v.buildUpdate()
 	v.buildSidebar()
 	v.buildSettingsHeader()
 	v.buildSearch()
@@ -493,6 +496,57 @@ func (v *SettingsView) buildPreview() {
 	content.Send(sel("addSubview:"), intro)
 	v.addSwitch(content, 396, i18n.T(i18n.SettingsSpacePreview), "preview.spaceEnabled",
 		func(s SettingsValues) bool { return s.SpacePreview })
+}
+
+func (v *SettingsView) buildUpdate() {
+	content := v.newTab("update", settingsTabTitle("update"))
+	iconImage := objc.Send[objc.ID](
+		objc.ID(class("NSApplication")).Send(sel("sharedApplication")), sel("applicationIconImage"))
+	icon := objc.ID(class("NSImageView")).Send(sel("new"))
+	icon.Send(sel("setImage:"), iconImage)
+	icon.Send(sel("setImageScaling:"), int64(3))
+	icon.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 346}, Size: CGSize{Width: 64, Height: 64}})
+	content.Send(sel("addSubview:"), icon)
+	icon.Send(sel("release"))
+
+	name := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString("EcoPaste"))
+	name.Send(sel("setFont:"), objc.ID(classNSFont).Send(sel("boldSystemFontOfSize:"), 17.0))
+	name.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 108, Y: 384}, Size: CGSize{Width: 300, Height: 22}})
+	content.Send(sel("addSubview:"), name)
+
+	version := objc.ID(classNSTextField).Send(sel("labelWithString:"),
+		nsString(i18n.Tf(i18n.SettingsUpdateVersion, AppVersion())))
+	version.Send(sel("setFont:"), systemFont(12))
+	version.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
+	version.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 108, Y: 362}, Size: CGSize{Width: 300, Height: 18}})
+	content.Send(sel("addSubview:"), version)
+
+	intro := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(i18n.SettingsUpdateIntro)))
+	intro.Send(sel("setFont:"), systemFont(12))
+	intro.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
+	intro.Send(sel("setLineBreakMode:"), int64(4))
+	intro.Send(sel("setMaximumNumberOfLines:"), int64(2))
+	intro.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 312}, Size: CGSize{Width: tabContentW - 48, Height: 36}})
+	content.Send(sel("addSubview:"), intro)
+
+	check := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
+		nsString(i18n.T(i18n.SettingsUpdateCheck)), settingsTarget, sel("updateCheckPressed:"))
+	check.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 260}, Size: CGSize{Width: 150, Height: 30}})
+	check.Send(sel("setBezelStyle:"), int64(1))
+	content.Send(sel("addSubview:"), check)
+	settingsViews[check] = v
+
+	managed := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(i18n.SettingsUpdateManaged)))
+	managed.Send(sel("setFont:"), systemFont(11))
+	managed.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
+	managed.Send(sel("setLineBreakMode:"), int64(4))
+	managed.Send(sel("setMaximumNumberOfLines:"), int64(2))
+	managed.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 212}, Size: CGSize{Width: tabContentW - 48, Height: 34}})
+	content.Send(sel("addSubview:"), managed)
+
+	v.addSearchEntry(content, i18n.T(i18n.SettingsTabUpdate), "update.check",
+		i18n.T(i18n.SettingsUpdateIntro), "update sparkle version",
+		CGRect{Origin: CGPoint{X: 12, Y: 254}, Size: CGSize{Width: tabContentW - 24, Height: 84}})
 }
 
 func (v *SettingsView) buildPermissions() {
@@ -831,6 +885,13 @@ func registerSettingsTargets() {
 				return
 			}
 			v.cx.Emit("change", SettingsChange{Path: "backup.import", Value: true})
+		}},
+		{Cmd: sel("updateCheckPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
+			v := settingsViews[sender]
+			if v == nil {
+				return
+			}
+			v.cx.Emit("change", SettingsChange{Path: "update.check", Value: true})
 		}},
 		{Cmd: sel("resetSettingsPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
 			v := settingsViews[sender]

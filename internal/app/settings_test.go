@@ -319,6 +319,26 @@ func TestSettingsModelRunsBackupActions(t *testing.T) {
 	}
 }
 
+func TestSettingsModelChecksUpdates(t *testing.T) {
+	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	model := newSettingsModel(store)
+	checked := 0
+	model.checkUpdates = func() { checked++ }
+	if err := model.Apply("update.check", true); err != nil {
+		t.Fatal(err)
+	}
+	if checked != 1 {
+		t.Errorf("update checked %d times", checked)
+	}
+
+	if err := newSettingsModel(store).Apply("update.check", true); err == nil {
+		t.Error("missing update callback did not fail")
+	}
+}
+
 func TestSettingsModelChangesDataDir(t *testing.T) {
 	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
 	if err != nil {

@@ -153,6 +153,13 @@ NSGo 是一个 **Go 原生 UI 引擎**，不是 Tauri 的前端替代品：
 1. 在现有发布服务增加 Sparkle appcast（推荐，复用 Sparkle 的安装/重启体验）。
 2. 自己实现更新检查 + 下载 + 替换 .app（工作量大，且要处理签名/回滚）。
 
+当前实现选择方案 1，并做以下产品调整：
+
+- 不恢复独立 WebView 更新窗口；设置“更新”页、应用菜单和托盘共用“检查更新…”入口。
+- macOS 由 Sparkle 展示检查、下载、安装和重启界面；应用只处理非 Sparkle 结果并显示本地化提示。
+- 首版只接单一 stable appcast。自动检查与跳过版本由 Sparkle 管理，`update` 旧字段保持读写但不暴露不支持的 beta/nightly 渠道。
+- 发布前必须在 `cmd/ecopaste/nsgo.yaml` 配置 `updates.key`（`nsgo keygen` 生成的公钥），并用 `NSGO_UPDATES_KEY` 签名安装包；私钥不得进入仓库或 CI 日志。
+
 ### 3.8 打包与签名
 
 `nsgo build` 支持：

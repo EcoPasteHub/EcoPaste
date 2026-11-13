@@ -116,9 +116,9 @@
 | W-05 | P1 | 窗口生命周期 | `window/lifecycle/*` | 原生窗口状态机，无 WebView 重建 | 已通过 | 冷启动不显示面板、全局快捷键显示/隐藏、隐藏后写 `window-state.json` 已实测；快捷键切换改为显式 `Show()`/`Hide()`，避免 Carbon 回调中的窗口命令未刷新；Esc 隐藏已复测；修复退出阶段热键清理阻塞主队列导致进程残留后，应用菜单退出、托盘“重新启动”与托盘“退出 EcoPaste”均真机通过：重启产生新进程，退出在 0.78 秒内结束且无残留 |
 | W-06 | P1 | 窗口几何持久化 | `window/state.rs` | 同 `state/window-state.json` | 已通过（格式调整） | 隐藏时写入 `clipboard` 帧并重启恢复；旧版存物理像素、左上原点，新版存 AppKit points、左下原点，JSON 字段与路径不变；旧坐标不在任一屏幕时回退到光标所在屏幕居中 |
 | W-07 | P1 | 偏好窗口 | `window/mod.rs` | 原生侧栏 + `NSTabView` 设置窗口 | 已通过 | 左侧原生源码列表分类栏、右侧内容区；引导页“修改快捷键/管理应用”已真机深链到对应分类，已打开窗口同步切换；顶部 `NSSearchField` 跨全部分类搜索标题、说明、选项、路径，结果下拉跳转并在目标行短暂高亮；`TestMatchSettingsSearch*` 覆盖多词、路径分词、去重和 8 条上限，真机验证 `dock`、`capture order` 跳转及无匹配状态 |
-| W-08 | P1 | 更新窗口 | `window/mod.rs` | Sparkle 交互或独立窗口 | 待迁移 | 检查/下载/安装 |
+| W-08 | P1 | 更新窗口 | `window/mod.rs` | Sparkle 原生更新窗口 | 迁移中 | 产品调整：不恢复独立 WebView 更新窗，入口合并到设置“更新”页、应用菜单和托盘；macOS 由 Sparkle 显示检查/下载/安装/重启界面，应用侧只传本地化不可用结果；真机开发版验证设置页与菜单入口，正式签名 appcast 升级待发布验证 |
 | W-09 | P1 | 引导窗口 | `window/mod.rs` | 原生 5 步流程（面板内浮层） | 已通过（产品调整） | 真机首次启动自动展示欢迎/权限/快捷键/排除应用/完成 5 步；上一步、`lastStep` 中断恢复、完成后回到列表面板均通过；旧版导入步骤转为 D-24 单独立项 |
-| W-10 | P0 | 托盘 | `tray/mod.rs` | `NSStatusItem` + `NSMenu`：偏好、暂停、开源、更新、版本、重启、退出 | 迁移中 | 显示/暂停/设置/清除/开源/版本/重启/退出已接；更新项待更新模块完成后补 |
+| W-10 | P0 | 托盘 | `tray/mod.rs` | `NSStatusItem` + `NSMenu`：偏好、暂停、开源、更新、版本、重启、退出 | 迁移中 | 显示/暂停/设置/清除/开源/更新/版本/重启/退出已接；更新项与应用菜单共用同一 Sparkle 检查路径，正式签名 appcast 升级待发布验证 |
 | W-11 | P0 | 全局快捷键 | `shortcut/mod.rs` | `desktop.RegisterHotKey` | 已通过 | Carbon 注册支持热更新；只增量替换变化的按键，按快捷键返回注册失败并在设置页显示，失败时恢复原值；`TestSettingsModelRollsBackShortcutWhenRebindFails`；真机录制 `Alt+J` 后立即重绑，未影响另一快捷键 |
 | W-12 | P1 | 快捷键录制 | 前端录制器 | 原生 `NSTextField` 捕获 | 已通过 | 原生输入框捕获组合键，Delete 清空、Esc 取消；`TestSettingsModelAppliesShortcutAndRejectsDuplicate`；真机快捷键页完成录制与写盘 |
 | W-13 | P1 | 开机自启 | `autostart/macos.rs` | `SMAppService` | 迁移中 | `TestAutostartNeedsChange`；真机开关、持久化通过；重启登录需签名安装包验收 |
@@ -128,7 +128,7 @@
 | W-17 | P1 | 原生右键菜单 | `menu/clipboard_item.rs` | `NSMenu` 按内容动态生成动作 | 已通过 | URL/图片/路径菜单与分组子菜单已真机验证；`⌘C`/`⌘V`/`⌥⌘C`/`⌥⌘V` 与标准编辑菜单复制/粘贴已真机验证 |
 | W-18 | P1 | 权限 | `PermissionControl` | 辅助功能/完全磁盘访问检测与跳转 | 已通过 | `TestFullDiskAccessGranted`；权限页真机显示两项实时状态，FDA 跳转到“完全磁盘访问权限”面板，粘贴失败仍弹辅助功能说明 |
 | W-19 | P2 | 防默认行为 | `core/prevent_default.rs` | 无 WebView，不需要 | 不纳入 macOS 首版 | 确认无 WebView 入口 |
-| W-20 | P1 | 更新 | `update.rs` | NSGo updater + Sparkle appcast | 待迁移 | 测试源真实升级 |
+| W-20 | P1 | 更新 | `update.rs` | NSGo updater + Sparkle appcast | 迁移中 | 已接 `core.CheckForUpdates` 与 NSGo updater：macOS 由 Sparkle 负责检查、EdDSA 校验、下载、安装和重启；应用菜单、托盘和设置“更新”页共用入口，非 Sparkle 结果使用本地化提示；`TestDescribeUpdateResult`、`TestSettingsModelChecksUpdates`、`TestApplicationUpdateItem`；真机开发版验证入口与不可用提示，`nsgo.yaml` 的 `updates.key` 与测试 appcast/真实升级仍待发布密钥配置 |
 | W-21 | P1 | 日志 | `tauri-plugin-log` | 标准 `log` + lumberjack 轮转，写入前脱敏 | 已通过 | `TestRedact`、`TestOpenWritesRedactedLogFile`；真机落盘 `<data_root>/logs/ecopaste.log`，托盘可打开日志目录 |
 
 ## 6. UI 页面与交互
@@ -137,9 +137,9 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | U-01 | P0 | Clipboard 主页面 | `legacy/frontend/src/pages/Clipboard` | AppKit 搜索/分类/分组/列表/卡片/Footer | 已通过（产品调整） | 原生 `NSTableView` 行替代 WebView 卡片；类型标签、来源/时间、置顶/收藏状态、备注切换、悬停动作、搜索/分类/分组筛选、Footer、实时刷新与复制已真机验证；不再复刻圆角卡片边框，选择与密度遵循 AppKit；`TestHistoryRowIncludesMetadata`、`TestHistoryRowTypeLabels` |
 | U-02 | P1 | Preview 页面 | `legacy/frontend/src/pages/Preview` | 原生 `NSPopover` 预览 | 已通过 | 真机 Space 打开、Space/Esc 关闭，popover 锚定列表行且不遮挡面板；文本、HTML、图片预览均正常；`TestPreviewRedactsSensitiveText` |
-| U-03 | P1 | Preference 页面 | `legacy/frontend/src/pages/Preference` | 原生侧栏/表单/搜索/高亮 | 迁移中 | 左侧 `NSVisualEffectView` + 源码列表分类栏承载 13 个分类，右侧原生表单、全局搜索和高亮已可用；分类行支持键盘聚焦、选中强调和 VoiceOver“设置分类”标签，搜索、引导深链和语言切换会同步选中侧栏行；真机验证全部 13 个分类切换、`backup` 跳转高亮及中英文重建；“数据”页集中放置数据目录与备份入口，“预览”页控制 Space 预览；更新入口与其余 schema 设置项继续逐项对齐 |
+| U-03 | P1 | Preference 页面 | `legacy/frontend/src/pages/Preference` | 原生侧栏/表单/搜索/高亮 | 迁移中 | 左侧 `NSVisualEffectView` + 源码列表分类栏承载 14 个分类，右侧原生表单、全局搜索和高亮已可用；分类行支持键盘聚焦、选中强调和 VoiceOver“设置分类”标签，搜索、引导深链和语言切换会同步选中侧栏行；真机验证全部分类切换、`backup` 跳转高亮及中英文重建；“数据”页集中放置数据目录与备份入口，“预览”页控制 Space 预览，“更新”页展示版本并触发 Sparkle；其余 schema 设置项继续逐项对齐 |
 | U-04 | P1 | Onboarding 页面 | `legacy/frontend/src/pages/Onboarding` | 原生 6 步流程 | 已通过（产品调整） | `TestOnboardingDefaultsAndPersistence`、`TestOnboardingFinishAndClamp`、`TestOnboardingReportsShortcutsAndExcludedApps`；真机完成欢迎/权限/快捷键/排除应用/旧版导入/完成全流程，权限状态、快捷键展示、打开设置深链与旧版导入均通过；产品调整为导入步骤内展示结果、不自动跳步 |
-| U-05 | P1 | Update 页面 | `legacy/frontend/src/pages/Update` | 原生更新状态/进度 | 待迁移 | 各状态 |
+| U-05 | P1 | Update 页面 | `legacy/frontend/src/pages/Update` | 原生更新状态/进度 | 迁移中 | 产品调整：不再自绘更新状态机，设置“更新”页展示当前版本与检查入口，下载进度、安装和重启交给 Sparkle 原生窗口；不可用或非 Sparkle 结果使用本地化提示；正式签名 appcast 升级待发布验证 |
 | U-06 | P2 | ContextMenu 页面 | `legacy/frontend/src/pages/ContextMenu` | macOS 使用 `NSMenu`，不迁移 WebView 菜单窗 | 参考 | 对比菜单结构 |
 | U-07 | P0 | 列表虚拟滚动 | `react-virtuoso` | `NSTableView` 原生虚拟化 | 已通过 | `NSTableView` 原生复用与 80 条分页；隔离数据目录导入 1 万条记录，首屏 80 条、原生滚动加载至 160 条、连续 End 导航加载至 240 条，搜索 `9999` 约 1.3 秒返回 1 条，无崩溃 |
 | U-08 | P1 | 键盘导航 | `legacy/frontend/src/hooks` 的键盘逻辑 | 上下/Page/Home/End/Enter/Esc | 已通过 | 真机 ↑/↓、Home/End、⌘F、⌘C、⌥⌘C、⌘V、⌥⌘V 通过；向表格发送原生 PageDown/PageUp 键码 121/116，选择从无选中跳到第 5 条、再回到第 1 条，页大小按可见行计算；兼容专用键与 Fn+↑/↓，并支持 macOS 首/末行快捷键 Fn+←/→ 与 ⌘↑/↓（`TestHistoryKeyAction`） |
@@ -152,7 +152,7 @@
 
 | ID | 优先级 | 功能 | 现有实现 | NSGo/AppKit 目标 | 状态 | 验证方式 |
 | --- | --- | --- | --- | --- | --- | --- |
-| I-01 | P1 | 前端文案 | `legacy/frontend/src/locales/zh-CN`、`en-US` | Go i18n 目录，复用文案内容 | 已通过 | 剪贴板面板、6 步引导与 13 个设置分类已接入目录：搜索/分类/分组/空状态、右键与悬停动作、备注与分组弹窗、预览提示、类型/时间摘要、文件摘要、引导状态、全部设置项/选项/搜索关键词/诊断报告；备份/清除/权限弹窗，以及历史、分组、数据目录、快捷键、来源应用、链接打开、登录项、旧版导入与备份容器错误均已接入；`TestHistoryPresentationFollowsLanguage`、`TestSettingsSearchMatchesEnglishLabels`、`TestFormatDiagnosticReportInEnglish`、`TestGroupValidationFollowsLanguage`、`TestBackupErrorsFollowLanguage` 覆盖英文 |
+| I-01 | P1 | 前端文案 | `legacy/frontend/src/locales/zh-CN`、`en-US` | Go i18n 目录，复用文案内容 | 已通过 | 剪贴板面板、6 步引导与 14 个设置分类已接入目录：搜索/分类/分组/空状态、右键与悬停动作、备注与分组弹窗、预览提示、类型/时间摘要、文件摘要、引导状态、全部设置项/选项/搜索关键词/诊断报告、更新入口与结果提示；备份/清除/权限弹窗，以及历史、分组、数据目录、快捷键、来源应用、链接打开、登录项、旧版导入与备份容器错误均已接入；`TestHistoryPresentationFollowsLanguage`、`TestSettingsSearchMatchesEnglishLabels`、`TestFormatDiagnosticReportInEnglish`、`TestGroupValidationFollowsLanguage`、`TestBackupErrorsFollowLanguage` 覆盖英文 |
 | I-02 | P1 | Rust 侧文案 | `src-tauri/src/i18n/` | Go 文案目录 | 已通过 | `internal/i18n` 中英文目录覆盖托盘、列表右键、清除/删除确认、备份/存储/缓存/数据目录提示、剪贴板面板、引导、设置与权限弹窗，并按 `appearance.language` 选择；`TestCatalogsShareEveryKey`、`TestSetLanguageSelectsCatalog`、`TestTfFormatsArguments` |
 | I-03 | P1 | 语言切换 | `appearance.language` | 原生菜单/设置切换，立即生效 | 已通过 | 设置“通用”页语言下拉写入 `appearance.language` 后立即切换目录、重建设置窗口与剪贴板面板，无需重启；真机中英文往返验证，托盘菜单、面板、设置与清空/备份弹窗文案同步切换；`TestSettingsModelAppliesLanguage` |
 | I-04 | P2 | 系统本地化 | 部分系统菜单 | AppKit 本地化角色项 | 已通过 | `internal/menu` 提供“应用/编辑/窗口”原生菜单与角色项，语言切换时整体重建；`TestApplicationBuildsLocalizedMenuBar`、`TestApplicationUsesRoleLabels`、`TestApplicationSettingsItem`；真机中英文往返验证关于/设置/隐藏/退出、撤销/重做/剪切/复制/粘贴/全选、最小化/缩放/全屏/关闭均随系统语言更新，设置项可从菜单打开偏好窗口 |
@@ -177,7 +177,7 @@
 | S-12 | clipboard.feedback | `copySound` | 音效开关一致 | 已通过 | 设置“通用”页开关即时写入 `settings.json`；开启后监听/手动读取入库成功播放系统提示音，关闭后静音；`TestSettingsModelAppliesPaths` 覆盖读写 |
 | S-13 | clipboard.filters | `excludedAppIds` | bundle id 过滤一致 | 已通过 | `TestDefaultExcludedAppsAreNotCaptured` 校验默认排除密码类应用且普通来源照常入库；`TestIgnoredAppIsNotCaptured`、`TestSettingsModelAppliesExcludedAppsAndDeletesRemoved`、`TestSettingsModelAddSourceAppExcludesIt` 覆盖自定义排除、取消与来源应用清理 |
 | S-14 | onboarding | `completed`、`lastStep`、`legacyImport{checked,imported,importTypes,importedAt}` | 首次启动与导入状态一致 | 迁移中 | `completed`/`lastStep` 已按 `settings.json` 持久化并支持中断恢复、完成；`legacyImport` 字段保持读写，旧版导入实现随 D-24 补齐 |
-| S-15 | update | `autoCheck`、`frequency`、`includeBeta`、`includeNightly`、`lastCheckedAt`、`skippedVersion` | 渠道与跳过逻辑一致 | 待迁移 | 测试 appcast |
+| S-15 | update | `autoCheck`、`frequency`、`includeBeta`、`includeNightly`、`lastCheckedAt`、`skippedVersion` | Sparkle 管理自动检查与跳过；旧字段保持读写 | 迁移中（产品调整） | macOS 首版只接单一 stable appcast，自动检查、下载与跳过版本由 Sparkle 管理；beta/nightly 需要独立 appcast 与发布渠道，暂不暴露；旧 `update` 字段继续按发布契约读写，`TestSettingsJSONRoundTripsPublishedCamelCase` 保证不丢字段；测试 appcast 与真实签名升级待发布验证 |
 | S-16 | 默认值 | 所有 `serde(default)` | 缺字段时行为与旧版一致 | 已通过 | `TestLoadKeepsDefaultsForMissingFields`、`TestOpenFallsBackToDefaultsForUnreadableSettings`、`TestSettingsJSONRoundTripsPublishedCamelCase`：缺字段、空文件、损坏 JSON、类型错误和非法枚举均回退完整默认值，camelCase 编码可无损回环 |
 | S-17 | 写入语义 | 对象深合并、数组替换、`.tmp` + rename | patch 语义与原子写一致 | 已通过 | `TestUpdateDeepMergesObjectsAndReplacesArrays`、`TestWriteIsAtomicAndReadable`、`TestConcurrentUpdatesKeepCompleteSettings`、`TestCrashResidueDoesNotAffectSettings`；并发 patch 不丢字段，残留 `.tmp` 不影响主文件读取，下次写入完成替换且不残留临时文件 |
 | S-18 | 跨字段校验 | 快捷键不重复、`selectGroupOnOpen` 编码合法 | 错误可定位且不破坏旧值 | 已通过 | `TestUpdateRejectsInvalidValuesWithoutChangingSettings`、`TestUpdateRejectsDuplicateShortcuts`：非法枚举、快捷键冲突和非法打开分组均拒绝，内存快照与磁盘文件保持原值 |

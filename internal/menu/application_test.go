@@ -19,7 +19,7 @@ func TestApplicationBuildsLocalizedMenuBar(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.language, func(t *testing.T) {
 			i18n.SetLanguage(tc.language)
-			items := Application(tc.language, nil)
+			items := Application(tc.language, nil, nil)
 			if len(items) != 3 {
 				t.Fatalf("menu count %d, want 3", len(items))
 			}
@@ -37,7 +37,7 @@ func TestApplicationBuildsLocalizedMenuBar(t *testing.T) {
 }
 
 func TestApplicationUsesRoleLabels(t *testing.T) {
-	items := Application("en-US", func() {})
+	items := Application("en-US", func() {}, nil)
 	appRoles := rolesOf(items[0].Items)
 	for _, want := range []desktop.MenuRole{
 		desktop.MenuAbout, desktop.MenuHide, desktop.MenuHideOthers,
@@ -76,12 +76,12 @@ func TestApplicationUsesRoleLabels(t *testing.T) {
 
 func TestApplicationSettingsItem(t *testing.T) {
 	i18n.SetLanguage("zh-CN")
-	if got := settingsItem(Application("zh-CN", nil)); got != nil {
+	if got := settingsItem(Application("zh-CN", nil, nil)); got != nil {
 		t.Fatalf("settings item without callback = %#v", got)
 	}
 
 	opened := 0
-	item := settingsItem(Application("zh-CN", func() { opened++ }))
+	item := settingsItem(Application("zh-CN", func() { opened++ }, nil))
 	if item == nil {
 		t.Fatal("settings item missing")
 	}
@@ -97,6 +97,29 @@ func TestApplicationSettingsItem(t *testing.T) {
 	}
 }
 
+func TestApplicationUpdateItem(t *testing.T) {
+	i18n.SetLanguage("zh-CN")
+	if got := updateItem(Application("zh-CN", nil, nil)); got != nil {
+		t.Fatalf("update item without callback = %#v", got)
+	}
+
+	checked := 0
+	item := updateItem(Application("zh-CN", nil, func() { checked++ }))
+	if item == nil {
+		t.Fatal("update item missing")
+	}
+	if item.Label != i18n.T(i18n.TrayCheckUpdates) {
+		t.Errorf("update label = %q", item.Label)
+	}
+	if item.Shortcut != "" {
+		t.Errorf("update shortcut = %q", item.Shortcut)
+	}
+	item.OnSelect()
+	if checked != 1 {
+		t.Errorf("update checked %d times", checked)
+	}
+}
+
 func rolesOf(items []desktop.MenuItem) map[desktop.MenuRole]bool {
 	roles := map[desktop.MenuRole]bool{}
 	for _, item := range items {
@@ -106,8 +129,16 @@ func rolesOf(items []desktop.MenuItem) map[desktop.MenuRole]bool {
 }
 
 func settingsItem(items []desktop.MenuItem) *desktop.MenuItem {
+	return labelledItem(items, i18n.T(i18n.TraySettings))
+}
+
+func updateItem(items []desktop.MenuItem) *desktop.MenuItem {
+	return labelledItem(items, i18n.T(i18n.TrayCheckUpdates))
+}
+
+func labelledItem(items []desktop.MenuItem, label string) *desktop.MenuItem {
 	for i, item := range items[0].Items {
-		if item.Role == desktop.MenuRoleNone && item.Label != "" && !item.Separator {
+		if item.Role == desktop.MenuRoleNone && item.Label == label && !item.Separator {
 			return &items[0].Items[i]
 		}
 	}
