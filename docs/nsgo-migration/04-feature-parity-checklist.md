@@ -9,24 +9,24 @@
 
 | ID | 优先级 | 功能 | 现有实现 | NSGo/AppKit 目标 | 状态 | 验证方式 |
 | --- | --- | --- | --- | --- | --- | --- |
-| C-01 | P0 | 系统剪贴板监听 | `clipboard/watcher.rs` | 后台轮询 `NSPasteboard.changeCount`，120ms | 待迁移 | 连续复制 100 次无漏采/重采 |
-| C-02 | P0 | 纯文本采集 | `read.rs`、`ingest.rs` | `NSPasteboard.string(forType:)` | 待迁移 | 中英文、多行、空串、超长文本 |
-| C-03 | P0 | HTML 采集 | `read.rs`、`ingest.rs` | `public.html` 读取，plain 作文本回退 | 待迁移 | 从浏览器复制富文本 |
-| C-04 | P0 | RTF 采集 | `read.rs`、`ingest.rs` | `public.rtf` 读取，plain 作文本回退 | 待迁移 | 从 Pages/Word 复制 |
-| C-05 | P0 | 图片采集 | `read.rs`、`storage.rs` | PNG 直通，其他 `NSImage` 转 PNG | 待迁移 | PNG/JPEG/TIFF/HEIC/GIF |
-| C-06 | P0 | 文件/文件夹采集 | `read.rs`、`ingest.rs` | `public.file-url` 列表 | 待迁移 | 单文件、多文件、文件夹、混合 |
-| C-07 | P0 | 采集优先级 | `settings::Capture.order` | 同一 pasteboard 多表示时按配置选主类型 | 待迁移 | 每种 order 组合 |
-| C-08 | P0 | 类型开关 | `settings::Capture` | 五类内容独立开关 | 待迁移 | 关闭后不采集且不报错 |
-| C-09 | P0 | 文本大小上限 | `max_text_mb` | 字节数判断，0 为不限 | 待迁移 | 边界值、超大文本 |
-| C-10 | P0 | 图片大小上限 | `max_image_mb` | 解码前/后大小判断，0 为不限 | 待迁移 | 边界值、超大图片 |
-| C-11 | P0 | 内容去重 | `db/items::upsert_item` | `blake3("<kind>:<content>")` 命中更新 | 待迁移 | 重复复制只增 `use_count` |
-| C-12 | P0 | 来源应用同步抓取 | `clipboard/source.rs` | 监听回调内取 frontmost app | 待迁移 | 从不同 App 复制，来源正确 |
+| C-01 | P0 | 系统剪贴板监听 | `clipboard/watcher.rs` | 后台轮询 `NSPasteboard.changeCount`，120ms | 已通过 | `TestWatcherReportsChangesOnly` + 真机连续复制 |
+| C-02 | P0 | 纯文本采集 | `read.rs`、`ingest.rs` | `NSPasteboard.string(forType:)` | 已通过 | 真机复制中英文、多行 |
+| C-03 | P0 | HTML 采集 | `read.rs`、`ingest.rs` | `public.html` 读取，plain 作文本回退 | 已通过 | 真机 `NSPasteboardItem` 写入 html + plain |
+| C-04 | P0 | RTF 采集 | `read.rs`、`ingest.rs` | `public.rtf` 读取，plain 作文本回退 | 已通过 | `TestCaptureOrderAndTypeSwitches`；待真机 Pages/Word |
+| C-05 | P0 | 图片采集 | `read.rs`、`storage.rs` | PNG 直通，其他 `NSImage` 转 PNG | 已通过 | 真机 NSImage → TIFF → PNG，尺寸 520×520 |
+| C-06 | P0 | 文件/文件夹采集 | `read.rs`、`ingest.rs` | `public.file-url` 列表 | 已通过 | 真机多文件 URL；`TestCaptureFiles` |
+| C-07 | P0 | 采集优先级 | `settings::Capture.order` | 同一 pasteboard 多表示时按配置选主类型 | 已通过 | `TestCaptureOrderAndTypeSwitches` |
+| C-08 | P0 | 类型开关 | `settings::Capture` | 五类内容独立开关 | 已通过 | 同上，关闭 RTF 后回退 HTML |
+| C-09 | P0 | 文本大小上限 | `max_text_mb` | 字节数判断，0 为不限 | 已通过 | `TestTextSizeLimit` |
+| C-10 | P0 | 图片大小上限 | `max_image_mb` | 解码前/后大小判断，0 为不限 | 已通过 | `TestImageSizeLimit` |
+| C-11 | P0 | 内容去重 | `db/items::upsert_item` | `blake3("<kind>:<content>")` 命中更新 | 已通过 | 真机重复复制 `use_count` 2；数据库测试 |
+| C-12 | P0 | 来源应用同步抓取 | `clipboard/source.rs` | 监听回调内取 frontmost app | 已通过 | 真机来源记录为 `com.openai.codex` |
 | C-13 | P1 | 来源应用图标 | `clipboard/icon.rs`、`app_store.rs` | `NSWorkspace` 取图标，PNG 缓存 | 待迁移 | 图标存在、去重、失效清理 |
 | C-14 | P0 | 忽略应用 | `Filters.excluded_app_ids` | bundle id 命中即跳过 | 待迁移 | 钥匙串/密码 App 默认排除 |
 | C-15 | P0 | 敏感内容识别 | `clipboard/secrets.rs` | 私钥、token、AWS key、JWT、标签 secret | 待迁移 | 固定样本矩阵 |
 | C-16 | P0 | 敏感内容策略 | `collectSecrets`、`redactSecrets` | 跳过或脱敏，日志不落原文 | 待迁移 | 两种策略分别验证 |
-| C-17 | P0 | 回环抑制 | `clipboard/guard.rs` | 写回前登记 hash，2 秒 TTL | 待迁移 | 点击粘贴不新增记录 |
-| C-18 | P1 | 监听暂停 | `WatcherPause`、托盘 | 暂停期间跳过入库，watcher 不退出 | 待迁移 | 暂停/恢复/重启应用 |
+| C-17 | P0 | 回环抑制 | `clipboard/guard.rs` | 写回前登记 hash，2 秒 TTL | 已通过 | `TestWriteItemSuppressesItsOwnCapture` |
+| C-18 | P1 | 监听暂停 | `WatcherPause`、托盘 | 暂停期间跳过入库，watcher 不退出 | 迁移中 | 托盘菜单已接；待真机验证 |
 | C-19 | P2 | 复制音效 | `clipboard/sound.rs` | `AVAudioPlayer` 或 Go 音频库 | 待迁移 | 开关、静音、缺失文件 |
 | C-20 | P1 | 手动读取剪贴板 | `read_clipboard` | 与自动采集共用同一条管线 | 待迁移 | 空剪贴板、重复内容 |
 
@@ -71,8 +71,8 @@
 | P-02 | P1 | Email 识别 | `detect.rs` | 常见 local-part 字符，支持中文 | 待迁移 | 带标签/纯邮箱 |
 | P-03 | P1 | 颜色识别 | `detect.rs` | hex/rgb/hsl/hwb/lab/lch/oklab/oklch/color-mix/gradient | 待迁移 | 旧版样本逐条 |
 | P-04 | P1 | 路径识别 | `detect.rs` | 仅绝对路径且存在 | 待迁移 | 存在/不存在/相对路径 |
-| P-05 | P1 | 列表摘要 | `ingest.rs` | trim 后最多 256 字符 | 待迁移 | 边界长度、富文本 |
-| P-06 | P1 | 列表内容裁剪 | `commands/clipboard.rs` | 列表不返回完整 HTML/RTF content | 待迁移 | 响应体积与字段 |
+| P-05 | P1 | 列表摘要 | `ingest.rs` | trim 后最多 256 字符 | 已通过 | `summarize` + `TestPageStripsTextContent` |
+| P-06 | P1 | 列表内容裁剪 | `commands/clipboard.rs` | 列表不返回完整 HTML/RTF content | 已通过 | `Page` 对 text 行返回空 content |
 | P-07 | P1 | 图片缩略图 | `storage.rs` | 最长边 300px，懒生成 | 待迁移 | 尺寸、格式、缓存命中 |
 | P-08 | P1 | 文件条目 | `commands/clipboard.rs` | 路径、名称、目录/图片标记、存在性、大小 | 待迁移 | 单文件/多文件/丢失文件 |
 | P-09 | P1 | 文件预览模式 | `FilesPreviewKind` | 单图片走图片预览，其余列表 | 待迁移 | 三种组合 |
@@ -83,11 +83,11 @@
 
 | ID | 优先级 | 功能 | 现有实现 | NSGo/AppKit 目标 | 状态 | 验证方式 |
 | --- | --- | --- | --- | --- | --- | --- |
-| A-01 | P0 | 写回纯文本 | `clipboard/write.rs` | `NSPasteboard` plain text | 待迁移 | TextEdit/浏览器/终端 |
-| A-02 | P0 | 写回 HTML | `write.rs` | plain + `public.html` 同一 item | 待迁移 | 富文本编辑器 |
-| A-03 | P0 | 写回 RTF | `write.rs` | plain + `public.rtf` 同一 item | 待迁移 | Pages/Word |
-| A-04 | P0 | 写回图片 | `write.rs` | `public.png` + TIFF（按需） | 待迁移 | 预览/聊天工具 |
-| A-05 | P0 | 写回文件 | `write.rs` | `public.file-url` 多文件 | 待迁移 | Finder/上传控件 |
+| A-01 | P0 | 写回纯文本 | `clipboard/write.rs` | `NSPasteboard` plain text | 迁移中 | `BuildWrite` + `WriteItem` 已实现；待 UI 动作验证 |
+| A-02 | P0 | 写回 HTML | `write.rs` | plain + `public.html` 同一 item | 迁移中 | 同一 pasteboard item 已实现；待真机富文本验证 |
+| A-03 | P0 | 写回 RTF | `write.rs` | plain + `public.rtf` 同一 item | 迁移中 | 同上 |
+| A-04 | P0 | 写回图片 | `write.rs` | `public.png` + TIFF（按需） | 迁移中 | PNG 写回已实现；待真机验证 |
+| A-05 | P0 | 写回文件 | `write.rs` | `public.file-url` 多文件 | 迁移中 | `NSURL` 多文件写回已实现；待真机验证 |
 | A-06 | P0 | 粘贴 | `paste_clipboard_item` | 写回 + 让出 key + `CGEvent` ⌘V | 待迁移 | 固定/非固定窗口 |
 | A-07 | P0 | 纯文本粘贴 | `paste_plain` | 文本只写 plain；HTML/RTF 带 plain 回退 | 待迁移 | 每种类型 |
 | A-08 | P1 | 文件路径粘贴 | `paste_files_as_path` | 文件记录写回换行路径文本 | 待迁移 | 单/多文件 |

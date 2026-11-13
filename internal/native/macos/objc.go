@@ -107,6 +107,10 @@ func goString(id objc.ID) string {
 	return string(unsafe.Slice(p, n))
 }
 
+func unsafeSlice(p *byte, n uint) []byte {
+	return unsafe.Slice(p, int(n))
+}
+
 func newView(name string) objc.ID {
 	return objc.ID(class(name)).Send(sel("new"))
 }
