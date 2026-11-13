@@ -48,14 +48,17 @@ type SettingsChange struct {
 
 // SettingsView is the AppKit settings window content.
 type SettingsView struct {
-	cx      *core.NativeContext
-	view    objc.ID
-	tabs    objc.ID
-	footer  objc.ID
-	dataDir objc.ID
-	change  objc.ID
-	restore objc.ID
-	fields  []*settingsField
+	cx                  *core.NativeContext
+	view                objc.ID
+	tabs                objc.ID
+	footer              objc.ID
+	dataDir             objc.ID
+	change              objc.ID
+	restore             objc.ID
+	accessibilityStatus objc.ID
+	fullDiskStatus      objc.ID
+	permissionTimer     objc.ID
+	fields              []*settingsField
 }
 
 type settingsField struct {
@@ -79,6 +82,7 @@ var (
 	registerSettingsOnce sync.Once
 	settingsTarget       objc.ID
 	settingsViews        = map[objc.ID]*SettingsView{}
+	settingsTimers       = map[objc.ID]*SettingsView{}
 )
 
 // NewSettings builds the native settings controls.
@@ -104,6 +108,7 @@ func NewSettings(cx *core.NativeContext) core.NativeComponent {
 	v.buildGeneral()
 	v.buildCapture()
 	v.buildHistory()
+	v.buildPermissions()
 	return v
 }
 
@@ -213,6 +218,70 @@ func (v *SettingsView) buildHistory() {
 		func(s SettingsValues) bool { return s.CollectSecrets })
 	v.addSwitch(content, y-176, "脱敏显示", "sensitive.redactSecrets",
 		func(s SettingsValues) bool { return s.RedactSecrets })
+}
+
+func (v *SettingsView) buildPermissions() {
+	content := v.newTab("权限")
+	intro := objc.ID(classNSTextField).Send(sel("labelWithString:"),
+		nsString("这些权限由 macOS 管理，授权后立即生效。"))
+	intro.Send(sel("setFont:"), systemFont(11))
+	intro.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
+	intro.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 438}, Size: CGSize{Width: tabContentW - 48, Height: 18}})
+	content.Send(sel("addSubview:"), intro)
+
+	y := 388.0
+	v.accessibilityStatus = v.addPermission(content, y, "辅助功能",
+		"自动粘贴需要模拟 Command-V 快捷键。", "accessibilityPermissionPressed:")
+	v.fullDiskStatus = v.addPermission(content, y-80, "完全磁盘访问",
+		"读取受系统保护的目录和文件时需要。", "fullDiskAccessPermissionPressed:")
+	v.refreshPermissionLabels()
+	v.startPermissionTimer()
+}
+
+func (v *SettingsView) addPermission(content objc.ID, y float64, title, detail, action string) objc.ID {
+	v.addLabel(content, y, title)
+	detailLabel := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(detail))
+	detailLabel.Send(sel("setFont:"), systemFont(11))
+	detailLabel.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
+	detailLabel.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: y - 20}, Size: CGSize{Width: tabContentW - 200, Height: 16}})
+	content.Send(sel("addSubview:"), detailLabel)
+
+	status := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString("检查中…"))
+	status.Send(sel("setFont:"), systemFont(11))
+	status.Send(sel("setAlignment:"), int64(2))
+	status.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 300, Y: y}, Size: CGSize{Width: 130, Height: 18}})
+	content.Send(sel("addSubview:"), status)
+
+	button := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
+		nsString("打开系统设置…"), settingsTarget, sel(action))
+	button.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 160, Y: y - 5}, Size: CGSize{Width: 136, Height: 28}})
+	button.Send(sel("setAccessibilityLabel:"), nsString("打开"+title+"系统设置"))
+	content.Send(sel("addSubview:"), button)
+	return status
+}
+
+func (v *SettingsView) refreshPermissionLabels() {
+	v.setPermissionStatus(v.accessibilityStatus, AccessibilityGranted())
+	v.setPermissionStatus(v.fullDiskStatus, FullDiskAccessGranted())
+}
+
+func (v *SettingsView) setPermissionStatus(label objc.ID, granted bool) {
+	if label == 0 {
+		return
+	}
+	text, color := "未授权", "systemRedColor"
+	if granted {
+		text, color = "已授权", "systemGreenColor"
+	}
+	label.Send(sel("setStringValue:"), nsString(text))
+	label.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel(color)))
+}
+
+func (v *SettingsView) startPermissionTimer() {
+	timer := objc.ID(class("NSTimer")).Send(sel("scheduledTimerWithTimeInterval:target:selector:userInfo:repeats:"),
+		1.5, settingsTarget, sel("permissionTimerFired:"), objc.ID(0), true)
+	settingsTimers[timer] = v
+	v.permissionTimer = timer
 }
 
 type settingsOption struct {
@@ -377,6 +446,17 @@ func registerSettingsTargets() {
 			}
 			v.cx.Emit("change", SettingsChange{Path: "general.defaultDataDir", Value: true})
 		}},
+		{Cmd: sel("accessibilityPermissionPressed:"), Fn: func(_ objc.ID, _ objc.SEL, _ objc.ID) {
+			OpenAccessibilitySettings()
+		}},
+		{Cmd: sel("fullDiskAccessPermissionPressed:"), Fn: func(_ objc.ID, _ objc.SEL, _ objc.ID) {
+			OpenFullDiskAccessSettings()
+		}},
+		{Cmd: sel("permissionTimerFired:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
+			if v := settingsTimers[sender]; v != nil {
+				v.refreshPermissionLabels()
+			}
+		}},
 	})
 	if err != nil {
 		panic(err)
@@ -461,6 +541,11 @@ func boolInt(value bool) int64 {
 
 // Close implements core.NativeComponent.
 func (v *SettingsView) Close() {
+	if v.permissionTimer != 0 {
+		v.permissionTimer.Send(sel("invalidate"))
+		delete(settingsTimers, v.permissionTimer)
+		v.permissionTimer = 0
+	}
 	for _, field := range v.fields {
 		delete(settingsViews, field.control)
 	}
