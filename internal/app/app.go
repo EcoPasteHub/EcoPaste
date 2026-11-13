@@ -200,13 +200,17 @@ func Run(app *core.Scope) {
 					Constraints: core.WindowConstraints{NoResize: true, NoMaximize: true},
 				}, ui.SettingsWindow(model))
 			}
+			openSettingsTab := func(tab string) {
+				macos.SelectSettingsTab(tab)
+				openSettings()
+			}
 			runtime, err = startClipboard(app, paths, store, &paused)
 			if err != nil {
 				log.Printf("start clipboard: %v", err)
 			} else {
 				history = newHistoryModel(runtime, store)
 				if model, ok := history.(*historyModel); ok {
-					model.openSettings = openSettings
+					model.openSettings = openSettingsTab
 				}
 			}
 		}

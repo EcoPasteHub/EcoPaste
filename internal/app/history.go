@@ -18,7 +18,7 @@ import (
 type historyModel struct {
 	runtime      *clipboardRuntime
 	store        *settings.Store
-	openSettings func()
+	openSettings func(string)
 }
 
 var inputTrusted = keystroke.Trusted
@@ -203,9 +203,9 @@ func (m *historyModel) SaveOnboarding(step int, completed bool) error {
 	return err
 }
 
-func (m *historyModel) OpenSettings() {
+func (m *historyModel) OpenSettings(tab string) {
 	if m.openSettings != nil {
-		m.openSettings()
+		m.openSettings(tab)
 	}
 }
 

@@ -30,7 +30,7 @@ var (
 // app in clipboard.filters.excludedAppIds.
 func (v *SettingsView) buildApps() {
 	registerSettingsAppsOnce.Do(registerSettingsAppsTargets)
-	content := v.newTab("应用")
+	content := v.newTab("apps", "应用")
 
 	intro := objc.ID(classNSTextField).Send(sel("labelWithString:"),
 		nsString("勾选的应用不会进入剪贴板历史；列表包含正在运行和历史来源。"))

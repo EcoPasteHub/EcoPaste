@@ -346,7 +346,7 @@ func registerPanelTargets() {
 			}},
 			{Cmd: sel("onboardingExtraPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
 				if p := panelsByControl[sender]; p != nil {
-					p.cx.Emit("openSettings", nil)
+					p.cx.Emit("openSettings", onboardingSettingsTab(p.onboardingStep))
 				}
 			}},
 			{Cmd: sel("onboardingPermissionPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {

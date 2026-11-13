@@ -230,6 +230,17 @@ func onboardingShortcut(value string) string {
 	return value
 }
 
+func onboardingSettingsTab(step int) string {
+	switch step {
+	case 2:
+		return "shortcuts"
+	case 3:
+		return "apps"
+	default:
+		return "general"
+	}
+}
+
 func (p *Panel) refreshOnboardingPermissions() {
 	if !p.onboardingActive || p.onboardingStep != 1 {
 		return

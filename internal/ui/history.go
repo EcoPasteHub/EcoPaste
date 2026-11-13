@@ -422,7 +422,8 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 					}()
 				case "openSettings":
 					if model != nil {
-						model.OpenSettings()
+						tab, _ := data.(string)
+						model.OpenSettings(tab)
 					}
 				case "opened":
 					if model == nil {

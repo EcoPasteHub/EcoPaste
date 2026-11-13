@@ -120,7 +120,44 @@ var (
 	settingsTarget       objc.ID
 	settingsViews        = map[objc.ID]*SettingsView{}
 	settingsTimers       = map[objc.ID]*SettingsView{}
+	settingsTabMu        sync.Mutex
+	settingsOpenViews    = map[*SettingsView]struct{}{}
+	pendingSettingsTab   string
 )
+
+var settingsTabIdentifiers = map[string]struct{}{
+	"general":     {},
+	"capture":     {},
+	"display":     {},
+	"window":      {},
+	"history":     {},
+	"permissions": {},
+	"apps":        {},
+	"shortcuts":   {},
+}
+
+// SelectSettingsTab shows the named tab when the settings window is open,
+// or on the next open otherwise. It reports whether the name is known.
+func SelectSettingsTab(name string) bool {
+	if _, ok := settingsTabIdentifiers[name]; !ok {
+		return false
+	}
+	settingsTabMu.Lock()
+	if len(settingsOpenViews) == 0 {
+		pendingSettingsTab = name
+		settingsTabMu.Unlock()
+		return true
+	}
+	views := make([]*SettingsView, 0, len(settingsOpenViews))
+	for view := range settingsOpenViews {
+		views = append(views, view)
+	}
+	settingsTabMu.Unlock()
+	for _, view := range views {
+		view.selectTab(name)
+	}
+	return true
+}
 
 // NewSettings builds the native settings controls.
 func NewSettings(cx *core.NativeContext) core.NativeComponent {
@@ -157,11 +194,19 @@ func NewSettings(cx *core.NativeContext) core.NativeComponent {
 	v.buildPermissions()
 	v.buildApps()
 	v.buildShortcuts()
+	settingsTabMu.Lock()
+	settingsOpenViews[v] = struct{}{}
+	tab := pendingSettingsTab
+	pendingSettingsTab = ""
+	settingsTabMu.Unlock()
+	if tab != "" {
+		v.selectTab(tab)
+	}
 	return v
 }
 
 func (v *SettingsView) buildGeneral() {
-	content := v.newTab("通用")
+	content := v.newTab("general", "通用")
 	y := 450.0
 	v.addSwitch(content, y, "显示 Dock 图标", "general.dockIcon",
 		func(s SettingsValues) bool { return s.DockIcon })
@@ -225,7 +270,7 @@ func (v *SettingsView) buildDataDir(content objc.ID, y float64) {
 }
 
 func (v *SettingsView) buildCapture() {
-	content := v.newTab("采集")
+	content := v.newTab("capture", "采集")
 	y := 408.0
 	v.addSwitch(content, y, "纯文本", "capture.text",
 		func(s SettingsValues) bool { return s.CaptureText })
@@ -244,7 +289,7 @@ func (v *SettingsView) buildCapture() {
 }
 
 func (v *SettingsView) buildDisplay() {
-	content := v.newTab("显示")
+	content := v.newTab("display", "显示")
 	y := 408.0
 	v.addStepperRange(content, y, "文本显示行数", "display.textMaxLines", 1, 5, 1, " 行",
 		func(s SettingsValues) uint32 { return s.TextMaxLines })
@@ -255,7 +300,7 @@ func (v *SettingsView) buildDisplay() {
 }
 
 func (v *SettingsView) buildWindow() {
-	content := v.newTab("窗口")
+	content := v.newTab("window", "窗口")
 	y := 408.0
 	v.addSwitch(content, y, "打开时滚动到顶部", "window.scrollToTopOnOpen",
 		func(s SettingsValues) bool { return s.ScrollToTopOnOpen })
@@ -284,7 +329,7 @@ func (v *SettingsView) buildWindow() {
 }
 
 func (v *SettingsView) buildHistory() {
-	content := v.newTab("历史与隐私")
+	content := v.newTab("history", "历史与隐私")
 	y := 408.0
 	v.addPopup(content, y, "保留时长", "history.retention",
 		[]settingsOption{
@@ -311,7 +356,7 @@ func (v *SettingsView) buildHistory() {
 }
 
 func (v *SettingsView) buildPermissions() {
-	content := v.newTab("权限")
+	content := v.newTab("permissions", "权限")
 	intro := objc.ID(classNSTextField).Send(sel("labelWithString:"),
 		nsString("这些权限由 macOS 管理，授权后立即生效。"))
 	intro.Send(sel("setFont:"), systemFont(11))
@@ -379,8 +424,8 @@ type settingsOption struct {
 	Value string
 }
 
-func (v *SettingsView) newTab(title string) objc.ID {
-	item := objc.ID(class("NSTabViewItem")).Send(sel("alloc")).Send(sel("initWithIdentifier:"), nsString(title))
+func (v *SettingsView) newTab(identifier, title string) objc.ID {
+	item := objc.ID(class("NSTabViewItem")).Send(sel("alloc")).Send(sel("initWithIdentifier:"), nsString(identifier))
 	item.Send(sel("setLabel:"), nsString(title))
 	content := objc.ID(class("NSView")).Send(sel("new"))
 	content.Send(sel("setFrame:"), CGRect{Size: CGSize{Width: tabContentW, Height: tabContentH}})
@@ -389,6 +434,10 @@ func (v *SettingsView) newTab(title string) objc.ID {
 	item.Send(sel("release"))
 	content.Send(sel("release"))
 	return content
+}
+
+func (v *SettingsView) selectTab(name string) {
+	v.tabs.Send(sel("selectTabViewItemWithIdentifier:"), nsString(name))
 }
 
 func (v *SettingsView) addSwitch(content objc.ID, y float64, title, path string, get func(SettingsValues) bool) {
@@ -697,6 +746,9 @@ func boolInt(value bool) int64 {
 
 // Close implements core.NativeComponent.
 func (v *SettingsView) Close() {
+	settingsTabMu.Lock()
+	delete(settingsOpenViews, v)
+	settingsTabMu.Unlock()
 	if v.permissionTimer != 0 {
 		v.permissionTimer.Send(sel("invalidate"))
 		delete(settingsTimers, v.permissionTimer)

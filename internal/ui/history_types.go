@@ -121,6 +121,6 @@ type HistoryModel interface {
 	QuickActions() []string
 	Onboarding() HistoryOnboarding
 	SaveOnboarding(step int, completed bool) error
-	OpenSettings()
+	OpenSettings(tab string)
 	Updates() <-chan struct{}
 }

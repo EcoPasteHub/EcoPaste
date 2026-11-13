@@ -30,7 +30,7 @@ var (
 
 func (v *SettingsView) buildShortcuts() {
 	registerSettingsShortcutsOnce.Do(registerSettingsShortcutTargets)
-	content := v.newTab("快捷键")
+	content := v.newTab("shortcuts", "快捷键")
 
 	intro := objc.ID(classNSTextField).Send(sel("labelWithString:"),
 		nsString("点击输入框后按下组合键；Delete 清空，Esc 取消。"))
