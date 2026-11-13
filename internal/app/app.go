@@ -200,7 +200,7 @@ func Run(app *core.Scope) {
 				desktop.OpenWindow(app, desktop.WindowOptions{
 					Title:       "EcoPaste 设置",
 					Width:       560,
-					Height:      560,
+					Height:      600,
 					Key:         "settings",
 					Constraints: core.WindowConstraints{NoResize: true, NoMaximize: true},
 				}, ui.SettingsWindow(model))

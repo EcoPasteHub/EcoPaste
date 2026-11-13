@@ -58,6 +58,9 @@ var settingsActionFallbackOrder = []string{
 func (v *SettingsView) buildActions() {
 	registerSettingsActionsOnce.Do(registerSettingsActionsTargets)
 	content := v.newTab("actions", "动作")
+	v.addSearchEntry(content, "悬停动作", "clipboard.content.itemActions",
+		"菜单与按钮 粘贴 复制 备注 收藏 置顶 删除 排序", "hover actions menu buttons",
+		CGRect{Origin: CGPoint{X: 12, Y: 24}, Size: CGSize{Width: tabContentW - 24, Height: 420}})
 
 	intro := objc.ID(classNSTextField).Send(sel("labelWithString:"),
 		nsString("勾选悬停时显示的动作；选中一行后用下方按钮调整顺序，最多显示 6 个。"))

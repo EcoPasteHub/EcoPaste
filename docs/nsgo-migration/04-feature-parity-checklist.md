@@ -115,7 +115,7 @@
 | W-04 | P0 | 固定窗口 | `set_clipboard_window_pinned` | 固定不隐藏；粘贴时 resign/restore key | 迁移中 | 原生按钮与 `P` 键切换已接；真机固定后失焦/复制均保持可见；粘贴 key 让出/恢复待授权后验收 |
 | W-05 | P1 | 窗口生命周期 | `window/lifecycle/*` | 原生窗口状态机，无 WebView 重建 | 待迁移 | 冷启/热显/隐藏/退出 |
 | W-06 | P1 | 窗口几何持久化 | `window/state.rs` | 同 `state/window-state.json` | 已通过（格式调整） | 隐藏时写入 `clipboard` 帧并重启恢复；旧版存物理像素、左上原点，新版存 AppKit points、左下原点，JSON 字段与路径不变；旧坐标不在任一屏幕时回退到光标所在屏幕居中 |
-| W-07 | P1 | 偏好窗口 | `window/mod.rs` | 原生 `NSTabView` 设置窗口 | 迁移中 | 通用/采集/显示/动作/交互/删除/窗口/历史与隐私/权限/应用/快捷键已可用；引导页“修改快捷键/管理应用”已真机深链到对应 Tab，已打开窗口同步切换；设置搜索与高亮待补 |
+| W-07 | P1 | 偏好窗口 | `window/mod.rs` | 原生 `NSTabView` 设置窗口 | 已通过 | 通用/采集/显示/动作/交互/删除/窗口/历史与隐私/权限/应用/快捷键已可用；引导页“修改快捷键/管理应用”已真机深链到对应 Tab，已打开窗口同步切换；顶部 `NSSearchField` 跨全部 Tab 搜索标题、说明、选项、路径，结果下拉跳转并在目标行短暂高亮；`TestMatchSettingsSearch*` 覆盖多词、路径分词、去重和 8 条上限，真机验证 `dock`、`capture order` 跳转及无匹配状态 |
 | W-08 | P1 | 更新窗口 | `window/mod.rs` | Sparkle 交互或独立窗口 | 待迁移 | 检查/下载/安装 |
 | W-09 | P1 | 引导窗口 | `window/mod.rs` | 原生 5 步流程（面板内浮层） | 已通过（产品调整） | 真机首次启动自动展示欢迎/权限/快捷键/排除应用/完成 5 步；上一步、`lastStep` 中断恢复、完成后回到列表面板均通过；旧版导入步骤转为 D-24 单独立项 |
 | W-10 | P0 | 托盘 | `tray/mod.rs` | `NSStatusItem` + `NSMenu`：偏好、暂停、开源、更新、版本、重启、退出 | 迁移中 | 显示/暂停/设置/清除/开源/版本/重启/退出已接；更新项待更新模块完成后补 |
@@ -137,7 +137,7 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | U-01 | P0 | Clipboard 主页面 | `legacy/frontend/src/pages/Clipboard` | AppKit 搜索/分类/分组/列表/卡片/Footer | 迁移中 | 原生搜索、分类、自定义分组筛选、列表、Footer、实时刷新与复制已真机验证；卡片待补 |
 | U-02 | P1 | Preview 页面 | `legacy/frontend/src/pages/Preview` | 面板内原生预览 | 已通过 | 真机 Space/Esc；`TestPreviewRedactsSensitiveText` |
-| U-03 | P1 | Preference 页面 | `legacy/frontend/src/pages/Preference` | 原生 Tab/表单/搜索/高亮 | 待迁移 | 7 个 Tab 全项 |
+| U-03 | P1 | Preference 页面 | `legacy/frontend/src/pages/Preference` | 原生 Tab/表单/搜索/高亮 | 迁移中 | 11 个原生 Tab、表单控件、全局搜索和高亮已可用；语言切换、更新/备份入口与其余 schema 设置项继续逐项对齐 |
 | U-04 | P1 | Onboarding 页面 | `legacy/frontend/src/pages/Onboarding` | 原生 6 步流程 | 已通过（产品调整） | `TestOnboardingDefaultsAndPersistence`、`TestOnboardingFinishAndClamp`、`TestOnboardingReportsShortcutsAndExcludedApps`；真机完成欢迎/权限/快捷键/排除应用/旧版导入/完成全流程，权限状态、快捷键展示、打开设置深链与旧版导入均通过；产品调整为导入步骤内展示结果、不自动跳步 |
 | U-05 | P1 | Update 页面 | `legacy/frontend/src/pages/Update` | 原生更新状态/进度 | 待迁移 | 各状态 |
 | U-06 | P2 | ContextMenu 页面 | `legacy/frontend/src/pages/ContextMenu` | macOS 使用 `NSMenu`，不迁移 WebView 菜单窗 | 参考 | 对比菜单结构 |

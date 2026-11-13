@@ -55,6 +55,8 @@ func (v *SettingsView) buildShortcuts() {
 
 func (v *SettingsView) addShortcutField(content objc.ID, y float64, title, path string, get func(SettingsValues) string) {
 	v.addLabel(content, y, title)
+	v.addSearchEntry(content, title, path, "全局快捷键 录制", "shortcut hotkey",
+		rowHighlightFrame(y))
 	field := objc.ID(shortcutFieldClass).Send(sel("new"))
 	field.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 280, Y: y - 6}, Size: CGSize{Width: 260, Height: 30}})
 	field.Send(sel("setFont:"), systemFont(12))

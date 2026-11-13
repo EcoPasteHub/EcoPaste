@@ -4,6 +4,7 @@ package macos
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/ebitengine/purego/objc"
@@ -90,29 +91,37 @@ type SettingsChange struct {
 
 // SettingsView is the AppKit settings window content.
 type SettingsView struct {
-	cx                  *core.NativeContext
-	view                objc.ID
-	tabs                objc.ID
-	footer              objc.ID
-	dataDir             objc.ID
-	change              objc.ID
-	restore             objc.ID
-	reset               objc.ID
-	accessibilityStatus objc.ID
-	fullDiskStatus      objc.ID
-	permissionTimer     objc.ID
-	appsTable           objc.ID
-	appsEmpty           objc.ID
-	apps                []SettingsApp
-	actionsTable        objc.ID
-	actions             []settingsAction
-	captureTable        objc.ID
-	captureOrder        []string
-	groupField          *settingsField
-	extraExcluded       []string
-	shortcutFields      []*shortcutControl
-	lastValues          SettingsValues
-	fields              []*settingsField
+	cx                   *core.NativeContext
+	view                 objc.ID
+	tabs                 objc.ID
+	footer               objc.ID
+	searchField          objc.ID
+	searchResults        objc.ID
+	dataDir              objc.ID
+	change               objc.ID
+	restore              objc.ID
+	reset                objc.ID
+	accessibilityStatus  objc.ID
+	fullDiskStatus       objc.ID
+	permissionTimer      objc.ID
+	appsTable            objc.ID
+	appsEmpty            objc.ID
+	apps                 []SettingsApp
+	actionsTable         objc.ID
+	actions              []settingsAction
+	captureTable         objc.ID
+	captureOrder         []string
+	groupField           *settingsField
+	extraExcluded        []string
+	shortcutFields       []*shortcutControl
+	lastValues           SettingsValues
+	fields               []*settingsField
+	currentTab           string
+	currentTabTitle      string
+	searchEntries        []settingsSearchEntry
+	searchMatches        []settingsSearchEntry
+	searchHighlight      objc.ID
+	searchHighlightTimer objc.ID
 }
 
 type settingsField struct {
@@ -127,11 +136,26 @@ type settingsField struct {
 }
 
 const (
-	settingsWidth  = 560.0
-	settingsHeight = 560.0
-	tabContentW    = 520.0
-	tabContentH    = 470.0
+	settingsWidth    = 560.0
+	settingsHeight   = 600.0
+	settingsTabAreaH = 528.0
+	tabContentW      = 520.0
+	tabContentH      = 470.0
 )
+
+var settingsTabTitles = map[string]string{
+	"general":     "通用",
+	"capture":     "采集",
+	"display":     "显示",
+	"window":      "窗口",
+	"history":     "历史与隐私",
+	"permissions": "权限",
+	"apps":        "应用",
+	"actions":     "动作",
+	"interaction": "交互",
+	"deletion":    "删除",
+	"shortcuts":   "快捷键",
+}
 
 var (
 	registerSettingsOnce sync.Once
@@ -190,7 +214,7 @@ func NewSettings(cx *core.NativeContext) core.NativeComponent {
 	v.view.Send(sel("setAutoresizesSubviews:"), false)
 
 	v.tabs = objc.ID(class("NSTabView")).Send(sel("new"))
-	v.tabs.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 0, Y: 32}, Size: CGSize{Width: settingsWidth, Height: settingsHeight - 32}})
+	v.tabs.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 0, Y: 32}, Size: CGSize{Width: settingsWidth, Height: settingsTabAreaH}})
 	v.tabs.Send(sel("setAutoresizingMask:"), int64(18))
 	v.view.Send(sel("addSubview:"), v.tabs)
 
@@ -218,6 +242,7 @@ func NewSettings(cx *core.NativeContext) core.NativeComponent {
 	v.buildPermissions()
 	v.buildApps()
 	v.buildShortcuts()
+	v.buildSearch()
 	settingsTabMu.Lock()
 	settingsOpenViews[v] = struct{}{}
 	tab := pendingSettingsTab
@@ -273,6 +298,8 @@ func (v *SettingsView) buildGeneral() {
 
 func (v *SettingsView) buildDataDir(content objc.ID, y float64) {
 	v.addLabel(content, y, "数据目录")
+	v.addSearchEntry(content, "数据目录", "general.dataDir", "存储位置 迁移 恢复默认", "",
+		CGRect{Origin: CGPoint{X: 12, Y: y - 30}, Size: CGSize{Width: tabContentW - 24, Height: 46}})
 	v.dataDir = objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(""))
 	v.dataDir.Send(sel("setFont:"), systemFont(11))
 	v.dataDir.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
@@ -400,6 +427,12 @@ func (v *SettingsView) buildPermissions() {
 
 func (v *SettingsView) addPermission(content objc.ID, y float64, title, detail, action string) objc.ID {
 	v.addLabel(content, y, title)
+	path := map[string]string{
+		"accessibilityPermissionPressed:":  "permissions.accessibility",
+		"fullDiskAccessPermissionPressed:": "permissions.fullDiskAccess",
+	}[action]
+	v.addSearchEntry(content, title, path, detail, "系统权限",
+		CGRect{Origin: CGPoint{X: 12, Y: y - 32}, Size: CGSize{Width: tabContentW - 24, Height: 64}})
 	detailLabel := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(detail))
 	detailLabel.Send(sel("setFont:"), systemFont(11))
 	detailLabel.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
@@ -450,6 +483,8 @@ type settingsOption struct {
 }
 
 func (v *SettingsView) newTab(identifier, title string) objc.ID {
+	v.currentTab = identifier
+	v.currentTabTitle = title
 	item := objc.ID(class("NSTabViewItem")).Send(sel("alloc")).Send(sel("initWithIdentifier:"), nsString(identifier))
 	item.Send(sel("setLabel:"), nsString(title))
 	content := objc.ID(class("NSView")).Send(sel("new"))
@@ -467,6 +502,7 @@ func (v *SettingsView) selectTab(name string) {
 
 func (v *SettingsView) addSwitch(content objc.ID, y float64, title, path string, get func(SettingsValues) bool) {
 	v.addLabel(content, y, title)
+	v.addSearchEntry(content, title, path, "", "", rowHighlightFrame(y))
 	control := objc.ID(class("NSSwitch")).Send(sel("new"))
 	control.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 64, Y: y - 2}, Size: CGSize{Width: 40, Height: 24}})
 	control.Send(sel("setTarget:"), settingsTarget)
@@ -488,6 +524,7 @@ func (v *SettingsView) addPopup(content objc.ID, y float64, title, path string, 
 		titles = append(titles, option.Title)
 		control.Send(sel("addItemWithTitle:"), nsString(option.Title))
 	}
+	v.addSearchEntry(content, title, path, "", strings.Join(titles, " "), rowHighlightFrame(y))
 	control.Send(sel("setTarget:"), settingsTarget)
 	control.Send(sel("setAction:"), sel("popupChanged:"))
 	field := &settingsField{
@@ -504,6 +541,7 @@ func (v *SettingsView) addStepper(content objc.ID, y float64, title, path string
 
 func (v *SettingsView) addStepperRange(content objc.ID, y float64, title, path string, minValue, maxValue, step float64, suffix string, get func(SettingsValues) uint32) {
 	v.addLabel(content, y, title)
+	v.addSearchEntry(content, title, path, suffix, "", rowHighlightFrame(y))
 	valueLabel := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(""))
 	valueLabel.Send(sel("setFont:"), systemFont(12))
 	valueLabel.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
@@ -552,6 +590,25 @@ func (v *SettingsView) fieldFor(sender objc.ID) *settingsField {
 
 func registerSettingsTargets() {
 	target, err := objc.RegisterClass("EcoPasteSettingsTarget", class("NSObject"), nil, nil, []objc.MethodDef{
+		{Cmd: sel("settingsSearchChanged:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
+			if v := settingsViews[sender]; v != nil {
+				v.searchChanged(sender)
+			}
+		}},
+		{Cmd: sel("settingsSearchPicked:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
+			if v := settingsViews[sender]; v != nil {
+				v.searchResultPicked(sender)
+			}
+		}},
+		{Cmd: sel("settingsSearchHighlightExpired:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
+			if v := settingsTimers[sender]; v != nil {
+				delete(settingsTimers, sender)
+				v.searchHighlightTimer = 0
+				if v.searchHighlight != 0 {
+					v.searchHighlight.Send(sel("setHidden:"), true)
+				}
+			}
+		}},
 		{Cmd: sel("toggleChanged:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
 			v := settingsViews[sender]
 			if v == nil {
@@ -780,6 +837,11 @@ func (v *SettingsView) Close() {
 		v.permissionTimer.Send(sel("invalidate"))
 		delete(settingsTimers, v.permissionTimer)
 		v.permissionTimer = 0
+	}
+	if v.searchHighlightTimer != 0 {
+		v.searchHighlightTimer.Send(sel("invalidate"))
+		delete(settingsTimers, v.searchHighlightTimer)
+		v.searchHighlightTimer = 0
 	}
 	for _, field := range v.fields {
 		delete(settingsViews, field.control)

@@ -31,6 +31,9 @@ var settingsCaptureTitles = map[string]string{
 
 func (v *SettingsView) buildCaptureOrder(content objc.ID) {
 	registerSettingsCaptureOnce.Do(registerSettingsCaptureTargets)
+	v.addSearchEntry(content, "采集优先级", "clipboard.capture.order",
+		"主表示优先级 文件 图片 HTML RTF 纯文本 上移 下移", "capture order priority",
+		CGRect{Origin: CGPoint{X: 12, Y: 10}, Size: CGSize{Width: tabContentW - 24, Height: 146}})
 	title := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString("采集优先级"))
 	title.Send(sel("setFont:"), systemFont(13))
 	title.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 132}, Size: CGSize{Width: 120, Height: 18}})

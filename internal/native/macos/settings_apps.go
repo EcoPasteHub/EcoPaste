@@ -31,6 +31,9 @@ var (
 func (v *SettingsView) buildApps() {
 	registerSettingsAppsOnce.Do(registerSettingsAppsTargets)
 	content := v.newTab("apps", "应用")
+	v.addSearchEntry(content, "来源应用", "clipboard.filters.excludedAppIds",
+		"忽略 排除 过滤 应用", "source apps filter exclude privacy",
+		CGRect{Origin: CGPoint{X: 12, Y: 24}, Size: CGSize{Width: tabContentW - 24, Height: 420}})
 
 	intro := objc.ID(classNSTextField).Send(sel("labelWithString:"),
 		nsString("勾选的应用不会进入剪贴板历史；列表包含正在运行和历史来源。"))
