@@ -1,0 +1,10 @@
+name: EcoPaste
+id: com.ayangweb.eco-paste
+version: 0.1.0
+
+dev:
+  target: native
+
+build:
+  output: build
+  targets: [macos_arm64]
