@@ -50,7 +50,7 @@
 | D-14 | P0 | 删除分组 | `delete_group` | 条目 `group_id` 置 NULL | 已通过 | `TestDeleteGroupKeepsItemsAndClearsGroupID`；真机删除后 15 条记录保留，SQLite 校验 `group_id = NULL` |
 | D-15 | P0 | 使用次数 | `increment_item_use_count` | `use_count + 1` 并刷新 `updated_at` | 已通过 | `TestUpsertDeduplicatesAndRefreshesUpdatedAt` |
 | D-16 | P0 | 历史清理 | `cleanup.rs`、`db/items.rs` | 时长 + 最大条数，收藏/置顶保留 | 已通过 | `TestCleanupHistoryByRetentionKeepsProtectedItems`、`TestCleanupRemovesExpiredImage` |
-| D-17 | P0 | 启动清理 | `clipboard::init` | 启动先跑一次，再按间隔 | 迁移中 | 启动与周期调度已接；待真机长运行验证 |
+| D-17 | P0 | 启动清理 | `clipboard::init` | 启动先跑一次，再按间隔 | 已通过 | `TestCleanupDue` 覆盖禁用、1 小时边界、过期与溢出；`TestCleanupLoopRunsOnConfiguredInterval` 用可注入时钟验证启动先跑一次且按配置间隔再次执行；隔离数据目录插入普通/收藏/近期三条，冷启动后仅删除过期普通项，收藏与近期项保留 |
 | D-18 | P0 | 清空记录 | `clear_items` | 可选保留收藏/置顶 | 迁移中 | 托盘原生对话框已接；`TestClearHistoryOptionallyKeepsFavoritesAndPinned` |
 | D-19 | P0 | 数据根解析 | `core/paths.rs` | `<app_local_data>/<dev\|prod>` + `storage.json` | 已通过 | `internal/storage` 测试覆盖默认根、锚点与自定义目录 |
 | D-20 | P0 | 自定义数据目录 | `commands/storage.rs` | 迁移 db/resources/config/state 并热切换 | 已通过 | `TestChangeDataDirCopiesLiveData`、`TestChangeDataDirRemovesTargetOnFailure`、`TestRestoreDefaultDataDir`；真机自定义目录迁移、恢复默认目录（生成 `dev-backup-*`）与已存在目标错误路径提示均通过，失败不重启 |
