@@ -51,6 +51,9 @@ func (s *Service) BuildWrite(item *database.Item, plainText bool) (WritePayload,
 		}
 		return WritePayload{PNG: png}, nil
 	case database.KindFiles:
+		if plainText {
+			return WritePayload{Text: item.Content}, nil
+		}
 		return WritePayload{Files: DecodeFiles(item.Content)}, nil
 	}
 	return WritePayload{}, fmt.Errorf("unknown clipboard kind %q", item.Kind)
@@ -67,10 +70,41 @@ func (s *Service) WriteItem(ctx context.Context, item *database.Item, plainText 
 		return fmt.Errorf("no pasteboard writer")
 	}
 	if s.Guard != nil {
-		s.Guard.Mark(ItemHash(item))
+		for _, hash := range guardHashes(item, payload) {
+			s.Guard.Mark(hash)
+		}
 	}
 	if err := s.Writer.Write(payload); err != nil {
 		return fmt.Errorf("write pasteboard: %w", err)
 	}
 	return nil
+}
+
+// guardHashes covers every representation the pasteboard write exposes.
+// Rich text also carries a plain fallback, so marking only the item hash
+// would let the watcher capture that fallback as a new item.
+func guardHashes(item *database.Item, payload WritePayload) []string {
+	hashes := []string{ItemHash(item)}
+	if payload.Text != "" {
+		hashes = append(hashes, database.Hash(database.KindText, payload.Text))
+	}
+	if payload.HTML != "" {
+		hashes = append(hashes, database.Hash(database.KindText, payload.HTML))
+	}
+	if payload.RTF != "" {
+		hashes = append(hashes, database.Hash(database.KindText, payload.RTF))
+	}
+	seen := make(map[string]struct{}, len(hashes))
+	unique := hashes[:0]
+	for _, hash := range hashes {
+		if hash == "" {
+			continue
+		}
+		if _, ok := seen[hash]; ok {
+			continue
+		}
+		seen[hash] = struct{}{}
+		unique = append(unique, hash)
+	}
+	return unique
 }

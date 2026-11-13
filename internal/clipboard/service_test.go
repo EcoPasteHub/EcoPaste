@@ -315,6 +315,13 @@ func TestBuildWritePreservesRepresentations(t *testing.T) {
 	if len(got.Files) != 2 || got.Files[1] != "/b" {
 		t.Errorf("files = %v", got.Files)
 	}
+	got, err = svc.BuildWrite(&database.Item{Kind: database.KindFiles, Content: files}, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.Text != files || len(got.Files) != 0 {
+		t.Errorf("files as text = %+v", got)
+	}
 }
 
 func TestWriteItemSuppressesItsOwnCapture(t *testing.T) {
@@ -340,5 +347,58 @@ func TestWriteItemSuppressesItsOwnCapture(t *testing.T) {
 	}
 	if _, changed, err := svc.Capture(ctx, Payload{Text: writer.payload.Text}, SourceApp{}); err != nil || changed {
 		t.Fatalf("own write was captured: changed = %v err = %v", changed, err)
+	}
+}
+
+func TestWriteRichTextSuppressesHTMLAndPlainFallback(t *testing.T) {
+	cfg := settings.Default().Clipboard
+	svc, db, _ := testService(t, cfg)
+	svc.Guard = NewGuard(2 * time.Second)
+	svc.Writer = &fakeWriter{}
+	ctx := context.Background()
+	id, _, err := svc.Capture(ctx, Payload{
+		Text: "rich text",
+		HTML: "<b>rich text</b>",
+	}, SourceApp{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	item, err := db.FindByID(ctx, id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := svc.WriteItem(ctx, item, false); err != nil {
+		t.Fatal(err)
+	}
+	if _, changed, err := svc.Capture(ctx, Payload{Text: "rich text"}, SourceApp{}); err != nil || changed {
+		t.Fatalf("plain fallback was captured: changed = %v err = %v", changed, err)
+	}
+	if _, changed, err := svc.Capture(ctx, Payload{
+		Text: "rich text",
+		HTML: "<b>rich text</b>",
+	}, SourceApp{}); err != nil || changed {
+		t.Fatalf("HTML representation was captured: changed = %v err = %v", changed, err)
+	}
+}
+
+func TestWriteFilesAsTextSuppressesFallbackCapture(t *testing.T) {
+	cfg := settings.Default().Clipboard
+	svc, db, _ := testService(t, cfg)
+	svc.Guard = NewGuard(2 * time.Second)
+	svc.Writer = &fakeWriter{}
+	ctx := context.Background()
+	id, _, err := svc.Capture(ctx, Payload{Files: []string{"/tmp/a", "/tmp/b"}}, SourceApp{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	item, err := db.FindByID(ctx, id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := svc.WriteItem(ctx, item, true); err != nil {
+		t.Fatal(err)
+	}
+	if _, changed, err := svc.Capture(ctx, Payload{Text: "/tmp/a\n/tmp/b"}, SourceApp{}); err != nil || changed {
+		t.Fatalf("path text was captured: changed = %v err = %v", changed, err)
 	}
 }
