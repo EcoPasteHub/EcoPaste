@@ -69,10 +69,9 @@ func Run(app *core.Scope) {
 	var panel *desktop.Window
 	content := ui.ClipboardPanel(history, func() { panel.Hide() })
 	panel = desktop.OpenPanel(app, desktop.PanelOptions{
-		Width:      420,
-		Height:     560,
-		HideOnBlur: true,
-		Material:   desktop.WindowMaterialPopover,
+		Width:    420,
+		Height:   560,
+		Material: desktop.WindowMaterialPopover,
 	}, content)
 
 	showPanel := func() {

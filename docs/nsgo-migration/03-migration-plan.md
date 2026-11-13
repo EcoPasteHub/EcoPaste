@@ -222,6 +222,7 @@ internal/native/macos/
 4. 右键菜单：
    - `NSMenu` 动作分组、快捷键、分组子菜单。
    - 菜单动作回到 Go 业务层，不在 UI 内写业务逻辑。
+   - 按内容动态精简菜单：URL/邮件提供打开，路径/文件提供 Finder 定位，图片提供另存，避免所有条目堆同一套无关动作。
 5. 拖出：
    - `NSDraggingSession` + `NSPasteboardItem`。
    - 文件、图片、纯文本、HTML/RTF 多格式。
@@ -230,6 +231,8 @@ internal/native/macos/
    - 悬停快捷动作及顺序。
    - 备注内联编辑。
    - 固定窗口、失焦隐藏、编辑中不隐藏。
+   - NSGo 的 `HideOnBlur` 无法临时暂停，改为在原生面板监听 resign-key 后回传隐藏事件；系统保存面板等 modal 操作期间暂停隐藏。
+   - 图片另存使用 app-modal `NSSavePanel`，并提升到剪贴板浮动面板层级之上；不把文件面板嵌进置顶面板，避免被遮挡或连带隐藏。
 
 ### 退出条件
 

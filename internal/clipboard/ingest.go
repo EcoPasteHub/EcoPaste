@@ -140,6 +140,8 @@ func (s *Service) textItem(content, plain string, sub database.SubKind, maxMB ui
 	}
 	if sub != "" {
 		item.SubKind = &sub
+	} else if kind, ok := DetectTextSubKind(plain); ok {
+		item.SubKind = &kind
 	}
 	return s.withSource(item, source)
 }

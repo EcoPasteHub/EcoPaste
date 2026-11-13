@@ -230,6 +230,9 @@ func (m *historyModel) historyItem(item database.Item) ui.HistoryItem {
 		Favorite:  item.IsFavorite,
 		Pinned:    item.IsPinned,
 	}
+	if item.SubKind != nil {
+		row.SubKind = string(*item.SubKind)
+	}
 	if item.SourceAppName != nil {
 		row.SourceApp = *item.SourceAppName
 	}

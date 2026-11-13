@@ -10,6 +10,7 @@ import (
 type HistoryRow struct {
 	ID        string
 	Kind      string
+	SubKind   string
 	Title     string
 	Detail    string
 	ImagePath string
@@ -37,6 +38,17 @@ func registerHistoryTargets() {
 	var err error
 	historyTableClass, err = objc.RegisterClass("EcoPasteHistoryTable", class("NSTableView"), nil, nil,
 		[]objc.MethodDef{
+			{Cmd: sel("rightMouseDown:"), Fn: func(self objc.ID, _ objc.SEL, event objc.ID) {
+				if p := panelsByTable[self]; p != nil {
+					location := objc.Send[CGPoint](event, sel("locationInWindow"))
+					local := objc.Send[CGPoint](self, sel("convertPoint:fromView:"), location, objc.ID(0))
+					row := int(objc.Send[int64](self, sel("rowAtPoint:"), local))
+					if row >= 0 && row < len(p.rows) {
+						p.selectRow(row)
+					}
+				}
+				sendSuper[objc.ID](self, historyTableClass, sel("rightMouseDown:"), event)
+			}},
 			{Cmd: sel("keyDown:"), Fn: func(self objc.ID, _ objc.SEL, event objc.ID) {
 				p := panelsByTable[self]
 				if p == nil {
@@ -62,17 +74,17 @@ func registerHistoryTargets() {
 					sendSuper[objc.ID](self, historyTableClass, sel("keyDown:"), event)
 				}
 			}},
-			{Cmd: sel("menuForEvent:"), Fn: func(self objc.ID, _ objc.SEL, event objc.ID) objc.ID {
+			{Cmd: sel("menuNeedsUpdate:"), Fn: func(self objc.ID, _ objc.SEL, menu objc.ID) {
 				p := panelsByTable[self]
 				if p == nil {
-					return 0
+					return
 				}
-				row := int(objc.Send[int64](self, sel("clickedRow")))
+				row := int(objc.Send[int64](self, sel("selectedRow")))
 				if row < 0 || row >= len(p.rows) {
-					return 0
+					menu.Send(sel("removeAllItems"))
+					return
 				}
-				p.selectRow(row)
-				return p.contextMenu(p.rows[row])
+				p.populateMenu(menu, p.rows[row])
 			}},
 		})
 	if err != nil {
@@ -140,6 +152,9 @@ func registerHistoryTargets() {
 		{Cmd: sel("menuCopy:"), Fn: menuAction("copy")},
 		{Cmd: sel("menuFavorite:"), Fn: menuAction("toggleFavorite")},
 		{Cmd: sel("menuPin:"), Fn: menuAction("togglePinned")},
+		{Cmd: sel("menuOpen:"), Fn: menuAction("open")},
+		{Cmd: sel("menuReveal:"), Fn: menuAction("reveal")},
+		{Cmd: sel("menuSaveImage:"), Fn: menuAction("saveImage")},
 		{Cmd: sel("menuDelete:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
 			p := menuPanel(sender)
 			if p != nil && confirmDelete() {
@@ -179,6 +194,11 @@ func newHistoryTable(p *Panel) objc.ID {
 	table.Send(sel("setTarget:"), historyTarget)
 	table.Send(sel("setDoubleAction:"), sel("rowActivated:"))
 	table.Send(sel("setAccessibilityLabel:"), nsString("剪贴板历史"))
+	menu := objc.ID(class("NSMenu")).Send(sel("new"))
+	menu.Send(sel("setAutoenablesItems:"), false)
+	menu.Send(sel("setDelegate:"), table)
+	table.Send(sel("setMenu:"), menu)
+	menu.Send(sel("release"))
 
 	column := objc.ID(class("NSTableColumn")).Send(sel("new"))
 	column.Send(sel("setIdentifier:"), nsString(columnIdentity))
@@ -274,11 +294,22 @@ func layoutHistoryRow(cell objc.ID, size CGSize) {
 	setFrame(detail, textX, 12, size.Width-textX-14, 15)
 }
 
-func (p *Panel) contextMenu(row HistoryRow) objc.ID {
-	menu := objc.ID(class("NSMenu")).Send(sel("new"))
-	menu.Send(sel("setAutoenablesItems:"), false)
+func (p *Panel) populateMenu(menu objc.ID, row HistoryRow) {
+	menu.Send(sel("removeAllItems"))
 	addMenuItem(menu, p.table, "粘贴", "menuPaste:", "arrow.down.doc", "")
 	addMenuItem(menu, p.table, "复制", "menuCopy:", "doc.on.doc", "c")
+	switch row.SubKind {
+	case "url":
+		addMenuItem(menu, p.table, "打开链接", "menuOpen:", "arrow.up.right.square", "")
+	case "email":
+		addMenuItem(menu, p.table, "发送邮件", "menuOpen:", "envelope", "")
+	}
+	if row.SubKind == "path" || row.Kind == "files" {
+		addMenuItem(menu, p.table, "在 Finder 中显示", "menuReveal:", "folder", "")
+	}
+	if row.Kind == "image" {
+		addMenuItem(menu, p.table, "存储图片…", "menuSaveImage:", "square.and.arrow.down", "")
+	}
 	menu.Send(sel("addItem:"), objc.ID(class("NSMenuItem")).Send(sel("separatorItem")))
 
 	favorite := "收藏"
@@ -293,11 +324,10 @@ func (p *Panel) contextMenu(row HistoryRow) objc.ID {
 	addMenuItem(menu, p.table, pin, "menuPin:", "pin", "")
 	menu.Send(sel("addItem:"), objc.ID(class("NSMenuItem")).Send(sel("separatorItem")))
 	addMenuItem(menu, p.table, "删除", "menuDelete:", "trash", "")
-	return menu.Send(sel("autorelease"))
 }
 
 func addMenuItem(menu, table objc.ID, title, action, icon, key string) objc.ID {
-	item := objc.ID(class("NSMenuItem")).Send(sel("initWithTitle:action:keyEquivalent:"),
+	item := objc.ID(class("NSMenuItem")).Send(sel("alloc")).Send(sel("initWithTitle:action:keyEquivalent:"),
 		nsString(title), sel(action), nsString(key))
 	item.Send(sel("setTarget:"), historyTarget)
 	item.Send(sel("setRepresentedObject:"), table)

@@ -67,10 +67,10 @@
 
 | ID | 优先级 | 功能 | 现有实现 | NSGo/AppKit 目标 | 状态 | 验证方式 |
 | --- | --- | --- | --- | --- | --- | --- |
-| P-01 | P1 | URL 识别 | `clipboard/detect.rs` | 带协议或 `www.`、单行 | 待迁移 | 正例/反例矩阵 |
-| P-02 | P1 | Email 识别 | `detect.rs` | 常见 local-part 字符，支持中文 | 待迁移 | 带标签/纯邮箱 |
-| P-03 | P1 | 颜色识别 | `detect.rs` | hex/rgb/hsl/hwb/lab/lch/oklab/oklch/color-mix/gradient | 待迁移 | 旧版样本逐条 |
-| P-04 | P1 | 路径识别 | `detect.rs` | 仅绝对路径且存在 | 待迁移 | 存在/不存在/相对路径 |
+| P-01 | P1 | URL 识别 | `clipboard/detect.rs` | 带协议或 `www.`、单行 | 已通过 | `TestDetectTextSubKind`；真机复制 `https://example.com/open-test` 入库 `sub_kind=url` |
+| P-02 | P1 | Email 识别 | `detect.rs` | 常见 local-part 字符，支持中文 | 已通过 | `TestDetectTextSubKind` 覆盖 ASCII/中文/标签邮箱与反例 |
+| P-03 | P1 | 颜色识别 | `detect.rs` | hex/rgb/hsl/hwb/lab/lch/oklab/oklch/color-mix/gradient | 已通过 | `TestDetectTextSubKind` 覆盖 hex、rgb、gradient 与注入反例 |
+| P-04 | P1 | 路径识别 | `detect.rs` | 仅绝对路径且存在 | 已通过 | `TestDetectTextSubKind`；真机复制存在的目录后入库 `sub_kind=path` |
 | P-05 | P1 | 列表摘要 | `ingest.rs` | trim 后最多 256 字符 | 已通过 | `summarize` + `TestPageStripsTextContent` |
 | P-06 | P1 | 列表内容裁剪 | `commands/clipboard.rs` | 列表不返回完整 HTML/RTF content | 已通过 | `Page` 对 text 行返回空 content |
 | P-07 | P1 | 图片缩略图 | `storage.rs` | 最长边 300px，缺失时懒生成 | 已通过 | `TestImageStoreCreatesBoundedThumbnail`、`TestEnsureThumbnailBackfillsMissingFile`；真机 3456×2234 截图使用 300×193 缩略图 |
@@ -91,9 +91,9 @@
 | A-06 | P0 | 粘贴 | `paste_clipboard_item` | 写回 + 让出 key + `CGEvent` ⌘V | 迁移中 | 回车/双击已接 `CGEvent`；权限拒绝路径已验证，待授权后真机验收 |
 | A-07 | P0 | 纯文本粘贴 | `paste_plain` | 文本只写 plain；HTML/RTF 带 plain 回退 | 迁移中 | `PastePlain` 已接写回；待授权后逐类型验证 |
 | A-08 | P1 | 文件路径粘贴 | `paste_files_as_path` | 文件记录写回换行路径文本 | 待迁移 | 单/多文件 |
-| A-09 | P1 | 打开链接/邮件 | `open_clipboard_item_link` | `NSWorkspace.open` | 待迁移 | URL/mailto |
-| A-10 | P1 | Finder 显示 | `reveal_clipboard_item` | `NSWorkspace.activateFileViewerSelecting` | 待迁移 | 单/多文件 |
-| A-11 | P1 | 图片另存 | `save_clipboard_image_to_file` | `NSSavePanel`，默认文件名规则 | 待迁移 | PNG/同名冲突 |
+| A-09 | P1 | 打开链接/邮件 | `open_clipboard_item_link` | `NSWorkspace.open` | 已通过 | `TestOpenDispatchesBySubKind`；URL/路径条目右键菜单显示对应动作 |
+| A-10 | P1 | Finder 显示 | `reveal_clipboard_item` | `NSWorkspace.activateFileViewerSelecting` | 已通过 | `TestRevealFilesAndPath`；真机对路径条目执行后 Finder 选中目标目录 |
+| A-11 | P1 | 图片另存 | `save_clipboard_image_to_file` | `NSSavePanel`，默认文件名规则 | 已通过 | `TestSaveImageWritesChosenFile`；真机保存 3456×2234 PNG，文件头与尺寸校验通过 |
 | A-12 | P1 | 拖出文件 | `drag_out/macos.rs` | `NSDraggingSession` + file URL | 待迁移 | Finder/浏览器/聊天工具 |
 | A-13 | P1 | 拖出图片 | `drag_out/macos.rs` | `NSDraggingSession` + PNG | 待迁移 | 同上 |
 | A-14 | P1 | 拖出文本 | `drag_out/macos.rs` | plain/HTML/RTF 多表示 | 待迁移 | 富文本目标 |
@@ -111,7 +111,7 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | W-01 | P0 | 剪贴板面板 | `window/macos.rs` | `NSPanel`，非激活、可 key、置顶、无边框、透明 | 待迁移 | 全屏/多 Space/多屏 |
 | W-02 | P0 | 窗口定位 | `window/position.rs` | 跟随鼠标/居中/记住位置 | 待迁移 | 三种模式 |
-| W-03 | P0 | 失焦隐藏 | `window/macos.rs` | `HideOnBlur` + 编辑/菜单/文件面板保护 | 待迁移 | 编辑中、右键中、拖拽中 |
+| W-03 | P0 | 失焦隐藏 | `window/macos.rs` | 自定义 resign-key 隐藏 + modal 期间暂停 | 迁移中 | 真机切换 Finder 后面板隐藏；系统另存面板打开期间面板保持；固定窗口、备注编辑、拖拽保护待补 |
 | W-04 | P0 | 固定窗口 | `set_clipboard_window_pinned` | 固定不隐藏；粘贴时 resign/restore key | 待迁移 | 固定后连续粘贴 |
 | W-05 | P1 | 窗口生命周期 | `window/lifecycle/*` | 原生窗口状态机，无 WebView 重建 | 待迁移 | 冷启/热显/隐藏/退出 |
 | W-06 | P1 | 窗口几何持久化 | `window/state.rs` | 同 `state/window-state.json` | 待迁移 | 重启/换屏 |
@@ -125,7 +125,7 @@
 | W-14 | P1 | Dock 图标显隐 | `show_taskbar_icon` | `NSApplication.setActivationPolicy` | 待迁移 | 显示/隐藏/重启 |
 | W-15 | P1 | 单实例 | `tauri-plugin-single-instance` | macOS bundle 单实例 + `OnReopen` | 待迁移 | 二次启动/文件打开 |
 | W-16 | P1 | 文件关联 | `tauri.conf.json`、`backup/*` | `nsgo.yaml file_types` + `OnOpenFiles` | 待迁移 | 双击/拖到 Dock |
-| W-17 | P1 | 原生右键菜单 | `menu/clipboard_item.rs` | `NSMenu` 动作分组/快捷键/子菜单 | 待迁移 | 所有条目类型 |
+| W-17 | P1 | 原生右键菜单 | `menu/clipboard_item.rs` | `NSMenu` 按内容动态生成动作 | 迁移中 | URL/图片/路径菜单已真机验证；粘贴、复制、打开、Finder、另存、收藏、置顶、删除已接；分组/备注/快捷键待补 |
 | W-18 | P1 | 权限 | `PermissionControl` | 辅助功能/完全磁盘访问检测与跳转 | 迁移中 | 辅助功能检测、原生说明弹窗与系统设置跳转已接；FDA 待补 |
 | W-19 | P2 | 防默认行为 | `core/prevent_default.rs` | 无 WebView，不需要 | 不纳入 macOS 首版 | 确认无 WebView 入口 |
 | W-20 | P1 | 更新 | `update.rs` | NSGo updater + Sparkle appcast | 待迁移 | 测试源真实升级 |

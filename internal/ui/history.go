@@ -17,6 +17,7 @@ import (
 type HistoryItem struct {
 	ID        string
 	Kind      string
+	SubKind   string
 	Title     string
 	SourceApp string
 	Note      string
@@ -60,6 +61,9 @@ type HistoryModel interface {
 	ToggleFavorite(context.Context, string) (bool, error)
 	TogglePinned(context.Context, string) (bool, error)
 	Delete(context.Context, string) error
+	Open(context.Context, string) error
+	Reveal(context.Context, string) error
+	SaveImage(context.Context, string) error
 	Preview(context.Context, string) (HistoryPreview, error)
 	Updates() <-chan struct{}
 }
@@ -201,6 +205,21 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 			}()
 		}
 
+		runItemAction := func(id string, run func(context.Context, string) error) {
+			if id == "" || model == nil {
+				return
+			}
+			ctx := cx.Context()
+			go func() {
+				err := run(ctx, id)
+				cx.Post(func() {
+					if err != nil {
+						errorText.Set(err.Error())
+					}
+				})
+			}()
+		}
+
 		showPreview := func(id string) {
 			if id == "" || model == nil {
 				return
@@ -328,11 +347,33 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 					showPreview(selectedID)
 				case "hidePreview":
 					preview.Set(macos.PreviewContent{})
+				case "open":
+					runItemAction(selectedID, model.Open)
+				case "reveal":
+					runItemAction(selectedID, model.Reveal)
+				case "saveImage":
+					if selectedID == "" || model == nil {
+						return
+					}
+					id := selectedID
+					ctx := cx.Context()
+					go func() {
+						err := model.SaveImage(ctx, id)
+						cx.Post(func() {
+							if err != nil {
+								errorText.Set(err.Error())
+							}
+						})
+					}()
 				case "loadMore":
 					if hasMore.GetUntracked() && !loading.GetUntracked() {
 						load(query, true)
 					}
 				case "hide":
+					if hide != nil {
+						hide()
+					}
+				case "blurHide":
 					if hide != nil {
 						hide()
 					}
@@ -366,6 +407,7 @@ func historyRow(item HistoryItem) macos.HistoryRow {
 	return macos.HistoryRow{
 		ID:        item.ID,
 		Kind:      item.Kind,
+		SubKind:   item.SubKind,
 		Title:     title,
 		Detail:    strings.Join(detail, " · "),
 		ImagePath: item.ImagePath,

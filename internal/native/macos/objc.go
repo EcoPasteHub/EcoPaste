@@ -40,6 +40,7 @@ var (
 
 	utf8StringEncoding = uint32(0x08000100)
 	windowDidBecomeKey = "NSWindowDidBecomeKeyNotification"
+	windowDidResignKey = "NSWindowDidResignKeyNotification"
 )
 
 func init() {

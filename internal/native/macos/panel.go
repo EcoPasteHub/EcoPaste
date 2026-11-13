@@ -5,6 +5,7 @@ package macos
 import (
 	"fmt"
 	"sync"
+	"sync/atomic"
 
 	"github.com/ebitengine/purego/objc"
 	"github.com/nsgo-dev/nsgo/core"
@@ -45,6 +46,8 @@ type Panel struct {
 }
 
 var (
+	suppressPanelBlur atomic.Bool
+
 	registerPanelOnce sync.Once
 	searchTarget      objc.ID
 	observerClass     objc.Class
@@ -103,6 +106,8 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	center := objc.ID(class("NSNotificationCenter")).Send(sel("defaultCenter"))
 	center.Send(sel("addObserver:selector:name:object:"), p.observer, sel("windowBecameKey:"),
 		nsString(windowDidBecomeKey), objc.ID(0))
+	center.Send(sel("addObserver:selector:name:object:"), p.observer, sel("windowResignedKey:"),
+		nsString(windowDidResignKey), objc.ID(0))
 	p.timer = objc.ID(class("NSTimer")).Send(sel("scheduledTimerWithTimeInterval:target:selector:userInfo:repeats:"),
 		0.1, p.observer, sel("pollSearch:"), objc.ID(0), true)
 	p.monitor = objc.ID(objc.NewBlock(func(_ objc.Block, event objc.ID) objc.ID {
@@ -141,7 +146,9 @@ func registerPanelTargets() {
 					p.cx.Emit("hidePreview", nil)
 					return
 				}
-				sendSuper[objc.ID](self, panelViewClass, sel("cancelOperation:"), sender)
+				if p != nil {
+					p.cx.Emit("hide", nil)
+				}
 			}},
 		})
 	if err != nil {
@@ -170,6 +177,17 @@ func registerPanelTargets() {
 				window := p.view.Send(sel("window"))
 				if window != 0 && window == objc.Send[objc.ID](note, sel("object")) {
 					window.Send(sel("makeFirstResponder:"), p.search)
+				}
+			}},
+			{Cmd: sel("windowResignedKey:"), Fn: func(self objc.ID, _ objc.SEL, note objc.ID) {
+				p := panelsByObserver[self]
+				if p == nil || suppressPanelBlur.Load() {
+					return
+				}
+				window := p.view.Send(sel("window"))
+				if window != 0 && window == objc.Send[objc.ID](note, sel("object")) &&
+					objc.Send[bool](window, sel("isVisible")) {
+					p.cx.Emit("blurHide", nil)
 				}
 			}},
 			{Cmd: sel("pollSearch:"), Fn: func(self objc.ID, _ objc.SEL, _ objc.ID) {
