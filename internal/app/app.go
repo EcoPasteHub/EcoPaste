@@ -92,13 +92,36 @@ func Run(app *core.Scope) {
 				preferenceHotKey = strings.ToLower(configured)
 			}
 			openSettings = func() {
+				model := newSettingsModel(store)
+				model.dataDir = func() string {
+					if runtime == nil {
+						return ""
+					}
+					return runtime.paths.Root
+				}
+				model.changeDataDir = func(parent string) error {
+					if runtime == nil {
+						return fmt.Errorf("剪贴板服务未启动")
+					}
+					ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+					defer cancel()
+					_, err := runtime.changeDataDir(ctx, parent)
+					return err
+				}
+				model.restart = func() {
+					app.Post(func() {
+						macos.ShowMessage("数据目录已更改",
+							"历史、设置和资源已迁移，EcoPaste 将重新启动。旧目录数据仍然保留。")
+						desktop.Restart(app)
+					})
+				}
 				desktop.OpenWindow(app, desktop.WindowOptions{
 					Title:       "EcoPaste 设置",
 					Width:       560,
 					Height:      560,
 					Key:         "settings",
 					Constraints: core.WindowConstraints{NoResize: true, NoMaximize: true},
-				}, ui.SettingsWindow(newSettingsModel(store)))
+				}, ui.SettingsWindow(model))
 			}
 			runtime, err = startClipboard(app, paths, store, &paused)
 			if err != nil {

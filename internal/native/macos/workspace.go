@@ -104,6 +104,15 @@ func SavePanel(defaultName, title string) (string, bool) {
 
 // OpenBackupPanel asks for an .ecopastebak file.
 func OpenBackupPanel(title string) (string, bool) {
+	return openDocumentPanel(title, true)
+}
+
+// OpenDataDirectoryPanel asks for a folder that will hold EcoPaste's data.
+func OpenDataDirectoryPanel(title string) (string, bool) {
+	return openDocumentPanel(title, false)
+}
+
+func openDocumentPanel(title string, files bool) (string, bool) {
 	var path string
 	onMain(func() {
 		suppressPanelBlur.Store(true)
@@ -126,11 +135,13 @@ func OpenBackupPanel(title string) (string, bool) {
 		panel.Send(sel("retain"))
 		defer panel.Send(sel("release"))
 		panel.Send(sel("setTitle:"), nsString(title))
-		panel.Send(sel("setCanChooseFiles:"), true)
-		panel.Send(sel("setCanChooseDirectories:"), false)
+		panel.Send(sel("setCanChooseFiles:"), files)
+		panel.Send(sel("setCanChooseDirectories:"), !files)
 		panel.Send(sel("setAllowsMultipleSelection:"), false)
-		extensions := objc.ID(class("NSArray")).Send(sel("arrayWithObject:"), nsString("ecopastebak"))
-		panel.Send(sel("setAllowedFileTypes:"), extensions)
+		if files {
+			extensions := objc.ID(class("NSArray")).Send(sel("arrayWithObject:"), nsString("ecopastebak"))
+			panel.Send(sel("setAllowedFileTypes:"), extensions)
+		}
 		panel.Send(sel("setLevel:"), int64(1000))
 		panel.Send(sel("makeKeyAndOrderFront:"), objc.ID(0))
 		if panel.Send(sel("runModal")) != 1 {

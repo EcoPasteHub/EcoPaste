@@ -18,6 +18,7 @@ type SettingsValues struct {
 	DockIcon             bool
 	AutoStart            bool
 	Theme                string
+	DataDir              string
 	CopyPlain            bool
 	CopyThenHideWindow   bool
 	PastePlain           bool
@@ -46,11 +47,13 @@ type SettingsChange struct {
 
 // SettingsView is the AppKit settings window content.
 type SettingsView struct {
-	cx     *core.NativeContext
-	view   objc.ID
-	tabs   objc.ID
-	footer objc.ID
-	fields []*settingsField
+	cx      *core.NativeContext
+	view    objc.ID
+	tabs    objc.ID
+	footer  objc.ID
+	dataDir objc.ID
+	change  objc.ID
+	fields  []*settingsField
 }
 
 type settingsField struct {
@@ -139,6 +142,23 @@ func (v *SettingsView) buildGeneral() {
 			{Title: "深色", Value: "dark"},
 		},
 		func(s SettingsValues) string { return s.Theme })
+	v.buildDataDir(content, y-336)
+}
+
+func (v *SettingsView) buildDataDir(content objc.ID, y float64) {
+	v.addLabel(content, y, "数据目录")
+	v.dataDir = objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(""))
+	v.dataDir.Send(sel("setFont:"), systemFont(11))
+	v.dataDir.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
+	v.dataDir.Send(sel("setLineBreakMode:"), int64(4))
+	v.dataDir.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: y - 20}, Size: CGSize{Width: tabContentW - 150, Height: 16}})
+	content.Send(sel("addSubview:"), v.dataDir)
+
+	v.change = objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
+		nsString("更改…"), settingsTarget, sel("dataDirPressed:"))
+	v.change.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 114, Y: y - 24}, Size: CGSize{Width: 90, Height: 28}})
+	content.Send(sel("addSubview:"), v.change)
+	settingsViews[v.change] = v
 }
 
 func (v *SettingsView) buildCapture() {
@@ -323,6 +343,21 @@ func registerSettingsTargets() {
 			v.setStepperLabel(field, value)
 			v.cx.Emit("change", SettingsChange{Path: field.path, Value: value})
 		}},
+		{Cmd: sel("dataDirPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
+			v := settingsViews[sender]
+			if v == nil {
+				return
+			}
+			parent, ok := OpenDataDirectoryPanel("选择 EcoPaste 数据目录")
+			if !ok {
+				return
+			}
+			if !Confirm("更改数据目录？",
+				"历史、设置和资源会复制到所选目录，然后重启 EcoPaste。旧目录数据会保留。", "迁移并重启") {
+				return
+			}
+			v.cx.Emit("change", SettingsChange{Path: "general.dataDir", Value: parent})
+		}},
 	})
 	if err != nil {
 		panic(err)
@@ -356,6 +391,7 @@ func (v *SettingsView) SetProp(name string, value any) {
 func (v *SettingsView) Command(string, any) {}
 
 func (v *SettingsView) apply(values SettingsValues) {
+	v.dataDir.Send(sel("setStringValue:"), nsString(values.DataDir))
 	for _, field := range v.fields {
 		switch field.kind {
 		case "bool":
@@ -407,5 +443,6 @@ func (v *SettingsView) Close() {
 	for _, field := range v.fields {
 		delete(settingsViews, field.control)
 	}
+	delete(settingsViews, v.change)
 	v.view.Send(sel("release"))
 }

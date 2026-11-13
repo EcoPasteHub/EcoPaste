@@ -168,6 +168,13 @@ func SetRoot(base, environment, dir string) error {
 	if err := ValidateTarget(dir, environment); err != nil {
 		return err
 	}
+	return CommitRoot(base, environment, dir)
+}
+
+// CommitRoot writes dir's identity and points the bootstrap manifest at
+// it. The caller must have validated dir with ValidateTarget before
+// moving data into it.
+func CommitRoot(base, environment, dir string) error {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return fmt.Errorf("create data dir: %w", err)
 	}

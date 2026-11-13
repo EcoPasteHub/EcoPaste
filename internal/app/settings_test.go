@@ -126,6 +126,27 @@ func TestSettingsModelAppliesTheme(t *testing.T) {
 	}
 }
 
+func TestSettingsModelChangesDataDir(t *testing.T) {
+	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	model := newSettingsModel(store)
+	var changed []string
+	restarted := false
+	model.changeDataDir = func(parent string) error {
+		changed = append(changed, parent)
+		return nil
+	}
+	model.restart = func() { restarted = true }
+	if err := model.Apply("general.dataDir", "/tmp/parent"); err != nil {
+		t.Fatal(err)
+	}
+	if len(changed) != 1 || changed[0] != "/tmp/parent" || !restarted {
+		t.Errorf("changed = %v, restarted = %t", changed, restarted)
+	}
+}
+
 func TestSettingsModelAppliesAutostart(t *testing.T) {
 	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
 	if err != nil {

@@ -14,6 +14,9 @@ type settingsModel struct {
 	setDockIcon   func(bool) error
 	setAutoStart  func(bool) error
 	setAppearance func(string) error
+	dataDir       func() string
+	changeDataDir func(string) error
+	restart       func()
 }
 
 func newSettingsModel(store *settings.Store) *settingsModel {
@@ -29,6 +32,7 @@ func (m *settingsModel) Load() macos.SettingsValues {
 		DockIcon:             m.store.Snapshot().General.DockIcon,
 		AutoStart:            m.store.Snapshot().General.AutoStart,
 		Theme:                string(m.store.Snapshot().Appearance.Theme),
+		DataDir:              m.currentDataDir(),
 		CopyPlain:            cfg.Content.CopyPlain,
 		CopyThenHideWindow:   cfg.Content.CopyThenHideWindow,
 		PastePlain:           cfg.Content.PastePlain,
@@ -51,6 +55,19 @@ func (m *settingsModel) Load() macos.SettingsValues {
 }
 
 func (m *settingsModel) Apply(path string, value any) error {
+	if path == "general.dataDir" {
+		parent, _ := value.(string)
+		if m.changeDataDir == nil {
+			return fmt.Errorf("当前环境无法更改数据目录")
+		}
+		if err := m.changeDataDir(parent); err != nil {
+			return err
+		}
+		if m.restart != nil {
+			m.restart()
+		}
+		return nil
+	}
 	if path == "history.retention" {
 		text, _ := value.(string)
 		retention, err := decodeRetention(text)
@@ -99,6 +116,13 @@ func (m *settingsModel) Apply(path string, value any) error {
 func (m *settingsModel) update(patch map[string]any) error {
 	_, err := m.store.Update(patch)
 	return err
+}
+
+func (m *settingsModel) currentDataDir() string {
+	if m.dataDir == nil {
+		return ""
+	}
+	return m.dataDir()
 }
 
 var settingsPaths = map[string][]string{
