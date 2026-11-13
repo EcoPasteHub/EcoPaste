@@ -26,6 +26,17 @@ func (r *clipboardRuntime) cleanCache(ctx context.Context) (int, int64, error) {
 	if err != nil {
 		return imageFiles, imageBytes, err
 	}
-	iconFiles, err := r.appIcons.RemoveUnreferenced(iconRefs)
-	return imageFiles + iconFiles, imageBytes, err
+	iconFiles, iconBytes, err := r.appIcons.RemoveUnreferenced(iconRefs)
+	if err != nil {
+		return imageFiles + iconFiles, imageBytes + iconBytes, err
+	}
+	if r.fileIcons == nil {
+		return imageFiles + iconFiles, imageBytes + iconBytes, nil
+	}
+	fileIconRefs, err := r.db.FileIconFiles(ctx)
+	if err != nil {
+		return imageFiles + iconFiles, imageBytes + iconBytes, err
+	}
+	fileIconFiles, fileIconBytes, err := r.fileIcons.RemoveUnreferenced(fileIconRefs)
+	return imageFiles + iconFiles + fileIconFiles, imageBytes + iconBytes + fileIconBytes, err
 }

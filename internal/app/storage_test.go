@@ -53,6 +53,7 @@ func TestCleanCacheKeepsReferencedFiles(t *testing.T) {
 	defer db.Close()
 	images := storage.NewImageStore(dir)
 	icons := storage.NewAppIconStore(dir)
+	fileIcons := storage.NewFileIconStore(dir)
 
 	kept, err := images.StorePNG(testPNGBytes(t, 32, 32, 10))
 	if err != nil {
@@ -76,13 +77,24 @@ func TestCleanCacheKeepsReferencedFiles(t *testing.T) {
 	if err := db.EnsureApp(ctx, "com.example.app", "Example", &keptIcon); err != nil {
 		t.Fatal(err)
 	}
+	keptFileIcon, err := fileIcons.StorePNG(testPNGBytes(t, 16, 16, 50))
+	if err != nil {
+		t.Fatal(err)
+	}
+	orphanFileIcon, err := fileIcons.StorePNG(testPNGBytes(t, 16, 16, 60))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := db.UpsertFileIcon(ctx, ".pdf", keptFileIcon); err != nil {
+		t.Fatal(err)
+	}
 
-	runtime := &clipboardRuntime{db: db, images: images, appIcons: icons}
+	runtime := &clipboardRuntime{db: db, images: images, appIcons: icons, fileIcons: fileIcons}
 	files, freed, err := runtime.cleanCache(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if files != 3 || freed <= 0 {
+	if files != 4 || freed <= 0 {
 		t.Fatalf("removed %d files, %d bytes", files, freed)
 	}
 	if _, err := os.Stat(images.OriginPath(kept.FileName)); err != nil {
@@ -96,5 +108,11 @@ func TestCleanCacheKeepsReferencedFiles(t *testing.T) {
 	}
 	if icons.Exists(orphanIcon) {
 		t.Error("orphan icon kept")
+	}
+	if !fileIcons.Exists(keptFileIcon) {
+		t.Error("referenced file icon removed")
+	}
+	if fileIcons.Exists(orphanFileIcon) {
+		t.Error("orphan file icon kept")
 	}
 }

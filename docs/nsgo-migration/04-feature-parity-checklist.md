@@ -56,10 +56,10 @@
 | D-20 | P0 | 自定义数据目录 | `commands/storage.rs` | 迁移 db/resources/config/state 并热切换 | 待迁移 | 切换、失败回滚、重启 |
 | D-21 | P0 | 资源目录 | `core/paths.rs` | 同目录结构，图片按 hash 分片 | 已通过 | `TestImageStoreIsIdempotent`；真机图片落盘 |
 | D-22 | P1 | 存储占用 | `get_storage_usage` | total/database/resources/settings 分项 | 已通过 | `TestMeasureUsageSumsParts`；真机托盘显示 136.9 KB，与 `du` 结果可解释 |
-| D-23 | P1 | 缓存清理 | `clean_resource_cache` | 删除未被 DB 引用的图片/图标 | 已通过 | `TestCleanCacheKeepsReferencedFiles`；真机清理 3 个孤儿文件且保留引用 |
+| D-23 | P1 | 缓存清理 | `clean_resource_cache` | 删除未被 DB 引用的图片/图标 | 已通过 | `TestCleanCacheKeepsReferencedFiles` 覆盖图片、应用图标、文件图标；真机清理孤儿文件且保留引用 |
 | D-24 | P1 | 旧版数据导入 | `commands/onboarding.rs` | 读 v0.6 `history` + `images/` | 待迁移 | 普通/收藏选择性导入 |
 | D-25 | P1 | 来源应用注册表 | `db/apps.rs`、`apps_registry.rs` | 列表、全部应用、从路径添加、清理未引用 | 待迁移 | 增删与去重 |
-| D-26 | P1 | 文件图标缓存 | `db/file_icons.rs`、`file_icon_store.rs` | `NSWorkspace` 图标 + cache key | 待迁移 | 不同扩展名/同扩展名 |
+| D-26 | P1 | 文件图标缓存 | `db/file_icons.rs`、`file_icon_store.rs` | `NSWorkspace` 图标 + cache key | 已通过 | `TestFileIconCacheReusesType`；真机 PDF/TXT 图标正确，两个 PDF 共享 `.pdf` 缓存 |
 | D-27 | P1 | 备份入口 | `commands/backup.rs` | 导出、检查、导入、pending slot | 待迁移 | 明文/加密/取消/恢复 |
 | D-28 | P1 | 打开数据目录 | `commands/storage.rs` | `NSWorkspace` 打开目录 | 已通过 | 真机从托盘打开当前数据根 |
 

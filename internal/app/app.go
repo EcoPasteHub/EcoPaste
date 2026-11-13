@@ -238,12 +238,14 @@ func Run(app *core.Scope) {
 }
 
 type clipboardRuntime struct {
-	db       *database.DB
-	service  *clipboard.Service
-	images   *storage.ImageStore
-	appIcons *storage.AppIconStore
-	paths    *storage.Paths
-	changed  chan struct{}
+	db            *database.DB
+	service       *clipboard.Service
+	images        *storage.ImageStore
+	appIcons      *storage.AppIconStore
+	fileIcons     *storage.FileIconStore
+	fileIconCache *fileIconCache
+	paths         *storage.Paths
+	changed       chan struct{}
 }
 
 func (r *clipboardRuntime) Signal() {
@@ -261,7 +263,10 @@ func startClipboard(app *core.Scope, paths *storage.Paths, store *settings.Store
 	images := storage.NewImageStore(paths.Resources)
 	appIcons := storage.NewAppIconStore(paths.Resources)
 	pruneAppIcons(db, appIcons)
+	fileIcons := storage.NewFileIconStore(paths.Resources)
+	pruneFileIcons(db, fileIcons)
 	iconCache := newAppIconCache(appIcons)
+	fileIconCache := newFileIconCache(db, fileIcons)
 	changed := make(chan struct{}, 1)
 	service := &clipboard.Service{
 		DB:       db,
@@ -293,7 +298,10 @@ func startClipboard(app *core.Scope, paths *storage.Paths, store *settings.Store
 		watcher.Run(ctx)
 		close(done)
 	}()
-	runtime := &clipboardRuntime{db: db, service: service, images: images, appIcons: appIcons, paths: paths, changed: changed}
+	runtime := &clipboardRuntime{
+		db: db, service: service, images: images, appIcons: appIcons,
+		fileIcons: fileIcons, fileIconCache: fileIconCache, paths: paths, changed: changed,
+	}
 	startCleanup(ctx, runtime, store)
 	app.OnQuit(func(context.Context) {
 		cancel()
@@ -312,7 +320,18 @@ func pruneAppIcons(db *database.DB, store *storage.AppIconStore) {
 		log.Printf("list app icons: %v", err)
 		return
 	}
-	if _, err := store.RemoveUnreferenced(referenced); err != nil {
+	if _, _, err := store.RemoveUnreferenced(referenced); err != nil {
 		log.Printf("clean app icons: %v", err)
+	}
+}
+
+func pruneFileIcons(db *database.DB, store *storage.FileIconStore) {
+	referenced, err := db.FileIconFiles(context.Background())
+	if err != nil {
+		log.Printf("list file icons: %v", err)
+		return
+	}
+	if _, _, err := store.RemoveUnreferenced(referenced); err != nil {
+		log.Printf("clean file icons: %v", err)
 	}
 }

@@ -42,7 +42,7 @@ func (m *historyModel) List(ctx context.Context, q ui.HistoryQuery) (ui.HistoryP
 	}
 	items := make([]ui.HistoryItem, 0, len(page.Items))
 	for _, item := range page.Items {
-		items = append(items, m.historyItem(item))
+		items = append(items, m.historyItem(ctx, item))
 	}
 	return ui.HistoryPage{Items: items, Total: page.Total, HasMore: page.HasMore}, nil
 }
@@ -254,7 +254,7 @@ func autoPaste(action settings.AutoPaste) bool {
 	return action == settings.AutoPasteSingleClickPaste || action == settings.AutoPasteDoubleClickPaste
 }
 
-func (m *historyModel) historyItem(item database.Item) ui.HistoryItem {
+func (m *historyModel) historyItem(ctx context.Context, item database.Item) ui.HistoryItem {
 	row := ui.HistoryItem{
 		ID:        item.ID,
 		Kind:      string(item.Kind),
@@ -299,7 +299,19 @@ func (m *historyModel) historyItem(item database.Item) ui.HistoryItem {
 			row.ImagePath = m.runtime.images.OriginPath(item.Content)
 		}
 	case database.KindFiles:
-		row.Title = ui.FileTitle(clipboard.DecodeFiles(item.Content), 3)
+		files := clipboard.DecodeFiles(item.Content)
+		row.Title = ui.FileTitle(files, 3)
+		if len(files) > 0 && m.runtime.fileIconCache != nil {
+			row.ImagePath = m.runtime.fileIconCache.Path(ctx, files[0], fileTypeAt(item.FileTypes, 0))
+		}
 	}
 	return row
+}
+
+func fileTypeAt(types *string, index int) bool {
+	if types == nil {
+		return false
+	}
+	parts := strings.Split(*types, ",")
+	return index >= 0 && index < len(parts) && parts[index] == "d"
 }

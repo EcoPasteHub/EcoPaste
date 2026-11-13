@@ -6,6 +6,7 @@ import (
 	"image/color"
 	"image/png"
 	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -75,17 +76,36 @@ func TestAppIconStoreRemovesUnreferenced(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	removed, err := store.RemoveUnreferenced(map[string]struct{}{keep: {}})
+	removed, bytes, err := store.RemoveUnreferenced(map[string]struct{}{keep: {}})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if removed != 1 {
 		t.Errorf("removed = %d, want 1", removed)
 	}
+	if bytes != int64(len("two")) {
+		t.Errorf("removed bytes = %d", bytes)
+	}
 	if !store.Exists(keep) {
 		t.Error("referenced icon was removed")
 	}
 	if store.Exists(remove) {
 		t.Error("unreferenced icon still exists")
+	}
+}
+
+func TestFileIconStoreUsesPublishedDirectory(t *testing.T) {
+	resources := t.TempDir()
+	store := NewFileIconStore(resources)
+	name, err := store.StorePNG([]byte("file icon"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := filepath.Join(resources, "file-icons", name)
+	if got := store.Path(name); got != want {
+		t.Fatalf("path = %q, want %q", got, want)
+	}
+	if !store.Exists(name) {
+		t.Error("stored file icon is missing")
 	}
 }
