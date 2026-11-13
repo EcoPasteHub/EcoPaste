@@ -39,6 +39,8 @@ nsgo dev cmd/ecopaste
 nsgo build cmd/ecopaste
 ```
 
+也可以用 `make` 执行同样的命令：`make dev`、`make build`、`make check`，`make help` 查看全部。
+
 本地开发数据写入 `~/Library/Application Support/com.ayangweb.eco-paste/dev`；设置 `ECOPASTE_MODE=prod` 才会使用正式数据目录。`ECOPASTE_HOME` 可指向测试用目录。
 
 迁移优先级与验收项见 `docs/nsgo-migration/03-migration-plan.md` 与 `04-feature-parity-checklist.md`。
