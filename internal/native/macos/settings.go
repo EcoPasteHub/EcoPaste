@@ -25,6 +25,10 @@ type SettingsValues struct {
 	CopySound              bool
 	PastePlain             bool
 	UpdateOnReuse          bool
+	AutoPaste              string
+	MiddleClick            string
+	PasteFilesAsPath       bool
+	AutoFavorite           bool
 	Sort                   string
 	WindowPosition         string
 	CaptureText            bool
@@ -138,6 +142,7 @@ var settingsTabIdentifiers = map[string]struct{}{
 	"permissions": {},
 	"apps":        {},
 	"actions":     {},
+	"interaction": {},
 	"shortcuts":   {},
 }
 
@@ -195,6 +200,7 @@ func NewSettings(cx *core.NativeContext) core.NativeComponent {
 	v.buildCapture()
 	v.buildDisplay()
 	v.buildActions()
+	v.buildInteraction()
 	v.buildWindow()
 	v.buildHistory()
 	v.buildPermissions()
