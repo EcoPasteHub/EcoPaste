@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 )
@@ -45,7 +47,7 @@ func (s *Store) Path() string { return s.path }
 func (s *Store) Snapshot() Settings {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	return s.current
+	return cloneSettings(s.current)
 }
 
 // Update deep-merges a JSON object patch into the current settings,
@@ -69,7 +71,7 @@ func (s *Store) Update(patch map[string]any) (Settings, error) {
 		return Settings{}, err
 	}
 	s.current = merged
-	return merged, nil
+	return cloneSettings(merged), nil
 }
 
 // Replace swaps the whole settings for next, validating and persisting
@@ -83,7 +85,7 @@ func (s *Store) Replace(next Settings) error {
 	if err := s.write(next); err != nil {
 		return err
 	}
-	s.current = next
+	s.current = cloneSettings(next)
 	return nil
 }
 
@@ -93,7 +95,7 @@ func (s *Store) Reset() (Settings, error) {
 	if err := s.Replace(next); err != nil {
 		return Settings{}, err
 	}
-	return next, nil
+	return cloneSettings(next), nil
 }
 
 func (s *Store) write(next Settings) error {
@@ -133,7 +135,12 @@ func load(path string) (Settings, bool, error) {
 	}
 	next := Default()
 	if err := json.Unmarshal(data, &next); err != nil {
-		return Settings{}, true, fmt.Errorf("parse settings: %w", err)
+		log.Printf("settings file %s is unreadable, using defaults: %v", path, err)
+		return Default(), true, nil
+	}
+	if err := validateDecoded(next); err != nil {
+		log.Printf("settings file %s has invalid values, using defaults: %v", path, err)
+		return Default(), true, nil
 	}
 	return next, true, nil
 }
@@ -175,6 +182,9 @@ func deepMerge(base, patch map[string]any) {
 }
 
 func validate(s Settings) error {
+	if err := validateDecoded(s); err != nil {
+		return err
+	}
 	if value := s.Clipboard.Window.SelectGroupOnOpen; value != "preserve" && value != "all" {
 		if !strings.HasPrefix(value, "group:") || strings.TrimSpace(strings.TrimPrefix(value, "group:")) == "" {
 			return errors.New("open group selection is invalid")
@@ -188,6 +198,91 @@ func validate(s Settings) error {
 	return nil
 }
 
+func validateDecoded(s Settings) error {
+	if err := validateOneOf("appearance.theme", s.Appearance.Theme, ThemeAuto, ThemeLight, ThemeDark); err != nil {
+		return err
+	}
+	if err := validateOneOf("appearance.language", s.Appearance.Language, LanguageZhCN, LanguageEnUS); err != nil {
+		return err
+	}
+	for _, kind := range s.Clipboard.Capture.Order {
+		if err := validateOneOf("clipboard.capture.order", kind,
+			CaptureFiles, CaptureImage, CaptureHTML, CaptureRTF, CaptureText); err != nil {
+			return err
+		}
+	}
+	if err := validateOneOf("clipboard.content.autoPaste", s.Clipboard.Content.AutoPaste,
+		AutoPasteDisabled, AutoPasteSingleClickPaste, AutoPasteDoubleClickPaste,
+		AutoPasteSingleClickCopy, AutoPasteDoubleClickCopy); err != nil {
+		return err
+	}
+	if err := validateOneOf("clipboard.content.middleClick", s.Clipboard.Content.MiddleClick,
+		MiddleClickDisabled, MiddleClickSingleClickPaste, MiddleClickSingleClickPlain,
+		MiddleClickSingleClickCopy, MiddleClickSingleClickCopyPl); err != nil {
+		return err
+	}
+	if err := validateOneOf("clipboard.content.sort", s.Clipboard.Content.Sort,
+		SortCreatedAt, SortUpdatedAt, SortUseCount); err != nil {
+		return err
+	}
+	if err := validateItemActions("clipboard.content.itemActions", s.Clipboard.Content.ItemActions); err != nil {
+		return err
+	}
+	if err := validateItemActions("clipboard.content.itemActionOrder", s.Clipboard.Content.ItemActionOrder); err != nil {
+		return err
+	}
+	if err := validateOneOf("clipboard.history.retention.unit", s.Clipboard.History.Retention.Unit,
+		RetentionHours, RetentionDays, RetentionWeeks, RetentionMonths, RetentionForever); err != nil {
+		return err
+	}
+	if err := validateOneOf("clipboard.window.position", s.Clipboard.Window.Position,
+		PositionRemember, PositionFollowCursor, PositionCenter); err != nil {
+		return err
+	}
+	if err := validateOneOf("clipboard.window.selectRangeOnOpen", s.Clipboard.Window.SelectRangeOnOpen,
+		RangePreserve, RangeAll, RangeFavorite); err != nil {
+		return err
+	}
+	if err := validateOneOf("clipboard.window.selectCategoryOnOpen", s.Clipboard.Window.SelectCategoryOnOpen,
+		CategoryPreserve, CategoryAll, CategoryText, CategoryImage, CategoryFiles); err != nil {
+		return err
+	}
+	if err := validateOneOf("clipboard.preview.hoverDelayMs", s.Clipboard.Preview.HoverDelayMs,
+		300, 500, 1000); err != nil {
+		return err
+	}
+	if err := validateOneOf("update.frequency", s.Update.Frequency,
+		UpdateDaily, UpdateWeekly, UpdateMonthly); err != nil {
+		return err
+	}
+	for _, kind := range s.Onboarding.LegacyImport.ImportTypes {
+		if err := validateOneOf("onboarding.legacyImport.importTypes", kind,
+			LegacyImportNormal, LegacyImportFavorite); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateItemActions(field string, actions []ItemAction) error {
+	for _, action := range actions {
+		if err := validateOneOf(field, action,
+			ActionPaste, ActionPastePlain, ActionPastePath, ActionCopy, ActionCopyPlain,
+			ActionOpenLink, ActionSendEmail, ActionReveal, ActionNote, ActionStar,
+			ActionPin, ActionDelete); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateOneOf[T comparable](field string, value T, allowed ...T) error {
+	if slices.Contains(allowed, value) {
+		return nil
+	}
+	return fmt.Errorf("%s is invalid: %v", field, value)
+}
+
 func normalizeShortcut(value string) string {
 	parts := strings.Split(value, "+")
 	keys := make([]string, 0, len(parts))
@@ -197,4 +292,25 @@ func normalizeShortcut(value string) string {
 		}
 	}
 	return strings.Join(keys, "+")
+}
+
+func cloneSettings(src Settings) Settings {
+	dst := src
+	dst.Clipboard.Capture.Order = slices.Clone(src.Clipboard.Capture.Order)
+	dst.Clipboard.Content.ItemActions = slices.Clone(src.Clipboard.Content.ItemActions)
+	dst.Clipboard.Content.ItemActionOrder = slices.Clone(src.Clipboard.Content.ItemActionOrder)
+	dst.Clipboard.Filters.ExcludedAppIDs = slices.Clone(src.Clipboard.Filters.ExcludedAppIDs)
+	dst.Onboarding.LegacyImport.ImportTypes = slices.Clone(src.Onboarding.LegacyImport.ImportTypes)
+	dst.Onboarding.LegacyImport.ImportedAt = cloneString(src.Onboarding.LegacyImport.ImportedAt)
+	dst.Update.LastCheckedAt = cloneString(src.Update.LastCheckedAt)
+	dst.Update.SkippedVersion = cloneString(src.Update.SkippedVersion)
+	return dst
+}
+
+func cloneString(value *string) *string {
+	if value == nil {
+		return nil
+	}
+	cloned := *value
+	return &cloned
 }

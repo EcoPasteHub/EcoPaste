@@ -285,6 +285,11 @@ type OnboardingLegacyImport struct {
 	ImportedAt  *string  `json:"importedAt"`
 }
 
+const (
+	LegacyImportNormal   = "normal"
+	LegacyImportFavorite = "favorite"
+)
+
 type Update struct {
 	AutoCheck      bool            `json:"autoCheck"`
 	Frequency      UpdateFrequency `json:"frequency"`
