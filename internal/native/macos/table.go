@@ -8,20 +8,22 @@ import (
 
 // HistoryRow is one row the native table draws.
 type HistoryRow struct {
-	ID        string
-	Kind      string
-	SubKind   string
-	Title     string
-	Detail    string
-	ImagePath string
-	Favorite  bool
-	Pinned    bool
+	ID             string
+	Kind           string
+	SubKind        string
+	Title          string
+	Detail         string
+	ImagePath      string
+	SourceIconPath string
+	Favorite       bool
+	Pinned         bool
 }
 
 const (
 	rowIconTag     = 100
 	rowTitleTag    = 101
 	rowDetailTag   = 102
+	rowBadgeTag    = 103
 	rowIdentifier  = "ecopaste.history-row"
 	columnIdentity = "history"
 	rowHeight      = 58.0
@@ -224,6 +226,13 @@ func newHistoryRow() objc.ID {
 	cell.Send(sel("addSubview:"), icon)
 	icon.Send(sel("release"))
 
+	badge := objc.ID(class("NSImageView")).Send(sel("new"))
+	badge.Send(sel("setTag:"), int64(rowBadgeTag))
+	badge.Send(sel("setImageScaling:"), int64(3))
+	badge.Send(sel("setAccessibilityElement:"), false)
+	cell.Send(sel("addSubview:"), badge)
+	badge.Send(sel("release"))
+
 	title := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(""))
 	title.Send(sel("setTag:"), int64(rowTitleTag))
 	title.Send(sel("setFont:"), objc.ID(classNSFont).Send(sel("boldSystemFontOfSize:"), 13.0))
@@ -245,22 +254,40 @@ func newHistoryRow() objc.ID {
 
 func fillHistoryRow(cell objc.ID, row HistoryRow) {
 	icon := cell.Send(sel("viewWithTag:"), int64(rowIconTag))
+	badge := cell.Send(sel("viewWithTag:"), int64(rowBadgeTag))
 	title := cell.Send(sel("viewWithTag:"), int64(rowTitleTag))
 	detail := cell.Send(sel("viewWithTag:"), int64(rowDetailTag))
 	title.Send(sel("setStringValue:"), nsString(row.Title))
 	detail.Send(sel("setStringValue:"), nsString(row.Detail))
 
-	var image objc.ID
+	image := objc.ID(0)
 	if row.ImagePath != "" {
 		image = loadImage(row.ImagePath)
 	}
-	if image != 0 {
+	sourceIcon := objc.ID(0)
+	if row.SourceIconPath != "" {
+		sourceIcon = loadImage(row.SourceIconPath)
+	}
+	badge.Send(sel("setHidden:"), true)
+	switch {
+	case image != 0:
 		icon.Send(sel("setImage:"), image)
 		icon.Send(sel("setContentTintColor:"), objc.ID(0))
-		return
+		if sourceIcon != 0 {
+			badge.Send(sel("setImage:"), sourceIcon)
+			badge.Send(sel("setContentTintColor:"), objc.ID(0))
+			badge.Send(sel("setHidden:"), false)
+		}
+	case sourceIcon != 0:
+		icon.Send(sel("setImage:"), sourceIcon)
+		icon.Send(sel("setContentTintColor:"), objc.ID(0))
+		badge.Send(sel("setImage:"), symbolImage(row.Kind))
+		badge.Send(sel("setContentTintColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
+		badge.Send(sel("setHidden:"), false)
+	default:
+		icon.Send(sel("setImage:"), symbolImage(row.Kind))
+		icon.Send(sel("setContentTintColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
 	}
-	icon.Send(sel("setImage:"), symbolImage(row.Kind))
-	icon.Send(sel("setContentTintColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
 }
 
 func loadImage(path string) objc.ID {
@@ -285,11 +312,15 @@ func symbolImage(kind string) objc.ID {
 func layoutHistoryRow(cell objc.ID, size CGSize) {
 	const left = 14.0
 	const iconSize = 32.0
+	const badgeSize = 15.0
 	const textX = 58.0
 	icon := cell.Send(sel("viewWithTag:"), int64(rowIconTag))
+	badge := cell.Send(sel("viewWithTag:"), int64(rowBadgeTag))
 	title := cell.Send(sel("viewWithTag:"), int64(rowTitleTag))
 	detail := cell.Send(sel("viewWithTag:"), int64(rowDetailTag))
-	setFrame(icon, left, (size.Height-iconSize)/2, iconSize, iconSize)
+	iconY := (size.Height - iconSize) / 2
+	setFrame(icon, left, iconY, iconSize, iconSize)
+	setFrame(badge, left+iconSize-badgeSize, iconY+1, badgeSize, badgeSize)
 	setFrame(title, textX, size.Height-30, size.Width-textX-14, 18)
 	setFrame(detail, textX, 12, size.Width-textX-14, 15)
 }

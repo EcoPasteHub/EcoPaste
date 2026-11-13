@@ -236,6 +236,11 @@ func (m *historyModel) historyItem(item database.Item) ui.HistoryItem {
 	if item.SourceAppName != nil {
 		row.SourceApp = *item.SourceAppName
 	}
+	if item.SourceAppIcon != nil && m.runtime.appIcons != nil {
+		if path := m.runtime.appIcons.Path(*item.SourceAppIcon); path != "" {
+			row.SourceAppIcon = path
+		}
+	}
 	if item.Note != nil {
 		row.Note = *item.Note
 	}

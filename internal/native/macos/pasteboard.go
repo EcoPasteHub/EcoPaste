@@ -145,6 +145,10 @@ func boardString(p objc.ID, kind string) string {
 
 func boardData(p objc.ID, kind string) []byte {
 	data := p.Send(sel("dataForType:"), nsString(kind))
+	return dataBytes(data)
+}
+
+func dataBytes(data objc.ID) []byte {
 	if data == 0 {
 		return nil
 	}

@@ -65,6 +65,43 @@ func TestHistoryItemRedactsSensitiveSummary(t *testing.T) {
 	}
 }
 
+func TestHistoryItemIncludesSourceAppIcon(t *testing.T) {
+	root := t.TempDir()
+	db, err := database.Open(filepath.Join(root, "clipboard.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { db.Close() })
+	icons := storage.NewAppIconStore(filepath.Join(root, "resources"))
+	iconFile, err := icons.StorePNG(testPNG(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	source := "com.example.editor"
+	if err := db.EnsureApp(context.Background(), source, "Editor", &iconFile); err != nil {
+		t.Fatal(err)
+	}
+	summary := "hello"
+	if _, _, err := db.Upsert(context.Background(), &database.Item{
+		Kind:        database.KindText,
+		Content:     summary,
+		Summary:     &summary,
+		SourceAppID: &source,
+		Platform:    "macos",
+	}); err != nil {
+		t.Fatal(err)
+	}
+	page, err := db.Page(context.Background(), database.Query{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	model := &historyModel{runtime: &clipboardRuntime{db: db, appIcons: icons}}
+	row := model.historyItem(page.Items[0])
+	if row.SourceAppIcon != icons.Path(iconFile) {
+		t.Errorf("source icon = %q", row.SourceAppIcon)
+	}
+}
+
 func TestPreviewRedactsSensitiveText(t *testing.T) {
 	root := t.TempDir()
 	db, err := database.Open(filepath.Join(root, "clipboard.db"))

@@ -138,10 +138,11 @@ func Run(app *core.Scope) {
 }
 
 type clipboardRuntime struct {
-	db      *database.DB
-	service *clipboard.Service
-	images  *storage.ImageStore
-	changed chan struct{}
+	db       *database.DB
+	service  *clipboard.Service
+	images   *storage.ImageStore
+	appIcons *storage.AppIconStore
+	changed  chan struct{}
 }
 
 func (r *clipboardRuntime) Signal() {
@@ -157,6 +158,9 @@ func startClipboard(app *core.Scope, paths *storage.Paths, store *settings.Store
 		return nil, err
 	}
 	images := storage.NewImageStore(paths.Resources)
+	appIcons := storage.NewAppIconStore(paths.Resources)
+	pruneAppIcons(db, appIcons)
+	iconCache := newAppIconCache(appIcons)
 	changed := make(chan struct{}, 1)
 	service := &clipboard.Service{
 		DB:       db,
@@ -166,7 +170,7 @@ func startClipboard(app *core.Scope, paths *storage.Paths, store *settings.Store
 		Writer:   pasteboardWriter{},
 	}
 	watcher := &clipboard.Watcher{
-		Source: pasteboardSource{},
+		Source: pasteboardSource{icons: iconCache},
 		Capture: func(ctx context.Context, payload clipboard.Payload, source clipboard.SourceApp) {
 			if paused.Load() {
 				return
@@ -188,7 +192,7 @@ func startClipboard(app *core.Scope, paths *storage.Paths, store *settings.Store
 		watcher.Run(ctx)
 		close(done)
 	}()
-	runtime := &clipboardRuntime{db: db, service: service, images: images, changed: changed}
+	runtime := &clipboardRuntime{db: db, service: service, images: images, appIcons: appIcons, changed: changed}
 	startCleanup(ctx, runtime, store)
 	app.OnQuit(func(context.Context) {
 		cancel()
@@ -199,4 +203,15 @@ func startClipboard(app *core.Scope, paths *storage.Paths, store *settings.Store
 		db.Close()
 	})
 	return runtime, nil
+}
+
+func pruneAppIcons(db *database.DB, store *storage.AppIconStore) {
+	referenced, err := db.AppIconFiles(context.Background())
+	if err != nil {
+		log.Printf("list app icons: %v", err)
+		return
+	}
+	if _, err := store.RemoveUnreferenced(referenced); err != nil {
+		log.Printf("clean app icons: %v", err)
+	}
 }

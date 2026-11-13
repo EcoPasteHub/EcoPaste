@@ -41,7 +41,7 @@ func (s *Service) Capture(ctx context.Context, payload Payload, source SourceApp
 		return "", false, nil
 	}
 	if source.ID != "" {
-		if err := s.DB.EnsureApp(ctx, source.ID, source.Name); err != nil {
+		if err := s.DB.EnsureApp(ctx, source.ID, source.Name, source.IconFile); err != nil {
 			return "", false, err
 		}
 	}

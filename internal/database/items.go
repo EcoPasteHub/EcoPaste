@@ -229,7 +229,7 @@ func (d *DB) Page(ctx context.Context, q Query) (Page, error) {
 	default:
 		order += "clipboard_items.updated_at DESC, clipboard_items.created_at DESC"
 	}
-	query := "SELECT " + listColumns + ", clipboard_apps.name FROM clipboard_items" +
+	query := "SELECT " + listColumns + ", clipboard_apps.name, clipboard_apps.icon_file FROM clipboard_items" +
 		" LEFT JOIN clipboard_apps ON clipboard_apps.id = clipboard_items.source_app_id" +
 		where + " ORDER BY " + order + " LIMIT ? OFFSET ?"
 	rows, err := d.sql.QueryContext(ctx, query, append(args, limit, q.Offset)...)
@@ -395,7 +395,7 @@ func scanItemRow(row scanner, withAppName bool) (*Item, error) {
 		subKind, groupID, sourceAppID  sql.NullString
 		searchText, summary, fileTypes sql.NullString
 		size, width, height            sql.NullInt64
-		note, appName                  sql.NullString
+		note, appName, appIcon         sql.NullString
 		createdAt, updatedAt           string
 	)
 	dest := []any{
@@ -405,7 +405,7 @@ func scanItemRow(row scanner, withAppName bool) (*Item, error) {
 		&item.Platform, &note, &createdAt, &updatedAt,
 	}
 	if withAppName {
-		dest = append(dest, &appName)
+		dest = append(dest, &appName, &appIcon)
 	}
 	if err := row.Scan(dest...); err != nil {
 		return nil, err
@@ -421,6 +421,7 @@ func scanItemRow(row scanner, withAppName bool) (*Item, error) {
 	item.FileTypes = nullable(fileTypes)
 	item.Note = nullable(note)
 	item.SourceAppName = nullable(appName)
+	item.SourceAppIcon = nullable(appIcon)
 	item.Size = nullableInt(size)
 	item.Width = nullableInt(width)
 	item.Height = nullableInt(height)

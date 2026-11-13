@@ -15,16 +15,17 @@ import (
 // HistoryItem is one row the list can show without knowing how history
 // is stored.
 type HistoryItem struct {
-	ID        string
-	Kind      string
-	SubKind   string
-	Title     string
-	SourceApp string
-	Note      string
-	ImagePath string
-	CreatedAt time.Time
-	Favorite  bool
-	Pinned    bool
+	ID            string
+	Kind          string
+	SubKind       string
+	Title         string
+	SourceApp     string
+	SourceAppIcon string
+	Note          string
+	ImagePath     string
+	CreatedAt     time.Time
+	Favorite      bool
+	Pinned        bool
 }
 
 // HistoryPage is one page of history rows.
@@ -405,14 +406,15 @@ func historyRow(item HistoryItem) macos.HistoryRow {
 		detail = append(detail, "收藏")
 	}
 	return macos.HistoryRow{
-		ID:        item.ID,
-		Kind:      item.Kind,
-		SubKind:   item.SubKind,
-		Title:     title,
-		Detail:    strings.Join(detail, " · "),
-		ImagePath: item.ImagePath,
-		Favorite:  item.Favorite,
-		Pinned:    item.Pinned,
+		ID:             item.ID,
+		Kind:           item.Kind,
+		SubKind:        item.SubKind,
+		Title:          title,
+		Detail:         strings.Join(detail, " · "),
+		ImagePath:      item.ImagePath,
+		SourceIconPath: item.SourceAppIcon,
+		Favorite:       item.Favorite,
+		Pinned:         item.Pinned,
 	}
 }
 

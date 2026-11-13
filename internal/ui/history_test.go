@@ -27,17 +27,21 @@ func TestRelativeTimeBuckets(t *testing.T) {
 
 func TestHistoryRowIncludesMetadata(t *testing.T) {
 	row := historyRow(HistoryItem{
-		ID:        "1",
-		Kind:      "text",
-		Title:     "hello",
-		SourceApp: "Safari",
-		CreatedAt: time.Now().Add(-2 * time.Minute),
-		Note:      "greeting",
-		Favorite:  true,
-		Pinned:    true,
+		ID:            "1",
+		Kind:          "text",
+		Title:         "hello",
+		SourceApp:     "Safari",
+		SourceAppIcon: "/tmp/safari.png",
+		CreatedAt:     time.Now().Add(-2 * time.Minute),
+		Note:          "greeting",
+		Favorite:      true,
+		Pinned:        true,
 	})
 	if row.Title != "hello" || row.Detail != "Safari · 2 分钟前 · greeting · 已固定 · 收藏" {
 		t.Errorf("row = %+v", row)
+	}
+	if row.SourceIconPath != "/tmp/safari.png" {
+		t.Errorf("source icon = %q", row.SourceIconPath)
 	}
 }
 

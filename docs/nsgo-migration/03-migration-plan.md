@@ -131,7 +131,7 @@ internal/native/macos/
    - `blake3("<kind>:<content>")` 去重。
    - 图片 PNG 直通/重编码、原图与缩略图落盘。
    - 文件路径换行拼接与 `file_types`。
-   - 来源应用同步抓取。
+   - 来源应用同步抓取；首次遇到应用时取原生图标，降采样为 128px PNG 放入 `resources/app-icons/`，按内容哈希去重，启动时清理无引用文件。
    - 敏感内容识别与忽略应用。
    - 回环抑制：写回前登记 hash，2 秒 TTL。
 3. `internal/database`：

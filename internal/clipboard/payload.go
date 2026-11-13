@@ -11,8 +11,9 @@ type Payload struct {
 
 // SourceApp identifies the application the content came from.
 type SourceApp struct {
-	ID   string
-	Name string
+	ID       string
+	Name     string
+	IconFile *string
 }
 
 // Source is the platform pasteboard the watcher polls.
