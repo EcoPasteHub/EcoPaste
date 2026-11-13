@@ -21,6 +21,7 @@ type Panel struct {
 	cx            *core.NativeContext
 	view          objc.ID
 	search        objc.ID
+	pin           objc.ID
 	filter        objc.ID
 	groupsPopup   objc.ID
 	groupActions  objc.ID
@@ -49,6 +50,7 @@ type Panel struct {
 	filterValue   string
 	groupID       string
 	groups        []GroupOption
+	pinned        bool
 }
 
 // GroupOption is one custom group in the panel toolbar and item menu.
@@ -85,6 +87,13 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.search.Send(sel("setSendsWholeSearchString:"), false)
 	p.search.Send(sel("setTarget:"), searchTarget)
 	p.search.Send(sel("setAction:"), sel("searchChanged:"))
+
+	p.pin = objc.ID(class("NSButton")).Send(sel("alloc")).Send(sel("initWithFrame:"), CGRect{})
+	p.pin.Send(sel("setBordered:"), false)
+	p.pin.Send(sel("setImage:"), systemSymbol("pin"))
+	p.pin.Send(sel("setTarget:"), searchTarget)
+	p.pin.Send(sel("setAction:"), sel("pinPressed:"))
+	p.pin.Send(sel("setAccessibilityLabel:"), nsString("固定窗口"))
 
 	p.filter = objc.ID(class("NSSegmentedControl")).Send(sel("alloc")).
 		Send(sel("initWithFrame:"), CGRect{})
@@ -132,12 +141,13 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.scroll = newHistoryTable(p)
 	p.buildPreview()
 
-	for _, v := range []objc.ID{p.search, p.filter, p.groupsPopup, p.groupActions,
+	for _, v := range []objc.ID{p.search, p.pin, p.filter, p.groupsPopup, p.groupActions,
 		p.divider, p.scroll, p.empty, p.preview, p.footer, p.hint} {
 		p.view.Send(sel("addSubview:"), v)
 	}
 
 	panelsBySearch[p.search] = p
+	panelsByControl[p.pin] = p
 	panelsByControl[p.filter] = p
 	panelsByControl[p.groupsPopup] = p
 	panelsByControl[p.groupActions] = p
@@ -206,6 +216,11 @@ func registerPanelTargets() {
 					p.cx.Emit("query", p.query)
 				}
 			}},
+			{Cmd: sel("pinPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
+				if p := panelsByControl[sender]; p != nil {
+					p.togglePinned()
+				}
+			}},
 			{Cmd: sel("filterChanged:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
 				p := panelsByControl[sender]
 				if p == nil {
@@ -271,7 +286,7 @@ func registerPanelTargets() {
 			}},
 			{Cmd: sel("windowResignedKey:"), Fn: func(self objc.ID, _ objc.SEL, note objc.ID) {
 				p := panelsByObserver[self]
-				if p == nil || suppressPanelBlur.Load() {
+				if p == nil || suppressPanelBlur.Load() || p.pinned {
 					return
 				}
 				window := p.view.Send(sel("window"))
@@ -303,7 +318,9 @@ func layoutPanel(p *Panel, width, height float64) {
 	const pad = 12.0
 	searchHeight := 28.0
 	searchY := height - pad - searchHeight
-	setFrame(p.search, pad, searchY, width-2*pad, searchHeight)
+	pinWidth := 26.0
+	setFrame(p.search, pad, searchY, width-2*pad-pinWidth-6, searchHeight)
+	setFrame(p.pin, width-pad-pinWidth, searchY, pinWidth, searchHeight)
 
 	controlHeight := 24.0
 	controlY := searchY - controlHeight - 8
@@ -417,6 +434,10 @@ func (p *Panel) Command(name string, args any) {
 		p.table.Send(sel("reloadData"))
 	case "showAccessibilityAlert":
 		showAccessibilityAlert()
+	case "resignKey":
+		p.view.Send(sel("window")).Send(sel("resignKeyWindow"))
+	case "makeKey":
+		p.view.Send(sel("window")).Send(sel("makeKeyWindow"))
 	}
 }
 
@@ -430,6 +451,7 @@ func (p *Panel) Close() {
 	}
 	delete(panelsByObserver, p.observer)
 	delete(panelsBySearch, p.search)
+	delete(panelsByControl, p.pin)
 	delete(panelsByControl, p.filter)
 	delete(panelsByControl, p.groupsPopup)
 	delete(panelsByControl, p.groupActions)
@@ -447,10 +469,27 @@ func (p *Panel) Close() {
 	p.divider.Send(sel("release"))
 	p.scroll.Send(sel("release"))
 	p.search.Send(sel("release"))
+	p.pin.Send(sel("release"))
 	p.filter.Send(sel("release"))
 	p.groupsPopup.Send(sel("release"))
 	p.groupActions.Send(sel("release"))
 	p.view.Send(sel("release"))
+}
+
+func (p *Panel) togglePinned() {
+	p.pinned = !p.pinned
+	name := "pin"
+	label := "固定窗口"
+	tint := objc.ID(0)
+	if p.pinned {
+		name = "pin.fill"
+		label = "取消固定窗口"
+		tint = objc.ID(classNSColor).Send(sel("controlAccentColor"))
+	}
+	p.pin.Send(sel("setImage:"), systemSymbol(name))
+	p.pin.Send(sel("setContentTintColor:"), tint)
+	p.pin.Send(sel("setAccessibilityLabel:"), nsString(label))
+	p.cx.Emit("pinChanged", p.pinned)
 }
 
 func (p *Panel) rebuildGroupMenu() {

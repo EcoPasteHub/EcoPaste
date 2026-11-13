@@ -104,6 +104,7 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 			filterValue   string
 			selectedGroup string
 			selectedID    string
+			pinned        bool
 			pageSize      = 80
 			request       atomic.Int64
 		)
@@ -204,7 +205,7 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 						errorText.Set(err.Error())
 						return
 					}
-					if hideAfter && hide != nil {
+					if hideAfterAction(pinned, hideAfter) && hide != nil {
 						hide()
 					}
 					reload()
@@ -228,10 +229,13 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 						}
 						return
 					}
-					if hideAfter && hide != nil {
+					if hideAfterAction(pinned, hideAfter) && hide != nil {
 						hide()
 					}
 					if paste {
+						if pinned {
+							ref.Command("resignKey", nil)
+						}
 						cx.AfterFunc(70*time.Millisecond, func() {
 							if err := model.SendPaste(); err != nil {
 								errorText.Set(err.Error())
@@ -239,6 +243,11 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 									ref.Command("showAccessibilityAlert", nil)
 								}
 								return
+							}
+							if pinned {
+								cx.AfterFunc(50*time.Millisecond, func() {
+									ref.Command("makeKey", nil)
+								})
 							}
 							reload()
 						})
@@ -376,6 +385,8 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 					filter.Set("")
 					preview.Set(macos.PreviewContent{})
 					reload()
+				case "pinChanged":
+					pinned, _ = data.(bool)
 				case "select":
 					selectedID, _ = data.(string)
 				case "activate":
@@ -541,13 +552,19 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 						hide()
 					}
 				case "blurHide":
-					if hide != nil {
+					if !pinned && hide != nil {
 						hide()
 					}
 				}
 			},
 		}
 	}
+}
+
+// hideAfterAction keeps a pinned panel visible even when an action asks
+// to close the window after copy or paste.
+func hideAfterAction(pinned, requested bool) bool {
+	return requested && !pinned
 }
 
 func groupExists(groups []GroupOption, id string) bool {

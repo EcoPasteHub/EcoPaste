@@ -54,3 +54,15 @@ func TestFileTitleLimitsNames(t *testing.T) {
 		t.Errorf("title = %q", got)
 	}
 }
+
+func TestHideAfterActionRespectsPinnedPanel(t *testing.T) {
+	if hideAfterAction(false, true) != true {
+		t.Error("unpinned panel ignored hide request")
+	}
+	if hideAfterAction(true, true) {
+		t.Error("pinned panel hid after action")
+	}
+	if hideAfterAction(false, false) {
+		t.Error("hide request was invented")
+	}
+}

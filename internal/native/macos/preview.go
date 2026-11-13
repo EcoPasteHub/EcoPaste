@@ -115,6 +115,7 @@ func (p *Panel) buildPreview() {
 func (p *Panel) setPreview(content PreviewContent) {
 	p.previewing = content.Active
 	p.search.Send(sel("setHidden:"), p.previewing)
+	p.pin.Send(sel("setHidden:"), p.previewing)
 	p.filter.Send(sel("setHidden:"), p.previewing)
 	p.groupsPopup.Send(sel("setHidden:"), p.previewing)
 	p.groupActions.Send(sel("setHidden:"), p.previewing)

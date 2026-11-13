@@ -66,6 +66,8 @@ func registerHistoryTargets() {
 				switch {
 				case key == 36 || key == 76:
 					p.cx.Emit("activate", p.selection)
+				case key == 35 && flags&((1<<20)|(1<<19)|(1<<18)|(1<<17)) == 0:
+					p.togglePinned()
 				case key == 49 && flags&((1<<20)|(1<<19)|(1<<18)|(1<<17)) == 0:
 					p.cx.Emit("preview", p.selection)
 				case key == 53:
