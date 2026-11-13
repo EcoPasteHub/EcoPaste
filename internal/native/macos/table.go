@@ -51,6 +51,8 @@ const (
 	keyForwardDelete uint16 = 117
 	keyEnd           uint16 = 119
 	keyPageDown      uint16 = 121
+	keyLeftArrow     uint16 = 123
+	keyRightArrow    uint16 = 124
 	keyDownArrow     uint16 = 125
 	keyUpArrow       uint16 = 126
 )
@@ -388,7 +390,9 @@ func doubleClickDelay() float64 {
 func historyKeyAction(key uint16, flags uint64, row HistoryRow, spacePreview bool) (string, bool) {
 	command := flags&commandModifier != 0
 	option := flags&alternateModifier != 0
+	function := flags&functionModifier != 0
 	unmodified := flags&(shiftModifier|controlModifier|alternateModifier|commandModifier) == 0
+	commandOnly := flags&(shiftModifier|controlModifier|alternateModifier|functionModifier|commandModifier) == commandModifier
 	switch {
 	case key == keyReturn || key == keyEnter:
 		return "activate", true
@@ -400,13 +404,17 @@ func historyKeyAction(key uint16, flags uint64, row HistoryRow, spacePreview boo
 		return "hide", true
 	case key == keyDelete || key == keyForwardDelete:
 		return "delete", true
-	case key == keyHome && unmodified:
+	case key == keyHome && unmodified ||
+		key == keyLeftArrow && function && unmodified ||
+		key == keyUpArrow && commandOnly:
 		return "firstRow", true
-	case key == keyEnd && unmodified:
+	case key == keyEnd && unmodified ||
+		key == keyRightArrow && function && unmodified ||
+		key == keyDownArrow && commandOnly:
 		return "lastRow", true
-	case (key == keyPageUp || key == keyUpArrow && flags&functionModifier != 0) && unmodified:
+	case (key == keyPageUp || key == keyUpArrow && function) && unmodified:
 		return "pageUp", true
-	case (key == keyPageDown || key == keyDownArrow && flags&functionModifier != 0) && unmodified:
+	case (key == keyPageDown || key == keyDownArrow && function) && unmodified:
 		return "pageDown", true
 	case command && option && key == keyC && row.Kind == "text":
 		return "copyPlain", true
