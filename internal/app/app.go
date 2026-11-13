@@ -183,6 +183,20 @@ func Run(app *core.Scope) {
 			return []desktop.MenuItem{
 				{Label: "显示 EcoPaste", Shortcut: hotKey, OnSelect: showPanel},
 				{Label: pauseLabel, OnSelect: func() { paused.Store(!paused.Load()) }},
+				{Label: "读取剪贴板", OnSelect: func() {
+					if runtime == nil {
+						return
+					}
+					go func() {
+						ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+						defer cancel()
+						if err := runtime.readClipboard(ctx); err != nil {
+							log.Printf("read clipboard: %v", err)
+							return
+						}
+						runtime.Signal()
+					}()
+				}},
 				{Label: "设置…", Shortcut: preferenceHotKey, OnSelect: func() {
 					if openSettings != nil {
 						openSettings()
@@ -352,6 +366,7 @@ type clipboardRuntime struct {
 	fileIcons     *storage.FileIconStore
 	fileIconCache *fileIconCache
 	paths         *storage.Paths
+	watcher       *clipboard.Watcher
 	changed       chan struct{}
 }
 
@@ -360,6 +375,13 @@ func (r *clipboardRuntime) Signal() {
 	case r.changed <- struct{}{}:
 	default:
 	}
+}
+
+// readClipboard captures what is on the pasteboard now, even while the
+// automatic watcher is paused.
+func (r *clipboardRuntime) readClipboard(ctx context.Context) error {
+	_, err := r.watcher.Poll(ctx, true)
+	return err
 }
 
 func startClipboard(app *core.Scope, paths *storage.Paths, store *settings.Store, paused *atomic.Bool) (*clipboardRuntime, error) {
@@ -384,10 +406,8 @@ func startClipboard(app *core.Scope, paths *storage.Paths, store *settings.Store
 	}
 	watcher := &clipboard.Watcher{
 		Source: pasteboardSource{icons: iconCache},
+		Paused: paused.Load,
 		Capture: func(ctx context.Context, payload clipboard.Payload, source clipboard.SourceApp) {
-			if paused.Load() {
-				return
-			}
 			_, captured, err := service.Capture(ctx, payload, source)
 			if err != nil {
 				log.Printf("capture clipboard: %v", err)
@@ -407,7 +427,8 @@ func startClipboard(app *core.Scope, paths *storage.Paths, store *settings.Store
 	}()
 	runtime := &clipboardRuntime{
 		db: db, service: service, images: images, appIcons: appIcons,
-		fileIcons: fileIcons, fileIconCache: fileIconCache, paths: paths, changed: changed,
+		fileIcons: fileIcons, fileIconCache: fileIconCache, paths: paths,
+		watcher: watcher, changed: changed,
 	}
 	startCleanup(ctx, runtime, store)
 	app.OnQuit(func(context.Context) {
