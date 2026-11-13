@@ -22,15 +22,33 @@ func AppIconPNG(bundleID string) []byte {
 		if app == 0 {
 			return
 		}
-		image := objc.Send[objc.ID](app, sel("icon"))
-		if image == 0 {
-			return
-		}
-		tiff := objc.Send[objc.ID](image, sel("TIFFRepresentation"))
-		if tiff == 0 {
-			return
-		}
-		out = tiffToPNG(dataBytes(tiff))
+		out = imagePNG(objc.Send[objc.ID](app, sel("icon")))
 	})
 	return out
+}
+
+// AppIconForPath returns a PNG representation of an app bundle's icon,
+// which also covers apps that are not currently running.
+func AppIconForPath(path string) []byte {
+	if path == "" {
+		return nil
+	}
+	var out []byte
+	onMain(func() {
+		image := objc.Send[objc.ID](objc.ID(class("NSWorkspace")).Send(sel("sharedWorkspace")),
+			sel("iconForFile:"), nsString(path))
+		out = imagePNG(image)
+	})
+	return out
+}
+
+func imagePNG(image objc.ID) []byte {
+	if image == 0 {
+		return nil
+	}
+	tiff := objc.Send[objc.ID](image, sel("TIFFRepresentation"))
+	if tiff == 0 {
+		return nil
+	}
+	return tiffToPNG(dataBytes(tiff))
 }

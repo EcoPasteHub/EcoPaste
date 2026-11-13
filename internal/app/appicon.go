@@ -47,3 +47,12 @@ func (c *appIconCache) File(bundleID string) *string {
 	c.files[bundleID] = file
 	return file
 }
+
+func (c *appIconCache) Forget(bundleID string) {
+	if c == nil {
+		return
+	}
+	c.mu.Lock()
+	delete(c.files, bundleID)
+	c.mu.Unlock()
+}

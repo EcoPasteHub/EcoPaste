@@ -104,15 +104,20 @@ func SavePanel(defaultName, title string) (string, bool) {
 
 // OpenBackupPanel asks for an .ecopastebak file.
 func OpenBackupPanel(title string) (string, bool) {
-	return openDocumentPanel(title, true)
+	return openFilteredPanel(title, []string{"ecopastebak"}, false)
 }
 
 // OpenDataDirectoryPanel asks for a folder that will hold EcoPaste's data.
 func OpenDataDirectoryPanel(title string) (string, bool) {
-	return openDocumentPanel(title, false)
+	return openFilteredPanel(title, nil, true)
 }
 
-func openDocumentPanel(title string, files bool) (string, bool) {
+// OpenApplicationPanel asks for one macOS .app bundle.
+func OpenApplicationPanel(title string) (string, bool) {
+	return openFilteredPanel(title, []string{"app"}, false)
+}
+
+func openFilteredPanel(title string, extensions []string, directories bool) (string, bool) {
 	var path string
 	onMain(func() {
 		suppressPanelBlur.Store(true)
@@ -135,12 +140,16 @@ func openDocumentPanel(title string, files bool) (string, bool) {
 		panel.Send(sel("retain"))
 		defer panel.Send(sel("release"))
 		panel.Send(sel("setTitle:"), nsString(title))
-		panel.Send(sel("setCanChooseFiles:"), files)
-		panel.Send(sel("setCanChooseDirectories:"), !files)
+		panel.Send(sel("setCanChooseFiles:"), !directories)
+		panel.Send(sel("setCanChooseDirectories:"), directories)
 		panel.Send(sel("setAllowsMultipleSelection:"), false)
-		if files {
-			extensions := objc.ID(class("NSArray")).Send(sel("arrayWithObject:"), nsString("ecopastebak"))
-			panel.Send(sel("setAllowedFileTypes:"), extensions)
+		if len(extensions) > 0 {
+			allowed := objc.ID(class("NSMutableArray")).Send(sel("array"))
+			for _, extension := range extensions {
+				allowed.Send(sel("addObject:"), nsString(extension))
+			}
+			panel.Send(sel("setAllowedFileTypes:"), allowed)
+			panel.Send(sel("setTreatsFilePackagesAsDirectories:"), false)
 		}
 		panel.Send(sel("setLevel:"), int64(1000))
 		panel.Send(sel("makeKeyAndOrderFront:"), objc.ID(0))
