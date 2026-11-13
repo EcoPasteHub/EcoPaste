@@ -58,7 +58,7 @@
 | D-22 | P1 | 存储占用 | `get_storage_usage` | total/database/resources/settings 分项 | 已通过 | `TestMeasureUsageSumsParts`；真机托盘显示 136.9 KB，与 `du` 结果可解释 |
 | D-23 | P1 | 缓存清理 | `clean_resource_cache` | 删除未被 DB 引用的图片/图标 | 已通过 | `TestCleanCacheKeepsReferencedFiles` 覆盖图片、应用图标、文件图标；真机清理孤儿文件且保留引用 |
 | D-24 | P1 | 旧版数据导入 | `commands/onboarding.rs` | 读 v0.6 `history` + `images/` | 待迁移 | 普通/收藏选择性导入 |
-| D-25 | P1 | 来源应用注册表 | `db/apps.rs`、`apps_registry.rs` | 列表、全部应用、从路径添加、清理未引用 | 待迁移 | 增删与去重 |
+| D-25 | P1 | 来源应用注册表 | `db/apps.rs`、`apps_registry.rs` | 列表、全部应用、从路径添加、清理未引用 | 已通过 | `TestListAppsOrdersByNameAndRefreshesMetadata`、`TestDeleteUnreferencedAppsKeepsReferencedRows`、`TestAppRegistryMergesRunningApps`、`TestAppRegistryAddRefreshesWithoutDuplicates`；真机应用页勾选立即写入 `excludedAppIds`，添加 Notes 自动排除并落库，取消勾选删除未引用行与图标 |
 | D-26 | P1 | 文件图标缓存 | `db/file_icons.rs`、`file_icon_store.rs` | `NSWorkspace` 图标 + cache key | 已通过 | `TestFileIconCacheReusesType`；真机 PDF/TXT 图标正确，两个 PDF 共享 `.pdf` 缓存 |
 | D-27 | P1 | 备份入口 | `commands/backup.rs` | 导出、检查、导入、pending slot | 迁移中 | 托盘明文/加密导出与 overwrite 导入；`TestExportPlainBackup`、`TestExportEncryptedBackupRoundTrips`、`TestStageAndApplyImport`、`TestApplyImportRestoresOnFailure`；真机导出 ZIP 校验快照 DB，导入后重启校验 DB/设置/resources，失败自动回滚；merge 导入与旧版包互导待补 |
 | D-28 | P1 | 打开数据目录 | `commands/storage.rs` | `NSWorkspace` 打开目录 | 已通过 | 真机从托盘打开当前数据根 |

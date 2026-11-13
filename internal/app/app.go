@@ -124,6 +124,37 @@ func Run(app *core.Scope) {
 					_, err := runtime.restoreDefaultDataDir(ctx)
 					return err
 				}
+				model.listApps = func() ([]database.App, error) {
+					if runtime == nil || runtime.apps == nil {
+						return nil, fmt.Errorf("剪贴板服务未启动")
+					}
+					ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+					defer cancel()
+					return runtime.apps.List(ctx)
+				}
+				model.addApp = func(path string) (database.App, error) {
+					if runtime == nil || runtime.apps == nil {
+						return database.App{}, fmt.Errorf("剪贴板服务未启动")
+					}
+					ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+					defer cancel()
+					return runtime.apps.Add(ctx, path)
+				}
+				model.deleteApps = func(ids []string) error {
+					if runtime == nil || runtime.apps == nil {
+						return fmt.Errorf("剪贴板服务未启动")
+					}
+					ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+					defer cancel()
+					_, err := runtime.apps.DeleteUnreferenced(ctx, ids)
+					return err
+				}
+				model.appIconPath = func(name string) string {
+					if runtime == nil {
+						return ""
+					}
+					return runtime.appIcons.Path(name)
+				}
 				model.restart = func() {
 					app.Post(func() {
 						macos.ShowMessage("数据目录已更改",
@@ -408,6 +439,7 @@ type clipboardRuntime struct {
 	fileIcons     *storage.FileIconStore
 	fileIconCache *fileIconCache
 	paths         *storage.Paths
+	apps          *appRegistry
 	watcher       *clipboard.Watcher
 	changed       chan struct{}
 }
@@ -437,6 +469,7 @@ func startClipboard(app *core.Scope, paths *storage.Paths, store *settings.Store
 	fileIcons := storage.NewFileIconStore(paths.Resources)
 	pruneFileIcons(db, fileIcons)
 	iconCache := newAppIconCache(appIcons)
+	registry := newAppRegistry(db, appIcons, iconCache)
 	fileIconCache := newFileIconCache(db, fileIcons)
 	changed := make(chan struct{}, 1)
 	service := &clipboard.Service{
@@ -470,7 +503,7 @@ func startClipboard(app *core.Scope, paths *storage.Paths, store *settings.Store
 	runtime := &clipboardRuntime{
 		db: db, service: service, images: images, appIcons: appIcons,
 		fileIcons: fileIcons, fileIconCache: fileIconCache, paths: paths,
-		watcher: watcher, changed: changed,
+		apps: registry, watcher: watcher, changed: changed,
 	}
 	startCleanup(ctx, runtime, store)
 	app.OnQuit(func(context.Context) {

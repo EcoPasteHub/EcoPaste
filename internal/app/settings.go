@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/EcoPasteHub/EcoPaste/internal/database"
 	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
 	"github.com/EcoPasteHub/EcoPaste/internal/settings"
 )
@@ -14,6 +15,10 @@ type settingsModel struct {
 	setDockIcon       func(bool) error
 	setAutoStart      func(bool) error
 	setAppearance     func(string) error
+	listApps          func() ([]database.App, error)
+	addApp            func(string) (database.App, error)
+	deleteApps        func([]string) error
+	appIconPath       func(string) string
 	dataDir           func() string
 	changeDataDir     func(string) error
 	restoreDataDir    func() error
@@ -29,11 +34,13 @@ func newSettingsModel(store *settings.Store) *settingsModel {
 }
 
 func (m *settingsModel) Load() macos.SettingsValues {
-	cfg := m.store.Snapshot().Clipboard
+	snapshot := m.store.Snapshot()
+	cfg := snapshot.Clipboard
+	excluded := cfg.Filters.ExcludedAppIDs
 	return macos.SettingsValues{
-		DockIcon:             m.store.Snapshot().General.DockIcon,
-		AutoStart:            m.store.Snapshot().General.AutoStart,
-		Theme:                string(m.store.Snapshot().Appearance.Theme),
+		DockIcon:             snapshot.General.DockIcon,
+		AutoStart:            snapshot.General.AutoStart,
+		Theme:                string(snapshot.Appearance.Theme),
 		DataDir:              m.currentDataDir(),
 		CanRestoreDataDir:    m.canRestoreDataDir != nil && m.canRestoreDataDir(),
 		CopyPlain:            cfg.Content.CopyPlain,
@@ -54,10 +61,21 @@ func (m *settingsModel) Load() macos.SettingsValues {
 		CleanupIntervalHours: cfg.History.CleanupIntervalHours,
 		CollectSecrets:       cfg.Sensitive.CollectSecrets,
 		RedactSecrets:        cfg.Sensitive.RedactSecrets,
+		ExcludedAppIDs:       excluded,
+		Apps:                 m.loadSourceApps(excluded),
 	}
 }
 
 func (m *settingsModel) Apply(path string, value any) error {
+	switch path {
+	case "apps.refresh":
+		return nil
+	case "apps.add":
+		text, _ := value.(string)
+		return m.addSourceApp(text)
+	case "filters.excludedAppIds":
+		return m.applyExcludedApps(value)
+	}
 	if path == "general.dataDir" {
 		parent, _ := value.(string)
 		if m.changeDataDir == nil {

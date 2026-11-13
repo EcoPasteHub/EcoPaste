@@ -38,6 +38,16 @@ type SettingsValues struct {
 	CleanupIntervalHours uint32
 	CollectSecrets       bool
 	RedactSecrets        bool
+	ExcludedAppIDs       []string
+	Apps                 []SettingsApp
+}
+
+// SettingsApp is one row in the source application filter list.
+type SettingsApp struct {
+	ID       string
+	Name     string
+	IconPath string
+	Excluded bool
 }
 
 // SettingsChange is one native control's new value.
@@ -58,6 +68,10 @@ type SettingsView struct {
 	accessibilityStatus objc.ID
 	fullDiskStatus      objc.ID
 	permissionTimer     objc.ID
+	appsTable           objc.ID
+	appsEmpty           objc.ID
+	apps                []SettingsApp
+	extraExcluded       []string
 	fields              []*settingsField
 }
 
@@ -109,6 +123,7 @@ func NewSettings(cx *core.NativeContext) core.NativeComponent {
 	v.buildCapture()
 	v.buildHistory()
 	v.buildPermissions()
+	v.buildApps()
 	return v
 }
 
@@ -457,6 +472,24 @@ func registerSettingsTargets() {
 				v.refreshPermissionLabels()
 			}
 		}},
+		{Cmd: sel("addAppPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
+			v := settingsViews[sender]
+			if v == nil {
+				return
+			}
+			path, ok := OpenApplicationPanel("选择要忽略来源的应用")
+			if !ok {
+				return
+			}
+			v.cx.Emit("change", SettingsChange{Path: "apps.add", Value: path})
+		}},
+		{Cmd: sel("refreshAppsPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
+			v := settingsViews[sender]
+			if v == nil {
+				return
+			}
+			v.cx.Emit("change", SettingsChange{Path: "apps.refresh", Value: true})
+		}},
 	})
 	if err != nil {
 		panic(err)
@@ -493,6 +526,7 @@ func (v *SettingsView) apply(values SettingsValues) {
 	v.dataDir.Send(sel("setStringValue:"), nsString(values.DataDir))
 	v.dataDir.Send(sel("setToolTip:"), nsString(values.DataDir))
 	v.restore.Send(sel("setEnabled:"), values.CanRestoreDataDir)
+	v.applyApps(values)
 	for _, field := range v.fields {
 		switch field.kind {
 		case "bool":
@@ -548,6 +582,19 @@ func (v *SettingsView) Close() {
 	}
 	for _, field := range v.fields {
 		delete(settingsViews, field.control)
+	}
+	for control, owner := range settingsViews {
+		if owner == v {
+			delete(settingsViews, control)
+		}
+	}
+	if v.appsTable != 0 {
+		delete(settingsAppsByTable, v.appsTable)
+	}
+	for control, owner := range settingsAppControls {
+		if owner == v {
+			delete(settingsAppControls, control)
+		}
 	}
 	delete(settingsViews, v.change)
 	v.view.Send(sel("release"))
