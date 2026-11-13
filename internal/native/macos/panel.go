@@ -41,6 +41,8 @@ type Panel struct {
 	previewText   objc.ID
 	previewScroll objc.ID
 	previewImage  objc.ID
+	drag          func(string) (DragPayload, bool)
+	dragFiles     []string
 	query         string
 	rows          []HistoryRow
 	total         int64
@@ -358,6 +360,10 @@ func (p *Panel) SetProp(name string, value any) {
 	case "behavior":
 		if behavior, ok := value.(PanelBehavior); ok {
 			p.behavior = behavior
+		}
+	case "drag":
+		if provider, ok := value.(func(string) (DragPayload, bool)); ok {
+			p.drag = provider
 		}
 	}
 }

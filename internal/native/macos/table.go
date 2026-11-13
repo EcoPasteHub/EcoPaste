@@ -234,6 +234,24 @@ func registerHistoryTargets() {
 				p.cx.Emit("select", p.selection)
 			}
 		}},
+		{Cmd: sel("tableView:pasteboardWriterForRow:"), Fn: func(_ objc.ID, _ objc.SEL, table objc.ID, row int64) objc.ID {
+			p := panelsByTable[table]
+			if p == nil || row < 0 || int(row) >= len(p.rows) {
+				return 0
+			}
+			return p.pasteboardWriter(p.rows[row])
+		}},
+		{Cmd: sel("tableView:draggingSession:willBeginAtPoint:forRowIndexes:"), Fn: func(_ objc.ID, _ objc.SEL, table, session objc.ID, _ CGPoint, _ objc.ID) {
+			p := panelsByTable[table]
+			if p == nil {
+				return
+			}
+			// A drag starts inside the table's mouse tracking loop,
+			// so the queued single-click action must not fire.
+			cancelPendingClick(table)
+			p.pendingClick = ""
+			p.appendDragFiles(session)
+		}},
 		{Cmd: sel("tableView:willDisplayCell:forTableColumn:row:"), Fn: func(_ objc.ID, _ objc.SEL, table, _ objc.ID, _ objc.ID, row int64) {
 			p := panelsByTable[table]
 			if p != nil && int(row) >= len(p.rows)-8 {
@@ -299,6 +317,8 @@ func newHistoryTable(p *Panel) objc.ID {
 	table.Send(sel("setSelectionHighlightStyle:"), int64(1))
 	table.Send(sel("setFocusRingType:"), int64(1))
 	table.Send(sel("setStyle:"), int64(3))
+	table.Send(sel("setDraggingSourceOperationMask:forLocal:"), uint64(1), true)
+	table.Send(sel("setDraggingSourceOperationMask:forLocal:"), uint64(1), false)
 	table.Send(sel("setDelegate:"), historyTarget)
 	table.Send(sel("setDataSource:"), historyTarget)
 	table.Send(sel("setTarget:"), historyTarget)

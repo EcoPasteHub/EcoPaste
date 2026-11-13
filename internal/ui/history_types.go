@@ -3,6 +3,8 @@ package ui
 import (
 	"context"
 	"time"
+
+	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
 )
 
 // HistoryItem is one row the list can show without knowing how history
@@ -80,6 +82,7 @@ type HistoryModel interface {
 	Open(context.Context, string) error
 	Reveal(context.Context, string) error
 	SaveImage(context.Context, string) error
+	Drag(context.Context, string) (macos.DragPayload, error)
 	EditNote(context.Context, string) (bool, error)
 	Preview(context.Context, string) (HistoryPreview, error)
 	Groups(context.Context) ([]GroupOption, error)

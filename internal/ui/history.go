@@ -303,6 +303,17 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 			}
 		})
 
+		var dragProvider func(string) (macos.DragPayload, bool)
+		if model != nil {
+			dragProvider = func(id string) (macos.DragPayload, bool) {
+				payload, err := model.Drag(context.Background(), id)
+				if err != nil {
+					return macos.DragPayload{}, false
+				}
+				return payload, true
+			}
+		}
+
 		load("", "", "", false)
 		loadGroups("", false)
 		if model != nil {
@@ -339,6 +350,7 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 					"filter":   filter.Get(),
 					"query":    query,
 					"behavior": behavior,
+					"drag":     dragProvider,
 				}
 			},
 			OnEvent: func(name string, data any) {

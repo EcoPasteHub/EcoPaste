@@ -10,6 +10,7 @@ import (
 	"github.com/EcoPasteHub/EcoPaste/internal/clipboard"
 	"github.com/EcoPasteHub/EcoPaste/internal/database"
 	"github.com/EcoPasteHub/EcoPaste/internal/keystroke"
+	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
 	"github.com/EcoPasteHub/EcoPaste/internal/settings"
 	"github.com/EcoPasteHub/EcoPaste/internal/ui"
 )
@@ -129,6 +130,29 @@ func (m *historyModel) activateItem(ctx context.Context, id string, forcePlain, 
 }
 
 func (m *historyModel) SendPaste() error { return keystroke.SendPaste() }
+
+// Drag builds the pasteboard representation a row offers when it is
+// dragged out of the panel.
+func (m *historyModel) Drag(ctx context.Context, id string) (macos.DragPayload, error) {
+	item, err := m.runtime.db.FindByID(ctx, id)
+	if err != nil {
+		return macos.DragPayload{}, err
+	}
+	if item == nil {
+		return macos.DragPayload{}, fmt.Errorf("剪贴板记录不存在")
+	}
+	payload, err := m.runtime.service.BuildWrite(item, false)
+	if err != nil {
+		return macos.DragPayload{}, err
+	}
+	return macos.DragPayload{
+		Text:      payload.Text,
+		HTML:      payload.HTML,
+		RTF:       payload.RTF,
+		ImageData: payload.PNG,
+		Files:     payload.Files,
+	}, nil
+}
 
 // MiddleClick runs the configured middle-button action for one row.
 func (m *historyModel) MiddleClick(ctx context.Context, id string) (bool, error) {
