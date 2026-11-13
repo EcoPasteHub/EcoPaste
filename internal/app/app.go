@@ -39,7 +39,7 @@ func Run(app *core.Scope) {
 	var history ui.HistoryModel
 	var runtime *clipboardRuntime
 	var openSettings func()
-	var reloadHotkeys func()
+	var reloadHotkeys func() error
 	hotKeys := macos.NewHotKeyManager()
 	app.Cleanup(hotKeys.Close)
 	var store *settings.Store
@@ -166,10 +166,19 @@ func Run(app *core.Scope) {
 					}
 					return runtime.appIcons.Path(name)
 				}
-				model.onShortcutsChanged = func() {
-					if reloadHotkeys != nil {
-						reloadHotkeys()
+				model.onShortcutsChanged = func(changed string) error {
+					if reloadHotkeys == nil {
+						return nil
 					}
+					err := reloadHotkeys()
+					if err == nil || changed == "" || !hotKeys.HasErrors() {
+						return err
+					}
+					key := hotKey
+					if changed == "openPreference" {
+						key = preferenceHotKey
+					}
+					return hotKeys.ErrorFor(key)
 				}
 				model.onShortcutsSuspended = func(suspend bool) {
 					if suspend {
@@ -177,7 +186,7 @@ func Run(app *core.Scope) {
 						return
 					}
 					if reloadHotkeys != nil {
-						reloadHotkeys()
+						_ = reloadHotkeys()
 					}
 				}
 				model.onDisplayChanged = func() {
@@ -433,7 +442,7 @@ func Run(app *core.Scope) {
 		},
 	})
 
-	reloadHotkeys = func() {
+	reloadHotkeys = func() error {
 		if store != nil {
 			hotKey = strings.ToLower(store.Snapshot().Shortcuts.OpenClipboard)
 			preferenceHotKey = strings.ToLower(store.Snapshot().Shortcuts.OpenPreference)
@@ -450,9 +459,11 @@ func Run(app *core.Scope) {
 		}
 		if err := hotKeys.Set(bindings); err != nil {
 			log.Printf("register hotkeys: %v", err)
+			return err
 		}
+		return nil
 	}
-	reloadHotkeys()
+	_ = reloadHotkeys()
 	if os.Getenv("ECOPASTE_SHOW_SETTINGS") == "1" && openSettings != nil {
 		openSettings()
 	}

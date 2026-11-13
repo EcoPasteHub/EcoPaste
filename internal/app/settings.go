@@ -20,7 +20,7 @@ type settingsModel struct {
 	addApp               func(string) (database.App, error)
 	deleteApps           func([]string) error
 	appIconPath          func(string) string
-	onShortcutsChanged   func()
+	onShortcutsChanged   func(string) error
 	onShortcutsSuspended func(bool)
 	onDisplayChanged     func()
 	onActionsChanged     func()
@@ -333,7 +333,9 @@ func (m *settingsModel) resetSettings() error {
 		}
 	}
 	if m.onShortcutsChanged != nil {
-		m.onShortcutsChanged()
+		if err := m.onShortcutsChanged(""); err != nil {
+			return err
+		}
 	}
 	if m.onDisplayChanged != nil {
 		m.onDisplayChanged()

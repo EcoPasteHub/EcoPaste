@@ -347,7 +347,7 @@ func TestResetSettingsRestoresDefaultsAndSideEffects(t *testing.T) {
 	model.setDockIcon = func(on bool) error { dockIcon = on; return nil }
 	model.setAutoStart = func(on bool) error { autoStart = on; return nil }
 	model.setAppearance = func(name string) error { theme = name; return nil }
-	model.onShortcutsChanged = func() { rebound = true }
+	model.onShortcutsChanged = func(string) error { rebound = true; return nil }
 	model.onDisplayChanged = func() { redisplayed = true }
 
 	if err := model.Apply("settings.reset", true); err != nil {

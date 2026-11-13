@@ -1,6 +1,7 @@
 package app
 
 import (
+	"errors"
 	"path/filepath"
 	"testing"
 
@@ -32,7 +33,7 @@ func TestSettingsModelAppliesShortcutAndRejectsDuplicate(t *testing.T) {
 	}
 	model := newSettingsModel(store)
 	changed := 0
-	model.onShortcutsChanged = func() { changed++ }
+	model.onShortcutsChanged = func(string) error { changed++; return nil }
 	if err := model.Apply("shortcuts.openClipboard", "Command+Shift+K"); err != nil {
 		t.Fatal(err)
 	}
@@ -50,5 +51,35 @@ func TestSettingsModelAppliesShortcutAndRejectsDuplicate(t *testing.T) {
 	}
 	if got := store.Snapshot().Shortcuts.OpenClipboard; got != "" {
 		t.Errorf("cleared shortcut = %q", got)
+	}
+}
+
+func TestSettingsModelRollsBackShortcutWhenRebindFails(t *testing.T) {
+	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	model := newSettingsModel(store)
+	attempts := make([]string, 0, 2)
+	model.onShortcutsChanged = func(changed string) error {
+		if changed != "openClipboard" {
+			t.Errorf("changed key = %q", changed)
+		}
+		current := store.Snapshot().Shortcuts.OpenClipboard
+		attempts = append(attempts, current)
+		if current == "Command+Shift+K" {
+			return errors.New("快捷键已被占用")
+		}
+		return nil
+	}
+	before := store.Snapshot().Shortcuts.OpenClipboard
+	if err := model.Apply("shortcuts.openClipboard", "Command+Shift+K"); err == nil {
+		t.Fatal("rebind failure was ignored")
+	}
+	if got := store.Snapshot().Shortcuts.OpenClipboard; got != before {
+		t.Errorf("shortcut = %q, want rollback to %q", got, before)
+	}
+	if len(attempts) != 2 || attempts[0] != "Command+Shift+K" || attempts[1] != before {
+		t.Errorf("rebind attempts = %v", attempts)
 	}
 }

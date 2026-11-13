@@ -93,8 +93,10 @@ func (m *settingsModel) applyShortcut(path string, value any) error {
 	}
 	snapshot := m.store.Snapshot().Shortcuts
 	other := snapshot.OpenPreference
+	previous := snapshot.OpenClipboard
 	if key == "openPreference" {
 		other = snapshot.OpenClipboard
+		previous = snapshot.OpenPreference
 	}
 	if shortcut != "" && shortcutsEqual(shortcut, other) {
 		return errors.New("该快捷键已被其他操作使用")
@@ -105,7 +107,16 @@ func (m *settingsModel) applyShortcut(path string, value any) error {
 		return fmt.Errorf("保存快捷键: %w", err)
 	}
 	if m.onShortcutsChanged != nil {
-		m.onShortcutsChanged()
+		if err := m.onShortcutsChanged(key); err != nil {
+			restore := map[string]any{"shortcuts": map[string]any{key: previous}}
+			if _, rollbackErr := m.store.Update(restore); rollbackErr != nil {
+				return fmt.Errorf("%w；恢复原快捷键失败: %v", err, rollbackErr)
+			}
+			if rollbackErr := m.onShortcutsChanged(key); rollbackErr != nil {
+				return fmt.Errorf("%w；恢复原快捷键注册失败: %v", err, rollbackErr)
+			}
+			return err
+		}
 	}
 	return nil
 }

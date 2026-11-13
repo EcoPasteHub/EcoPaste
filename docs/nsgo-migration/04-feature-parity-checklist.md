@@ -119,8 +119,8 @@
 | W-08 | P1 | 更新窗口 | `window/mod.rs` | Sparkle 交互或独立窗口 | 待迁移 | 检查/下载/安装 |
 | W-09 | P1 | 引导窗口 | `window/mod.rs` | 原生 5 步流程（面板内浮层） | 已通过（产品调整） | 真机首次启动自动展示欢迎/权限/快捷键/排除应用/完成 5 步；上一步、`lastStep` 中断恢复、完成后回到列表面板均通过；旧版导入步骤转为 D-24 单独立项 |
 | W-10 | P0 | 托盘 | `tray/mod.rs` | `NSStatusItem` + `NSMenu`：偏好、暂停、开源、更新、版本、重启、退出 | 迁移中 | 显示/暂停/设置/清除/开源/版本/重启/退出已接；更新项待更新模块完成后补 |
-| W-11 | P0 | 全局快捷键 | `shortcut/mod.rs` | `desktop.RegisterHotKey` | 迁移中 | `Alt+C`、`Alt+X` 已注册；冲突与热更新待验证 |
-| W-12 | P1 | 快捷键录制 | 前端录制器 | 原生 `NSTextField` 捕获 | 待迁移 | 组合键/冲突/清除 |
+| W-11 | P0 | 全局快捷键 | `shortcut/mod.rs` | `desktop.RegisterHotKey` | 已通过 | Carbon 注册支持热更新；只增量替换变化的按键，按快捷键返回注册失败并在设置页显示，失败时恢复原值；`TestSettingsModelRollsBackShortcutWhenRebindFails`；真机录制 `Alt+J` 后立即重绑，未影响另一快捷键 |
+| W-12 | P1 | 快捷键录制 | 前端录制器 | 原生 `NSTextField` 捕获 | 已通过 | 原生输入框捕获组合键，Delete 清空、Esc 取消；`TestSettingsModelAppliesShortcutAndRejectsDuplicate`；真机快捷键页完成录制与写盘 |
 | W-13 | P1 | 开机自启 | `autostart/macos.rs` | `SMAppService` | 迁移中 | `TestAutostartNeedsChange`；真机开关、持久化通过；重启登录需签名安装包验收 |
 | W-14 | P1 | Dock 图标显隐 | `show_taskbar_icon` | `NSApplication.setActivationPolicy` | 已通过 | `TestSettingsModelAppliesDockIcon`；真机切换立即生效，重启后恢复持久化状态 |
 | W-15 | P1 | 单实例 | `tauri-plugin-single-instance` | 数据根 `flock` + `OnReopen` | 已通过 | `TestLockInstanceRejectsSecond`；真机二次进程 0.1s 退出，主实例打开设置；`open` 重入同样打开设置 |
@@ -165,7 +165,7 @@
 | --- | --- | --- | --- | --- | --- |
 | S-01 | general | `autoStart`、`runAsAdmin`、`trayIcon`、`dockIcon` | `autoStart`/`dockIcon` 已接系统副作用；`trayIcon` 保留字段，`runAsAdmin` 仅 Windows 参考 | 迁移中 | 旧文件回环/系统行为 |
 | S-02 | appearance | `theme`、`language` | `auto/light/dark`、`zh-CN/en-US` | 迁移中 | 主题三档已接入并即时应用；语言切换待补 |
-| S-03 | shortcuts | `openClipboard`、`openPreference`、`winV` | 保留；`winV` 仅 Windows 参考 | 迁移中 | 两个快捷键均已读取并注册；编辑 UI 待补 |
+| S-03 | shortcuts | `openClipboard`、`openPreference`、`winV` | 保留；`winV` 仅 Windows 参考 | 已通过 | 两个快捷键均已读取并注册；“快捷键”页原生录制、清空、非法组合和重复校验可用；`TestSettingsModelAppliesShortcutAndRejectsDuplicate`、`TestSettingsModelRollsBackShortcutWhenRebindFails`；真机 `Alt+K` 改为 `Alt+J` 后立即写盘并重绑 |
 | S-04 | clipboard.capture | `text/html/rtf/image/files`、`maxTextMb`、`maxImageMb`、`order` | 采集顺序与上限一致 | 已通过 | `TestCaptureOrderAndTypeSwitches`、`TestSettingsModelAppliesCaptureOrder`；真机设置“采集”页选择纯文本上移/下移后，`settings.json` 即时写入完整五类顺序 |
 | S-05 | clipboard.content | `autoPaste`、`middleClick`、`copyPlain`、`copyThenHideWindow`、`pastePlain`、`pasteFilesAsPath`、`showOriginalPreview`、删除保护、`autoFavorite`、`updateOnReuse`、`sort`、`itemActions`、`itemActionOrder` | 行为语义逐项一致 | 迁移中 | 纯文本复制/粘贴、文件路径粘贴、复制后隐藏、复用排序、排序方式、中键动作、单击/双击触发已接入；设置“交互”页可改左键/中键动作、文件路径粘贴、备注自动收藏和“悬停备注条目显示原始内容”，真机写盘验证通过；有备注条目默认显示备注已真机验证，悬停切回原内容由 `TestHistoryRowTextUsesNoteUntilHover` 覆盖，自动化环境无法移动系统指针，待真实鼠标复核；“删除”页接入普通/收藏/置顶确认与删除保护，列表、右键、悬停和 Delete 键共用同一策略；悬停动作支持勾选与上下排序 |
 | S-06 | clipboard.display | `textMaxLines`、`imageMaxHeight`、`fileMaxCount` | 列表展示上限一致：文本标题行数、图片缩略图高度、文件名数量；因 purego 不支持 CGFloat 回调，列表使用统一行高`max(58, 文本行高, 图片高度+24)` | 迁移中 | `TestDisplayClampsStoredDensity`、`TestHistoryItemHonorsFileMaxCount`；设置“显示”页可调；待真机确认多行文本与 64px 图片行的视觉密度 |

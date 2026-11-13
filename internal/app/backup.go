@@ -39,7 +39,7 @@ func runBackupExport(app *core.Scope, runtime *clipboardRuntime, path string, mo
 
 // runBackupImport asks how to apply a backup. Merge updates the running app;
 // overwrite stages a replacement for the next launch.
-func runBackupImport(app *core.Scope, runtime *clipboardRuntime, path string, store *settings.Store, reloadHotkeys func()) {
+func runBackupImport(app *core.Scope, runtime *clipboardRuntime, path string, store *settings.Store, reloadHotkeys func() error) {
 	if runtime == nil {
 		return
 	}
@@ -74,7 +74,7 @@ func runBackupImport(app *core.Scope, runtime *clipboardRuntime, path string, st
 	desktop.Restart(app)
 }
 
-func runBackupMerge(app *core.Scope, runtime *clipboardRuntime, path, password string, store *settings.Store, reloadHotkeys func()) {
+func runBackupMerge(app *core.Scope, runtime *clipboardRuntime, path, password string, store *settings.Store, reloadHotkeys func() error) {
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 		defer cancel()
@@ -110,10 +110,13 @@ func runBackupMerge(app *core.Scope, runtime *clipboardRuntime, path, password s
 				if err := macos.SyncAutostart(next.General.AutoStart); err != nil {
 					log.Printf("sync autostart: %v", err)
 				}
+				summary := mergeSummary(result)
 				if reloadHotkeys != nil {
-					reloadHotkeys()
+					if err := reloadHotkeys(); err != nil {
+						summary += "\n快捷键未生效：" + err.Error()
+					}
 				}
-				macos.ShowMessage("备份合并完成", mergeSummary(result))
+				macos.ShowMessage("备份合并完成", summary)
 			}
 			runtime.Signal()
 		})

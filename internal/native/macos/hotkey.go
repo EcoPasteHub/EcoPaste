@@ -59,10 +59,15 @@ type HotKeyBinding struct {
 // HotKeyManager owns Carbon global hotkeys, which can be replaced at
 // runtime without restarting the app.
 type HotKeyManager struct {
-	mu   sync.Mutex
-	refs []uint32
-	ids  []uint32
-	next uint32
+	mu     sync.Mutex
+	bound  map[string]hotKeyRegistration
+	next   uint32
+	errors map[string]error
+}
+
+type hotKeyRegistration struct {
+	ref uint32
+	id  uint32
 }
 
 // NewHotKeyManager installs the Carbon event handler once.
@@ -81,20 +86,51 @@ func (m *HotKeyManager) Set(bindings []HotKeyBinding) error {
 
 	var result error
 	onMain(func() {
-		for i, ref := range m.refs {
-			unregisterEventHotKeyFunc(ref)
-			carbonHotKeyMu.Lock()
-			delete(carbonHotKeyCallbacks, m.ids[i])
-			carbonHotKeyMu.Unlock()
-		}
-		m.refs = nil
-		m.ids = nil
+		m.errors = map[string]error{}
+		wanted := make(map[string]HotKeyBinding, len(bindings))
+		rejected := make(map[string]bool)
 		for _, binding := range bindings {
-			code, modifiers, ok := parseHotKey(binding.Key)
-			if !ok || binding.Action == nil {
+			key := strings.ToLower(strings.TrimSpace(binding.Key))
+			if _, _, ok := parseHotKey(key); !ok || binding.Action == nil {
 				result = fmt.Errorf("无效的快捷键: %s", binding.Key)
+				m.errors[key] = result
+				rejected[key] = true
 				continue
 			}
+			if _, exists := wanted[key]; exists {
+				result = fmt.Errorf("快捷键重复: %s", binding.Key)
+				m.errors[key] = result
+				rejected[key] = true
+				continue
+			}
+			wanted[key] = binding
+		}
+
+		if m.bound == nil {
+			m.bound = map[string]hotKeyRegistration{}
+		}
+		for key, registration := range m.bound {
+			if _, keep := wanted[key]; keep && !rejected[key] {
+				continue
+			}
+			unregisterEventHotKeyFunc(registration.ref)
+			carbonHotKeyMu.Lock()
+			delete(carbonHotKeyCallbacks, registration.id)
+			carbonHotKeyMu.Unlock()
+			delete(m.bound, key)
+		}
+
+		for key, binding := range wanted {
+			if rejected[key] {
+				continue
+			}
+			if registration, exists := m.bound[key]; exists {
+				carbonHotKeyMu.Lock()
+				carbonHotKeyCallbacks[registration.id] = binding.Action
+				carbonHotKeyMu.Unlock()
+				continue
+			}
+			code, modifiers, _ := parseHotKey(key)
 			m.next++
 			id := m.next
 			var ref uint32
@@ -107,16 +143,30 @@ func (m *HotKeyManager) Set(bindings []HotKeyBinding) error {
 				} else {
 					result = fmt.Errorf("无法注册快捷键 %s", binding.Key)
 				}
+				m.errors[key] = result
 				continue
 			}
 			carbonHotKeyMu.Lock()
 			carbonHotKeyCallbacks[id] = binding.Action
 			carbonHotKeyMu.Unlock()
-			m.refs = append(m.refs, ref)
-			m.ids = append(m.ids, id)
+			m.bound[key] = hotKeyRegistration{ref: ref, id: id}
 		}
 	})
 	return result
+}
+
+// ErrorFor returns the registration failure for one binding key.
+func (m *HotKeyManager) ErrorFor(key string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.errors[strings.ToLower(strings.TrimSpace(key))]
+}
+
+// HasErrors reports whether the last Set left any binding unregistered.
+func (m *HotKeyManager) HasErrors() bool {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return len(m.errors) > 0
 }
 
 // Close unregisters every shortcut this manager owns.
