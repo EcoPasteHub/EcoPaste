@@ -63,6 +63,13 @@ type HistorySearchBehavior struct {
 	ClearOnHide  bool
 }
 
+// HistoryDisplay is the list density taken from clipboard.display.
+type HistoryDisplay struct {
+	TextMaxLines   int
+	ImageMaxHeight int
+	FileMaxCount   int
+}
+
 // HistoryModel is the app service the history panel consumes. Copy
 // reports whether the panel should close after copying.
 type HistoryModel interface {
@@ -91,5 +98,6 @@ type HistoryModel interface {
 	DeleteGroup(context.Context, string) (bool, error)
 	MoveToGroup(context.Context, string, string) error
 	SearchBehavior() HistorySearchBehavior
+	Display() HistoryDisplay
 	Updates() <-chan struct{}
 }

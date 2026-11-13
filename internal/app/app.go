@@ -172,6 +172,11 @@ func Run(app *core.Scope) {
 						reloadHotkeys()
 					}
 				}
+				model.onDisplayChanged = func() {
+					if runtime != nil {
+						runtime.Signal()
+					}
+				}
 				model.restart = func() {
 					app.Post(func() {
 						macos.ShowMessage("数据目录已更改",

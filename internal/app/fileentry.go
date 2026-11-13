@@ -8,7 +8,6 @@ import (
 )
 
 const (
-	fileRowEntryLimit     = 3
 	filePreviewEntryLimit = 64
 )
 

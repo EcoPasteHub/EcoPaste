@@ -30,6 +30,12 @@ var (
 
 	cfStringCreateWithBytes func(alloc uintptr, bytes *byte, numBytes int64, encoding uint32, external bool) uintptr
 	msgSendSuper2           uintptr
+	objcSetAssociatedObject func(object, key, value, policy uintptr)
+	objcGetAssociatedObject func(object, key uintptr) uintptr
+
+	// associatedRowMetricsKey is the address that identifies the row
+	// density stored on each cell view.
+	associatedRowMetricsKey byte
 
 	classNSFont        objc.Class
 	classNSColor       objc.Class
@@ -69,6 +75,8 @@ func init() {
 	if msgSendSuper2, err = purego.Dlsym(libobjc, "objc_msgSendSuper2"); err != nil {
 		panic(err)
 	}
+	purego.RegisterLibFunc(&objcSetAssociatedObject, libobjc, "objc_setAssociatedObject")
+	purego.RegisterLibFunc(&objcGetAssociatedObject, libobjc, "objc_getAssociatedObject")
 
 	classNSFont = class("NSFont")
 	classNSColor = class("NSColor")

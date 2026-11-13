@@ -21,6 +21,7 @@ type settingsModel struct {
 	appIconPath          func(string) string
 	onShortcutsChanged   func()
 	onShortcutsSuspended func(bool)
+	onDisplayChanged     func()
 	dataDir              func() string
 	changeDataDir        func(string) error
 	restoreDataDir       func() error
@@ -58,6 +59,9 @@ func (m *settingsModel) Load() macos.SettingsValues {
 		CaptureFiles:           cfg.Capture.Files,
 		MaxTextMB:              cfg.Capture.MaxTextMB,
 		MaxImageMB:             cfg.Capture.MaxImageMB,
+		TextMaxLines:           uint32(clampInt(int(cfg.Display.TextMaxLines), 1, 5)),
+		ImageMaxHeight:         uint32(clampInt(int(cfg.Display.ImageMaxHeight), 20, 100)),
+		FileMaxCount:           uint32(clampInt(int(cfg.Display.FileMaxCount), 1, 5)),
 		Retention:              encodeRetention(cfg.History.Retention),
 		MaxCount:               cfg.History.MaxCount,
 		CleanupIntervalHours:   cfg.History.CleanupIntervalHours,
@@ -149,7 +153,13 @@ func (m *settingsModel) Apply(path string, value any) error {
 		node = next
 	}
 	node[keys[len(keys)-1]] = value
-	return m.update(patch)
+	if err := m.update(patch); err != nil {
+		return err
+	}
+	if strings.HasPrefix(path, "display.") && m.onDisplayChanged != nil {
+		m.onDisplayChanged()
+	}
+	return nil
 }
 
 func (m *settingsModel) update(patch map[string]any) error {
@@ -189,6 +199,9 @@ var settingsPaths = map[string][]string{
 	"capture.files":                {"clipboard", "capture", "files"},
 	"capture.maxTextMb":            {"clipboard", "capture", "maxTextMb"},
 	"capture.maxImageMb":           {"clipboard", "capture", "maxImageMb"},
+	"display.textMaxLines":         {"clipboard", "display", "textMaxLines"},
+	"display.imageMaxHeight":       {"clipboard", "display", "imageMaxHeight"},
+	"display.fileMaxCount":         {"clipboard", "display", "fileMaxCount"},
 	"history.maxCount":             {"clipboard", "history", "maxCount"},
 	"history.cleanupIntervalHours": {"clipboard", "history", "cleanupIntervalHours"},
 	"sensitive.collectSecrets":     {"clipboard", "sensitive", "collectSecrets"},

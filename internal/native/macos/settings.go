@@ -33,6 +33,9 @@ type SettingsValues struct {
 	CaptureFiles           bool
 	MaxTextMB              uint32
 	MaxImageMB             uint32
+	TextMaxLines           uint32
+	ImageMaxHeight         uint32
+	FileMaxCount           uint32
 	Retention              string
 	MaxCount               uint32
 	CleanupIntervalHours   uint32
@@ -125,6 +128,7 @@ func NewSettings(cx *core.NativeContext) core.NativeComponent {
 
 	v.buildGeneral()
 	v.buildCapture()
+	v.buildDisplay()
 	v.buildHistory()
 	v.buildPermissions()
 	v.buildApps()
@@ -211,6 +215,17 @@ func (v *SettingsView) buildCapture() {
 		func(s SettingsValues) uint32 { return s.MaxTextMB })
 	v.addStepper(content, y-244, "图片大小上限", "capture.maxImageMb", 10, 4096, " MB",
 		func(s SettingsValues) uint32 { return s.MaxImageMB })
+}
+
+func (v *SettingsView) buildDisplay() {
+	content := v.newTab("显示")
+	y := 408.0
+	v.addStepperRange(content, y, "文本显示行数", "display.textMaxLines", 1, 5, 1, " 行",
+		func(s SettingsValues) uint32 { return s.TextMaxLines })
+	v.addStepperRange(content, y-42, "图片最大高度", "display.imageMaxHeight", 20, 100, 4, " px",
+		func(s SettingsValues) uint32 { return s.ImageMaxHeight })
+	v.addStepperRange(content, y-84, "文件名显示数量", "display.fileMaxCount", 1, 5, 1, " 个",
+		func(s SettingsValues) uint32 { return s.FileMaxCount })
 }
 
 func (v *SettingsView) buildHistory() {
@@ -351,6 +366,10 @@ func (v *SettingsView) addPopup(content objc.ID, y float64, title, path string, 
 }
 
 func (v *SettingsView) addStepper(content objc.ID, y float64, title, path string, step, maxValue float64, suffix string, get func(SettingsValues) uint32) {
+	v.addStepperRange(content, y, title, path, 0, maxValue, step, suffix, get)
+}
+
+func (v *SettingsView) addStepperRange(content objc.ID, y float64, title, path string, minValue, maxValue, step float64, suffix string, get func(SettingsValues) uint32) {
 	v.addLabel(content, y, title)
 	valueLabel := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(""))
 	valueLabel.Send(sel("setFont:"), systemFont(12))
@@ -361,7 +380,7 @@ func (v *SettingsView) addStepper(content objc.ID, y float64, title, path string
 
 	control := objc.ID(class("NSStepper")).Send(sel("new"))
 	control.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 80, Y: y - 5}, Size: CGSize{Width: 19, Height: 27}})
-	control.Send(sel("setMinValue:"), 0.0)
+	control.Send(sel("setMinValue:"), minValue)
 	control.Send(sel("setMaxValue:"), maxValue)
 	control.Send(sel("setIncrement:"), step)
 	control.Send(sel("setValueWraps:"), false)

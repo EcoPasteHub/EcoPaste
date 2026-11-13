@@ -81,6 +81,30 @@ func (m *historyModel) SearchBehavior() ui.HistorySearchBehavior {
 	return ui.HistorySearchBehavior{DefaultFocus: search.DefaultFocus, ClearOnHide: search.ClearOnHide}
 }
 
+// Display reports the clamped list density, so a hand-edited settings
+// file cannot produce rows without text.
+func (m *historyModel) Display() ui.HistoryDisplay {
+	density := settings.Default().Clipboard.Display
+	if m.store != nil {
+		density = m.store.Snapshot().Clipboard.Display
+	}
+	return ui.HistoryDisplay{
+		TextMaxLines:   clampInt(int(density.TextMaxLines), 1, 5),
+		ImageMaxHeight: clampInt(int(density.ImageMaxHeight), 20, 100),
+		FileMaxCount:   clampInt(int(density.FileMaxCount), 1, 5),
+	}
+}
+
+func clampInt(value, low, high int) int {
+	if value < low {
+		return low
+	}
+	if value > high {
+		return high
+	}
+	return value
+}
+
 func (m *historyModel) Activate(ctx context.Context, id string) (bool, bool, error) {
 	return m.activateItem(ctx, id, false, true)
 }
@@ -384,8 +408,9 @@ func (m *historyModel) historyItem(ctx context.Context, item database.Item) ui.H
 		}
 	case database.KindFiles:
 		files := clipboard.DecodeFiles(item.Content)
-		row.Title = ui.FileTitle(files, 3)
-		entries := describeFileEntries(files, item.FileTypes, fileRowEntryLimit)
+		display := m.Display()
+		row.Title = ui.FileTitle(files, display.FileMaxCount)
+		entries := describeFileEntries(files, item.FileTypes, display.FileMaxCount)
 		row.FileSummary = fileSummary(entries, len(files))
 		if len(files) == 1 && len(entries) == 1 && !entries[0].Exists {
 			row.Title += "（已丢失）"

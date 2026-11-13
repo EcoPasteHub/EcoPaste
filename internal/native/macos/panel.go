@@ -54,6 +54,7 @@ type Panel struct {
 	filterValue   string
 	groupID       string
 	groups        []GroupOption
+	display       PanelDisplay
 	pinned        bool
 }
 
@@ -68,6 +69,13 @@ type PanelBehavior struct {
 type GroupOption struct {
 	ID   string
 	Name string
+}
+
+// PanelDisplay is the list density configured in settings.
+type PanelDisplay struct {
+	TextMaxLines   int
+	ImageMaxHeight int
+	FileMaxCount   int
 }
 
 var (
@@ -88,7 +96,11 @@ var (
 func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	registerPanelOnce.Do(registerPanelTargets)
 
-	p := &Panel{cx: cx, view: objc.ID(panelViewClass).Send(sel("new"))}
+	p := &Panel{
+		cx:      cx,
+		view:    objc.ID(panelViewClass).Send(sel("new")),
+		display: PanelDisplay{TextMaxLines: 1, ImageMaxHeight: 32, FileMaxCount: 3},
+	}
 	p.view.Send(sel("setAutoresizesSubviews:"), false)
 
 	p.search = objc.ID(classNSSearchField).Send(sel("new"))
@@ -365,6 +377,12 @@ func (p *Panel) SetProp(name string, value any) {
 		if provider, ok := value.(func(string) (DragPayload, bool)); ok {
 			p.drag = provider
 		}
+	case "display":
+		if display, ok := value.(PanelDisplay); ok {
+			p.display = display
+			p.table.Send(sel("setRowHeight:"), tableRowHeight(display))
+			p.table.Send(sel("reloadData"))
+		}
 	}
 }
 
@@ -575,8 +593,12 @@ func (p *Panel) selectedIndex() int {
 }
 
 func (p *Panel) pageSize() int {
+	height := objc.Send[float64](p.table, sel("rowHeight"))
+	if height <= 0 {
+		height = rowHeight
+	}
 	visible := objc.Send[CGRect](p.table, sel("visibleRect"))
-	size := int(visible.Size.Height / rowHeight)
+	size := int(visible.Size.Height / height)
 	if size < 1 {
 		return 1
 	}

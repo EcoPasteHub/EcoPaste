@@ -4,6 +4,7 @@ package macos
 
 import (
 	"strings"
+	"unsafe"
 
 	"github.com/ebitengine/purego/objc"
 )
@@ -219,7 +220,7 @@ func registerHistoryTargets() {
 			if cell == 0 {
 				cell = newHistoryRow()
 			}
-			fillHistoryRow(cell, p.rows[row])
+			fillHistoryRow(cell, p.rows[row], p.display)
 			return cell
 		}},
 		{Cmd: sel("tableViewSelectionDidChange:"), Fn: func(_ objc.ID, _ objc.SEL, note objc.ID) {
@@ -434,13 +435,24 @@ func newHistoryRow() objc.ID {
 	return cell.Send(sel("autorelease"))
 }
 
-func fillHistoryRow(cell objc.ID, row HistoryRow) {
+func fillHistoryRow(cell objc.ID, row HistoryRow, display PanelDisplay) {
 	icon := cell.Send(sel("viewWithTag:"), int64(rowIconTag))
 	badge := cell.Send(sel("viewWithTag:"), int64(rowBadgeTag))
 	title := cell.Send(sel("viewWithTag:"), int64(rowTitleTag))
 	detail := cell.Send(sel("viewWithTag:"), int64(rowDetailTag))
 	title.Send(sel("setStringValue:"), nsString(row.Title))
 	detail.Send(sel("setStringValue:"), nsString(row.Detail))
+	lines := int64(1)
+	breakMode := int64(4)
+	if row.Kind == "text" {
+		if display.TextMaxLines > 1 {
+			lines = int64(display.TextMaxLines)
+			breakMode = 0
+		}
+	}
+	title.Send(sel("setMaximumNumberOfLines:"), lines)
+	title.Send(sel("setLineBreakMode:"), breakMode)
+	storeRowMetrics(cell, iconSizeForRow(row, display), int(lines))
 
 	image := objc.ID(0)
 	if row.ImagePath != "" {
@@ -472,6 +484,65 @@ func fillHistoryRow(cell objc.ID, row HistoryRow) {
 	}
 }
 
+func iconSizeForRow(row HistoryRow, display PanelDisplay) float64 {
+	if row.Kind != "image" {
+		return 32
+	}
+	size := display.ImageMaxHeight
+	if size < 20 {
+		size = 20
+	}
+	if size > 100 {
+		size = 100
+	}
+	return float64(size)
+}
+
+const associationRetainNonatomic = 1
+
+// storeRowMetrics keeps the visual metrics of a reused cell view on the
+// view itself. NSTableCellView has no writable tag, and the layout pass
+// only receives the cell and its size.
+func storeRowMetrics(cell objc.ID, iconSize float64, lines int) {
+	packed := int64(iconSize)*10 + int64(lines)
+	number := objc.ID(class("NSNumber")).Send(sel("numberWithInteger:"), packed)
+	objcSetAssociatedObject(uintptr(cell), uintptr(unsafe.Pointer(&associatedRowMetricsKey)),
+		uintptr(number), associationRetainNonatomic)
+}
+
+func rowMetrics(cell objc.ID) (iconSize float64, lines int) {
+	value := objc.ID(objcGetAssociatedObject(uintptr(cell), uintptr(unsafe.Pointer(&associatedRowMetricsKey))))
+	if value == 0 {
+		return 32, 1
+	}
+	packed := objc.Send[int64](value, sel("integerValue"))
+	iconSize = float64(packed / 10)
+	lines = int(packed % 10)
+	if iconSize <= 0 {
+		iconSize = 32
+	}
+	if lines < 1 {
+		lines = 1
+	}
+	return iconSize, lines
+}
+
+// tableRowHeight turns the configured density into one row height. The
+// table uses a uniform height because AppKit's per-row height callback
+// cannot return a floating-point value through the purego bridge.
+func tableRowHeight(display PanelDisplay) float64 {
+	height := rowHeight
+	if lines := display.TextMaxLines; lines > 1 {
+		if value := 41 + 16*float64(lines); value > height {
+			height = value
+		}
+	}
+	if value := iconSizeForRow(HistoryRow{Kind: "image"}, display) + 24; value > height {
+		height = value
+	}
+	return height
+}
+
 func loadImage(path string) objc.ID {
 	image := objc.ID(class("NSImage")).Send(sel("alloc")).Send(sel("initWithContentsOfFile:"), nsString(path))
 	if image == 0 {
@@ -493,9 +564,9 @@ func symbolImage(kind string) objc.ID {
 
 func layoutHistoryRow(cell objc.ID, size CGSize) {
 	const left = 14.0
-	const iconSize = 32.0
 	const badgeSize = 15.0
-	const textX = 58.0
+	iconSize, lines := rowMetrics(cell)
+	textX := left + iconSize + 12
 	icon := cell.Send(sel("viewWithTag:"), int64(rowIconTag))
 	badge := cell.Send(sel("viewWithTag:"), int64(rowBadgeTag))
 	title := cell.Send(sel("viewWithTag:"), int64(rowTitleTag))
@@ -503,8 +574,17 @@ func layoutHistoryRow(cell objc.ID, size CGSize) {
 	iconY := (size.Height - iconSize) / 2
 	setFrame(icon, left, iconY, iconSize, iconSize)
 	setFrame(badge, left+iconSize-badgeSize, iconY+1, badgeSize, badgeSize)
-	setFrame(title, textX, size.Height-30, size.Width-textX-14, 18)
-	setFrame(detail, textX, 12, size.Width-textX-14, 15)
+	titleHeight := 16 * float64(lines)
+	if titleHeight < 17 {
+		titleHeight = 17
+	}
+	blockHeight := titleHeight + 6 + 15
+	detailY := (size.Height - blockHeight) / 2
+	if detailY < 8 {
+		detailY = 8
+	}
+	setFrame(detail, textX, detailY, size.Width-textX-14, 15)
+	setFrame(title, textX, detailY+15+6, size.Width-textX-14, titleHeight)
 }
 
 func (p *Panel) populateMenu(menu objc.ID, row HistoryRow) {

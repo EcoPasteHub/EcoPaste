@@ -339,6 +339,15 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 			Ref:       ref,
 			Style:     core.Style{Width: core.Pct(100), Height: core.Pct(100)},
 			PropsFunc: func() map[string]any {
+				display := macos.PanelDisplay{TextMaxLines: 1, ImageMaxHeight: 32, FileMaxCount: 3}
+				if model != nil {
+					density := model.Display()
+					display = macos.PanelDisplay{
+						TextMaxLines:   density.TextMaxLines,
+						ImageMaxHeight: density.ImageMaxHeight,
+						FileMaxCount:   density.FileMaxCount,
+					}
+				}
 				return map[string]any{
 					"rows":     rows.Get(),
 					"total":    total.Get(),
@@ -351,6 +360,7 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 					"query":    query,
 					"behavior": behavior,
 					"drag":     dragProvider,
+					"display":  display,
 				}
 			},
 			OnEvent: func(name string, data any) {
