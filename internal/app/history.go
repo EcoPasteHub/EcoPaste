@@ -250,7 +250,11 @@ func (m *historyModel) historyItem(item database.Item) ui.HistoryItem {
 		} else {
 			row.Title = "图片"
 		}
-		row.ImagePath = m.runtime.images.OriginPath(item.Content)
+		if err := m.runtime.images.EnsureThumbnail(item.Content); err == nil {
+			row.ImagePath = m.runtime.images.ThumbPath(item.Content)
+		} else {
+			row.ImagePath = m.runtime.images.OriginPath(item.Content)
+		}
 	case database.KindFiles:
 		row.Title = ui.FileTitle(clipboard.DecodeFiles(item.Content), 3)
 	}

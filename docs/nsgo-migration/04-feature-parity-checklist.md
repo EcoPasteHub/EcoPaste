@@ -73,7 +73,7 @@
 | P-04 | P1 | 路径识别 | `detect.rs` | 仅绝对路径且存在 | 待迁移 | 存在/不存在/相对路径 |
 | P-05 | P1 | 列表摘要 | `ingest.rs` | trim 后最多 256 字符 | 已通过 | `summarize` + `TestPageStripsTextContent` |
 | P-06 | P1 | 列表内容裁剪 | `commands/clipboard.rs` | 列表不返回完整 HTML/RTF content | 已通过 | `Page` 对 text 行返回空 content |
-| P-07 | P1 | 图片缩略图 | `storage.rs` | 最长边 300px，懒生成 | 待迁移 | 尺寸、格式、缓存命中 |
+| P-07 | P1 | 图片缩略图 | `storage.rs` | 最长边 300px，缺失时懒生成 | 已通过 | `TestImageStoreCreatesBoundedThumbnail`、`TestEnsureThumbnailBackfillsMissingFile`；真机 3456×2234 截图使用 300×193 缩略图 |
 | P-08 | P1 | 文件条目 | `commands/clipboard.rs` | 路径、名称、目录/图片标记、存在性、大小 | 待迁移 | 单文件/多文件/丢失文件 |
 | P-09 | P1 | 文件预览模式 | `FilesPreviewKind` | 单图片走图片预览，其余列表 | 待迁移 | 三种组合 |
 | P-10 | P1 | 预览窗口 | `window/preview.rs`、`pages/Preview` | 面板内预览视图，Space/Esc，文本/图片/文件 | 已通过 | 真机文本/图片预览与 Esc 返回；产品调整记录在迁移计划 |

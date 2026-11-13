@@ -1,13 +1,20 @@
 package storage
 
 import (
+	"bytes"
 	"encoding/hex"
 	"fmt"
+	"image"
+	"image/png"
 	"os"
 	"path/filepath"
 
 	"github.com/zeebo/blake3"
+	"golang.org/x/image/draw"
 )
+
+// ThumbnailMaxEdge is the longest edge of a list thumbnail.
+const ThumbnailMaxEdge = 300
 
 // ImageStore keeps clipboard images as PNG files sharded by the first
 // two hex digits of their content hash.
@@ -38,17 +45,11 @@ func (s *ImageStore) StorePNG(pngBytes []byte) (StoredImage, error) {
 	digest := imageDigest(pngBytes)
 	name := digest + ".png"
 	path := s.OriginPath(name)
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		return StoredImage{}, fmt.Errorf("create image shard: %w", err)
+	if err := writeIfMissing(path, pngBytes); err != nil {
+		return StoredImage{}, fmt.Errorf("store image: %w", err)
 	}
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		tmp := path + ".tmp"
-		if err := os.WriteFile(tmp, pngBytes, 0o644); err != nil {
-			return StoredImage{}, fmt.Errorf("write image: %w", err)
-		}
-		if err := os.Rename(tmp, path); err != nil {
-			return StoredImage{}, fmt.Errorf("promote image: %w", err)
-		}
+	if err := s.writeThumbnail(name, pngBytes); err != nil {
+		return StoredImage{}, err
 	}
 	width, height := PNGDimensions(pngBytes)
 	return StoredImage{
@@ -65,28 +66,95 @@ func (s *ImageStore) Read(fileName string) ([]byte, error) {
 	return os.ReadFile(s.OriginPath(fileName))
 }
 
+// EnsureThumbnail creates a missing list thumbnail from the original,
+// so history imported from older builds gets one on first display.
+func (s *ImageStore) EnsureThumbnail(fileName string) error {
+	thumbPath := s.ThumbPath(fileName)
+	if _, err := os.Stat(thumbPath); err == nil {
+		return nil
+	}
+	data, err := os.ReadFile(s.OriginPath(fileName))
+	if err != nil {
+		return fmt.Errorf("read image for thumbnail: %w", err)
+	}
+	return s.writeThumbnail(fileName, data)
+}
+
 // OriginPath returns the absolute path of a stored image.
 func (s *ImageStore) OriginPath(fileName string) string {
-	shard := fileName
-	if len(shard) > 2 {
-		shard = shard[:2]
-	}
-	return filepath.Join(s.root, "origin", shard, fileName)
+	return filepath.Join(s.root, "origin", shardName(fileName), fileName)
+}
+
+// ThumbPath returns the absolute path of a stored image's list thumbnail.
+func (s *ImageStore) ThumbPath(fileName string) string {
+	return filepath.Join(s.root, "thumbnails", shardName(fileName), fileName)
 }
 
 // Remove deletes an image's original and thumbnail, ignoring missing
 // files.
 func (s *ImageStore) Remove(fileName string) error {
-	shard := fileName
-	if len(shard) > 2 {
-		shard = shard[:2]
-	}
 	for _, dir := range []string{"origin", "thumbnails"} {
-		if err := os.Remove(filepath.Join(s.root, dir, shard, fileName)); err != nil && !os.IsNotExist(err) {
+		if err := os.Remove(filepath.Join(s.root, dir, shardName(fileName), fileName)); err != nil && !os.IsNotExist(err) {
 			return fmt.Errorf("remove image: %w", err)
 		}
 	}
 	return nil
+}
+
+func shardName(fileName string) string {
+	if len(fileName) > 2 {
+		return fileName[:2]
+	}
+	return fileName
+}
+
+func (s *ImageStore) writeThumbnail(fileName string, data []byte) error {
+	thumb, err := thumbnailPNG(data)
+	if err != nil {
+		return err
+	}
+	if err := writeIfMissing(s.ThumbPath(fileName), thumb); err != nil {
+		return fmt.Errorf("store thumbnail: %w", err)
+	}
+	return nil
+}
+
+func writeIfMissing(path string, data []byte) error {
+	if _, err := os.Stat(path); err == nil {
+		return nil
+	} else if !os.IsNotExist(err) {
+		return err
+	}
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
+	}
+	tmp := path + ".tmp"
+	if err := os.WriteFile(tmp, data, 0o644); err != nil {
+		return err
+	}
+	return os.Rename(tmp, path)
+}
+
+func thumbnailPNG(data []byte) ([]byte, error) {
+	source, err := png.Decode(bytes.NewReader(data))
+	if err != nil {
+		return nil, fmt.Errorf("decode image for thumbnail: %w", err)
+	}
+	bounds := source.Bounds()
+	width, height := bounds.Dx(), bounds.Dy()
+	if width <= ThumbnailMaxEdge && height <= ThumbnailMaxEdge {
+		return data, nil
+	}
+	scale := float64(ThumbnailMaxEdge) / float64(max(width, height))
+	thumbWidth := max(1, int(float64(width)*scale))
+	thumbHeight := max(1, int(float64(height)*scale))
+	target := image.NewRGBA(image.Rect(0, 0, thumbWidth, thumbHeight))
+	draw.CatmullRom.Scale(target, target.Bounds(), source, bounds, draw.Over, nil)
+	var buf bytes.Buffer
+	if err := png.Encode(&buf, target); err != nil {
+		return nil, fmt.Errorf("encode thumbnail: %w", err)
+	}
+	return buf.Bytes(), nil
 }
 
 // PNGDimensions reads a PNG's width and height without decoding pixels.

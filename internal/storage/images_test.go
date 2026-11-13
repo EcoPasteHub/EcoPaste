@@ -55,3 +55,66 @@ func TestPNGDimensionsRejectsOtherData(t *testing.T) {
 		t.Errorf("dimensions = %d×%d", w, h)
 	}
 }
+
+func TestImageStoreCreatesBoundedThumbnail(t *testing.T) {
+	store := NewImageStore(t.TempDir())
+	stored, err := store.StorePNG(testPNG(t, 900, 300))
+	if err != nil {
+		t.Fatal(err)
+	}
+	thumbPath := store.ThumbPath(stored.FileName)
+	data, err := os.ReadFile(thumbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	thumb, err := png.Decode(bytes.NewReader(data))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := thumb.Bounds().Dx(); got != ThumbnailMaxEdge {
+		t.Errorf("thumbnail width = %d, want %d", got, ThumbnailMaxEdge)
+	}
+	if got := thumb.Bounds().Dy(); got != 100 {
+		t.Errorf("thumbnail height = %d, want 100", got)
+	}
+	if err := store.Remove(stored.FileName); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(thumbPath); !os.IsNotExist(err) {
+		t.Errorf("thumbnail still exists: %v", err)
+	}
+}
+
+func TestSmallImageThumbnailIsOriginal(t *testing.T) {
+	store := NewImageStore(t.TempDir())
+	data := testPNG(t, 12, 8)
+	stored, err := store.StorePNG(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	thumb, err := os.ReadFile(store.ThumbPath(stored.FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(thumb, data) {
+		t.Error("small thumbnail was re-encoded")
+	}
+}
+
+func TestEnsureThumbnailBackfillsMissingFile(t *testing.T) {
+	store := NewImageStore(t.TempDir())
+	stored, err := store.StorePNG(testPNG(t, 600, 200))
+	if err != nil {
+		t.Fatal(err)
+	}
+	thumbPath := store.ThumbPath(stored.FileName)
+	if err := os.Remove(thumbPath); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.EnsureThumbnail(stored.FileName); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(thumbPath); err != nil {
+		t.Fatalf("thumbnail was not recreated: %v", err)
+	}
+}
