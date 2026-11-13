@@ -101,6 +101,31 @@ func TestSettingsModelAppliesDockIcon(t *testing.T) {
 	}
 }
 
+func TestSettingsModelAppliesTheme(t *testing.T) {
+	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	model := newSettingsModel(store)
+	var applied []string
+	model.setAppearance = func(theme string) error {
+		applied = append(applied, theme)
+		return nil
+	}
+	if err := model.Apply("appearance.theme", "dark"); err != nil {
+		t.Fatal(err)
+	}
+	if store.Snapshot().Appearance.Theme != settings.ThemeDark {
+		t.Errorf("theme = %q", store.Snapshot().Appearance.Theme)
+	}
+	if model.Load().Theme != "dark" {
+		t.Errorf("loaded theme = %q", model.Load().Theme)
+	}
+	if len(applied) != 1 || applied[0] != "dark" {
+		t.Errorf("appearance applications = %v", applied)
+	}
+}
+
 func TestSettingsModelAppliesAutostart(t *testing.T) {
 	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
 	if err != nil {

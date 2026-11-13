@@ -76,6 +76,9 @@ func Run(app *core.Scope) {
 		if err != nil {
 			log.Printf("open settings: %v", err)
 		} else {
+			if err := macos.SetAppearance(string(store.Snapshot().Appearance.Theme)); err != nil {
+				log.Printf("sync appearance: %v", err)
+			}
 			if err := macos.SetDockIconVisible(store.Snapshot().General.DockIcon); err != nil {
 				log.Printf("sync dock icon: %v", err)
 			}

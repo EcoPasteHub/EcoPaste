@@ -17,6 +17,7 @@ const SettingsComponent = "ecopaste.settings"
 type SettingsValues struct {
 	DockIcon             bool
 	AutoStart            bool
+	Theme                string
 	CopyPlain            bool
 	CopyThenHideWindow   bool
 	PastePlain           bool
@@ -131,6 +132,13 @@ func (v *SettingsView) buildGeneral() {
 			{Title: "记住位置", Value: "remember"},
 		},
 		func(s SettingsValues) string { return s.WindowPosition })
+	v.addPopup(content, y-294, "外观主题", "appearance.theme",
+		[]settingsOption{
+			{Title: "跟随系统", Value: "auto"},
+			{Title: "浅色", Value: "light"},
+			{Title: "深色", Value: "dark"},
+		},
+		func(s SettingsValues) string { return s.Theme })
 }
 
 func (v *SettingsView) buildCapture() {

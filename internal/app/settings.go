@@ -10,15 +10,16 @@ import (
 )
 
 type settingsModel struct {
-	store        *settings.Store
-	setDockIcon  func(bool) error
-	setAutoStart func(bool) error
+	store         *settings.Store
+	setDockIcon   func(bool) error
+	setAutoStart  func(bool) error
+	setAppearance func(string) error
 }
 
 func newSettingsModel(store *settings.Store) *settingsModel {
 	return &settingsModel{
 		store: store, setDockIcon: macos.SetDockIconVisible,
-		setAutoStart: macos.SetAutostart,
+		setAutoStart: macos.SetAutostart, setAppearance: macos.SetAppearance,
 	}
 }
 
@@ -27,6 +28,7 @@ func (m *settingsModel) Load() macos.SettingsValues {
 	return macos.SettingsValues{
 		DockIcon:             m.store.Snapshot().General.DockIcon,
 		AutoStart:            m.store.Snapshot().General.AutoStart,
+		Theme:                string(m.store.Snapshot().Appearance.Theme),
 		CopyPlain:            cfg.Content.CopyPlain,
 		CopyThenHideWindow:   cfg.Content.CopyThenHideWindow,
 		PastePlain:           cfg.Content.PastePlain,
@@ -77,6 +79,12 @@ func (m *settingsModel) Apply(path string, value any) error {
 			return err
 		}
 	}
+	if path == "appearance.theme" && m.setAppearance != nil {
+		theme, _ := value.(string)
+		if err := m.setAppearance(theme); err != nil {
+			return err
+		}
+	}
 	patch := map[string]any{}
 	node := patch
 	for _, key := range keys[:len(keys)-1] {
@@ -96,6 +104,7 @@ func (m *settingsModel) update(patch map[string]any) error {
 var settingsPaths = map[string][]string{
 	"general.dockIcon":             {"general", "dockIcon"},
 	"general.autoStart":            {"general", "autoStart"},
+	"appearance.theme":             {"appearance", "theme"},
 	"copyPlain":                    {"clipboard", "content", "copyPlain"},
 	"copyThenHideWindow":           {"clipboard", "content", "copyThenHideWindow"},
 	"pastePlain":                   {"clipboard", "content", "pastePlain"},

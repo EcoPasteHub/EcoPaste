@@ -143,7 +143,7 @@
 | U-06 | P2 | ContextMenu 页面 | `legacy/frontend/src/pages/ContextMenu` | macOS 使用 `NSMenu`，不迁移 WebView 菜单窗 | 参考 | 对比菜单结构 |
 | U-07 | P0 | 列表虚拟滚动 | `react-virtuoso` | `NSTableView` 原生虚拟化 | 迁移中 | `NSTableView` 已启用原生复用与 80 条分页；待 10k 条压测 |
 | U-08 | P1 | 键盘导航 | `legacy/frontend/src/hooks` 的键盘逻辑 | 上下/Page/Home/End/Enter/Esc | 迁移中 | 真机 ↑/↓、Home/End、⌘F、⌘C、⌥⌘C、⌘V、⌥⌘V 通过；PageUp/PageDown 已兼容专用键与 Fn+↑/↓，自动化环境未产生对应按键事件 |
-| U-09 | P1 | 主题 | antd token + `light/dark` | AppKit 语义色 + `NSAppearance` | 待迁移 | 跟随系统/强制 |
+| U-09 | P1 | 主题 | antd token + `light/dark` | AppKit 语义色 + `NSAppearance` | 已通过 | `TestSettingsModelAppliesTheme`；真机设置内切换深色立即生效并持久化，重启后面板与设置窗口保持深色；浅色下次启动验证 |
 | U-10 | P1 | 动画 | `motion` | AppKit 动画/`NSAnimationContext` | 待迁移 | 面板出现/预览连接线 |
 | U-11 | P2 | 滚动条 | `overlayscrollbars` | 系统 overlay scroller | 待迁移 | 深浅色 |
 | U-12 | P2 | 诊断 | `pages/Preference` 诊断区 | 原生诊断面板/复制信息 | 待迁移 | 数据目录/版本/权限 |
@@ -164,7 +164,7 @@
 | ID | 设置组 | 字段 | 迁移要求 | 状态 | 验证方式 |
 | --- | --- | --- | --- | --- | --- |
 | S-01 | general | `autoStart`、`runAsAdmin`、`trayIcon`、`dockIcon` | `autoStart`/`dockIcon` 已接系统副作用；`trayIcon` 保留字段，`runAsAdmin` 仅 Windows 参考 | 迁移中 | 旧文件回环/系统行为 |
-| S-02 | appearance | `theme`、`language` | `auto/light/dark`、`zh-CN/en-US` | 待迁移 | 即时切换/重启 |
+| S-02 | appearance | `theme`、`language` | `auto/light/dark`、`zh-CN/en-US` | 迁移中 | 主题三档已接入并即时应用；语言切换待补 |
 | S-03 | shortcuts | `openClipboard`、`openPreference`、`winV` | 保留；`winV` 仅 Windows 参考 | 迁移中 | 两个快捷键均已读取并注册；编辑 UI 待补 |
 | S-04 | clipboard.capture | `text/html/rtf/image/files`、`maxTextMb`、`maxImageMb`、`order` | 采集顺序与上限一致 | 迁移中 | 五个开关与两个上限已接设置 UI；顺序编辑待补 |
 | S-05 | clipboard.content | `autoPaste`、`middleClick`、`copyPlain`、`copyThenHideWindow`、`pastePlain`、`pasteFilesAsPath`、`showOriginalPreview`、删除保护、`autoFavorite`、`updateOnReuse`、`sort`、`itemActions`、`itemActionOrder` | 行为语义逐项一致 | 迁移中 | 纯文本复制/粘贴、文件路径粘贴、复制后隐藏、复用排序、排序方式已接入；中键与悬停动作待补 |
