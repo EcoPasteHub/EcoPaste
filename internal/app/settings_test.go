@@ -149,6 +149,48 @@ func TestSettingsModelRejectsUnknownItemAction(t *testing.T) {
 	}
 }
 
+func TestSettingsModelAppliesCaptureOrder(t *testing.T) {
+	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	model := newSettingsModel(store)
+	if err := model.Apply("capture.updateOrder", []string{"text", "files", "text"}); err != nil {
+		t.Fatal(err)
+	}
+	want := []settings.CaptureKind{
+		settings.CaptureText,
+		settings.CaptureFiles,
+		settings.CaptureImage,
+		settings.CaptureHTML,
+		settings.CaptureRTF,
+	}
+	got := store.Snapshot().Clipboard.Capture.Order
+	if len(got) != len(want) {
+		t.Fatalf("capture order = %v", got)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("capture order = %v, want %v", got, want)
+		}
+	}
+	values := model.Load().CaptureOrder
+	if len(values) != len(want) || values[0] != "text" {
+		t.Errorf("loaded capture order = %v", values)
+	}
+}
+
+func TestSettingsModelRejectsUnknownCaptureKind(t *testing.T) {
+	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = newSettingsModel(store).Apply("capture.updateOrder", []string{"text", "missing"})
+	if err == nil {
+		t.Fatal("unknown capture kind accepted")
+	}
+}
+
 func TestSettingsModelAppliesDockIcon(t *testing.T) {
 	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
 	if err != nil {

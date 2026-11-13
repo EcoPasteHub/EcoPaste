@@ -70,6 +70,7 @@ func (m *settingsModel) Load() macos.SettingsValues {
 		CaptureRTF:             cfg.Capture.RTF,
 		CaptureImage:           cfg.Capture.Image,
 		CaptureFiles:           cfg.Capture.Files,
+		CaptureOrder:           captureOrderValues(cfg.Capture.Order),
 		MaxTextMB:              cfg.Capture.MaxTextMB,
 		MaxImageMB:             cfg.Capture.MaxImageMB,
 		TextMaxLines:           uint32(clampInt(int(cfg.Display.TextMaxLines), 1, 5)),
@@ -109,6 +110,8 @@ func (m *settingsModel) Apply(path string, value any) error {
 		return m.applyShortcut(path, value)
 	case "actions.update":
 		return m.applyActions(value)
+	case "capture.updateOrder":
+		return m.applyCaptureOrder(value)
 	}
 	if path == "general.dataDir" {
 		parent, _ := value.(string)
@@ -242,6 +245,37 @@ func actionValues(actions []settings.ItemAction) []string {
 	values := make([]string, 0, len(actions))
 	for _, action := range actions {
 		values = append(values, string(action))
+	}
+	return values
+}
+
+// applyCaptureOrder persists a complete capture priority list. Duplicate
+// kinds are collapsed and missing kinds are appended so capture cannot
+// silently lose a representation after a malformed update.
+func (m *settingsModel) applyCaptureOrder(value any) error {
+	values, ok := value.([]string)
+	if !ok {
+		return fmt.Errorf("无效的采集顺序")
+	}
+	order := make([]settings.CaptureKind, 0, len(values))
+	for _, text := range values {
+		kind := settings.CaptureKind(text)
+		if !settings.IsCaptureKind(kind) {
+			return fmt.Errorf("未知采集类型 %q", text)
+		}
+		order = append(order, kind)
+	}
+	order = settings.NormalizeCaptureOrder(order)
+	return m.update(map[string]any{"clipboard": map[string]any{
+		"capture": map[string]any{"order": order},
+	}})
+}
+
+func captureOrderValues(order []settings.CaptureKind) []string {
+	normalized := settings.NormalizeCaptureOrder(order)
+	values := make([]string, 0, len(normalized))
+	for _, kind := range normalized {
+		values = append(values, string(kind))
 	}
 	return values
 }

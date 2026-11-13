@@ -72,7 +72,7 @@ func (s *Service) buildItem(payload Payload, source SourceApp) (*database.Item, 
 	if sensitive && !sensitiveCfg.CollectSecrets {
 		return nil, nil
 	}
-	for _, kind := range orderedKinds(capture.Order) {
+	for _, kind := range settings.NormalizeCaptureOrder(capture.Order) {
 		if !captureEnabled(capture, kind) {
 			continue
 		}
@@ -159,18 +159,6 @@ func (s *Service) withSource(item *database.Item, source SourceApp) *database.It
 		item.SourceAppID = &id
 	}
 	return item
-}
-
-func orderedKinds(order []settings.CaptureKind) []settings.CaptureKind {
-	seen := map[settings.CaptureKind]bool{}
-	out := make([]settings.CaptureKind, 0, 5)
-	for _, kind := range append(append([]settings.CaptureKind{}, order...), settings.DefaultCaptureOrder()...) {
-		if !seen[kind] {
-			seen[kind] = true
-			out = append(out, kind)
-		}
-	}
-	return out
 }
 
 func captureEnabled(c settings.Capture, kind settings.CaptureKind) bool {

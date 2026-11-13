@@ -84,6 +84,41 @@ func DefaultCaptureOrder() []CaptureKind {
 	return []CaptureKind{CaptureFiles, CaptureImage, CaptureHTML, CaptureRTF, CaptureText}
 }
 
+// IsCaptureKind reports whether value names a supported pasteboard
+// representation.
+func IsCaptureKind(value CaptureKind) bool {
+	switch value {
+	case CaptureFiles, CaptureImage, CaptureHTML, CaptureRTF, CaptureText:
+		return true
+	}
+	return false
+}
+
+// NormalizeCaptureOrder keeps valid kinds once in their configured order,
+// then appends any missing defaults so every supported kind remains
+// reachable.
+func NormalizeCaptureOrder(order []CaptureKind) []CaptureKind {
+	seen := map[CaptureKind]struct{}{}
+	normalized := make([]CaptureKind, 0, len(DefaultCaptureOrder()))
+	for _, kind := range order {
+		if !IsCaptureKind(kind) {
+			continue
+		}
+		if _, ok := seen[kind]; ok {
+			continue
+		}
+		seen[kind] = struct{}{}
+		normalized = append(normalized, kind)
+	}
+	for _, kind := range DefaultCaptureOrder() {
+		if _, ok := seen[kind]; ok {
+			continue
+		}
+		normalized = append(normalized, kind)
+	}
+	return normalized
+}
+
 type Content struct {
 	AutoPaste                         AutoPaste    `json:"autoPaste"`
 	MiddleClick                       MiddleClick  `json:"middleClick"`

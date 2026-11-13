@@ -42,6 +42,7 @@ type SettingsValues struct {
 	CaptureRTF             bool
 	CaptureImage           bool
 	CaptureFiles           bool
+	CaptureOrder           []string
 	MaxTextMB              uint32
 	MaxImageMB             uint32
 	TextMaxLines           uint32
@@ -104,6 +105,8 @@ type SettingsView struct {
 	apps                []SettingsApp
 	actionsTable        objc.ID
 	actions             []settingsAction
+	captureTable        objc.ID
+	captureOrder        []string
 	groupField          *settingsField
 	extraExcluded       []string
 	shortcutFields      []*shortcutControl
@@ -306,6 +309,7 @@ func (v *SettingsView) buildCapture() {
 		func(s SettingsValues) uint32 { return s.MaxTextMB })
 	v.addStepper(content, y-244, "图片大小上限", "capture.maxImageMb", 10, 4096, " MB",
 		func(s SettingsValues) uint32 { return s.MaxImageMB })
+	v.buildCaptureOrder(content)
 }
 
 func (v *SettingsView) buildDisplay() {
@@ -693,6 +697,7 @@ func (v *SettingsView) apply(values SettingsValues) {
 	v.restore.Send(sel("setEnabled:"), values.CanRestoreDataDir)
 	v.applyApps(values)
 	v.applyActions(values)
+	v.applyCaptureOrder(values)
 	v.applyShortcuts(values)
 	v.applyGroups(values)
 	for _, field := range v.fields {
