@@ -237,6 +237,8 @@ func (p *Panel) Command(name string, args any) {
 		p.query = ""
 	case "reload":
 		p.table.Send(sel("reloadData"))
+	case "showAccessibilityAlert":
+		showAccessibilityAlert()
 	}
 }
 

@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/clipboard"
@@ -77,6 +78,10 @@ func (m *historyModel) Activate(ctx context.Context, id string) (bool, bool, err
 }
 
 func (m *historyModel) SendPaste() error { return keystroke.SendPaste() }
+
+func (m *historyModel) NeedsAccessibility(err error) bool {
+	return errors.Is(err, keystroke.ErrPermission)
+}
 
 func (m *historyModel) write(ctx context.Context, item *database.Item, plain, countReuse bool) error {
 	if err := m.runtime.service.WriteItem(ctx, item, plain); err != nil {

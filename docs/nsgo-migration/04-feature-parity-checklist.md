@@ -126,7 +126,7 @@
 | W-15 | P1 | 单实例 | `tauri-plugin-single-instance` | macOS bundle 单实例 + `OnReopen` | 待迁移 | 二次启动/文件打开 |
 | W-16 | P1 | 文件关联 | `tauri.conf.json`、`backup/*` | `nsgo.yaml file_types` + `OnOpenFiles` | 待迁移 | 双击/拖到 Dock |
 | W-17 | P1 | 原生右键菜单 | `menu/clipboard_item.rs` | `NSMenu` 动作分组/快捷键/子菜单 | 待迁移 | 所有条目类型 |
-| W-18 | P1 | 权限 | `PermissionControl` | 辅助功能/完全磁盘访问检测与跳转 | 待迁移 | 允许/拒绝/重启 |
+| W-18 | P1 | 权限 | `PermissionControl` | 辅助功能/完全磁盘访问检测与跳转 | 迁移中 | 辅助功能检测、原生说明弹窗与系统设置跳转已接；FDA 待补 |
 | W-19 | P2 | 防默认行为 | `core/prevent_default.rs` | 无 WebView，不需要 | 不纳入 macOS 首版 | 确认无 WebView 入口 |
 | W-20 | P1 | 更新 | `update.rs` | NSGo updater + Sparkle appcast | 待迁移 | 测试源真实升级 |
 | W-21 | P1 | 日志 | `tauri-plugin-log` | `log/slog` + 轮转，敏感信息脱敏 | 待迁移 | 路径/轮转/脱敏 |

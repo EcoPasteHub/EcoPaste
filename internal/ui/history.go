@@ -47,6 +47,7 @@ type HistoryModel interface {
 	Copy(context.Context, string) (hide bool, err error)
 	Activate(context.Context, string) (paste bool, hide bool, err error)
 	SendPaste() error
+	NeedsAccessibility(error) bool
 	Updates() <-chan struct{}
 }
 
@@ -59,6 +60,7 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 		loading := core.NewSignal(cx, true)
 		errorText := core.NewSignal(cx, "")
 		hasMore := core.NewSignal(cx, false)
+		ref := &core.Ref{}
 
 		var (
 			query      string
@@ -142,6 +144,9 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 					if err != nil {
 						errorText.Set(err.Error())
 						loading.Set(false)
+						if model.NeedsAccessibility(err) {
+							ref.Command("showAccessibilityAlert", nil)
+						}
 						return
 					}
 					if hideAfter && hide != nil {
@@ -151,6 +156,9 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 						cx.AfterFunc(70*time.Millisecond, func() {
 							if err := model.SendPaste(); err != nil {
 								errorText.Set(err.Error())
+								if model.NeedsAccessibility(err) {
+									ref.Command("showAccessibilityAlert", nil)
+								}
 								return
 							}
 							load(query, false)
@@ -187,6 +195,7 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 		}
 		return core.Native{
 			Component: macos.PanelComponent,
+			Ref:       ref,
 			Style:     core.Style{Width: core.Pct(100), Height: core.Pct(100)},
 			PropsFunc: func() map[string]any {
 				return map[string]any{
