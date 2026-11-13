@@ -109,7 +109,7 @@
 
 | ID | 优先级 | 功能 | 现有实现 | NSGo/AppKit 目标 | 状态 | 验证方式 |
 | --- | --- | --- | --- | --- | --- | --- |
-| W-01 | P0 | 剪贴板面板 | `window/macos.rs` | `NSPanel`，非激活、可 key、置顶、无边框、透明 | 迁移中 | 原生面板、搜索、分类、列表与失焦隐藏已真机使用；全屏/多 Space/多屏待补 |
+| W-01 | P0 | 剪贴板面板 | `window/macos.rs` | `NSPanel`，非激活、可 key、置顶、无边框、透明 | 迁移中 | 原生面板、搜索、分类、列表与失焦隐藏已真机使用；NSGo 面板已设置 `canJoinAllSpaces` 与 `fullScreenAuxiliary`；多屏定位、负坐标屏幕和“可见区域小于面板”边界由 `TestPanelOrigin*` 覆盖；真实全屏 Space 与多屏切换待真机复核 |
 | W-02 | P0 | 窗口定位 | `window/position.rs` | 跟随鼠标/居中/记住位置 | 已通过 | 设置“面板打开位置”三档；真机 `osascript` 读取窗口 frame：居中 `654,217`、跟随光标 `300,393`（光标 `300,400`）、记住位置恢复 `654,217` |
 | W-03 | P0 | 失焦隐藏 | `window/macos.rs` | 自定义 resign-key 隐藏 + modal/固定窗口期间暂停 | 迁移中 | 真机切换 Finder 后隐藏；系统另存/备注弹窗期间保持；固定窗口保持可见；拖拽会话期间暂停失焦隐藏，结束后未获 key 则隐藏；跨应用拖放仍待真机复核 |
 | W-04 | P0 | 固定窗口 | `set_clipboard_window_pinned` | 固定不隐藏；粘贴时 resign/restore key | 迁移中 | 原生按钮与 `P` 键切换已接；真机固定后失焦/复制均保持可见；粘贴 key 让出/恢复待授权后验收 |

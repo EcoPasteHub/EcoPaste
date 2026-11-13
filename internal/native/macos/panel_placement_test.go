@@ -58,3 +58,15 @@ func TestPanelOriginRememberRestoresSavedPosition(t *testing.T) {
 		t.Fatalf("origin = %+v", origin)
 	}
 }
+
+func TestPanelOriginKeepsTopLeftVisibleOnTinyScreen(t *testing.T) {
+	size := CGSize{Width: 420, Height: 560}
+	screens := []ScreenBounds{{
+		Frame:   CGRect{Origin: CGPoint{X: -300, Y: 100}, Size: CGSize{Width: 300, Height: 400}},
+		Visible: CGRect{Origin: CGPoint{X: -300, Y: 100}, Size: CGSize{Width: 300, Height: 400}},
+	}}
+	origin := panelOrigin("center", size, CGPoint{X: -100, Y: 300}, screens, nil)
+	if origin.X != -300+panelScreenMargin || origin.Y != 100+panelScreenMargin {
+		t.Fatalf("origin = %+v", origin)
+	}
+}

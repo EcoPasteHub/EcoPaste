@@ -138,10 +138,12 @@ func screenContaining(point CGPoint, screens []ScreenBounds) (ScreenBounds, bool
 }
 
 func clampOrigin(origin CGPoint, size CGSize, visible CGRect) CGPoint {
-	maxX := visible.Origin.X + visible.Size.Width
-	maxY := visible.Origin.Y + visible.Size.Height
-	x := min(max(origin.X, visible.Origin.X+panelScreenMargin), maxX-size.Width-panelScreenMargin)
-	y := min(max(origin.Y, visible.Origin.Y+panelScreenMargin), maxY-size.Height-panelScreenMargin)
+	minX := visible.Origin.X + panelScreenMargin
+	minY := visible.Origin.Y + panelScreenMargin
+	maxX := max(minX, visible.Origin.X+visible.Size.Width-size.Width-panelScreenMargin)
+	maxY := max(minY, visible.Origin.Y+visible.Size.Height-size.Height-panelScreenMargin)
+	x := min(max(origin.X, minX), maxX)
+	y := min(max(origin.Y, minY), maxY)
 	return CGPoint{X: x, Y: y}
 }
 
