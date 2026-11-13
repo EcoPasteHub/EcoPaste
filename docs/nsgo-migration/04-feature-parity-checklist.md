@@ -144,7 +144,7 @@
 | U-07 | P0 | 列表虚拟滚动 | `react-virtuoso` | `NSTableView` 原生虚拟化 | 已通过 | `NSTableView` 原生复用与 80 条分页；隔离数据目录导入 1 万条记录，首屏 80 条、原生滚动加载至 160 条、连续 End 导航加载至 240 条，搜索 `9999` 约 1.3 秒返回 1 条，无崩溃 |
 | U-08 | P1 | 键盘导航 | `legacy/frontend/src/hooks` 的键盘逻辑 | 上下/Page/Home/End/Enter/Esc | 迁移中 | 真机 ↑/↓、Home/End、⌘F、⌘C、⌥⌘C、⌘V、⌥⌘V 通过；PageUp/PageDown 已兼容专用键与 Fn+↑/↓，自动化环境未产生对应按键事件 |
 | U-09 | P1 | 主题 | antd token + `light/dark` | AppKit 语义色 + `NSAppearance` | 已通过 | `TestSettingsModelAppliesTheme`；真机设置内切换深色立即生效并持久化，重启后面板与设置窗口保持深色；浅色下次启动验证 |
-| U-10 | P1 | 动画 | `motion` | AppKit 动画/`NSAnimationContext` | 待迁移 | 面板出现/预览连接线 |
+| U-10 | P1 | 动画 | `motion` | AppKit 动画/`Core Animation` | 已通过（产品调整） | 面板打开与预览切换使用 0.12–0.14s 淡入；预览为面板内视图，连接线不适用；开启“减少动态效果”时直接显示；`TestAnimateInKeepsViewVisibleAndAddsFade`，真机面板与 HTML/RTF 预览正常显示、Esc 返回 |
 | U-11 | P2 | 滚动条 | `overlayscrollbars` | 系统 `NSScrollView` 滚动条 | 不纳入 macOS 首版（产品调整） | 原生 `NSScrollView` 已按系统“显示滚动条”偏好自动选择 overlay/legacy，强制 overlay 会覆盖用户系统设置；旧版自定义滚动条不再迁移 |
 | U-12 | P2 | 诊断 | `pages/Preference` 诊断区 | 原生诊断面板/复制信息 | 已通过 | “权限”页展示版本、macOS 版本、数据目录与两项权限状态，“复制诊断信息”写入剪贴板并显示反馈；真机 `pbpaste` 校验五项内容完整；`TestFormatDiagnosticReport` |
 

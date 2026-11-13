@@ -125,6 +125,7 @@ func (p *Panel) setPreview(content PreviewContent) {
 	p.hint.Send(sel("setStringValue:"), nsString("esc 返回"))
 	p.previewTitle.Send(sel("setStringValue:"), nsString(content.Title))
 	p.previewMeta.Send(sel("setStringValue:"), nsString(content.Meta))
+	animateIn(p.preview, previewFadeDuration)
 
 	image := objc.ID(0)
 	if content.ImagePath != "" {
