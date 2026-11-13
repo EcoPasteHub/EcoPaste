@@ -73,6 +73,11 @@ func (m *historyModel) copyItem(ctx context.Context, id string, forcePlain bool)
 
 func (m *historyModel) Updates() <-chan struct{} { return m.runtime.changed }
 
+func (m *historyModel) SearchBehavior() ui.HistorySearchBehavior {
+	search := m.store.Snapshot().Clipboard.Search
+	return ui.HistorySearchBehavior{DefaultFocus: search.DefaultFocus, ClearOnHide: search.ClearOnHide}
+}
+
 func (m *historyModel) Activate(ctx context.Context, id string) (bool, bool, error) {
 	return m.activateItem(ctx, id, false)
 }

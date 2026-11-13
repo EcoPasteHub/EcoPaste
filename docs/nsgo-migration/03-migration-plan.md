@@ -180,6 +180,7 @@ internal/native/macos/
    - FTS5 trigram，≥3 字符走 FTS。
    - 1–2 字符走 `LIKE`，中文按字符计数。
    - 关键词转义，避免 FTS 语法错误。
+   - `defaultFocus` 决定面板打开时聚焦搜索框还是历史列表；`clearOnHide` 控制隐藏后是否清空关键词并恢复完整列表。
 3. 整理：
    - 收藏、置顶、备注、分组、分组布局、移动到分组。
    - 备注/收藏/置顶/分组更新不刷新 `updated_at`。

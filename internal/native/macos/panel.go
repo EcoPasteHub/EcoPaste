@@ -19,6 +19,7 @@ const PanelComponent = "ecopaste.panel"
 // native history list and a compact footer.
 type Panel struct {
 	cx            *core.NativeContext
+	behavior      PanelBehavior
 	view          objc.ID
 	search        objc.ID
 	pin           objc.ID
@@ -51,6 +52,13 @@ type Panel struct {
 	groupID       string
 	groups        []GroupOption
 	pinned        bool
+}
+
+// PanelBehavior controls focus and query persistence when the panel opens
+// and hides.
+type PanelBehavior struct {
+	DefaultFocus bool
+	ClearOnHide  bool
 }
 
 // GroupOption is one custom group in the panel toolbar and item menu.
@@ -161,6 +169,8 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 		nsString(windowDidBecomeKey), objc.ID(0))
 	center.Send(sel("addObserver:selector:name:object:"), p.observer, sel("windowResignedKey:"),
 		nsString(windowDidResignKey), objc.ID(0))
+	center.Send(sel("addObserver:selector:name:object:"), p.observer, sel("windowDidOrderOffScreen:"),
+		nsString(windowDidOrderOffScreen), objc.ID(0))
 	p.timer = objc.ID(class("NSTimer")).Send(sel("scheduledTimerWithTimeInterval:target:selector:userInfo:repeats:"),
 		0.1, p.observer, sel("pollSearch:"), objc.ID(0), true)
 	p.monitor = objc.ID(objc.NewBlock(func(_ objc.Block, event objc.ID) objc.ID {
@@ -273,40 +283,7 @@ func registerPanelTargets() {
 	searchTarget = objc.ID(target).Send(sel("new"))
 
 	observerClass, err = objc.RegisterClass("EcoPastePanelObserver", class("NSObject"), nil, nil,
-		[]objc.MethodDef{
-			{Cmd: sel("windowBecameKey:"), Fn: func(self objc.ID, _ objc.SEL, note objc.ID) {
-				p := panelsByObserver[self]
-				if p == nil {
-					return
-				}
-				window := p.view.Send(sel("window"))
-				if window != 0 && window == objc.Send[objc.ID](note, sel("object")) {
-					window.Send(sel("makeFirstResponder:"), p.search)
-				}
-			}},
-			{Cmd: sel("windowResignedKey:"), Fn: func(self objc.ID, _ objc.SEL, note objc.ID) {
-				p := panelsByObserver[self]
-				if p == nil || suppressPanelBlur.Load() || p.pinned {
-					return
-				}
-				window := p.view.Send(sel("window"))
-				if window != 0 && window == objc.Send[objc.ID](note, sel("object")) &&
-					objc.Send[bool](window, sel("isVisible")) {
-					p.cx.Emit("blurHide", nil)
-				}
-			}},
-			{Cmd: sel("pollSearch:"), Fn: func(self objc.ID, _ objc.SEL, _ objc.ID) {
-				p := panelsByObserver[self]
-				if p == nil {
-					return
-				}
-				next := goString(p.search.Send(sel("stringValue")))
-				if next != p.query {
-					p.query = next
-					p.cx.Emit("query", next)
-				}
-			}},
-		})
+		panelObserverMethods())
 	if err != nil {
 		panic(err)
 	}
@@ -367,6 +344,10 @@ func (p *Panel) SetProp(name string, value any) {
 		if filter, ok := value.(string); ok {
 			p.setFilterSelection(filter)
 		}
+	case "behavior":
+		if behavior, ok := value.(PanelBehavior); ok {
+			p.behavior = behavior
+		}
 	}
 }
 
@@ -376,8 +357,7 @@ func (p *Panel) Command(name string, args any) {
 	case "focusSearch":
 		p.focusSearch()
 	case "clearSearch":
-		p.search.Send(sel("setStringValue:"), nsString(""))
-		p.query = ""
+		p.clearSearch()
 	case "reload":
 		p.table.Send(sel("reloadData"))
 	case "showAccessibilityAlert":
@@ -391,6 +371,11 @@ func (p *Panel) Command(name string, args any) {
 
 func (p *Panel) focusSearch() {
 	p.view.Send(sel("window")).Send(sel("makeFirstResponder:"), p.search)
+}
+
+func (p *Panel) clearSearch() {
+	p.search.Send(sel("setStringValue:"), nsString(""))
+	p.query = ""
 }
 
 // Close implements core.NativeComponent.

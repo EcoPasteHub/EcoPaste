@@ -23,6 +23,11 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 		filter := core.NewSignal(cx, "")
 		group := core.NewSignal(cx, "")
 		ref := &core.Ref{}
+		behavior := macos.PanelBehavior{}
+		if model != nil {
+			search := model.SearchBehavior()
+			behavior = macos.PanelBehavior{DefaultFocus: search.DefaultFocus, ClearOnHide: search.ClearOnHide}
+		}
 
 		var (
 			query         string
@@ -282,14 +287,16 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 			Style:     core.Style{Width: core.Pct(100), Height: core.Pct(100)},
 			PropsFunc: func() map[string]any {
 				return map[string]any{
-					"rows":    rows.Get(),
-					"total":   total.Get(),
-					"loading": loading.Get(),
-					"error":   errorText.Get(),
-					"preview": preview.Get(),
-					"groups":  groups.Get(),
-					"group":   group.Get(),
-					"filter":  filter.Get(),
+					"rows":     rows.Get(),
+					"total":    total.Get(),
+					"loading":  loading.Get(),
+					"error":    errorText.Get(),
+					"preview":  preview.Get(),
+					"groups":   groups.Get(),
+					"group":    group.Get(),
+					"filter":   filter.Get(),
+					"query":    query,
+					"behavior": behavior,
 				}
 			},
 			OnEvent: func(name string, data any) {
@@ -303,6 +310,14 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 						query = text
 						reload()
 					})
+				case "searchCleared":
+					if pendingSearch != nil {
+						pendingSearch()
+						pendingSearch = nil
+					}
+					query = ""
+					preview.Set(macos.PreviewContent{})
+					reload()
 				case "filter":
 					value, _ := data.(string)
 					filterValue = value

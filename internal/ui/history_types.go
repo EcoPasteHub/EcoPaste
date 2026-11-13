@@ -53,6 +53,13 @@ type HistoryPreview struct {
 	ImagePath string
 }
 
+// HistorySearchBehavior controls where focus starts and whether a hidden
+// panel keeps its query.
+type HistorySearchBehavior struct {
+	DefaultFocus bool
+	ClearOnHide  bool
+}
+
 // HistoryModel is the app service the history panel consumes. Copy
 // reports whether the panel should close after copying.
 type HistoryModel interface {
@@ -76,5 +83,6 @@ type HistoryModel interface {
 	RenameGroup(context.Context, string) (bool, error)
 	DeleteGroup(context.Context, string) (bool, error)
 	MoveToGroup(context.Context, string, string) error
+	SearchBehavior() HistorySearchBehavior
 	Updates() <-chan struct{}
 }

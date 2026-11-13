@@ -38,9 +38,10 @@ var (
 	classNSSearchField objc.Class
 	classNSString      objc.Class
 
-	utf8StringEncoding = uint32(0x08000100)
-	windowDidBecomeKey = "NSWindowDidBecomeKeyNotification"
-	windowDidResignKey = "NSWindowDidResignKeyNotification"
+	utf8StringEncoding      = uint32(0x08000100)
+	windowDidBecomeKey      = "NSWindowDidBecomeKeyNotification"
+	windowDidResignKey      = "NSWindowDidResignKeyNotification"
+	windowDidOrderOffScreen = "NSWindowDidOrderOffScreenNotification"
 )
 
 func init() {
