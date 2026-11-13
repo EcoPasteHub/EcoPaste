@@ -143,6 +143,9 @@ func (m *historyModel) historyItem(item database.Item) ui.HistoryItem {
 		if item.Summary != nil {
 			row.Title = *item.Summary
 		}
+		if item.IsSensitive && m.store != nil && m.store.Snapshot().Clipboard.Sensitive.RedactSecrets {
+			row.Title = clipboard.MaskSecret(row.Title)
+		}
 	case database.KindImage:
 		if item.Width != nil && item.Height != nil {
 			row.Title = fmt.Sprintf("图片 %d × %d", *item.Width, *item.Height)

@@ -54,10 +54,17 @@ func (s *Service) Capture(ctx context.Context, payload Payload, source SourceApp
 
 func (s *Service) buildItem(payload Payload, source SourceApp) (*database.Item, error) {
 	capture := settings.Capture{}
+	sensitiveCfg := settings.Sensitive{CollectSecrets: true}
 	if s.Settings != nil {
-		capture = s.Settings().Capture
+		cfg := s.Settings()
+		capture = cfg.Capture
+		sensitiveCfg = cfg.Sensitive
 	}
 	plain := strings.TrimSpace(payload.Text)
+	sensitive := ContainsSecret(plain)
+	if sensitive && !sensitiveCfg.CollectSecrets {
+		return nil, nil
+	}
 	for _, kind := range orderedKinds(capture.Order) {
 		if !captureEnabled(capture, kind) {
 			continue
@@ -98,23 +105,23 @@ func (s *Service) buildItem(payload Payload, source SourceApp) (*database.Item, 
 			if plain == "" || strings.TrimSpace(payload.HTML) == "" {
 				continue
 			}
-			return s.textItem(payload.HTML, plain, database.SubHTML, capture.MaxTextMB, source), nil
+			return s.textItem(payload.HTML, plain, database.SubHTML, capture.MaxTextMB, source, sensitive), nil
 		case settings.CaptureRTF:
 			if plain == "" || strings.TrimSpace(payload.RTF) == "" {
 				continue
 			}
-			return s.textItem(payload.RTF, plain, database.SubRTF, capture.MaxTextMB, source), nil
+			return s.textItem(payload.RTF, plain, database.SubRTF, capture.MaxTextMB, source, sensitive), nil
 		case settings.CaptureText:
 			if plain == "" {
 				continue
 			}
-			return s.textItem(plain, plain, "", capture.MaxTextMB, source), nil
+			return s.textItem(plain, plain, "", capture.MaxTextMB, source, sensitive), nil
 		}
 	}
 	return nil, nil
 }
 
-func (s *Service) textItem(content, plain string, sub database.SubKind, maxMB uint32, source SourceApp) *database.Item {
+func (s *Service) textItem(content, plain string, sub database.SubKind, maxMB uint32, source SourceApp, sensitive bool) *database.Item {
 	if exceeds(len(content), maxMB) {
 		return nil
 	}
@@ -128,6 +135,7 @@ func (s *Service) textItem(content, plain string, sub database.SubKind, maxMB ui
 		SearchText:  &search,
 		Summary:     summary,
 		Size:        &size,
+		IsSensitive: sensitive,
 		Platform:    "macos",
 	}
 	if sub != "" {

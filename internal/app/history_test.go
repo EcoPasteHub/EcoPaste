@@ -8,6 +8,7 @@ import (
 	"image/png"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/database"
@@ -38,6 +39,29 @@ func TestNeedsAccessibility(t *testing.T) {
 	}
 	if model.NeedsAccessibility(nil) {
 		t.Error("nil error asked for permission")
+	}
+}
+
+func TestHistoryItemRedactsSensitiveSummary(t *testing.T) {
+	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	summary := "sk-" + strings.Repeat("z", 32)
+	model := &historyModel{store: store}
+	row := model.historyItem(database.Item{Kind: database.KindText, Summary: &summary, IsSensitive: true})
+	if row.Title == summary || !strings.Contains(row.Title, "*") {
+		t.Errorf("title was not redacted: %q", row.Title)
+	}
+
+	if _, err := store.Update(map[string]any{
+		"clipboard": map[string]any{"sensitive": map[string]any{"redactSecrets": false}},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	row = model.historyItem(database.Item{Kind: database.KindText, Summary: &summary, IsSensitive: true})
+	if row.Title != summary {
+		t.Errorf("title = %q, want full summary", row.Title)
 	}
 }
 

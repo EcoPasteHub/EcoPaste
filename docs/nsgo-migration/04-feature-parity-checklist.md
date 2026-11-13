@@ -23,8 +23,8 @@
 | C-12 | P0 | 来源应用同步抓取 | `clipboard/source.rs` | 监听回调内取 frontmost app | 已通过 | 真机来源记录为 `com.openai.codex` |
 | C-13 | P1 | 来源应用图标 | `clipboard/icon.rs`、`app_store.rs` | `NSWorkspace` 取图标，PNG 缓存 | 待迁移 | 图标存在、去重、失效清理 |
 | C-14 | P0 | 忽略应用 | `Filters.excluded_app_ids` | bundle id 命中即跳过 | 已通过 | 默认排除密码类 App；`TestIgnoredAppIsNotCaptured` |
-| C-15 | P0 | 敏感内容识别 | `clipboard/secrets.rs` | 私钥、token、AWS key、JWT、标签 secret | 待迁移 | 固定样本矩阵 |
-| C-16 | P0 | 敏感内容策略 | `collectSecrets`、`redactSecrets` | 跳过或脱敏，日志不落原文 | 待迁移 | 两种策略分别验证 |
+| C-15 | P0 | 敏感内容识别 | `clipboard/secrets.rs` | 私钥、token、AWS key、JWT、标签 secret | 已通过 | `TestContainsSecret` 固定样本矩阵 |
+| C-16 | P0 | 敏感内容策略 | `collectSecrets`、`redactSecrets` | 跳过或脱敏，日志不落原文 | 迁移中 | `TestSecretCapturePolicy`；列表已脱敏，预览待接 |
 | C-17 | P0 | 回环抑制 | `clipboard/guard.rs` | 写回前登记 hash，2 秒 TTL | 已通过 | `TestWriteItemSuppressesItsOwnCapture` |
 | C-18 | P1 | 监听暂停 | `WatcherPause`、托盘 | 暂停期间跳过入库，watcher 不退出 | 迁移中 | 托盘菜单已接；待真机验证 |
 | C-19 | P2 | 复制音效 | `clipboard/sound.rs` | `AVAudioPlayer` 或 Go 音频库 | 待迁移 | 开关、静音、缺失文件 |

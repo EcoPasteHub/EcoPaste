@@ -100,6 +100,39 @@ func TestIgnoredAppIsNotCaptured(t *testing.T) {
 	}
 }
 
+func TestSecretCapturePolicy(t *testing.T) {
+	secret := "sk-" + strings.Repeat("z", 32)
+	ctx := context.Background()
+
+	cfg := settings.Default().Clipboard
+	cfg.Sensitive.CollectSecrets = false
+	svc, db, _ := testService(t, cfg)
+	if _, changed, err := svc.Capture(ctx, Payload{Text: secret}, SourceApp{}); err != nil || changed {
+		t.Fatalf("excluded secret: changed = %v err = %v", changed, err)
+	}
+	page, err := db.Page(ctx, database.Query{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if page.Total != 0 {
+		t.Errorf("excluded secret created %d rows", page.Total)
+	}
+
+	cfg.Sensitive.CollectSecrets = true
+	svc.Settings = func() settings.Clipboard { return cfg }
+	id, changed, err := svc.Capture(ctx, Payload{Text: secret}, SourceApp{})
+	if err != nil || !changed {
+		t.Fatalf("collected secret: changed = %v err = %v", changed, err)
+	}
+	item, err := db.FindByID(ctx, id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !item.IsSensitive {
+		t.Error("secret was not marked sensitive")
+	}
+}
+
 func TestCaptureOrderAndTypeSwitches(t *testing.T) {
 	cfg := settings.Default().Clipboard
 	cfg.Capture.Order = []settings.CaptureKind{settings.CaptureRTF, settings.CaptureHTML, settings.CaptureText}
