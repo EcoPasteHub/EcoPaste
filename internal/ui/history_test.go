@@ -124,3 +124,28 @@ func TestHideAfterActionRespectsPinnedPanel(t *testing.T) {
 		t.Error("hide request was invented")
 	}
 }
+
+func TestOpenSelectionAppliesCategoryAndGroup(t *testing.T) {
+	cases := []struct {
+		name    string
+		opening HistoryOpenBehavior
+		filter  string
+		group   string
+		want    [2]string
+	}{
+		{"category only", HistoryOpenBehavior{Filter: "image", GroupID: "preserve"}, "", "", [2]string{"image", ""}},
+		{"all groups keeps category", HistoryOpenBehavior{Filter: "image", GroupID: ""}, "", "work", [2]string{"image", ""}},
+		{"group wins over category", HistoryOpenBehavior{Filter: "image", GroupID: "work"}, "", "", [2]string{"", "work"}},
+		{"all groups clears group", HistoryOpenBehavior{Filter: "preserve", GroupID: ""}, "text", "work", [2]string{"text", ""}},
+		{"preserve keeps both", HistoryOpenBehavior{Filter: "preserve", GroupID: "preserve"}, "files", "work", [2]string{"files", "work"}},
+		{"all category clears filter", HistoryOpenBehavior{Filter: "", GroupID: "preserve"}, "image", "", [2]string{"", ""}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			filter, group := openSelection(tc.opening, tc.filter, tc.group)
+			if [2]string{filter, group} != tc.want {
+				t.Errorf("open selection = %q, %q; want %q, %q", filter, group, tc.want[0], tc.want[1])
+			}
+		})
+	}
+}

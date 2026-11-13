@@ -24,6 +24,25 @@ func groupExists(groups []GroupOption, id string) bool {
 	return false
 }
 
+// openSelection resolves the category and group the panel selects when it
+// opens. A configured group wins over a category; "all groups" clears only
+// the group so a category setting still applies.
+func openSelection(opening HistoryOpenBehavior, filter, group string) (string, string) {
+	nextFilter, nextGroup := filter, group
+	if opening.Filter != "preserve" {
+		nextFilter = opening.Filter
+	}
+	switch opening.GroupID {
+	case "preserve":
+	case "":
+		nextGroup = ""
+	default:
+		nextGroup = opening.GroupID
+		nextFilter = ""
+	}
+	return nextFilter, nextGroup
+}
+
 func historyRow(item HistoryItem) macos.HistoryRow {
 	title := strings.TrimSpace(item.Title)
 	if title == "" {

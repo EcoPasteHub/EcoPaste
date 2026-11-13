@@ -37,10 +37,15 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 			}
 		}
 
+		opening := HistoryOpenBehavior{Filter: "preserve", GroupID: "preserve"}
+		if model != nil {
+			opening = model.OpenBehavior()
+		}
+		initialFilter, initialGroup := openSelection(opening, "", "")
 		var (
 			query         string
-			filterValue   string
-			selectedGroup string
+			filterValue   = initialFilter
+			selectedGroup = initialGroup
 			selectedID    string
 			pinned        bool
 			scrollTop     atomic.Bool
@@ -354,8 +359,9 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 			return selectedID
 		}
 
-		load("", "", "", false)
-		loadGroups("", false)
+		filter.Set(initialFilter)
+		load("", initialFilter, initialGroup, false)
+		loadGroups(initialGroup, false)
 		if model != nil {
 			if state := model.Onboarding(); state.Active && state.Step == 4 {
 				detectLegacy()
@@ -515,28 +521,15 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 						detectLegacy()
 					}
 					opening := model.OpenBehavior()
-					changed := false
-					if opening.Filter != "preserve" {
-						filterValue = opening.Filter
-						selectedGroup = ""
-						filter.Set(opening.Filter)
-						group.Set("")
-						changed = true
+					nextFilter, nextGroup := openSelection(opening, filterValue, selectedGroup)
+					changed := nextFilter != filterValue || nextGroup != selectedGroup
+					if nextFilter != filterValue {
+						filterValue = nextFilter
+						filter.Set(nextFilter)
 					}
-					switch opening.GroupID {
-					case "preserve":
-					case "":
-						selectedGroup = ""
-						filterValue = ""
-						group.Set("")
-						filter.Set("")
-						changed = true
-					default:
-						selectedGroup = opening.GroupID
-						filterValue = ""
-						group.Set(selectedGroup)
-						filter.Set("")
-						changed = true
+					if nextGroup != selectedGroup {
+						selectedGroup = nextGroup
+						group.Set(nextGroup)
 					}
 					if opening.ScrollTop {
 						scrollTop.Store(true)
