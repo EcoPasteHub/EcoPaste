@@ -247,7 +247,7 @@ func registerHistoryTargets() {
 			}
 			return p.pasteboardWriter(p.rows[row])
 		}},
-		{Cmd: sel("tableView:draggingSession:willBeginAtPoint:forRowIndexes:"), Fn: func(_ objc.ID, _ objc.SEL, table, session objc.ID, _ CGPoint, _ objc.ID) {
+		{Cmd: sel("tableView:draggingSession:willBeginAtPoint:forRowIndexes:"), Fn: func(self objc.ID, _ objc.SEL, table, session objc.ID, _ CGPoint, _ objc.ID) {
 			p := panelsByTable[table]
 			if p == nil {
 				return
@@ -259,21 +259,24 @@ func registerHistoryTargets() {
 			p.dragging = true
 			p.hideHover()
 			p.appendDragFiles(session)
+			self.Send(sel("performSelector:withObject:afterDelay:"),
+				sel("checkDragFinished:"), table, 0.2)
 		}},
-		{Cmd: sel("tableView:draggingSession:endedAtPoint:operation:"), Fn: func(_ objc.ID, _ objc.SEL, table, _ objc.ID, _ CGPoint, _ uint64) {
+		{Cmd: sel("checkDragFinished:"), Fn: func(self objc.ID, _ objc.SEL, table objc.ID) {
 			p := panelsByTable[table]
-			if p == nil {
+			if p == nil || !p.dragging {
 				return
 			}
-			p.dragging = false
-			if p.pinned || p.onboardingActive || suppressPanelBlur.Load() {
+			pressed := objc.Send[uint64](objc.ID(class("NSEvent")), sel("pressedMouseButtons"))
+			if pressed != 0 {
+				self.Send(sel("performSelector:withObject:afterDelay:"),
+					sel("checkDragFinished:"), table, 0.1)
 				return
 			}
-			window := p.view.Send(sel("window"))
-			if window != 0 && objc.Send[bool](window, sel("isVisible")) &&
-				!objc.Send[bool](window, sel("isKeyWindow")) {
-				p.cx.Emit("blurHide", nil)
-			}
+			finishDrag(p, false)
+		}},
+		{Cmd: sel("tableView:draggingSession:endedAtPoint:operation:"), Fn: func(_ objc.ID, _ objc.SEL, table, _ objc.ID, _ CGPoint, operation uint64) {
+			finishDrag(panelsByTable[table], operation != 0)
 		}},
 		{Cmd: sel("tableView:willDisplayCell:forTableColumn:row:"), Fn: func(_ objc.ID, _ objc.SEL, table, _ objc.ID, _ objc.ID, row int64) {
 			p := panelsByTable[table]
@@ -324,6 +327,28 @@ func registerHistoryTargets() {
 		panic(err)
 	}
 	historyTarget = objc.ID(target).Send(sel("new"))
+}
+
+func finishDrag(p *Panel, accepted bool) {
+	if p == nil || !p.dragging {
+		return
+	}
+	p.dragging = false
+	window := p.view.Send(sel("window"))
+	if window == 0 {
+		return
+	}
+	visible := objc.Send[bool](window, sel("isVisible"))
+	key := objc.Send[bool](window, sel("isKeyWindow"))
+	app := objc.ID(class("NSApplication")).Send(sel("sharedApplication"))
+	active := objc.Send[bool](app, sel("isActive"))
+	if shouldHideAfterDrag(visible, accepted, key, active, p.pinned, p.onboardingActive, suppressPanelBlur.Load()) {
+		p.cx.Emit("blurHide", nil)
+	}
+}
+
+func shouldHideAfterDrag(visible, accepted, key, active, pinned, onboarding, suppressed bool) bool {
+	return visible && (accepted || !key || !active) && !pinned && !onboarding && !suppressed
 }
 
 func newHistoryTable(p *Panel) objc.ID {

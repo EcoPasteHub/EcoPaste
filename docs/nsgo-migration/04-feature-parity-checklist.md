@@ -94,7 +94,7 @@
 | A-09 | P1 | 打开链接/邮件 | `open_clipboard_item_link` | `NSWorkspace.open` | 已通过 | `TestOpenDispatchesBySubKind`；URL/路径条目右键菜单显示对应动作 |
 | A-10 | P1 | Finder 显示 | `reveal_clipboard_item` | `NSWorkspace.activateFileViewerSelecting` | 已通过 | `TestRevealFilesAndPath`；真机对路径条目执行后 Finder 选中目标目录 |
 | A-11 | P1 | 图片另存 | `save_clipboard_image_to_file` | `NSSavePanel`，默认文件名规则 | 已通过 | `TestSaveImageWritesChosenFile`；真机保存 3456×2234 PNG，文件头与尺寸校验通过 |
-| A-12 | P1 | 拖出文件 | `drag_out/macos.rs` | `NSTableView` 拖拽源 + file URL，多文件在 `willBegin` 一次性写入全部 URL | 已通过 | `TestDragOffersFiles`、`TestWriteDragFilesWritesEveryURL`；真机从面板拖出文件到 Finder 目标目录，落盘文件与源文件字节一致；多文件集合写入由单测覆盖 |
+| A-12 | P1 | 拖出文件 | `drag_out/macos.rs` | `NSTableView` 拖拽源 + file URL，多文件在 `willBegin` 一次性写入全部 URL | 已通过 | `TestDragOffersFiles`、`TestWriteDragFilesWritesEveryURL`；真机将双文件条目拖入 Finder 目标目录，两个落盘文件均与源文件 SHA-256 一致 |
 | A-13 | P1 | 拖出图片 | `drag_out/macos.rs` | 拖拽源写 `public.png` | 已通过 | `TestDragOffersImageBytes`；真机从面板拖出 128×128 PNG 到 TextEdit，文稿生成原生 `AXAttachment`，图片内容保留 |
 | A-14 | P1 | 拖出文本 | `drag_out/macos.rs` | plain/HTML/RTF 多表示同一 `NSPasteboardItem` | 已通过 | `TestDragOffersRichText`；真机将 HTML 条目拖入 TextEdit，明文与标记一致；辅助功能读取到粗体 Times Bold 与红色前景，证明富文本表示未被纯文本回退替换 |
 | A-15 | P1 | 备注编辑 | `NoteModal` | 原生备注弹窗，256 字符上限 | 已通过 | `TestEditNoteNormalizesAndAutoFavorites`、`TestEditNoteCancelAndClear`、`TestEditNoteLimitsLength`；保存/取消/空值/自动收藏已覆盖 |
@@ -111,7 +111,7 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | W-01 | P0 | 剪贴板面板 | `window/macos.rs` | `NSPanel`，非激活、可 key、置顶、无边框、透明 | 迁移中 | 原生面板、搜索、分类、列表与失焦隐藏已真机使用；NSGo 面板已设置 `canJoinAllSpaces` 与 `fullScreenAuxiliary`；多屏定位、负坐标屏幕和“可见区域小于面板”边界由 `TestPanelOrigin*` 覆盖；真实全屏 Space 与多屏切换待真机复核 |
 | W-02 | P0 | 窗口定位 | `window/position.rs` | 跟随鼠标/居中/记住位置 | 已通过 | 设置“面板打开位置”三档；真机 `osascript` 读取窗口 frame：居中 `654,217`、跟随光标 `300,393`（光标 `300,400`）、记住位置恢复 `654,217` |
-| W-03 | P0 | 失焦隐藏 | `window/macos.rs` | 自定义 resign-key 隐藏 + modal/固定窗口期间暂停 | 迁移中 | 真机切换 Finder 后隐藏；系统另存/备注弹窗期间保持；固定窗口保持可见；拖拽会话期间暂停失焦隐藏，结束后未获 key 则隐藏；跨应用拖放仍待真机复核 |
+| W-03 | P0 | 失焦隐藏 | `window/macos.rs` | 自定义 resign-key 隐藏 + modal/固定窗口期间暂停 | 已通过 | 真机切换 Finder 后隐藏；系统另存/备注弹窗期间保持；固定窗口保持可见；拖拽期间暂停失焦隐藏，拖放被接受后隐藏，取消拖拽保持；`TestShouldHideAfterDrag` 覆盖接受、取消、失 key、失活、固定、引导和抑制分支 |
 | W-04 | P0 | 固定窗口 | `set_clipboard_window_pinned` | 固定不隐藏；粘贴时 resign/restore key | 迁移中 | 原生按钮与 `P` 键切换已接；真机固定后失焦/复制均保持可见；粘贴 key 让出/恢复待授权后验收 |
 | W-05 | P1 | 窗口生命周期 | `window/lifecycle/*` | 原生窗口状态机，无 WebView 重建 | 已通过 | 冷启动不显示面板、全局快捷键显示/隐藏、隐藏后写 `window-state.json` 已实测；快捷键切换改为显式 `Show()`/`Hide()`，避免 Carbon 回调中的窗口命令未刷新；Esc 隐藏已复测；修复退出阶段热键清理阻塞主队列导致进程残留后，应用菜单退出、托盘“重新启动”与托盘“退出 EcoPaste”均真机通过：重启产生新进程，退出在 0.78 秒内结束且无残留 |
 | W-06 | P1 | 窗口几何持久化 | `window/state.rs` | 同 `state/window-state.json` | 已通过（格式调整） | 隐藏时写入 `clipboard` 帧并重启恢复；旧版存物理像素、左上原点，新版存 AppKit points、左下原点，JSON 字段与路径不变；旧坐标不在任一屏幕时回退到光标所在屏幕居中 |

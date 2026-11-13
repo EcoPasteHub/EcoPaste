@@ -34,3 +34,34 @@ func TestWriteDragFilesWritesEveryURL(t *testing.T) {
 		}
 	}
 }
+
+func TestShouldHideAfterDrag(t *testing.T) {
+	cases := []struct {
+		name       string
+		visible    bool
+		accepted   bool
+		key        bool
+		active     bool
+		pinned     bool
+		onboarding bool
+		suppressed bool
+		want       bool
+	}{
+		{name: "accepted external drop", visible: true, accepted: true, key: true, active: true, want: true},
+		{name: "inactive app", visible: true, key: true, want: true},
+		{name: "cancelled drag", visible: true, key: true, active: true},
+		{name: "window lost key", visible: true, active: true, want: true},
+		{name: "hidden panel"},
+		{name: "pinned panel", visible: true, accepted: true, key: true, active: true, pinned: true},
+		{name: "onboarding panel", visible: true, accepted: true, key: true, active: true, onboarding: true},
+		{name: "suppressed panel", visible: true, accepted: true, key: true, active: true, suppressed: true},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := shouldHideAfterDrag(tc.visible, tc.accepted, tc.key, tc.active, tc.pinned, tc.onboarding, tc.suppressed)
+			if got != tc.want {
+				t.Errorf("shouldHideAfterDrag() = %v, want %v", got, tc.want)
+			}
+		})
+	}
+}
