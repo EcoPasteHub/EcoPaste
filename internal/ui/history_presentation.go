@@ -30,6 +30,9 @@ func historyRow(item HistoryItem) macos.HistoryRow {
 		title = kindName(item.Kind)
 	}
 	detail := make([]string, 0, 4)
+	if item.FileSummary != "" {
+		detail = append(detail, item.FileSummary)
+	}
 	if item.SourceApp != "" {
 		detail = append(detail, item.SourceApp)
 	}

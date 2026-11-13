@@ -154,7 +154,7 @@ func (m *historyModel) Preview(ctx context.Context, id string) (ui.HistoryPrevie
 	}
 	redact := item.IsSensitive && m.store.Snapshot().Clipboard.Sensitive.RedactSecrets
 	preview := ui.HistoryPreview{Enabled: true}
-	preview.Meta = previewMeta(item)
+	preview.Meta = previewMeta(item, "")
 	switch item.Kind {
 	case database.KindImage:
 		preview.Title = "图片"
@@ -164,8 +164,17 @@ func (m *historyModel) Preview(ctx context.Context, id string) (ui.HistoryPrevie
 		preview.ImagePath = m.runtime.images.OriginPath(item.Content)
 	case database.KindFiles:
 		files := clipboard.DecodeFiles(item.Content)
-		preview.Title = ui.FileTitle(files, 3)
-		preview.Text = strings.Join(files, "\n")
+		entries := describeFileEntries(files, item.FileTypes, filePreviewEntryLimit)
+		if len(entries) == 1 {
+			preview.Title = entries[0].Name
+		} else {
+			preview.Title = fmt.Sprintf("%d 个文件", len(files))
+		}
+		preview.Meta = previewMeta(item, fileSummary(entries, len(files)))
+		preview.Text = filePreviewText(entries, len(files))
+		if len(entries) == 1 && entries[0].Exists && entries[0].IsImage {
+			preview.ImagePath = entries[0].Path
+		}
 	default:
 		preview.Title = "文本"
 		if item.Summary != nil {
@@ -187,8 +196,11 @@ func previewText(item *database.Item) string {
 	return item.Content
 }
 
-func previewMeta(item *database.Item) string {
-	parts := []string{kindLabel(item.Kind)}
+func previewMeta(item *database.Item, leading string) string {
+	parts := []string{leading}
+	if leading == "" {
+		parts[0] = kindLabel(item.Kind)
+	}
 	if item.SubKind != nil {
 		switch *item.SubKind {
 		case database.SubHTML:
@@ -301,8 +313,13 @@ func (m *historyModel) historyItem(ctx context.Context, item database.Item) ui.H
 	case database.KindFiles:
 		files := clipboard.DecodeFiles(item.Content)
 		row.Title = ui.FileTitle(files, 3)
-		if len(files) > 0 && m.runtime.fileIconCache != nil {
-			row.ImagePath = m.runtime.fileIconCache.Path(ctx, files[0], fileTypeAt(item.FileTypes, 0))
+		entries := describeFileEntries(files, item.FileTypes, fileRowEntryLimit)
+		row.FileSummary = fileSummary(entries, len(files))
+		if len(files) == 1 && len(entries) == 1 && !entries[0].Exists {
+			row.Title += "（已丢失）"
+		}
+		if len(entries) > 0 && m.runtime.fileIconCache != nil {
+			row.ImagePath = m.runtime.fileIconCache.Path(ctx, entries[0].Path, entries[0].IsDir)
 		}
 	}
 	return row

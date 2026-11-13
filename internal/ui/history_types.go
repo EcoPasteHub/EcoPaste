@@ -15,6 +15,7 @@ type HistoryItem struct {
 	Title         string
 	SourceApp     string
 	SourceAppIcon string
+	FileSummary   string
 	Note          string
 	ImagePath     string
 	CreatedAt     time.Time

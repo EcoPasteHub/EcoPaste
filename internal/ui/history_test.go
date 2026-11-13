@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"strings"
 	"testing"
 	"time"
 )
@@ -52,6 +53,19 @@ func TestFileTitleLimitsNames(t *testing.T) {
 	got := FileTitle([]string{"/tmp/a.txt", "/tmp/b.txt", "/tmp/c.txt"}, 2)
 	if got != "a.txt、b.txt 等 3 个" {
 		t.Errorf("title = %q", got)
+	}
+}
+
+func TestHistoryRowIncludesFileSummary(t *testing.T) {
+	row := historyRow(HistoryItem{
+		ID:          "1",
+		Kind:        "files",
+		Title:       "report.pdf",
+		FileSummary: "PDF · 2.0 KB",
+		CreatedAt:   time.Now(),
+	})
+	if !strings.HasPrefix(row.Detail, "PDF · 2.0 KB · 刚刚") {
+		t.Errorf("detail = %q", row.Detail)
 	}
 }
 

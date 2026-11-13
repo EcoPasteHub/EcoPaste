@@ -74,8 +74,8 @@
 | P-05 | P1 | 列表摘要 | `ingest.rs` | trim 后最多 256 字符 | 已通过 | `summarize` + `TestPageStripsTextContent` |
 | P-06 | P1 | 列表内容裁剪 | `commands/clipboard.rs` | 列表不返回完整 HTML/RTF content | 已通过 | `Page` 对 text 行返回空 content |
 | P-07 | P1 | 图片缩略图 | `storage.rs` | 最长边 300px，缺失时懒生成 | 已通过 | `TestImageStoreCreatesBoundedThumbnail`、`TestEnsureThumbnailBackfillsMissingFile`；真机 3456×2234 截图使用 300×193 缩略图 |
-| P-08 | P1 | 文件条目 | `commands/clipboard.rs` | 路径、名称、目录/图片标记、存在性、大小 | 待迁移 | 单文件/多文件/丢失文件 |
-| P-09 | P1 | 文件预览模式 | `FilesPreviewKind` | 单图片走图片预览，其余列表 | 待迁移 | 三种组合 |
+| P-08 | P1 | 文件条目 | `commands/clipboard.rs` | 路径、名称、目录/图片标记、存在性、大小 | 已通过 | `TestDescribeFileEntries`；真机列表显示 PDF/TXT/图片大小与“已丢失” |
+| P-09 | P1 | 文件预览模式 | `FilesPreviewKind` | 单图片走图片预览，其余列表 | 已通过 | 单图片、单非图片、多文件测试覆盖；真机图片文件 Space 预览通过 |
 | P-10 | P1 | 预览窗口 | `window/preview.rs`、`pages/Preview` | 面板内预览视图，Space/Esc，文本/图片/文件 | 已通过 | 真机文本/图片预览与 Esc 返回；产品调整记录在迁移计划 |
 | P-11 | P2 | HTML/RTF 富文本预览 | 当前只用纯文本摘要 | `NSAttributedString` + `NSTextView`（增强项） | 待迁移 | 与旧版行为差异需记录 |
 
