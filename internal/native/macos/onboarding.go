@@ -15,9 +15,30 @@ type PanelOnboarding struct {
 	OpenShortcut       string
 	PreferenceShortcut string
 	ExcludedApps       int
+	Legacy             PanelLegacy
 }
 
-const onboardingStepCount = 5
+// PanelLegacy is the v0.6 import step's detected state.
+type PanelLegacy struct {
+	Scanning            bool
+	Importing           bool
+	Found               bool
+	Path                string
+	ImportableItemCount int
+	NormalItemCount     int
+	FavoriteItemCount   int
+	Imported            bool
+	ImportedNormal      int
+	ImportedFavorite    int
+	Skipped             int
+	Error               string
+}
+
+const (
+	onboardingStepCount  = 6
+	onboardingLegacyStep = 4
+	onboardingDoneStep   = 5
+)
 
 var (
 	onboardingViewClass objc.Class
@@ -66,6 +87,15 @@ func (p *Panel) buildOnboarding() {
 	view.Send(sel("addSubview:"), p.onboardingShortcutOpen)
 	view.Send(sel("addSubview:"), p.onboardingShortcutPreference)
 
+	p.onboardingLegacyNormal = onboardingCheckbox("普通记录", "onboardingLegacyNormalPressed:")
+	p.onboardingLegacyFavorite = onboardingCheckbox("收藏记录", "onboardingLegacyFavoritePressed:")
+	p.onboardingLegacyNormalOn = true
+	p.onboardingLegacyFavoriteOn = true
+	p.onboardingLegacyNormal.Send(sel("setState:"), int64(1))
+	p.onboardingLegacyFavorite.Send(sel("setState:"), int64(1))
+	view.Send(sel("addSubview:"), p.onboardingLegacyNormal)
+	view.Send(sel("addSubview:"), p.onboardingLegacyFavorite)
+
 	p.onboardingNote = onboardingLabel(11, false)
 	p.onboardingNote.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
 	p.onboardingNote.Send(sel("setMaximumNumberOfLines:"), int64(3))
@@ -84,6 +114,7 @@ func (p *Panel) buildOnboarding() {
 
 	for _, button := range []objc.ID{
 		p.onboardingAccessibilityButton, p.onboardingFullDiskButton,
+		p.onboardingLegacyNormal, p.onboardingLegacyFavorite,
 		p.onboardingBack, p.onboardingExtra, p.onboardingNext,
 	} {
 		panelsByControl[button] = p
@@ -108,6 +139,14 @@ func onboardingButton(title, action string) objc.ID {
 	button := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
 		nsString(title), searchTarget, sel(action))
 	button.Send(sel("setBezelStyle:"), int64(1))
+	button.Send(sel("setFont:"), systemFont(12))
+	return button
+}
+
+func onboardingCheckbox(title, action string) objc.ID {
+	button := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
+		nsString(title), searchTarget, sel(action))
+	button.Send(sel("setButtonType:"), int64(3))
 	button.Send(sel("setFont:"), systemFont(12))
 	return button
 }
@@ -173,6 +212,9 @@ func (p *Panel) applyOnboardingText() {
 	p.onboardingFullDiskButton.Send(sel("setHidden:"), true)
 	p.onboardingShortcutOpen.Send(sel("setHidden:"), true)
 	p.onboardingShortcutPreference.Send(sel("setHidden:"), true)
+	p.onboardingLegacyNormal.Send(sel("setHidden:"), true)
+	p.onboardingLegacyFavorite.Send(sel("setHidden:"), true)
+	p.onboardingNext.Send(sel("setEnabled:"), true)
 	p.onboardingBody.Send(sel("setHidden:"), false)
 	p.onboardingNote.Send(sel("setHidden:"), true)
 
@@ -216,11 +258,98 @@ func (p *Panel) applyOnboardingText() {
 		p.onboardingExtra.Send(sel("setTitle:"), nsString("管理应用"))
 		p.onboardingExtra.Send(sel("setHidden:"), false)
 	case 4:
+		p.applyLegacyText()
+	case 5:
 		p.onboardingTitle.Send(sel("setStringValue:"), nsString("准备就绪"))
 		p.onboardingDetail.Send(sel("setStringValue:"), nsString("EcoPaste 已在菜单栏运行。"))
 		p.onboardingBody.Send(sel("setStringValue:"), nsString(
 			"按快捷键打开面板，双击或回车即可粘贴到当前应用。\n\n如果自动粘贴没有生效，请回到上一步的权限设置检查辅助功能授权。"))
 	}
+}
+
+func (p *Panel) applyLegacyText() {
+	legacy := p.onboardingData.Legacy
+	p.onboardingTitle.Send(sel("setStringValue:"), nsString("导入旧版数据"))
+	p.onboardingDetail.Send(sel("setStringValue:"), nsString("把旧版 EcoPaste 的历史记录带到新版本。"))
+	p.onboardingBody.Send(sel("setHidden:"), false)
+	p.onboardingNote.Send(sel("setHidden:"), false)
+	p.onboardingExtra.Send(sel("setHidden:"), true)
+	p.onboardingNext.Send(sel("setTitle:"), nsString("继续"))
+	p.onboardingNext.Send(sel("setEnabled:"), true)
+
+	showOptions := legacy.Found && legacy.ImportableItemCount > 0 && !legacy.Imported
+	if showOptions {
+		p.onboardingLegacyNormal.Send(sel("setTitle:"),
+			nsString(fmt.Sprintf("普通记录（%d 条）", legacy.NormalItemCount)))
+		p.onboardingLegacyFavorite.Send(sel("setTitle:"),
+			nsString(fmt.Sprintf("收藏记录（%d 条）", legacy.FavoriteItemCount)))
+		p.onboardingLegacyNormal.Send(sel("setState:"), boolInt(p.onboardingLegacyNormalOn))
+		p.onboardingLegacyFavorite.Send(sel("setState:"), boolInt(p.onboardingLegacyFavoriteOn))
+	}
+
+	switch {
+	case legacy.Importing:
+		p.onboardingBody.Send(sel("setStringValue:"), nsString("正在导入，请稍候…"))
+		p.onboardingNote.Send(sel("setStringValue:"), nsString("导入过程中请保持 EcoPaste 运行。"))
+		p.onboardingNext.Send(sel("setTitle:"), nsString("正在导入…"))
+		p.onboardingNext.Send(sel("setEnabled:"), false)
+	case legacy.Scanning:
+		p.onboardingBody.Send(sel("setStringValue:"), nsString("正在扫描旧版数据…"))
+		p.onboardingNote.Send(sel("setStringValue:"), nsString("只会读取旧版数据库，不会修改原数据。"))
+		p.onboardingNext.Send(sel("setTitle:"), nsString("正在扫描…"))
+		p.onboardingNext.Send(sel("setEnabled:"), false)
+	case legacy.Imported:
+		body := fmt.Sprintf("已导入 %d 条普通记录和 %d 条收藏记录。",
+			legacy.ImportedNormal, legacy.ImportedFavorite)
+		if legacy.Skipped > 0 {
+			body += fmt.Sprintf("\n\n有 %d 条记录因重复或内容无效被跳过。", legacy.Skipped)
+		}
+		p.onboardingBody.Send(sel("setStringValue:"), nsString(body))
+		p.onboardingNote.Send(sel("setStringValue:"), nsString("导入的记录会出现在剪贴板列表中，原有的分组与使用次数不会迁移。"))
+	case legacy.Error != "":
+		p.onboardingBody.Send(sel("setStringValue:"), nsString("导入没有完成："+legacy.Error))
+		p.onboardingNote.Send(sel("setStringValue:"), nsString("可以重试，或跳过这一步稍后再导入。"))
+		if showOptions {
+			p.onboardingLegacyNormal.Send(sel("setHidden:"), false)
+			p.onboardingLegacyFavorite.Send(sel("setHidden:"), false)
+			p.onboardingExtra.Send(sel("setTitle:"), nsString("跳过"))
+			p.onboardingExtra.Send(sel("setHidden:"), false)
+			p.onboardingNext.Send(sel("setTitle:"), nsString("重试"))
+		}
+	case showOptions:
+		p.onboardingBody.Send(sel("setStringValue:"), nsString(fmt.Sprintf(
+			"在 %s 找到 %d 条可导入记录。", legacy.Path, legacy.ImportableItemCount)))
+		p.onboardingNote.Send(sel("setStringValue:"), nsString(
+			"导入会沿用当前采集与敏感内容设置；重复和无效记录会自动跳过。"))
+		p.onboardingLegacyNormal.Send(sel("setHidden:"), false)
+		p.onboardingLegacyFavorite.Send(sel("setHidden:"), false)
+		p.onboardingExtra.Send(sel("setTitle:"), nsString("跳过"))
+		p.onboardingExtra.Send(sel("setHidden:"), false)
+		p.onboardingNext.Send(sel("setTitle:"), nsString("导入并继续"))
+		p.updateLegacyNext()
+	case legacy.Found:
+		p.onboardingBody.Send(sel("setStringValue:"), nsString("找到旧版数据目录，但没有可导入的记录。"))
+		p.onboardingNote.Send(sel("setStringValue:"), nsString("继续即可完成引导。"))
+	default:
+		p.onboardingBody.Send(sel("setStringValue:"), nsString("未发现旧版数据。"))
+		p.onboardingNote.Send(sel("setStringValue:"), nsString("如果你是首次使用 EcoPaste，可以直接继续。"))
+	}
+}
+
+func (p *Panel) updateLegacyNext() {
+	if p.onboardingStep != onboardingLegacyStep {
+		return
+	}
+	legacy := p.onboardingData.Legacy
+	if legacy.Scanning || legacy.Importing {
+		p.onboardingNext.Send(sel("setEnabled:"), false)
+		return
+	}
+	enabled := true
+	if legacy.Found && legacy.ImportableItemCount > 0 && !legacy.Imported {
+		enabled = p.onboardingLegacyNormalOn || p.onboardingLegacyFavoriteOn
+	}
+	p.onboardingNext.Send(sel("setEnabled:"), enabled)
 }
 
 func onboardingShortcut(value string) string {
@@ -263,7 +392,24 @@ func onboardingPermissionText(granted bool) string {
 }
 
 func (p *Panel) onboardingAdvance() {
-	if p.onboardingStep >= onboardingStepCount-1 {
+	if p.onboardingStep == onboardingLegacyStep {
+		legacy := p.onboardingData.Legacy
+		if !legacy.Imported && !legacy.Scanning && !legacy.Importing &&
+			legacy.Found && legacy.ImportableItemCount > 0 {
+			var types []string
+			if p.onboardingLegacyNormalOn {
+				types = append(types, "normal")
+			}
+			if p.onboardingLegacyFavoriteOn {
+				types = append(types, "favorite")
+			}
+			if len(types) > 0 {
+				p.cx.Emit("legacyImport", types)
+			}
+			return
+		}
+	}
+	if p.onboardingStep >= onboardingDoneStep {
 		p.cx.Emit("onboardingFinish", nil)
 		return
 	}
@@ -281,6 +427,15 @@ func (p *Panel) onboardingPrev() {
 	p.cx.Emit("onboardingStep", p.onboardingStep)
 }
 
+func (p *Panel) onboardingSkipLegacy() {
+	if p.onboardingStep != onboardingLegacyStep {
+		return
+	}
+	p.onboardingStep++
+	p.applyOnboardingText()
+	p.cx.Emit("onboardingStep", p.onboardingStep)
+}
+
 func (p *Panel) layoutOnboarding(width, height float64) {
 	if p.onboardingView == 0 {
 		return
@@ -290,7 +445,11 @@ func (p *Panel) layoutOnboarding(width, height float64) {
 	setFrame(p.onboardingView, 0, 0, width, height)
 	setFrame(p.onboardingTitle, pad, height-pad-34, width-2*pad, 34)
 	setFrame(p.onboardingDetail, pad, height-pad-34-6-36, width-2*pad, 36)
-	setFrame(p.onboardingBody, pad, 160, width-2*pad, 240)
+	if p.onboardingStep == onboardingLegacyStep {
+		setFrame(p.onboardingBody, pad, 300, width-2*pad, 130)
+	} else {
+		setFrame(p.onboardingBody, pad, 160, width-2*pad, 240)
+	}
 
 	rowWidth := width - 2*pad - 116
 	setFrame(p.onboardingAccessibility, pad, 330, rowWidth, 22)
@@ -301,6 +460,8 @@ func (p *Panel) layoutOnboarding(width, height float64) {
 
 	setFrame(p.onboardingShortcutOpen, pad, 330, width-2*pad, 22)
 	setFrame(p.onboardingShortcutPreference, pad, 296, width-2*pad, 22)
+	setFrame(p.onboardingLegacyNormal, pad+2, 262, width-2*pad, 24)
+	setFrame(p.onboardingLegacyFavorite, pad+2, 232, width-2*pad, 24)
 
 	setFrame(p.onboardingProgress, pad, 30, 120, 18)
 	setFrame(p.onboardingNext, width-pad-110, 24, 110, buttonHeight)

@@ -269,9 +269,10 @@ internal/native/macos/
    - `.tmp` + rename 原子写。
    - 7 个偏好 Tab 的设置项、搜索、高亮定位。
 2. 引导：
-   - Welcome → Permissions → Shortcuts → Ignore Apps → Done，共 5 步；旧版数据导入单独立项（D-24），完成后再决定是否作为引导步骤。
+   - Welcome → Permissions → Shortcuts → Ignore Apps → Legacy Import → Done，共 6 步；未检测到旧版数据时导入步骤只显示空状态。
    - 引导使用面板内原生浮层而不是独立窗口，避免额外窗口抢焦点；期间暂停失焦隐藏，打开系统设置授权后仍可回到原步骤。
    - 快捷键与应用步骤可直接打开设置对应 Tab，已打开的设置窗口也会同步切换。
+   - 旧版导入只读扫描 v0.6 数据目录，可选择普通/收藏记录；导入结果留在步骤内展示，点击继续后才结束引导。
    - `lastStep` 持久化、可回退、完成后恢复面板列表与搜索焦点。
 3. 权限：
    - 辅助功能、完全磁盘访问、通知（如使用）。

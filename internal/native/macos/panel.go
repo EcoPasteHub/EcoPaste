@@ -55,6 +55,10 @@ type Panel struct {
 	onboardingFullDiskButton      objc.ID
 	onboardingShortcutOpen        objc.ID
 	onboardingShortcutPreference  objc.ID
+	onboardingLegacyNormal        objc.ID
+	onboardingLegacyFavorite      objc.ID
+	onboardingLegacyNormalOn      bool
+	onboardingLegacyFavoriteOn    bool
 	onboardingNote                objc.ID
 	onboardingBack                objc.ID
 	onboardingExtra               objc.ID
@@ -345,9 +349,32 @@ func registerPanelTargets() {
 				}
 			}},
 			{Cmd: sel("onboardingExtraPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
-				if p := panelsByControl[sender]; p != nil {
-					p.cx.Emit("openSettings", onboardingSettingsTab(p.onboardingStep))
+				p := panelsByControl[sender]
+				if p == nil {
+					return
 				}
+				switch p.onboardingStep {
+				case 2, 3:
+					p.cx.Emit("openSettings", onboardingSettingsTab(p.onboardingStep))
+				case onboardingLegacyStep:
+					p.onboardingSkipLegacy()
+				}
+			}},
+			{Cmd: sel("onboardingLegacyNormalPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
+				p := panelsByControl[sender]
+				if p == nil {
+					return
+				}
+				p.onboardingLegacyNormalOn = objc.Send[int64](sender, sel("state")) == 1
+				p.updateLegacyNext()
+			}},
+			{Cmd: sel("onboardingLegacyFavoritePressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
+				p := panelsByControl[sender]
+				if p == nil {
+					return
+				}
+				p.onboardingLegacyFavoriteOn = objc.Send[int64](sender, sel("state")) == 1
+				p.updateLegacyNext()
 			}},
 			{Cmd: sel("onboardingPermissionPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
 				if objc.Send[int64](sender, sel("tag")) == 0 {
@@ -517,6 +544,7 @@ func (p *Panel) Close() {
 	}
 	for _, button := range []objc.ID{
 		p.onboardingAccessibilityButton, p.onboardingFullDiskButton,
+		p.onboardingLegacyNormal, p.onboardingLegacyFavorite,
 		p.onboardingBack, p.onboardingExtra, p.onboardingNext,
 	} {
 		delete(panelsByControl, button)

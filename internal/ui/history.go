@@ -19,11 +19,13 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 		errorText := core.NewSignal(cx, "")
 		hasMore := core.NewSignal(cx, false)
 		preview := core.NewSignal(cx, macos.PreviewContent{})
+		legacy := core.NewSignal(cx, LegacyDetection{})
 		groups := core.NewSignalFunc(cx, []macos.GroupOption(nil), nil)
 		filter := core.NewSignal(cx, "")
 		group := core.NewSignal(cx, "")
 		ref := &core.Ref{}
 		behavior := macos.PanelBehavior{}
+		ctx := cx.Context()
 		if model != nil {
 			search := model.SearchBehavior()
 			behavior = macos.PanelBehavior{DefaultFocus: search.DefaultFocus, ClearOnHide: search.ClearOnHide}
@@ -302,6 +304,24 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 		}
 
 		var pendingSearch func() bool
+		legacyRequested := false
+		detectLegacy := func() {
+			if model == nil || legacyRequested {
+				return
+			}
+			legacyRequested = true
+			legacy.Set(LegacyDetection{Scanning: true})
+			go func() {
+				detection, err := model.DetectLegacy(ctx)
+				cx.Post(func() {
+					if err != nil {
+						legacy.Set(LegacyDetection{Error: err.Error()})
+						return
+					}
+					legacy.Set(detection)
+				})
+			}()
+		}
 		cx.Cleanup(func() {
 			if pendingSearch != nil {
 				pendingSearch()
@@ -328,6 +348,11 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 
 		load("", "", "", false)
 		loadGroups("", false)
+		if model != nil {
+			if state := model.Onboarding(); state.Active && state.Step == 4 {
+				detectLegacy()
+			}
+		}
 		if model != nil {
 			if updates := model.Updates(); updates != nil {
 				ctx := cx.Context()
@@ -363,12 +388,27 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 					}
 					actions = model.QuickActions()
 					state := model.Onboarding()
+					legacyState := legacy.Get()
 					onboarding = macos.PanelOnboarding{
 						Active:             state.Active,
 						Step:               state.Step,
 						OpenShortcut:       state.OpenShortcut,
 						PreferenceShortcut: state.PreferenceShortcut,
 						ExcludedApps:       state.ExcludedApps,
+						Legacy: macos.PanelLegacy{
+							Scanning:            legacyState.Scanning,
+							Importing:           legacyState.Importing,
+							Found:               legacyState.Found,
+							Path:                legacyState.Path,
+							ImportableItemCount: legacyState.ImportableItemCount,
+							NormalItemCount:     legacyState.NormalItemCount,
+							FavoriteItemCount:   legacyState.FavoriteItemCount,
+							Imported:            legacyState.Imported,
+							ImportedNormal:      legacyState.ImportedNormal,
+							ImportedFavorite:    legacyState.ImportedFavorite,
+							Skipped:             legacyState.Skipped,
+							Error:               legacyState.Error,
+						},
 					}
 				}
 				return map[string]any{
@@ -398,6 +438,9 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 					if !ok {
 						return
 					}
+					if step == 4 {
+						detectLegacy()
+					}
 					go func() {
 						err := model.SaveOnboarding(step, false)
 						cx.Post(func() {
@@ -412,12 +455,42 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 						return
 					}
 					go func() {
-						err := model.SaveOnboarding(4, true)
+						err := model.SaveOnboarding(5, true)
 						cx.Post(func() {
 							if err != nil {
 								errorText.Set(err.Error())
 							}
 							reload()
+						})
+					}()
+				case "legacyImport":
+					if model == nil {
+						return
+					}
+					types, _ := data.([]string)
+					state := legacy.Get()
+					if state.Importing {
+						return
+					}
+					state.Scanning = false
+					state.Importing = true
+					state.Error = ""
+					legacy.Set(state)
+					go func() {
+						result, err := model.ImportLegacy(ctx, types)
+						cx.Post(func() {
+							next := legacy.Get()
+							next.Importing = false
+							if err != nil {
+								next.Error = err.Error()
+								legacy.Set(next)
+								return
+							}
+							next.Imported = true
+							next.ImportedNormal = result.ImportedNormal
+							next.ImportedFavorite = result.ImportedFavorite
+							next.Skipped = result.Skipped
+							legacy.Set(next)
 						})
 					}()
 				case "openSettings":
@@ -428,6 +501,9 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 				case "opened":
 					if model == nil {
 						return
+					}
+					if state := model.Onboarding(); state.Active && state.Step == 4 {
+						detectLegacy()
 					}
 					opening := model.OpenBehavior()
 					changed := false

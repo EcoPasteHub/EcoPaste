@@ -41,10 +41,10 @@ func TestOnboardingFinishAndClamp(t *testing.T) {
 		t.Fatal(err)
 	}
 	snapshot := store.Snapshot().Onboarding
-	if !snapshot.Completed || snapshot.LastStep != 4 {
+	if !snapshot.Completed || snapshot.LastStep != 5 {
 		t.Errorf("onboarding = %+v", snapshot)
 	}
-	if data := model.Onboarding(); data.Active || data.Step != 4 {
+	if data := model.Onboarding(); data.Active || data.Step != 5 {
 		t.Errorf("onboarding = %+v", data)
 	}
 }
