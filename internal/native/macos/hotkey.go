@@ -172,6 +172,12 @@ func (m *HotKeyManager) HasErrors() bool {
 
 // Close unregisters every shortcut this manager owns.
 func (m *HotKeyManager) Close() {
+	m.mu.Lock()
+	empty := len(m.bound) == 0
+	m.mu.Unlock()
+	if empty {
+		return
+	}
 	_ = m.Set(nil)
 }
 

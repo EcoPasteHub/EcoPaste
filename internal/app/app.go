@@ -49,7 +49,7 @@ func Run(app *core.Scope) {
 	var settingsWindow *desktop.Window
 	var rebuildPanel func()
 	hotKeys := macos.NewHotKeyManager()
-	app.Cleanup(hotKeys.Close)
+	app.OnQuit(func(context.Context) { hotKeys.Close() })
 	var store *settings.Store
 	var windowState *storage.WindowState
 	if paths, err := storage.Default(); err != nil {
