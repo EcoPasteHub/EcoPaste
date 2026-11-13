@@ -66,6 +66,7 @@ type SettingsValues struct {
 	ItemActionOrder        []string
 	OpenClipboardShortcut  string
 	OpenPreferenceShortcut string
+	SpacePreview           bool
 }
 
 // SettingsApp is one row in the source application filter list.
@@ -155,6 +156,7 @@ var settingsTabTitles = map[string]string{
 	"interaction": "交互",
 	"deletion":    "删除",
 	"shortcuts":   "快捷键",
+	"preview":     "预览",
 }
 
 var (
@@ -179,6 +181,7 @@ var settingsTabIdentifiers = map[string]struct{}{
 	"interaction": {},
 	"deletion":    {},
 	"shortcuts":   {},
+	"preview":     {},
 }
 
 // SelectSettingsTab shows the named tab when the settings window is open,
@@ -242,6 +245,7 @@ func NewSettings(cx *core.NativeContext) core.NativeComponent {
 	v.buildPermissions()
 	v.buildApps()
 	v.buildShortcuts()
+	v.buildPreview()
 	v.buildSearch()
 	settingsTabMu.Lock()
 	settingsOpenViews[v] = struct{}{}
@@ -405,6 +409,18 @@ func (v *SettingsView) buildHistory() {
 		func(s SettingsValues) bool { return s.CollectSecrets })
 	v.addSwitch(content, y-176, "脱敏显示", "sensitive.redactSecrets",
 		func(s SettingsValues) bool { return s.RedactSecrets })
+}
+
+func (v *SettingsView) buildPreview() {
+	content := v.newTab("preview", "预览")
+	intro := objc.ID(classNSTextField).Send(sel("labelWithString:"),
+		nsString("Space 打开选中项预览，Esc 返回。悬停预览按迁移计划不提供给原生面板。"))
+	intro.Send(sel("setFont:"), systemFont(11))
+	intro.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
+	intro.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 438}, Size: CGSize{Width: tabContentW - 48, Height: 18}})
+	content.Send(sel("addSubview:"), intro)
+	v.addSwitch(content, 396, "Space 预览选中项", "preview.spaceEnabled",
+		func(s SettingsValues) bool { return s.SpacePreview })
 }
 
 func (v *SettingsView) buildPermissions() {

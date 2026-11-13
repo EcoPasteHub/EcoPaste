@@ -119,6 +119,14 @@ func (m *historyModel) SearchBehavior() ui.HistorySearchBehavior {
 	return ui.HistorySearchBehavior{DefaultFocus: search.DefaultFocus, ClearOnHide: search.ClearOnHide}
 }
 
+func (m *historyModel) PreviewBehavior() ui.HistoryPreviewBehavior {
+	preview := settings.Default().Clipboard.Preview
+	if m.store != nil {
+		preview = m.store.Snapshot().Clipboard.Preview
+	}
+	return ui.HistoryPreviewBehavior{SpaceEnabled: preview.SpaceEnabled}
+}
+
 // Display reports the clamped list density, so a hand-edited settings
 // file cannot produce rows without text.
 func (m *historyModel) Display() ui.HistoryDisplay {

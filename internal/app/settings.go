@@ -93,6 +93,7 @@ func (m *settingsModel) Load() macos.SettingsValues {
 		ItemActionOrder:        actionValues(resolvedActionOrder(cfg.Content.ItemActionOrder)),
 		OpenClipboardShortcut:  snapshot.Shortcuts.OpenClipboard,
 		OpenPreferenceShortcut: snapshot.Shortcuts.OpenPreference,
+		SpacePreview:           cfg.Preview.SpaceEnabled,
 	}
 }
 
@@ -418,6 +419,7 @@ var settingsPaths = map[string][]string{
 	"history.cleanupIntervalHours":  {"clipboard", "history", "cleanupIntervalHours"},
 	"sensitive.collectSecrets":      {"clipboard", "sensitive", "collectSecrets"},
 	"sensitive.redactSecrets":       {"clipboard", "sensitive", "redactSecrets"},
+	"preview.spaceEnabled":          {"clipboard", "preview", "spaceEnabled"},
 }
 
 func encodeRetention(r settings.Retention) string {

@@ -28,7 +28,12 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 		ctx := cx.Context()
 		if model != nil {
 			search := model.SearchBehavior()
-			behavior = macos.PanelBehavior{DefaultFocus: search.DefaultFocus, ClearOnHide: search.ClearOnHide}
+			preview := model.PreviewBehavior()
+			behavior = macos.PanelBehavior{
+				DefaultFocus: search.DefaultFocus,
+				ClearOnHide:  search.ClearOnHide,
+				SpacePreview: preview.SpaceEnabled,
+			}
 		}
 
 		var (

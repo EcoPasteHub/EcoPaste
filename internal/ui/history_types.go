@@ -65,6 +65,11 @@ type HistorySearchBehavior struct {
 	ClearOnHide  bool
 }
 
+// HistoryPreviewBehavior controls keyboard preview.
+type HistoryPreviewBehavior struct {
+	SpaceEnabled bool
+}
+
 // HistoryDisplay is the list density and note-hover behavior taken from
 // clipboard settings.
 type HistoryDisplay struct {
@@ -144,6 +149,7 @@ type HistoryModel interface {
 	DeleteGroup(context.Context, string) (bool, error)
 	MoveToGroup(context.Context, string, string) error
 	SearchBehavior() HistorySearchBehavior
+	PreviewBehavior() HistoryPreviewBehavior
 	Display() HistoryDisplay
 	OpenBehavior() HistoryOpenBehavior
 	QuickActions() []string

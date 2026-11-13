@@ -152,7 +152,7 @@ func registerHistoryTargets() {
 						break
 					}
 				}
-				action, handled := historyKeyAction(key, flags, row)
+				action, handled := historyKeyAction(key, flags, row, p.behavior.SpacePreview)
 				switch {
 				case !handled:
 					sendSuper[objc.ID](self, historyTableClass, sel("keyDown:"), event)
@@ -385,7 +385,7 @@ func doubleClickDelay() float64 {
 	return delay + 0.05
 }
 
-func historyKeyAction(key uint16, flags uint64, row HistoryRow) (string, bool) {
+func historyKeyAction(key uint16, flags uint64, row HistoryRow, spacePreview bool) (string, bool) {
 	command := flags&commandModifier != 0
 	option := flags&alternateModifier != 0
 	unmodified := flags&(shiftModifier|controlModifier|alternateModifier|commandModifier) == 0
@@ -394,7 +394,7 @@ func historyKeyAction(key uint16, flags uint64, row HistoryRow) (string, bool) {
 		return "activate", true
 	case key == keyP && unmodified:
 		return "togglePinned", true
-	case key == keySpace && unmodified:
+	case key == keySpace && unmodified && spacePreview:
 		return "preview", true
 	case key == keyEscape:
 		return "hide", true

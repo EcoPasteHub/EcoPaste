@@ -43,10 +43,19 @@ func TestHistoryKeyAction(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			action, handled := historyKeyAction(tc.key, tc.flags, tc.row)
+			action, handled := historyKeyAction(tc.key, tc.flags, tc.row, true)
 			if action != tc.action || handled != tc.handled {
 				t.Errorf("historyKeyAction() = %q, %v; want %q, %v", action, handled, tc.action, tc.handled)
 			}
 		})
+	}
+}
+
+func TestSpacePreviewHonorsSetting(t *testing.T) {
+	if action, handled := historyKeyAction(keySpace, 0, HistoryRow{Kind: "text"}, true); action != "preview" || !handled {
+		t.Errorf("enabled space = %q, %v", action, handled)
+	}
+	if action, handled := historyKeyAction(keySpace, 0, HistoryRow{Kind: "text"}, false); action != "" || handled {
+		t.Errorf("disabled space = %q, %v", action, handled)
 	}
 }

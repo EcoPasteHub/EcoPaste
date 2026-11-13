@@ -92,6 +92,7 @@ type Panel struct {
 type PanelBehavior struct {
 	DefaultFocus bool
 	ClearOnHide  bool
+	SpacePreview bool
 }
 
 // GroupOption is one custom group in the panel toolbar and item menu.
@@ -130,6 +131,7 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 		cx:          cx,
 		view:        objc.ID(panelViewClass).Send(sel("new")),
 		display:     PanelDisplay{TextMaxLines: 1, ImageMaxHeight: 32, FileMaxCount: 3},
+		behavior:    PanelBehavior{SpacePreview: true},
 		originalRow: -1,
 		hoverRow:    -1,
 	}
