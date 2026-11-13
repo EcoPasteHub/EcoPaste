@@ -80,6 +80,12 @@ type Item struct {
 	SourceAppIcon *string   `json:"sourceAppIconFile,omitempty"`
 }
 
+const insertItemSQL = `INSERT INTO clipboard_items
+	(id, kind, sub_kind, group_id, source_app_id, content, content_hash, search_text,
+	 summary, file_types, size, width, height, use_count, is_favorite, is_pinned,
+	 is_sensitive, platform, note, created_at, updated_at)
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+
 // Sort selects the history order. Pinned items always come first.
 type Sort string
 
@@ -160,18 +166,7 @@ func (d *DB) Upsert(ctx context.Context, item *Item) (id string, deduplicated bo
 	if item.UpdatedAt.IsZero() {
 		item.UpdatedAt = item.CreatedAt
 	}
-	const insert = `INSERT INTO clipboard_items
-		(id, kind, sub_kind, group_id, source_app_id, content, content_hash, search_text,
-		 summary, file_types, size, width, height, use_count, is_favorite, is_pinned,
-		 is_sensitive, platform, note, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-	if _, err := d.sql.ExecContext(ctx, insert,
-		item.ID, item.Kind, item.SubKind, item.GroupID, item.SourceAppID, item.Content,
-		item.ContentHash, item.SearchText, item.Summary, item.FileTypes, item.Size,
-		item.Width, item.Height, item.UseCount, item.IsFavorite, item.IsPinned,
-		item.IsSensitive, item.Platform, item.Note,
-		item.CreatedAt.UTC().Format(time.RFC3339Nano), item.UpdatedAt.UTC().Format(time.RFC3339Nano),
-	); err != nil {
+	if _, err := d.sql.ExecContext(ctx, insertItemSQL, itemArgs(item)...); err != nil {
 		return "", false, fmt.Errorf("insert clipboard item: %w", err)
 	}
 	return item.ID, false, nil
@@ -191,6 +186,16 @@ func (d *DB) IncrementUseCount(ctx context.Context, id string) error {
 const itemColumns = `id, kind, sub_kind, group_id, source_app_id, content, content_hash,
 	search_text, summary, file_types, size, width, height, use_count, is_favorite,
 	is_pinned, is_sensitive, platform, note, created_at, updated_at`
+
+func itemArgs(item *Item) []any {
+	return []any{
+		item.ID, item.Kind, item.SubKind, item.GroupID, item.SourceAppID, item.Content,
+		item.ContentHash, item.SearchText, item.Summary, item.FileTypes, item.Size,
+		item.Width, item.Height, item.UseCount, item.IsFavorite, item.IsPinned,
+		item.IsSensitive, item.Platform, item.Note,
+		item.CreatedAt.UTC().Format(time.RFC3339Nano), item.UpdatedAt.UTC().Format(time.RFC3339Nano),
+	}
+}
 
 const listColumns = `clipboard_items.id, clipboard_items.kind, clipboard_items.sub_kind,
 	clipboard_items.group_id, clipboard_items.source_app_id,
