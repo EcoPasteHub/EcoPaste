@@ -5,8 +5,7 @@ package macos
 import "github.com/ebitengine/purego/objc"
 
 const (
-	panelFadeDuration   = 0.14
-	previewFadeDuration = 0.12
+	panelFadeDuration = 0.14
 )
 
 func animateIn(view objc.ID, duration float64) {

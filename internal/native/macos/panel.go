@@ -33,14 +33,19 @@ type Panel struct {
 	footer                        objc.ID
 	hint                          objc.ID
 	preview                       objc.ID
+	previewPopover                objc.ID
+	previewController             objc.ID
+	previewDelegate               objc.ID
 	observer                      objc.ID
 	timer                         objc.ID
 	monitor                       objc.ID
 	previewTitle                  objc.ID
 	previewMeta                   objc.ID
+	previewDivider                objc.ID
 	previewText                   objc.ID
 	previewScroll                 objc.ID
 	previewImage                  objc.ID
+	previewImageSize              CGSize
 	onboardingData                PanelOnboarding
 	onboardingActive              bool
 	onboardingStep                int
@@ -202,7 +207,7 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.buildPreview()
 
 	for _, v := range []objc.ID{p.search, p.pin, p.filter, p.groupsPopup, p.groupActions,
-		p.divider, p.scroll, p.empty, p.preview, p.footer, p.hint} {
+		p.divider, p.scroll, p.empty, p.footer, p.hint} {
 		p.view.Send(sel("addSubview:"), v)
 	}
 	p.buildHoverBar()
@@ -230,8 +235,9 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.timer = objc.ID(class("NSTimer")).Send(sel("scheduledTimerWithTimeInterval:target:selector:userInfo:repeats:"),
 		0.1, p.observer, sel("pollSearch:"), objc.ID(0), true)
 	monitorBlock := objc.NewBlock(func(_ objc.Block, event objc.ID) objc.ID {
-		if p.previewing && objc.Send[uint16](event, sel("keyCode")) == 53 {
-			p.cx.Emit("hidePreview", nil)
+		key := objc.Send[uint16](event, sel("keyCode"))
+		flags := uint64(objc.Send[uint](event, sel("modifierFlags")))
+		if p.handlePreviewKey(key, flags) {
 			return 0
 		}
 		return event
@@ -565,6 +571,17 @@ func (p *Panel) Close() {
 	delete(panelsByOnboarding, p.onboardingView)
 	delete(panelsByTable, p.table)
 	delete(panelsByPreviewView, p.preview)
+	delete(panelsByPopover, p.previewDelegate)
+	p.closePreview()
+	if p.previewPopover != 0 {
+		p.previewPopover.Send(sel("release"))
+	}
+	if p.previewController != 0 {
+		p.previewController.Send(sel("release"))
+	}
+	if p.previewDelegate != 0 {
+		p.previewDelegate.Send(sel("release"))
+	}
 	p.observer.Send(sel("release"))
 	if p.preview != 0 {
 		p.preview.Send(sel("release"))

@@ -217,9 +217,9 @@ internal/native/macos/
    - `NSSearchField` 实时搜索，防抖。
    - `NSSegmentedControl` 分类，`NSPopUpButton` 排序/分组。
 3. 预览：
-   - 面板内预览视图（产品调整）：避免独立窗口抢焦点和多屏定位复杂度，保持剪贴板面板单窗口心智。
+   - 原生 `NSPopover`（产品调整）：锚定所选行弹出，保持面板可操作；临时 popover 支持点击外部、Space、Esc 关闭，避免独立窗口抢焦点和多屏定位复杂度。
    - `NSImageView` 图片预览；文本/文件使用只读 `NSTextView`，支持选择复制。
-   - Space 打开、Esc 返回；敏感文本按设置脱敏。hover 预览暂不实现，按实际反馈再评估。
+   - Space 打开或关闭、Esc 返回；预览态下回车沿用历史复用路径，`⌘C`/`⌥⌘C` 等快捷键继续作用于所选行；敏感文本按设置脱敏。hover 预览暂不实现，按实际反馈再评估。
 4. 右键菜单：
    - `NSMenu` 动作分组、快捷键、分组子菜单。
    - 菜单动作回到 Go 业务层，不在 UI 内写业务逻辑。

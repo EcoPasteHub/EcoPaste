@@ -44,11 +44,6 @@ func layoutPanel(p *Panel, width, height float64) {
 			column.Send(sel("setWidth:"), width)
 		}
 	}
-	if p.preview != 0 {
-		previewHeight := height - (footerHeight + 4) - pad
-		setFrame(p.preview, 0, footerHeight+4, width, previewHeight)
-		layoutPreview(p, width, previewHeight)
-	}
 	p.layoutOnboarding(width, height)
 
 	p.empty.Send(sel("sizeToFit"))

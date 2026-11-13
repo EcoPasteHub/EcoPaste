@@ -24,3 +24,32 @@ func TestAttributedPreview(t *testing.T) {
 		t.Fatalf("RTF preview text = %q", text)
 	}
 }
+
+func TestPreviewSizeFollowsTextHeight(t *testing.T) {
+	width, height := previewSize(PreviewContent{Text: "hello"}, 0)
+	if width != previewWidth {
+		t.Fatalf("preview width = %v, want %v", width, previewWidth)
+	}
+	if height < 180 || height > 460 {
+		t.Fatalf("preview height = %v, want 180...460", height)
+	}
+}
+
+func TestPreviewSizeClampsLongText(t *testing.T) {
+	_, height := previewSize(PreviewContent{Text: strings.Repeat("line\n", 200)}, 0)
+	if height != 460 {
+		t.Fatalf("preview height = %v, want the 460 cap", height)
+	}
+}
+
+func TestClampFloat(t *testing.T) {
+	if got := clampFloat(120, 180, 460); got != 180 {
+		t.Errorf("clamp below = %v", got)
+	}
+	if got := clampFloat(500, 180, 460); got != 460 {
+		t.Errorf("clamp above = %v", got)
+	}
+	if got := clampFloat(300, 180, 460); got != 300 {
+		t.Errorf("clamp inside = %v", got)
+	}
+}
