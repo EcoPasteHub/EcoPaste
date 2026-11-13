@@ -152,7 +152,7 @@
 
 | ID | 优先级 | 功能 | 现有实现 | NSGo/AppKit 目标 | 状态 | 验证方式 |
 | --- | --- | --- | --- | --- | --- | --- |
-| I-01 | P1 | 前端文案 | `legacy/frontend/src/locales/zh-CN`、`en-US` | Go i18n 目录，复用文案内容 | 迁移中 | 剪贴板面板、6 步引导与 12 个设置 Tab 已接入目录：搜索/分类/分组/空状态、右键与悬停动作、备注与分组弹窗、预览提示、类型/时间摘要、文件摘要、引导状态、全部设置项/选项/搜索关键词/诊断报告；`TestHistoryPresentationFollowsLanguage`、`TestSettingsSearchMatchesEnglishLabels`、`TestFormatDiagnosticReportInEnglish` 覆盖英文；备份/清除/权限弹窗已接入，业务错误文案继续迁移 |
+| I-01 | P1 | 前端文案 | `legacy/frontend/src/locales/zh-CN`、`en-US` | Go i18n 目录，复用文案内容 | 迁移中 | 剪贴板面板、6 步引导与 12 个设置 Tab 已接入目录：搜索/分类/分组/空状态、右键与悬停动作、备注与分组弹窗、预览提示、类型/时间摘要、文件摘要、引导状态、全部设置项/选项/搜索关键词/诊断报告；`TestHistoryPresentationFollowsLanguage`、`TestSettingsSearchMatchesEnglishLabels`、`TestFormatDiagnosticReportInEnglish` 覆盖英文；备份/清除/权限弹窗，以及历史、分组、数据目录、快捷键、来源应用、链接打开、登录项与旧版导入错误已接入，`TestGroupValidationFollowsLanguage` 校验英文；备份容器底层错误继续迁移 |
 | I-02 | P1 | Rust 侧文案 | `src-tauri/src/i18n/` | Go 文案目录 | 已通过 | `internal/i18n` 中英文目录覆盖托盘、列表右键、清除/删除确认、备份/存储/缓存/数据目录提示、剪贴板面板、引导、设置与权限弹窗，并按 `appearance.language` 选择；`TestCatalogsShareEveryKey`、`TestSetLanguageSelectsCatalog`、`TestTfFormatsArguments` |
 | I-03 | P1 | 语言切换 | `appearance.language` | 原生菜单/设置切换，立即生效 | 已通过 | 设置“通用”页语言下拉写入 `appearance.language` 后立即切换目录、重建设置窗口与剪贴板面板，无需重启；真机中英文往返验证，托盘菜单、面板、设置与清空/备份弹窗文案同步切换；`TestSettingsModelAppliesLanguage` |
 | I-04 | P2 | 系统本地化 | 部分系统菜单 | AppKit 本地化角色项 | 待迁移 | 中英文系统 |

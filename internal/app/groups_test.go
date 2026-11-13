@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/database"
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
 )
 
@@ -45,7 +46,7 @@ func TestCreateGroupRejectsEmptyLongAndDuplicateNames(t *testing.T) {
 	}{
 		{"   ", "不能为空"},
 		{strings.Repeat("a", groupNameMaxChars+1), "不能超过"},
-		{"work", duplicateGroupError},
+		{"work", i18n.T(i18n.ErrorGroupNameDuplicate)},
 	}
 	for _, tc := range cases {
 		editGroup = func(string) (string, bool) { return tc.value, true }
@@ -76,7 +77,7 @@ func TestRenameGroupCancelAndDuplicate(t *testing.T) {
 
 	editGroup = func(string) (string, bool) { return "ideas", true }
 	renamed, err = model.RenameGroup(ctx, work.ID)
-	if err == nil || renamed || !strings.Contains(err.Error(), duplicateGroupError) {
+	if err == nil || renamed || !strings.Contains(err.Error(), i18n.T(i18n.ErrorGroupNameDuplicate)) {
 		t.Fatalf("duplicate: renamed = %v, err = %v", renamed, err)
 	}
 
@@ -91,6 +92,20 @@ func TestRenameGroupCancelAndDuplicate(t *testing.T) {
 	}
 	if found.Name != "Projects" || ideas.ID == "" {
 		t.Fatalf("group = %+v", found)
+	}
+}
+
+func TestGroupValidationFollowsLanguage(t *testing.T) {
+	previous := i18n.Current()
+	t.Cleanup(func() { i18n.SetLanguage(string(previous)) })
+	i18n.SetLanguage("en-US")
+
+	if _, err := normalizeGroupName(" "); err == nil || err.Error() != "Group name cannot be empty" {
+		t.Fatalf("empty name error = %v", err)
+	}
+	if _, err := normalizeGroupName(strings.Repeat("a", groupNameMaxChars+1)); err == nil ||
+		err.Error() != "Group name cannot exceed 32 characters" {
+		t.Fatalf("long name error = %v", err)
 	}
 }
 

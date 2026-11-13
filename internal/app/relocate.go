@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/EcoPasteHub/EcoPaste/internal/storage"
 )
 
@@ -19,22 +20,22 @@ const customDataDirName = "EcoPasteData"
 // until it restarts.
 func (r *clipboardRuntime) changeDataDir(ctx context.Context, parent string) (*storage.Paths, error) {
 	if strings.TrimSpace(parent) == "" {
-		return nil, errors.New("未选择数据目录")
+		return nil, errors.New(i18n.T(i18n.ErrorDataDirNotSelected))
 	}
 	target := filepath.Join(parent, customDataDirName, storage.Mode())
 	if filepath.Clean(target) == filepath.Clean(r.paths.Root) {
-		return nil, errors.New("当前已使用该目录")
+		return nil, errors.New(i18n.T(i18n.ErrorDataDirInUse))
 	}
 	if _, err := os.Stat(target); err == nil {
-		return nil, fmt.Errorf("目标目录已存在：%s", target)
+		return nil, fmt.Errorf(i18n.T(i18n.ErrorDataDirExists), target)
 	} else if !errors.Is(err, os.ErrNotExist) {
-		return nil, fmt.Errorf("检查目标目录: %w", err)
+		return nil, fmt.Errorf(i18n.T(i18n.ErrorCheckTargetDir), err)
 	}
 	if err := storage.ValidateTarget(target, storage.Mode()); err != nil {
 		return nil, err
 	}
 	if err := os.MkdirAll(filepath.Join(target, "db"), 0o755); err != nil {
-		return nil, fmt.Errorf("创建目标目录: %w", err)
+		return nil, fmt.Errorf(i18n.T(i18n.ErrorCreateTargetDir), err)
 	}
 	committed := false
 	defer func() {
@@ -66,11 +67,11 @@ func (r *clipboardRuntime) restoreDefaultDataDir(ctx context.Context) (*storage.
 		return nil, err
 	}
 	if filepath.Clean(bootstrap) == filepath.Clean(current.Root) {
-		return nil, errors.New("当前已使用默认数据目录")
+		return nil, errors.New(i18n.T(i18n.ErrorDefaultDataDirInUse))
 	}
 	staging, err := os.MkdirTemp(r.paths.Base, ".restore-default-")
 	if err != nil {
-		return nil, fmt.Errorf("创建临时目录: %w", err)
+		return nil, fmt.Errorf(i18n.T(i18n.ErrorCreateTempDir), err)
 	}
 	var backup string
 	bootstrapMoved, swapped, committed := false, false, false
@@ -94,11 +95,11 @@ func (r *clipboardRuntime) restoreDefaultDataDir(ctx context.Context) (*storage.
 		return nil, err
 	}
 	if err := os.Rename(bootstrap, backup); err != nil {
-		return nil, fmt.Errorf("备份默认数据目录: %w", err)
+		return nil, fmt.Errorf(i18n.T(i18n.ErrorBackupDefaultDir), err)
 	}
 	bootstrapMoved = true
 	if err := os.Rename(staging, bootstrap); err != nil {
-		return nil, fmt.Errorf("恢复默认数据目录: %w", err)
+		return nil, fmt.Errorf(i18n.T(i18n.ErrorRestoreDefaultDir), err)
 	}
 	swapped = true
 	if err := storage.CommitRoot(r.paths.Base, storage.Mode(), bootstrap); err != nil {
@@ -114,7 +115,7 @@ func (r *clipboardRuntime) restoreDefaultDataDir(ctx context.Context) (*storage.
 
 func (r *clipboardRuntime) copyLiveData(ctx context.Context, target string) error {
 	if err := os.MkdirAll(filepath.Join(target, "db"), 0o755); err != nil {
-		return fmt.Errorf("创建目标目录: %w", err)
+		return fmt.Errorf(i18n.T(i18n.ErrorCreateTargetDir), err)
 	}
 	for _, part := range []struct{ src, dst string }{
 		{r.paths.Resources, filepath.Join(target, "resources")},
@@ -141,7 +142,7 @@ func backupDataDirName(base, environment string) (string, error) {
 		if _, err := os.Stat(name); errors.Is(err, os.ErrNotExist) {
 			return name, nil
 		} else if err != nil {
-			return "", fmt.Errorf("检查备份目录: %w", err)
+			return "", fmt.Errorf(i18n.T(i18n.ErrorCheckBackupDir), err)
 		}
 	}
 }
@@ -160,17 +161,17 @@ func copyTree(src, dst string, skip func(string) bool) error {
 		return nil
 	}
 	if err != nil {
-		return fmt.Errorf("读取数据目录 %s: %w", src, err)
+		return fmt.Errorf(i18n.T(i18n.ErrorReadDataDir), src, err)
 	}
 	if !info.IsDir() {
-		return fmt.Errorf("数据路径 %s 不是目录", src)
+		return fmt.Errorf(i18n.T(i18n.ErrorDataPathNotDir), src)
 	}
 	entries, err := os.ReadDir(src)
 	if err != nil {
-		return fmt.Errorf("读取数据目录 %s: %w", src, err)
+		return fmt.Errorf(i18n.T(i18n.ErrorReadDataDir), src, err)
 	}
 	if err := os.MkdirAll(dst, 0o755); err != nil {
-		return fmt.Errorf("创建数据目录 %s: %w", dst, err)
+		return fmt.Errorf(i18n.T(i18n.ErrorCreateDataDir), dst, err)
 	}
 	for _, entry := range entries {
 		if skip != nil && skip(entry.Name()) {
@@ -189,10 +190,10 @@ func copyTree(src, dst string, skip func(string) bool) error {
 		}
 		data, err := os.ReadFile(from)
 		if err != nil {
-			return fmt.Errorf("读取数据文件 %s: %w", from, err)
+			return fmt.Errorf(i18n.T(i18n.ErrorReadDataFile), from, err)
 		}
 		if err := os.WriteFile(to, data, 0o644); err != nil {
-			return fmt.Errorf("写入数据文件 %s: %w", to, err)
+			return fmt.Errorf(i18n.T(i18n.ErrorWriteDataFile), to, err)
 		}
 	}
 	return nil

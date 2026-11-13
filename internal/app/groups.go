@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/database"
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
 	"github.com/EcoPasteHub/EcoPaste/internal/ui"
 )
@@ -16,9 +17,8 @@ var (
 )
 
 const (
-	groupNameMaxChars   = 32
-	defaultGroupIcon    = "i-lets-icons:folder"
-	duplicateGroupError = "已存在同名分组"
+	groupNameMaxChars = 32
+	defaultGroupIcon  = "i-lets-icons:folder"
 )
 
 func (m *historyModel) Groups(ctx context.Context) ([]ui.GroupOption, error) {
@@ -58,7 +58,7 @@ func (m *historyModel) RenameGroup(ctx context.Context, id string) (bool, error)
 		return false, err
 	}
 	if group == nil {
-		return false, fmt.Errorf("分组不存在")
+		return false, fmt.Errorf("%s", i18n.T(i18n.ErrorGroupMissing))
 	}
 	value, ok := editGroup(group.Name)
 	if !ok {
@@ -86,7 +86,7 @@ func (m *historyModel) DeleteGroup(ctx context.Context, id string) (bool, error)
 		return false, err
 	}
 	if group == nil {
-		return false, fmt.Errorf("分组不存在")
+		return false, fmt.Errorf("%s", i18n.T(i18n.ErrorGroupMissing))
 	}
 	if !deleteGroup(group.Name) {
 		return false, nil
@@ -105,7 +105,7 @@ func (m *historyModel) MoveToGroup(ctx context.Context, itemID, groupID string) 
 			return err
 		}
 		if group == nil {
-			return fmt.Errorf("分组不存在")
+			return fmt.Errorf("%s", i18n.T(i18n.ErrorGroupMissing))
 		}
 		value = &groupID
 	}
@@ -119,7 +119,7 @@ func (m *historyModel) ensureUniqueGroupName(ctx context.Context, name, exceptID
 	}
 	for _, group := range groups {
 		if group.ID != exceptID && strings.EqualFold(group.Name, name) {
-			return fmt.Errorf("%s", duplicateGroupError)
+			return fmt.Errorf("%s", i18n.T(i18n.ErrorGroupNameDuplicate))
 		}
 	}
 	return nil
@@ -128,10 +128,10 @@ func (m *historyModel) ensureUniqueGroupName(ctx context.Context, name, exceptID
 func normalizeGroupName(value string) (string, error) {
 	name := strings.TrimSpace(value)
 	if name == "" {
-		return "", fmt.Errorf("分组名称不能为空")
+		return "", fmt.Errorf("%s", i18n.T(i18n.ErrorGroupNameEmpty))
 	}
 	if runes := []rune(name); len(runes) > groupNameMaxChars {
-		return "", fmt.Errorf("分组名称不能超过 %d 个字符", groupNameMaxChars)
+		return "", fmt.Errorf(i18n.T(i18n.ErrorGroupNameLong), groupNameMaxChars)
 	}
 	return name, nil
 }

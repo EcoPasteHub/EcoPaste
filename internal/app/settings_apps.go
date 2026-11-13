@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
 )
 
@@ -36,7 +37,7 @@ func (m *settingsModel) loadSourceApps(excludedIDs []string) []macos.SettingsApp
 func (m *settingsModel) applyExcludedApps(value any) error {
 	ids, ok := value.([]string)
 	if !ok {
-		return fmt.Errorf("忽略应用列表格式无效")
+		return fmt.Errorf("%s", i18n.T(i18n.ErrorInvalidExcludedApps))
 	}
 	ids = dedupeIDs(ids)
 	previous := m.store.Snapshot().Clipboard.Filters.ExcludedAppIDs
@@ -52,7 +53,7 @@ func (m *settingsModel) applyExcludedApps(value any) error {
 		return nil
 	}
 	if err := m.deleteApps(removed); err != nil {
-		return fmt.Errorf("清理来源应用: %w", err)
+		return fmt.Errorf(i18n.T(i18n.ErrorCleanApps), err)
 	}
 	return nil
 }
@@ -61,7 +62,7 @@ func (m *settingsModel) applyExcludedApps(value any) error {
 // adds it to the ignored list so the user sees the effect immediately.
 func (m *settingsModel) addSourceApp(path string) error {
 	if m.addApp == nil {
-		return fmt.Errorf("当前环境无法添加应用")
+		return fmt.Errorf("%s", i18n.T(i18n.ErrorAddAppUnavailable))
 	}
 	app, err := m.addApp(path)
 	if err != nil {

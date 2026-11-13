@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 )
 
 var shortcutModifiers = map[string]struct{}{
@@ -20,30 +22,30 @@ func normalizeShortcut(value string) (string, error) {
 	parts := strings.Split(trimmed, "+")
 	key := parts[len(parts)-1]
 	if key == "" {
-		return "", errors.New("快捷键需要包含按键")
+		return "", errors.New(i18n.T(i18n.ShortcutMissingKey))
 	}
 	primary := strings.ToLower(key)
 	if len(parts) == 1 {
 		if supportedShortcutKey(primary) && standaloneFunctionKey(primary) {
 			return trimmed, nil
 		}
-		return "", errors.New("快捷键需要包含修饰键")
+		return "", errors.New(i18n.T(i18n.ShortcutMissingModifier))
 	}
 	if !supportedShortcutKey(primary) {
-		return "", fmt.Errorf("不支持的快捷键 %q", key)
+		return "", fmt.Errorf(i18n.T(i18n.ShortcutUnsupportedKey), key)
 	}
 	hasPrimaryModifier := false
 	for _, modifier := range parts[:len(parts)-1] {
 		name := strings.ToLower(strings.TrimSpace(modifier))
 		if _, ok := shortcutModifiers[name]; !ok {
-			return "", fmt.Errorf("不支持的修饰键 %q", modifier)
+			return "", fmt.Errorf(i18n.T(i18n.ShortcutUnsupportedMod), modifier)
 		}
 		if name != "shift" {
 			hasPrimaryModifier = true
 		}
 	}
 	if !hasPrimaryModifier && !standaloneFunctionKey(primary) {
-		return "", errors.New("快捷键至少需要 Command、Option 或 Control")
+		return "", errors.New(i18n.T(i18n.ShortcutNeedsPrimaryMod))
 	}
 	return trimmed, nil
 }
@@ -99,21 +101,21 @@ func (m *settingsModel) applyShortcut(path string, value any) error {
 		previous = snapshot.OpenPreference
 	}
 	if shortcut != "" && shortcutsEqual(shortcut, other) {
-		return errors.New("该快捷键已被其他操作使用")
+		return errors.New(i18n.T(i18n.ShortcutInUse))
 	}
 	if _, err := m.store.Update(map[string]any{
 		"shortcuts": map[string]any{key: shortcut},
 	}); err != nil {
-		return fmt.Errorf("保存快捷键: %w", err)
+		return fmt.Errorf(i18n.T(i18n.ShortcutSave), err)
 	}
 	if m.onShortcutsChanged != nil {
 		if err := m.onShortcutsChanged(key); err != nil {
 			restore := map[string]any{"shortcuts": map[string]any{key: previous}}
 			if _, rollbackErr := m.store.Update(restore); rollbackErr != nil {
-				return fmt.Errorf("%w；恢复原快捷键失败: %v", err, rollbackErr)
+				return fmt.Errorf(i18n.T(i18n.ShortcutRestore), err, rollbackErr)
 			}
 			if rollbackErr := m.onShortcutsChanged(key); rollbackErr != nil {
-				return fmt.Errorf("%w；恢复原快捷键注册失败: %v", err, rollbackErr)
+				return fmt.Errorf(i18n.T(i18n.ShortcutRestoreRegister), err, rollbackErr)
 			}
 			return err
 		}

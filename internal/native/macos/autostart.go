@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/ebitengine/purego"
 	"github.com/ebitengine/purego/objc"
 )
@@ -86,19 +87,19 @@ func setAutostart(enabled bool) error {
 	}
 	status, err := autostartStatus()
 	if err != nil {
-		return fmt.Errorf("查询登录项状态: %w", err)
+		return fmt.Errorf(i18n.T(i18n.AutostartQuery), err)
 	}
 	return autostartError(status, enabled)
 }
 
 func autostartError(status int64, enabled bool) error {
 	if !enabled {
-		return fmt.Errorf("无法关闭登录时启动（状态 %d）", status)
+		return fmt.Errorf(i18n.T(i18n.AutostartDisable), status)
 	}
 	if status == appServiceNotFound {
-		return fmt.Errorf("无法注册登录项，请将 EcoPaste 安装到「应用程序」后重试")
+		return fmt.Errorf("%s", i18n.T(i18n.AutostartInstall))
 	}
-	return fmt.Errorf("无法开启登录时启动（状态 %d）", status)
+	return fmt.Errorf(i18n.T(i18n.AutostartEnable), status)
 }
 
 func appService() (objc.ID, error) {
@@ -108,18 +109,18 @@ func appService() (objc.ID, error) {
 			purego.RTLD_LAZY|purego.RTLD_GLOBAL)
 	})
 	if appServiceError != nil {
-		return 0, fmt.Errorf("加载登录项服务: %w", appServiceError)
+		return 0, fmt.Errorf(i18n.T(i18n.AutostartService), appServiceError)
 	}
 	appServiceClass := objc.GetClass("SMAppService")
 	if appServiceClass == 0 {
-		return 0, fmt.Errorf("开机自启需要 macOS 13 或更高版本")
+		return 0, fmt.Errorf("%s", i18n.T(i18n.AutostartVersion))
 	}
 	var service objc.ID
 	onMain(func() {
 		service = objc.ID(appServiceClass).Send(sel("mainAppService"))
 	})
 	if service == 0 {
-		return 0, fmt.Errorf("无法访问登录项服务")
+		return 0, fmt.Errorf("%s", i18n.T(i18n.AutostartUnavailable))
 	}
 	return service, nil
 }

@@ -15,6 +15,7 @@ import (
 
 	"github.com/EcoPasteHub/EcoPaste/internal/clipboard"
 	"github.com/EcoPasteHub/EcoPaste/internal/database"
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/EcoPasteHub/EcoPaste/internal/settings"
 	"github.com/EcoPasteHub/EcoPaste/internal/storage"
 )
@@ -109,17 +110,17 @@ func (l *LegacyImporter) Detect(ctx context.Context) (LegacyDetection, error) {
 func (l *LegacyImporter) Import(ctx context.Context, types []LegacyImportSelection) (LegacyImportResult, error) {
 	selected := normalizeSelection(types)
 	if len(selected) == 0 {
-		return LegacyImportResult{}, fmt.Errorf("请至少选择一种导入类型")
+		return LegacyImportResult{}, fmt.Errorf("%s", i18n.T(i18n.ImportTypesRequired))
 	}
 	if l.DB == nil {
-		return LegacyImportResult{}, fmt.Errorf("剪贴板数据库未打开")
+		return LegacyImportResult{}, fmt.Errorf("%s", i18n.T(i18n.ImportDatabaseClosed))
 	}
 	detection, err := l.Detect(ctx)
 	if err != nil {
 		return LegacyImportResult{}, err
 	}
 	if detection.ImportableDatabase == "" {
-		return LegacyImportResult{}, fmt.Errorf("未找到可导入的旧版数据库")
+		return LegacyImportResult{}, fmt.Errorf("%s", i18n.T(i18n.LegacyDatabaseMissing))
 	}
 
 	db, err := openLegacyDatabase(detection.ImportableDatabase)
@@ -131,7 +132,7 @@ func (l *LegacyImporter) Import(ctx context.Context, types []LegacyImportSelecti
 	rows, err := db.QueryContext(ctx,
 		"SELECT type, value, favorite, createTime, note FROM history ORDER BY createTime ASC, id ASC")
 	if err != nil {
-		return LegacyImportResult{}, fmt.Errorf("读取旧版历史: %w", err)
+		return LegacyImportResult{}, fmt.Errorf(i18n.T(i18n.LegacyReadHistory), err)
 	}
 	defer rows.Close()
 
@@ -147,7 +148,7 @@ func (l *LegacyImporter) Import(ctx context.Context, types []LegacyImportSelecti
 			note     sql.NullString
 		)
 		if err := rows.Scan(&itemType, &value, &favorite, &created, &note); err != nil {
-			return result, fmt.Errorf("读取旧版历史行: %w", err)
+			return result, fmt.Errorf(i18n.T(i18n.LegacyReadRow), err)
 		}
 		isFavorite := favorite.Valid && favorite.Int64 != 0
 		selection := LegacyNormal
@@ -190,7 +191,7 @@ func (l *LegacyImporter) Import(ctx context.Context, types []LegacyImportSelecti
 		}
 	}
 	if err := rows.Err(); err != nil {
-		return result, fmt.Errorf("遍历旧版历史: %w", err)
+		return result, fmt.Errorf(i18n.T(i18n.LegacyScanHistory), err)
 	}
 	result.ImportedAt = time.Now().UTC()
 	return result, nil
@@ -292,7 +293,7 @@ func (l *LegacyImporter) customCandidates(dir string, detection *LegacyDetection
 		}
 		if err := json.Unmarshal(data, &store); err != nil {
 			detection.Messages = append(detection.Messages,
-				fmt.Sprintf("无法解析旧版 store %s: %v", path, err))
+				fmt.Sprintf(i18n.T(i18n.LegacyParseStore), path, err))
 			continue
 		}
 		target := strings.TrimSpace(store.GlobalStore.Env.SaveDataDir)
@@ -319,7 +320,7 @@ func (l *LegacyImporter) inspectDir(ctx context.Context, dir string, detection *
 		stats, ok, err := inspectLegacyDatabase(ctx, path)
 		if err != nil {
 			detection.Messages = append(detection.Messages,
-				fmt.Sprintf("无法读取旧版数据库 %s: %v", path, err))
+				fmt.Sprintf(i18n.T(i18n.LegacyReadDatabase), path, err))
 			continue
 		}
 		if !ok || stats.items <= match.importableItemCount {
@@ -359,7 +360,7 @@ func legacyDatabaseFiles(dir, mode string) ([]string, error) {
 		return nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("扫描旧版数据目录: %w", err)
+		return nil, fmt.Errorf(i18n.T(i18n.LegacyScanRoot), err)
 	}
 	return files, nil
 }
@@ -418,12 +419,12 @@ func openLegacyDatabase(path string) (*sql.DB, error) {
 	u.RawQuery = query.Encode()
 	db, err := sql.Open("sqlite", u.String())
 	if err != nil {
-		return nil, fmt.Errorf("打开旧版数据库 %s: %w", path, err)
+		return nil, fmt.Errorf(i18n.T(i18n.LegacyOpenDatabase), path, err)
 	}
 	db.SetMaxOpenConns(1)
 	if err := db.Ping(); err != nil {
 		db.Close()
-		return nil, fmt.Errorf("打开旧版数据库 %s: %w", path, err)
+		return nil, fmt.Errorf(i18n.T(i18n.LegacyOpenDatabase), path, err)
 	}
 	return db, nil
 }

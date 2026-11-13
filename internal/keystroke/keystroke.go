@@ -5,12 +5,17 @@ package keystroke
 import (
 	"errors"
 
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/ebitengine/purego"
 )
 
 // ErrPermission means macOS has not allowed EcoPaste to post keyboard
 // events.
-var ErrPermission = errors.New("需要开启辅助功能权限才能自动粘贴")
+type permissionError struct{}
+
+func (permissionError) Error() string { return i18n.T(i18n.ErrorPastePermission) }
+
+var ErrPermission error = permissionError{}
 
 const (
 	keyV                = 0x09
@@ -63,12 +68,12 @@ func SendPaste() error {
 	source := uintptr(0)
 	down := cgEventCreateKeyboardEvent(source, keyV, true)
 	if down == 0 {
-		return errors.New("创建粘贴键盘事件失败")
+		return errors.New(i18n.T(i18n.ErrorPasteEvent))
 	}
 	defer cfRelease(down)
 	up := cgEventCreateKeyboardEvent(source, keyV, false)
 	if up == 0 {
-		return errors.New("创建粘贴按键释放事件失败")
+		return errors.New(i18n.T(i18n.ErrorPasteRelease))
 	}
 	defer cfRelease(up)
 	cgEventSetFlags(down, eventFlagCommand)

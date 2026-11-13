@@ -8,6 +8,7 @@ import (
 	"sync"
 	"unsafe"
 
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/ebitengine/purego"
 )
 
@@ -92,13 +93,13 @@ func (m *HotKeyManager) Set(bindings []HotKeyBinding) error {
 		for _, binding := range bindings {
 			key := strings.ToLower(strings.TrimSpace(binding.Key))
 			if _, _, ok := parseHotKey(key); !ok || binding.Action == nil {
-				result = fmt.Errorf("无效的快捷键: %s", binding.Key)
+				result = fmt.Errorf(i18n.T(i18n.ShortcutInvalid), binding.Key)
 				m.errors[key] = result
 				rejected[key] = true
 				continue
 			}
 			if _, exists := wanted[key]; exists {
-				result = fmt.Errorf("快捷键重复: %s", binding.Key)
+				result = fmt.Errorf(i18n.T(i18n.ShortcutDuplicate), binding.Key)
 				m.errors[key] = result
 				rejected[key] = true
 				continue
@@ -139,9 +140,9 @@ func (m *HotKeyManager) Set(bindings []HotKeyBinding) error {
 				getApplicationEventTarget(), 0, &ref)
 			if status != 0 {
 				if status == hotKeyExistsErr {
-					result = fmt.Errorf("快捷键 %s 已被其他应用占用", binding.Key)
+					result = fmt.Errorf(i18n.T(i18n.ShortcutOccupied), binding.Key)
 				} else {
-					result = fmt.Errorf("无法注册快捷键 %s", binding.Key)
+					result = fmt.Errorf(i18n.T(i18n.ShortcutRegister), binding.Key)
 				}
 				m.errors[key] = result
 				continue
@@ -179,7 +180,7 @@ func loadCarbonHotKeys() {
 		carbon, err := purego.Dlopen("/System/Library/Frameworks/Carbon.framework/Carbon",
 			purego.RTLD_GLOBAL|purego.RTLD_NOW)
 		if err != nil {
-			carbonHotKeyErr = fmt.Errorf("加载 Carbon: %w", err)
+			carbonHotKeyErr = fmt.Errorf(i18n.T(i18n.ShortcutLoadCarbon), err)
 			return
 		}
 		purego.RegisterLibFunc(&getApplicationEventTarget, carbon, "GetApplicationEventTarget")
@@ -207,7 +208,7 @@ func loadCarbonHotKeys() {
 		var handlerRef uintptr
 		if status := installEventHandlerFunc(getApplicationEventTarget(), handler, 1,
 			&spec, 0, &handlerRef); status != 0 {
-			carbonHotKeyErr = fmt.Errorf("安装全局快捷键处理器失败")
+			carbonHotKeyErr = fmt.Errorf("%s", i18n.T(i18n.ShortcutInstallHandler))
 		}
 	})
 }

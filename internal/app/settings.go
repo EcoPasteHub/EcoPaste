@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/database"
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
 	"github.com/EcoPasteHub/EcoPaste/internal/settings"
 )
@@ -122,7 +123,7 @@ func (m *settingsModel) Apply(path string, value any) error {
 	if path == "general.dataDir" {
 		parent, _ := value.(string)
 		if m.changeDataDir == nil {
-			return fmt.Errorf("当前环境无法更改数据目录")
+			return fmt.Errorf("%s", i18n.T(i18n.ErrorDataDirChange))
 		}
 		if err := m.changeDataDir(parent); err != nil {
 			return err
@@ -134,7 +135,7 @@ func (m *settingsModel) Apply(path string, value any) error {
 	}
 	if path == "general.defaultDataDir" {
 		if m.restoreDataDir == nil {
-			return fmt.Errorf("当前环境无法恢复默认数据目录")
+			return fmt.Errorf("%s", i18n.T(i18n.ErrorDataDirRestore))
 		}
 		if err := m.restoreDataDir(); err != nil {
 			return err
@@ -158,7 +159,7 @@ func (m *settingsModel) Apply(path string, value any) error {
 	}
 	keys, ok := settingsPaths[path]
 	if !ok {
-		return fmt.Errorf("未知设置项 %q", path)
+		return fmt.Errorf(i18n.T(i18n.ErrorUnknownSetting), path)
 	}
 	if path == "general.autoStart" && m.setAutoStart != nil {
 		enabled, _ := value.(bool)
@@ -212,7 +213,7 @@ func (m *settingsModel) Apply(path string, value any) error {
 func (m *settingsModel) applyActions(value any) error {
 	update, ok := value.(macos.SettingsItemActions)
 	if !ok {
-		return fmt.Errorf("无效的动作配置")
+		return fmt.Errorf("%s", i18n.T(i18n.ErrorInvalidActions))
 	}
 	known := map[settings.ItemAction]struct{}{}
 	for _, action := range resolvedActionOrder(nil) {
@@ -223,7 +224,7 @@ func (m *settingsModel) applyActions(value any) error {
 	for _, key := range update.Order {
 		action := settings.ItemAction(key)
 		if _, ok := known[action]; !ok {
-			return fmt.Errorf("未知动作 %q", key)
+			return fmt.Errorf(i18n.T(i18n.ErrorUnknownAction), key)
 		}
 		if _, ok := seen[action]; ok {
 			continue
@@ -241,7 +242,7 @@ func (m *settingsModel) applyActions(value any) error {
 	for _, key := range update.Enabled {
 		action := settings.ItemAction(key)
 		if _, ok := known[action]; !ok {
-			return fmt.Errorf("未知动作 %q", key)
+			return fmt.Errorf(i18n.T(i18n.ErrorUnknownAction), key)
 		}
 		if _, ok := seen[action]; ok {
 			enabled = append(enabled, action)
@@ -273,13 +274,13 @@ func actionValues(actions []settings.ItemAction) []string {
 func (m *settingsModel) applyCaptureOrder(value any) error {
 	values, ok := value.([]string)
 	if !ok {
-		return fmt.Errorf("无效的采集顺序")
+		return fmt.Errorf("%s", i18n.T(i18n.ErrorInvalidCaptureOrder))
 	}
 	order := make([]settings.CaptureKind, 0, len(values))
 	for _, text := range values {
 		kind := settings.CaptureKind(text)
 		if !settings.IsCaptureKind(kind) {
-			return fmt.Errorf("未知采集类型 %q", text)
+			return fmt.Errorf(i18n.T(i18n.ErrorUnknownCaptureKind), text)
 		}
 		order = append(order, kind)
 	}
@@ -332,7 +333,7 @@ func resolvedActionOrder(order []settings.ItemAction) []settings.ItemAction {
 func (m *settingsModel) resetSettings() error {
 	next, err := m.store.Reset()
 	if err != nil {
-		return fmt.Errorf("恢复默认设置: %w", err)
+		return fmt.Errorf(i18n.T(i18n.ErrorResetSettings), err)
 	}
 	if m.setDockIcon != nil {
 		if err := m.setDockIcon(next.General.DockIcon); err != nil {
@@ -468,16 +469,16 @@ func decodeRetention(text string) (settings.Retention, error) {
 	if strings.HasSuffix(text, "mo") {
 		value, err := strconv.ParseUint(strings.TrimSuffix(text, "mo"), 10, 32)
 		if err != nil {
-			return settings.Retention{}, fmt.Errorf("无法识别保留时长 %q", text)
+			return settings.Retention{}, fmt.Errorf(i18n.T(i18n.ErrorInvalidRetention), text)
 		}
 		return settings.Retention{Value: uint32(value), Unit: settings.RetentionMonths}, nil
 	}
 	if len(text) < 2 {
-		return settings.Retention{}, fmt.Errorf("无法识别保留时长 %q", text)
+		return settings.Retention{}, fmt.Errorf(i18n.T(i18n.ErrorInvalidRetention), text)
 	}
 	value, err := strconv.ParseUint(text[:len(text)-1], 10, 32)
 	if err != nil {
-		return settings.Retention{}, fmt.Errorf("无法识别保留时长 %q", text)
+		return settings.Retention{}, fmt.Errorf(i18n.T(i18n.ErrorInvalidRetention), text)
 	}
 	unit := settings.RetentionDays
 	switch text[len(text)-1:] {
@@ -488,7 +489,7 @@ func decodeRetention(text string) (settings.Retention, error) {
 	case "w":
 		unit = settings.RetentionWeeks
 	default:
-		return settings.Retention{}, fmt.Errorf("无法识别保留时长单位 %q", text)
+		return settings.Retention{}, fmt.Errorf(i18n.T(i18n.ErrorInvalidRetentionUnit), text)
 	}
 	return settings.Retention{Value: uint32(value), Unit: unit}, nil
 }

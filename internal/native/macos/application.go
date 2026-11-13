@@ -5,6 +5,7 @@ package macos
 import (
 	"fmt"
 
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/ebitengine/purego/objc"
 )
 
@@ -30,7 +31,7 @@ func SetDockIconVisible(visible bool) error {
 		ok = objc.Send[bool](app, sel("setActivationPolicy:"), policy)
 	})
 	if !ok {
-		return fmt.Errorf("无法切换 Dock 图标")
+		return fmt.Errorf("%s", i18n.T(i18n.ErrorDockIcon))
 	}
 	return nil
 }

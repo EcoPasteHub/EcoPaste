@@ -30,7 +30,7 @@ func (m *historyModel) Open(ctx context.Context, id string) error {
 		return err
 	}
 	if item == nil {
-		return fmt.Errorf("剪贴板记录不存在")
+		return fmt.Errorf("%s", i18n.T(i18n.HistoryItemMissing))
 	}
 	if item.Kind == database.KindText && item.SubKind != nil {
 		value := strings.TrimSpace(item.Content)
@@ -46,7 +46,7 @@ func (m *historyModel) Open(ctx context.Context, id string) error {
 			return openFile(value)
 		}
 	}
-	return fmt.Errorf("该记录不支持打开")
+	return fmt.Errorf("%s", i18n.T(i18n.ErrorOpenUnsupported))
 }
 
 // Reveal shows files or a path item in Finder.
@@ -56,7 +56,7 @@ func (m *historyModel) Reveal(ctx context.Context, id string) error {
 		return err
 	}
 	if item == nil {
-		return fmt.Errorf("剪贴板记录不存在")
+		return fmt.Errorf("%s", i18n.T(i18n.HistoryItemMissing))
 	}
 	switch {
 	case item.Kind == database.KindFiles:
@@ -64,7 +64,7 @@ func (m *historyModel) Reveal(ctx context.Context, id string) error {
 	case item.Kind == database.KindText && item.SubKind != nil && *item.SubKind == database.SubPath:
 		return revealFiles([]string{strings.TrimSpace(item.Content)})
 	default:
-		return fmt.Errorf("该记录不支持在 Finder 中显示")
+		return fmt.Errorf("%s", i18n.T(i18n.ErrorRevealUnsupported))
 	}
 }
 
@@ -75,10 +75,10 @@ func (m *historyModel) SaveImage(ctx context.Context, id string) error {
 		return err
 	}
 	if item == nil {
-		return fmt.Errorf("剪贴板记录不存在")
+		return fmt.Errorf("%s", i18n.T(i18n.HistoryItemMissing))
 	}
 	if item.Kind != database.KindImage {
-		return fmt.Errorf("该记录不是图片")
+		return fmt.Errorf("%s", i18n.T(i18n.ErrorNotImage))
 	}
 	defaultName := fmt.Sprintf("EcoPaste-%s.png", item.CreatedAt.Local().Format("20060102-150405"))
 	path, ok := chooseSave(defaultName, i18n.T(i18n.SaveImagePanel))
@@ -87,10 +87,10 @@ func (m *historyModel) SaveImage(ctx context.Context, id string) error {
 	}
 	data, err := m.runtime.images.Read(item.Content)
 	if err != nil {
-		return fmt.Errorf("读取图片: %w", err)
+		return fmt.Errorf(i18n.T(i18n.ErrorReadImage), err)
 	}
 	if err := writeAtomic(path, data); err != nil {
-		return fmt.Errorf("保存图片: %w", err)
+		return fmt.Errorf(i18n.T(i18n.ErrorSaveImage), err)
 	}
 	return nil
 }
@@ -103,7 +103,7 @@ func (m *historyModel) EditNote(ctx context.Context, id string) (bool, error) {
 		return false, err
 	}
 	if item == nil {
-		return false, fmt.Errorf("剪贴板记录不存在")
+		return false, fmt.Errorf("%s", i18n.T(i18n.HistoryItemMissing))
 	}
 	current := ""
 	if item.Note != nil {

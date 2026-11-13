@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/ebitengine/purego/objc"
 )
 
@@ -15,11 +16,11 @@ func OpenURL(raw string) error {
 	onMain(func() {
 		url := objc.ID(class("NSURL")).Send(sel("URLWithString:"), nsString(raw))
 		if url == 0 {
-			result = fmt.Errorf("无法解析链接")
+			result = fmt.Errorf("%s", i18n.T(i18n.ErrorOpenLinkParse))
 			return
 		}
 		if !objc.Send[bool](objc.ID(class("NSWorkspace")).Send(sel("sharedWorkspace")), sel("openURL:"), url) {
-			result = fmt.Errorf("无法打开链接")
+			result = fmt.Errorf("%s", i18n.T(i18n.ErrorOpenLink))
 		}
 	})
 	return result
@@ -28,13 +29,13 @@ func OpenURL(raw string) error {
 // OpenPath opens one existing file or folder with its default app.
 func OpenPath(path string) error {
 	if _, err := os.Stat(path); err != nil {
-		return fmt.Errorf("文件不存在: %w", err)
+		return fmt.Errorf(i18n.T(i18n.ErrorFileMissing), err)
 	}
 	var result error
 	onMain(func() {
 		url := objc.ID(class("NSURL")).Send(sel("fileURLWithPath:"), nsString(path))
 		if !objc.Send[bool](objc.ID(class("NSWorkspace")).Send(sel("sharedWorkspace")), sel("openURL:"), url) {
-			result = fmt.Errorf("无法打开文件")
+			result = fmt.Errorf("%s", i18n.T(i18n.ErrorOpenFile))
 		}
 	})
 	return result
@@ -49,7 +50,7 @@ func RevealPaths(paths []string) error {
 		}
 	}
 	if len(existing) == 0 {
-		return fmt.Errorf("文件不存在")
+		return fmt.Errorf("%s", i18n.T(i18n.ErrorFilesMissing))
 	}
 	onMain(func() {
 		urls := objc.ID(class("NSMutableArray")).Send(sel("array"))

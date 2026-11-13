@@ -103,7 +103,7 @@ func (m *historyModel) copyItem(ctx context.Context, id string, forcePlain bool)
 		return false, err
 	}
 	if item == nil {
-		return false, fmt.Errorf("剪贴板记录不存在")
+		return false, fmt.Errorf("%s", i18n.T(i18n.HistoryItemMissing))
 	}
 	cfg := m.store.Snapshot().Clipboard
 	plain := forcePlain || item.Kind == database.KindText && cfg.Content.CopyPlain
@@ -263,7 +263,7 @@ func (m *historyModel) OpenSettings(tab string) {
 // step ran, matching the old onboarding behavior.
 func (m *historyModel) DetectLegacy(ctx context.Context) (ui.LegacyDetection, error) {
 	if m.legacy == nil {
-		return ui.LegacyDetection{}, fmt.Errorf("剪贴板服务未启动")
+		return ui.LegacyDetection{}, fmt.Errorf("%s", i18n.T(i18n.ClipboardServiceDown))
 	}
 	detection, err := m.legacy.Detect(ctx)
 	if err != nil {
@@ -287,7 +287,7 @@ func (m *historyModel) DetectLegacy(ctx context.Context) (ui.LegacyDetection, er
 // onboarding step never offers the same import again.
 func (m *historyModel) ImportLegacy(ctx context.Context, types []string) (ui.LegacyImportResult, error) {
 	if m.legacy == nil {
-		return ui.LegacyImportResult{}, fmt.Errorf("剪贴板服务未启动")
+		return ui.LegacyImportResult{}, fmt.Errorf("%s", i18n.T(i18n.ClipboardServiceDown))
 	}
 	selections := make([]onboarding.LegacyImportSelection, 0, len(types))
 	for _, item := range types {
@@ -364,7 +364,7 @@ func (m *historyModel) activateItem(ctx context.Context, id string, forcePlain, 
 		return false, false, err
 	}
 	if item == nil {
-		return false, false, fmt.Errorf("剪贴板记录不存在")
+		return false, false, fmt.Errorf("%s", i18n.T(i18n.HistoryItemMissing))
 	}
 	cfg := m.store.Snapshot().Clipboard
 	if paste && !inputTrusted() {
@@ -389,7 +389,7 @@ func (m *historyModel) Drag(ctx context.Context, id string) (macos.DragPayload, 
 		return macos.DragPayload{}, err
 	}
 	if item == nil {
-		return macos.DragPayload{}, fmt.Errorf("剪贴板记录不存在")
+		return macos.DragPayload{}, fmt.Errorf("%s", i18n.T(i18n.HistoryItemMissing))
 	}
 	payload, err := m.runtime.service.BuildWrite(item, false)
 	if err != nil {
@@ -411,7 +411,7 @@ func (m *historyModel) MiddleClick(ctx context.Context, id string) (bool, error)
 		return false, err
 	}
 	if item == nil {
-		return false, fmt.Errorf("剪贴板记录不存在")
+		return false, fmt.Errorf("%s", i18n.T(i18n.HistoryItemMissing))
 	}
 	cfg := m.store.Snapshot().Clipboard
 	plain := false
@@ -461,17 +461,17 @@ func (m *historyModel) Delete(ctx context.Context, id string) error {
 		content = m.store.Snapshot().Clipboard.Content
 	}
 	if item.IsFavorite && !content.DeleteFavoriteItems {
-		return fmt.Errorf("收藏记录不允许删除")
+		return fmt.Errorf("%s", i18n.T(i18n.ErrorDeleteFavorite))
 	}
 	if item.IsPinned && !content.DeletePinnedItems {
-		return fmt.Errorf("置顶记录不允许删除")
+		return fmt.Errorf("%s", i18n.T(i18n.ErrorDeletePinned))
 	}
 	if err := m.runtime.db.Delete(ctx, id); err != nil {
 		return err
 	}
 	if item.Kind == database.KindImage {
 		if err := m.runtime.images.Remove(item.Content); err != nil {
-			return fmt.Errorf("删除图片文件: %w", err)
+			return fmt.Errorf(i18n.T(i18n.ErrorDeleteImage), err)
 		}
 	}
 	return nil
@@ -486,7 +486,7 @@ func (m *historyModel) Preview(ctx context.Context, id string) (ui.HistoryPrevie
 		return ui.HistoryPreview{}, err
 	}
 	if item == nil {
-		return ui.HistoryPreview{}, fmt.Errorf("剪贴板记录不存在")
+		return ui.HistoryPreview{}, fmt.Errorf("%s", i18n.T(i18n.HistoryItemMissing))
 	}
 	redact := item.IsSensitive && m.store.Snapshot().Clipboard.Sensitive.RedactSecrets
 	preview := ui.HistoryPreview{Enabled: true}

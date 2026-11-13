@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/database"
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
 	"github.com/EcoPasteHub/EcoPaste/internal/storage"
 )
@@ -86,11 +87,11 @@ func (r *appRegistry) Add(ctx context.Context, path string) (database.App, error
 	}
 	iconFile := r.storeIcon(path)
 	if err := r.db.EnsureApp(ctx, meta.BundleID, meta.Name, iconFile); err != nil {
-		return database.App{}, fmt.Errorf("保存来源应用: %w", err)
+		return database.App{}, fmt.Errorf(i18n.T(i18n.ErrorSaveApp), err)
 	}
 	app, err := r.db.FindApp(ctx, meta.BundleID)
 	if err != nil {
-		return database.App{}, fmt.Errorf("读取来源应用: %w", err)
+		return database.App{}, fmt.Errorf(i18n.T(i18n.ErrorReadApp), err)
 	}
 	return *app, nil
 }

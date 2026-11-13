@@ -114,7 +114,7 @@ func Run(app *core.Scope) {
 				}
 				model.changeDataDir = func(parent string) error {
 					if runtime == nil {
-						return fmt.Errorf("剪贴板服务未启动")
+						return fmt.Errorf("%s", i18n.T(i18n.ClipboardServiceDown))
 					}
 					ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 					defer cancel()
@@ -130,7 +130,7 @@ func Run(app *core.Scope) {
 				}
 				model.restoreDataDir = func() error {
 					if runtime == nil {
-						return fmt.Errorf("剪贴板服务未启动")
+						return fmt.Errorf("%s", i18n.T(i18n.ClipboardServiceDown))
 					}
 					ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 					defer cancel()
@@ -139,7 +139,7 @@ func Run(app *core.Scope) {
 				}
 				model.listApps = func() ([]database.App, error) {
 					if runtime == nil || runtime.apps == nil {
-						return nil, fmt.Errorf("剪贴板服务未启动")
+						return nil, fmt.Errorf("%s", i18n.T(i18n.ClipboardServiceDown))
 					}
 					ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 					defer cancel()
@@ -147,7 +147,7 @@ func Run(app *core.Scope) {
 				}
 				model.listGroups = func() ([]database.Group, error) {
 					if runtime == nil {
-						return nil, fmt.Errorf("剪贴板服务未启动")
+						return nil, fmt.Errorf("%s", i18n.T(i18n.ClipboardServiceDown))
 					}
 					ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 					defer cancel()
@@ -155,7 +155,7 @@ func Run(app *core.Scope) {
 				}
 				model.addApp = func(path string) (database.App, error) {
 					if runtime == nil || runtime.apps == nil {
-						return database.App{}, fmt.Errorf("剪贴板服务未启动")
+						return database.App{}, fmt.Errorf("%s", i18n.T(i18n.ClipboardServiceDown))
 					}
 					ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 					defer cancel()
@@ -163,7 +163,7 @@ func Run(app *core.Scope) {
 				}
 				model.deleteApps = func(ids []string) error {
 					if runtime == nil || runtime.apps == nil {
-						return fmt.Errorf("剪贴板服务未启动")
+						return fmt.Errorf("%s", i18n.T(i18n.ClipboardServiceDown))
 					}
 					ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 					defer cancel()
@@ -229,7 +229,7 @@ func Run(app *core.Scope) {
 				}
 				model.setTrayIcon = func(visible bool) error {
 					if tray == nil {
-						return fmt.Errorf("菜单栏图标尚未初始化")
+						return fmt.Errorf("%s", i18n.T(i18n.ErrorTrayNotReady))
 					}
 					icon := []byte(nil)
 					if visible {
