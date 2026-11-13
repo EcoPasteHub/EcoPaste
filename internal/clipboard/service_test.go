@@ -100,6 +100,27 @@ func TestIgnoredAppIsNotCaptured(t *testing.T) {
 	}
 }
 
+func TestDefaultExcludedAppsAreNotCaptured(t *testing.T) {
+	cfg := settings.Default().Clipboard
+	svc, db, _ := testService(t, cfg)
+	ctx := context.Background()
+	for _, id := range cfg.Filters.ExcludedAppIDs {
+		if _, changed, err := svc.Capture(ctx, Payload{Text: "secret from " + id}, SourceApp{ID: id}); err != nil || changed {
+			t.Errorf("%s: changed = %v err = %v", id, changed, err)
+		}
+	}
+	if _, changed, err := svc.Capture(ctx, Payload{Text: "normal"}, SourceApp{ID: "com.example.editor"}); err != nil || !changed {
+		t.Fatalf("normal app: changed = %v err = %v", changed, err)
+	}
+	page, err := db.Page(ctx, database.Query{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if page.Total != 1 {
+		t.Errorf("recorded %d rows, want only the normal app", page.Total)
+	}
+}
+
 func TestSecretCapturePolicy(t *testing.T) {
 	secret := "sk-" + strings.Repeat("z", 32)
 	ctx := context.Background()
