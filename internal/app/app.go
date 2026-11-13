@@ -61,6 +61,11 @@ func Run(app *core.Scope) {
 		} else {
 			app.Cleanup(func() { logger.Close() })
 		}
+		if result, applied, err := backup.ApplyPendingImport(paths); err != nil {
+			log.Printf("apply pending import: %v", err)
+		} else if applied {
+			log.Printf("imported backup: %d items", result.Items)
+		}
 		log.Printf("data root %s", paths.Root)
 		if state, err := storage.OpenWindowState(paths.State); err != nil {
 			log.Printf("open window state: %v", err)
@@ -218,6 +223,37 @@ func Run(app *core.Scope) {
 						return
 					}
 					runBackupExport(app, runtime, path, mode, password)
+				}},
+				{Label: "导入备份…", OnSelect: func() {
+					if runtime == nil {
+						return
+					}
+					path, ok := macos.OpenBackupPanel("导入 EcoPaste 备份")
+					if !ok {
+						return
+					}
+					mode, err := backup.Inspect(path)
+					if err != nil {
+						macos.ShowMessage("无法导入备份", err.Error())
+						return
+					}
+					password := ""
+					if mode == backup.ModeEncrypted {
+						var confirmed bool
+						password, confirmed = macos.PromptPassword("备份密码", "请输入备份文件的密码。")
+						if !confirmed {
+							return
+						}
+					}
+					if !macos.Confirm("覆盖当前数据？",
+						"导入会覆盖当前历史、设置和资源，然后重启 EcoPaste。", "导入并重启") {
+						return
+					}
+					if _, err := backup.StageImport(path, password, runtime.paths.State); err != nil {
+						macos.ShowMessage("无法导入备份", err.Error())
+						return
+					}
+					desktop.Restart(app)
 				}},
 				{Label: "清除历史…", OnSelect: func() {
 					choice := macos.ConfirmClearHistory()

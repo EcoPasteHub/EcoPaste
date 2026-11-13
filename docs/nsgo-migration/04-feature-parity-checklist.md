@@ -60,7 +60,7 @@
 | D-24 | P1 | 旧版数据导入 | `commands/onboarding.rs` | 读 v0.6 `history` + `images/` | 待迁移 | 普通/收藏选择性导入 |
 | D-25 | P1 | 来源应用注册表 | `db/apps.rs`、`apps_registry.rs` | 列表、全部应用、从路径添加、清理未引用 | 待迁移 | 增删与去重 |
 | D-26 | P1 | 文件图标缓存 | `db/file_icons.rs`、`file_icon_store.rs` | `NSWorkspace` 图标 + cache key | 已通过 | `TestFileIconCacheReusesType`；真机 PDF/TXT 图标正确，两个 PDF 共享 `.pdf` 缓存 |
-| D-27 | P1 | 备份入口 | `commands/backup.rs` | 导出、检查、导入、pending slot | 迁移中 | 托盘明文/加密导出；`TestExportPlainBackup`、`TestExportEncryptedBackupRoundTrips`；真机导出 ZIP 并校验快照 DB；导入待迁移 |
+| D-27 | P1 | 备份入口 | `commands/backup.rs` | 导出、检查、导入、pending slot | 迁移中 | 托盘明文/加密导出与 overwrite 导入；`TestExportPlainBackup`、`TestExportEncryptedBackupRoundTrips`、`TestStageAndApplyImport`、`TestApplyImportRestoresOnFailure`；真机导出 ZIP 校验快照 DB，导入后重启校验 DB/设置/resources，失败自动回滚；merge 导入与旧版包互导待补 |
 | D-28 | P1 | 打开数据目录 | `commands/storage.rs` | `NSWorkspace` 打开目录 | 已通过 | 真机从托盘打开当前数据根 |
 
 ## 3. 内容识别与预览
@@ -193,7 +193,7 @@
 | X-04 | P0 | 图片文件名 | `<blake3>.png` 分片 | 路径与命名一致 | 待迁移 | 旧数据直接引用 |
 | X-05 | P0 | `settings.json` | camelCase、serde default | 字段、默认值、patch 语义一致 | 待迁移 | 旧文件读写回环 |
 | X-06 | P0 | 数据目录 | `storage.json` 锚点 | 默认/自定义目录均可解析 | 待迁移 | 目录切换 |
-| X-07 | P0 | `.ecopastebak` | ZIP / 自定义加密容器 | 双向读写兼容 | 迁移中 | 明文 ZIP 布局与加密容器导出已兼容；旧包互导待导入实现 |
+| X-07 | P0 | `.ecopastebak` | ZIP / 自定义加密容器 | 双向读写兼容 | 迁移中 | 明文 ZIP 布局、加密容器与 overwrite 导入已兼容；旧版生成/读取 NSGo 包的双向样本验证待补 |
 | X-08 | P0 | 文件关联 | `.ecopastebak` | 同扩展名/UTI | 待迁移 | 双击/拖放 |
 | X-09 | P0 | Bundle ID | `com.ayangweb.eco-paste` | 正式版一致；开发版隔离 | 待迁移 | 安装/升级/数据目录 |
 

@@ -102,6 +102,48 @@ func SavePanel(defaultName, title string) (string, bool) {
 	return path, path != ""
 }
 
+// OpenBackupPanel asks for an .ecopastebak file.
+func OpenBackupPanel(title string) (string, bool) {
+	var path string
+	onMain(func() {
+		suppressPanelBlur.Store(true)
+		defer suppressPanelBlur.Store(false)
+		app := objc.ID(class("NSApplication")).Send(sel("sharedApplication"))
+		window := objc.Send[objc.ID](app, sel("keyWindow"))
+		if window == 0 {
+			for _, p := range panelsByView {
+				window = objc.Send[objc.ID](p.view, sel("window"))
+				if window != 0 {
+					break
+				}
+			}
+		}
+		app.Send(sel("activateIgnoringOtherApps:"), true)
+		if window != 0 {
+			window.Send(sel("makeKeyAndOrderFront:"), objc.ID(0))
+		}
+		panel := objc.ID(class("NSOpenPanel")).Send(sel("openPanel"))
+		panel.Send(sel("retain"))
+		defer panel.Send(sel("release"))
+		panel.Send(sel("setTitle:"), nsString(title))
+		panel.Send(sel("setCanChooseFiles:"), true)
+		panel.Send(sel("setCanChooseDirectories:"), false)
+		panel.Send(sel("setAllowsMultipleSelection:"), false)
+		extensions := objc.ID(class("NSArray")).Send(sel("arrayWithObject:"), nsString("ecopastebak"))
+		panel.Send(sel("setAllowedFileTypes:"), extensions)
+		panel.Send(sel("setLevel:"), int64(1000))
+		panel.Send(sel("makeKeyAndOrderFront:"), objc.ID(0))
+		if panel.Send(sel("runModal")) != 1 {
+			return
+		}
+		url := objc.Send[objc.ID](panel, sel("URL"))
+		if url != 0 {
+			path = goString(objc.Send[objc.ID](url, sel("path")))
+		}
+	})
+	return path, path != ""
+}
+
 // onMain runs AppKit work on the application's main thread.
 func onMain(fn func()) {
 	if objc.Send[bool](objc.ID(class("NSThread")), sel("isMainThread")) {

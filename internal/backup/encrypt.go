@@ -148,17 +148,9 @@ func decodePayload(data []byte, password string) ([]byte, error) {
 	if len(data) < len(magic)+4 || string(data[:len(magic)]) != magic {
 		return nil, errors.New("不是有效的 EcoPaste 备份文件")
 	}
-	headerSize := int(binary.LittleEndian.Uint32(data[len(magic) : len(magic)+4]))
-	start := len(magic) + 4
-	if headerSize <= 0 || start+headerSize > len(data) {
-		return nil, errors.New("加密备份文件头无效")
-	}
-	var header containerHeader
-	if err := json.Unmarshal(data[start:start+headerSize], &header); err != nil {
-		return nil, fmt.Errorf("解析备份文件头: %w", err)
-	}
-	if header.FormatVersion != formatVersion {
-		return nil, fmt.Errorf("暂不支持备份格式版本 %d", header.FormatVersion)
+	header, headerSize, err := readHeaderWithSize(data[len(magic):])
+	if err != nil {
+		return nil, err
 	}
 	if header.Mode != ModeEncrypted || header.KDF == nil || header.Cipher == nil {
 		return nil, errors.New("加密备份文件头无效")
@@ -183,9 +175,33 @@ func decodePayload(data []byte, password string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("初始化备份解密: %w", err)
 	}
-	payload, err := aead.Open(nil, header.Cipher.Nonce, data[start+headerSize:], nil)
+	start := len(magic) + 4 + headerSize
+	payload, err := aead.Open(nil, header.Cipher.Nonce, data[start:], nil)
 	if err != nil {
 		return nil, errors.New("备份密码不正确或文件已损坏")
 	}
 	return payload, nil
+}
+
+func readHeader(data []byte) (containerHeader, error) {
+	header, _, err := readHeaderWithSize(data)
+	return header, err
+}
+
+func readHeaderWithSize(data []byte) (containerHeader, int, error) {
+	var header containerHeader
+	if len(data) < 4 {
+		return header, 0, errors.New("加密备份文件头无效")
+	}
+	headerSize := int(binary.LittleEndian.Uint32(data[:4]))
+	if headerSize <= 0 || headerSize > 64*1024 || 4+headerSize > len(data) {
+		return header, 0, errors.New("加密备份文件头无效")
+	}
+	if err := json.Unmarshal(data[4:4+headerSize], &header); err != nil {
+		return header, 0, fmt.Errorf("解析备份文件头: %w", err)
+	}
+	if header.FormatVersion != formatVersion {
+		return header, 0, fmt.Errorf("暂不支持备份格式版本 %d", header.FormatVersion)
+	}
+	return header, headerSize, nil
 }
