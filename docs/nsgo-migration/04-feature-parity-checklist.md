@@ -27,7 +27,7 @@
 | C-16 | P0 | 敏感内容策略 | `collectSecrets`、`redactSecrets` | 跳过或脱敏，日志不落原文 | 已通过 | `TestSecretCapturePolicy`、`TestPreviewRedactsSensitiveText` |
 | C-17 | P0 | 回环抑制 | `clipboard/guard.rs` | 写回前登记所有实际写出的表示 hash，2 秒 TTL | 已通过 | `TestWriteItemSuppressesItsOwnCapture`、`TestWriteRichTextSuppressesHTMLAndPlainFallback`、`TestWriteFilesAsTextSuppressesFallbackCapture`；真机复制 HTML 后 DB 不新增纯文本回环 |
 | C-18 | P1 | 监听暂停 | `WatcherPause`、托盘 | 暂停期间跳过入库，watcher 不退出 | 已通过 | 真机托盘暂停后复制不入库，恢复后继续监听；`TestWatcherPollBypassesPause` |
-| C-19 | P2 | 复制音效 | `clipboard/sound.rs` | `AVAudioPlayer` 或 Go 音频库 | 待迁移 | 开关、静音、缺失文件 |
+| C-19 | P2 | 复制音效 | `clipboard/sound.rs` | `AVAudioPlayer` 或 Go 音频库 | 已通过（产品调整） | `TestCopySoundIsAvailable`、`TestSettingsModelAppliesPaths`；真机开启“复制提示音”后系统 `Pop` 音效可用，关闭后不再播放；按产品调整改用系统音效，见迁移计划 |
 | C-20 | P1 | 手动读取剪贴板 | `read_clipboard` | 与自动采集共用同一条管线 | 已通过 | `TestWatcherPollReadsOnlyChanges`；真机暂停时读取入库，恢复后不重复；冷启动前已有剪贴板内容可由托盘读取入库 |
 
 ## 2. 数据、历史与存储
@@ -174,7 +174,7 @@
 | S-09 | clipboard.search | `defaultFocus`、`clearOnHide` | 面板打开/隐藏行为一致 | 已通过 | 真机验证表格/搜索框初始焦点、失焦隐藏后保留查询、隐藏后清空查询并恢复完整列表 |
 | S-10 | clipboard.window | `position`、`scrollToTopOnOpen`、`selectRangeOnOpen`、`selectCategoryOnOpen`、`selectGroupOnOpen`、`lightweightMode`、`idleDestroySeconds` | 原生窗口等价行为；无 WebView 时轻量化/空闲销毁按“不适用”处理，字段继续读写 | 迁移中 | `position` 三档已真机验证；打开时滚动与范围/分类/分组选择已接设置页并由 `TestOpenBehavior*` 覆盖；待真机确认打开时选中效果 |
 | S-11 | clipboard.preview | `hoverEnabled`、`hoverDelayMs`、`spaceEnabled` | Space 已接；hover 暂不实现 | 迁移中 | 延迟边界 |
-| S-12 | clipboard.feedback | `copySound` | 音效开关一致 | 待迁移 | 开/关 |
+| S-12 | clipboard.feedback | `copySound` | 音效开关一致 | 已通过 | 设置“通用”页开关即时写入 `settings.json`；开启后监听/手动读取入库成功播放系统提示音，关闭后静音；`TestSettingsModelAppliesPaths` 覆盖读写 |
 | S-13 | clipboard.filters | `excludedAppIds` | bundle id 过滤一致 | 待迁移 | 默认排除/自定义 |
 | S-14 | onboarding | `completed`、`lastStep`、`legacyImport{checked,imported,importTypes,importedAt}` | 首次启动与导入状态一致 | 待迁移 | 中断/恢复/完成 |
 | S-15 | update | `autoCheck`、`frequency`、`includeBeta`、`includeNightly`、`lastCheckedAt`、`skippedVersion` | 渠道与跳过逻辑一致 | 待迁移 | 测试 appcast |

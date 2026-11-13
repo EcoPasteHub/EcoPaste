@@ -529,6 +529,9 @@ func startClipboard(app *core.Scope, paths *storage.Paths, store *settings.Store
 			if err != nil {
 				log.Printf("capture clipboard: %v", err)
 			} else if captured {
+				if store.Snapshot().Clipboard.Feedback.CopySound {
+					macos.PlayCopySound()
+				}
 				select {
 				case changed <- struct{}{}:
 				default:

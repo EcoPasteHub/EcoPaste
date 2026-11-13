@@ -29,10 +29,13 @@ func TestSettingsModelAppliesPaths(t *testing.T) {
 	if err := model.Apply("window.position", "remember"); err != nil {
 		t.Fatal(err)
 	}
+	if err := model.Apply("feedback.copySound", true); err != nil {
+		t.Fatal(err)
+	}
 
 	values := model.Load()
 	if !values.CopyPlain || values.MaxTextMB != 8 || values.Retention != "7d" || values.RedactSecrets ||
-		values.WindowPosition != "remember" {
+		values.WindowPosition != "remember" || !values.CopySound {
 		t.Errorf("values = %+v", values)
 	}
 	cfg := store.Snapshot().Clipboard
