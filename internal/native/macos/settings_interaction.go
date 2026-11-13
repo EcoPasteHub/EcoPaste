@@ -2,47 +2,50 @@
 
 package macos
 
-import "github.com/ebitengine/purego/objc"
+import (
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
+	"github.com/ebitengine/purego/objc"
+)
 
 // buildInteraction adds mouse click behavior and paste defaults.
 func (v *SettingsView) buildInteraction() {
-	content := v.newTab("interaction", "交互")
+	content := v.newTab("interaction", settingsTabTitle("interaction"))
 
 	intro := objc.ID(classNSTextField).Send(sel("labelWithString:"),
-		nsString("左键和中键动作在剪贴板面板中生效；自动粘贴需要辅助功能权限。"))
+		nsString(i18n.T(i18n.SettingsInteractionIntro)))
 	intro.Send(sel("setFont:"), systemFont(11))
 	intro.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
 	intro.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 438}, Size: CGSize{Width: tabContentW - 48, Height: 18}})
 	content.Send(sel("addSubview:"), intro)
 
 	y := 396.0
-	v.addPopup(content, y, "鼠标左键", "content.autoPaste",
+	v.addPopup(content, y, i18n.T(i18n.SettingsMouseLeft), "content.autoPaste",
 		[]settingsOption{
-			{Title: "禁用", Value: "disabled"},
-			{Title: "单击粘贴", Value: "singleClickPaste"},
-			{Title: "双击粘贴", Value: "doubleClickPaste"},
-			{Title: "单击复制", Value: "singleClickCopy"},
-			{Title: "双击复制", Value: "doubleClickCopy"},
+			{Title: i18n.T(i18n.SettingsDisabled), Value: "disabled"},
+			{Title: i18n.T(i18n.SettingsSingleClickPaste), Value: "singleClickPaste"},
+			{Title: i18n.T(i18n.SettingsDoubleClickPaste), Value: "doubleClickPaste"},
+			{Title: i18n.T(i18n.SettingsSingleClickCopy), Value: "singleClickCopy"},
+			{Title: i18n.T(i18n.SettingsDoubleClickCopy), Value: "doubleClickCopy"},
 		},
 		func(s SettingsValues) string { return s.AutoPaste })
-	v.addPopup(content, y-52, "鼠标中键", "content.middleClick",
+	v.addPopup(content, y-52, i18n.T(i18n.SettingsMouseMiddle), "content.middleClick",
 		[]settingsOption{
-			{Title: "禁用", Value: "disabled"},
-			{Title: "粘贴", Value: "singleClickPaste"},
-			{Title: "粘贴为纯文本", Value: "singleClickPastePlain"},
-			{Title: "复制", Value: "singleClickCopy"},
-			{Title: "复制为纯文本", Value: "singleClickCopyPlain"},
+			{Title: i18n.T(i18n.SettingsDisabled), Value: "disabled"},
+			{Title: i18n.T(i18n.MenuPaste), Value: "singleClickPaste"},
+			{Title: i18n.T(i18n.SettingsSinglePastePlain), Value: "singleClickPastePlain"},
+			{Title: i18n.T(i18n.MenuCopy), Value: "singleClickCopy"},
+			{Title: i18n.T(i18n.SettingsSingleCopyPlain), Value: "singleClickCopyPlain"},
 		},
 		func(s SettingsValues) string { return s.MiddleClick })
-	v.addSwitch(content, y-104, "粘贴文件时写入路径", "content.pasteFilesAsPath",
+	v.addSwitch(content, y-104, i18n.T(i18n.SettingsPasteFilesAsPath), "content.pasteFilesAsPath",
 		func(s SettingsValues) bool { return s.PasteFilesAsPath })
-	v.addSwitch(content, y-142, "有备注时自动收藏", "content.autoFavorite",
+	v.addSwitch(content, y-142, i18n.T(i18n.SettingsAutoFavorite), "content.autoFavorite",
 		func(s SettingsValues) bool { return s.AutoFavorite })
-	v.addSwitch(content, y-180, "悬停备注条目显示原始内容", "content.showOriginalPreview",
+	v.addSwitch(content, y-180, i18n.T(i18n.SettingsShowOriginal), "content.showOriginalPreview",
 		func(s SettingsValues) bool { return s.ShowOriginalPreview })
 
 	note := objc.ID(classNSTextField).Send(sel("labelWithString:"),
-		nsString("“粘贴文件时写入路径”只影响文件记录；普通文本仍按原内容粘贴。"))
+		nsString(i18n.T(i18n.SettingsInteractionNote)))
 	note.Send(sel("setFont:"), systemFont(11))
 	note.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
 	note.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: y - 234}, Size: CGSize{Width: tabContentW - 48, Height: 32}})
@@ -51,26 +54,26 @@ func (v *SettingsView) buildInteraction() {
 
 // buildDeletion adds the per-category delete protection rules.
 func (v *SettingsView) buildDeletion() {
-	content := v.newTab("deletion", "删除")
+	content := v.newTab("deletion", settingsTabTitle("deletion"))
 
 	intro := objc.ID(classNSTextField).Send(sel("labelWithString:"),
-		nsString("确认开关只影响对应类型；关闭“允许删除”后，该类型记录不再显示删除入口。"))
+		nsString(i18n.T(i18n.SettingsDeletionIntro)))
 	intro.Send(sel("setFont:"), systemFont(11))
 	intro.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
 	intro.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 438}, Size: CGSize{Width: tabContentW - 48, Height: 18}})
 	content.Send(sel("addSubview:"), intro)
 
 	y := 396.0
-	v.addSwitch(content, y, "普通条目删除前确认", "content.deleteConfirm",
+	v.addSwitch(content, y, i18n.T(i18n.SettingsDeleteConfirm), "content.deleteConfirm",
 		func(s SettingsValues) bool { return s.DeleteConfirm })
-	v.addSwitch(content, y-38, "收藏条目删除前确认", "content.deleteFavoriteConfirm",
+	v.addSwitch(content, y-38, i18n.T(i18n.SettingsDeleteFavoriteConfirm), "content.deleteFavoriteConfirm",
 		func(s SettingsValues) bool { return s.DeleteFavoriteConfirm })
-	v.addSwitch(content, y-76, "置顶条目删除前确认", "content.deletePinnedConfirm",
+	v.addSwitch(content, y-76, i18n.T(i18n.SettingsDeletePinnedConfirm), "content.deletePinnedConfirm",
 		func(s SettingsValues) bool { return s.DeletePinnedConfirm })
-	v.addSwitch(content, y-120, "允许删除收藏条目", "content.deleteFavoriteItems",
+	v.addSwitch(content, y-120, i18n.T(i18n.SettingsDeleteFavoriteItems), "content.deleteFavoriteItems",
 		func(s SettingsValues) bool { return s.DeleteFavoriteItems })
-	v.addSwitch(content, y-158, "允许删除置顶条目", "content.deletePinnedItems",
+	v.addSwitch(content, y-158, i18n.T(i18n.SettingsDeletePinnedItems), "content.deletePinnedItems",
 		func(s SettingsValues) bool { return s.DeletePinnedItems })
-	v.addSwitch(content, y-196, "收藏项仅在收藏分组可删除", "content.deleteFavoriteOnlyFav",
+	v.addSwitch(content, y-196, i18n.T(i18n.SettingsDeleteFavoriteOnlyFav), "content.deleteFavoriteOnlyFav",
 		func(s SettingsValues) bool { return s.DeleteFavoriteOnlyFav })
 }

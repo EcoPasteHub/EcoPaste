@@ -3,10 +3,10 @@
 package macos
 
 import (
-	"fmt"
 	"strings"
 	"unicode"
 
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/ebitengine/purego/objc"
 )
 
@@ -48,7 +48,7 @@ func (v *SettingsView) addSearchEntry(content objc.ID, title, path, detail, keyw
 
 func (v *SettingsView) buildSearch() {
 	v.searchField = objc.ID(classNSSearchField).Send(sel("new"))
-	v.searchField.Send(sel("setPlaceholderString:"), nsString("搜索设置"))
+	v.searchField.Send(sel("setPlaceholderString:"), nsString(i18n.T(i18n.SettingsSearchPlaceholder)))
 	v.searchField.Send(sel("setFont:"), systemFont(13))
 	v.searchField.Send(sel("setFrame:"), CGRect{
 		Origin: CGPoint{X: 24, Y: settingsHeight - 35},
@@ -58,9 +58,9 @@ func (v *SettingsView) buildSearch() {
 	v.searchField.Send(sel("setSendsWholeSearchString:"), false)
 	v.searchField.Send(sel("setTarget:"), settingsTarget)
 	v.searchField.Send(sel("setAction:"), sel("settingsSearchChanged:"))
-	v.searchField.Send(sel("setAccessibilityLabel:"), nsString("搜索所有设置"))
+	v.searchField.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsSearchA11y)))
 	v.searchField.Send(sel("setAccessibilityHelp:"),
-		nsString("输入名称、说明或设置路径，然后从右侧结果中选择要跳转的设置"))
+		nsString(i18n.T(i18n.SettingsSearchHelp)))
 	v.view.Send(sel("addSubview:"), v.searchField)
 	settingsViews[v.searchField] = v
 
@@ -72,8 +72,8 @@ func (v *SettingsView) buildSearch() {
 	v.searchResults.Send(sel("setFont:"), systemFont(12))
 	v.searchResults.Send(sel("setTarget:"), settingsTarget)
 	v.searchResults.Send(sel("setAction:"), sel("settingsSearchPicked:"))
-	v.searchResults.Send(sel("setAccessibilityLabel:"), nsString("设置搜索结果"))
-	v.searchResults.Send(sel("setAccessibilityHelp:"), nsString("选择匹配设置并跳转到对应分类"))
+	v.searchResults.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsSearchResults)))
+	v.searchResults.Send(sel("setAccessibilityHelp:"), nsString(i18n.T(i18n.SettingsSearchResultsHelp)))
 	v.searchResults.Send(sel("setHidden:"), true)
 	if menu := v.searchResults.Send(sel("menu")); menu != 0 {
 		menu.Send(sel("setAutoenablesItems:"), false)
@@ -118,16 +118,16 @@ func (v *SettingsView) updateSearchResults(query string) {
 	}
 	v.searchResults.Send(sel("setHidden:"), false)
 	if len(v.searchMatches) == 0 {
-		v.searchResults.Send(sel("addItemWithTitle:"), nsString("无匹配设置"))
+		v.searchResults.Send(sel("addItemWithTitle:"), nsString(i18n.T(i18n.SettingsNoMatches)))
 		v.searchResults.Send(sel("setEnabled:"), false)
-		v.searchResults.Send(sel("setToolTip:"), nsString("没有找到匹配的设置"))
+		v.searchResults.Send(sel("setToolTip:"), nsString(i18n.T(i18n.SettingsNoMatchesTip)))
 		v.searchResults.Send(sel("selectItemAtIndex:"), 0)
 		return
 	}
 
 	v.searchResults.Send(sel("setEnabled:"), true)
 	v.searchResults.Send(sel("addItemWithTitle:"),
-		nsString(fmt.Sprintf("找到 %d 项匹配", len(v.searchMatches))))
+		nsString(i18n.Tf(i18n.SettingsMatchesCount, len(v.searchMatches))))
 	header := v.searchResults.Send(sel("lastItem"))
 	header.Send(sel("setEnabled:"), false)
 	for _, entry := range v.searchMatches {
@@ -143,7 +143,7 @@ func (v *SettingsView) updateSearchResults(query string) {
 		menu.Send(sel("setMinimumWidth:"), 380.0)
 	}
 	v.searchResults.Send(sel("selectItemAtIndex:"), 0)
-	v.searchResults.Send(sel("setToolTip:"), nsString("从菜单中选择匹配的设置"))
+	v.searchResults.Send(sel("setToolTip:"), nsString(i18n.T(i18n.SettingsPickMatchTip)))
 }
 
 func (v *SettingsView) showSearchHighlight(entry settingsSearchEntry) {
@@ -197,7 +197,7 @@ func matchSettingsSearch(entries []settingsSearchEntry, query string) []settings
 func settingsSearchHaystack(entry settingsSearchEntry) string {
 	tabTitle := entry.tabTitle
 	if tabTitle == "" {
-		tabTitle = settingsTabTitles[entry.tab]
+		tabTitle = settingsTabTitle(entry.tab)
 	}
 	return strings.ToLower(strings.Join([]string{
 		entry.title,

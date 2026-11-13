@@ -2,7 +2,11 @@
 
 package macos
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
+)
 
 func TestMatchSettingsSearchUsesTitlePathAndKeywords(t *testing.T) {
 	entries := []settingsSearchEntry{
@@ -77,5 +81,27 @@ func TestSettingsPathWords(t *testing.T) {
 	got := settingsPathWords("clipboard.maxTextMB")
 	if got != "clipboard max text m b" {
 		t.Errorf("settingsPathWords = %q", got)
+	}
+}
+
+func TestSettingsSearchMatchesEnglishLabels(t *testing.T) {
+	i18n.SetLanguage("en-US")
+	t.Cleanup(func() { i18n.SetLanguage("zh-CN") })
+
+	entries := []settingsSearchEntry{
+		{
+			title: i18n.T(i18n.SettingsDockIcon), path: "general.dockIcon",
+			tab: "general", tabTitle: settingsTabTitle("general"),
+		},
+		{
+			title: i18n.T(i18n.SettingsMaxText), path: "capture.maxTextMb",
+			tab: "capture", tabTitle: settingsTabTitle("capture"),
+		},
+	}
+	if got := matchSettingsSearch(entries, "dock icon"); len(got) != 1 || got[0].path != "general.dockIcon" {
+		t.Errorf("dock icon matches = %+v", got)
+	}
+	if got := matchSettingsSearch(entries, "capture maximum text"); len(got) != 1 || got[0].path != "capture.maxTextMb" {
+		t.Errorf("capture maximum text matches = %+v", got)
 	}
 }

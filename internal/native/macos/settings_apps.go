@@ -3,9 +3,9 @@
 package macos
 
 import (
-	"fmt"
 	"sync"
 
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/ebitengine/purego/objc"
 )
 
@@ -30,13 +30,13 @@ var (
 // app in clipboard.filters.excludedAppIds.
 func (v *SettingsView) buildApps() {
 	registerSettingsAppsOnce.Do(registerSettingsAppsTargets)
-	content := v.newTab("apps", "应用")
-	v.addSearchEntry(content, "来源应用", "clipboard.filters.excludedAppIds",
-		"忽略 排除 过滤 应用", "source apps filter exclude privacy",
+	content := v.newTab("apps", settingsTabTitle("apps"))
+	v.addSearchEntry(content, i18n.T(i18n.SettingsSourceApps), "clipboard.filters.excludedAppIds",
+		i18n.T(i18n.SettingsAppsKeywords), "source apps filter exclude privacy",
 		CGRect{Origin: CGPoint{X: 12, Y: 24}, Size: CGSize{Width: tabContentW - 24, Height: 420}})
 
 	intro := objc.ID(classNSTextField).Send(sel("labelWithString:"),
-		nsString("勾选的应用不会进入剪贴板历史；列表包含正在运行和历史来源。"))
+		nsString(i18n.T(i18n.SettingsAppsIntro)))
 	intro.Send(sel("setFont:"), systemFont(11))
 	intro.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
 	intro.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 438}, Size: CGSize{Width: tabContentW - 48, Height: 18}})
@@ -62,7 +62,7 @@ func (v *SettingsView) buildApps() {
 	table.Send(sel("setBackgroundColor:"), objc.ID(classNSColor).Send(sel("clearColor")))
 	table.Send(sel("setDataSource:"), settingsAppsTarget)
 	table.Send(sel("setDelegate:"), settingsAppsTarget)
-	table.Send(sel("setAccessibilityLabel:"), nsString("来源应用"))
+	table.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsSourceApps)))
 
 	column := objc.ID(class("NSTableColumn")).Send(sel("new"))
 	column.Send(sel("setIdentifier:"), nsString("apps"))
@@ -79,7 +79,7 @@ func (v *SettingsView) buildApps() {
 	v.appsTable = table
 	settingsAppsByTable[table] = v
 
-	empty := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString("没有可显示的应用"))
+	empty := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(i18n.SettingsAppsEmpty)))
 	empty.Send(sel("setFont:"), systemFont(12))
 	empty.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
 	empty.Send(sel("setAlignment:"), int64(2))
@@ -89,16 +89,16 @@ func (v *SettingsView) buildApps() {
 	v.appsEmpty = empty
 
 	add := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
-		nsString("添加应用…"), settingsTarget, sel("addAppPressed:"))
+		nsString(i18n.T(i18n.SettingsAddApp)), settingsTarget, sel("addAppPressed:"))
 	add.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 134, Y: 34}, Size: CGSize{Width: 110, Height: 30}})
-	add.Send(sel("setAccessibilityLabel:"), nsString("添加来源应用"))
+	add.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsAddAppA11y)))
 	content.Send(sel("addSubview:"), add)
 	settingsViews[add] = v
 
 	refresh := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
-		nsString("刷新"), settingsTarget, sel("refreshAppsPressed:"))
+		nsString(i18n.T(i18n.SettingsRefresh)), settingsTarget, sel("refreshAppsPressed:"))
 	refresh.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 214, Y: 34}, Size: CGSize{Width: 70, Height: 30}})
-	refresh.Send(sel("setAccessibilityLabel:"), nsString("刷新来源应用"))
+	refresh.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsRefreshA11y)))
 	content.Send(sel("addSubview:"), refresh)
 	settingsViews[refresh] = v
 }
@@ -233,7 +233,7 @@ func fillSettingsAppRow(v *SettingsView, cell objc.ID, row int, app SettingsApp)
 	if checkbox != 0 {
 		checkbox.Send(sel("setTag:"), int64(settingsAppCheckTagBase+row))
 		checkbox.Send(sel("setState:"), int64(boolInt(app.Excluded)))
-		checkbox.Send(sel("setAccessibilityLabel:"), nsString(fmt.Sprintf("忽略 %s", app.Name)))
+		checkbox.Send(sel("setAccessibilityLabel:"), nsString(i18n.Tf(i18n.SettingsIgnoreApp, app.Name)))
 		settingsAppControls[checkbox] = v
 	}
 	icon := cell.Send(sel("viewWithTag:"), int64(settingsAppIconTag))

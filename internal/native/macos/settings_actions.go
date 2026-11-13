@@ -3,9 +3,9 @@
 package macos
 
 import (
-	"fmt"
 	"sync"
 
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/ebitengine/purego/objc"
 )
 
@@ -35,19 +35,34 @@ var (
 	settingsActionControls      = map[objc.ID]*SettingsView{}
 )
 
-var settingsActionTitles = map[string]string{
-	"paste":      "粘贴",
-	"pastePlain": "纯文本粘贴",
-	"pastePath":  "粘贴为路径",
-	"copy":       "复制",
-	"copyPlain":  "复制为纯文本",
-	"openLink":   "打开链接",
-	"sendEmail":  "发送邮件",
-	"reveal":     "在 Finder 中显示",
-	"note":       "编辑备注",
-	"star":       "收藏",
-	"pinItem":    "置顶",
-	"delete":     "删除",
+func settingsActionTitle(key string) (string, bool) {
+	switch key {
+	case "paste":
+		return i18n.T(i18n.MenuPaste), true
+	case "pastePlain":
+		return i18n.T(i18n.MenuPastePlain), true
+	case "pastePath":
+		return i18n.T(i18n.MenuPastePath), true
+	case "copy":
+		return i18n.T(i18n.MenuCopy), true
+	case "copyPlain":
+		return i18n.T(i18n.MenuCopyPlain), true
+	case "openLink":
+		return i18n.T(i18n.MenuOpenLink), true
+	case "sendEmail":
+		return i18n.T(i18n.MenuSendEmail), true
+	case "reveal":
+		return i18n.T(i18n.MenuReveal), true
+	case "note":
+		return i18n.T(i18n.SettingsActionNote), true
+	case "star":
+		return i18n.T(i18n.MenuFavorite), true
+	case "pinItem":
+		return i18n.T(i18n.MenuPin), true
+	case "delete":
+		return i18n.T(i18n.CommonDelete), true
+	}
+	return "", false
 }
 
 var settingsActionFallbackOrder = []string{
@@ -57,13 +72,13 @@ var settingsActionFallbackOrder = []string{
 
 func (v *SettingsView) buildActions() {
 	registerSettingsActionsOnce.Do(registerSettingsActionsTargets)
-	content := v.newTab("actions", "动作")
-	v.addSearchEntry(content, "悬停动作", "clipboard.content.itemActions",
-		"菜单与按钮 粘贴 复制 备注 收藏 置顶 删除 排序", "hover actions menu buttons",
+	content := v.newTab("actions", settingsTabTitle("actions"))
+	v.addSearchEntry(content, i18n.T(i18n.SettingsHoverActions), "clipboard.content.itemActions",
+		i18n.T(i18n.SettingsHoverKeywords), "hover actions menu buttons",
 		CGRect{Origin: CGPoint{X: 12, Y: 24}, Size: CGSize{Width: tabContentW - 24, Height: 420}})
 
 	intro := objc.ID(classNSTextField).Send(sel("labelWithString:"),
-		nsString("勾选悬停时显示的动作；选中一行后用下方按钮调整顺序，最多显示 6 个。"))
+		nsString(i18n.T(i18n.SettingsHoverIntro)))
 	intro.Send(sel("setFont:"), systemFont(11))
 	intro.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
 	intro.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 438}, Size: CGSize{Width: tabContentW - 48, Height: 18}})
@@ -89,7 +104,7 @@ func (v *SettingsView) buildActions() {
 	table.Send(sel("setBackgroundColor:"), objc.ID(classNSColor).Send(sel("clearColor")))
 	table.Send(sel("setDataSource:"), settingsActionsTarget)
 	table.Send(sel("setDelegate:"), settingsActionsTarget)
-	table.Send(sel("setAccessibilityLabel:"), nsString("悬停动作"))
+	table.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsHoverTable)))
 
 	column := objc.ID(class("NSTableColumn")).Send(sel("new"))
 	column.Send(sel("setIdentifier:"), nsString("actions"))
@@ -107,16 +122,16 @@ func (v *SettingsView) buildActions() {
 	settingsActionsByTable[table] = v
 
 	up := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
-		nsString("上移"), settingsActionsTarget, sel("actionUpPressed:"))
+		nsString(i18n.T(i18n.SettingsMoveUp)), settingsActionsTarget, sel("actionUpPressed:"))
 	up.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 204, Y: 34}, Size: CGSize{Width: 90, Height: 30}})
-	up.Send(sel("setAccessibilityLabel:"), nsString("上移选中动作"))
+	up.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsMoveUpA11y)))
 	content.Send(sel("addSubview:"), up)
 	settingsViews[up] = v
 
 	down := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
-		nsString("下移"), settingsActionsTarget, sel("actionDownPressed:"))
+		nsString(i18n.T(i18n.SettingsMoveDown)), settingsActionsTarget, sel("actionDownPressed:"))
 	down.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 104, Y: 34}, Size: CGSize{Width: 90, Height: 30}})
-	down.Send(sel("setAccessibilityLabel:"), nsString("下移选中动作"))
+	down.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsMoveDownA11y)))
 	content.Send(sel("addSubview:"), down)
 	settingsViews[down] = v
 }
@@ -133,7 +148,7 @@ func (v *SettingsView) applyActions(values SettingsValues) {
 	actions := make([]settingsAction, 0, len(order))
 	seen := map[string]struct{}{}
 	for _, key := range order {
-		title, ok := settingsActionTitles[key]
+		title, ok := settingsActionTitle(key)
 		if !ok {
 			continue
 		}
@@ -149,7 +164,8 @@ func (v *SettingsView) applyActions(values SettingsValues) {
 			continue
 		}
 		_, on := enabled[key]
-		actions = append(actions, settingsAction{key: key, title: settingsActionTitles[key], enabled: on})
+		title, _ := settingsActionTitle(key)
+		actions = append(actions, settingsAction{key: key, title: title, enabled: on})
 	}
 	v.actions = actions
 	if v.actionsTable != 0 {
@@ -293,7 +309,7 @@ func fillSettingsActionRow(v *SettingsView, cell objc.ID, row int, action settin
 		checkbox := objc.Send[objc.ID](subviews, sel("objectAtIndex:"), uint(0))
 		checkbox.Send(sel("setTag:"), int64(settingsActionCheckTagBase+row))
 		checkbox.Send(sel("setState:"), int64(boolInt(action.enabled)))
-		checkbox.Send(sel("setAccessibilityLabel:"), nsString(fmt.Sprintf("启用%s", action.title)))
+		checkbox.Send(sel("setAccessibilityLabel:"), nsString(i18n.Tf(i18n.SettingsEnableAction, action.title)))
 		settingsActionControls[checkbox] = v
 	}
 	if title := cell.Send(sel("viewWithTag:"), int64(1)); title != 0 {

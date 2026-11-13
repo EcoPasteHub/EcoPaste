@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/ebitengine/purego/objc"
 	"github.com/nsgo-dev/nsgo/core"
 )
@@ -147,19 +148,26 @@ const (
 	tabContentH      = 470.0
 )
 
-var settingsTabTitles = map[string]string{
-	"general":     "通用",
-	"capture":     "采集",
-	"display":     "显示",
-	"window":      "窗口",
-	"history":     "历史与隐私",
-	"permissions": "权限",
-	"apps":        "应用",
-	"actions":     "动作",
-	"interaction": "交互",
-	"deletion":    "删除",
-	"shortcuts":   "快捷键",
-	"preview":     "预览",
+var settingsTabTitleKeys = map[string]i18n.Key{
+	"general":     i18n.SettingsTabGeneral,
+	"capture":     i18n.SettingsTabCapture,
+	"display":     i18n.SettingsTabDisplay,
+	"window":      i18n.SettingsTabWindow,
+	"history":     i18n.SettingsTabHistory,
+	"permissions": i18n.SettingsTabPermissions,
+	"apps":        i18n.SettingsTabApps,
+	"actions":     i18n.SettingsTabActions,
+	"interaction": i18n.SettingsTabInteraction,
+	"deletion":    i18n.SettingsTabDeletion,
+	"shortcuts":   i18n.SettingsTabShortcuts,
+	"preview":     i18n.SettingsTabPreview,
+}
+
+func settingsTabTitle(name string) string {
+	if key, ok := settingsTabTitleKeys[name]; ok {
+		return i18n.T(key)
+	}
+	return name
 }
 
 var (
@@ -224,14 +232,14 @@ func NewSettings(cx *core.NativeContext) core.NativeComponent {
 	v.tabs.Send(sel("setAutoresizingMask:"), int64(18))
 	v.view.Send(sel("addSubview:"), v.tabs)
 
-	v.footer = objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString("更改会立即保存"))
+	v.footer = objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(i18n.SettingsFooter)))
 	v.footer.Send(sel("setFont:"), systemFont(11))
 	v.footer.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
 	v.footer.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 20, Y: 8}, Size: CGSize{Width: settingsWidth - 210, Height: 16}})
 	v.view.Send(sel("addSubview:"), v.footer)
 
 	v.reset = objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
-		nsString("恢复默认设置…"), settingsTarget, sel("resetSettingsPressed:"))
+		nsString(i18n.T(i18n.SettingsReset)), settingsTarget, sel("resetSettingsPressed:"))
 	v.reset.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: settingsWidth - 168, Y: 2}, Size: CGSize{Width: 150, Height: 24}})
 	v.reset.Send(sel("setBezelStyle:"), int64(1))
 	v.view.Send(sel("addSubview:"), v.reset)
@@ -262,51 +270,52 @@ func NewSettings(cx *core.NativeContext) core.NativeComponent {
 }
 
 func (v *SettingsView) buildGeneral() {
-	content := v.newTab("general", "通用")
+	content := v.newTab("general", settingsTabTitle("general"))
 	y := 450.0
-	v.addSwitch(content, y, "显示 Dock 图标", "general.dockIcon",
+	v.addSwitch(content, y, i18n.T(i18n.SettingsDockIcon), "general.dockIcon",
 		func(s SettingsValues) bool { return s.DockIcon })
-	v.addSwitch(content, y-38, "显示菜单栏图标", "general.trayIcon",
+	v.addSwitch(content, y-38, i18n.T(i18n.SettingsTrayIcon), "general.trayIcon",
 		func(s SettingsValues) bool { return s.TrayIcon })
-	v.addSwitch(content, y-76, "复制后隐藏面板", "copyThenHideWindow",
+	v.addSwitch(content, y-76, i18n.T(i18n.SettingsCopyThenHide), "copyThenHideWindow",
 		func(s SettingsValues) bool { return s.CopyThenHideWindow })
-	v.addSwitch(content, y-114, "复制提示音", "feedback.copySound",
+	v.addSwitch(content, y-114, i18n.T(i18n.SettingsCopySound), "feedback.copySound",
 		func(s SettingsValues) bool { return s.CopySound })
-	v.addSwitch(content, y-152, "复制文本为纯文本", "copyPlain",
+	v.addSwitch(content, y-152, i18n.T(i18n.SettingsCopyTextPlain), "copyPlain",
 		func(s SettingsValues) bool { return s.CopyPlain })
-	v.addSwitch(content, y-190, "粘贴文本为纯文本", "pastePlain",
+	v.addSwitch(content, y-190, i18n.T(i18n.SettingsPasteTextPlain), "pastePlain",
 		func(s SettingsValues) bool { return s.PastePlain })
-	v.addSwitch(content, y-228, "复用后刷新排序", "updateOnReuse",
+	v.addSwitch(content, y-228, i18n.T(i18n.SettingsUpdateOnReuse), "updateOnReuse",
 		func(s SettingsValues) bool { return s.UpdateOnReuse })
-	v.addSwitch(content, y-266, "登录时启动", "general.autoStart",
+	v.addSwitch(content, y-266, i18n.T(i18n.SettingsAutoStart), "general.autoStart",
 		func(s SettingsValues) bool { return s.AutoStart })
-	v.addPopup(content, y-304, "排序方式", "sort",
+	v.addPopup(content, y-304, i18n.T(i18n.SettingsSort), "sort",
 		[]settingsOption{
-			{Title: "最近使用", Value: "updatedAtDesc"},
-			{Title: "创建时间", Value: "createdAtDesc"},
-			{Title: "使用次数", Value: "useCountDesc"},
+			{Title: i18n.T(i18n.SettingsSortRecent), Value: "updatedAtDesc"},
+			{Title: i18n.T(i18n.SettingsSortCreated), Value: "createdAtDesc"},
+			{Title: i18n.T(i18n.SettingsSortUseCount), Value: "useCountDesc"},
 		},
 		func(s SettingsValues) string { return s.Sort })
-	v.addPopup(content, y-342, "面板打开位置", "window.position",
+	v.addPopup(content, y-342, i18n.T(i18n.SettingsPosition), "window.position",
 		[]settingsOption{
-			{Title: "跟随光标", Value: "followCursor"},
-			{Title: "屏幕居中", Value: "center"},
-			{Title: "记住位置", Value: "remember"},
+			{Title: i18n.T(i18n.SettingsPositionFollow), Value: "followCursor"},
+			{Title: i18n.T(i18n.SettingsPositionCenter), Value: "center"},
+			{Title: i18n.T(i18n.SettingsPositionKeep), Value: "remember"},
 		},
 		func(s SettingsValues) string { return s.WindowPosition })
-	v.addPopup(content, y-380, "外观主题", "appearance.theme",
+	v.addPopup(content, y-380, i18n.T(i18n.SettingsTheme), "appearance.theme",
 		[]settingsOption{
-			{Title: "跟随系统", Value: "auto"},
-			{Title: "浅色", Value: "light"},
-			{Title: "深色", Value: "dark"},
+			{Title: i18n.T(i18n.SettingsThemeAuto), Value: "auto"},
+			{Title: i18n.T(i18n.SettingsThemeLight), Value: "light"},
+			{Title: i18n.T(i18n.SettingsThemeDark), Value: "dark"},
 		},
 		func(s SettingsValues) string { return s.Theme })
 	v.buildDataDir(content, y-418)
 }
 
 func (v *SettingsView) buildDataDir(content objc.ID, y float64) {
-	v.addLabel(content, y, "数据目录")
-	v.addSearchEntry(content, "数据目录", "general.dataDir", "存储位置 迁移 恢复默认", "",
+	v.addLabel(content, y, i18n.T(i18n.SettingsDataDir))
+	v.addSearchEntry(content, i18n.T(i18n.SettingsDataDir), "general.dataDir",
+		i18n.T(i18n.SettingsDataDirKeywords), "",
 		CGRect{Origin: CGPoint{X: 12, Y: y - 30}, Size: CGSize{Width: tabContentW - 24, Height: 46}})
 	v.dataDir = objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(""))
 	v.dataDir.Send(sel("setFont:"), systemFont(11))
@@ -316,131 +325,135 @@ func (v *SettingsView) buildDataDir(content objc.ID, y float64) {
 	content.Send(sel("addSubview:"), v.dataDir)
 
 	v.restore = objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
-		nsString("恢复默认…"), settingsTarget, sel("defaultDataDirPressed:"))
+		nsString(i18n.T(i18n.SettingsRestoreDefault)), settingsTarget, sel("defaultDataDirPressed:"))
 	v.restore.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 204, Y: y - 24}, Size: CGSize{Width: 100, Height: 28}})
 	content.Send(sel("addSubview:"), v.restore)
 	settingsViews[v.restore] = v
 
 	v.change = objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
-		nsString("更改…"), settingsTarget, sel("dataDirPressed:"))
+		nsString(i18n.T(i18n.SettingsChange)), settingsTarget, sel("dataDirPressed:"))
 	v.change.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 94, Y: y - 24}, Size: CGSize{Width: 70, Height: 28}})
 	content.Send(sel("addSubview:"), v.change)
 	settingsViews[v.change] = v
 }
 
 func (v *SettingsView) buildCapture() {
-	content := v.newTab("capture", "采集")
+	content := v.newTab("capture", settingsTabTitle("capture"))
 	y := 408.0
-	v.addSwitch(content, y, "纯文本", "capture.text",
+	v.addSwitch(content, y, i18n.T(i18n.SettingsCaptureText), "capture.text",
 		func(s SettingsValues) bool { return s.CaptureText })
-	v.addSwitch(content, y-38, "HTML", "capture.html",
+	v.addSwitch(content, y-38, i18n.T(i18n.SettingsCaptureHTML), "capture.html",
 		func(s SettingsValues) bool { return s.CaptureHTML })
-	v.addSwitch(content, y-76, "RTF", "capture.rtf",
+	v.addSwitch(content, y-76, i18n.T(i18n.SettingsCaptureRTF), "capture.rtf",
 		func(s SettingsValues) bool { return s.CaptureRTF })
-	v.addSwitch(content, y-114, "图片", "capture.image",
+	v.addSwitch(content, y-114, i18n.T(i18n.KindImage), "capture.image",
 		func(s SettingsValues) bool { return s.CaptureImage })
-	v.addSwitch(content, y-152, "文件", "capture.files",
+	v.addSwitch(content, y-152, i18n.T(i18n.KindFiles), "capture.files",
 		func(s SettingsValues) bool { return s.CaptureFiles })
-	v.addStepper(content, y-202, "文本大小上限", "capture.maxTextMb", 1, 1024, " MB",
+	v.addStepper(content, y-202, i18n.T(i18n.SettingsMaxText), "capture.maxTextMb", 1, 1024, " MB",
 		func(s SettingsValues) uint32 { return s.MaxTextMB })
-	v.addStepper(content, y-244, "图片大小上限", "capture.maxImageMb", 10, 4096, " MB",
+	v.addStepper(content, y-244, i18n.T(i18n.SettingsMaxImage), "capture.maxImageMb", 10, 4096, " MB",
 		func(s SettingsValues) uint32 { return s.MaxImageMB })
 	v.buildCaptureOrder(content)
 }
 
 func (v *SettingsView) buildDisplay() {
-	content := v.newTab("display", "显示")
+	content := v.newTab("display", settingsTabTitle("display"))
 	y := 408.0
-	v.addStepperRange(content, y, "文本显示行数", "display.textMaxLines", 1, 5, 1, " 行",
+	v.addStepperRange(content, y, i18n.T(i18n.SettingsTextMaxLines), "display.textMaxLines",
+		1, 5, 1, i18n.T(i18n.SettingsUnitLines),
 		func(s SettingsValues) uint32 { return s.TextMaxLines })
-	v.addStepperRange(content, y-42, "图片最大高度", "display.imageMaxHeight", 20, 100, 4, " px",
+	v.addStepperRange(content, y-42, i18n.T(i18n.SettingsImageMaxHeight), "display.imageMaxHeight", 20, 100, 4, " px",
 		func(s SettingsValues) uint32 { return s.ImageMaxHeight })
-	v.addStepperRange(content, y-84, "文件名显示数量", "display.fileMaxCount", 1, 5, 1, " 个",
+	v.addStepperRange(content, y-84, i18n.T(i18n.SettingsFileMaxCount), "display.fileMaxCount",
+		1, 5, 1, i18n.T(i18n.SettingsUnitItems),
 		func(s SettingsValues) uint32 { return s.FileMaxCount })
 }
 
 func (v *SettingsView) buildWindow() {
-	content := v.newTab("window", "窗口")
+	content := v.newTab("window", settingsTabTitle("window"))
 	y := 408.0
-	v.addSwitch(content, y, "打开时滚动到顶部", "window.scrollToTopOnOpen",
+	v.addSwitch(content, y, i18n.T(i18n.SettingsScrollTop), "window.scrollToTopOnOpen",
 		func(s SettingsValues) bool { return s.ScrollToTopOnOpen })
-	v.addPopup(content, y-42, "打开时选中范围", "window.selectRangeOnOpen",
+	v.addPopup(content, y-42, i18n.T(i18n.SettingsSelectRange), "window.selectRangeOnOpen",
 		[]settingsOption{
-			{Title: "保持当前", Value: "preserve"},
-			{Title: "全部", Value: "all"},
-			{Title: "收藏", Value: "favorite"},
+			{Title: i18n.T(i18n.SettingsPreserve), Value: "preserve"},
+			{Title: i18n.T(i18n.SettingsAll), Value: "all"},
+			{Title: i18n.T(i18n.PanelFavorites), Value: "favorite"},
 		},
 		func(s SettingsValues) string { return s.RangeOnOpen })
-	v.addPopup(content, y-84, "打开时选中分类", "window.selectCategoryOnOpen",
+	v.addPopup(content, y-84, i18n.T(i18n.SettingsSelectCategory), "window.selectCategoryOnOpen",
 		[]settingsOption{
-			{Title: "保持当前", Value: "preserve"},
-			{Title: "全部", Value: "all"},
-			{Title: "文本", Value: "text"},
-			{Title: "图片", Value: "image"},
-			{Title: "文件", Value: "files"},
+			{Title: i18n.T(i18n.SettingsPreserve), Value: "preserve"},
+			{Title: i18n.T(i18n.SettingsAll), Value: "all"},
+			{Title: i18n.T(i18n.PanelTextCategory), Value: "text"},
+			{Title: i18n.T(i18n.PanelImageCategory), Value: "image"},
+			{Title: i18n.T(i18n.PanelFilesCategory), Value: "files"},
 		},
 		func(s SettingsValues) string { return s.CategoryOnOpen })
-	v.groupField = v.addPopup(content, y-126, "打开时选中分组", "window.selectGroupOnOpen",
+	v.groupField = v.addPopup(content, y-126, i18n.T(i18n.SettingsSelectGroup), "window.selectGroupOnOpen",
 		[]settingsOption{
-			{Title: "保持当前", Value: "preserve"},
-			{Title: "全部分组", Value: "all"},
+			{Title: i18n.T(i18n.SettingsPreserve), Value: "preserve"},
+			{Title: i18n.T(i18n.SettingsAllGroups), Value: "all"},
 		},
 		func(s SettingsValues) string { return s.GroupOnOpen })
 }
 
 func (v *SettingsView) buildHistory() {
-	content := v.newTab("history", "历史与隐私")
+	content := v.newTab("history", settingsTabTitle("history"))
 	y := 408.0
-	v.addPopup(content, y, "保留时长", "history.retention",
+	v.addPopup(content, y, i18n.T(i18n.SettingsRetention), "history.retention",
 		[]settingsOption{
-			{Title: "永久", Value: "forever"},
-			{Title: "1 小时", Value: "1h"},
-			{Title: "6 小时", Value: "6h"},
-			{Title: "1 天", Value: "1d"},
-			{Title: "3 天", Value: "3d"},
-			{Title: "7 天", Value: "7d"},
-			{Title: "2 周", Value: "2w"},
-			{Title: "1 个月", Value: "1mo"},
-			{Title: "3 个月", Value: "3mo"},
-			{Title: "1 年", Value: "365d"},
+			{Title: i18n.T(i18n.SettingsRetentionForever), Value: "forever"},
+			{Title: i18n.T(i18n.SettingsRetention1Hour), Value: "1h"},
+			{Title: i18n.T(i18n.SettingsRetention6Hours), Value: "6h"},
+			{Title: i18n.T(i18n.SettingsRetention1Day), Value: "1d"},
+			{Title: i18n.T(i18n.SettingsRetention3Days), Value: "3d"},
+			{Title: i18n.T(i18n.SettingsRetention7Days), Value: "7d"},
+			{Title: i18n.T(i18n.SettingsRetention2Weeks), Value: "2w"},
+			{Title: i18n.T(i18n.SettingsRetention1Month), Value: "1mo"},
+			{Title: i18n.T(i18n.SettingsRetention3Months), Value: "3mo"},
+			{Title: i18n.T(i18n.SettingsRetention1Year), Value: "365d"},
 		},
 		func(s SettingsValues) string { return s.Retention })
-	v.addStepper(content, y-42, "最大记录数", "history.maxCount", 100, 100000, " 条",
+	v.addStepper(content, y-42, i18n.T(i18n.SettingsMaxCount), "history.maxCount",
+		100, 100000, i18n.T(i18n.SettingsUnitCount),
 		func(s SettingsValues) uint32 { return s.MaxCount })
-	v.addStepper(content, y-84, "自动清理间隔", "history.cleanupIntervalHours", 1, 168, " 小时",
+	v.addStepper(content, y-84, i18n.T(i18n.SettingsCleanupInterval), "history.cleanupIntervalHours",
+		1, 168, i18n.T(i18n.SettingsUnitHours),
 		func(s SettingsValues) uint32 { return s.CleanupIntervalHours })
-	v.addSwitch(content, y-134, "收录敏感内容", "sensitive.collectSecrets",
+	v.addSwitch(content, y-134, i18n.T(i18n.SettingsCollectSecrets), "sensitive.collectSecrets",
 		func(s SettingsValues) bool { return s.CollectSecrets })
-	v.addSwitch(content, y-176, "脱敏显示", "sensitive.redactSecrets",
+	v.addSwitch(content, y-176, i18n.T(i18n.SettingsRedactSecrets), "sensitive.redactSecrets",
 		func(s SettingsValues) bool { return s.RedactSecrets })
 }
 
 func (v *SettingsView) buildPreview() {
-	content := v.newTab("preview", "预览")
+	content := v.newTab("preview", settingsTabTitle("preview"))
 	intro := objc.ID(classNSTextField).Send(sel("labelWithString:"),
-		nsString("Space 打开选中项预览，Esc 返回。悬停预览按迁移计划不提供给原生面板。"))
+		nsString(i18n.T(i18n.SettingsPreviewIntro)))
 	intro.Send(sel("setFont:"), systemFont(11))
 	intro.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
 	intro.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 438}, Size: CGSize{Width: tabContentW - 48, Height: 18}})
 	content.Send(sel("addSubview:"), intro)
-	v.addSwitch(content, 396, "Space 预览选中项", "preview.spaceEnabled",
+	v.addSwitch(content, 396, i18n.T(i18n.SettingsSpacePreview), "preview.spaceEnabled",
 		func(s SettingsValues) bool { return s.SpacePreview })
 }
 
 func (v *SettingsView) buildPermissions() {
-	content := v.newTab("permissions", "权限")
+	content := v.newTab("permissions", settingsTabTitle("permissions"))
 	intro := objc.ID(classNSTextField).Send(sel("labelWithString:"),
-		nsString("这些权限由 macOS 管理，授权后立即生效。"))
+		nsString(i18n.T(i18n.SettingsPermissionsIntro)))
 	intro.Send(sel("setFont:"), systemFont(11))
 	intro.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
 	intro.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 438}, Size: CGSize{Width: tabContentW - 48, Height: 18}})
 	content.Send(sel("addSubview:"), intro)
 
 	y := 388.0
-	v.accessibilityStatus = v.addPermission(content, y, "辅助功能",
-		"自动粘贴需要模拟 Command-V 快捷键。", "accessibilityPermissionPressed:")
-	v.fullDiskStatus = v.addPermission(content, y-80, "完全磁盘访问",
-		"读取受系统保护的目录和文件时需要。", "fullDiskAccessPermissionPressed:")
+	v.accessibilityStatus = v.addPermission(content, y, i18n.T(i18n.SettingsAccessibility),
+		i18n.T(i18n.SettingsAccessibilityDetail), "accessibilityPermissionPressed:")
+	v.fullDiskStatus = v.addPermission(content, y-80, i18n.T(i18n.SettingsFullDisk),
+		i18n.T(i18n.SettingsFullDiskDetail), "fullDiskAccessPermissionPressed:")
 	v.buildDiagnostics(content)
 	v.refreshPermissionLabels()
 	v.startPermissionTimer()
@@ -452,7 +465,7 @@ func (v *SettingsView) addPermission(content objc.ID, y float64, title, detail, 
 		"accessibilityPermissionPressed:":  "permissions.accessibility",
 		"fullDiskAccessPermissionPressed:": "permissions.fullDiskAccess",
 	}[action]
-	v.addSearchEntry(content, title, path, detail, "系统权限",
+	v.addSearchEntry(content, title, path, detail, i18n.T(i18n.SettingsPermissionsKeywords),
 		CGRect{Origin: CGPoint{X: 12, Y: y - 32}, Size: CGSize{Width: tabContentW - 24, Height: 64}})
 	detailLabel := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(detail))
 	detailLabel.Send(sel("setFont:"), systemFont(11))
@@ -460,16 +473,16 @@ func (v *SettingsView) addPermission(content objc.ID, y float64, title, detail, 
 	detailLabel.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: y - 20}, Size: CGSize{Width: tabContentW - 200, Height: 16}})
 	content.Send(sel("addSubview:"), detailLabel)
 
-	status := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString("检查中…"))
+	status := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(i18n.SettingsChecking)))
 	status.Send(sel("setFont:"), systemFont(11))
 	status.Send(sel("setAlignment:"), int64(2))
 	status.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 300, Y: y}, Size: CGSize{Width: 130, Height: 18}})
 	content.Send(sel("addSubview:"), status)
 
 	button := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
-		nsString("打开系统设置…"), settingsTarget, sel(action))
+		nsString(i18n.T(i18n.SettingsOpenSystemSettings)), settingsTarget, sel(action))
 	button.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 160, Y: y - 5}, Size: CGSize{Width: 136, Height: 28}})
-	button.Send(sel("setAccessibilityLabel:"), nsString("打开"+title+"系统设置"))
+	button.Send(sel("setAccessibilityLabel:"), nsString(i18n.Tf(i18n.SettingsOpenSystemSettingsA11y, title)))
 	content.Send(sel("addSubview:"), button)
 	return status
 }
@@ -483,9 +496,9 @@ func (v *SettingsView) setPermissionStatus(label objc.ID, granted bool) {
 	if label == 0 {
 		return
 	}
-	text, color := "未授权", "systemRedColor"
+	text, color := i18n.T(i18n.OnboardingNotGranted), "systemRedColor"
 	if granted {
-		text, color = "已授权", "systemGreenColor"
+		text, color = i18n.T(i18n.OnboardingGranted), "systemGreenColor"
 	}
 	label.Send(sel("setStringValue:"), nsString(text))
 	label.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel(color)))
@@ -675,12 +688,12 @@ func registerSettingsTargets() {
 			if v == nil {
 				return
 			}
-			parent, ok := OpenDataDirectoryPanel("选择 EcoPaste 数据目录")
+			parent, ok := OpenDataDirectoryPanel(i18n.T(i18n.SettingsChooseDataDir))
 			if !ok {
 				return
 			}
-			if !Confirm("更改数据目录？",
-				"历史、设置和资源会复制到所选目录，然后重启 EcoPaste。旧目录数据会保留。", "迁移并重启") {
+			if !Confirm(i18n.T(i18n.SettingsChangeDataDirTitle),
+				i18n.T(i18n.SettingsChangeDataDirBody), i18n.T(i18n.SettingsMigrateRestart)) {
 				return
 			}
 			v.cx.Emit("change", SettingsChange{Path: "general.dataDir", Value: parent})
@@ -690,8 +703,8 @@ func registerSettingsTargets() {
 			if v == nil {
 				return
 			}
-			if !Confirm("恢复默认数据目录？",
-				"历史、设置和资源会复制回默认目录，然后重启 EcoPaste。现有默认目录内容会保留为备份。", "迁移并重启") {
+			if !Confirm(i18n.T(i18n.SettingsRestoreDirTitle),
+				i18n.T(i18n.SettingsRestoreDirBody), i18n.T(i18n.SettingsMigrateRestart)) {
 				return
 			}
 			v.cx.Emit("change", SettingsChange{Path: "general.defaultDataDir", Value: true})
@@ -717,7 +730,7 @@ func registerSettingsTargets() {
 			if v == nil {
 				return
 			}
-			path, ok := OpenApplicationPanel("选择要忽略来源的应用")
+			path, ok := OpenApplicationPanel(i18n.T(i18n.SettingsChooseExcludedApp))
 			if !ok {
 				return
 			}
@@ -735,8 +748,8 @@ func registerSettingsTargets() {
 			if v == nil {
 				return
 			}
-			if !Confirm("恢复默认设置？",
-				"所有偏好会恢复为默认值。剪贴板历史、数据目录与备份不受影响。", "恢复默认") {
+			if !Confirm(i18n.T(i18n.SettingsResetTitle),
+				i18n.T(i18n.SettingsResetBody), i18n.T(i18n.SettingsResetConfirm)) {
 				return
 			}
 			v.cx.Emit("change", SettingsChange{Path: "settings.reset", Value: true})
@@ -762,7 +775,7 @@ func (v *SettingsView) SetProp(name string, value any) {
 	case "error":
 		text, _ := value.(string)
 		if text == "" {
-			v.footer.Send(sel("setStringValue:"), nsString("更改会立即保存"))
+			v.footer.Send(sel("setStringValue:"), nsString(i18n.T(i18n.SettingsFooter)))
 			v.footer.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
 			return
 		}
@@ -810,7 +823,7 @@ func (v *SettingsView) applyGroups(values SettingsValues) {
 	}
 	selected, _ := field.get(values).(string)
 	options := []string{"preserve", "all"}
-	titles := []string{"保持当前", "全部分组"}
+	titles := []string{i18n.T(i18n.SettingsPreserve), i18n.T(i18n.SettingsAllGroups)}
 	for _, group := range values.Groups {
 		options = append(options, "group:"+group.ID)
 		titles = append(titles, group.Name)
@@ -843,7 +856,7 @@ func (v *SettingsView) setStepperLabel(field *settingsField, value uint32) {
 	}
 	text := fmt.Sprintf("%d%s", value, field.suffix)
 	if value == 0 {
-		text = "不限"
+		text = i18n.T(i18n.SettingsUnlimited)
 	}
 	field.valueLabel.Send(sel("setStringValue:"), nsString(text))
 }

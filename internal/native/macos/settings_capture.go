@@ -3,9 +3,9 @@
 package macos
 
 import (
-	"fmt"
 	"sync"
 
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/ebitengine/purego/objc"
 )
 
@@ -21,25 +21,33 @@ var (
 	settingsCaptureByTable      = map[objc.ID]*SettingsView{}
 )
 
-var settingsCaptureTitles = map[string]string{
-	"files": "文件",
-	"image": "图片",
-	"html":  "HTML",
-	"rtf":   "RTF",
-	"text":  "纯文本",
+func settingsCaptureTitle(key string) (string, bool) {
+	switch key {
+	case "files":
+		return i18n.T(i18n.KindFiles), true
+	case "image":
+		return i18n.T(i18n.KindImage), true
+	case "html":
+		return i18n.T(i18n.SettingsCaptureHTML), true
+	case "rtf":
+		return i18n.T(i18n.SettingsCaptureRTF), true
+	case "text":
+		return i18n.T(i18n.SettingsCaptureText), true
+	}
+	return "", false
 }
 
 func (v *SettingsView) buildCaptureOrder(content objc.ID) {
 	registerSettingsCaptureOnce.Do(registerSettingsCaptureTargets)
-	v.addSearchEntry(content, "采集优先级", "clipboard.capture.order",
-		"主表示优先级 文件 图片 HTML RTF 纯文本 上移 下移", "capture order priority",
+	v.addSearchEntry(content, i18n.T(i18n.SettingsCaptureOrder), "clipboard.capture.order",
+		i18n.T(i18n.SettingsCaptureKeywords), "capture order priority",
 		CGRect{Origin: CGPoint{X: 12, Y: 10}, Size: CGSize{Width: tabContentW - 24, Height: 146}})
-	title := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString("采集优先级"))
+	title := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(i18n.SettingsCaptureOrder)))
 	title.Send(sel("setFont:"), systemFont(13))
 	title.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 132}, Size: CGSize{Width: 120, Height: 18}})
 	content.Send(sel("addSubview:"), title)
 
-	hint := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString("从上到下依次选择可用的主表示"))
+	hint := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(i18n.SettingsCaptureHint)))
 	hint.Send(sel("setFont:"), systemFont(11))
 	hint.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
 	hint.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 142, Y: 132}, Size: CGSize{Width: 230, Height: 18}})
@@ -65,7 +73,7 @@ func (v *SettingsView) buildCaptureOrder(content objc.ID) {
 	table.Send(sel("setBackgroundColor:"), objc.ID(classNSColor).Send(sel("clearColor")))
 	table.Send(sel("setDataSource:"), settingsCaptureTarget)
 	table.Send(sel("setDelegate:"), settingsCaptureTarget)
-	table.Send(sel("setAccessibilityLabel:"), nsString("采集优先级"))
+	table.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsCaptureOrder)))
 
 	column := objc.ID(class("NSTableColumn")).Send(sel("new"))
 	column.Send(sel("setIdentifier:"), nsString("capture"))
@@ -83,25 +91,25 @@ func (v *SettingsView) buildCaptureOrder(content objc.ID) {
 	settingsCaptureByTable[table] = v
 
 	up := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
-		nsString("上移"), settingsCaptureTarget, sel("captureUpPressed:"))
+		nsString(i18n.T(i18n.SettingsMoveUp)), settingsCaptureTarget, sel("captureUpPressed:"))
 	up.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 78, Y: 72}, Size: CGSize{Width: 58, Height: 28}})
-	up.Send(sel("setAccessibilityLabel:"), nsString("上移选中采集类型"))
+	up.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsMoveUpA11y)))
 	content.Send(sel("addSubview:"), up)
 	settingsViews[up] = v
 
 	down := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
-		nsString("下移"), settingsCaptureTarget, sel("captureDownPressed:"))
+		nsString(i18n.T(i18n.SettingsMoveDown)), settingsCaptureTarget, sel("captureDownPressed:"))
 	down.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 78, Y: 38}, Size: CGSize{Width: 58, Height: 28}})
-	down.Send(sel("setAccessibilityLabel:"), nsString("下移选中采集类型"))
+	down.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsMoveDownA11y)))
 	content.Send(sel("addSubview:"), down)
 	settingsViews[down] = v
 }
 
 func (v *SettingsView) applyCaptureOrder(values SettingsValues) {
-	order := make([]string, 0, len(settingsCaptureTitles))
+	order := make([]string, 0, 5)
 	seen := map[string]struct{}{}
 	for _, key := range values.CaptureOrder {
-		if _, ok := settingsCaptureTitles[key]; !ok {
+		if _, ok := settingsCaptureTitle(key); !ok {
 			continue
 		}
 		if _, ok := seen[key]; ok {
@@ -187,13 +195,14 @@ func registerSettingsCaptureTargets() {
 				cell = newSettingsCaptureRow()
 			}
 			key := v.captureOrder[row]
-			title := settingsCaptureTitles[key]
-			if title == "" {
+			title, ok := settingsCaptureTitle(key)
+			if !ok {
 				title = key
 			}
 			if label := cell.Send(sel("viewWithTag:"), int64(1)); label != 0 {
 				label.Send(sel("setStringValue:"), nsString(title))
-				label.Send(sel("setAccessibilityLabel:"), nsString(fmt.Sprintf("第 %d 优先级：%s", row+1, title)))
+				label.Send(sel("setAccessibilityLabel:"),
+					nsString(i18n.Tf(i18n.SettingsPriorityLabel, row+1, title)))
 			}
 			return cell
 		}},

@@ -3,17 +3,17 @@
 package macos
 
 import (
-	"fmt"
 	"strings"
 
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/ebitengine/purego/objc"
 )
 
 func (v *SettingsView) buildDiagnostics(content objc.ID) {
 	y := 232.0
-	v.addLabel(content, y, "诊断信息")
-	v.addSearchEntry(content, "诊断信息", "diagnostics.report",
-		"复制版本、系统、数据目录与权限状态", "诊断 排查 支持",
+	v.addLabel(content, y, i18n.T(i18n.SettingsDiagnostics))
+	v.addSearchEntry(content, i18n.T(i18n.SettingsDiagnostics), "diagnostics.report",
+		i18n.T(i18n.SettingsDiagnosticsDetail), i18n.T(i18n.SettingsDiagnosticsKeywords),
 		rowHighlightFrame(y))
 
 	version := diagnosticVersion()
@@ -37,11 +37,11 @@ func (v *SettingsView) buildDiagnostics(content objc.ID) {
 	content.Send(sel("addSubview:"), v.diagnosticsDir)
 
 	button := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
-		nsString("复制诊断信息"), settingsTarget, sel("copyDiagnosticsPressed:"))
+		nsString(i18n.T(i18n.SettingsCopyDiagnostics)), settingsTarget, sel("copyDiagnosticsPressed:"))
 	button.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: y - 98}, Size: CGSize{Width: 128, Height: 28}})
 	button.Send(sel("setBezelStyle:"), int64(1))
-	button.Send(sel("setAccessibilityLabel:"), nsString("复制诊断信息"))
-	button.Send(sel("setAccessibilityHelp:"), nsString("把应用版本、系统版本、数据目录和权限状态复制到剪贴板"))
+	button.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsCopyDiagnostics)))
+	button.Send(sel("setAccessibilityHelp:"), nsString(i18n.T(i18n.SettingsCopyDiagnosticsHelp)))
 	content.Send(sel("addSubview:"), button)
 	settingsViews[button] = v
 
@@ -56,7 +56,7 @@ func (v *SettingsView) applyDiagnostics(values SettingsValues) {
 	if v.diagnosticsDir == 0 {
 		return
 	}
-	text := "数据目录: " + values.DataDir
+	text := i18n.T(i18n.SettingsDataDirLabel) + values.DataDir
 	v.diagnosticsDir.Send(sel("setStringValue:"), nsString(text))
 	v.diagnosticsDir.Send(sel("setToolTip:"), nsString(values.DataDir))
 }
@@ -65,16 +65,16 @@ func (v *SettingsView) copyDiagnostics() {
 	report := formatDiagnosticReport(diagnosticVersion(), diagnosticSystemVersion(),
 		v.lastValues.DataDir, AccessibilityGranted(), FullDiskAccessGranted())
 	if writePlainText(report) {
-		v.diagnosticsHint.Send(sel("setStringValue:"), nsString("已复制到剪贴板"))
+		v.diagnosticsHint.Send(sel("setStringValue:"), nsString(i18n.T(i18n.SettingsCopied)))
 	} else {
-		v.diagnosticsHint.Send(sel("setStringValue:"), nsString("复制失败"))
+		v.diagnosticsHint.Send(sel("setStringValue:"), nsString(i18n.T(i18n.SettingsCopyFailed)))
 	}
 }
 
 func diagnosticVersion() string {
 	version := AppVersion()
 	if version == "" {
-		return "EcoPaste 开发版"
+		return i18n.T(i18n.SettingsDevBuild)
 	}
 	return "EcoPaste " + version
 }
@@ -83,22 +83,21 @@ func diagnosticSystemVersion() string {
 	info := objc.ID(class("NSProcessInfo")).Send(sel("processInfo"))
 	text := goString(info.Send(sel("operatingSystemVersionString")))
 	if text == "" {
-		return "macOS 版本未知"
+		return i18n.T(i18n.SettingsMacOSUnknown)
 	}
 	return "macOS " + strings.TrimPrefix(text, "Version ")
 }
 
 func formatDiagnosticReport(version, system, dataDir string, accessibility, fullDisk bool) string {
-	return fmt.Sprintf("%s\n%s\n数据目录: %s\n辅助功能: %s\n完全磁盘访问: %s",
-		version, system, dataDir,
+	return i18n.Tf(i18n.SettingsReport, version, system, dataDir,
 		permissionText(accessibility), permissionText(fullDisk))
 }
 
 func permissionText(granted bool) string {
 	if granted {
-		return "已授权"
+		return i18n.T(i18n.OnboardingGranted)
 	}
-	return "未授权"
+	return i18n.T(i18n.OnboardingNotGranted)
 }
 
 func writePlainText(text string) bool {

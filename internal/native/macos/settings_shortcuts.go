@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/ebitengine/purego/objc"
 )
 
@@ -30,23 +31,23 @@ var (
 
 func (v *SettingsView) buildShortcuts() {
 	registerSettingsShortcutsOnce.Do(registerSettingsShortcutTargets)
-	content := v.newTab("shortcuts", "快捷键")
+	content := v.newTab("shortcuts", settingsTabTitle("shortcuts"))
 
 	intro := objc.ID(classNSTextField).Send(sel("labelWithString:"),
-		nsString("点击输入框后按下组合键；Delete 清空，Esc 取消。"))
+		nsString(i18n.T(i18n.SettingsShortcutsIntro)))
 	intro.Send(sel("setFont:"), systemFont(11))
 	intro.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
 	intro.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 438}, Size: CGSize{Width: tabContentW - 48, Height: 18}})
 	content.Send(sel("addSubview:"), intro)
 
 	y := 388.0
-	v.addShortcutField(content, y, "打开剪贴板", "shortcuts.openClipboard",
+	v.addShortcutField(content, y, i18n.T(i18n.SettingsOpenClipboard), "shortcuts.openClipboard",
 		func(s SettingsValues) string { return s.OpenClipboardShortcut })
-	v.addShortcutField(content, y-74, "打开设置", "shortcuts.openPreference",
+	v.addShortcutField(content, y-74, i18n.T(i18n.SettingsOpenPreference), "shortcuts.openPreference",
 		func(s SettingsValues) string { return s.OpenPreferenceShortcut })
 
 	note := objc.ID(classNSTextField).Send(sel("labelWithString:"),
-		nsString("快捷键至少包含 Command、Option 或 Control；F1–F12 可单独使用。"))
+		nsString(i18n.T(i18n.SettingsShortcutRule)))
 	note.Send(sel("setFont:"), systemFont(11))
 	note.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
 	note.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: y - 150}, Size: CGSize{Width: tabContentW - 48, Height: 18}})
@@ -55,7 +56,7 @@ func (v *SettingsView) buildShortcuts() {
 
 func (v *SettingsView) addShortcutField(content objc.ID, y float64, title, path string, get func(SettingsValues) string) {
 	v.addLabel(content, y, title)
-	v.addSearchEntry(content, title, path, "全局快捷键 录制", "shortcut hotkey",
+	v.addSearchEntry(content, title, path, i18n.T(i18n.SettingsShortcutsKeywords), "shortcut hotkey",
 		rowHighlightFrame(y))
 	field := objc.ID(shortcutFieldClass).Send(sel("new"))
 	field.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 280, Y: y - 6}, Size: CGSize{Width: 260, Height: 30}})
@@ -66,11 +67,11 @@ func (v *SettingsView) addShortcutField(content objc.ID, y float64, title, path 
 	field.Send(sel("setBezeled:"), true)
 	field.Send(sel("setDrawsBackground:"), true)
 	field.Send(sel("setFocusRingType:"), int64(2))
-	field.Send(sel("setPlaceholderString:"), nsString("未设置"))
+	field.Send(sel("setPlaceholderString:"), nsString(i18n.T(i18n.OnboardingShortcutNotSet)))
 	field.Send(sel("setAccessibilityElement:"), true)
 	field.Send(sel("setAccessibilityRole:"), nsString("AXTextField"))
-	field.Send(sel("setAccessibilityLabel:"), nsString(title+"快捷键"))
-	field.Send(sel("setAccessibilityHelp:"), nsString("按下组合键录制，Delete 清空，Esc 取消"))
+	field.Send(sel("setAccessibilityLabel:"), nsString(i18n.Tf(i18n.SettingsShortcutFieldA11y, title)))
+	field.Send(sel("setAccessibilityHelp:"), nsString(i18n.T(i18n.SettingsShortcutHelp)))
 	content.Send(sel("addSubview:"), field)
 	v.shortcutFields = append(v.shortcutFields, &shortcutControl{path: path, control: field, get: get})
 	settingsShortcutBindings[field] = &shortcutBinding{view: v, path: path}
@@ -97,7 +98,7 @@ func (v *SettingsView) beginShortcutRecording(field objc.ID) {
 		}
 	}
 	settingsShortcutRecording[field] = true
-	field.Send(sel("setStringValue:"), nsString("请按下组合键…"))
+	field.Send(sel("setStringValue:"), nsString(i18n.T(i18n.SettingsRecording)))
 	if window := objc.Send[objc.ID](field, sel("window")); window != 0 {
 		window.Send(sel("makeFirstResponder:"), field)
 	}
@@ -138,7 +139,7 @@ func (v *SettingsView) recordShortcut(field, event objc.ID) {
 	}
 	hasPrimary := flags&(commandModifier|controlModifier|alternateModifier) != 0
 	if !hasPrimary && !recorderFunctionKey(name) {
-		field.Send(sel("setStringValue:"), nsString("需包含 ⌘ / ⌥ / ⌃"))
+		field.Send(sel("setStringValue:"), nsString(i18n.T(i18n.SettingsInvalidShortcut)))
 		return
 	}
 	modifiers = append(modifiers, name)
