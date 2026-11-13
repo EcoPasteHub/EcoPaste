@@ -84,6 +84,21 @@ func registerHistoryTargets() {
 				}
 				sendSuper[objc.ID](self, historyTableClass, sel("rightMouseDown:"), event)
 			}},
+			{Cmd: sel("otherMouseDown:"), Fn: func(self objc.ID, _ objc.SEL, event objc.ID) {
+				p := panelsByTable[self]
+				if p == nil || objc.Send[int64](event, sel("buttonNumber")) != 2 {
+					return
+				}
+				location := objc.Send[CGPoint](event, sel("locationInWindow"))
+				local := objc.Send[CGPoint](self, sel("convertPoint:fromView:"), location, objc.ID(0))
+				row := int(objc.Send[int64](self, sel("rowAtPoint:"), local))
+				if row < 0 || row >= len(p.rows) {
+					return
+				}
+				p.selectRow(row)
+				p.cx.Emit("middleClick", p.rows[row].ID)
+			}},
+			{Cmd: sel("otherMouseUp:"), Fn: func(objc.ID, objc.SEL, objc.ID) {}},
 			{Cmd: sel("keyDown:"), Fn: func(self objc.ID, _ objc.SEL, event objc.ID) {
 				p := panelsByTable[self]
 				if p == nil {

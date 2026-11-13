@@ -93,3 +93,69 @@ func TestPlainAndPathReuseActions(t *testing.T) {
 		t.Errorf("path payload = %+v", writer.payload)
 	}
 }
+
+func TestMiddleClickActions(t *testing.T) {
+	root := t.TempDir()
+	db, err := database.Open(filepath.Join(root, "clipboard.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { db.Close() })
+	store, err := settings.Open(filepath.Join(root, settings.FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	writer := &recordingWriter{}
+	model := &historyModel{
+		store: store,
+		runtime: &clipboardRuntime{
+			db:      db,
+			images:  storage.NewImageStore(filepath.Join(root, "resources")),
+			service: &clipboard.Service{DB: db, Writer: writer},
+		},
+	}
+	ctx := context.Background()
+	plain := "middle text"
+	sub := database.SubHTML
+	id, _, err := db.Upsert(ctx, &database.Item{
+		Kind:       database.KindText,
+		SubKind:    &sub,
+		Content:    "<b>middle text</b>",
+		SearchText: &plain,
+		Platform:   "macos",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	setMiddleClick := func(value string) {
+		t.Helper()
+		if _, err := store.Update(map[string]any{
+			"clipboard": map[string]any{"content": map[string]any{"middleClick": value}},
+		}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	setMiddleClick("singleClickCopyPlain")
+	if hide, err := model.MiddleClick(ctx, id); err != nil || hide {
+		t.Fatalf("copy plain = %t, %v", hide, err)
+	}
+	if writer.payload.Text != plain || writer.payload.HTML != "" {
+		t.Errorf("copy plain payload = %+v", writer.payload)
+	}
+	writer.payload = clipboard.WritePayload{}
+	setMiddleClick("singleClickCopy")
+	if _, err := model.MiddleClick(ctx, id); err != nil {
+		t.Fatal(err)
+	}
+	if writer.payload.Text != plain || writer.payload.HTML != "<b>middle text</b>" {
+		t.Errorf("copy rich payload = %+v", writer.payload)
+	}
+	writer.payload = clipboard.WritePayload{}
+	setMiddleClick("disabled")
+	if hide, err := model.MiddleClick(ctx, id); err != nil || hide {
+		t.Fatalf("disabled = %t, %v", hide, err)
+	}
+	if writer.payload.Text != "" || writer.payload.HTML != "" {
+		t.Errorf("disabled wrote %+v", writer.payload)
+	}
+}

@@ -110,6 +110,38 @@ func (m *historyModel) activateItem(ctx context.Context, id string, forcePlain b
 
 func (m *historyModel) SendPaste() error { return keystroke.SendPaste() }
 
+// MiddleClick runs the configured middle-button action for one row.
+func (m *historyModel) MiddleClick(ctx context.Context, id string) (bool, error) {
+	item, err := m.runtime.db.FindByID(ctx, id)
+	if err != nil {
+		return false, err
+	}
+	if item == nil {
+		return false, fmt.Errorf("剪贴板记录不存在")
+	}
+	cfg := m.store.Snapshot().Clipboard
+	plain := false
+	paste := false
+	switch cfg.Content.MiddleClick {
+	case settings.MiddleClickSingleClickPaste:
+		paste = true
+	case settings.MiddleClickSingleClickPlain:
+		plain, paste = true, true
+	case settings.MiddleClickSingleClickCopy:
+	case settings.MiddleClickSingleClickCopyPl:
+		plain = true
+	default:
+		return false, nil
+	}
+	if paste && !keystroke.Trusted() {
+		return false, keystroke.ErrPermission
+	}
+	if err := m.write(ctx, item, plain, cfg.Content.UpdateOnReuse); err != nil {
+		return false, err
+	}
+	return paste || cfg.Content.CopyThenHideWindow, nil
+}
+
 func (m *historyModel) NeedsAccessibility(err error) bool {
 	return errors.Is(err, keystroke.ErrPermission)
 }

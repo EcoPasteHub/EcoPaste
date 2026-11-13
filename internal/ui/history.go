@@ -196,6 +196,30 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 			}()
 		}
 
+		middleClickItem := func(id string) {
+			if id == "" || model == nil {
+				return
+			}
+			ctx := cx.Context()
+			go func() {
+				hideAfter, err := model.MiddleClick(ctx, id)
+				cx.Post(func() {
+					if err != nil {
+						errorText.Set(err.Error())
+						loading.Set(false)
+						if model.NeedsAccessibility(err) {
+							ref.Command("showAccessibilityAlert", nil)
+						}
+						return
+					}
+					if hideAfterAction(pinned, hideAfter) && hide != nil {
+						hide()
+					}
+					reload()
+				})
+			}()
+		}
+
 		applyAction := func(id string, run func(context.Context, string) error) {
 			if id == "" || model == nil {
 				return
@@ -343,6 +367,12 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 						id = value
 					}
 					activateItem(id, false)
+				case "middleClick":
+					id := selectedID
+					if value, ok := data.(string); ok && value != "" {
+						id = value
+					}
+					middleClickItem(id)
 				case "copy":
 					id := selectedID
 					if value, ok := data.(string); ok && value != "" {

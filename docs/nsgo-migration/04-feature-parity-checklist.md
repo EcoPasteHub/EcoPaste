@@ -101,7 +101,7 @@
 | A-16 | P1 | 移动到分组 | 右键子菜单 | `NSMenu` 动态分组列表与当前分组勾选 | 已通过 | `TestMoveToGroupAndBackToUngrouped`；真机移动到“工作”后分组筛选仅显示 1 条 |
 | A-17 | P0 | 删除条目 | `delete_clipboard_item` | 删除 DB 行 + 图片文件 | 已通过 | 右键/Delete 确认；`TestDeleteRemovesImageFile` |
 | A-18 | P1 | 自动粘贴 | `Content.auto_paste` | 单击/双击、粘贴/复制、禁用 | 迁移中 | 双击/回车与复制/禁用已接；单击触发待补 |
-| A-19 | P1 | 中键动作 | `Content.middle_click` | 粘贴/纯文本粘贴/复制/纯文本复制/禁用 | 待迁移 | 真实鼠标 |
+| A-19 | P1 | 中键动作 | `Content.middle_click` | 粘贴/纯文本粘贴/复制/纯文本复制/禁用 | 已通过 | `TestMiddleClickActions`；真机合成中键点击列表行，在清空剪贴板后触发纯文本复制并写入目标内容；粘贴模式复用 A-06 辅助功能路径 |
 | A-20 | P1 | 悬停快捷动作 | `Content.item_actions` | 可配置、可排序 | 待迁移 | 配置变更即时生效 |
 | A-21 | P1 | 复制后隐藏 | `copyThenHideWindow` | 复制后按设置隐藏，固定窗口时保持可见 | 已通过 | `TestHideAfterActionRespectsPinnedPanel`；真机固定后复制面板保持，取消固定后复制面板隐藏 |
 
@@ -167,7 +167,7 @@
 | S-02 | appearance | `theme`、`language` | `auto/light/dark`、`zh-CN/en-US` | 迁移中 | 主题三档已接入并即时应用；语言切换待补 |
 | S-03 | shortcuts | `openClipboard`、`openPreference`、`winV` | 保留；`winV` 仅 Windows 参考 | 迁移中 | 两个快捷键均已读取并注册；编辑 UI 待补 |
 | S-04 | clipboard.capture | `text/html/rtf/image/files`、`maxTextMb`、`maxImageMb`、`order` | 采集顺序与上限一致 | 迁移中 | 五个开关与两个上限已接设置 UI；顺序编辑待补 |
-| S-05 | clipboard.content | `autoPaste`、`middleClick`、`copyPlain`、`copyThenHideWindow`、`pastePlain`、`pasteFilesAsPath`、`showOriginalPreview`、删除保护、`autoFavorite`、`updateOnReuse`、`sort`、`itemActions`、`itemActionOrder` | 行为语义逐项一致 | 迁移中 | 纯文本复制/粘贴、文件路径粘贴、复制后隐藏、复用排序、排序方式已接入；中键与悬停动作待补 |
+| S-05 | clipboard.content | `autoPaste`、`middleClick`、`copyPlain`、`copyThenHideWindow`、`pastePlain`、`pasteFilesAsPath`、`showOriginalPreview`、删除保护、`autoFavorite`、`updateOnReuse`、`sort`、`itemActions`、`itemActionOrder` | 行为语义逐项一致 | 迁移中 | 纯文本复制/粘贴、文件路径粘贴、复制后隐藏、复用排序、排序方式、中键动作已接入；悬停动作与单击/双击触发差异待补 |
 | S-06 | clipboard.display | `textMaxLines`、`imageMaxHeight`、`fileMaxCount` | 列表展示上限一致 | 待迁移 | 边界值 |
 | S-07 | clipboard.sensitive | `collectSecrets`、`redactSecrets` | 两种策略互斥语义一致 | 已通过 | 设置 UI 可切换；敏感样本与预览脱敏测试 |
 | S-08 | clipboard.history | `retention{value,unit}`、`maxCount`、`cleanupIntervalHours` | 清理规则一致 | 已通过 | 设置 UI 可调；`TestCleanupHistoryByRetentionKeepsProtectedItems`、`TestCleanupHistoryByMaxCount` |
