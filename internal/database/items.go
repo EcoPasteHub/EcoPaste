@@ -229,7 +229,9 @@ func (d *DB) Page(ctx context.Context, q Query) (Page, error) {
 	default:
 		order += "clipboard_items.updated_at DESC, clipboard_items.created_at DESC"
 	}
-	query := "SELECT " + listColumns + " FROM clipboard_items" + where + " ORDER BY " + order + " LIMIT ? OFFSET ?"
+	query := "SELECT " + listColumns + ", clipboard_apps.name FROM clipboard_items" +
+		" LEFT JOIN clipboard_apps ON clipboard_apps.id = clipboard_items.source_app_id" +
+		where + " ORDER BY " + order + " LIMIT ? OFFSET ?"
 	rows, err := d.sql.QueryContext(ctx, query, append(args, limit, q.Offset)...)
 	if err != nil {
 		return Page{}, fmt.Errorf("query clipboard items: %w", err)
@@ -238,7 +240,7 @@ func (d *DB) Page(ctx context.Context, q Query) (Page, error) {
 
 	var page Page
 	for rows.Next() {
-		item, err := scanItem(rows)
+		item, err := scanListItem(rows)
 		if err != nil {
 			return Page{}, fmt.Errorf("scan clipboard item: %w", err)
 		}
@@ -380,20 +382,32 @@ type scanner interface {
 }
 
 func scanItem(row scanner) (*Item, error) {
+	return scanItemRow(row, false)
+}
+
+func scanListItem(row scanner) (*Item, error) {
+	return scanItemRow(row, true)
+}
+
+func scanItemRow(row scanner, withAppName bool) (*Item, error) {
 	var (
 		item                           Item
 		subKind, groupID, sourceAppID  sql.NullString
 		searchText, summary, fileTypes sql.NullString
 		size, width, height            sql.NullInt64
-		note                           sql.NullString
+		note, appName                  sql.NullString
 		createdAt, updatedAt           string
 	)
-	if err := row.Scan(
+	dest := []any{
 		&item.ID, &item.Kind, &subKind, &groupID, &sourceAppID, &item.Content,
 		&item.ContentHash, &searchText, &summary, &fileTypes, &size, &width,
 		&height, &item.UseCount, &item.IsFavorite, &item.IsPinned, &item.IsSensitive,
 		&item.Platform, &note, &createdAt, &updatedAt,
-	); err != nil {
+	}
+	if withAppName {
+		dest = append(dest, &appName)
+	}
+	if err := row.Scan(dest...); err != nil {
 		return nil, err
 	}
 	if subKind.Valid {
@@ -406,6 +420,7 @@ func scanItem(row scanner) (*Item, error) {
 	item.Summary = nullable(summary)
 	item.FileTypes = nullable(fileTypes)
 	item.Note = nullable(note)
+	item.SourceAppName = nullable(appName)
 	item.Size = nullableInt(size)
 	item.Width = nullableInt(width)
 	item.Height = nullableInt(height)

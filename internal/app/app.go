@@ -26,6 +26,8 @@ func Run(app *core.Scope) {
 	desktop.SetShutdownMode(app, desktop.ShutdownOnExplicit)
 	hotKey := panelHotKey
 	var paused atomic.Bool
+	var history ui.HistoryModel
+	var runtime *clipboardRuntime
 	if paths, err := storage.Default(); err != nil {
 		log.Printf("resolve storage: %v", err)
 	} else {
@@ -33,23 +35,43 @@ func Run(app *core.Scope) {
 		store, err := settings.Open(filepath.Join(paths.Config, settings.FileName))
 		if err != nil {
 			log.Printf("open settings: %v", err)
-		} else if configured := store.Snapshot().Shortcuts.OpenClipboard; configured != "" {
-			hotKey = strings.ToLower(configured)
-		}
-		if err := startClipboard(app, paths, store, &paused); err != nil {
-			log.Printf("start clipboard: %v", err)
+		} else {
+			if configured := store.Snapshot().Shortcuts.OpenClipboard; configured != "" {
+				hotKey = strings.ToLower(configured)
+			}
+			runtime, err = startClipboard(app, paths, store, &paused)
+			if err != nil {
+				log.Printf("start clipboard: %v", err)
+			} else {
+				history = newHistoryModel(runtime, store)
+			}
 		}
 	}
 	if custom := os.Getenv("ECOPASTE_HOTKEY"); custom != "" {
 		hotKey = custom
 	}
 
-	panel := desktop.OpenPanel(app, desktop.PanelOptions{
+	var panel *desktop.Window
+	content := ui.ClipboardPanel(history, func() { panel.Hide() })
+	panel = desktop.OpenPanel(app, desktop.PanelOptions{
 		Width:      420,
 		Height:     560,
 		HideOnBlur: true,
 		Material:   desktop.WindowMaterialPopover,
-	}, ui.ClipboardPanel)
+	}, content)
+
+	showPanel := func() {
+		if runtime != nil {
+			runtime.Signal()
+		}
+		panel.Show()
+	}
+	togglePanel := func() {
+		if !panel.Visible() && runtime != nil {
+			runtime.Signal()
+		}
+		panel.Toggle()
+	}
 
 	desktop.NewTray(app, desktop.TrayOptions{
 		Icon:     trayIcon(),
@@ -62,7 +84,7 @@ func Run(app *core.Scope) {
 				pauseLabel = "Resume Capture"
 			}
 			return []desktop.MenuItem{
-				{Label: "Show EcoPaste", Shortcut: hotKey, OnSelect: panel.Show},
+				{Label: "Show EcoPaste", Shortcut: hotKey, OnSelect: showPanel},
 				{Label: pauseLabel, OnSelect: func() { paused.Store(!paused.Load()) }},
 				{Separator: true},
 				{Label: "Quit EcoPaste", Shortcut: "mod+q", OnSelect: app.Quit},
@@ -70,21 +92,37 @@ func Run(app *core.Scope) {
 		},
 	})
 
-	desktop.RegisterHotKey(app, hotKey, panel.Toggle)
+	desktop.RegisterHotKey(app, hotKey, togglePanel)
 
 	if os.Getenv("ECOPASTE_SHOW_ON_LAUNCH") == "1" {
 		panel.Show()
 	}
 }
 
-func startClipboard(app *core.Scope, paths *storage.Paths, store *settings.Store, paused *atomic.Bool) error {
+type clipboardRuntime struct {
+	db      *database.DB
+	service *clipboard.Service
+	images  *storage.ImageStore
+	changed chan struct{}
+}
+
+func (r *clipboardRuntime) Signal() {
+	select {
+	case r.changed <- struct{}{}:
+	default:
+	}
+}
+
+func startClipboard(app *core.Scope, paths *storage.Paths, store *settings.Store, paused *atomic.Bool) (*clipboardRuntime, error) {
 	db, err := database.Open(filepath.Join(paths.DB, "clipboard.db"))
 	if err != nil {
-		return err
+		return nil, err
 	}
+	images := storage.NewImageStore(paths.Resources)
+	changed := make(chan struct{}, 1)
 	service := &clipboard.Service{
 		DB:       db,
-		Images:   storage.NewImageStore(paths.Resources),
+		Images:   images,
 		Settings: func() settings.Clipboard { return store.Snapshot().Clipboard },
 		Guard:    clipboard.NewGuard(2 * time.Second),
 		Writer:   pasteboardWriter{},
@@ -95,8 +133,14 @@ func startClipboard(app *core.Scope, paths *storage.Paths, store *settings.Store
 			if paused.Load() {
 				return
 			}
-			if _, _, err := service.Capture(ctx, payload, source); err != nil {
+			_, captured, err := service.Capture(ctx, payload, source)
+			if err != nil {
 				log.Printf("capture clipboard: %v", err)
+			} else if captured {
+				select {
+				case changed <- struct{}{}:
+				default:
+				}
 			}
 		},
 	}
@@ -114,5 +158,5 @@ func startClipboard(app *core.Scope, paths *storage.Paths, store *settings.Store
 		}
 		db.Close()
 	})
-	return nil
+	return &clipboardRuntime{db: db, service: service, images: images, changed: changed}, nil
 }

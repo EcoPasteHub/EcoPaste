@@ -99,6 +99,27 @@ func TestPageStripsTextContent(t *testing.T) {
 	}
 }
 
+func TestPageReturnsSourceAppName(t *testing.T) {
+	db := openTestDB(t)
+	ctx := context.Background()
+	if err := db.EnsureApp(ctx, "com.example.editor", "Example Editor"); err != nil {
+		t.Fatal(err)
+	}
+	source := "com.example.editor"
+	if _, _, err := db.Upsert(ctx, &Item{
+		Kind: KindText, Content: "from editor", SourceAppID: &source,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	page, err := db.Page(ctx, Query{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(page.Items) != 1 || page.Items[0].SourceAppName == nil || *page.Items[0].SourceAppName != "Example Editor" {
+		t.Fatalf("page = %+v", page.Items)
+	}
+}
+
 func TestSearchUsesFTSAndLikeFallback(t *testing.T) {
 	db := openTestDB(t)
 	ctx := context.Background()

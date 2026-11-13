@@ -52,9 +52,9 @@
 | D-16 | P0 | 历史清理 | `cleanup.rs`、`db/items.rs` | 时长 + 最大条数，收藏/置顶保留 | 待迁移 | 固定时间与条数夹具 |
 | D-17 | P0 | 启动清理 | `clipboard::init` | 启动先跑一次，再按间隔 | 待迁移 | 冷启动/长运行 |
 | D-18 | P0 | 清空记录 | `clear_items` | 可选保留收藏/置顶 | 待迁移 | 两种策略 |
-| D-19 | P0 | 数据根解析 | `core/paths.rs` | `<app_local_data>/<dev\|prod>` + `storage.json` | 待迁移 | 默认目录/自定义目录 |
+| D-19 | P0 | 数据根解析 | `core/paths.rs` | `<app_local_data>/<dev\|prod>` + `storage.json` | 已通过 | `internal/storage` 测试覆盖默认根、锚点与自定义目录 |
 | D-20 | P0 | 自定义数据目录 | `commands/storage.rs` | 迁移 db/resources/config/state 并热切换 | 待迁移 | 切换、失败回滚、重启 |
-| D-21 | P0 | 资源目录 | `core/paths.rs` | 同目录结构，图片按 hash 分片 | 待迁移 | 文件路径逐项对比 |
+| D-21 | P0 | 资源目录 | `core/paths.rs` | 同目录结构，图片按 hash 分片 | 已通过 | `TestImageStoreIsIdempotent`；真机图片落盘 |
 | D-22 | P1 | 存储占用 | `get_storage_usage` | total/database/resources/settings 分项 | 待迁移 | 与 `du` 误差可解释 |
 | D-23 | P1 | 缓存清理 | `clean_resource_cache` | 删除未被 DB 引用的图片/图标 | 待迁移 | 孤儿文件清理、引用保留 |
 | D-24 | P1 | 旧版数据导入 | `commands/onboarding.rs` | 读 v0.6 `history` + `images/` | 待迁移 | 普通/收藏选择性导入 |
@@ -83,7 +83,7 @@
 
 | ID | 优先级 | 功能 | 现有实现 | NSGo/AppKit 目标 | 状态 | 验证方式 |
 | --- | --- | --- | --- | --- | --- | --- |
-| A-01 | P0 | 写回纯文本 | `clipboard/write.rs` | `NSPasteboard` plain text | 迁移中 | `BuildWrite` + `WriteItem` 已实现；待 UI 动作验证 |
+| A-01 | P0 | 写回纯文本 | `clipboard/write.rs` | `NSPasteboard` plain text | 已通过 | 真机选中列表项 Enter 写入，`pbpaste` 校验一致 |
 | A-02 | P0 | 写回 HTML | `write.rs` | plain + `public.html` 同一 item | 迁移中 | 同一 pasteboard item 已实现；待真机富文本验证 |
 | A-03 | P0 | 写回 RTF | `write.rs` | plain + `public.rtf` 同一 item | 迁移中 | 同上 |
 | A-04 | P0 | 写回图片 | `write.rs` | `public.png` + TIFF（按需） | 迁移中 | PNG 写回已实现；待真机验证 |
@@ -103,7 +103,7 @@
 | A-18 | P1 | 自动粘贴 | `Content.auto_paste` | 单击/双击、粘贴/复制、禁用 | 待迁移 | 每种组合 |
 | A-19 | P1 | 中键动作 | `Content.middle_click` | 粘贴/纯文本粘贴/复制/纯文本复制/禁用 | 待迁移 | 真实鼠标 |
 | A-20 | P1 | 悬停快捷动作 | `Content.item_actions` | 可配置、可排序 | 待迁移 | 配置变更即时生效 |
-| A-21 | P1 | 复制后隐藏 | `copyThenHideWindow` | 复制后按设置隐藏 | 待迁移 | 固定窗口例外 |
+| A-21 | P1 | 复制后隐藏 | `copyThenHideWindow` | 复制后按设置隐藏 | 迁移中 | 已接 `copyThenHideWindow`；待固定窗口例外 |
 
 ## 5. 窗口与系统集成
 
@@ -135,14 +135,14 @@
 
 | ID | 优先级 | 功能 | 现有实现 | NSGo/AppKit 目标 | 状态 | 验证方式 |
 | --- | --- | --- | --- | --- | --- | --- |
-| U-01 | P0 | Clipboard 主页面 | `legacy/frontend/src/pages/Clipboard` | AppKit 搜索/分类/列表/卡片/Footer | 待迁移 | 主路径全键盘 |
+| U-01 | P0 | Clipboard 主页面 | `legacy/frontend/src/pages/Clipboard` | AppKit 搜索/分类/列表/卡片/Footer | 迁移中 | 原生搜索、列表、Footer、实时刷新与复制已真机验证；分类与卡片待补 |
 | U-02 | P1 | Preview 页面 | `legacy/frontend/src/pages/Preview` | 原生预览面板 | 待迁移 | hover/Space/边缘 |
 | U-03 | P1 | Preference 页面 | `legacy/frontend/src/pages/Preference` | 原生 Tab/表单/搜索/高亮 | 待迁移 | 7 个 Tab 全项 |
 | U-04 | P1 | Onboarding 页面 | `legacy/frontend/src/pages/Onboarding` | 原生 6 步流程 | 待迁移 | 全流程/回退 |
 | U-05 | P1 | Update 页面 | `legacy/frontend/src/pages/Update` | 原生更新状态/进度 | 待迁移 | 各状态 |
 | U-06 | P2 | ContextMenu 页面 | `legacy/frontend/src/pages/ContextMenu` | macOS 使用 `NSMenu`，不迁移 WebView 菜单窗 | 参考 | 对比菜单结构 |
-| U-07 | P0 | 列表虚拟滚动 | `react-virtuoso` | `NSTableView` 原生虚拟化 | 待迁移 | 10k 条滚动 |
-| U-08 | P1 | 键盘导航 | `legacy/frontend/src/hooks` 的键盘逻辑 | 上下/Page/Home/End/Enter/Esc | 待迁移 | 与旧版键位一致 |
+| U-07 | P0 | 列表虚拟滚动 | `react-virtuoso` | `NSTableView` 原生虚拟化 | 迁移中 | `NSTableView` 已启用原生复用与 80 条分页；待 10k 条压测 |
+| U-08 | P1 | 键盘导航 | `legacy/frontend/src/hooks` 的键盘逻辑 | 上下/Page/Home/End/Enter/Esc | 迁移中 | Enter/Esc/⌘C 已接；系统方向键与翻页待真机逐项验收 |
 | U-09 | P1 | 主题 | antd token + `light/dark` | AppKit 语义色 + `NSAppearance` | 待迁移 | 跟随系统/强制 |
 | U-10 | P1 | 动画 | `motion` | AppKit 动画/`NSAnimationContext` | 待迁移 | 面板出现/预览连接线 |
 | U-11 | P2 | 滚动条 | `overlayscrollbars` | 系统 overlay scroller | 待迁移 | 深浅色 |
