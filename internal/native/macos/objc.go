@@ -42,6 +42,9 @@ var (
 	windowDidBecomeKey      = "NSWindowDidBecomeKeyNotification"
 	windowDidResignKey      = "NSWindowDidResignKeyNotification"
 	windowDidOrderOffScreen = "NSWindowDidOrderOffScreenNotification"
+	// AppKit exposes NSWindowDidOrderOnScreenNotification; its exported
+	// value is the private name below.
+	windowDidOrderOnScreen = "_NSWindowDidBecomeVisible"
 )
 
 func init() {

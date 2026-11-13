@@ -21,6 +21,8 @@ import (
 
 const panelHotKey = "alt+c"
 
+const panelStateLabel = "clipboard"
+
 // Run opens EcoPaste's panel, tray icon and global shortcut. The app
 // keeps running without windows until the user quits it.
 func Run(app *core.Scope) {
@@ -31,11 +33,18 @@ func Run(app *core.Scope) {
 	var history ui.HistoryModel
 	var runtime *clipboardRuntime
 	var openSettings func()
+	var store *settings.Store
+	var windowState *storage.WindowState
 	if paths, err := storage.Default(); err != nil {
 		log.Printf("resolve storage: %v", err)
 	} else {
 		log.Printf("data root %s", paths.Root)
-		store, err := settings.Open(filepath.Join(paths.Config, settings.FileName))
+		if state, err := storage.OpenWindowState(paths.State); err != nil {
+			log.Printf("open window state: %v", err)
+		} else {
+			windowState = state
+		}
+		store, err = settings.Open(filepath.Join(paths.Config, settings.FileName))
 		if err != nil {
 			log.Printf("open settings: %v", err)
 		} else {
@@ -67,7 +76,43 @@ func Run(app *core.Scope) {
 	}
 
 	var panel *desktop.Window
-	content := ui.ClipboardPanel(history, func() { panel.Hide() })
+	placePanel := func() {
+		mode := string(settings.Default().Clipboard.Window.Position)
+		if store != nil {
+			mode = string(store.Snapshot().Clipboard.Window.Position)
+		}
+		placement := macos.PanelPlacement{Mode: mode}
+		if windowState != nil {
+			if frame, ok := windowState.Frame(panelStateLabel); ok {
+				placement.Frame = macos.PanelFrame{
+					X: float64(frame.X), Y: float64(frame.Y),
+					Width: float64(frame.Width), Height: float64(frame.Height),
+				}
+				placement.HasFrame = true
+			}
+		}
+		macos.PlacePanelOnNextShow(placement)
+	}
+	savePanelFrame := func() {
+		if windowState == nil {
+			return
+		}
+		frame, ok := macos.PanelFrameOf()
+		if !ok {
+			return
+		}
+		err := windowState.SaveFrame(panelStateLabel, storage.WindowFrame{
+			X: int64(frame.X), Y: int64(frame.Y),
+			Width: int64(frame.Width), Height: int64(frame.Height),
+		})
+		if err != nil {
+			log.Printf("save window state: %v", err)
+		}
+	}
+	content := ui.ClipboardPanel(history, func() {
+		savePanelFrame()
+		panel.Hide()
+	})
 	panel = desktop.OpenPanel(app, desktop.PanelOptions{
 		Width:    420,
 		Height:   560,
@@ -78,11 +123,15 @@ func Run(app *core.Scope) {
 		if runtime != nil {
 			runtime.Signal()
 		}
+		placePanel()
 		panel.Show()
 	}
 	togglePanel := func() {
-		if !panel.Visible() && runtime != nil {
-			runtime.Signal()
+		if !panel.Visible() {
+			if runtime != nil {
+				runtime.Signal()
+			}
+			placePanel()
 		}
 		panel.Toggle()
 	}
@@ -133,7 +182,7 @@ func Run(app *core.Scope) {
 	}
 
 	if os.Getenv("ECOPASTE_SHOW_ON_LAUNCH") == "1" {
-		panel.Show()
+		showPanel()
 	}
 }
 

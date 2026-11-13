@@ -25,14 +25,21 @@ func TestSettingsModelAppliesPaths(t *testing.T) {
 	if err := model.Apply("sensitive.redactSecrets", false); err != nil {
 		t.Fatal(err)
 	}
+	if err := model.Apply("window.position", "remember"); err != nil {
+		t.Fatal(err)
+	}
 
 	values := model.Load()
-	if !values.CopyPlain || values.MaxTextMB != 8 || values.Retention != "7d" || values.RedactSecrets {
+	if !values.CopyPlain || values.MaxTextMB != 8 || values.Retention != "7d" || values.RedactSecrets ||
+		values.WindowPosition != "remember" {
 		t.Errorf("values = %+v", values)
 	}
 	cfg := store.Snapshot().Clipboard
 	if cfg.History.Retention.Value != 7 || cfg.History.Retention.Unit != settings.RetentionDays {
 		t.Errorf("retention = %+v", cfg.History.Retention)
+	}
+	if cfg.Window.Position != settings.PositionRemember {
+		t.Errorf("window position = %q", cfg.Window.Position)
 	}
 }
 

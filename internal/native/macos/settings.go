@@ -20,6 +20,7 @@ type SettingsValues struct {
 	PastePlain           bool
 	UpdateOnReuse        bool
 	Sort                 string
+	WindowPosition       string
 	CaptureText          bool
 	CaptureHTML          bool
 	CaptureRTF           bool
@@ -116,6 +117,13 @@ func (v *SettingsView) buildGeneral() {
 			{Title: "使用次数", Value: "useCountDesc"},
 		},
 		func(s SettingsValues) string { return s.Sort })
+	v.addPopup(content, y-210, "面板打开位置", "window.position",
+		[]settingsOption{
+			{Title: "跟随光标", Value: "followCursor"},
+			{Title: "屏幕居中", Value: "center"},
+			{Title: "记住位置", Value: "remember"},
+		},
+		func(s SettingsValues) string { return s.WindowPosition })
 }
 
 func (v *SettingsView) buildCapture() {

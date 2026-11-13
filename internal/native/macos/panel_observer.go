@@ -43,6 +43,16 @@ func panelObserverMethods() []objc.MethodDef {
 				p.cx.Emit("searchCleared", nil)
 			}
 		}},
+		{Cmd: sel("windowDidOrderOnScreen:"), Fn: func(self objc.ID, _ objc.SEL, note objc.ID) {
+			p := panelsByObserver[self]
+			if p == nil {
+				return
+			}
+			window := p.view.Send(sel("window"))
+			if window != 0 && window == objc.Send[objc.ID](note, sel("object")) {
+				applyPlacement(p)
+			}
+		}},
 		{Cmd: sel("pollSearch:"), Fn: func(self objc.ID, _ objc.SEL, _ objc.ID) {
 			p := panelsByObserver[self]
 			if p == nil {

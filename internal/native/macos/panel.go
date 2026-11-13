@@ -171,6 +171,8 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 		nsString(windowDidResignKey), objc.ID(0))
 	center.Send(sel("addObserver:selector:name:object:"), p.observer, sel("windowDidOrderOffScreen:"),
 		nsString(windowDidOrderOffScreen), objc.ID(0))
+	center.Send(sel("addObserver:selector:name:object:"), p.observer, sel("windowDidOrderOnScreen:"),
+		nsString(windowDidOrderOnScreen), objc.ID(0))
 	p.timer = objc.ID(class("NSTimer")).Send(sel("scheduledTimerWithTimeInterval:target:selector:userInfo:repeats:"),
 		0.1, p.observer, sel("pollSearch:"), objc.ID(0), true)
 	p.monitor = objc.ID(objc.NewBlock(func(_ objc.Block, event objc.ID) objc.ID {
@@ -189,6 +191,12 @@ func registerPanelTargets() {
 	var err error
 	panelViewClass, err = objc.RegisterClass("EcoPastePanelView", class("NSView"), nil, nil,
 		[]objc.MethodDef{
+			{Cmd: sel("viewDidMoveToWindow"), Fn: func(self objc.ID, _ objc.SEL) {
+				sendSuper[objc.ID](self, panelViewClass, sel("viewDidMoveToWindow"))
+				if p := panelsByView[self]; p != nil {
+					applyPlacement(p)
+				}
+			}},
 			{Cmd: sel("setFrameSize:"), Fn: func(self objc.ID, _ objc.SEL, size CGSize) {
 				sendSuper[objc.ID](self, panelViewClass, sel("setFrameSize:"), size)
 				if p := panelsByView[self]; p != nil {
