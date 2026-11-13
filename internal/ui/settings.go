@@ -10,6 +10,7 @@ import (
 type SettingsModel interface {
 	Load() macos.SettingsValues
 	Apply(path string, value any) error
+	SuspendShortcuts(bool)
 }
 
 // SettingsWindow builds the native settings window.
@@ -27,6 +28,11 @@ func SettingsWindow(model SettingsModel) func(*core.Scope) core.Node {
 				}
 			},
 			OnEvent: func(name string, data any) {
+				if name == "suspendShortcuts" {
+					suspended, _ := data.(bool)
+					model.SuspendShortcuts(suspended)
+					return
+				}
 				change, ok := data.(macos.SettingsChange)
 				if name != "change" || !ok {
 					return

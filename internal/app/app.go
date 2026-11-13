@@ -39,6 +39,9 @@ func Run(app *core.Scope) {
 	var history ui.HistoryModel
 	var runtime *clipboardRuntime
 	var openSettings func()
+	var reloadHotkeys func()
+	hotKeys := macos.NewHotKeyManager()
+	app.Cleanup(hotKeys.Close)
 	var store *settings.Store
 	var windowState *storage.WindowState
 	if paths, err := storage.Default(); err != nil {
@@ -155,6 +158,20 @@ func Run(app *core.Scope) {
 					}
 					return runtime.appIcons.Path(name)
 				}
+				model.onShortcutsChanged = func() {
+					if reloadHotkeys != nil {
+						reloadHotkeys()
+					}
+				}
+				model.onShortcutsSuspended = func(suspend bool) {
+					if suspend {
+						_ = hotKeys.Set(nil)
+						return
+					}
+					if reloadHotkeys != nil {
+						reloadHotkeys()
+					}
+				}
 				model.restart = func() {
 					app.Post(func() {
 						macos.ShowMessage("数据目录已更改",
@@ -178,10 +195,6 @@ func Run(app *core.Scope) {
 			}
 		}
 	}
-	if custom := os.Getenv("ECOPASTE_HOTKEY"); custom != "" {
-		hotKey = custom
-	}
-
 	var panel *desktop.Window
 	placePanel := func() {
 		mode := string(settings.Default().Clipboard.Window.Position)
@@ -395,10 +408,26 @@ func Run(app *core.Scope) {
 		},
 	})
 
-	desktop.RegisterHotKey(app, hotKey, togglePanel)
-	if openSettings != nil && preferenceHotKey != "" {
-		desktop.RegisterHotKey(app, preferenceHotKey, openSettings)
+	reloadHotkeys = func() {
+		if store != nil {
+			hotKey = strings.ToLower(store.Snapshot().Shortcuts.OpenClipboard)
+			preferenceHotKey = strings.ToLower(store.Snapshot().Shortcuts.OpenPreference)
+		}
+		if custom := os.Getenv("ECOPASTE_HOTKEY"); custom != "" {
+			hotKey = strings.ToLower(custom)
+		}
+		var bindings []macos.HotKeyBinding
+		if hotKey != "" {
+			bindings = append(bindings, macos.HotKeyBinding{Key: hotKey, Action: togglePanel})
+		}
+		if openSettings != nil && preferenceHotKey != "" {
+			bindings = append(bindings, macos.HotKeyBinding{Key: preferenceHotKey, Action: openSettings})
+		}
+		if err := hotKeys.Set(bindings); err != nil {
+			log.Printf("register hotkeys: %v", err)
+		}
 	}
+	reloadHotkeys()
 	if os.Getenv("ECOPASTE_SHOW_SETTINGS") == "1" && openSettings != nil {
 		openSettings()
 	}

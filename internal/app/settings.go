@@ -11,19 +11,21 @@ import (
 )
 
 type settingsModel struct {
-	store             *settings.Store
-	setDockIcon       func(bool) error
-	setAutoStart      func(bool) error
-	setAppearance     func(string) error
-	listApps          func() ([]database.App, error)
-	addApp            func(string) (database.App, error)
-	deleteApps        func([]string) error
-	appIconPath       func(string) string
-	dataDir           func() string
-	changeDataDir     func(string) error
-	restoreDataDir    func() error
-	canRestoreDataDir func() bool
-	restart           func()
+	store                *settings.Store
+	setDockIcon          func(bool) error
+	setAutoStart         func(bool) error
+	setAppearance        func(string) error
+	listApps             func() ([]database.App, error)
+	addApp               func(string) (database.App, error)
+	deleteApps           func([]string) error
+	appIconPath          func(string) string
+	onShortcutsChanged   func()
+	onShortcutsSuspended func(bool)
+	dataDir              func() string
+	changeDataDir        func(string) error
+	restoreDataDir       func() error
+	canRestoreDataDir    func() bool
+	restart              func()
 }
 
 func newSettingsModel(store *settings.Store) *settingsModel {
@@ -38,31 +40,33 @@ func (m *settingsModel) Load() macos.SettingsValues {
 	cfg := snapshot.Clipboard
 	excluded := cfg.Filters.ExcludedAppIDs
 	return macos.SettingsValues{
-		DockIcon:             snapshot.General.DockIcon,
-		AutoStart:            snapshot.General.AutoStart,
-		Theme:                string(snapshot.Appearance.Theme),
-		DataDir:              m.currentDataDir(),
-		CanRestoreDataDir:    m.canRestoreDataDir != nil && m.canRestoreDataDir(),
-		CopyPlain:            cfg.Content.CopyPlain,
-		CopyThenHideWindow:   cfg.Content.CopyThenHideWindow,
-		PastePlain:           cfg.Content.PastePlain,
-		UpdateOnReuse:        cfg.Content.UpdateOnReuse,
-		Sort:                 string(cfg.Content.Sort),
-		WindowPosition:       string(cfg.Window.Position),
-		CaptureText:          cfg.Capture.Text,
-		CaptureHTML:          cfg.Capture.HTML,
-		CaptureRTF:           cfg.Capture.RTF,
-		CaptureImage:         cfg.Capture.Image,
-		CaptureFiles:         cfg.Capture.Files,
-		MaxTextMB:            cfg.Capture.MaxTextMB,
-		MaxImageMB:           cfg.Capture.MaxImageMB,
-		Retention:            encodeRetention(cfg.History.Retention),
-		MaxCount:             cfg.History.MaxCount,
-		CleanupIntervalHours: cfg.History.CleanupIntervalHours,
-		CollectSecrets:       cfg.Sensitive.CollectSecrets,
-		RedactSecrets:        cfg.Sensitive.RedactSecrets,
-		ExcludedAppIDs:       excluded,
-		Apps:                 m.loadSourceApps(excluded),
+		DockIcon:               snapshot.General.DockIcon,
+		AutoStart:              snapshot.General.AutoStart,
+		Theme:                  string(snapshot.Appearance.Theme),
+		DataDir:                m.currentDataDir(),
+		CanRestoreDataDir:      m.canRestoreDataDir != nil && m.canRestoreDataDir(),
+		CopyPlain:              cfg.Content.CopyPlain,
+		CopyThenHideWindow:     cfg.Content.CopyThenHideWindow,
+		PastePlain:             cfg.Content.PastePlain,
+		UpdateOnReuse:          cfg.Content.UpdateOnReuse,
+		Sort:                   string(cfg.Content.Sort),
+		WindowPosition:         string(cfg.Window.Position),
+		CaptureText:            cfg.Capture.Text,
+		CaptureHTML:            cfg.Capture.HTML,
+		CaptureRTF:             cfg.Capture.RTF,
+		CaptureImage:           cfg.Capture.Image,
+		CaptureFiles:           cfg.Capture.Files,
+		MaxTextMB:              cfg.Capture.MaxTextMB,
+		MaxImageMB:             cfg.Capture.MaxImageMB,
+		Retention:              encodeRetention(cfg.History.Retention),
+		MaxCount:               cfg.History.MaxCount,
+		CleanupIntervalHours:   cfg.History.CleanupIntervalHours,
+		CollectSecrets:         cfg.Sensitive.CollectSecrets,
+		RedactSecrets:          cfg.Sensitive.RedactSecrets,
+		ExcludedAppIDs:         excluded,
+		Apps:                   m.loadSourceApps(excluded),
+		OpenClipboardShortcut:  snapshot.Shortcuts.OpenClipboard,
+		OpenPreferenceShortcut: snapshot.Shortcuts.OpenPreference,
 	}
 }
 
@@ -75,6 +79,8 @@ func (m *settingsModel) Apply(path string, value any) error {
 		return m.addSourceApp(text)
 	case "filters.excludedAppIds":
 		return m.applyExcludedApps(value)
+	case "shortcuts.openClipboard", "shortcuts.openPreference":
+		return m.applyShortcut(path, value)
 	}
 	if path == "general.dataDir" {
 		parent, _ := value.(string)
@@ -149,6 +155,14 @@ func (m *settingsModel) Apply(path string, value any) error {
 func (m *settingsModel) update(patch map[string]any) error {
 	_, err := m.store.Update(patch)
 	return err
+}
+
+// SuspendShortcuts releases the global bindings while the recorder is
+// capturing keys, then restores them when recording ends.
+func (m *settingsModel) SuspendShortcuts(suspend bool) {
+	if m.onShortcutsSuspended != nil {
+		m.onShortcutsSuspended(suspend)
+	}
 }
 
 func (m *settingsModel) currentDataDir() string {

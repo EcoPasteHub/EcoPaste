@@ -15,31 +15,33 @@ const SettingsComponent = "ecopaste.settings"
 
 // SettingsValues is the view state of the settings window.
 type SettingsValues struct {
-	DockIcon             bool
-	AutoStart            bool
-	Theme                string
-	DataDir              string
-	CanRestoreDataDir    bool
-	CopyPlain            bool
-	CopyThenHideWindow   bool
-	PastePlain           bool
-	UpdateOnReuse        bool
-	Sort                 string
-	WindowPosition       string
-	CaptureText          bool
-	CaptureHTML          bool
-	CaptureRTF           bool
-	CaptureImage         bool
-	CaptureFiles         bool
-	MaxTextMB            uint32
-	MaxImageMB           uint32
-	Retention            string
-	MaxCount             uint32
-	CleanupIntervalHours uint32
-	CollectSecrets       bool
-	RedactSecrets        bool
-	ExcludedAppIDs       []string
-	Apps                 []SettingsApp
+	DockIcon               bool
+	AutoStart              bool
+	Theme                  string
+	DataDir                string
+	CanRestoreDataDir      bool
+	CopyPlain              bool
+	CopyThenHideWindow     bool
+	PastePlain             bool
+	UpdateOnReuse          bool
+	Sort                   string
+	WindowPosition         string
+	CaptureText            bool
+	CaptureHTML            bool
+	CaptureRTF             bool
+	CaptureImage           bool
+	CaptureFiles           bool
+	MaxTextMB              uint32
+	MaxImageMB             uint32
+	Retention              string
+	MaxCount               uint32
+	CleanupIntervalHours   uint32
+	CollectSecrets         bool
+	RedactSecrets          bool
+	ExcludedAppIDs         []string
+	Apps                   []SettingsApp
+	OpenClipboardShortcut  string
+	OpenPreferenceShortcut string
 }
 
 // SettingsApp is one row in the source application filter list.
@@ -72,6 +74,8 @@ type SettingsView struct {
 	appsEmpty           objc.ID
 	apps                []SettingsApp
 	extraExcluded       []string
+	shortcutFields      []*shortcutControl
+	lastValues          SettingsValues
 	fields              []*settingsField
 }
 
@@ -124,6 +128,7 @@ func NewSettings(cx *core.NativeContext) core.NativeComponent {
 	v.buildHistory()
 	v.buildPermissions()
 	v.buildApps()
+	v.buildShortcuts()
 	return v
 }
 
@@ -505,6 +510,7 @@ func (v *SettingsView) SetProp(name string, value any) {
 	switch name {
 	case "values":
 		if values, ok := value.(SettingsValues); ok {
+			v.lastValues = values
 			v.apply(values)
 		}
 	case "error":
@@ -516,6 +522,7 @@ func (v *SettingsView) SetProp(name string, value any) {
 		}
 		v.footer.Send(sel("setStringValue:"), nsString(text))
 		v.footer.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("systemRedColor")))
+		v.apply(v.lastValues)
 	}
 }
 
@@ -527,6 +534,7 @@ func (v *SettingsView) apply(values SettingsValues) {
 	v.dataDir.Send(sel("setToolTip:"), nsString(values.DataDir))
 	v.restore.Send(sel("setEnabled:"), values.CanRestoreDataDir)
 	v.applyApps(values)
+	v.applyShortcuts(values)
 	for _, field := range v.fields {
 		switch field.kind {
 		case "bool":
@@ -594,6 +602,12 @@ func (v *SettingsView) Close() {
 	for control, owner := range settingsAppControls {
 		if owner == v {
 			delete(settingsAppControls, control)
+		}
+	}
+	for control, binding := range settingsShortcutBindings {
+		if binding.view == v {
+			delete(settingsShortcutBindings, control)
+			delete(settingsShortcutRecording, control)
 		}
 	}
 	delete(settingsViews, v.change)
