@@ -79,11 +79,10 @@ func SavePanel(defaultName, title string) (string, bool) {
 				}
 			}
 		}
-		if window == 0 {
-			return
-		}
 		app.Send(sel("activateIgnoringOtherApps:"), true)
-		window.Send(sel("makeKeyAndOrderFront:"), objc.ID(0))
+		if window != 0 {
+			window.Send(sel("makeKeyAndOrderFront:"), objc.ID(0))
+		}
 		panel := objc.ID(class("NSSavePanel")).Send(sel("savePanel"))
 		panel.Send(sel("retain"))
 		defer panel.Send(sel("release"))

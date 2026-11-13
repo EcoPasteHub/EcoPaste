@@ -10,6 +10,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/EcoPasteHub/EcoPaste/internal/backup"
 	"github.com/EcoPasteHub/EcoPaste/internal/clipboard"
 	"github.com/EcoPasteHub/EcoPaste/internal/database"
 	"github.com/EcoPasteHub/EcoPaste/internal/logging"
@@ -183,6 +184,41 @@ func Run(app *core.Scope) {
 					}
 				}},
 				{Separator: true},
+				{Label: "导出备份…", OnSelect: func() {
+					if runtime == nil {
+						return
+					}
+					mode := backup.ModePlain
+					password := ""
+					switch macos.ChooseBackupExport() {
+					case macos.BackupExportCancel:
+						return
+					case macos.BackupExportEncrypted:
+						var confirmed bool
+						password, confirmed = macos.PromptPassword("加密备份密码",
+							"密码丢失后备份无法恢复，请妥善保管。")
+						if !confirmed {
+							return
+						}
+						if password == "" {
+							macos.ShowMessage("无法导出备份", "密码不能为空。")
+							return
+						}
+						mode = backup.ModeEncrypted
+					case macos.BackupExportPlain:
+						if !macos.Confirm("导出明文备份？",
+							"明文备份不加密，任何拿到文件的人都能读取其中的剪贴板历史。", "继续导出") {
+							return
+						}
+					}
+					path, ok := macos.SavePanel(
+						fmt.Sprintf("EcoPaste-%s.ecopastebak", time.Now().Format("2006-01-02")),
+						"导出 EcoPaste 备份")
+					if !ok {
+						return
+					}
+					runBackupExport(app, runtime, path, mode, password)
+				}},
 				{Label: "清除历史…", OnSelect: func() {
 					choice := macos.ConfirmClearHistory()
 					if choice == macos.ClearHistoryCancel || runtime == nil {
