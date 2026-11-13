@@ -151,6 +151,7 @@ const (
 
 var settingsTabTitleKeys = map[string]i18n.Key{
 	"general":     i18n.SettingsTabGeneral,
+	"data":        i18n.SettingsTabData,
 	"capture":     i18n.SettingsTabCapture,
 	"display":     i18n.SettingsTabDisplay,
 	"window":      i18n.SettingsTabWindow,
@@ -183,6 +184,7 @@ var (
 
 var settingsTabIdentifiers = map[string]struct{}{
 	"general":     {},
+	"data":        {},
 	"capture":     {},
 	"display":     {},
 	"window":      {},
@@ -247,6 +249,7 @@ func NewSettings(cx *core.NativeContext) core.NativeComponent {
 	settingsViews[v.reset] = v
 
 	v.buildGeneral()
+	v.buildData()
 	v.buildCapture()
 	v.buildDisplay()
 	v.buildActions()
@@ -312,7 +315,38 @@ func (v *SettingsView) buildGeneral() {
 			{Title: i18n.T(i18n.SettingsLanguageEn), Value: "en-US"},
 		},
 		func(s SettingsValues) string { return s.Language })
-	v.buildDataDir(content, y-380)
+}
+
+func (v *SettingsView) buildData() {
+	content := v.newTab("data", settingsTabTitle("data"))
+	v.buildDataDir(content, 440)
+
+	y := 330.0
+	v.addLabel(content, y, i18n.T(i18n.SettingsBackupIntro))
+	v.addSearchEntry(content, i18n.T(i18n.SettingsBackupIntro), "data.backup",
+		i18n.T(i18n.SettingsBackupHint), i18n.T(i18n.SettingsBackupKeywords),
+		CGRect{Origin: CGPoint{X: 12, Y: y - 70}, Size: CGSize{Width: tabContentW - 24, Height: 106}})
+	hint := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(i18n.SettingsBackupHint)))
+	hint.Send(sel("setFont:"), systemFont(11))
+	hint.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
+	hint.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: y - 44}, Size: CGSize{Width: tabContentW - 48, Height: 32}})
+	content.Send(sel("addSubview:"), hint)
+
+	export := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
+		nsString(i18n.T(i18n.SettingsExportBackup)), settingsTarget, sel("exportBackupPressed:"))
+	export.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: y - 88}, Size: CGSize{Width: 140, Height: 28}})
+	export.Send(sel("setBezelStyle:"), int64(1))
+	export.Send(sel("setAccessibilityHelp:"), nsString(i18n.T(i18n.SettingsBackupHint)))
+	content.Send(sel("addSubview:"), export)
+	settingsViews[export] = v
+
+	importButton := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
+		nsString(i18n.T(i18n.SettingsImportBackup)), settingsTarget, sel("importBackupPressed:"))
+	importButton.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 176, Y: y - 88}, Size: CGSize{Width: 140, Height: 28}})
+	importButton.Send(sel("setBezelStyle:"), int64(1))
+	importButton.Send(sel("setAccessibilityHelp:"), nsString(i18n.T(i18n.SettingsBackupHint)))
+	content.Send(sel("addSubview:"), importButton)
+	settingsViews[importButton] = v
 }
 
 func (v *SettingsView) buildDataDir(content objc.ID, y float64) {
@@ -745,6 +779,20 @@ func registerSettingsTargets() {
 				return
 			}
 			v.cx.Emit("change", SettingsChange{Path: "apps.refresh", Value: true})
+		}},
+		{Cmd: sel("exportBackupPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
+			v := settingsViews[sender]
+			if v == nil {
+				return
+			}
+			v.cx.Emit("change", SettingsChange{Path: "backup.export", Value: true})
+		}},
+		{Cmd: sel("importBackupPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
+			v := settingsViews[sender]
+			if v == nil {
+				return
+			}
+			v.cx.Emit("change", SettingsChange{Path: "backup.import", Value: true})
 		}},
 		{Cmd: sel("resetSettingsPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
 			v := settingsViews[sender]

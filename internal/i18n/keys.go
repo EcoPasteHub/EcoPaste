@@ -204,6 +204,7 @@ const (
 	OnboardingLegacyMissingNote     = Key("onboarding.legacy.missingNote")
 
 	SettingsTabGeneral     = Key("settings.tab.general")
+	SettingsTabData        = Key("settings.tab.data")
 	SettingsTabCapture     = Key("settings.tab.capture")
 	SettingsTabDisplay     = Key("settings.tab.display")
 	SettingsTabWindow      = Key("settings.tab.window")
@@ -357,6 +358,11 @@ const (
 	SettingsReport              = Key("settings.diagnostics.report")
 
 	SettingsChooseDataDir      = Key("settings.dataDir.choose")
+	SettingsBackupIntro        = Key("settings.data.backupIntro")
+	SettingsBackupHint         = Key("settings.data.backupHint")
+	SettingsExportBackup       = Key("settings.data.export")
+	SettingsImportBackup       = Key("settings.data.import")
+	SettingsBackupKeywords     = Key("settings.data.backupKeywords")
 	SettingsChangeDataDirTitle = Key("settings.dataDir.changeTitle")
 	SettingsChangeDataDirBody  = Key("settings.dataDir.changeBody")
 	SettingsMigrateRestart     = Key("settings.dataDir.migrateRestart")
@@ -437,6 +443,7 @@ const (
 	ErrorDefaultDataDirInUse  = Key("error.defaultDataDirInUse")
 	ErrorDataDirChange        = Key("error.dataDirChangeUnavailable")
 	ErrorDataDirRestore       = Key("error.dataDirRestoreUnavailable")
+	ErrorBackupUnavailable    = Key("error.backupUnavailable")
 	ErrorUnknownSetting       = Key("error.unknownSetting")
 	ErrorInvalidActions       = Key("error.invalidActions")
 	ErrorUnknownAction        = Key("error.unknownAction")

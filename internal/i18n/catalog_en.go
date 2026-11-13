@@ -204,6 +204,7 @@ var catalogEnUS = map[Key]string{
 	OnboardingLegacyMissingNote:     "If this is your first time using EcoPaste, you can continue.",
 
 	SettingsTabGeneral:     "General",
+	SettingsTabData:        "Data",
 	SettingsTabCapture:     "Capture",
 	SettingsTabDisplay:     "Display",
 	SettingsTabWindow:      "Window",
@@ -357,6 +358,11 @@ var catalogEnUS = map[Key]string{
 	SettingsReport:              "%s\n%s\nData Folder: %s\nAccessibility: %s\nFull Disk Access: %s",
 
 	SettingsChooseDataDir:      "Choose EcoPaste Data Folder",
+	SettingsBackupIntro:        "Back Up History",
+	SettingsBackupHint:         "Export history, resources and settings to an .ecopastebak file, or import a previous backup.",
+	SettingsExportBackup:       "Export Backup…",
+	SettingsImportBackup:       "Import Backup…",
+	SettingsBackupKeywords:     "backup export import ecopastebak restore",
 	SettingsChangeDataDirTitle: "Change the data folder?",
 	SettingsChangeDataDirBody:  "History, settings and resources are copied to the selected folder, then EcoPaste restarts. The previous folder is kept.",
 	SettingsMigrateRestart:     "Migrate and Restart",
@@ -437,6 +443,7 @@ var catalogEnUS = map[Key]string{
 	ErrorDefaultDataDirInUse:  "The default data directory is already in use",
 	ErrorDataDirChange:        "The data directory cannot be changed in this environment",
 	ErrorDataDirRestore:       "The default data directory cannot be restored in this environment",
+	ErrorBackupUnavailable:    "Backup is not available in this environment",
 	ErrorUnknownSetting:       "Unknown setting %q",
 	ErrorInvalidActions:       "Invalid action configuration",
 	ErrorUnknownAction:        "Unknown action %q",

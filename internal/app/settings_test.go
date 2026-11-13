@@ -294,6 +294,31 @@ func TestSettingsModelAppliesLanguage(t *testing.T) {
 	}
 }
 
+func TestSettingsModelRunsBackupActions(t *testing.T) {
+	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	model := newSettingsModel(store)
+	var actions []string
+	model.exportBackup = func() { actions = append(actions, "export") }
+	model.importBackup = func() { actions = append(actions, "import") }
+	if err := model.Apply("backup.export", true); err != nil {
+		t.Fatal(err)
+	}
+	if err := model.Apply("backup.import", true); err != nil {
+		t.Fatal(err)
+	}
+	if len(actions) != 2 || actions[0] != "export" || actions[1] != "import" {
+		t.Errorf("backup actions = %v", actions)
+	}
+
+	missing := newSettingsModel(store)
+	if err := missing.Apply("backup.export", true); err == nil {
+		t.Error("missing export callback did not fail")
+	}
+}
+
 func TestSettingsModelChangesDataDir(t *testing.T) {
 	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
 	if err != nil {

@@ -204,6 +204,7 @@ var catalogZhCN = map[Key]string{
 	OnboardingLegacyMissingNote:     "如果你是首次使用 EcoPaste，可以直接继续。",
 
 	SettingsTabGeneral:     "通用",
+	SettingsTabData:        "数据",
 	SettingsTabCapture:     "采集",
 	SettingsTabDisplay:     "显示",
 	SettingsTabWindow:      "窗口",
@@ -357,6 +358,11 @@ var catalogZhCN = map[Key]string{
 	SettingsReport:              "%s\n%s\n数据目录: %s\n辅助功能: %s\n完全磁盘访问: %s",
 
 	SettingsChooseDataDir:      "选择 EcoPaste 数据目录",
+	SettingsBackupIntro:        "备份历史",
+	SettingsBackupHint:         "可将历史、资源和设置导出为 .ecopastebak 文件，或导入之前的备份。",
+	SettingsExportBackup:       "导出备份…",
+	SettingsImportBackup:       "导入备份…",
+	SettingsBackupKeywords:     "备份 导出 导入 ecopastebak 恢复",
 	SettingsChangeDataDirTitle: "更改数据目录？",
 	SettingsChangeDataDirBody:  "历史、设置和资源会复制到所选目录，然后重启 EcoPaste。旧目录数据会保留。",
 	SettingsMigrateRestart:     "迁移并重启",
@@ -437,6 +443,7 @@ var catalogZhCN = map[Key]string{
 	ErrorDefaultDataDirInUse:  "当前已使用默认数据目录",
 	ErrorDataDirChange:        "当前环境无法更改数据目录",
 	ErrorDataDirRestore:       "当前环境无法恢复默认数据目录",
+	ErrorBackupUnavailable:    "当前环境无法使用备份",
 	ErrorUnknownSetting:       "未知设置项 %q",
 	ErrorInvalidActions:       "无效的动作配置",
 	ErrorUnknownAction:        "未知动作 %q",

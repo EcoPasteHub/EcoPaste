@@ -60,7 +60,7 @@
 | D-24 | P1 | 旧版数据导入 | `commands/onboarding.rs` | 读 v0.6 `history` + `images/` | 迁移中 | `internal/onboarding` 只读检测默认/自定义目录，按当前采集与敏感设置导入普通/收藏记录，旧图落盘，重复/无效行跳过；`TestLegacyDetectFindsLargestDatabase`、`TestLegacyImportNormalRows`、`TestLegacyImportFavoritesAndDedupe`；真机隔离 dev 配置 + 合成 v0.6 库导入 3 条，笔记/收藏/本地时间转换与 `legacyImport` 状态校验通过；真实旧版用户库样本待补 |
 | D-25 | P1 | 来源应用注册表 | `db/apps.rs`、`apps_registry.rs` | 列表、全部应用、从路径添加、清理未引用 | 已通过 | `TestListAppsOrdersByNameAndRefreshesMetadata`、`TestDeleteUnreferencedAppsKeepsReferencedRows`、`TestAppRegistryMergesRunningApps`、`TestAppRegistryAddRefreshesWithoutDuplicates`；真机应用页勾选立即写入 `excludedAppIds`，添加 Notes 自动排除并落库，取消勾选删除未引用行与图标 |
 | D-26 | P1 | 文件图标缓存 | `db/file_icons.rs`、`file_icon_store.rs` | `NSWorkspace` 图标 + cache key | 已通过 | `TestFileIconCacheReusesType`；真机 PDF/TXT 图标正确，两个 PDF 共享 `.pdf` 缓存 |
-| D-27 | P1 | 备份入口 | `commands/backup.rs` | 导出、检查、导入、pending slot | 已通过 | 托盘明文/加密导出、merge/overwrite 导入与 pending slot；`TestMergeImport` 校验跳过重复、补齐缺失资源、不覆盖已有资源和设置 patch，`TestStageAndApplyImport`、`TestApplyImportRestoresOnFailure` 校验覆盖与回滚；真机 merge 导入计数、DB/resources/设置落盘，overwrite 导入后重启校验；旧版 Rust 算法生成的明文/加密样本由 `TestImportBackupsWrittenByLegacyApp` 导入，Go 导出包由同一 Rust 读取逻辑交叉校验 |
+| D-27 | P1 | 备份入口 | `commands/backup.rs` | 导出、检查、导入、pending slot | 已通过 | 托盘明文/加密导出、merge/overwrite 导入与 pending slot；设置“数据”页复用同一导出/导入流程，真机验证导出选择、保存面板与导入文件面板均可进入并取消；`TestSettingsModelRunsBackupActions` 覆盖动作分派；`TestMergeImport` 校验跳过重复、补齐缺失资源、不覆盖已有资源和设置 patch，`TestStageAndApplyImport`、`TestApplyImportRestoresOnFailure` 校验覆盖与回滚；真机 merge 导入计数、DB/resources/设置落盘，overwrite 导入后重启校验；旧版 Rust 算法生成的明文/加密样本由 `TestImportBackupsWrittenByLegacyApp` 导入，Go 导出包由同一 Rust 读取逻辑交叉校验 |
 | D-28 | P1 | 打开数据目录 | `commands/storage.rs` | `NSWorkspace` 打开目录 | 已通过 | 真机从托盘打开当前数据根 |
 
 ## 3. 内容识别与预览
@@ -137,7 +137,7 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | U-01 | P0 | Clipboard 主页面 | `legacy/frontend/src/pages/Clipboard` | AppKit 搜索/分类/分组/列表/卡片/Footer | 已通过（产品调整） | 原生 `NSTableView` 行替代 WebView 卡片；类型标签、来源/时间、置顶/收藏状态、备注切换、悬停动作、搜索/分类/分组筛选、Footer、实时刷新与复制已真机验证；不再复刻圆角卡片边框，选择与密度遵循 AppKit；`TestHistoryRowIncludesMetadata`、`TestHistoryRowTypeLabels` |
 | U-02 | P1 | Preview 页面 | `legacy/frontend/src/pages/Preview` | 面板内原生预览 | 已通过 | 真机 Space/Esc；`TestPreviewRedactsSensitiveText` |
-| U-03 | P1 | Preference 页面 | `legacy/frontend/src/pages/Preference` | 原生 Tab/表单/搜索/高亮 | 迁移中 | 12 个原生 Tab、表单控件、全局搜索和高亮已可用；新增“预览”页控制 Space 预览；通用页新增语言选择并即时重建界面；更新/备份入口与其余 schema 设置项继续逐项对齐 |
+| U-03 | P1 | Preference 页面 | `legacy/frontend/src/pages/Preference` | 原生 Tab/表单/搜索/高亮 | 迁移中 | 13 个原生 Tab、表单控件、全局搜索和高亮已可用；“数据”页集中放置数据目录与备份入口，真机验证数据目录展示、导入/导出对话框、搜索 `backup` 跳转高亮及中英文重建；新增“预览”页控制 Space 预览；通用页新增语言选择并即时重建界面；更新入口与其余 schema 设置项继续逐项对齐 |
 | U-04 | P1 | Onboarding 页面 | `legacy/frontend/src/pages/Onboarding` | 原生 6 步流程 | 已通过（产品调整） | `TestOnboardingDefaultsAndPersistence`、`TestOnboardingFinishAndClamp`、`TestOnboardingReportsShortcutsAndExcludedApps`；真机完成欢迎/权限/快捷键/排除应用/旧版导入/完成全流程，权限状态、快捷键展示、打开设置深链与旧版导入均通过；产品调整为导入步骤内展示结果、不自动跳步 |
 | U-05 | P1 | Update 页面 | `legacy/frontend/src/pages/Update` | 原生更新状态/进度 | 待迁移 | 各状态 |
 | U-06 | P2 | ContextMenu 页面 | `legacy/frontend/src/pages/ContextMenu` | macOS 使用 `NSMenu`，不迁移 WebView 菜单窗 | 参考 | 对比菜单结构 |

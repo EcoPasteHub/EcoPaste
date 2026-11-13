@@ -32,6 +32,8 @@ type settingsModel struct {
 	restoreDataDir       func() error
 	canRestoreDataDir    func() bool
 	restart              func()
+	exportBackup         func()
+	importBackup         func()
 }
 
 func newSettingsModel(store *settings.Store) *settingsModel {
@@ -119,6 +121,18 @@ func (m *settingsModel) Apply(path string, value any) error {
 		return m.applyActions(value)
 	case "capture.updateOrder":
 		return m.applyCaptureOrder(value)
+	case "backup.export":
+		if m.exportBackup == nil {
+			return fmt.Errorf("%s", i18n.T(i18n.ErrorBackupUnavailable))
+		}
+		m.exportBackup()
+		return nil
+	case "backup.import":
+		if m.importBackup == nil {
+			return fmt.Errorf("%s", i18n.T(i18n.ErrorBackupUnavailable))
+		}
+		m.importBackup()
+		return nil
 	}
 	if path == "general.dataDir" {
 		parent, _ := value.(string)

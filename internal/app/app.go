@@ -238,6 +238,12 @@ func Run(app *core.Scope) {
 					tray.SetIcon(icon, true)
 					return nil
 				}
+				model.exportBackup = func() {
+					exportBackupWithUI(app, runtime)
+				}
+				model.importBackup = func() {
+					importBackupWithUI(app, runtime, store, reloadHotkeys)
+				}
 				model.restart = func() {
 					app.Post(func() {
 						macos.ShowMessage(i18n.T(i18n.DataDirChangedTitle), i18n.T(i18n.DataDirChangedBody))
@@ -390,49 +396,10 @@ func Run(app *core.Scope) {
 				}},
 				{Separator: true},
 				{Label: i18n.T(i18n.TrayExportBackup), OnSelect: func() {
-					if runtime == nil {
-						return
-					}
-					mode := backup.ModePlain
-					password := ""
-					switch macos.ChooseBackupExport() {
-					case macos.BackupExportCancel:
-						return
-					case macos.BackupExportEncrypted:
-						var confirmed bool
-						password, confirmed = macos.PromptPassword(i18n.T(i18n.BackupPasswordTitle),
-							i18n.T(i18n.BackupPasswordBody))
-						if !confirmed {
-							return
-						}
-						if password == "" {
-							macos.ShowMessage(i18n.T(i18n.BackupExportFailed), i18n.T(i18n.BackupPasswordRequired))
-							return
-						}
-						mode = backup.ModeEncrypted
-					case macos.BackupExportPlain:
-						if !macos.Confirm(i18n.T(i18n.BackupUnencryptedTitle),
-							i18n.T(i18n.BackupUnencryptedBody), i18n.T(i18n.BackupUnencryptedConfirm)) {
-							return
-						}
-					}
-					path, ok := macos.SavePanel(
-						fmt.Sprintf("EcoPaste-%s.ecopastebak", time.Now().Format("2006-01-02")),
-						i18n.T(i18n.BackupExportPanelTitle))
-					if !ok {
-						return
-					}
-					runBackupExport(app, runtime, path, mode, password)
+					exportBackupWithUI(app, runtime)
 				}},
 				{Label: i18n.T(i18n.TrayImportBackup), OnSelect: func() {
-					if runtime == nil {
-						return
-					}
-					path, ok := macos.OpenBackupPanel(i18n.T(i18n.BackupImportPanelTitle))
-					if !ok {
-						return
-					}
-					runBackupImport(app, runtime, path, store, reloadHotkeys)
+					importBackupWithUI(app, runtime, store, reloadHotkeys)
 				}},
 				{Label: i18n.T(i18n.TrayClearHistory), OnSelect: func() {
 					choice := macos.ConfirmClearHistory()

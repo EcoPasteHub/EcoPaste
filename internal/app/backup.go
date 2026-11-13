@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"path/filepath"
 	"strings"
@@ -14,6 +15,57 @@ import (
 	"github.com/nsgo-dev/nsgo/core"
 	"github.com/nsgo-dev/nsgo/desktop"
 )
+
+// exportBackupWithUI runs the export chooser, password prompt and save
+// panel shared by the tray and settings window.
+func exportBackupWithUI(app *core.Scope, runtime *clipboardRuntime) {
+	if runtime == nil {
+		return
+	}
+	mode := backup.ModePlain
+	password := ""
+	switch macos.ChooseBackupExport() {
+	case macos.BackupExportCancel:
+		return
+	case macos.BackupExportEncrypted:
+		var confirmed bool
+		password, confirmed = macos.PromptPassword(i18n.T(i18n.BackupPasswordTitle),
+			i18n.T(i18n.BackupPasswordBody))
+		if !confirmed {
+			return
+		}
+		if password == "" {
+			macos.ShowMessage(i18n.T(i18n.BackupExportFailed), i18n.T(i18n.BackupPasswordRequired))
+			return
+		}
+		mode = backup.ModeEncrypted
+	case macos.BackupExportPlain:
+		if !macos.Confirm(i18n.T(i18n.BackupUnencryptedTitle),
+			i18n.T(i18n.BackupUnencryptedBody), i18n.T(i18n.BackupUnencryptedConfirm)) {
+			return
+		}
+	}
+	path, ok := macos.SavePanel(
+		fmt.Sprintf("EcoPaste-%s.ecopastebak", time.Now().Format("2006-01-02")),
+		i18n.T(i18n.BackupExportPanelTitle))
+	if !ok {
+		return
+	}
+	runBackupExport(app, runtime, path, mode, password)
+}
+
+// importBackupWithUI asks for an archive and applies the shared import
+// flow.
+func importBackupWithUI(app *core.Scope, runtime *clipboardRuntime, store *settings.Store, reloadHotkeys func() error) {
+	if runtime == nil {
+		return
+	}
+	path, ok := macos.OpenBackupPanel(i18n.T(i18n.BackupImportPanelTitle))
+	if !ok {
+		return
+	}
+	runBackupImport(app, runtime, path, store, reloadHotkeys)
+}
 
 func runBackupExport(app *core.Scope, runtime *clipboardRuntime, path string, mode backup.Mode, password string) {
 	go func() {
