@@ -357,7 +357,7 @@ func Run(app *core.Scope) {
 					if !ok {
 						return
 					}
-					runBackupImport(app, runtime, path)
+					runBackupImport(app, runtime, path, store, reloadHotkeys)
 				}},
 				{Label: "清除历史…", OnSelect: func() {
 					choice := macos.ConfirmClearHistory()
@@ -470,7 +470,7 @@ func Run(app *core.Scope) {
 	})
 	desktop.OnOpenFiles(app, func(paths []string) {
 		if path, ok := firstBackupPath(paths); ok {
-			runBackupImport(app, runtime, path)
+			runBackupImport(app, runtime, path, store, reloadHotkeys)
 		}
 	})
 	go func() {

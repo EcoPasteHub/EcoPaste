@@ -86,6 +86,85 @@ func TestStageAndApplyImport(t *testing.T) {
 	}
 }
 
+func TestMergeImport(t *testing.T) {
+	src, sourceRoot := testSource(t)
+	archive := filepath.Join(sourceRoot, "history.ecopastebak")
+	if err := os.WriteFile(filepath.Join(src.Resources, "b.png"), []byte("new"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Export(context.Background(), src, archive, ExportOptions{Mode: ModePlain}); err != nil {
+		t.Fatal(err)
+	}
+
+	paths := testImportPaths(t)
+	db, err := database.Open(filepath.Join(paths.DB, "clipboard.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	existing := &database.Item{Kind: database.KindText, Content: "hello", Platform: "macos"}
+	if _, _, err := db.Upsert(context.Background(), existing); err != nil {
+		t.Fatal(err)
+	}
+	note := "local note"
+	if err := db.SetNote(context.Background(), existing.ID, &note); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Join(paths.Resources, "clipboard-images", "origin"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	localImage := filepath.Join(paths.Resources, "clipboard-images", "origin", "a.png")
+	if err := os.WriteFile(localImage, []byte("local"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	result, err := Merge(context.Background(), archive, "", db, paths.Resources)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Items != 2 || result.Skipped != 1 || result.Resources != 1 {
+		t.Errorf("result = %+v", result)
+	}
+	if general, ok := result.Settings["general"].(map[string]any); !ok || len(general) != 0 {
+		t.Errorf("settings patch = %#v", result.Settings)
+	}
+	counts, err := db.Counts(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if counts.Items != 4 {
+		t.Errorf("counts = %+v", counts)
+	}
+	merged, err := db.FindByHash(context.Background(), database.Hash(database.KindText, "hello"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if merged == nil || merged.Note == nil || *merged.Note != note {
+		t.Errorf("duplicate metadata = %+v", merged)
+	}
+	image, err := db.FindByHash(context.Background(), database.Hash(database.KindImage, "a.png"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if image == nil || image.Content != "a.png" || image.Platform != "macos" || image.UseCount != 1 {
+		t.Errorf("imported image = %+v", image)
+	}
+	data, err := os.ReadFile(localImage)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(data) != "local" {
+		t.Errorf("existing resource was overwritten: %q", data)
+	}
+	data, err = os.ReadFile(filepath.Join(paths.Resources, "b.png"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(data) != "new" {
+		t.Errorf("missing resource = %q", data)
+	}
+}
+
 func TestApplyImportRestoresOnFailure(t *testing.T) {
 	paths := testImportPaths(t)
 	pending := filepath.Join(paths.State, pendingImportDir)

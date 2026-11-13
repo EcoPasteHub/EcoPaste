@@ -60,7 +60,7 @@
 | D-24 | P1 | 旧版数据导入 | `commands/onboarding.rs` | 读 v0.6 `history` + `images/` | 迁移中 | `internal/onboarding` 只读检测默认/自定义目录，按当前采集与敏感设置导入普通/收藏记录，旧图落盘，重复/无效行跳过；`TestLegacyDetectFindsLargestDatabase`、`TestLegacyImportNormalRows`、`TestLegacyImportFavoritesAndDedupe`；真机隔离 dev 配置 + 合成 v0.6 库导入 3 条，笔记/收藏/本地时间转换与 `legacyImport` 状态校验通过；真实旧版用户库样本待补 |
 | D-25 | P1 | 来源应用注册表 | `db/apps.rs`、`apps_registry.rs` | 列表、全部应用、从路径添加、清理未引用 | 已通过 | `TestListAppsOrdersByNameAndRefreshesMetadata`、`TestDeleteUnreferencedAppsKeepsReferencedRows`、`TestAppRegistryMergesRunningApps`、`TestAppRegistryAddRefreshesWithoutDuplicates`；真机应用页勾选立即写入 `excludedAppIds`，添加 Notes 自动排除并落库，取消勾选删除未引用行与图标 |
 | D-26 | P1 | 文件图标缓存 | `db/file_icons.rs`、`file_icon_store.rs` | `NSWorkspace` 图标 + cache key | 已通过 | `TestFileIconCacheReusesType`；真机 PDF/TXT 图标正确，两个 PDF 共享 `.pdf` 缓存 |
-| D-27 | P1 | 备份入口 | `commands/backup.rs` | 导出、检查、导入、pending slot | 迁移中 | 托盘明文/加密导出与 overwrite 导入；`TestExportPlainBackup`、`TestExportEncryptedBackupRoundTrips`、`TestStageAndApplyImport`、`TestApplyImportRestoresOnFailure`；真机导出 ZIP 校验快照 DB，导入后重启校验 DB/设置/resources，失败自动回滚；merge 导入与旧版包互导待补 |
+| D-27 | P1 | 备份入口 | `commands/backup.rs` | 导出、检查、导入、pending slot | 迁移中 | 托盘明文/加密导出、merge/overwrite 导入与 pending slot；`TestMergeImport` 校验跳过重复、补齐缺失资源、不覆盖已有资源和设置 patch，`TestStageAndApplyImport`、`TestApplyImportRestoresOnFailure` 校验覆盖与回滚；真机 merge 导入计数、DB/resources/设置落盘，overwrite 导入后重启校验；旧版包互导待补 |
 | D-28 | P1 | 打开数据目录 | `commands/storage.rs` | `NSWorkspace` 打开目录 | 已通过 | 真机从托盘打开当前数据根 |
 
 ## 3. 内容识别与预览
@@ -193,7 +193,7 @@
 | X-04 | P0 | 图片文件名 | `<blake3>.png` 分片 | 路径与命名一致 | 待迁移 | 旧数据直接引用 |
 | X-05 | P0 | `settings.json` | camelCase、serde default | 字段、默认值、patch 语义一致 | 已通过 | `TestSettingsJSONRoundTripsPublishedCamelCase`、`TestLoadKeepsDefaultsForMissingFields`、`TestOpenFallsBackToDefaultsForUnreadableSettings`、`TestWriteIsAtomicAndReadable`、`TestCrashResidueDoesNotAffectSettings`：发布字段 camelCase 无损回环，旧文件缺字段保留默认值，更新后重新打开可读且结构完整 |
 | X-06 | P0 | 数据目录 | `storage.json` 锚点 | 默认/自定义目录均可解析 | 待迁移 | 目录切换 |
-| X-07 | P0 | `.ecopastebak` | ZIP / 自定义加密容器 | 双向读写兼容 | 迁移中 | 明文 ZIP 布局、加密容器与 overwrite 导入已兼容；旧版生成/读取 NSGo 包的双向样本验证待补 |
+| X-07 | P0 | `.ecopastebak` | ZIP / 自定义加密容器 | 双向读写兼容 | 迁移中 | 明文 ZIP 布局、加密容器、merge/overwrite 导入已兼容；旧版生成/读取 NSGo 包的双向样本验证待补 |
 | X-08 | P0 | 文件关联 | `.ecopastebak` | 同扩展名/UTI | 已通过 | `nsgo.yaml` 声明 `com.ayangweb.eco-paste.backup`，构建产物 Info.plist 校验 `CFBundleDocumentTypes`；真机运行中/冷启动 `open -a` 均进入导入确认，导入后重启校验 DB |
 | X-09 | P0 | Bundle ID | `com.ayangweb.eco-paste` | 正式版一致；开发版隔离 | 待迁移 | 安装/升级/数据目录 |
 
