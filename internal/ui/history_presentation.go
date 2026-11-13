@@ -39,9 +39,6 @@ func historyRow(item HistoryItem) macos.HistoryRow {
 	if !item.CreatedAt.IsZero() {
 		detail = append(detail, relativeTime(time.Now(), item.CreatedAt))
 	}
-	if item.Note != "" {
-		detail = append(detail, strings.TrimSpace(item.Note))
-	}
 	if item.Pinned {
 		detail = append(detail, "已固定")
 	}

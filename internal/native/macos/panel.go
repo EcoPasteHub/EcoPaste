@@ -70,6 +70,7 @@ type Panel struct {
 	hoverBar                      objc.ID
 	hoverButtons                  []objc.ID
 	hoverSpecs                    []hoverAction
+	originalRow                   int
 	query                         string
 	rows                          []HistoryRow
 	total                         int64
@@ -103,6 +104,7 @@ type PanelDisplay struct {
 	TextMaxLines   int
 	ImageMaxHeight int
 	FileMaxCount   int
+	ShowOriginal   bool
 }
 
 var (
@@ -124,10 +126,11 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	registerPanelOnce.Do(registerPanelTargets)
 
 	p := &Panel{
-		cx:       cx,
-		view:     objc.ID(panelViewClass).Send(sel("new")),
-		display:  PanelDisplay{TextMaxLines: 1, ImageMaxHeight: 32, FileMaxCount: 3},
-		hoverRow: -1,
+		cx:          cx,
+		view:        objc.ID(panelViewClass).Send(sel("new")),
+		display:     PanelDisplay{TextMaxLines: 1, ImageMaxHeight: 32, FileMaxCount: 3},
+		originalRow: -1,
+		hoverRow:    -1,
 	}
 	p.view.Send(sel("setAutoresizesSubviews:"), false)
 

@@ -385,6 +385,7 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 						TextMaxLines:   density.TextMaxLines,
 						ImageMaxHeight: density.ImageMaxHeight,
 						FileMaxCount:   density.FileMaxCount,
+						ShowOriginal:   density.ShowOriginal,
 					}
 					actions = model.QuickActions()
 					state := model.Onboarding()

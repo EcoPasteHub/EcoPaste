@@ -17,14 +17,17 @@ func TestDisplayClampsStoredDensity(t *testing.T) {
 		t.Fatal(err)
 	}
 	if _, err := store.Update(map[string]any{
-		"clipboard": map[string]any{"display": map[string]any{
-			"textMaxLines": 0, "imageMaxHeight": 400, "fileMaxCount": 9,
-		}},
+		"clipboard": map[string]any{
+			"display": map[string]any{
+				"textMaxLines": 0, "imageMaxHeight": 400, "fileMaxCount": 9,
+			},
+			"content": map[string]any{"showOriginalPreview": false},
+		},
 	}); err != nil {
 		t.Fatal(err)
 	}
 	display := (&historyModel{store: store}).Display()
-	if display.TextMaxLines != 1 || display.ImageMaxHeight != 100 || display.FileMaxCount != 5 {
+	if display.TextMaxLines != 1 || display.ImageMaxHeight != 100 || display.FileMaxCount != 5 || display.ShowOriginal {
 		t.Errorf("display = %+v", display)
 	}
 }

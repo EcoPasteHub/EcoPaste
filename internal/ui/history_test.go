@@ -38,7 +38,7 @@ func TestHistoryRowIncludesMetadata(t *testing.T) {
 		Favorite:      true,
 		Pinned:        true,
 	})
-	if row.Title != "hello" || row.Detail != "Safari · 2 分钟前 · greeting · 已固定 · 收藏" {
+	if row.Title != "hello" || row.Detail != "Safari · 2 分钟前 · 已固定 · 收藏" {
 		t.Errorf("row = %+v", row)
 	}
 	if row.SourceIconPath != "/tmp/safari.png" {

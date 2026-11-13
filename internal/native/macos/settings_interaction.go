@@ -38,12 +38,14 @@ func (v *SettingsView) buildInteraction() {
 		func(s SettingsValues) bool { return s.PasteFilesAsPath })
 	v.addSwitch(content, y-142, "有备注时自动收藏", "content.autoFavorite",
 		func(s SettingsValues) bool { return s.AutoFavorite })
+	v.addSwitch(content, y-180, "悬停备注条目显示原始内容", "content.showOriginalPreview",
+		func(s SettingsValues) bool { return s.ShowOriginalPreview })
 
 	note := objc.ID(classNSTextField).Send(sel("labelWithString:"),
 		nsString("“粘贴文件时写入路径”只影响文件记录；普通文本仍按原内容粘贴。"))
 	note.Send(sel("setFont:"), systemFont(11))
 	note.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
-	note.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: y - 190}, Size: CGSize{Width: tabContentW - 48, Height: 32}})
+	note.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: y - 234}, Size: CGSize{Width: tabContentW - 48, Height: 32}})
 	content.Send(sel("addSubview:"), note)
 }
 

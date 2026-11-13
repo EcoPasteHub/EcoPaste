@@ -123,13 +123,17 @@ func (m *historyModel) SearchBehavior() ui.HistorySearchBehavior {
 // file cannot produce rows without text.
 func (m *historyModel) Display() ui.HistoryDisplay {
 	density := settings.Default().Clipboard.Display
+	content := settings.Default().Clipboard.Content
 	if m.store != nil {
-		density = m.store.Snapshot().Clipboard.Display
+		clipboard := m.store.Snapshot().Clipboard
+		density = clipboard.Display
+		content = clipboard.Content
 	}
 	return ui.HistoryDisplay{
 		TextMaxLines:   clampInt(int(density.TextMaxLines), 1, 5),
 		ImageMaxHeight: clampInt(int(density.ImageMaxHeight), 20, 100),
 		FileMaxCount:   clampInt(int(density.FileMaxCount), 1, 5),
+		ShowOriginal:   content.ShowOriginalPreview,
 	}
 }
 

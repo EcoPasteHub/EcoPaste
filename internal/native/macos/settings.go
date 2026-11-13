@@ -29,6 +29,7 @@ type SettingsValues struct {
 	MiddleClick            string
 	PasteFilesAsPath       bool
 	AutoFavorite           bool
+	ShowOriginalPreview    bool
 	DeleteConfirm          bool
 	DeleteFavoriteConfirm  bool
 	DeletePinnedConfirm    bool

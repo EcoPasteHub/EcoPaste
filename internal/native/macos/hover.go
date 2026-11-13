@@ -2,7 +2,11 @@
 
 package macos
 
-import "github.com/ebitengine/purego/objc"
+import (
+	"strings"
+
+	"github.com/ebitengine/purego/objc"
+)
 
 const (
 	hoverBarHeight  = 24.0
@@ -91,9 +95,10 @@ func (p *Panel) updateHover(row int) {
 		p.hideHover()
 		return
 	}
+	p.setOriginalRow(row)
 	specs := hoverActionsFor(p.rows[row], p.actions)
 	if len(specs) == 0 {
-		p.hideHover()
+		p.hideHoverBar()
 		return
 	}
 	p.hoverRow = row
@@ -121,11 +126,38 @@ func (p *Panel) updateHover(row int) {
 }
 
 func (p *Panel) hideHover() {
+	p.hideHoverBar()
+	p.setOriginalRow(-1)
+}
+
+func (p *Panel) hideHoverBar() {
 	if p.hoverBar != 0 {
 		p.hoverBar.Send(sel("setHidden:"), true)
 	}
 	p.hoverRow = -1
 	p.hoverSpecs = nil
+}
+
+func (p *Panel) setOriginalRow(row int) {
+	if row < 0 || row >= len(p.rows) || strings.TrimSpace(p.rows[row].Note) == "" || !p.display.ShowOriginal {
+		row = -1
+	}
+	if p.originalRow == row {
+		return
+	}
+	previous := p.originalRow
+	p.originalRow = row
+	p.refreshHistoryRow(previous)
+	p.refreshHistoryRow(row)
+}
+
+func (p *Panel) refreshHistoryRow(row int) {
+	if row < 0 || row >= len(p.rows) {
+		return
+	}
+	rows := objc.ID(class("NSIndexSet")).Send(sel("indexSetWithIndex:"), int64(row))
+	columns := objc.ID(class("NSIndexSet")).Send(sel("indexSetWithIndex:"), int64(0))
+	p.table.Send(sel("reloadDataForRowIndexes:columnIndexes:"), rows, columns)
 }
 
 func (p *Panel) runHoverAction(index int) {

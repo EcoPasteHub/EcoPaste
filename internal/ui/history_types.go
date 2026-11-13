@@ -65,11 +65,13 @@ type HistorySearchBehavior struct {
 	ClearOnHide  bool
 }
 
-// HistoryDisplay is the list density taken from clipboard.display.
+// HistoryDisplay is the list density and note-hover behavior taken from
+// clipboard settings.
 type HistoryDisplay struct {
 	TextMaxLines   int
 	ImageMaxHeight int
 	FileMaxCount   int
+	ShowOriginal   bool
 }
 
 // HistoryOpenBehavior selects the initial list state when the panel opens.

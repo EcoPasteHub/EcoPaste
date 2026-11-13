@@ -45,6 +45,9 @@ func TestSettingsModelAppliesPaths(t *testing.T) {
 	if err := model.Apply("content.autoFavorite", true); err != nil {
 		t.Fatal(err)
 	}
+	if err := model.Apply("content.showOriginalPreview", false); err != nil {
+		t.Fatal(err)
+	}
 	if err := model.Apply("content.deleteConfirm", false); err != nil {
 		t.Fatal(err)
 	}
@@ -56,7 +59,7 @@ func TestSettingsModelAppliesPaths(t *testing.T) {
 	if !values.CopyPlain || values.MaxTextMB != 8 || values.Retention != "7d" || values.RedactSecrets ||
 		values.WindowPosition != "remember" || !values.CopySound ||
 		values.AutoPaste != "singleClickCopy" || values.MiddleClick != "singleClickPastePlain" ||
-		!values.PasteFilesAsPath || !values.AutoFavorite ||
+		!values.PasteFilesAsPath || !values.AutoFavorite || values.ShowOriginalPreview ||
 		values.DeleteConfirm || !values.DeleteFavoriteItems {
 		t.Errorf("values = %+v", values)
 	}

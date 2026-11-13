@@ -222,7 +222,7 @@ func registerHistoryTargets() {
 			if cell == 0 {
 				cell = newHistoryRow()
 			}
-			fillHistoryRow(cell, p.rows[row], p.display)
+			fillHistoryRow(cell, p.rows[row], p.display, p.originalRow == int(row))
 			return cell
 		}},
 		{Cmd: sel("tableViewSelectionDidChange:"), Fn: func(_ objc.ID, _ objc.SEL, note objc.ID) {
@@ -445,13 +445,14 @@ func newHistoryRow() objc.ID {
 	return cell.Send(sel("autorelease"))
 }
 
-func fillHistoryRow(cell objc.ID, row HistoryRow, display PanelDisplay) {
+func fillHistoryRow(cell objc.ID, row HistoryRow, display PanelDisplay, revealOriginal bool) {
 	icon := cell.Send(sel("viewWithTag:"), int64(rowIconTag))
 	badge := cell.Send(sel("viewWithTag:"), int64(rowBadgeTag))
 	title := cell.Send(sel("viewWithTag:"), int64(rowTitleTag))
 	detail := cell.Send(sel("viewWithTag:"), int64(rowDetailTag))
-	title.Send(sel("setStringValue:"), nsString(row.Title))
-	detail.Send(sel("setStringValue:"), nsString(row.Detail))
+	titleText, detailText := historyRowText(row, display, revealOriginal)
+	title.Send(sel("setStringValue:"), nsString(titleText))
+	detail.Send(sel("setStringValue:"), nsString(detailText))
 	lines := int64(1)
 	breakMode := int64(4)
 	if row.Kind == "text" {
@@ -492,6 +493,30 @@ func fillHistoryRow(cell objc.ID, row HistoryRow, display PanelDisplay) {
 		icon.Send(sel("setImage:"), symbolImage(row.Kind))
 		icon.Send(sel("setContentTintColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
 	}
+}
+
+// historyRowText keeps a note as the card's default content while hovering
+// temporarily reveals the copied content, matching the legacy note card.
+func historyRowText(row HistoryRow, display PanelDisplay, revealOriginal bool) (string, string) {
+	note := strings.TrimSpace(row.Note)
+	if note == "" {
+		return row.Title, row.Detail
+	}
+	if !display.ShowOriginal {
+		return row.Title, appendHistoryDetail(row.Detail, note)
+	}
+	detail := appendHistoryDetail(row.Detail, "备注")
+	if revealOriginal {
+		return row.Title, detail
+	}
+	return "备注：" + note, detail
+}
+
+func appendHistoryDetail(detail, value string) string {
+	if strings.TrimSpace(detail) == "" {
+		return value
+	}
+	return detail + " · " + value
 }
 
 func iconSizeForRow(row HistoryRow, display PanelDisplay) float64 {
