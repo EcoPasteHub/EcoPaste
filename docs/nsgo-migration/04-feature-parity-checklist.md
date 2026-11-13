@@ -49,9 +49,9 @@
 | D-13 | P0 | 分组布局 | `update_clipboard_groups_layout` | 批量更新 `sort_order` | 待迁移 | 拖拽排序后重启 |
 | D-14 | P0 | 删除分组 | `delete_group` | 条目 `group_id` 置 NULL | 待迁移 | 删除后条目不丢 |
 | D-15 | P0 | 使用次数 | `increment_item_use_count` | `use_count + 1` 并刷新 `updated_at` | 已通过 | `TestUpsertDeduplicatesAndRefreshesUpdatedAt` |
-| D-16 | P0 | 历史清理 | `cleanup.rs`、`db/items.rs` | 时长 + 最大条数，收藏/置顶保留 | 待迁移 | 固定时间与条数夹具 |
-| D-17 | P0 | 启动清理 | `clipboard::init` | 启动先跑一次，再按间隔 | 待迁移 | 冷启动/长运行 |
-| D-18 | P0 | 清空记录 | `clear_items` | 可选保留收藏/置顶 | 待迁移 | 两种策略 |
+| D-16 | P0 | 历史清理 | `cleanup.rs`、`db/items.rs` | 时长 + 最大条数，收藏/置顶保留 | 已通过 | `TestCleanupHistoryByRetentionKeepsProtectedItems`、`TestCleanupRemovesExpiredImage` |
+| D-17 | P0 | 启动清理 | `clipboard::init` | 启动先跑一次，再按间隔 | 迁移中 | 启动与周期调度已接；待真机长运行验证 |
+| D-18 | P0 | 清空记录 | `clear_items` | 可选保留收藏/置顶 | 迁移中 | 托盘原生对话框已接；`TestClearHistoryOptionallyKeepsFavoritesAndPinned` |
 | D-19 | P0 | 数据根解析 | `core/paths.rs` | `<app_local_data>/<dev\|prod>` + `storage.json` | 已通过 | `internal/storage` 测试覆盖默认根、锚点与自定义目录 |
 | D-20 | P0 | 自定义数据目录 | `commands/storage.rs` | 迁移 db/resources/config/state 并热切换 | 待迁移 | 切换、失败回滚、重启 |
 | D-21 | P0 | 资源目录 | `core/paths.rs` | 同目录结构，图片按 hash 分片 | 已通过 | `TestImageStoreIsIdempotent`；真机图片落盘 |

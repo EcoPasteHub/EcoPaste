@@ -11,6 +11,7 @@ import (
 
 	"github.com/EcoPasteHub/EcoPaste/internal/clipboard"
 	"github.com/EcoPasteHub/EcoPaste/internal/database"
+	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
 	"github.com/EcoPasteHub/EcoPaste/internal/settings"
 	"github.com/EcoPasteHub/EcoPaste/internal/storage"
 	"github.com/EcoPasteHub/EcoPaste/internal/ui"
@@ -79,15 +80,28 @@ func Run(app *core.Scope) {
 		Tooltip:  "EcoPaste",
 		Panel:    panel,
 		Menu: func() []desktop.MenuItem {
-			pauseLabel := "Pause Capture"
+			pauseLabel := "暂停记录"
 			if paused.Load() {
-				pauseLabel = "Resume Capture"
+				pauseLabel = "继续记录"
 			}
 			return []desktop.MenuItem{
-				{Label: "Show EcoPaste", Shortcut: hotKey, OnSelect: showPanel},
+				{Label: "显示 EcoPaste", Shortcut: hotKey, OnSelect: showPanel},
 				{Label: pauseLabel, OnSelect: func() { paused.Store(!paused.Load()) }},
 				{Separator: true},
-				{Label: "Quit EcoPaste", Shortcut: "mod+q", OnSelect: app.Quit},
+				{Label: "清除历史…", OnSelect: func() {
+					choice := macos.ConfirmClearHistory()
+					if choice == macos.ClearHistoryCancel || runtime == nil {
+						return
+					}
+					_, err := runtime.service.Clear(context.Background(), choice == macos.ClearHistoryAll, choice == macos.ClearHistoryAll)
+					if err != nil {
+						log.Printf("clear history: %v", err)
+						return
+					}
+					runtime.Signal()
+				}},
+				{Separator: true},
+				{Label: "退出 EcoPaste", Shortcut: "mod+q", OnSelect: app.Quit},
 			}
 		},
 	})
@@ -150,6 +164,8 @@ func startClipboard(app *core.Scope, paths *storage.Paths, store *settings.Store
 		watcher.Run(ctx)
 		close(done)
 	}()
+	runtime := &clipboardRuntime{db: db, service: service, images: images, changed: changed}
+	startCleanup(ctx, runtime, store)
 	app.OnQuit(func(context.Context) {
 		cancel()
 		select {
@@ -158,5 +174,5 @@ func startClipboard(app *core.Scope, paths *storage.Paths, store *settings.Store
 		}
 		db.Close()
 	})
-	return &clipboardRuntime{db: db, service: service, images: images, changed: changed}, nil
+	return runtime, nil
 }
