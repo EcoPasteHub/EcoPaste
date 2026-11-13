@@ -8,3 +8,10 @@ dev:
 build:
   output: build
   targets: [macos_arm64]
+
+file_types:
+  - name: EcoPaste Backup
+    extensions: [ecopastebak]
+    id: com.ayangweb.eco-paste.backup
+    role: editor
+    conforms: [public.data]

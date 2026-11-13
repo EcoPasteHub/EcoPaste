@@ -194,7 +194,7 @@
 | X-05 | P0 | `settings.json` | camelCase、serde default | 字段、默认值、patch 语义一致 | 待迁移 | 旧文件读写回环 |
 | X-06 | P0 | 数据目录 | `storage.json` 锚点 | 默认/自定义目录均可解析 | 待迁移 | 目录切换 |
 | X-07 | P0 | `.ecopastebak` | ZIP / 自定义加密容器 | 双向读写兼容 | 迁移中 | 明文 ZIP 布局、加密容器与 overwrite 导入已兼容；旧版生成/读取 NSGo 包的双向样本验证待补 |
-| X-08 | P0 | 文件关联 | `.ecopastebak` | 同扩展名/UTI | 待迁移 | 双击/拖放 |
+| X-08 | P0 | 文件关联 | `.ecopastebak` | 同扩展名/UTI | 已通过 | `nsgo.yaml` 声明 `com.ayangweb.eco-paste.backup`，构建产物 Info.plist 校验 `CFBundleDocumentTypes`；真机运行中/冷启动 `open -a` 均进入导入确认，导入后重启校验 DB |
 | X-09 | P0 | Bundle ID | `com.ayangweb.eco-paste` | 正式版一致；开发版隔离 | 待迁移 | 安装/升级/数据目录 |
 
 ## 10. Windows/Linux 专用能力
