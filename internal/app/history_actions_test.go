@@ -31,13 +31,9 @@ func TestPlainAndPathReuseActions(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := store.Update(map[string]any{
-		"clipboard": map[string]any{
-			"content": map[string]any{"autoPaste": "disabled"},
-		},
-	}); err != nil {
-		t.Fatal(err)
-	}
+	previousTrusted := inputTrusted
+	inputTrusted = func() bool { return true }
+	t.Cleanup(func() { inputTrusted = previousTrusted })
 	writer := &recordingWriter{}
 	model := &historyModel{
 		store: store,
@@ -86,7 +82,7 @@ func TestPlainAndPathReuseActions(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if paste || hide {
+	if !paste || !hide {
 		t.Errorf("activate plain returned paste=%v hide=%v", paste, hide)
 	}
 	if writer.payload.Text != files || len(writer.payload.Files) != 0 {
@@ -157,5 +153,80 @@ func TestMiddleClickActions(t *testing.T) {
 	}
 	if writer.payload.Text != "" || writer.payload.HTML != "" {
 		t.Errorf("disabled wrote %+v", writer.payload)
+	}
+}
+
+func TestClickActionModes(t *testing.T) {
+	root := t.TempDir()
+	db, err := database.Open(filepath.Join(root, "clipboard.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { db.Close() })
+	store, err := settings.Open(filepath.Join(root, settings.FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	previousTrusted := inputTrusted
+	inputTrusted = func() bool { return true }
+	t.Cleanup(func() { inputTrusted = previousTrusted })
+	writer := &recordingWriter{}
+	model := &historyModel{
+		store: store,
+		runtime: &clipboardRuntime{
+			db:      db,
+			images:  storage.NewImageStore(filepath.Join(root, "resources")),
+			service: &clipboard.Service{DB: db, Writer: writer},
+		},
+	}
+	ctx := context.Background()
+	content := "click text"
+	id, _, err := db.Upsert(ctx, &database.Item{
+		Kind:     database.KindText,
+		Content:  content,
+		Platform: "macos",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	setMode := func(value string) {
+		t.Helper()
+		if _, err := store.Update(map[string]any{
+			"clipboard": map[string]any{"content": map[string]any{"autoPaste": value}},
+		}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	cases := []struct {
+		mode         settings.AutoPaste
+		singleWrites bool
+		singlePastes bool
+		doubleWrites bool
+		doublePastes bool
+	}{
+		{settings.AutoPasteDisabled, false, false, false, false},
+		{settings.AutoPasteSingleClickCopy, true, false, false, false},
+		{settings.AutoPasteSingleClickPaste, true, true, false, false},
+		{settings.AutoPasteDoubleClickCopy, false, false, true, false},
+		{settings.AutoPasteDoubleClickPaste, false, false, true, true},
+	}
+	for _, tc := range cases {
+		setMode(string(tc.mode))
+		writer.payload = clipboard.WritePayload{}
+		paste, _, err := model.ActivateSingleClick(ctx, id)
+		if err != nil {
+			t.Fatalf("%s single click: %v", tc.mode, err)
+		}
+		if wrote := writer.payload.Text == content; wrote != tc.singleWrites || paste != tc.singlePastes {
+			t.Errorf("%s single click wrote=%t paste=%t", tc.mode, wrote, paste)
+		}
+		writer.payload = clipboard.WritePayload{}
+		paste, _, err = model.ActivateDoubleClick(ctx, id)
+		if err != nil {
+			t.Fatalf("%s double click: %v", tc.mode, err)
+		}
+		if wrote := writer.payload.Text == content; wrote != tc.doubleWrites || paste != tc.doublePastes {
+			t.Errorf("%s double click wrote=%t paste=%t", tc.mode, wrote, paste)
+		}
 	}
 }

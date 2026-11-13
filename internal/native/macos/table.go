@@ -99,6 +99,41 @@ func registerHistoryTargets() {
 				p.cx.Emit("middleClick", p.rows[row].ID)
 			}},
 			{Cmd: sel("otherMouseUp:"), Fn: func(objc.ID, objc.SEL, objc.ID) {}},
+			{Cmd: sel("mouseDown:"), Fn: func(self objc.ID, _ objc.SEL, event objc.ID) {
+				left := objc.Send[int64](event, sel("buttonNumber")) == 0
+				var row, clicks int
+				if left {
+					location := objc.Send[CGPoint](event, sel("locationInWindow"))
+					local := objc.Send[CGPoint](self, sel("convertPoint:fromView:"), location, objc.ID(0))
+					row = int(objc.Send[int64](self, sel("rowAtPoint:"), local))
+					clicks = int(objc.Send[int64](event, sel("clickCount")))
+				}
+				sendSuper[objc.ID](self, historyTableClass, sel("mouseDown:"), event)
+				p := panelsByTable[self]
+				if p != nil && left {
+					switch {
+					case clicks == 2 && row >= 0 && row < len(p.rows):
+						cancelPendingClick(self)
+						p.selectRow(row)
+						p.cx.Emit("activateDoubleClick", p.rows[row].ID)
+					case clicks == 1 && row >= 0 && row < len(p.rows):
+						cancelPendingClick(self)
+						p.pendingClick = p.rows[row].ID
+						p.selectRow(row)
+						self.Send(sel("performSelector:withObject:afterDelay:"),
+							sel("activatePendingClick:"), objc.ID(0), doubleClickDelay())
+					}
+				}
+			}},
+			{Cmd: sel("activatePendingClick:"), Fn: func(self objc.ID, _ objc.SEL, _ objc.ID) {
+				p := panelsByTable[self]
+				if p == nil || p.pendingClick == "" {
+					return
+				}
+				id := p.pendingClick
+				p.pendingClick = ""
+				p.cx.Emit("activateSingleClick", id)
+			}},
 			{Cmd: sel("keyDown:"), Fn: func(self objc.ID, _ objc.SEL, event objc.ID) {
 				p := panelsByTable[self]
 				if p == nil {
@@ -205,17 +240,6 @@ func registerHistoryTargets() {
 				p.cx.Emit("loadMore", nil)
 			}
 		}},
-		{Cmd: sel("rowActivated:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
-			p := panelsByTable[sender]
-			if p == nil {
-				return
-			}
-			row := int(objc.Send[int64](sender, sel("clickedRow")))
-			p.selectRow(row)
-			if row >= 0 && row < len(p.rows) {
-				p.cx.Emit("activate", p.rows[row].ID)
-			}
-		}},
 		{Cmd: sel("menuPaste:"), Fn: menuAction("activate")},
 		{Cmd: sel("menuPastePlain:"), Fn: menuAction("pastePlain")},
 		{Cmd: sel("menuPastePath:"), Fn: menuAction("pastePath")},
@@ -278,7 +302,6 @@ func newHistoryTable(p *Panel) objc.ID {
 	table.Send(sel("setDelegate:"), historyTarget)
 	table.Send(sel("setDataSource:"), historyTarget)
 	table.Send(sel("setTarget:"), historyTarget)
-	table.Send(sel("setDoubleAction:"), sel("rowActivated:"))
 	table.Send(sel("setAccessibilityLabel:"), nsString("剪贴板历史"))
 	menu := objc.ID(class("NSMenu")).Send(sel("new"))
 	menu.Send(sel("setAutoenablesItems:"), false)
@@ -297,6 +320,22 @@ func newHistoryTable(p *Panel) objc.ID {
 	scroll.Send(sel("setDocumentView:"), table)
 	panelsByTable[table] = p
 	return scroll
+}
+
+func cancelPendingClick(table objc.ID) {
+	if table == 0 {
+		return
+	}
+	objc.ID(class("NSObject")).Send(sel("cancelPreviousPerformRequestsWithTarget:selector:object:"),
+		table, sel("activatePendingClick:"), objc.ID(0))
+}
+
+func doubleClickDelay() float64 {
+	delay := objc.Send[float64](objc.ID(class("NSEvent")), sel("doubleClickInterval"))
+	if delay < 0.2 {
+		delay = 0.2
+	}
+	return delay + 0.05
 }
 
 func historyKeyAction(key uint16, flags uint64, row HistoryRow) (string, bool) {

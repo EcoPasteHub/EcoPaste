@@ -147,17 +147,13 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 			}()
 		}
 
-		activateItem := func(id string, forcePlain bool) {
+		activateItem := func(id string, action func(context.Context, string) (bool, bool, error)) {
 			if id == "" || model == nil {
 				return
 			}
 			ctx := cx.Context()
 			go func() {
-				activateAction := model.Activate
-				if forcePlain {
-					activateAction = model.ActivatePlain
-				}
-				paste, hideAfter, err := activateAction(ctx, id)
+				paste, hideAfter, err := action(ctx, id)
 				cx.Post(func() {
 					if err != nil {
 						errorText.Set(err.Error())
@@ -194,6 +190,28 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 					}
 				})
 			}()
+		}
+		activate := func(id string, forcePlain bool) {
+			if model == nil {
+				return
+			}
+			action := model.Activate
+			if forcePlain {
+				action = model.ActivatePlain
+			}
+			activateItem(id, action)
+		}
+		activateSingleClick := func(id string) {
+			if model == nil {
+				return
+			}
+			activateItem(id, model.ActivateSingleClick)
+		}
+		activateDoubleClick := func(id string) {
+			if model == nil {
+				return
+			}
+			activateItem(id, model.ActivateDoubleClick)
 		}
 
 		middleClickItem := func(id string) {
@@ -366,7 +384,19 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 					if value, ok := data.(string); ok && value != "" {
 						id = value
 					}
-					activateItem(id, false)
+					activate(id, false)
+				case "activateSingleClick":
+					id := selectedID
+					if value, ok := data.(string); ok && value != "" {
+						id = value
+					}
+					activateSingleClick(id)
+				case "activateDoubleClick":
+					id := selectedID
+					if value, ok := data.(string); ok && value != "" {
+						id = value
+					}
+					activateDoubleClick(id)
 				case "middleClick":
 					id := selectedID
 					if value, ok := data.(string); ok && value != "" {
@@ -396,7 +426,7 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 					if id == "" {
 						return
 					}
-					activateItem(id, true)
+					activate(id, true)
 				case "pastePath":
 					id := selectedID
 					if value, ok := data.(string); ok && value != "" {
@@ -405,7 +435,7 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 					if id == "" {
 						return
 					}
-					activateItem(id, true)
+					activate(id, true)
 				case "toggleFavorite":
 					applyAction(selectedID, func(ctx context.Context, id string) error {
 						_, err := model.ToggleFavorite(ctx, id)

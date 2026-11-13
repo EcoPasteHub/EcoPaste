@@ -47,6 +47,7 @@ type Panel struct {
 	loading       bool
 	errText       string
 	selection     string
+	pendingClick  string
 	previewing    bool
 	filterValue   string
 	groupID       string
@@ -392,6 +393,7 @@ func (p *Panel) clearSearch() {
 func (p *Panel) Close() {
 	center := objc.ID(class("NSNotificationCenter")).Send(sel("defaultCenter"))
 	center.Send(sel("removeObserver:"), p.observer)
+	cancelPendingClick(p.table)
 	p.timer.Send(sel("invalidate"))
 	if p.monitor != 0 {
 		objc.ID(class("NSEvent")).Send(sel("removeMonitor:"), p.monitor)

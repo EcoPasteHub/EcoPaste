@@ -17,21 +17,6 @@ import (
 	"github.com/EcoPasteHub/EcoPaste/internal/storage"
 )
 
-func TestAutoPasteModes(t *testing.T) {
-	cases := map[settings.AutoPaste]bool{
-		settings.AutoPasteDisabled:         false,
-		settings.AutoPasteSingleClickCopy:  false,
-		settings.AutoPasteDoubleClickCopy:  false,
-		settings.AutoPasteSingleClickPaste: true,
-		settings.AutoPasteDoubleClickPaste: true,
-	}
-	for mode, want := range cases {
-		if got := autoPaste(mode); got != want {
-			t.Errorf("autoPaste(%q) = %v, want %v", mode, got, want)
-		}
-	}
-}
-
 func TestNeedsAccessibility(t *testing.T) {
 	model := &historyModel{}
 	if !model.NeedsAccessibility(keystroke.ErrPermission) {

@@ -19,6 +19,8 @@ type historyModel struct {
 	store   *settings.Store
 }
 
+var inputTrusted = keystroke.Trusted
+
 func newHistoryModel(runtime *clipboardRuntime, store *settings.Store) *historyModel {
 	return &historyModel{runtime: runtime, store: store}
 }
@@ -79,14 +81,33 @@ func (m *historyModel) SearchBehavior() ui.HistorySearchBehavior {
 }
 
 func (m *historyModel) Activate(ctx context.Context, id string) (bool, bool, error) {
-	return m.activateItem(ctx, id, false)
+	return m.activateItem(ctx, id, false, true)
 }
 
 func (m *historyModel) ActivatePlain(ctx context.Context, id string) (bool, bool, error) {
-	return m.activateItem(ctx, id, true)
+	return m.activateItem(ctx, id, true, true)
 }
 
-func (m *historyModel) activateItem(ctx context.Context, id string, forcePlain bool) (bool, bool, error) {
+func (m *historyModel) ActivateSingleClick(ctx context.Context, id string) (bool, bool, error) {
+	return m.activateByMode(ctx, id, settings.AutoPasteSingleClickPaste, settings.AutoPasteSingleClickCopy)
+}
+
+func (m *historyModel) ActivateDoubleClick(ctx context.Context, id string) (bool, bool, error) {
+	return m.activateByMode(ctx, id, settings.AutoPasteDoubleClickPaste, settings.AutoPasteDoubleClickCopy)
+}
+
+func (m *historyModel) activateByMode(ctx context.Context, id string, pasteMode, copyMode settings.AutoPaste) (bool, bool, error) {
+	mode := m.store.Snapshot().Clipboard.Content.AutoPaste
+	switch mode {
+	case pasteMode:
+		return m.activateItem(ctx, id, false, true)
+	case copyMode:
+		return m.activateItem(ctx, id, false, false)
+	}
+	return false, false, nil
+}
+
+func (m *historyModel) activateItem(ctx context.Context, id string, forcePlain, paste bool) (bool, bool, error) {
 	item, err := m.runtime.db.FindByID(ctx, id)
 	if err != nil {
 		return false, false, err
@@ -95,8 +116,7 @@ func (m *historyModel) activateItem(ctx context.Context, id string, forcePlain b
 		return false, false, fmt.Errorf("剪贴板记录不存在")
 	}
 	cfg := m.store.Snapshot().Clipboard
-	paste := autoPaste(cfg.Content.AutoPaste)
-	if paste && !keystroke.Trusted() {
+	if paste && !inputTrusted() {
 		return false, false, keystroke.ErrPermission
 	}
 	plain := forcePlain ||
@@ -292,10 +312,6 @@ func (m *historyModel) write(ctx context.Context, item *database.Item, plain, co
 		return m.runtime.db.IncrementUseCount(ctx, item.ID)
 	}
 	return nil
-}
-
-func autoPaste(action settings.AutoPaste) bool {
-	return action == settings.AutoPasteSingleClickPaste || action == settings.AutoPasteDoubleClickPaste
 }
 
 func (m *historyModel) historyItem(ctx context.Context, item database.Item) ui.HistoryItem {
