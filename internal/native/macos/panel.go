@@ -30,6 +30,9 @@ type Panel struct {
 	scroll                        objc.ID
 	table                         objc.ID
 	empty                         objc.ID
+	emptyIcon                     objc.ID
+	emptyDetail                   objc.ID
+	footerDivider                 objc.ID
 	footer                        objc.ID
 	hint                          objc.ID
 	preview                       objc.ID
@@ -193,6 +196,25 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.empty = objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(i18n.PanelEmpty)))
 	p.empty.Send(sel("setFont:"), systemFont(13))
 	p.empty.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
+	p.empty.Send(sel("setAlignment:"), int64(1))
+	p.empty.Send(sel("setLineBreakMode:"), int64(4))
+	p.empty.Send(sel("setMaximumNumberOfLines:"), int64(1))
+
+	p.emptyIcon = objc.ID(class("NSImageView")).Send(sel("new"))
+	p.emptyIcon.Send(sel("setImageScaling:"), int64(3))
+	p.emptyIcon.Send(sel("setImageAlignment:"), int64(5))
+	p.emptyIcon.Send(sel("setContentTintColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
+
+	p.emptyDetail = objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(""))
+	p.emptyDetail.Send(sel("setFont:"), systemFont(11))
+	p.emptyDetail.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
+	p.emptyDetail.Send(sel("setAlignment:"), int64(1))
+	p.emptyDetail.Send(sel("setLineBreakMode:"), int64(4))
+	p.emptyDetail.Send(sel("setMaximumNumberOfLines:"), int64(1))
+
+	p.footerDivider = objc.ID(classNSBox).Send(sel("new"))
+	p.footerDivider.Send(sel("setBoxType:"), 2)
+	p.footerDivider.Send(sel("setTitlePosition:"), 0)
 
 	p.footer = objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(""))
 	p.footer.Send(sel("setFont:"), systemFont(11))
@@ -207,7 +229,7 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.buildPreview()
 
 	for _, v := range []objc.ID{p.search, p.pin, p.filter, p.groupsPopup, p.groupActions,
-		p.divider, p.scroll, p.empty, p.footer, p.hint} {
+		p.divider, p.scroll, p.empty, p.emptyIcon, p.emptyDetail, p.footerDivider, p.footer, p.hint} {
 		p.view.Send(sel("addSubview:"), v)
 	}
 	p.buildHoverBar()
@@ -673,32 +695,16 @@ func (p *Panel) updateStatus() {
 	if p.onboardingActive {
 		p.hint.Send(sel("setHidden:"), true)
 		p.footer.Send(sel("setHidden:"), true)
+		p.footerDivider.Send(sel("setHidden:"), true)
+		p.setEmptyState(emptyState{})
 		return
 	}
-	if p.previewing {
-		p.empty.Send(sel("setHidden:"), true)
-	} else if p.errText != "" {
-		if len(p.rows) == 0 {
-			p.empty.Send(sel("setStringValue:"), nsString(p.errText))
-			p.empty.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("systemRedColor")))
-			p.empty.Send(sel("setHidden:"), false)
-		} else {
-			p.empty.Send(sel("setHidden:"), true)
-		}
-	} else if len(p.rows) == 0 {
-		text := i18n.T(i18n.PanelEmpty)
-		if p.query != "" {
-			text = i18n.T(i18n.PanelNoMatches)
-		}
-		if p.loading {
-			text = i18n.T(i18n.PanelLoading)
-		}
-		p.empty.Send(sel("setStringValue:"), nsString(text))
-		p.empty.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
-		p.empty.Send(sel("setHidden:"), false)
-	} else {
-		p.empty.Send(sel("setHidden:"), true)
+	state := emptyState{}
+	if !p.previewing {
+		state = emptyStateFor(p.errText, len(p.rows), p.query, p.loading)
 	}
+	p.setEmptyState(state)
+	p.footerDivider.Send(sel("setHidden:"), false)
 	if p.errText != "" {
 		p.footer.Send(sel("setStringValue:"), nsString(p.errText))
 		p.footer.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("systemRedColor")))
@@ -709,9 +715,57 @@ func (p *Panel) updateStatus() {
 		p.footer.Send(sel("setStringValue:"), nsString(i18n.Tf(i18n.PanelCount, p.total)))
 		p.footer.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
 	}
-	p.empty.Send(sel("sizeToFit"))
 	frame := bounds(p.view)
 	layoutPanel(p, frame.Size.Width, frame.Size.Height)
+}
+
+func (p *Panel) setEmptyState(state emptyState) {
+	visible := state.Title != ""
+	p.empty.Send(sel("setStringValue:"), nsString(state.Title))
+	p.empty.Send(sel("setHidden:"), !visible)
+	p.emptyDetail.Send(sel("setStringValue:"), nsString(state.Detail))
+	p.emptyDetail.Send(sel("setHidden:"), !visible || state.Detail == "")
+	p.emptyIcon.Send(sel("setHidden:"), !visible)
+	if !visible {
+		return
+	}
+	color := objc.ID(classNSColor).Send(sel("secondaryLabelColor"))
+	iconColor := objc.ID(classNSColor).Send(sel("tertiaryLabelColor"))
+	if state.Error {
+		color = objc.ID(classNSColor).Send(sel("systemRedColor"))
+		iconColor = color
+	}
+	p.empty.Send(sel("setTextColor:"), color)
+	p.emptyIcon.Send(sel("setImage:"), systemSymbol(state.Symbol))
+	p.emptyIcon.Send(sel("setContentTintColor:"), iconColor)
+}
+
+type emptyState struct {
+	Symbol string
+	Title  string
+	Detail string
+	Error  bool
+}
+
+func emptyStateFor(errText string, rows int, query string, loading bool) emptyState {
+	switch {
+	case rows > 0:
+		return emptyState{}
+	case errText != "":
+		return emptyState{Symbol: "exclamationmark.triangle", Title: errText, Error: true}
+	case loading:
+		return emptyState{Symbol: "clock", Title: i18n.T(i18n.PanelLoading)}
+	case query != "":
+		return emptyState{
+			Symbol: "magnifyingglass", Title: i18n.T(i18n.PanelNoMatches),
+			Detail: i18n.T(i18n.PanelNoMatchesDetail),
+		}
+	default:
+		return emptyState{
+			Symbol: "doc.on.clipboard", Title: i18n.T(i18n.PanelEmpty),
+			Detail: i18n.T(i18n.PanelEmptyDetail),
+		}
+	}
 }
 
 func (p *Panel) restoreSelection() {

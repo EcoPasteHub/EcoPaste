@@ -5,7 +5,7 @@ package macos
 import "github.com/ebitengine/purego/objc"
 
 func layoutPanel(p *Panel, width, height float64) {
-	const pad = 12.0
+	const pad = 14.0
 	searchHeight := 28.0
 	searchY := height - pad - searchHeight
 	pinWidth := 26.0
@@ -35,6 +35,7 @@ func layoutPanel(p *Panel, width, height float64) {
 	p.hint.Send(sel("setHidden:"), p.errText != "")
 	setFrame(p.footer, pad, 8, footerWidth, 16)
 	setFrame(p.hint, width/2, 8, hintWidth, 16)
+	setFrame(p.footerDivider, 0, footerHeight+2, width, 1)
 	scrollY := footerHeight + 4
 	scrollHeight := dividerY - scrollY - 4
 	setFrame(p.scroll, 0, scrollY, width, scrollHeight)
@@ -46,8 +47,30 @@ func layoutPanel(p *Panel, width, height float64) {
 	}
 	p.layoutOnboarding(width, height)
 
-	p.empty.Send(sel("sizeToFit"))
-	text := objc.Send[CGRect](p.empty, sel("frame"))
-	emptyCenter := scrollY + scrollHeight/2
-	setFrame(p.empty, (width-text.Size.Width)/2, emptyCenter-text.Size.Height/2, text.Size.Width, text.Size.Height)
+	layoutEmptyState(p, width, scrollY, scrollHeight)
+}
+
+func layoutEmptyState(p *Panel, width, scrollY, scrollHeight float64) {
+	if objc.Send[bool](p.empty, sel("isHidden")) {
+		return
+	}
+	const iconSize = 30.0
+	const titleHeight = 17.0
+	const detailHeight = 15.0
+	hasDetail := !objc.Send[bool](p.emptyDetail, sel("isHidden"))
+	blockHeight := titleHeight
+	blockHeight += iconSize + 8
+	if hasDetail {
+		blockHeight += 4 + detailHeight
+	}
+	top := scrollY + scrollHeight/2 + blockHeight/2
+	top -= iconSize
+	setFrame(p.emptyIcon, (width-iconSize)/2, top, iconSize, iconSize)
+	top -= 8
+	top -= titleHeight
+	setFrame(p.empty, 20, top, width-40, titleHeight)
+	if hasDetail {
+		top -= 4 + detailHeight
+		setFrame(p.emptyDetail, 20, top, width-40, detailHeight)
+	}
 }

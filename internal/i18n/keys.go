@@ -96,12 +96,14 @@ const (
 	PanelGroupsLabel       = Key("panel.groupsLabel")
 	PanelGroupActions      = Key("panel.groupActions")
 	PanelEmpty             = Key("panel.empty")
+	PanelEmptyDetail       = Key("panel.emptyDetail")
 	PanelHint              = Key("panel.hint")
 	PanelAllGroups         = Key("panel.allGroups")
 	PanelNewGroup          = Key("panel.newGroup")
 	PanelRenameGroup       = Key("panel.renameGroup")
 	PanelDeleteGroup       = Key("panel.deleteGroup")
 	PanelNoMatches         = Key("panel.noMatches")
+	PanelNoMatchesDetail   = Key("panel.noMatchesDetail")
 	PanelLoading           = Key("panel.loading")
 	PanelCount             = Key("panel.count")
 	PanelHistoryLabel      = Key("panel.historyLabel")
@@ -120,7 +122,6 @@ const (
 	NoteDetailPrefix = Key("note.detailPrefix")
 
 	PreviewImageLabel = Key("preview.imageLabel")
-	PreviewHintCopy   = Key("preview.hintCopy")
 	PreviewHintBack   = Key("preview.hintBack")
 
 	RowPinned    = Key("row.pinned")
