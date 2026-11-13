@@ -16,6 +16,7 @@ type settingsModel struct {
 	setAutoStart         func(bool) error
 	setAppearance        func(string) error
 	listApps             func() ([]database.App, error)
+	listGroups           func() ([]database.Group, error)
 	addApp               func(string) (database.App, error)
 	deleteApps           func([]string) error
 	appIconPath          func(string) string
@@ -62,6 +63,11 @@ func (m *settingsModel) Load() macos.SettingsValues {
 		TextMaxLines:           uint32(clampInt(int(cfg.Display.TextMaxLines), 1, 5)),
 		ImageMaxHeight:         uint32(clampInt(int(cfg.Display.ImageMaxHeight), 20, 100)),
 		FileMaxCount:           uint32(clampInt(int(cfg.Display.FileMaxCount), 1, 5)),
+		ScrollToTopOnOpen:      cfg.Window.ScrollToTopOnOpen,
+		RangeOnOpen:            string(cfg.Window.SelectRangeOnOpen),
+		CategoryOnOpen:         string(cfg.Window.SelectCategoryOnOpen),
+		GroupOnOpen:            cfg.Window.SelectGroupOnOpen,
+		Groups:                 m.loadGroups(),
 		Retention:              encodeRetention(cfg.History.Retention),
 		MaxCount:               cfg.History.MaxCount,
 		CleanupIntervalHours:   cfg.History.CleanupIntervalHours,
@@ -182,6 +188,21 @@ func (m *settingsModel) currentDataDir() string {
 	return m.dataDir()
 }
 
+func (m *settingsModel) loadGroups() []macos.SettingsGroup {
+	if m.listGroups == nil {
+		return nil
+	}
+	groups, err := m.listGroups()
+	if err != nil {
+		return nil
+	}
+	out := make([]macos.SettingsGroup, 0, len(groups))
+	for _, group := range groups {
+		out = append(out, macos.SettingsGroup{ID: group.ID, Name: group.Name})
+	}
+	return out
+}
+
 var settingsPaths = map[string][]string{
 	"general.dockIcon":             {"general", "dockIcon"},
 	"general.autoStart":            {"general", "autoStart"},
@@ -202,6 +223,10 @@ var settingsPaths = map[string][]string{
 	"display.textMaxLines":         {"clipboard", "display", "textMaxLines"},
 	"display.imageMaxHeight":       {"clipboard", "display", "imageMaxHeight"},
 	"display.fileMaxCount":         {"clipboard", "display", "fileMaxCount"},
+	"window.scrollToTopOnOpen":     {"clipboard", "window", "scrollToTopOnOpen"},
+	"window.selectRangeOnOpen":     {"clipboard", "window", "selectRangeOnOpen"},
+	"window.selectCategoryOnOpen":  {"clipboard", "window", "selectCategoryOnOpen"},
+	"window.selectGroupOnOpen":     {"clipboard", "window", "selectGroupOnOpen"},
 	"history.maxCount":             {"clipboard", "history", "maxCount"},
 	"history.cleanupIntervalHours": {"clipboard", "history", "cleanupIntervalHours"},
 	"sensitive.collectSecrets":     {"clipboard", "sensitive", "collectSecrets"},

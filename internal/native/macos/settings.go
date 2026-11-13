@@ -36,6 +36,11 @@ type SettingsValues struct {
 	TextMaxLines           uint32
 	ImageMaxHeight         uint32
 	FileMaxCount           uint32
+	ScrollToTopOnOpen      bool
+	RangeOnOpen            string
+	CategoryOnOpen         string
+	GroupOnOpen            string
+	Groups                 []SettingsGroup
 	Retention              string
 	MaxCount               uint32
 	CleanupIntervalHours   uint32
@@ -53,6 +58,13 @@ type SettingsApp struct {
 	Name     string
 	IconPath string
 	Excluded bool
+}
+
+// SettingsGroup is one clipboard group offered by the open-selection
+// popup.
+type SettingsGroup struct {
+	ID   string
+	Name string
 }
 
 // SettingsChange is one native control's new value.
@@ -76,6 +88,7 @@ type SettingsView struct {
 	appsTable           objc.ID
 	appsEmpty           objc.ID
 	apps                []SettingsApp
+	groupField          *settingsField
 	extraExcluded       []string
 	shortcutFields      []*shortcutControl
 	lastValues          SettingsValues
@@ -88,6 +101,7 @@ type settingsField struct {
 	control    objc.ID
 	valueLabel objc.ID
 	options    []string
+	titles     []string
 	suffix     string
 	get        func(SettingsValues) any
 }
@@ -129,6 +143,7 @@ func NewSettings(cx *core.NativeContext) core.NativeComponent {
 	v.buildGeneral()
 	v.buildCapture()
 	v.buildDisplay()
+	v.buildWindow()
 	v.buildHistory()
 	v.buildPermissions()
 	v.buildApps()
@@ -226,6 +241,35 @@ func (v *SettingsView) buildDisplay() {
 		func(s SettingsValues) uint32 { return s.ImageMaxHeight })
 	v.addStepperRange(content, y-84, "文件名显示数量", "display.fileMaxCount", 1, 5, 1, " 个",
 		func(s SettingsValues) uint32 { return s.FileMaxCount })
+}
+
+func (v *SettingsView) buildWindow() {
+	content := v.newTab("窗口")
+	y := 408.0
+	v.addSwitch(content, y, "打开时滚动到顶部", "window.scrollToTopOnOpen",
+		func(s SettingsValues) bool { return s.ScrollToTopOnOpen })
+	v.addPopup(content, y-42, "打开时选中范围", "window.selectRangeOnOpen",
+		[]settingsOption{
+			{Title: "保持当前", Value: "preserve"},
+			{Title: "全部", Value: "all"},
+			{Title: "收藏", Value: "favorite"},
+		},
+		func(s SettingsValues) string { return s.RangeOnOpen })
+	v.addPopup(content, y-84, "打开时选中分类", "window.selectCategoryOnOpen",
+		[]settingsOption{
+			{Title: "保持当前", Value: "preserve"},
+			{Title: "全部", Value: "all"},
+			{Title: "文本", Value: "text"},
+			{Title: "图片", Value: "image"},
+			{Title: "文件", Value: "files"},
+		},
+		func(s SettingsValues) string { return s.CategoryOnOpen })
+	v.groupField = v.addPopup(content, y-126, "打开时选中分组", "window.selectGroupOnOpen",
+		[]settingsOption{
+			{Title: "保持当前", Value: "preserve"},
+			{Title: "全部分组", Value: "all"},
+		},
+		func(s SettingsValues) string { return s.GroupOnOpen })
 }
 
 func (v *SettingsView) buildHistory() {
@@ -348,21 +392,25 @@ func (v *SettingsView) addSwitch(content objc.ID, y float64, title, path string,
 	})
 }
 
-func (v *SettingsView) addPopup(content objc.ID, y float64, title, path string, options []settingsOption, get func(SettingsValues) string) {
+func (v *SettingsView) addPopup(content objc.ID, y float64, title, path string, options []settingsOption, get func(SettingsValues) string) *settingsField {
 	v.addLabel(content, y, title)
 	values := make([]string, 0, len(options))
+	titles := make([]string, 0, len(options))
 	control := objc.ID(class("NSPopUpButton")).Send(sel("alloc")).Send(sel("initWithFrame:pullsDown:"),
 		CGRect{Origin: CGPoint{X: tabContentW - 260, Y: y - 4}, Size: CGSize{Width: 240, Height: 28}}, false)
 	for _, option := range options {
 		values = append(values, option.Value)
+		titles = append(titles, option.Title)
 		control.Send(sel("addItemWithTitle:"), nsString(option.Title))
 	}
 	control.Send(sel("setTarget:"), settingsTarget)
 	control.Send(sel("setAction:"), sel("popupChanged:"))
-	v.addField(content, control, &settingsField{
-		path: path, kind: "popup", control: control, options: values,
+	field := &settingsField{
+		path: path, kind: "popup", control: control, options: values, titles: titles,
 		get: func(s SettingsValues) any { return get(s) },
-	})
+	}
+	v.addField(content, control, field)
+	return field
 }
 
 func (v *SettingsView) addStepper(content objc.ID, y float64, title, path string, step, maxValue float64, suffix string, get func(SettingsValues) uint32) {
@@ -554,6 +602,7 @@ func (v *SettingsView) apply(values SettingsValues) {
 	v.restore.Send(sel("setEnabled:"), values.CanRestoreDataDir)
 	v.applyApps(values)
 	v.applyShortcuts(values)
+	v.applyGroups(values)
 	for _, field := range v.fields {
 		switch field.kind {
 		case "bool":
@@ -570,6 +619,29 @@ func (v *SettingsView) apply(values SettingsValues) {
 	}
 }
 
+// applyGroups rebuilds the open-group popup from the current clipboard
+// groups instead of static options.
+func (v *SettingsView) applyGroups(values SettingsValues) {
+	field := v.groupField
+	if field == nil {
+		return
+	}
+	selected, _ := field.get(values).(string)
+	options := []string{"preserve", "all"}
+	titles := []string{"保持当前", "全部分组"}
+	for _, group := range values.Groups {
+		options = append(options, "group:"+group.ID)
+		titles = append(titles, group.Name)
+	}
+	field.options = options
+	field.titles = titles
+	field.control.Send(sel("removeAllItems"))
+	for _, title := range titles {
+		field.control.Send(sel("addItemWithTitle:"), nsString(title))
+	}
+	selectPopup(field, selected)
+}
+
 func selectPopup(field *settingsField, value string) {
 	for i, option := range field.options {
 		if option == value {
@@ -577,8 +649,9 @@ func selectPopup(field *settingsField, value string) {
 			return
 		}
 	}
-	field.control.Send(sel("addItemWithTitle:"), nsString(value))
 	field.options = append(field.options, value)
+	field.titles = append(field.titles, value)
+	field.control.Send(sel("addItemWithTitle:"), nsString(value))
 	field.control.Send(sel("selectItemAtIndex:"), int64(len(field.options)-1))
 }
 

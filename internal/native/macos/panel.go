@@ -395,6 +395,10 @@ func (p *Panel) Command(name string, args any) {
 		p.clearSearch()
 	case "reload":
 		p.table.Send(sel("reloadData"))
+	case "scrollTop":
+		if len(p.rows) > 0 {
+			p.table.Send(sel("scrollRowToVisible:"), int64(0))
+		}
 	case "showAccessibilityAlert":
 		showAccessibilityAlert()
 	case "resignKey":

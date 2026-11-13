@@ -70,6 +70,15 @@ type HistoryDisplay struct {
 	FileMaxCount   int
 }
 
+// HistoryOpenBehavior selects the initial list state when the panel opens.
+// Filter is "preserve", "" (all), "favorite", "text", "image" or "files";
+// GroupID is "preserve", "" (all groups) or a group id.
+type HistoryOpenBehavior struct {
+	ScrollTop bool
+	Filter    string
+	GroupID   string
+}
+
 // HistoryModel is the app service the history panel consumes. Copy
 // reports whether the panel should close after copying.
 type HistoryModel interface {
@@ -99,5 +108,6 @@ type HistoryModel interface {
 	MoveToGroup(context.Context, string, string) error
 	SearchBehavior() HistorySearchBehavior
 	Display() HistoryDisplay
+	OpenBehavior() HistoryOpenBehavior
 	Updates() <-chan struct{}
 }

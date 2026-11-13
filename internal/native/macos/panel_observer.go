@@ -51,6 +51,7 @@ func panelObserverMethods() []objc.MethodDef {
 			window := p.view.Send(sel("window"))
 			if window != 0 && window == objc.Send[objc.ID](note, sel("object")) {
 				applyPlacement(p)
+				p.cx.Emit("opened", nil)
 			}
 		}},
 		{Cmd: sel("pollSearch:"), Fn: func(self objc.ID, _ objc.SEL, _ objc.ID) {

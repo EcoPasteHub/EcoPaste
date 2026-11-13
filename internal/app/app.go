@@ -135,6 +135,14 @@ func Run(app *core.Scope) {
 					defer cancel()
 					return runtime.apps.List(ctx)
 				}
+				model.listGroups = func() ([]database.Group, error) {
+					if runtime == nil {
+						return nil, fmt.Errorf("剪贴板服务未启动")
+					}
+					ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+					defer cancel()
+					return runtime.db.ListGroups(ctx)
+				}
 				model.addApp = func(path string) (database.App, error) {
 					if runtime == nil || runtime.apps == nil {
 						return database.App{}, fmt.Errorf("剪贴板服务未启动")

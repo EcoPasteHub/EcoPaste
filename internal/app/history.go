@@ -95,6 +95,49 @@ func (m *historyModel) Display() ui.HistoryDisplay {
 	}
 }
 
+// OpenBehavior resolves the configured panel-open selections into the
+// list's initial filter and group.
+func (m *historyModel) OpenBehavior() ui.HistoryOpenBehavior {
+	window := settings.Default().Clipboard.Window
+	if m.store != nil {
+		window = m.store.Snapshot().Clipboard.Window
+	}
+	filter := "preserve"
+	switch window.SelectCategoryOnOpen {
+	case settings.CategoryAll:
+		if window.SelectRangeOnOpen == settings.RangeFavorite {
+			filter = "favorite"
+		} else {
+			filter = ""
+		}
+	case settings.CategoryText:
+		filter = "text"
+	case settings.CategoryImage:
+		filter = "image"
+	case settings.CategoryFiles:
+		filter = "files"
+	case settings.CategoryPreserve:
+		switch window.SelectRangeOnOpen {
+		case settings.RangeAll:
+			filter = ""
+		case settings.RangeFavorite:
+			filter = "favorite"
+		}
+	}
+	group := "preserve"
+	switch {
+	case window.SelectGroupOnOpen == "all":
+		group = ""
+	case strings.HasPrefix(window.SelectGroupOnOpen, "group:"):
+		group = strings.TrimPrefix(window.SelectGroupOnOpen, "group:")
+	}
+	return ui.HistoryOpenBehavior{
+		ScrollTop: window.ScrollToTopOnOpen,
+		Filter:    filter,
+		GroupID:   group,
+	}
+}
+
 func clampInt(value, low, high int) int {
 	if value < low {
 		return low

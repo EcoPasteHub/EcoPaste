@@ -35,6 +35,7 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 			selectedGroup string
 			selectedID    string
 			pinned        bool
+			scrollTop     atomic.Bool
 			pageSize      = 80
 			request       atomic.Int64
 		)
@@ -81,6 +82,10 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 					total.Set(page.Total)
 					hasMore.Set(page.HasMore)
 					loading.Set(false)
+					if scrollTop.Load() {
+						scrollTop.Store(false)
+						ref.Command("scrollTop", nil)
+					}
 				})
 			}(keyword, activeFilter, groupID, offset, appendRows, serial)
 		}
@@ -365,6 +370,41 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 			},
 			OnEvent: func(name string, data any) {
 				switch name {
+				case "opened":
+					if model == nil {
+						return
+					}
+					opening := model.OpenBehavior()
+					changed := false
+					if opening.Filter != "preserve" {
+						filterValue = opening.Filter
+						selectedGroup = ""
+						filter.Set(opening.Filter)
+						group.Set("")
+						changed = true
+					}
+					switch opening.GroupID {
+					case "preserve":
+					case "":
+						selectedGroup = ""
+						filterValue = ""
+						group.Set("")
+						filter.Set("")
+						changed = true
+					default:
+						selectedGroup = opening.GroupID
+						filterValue = ""
+						group.Set(selectedGroup)
+						filter.Set("")
+						changed = true
+					}
+					if opening.ScrollTop {
+						scrollTop.Store(true)
+						changed = true
+					}
+					if changed {
+						reload()
+					}
 				case "query":
 					text, _ := data.(string)
 					if pendingSearch != nil {
