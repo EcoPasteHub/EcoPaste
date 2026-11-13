@@ -60,6 +60,8 @@ func historyRow(item HistoryItem) macos.HistoryRow {
 		Note:           item.Note,
 		Favorite:       item.Favorite,
 		Pinned:         item.Pinned,
+		CanDelete:      item.CanDelete,
+		DeleteConfirm:  item.DeleteConfirm,
 	}
 }
 

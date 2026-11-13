@@ -54,9 +54,38 @@ func (m *historyModel) List(ctx context.Context, q ui.HistoryQuery) (ui.HistoryP
 	}
 	items := make([]ui.HistoryItem, 0, len(page.Items))
 	for _, item := range page.Items {
-		items = append(items, m.historyItem(ctx, item))
+		row := m.historyItem(ctx, item)
+		row.CanDelete, row.DeleteConfirm = m.deletePolicy(item, q)
+		items = append(items, row)
 	}
 	return ui.HistoryPage{Items: items, Total: page.Total, HasMore: page.HasMore}, nil
+}
+
+// deletePolicy applies the published per-row delete rules: favorites and
+// pinned rows can be protected, and each category has its own confirm
+// switch.
+func (m *historyModel) deletePolicy(item database.Item, q ui.HistoryQuery) (bool, bool) {
+	content := settings.Default().Clipboard.Content
+	if m.store != nil {
+		content = m.store.Snapshot().Clipboard.Content
+	}
+	canDelete := true
+	if item.IsFavorite && !content.DeleteFavoriteItems {
+		canDelete = false
+	}
+	if item.IsFavorite && content.DeleteFavoriteItemsOnlyInFavGroup && q.Filter != "favorite" {
+		canDelete = false
+	}
+	if item.IsPinned && !content.DeletePinnedItems {
+		canDelete = false
+	}
+	confirm := content.DeleteConfirm
+	if item.IsPinned {
+		confirm = content.DeletePinnedConfirm
+	} else if item.IsFavorite {
+		confirm = content.DeleteFavoriteConfirm
+	}
+	return canDelete, confirm
 }
 
 func (m *historyModel) Copy(ctx context.Context, id string) (bool, error) {
@@ -413,6 +442,16 @@ func (m *historyModel) Delete(ctx context.Context, id string) error {
 	}
 	if item == nil {
 		return nil
+	}
+	content := settings.Default().Clipboard.Content
+	if m.store != nil {
+		content = m.store.Snapshot().Clipboard.Content
+	}
+	if item.IsFavorite && !content.DeleteFavoriteItems {
+		return fmt.Errorf("收藏记录不允许删除")
+	}
+	if item.IsPinned && !content.DeletePinnedItems {
+		return fmt.Errorf("置顶记录不允许删除")
 	}
 	if err := m.runtime.db.Delete(ctx, id); err != nil {
 		return err

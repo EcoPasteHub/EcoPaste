@@ -205,6 +205,9 @@ func hoverActionFor(action string, row HistoryRow) (hoverAction, bool) {
 			spec.Symbol, spec.Tooltip = "pin.fill", "取消置顶"
 		}
 	case "delete":
+		if !row.CanDelete {
+			return hoverAction{}, false
+		}
 		spec.Event, spec.Tooltip = "delete", "删除"
 	default:
 		return hoverAction{}, false

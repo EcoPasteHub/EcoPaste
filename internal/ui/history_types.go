@@ -23,6 +23,8 @@ type HistoryItem struct {
 	CreatedAt     time.Time
 	Favorite      bool
 	Pinned        bool
+	CanDelete     bool
+	DeleteConfirm bool
 }
 
 // HistoryPage is one page of history rows.

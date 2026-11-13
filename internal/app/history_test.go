@@ -15,6 +15,7 @@ import (
 	"github.com/EcoPasteHub/EcoPaste/internal/keystroke"
 	"github.com/EcoPasteHub/EcoPaste/internal/settings"
 	"github.com/EcoPasteHub/EcoPaste/internal/storage"
+	"github.com/EcoPasteHub/EcoPaste/internal/ui"
 )
 
 func TestNeedsAccessibility(t *testing.T) {
@@ -24,6 +25,80 @@ func TestNeedsAccessibility(t *testing.T) {
 	}
 	if model.NeedsAccessibility(nil) {
 		t.Error("nil error asked for permission")
+	}
+}
+
+func TestDeletePolicyHonorsProtectionSettings(t *testing.T) {
+	root := t.TempDir()
+	db, err := database.Open(filepath.Join(root, "clipboard.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { db.Close() })
+	store, err := settings.Open(filepath.Join(root, settings.FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx := context.Background()
+	favorite, _, err := db.Upsert(ctx, &database.Item{Kind: database.KindText, Content: "favorite", IsFavorite: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	pinned, _, err := db.Upsert(ctx, &database.Item{Kind: database.KindText, Content: "pinned", IsPinned: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	normal, _, err := db.Upsert(ctx, &database.Item{Kind: database.KindText, Content: "normal"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	model := &historyModel{runtime: &clipboardRuntime{db: db}, store: store}
+
+	page, err := model.List(ctx, ui.HistoryQuery{Limit: 10})
+	if err != nil {
+		t.Fatal(err)
+	}
+	rows := map[string]ui.HistoryItem{}
+	for _, row := range page.Items {
+		rows[row.ID] = row
+	}
+	if rows[favorite].CanDelete || !rows[favorite].DeleteConfirm {
+		t.Errorf("favorite row = %+v", rows[favorite])
+	}
+	if rows[pinned].CanDelete || !rows[pinned].DeleteConfirm {
+		t.Errorf("pinned row = %+v", rows[pinned])
+	}
+	if !rows[normal].CanDelete || !rows[normal].DeleteConfirm {
+		t.Errorf("normal row = %+v", rows[normal])
+	}
+	if err := model.Delete(ctx, favorite); err == nil {
+		t.Error("protected favorite was deleted")
+	}
+
+	if _, err := store.Update(map[string]any{"clipboard": map[string]any{"content": map[string]any{
+		"deleteFavoriteItems":   true,
+		"deletePinnedItems":     true,
+		"deleteFavoriteConfirm": false,
+	}}}); err != nil {
+		t.Fatal(err)
+	}
+	page, err = model.List(ctx, ui.HistoryQuery{Filter: "favorite", Limit: 10})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, row := range page.Items {
+		if row.ID == favorite && (!row.CanDelete || row.DeleteConfirm) {
+			t.Errorf("favorite in favorite group = %+v", row)
+		}
+	}
+	page, err = model.List(ctx, ui.HistoryQuery{Limit: 10})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, row := range page.Items {
+		if row.ID == favorite && row.CanDelete {
+			t.Errorf("favorite outside favorite group = %+v", row)
+		}
 	}
 }
 

@@ -46,3 +46,29 @@ func (v *SettingsView) buildInteraction() {
 	note.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: y - 190}, Size: CGSize{Width: tabContentW - 48, Height: 32}})
 	content.Send(sel("addSubview:"), note)
 }
+
+// buildDeletion adds the per-category delete protection rules.
+func (v *SettingsView) buildDeletion() {
+	content := v.newTab("deletion", "删除")
+
+	intro := objc.ID(classNSTextField).Send(sel("labelWithString:"),
+		nsString("确认开关只影响对应类型；关闭“允许删除”后，该类型记录不再显示删除入口。"))
+	intro.Send(sel("setFont:"), systemFont(11))
+	intro.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
+	intro.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 438}, Size: CGSize{Width: tabContentW - 48, Height: 18}})
+	content.Send(sel("addSubview:"), intro)
+
+	y := 396.0
+	v.addSwitch(content, y, "普通条目删除前确认", "content.deleteConfirm",
+		func(s SettingsValues) bool { return s.DeleteConfirm })
+	v.addSwitch(content, y-38, "收藏条目删除前确认", "content.deleteFavoriteConfirm",
+		func(s SettingsValues) bool { return s.DeleteFavoriteConfirm })
+	v.addSwitch(content, y-76, "置顶条目删除前确认", "content.deletePinnedConfirm",
+		func(s SettingsValues) bool { return s.DeletePinnedConfirm })
+	v.addSwitch(content, y-120, "允许删除收藏条目", "content.deleteFavoriteItems",
+		func(s SettingsValues) bool { return s.DeleteFavoriteItems })
+	v.addSwitch(content, y-158, "允许删除置顶条目", "content.deletePinnedItems",
+		func(s SettingsValues) bool { return s.DeletePinnedItems })
+	v.addSwitch(content, y-196, "收藏项仅在收藏分组可删除", "content.deleteFavoriteOnlyFav",
+		func(s SettingsValues) bool { return s.DeleteFavoriteOnlyFav })
+}

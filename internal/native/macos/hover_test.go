@@ -5,7 +5,7 @@ package macos
 import "testing"
 
 func TestHoverActionsFollowConfiguredOrder(t *testing.T) {
-	row := HistoryRow{Kind: "text"}
+	row := HistoryRow{Kind: "text", CanDelete: true}
 	specs := hoverActionsFor(row, []string{"copy", "pastePlain", "delete"})
 	if len(specs) != 3 {
 		t.Fatalf("specs = %+v", specs)
@@ -25,6 +25,7 @@ func TestHoverActionsSkipInapplicableRows(t *testing.T) {
 
 func TestHoverActionsCapAtSix(t *testing.T) {
 	row := HistoryRow{Kind: "files", SubKind: "path"}
+	row.CanDelete = true
 	actions := []string{"paste", "pastePath", "copy"}
 	specs := hoverActionsFor(row, actions)
 	if len(specs) != len(actions) {
@@ -35,6 +36,19 @@ func TestHoverActionsCapAtSix(t *testing.T) {
 	})
 	if len(long) != maxHoverActions {
 		t.Errorf("len = %d", len(long))
+	}
+}
+
+func TestHoverActionsHideProtectedDelete(t *testing.T) {
+	row := HistoryRow{Kind: "text", Favorite: true, CanDelete: false}
+	specs := hoverActionsFor(row, []string{"copy", "star", "delete"})
+	for _, spec := range specs {
+		if spec.Event == "delete" {
+			t.Fatalf("delete offered for protected row: %+v", specs)
+		}
+	}
+	if len(specs) != 2 {
+		t.Errorf("specs = %+v", specs)
 	}
 }
 

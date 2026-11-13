@@ -22,6 +22,8 @@ type HistoryRow struct {
 	Note           string
 	Favorite       bool
 	Pinned         bool
+	CanDelete      bool
+	DeleteConfirm  bool
 }
 
 const (
@@ -171,7 +173,7 @@ func registerHistoryTargets() {
 					}
 					p.selectRow(current + delta)
 				case action == "delete":
-					if confirmDelete() {
+					if row.CanDelete && (!row.DeleteConfirm || confirmDelete()) {
 						p.cx.Emit("delete", p.selection)
 					}
 				default:
@@ -287,7 +289,14 @@ func registerHistoryTargets() {
 		}},
 		{Cmd: sel("menuDelete:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
 			p := menuPanel(sender)
-			if p != nil && confirmDelete() {
+			if p == nil {
+				return
+			}
+			row := HistoryRow{}
+			if index := p.selectedIndex(); index >= 0 {
+				row = p.rows[index]
+			}
+			if row.CanDelete && (!row.DeleteConfirm || confirmDelete()) {
 				p.cx.Emit("delete", p.selection)
 			}
 		}},
@@ -646,8 +655,10 @@ func (p *Panel) populateMenu(menu objc.ID, row HistoryRow) {
 	submenu.Send(sel("release"))
 	menu.Send(sel("addItem:"), moveItem)
 	moveItem.Send(sel("release"))
-	menu.Send(sel("addItem:"), objc.ID(class("NSMenuItem")).Send(sel("separatorItem")))
-	addMenuItem(menu, p.table, "删除", "menuDelete:", "trash", "")
+	if row.CanDelete {
+		menu.Send(sel("addItem:"), objc.ID(class("NSMenuItem")).Send(sel("separatorItem")))
+		addMenuItem(menu, p.table, "删除", "menuDelete:", "trash", "")
+	}
 }
 
 func addMoveGroupItem(menu objc.ID, p *Panel, title, groupID string, selected bool) {

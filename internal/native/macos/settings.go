@@ -29,6 +29,12 @@ type SettingsValues struct {
 	MiddleClick            string
 	PasteFilesAsPath       bool
 	AutoFavorite           bool
+	DeleteConfirm          bool
+	DeleteFavoriteConfirm  bool
+	DeletePinnedConfirm    bool
+	DeleteFavoriteItems    bool
+	DeletePinnedItems      bool
+	DeleteFavoriteOnlyFav  bool
 	Sort                   string
 	WindowPosition         string
 	CaptureText            bool
@@ -143,6 +149,7 @@ var settingsTabIdentifiers = map[string]struct{}{
 	"apps":        {},
 	"actions":     {},
 	"interaction": {},
+	"deletion":    {},
 	"shortcuts":   {},
 }
 
@@ -201,6 +208,7 @@ func NewSettings(cx *core.NativeContext) core.NativeComponent {
 	v.buildDisplay()
 	v.buildActions()
 	v.buildInteraction()
+	v.buildDeletion()
 	v.buildWindow()
 	v.buildHistory()
 	v.buildPermissions()
