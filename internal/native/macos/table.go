@@ -157,7 +157,10 @@ func registerHistoryTargets() {
 			}
 		}},
 		{Cmd: sel("menuPaste:"), Fn: menuAction("activate")},
+		{Cmd: sel("menuPastePlain:"), Fn: menuAction("pastePlain")},
+		{Cmd: sel("menuPastePath:"), Fn: menuAction("pastePath")},
 		{Cmd: sel("menuCopy:"), Fn: menuAction("copy")},
+		{Cmd: sel("menuCopyPlain:"), Fn: menuAction("copyPlain")},
 		{Cmd: sel("menuFavorite:"), Fn: menuAction("toggleFavorite")},
 		{Cmd: sel("menuPin:"), Fn: menuAction("togglePinned")},
 		{Cmd: sel("menuOpen:"), Fn: menuAction("open")},
@@ -350,6 +353,16 @@ func (p *Panel) populateMenu(menu objc.ID, row HistoryRow) {
 	menu.Send(sel("removeAllItems"))
 	addMenuItem(menu, p.table, "粘贴", "menuPaste:", "arrow.down.doc", "")
 	addMenuItem(menu, p.table, "复制", "menuCopy:", "doc.on.doc", "c")
+	if row.Kind == "text" {
+		plainPaste := addMenuItem(menu, p.table, "纯文本粘贴", "menuPastePlain:", "textformat", "v")
+		setMenuModifiers(plainPaste, commandModifier|alternateModifier)
+		plainCopy := addMenuItem(menu, p.table, "复制为纯文本", "menuCopyPlain:", "doc.plaintext", "c")
+		setMenuModifiers(plainCopy, commandModifier|alternateModifier)
+	}
+	if row.Kind == "files" {
+		pathPaste := addMenuItem(menu, p.table, "粘贴为路径", "menuPastePath:", "point.topleft.down.to.point.bottomright.curvepath", "v")
+		setMenuModifiers(pathPaste, commandModifier|alternateModifier)
+	}
 	switch row.SubKind {
 	case "url":
 		addMenuItem(menu, p.table, "打开链接", "menuOpen:", "arrow.up.right.square", "")
@@ -429,6 +442,17 @@ func addMenuItem(menu, table objc.ID, title, action, icon, key string) objc.ID {
 	menu.Send(sel("addItem:"), item)
 	item.Send(sel("release"))
 	return item
+}
+
+const (
+	shiftModifier     uint64 = 1 << 17
+	controlModifier   uint64 = 1 << 18
+	alternateModifier uint64 = 1 << 19
+	commandModifier   uint64 = 1 << 20
+)
+
+func setMenuModifiers(item objc.ID, modifiers uint64) {
+	item.Send(sel("setKeyEquivalentModifierMask:"), modifiers)
 }
 
 func menuPanel(item objc.ID) *Panel {

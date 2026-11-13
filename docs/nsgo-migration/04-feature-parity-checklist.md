@@ -25,7 +25,7 @@
 | C-14 | P0 | 忽略应用 | `Filters.excluded_app_ids` | bundle id 命中即跳过 | 已通过 | 默认排除密码类 App；`TestIgnoredAppIsNotCaptured` |
 | C-15 | P0 | 敏感内容识别 | `clipboard/secrets.rs` | 私钥、token、AWS key、JWT、标签 secret | 已通过 | `TestContainsSecret` 固定样本矩阵 |
 | C-16 | P0 | 敏感内容策略 | `collectSecrets`、`redactSecrets` | 跳过或脱敏，日志不落原文 | 已通过 | `TestSecretCapturePolicy`、`TestPreviewRedactsSensitiveText` |
-| C-17 | P0 | 回环抑制 | `clipboard/guard.rs` | 写回前登记 hash，2 秒 TTL | 已通过 | `TestWriteItemSuppressesItsOwnCapture` |
+| C-17 | P0 | 回环抑制 | `clipboard/guard.rs` | 写回前登记所有实际写出的表示 hash，2 秒 TTL | 已通过 | `TestWriteItemSuppressesItsOwnCapture`、`TestWriteRichTextSuppressesHTMLAndPlainFallback`、`TestWriteFilesAsTextSuppressesFallbackCapture`；真机复制 HTML 后 DB 不新增纯文本回环 |
 | C-18 | P1 | 监听暂停 | `WatcherPause`、托盘 | 暂停期间跳过入库，watcher 不退出 | 迁移中 | 托盘菜单已接；待真机验证 |
 | C-19 | P2 | 复制音效 | `clipboard/sound.rs` | `AVAudioPlayer` 或 Go 音频库 | 待迁移 | 开关、静音、缺失文件 |
 | C-20 | P1 | 手动读取剪贴板 | `read_clipboard` | 与自动采集共用同一条管线 | 待迁移 | 空剪贴板、重复内容 |
@@ -84,13 +84,13 @@
 | ID | 优先级 | 功能 | 现有实现 | NSGo/AppKit 目标 | 状态 | 验证方式 |
 | --- | --- | --- | --- | --- | --- | --- |
 | A-01 | P0 | 写回纯文本 | `clipboard/write.rs` | `NSPasteboard` plain text | 已通过 | 真机选中列表项 Enter 写入，`pbpaste` 校验一致 |
-| A-02 | P0 | 写回 HTML | `write.rs` | plain + `public.html` 同一 item | 迁移中 | 同一 pasteboard item 已实现；待真机富文本验证 |
-| A-03 | P0 | 写回 RTF | `write.rs` | plain + `public.rtf` 同一 item | 迁移中 | 同上 |
+| A-02 | P0 | 写回 HTML | `write.rs` | plain + `public.html` 同一 item | 已通过 | 真机复制 `<b>rich hello</b>` 后剪贴板含 HTML + plain，`pbpaste` 得到 `rich hello`，DB 不新增回环 |
+| A-03 | P0 | 写回 RTF | `write.rs` | plain + `public.rtf` 同一 item | 迁移中 | 同一 pasteboard item 与回环登记已实现；待真机 Pages/Word 验证 |
 | A-04 | P0 | 写回图片 | `write.rs` | `public.png` + TIFF（按需） | 迁移中 | PNG 写回已实现；待真机验证 |
 | A-05 | P0 | 写回文件 | `write.rs` | `public.file-url` 多文件 | 迁移中 | `NSURL` 多文件写回已实现；待真机验证 |
 | A-06 | P0 | 粘贴 | `paste_clipboard_item` | 写回 + 让出 key + `CGEvent` ⌘V | 迁移中 | 回车/双击已接 `CGEvent`；权限拒绝路径已验证，待授权后真机验收 |
-| A-07 | P0 | 纯文本粘贴 | `paste_plain` | 文本只写 plain；HTML/RTF 带 plain 回退 | 迁移中 | `PastePlain` 已接写回；待授权后逐类型验证 |
-| A-08 | P1 | 文件路径粘贴 | `paste_files_as_path` | 文件记录写回换行路径文本 | 待迁移 | 单/多文件 |
+| A-07 | P0 | 纯文本粘贴 | `paste_plain` | 文本只写 plain；HTML/RTF 带 plain 回退 | 迁移中 | 菜单“纯文本粘贴/复制为纯文本”已真机验证只写 plain；自动按键待辅助功能授权 |
+| A-08 | P1 | 文件路径粘贴 | `paste_files_as_path` | 文件记录写回换行路径文本 | 已通过 | `TestBuildWritePreservesRepresentations`；真机“粘贴为路径”与 `pasteFilesAsPath=true` 正常粘贴均写入换行路径，未新增回环 |
 | A-09 | P1 | 打开链接/邮件 | `open_clipboard_item_link` | `NSWorkspace.open` | 已通过 | `TestOpenDispatchesBySubKind`；URL/路径条目右键菜单显示对应动作 |
 | A-10 | P1 | Finder 显示 | `reveal_clipboard_item` | `NSWorkspace.activateFileViewerSelecting` | 已通过 | `TestRevealFilesAndPath`；真机对路径条目执行后 Finder 选中目标目录 |
 | A-11 | P1 | 图片另存 | `save_clipboard_image_to_file` | `NSSavePanel`，默认文件名规则 | 已通过 | `TestSaveImageWritesChosenFile`；真机保存 3456×2234 PNG，文件头与尺寸校验通过 |
@@ -167,7 +167,7 @@
 | S-02 | appearance | `theme`、`language` | `auto/light/dark`、`zh-CN/en-US` | 待迁移 | 即时切换/重启 |
 | S-03 | shortcuts | `openClipboard`、`openPreference`、`winV` | 保留；`winV` 仅 Windows 参考 | 迁移中 | 两个快捷键均已读取并注册；编辑 UI 待补 |
 | S-04 | clipboard.capture | `text/html/rtf/image/files`、`maxTextMb`、`maxImageMb`、`order` | 采集顺序与上限一致 | 迁移中 | 五个开关与两个上限已接设置 UI；顺序编辑待补 |
-| S-05 | clipboard.content | `autoPaste`、`middleClick`、`copyPlain`、`copyThenHideWindow`、`pastePlain`、`pasteFilesAsPath`、`showOriginalPreview`、删除保护、`autoFavorite`、`updateOnReuse`、`sort`、`itemActions`、`itemActionOrder` | 行为语义逐项一致 | 迁移中 | 纯文本复制/粘贴、复制后隐藏、复用排序、排序方式已接设置 UI |
+| S-05 | clipboard.content | `autoPaste`、`middleClick`、`copyPlain`、`copyThenHideWindow`、`pastePlain`、`pasteFilesAsPath`、`showOriginalPreview`、删除保护、`autoFavorite`、`updateOnReuse`、`sort`、`itemActions`、`itemActionOrder` | 行为语义逐项一致 | 迁移中 | 纯文本复制/粘贴、文件路径粘贴、复制后隐藏、复用排序、排序方式已接入；中键与悬停动作待补 |
 | S-06 | clipboard.display | `textMaxLines`、`imageMaxHeight`、`fileMaxCount` | 列表展示上限一致 | 待迁移 | 边界值 |
 | S-07 | clipboard.sensitive | `collectSecrets`、`redactSecrets` | 两种策略互斥语义一致 | 已通过 | 设置 UI 可切换；敏感样本与预览脱敏测试 |
 | S-08 | clipboard.history | `retention{value,unit}`、`maxCount`、`cleanupIntervalHours` | 清理规则一致 | 已通过 | 设置 UI 可调；`TestCleanupHistoryByRetentionKeepsProtectedItems`、`TestCleanupHistoryByMaxCount` |

@@ -2,87 +2,12 @@ package ui
 
 import (
 	"context"
-	"fmt"
-	"path/filepath"
-	"strings"
 	"sync/atomic"
 	"time"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
 	"github.com/nsgo-dev/nsgo/core"
 )
-
-// HistoryItem is one row the list can show without knowing how history
-// is stored.
-type HistoryItem struct {
-	ID            string
-	GroupID       string
-	Kind          string
-	SubKind       string
-	Title         string
-	SourceApp     string
-	SourceAppIcon string
-	Note          string
-	ImagePath     string
-	CreatedAt     time.Time
-	Favorite      bool
-	Pinned        bool
-}
-
-// HistoryPage is one page of history rows.
-type HistoryPage struct {
-	Items   []HistoryItem
-	Total   int64
-	HasMore bool
-}
-
-// HistoryQuery selects a page of history.
-type HistoryQuery struct {
-	Keyword string
-	Filter  string
-	GroupID string
-	Limit   int
-	Offset  int
-}
-
-// GroupOption is one user-created group shown in the panel.
-type GroupOption struct {
-	ID   string
-	Name string
-}
-
-// HistoryPreview is the full content behind one list row.
-type HistoryPreview struct {
-	Enabled   bool
-	Title     string
-	Meta      string
-	Text      string
-	ImagePath string
-}
-
-// HistoryModel is the app service the history panel consumes. Copy
-// reports whether the panel should close after copying.
-type HistoryModel interface {
-	List(context.Context, HistoryQuery) (HistoryPage, error)
-	Copy(context.Context, string) (hide bool, err error)
-	Activate(context.Context, string) (paste bool, hide bool, err error)
-	SendPaste() error
-	NeedsAccessibility(error) bool
-	ToggleFavorite(context.Context, string) (bool, error)
-	TogglePinned(context.Context, string) (bool, error)
-	Delete(context.Context, string) error
-	Open(context.Context, string) error
-	Reveal(context.Context, string) error
-	SaveImage(context.Context, string) error
-	EditNote(context.Context, string) (bool, error)
-	Preview(context.Context, string) (HistoryPreview, error)
-	Groups(context.Context) ([]GroupOption, error)
-	CreateGroup(context.Context) (*GroupOption, bool, error)
-	RenameGroup(context.Context, string) (bool, error)
-	DeleteGroup(context.Context, string) (bool, error)
-	MoveToGroup(context.Context, string, string) error
-	Updates() <-chan struct{}
-}
 
 // ClipboardPanel builds the history panel. hide closes the panel after
 // an action that the user configured to close it.
@@ -193,13 +118,17 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 			}()
 		}
 
-		copyItem := func(id string) {
+		copyItem := func(id string, forcePlain bool) {
 			if id == "" || model == nil {
 				return
 			}
 			ctx := cx.Context()
 			go func() {
-				hideAfter, err := model.Copy(ctx, id)
+				copyAction := model.Copy
+				if forcePlain {
+					copyAction = model.CopyPlain
+				}
+				hideAfter, err := copyAction(ctx, id)
 				cx.Post(func() {
 					if err != nil {
 						errorText.Set(err.Error())
@@ -213,13 +142,17 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 			}()
 		}
 
-		activateItem := func(id string) {
+		activateItem := func(id string, forcePlain bool) {
 			if id == "" || model == nil {
 				return
 			}
 			ctx := cx.Context()
 			go func() {
-				paste, hideAfter, err := model.Activate(ctx, id)
+				activateAction := model.Activate
+				if forcePlain {
+					activateAction = model.ActivatePlain
+				}
+				paste, hideAfter, err := activateAction(ctx, id)
 				cx.Post(func() {
 					if err != nil {
 						errorText.Set(err.Error())
@@ -394,13 +327,40 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 					if value, ok := data.(string); ok && value != "" {
 						id = value
 					}
-					activateItem(id)
+					activateItem(id, false)
 				case "copy":
 					id := selectedID
 					if value, ok := data.(string); ok && value != "" {
 						id = value
 					}
-					copyItem(id)
+					copyItem(id, false)
+				case "copyPlain":
+					id := selectedID
+					if value, ok := data.(string); ok && value != "" {
+						id = value
+					}
+					if id == "" {
+						return
+					}
+					copyItem(id, true)
+				case "pastePlain":
+					id := selectedID
+					if value, ok := data.(string); ok && value != "" {
+						id = value
+					}
+					if id == "" {
+						return
+					}
+					activateItem(id, true)
+				case "pastePath":
+					id := selectedID
+					if value, ok := data.(string); ok && value != "" {
+						id = value
+					}
+					if id == "" {
+						return
+					}
+					activateItem(id, true)
 				case "toggleFavorite":
 					applyAction(selectedID, func(ctx context.Context, id string) error {
 						_, err := model.ToggleFavorite(ctx, id)
@@ -559,107 +519,4 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 			},
 		}
 	}
-}
-
-// hideAfterAction keeps a pinned panel visible even when an action asks
-// to close the window after copy or paste.
-func hideAfterAction(pinned, requested bool) bool {
-	return requested && !pinned
-}
-
-func groupExists(groups []GroupOption, id string) bool {
-	for _, group := range groups {
-		if group.ID == id {
-			return true
-		}
-	}
-	return false
-}
-
-func historyRow(item HistoryItem) macos.HistoryRow {
-	title := strings.TrimSpace(item.Title)
-	if title == "" {
-		title = kindName(item.Kind)
-	}
-	detail := make([]string, 0, 4)
-	if item.SourceApp != "" {
-		detail = append(detail, item.SourceApp)
-	}
-	if !item.CreatedAt.IsZero() {
-		detail = append(detail, relativeTime(time.Now(), item.CreatedAt))
-	}
-	if item.Note != "" {
-		detail = append(detail, strings.TrimSpace(item.Note))
-	}
-	if item.Pinned {
-		detail = append(detail, "已固定")
-	}
-	if item.Favorite {
-		detail = append(detail, "收藏")
-	}
-	return macos.HistoryRow{
-		ID:             item.ID,
-		GroupID:        item.GroupID,
-		Kind:           item.Kind,
-		SubKind:        item.SubKind,
-		Title:          title,
-		Detail:         strings.Join(detail, " · "),
-		ImagePath:      item.ImagePath,
-		SourceIconPath: item.SourceAppIcon,
-		Note:           item.Note,
-		Favorite:       item.Favorite,
-		Pinned:         item.Pinned,
-	}
-}
-
-func kindName(kind string) string {
-	switch kind {
-	case "image":
-		return "图片"
-	case "files":
-		return "文件"
-	default:
-		return "文本"
-	}
-}
-
-func relativeTime(now, then time.Time) string {
-	if then.IsZero() {
-		return ""
-	}
-	diff := now.Sub(then)
-	switch {
-	case diff < time.Minute:
-		return "刚刚"
-	case diff < time.Hour:
-		return fmt.Sprintf("%d 分钟前", int(diff/time.Minute))
-	case diff < 24*time.Hour:
-		return fmt.Sprintf("%d 小时前", int(diff/time.Hour))
-	case diff < 48*time.Hour:
-		return "昨天"
-	case diff < 7*24*time.Hour:
-		return fmt.Sprintf("%d 天前", int(diff/(24*time.Hour)))
-	default:
-		return then.Local().Format("01-02")
-	}
-}
-
-// FileTitle summarizes paths by their base names, as the list shows
-// them.
-func FileTitle(paths []string, max int) string {
-	if len(paths) == 0 {
-		return ""
-	}
-	names := make([]string, 0, min(len(paths), max))
-	for i, path := range paths {
-		if max > 0 && i == max {
-			break
-		}
-		names = append(names, filepath.Base(path))
-	}
-	title := strings.Join(names, "、")
-	if max > 0 && len(paths) > max {
-		title += fmt.Sprintf(" 等 %d 个", len(paths))
-	}
-	return title
 }

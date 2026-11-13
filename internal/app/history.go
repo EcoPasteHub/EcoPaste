@@ -48,6 +48,14 @@ func (m *historyModel) List(ctx context.Context, q ui.HistoryQuery) (ui.HistoryP
 }
 
 func (m *historyModel) Copy(ctx context.Context, id string) (bool, error) {
+	return m.copyItem(ctx, id, false)
+}
+
+func (m *historyModel) CopyPlain(ctx context.Context, id string) (bool, error) {
+	return m.copyItem(ctx, id, true)
+}
+
+func (m *historyModel) copyItem(ctx context.Context, id string, forcePlain bool) (bool, error) {
 	item, err := m.runtime.db.FindByID(ctx, id)
 	if err != nil {
 		return false, err
@@ -56,7 +64,7 @@ func (m *historyModel) Copy(ctx context.Context, id string) (bool, error) {
 		return false, fmt.Errorf("剪贴板记录不存在")
 	}
 	cfg := m.store.Snapshot().Clipboard
-	plain := item.Kind == database.KindText && cfg.Content.CopyPlain
+	plain := forcePlain || item.Kind == database.KindText && cfg.Content.CopyPlain
 	if err := m.write(ctx, item, plain, cfg.Content.UpdateOnReuse); err != nil {
 		return false, err
 	}
@@ -66,6 +74,14 @@ func (m *historyModel) Copy(ctx context.Context, id string) (bool, error) {
 func (m *historyModel) Updates() <-chan struct{} { return m.runtime.changed }
 
 func (m *historyModel) Activate(ctx context.Context, id string) (bool, bool, error) {
+	return m.activateItem(ctx, id, false)
+}
+
+func (m *historyModel) ActivatePlain(ctx context.Context, id string) (bool, bool, error) {
+	return m.activateItem(ctx, id, true)
+}
+
+func (m *historyModel) activateItem(ctx context.Context, id string, forcePlain bool) (bool, bool, error) {
 	item, err := m.runtime.db.FindByID(ctx, id)
 	if err != nil {
 		return false, false, err
@@ -78,7 +94,9 @@ func (m *historyModel) Activate(ctx context.Context, id string) (bool, bool, err
 	if paste && !keystroke.Trusted() {
 		return false, false, keystroke.ErrPermission
 	}
-	plain := item.Kind == database.KindText && (cfg.Content.CopyPlain || cfg.Content.PastePlain)
+	plain := forcePlain ||
+		item.Kind == database.KindText && (cfg.Content.CopyPlain || cfg.Content.PastePlain) ||
+		item.Kind == database.KindFiles && cfg.Content.PasteFilesAsPath
 	if err := m.write(ctx, item, plain, cfg.Content.UpdateOnReuse); err != nil {
 		return false, false, err
 	}

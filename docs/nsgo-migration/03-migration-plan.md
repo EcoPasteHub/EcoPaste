@@ -133,7 +133,7 @@ internal/native/macos/
    - 文件路径换行拼接与 `file_types`。
    - 来源应用同步抓取；首次遇到应用时取原生图标，降采样为 128px PNG 放入 `resources/app-icons/`，按内容哈希去重，启动时清理无引用文件。
    - 敏感内容识别与忽略应用。
-   - 回环抑制：写回前登记 hash，2 秒 TTL。
+   - 回环抑制：写回前登记所有实际写出的表示 hash（记录内容、plain fallback、HTML、RTF），2 秒 TTL。
 3. `internal/database`：
    - `modernc.org/sqlite`，WAL、foreign_keys、busy timeout。
    - 识别现有 `_sqlx_migrations`，把 `0001` 标记为已应用，不重复建表。
@@ -223,6 +223,7 @@ internal/native/macos/
    - `NSMenu` 动作分组、快捷键、分组子菜单。
    - 菜单动作回到 Go 业务层，不在 UI 内写业务逻辑。
    - 按内容动态精简菜单：URL/邮件提供打开，路径/文件提供 Finder 定位，图片提供另存，避免所有条目堆同一套无关动作。
+   - 文本提供“纯文本粘贴/复制为纯文本”，文件提供“粘贴为路径”；动作只在对应内容类型出现，避免菜单噪音。
    - 备注使用原生模态编辑，移除备注会归一为 NULL；非空备注遵循 `autoFavorite` 联动收藏。
 5. 拖出：
    - `NSDraggingSession` + `NSPasteboardItem`。
