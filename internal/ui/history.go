@@ -319,6 +319,13 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 			}
 		}
 
+		actionID := func(data any) string {
+			if value, ok := data.(string); ok && value != "" {
+				return value
+			}
+			return selectedID
+		}
+
 		load("", "", "", false)
 		loadGroups("", false)
 		if model != nil {
@@ -345,6 +352,7 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 			Style:     core.Style{Width: core.Pct(100), Height: core.Pct(100)},
 			PropsFunc: func() map[string]any {
 				display := macos.PanelDisplay{TextMaxLines: 1, ImageMaxHeight: 32, FileMaxCount: 3}
+				var actions []string
 				if model != nil {
 					density := model.Display()
 					display = macos.PanelDisplay{
@@ -352,6 +360,7 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 						ImageMaxHeight: density.ImageMaxHeight,
 						FileMaxCount:   density.FileMaxCount,
 					}
+					actions = model.QuickActions()
 				}
 				return map[string]any{
 					"rows":     rows.Get(),
@@ -366,6 +375,7 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 					"behavior": behavior,
 					"drag":     dragProvider,
 					"display":  display,
+					"actions":  actions,
 				}
 			},
 			OnEvent: func(name string, data any) {
@@ -499,20 +509,20 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 					}
 					activate(id, true)
 				case "toggleFavorite":
-					applyAction(selectedID, func(ctx context.Context, id string) error {
+					applyAction(actionID(data), func(ctx context.Context, id string) error {
 						_, err := model.ToggleFavorite(ctx, id)
 						return err
 					})
 				case "togglePinned":
-					applyAction(selectedID, func(ctx context.Context, id string) error {
+					applyAction(actionID(data), func(ctx context.Context, id string) error {
 						_, err := model.TogglePinned(ctx, id)
 						return err
 					})
 				case "delete":
-					if selectedID == "" || model == nil {
+					id := actionID(data)
+					if id == "" || model == nil {
 						return
 					}
-					id := selectedID
 					ctx := cx.Context()
 					go func() {
 						err := model.Delete(ctx, id)
@@ -536,14 +546,14 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 				case "hidePreview":
 					preview.Set(macos.PreviewContent{})
 				case "open":
-					runItemAction(selectedID, model.Open)
+					runItemAction(actionID(data), model.Open)
 				case "reveal":
-					runItemAction(selectedID, model.Reveal)
+					runItemAction(actionID(data), model.Reveal)
 				case "saveImage":
-					if selectedID == "" || model == nil {
+					id := actionID(data)
+					if id == "" || model == nil {
 						return
 					}
-					id := selectedID
 					ctx := cx.Context()
 					go func() {
 						err := model.SaveImage(ctx, id)
@@ -554,10 +564,10 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 						})
 					}()
 				case "editNote":
-					if selectedID == "" || model == nil {
+					id := actionID(data)
+					if id == "" || model == nil {
 						return
 					}
-					id := selectedID
 					ctx := cx.Context()
 					go func() {
 						saved, err := model.EditNote(ctx, id)

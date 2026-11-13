@@ -138,6 +138,29 @@ func (m *historyModel) OpenBehavior() ui.HistoryOpenBehavior {
 	}
 }
 
+// QuickActions reports the hover actions in their configured order.
+func (m *historyModel) QuickActions() []string {
+	content := settings.Default().Clipboard.Content
+	if m.store != nil {
+		content = m.store.Snapshot().Clipboard.Content
+	}
+	enabled := make(map[settings.ItemAction]struct{}, len(content.ItemActions))
+	for _, action := range content.ItemActions {
+		enabled[action] = struct{}{}
+	}
+	order := content.ItemActionOrder
+	if len(order) == 0 {
+		order = settings.Default().Clipboard.Content.ItemActionOrder
+	}
+	actions := make([]string, 0, len(order))
+	for _, action := range order {
+		if _, ok := enabled[action]; ok {
+			actions = append(actions, string(action))
+		}
+	}
+	return actions
+}
+
 func clampInt(value, low, high int) int {
 	if value < low {
 		return low

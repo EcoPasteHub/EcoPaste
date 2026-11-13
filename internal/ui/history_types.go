@@ -109,5 +109,6 @@ type HistoryModel interface {
 	SearchBehavior() HistorySearchBehavior
 	Display() HistoryDisplay
 	OpenBehavior() HistoryOpenBehavior
+	QuickActions() []string
 	Updates() <-chan struct{}
 }

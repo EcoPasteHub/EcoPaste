@@ -43,6 +43,11 @@ type Panel struct {
 	previewImage  objc.ID
 	drag          func(string) (DragPayload, bool)
 	dragFiles     []string
+	actions       []string
+	hoverRow      int
+	hoverBar      objc.ID
+	hoverButtons  []objc.ID
+	hoverSpecs    []hoverAction
 	query         string
 	rows          []HistoryRow
 	total         int64
@@ -97,9 +102,10 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	registerPanelOnce.Do(registerPanelTargets)
 
 	p := &Panel{
-		cx:      cx,
-		view:    objc.ID(panelViewClass).Send(sel("new")),
-		display: PanelDisplay{TextMaxLines: 1, ImageMaxHeight: 32, FileMaxCount: 3},
+		cx:       cx,
+		view:     objc.ID(panelViewClass).Send(sel("new")),
+		display:  PanelDisplay{TextMaxLines: 1, ImageMaxHeight: 32, FileMaxCount: 3},
+		hoverRow: -1,
 	}
 	p.view.Send(sel("setAutoresizesSubviews:"), false)
 
@@ -168,6 +174,7 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 		p.divider, p.scroll, p.empty, p.preview, p.footer, p.hint} {
 		p.view.Send(sel("addSubview:"), v)
 	}
+	p.buildHoverBar()
 
 	panelsBySearch[p.search] = p
 	panelsByControl[p.pin] = p
@@ -286,6 +293,11 @@ func registerPanelTargets() {
 				}
 				p.showGroupActions(sender)
 			}},
+			{Cmd: sel("hoverActionPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
+				if p := panelsByControl[sender]; p != nil {
+					p.runHoverAction(int(objc.Send[int64](sender, sel("tag"))))
+				}
+			}},
 			{Cmd: sel("menuNewGroup:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
 				if p := menuPanel(sender); p != nil {
 					p.cx.Emit("newGroup", nil)
@@ -333,6 +345,7 @@ func (p *Panel) SetProp(name string, value any) {
 		}
 	case "rows":
 		rows, _ := value.([]HistoryRow)
+		p.hideHover()
 		p.rows = rows
 		p.table.Send(sel("reloadData"))
 		p.restoreSelection()
@@ -383,6 +396,11 @@ func (p *Panel) SetProp(name string, value any) {
 			p.table.Send(sel("setRowHeight:"), tableRowHeight(display))
 			p.table.Send(sel("reloadData"))
 		}
+	case "actions":
+		if actions, ok := value.([]string); ok {
+			p.actions = actions
+			p.hideHover()
+		}
 	}
 }
 
@@ -432,6 +450,12 @@ func (p *Panel) Close() {
 	delete(panelsByControl, p.filter)
 	delete(panelsByControl, p.groupsPopup)
 	delete(panelsByControl, p.groupActions)
+	for _, button := range p.hoverButtons {
+		delete(panelsByControl, button)
+	}
+	if p.hoverBar != 0 {
+		delete(panelsByControl, p.hoverBar)
+	}
 	delete(panelsByView, p.view)
 	delete(panelsByTable, p.table)
 	delete(panelsByPreviewView, p.preview)

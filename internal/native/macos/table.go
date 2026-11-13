@@ -251,6 +251,7 @@ func registerHistoryTargets() {
 			// so the queued single-click action must not fire.
 			cancelPendingClick(table)
 			p.pendingClick = ""
+			p.hideHover()
 			p.appendDragFiles(session)
 		}},
 		{Cmd: sel("tableView:willDisplayCell:forTableColumn:row:"), Fn: func(_ objc.ID, _ objc.SEL, table, _ objc.ID, _ objc.ID, row int64) {
