@@ -19,6 +19,7 @@ type SettingsValues struct {
 	AutoStart            bool
 	Theme                string
 	DataDir              string
+	CanRestoreDataDir    bool
 	CopyPlain            bool
 	CopyThenHideWindow   bool
 	PastePlain           bool
@@ -53,6 +54,7 @@ type SettingsView struct {
 	footer  objc.ID
 	dataDir objc.ID
 	change  objc.ID
+	restore objc.ID
 	fields  []*settingsField
 }
 
@@ -151,12 +153,18 @@ func (v *SettingsView) buildDataDir(content objc.ID, y float64) {
 	v.dataDir.Send(sel("setFont:"), systemFont(11))
 	v.dataDir.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
 	v.dataDir.Send(sel("setLineBreakMode:"), int64(4))
-	v.dataDir.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: y - 20}, Size: CGSize{Width: tabContentW - 150, Height: 16}})
+	v.dataDir.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: y - 20}, Size: CGSize{Width: tabContentW - 240, Height: 16}})
 	content.Send(sel("addSubview:"), v.dataDir)
+
+	v.restore = objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
+		nsString("恢复默认…"), settingsTarget, sel("defaultDataDirPressed:"))
+	v.restore.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 204, Y: y - 24}, Size: CGSize{Width: 100, Height: 28}})
+	content.Send(sel("addSubview:"), v.restore)
+	settingsViews[v.restore] = v
 
 	v.change = objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
 		nsString("更改…"), settingsTarget, sel("dataDirPressed:"))
-	v.change.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 114, Y: y - 24}, Size: CGSize{Width: 90, Height: 28}})
+	v.change.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 94, Y: y - 24}, Size: CGSize{Width: 70, Height: 28}})
 	content.Send(sel("addSubview:"), v.change)
 	settingsViews[v.change] = v
 }
@@ -358,6 +366,17 @@ func registerSettingsTargets() {
 			}
 			v.cx.Emit("change", SettingsChange{Path: "general.dataDir", Value: parent})
 		}},
+		{Cmd: sel("defaultDataDirPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
+			v := settingsViews[sender]
+			if v == nil {
+				return
+			}
+			if !Confirm("恢复默认数据目录？",
+				"历史、设置和资源会复制回默认目录，然后重启 EcoPaste。现有默认目录内容会保留为备份。", "迁移并重启") {
+				return
+			}
+			v.cx.Emit("change", SettingsChange{Path: "general.defaultDataDir", Value: true})
+		}},
 	})
 	if err != nil {
 		panic(err)
@@ -392,6 +411,8 @@ func (v *SettingsView) Command(string, any) {}
 
 func (v *SettingsView) apply(values SettingsValues) {
 	v.dataDir.Send(sel("setStringValue:"), nsString(values.DataDir))
+	v.dataDir.Send(sel("setToolTip:"), nsString(values.DataDir))
+	v.restore.Send(sel("setEnabled:"), values.CanRestoreDataDir)
 	for _, field := range v.fields {
 		switch field.kind {
 		case "bool":

@@ -274,7 +274,7 @@ internal/native/macos/
    - 全局快捷键录制、暂停/恢复、冲突提示。
    - 开机自启 `SMAppService`。
    - 单实例、`OnOpenFiles`、`.ecopastebak` 文件关联。
-   - 数据目录切换与热迁移。
+   - 数据目录切换、恢复默认与热迁移；恢复默认前保留旧默认目录的带时间戳备份。
 
 ### 退出条件
 

@@ -10,13 +10,15 @@ import (
 )
 
 type settingsModel struct {
-	store         *settings.Store
-	setDockIcon   func(bool) error
-	setAutoStart  func(bool) error
-	setAppearance func(string) error
-	dataDir       func() string
-	changeDataDir func(string) error
-	restart       func()
+	store             *settings.Store
+	setDockIcon       func(bool) error
+	setAutoStart      func(bool) error
+	setAppearance     func(string) error
+	dataDir           func() string
+	changeDataDir     func(string) error
+	restoreDataDir    func() error
+	canRestoreDataDir func() bool
+	restart           func()
 }
 
 func newSettingsModel(store *settings.Store) *settingsModel {
@@ -33,6 +35,7 @@ func (m *settingsModel) Load() macos.SettingsValues {
 		AutoStart:            m.store.Snapshot().General.AutoStart,
 		Theme:                string(m.store.Snapshot().Appearance.Theme),
 		DataDir:              m.currentDataDir(),
+		CanRestoreDataDir:    m.canRestoreDataDir != nil && m.canRestoreDataDir(),
 		CopyPlain:            cfg.Content.CopyPlain,
 		CopyThenHideWindow:   cfg.Content.CopyThenHideWindow,
 		PastePlain:           cfg.Content.PastePlain,
@@ -61,6 +64,18 @@ func (m *settingsModel) Apply(path string, value any) error {
 			return fmt.Errorf("当前环境无法更改数据目录")
 		}
 		if err := m.changeDataDir(parent); err != nil {
+			return err
+		}
+		if m.restart != nil {
+			m.restart()
+		}
+		return nil
+	}
+	if path == "general.defaultDataDir" {
+		if m.restoreDataDir == nil {
+			return fmt.Errorf("当前环境无法恢复默认数据目录")
+		}
+		if err := m.restoreDataDir(); err != nil {
 			return err
 		}
 		if m.restart != nil {

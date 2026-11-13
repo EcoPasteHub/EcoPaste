@@ -225,3 +225,85 @@ func TestChangeDataDirRemovesTargetOnFailure(t *testing.T) {
 		t.Errorf("manifest moved after failure: %q", resolved.Root)
 	}
 }
+
+func TestRestoreDefaultDataDir(t *testing.T) {
+	ctx := context.Background()
+	base := t.TempDir()
+	defaultPaths, err := storage.Resolve(base, storage.Dev)
+	if err != nil {
+		t.Fatal(err)
+	}
+	custom := filepath.Join(base, "EcoPasteData", storage.Dev)
+	if err := storage.SetRoot(base, storage.Dev, custom); err != nil {
+		t.Fatal(err)
+	}
+	customPaths, err := storage.Resolve(base, storage.Dev)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(customPaths.Config, "settings.json"), []byte(`{"general":{}}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(customPaths.Resources, "a.png"), []byte("png"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(customPaths.State, "window-state.json"), []byte(`{}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	db, err := database.Open(filepath.Join(customPaths.DB, "clipboard.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if _, _, err := db.Upsert(ctx, &database.Item{
+		Kind: database.KindText, Content: "restored smoke", Platform: "macos",
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	runtime := &clipboardRuntime{db: db, paths: customPaths}
+	restored, err := runtime.restoreDefaultDataDir(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if restored.Root != defaultPaths.Root {
+		t.Fatalf("root = %q, want %q", restored.Root, defaultPaths.Root)
+	}
+	if _, err := os.Stat(customPaths.Root); err != nil {
+		t.Errorf("custom source was removed: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(restored.Config, "settings.json")); err != nil {
+		t.Errorf("settings not restored: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(restored.Resources, "a.png")); err != nil {
+		t.Errorf("resource not restored: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(restored.State, "window-state.json")); err != nil {
+		t.Errorf("window state not restored: %v", err)
+	}
+	copied, err := database.Open(filepath.Join(restored.DB, "clipboard.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer copied.Close()
+	counts, err := copied.Counts(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if counts.Items != 1 {
+		t.Errorf("restored counts = %+v", counts)
+	}
+	backups, err := filepath.Glob(filepath.Join(base, storage.Dev+"-backup-*"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(backups) != 1 {
+		t.Fatalf("backups = %v", backups)
+	}
+	if _, err := os.Stat(filepath.Join(backups[0], "storage.json")); err != nil {
+		t.Errorf("backup manifest missing: %v", err)
+	}
+	if _, err := runtime.restoreDefaultDataDir(ctx); err == nil {
+		t.Error("restored default directory was accepted again")
+	}
+}

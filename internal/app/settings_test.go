@@ -147,6 +147,27 @@ func TestSettingsModelChangesDataDir(t *testing.T) {
 	}
 }
 
+func TestSettingsModelRestoresDefaultDataDir(t *testing.T) {
+	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	model := newSettingsModel(store)
+	restored := false
+	restarted := false
+	model.restoreDataDir = func() error {
+		restored = true
+		return nil
+	}
+	model.restart = func() { restarted = true }
+	if err := model.Apply("general.defaultDataDir", true); err != nil {
+		t.Fatal(err)
+	}
+	if !restored || !restarted {
+		t.Errorf("restored = %t, restarted = %t", restored, restarted)
+	}
+}
+
 func TestSettingsModelAppliesAutostart(t *testing.T) {
 	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
 	if err != nil {

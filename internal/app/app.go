@@ -108,6 +108,22 @@ func Run(app *core.Scope) {
 					_, err := runtime.changeDataDir(ctx, parent)
 					return err
 				}
+				model.canRestoreDataDir = func() bool {
+					if runtime == nil {
+						return false
+					}
+					paths, err := storage.Resolve(runtime.paths.Base, storage.Mode())
+					return err == nil && paths.Root != paths.Bootstrap
+				}
+				model.restoreDataDir = func() error {
+					if runtime == nil {
+						return fmt.Errorf("剪贴板服务未启动")
+					}
+					ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+					defer cancel()
+					_, err := runtime.restoreDefaultDataDir(ctx)
+					return err
+				}
 				model.restart = func() {
 					app.Post(func() {
 						macos.ShowMessage("数据目录已更改",
