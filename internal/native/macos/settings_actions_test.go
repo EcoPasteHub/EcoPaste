@@ -4,7 +4,7 @@ package macos
 
 import "testing"
 
-func TestActionMoveEnabled(t *testing.T) {
+func TestOrderMoveEnabled(t *testing.T) {
 	cases := []struct {
 		selected int
 		total    int
@@ -18,9 +18,9 @@ func TestActionMoveEnabled(t *testing.T) {
 		{selected: 3, total: 3},
 	}
 	for _, tc := range cases {
-		up, down := actionMoveEnabled(tc.selected, tc.total)
+		up, down := orderMoveEnabled(tc.selected, tc.total)
 		if up != tc.up || down != tc.down {
-			t.Errorf("actionMoveEnabled(%d, %d) = %v, %v; want %v, %v",
+			t.Errorf("orderMoveEnabled(%d, %d) = %v, %v; want %v, %v",
 				tc.selected, tc.total, up, down, tc.up, tc.down)
 		}
 	}

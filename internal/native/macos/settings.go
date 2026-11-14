@@ -123,6 +123,8 @@ type SettingsView struct {
 	actionDown            objc.ID
 	actions               []settingsAction
 	captureTable          objc.ID
+	captureUp             objc.ID
+	captureDown           objc.ID
 	captureOrder          []string
 	displayPreviewBox     objc.ID
 	displayPreviewDivider objc.ID

@@ -98,15 +98,19 @@ func (v *SettingsView) buildCaptureOrder(content objc.ID) {
 		nsString(i18n.T(i18n.SettingsMoveUp)), settingsCaptureTarget, sel("captureUpPressed:"))
 	up.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: settingsCaptureButtonX, Y: 72}, Size: CGSize{Width: settingsCaptureButtonWidth, Height: 28}})
 	up.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsMoveUpA11y)))
+	up.Send(sel("setEnabled:"), false)
 	content.Send(sel("addSubview:"), up)
 	settingsViews[up] = v
+	v.captureUp = up
 
 	down := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
 		nsString(i18n.T(i18n.SettingsMoveDown)), settingsCaptureTarget, sel("captureDownPressed:"))
 	down.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: settingsCaptureButtonX, Y: 38}, Size: CGSize{Width: settingsCaptureButtonWidth, Height: 28}})
 	down.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsMoveDownA11y)))
+	down.Send(sel("setEnabled:"), false)
 	content.Send(sel("addSubview:"), down)
 	settingsViews[down] = v
+	v.captureDown = down
 }
 
 func (v *SettingsView) applyCaptureOrder(values SettingsValues) {
@@ -144,6 +148,7 @@ func (v *SettingsView) applyCaptureOrder(values SettingsValues) {
 	if selected >= 0 {
 		v.selectCaptureOrder(selected)
 	}
+	v.updateCaptureMoveButtons()
 }
 
 func (v *SettingsView) selectCaptureOrder(row int) {
@@ -153,6 +158,21 @@ func (v *SettingsView) selectCaptureOrder(row int) {
 	indexes := objc.ID(class("NSIndexSet")).Send(sel("indexSetWithIndex:"), int64(row))
 	v.captureTable.Send(sel("selectRowIndexes:byExtendingSelection:"), indexes, false)
 	v.captureTable.Send(sel("scrollRowToVisible:"), int64(row))
+	v.updateCaptureMoveButtons()
+}
+
+func (v *SettingsView) updateCaptureMoveButtons() {
+	row := -1
+	if v.captureTable != 0 {
+		row = int(objc.Send[int64](v.captureTable, sel("selectedRow")))
+	}
+	up, down := orderMoveEnabled(row, len(v.captureOrder))
+	if v.captureUp != 0 {
+		v.captureUp.Send(sel("setEnabled:"), up)
+	}
+	if v.captureDown != 0 {
+		v.captureDown.Send(sel("setEnabled:"), down)
+	}
 }
 
 func (v *SettingsView) moveCaptureOrder(delta int) {
@@ -210,6 +230,15 @@ func registerSettingsCaptureTargets() {
 					nsString(i18n.Tf(i18n.SettingsPriorityLabel, row+1, title)))
 			}
 			return cell
+		}},
+		{Cmd: sel("tableViewSelectionDidChange:"), Fn: func(_ objc.ID, _ objc.SEL, notification objc.ID) {
+			if notification == 0 {
+				return
+			}
+			table := notification.Send(sel("object"))
+			if v := settingsCaptureByTable[table]; v != nil {
+				v.updateCaptureMoveButtons()
+			}
 		}},
 		{Cmd: sel("captureUpPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
 			if v := settingsViews[sender]; v != nil {

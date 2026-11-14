@@ -206,7 +206,7 @@ func (v *SettingsView) updateMoveButtons() {
 	if v.actionsTable != 0 {
 		row = int(objc.Send[int64](v.actionsTable, sel("selectedRow")))
 	}
-	up, down := actionMoveEnabled(row, len(v.actions))
+	up, down := orderMoveEnabled(row, len(v.actions))
 	if v.actionUp != 0 {
 		v.actionUp.Send(sel("setEnabled:"), up)
 	}
@@ -215,7 +215,7 @@ func (v *SettingsView) updateMoveButtons() {
 	}
 }
 
-func actionMoveEnabled(selected, total int) (bool, bool) {
+func orderMoveEnabled(selected, total int) (bool, bool) {
 	if selected < 0 || selected >= total {
 		return false, false
 	}
