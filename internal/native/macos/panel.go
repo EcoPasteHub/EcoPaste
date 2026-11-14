@@ -508,6 +508,7 @@ func (p *Panel) SetProp(name string, value any) {
 		p.hideHover()
 		p.rows = rows
 		p.table.Send(sel("reloadData"))
+		p.syncTableFrame()
 		p.restoreSelection()
 		p.updateStatus()
 	case "total":
@@ -554,6 +555,7 @@ func (p *Panel) SetProp(name string, value any) {
 			p.display = display
 			p.table.Send(sel("setRowHeight:"), tableRowHeight(display))
 			p.table.Send(sel("reloadData"))
+			p.syncTableFrame()
 		}
 	case "actions":
 		if actions, ok := value.([]string); ok {

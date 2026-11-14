@@ -4,9 +4,9 @@ package macos
 
 import "github.com/ebitengine/purego/objc"
 
-// panelBackdropClass draws the milky lift over the window's frosted
-// material: light over a light appearance, a faint white veil in dark,
-// so the panel keeps its glass instead of turning into a black slab.
+// panelBackdropClass only makes the panel's own surface translucent. The
+// frosted material belongs to the window; painting a fill here would put
+// a second, opaque layer in front of the desktop blur.
 var panelBackdropClass objc.Class
 
 func registerPanelBackdrop() error {
@@ -14,23 +14,12 @@ func registerPanelBackdrop() error {
 	panelBackdropClass, err = objc.RegisterClass("EcoPastePanelBackdrop", class("NSView"), nil, nil,
 		[]objc.MethodDef{
 			{Cmd: sel("drawRect:"), Fn: func(self objc.ID, _ objc.SEL, _ CGRect) {
-				fillRoundedRect(bounds(self), 0, panelBackdropTint(self))
-			}},
-			{Cmd: sel("viewDidChangeEffectiveAppearance"), Fn: func(self objc.ID, _ objc.SEL) {
-				sendSuper[objc.ID](self, panelBackdropClass, sel("viewDidChangeEffectiveAppearance"))
-				self.Send(sel("setNeedsDisplay:"), true)
+				objc.ID(classNSColor).Send(sel("clearColor")).Send(sel("setFill"))
+				objc.ID(class("NSBezierPath")).Send(sel("fillRect:"), bounds(self))
 			}},
 			{Cmd: sel("hitTest:"), Fn: func(_ objc.ID, _ objc.SEL, _ CGPoint) objc.ID { return 0 }},
 		})
 	return err
-}
-
-func panelBackdropTint(view objc.ID) objc.ID {
-	color := objc.ID(classNSColor).Send(sel("whiteColor"))
-	if appearanceIsDark(view) {
-		return color.Send(sel("colorWithAlphaComponent:"), 0.04)
-	}
-	return color.Send(sel("colorWithAlphaComponent:"), 0.18)
 }
 
 // stylePanelWindow rounds the panel window's own surface so the history

@@ -51,10 +51,7 @@ func layoutPanel(p *Panel, width, height float64) {
 	scrollHeight := searchY - 6 - scrollY
 	setFrame(p.scroll, 0, scrollY, width, scrollHeight)
 	if p.table != 0 {
-		setFrame(p.table, 0, 0, width, scrollHeight)
-		if column := p.table.Send(sel("tableColumnWithIdentifier:"), nsString("history")); column != 0 {
-			column.Send(sel("setWidth:"), width)
-		}
+		p.syncTableFrame()
 	}
 	p.layoutOnboarding(width, height)
 

@@ -51,6 +51,25 @@ func TestHistoryRowIncludesMetadata(t *testing.T) {
 	}
 }
 
+func TestHistoryRowSplitsTextPreview(t *testing.T) {
+	row := historyRow(HistoryItem{
+		ID:    "1",
+		Kind:  "text",
+		Title: "first line\nsecond line\nthird line",
+	})
+	if row.Title != "first line" || row.Preview != "second line third line" {
+		t.Errorf("title = %q, preview = %q", row.Title, row.Preview)
+	}
+	if row.Detail != "文本" {
+		t.Errorf("detail = %q", row.Detail)
+	}
+
+	single := historyRow(HistoryItem{ID: "2", Kind: "text", Title: "single line"})
+	if single.Title != "single line" || single.Preview != "" {
+		t.Errorf("single title = %q, preview = %q", single.Title, single.Preview)
+	}
+}
+
 func TestFileTitleLimitsNames(t *testing.T) {
 	got := FileTitle([]string{"/tmp/a.txt", "/tmp/b.txt", "/tmp/c.txt"}, 2)
 	if got != "a.txt、b.txt 等 3 个" {

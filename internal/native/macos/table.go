@@ -14,6 +14,7 @@ type HistoryRow struct {
 	Kind           string
 	SubKind        string
 	Title          string
+	Preview        string
 	Detail         string
 	ImagePath      string
 	SourceIconPath string
@@ -29,10 +30,24 @@ const (
 	rowTitleTag    = 101
 	rowDetailTag   = 102
 	rowBadgeTag    = 103
+	rowPreviewTag  = 104
 	rowIdentifier  = "ecopaste.history-row"
 	columnIdentity = "history"
-	rowHeight      = 58.0
+	rowHeight      = 62.0
+	rowSpacing     = 6.0
+
+	// NSTableViewStylePlain removes the leading content padding that
+	// NSTableViewStyleFullWidth adds to every row.
+	nsTableViewStylePlain = 4
 )
+
+type edgeInset struct {
+	Top, Left, Bottom, Right float64
+}
+
+func edgeInsets(top, left, bottom, right float64) edgeInset {
+	return edgeInset{Top: top, Left: left, Bottom: bottom, Right: right}
+}
 
 const (
 	keyF             uint16 = 3
@@ -239,7 +254,9 @@ func registerHistoryTargets() {
 			for index := range p.rows {
 				cell := table.Send(sel("viewAtColumn:row:makeIfNecessary:"), int64(0), int64(index), false)
 				if cell != 0 {
-					setHistoryRowTextColors(cell, int64(index) == row)
+					selected := int64(index) == row
+					setHistoryRowTextColors(cell, selected)
+					setHistoryRowSelected(cell, selected)
 				}
 			}
 		}},
@@ -360,21 +377,23 @@ func newHistoryTable(p *Panel) objc.ID {
 	scroll.Send(sel("setAutohidesScrollers:"), true)
 	scroll.Send(sel("setDrawsBackground:"), false)
 	scroll.Send(sel("setBorderType:"), int64(0))
+	scroll.Send(sel("setAutomaticallyAdjustsContentInsets:"), false)
+	scroll.Send(sel("setContentInsets:"), edgeInsets(0, 0, 0, 0))
 
 	table := objc.ID(historyTableClass).Send(sel("new"))
 	p.table = table
 	table.Send(sel("setBackgroundColor:"), objc.ID(classNSColor).Send(sel("clearColor")))
-	table.Send(sel("setRowHeight:"), rowHeight)
-	table.Send(sel("setIntercellSpacing:"), CGSize{Width: 0, Height: 6})
+	table.Send(sel("setRowHeight:"), tableRowHeight(p.display))
+	table.Send(sel("setIntercellSpacing:"), CGSize{Width: 0, Height: rowSpacing})
 	table.Send(sel("setHeaderView:"), objc.ID(0))
 	table.Send(sel("setGridStyleMask:"), int64(0))
 	table.Send(sel("setAllowsMultipleSelection:"), false)
 	table.Send(sel("setAllowsEmptySelection:"), true)
 	table.Send(sel("setAllowsColumnReordering:"), false)
 	table.Send(sel("setAllowsColumnResizing:"), false)
-	table.Send(sel("setSelectionHighlightStyle:"), int64(1))
+	table.Send(sel("setSelectionHighlightStyle:"), int64(0))
 	table.Send(sel("setFocusRingType:"), int64(1))
-	table.Send(sel("setStyle:"), int64(3))
+	table.Send(sel("setStyle:"), int64(nsTableViewStylePlain))
 	table.Send(sel("setDraggingSourceOperationMask:forLocal:"), uint64(1), true)
 	table.Send(sel("setDraggingSourceOperationMask:forLocal:"), uint64(1), false)
 	table.Send(sel("setDelegate:"), historyTarget)
@@ -398,6 +417,36 @@ func newHistoryTable(p *Panel) objc.ID {
 	scroll.Send(sel("setDocumentView:"), table)
 	panelsByTable[table] = p
 	return scroll
+}
+
+// syncTableFrame keeps the table's document height in step with the rows
+// it holds. Sizing it to the viewport would leave nothing to scroll,
+// which made wheel scrolling work only until the next layout pass.
+func (p *Panel) syncTableFrame() {
+	if p.table == 0 || p.scroll == 0 {
+		return
+	}
+	viewport := bounds(p.scroll.Send(sel("contentView")))
+	rowHeight := objc.Send[float64](p.table, sel("rowHeight"))
+	if rowHeight <= 0 {
+		rowHeight = tableRowHeight(p.display)
+	}
+	spacing := objc.Send[CGSize](p.table, sel("intercellSpacing")).Height
+	height := historyTableContentHeight(len(p.rows), rowHeight, spacing)
+	if height < viewport.Size.Height {
+		height = viewport.Size.Height
+	}
+	setFrame(p.table, 0, 0, viewport.Size.Width, height)
+	if column := p.table.Send(sel("tableColumnWithIdentifier:"), nsString(columnIdentity)); column != 0 {
+		column.Send(sel("setWidth:"), viewport.Size.Width)
+	}
+}
+
+func historyTableContentHeight(rows int, rowHeight, spacing float64) float64 {
+	if rows <= 0 {
+		return 0
+	}
+	return float64(rows)*rowHeight + float64(rows-1)*spacing
 }
 
 func cancelPendingClick(table objc.ID) {

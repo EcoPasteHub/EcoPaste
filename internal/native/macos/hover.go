@@ -212,6 +212,7 @@ func (p *Panel) applyHoveredRow(row int, hovered bool) {
 	}
 	cell := p.table.Send(sel("viewAtColumn:row:makeIfNecessary:"), int64(0), int64(row), false)
 	if cell != 0 {
+		setHistoryRowHovered(cell, hovered)
 		setRowTrailingInset(cell, inset)
 		layoutHistoryRow(cell, objc.Send[CGRect](cell, sel("bounds")).Size)
 	}

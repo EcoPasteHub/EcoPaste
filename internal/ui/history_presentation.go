@@ -44,13 +44,13 @@ func openSelection(opening HistoryOpenBehavior, filter, group string) (string, s
 }
 
 func historyRow(item HistoryItem) macos.HistoryRow {
-	title := strings.TrimSpace(item.Title)
+	title, preview := historyRowTitlePreview(item)
 	if title == "" {
 		title = kindName(item.Kind)
 	}
 	detail := make([]string, 0, 5)
 	detail = append(detail, typeName(item.Kind, item.SubKind))
-	if item.FileSummary != "" {
+	if item.FileSummary != "" && item.Kind != "image" {
 		detail = append(detail, item.FileSummary)
 	}
 	if item.SourceApp != "" {
@@ -71,6 +71,7 @@ func historyRow(item HistoryItem) macos.HistoryRow {
 		Kind:           item.Kind,
 		SubKind:        item.SubKind,
 		Title:          title,
+		Preview:        preview,
 		Detail:         strings.Join(detail, " · "),
 		ImagePath:      item.ImagePath,
 		SourceIconPath: item.SourceAppIcon,
@@ -80,6 +81,26 @@ func historyRow(item HistoryItem) macos.HistoryRow {
 		CanDelete:      item.CanDelete,
 		DeleteConfirm:  item.DeleteConfirm,
 	}
+}
+
+// historyRowTitlePreview splits a text summary into a headline and the
+// remaining body, so cards show a clear hierarchy instead of one dense
+// block of copied text.
+func historyRowTitlePreview(item HistoryItem) (string, string) {
+	title := strings.TrimSpace(item.Title)
+	if item.Kind != "text" || title == "" || strings.TrimSpace(item.Note) != "" {
+		return title, ""
+	}
+	lines := strings.Split(title, "\n")
+	headline := strings.TrimSpace(lines[0])
+	body := strings.TrimSpace(strings.Join(lines[1:], " "))
+	if body == "" {
+		return title, ""
+	}
+	if headline == "" {
+		return body, ""
+	}
+	return headline, body
 }
 
 func kindName(kind string) string {
