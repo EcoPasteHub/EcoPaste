@@ -35,15 +35,17 @@ func (v *SettingsView) buildApps() {
 		i18n.T(i18n.SettingsAppsKeywords), "source apps filter exclude privacy",
 		CGRect{Origin: CGPoint{X: 12, Y: 24}, Size: CGSize{Width: tabContentW - 24, Height: 420}})
 
-	intro := objc.ID(classNSTextField).Send(sel("labelWithString:"),
+	v.addSectionLabel(content, 438, i18n.T(i18n.SettingsAppsSection))
+	intro := objc.ID(classNSTextField).Send(sel("wrappingLabelWithString:"),
 		nsString(i18n.T(i18n.SettingsAppsIntro)))
 	intro.Send(sel("setFont:"), systemFont(11))
 	intro.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
-	intro.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 438}, Size: CGSize{Width: tabContentW - 48, Height: 18}})
+	intro.Send(sel("setPreferredMaxLayoutWidth:"), tabContentW-48)
+	intro.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 408}, Size: CGSize{Width: tabContentW - 48, Height: 28}})
 	content.Send(sel("addSubview:"), intro)
 
 	scroll := objc.ID(class("NSScrollView")).Send(sel("new"))
-	scroll.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 20, Y: 84}, Size: CGSize{Width: tabContentW - 40, Height: 340}})
+	scroll.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 20, Y: 84}, Size: CGSize{Width: tabContentW - 40, Height: 310}})
 	scroll.Send(sel("setHasVerticalScroller:"), true)
 	scroll.Send(sel("setAutohidesScrollers:"), true)
 	scroll.Send(sel("setDrawsBackground:"), false)
@@ -83,7 +85,7 @@ func (v *SettingsView) buildApps() {
 	empty.Send(sel("setFont:"), systemFont(12))
 	empty.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
 	empty.Send(sel("setAlignment:"), int64(2))
-	empty.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 244}, Size: CGSize{Width: tabContentW - 48, Height: 20}})
+	empty.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 229}, Size: CGSize{Width: tabContentW - 48, Height: 20}})
 	empty.Send(sel("setHidden:"), true)
 	content.Send(sel("addSubview:"), empty)
 	v.appsEmpty = empty

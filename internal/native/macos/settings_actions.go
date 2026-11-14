@@ -77,15 +77,17 @@ func (v *SettingsView) buildActions() {
 		i18n.T(i18n.SettingsHoverKeywords), "hover actions menu buttons",
 		CGRect{Origin: CGPoint{X: 12, Y: 24}, Size: CGSize{Width: tabContentW - 24, Height: 420}})
 
-	intro := objc.ID(classNSTextField).Send(sel("labelWithString:"),
+	v.addSectionLabel(content, 438, i18n.T(i18n.SettingsHoverActions))
+	intro := objc.ID(classNSTextField).Send(sel("wrappingLabelWithString:"),
 		nsString(i18n.T(i18n.SettingsHoverIntro)))
 	intro.Send(sel("setFont:"), systemFont(11))
 	intro.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
-	intro.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 438}, Size: CGSize{Width: tabContentW - 48, Height: 18}})
+	intro.Send(sel("setPreferredMaxLayoutWidth:"), tabContentW-48)
+	intro.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 408}, Size: CGSize{Width: tabContentW - 48, Height: 28}})
 	content.Send(sel("addSubview:"), intro)
 
 	scroll := objc.ID(class("NSScrollView")).Send(sel("new"))
-	scroll.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 20, Y: 82}, Size: CGSize{Width: tabContentW - 40, Height: 342}})
+	scroll.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 20, Y: 82}, Size: CGSize{Width: tabContentW - 40, Height: 312}})
 	scroll.Send(sel("setHasVerticalScroller:"), true)
 	scroll.Send(sel("setAutohidesScrollers:"), true)
 	scroll.Send(sel("setDrawsBackground:"), false)
@@ -124,14 +126,14 @@ func (v *SettingsView) buildActions() {
 	up := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
 		nsString(i18n.T(i18n.SettingsMoveUp)), settingsActionsTarget, sel("actionUpPressed:"))
 	up.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 204, Y: 34}, Size: CGSize{Width: 90, Height: 30}})
-	up.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsMoveUpA11y)))
+	up.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsActionMoveUpA11y)))
 	content.Send(sel("addSubview:"), up)
 	settingsViews[up] = v
 
 	down := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
 		nsString(i18n.T(i18n.SettingsMoveDown)), settingsActionsTarget, sel("actionDownPressed:"))
 	down.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 104, Y: 34}, Size: CGSize{Width: 90, Height: 30}})
-	down.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsMoveDownA11y)))
+	down.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsActionMoveDownA11y)))
 	content.Send(sel("addSubview:"), down)
 	settingsViews[down] = v
 }
