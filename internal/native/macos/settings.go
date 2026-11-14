@@ -378,17 +378,18 @@ func (v *SettingsView) buildCapture() {
 
 func (v *SettingsView) buildWindow() {
 	content := v.newTab("window", settingsTabTitle("window"))
-	y := 408.0
+	v.addSectionLabel(content, 438, i18n.T(i18n.SettingsWindowOpen))
+	y := 402.0
 	v.addSwitch(content, y, i18n.T(i18n.SettingsScrollTop), "window.scrollToTopOnOpen",
 		func(s SettingsValues) bool { return s.ScrollToTopOnOpen })
-	v.addPopup(content, y-42, i18n.T(i18n.SettingsSelectRange), "window.selectRangeOnOpen",
+	v.addPopup(content, y-48, i18n.T(i18n.SettingsSelectRange), "window.selectRangeOnOpen",
 		[]settingsOption{
 			{Title: i18n.T(i18n.SettingsPreserve), Value: "preserve"},
 			{Title: i18n.T(i18n.SettingsAll), Value: "all"},
 			{Title: i18n.T(i18n.PanelFavorites), Value: "favorite"},
 		},
 		func(s SettingsValues) string { return s.RangeOnOpen })
-	v.addPopup(content, y-84, i18n.T(i18n.SettingsSelectCategory), "window.selectCategoryOnOpen",
+	v.addPopup(content, y-90, i18n.T(i18n.SettingsSelectCategory), "window.selectCategoryOnOpen",
 		[]settingsOption{
 			{Title: i18n.T(i18n.SettingsPreserve), Value: "preserve"},
 			{Title: i18n.T(i18n.SettingsAll), Value: "all"},
@@ -397,17 +398,19 @@ func (v *SettingsView) buildWindow() {
 			{Title: i18n.T(i18n.PanelFilesCategory), Value: "files"},
 		},
 		func(s SettingsValues) string { return s.CategoryOnOpen })
-	v.groupField = v.addPopup(content, y-126, i18n.T(i18n.SettingsSelectGroup), "window.selectGroupOnOpen",
+	v.groupField = v.addPopup(content, y-132, i18n.T(i18n.SettingsSelectGroup), "window.selectGroupOnOpen",
 		[]settingsOption{
 			{Title: i18n.T(i18n.SettingsPreserve), Value: "preserve"},
 			{Title: i18n.T(i18n.SettingsAllGroups), Value: "all"},
 		},
 		func(s SettingsValues) string { return s.GroupOnOpen })
+	v.addHint(content, 226, 32, i18n.T(i18n.SettingsWindowHint))
 }
 
 func (v *SettingsView) buildHistory() {
 	content := v.newTab("history", settingsTabTitle("history"))
-	y := 408.0
+	v.addSectionLabel(content, 438, i18n.T(i18n.SettingsHistoryCleanup))
+	y := 402.0
 	v.addPopup(content, y, i18n.T(i18n.SettingsRetention), "history.retention",
 		[]settingsOption{
 			{Title: i18n.T(i18n.SettingsRetentionForever), Value: "forever"},
@@ -422,16 +425,19 @@ func (v *SettingsView) buildHistory() {
 			{Title: i18n.T(i18n.SettingsRetention1Year), Value: "365d"},
 		},
 		func(s SettingsValues) string { return s.Retention })
-	v.addStepper(content, y-42, i18n.T(i18n.SettingsMaxCount), "history.maxCount",
+	v.addStepper(content, y-48, i18n.T(i18n.SettingsMaxCount), "history.maxCount",
 		100, 100000, i18n.T(i18n.SettingsUnitCount),
 		func(s SettingsValues) uint32 { return s.MaxCount })
-	v.addStepper(content, y-84, i18n.T(i18n.SettingsCleanupInterval), "history.cleanupIntervalHours",
+	v.addStepper(content, y-90, i18n.T(i18n.SettingsCleanupInterval), "history.cleanupIntervalHours",
 		1, 168, i18n.T(i18n.SettingsUnitHours),
 		func(s SettingsValues) uint32 { return s.CleanupIntervalHours })
-	v.addSwitch(content, y-134, i18n.T(i18n.SettingsCollectSecrets), "sensitive.collectSecrets",
+
+	v.addSectionLabel(content, 274, i18n.T(i18n.SettingsHistorySensitive))
+	v.addSwitch(content, 240, i18n.T(i18n.SettingsCollectSecrets), "sensitive.collectSecrets",
 		func(s SettingsValues) bool { return s.CollectSecrets })
-	v.addSwitch(content, y-176, i18n.T(i18n.SettingsRedactSecrets), "sensitive.redactSecrets",
+	v.addSwitch(content, 204, i18n.T(i18n.SettingsRedactSecrets), "sensitive.redactSecrets",
 		func(s SettingsValues) bool { return s.RedactSecrets })
+	v.addHint(content, 146, 32, i18n.T(i18n.SettingsHistoryHint))
 }
 
 func (v *SettingsView) buildPreview() {
@@ -612,7 +618,7 @@ func (v *SettingsView) applyTab(name string) {
 }
 
 func (v *SettingsView) addSwitch(content objc.ID, y float64, title, path string, get func(SettingsValues) bool) {
-	v.addLabel(content, y, title)
+	v.addLabelWidth(content, y, title, tabContentW-104)
 	v.addSearchEntry(content, title, path, "", "", rowHighlightFrame(y))
 	control := objc.ID(class("NSSwitch")).Send(sel("new"))
 	control.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 64, Y: y - 2}, Size: CGSize{Width: 40, Height: 24}})
@@ -676,11 +682,29 @@ func (v *SettingsView) addStepperRange(content objc.ID, y float64, title, path s
 }
 
 func (v *SettingsView) addLabel(content objc.ID, y float64, title string) objc.ID {
+	return v.addLabelWidth(content, y, title, tabContentW-300)
+}
+
+func (v *SettingsView) addLabelWidth(content objc.ID, y float64, title string, width float64) objc.ID {
 	label := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(title))
 	label.Send(sel("setFont:"), systemFont(13))
-	label.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: y}, Size: CGSize{Width: tabContentW - 300, Height: 18}})
+	label.Send(sel("setLineBreakMode:"), int64(4))
+	label.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: y}, Size: CGSize{Width: width, Height: 18}})
 	content.Send(sel("addSubview:"), label)
 	return label
+}
+
+func (v *SettingsView) addHint(content objc.ID, y, height float64, text string) objc.ID {
+	hint := objc.ID(classNSTextField).Send(sel("wrappingLabelWithString:"), nsString(text))
+	hint.Send(sel("setFont:"), systemFont(11))
+	hint.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
+	hint.Send(sel("setPreferredMaxLayoutWidth:"), tabContentW-48)
+	hint.Send(sel("setFrame:"), CGRect{
+		Origin: CGPoint{X: 24, Y: y},
+		Size:   CGSize{Width: tabContentW - 48, Height: height},
+	})
+	content.Send(sel("addSubview:"), hint)
+	return hint
 }
 
 func (v *SettingsView) addField(content, control objc.ID, field *settingsField) {
