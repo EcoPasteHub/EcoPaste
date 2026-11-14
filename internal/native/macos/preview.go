@@ -4,6 +4,7 @@ package macos
 
 import (
 	"math"
+	"strings"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/ebitengine/purego/objc"
@@ -87,6 +88,15 @@ func (p *Panel) buildPreview() {
 	p.preview = objc.ID(previewViewClass).Send(sel("new"))
 	p.preview.Send(sel("setAutoresizesSubviews:"), false)
 
+	backdrop := objc.ID(class("NSVisualEffectView")).Send(sel("new"))
+	backdrop.Send(sel("setMaterial:"), int64(10))
+	backdrop.Send(sel("setBlendingMode:"), int64(1))
+	backdrop.Send(sel("setState:"), int64(1))
+	backdrop.Send(sel("setAutoresizingMask:"), int64(18))
+	p.preview.Send(sel("addSubview:"), backdrop)
+	p.previewBackdrop = backdrop
+	backdrop.Send(sel("release"))
+
 	p.previewTitle = objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(""))
 	p.previewTitle.Send(sel("setTag:"), int64(previewTitleTag))
 	p.previewTitle.Send(sel("setFont:"), objc.ID(classNSFont).Send(sel("boldSystemFontOfSize:"), 14.0))
@@ -118,6 +128,7 @@ func (p *Panel) buildPreview() {
 	if container := p.previewText.Send(sel("textContainer")); container != 0 {
 		container.Send(sel("setWidthTracksTextView:"), true)
 		container.Send(sel("setContainerSize:"), CGSize{Width: 10000, Height: 10000})
+		container.Send(sel("setLineFragmentPadding:"), 0.0)
 	}
 
 	p.previewScroll = objc.ID(class("NSScrollView")).Send(sel("new"))
@@ -283,17 +294,91 @@ func attributedPreview(text, format string) objc.ID {
 	if text == "" {
 		return 0
 	}
-	data := nsData([]byte(text))
 	switch format {
 	case "html":
-		return objc.ID(class("NSAttributedString")).Send(sel("alloc")).
-			Send(sel("initWithHTML:documentAttributes:"), data, objc.ID(0))
+		return htmlPreview(text)
 	case "rtf":
+		data := nsData([]byte(text))
 		return objc.ID(class("NSAttributedString")).Send(sel("alloc")).
 			Send(sel("initWithRTF:documentAttributes:"), data, objc.ID(0))
 	default:
 		return 0
 	}
+}
+
+// htmlPreview imports clipboard HTML and then flattens the parts AppKit
+// repeats at draw time. The importer already inserts list markers into the
+// string, so leaving the paragraph text lists in place draws them twice.
+func htmlPreview(text string) objc.ID {
+	data := nsData([]byte(normalizePreviewHTML(text)))
+	parsed := objc.ID(class("NSAttributedString")).Send(sel("alloc")).
+		Send(sel("initWithHTML:documentAttributes:"), data, objc.ID(0))
+	if parsed == 0 {
+		return 0
+	}
+	result := parsed.Send(sel("mutableCopy"))
+	parsed.Send(sel("release"))
+	if result == 0 {
+		return 0
+	}
+	full := NSRange{Length: uint64(objc.Send[uint](result, sel("length")))}
+	if full.Length > 0 {
+		flattenPreviewLists(result, full)
+		result.Send(sel("addAttribute:value:range:"), nsString("NSColor"),
+			objc.ID(classNSColor).Send(sel("labelColor")), full)
+		flattenPreviewLinks(result, full)
+	}
+	return result.Send(sel("autorelease"))
+}
+
+type NSRange struct {
+	Location uint64
+	Length   uint64
+}
+
+func flattenPreviewLists(text objc.ID, full NSRange) {
+	block := objc.NewBlock(func(_ objc.Block, value objc.ID, r NSRange, _ *bool) {
+		if value == 0 || r.Length == 0 {
+			return
+		}
+		style := value.Send(sel("mutableCopy"))
+		style.Send(sel("setTextLists:"), objc.ID(class("NSArray")).Send(sel("array")))
+		style.Send(sel("setLineSpacing:"), 2.0)
+		style.Send(sel("setParagraphSpacing:"), 6.0)
+		text.Send(sel("addAttribute:value:range:"), nsString("NSParagraphStyle"), style, r)
+		style.Send(sel("release"))
+	})
+	text.Send(sel("enumerateAttribute:inRange:options:usingBlock:"),
+		nsString("NSParagraphStyle"), full, uint64(0), objc.ID(block))
+	block.Release()
+}
+
+func flattenPreviewLinks(text objc.ID, full NSRange) {
+	block := objc.NewBlock(func(_ objc.Block, value objc.ID, r NSRange, _ *bool) {
+		if value == 0 || r.Length == 0 {
+			return
+		}
+		text.Send(sel("addAttribute:value:range:"), nsString("NSColor"),
+			objc.ID(classNSColor).Send(sel("linkColor")), r)
+	})
+	text.Send(sel("enumerateAttribute:inRange:options:usingBlock:"),
+		nsString("NSLink"), full, uint64(0), objc.ID(block))
+	block.Release()
+}
+
+// normalizePreviewHTML removes the paragraph wrappers the clipboard HTML
+// routinely puts inside list items, so imported list items keep one
+// paragraph style instead of nested styles with their own spacing.
+func normalizePreviewHTML(text string) string {
+	replacements := []struct{ old, new string }{
+		{"<li><p>", "<li>"},
+		{"</p></li>", "</li>"},
+		{"<li><p ", "<li "},
+	}
+	for _, replacement := range replacements {
+		text = strings.ReplaceAll(text, replacement.old, replacement.new)
+	}
+	return text
 }
 
 func previewSize(content PreviewContent, image objc.ID) (float64, float64) {
@@ -338,6 +423,7 @@ func (p *Panel) makeSearchFirstResponder() {
 
 func layoutPreview(p *Panel, width, height float64) {
 	setFrame(p.preview, 0, 0, width, height)
+	setFrame(p.previewBackdrop, 0, 0, width, height)
 	setFrame(p.previewTitle, previewPadding, height-30, width-2*previewPadding, 18)
 	setFrame(p.previewMeta, previewPadding, height-48, width-2*previewPadding, 15)
 	setFrame(p.previewDivider, previewPadding, height-57, width-2*previewPadding, 1)

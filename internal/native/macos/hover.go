@@ -43,13 +43,16 @@ var hoverSymbols = map[string]string{
 func (p *Panel) buildHoverBar() {
 	bar := objc.ID(class("NSVisualEffectView")).Send(sel("new"))
 	bar.Send(sel("setHidden:"), true)
-	bar.Send(sel("setMaterial:"), int64(6))
+	bar.Send(sel("setMaterial:"), int64(5))
 	bar.Send(sel("setBlendingMode:"), int64(1))
 	bar.Send(sel("setState:"), int64(1))
 	bar.Send(sel("setWantsLayer:"), true)
 	if layer := bar.Send(sel("layer")); layer != 0 {
-		layer.Send(sel("setCornerRadius:"), 7.0)
+		layer.Send(sel("setCornerRadius:"), 8.0)
 		layer.Send(sel("setMasksToBounds:"), true)
+		layer.Send(sel("setBorderWidth:"), 0.5)
+		border := objc.ID(classNSColor).Send(sel("separatorColor"))
+		layer.Send(sel("setBorderColor:"), border.Send(sel("CGColor")))
 	}
 	p.hoverBar = bar
 	panelsByControl[bar] = p
@@ -96,16 +99,20 @@ func (p *Panel) updateHover(row int) {
 		p.hideHover()
 		return
 	}
-	p.setHoveredRow(row)
-	p.setOriginalRow(row)
 	specs := hoverActionsFor(p.rows[row], p.actions)
 	if len(specs) == 0 {
+		p.clearHoverInset()
+		p.setHoveredRow(row)
+		p.setOriginalRow(row)
 		p.hideHoverBar()
 		return
 	}
+	width := 2*hoverBarPadding + hoverButtonW*float64(len(specs))
 	p.hoverRow = row
 	p.hoverSpecs = specs
-	width := 2*hoverBarPadding + hoverButtonW*float64(len(specs))
+	p.hoverBarWidth = width
+	p.setHoveredRow(row)
+	p.setOriginalRow(row)
 	rect := objc.Send[CGRect](p.table, sel("rectOfRow:"), int64(row))
 	rowRect := objc.Send[CGRect](p.view, sel("convertRect:fromView:"),
 		objc.Send[CGRect](p.table, sel("convertRect:toView:"), rect, objc.ID(0)), objc.ID(0))
@@ -128,6 +135,7 @@ func (p *Panel) updateHover(row int) {
 }
 
 func (p *Panel) hideHover() {
+	p.clearHoverInset()
 	p.setHoveredRow(-1)
 	p.hideHoverBar()
 	p.setOriginalRow(-1)
@@ -139,6 +147,7 @@ func (p *Panel) hideHoverBar() {
 	}
 	p.hoverRow = -1
 	p.hoverSpecs = nil
+	p.hoverBarWidth = 0
 }
 
 func (p *Panel) setOriginalRow(row int) {
@@ -182,10 +191,29 @@ func (p *Panel) applyHoveredRow(row int, hovered bool) {
 		return
 	}
 	rowView := p.table.Send(sel("rowViewAtRow:makeIfNecessary:"), int64(row), false)
-	if rowView == 0 {
+	if rowView != 0 {
+		setHistoryRowHovered(rowView, hovered)
+	}
+	inset := 0.0
+	if hovered && row == p.hoverRow && p.hoverBarWidth > 0 {
+		inset = p.hoverBarWidth + 14
+	}
+	cell := p.table.Send(sel("viewAtColumn:row:makeIfNecessary:"), int64(0), int64(row), false)
+	if cell != 0 {
+		setRowTrailingInset(cell, inset)
+		layoutHistoryRow(cell, objc.Send[CGRect](cell, sel("bounds")).Size)
+	}
+}
+
+func (p *Panel) clearHoverInset() {
+	if p.hoverRow < 0 {
 		return
 	}
-	setHistoryRowHovered(rowView, hovered)
+	cell := p.table.Send(sel("viewAtColumn:row:makeIfNecessary:"), int64(0), int64(p.hoverRow), false)
+	if cell != 0 {
+		setRowTrailingInset(cell, 0)
+		layoutHistoryRow(cell, objc.Send[CGRect](cell, sel("bounds")).Size)
+	}
 }
 
 func (p *Panel) runHoverAction(index int) {

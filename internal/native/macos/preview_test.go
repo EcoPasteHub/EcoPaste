@@ -5,6 +5,8 @@ package macos
 import (
 	"strings"
 	"testing"
+
+	"github.com/ebitengine/purego/objc"
 )
 
 func TestAttributedPreview(t *testing.T) {
@@ -22,6 +24,30 @@ func TestAttributedPreview(t *testing.T) {
 	}
 	if text := strings.TrimSpace(goString(rtf.Send(sel("string")))); text != "Hello world" {
 		t.Fatalf("RTF preview text = %q", text)
+	}
+}
+
+func TestNormalizePreviewHTMLFlattensListParagraphs(t *testing.T) {
+	input := `<ol start="1"><li><p>first</p></li><li><p>second</p></li></ol>`
+	want := `<ol start="1"><li>first</li><li>second</li></ol>`
+	if got := normalizePreviewHTML(input); got != want {
+		t.Fatalf("normalized HTML = %q, want %q", got, want)
+	}
+}
+
+func TestAttributedPreviewDropsImportedListMarkers(t *testing.T) {
+	attr := attributedPreview(`<ol><li><p>first</p></li><li><p>second</p></li></ol>`, "html")
+	if attr == 0 {
+		t.Fatal("HTML list preview did not produce an attributed string")
+	}
+	style := objc.Send[objc.ID](attr, sel("attribute:atIndex:effectiveRange:"),
+		nsString("NSParagraphStyle"), 0, objc.ID(0))
+	if style == 0 {
+		t.Fatal("list preview has no paragraph style")
+	}
+	lists := style.Send(sel("textLists"))
+	if lists != 0 && objc.Send[uint](lists, sel("count")) != 0 {
+		t.Fatalf("list markers remain: %d", objc.Send[uint](lists, sel("count")))
 	}
 }
 

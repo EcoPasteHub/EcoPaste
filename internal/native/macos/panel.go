@@ -45,6 +45,7 @@ type Panel struct {
 	previewTitle                  objc.ID
 	previewMeta                   objc.ID
 	previewDivider                objc.ID
+	previewBackdrop               objc.ID
 	previewText                   objc.ID
 	previewScroll                 objc.ID
 	previewImage                  objc.ID
@@ -83,6 +84,7 @@ type Panel struct {
 	hoverBar                      objc.ID
 	hoverButtons                  []objc.ID
 	hoverSpecs                    []hoverAction
+	hoverBarWidth                 float64
 	originalRow                   int
 	query                         string
 	rows                          []HistoryRow

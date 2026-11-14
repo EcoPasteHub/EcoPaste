@@ -70,12 +70,18 @@ func newHistoryRow() objc.ID {
 	cell.Send(sel("addSubview:"), badge)
 	badge.Send(sel("release"))
 
-	title := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(""))
+	title := objc.ID(classNSTextField).Send(sel("wrappingLabelWithString:"), nsString(""))
 	title.Send(sel("setTag:"), int64(rowTitleTag))
 	title.Send(sel("setFont:"), objc.ID(classNSFont).Send(sel("systemFontOfSize:weight:"), 13.0, 0.3))
 	title.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("labelColor")))
 	title.Send(sel("setLineBreakMode:"), int64(4))
 	title.Send(sel("setMaximumNumberOfLines:"), int64(1))
+	title.Send(sel("setUsesSingleLineMode:"), false)
+	title.Send(sel("setSelectable:"), false)
+	if titleCell := title.Send(sel("cell")); titleCell != 0 {
+		titleCell.Send(sel("setWraps:"), true)
+		titleCell.Send(sel("setTruncatesLastVisibleLine:"), true)
+	}
 	cell.Send(sel("addSubview:"), title)
 
 	detail := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(""))
@@ -84,6 +90,7 @@ func newHistoryRow() objc.ID {
 	detail.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
 	detail.Send(sel("setLineBreakMode:"), int64(4))
 	detail.Send(sel("setMaximumNumberOfLines:"), int64(1))
+	detail.Send(sel("setSelectable:"), false)
 	cell.Send(sel("addSubview:"), detail)
 
 	return cell.Send(sel("autorelease"))
@@ -97,15 +104,22 @@ func fillHistoryRow(cell objc.ID, row HistoryRow, display PanelDisplay, revealOr
 	titleText, detailText := historyRowText(row, display, revealOriginal)
 	title.Send(sel("setStringValue:"), nsString(titleText))
 	detail.Send(sel("setStringValue:"), nsString(detailText))
+	weight := 0.3
+	if row.Kind == "text" {
+		weight = 0
+	}
+	title.Send(sel("setFont:"), objc.ID(classNSFont).Send(sel("systemFontOfSize:weight:"), 13.0, weight))
 	lines := int64(1)
 	breakMode := int64(4)
+	maxLines := int64(1)
 	if row.Kind == "text" {
 		if display.TextMaxLines > 1 {
 			lines = int64(display.TextMaxLines)
+			maxLines = lines
 			breakMode = 0
 		}
 	}
-	title.Send(sel("setMaximumNumberOfLines:"), lines)
+	title.Send(sel("setMaximumNumberOfLines:"), maxLines)
 	title.Send(sel("setLineBreakMode:"), breakMode)
 	storeRowMetrics(cell, iconSizeForRow(row, display), int(lines))
 
@@ -243,6 +257,14 @@ func layoutHistoryRow(cell objc.ID, size CGSize) {
 	const badgeSize = 16.0
 	iconSize, lines := rowMetrics(cell)
 	textX := left + iconSize + 13
+	detailRight := size.Width - textX - historyRowTextInset
+	titleRight := detailRight - rowTrailingInset(cell)
+	if detailRight < 48 {
+		detailRight = 48
+	}
+	if titleRight < 48 {
+		titleRight = 48
+	}
 	icon := cell.Send(sel("viewWithTag:"), int64(rowIconTag))
 	badge := cell.Send(sel("viewWithTag:"), int64(rowBadgeTag))
 	title := cell.Send(sel("viewWithTag:"), int64(rowTitleTag))
@@ -259,8 +281,29 @@ func layoutHistoryRow(cell objc.ID, size CGSize) {
 	if detailY < 8 {
 		detailY = 8
 	}
-	setFrame(detail, textX, detailY, size.Width-textX-14, 15)
-	setFrame(title, textX, detailY+15+4, size.Width-textX-14, titleHeight)
+	setFrame(detail, textX, detailY, detailRight, 15)
+	setFrame(title, textX, detailY+15+4, titleRight, titleHeight)
+}
+
+const historyRowTextInset = 16.0
+
+var associatedRowTrailingKey byte
+
+func setRowTrailingInset(cell objc.ID, inset float64) {
+	if cell == 0 {
+		return
+	}
+	number := objc.ID(class("NSNumber")).Send(sel("numberWithDouble:"), inset)
+	objcSetAssociatedObject(uintptr(cell), uintptr(unsafe.Pointer(&associatedRowTrailingKey)),
+		uintptr(number), associationRetainNonatomic)
+}
+
+func rowTrailingInset(cell objc.ID) float64 {
+	value := objc.ID(objcGetAssociatedObject(uintptr(cell), uintptr(unsafe.Pointer(&associatedRowTrailingKey))))
+	if value == 0 {
+		return 0
+	}
+	return objc.Send[float64](value, sel("doubleValue"))
 }
 
 func drawHistoryRowBackground(self objc.ID, _ objc.SEL, rect CGRect) {
