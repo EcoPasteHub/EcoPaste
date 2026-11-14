@@ -102,7 +102,7 @@
 | A-17 | P0 | 删除条目 | `delete_clipboard_item` | 删除 DB 行 + 图片文件 | 已通过 | 右键/Delete 按设置确认；`TestDeleteRemovesImageFile`、`TestDeletePolicyHonorsProtectionSettings`；收藏/置顶删除入口按 `deleteFavoriteItems`/`deletePinnedItems`/`deleteFavoriteItemsOnlyInFavoriteGroup` 隐藏，普通/收藏/置顶分别使用独立确认开关 |
 | A-18 | P1 | 自动粘贴 | `Content.auto_paste` | 单击/双击、粘贴/复制、禁用 | 已通过 | `TestClickActionModes`；真机 `singleClickCopy` 单击写入、双击不触发，`doubleClickCopy` 单击不触发、双击写入 |
 | A-19 | P1 | 中键动作 | `Content.middle_click` | 粘贴/纯文本粘贴/复制/纯文本复制/禁用 | 已通过 | `TestMiddleClickActions`；真机合成中键点击列表行，在清空剪贴板后触发纯文本复制并写入目标内容；粘贴模式复用 A-06 辅助功能路径 |
-| A-20 | P1 | 悬停快捷动作 | `Content.item_actions` | 可配置、可排序 | 已通过 | `TestHoverActionsFollowConfiguredOrder`、`TestHoverActionsSkipInapplicableRows`、`TestHoverActionReflectsItemState`、`TestQuickActionsKeepConfiguredOrder`、`TestSettingsModelAppliesItemActions`；真机悬停行显示配置按钮并即时刷新状态；设置“动作”页勾选“编辑备注”后 `itemActions` 立即落盘，上移后 `itemActionOrder` 更新且启用的动作按新顺序排列 |
+| A-20 | P1 | 悬停快捷动作 | `Content.item_actions` | 可配置、可排序 | 已通过 | `TestHoverActionsFollowConfiguredOrder`、`TestHoverActionsSkipInapplicableRows`、`TestHoverActionReflectsItemState`、`TestQuickActionsKeepConfiguredOrder`、`TestSettingsModelAppliesItemActions`；真机悬停行显示配置按钮并即时刷新状态；设置“动作”页勾选“编辑备注”后 `itemActions` 立即落盘，上移后 `itemActionOrder` 更新且启用的动作按新顺序排列；动作条使用 `NSPopover` 材质圆角浮层，图标尺寸与点击区域同步放大，选中行上仍保持清晰边界 |
 | A-21 | P1 | 复制后隐藏 | `copyThenHideWindow` | 复制后按设置隐藏，固定窗口时保持可见 | 已通过 | `TestHideAfterActionRespectsPinnedPanel`；真机固定后复制面板保持，取消固定后复制面板隐藏 |
 
 ## 5. 窗口与系统集成

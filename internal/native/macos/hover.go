@@ -10,9 +10,9 @@ import (
 )
 
 const (
-	hoverBarHeight  = 24.0
-	hoverButtonW    = 26.0
-	hoverBarPadding = 4.0
+	hoverBarHeight  = 26.0
+	hoverButtonW    = 28.0
+	hoverBarPadding = 5.0
 	maxHoverActions = 6
 )
 
@@ -43,12 +43,12 @@ var hoverSymbols = map[string]string{
 func (p *Panel) buildHoverBar() {
 	bar := objc.ID(class("NSVisualEffectView")).Send(sel("new"))
 	bar.Send(sel("setHidden:"), true)
-	bar.Send(sel("setMaterial:"), int64(5))
+	bar.Send(sel("setMaterial:"), int64(6))
 	bar.Send(sel("setBlendingMode:"), int64(1))
 	bar.Send(sel("setState:"), int64(1))
 	bar.Send(sel("setWantsLayer:"), true)
 	if layer := bar.Send(sel("layer")); layer != 0 {
-		layer.Send(sel("setCornerRadius:"), 6.0)
+		layer.Send(sel("setCornerRadius:"), 7.0)
 		layer.Send(sel("setMasksToBounds:"), true)
 	}
 	p.hoverBar = bar
