@@ -51,20 +51,78 @@ func TestAttributedPreviewDropsImportedListMarkers(t *testing.T) {
 	}
 }
 
+func TestStyledPreviewHTMLUsesSystemTypography(t *testing.T) {
+	text := `<html><head><title>Preview</title></head><body><p>Hello <b>world</b></p></body></html>`
+	got := styledPreviewHTML(text)
+	if !strings.Contains(got, `font-family: -apple-system`) {
+		t.Fatalf("preview style missing from %q", got)
+	}
+	if strings.Index(got, "font-family") > strings.Index(got, "</head>") {
+		t.Fatalf("preview style must be inserted inside the document head: %q", got)
+	}
+	if !strings.Contains(got, "<p>Hello <b>world</b></p>") {
+		t.Fatalf("preview markup changed: %q", got)
+	}
+}
+
+func TestAttributedPreviewKeepsNativeDefaultFont(t *testing.T) {
+	attr := attributedPreview("<p>Hello <b>world</b></p>", "html")
+	if attr == 0 {
+		t.Fatal("HTML preview did not produce an attributed string")
+	}
+	font := objc.Send[objc.ID](attr, sel("attribute:atIndex:effectiveRange:"),
+		nsString("NSFont"), 0, objc.ID(0))
+	if font == 0 {
+		t.Fatal("HTML preview has no font attribute")
+	}
+	if family := goString(font.Send(sel("familyName"))); strings.Contains(family, "Times") {
+		t.Fatalf("default HTML preview fell back to %q", family)
+	}
+}
+
+func TestAttributedPreviewPreservesExplicitFont(t *testing.T) {
+	attr := attributedPreview(`<p style="font-family: Georgia">Georgia</p>`, "html")
+	if attr == 0 {
+		t.Fatal("HTML preview did not produce an attributed string")
+	}
+	font := objc.Send[objc.ID](attr, sel("attribute:atIndex:effectiveRange:"),
+		nsString("NSFont"), 0, objc.ID(0))
+	if font == 0 {
+		t.Fatal("HTML preview has no font attribute")
+	}
+	if family := goString(font.Send(sel("familyName"))); family != "Georgia" {
+		t.Fatalf("explicit HTML font family = %q, want Georgia", family)
+	}
+}
+
 func TestPreviewSizeFollowsTextHeight(t *testing.T) {
 	width, height := previewSize(PreviewContent{Text: "hello"}, 0)
 	if width != previewWidth {
 		t.Fatalf("preview width = %v, want %v", width, previewWidth)
 	}
-	if height < 180 || height > 460 {
-		t.Fatalf("preview height = %v, want 180...460", height)
+	if height < previewMinHeight || height > previewMaxHeight {
+		t.Fatalf("preview height = %v, want %v...%v", height, previewMinHeight, previewMaxHeight)
+	}
+	if height >= 188 {
+		t.Fatalf("short preview height = %v, want less than the previous minimum", height)
+	}
+}
+
+func TestPreviewSizeKeepsSmallImagesReadable(t *testing.T) {
+	image := objc.ID(class("NSImage")).Send(sel("new"))
+	defer image.Send(sel("release"))
+	image.Send(sel("setSize:"), CGSize{Width: 128, Height: 128})
+
+	_, height := previewSize(PreviewContent{ImagePath: "ignored.png"}, image)
+	if height != previewImageMinHeight {
+		t.Fatalf("small image preview height = %v, want %v", height, previewImageMinHeight)
 	}
 }
 
 func TestPreviewSizeClampsLongText(t *testing.T) {
 	_, height := previewSize(PreviewContent{Text: strings.Repeat("line\n", 200)}, 0)
-	if height != 460 {
-		t.Fatalf("preview height = %v, want the 460 cap", height)
+	if height != previewMaxHeight {
+		t.Fatalf("preview height = %v, want the %v cap", height, previewMaxHeight)
 	}
 }
 

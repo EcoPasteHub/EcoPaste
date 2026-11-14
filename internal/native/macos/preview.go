@@ -25,10 +25,19 @@ const (
 	previewTitleTag = 200
 	previewMetaTag  = 201
 
-	previewPadding = 16.0
-	previewWidth   = 380.0
-	previewChrome  = 70.0
-	previewGap     = 8.0
+	previewPadding        = 16.0
+	previewWidth          = 380.0
+	previewChrome         = 70.0
+	previewGap            = 8.0
+	previewMinHeight      = 132.0
+	previewImageMinHeight = previewChrome + previewGap + 150
+	previewMaxHeight      = 460.0
+	previewTextInset      = 6.0
+
+	previewHTMLStyle = `<style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; font-size: 13px; line-height: 1.45; }
+code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+</style>`
 )
 
 var (
@@ -121,7 +130,7 @@ func (p *Panel) buildPreview() {
 	p.previewText.Send(sel("setDrawsBackground:"), false)
 	p.previewText.Send(sel("setFont:"), systemFont(13))
 	p.previewText.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("labelColor")))
-	p.previewText.Send(sel("setTextContainerInset:"), CGSize{Width: 0, Height: 2})
+	p.previewText.Send(sel("setTextContainerInset:"), CGSize{Width: 0, Height: previewTextInset})
 	p.previewText.Send(sel("setVerticallyResizable:"), true)
 	p.previewText.Send(sel("setHorizontallyResizable:"), false)
 	p.previewText.Send(sel("setAutoresizingMask:"), int64(2))
@@ -284,10 +293,12 @@ func (p *Panel) setTextPreview(content PreviewContent) {
 	if attr := attributedPreview(content.RichText, content.RichFormat); attr != 0 {
 		if storage := p.previewText.Send(sel("textStorage")); storage != 0 {
 			storage.Send(sel("setAttributedString:"), attr)
+			p.previewText.Send(sel("scrollRangeToVisible:"), NSRange{})
 		}
 		return
 	}
 	p.previewText.Send(sel("setString:"), nsString(content.Text))
+	p.previewText.Send(sel("scrollRangeToVisible:"), NSRange{})
 }
 
 func attributedPreview(text, format string) objc.ID {
@@ -310,7 +321,7 @@ func attributedPreview(text, format string) objc.ID {
 // repeats at draw time. The importer already inserts list markers into the
 // string, so leaving the paragraph text lists in place draws them twice.
 func htmlPreview(text string) objc.ID {
-	data := nsData([]byte(normalizePreviewHTML(text)))
+	data := nsData([]byte(normalizePreviewHTML(styledPreviewHTML(text))))
 	parsed := objc.ID(class("NSAttributedString")).Send(sel("alloc")).
 		Send(sel("initWithHTML:documentAttributes:"), data, objc.ID(0))
 	if parsed == 0 {
@@ -329,6 +340,16 @@ func htmlPreview(text string) objc.ID {
 		flattenPreviewLinks(result, full)
 	}
 	return result.Send(sel("autorelease"))
+}
+
+// styledPreviewHTML supplies native typography defaults only. Clipboard
+// markup keeps its own inline families, sizes, emphasis and lists.
+func styledPreviewHTML(text string) string {
+	lower := strings.ToLower(text)
+	if end := strings.Index(lower, "</head>"); end >= 0 {
+		return text[:end] + previewHTMLStyle + text[end:]
+	}
+	return previewHTMLStyle + text
 }
 
 type NSRange struct {
@@ -389,10 +410,10 @@ func previewSize(content PreviewContent, image objc.ID) (float64, float64) {
 		if size.Width > 0 {
 			height = size.Height * math.Min(1, (width-2*previewPadding)/size.Width)
 		}
-		return width, clampFloat(height, 150, 380) + previewChrome + previewGap
+		return width, clampFloat(height+previewChrome+previewGap, previewImageMinHeight, previewMaxHeight)
 	}
 	height := previewTextHeight(content)
-	return previewWidth, clampFloat(height+previewChrome+previewGap, 188, 460)
+	return previewWidth, clampFloat(height+previewChrome+previewGap, previewMinHeight, previewMaxHeight)
 }
 
 func previewTextHeight(content PreviewContent) float64 {
@@ -400,7 +421,7 @@ func previewTextHeight(content PreviewContent) float64 {
 	if attr := attributedPreview(content.RichText, content.RichFormat); attr != 0 {
 		rect := objc.Send[CGRect](attr, sel("boundingRectWithSize:options:"),
 			CGSize{Width: width, Height: 10000}, uint64(3))
-		return rect.Size.Height + 8
+		return rect.Size.Height + 2*previewTextInset
 	}
 	if content.Text == "" {
 		return 120
@@ -411,7 +432,7 @@ func previewTextHeight(content PreviewContent) float64 {
 		objc.ID(classNSColor).Send(sel("labelColor")), nsString("NSColor"))
 	rect := objc.Send[CGRect](nsString(content.Text), sel("boundingRectWithSize:options:attributes:"),
 		CGSize{Width: width, Height: 10000}, uint64(3), attributes)
-	return rect.Size.Height + 8
+	return rect.Size.Height + 2*previewTextInset
 }
 
 func (p *Panel) makeSearchFirstResponder() {
