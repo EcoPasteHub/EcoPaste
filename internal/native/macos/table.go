@@ -126,8 +126,13 @@ func registerHistoryTargets() {
 					row = int(objc.Send[int64](self, sel("rowAtPoint:"), local))
 					clicks = int(objc.Send[int64](event, sel("clickCount")))
 				}
-				sendSuper[objc.ID](self, historyTableClass, sel("mouseDown:"), event)
 				p := panelsByTable[self]
+				if left && row < 0 && p != nil && panelDragWindow(p, p.view.Send(sel("window")), func() {
+					self.Send(sel("deselectAll:"), objc.ID(0))
+				}) != 0 {
+					return
+				}
+				sendSuper[objc.ID](self, historyTableClass, sel("mouseDown:"), event)
 				if p != nil && left {
 					switch {
 					case clicks == 2 && row >= 0 && row < len(p.rows):

@@ -44,14 +44,17 @@ var panelNavDots = []string{
 }
 
 var (
-	navPanelClass    objc.Class
-	navSurfaceClass  objc.Class
-	navCapsuleClass  objc.Class
-	navIconClass     objc.Class
-	navObserverClass objc.Class
+	navPanelClass      objc.Class
+	navBackgroundClass objc.Class
+	navEffectClass     objc.Class
+	navSurfaceClass    objc.Class
+	navCapsuleClass    objc.Class
+	navIconClass       objc.Class
+	navObserverClass   objc.Class
 
 	navsByCapsule    = map[objc.ID]*panelNav{}
 	navsByPlus       = map[objc.ID]*panelNav{}
+	navsByBackground = map[objc.ID]*panelNav{}
 	navsByParentNote = map[objc.ID]*panelNav{}
 	hoveredCapsules  = map[objc.ID]bool{}
 )
@@ -78,6 +81,26 @@ func registerNavClasses() error {
 			{Cmd: sel("canBecomeKeyWindow"), Fn: func(_ objc.ID, _ objc.SEL) bool { return false }},
 			{Cmd: sel("canBecomeMainWindow"), Fn: func(_ objc.ID, _ objc.SEL) bool { return false }},
 			{Cmd: sel("acceptsFirstMouse:"), Fn: func(_ objc.ID, _ objc.SEL, _ objc.ID) bool { return true }},
+		})
+	if err != nil {
+		return err
+	}
+	navBackgroundClass, err = objc.RegisterClass("EcoPasteNavBackground", class("NSView"), nil, nil,
+		[]objc.MethodDef{
+			{Cmd: sel("mouseDown:"), Fn: func(self objc.ID, _ objc.SEL, _ objc.ID) {
+				if nav := navsByBackground[self]; nav != nil {
+					nav.beginNavDrag()
+				}
+			}},
+			{Cmd: sel("mouseDownCanMoveWindow"), Fn: func(_ objc.ID, _ objc.SEL) bool { return false }},
+			{Cmd: sel("acceptsFirstMouse:"), Fn: func(_ objc.ID, _ objc.SEL, _ objc.ID) bool { return true }},
+		})
+	if err != nil {
+		return err
+	}
+	navEffectClass, err = objc.RegisterClass("EcoPasteNavEffect", class("NSVisualEffectView"), nil, nil,
+		[]objc.MethodDef{
+			{Cmd: sel("hitTest:"), Fn: func(_ objc.ID, _ objc.SEL, _ CGPoint) objc.ID { return 0 }},
 		})
 	if err != nil {
 		return err
@@ -175,19 +198,20 @@ func newPanelNav(p *Panel, parent objc.ID) *panelNav {
 	nav.window.Send(sel("setLevel:"), objc.Send[int64](parent, sel("level")))
 	nav.window.Send(sel("setCollectionBehavior:"), int64(1|256))
 
-	surface := objc.ID(class("NSView")).Send(sel("new"))
+	surface := objc.ID(navBackgroundClass).Send(sel("new"))
 	surface.Send(sel("setWantsLayer:"), true)
 	surface.Send(sel("setAutoresizesSubviews:"), false)
 	layer := surface.Send(sel("layer"))
 	layer.Send(sel("setCornerRadius:"), panelNavHeight/2)
 	layer.Send(sel("setMasksToBounds:"), true)
 	nav.surface = surface
+	navsByBackground[surface] = nav
 	nav.window.Send(sel("setContentView:"), surface)
 	nav.window.Send(sel("setOpaque:"), false)
 	nav.window.Send(sel("setBackgroundColor:"), objc.ID(classNSColor).Send(sel("clearColor")))
 	nav.window.Send(sel("setHasShadow:"), true)
 
-	nav.effect = objc.ID(class("NSVisualEffectView")).Send(sel("new"))
+	nav.effect = objc.ID(navEffectClass).Send(sel("new"))
 	nav.effect.Send(sel("setMaterial:"), int64(6))
 	nav.effect.Send(sel("setBlendingMode:"), int64(0))
 	nav.effect.Send(sel("setState:"), int64(1))
@@ -349,6 +373,7 @@ func (n *panelNav) close() {
 	if parent := n.panel.view.Send(sel("window")); parent != 0 {
 		parent.Send(sel("removeChildWindow:"), n.window)
 	}
+	delete(navsByBackground, n.surface)
 	n.window.Send(sel("orderOut:"), objc.ID(0))
 	n.window.Send(sel("close"))
 	for _, capsule := range n.capsules {

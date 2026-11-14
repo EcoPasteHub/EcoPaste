@@ -100,6 +100,7 @@ type Panel struct {
 	display                       PanelDisplay
 	pinned                        bool
 	dragging                      bool
+	dragMonitor                   objc.ID
 	nav                           *panelNav
 	background                    objc.ID
 }
@@ -321,6 +322,15 @@ func registerPanelTargets() {
 					layoutPanel(p, size.Width, size.Height)
 				}
 			}},
+			{Cmd: sel("mouseDown:"), Fn: func(self objc.ID, _ objc.SEL, event objc.ID) {
+				p := panelsByView[self]
+				if p == nil || objc.Send[int64](event, sel("buttonNumber")) != 0 {
+					sendSuper[objc.ID](self, panelViewClass, sel("mouseDown:"), event)
+					return
+				}
+				panelDragWindow(p, self.Send(sel("window")), nil)
+			}},
+			{Cmd: sel("acceptsFirstMouse:"), Fn: func(_ objc.ID, _ objc.SEL, _ objc.ID) bool { return true }},
 			{Cmd: sel("keyDown:"), Fn: func(self objc.ID, _ objc.SEL, event objc.ID) {
 				p := panelsByView[self]
 				if p != nil && p.previewing && objc.Send[uint16](event, sel("keyCode")) == 53 {
@@ -608,6 +618,7 @@ func (p *Panel) Close() {
 	center.Send(sel("removeObserver:"), p.observer)
 	cancelPendingClick(p.table)
 	p.timer.Send(sel("invalidate"))
+	endPanelDrag(p)
 	if p.monitor != 0 {
 		objc.ID(class("NSEvent")).Send(sel("removeMonitor:"), p.monitor)
 	}
