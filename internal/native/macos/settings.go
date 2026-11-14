@@ -353,20 +353,22 @@ func (v *SettingsView) buildDataDir(content objc.ID, y float64) {
 
 func (v *SettingsView) buildCapture() {
 	content := v.newTab("capture", settingsTabTitle("capture"))
+	v.addSectionLabel(content, 438, i18n.T(i18n.SettingsCaptureTypes))
 	y := 408.0
 	v.addSwitch(content, y, i18n.T(i18n.SettingsCaptureText), "capture.text",
 		func(s SettingsValues) bool { return s.CaptureText })
-	v.addSwitch(content, y-38, i18n.T(i18n.SettingsCaptureHTML), "capture.html",
+	v.addSwitch(content, y-36, i18n.T(i18n.SettingsCaptureHTML), "capture.html",
 		func(s SettingsValues) bool { return s.CaptureHTML })
-	v.addSwitch(content, y-76, i18n.T(i18n.SettingsCaptureRTF), "capture.rtf",
+	v.addSwitch(content, y-72, i18n.T(i18n.SettingsCaptureRTF), "capture.rtf",
 		func(s SettingsValues) bool { return s.CaptureRTF })
-	v.addSwitch(content, y-114, i18n.T(i18n.KindImage), "capture.image",
+	v.addSwitch(content, y-108, i18n.T(i18n.KindImage), "capture.image",
 		func(s SettingsValues) bool { return s.CaptureImage })
-	v.addSwitch(content, y-152, i18n.T(i18n.KindFiles), "capture.files",
+	v.addSwitch(content, y-144, i18n.T(i18n.KindFiles), "capture.files",
 		func(s SettingsValues) bool { return s.CaptureFiles })
+	v.addSectionLabel(content, 232, i18n.T(i18n.SettingsCaptureLimits))
 	v.addStepper(content, y-202, i18n.T(i18n.SettingsMaxText), "capture.maxTextMb", 1, 1024, " MB",
 		func(s SettingsValues) uint32 { return s.MaxTextMB })
-	v.addStepper(content, y-244, i18n.T(i18n.SettingsMaxImage), "capture.maxImageMb", 10, 4096, " MB",
+	v.addStepper(content, y-242, i18n.T(i18n.SettingsMaxImage), "capture.maxImageMb", 10, 4096, " MB",
 		func(s SettingsValues) uint32 { return s.MaxImageMB })
 	v.buildCaptureOrder(content)
 }

@@ -12,6 +12,9 @@ import (
 const (
 	settingsCaptureRowIdentifier = "ecopaste.settings-capture-row"
 	settingsCaptureRowHeight     = 20.0
+	settingsCaptureListWidth     = tabContentW - 140
+	settingsCaptureButtonX       = tabContentW - 112
+	settingsCaptureButtonWidth   = 92
 )
 
 var (
@@ -43,18 +46,19 @@ func (v *SettingsView) buildCaptureOrder(content objc.ID) {
 		i18n.T(i18n.SettingsCaptureKeywords), "capture order priority",
 		CGRect{Origin: CGPoint{X: 12, Y: 10}, Size: CGSize{Width: tabContentW - 24, Height: 146}})
 	title := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(i18n.SettingsCaptureOrder)))
-	title.Send(sel("setFont:"), systemFont(13))
+	title.Send(sel("setFont:"), objc.ID(classNSFont).Send(sel("systemFontOfSize:weight:"), 11.0, 0.3))
+	title.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
 	title.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 132}, Size: CGSize{Width: 120, Height: 18}})
 	content.Send(sel("addSubview:"), title)
 
 	hint := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(i18n.SettingsCaptureHint)))
 	hint.Send(sel("setFont:"), systemFont(11))
-	hint.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
-	hint.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 142, Y: 132}, Size: CGSize{Width: 230, Height: 18}})
+	hint.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
+	hint.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 142, Y: 132}, Size: CGSize{Width: 354, Height: 18}})
 	content.Send(sel("addSubview:"), hint)
 
 	scroll := objc.ID(class("NSScrollView")).Send(sel("new"))
-	scroll.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 20, Y: 18}, Size: CGSize{Width: tabContentW - 108, Height: 106}})
+	scroll.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 20, Y: 18}, Size: CGSize{Width: settingsCaptureListWidth, Height: 106}})
 	scroll.Send(sel("setHasVerticalScroller:"), true)
 	scroll.Send(sel("setAutohidesScrollers:"), true)
 	scroll.Send(sel("setDrawsBackground:"), false)
@@ -78,7 +82,7 @@ func (v *SettingsView) buildCaptureOrder(content objc.ID) {
 	column := objc.ID(class("NSTableColumn")).Send(sel("new"))
 	column.Send(sel("setIdentifier:"), nsString("capture"))
 	column.Send(sel("setResizingMask:"), int64(1))
-	column.Send(sel("setWidth:"), float64(tabContentW-112))
+	column.Send(sel("setWidth:"), float64(settingsCaptureListWidth-4))
 	table.Send(sel("addTableColumn:"), column)
 	column.Send(sel("release"))
 	table.Send(sel("setColumnAutoresizingStyle:"), int64(1))
@@ -92,14 +96,14 @@ func (v *SettingsView) buildCaptureOrder(content objc.ID) {
 
 	up := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
 		nsString(i18n.T(i18n.SettingsMoveUp)), settingsCaptureTarget, sel("captureUpPressed:"))
-	up.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 78, Y: 72}, Size: CGSize{Width: 58, Height: 28}})
+	up.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: settingsCaptureButtonX, Y: 72}, Size: CGSize{Width: settingsCaptureButtonWidth, Height: 28}})
 	up.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsMoveUpA11y)))
 	content.Send(sel("addSubview:"), up)
 	settingsViews[up] = v
 
 	down := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
 		nsString(i18n.T(i18n.SettingsMoveDown)), settingsCaptureTarget, sel("captureDownPressed:"))
-	down.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 78, Y: 38}, Size: CGSize{Width: 58, Height: 28}})
+	down.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: settingsCaptureButtonX, Y: 38}, Size: CGSize{Width: settingsCaptureButtonWidth, Height: 28}})
 	down.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsMoveDownA11y)))
 	content.Send(sel("addSubview:"), down)
 	settingsViews[down] = v
@@ -130,7 +134,7 @@ func (v *SettingsView) applyCaptureOrder(values SettingsValues) {
 	}
 	selected := int(objc.Send[int64](v.captureTable, sel("selectedRow")))
 	v.captureTable.Send(sel("reloadData"))
-	sizeSettingsTable(v.captureTable, tabContentW-108, settingsCaptureRowHeight, len(order))
+	sizeSettingsTable(v.captureTable, settingsCaptureListWidth, settingsCaptureRowHeight, len(order))
 	if selected >= len(order) {
 		selected = len(order) - 1
 	}

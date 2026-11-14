@@ -275,6 +275,8 @@ var catalogZhCN = map[Key]string{
 	SettingsCaptureText:     "纯文本",
 	SettingsCaptureHTML:     "HTML",
 	SettingsCaptureRTF:      "RTF",
+	SettingsCaptureTypes:    "采集内容",
+	SettingsCaptureLimits:   "大小限制",
 	SettingsMaxText:         "文本大小上限",
 	SettingsMaxImage:        "图片大小上限",
 	SettingsCaptureOrder:    "采集优先级",

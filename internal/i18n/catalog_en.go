@@ -275,6 +275,8 @@ var catalogEnUS = map[Key]string{
 	SettingsCaptureText:     "Plain Text",
 	SettingsCaptureHTML:     "HTML",
 	SettingsCaptureRTF:      "RTF",
+	SettingsCaptureTypes:    "Content Types",
+	SettingsCaptureLimits:   "Size Limits",
 	SettingsMaxText:         "Maximum Text Size",
 	SettingsMaxImage:        "Maximum Image Size",
 	SettingsCaptureOrder:    "Capture Priority",
