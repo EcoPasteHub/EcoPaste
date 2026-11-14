@@ -2,6 +2,9 @@ name: EcoPaste
 id: com.ayangweb.eco-paste
 version: 0.1.0
 
+icon:
+  png: assets/Icon.png
+
 dev:
   target: native
 

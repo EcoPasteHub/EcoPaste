@@ -313,6 +313,7 @@ internal/native/macos/
    - 缓存清理、存储占用、图片另存、Finder reveal、打开链接/邮件。
 4. 发布：
    - `nsgo build` 生成 `.app` / `.dmg`。
+   - 应用图标由 `cmd/ecopaste/assets/Icon.png` 生成 `AppIcon.icns`，同步用于 Dock、设置侧栏、引导页、关于窗口与 DMG。
    - Developer ID 签名、公证、Sparkle 签名。
    - GitHub Actions 增加 macOS Go/NSGo 流水线，不破坏旧流水线。
 
