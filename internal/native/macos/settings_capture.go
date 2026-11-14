@@ -57,12 +57,13 @@ func (v *SettingsView) buildCaptureOrder(content objc.ID) {
 	hint.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 142, Y: 132}, Size: CGSize{Width: 354, Height: 18}})
 	content.Send(sel("addSubview:"), hint)
 
+	addSettingsListCard(content, CGRect{Origin: CGPoint{X: 20, Y: 18}, Size: CGSize{Width: settingsCaptureListWidth, Height: 106}})
 	scroll := objc.ID(class("NSScrollView")).Send(sel("new"))
-	scroll.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 20, Y: 18}, Size: CGSize{Width: settingsCaptureListWidth, Height: 106}})
+	scroll.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 21, Y: 19}, Size: CGSize{Width: settingsCaptureListWidth - 2, Height: 104}})
 	scroll.Send(sel("setHasVerticalScroller:"), true)
 	scroll.Send(sel("setAutohidesScrollers:"), true)
 	scroll.Send(sel("setDrawsBackground:"), false)
-	scroll.Send(sel("setBorderType:"), int64(2))
+	scroll.Send(sel("setBorderType:"), int64(0))
 
 	table := objc.ID(class("NSTableView")).Send(sel("new"))
 	table.Send(sel("setRowHeight:"), settingsCaptureRowHeight)

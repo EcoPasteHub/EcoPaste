@@ -86,12 +86,13 @@ func (v *SettingsView) buildActions() {
 	intro.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 408}, Size: CGSize{Width: tabContentW - 48, Height: 28}})
 	content.Send(sel("addSubview:"), intro)
 
+	addSettingsListCard(content, CGRect{Origin: CGPoint{X: 20, Y: 82}, Size: CGSize{Width: tabContentW - 40, Height: 312}})
 	scroll := objc.ID(class("NSScrollView")).Send(sel("new"))
-	scroll.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 20, Y: 82}, Size: CGSize{Width: tabContentW - 40, Height: 312}})
+	scroll.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 21, Y: 83}, Size: CGSize{Width: tabContentW - 42, Height: 310}})
 	scroll.Send(sel("setHasVerticalScroller:"), true)
 	scroll.Send(sel("setAutohidesScrollers:"), true)
 	scroll.Send(sel("setDrawsBackground:"), false)
-	scroll.Send(sel("setBorderType:"), int64(2))
+	scroll.Send(sel("setBorderType:"), int64(0))
 
 	table := objc.ID(class("NSTableView")).Send(sel("new"))
 	table.Send(sel("setRowHeight:"), 30.0)

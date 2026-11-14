@@ -39,6 +39,19 @@ func sizeSettingsTable(table objc.ID, width, rowHeight float64, rows int) {
 	table.Send(sel("setAutoresizingMask:"), int64(2))
 }
 
+func addSettingsListCard(content objc.ID, frame CGRect) {
+	card := objc.ID(classNSBox).Send(sel("new"))
+	card.Send(sel("setFrame:"), frame)
+	card.Send(sel("setBoxType:"), int64(4))
+	card.Send(sel("setTitlePosition:"), int64(0))
+	card.Send(sel("setBorderWidth:"), 1.0)
+	card.Send(sel("setBorderColor:"), objc.ID(classNSColor).Send(sel("separatorColor")))
+	card.Send(sel("setFillColor:"), objc.ID(classNSColor).Send(sel("controlBackgroundColor")))
+	card.Send(sel("setCornerRadius:"), 8.0)
+	content.Send(sel("addSubview:"), card)
+	card.Send(sel("release"))
+}
+
 func newSettingsCheckbox(target objc.ID, action string) objc.ID {
 	checkbox := objc.ID(class("NSButton")).Send(sel("checkboxWithTitle:target:action:"),
 		nsString(""), target, sel(action))
