@@ -273,9 +273,9 @@ func layoutSettingsAppRow(cell objc.ID, size CGSize) {
 		icon.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 36, Y: 10}, Size: CGSize{Width: 24, Height: 24}})
 	}
 	if name := cell.Send(sel("viewWithTag:"), int64(settingsAppNameTag)); name != 0 {
-		name.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 68, Y: 13}, Size: CGSize{Width: size.Width - 76, Height: 18}})
+		name.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 68, Y: 22}, Size: CGSize{Width: size.Width - 76, Height: 18}})
 	}
 	if detail := cell.Send(sel("viewWithTag:"), int64(settingsAppIDTag)); detail != 0 {
-		detail.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 68, Y: 30}, Size: CGSize{Width: size.Width - 76, Height: 14}})
+		detail.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 68, Y: 6}, Size: CGSize{Width: size.Width - 76, Height: 14}})
 	}
 }
