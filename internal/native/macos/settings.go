@@ -294,50 +294,6 @@ func NewSettings(cx *core.NativeContext) core.NativeComponent {
 	return v
 }
 
-func (v *SettingsView) buildGeneral() {
-	content := v.newTab("general", settingsTabTitle("general"))
-	y := 450.0
-	v.addSwitch(content, y, i18n.T(i18n.SettingsDockIcon), "general.dockIcon",
-		func(s SettingsValues) bool { return s.DockIcon })
-	v.addSwitch(content, y-38, i18n.T(i18n.SettingsTrayIcon), "general.trayIcon",
-		func(s SettingsValues) bool { return s.TrayIcon })
-	v.addSwitch(content, y-76, i18n.T(i18n.SettingsCopyThenHide), "copyThenHideWindow",
-		func(s SettingsValues) bool { return s.CopyThenHideWindow })
-	v.addSwitch(content, y-114, i18n.T(i18n.SettingsCopySound), "feedback.copySound",
-		func(s SettingsValues) bool { return s.CopySound })
-	v.addSwitch(content, y-152, i18n.T(i18n.SettingsUpdateOnReuse), "updateOnReuse",
-		func(s SettingsValues) bool { return s.UpdateOnReuse })
-	v.addSwitch(content, y-190, i18n.T(i18n.SettingsAutoStart), "general.autoStart",
-		func(s SettingsValues) bool { return s.AutoStart })
-	v.addPopup(content, y-228, i18n.T(i18n.SettingsSort), "sort",
-		[]settingsOption{
-			{Title: i18n.T(i18n.SettingsSortRecent), Value: "updatedAtDesc"},
-			{Title: i18n.T(i18n.SettingsSortCreated), Value: "createdAtDesc"},
-			{Title: i18n.T(i18n.SettingsSortUseCount), Value: "useCountDesc"},
-		},
-		func(s SettingsValues) string { return s.Sort })
-	v.addPopup(content, y-266, i18n.T(i18n.SettingsPosition), "window.position",
-		[]settingsOption{
-			{Title: i18n.T(i18n.SettingsPositionFollow), Value: "followCursor"},
-			{Title: i18n.T(i18n.SettingsPositionCenter), Value: "center"},
-			{Title: i18n.T(i18n.SettingsPositionKeep), Value: "remember"},
-		},
-		func(s SettingsValues) string { return s.WindowPosition })
-	v.addPopup(content, y-304, i18n.T(i18n.SettingsTheme), "appearance.theme",
-		[]settingsOption{
-			{Title: i18n.T(i18n.SettingsThemeAuto), Value: "auto"},
-			{Title: i18n.T(i18n.SettingsThemeLight), Value: "light"},
-			{Title: i18n.T(i18n.SettingsThemeDark), Value: "dark"},
-		},
-		func(s SettingsValues) string { return s.Theme })
-	v.addPopup(content, y-342, i18n.T(i18n.SettingsLanguage), "appearance.language",
-		[]settingsOption{
-			{Title: i18n.T(i18n.SettingsLanguageZh), Value: "zh-CN"},
-			{Title: i18n.T(i18n.SettingsLanguageEn), Value: "en-US"},
-		},
-		func(s SettingsValues) string { return s.Language })
-}
-
 func (v *SettingsView) buildData() {
 	content := v.newTab("data", settingsTabTitle("data"))
 	v.buildDataDir(content, 440)
