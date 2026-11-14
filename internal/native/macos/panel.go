@@ -279,6 +279,9 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 		if p.handlePreviewKey(key, flags) {
 			return 0
 		}
+		if p.handleCommandKey(key, flags) {
+			return 0
+		}
 		return event
 	})
 	p.monitor = objc.ID(class("NSEvent")).Send(sel("addLocalMonitorForEventsMatchingMask:handler:"),

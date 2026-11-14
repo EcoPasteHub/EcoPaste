@@ -54,7 +54,11 @@ const (
 	keyC             uint16 = 8
 	keyV             uint16 = 9
 	keyT             uint16 = 17
+	keyO             uint16 = 31
 	keyP             uint16 = 35
+	keyD             uint16 = 2
+	keyM             uint16 = 46
+	keyN             uint16 = 45
 	keyReturn        uint16 = 36
 	keySpace         uint16 = 49
 	keyDelete        uint16 = 51
@@ -475,7 +479,7 @@ func historyKeyAction(key uint16, flags uint64, row HistoryRow, spacePreview boo
 	option := flags&alternateModifier != 0
 	function := flags&functionModifier != 0
 	unmodified := flags&(shiftModifier|controlModifier|alternateModifier|commandModifier) == 0
-	commandOnly := flags&(shiftModifier|controlModifier|alternateModifier|functionModifier|commandModifier) == commandModifier
+	commandOnly := commandShortcut(flags)
 	switch {
 	case key == keyReturn || key == keyEnter:
 		return "activate", true
@@ -483,6 +487,17 @@ func historyKeyAction(key uint16, flags uint64, row HistoryRow, spacePreview boo
 		return "toggleWindowPinned", true
 	case key == keyT && commandOnly:
 		return "togglePinned", true
+	case key == keyD && commandOnly:
+		return "toggleFavorite", true
+	case key == keyM && commandOnly:
+		return "editNote", true
+	case key == keyN && commandOnly:
+		return "newGroup", true
+	case key == keyO && commandOnly && rowOpenable(row):
+		if row.Kind == "files" || row.SubKind == "path" {
+			return "reveal", true
+		}
+		return "open", true
 	case key == keySpace && unmodified && spacePreview:
 		return "preview", true
 	case key == keyEscape:
@@ -517,12 +532,75 @@ func historyKeyAction(key uint16, flags uint64, row HistoryRow, spacePreview boo
 	return "", false
 }
 
+// commandShortcut reports whether Command is the only modifier pressed.
+func commandShortcut(flags uint64) bool {
+	return flags&(shiftModifier|controlModifier|alternateModifier|functionModifier|commandModifier) == commandModifier
+}
+
+// rowOpenable reports whether Command-O has a target: URLs, email
+// addresses, local paths, and file lists.
+func rowOpenable(row HistoryRow) bool {
+	switch row.Kind {
+	case "files":
+		return true
+	case "text":
+		return row.SubKind == "url" || row.SubKind == "email" || row.SubKind == "path"
+	}
+	return false
+}
+
 func loadImage(path string) objc.ID {
 	image := objc.ID(class("NSImage")).Send(sel("alloc")).Send(sel("initWithContentsOfFile:"), nsString(path))
 	if image == 0 {
 		return 0
 	}
 	return image.Send(sel("autorelease"))
+}
+
+// handleCommandKey claims the item shortcuts before the Window menu or
+// the focused text field can take them. Menu key equivalents win over
+// the table's keyDown, so Command-M would otherwise become Minimize.
+// The search field keeps native editing keys; only the item-level
+// commands are routed here, with the same first-row fallback as the
+// legacy list.
+func (p *Panel) handleCommandKey(key uint16, flags uint64) bool {
+	if p.previewing || p.onboardingActive || !commandShortcut(flags) {
+		return false
+	}
+	window := p.view.Send(sel("window"))
+	if window == 0 || !objc.Send[bool](window, sel("isKeyWindow")) {
+		return false
+	}
+	row := HistoryRow{}
+	if index := p.activeIndex(); index >= 0 {
+		row = p.rows[index]
+	}
+	action, handled := historyKeyAction(key, flags, row, p.behavior.SpacePreview)
+	switch action {
+	case "toggleFavorite", "editNote", "open", "reveal", "newGroup":
+	default:
+		return false
+	}
+	if !handled {
+		return false
+	}
+	if action != "newGroup" && row.ID == "" {
+		return false
+	}
+	p.cx.Emit(action, row.ID)
+	return true
+}
+
+// activeIndex prefers the selected row and falls back to the first one,
+// matching the legacy list's active-item rule.
+func (p *Panel) activeIndex() int {
+	if index := p.selectedIndex(); index >= 0 {
+		return index
+	}
+	if len(p.rows) > 0 {
+		return 0
+	}
+	return -1
 }
 
 func symbolImage(kind string) objc.ID {

@@ -142,7 +142,7 @@
 | U-05 | P1 | Update 页面 | `legacy/frontend/src/pages/Update` | 原生更新状态/进度 | 迁移中 | 产品调整：不再自绘更新状态机，设置“更新”页展示当前版本与检查入口，下载进度、安装和重启交给 Sparkle 原生窗口；不可用或非 Sparkle 结果使用本地化提示；正式签名 appcast 升级待发布验证 |
 | U-06 | P2 | ContextMenu 页面 | `legacy/frontend/src/pages/ContextMenu` | macOS 使用 `NSMenu`，不迁移 WebView 菜单窗 | 参考 | 对比菜单结构 |
 | U-07 | P0 | 列表虚拟滚动 | `react-virtuoso` | `NSTableView` 原生虚拟化 | 已通过 | `NSTableView` 原生复用与 80 条分页；隔离数据目录导入 1 万条记录，首屏 80 条、原生滚动加载至 160 条、连续 End 导航加载至 240 条，搜索 `9999` 约 1.3 秒返回 1 条，无崩溃 |
-| U-08 | P1 | 键盘导航 | `legacy/frontend/src/hooks` 的键盘逻辑 | 上下/Page/Home/End/Enter/Esc | 已通过 | 真机 ↑/↓、Home/End、⌘F、⌘C、⌥⌘C、⌘V、⌥⌘V 通过；向表格发送原生 PageDown/PageUp 键码 121/116，选择从无选中跳到第 5 条、再回到第 1 条，页大小按可见行计算；兼容专用键与 Fn+↑/↓，并支持 macOS 首/末行快捷键 Fn+←/→ 与 ⌘↑/↓（`TestHistoryKeyAction`） |
+| U-08 | P1 | 键盘导航 | `legacy/frontend/src/hooks` 的键盘逻辑 | 上下/Page/Home/End/Enter/Esc，以及打开/收藏/备注/新建分组 | 已通过 | 真机 ↑/↓、Home/End、⌘F、⌘C、⌥⌘C、⌘V、⌥⌘V 通过；向表格发送原生 PageDown/PageUp 键码 121/116，选择从无选中跳到第 5 条、再回到第 1 条，页大小按可见行计算；兼容专用键与 Fn+↑/↓，并支持 macOS 首/末行快捷键 Fn+←/→ 与 ⌘↑/↓；`⌘D` 收藏、`⌘M` 编辑备注、`⌘N` 新建分组已真机验证，焦点在搜索框时同样生效，`⌘M` 由面板 event monitor 抢先处理以免被窗口菜单的最小化截获；`⌘O` 按内容打开链接/邮件或在 Finder 显示路径与文件，由 `TestHistoryKeyAction` 覆盖分支，未执行真实打开以避免副作用 |
 | U-09 | P1 | 主题 | antd token + `light/dark` | AppKit 语义色 + `NSAppearance` | 已通过 | `TestSettingsModelAppliesTheme`；真机设置内切换深色立即生效并持久化，重启后面板与设置窗口保持深色；浅色下次启动验证 |
 | U-10 | P1 | 动画 | `motion` | AppKit 动画/`Core Animation` | 已通过（产品调整） | 面板打开使用 0.14s 淡入；预览改用系统 `NSPopover` 自带过渡，减少重复动画；开启“减少动态效果”时面板直接显示；`TestAnimateInKeepsViewVisibleAndAddsFade`，真机面板与 HTML/RTF 预览正常显示、Space/Esc 返回 |
 | U-11 | P2 | 滚动条 | `overlayscrollbars` | 系统 `NSScrollView` 滚动条 | 不纳入 macOS 首版（产品调整） | 原生 `NSScrollView` 已按系统“显示滚动条”偏好自动选择 overlay/legacy，强制 overlay 会覆盖用户系统设置；旧版自定义滚动条不再迁移 |
