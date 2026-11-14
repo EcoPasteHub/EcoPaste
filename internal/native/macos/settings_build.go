@@ -193,10 +193,10 @@ func (v *SettingsView) buildUpdate() {
 	version.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 108, Y: 362}, Size: CGSize{Width: 300, Height: 18}})
 	content.Send(sel("addSubview:"), version)
 
-	intro := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(i18n.SettingsUpdateIntro)))
+	intro := objc.ID(classNSTextField).Send(sel("wrappingLabelWithString:"), nsString(i18n.T(i18n.SettingsUpdateIntro)))
 	intro.Send(sel("setFont:"), systemFont(12))
 	intro.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
-	intro.Send(sel("setLineBreakMode:"), int64(4))
+	intro.Send(sel("setPreferredMaxLayoutWidth:"), tabContentW-48)
 	intro.Send(sel("setMaximumNumberOfLines:"), int64(2))
 	intro.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 312}, Size: CGSize{Width: tabContentW - 48, Height: 36}})
 	content.Send(sel("addSubview:"), intro)
@@ -208,10 +208,10 @@ func (v *SettingsView) buildUpdate() {
 	content.Send(sel("addSubview:"), check)
 	settingsViews[check] = v
 
-	managed := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(i18n.SettingsUpdateManaged)))
+	managed := objc.ID(classNSTextField).Send(sel("wrappingLabelWithString:"), nsString(i18n.T(i18n.SettingsUpdateManaged)))
 	managed.Send(sel("setFont:"), systemFont(11))
 	managed.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
-	managed.Send(sel("setLineBreakMode:"), int64(4))
+	managed.Send(sel("setPreferredMaxLayoutWidth:"), tabContentW-48)
 	managed.Send(sel("setMaximumNumberOfLines:"), int64(2))
 	managed.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 212}, Size: CGSize{Width: tabContentW - 48, Height: 34}})
 	content.Send(sel("addSubview:"), managed)
