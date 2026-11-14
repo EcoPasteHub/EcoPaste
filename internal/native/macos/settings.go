@@ -299,22 +299,23 @@ func NewSettings(cx *core.NativeContext) core.NativeComponent {
 
 func (v *SettingsView) buildData() {
 	content := v.newTab("data", settingsTabTitle("data"))
-	v.buildDataDir(content, 440)
+	v.addSectionLabel(content, 438, i18n.T(i18n.SettingsStorage))
+	v.buildDataDir(content, 408)
 
-	y := 330.0
-	v.addLabel(content, y, i18n.T(i18n.SettingsBackupIntro))
+	v.addSectionLabel(content, 320, i18n.T(i18n.SettingsBackupIntro))
 	v.addSearchEntry(content, i18n.T(i18n.SettingsBackupIntro), "data.backup",
 		i18n.T(i18n.SettingsBackupHint), i18n.T(i18n.SettingsBackupKeywords),
-		CGRect{Origin: CGPoint{X: 12, Y: y - 70}, Size: CGSize{Width: tabContentW - 24, Height: 106}})
-	hint := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(i18n.SettingsBackupHint)))
+		CGRect{Origin: CGPoint{X: 12, Y: 232}, Size: CGSize{Width: tabContentW - 24, Height: 86}})
+	hint := objc.ID(classNSTextField).Send(sel("wrappingLabelWithString:"), nsString(i18n.T(i18n.SettingsBackupHint)))
 	hint.Send(sel("setFont:"), systemFont(11))
 	hint.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
-	hint.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: y - 44}, Size: CGSize{Width: tabContentW - 48, Height: 32}})
+	hint.Send(sel("setPreferredMaxLayoutWidth:"), tabContentW-48)
+	hint.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 288}, Size: CGSize{Width: tabContentW - 48, Height: 30}})
 	content.Send(sel("addSubview:"), hint)
 
 	export := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
 		nsString(i18n.T(i18n.SettingsExportBackup)), settingsTarget, sel("exportBackupPressed:"))
-	export.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: y - 88}, Size: CGSize{Width: 140, Height: 28}})
+	export.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 240}, Size: CGSize{Width: 140, Height: 28}})
 	export.Send(sel("setBezelStyle:"), int64(1))
 	export.Send(sel("setAccessibilityHelp:"), nsString(i18n.T(i18n.SettingsBackupHint)))
 	content.Send(sel("addSubview:"), export)
@@ -322,7 +323,7 @@ func (v *SettingsView) buildData() {
 
 	importButton := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
 		nsString(i18n.T(i18n.SettingsImportBackup)), settingsTarget, sel("importBackupPressed:"))
-	importButton.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 176, Y: y - 88}, Size: CGSize{Width: 140, Height: 28}})
+	importButton.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 176, Y: 240}, Size: CGSize{Width: 140, Height: 28}})
 	importButton.Send(sel("setBezelStyle:"), int64(1))
 	importButton.Send(sel("setAccessibilityHelp:"), nsString(i18n.T(i18n.SettingsBackupHint)))
 	content.Send(sel("addSubview:"), importButton)
@@ -333,23 +334,23 @@ func (v *SettingsView) buildDataDir(content objc.ID, y float64) {
 	v.addLabel(content, y, i18n.T(i18n.SettingsDataDir))
 	v.addSearchEntry(content, i18n.T(i18n.SettingsDataDir), "general.dataDir",
 		i18n.T(i18n.SettingsDataDirKeywords), "",
-		CGRect{Origin: CGPoint{X: 12, Y: y - 30}, Size: CGSize{Width: tabContentW - 24, Height: 46}})
+		CGRect{Origin: CGPoint{X: 12, Y: y - 26}, Size: CGSize{Width: tabContentW - 24, Height: 48}})
 	v.dataDir = objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(""))
 	v.dataDir.Send(sel("setFont:"), systemFont(11))
 	v.dataDir.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
 	v.dataDir.Send(sel("setLineBreakMode:"), int64(4))
-	v.dataDir.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: y - 20}, Size: CGSize{Width: tabContentW - 240, Height: 16}})
+	v.dataDir.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: y - 22}, Size: CGSize{Width: tabContentW - 48, Height: 16}})
 	content.Send(sel("addSubview:"), v.dataDir)
 
 	v.restore = objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
 		nsString(i18n.T(i18n.SettingsRestoreDefault)), settingsTarget, sel("defaultDataDirPressed:"))
-	v.restore.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 204, Y: y - 24}, Size: CGSize{Width: 100, Height: 28}})
+	v.restore.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 224, Y: y - 60}, Size: CGSize{Width: 120, Height: 28}})
 	content.Send(sel("addSubview:"), v.restore)
 	settingsViews[v.restore] = v
 
 	v.change = objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
 		nsString(i18n.T(i18n.SettingsChange)), settingsTarget, sel("dataDirPressed:"))
-	v.change.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 94, Y: y - 24}, Size: CGSize{Width: 70, Height: 28}})
+	v.change.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 94, Y: y - 60}, Size: CGSize{Width: 70, Height: 28}})
 	content.Send(sel("addSubview:"), v.change)
 	settingsViews[v.change] = v
 }
@@ -505,11 +506,12 @@ func (v *SettingsView) buildUpdate() {
 
 func (v *SettingsView) buildPermissions() {
 	content := v.newTab("permissions", settingsTabTitle("permissions"))
+	v.addSectionLabel(content, 438, i18n.T(i18n.SettingsPermissionsSystem))
 	intro := objc.ID(classNSTextField).Send(sel("labelWithString:"),
 		nsString(i18n.T(i18n.SettingsPermissionsIntro)))
 	intro.Send(sel("setFont:"), systemFont(11))
 	intro.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
-	intro.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 438}, Size: CGSize{Width: tabContentW - 48, Height: 18}})
+	intro.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 414}, Size: CGSize{Width: tabContentW - 48, Height: 18}})
 	content.Send(sel("addSubview:"), intro)
 
 	y := 388.0
@@ -539,12 +541,12 @@ func (v *SettingsView) addPermission(content objc.ID, y float64, title, detail, 
 	status := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(i18n.SettingsChecking)))
 	status.Send(sel("setFont:"), systemFont(11))
 	status.Send(sel("setAlignment:"), int64(2))
-	status.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 300, Y: y}, Size: CGSize{Width: 130, Height: 18}})
+	status.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 300, Y: y}, Size: CGSize{Width: 102, Height: 18}})
 	content.Send(sel("addSubview:"), status)
 
 	button := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
 		nsString(i18n.T(i18n.SettingsOpenSystemSettings)), settingsTarget, sel(action))
-	button.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 160, Y: y - 5}, Size: CGSize{Width: 136, Height: 28}})
+	button.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 188, Y: y - 5}, Size: CGSize{Width: 164, Height: 28}})
 	button.Send(sel("setAccessibilityLabel:"), nsString(i18n.Tf(i18n.SettingsOpenSystemSettingsA11y, title)))
 	content.Send(sel("addSubview:"), button)
 	return status

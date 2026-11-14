@@ -268,6 +268,7 @@ var catalogEnUS = map[Key]string{
 	SettingsThemeLight:       "Light",
 	SettingsThemeDark:        "Dark",
 	SettingsDataDir:          "Data Folder",
+	SettingsStorage:          "Storage Location",
 	SettingsDataDirKeywords:  "storage location migrate restore default",
 	SettingsRestoreDefault:   "Restore Default…",
 	SettingsChange:           "Change…",
@@ -331,6 +332,7 @@ var catalogEnUS = map[Key]string{
 	SettingsSpacePreview: "Space Previews Selected Item",
 
 	SettingsPermissionsIntro:       "macOS manages these permissions; changes take effect immediately after granting.",
+	SettingsPermissionsSystem:      "System Permissions",
 	SettingsAccessibility:          "Accessibility",
 	SettingsAccessibilityDetail:    "Automatic paste simulates the Command-V shortcut.",
 	SettingsFullDisk:               "Full Disk Access",
@@ -391,7 +393,7 @@ var catalogEnUS = map[Key]string{
 	SettingsReport:              "%s\n%s\nData Folder: %s\nAccessibility: %s\nFull Disk Access: %s",
 
 	SettingsChooseDataDir:      "Choose EcoPaste Data Folder",
-	SettingsBackupIntro:        "Back Up History",
+	SettingsBackupIntro:        "Backup & Restore",
 	SettingsBackupHint:         "Export history, resources and settings to an .ecopastebak file, or import a previous backup.",
 	SettingsExportBackup:       "Export Backup…",
 	SettingsImportBackup:       "Import Backup…",

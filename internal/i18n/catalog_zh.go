@@ -268,6 +268,7 @@ var catalogZhCN = map[Key]string{
 	SettingsThemeLight:       "浅色",
 	SettingsThemeDark:        "深色",
 	SettingsDataDir:          "数据目录",
+	SettingsStorage:          "存储位置",
 	SettingsDataDirKeywords:  "存储位置 迁移 恢复默认",
 	SettingsRestoreDefault:   "恢复默认…",
 	SettingsChange:           "更改…",
@@ -331,6 +332,7 @@ var catalogZhCN = map[Key]string{
 	SettingsSpacePreview: "Space 预览选中项",
 
 	SettingsPermissionsIntro:       "这些权限由 macOS 管理，授权后立即生效。",
+	SettingsPermissionsSystem:      "系统权限",
 	SettingsAccessibility:          "辅助功能",
 	SettingsAccessibilityDetail:    "自动粘贴需要模拟 Command-V 快捷键。",
 	SettingsFullDisk:               "完全磁盘访问",
@@ -391,7 +393,7 @@ var catalogZhCN = map[Key]string{
 	SettingsReport:              "%s\n%s\n数据目录: %s\n辅助功能: %s\n完全磁盘访问: %s",
 
 	SettingsChooseDataDir:      "选择 EcoPaste 数据目录",
-	SettingsBackupIntro:        "备份历史",
+	SettingsBackupIntro:        "备份与恢复",
 	SettingsBackupHint:         "可将历史、资源和设置导出为 .ecopastebak 文件，或导入之前的备份。",
 	SettingsExportBackup:       "导出备份…",
 	SettingsImportBackup:       "导入备份…",

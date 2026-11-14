@@ -11,7 +11,7 @@ import (
 
 func (v *SettingsView) buildDiagnostics(content objc.ID) {
 	y := 232.0
-	v.addLabel(content, y, i18n.T(i18n.SettingsDiagnostics))
+	v.addSectionLabel(content, y+4, i18n.T(i18n.SettingsDiagnostics))
 	v.addSearchEntry(content, i18n.T(i18n.SettingsDiagnostics), "diagnostics.report",
 		i18n.T(i18n.SettingsDiagnosticsDetail), i18n.T(i18n.SettingsDiagnosticsKeywords),
 		rowHighlightFrame(y))

@@ -268,6 +268,7 @@ const (
 	SettingsThemeLight       = Key("settings.theme.light")
 	SettingsThemeDark        = Key("settings.theme.dark")
 	SettingsDataDir          = Key("settings.general.dataDir")
+	SettingsStorage          = Key("settings.data.storage")
 	SettingsDataDirKeywords  = Key("settings.dataDir.keywords")
 	SettingsRestoreDefault   = Key("settings.dataDir.restore")
 	SettingsChange           = Key("settings.dataDir.change")
@@ -331,6 +332,7 @@ const (
 	SettingsSpacePreview = Key("settings.preview.space")
 
 	SettingsPermissionsIntro       = Key("settings.permissions.intro")
+	SettingsPermissionsSystem      = Key("settings.permissions.system")
 	SettingsAccessibility          = Key("settings.permissions.accessibility")
 	SettingsAccessibilityDetail    = Key("settings.permissions.accessibilityDetail")
 	SettingsFullDisk               = Key("settings.permissions.fullDisk")
