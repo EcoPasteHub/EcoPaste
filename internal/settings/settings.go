@@ -7,7 +7,6 @@ type Settings struct {
 	Appearance Appearance `json:"appearance"`
 	Shortcuts  Shortcuts  `json:"shortcuts"`
 	Clipboard  Clipboard  `json:"clipboard"`
-	Onboarding Onboarding `json:"onboarding"`
 	Update     Update     `json:"update"`
 }
 
@@ -271,24 +270,6 @@ type Feedback struct {
 type Filters struct {
 	ExcludedAppIDs []string `json:"excludedAppIds"`
 }
-
-type Onboarding struct {
-	Completed    bool                   `json:"completed"`
-	LastStep     uint32                 `json:"lastStep"`
-	LegacyImport OnboardingLegacyImport `json:"legacyImport"`
-}
-
-type OnboardingLegacyImport struct {
-	Checked     bool     `json:"checked"`
-	Imported    bool     `json:"imported"`
-	ImportTypes []string `json:"importTypes"`
-	ImportedAt  *string  `json:"importedAt"`
-}
-
-const (
-	LegacyImportNormal   = "normal"
-	LegacyImportFavorite = "favorite"
-)
 
 type Update struct {
 	AutoCheck      bool            `json:"autoCheck"`

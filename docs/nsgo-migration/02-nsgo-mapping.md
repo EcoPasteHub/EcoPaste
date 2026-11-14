@@ -185,7 +185,7 @@ NSGo 是一个 **Go 原生 UI 引擎**，不是 Tauri 的前端替代品：
 | 拖出 | NSGo 无 | `NSDraggingSession`，文件/图片/文本；保留现有 128pt 预览图策略 |
 | 粘贴模拟 | NSGo 无 | `CGEvent` ⌘V；检查 `AXIsProcessTrustedWithOptions` |
 | 权限检查 | NSGo 无 macOS 权限服务 | `ApplicationServices`（辅助功能）、`NSFileManager`/TCC（完全磁盘访问）、`SMAppService`（自启） |
-| 旧版导入 | 纯业务 | Go 打开 v0.6 `history` 表，复用数据映射规则 |
+| 旧版导入 | 产品调整 | 首版不提供 v0.6 数据目录导入，旧版用户通过 `.ecopastebak` 备份恢复 |
 | 备份加密 | Go 标准库可做 | `archive/zip` + `golang.org/x/crypto/argon2` + `chacha20poly1305` |
 | 更新 appcast | 现有 endpoint 不兼容 | 增加 appcast 生成；保留旧 Tauri endpoint 直到切换 |
 | 日志 | NSGo 无统一日志 | 标准 `log` + `lumberjack` 轮转（5 MB × 3，14 天），路径 `<data_root>/logs`，写入前脱敏 |
@@ -340,7 +340,6 @@ internal/tray/                # tray model / menu
 internal/shortcut/            # hotkey registration / recording
 internal/update/              # Sparkle/appcast integration
 internal/i18n/                # Go catalogs
-internal/onboarding/          # legacy import, permissions
 internal/legacy/              # optional reference, not compiled
 ```
 
@@ -474,7 +473,7 @@ SQLite + resources + settings
 
 ### 8.4 切换后
 
-- 保留一个版本的旧版导入入口，读取旧数据目录。
+- 不提供 v0.6 数据目录导入入口，旧版用户通过 `.ecopastebak` 备份恢复。
 - 保留 `.ecopastebak` 导入导出。
 - 旧 Tauri 代码归档到 `legacy/` 或单独分支，不留在主构建路径。
 

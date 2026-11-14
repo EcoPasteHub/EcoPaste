@@ -255,12 +255,6 @@ func validateDecoded(s Settings) error {
 		UpdateDaily, UpdateWeekly, UpdateMonthly); err != nil {
 		return err
 	}
-	for _, kind := range s.Onboarding.LegacyImport.ImportTypes {
-		if err := validateOneOf("onboarding.legacyImport.importTypes", kind,
-			LegacyImportNormal, LegacyImportFavorite); err != nil {
-			return err
-		}
-	}
 	return nil
 }
 
@@ -300,8 +294,6 @@ func cloneSettings(src Settings) Settings {
 	dst.Clipboard.Content.ItemActions = slices.Clone(src.Clipboard.Content.ItemActions)
 	dst.Clipboard.Content.ItemActionOrder = slices.Clone(src.Clipboard.Content.ItemActionOrder)
 	dst.Clipboard.Filters.ExcludedAppIDs = slices.Clone(src.Clipboard.Filters.ExcludedAppIDs)
-	dst.Onboarding.LegacyImport.ImportTypes = slices.Clone(src.Onboarding.LegacyImport.ImportTypes)
-	dst.Onboarding.LegacyImport.ImportedAt = cloneString(src.Onboarding.LegacyImport.ImportedAt)
 	dst.Update.LastCheckedAt = cloneString(src.Update.LastCheckedAt)
 	dst.Update.SkippedVersion = cloneString(src.Update.SkippedVersion)
 	return dst

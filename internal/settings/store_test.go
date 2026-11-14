@@ -94,7 +94,6 @@ func TestSettingsJSONRoundTripsPublishedCamelCase(t *testing.T) {
 		`"itemActionOrder"`,
 		`"deleteFavoriteItemsOnlyInFavoriteGroup"`,
 		`"lastCheckedAt"`,
-		`"importedAt"`,
 	} {
 		if !strings.Contains(string(data), key) {
 			t.Errorf("encoded settings missing %s", key)
