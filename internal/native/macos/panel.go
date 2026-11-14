@@ -231,7 +231,9 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.hint = objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(i18n.PanelHint)))
 	p.hint.Send(sel("setFont:"), systemFont(11))
 	p.hint.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
-	p.hint.Send(sel("setAlignment:"), int64(1))
+	p.hint.Send(sel("setAlignment:"), int64(2))
+	p.hint.Send(sel("setLineBreakMode:"), int64(4))
+	p.hint.Send(sel("setMaximumNumberOfLines:"), int64(1))
 
 	p.scroll = newHistoryTable(p)
 	p.buildPreview()
@@ -503,6 +505,10 @@ func (p *Panel) SetProp(name string, value any) {
 		if groups, ok := value.([]GroupOption); ok {
 			p.groups = groups
 			p.rebuildGroupMenu()
+			frame := bounds(p.view)
+			if frame.Size.Width > 0 {
+				layoutPanel(p, frame.Size.Width, frame.Size.Height)
+			}
 		}
 	case "group":
 		if id, ok := value.(string); ok {
@@ -723,7 +729,7 @@ func (p *Panel) updateStatus() {
 		p.footer.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
 	} else {
 		p.footer.Send(sel("setStringValue:"), nsString(i18n.Tf(i18n.PanelCount, p.total)))
-		p.footer.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
+		p.footer.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
 	}
 	frame := bounds(p.view)
 	layoutPanel(p, frame.Size.Width, frame.Size.Height)

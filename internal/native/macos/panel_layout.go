@@ -4,36 +4,46 @@ package macos
 
 import "github.com/ebitengine/purego/objc"
 
-func layoutPanel(p *Panel, width, height float64) {
-	const pad = 14.0
-	searchHeight := 28.0
-	searchY := height - pad - searchHeight
-	pinWidth := 26.0
-	setFrame(p.search, pad, searchY, width-2*pad-pinWidth-6, searchHeight)
-	setFrame(p.pin, width-pad-pinWidth, searchY, pinWidth, searchHeight)
+const (
+	panelSidePadding   = 14.0
+	panelActionWidth   = 26.0
+	panelGroupWidth    = 106.0
+	panelToolbarGap    = 8.0
+	panelSearchHeight  = 28.0
+	panelControlHeight = 24.0
+)
 
-	controlHeight := 24.0
-	controlY := searchY - controlHeight - 8
-	actionWidth := 26.0
-	groupWidth := 106.0
-	gap := 8.0
-	filterWidth := width - 2*pad - actionWidth - groupWidth - 2*gap
-	setFrame(p.filter, pad, controlY, filterWidth, controlHeight)
-	setFrame(p.groupsPopup, pad+filterWidth+gap, controlY, groupWidth, controlHeight)
-	setFrame(p.groupActions, width-pad-actionWidth, controlY, actionWidth, controlHeight)
+func layoutPanel(p *Panel, width, height float64) {
+	searchY := height - panelSidePadding - panelSearchHeight
+	pinWidth := 26.0
+	setFrame(p.search, panelSidePadding, searchY,
+		width-2*panelSidePadding-pinWidth-6, panelSearchHeight)
+	setFrame(p.pin, width-panelSidePadding-pinWidth, searchY, pinWidth, panelSearchHeight)
+
+	controlY := searchY - panelControlHeight - 8
+	showGroups := len(p.groups) > 0
+	p.groupsPopup.Send(sel("setHidden:"), !showGroups)
+	filterWidth := panelFilterWidth(width, showGroups)
+	setFrame(p.filter, panelSidePadding, controlY, filterWidth, panelControlHeight)
+	if showGroups {
+		setFrame(p.groupsPopup, panelSidePadding+filterWidth+panelToolbarGap,
+			controlY, panelGroupWidth, panelControlHeight)
+	}
+	setFrame(p.groupActions, width-panelSidePadding-panelActionWidth,
+		controlY, panelActionWidth, panelControlHeight)
 
 	dividerY := controlY - 10
 	setFrame(p.divider, 0, dividerY, width, 1)
 
 	footerHeight := 28.0
-	footerWidth := width/2 - pad
-	hintWidth := width/2 - pad
+	footerWidth := width/2 - panelSidePadding
+	hintWidth := width/2 - panelSidePadding
 	if p.errText != "" {
-		footerWidth = width - 2*pad
+		footerWidth = width - 2*panelSidePadding
 		hintWidth = 0
 	}
 	p.hint.Send(sel("setHidden:"), p.errText != "")
-	setFrame(p.footer, pad, 8, footerWidth, 16)
+	setFrame(p.footer, panelSidePadding, 8, footerWidth, 16)
 	setFrame(p.hint, width/2, 8, hintWidth, 16)
 	setFrame(p.footerDivider, 0, footerHeight+2, width, 1)
 	scrollY := footerHeight + 4
@@ -48,6 +58,17 @@ func layoutPanel(p *Panel, width, height float64) {
 	p.layoutOnboarding(width, height)
 
 	layoutEmptyState(p, width, scrollY, scrollHeight)
+}
+
+func panelFilterWidth(width float64, showGroups bool) float64 {
+	filterWidth := width - 2*panelSidePadding - panelActionWidth - panelToolbarGap
+	if showGroups {
+		filterWidth -= panelGroupWidth + panelToolbarGap
+	}
+	if filterWidth < 0 {
+		return 0
+	}
+	return filterWidth
 }
 
 func layoutEmptyState(p *Panel, width, scrollY, scrollHeight float64) {
