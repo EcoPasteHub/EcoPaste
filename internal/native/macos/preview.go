@@ -335,8 +335,7 @@ func htmlPreview(text string) objc.ID {
 	full := NSRange{Length: uint64(objc.Send[uint](result, sel("length")))}
 	if full.Length > 0 {
 		flattenPreviewLists(result, full)
-		result.Send(sel("addAttribute:value:range:"), nsString("NSColor"),
-			objc.ID(classNSColor).Send(sel("labelColor")), full)
+		applyPreviewDefaultColor(result, full)
 		flattenPreviewLinks(result, full)
 	}
 	return result.Send(sel("autorelease"))
@@ -355,6 +354,62 @@ func styledPreviewHTML(text string) string {
 type NSRange struct {
 	Location uint64
 	Length   uint64
+}
+
+// applyPreviewDefaultColor keeps explicit clipboard colors while making
+// unstyled HTML readable in both light and dark appearances.
+func applyPreviewDefaultColor(text objc.ID, full NSRange) {
+	dark := previewUsesDarkAppearance()
+	block := objc.NewBlock(func(_ objc.Block, value objc.ID, r NSRange, _ *bool) {
+		if r.Length == 0 {
+			return
+		}
+		if value == 0 || previewColorNeedsLabel(value, dark) {
+			text.Send(sel("addAttribute:value:range:"), nsString("NSColor"),
+				objc.ID(classNSColor).Send(sel("labelColor")), r)
+		}
+	})
+	text.Send(sel("enumerateAttribute:inRange:options:usingBlock:"),
+		nsString("NSColor"), full, uint64(0), objc.ID(block))
+	block.Release()
+}
+
+func previewUsesDarkAppearance() bool {
+	app := objc.ID(class("NSApplication")).Send(sel("sharedApplication"))
+	if app == 0 {
+		return false
+	}
+	appearance := app.Send(sel("effectiveAppearance"))
+	if appearance == 0 {
+		return false
+	}
+	return strings.Contains(strings.ToLower(goString(appearance.Send(sel("name")))), "dark")
+}
+
+func previewColorNeedsLabel(color objc.ID, dark bool) bool {
+	rgb := color.Send(sel("colorUsingColorSpaceName:"),
+		nsString("NSCalibratedRGBColorSpace"))
+	if rgb == 0 {
+		return false
+	}
+	return previewInkNeedsLabel(
+		objc.Send[float64](rgb, sel("redComponent")),
+		objc.Send[float64](rgb, sel("greenComponent")),
+		objc.Send[float64](rgb, sel("blueComponent")),
+		dark,
+	)
+}
+
+func previewInkNeedsLabel(red, green, blue float64, dark bool) bool {
+	low := math.Min(red, math.Min(green, blue))
+	high := math.Max(red, math.Max(green, blue))
+	if high-low > 0.03 {
+		return false
+	}
+	if dark {
+		return high < 0.22
+	}
+	return low > 0.92
 }
 
 func flattenPreviewLists(text objc.ID, full NSRange) {

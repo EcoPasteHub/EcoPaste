@@ -95,6 +95,49 @@ func TestAttributedPreviewPreservesExplicitFont(t *testing.T) {
 	}
 }
 
+func TestAttributedPreviewPreservesExplicitColor(t *testing.T) {
+	attr := attributedPreview(`<p>plain <span style="color: red">red</span></p>`, "html")
+	if attr == 0 {
+		t.Fatal("HTML preview did not produce an attributed string")
+	}
+	color := objc.Send[objc.ID](attr, sel("attribute:atIndex:effectiveRange:"),
+		nsString("NSColor"), 6, objc.ID(0))
+	if color == 0 {
+		t.Fatal("colored preview text has no color attribute")
+	}
+	description := goString(color.Send(sel("description")))
+	if !strings.Contains(description, "1 0 0 1") {
+		t.Fatalf("explicit red was lost: %s", description)
+	}
+}
+
+func TestAttributedPreviewColorsUnstyledText(t *testing.T) {
+	attr := attributedPreview(`<p>plain</p>`, "html")
+	if attr == 0 {
+		t.Fatal("HTML preview did not produce an attributed string")
+	}
+	color := objc.Send[objc.ID](attr, sel("attribute:atIndex:effectiveRange:"),
+		nsString("NSColor"), 0, objc.ID(0))
+	if color == 0 {
+		t.Fatal("unstyled preview text has no semantic color attribute")
+	}
+}
+
+func TestPreviewInkNeedsLabelForDefaultContrast(t *testing.T) {
+	if !previewInkNeedsLabel(0.1, 0.1, 0.1, true) {
+		t.Fatal("dark ink should use the label color in dark appearance")
+	}
+	if !previewInkNeedsLabel(0.98, 0.98, 0.98, false) {
+		t.Fatal("light ink should use the label color in light appearance")
+	}
+	if previewInkNeedsLabel(0.98, 0.1, 0.1, true) {
+		t.Fatal("colored ink should keep its explicit color")
+	}
+	if previewInkNeedsLabel(0.1, 0.1, 0.1, false) {
+		t.Fatal("dark ink has sufficient contrast in light appearance")
+	}
+}
+
 func TestPreviewSizeFollowsTextHeight(t *testing.T) {
 	width, height := previewSize(PreviewContent{Text: "hello"}, 0)
 	if width != previewWidth {
