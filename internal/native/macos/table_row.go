@@ -4,6 +4,7 @@ package macos
 
 import (
 	"strings"
+	"sync"
 	"unsafe"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
@@ -20,9 +21,19 @@ var (
 	historyRowViewClass objc.Class
 
 	associatedRowHoveredKey byte
+
+	historyRowViewsOnce sync.Once
+	historyRowViewsErr  error
 )
 
 func registerHistoryRowViews() error {
+	historyRowViewsOnce.Do(func() {
+		historyRowViewsErr = registerHistoryRowViewsClass()
+	})
+	return historyRowViewsErr
+}
+
+func registerHistoryRowViewsClass() error {
 	var err error
 	historyRowClass, err = objc.RegisterClass("EcoPasteHistoryRow", class("NSTableCellView"), nil, nil,
 		[]objc.MethodDef{{Cmd: sel("setFrameSize:"), Fn: func(self objc.ID, _ objc.SEL, size CGSize) {
@@ -200,11 +211,27 @@ func rowMetrics(cell objc.ID) (iconSize float64, lines int) {
 // cannot return a floating-point value through the purego bridge.
 func tableRowHeight(display PanelDisplay) float64 {
 	height := rowHeight
-	if lines := display.TextMaxLines; lines > 1 {
+	if value := historyTextRowHeight(display.TextMaxLines); value > height {
+		height = value
+	}
+	if value := historyImageRowHeight(display); value > height {
+		height = value
+	}
+	return height
+}
+
+func historyTextRowHeight(lines int) float64 {
+	height := rowHeight
+	if lines > 1 {
 		if value := 41 + 16*float64(lines); value > height {
 			height = value
 		}
 	}
+	return height
+}
+
+func historyImageRowHeight(display PanelDisplay) float64 {
+	height := rowHeight
 	if value := iconSizeForRow(HistoryRow{Kind: "image"}, display) + 24; value > height {
 		height = value
 	}

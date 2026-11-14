@@ -29,7 +29,7 @@ var settingsTabSymbols = map[string]string{
 	"actions":     "cursorarrow.click",
 	"interaction": "hand.tap",
 	"deletion":    "trash",
-	"window":      "macwindow",
+	"window":      "rectangle.on.rectangle",
 	"history":     "clock.arrow.circlepath",
 	"permissions": "lock.shield",
 	"apps":        "square.grid.2x2",

@@ -95,42 +95,45 @@ type SettingsChange struct {
 
 // SettingsView is the AppKit settings window content.
 type SettingsView struct {
-	cx                   *core.NativeContext
-	view                 objc.ID
-	tabs                 objc.ID
-	sidebar              objc.ID
-	sidebarTable         objc.ID
-	sectionTitle         objc.ID
-	footer               objc.ID
-	searchField          objc.ID
-	searchResults        objc.ID
-	dataDir              objc.ID
-	change               objc.ID
-	restore              objc.ID
-	reset                objc.ID
-	accessibilityStatus  objc.ID
-	fullDiskStatus       objc.ID
-	diagnosticsDir       objc.ID
-	diagnosticsHint      objc.ID
-	permissionTimer      objc.ID
-	appsTable            objc.ID
-	appsEmpty            objc.ID
-	apps                 []SettingsApp
-	actionsTable         objc.ID
-	actions              []settingsAction
-	captureTable         objc.ID
-	captureOrder         []string
-	groupField           *settingsField
-	extraExcluded        []string
-	shortcutFields       []*shortcutControl
-	lastValues           SettingsValues
-	fields               []*settingsField
-	currentTab           string
-	currentTabTitle      string
-	searchEntries        []settingsSearchEntry
-	searchMatches        []settingsSearchEntry
-	searchHighlight      objc.ID
-	searchHighlightTimer objc.ID
+	cx                    *core.NativeContext
+	view                  objc.ID
+	tabs                  objc.ID
+	sidebar               objc.ID
+	sidebarTable          objc.ID
+	sectionTitle          objc.ID
+	footer                objc.ID
+	searchField           objc.ID
+	searchResults         objc.ID
+	dataDir               objc.ID
+	change                objc.ID
+	restore               objc.ID
+	reset                 objc.ID
+	accessibilityStatus   objc.ID
+	fullDiskStatus        objc.ID
+	diagnosticsDir        objc.ID
+	diagnosticsHint       objc.ID
+	permissionTimer       objc.ID
+	appsTable             objc.ID
+	appsEmpty             objc.ID
+	apps                  []SettingsApp
+	actionsTable          objc.ID
+	actions               []settingsAction
+	captureTable          objc.ID
+	captureOrder          []string
+	displayPreviewBox     objc.ID
+	displayPreviewDivider objc.ID
+	displayPreviewRows    []objc.ID
+	groupField            *settingsField
+	extraExcluded         []string
+	shortcutFields        []*shortcutControl
+	lastValues            SettingsValues
+	fields                []*settingsField
+	currentTab            string
+	currentTabTitle       string
+	searchEntries         []settingsSearchEntry
+	searchMatches         []settingsSearchEntry
+	searchHighlight       objc.ID
+	searchHighlightTimer  objc.ID
 }
 
 type settingsField struct {
@@ -371,19 +374,6 @@ func (v *SettingsView) buildCapture() {
 	v.addStepper(content, y-242, i18n.T(i18n.SettingsMaxImage), "capture.maxImageMb", 10, 4096, " MB",
 		func(s SettingsValues) uint32 { return s.MaxImageMB })
 	v.buildCaptureOrder(content)
-}
-
-func (v *SettingsView) buildDisplay() {
-	content := v.newTab("display", settingsTabTitle("display"))
-	y := 408.0
-	v.addStepperRange(content, y, i18n.T(i18n.SettingsTextMaxLines), "display.textMaxLines",
-		1, 5, 1, i18n.T(i18n.SettingsUnitLines),
-		func(s SettingsValues) uint32 { return s.TextMaxLines })
-	v.addStepperRange(content, y-42, i18n.T(i18n.SettingsImageMaxHeight), "display.imageMaxHeight", 20, 100, 4, " px",
-		func(s SettingsValues) uint32 { return s.ImageMaxHeight })
-	v.addStepperRange(content, y-84, i18n.T(i18n.SettingsFileMaxCount), "display.fileMaxCount",
-		1, 5, 1, i18n.T(i18n.SettingsUnitItems),
-		func(s SettingsValues) uint32 { return s.FileMaxCount })
 }
 
 func (v *SettingsView) buildWindow() {
@@ -920,6 +910,7 @@ func (v *SettingsView) apply(values SettingsValues) {
 			v.setStepperLabel(field, n)
 		}
 	}
+	v.applyDisplayPreview(values)
 }
 
 // applyGroups rebuilds the open-group popup from the current clipboard
