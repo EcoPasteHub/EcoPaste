@@ -86,11 +86,15 @@ func applyPlacement(p *Panel) {
 		return
 	}
 	frame := objc.Send[CGRect](window, sel("frame"))
+	// Place the panel together with the capsule window above it so the
+	// child never ends up off screen.
+	size := frame.Size
+	size.Height += panelNavHeight + panelNavGap
 	var saved *CGPoint
 	if placement.HasFrame {
 		saved = &CGPoint{X: placement.Frame.X, Y: placement.Frame.Y}
 	}
-	frame.Origin = panelOrigin(placement.Mode, frame.Size, mouseLocation(), screensBounds(), saved)
+	frame.Origin = panelOrigin(placement.Mode, size, mouseLocation(), screensBounds(), saved)
 	window.Send(sel("setFrameOrigin:"), frame.Origin)
 }
 

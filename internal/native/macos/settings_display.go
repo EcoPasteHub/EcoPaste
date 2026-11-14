@@ -94,8 +94,8 @@ func (v *SettingsView) applyDisplayPreview(values SettingsValues) {
 		Title:  i18n.T(i18n.SettingsDisplayPreviewImage),
 		Detail: i18n.T(i18n.SettingsDisplayPreviewImageDetail),
 	}
-	fillHistoryRow(v.displayPreviewRows[0], textRow, display, false)
-	fillHistoryRow(v.displayPreviewRows[1], imageRow, display, false)
+	fillHistoryRow(v.displayPreviewRows[0], textRow, display, false, false)
+	fillHistoryRow(v.displayPreviewRows[1], imageRow, display, false, false)
 	setFrame(v.displayPreviewRows[0], settingsDisplayPreviewPadding,
 		settingsDisplayPreviewPadding+(rowHeight-textHeight)/2, columnWidth, textHeight)
 	setFrame(v.displayPreviewRows[1], 2*settingsDisplayPreviewPadding+columnWidth,

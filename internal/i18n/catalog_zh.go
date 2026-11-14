@@ -96,6 +96,7 @@ var catalogZhCN = map[Key]string{
 	PanelCategoryLabel:     "剪贴板分类",
 	PanelGroupsLabel:       "自定义分组",
 	PanelGroupActions:      "分组操作",
+	PanelFilter:            "筛选",
 	PanelEmpty:             "暂无剪贴板记录",
 	PanelEmptyDetail:       "复制任意内容后，会出现在这里",
 	PanelHint:              "↵ 粘贴 · Space 预览 · Esc 关闭",

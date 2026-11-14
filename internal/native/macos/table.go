@@ -217,7 +217,8 @@ func registerHistoryTargets() {
 			if cell == 0 {
 				cell = newHistoryRow()
 			}
-			fillHistoryRow(cell, p.rows[row], p.display, p.originalRow == int(row))
+			fillHistoryRow(cell, p.rows[row], p.display, p.originalRow == int(row),
+				objc.Send[int64](table, sel("selectedRow")) == row)
 			return cell
 		}},
 		{Cmd: sel("tableView:rowViewForRow:"), Fn: func(_ objc.ID, _ objc.SEL, _ objc.ID, _ int64) objc.ID {
@@ -234,6 +235,12 @@ func registerHistoryTargets() {
 			if row >= 0 && int(row) < len(p.rows) {
 				p.selection = p.rows[row].ID
 				p.cx.Emit("select", p.selection)
+			}
+			for index := range p.rows {
+				cell := table.Send(sel("viewAtColumn:row:makeIfNecessary:"), int64(0), int64(index), false)
+				if cell != 0 {
+					setHistoryRowTextColors(cell, int64(index) == row)
+				}
 			}
 		}},
 		{Cmd: sel("tableView:pasteboardWriterForRow:"), Fn: func(_ objc.ID, _ objc.SEL, table objc.ID, row int64) objc.ID {
@@ -358,7 +365,7 @@ func newHistoryTable(p *Panel) objc.ID {
 	p.table = table
 	table.Send(sel("setBackgroundColor:"), objc.ID(classNSColor).Send(sel("clearColor")))
 	table.Send(sel("setRowHeight:"), rowHeight)
-	table.Send(sel("setIntercellSpacing:"), CGSize{})
+	table.Send(sel("setIntercellSpacing:"), CGSize{Width: 0, Height: 6})
 	table.Send(sel("setHeaderView:"), objc.ID(0))
 	table.Send(sel("setGridStyleMask:"), int64(0))
 	table.Send(sel("setAllowsMultipleSelection:"), false)

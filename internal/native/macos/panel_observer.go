@@ -30,6 +30,7 @@ func panelObserverMethods() []objc.MethodDef {
 			window := p.view.Send(sel("window"))
 			if window != 0 && window == objc.Send[objc.ID](note, sel("object")) &&
 				objc.Send[bool](window, sel("isVisible")) {
+				syncNavVisibility(p)
 				p.cx.Emit("blurHide", nil)
 			}
 		}},
@@ -41,6 +42,7 @@ func panelObserverMethods() []objc.MethodDef {
 			window := p.view.Send(sel("window"))
 			if window != 0 && window == objc.Send[objc.ID](note, sel("object")) {
 				p.clearSearch()
+				syncNavVisibility(p)
 				p.cx.Emit("searchCleared", nil)
 			}
 		}},
@@ -52,6 +54,7 @@ func panelObserverMethods() []objc.MethodDef {
 			window := p.view.Send(sel("window"))
 			if window != 0 && window == objc.Send[objc.ID](note, sel("object")) {
 				applyPlacement(p)
+				syncNavVisibility(p)
 				animateIn(p.view, panelFadeDuration)
 				p.cx.Emit("opened", nil)
 			}

@@ -196,15 +196,16 @@ func (p *Panel) setOnboarding(data PanelOnboarding) {
 	p.onboardingActive = active
 	p.onboardingStep = step
 	p.search.Send(sel("setHidden:"), active)
+	p.searchIcon.Send(sel("setHidden:"), active)
 	p.pin.Send(sel("setHidden:"), active)
-	p.filter.Send(sel("setHidden:"), active)
-	p.groupsPopup.Send(sel("setHidden:"), active)
-	p.groupActions.Send(sel("setHidden:"), active)
+	p.filterButton.Send(sel("setHidden:"), active)
+	p.settingsButton.Send(sel("setHidden:"), active)
 	p.divider.Send(sel("setHidden:"), active)
 	p.scroll.Send(sel("setHidden:"), active)
 	p.empty.Send(sel("setHidden:"), active)
 	p.footer.Send(sel("setHidden:"), active)
 	p.hint.Send(sel("setHidden:"), active)
+	syncNavVisibility(p)
 	if active {
 		p.hideHover()
 	}

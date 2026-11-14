@@ -4,17 +4,36 @@ package macos
 
 import "testing"
 
-func TestPanelFilterWidthUsesEmptyGroupSpace(t *testing.T) {
+func TestPanelSearchWidthLeavesRoomForToolbar(t *testing.T) {
 	const width = 420.0
-	withoutGroups := panelFilterWidth(width, false)
-	withGroups := panelFilterWidth(width, true)
-	if withoutGroups <= withGroups {
-		t.Fatalf("filter width without groups = %v, with groups = %v", withoutGroups, withGroups)
+	got := panelSearchWidth(width)
+	want := width - 2*panelSidePadding - 3*panelIconSize - 2*panelIconGap - 10
+	if got != want {
+		t.Fatalf("search width = %v, want %v", got, want)
 	}
-	if want := width - 2*panelSidePadding - panelActionWidth - panelToolbarGap; withoutGroups != want {
-		t.Fatalf("filter width without groups = %v, want %v", withoutGroups, want)
+	if got < 200 {
+		t.Fatalf("search width = %v, too narrow for the panel", got)
 	}
-	if want := withoutGroups - panelGroupWidth - panelToolbarGap; withGroups != want {
-		t.Fatalf("filter width with groups = %v, want %v", withGroups, want)
+}
+
+func TestPanelNavCapsulesFitPanelWidth(t *testing.T) {
+	const width = 420.0
+	used := panelNavPadding + panelNavPaddingEnd + panelNavActionSize
+	for _, label := range panelNavLabels() {
+		used += panelNavCapsuleWidth(label) + panelNavCapsuleGap
+	}
+	if used > width {
+		t.Fatalf("navigation capsules use %.1f points, panel is %.1f wide", used, width)
+	}
+}
+
+func TestPanelNavTightensForLongerLocale(t *testing.T) {
+	const width = 420.0
+	english := []string{"All", "Text", "Images", "Files", "Favorites"}
+	if panelNavCapsulesFit(english, panelNavCapsulePad, panelNavCapsuleGap, width) {
+		t.Fatal("English labels should not fit at the default capsule padding")
+	}
+	if !panelNavCapsulesFit(english, 6, 2, width) {
+		t.Fatal("English labels should fit once the capsules tighten")
 	}
 }

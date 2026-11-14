@@ -96,7 +96,7 @@ func newHistoryRow() objc.ID {
 	return cell.Send(sel("autorelease"))
 }
 
-func fillHistoryRow(cell objc.ID, row HistoryRow, display PanelDisplay, revealOriginal bool) {
+func fillHistoryRow(cell objc.ID, row HistoryRow, display PanelDisplay, revealOriginal, selected bool) {
 	icon := cell.Send(sel("viewWithTag:"), int64(rowIconTag))
 	badge := cell.Send(sel("viewWithTag:"), int64(rowBadgeTag))
 	title := cell.Send(sel("viewWithTag:"), int64(rowTitleTag))
@@ -104,6 +104,7 @@ func fillHistoryRow(cell objc.ID, row HistoryRow, display PanelDisplay, revealOr
 	titleText, detailText := historyRowText(row, display, revealOriginal)
 	title.Send(sel("setStringValue:"), nsString(titleText))
 	detail.Send(sel("setStringValue:"), nsString(detailText))
+	setHistoryRowTextColors(cell, selected)
 	weight := 0.3
 	if row.Kind == "text" {
 		weight = 0
@@ -151,6 +152,21 @@ func fillHistoryRow(cell objc.ID, row HistoryRow, display PanelDisplay, revealOr
 		icon.Send(sel("setImage:"), symbolImage(row.Kind))
 		icon.Send(sel("setContentTintColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
 	}
+}
+
+// setHistoryRowTextColors switches a row between normal and selected
+// text, because the selected card is drawn with the accent color.
+func setHistoryRowTextColors(cell objc.ID, selected bool) {
+	title := cell.Send(sel("viewWithTag:"), int64(rowTitleTag))
+	detail := cell.Send(sel("viewWithTag:"), int64(rowDetailTag))
+	titleColor := objc.ID(classNSColor).Send(sel("labelColor"))
+	detailColor := objc.ID(classNSColor).Send(sel("secondaryLabelColor"))
+	if selected {
+		titleColor = objc.ID(classNSColor).Send(sel("alternateSelectedControlTextColor"))
+		detailColor = titleColor.Send(sel("colorWithAlphaComponent:"), 0.82)
+	}
+	title.Send(sel("setTextColor:"), titleColor)
+	detail.Send(sel("setTextColor:"), detailColor)
 }
 
 // historyRowText keeps a note as the card's default content while hovering
@@ -307,23 +323,39 @@ func rowTrailingInset(cell objc.ID) float64 {
 }
 
 func drawHistoryRowBackground(self objc.ID, _ objc.SEL, rect CGRect) {
-	if !historyRowHovered(self) || objc.Send[bool](self, sel("isSelected")) {
+	if objc.Send[bool](self, sel("isSelected")) {
 		return
 	}
-	color := objc.ID(classNSColor).Send(sel("unemphasizedSelectedContentBackgroundColor")).
-		Send(sel("colorWithAlphaComponent:"), 0.55)
+	color := historyRowCardColor(self, historyRowHovered(self))
 	fillHistoryRowSelection(rect, color)
 }
 
 func drawHistoryRowSelection(self objc.ID, _ objc.SEL, rect CGRect) {
-	color := objc.ID(classNSColor).Send(sel("unemphasizedSelectedContentBackgroundColor"))
+	color := objc.ID(classNSColor).Send(sel("selectedContentBackgroundColor"))
 	fillHistoryRowSelection(rect, color)
+}
+
+// historyRowCardColor is the card fill of a history row: a light lift in
+// light appearance, a faint white veil in dark, so rows stay separate
+// without turning the frosted panel opaque.
+func historyRowCardColor(rowView objc.ID, hovered bool) objc.ID {
+	white := objc.ID(classNSColor).Send(sel("whiteColor"))
+	if appearanceIsDark(rowView) {
+		if hovered {
+			return white.Send(sel("colorWithAlphaComponent:"), 0.10)
+		}
+		return white.Send(sel("colorWithAlphaComponent:"), 0.06)
+	}
+	if hovered {
+		return white.Send(sel("colorWithAlphaComponent:"), 0.62)
+	}
+	return white.Send(sel("colorWithAlphaComponent:"), 0.46)
 }
 
 func fillHistoryRowSelection(rect CGRect, color objc.ID) {
 	inset := historyRowSelectionRect(rect)
 	path := objc.ID(class("NSBezierPath")).Send(sel("bezierPathWithRoundedRect:xRadius:yRadius:"),
-		inset, 7.0, 7.0)
+		inset, 10.0, 10.0)
 	color.Send(sel("setFill"))
 	path.Send(sel("fill"))
 }
