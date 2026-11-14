@@ -119,6 +119,8 @@ type SettingsView struct {
 	appsEmpty             objc.ID
 	apps                  []SettingsApp
 	actionsTable          objc.ID
+	actionUp              objc.ID
+	actionDown            objc.ID
 	actions               []settingsAction
 	captureTable          objc.ID
 	captureOrder          []string

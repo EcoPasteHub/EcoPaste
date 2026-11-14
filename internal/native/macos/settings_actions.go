@@ -127,15 +127,19 @@ func (v *SettingsView) buildActions() {
 		nsString(i18n.T(i18n.SettingsMoveUp)), settingsActionsTarget, sel("actionUpPressed:"))
 	up.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 204, Y: 34}, Size: CGSize{Width: 90, Height: 30}})
 	up.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsActionMoveUpA11y)))
+	up.Send(sel("setEnabled:"), false)
 	content.Send(sel("addSubview:"), up)
 	settingsViews[up] = v
+	v.actionUp = up
 
 	down := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
 		nsString(i18n.T(i18n.SettingsMoveDown)), settingsActionsTarget, sel("actionDownPressed:"))
 	down.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 104, Y: 34}, Size: CGSize{Width: 90, Height: 30}})
 	down.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsActionMoveDownA11y)))
+	down.Send(sel("setEnabled:"), false)
 	content.Send(sel("addSubview:"), down)
 	settingsViews[down] = v
+	v.actionDown = down
 }
 
 func (v *SettingsView) applyActions(values SettingsValues) {
@@ -183,6 +187,7 @@ func (v *SettingsView) applyActions(values SettingsValues) {
 		if selected >= 0 {
 			v.selectAction(selected)
 		}
+		v.updateMoveButtons()
 	}
 }
 
@@ -193,6 +198,28 @@ func (v *SettingsView) selectAction(row int) {
 	indexes := objc.ID(class("NSIndexSet")).Send(sel("indexSetWithIndex:"), int64(row))
 	v.actionsTable.Send(sel("selectRowIndexes:byExtendingSelection:"), indexes, false)
 	v.actionsTable.Send(sel("scrollRowToVisible:"), int64(row))
+	v.updateMoveButtons()
+}
+
+func (v *SettingsView) updateMoveButtons() {
+	row := -1
+	if v.actionsTable != 0 {
+		row = int(objc.Send[int64](v.actionsTable, sel("selectedRow")))
+	}
+	up, down := actionMoveEnabled(row, len(v.actions))
+	if v.actionUp != 0 {
+		v.actionUp.Send(sel("setEnabled:"), up)
+	}
+	if v.actionDown != 0 {
+		v.actionDown.Send(sel("setEnabled:"), down)
+	}
+}
+
+func actionMoveEnabled(selected, total int) (bool, bool) {
+	if selected < 0 || selected >= total {
+		return false, false
+	}
+	return selected > 0, selected < total-1
 }
 
 func (v *SettingsView) emitActions() {
@@ -252,6 +279,15 @@ func registerSettingsActionsTargets() {
 			}
 			fillSettingsActionRow(v, cell, int(row), v.actions[row])
 			return cell
+		}},
+		{Cmd: sel("tableViewSelectionDidChange:"), Fn: func(_ objc.ID, _ objc.SEL, notification objc.ID) {
+			if notification == 0 {
+				return
+			}
+			table := notification.Send(sel("object"))
+			if v := settingsActionsByTable[table]; v != nil {
+				v.updateMoveButtons()
+			}
 		}},
 		{Cmd: sel("actionToggle:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
 			v := settingsActionControls[sender]
