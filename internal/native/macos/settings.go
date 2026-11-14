@@ -57,6 +57,8 @@ type SettingsValues struct {
 	RangeOnOpen            string
 	CategoryOnOpen         string
 	GroupOnOpen            string
+	SearchFocus            bool
+	SearchClear            bool
 	Groups                 []SettingsGroup
 	Retention              string
 	MaxCount               uint32
@@ -406,6 +408,11 @@ func (v *SettingsView) buildWindow() {
 		},
 		func(s SettingsValues) string { return s.GroupOnOpen })
 	v.addHint(content, 226, 32, i18n.T(i18n.SettingsWindowHint))
+	v.addSectionLabel(content, 190, i18n.T(i18n.SettingsWindowSearch))
+	v.addSwitch(content, 158, i18n.T(i18n.SettingsSearchFocus), "search.defaultFocus",
+		func(s SettingsValues) bool { return s.SearchFocus })
+	v.addSwitch(content, 122, i18n.T(i18n.SettingsSearchClear), "search.clearOnHide",
+		func(s SettingsValues) bool { return s.SearchClear })
 }
 
 func (v *SettingsView) buildHistory() {

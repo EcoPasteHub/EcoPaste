@@ -54,13 +54,20 @@ func TestSettingsModelAppliesPaths(t *testing.T) {
 	if err := model.Apply("content.deleteFavoriteItems", true); err != nil {
 		t.Fatal(err)
 	}
+	if err := model.Apply("search.defaultFocus", true); err != nil {
+		t.Fatal(err)
+	}
+	if err := model.Apply("search.clearOnHide", false); err != nil {
+		t.Fatal(err)
+	}
 
 	values := model.Load()
 	if !values.CopyPlain || values.MaxTextMB != 8 || values.Retention != "7d" || values.RedactSecrets ||
 		values.WindowPosition != "remember" || !values.CopySound ||
 		values.AutoPaste != "singleClickCopy" || values.MiddleClick != "singleClickPastePlain" ||
 		!values.PasteFilesAsPath || !values.AutoFavorite || values.ShowOriginalPreview ||
-		values.DeleteConfirm || !values.DeleteFavoriteItems {
+		values.DeleteConfirm || !values.DeleteFavoriteItems ||
+		!values.SearchFocus || values.SearchClear {
 		t.Errorf("values = %+v", values)
 	}
 	cfg := store.Snapshot().Clipboard

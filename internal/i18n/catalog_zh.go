@@ -309,6 +309,9 @@ var catalogZhCN = map[Key]string{
 	SettingsSelectCategory: "打开时选中分类",
 	SettingsSelectGroup:    "打开时选中分组",
 	SettingsWindowOpen:     "打开面板时",
+	SettingsWindowSearch:   "搜索",
+	SettingsSearchFocus:    "打开时聚焦搜索",
+	SettingsSearchClear:    "下次打开时清空搜索",
 	SettingsWindowHint:     "选择“保持当前”时，面板会沿用上次关闭时的范围、分类和分组。",
 
 	SettingsRetention:        "保留时长",

@@ -309,6 +309,9 @@ var catalogEnUS = map[Key]string{
 	SettingsSelectCategory: "Select Category on Open",
 	SettingsSelectGroup:    "Select Group on Open",
 	SettingsWindowOpen:     "When the Panel Opens",
+	SettingsWindowSearch:   "Search",
+	SettingsSearchFocus:    "Focus Search on Open",
+	SettingsSearchClear:    "Clear Search on Next Open",
 	SettingsWindowHint:     "Keep Current preserves the range, category and group from when the panel last closed.",
 
 	SettingsRetention:        "Keep History For",
