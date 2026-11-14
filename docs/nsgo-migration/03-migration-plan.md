@@ -1,12 +1,12 @@
 # 03 · 渐进式迁移计划
 
-> 目标：在不丢失现有功能与数据的前提下，把 EcoPaste 从 Tauri v2 + Rust + React 迁移到 Go + NSGo + AppKit。
+> 目标：把 EcoPaste 从 Tauri v2 + Rust + React 迁移到 Go + NSGo + AppKit；开发阶段以新架构和核心体验为主，旧版数据兼容在合并主分支、正式发布前统一补齐。
 > 当前范围：macOS。Windows/Linux 不进入新架构的实现与验收。
 > 旧工程已移出仓库；下文旧代码路径均指 `legacy/backend/...`、`legacy/frontend/...` 保留部分或 git history。
 
 ## 1. 执行原则
 
-1. **先兼容，再替换。** 数据目录、SQLite schema、`settings.json`、`content_hash`、图片文件名和 `.ecopastebak` 必须先兼容，再讨论 UI。
+1. **开发期不背包袱。** 当前只保证新架构自身正确、可测试；旧版数据目录、`settings.json`、备份与升级路径的兼容在正式发布前再集中处理。
 2. **单运行时目标。** 长期架构只保留 Go 进程；不采用 Rust sidecar、Rust staticlib + cgo、或 Tauri 内嵌 NSGo。
 3. **归档可回退。** 旧完整工程已移出仓库；迁移期以 `legacy/` 参考代码、迁移文档和 git history 作为回退依据，不在仓库维护双栈构建。
 4. **UI 原生优先。** NSGo 负责窗口结构、状态、布局和事件编排；可见控件与系统交互优先使用 AppKit。
@@ -263,7 +263,7 @@ internal/native/macos/
 ### 工作项
 
 1. 设置：
-   - Go struct 与 `settings.json` camelCase 完全兼容。
+   - Go struct 与 `settings.json` 使用清晰的 camelCase 字段；旧版缺失字段兼容在正式发布前统一校验。
    - 深度合并 patch，数组整体替换，跨字段校验。
    - `.tmp` + rename 原子写。
    - 7 个偏好 Tab 的设置项、搜索、高亮定位。
