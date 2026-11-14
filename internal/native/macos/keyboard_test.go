@@ -93,3 +93,31 @@ func TestNeedsMoreRowsNearEnd(t *testing.T) {
 		}
 	}
 }
+
+func TestCommandDigitIndex(t *testing.T) {
+	cases := []struct {
+		key  uint16
+		want int
+	}{
+		{key1, 0}, {key2, 1}, {key3, 2}, {key4, 3}, {key5, 4},
+		{key6, 5}, {key7, 6}, {key8, 7}, {key9, 8}, {key0, 9},
+	}
+	for _, tc := range cases {
+		got, ok := commandDigitIndex(tc.key)
+		if !ok || got != tc.want {
+			t.Errorf("commandDigitIndex(%d) = %d, %v; want %d, true", tc.key, got, ok, tc.want)
+		}
+	}
+	if _, ok := commandDigitIndex(keyF); ok {
+		t.Error("commandDigitIndex(F) should not match")
+	}
+}
+
+func TestCommandEnterPastesPlain(t *testing.T) {
+	if action, handled := historyKeyAction(keyReturn, commandModifier, HistoryRow{Kind: "text"}, true); action != "pastePlain" || !handled {
+		t.Errorf("command return = %q, %v", action, handled)
+	}
+	if action, handled := historyKeyAction(keyEnter, commandModifier, HistoryRow{Kind: "image"}, true); action != "activate" || !handled {
+		t.Errorf("command enter on image = %q, %v", action, handled)
+	}
+}

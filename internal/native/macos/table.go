@@ -53,6 +53,16 @@ const (
 	keyF             uint16 = 3
 	keyC             uint16 = 8
 	keyV             uint16 = 9
+	key1             uint16 = 18
+	key2             uint16 = 19
+	key3             uint16 = 20
+	key4             uint16 = 21
+	key6             uint16 = 22
+	key5             uint16 = 23
+	key9             uint16 = 25
+	key7             uint16 = 26
+	key8             uint16 = 28
+	key0             uint16 = 29
 	keyT             uint16 = 17
 	keyO             uint16 = 31
 	keyP             uint16 = 35
@@ -481,6 +491,11 @@ func historyKeyAction(key uint16, flags uint64, row HistoryRow, spacePreview boo
 	unmodified := flags&(shiftModifier|controlModifier|alternateModifier|commandModifier) == 0
 	commandOnly := commandShortcut(flags)
 	switch {
+	case (key == keyReturn || key == keyEnter) && commandOnly:
+		if row.Kind == "text" {
+			return "pastePlain", true
+		}
+		return "activate", true
 	case key == keyReturn || key == keyEnter:
 		return "activate", true
 	case key == keyP && commandOnly:
@@ -532,6 +547,34 @@ func historyKeyAction(key uint16, flags uint64, row HistoryRow, spacePreview boo
 	return "", false
 }
 
+// commandDigitIndex maps Command-1 through Command-0 to the first ten
+// visible rows.
+func commandDigitIndex(key uint16) (int, bool) {
+	switch key {
+	case key1:
+		return 0, true
+	case key2:
+		return 1, true
+	case key3:
+		return 2, true
+	case key4:
+		return 3, true
+	case key5:
+		return 4, true
+	case key6:
+		return 5, true
+	case key7:
+		return 6, true
+	case key8:
+		return 7, true
+	case key9:
+		return 8, true
+	case key0:
+		return 9, true
+	}
+	return 0, false
+}
+
 // commandShortcut reports whether Command is the only modifier pressed.
 func commandShortcut(flags uint64) bool {
 	return flags&(shiftModifier|controlModifier|alternateModifier|functionModifier|commandModifier) == commandModifier
@@ -575,9 +618,15 @@ func (p *Panel) handleCommandKey(key uint16, flags uint64) bool {
 	if index := p.activeIndex(); index >= 0 {
 		row = p.rows[index]
 	}
+	if index, ok := commandDigitIndex(key); ok {
+		if index < len(p.rows) {
+			p.cx.Emit("activate", p.rows[index].ID)
+		}
+		return true
+	}
 	action, handled := historyKeyAction(key, flags, row, p.behavior.SpacePreview)
 	switch action {
-	case "toggleFavorite", "editNote", "open", "reveal", "newGroup":
+	case "toggleFavorite", "editNote", "open", "reveal", "newGroup", "pastePlain", "activate":
 	default:
 		return false
 	}
