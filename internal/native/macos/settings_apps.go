@@ -196,12 +196,7 @@ func newSettingsAppRow() objc.ID {
 	cell := objc.ID(settingsAppsRowClass).Send(sel("new"))
 	cell.Send(sel("setIdentifier:"), nsString(settingsAppRowIdentifier))
 
-	checkbox := objc.ID(class("NSButton")).Send(sel("new"))
-	checkbox.Send(sel("setButtonType:"), int64(3))
-	checkbox.Send(sel("setTitle:"), nsString(""))
-	checkbox.Send(sel("setTarget:"), settingsAppsTarget)
-	checkbox.Send(sel("setAction:"), sel("appToggle:"))
-	checkbox.Send(sel("setFocusRingType:"), int64(1))
+	checkbox := newSettingsCheckbox(settingsAppsTarget, "appToggle:")
 	cell.Send(sel("addSubview:"), checkbox)
 	checkbox.Send(sel("release"))
 
@@ -267,7 +262,7 @@ func firstSettingsAppCheckbox(cell objc.ID) objc.ID {
 
 func layoutSettingsAppRow(cell objc.ID, size CGSize) {
 	if checkbox := firstSettingsAppCheckbox(cell); checkbox != 0 {
-		checkbox.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 8, Y: 12}, Size: CGSize{Width: 18, Height: 18}})
+		checkbox.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 8, Y: 14}, Size: CGSize{Width: 16, Height: 16}})
 	}
 	if icon := cell.Send(sel("viewWithTag:"), int64(settingsAppIconTag)); icon != 0 {
 		icon.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 36, Y: 10}, Size: CGSize{Width: 24, Height: 24}})

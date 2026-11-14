@@ -322,12 +322,7 @@ func newSettingsActionRow() objc.ID {
 	cell := objc.ID(settingsActionRowClass).Send(sel("new"))
 	cell.Send(sel("setIdentifier:"), nsString(settingsActionRowIdentifier))
 
-	checkbox := objc.ID(class("NSButton")).Send(sel("new"))
-	checkbox.Send(sel("setButtonType:"), int64(3))
-	checkbox.Send(sel("setTitle:"), nsString(""))
-	checkbox.Send(sel("setTarget:"), settingsActionsTarget)
-	checkbox.Send(sel("setAction:"), sel("actionToggle:"))
-	checkbox.Send(sel("setFocusRingType:"), int64(1))
+	checkbox := newSettingsCheckbox(settingsActionsTarget, "actionToggle:")
 	cell.Send(sel("addSubview:"), checkbox)
 	checkbox.Send(sel("release"))
 
@@ -360,7 +355,7 @@ func layoutSettingsActionRow(cell objc.ID, size CGSize) {
 	subviews := objc.Send[objc.ID](cell, sel("subviews"))
 	if subviews != 0 && objc.Send[uint](subviews, sel("count")) > 0 {
 		checkbox := objc.Send[objc.ID](subviews, sel("objectAtIndex:"), uint(0))
-		checkbox.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 8, Y: 6}, Size: CGSize{Width: 18, Height: 18}})
+		checkbox.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 8, Y: 7}, Size: CGSize{Width: 16, Height: 16}})
 	}
 	if title := cell.Send(sel("viewWithTag:"), int64(1)); title != 0 {
 		title.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 36, Y: 5}, Size: CGSize{Width: size.Width - 44, Height: 18}})

@@ -39,6 +39,14 @@ func sizeSettingsTable(table objc.ID, width, rowHeight float64, rows int) {
 	table.Send(sel("setAutoresizingMask:"), int64(2))
 }
 
+func newSettingsCheckbox(target objc.ID, action string) objc.ID {
+	checkbox := objc.ID(class("NSButton")).Send(sel("checkboxWithTitle:target:action:"),
+		nsString(""), target, sel(action))
+	checkbox.Send(sel("retain"))
+	checkbox.Send(sel("setFocusRingType:"), int64(1))
+	return checkbox
+}
+
 func (v *SettingsView) addSwitch(content objc.ID, y float64, title, path string, get func(SettingsValues) bool) {
 	v.addLabelWidth(content, y, title, tabContentW-104)
 	v.addSearchEntry(content, title, path, "", "", rowHighlightFrame(y))
