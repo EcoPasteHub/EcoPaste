@@ -87,7 +87,7 @@ func (v *SettingsView) buildSearch() {
 	v.searchHighlight.Send(sel("setAccessibilityElement:"), false)
 	if layer := v.searchHighlight.Send(sel("layer")); layer != 0 {
 		layer.Send(sel("setCornerRadius:"), 7.0)
-		color := objc.ID(classNSColor).Send(sel("systemBlueColor")).
+		color := objc.ID(classNSColor).Send(sel("controlAccentColor")).
 			Send(sel("colorWithAlphaComponent:"), 0.16)
 		layer.Send(sel("setBackgroundColor:"), color.Send(sel("CGColor")))
 	}

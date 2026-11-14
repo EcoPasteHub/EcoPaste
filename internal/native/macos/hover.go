@@ -51,9 +51,8 @@ func (p *Panel) buildHoverBar() {
 		layer.Send(sel("setCornerRadius:"), 8.0)
 		layer.Send(sel("setMasksToBounds:"), true)
 		layer.Send(sel("setBorderWidth:"), 0.5)
-		border := objc.ID(classNSColor).Send(sel("separatorColor"))
-		layer.Send(sel("setBorderColor:"), border.Send(sel("CGColor")))
 	}
+	updateHoverBarBorder(bar)
 	p.hoverBar = bar
 	panelsByControl[bar] = p
 	for index := 0; index < maxHoverActions; index++ {
@@ -131,7 +130,20 @@ func (p *Panel) updateHover(row int) {
 		button.Send(sel("setAccessibilityLabel:"), nsString(spec.Tooltip))
 		setFrame(button, hoverBarPadding+hoverButtonW*float64(index), 0, hoverButtonW, hoverBarHeight)
 	}
+	updateHoverBarBorder(p.hoverBar)
 	p.hoverBar.Send(sel("setHidden:"), false)
+}
+
+// updateHoverBarBorder resolves the separator color in the current
+// appearance; a CGColor captured at creation does not follow theme changes.
+func updateHoverBarBorder(bar objc.ID) {
+	if bar == 0 {
+		return
+	}
+	if layer := bar.Send(sel("layer")); layer != 0 {
+		border := objc.ID(classNSColor).Send(sel("separatorColor"))
+		layer.Send(sel("setBorderColor:"), border.Send(sel("CGColor")))
+	}
 }
 
 func (p *Panel) hideHover() {
