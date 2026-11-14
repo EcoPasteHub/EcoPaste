@@ -102,19 +102,15 @@ func applyPlacement(p *Panel) {
 // position, the center of the screen with the pointer, or the pointer
 // itself with the panel hanging below it.
 func panelOrigin(mode string, size CGSize, mouse CGPoint, screens []ScreenBounds, saved *CGPoint) CGPoint {
-	screen, ok := screenContaining(mouse, screens)
-	if !ok {
-		switch {
-		case len(screens) > 0:
-			screen = screens[0]
-		default:
-			return CGPoint{X: mouse.X, Y: mouse.Y - size.Height}
-		}
+	if len(screens) == 0 {
+		return CGPoint{X: mouse.X, Y: mouse.Y - size.Height}
 	}
+	screen, _ := screenForPoint(mouse, screens)
 	switch mode {
 	case "remember":
 		if saved != nil {
-			if remembered, found := screenContaining(*saved, screens); found {
+			frame := CGRect{Origin: *saved, Size: size}
+			if remembered, found := screenForRect(frame, screens); found {
 				return clampOrigin(*saved, size, remembered.Visible)
 			}
 		}
@@ -130,6 +126,43 @@ func panelOrigin(mode string, size CGSize, mouse CGPoint, screens []ScreenBounds
 	}
 }
 
+// screenForPoint prefers the screen containing the point and otherwise
+// picks the nearest one, so a cursor in a gap between displays still
+// opens the panel on a sensible screen.
+func screenForPoint(point CGPoint, screens []ScreenBounds) (ScreenBounds, bool) {
+	if screen, ok := screenContaining(point, screens); ok {
+		return screen, true
+	}
+	var nearest ScreenBounds
+	bestDistance := 0.0
+	for index, screen := range screens {
+		distance := pointDistance(point, screen.Frame)
+		if index == 0 || distance < bestDistance {
+			nearest = screen
+			bestDistance = distance
+		}
+	}
+	return nearest, len(screens) > 0
+}
+
+// screenForRect returns the screen intersecting the rect the most. A
+// remembered frame that is partly off screen still clamps to that screen
+// instead of jumping to the screen under the pointer.
+func screenForRect(rect CGRect, screens []ScreenBounds) (ScreenBounds, bool) {
+	var best ScreenBounds
+	bestArea := 0.0
+	for _, screen := range screens {
+		if area := intersectionArea(rect, screen.Frame); area > bestArea {
+			best = screen
+			bestArea = area
+		}
+	}
+	if bestArea > 0 {
+		return best, true
+	}
+	return ScreenBounds{}, false
+}
+
 func screenContaining(point CGPoint, screens []ScreenBounds) (ScreenBounds, bool) {
 	for _, screen := range screens {
 		frame := screen.Frame
@@ -139,6 +172,21 @@ func screenContaining(point CGPoint, screens []ScreenBounds) (ScreenBounds, bool
 		}
 	}
 	return ScreenBounds{}, false
+}
+
+func intersectionArea(a, b CGRect) float64 {
+	width := min(a.Origin.X+a.Size.Width, b.Origin.X+b.Size.Width) - max(a.Origin.X, b.Origin.X)
+	height := min(a.Origin.Y+a.Size.Height, b.Origin.Y+b.Size.Height) - max(a.Origin.Y, b.Origin.Y)
+	if width <= 0 || height <= 0 {
+		return 0
+	}
+	return width * height
+}
+
+func pointDistance(point CGPoint, rect CGRect) float64 {
+	dx := max(rect.Origin.X-point.X, 0, point.X-(rect.Origin.X+rect.Size.Width))
+	dy := max(rect.Origin.Y-point.Y, 0, point.Y-(rect.Origin.Y+rect.Size.Height))
+	return dx*dx + dy*dy
 }
 
 func clampOrigin(origin CGPoint, size CGSize, visible CGRect) CGPoint {

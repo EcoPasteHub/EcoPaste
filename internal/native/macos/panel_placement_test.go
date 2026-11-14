@@ -59,6 +59,33 @@ func TestPanelOriginRememberRestoresSavedPosition(t *testing.T) {
 	}
 }
 
+func TestPanelOriginPicksNearestScreenFromDisplayGap(t *testing.T) {
+	size := CGSize{Width: 420, Height: 560}
+	screens := []ScreenBounds{
+		{
+			Frame:   CGRect{Origin: CGPoint{X: 0, Y: 0}, Size: CGSize{Width: 1000, Height: 800}},
+			Visible: CGRect{Origin: CGPoint{X: 0, Y: 0}, Size: CGSize{Width: 1000, Height: 800}},
+		},
+		{
+			Frame:   CGRect{Origin: CGPoint{X: 1100, Y: 0}, Size: CGSize{Width: 800, Height: 800}},
+			Visible: CGRect{Origin: CGPoint{X: 1100, Y: 0}, Size: CGSize{Width: 800, Height: 800}},
+		},
+	}
+	origin := panelOrigin("center", size, CGPoint{X: 1070, Y: 400}, screens, nil)
+	if origin.X != 1100+(800-420)/2 || origin.Y != (800-560)/2 {
+		t.Fatalf("origin = %+v", origin)
+	}
+}
+
+func TestPanelOriginRememberClampsPartiallyVisibleFrame(t *testing.T) {
+	size := CGSize{Width: 420, Height: 560}
+	saved := CGPoint{X: 3400, Y: -120}
+	origin := panelOrigin("remember", size, CGPoint{X: 800, Y: 500}, testScreens(), &saved)
+	if origin.X != 1512+1920-420-panelScreenMargin || origin.Y != panelScreenMargin {
+		t.Fatalf("origin = %+v", origin)
+	}
+}
+
 func TestPanelOriginKeepsTopLeftVisibleOnTinyScreen(t *testing.T) {
 	size := CGSize{Width: 420, Height: 560}
 	screens := []ScreenBounds{{
