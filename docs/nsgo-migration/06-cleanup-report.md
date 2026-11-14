@@ -99,11 +99,11 @@ EcoPaste/
 .gemini/
 .kiro/
 .opencode/
-.github/         # 含 Trellis agents/skills 与旧 CI workflows
 .vscode/
 ```
 
 仓库内不再保留 Trellis 任务、规范、hooks、skills 或其它 AI 工具入口。AI 规则只保留根目录 `AGENTS.md`。
+`.github/` 下的 Trellis agents/skills 与旧 CI workflows 已移除；现在只保留新的 macOS Go/NSGo CI，不恢复旧发布流水线。
 
 ### 4.2 旧 Tauri 外壳与平台代码
 
