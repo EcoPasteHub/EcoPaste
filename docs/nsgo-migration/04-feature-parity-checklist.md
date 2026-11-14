@@ -51,7 +51,7 @@
 | D-15 | P0 | 使用次数 | `increment_item_use_count` | `use_count + 1` 并刷新 `updated_at` | 已通过 | `TestUpsertDeduplicatesAndRefreshesUpdatedAt` |
 | D-16 | P0 | 历史清理 | `cleanup.rs`、`db/items.rs` | 时长 + 最大条数，收藏/置顶保留 | 已通过 | `TestCleanupHistoryByRetentionKeepsProtectedItems`、`TestCleanupRemovesExpiredImage` |
 | D-17 | P0 | 启动清理 | `clipboard::init` | 启动先跑一次，再按间隔 | 已通过 | `TestCleanupDue` 覆盖禁用、1 小时边界、过期与溢出；`TestCleanupLoopRunsOnConfiguredInterval` 用可注入时钟验证启动先跑一次且按配置间隔再次执行；隔离数据目录插入普通/收藏/近期三条，冷启动后仅删除过期普通项，收藏与近期项保留 |
-| D-18 | P0 | 清空记录 | `clear_items` | 可选保留收藏/置顶 | 已通过 | 托盘原生对话框接取消、保留收藏/置顶、清除全部；`TestClearHistoryOptionallyKeepsFavoritesAndPinned` 校验行级策略，`TestClearRemovesOnlyDeletedImageFiles` 校验保留项图片不被删除、清除全部时对应图片同步移除 |
+| D-18 | P0 | 清空记录 | `clear_items` | 可选保留收藏/置顶 | 已通过 | 面板顶部垃圾桶与托盘共用原生对话框，接取消、保留收藏/置顶、清除全部；`TestClearHistoryOptionallyKeepsFavoritesAndPinned` 校验行级策略，`TestClearRemovesOnlyDeletedImageFiles` 校验保留项图片不被删除、清除全部时对应图片同步移除；真机面板点击垃圾桶弹出确认框，取消后记录不变 |
 | D-19 | P0 | 数据根解析 | `core/paths.rs` | `<app_local_data>/<dev\|prod>` + `storage.json` | 已通过 | `internal/storage` 测试覆盖默认根、锚点与自定义目录 |
 | D-20 | P0 | 自定义数据目录 | `commands/storage.rs` | 迁移 db/resources/config/state 并热切换 | 已通过 | `TestChangeDataDirCopiesLiveData`、`TestChangeDataDirRemovesTargetOnFailure`、`TestRestoreDefaultDataDir`；真机自定义目录迁移、恢复默认目录（生成 `dev-backup-*`）与已存在目标错误路径提示均通过，失败不重启 |
 | D-21 | P0 | 资源目录 | `core/paths.rs` | 同目录结构，图片按 hash 分片 | 已通过 | `TestImageStoreIsIdempotent`；真机图片落盘 |

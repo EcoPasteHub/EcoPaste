@@ -26,6 +26,7 @@ type Panel struct {
 	pin                objc.ID
 	filterButton       objc.ID
 	settingsButton     objc.ID
+	clearButton        objc.ID
 	shortcutButton     objc.ID
 	shortcutPopover    objc.ID
 	shortcutView       objc.ID
@@ -186,6 +187,14 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.settingsButton.Send(sel("setAction:"), sel("settingsPressed:"))
 	p.settingsButton.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsWindowTitle)))
 
+	p.clearButton = objc.ID(class("NSButton")).Send(sel("alloc")).Send(sel("initWithFrame:"), CGRect{})
+	p.clearButton.Send(sel("setBordered:"), false)
+	p.clearButton.Send(sel("setImage:"), systemSymbol("trash"))
+	p.clearButton.Send(sel("setContentTintColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
+	p.clearButton.Send(sel("setTarget:"), searchTarget)
+	p.clearButton.Send(sel("setAction:"), sel("clearPressed:"))
+	p.clearButton.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.PanelClearHistory)))
+
 	p.shortcutButton = objc.ID(class("NSButton")).Send(sel("alloc")).Send(sel("initWithFrame:"), CGRect{})
 	p.shortcutButton.Send(sel("setBordered:"), false)
 	p.shortcutButton.Send(sel("setImage:"), systemSymbol("keyboard"))
@@ -236,7 +245,7 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.buildPreview()
 
 	for _, v := range []objc.ID{p.searchIcon, p.search, p.pin, p.filterButton, p.settingsButton,
-		p.shortcutButton, p.divider, p.scroll, p.empty, p.emptyIcon, p.emptyDetail,
+		p.clearButton, p.shortcutButton, p.divider, p.scroll, p.empty, p.emptyIcon, p.emptyDetail,
 		p.footerDivider, p.footer, p.hint} {
 		p.view.Send(sel("addSubview:"), v)
 	}
@@ -247,6 +256,7 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	panelsByControl[p.pin] = p
 	panelsByControl[p.filterButton] = p
 	panelsByControl[p.settingsButton] = p
+	panelsByControl[p.clearButton] = p
 	panelsByControl[p.shortcutButton] = p
 	panelsByView[p.view] = p
 	layoutPanel(p, 420, 560)
@@ -357,6 +367,11 @@ func registerPanelTargets() {
 			{Cmd: sel("settingsPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
 				if p := panelsByControl[sender]; p != nil {
 					p.cx.Emit("openSettings", "")
+				}
+			}},
+			{Cmd: sel("clearPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
+				if p := panelsByControl[sender]; p != nil {
+					p.cx.Emit("clearHistory", nil)
 				}
 			}},
 			{Cmd: sel("shortcutHelpPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
@@ -560,6 +575,7 @@ func (p *Panel) Close() {
 	delete(panelsByControl, p.pin)
 	delete(panelsByControl, p.filterButton)
 	delete(panelsByControl, p.settingsButton)
+	delete(panelsByControl, p.clearButton)
 	delete(panelsByControl, p.shortcutButton)
 	for _, button := range p.hoverButtons {
 		delete(panelsByControl, button)
@@ -602,6 +618,7 @@ func (p *Panel) Close() {
 	p.pin.Send(sel("release"))
 	p.filterButton.Send(sel("release"))
 	p.settingsButton.Send(sel("release"))
+	p.clearButton.Send(sel("release"))
 	p.shortcutButton.Send(sel("release"))
 	if p.nav != nil {
 		p.nav.close()

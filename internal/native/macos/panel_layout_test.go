@@ -7,7 +7,7 @@ import "testing"
 func TestPanelSearchWidthLeavesRoomForToolbar(t *testing.T) {
 	const width = 420.0
 	got := panelSearchWidth(width)
-	want := width - 2*panelSidePadding - 3*panelIconSize - 2*panelIconGap - 10
+	want := width - 2*panelSidePadding - 4*panelIconSize - 3*panelIconGap - 10
 	if got != want {
 		t.Fatalf("search width = %v, want %v", got, want)
 	}

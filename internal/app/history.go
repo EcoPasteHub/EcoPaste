@@ -368,6 +368,20 @@ func (m *historyModel) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
+// ClearHistory asks which protected rows to keep and removes the rest.
+func (m *historyModel) ClearHistory(ctx context.Context) error {
+	choice := macos.ConfirmClearHistory()
+	if choice == macos.ClearHistoryCancel || m.runtime == nil {
+		return nil
+	}
+	all := choice == macos.ClearHistoryAll
+	if _, err := m.runtime.service.Clear(ctx, all, all); err != nil {
+		return err
+	}
+	m.runtime.Signal()
+	return nil
+}
+
 func (m *historyModel) Preview(ctx context.Context, id string) (ui.HistoryPreview, error) {
 	if m.store == nil || !m.store.Snapshot().Clipboard.Preview.SpaceEnabled {
 		return ui.HistoryPreview{}, nil

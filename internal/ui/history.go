@@ -645,6 +645,22 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 							}
 						})
 					}(selectedGroup)
+				case "clearHistory":
+					if model == nil {
+						return
+					}
+					ctx := cx.Context()
+					go func() {
+						err := model.ClearHistory(ctx)
+						cx.Post(func() {
+							if err != nil {
+								errorText.Set(err.Error())
+								return
+							}
+							selectedID = ""
+							reload()
+						})
+					}()
 				case "moveGroup":
 					if selectedID == "" || model == nil {
 						return

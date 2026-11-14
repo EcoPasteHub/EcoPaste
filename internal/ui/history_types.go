@@ -117,6 +117,7 @@ type HistoryModel interface {
 	RenameGroup(context.Context, string) (bool, error)
 	DeleteGroup(context.Context, string) (bool, error)
 	MoveToGroup(context.Context, string, string) error
+	ClearHistory(context.Context) error
 	SearchBehavior() HistorySearchBehavior
 	PreviewBehavior() HistoryPreviewBehavior
 	Display() HistoryDisplay

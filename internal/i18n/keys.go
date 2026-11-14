@@ -97,6 +97,7 @@ const (
 	PanelGroupsLabel       = Key("panel.groupsLabel")
 	PanelGroupActions      = Key("panel.groupActions")
 	PanelFilter            = Key("panel.filter")
+	PanelClearHistory      = Key("panel.clearHistory")
 	PanelEmpty             = Key("panel.empty")
 	PanelEmptyDetail       = Key("panel.emptyDetail")
 	PanelHint              = Key("panel.hint")

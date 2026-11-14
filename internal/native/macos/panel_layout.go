@@ -28,9 +28,11 @@ func layoutPanel(p *Panel, width, height float64) {
 	pinX := width - panelSidePadding - panelIconSize
 	settingsX := pinX - panelIconGap - panelIconSize
 	filterX := settingsX - panelIconGap - panelIconSize
+	clearX := filterX - panelIconGap - panelIconSize
 	setFrame(p.searchIcon, panelSidePadding, searchIconY, panelSearchIcon, panelSearchIcon)
 	setFrame(p.search, panelSidePadding+panelSearchIcon+8, searchTextY,
 		panelSearchWidth(width)-panelSearchIcon-8, panelSearchText)
+	setFrame(p.clearButton, clearX, iconY, panelIconSize, panelIconSize)
 	setFrame(p.filterButton, filterX, iconY, panelIconSize, panelIconSize)
 	setFrame(p.settingsButton, settingsX, iconY, panelIconSize, panelIconSize)
 	setFrame(p.pin, pinX, iconY, panelIconSize, panelIconSize)
@@ -63,9 +65,9 @@ func layoutPanel(p *Panel, width, height float64) {
 	layoutEmptyState(p, width, scrollY, scrollHeight)
 }
 
-// panelSearchWidth leaves room for the filter, settings and pin buttons.
+// panelSearchWidth leaves room for the clear, filter, settings and pin buttons.
 func panelSearchWidth(width float64) float64 {
-	return width - 2*panelSidePadding - 3*panelIconSize - 2*panelIconGap - 10
+	return width - 2*panelSidePadding - 4*panelIconSize - 3*panelIconGap - 10
 }
 
 func layoutEmptyState(p *Panel, width, scrollY, scrollHeight float64) {

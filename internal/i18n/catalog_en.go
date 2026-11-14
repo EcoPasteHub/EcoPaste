@@ -97,6 +97,7 @@ var catalogEnUS = map[Key]string{
 	PanelGroupsLabel:       "Custom groups",
 	PanelGroupActions:      "Group actions",
 	PanelFilter:            "Filter",
+	PanelClearHistory:      "Clear History…",
 	PanelEmpty:             "No clipboard history yet",
 	PanelEmptyDetail:       "Copy something and it will show up here",
 	PanelHint:              "↵ Paste · Space Preview · Esc Close",
