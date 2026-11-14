@@ -330,8 +330,9 @@ var catalogZhCN = map[Key]string{
 	SettingsCollectSecrets:   "收录敏感内容",
 	SettingsRedactSecrets:    "脱敏显示",
 
-	SettingsPreviewIntro: "Space 打开选中项预览，Esc 返回。悬停预览按迁移计划不提供给原生面板。",
-	SettingsSpacePreview: "Space 预览选中项",
+	SettingsPreviewIntro:   "选中记录后按 Space，在原生浮层中查看完整内容；按 Esc 或再次按 Space 返回。",
+	SettingsPreviewSection: "预览行为",
+	SettingsSpacePreview:   "按 Space 预览选中项",
 
 	SettingsPermissionsIntro:       "这些权限由 macOS 管理，授权后立即生效。",
 	SettingsPermissionsSystem:      "系统权限",

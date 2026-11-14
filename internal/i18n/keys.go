@@ -330,8 +330,9 @@ const (
 	SettingsCollectSecrets   = Key("settings.history.collectSecrets")
 	SettingsRedactSecrets    = Key("settings.history.redactSecrets")
 
-	SettingsPreviewIntro = Key("settings.preview.intro")
-	SettingsSpacePreview = Key("settings.preview.space")
+	SettingsPreviewIntro   = Key("settings.preview.intro")
+	SettingsPreviewSection = Key("settings.preview.section")
+	SettingsSpacePreview   = Key("settings.preview.space")
 
 	SettingsPermissionsIntro       = Key("settings.permissions.intro")
 	SettingsPermissionsSystem      = Key("settings.permissions.system")

@@ -330,8 +330,9 @@ var catalogEnUS = map[Key]string{
 	SettingsCollectSecrets:   "Capture Sensitive Content",
 	SettingsRedactSecrets:    "Redact Sensitive Content",
 
-	SettingsPreviewIntro: "Space previews the selected item and Esc returns. Hover preview is not available in the native panel by design.",
-	SettingsSpacePreview: "Space Previews Selected Item",
+	SettingsPreviewIntro:   "Select an item and press Space to view the full content in a native popover. Press Esc or Space again to return.",
+	SettingsPreviewSection: "Preview Behavior",
+	SettingsSpacePreview:   "Preview Selected Item With Space",
 
 	SettingsPermissionsIntro:       "macOS manages these permissions; changes take effect immediately after granting.",
 	SettingsPermissionsSystem:      "System Permissions",

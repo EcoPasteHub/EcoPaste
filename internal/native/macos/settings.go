@@ -443,13 +443,15 @@ func (v *SettingsView) buildHistory() {
 
 func (v *SettingsView) buildPreview() {
 	content := v.newTab("preview", settingsTabTitle("preview"))
-	intro := objc.ID(classNSTextField).Send(sel("labelWithString:"),
+	v.addSectionLabel(content, 438, i18n.T(i18n.SettingsPreviewSection))
+	intro := objc.ID(classNSTextField).Send(sel("wrappingLabelWithString:"),
 		nsString(i18n.T(i18n.SettingsPreviewIntro)))
 	intro.Send(sel("setFont:"), systemFont(11))
 	intro.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
-	intro.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 438}, Size: CGSize{Width: tabContentW - 48, Height: 18}})
+	intro.Send(sel("setPreferredMaxLayoutWidth:"), tabContentW-48)
+	intro.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 408}, Size: CGSize{Width: tabContentW - 48, Height: 28}})
 	content.Send(sel("addSubview:"), intro)
-	v.addSwitch(content, 396, i18n.T(i18n.SettingsSpacePreview), "preview.spaceEnabled",
+	v.addSwitch(content, 372, i18n.T(i18n.SettingsSpacePreview), "preview.spaceEnabled",
 		func(s SettingsValues) bool { return s.SpacePreview })
 }
 
