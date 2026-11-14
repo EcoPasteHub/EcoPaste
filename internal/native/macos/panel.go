@@ -53,10 +53,14 @@ type Panel struct {
 	onboardingActive              bool
 	onboardingStep                int
 	onboardingView                objc.ID
+	onboardingIcon                objc.ID
+	onboardingHeaderDivider       objc.ID
+	onboardingFooterDivider       objc.ID
 	onboardingTitle               objc.ID
 	onboardingDetail              objc.ID
 	onboardingBody                objc.ID
 	onboardingProgress            objc.ID
+	onboardingProgressBar         objc.ID
 	onboardingAccessibility       objc.ID
 	onboardingFullDisk            objc.ID
 	onboardingAccessibilityButton objc.ID
