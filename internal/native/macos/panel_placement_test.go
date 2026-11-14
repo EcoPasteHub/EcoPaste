@@ -97,3 +97,19 @@ func TestPanelOriginKeepsTopLeftVisibleOnTinyScreen(t *testing.T) {
 		t.Fatalf("origin = %+v", origin)
 	}
 }
+
+func TestCenterDialogOriginFollowsPanelCenter(t *testing.T) {
+	panel := PanelFrame{X: 1000, Y: 277, Width: 420, Height: 560}
+	origin := centerDialogOrigin(CGSize{Width: 400, Height: 150}, panel, testScreens())
+	if origin.X != 1010 || origin.Y != 482 {
+		t.Fatalf("origin = %+v", origin)
+	}
+}
+
+func TestCenterDialogOriginClampsToPanelScreen(t *testing.T) {
+	panel := PanelFrame{X: 1512, Y: 0, Width: 420, Height: 560}
+	origin := centerDialogOrigin(CGSize{Width: 500, Height: 700}, panel, testScreens())
+	if origin.X != 1512+panelScreenMargin || origin.Y != panelScreenMargin {
+		t.Fatalf("origin = %+v", origin)
+	}
+}

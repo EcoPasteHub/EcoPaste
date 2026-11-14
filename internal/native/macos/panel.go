@@ -374,6 +374,15 @@ func registerPanelTargets() {
 					p.cx.Emit("clearHistory", nil)
 				}
 			}},
+			{Cmd: sel("elevateDialog:"), Fn: func(_ objc.ID, _ objc.SEL, timer objc.ID) {
+				window := objc.Send[objc.ID](timer, sel("userInfo"))
+				if window == 0 {
+					return
+				}
+				window.Send(sel("setLevel:"), int64(1000))
+				placeDialogOverPanel(window)
+				window.Send(sel("orderFront:"), objc.ID(0))
+			}},
 			{Cmd: sel("shortcutHelpPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
 				if p := panelsByControl[sender]; p != nil {
 					p.toggleShortcutHelp()

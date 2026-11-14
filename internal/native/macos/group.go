@@ -41,6 +41,8 @@ func EditGroupName(current string) (string, bool) {
 
 		window := objc.Send[objc.ID](alert, sel("window"))
 		window.Send(sel("setLevel:"), int64(1000))
+		placeDialogOverPanel(window)
+		elevateDialogAfterModalStarts(window)
 		window.Send(sel("makeKeyAndOrderFront:"), objc.ID(0))
 		window.Send(sel("makeFirstResponder:"), field)
 		if alert.Send(sel("runModal")) == 1000 {
@@ -71,8 +73,30 @@ func ConfirmDeleteGroup(name string) bool {
 		alert.Send(sel("addButtonWithTitle:"), nsString(i18n.T(i18n.CommonCancel)))
 		window := objc.Send[objc.ID](alert, sel("window"))
 		window.Send(sel("setLevel:"), int64(1000))
+		placeDialogOverPanel(window)
+		elevateDialogAfterModalStarts(window)
 		window.Send(sel("makeKeyAndOrderFront:"), objc.ID(0))
 		confirmed = alert.Send(sel("runModal")) == 1000
 	})
 	return confirmed
+}
+
+func placeDialogOverPanel(window objc.ID) {
+	panel, ok := PanelFrameOf()
+	if !ok {
+		return
+	}
+	frame := objc.Send[CGRect](window, sel("frame"))
+	frame.Origin = centerDialogOrigin(frame.Size, panel, screensBounds())
+	window.Send(sel("setFrameOrigin:"), frame.Origin)
+}
+
+// elevateDialogAfterModalStarts re-raises the alert above the floating
+// panel once NSAlert has laid out its final window; setting the level
+// before runModal is reset by AppKit.
+func elevateDialogAfterModalStarts(window objc.ID) {
+	timer := objc.ID(class("NSTimer")).Send(sel("timerWithTimeInterval:target:selector:userInfo:repeats:"),
+		0.05, searchTarget, sel("elevateDialog:"), window, false)
+	objc.ID(class("NSRunLoop")).Send(sel("mainRunLoop")).
+		Send(sel("addTimer:forMode:"), timer, nsString("NSModalPanelRunLoopMode"))
 }

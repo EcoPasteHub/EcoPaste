@@ -199,6 +199,20 @@ func clampOrigin(origin CGPoint, size CGSize, visible CGRect) CGPoint {
 	return CGPoint{X: x, Y: y}
 }
 
+// centerDialogOrigin centers a dialog over the clipboard panel and keeps
+// it inside the panel's screen.
+func centerDialogOrigin(size CGSize, panel PanelFrame, screens []ScreenBounds) CGPoint {
+	origin := CGPoint{
+		X: panel.X + (panel.Width-size.Width)/2,
+		Y: panel.Y + (panel.Height-size.Height)/2,
+	}
+	center := CGPoint{X: panel.X + panel.Width/2, Y: panel.Y + panel.Height/2}
+	if screen, ok := screenForPoint(center, screens); ok {
+		return clampOrigin(origin, size, screen.Visible)
+	}
+	return origin
+}
+
 func mouseLocation() CGPoint {
 	return objc.Send[CGPoint](objc.ID(class("NSEvent")), sel("mouseLocation"))
 }
