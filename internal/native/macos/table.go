@@ -38,6 +38,7 @@ const (
 	keyF             uint16 = 3
 	keyC             uint16 = 8
 	keyV             uint16 = 9
+	keyT             uint16 = 17
 	keyP             uint16 = 35
 	keyReturn        uint16 = 36
 	keySpace         uint16 = 49
@@ -417,7 +418,9 @@ func historyKeyAction(key uint16, flags uint64, row HistoryRow, spacePreview boo
 	switch {
 	case key == keyReturn || key == keyEnter:
 		return "activate", true
-	case key == keyP && unmodified:
+	case key == keyP && commandOnly:
+		return "toggleWindowPinned", true
+	case key == keyT && commandOnly:
 		return "togglePinned", true
 	case key == keySpace && unmodified && spacePreview:
 		return "preview", true

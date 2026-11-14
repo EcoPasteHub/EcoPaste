@@ -641,6 +641,10 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 						_, err := model.TogglePinned(ctx, id)
 						return err
 					})
+				case "toggleWindowPinned":
+					if ref != nil {
+						ref.Command("toggleWindowPinned", nil)
+					}
 				case "delete":
 					id := actionID(data)
 					if id == "" || model == nil {

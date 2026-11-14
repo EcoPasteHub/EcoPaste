@@ -553,6 +553,8 @@ func (p *Panel) Command(name string, args any) {
 		}
 	case "showAccessibilityAlert":
 		showAccessibilityAlert()
+	case "toggleWindowPinned":
+		p.togglePinned()
 	case "resignKey":
 		p.view.Send(sel("window")).Send(sel("resignKeyWindow"))
 	case "makeKey":

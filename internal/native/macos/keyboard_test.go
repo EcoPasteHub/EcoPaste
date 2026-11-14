@@ -18,8 +18,10 @@ func TestHistoryKeyAction(t *testing.T) {
 	}{
 		{name: "return activates", key: keyReturn, row: text, action: "activate", handled: true},
 		{name: "enter activates", key: keyEnter, row: files, action: "activate", handled: true},
-		{name: "plain P pins", key: keyP, row: text, action: "togglePinned", handled: true},
-		{name: "command P falls through", key: keyP, flags: commandModifier, row: text, handled: false},
+		{name: "command P pins window", key: keyP, flags: commandModifier, row: text, action: "toggleWindowPinned", handled: true},
+		{name: "command T pins item", key: keyT, flags: commandModifier, row: text, action: "togglePinned", handled: true},
+		{name: "plain P falls through", key: keyP, row: text, handled: false},
+		{name: "plain T falls through", key: keyT, row: text, handled: false},
 		{name: "plain space previews", key: keySpace, row: image, action: "preview", handled: true},
 		{name: "option space falls through", key: keySpace, flags: alternateModifier, row: image, handled: false},
 		{name: "escape hides", key: keyEscape, row: text, action: "hide", handled: true},

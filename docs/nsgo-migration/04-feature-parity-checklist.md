@@ -88,8 +88,8 @@
 | A-03 | P0 | 写回 RTF | `write.rs` | plain + `public.rtf` 同一 item | 已通过 | 隔离实例复制历史 RTF 条目后，`NSPasteboard` 同时提供 `public.utf8-plain-text` 与 `public.rtf`，RTF 数据 148 B；未新增自身回环 |
 | A-04 | P0 | 写回图片 | `write.rs` | `public.png` + TIFF（按需） | 已通过 | 隔离实例复制 520×520 历史图片后，剪贴板提供 `public.png` 5467 B，并由系统合成 `public.tiff`；未新增自身回环 |
 | A-05 | P0 | 写回文件 | `write.rs` | `public.file-url` 多文件 | 已通过 | 隔离实例复制两项文件记录后，`NSPasteboard` 按 item 提供 `file:///tmp/ecopaste-a.txt` 与 `file:///tmp/ecopaste-b.txt`，同时提供 `NSFilenamesPboardType` |
-| A-06 | P0 | 粘贴 | `paste_clipboard_item` | 写回 + 让出 key + `CGEvent` ⌘V | 迁移中 | 回车/双击已接 `CGEvent`；权限拒绝路径已验证，待授权后真机验收 |
-| A-07 | P0 | 纯文本粘贴 | `paste_plain` | 文本只写 plain；HTML/RTF 带 plain 回退 | 迁移中 | 菜单“纯文本粘贴/复制为纯文本”已真机验证只写 plain；自动按键待辅助功能授权 |
+| A-06 | P0 | 粘贴 | `paste_clipboard_item` | 写回 + 让出 key + `CGEvent` ⌘V | 已通过 | 真机 TextEdit 空文稿中选中历史文本后按回车，目标收到完整原文，面板按时隐藏，数据库无自身回环；`TestHistoryKeyAction` 覆盖回车/Enter 进入粘贴路径；拒绝权限提示路径沿用已验流程 |
+| A-07 | P0 | 纯文本粘贴 | `paste_plain` | 文本只写 plain；HTML/RTF 带 plain 回退 | 已通过 | 真机对含粗体和红色的 HTML 条目按 `⌥⌘V`，剪贴板仅提供 `public.utf8-plain-text`/`NSStringPboardType`，TextEdit 收到纯文本；固定面板下粘贴后保持可见并恢复表格焦点；菜单“纯文本粘贴/复制为纯文本”此前已验证 |
 | A-08 | P1 | 文件路径粘贴 | `paste_files_as_path` | 文件记录写回换行路径文本 | 已通过 | `TestBuildWritePreservesRepresentations`；真机“粘贴为路径”与 `pasteFilesAsPath=true` 正常粘贴均写入换行路径，未新增回环 |
 | A-09 | P1 | 打开链接/邮件 | `open_clipboard_item_link` | `NSWorkspace.open` | 已通过 | `TestOpenDispatchesBySubKind`；URL/路径条目右键菜单显示对应动作 |
 | A-10 | P1 | Finder 显示 | `reveal_clipboard_item` | `NSWorkspace.activateFileViewerSelecting` | 已通过 | `TestRevealFilesAndPath`；真机对路径条目执行后 Finder 选中目标目录 |
@@ -112,7 +112,7 @@
 | W-01 | P0 | 剪贴板面板 | `window/macos.rs` | `NSPanel`，非激活、可 key、置顶、无边框、透明 | 迁移中 | 原生面板、搜索、分类、列表与失焦隐藏已真机使用；NSGo 面板已设置 `canJoinAllSpaces` 与 `fullScreenAuxiliary`；多屏定位、负坐标屏幕和“可见区域小于面板”边界由 `TestPanelOrigin*` 覆盖；真机在 Finder 全屏 Space 中固定面板保持可见，退出全屏正常；当前环境仅单屏，多屏切换仍未真机复核 |
 | W-02 | P0 | 窗口定位 | `window/position.rs` | 跟随鼠标/居中/记住位置 | 已通过 | 设置“面板打开位置”三档；真机 `osascript` 读取窗口 frame：居中 `654,217`、跟随光标 `300,393`（光标 `300,400`）、记住位置恢复 `654,217` |
 | W-03 | P0 | 失焦隐藏 | `window/macos.rs` | 自定义 resign-key 隐藏 + modal/固定窗口期间暂停 | 已通过 | 真机切换 Finder 后隐藏；系统另存/备注弹窗期间保持；固定窗口保持可见；拖拽期间暂停失焦隐藏，拖放被接受后隐藏，取消拖拽保持；`TestShouldHideAfterDrag` 覆盖接受、取消、失 key、失活、固定、引导和抑制分支 |
-| W-04 | P0 | 固定窗口 | `set_clipboard_window_pinned` | 固定不隐藏；粘贴时 resign/restore key | 迁移中 | 原生按钮与 `P` 键切换已接；真机固定后失焦/复制均保持可见；粘贴 key 让出/恢复待授权后验收 |
+| W-04 | P0 | 固定窗口 | `set_clipboard_window_pinned` | 固定不隐藏；粘贴时 resign/restore key | 已通过 | 原生按钮与 `⌘P` 切换已接，`⌘T` 置顶选中条目；真机固定后失焦、切换 TextEdit 和回车粘贴均保持可见，粘贴时让出 key 并在完成后恢复表格焦点；`TestHistoryKeyAction` 覆盖两档快捷键 |
 | W-05 | P1 | 窗口生命周期 | `window/lifecycle/*` | 原生窗口状态机，无 WebView 重建 | 已通过 | 冷启动不显示面板、全局快捷键显示/隐藏、隐藏后写 `window-state.json` 已实测；快捷键切换改为显式 `Show()`/`Hide()`，避免 Carbon 回调中的窗口命令未刷新；Esc 隐藏已复测；修复退出阶段热键清理阻塞主队列导致进程残留后，应用菜单退出、托盘“重新启动”与托盘“退出 EcoPaste”均真机通过：重启产生新进程，退出在 0.78 秒内结束且无残留 |
 | W-06 | P1 | 窗口几何持久化 | `window/state.rs` | 同 `state/window-state.json` | 已通过（格式调整） | 隐藏时写入 `clipboard` 帧并重启恢复；旧版存物理像素、左上原点，新版存 AppKit points、左下原点，JSON 字段与路径不变；旧坐标不在任一屏幕时回退到光标所在屏幕居中 |
 | W-07 | P1 | 偏好窗口 | `window/mod.rs` | 原生侧栏 + `NSTabView` 设置窗口 | 已通过 | 左侧原生源码列表分类栏、右侧内容区；引导页“修改快捷键/管理应用”已真机深链到对应分类，已打开窗口同步切换；顶部 `NSSearchField` 跨全部分类搜索标题、说明、选项、路径，结果下拉跳转并在目标行短暂高亮；`TestMatchSettingsSearch*` 覆盖多词、路径分词、去重和 8 条上限，真机验证 `dock`、`capture order` 跳转及无匹配状态 |
