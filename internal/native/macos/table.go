@@ -63,6 +63,7 @@ const (
 	key7             uint16 = 26
 	key8             uint16 = 28
 	key0             uint16 = 29
+	keyK             uint16 = 40
 	keyT             uint16 = 17
 	keyO             uint16 = 31
 	keyP             uint16 = 35
@@ -613,6 +614,10 @@ func (p *Panel) handleCommandKey(key uint16, flags uint64) bool {
 	window := p.view.Send(sel("window"))
 	if window == 0 || !objc.Send[bool](window, sel("isKeyWindow")) {
 		return false
+	}
+	if key == keyK {
+		p.toggleShortcutHelp()
+		return true
 	}
 	row := HistoryRow{}
 	if index := p.activeIndex(); index >= 0 {

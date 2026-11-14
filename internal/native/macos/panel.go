@@ -26,6 +26,13 @@ type Panel struct {
 	pin                           objc.ID
 	filterButton                  objc.ID
 	settingsButton                objc.ID
+	shortcutButton                objc.ID
+	shortcutPopover               objc.ID
+	shortcutView                  objc.ID
+	shortcutController            objc.ID
+	shortcutTitle                 objc.ID
+	shortcutLabels                []objc.ID
+	shortcutKeys                  []objc.ID
 	divider                       objc.ID
 	scroll                        objc.ID
 	table                         objc.ID
@@ -205,6 +212,14 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.settingsButton.Send(sel("setAction:"), sel("settingsPressed:"))
 	p.settingsButton.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsWindowTitle)))
 
+	p.shortcutButton = objc.ID(class("NSButton")).Send(sel("alloc")).Send(sel("initWithFrame:"), CGRect{})
+	p.shortcutButton.Send(sel("setBordered:"), false)
+	p.shortcutButton.Send(sel("setImage:"), systemSymbol("keyboard"))
+	p.shortcutButton.Send(sel("setContentTintColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
+	p.shortcutButton.Send(sel("setTarget:"), searchTarget)
+	p.shortcutButton.Send(sel("setAction:"), sel("shortcutHelpPressed:"))
+	p.shortcutButton.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.PanelShortcutsAction)))
+
 	p.divider = objc.ID(classNSBox).Send(sel("new"))
 	p.divider.Send(sel("setBoxType:"), 2)
 	p.divider.Send(sel("setTitlePosition:"), 0)
@@ -247,16 +262,19 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.buildPreview()
 
 	for _, v := range []objc.ID{p.searchIcon, p.search, p.pin, p.filterButton, p.settingsButton,
-		p.divider, p.scroll, p.empty, p.emptyIcon, p.emptyDetail, p.footerDivider, p.footer, p.hint} {
+		p.shortcutButton, p.divider, p.scroll, p.empty, p.emptyIcon, p.emptyDetail,
+		p.footerDivider, p.footer, p.hint} {
 		p.view.Send(sel("addSubview:"), v)
 	}
 	p.buildHoverBar()
 	p.buildOnboarding()
+	p.buildShortcutHelp()
 
 	panelsBySearch[p.search] = p
 	panelsByControl[p.pin] = p
 	panelsByControl[p.filterButton] = p
 	panelsByControl[p.settingsButton] = p
+	panelsByControl[p.shortcutButton] = p
 	panelsByView[p.view] = p
 	layoutPanel(p, 420, 560)
 
@@ -383,6 +401,11 @@ func registerPanelTargets() {
 			{Cmd: sel("settingsPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
 				if p := panelsByControl[sender]; p != nil {
 					p.cx.Emit("openSettings", "")
+				}
+			}},
+			{Cmd: sel("shortcutHelpPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
+				if p := panelsByControl[sender]; p != nil {
+					p.toggleShortcutHelp()
 				}
 			}},
 			{Cmd: sel("capsulePressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
@@ -630,6 +653,7 @@ func (p *Panel) Close() {
 	delete(panelsByControl, p.pin)
 	delete(panelsByControl, p.filterButton)
 	delete(panelsByControl, p.settingsButton)
+	delete(panelsByControl, p.shortcutButton)
 	for _, button := range p.hoverButtons {
 		delete(panelsByControl, button)
 	}
@@ -649,6 +673,16 @@ func (p *Panel) Close() {
 	delete(panelsByPreviewView, p.preview)
 	delete(panelsByPopover, p.previewDelegate)
 	p.closePreview()
+	if p.shortcutPopover != 0 {
+		p.shortcutPopover.Send(sel("close"))
+		p.shortcutPopover.Send(sel("release"))
+	}
+	if p.shortcutController != 0 {
+		p.shortcutController.Send(sel("release"))
+	}
+	if p.shortcutView != 0 {
+		p.shortcutView.Send(sel("release"))
+	}
 	if p.previewPopover != 0 {
 		p.previewPopover.Send(sel("release"))
 	}
@@ -669,6 +703,7 @@ func (p *Panel) Close() {
 	p.pin.Send(sel("release"))
 	p.filterButton.Send(sel("release"))
 	p.settingsButton.Send(sel("release"))
+	p.shortcutButton.Send(sel("release"))
 	if p.nav != nil {
 		p.nav.close()
 		p.nav = nil

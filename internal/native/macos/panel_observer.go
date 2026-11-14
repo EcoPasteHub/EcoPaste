@@ -36,6 +36,10 @@ func panelObserverMethods() []objc.MethodDef {
 		}},
 		{Cmd: sel("windowDidOrderOffScreen:"), Fn: func(self objc.ID, _ objc.SEL, note objc.ID) {
 			p := panelsByObserver[self]
+			if p != nil && p.shortcutPopover != 0 &&
+				objc.Send[bool](p.shortcutPopover, sel("isShown")) {
+				p.shortcutPopover.Send(sel("close"))
+			}
 			if p == nil || !p.behavior.ClearOnHide {
 				return
 			}

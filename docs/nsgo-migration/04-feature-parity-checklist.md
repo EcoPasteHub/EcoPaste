@@ -147,6 +147,7 @@
 | U-10 | P1 | 动画 | `motion` | AppKit 动画/`Core Animation` | 已通过（产品调整） | 面板打开使用 0.14s 淡入；预览改用系统 `NSPopover` 自带过渡，减少重复动画；开启“减少动态效果”时面板直接显示；`TestAnimateInKeepsViewVisibleAndAddsFade`，真机面板与 HTML/RTF 预览正常显示、Space/Esc 返回 |
 | U-11 | P2 | 滚动条 | `overlayscrollbars` | 系统 `NSScrollView` 滚动条 | 不纳入 macOS 首版（产品调整） | 原生 `NSScrollView` 已按系统“显示滚动条”偏好自动选择 overlay/legacy，强制 overlay 会覆盖用户系统设置；旧版自定义滚动条不再迁移 |
 | U-12 | P2 | 诊断 | `pages/Preference` 诊断区 | 原生诊断面板/复制信息 | 已通过 | “权限”页展示版本、macOS 版本、数据目录与两项权限状态，“复制诊断信息”写入剪贴板并显示反馈；真机 `pbpaste` 校验五项内容完整；`TestFormatDiagnosticReport` |
+| U-13 | P2 | 快捷键速查 | `Clipboard/components/ShortcutList.tsx` | Footer 键盘按钮 + `NSPopover` 快捷键列表，⌘K 打开 | 已通过 | Footer 新增 `keyboard` 图标按钮，⌘K 与点击均可打开原生 popover；真机弹出“快捷键”列表，Esc 关闭，按钮位于 Footer 右侧且不挤压记录数；列表覆盖粘贴、纯文本粘贴、前 10 项、预览、复制、打开、收藏、置顶、备注、删除、导航、搜索、固定窗口、新建分组与关闭；文案走 i18n 目录，`TestShortcutHelpItemsAreComplete` 校验条目完整与按键不重复 |
 
 ## 7. 国际化与文案
 

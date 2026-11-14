@@ -13,6 +13,7 @@ const (
 	panelIconGap      = 2.0
 	panelFooterHeight = 30.0
 	panelTopPadding   = 14.0
+	panelShortcutSize = 16.0
 )
 
 func layoutPanel(p *Panel, width, height float64) {
@@ -42,10 +43,15 @@ func layoutPanel(p *Panel, width, height float64) {
 	if p.errText != "" {
 		footerWidth = width - 2*panelSidePadding
 		hintWidth = 0
+		p.shortcutButton.Send(sel("setHidden:"), true)
+	} else {
+		p.shortcutButton.Send(sel("setHidden:"), false)
+		hintWidth -= panelShortcutSize + 6
 	}
 	p.hint.Send(sel("setHidden:"), p.errText != "")
 	setFrame(p.footer, panelSidePadding, 9, footerWidth, 16)
 	setFrame(p.hint, width/2, 9, hintWidth, 16)
+	setFrame(p.shortcutButton, width-panelSidePadding-panelShortcutSize, 7, panelShortcutSize, panelShortcutSize)
 
 	scrollY := panelFooterHeight + 4
 	scrollHeight := searchY - 6 - scrollY
