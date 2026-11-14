@@ -1,0 +1,79 @@
+//go:build darwin
+
+package macos
+
+import "github.com/ebitengine/purego/objc"
+
+func panelObserverMethods() []objc.MethodDef {
+	return []objc.MethodDef{
+		{Cmd: sel("windowBecameKey:"), Fn: func(self objc.ID, _ objc.SEL, note objc.ID) {
+			p := panelsByObserver[self]
+			if p == nil {
+				return
+			}
+			window := p.view.Send(sel("window"))
+			if window == 0 || window != objc.Send[objc.ID](note, sel("object")) {
+				return
+			}
+			responder := p.table
+			if p.behavior.DefaultFocus {
+				responder = p.search
+			}
+			window.Send(sel("makeFirstResponder:"), responder)
+		}},
+		{Cmd: sel("windowResignedKey:"), Fn: func(self objc.ID, _ objc.SEL, note objc.ID) {
+			p := panelsByObserver[self]
+			if p == nil || suppressPanelBlur.Load() || p.pinned || p.dragging || p.previewing {
+				return
+			}
+			window := p.view.Send(sel("window"))
+			if window != 0 && window == objc.Send[objc.ID](note, sel("object")) &&
+				objc.Send[bool](window, sel("isVisible")) {
+				syncNavVisibility(p)
+				p.cx.Emit("blurHide", nil)
+			}
+		}},
+		{Cmd: sel("windowDidOrderOffScreen:"), Fn: func(self objc.ID, _ objc.SEL, note objc.ID) {
+			p := panelsByObserver[self]
+			if p != nil && p.shortcutPopover != 0 &&
+				objc.Send[bool](p.shortcutPopover, sel("isShown")) {
+				p.shortcutPopover.Send(sel("close"))
+			}
+			if p == nil || !p.behavior.ClearOnHide {
+				return
+			}
+			window := p.view.Send(sel("window"))
+			if window != 0 && window == objc.Send[objc.ID](note, sel("object")) {
+				p.clearSearch()
+				syncNavVisibility(p)
+				p.cx.Emit("searchCleared", nil)
+			}
+		}},
+		{Cmd: sel("windowDidOrderOnScreen:"), Fn: func(self objc.ID, _ objc.SEL, note objc.ID) {
+			p := panelsByObserver[self]
+			if p == nil {
+				return
+			}
+			window := p.view.Send(sel("window"))
+			if window != 0 && window == objc.Send[objc.ID](note, sel("object")) {
+				applyPlacement(p)
+				syncNavVisibility(p)
+				animateIn(p.view, panelFadeDuration)
+				p.cx.Emit("opened", nil)
+			}
+		}},
+		{Cmd: sel("pollSearch:"), Fn: func(self objc.ID, _ objc.SEL, _ objc.ID) {
+			p := panelsByObserver[self]
+			if p == nil {
+				return
+			}
+			next := goString(p.search.Send(sel("stringValue")))
+			if next != p.query {
+				p.query = next
+				p.cx.Emit("query", next)
+			}
+			p.pollHover()
+			p.pollLoadMore()
+		}},
+	}
+}

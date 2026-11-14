@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [master, refactor/nsgo-migration]
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  macos:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - uses: actions/setup-go@v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Install NSGo
+        run: go install github.com/nsgo-dev/nsgo/cmd/nsgo@70cef6a4ed17f7c8428faabc9bb419ff4223745b
+
+      - name: Check formatting
+        run: test -z "$(gofmt -l .)"
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Test
+        run: go test ./...
+
+      - name: NSGo check
+        run: nsgo check cmd/ecopaste
+
+      - name: Build development app
+        run: nsgo build -id com.ayangweb.eco-paste.dev -output build/dev cmd/ecopaste

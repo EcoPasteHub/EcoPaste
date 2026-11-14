@@ -1,0 +1,20 @@
+name: EcoPaste
+id: com.ayangweb.eco-paste
+version: 0.1.0
+
+icon:
+  png: assets/Icon.png
+
+dev:
+  target: native
+
+build:
+  output: build
+  targets: [macos_arm64]
+
+file_types:
+  - name: EcoPaste Backup
+    extensions: [ecopastebak]
+    id: com.ayangweb.eco-paste.backup
+    role: editor
+    conforms: [public.data]

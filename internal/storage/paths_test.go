@@ -1,0 +1,183 @@
+package storage
+
+import (
+	"encoding/json"
+	"os"
+	"path/filepath"
+	"testing"
+)
+
+func TestResolveModeSeparatesDevelopmentBuilds(t *testing.T) {
+	cases := []struct {
+		name     string
+		bundleID string
+		devBuild bool
+		override string
+		bundled  bool
+		want     string
+	}{
+		{name: "development bundle", bundleID: DevelopmentBundleID, bundled: true, want: Dev},
+		{name: "development tag", devBuild: true, bundled: true, want: Dev},
+		{name: "development bundle ignores production override", bundleID: DevelopmentBundleID, override: Prod, bundled: true, want: Dev},
+		{name: "development tag ignores production override", devBuild: true, override: Prod, bundled: true, want: Dev},
+		{name: "release bundle", bundleID: "com.ayangweb.eco-paste", bundled: true, want: Prod},
+		{name: "release bundle dev override", bundleID: "com.ayangweb.eco-paste", override: Dev, bundled: true, want: Dev},
+		{name: "release bundle prod override", bundleID: "com.ayangweb.eco-paste", override: Prod, bundled: true, want: Prod},
+		{name: "unpackaged executable", bundleID: "com.ayangweb.eco-paste", override: Prod, want: Dev},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := resolveMode(tc.bundleID, tc.devBuild, tc.override, tc.bundled); got != tc.want {
+				t.Errorf("resolveMode(%q, %t, %q, %t) = %q, want %q", tc.bundleID, tc.devBuild, tc.override, tc.bundled, got, tc.want)
+			}
+		})
+	}
+}
+
+func TestResolveCreatesDefaultTree(t *testing.T) {
+	base := t.TempDir()
+	paths, err := Resolve(base, Dev)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := filepath.Join(base, Dev)
+	if paths.Root != want || paths.Bootstrap != want {
+		t.Fatalf("root=%q bootstrap=%q, want %q", paths.Root, paths.Bootstrap, want)
+	}
+	for _, dir := range []string{paths.DB, paths.Resources, paths.Config, paths.State, paths.Logs} {
+		if info, err := os.Stat(dir); err != nil || !info.IsDir() {
+			t.Errorf("%s is not a directory: %v", dir, err)
+		}
+	}
+	if _, err := os.Stat(filepath.Join(want, manifestName)); err != nil {
+		t.Errorf("manifest missing: %v", err)
+	}
+}
+
+func TestSetRootPointsManifestAtCustomDir(t *testing.T) {
+	base := t.TempDir()
+	custom := filepath.Join(t.TempDir(), "EcoPasteData", Prod)
+	if err := SetRoot(base, Prod, custom); err != nil {
+		t.Fatal(err)
+	}
+	paths, err := Resolve(base, Prod)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if paths.Root != custom {
+		t.Fatalf("root = %q, want %q", paths.Root, custom)
+	}
+}
+
+func TestResolveReadsPublishedCustomManifest(t *testing.T) {
+	base := t.TempDir()
+	custom := filepath.Join(t.TempDir(), "EcoPasteData", Prod)
+	if err := os.MkdirAll(custom, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	identityData, err := json.Marshal(map[string]any{
+		"version": 1, "environment": Prod, "createdAt": "2025-01-02T03:04:05Z",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(custom, identityName), identityData, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	bootstrap := filepath.Join(base, Prod)
+	if err := os.MkdirAll(bootstrap, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	manifestData, err := json.Marshal(map[string]any{
+		"version": 1, "environment": Prod, "dataDir": custom,
+		"updatedAt": "2025-01-02T03:04:05Z",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(bootstrap, manifestName), manifestData, 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	paths, err := Resolve(base, Prod)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if paths.Bootstrap != bootstrap || paths.Root != custom {
+		t.Fatalf("bootstrap = %q root = %q", paths.Bootstrap, paths.Root)
+	}
+	for _, dir := range []string{paths.DB, paths.Resources, paths.Config, paths.State, paths.Logs} {
+		if info, err := os.Stat(dir); err != nil || !info.IsDir() {
+			t.Errorf("%s is not a directory: %v", dir, err)
+		}
+	}
+}
+
+func TestResolveFallsBackFromBrokenManifest(t *testing.T) {
+	base := t.TempDir()
+	bootstrap := filepath.Join(base, Prod)
+	if err := os.MkdirAll(bootstrap, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(bootstrap, manifestName), []byte("{broken"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	paths, err := Resolve(base, Prod)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if paths.Root != bootstrap {
+		t.Fatalf("root = %q, want fallback %q", paths.Root, bootstrap)
+	}
+	var m manifest
+	data, err := os.ReadFile(filepath.Join(bootstrap, manifestName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal(data, &m); err != nil {
+		t.Fatal(err)
+	}
+	if m.DataDir != bootstrap {
+		t.Fatalf("manifest dataDir = %q, want %q", m.DataDir, bootstrap)
+	}
+}
+
+func TestResolveRejectsForeignIdentity(t *testing.T) {
+	base := t.TempDir()
+	foreign := t.TempDir()
+	data, err := json.Marshal(identity{Version: manifestVersion, Environment: "other"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(foreign, identityName), data, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	manifestData, err := json.Marshal(manifest{Version: manifestVersion, Environment: Prod, DataDir: foreign})
+	if err != nil {
+		t.Fatal(err)
+	}
+	bootstrap := filepath.Join(base, Prod)
+	if err := os.MkdirAll(bootstrap, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(bootstrap, manifestName), manifestData, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	paths, err := Resolve(base, Prod)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if paths.Root != bootstrap {
+		t.Fatalf("root = %q, want fallback %q", paths.Root, bootstrap)
+	}
+}
+
+func TestValidateTargetRejectsNonEmptyDirectory(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "notes.txt"), []byte("x"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := ValidateTarget(dir, Prod); err == nil {
+		t.Fatal("expected an error")
+	}
+}

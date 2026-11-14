@@ -1,0 +1,123 @@
+//go:build darwin
+
+package macos
+
+import "testing"
+
+func TestHistoryKeyAction(t *testing.T) {
+	text := HistoryRow{Kind: "text"}
+	files := HistoryRow{Kind: "files"}
+	image := HistoryRow{Kind: "image"}
+	cases := []struct {
+		name    string
+		key     uint16
+		flags   uint64
+		row     HistoryRow
+		action  string
+		handled bool
+	}{
+		{name: "return activates", key: keyReturn, row: text, action: "activate", handled: true},
+		{name: "enter activates", key: keyEnter, row: files, action: "activate", handled: true},
+		{name: "command P pins window", key: keyP, flags: commandModifier, row: text, action: "toggleWindowPinned", handled: true},
+		{name: "command T pins item", key: keyT, flags: commandModifier, row: text, action: "togglePinned", handled: true},
+		{name: "command D favorites item", key: keyD, flags: commandModifier, row: text, action: "toggleFavorite", handled: true},
+		{name: "command M edits note", key: keyM, flags: commandModifier, row: text, action: "editNote", handled: true},
+		{name: "command N creates group", key: keyN, flags: commandModifier, row: HistoryRow{}, action: "newGroup", handled: true},
+		{name: "command O opens link", key: keyO, flags: commandModifier, row: HistoryRow{Kind: "text", SubKind: "url"}, action: "open", handled: true},
+		{name: "command O opens email", key: keyO, flags: commandModifier, row: HistoryRow{Kind: "text", SubKind: "email"}, action: "open", handled: true},
+		{name: "command O reveals path", key: keyO, flags: commandModifier, row: HistoryRow{Kind: "text", SubKind: "path"}, action: "reveal", handled: true},
+		{name: "command O reveals files", key: keyO, flags: commandModifier, row: files, action: "reveal", handled: true},
+		{name: "command O ignores plain text", key: keyO, flags: commandModifier, row: text, handled: false},
+		{name: "command O ignores images", key: keyO, flags: commandModifier, row: image, handled: false},
+		{name: "plain O falls through", key: keyO, row: HistoryRow{Kind: "text", SubKind: "url"}, handled: false},
+		{name: "plain P falls through", key: keyP, row: text, handled: false},
+		{name: "plain T falls through", key: keyT, row: text, handled: false},
+		{name: "plain space previews", key: keySpace, row: image, action: "preview", handled: true},
+		{name: "option space falls through", key: keySpace, flags: alternateModifier, row: image, handled: false},
+		{name: "escape hides", key: keyEscape, row: text, action: "hide", handled: true},
+		{name: "delete removes", key: keyDelete, row: text, action: "delete", handled: true},
+		{name: "home selects first", key: keyHome, row: text, action: "firstRow", handled: true},
+		{name: "end selects last", key: keyEnd, row: text, action: "lastRow", handled: true},
+		{name: "page up moves up", key: keyPageUp, row: text, action: "pageUp", handled: true},
+		{name: "page down moves down", key: keyPageDown, row: text, action: "pageDown", handled: true},
+		{name: "fn up pages up", key: keyUpArrow, flags: functionModifier, row: text, action: "pageUp", handled: true},
+		{name: "fn down pages down", key: keyDownArrow, flags: functionModifier, row: text, action: "pageDown", handled: true},
+		{name: "fn left selects first", key: keyLeftArrow, flags: functionModifier, row: text, action: "firstRow", handled: true},
+		{name: "fn right selects last", key: keyRightArrow, flags: functionModifier, row: text, action: "lastRow", handled: true},
+		{name: "command up selects first", key: keyUpArrow, flags: commandModifier, row: text, action: "firstRow", handled: true},
+		{name: "command down selects last", key: keyDownArrow, flags: commandModifier, row: text, action: "lastRow", handled: true},
+		{name: "plain up falls through", key: keyUpArrow, row: text, handled: false},
+		{name: "command home falls through", key: keyHome, flags: commandModifier, row: text, handled: false},
+		{name: "command C copies", key: keyC, flags: commandModifier, row: text, action: "copy", handled: true},
+		{name: "option command C copies plain text", key: keyC, flags: commandModifier | alternateModifier, row: text, action: "copyPlain", handled: true},
+		{name: "option command C falls back for images", key: keyC, flags: commandModifier | alternateModifier, row: image, action: "copy", handled: true},
+		{name: "command V activates", key: keyV, flags: commandModifier, row: files, action: "activate", handled: true},
+		{name: "option command V pastes plain text", key: keyV, flags: commandModifier | alternateModifier, row: text, action: "pastePlain", handled: true},
+		{name: "option command V pastes file paths", key: keyV, flags: commandModifier | alternateModifier, row: files, action: "pastePath", handled: true},
+		{name: "option command V activates images", key: keyV, flags: commandModifier | alternateModifier, row: image, action: "activate", handled: true},
+		{name: "command F focuses search", key: keyF, flags: commandModifier, row: text, action: "focusSearch", handled: true},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			action, handled := historyKeyAction(tc.key, tc.flags, tc.row, true)
+			if action != tc.action || handled != tc.handled {
+				t.Errorf("historyKeyAction() = %q, %v; want %q, %v", action, handled, tc.action, tc.handled)
+			}
+		})
+	}
+}
+
+func TestSpacePreviewHonorsSetting(t *testing.T) {
+	if action, handled := historyKeyAction(keySpace, 0, HistoryRow{Kind: "text"}, true); action != "preview" || !handled {
+		t.Errorf("enabled space = %q, %v", action, handled)
+	}
+	if action, handled := historyKeyAction(keySpace, 0, HistoryRow{Kind: "text"}, false); action != "" || handled {
+		t.Errorf("disabled space = %q, %v", action, handled)
+	}
+}
+
+func TestNeedsMoreRowsNearEnd(t *testing.T) {
+	cases := []struct {
+		row, count int
+		want       bool
+	}{
+		{70, 80, false},
+		{72, 80, true},
+		{79, 80, true},
+		{-1, 80, false},
+		{0, 0, false},
+	}
+	for _, tc := range cases {
+		if got := needsMoreRows(tc.row, tc.count); got != tc.want {
+			t.Errorf("needsMoreRows(%d, %d) = %v, want %v", tc.row, tc.count, got, tc.want)
+		}
+	}
+}
+
+func TestCommandDigitIndex(t *testing.T) {
+	cases := []struct {
+		key  uint16
+		want int
+	}{
+		{key1, 0}, {key2, 1}, {key3, 2}, {key4, 3}, {key5, 4},
+		{key6, 5}, {key7, 6}, {key8, 7}, {key9, 8}, {key0, 9},
+	}
+	for _, tc := range cases {
+		got, ok := commandDigitIndex(tc.key)
+		if !ok || got != tc.want {
+			t.Errorf("commandDigitIndex(%d) = %d, %v; want %d, true", tc.key, got, ok, tc.want)
+		}
+	}
+	if _, ok := commandDigitIndex(keyF); ok {
+		t.Error("commandDigitIndex(F) should not match")
+	}
+}
+
+func TestCommandEnterPastesPlain(t *testing.T) {
+	if action, handled := historyKeyAction(keyReturn, commandModifier, HistoryRow{Kind: "text"}, true); action != "pastePlain" || !handled {
+		t.Errorf("command return = %q, %v", action, handled)
+	}
+	if action, handled := historyKeyAction(keyEnter, commandModifier, HistoryRow{Kind: "image"}, true); action != "activate" || !handled {
+		t.Errorf("command enter on image = %q, %v", action, handled)
+	}
+}
