@@ -51,6 +51,8 @@ func EditNote(note string) (string, bool) {
 
 		window := objc.Send[objc.ID](alert, sel("window"))
 		window.Send(sel("setLevel:"), int64(1000))
+		placeDialogOverPanel(window)
+		elevateDialogAfterModalStarts(window)
 		window.Send(sel("makeKeyAndOrderFront:"), objc.ID(0))
 		window.Send(sel("makeFirstResponder:"), text)
 		if alert.Send(sel("runModal")) == 1000 {
