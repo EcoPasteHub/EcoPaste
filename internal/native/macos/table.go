@@ -382,13 +382,13 @@ func finishDrag(p *Panel, accepted bool) {
 	key := objc.Send[bool](window, sel("isKeyWindow"))
 	app := objc.ID(class("NSApplication")).Send(sel("sharedApplication"))
 	active := objc.Send[bool](app, sel("isActive"))
-	if shouldHideAfterDrag(visible, accepted, key, active, p.pinned, p.onboardingActive, suppressPanelBlur.Load()) {
+	if shouldHideAfterDrag(visible, accepted, key, active, p.pinned, suppressPanelBlur.Load()) {
 		p.cx.Emit("blurHide", nil)
 	}
 }
 
-func shouldHideAfterDrag(visible, accepted, key, active, pinned, onboarding, suppressed bool) bool {
-	return visible && (accepted || !key || !active) && !pinned && !onboarding && !suppressed
+func shouldHideAfterDrag(visible, accepted, key, active, pinned, suppressed bool) bool {
+	return visible && (accepted || !key || !active) && !pinned && !suppressed
 }
 
 func newHistoryTable(p *Panel) objc.ID {
@@ -608,7 +608,7 @@ func loadImage(path string) objc.ID {
 // commands are routed here, with the same first-row fallback as the
 // legacy list.
 func (p *Panel) handleCommandKey(key uint16, flags uint64) bool {
-	if p.previewing || p.onboardingActive || !commandShortcut(flags) {
+	if p.previewing || !commandShortcut(flags) {
 		return false
 	}
 	window := p.view.Send(sel("window"))

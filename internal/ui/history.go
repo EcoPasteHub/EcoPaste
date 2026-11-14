@@ -20,13 +20,11 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 		errorText := core.NewSignal(cx, "")
 		hasMore := core.NewSignal(cx, false)
 		preview := core.NewSignal(cx, macos.PreviewContent{})
-		legacy := core.NewSignal(cx, LegacyDetection{})
 		groups := core.NewSignalFunc(cx, []macos.GroupOption(nil), nil)
 		filter := core.NewSignal(cx, "")
 		group := core.NewSignal(cx, "")
 		ref := &core.Ref{}
 		behavior := macos.PanelBehavior{}
-		ctx := cx.Context()
 		if model != nil {
 			search := model.SearchBehavior()
 			preview := model.PreviewBehavior()
@@ -317,24 +315,6 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 		}
 
 		var pendingSearch func() bool
-		legacyRequested := false
-		detectLegacy := func() {
-			if model == nil || legacyRequested {
-				return
-			}
-			legacyRequested = true
-			legacy.Set(LegacyDetection{Scanning: true})
-			go func() {
-				detection, err := model.DetectLegacy(ctx)
-				cx.Post(func() {
-					if err != nil {
-						legacy.Set(LegacyDetection{Error: err.Error()})
-						return
-					}
-					legacy.Set(detection)
-				})
-			}()
-		}
 		cx.Cleanup(func() {
 			if pendingSearch != nil {
 				pendingSearch()
@@ -363,11 +343,6 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 		load("", initialFilter, initialGroup, false)
 		loadGroups(initialGroup, false)
 		if model != nil {
-			if state := model.Onboarding(); state.Active && state.Step == 4 {
-				detectLegacy()
-			}
-		}
-		if model != nil {
 			if updates := model.Updates(); updates != nil {
 				ctx := cx.Context()
 				go func() {
@@ -392,7 +367,6 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 			PropsFunc: func() map[string]any {
 				display := macos.PanelDisplay{TextMaxLines: 1, ImageMaxHeight: 32, FileMaxCount: 3}
 				var actions []string
-				var onboarding macos.PanelOnboarding
 				if model != nil {
 					density := model.Display()
 					display = macos.PanelDisplay{
@@ -402,112 +376,25 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 						ShowOriginal:   density.ShowOriginal,
 					}
 					actions = model.QuickActions()
-					state := model.Onboarding()
-					legacyState := legacy.Get()
-					onboarding = macos.PanelOnboarding{
-						Active:             state.Active,
-						Step:               state.Step,
-						OpenShortcut:       state.OpenShortcut,
-						PreferenceShortcut: state.PreferenceShortcut,
-						ExcludedApps:       state.ExcludedApps,
-						Legacy: macos.PanelLegacy{
-							Scanning:            legacyState.Scanning,
-							Importing:           legacyState.Importing,
-							Found:               legacyState.Found,
-							Path:                legacyState.Path,
-							ImportableItemCount: legacyState.ImportableItemCount,
-							NormalItemCount:     legacyState.NormalItemCount,
-							FavoriteItemCount:   legacyState.FavoriteItemCount,
-							Imported:            legacyState.Imported,
-							ImportedNormal:      legacyState.ImportedNormal,
-							ImportedFavorite:    legacyState.ImportedFavorite,
-							Skipped:             legacyState.Skipped,
-							Error:               legacyState.Error,
-						},
-					}
 				}
 				return map[string]any{
-					"rows":       rows.Get(),
-					"total":      total.Get(),
-					"loading":    loading.Get(),
-					"error":      errorText.Get(),
-					"preview":    preview.Get(),
-					"groups":     groups.Get(),
-					"group":      group.Get(),
-					"filter":     filter.Get(),
-					"query":      query,
-					"behavior":   behavior,
-					"drag":       dragProvider,
-					"display":    display,
-					"actions":    actions,
-					"onboarding": onboarding,
+					"rows":     rows.Get(),
+					"total":    total.Get(),
+					"loading":  loading.Get(),
+					"error":    errorText.Get(),
+					"preview":  preview.Get(),
+					"groups":   groups.Get(),
+					"group":    group.Get(),
+					"filter":   filter.Get(),
+					"query":    query,
+					"behavior": behavior,
+					"drag":     dragProvider,
+					"display":  display,
+					"actions":  actions,
 				}
 			},
 			OnEvent: func(name string, data any) {
 				switch name {
-				case "onboardingStep":
-					if model == nil {
-						return
-					}
-					step, ok := eventInt(data)
-					if !ok {
-						return
-					}
-					if step == 4 {
-						detectLegacy()
-					}
-					go func() {
-						err := model.SaveOnboarding(step, false)
-						cx.Post(func() {
-							if err != nil {
-								errorText.Set(err.Error())
-							}
-							reload()
-						})
-					}()
-				case "onboardingFinish":
-					if model == nil {
-						return
-					}
-					go func() {
-						err := model.SaveOnboarding(5, true)
-						cx.Post(func() {
-							if err != nil {
-								errorText.Set(err.Error())
-							}
-							reload()
-						})
-					}()
-				case "legacyImport":
-					if model == nil {
-						return
-					}
-					types, _ := data.([]string)
-					state := legacy.Get()
-					if state.Importing {
-						return
-					}
-					state.Scanning = false
-					state.Importing = true
-					state.Error = ""
-					legacy.Set(state)
-					go func() {
-						result, err := model.ImportLegacy(ctx, types)
-						cx.Post(func() {
-							next := legacy.Get()
-							next.Importing = false
-							if err != nil {
-								next.Error = err.Error()
-								legacy.Set(next)
-								return
-							}
-							next.Imported = true
-							next.ImportedNormal = result.ImportedNormal
-							next.ImportedFavorite = result.ImportedFavorite
-							next.Skipped = result.Skipped
-							legacy.Set(next)
-						})
-					}()
 				case "openSettings":
 					if model != nil {
 						tab, _ := data.(string)
@@ -516,9 +403,6 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 				case "opened":
 					if model == nil {
 						return
-					}
-					if state := model.Onboarding(); state.Active && state.Step == 4 {
-						detectLegacy()
 					}
 					opening := model.OpenBehavior()
 					nextFilter, nextGroup := openSelection(opening, filterValue, selectedGroup)

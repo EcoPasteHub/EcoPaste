@@ -12,7 +12,6 @@ import (
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/EcoPasteHub/EcoPaste/internal/keystroke"
 	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
-	"github.com/EcoPasteHub/EcoPaste/internal/onboarding"
 	"github.com/EcoPasteHub/EcoPaste/internal/settings"
 	"github.com/EcoPasteHub/EcoPaste/internal/ui"
 )
@@ -21,7 +20,6 @@ type historyModel struct {
 	runtime      *clipboardRuntime
 	store        *settings.Store
 	openSettings func(string)
-	legacy       *onboarding.LegacyImporter
 }
 
 var inputTrusted = keystroke.Trusted
@@ -29,10 +27,6 @@ var inputTrusted = keystroke.Trusted
 func newHistoryModel(runtime *clipboardRuntime, store *settings.Store) *historyModel {
 	return &historyModel{
 		runtime: runtime, store: store,
-		legacy: &onboarding.LegacyImporter{
-			DB: runtime.db, Images: runtime.images,
-			Settings: func() settings.Clipboard { return store.Snapshot().Clipboard },
-		},
 	}
 }
 
@@ -212,113 +206,10 @@ func (m *historyModel) QuickActions() []string {
 	return actions
 }
 
-// Onboarding reports the first-run flow state persisted in settings.
-func (m *historyModel) Onboarding() ui.HistoryOnboarding {
-	data := ui.HistoryOnboarding{}
-	if m.store == nil {
-		return data
-	}
-	snapshot := m.store.Snapshot()
-	step := int(snapshot.Onboarding.LastStep)
-	if step < 0 {
-		step = 0
-	}
-	if step > 5 {
-		step = 5
-	}
-	data.Active = !snapshot.Onboarding.Completed
-	data.Step = step
-	data.OpenShortcut = snapshot.Shortcuts.OpenClipboard
-	data.PreferenceShortcut = snapshot.Shortcuts.OpenPreference
-	data.ExcludedApps = len(snapshot.Clipboard.Filters.ExcludedAppIDs)
-	return data
-}
-
-// SaveOnboarding records the current step, or completes the flow.
-func (m *historyModel) SaveOnboarding(step int, completed bool) error {
-	if m.store == nil {
-		return nil
-	}
-	if step < 0 {
-		step = 0
-	}
-	if step > 5 {
-		step = 5
-	}
-	patch := map[string]any{"lastStep": step}
-	if completed {
-		patch["completed"] = true
-	}
-	_, err := m.store.Update(map[string]any{"onboarding": patch})
-	return err
-}
-
 func (m *historyModel) OpenSettings(tab string) {
 	if m.openSettings != nil {
 		m.openSettings(tab)
 	}
-}
-
-// DetectLegacy scans the v0.6 data directory and records that the import
-// step ran, matching the old onboarding behavior.
-func (m *historyModel) DetectLegacy(ctx context.Context) (ui.LegacyDetection, error) {
-	if m.legacy == nil {
-		return ui.LegacyDetection{}, fmt.Errorf("%s", i18n.T(i18n.ClipboardServiceDown))
-	}
-	detection, err := m.legacy.Detect(ctx)
-	if err != nil {
-		return ui.LegacyDetection{}, err
-	}
-	if _, err := m.store.Update(map[string]any{
-		"onboarding": map[string]any{"legacyImport": map[string]any{"checked": true}},
-	}); err != nil {
-		return ui.LegacyDetection{}, err
-	}
-	return ui.LegacyDetection{
-		Found:               detection.Found,
-		Path:                detection.Path,
-		ImportableItemCount: detection.ImportableItemCount,
-		NormalItemCount:     detection.NormalItemCount,
-		FavoriteItemCount:   detection.FavoriteItemCount,
-	}, nil
-}
-
-// ImportLegacy writes the selected v0.6 rows and records the result so the
-// onboarding step never offers the same import again.
-func (m *historyModel) ImportLegacy(ctx context.Context, types []string) (ui.LegacyImportResult, error) {
-	if m.legacy == nil {
-		return ui.LegacyImportResult{}, fmt.Errorf("%s", i18n.T(i18n.ClipboardServiceDown))
-	}
-	selections := make([]onboarding.LegacyImportSelection, 0, len(types))
-	for _, item := range types {
-		selections = append(selections, onboarding.LegacyImportSelection(item))
-	}
-	result, err := m.legacy.Import(ctx, selections)
-	if err != nil {
-		return ui.LegacyImportResult{}, err
-	}
-	importTypes := make([]string, 0, len(result.SelectedTypes))
-	for _, item := range result.SelectedTypes {
-		importTypes = append(importTypes, string(item))
-	}
-	importedAt := result.ImportedAt.Format(time.RFC3339)
-	if _, err := m.store.Update(map[string]any{
-		"onboarding": map[string]any{"legacyImport": map[string]any{
-			"checked":     true,
-			"imported":    result.Imported > 0,
-			"importTypes": importTypes,
-			"importedAt":  importedAt,
-		}},
-	}); err != nil {
-		return ui.LegacyImportResult{}, err
-	}
-	m.runtime.Signal()
-	return ui.LegacyImportResult{
-		Imported:         result.Imported,
-		Skipped:          result.Skipped,
-		ImportedNormal:   result.ImportedNormal,
-		ImportedFavorite: result.ImportedFavorite,
-	}, nil
 }
 
 func clampInt(value, low, high int) int {

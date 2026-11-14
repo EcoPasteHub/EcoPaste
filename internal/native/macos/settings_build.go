@@ -278,9 +278,9 @@ func (v *SettingsView) setPermissionStatus(label objc.ID, granted bool) {
 	if label == 0 {
 		return
 	}
-	text, color := i18n.T(i18n.OnboardingNotGranted), "systemRedColor"
+	text, color := i18n.T(i18n.PermissionNotGranted), "systemRedColor"
 	if granted {
-		text, color = i18n.T(i18n.OnboardingGranted), "systemGreenColor"
+		text, color = i18n.T(i18n.PermissionGranted), "systemGreenColor"
 	}
 	label.Send(sel("setStringValue:"), nsString(text))
 	label.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel(color)))

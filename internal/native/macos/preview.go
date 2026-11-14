@@ -82,8 +82,7 @@ func registerPreviewTargets() {
 				p.cx.Emit("hidePreview", nil)
 				window := p.view.Send(sel("window"))
 				if window != 0 && !objc.Send[bool](window, sel("isKeyWindow")) &&
-					!p.pinned && !p.onboardingActive &&
-					objc.Send[bool](window, sel("isVisible")) {
+					!p.pinned && objc.Send[bool](window, sel("isVisible")) {
 					p.cx.Emit("blurHide", nil)
 				}
 			}},

@@ -18,98 +18,72 @@ const PanelComponent = "ecopaste.panel"
 // Panel is the AppKit content view of the clipboard panel: search, the
 // native history list and a compact footer.
 type Panel struct {
-	cx                            *core.NativeContext
-	behavior                      PanelBehavior
-	view                          objc.ID
-	search                        objc.ID
-	searchIcon                    objc.ID
-	pin                           objc.ID
-	filterButton                  objc.ID
-	settingsButton                objc.ID
-	shortcutButton                objc.ID
-	shortcutPopover               objc.ID
-	shortcutView                  objc.ID
-	shortcutController            objc.ID
-	shortcutTitle                 objc.ID
-	shortcutLabels                []objc.ID
-	shortcutKeys                  []objc.ID
-	divider                       objc.ID
-	scroll                        objc.ID
-	table                         objc.ID
-	empty                         objc.ID
-	emptyIcon                     objc.ID
-	emptyDetail                   objc.ID
-	footerDivider                 objc.ID
-	footer                        objc.ID
-	hint                          objc.ID
-	preview                       objc.ID
-	previewPopover                objc.ID
-	previewController             objc.ID
-	previewDelegate               objc.ID
-	observer                      objc.ID
-	timer                         objc.ID
-	monitor                       objc.ID
-	previewTitle                  objc.ID
-	previewMeta                   objc.ID
-	previewDivider                objc.ID
-	previewBackdrop               objc.ID
-	previewText                   objc.ID
-	previewScroll                 objc.ID
-	previewImage                  objc.ID
-	previewImageSize              CGSize
-	onboardingData                PanelOnboarding
-	onboardingActive              bool
-	onboardingStep                int
-	onboardingView                objc.ID
-	onboardingIcon                objc.ID
-	onboardingHeaderDivider       objc.ID
-	onboardingFooterDivider       objc.ID
-	onboardingTitle               objc.ID
-	onboardingDetail              objc.ID
-	onboardingBody                objc.ID
-	onboardingProgress            objc.ID
-	onboardingProgressBar         objc.ID
-	onboardingAccessibility       objc.ID
-	onboardingFullDisk            objc.ID
-	onboardingAccessibilityButton objc.ID
-	onboardingFullDiskButton      objc.ID
-	onboardingShortcutOpen        objc.ID
-	onboardingShortcutPreference  objc.ID
-	onboardingLegacyNormal        objc.ID
-	onboardingLegacyFavorite      objc.ID
-	onboardingLegacyNormalOn      bool
-	onboardingLegacyFavoriteOn    bool
-	onboardingNote                objc.ID
-	onboardingBack                objc.ID
-	onboardingExtra               objc.ID
-	onboardingNext                objc.ID
-	drag                          func(string) (DragPayload, bool)
-	dragFiles                     []string
-	actions                       []string
-	hoverRow                      int
-	hoveredRow                    int
-	hoverBar                      objc.ID
-	hoverButtons                  []objc.ID
-	hoverSpecs                    []hoverAction
-	hoverBarWidth                 float64
-	originalRow                   int
-	query                         string
-	rows                          []HistoryRow
-	total                         int64
-	loading                       bool
-	errText                       string
-	selection                     string
-	pendingClick                  string
-	previewing                    bool
-	filterValue                   string
-	groupID                       string
-	groups                        []GroupOption
-	display                       PanelDisplay
-	pinned                        bool
-	dragging                      bool
-	dragMonitor                   objc.ID
-	nav                           *panelNav
-	background                    objc.ID
+	cx                 *core.NativeContext
+	behavior           PanelBehavior
+	view               objc.ID
+	search             objc.ID
+	searchIcon         objc.ID
+	pin                objc.ID
+	filterButton       objc.ID
+	settingsButton     objc.ID
+	shortcutButton     objc.ID
+	shortcutPopover    objc.ID
+	shortcutView       objc.ID
+	shortcutController objc.ID
+	shortcutTitle      objc.ID
+	shortcutLabels     []objc.ID
+	shortcutKeys       []objc.ID
+	divider            objc.ID
+	scroll             objc.ID
+	table              objc.ID
+	empty              objc.ID
+	emptyIcon          objc.ID
+	emptyDetail        objc.ID
+	footerDivider      objc.ID
+	footer             objc.ID
+	hint               objc.ID
+	preview            objc.ID
+	previewPopover     objc.ID
+	previewController  objc.ID
+	previewDelegate    objc.ID
+	observer           objc.ID
+	timer              objc.ID
+	monitor            objc.ID
+	previewTitle       objc.ID
+	previewMeta        objc.ID
+	previewDivider     objc.ID
+	previewBackdrop    objc.ID
+	previewText        objc.ID
+	previewScroll      objc.ID
+	previewImage       objc.ID
+	previewImageSize   CGSize
+	drag               func(string) (DragPayload, bool)
+	dragFiles          []string
+	actions            []string
+	hoverRow           int
+	hoveredRow         int
+	hoverBar           objc.ID
+	hoverButtons       []objc.ID
+	hoverSpecs         []hoverAction
+	hoverBarWidth      float64
+	originalRow        int
+	query              string
+	rows               []HistoryRow
+	total              int64
+	loading            bool
+	errText            string
+	selection          string
+	pendingClick       string
+	previewing         bool
+	filterValue        string
+	groupID            string
+	groups             []GroupOption
+	display            PanelDisplay
+	pinned             bool
+	dragging           bool
+	dragMonitor        objc.ID
+	nav                *panelNav
+	background         objc.ID
 }
 
 // PanelBehavior controls focus and query persistence when the panel opens
@@ -267,7 +241,6 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 		p.view.Send(sel("addSubview:"), v)
 	}
 	p.buildHoverBar()
-	p.buildOnboarding()
 	p.buildShortcutHelp()
 
 	panelsBySearch[p.search] = p
@@ -311,23 +284,6 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 
 func registerPanelTargets() {
 	var err error
-	onboardingViewClass, err = objc.RegisterClass("EcoPasteOnboardingView", class("NSVisualEffectView"), nil, nil,
-		[]objc.MethodDef{
-			{Cmd: sel("acceptsFirstResponder"), Fn: func(_ objc.ID, _ objc.SEL) bool { return true }},
-			{Cmd: sel("keyDown:"), Fn: func(self objc.ID, _ objc.SEL, event objc.ID) {
-				p := panelsByOnboarding[self]
-				if p == nil {
-					return
-				}
-				switch objc.Send[uint16](event, sel("keyCode")) {
-				case keyReturn, keyEnter:
-					p.onboardingAdvance()
-				}
-			}},
-		})
-	if err != nil {
-		panic(err)
-	}
 	panelViewClass, err = objc.RegisterClass("EcoPastePanelView", class("NSView"), nil, nil,
 		[]objc.MethodDef{
 			{Cmd: sel("viewDidMoveToWindow"), Fn: func(self objc.ID, _ objc.SEL) {
@@ -429,51 +385,6 @@ func registerPanelTargets() {
 				if p := panelsByControl[sender]; p != nil {
 					p.runHoverAction(int(objc.Send[int64](sender, sel("tag"))))
 				}
-			}},
-			{Cmd: sel("onboardingPrevPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
-				if p := panelsByControl[sender]; p != nil {
-					p.onboardingPrev()
-				}
-			}},
-			{Cmd: sel("onboardingNextPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
-				if p := panelsByControl[sender]; p != nil {
-					p.onboardingAdvance()
-				}
-			}},
-			{Cmd: sel("onboardingExtraPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
-				p := panelsByControl[sender]
-				if p == nil {
-					return
-				}
-				switch p.onboardingStep {
-				case 2, 3:
-					p.cx.Emit("openSettings", onboardingSettingsTab(p.onboardingStep))
-				case onboardingLegacyStep:
-					p.onboardingSkipLegacy()
-				}
-			}},
-			{Cmd: sel("onboardingLegacyNormalPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
-				p := panelsByControl[sender]
-				if p == nil {
-					return
-				}
-				p.onboardingLegacyNormalOn = objc.Send[int64](sender, sel("state")) == 1
-				p.updateLegacyNext()
-			}},
-			{Cmd: sel("onboardingLegacyFavoritePressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
-				p := panelsByControl[sender]
-				if p == nil {
-					return
-				}
-				p.onboardingLegacyFavoriteOn = objc.Send[int64](sender, sel("state")) == 1
-				p.updateLegacyNext()
-			}},
-			{Cmd: sel("onboardingPermissionPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
-				if objc.Send[int64](sender, sel("tag")) == 0 {
-					OpenAccessibilitySettings()
-					return
-				}
-				OpenFullDiskAccessSettings()
 			}},
 			{Cmd: sel("menuNewGroup:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
 				if p := menuPanel(sender); p != nil {
@@ -598,10 +509,6 @@ func (p *Panel) SetProp(name string, value any) {
 			p.actions = actions
 			p.hideHover()
 		}
-	case "onboarding":
-		if data, ok := value.(PanelOnboarding); ok {
-			p.setOnboarding(data)
-		}
 	}
 }
 
@@ -657,18 +564,10 @@ func (p *Panel) Close() {
 	for _, button := range p.hoverButtons {
 		delete(panelsByControl, button)
 	}
-	for _, button := range []objc.ID{
-		p.onboardingAccessibilityButton, p.onboardingFullDiskButton,
-		p.onboardingLegacyNormal, p.onboardingLegacyFavorite,
-		p.onboardingBack, p.onboardingExtra, p.onboardingNext,
-	} {
-		delete(panelsByControl, button)
-	}
 	if p.hoverBar != 0 {
 		delete(panelsByControl, p.hoverBar)
 	}
 	delete(panelsByView, p.view)
-	delete(panelsByOnboarding, p.onboardingView)
 	delete(panelsByTable, p.table)
 	delete(panelsByPreviewView, p.preview)
 	delete(panelsByPopover, p.previewDelegate)
@@ -807,13 +706,6 @@ func addMenuAction(menu objc.ID, p *Panel, title, action string, enabled bool) {
 }
 
 func (p *Panel) updateStatus() {
-	if p.onboardingActive {
-		p.hint.Send(sel("setHidden:"), true)
-		p.footer.Send(sel("setHidden:"), true)
-		p.footerDivider.Send(sel("setHidden:"), true)
-		p.setEmptyState(emptyState{})
-		return
-	}
 	state := emptyState{}
 	if !p.previewing {
 		state = emptyStateFor(p.errText, len(p.rows), p.query, p.loading)

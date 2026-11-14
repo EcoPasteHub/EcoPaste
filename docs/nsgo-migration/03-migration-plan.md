@@ -192,9 +192,8 @@ internal/native/macos/
 5. 来源应用与图标：
    - 应用注册、未引用清理、从路径添加。
    - `NSWorkspace` 图标抽取与缓存。
-6. 旧版导入：
-   - 读取 v0.6 `history` 表与 `images/`。
-   - 普通/收藏选择性导入，记录导入状态。
+6. 旧版数据：
+   - 产品调整：macOS 首版不提供 v0.6 数据目录导入；旧版用户先导出 `.ecopastebak`，再通过新版备份导入恢复。
 
 ### 退出条件
 
@@ -257,9 +256,9 @@ internal/native/macos/
 - 预览不抢焦点、不闪烁、不越界。
 - 菜单、拖出、备注、分组在真实 App 中可用。
 
-## 8. Phase 5 · 设置、引导与系统集成
+## 8. Phase 5 · 设置与系统集成
 
-**目标**：覆盖首次启动与日常系统行为。
+**目标**：覆盖日常系统行为。
 
 ### 工作项
 
@@ -269,11 +268,9 @@ internal/native/macos/
    - `.tmp` + rename 原子写。
    - 7 个偏好 Tab 的设置项、搜索、高亮定位。
 2. 引导：
-   - Welcome → Permissions → Shortcuts → Ignore Apps → Legacy Import → Done，共 6 步；未检测到旧版数据时导入步骤只显示空状态。
-   - 引导使用面板内原生浮层而不是独立窗口，避免额外窗口抢焦点；期间暂停失焦隐藏，打开系统设置授权后仍可回到原步骤。
-   - 快捷键与应用步骤可直接打开设置对应 Tab，已打开的设置窗口也会同步切换。
-   - 旧版导入只读扫描 v0.6 数据目录，可选择普通/收藏记录；导入结果留在步骤内展示，点击继续后才结束引导。
-   - `lastStep` 持久化、可回退、完成后恢复面板列表与搜索焦点。
+   - 产品调整：macOS 首版不提供首启引导浮层、旧版导入步骤和 `internal/onboarding` 包，冷启动直接进入日常使用。
+   - `settings.json` 的 `onboarding` 字段保留结构、默认值与回环读写兼容；首版不再读取或写入。
+   - 权限缺失在粘贴动作与设置“权限”页提示，快捷键/排除应用/备份恢复分别由设置页和备份导入承担。
 3. 权限：
    - 辅助功能、完全磁盘访问、通知（如使用）。
    - 权限状态检测、系统设置跳转、失败提示。
@@ -313,7 +310,7 @@ internal/native/macos/
    - 缓存清理、存储占用、图片另存、Finder reveal、打开链接/邮件。
 4. 发布：
    - `nsgo build` 生成 `.app` / `.dmg`。
-   - 应用图标由 `cmd/ecopaste/assets/Icon.png` 生成 `AppIcon.icns`，同步用于 Dock、设置侧栏、引导页、关于窗口与 DMG。
+   - 应用图标由 `cmd/ecopaste/assets/Icon.png` 生成 `AppIcon.icns`，同步用于 Dock、设置侧栏、关于窗口与 DMG。
    - Developer ID 签名、公证、Sparkle 签名。
    - GitHub Actions 增加 macOS Go/NSGo 流水线，不破坏旧流水线。
 

@@ -43,7 +43,6 @@ func TestShouldHideAfterDrag(t *testing.T) {
 		key        bool
 		active     bool
 		pinned     bool
-		onboarding bool
 		suppressed bool
 		want       bool
 	}{
@@ -53,12 +52,11 @@ func TestShouldHideAfterDrag(t *testing.T) {
 		{name: "window lost key", visible: true, active: true, want: true},
 		{name: "hidden panel"},
 		{name: "pinned panel", visible: true, accepted: true, key: true, active: true, pinned: true},
-		{name: "onboarding panel", visible: true, accepted: true, key: true, active: true, onboarding: true},
 		{name: "suppressed panel", visible: true, accepted: true, key: true, active: true, suppressed: true},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			got := shouldHideAfterDrag(tc.visible, tc.accepted, tc.key, tc.active, tc.pinned, tc.onboarding, tc.suppressed)
+			got := shouldHideAfterDrag(tc.visible, tc.accepted, tc.key, tc.active, tc.pinned, tc.suppressed)
 			if got != tc.want {
 				t.Errorf("shouldHideAfterDrag() = %v, want %v", got, tc.want)
 			}

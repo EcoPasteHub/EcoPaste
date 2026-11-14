@@ -15,7 +15,6 @@ func panelObserverMethods() []objc.MethodDef {
 			if window == 0 || window != objc.Send[objc.ID](note, sel("object")) {
 				return
 			}
-			p.refreshOnboardingPermissions()
 			responder := p.table
 			if p.behavior.DefaultFocus {
 				responder = p.search
@@ -24,7 +23,7 @@ func panelObserverMethods() []objc.MethodDef {
 		}},
 		{Cmd: sel("windowResignedKey:"), Fn: func(self objc.ID, _ objc.SEL, note objc.ID) {
 			p := panelsByObserver[self]
-			if p == nil || suppressPanelBlur.Load() || p.pinned || p.dragging || p.onboardingActive || p.previewing {
+			if p == nil || suppressPanelBlur.Load() || p.pinned || p.dragging || p.previewing {
 				return
 			}
 			window := p.view.Send(sel("window"))

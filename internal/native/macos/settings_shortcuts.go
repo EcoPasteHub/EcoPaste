@@ -67,7 +67,7 @@ func (v *SettingsView) addShortcutField(content objc.ID, y float64, title, path 
 	field.Send(sel("setBezeled:"), true)
 	field.Send(sel("setDrawsBackground:"), true)
 	field.Send(sel("setFocusRingType:"), int64(2))
-	field.Send(sel("setPlaceholderString:"), nsString(i18n.T(i18n.OnboardingShortcutNotSet)))
+	field.Send(sel("setPlaceholderString:"), nsString(i18n.T(i18n.ShortcutNotSet)))
 	field.Send(sel("setAccessibilityElement:"), true)
 	field.Send(sel("setAccessibilityRole:"), nsString("AXTextField"))
 	field.Send(sel("setAccessibilityLabel:"), nsString(i18n.Tf(i18n.SettingsShortcutFieldA11y, title)))

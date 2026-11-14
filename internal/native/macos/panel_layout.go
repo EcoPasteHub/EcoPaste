@@ -59,7 +59,6 @@ func layoutPanel(p *Panel, width, height float64) {
 	if p.table != 0 {
 		p.syncTableFrame()
 	}
-	p.layoutOnboarding(width, height)
 
 	layoutEmptyState(p, width, scrollY, scrollHeight)
 }

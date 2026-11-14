@@ -71,7 +71,7 @@ func showAccessibilityAlert() {
 	alert.Send(sel("setMessageText:"), nsString(i18n.T(i18n.AccessibilityTitle)))
 	alert.Send(sel("setInformativeText:"),
 		nsString(i18n.T(i18n.AccessibilityBody)))
-	alert.Send(sel("addButtonWithTitle:"), nsString(i18n.T(i18n.OnboardingOpenSettings)))
+	alert.Send(sel("addButtonWithTitle:"), nsString(i18n.T(i18n.PermissionOpenSettings)))
 	alert.Send(sel("addButtonWithTitle:"), nsString(i18n.T(i18n.CommonLater)))
 	if alert.Send(sel("runModal")) == 1000 {
 		OpenAccessibilitySettings()

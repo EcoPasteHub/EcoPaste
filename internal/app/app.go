@@ -516,9 +516,7 @@ func Run(app *core.Scope) {
 		openSettings()
 	}
 
-	if store != nil && !store.Snapshot().Onboarding.Completed {
-		showPanel()
-	} else if os.Getenv("ECOPASTE_SHOW_ON_LAUNCH") == "1" {
+	if os.Getenv("ECOPASTE_SHOW_ON_LAUNCH") == "1" {
 		showPanel()
 	}
 

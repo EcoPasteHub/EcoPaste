@@ -95,9 +95,9 @@ func formatDiagnosticReport(version, system, dataDir string, accessibility, full
 
 func permissionText(granted bool) string {
 	if granted {
-		return i18n.T(i18n.OnboardingGranted)
+		return i18n.T(i18n.PermissionGranted)
 	}
-	return i18n.T(i18n.OnboardingNotGranted)
+	return i18n.T(i18n.PermissionNotGranted)
 }
 
 func writePlainText(text string) bool {

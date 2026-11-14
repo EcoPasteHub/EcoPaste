@@ -52,7 +52,7 @@ func attachNavWindow(p *Panel) {
 		p.nav = newPanelNav(p, window)
 	}
 	p.nav.position()
-	if objc.Send[bool](window, sel("isVisible")) && !p.onboardingActive {
+	if objc.Send[bool](window, sel("isVisible")) {
 		p.nav.show()
 	}
 }
@@ -63,7 +63,7 @@ func syncNavVisibility(p *Panel) {
 		return
 	}
 	window := p.view.Send(sel("window"))
-	if window != 0 && objc.Send[bool](window, sel("isVisible")) && !p.onboardingActive {
+	if window != 0 && objc.Send[bool](window, sel("isVisible")) {
 		p.nav.show()
 		return
 	}

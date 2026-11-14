@@ -90,39 +90,6 @@ type HistoryOpenBehavior struct {
 	GroupID   string
 }
 
-// HistoryOnboarding describes the persisted first-run flow state.
-type HistoryOnboarding struct {
-	Active             bool
-	Step               int
-	OpenShortcut       string
-	PreferenceShortcut string
-	ExcludedApps       int
-}
-
-// LegacyDetection reports the v0.6 data the import step can read.
-type LegacyDetection struct {
-	Scanning            bool
-	Importing           bool
-	Found               bool
-	Path                string
-	ImportableItemCount int
-	NormalItemCount     int
-	FavoriteItemCount   int
-	Imported            bool
-	ImportedNormal      int
-	ImportedFavorite    int
-	Skipped             int
-	Error               string
-}
-
-// LegacyImportResult counts the rows an import wrote or skipped.
-type LegacyImportResult struct {
-	Imported         int
-	Skipped          int
-	ImportedNormal   int
-	ImportedFavorite int
-}
-
 // HistoryModel is the app service the history panel consumes. Copy
 // reports whether the panel should close after copying.
 type HistoryModel interface {
@@ -155,10 +122,6 @@ type HistoryModel interface {
 	Display() HistoryDisplay
 	OpenBehavior() HistoryOpenBehavior
 	QuickActions() []string
-	Onboarding() HistoryOnboarding
-	SaveOnboarding(step int, completed bool) error
 	OpenSettings(tab string)
-	DetectLegacy(context.Context) (LegacyDetection, error)
-	ImportLegacy(context.Context, []string) (LegacyImportResult, error)
 	Updates() <-chan struct{}
 }

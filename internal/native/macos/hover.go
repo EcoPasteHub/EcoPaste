@@ -77,7 +77,7 @@ func (p *Panel) buildHoverBar() {
 // tracking area, which purego cannot route reliably for this view.
 func (p *Panel) pollHover() {
 	window := p.view.Send(sel("window"))
-	if window == 0 || !objc.Send[bool](window, sel("isVisible")) || p.previewing || p.onboardingActive {
+	if window == 0 || !objc.Send[bool](window, sel("isVisible")) || p.previewing {
 		p.hideHover()
 		return
 	}
