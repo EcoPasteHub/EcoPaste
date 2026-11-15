@@ -42,10 +42,9 @@ func SettingsWindow(model SettingsModel) func(*core.Scope) core.Node {
 					cx.Post(func() {
 						if err != nil {
 							errorText.Set(err.Error())
-							values.Set(model.Load())
-							return
+						} else {
+							errorText.Set("")
 						}
-						errorText.Set("")
 						values.Set(model.Load())
 					})
 				}()

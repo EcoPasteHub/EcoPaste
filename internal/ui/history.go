@@ -329,6 +329,7 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 		}
 
 		filter.Set(initialFilter)
+		group.Set(initialGroup)
 		load("", initialFilter, initialGroup, false)
 		loadGroups(initialGroup, false)
 		if model != nil {
