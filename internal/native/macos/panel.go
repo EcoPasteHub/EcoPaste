@@ -252,99 +252,15 @@ func (p *Panel) View() any { return p.view }
 
 // SetProp implements core.NativeComponent.
 func (p *Panel) SetProp(name string, value any) {
-	switch name {
-	case "query":
-		if s, ok := value.(string); ok && s != p.query {
-			p.query = s
-			p.search.Send(sel("setStringValue:"), nsString(s))
-		}
-	case "placeholder":
-		if s, ok := value.(string); ok {
-			p.search.Send(sel("setPlaceholderString:"), nsString(s))
-		}
-	case "rows":
-		rows, _ := value.([]HistoryRow)
-		p.hideHover()
-		p.rows = rows
-		p.table.Send(sel("reloadData"))
-		p.syncTableFrame()
-		p.restoreSelection()
-		p.updateStatus()
-	case "total":
-		if n, ok := int64Value(value); ok {
-			p.total = n
-			p.updateStatus()
-		}
-	case "loading":
-		if b, ok := value.(bool); ok {
-			p.loading = b
-			p.updateStatus()
-		}
-	case "error":
-		if s, ok := value.(string); ok {
-			p.errText = s
-			p.updateStatus()
-		}
-	case "preview":
-		if content, ok := value.(PreviewContent); ok {
-			p.setPreview(content)
-		}
-	case "groups":
-		if groups, ok := value.([]GroupOption); ok {
-			p.groups = groups
-		}
-	case "group":
-		if id, ok := value.(string); ok {
-			p.setGroupSelection(id)
-		}
-	case "filter":
-		if filter, ok := value.(string); ok {
-			p.setFilterSelection(filter)
-		}
-	case "behavior":
-		if behavior, ok := value.(PanelBehavior); ok {
-			p.behavior = behavior
-		}
-	case "drag":
-		if provider, ok := value.(func(string) (DragPayload, bool)); ok {
-			p.drag = provider
-		}
-	case "display":
-		if display, ok := value.(PanelDisplay); ok {
-			p.display = display
-			p.table.Send(sel("setRowHeight:"), tableRowHeight(display))
-			p.table.Send(sel("reloadData"))
-			p.syncTableFrame()
-		}
-	case "actions":
-		if actions, ok := value.([]string); ok {
-			p.actions = actions
-			p.hideHover()
-		}
+	if set, ok := panelPropertySetters[name]; ok {
+		set(p, value)
 	}
 }
 
 // Command implements core.NativeComponent.
 func (p *Panel) Command(name string, args any) {
-	switch name {
-	case "focusSearch":
-		p.focusSearch()
-	case "clearSearch":
-		p.clearSearch()
-	case "reload":
-		p.table.Send(sel("reloadData"))
-	case "scrollTop":
-		if len(p.rows) > 0 {
-			p.table.Send(sel("scrollRowToVisible:"), int64(0))
-		}
-	case "showAccessibilityAlert":
-		showAccessibilityAlert()
-	case "toggleWindowPinned":
-		p.togglePinned()
-	case "resignKey":
-		p.view.Send(sel("window")).Send(sel("resignKeyWindow"))
-	case "makeKey":
-		p.view.Send(sel("window")).Send(sel("makeKeyWindow"))
+	if run, ok := panelCommands[name]; ok {
+		run(p)
 	}
 }
 
