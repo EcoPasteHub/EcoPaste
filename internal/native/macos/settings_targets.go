@@ -7,6 +7,12 @@ import (
 	"github.com/ebitengine/purego/objc"
 )
 
+func emitSettingsChange(sender objc.ID, path string, value any) {
+	if v := settingsViews[sender]; v != nil {
+		v.cx.Emit("change", SettingsChange{Path: path, Value: value})
+	}
+}
+
 func registerSettingsTargets() {
 	target, err := objc.RegisterClass("EcoPasteSettingsTarget", class("NSObject"), nil, nil, []objc.MethodDef{
 		{Cmd: sel("settingsSearchChanged:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
@@ -111,43 +117,23 @@ func registerSettingsTargets() {
 			}
 		}},
 		{Cmd: sel("addAppPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
-			v := settingsViews[sender]
-			if v == nil {
-				return
-			}
 			path, ok := OpenApplicationPanel(i18n.T(i18n.SettingsChooseExcludedApp))
 			if !ok {
 				return
 			}
-			v.cx.Emit("change", SettingsChange{Path: "apps.add", Value: path})
+			emitSettingsChange(sender, "apps.add", path)
 		}},
 		{Cmd: sel("refreshAppsPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
-			v := settingsViews[sender]
-			if v == nil {
-				return
-			}
-			v.cx.Emit("change", SettingsChange{Path: "apps.refresh", Value: true})
+			emitSettingsChange(sender, "apps.refresh", true)
 		}},
 		{Cmd: sel("exportBackupPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
-			v := settingsViews[sender]
-			if v == nil {
-				return
-			}
-			v.cx.Emit("change", SettingsChange{Path: "backup.export", Value: true})
+			emitSettingsChange(sender, "backup.export", true)
 		}},
 		{Cmd: sel("importBackupPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
-			v := settingsViews[sender]
-			if v == nil {
-				return
-			}
-			v.cx.Emit("change", SettingsChange{Path: "backup.import", Value: true})
+			emitSettingsChange(sender, "backup.import", true)
 		}},
 		{Cmd: sel("updateCheckPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
-			v := settingsViews[sender]
-			if v == nil {
-				return
-			}
-			v.cx.Emit("change", SettingsChange{Path: "update.check", Value: true})
+			emitSettingsChange(sender, "update.check", true)
 		}},
 		{Cmd: sel("resetSettingsPressed:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
 			v := settingsViews[sender]
@@ -158,7 +144,7 @@ func registerSettingsTargets() {
 				i18n.T(i18n.SettingsResetBody), i18n.T(i18n.SettingsResetConfirm)) {
 				return
 			}
-			v.cx.Emit("change", SettingsChange{Path: "settings.reset", Value: true})
+			emitSettingsChange(sender, "settings.reset", true)
 		}},
 	})
 	if err != nil {

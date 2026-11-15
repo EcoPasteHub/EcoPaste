@@ -41,11 +41,7 @@ func (m *settingsModel) applyExcludedApps(value any) error {
 	}
 	ids = dedupeIDs(ids)
 	previous := m.store.Snapshot().Clipboard.Filters.ExcludedAppIDs
-	if err := m.update(map[string]any{
-		"clipboard": map[string]any{
-			"filters": map[string]any{"excludedAppIds": ids},
-		},
-	}); err != nil {
+	if err := m.setExcludedApps(ids); err != nil {
 		return err
 	}
 	removed := differenceIDs(previous, ids)
@@ -72,6 +68,10 @@ func (m *settingsModel) addSourceApp(path string) error {
 	if !slices.Contains(ids, app.ID) {
 		ids = append(ids, app.ID)
 	}
+	return m.setExcludedApps(ids)
+}
+
+func (m *settingsModel) setExcludedApps(ids []string) error {
 	return m.update(map[string]any{
 		"clipboard": map[string]any{
 			"filters": map[string]any{"excludedAppIds": ids},
