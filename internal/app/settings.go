@@ -142,8 +142,7 @@ func (m *settingsModel) Apply(path string, value any) error {
 		}
 		m.checkUpdates()
 		return nil
-	}
-	if path == "general.dataDir" {
+	case "general.dataDir":
 		parent, _ := value.(string)
 		if m.changeDataDir == nil {
 			return fmt.Errorf("%s", i18n.T(i18n.ErrorDataDirChange))
@@ -155,8 +154,7 @@ func (m *settingsModel) Apply(path string, value any) error {
 			m.restart()
 		}
 		return nil
-	}
-	if path == "general.defaultDataDir" {
+	case "general.defaultDataDir":
 		if m.restoreDataDir == nil {
 			return fmt.Errorf("%s", i18n.T(i18n.ErrorDataDirRestore))
 		}
@@ -167,8 +165,7 @@ func (m *settingsModel) Apply(path string, value any) error {
 			m.restart()
 		}
 		return nil
-	}
-	if path == "history.retention" {
+	case "history.retention":
 		text, _ := value.(string)
 		retention, err := decodeRetention(text)
 		if err != nil {
@@ -184,29 +181,8 @@ func (m *settingsModel) Apply(path string, value any) error {
 	if !ok {
 		return fmt.Errorf(i18n.T(i18n.ErrorUnknownSetting), path)
 	}
-	if path == "general.autoStart" && m.setAutoStart != nil {
-		enabled, _ := value.(bool)
-		if err := m.setAutoStart(enabled); err != nil {
-			return err
-		}
-	}
-	if path == "general.dockIcon" && m.setDockIcon != nil {
-		visible, _ := value.(bool)
-		if err := m.setDockIcon(visible); err != nil {
-			return err
-		}
-	}
-	if path == "general.trayIcon" && m.setTrayIcon != nil {
-		visible, _ := value.(bool)
-		if err := m.setTrayIcon(visible); err != nil {
-			return err
-		}
-	}
-	if path == "appearance.theme" && m.setAppearance != nil {
-		theme, _ := value.(string)
-		if err := m.setAppearance(theme); err != nil {
-			return err
-		}
+	if err := m.applyBeforeSave(path, value); err != nil {
+		return err
 	}
 	patch := map[string]any{}
 	node := patch
@@ -227,6 +203,38 @@ func (m *settingsModel) Apply(path string, value any) error {
 	}
 	if strings.HasPrefix(path, "display.") && m.onDisplayChanged != nil {
 		m.onDisplayChanged()
+	}
+	return nil
+}
+
+// applyBeforeSave applies the settings that must reach the system before the
+// file is written, so a failed native call does not leave the two out of sync.
+func (m *settingsModel) applyBeforeSave(path string, value any) error {
+	switch path {
+	case "general.autoStart":
+		if m.setAutoStart == nil {
+			return nil
+		}
+		enabled, _ := value.(bool)
+		return m.setAutoStart(enabled)
+	case "general.dockIcon":
+		if m.setDockIcon == nil {
+			return nil
+		}
+		visible, _ := value.(bool)
+		return m.setDockIcon(visible)
+	case "general.trayIcon":
+		if m.setTrayIcon == nil {
+			return nil
+		}
+		visible, _ := value.(bool)
+		return m.setTrayIcon(visible)
+	case "appearance.theme":
+		if m.setAppearance == nil {
+			return nil
+		}
+		theme, _ := value.(string)
+		return m.setAppearance(theme)
 	}
 	return nil
 }
