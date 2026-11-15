@@ -4,6 +4,12 @@ import (
 	"github.com/ebitengine/purego/objc"
 )
 
+func historyRowAtEvent(table, event objc.ID) int {
+	location := objc.Send[CGPoint](event, sel("locationInWindow"))
+	local := objc.Send[CGPoint](table, sel("convertPoint:fromView:"), location, objc.ID(0))
+	return int(objc.Send[int64](table, sel("rowAtPoint:"), local))
+}
+
 func registerHistoryTargets() {
 	var err error
 	historyTableClass, err = objc.RegisterClass("EcoPasteHistoryTable", class("NSTableView"), nil, nil,
@@ -20,9 +26,7 @@ func registerHistoryTargets() {
 			}},
 			{Cmd: sel("rightMouseDown:"), Fn: func(self objc.ID, _ objc.SEL, event objc.ID) {
 				if p := panelsByTable[self]; p != nil {
-					location := objc.Send[CGPoint](event, sel("locationInWindow"))
-					local := objc.Send[CGPoint](self, sel("convertPoint:fromView:"), location, objc.ID(0))
-					row := int(objc.Send[int64](self, sel("rowAtPoint:"), local))
+					row := historyRowAtEvent(self, event)
 					if row >= 0 && row < len(p.rows) {
 						p.selectRow(row)
 					}
@@ -34,9 +38,7 @@ func registerHistoryTargets() {
 				if p == nil || objc.Send[int64](event, sel("buttonNumber")) != 2 {
 					return
 				}
-				location := objc.Send[CGPoint](event, sel("locationInWindow"))
-				local := objc.Send[CGPoint](self, sel("convertPoint:fromView:"), location, objc.ID(0))
-				row := int(objc.Send[int64](self, sel("rowAtPoint:"), local))
+				row := historyRowAtEvent(self, event)
 				if row < 0 || row >= len(p.rows) {
 					return
 				}
@@ -48,9 +50,7 @@ func registerHistoryTargets() {
 				left := objc.Send[int64](event, sel("buttonNumber")) == 0
 				var row, clicks int
 				if left {
-					location := objc.Send[CGPoint](event, sel("locationInWindow"))
-					local := objc.Send[CGPoint](self, sel("convertPoint:fromView:"), location, objc.ID(0))
-					row = int(objc.Send[int64](self, sel("rowAtPoint:"), local))
+					row = historyRowAtEvent(self, event)
 					clicks = int(objc.Send[int64](event, sel("clickCount")))
 				}
 				p := panelsByTable[self]
