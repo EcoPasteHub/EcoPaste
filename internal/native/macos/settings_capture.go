@@ -57,41 +57,10 @@ func (v *SettingsView) buildCaptureOrder(content objc.ID) {
 	hint.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 142, Y: 132}, Size: CGSize{Width: 354, Height: 18}})
 	content.Send(sel("addSubview:"), hint)
 
-	addSettingsListCard(content, CGRect{Origin: CGPoint{X: 20, Y: 18}, Size: CGSize{Width: settingsCaptureListWidth, Height: 106}})
-	scroll := objc.ID(class("NSScrollView")).Send(sel("new"))
-	scroll.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 21, Y: 19}, Size: CGSize{Width: settingsCaptureListWidth - 2, Height: 104}})
-	scroll.Send(sel("setHasVerticalScroller:"), true)
-	scroll.Send(sel("setAutohidesScrollers:"), true)
-	scroll.Send(sel("setDrawsBackground:"), false)
-	scroll.Send(sel("setBorderType:"), int64(0))
-
-	table := objc.ID(class("NSTableView")).Send(sel("new"))
-	table.Send(sel("setRowHeight:"), settingsCaptureRowHeight)
-	table.Send(sel("setIntercellSpacing:"), CGSize{})
-	table.Send(sel("setHeaderView:"), objc.ID(0))
-	table.Send(sel("setGridStyleMask:"), int64(0))
-	table.Send(sel("setAllowsMultipleSelection:"), false)
-	table.Send(sel("setAllowsEmptySelection:"), false)
-	table.Send(sel("setSelectionHighlightStyle:"), int64(1))
-	table.Send(sel("setFocusRingType:"), int64(1))
-	table.Send(sel("setStyle:"), int64(3))
-	table.Send(sel("setBackgroundColor:"), objc.ID(classNSColor).Send(sel("clearColor")))
-	table.Send(sel("setDataSource:"), settingsCaptureTarget)
-	table.Send(sel("setDelegate:"), settingsCaptureTarget)
-	table.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsCaptureOrder)))
-
-	column := objc.ID(class("NSTableColumn")).Send(sel("new"))
-	column.Send(sel("setIdentifier:"), nsString("capture"))
-	column.Send(sel("setResizingMask:"), int64(1))
-	column.Send(sel("setWidth:"), float64(settingsCaptureListWidth-4))
-	table.Send(sel("addTableColumn:"), column)
-	column.Send(sel("release"))
-	table.Send(sel("setColumnAutoresizingStyle:"), int64(1))
-
-	scroll.Send(sel("setDocumentView:"), table)
-	table.Send(sel("release"))
-	content.Send(sel("addSubview:"), scroll)
-	scroll.Send(sel("release"))
+	table := addSettingsListTable(content,
+		CGRect{Origin: CGPoint{X: 20, Y: 18}, Size: CGSize{Width: settingsCaptureListWidth, Height: 106}},
+		settingsCaptureRowHeight, float64(settingsCaptureListWidth-4), "capture",
+		i18n.T(i18n.SettingsCaptureOrder), settingsCaptureTarget)
 	v.captureTable = table
 	settingsCaptureByTable[table] = v
 

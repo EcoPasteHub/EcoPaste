@@ -86,41 +86,9 @@ func (v *SettingsView) buildActions() {
 	intro.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 408}, Size: CGSize{Width: tabContentW - 48, Height: 28}})
 	content.Send(sel("addSubview:"), intro)
 
-	addSettingsListCard(content, CGRect{Origin: CGPoint{X: 20, Y: 82}, Size: CGSize{Width: tabContentW - 40, Height: 312}})
-	scroll := objc.ID(class("NSScrollView")).Send(sel("new"))
-	scroll.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 21, Y: 83}, Size: CGSize{Width: tabContentW - 42, Height: 310}})
-	scroll.Send(sel("setHasVerticalScroller:"), true)
-	scroll.Send(sel("setAutohidesScrollers:"), true)
-	scroll.Send(sel("setDrawsBackground:"), false)
-	scroll.Send(sel("setBorderType:"), int64(0))
-
-	table := objc.ID(class("NSTableView")).Send(sel("new"))
-	table.Send(sel("setRowHeight:"), 30.0)
-	table.Send(sel("setIntercellSpacing:"), CGSize{})
-	table.Send(sel("setHeaderView:"), objc.ID(0))
-	table.Send(sel("setGridStyleMask:"), int64(0))
-	table.Send(sel("setAllowsMultipleSelection:"), false)
-	table.Send(sel("setAllowsEmptySelection:"), false)
-	table.Send(sel("setSelectionHighlightStyle:"), int64(1))
-	table.Send(sel("setFocusRingType:"), int64(1))
-	table.Send(sel("setStyle:"), int64(3))
-	table.Send(sel("setBackgroundColor:"), objc.ID(classNSColor).Send(sel("clearColor")))
-	table.Send(sel("setDataSource:"), settingsActionsTarget)
-	table.Send(sel("setDelegate:"), settingsActionsTarget)
-	table.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsHoverTable)))
-
-	column := objc.ID(class("NSTableColumn")).Send(sel("new"))
-	column.Send(sel("setIdentifier:"), nsString("actions"))
-	column.Send(sel("setResizingMask:"), int64(1))
-	column.Send(sel("setWidth:"), float64(tabContentW-44))
-	table.Send(sel("addTableColumn:"), column)
-	column.Send(sel("release"))
-	table.Send(sel("setColumnAutoresizingStyle:"), int64(1))
-
-	scroll.Send(sel("setDocumentView:"), table)
-	table.Send(sel("release"))
-	content.Send(sel("addSubview:"), scroll)
-	scroll.Send(sel("release"))
+	table := addSettingsListTable(content,
+		CGRect{Origin: CGPoint{X: 20, Y: 82}, Size: CGSize{Width: tabContentW - 40, Height: 312}},
+		30.0, float64(tabContentW-44), "actions", i18n.T(i18n.SettingsHoverTable), settingsActionsTarget)
 	v.actionsTable = table
 	settingsActionsByTable[table] = v
 

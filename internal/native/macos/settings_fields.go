@@ -52,6 +52,50 @@ func addSettingsListCard(content objc.ID, frame CGRect) {
 	card.Send(sel("release"))
 }
 
+// addSettingsListTable places a borderless table inside a list card and
+// returns it, so the order editors share one table configuration.
+func addSettingsListTable(content objc.ID, card CGRect, rowHeight, columnWidth float64, columnID, accessibility string, target objc.ID) objc.ID {
+	addSettingsListCard(content, card)
+	scroll := objc.ID(class("NSScrollView")).Send(sel("new"))
+	scroll.Send(sel("setFrame:"), CGRect{
+		Origin: CGPoint{X: card.Origin.X + 1, Y: card.Origin.Y + 1},
+		Size:   CGSize{Width: card.Size.Width - 2, Height: card.Size.Height - 2},
+	})
+	scroll.Send(sel("setHasVerticalScroller:"), true)
+	scroll.Send(sel("setAutohidesScrollers:"), true)
+	scroll.Send(sel("setDrawsBackground:"), false)
+	scroll.Send(sel("setBorderType:"), int64(0))
+
+	table := objc.ID(class("NSTableView")).Send(sel("new"))
+	table.Send(sel("setRowHeight:"), rowHeight)
+	table.Send(sel("setIntercellSpacing:"), CGSize{})
+	table.Send(sel("setHeaderView:"), objc.ID(0))
+	table.Send(sel("setGridStyleMask:"), int64(0))
+	table.Send(sel("setAllowsMultipleSelection:"), false)
+	table.Send(sel("setAllowsEmptySelection:"), false)
+	table.Send(sel("setSelectionHighlightStyle:"), int64(1))
+	table.Send(sel("setFocusRingType:"), int64(1))
+	table.Send(sel("setStyle:"), int64(3))
+	table.Send(sel("setBackgroundColor:"), objc.ID(classNSColor).Send(sel("clearColor")))
+	table.Send(sel("setDataSource:"), target)
+	table.Send(sel("setDelegate:"), target)
+	table.Send(sel("setAccessibilityLabel:"), nsString(accessibility))
+
+	column := objc.ID(class("NSTableColumn")).Send(sel("new"))
+	column.Send(sel("setIdentifier:"), nsString(columnID))
+	column.Send(sel("setResizingMask:"), int64(1))
+	column.Send(sel("setWidth:"), columnWidth)
+	table.Send(sel("addTableColumn:"), column)
+	column.Send(sel("release"))
+	table.Send(sel("setColumnAutoresizingStyle:"), int64(1))
+
+	scroll.Send(sel("setDocumentView:"), table)
+	table.Send(sel("release"))
+	content.Send(sel("addSubview:"), scroll)
+	scroll.Send(sel("release"))
+	return table
+}
+
 func newSettingsCheckbox(target objc.ID, action string) objc.ID {
 	checkbox := objc.ID(class("NSButton")).Send(sel("checkboxWithTitle:target:action:"),
 		nsString(""), target, sel(action))
