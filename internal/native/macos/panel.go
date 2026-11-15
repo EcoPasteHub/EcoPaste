@@ -466,73 +466,6 @@ func (p *Panel) setFilterSelection(filter string) {
 	}
 }
 
-// showFilterMenu opens the toolbar filter menu: category, custom group and
-// group editing, in one native menu.
-func (p *Panel) showFilterMenu(anchor objc.ID) {
-	menu := objc.ID(class("NSMenu")).Send(sel("new"))
-	defer menu.Send(sel("release"))
-	menu.Send(sel("setAutoenablesItems:"), false)
-	for index, label := range panelNavLabels() {
-		item := addFilterAction(menu, p, label, "filterMenuPressed:", index)
-		if panelNavFilters[index] == p.filterValue {
-			item.Send(sel("setState:"), int64(1))
-		}
-	}
-	menu.Send(sel("addItem:"), objc.ID(class("NSMenuItem")).Send(sel("separatorItem")))
-	allGroups := addFilterAction(menu, p, i18n.T(i18n.PanelAllGroups), "filterMenuPressed:", filterGroupTag)
-	if p.groupID == "" {
-		allGroups.Send(sel("setState:"), int64(1))
-	}
-	for index, group := range p.groups {
-		item := addFilterAction(menu, p, group.Name, "filterMenuPressed:", filterGroupTag+1+index)
-		if group.ID == p.groupID {
-			item.Send(sel("setState:"), int64(1))
-		}
-	}
-	menu.Send(sel("addItem:"), objc.ID(class("NSMenuItem")).Send(sel("separatorItem")))
-	addMenuAction(menu, p, i18n.T(i18n.PanelNewGroup), "menuNewGroup:", true)
-	addMenuAction(menu, p, i18n.T(i18n.PanelRenameGroup), "menuRenameGroup:", p.groupID != "")
-	addMenuAction(menu, p, i18n.T(i18n.PanelDeleteGroup), "menuDeleteGroup:", p.groupID != "")
-	menu.Send(sel("popUpMenuPositioningItem:atLocation:inView:"), objc.ID(0),
-		CGPoint{X: 0, Y: bounds(anchor).Size.Height}, anchor)
-}
-
-const filterGroupTag = 100
-
-// applyFilterMenuItem resolves the tag of a filter menu item into a filter
-// or group selection.
-func (p *Panel) applyFilterMenuItem(tag int) {
-	switch {
-	case tag >= 0 && tag < len(panelNavFilters):
-		p.cx.Emit("filter", panelNavFilters[tag])
-	case tag == filterGroupTag:
-		p.cx.Emit("group", "")
-	case tag > filterGroupTag && tag-filterGroupTag-1 < len(p.groups):
-		p.cx.Emit("group", p.groups[tag-filterGroupTag-1].ID)
-	}
-}
-
-func addFilterAction(menu objc.ID, p *Panel, title, action string, tag int) objc.ID {
-	item := objc.ID(class("NSMenuItem")).Send(sel("alloc")).
-		Send(sel("initWithTitle:action:keyEquivalent:"), nsString(title), sel(action), nsString(""))
-	item.Send(sel("setTarget:"), searchTarget)
-	item.Send(sel("setRepresentedObject:"), p.table)
-	item.Send(sel("setTag:"), int64(tag))
-	menu.Send(sel("addItem:"), item)
-	item.Send(sel("release"))
-	return item
-}
-
-func addMenuAction(menu objc.ID, p *Panel, title, action string, enabled bool) {
-	item := objc.ID(class("NSMenuItem")).Send(sel("alloc")).
-		Send(sel("initWithTitle:action:keyEquivalent:"), nsString(title), sel(action), nsString(""))
-	item.Send(sel("setTarget:"), searchTarget)
-	item.Send(sel("setRepresentedObject:"), p.table)
-	item.Send(sel("setEnabled:"), enabled)
-	menu.Send(sel("addItem:"), item)
-	item.Send(sel("release"))
-}
-
 func (p *Panel) updateStatus() {
 	state := emptyState{}
 	if !p.previewing {
@@ -552,55 +485,6 @@ func (p *Panel) updateStatus() {
 	}
 	frame := bounds(p.view)
 	layoutPanel(p, frame.Size.Width, frame.Size.Height)
-}
-
-func (p *Panel) setEmptyState(state emptyState) {
-	visible := state.Title != ""
-	p.empty.Send(sel("setStringValue:"), nsString(state.Title))
-	p.empty.Send(sel("setHidden:"), !visible)
-	p.emptyDetail.Send(sel("setStringValue:"), nsString(state.Detail))
-	p.emptyDetail.Send(sel("setHidden:"), !visible || state.Detail == "")
-	p.emptyIcon.Send(sel("setHidden:"), !visible)
-	if !visible {
-		return
-	}
-	color := objc.ID(classNSColor).Send(sel("secondaryLabelColor"))
-	iconColor := objc.ID(classNSColor).Send(sel("tertiaryLabelColor"))
-	if state.Error {
-		color = objc.ID(classNSColor).Send(sel("systemRedColor"))
-		iconColor = color
-	}
-	p.empty.Send(sel("setTextColor:"), color)
-	p.emptyIcon.Send(sel("setImage:"), systemSymbol(state.Symbol))
-	p.emptyIcon.Send(sel("setContentTintColor:"), iconColor)
-}
-
-type emptyState struct {
-	Symbol string
-	Title  string
-	Detail string
-	Error  bool
-}
-
-func emptyStateFor(errText string, rows int, query string, loading bool) emptyState {
-	switch {
-	case rows > 0:
-		return emptyState{}
-	case errText != "":
-		return emptyState{Symbol: "exclamationmark.triangle", Title: errText, Error: true}
-	case loading:
-		return emptyState{Symbol: "clock", Title: i18n.T(i18n.PanelLoading)}
-	case query != "":
-		return emptyState{
-			Symbol: "magnifyingglass", Title: i18n.T(i18n.PanelNoMatches),
-			Detail: i18n.T(i18n.PanelNoMatchesDetail),
-		}
-	default:
-		return emptyState{
-			Symbol: "doc.on.clipboard", Title: i18n.T(i18n.PanelEmpty),
-			Detail: i18n.T(i18n.PanelEmptyDetail),
-		}
-	}
 }
 
 func (p *Panel) restoreSelection() {
