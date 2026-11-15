@@ -205,15 +205,7 @@ func tiffToPNG(tiff []byte) []byte {
 		return nil
 	}
 	properties := objc.ID(class("NSDictionary")).Send(sel("dictionary"))
-	data := rep.Send(sel("representationUsingType:properties:"), 4, properties)
-	if data == 0 {
-		return nil
-	}
-	length := objc.Send[uint](data, sel("length"))
-	src := objc.Send[*byte](data, sel("bytes"))
-	out := make([]byte, length)
-	copy(out, unsafeSlice(src, length))
-	return out
+	return dataBytes(rep.Send(sel("representationUsingType:properties:"), 4, properties))
 }
 
 func nsData(b []byte) objc.ID {
