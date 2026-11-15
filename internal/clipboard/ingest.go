@@ -87,7 +87,6 @@ func (s *Service) buildItem(payload Payload, source SourceApp) (*database.Item, 
 				Content:     content,
 				ContentHash: database.Hash(database.KindFiles, content),
 				FileTypes:   fileTypes(payload.Files),
-				Platform:    "macos",
 			}
 			return s.withSource(item, source), nil
 		case settings.CaptureImage:
@@ -105,7 +104,6 @@ func (s *Service) buildItem(payload Payload, source SourceApp) (*database.Item, 
 				Size:        &stored.Size,
 				Width:       &stored.Width,
 				Height:      &stored.Height,
-				Platform:    "macos",
 			}
 			return s.withSource(item, source), nil
 		case settings.CaptureHTML:
@@ -143,7 +141,6 @@ func (s *Service) textItem(content, plain string, sub database.SubKind, maxMB ui
 		Summary:     summary,
 		Size:        &size,
 		IsSensitive: sensitive,
-		Platform:    "macos",
 	}
 	if sub != "" {
 		item.SubKind = &sub

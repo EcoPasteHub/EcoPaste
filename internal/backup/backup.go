@@ -89,7 +89,7 @@ func Export(ctx context.Context, src Source, target string, opts ExportOptions) 
 		AppName:       src.AppName,
 		AppVersion:    src.AppVersion,
 		ExportedAt:    exportedAt,
-		Platform:      "macos",
+		Platform:      database.PlatformMacOS,
 		Encryption:    "none",
 		ItemCount:     counts.Items,
 		TextCount:     counts.Text,

@@ -63,7 +63,7 @@ func (r *appRegistry) List(ctx context.Context) ([]database.App, error) {
 		}
 		known = append(known, database.App{
 			ID: running.BundleID, Name: name, IconFile: r.icons.File(running.BundleID),
-			Platform: "macos", CreatedAt: now, UpdatedAt: now,
+			Platform: database.PlatformMacOS, CreatedAt: now, UpdatedAt: now,
 		})
 		byID[running.BundleID] = len(known) - 1
 	}

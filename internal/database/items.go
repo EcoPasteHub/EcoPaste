@@ -22,6 +22,9 @@ const (
 	KindFiles Kind = "files"
 )
 
+// PlatformMacOS is the platform tag stored with captured rows.
+const PlatformMacOS = "macos"
+
 // SubKind refines a text item.
 type SubKind string
 
@@ -155,7 +158,7 @@ func (d *DB) Upsert(ctx context.Context, item *Item) (id string, deduplicated bo
 		item.ID = NewID()
 	}
 	if item.Platform == "" {
-		item.Platform = "macos"
+		item.Platform = PlatformMacOS
 	}
 	if item.UseCount == 0 {
 		item.UseCount = 1
