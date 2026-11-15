@@ -513,7 +513,7 @@ func decodeRetention(text string) (settings.Retention, error) {
 	if err != nil {
 		return settings.Retention{}, fmt.Errorf(i18n.T(i18n.ErrorInvalidRetention), text)
 	}
-	unit := settings.RetentionDays
+	var unit settings.RetentionUnit
 	switch text[len(text)-1:] {
 	case "h":
 		unit = settings.RetentionHours
