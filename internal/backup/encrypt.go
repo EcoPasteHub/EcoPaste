@@ -146,26 +146,9 @@ func decodePayload(data []byte, password string) ([]byte, error) {
 	if len(data) >= 2 && data[0] == 'P' && data[1] == 'K' {
 		return data, nil
 	}
-	if len(data) < len(magic)+4 || string(data[:len(magic)]) != magic {
-		return nil, errors.New(i18n.T(i18n.BackupInvalidFile))
-	}
-	header, headerSize, err := readHeaderWithSize(data[len(magic):])
+	header, headerSize, err := readEncryptedHeader(data)
 	if err != nil {
 		return nil, err
-	}
-	if header.Mode != ModeEncrypted || header.KDF == nil || header.Cipher == nil {
-		return nil, errors.New(i18n.T(i18n.BackupInvalidHeader))
-	}
-	if header.KDF.Algorithm != "argon2id" || header.Cipher.Algorithm != "xchacha20poly1305" {
-		return nil, errors.New(i18n.T(i18n.BackupUnsupportedEncrypt))
-	}
-	if len(header.KDF.Salt) != saltLength || len(header.Cipher.Nonce) != nonceLength {
-		return nil, errors.New(i18n.T(i18n.BackupInvalidHeader))
-	}
-	if header.KDF.TimeCost < 1 || header.KDF.TimeCost > 10 ||
-		header.KDF.MemoryKiB < 8*1024 || header.KDF.MemoryKiB > 256*1024 ||
-		header.KDF.Parallelism < 1 || header.KDF.Parallelism > 8 {
-		return nil, errors.New(i18n.T(i18n.BackupInvalidEncryption))
 	}
 	if password == "" {
 		return nil, errors.New(i18n.T(i18n.BackupPasswordMissing))
@@ -182,6 +165,38 @@ func decodePayload(data []byte, password string) ([]byte, error) {
 		return nil, errors.New(i18n.T(i18n.BackupWrongPassword))
 	}
 	return payload, nil
+}
+
+func readEncryptedHeader(data []byte) (containerHeader, int, error) {
+	if len(data) < len(magic)+4 || string(data[:len(magic)]) != magic {
+		return containerHeader{}, 0, errors.New(i18n.T(i18n.BackupInvalidFile))
+	}
+	header, headerSize, err := readHeaderWithSize(data[len(magic):])
+	if err != nil {
+		return containerHeader{}, 0, err
+	}
+	if err := validateContainerHeader(header); err != nil {
+		return containerHeader{}, 0, err
+	}
+	return header, headerSize, nil
+}
+
+func validateContainerHeader(header containerHeader) error {
+	if header.Mode != ModeEncrypted || header.KDF == nil || header.Cipher == nil {
+		return errors.New(i18n.T(i18n.BackupInvalidHeader))
+	}
+	if header.KDF.Algorithm != "argon2id" || header.Cipher.Algorithm != "xchacha20poly1305" {
+		return errors.New(i18n.T(i18n.BackupUnsupportedEncrypt))
+	}
+	if len(header.KDF.Salt) != saltLength || len(header.Cipher.Nonce) != nonceLength {
+		return errors.New(i18n.T(i18n.BackupInvalidHeader))
+	}
+	if header.KDF.TimeCost < 1 || header.KDF.TimeCost > 10 ||
+		header.KDF.MemoryKiB < 8*1024 || header.KDF.MemoryKiB > 256*1024 ||
+		header.KDF.Parallelism < 1 || header.KDF.Parallelism > 8 {
+		return errors.New(i18n.T(i18n.BackupInvalidEncryption))
+	}
+	return nil
 }
 
 func readHeaderWithSize(data []byte) (containerHeader, int, error) {
