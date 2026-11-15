@@ -254,7 +254,9 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 			}()
 		}
 
-		applyAction := func(id string, run func(context.Context, string) error) {
+		// runAction performs one item action off the main thread. Actions that
+		// change the list ask for a reload once they succeed.
+		runAction := func(id string, reloadAfter bool, run func(context.Context, string) error) {
 			if id == "" || model == nil {
 				return
 			}
@@ -266,21 +268,8 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 						errorText.Set(err.Error())
 						return
 					}
-					reload()
-				})
-			}()
-		}
-
-		runItemAction := func(id string, run func(context.Context, string) error) {
-			if id == "" || model == nil {
-				return
-			}
-			ctx := cx.Context()
-			go func() {
-				err := run(ctx, id)
-				cx.Post(func() {
-					if err != nil {
-						errorText.Set(err.Error())
+					if reloadAfter {
+						reload()
 					}
 				})
 			}()
@@ -459,69 +448,28 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 				case "select":
 					selectedID, _ = data.(string)
 				case "activate":
-					id := selectedID
-					if value, ok := data.(string); ok && value != "" {
-						id = value
-					}
-					activate(id, false)
+					activate(actionID(data), false)
 				case "activateSingleClick":
-					id := selectedID
-					if value, ok := data.(string); ok && value != "" {
-						id = value
-					}
-					activateSingleClick(id)
+					activateSingleClick(actionID(data))
 				case "activateDoubleClick":
-					id := selectedID
-					if value, ok := data.(string); ok && value != "" {
-						id = value
-					}
-					activateDoubleClick(id)
+					activateDoubleClick(actionID(data))
 				case "middleClick":
-					id := selectedID
-					if value, ok := data.(string); ok && value != "" {
-						id = value
-					}
-					middleClickItem(id)
+					middleClickItem(actionID(data))
 				case "copy":
-					id := selectedID
-					if value, ok := data.(string); ok && value != "" {
-						id = value
-					}
-					copyItem(id, false)
+					copyItem(actionID(data), false)
 				case "copyPlain":
-					id := selectedID
-					if value, ok := data.(string); ok && value != "" {
-						id = value
-					}
-					if id == "" {
-						return
-					}
-					copyItem(id, true)
+					copyItem(actionID(data), true)
 				case "pastePlain":
-					id := selectedID
-					if value, ok := data.(string); ok && value != "" {
-						id = value
-					}
-					if id == "" {
-						return
-					}
-					activate(id, true)
+					activate(actionID(data), true)
 				case "pastePath":
-					id := selectedID
-					if value, ok := data.(string); ok && value != "" {
-						id = value
-					}
-					if id == "" {
-						return
-					}
-					activate(id, true)
+					activate(actionID(data), true)
 				case "toggleFavorite":
-					applyAction(actionID(data), func(ctx context.Context, id string) error {
+					runAction(actionID(data), true, func(ctx context.Context, id string) error {
 						_, err := model.ToggleFavorite(ctx, id)
 						return err
 					})
 				case "togglePinned":
-					applyAction(actionID(data), func(ctx context.Context, id string) error {
+					runAction(actionID(data), true, func(ctx context.Context, id string) error {
 						_, err := model.TogglePinned(ctx, id)
 						return err
 					})
@@ -557,23 +505,11 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 				case "hidePreview":
 					preview.Set(macos.PreviewContent{})
 				case "open":
-					runItemAction(actionID(data), model.Open)
+					runAction(actionID(data), false, model.Open)
 				case "reveal":
-					runItemAction(actionID(data), model.Reveal)
+					runAction(actionID(data), false, model.Reveal)
 				case "saveImage":
-					id := actionID(data)
-					if id == "" || model == nil {
-						return
-					}
-					ctx := cx.Context()
-					go func() {
-						err := model.SaveImage(ctx, id)
-						cx.Post(func() {
-							if err != nil {
-								errorText.Set(err.Error())
-							}
-						})
-					}()
+					runAction(actionID(data), false, model.SaveImage)
 				case "editNote":
 					id := actionID(data)
 					if id == "" || model == nil {
@@ -662,21 +598,10 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 						})
 					}()
 				case "moveGroup":
-					if selectedID == "" || model == nil {
-						return
-					}
-					value, _ := data.(string)
-					ctx := cx.Context()
-					go func(id, groupID string) {
-						err := model.MoveToGroup(ctx, id, groupID)
-						cx.Post(func() {
-							if err != nil {
-								errorText.Set(err.Error())
-								return
-							}
-							reload()
-						})
-					}(selectedID, value)
+					groupID, _ := data.(string)
+					runAction(selectedID, true, func(ctx context.Context, id string) error {
+						return model.MoveToGroup(ctx, id, groupID)
+					})
 				case "loadMore":
 					if hasMore.GetUntracked() && !loading.GetUntracked() {
 						load(query, filterValue, selectedGroup, true)
