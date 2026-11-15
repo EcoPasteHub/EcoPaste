@@ -4,6 +4,12 @@ package macos
 
 import "github.com/ebitengine/purego/objc"
 
+func registerPanelObserverClass() error {
+	var err error
+	observerClass, err = objc.RegisterClass("EcoPastePanelObserver", class("NSObject"), nil, nil, panelObserverMethods())
+	return err
+}
+
 func panelObserverMethods() []objc.MethodDef {
 	return []objc.MethodDef{
 		{Cmd: sel("windowBecameKey:"), Fn: func(self objc.ID, _ objc.SEL, note objc.ID) {
