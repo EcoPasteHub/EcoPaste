@@ -176,16 +176,9 @@ func (v *SettingsView) applyActions(values SettingsValues) {
 	}
 	v.actions = actions
 	if v.actionsTable != 0 {
-		selected := int(objc.Send[int64](v.actionsTable, sel("selectedRow")))
 		v.actionsTable.Send(sel("reloadData"))
 		sizeSettingsTable(v.actionsTable, tabContentW-40, 30, len(actions))
-		if selected >= len(actions) {
-			selected = len(actions) - 1
-		}
-		if selected < 0 && len(actions) > 0 {
-			selected = 0
-		}
-		if selected >= 0 {
+		if selected := selectedRowAfterResize(v.actionsTable, len(actions)); selected >= 0 {
 			v.selectAction(selected)
 		}
 		v.updateMoveButtons()
@@ -241,12 +234,10 @@ func (v *SettingsView) moveAction(delta int) {
 	if v.actionsTable == 0 {
 		return
 	}
-	row := int(objc.Send[int64](v.actionsTable, sel("selectedRow")))
-	next := row + delta
-	if row < 0 || row >= len(v.actions) || next < 0 || next >= len(v.actions) {
+	next, ok := moveSelectedRow(v.actionsTable, v.actions, delta)
+	if !ok {
 		return
 	}
-	v.actions[row], v.actions[next] = v.actions[next], v.actions[row]
 	v.actionsTable.Send(sel("reloadData"))
 	v.selectAction(next)
 	v.emitActions()

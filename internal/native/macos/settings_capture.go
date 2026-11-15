@@ -137,16 +137,9 @@ func (v *SettingsView) applyCaptureOrder(values SettingsValues) {
 	if v.captureTable == 0 {
 		return
 	}
-	selected := int(objc.Send[int64](v.captureTable, sel("selectedRow")))
 	v.captureTable.Send(sel("reloadData"))
 	sizeSettingsTable(v.captureTable, settingsCaptureListWidth, settingsCaptureRowHeight, len(order))
-	if selected >= len(order) {
-		selected = len(order) - 1
-	}
-	if selected < 0 && len(order) > 0 {
-		selected = 0
-	}
-	if selected >= 0 {
+	if selected := selectedRowAfterResize(v.captureTable, len(order)); selected >= 0 {
 		v.selectCaptureOrder(selected)
 	}
 	v.updateCaptureMoveButtons()
@@ -180,12 +173,10 @@ func (v *SettingsView) moveCaptureOrder(delta int) {
 	if v.captureTable == 0 {
 		return
 	}
-	row := int(objc.Send[int64](v.captureTable, sel("selectedRow")))
-	next := row + delta
-	if row < 0 || row >= len(v.captureOrder) || next < 0 || next >= len(v.captureOrder) {
+	next, ok := moveSelectedRow(v.captureTable, v.captureOrder, delta)
+	if !ok {
 		return
 	}
-	v.captureOrder[row], v.captureOrder[next] = v.captureOrder[next], v.captureOrder[row]
 	v.captureTable.Send(sel("reloadData"))
 	v.selectCaptureOrder(next)
 	order := append([]string(nil), v.captureOrder...)

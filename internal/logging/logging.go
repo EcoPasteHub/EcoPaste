@@ -30,7 +30,7 @@ type Logger struct {
 // records the previous logger so Close restores it.
 func Open(dir string) (*Logger, error) {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
-		return nil, fmt.Errorf("创建日志目录: %w", err)
+		return nil, fmt.Errorf("create log directory: %w", err)
 	}
 	file := &lumberjack.Logger{
 		Filename:   filepath.Join(dir, logFileName),
