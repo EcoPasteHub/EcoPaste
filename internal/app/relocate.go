@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -188,13 +189,31 @@ func copyTree(src, dst string, skip func(string) bool) error {
 		if !entry.Type().IsRegular() {
 			continue
 		}
-		data, err := os.ReadFile(from)
-		if err != nil {
-			return fmt.Errorf(i18n.T(i18n.ErrorReadDataFile), from, err)
+		if err := copyFileContents(from, to); err != nil {
+			return err
 		}
-		if err := os.WriteFile(to, data, 0o644); err != nil {
-			return fmt.Errorf(i18n.T(i18n.ErrorWriteDataFile), to, err)
-		}
+	}
+	return nil
+}
+
+// copyFileContents streams one file so moving a data root does not load
+// whole image and database files into memory.
+func copyFileContents(src, dst string) error {
+	input, err := os.Open(src)
+	if err != nil {
+		return fmt.Errorf(i18n.T(i18n.ErrorReadDataFile), src, err)
+	}
+	defer input.Close()
+	output, err := os.OpenFile(dst, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)
+	if err != nil {
+		return fmt.Errorf(i18n.T(i18n.ErrorWriteDataFile), dst, err)
+	}
+	if _, err := io.Copy(output, input); err != nil {
+		output.Close()
+		return fmt.Errorf(i18n.T(i18n.ErrorWriteDataFile), dst, err)
+	}
+	if err := output.Close(); err != nil {
+		return fmt.Errorf(i18n.T(i18n.ErrorWriteDataFile), dst, err)
 	}
 	return nil
 }
