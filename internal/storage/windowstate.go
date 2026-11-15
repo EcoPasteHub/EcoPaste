@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+
+	"github.com/google/renameio/v2"
 )
 
 const windowStateName = "window-state.json"
@@ -76,12 +78,7 @@ func (s *WindowState) SaveFrame(label string, frame WindowFrame) error {
 	if err != nil {
 		return err
 	}
-	tmp := s.path + ".tmp"
-	if err := os.WriteFile(tmp, data, 0o644); err != nil {
-		return err
-	}
-	if err := os.Rename(tmp, s.path); err != nil {
-		os.Remove(tmp)
+	if err := renameio.WriteFile(s.path, data, 0o644); err != nil {
 		return err
 	}
 	s.frames = next

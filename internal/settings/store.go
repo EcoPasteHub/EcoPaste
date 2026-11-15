@@ -10,6 +10,8 @@ import (
 	"slices"
 	"strings"
 	"sync"
+
+	"github.com/google/renameio/v2"
 )
 
 const FileName = "settings.json"
@@ -103,24 +105,11 @@ func (s *Store) write(next Settings) error {
 	if err != nil {
 		return fmt.Errorf("encode settings: %w", err)
 	}
-	tmp := s.path + ".tmp"
-	f, err := os.OpenFile(tmp, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
-	if err != nil {
-		return fmt.Errorf("create settings temp file: %w", err)
-	}
-	if _, err := f.Write(data); err != nil {
-		f.Close()
-		return fmt.Errorf("write settings temp file: %w", err)
-	}
-	if err := f.Sync(); err != nil {
-		f.Close()
-		return fmt.Errorf("sync settings temp file: %w", err)
-	}
-	if err := f.Close(); err != nil {
-		return fmt.Errorf("close settings temp file: %w", err)
-	}
-	if err := os.Rename(tmp, s.path); err != nil {
-		return fmt.Errorf("replace settings file: %w", err)
+	// Earlier builds wrote through a fixed ".tmp" sibling; drop any residue so
+	// it cannot accumulate next to the settings file.
+	_ = os.Remove(s.path + ".tmp")
+	if err := renameio.WriteFile(s.path, data, 0o644); err != nil {
+		return fmt.Errorf("write settings: %w", err)
 	}
 	return nil
 }

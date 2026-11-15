@@ -9,6 +9,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/google/renameio/v2"
+
 	"github.com/zeebo/blake3"
 	"golang.org/x/image/draw"
 )
@@ -187,11 +189,7 @@ func writeIfMissing(path string, data []byte) error {
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return err
 	}
-	tmp := path + ".tmp"
-	if err := os.WriteFile(tmp, data, 0o644); err != nil {
-		return err
-	}
-	return os.Rename(tmp, path)
+	return renameio.WriteFile(path, data, 0o644)
 }
 
 func thumbnailPNG(data []byte) ([]byte, error) {

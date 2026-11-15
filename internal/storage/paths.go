@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/renameio/v2"
+
 	"github.com/nsgo-dev/nsgo/core"
 )
 
@@ -242,12 +244,8 @@ func writeManifest(bootstrap string, m manifest) error {
 		return fmt.Errorf("encode storage manifest: %w", err)
 	}
 	path := filepath.Join(bootstrap, manifestName)
-	tmp := path + ".tmp"
-	if err := os.WriteFile(tmp, data, 0o644); err != nil {
+	if err := renameio.WriteFile(path, data, 0o644); err != nil {
 		return fmt.Errorf("write storage manifest: %w", err)
-	}
-	if err := os.Rename(tmp, path); err != nil {
-		return fmt.Errorf("replace storage manifest: %w", err)
 	}
 	return nil
 }

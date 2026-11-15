@@ -3,9 +3,9 @@ package app
 import (
 	"context"
 	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
+
+	"github.com/google/renameio/v2"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/clipboard"
 	"github.com/EcoPasteHub/EcoPaste/internal/database"
@@ -121,27 +121,5 @@ func (m *historyModel) EditNote(ctx context.Context, id string) (bool, error) {
 }
 
 func writeAtomic(path string, data []byte) error {
-	tmp, err := os.CreateTemp(filepath.Dir(path), ".ecopaste-*.png")
-	if err != nil {
-		return err
-	}
-	tmpName := tmp.Name()
-	if _, err := tmp.Write(data); err != nil {
-		tmp.Close()
-		os.Remove(tmpName)
-		return err
-	}
-	if err := tmp.Close(); err != nil {
-		os.Remove(tmpName)
-		return err
-	}
-	if err := os.Chmod(tmpName, 0o644); err != nil {
-		os.Remove(tmpName)
-		return err
-	}
-	if err := os.Rename(tmpName, path); err != nil {
-		os.Remove(tmpName)
-		return err
-	}
-	return nil
+	return renameio.WriteFile(path, data, 0o644)
 }
