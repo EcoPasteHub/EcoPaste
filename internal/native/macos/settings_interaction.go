@@ -12,14 +12,9 @@ func (v *SettingsView) buildInteraction() {
 	content := v.newTab("interaction", settingsTabTitle("interaction"))
 
 	v.addSectionLabel(content, 438, i18n.T(i18n.SettingsInteractionMouse))
-	intro := objc.ID(classNSTextField).Send(sel("wrappingLabelWithString:"),
-		nsString(i18n.T(i18n.SettingsInteractionIntro)))
-	intro.Send(sel("setFont:"), systemFont(11))
-	intro.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
-	intro.Send(sel("setMaximumNumberOfLines:"), int64(2))
-	intro.Send(sel("setPreferredMaxLayoutWidth:"), tabContentW-48)
-	intro.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 406}, Size: CGSize{Width: tabContentW - 48, Height: 30}})
-	content.Send(sel("addSubview:"), intro)
+	v.addParagraph(content,
+		CGRect{Origin: CGPoint{X: 24, Y: 406}, Size: CGSize{Width: tabContentW - 48, Height: 30}},
+		i18n.T(i18n.SettingsInteractionIntro), 11, objc.ID(classNSColor).Send(sel("secondaryLabelColor")), 2)
 
 	y := 366.0
 	v.addPopup(content, y, i18n.T(i18n.SettingsMouseLeft), "content.autoPaste",
@@ -81,12 +76,7 @@ func (v *SettingsView) buildDeletion() {
 	v.addSwitch(content, 186, i18n.T(i18n.SettingsDeleteFavoriteOnlyFav), "content.deleteFavoriteOnlyFav",
 		func(s SettingsValues) bool { return s.DeleteFavoriteOnlyFav })
 
-	intro := objc.ID(classNSTextField).Send(sel("wrappingLabelWithString:"),
-		nsString(i18n.T(i18n.SettingsDeletionIntro)))
-	intro.Send(sel("setFont:"), systemFont(11))
-	intro.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
-	intro.Send(sel("setPreferredMaxLayoutWidth:"), tabContentW-48)
-	intro.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 136}, Size: CGSize{Width: tabContentW - 48, Height: 32}})
-	intro.Send(sel("setMaximumNumberOfLines:"), int64(2))
-	content.Send(sel("addSubview:"), intro)
+	v.addParagraph(content,
+		CGRect{Origin: CGPoint{X: 24, Y: 136}, Size: CGSize{Width: tabContentW - 48, Height: 32}},
+		i18n.T(i18n.SettingsDeletionIntro), 11, objc.ID(classNSColor).Send(sel("secondaryLabelColor")), 2)
 }

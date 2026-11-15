@@ -207,6 +207,20 @@ func (v *SettingsView) addHint(content objc.ID, y, height float64, text string) 
 	return hint
 }
 
+// addParagraph lays out a wrapped settings description with explicit typography.
+func (v *SettingsView) addParagraph(content objc.ID, frame CGRect, text string, size float64, color objc.ID, maxLines int64) objc.ID {
+	paragraph := objc.ID(classNSTextField).Send(sel("wrappingLabelWithString:"), nsString(text))
+	paragraph.Send(sel("setFont:"), systemFont(size))
+	paragraph.Send(sel("setTextColor:"), color)
+	paragraph.Send(sel("setPreferredMaxLayoutWidth:"), frame.Size.Width)
+	if maxLines > 0 {
+		paragraph.Send(sel("setMaximumNumberOfLines:"), maxLines)
+	}
+	paragraph.Send(sel("setFrame:"), frame)
+	content.Send(sel("addSubview:"), paragraph)
+	return paragraph
+}
+
 func (v *SettingsView) addField(content, control objc.ID, field *settingsField) {
 	tag := int64(len(v.fields) + 1)
 	control.Send(sel("setTag:"), tag)

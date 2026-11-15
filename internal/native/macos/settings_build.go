@@ -16,12 +16,9 @@ func (v *SettingsView) buildData() {
 	v.addSearchEntry(content, i18n.T(i18n.SettingsBackupIntro), "data.backup",
 		i18n.T(i18n.SettingsBackupHint), i18n.T(i18n.SettingsBackupKeywords),
 		CGRect{Origin: CGPoint{X: 12, Y: 232}, Size: CGSize{Width: tabContentW - 24, Height: 86}})
-	hint := objc.ID(classNSTextField).Send(sel("wrappingLabelWithString:"), nsString(i18n.T(i18n.SettingsBackupHint)))
-	hint.Send(sel("setFont:"), systemFont(11))
-	hint.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
-	hint.Send(sel("setPreferredMaxLayoutWidth:"), tabContentW-48)
-	hint.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 288}, Size: CGSize{Width: tabContentW - 48, Height: 30}})
-	content.Send(sel("addSubview:"), hint)
+	v.addParagraph(content,
+		CGRect{Origin: CGPoint{X: 24, Y: 288}, Size: CGSize{Width: tabContentW - 48, Height: 30}},
+		i18n.T(i18n.SettingsBackupHint), 11, objc.ID(classNSColor).Send(sel("secondaryLabelColor")), 0)
 
 	export := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
 		nsString(i18n.T(i18n.SettingsExportBackup)), settingsTarget, sel("exportBackupPressed:"))
@@ -159,13 +156,9 @@ func (v *SettingsView) buildHistory() {
 func (v *SettingsView) buildPreview() {
 	content := v.newTab("preview", settingsTabTitle("preview"))
 	v.addSectionLabel(content, 438, i18n.T(i18n.SettingsPreviewSection))
-	intro := objc.ID(classNSTextField).Send(sel("wrappingLabelWithString:"),
-		nsString(i18n.T(i18n.SettingsPreviewIntro)))
-	intro.Send(sel("setFont:"), systemFont(11))
-	intro.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
-	intro.Send(sel("setPreferredMaxLayoutWidth:"), tabContentW-48)
-	intro.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 408}, Size: CGSize{Width: tabContentW - 48, Height: 28}})
-	content.Send(sel("addSubview:"), intro)
+	v.addParagraph(content,
+		CGRect{Origin: CGPoint{X: 24, Y: 408}, Size: CGSize{Width: tabContentW - 48, Height: 28}},
+		i18n.T(i18n.SettingsPreviewIntro), 11, objc.ID(classNSColor).Send(sel("secondaryLabelColor")), 0)
 	v.addSwitch(content, 372, i18n.T(i18n.SettingsSpacePreview), "preview.spaceEnabled",
 		func(s SettingsValues) bool { return s.SpacePreview })
 }
@@ -193,13 +186,9 @@ func (v *SettingsView) buildUpdate() {
 	version.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 108, Y: 362}, Size: CGSize{Width: 300, Height: 18}})
 	content.Send(sel("addSubview:"), version)
 
-	intro := objc.ID(classNSTextField).Send(sel("wrappingLabelWithString:"), nsString(i18n.T(i18n.SettingsUpdateIntro)))
-	intro.Send(sel("setFont:"), systemFont(12))
-	intro.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
-	intro.Send(sel("setPreferredMaxLayoutWidth:"), tabContentW-48)
-	intro.Send(sel("setMaximumNumberOfLines:"), int64(2))
-	intro.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 312}, Size: CGSize{Width: tabContentW - 48, Height: 36}})
-	content.Send(sel("addSubview:"), intro)
+	v.addParagraph(content,
+		CGRect{Origin: CGPoint{X: 24, Y: 312}, Size: CGSize{Width: tabContentW - 48, Height: 36}},
+		i18n.T(i18n.SettingsUpdateIntro), 12, objc.ID(classNSColor).Send(sel("secondaryLabelColor")), 2)
 
 	check := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
 		nsString(i18n.T(i18n.SettingsUpdateCheck)), settingsTarget, sel("updateCheckPressed:"))
@@ -208,13 +197,9 @@ func (v *SettingsView) buildUpdate() {
 	content.Send(sel("addSubview:"), check)
 	settingsViews[check] = v
 
-	managed := objc.ID(classNSTextField).Send(sel("wrappingLabelWithString:"), nsString(i18n.T(i18n.SettingsUpdateManaged)))
-	managed.Send(sel("setFont:"), systemFont(11))
-	managed.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
-	managed.Send(sel("setPreferredMaxLayoutWidth:"), tabContentW-48)
-	managed.Send(sel("setMaximumNumberOfLines:"), int64(2))
-	managed.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 212}, Size: CGSize{Width: tabContentW - 48, Height: 34}})
-	content.Send(sel("addSubview:"), managed)
+	v.addParagraph(content,
+		CGRect{Origin: CGPoint{X: 24, Y: 212}, Size: CGSize{Width: tabContentW - 48, Height: 34}},
+		i18n.T(i18n.SettingsUpdateManaged), 11, objc.ID(classNSColor).Send(sel("tertiaryLabelColor")), 2)
 
 	v.addSearchEntry(content, i18n.T(i18n.SettingsTabUpdate), "update.check",
 		i18n.T(i18n.SettingsUpdateIntro), "update sparkle version",

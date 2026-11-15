@@ -78,13 +78,9 @@ func (v *SettingsView) buildActions() {
 		CGRect{Origin: CGPoint{X: 12, Y: 24}, Size: CGSize{Width: tabContentW - 24, Height: 420}})
 
 	v.addSectionLabel(content, 438, i18n.T(i18n.SettingsHoverActions))
-	intro := objc.ID(classNSTextField).Send(sel("wrappingLabelWithString:"),
-		nsString(i18n.T(i18n.SettingsHoverIntro)))
-	intro.Send(sel("setFont:"), systemFont(11))
-	intro.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
-	intro.Send(sel("setPreferredMaxLayoutWidth:"), tabContentW-48)
-	intro.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 408}, Size: CGSize{Width: tabContentW - 48, Height: 28}})
-	content.Send(sel("addSubview:"), intro)
+	v.addParagraph(content,
+		CGRect{Origin: CGPoint{X: 24, Y: 408}, Size: CGSize{Width: tabContentW - 48, Height: 28}},
+		i18n.T(i18n.SettingsHoverIntro), 11, objc.ID(classNSColor).Send(sel("secondaryLabelColor")), 0)
 
 	table := addSettingsListTable(content,
 		CGRect{Origin: CGPoint{X: 20, Y: 82}, Size: CGSize{Width: tabContentW - 40, Height: 312}},
