@@ -32,7 +32,7 @@ func lockInstance(dir string) (*instanceLock, bool, error) {
 	path := instancePath(dir)
 	file, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0o644)
 	if err != nil {
-		return nil, false, fmt.Errorf("打开实例锁: %w", err)
+		return nil, false, fmt.Errorf("open instance lock: %w", err)
 	}
 	err = syscall.Flock(int(file.Fd()), syscall.LOCK_EX|syscall.LOCK_NB)
 	if err == nil {
@@ -44,7 +44,7 @@ func lockInstance(dir string) (*instanceLock, bool, error) {
 	}
 	file.Close()
 	if !errors.Is(err, syscall.EWOULDBLOCK) {
-		return nil, false, fmt.Errorf("锁定实例: %w", err)
+		return nil, false, fmt.Errorf("lock instance: %w", err)
 	}
 	return nil, true, nil
 }
@@ -52,13 +52,13 @@ func lockInstance(dir string) (*instanceLock, bool, error) {
 func writeInstancePID(file *os.File) error {
 	pid := strconv.Itoa(os.Getpid())
 	if err := file.Truncate(0); err != nil {
-		return fmt.Errorf("写入实例锁: %w", err)
+		return fmt.Errorf("write instance lock: %w", err)
 	}
 	if _, err := file.WriteAt([]byte(pid), 0); err != nil {
-		return fmt.Errorf("写入实例锁: %w", err)
+		return fmt.Errorf("write instance lock: %w", err)
 	}
 	if err := file.Sync(); err != nil {
-		return fmt.Errorf("写入实例锁: %w", err)
+		return fmt.Errorf("write instance lock: %w", err)
 	}
 	return nil
 }
@@ -81,10 +81,10 @@ func signalInstance(dir string) error {
 	}
 	process, err := os.FindProcess(pid)
 	if err != nil {
-		return fmt.Errorf("查找运行实例: %w", err)
+		return fmt.Errorf("find running instance: %w", err)
 	}
 	if err := process.Signal(syscall.SIGUSR1); err != nil {
-		return fmt.Errorf("通知运行实例: %w", err)
+		return fmt.Errorf("signal running instance: %w", err)
 	}
 	return nil
 }
@@ -92,11 +92,11 @@ func signalInstance(dir string) error {
 func instancePID(dir string) (int, error) {
 	data, err := os.ReadFile(instancePath(dir))
 	if err != nil {
-		return 0, fmt.Errorf("读取实例锁: %w", err)
+		return 0, fmt.Errorf("read instance lock: %w", err)
 	}
 	pid, err := strconv.Atoi(strings.TrimSpace(string(data)))
 	if err != nil || pid <= 0 {
-		return 0, fmt.Errorf("实例锁没有有效进程号")
+		return 0, fmt.Errorf("instance lock has no valid pid")
 	}
 	return pid, nil
 }

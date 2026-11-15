@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/EcoPasteHub/EcoPaste/internal/database"
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
 	"github.com/EcoPasteHub/EcoPaste/internal/ui"
@@ -28,7 +27,7 @@ func (m *historyModel) Groups(ctx context.Context) ([]ui.GroupOption, error) {
 	}
 	options := make([]ui.GroupOption, 0, len(groups))
 	for _, group := range groups {
-		options = append(options, groupOption(group))
+		options = append(options, ui.GroupOption{ID: group.ID, Name: group.Name})
 	}
 	return options, nil
 }
@@ -49,7 +48,8 @@ func (m *historyModel) CreateGroup(ctx context.Context) (*ui.GroupOption, bool, 
 	if err != nil {
 		return nil, false, err
 	}
-	return &ui.GroupOption{ID: group.ID, Name: group.Name}, true, nil
+	option := ui.GroupOption{ID: group.ID, Name: group.Name}
+	return &option, true, nil
 }
 
 func (m *historyModel) RenameGroup(ctx context.Context, id string) (bool, error) {
@@ -134,8 +134,4 @@ func normalizeGroupName(value string) (string, error) {
 		return "", fmt.Errorf(i18n.T(i18n.ErrorGroupNameLong), groupNameMaxChars)
 	}
 	return name, nil
-}
-
-func groupOption(group database.Group) ui.GroupOption {
-	return ui.GroupOption{ID: group.ID, Name: group.Name}
 }
