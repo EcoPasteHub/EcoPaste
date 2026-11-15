@@ -165,12 +165,19 @@ func openFilteredPanel(title string, extensions []string, directories bool) (str
 	return path, path != ""
 }
 
-// onMain runs AppKit work on the application's main thread.
+var runOnMain = dispatchOnMain
+
+// onMain runs AppKit work on the application's main thread. Tests replace
+// runOnMain because the test binary has no AppKit run loop.
 func onMain(fn func()) {
 	if objc.Send[bool](objc.ID(class("NSThread")), sel("isMainThread")) {
 		fn()
 		return
 	}
+	runOnMain(fn)
+}
+
+func dispatchOnMain(fn func()) {
 	done := make(chan struct{})
 	block := objc.NewBlock(func(objc.Block) {
 		defer close(done)
