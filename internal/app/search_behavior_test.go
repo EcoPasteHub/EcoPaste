@@ -29,3 +29,11 @@ func TestSearchBehaviorReadsSettings(t *testing.T) {
 		t.Fatalf("updated behavior = %+v", behavior)
 	}
 }
+
+func TestSearchBehaviorFallsBackToDefaults(t *testing.T) {
+	behavior := (&historyModel{}).SearchBehavior()
+	expected := settings.Default().Clipboard.Search
+	if behavior.DefaultFocus != expected.DefaultFocus || behavior.ClearOnHide != expected.ClearOnHide {
+		t.Fatalf("fallback behavior = %+v", behavior)
+	}
+}

@@ -30,13 +30,19 @@ func newHistoryModel(runtime *clipboardRuntime, store *settings.Store) *historyM
 	}
 }
 
+// snapshot returns the published settings, falling back to defaults when the
+// store failed to open.
+func (m *historyModel) snapshot() settings.Settings {
+	if m.store == nil {
+		return settings.Default()
+	}
+	return m.store.Snapshot()
+}
+
 // clipboardConfig returns the published clipboard settings, falling back to
 // the defaults when settings failed to open.
 func (m *historyModel) clipboardConfig() settings.Clipboard {
-	if m.store == nil {
-		return settings.Default().Clipboard
-	}
-	return m.store.Snapshot().Clipboard
+	return m.snapshot().Clipboard
 }
 
 // item loads one history item, reporting a user-facing error when it is gone.
@@ -124,7 +130,7 @@ func (m *historyModel) copyItem(ctx context.Context, id string, forcePlain bool)
 func (m *historyModel) Updates() <-chan struct{} { return m.runtime.changed }
 
 func (m *historyModel) SearchBehavior() ui.HistorySearchBehavior {
-	search := m.store.Snapshot().Clipboard.Search
+	search := m.clipboardConfig().Search
 	return ui.HistorySearchBehavior{DefaultFocus: search.DefaultFocus, ClearOnHide: search.ClearOnHide}
 }
 
@@ -240,7 +246,7 @@ func (m *historyModel) ActivateDoubleClick(ctx context.Context, id string) (bool
 }
 
 func (m *historyModel) activateByMode(ctx context.Context, id string, pasteMode, copyMode settings.AutoPaste) (bool, bool, error) {
-	mode := m.store.Snapshot().Clipboard.Content.AutoPaste
+	mode := m.clipboardConfig().Content.AutoPaste
 	switch mode {
 	case pasteMode:
 		return m.activateItem(ctx, id, false, true)
