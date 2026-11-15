@@ -196,27 +196,10 @@ var (
 	pendingSettingsTab   string
 )
 
-var settingsTabIdentifiers = map[string]struct{}{
-	"general":     {},
-	"data":        {},
-	"capture":     {},
-	"display":     {},
-	"window":      {},
-	"history":     {},
-	"permissions": {},
-	"apps":        {},
-	"actions":     {},
-	"interaction": {},
-	"deletion":    {},
-	"shortcuts":   {},
-	"preview":     {},
-	"update":      {},
-}
-
 // SelectSettingsTab shows the named tab when the settings window is open,
 // or on the next open otherwise. It reports whether the name is known.
 func SelectSettingsTab(name string) bool {
-	if _, ok := settingsTabIdentifiers[name]; !ok {
+	if _, ok := settingsTabTitleKeys[name]; !ok {
 		return false
 	}
 	settingsTabMu.Lock()
