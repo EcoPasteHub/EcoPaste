@@ -437,9 +437,6 @@ func (v *SettingsView) Close() {
 		delete(settingsTimers, v.searchHighlightTimer)
 		v.searchHighlightTimer = 0
 	}
-	for _, field := range v.fields {
-		delete(settingsViews, field.control)
-	}
 	for control, owner := range settingsViews {
 		if owner == v {
 			delete(settingsViews, control)
