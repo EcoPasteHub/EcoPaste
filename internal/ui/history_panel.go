@@ -389,158 +389,19 @@ func (p *historyPanel) handleActivationEvent(name string, data any) bool {
 }
 
 func (p *historyPanel) handleRowEvent(name string, data any) bool {
-	switch name {
-	case "toggleFavorite":
-		p.actions.run(p.actionID(data), true, func(ctx context.Context, id string) error {
-			_, err := p.model.ToggleFavorite(ctx, id)
-			return err
-		})
-	case "togglePinned":
-		p.actions.run(p.actionID(data), true, func(ctx context.Context, id string) error {
-			_, err := p.model.TogglePinned(ctx, id)
-			return err
-		})
-	case "delete":
-		id := p.actionID(data)
-		if id == "" || p.model == nil {
-			return true
-		}
-		ctx := p.cx.Context()
-		go func() {
-			err := p.model.Delete(ctx, id)
-			p.cx.Post(func() {
-				if err != nil {
-					p.errorText.Set(err.Error())
-					return
-				}
-				if p.selectedID == id {
-					p.selectedID = ""
-				}
-				p.reload()
-			})
-		}()
-	case "preview":
-		if p.preview.GetUntracked().Active {
-			p.preview.Set(macos.PreviewContent{})
-			return true
-		}
-		p.actions.showPreview(p.selectedID)
-	case "hidePreview":
-		p.preview.Set(macos.PreviewContent{})
-	case "open":
-		if p.model != nil {
-			p.actions.run(p.actionID(data), false, p.model.Open)
-		}
-	case "reveal":
-		if p.model != nil {
-			p.actions.run(p.actionID(data), false, p.model.Reveal)
-		}
-	case "saveImage":
-		if p.model != nil {
-			p.actions.run(p.actionID(data), false, p.model.SaveImage)
-		}
-	case "editNote":
-		id := p.actionID(data)
-		if id == "" || p.model == nil {
-			return true
-		}
-		ctx := p.cx.Context()
-		go func() {
-			saved, err := p.model.EditNote(ctx, id)
-			p.cx.Post(func() {
-				if err != nil {
-					p.errorText.Set(err.Error())
-					return
-				}
-				if saved {
-					p.reload()
-				}
-			})
-		}()
-	case "moveGroup":
-		groupID, _ := data.(string)
-		p.actions.run(p.selectedID, true, func(ctx context.Context, id string) error {
-			return p.model.MoveToGroup(ctx, id, groupID)
-		})
-	default:
+	handler, ok := historyRowEvents[name]
+	if !ok {
 		return false
 	}
+	handler(p, data)
 	return true
 }
 
 func (p *historyPanel) handleGroupEvent(name string, data any) bool {
-	switch name {
-	case "newGroup":
-		if p.model == nil {
-			return true
-		}
-		ctx := p.cx.Context()
-		go func() {
-			created, ok, err := p.model.CreateGroup(ctx)
-			p.cx.Post(func() {
-				if err != nil {
-					p.errorText.Set(err.Error())
-					return
-				}
-				if ok && created != nil {
-					p.loadGroups(created.ID, true)
-				}
-			})
-		}()
-	case "renameGroup":
-		if p.model == nil || p.groupID == "" {
-			return true
-		}
-		ctx := p.cx.Context()
-		go func(id string) {
-			renamed, err := p.model.RenameGroup(ctx, id)
-			p.cx.Post(func() {
-				if err != nil {
-					p.errorText.Set(err.Error())
-					return
-				}
-				if renamed {
-					p.loadGroups(id, false)
-				}
-			})
-		}(p.groupID)
-	case "deleteGroup":
-		if p.model == nil || p.groupID == "" {
-			return true
-		}
-		ctx := p.cx.Context()
-		go func(id string) {
-			deleted, err := p.model.DeleteGroup(ctx, id)
-			p.cx.Post(func() {
-				if err != nil {
-					p.errorText.Set(err.Error())
-					return
-				}
-				if deleted {
-					p.groupID = ""
-					p.group.Set("")
-					p.loadGroups("", true)
-				}
-			})
-		}(p.groupID)
-	case "clearHistory":
-		if p.model == nil {
-			return true
-		}
-		ctx := p.cx.Context()
-		go func() {
-			err := p.model.ClearHistory(ctx)
-			p.cx.Post(func() {
-				if err != nil {
-					p.errorText.Set(err.Error())
-					return
-				}
-				p.selectedID = ""
-				p.reload()
-			})
-		}()
-	default:
+	handler, ok := historyGroupEvents[name]
+	if !ok {
 		return false
 	}
+	handler(p, data)
 	return true
 }
