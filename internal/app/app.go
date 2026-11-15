@@ -7,10 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 	"sync/atomic"
-	"time"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/backup"
-	"github.com/EcoPasteHub/EcoPaste/internal/database"
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/EcoPasteHub/EcoPaste/internal/logging"
 	"github.com/EcoPasteHub/EcoPaste/internal/menu"
@@ -46,7 +44,7 @@ func Run(app *core.Scope) {
 	var openSettings func()
 	var reloadHotkeys func() error
 	var tray *desktop.Tray
-	var settingsWindow *desktop.Window
+	var wiring *settingsWiring
 	var rebuildPanel func()
 	hotKeys := macos.NewHotKeyManager()
 	app.OnQuit(func(context.Context) { hotKeys.Close() })
@@ -112,163 +110,24 @@ func Run(app *core.Scope) {
 			if configured := store.Snapshot().Shortcuts.OpenPreference; configured != "" {
 				preferenceHotKey = strings.ToLower(configured)
 			}
-			openSettings = func() {
-				model := newSettingsModel(store)
-				model.dataDir = func() string {
-					if runtime == nil {
-						return ""
-					}
-					return runtime.paths.Root
-				}
-				model.changeDataDir = func(parent string) error {
-					return runWithTimeout(runtime, 10*time.Minute, func(ctx context.Context, rt *clipboardRuntime) error {
-						_, err := rt.changeDataDir(ctx, parent)
-						return err
-					})
-				}
-				model.canRestoreDataDir = func() bool {
-					if runtime == nil {
-						return false
-					}
-					paths, err := storage.Resolve(runtime.paths.Base, storage.Mode())
-					return err == nil && paths.Root != paths.Bootstrap
-				}
-				model.restoreDataDir = func() error {
-					return runWithTimeout(runtime, 10*time.Minute, func(ctx context.Context, rt *clipboardRuntime) error {
-						_, err := rt.restoreDefaultDataDir(ctx)
-						return err
-					})
-				}
-				model.listApps = func() ([]database.App, error) {
-					return runWithTimeoutValue(runtime, 5*time.Second, func(ctx context.Context, rt *clipboardRuntime) ([]database.App, error) {
-						if rt.apps == nil {
-							return nil, clipboardServiceDown()
-						}
-						return rt.apps.List(ctx)
-					})
-				}
-				model.listGroups = func() ([]database.Group, error) {
-					return runWithTimeoutValue(runtime, 5*time.Second, func(ctx context.Context, rt *clipboardRuntime) ([]database.Group, error) {
-						return rt.db.ListGroups(ctx)
-					})
-				}
-				model.addApp = func(path string) (database.App, error) {
-					return runWithTimeoutValue(runtime, 10*time.Second, func(ctx context.Context, rt *clipboardRuntime) (database.App, error) {
-						if rt.apps == nil {
-							return database.App{}, clipboardServiceDown()
-						}
-						return rt.apps.Add(ctx, path)
-					})
-				}
-				model.deleteApps = func(ids []string) error {
-					return runWithTimeout(runtime, 10*time.Second, func(ctx context.Context, rt *clipboardRuntime) error {
-						if rt.apps == nil {
-							return clipboardServiceDown()
-						}
-						_, err := rt.apps.DeleteUnreferenced(ctx, ids)
-						return err
-					})
-				}
-				model.appIconPath = func(name string) string {
-					if runtime == nil {
-						return ""
-					}
-					return runtime.appIcons.Path(name)
-				}
-				model.onShortcutsChanged = func(changed string) error {
-					if reloadHotkeys == nil {
-						return nil
-					}
-					err := reloadHotkeys()
-					if err == nil || changed == "" || !hotKeys.HasErrors() {
-						return err
-					}
-					key := hotKey
-					if changed == "openPreference" {
-						key = preferenceHotKey
-					}
-					return hotKeys.ErrorFor(key)
-				}
-				model.onShortcutsSuspended = func(suspend bool) {
-					if suspend {
-						_ = hotKeys.Set(nil)
-						return
-					}
-					if reloadHotkeys != nil {
-						_ = reloadHotkeys()
-					}
-				}
-				signalHistoryChanged := func() {
-					if runtime != nil {
-						runtime.Signal()
-					}
-				}
-				model.onDisplayChanged = signalHistoryChanged
-				model.onActionsChanged = signalHistoryChanged
-				model.setLanguage = func(language string) error {
-					i18n.SetLanguage(language)
-					app.SetLocale(language)
-					applyApplicationMenu()
-					app.Post(func() {
-						if settingsWindow != nil && !settingsWindow.Closed() {
-							settingsWindow.Close()
-							settingsWindow = nil
-						}
-						if rebuildPanel != nil {
-							rebuildPanel()
-						}
-						macos.SelectSettingsTab("general")
-						if openSettings != nil {
-							openSettings()
-						}
-					})
-					return nil
-				}
-				model.setTrayIcon = func(visible bool) error {
-					if tray == nil {
-						return i18n.Error(i18n.ErrorTrayNotReady)
-					}
-					icon := []byte(nil)
-					if visible {
-						icon = trayIcon()
-					}
-					tray.SetIcon(icon, true)
-					return nil
-				}
-				model.exportBackup = func() {
-					exportBackupWithUI(app, runtime)
-				}
-				model.importBackup = func() {
-					importBackupWithUI(app, runtime, store, reloadHotkeys)
-				}
-				model.checkUpdates = func() {
-					update.CheckNow(app)
-				}
-				model.restart = func() {
-					app.Post(func() {
-						macos.ShowMessage(i18n.T(i18n.DataDirChangedTitle), i18n.T(i18n.DataDirChangedBody))
-						desktop.Restart(app)
-					})
-				}
-				settingsWindow = desktop.OpenWindow(app, desktop.WindowOptions{
-					Title:       i18n.T(i18n.SettingsWindowTitle),
-					Width:       720,
-					Height:      560,
-					Key:         "settings",
-					Constraints: core.WindowConstraints{NoResize: true, NoMaximize: true},
-				}, ui.SettingsWindow(model))
+			wiring = &settingsWiring{
+				app:                  app,
+				store:                store,
+				hotKeys:              hotKeys,
+				runtime:              func() *clipboardRuntime { return runtime },
+				tray:                 func() *desktop.Tray { return tray },
+				openClipboardKey:     func() string { return hotKey },
+				openPreferenceKey:    func() string { return preferenceHotKey },
+				applyApplicationMenu: applyApplicationMenu,
 			}
-			openSettingsTab := func(tab string) {
-				macos.SelectSettingsTab(tab)
-				openSettings()
-			}
+			openSettings = wiring.open
 			runtime, err = startClipboard(app, paths, store, &paused)
 			if err != nil {
 				log.Printf("start clipboard: %v", err)
 			} else {
 				history = newHistoryModel(runtime, store)
 				if model, ok := history.(*historyModel); ok {
-					model.openSettings = openSettingsTab
+					model.openSettings = wiring.openTab
 				}
 			}
 		}
@@ -333,6 +192,9 @@ func Run(app *core.Scope) {
 			panel.Close()
 		}
 		openPanel()
+	}
+	if wiring != nil {
+		wiring.rebuildPanel = rebuildPanel
 	}
 
 	showPanel := func() {
@@ -406,6 +268,9 @@ func Run(app *core.Scope) {
 			return err
 		}
 		return nil
+	}
+	if wiring != nil {
+		wiring.reloadHotkeys = reloadHotkeys
 	}
 	_ = reloadHotkeys()
 	if os.Getenv("ECOPASTE_SHOW_SETTINGS") == "1" && openSettings != nil {
