@@ -27,11 +27,11 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 		behavior := macos.PanelBehavior{}
 		if model != nil {
 			search := model.SearchBehavior()
-			preview := model.PreviewBehavior()
+			previewBehavior := model.PreviewBehavior()
 			behavior = macos.PanelBehavior{
 				DefaultFocus: search.DefaultFocus,
 				ClearOnHide:  search.ClearOnHide,
-				SpacePreview: preview.SpaceEnabled,
+				SpacePreview: previewBehavior.SpaceEnabled,
 			}
 		}
 
@@ -198,7 +198,7 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 			Style:     core.Style{Width: core.Pct(100), Height: core.Pct(100)},
 			PropsFunc: func() map[string]any {
 				display := macos.PanelDisplay{TextMaxLines: 1, ImageMaxHeight: 32, FileMaxCount: 3}
-				var actions []string
+				var quickActions []string
 				if model != nil {
 					density := model.Display()
 					display = macos.PanelDisplay{
@@ -207,7 +207,7 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 						FileMaxCount:   density.FileMaxCount,
 						ShowOriginal:   density.ShowOriginal,
 					}
-					actions = model.QuickActions()
+					quickActions = model.QuickActions()
 				}
 				return map[string]any{
 					"rows":     rows.Get(),
@@ -222,7 +222,7 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 					"behavior": behavior,
 					"drag":     dragProvider,
 					"display":  display,
-					"actions":  actions,
+					"actions":  quickActions,
 				}
 			},
 			OnEvent: func(name string, data any) {
