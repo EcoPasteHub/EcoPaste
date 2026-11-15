@@ -49,7 +49,7 @@ func newIconButton() objc.ID {
 func drawIconButton(self objc.ID, _ objc.SEL, _ CGRect) {
 	pressed := objc.Send[bool](self, sel("isHighlighted"))
 	if hoveredIconButtons[self] || pressed {
-		fillRoundedRect(iconButtonBackgroundRect(self), iconButtonRadius, iconButtonFill(self, pressed))
+		fillRoundedRect(iconButtonBackgroundRect(self), iconButtonRadius, iconButtonFill(pressed))
 	}
 	sendSuper[objc.ID](self, iconButtonClass, sel("drawRect:"))
 }
@@ -67,7 +67,7 @@ func iconButtonBackgroundRect(view objc.ID) CGRect {
 	return rect
 }
 
-func iconButtonFill(view objc.ID, pressed bool) objc.ID {
+func iconButtonFill(pressed bool) objc.ID {
 	color := objc.ID(classNSColor).Send(sel("quaternaryLabelColor"))
 	if pressed {
 		color = objc.ID(classNSColor).Send(sel("tertiaryLabelColor"))

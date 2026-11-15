@@ -181,20 +181,19 @@ func (v *SettingsView) addStepperRange(content objc.ID, y float64, title, path s
 	})
 }
 
-func (v *SettingsView) addLabel(content objc.ID, y float64, title string) objc.ID {
-	return v.addLabelWidth(content, y, title, tabContentW-300)
+func (v *SettingsView) addLabel(content objc.ID, y float64, title string) {
+	v.addLabelWidth(content, y, title, tabContentW-300)
 }
 
-func (v *SettingsView) addLabelWidth(content objc.ID, y float64, title string, width float64) objc.ID {
+func (v *SettingsView) addLabelWidth(content objc.ID, y float64, title string, width float64) {
 	label := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(title))
 	label.Send(sel("setFont:"), systemFont(13))
 	label.Send(sel("setLineBreakMode:"), int64(4))
 	label.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: y}, Size: CGSize{Width: width, Height: 18}})
 	content.Send(sel("addSubview:"), label)
-	return label
 }
 
-func (v *SettingsView) addHint(content objc.ID, y, height float64, text string) objc.ID {
+func (v *SettingsView) addHint(content objc.ID, y, height float64, text string) {
 	hint := objc.ID(classNSTextField).Send(sel("wrappingLabelWithString:"), nsString(text))
 	hint.Send(sel("setFont:"), systemFont(11))
 	hint.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
@@ -204,11 +203,10 @@ func (v *SettingsView) addHint(content objc.ID, y, height float64, text string) 
 		Size:   CGSize{Width: tabContentW - 48, Height: height},
 	})
 	content.Send(sel("addSubview:"), hint)
-	return hint
 }
 
 // addParagraph lays out a wrapped settings description with explicit typography.
-func (v *SettingsView) addParagraph(content objc.ID, frame CGRect, text string, size float64, color objc.ID, maxLines int64) objc.ID {
+func (v *SettingsView) addParagraph(content objc.ID, frame CGRect, text string, size float64, color objc.ID, maxLines int64) {
 	paragraph := objc.ID(classNSTextField).Send(sel("wrappingLabelWithString:"), nsString(text))
 	paragraph.Send(sel("setFont:"), systemFont(size))
 	paragraph.Send(sel("setTextColor:"), color)
@@ -218,7 +216,6 @@ func (v *SettingsView) addParagraph(content objc.ID, frame CGRect, text string, 
 	}
 	paragraph.Send(sel("setFrame:"), frame)
 	content.Send(sel("addSubview:"), paragraph)
-	return paragraph
 }
 
 func (v *SettingsView) addField(content, control objc.ID, field *settingsField) {
