@@ -213,6 +213,11 @@ func (p *Panel) setPreviewImage(image objc.ID, width, height float64) {
 		return
 	}
 	size := objc.Send[CGSize](image, sel("size"))
+	if size.Width <= 0 || size.Height <= 0 {
+		p.previewImage.Send(sel("setImage:"), objc.ID(0))
+		p.previewImageSize = CGSize{}
+		return
+	}
 	scale := math.Min(1, math.Min((width-2*previewPadding)/size.Width,
 		previewContentHeight(height)/size.Height))
 	p.previewImageSize = CGSize{Width: size.Width * scale, Height: size.Height * scale}
