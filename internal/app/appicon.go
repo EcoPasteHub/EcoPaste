@@ -35,15 +35,7 @@ func (c *appIconCache) File(bundleID string) *string {
 	if file, ok := c.files[bundleID]; ok {
 		return file
 	}
-	var file *string
-	if data := c.load(bundleID); len(data) > 0 {
-		if resized, err := storage.DownscalePNG(data, storage.AppIconMaxEdge); err == nil {
-			data = resized
-		}
-		if name, err := c.store.StorePNG(data); err == nil {
-			file = &name
-		}
-	}
+	file := storeIconPNG(c.store, c.load(bundleID), storage.AppIconMaxEdge)
 	c.files[bundleID] = file
 	return file
 }

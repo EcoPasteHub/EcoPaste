@@ -100,18 +100,7 @@ func (r *appRegistry) storeIcon(path string) *string {
 	if r.iconFromPath == nil || r.iconStore == nil {
 		return nil
 	}
-	png := r.iconFromPath(path)
-	if len(png) == 0 {
-		return nil
-	}
-	if resized, err := storage.DownscalePNG(png, storage.AppIconMaxEdge); err == nil {
-		png = resized
-	}
-	name, err := r.iconStore.StorePNG(png)
-	if err != nil {
-		return nil
-	}
-	return &name
+	return storeIconPNG(r.iconStore, r.iconFromPath(path), storage.AppIconMaxEdge)
 }
 
 // DeleteUnreferenced removes ignored apps that no history row uses and

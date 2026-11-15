@@ -65,16 +65,10 @@ func (c *fileIconCache) Path(ctx context.Context, path string, isDir bool) strin
 		}
 	}
 
-	data := c.load(path)
-	if len(data) > 0 {
-		if resized, err := storage.DownscalePNG(data, storage.FileIconMaxEdge); err == nil {
-			data = resized
-		}
-		if name, err := c.store.StorePNG(data); err == nil {
-			if err := c.db.UpsertFileIcon(ctx, key, name); err == nil {
-				c.files[key] = name
-				return c.iconPath(name)
-			}
+	if name := storeIconPNG(c.store, c.load(path), storage.FileIconMaxEdge); name != nil {
+		if err := c.db.UpsertFileIcon(ctx, key, *name); err == nil {
+			c.files[key] = *name
+			return c.iconPath(*name)
 		}
 	}
 	c.files[key] = ""
