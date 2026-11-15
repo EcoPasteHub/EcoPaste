@@ -202,7 +202,7 @@ func CommitRoot(base, environment, dir string) error {
 	if err != nil {
 		return fmt.Errorf("encode storage identity: %w", err)
 	}
-	if err := os.WriteFile(filepath.Join(dir, identityName), data, 0o644); err != nil {
+	if err := renameio.WriteFile(filepath.Join(dir, identityName), data, 0o644); err != nil {
 		return fmt.Errorf("write storage identity: %w", err)
 	}
 	bootstrap := filepath.Join(base, environment)
