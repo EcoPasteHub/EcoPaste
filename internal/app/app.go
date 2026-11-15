@@ -347,11 +347,7 @@ func Run(app *core.Scope) {
 			hidePanel()
 			return
 		}
-		if runtime != nil {
-			runtime.Signal()
-		}
-		placePanel()
-		panel.Show()
+		showPanel()
 	}
 
 	trayVisible := settings.Default().General.TrayIcon
@@ -406,12 +402,9 @@ func Run(app *core.Scope) {
 					if choice == macos.ClearHistoryCancel || runtime == nil {
 						return
 					}
-					_, err := runtime.service.Clear(context.Background(), choice == macos.ClearHistoryAll, choice == macos.ClearHistoryAll)
-					if err != nil {
+					if err := runtime.clearHistory(context.Background(), choice == macos.ClearHistoryAll); err != nil {
 						log.Printf("clear history: %v", err)
-						return
 					}
-					runtime.Signal()
 				}},
 				{Separator: true},
 				{Label: i18n.T(i18n.TrayStorageUsage), OnSelect: func() {

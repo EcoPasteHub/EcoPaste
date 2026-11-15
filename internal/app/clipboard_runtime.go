@@ -43,6 +43,19 @@ func (r *clipboardRuntime) readClipboard(ctx context.Context) error {
 	return err
 }
 
+// clearHistory removes all rows, including or excluding protected items,
+// and refreshes the panel.
+func (r *clipboardRuntime) clearHistory(ctx context.Context, all bool) error {
+	if r == nil {
+		return clipboardServiceDown()
+	}
+	if _, err := r.service.Clear(ctx, all, all); err != nil {
+		return err
+	}
+	r.Signal()
+	return nil
+}
+
 // clipboardServiceDown reports the error settings actions return when the
 // clipboard runtime never started.
 func clipboardServiceDown() error {

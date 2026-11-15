@@ -370,11 +370,7 @@ func (m *historyModel) ClearHistory(ctx context.Context) error {
 		return nil
 	}
 	all := choice == macos.ClearHistoryAll
-	if _, err := m.runtime.service.Clear(ctx, all, all); err != nil {
-		return err
-	}
-	m.runtime.Signal()
-	return nil
+	return m.runtime.clearHistory(ctx, all)
 }
 
 func (m *historyModel) Preview(ctx context.Context, id string) (ui.HistoryPreview, error) {
