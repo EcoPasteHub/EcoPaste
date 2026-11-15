@@ -123,7 +123,7 @@ func (r *clipboardRuntime) copyLiveData(ctx context.Context, target string) erro
 		{r.paths.Config, filepath.Join(target, "config")},
 		{r.paths.State, filepath.Join(target, "state")},
 	} {
-		if err := copyTree(part.src, part.dst, skipRuntimeState); err != nil {
+		if err := copyTree(ctx, part.src, part.dst, skipRuntimeState); err != nil {
 			return err
 		}
 	}
@@ -156,7 +156,10 @@ func skipRuntimeState(name string) bool {
 	return strings.HasPrefix(name, ".import-")
 }
 
-func copyTree(src, dst string, skip func(string) bool) error {
+func copyTree(ctx context.Context, src, dst string, skip func(string) bool) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	info, err := os.Stat(src)
 	if errors.Is(err, os.ErrNotExist) {
 		return nil
@@ -175,13 +178,16 @@ func copyTree(src, dst string, skip func(string) bool) error {
 		return fmt.Errorf(i18n.T(i18n.ErrorCreateDataDir), dst, err)
 	}
 	for _, entry := range entries {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		if skip != nil && skip(entry.Name()) {
 			continue
 		}
 		from := filepath.Join(src, entry.Name())
 		to := filepath.Join(dst, entry.Name())
 		if entry.IsDir() {
-			if err := copyTree(from, to, nil); err != nil {
+			if err := copyTree(ctx, from, to, nil); err != nil {
 				return err
 			}
 			continue
@@ -189,7 +195,7 @@ func copyTree(src, dst string, skip func(string) bool) error {
 		if !entry.Type().IsRegular() {
 			continue
 		}
-		if err := copyFileContents(from, to); err != nil {
+		if err := copyFileContents(ctx, from, to); err != nil {
 			return err
 		}
 	}
@@ -198,7 +204,7 @@ func copyTree(src, dst string, skip func(string) bool) error {
 
 // copyFileContents streams one file so moving a data root does not load
 // whole image and database files into memory.
-func copyFileContents(src, dst string) error {
+func copyFileContents(ctx context.Context, src, dst string) error {
 	input, err := os.Open(src)
 	if err != nil {
 		return fmt.Errorf(i18n.T(i18n.ErrorReadDataFile), src, err)
@@ -208,7 +214,7 @@ func copyFileContents(src, dst string) error {
 	if err != nil {
 		return fmt.Errorf(i18n.T(i18n.ErrorWriteDataFile), dst, err)
 	}
-	if _, err := io.Copy(output, input); err != nil {
+	if _, err := io.Copy(output, contextReader{ctx: ctx, reader: input}); err != nil {
 		output.Close()
 		return fmt.Errorf(i18n.T(i18n.ErrorWriteDataFile), dst, err)
 	}
@@ -216,4 +222,16 @@ func copyFileContents(src, dst string) error {
 		return fmt.Errorf(i18n.T(i18n.ErrorWriteDataFile), dst, err)
 	}
 	return nil
+}
+
+type contextReader struct {
+	ctx    context.Context
+	reader io.Reader
+}
+
+func (r contextReader) Read(buffer []byte) (int, error) {
+	if err := r.ctx.Err(); err != nil {
+		return 0, err
+	}
+	return r.reader.Read(buffer)
 }
