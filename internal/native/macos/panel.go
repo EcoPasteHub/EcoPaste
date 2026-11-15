@@ -159,44 +159,11 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.search.Send(sel("setTarget:"), searchTarget)
 	p.search.Send(sel("setAction:"), sel("searchChanged:"))
 
-	p.pin = newIconButton()
-	p.pin.Send(sel("setBordered:"), false)
-	p.pin.Send(sel("setImage:"), systemSymbol("pin"))
-	p.pin.Send(sel("setTarget:"), searchTarget)
-	p.pin.Send(sel("setAction:"), sel("pinPressed:"))
-	p.pin.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.PanelPinWindow)))
-
-	p.filterButton = newIconButton()
-	p.filterButton.Send(sel("setBordered:"), false)
-	p.filterButton.Send(sel("setImage:"), systemSymbol("line.3.horizontal.decrease.circle"))
-	p.filterButton.Send(sel("setContentTintColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
-	p.filterButton.Send(sel("setTarget:"), searchTarget)
-	p.filterButton.Send(sel("setAction:"), sel("filterPressed:"))
-	p.filterButton.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.PanelFilter)))
-
-	p.settingsButton = newIconButton()
-	p.settingsButton.Send(sel("setBordered:"), false)
-	p.settingsButton.Send(sel("setImage:"), systemSymbol("gearshape"))
-	p.settingsButton.Send(sel("setContentTintColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
-	p.settingsButton.Send(sel("setTarget:"), searchTarget)
-	p.settingsButton.Send(sel("setAction:"), sel("settingsPressed:"))
-	p.settingsButton.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsWindowTitle)))
-
-	p.clearButton = newIconButton()
-	p.clearButton.Send(sel("setBordered:"), false)
-	p.clearButton.Send(sel("setImage:"), systemSymbol("trash"))
-	p.clearButton.Send(sel("setContentTintColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
-	p.clearButton.Send(sel("setTarget:"), searchTarget)
-	p.clearButton.Send(sel("setAction:"), sel("clearPressed:"))
-	p.clearButton.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.PanelClearHistory)))
-
-	p.shortcutButton = newIconButton()
-	p.shortcutButton.Send(sel("setBordered:"), false)
-	p.shortcutButton.Send(sel("setImage:"), systemSymbol("keyboard"))
-	p.shortcutButton.Send(sel("setContentTintColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
-	p.shortcutButton.Send(sel("setTarget:"), searchTarget)
-	p.shortcutButton.Send(sel("setAction:"), sel("shortcutHelpPressed:"))
-	p.shortcutButton.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.PanelShortcutsAction)))
+	p.pin = newToolbarButton("pin", "pinPressed:", i18n.PanelPinWindow, false)
+	p.filterButton = newToolbarButton("line.3.horizontal.decrease.circle", "filterPressed:", i18n.PanelFilter, true)
+	p.settingsButton = newToolbarButton("gearshape", "settingsPressed:", i18n.SettingsWindowTitle, true)
+	p.clearButton = newToolbarButton("trash", "clearPressed:", i18n.PanelClearHistory, true)
+	p.shortcutButton = newToolbarButton("keyboard", "shortcutHelpPressed:", i18n.PanelShortcutsAction, true)
 
 	p.divider = objc.ID(classNSBox).Send(sel("new"))
 	p.divider.Send(sel("setBoxType:"), 2)
@@ -383,6 +350,21 @@ func (p *Panel) Command(name string, args any) {
 
 func (p *Panel) focusSearch() {
 	p.view.Send(sel("window")).Send(sel("makeFirstResponder:"), p.search)
+}
+
+// newToolbarButton builds one icon-only toolbar action. Toolbar actions other
+// than the pin use the secondary label tint so they recede behind the list.
+func newToolbarButton(symbol, action string, label i18n.Key, tinted bool) objc.ID {
+	button := newIconButton()
+	button.Send(sel("setBordered:"), false)
+	button.Send(sel("setImage:"), systemSymbol(symbol))
+	if tinted {
+		button.Send(sel("setContentTintColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
+	}
+	button.Send(sel("setTarget:"), searchTarget)
+	button.Send(sel("setAction:"), sel(action))
+	button.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(label)))
+	return button
 }
 
 func (p *Panel) clearSearch() {
