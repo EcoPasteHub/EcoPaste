@@ -65,18 +65,22 @@ func fileEntryLabel(entry fileEntry) string {
 	}
 }
 
+// fileEntryDetail is the type label plus the size for existing files.
+func fileEntryDetail(entry fileEntry) string {
+	label := fileEntryLabel(entry)
+	if entry.Exists && !entry.IsDir {
+		return label + " · " + formatBytes(entry.Size)
+	}
+	return label
+}
+
 // fileSummary is the compact metadata shown below a file row.
 func fileSummary(entries []fileEntry, total int) string {
 	if total <= 0 {
 		return ""
 	}
 	if total == 1 && len(entries) == 1 {
-		entry := entries[0]
-		label := fileEntryLabel(entry)
-		if entry.Exists && !entry.IsDir {
-			return label + " · " + formatBytes(entry.Size)
-		}
-		return label
+		return fileEntryDetail(entries[0])
 	}
 	summary := i18n.Tf(i18n.FileSummaryCount, total)
 	if total == len(entries) {
@@ -98,11 +102,7 @@ func fileSummary(entries []fileEntry, total int) string {
 func filePreviewText(entries []fileEntry, total int) string {
 	var lines []string
 	for _, entry := range entries {
-		label := fileEntryLabel(entry)
-		if entry.Exists && !entry.IsDir {
-			label += " · " + formatBytes(entry.Size)
-		}
-		lines = append(lines, entry.Name+" · "+label, entry.Path, "")
+		lines = append(lines, entry.Name+" · "+fileEntryDetail(entry), entry.Path, "")
 	}
 	if total > len(entries) {
 		lines = append(lines, i18n.Tf(i18n.FilePreviewTruncated, len(entries), total))
