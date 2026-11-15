@@ -363,110 +363,27 @@ func Run(app *core.Scope) {
 		Template: true,
 		Tooltip:  "EcoPaste",
 		Panel:    panel,
-		Menu: func() []desktop.MenuItem {
-			pauseLabel := i18n.T(i18n.TrayPause)
-			if paused.Load() {
-				pauseLabel = i18n.T(i18n.TrayResume)
-			}
-			return []desktop.MenuItem{
-				{Label: i18n.T(i18n.TrayShow), Shortcut: hotKey, OnSelect: showPanel},
-				{Label: pauseLabel, OnSelect: func() { paused.Store(!paused.Load()) }},
-				{Label: i18n.T(i18n.TrayReadClipboard), OnSelect: func() {
-					if runtime == nil {
-						return
-					}
-					go func() {
-						ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-						defer cancel()
-						if err := runtime.readClipboard(ctx); err != nil {
-							log.Printf("read clipboard: %v", err)
-							return
-						}
-						runtime.Signal()
-					}()
-				}},
-				{Label: i18n.T(i18n.TraySettings), Shortcut: preferenceHotKey, OnSelect: func() {
-					if openSettings != nil {
-						openSettings()
-					}
-				}},
-				{Separator: true},
-				{Label: i18n.T(i18n.TrayExportBackup), OnSelect: func() {
-					exportBackupWithUI(app, runtime)
-				}},
-				{Label: i18n.T(i18n.TrayImportBackup), OnSelect: func() {
-					importBackupWithUI(app, runtime, store, reloadHotkeys)
-				}},
-				{Label: i18n.T(i18n.TrayClearHistory), OnSelect: func() {
-					choice := macos.ConfirmClearHistory()
-					if choice == macos.ClearHistoryCancel || runtime == nil {
-						return
-					}
-					if err := runtime.clearHistory(context.Background(), choice == macos.ClearHistoryAll); err != nil {
-						log.Printf("clear history: %v", err)
-					}
-				}},
-				{Separator: true},
-				{Label: i18n.T(i18n.TrayStorageUsage), OnSelect: func() {
-					if runtime == nil {
-						return
-					}
-					usage, err := runtime.storageUsage()
-					if err != nil {
-						macos.ShowMessage(i18n.T(i18n.StorageUsageFailed), err.Error())
-						return
-					}
-					macos.ShowMessage(i18n.T(i18n.StorageUsageTitle),
-						i18n.Tf(i18n.StorageUsageBody,
-							formatBytes(usage.Database), formatBytes(usage.Resource),
-							formatBytes(usage.Config), formatBytes(usage.Total)))
-				}},
-				{Label: i18n.T(i18n.TrayCleanCache), OnSelect: func() {
-					if runtime == nil || !macos.Confirm(i18n.T(i18n.CleanCacheTitle),
-						i18n.T(i18n.CleanCacheBody), i18n.T(i18n.CleanCacheConfirm)) {
-						return
-					}
-					files, freed, err := runtime.cleanCache(context.Background())
-					if err != nil {
-						macos.ShowMessage(i18n.T(i18n.CleanCacheFailed), err.Error())
-						return
-					}
-					if files == 0 {
-						macos.ShowMessage(i18n.T(i18n.CleanCacheEmptyTitle), i18n.T(i18n.CleanCacheEmptyBody))
-						return
-					}
-					macos.ShowMessage(i18n.T(i18n.CleanCacheDoneTitle),
-						i18n.Tf(i18n.CleanCacheDoneBody, files, formatBytes(freed)))
-				}},
-				{Label: i18n.T(i18n.TrayOpenDataDir), OnSelect: func() {
-					if runtime == nil {
-						return
-					}
-					if err := macos.OpenPath(runtime.paths.Root); err != nil {
-						macos.ShowMessage(i18n.T(i18n.OpenDataDirFailed), err.Error())
-					}
-				}},
-				{Label: i18n.T(i18n.TrayOpenLogs), OnSelect: func() {
-					if runtime == nil {
-						return
-					}
-					if err := macos.OpenPath(runtime.paths.Logs); err != nil {
-						macos.ShowMessage(i18n.T(i18n.OpenLogsFailed), err.Error())
-					}
-				}},
-				{Separator: true},
-				{Label: i18n.T(i18n.TraySource), OnSelect: func() {
-					if err := macos.OpenURL(sourceURL); err != nil {
-						log.Printf("open source: %v", err)
-					}
-				}},
-				{Label: i18n.T(i18n.TrayCheckUpdates), OnSelect: func() { update.CheckNow(app) }},
-				{Label: i18n.Tf(i18n.TrayVersion, macos.AppVersion()), Disabled: true},
-				{Label: i18n.T(i18n.TrayRestart), OnSelect: func() { desktop.Restart(app) }},
-				{Separator: true},
-				{Label: i18n.T(i18n.TrayQuit), Shortcut: "mod+q", OnSelect: app.Quit},
-			}
-		},
+		Menu: trayMenu{
+			app:       app,
+			runtime:   runtime,
+			store:     store,
+			paused:    &paused,
+			showPanel: showPanel,
+			openSettings: func() {
+				if openSettings != nil {
+					openSettings()
+				}
+			},
+			shortcuts: func() (string, string) {
+				return hotKey, preferenceHotKey
+			},
+			reloadHotkeys: func() error {
+				if reloadHotkeys == nil {
+					return nil
+				}
+				return reloadHotkeys()
+			},
+		}.items,
 	})
 
 	reloadHotkeys = func() error {
