@@ -30,14 +30,9 @@ const (
 func ChooseBackupImport() BackupImportChoice {
 	choice := BackupImportCancel
 	onMain(func() {
-		alert := objc.ID(class("NSAlert")).Send(sel("new"))
+		alert := newAlert(i18n.T(i18n.BackupImportTitle), i18n.T(i18n.BackupImportBody),
+			i18n.T(i18n.BackupImportMerge), i18n.T(i18n.BackupImportOverwrite), i18n.T(i18n.CommonCancel))
 		defer alert.Send(sel("release"))
-		alert.Send(sel("setMessageText:"), nsString(i18n.T(i18n.BackupImportTitle)))
-		alert.Send(sel("setInformativeText:"),
-			nsString(i18n.T(i18n.BackupImportBody)))
-		alert.Send(sel("addButtonWithTitle:"), nsString(i18n.T(i18n.BackupImportMerge)))
-		alert.Send(sel("addButtonWithTitle:"), nsString(i18n.T(i18n.BackupImportOverwrite)))
-		alert.Send(sel("addButtonWithTitle:"), nsString(i18n.T(i18n.CommonCancel)))
 		switch alert.Send(sel("runModal")) {
 		case 1000:
 			choice = BackupImportMerge
@@ -52,13 +47,9 @@ func ChooseBackupImport() BackupImportChoice {
 func ChooseBackupExport() BackupExportChoice {
 	choice := BackupExportCancel
 	onMain(func() {
-		alert := objc.ID(class("NSAlert")).Send(sel("new"))
+		alert := newAlert(i18n.T(i18n.BackupExportTitle), i18n.T(i18n.BackupExportBody),
+			i18n.T(i18n.BackupExportEncrypted), i18n.T(i18n.BackupExportPlain), i18n.T(i18n.CommonCancel))
 		defer alert.Send(sel("release"))
-		alert.Send(sel("setMessageText:"), nsString(i18n.T(i18n.BackupExportTitle)))
-		alert.Send(sel("setInformativeText:"), nsString(i18n.T(i18n.BackupExportBody)))
-		alert.Send(sel("addButtonWithTitle:"), nsString(i18n.T(i18n.BackupExportEncrypted)))
-		alert.Send(sel("addButtonWithTitle:"), nsString(i18n.T(i18n.BackupExportPlain)))
-		alert.Send(sel("addButtonWithTitle:"), nsString(i18n.T(i18n.CommonCancel)))
 		switch alert.Send(sel("runModal")) {
 		case 1000:
 			choice = BackupExportEncrypted
@@ -74,12 +65,8 @@ func PromptPassword(title, text string) (string, bool) {
 	var password string
 	confirmed := false
 	onMain(func() {
-		alert := objc.ID(class("NSAlert")).Send(sel("new"))
+		alert := newAlert(title, text, i18n.T(i18n.CommonConfirm), i18n.T(i18n.CommonCancel))
 		defer alert.Send(sel("release"))
-		alert.Send(sel("setMessageText:"), nsString(title))
-		alert.Send(sel("setInformativeText:"), nsString(text))
-		alert.Send(sel("addButtonWithTitle:"), nsString(i18n.T(i18n.CommonConfirm)))
-		alert.Send(sel("addButtonWithTitle:"), nsString(i18n.T(i18n.CommonCancel)))
 		field := objc.ID(class("NSSecureTextField")).Send(sel("alloc")).
 			Send(sel("initWithFrame:"), CGRect{Size: CGSize{Width: 300, Height: 24}})
 		defer field.Send(sel("release"))
