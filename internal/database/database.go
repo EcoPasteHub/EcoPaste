@@ -59,6 +59,28 @@ func (d *DB) Close() error { return d.sql.Close() }
 // groups and source apps.
 func (d *DB) SQL() *sql.DB { return d.sql }
 
+// queryStringSet reads one text column into a set, collapsing duplicates.
+func (d *DB) queryStringSet(ctx context.Context, query string, args ...any) (map[string]struct{}, error) {
+	rows, err := d.sql.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	values := map[string]struct{}{}
+	for rows.Next() {
+		var value string
+		if err := rows.Scan(&value); err != nil {
+			return nil, err
+		}
+		values[value] = struct{}{}
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return values, nil
+}
+
 func (d *DB) ensureSchema(ctx context.Context) error {
 	var name string
 	err := d.sql.QueryRowContext(ctx,

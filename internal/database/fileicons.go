@@ -39,22 +39,9 @@ func (d *DB) UpsertFileIcon(ctx context.Context, cacheKey, iconFile string) erro
 
 // FileIconFiles lists icon file names still referenced by the cache table.
 func (d *DB) FileIconFiles(ctx context.Context) (map[string]struct{}, error) {
-	rows, err := d.sql.QueryContext(ctx, "SELECT icon_file FROM file_type_icons")
+	files, err := d.queryStringSet(ctx, "SELECT icon_file FROM file_type_icons")
 	if err != nil {
 		return nil, fmt.Errorf("list file icon files: %w", err)
-	}
-	defer rows.Close()
-
-	files := map[string]struct{}{}
-	for rows.Next() {
-		var name string
-		if err := rows.Scan(&name); err != nil {
-			return nil, fmt.Errorf("scan file icon file: %w", err)
-		}
-		files[name] = struct{}{}
-	}
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("read file icon files: %w", err)
 	}
 	return files, nil
 }

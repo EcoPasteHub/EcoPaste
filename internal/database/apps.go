@@ -111,23 +111,10 @@ func (d *DB) DeleteUnreferencedApps(ctx context.Context, ids []string) ([]string
 
 // AppIconFiles lists the icon file names referenced by known applications.
 func (d *DB) AppIconFiles(ctx context.Context) (map[string]struct{}, error) {
-	rows, err := d.sql.QueryContext(ctx,
+	files, err := d.queryStringSet(ctx,
 		"SELECT icon_file FROM clipboard_apps WHERE icon_file IS NOT NULL AND icon_file <> ''")
 	if err != nil {
 		return nil, fmt.Errorf("list app icon files: %w", err)
-	}
-	defer rows.Close()
-
-	files := map[string]struct{}{}
-	for rows.Next() {
-		var name string
-		if err := rows.Scan(&name); err != nil {
-			return nil, fmt.Errorf("scan app icon file: %w", err)
-		}
-		files[name] = struct{}{}
-	}
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("read app icon files: %w", err)
 	}
 	return files, nil
 }
