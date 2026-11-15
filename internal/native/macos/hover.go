@@ -23,19 +23,65 @@ type hoverAction struct {
 	Tooltip string
 }
 
-var hoverSymbols = map[string]string{
-	"paste":      "arrow.down.doc",
-	"pastePlain": "textformat",
-	"pastePath":  "point.topleft.down.to.point.bottomright.curvepath",
-	"copy":       "doc.on.doc",
-	"copyPlain":  "doc.plaintext",
-	"openLink":   "arrow.up.right.square",
-	"sendEmail":  "envelope",
-	"reveal":     "folder",
-	"note":       "note.text",
-	"star":       "star",
-	"pinItem":    "pin",
-	"delete":     "trash",
+type hoverRule struct {
+	symbol        string
+	event         string
+	tooltip       i18n.Key
+	allowed       func(HistoryRow) bool
+	activeSymbol  string
+	activeTooltip i18n.Key
+	active        func(HistoryRow) bool
+}
+
+var hoverRules = map[string]hoverRule{
+	"paste": {
+		symbol: "arrow.down.doc", event: "activate", tooltip: i18n.MenuPaste,
+	},
+	"pastePlain": {
+		symbol: "textformat", event: "pastePlain", tooltip: i18n.MenuPastePlain,
+		allowed: func(row HistoryRow) bool { return row.Kind == "text" },
+	},
+	"pastePath": {
+		symbol: "point.topleft.down.to.point.bottomright.curvepath",
+		event:  "pastePath", tooltip: i18n.MenuPastePath,
+		allowed: func(row HistoryRow) bool { return row.Kind == "files" },
+	},
+	"copy": {
+		symbol: "doc.on.doc", event: "copy", tooltip: i18n.MenuCopy,
+	},
+	"copyPlain": {
+		symbol: "doc.plaintext", event: "copyPlain", tooltip: i18n.MenuCopyPlain,
+		allowed: func(row HistoryRow) bool { return row.Kind == "text" },
+	},
+	"openLink": {
+		symbol: "arrow.up.right.square", event: "open", tooltip: i18n.MenuOpenLink,
+		allowed: func(row HistoryRow) bool { return row.SubKind == "url" },
+	},
+	"sendEmail": {
+		symbol: "envelope", event: "open", tooltip: i18n.MenuSendEmail,
+		allowed: func(row HistoryRow) bool { return row.SubKind == "email" },
+	},
+	"reveal": {
+		symbol: "folder", event: "reveal", tooltip: i18n.MenuReveal,
+		allowed: func(row HistoryRow) bool { return row.Kind == "files" || row.SubKind == "path" },
+	},
+	"note": {
+		symbol: "note.text", event: "editNote", tooltip: i18n.RowNote,
+	},
+	"star": {
+		symbol: "star", event: "toggleFavorite", tooltip: i18n.MenuFavorite,
+		activeSymbol: "star.fill", activeTooltip: i18n.MenuUnfavorite,
+		active: func(row HistoryRow) bool { return row.Favorite },
+	},
+	"pinItem": {
+		symbol: "pin", event: "togglePinned", tooltip: i18n.MenuPin,
+		activeSymbol: "pin.fill", activeTooltip: i18n.MenuUnpin,
+		active: func(row HistoryRow) bool { return row.Pinned },
+	},
+	"delete": {
+		symbol: "trash", event: "delete", tooltip: i18n.CommonDelete,
+		allowed: func(row HistoryRow) bool { return row.CanDelete },
+	},
 }
 
 // buildHoverBar creates the floating action bar shown over the hovered
@@ -252,65 +298,17 @@ func hoverActionsFor(row HistoryRow, actions []string) []hoverAction {
 }
 
 func hoverActionFor(action string, row HistoryRow) (hoverAction, bool) {
-	symbol, ok := hoverSymbols[action]
+	rule, ok := hoverRules[action]
 	if !ok {
 		return hoverAction{}, false
 	}
-	spec := hoverAction{Symbol: symbol}
-	switch action {
-	case "paste":
-		spec.Event, spec.Tooltip = "activate", i18n.T(i18n.MenuPaste)
-	case "pastePlain":
-		if row.Kind != "text" {
-			return hoverAction{}, false
-		}
-		spec.Event, spec.Tooltip = "pastePlain", i18n.T(i18n.MenuPastePlain)
-	case "pastePath":
-		if row.Kind != "files" {
-			return hoverAction{}, false
-		}
-		spec.Event, spec.Tooltip = "pastePath", i18n.T(i18n.MenuPastePath)
-	case "copy":
-		spec.Event, spec.Tooltip = "copy", i18n.T(i18n.MenuCopy)
-	case "copyPlain":
-		if row.Kind != "text" {
-			return hoverAction{}, false
-		}
-		spec.Event, spec.Tooltip = "copyPlain", i18n.T(i18n.MenuCopyPlain)
-	case "openLink":
-		if row.SubKind != "url" {
-			return hoverAction{}, false
-		}
-		spec.Event, spec.Tooltip = "open", i18n.T(i18n.MenuOpenLink)
-	case "sendEmail":
-		if row.SubKind != "email" {
-			return hoverAction{}, false
-		}
-		spec.Event, spec.Tooltip = "open", i18n.T(i18n.MenuSendEmail)
-	case "reveal":
-		if row.Kind != "files" && row.SubKind != "path" {
-			return hoverAction{}, false
-		}
-		spec.Event, spec.Tooltip = "reveal", i18n.T(i18n.MenuReveal)
-	case "note":
-		spec.Event, spec.Tooltip = "editNote", i18n.T(i18n.RowNote)
-	case "star":
-		spec.Event, spec.Tooltip = "toggleFavorite", i18n.T(i18n.MenuFavorite)
-		if row.Favorite {
-			spec.Symbol, spec.Tooltip = "star.fill", i18n.T(i18n.MenuUnfavorite)
-		}
-	case "pinItem":
-		spec.Event, spec.Tooltip = "togglePinned", i18n.T(i18n.MenuPin)
-		if row.Pinned {
-			spec.Symbol, spec.Tooltip = "pin.fill", i18n.T(i18n.MenuUnpin)
-		}
-	case "delete":
-		if !row.CanDelete {
-			return hoverAction{}, false
-		}
-		spec.Event, spec.Tooltip = "delete", i18n.T(i18n.CommonDelete)
-	default:
+	if rule.allowed != nil && !rule.allowed(row) {
 		return hoverAction{}, false
+	}
+	spec := hoverAction{Symbol: rule.symbol, Event: rule.event, Tooltip: i18n.T(rule.tooltip)}
+	if rule.active != nil && rule.active(row) {
+		spec.Symbol = rule.activeSymbol
+		spec.Tooltip = i18n.T(rule.activeTooltip)
 	}
 	return spec, true
 }
