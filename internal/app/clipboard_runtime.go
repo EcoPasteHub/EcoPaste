@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"path/filepath"
 	"sync/atomic"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/EcoPasteHub/EcoPaste/internal/clipboard"
 	"github.com/EcoPasteHub/EcoPaste/internal/database"
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
 	"github.com/EcoPasteHub/EcoPaste/internal/settings"
 	"github.com/EcoPasteHub/EcoPaste/internal/storage"
@@ -40,6 +42,33 @@ func (r *clipboardRuntime) Signal() {
 func (r *clipboardRuntime) readClipboard(ctx context.Context) error {
 	_, err := r.watcher.Poll(ctx, true)
 	return err
+}
+
+// clipboardServiceDown reports the error settings actions return when the
+// clipboard runtime never started.
+func clipboardServiceDown() error {
+	return fmt.Errorf("%s", i18n.T(i18n.ClipboardServiceDown))
+}
+
+// runWithTimeout runs fn against rt on a bounded context, failing fast when
+// the clipboard runtime is unavailable.
+func runWithTimeout(rt *clipboardRuntime, timeout time.Duration, fn func(context.Context, *clipboardRuntime) error) error {
+	if rt == nil {
+		return clipboardServiceDown()
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	return fn(ctx, rt)
+}
+
+// runWithTimeoutValue is runWithTimeout for actions that return a value.
+func runWithTimeoutValue[T any](rt *clipboardRuntime, timeout time.Duration, fn func(context.Context, *clipboardRuntime) (T, error)) (T, error) {
+	if rt == nil {
+		return *new(T), clipboardServiceDown()
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	return fn(ctx, rt)
 }
 
 func startClipboard(app *core.Scope, paths *storage.Paths, store *settings.Store, paused *atomic.Bool) (*clipboardRuntime, error) {

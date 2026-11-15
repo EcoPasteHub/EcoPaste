@@ -122,13 +122,10 @@ func Run(app *core.Scope) {
 					return runtime.paths.Root
 				}
 				model.changeDataDir = func(parent string) error {
-					if runtime == nil {
-						return fmt.Errorf("%s", i18n.T(i18n.ClipboardServiceDown))
-					}
-					ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
-					defer cancel()
-					_, err := runtime.changeDataDir(ctx, parent)
-					return err
+					return runWithTimeout(runtime, 10*time.Minute, func(ctx context.Context, rt *clipboardRuntime) error {
+						_, err := rt.changeDataDir(ctx, parent)
+						return err
+					})
 				}
 				model.canRestoreDataDir = func() bool {
 					if runtime == nil {
@@ -138,46 +135,40 @@ func Run(app *core.Scope) {
 					return err == nil && paths.Root != paths.Bootstrap
 				}
 				model.restoreDataDir = func() error {
-					if runtime == nil {
-						return fmt.Errorf("%s", i18n.T(i18n.ClipboardServiceDown))
-					}
-					ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
-					defer cancel()
-					_, err := runtime.restoreDefaultDataDir(ctx)
-					return err
+					return runWithTimeout(runtime, 10*time.Minute, func(ctx context.Context, rt *clipboardRuntime) error {
+						_, err := rt.restoreDefaultDataDir(ctx)
+						return err
+					})
 				}
 				model.listApps = func() ([]database.App, error) {
-					if runtime == nil || runtime.apps == nil {
-						return nil, fmt.Errorf("%s", i18n.T(i18n.ClipboardServiceDown))
-					}
-					ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-					defer cancel()
-					return runtime.apps.List(ctx)
+					return runWithTimeoutValue(runtime, 5*time.Second, func(ctx context.Context, rt *clipboardRuntime) ([]database.App, error) {
+						if rt.apps == nil {
+							return nil, clipboardServiceDown()
+						}
+						return rt.apps.List(ctx)
+					})
 				}
 				model.listGroups = func() ([]database.Group, error) {
-					if runtime == nil {
-						return nil, fmt.Errorf("%s", i18n.T(i18n.ClipboardServiceDown))
-					}
-					ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-					defer cancel()
-					return runtime.db.ListGroups(ctx)
+					return runWithTimeoutValue(runtime, 5*time.Second, func(ctx context.Context, rt *clipboardRuntime) ([]database.Group, error) {
+						return rt.db.ListGroups(ctx)
+					})
 				}
 				model.addApp = func(path string) (database.App, error) {
-					if runtime == nil || runtime.apps == nil {
-						return database.App{}, fmt.Errorf("%s", i18n.T(i18n.ClipboardServiceDown))
-					}
-					ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-					defer cancel()
-					return runtime.apps.Add(ctx, path)
+					return runWithTimeoutValue(runtime, 10*time.Second, func(ctx context.Context, rt *clipboardRuntime) (database.App, error) {
+						if rt.apps == nil {
+							return database.App{}, clipboardServiceDown()
+						}
+						return rt.apps.Add(ctx, path)
+					})
 				}
 				model.deleteApps = func(ids []string) error {
-					if runtime == nil || runtime.apps == nil {
-						return fmt.Errorf("%s", i18n.T(i18n.ClipboardServiceDown))
-					}
-					ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-					defer cancel()
-					_, err := runtime.apps.DeleteUnreferenced(ctx, ids)
-					return err
+					return runWithTimeout(runtime, 10*time.Second, func(ctx context.Context, rt *clipboardRuntime) error {
+						if rt.apps == nil {
+							return clipboardServiceDown()
+						}
+						_, err := rt.apps.DeleteUnreferenced(ctx, ids)
+						return err
+					})
 				}
 				model.appIconPath = func(name string) string {
 					if runtime == nil {
