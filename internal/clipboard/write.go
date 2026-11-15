@@ -62,6 +62,9 @@ func (s *Service) BuildWrite(item *database.Item, plainText bool) (WritePayload,
 // WriteItem puts an item back on the pasteboard and suppresses the
 // watcher's own capture of that write.
 func (s *Service) WriteItem(ctx context.Context, item *database.Item, plainText bool) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	payload, err := s.BuildWrite(item, plainText)
 	if err != nil {
 		return err

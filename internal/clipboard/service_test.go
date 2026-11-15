@@ -3,6 +3,7 @@ package clipboard
 import (
 	"bytes"
 	"context"
+	"errors"
 	"image"
 	"image/color"
 	"image/png"
@@ -299,9 +300,11 @@ func TestWatcherReportsChangesOnly(t *testing.T) {
 
 type fakeWriter struct {
 	payload WritePayload
+	calls   int
 }
 
 func (f *fakeWriter) Write(p WritePayload) error {
+	f.calls++
 	f.payload = p
 	return nil
 }
@@ -368,6 +371,21 @@ func TestWriteItemSuppressesItsOwnCapture(t *testing.T) {
 	}
 	if _, changed, err := svc.Capture(ctx, Payload{Text: writer.payload.Text}, SourceApp{}); err != nil || changed {
 		t.Fatalf("own write was captured: changed = %v err = %v", changed, err)
+	}
+}
+
+func TestWriteItemHonorsCanceledContext(t *testing.T) {
+	writer := &fakeWriter{}
+	svc := &Service{Writer: writer}
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	err := svc.WriteItem(ctx, &database.Item{Kind: database.KindText, Content: "text"}, false)
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("WriteItem error = %v, want context.Canceled", err)
+	}
+	if writer.calls != 0 {
+		t.Fatalf("writer called %d times after cancellation", writer.calls)
 	}
 }
 
