@@ -478,6 +478,19 @@ func (m *historyModel) write(ctx context.Context, item *database.Item, plain, co
 }
 
 func (m *historyModel) historyItem(ctx context.Context, item database.Item, cfg settings.Clipboard) ui.HistoryItem {
+	row := m.historyItemBase(item)
+	switch item.Kind {
+	case database.KindText:
+		fillTextRow(&row, item, cfg)
+	case database.KindImage:
+		m.fillImageRow(&row, item)
+	case database.KindFiles:
+		m.fillFilesRow(ctx, &row, item, cfg)
+	}
+	return row
+}
+
+func (m *historyModel) historyItemBase(item database.Item) ui.HistoryItem {
 	row := ui.HistoryItem{
 		ID:        item.ID,
 		Kind:      string(item.Kind),
@@ -502,39 +515,43 @@ func (m *historyModel) historyItem(ctx context.Context, item database.Item, cfg 
 	if item.Note != nil {
 		row.Note = *item.Note
 	}
-	switch item.Kind {
-	case database.KindText:
-		if item.Summary != nil {
-			row.Title = *item.Summary
-		}
-		if item.IsSensitive && cfg.Sensitive.RedactSecrets {
-			row.Title = clipboard.MaskSecret(row.Title)
-		}
-	case database.KindImage:
-		if item.Width != nil && item.Height != nil {
-			row.Title = i18n.Tf(i18n.ImageSizeTitle, *item.Width, *item.Height)
-		} else {
-			row.Title = i18n.T(i18n.KindImage)
-		}
-		if err := m.runtime.images.EnsureThumbnail(item.Content); err == nil {
-			row.ImagePath = m.runtime.images.ThumbPath(item.Content)
-		} else {
-			row.ImagePath = m.runtime.images.OriginPath(item.Content)
-		}
-	case database.KindFiles:
-		files := clipboard.DecodeFiles(item.Content)
-		display := displayOf(cfg)
-		row.Title = ui.FileTitle(files, display.FileMaxCount)
-		entries := describeFileEntries(files, item.FileTypes, display.FileMaxCount)
-		row.FileSummary = fileSummary(entries, len(files))
-		if len(files) == 1 && len(entries) == 1 && !entries[0].Exists {
-			row.Title += i18n.T(i18n.ItemMissing)
-		}
-		if len(entries) > 0 && m.runtime.fileIconCache != nil {
-			row.ImagePath = m.runtime.fileIconCache.Path(ctx, entries[0].Path, entries[0].IsDir)
-		}
-	}
 	return row
+}
+
+func fillTextRow(row *ui.HistoryItem, item database.Item, cfg settings.Clipboard) {
+	if item.Summary != nil {
+		row.Title = *item.Summary
+	}
+	if item.IsSensitive && cfg.Sensitive.RedactSecrets {
+		row.Title = clipboard.MaskSecret(row.Title)
+	}
+}
+
+func (m *historyModel) fillImageRow(row *ui.HistoryItem, item database.Item) {
+	if item.Width != nil && item.Height != nil {
+		row.Title = i18n.Tf(i18n.ImageSizeTitle, *item.Width, *item.Height)
+	} else {
+		row.Title = i18n.T(i18n.KindImage)
+	}
+	if err := m.runtime.images.EnsureThumbnail(item.Content); err == nil {
+		row.ImagePath = m.runtime.images.ThumbPath(item.Content)
+	} else {
+		row.ImagePath = m.runtime.images.OriginPath(item.Content)
+	}
+}
+
+func (m *historyModel) fillFilesRow(ctx context.Context, row *ui.HistoryItem, item database.Item, cfg settings.Clipboard) {
+	files := clipboard.DecodeFiles(item.Content)
+	display := displayOf(cfg)
+	row.Title = ui.FileTitle(files, display.FileMaxCount)
+	entries := describeFileEntries(files, item.FileTypes, display.FileMaxCount)
+	row.FileSummary = fileSummary(entries, len(files))
+	if len(files) == 1 && len(entries) == 1 && !entries[0].Exists {
+		row.Title += i18n.T(i18n.ItemMissing)
+	}
+	if len(entries) > 0 && m.runtime.fileIconCache != nil {
+		row.ImagePath = m.runtime.fileIconCache.Path(ctx, entries[0].Path, entries[0].IsDir)
+	}
 }
 
 func fileTypeAt(types *string, index int) bool {
