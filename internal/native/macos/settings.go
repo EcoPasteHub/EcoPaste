@@ -162,26 +162,31 @@ const (
 	tabContentH      = 470.0
 )
 
-var settingsTabTitleKeys = map[string]i18n.Key{
-	"general":     i18n.SettingsTabGeneral,
-	"data":        i18n.SettingsTabData,
-	"capture":     i18n.SettingsTabCapture,
-	"display":     i18n.SettingsTabDisplay,
-	"window":      i18n.SettingsTabWindow,
-	"history":     i18n.SettingsTabHistory,
-	"permissions": i18n.SettingsTabPermissions,
-	"apps":        i18n.SettingsTabApps,
-	"actions":     i18n.SettingsTabActions,
-	"interaction": i18n.SettingsTabInteraction,
-	"deletion":    i18n.SettingsTabDeletion,
-	"shortcuts":   i18n.SettingsTabShortcuts,
-	"preview":     i18n.SettingsTabPreview,
-	"update":      i18n.SettingsTabUpdate,
+type settingsTabMeta struct {
+	title  i18n.Key
+	symbol string
+}
+
+var settingsTabs = map[string]settingsTabMeta{
+	"general":     {i18n.SettingsTabGeneral, "gearshape"},
+	"data":        {i18n.SettingsTabData, "externaldrive"},
+	"capture":     {i18n.SettingsTabCapture, "tray.and.arrow.down"},
+	"display":     {i18n.SettingsTabDisplay, "textformat.size"},
+	"actions":     {i18n.SettingsTabActions, "cursorarrow.click"},
+	"interaction": {i18n.SettingsTabInteraction, "hand.tap"},
+	"deletion":    {i18n.SettingsTabDeletion, "trash"},
+	"window":      {i18n.SettingsTabWindow, "rectangle.on.rectangle"},
+	"history":     {i18n.SettingsTabHistory, "clock.arrow.circlepath"},
+	"permissions": {i18n.SettingsTabPermissions, "lock.shield"},
+	"apps":        {i18n.SettingsTabApps, "square.grid.2x2"},
+	"shortcuts":   {i18n.SettingsTabShortcuts, "keyboard"},
+	"preview":     {i18n.SettingsTabPreview, "eye"},
+	"update":      {i18n.SettingsTabUpdate, "arrow.triangle.2.circlepath"},
 }
 
 func settingsTabTitle(name string) string {
-	if key, ok := settingsTabTitleKeys[name]; ok {
-		return i18n.T(key)
+	if tab, ok := settingsTabs[name]; ok {
+		return i18n.T(tab.title)
 	}
 	return name
 }
@@ -199,7 +204,7 @@ var (
 // SelectSettingsTab shows the named tab when the settings window is open,
 // or on the next open otherwise. It reports whether the name is known.
 func SelectSettingsTab(name string) bool {
-	if _, ok := settingsTabTitleKeys[name]; !ok {
+	if _, ok := settingsTabs[name]; !ok {
 		return false
 	}
 	settingsTabMu.Lock()

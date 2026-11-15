@@ -21,23 +21,6 @@ var settingsTabOrder = []string{
 	"window", "history", "permissions", "apps", "shortcuts", "preview", "update",
 }
 
-var settingsTabSymbols = map[string]string{
-	"general":     "gearshape",
-	"data":        "externaldrive",
-	"capture":     "tray.and.arrow.down",
-	"display":     "textformat.size",
-	"actions":     "cursorarrow.click",
-	"interaction": "hand.tap",
-	"deletion":    "trash",
-	"window":      "rectangle.on.rectangle",
-	"history":     "clock.arrow.circlepath",
-	"permissions": "lock.shield",
-	"apps":        "square.grid.2x2",
-	"shortcuts":   "keyboard",
-	"preview":     "eye",
-	"update":      "arrow.triangle.2.circlepath",
-}
-
 var (
 	registerSettingsSidebarOnce sync.Once
 	settingsSidebarTarget       objc.ID
@@ -56,8 +39,8 @@ func settingsTabIndex(name string) int {
 }
 
 func settingsTabSymbol(name string) string {
-	if symbol, ok := settingsTabSymbols[name]; ok {
-		return symbol
+	if tab, ok := settingsTabs[name]; ok {
+		return tab.symbol
 	}
 	return "circle"
 }
