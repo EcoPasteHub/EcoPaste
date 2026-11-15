@@ -188,18 +188,40 @@ func validate(s Settings) error {
 }
 
 func validateDecoded(s Settings) error {
+	for _, validate := range []func(Settings) error{
+		validateAppearance,
+		validateCapture,
+		validateContent,
+		validateHistory,
+		validateWindow,
+		validatePreview,
+		validateUpdates,
+	} {
+		if err := validate(s); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateAppearance(s Settings) error {
 	if err := validateOneOf("appearance.theme", s.Appearance.Theme, ThemeAuto, ThemeLight, ThemeDark); err != nil {
 		return err
 	}
-	if err := validateOneOf("appearance.language", s.Appearance.Language, LanguageZhCN, LanguageEnUS); err != nil {
-		return err
-	}
+	return validateOneOf("appearance.language", s.Appearance.Language, LanguageZhCN, LanguageEnUS)
+}
+
+func validateCapture(s Settings) error {
 	for _, kind := range s.Clipboard.Capture.Order {
 		if err := validateOneOf("clipboard.capture.order", kind,
 			CaptureFiles, CaptureImage, CaptureHTML, CaptureRTF, CaptureText); err != nil {
 			return err
 		}
 	}
+	return nil
+}
+
+func validateContent(s Settings) error {
 	if err := validateOneOf("clipboard.content.autoPaste", s.Clipboard.Content.AutoPaste,
 		AutoPasteDisabled, AutoPasteSingleClickPaste, AutoPasteDoubleClickPaste,
 		AutoPasteSingleClickCopy, AutoPasteDoubleClickCopy); err != nil {
@@ -220,10 +242,15 @@ func validateDecoded(s Settings) error {
 	if err := validateItemActions("clipboard.content.itemActionOrder", s.Clipboard.Content.ItemActionOrder); err != nil {
 		return err
 	}
-	if err := validateOneOf("clipboard.history.retention.unit", s.Clipboard.History.Retention.Unit,
-		RetentionHours, RetentionDays, RetentionWeeks, RetentionMonths, RetentionForever); err != nil {
-		return err
-	}
+	return nil
+}
+
+func validateHistory(s Settings) error {
+	return validateOneOf("clipboard.history.retention.unit", s.Clipboard.History.Retention.Unit,
+		RetentionHours, RetentionDays, RetentionWeeks, RetentionMonths, RetentionForever)
+}
+
+func validateWindow(s Settings) error {
 	if err := validateOneOf("clipboard.window.position", s.Clipboard.Window.Position,
 		PositionRemember, PositionFollowCursor, PositionCenter); err != nil {
 		return err
@@ -236,15 +263,17 @@ func validateDecoded(s Settings) error {
 		CategoryPreserve, CategoryAll, CategoryText, CategoryImage, CategoryFiles); err != nil {
 		return err
 	}
-	if err := validateOneOf("clipboard.preview.hoverDelayMs", s.Clipboard.Preview.HoverDelayMs,
-		300, 500, 1000); err != nil {
-		return err
-	}
-	if err := validateOneOf("update.frequency", s.Update.Frequency,
-		UpdateDaily, UpdateWeekly, UpdateMonthly); err != nil {
-		return err
-	}
 	return nil
+}
+
+func validatePreview(s Settings) error {
+	return validateOneOf("clipboard.preview.hoverDelayMs", s.Clipboard.Preview.HoverDelayMs,
+		300, 500, 1000)
+}
+
+func validateUpdates(s Settings) error {
+	return validateOneOf("update.frequency", s.Update.Frequency,
+		UpdateDaily, UpdateWeekly, UpdateMonthly)
 }
 
 func validateItemActions(field string, actions []ItemAction) error {
