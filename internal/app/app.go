@@ -199,16 +199,13 @@ func Run(app *core.Scope) {
 						_ = reloadHotkeys()
 					}
 				}
-				model.onDisplayChanged = func() {
+				signalHistoryChanged := func() {
 					if runtime != nil {
 						runtime.Signal()
 					}
 				}
-				model.onActionsChanged = func() {
-					if runtime != nil {
-						runtime.Signal()
-					}
-				}
+				model.onDisplayChanged = signalHistoryChanged
+				model.onActionsChanged = signalHistoryChanged
 				model.setLanguage = func(language string) error {
 					i18n.SetLanguage(language)
 					app.SetLocale(language)

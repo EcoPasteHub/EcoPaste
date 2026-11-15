@@ -145,15 +145,13 @@ func runBackupMerge(app *core.Scope, runtime *clipboardRuntime, path, password s
 			next, settingsErr = store.Update(result.Settings)
 		}
 		app.Post(func() {
-			if settingsErr != nil {
+			switch {
+			case settingsErr != nil:
 				macos.ShowMessage(i18n.T(i18n.BackupMergedNoSettings), settingsErr.Error())
-			} else if store == nil {
+			case store == nil:
 				macos.ShowMessage(i18n.T(i18n.BackupMergedTitle),
 					mergeSummary(result)+"\n"+i18n.T(i18n.BackupMergedSettingsNote))
-				runtime.Signal()
-				return
-			}
-			if settingsErr == nil && store != nil {
+			default:
 				if err := macos.SetAppearance(string(next.Appearance.Theme)); err != nil {
 					log.Printf("sync appearance: %v", err)
 				}
