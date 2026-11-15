@@ -94,7 +94,13 @@ func registerPreviewTargets() {
 func (p *Panel) buildPreview() {
 	p.preview = objc.ID(previewViewClass).Send(sel("new"))
 	p.preview.Send(sel("setAutoresizesSubviews:"), false)
+	p.buildPreviewContent()
+	p.buildPreviewPopover()
+	panelsByPreviewView[p.preview] = p
+	panelsByPopover[p.previewDelegate] = p
+}
 
+func (p *Panel) buildPreviewContent() {
 	backdrop := objc.ID(class("NSVisualEffectView")).Send(sel("new"))
 	backdrop.Send(sel("setMaterial:"), int64(10))
 	backdrop.Send(sel("setBlendingMode:"), int64(1))
@@ -155,7 +161,9 @@ func (p *Panel) buildPreview() {
 	p.preview.Send(sel("addSubview:"), p.previewDivider)
 	p.preview.Send(sel("addSubview:"), p.previewScroll)
 	p.preview.Send(sel("addSubview:"), p.previewImage)
+}
 
+func (p *Panel) buildPreviewPopover() {
 	p.previewController = objc.ID(class("NSViewController")).Send(sel("new"))
 	p.previewController.Send(sel("setView:"), p.preview)
 
@@ -166,9 +174,6 @@ func (p *Panel) buildPreview() {
 
 	p.previewDelegate = objc.ID(popoverDelegateClass).Send(sel("new"))
 	p.previewPopover.Send(sel("setDelegate:"), p.previewDelegate)
-
-	panelsByPreviewView[p.preview] = p
-	panelsByPopover[p.previewDelegate] = p
 }
 
 func (p *Panel) setPreview(content PreviewContent) {
