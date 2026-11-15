@@ -109,7 +109,7 @@ func TestHistoryItemRedactsSensitiveSummary(t *testing.T) {
 	}
 	summary := "sk-" + strings.Repeat("z", 32)
 	model := &historyModel{store: store}
-	row := model.historyItem(context.Background(), database.Item{Kind: database.KindText, Summary: &summary, IsSensitive: true})
+	row := model.historyItem(context.Background(), database.Item{Kind: database.KindText, Summary: &summary, IsSensitive: true}, model.clipboardConfig())
 	if row.Title == summary || !strings.Contains(row.Title, "*") {
 		t.Errorf("title was not redacted: %q", row.Title)
 	}
@@ -119,7 +119,7 @@ func TestHistoryItemRedactsSensitiveSummary(t *testing.T) {
 	}); err != nil {
 		t.Fatal(err)
 	}
-	row = model.historyItem(context.Background(), database.Item{Kind: database.KindText, Summary: &summary, IsSensitive: true})
+	row = model.historyItem(context.Background(), database.Item{Kind: database.KindText, Summary: &summary, IsSensitive: true}, model.clipboardConfig())
 	if row.Title != summary {
 		t.Errorf("title = %q, want full summary", row.Title)
 	}
@@ -156,7 +156,7 @@ func TestHistoryItemIncludesSourceAppIcon(t *testing.T) {
 		t.Fatal(err)
 	}
 	model := &historyModel{runtime: &clipboardRuntime{db: db, appIcons: icons}}
-	row := model.historyItem(context.Background(), page.Items[0])
+	row := model.historyItem(context.Background(), page.Items[0], model.clipboardConfig())
 	if row.SourceAppIcon != icons.Path(iconFile) {
 		t.Errorf("source icon = %q", row.SourceAppIcon)
 	}

@@ -137,7 +137,7 @@ func TestHistoryFileRowSummaryAndMissingTitle(t *testing.T) {
 	row := model.historyItem(context.Background(), database.Item{
 		Kind:    database.KindFiles,
 		Content: missingPath,
-	})
+	}, model.clipboardConfig())
 	if row.Title != "gone.pdf（已丢失）" || row.FileSummary != "已丢失" {
 		t.Errorf("row = %+v", row)
 	}

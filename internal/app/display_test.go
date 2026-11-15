@@ -60,7 +60,7 @@ func TestHistoryItemHonorsFileMaxCount(t *testing.T) {
 		Content:  "/tmp/a.txt\n/tmp/b.txt\n/tmp/c.txt\n/tmp/d.txt",
 		Platform: "macos",
 	}
-	row := model.historyItem(context.Background(), item)
+	row := model.historyItem(context.Background(), item, model.clipboardConfig())
 	if row.Title != "a.txt、b.txt 等 4 个" {
 		t.Errorf("title = %q", row.Title)
 	}

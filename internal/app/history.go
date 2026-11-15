@@ -30,8 +30,29 @@ func newHistoryModel(runtime *clipboardRuntime, store *settings.Store) *historyM
 	}
 }
 
+// clipboardConfig returns the published clipboard settings, falling back to
+// the defaults when settings failed to open.
+func (m *historyModel) clipboardConfig() settings.Clipboard {
+	if m.store == nil {
+		return settings.Default().Clipboard
+	}
+	return m.store.Snapshot().Clipboard
+}
+
+// item loads one history item, reporting a user-facing error when it is gone.
+func (m *historyModel) item(ctx context.Context, id string) (*database.Item, error) {
+	item, err := m.runtime.db.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if item == nil {
+		return nil, fmt.Errorf("%s", i18n.T(i18n.HistoryItemMissing))
+	}
+	return item, nil
+}
+
 func (m *historyModel) List(ctx context.Context, q ui.HistoryQuery) (ui.HistoryPage, error) {
-	cfg := m.store.Snapshot().Clipboard
+	cfg := m.clipboardConfig()
 	var groupID *string
 	if q.GroupID != "" {
 		groupID = &q.GroupID
@@ -49,8 +70,8 @@ func (m *historyModel) List(ctx context.Context, q ui.HistoryQuery) (ui.HistoryP
 	}
 	items := make([]ui.HistoryItem, 0, len(page.Items))
 	for _, item := range page.Items {
-		row := m.historyItem(ctx, item)
-		row.CanDelete, row.DeleteConfirm = m.deletePolicy(item, q)
+		row := m.historyItem(ctx, item, cfg)
+		row.CanDelete, row.DeleteConfirm = deletePolicy(item, q, cfg.Content)
 		items = append(items, row)
 	}
 	return ui.HistoryPage{Items: items, Total: page.Total, HasMore: page.HasMore}, nil
@@ -59,11 +80,7 @@ func (m *historyModel) List(ctx context.Context, q ui.HistoryQuery) (ui.HistoryP
 // deletePolicy applies the published per-row delete rules: favorites and
 // pinned rows can be protected, and each category has its own confirm
 // switch.
-func (m *historyModel) deletePolicy(item database.Item, q ui.HistoryQuery) (bool, bool) {
-	content := settings.Default().Clipboard.Content
-	if m.store != nil {
-		content = m.store.Snapshot().Clipboard.Content
-	}
+func deletePolicy(item database.Item, q ui.HistoryQuery, content settings.Content) (bool, bool) {
 	canDelete := true
 	if item.IsFavorite && !content.DeleteFavoriteItems {
 		canDelete = false
@@ -92,14 +109,11 @@ func (m *historyModel) CopyPlain(ctx context.Context, id string) (bool, error) {
 }
 
 func (m *historyModel) copyItem(ctx context.Context, id string, forcePlain bool) (bool, error) {
-	item, err := m.runtime.db.FindByID(ctx, id)
+	item, err := m.item(ctx, id)
 	if err != nil {
 		return false, err
 	}
-	if item == nil {
-		return false, fmt.Errorf("%s", i18n.T(i18n.HistoryItemMissing))
-	}
-	cfg := m.store.Snapshot().Clipboard
+	cfg := m.clipboardConfig()
 	plain := forcePlain || item.Kind == database.KindText && cfg.Content.CopyPlain
 	if err := m.write(ctx, item, plain, cfg.Content.UpdateOnReuse); err != nil {
 		return false, err
@@ -115,38 +129,28 @@ func (m *historyModel) SearchBehavior() ui.HistorySearchBehavior {
 }
 
 func (m *historyModel) PreviewBehavior() ui.HistoryPreviewBehavior {
-	preview := settings.Default().Clipboard.Preview
-	if m.store != nil {
-		preview = m.store.Snapshot().Clipboard.Preview
-	}
-	return ui.HistoryPreviewBehavior{SpaceEnabled: preview.SpaceEnabled}
+	return ui.HistoryPreviewBehavior{SpaceEnabled: m.clipboardConfig().Preview.SpaceEnabled}
 }
 
 // Display reports the clamped list density, so a hand-edited settings
 // file cannot produce rows without text.
 func (m *historyModel) Display() ui.HistoryDisplay {
-	density := settings.Default().Clipboard.Display
-	content := settings.Default().Clipboard.Content
-	if m.store != nil {
-		clipboard := m.store.Snapshot().Clipboard
-		density = clipboard.Display
-		content = clipboard.Content
-	}
+	return displayOf(m.clipboardConfig())
+}
+
+func displayOf(cfg settings.Clipboard) ui.HistoryDisplay {
 	return ui.HistoryDisplay{
-		TextMaxLines:   clampInt(int(density.TextMaxLines), 1, 5),
-		ImageMaxHeight: clampInt(int(density.ImageMaxHeight), 20, 100),
-		FileMaxCount:   clampInt(int(density.FileMaxCount), 1, 5),
-		ShowOriginal:   content.ShowOriginalPreview,
+		TextMaxLines:   clampInt(int(cfg.Display.TextMaxLines), 1, 5),
+		ImageMaxHeight: clampInt(int(cfg.Display.ImageMaxHeight), 20, 100),
+		FileMaxCount:   clampInt(int(cfg.Display.FileMaxCount), 1, 5),
+		ShowOriginal:   cfg.Content.ShowOriginalPreview,
 	}
 }
 
 // OpenBehavior resolves the configured panel-open selections into the
 // list's initial filter and group.
 func (m *historyModel) OpenBehavior() ui.HistoryOpenBehavior {
-	window := settings.Default().Clipboard.Window
-	if m.store != nil {
-		window = m.store.Snapshot().Clipboard.Window
-	}
+	window := m.clipboardConfig().Window
 	filter := "preserve"
 	switch window.SelectCategoryOnOpen {
 	case settings.CategoryAll:
@@ -185,10 +189,7 @@ func (m *historyModel) OpenBehavior() ui.HistoryOpenBehavior {
 
 // QuickActions reports the hover actions in their configured order.
 func (m *historyModel) QuickActions() []string {
-	content := settings.Default().Clipboard.Content
-	if m.store != nil {
-		content = m.store.Snapshot().Clipboard.Content
-	}
+	content := m.clipboardConfig().Content
 	enabled := make(map[settings.ItemAction]struct{}, len(content.ItemActions))
 	for _, action := range content.ItemActions {
 		enabled[action] = struct{}{}
@@ -250,14 +251,11 @@ func (m *historyModel) activateByMode(ctx context.Context, id string, pasteMode,
 }
 
 func (m *historyModel) activateItem(ctx context.Context, id string, forcePlain, paste bool) (bool, bool, error) {
-	item, err := m.runtime.db.FindByID(ctx, id)
+	item, err := m.item(ctx, id)
 	if err != nil {
 		return false, false, err
 	}
-	if item == nil {
-		return false, false, fmt.Errorf("%s", i18n.T(i18n.HistoryItemMissing))
-	}
-	cfg := m.store.Snapshot().Clipboard
+	cfg := m.clipboardConfig()
 	if paste && !inputTrusted() {
 		return false, false, keystroke.ErrPermission
 	}
@@ -275,12 +273,9 @@ func (m *historyModel) SendPaste() error { return keystroke.SendPaste() }
 // Drag builds the pasteboard representation a row offers when it is
 // dragged out of the panel.
 func (m *historyModel) Drag(ctx context.Context, id string) (macos.DragPayload, error) {
-	item, err := m.runtime.db.FindByID(ctx, id)
+	item, err := m.item(ctx, id)
 	if err != nil {
 		return macos.DragPayload{}, err
-	}
-	if item == nil {
-		return macos.DragPayload{}, fmt.Errorf("%s", i18n.T(i18n.HistoryItemMissing))
 	}
 	payload, err := m.runtime.service.BuildWrite(item, false)
 	if err != nil {
@@ -297,14 +292,11 @@ func (m *historyModel) Drag(ctx context.Context, id string) (macos.DragPayload, 
 
 // MiddleClick runs the configured middle-button action for one row.
 func (m *historyModel) MiddleClick(ctx context.Context, id string) (bool, error) {
-	item, err := m.runtime.db.FindByID(ctx, id)
+	item, err := m.item(ctx, id)
 	if err != nil {
 		return false, err
 	}
-	if item == nil {
-		return false, fmt.Errorf("%s", i18n.T(i18n.HistoryItemMissing))
-	}
-	cfg := m.store.Snapshot().Clipboard
+	cfg := m.clipboardConfig()
 	plain := false
 	paste := false
 	switch cfg.Content.MiddleClick {
@@ -347,10 +339,7 @@ func (m *historyModel) Delete(ctx context.Context, id string) error {
 	if item == nil {
 		return nil
 	}
-	content := settings.Default().Clipboard.Content
-	if m.store != nil {
-		content = m.store.Snapshot().Clipboard.Content
-	}
+	content := m.clipboardConfig().Content
 	if item.IsFavorite && !content.DeleteFavoriteItems {
 		return fmt.Errorf("%s", i18n.T(i18n.ErrorDeleteFavorite))
 	}
@@ -383,17 +372,15 @@ func (m *historyModel) ClearHistory(ctx context.Context) error {
 }
 
 func (m *historyModel) Preview(ctx context.Context, id string) (ui.HistoryPreview, error) {
-	if m.store == nil || !m.store.Snapshot().Clipboard.Preview.SpaceEnabled {
+	cfg := m.clipboardConfig()
+	if !cfg.Preview.SpaceEnabled {
 		return ui.HistoryPreview{}, nil
 	}
-	item, err := m.runtime.db.FindByID(ctx, id)
+	item, err := m.item(ctx, id)
 	if err != nil {
 		return ui.HistoryPreview{}, err
 	}
-	if item == nil {
-		return ui.HistoryPreview{}, fmt.Errorf("%s", i18n.T(i18n.HistoryItemMissing))
-	}
-	redact := item.IsSensitive && m.store.Snapshot().Clipboard.Sensitive.RedactSecrets
+	redact := item.IsSensitive && cfg.Sensitive.RedactSecrets
 	preview := ui.HistoryPreview{Enabled: true}
 	preview.Meta = previewMeta(item, "")
 	switch item.Kind {
@@ -510,7 +497,7 @@ func (m *historyModel) write(ctx context.Context, item *database.Item, plain, co
 	return nil
 }
 
-func (m *historyModel) historyItem(ctx context.Context, item database.Item) ui.HistoryItem {
+func (m *historyModel) historyItem(ctx context.Context, item database.Item, cfg settings.Clipboard) ui.HistoryItem {
 	row := ui.HistoryItem{
 		ID:        item.ID,
 		Kind:      string(item.Kind),
@@ -540,7 +527,7 @@ func (m *historyModel) historyItem(ctx context.Context, item database.Item) ui.H
 		if item.Summary != nil {
 			row.Title = *item.Summary
 		}
-		if item.IsSensitive && m.store != nil && m.store.Snapshot().Clipboard.Sensitive.RedactSecrets {
+		if item.IsSensitive && cfg.Sensitive.RedactSecrets {
 			row.Title = clipboard.MaskSecret(row.Title)
 		}
 	case database.KindImage:
@@ -556,7 +543,7 @@ func (m *historyModel) historyItem(ctx context.Context, item database.Item) ui.H
 		}
 	case database.KindFiles:
 		files := clipboard.DecodeFiles(item.Content)
-		display := m.Display()
+		display := displayOf(cfg)
 		row.Title = ui.FileTitle(files, display.FileMaxCount)
 		entries := describeFileEntries(files, item.FileTypes, display.FileMaxCount)
 		row.FileSummary = fileSummary(entries, len(files))

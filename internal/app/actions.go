@@ -25,12 +25,9 @@ const noteMaxChars = 256
 
 // Open opens a link, email or existing path.
 func (m *historyModel) Open(ctx context.Context, id string) error {
-	item, err := m.runtime.db.FindByID(ctx, id)
+	item, err := m.item(ctx, id)
 	if err != nil {
 		return err
-	}
-	if item == nil {
-		return fmt.Errorf("%s", i18n.T(i18n.HistoryItemMissing))
 	}
 	if item.Kind == database.KindText && item.SubKind != nil {
 		value := strings.TrimSpace(item.Content)
@@ -51,12 +48,9 @@ func (m *historyModel) Open(ctx context.Context, id string) error {
 
 // Reveal shows files or a path item in Finder.
 func (m *historyModel) Reveal(ctx context.Context, id string) error {
-	item, err := m.runtime.db.FindByID(ctx, id)
+	item, err := m.item(ctx, id)
 	if err != nil {
 		return err
-	}
-	if item == nil {
-		return fmt.Errorf("%s", i18n.T(i18n.HistoryItemMissing))
 	}
 	switch {
 	case item.Kind == database.KindFiles:
@@ -70,12 +64,9 @@ func (m *historyModel) Reveal(ctx context.Context, id string) error {
 
 // SaveImage writes an image item to a user-chosen PNG file.
 func (m *historyModel) SaveImage(ctx context.Context, id string) error {
-	item, err := m.runtime.db.FindByID(ctx, id)
+	item, err := m.item(ctx, id)
 	if err != nil {
 		return err
-	}
-	if item == nil {
-		return fmt.Errorf("%s", i18n.T(i18n.HistoryItemMissing))
 	}
 	if item.Kind != database.KindImage {
 		return fmt.Errorf("%s", i18n.T(i18n.ErrorNotImage))
@@ -98,12 +89,9 @@ func (m *historyModel) SaveImage(ctx context.Context, id string) error {
 // EditNote opens the native note editor, normalizes the value and applies
 // auto-favorite when the setting is enabled.
 func (m *historyModel) EditNote(ctx context.Context, id string) (bool, error) {
-	item, err := m.runtime.db.FindByID(ctx, id)
+	item, err := m.item(ctx, id)
 	if err != nil {
 		return false, err
-	}
-	if item == nil {
-		return false, fmt.Errorf("%s", i18n.T(i18n.HistoryItemMissing))
 	}
 	current := ""
 	if item.Note != nil {
@@ -124,7 +112,7 @@ func (m *historyModel) EditNote(ctx context.Context, id string) (bool, error) {
 	if err := m.runtime.db.SetNote(ctx, id, note); err != nil {
 		return false, err
 	}
-	if note != nil && m.store != nil && m.store.Snapshot().Clipboard.Content.AutoFavorite {
+	if note != nil && m.clipboardConfig().Content.AutoFavorite {
 		if err := m.runtime.db.MarkFavorite(ctx, id); err != nil {
 			return false, err
 		}
