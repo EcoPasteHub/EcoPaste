@@ -13,6 +13,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/google/renameio/v2"
+
 	"github.com/EcoPasteHub/EcoPaste/internal/database"
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/EcoPasteHub/EcoPaste/internal/storage"
@@ -308,27 +310,18 @@ func copyMissingFile(src, dst string) error {
 		return err
 	}
 	defer input.Close()
-	temp, err := os.CreateTemp(filepath.Dir(dst), ".import-*")
+	temp, err := renameio.TempFile(filepath.Dir(dst), dst)
 	if err != nil {
 		return err
 	}
-	tempName := temp.Name()
-	defer os.Remove(tempName)
+	defer temp.Cleanup()
 	if _, err := io.Copy(temp, input); err != nil {
-		temp.Close()
 		return err
 	}
-	if err := temp.Sync(); err != nil {
-		temp.Close()
+	if err := temp.Chmod(0o644); err != nil {
 		return err
 	}
-	if err := temp.Close(); err != nil {
-		return err
-	}
-	if err := os.Chmod(tempName, 0o644); err != nil {
-		return err
-	}
-	return os.Rename(tempName, dst)
+	return temp.CloseAtomicallyReplace()
 }
 
 func extractEntry(entry *zip.File, path string) error {
