@@ -29,37 +29,20 @@ var (
 	settingsShortcutRecording     = map[objc.ID]bool{}
 )
 
-func (v *SettingsView) buildShortcuts() {
-	registerSettingsShortcutsOnce.Do(registerSettingsShortcutTargets)
-	content := v.newTab("shortcuts", settingsTabTitle("shortcuts"))
-
-	intro := objc.ID(classNSTextField).Send(sel("labelWithString:"),
-		nsString(i18n.T(i18n.SettingsShortcutsIntro)))
-	intro.Send(sel("setFont:"), systemFont(11))
-	intro.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
-	intro.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 438}, Size: CGSize{Width: tabContentW - 48, Height: 18}})
-	content.Send(sel("addSubview:"), intro)
-
-	y := 388.0
-	v.addShortcutField(content, y, i18n.T(i18n.SettingsOpenClipboard), "shortcuts.openClipboard",
-		func(s SettingsValues) string { return s.OpenClipboardShortcut })
-	v.addShortcutField(content, y-74, i18n.T(i18n.SettingsOpenPreference), "shortcuts.openPreference",
-		func(s SettingsValues) string { return s.OpenPreferenceShortcut })
-
-	note := objc.ID(classNSTextField).Send(sel("labelWithString:"),
-		nsString(i18n.T(i18n.SettingsShortcutRule)))
-	note.Send(sel("setFont:"), systemFont(11))
-	note.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
-	note.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: y - 150}, Size: CGSize{Width: tabContentW - 48, Height: 18}})
-	content.Send(sel("addSubview:"), note)
-}
-
 func (v *SettingsView) addShortcutField(content objc.ID, y float64, title, path string, get func(SettingsValues) string) {
+	registerSettingsShortcutsOnce.Do(registerSettingsShortcutTargets)
 	v.addLabel(content, y, title)
 	v.addSearchEntry(content, title, path, i18n.T(i18n.SettingsShortcutsKeywords), "shortcut hotkey",
 		rowHighlightFrame(y))
+	const fieldWidth = 240.0
 	field := objc.ID(shortcutFieldClass).Send(sel("new"))
-	field.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 280, Y: y - 6}, Size: CGSize{Width: 260, Height: 30}})
+	field.Send(sel("setFrame:"), CGRect{
+		Origin: CGPoint{
+			X: settingsContentX + settingsContentWidth - settingsRowInset - fieldWidth,
+			Y: y + (settingsRowHeight-26)/2,
+		},
+		Size: CGSize{Width: fieldWidth, Height: 26},
+	})
 	field.Send(sel("setFont:"), systemFont(12))
 	field.Send(sel("setAlignment:"), int64(1))
 	field.Send(sel("setEditable:"), false)

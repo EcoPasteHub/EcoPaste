@@ -70,32 +70,6 @@ var settingsActionFallbackOrder = []string{
 	"sendEmail", "reveal", "note", "star", "pinItem", "delete",
 }
 
-func (v *SettingsView) buildActions() {
-	registerSettingsActionsOnce.Do(registerSettingsActionsTargets)
-	content := v.newTab("actions", settingsTabTitle("actions"))
-	v.addSearchEntry(content, i18n.T(i18n.SettingsHoverActions), "clipboard.content.itemActions",
-		i18n.T(i18n.SettingsHoverKeywords), "hover actions menu buttons",
-		CGRect{Origin: CGPoint{X: 12, Y: 24}, Size: CGSize{Width: tabContentW - 24, Height: 420}})
-
-	v.addSectionLabel(content, 438, i18n.T(i18n.SettingsHoverActions))
-	v.addParagraph(content,
-		CGRect{Origin: CGPoint{X: 24, Y: 408}, Size: CGSize{Width: tabContentW - 48, Height: 28}},
-		i18n.T(i18n.SettingsHoverIntro), 11, objc.ID(classNSColor).Send(sel("secondaryLabelColor")), 0)
-
-	table := addSettingsListTable(content,
-		CGRect{Origin: CGPoint{X: 20, Y: 82}, Size: CGSize{Width: tabContentW - 40, Height: 312}},
-		30.0, float64(tabContentW-44), "actions", i18n.T(i18n.SettingsHoverTable), settingsActionsTarget)
-	v.actionsTable = table
-	settingsActionsByTable[table] = v
-
-	v.actionUp = v.addSettingsMoveButton(content,
-		CGRect{Origin: CGPoint{X: tabContentW - 204, Y: 34}, Size: CGSize{Width: 90, Height: 30}},
-		i18n.T(i18n.SettingsMoveUp), i18n.T(i18n.SettingsActionMoveUpA11y), settingsActionsTarget, "actionUpPressed:")
-	v.actionDown = v.addSettingsMoveButton(content,
-		CGRect{Origin: CGPoint{X: tabContentW - 104, Y: 34}, Size: CGSize{Width: 90, Height: 30}},
-		i18n.T(i18n.SettingsMoveDown), i18n.T(i18n.SettingsActionMoveDownA11y), settingsActionsTarget, "actionDownPressed:")
-}
-
 func (v *SettingsView) applyActions(values SettingsValues) {
 	enabled := make(map[string]struct{}, len(values.ItemActions))
 	for _, key := range values.ItemActions {
@@ -130,7 +104,7 @@ func (v *SettingsView) applyActions(values SettingsValues) {
 	v.actions = actions
 	if v.actionsTable != 0 {
 		v.actionsTable.Send(sel("reloadData"))
-		sizeSettingsTable(v.actionsTable, tabContentW-40, 30, len(actions))
+		sizeSettingsTable(v.actionsTable, settingsContentWidth-40, 30, len(actions))
 		if selected := selectedRowAfterResize(v.actionsTable, len(actions)); selected >= 0 {
 			v.selectAction(selected)
 		}

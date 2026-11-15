@@ -99,9 +99,6 @@ type SettingsView struct {
 	cx                    *core.NativeContext
 	view                  objc.ID
 	tabs                  objc.ID
-	sidebar               objc.ID
-	sidebarTable          objc.ID
-	sectionTitle          objc.ID
 	footer                objc.ID
 	searchField           objc.ID
 	searchResults         objc.ID
@@ -111,7 +108,6 @@ type SettingsView struct {
 	reset                 objc.ID
 	accessibilityStatus   objc.ID
 	fullDiskStatus        objc.ID
-	diagnosticsDir        objc.ID
 	diagnosticsHint       objc.ID
 	permissionTimer       objc.ID
 	appsTable             objc.ID
@@ -126,6 +122,8 @@ type SettingsView struct {
 	captureDown           objc.ID
 	captureOrder          []string
 	displayPreviewBox     objc.ID
+	displayPreviewCard    objc.ID
+	displayPreviewTop     float64
 	displayPreviewDivider objc.ID
 	displayPreviewRows    []objc.ID
 	groupField            *settingsField
@@ -153,13 +151,13 @@ type settingsField struct {
 }
 
 const (
-	settingsWidth    = 720.0
+	settingsWidth    = 480.0
 	settingsHeight   = 560.0
-	settingsSidebarW = 200.0
-	settingsFooterH  = 32.0
-	settingsTabAreaH = 470.0
-	tabContentW      = 520.0
-	tabContentH      = 470.0
+	settingsFooterH  = 0.0
+	settingsTabAreaH = settingsHeight
+	// settingsSearchHeaderH reserves the strip that holds the search field
+	// above the scrolling page content.
+	settingsSearchHeaderH = 44.0
 )
 
 type settingsTabMeta struct {
@@ -168,27 +166,57 @@ type settingsTabMeta struct {
 }
 
 var settingsTabs = map[string]settingsTabMeta{
-	"general":     {i18n.SettingsTabGeneral, "gearshape"},
-	"data":        {i18n.SettingsTabData, "externaldrive"},
-	"capture":     {i18n.SettingsTabCapture, "tray.and.arrow.down"},
-	"display":     {i18n.SettingsTabDisplay, "textformat.size"},
-	"actions":     {i18n.SettingsTabActions, "cursorarrow.click"},
-	"interaction": {i18n.SettingsTabInteraction, "hand.tap"},
-	"deletion":    {i18n.SettingsTabDeletion, "trash"},
-	"window":      {i18n.SettingsTabWindow, "rectangle.on.rectangle"},
-	"history":     {i18n.SettingsTabHistory, "clock.arrow.circlepath"},
-	"permissions": {i18n.SettingsTabPermissions, "lock.shield"},
-	"apps":        {i18n.SettingsTabApps, "square.grid.2x2"},
-	"shortcuts":   {i18n.SettingsTabShortcuts, "keyboard"},
-	"preview":     {i18n.SettingsTabPreview, "eye"},
-	"update":      {i18n.SettingsTabUpdate, "arrow.triangle.2.circlepath"},
+	"general":   {i18n.SettingsTabGeneral, "gearshape"},
+	"interface": {i18n.SettingsTabInterface, "paintpalette"},
+	"apps":      {i18n.SettingsTabApps, "square.grid.2x2"},
+	"advanced":  {i18n.SettingsTabAdvanced, "slider.horizontal.3"},
+	"about":     {i18n.SettingsTabAbout, "info.circle"},
+}
+
+var settingsTabAliases = map[string]string{
+	"data":        "advanced",
+	"capture":     "advanced",
+	"display":     "interface",
+	"actions":     "advanced",
+	"interaction": "interface",
+	"deletion":    "advanced",
+	"window":      "interface",
+	"history":     "advanced",
+	"permissions": "advanced",
+	"shortcuts":   "general",
+	"preview":     "interface",
+	"update":      "about",
+}
+
+func canonicalSettingsTab(name string) (string, bool) {
+	if _, ok := settingsTabs[name]; ok {
+		return name, true
+	}
+	if tab, ok := settingsTabAliases[name]; ok {
+		return tab, true
+	}
+	return "", false
 }
 
 func settingsTabTitle(name string) string {
-	if tab, ok := settingsTabs[name]; ok {
-		return i18n.T(tab.title)
+	tab, ok := canonicalSettingsTab(name)
+	if !ok {
+		return name
 	}
-	return name
+	return i18n.T(settingsTabs[tab].title)
+}
+
+// SettingsTabTitle returns the localized title of a primary settings tab.
+func SettingsTabTitle(name string) string { return settingsTabTitle(name) }
+
+// InitialSettingsTab returns the tab a new settings window should show.
+func InitialSettingsTab() string {
+	settingsTabMu.Lock()
+	defer settingsTabMu.Unlock()
+	if tab, ok := canonicalSettingsTab(pendingSettingsTab); ok {
+		return tab
+	}
+	return "general"
 }
 
 var (
@@ -204,12 +232,13 @@ var (
 // SelectSettingsTab shows the named tab when the settings window is open,
 // or on the next open otherwise. It reports whether the name is known.
 func SelectSettingsTab(name string) bool {
-	if _, ok := settingsTabs[name]; !ok {
+	tab, ok := canonicalSettingsTab(name)
+	if !ok {
 		return false
 	}
 	settingsTabMu.Lock()
 	if len(settingsOpenViews) == 0 {
-		pendingSettingsTab = name
+		pendingSettingsTab = tab
 		settingsTabMu.Unlock()
 		return true
 	}
@@ -219,7 +248,7 @@ func SelectSettingsTab(name string) bool {
 	}
 	settingsTabMu.Unlock()
 	for _, view := range views {
-		view.selectTab(name)
+		view.selectTabNotify(tab)
 	}
 	return true
 }
@@ -236,47 +265,27 @@ func NewSettings(cx *core.NativeContext) core.NativeComponent {
 	v.tabs = objc.ID(class("NSTabView")).Send(sel("new"))
 	v.tabs.Send(sel("setTabViewType:"), int64(6))
 	v.tabs.Send(sel("setFrame:"), CGRect{
-		Origin: CGPoint{X: settingsSidebarW, Y: settingsFooterH},
-		Size:   CGSize{Width: settingsWidth - settingsSidebarW, Height: settingsTabAreaH},
+		Origin: CGPoint{X: 0, Y: 0},
+		Size:   CGSize{Width: settingsWidth, Height: settingsTabAreaH},
 	})
 	v.tabs.Send(sel("setAutoresizingMask:"), int64(18))
 	v.view.Send(sel("addSubview:"), v.tabs)
 
-	v.footer = objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(i18n.SettingsFooter)))
+	v.footer = objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(""))
 	v.footer.Send(sel("setFont:"), systemFont(11))
-	v.footer.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
+	v.footer.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("systemRedColor")))
 	v.footer.Send(sel("setFrame:"), CGRect{
-		Origin: CGPoint{X: settingsSidebarW + 20, Y: 8},
-		Size:   CGSize{Width: settingsWidth - settingsSidebarW - 200, Height: 16},
+		Origin: CGPoint{X: 28, Y: 6},
+		Size:   CGSize{Width: settingsWidth - 56, Height: 16},
 	})
+	v.footer.Send(sel("setHidden:"), true)
 	v.view.Send(sel("addSubview:"), v.footer)
 
-	v.reset = objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
-		nsString(i18n.T(i18n.SettingsReset)), settingsTarget, sel("resetSettingsPressed:"))
-	v.reset.Send(sel("setFrame:"), CGRect{
-		Origin: CGPoint{X: settingsWidth - 168, Y: 2},
-		Size:   CGSize{Width: 150, Height: 24},
-	})
-	v.reset.Send(sel("setBezelStyle:"), int64(1))
-	v.view.Send(sel("addSubview:"), v.reset)
-	settingsViews[v.reset] = v
-
-	v.buildGeneral()
-	v.buildData()
-	v.buildCapture()
-	v.buildDisplay()
-	v.buildActions()
-	v.buildInteraction()
-	v.buildDeletion()
-	v.buildWindow()
-	v.buildHistory()
-	v.buildPermissions()
-	v.buildApps()
-	v.buildShortcuts()
-	v.buildPreview()
-	v.buildUpdate()
-	v.buildSidebar()
-	v.buildSettingsHeader()
+	v.buildGeneralPage()
+	v.buildInterfacePage()
+	v.buildAppsPage()
+	v.buildAdvancedPage()
+	v.buildAboutPage()
 	v.buildSearch()
 	settingsTabMu.Lock()
 	settingsOpenViews[v] = struct{}{}
@@ -291,15 +300,28 @@ func NewSettings(cx *core.NativeContext) core.NativeComponent {
 }
 
 func (v *SettingsView) selectTab(name string) {
-	v.applyTab(name)
-	v.selectSidebarRow(name)
+	tab, ok := canonicalSettingsTab(name)
+	if !ok {
+		return
+	}
+	v.applyTab(tab)
+}
+
+func (v *SettingsView) selectTabNotify(name string) {
+	tab, ok := canonicalSettingsTab(name)
+	if !ok {
+		return
+	}
+	v.selectTab(tab)
+	v.cx.Emit("tabSelected", tab)
 }
 
 func (v *SettingsView) applyTab(name string) {
-	v.tabs.Send(sel("selectTabViewItemWithIdentifier:"), nsString(name))
-	if v.sectionTitle != 0 {
-		v.sectionTitle.Send(sel("setStringValue:"), nsString(settingsTabTitle(name)))
+	if v.currentTab == name {
+		return
 	}
+	v.tabs.Send(sel("selectTabViewItemWithIdentifier:"), nsString(name))
+	v.currentTab = name
 }
 
 // View implements core.NativeComponent.
@@ -313,15 +335,20 @@ func (v *SettingsView) SetProp(name string, value any) {
 			v.lastValues = values
 			v.apply(values)
 		}
+	case "tab":
+		if tab, ok := value.(string); ok {
+			v.selectTab(tab)
+		}
 	case "error":
 		text, _ := value.(string)
 		if text == "" {
-			v.footer.Send(sel("setStringValue:"), nsString(i18n.T(i18n.SettingsFooter)))
-			v.footer.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
+			v.footer.Send(sel("setStringValue:"), nsString(""))
+			v.footer.Send(sel("setHidden:"), true)
 			return
 		}
 		v.footer.Send(sel("setStringValue:"), nsString(text))
 		v.footer.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("systemRedColor")))
+		v.footer.Send(sel("setHidden:"), false)
 		v.apply(v.lastValues)
 	}
 }
@@ -330,10 +357,13 @@ func (v *SettingsView) SetProp(name string, value any) {
 func (v *SettingsView) Command(string, any) {}
 
 func (v *SettingsView) apply(values SettingsValues) {
-	v.dataDir.Send(sel("setStringValue:"), nsString(values.DataDir))
-	v.dataDir.Send(sel("setToolTip:"), nsString(values.DataDir))
-	v.applyDiagnostics(values)
-	v.restore.Send(sel("setEnabled:"), values.CanRestoreDataDir)
+	if v.dataDir != 0 {
+		v.dataDir.Send(sel("setStringValue:"), nsString(values.DataDir))
+		v.dataDir.Send(sel("setToolTip:"), nsString(values.DataDir))
+	}
+	if v.restore != 0 {
+		v.restore.Send(sel("setEnabled:"), values.CanRestoreDataDir)
+	}
 	v.applyApps(values)
 	v.applyActions(values)
 	v.applyCaptureOrder(values)

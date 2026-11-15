@@ -18,6 +18,8 @@ github.com/ncruces/go-strftime v1.1.0 h1:vtPmPWMkb539RGV9WpWT9EwJGvrOCKvMNI4obWL
 github.com/ncruces/go-strftime v1.1.0/go.mod h1:yVaq7iwCN09vHRrKBrrflXT0M9tTMG2KmZ9Fj7xeG/g=
 github.com/nsgo-dev/nsgo v0.0.0-20261112150101-70cef6a4ed17 h1:7JbmmoJcdpjrN3GCIFWWNczPzvAQIrVKbEPLcHQbNRg=
 github.com/nsgo-dev/nsgo v0.0.0-20261112150101-70cef6a4ed17/go.mod h1:CqPfBVvmmYVPE+6B3LHcRVr9B5kyx4GVEQWEzz1mzF4=
+github.com/nsgo-dev/nsgo-icons-kubai v0.0.0-20261112151732-a504944bd2a7 h1:eAs1np3Tki0oA9mVtP7PbUdxB5MsQXirnCTBymWst9g=
+github.com/nsgo-dev/nsgo-icons-kubai v0.0.0-20261112151732-a504944bd2a7/go.mod h1:Nm900FuEIaKGrnM1N8rmaKeGYTcQYr8WYmwp4prp2NU=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=
 github.com/zeebo/assert v1.1.0 h1:hU1L1vLTHsnO8x8c9KAR5GmM5QscxHg5RNU5z5qbUWY=

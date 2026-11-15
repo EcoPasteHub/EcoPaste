@@ -26,23 +26,26 @@ var (
 	settingsAppControls      = map[objc.ID]*SettingsView{}
 )
 
-// buildApps adds the source application filter tab. Each row toggles one
-// app in clipboard.filters.excludedAppIds.
-func (v *SettingsView) buildApps() {
+func (v *SettingsView) buildAppsPage() {
 	registerSettingsAppsOnce.Do(registerSettingsAppsTargets)
-	content := v.newTab("apps", settingsTabTitle("apps"))
-	v.addSearchEntry(content, i18n.T(i18n.SettingsSourceApps), "clipboard.filters.excludedAppIds",
-		i18n.T(i18n.SettingsAppsKeywords), "source apps filter exclude privacy",
-		CGRect{Origin: CGPoint{X: 12, Y: 24}, Size: CGSize{Width: tabContentW - 24, Height: 420}})
+	document := v.newPage("apps")
+	top := 18.0
+	v.addSectionLabel(document, top, i18n.T(i18n.SettingsAppsSection))
+	top += 24
+	top = v.addPageParagraph(document, top, 32, i18n.T(i18n.SettingsAppsIntro))
 
-	v.addSectionLabel(content, 438, i18n.T(i18n.SettingsAppsSection))
-	v.addParagraph(content,
-		CGRect{Origin: CGPoint{X: 24, Y: 408}, Size: CGSize{Width: tabContentW - 48, Height: 28}},
-		i18n.T(i18n.SettingsAppsIntro), 11, objc.ID(classNSColor).Send(sel("secondaryLabelColor")), 0)
+	const listHeight = 300.0
+	card := CGRect{
+		Origin: CGPoint{X: settingsContentX, Y: top},
+		Size:   CGSize{Width: settingsContentWidth, Height: listHeight},
+	}
+	addSettingsListCard(document, card)
 
-	addSettingsListCard(content, CGRect{Origin: CGPoint{X: 20, Y: 84}, Size: CGSize{Width: tabContentW - 40, Height: 310}})
 	scroll := objc.ID(class("NSScrollView")).Send(sel("new"))
-	scroll.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 21, Y: 85}, Size: CGSize{Width: tabContentW - 42, Height: 308}})
+	scroll.Send(sel("setFrame:"), CGRect{
+		Origin: CGPoint{X: settingsContentX + 1, Y: top + 1},
+		Size:   CGSize{Width: settingsContentWidth - 2, Height: listHeight - 2},
+	})
 	scroll.Send(sel("setHasVerticalScroller:"), true)
 	scroll.Send(sel("setAutohidesScrollers:"), true)
 	scroll.Send(sel("setDrawsBackground:"), false)
@@ -66,14 +69,14 @@ func (v *SettingsView) buildApps() {
 	column := objc.ID(class("NSTableColumn")).Send(sel("new"))
 	column.Send(sel("setIdentifier:"), nsString("apps"))
 	column.Send(sel("setResizingMask:"), int64(1))
-	column.Send(sel("setWidth:"), float64(tabContentW-44))
+	column.Send(sel("setWidth:"), settingsContentWidth-4)
 	table.Send(sel("addTableColumn:"), column)
 	column.Send(sel("release"))
 	table.Send(sel("setColumnAutoresizingStyle:"), int64(1))
 
 	scroll.Send(sel("setDocumentView:"), table)
 	table.Send(sel("release"))
-	content.Send(sel("addSubview:"), scroll)
+	document.Send(sel("addSubview:"), scroll)
 	scroll.Send(sel("release"))
 	v.appsTable = table
 	settingsAppsByTable[table] = v
@@ -82,24 +85,32 @@ func (v *SettingsView) buildApps() {
 	empty.Send(sel("setFont:"), systemFont(12))
 	empty.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
 	empty.Send(sel("setAlignment:"), int64(2))
-	empty.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 229}, Size: CGSize{Width: tabContentW - 48, Height: 20}})
+	empty.Send(sel("setFrame:"), CGRect{
+		Origin: CGPoint{X: settingsContentX + 24, Y: top + listHeight/2 - 10},
+		Size:   CGSize{Width: settingsContentWidth - 48, Height: 20},
+	})
 	empty.Send(sel("setHidden:"), true)
-	content.Send(sel("addSubview:"), empty)
+	document.Send(sel("addSubview:"), empty)
 	v.appsEmpty = empty
 
+	top += listHeight + 16
 	add := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
 		nsString(i18n.T(i18n.SettingsAddApp)), settingsTarget, sel("addAppPressed:"))
-	add.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 134, Y: 34}, Size: CGSize{Width: 110, Height: 30}})
+	add.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: settingsContentX + settingsContentWidth - 110, Y: top},
+		Size: CGSize{Width: 110, Height: 30}})
 	add.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsAddAppA11y)))
-	content.Send(sel("addSubview:"), add)
+	document.Send(sel("addSubview:"), add)
 	settingsViews[add] = v
 
 	refresh := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
 		nsString(i18n.T(i18n.SettingsRefresh)), settingsTarget, sel("refreshAppsPressed:"))
-	refresh.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 214, Y: 34}, Size: CGSize{Width: 70, Height: 30}})
+	refresh.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: settingsContentX + settingsContentWidth - 192, Y: top},
+		Size: CGSize{Width: 74, Height: 30}})
 	refresh.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsRefreshA11y)))
-	content.Send(sel("addSubview:"), refresh)
+	document.Send(sel("addSubview:"), refresh)
 	settingsViews[refresh] = v
+
+	v.finishPage(document, top+30)
 }
 
 func (v *SettingsView) applyApps(values SettingsValues) {
@@ -116,7 +127,7 @@ func (v *SettingsView) applyApps(values SettingsValues) {
 	}
 	if v.appsTable != 0 {
 		v.appsTable.Send(sel("reloadData"))
-		sizeSettingsTable(v.appsTable, tabContentW-40, settingsAppRowHeight, len(values.Apps))
+		sizeSettingsTable(v.appsTable, settingsContentWidth-40, settingsAppRowHeight, len(values.Apps))
 	}
 	if v.appsEmpty != 0 {
 		v.appsEmpty.Send(sel("setHidden:"), len(v.apps) > 0)

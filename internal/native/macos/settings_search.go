@@ -25,8 +25,8 @@ type settingsSearchEntry struct {
 
 func rowHighlightFrame(y float64) CGRect {
 	return CGRect{
-		Origin: CGPoint{X: 12, Y: y - 8},
-		Size:   CGSize{Width: tabContentW - 24, Height: 34},
+		Origin: CGPoint{X: settingsContentX + 1, Y: y},
+		Size:   CGSize{Width: settingsContentWidth - 2, Height: settingsRowHeight},
 	}
 }
 
@@ -51,8 +51,8 @@ func (v *SettingsView) buildSearch() {
 	v.searchField.Send(sel("setPlaceholderString:"), nsString(i18n.T(i18n.SettingsSearchPlaceholder)))
 	v.searchField.Send(sel("setFont:"), systemFont(13))
 	v.searchField.Send(sel("setFrame:"), CGRect{
-		Origin: CGPoint{X: settingsWidth - 304, Y: settingsHeight - 35},
-		Size:   CGSize{Width: 280, Height: 28},
+		Origin: CGPoint{X: settingsContentX, Y: settingsHeight - 34},
+		Size:   CGSize{Width: settingsContentWidth, Height: 26},
 	})
 	v.searchField.Send(sel("setSendsSearchStringImmediately:"), true)
 	v.searchField.Send(sel("setSendsWholeSearchString:"), false)
@@ -66,8 +66,8 @@ func (v *SettingsView) buildSearch() {
 
 	v.searchResults = objc.ID(class("NSPopUpButton")).Send(sel("alloc")).
 		Send(sel("initWithFrame:pullsDown:"), CGRect{
-			Origin: CGPoint{X: settingsWidth - 304, Y: settingsHeight - 72},
-			Size:   CGSize{Width: 280, Height: 30},
+			Origin: CGPoint{X: settingsContentX, Y: settingsHeight - 70},
+			Size:   CGSize{Width: settingsContentWidth, Height: 28},
 		}, false)
 	v.searchResults.Send(sel("setFont:"), systemFont(12))
 	v.searchResults.Send(sel("setTarget:"), settingsTarget)
@@ -103,7 +103,7 @@ func (v *SettingsView) searchResultPicked(sender objc.ID) {
 		return
 	}
 	entry := v.searchMatches[index]
-	v.selectTab(entry.tab)
+	v.selectTabNotify(entry.tab)
 	v.showSearchHighlight(entry)
 	v.searchField.Send(sel("setStringValue:"), nsString(""))
 	v.updateSearchResults("")

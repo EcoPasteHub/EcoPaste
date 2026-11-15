@@ -6,6 +6,7 @@ require (
 	github.com/ebitengine/purego v0.11.2
 	github.com/google/renameio/v2 v2.0.0
 	github.com/nsgo-dev/nsgo v0.0.0-20261112150101-70cef6a4ed17
+	github.com/nsgo-dev/nsgo-icons-kubai v0.0.0-20261112151732-a504944bd2a7
 	github.com/zeebo/blake3 v0.2.4
 	golang.org/x/crypto v0.59.0
 	golang.org/x/image v0.45.0

@@ -35,8 +35,8 @@ type settingsWiring struct {
 func (w *settingsWiring) open() {
 	w.settingsWindow = desktop.OpenWindow(w.app, desktop.WindowOptions{
 		Title:       i18n.T(i18n.SettingsWindowTitle),
-		Width:       720,
-		Height:      560,
+		Width:       480,
+		Height:      640,
 		Key:         "settings",
 		Constraints: core.WindowConstraints{NoResize: true, NoMaximize: true},
 	}, ui.SettingsWindow(w.newModel()))

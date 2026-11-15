@@ -12,9 +12,7 @@ import (
 const (
 	settingsCaptureRowIdentifier = "ecopaste.settings-capture-row"
 	settingsCaptureRowHeight     = 20.0
-	settingsCaptureListWidth     = tabContentW - 140
-	settingsCaptureButtonX       = tabContentW - 112
-	settingsCaptureButtonWidth   = 92
+	settingsCaptureListWidth     = settingsContentWidth - 140
 )
 
 var (
@@ -38,38 +36,6 @@ func settingsCaptureTitle(key string) (string, bool) {
 		return i18n.T(i18n.SettingsCaptureText), true
 	}
 	return "", false
-}
-
-func (v *SettingsView) buildCaptureOrder(content objc.ID) {
-	registerSettingsCaptureOnce.Do(registerSettingsCaptureTargets)
-	v.addSearchEntry(content, i18n.T(i18n.SettingsCaptureOrder), "clipboard.capture.order",
-		i18n.T(i18n.SettingsCaptureKeywords), "capture order priority",
-		CGRect{Origin: CGPoint{X: 12, Y: 10}, Size: CGSize{Width: tabContentW - 24, Height: 146}})
-	title := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(i18n.SettingsCaptureOrder)))
-	title.Send(sel("setFont:"), objc.ID(classNSFont).Send(sel("systemFontOfSize:weight:"), 11.0, 0.3))
-	title.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
-	title.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 24, Y: 132}, Size: CGSize{Width: 120, Height: 18}})
-	content.Send(sel("addSubview:"), title)
-
-	hint := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(i18n.SettingsCaptureHint)))
-	hint.Send(sel("setFont:"), systemFont(11))
-	hint.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
-	hint.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 142, Y: 132}, Size: CGSize{Width: 354, Height: 18}})
-	content.Send(sel("addSubview:"), hint)
-
-	table := addSettingsListTable(content,
-		CGRect{Origin: CGPoint{X: 20, Y: 18}, Size: CGSize{Width: settingsCaptureListWidth, Height: 106}},
-		settingsCaptureRowHeight, float64(settingsCaptureListWidth-4), "capture",
-		i18n.T(i18n.SettingsCaptureOrder), settingsCaptureTarget)
-	v.captureTable = table
-	settingsCaptureByTable[table] = v
-
-	v.captureUp = v.addSettingsMoveButton(content,
-		CGRect{Origin: CGPoint{X: settingsCaptureButtonX, Y: 72}, Size: CGSize{Width: settingsCaptureButtonWidth, Height: 28}},
-		i18n.T(i18n.SettingsMoveUp), i18n.T(i18n.SettingsMoveUpA11y), settingsCaptureTarget, "captureUpPressed:")
-	v.captureDown = v.addSettingsMoveButton(content,
-		CGRect{Origin: CGPoint{X: settingsCaptureButtonX, Y: 38}, Size: CGSize{Width: settingsCaptureButtonWidth, Height: 28}},
-		i18n.T(i18n.SettingsMoveDown), i18n.T(i18n.SettingsMoveDownA11y), settingsCaptureTarget, "captureDownPressed:")
 }
 
 func (v *SettingsView) applyCaptureOrder(values SettingsValues) {
