@@ -16,11 +16,11 @@ func OpenURL(raw string) error {
 	onMain(func() {
 		url := objc.ID(class("NSURL")).Send(sel("URLWithString:"), nsString(raw))
 		if url == 0 {
-			result = fmt.Errorf("%s", i18n.T(i18n.ErrorOpenLinkParse))
+			result = i18n.Error(i18n.ErrorOpenLinkParse)
 			return
 		}
 		if !objc.Send[bool](objc.ID(class("NSWorkspace")).Send(sel("sharedWorkspace")), sel("openURL:"), url) {
-			result = fmt.Errorf("%s", i18n.T(i18n.ErrorOpenLink))
+			result = i18n.Error(i18n.ErrorOpenLink)
 		}
 	})
 	return result
@@ -35,7 +35,7 @@ func OpenPath(path string) error {
 	onMain(func() {
 		url := objc.ID(class("NSURL")).Send(sel("fileURLWithPath:"), nsString(path))
 		if !objc.Send[bool](objc.ID(class("NSWorkspace")).Send(sel("sharedWorkspace")), sel("openURL:"), url) {
-			result = fmt.Errorf("%s", i18n.T(i18n.ErrorOpenFile))
+			result = i18n.Error(i18n.ErrorOpenFile)
 		}
 	})
 	return result
@@ -50,7 +50,7 @@ func RevealPaths(paths []string) error {
 		}
 	}
 	if len(existing) == 0 {
-		return fmt.Errorf("%s", i18n.T(i18n.ErrorFilesMissing))
+		return i18n.Error(i18n.ErrorFilesMissing)
 	}
 	onMain(func() {
 		urls := objc.ID(class("NSMutableArray")).Send(sel("array"))

@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -227,7 +226,7 @@ func Run(app *core.Scope) {
 				}
 				model.setTrayIcon = func(visible bool) error {
 					if tray == nil {
-						return fmt.Errorf("%s", i18n.T(i18n.ErrorTrayNotReady))
+						return i18n.Error(i18n.ErrorTrayNotReady)
 					}
 					icon := []byte(nil)
 					if visible {

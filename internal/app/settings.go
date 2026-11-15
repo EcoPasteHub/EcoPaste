@@ -126,26 +126,26 @@ func (m *settingsModel) Apply(path string, value any) error {
 		return m.applyCaptureOrder(value)
 	case "backup.export":
 		if m.exportBackup == nil {
-			return fmt.Errorf("%s", i18n.T(i18n.ErrorBackupUnavailable))
+			return i18n.Error(i18n.ErrorBackupUnavailable)
 		}
 		m.exportBackup()
 		return nil
 	case "backup.import":
 		if m.importBackup == nil {
-			return fmt.Errorf("%s", i18n.T(i18n.ErrorBackupUnavailable))
+			return i18n.Error(i18n.ErrorBackupUnavailable)
 		}
 		m.importBackup()
 		return nil
 	case "update.check":
 		if m.checkUpdates == nil {
-			return fmt.Errorf("%s", i18n.T(i18n.UpdateCheckFailedBody))
+			return i18n.Error(i18n.UpdateCheckFailedBody)
 		}
 		m.checkUpdates()
 		return nil
 	case "general.dataDir":
 		parent, _ := value.(string)
 		if m.changeDataDir == nil {
-			return fmt.Errorf("%s", i18n.T(i18n.ErrorDataDirChange))
+			return i18n.Error(i18n.ErrorDataDirChange)
 		}
 		if err := m.changeDataDir(parent); err != nil {
 			return err
@@ -156,7 +156,7 @@ func (m *settingsModel) Apply(path string, value any) error {
 		return nil
 	case "general.defaultDataDir":
 		if m.restoreDataDir == nil {
-			return fmt.Errorf("%s", i18n.T(i18n.ErrorDataDirRestore))
+			return i18n.Error(i18n.ErrorDataDirRestore)
 		}
 		if err := m.restoreDataDir(); err != nil {
 			return err
@@ -244,7 +244,7 @@ func (m *settingsModel) applyBeforeSave(path string, value any) error {
 func (m *settingsModel) applyActions(value any) error {
 	update, ok := value.(macos.SettingsItemActions)
 	if !ok {
-		return fmt.Errorf("%s", i18n.T(i18n.ErrorInvalidActions))
+		return i18n.Error(i18n.ErrorInvalidActions)
 	}
 	known := map[settings.ItemAction]struct{}{}
 	for _, action := range resolvedActionOrder(nil) {
@@ -305,7 +305,7 @@ func actionValues(actions []settings.ItemAction) []string {
 func (m *settingsModel) applyCaptureOrder(value any) error {
 	values, ok := value.([]string)
 	if !ok {
-		return fmt.Errorf("%s", i18n.T(i18n.ErrorInvalidCaptureOrder))
+		return i18n.Error(i18n.ErrorInvalidCaptureOrder)
 	}
 	order := make([]settings.CaptureKind, 0, len(values))
 	for _, text := range values {

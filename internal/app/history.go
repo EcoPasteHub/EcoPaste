@@ -46,7 +46,7 @@ func (m *historyModel) item(ctx context.Context, id string) (*database.Item, err
 		return nil, err
 	}
 	if item == nil {
-		return nil, fmt.Errorf("%s", i18n.T(i18n.HistoryItemMissing))
+		return nil, i18n.Error(i18n.HistoryItemMissing)
 	}
 	return item, nil
 }
@@ -341,10 +341,10 @@ func (m *historyModel) Delete(ctx context.Context, id string) error {
 	}
 	content := m.clipboardConfig().Content
 	if item.IsFavorite && !content.DeleteFavoriteItems {
-		return fmt.Errorf("%s", i18n.T(i18n.ErrorDeleteFavorite))
+		return i18n.Error(i18n.ErrorDeleteFavorite)
 	}
 	if item.IsPinned && !content.DeletePinnedItems {
-		return fmt.Errorf("%s", i18n.T(i18n.ErrorDeletePinned))
+		return i18n.Error(i18n.ErrorDeletePinned)
 	}
 	if err := m.runtime.db.Delete(ctx, id); err != nil {
 		return err

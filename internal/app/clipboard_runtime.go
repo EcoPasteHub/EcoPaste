@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"path/filepath"
 	"sync/atomic"
@@ -47,7 +46,7 @@ func (r *clipboardRuntime) readClipboard(ctx context.Context) error {
 // clipboardServiceDown reports the error settings actions return when the
 // clipboard runtime never started.
 func clipboardServiceDown() error {
-	return fmt.Errorf("%s", i18n.T(i18n.ClipboardServiceDown))
+	return i18n.Error(i18n.ClipboardServiceDown)
 }
 
 // runWithTimeout runs fn against rt on a bounded context, failing fast when

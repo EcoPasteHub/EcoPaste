@@ -3,6 +3,7 @@
 package i18n
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"sync/atomic"
@@ -55,6 +56,12 @@ func T(key Key) string {
 		return text
 	}
 	return string(key)
+}
+
+// Error returns an error whose message is the text for key, for user-facing
+// failures that carry no technical detail.
+func Error(key Key) error {
+	return errors.New(T(key))
 }
 
 // Tf is T with fmt.Sprintf arguments.

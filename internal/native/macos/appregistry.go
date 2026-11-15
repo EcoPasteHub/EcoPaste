@@ -59,14 +59,14 @@ func RunningApps() []RunningApp {
 // ResolveApp reads a .app bundle's identity and display name.
 func ResolveApp(path string) (RunningApp, error) {
 	if filepath.Ext(path) != ".app" {
-		return RunningApp{}, fmt.Errorf("%s", i18n.T(i18n.ErrorSelectBundle))
+		return RunningApp{}, i18n.Error(i18n.ErrorSelectBundle)
 	}
 	info, err := os.Stat(path)
 	if err != nil {
 		return RunningApp{}, fmt.Errorf(i18n.T(i18n.ErrorAppMissing), err)
 	}
 	if !info.IsDir() {
-		return RunningApp{}, fmt.Errorf("%s", i18n.T(i18n.ErrorAppPackage))
+		return RunningApp{}, i18n.Error(i18n.ErrorAppPackage)
 	}
 
 	result := RunningApp{Path: path}
@@ -79,7 +79,7 @@ func ResolveApp(path string) (RunningApp, error) {
 		result.Name = bundleDisplayName(bundle)
 	})
 	if result.BundleID == "" {
-		return RunningApp{}, fmt.Errorf("%s", i18n.T(i18n.ErrorAppIdentifier))
+		return RunningApp{}, i18n.Error(i18n.ErrorAppIdentifier)
 	}
 	if result.Name == "" {
 		result.Name = filepath.Base(path[:len(path)-len(".app")])

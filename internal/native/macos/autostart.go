@@ -97,7 +97,7 @@ func autostartError(status int64, enabled bool) error {
 		return fmt.Errorf(i18n.T(i18n.AutostartDisable), status)
 	}
 	if status == appServiceNotFound {
-		return fmt.Errorf("%s", i18n.T(i18n.AutostartInstall))
+		return i18n.Error(i18n.AutostartInstall)
 	}
 	return fmt.Errorf(i18n.T(i18n.AutostartEnable), status)
 }
@@ -113,14 +113,14 @@ func appService() (objc.ID, error) {
 	}
 	appServiceClass := objc.GetClass("SMAppService")
 	if appServiceClass == 0 {
-		return 0, fmt.Errorf("%s", i18n.T(i18n.AutostartVersion))
+		return 0, i18n.Error(i18n.AutostartVersion)
 	}
 	var service objc.ID
 	onMain(func() {
 		service = objc.ID(appServiceClass).Send(sel("mainAppService"))
 	})
 	if service == 0 {
-		return 0, fmt.Errorf("%s", i18n.T(i18n.AutostartUnavailable))
+		return 0, i18n.Error(i18n.AutostartUnavailable)
 	}
 	return service, nil
 }

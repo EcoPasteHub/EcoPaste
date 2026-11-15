@@ -214,7 +214,7 @@ func loadCarbonHotKeys() {
 		var handlerRef uintptr
 		if status := installEventHandlerFunc(getApplicationEventTarget(), handler, 1,
 			&spec, 0, &handlerRef); status != 0 {
-			carbonHotKeyErr = fmt.Errorf("%s", i18n.T(i18n.ShortcutInstallHandler))
+			carbonHotKeyErr = i18n.Error(i18n.ShortcutInstallHandler)
 		}
 	})
 }

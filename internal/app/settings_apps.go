@@ -37,7 +37,7 @@ func (m *settingsModel) loadSourceApps(excludedIDs []string) []macos.SettingsApp
 func (m *settingsModel) applyExcludedApps(value any) error {
 	ids, ok := value.([]string)
 	if !ok {
-		return fmt.Errorf("%s", i18n.T(i18n.ErrorInvalidExcludedApps))
+		return i18n.Error(i18n.ErrorInvalidExcludedApps)
 	}
 	ids = dedupeIDs(ids)
 	previous := m.store.Snapshot().Clipboard.Filters.ExcludedAppIDs
@@ -62,7 +62,7 @@ func (m *settingsModel) applyExcludedApps(value any) error {
 // adds it to the ignored list so the user sees the effect immediately.
 func (m *settingsModel) addSourceApp(path string) error {
 	if m.addApp == nil {
-		return fmt.Errorf("%s", i18n.T(i18n.ErrorAddAppUnavailable))
+		return i18n.Error(i18n.ErrorAddAppUnavailable)
 	}
 	app, err := m.addApp(path)
 	if err != nil {

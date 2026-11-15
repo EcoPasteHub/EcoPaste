@@ -58,7 +58,7 @@ func (m *historyModel) RenameGroup(ctx context.Context, id string) (bool, error)
 		return false, err
 	}
 	if group == nil {
-		return false, fmt.Errorf("%s", i18n.T(i18n.ErrorGroupMissing))
+		return false, i18n.Error(i18n.ErrorGroupMissing)
 	}
 	value, ok := editGroup(group.Name)
 	if !ok {
@@ -86,7 +86,7 @@ func (m *historyModel) DeleteGroup(ctx context.Context, id string) (bool, error)
 		return false, err
 	}
 	if group == nil {
-		return false, fmt.Errorf("%s", i18n.T(i18n.ErrorGroupMissing))
+		return false, i18n.Error(i18n.ErrorGroupMissing)
 	}
 	if !deleteGroup(group.Name) {
 		return false, nil
@@ -105,7 +105,7 @@ func (m *historyModel) MoveToGroup(ctx context.Context, itemID, groupID string) 
 			return err
 		}
 		if group == nil {
-			return fmt.Errorf("%s", i18n.T(i18n.ErrorGroupMissing))
+			return i18n.Error(i18n.ErrorGroupMissing)
 		}
 		value = &groupID
 	}
@@ -119,7 +119,7 @@ func (m *historyModel) ensureUniqueGroupName(ctx context.Context, name, exceptID
 	}
 	for _, group := range groups {
 		if group.ID != exceptID && strings.EqualFold(group.Name, name) {
-			return fmt.Errorf("%s", i18n.T(i18n.ErrorGroupNameDuplicate))
+			return i18n.Error(i18n.ErrorGroupNameDuplicate)
 		}
 	}
 	return nil
@@ -128,7 +128,7 @@ func (m *historyModel) ensureUniqueGroupName(ctx context.Context, name, exceptID
 func normalizeGroupName(value string) (string, error) {
 	name := strings.TrimSpace(value)
 	if name == "" {
-		return "", fmt.Errorf("%s", i18n.T(i18n.ErrorGroupNameEmpty))
+		return "", i18n.Error(i18n.ErrorGroupNameEmpty)
 	}
 	if runes := []rune(name); len(runes) > groupNameMaxChars {
 		return "", fmt.Errorf(i18n.T(i18n.ErrorGroupNameLong), groupNameMaxChars)
