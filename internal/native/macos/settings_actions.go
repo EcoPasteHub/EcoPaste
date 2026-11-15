@@ -146,24 +146,12 @@ func (v *SettingsView) selectAction(row int) {
 	if v.actionsTable == 0 || row < 0 || row >= len(v.actions) {
 		return
 	}
-	indexes := objc.ID(class("NSIndexSet")).Send(sel("indexSetWithIndex:"), int64(row))
-	v.actionsTable.Send(sel("selectRowIndexes:byExtendingSelection:"), indexes, false)
-	v.actionsTable.Send(sel("scrollRowToVisible:"), int64(row))
+	selectSettingsRow(v.actionsTable, row)
 	v.updateMoveButtons()
 }
 
 func (v *SettingsView) updateMoveButtons() {
-	row := -1
-	if v.actionsTable != 0 {
-		row = int(objc.Send[int64](v.actionsTable, sel("selectedRow")))
-	}
-	up, down := orderMoveEnabled(row, len(v.actions))
-	if v.actionUp != 0 {
-		v.actionUp.Send(sel("setEnabled:"), up)
-	}
-	if v.actionDown != 0 {
-		v.actionDown.Send(sel("setEnabled:"), down)
-	}
+	updateSettingsMoveButtons(v.actionsTable, v.actionUp, v.actionDown, len(v.actions))
 }
 
 func orderMoveEnabled(selected, total int) (bool, bool) {

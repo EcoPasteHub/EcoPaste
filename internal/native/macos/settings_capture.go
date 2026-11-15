@@ -107,24 +107,12 @@ func (v *SettingsView) selectCaptureOrder(row int) {
 	if v.captureTable == 0 || row < 0 || row >= len(v.captureOrder) {
 		return
 	}
-	indexes := objc.ID(class("NSIndexSet")).Send(sel("indexSetWithIndex:"), int64(row))
-	v.captureTable.Send(sel("selectRowIndexes:byExtendingSelection:"), indexes, false)
-	v.captureTable.Send(sel("scrollRowToVisible:"), int64(row))
+	selectSettingsRow(v.captureTable, row)
 	v.updateCaptureMoveButtons()
 }
 
 func (v *SettingsView) updateCaptureMoveButtons() {
-	row := -1
-	if v.captureTable != 0 {
-		row = int(objc.Send[int64](v.captureTable, sel("selectedRow")))
-	}
-	up, down := orderMoveEnabled(row, len(v.captureOrder))
-	if v.captureUp != 0 {
-		v.captureUp.Send(sel("setEnabled:"), up)
-	}
-	if v.captureDown != 0 {
-		v.captureDown.Send(sel("setEnabled:"), down)
-	}
+	updateSettingsMoveButtons(v.captureTable, v.captureUp, v.captureDown, len(v.captureOrder))
 }
 
 func (v *SettingsView) moveCaptureOrder(delta int) {

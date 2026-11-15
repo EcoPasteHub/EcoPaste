@@ -28,3 +28,26 @@ func moveSelectedRow[T any](table objc.ID, rows []T, delta int) (int, bool) {
 	rows[row], rows[next] = rows[next], rows[row]
 	return next, true
 }
+
+// selectSettingsRow selects and reveals one row in a settings order table.
+func selectSettingsRow(table objc.ID, row int) {
+	indexes := objc.ID(class("NSIndexSet")).Send(sel("indexSetWithIndex:"), int64(row))
+	table.Send(sel("selectRowIndexes:byExtendingSelection:"), indexes, false)
+	table.Send(sel("scrollRowToVisible:"), int64(row))
+}
+
+// updateSettingsMoveButtons enables the reorder controls for the current
+// selection.
+func updateSettingsMoveButtons(table, up, down objc.ID, total int) {
+	row := -1
+	if table != 0 {
+		row = int(objc.Send[int64](table, sel("selectedRow")))
+	}
+	upEnabled, downEnabled := orderMoveEnabled(row, total)
+	if up != 0 {
+		up.Send(sel("setEnabled:"), upEnabled)
+	}
+	if down != 0 {
+		down.Send(sel("setEnabled:"), downEnabled)
+	}
+}
