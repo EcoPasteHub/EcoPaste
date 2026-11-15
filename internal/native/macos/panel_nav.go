@@ -212,7 +212,7 @@ func newPanelNav(p *Panel, parent objc.ID) *panelNav {
 	nav.window.Send(sel("setHasShadow:"), true)
 
 	nav.effect = objc.ID(navEffectClass).Send(sel("new"))
-	nav.effect.Send(sel("setMaterial:"), int64(6))
+	nav.effect.Send(sel("setMaterial:"), int64(7))
 	nav.effect.Send(sel("setBlendingMode:"), int64(0))
 	nav.effect.Send(sel("setState:"), int64(1))
 	surface.Send(sel("addSubview:"), nav.effect)

@@ -335,7 +335,7 @@ func Run(app *core.Scope) {
 		panel = desktop.OpenPanel(app, desktop.PanelOptions{
 			Width:    420,
 			Height:   560,
-			Material: desktop.WindowMaterialPopover,
+			Material: desktop.WindowMaterialSidebar,
 		}, content)
 	}
 	openPanel()
