@@ -387,43 +387,55 @@ func (m *historyModel) Preview(ctx context.Context, id string) (ui.HistoryPrevie
 	preview.Meta = previewMeta(item, "")
 	switch item.Kind {
 	case database.KindImage:
-		preview.Title = i18n.T(i18n.KindImage)
-		if item.Width != nil && item.Height != nil {
-			preview.Title = i18n.Tf(i18n.ImageSizeTitle, *item.Width, *item.Height)
-		}
-		preview.ImagePath = m.runtime.images.OriginPath(item.Content)
+		m.fillImagePreview(&preview, item)
 	case database.KindFiles:
-		files := clipboard.DecodeFiles(item.Content)
-		entries := describeFileEntries(files, item.FileTypes, filePreviewEntryLimit)
-		if len(entries) == 1 {
-			preview.Title = entries[0].Name
-		} else {
-			preview.Title = i18n.Tf(i18n.FilesCountTitle, len(files))
-		}
-		preview.Meta = previewMeta(item, fileSummary(entries, len(files)))
-		preview.Text = filePreviewText(entries, len(files))
-		if len(entries) == 1 && entries[0].Exists && entries[0].IsImage {
-			preview.ImagePath = entries[0].Path
-		}
+		fillFilesPreview(&preview, item)
 	default:
-		preview.Title = i18n.T(i18n.KindText)
-		if item.Summary != nil {
-			preview.Title = *item.Summary
-		}
-		preview.Text = previewText(item)
-		if item.SubKind != nil && !redact {
-			switch *item.SubKind {
-			case database.SubHTML, database.SubRTF:
-				preview.RichFormat = string(*item.SubKind)
-				preview.RichText = item.Content
-			}
-		}
-		if redact {
-			preview.Title = clipboard.MaskSecret(preview.Title)
-			preview.Text = clipboard.MaskSecret(preview.Text)
-		}
+		fillTextPreview(&preview, item, redact)
 	}
 	return preview, nil
+}
+
+func (m *historyModel) fillImagePreview(preview *ui.HistoryPreview, item *database.Item) {
+	preview.Title = i18n.T(i18n.KindImage)
+	if item.Width != nil && item.Height != nil {
+		preview.Title = i18n.Tf(i18n.ImageSizeTitle, *item.Width, *item.Height)
+	}
+	preview.ImagePath = m.runtime.images.OriginPath(item.Content)
+}
+
+func fillFilesPreview(preview *ui.HistoryPreview, item *database.Item) {
+	files := clipboard.DecodeFiles(item.Content)
+	entries := describeFileEntries(files, item.FileTypes, filePreviewEntryLimit)
+	if len(entries) == 1 {
+		preview.Title = entries[0].Name
+	} else {
+		preview.Title = i18n.Tf(i18n.FilesCountTitle, len(files))
+	}
+	preview.Meta = previewMeta(item, fileSummary(entries, len(files)))
+	preview.Text = filePreviewText(entries, len(files))
+	if len(entries) == 1 && entries[0].Exists && entries[0].IsImage {
+		preview.ImagePath = entries[0].Path
+	}
+}
+
+func fillTextPreview(preview *ui.HistoryPreview, item *database.Item, redact bool) {
+	preview.Title = i18n.T(i18n.KindText)
+	if item.Summary != nil {
+		preview.Title = *item.Summary
+	}
+	preview.Text = previewText(item)
+	if item.SubKind != nil && !redact {
+		switch *item.SubKind {
+		case database.SubHTML, database.SubRTF:
+			preview.RichFormat = string(*item.SubKind)
+			preview.RichText = item.Content
+		}
+	}
+	if redact {
+		preview.Title = clipboard.MaskSecret(preview.Title)
+		preview.Text = clipboard.MaskSecret(preview.Text)
+	}
 }
 
 func previewText(item *database.Item) string {
