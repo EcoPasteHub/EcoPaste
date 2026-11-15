@@ -7,8 +7,6 @@ import "github.com/ebitengine/purego/objc"
 const (
 	panelSidePadding  = 14.0
 	panelSearchHeight = 34.0
-	panelSearchText   = 22.0
-	panelSearchIcon   = 18.0
 	panelIconSize     = 26.0
 	panelIconGap      = 2.0
 	panelFooterHeight = 30.0
@@ -23,16 +21,12 @@ func layoutPanel(p *Panel, width, height float64) {
 	}
 
 	searchY := height - panelTopPadding - panelSearchHeight
-	searchIconY := searchY + (panelSearchHeight-panelSearchIcon)/2
-	searchTextY := searchY + (panelSearchHeight-panelSearchText)/2
 	iconY := searchY + (panelSearchHeight-panelIconSize)/2
 	pinX := width - panelSidePadding - panelIconSize
 	settingsX := pinX - panelIconGap - panelIconSize
 	filterX := settingsX - panelIconGap - panelIconSize
 	clearX := filterX - panelIconGap - panelIconSize
-	setFrame(p.searchIcon, panelSidePadding, searchIconY, panelSearchIcon, panelSearchIcon)
-	setFrame(p.search, panelSidePadding+panelSearchIcon+8, searchTextY,
-		panelSearchWidth(width)-panelSearchIcon-8, panelSearchText)
+	setFrame(p.search, panelSidePadding, searchY, panelSearchWidth(width), panelSearchHeight)
 	setFrame(p.clearButton, clearX, iconY, panelIconSize, panelIconSize)
 	setFrame(p.filterButton, filterX, iconY, panelIconSize, panelIconSize)
 	setFrame(p.settingsButton, settingsX, iconY, panelIconSize, panelIconSize)

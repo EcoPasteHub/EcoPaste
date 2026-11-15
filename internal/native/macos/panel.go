@@ -22,7 +22,6 @@ type Panel struct {
 	behavior           PanelBehavior
 	view               objc.ID
 	search             objc.ID
-	searchIcon         objc.ID
 	pin                objc.ID
 	filterButton       objc.ID
 	settingsButton     objc.ID
@@ -113,6 +112,7 @@ var (
 
 	registerPanelOnce sync.Once
 	searchTarget      objc.ID
+	searchFieldClass  objc.Class
 	searchCellClass   objc.Class
 	observerClass     objc.Class
 	panelViewClass    objc.Class
@@ -142,18 +142,14 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.background.Send(sel("setAutoresizingMask:"), uint64(2|16))
 	p.view.Send(sel("addSubview:"), p.background)
 
-	p.searchIcon = objc.ID(class("NSImageView")).Send(sel("new"))
-	p.searchIcon.Send(sel("setImage:"), systemSymbol("magnifyingglass"))
-	p.searchIcon.Send(sel("setImageScaling:"), int64(3))
-	p.searchIcon.Send(sel("setContentTintColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
-	p.searchIcon.Send(sel("setAccessibilityElement:"), false)
-
-	p.search = objc.ID(classNSTextField).Send(sel("alloc")).Send(sel("initWithFrame:"), CGRect{})
+	p.search = objc.ID(searchFieldClass).Send(sel("alloc")).Send(sel("initWithFrame:"), CGRect{})
 	cell := objc.ID(searchCellClass).Send(sel("alloc")).Send(sel("initTextCell:"), nsString(""))
 	p.search.Send(sel("setCell:"), cell)
 	cell.Send(sel("release"))
 	p.search.Send(sel("setPlaceholderString:"), nsString(i18n.T(i18n.PanelSearchPlaceholder)))
 	p.search.Send(sel("setFont:"), systemFont(14))
+	p.search.Send(sel("setEditable:"), true)
+	p.search.Send(sel("setSelectable:"), true)
 	p.search.Send(sel("setBezeled:"), false)
 	p.search.Send(sel("setBordered:"), false)
 	p.search.Send(sel("setDrawsBackground:"), false)
@@ -236,7 +232,7 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.scroll = newHistoryTable(p)
 	p.buildPreview()
 
-	for _, v := range []objc.ID{p.searchIcon, p.search, p.pin, p.filterButton, p.settingsButton,
+	for _, v := range []objc.ID{p.search, p.pin, p.filterButton, p.settingsButton,
 		p.clearButton, p.shortcutButton, p.divider, p.scroll, p.empty, p.emptyIcon, p.emptyDetail,
 		p.footerDivider, p.footer} {
 		p.view.Send(sel("addSubview:"), v)
@@ -429,6 +425,20 @@ func registerPanelTargets() {
 	if err := registerIconButtonClass(); err != nil {
 		panic(err)
 	}
+	searchFieldClass, err = objc.RegisterClass("EcoPasteSearchField", classNSTextField, nil, nil,
+		[]objc.MethodDef{
+			{Cmd: sel("acceptsFirstMouse:"), Fn: func(_ objc.ID, _ objc.SEL, _ objc.ID) bool { return true }},
+			{Cmd: sel("mouseDown:"), Fn: func(self objc.ID, _ objc.SEL, event objc.ID) {
+				if window := objc.Send[objc.ID](self, sel("window")); window != 0 {
+					window.Send(sel("makeKeyWindow"))
+					window.Send(sel("makeFirstResponder:"), self)
+				}
+				sendSuper[objc.ID](self, searchFieldClass, sel("mouseDown:"), event)
+			}},
+		})
+	if err != nil {
+		panic(err)
+	}
 	searchCellClass, err = objc.RegisterClass("EcoPasteSearchCell", class("NSTextFieldCell"), nil, nil,
 		[]objc.MethodDef{
 			{Cmd: sel("drawingRectForBounds:"), Fn: func(self objc.ID, _ objc.SEL, bounds CGRect) CGRect {
@@ -617,7 +627,6 @@ func (p *Panel) Close() {
 	}
 	p.divider.Send(sel("release"))
 	p.scroll.Send(sel("release"))
-	p.searchIcon.Send(sel("release"))
 	p.search.Send(sel("release"))
 	p.pin.Send(sel("release"))
 	p.filterButton.Send(sel("release"))
