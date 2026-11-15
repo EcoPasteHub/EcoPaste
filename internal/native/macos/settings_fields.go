@@ -104,6 +104,19 @@ func newSettingsCheckbox(target objc.ID, action string) objc.ID {
 	return checkbox
 }
 
+// addSettingsMoveButton adds one reorder button, disabled until a row is
+// selected, and registers the view it belongs to.
+func (v *SettingsView) addSettingsMoveButton(content objc.ID, frame CGRect, title, accessibility string, target objc.ID, action string) objc.ID {
+	button := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
+		nsString(title), target, sel(action))
+	button.Send(sel("setFrame:"), frame)
+	button.Send(sel("setAccessibilityLabel:"), nsString(accessibility))
+	button.Send(sel("setEnabled:"), false)
+	content.Send(sel("addSubview:"), button)
+	settingsViews[button] = v
+	return button
+}
+
 func (v *SettingsView) addSwitch(content objc.ID, y float64, title, path string, get func(SettingsValues) bool) {
 	v.addLabelWidth(content, y, title, tabContentW-104)
 	v.addSearchEntry(content, title, path, "", "", rowHighlightFrame(y))

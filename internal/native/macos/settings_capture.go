@@ -64,23 +64,12 @@ func (v *SettingsView) buildCaptureOrder(content objc.ID) {
 	v.captureTable = table
 	settingsCaptureByTable[table] = v
 
-	up := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
-		nsString(i18n.T(i18n.SettingsMoveUp)), settingsCaptureTarget, sel("captureUpPressed:"))
-	up.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: settingsCaptureButtonX, Y: 72}, Size: CGSize{Width: settingsCaptureButtonWidth, Height: 28}})
-	up.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsMoveUpA11y)))
-	up.Send(sel("setEnabled:"), false)
-	content.Send(sel("addSubview:"), up)
-	settingsViews[up] = v
-	v.captureUp = up
-
-	down := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
-		nsString(i18n.T(i18n.SettingsMoveDown)), settingsCaptureTarget, sel("captureDownPressed:"))
-	down.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: settingsCaptureButtonX, Y: 38}, Size: CGSize{Width: settingsCaptureButtonWidth, Height: 28}})
-	down.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsMoveDownA11y)))
-	down.Send(sel("setEnabled:"), false)
-	content.Send(sel("addSubview:"), down)
-	settingsViews[down] = v
-	v.captureDown = down
+	v.captureUp = v.addSettingsMoveButton(content,
+		CGRect{Origin: CGPoint{X: settingsCaptureButtonX, Y: 72}, Size: CGSize{Width: settingsCaptureButtonWidth, Height: 28}},
+		i18n.T(i18n.SettingsMoveUp), i18n.T(i18n.SettingsMoveUpA11y), settingsCaptureTarget, "captureUpPressed:")
+	v.captureDown = v.addSettingsMoveButton(content,
+		CGRect{Origin: CGPoint{X: settingsCaptureButtonX, Y: 38}, Size: CGSize{Width: settingsCaptureButtonWidth, Height: 28}},
+		i18n.T(i18n.SettingsMoveDown), i18n.T(i18n.SettingsMoveDownA11y), settingsCaptureTarget, "captureDownPressed:")
 }
 
 func (v *SettingsView) applyCaptureOrder(values SettingsValues) {

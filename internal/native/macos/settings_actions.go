@@ -92,23 +92,12 @@ func (v *SettingsView) buildActions() {
 	v.actionsTable = table
 	settingsActionsByTable[table] = v
 
-	up := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
-		nsString(i18n.T(i18n.SettingsMoveUp)), settingsActionsTarget, sel("actionUpPressed:"))
-	up.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 204, Y: 34}, Size: CGSize{Width: 90, Height: 30}})
-	up.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsActionMoveUpA11y)))
-	up.Send(sel("setEnabled:"), false)
-	content.Send(sel("addSubview:"), up)
-	settingsViews[up] = v
-	v.actionUp = up
-
-	down := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
-		nsString(i18n.T(i18n.SettingsMoveDown)), settingsActionsTarget, sel("actionDownPressed:"))
-	down.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: tabContentW - 104, Y: 34}, Size: CGSize{Width: 90, Height: 30}})
-	down.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsActionMoveDownA11y)))
-	down.Send(sel("setEnabled:"), false)
-	content.Send(sel("addSubview:"), down)
-	settingsViews[down] = v
-	v.actionDown = down
+	v.actionUp = v.addSettingsMoveButton(content,
+		CGRect{Origin: CGPoint{X: tabContentW - 204, Y: 34}, Size: CGSize{Width: 90, Height: 30}},
+		i18n.T(i18n.SettingsMoveUp), i18n.T(i18n.SettingsActionMoveUpA11y), settingsActionsTarget, "actionUpPressed:")
+	v.actionDown = v.addSettingsMoveButton(content,
+		CGRect{Origin: CGPoint{X: tabContentW - 104, Y: 34}, Size: CGSize{Width: 90, Height: 30}},
+		i18n.T(i18n.SettingsMoveDown), i18n.T(i18n.SettingsActionMoveDownA11y), settingsActionsTarget, "actionDownPressed:")
 }
 
 func (v *SettingsView) applyActions(values SettingsValues) {
