@@ -56,8 +56,7 @@ func (p *Panel) buildHoverBar() {
 	p.hoverBar = bar
 	panelsByControl[bar] = p
 	for index := 0; index < maxHoverActions; index++ {
-		button := objc.ID(class("NSButton")).Send(sel("alloc")).
-			Send(sel("initWithFrame:"), CGRect{})
+		button := newIconButton()
 		button.Send(sel("setBordered:"), false)
 		button.Send(sel("setImagePosition:"), int64(1))
 		button.Send(sel("setRefusesFirstResponder:"), true)

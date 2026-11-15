@@ -113,7 +113,7 @@ func (p *Panel) toggleShortcutHelp() {
 	p.refreshShortcutHelp()
 	anchor := bounds(p.shortcutButton)
 	rect := CGRect{
-		Origin: CGPoint{X: anchor.Size.Width - 1, Y: anchor.Size.Height / 2},
+		Origin: CGPoint{X: anchor.Size.Width / 2, Y: anchor.Size.Height - 1},
 		Size:   CGSize{Width: 1, Height: 1},
 	}
 	p.shortcutPopover.Send(sel("showRelativeToRect:ofView:preferredEdge:"),

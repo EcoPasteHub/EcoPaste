@@ -100,7 +100,6 @@ var catalogZhCN = map[Key]string{
 	PanelClearHistory:      "清除历史…",
 	PanelEmpty:             "暂无剪贴板记录",
 	PanelEmptyDetail:       "复制任意内容后，会出现在这里",
-	PanelHint:              "↵ 粘贴 · Space 预览 · Esc 关闭",
 	PanelAllGroups:         "全部分组",
 	PanelNewGroup:          "新建分组…",
 	PanelRenameGroup:       "重命名当前分组…",
@@ -135,7 +134,6 @@ var catalogZhCN = map[Key]string{
 	NoteDetailPrefix: "备注：",
 
 	PreviewImageLabel: "剪贴板图片预览",
-	PreviewHintBack:   "Space 或 Esc 返回",
 
 	RowPinned:    "已固定",
 	RowFavorite:  "收藏",

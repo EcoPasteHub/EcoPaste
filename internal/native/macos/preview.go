@@ -78,7 +78,6 @@ func registerPreviewTargets() {
 					return
 				}
 				p.previewing = false
-				p.hint.Send(sel("setStringValue:"), nsString(i18n.T(i18n.PanelHint)))
 				p.cx.Emit("hidePreview", nil)
 				window := p.view.Send(sel("window"))
 				if window != 0 && !objc.Send[bool](window, sel("isKeyWindow")) &&
@@ -176,7 +175,6 @@ func (p *Panel) setPreview(content PreviewContent) {
 	if !content.Active {
 		if p.previewing {
 			p.previewing = false
-			p.hint.Send(sel("setStringValue:"), nsString(i18n.T(i18n.PanelHint)))
 			p.closePreview()
 			p.updateStatus()
 			p.makeSearchFirstResponder()
@@ -185,7 +183,6 @@ func (p *Panel) setPreview(content PreviewContent) {
 	}
 
 	p.previewing = true
-	p.hint.Send(sel("setStringValue:"), nsString(i18n.T(i18n.PreviewHintBack)))
 	p.previewTitle.Send(sel("setStringValue:"), nsString(content.Title))
 	p.previewMeta.Send(sel("setStringValue:"), nsString(content.Meta))
 

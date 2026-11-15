@@ -42,7 +42,6 @@ type Panel struct {
 	emptyDetail        objc.ID
 	footerDivider      objc.ID
 	footer             objc.ID
-	hint               objc.ID
 	preview            objc.ID
 	previewPopover     objc.ID
 	previewController  objc.ID
@@ -164,14 +163,14 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.search.Send(sel("setTarget:"), searchTarget)
 	p.search.Send(sel("setAction:"), sel("searchChanged:"))
 
-	p.pin = objc.ID(class("NSButton")).Send(sel("alloc")).Send(sel("initWithFrame:"), CGRect{})
+	p.pin = newIconButton()
 	p.pin.Send(sel("setBordered:"), false)
 	p.pin.Send(sel("setImage:"), systemSymbol("pin"))
 	p.pin.Send(sel("setTarget:"), searchTarget)
 	p.pin.Send(sel("setAction:"), sel("pinPressed:"))
 	p.pin.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.PanelPinWindow)))
 
-	p.filterButton = objc.ID(class("NSButton")).Send(sel("alloc")).Send(sel("initWithFrame:"), CGRect{})
+	p.filterButton = newIconButton()
 	p.filterButton.Send(sel("setBordered:"), false)
 	p.filterButton.Send(sel("setImage:"), systemSymbol("line.3.horizontal.decrease.circle"))
 	p.filterButton.Send(sel("setContentTintColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
@@ -179,7 +178,7 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.filterButton.Send(sel("setAction:"), sel("filterPressed:"))
 	p.filterButton.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.PanelFilter)))
 
-	p.settingsButton = objc.ID(class("NSButton")).Send(sel("alloc")).Send(sel("initWithFrame:"), CGRect{})
+	p.settingsButton = newIconButton()
 	p.settingsButton.Send(sel("setBordered:"), false)
 	p.settingsButton.Send(sel("setImage:"), systemSymbol("gearshape"))
 	p.settingsButton.Send(sel("setContentTintColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
@@ -187,7 +186,7 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.settingsButton.Send(sel("setAction:"), sel("settingsPressed:"))
 	p.settingsButton.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsWindowTitle)))
 
-	p.clearButton = objc.ID(class("NSButton")).Send(sel("alloc")).Send(sel("initWithFrame:"), CGRect{})
+	p.clearButton = newIconButton()
 	p.clearButton.Send(sel("setBordered:"), false)
 	p.clearButton.Send(sel("setImage:"), systemSymbol("trash"))
 	p.clearButton.Send(sel("setContentTintColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
@@ -195,10 +194,10 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.clearButton.Send(sel("setAction:"), sel("clearPressed:"))
 	p.clearButton.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.PanelClearHistory)))
 
-	p.shortcutButton = objc.ID(class("NSButton")).Send(sel("alloc")).Send(sel("initWithFrame:"), CGRect{})
+	p.shortcutButton = newIconButton()
 	p.shortcutButton.Send(sel("setBordered:"), false)
 	p.shortcutButton.Send(sel("setImage:"), systemSymbol("keyboard"))
-	p.shortcutButton.Send(sel("setContentTintColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
+	p.shortcutButton.Send(sel("setContentTintColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
 	p.shortcutButton.Send(sel("setTarget:"), searchTarget)
 	p.shortcutButton.Send(sel("setAction:"), sel("shortcutHelpPressed:"))
 	p.shortcutButton.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.PanelShortcutsAction)))
@@ -234,19 +233,12 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.footer.Send(sel("setFont:"), systemFont(11))
 	p.footer.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
 
-	p.hint = objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(i18n.PanelHint)))
-	p.hint.Send(sel("setFont:"), systemFont(11))
-	p.hint.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
-	p.hint.Send(sel("setAlignment:"), int64(2))
-	p.hint.Send(sel("setLineBreakMode:"), int64(4))
-	p.hint.Send(sel("setMaximumNumberOfLines:"), int64(1))
-
 	p.scroll = newHistoryTable(p)
 	p.buildPreview()
 
 	for _, v := range []objc.ID{p.searchIcon, p.search, p.pin, p.filterButton, p.settingsButton,
 		p.clearButton, p.shortcutButton, p.divider, p.scroll, p.empty, p.emptyIcon, p.emptyDetail,
-		p.footerDivider, p.footer, p.hint} {
+		p.footerDivider, p.footer} {
 		p.view.Send(sel("addSubview:"), v)
 	}
 	p.buildHoverBar()
@@ -432,6 +424,9 @@ func registerPanelTargets() {
 	searchTarget = objc.ID(target).Send(sel("new"))
 
 	if err := registerNavClasses(); err != nil {
+		panic(err)
+	}
+	if err := registerIconButtonClass(); err != nil {
 		panic(err)
 	}
 	searchCellClass, err = objc.RegisterClass("EcoPasteSearchCell", class("NSTextFieldCell"), nil, nil,

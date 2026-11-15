@@ -147,13 +147,13 @@
 | U-10 | P1 | 动画 | `motion` | AppKit 动画/`Core Animation` | 已通过（产品调整） | 面板打开使用 0.14s 淡入；预览改用系统 `NSPopover` 自带过渡，减少重复动画；开启“减少动态效果”时面板直接显示；`TestAnimateInKeepsViewVisibleAndAddsFade`，真机面板与 HTML/RTF 预览正常显示、Space/Esc 返回 |
 | U-11 | P2 | 滚动条 | `overlayscrollbars` | 系统 `NSScrollView` 滚动条 | 不纳入 macOS 首版（产品调整） | 原生 `NSScrollView` 已按系统“显示滚动条”偏好自动选择 overlay/legacy，强制 overlay 会覆盖用户系统设置；旧版自定义滚动条不再迁移 |
 | U-12 | P2 | 诊断 | `pages/Preference` 诊断区 | 原生诊断面板/复制信息 | 已通过 | “权限”页展示版本、macOS 版本、数据目录与两项权限状态，“复制诊断信息”写入剪贴板并显示反馈；真机 `pbpaste` 校验五项内容完整；`TestFormatDiagnosticReport` |
-| U-13 | P2 | 快捷键速查 | `Clipboard/components/ShortcutList.tsx` | Footer 键盘按钮 + `NSPopover` 快捷键列表，⌘K 打开 | 已通过 | Footer 新增 `keyboard` 图标按钮，⌘K 与点击均可打开原生 popover；真机弹出“快捷键”列表，Esc 关闭，按钮位于 Footer 右侧且不挤压记录数；列表覆盖粘贴、纯文本粘贴、前 10 项、预览、复制、打开、收藏、置顶、备注、删除、导航、搜索、固定窗口、新建分组与关闭；文案走 i18n 目录，`TestShortcutHelpItemsAreComplete` 校验条目完整与按键不重复 |
+| U-13 | P2 | 快捷键速查 | `Clipboard/components/ShortcutList.tsx` | Footer 键盘按钮 + `NSPopover` 快捷键列表，⌘K 打开 | 已通过 | Footer 仅保留 `keyboard` 图标按钮，⌘K 与点击均可打开原生 popover；面板底栏不再显示常驻快捷键文字提示，完整列表由 popover 承载；真机弹出“快捷键”列表，Esc 关闭，按钮位于 Footer 右侧且不挤压记录数；列表覆盖粘贴、纯文本粘贴、前 10 项、预览、复制、打开、收藏、置顶、备注、删除、导航、搜索、固定窗口、新建分组与关闭；文案走 i18n 目录，`TestShortcutHelpItemsAreComplete` 校验条目完整与按键不重复 |
 
 ## 7. 国际化与文案
 
 | ID | 优先级 | 功能 | 现有实现 | NSGo/AppKit 目标 | 状态 | 验证方式 |
 | --- | --- | --- | --- | --- | --- | --- |
-| I-01 | P1 | 前端文案 | `legacy/frontend/src/locales/zh-CN`、`en-US` | Go i18n 目录，复用文案内容 | 已通过 | 剪贴板面板与 14 个设置分类已接入目录：搜索/分类/分组/空状态、右键与悬停动作、备注与分组弹窗、预览提示、类型/时间摘要、文件摘要、全部设置项/选项/搜索关键词/诊断报告、更新入口与结果提示；备份/清除/权限弹窗，以及历史、分组、数据目录、快捷键、来源应用、链接打开、登录项与备份容器错误均已接入；`TestHistoryPresentationFollowsLanguage`、`TestSettingsSearchMatchesEnglishLabels`、`TestFormatDiagnosticReportInEnglish`、`TestGroupValidationFollowsLanguage`、`TestBackupErrorsFollowLanguage` 覆盖英文 |
+| I-01 | P1 | 前端文案 | `legacy/frontend/src/locales/zh-CN`、`en-US` | Go i18n 目录，复用文案内容 | 已通过 | 剪贴板面板与 14 个设置分类已接入目录：搜索/分类/分组/空状态、右键与悬停动作、备注与分组弹窗、类型/时间摘要、文件摘要、全部设置项/选项/搜索关键词/诊断报告、更新入口与结果提示；备份/清除/权限弹窗，以及历史、分组、数据目录、快捷键、来源应用、链接打开、登录项与备份容器错误均已接入；`TestHistoryPresentationFollowsLanguage`、`TestSettingsSearchMatchesEnglishLabels`、`TestFormatDiagnosticReportInEnglish`、`TestGroupValidationFollowsLanguage`、`TestBackupErrorsFollowLanguage` 覆盖英文 |
 | I-02 | P1 | Rust 侧文案 | `src-tauri/src/i18n/` | Go 文案目录 | 已通过 | `internal/i18n` 中英文目录覆盖托盘、列表右键、清除/删除确认、备份/存储/缓存/数据目录提示、剪贴板面板、设置与权限弹窗，并按 `appearance.language` 选择；`TestCatalogsShareEveryKey`、`TestSetLanguageSelectsCatalog`、`TestTfFormatsArguments` |
 | I-03 | P1 | 语言切换 | `appearance.language` | 原生菜单/设置切换，立即生效 | 已通过 | 设置“通用”页语言下拉写入 `appearance.language` 后立即切换目录、重建设置窗口与剪贴板面板，无需重启；真机中英文往返验证，托盘菜单、面板、设置与清空/备份弹窗文案同步切换；`TestSettingsModelAppliesLanguage` |
 | I-04 | P2 | 系统本地化 | 部分系统菜单 | AppKit 本地化角色项 | 已通过 | `internal/menu` 提供“应用/编辑/窗口”原生菜单与角色项，语言切换时整体重建；`TestApplicationBuildsLocalizedMenuBar`、`TestApplicationUsesRoleLabels`、`TestApplicationSettingsItem`；真机中英文往返验证关于/设置/隐藏/退出、撤销/重做/剪切/复制/粘贴/全选、最小化/缩放/全屏/关闭均随系统语言更新，设置项可从菜单打开偏好窗口 |

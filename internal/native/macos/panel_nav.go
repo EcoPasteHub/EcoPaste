@@ -49,7 +49,6 @@ var (
 	navEffectClass     objc.Class
 	navSurfaceClass    objc.Class
 	navCapsuleClass    objc.Class
-	navIconClass       objc.Class
 	navObserverClass   objc.Class
 
 	navsByCapsule    = map[objc.ID]*panelNav{}
@@ -155,13 +154,6 @@ func registerNavClasses() error {
 	if err != nil {
 		return err
 	}
-	navIconClass, err = objc.RegisterClass("EcoPasteNavIcon", class("NSButton"), nil, nil,
-		[]objc.MethodDef{
-			{Cmd: sel("acceptsFirstMouse:"), Fn: func(_ objc.ID, _ objc.SEL, _ objc.ID) bool { return true }},
-		})
-	if err != nil {
-		return err
-	}
 	navObserverClass, err = objc.RegisterClass("EcoPasteNavObserver", class("NSObject"), nil, nil,
 		[]objc.MethodDef{
 			{Cmd: sel("parentChanged:"), Fn: func(self objc.ID, _ objc.SEL, _ objc.ID) {
@@ -238,7 +230,7 @@ func newPanelNav(p *Panel, parent objc.ID) *panelNav {
 		nav.surface.Send(sel("addSubview:"), capsule)
 	}
 
-	nav.plus = objc.ID(navIconClass).Send(sel("alloc")).Send(sel("initWithFrame:"), CGRect{})
+	nav.plus = newIconButton()
 	nav.plus.Send(sel("setBordered:"), false)
 	nav.plus.Send(sel("setImage:"), systemSymbol("plus"))
 	nav.plus.Send(sel("setImagePosition:"), int64(1))

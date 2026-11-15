@@ -100,7 +100,6 @@ const (
 	PanelClearHistory      = Key("panel.clearHistory")
 	PanelEmpty             = Key("panel.empty")
 	PanelEmptyDetail       = Key("panel.emptyDetail")
-	PanelHint              = Key("panel.hint")
 	PanelAllGroups         = Key("panel.allGroups")
 	PanelNewGroup          = Key("panel.newGroup")
 	PanelRenameGroup       = Key("panel.renameGroup")
@@ -135,7 +134,6 @@ const (
 	NoteDetailPrefix = Key("note.detailPrefix")
 
 	PreviewImageLabel = Key("preview.imageLabel")
-	PreviewHintBack   = Key("preview.hintBack")
 
 	RowPinned    = Key("row.pinned")
 	RowFavorite  = Key("row.favorite")

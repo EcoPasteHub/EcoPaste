@@ -100,7 +100,6 @@ var catalogEnUS = map[Key]string{
 	PanelClearHistory:      "Clear History…",
 	PanelEmpty:             "No clipboard history yet",
 	PanelEmptyDetail:       "Copy something and it will show up here",
-	PanelHint:              "↵ Paste · Space Preview · Esc Close",
 	PanelAllGroups:         "All Groups",
 	PanelNewGroup:          "New Group…",
 	PanelRenameGroup:       "Rename Current Group…",
@@ -135,7 +134,6 @@ var catalogEnUS = map[Key]string{
 	NoteDetailPrefix: "Note: ",
 
 	PreviewImageLabel: "Clipboard image preview",
-	PreviewHintBack:   "Space or Esc to close",
 
 	RowPinned:    "Pinned",
 	RowFavorite:  "Favorite",
