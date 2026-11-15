@@ -4,17 +4,13 @@ import (
 	"context"
 	"log"
 	"os"
-	"path/filepath"
 	"strings"
 	"sync/atomic"
 
-	"github.com/EcoPasteHub/EcoPaste/internal/backup"
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
-	"github.com/EcoPasteHub/EcoPaste/internal/logging"
 	"github.com/EcoPasteHub/EcoPaste/internal/menu"
 	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
 	"github.com/EcoPasteHub/EcoPaste/internal/settings"
-	"github.com/EcoPasteHub/EcoPaste/internal/storage"
 	"github.com/EcoPasteHub/EcoPaste/internal/ui"
 	"github.com/EcoPasteHub/EcoPaste/internal/update"
 	"github.com/nsgo-dev/nsgo/core"
@@ -45,7 +41,6 @@ func Run(app *core.Scope) {
 	var reloadHotkeys func() error
 	var tray *desktop.Tray
 	var wiring *settingsWiring
-	var rebuildPanel func()
 	hotKeys := macos.NewHotKeyManager()
 	app.OnQuit(func(context.Context) { hotKeys.Close() })
 	applyApplicationMenu := func() {
@@ -56,161 +51,44 @@ func Run(app *core.Scope) {
 		}, func() { update.CheckNow(app) }))
 	}
 	applyApplicationMenu()
-	var store *settings.Store
-	var windowState *storage.WindowState
-	if paths, err := storage.Default(); err != nil {
-		log.Printf("resolve storage: %v", err)
-	} else {
-		lock, running, err := lockInstance(paths.State)
-		switch {
-		case err != nil:
-			log.Printf("lock instance: %v", err)
-		case running:
-			if err := signalInstance(paths.State); err != nil {
-				log.Printf("signal instance: %v", err)
-			}
-			os.Exit(0)
-		default:
-			app.Cleanup(func() { lock.Close() })
+	paths, store, windowState := loadStorage(app)
+	if store != nil {
+		syncStoredSettings(app, store)
+		if configured := store.Snapshot().Shortcuts.OpenClipboard; configured != "" {
+			hotKey = strings.ToLower(configured)
 		}
-		if logger, err := logging.Open(paths.Logs); err != nil {
-			log.Printf("open logs: %v", err)
+		if configured := store.Snapshot().Shortcuts.OpenPreference; configured != "" {
+			preferenceHotKey = strings.ToLower(configured)
+		}
+		wiring = &settingsWiring{
+			app:                  app,
+			store:                store,
+			hotKeys:              hotKeys,
+			runtime:              func() *clipboardRuntime { return runtime },
+			tray:                 func() *desktop.Tray { return tray },
+			openClipboardKey:     func() string { return hotKey },
+			openPreferenceKey:    func() string { return preferenceHotKey },
+			applyApplicationMenu: applyApplicationMenu,
+		}
+		openSettings = wiring.open
+		var startErr error
+		runtime, startErr = startClipboard(app, paths, store, &paused)
+		if startErr != nil {
+			log.Printf("start clipboard: %v", startErr)
 		} else {
-			app.Cleanup(func() { logger.Close() })
-		}
-		if result, applied, err := backup.ApplyPendingImport(paths); err != nil {
-			log.Printf("apply pending import: %v", err)
-		} else if applied {
-			log.Printf("imported backup: %d items", result.Items)
-		}
-		log.Printf("data root %s", paths.Root)
-		if state, err := storage.OpenWindowState(paths.State); err != nil {
-			log.Printf("open window state: %v", err)
-		} else {
-			windowState = state
-		}
-		store, err = settings.Open(filepath.Join(paths.Config, settings.FileName))
-		if err != nil {
-			log.Printf("open settings: %v", err)
-		} else {
-			i18n.SetLanguage(string(store.Snapshot().Appearance.Language))
-			app.SetLocale(string(store.Snapshot().Appearance.Language))
-			if err := macos.SetAppearance(string(store.Snapshot().Appearance.Theme)); err != nil {
-				log.Printf("sync appearance: %v", err)
-			}
-			if err := macos.SetDockIconVisible(store.Snapshot().General.DockIcon); err != nil {
-				log.Printf("sync dock icon: %v", err)
-			}
-			if err := macos.SyncAutostart(store.Snapshot().General.AutoStart); err != nil {
-				log.Printf("sync autostart: %v", err)
-			}
-			if configured := store.Snapshot().Shortcuts.OpenClipboard; configured != "" {
-				hotKey = strings.ToLower(configured)
-			}
-			if configured := store.Snapshot().Shortcuts.OpenPreference; configured != "" {
-				preferenceHotKey = strings.ToLower(configured)
-			}
-			wiring = &settingsWiring{
-				app:                  app,
-				store:                store,
-				hotKeys:              hotKeys,
-				runtime:              func() *clipboardRuntime { return runtime },
-				tray:                 func() *desktop.Tray { return tray },
-				openClipboardKey:     func() string { return hotKey },
-				openPreferenceKey:    func() string { return preferenceHotKey },
-				applyApplicationMenu: applyApplicationMenu,
-			}
-			openSettings = wiring.open
-			runtime, err = startClipboard(app, paths, store, &paused)
-			if err != nil {
-				log.Printf("start clipboard: %v", err)
-			} else {
-				history = newHistoryModel(runtime, store)
-				if model, ok := history.(*historyModel); ok {
-					model.openSettings = wiring.openTab
-				}
+			history = newHistoryModel(runtime, store)
+			if model, ok := history.(*historyModel); ok {
+				model.openSettings = wiring.openTab
 			}
 		}
 	}
-	var panel *desktop.Window
-	placePanel := func() {
-		mode := string(settings.Default().Clipboard.Window.Position)
-		if store != nil {
-			mode = string(store.Snapshot().Clipboard.Window.Position)
-		}
-		placement := macos.PanelPlacement{Mode: mode}
-		if windowState != nil {
-			if frame, ok := windowState.Frame(panelStateLabel); ok {
-				placement.Frame = macos.PanelFrame{
-					X: float64(frame.X), Y: float64(frame.Y),
-					Width: float64(frame.Width), Height: float64(frame.Height),
-				}
-				placement.HasFrame = true
-			}
-		}
-		macos.PlacePanelOnNextShow(placement)
-	}
-	savePanelFrame := func() {
-		if windowState == nil {
-			return
-		}
-		frame, ok := macos.PanelFrameOf()
-		if !ok {
-			return
-		}
-		err := windowState.SaveFrame(panelStateLabel, storage.WindowFrame{
-			X: int64(frame.X), Y: int64(frame.Y),
-			Width: int64(frame.Width), Height: int64(frame.Height),
-		})
-		if err != nil {
-			log.Printf("save window state: %v", err)
-		}
-	}
-	hidePanel := func() {
-		savePanelFrame()
-		panel.Hide()
-		// Window commands issued from a Carbon callback need a tree update
-		// before NSGo applies them.
-		if runtime != nil {
-			runtime.Signal()
-		}
-	}
-	content := ui.ClipboardPanel(history, hidePanel)
-	openPanel := func() {
-		panel = desktop.OpenPanel(app, desktop.PanelOptions{
-			Width:    420,
-			Height:   560,
-			Material: desktop.WindowMaterialSidebar,
-		}, content)
-	}
-	openPanel()
-	rebuildPanel = func() {
-		if panel != nil && !panel.Closed() {
-			if panel.Visible() {
-				savePanelFrame()
-			}
-			panel.Close()
-		}
-		openPanel()
-	}
+	panelHost := newPanelHost(app, store, windowState, func() *clipboardRuntime { return runtime }, history)
 	if wiring != nil {
-		wiring.rebuildPanel = rebuildPanel
+		wiring.rebuildPanel = panelHost.Rebuild
 	}
 
-	showPanel := func() {
-		if runtime != nil {
-			runtime.Signal()
-		}
-		placePanel()
-		panel.Show()
-	}
-	togglePanel := func() {
-		if panel.Visible() {
-			hidePanel()
-			return
-		}
-		showPanel()
-	}
+	showPanel := panelHost.Show
+	togglePanel := panelHost.Toggle
 
 	trayVisible := settings.Default().General.TrayIcon
 	if store != nil {
@@ -224,7 +102,7 @@ func Run(app *core.Scope) {
 		Icon:     trayImage,
 		Template: true,
 		Tooltip:  "EcoPaste",
-		Panel:    panel,
+		Panel:    panelHost.Window(),
 		Menu: trayMenu{
 			app:       app,
 			runtime:   runtime,
