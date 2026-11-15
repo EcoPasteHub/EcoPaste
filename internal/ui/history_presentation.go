@@ -49,7 +49,7 @@ func historyRow(item HistoryItem) macos.HistoryRow {
 		title = kindName(item.Kind)
 	}
 	detail := make([]string, 0, 5)
-	detail = append(detail, typeName(item.Kind, item.SubKind))
+	detail = append(detail, TypeName(item.Kind, item.SubKind))
 	if item.FileSummary != "" && item.Kind != "image" {
 		detail = append(detail, item.FileSummary)
 	}
@@ -114,7 +114,9 @@ func kindName(kind string) string {
 	}
 }
 
-func typeName(kind, subKind string) string {
+// TypeName labels a row's content type, preferring a text sub-kind such as
+// HTML or a URL over the coarse kind name.
+func TypeName(kind, subKind string) string {
 	switch subKind {
 	case "html":
 		return "HTML"

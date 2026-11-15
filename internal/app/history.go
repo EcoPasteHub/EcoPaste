@@ -432,26 +432,15 @@ func previewText(item *database.Item) string {
 }
 
 func previewMeta(item *database.Item, leading string) string {
-	parts := []string{leading}
-	if leading == "" {
-		parts[0] = kindLabel(item.Kind)
-	}
+	subKind := ""
 	if item.SubKind != nil {
-		switch *item.SubKind {
-		case database.SubHTML:
-			parts[0] = "HTML"
-		case database.SubRTF:
-			parts[0] = "RTF"
-		case database.SubURL:
-			parts[0] = i18n.T(i18n.SubKindURL)
-		case database.SubEmail:
-			parts[0] = i18n.T(i18n.SubKindEmail)
-		case database.SubColor:
-			parts[0] = i18n.T(i18n.SubKindColor)
-		case database.SubPath:
-			parts[0] = i18n.T(i18n.SubKindPath)
-		}
+		subKind = string(*item.SubKind)
 	}
+	label := leading
+	if label == "" || subKind != "" {
+		label = ui.TypeName(string(item.Kind), subKind)
+	}
+	parts := []string{label}
 	if item.Size != nil && item.Kind != database.KindImage {
 		parts = append(parts, formatBytes(*item.Size))
 	}
@@ -460,17 +449,6 @@ func previewMeta(item *database.Item, leading string) string {
 	}
 	parts = append(parts, item.CreatedAt.Local().Format(time.DateTime))
 	return strings.Join(parts, " · ")
-}
-
-func kindLabel(kind database.Kind) string {
-	switch kind {
-	case database.KindImage:
-		return i18n.T(i18n.KindImage)
-	case database.KindFiles:
-		return i18n.T(i18n.KindFiles)
-	default:
-		return i18n.T(i18n.KindText)
-	}
 }
 
 func formatBytes(size int64) string {
