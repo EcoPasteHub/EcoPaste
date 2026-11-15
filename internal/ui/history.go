@@ -694,16 +694,3 @@ func ClipboardPanel(model HistoryModel, hide func()) func(*core.Scope) core.Node
 		}
 	}
 }
-
-func eventInt(value any) (int, bool) {
-	switch number := value.(type) {
-	case int:
-		return number, true
-	case int64:
-		return int(number), true
-	case float64:
-		return int(number), true
-	default:
-		return 0, false
-	}
-}

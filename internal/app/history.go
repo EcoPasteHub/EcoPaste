@@ -318,7 +318,7 @@ func (m *historyModel) MiddleClick(ctx context.Context, id string) (bool, error)
 	default:
 		return false, nil
 	}
-	if paste && !keystroke.Trusted() {
+	if paste && !inputTrusted() {
 		return false, keystroke.ErrPermission
 	}
 	if err := m.write(ctx, item, plain, cfg.Content.UpdateOnReuse); err != nil {

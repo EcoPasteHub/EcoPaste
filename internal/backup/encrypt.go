@@ -184,11 +184,6 @@ func decodePayload(data []byte, password string) ([]byte, error) {
 	return payload, nil
 }
 
-func readHeader(data []byte) (containerHeader, error) {
-	header, _, err := readHeaderWithSize(data)
-	return header, err
-}
-
 func readHeaderWithSize(data []byte) (containerHeader, int, error) {
 	var header containerHeader
 	if len(data) < 4 {

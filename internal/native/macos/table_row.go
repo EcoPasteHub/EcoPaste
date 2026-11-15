@@ -485,8 +485,3 @@ func setHistoryRowHovered(rowView objc.ID, hovered bool) {
 		uintptr(value), associationRetainNonatomic)
 	rowView.Send(sel("setNeedsDisplay:"), true)
 }
-
-func historyRowHovered(rowView objc.ID) bool {
-	value := objc.ID(objcGetAssociatedObject(uintptr(rowView), uintptr(unsafe.Pointer(&associatedRowHoveredKey))))
-	return value != 0 && objc.Send[bool](value, sel("boolValue"))
-}

@@ -124,10 +124,6 @@ func unsafeSlice(p *byte, n uint) []byte {
 	return unsafe.Slice(p, int(n))
 }
 
-func newView(name string) objc.ID {
-	return objc.ID(class(name)).Send(sel("new"))
-}
-
 func setFrame(view objc.ID, x, y, width, height float64) {
 	view.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: x, Y: y}, Size: CGSize{Width: width, Height: height}})
 }

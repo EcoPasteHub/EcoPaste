@@ -44,14 +44,3 @@ func (g *Guard) Consume(hash string) bool {
 	delete(g.entries, hash)
 	return g.now().Before(expiry)
 }
-
-func (g *Guard) sweep() {
-	now := g.now()
-	g.mu.Lock()
-	defer g.mu.Unlock()
-	for hash, expiry := range g.entries {
-		if now.After(expiry) {
-			delete(g.entries, hash)
-		}
-	}
-}
