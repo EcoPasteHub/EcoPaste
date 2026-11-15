@@ -78,34 +78,17 @@ func (s *Service) buildItem(payload Payload, source SourceApp) (*database.Item, 
 		}
 		switch kind {
 		case settings.CaptureFiles:
-			if len(payload.Files) == 0 {
-				continue
+			if item := filesItem(payload); item != nil {
+				return s.withSource(item, source), nil
 			}
-			content := strings.Join(payload.Files, "\n")
-			item := &database.Item{
-				Kind:        database.KindFiles,
-				Content:     content,
-				ContentHash: database.Hash(database.KindFiles, content),
-				FileTypes:   fileTypes(payload.Files),
-			}
-			return s.withSource(item, source), nil
 		case settings.CaptureImage:
-			if len(payload.PNG) == 0 || exceeds(len(payload.PNG), capture.MaxImageMB) {
-				continue
-			}
-			stored, err := s.Images.StorePNG(payload.PNG)
+			item, err := s.imageItem(payload, capture)
 			if err != nil {
 				return nil, err
 			}
-			item := &database.Item{
-				Kind:        database.KindImage,
-				Content:     stored.FileName,
-				ContentHash: database.Hash(database.KindImage, stored.FileName),
-				Size:        &stored.Size,
-				Width:       &stored.Width,
-				Height:      &stored.Height,
+			if item != nil {
+				return s.withSource(item, source), nil
 			}
-			return s.withSource(item, source), nil
 		case settings.CaptureHTML:
 			if plain == "" || strings.TrimSpace(payload.HTML) == "" {
 				continue
@@ -124,6 +107,37 @@ func (s *Service) buildItem(payload Payload, source SourceApp) (*database.Item, 
 		}
 	}
 	return nil, nil
+}
+
+func filesItem(payload Payload) *database.Item {
+	if len(payload.Files) == 0 {
+		return nil
+	}
+	content := strings.Join(payload.Files, "\n")
+	return &database.Item{
+		Kind:        database.KindFiles,
+		Content:     content,
+		ContentHash: database.Hash(database.KindFiles, content),
+		FileTypes:   fileTypes(payload.Files),
+	}
+}
+
+func (s *Service) imageItem(payload Payload, capture settings.Capture) (*database.Item, error) {
+	if len(payload.PNG) == 0 || exceeds(len(payload.PNG), capture.MaxImageMB) {
+		return nil, nil
+	}
+	stored, err := s.Images.StorePNG(payload.PNG)
+	if err != nil {
+		return nil, err
+	}
+	return &database.Item{
+		Kind:        database.KindImage,
+		Content:     stored.FileName,
+		ContentHash: database.Hash(database.KindImage, stored.FileName),
+		Size:        &stored.Size,
+		Width:       &stored.Width,
+		Height:      &stored.Height,
+	}, nil
 }
 
 func (s *Service) textItem(content, plain string, sub database.SubKind, maxMB uint32, source SourceApp, sensitive bool) *database.Item {
