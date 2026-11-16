@@ -41,6 +41,7 @@ type numberInput struct {
 	get       func(SettingsValues) uint32
 	value     uint32
 	editing   bool
+	monitor   objc.ID
 
 	focus       float64
 	focusTarget float64
@@ -155,6 +156,7 @@ func (v *SettingsView) applyNumberInputs(values SettingsValues) {
 
 func (v *SettingsView) closeNumberInputs() {
 	for _, n := range v.numberInputs {
+		n.removeBlurMonitor()
 		n.stopAnimation()
 		delete(numberInputs, n.control)
 		delete(numberTextFields, n.field)
@@ -271,6 +273,7 @@ func (n *numberInput) beginEditing() {
 		return
 	}
 	n.editing = true
+	n.installBlurMonitor()
 	if n.value == 0 && n.minValue == 0 {
 		n.field.Send(sel("setStringValue:"), nsString("0"))
 	}
@@ -285,6 +288,7 @@ func (n *numberInput) endEditing() {
 		return
 	}
 	n.editing = false
+	n.removeBlurMonitor()
 	value, _ := n.parseField()
 	changed := value != n.value
 	n.value = value
@@ -293,6 +297,47 @@ func (n *numberInput) endEditing() {
 	if changed {
 		n.emit()
 	}
+}
+
+// installBlurMonitor ends editing when the click lands outside the input,
+// matching the native text field behavior the panel normally provides.
+func (n *numberInput) installBlurMonitor() {
+	if n.monitor != 0 {
+		return
+	}
+	block := objc.NewBlock(func(_ objc.Block, event objc.ID) objc.ID {
+		if n.editing && !n.pointInside(event) {
+			if window := objc.Send[objc.ID](n.control, sel("window")); window != 0 {
+				window.Send(sel("makeFirstResponder:"), objc.ID(0))
+			} else {
+				n.endEditing()
+			}
+		}
+		return event
+	})
+	n.monitor = objc.ID(class("NSEvent")).Send(
+		sel("addLocalMonitorForEventsMatchingMask:handler:"),
+		uint64(1<<eventLeftMouseDown), objc.ID(block))
+	block.Release()
+}
+
+func (n *numberInput) pointInside(event objc.ID) bool {
+	window := objc.Send[objc.ID](n.control, sel("window"))
+	if window == 0 || objc.Send[objc.ID](event, sel("window")) != window {
+		return false
+	}
+	point := objc.Send[CGPoint](event, sel("locationInWindow"))
+	local := objc.Send[CGPoint](n.control, sel("convertPoint:fromView:"), point, objc.ID(0))
+	rect := bounds(n.control)
+	return local.X >= 0 && local.Y >= 0 && local.X <= rect.Size.Width && local.Y <= rect.Size.Height
+}
+
+func (n *numberInput) removeBlurMonitor() {
+	if n.monitor == 0 {
+		return
+	}
+	objc.ID(class("NSEvent")).Send(sel("removeMonitor:"), n.monitor)
+	n.monitor = 0
 }
 
 func (n *numberInput) sanitizeText() {
