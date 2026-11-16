@@ -66,22 +66,21 @@ func layoutEmptyState(p *Panel, width, scrollY, scrollHeight float64) {
 	if objc.Send[bool](p.empty, sel("isHidden")) {
 		return
 	}
-	const iconSize = 30.0
 	const titleHeight = 17.0
 	const detailHeight = 15.0
 	hasDetail := !objc.Send[bool](p.emptyDetail, sel("isHidden"))
 	blockHeight := titleHeight
-	blockHeight += iconSize + 8
+	blockHeight += emptyKubaiIconSize + 8
 	if hasDetail {
 		blockHeight += 4 + detailHeight
 	}
 	top := scrollY + scrollHeight/2 + blockHeight/2
-	if p.emptyKubai != 0 && !objc.Send[bool](p.emptyKubai, sel("isHidden")) {
-		top -= emptyKubaiIconSize
-		setFrame(p.emptyKubai, (width-emptyKubaiIconSize)/2, top, emptyKubaiIconSize, emptyKubaiIconSize)
-	} else {
-		top -= iconSize
-		setFrame(p.emptyIcon, (width-iconSize)/2, top, iconSize, iconSize)
+	top -= emptyKubaiIconSize
+	for _, icon := range p.emptyIcons {
+		if objc.Send[bool](icon.view, sel("isHidden")) {
+			continue
+		}
+		setFrame(icon.view, (width-emptyKubaiIconSize)/2, top, emptyKubaiIconSize, emptyKubaiIconSize)
 	}
 	top -= 8
 	top -= titleHeight

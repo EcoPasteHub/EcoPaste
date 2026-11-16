@@ -8,7 +8,6 @@ import (
 
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/ebitengine/purego/objc"
-	"github.com/nsgo-dev/nsgo"
 	"github.com/nsgo-dev/nsgo/core"
 )
 
@@ -38,9 +37,7 @@ type Panel struct {
 	scroll             objc.ID
 	table              objc.ID
 	empty              objc.ID
-	emptyIcon          objc.ID
-	emptyKubai         objc.ID
-	emptyKubaiIcon     *nsgo.View
+	emptyIcons         map[emptyStateKind]emptyIconView
 	emptyDetail        objc.ID
 	footerDivider      objc.ID
 	footer             objc.ID
@@ -181,11 +178,6 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.empty.Send(sel("setLineBreakMode:"), int64(4))
 	p.empty.Send(sel("setMaximumNumberOfLines:"), int64(1))
 
-	p.emptyIcon = objc.ID(class("NSImageView")).Send(sel("new"))
-	p.emptyIcon.Send(sel("setImageScaling:"), int64(3))
-	p.emptyIcon.Send(sel("setImageAlignment:"), int64(5))
-	p.emptyIcon.Send(sel("setContentTintColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
-
 	p.emptyDetail = objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(""))
 	p.emptyDetail.Send(sel("setFont:"), systemFont(11))
 	p.emptyDetail.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
@@ -205,10 +197,11 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.buildPreview()
 
 	for _, v := range []objc.ID{p.search, p.pin, p.filterButton, p.settingsButton,
-		p.clearButton, p.shortcutButton, p.divider, p.scroll, p.empty, p.emptyIcon, p.emptyDetail,
+		p.clearButton, p.shortcutButton, p.divider, p.scroll, p.empty, p.emptyDetail,
 		p.footerDivider, p.footer} {
 		p.view.Send(sel("addSubview:"), v)
 	}
+	p.buildEmptyIcons()
 	p.buildHoverBar()
 	p.buildShortcutHelp()
 
@@ -321,6 +314,7 @@ func (p *Panel) Close() {
 	delete(panelsByPreviewView, p.preview)
 	delete(panelsByPopover, p.previewDelegate)
 	p.closePreview()
+	p.closeEmptyIcons()
 	if p.shortcutPopover != 0 {
 		p.shortcutPopover.Send(sel("close"))
 		p.shortcutPopover.Send(sel("release"))
@@ -390,7 +384,7 @@ func (p *Panel) setFilterSelection(filter string) {
 func (p *Panel) updateStatus() {
 	state := emptyState{}
 	if !p.previewing {
-		state = emptyStateFor(p.errText, len(p.rows), p.query, p.loading)
+		state = emptyStateFor(len(p.rows), p.query)
 	}
 	p.setEmptyState(state)
 	p.footerDivider.Send(sel("setHidden:"), false)

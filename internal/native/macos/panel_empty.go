@@ -12,83 +12,99 @@ func (p *Panel) setEmptyState(state emptyState) {
 	visible := state.Title != ""
 	p.empty.Send(sel("setStringValue:"), nsString(state.Title))
 	p.empty.Send(sel("setHidden:"), !visible)
+	p.empty.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
 	p.emptyDetail.Send(sel("setStringValue:"), nsString(state.Detail))
 	p.emptyDetail.Send(sel("setHidden:"), !visible || state.Detail == "")
-	useKubai := visible && state.Kubai
-	p.emptyIcon.Send(sel("setHidden:"), !visible || useKubai)
-	if p.emptyKubai != 0 {
-		p.emptyKubai.Send(sel("setHidden:"), !useKubai)
+	for kind, icon := range p.emptyIcons {
+		icon.view.Send(sel("setHidden:"), !visible || state.Kind != kind)
 	}
-	if !visible {
-		return
-	}
-	color := objc.ID(classNSColor).Send(sel("secondaryLabelColor"))
-	iconColor := objc.ID(classNSColor).Send(sel("tertiaryLabelColor"))
-	if state.Error {
-		color = objc.ID(classNSColor).Send(sel("systemRedColor"))
-		iconColor = color
-	}
-	p.empty.Send(sel("setTextColor:"), color)
-	if useKubai {
-		p.ensureEmptyKubai()
-		return
-	}
-	p.emptyIcon.Send(sel("setImage:"), systemSymbol(state.Symbol))
-	p.emptyIcon.Send(sel("setContentTintColor:"), iconColor)
 }
 
 type emptyState struct {
-	Symbol string
+	Kind   emptyStateKind
 	Title  string
 	Detail string
-	Error  bool
-	Kubai  bool
 }
 
-func emptyStateFor(errText string, rows int, query string, loading bool) emptyState {
+// emptyStateKind selects the Kubai illustration for a scenario.
+type emptyStateKind int
+
+const (
+	emptyKindNone emptyStateKind = iota
+	emptyKindHistory
+	emptyKindSearch
+)
+
+func emptyStateFor(rows int, query string) emptyState {
 	switch {
 	case rows > 0:
 		return emptyState{}
-	case errText != "":
-		return emptyState{Symbol: "exclamationmark.triangle", Title: errText, Error: true}
-	case loading:
-		return emptyState{Symbol: "clock", Title: i18n.T(i18n.PanelLoading)}
 	case query != "":
 		return emptyState{
-			Symbol: "magnifyingglass", Title: i18n.T(i18n.PanelNoMatches),
+			Kind:   emptyKindSearch,
+			Title:  i18n.T(i18n.PanelNoMatches),
 			Detail: i18n.T(i18n.PanelNoMatchesDetail),
 		}
 	default:
 		return emptyState{
-			Title: i18n.T(i18n.PanelEmpty), Kubai: true,
+			Kind:   emptyKindHistory,
+			Title:  i18n.T(i18n.PanelEmpty),
 			Detail: i18n.T(i18n.PanelEmptyDetail),
 		}
+	}
+}
+
+func emptyIconSymbol(kind emptyStateKind) *kubai.Symbol {
+	switch kind {
+	case emptyKindSearch:
+		return kubai.Search()
+	default:
+		return kubai.Clipboard()
 	}
 }
 
 // emptyKubaiIconSize is the decorative illustration above the empty title.
 const emptyKubaiIconSize = 44.0
 
-// ensureEmptyKubai embeds the Kubai empty illustration on first use. The
-// NSGo view follows the panel's effective appearance.
-func (p *Panel) ensureEmptyKubai() {
-	if p.emptyKubai != 0 {
+type emptyIconView struct {
+	view objc.ID
+	nsgo *nsgo.View
+}
+
+// buildEmptyIcons embeds one Kubai illustration per scenario on first use,
+// stacked in the same place and switched by visibility. The NSGo views follow
+// the panel's effective appearance.
+func (p *Panel) buildEmptyIcons() {
+	if len(p.emptyIcons) > 0 {
 		return
 	}
-	icon := nsgo.NewView(func(*core.Scope) core.Node {
-		return core.View{
-			Style: core.Style{
-				Width:          core.Pt(emptyKubaiIconSize),
-				Height:         core.Pt(emptyKubaiIconSize),
-				AlignItems:     core.AlignCenter,
-				JustifyContent: core.JustifyCenter,
-			},
-			Children: []core.Node{
-				kubai.Icon{Symbol: kubai.Clipboard(), Size: emptyKubaiIconSize},
-			},
-		}
-	})
-	p.emptyKubaiIcon = icon
-	p.emptyKubai = objc.ID(icon.Handle())
-	p.view.Send(sel("addSubview:"), p.emptyKubai)
+	kinds := []emptyStateKind{emptyKindHistory, emptyKindSearch}
+	p.emptyIcons = make(map[emptyStateKind]emptyIconView, len(kinds))
+	for _, kind := range kinds {
+		symbol := emptyIconSymbol(kind)
+		icon := nsgo.NewView(func(*core.Scope) core.Node {
+			return core.View{
+				Style: core.Style{
+					Width:          core.Pt(emptyKubaiIconSize),
+					Height:         core.Pt(emptyKubaiIconSize),
+					AlignItems:     core.AlignCenter,
+					JustifyContent: core.JustifyCenter,
+				},
+				Children: []core.Node{
+					kubai.Icon{Symbol: symbol, Size: emptyKubaiIconSize},
+				},
+			}
+		})
+		view := objc.ID(icon.Handle())
+		view.Send(sel("setHidden:"), true)
+		p.view.Send(sel("addSubview:"), view)
+		p.emptyIcons[kind] = emptyIconView{view: view, nsgo: icon}
+	}
+}
+
+func (p *Panel) closeEmptyIcons() {
+	for kind, icon := range p.emptyIcons {
+		icon.nsgo.Close()
+		delete(p.emptyIcons, kind)
+	}
 }
