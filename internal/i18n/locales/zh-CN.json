@@ -472,7 +472,7 @@
       "position": "面板打开位置",
       "sort": "排序方式",
       "startup": "启动",
-      "theme": "外观主题",
+      "theme": "主题",
       "trayIcon": "显示菜单栏图标",
       "updateOnReuse": "复用后刷新排序",
       "windowAppearance": "窗口与外观"
