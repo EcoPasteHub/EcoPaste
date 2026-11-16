@@ -198,52 +198,16 @@ func (v *SettingsView) rebuildPopup(field *settingsField) {
 	v.layoutPopup(field)
 }
 
-func (v *SettingsView) addStepper(content objc.ID, y float64, title i18n.Key, path string, step, maxValue float64, suffix any, get func(SettingsValues) uint32) {
-	v.addStepperRange(content, y, title, path, 0, maxValue, step, suffix, get)
-}
-
-func (v *SettingsView) addStepperRange(content objc.ID, y float64, title i18n.Key, path string, minValue, maxValue, step float64, suffix any, get func(SettingsValues) uint32) {
-	v.addLabel(content, y, title)
-	valueLabel := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(""))
-	valueLabel.Send(sel("setFont:"), systemFont(12))
-	valueLabel.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
-	valueLabel.Send(sel("setAlignment:"), int64(2))
-	valueLabel.Send(sel("setFrame:"), CGRect{
-		Origin: CGPoint{
-			X: settingsContentX + settingsContentWidth - settingsRowInset - settingsSwitchWidth - 110,
-			Y: y + (settingsRowHeight-18)/2,
-		},
-		Size: CGSize{Width: 100, Height: 18},
-	})
-	content.Send(sel("addSubview:"), valueLabel)
-
-	control := objc.ID(class("NSStepper")).Send(sel("new"))
-	control.Send(sel("setFrame:"), CGRect{
-		Origin: CGPoint{
-			X: settingsContentX + settingsContentWidth - settingsRowInset - 19,
-			Y: y + (settingsRowHeight-24)/2,
-		},
-		Size: CGSize{Width: 19, Height: 24},
-	})
-	control.Send(sel("setMinValue:"), minValue)
-	control.Send(sel("setMaxValue:"), maxValue)
-	control.Send(sel("setIncrement:"), step)
-	control.Send(sel("setValueWraps:"), false)
-	control.Send(sel("setTarget:"), settingsTarget)
-	control.Send(sel("setAction:"), sel("stepperChanged:"))
-	v.addField(content, control, &settingsField{
-		path: path, kind: "stepper", control: control, valueLabel: valueLabel,
-		suffix: suffix,
-		get:    func(s SettingsValues) any { return get(s) },
-	})
-}
-
 func (v *SettingsView) addLabel(content objc.ID, y float64, title i18n.Key) {
 	v.addLabelWidth(content, y, title, settingsContentWidth-2*settingsRowInset-260)
 }
 
 func (v *SettingsView) addLabelWidth(content objc.ID, y float64, title i18n.Key, width float64) {
-	label := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(title)))
+	v.addLabelText(content, y, width, func() string { return i18n.T(title) })
+}
+
+func (v *SettingsView) addLabelText(content objc.ID, y, width float64, text func() string) objc.ID {
+	label := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(text()))
 	label.Send(sel("setFont:"), systemFont(13))
 	label.Send(sel("setLineBreakMode:"), int64(4))
 	label.Send(sel("setFrame:"), CGRect{
@@ -251,7 +215,10 @@ func (v *SettingsView) addLabelWidth(content objc.ID, y float64, title i18n.Key,
 		Size:   CGSize{Width: width, Height: 18},
 	})
 	content.Send(sel("addSubview:"), label)
-	v.bindString(label, title)
+	v.bindText(func() {
+		label.Send(sel("setStringValue:"), nsString(text()))
+	})
+	return label
 }
 
 func (v *SettingsView) addHint(content objc.ID, y, height float64, text i18n.Key) {

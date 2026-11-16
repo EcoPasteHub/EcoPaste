@@ -522,6 +522,13 @@
     },
     "moveDown": "Move Down",
     "moveUp": "Move Up",
+    "number": {
+      "decrease": "Decrease %s",
+      "fieldA11y": "%s value",
+      "help": "Enter a number or use the side buttons to adjust it",
+      "increase": "Increase %s",
+      "titleWithUnit": "%s (%s)"
+    },
     "permissions": {
       "accessibility": "Accessibility",
       "accessibilityDetail": "Automatic paste simulates the Command-V shortcut.",

@@ -25,7 +25,6 @@ func settingsTargetMethods() []objc.MethodDef {
 	return []objc.MethodDef{
 		{Cmd: sel("toggleChanged:"), Fn: settingsToggleChanged},
 		{Cmd: sel("popupChanged:"), Fn: settingsPopupChanged},
-		{Cmd: sel("stepperChanged:"), Fn: settingsStepperChanged},
 		{Cmd: sel("dataDirPressed:"), Fn: settingsDataDirPressed},
 		{Cmd: sel("defaultDataDirPressed:"), Fn: settingsDefaultDataDirPressed},
 		{Cmd: sel("accessibilityPermissionPressed:"), Fn: settingsAccessibilityPermissionPressed},
@@ -86,20 +85,6 @@ func settingsPopupChanged(_ objc.ID, _ objc.SEL, sender objc.ID) {
 	v.layoutPopup(field)
 	suppressSettingsPopupHover(sender)
 	v.cx.Emit("change", SettingsChange{Path: field.path, Value: field.options[index]})
-}
-
-func settingsStepperChanged(_ objc.ID, _ objc.SEL, sender objc.ID) {
-	v := settingsViews[sender]
-	if v == nil {
-		return
-	}
-	field := v.fieldFor(sender)
-	if field == nil {
-		return
-	}
-	value := uint32(objc.Send[float64](sender, sel("doubleValue")))
-	v.setStepperLabel(field, value)
-	v.cx.Emit("change", SettingsChange{Path: field.path, Value: value})
 }
 
 func settingsDataDirPressed(_ objc.ID, _ objc.SEL, sender objc.ID) {

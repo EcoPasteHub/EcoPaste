@@ -3,7 +3,6 @@
 package macos
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
@@ -128,6 +127,7 @@ type SettingsView struct {
 	groupField            *settingsField
 	extraExcluded         []string
 	shortcutRecorders     []*shortcutRecorder
+	numberInputs          []*numberInput
 	lastValues            SettingsValues
 	fields                []*settingsField
 	currentTab            string
@@ -139,16 +139,14 @@ type SettingsView struct {
 }
 
 type settingsField struct {
-	path       string
-	kind       string
-	control    objc.ID
-	valueLabel objc.ID
-	options    []string
-	titles     []string
-	choices    []settingsOption
-	title      i18n.Key
-	suffix     any
-	get        func(SettingsValues) any
+	path    string
+	kind    string
+	control objc.ID
+	options []string
+	titles  []string
+	choices []settingsOption
+	title   i18n.Key
+	get     func(SettingsValues) any
 }
 
 const (
@@ -397,6 +395,7 @@ func (v *SettingsView) apply(values SettingsValues) {
 	v.applyActions(values)
 	v.applyCaptureOrder(values)
 	v.applyShortcuts(values)
+	v.applyNumberInputs(values)
 	v.applyGroups(values)
 	for _, field := range v.fields {
 		switch field.kind {
@@ -407,10 +406,6 @@ func (v *SettingsView) apply(values SettingsValues) {
 			value, _ := field.get(values).(string)
 			selectPopup(field, value)
 			v.layoutPopup(field)
-		case "stepper":
-			n, _ := field.get(values).(uint32)
-			field.control.Send(sel("setDoubleValue:"), float64(n))
-			v.setStepperLabel(field, n)
 		}
 	}
 	v.applyDisplayPreview(values)
@@ -451,17 +446,6 @@ func selectPopup(field *settingsField, value string) {
 	field.titles = append(field.titles, value)
 	field.control.Send(sel("addItemWithTitle:"), nsString(value))
 	field.control.Send(sel("selectItemAtIndex:"), int64(len(field.options)-1))
-}
-
-func (v *SettingsView) setStepperLabel(field *settingsField, value uint32) {
-	if field.valueLabel == 0 {
-		return
-	}
-	text := fmt.Sprintf("%d%s", value, settingsTextValue(field.suffix))
-	if value == 0 {
-		text = i18n.T(i18n.SettingsUnlimited)
-	}
-	field.valueLabel.Send(sel("setStringValue:"), nsString(text))
 }
 
 func boolInt(value bool) int64 {
@@ -512,6 +496,7 @@ func (v *SettingsView) Close() {
 		}
 	}
 	v.closeShortcutRecorders()
+	v.closeNumberInputs()
 	delete(settingsViews, v.change)
 	v.view.Send(sel("release"))
 }

@@ -25,9 +25,9 @@ func (v *SettingsView) buildAdvancedPage() {
 	top = cardTop + 5*settingsRowHeight + settingsGroupGap
 
 	_, cardTop = v.addSectionCard(document, top, i18n.SettingsCaptureLimits, 2)
-	v.addStepper(document, settingsRowTop(cardTop, 0), i18n.SettingsMaxText, "capture.maxTextMb", 1, 1024, " MB",
+	v.addNumberInput(document, settingsRowTop(cardTop, 0), i18n.SettingsMaxText, "capture.maxTextMb", 1, 1024, 1, " MB",
 		func(s SettingsValues) uint32 { return s.MaxTextMB })
-	v.addStepper(document, settingsRowTop(cardTop, 1), i18n.SettingsMaxImage, "capture.maxImageMb", 10, 4096, " MB",
+	v.addNumberInput(document, settingsRowTop(cardTop, 1), i18n.SettingsMaxImage, "capture.maxImageMb", 10, 4096, 10, " MB",
 		func(s SettingsValues) uint32 { return s.MaxImageMB })
 	top = cardTop + 2*settingsRowHeight + settingsGroupGap
 	top = v.buildCapturePriorities(document, top)
@@ -47,11 +47,11 @@ func (v *SettingsView) buildAdvancedPage() {
 			{Key: i18n.SettingsRetention1Year, Value: "365d"},
 		},
 		func(s SettingsValues) string { return s.Retention })
-	v.addStepper(document, settingsRowTop(cardTop, 1), i18n.SettingsMaxCount, "history.maxCount",
-		100, 100000, i18n.SettingsUnitCount,
+	v.addNumberInput(document, settingsRowTop(cardTop, 1), i18n.SettingsMaxCount, "history.maxCount",
+		0, 100000, 100, i18n.SettingsUnitCount,
 		func(s SettingsValues) uint32 { return s.MaxCount })
-	v.addStepper(document, settingsRowTop(cardTop, 2), i18n.SettingsCleanupInterval, "history.cleanupIntervalHours",
-		1, 168, i18n.SettingsUnitHours,
+	v.addNumberInput(document, settingsRowTop(cardTop, 2), i18n.SettingsCleanupInterval, "history.cleanupIntervalHours",
+		0, 168, 1, i18n.SettingsUnitHours,
 		func(s SettingsValues) uint32 { return s.CleanupIntervalHours })
 	top = cardTop + 3*settingsRowHeight + settingsGroupGap
 

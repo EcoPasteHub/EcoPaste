@@ -522,6 +522,13 @@
     },
     "moveDown": "下移",
     "moveUp": "上移",
+    "number": {
+      "decrease": "减少%s",
+      "fieldA11y": "%s数值",
+      "help": "输入数字，或使用左右按钮调整",
+      "increase": "增加%s",
+      "titleWithUnit": "%s（%s）"
+    },
     "permissions": {
       "accessibility": "辅助功能",
       "accessibilityDetail": "自动粘贴需要模拟 Command-V 快捷键。",

@@ -12,13 +12,13 @@ func (v *SettingsView) buildInterfacePage() {
 	top := 18.0
 
 	_, cardTop := v.addSectionCard(document, top, i18n.SettingsDisplayDensity, 3)
-	v.addStepperRange(document, settingsRowTop(cardTop, 0), i18n.SettingsTextMaxLines, "display.textMaxLines",
+	v.addNumberInput(document, settingsRowTop(cardTop, 0), i18n.SettingsTextMaxLines, "display.textMaxLines",
 		1, 5, 1, i18n.SettingsUnitLines,
 		func(s SettingsValues) uint32 { return s.TextMaxLines })
-	v.addStepperRange(document, settingsRowTop(cardTop, 1), i18n.SettingsImageMaxHeight, "display.imageMaxHeight",
+	v.addNumberInput(document, settingsRowTop(cardTop, 1), i18n.SettingsImageMaxHeight, "display.imageMaxHeight",
 		20, 100, 4, " px",
 		func(s SettingsValues) uint32 { return s.ImageMaxHeight })
-	v.addStepperRange(document, settingsRowTop(cardTop, 2), i18n.SettingsFileMaxCount, "display.fileMaxCount",
+	v.addNumberInput(document, settingsRowTop(cardTop, 2), i18n.SettingsFileMaxCount, "display.fileMaxCount",
 		1, 5, 1, i18n.SettingsUnitItems,
 		func(s SettingsValues) uint32 { return s.FileMaxCount })
 	top = cardTop + 3*settingsRowHeight + settingsGroupGap
