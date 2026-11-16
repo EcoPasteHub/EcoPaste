@@ -3,6 +3,8 @@
 package macos
 
 import (
+	"bytes"
+	"image/png"
 	"os"
 	"strings"
 	"testing"
@@ -43,7 +45,15 @@ func TestAppIconForPath(t *testing.T) {
 	if _, err := os.Stat(path); err != nil {
 		t.Skip("Notes.app is not installed")
 	}
-	if png := AppIconForPath(path); len(png) == 0 {
+	data := AppIconForPath(path)
+	if len(data) == 0 {
 		t.Fatal("icon is empty")
+	}
+	config, err := png.DecodeConfig(bytes.NewReader(data))
+	if err != nil {
+		t.Fatalf("decode icon: %v", err)
+	}
+	if config.Width > iconPixels || config.Height > iconPixels {
+		t.Fatalf("icon = %dx%d, want at most %dpx", config.Width, config.Height, iconPixels)
 	}
 }

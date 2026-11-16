@@ -18,11 +18,7 @@ func FileIconPNG(path string) []byte {
 		if image == 0 {
 			return
 		}
-		tiff := objc.Send[objc.ID](image, sel("TIFFRepresentation"))
-		if tiff == 0 {
-			return
-		}
-		out = tiffToPNG(dataBytes(tiff))
+		out = imagePNG(image, iconPixels)
 	})
 	return out
 }
