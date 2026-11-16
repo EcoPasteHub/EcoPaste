@@ -41,6 +41,7 @@ func settingsTargetMethods() []objc.MethodDef {
 		{Cmd: sel("importBackupPressed:"), Fn: settingsImportBackupPressed},
 		{Cmd: sel("updateCheckPressed:"), Fn: settingsUpdateCheckPressed},
 		{Cmd: sel("openSourcePressed:"), Fn: settingsOpenSourcePressed},
+		{Cmd: sel("openIssuesPressed:"), Fn: settingsOpenIssuesPressed},
 		{Cmd: sel("resetSettingsPressed:"), Fn: settingsResetPressed},
 	}
 }
@@ -186,6 +187,10 @@ func settingsUpdateCheckPressed(_ objc.ID, _ objc.SEL, sender objc.ID) {
 
 func settingsOpenSourcePressed(objc.ID, objc.SEL, objc.ID) {
 	_ = OpenURL(SourceURL)
+}
+
+func settingsOpenIssuesPressed(objc.ID, objc.SEL, objc.ID) {
+	_ = OpenURL(IssuesURL)
 }
 
 func settingsResetPressed(_ objc.ID, _ objc.SEL, sender objc.ID) {
