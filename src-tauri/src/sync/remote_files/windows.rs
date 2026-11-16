@@ -7,6 +7,7 @@
 //! 线程模型：OLE 剪贴板对象必须活在带消息循环的 STA 线程上，因此每次 [`present`] 起一个专用线程，
 //! 在剪贴板被其它内容替换（`OleIsCurrentClipboard` 返回 `S_FALSE`）后退出。
 
+use std::collections::VecDeque;
 use std::ffi::c_void;
 use std::mem::ManuallyDrop;
 use std::sync::{Arc, Mutex};
@@ -346,11 +347,32 @@ impl IDataObject_Impl for VirtualFiles {
     }
 }
 
-#[derive(Default, Clone)]
+/// 顺序读取时同时在途的块数；每块 [`CHUNK_SIZE`]，把「一块一往返」变成流水线以占满带宽。
+const PREFETCH_WINDOW: usize = 8;
+
+type ChunkTask = tauri::async_runtime::JoinHandle<anyhow::Result<Vec<u8>>>;
+
+#[derive(Default)]
 struct Cursor {
     position: u64,
     /// 最近一次拉取的块：`(起始偏移, 数据)`，让小块顺序读不必每次都往返网络。
     cache: Option<(u64, Vec<u8>)>,
+    /// 已发出请求的后续块，按偏移递增排列。
+    inflight: VecDeque<(u64, ChunkTask)>,
+}
+
+impl Cursor {
+    fn abort_inflight(&mut self) {
+        for (_, task) in self.inflight.drain(..) {
+            task.abort();
+        }
+    }
+}
+
+impl Drop for Cursor {
+    fn drop(&mut self) {
+        self.abort_inflight();
+    }
 }
 
 /// 按需向对端拉取内容的只读文件流。
@@ -365,6 +387,28 @@ struct RemoteFileStream {
 }
 
 impl RemoteFileStream {
+    /// 把在途请求补满窗口：从 `from`（或最后一个在途块之后）起依次发出。
+    fn top_up(&self, cursor: &mut Cursor, from: u64) {
+        let mut next = cursor
+            .inflight
+            .back()
+            .map_or(from, |(start, _)| *start + CHUNK_SIZE as u64);
+
+        while cursor.inflight.len() < PREFETCH_WINDOW && next < self.size {
+            let (state, peer_id, offer, index) = (
+                self.state.clone(),
+                self.peer_id.clone(),
+                self.offer.clone(),
+                self.index,
+            );
+            let task = tauri::async_runtime::spawn(async move {
+                fetch_file_range(&state, &peer_id, &offer, index, next, CHUNK_SIZE as u32).await
+            });
+            cursor.inflight.push_back((next, task));
+            next += CHUNK_SIZE as u64;
+        }
+    }
+
     /// 从当前位置读取至多 `want` 字节；到达文件末尾返回空。
     fn read_at_cursor(&self, want: usize) -> Result<Vec<u8>, ()> {
         let mut cursor = self.cursor.lock().expect("stream cursor poisoned");
@@ -378,22 +422,40 @@ impl RemoteFileStream {
         });
 
         if !covered {
-            let data = tauri::async_runtime::block_on(fetch_file_range(
-                &self.state,
-                &self.peer_id,
-                &self.offer,
-                self.index,
-                position,
-                CHUNK_SIZE as u32,
-            ))
-            .map_err(|err| {
-                log::warn!("sync: fetching remote file chunk failed: {err:#}");
-            })?;
+            // 丢弃落在当前位置之前的在途块（发生了向前 seek 之类）。
+            while cursor
+                .inflight
+                .front()
+                .is_some_and(|(start, _)| *start < position)
+            {
+                if let Some((_, task)) = cursor.inflight.pop_front() {
+                    task.abort();
+                }
+            }
+            let hit = cursor
+                .inflight
+                .front()
+                .is_some_and(|(start, _)| *start == position);
+            if !hit {
+                cursor.abort_inflight();
+            }
+            self.top_up(&mut cursor, position);
+
+            let (_, task) = cursor.inflight.pop_front().expect("window is never empty");
+            let data = tauri::async_runtime::block_on(task)
+                .map_err(|err| log::warn!("sync: chunk task failed: {err}"))?
+                .map_err(|err| {
+                    log::warn!("sync: fetching remote file chunk failed: {err:#}");
+                    cursor.abort_inflight();
+                })?;
 
             if data.is_empty() {
+                cursor.abort_inflight();
                 return Ok(Vec::new());
             }
+            let next = position + data.len() as u64;
             cursor.cache = Some((position, data));
+            self.top_up(&mut cursor, next);
         }
 
         let (start, data) = cursor.cache.as_ref().expect("cache filled above");
@@ -560,7 +622,15 @@ impl IStream_Impl for RemoteFileStream {
     }
 
     fn Clone(&self) -> WinResult<IStream> {
-        let cursor = self.cursor.lock().expect("stream cursor poisoned").clone();
+        let (position, cache) = {
+            let guard = self.cursor.lock().expect("stream cursor poisoned");
+            (guard.position, guard.cache.clone())
+        };
+        let cursor = Cursor {
+            position,
+            cache,
+            inflight: VecDeque::new(),
+        };
         Ok(RemoteFileStream {
             state: self.state.clone(),
             peer_id: self.peer_id.clone(),

@@ -107,8 +107,10 @@ pub async fn write_frame<W: AsyncWrite + Unpin>(w: &mut W, bytes: &[u8]) -> Resu
     if bytes.len() > MAX_FRAME {
         bail!("frame too large: {}", bytes.len());
     }
-    w.write_all(&(bytes.len() as u32).to_be_bytes()).await?;
-    w.write_all(bytes).await?;
+    let mut framed = Vec::with_capacity(4 + bytes.len());
+    framed.extend_from_slice(&(bytes.len() as u32).to_be_bytes());
+    framed.extend_from_slice(bytes);
+    w.write_all(&framed).await?;
     w.flush().await?;
     Ok(())
 }
