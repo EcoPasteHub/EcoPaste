@@ -115,7 +115,7 @@
 | W-04 | P0 | 固定窗口 | `set_clipboard_window_pinned` | 固定不隐藏；粘贴时 resign/restore key | 已通过 | 原生按钮与 `⌘P` 切换已接，`⌘T` 置顶选中条目；真机固定后失焦、切换 TextEdit 和回车粘贴均保持可见，粘贴时让出 key 并在完成后恢复表格焦点；`TestHistoryKeyAction` 覆盖两档快捷键 |
 | W-05 | P1 | 窗口生命周期 | `window/lifecycle/*` | 原生窗口状态机，无 WebView 重建 | 已通过 | 冷启动不显示面板、全局快捷键显示/隐藏、隐藏后写 `window-state.json` 已实测；快捷键切换改为显式 `Show()`/`Hide()`，避免 Carbon 回调中的窗口命令未刷新；Esc 隐藏已复测；修复退出阶段热键清理阻塞主队列导致进程残留后，应用菜单退出、托盘“重新启动”与托盘“退出 EcoPaste”均真机通过：重启产生新进程，退出在 0.78 秒内结束且无残留 |
 | W-06 | P1 | 窗口几何持久化 | `window/state.rs` | 同 `state/window-state.json` | 已通过（格式调整） | 隐藏时写入 `clipboard` 帧并重启恢复；旧版存物理像素、左上原点，新版存 AppKit points、左下原点，JSON 字段与路径不变；旧坐标不在任一屏幕时回退到光标所在屏幕居中 |
-| W-07 | P1 | 偏好窗口 | `window/mod.rs` | 原生侧栏 + `NSTabView` 设置窗口 | 已通过 | 左侧原生源码列表分类栏、右侧内容区；已打开窗口切换分类时同步选中侧栏行；顶部 `NSSearchField` 跨全部分类搜索标题、说明、选项、路径，结果下拉跳转并在目标行短暂高亮；`TestMatchSettingsSearch*` 覆盖多词、路径分词、去重和 8 条上限，真机验证 `dock`、`capture order` 跳转及无匹配状态 |
+| W-07 | P1 | 偏好窗口 | `window/mod.rs` | 原生侧栏 + `NSTabView` 设置窗口 | 已通过 | 左侧原生源码列表分类栏、右侧内容区；已打开窗口切换分类时同步选中侧栏行；已移除顶部设置项搜索入口，分类内的配置项保持不变 |
 | W-08 | P1 | 更新窗口 | `window/mod.rs` | Sparkle 原生更新窗口 | 迁移中 | 产品调整：不恢复独立 WebView 更新窗，入口合并到设置“更新”页、应用菜单和托盘；macOS 由 Sparkle 显示检查/下载/安装/重启界面，应用侧只传本地化不可用结果；真机开发版验证设置页与菜单入口，正式签名 appcast 升级待发布验证 |
 | W-09 | P1 | 引导窗口 | `window/mod.rs` | 不提供首启引导浮层 | 不纳入 macOS 首版（产品调整） | 冷启动不再自动展开面板或显示引导；权限缺失在粘贴动作和设置“权限”页提示；引导代码与 `onboarding` 设置字段已移除，见 S-14 |
 | W-10 | P0 | 托盘 | `tray/mod.rs` | `NSStatusItem` + `NSMenu`：偏好、暂停、开源、更新、版本、重启、退出 | 迁移中 | 显示/暂停/设置/清除/开源/更新/版本/重启/退出已接；更新项与应用菜单共用同一 Sparkle 检查路径，正式签名 appcast 升级待发布验证 |
@@ -153,7 +153,7 @@
 
 | ID | 优先级 | 功能 | 现有实现 | NSGo/AppKit 目标 | 状态 | 验证方式 |
 | --- | --- | --- | --- | --- | --- | --- |
-| I-01 | P1 | 前端文案 | `legacy/frontend/src/locales/zh-CN`、`en-US` | Go i18n 目录，复用文案内容 | 已通过 | 剪贴板面板与 14 个设置分类已接入目录：搜索/分类/分组/空状态、右键与悬停动作、备注与分组弹窗、类型/时间摘要、文件摘要、全部设置项/选项/搜索关键词/诊断报告、更新入口与结果提示；备份/清除/权限弹窗，以及历史、分组、数据目录、快捷键、来源应用、链接打开、登录项与备份容器错误均已接入；`TestHistoryPresentationFollowsLanguage`、`TestSettingsSearchMatchesEnglishLabels`、`TestFormatDiagnosticReportInEnglish`、`TestGroupValidationFollowsLanguage`、`TestBackupErrorsFollowLanguage` 覆盖英文 |
+| I-01 | P1 | 前端文案 | `legacy/frontend/src/locales/zh-CN`、`en-US` | Go i18n 目录，复用文案内容 | 已通过 | 剪贴板面板与 14 个设置分类已接入目录：搜索/分类/分组/空状态、右键与悬停动作、备注与分组弹窗、类型/时间摘要、文件摘要、全部设置项/选项/诊断报告、更新入口与结果提示；备份/清除/权限弹窗，以及历史、分组、数据目录、快捷键、来源应用、链接打开、登录项与备份容器错误均已接入；`TestHistoryPresentationFollowsLanguage`、`TestFormatDiagnosticReportInEnglish`、`TestGroupValidationFollowsLanguage`、`TestBackupErrorsFollowLanguage` 覆盖英文 |
 | I-02 | P1 | Rust 侧文案 | `src-tauri/src/i18n/` | Go 文案目录 | 已通过 | `internal/i18n` 中英文目录覆盖托盘、列表右键、清除/删除确认、备份/存储/缓存/数据目录提示、剪贴板面板、设置与权限弹窗，并按 `appearance.language` 选择；`TestCatalogsShareEveryKey`、`TestSetLanguageSelectsCatalog`、`TestTfFormatsArguments` |
 | I-03 | P1 | 语言切换 | `appearance.language` | 原生菜单/设置切换，立即生效 | 已通过 | 设置“通用”页语言下拉写入 `appearance.language` 后立即切换目录、重建设置窗口与剪贴板面板，无需重启；真机中英文往返验证，托盘菜单、面板、设置与清空/备份弹窗文案同步切换；`TestSettingsModelAppliesLanguage` |
 | I-04 | P2 | 系统本地化 | 部分系统菜单 | AppKit 本地化角色项 | 已通过 | `internal/menu` 提供“应用/编辑/窗口”原生菜单与角色项，语言切换时整体重建；`TestApplicationBuildsLocalizedMenuBar`、`TestApplicationUsesRoleLabels`、`TestApplicationSettingsItem`；真机中英文往返验证关于/设置/隐藏/退出、撤销/重做/剪切/复制/粘贴/全选、最小化/缩放/全屏/关闭均随系统语言更新，设置项可从菜单打开偏好窗口 |

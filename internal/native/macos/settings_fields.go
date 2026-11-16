@@ -3,8 +3,6 @@
 package macos
 
 import (
-	"strings"
-
 	"github.com/ebitengine/purego/objc"
 )
 
@@ -104,7 +102,6 @@ func (v *SettingsView) addSettingsMoveButton(content objc.ID, frame CGRect, titl
 
 func (v *SettingsView) addSwitch(content objc.ID, y float64, title, path string, get func(SettingsValues) bool) {
 	v.addLabelWidth(content, y, title, settingsContentWidth-2*settingsRowInset-100)
-	v.addSearchEntry(content, title, path, "", "", rowHighlightFrame(y))
 	control := objc.ID(class("NSSwitch")).Send(sel("new"))
 	control.Send(sel("setControlSize:"), int64(2))
 	control.Send(sel("setFrame:"), CGRect{
@@ -140,7 +137,6 @@ func (v *SettingsView) addPopup(content objc.ID, y float64, title, path string, 
 		titles = append(titles, option.Title)
 		control.Send(sel("addItemWithTitle:"), nsString(option.Title))
 	}
-	v.addSearchEntry(content, title, path, "", strings.Join(titles, " "), rowHighlightFrame(y))
 	control.Send(sel("setTarget:"), settingsTarget)
 	control.Send(sel("setAction:"), sel("popupChanged:"))
 	field := &settingsField{
@@ -157,7 +153,6 @@ func (v *SettingsView) addStepper(content objc.ID, y float64, title, path string
 
 func (v *SettingsView) addStepperRange(content objc.ID, y float64, title, path string, minValue, maxValue, step float64, suffix string, get func(SettingsValues) uint32) {
 	v.addLabel(content, y, title)
-	v.addSearchEntry(content, title, path, suffix, "", rowHighlightFrame(y))
 	valueLabel := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(""))
 	valueLabel.Send(sel("setFont:"), systemFont(12))
 	valueLabel.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))

@@ -43,7 +43,7 @@ func (v *SettingsView) newPage(identifier string) objc.ID {
 	setFrame(page, 0, 0, settingsWidth, settingsHeight)
 
 	scroll := objc.ID(class("NSScrollView")).Send(sel("new"))
-	setFrame(scroll, 0, 0, settingsWidth, settingsHeight-settingsSearchHeaderH)
+	setFrame(scroll, 0, 0, settingsWidth, settingsHeight)
 	scroll.Send(sel("setAutoresizingMask:"), int64(18))
 	scroll.Send(sel("setHasVerticalScroller:"), true)
 	scroll.Send(sel("setAutohidesScrollers:"), true)
@@ -51,7 +51,7 @@ func (v *SettingsView) newPage(identifier string) objc.ID {
 	scroll.Send(sel("setBorderType:"), int64(0))
 
 	document := objc.ID(settingsDocumentClass).Send(sel("new"))
-	setFrame(document, 0, 0, settingsWidth, settingsHeight-settingsSearchHeaderH)
+	setFrame(document, 0, 0, settingsWidth, settingsHeight)
 	document.Send(sel("setAutoresizingMask:"), int64(2))
 	scroll.Send(sel("setDocumentView:"), document)
 	page.Send(sel("addSubview:"), scroll)
@@ -73,7 +73,7 @@ func (v *SettingsView) finishPage(document objc.ID, height float64) {
 	if document == 0 {
 		return
 	}
-	final := max(height+settingsGroupGap, settingsHeight-settingsSearchHeaderH)
+	final := max(height+settingsGroupGap, settingsHeight)
 	setFrame(document, 0, 0, settingsWidth, final)
 }
 

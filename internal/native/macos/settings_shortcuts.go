@@ -32,8 +32,6 @@ var (
 func (v *SettingsView) addShortcutField(content objc.ID, y float64, title, path string, get func(SettingsValues) string) {
 	registerSettingsShortcutsOnce.Do(registerSettingsShortcutTargets)
 	v.addLabel(content, y, title)
-	v.addSearchEntry(content, title, path, i18n.T(i18n.SettingsShortcutsKeywords), "shortcut hotkey",
-		rowHighlightFrame(y))
 	const fieldWidth = 240.0
 	field := objc.ID(shortcutFieldClass).Send(sel("new"))
 	field.Send(sel("setFrame:"), CGRect{

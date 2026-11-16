@@ -101,8 +101,6 @@ type SettingsView struct {
 	view                  objc.ID
 	tabs                  objc.ID
 	footer                objc.ID
-	searchField           objc.ID
-	searchResults         objc.ID
 	dataDir               objc.ID
 	change                objc.ID
 	restore               objc.ID
@@ -134,10 +132,6 @@ type SettingsView struct {
 	fields                []*settingsField
 	currentTab            string
 	currentTabTitle       string
-	searchEntries         []settingsSearchEntry
-	searchMatches         []settingsSearchEntry
-	searchHighlight       objc.ID
-	searchHighlightTimer  objc.ID
 	aboutIcons            []*nsgo.View
 }
 
@@ -157,9 +151,6 @@ const (
 	settingsHeight   = 560.0
 	settingsFooterH  = 0.0
 	settingsTabAreaH = settingsHeight
-	// settingsSearchHeaderH reserves the strip that holds the search field
-	// above the scrolling page content.
-	settingsSearchHeaderH = 44.0
 )
 
 type settingsTabMeta struct {
@@ -288,7 +279,6 @@ func NewSettings(cx *core.NativeContext) core.NativeComponent {
 	v.buildAppsPage()
 	v.buildAdvancedPage()
 	v.buildAboutPage()
-	v.buildSearch()
 	settingsTabMu.Lock()
 	settingsOpenViews[v] = struct{}{}
 	tab := pendingSettingsTab
@@ -455,11 +445,6 @@ func (v *SettingsView) Close() {
 		v.permissionTimer.Send(sel("invalidate"))
 		delete(settingsTimers, v.permissionTimer)
 		v.permissionTimer = 0
-	}
-	if v.searchHighlightTimer != 0 {
-		v.searchHighlightTimer.Send(sel("invalidate"))
-		delete(settingsTimers, v.searchHighlightTimer)
-		v.searchHighlightTimer = 0
 	}
 	for control, owner := range settingsViews {
 		if owner == v {

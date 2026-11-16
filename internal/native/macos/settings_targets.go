@@ -23,9 +23,6 @@ func registerSettingsTargets() {
 
 func settingsTargetMethods() []objc.MethodDef {
 	return []objc.MethodDef{
-		{Cmd: sel("settingsSearchChanged:"), Fn: settingsSearchChanged},
-		{Cmd: sel("settingsSearchPicked:"), Fn: settingsSearchPicked},
-		{Cmd: sel("settingsSearchHighlightExpired:"), Fn: settingsSearchHighlightExpired},
 		{Cmd: sel("toggleChanged:"), Fn: settingsToggleChanged},
 		{Cmd: sel("popupChanged:"), Fn: settingsPopupChanged},
 		{Cmd: sel("stepperChanged:"), Fn: settingsStepperChanged},
@@ -43,30 +40,6 @@ func settingsTargetMethods() []objc.MethodDef {
 		{Cmd: sel("openSourcePressed:"), Fn: settingsOpenSourcePressed},
 		{Cmd: sel("openIssuesPressed:"), Fn: settingsOpenIssuesPressed},
 		{Cmd: sel("resetSettingsPressed:"), Fn: settingsResetPressed},
-	}
-}
-
-func settingsSearchChanged(_ objc.ID, _ objc.SEL, sender objc.ID) {
-	if v := settingsViews[sender]; v != nil {
-		v.searchChanged(sender)
-	}
-}
-
-func settingsSearchPicked(_ objc.ID, _ objc.SEL, sender objc.ID) {
-	if v := settingsViews[sender]; v != nil {
-		v.searchResultPicked(sender)
-	}
-}
-
-func settingsSearchHighlightExpired(_ objc.ID, _ objc.SEL, sender objc.ID) {
-	v := settingsTimers[sender]
-	if v == nil {
-		return
-	}
-	delete(settingsTimers, sender)
-	v.searchHighlightTimer = 0
-	if v.searchHighlight != 0 {
-		v.searchHighlight.Send(sel("setHidden:"), true)
 	}
 }
 

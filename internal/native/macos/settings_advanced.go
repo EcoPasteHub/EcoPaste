@@ -98,11 +98,6 @@ func (v *SettingsView) buildCapturePriorities(document objc.ID, top float64) flo
 		float64(card.Size.Width-4), "capture", i18n.T(i18n.SettingsCaptureOrder), settingsCaptureTarget)
 	v.captureTable = table
 	settingsCaptureByTable[table] = v
-	v.addSearchEntry(document, i18n.T(i18n.SettingsCaptureOrder), "clipboard.capture.order",
-		i18n.T(i18n.SettingsCaptureKeywords), "capture order priority", CGRect{
-			Origin: CGPoint{X: card.Origin.X, Y: card.Origin.Y},
-			Size:   CGSize{Width: card.Size.Width, Height: card.Size.Height},
-		})
 
 	buttonX := settingsContentX + settingsContentWidth - 90
 	v.captureUp = v.addSettingsMoveButton(document,
@@ -127,8 +122,6 @@ func (v *SettingsView) buildHoverActions(document objc.ID, top float64) float64 
 		"actions", i18n.T(i18n.SettingsHoverTable), settingsActionsTarget)
 	v.actionsTable = table
 	settingsActionsByTable[table] = v
-	v.addSearchEntry(document, i18n.T(i18n.SettingsHoverActions), "clipboard.content.itemActions",
-		i18n.T(i18n.SettingsHoverKeywords), "hover actions menu buttons", card)
 
 	buttonX := settingsContentX + settingsContentWidth - 90
 	v.actionUp = v.addSettingsMoveButton(document,
@@ -163,11 +156,6 @@ func (v *SettingsView) buildStorageSection(document objc.ID, top float64) float6
 	v.dataDir.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: settingsContentX + settingsRowInset, Y: rowTop + 27},
 		Size: CGSize{Width: settingsContentWidth - 2*settingsRowInset - 214, Height: 15}})
 	document.Send(sel("addSubview:"), v.dataDir)
-	v.addSearchEntry(document, i18n.T(i18n.SettingsDataDir), "general.dataDir",
-		i18n.T(i18n.SettingsDataDirKeywords), "", CGRect{
-			Origin: CGPoint{X: settingsContentX, Y: cardTop},
-			Size:   CGSize{Width: settingsContentWidth, Height: 88},
-		})
 
 	v.change = objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
 		nsString(i18n.T(i18n.SettingsChange)), settingsTarget, sel("dataDirPressed:"))
@@ -239,11 +227,6 @@ func (v *SettingsView) buildPermissionsSection(document objc.ID, top float64) fl
 	v.diagnosticsHint.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: settingsContentX + settingsRowInset + 140, Y: top + 54},
 		Size: CGSize{Width: settingsContentWidth - 2*settingsRowInset - 140, Height: 15}})
 	document.Send(sel("addSubview:"), v.diagnosticsHint)
-	v.addSearchEntry(document, i18n.T(i18n.SettingsDiagnostics), "diagnostics.report",
-		i18n.T(i18n.SettingsDiagnosticsDetail), i18n.T(i18n.SettingsDiagnosticsKeywords), CGRect{
-			Origin: CGPoint{X: settingsContentX, Y: top},
-			Size:   CGSize{Width: settingsContentWidth, Height: 82},
-		})
 
 	v.refreshPermissionLabels()
 	v.startPermissionTimer()

@@ -222,7 +222,7 @@ EcoPaste 当前是典型的 Tauri v2 双进程/多 WebView 结构：
 | --- | --- |
 | Clipboard |  Header 搜索、pin/unpin、清空、打开偏好；分类 Tab（全部/文本/图片/文件/收藏）；自定义分组；虚拟列表；文本/图片/文件卡片；颜色预览；来源应用图标；备注；悬停快捷动作；右键菜单；键盘导航；Footer 总数与快捷键 |
 | Preview |  文本/图片/文件预览；hover 与 Space；边缘定位；连接线动画；内容切换；最大 480×480；缓存 16 条 |
-| Preference |  记录/整理/复用/工作流/快捷键/数据/关于 7 个 Tab；搜索设置；设置项高亮；存储占用；数据目录；缓存清理；备份导入导出；分组管理；来源应用忽略；权限；主题/语言；更新设置；诊断；重置 |
+| Preference |  记录/整理/复用/工作流/快捷键/数据/关于 7 个 Tab；存储占用；数据目录；缓存清理；备份导入导出；分组管理；来源应用忽略；权限；主题/语言；更新设置；诊断；重置 |
 | Onboarding |  Welcome → Permissions → Shortcuts → Ignore Apps → Legacy Import → Done；可回退；记录 `lastStep`；完成打开剪贴板 |
 | Update |  当前版本、检查、下载进度、安装、跳过版本、频道说明 |
 | ContextMenu |  Windows 专用；列表项右键菜单与分组子菜单 |

@@ -27,15 +27,6 @@ func (v *SettingsView) addPermission(content objc.ID, y float64, title, detail, 
 		Size:   CGSize{Width: detailWidth, Height: 18},
 	})
 	content.Send(sel("addSubview:"), titleLabel)
-	path := map[string]string{
-		"accessibilityPermissionPressed:":  "permissions.accessibility",
-		"fullDiskAccessPermissionPressed:": "permissions.fullDiskAccess",
-	}[action]
-	v.addSearchEntry(content, title, path, detail, i18n.T(i18n.SettingsPermissionsKeywords),
-		CGRect{
-			Origin: CGPoint{X: settingsContentX + 1, Y: y},
-			Size:   CGSize{Width: settingsContentWidth - 2, Height: settingsPermissionRowHeight},
-		})
 	detailLabel := objc.ID(classNSTextField).Send(sel("wrappingLabelWithString:"), nsString(detail))
 	detailLabel.Send(sel("setFont:"), systemFont(11))
 	detailLabel.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
