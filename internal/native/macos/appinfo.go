@@ -4,6 +4,9 @@ package macos
 
 import "github.com/ebitengine/purego/objc"
 
+// SourceURL is EcoPaste's public source repository.
+const SourceURL = "https://github.com/EcoPasteHub/EcoPaste"
+
 // AppVersion is the bundle's short version, empty where the app runs
 // without an Info.plist.
 func AppVersion() string {

@@ -65,7 +65,7 @@ func (t trayMenu) items() []desktop.MenuItem {
 		}},
 		{Separator: true},
 		{Label: i18n.T(i18n.TraySource), OnSelect: func() {
-			if err := macos.OpenURL(sourceURL); err != nil {
+			if err := macos.OpenURL(macos.SourceURL); err != nil {
 				log.Printf("open source: %v", err)
 			}
 		}},

@@ -19,8 +19,6 @@ const panelHotKey = "alt+c"
 
 const panelStateLabel = "clipboard"
 
-const sourceURL = "https://github.com/EcoPasteHub/EcoPaste"
-
 // Run opens EcoPaste's panel, tray icon and global shortcut. The app
 // keeps running without windows until the user quits it.
 func Run(app *core.Scope) {
