@@ -34,12 +34,10 @@ func newHotKeySet(manager *macos.HotKeyManager, store *settings.Store) *hotKeySe
 func (k *hotKeySet) applyStored() {
 	if k.store != nil {
 		snapshot := k.store.Snapshot()
-		if configured := snapshot.Shortcuts.OpenClipboard; configured != "" {
-			k.openClipboard = strings.ToLower(configured)
-		}
-		if configured := snapshot.Shortcuts.OpenPreference; configured != "" {
-			k.openPreference = strings.ToLower(configured)
-		}
+		// An empty value disables the binding. Falling back to defaults here
+		// would register a shortcut the user already removed.
+		k.openClipboard = strings.ToLower(snapshot.Shortcuts.OpenClipboard)
+		k.openPreference = strings.ToLower(snapshot.Shortcuts.OpenPreference)
 	}
 	if custom := os.Getenv("ECOPASTE_HOTKEY"); custom != "" {
 		k.openClipboard = strings.ToLower(custom)

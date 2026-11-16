@@ -127,7 +127,7 @@ type SettingsView struct {
 	displayPreviewRows    []objc.ID
 	groupField            *settingsField
 	extraExcluded         []string
-	shortcutFields        []*shortcutControl
+	shortcutRecorders     []*shortcutRecorder
 	lastValues            SettingsValues
 	fields                []*settingsField
 	currentTab            string
@@ -346,7 +346,33 @@ func (v *SettingsView) SetProp(name string, value any) {
 }
 
 // Command implements core.NativeComponent.
-func (v *SettingsView) Command(string, any) {}
+func (v *SettingsView) Command(name string, args any) {
+	switch name {
+	case "shortcutAccepted":
+		change, ok := args.(SettingsChange)
+		if !ok {
+			return
+		}
+		if recorder := v.shortcutRecorder(change.Path); recorder != nil {
+			value, _ := change.Value.(string)
+			recorder.acceptRecording(value)
+		}
+	case "shortcutRejected":
+		path, _ := args.(string)
+		if recorder := v.shortcutRecorder(path); recorder != nil {
+			recorder.rejectRecording()
+		}
+	}
+}
+
+func (v *SettingsView) shortcutRecorder(path string) *shortcutRecorder {
+	for _, recorder := range v.shortcutRecorders {
+		if recorder.path == path {
+			return recorder
+		}
+	}
+	return nil
+}
 
 func (v *SettingsView) apply(values SettingsValues) {
 	if v.dataDir != 0 {
@@ -474,12 +500,7 @@ func (v *SettingsView) Close() {
 			delete(settingsActionControls, control)
 		}
 	}
-	for control, binding := range settingsShortcutBindings {
-		if binding.view == v {
-			delete(settingsShortcutBindings, control)
-			delete(settingsShortcutRecording, control)
-		}
-	}
+	v.closeShortcutRecorders()
 	delete(settingsViews, v.change)
 	v.view.Send(sel("release"))
 }

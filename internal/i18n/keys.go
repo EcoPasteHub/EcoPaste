@@ -320,6 +320,9 @@ const (
 	SettingsShortcutFieldA11y = Key("settings.shortcuts.fieldA11y")
 	SettingsShortcutHelp      = Key("settings.shortcuts.help")
 	SettingsRecording         = Key("settings.shortcuts.recording")
+	SettingsShortcutIdle      = Key("settings.shortcuts.idle")
+	SettingsShortcutClear     = Key("settings.shortcuts.clear")
+	SettingsShortcutClearHelp = Key("settings.shortcuts.clearHelp")
 	SettingsInvalidShortcut   = Key("settings.shortcuts.invalid")
 
 	SettingsDiagnostics         = Key("settings.diagnostics.title")

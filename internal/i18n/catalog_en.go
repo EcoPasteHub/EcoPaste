@@ -319,7 +319,10 @@ var catalogEnUS = map[Key]string{
 	SettingsShortcutRule:      "Shortcuts need at least Command, Option or Control; F1–F12 may be used alone.",
 	SettingsShortcutFieldA11y: "%s shortcut",
 	SettingsShortcutHelp:      "Press a shortcut to record, Delete to clear, Esc to cancel",
-	SettingsRecording:         "Press shortcut…",
+	SettingsRecording:         "Press a shortcut to record",
+	SettingsShortcutIdle:      "Click to record shortcut",
+	SettingsShortcutClear:     "Clear shortcut",
+	SettingsShortcutClearHelp: "Clear the recorded shortcut",
 	SettingsInvalidShortcut:   "Include ⌘ / ⌥ / ⌃",
 
 	SettingsDiagnostics:         "Diagnostics",

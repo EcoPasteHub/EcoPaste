@@ -32,6 +32,7 @@ func settingsTabs() []settingsTab {
 
 // SettingsWindow builds the native settings window.
 func SettingsWindow(model SettingsModel) func(*core.Scope) core.Node {
+	nativeRef := &core.Ref{}
 	return func(cx *core.Scope) core.Node {
 		values := core.NewSignalFunc(cx, model.Load(), nil)
 		errorText := core.NewSignal(cx, "")
@@ -47,6 +48,7 @@ func SettingsWindow(model SettingsModel) func(*core.Scope) core.Node {
 				core.Native{
 					Component: macos.SettingsComponent,
 					Style:     core.Style{FlexGrow: 1, Width: core.Pct(100)},
+					Ref:       nativeRef,
 					PropsFunc: func() map[string]any {
 						return map[string]any{
 							"values": values.Get(),
@@ -68,15 +70,23 @@ func SettingsWindow(model SettingsModel) func(*core.Scope) core.Node {
 							if !ok {
 								return
 							}
+							shortcutChange := isShortcutPath(change.Path)
 							go func() {
 								err := model.Apply(change.Path, change.Value)
 								cx.Post(func() {
+									values.Set(model.Load())
 									if err != nil {
 										errorText.Set(err.Error())
-									} else {
-										errorText.Set("")
+										if shortcutChange {
+											nativeRef.Command("shortcutRejected", change.Path)
+										}
+										return
 									}
-									values.Set(model.Load())
+									errorText.Set("")
+									if shortcutChange {
+										nativeRef.Command("shortcutAccepted", change)
+										model.SuspendShortcuts(false)
+									}
 								})
 							}()
 						}
@@ -85,6 +95,10 @@ func SettingsWindow(model SettingsModel) func(*core.Scope) core.Node {
 			},
 		}
 	}
+}
+
+func isShortcutPath(path string) bool {
+	return path == "shortcuts.openClipboard" || path == "shortcuts.openPreference"
 }
 
 func settingsTabBar(cx *core.Scope, selected *core.Signal[string]) core.Node {

@@ -41,8 +41,8 @@ var (
 	carbonHotKeyErr  error
 
 	getApplicationEventTarget func() uintptr
-	registerEventHotKeyFunc   func(uint32, uint32, eventHotKeyID, uintptr, uint32, *uint32) int32
-	unregisterEventHotKeyFunc func(uint32) int32
+	registerEventHotKeyFunc   func(uint32, uint32, eventHotKeyID, uintptr, uint32, *uintptr) int32
+	unregisterEventHotKeyFunc func(uintptr) int32
 	installEventHandlerFunc   func(uintptr, uintptr, uint64, *eventTypeSpec, uintptr, *uintptr) int32
 	getEventParameterFunc     func(uintptr, uint32, uint32, uint32, uint64, *uint64, unsafe.Pointer) int32
 
@@ -67,7 +67,9 @@ type HotKeyManager struct {
 }
 
 type hotKeyRegistration struct {
-	ref uint32
+	// EventHotKeyRef is an opaque pointer; keeping the full width is required
+	// for UnregisterEventHotKey to release the binding.
+	ref uintptr
 	id  uint32
 }
 
@@ -134,7 +136,7 @@ func (m *HotKeyManager) Set(bindings []HotKeyBinding) error {
 			code, modifiers, _ := parseHotKey(key)
 			m.next++
 			id := m.next
-			var ref uint32
+			var ref uintptr
 			status := registerEventHotKeyFunc(code, modifiers,
 				eventHotKeyID{signature: eventHotKeySignature, id: id},
 				getApplicationEventTarget(), 0, &ref)

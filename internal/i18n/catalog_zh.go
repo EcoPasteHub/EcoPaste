@@ -319,7 +319,10 @@ var catalogZhCN = map[Key]string{
 	SettingsShortcutRule:      "快捷键至少包含 Command、Option 或 Control；F1–F12 可单独使用。",
 	SettingsShortcutFieldA11y: "%s快捷键",
 	SettingsShortcutHelp:      "按下组合键录制，Delete 清空，Esc 取消",
-	SettingsRecording:         "请按下组合键…",
+	SettingsRecording:         "按下录制快捷键",
+	SettingsShortcutIdle:      "点击录制快捷键",
+	SettingsShortcutClear:     "清除快捷键",
+	SettingsShortcutClearHelp: "清除已录入的快捷键",
 	SettingsInvalidShortcut:   "需包含 ⌘ / ⌥ / ⌃",
 
 	SettingsDiagnostics:         "诊断信息",
