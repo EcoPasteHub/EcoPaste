@@ -208,7 +208,7 @@ func validateAppearance(s Settings) error {
 	if err := validateOneOf("appearance.theme", s.Appearance.Theme, ThemeAuto, ThemeLight, ThemeDark); err != nil {
 		return err
 	}
-	return validateOneOf("appearance.language", s.Appearance.Language, LanguageZhCN, LanguageEnUS)
+	return validateOneOf("appearance.language", s.Appearance.Language, LanguageAuto, LanguageZhCN, LanguageEnUS)
 }
 
 func validateCapture(s Settings) error {

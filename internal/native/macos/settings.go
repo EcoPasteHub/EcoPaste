@@ -132,6 +132,9 @@ type SettingsView struct {
 	fields                []*settingsField
 	currentTab            string
 	currentTabTitle       string
+	language              string
+	texts                 []func()
+	tabItems              map[string]objc.ID
 	aboutIcons            []*nsgo.View
 }
 
@@ -142,7 +145,9 @@ type settingsField struct {
 	valueLabel objc.ID
 	options    []string
 	titles     []string
-	suffix     string
+	choices    []settingsOption
+	title      i18n.Key
+	suffix     any
 	get        func(SettingsValues) any
 }
 
@@ -250,8 +255,10 @@ func SelectSettingsTab(name string) bool {
 func NewSettings(cx *core.NativeContext) core.NativeComponent {
 	registerSettingsOnce.Do(registerSettingsTargets)
 	v := &SettingsView{
-		cx:   cx,
-		view: objc.ID(class("NSView")).Send(sel("new")),
+		cx:       cx,
+		view:     objc.ID(class("NSView")).Send(sel("new")),
+		language: string(i18n.Current()),
+		tabItems: map[string]objc.ID{},
 	}
 	v.view.Send(sel("setAutoresizesSubviews:"), false)
 
@@ -322,6 +329,10 @@ func (v *SettingsView) View() any { return v.view }
 // SetProp implements core.NativeComponent.
 func (v *SettingsView) SetProp(name string, value any) {
 	switch name {
+	case "language":
+		if language, ok := value.(string); ok {
+			v.applyLanguage(language)
+		}
 	case "values":
 		if values, ok := value.(SettingsValues); ok {
 			v.lastValues = values
@@ -446,7 +457,7 @@ func (v *SettingsView) setStepperLabel(field *settingsField, value uint32) {
 	if field.valueLabel == 0 {
 		return
 	}
-	text := fmt.Sprintf("%d%s", value, field.suffix)
+	text := fmt.Sprintf("%d%s", value, settingsTextValue(field.suffix))
 	if value == 0 {
 		text = i18n.T(i18n.SettingsUnlimited)
 	}

@@ -83,6 +83,7 @@ type Panel struct {
 	dragMonitor        objc.ID
 	nav                *panelNav
 	background         objc.ID
+	language           string
 }
 
 // PanelBehavior controls focus and query persistence when the panel opens
@@ -135,6 +136,7 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 		originalRow: -1,
 		hoverRow:    -1,
 		hoveredRow:  -1,
+		language:    string(i18n.Current()),
 	}
 	p.view.Send(sel("setAutoresizesSubviews:"), false)
 

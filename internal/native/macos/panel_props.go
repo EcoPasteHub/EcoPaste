@@ -17,6 +17,7 @@ var panelPropertySetters = map[string]func(*Panel, any){
 	"drag":        setPanelDrag,
 	"display":     setPanelDisplay,
 	"actions":     setPanelActions,
+	"language":    setPanelLanguage,
 }
 
 var panelCommands = map[string]func(*Panel){
@@ -116,6 +117,12 @@ func setPanelDisplay(p *Panel, value any) {
 		p.table.Send(sel("setRowHeight:"), tableRowHeight(display))
 		p.table.Send(sel("reloadData"))
 		p.syncTableFrame()
+	}
+}
+
+func setPanelLanguage(p *Panel, value any) {
+	if language, ok := value.(string); ok {
+		p.applyLanguage(language)
 	}
 }
 

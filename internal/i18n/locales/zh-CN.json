@@ -1,0 +1,677 @@
+{
+  "backup": {
+    "exportFailed": "导出备份失败",
+    "exportPanel": "导出 EcoPaste 备份",
+    "exported": {
+      "body": "%s\n%d 条记录 · %s",
+      "title": "备份已导出"
+    },
+    "importFailed": "无法导入备份",
+    "importPanel": "导入 EcoPaste 备份",
+    "mergeFailed": "无法合并备份",
+    "mergeSummary": "已合并 %d 条记录，跳过 %d 条重复记录，补充 %d 个资源文件。",
+    "merged": {
+      "settingsNote": "当前设置未更新。",
+      "title": "备份已合并"
+    },
+    "mergedDone": {
+      "title": "备份合并完成"
+    },
+    "mergedNoSettings": "备份已合并，设置未应用",
+    "overwrite": {
+      "body": "覆盖导入会替换当前历史、设置和资源，然后重启 EcoPaste。",
+      "confirm": "导入并重启",
+      "title": "覆盖当前数据？"
+    },
+    "password": {
+      "body": "请输入备份文件的密码。",
+      "required": "密码不能为空。",
+      "title": "备份密码"
+    },
+    "shortcutFailed": "快捷键未生效：",
+    "unencrypted": {
+      "body": "明文备份不加密，任何拿到文件的人都能读取其中的剪贴板历史。",
+      "confirm": "继续导出",
+      "title": "导出明文备份？"
+    }
+  },
+  "cleanCache": {
+    "body": "仅删除未被历史记录引用的图片和来源应用图标。",
+    "confirm": "清理",
+    "done": {
+      "body": "已删除 %d 个文件，释放 %s。",
+      "title": "清理完成"
+    },
+    "empty": {
+      "body": "没有需要清理的文件。",
+      "title": "缓存已是最新"
+    },
+    "failed": "清理缓存失败",
+    "title": "清理未引用缓存？"
+  },
+  "common": {
+    "cancel": "取消",
+    "confirm": "确定",
+    "delete": "删除",
+    "later": "稍后",
+    "ok": "好",
+    "save": "保存"
+  },
+  "dataDirChanged": {
+    "body": "历史、设置和资源已迁移，EcoPaste 将重新启动。旧目录数据仍然保留。",
+    "title": "数据目录已更改"
+  },
+  "deleteItem": {
+    "detail": "删除后无法恢复。",
+    "title": "删除这条记录？"
+  },
+  "dialog": {
+    "accessibility": {
+      "body": "EcoPaste 需要辅助功能权限才能自动粘贴。请在“系统设置 > 隐私与安全性 > 辅助功能”中允许 EcoPaste。",
+      "title": "需要辅助功能权限"
+    },
+    "backupExport": {
+      "body": "加密备份需要密码；明文备份不加密，任何拿到文件的人都能读取。",
+      "encrypted": "加密备份",
+      "plain": "明文备份",
+      "title": "导出 EcoPaste 备份"
+    },
+    "backupImport": {
+      "body": "合并会保留当前历史，只添加缺失记录并补齐资源。覆盖会替换当前历史、设置和资源。",
+      "merge": "合并导入",
+      "overwrite": "覆盖导入",
+      "title": "导入 EcoPaste 备份"
+    },
+    "backupPassword": {
+      "field": "备份密码"
+    },
+    "clearHistory": {
+      "all": "清除全部",
+      "body": "可以保留收藏和置顶的记录。",
+      "protected": "保留收藏与置顶",
+      "title": "清除剪贴板历史？"
+    }
+  },
+  "error": {
+    "addAppUnavailable": "当前环境无法添加应用",
+    "appIdentifier": "无法读取应用标识",
+    "appMissing": "应用不存在: %w",
+    "appPackage": "应用包不可用",
+    "autostartDisable": "无法关闭登录时启动（状态 %d）",
+    "autostartEnable": "无法开启登录时启动（状态 %d）",
+    "autostartInstall": "无法注册登录项，请将 EcoPaste 安装到「应用程序」后重试",
+    "autostartQuery": "查询登录项状态: %w",
+    "autostartService": "加载登录项服务: %w",
+    "autostartUnavailable": "无法访问登录项服务",
+    "autostartVersion": "开机自启需要 macOS 13 或更高版本",
+    "backup": {
+      "byteOutOfRange": "备份字节值 %d 越界",
+      "choosePath": "请选择备份文件位置",
+      "cleanImport": "清理导入目录: %w",
+      "cleanPending": "清理旧导入: %w",
+      "cleanRollback": "清理旧回滚目录: %w",
+      "closeFile": "关闭备份文件: %w",
+      "contentEscape": "备份内容路径越界",
+      "createDirectory": "创建备份目录: %w",
+      "createFile": "创建备份文件: %w",
+      "createImportDirectory": "创建导入目录: %w",
+      "createImportTemp": "创建导入临时目录: %w",
+      "createPayload": "创建备份载荷: %w",
+      "createResources": "创建资源目录: %w",
+      "createRollback": "创建回滚目录: %w",
+      "createTemp": "创建备份临时目录: %w",
+      "currentDatabase": "备份当前数据库: %w",
+      "currentResources": "备份当前资源: %w",
+      "currentSettings": "备份当前设置: %w",
+      "encodeHeader": "编码备份文件头: %w",
+      "encodeManifest": "编码备份清单: %w",
+      "extension": "备份文件后缀必须是 .%s",
+      "finishPayload": "完成备份载荷: %w",
+      "generateNonce": "生成备份随机数: %w",
+      "generateSalt": "生成备份盐: %w",
+      "headerTooLarge": "备份文件头过大",
+      "initDecrypt": "初始化备份解密: %w",
+      "initEncrypt": "初始化备份加密: %w",
+      "invalidContainerMode": "备份容器模式无效",
+      "invalidEncryption": "加密备份参数无效",
+      "invalidFile": "不是有效的 EcoPaste 备份文件",
+      "invalidHeader": "加密备份文件头无效",
+      "measureResources": "统计备份资源: %w",
+      "mergeResources": "合并备份资源: %w",
+      "missingCurrentDatabase": "备份合并缺少当前数据库",
+      "missingDatabase": "备份缺少数据库",
+      "missingEntry": "备份缺少 %s",
+      "missingHistory": "备份文件缺少历史数据库",
+      "missingManifest": "备份文件缺少 manifest.json",
+      "missingSettings": "备份文件缺少设置文件",
+      "openDatabase": "打开备份数据库: %w",
+      "openPayload": "打开备份载荷: %w",
+      "openSource": "打开备份源 %s: %w",
+      "parseHeader": "解析备份文件头: %w",
+      "parseManifest": "解析备份清单: %w",
+      "parsePendingManifest": "解析待导入清单: %w",
+      "parseSettings": "解析备份设置: %w",
+      "passwordMissing": "请输入备份密码",
+      "pathEscape": "备份路径越界",
+      "pendingMissingHistory": "待导入备份缺少历史数据库",
+      "pendingMissingSettings": "待导入备份缺少设置文件",
+      "readContents": "读取备份内容: %w",
+      "readEntry": "读取备份条目 %s: %w",
+      "readFile": "读取备份文件: %w",
+      "readManifest": "读取备份清单: %w",
+      "readPayload": "读取备份载荷: %w",
+      "readPendingManifest": "读取待导入清单: %w",
+      "readResources": "读取备份资源: %w",
+      "readSettings": "读取备份设置: %w",
+      "readSource": "读取备份源 %s: %w",
+      "resourcePath": "计算备份资源路径: %w",
+      "saveFile": "保存备份文件: %w",
+      "settingsObject": "备份设置必须是 JSON 对象",
+      "sourceDirectory": "备份源 %s 是目录",
+      "stagePending": "准备导入: %w",
+      "syncFile": "同步备份文件: %w",
+      "unknownMode": "未知备份模式 %q",
+      "unsupportedEncryption": "暂不支持该备份加密格式",
+      "unsupportedVersion": "暂不支持备份格式版本 %d",
+      "writeDatabase": "写入导入数据库: %w",
+      "writeEntry": "写入备份条目 %s: %w",
+      "writeFile": "写入备份文件: %w",
+      "writeManifest": "写入备份清单: %w",
+      "writePayload": "写入备份载荷: %w",
+      "writeResources": "写入导入资源: %w",
+      "writeSettings": "写入导入设置: %w",
+      "wrongPassword": "备份密码不正确或文件已损坏"
+    },
+    "backupDefaultDir": "备份默认数据目录: %w",
+    "backupUnavailable": "当前环境无法使用备份",
+    "checkBackupDir": "检查备份目录: %w",
+    "checkTargetDir": "检查目标目录: %w",
+    "cleanApps": "清理来源应用: %w",
+    "clipboardService": "剪贴板服务未启动",
+    "createDataDir": "创建数据目录 %s: %w",
+    "createTargetDir": "创建目标目录: %w",
+    "createTempDir": "创建临时目录: %w",
+    "dataDirChangeUnavailable": "当前环境无法更改数据目录",
+    "dataDirExists": "目标目录已存在：%s",
+    "dataDirInUse": "当前已使用该目录",
+    "dataDirNotSelected": "未选择数据目录",
+    "dataDirRestoreUnavailable": "当前环境无法恢复默认数据目录",
+    "dataPathNotDir": "数据路径 %s 不是目录",
+    "database": {
+      "countBackup": "统计备份条目: %w",
+      "snapshot": "快照数据库: %w"
+    },
+    "databaseOpen": "无法打开剪贴板数据库",
+    "defaultDataDirInUse": "当前已使用默认数据目录",
+    "deleteFavorite": "收藏记录不允许删除",
+    "deleteImage": "删除图片文件: %w",
+    "deletePinned": "置顶记录不允许删除",
+    "dockIcon": "无法切换 Dock 图标",
+    "fileMissing": "文件不存在: %w",
+    "filesMissing": "文件不存在",
+    "groupMissing": "分组不存在",
+    "groupNameDuplicate": "已存在同名分组",
+    "groupNameEmpty": "分组名称不能为空",
+    "groupNameLong": "分组名称不能超过 %d 个字符",
+    "historyItemMissing": "剪贴板记录不存在",
+    "invalidActions": "无效的动作配置",
+    "invalidCaptureOrder": "无效的采集顺序",
+    "invalidExcludedApps": "忽略应用列表格式无效",
+    "invalidRetention": "无法识别保留时长 %q",
+    "invalidRetentionUnit": "无法识别保留时长单位 %q",
+    "notImage": "该记录不是图片",
+    "openFile": "无法打开文件",
+    "openLink": "无法打开链接",
+    "openLinkParse": "无法解析链接",
+    "openUnsupported": "该记录不支持打开",
+    "pasteEvent": "创建粘贴键盘事件失败",
+    "pastePermission": "需要开启辅助功能权限才能自动粘贴",
+    "pasteRelease": "创建粘贴按键释放事件失败",
+    "readApp": "读取来源应用: %w",
+    "readDataDir": "读取数据目录 %s: %w",
+    "readDataFile": "读取数据文件 %s: %w",
+    "readImage": "读取图片: %w",
+    "resetSettings": "恢复默认设置: %w",
+    "restoreDefaultDir": "恢复默认数据目录: %w",
+    "revealUnsupported": "该记录不支持在 Finder 中显示",
+    "saveApp": "保存来源应用: %w",
+    "saveImage": "保存图片: %w",
+    "selectBundle": "请选择 macOS 应用（.app）",
+    "shortcutDuplicate": "快捷键重复: %s",
+    "shortcutInUse": "该快捷键已被其他操作使用",
+    "shortcutInstallHandler": "安装全局快捷键处理器失败",
+    "shortcutInvalid": "无效的快捷键: %s",
+    "shortcutLoadCarbon": "加载 Carbon: %w",
+    "shortcutMissingKey": "快捷键需要包含按键",
+    "shortcutMissingModifier": "快捷键需要包含修饰键",
+    "shortcutNeedsPrimaryModifier": "快捷键至少需要 Command、Option 或 Control",
+    "shortcutOccupied": "快捷键 %s 已被其他应用占用",
+    "shortcutRegister": "无法注册快捷键 %s",
+    "shortcutRestore": "%w；恢复原快捷键失败: %v",
+    "shortcutRestoreRegister": "%w；恢复原快捷键注册失败: %v",
+    "shortcutSave": "保存快捷键: %w",
+    "shortcutUnsupportedKey": "不支持的快捷键 %q",
+    "shortcutUnsupportedModifier": "不支持的修饰键 %q",
+    "trayNotReady": "菜单栏图标尚未初始化",
+    "unknownAction": "未知动作 %q",
+    "unknownCaptureKind": "未知采集类型 %q",
+    "unknownSetting": "未知设置项 %q",
+    "writeDataFile": "写入数据文件 %s: %w"
+  },
+  "file": {
+    "folder": "文件夹",
+    "missing": "已丢失",
+    "previewTruncated": "仅显示前 %d 项，共 %d 项。",
+    "summaryCount": "%d 项",
+    "summaryMissing": " · %d 项已丢失"
+  },
+  "files": {
+    "more": " 等 %d 个",
+    "separator": "、"
+  },
+  "group": {
+    "deleteBody": "分组中的剪贴板记录会保留，并移到“未分组”。",
+    "deleteTitle": "删除分组“%s”？",
+    "nameLabel": "分组名称",
+    "namePlaceholder": "例如：工作",
+    "nameTooLong": "分组名称最多 32 个字符。",
+    "newTitle": "新建分组",
+    "renameTitle": "重命名分组"
+  },
+  "history": {
+    "filesCount": "%d 个文件",
+    "imageSize": "图片 %d × %d",
+    "missing": "（已丢失）",
+    "saveImagePanel": "存储剪贴板图片"
+  },
+  "kind": {
+    "files": "文件",
+    "image": "图片",
+    "text": "文本"
+  },
+  "menu": {
+    "addNote": "添加备注…",
+    "copy": "复制",
+    "copyPlain": "复制为纯文本",
+    "editNote": "编辑备注…",
+    "favorite": "收藏",
+    "moveToGroup": "移动到分组",
+    "openLink": "打开链接",
+    "paste": "粘贴",
+    "pastePath": "粘贴为路径",
+    "pastePlain": "纯文本粘贴",
+    "pin": "置顶",
+    "reveal": "在 Finder 中显示",
+    "saveImage": "存储图片…",
+    "sendEmail": "发送邮件",
+    "unfavorite": "取消收藏",
+    "ungrouped": "未分组",
+    "unpin": "取消置顶"
+  },
+  "note": {
+    "detail": "备注",
+    "detailPrefix": "备注：",
+    "editBody": "备注会显示在列表中，并参与剪贴板搜索。",
+    "editTitle": "编辑备注"
+  },
+  "openDataDir": {
+    "failed": "无法打开数据目录"
+  },
+  "openLogs": {
+    "failed": "无法打开日志目录"
+  },
+  "panel": {
+    "all": "全部",
+    "allGroups": "全部分组",
+    "clearHistory": "清除历史…",
+    "count": "%d 条记录",
+    "deleteGroup": "删除当前分组…",
+    "empty": "暂无剪贴板记录",
+    "emptyDetail": "复制任意内容后，会出现在这里",
+    "favorites": "收藏",
+    "files": "文件",
+    "filter": "筛选",
+    "historyLabel": "剪贴板历史",
+    "image": "图片",
+    "loading": "正在加载…",
+    "newGroup": "新建分组…",
+    "noMatches": "没有匹配结果",
+    "noMatchesDetail": "换个关键词或筛选条件试试",
+    "pinWindow": "固定窗口",
+    "renameGroup": "重命名当前分组…",
+    "searchPlaceholder": "搜索剪贴板",
+    "shortcuts": {
+      "action": "快捷键（⌘K）",
+      "close": "关闭面板或预览",
+      "favorite": "收藏 / 取消收藏",
+      "navigate": "上下选择",
+      "note": "编辑备注",
+      "open": "打开链接、邮件或文件位置",
+      "pasteNth": "粘贴前 10 项",
+      "preview": "预览选中项",
+      "search": "聚焦搜索",
+      "title": "快捷键"
+    },
+    "text": "文本",
+    "unpinWindow": "取消固定窗口"
+  },
+  "permission": {
+    "granted": "已授权",
+    "notGranted": "未授权",
+    "openSettings": "打开设置"
+  },
+  "preview": {
+    "imageLabel": "剪贴板图片预览"
+  },
+  "row": {
+    "favorite": "收藏",
+    "note": "备注",
+    "pinned": "已固定"
+  },
+  "settings": {
+    "about": {
+      "feedback": "问题反馈",
+      "feedbackA11y": "在浏览器中打开 EcoPaste 的 GitHub Issues 页面",
+      "license": "开源许可",
+      "source": "开源地址",
+      "sourceA11y": "在浏览器中打开 EcoPaste 的 GitHub 页面",
+      "system": "运行环境"
+    },
+    "actions": {
+      "enable": "启用%s",
+      "hover": "悬停动作",
+      "intro": "勾选悬停时显示的动作；选中一行后用下方按钮调整顺序，最多显示 6 个。",
+      "moveDownA11y": "下移选中悬停动作",
+      "moveUpA11y": "上移选中悬停动作",
+      "note": "编辑备注",
+      "table": "悬停动作"
+    },
+    "all": "全部",
+    "allGroups": "全部分组",
+    "apps": {
+      "add": "添加应用…",
+      "addA11y": "添加来源应用",
+      "choose": "选择要忽略来源的应用",
+      "empty": "没有可显示的应用",
+      "ignore": "忽略 %s",
+      "intro": "勾选的应用不会进入剪贴板历史；列表包含正在运行和历史来源。",
+      "refresh": "刷新",
+      "refreshA11y": "刷新来源应用",
+      "section": "来源应用",
+      "source": "来源应用"
+    },
+    "capture": {
+      "hint": "从上到下依次选择可用的主表示",
+      "html": "HTML",
+      "limits": "大小限制",
+      "maxImage": "图片大小上限",
+      "maxText": "文本大小上限",
+      "moveDownA11y": "下移选中采集类型",
+      "moveUpA11y": "上移选中采集类型",
+      "order": "采集优先级",
+      "priorityLabel": "第 %d 优先级：%s",
+      "rtf": "RTF",
+      "text": "纯文本",
+      "types": "采集内容"
+    },
+    "data": {
+      "backupHint": "可将历史、资源和设置导出为 .ecopastebak 文件，或导入之前的备份。",
+      "backupIntro": "备份与恢复",
+      "backupKeywords": "备份 导出 导入 ecopastebak 恢复",
+      "export": "导出备份…",
+      "import": "导入备份…",
+      "storage": "存储位置"
+    },
+    "dataDir": {
+      "change": "更改…",
+      "changeBody": "历史、设置和资源会复制到所选目录，然后重启 EcoPaste。旧目录数据会保留。",
+      "changeTitle": "更改数据目录？",
+      "choose": "选择 EcoPaste 数据目录",
+      "migrateRestart": "迁移并重启",
+      "restore": "恢复默认…",
+      "restoreBody": "历史、设置和资源会复制回默认目录，然后重启 EcoPaste。现有默认目录内容会保留为备份。",
+      "restoreTitle": "恢复默认数据目录？"
+    },
+    "deletion": {
+      "allowFavorite": "允许删除收藏条目",
+      "allowPinned": "允许删除置顶条目",
+      "confirm": "普通条目删除前确认",
+      "confirmations": "删除确认",
+      "favoriteConfirm": "收藏条目删除前确认",
+      "favoriteOnlyInFavorites": "收藏项仅在收藏分组可删除",
+      "intro": "确认开关只影响对应类型；关闭“允许删除”后，该类型记录不再显示删除入口。",
+      "permissions": "删除权限",
+      "pinnedConfirm": "置顶条目删除前确认"
+    },
+    "diagnostics": {
+      "copied": "已复制到剪贴板",
+      "copy": "复制诊断信息",
+      "copyFailed": "复制失败",
+      "copyHelp": "把应用版本、系统版本、数据目录和权限状态复制到剪贴板",
+      "dataDir": "数据目录: ",
+      "devBuild": "EcoPaste 开发版",
+      "macOSUnknown": "macOS 版本未知",
+      "report": "%s\n%s\n数据目录: %s\n辅助功能: %s\n完全磁盘访问: %s",
+      "title": "诊断信息"
+    },
+    "display": {
+      "density": "列表密度",
+      "fileMaxCount": "文件名显示数量",
+      "imageMaxHeight": "图片最大高度",
+      "preview": "行效果预览",
+      "previewHint": "预览会随上方设置实时更新",
+      "previewImage": "图片预览",
+      "previewImageDetail": "图片 · 访达 · 刚刚",
+      "previewText": "设计不是看起来怎样，而是用起来怎样。好的列表应保持清晰、安静，并让内容成为焦点。",
+      "previewTextDetail": "文本 · Safari · 刚刚",
+      "textMaxLines": "文本显示行数"
+    },
+    "general": {
+      "appearanceGroup": "外观",
+      "autoStart": "登录时启动",
+      "behavior": "行为",
+      "clipboard": "剪贴板",
+      "copySound": "复制提示音",
+      "copyTextPlain": "复制文本为纯文本",
+      "copyThenHide": "复制后隐藏面板",
+      "dataDir": "数据目录",
+      "dockIcon": "显示 Dock 图标",
+      "language": "语言",
+      "pasteTextPlain": "粘贴文本为纯文本",
+      "position": "面板打开位置",
+      "sort": "排序方式",
+      "startup": "启动",
+      "theme": "外观主题",
+      "trayIcon": "显示菜单栏图标",
+      "updateOnReuse": "复用后刷新排序",
+      "windowAppearance": "窗口与外观"
+    },
+    "history": {
+      "cleanup": "保留与清理",
+      "cleanupInterval": "自动清理间隔",
+      "collectSecrets": "收录敏感内容",
+      "maxCount": "最大记录数",
+      "redactSecrets": "脱敏显示",
+      "retention": "保留时长",
+      "sensitive": "敏感内容",
+      "sensitiveHint": "关闭“收录敏感内容”后，检测到的密码和密钥不会写入历史；脱敏只改变列表与预览的显示。"
+    },
+    "interaction": {
+      "autoFavorite": "有备注时自动收藏",
+      "content": "内容处理",
+      "disabled": "禁用",
+      "doubleClickCopy": "双击复制",
+      "doubleClickPaste": "双击粘贴",
+      "intro": "左键和中键动作在剪贴板面板中生效；自动粘贴需要辅助功能权限。",
+      "mouse": "鼠标操作",
+      "mouseLeft": "鼠标左键",
+      "mouseMiddle": "鼠标中键",
+      "note": "“粘贴文件时写入路径”只影响文件记录；普通文本仍按原内容粘贴。",
+      "pasteFilesAsPath": "粘贴文件时写入路径",
+      "plainText": "纯文本",
+      "showOriginal": "悬停备注条目显示原始内容",
+      "singleClickCopy": "单击复制",
+      "singleClickPaste": "单击粘贴",
+      "singleCopyPlain": "复制为纯文本",
+      "singlePastePlain": "粘贴为纯文本"
+    },
+    "language": {
+      "auto": "跟随系统",
+      "en": "English",
+      "zh": "简体中文"
+    },
+    "moveDown": "下移",
+    "moveUp": "上移",
+    "permissions": {
+      "accessibility": "辅助功能",
+      "accessibilityDetail": "自动粘贴需要模拟 Command-V 快捷键。",
+      "checking": "检查中…",
+      "fullDisk": "完全磁盘访问",
+      "fullDiskDetail": "读取受系统保护的目录和文件时需要。",
+      "intro": "这些权限由 macOS 管理，授权后立即生效。",
+      "openSettings": "打开系统设置…",
+      "openSettingsA11y": "打开%s系统设置",
+      "system": "系统权限"
+    },
+    "position": {
+      "center": "屏幕居中",
+      "follow": "跟随光标",
+      "remember": "记住位置"
+    },
+    "preserve": "保持当前",
+    "preview": {
+      "space": "按 Space 预览选中项"
+    },
+    "reset": {
+      "action": "恢复默认设置…",
+      "body": "所有偏好会恢复为默认值。剪贴板历史、数据目录与备份不受影响。",
+      "confirm": "恢复默认",
+      "section": "重置",
+      "title": "恢复默认设置？"
+    },
+    "retention": {
+      "1d": "1 天",
+      "1h": "1 小时",
+      "1mo": "1 个月",
+      "2w": "2 周",
+      "365d": "1 年",
+      "3d": "3 天",
+      "3mo": "3 个月",
+      "6h": "6 小时",
+      "7d": "7 天",
+      "forever": "永久"
+    },
+    "shortcuts": {
+      "clear": "清除快捷键",
+      "clearHelp": "清除已录入的快捷键",
+      "fieldA11y": "%s快捷键",
+      "help": "按下组合键录制，Delete 清空，Esc 取消",
+      "idle": "点击录制快捷键",
+      "invalid": "需包含 ⌘ / ⌥ / ⌃",
+      "openClipboard": "打开剪贴板",
+      "openPreference": "打开设置",
+      "recording": "按下录制快捷键",
+      "rule": "快捷键至少包含 Command、Option 或 Control；F1–F12 可单独使用。"
+    },
+    "sort": {
+      "created": "创建时间",
+      "recent": "最近使用",
+      "useCount": "使用次数"
+    },
+    "tab": {
+      "about": "关于",
+      "advanced": "高级",
+      "apps": "应用",
+      "general": "通用",
+      "interface": "界面",
+      "update": "更新"
+    },
+    "theme": {
+      "auto": "跟随系统",
+      "dark": "深色",
+      "light": "浅色"
+    },
+    "unit": {
+      "count": " 条",
+      "hours": " 小时",
+      "items": " 个",
+      "lines": " 行"
+    },
+    "unlimited": "不限",
+    "update": {
+      "check": "检查更新…",
+      "intro": "EcoPaste 通过 Sparkle 检查、验证并安装已签名的更新。",
+      "managed": "自动检查、下载进度和跳过版本由系统更新窗口管理。",
+      "version": "当前版本 %s"
+    },
+    "window": {
+      "hint": "选择“保持当前”时，面板会沿用上次关闭时的范围、分类和分组。",
+      "openBehavior": "打开面板时",
+      "scrollTop": "打开时滚动到顶部",
+      "searchBehavior": "搜索",
+      "searchClear": "下次打开时清空搜索",
+      "searchFocus": "打开时聚焦搜索",
+      "selectCategory": "打开时选中分类",
+      "selectGroup": "打开时选中分组",
+      "selectRange": "打开时选中范围"
+    },
+    "windowTitle": "EcoPaste 设置"
+  },
+  "shortcut": {
+    "notSet": "未设置"
+  },
+  "storage": {
+    "usage": {
+      "body": "数据库 %s · 资源 %s · 设置 %s\n总计 %s",
+      "title": "存储占用"
+    },
+    "usageFailed": "无法读取存储占用"
+  },
+  "subKind": {
+    "color": "颜色",
+    "email": "邮件",
+    "path": "路径",
+    "url": "链接"
+  },
+  "time": {
+    "daysAgo": "%d 天前",
+    "hoursAgo": "%d 小时前",
+    "minutesAgo": "%d 分钟前",
+    "now": "刚刚",
+    "yesterday": "昨天"
+  },
+  "tray": {
+    "checkUpdates": "检查更新…",
+    "cleanCache": "清理未引用缓存…",
+    "clearHistory": "清除历史…",
+    "exportBackup": "导出备份…",
+    "importBackup": "导入备份…",
+    "openDataDir": "打开数据目录",
+    "openLogs": "打开日志目录",
+    "pause": "暂停记录",
+    "quit": "退出 EcoPaste",
+    "readClipboard": "读取剪贴板",
+    "restart": "重新启动",
+    "resume": "继续记录",
+    "settings": "设置…",
+    "show": "显示 EcoPaste",
+    "source": "开源地址",
+    "storageUsage": "存储占用…",
+    "version": "版本 %s"
+  },
+  "update": {
+    "available": {
+      "body": "版本 %s 已发布，你当前使用的是 %s。",
+      "title": "EcoPaste 有新版本可用"
+    },
+    "checkFailed": {
+      "body": "请稍后重试。开发版不会连接正式更新源。",
+      "title": "无法检查更新"
+    },
+    "openDownload": "前往下载",
+    "upToDate": {
+      "body": "当前版本为 %s。",
+      "title": "EcoPaste 已是最新版本"
+    }
+  }
+}

@@ -62,8 +62,7 @@ func loadStorage(app *core.Scope) (*storage.Paths, *settings.Store, *storage.Win
 
 func syncStoredSettings(app *core.Scope, store *settings.Store) {
 	snapshot := store.Snapshot()
-	i18n.SetLanguage(string(snapshot.Appearance.Language))
-	app.SetLocale(string(snapshot.Appearance.Language))
+	applyAppLanguage(app, string(snapshot.Appearance.Language))
 	if err := macos.SetAppearance(string(snapshot.Appearance.Theme)); err != nil {
 		log.Printf("sync appearance: %v", err)
 	}
@@ -73,4 +72,19 @@ func syncStoredSettings(app *core.Scope, store *settings.Store) {
 	if err := macos.SyncAutostart(snapshot.General.AutoStart); err != nil {
 		log.Printf("sync autostart: %v", err)
 	}
+}
+
+// applyAppLanguage resolves the stored language for EcoPaste's own text and
+// keeps AppKit's locale consistent. Auto clears the app-level override so
+// native system text follows the user's languages instead of the previous
+// explicit choice.
+func applyAppLanguage(app *core.Scope, requested string) i18n.Language {
+	resolved := i18n.ResolveLanguage(requested, macos.PreferredLanguage())
+	i18n.Publish(resolved)
+	if requested == "" || requested == string(i18n.LanguageAuto) {
+		app.SetLocale("")
+	} else {
+		app.SetLocale(string(resolved))
+	}
+	return resolved
 }

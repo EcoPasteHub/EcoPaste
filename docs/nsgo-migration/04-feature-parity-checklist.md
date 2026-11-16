@@ -154,9 +154,9 @@
 | ID | 优先级 | 功能 | 现有实现 | NSGo/AppKit 目标 | 状态 | 验证方式 |
 | --- | --- | --- | --- | --- | --- | --- |
 | I-01 | P1 | 前端文案 | `legacy/frontend/src/locales/zh-CN`、`en-US` | Go i18n 目录，复用文案内容 | 已通过 | 剪贴板面板与 14 个设置分类已接入目录：搜索/分类/分组/空状态、右键与悬停动作、备注与分组弹窗、类型/时间摘要、文件摘要、全部设置项/选项/诊断报告、更新入口与结果提示；备份/清除/权限弹窗，以及历史、分组、数据目录、快捷键、来源应用、链接打开、登录项与备份容器错误均已接入；`TestHistoryPresentationFollowsLanguage`、`TestFormatDiagnosticReportInEnglish`、`TestGroupValidationFollowsLanguage`、`TestBackupErrorsFollowLanguage` 覆盖英文 |
-| I-02 | P1 | Rust 侧文案 | `src-tauri/src/i18n/` | Go 文案目录 | 已通过 | `internal/i18n` 中英文目录覆盖托盘、列表右键、清除/删除确认、备份/存储/缓存/数据目录提示、剪贴板面板、设置与权限弹窗，并按 `appearance.language` 选择；`TestCatalogsShareEveryKey`、`TestSetLanguageSelectsCatalog`、`TestTfFormatsArguments` |
-| I-03 | P1 | 语言切换 | `appearance.language` | 原生菜单/设置切换，立即生效 | 已通过 | 设置“通用”页语言下拉写入 `appearance.language` 后立即切换目录、重建设置窗口与剪贴板面板，无需重启；真机中英文往返验证，托盘菜单、面板、设置与清空/备份弹窗文案同步切换；`TestSettingsModelAppliesLanguage` |
-| I-04 | P2 | 系统本地化 | 部分系统菜单 | AppKit 本地化角色项 | 已通过 | `internal/menu` 提供“应用/编辑/窗口”原生菜单与角色项，语言切换时整体重建；`TestApplicationBuildsLocalizedMenuBar`、`TestApplicationUsesRoleLabels`、`TestApplicationSettingsItem`；真机中英文往返验证关于/设置/隐藏/退出、撤销/重做/剪切/复制/粘贴/全选、最小化/缩放/全屏/关闭均随系统语言更新，设置项可从菜单打开偏好窗口 |
+| I-02 | P1 | Rust 侧文案 | `src-tauri/src/i18n/` | go-i18n 嵌套 JSON 文案目录 | 已通过 | `internal/i18n` 使用 `github.com/nicksnyder/go-i18n/v2` 加载内嵌 `locales/zh-CN.json`、`locales/en-US.json`，翻译键按功能模块组织为多层 JSON，由 go-i18n 展平为点分隔消息 ID；覆盖托盘、列表右键、清除/删除确认、备份/存储/缓存/数据目录提示、剪贴板面板、设置与权限弹窗，并按 `appearance.language` 选择；缺失文案回退 zh-CN；`TestCatalogFilesUseNestedObjects`、`TestCatalogsShareEveryKey`、`TestMissingTranslationFallsBackToDefault`、`TestSetLanguageSelectsCatalog`、`TestTfFormatsArguments` |
+| I-03 | P1 | 语言切换 | `appearance.language` | 原生菜单/设置切换，原地响应式更新 | 已通过 | 设置“通用”页语言下拉写入 `appearance.language` 后，通过 NSGo Signal 更新语言状态；设置窗口标题、页签、表单标签/选项、面板工具栏/分类/列表行在原地更新，不关闭或重建窗口；真机中英文与跟随系统往返验证，窗口编号保持不变，托盘菜单、面板、设置与清空/备份弹窗文案同步切换；`TestSettingsModelAppliesLanguage` |
+| I-04 | P2 | 系统本地化 | 部分系统菜单 | AppKit 本地化角色项 + 系统语言识别 | 已通过 | `appearance.language=auto` 为默认值，读取 `NSGlobalDomain` 的 `AppleLanguages`（避免 `NSLocale.preferredLanguages` 带入应用级语言覆盖），无法读取时回退 `NSLocale.systemLocale`；匹配 zh-CN/en-US，无法匹配时回退 zh-CN；`internal/menu` 提供“应用/编辑/窗口”原生菜单与角色项，语言切换时重建菜单栏但不重建窗口；`TestResolveLanguageUsesSystemForAuto`、`TestApplicationBuildsLocalizedMenuBar`、`TestApplicationUsesRoleLabels`、`TestApplicationSettingsItem`；真机中英文往返验证关于/设置/隐藏/退出、撤销/重做/剪切/复制/粘贴/全选、最小化/缩放/全屏/关闭均随系统语言更新，设置项可从菜单打开偏好窗口 |
 
 ## 8. 设置项
 
@@ -165,7 +165,7 @@
 | ID | 设置组 | 字段 | 迁移要求 | 状态 | 验证方式 |
 | --- | --- | --- | --- | --- | --- |
 | S-01 | general | `autoStart`、`runAsAdmin`、`trayIcon`、`dockIcon` | `autoStart`/`trayIcon`/`dockIcon` 已接系统副作用；`runAsAdmin` 仅 Windows 参考 | 已通过（产品调整） | `TestSettingsModelAppliesTrayIcon`；真机开发版切换“显示菜单栏图标”后状态即时落盘，重启后保持隐藏，再次开启可恢复图标；默认值、原子写回与重置副作用沿用设置层测试 |
-| S-02 | appearance | `theme`、`language` | `auto/light/dark`、`zh-CN/en-US` | 已通过 | 主题三档已接入并即时应用；`TestSettingsModelAppliesTheme`；语言下拉即时重建界面并持久化，真机中英文往返回读 `settings.json` 正确，`TestSettingsModelAppliesLanguage` |
+| S-02 | appearance | `theme`、`language` | `auto/light/dark`、`auto/zh-CN/en-US`，语言默认 `auto` | 已通过 | 主题三档已接入并即时应用；`TestSettingsModelAppliesTheme`；语言下拉即时原地更新界面并持久化，`auto` 清除应用级语言覆盖并跟随系统语言，真机中英文往返回读 `settings.json` 正确，`TestSettingsModelAppliesLanguage` |
 | S-03 | shortcuts | `openClipboard`、`openPreference`、`winV` | 保留；`winV` 仅 Windows 参考 | 已通过 | 两个快捷键均已读取并注册；“快捷键”页原生录制、清空、非法组合和重复校验可用；`TestSettingsModelAppliesShortcutAndRejectsDuplicate`、`TestSettingsModelRollsBackShortcutWhenRebindFails`；真机 `Alt+K` 改为 `Alt+J` 后立即写盘并重绑 |
 | S-04 | clipboard.capture | `text/html/rtf/image/files`、`maxTextMb`、`maxImageMb`、`order` | 采集顺序与上限一致 | 已通过 | `TestCaptureOrderAndTypeSwitches`、`TestSettingsModelAppliesCaptureOrder`；真机设置“采集”页选择纯文本上移/下移后，`settings.json` 即时写入完整五类顺序 |
 | S-05 | clipboard.content | `autoPaste`、`middleClick`、`copyPlain`、`copyThenHideWindow`、`pastePlain`、`pasteFilesAsPath`、`showOriginalPreview`、删除保护、`autoFavorite`、`updateOnReuse`、`sort`、`itemActions`、`itemActionOrder` | 行为语义逐项一致 | 已通过 | 纯文本复制/粘贴、文件路径粘贴、复制后隐藏、复用排序、排序方式、中键动作、单击/双击触发已接入；设置“交互”页可改左键/中键动作、文件路径粘贴、备注自动收藏和“悬停备注条目显示原始内容”，真机写盘验证通过；有备注条目默认显示备注、真实鼠标移入后切回原内容并在移出后恢复备注，`TestHistoryRowTextUsesNoteUntilHover` 覆盖同一逻辑；“删除”页接入普通/收藏/置顶确认与删除保护，列表、右键、悬停和 Delete 键共用同一策略；悬停动作支持勾选与上下排序 |

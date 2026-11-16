@@ -26,6 +26,7 @@ func Run(app *core.Scope) {
 		log.Print(err)
 		os.Exit(1)
 	}
+	i18n.Bind(app)
 	desktop.SetShutdownMode(app, desktop.ShutdownOnExplicit)
 	activation := instanceRequests(app)
 	var paused atomic.Bool
@@ -74,9 +75,6 @@ func Run(app *core.Scope) {
 	}
 	panelHost := newPanelHost(app, store, windowState, func() *clipboardRuntime { return runtime }, history)
 	hotKeys.togglePanel = panelHost.Toggle
-	if wiring != nil {
-		wiring.rebuildPanel = panelHost.Rebuild
-	}
 
 	showPanel := panelHost.Show
 

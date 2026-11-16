@@ -1,3 +1,5 @@
+github.com/BurntSushi/toml v1.6.0 h1:dRaEfpa2VI55EwlIW72hMRHdWouJeRF7TPYhI+AUQjk=
+github.com/BurntSushi/toml v1.6.0/go.mod h1:ukJfTF/6rtPPRCnwkur4qwRxa8vTRFBF0uk2lLoLwho=
 github.com/dustin/go-humanize v1.1.0 h1:dbKTrvD0klcbBV/h4AWJdMuZogJACoMlvWIWZ5b2xWg=
 github.com/dustin/go-humanize v1.1.0/go.mod h1:hc1CvRkJMsgxqjmjMQF3QNRAZBwY8AXBAzKYoSX9sFI=
 github.com/ebitengine/purego v0.11.2 h1:WWiTx8rD8zYdOwSj8O/NiNbsOvSAgJMTlyV1XlbUSeU=
@@ -16,6 +18,8 @@ github.com/mattn/go-isatty v0.0.24 h1:tGZZoVgT/KiqK1c8ocVLeDS8BSWMRd47J3Lbz7vsRe
 github.com/mattn/go-isatty v0.0.24/go.mod h1:nMCL3Zebbrt45jsMDgnfIwz6ydEQApk5oEI3HqDio6A=
 github.com/ncruces/go-strftime v1.1.0 h1:vtPmPWMkb539RGV9WpWT9EwJGvrOCKvMNI4obWL47Hk=
 github.com/ncruces/go-strftime v1.1.0/go.mod h1:yVaq7iwCN09vHRrKBrrflXT0M9tTMG2KmZ9Fj7xeG/g=
+github.com/nicksnyder/go-i18n/v2 v2.7.0 h1:oiVQUmuCeNggvm/fUVb6/R0aP82BDVphZnmVHwut+J0=
+github.com/nicksnyder/go-i18n/v2 v2.7.0/go.mod h1:ZMYiWg8ndQSGNk4zbzbyJjrrVjQjuQ8pERFrnBik+c8=
 github.com/nsgo-dev/nsgo v0.0.0-20261112150101-70cef6a4ed17 h1:7JbmmoJcdpjrN3GCIFWWNczPzvAQIrVKbEPLcHQbNRg=
 github.com/nsgo-dev/nsgo v0.0.0-20261112150101-70cef6a4ed17/go.mod h1:CqPfBVvmmYVPE+6B3LHcRVr9B5kyx4GVEQWEzz1mzF4=
 github.com/nsgo-dev/nsgo-icons-kubai v0.0.0-20261112151732-a504944bd2a7 h1:eAs1np3Tki0oA9mVtP7PbUdxB5MsQXirnCTBymWst9g=

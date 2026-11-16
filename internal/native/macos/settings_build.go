@@ -9,7 +9,8 @@ import (
 
 const settingsPermissionRowHeight = 60.0
 
-func (v *SettingsView) addPermission(content objc.ID, y float64, title, detail, action string) objc.ID {
+func (v *SettingsView) addPermission(content objc.ID, y float64, titleKey, detailKey i18n.Key, action string) objc.ID {
+	title, detail := i18n.T(titleKey), i18n.T(detailKey)
 	const (
 		buttonWidth = 132.0
 		statusWidth = 60.0
@@ -27,6 +28,7 @@ func (v *SettingsView) addPermission(content objc.ID, y float64, title, detail, 
 		Size:   CGSize{Width: detailWidth, Height: 18},
 	})
 	content.Send(sel("addSubview:"), titleLabel)
+	v.bindString(titleLabel, titleKey)
 	detailLabel := objc.ID(classNSTextField).Send(sel("wrappingLabelWithString:"), nsString(detail))
 	detailLabel.Send(sel("setFont:"), systemFont(11))
 	detailLabel.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
@@ -37,6 +39,7 @@ func (v *SettingsView) addPermission(content objc.ID, y float64, title, detail, 
 		Size:   CGSize{Width: detailWidth, Height: 28},
 	})
 	content.Send(sel("addSubview:"), detailLabel)
+	v.bindString(detailLabel, detailKey)
 
 	status := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(i18n.SettingsChecking)))
 	status.Send(sel("setFont:"), systemFont(11))
@@ -55,6 +58,11 @@ func (v *SettingsView) addPermission(content objc.ID, y float64, title, detail, 
 	})
 	button.Send(sel("setAccessibilityLabel:"), nsString(i18n.Tf(i18n.SettingsOpenSystemSettingsA11y, title)))
 	content.Send(sel("addSubview:"), button)
+	v.bindText(func() {
+		title := i18n.T(titleKey)
+		button.Send(sel("setTitle:"), nsString(i18n.T(i18n.SettingsOpenSystemSettings)))
+		button.Send(sel("setAccessibilityLabel:"), nsString(i18n.Tf(i18n.SettingsOpenSystemSettingsA11y, title)))
+	})
 	return status
 }
 

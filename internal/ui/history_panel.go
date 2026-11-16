@@ -16,7 +16,7 @@ type historyPanel struct {
 	hide  func()
 	ref   *core.Ref
 
-	rows      *core.Signal[[]macos.HistoryRow]
+	items     *core.Signal[[]HistoryItem]
 	total     *core.Signal[int64]
 	loading   *core.Signal[bool]
 	errorText *core.Signal[string]
@@ -36,6 +36,7 @@ type historyPanel struct {
 	pageSize    int
 	request     atomic.Int64
 
+	language      i18n.Language
 	pendingSearch func() bool
 	actions       *itemActions
 	dragProvider  func(string) (macos.DragPayload, bool)
@@ -44,7 +45,7 @@ type historyPanel struct {
 func newHistoryPanel(cx *core.Scope, model HistoryModel, hide func()) *historyPanel {
 	p := &historyPanel{
 		cx: cx, model: model, hide: hide, ref: &core.Ref{},
-		rows:      core.NewSignalFunc(cx, []macos.HistoryRow(nil), nil),
+		items:     core.NewSignalFunc(cx, []HistoryItem(nil), nil),
 		total:     core.NewSignal(cx, int64(0)),
 		loading:   core.NewSignal(cx, true),
 		errorText: core.NewSignal(cx, ""),
@@ -54,6 +55,7 @@ func newHistoryPanel(cx *core.Scope, model HistoryModel, hide func()) *historyPa
 		filter:    core.NewSignal(cx, ""),
 		group:     core.NewSignal(cx, ""),
 		pageSize:  80,
+		language:  i18n.Watch(cx),
 	}
 	if model != nil {
 		search := model.SearchBehavior()
@@ -89,6 +91,7 @@ func newHistoryPanel(cx *core.Scope, model HistoryModel, hide func()) *historyPa
 }
 
 func (p *historyPanel) start() {
+	p.watchLanguage()
 	p.filter.Set(p.filterValue)
 	p.group.Set(p.groupID)
 	p.load("", p.filterValue, p.groupID, false)
@@ -120,6 +123,7 @@ func (p *historyPanel) node() core.Node {
 		Ref:       p.ref,
 		Style:     core.Style{Width: core.Pct(100), Height: core.Pct(100)},
 		PropsFunc: func() map[string]any {
+			language := i18n.Watch(p.cx)
 			display := macos.PanelDisplay{TextMaxLines: 1, ImageMaxHeight: 32, FileMaxCount: 3}
 			var quickActions []string
 			if p.model != nil {
@@ -133,7 +137,8 @@ func (p *historyPanel) node() core.Node {
 				quickActions = p.model.QuickActions()
 			}
 			return map[string]any{
-				"rows":     p.rows.Get(),
+				"language": string(language),
+				"rows":     historyRows(p.items.Get()),
 				"total":    p.total.Get(),
 				"loading":  p.loading.Get(),
 				"error":    p.errorText.Get(),
@@ -162,7 +167,7 @@ func (p *historyPanel) load(keyword, activeFilter, groupID string, appendRows bo
 	p.errorText.Set("")
 	offset := 0
 	if appendRows {
-		offset = len(p.rows.GetUntracked())
+		offset = len(p.items.GetUntracked())
 	}
 	serial := p.request.Add(1)
 	ctx := p.cx.Context()
@@ -183,14 +188,12 @@ func (p *historyPanel) load(keyword, activeFilter, groupID string, appendRows bo
 				p.loading.Set(false)
 				return
 			}
-			next := make([]macos.HistoryRow, 0, len(page.Items)+offset)
+			next := make([]HistoryItem, 0, len(page.Items)+offset)
 			if appendRows {
-				next = append(next, p.rows.GetUntracked()...)
+				next = append(next, p.items.GetUntracked()...)
 			}
-			for _, item := range page.Items {
-				next = append(next, historyRow(item))
-			}
-			p.rows.Set(next)
+			next = append(next, page.Items...)
+			p.items.Set(next)
 			p.total.Set(page.Total)
 			p.hasMore.Set(page.HasMore)
 			p.loading.Set(false)
@@ -248,6 +251,20 @@ func (p *historyPanel) cancelPendingSearch() {
 		p.pendingSearch()
 		p.pendingSearch = nil
 	}
+}
+
+// watchLanguage clears a visible preview when the language changes: its
+// title and metadata were translated when it opened, while the list is
+// rebuilt from its raw items by the panel props.
+func (p *historyPanel) watchLanguage() {
+	p.cx.Effect(func() {
+		language := i18n.Watch(p.cx)
+		if language == p.language {
+			return
+		}
+		p.language = language
+		p.preview.Set(macos.PreviewContent{})
+	})
 }
 
 func (p *historyPanel) actionID(data any) string {

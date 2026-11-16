@@ -3,10 +3,12 @@
 package macos
 
 import (
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/ebitengine/purego/objc"
 )
 
 type settingsOption struct {
+	Key   i18n.Key
 	Title string
 	Value string
 }
@@ -37,7 +39,7 @@ func addSettingsListCard(content objc.ID, frame CGRect) {
 
 // addSettingsListTable places a borderless table inside a list card and
 // returns it, so the order editors share one table configuration.
-func addSettingsListTable(content objc.ID, card CGRect, rowHeight, columnWidth float64, columnID, accessibility string, target objc.ID) objc.ID {
+func (v *SettingsView) addSettingsListTable(content objc.ID, card CGRect, rowHeight, columnWidth float64, columnID string, accessibility i18n.Key, target objc.ID) objc.ID {
 	addSettingsListCard(content, card)
 	scroll := objc.ID(class("NSScrollView")).Send(sel("new"))
 	scroll.Send(sel("setFrame:"), CGRect{
@@ -62,7 +64,10 @@ func addSettingsListTable(content objc.ID, card CGRect, rowHeight, columnWidth f
 	table.Send(sel("setBackgroundColor:"), objc.ID(classNSColor).Send(sel("clearColor")))
 	table.Send(sel("setDataSource:"), target)
 	table.Send(sel("setDelegate:"), target)
-	table.Send(sel("setAccessibilityLabel:"), nsString(accessibility))
+	table.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(accessibility)))
+	v.bindText(func() {
+		table.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(accessibility)))
+	})
 
 	column := objc.ID(class("NSTableColumn")).Send(sel("new"))
 	column.Send(sel("setIdentifier:"), nsString(columnID))
@@ -89,18 +94,22 @@ func newSettingsCheckbox(target objc.ID, action string) objc.ID {
 
 // addSettingsMoveButton adds one reorder button, disabled until a row is
 // selected, and registers the view it belongs to.
-func (v *SettingsView) addSettingsMoveButton(content objc.ID, frame CGRect, title, accessibility string, target objc.ID, action string) objc.ID {
+func (v *SettingsView) addSettingsMoveButton(content objc.ID, frame CGRect, title, accessibility i18n.Key, target objc.ID, action string) objc.ID {
 	button := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
-		nsString(title), target, sel(action))
+		nsString(i18n.T(title)), target, sel(action))
 	button.Send(sel("setFrame:"), frame)
-	button.Send(sel("setAccessibilityLabel:"), nsString(accessibility))
+	button.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(accessibility)))
 	button.Send(sel("setEnabled:"), false)
 	content.Send(sel("addSubview:"), button)
 	settingsViews[button] = v
+	v.bindText(func() {
+		button.Send(sel("setTitle:"), nsString(i18n.T(title)))
+		button.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(accessibility)))
+	})
 	return button
 }
 
-func (v *SettingsView) addSwitch(content objc.ID, y float64, title, path string, get func(SettingsValues) bool) {
+func (v *SettingsView) addSwitch(content objc.ID, y float64, title i18n.Key, path string, get func(SettingsValues) bool) {
 	v.addLabelWidth(content, y, title, settingsContentWidth-2*settingsRowInset-100)
 	control := objc.ID(class("NSSwitch")).Send(sel("new"))
 	control.Send(sel("setControlSize:"), int64(2))
@@ -119,7 +128,7 @@ func (v *SettingsView) addSwitch(content objc.ID, y float64, title, path string,
 	})
 }
 
-func (v *SettingsView) addPopup(content objc.ID, y float64, title, path string, options []settingsOption, get func(SettingsValues) string) *settingsField {
+func (v *SettingsView) addPopup(content objc.ID, y float64, title i18n.Key, path string, options []settingsOption, get func(SettingsValues) string) *settingsField {
 	v.addLabel(content, y, title)
 	values := make([]string, 0, len(options))
 	titles := make([]string, 0, len(options))
@@ -131,18 +140,23 @@ func (v *SettingsView) addPopup(content objc.ID, y float64, title, path string, 
 		Size: CGSize{Width: settingsPopupMinWidth, Height: settingsPopupHeight},
 	})
 	for _, option := range options {
+		text := settingsOptionText(option)
 		values = append(values, option.Value)
-		titles = append(titles, option.Title)
-		control.Send(sel("addItemWithTitle:"), nsString(option.Title))
+		titles = append(titles, text)
+		control.Send(sel("addItemWithTitle:"), nsString(text))
 	}
-	control.Send(sel("setAccessibilityLabel:"), nsString(title))
+	control.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(title)))
 	control.Send(sel("setTarget:"), settingsTarget)
 	control.Send(sel("setAction:"), sel("popupChanged:"))
 	field := &settingsField{
 		path: path, kind: "popup", control: control, options: values, titles: titles,
+		title: title, choices: options,
 		get: func(s SettingsValues) any { return get(s) },
 	}
 	v.addField(content, control, field)
+	v.bindText(func() {
+		v.rebuildPopup(field)
+	})
 	v.layoutPopup(field)
 	return field
 }
@@ -160,11 +174,35 @@ func (v *SettingsView) layoutPopup(field *settingsField) {
 	field.control.Send(sel("setFrame:"), frame)
 }
 
-func (v *SettingsView) addStepper(content objc.ID, y float64, title, path string, step, maxValue float64, suffix string, get func(SettingsValues) uint32) {
+// rebuildPopup retranslates a popup's static choices while keeping the
+// selected value. Groups are re-added by applyGroups afterwards.
+func (v *SettingsView) rebuildPopup(field *settingsField) {
+	if field == nil || field.control == 0 {
+		return
+	}
+	selected := ""
+	if index := int(objc.Send[int64](field.control, sel("indexOfSelectedItem"))); index >= 0 && index < len(field.options) {
+		selected = field.options[index]
+	}
+	field.control.Send(sel("removeAllItems"))
+	field.options = field.options[:0]
+	field.titles = field.titles[:0]
+	for _, choice := range field.choices {
+		text := settingsOptionText(choice)
+		field.options = append(field.options, choice.Value)
+		field.titles = append(field.titles, text)
+		field.control.Send(sel("addItemWithTitle:"), nsString(text))
+	}
+	field.control.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(field.title)))
+	selectPopup(field, selected)
+	v.layoutPopup(field)
+}
+
+func (v *SettingsView) addStepper(content objc.ID, y float64, title i18n.Key, path string, step, maxValue float64, suffix any, get func(SettingsValues) uint32) {
 	v.addStepperRange(content, y, title, path, 0, maxValue, step, suffix, get)
 }
 
-func (v *SettingsView) addStepperRange(content objc.ID, y float64, title, path string, minValue, maxValue, step float64, suffix string, get func(SettingsValues) uint32) {
+func (v *SettingsView) addStepperRange(content objc.ID, y float64, title i18n.Key, path string, minValue, maxValue, step float64, suffix any, get func(SettingsValues) uint32) {
 	v.addLabel(content, y, title)
 	valueLabel := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(""))
 	valueLabel.Send(sel("setFont:"), systemFont(12))
@@ -200,12 +238,12 @@ func (v *SettingsView) addStepperRange(content objc.ID, y float64, title, path s
 	})
 }
 
-func (v *SettingsView) addLabel(content objc.ID, y float64, title string) {
+func (v *SettingsView) addLabel(content objc.ID, y float64, title i18n.Key) {
 	v.addLabelWidth(content, y, title, settingsContentWidth-2*settingsRowInset-260)
 }
 
-func (v *SettingsView) addLabelWidth(content objc.ID, y float64, title string, width float64) {
-	label := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(title))
+func (v *SettingsView) addLabelWidth(content objc.ID, y float64, title i18n.Key, width float64) {
+	label := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(title)))
 	label.Send(sel("setFont:"), systemFont(13))
 	label.Send(sel("setLineBreakMode:"), int64(4))
 	label.Send(sel("setFrame:"), CGRect{
@@ -213,10 +251,11 @@ func (v *SettingsView) addLabelWidth(content objc.ID, y float64, title string, w
 		Size:   CGSize{Width: width, Height: 18},
 	})
 	content.Send(sel("addSubview:"), label)
+	v.bindString(label, title)
 }
 
-func (v *SettingsView) addHint(content objc.ID, y, height float64, text string) {
-	hint := objc.ID(classNSTextField).Send(sel("wrappingLabelWithString:"), nsString(text))
+func (v *SettingsView) addHint(content objc.ID, y, height float64, text i18n.Key) {
+	hint := objc.ID(classNSTextField).Send(sel("wrappingLabelWithString:"), nsString(i18n.T(text)))
 	hint.Send(sel("setFont:"), systemFont(11))
 	hint.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
 	hint.Send(sel("setPreferredMaxLayoutWidth:"), settingsContentWidth-2*settingsRowInset)
@@ -225,10 +264,11 @@ func (v *SettingsView) addHint(content objc.ID, y, height float64, text string) 
 		Size:   CGSize{Width: settingsContentWidth - 2*settingsRowInset, Height: height},
 	})
 	content.Send(sel("addSubview:"), hint)
+	v.bindString(hint, text)
 }
 
 // addParagraph lays out a wrapped settings description with explicit typography.
-func (v *SettingsView) addParagraph(content objc.ID, frame CGRect, text string, size float64, color objc.ID, maxLines int64) {
+func (v *SettingsView) addParagraph(content objc.ID, frame CGRect, text string, size float64, color objc.ID, maxLines int64, key i18n.Key) {
 	paragraph := objc.ID(classNSTextField).Send(sel("wrappingLabelWithString:"), nsString(text))
 	paragraph.Send(sel("setFont:"), systemFont(size))
 	paragraph.Send(sel("setTextColor:"), color)
@@ -238,6 +278,9 @@ func (v *SettingsView) addParagraph(content objc.ID, frame CGRect, text string, 
 	}
 	paragraph.Send(sel("setFrame:"), frame)
 	content.Send(sel("addSubview:"), paragraph)
+	if key != "" {
+		v.bindString(paragraph, key)
+	}
 }
 
 func (v *SettingsView) addField(content, control objc.ID, field *settingsField) {

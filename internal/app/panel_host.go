@@ -42,16 +42,6 @@ func (h *panelHost) open() {
 	}, h.content)
 }
 
-func (h *panelHost) Rebuild() {
-	if h.window != nil && !h.window.Closed() {
-		if h.window.Visible() {
-			h.saveFrame()
-		}
-		h.window.Close()
-	}
-	h.open()
-}
-
 func (h *panelHost) Show() {
 	h.signal()
 	h.place()

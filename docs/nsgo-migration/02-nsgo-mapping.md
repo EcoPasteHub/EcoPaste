@@ -46,7 +46,7 @@ NSGo 是一个 **Go 原生 UI 引擎**，不是 Tauri 的前端替代品：
 | JSON 设置 | Go `encoding/json` + 原子 rename | 保持 camelCase 与 patch 语义 |
 | `.ecopastebak` | Go `archive/zip` + `x/crypto/argon2` + `ChaCha20-Poly1305` | 保持容器字节格式 |
 | Tauri updater | NSGo `updater` + Sparkle appcast | 现有 update JSON endpoint 不能直接复用 |
-| Tauri i18n | NSGo `i18n` / Go 文案目录 | 复用现有翻译内容 |
+| Tauri i18n | go-i18n 嵌套 JSON 文案目录 + NSGo Signal | 复用现有翻译内容，按模块组织，语言切换原地更新 |
 | Vite/HMR | `nsgo dev` | Go 代码热重载；不涉及 WebView |
 
 ## 3. NSGo 已提供、可直接使用的能力

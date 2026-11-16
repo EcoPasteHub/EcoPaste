@@ -83,6 +83,14 @@ func historyRow(item HistoryItem) macos.HistoryRow {
 	}
 }
 
+func historyRows(items []HistoryItem) []macos.HistoryRow {
+	rows := make([]macos.HistoryRow, len(items))
+	for i, item := range items {
+		rows[i] = historyRow(item)
+	}
+	return rows
+}
+
 // historyRowTitlePreview splits a text summary into a headline and the
 // remaining body, so cards show a clear hierarchy instead of one dense
 // block of copied text.

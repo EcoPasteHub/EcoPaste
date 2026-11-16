@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
 	kubai "github.com/nsgo-dev/nsgo-icons-kubai"
 	"github.com/nsgo-dev/nsgo/core"
@@ -15,18 +16,17 @@ type SettingsModel interface {
 }
 
 type settingsTab struct {
-	id    string
-	icon  func() *kubai.Symbol
-	title string
+	id   string
+	icon func() *kubai.Symbol
 }
 
 func settingsTabs() []settingsTab {
 	return []settingsTab{
-		{id: "general", icon: kubai.Settings, title: macos.SettingsTabTitle("general")},
-		{id: "interface", icon: kubai.Appearance, title: macos.SettingsTabTitle("interface")},
-		{id: "apps", icon: kubai.Grid, title: macos.SettingsTabTitle("apps")},
-		{id: "advanced", icon: kubai.Sliders, title: macos.SettingsTabTitle("advanced")},
-		{id: "about", icon: kubai.Info, title: macos.SettingsTabTitle("about")},
+		{id: "general", icon: kubai.Settings},
+		{id: "interface", icon: kubai.Appearance},
+		{id: "apps", icon: kubai.Grid},
+		{id: "advanced", icon: kubai.Sliders},
+		{id: "about", icon: kubai.Info},
 	}
 }
 
@@ -34,6 +34,10 @@ func settingsTabs() []settingsTab {
 func SettingsWindow(model SettingsModel) func(*core.Scope) core.Node {
 	nativeRef := &core.Ref{}
 	return func(cx *core.Scope) core.Node {
+		cx.Effect(func() {
+			i18n.Watch(cx)
+			cx.SetTitle(i18n.T(i18n.SettingsWindowTitle))
+		})
 		values := core.NewSignalFunc(cx, model.Load(), nil)
 		errorText := core.NewSignal(cx, "")
 		selected := core.NewSignal(cx, macos.InitialSettingsTab())
@@ -51,9 +55,10 @@ func SettingsWindow(model SettingsModel) func(*core.Scope) core.Node {
 					Ref:       nativeRef,
 					PropsFunc: func() map[string]any {
 						return map[string]any{
-							"values": values.Get(),
-							"error":  errorText.Get(),
-							"tab":    selected.Get(),
+							"language": string(i18n.Watch(cx)),
+							"values":   values.Get(),
+							"error":    errorText.Get(),
+							"tab":      selected.Get(),
 						}
 					},
 					OnEvent: func(name string, data any) {
@@ -113,19 +118,23 @@ func settingsTabBar(cx *core.Scope, selected *core.Signal[string]) core.Node {
 	buttons := make([]core.Node, 0, len(tabs))
 	for _, tab := range tabs {
 		tab := tab
+		title := func() string {
+			i18n.Watch(cx)
+			return macos.SettingsTabTitle(tab.id)
+		}
 		buttons = append(buttons, core.View{
 			StyleFunc: func() core.Style {
 				return settingsTabButtonStyle(selected.Get() == tab.id, dark)
 			},
-			Role:  core.RoleTab,
-			Label: tab.title,
+			Role:      core.RoleTab,
+			LabelFunc: title,
 			OnPress: func(core.PressEvent) {
 				selected.Set(tab.id)
 			},
 			Children: []core.Node{
 				settingsTabIcon(tab, selected, dark),
 				core.Text{
-					Content: tab.title,
+					ContentFunc: title,
 					StyleFunc: func() core.Style {
 						return settingsTabTextStyle(selected.Get() == tab.id, muted, dark)
 					},

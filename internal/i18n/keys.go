@@ -185,7 +185,7 @@ const (
 	UpdateAvailableBody       = Key("update.available.body")
 	UpdateOpenDownload        = Key("update.openDownload")
 
-	SettingsReset              = Key("settings.reset")
+	SettingsReset              = Key("settings.reset.action")
 	SettingsResetSection       = Key("settings.reset.section")
 	SettingsResetTitle         = Key("settings.reset.title")
 	SettingsResetBody          = Key("settings.reset.body")
@@ -348,9 +348,10 @@ const (
 	SettingsRestoreDirBody     = Key("settings.dataDir.restoreBody")
 	SettingsChooseExcludedApp  = Key("settings.apps.choose")
 
-	SettingsLanguage   = Key("settings.general.language")
-	SettingsLanguageZh = Key("settings.language.zh")
-	SettingsLanguageEn = Key("settings.language.en")
+	SettingsLanguage     = Key("settings.general.language")
+	SettingsLanguageAuto = Key("settings.language.auto")
+	SettingsLanguageZh   = Key("settings.language.zh")
+	SettingsLanguageEn   = Key("settings.language.en")
 
 	SettingsInteractionIntro     = Key("settings.interaction.intro")
 	SettingsInteractionMouse     = Key("settings.interaction.mouse")

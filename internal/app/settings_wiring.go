@@ -27,13 +27,11 @@ type settingsWiring struct {
 	openClipboardKey     func() string
 	openPreferenceKey    func() string
 	applyApplicationMenu func()
-	rebuildPanel         func()
 	reloadHotkeys        func() error
-	settingsWindow       *desktop.Window
 }
 
 func (w *settingsWiring) open() {
-	w.settingsWindow = desktop.OpenWindow(w.app, desktop.WindowOptions{
+	desktop.OpenWindow(w.app, desktop.WindowOptions{
 		Title:       i18n.T(i18n.SettingsWindowTitle),
 		Width:       480,
 		Height:      640,
@@ -174,19 +172,9 @@ func (w *settingsWiring) signalHistory() {
 }
 
 func (w *settingsWiring) setLanguage(language string) error {
-	i18n.SetLanguage(language)
-	w.app.SetLocale(language)
-	w.applyApplicationMenu()
 	w.app.Post(func() {
-		if w.settingsWindow != nil && !w.settingsWindow.Closed() {
-			w.settingsWindow.Close()
-			w.settingsWindow = nil
-		}
-		if w.rebuildPanel != nil {
-			w.rebuildPanel()
-		}
-		macos.SelectSettingsTab("general")
-		w.open()
+		applyAppLanguage(w.app, language)
+		w.applyApplicationMenu()
 	})
 	return nil
 }

@@ -23,8 +23,26 @@ func TestOpenCreatesDefaults(t *testing.T) {
 	if got.Clipboard.Capture.MaxTextMB != 4 {
 		t.Errorf("max text = %d", got.Clipboard.Capture.MaxTextMB)
 	}
+	if got.Appearance.Language != LanguageAuto {
+		t.Errorf("default language = %q", got.Appearance.Language)
+	}
 	if _, err := os.Stat(path); err != nil {
 		t.Errorf("settings file missing: %v", err)
+	}
+}
+
+func TestUpdateAcceptsAutoLanguage(t *testing.T) {
+	store, err := Open(filepath.Join(t.TempDir(), FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.Update(map[string]any{
+		"appearance": map[string]any{"language": "auto"},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if got := store.Snapshot().Appearance.Language; got != LanguageAuto {
+		t.Fatalf("language = %q", got)
 	}
 }
 

@@ -98,6 +98,9 @@ func (v *SettingsView) addAboutHero(document objc.ID, top float64) float64 {
 	}
 	version.Send(sel("setFrame:"), versionFrame)
 	document.Send(sel("addSubview:"), version)
+	if AppVersion() == "" {
+		v.bindString(version, i18n.SettingsDevBuild)
+	}
 	return top + aboutPillHeight
 }
 
@@ -121,15 +124,15 @@ func (v *SettingsView) addAboutInfoCard(document objc.ID, top float64) float64 {
 	for row := 1; row < int(aboutInfoRows); row++ {
 		v.addCardSeparatorOffset(document, top, float64(row)*aboutInfoRowHeight)
 	}
-	v.addAboutLinkRow(document, top, kubai.Link, core.RGB(0x5393FF), i18n.T(i18n.SettingsAboutSource),
+	v.addAboutLinkRow(document, top, kubai.Link, core.RGB(0x5393FF), i18n.SettingsAboutSource,
 		"GitHub ↗", "openSourcePressed:", i18n.SettingsAboutSourceA11y)
 	v.addAboutLinkRow(document, top+aboutInfoRowHeight, kubai.MessageSquare, core.RGB(0xFF9F0A),
-		i18n.T(i18n.SettingsAboutFeedback), "GitHub Issues ↗",
+		i18n.SettingsAboutFeedback, "GitHub Issues ↗",
 		"openIssuesPressed:", i18n.SettingsAboutFeedbackA11y)
 	v.addAboutValueRow(document, top+2*aboutInfoRowHeight, kubai.CircleCheck, core.RGB(0x30D158),
-		i18n.T(i18n.SettingsAboutLicense), "Apache-2.0")
+		i18n.SettingsAboutLicense, "Apache-2.0")
 	v.addAboutValueRow(document, top+3*aboutInfoRowHeight, kubai.Desktop, core.RGB(0xBF5AF2),
-		i18n.T(i18n.SettingsAboutSystem), aboutSystemVersion())
+		i18n.SettingsAboutSystem, aboutSystemVersion())
 	return top + aboutInfoRows*aboutInfoRowHeight
 }
 
@@ -138,15 +141,16 @@ func aboutSystemVersion() string {
 	return version
 }
 
-func (v *SettingsView) addAboutValueRow(document objc.ID, rowTop float64, symbol func() *kubai.Symbol, color core.Color, title, value string) {
+func (v *SettingsView) addAboutValueRow(document objc.ID, rowTop float64, symbol func() *kubai.Symbol, color core.Color, title i18n.Key, value string) {
 	v.addAboutRowIcon(document, rowTop, symbol, color)
-	label := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(title))
+	label := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(title)))
 	label.Send(sel("setFont:"), systemFont(13))
 	label.Send(sel("setFrame:"), CGRect{
 		Origin: CGPoint{X: settingsContentX + aboutRowLabelInset, Y: rowTop + 17},
 		Size:   CGSize{Width: settingsContentWidth/2 - settingsRowInset, Height: 16},
 	})
 	document.Send(sel("addSubview:"), label)
+	v.bindString(label, title)
 
 	valueLabel := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(value))
 	valueLabel.Send(sel("setFont:"), systemFont(13))
@@ -158,15 +162,16 @@ func (v *SettingsView) addAboutValueRow(document objc.ID, rowTop float64, symbol
 	document.Send(sel("addSubview:"), valueLabel)
 }
 
-func (v *SettingsView) addAboutLinkRow(document objc.ID, rowTop float64, symbol func() *kubai.Symbol, color core.Color, title, value, action string, help i18n.Key) {
+func (v *SettingsView) addAboutLinkRow(document objc.ID, rowTop float64, symbol func() *kubai.Symbol, color core.Color, title i18n.Key, value, action string, help i18n.Key) {
 	v.addAboutRowIcon(document, rowTop, symbol, color)
-	label := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(title))
+	label := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(title)))
 	label.Send(sel("setFont:"), systemFont(13))
 	label.Send(sel("setFrame:"), CGRect{
 		Origin: CGPoint{X: settingsContentX + aboutRowLabelInset, Y: rowTop + 17},
 		Size:   CGSize{Width: settingsContentWidth/2 - settingsRowInset, Height: 16},
 	})
 	document.Send(sel("addSubview:"), label)
+	v.bindString(label, title)
 
 	button := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
 		nsString(value), settingsTarget, sel(action))
@@ -177,10 +182,14 @@ func (v *SettingsView) addAboutLinkRow(document objc.ID, rowTop float64, symbol 
 	buttonFrame := objc.Send[CGRect](button, sel("frame"))
 	buttonFrame.Origin = aboutRowValueOrigin(buttonFrame.Size, rowTop)
 	button.Send(sel("setFrame:"), buttonFrame)
-	button.Send(sel("setAccessibilityLabel:"), nsString(title))
+	button.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(title)))
 	button.Send(sel("setAccessibilityHelp:"), nsString(i18n.T(help)))
 	document.Send(sel("addSubview:"), button)
 	settingsViews[button] = v
+	v.bindText(func() {
+		button.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(title)))
+		button.Send(sel("setAccessibilityHelp:"), nsString(i18n.T(help)))
+	})
 }
 
 func aboutRowValueOrigin(size CGSize, rowTop float64) CGPoint {

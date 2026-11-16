@@ -30,9 +30,9 @@ func (v *SettingsView) buildAppsPage() {
 	registerSettingsAppsOnce.Do(registerSettingsAppsTargets)
 	document := v.newPage("apps")
 	top := 18.0
-	v.addSectionLabel(document, top, i18n.T(i18n.SettingsAppsSection))
+	v.addSectionLabel(document, top, i18n.SettingsAppsSection)
 	top += 24
-	top = v.addPageParagraph(document, top, 32, i18n.T(i18n.SettingsAppsIntro))
+	top = v.addPageParagraph(document, top, 32, i18n.SettingsAppsIntro)
 
 	const listHeight = 300.0
 	card := CGRect{
@@ -65,6 +65,9 @@ func (v *SettingsView) buildAppsPage() {
 	table.Send(sel("setDataSource:"), settingsAppsTarget)
 	table.Send(sel("setDelegate:"), settingsAppsTarget)
 	table.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsSourceApps)))
+	v.bindText(func() {
+		table.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsSourceApps)))
+	})
 
 	column := objc.ID(class("NSTableColumn")).Send(sel("new"))
 	column.Send(sel("setIdentifier:"), nsString("apps"))
@@ -92,6 +95,7 @@ func (v *SettingsView) buildAppsPage() {
 	empty.Send(sel("setHidden:"), true)
 	document.Send(sel("addSubview:"), empty)
 	v.appsEmpty = empty
+	v.bindString(empty, i18n.SettingsAppsEmpty)
 
 	top += listHeight + 16
 	add := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
@@ -101,6 +105,10 @@ func (v *SettingsView) buildAppsPage() {
 	add.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsAddAppA11y)))
 	document.Send(sel("addSubview:"), add)
 	settingsViews[add] = v
+	v.bindText(func() {
+		add.Send(sel("setTitle:"), nsString(i18n.T(i18n.SettingsAddApp)))
+		add.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsAddAppA11y)))
+	})
 
 	refresh := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
 		nsString(i18n.T(i18n.SettingsRefresh)), settingsTarget, sel("refreshAppsPressed:"))
@@ -109,6 +117,10 @@ func (v *SettingsView) buildAppsPage() {
 	refresh.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsRefreshA11y)))
 	document.Send(sel("addSubview:"), refresh)
 	settingsViews[refresh] = v
+	v.bindText(func() {
+		refresh.Send(sel("setTitle:"), nsString(i18n.T(i18n.SettingsRefresh)))
+		refresh.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsRefreshA11y)))
+	})
 
 	v.finishPage(document, top+30)
 }

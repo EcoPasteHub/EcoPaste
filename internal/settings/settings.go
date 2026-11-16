@@ -33,6 +33,7 @@ const (
 type Language string
 
 const (
+	LanguageAuto Language = "auto"
 	LanguageZhCN Language = "zh-CN"
 	LanguageEnUS Language = "en-US"
 )
@@ -292,7 +293,7 @@ const (
 func Default() Settings {
 	return Settings{
 		General:    General{TrayIcon: true, DockIcon: false},
-		Appearance: Appearance{Theme: ThemeAuto, Language: LanguageZhCN},
+		Appearance: Appearance{Theme: ThemeAuto, Language: LanguageAuto},
 		Shortcuts:  Shortcuts{OpenClipboard: "Alt+C", OpenPreference: "Alt+X"},
 		Clipboard: Clipboard{
 			Capture: Capture{

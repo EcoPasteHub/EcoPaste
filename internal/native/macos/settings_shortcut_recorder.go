@@ -21,6 +21,7 @@ const (
 type shortcutRecorder struct {
 	owner   *SettingsView
 	path    string
+	title   i18n.Key
 	control objc.ID
 	delete  objc.ID
 	get     func(SettingsValues) string
@@ -47,7 +48,7 @@ var (
 	shortcutRecorderTimers       = map[objc.ID]*shortcutRecorder{}
 )
 
-func (v *SettingsView) addShortcutField(content objc.ID, y float64, title, path string, get func(SettingsValues) string) {
+func (v *SettingsView) addShortcutField(content objc.ID, y float64, title i18n.Key, path string, get func(SettingsValues) string) {
 	registerShortcutRecorderOnce.Do(registerShortcutRecorderTargets)
 	v.addLabel(content, y, title)
 	control := objc.ID(shortcutRecorderClass).Send(sel("alloc")).Send(sel("initWithFrame:"), CGRect{
@@ -59,13 +60,14 @@ func (v *SettingsView) addShortcutField(content objc.ID, y float64, title, path 
 	})
 	control.Send(sel("setAccessibilityElement:"), true)
 	control.Send(sel("setAccessibilityRole:"), nsString("AXTextField"))
-	control.Send(sel("setAccessibilityLabel:"), nsString(i18n.Tf(i18n.SettingsShortcutFieldA11y, title)))
+	control.Send(sel("setAccessibilityLabel:"), nsString(i18n.Tf(i18n.SettingsShortcutFieldA11y, i18n.T(title))))
 	control.Send(sel("setAccessibilityHelp:"), nsString(i18n.T(i18n.SettingsShortcutHelp)))
 	content.Send(sel("addSubview:"), control)
 
 	recorder := &shortcutRecorder{
 		owner:   v,
 		path:    path,
+		title:   title,
 		control: control,
 		get:     get,
 	}
@@ -111,6 +113,11 @@ func (v *SettingsView) applyShortcuts(values SettingsValues) {
 
 func (r *shortcutRecorder) refresh() {
 	r.layoutDeleteButton()
+	r.control.Send(sel("setAccessibilityLabel:"),
+		nsString(i18n.Tf(i18n.SettingsShortcutFieldA11y, i18n.T(r.title))))
+	r.delete.Send(sel("setToolTip:"), nsString(i18n.T(i18n.SettingsShortcutClear)))
+	r.delete.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsShortcutClear)))
+	r.delete.Send(sel("setAccessibilityHelp:"), nsString(i18n.T(i18n.SettingsShortcutClearHelp)))
 	r.delete.Send(sel("setHidden:"), r.recording || r.value == "")
 	text, _, _ := r.presentation()
 	help := i18n.T(i18n.SettingsShortcutHelp)

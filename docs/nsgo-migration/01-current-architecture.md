@@ -317,7 +317,7 @@ general, appearance, shortcuts, clipboard, onboarding, update
 关键子结构：
 
 - `general`: `autoStart`, `runAsAdmin`, `trayIcon`, `dockIcon`
-- `appearance`: `theme` (`auto|light|dark`), `language` (`zh-CN|en-US`)
+- `appearance`: `theme` (`auto|light|dark`), `language` (`auto|zh-CN|en-US`)
 - `shortcuts`: `openClipboard`, `openPreference`, `winV`
 - `clipboard.capture`: `text/html/rtf/image/files`, `maxTextMb`, `maxImageMb`, `order`
 - `clipboard.content`: `autoPaste`, `middleClick`, `copyPlain`, `copyThenHideWindow`, `pastePlain`, `pasteFilesAsPath`, `showOriginalPreview`, 删除保护, `autoFavorite`, `updateOnReuse`, `sort`, `itemActions`, `itemActionOrder`

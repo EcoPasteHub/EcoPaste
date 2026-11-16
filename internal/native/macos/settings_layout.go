@@ -41,6 +41,7 @@ func (v *SettingsView) newPage(identifier string) objc.ID {
 	registerSettingsLayoutOnce.Do(registerSettingsLayoutTargets)
 	item := objc.ID(class("NSTabViewItem")).Send(sel("alloc")).Send(sel("initWithIdentifier:"), nsString(identifier))
 	item.Send(sel("setLabel:"), nsString(settingsTabTitle(identifier)))
+	v.tabItems[identifier] = item
 
 	page := objc.ID(class("NSView")).Send(sel("new"))
 	setFrame(page, 0, 0, settingsWidth, settingsHeight)
@@ -93,7 +94,7 @@ func registerSettingsLayoutTargets() {
 
 // addSectionCard places a section title and its rounded settings card.
 // It returns the card's top edge in the flipped document.
-func (v *SettingsView) addSectionCard(document objc.ID, top float64, title string, rows int) (objc.ID, float64) {
+func (v *SettingsView) addSectionCard(document objc.ID, top float64, title i18n.Key, rows int) (objc.ID, float64) {
 	v.addSectionLabel(document, top, title)
 	cardTop := top + 24
 	height := float64(rows) * settingsRowHeight
@@ -139,14 +140,14 @@ func settingsRowTop(cardTop float64, row int) float64 {
 	return cardTop + float64(row)*settingsRowHeight
 }
 
-func (v *SettingsView) addPageParagraph(document objc.ID, top, height float64, text string) float64 {
+func (v *SettingsView) addPageParagraph(document objc.ID, top, height float64, text i18n.Key) float64 {
 	v.addParagraph(document,
 		CGRect{Origin: CGPoint{X: settingsContentX + 4, Y: top}, Size: CGSize{Width: settingsContentWidth - 8, Height: height}},
-		text, 11, objc.ID(classNSColor).Send(sel("secondaryLabelColor")), 0)
+		i18n.T(text), 11, objc.ID(classNSColor).Send(sel("secondaryLabelColor")), 0, text)
 	return top + height + 12
 }
 
-func (v *SettingsView) addPageHint(document objc.ID, top, height float64, text string) float64 {
+func (v *SettingsView) addPageHint(document objc.ID, top, height float64, text i18n.Key) float64 {
 	v.addHint(document, top, height, text)
 	return top + height + 10
 }
@@ -156,8 +157,14 @@ func (v *SettingsView) addPageButton(document objc.ID, x, y, width, height float
 		nsString(i18n.T(title)), settingsTarget, sel(action))
 	button.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: x, Y: y}, Size: CGSize{Width: width, Height: height}})
 	button.Send(sel("setBezelStyle:"), int64(1))
+	v.bindText(func() {
+		button.Send(sel("setTitle:"), nsString(i18n.T(title)))
+	})
 	if help != "" {
 		button.Send(sel("setAccessibilityHelp:"), nsString(i18n.T(help)))
+		v.bindText(func() {
+			button.Send(sel("setAccessibilityHelp:"), nsString(i18n.T(help)))
+		})
 	}
 	document.Send(sel("addSubview:"), button)
 	settingsViews[button] = v
