@@ -456,12 +456,6 @@
       "density": "列表密度",
       "fileMaxCount": "文件名显示数量",
       "imageMaxHeight": "图片最大高度",
-      "preview": "行效果预览",
-      "previewHint": "预览会随上方设置实时更新",
-      "previewImage": "图片预览",
-      "previewImageDetail": "图片 · 访达 · 刚刚",
-      "previewText": "设计不是看起来怎样，而是用起来怎样。好的列表应保持清晰、安静，并让内容成为焦点。",
-      "previewTextDetail": "文本 · Safari · 刚刚",
       "textMaxLines": "文本显示行数"
     },
     "general": {
@@ -510,7 +504,8 @@
       "singleClickCopy": "单击复制",
       "singleClickPaste": "单击粘贴",
       "singleCopyPlain": "复制为纯文本",
-      "singlePastePlain": "粘贴为纯文本"
+      "singlePastePlain": "粘贴为纯文本",
+      "keyboard": "快捷键"
     },
     "language": {
       "auto": "跟随系统",
@@ -544,7 +539,7 @@
     },
     "preserve": "保持当前",
     "preview": {
-      "space": "按 Space 预览选中项"
+      "space": "按下空格键预览选中项"
     },
     "reset": {
       "action": "恢复默认设置…",

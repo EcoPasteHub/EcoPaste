@@ -4,7 +4,6 @@ package macos
 
 import (
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
-	"github.com/ebitengine/purego/objc"
 )
 
 func (v *SettingsView) buildInterfacePage() {
@@ -89,40 +88,8 @@ func (v *SettingsView) buildInterfacePage() {
 		func(s SettingsValues) bool { return s.PastePlain })
 	top = cardTop + 7*settingsRowHeight + settingsGroupGap
 
-	previewCard, cardTop := v.addSectionCard(document, top, i18n.SettingsDisplayPreview, 1)
+	_, cardTop = v.addSectionCard(document, top, i18n.SettingsInteractionKeyboard, 1)
 	v.addSwitch(document, settingsRowTop(cardTop, 0), i18n.SettingsSpacePreview, "preview.spaceEnabled",
 		func(s SettingsValues) bool { return s.SpacePreview })
-	v.displayPreviewTop = cardTop + settingsRowHeight + 8
-	v.displayPreviewCard = previewCard
-	v.buildDisplayPreview(document, v.displayPreviewTop)
-	v.finishPage(document, v.displayPreviewTop+120)
-}
-
-func (v *SettingsView) buildDisplayPreview(document objc.ID, top float64) {
-	box := objc.ID(class("NSVisualEffectView")).Send(sel("new"))
-	box.Send(sel("setMaterial:"), int64(14))
-	box.Send(sel("setBlendingMode:"), int64(1))
-	box.Send(sel("setState:"), int64(1))
-	box.Send(sel("setWantsLayer:"), true)
-	if layer := box.Send(sel("layer")); layer != 0 {
-		layer.Send(sel("setCornerRadius:"), 8.0)
-		layer.Send(sel("setMasksToBounds:"), true)
-	}
-	document.Send(sel("addSubview:"), box)
-	v.displayPreviewBox = box
-
-	divider := objc.ID(classNSBox).Send(sel("new"))
-	divider.Send(sel("setBoxType:"), 2)
-	divider.Send(sel("setTitlePosition:"), 0)
-	box.Send(sel("addSubview:"), divider)
-	v.displayPreviewDivider = divider
-
-	if err := registerHistoryRowViews(); err != nil {
-		return
-	}
-	for range 2 {
-		row := newHistoryRow()
-		box.Send(sel("addSubview:"), row)
-		v.displayPreviewRows = append(v.displayPreviewRows, row)
-	}
+	v.finishPage(document, cardTop+settingsRowHeight)
 }

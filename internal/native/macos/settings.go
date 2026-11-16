@@ -95,46 +95,41 @@ type SettingsChange struct {
 
 // SettingsView is the AppKit settings window content.
 type SettingsView struct {
-	cx                    *core.NativeContext
-	view                  objc.ID
-	tabs                  objc.ID
-	footer                objc.ID
-	dataDir               objc.ID
-	change                objc.ID
-	restore               objc.ID
-	reset                 objc.ID
-	accessibilityStatus   objc.ID
-	fullDiskStatus        objc.ID
-	diagnosticsHint       objc.ID
-	permissionTimer       objc.ID
-	appsTable             objc.ID
-	appsEmpty             objc.ID
-	apps                  []SettingsApp
-	actionsTable          objc.ID
-	actionUp              objc.ID
-	actionDown            objc.ID
-	actions               []settingsAction
-	captureTable          objc.ID
-	captureUp             objc.ID
-	captureDown           objc.ID
-	captureOrder          []string
-	displayPreviewBox     objc.ID
-	displayPreviewCard    objc.ID
-	displayPreviewTop     float64
-	displayPreviewDivider objc.ID
-	displayPreviewRows    []objc.ID
-	groupField            *settingsField
-	extraExcluded         []string
-	shortcutRecorders     []*shortcutRecorder
-	numberInputs          []*numberInput
-	lastValues            SettingsValues
-	fields                []*settingsField
-	currentTab            string
-	currentTabTitle       string
-	language              string
-	texts                 []func()
-	tabItems              map[string]objc.ID
-	aboutIcons            []*nsgo.View
+	cx                  *core.NativeContext
+	view                objc.ID
+	tabs                objc.ID
+	footer              objc.ID
+	dataDir             objc.ID
+	change              objc.ID
+	restore             objc.ID
+	reset               objc.ID
+	accessibilityStatus objc.ID
+	fullDiskStatus      objc.ID
+	diagnosticsHint     objc.ID
+	permissionTimer     objc.ID
+	appsTable           objc.ID
+	appsEmpty           objc.ID
+	apps                []SettingsApp
+	actionsTable        objc.ID
+	actionUp            objc.ID
+	actionDown          objc.ID
+	actions             []settingsAction
+	captureTable        objc.ID
+	captureUp           objc.ID
+	captureDown         objc.ID
+	captureOrder        []string
+	groupField          *settingsField
+	extraExcluded       []string
+	shortcutRecorders   []*shortcutRecorder
+	numberInputs        []*numberInput
+	lastValues          SettingsValues
+	fields              []*settingsField
+	currentTab          string
+	currentTabTitle     string
+	language            string
+	texts               []func()
+	tabItems            map[string]objc.ID
+	aboutIcons          []*nsgo.View
 }
 
 type settingsField struct {
@@ -408,7 +403,6 @@ func (v *SettingsView) apply(values SettingsValues) {
 			v.layoutPopup(field)
 		}
 	}
-	v.applyDisplayPreview(values)
 }
 
 // applyGroups rebuilds the open-group popup from the current clipboard

@@ -456,12 +456,6 @@
       "density": "List Density",
       "fileMaxCount": "File Names Shown",
       "imageMaxHeight": "Maximum Image Height",
-      "preview": "Row Preview",
-      "previewHint": "Preview updates as you change these settings",
-      "previewImage": "Image Preview",
-      "previewImageDetail": "Image · Finder · Now",
-      "previewText": "Design is how it works, not just how it looks. A good list stays calm and keeps the content in focus.",
-      "previewTextDetail": "Text · Safari · Now",
       "textMaxLines": "Text Lines"
     },
     "general": {
@@ -510,7 +504,8 @@
       "singleClickCopy": "Single-click to Copy",
       "singleClickPaste": "Single-click to Paste",
       "singleCopyPlain": "Copy as Plain Text",
-      "singlePastePlain": "Paste as Plain Text"
+      "singlePastePlain": "Paste as Plain Text",
+      "keyboard": "Keyboard"
     },
     "language": {
       "auto": "Follow System",
@@ -544,7 +539,7 @@
     },
     "preserve": "Keep Current",
     "preview": {
-      "space": "Preview Selected Item With Space"
+      "space": "Preview Selected Item When Pressing Space"
     },
     "reset": {
       "action": "Reset to Defaults…",
