@@ -8,6 +8,7 @@ import (
 
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/ebitengine/purego/objc"
+	"github.com/nsgo-dev/nsgo"
 	"github.com/nsgo-dev/nsgo/core"
 )
 
@@ -137,6 +138,7 @@ type SettingsView struct {
 	searchMatches         []settingsSearchEntry
 	searchHighlight       objc.ID
 	searchHighlightTimer  objc.ID
+	aboutIcons            []*nsgo.View
 }
 
 type settingsField struct {
@@ -445,6 +447,10 @@ func (v *SettingsView) Close() {
 	settingsTabMu.Lock()
 	delete(settingsOpenViews, v)
 	settingsTabMu.Unlock()
+	for _, icon := range v.aboutIcons {
+		icon.Close()
+	}
+	v.aboutIcons = nil
 	if v.permissionTimer != 0 {
 		v.permissionTimer.Send(sel("invalidate"))
 		delete(settingsTimers, v.permissionTimer)

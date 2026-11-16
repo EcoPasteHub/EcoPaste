@@ -7,10 +7,14 @@ import (
 
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/ebitengine/purego/objc"
+	"github.com/nsgo-dev/nsgo"
+	kubai "github.com/nsgo-dev/nsgo-icons-kubai"
+	"github.com/nsgo-dev/nsgo/core"
 )
 
 const (
 	aboutIconSize      = 110.0
+	aboutRowIconSize   = 16.0
 	aboutInfoRowHeight = 50.0
 	aboutInfoRows      = 4.0
 	aboutCardRadius    = 16.0
@@ -116,14 +120,14 @@ func (v *SettingsView) addAboutInfoCard(document objc.ID, top float64) float64 {
 	for row := 1; row < int(aboutInfoRows); row++ {
 		v.addCardSeparatorOffset(document, top, float64(row)*aboutInfoRowHeight)
 	}
-	v.addAboutLinkRow(document, top, "link", i18n.T(i18n.SettingsAboutSource),
+	v.addAboutLinkRow(document, top, kubai.Link, i18n.T(i18n.SettingsAboutSource),
 		"GitHub ↗", "openSourcePressed:", i18n.SettingsAboutSourceA11y)
-	v.addAboutLinkRow(document, top+aboutInfoRowHeight, "bubble.left",
+	v.addAboutLinkRow(document, top+aboutInfoRowHeight, kubai.MessageSquare,
 		i18n.T(i18n.SettingsAboutFeedback), "GitHub Issues ↗",
 		"openIssuesPressed:", i18n.SettingsAboutFeedbackA11y)
-	v.addAboutValueRow(document, top+2*aboutInfoRowHeight, "checkmark.seal",
+	v.addAboutValueRow(document, top+2*aboutInfoRowHeight, kubai.CircleCheck,
 		i18n.T(i18n.SettingsAboutLicense), "Apache-2.0")
-	v.addAboutValueRow(document, top+3*aboutInfoRowHeight, "desktopcomputer",
+	v.addAboutValueRow(document, top+3*aboutInfoRowHeight, kubai.Desktop,
 		i18n.T(i18n.SettingsAboutSystem), aboutSystemVersion())
 	return top + aboutInfoRows*aboutInfoRowHeight
 }
@@ -133,37 +137,33 @@ func aboutSystemVersion() string {
 	return version
 }
 
-func (v *SettingsView) addAboutValueRow(document objc.ID, rowTop float64, symbol, title, value string) {
+func (v *SettingsView) addAboutValueRow(document objc.ID, rowTop float64, symbol func() *kubai.Symbol, title, value string) {
 	v.addAboutRowIcon(document, rowTop, symbol)
 	label := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(title))
 	label.Send(sel("setFont:"), systemFont(13))
 	label.Send(sel("setFrame:"), CGRect{
 		Origin: CGPoint{X: settingsContentX + settingsRowInset + 26, Y: rowTop + 17},
-		Size:   CGSize{Width: settingsContentWidth/2 - settingsRowInset, Height: 18},
+		Size:   CGSize{Width: settingsContentWidth/2 - settingsRowInset, Height: 16},
 	})
 	document.Send(sel("addSubview:"), label)
 
 	valueLabel := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(value))
 	valueLabel.Send(sel("setFont:"), systemFont(13))
 	valueLabel.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
-	valueLabel.Send(sel("setAlignment:"), int64(1))
-	valueLabel.Send(sel("setFrame:"), CGRect{
-		Origin: CGPoint{
-			X: settingsContentX + settingsContentWidth - settingsRowInset - 220,
-			Y: rowTop + 17,
-		},
-		Size: CGSize{Width: 220, Height: 18},
-	})
+	valueLabel.Send(sel("sizeToFit"))
+	valueFrame := objc.Send[CGRect](valueLabel, sel("frame"))
+	valueFrame.Origin = aboutRowValueOrigin(valueFrame.Size, rowTop)
+	valueLabel.Send(sel("setFrame:"), valueFrame)
 	document.Send(sel("addSubview:"), valueLabel)
 }
 
-func (v *SettingsView) addAboutLinkRow(document objc.ID, rowTop float64, symbol, title, value, action string, help i18n.Key) {
+func (v *SettingsView) addAboutLinkRow(document objc.ID, rowTop float64, symbol func() *kubai.Symbol, title, value, action string, help i18n.Key) {
 	v.addAboutRowIcon(document, rowTop, symbol)
 	label := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(title))
 	label.Send(sel("setFont:"), systemFont(13))
 	label.Send(sel("setFrame:"), CGRect{
 		Origin: CGPoint{X: settingsContentX + settingsRowInset + 26, Y: rowTop + 17},
-		Size:   CGSize{Width: settingsContentWidth/2 - settingsRowInset, Height: 18},
+		Size:   CGSize{Width: settingsContentWidth/2 - settingsRowInset, Height: 16},
 	})
 	document.Send(sel("addSubview:"), label)
 
@@ -172,30 +172,52 @@ func (v *SettingsView) addAboutLinkRow(document objc.ID, rowTop float64, symbol,
 	button.Send(sel("setBordered:"), false)
 	button.Send(sel("setFont:"), systemFont(13))
 	button.Send(sel("setContentTintColor:"), objc.ID(classNSColor).Send(sel("controlAccentColor")))
-	button.Send(sel("setAlignment:"), int64(1))
-	button.Send(sel("setFrame:"), CGRect{
-		Origin: CGPoint{
-			X: settingsContentX + settingsContentWidth - settingsRowInset - 220,
-			Y: rowTop + 13,
-		},
-		Size: CGSize{Width: 220, Height: 26},
-	})
+	button.Send(sel("sizeToFit"))
+	buttonFrame := objc.Send[CGRect](button, sel("frame"))
+	buttonFrame.Origin = aboutRowValueOrigin(buttonFrame.Size, rowTop)
+	button.Send(sel("setFrame:"), buttonFrame)
 	button.Send(sel("setAccessibilityLabel:"), nsString(title))
 	button.Send(sel("setAccessibilityHelp:"), nsString(i18n.T(help)))
 	document.Send(sel("addSubview:"), button)
 	settingsViews[button] = v
 }
 
-func (v *SettingsView) addAboutRowIcon(document objc.ID, rowTop float64, symbol string) {
-	icon := objc.ID(class("NSImageView")).Send(sel("new"))
-	icon.Send(sel("setImage:"), systemSymbol(symbol))
-	icon.Send(sel("setContentTintColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
-	icon.Send(sel("setFrame:"), CGRect{
-		Origin: CGPoint{X: settingsContentX + settingsRowInset, Y: rowTop + 17},
-		Size:   CGSize{Width: 16, Height: 16},
+func aboutRowValueOrigin(size CGSize, rowTop float64) CGPoint {
+	return CGPoint{
+		X: settingsContentX + settingsContentWidth - settingsRowInset - size.Width,
+		Y: rowTop + (aboutInfoRowHeight-size.Height)/2,
+	}
+}
+
+func (v *SettingsView) addAboutRowIcon(document objc.ID, rowTop float64, symbol func() *kubai.Symbol) {
+	icon := nsgo.NewView(func(cx *core.Scope) core.Node {
+		color := core.RGB(0x8E8E93)
+		if cx.Env().Dark() {
+			color = core.RGB(0x98989D)
+		}
+		return core.View{
+			Style: core.Style{
+				Width:          core.Pt(aboutRowIconSize),
+				Height:         core.Pt(aboutRowIconSize),
+				AlignItems:     core.AlignCenter,
+				JustifyContent: core.JustifyCenter,
+			},
+			Children: []core.Node{
+				kubai.Icon{
+					Symbol: symbol(),
+					Size:   aboutRowIconSize,
+					Color:  color,
+				},
+			},
+		}
 	})
-	document.Send(sel("addSubview:"), icon)
-	icon.Send(sel("release"))
+	view := objc.ID(icon.Handle())
+	view.Send(sel("setFrame:"), CGRect{
+		Origin: CGPoint{X: settingsContentX + settingsRowInset, Y: rowTop + 17},
+		Size:   CGSize{Width: aboutRowIconSize, Height: aboutRowIconSize},
+	})
+	document.Send(sel("addSubview:"), view)
+	v.aboutIcons = append(v.aboutIcons, icon)
 }
 
 func (v *SettingsView) addAboutActions(document objc.ID, top float64) {

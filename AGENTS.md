@@ -140,6 +140,7 @@ internal/onboarding/       # 权限与旧版导入
 - NSGo 负责应用结构、状态、布局和事件编排；不要用 NSGo 通用 UI 组件替代 AppKit 控件。
 - 不使用 WebView、React、Ant Design、UnoCSS 或 CSS 实现新 UI。
 - 能用系统控件表达时，不自定义绘制；自定义视图只用于系统控件无法满足的卡片/预览等场景。
+- 偏好设置窗口内的所有图标必须统一使用 [nsgo-icons-kubai](https://github.com/nsgo-dev/nsgo-icons-kubai)，保持整个窗口的图标风格一致；不要混入 SF Symbols 或其他图标库。
 
 ### 3.2 推荐映射
 
@@ -153,6 +154,7 @@ internal/onboarding/       # 权限与旧版导入
 | 文本输入 | `NSTextField` / `NSTextView` |
 | 历史列表 | `NSTableView` / `NSCollectionView` |
 | 图片 | `NSImageView` / `NSImage` |
+| 设置窗口图标 | `nsgo-icons-kubai` |
 | 进度 | `NSProgressIndicator` |
 | 弹窗 | `NSAlert` / `NSPanel` |
 | 文件选择 | `NSOpenPanel` / `NSSavePanel` |
