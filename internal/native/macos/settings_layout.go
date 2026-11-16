@@ -18,6 +18,9 @@ const (
 	settingsGroupGap     = 24.0
 	settingsSwitchWidth  = 40.0
 	settingsSwitchHeight = 24.0
+	// settingsControlHeight is the shared row control height: the native
+	// NSSwitch size other interactive controls align to.
+	settingsControlHeight = settingsSwitchHeight
 )
 
 var (

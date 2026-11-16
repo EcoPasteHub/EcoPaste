@@ -11,9 +11,9 @@ import (
 )
 
 const (
-	shortcutRecorderWidth    = 150.0
-	shortcutRecorderHeight   = 30.0
-	shortcutDeleteButtonSize = 24.0
+	shortcutRecorderWidth    = 120.0
+	shortcutRecorderHeight   = settingsControlHeight
+	shortcutDeleteButtonSize = 18.0
 	shortcutRecorderInset    = 14.0
 	shortcutDeleteRightInset = 7.0
 )
@@ -95,7 +95,7 @@ func newShortcutDeleteButton(recorder *shortcutRecorder) objc.ID {
 
 func shortcutDeleteSymbol() objc.ID {
 	image := systemSymbol("xmark.circle.fill")
-	image.Send(sel("setSize:"), CGSize{Width: 13, Height: 13})
+	image.Send(sel("setSize:"), CGSize{Width: 12, Height: 12})
 	return image
 }
 

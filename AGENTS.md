@@ -174,7 +174,13 @@ internal/onboarding/       # 权限与旧版导入
 | 材质/背景 | `NSVisualEffectView` |
 | 颜色 | `NSColor.labelColor` 等语义色 |
 
-### 3.3 原生体验
+### 3.3 控件高度
+
+- 以当前 `NSSwitch` 的实际高度（24pt，`settingsControlHeight`）作为设置窗口及同类表单内交互控件的统一高度基准。
+- 快捷键录入框、自定义下拉等行内交互控件应与 Switch 同高；新增控件和修改现有控件时先核对实际 frame 高度，不凭视觉观感调整。
+- 统一高度时不得破坏控件自身比例、图标间距、点击区域和交互体验；确需例外时在代码和迁移文档中说明原因。
+
+### 3.4 原生体验
 
 - 使用系统语义色、系统字体、系统间距和 `NSAppearance`，不要硬编码浅色/深色。
 - 窗口、菜单、弹窗、工具栏、文件选择器、快捷键录入优先使用系统 API。
@@ -183,7 +189,7 @@ internal/onboarding/       # 权限与旧版导入
 - 自定义视图必须提供 `accessibilityLabel`、`accessibilityRole`、`accessibilityHelp`。
 - 改 UI 后必须实际操作主路径和边界，不能只靠编译通过。
 
-### 3.4 NSGo 能力不足时
+### 3.5 NSGo 能力不足时
 
 - 在 `internal/native/macos/` 增加窄桥接，不在 `internal/ui/` 里堆平台细节。
 - 桥接层只暴露业务需要的最小接口；不要让业务代码直接依赖 `core.Native` 的 props/命令细节。

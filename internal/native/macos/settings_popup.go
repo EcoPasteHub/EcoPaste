@@ -10,11 +10,11 @@ import (
 )
 
 const (
-	settingsPopupHeight           = 26.0
+	settingsPopupHeight           = settingsControlHeight
 	settingsPopupTextSize         = 13.0
 	settingsPopupTextInset        = 12.0
 	settingsPopupGap              = 8.0
-	settingsPopupIconSize         = 18.0
+	settingsPopupIconSize         = 15.0
 	settingsPopupIconInset        = 4.0
 	settingsPopupMinWidth         = settingsPopupTextInset + settingsPopupGap + settingsPopupIconSize + settingsPopupIconInset
 	settingsPopupMaxWidth         = 260.0
