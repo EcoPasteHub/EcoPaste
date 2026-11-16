@@ -3,16 +3,18 @@
 package macos
 
 import (
+	"strings"
+
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/ebitengine/purego/objc"
 )
 
 const (
-	aboutIconSize      = 108.0
-	aboutInfoRowHeight = 52.0
+	aboutIconSize      = 110.0
+	aboutInfoRowHeight = 50.0
 	aboutInfoRows      = 4.0
-	aboutCardRadius    = 14.0
-	aboutPillWidth     = 104.0
+	aboutCardRadius    = 16.0
+	aboutPillWidth     = 92.0
 	aboutPillHeight    = 24.0
 	aboutButtonWidth   = 188.0
 	aboutButtonHeight  = 34.0
@@ -20,11 +22,11 @@ const (
 
 func (v *SettingsView) buildAboutPage() {
 	document := v.newPage("about")
-	top := 18.0
+	top := 20.0
 	top = v.addAboutHero(document, top)
-	top = v.addAboutInfoCard(document, top+22)
-	v.addAboutActions(document, top+30)
-	v.finishPage(document, settingsHeight-settingsSearchHeaderH)
+	top = v.addAboutInfoCard(document, top+24)
+	v.addAboutActions(document, top+28)
+	setFrame(document, 0, 0, settingsWidth, settingsHeight-settingsSearchHeaderH-6)
 }
 
 func (v *SettingsView) addAboutHero(document objc.ID, top float64) float64 {
@@ -43,18 +45,18 @@ func (v *SettingsView) addAboutHero(document objc.ID, top float64) float64 {
 	})
 	document.Send(sel("addSubview:"), icon)
 	icon.Send(sel("release"))
-	top += aboutIconSize + 10
+	top += aboutIconSize + 8
 
 	name := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString("EcoPaste"))
 	name.Send(sel("setFont:"), objc.ID(classNSFont).Send(
-		sel("systemFontOfSize:weight:"), 30.0, 0.4))
+		sel("systemFontOfSize:weight:"), 28.0, 0.3))
 	name.Send(sel("setAlignment:"), int64(2))
 	name.Send(sel("setFrame:"), CGRect{
 		Origin: CGPoint{X: settingsContentX, Y: top},
-		Size:   CGSize{Width: settingsContentWidth, Height: 34},
+		Size:   CGSize{Width: settingsContentWidth, Height: 32},
 	})
 	document.Send(sel("addSubview:"), name)
-	top += 42
+	top += 40
 
 	versionText := AppVersion()
 	if versionText == "" {
@@ -107,22 +109,29 @@ func (v *SettingsView) addAboutInfoCard(document objc.ID, top float64) float64 {
 	for row := 1; row < int(aboutInfoRows); row++ {
 		v.addCardSeparatorOffset(document, top, float64(row)*aboutInfoRowHeight)
 	}
-	v.addAboutLinkRow(document, top, i18n.T(i18n.SettingsAboutSource),
+	v.addAboutLinkRow(document, top, "link", i18n.T(i18n.SettingsAboutSource),
 		"GitHub ↗", "openSourcePressed:", i18n.SettingsAboutSourceA11y)
-	v.addAboutLinkRow(document, top+aboutInfoRowHeight, i18n.T(i18n.SettingsAboutFeedback),
-		"GitHub Issues ↗", "openIssuesPressed:", i18n.SettingsAboutFeedbackA11y)
-	v.addAboutValueRow(document, top+2*aboutInfoRowHeight,
+	v.addAboutLinkRow(document, top+aboutInfoRowHeight, "bubble.left",
+		i18n.T(i18n.SettingsAboutFeedback), "GitHub Issues ↗",
+		"openIssuesPressed:", i18n.SettingsAboutFeedbackA11y)
+	v.addAboutValueRow(document, top+2*aboutInfoRowHeight, "checkmark.seal",
 		i18n.T(i18n.SettingsAboutLicense), "Apache-2.0")
-	v.addAboutValueRow(document, top+3*aboutInfoRowHeight,
-		i18n.T(i18n.SettingsAboutSystem), diagnosticSystemVersion())
+	v.addAboutValueRow(document, top+3*aboutInfoRowHeight, "desktopcomputer",
+		i18n.T(i18n.SettingsAboutSystem), aboutSystemVersion())
 	return top + aboutInfoRows*aboutInfoRowHeight
 }
 
-func (v *SettingsView) addAboutValueRow(document objc.ID, rowTop float64, title, value string) {
+func aboutSystemVersion() string {
+	version, _, _ := strings.Cut(diagnosticSystemVersion(), " (Build ")
+	return version
+}
+
+func (v *SettingsView) addAboutValueRow(document objc.ID, rowTop float64, symbol, title, value string) {
+	v.addAboutRowIcon(document, rowTop, symbol)
 	label := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(title))
 	label.Send(sel("setFont:"), systemFont(13))
 	label.Send(sel("setFrame:"), CGRect{
-		Origin: CGPoint{X: settingsContentX + settingsRowInset + 2, Y: rowTop + 17},
+		Origin: CGPoint{X: settingsContentX + settingsRowInset + 26, Y: rowTop + 17},
 		Size:   CGSize{Width: settingsContentWidth/2 - settingsRowInset, Height: 18},
 	})
 	document.Send(sel("addSubview:"), label)
@@ -141,11 +150,12 @@ func (v *SettingsView) addAboutValueRow(document objc.ID, rowTop float64, title,
 	document.Send(sel("addSubview:"), valueLabel)
 }
 
-func (v *SettingsView) addAboutLinkRow(document objc.ID, rowTop float64, title, value, action string, help i18n.Key) {
+func (v *SettingsView) addAboutLinkRow(document objc.ID, rowTop float64, symbol, title, value, action string, help i18n.Key) {
+	v.addAboutRowIcon(document, rowTop, symbol)
 	label := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(title))
 	label.Send(sel("setFont:"), systemFont(13))
 	label.Send(sel("setFrame:"), CGRect{
-		Origin: CGPoint{X: settingsContentX + settingsRowInset + 2, Y: rowTop + 17},
+		Origin: CGPoint{X: settingsContentX + settingsRowInset + 26, Y: rowTop + 17},
 		Size:   CGSize{Width: settingsContentWidth/2 - settingsRowInset, Height: 18},
 	})
 	document.Send(sel("addSubview:"), label)
@@ -167,6 +177,18 @@ func (v *SettingsView) addAboutLinkRow(document objc.ID, rowTop float64, title, 
 	button.Send(sel("setAccessibilityHelp:"), nsString(i18n.T(help)))
 	document.Send(sel("addSubview:"), button)
 	settingsViews[button] = v
+}
+
+func (v *SettingsView) addAboutRowIcon(document objc.ID, rowTop float64, symbol string) {
+	icon := objc.ID(class("NSImageView")).Send(sel("new"))
+	icon.Send(sel("setImage:"), systemSymbol(symbol))
+	icon.Send(sel("setContentTintColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
+	icon.Send(sel("setFrame:"), CGRect{
+		Origin: CGPoint{X: settingsContentX + settingsRowInset, Y: rowTop + 17},
+		Size:   CGSize{Width: 16, Height: 16},
+	})
+	document.Send(sel("addSubview:"), icon)
+	icon.Send(sel("release"))
 }
 
 func (v *SettingsView) addAboutActions(document objc.ID, top float64) {
