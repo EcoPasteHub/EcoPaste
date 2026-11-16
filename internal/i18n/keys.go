@@ -171,7 +171,6 @@ const (
 	SettingsUpdateVersion     = Key("settings.update.version")
 	SettingsUpdateCheck       = Key("settings.update.check")
 	SettingsUpdateManaged     = Key("settings.update.managed")
-	SettingsAboutSystem       = Key("settings.about.system")
 	SettingsAboutSource       = Key("settings.about.source")
 	SettingsAboutSourceA11y   = Key("settings.about.sourceA11y")
 	SettingsAboutFeedback     = Key("settings.about.feedback")

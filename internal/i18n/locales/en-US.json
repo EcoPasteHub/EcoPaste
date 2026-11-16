@@ -374,8 +374,7 @@
       "feedbackA11y": "Open EcoPaste's GitHub Issues page in your browser",
       "license": "License",
       "source": "Source",
-      "sourceA11y": "Open EcoPaste's GitHub page in your browser",
-      "system": "System"
+      "sourceA11y": "Open EcoPaste's GitHub page in your browser"
     },
     "actions": {
       "enable": "Enable %s",

@@ -374,8 +374,7 @@
       "feedbackA11y": "在浏览器中打开 EcoPaste 的 GitHub Issues 页面",
       "license": "开源许可",
       "source": "开源地址",
-      "sourceA11y": "在浏览器中打开 EcoPaste 的 GitHub 页面",
-      "system": "运行环境"
+      "sourceA11y": "在浏览器中打开 EcoPaste 的 GitHub 页面"
     },
     "actions": {
       "enable": "启用%s",

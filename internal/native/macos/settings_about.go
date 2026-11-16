@@ -3,8 +3,6 @@
 package macos
 
 import (
-	"strings"
-
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/ebitengine/purego/objc"
 	"github.com/nsgo-dev/nsgo"
@@ -17,7 +15,7 @@ const (
 	aboutRowIconSize   = 16.0
 	aboutRowLabelInset = settingsRowInset + aboutRowIconSize + 6
 	aboutInfoRowHeight = 50.0
-	aboutInfoRows      = 4.0
+	aboutInfoRows      = 3.0
 	aboutCardRadius    = 16.0
 	aboutPillHeight    = 24.0
 	aboutButtonWidth   = 188.0
@@ -131,14 +129,7 @@ func (v *SettingsView) addAboutInfoCard(document objc.ID, top float64) float64 {
 		"openIssuesPressed:", i18n.SettingsAboutFeedbackA11y)
 	v.addAboutValueRow(document, top+2*aboutInfoRowHeight, kubai.CircleCheck, core.RGB(0x30D158),
 		i18n.SettingsAboutLicense, "Apache-2.0")
-	v.addAboutValueRow(document, top+3*aboutInfoRowHeight, kubai.Desktop, core.RGB(0xBF5AF2),
-		i18n.SettingsAboutSystem, aboutSystemVersion())
 	return top + aboutInfoRows*aboutInfoRowHeight
-}
-
-func aboutSystemVersion() string {
-	version, _, _ := strings.Cut(diagnosticSystemVersion(), " (Build ")
-	return version
 }
 
 func (v *SettingsView) addAboutValueRow(document objc.ID, rowTop float64, symbol func() *kubai.Symbol, color core.Color, title i18n.Key, value string) {
