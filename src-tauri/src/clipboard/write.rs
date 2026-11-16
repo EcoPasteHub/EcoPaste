@@ -24,8 +24,32 @@ use crate::core::{AppError, Result};
 use crate::db::items::content_hash;
 use crate::db::models::{ClipboardItem, ClipboardKind, ClipboardSubKind};
 
+/// 剪贴板被其它程序（远程桌面、监听器）短暂占用时的重试次数与间隔，总计约 1.5 秒。
+const WRITE_ATTEMPTS: u32 = 8;
+const WRITE_RETRY_DELAY: std::time::Duration = std::time::Duration::from_millis(200);
+
 /// 把 `item` 写回系统剪贴板；`plain = true` 强制只写纯文本（剥离 HTML/RTF）。
+/// 打开剪贴板被拒绝时短暂重试，仍失败才返回错误。
 pub fn write_to_clipboard(
+    store: &ImageStore,
+    guard: &WritebackGuard,
+    item: &ClipboardItem,
+    plain: bool,
+) -> Result<()> {
+    let mut attempt = 1;
+
+    loop {
+        match write_once(store, guard, item, plain) {
+            Err(_) if attempt < WRITE_ATTEMPTS => {
+                std::thread::sleep(WRITE_RETRY_DELAY);
+                attempt += 1;
+            }
+            result => return result,
+        }
+    }
+}
+
+fn write_once(
     store: &ImageStore,
     guard: &WritebackGuard,
     item: &ClipboardItem,

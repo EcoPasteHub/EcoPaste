@@ -113,9 +113,7 @@ fn run_clipboard_thread(
     let result = (|| -> WinResult<()> {
         let object = create_data_object(state, peer_id, offer, entries);
 
-        unsafe {
-            OleSetClipboard(&object)?;
-        }
+        set_clipboard_with_retry(&object)?;
         log::info!("sync: virtual files placed on the clipboard");
 
         pump_until_replaced(&object);
@@ -126,6 +124,26 @@ fn run_clipboard_thread(
         OleUninitialize();
     }
     result
+}
+
+/// 远程桌面等程序会长时间占用剪贴板，`OleSetClipboard` 因此返回 `CLIPBRD_E_CANT_OPEN`；
+/// 退避重试约 15 秒，期间泵消息保持 STA 响应。
+fn set_clipboard_with_retry(object: &IDataObject) -> WinResult<()> {
+    const MAX_ATTEMPTS: u32 = 40;
+    let mut delay = std::time::Duration::from_millis(30);
+
+    for attempt in 1..=MAX_ATTEMPTS {
+        match unsafe { OleSetClipboard(object) } {
+            Ok(()) => return Ok(()),
+            Err(err) if attempt == MAX_ATTEMPTS => return Err(err),
+            Err(err) => {
+                log::debug!("sync: clipboard busy for virtual files (attempt {attempt}): {err}");
+                std::thread::sleep(delay);
+                delay = (delay * 2).min(std::time::Duration::from_millis(500));
+            }
+        }
+    }
+    Ok(())
 }
 
 /// 泵消息（STA 必需），直到剪贴板被其它内容替换。

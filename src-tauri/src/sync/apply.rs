@@ -24,7 +24,8 @@ pub const HARD_IMAGE_LIMIT: u64 = 512 * 1024 * 1024;
 #[cfg(test)]
 pub static TEST_SINK: std::sync::Mutex<Option<Vec<ClipboardItem>>> = std::sync::Mutex::new(None);
 
-const WRITE_RETRY_ATTEMPTS: u32 = 8;
+const WRITE_RETRY_ATTEMPTS: u32 = 40;
+const WRITE_RETRY_MAX_DELAY: std::time::Duration = std::time::Duration::from_millis(500);
 const WRITE_RETRY_BASE: std::time::Duration = std::time::Duration::from_millis(30);
 
 /// 本机允许接收的图片字节上限。
@@ -136,7 +137,10 @@ async fn apply_payload(
     }
 
     if to_clipboard {
-        write_item_with_retry(app, &store, &item).await?;
+        // 写入失败（如剪贴板被长期占用）时仍入历史，用户可从历史面板粘贴。
+        if let Err(err) = write_item_with_retry(app, &store, &item).await {
+            log::warn!("sync: writing received item to the clipboard failed: {err:#}");
+        }
     }
 
     let pool = app.state::<DatabaseState>().pool().await;
@@ -160,7 +164,7 @@ async fn write_item_with_retry(
             Err(err) => {
                 log::debug!("sync: clipboard busy (attempt {attempt}): {err}");
                 tokio::time::sleep(delay).await;
-                delay = delay.saturating_mul(2);
+                delay = delay.saturating_mul(2).min(WRITE_RETRY_MAX_DELAY);
                 attempt += 1;
             }
         }
