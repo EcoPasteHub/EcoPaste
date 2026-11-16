@@ -369,6 +369,7 @@ func (v *SettingsView) apply(values SettingsValues) {
 		case "popup":
 			value, _ := field.get(values).(string)
 			selectPopup(field, value)
+			v.layoutPopup(field)
 		case "stepper":
 			n, _ := field.get(values).(uint32)
 			field.control.Send(sel("setDoubleValue:"), float64(n))
@@ -399,6 +400,7 @@ func (v *SettingsView) applyGroups(values SettingsValues) {
 		field.control.Send(sel("addItemWithTitle:"), nsString(title))
 	}
 	selectPopup(field, selected)
+	v.layoutPopup(field)
 }
 
 func selectPopup(field *settingsField, value string) {
@@ -449,6 +451,11 @@ func (v *SettingsView) Close() {
 	for control, owner := range settingsViews {
 		if owner == v {
 			delete(settingsViews, control)
+		}
+	}
+	for _, field := range v.fields {
+		if field.kind == "popup" {
+			discardSettingsPopup(field.control)
 		}
 	}
 	if v.appsTable != 0 {

@@ -69,6 +69,8 @@ func settingsPopupChanged(_ objc.ID, _ objc.SEL, sender objc.ID) {
 	if index < 0 || index >= len(field.options) {
 		return
 	}
+	v.layoutPopup(field)
+	suppressSettingsPopupHover(sender)
 	v.cx.Emit("change", SettingsChange{Path: field.path, Value: field.options[index]})
 }
 

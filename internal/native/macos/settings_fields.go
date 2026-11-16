@@ -123,20 +123,19 @@ func (v *SettingsView) addPopup(content objc.ID, y float64, title, path string, 
 	v.addLabel(content, y, title)
 	values := make([]string, 0, len(options))
 	titles := make([]string, 0, len(options))
-	const popupWidth = 220.0
-	control := objc.ID(class("NSPopUpButton")).Send(sel("alloc")).Send(sel("initWithFrame:pullsDown:"),
-		CGRect{
-			Origin: CGPoint{
-				X: settingsContentX + settingsContentWidth - settingsRowInset - popupWidth,
-				Y: y + (settingsRowHeight-26)/2,
-			},
-			Size: CGSize{Width: popupWidth, Height: 26},
-		}, false)
+	control := newSettingsPopup(CGRect{
+		Origin: CGPoint{
+			X: settingsContentX + settingsContentWidth - settingsRowInset - settingsPopupMinWidth,
+			Y: y + (settingsRowHeight-settingsPopupHeight)/2,
+		},
+		Size: CGSize{Width: settingsPopupMinWidth, Height: settingsPopupHeight},
+	})
 	for _, option := range options {
 		values = append(values, option.Value)
 		titles = append(titles, option.Title)
 		control.Send(sel("addItemWithTitle:"), nsString(option.Title))
 	}
+	control.Send(sel("setAccessibilityLabel:"), nsString(title))
 	control.Send(sel("setTarget:"), settingsTarget)
 	control.Send(sel("setAction:"), sel("popupChanged:"))
 	field := &settingsField{
@@ -144,7 +143,21 @@ func (v *SettingsView) addPopup(content objc.ID, y float64, title, path string, 
 		get: func(s SettingsValues) any { return get(s) },
 	}
 	v.addField(content, control, field)
+	v.layoutPopup(field)
 	return field
+}
+
+// layoutPopup keeps the control right aligned while sizing the collapsed
+// capsule from its selected title.
+func (v *SettingsView) layoutPopup(field *settingsField) {
+	if field == nil || field.control == 0 {
+		return
+	}
+	width := settingsPopupWidth(settingsPopupTitle(field.control))
+	frame := objc.Send[CGRect](field.control, sel("frame"))
+	frame.Origin.X = settingsContentX + settingsContentWidth - settingsRowInset - width
+	frame.Size.Width = width
+	field.control.Send(sel("setFrame:"), frame)
 }
 
 func (v *SettingsView) addStepper(content objc.ID, y float64, title, path string, step, maxValue float64, suffix string, get func(SettingsValues) uint32) {
