@@ -236,7 +236,6 @@ func TestConcurrentUpdatesKeepCompleteSettings(t *testing.T) {
 		{"general": map[string]any{"autoStart": true}},
 		{"general": map[string]any{"runAsAdmin": true}},
 		{"general": map[string]any{"trayIcon": false}},
-		{"general": map[string]any{"dockIcon": true}},
 		{"clipboard": map[string]any{"content": map[string]any{"copyPlain": true}}},
 		{"clipboard": map[string]any{"content": map[string]any{"pastePlain": true}}},
 		{"clipboard": map[string]any{"content": map[string]any{"autoFavorite": true}}},
@@ -260,7 +259,7 @@ func TestConcurrentUpdatesKeepCompleteSettings(t *testing.T) {
 		}
 	}
 	got := store.Snapshot()
-	if !got.General.AutoStart || !got.General.RunAsAdmin || got.General.TrayIcon || !got.General.DockIcon ||
+	if !got.General.AutoStart || !got.General.RunAsAdmin || got.General.TrayIcon ||
 		!got.Clipboard.Content.CopyPlain || !got.Clipboard.Content.PastePlain ||
 		!got.Clipboard.Content.AutoFavorite || !got.Clipboard.Feedback.CopySound {
 		t.Errorf("concurrent updates lost fields: %+v", got)

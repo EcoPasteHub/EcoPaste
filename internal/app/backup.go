@@ -155,9 +155,6 @@ func runBackupMerge(app *core.Scope, runtime *clipboardRuntime, path, password s
 				if err := macos.SetAppearance(string(next.Appearance.Theme)); err != nil {
 					log.Printf("sync appearance: %v", err)
 				}
-				if err := macos.SetDockIconVisible(next.General.DockIcon); err != nil {
-					log.Printf("sync dock icon: %v", err)
-				}
 				if err := macos.SyncAutostart(next.General.AutoStart); err != nil {
 					log.Printf("sync autostart: %v", err)
 				}

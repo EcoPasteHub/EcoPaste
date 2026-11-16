@@ -13,7 +13,6 @@ import (
 
 type settingsModel struct {
 	store                *settings.Store
-	setDockIcon          func(bool) error
 	setTrayIcon          func(bool) error
 	setAutoStart         func(bool) error
 	setAppearance        func(string) error
@@ -39,7 +38,7 @@ type settingsModel struct {
 
 func newSettingsModel(store *settings.Store) *settingsModel {
 	return &settingsModel{
-		store: store, setDockIcon: macos.SetDockIconVisible,
+		store:        store,
 		setAutoStart: macos.SetAutostart, setAppearance: macos.SetAppearance,
 	}
 }
@@ -49,7 +48,6 @@ func (m *settingsModel) Load() macos.SettingsValues {
 	cfg := snapshot.Clipboard
 	excluded := cfg.Filters.ExcludedAppIDs
 	return macos.SettingsValues{
-		DockIcon:               snapshot.General.DockIcon,
 		TrayIcon:               snapshot.General.TrayIcon,
 		AutoStart:              snapshot.General.AutoStart,
 		Theme:                  string(snapshot.Appearance.Theme),
@@ -117,12 +115,6 @@ func (m *settingsModel) applyBeforeSave(path string, value any) error {
 		}
 		enabled, _ := value.(bool)
 		return m.setAutoStart(enabled)
-	case "general.dockIcon":
-		if m.setDockIcon == nil {
-			return nil
-		}
-		visible, _ := value.(bool)
-		return m.setDockIcon(visible)
 	case "general.trayIcon":
 		if m.setTrayIcon == nil {
 			return nil
@@ -266,11 +258,6 @@ func (m *settingsModel) resetSettings() error {
 	if err != nil {
 		return fmt.Errorf(i18n.T(i18n.ErrorResetSettings), err)
 	}
-	if m.setDockIcon != nil {
-		if err := m.setDockIcon(next.General.DockIcon); err != nil {
-			return err
-		}
-	}
 	if m.setTrayIcon != nil {
 		if err := m.setTrayIcon(next.General.TrayIcon); err != nil {
 			return err
@@ -333,7 +320,6 @@ func (m *settingsModel) loadGroups() []macos.SettingsGroup {
 }
 
 var settingsPaths = map[string][]string{
-	"general.dockIcon":              {"general", "dockIcon"},
 	"general.trayIcon":              {"general", "trayIcon"},
 	"general.autoStart":             {"general", "autoStart"},
 	"appearance.theme":              {"appearance", "theme"},

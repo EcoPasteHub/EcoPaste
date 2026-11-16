@@ -20,7 +20,7 @@ func (v *SettingsView) buildGeneralPage() {
 		func(s SettingsValues) string { return s.OpenPreferenceShortcut })
 	top = cardTop + 3*settingsRowHeight + settingsGroupGap
 
-	_, cardTop = v.addSectionCard(document, top, i18n.SettingsAppearanceGroup, 4)
+	_, cardTop = v.addSectionCard(document, top, i18n.SettingsAppearanceGroup, 3)
 	v.addPopup(document, settingsRowTop(cardTop, 0), i18n.SettingsTheme, "appearance.theme",
 		[]settingsOption{
 			{Key: i18n.SettingsThemeAuto, Value: "auto"},
@@ -37,9 +37,7 @@ func (v *SettingsView) buildGeneralPage() {
 		func(s SettingsValues) string { return s.Language })
 	v.addSwitch(document, settingsRowTop(cardTop, 2), i18n.SettingsTrayIcon, "general.trayIcon",
 		func(s SettingsValues) bool { return s.TrayIcon })
-	v.addSwitch(document, settingsRowTop(cardTop, 3), i18n.SettingsDockIcon, "general.dockIcon",
-		func(s SettingsValues) bool { return s.DockIcon })
-	top = cardTop + 4*settingsRowHeight + settingsGroupGap
+	top = cardTop + 3*settingsRowHeight + settingsGroupGap
 
 	_, cardTop = v.addSectionCard(document, top, i18n.SettingsBehavior, 5)
 	v.addSwitch(document, settingsRowTop(cardTop, 0), i18n.SettingsCopyThenHide, "copyThenHideWindow",

@@ -66,9 +66,6 @@ func syncStoredSettings(app *core.Scope, store *settings.Store) {
 	if err := macos.SetAppearance(string(snapshot.Appearance.Theme)); err != nil {
 		log.Printf("sync appearance: %v", err)
 	}
-	if err := macos.SetDockIconVisible(snapshot.General.DockIcon); err != nil {
-		log.Printf("sync dock icon: %v", err)
-	}
 	if err := macos.SyncAutostart(snapshot.General.AutoStart); err != nil {
 		log.Printf("sync autostart: %v", err)
 	}

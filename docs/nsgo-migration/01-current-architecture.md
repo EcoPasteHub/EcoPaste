@@ -316,7 +316,7 @@ general, appearance, shortcuts, clipboard, onboarding, update
 
 关键子结构：
 
-- `general`: `autoStart`, `runAsAdmin`, `trayIcon`, `dockIcon`
+- `general`: `autoStart`, `runAsAdmin`, `trayIcon`（`dockIcon` 已移除，旧文件中的该字段读取时忽略）
 - `appearance`: `theme` (`auto|light|dark`), `language` (`auto|zh-CN|en-US`)
 - `shortcuts`: `openClipboard`, `openPreference`, `winV`
 - `clipboard.capture`: `text/html/rtf/image/files`, `maxTextMb`, `maxImageMb`, `order`

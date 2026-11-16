@@ -14,7 +14,6 @@ type General struct {
 	AutoStart  bool `json:"autoStart"`
 	RunAsAdmin bool `json:"runAsAdmin"`
 	TrayIcon   bool `json:"trayIcon"`
-	DockIcon   bool `json:"dockIcon"`
 }
 
 type Appearance struct {
@@ -292,7 +291,7 @@ const (
 // Default returns the published defaults.
 func Default() Settings {
 	return Settings{
-		General:    General{TrayIcon: true, DockIcon: false},
+		General:    General{TrayIcon: true},
 		Appearance: Appearance{Theme: ThemeAuto, Language: LanguageAuto},
 		Shortcuts:  Shortcuts{OpenClipboard: "Alt+C", OpenPreference: "Alt+X"},
 		Clipboard: Clipboard{

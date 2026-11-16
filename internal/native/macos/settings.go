@@ -16,7 +16,6 @@ const SettingsComponent = "ecopaste.settings"
 
 // SettingsValues is the view state of the settings window.
 type SettingsValues struct {
-	DockIcon               bool
 	TrayIcon               bool
 	AutoStart              bool
 	Theme                  string
@@ -252,6 +251,7 @@ func SelectSettingsTab(name string) bool {
 // NewSettings builds the native settings controls.
 func NewSettings(cx *core.NativeContext) core.NativeComponent {
 	registerSettingsOnce.Do(registerSettingsTargets)
+	syncSettingsDockIcon(true)
 	v := &SettingsView{
 		cx:       cx,
 		view:     objc.ID(class("NSView")).Send(sel("new")),
@@ -459,7 +459,11 @@ func boolInt(value bool) int64 {
 func (v *SettingsView) Close() {
 	settingsTabMu.Lock()
 	delete(settingsOpenViews, v)
+	remaining := len(settingsOpenViews)
 	settingsTabMu.Unlock()
+	if remaining == 0 {
+		syncSettingsDockIcon(false)
+	}
 	for _, icon := range v.aboutIcons {
 		icon.Close()
 	}

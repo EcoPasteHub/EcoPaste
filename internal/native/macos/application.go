@@ -3,6 +3,8 @@
 package macos
 
 import (
+	"log"
+
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/ebitengine/purego/objc"
 )
@@ -32,4 +34,12 @@ func SetDockIconVisible(visible bool) error {
 		return i18n.Error(i18n.ErrorDockIcon)
 	}
 	return nil
+}
+
+// syncSettingsDockIcon keeps the Dock icon tied to the settings window: it
+// shows while any settings window is open and drops once the last closes.
+func syncSettingsDockIcon(visible bool) {
+	if err := SetDockIconVisible(visible); err != nil {
+		log.Printf("switch dock icon: %v", err)
+	}
 }

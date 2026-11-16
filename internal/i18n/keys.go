@@ -203,7 +203,6 @@ const (
 	SettingsAll                 = Key("settings.all")
 	SettingsAllGroups           = Key("settings.allGroups")
 
-	SettingsDockIcon         = Key("settings.general.dockIcon")
 	SettingsTrayIcon         = Key("settings.general.trayIcon")
 	SettingsBehavior         = Key("settings.general.behavior")
 	SettingsStartup          = Key("settings.general.startup")

@@ -201,31 +201,6 @@ func TestSettingsModelRejectsUnknownCaptureKind(t *testing.T) {
 	}
 }
 
-func TestSettingsModelAppliesDockIcon(t *testing.T) {
-	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
-	if err != nil {
-		t.Fatal(err)
-	}
-	model := newSettingsModel(store)
-	var applied []bool
-	model.setDockIcon = func(visible bool) error {
-		applied = append(applied, visible)
-		return nil
-	}
-	if err := model.Apply("general.dockIcon", true); err != nil {
-		t.Fatal(err)
-	}
-	if !store.Snapshot().General.DockIcon {
-		t.Error("dock icon setting was not persisted")
-	}
-	if len(applied) != 1 || !applied[0] {
-		t.Errorf("dock icon applications = %v", applied)
-	}
-	if !model.Load().DockIcon {
-		t.Error("dock icon setting was not loaded")
-	}
-}
-
 func TestSettingsModelAppliesTrayIcon(t *testing.T) {
 	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
 	if err != nil {
@@ -435,7 +410,7 @@ func TestResetSettingsRestoresDefaultsAndSideEffects(t *testing.T) {
 	}
 	if _, err := store.Update(map[string]any{
 		"clipboard": map[string]any{"content": map[string]any{"copyPlain": true}},
-		"general":   map[string]any{"dockIcon": true, "autoStart": true},
+		"general":   map[string]any{"autoStart": true},
 		"appearance": map[string]any{
 			"theme": "dark",
 		},
@@ -443,10 +418,9 @@ func TestResetSettingsRestoresDefaultsAndSideEffects(t *testing.T) {
 		t.Fatal(err)
 	}
 	model := newSettingsModel(store)
-	var dockIcon, trayIcon, autoStart bool
+	var trayIcon, autoStart bool
 	var theme string
 	rebound, redisplayed := false, false
-	model.setDockIcon = func(on bool) error { dockIcon = on; return nil }
 	model.setTrayIcon = func(on bool) error { trayIcon = on; return nil }
 	model.setAutoStart = func(on bool) error { autoStart = on; return nil }
 	model.setAppearance = func(name string) error { theme = name; return nil }
@@ -460,9 +434,8 @@ func TestResetSettingsRestoresDefaultsAndSideEffects(t *testing.T) {
 	if store.Snapshot().Clipboard.Content.CopyPlain {
 		t.Error("copyPlain was not reset")
 	}
-	if dockIcon != defaults.General.DockIcon || trayIcon != defaults.General.TrayIcon ||
-		autoStart != defaults.General.AutoStart {
-		t.Errorf("dock icon = %v, tray icon = %v, autostart = %v", dockIcon, trayIcon, autoStart)
+	if trayIcon != defaults.General.TrayIcon || autoStart != defaults.General.AutoStart {
+		t.Errorf("tray icon = %v, autostart = %v", trayIcon, autoStart)
 	}
 	if theme != string(defaults.Appearance.Theme) {
 		t.Errorf("theme = %q", theme)
