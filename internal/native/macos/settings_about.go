@@ -120,14 +120,14 @@ func (v *SettingsView) addAboutInfoCard(document objc.ID, top float64) float64 {
 	for row := 1; row < int(aboutInfoRows); row++ {
 		v.addCardSeparatorOffset(document, top, float64(row)*aboutInfoRowHeight)
 	}
-	v.addAboutLinkRow(document, top, kubai.Link, i18n.T(i18n.SettingsAboutSource),
+	v.addAboutLinkRow(document, top, kubai.Link, core.RGB(0x5393FF), i18n.T(i18n.SettingsAboutSource),
 		"GitHub ↗", "openSourcePressed:", i18n.SettingsAboutSourceA11y)
-	v.addAboutLinkRow(document, top+aboutInfoRowHeight, kubai.MessageSquare,
+	v.addAboutLinkRow(document, top+aboutInfoRowHeight, kubai.MessageSquare, core.RGB(0xFF9F0A),
 		i18n.T(i18n.SettingsAboutFeedback), "GitHub Issues ↗",
 		"openIssuesPressed:", i18n.SettingsAboutFeedbackA11y)
-	v.addAboutValueRow(document, top+2*aboutInfoRowHeight, kubai.CircleCheck,
+	v.addAboutValueRow(document, top+2*aboutInfoRowHeight, kubai.CircleCheck, core.RGB(0x30D158),
 		i18n.T(i18n.SettingsAboutLicense), "Apache-2.0")
-	v.addAboutValueRow(document, top+3*aboutInfoRowHeight, kubai.Desktop,
+	v.addAboutValueRow(document, top+3*aboutInfoRowHeight, kubai.Desktop, core.RGB(0xBF5AF2),
 		i18n.T(i18n.SettingsAboutSystem), aboutSystemVersion())
 	return top + aboutInfoRows*aboutInfoRowHeight
 }
@@ -137,8 +137,8 @@ func aboutSystemVersion() string {
 	return version
 }
 
-func (v *SettingsView) addAboutValueRow(document objc.ID, rowTop float64, symbol func() *kubai.Symbol, title, value string) {
-	v.addAboutRowIcon(document, rowTop, symbol)
+func (v *SettingsView) addAboutValueRow(document objc.ID, rowTop float64, symbol func() *kubai.Symbol, color core.Color, title, value string) {
+	v.addAboutRowIcon(document, rowTop, symbol, color)
 	label := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(title))
 	label.Send(sel("setFont:"), systemFont(13))
 	label.Send(sel("setFrame:"), CGRect{
@@ -157,8 +157,8 @@ func (v *SettingsView) addAboutValueRow(document objc.ID, rowTop float64, symbol
 	document.Send(sel("addSubview:"), valueLabel)
 }
 
-func (v *SettingsView) addAboutLinkRow(document objc.ID, rowTop float64, symbol func() *kubai.Symbol, title, value, action string, help i18n.Key) {
-	v.addAboutRowIcon(document, rowTop, symbol)
+func (v *SettingsView) addAboutLinkRow(document objc.ID, rowTop float64, symbol func() *kubai.Symbol, color core.Color, title, value, action string, help i18n.Key) {
+	v.addAboutRowIcon(document, rowTop, symbol, color)
 	label := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(title))
 	label.Send(sel("setFont:"), systemFont(13))
 	label.Send(sel("setFrame:"), CGRect{
@@ -189,12 +189,8 @@ func aboutRowValueOrigin(size CGSize, rowTop float64) CGPoint {
 	}
 }
 
-func (v *SettingsView) addAboutRowIcon(document objc.ID, rowTop float64, symbol func() *kubai.Symbol) {
-	icon := nsgo.NewView(func(cx *core.Scope) core.Node {
-		color := core.RGB(0x8E8E93)
-		if cx.Env().Dark() {
-			color = core.RGB(0x98989D)
-		}
+func (v *SettingsView) addAboutRowIcon(document objc.ID, rowTop float64, symbol func() *kubai.Symbol, color core.Color) {
+	icon := nsgo.NewView(func(*core.Scope) core.Node {
 		return core.View{
 			Style: core.Style{
 				Width:          core.Pt(aboutRowIconSize),
