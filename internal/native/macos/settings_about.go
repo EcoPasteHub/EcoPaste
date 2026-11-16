@@ -14,7 +14,6 @@ const (
 	aboutInfoRowHeight = 50.0
 	aboutInfoRows      = 4.0
 	aboutCardRadius    = 16.0
-	aboutPillWidth     = 92.0
 	aboutPillHeight    = 24.0
 	aboutButtonWidth   = 188.0
 	aboutButtonHeight  = 34.0
@@ -49,20 +48,32 @@ func (v *SettingsView) addAboutHero(document objc.ID, top float64) float64 {
 
 	name := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString("EcoPaste"))
 	name.Send(sel("setFont:"), objc.ID(classNSFont).Send(
-		sel("systemFontOfSize:weight:"), 28.0, 0.3))
-	name.Send(sel("setAlignment:"), int64(2))
-	name.Send(sel("setFrame:"), CGRect{
-		Origin: CGPoint{X: settingsContentX, Y: top},
-		Size:   CGSize{Width: settingsContentWidth, Height: 32},
-	})
+		sel("systemFontOfSize:weight:"), 24.0, 0.3))
+	name.Send(sel("sizeToFit"))
+	nameFrame := objc.Send[CGRect](name, sel("frame"))
+	nameFrame.Origin = CGPoint{
+		X: settingsContentX + (settingsContentWidth-nameFrame.Size.Width)/2,
+		Y: top,
+	}
+	name.Send(sel("setFrame:"), nameFrame)
 	document.Send(sel("addSubview:"), name)
-	top += 40
+	top += nameFrame.Size.Height + 8
 
 	versionText := AppVersion()
 	if versionText == "" {
 		versionText = i18n.T(i18n.SettingsDevBuild)
 	}
-	pillX := settingsContentX + (settingsContentWidth-aboutPillWidth)/2
+	version := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(versionText))
+	version.Send(sel("setFont:"), objc.ID(classNSFont).Send(
+		sel("systemFontOfSize:weight:"), 12.0, 0.2))
+	version.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
+	version.Send(sel("sizeToFit"))
+	versionFrame := objc.Send[CGRect](version, sel("frame"))
+	pillWidth := versionFrame.Size.Width + 24
+	if pillWidth < 44 {
+		pillWidth = 44
+	}
+	pillX := settingsContentX + (settingsContentWidth-pillWidth)/2
 	pill := objc.ID(classNSBox).Send(sel("new"))
 	pill.Send(sel("setBoxType:"), int64(4))
 	pill.Send(sel("setTitlePosition:"), int64(0))
@@ -71,20 +82,16 @@ func (v *SettingsView) addAboutHero(document objc.ID, top float64) float64 {
 	pill.Send(sel("setCornerRadius:"), aboutPillHeight/2)
 	pill.Send(sel("setFrame:"), CGRect{
 		Origin: CGPoint{X: pillX, Y: top},
-		Size:   CGSize{Width: aboutPillWidth, Height: aboutPillHeight},
+		Size:   CGSize{Width: pillWidth, Height: aboutPillHeight},
 	})
 	document.Send(sel("addSubview:"), pill)
 	pill.Send(sel("release"))
 
-	version := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(versionText))
-	version.Send(sel("setFont:"), objc.ID(classNSFont).Send(
-		sel("systemFontOfSize:weight:"), 12.0, 0.2))
-	version.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
-	version.Send(sel("setAlignment:"), int64(2))
-	version.Send(sel("setFrame:"), CGRect{
-		Origin: CGPoint{X: pillX, Y: top + 4},
-		Size:   CGSize{Width: aboutPillWidth, Height: 16},
-	})
+	versionFrame.Origin = CGPoint{
+		X: pillX + (pillWidth-versionFrame.Size.Width)/2,
+		Y: top + (aboutPillHeight-versionFrame.Size.Height)/2,
+	}
+	version.Send(sel("setFrame:"), versionFrame)
 	document.Send(sel("addSubview:"), version)
 	return top + aboutPillHeight
 }
