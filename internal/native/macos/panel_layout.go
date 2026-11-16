@@ -76,8 +76,13 @@ func layoutEmptyState(p *Panel, width, scrollY, scrollHeight float64) {
 		blockHeight += 4 + detailHeight
 	}
 	top := scrollY + scrollHeight/2 + blockHeight/2
-	top -= iconSize
-	setFrame(p.emptyIcon, (width-iconSize)/2, top, iconSize, iconSize)
+	if p.emptyKubai != 0 && !objc.Send[bool](p.emptyKubai, sel("isHidden")) {
+		top -= emptyKubaiIconSize
+		setFrame(p.emptyKubai, (width-emptyKubaiIconSize)/2, top, emptyKubaiIconSize, emptyKubaiIconSize)
+	} else {
+		top -= iconSize
+		setFrame(p.emptyIcon, (width-iconSize)/2, top, iconSize, iconSize)
+	}
 	top -= 8
 	top -= titleHeight
 	setFrame(p.empty, 20, top, width-40, titleHeight)

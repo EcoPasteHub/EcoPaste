@@ -8,6 +8,7 @@ import (
 
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/ebitengine/purego/objc"
+	"github.com/nsgo-dev/nsgo"
 	"github.com/nsgo-dev/nsgo/core"
 )
 
@@ -38,6 +39,8 @@ type Panel struct {
 	table              objc.ID
 	empty              objc.ID
 	emptyIcon          objc.ID
+	emptyKubai         objc.ID
+	emptyKubaiIcon     *nsgo.View
 	emptyDetail        objc.ID
 	footerDivider      objc.ID
 	footer             objc.ID

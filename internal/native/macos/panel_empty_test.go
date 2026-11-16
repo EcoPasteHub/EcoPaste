@@ -26,7 +26,7 @@ func TestEmptyStateForContent(t *testing.T) {
 		state.Title != i18n.T(i18n.PanelNoMatches) || state.Detail != i18n.T(i18n.PanelNoMatchesDetail) {
 		t.Fatalf("no-match state = %+v", state)
 	}
-	if state := emptyStateFor("", 0, "", false); state.Symbol != "doc.on.clipboard" ||
+	if state := emptyStateFor("", 0, "", false); !state.Kubai ||
 		state.Title != i18n.T(i18n.PanelEmpty) || state.Detail != i18n.T(i18n.PanelEmptyDetail) {
 		t.Fatalf("empty state = %+v", state)
 	}
