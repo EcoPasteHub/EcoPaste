@@ -15,6 +15,7 @@ import (
 const (
 	aboutIconSize      = 110.0
 	aboutRowIconSize   = 16.0
+	aboutRowLabelInset = settingsRowInset + aboutRowIconSize + 6
 	aboutInfoRowHeight = 50.0
 	aboutInfoRows      = 4.0
 	aboutCardRadius    = 16.0
@@ -142,7 +143,7 @@ func (v *SettingsView) addAboutValueRow(document objc.ID, rowTop float64, symbol
 	label := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(title))
 	label.Send(sel("setFont:"), systemFont(13))
 	label.Send(sel("setFrame:"), CGRect{
-		Origin: CGPoint{X: settingsContentX + settingsRowInset + 26, Y: rowTop + 17},
+		Origin: CGPoint{X: settingsContentX + aboutRowLabelInset, Y: rowTop + 17},
 		Size:   CGSize{Width: settingsContentWidth/2 - settingsRowInset, Height: 16},
 	})
 	document.Send(sel("addSubview:"), label)
@@ -162,7 +163,7 @@ func (v *SettingsView) addAboutLinkRow(document objc.ID, rowTop float64, symbol 
 	label := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(title))
 	label.Send(sel("setFont:"), systemFont(13))
 	label.Send(sel("setFrame:"), CGRect{
-		Origin: CGPoint{X: settingsContentX + settingsRowInset + 26, Y: rowTop + 17},
+		Origin: CGPoint{X: settingsContentX + aboutRowLabelInset, Y: rowTop + 17},
 		Size:   CGSize{Width: settingsContentWidth/2 - settingsRowInset, Height: 16},
 	})
 	document.Send(sel("addSubview:"), label)
