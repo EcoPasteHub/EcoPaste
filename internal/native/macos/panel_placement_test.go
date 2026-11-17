@@ -113,3 +113,19 @@ func TestCenterDialogOriginClampsToPanelScreen(t *testing.T) {
 		t.Fatalf("origin = %+v", origin)
 	}
 }
+
+// TestPanelPlacementStaysForEveryShow checks that a placement keeps
+// applying after it is read, so a shortcut, a tray click and a repeated
+// open all place the window the same way.
+func TestPanelPlacementStaysForEveryShow(t *testing.T) {
+	SetPanelPlacement(PanelPlacement{Mode: "center"})
+	for show := 1; show <= 3; show++ {
+		placement, ok := currentPlacement()
+		if !ok {
+			t.Fatalf("show %d: placement missing", show)
+		}
+		if placement.Mode != "center" {
+			t.Fatalf("show %d: mode = %q", show, placement.Mode)
+		}
+	}
+}

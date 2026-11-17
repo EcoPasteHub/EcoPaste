@@ -31,6 +31,10 @@ func newPanelHost(app *core.Scope, store *settings.Store, windowState *storage.W
 	}
 	host.content = ui.ClipboardPanel(history, host.Hide)
 	host.open()
+	// Seed the placement so the first show is positioned the same way
+	// whichever path opens it, including a tray click that does not call
+	// Show itself.
+	host.place()
 	return host
 }
 
@@ -50,6 +54,9 @@ func (h *panelHost) Show() {
 
 func (h *panelHost) Hide() {
 	h.saveFrame()
+	// Refresh the remembered frame after saving so the next show, by any
+	// path, opens where the panel was left.
+	h.place()
 	h.window.Hide()
 	// Window commands issued from a Carbon callback need a tree update
 	// before NSGo applies them.
@@ -89,7 +96,7 @@ func (h *panelHost) place() {
 			placement.HasFrame = true
 		}
 	}
-	macos.PlacePanelOnNextShow(placement)
+	macos.SetPanelPlacement(placement)
 }
 
 func (h *panelHost) saveFrame() {

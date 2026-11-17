@@ -340,8 +340,11 @@ func (n *panelNav) show() {
 	if n.window == 0 {
 		return
 	}
-	n.position()
+	// Order the bar in before positioning it: a child window ordered in
+	// after the parent moved is first placed at AppKit's remembered
+	// offset, so positioning before orderFront would be overwritten.
 	n.window.Send(sel("orderFront:"), objc.ID(0))
+	n.position()
 }
 
 func (n *panelNav) hide() {

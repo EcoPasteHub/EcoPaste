@@ -16,7 +16,7 @@ type PanelFrame struct {
 	Height float64
 }
 
-// PanelPlacement says where the clipboard panel opens next. Frame is the
+// PanelPlacement says where the clipboard panel opens. Frame is the
 // remembered frame used by the remember mode.
 type PanelPlacement struct {
 	Mode     string
@@ -33,18 +33,30 @@ type ScreenBounds struct {
 	Visible CGRect
 }
 
-var pendingPlacement struct {
+// panelPlacement keeps where the clipboard panel opens. It is not
+// consumed by a show: a shortcut, the tray icon and a repeated open all
+// place the same window the same way.
+var panelPlacement struct {
 	sync.Mutex
-	value *PanelPlacement
+	value PanelPlacement
+	set   bool
 }
 
-// PlacePanelOnNextShow arranges where the clipboard panel opens. The
-// platform places a panel every time it shows, so the placement is kept
-// until the panel reports that it ordered on screen.
-func PlacePanelOnNextShow(placement PanelPlacement) {
-	pendingPlacement.Lock()
-	pendingPlacement.value = &placement
-	pendingPlacement.Unlock()
+// SetPanelPlacement records where the clipboard panel opens. It stays in
+// effect for every later show until the app sets it again, so showing the
+// panel by a shortcut or by the tray icon cannot drift apart.
+func SetPanelPlacement(placement PanelPlacement) {
+	panelPlacement.Lock()
+	panelPlacement.value = placement
+	panelPlacement.set = true
+	panelPlacement.Unlock()
+}
+
+// currentPlacement returns the placement last set, and whether one was.
+func currentPlacement() (PanelPlacement, bool) {
+	panelPlacement.Lock()
+	defer panelPlacement.Unlock()
+	return panelPlacement.value, panelPlacement.set
 }
 
 // PanelFrameOf returns the clipboard panel's current frame.
@@ -66,19 +78,13 @@ func PanelFrameOf() (PanelFrame, bool) {
 	return frame, ok
 }
 
-func takePlacement() *PanelPlacement {
-	pendingPlacement.Lock()
-	defer pendingPlacement.Unlock()
-	placement := pendingPlacement.value
-	pendingPlacement.value = nil
-	return placement
-}
-
-// applyPlacement moves the panel after the platform ordered it on
-// screen, overriding the platform's own placement.
+// applyPlacement moves the panel to its configured position after the
+// platform ordered it on screen, overriding the placement the platform
+// chose for that particular show: centering the panel under the pointer
+// for a shortcut, or under the tray icon for a menu bar click.
 func applyPlacement(p *Panel) {
-	placement := takePlacement()
-	if placement == nil {
+	placement, ok := currentPlacement()
+	if !ok {
 		return
 	}
 	window := p.view.Send(sel("window"))
