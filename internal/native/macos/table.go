@@ -202,16 +202,20 @@ func (p *Panel) syncTableFrame() {
 	}
 }
 
+// historyTableContentHeight returns the height the table's rows occupy.
+// NSTableView gives every row a slot of its own height plus the intercell
+// spacing and centers the cell inside that slot, so the last row's slot
+// ends spacing points below the row itself. The document view has to
+// cover that trailing slot: with a shorter height the list stops one
+// point short of the last card and clips its bottom edge when scrolled
+// to the end.
 func historyTableContentHeight(heights []float64, spacing float64) float64 {
 	if len(heights) == 0 {
 		return 0
 	}
 	total := 0.0
-	for index, height := range heights {
-		total += height
-		if index > 0 {
-			total += spacing
-		}
+	for _, height := range heights {
+		total += height + spacing
 	}
 	return total
 }

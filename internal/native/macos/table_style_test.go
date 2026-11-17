@@ -25,13 +25,37 @@ func TestHistoryTableContentHeightFollowsRows(t *testing.T) {
 		want    float64
 	}{
 		{name: "empty", heights: nil, want: 0},
-		{name: "one row", heights: []float64{62}, want: 62},
-		{name: "three rows", heights: []float64{62, 52, 84}, want: 62 + 6 + 52 + 6 + 84},
+		// Every row owns a slot of its height plus the intercell spacing,
+		// so the last row's trailing slot belongs to the document too.
+		{name: "one row", heights: []float64{62}, want: 62 + 6},
+		{name: "three rows", heights: []float64{62, 52, 84}, want: 62 + 6 + 52 + 6 + 84 + 6},
 	}
 	for _, tc := range cases {
 		if got := historyTableContentHeight(tc.heights, 6); got != tc.want {
 			t.Errorf("%s: content height = %.0f, want %.0f", tc.name, got, tc.want)
 		}
+	}
+}
+
+// TestHistoryTableContentHeightCoversLastCard guards the bottom edge of
+// the list. NSTableView centers the cell in a slot that carries the
+// intercell spacing, so the last card ends inside the trailing slot: a
+// document that stops at the last row's own bottom clips its lower edge
+// when the list is scrolled to the end.
+func TestHistoryTableContentHeightCoversLastCard(t *testing.T) {
+	const spacing = 6.0
+	heights := []float64{62, 52, 84}
+
+	content := historyTableContentHeight(heights, spacing)
+	previous := historyTableContentHeight(heights[:len(heights)-1], spacing)
+	last := heights[len(heights)-1]
+	cardBottom := previous + spacing/2 + last - historyRowInsetY
+
+	if content <= cardBottom {
+		t.Fatalf("content height %.0f does not cover the last card's bottom %.0f", content, cardBottom)
+	}
+	if gap := content - cardBottom; gap < historyRowInsetY {
+		t.Fatalf("gap below the last card = %.1f, want at least %.1f", gap, historyRowInsetY)
 	}
 }
 
