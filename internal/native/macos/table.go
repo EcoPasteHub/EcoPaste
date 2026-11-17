@@ -49,6 +49,10 @@ const (
 	rowHeight        = 62.0
 	rowSpacing       = 6.0
 
+	// rowLeadingInset is the gap the table leaves above the first card,
+	// on top of the card's own inset.
+	rowLeadingInset = 3.0
+
 	// NSTableViewStylePlain removes the leading content padding that
 	// NSTableViewStyleFullWidth adds to every row.
 	nsTableViewStylePlain = 4
