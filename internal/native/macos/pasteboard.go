@@ -5,6 +5,7 @@ package macos
 import (
 	"fmt"
 	"net/url"
+	"strings"
 
 	"github.com/ebitengine/purego/objc"
 )
@@ -181,13 +182,52 @@ func boardFiles(p objc.ID) []string {
 		if value == 0 {
 			continue
 		}
-		u, err := url.Parse(goString(value))
-		if err != nil || u.Scheme != "file" || u.Path == "" {
+		path := fileURLPath(goString(value))
+		if path == "" {
 			continue
 		}
-		paths = append(paths, u.Path)
+		paths = append(paths, path)
 	}
 	return paths
+}
+
+// fileURLPath resolves a pasteboard file URL to the file's real path.
+// Finder can hand out /.file/id= file-reference URLs, which NSURL
+// translates to the referenced path; parsing the URL text alone would
+// keep the opaque reference and the file would look missing.
+func fileURLPath(raw string) string {
+	if raw == "" {
+		return ""
+	}
+	if value := objc.ID(class("NSURL")).Send(sel("URLWithString:"), nsString(raw)); value != 0 {
+		if resolved := value.Send(sel("filePathURL")); resolved != 0 {
+			value = resolved
+		}
+		if objc.Send[bool](value, sel("isFileURL")) {
+			if path := goString(value.Send(sel("path"))); path != "" {
+				return path
+			}
+		}
+	}
+	parsed, err := url.Parse(raw)
+	if err != nil || parsed.Scheme != "file" || parsed.Path == "" {
+		return ""
+	}
+	return parsed.Path
+}
+
+// ResolveFileReference resolves a stored file-reference path such as
+// /.file/id=... that earlier captures saved instead of the real path.
+// Other paths pass through unchanged.
+func ResolveFileReference(path string) string {
+	if !strings.HasPrefix(path, "/.file/id=") {
+		return path
+	}
+	resolved := fileURLPath("file://" + path)
+	if resolved == "" || strings.HasPrefix(resolved, "/.file/id=") {
+		return path
+	}
+	return resolved
 }
 
 func tiffToPNG(tiff []byte) []byte {

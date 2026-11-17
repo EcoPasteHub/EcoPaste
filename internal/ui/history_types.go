@@ -20,6 +20,9 @@ type HistoryItem struct {
 	FileSummary   string
 	Note          string
 	ImagePath     string
+	ImageWidth    int
+	ImageHeight   int
+	Files         []macos.HistoryFile
 	CreatedAt     time.Time
 	Favorite      bool
 	Pinned        bool

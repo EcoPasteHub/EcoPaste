@@ -57,7 +57,7 @@ func TestHistoryRowSplitsTextPreview(t *testing.T) {
 		Kind:  "text",
 		Title: "first line\nsecond line\nthird line",
 	})
-	if row.Title != "first line" || row.Preview != "second line third line" {
+	if row.Title != "first line" || row.Preview != "second line\nthird line" {
 		t.Errorf("title = %q, preview = %q", row.Title, row.Preview)
 	}
 	if row.Detail != "文本" {

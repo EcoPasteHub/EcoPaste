@@ -68,6 +68,7 @@ type Panel struct {
 	originalRow        int
 	query              string
 	rows               []HistoryRow
+	rowHeights         []float64
 	total              int64
 	loading            bool
 	errText            string
@@ -114,7 +115,6 @@ var (
 	registerPanelOnce sync.Once
 	searchTarget      objc.ID
 	searchFieldClass  objc.Class
-	searchCellClass   objc.Class
 	observerClass     objc.Class
 	panelViewClass    objc.Class
 
@@ -145,9 +145,6 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.view.Send(sel("addSubview:"), p.background)
 
 	p.search = objc.ID(searchFieldClass).Send(sel("alloc")).Send(sel("initWithFrame:"), CGRect{})
-	cell := objc.ID(searchCellClass).Send(sel("alloc")).Send(sel("initTextCell:"), nsString(""))
-	p.search.Send(sel("setCell:"), cell)
-	cell.Send(sel("release"))
 	p.search.Send(sel("setPlaceholderString:"), nsString(i18n.T(i18n.PanelSearchPlaceholder)))
 	p.search.Send(sel("setFont:"), systemFont(14))
 	p.search.Send(sel("setEditable:"), true)
@@ -436,12 +433,20 @@ func (p *Panel) selectedIndex() int {
 }
 
 func (p *Panel) pageSize() int {
-	height := objc.Send[float64](p.table, sel("rowHeight"))
-	if height <= 0 {
-		height = rowHeight
+	visible := objc.Send[CGRect](p.table, sel("visibleRect")).Size.Height
+	if visible <= 0 || len(p.rowHeights) == 0 {
+		return 1
 	}
-	visible := objc.Send[CGRect](p.table, sel("visibleRect"))
-	size := int(visible.Size.Height / height)
+	spacing := objc.Send[CGSize](p.table, sel("intercellSpacing")).Height
+	total := 0.0
+	size := 0
+	for _, height := range p.rowHeights {
+		if total+height > visible {
+			break
+		}
+		total += height + spacing
+		size++
+	}
 	if size < 1 {
 		return 1
 	}

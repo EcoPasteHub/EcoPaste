@@ -74,6 +74,9 @@ func historyRow(item HistoryItem) macos.HistoryRow {
 		Preview:        preview,
 		Detail:         strings.Join(detail, " · "),
 		ImagePath:      item.ImagePath,
+		ImageWidth:     item.ImageWidth,
+		ImageHeight:    item.ImageHeight,
+		Files:          item.Files,
 		SourceIconPath: item.SourceAppIcon,
 		Note:           item.Note,
 		Favorite:       item.Favorite,
@@ -101,7 +104,7 @@ func historyRowTitlePreview(item HistoryItem) (string, string) {
 	}
 	lines := strings.Split(title, "\n")
 	headline := strings.TrimSpace(lines[0])
-	body := strings.TrimSpace(strings.Join(lines[1:], " "))
+	body := strings.TrimSpace(strings.Join(lines[1:], "\n"))
 	if body == "" {
 		return title, ""
 	}

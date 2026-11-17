@@ -7,6 +7,14 @@ import (
 	"github.com/ebitengine/purego/objc"
 )
 
+// HistoryFile is one file entry a files card lists on its own line.
+type HistoryFile struct {
+	Name     string
+	IconPath string
+	IsDir    bool
+	Missing  bool
+}
+
 // HistoryRow is one row the native table draws.
 type HistoryRow struct {
 	ID             string
@@ -16,8 +24,11 @@ type HistoryRow struct {
 	Title          string
 	Preview        string
 	Detail         string
-	ImagePath      string
 	SourceIconPath string
+	ImagePath      string
+	ImageWidth     int
+	ImageHeight    int
+	Files          []HistoryFile
 	Note           string
 	Favorite       bool
 	Pinned         bool
@@ -26,15 +37,17 @@ type HistoryRow struct {
 }
 
 const (
-	rowIconTag     = 100
-	rowTitleTag    = 101
-	rowDetailTag   = 102
-	rowBadgeTag    = 103
-	rowPreviewTag  = 104
-	rowIdentifier  = "ecopaste.history-row"
-	columnIdentity = "history"
-	rowHeight      = 62.0
-	rowSpacing     = 6.0
+	rowIconTag       = 100
+	rowTitleTag      = 101
+	rowDetailTag     = 102
+	rowPreviewTag    = 104
+	rowImageTag      = 105
+	rowFileIconBase  = 200
+	rowFileLabelBase = 210
+	rowIdentifier    = "ecopaste.history-row"
+	columnIdentity   = "history"
+	rowHeight        = 62.0
+	rowSpacing       = 6.0
 
 	// NSTableViewStylePlain removes the leading content padding that
 	// NSTableViewStyleFullWidth adds to every row.
@@ -126,7 +139,7 @@ func newHistoryTable(p *Panel) objc.ID {
 	table := objc.ID(historyTableClass).Send(sel("new"))
 	p.table = table
 	table.Send(sel("setBackgroundColor:"), objc.ID(classNSColor).Send(sel("clearColor")))
-	table.Send(sel("setRowHeight:"), tableRowHeight(p.display))
+	table.Send(sel("setRowHeight:"), rowHeight)
 	table.Send(sel("setIntercellSpacing:"), CGSize{Width: 0, Height: rowSpacing})
 	table.Send(sel("setHeaderView:"), objc.ID(0))
 	table.Send(sel("setGridStyleMask:"), int64(0))
@@ -164,18 +177,18 @@ func newHistoryTable(p *Panel) objc.ID {
 
 // syncTableFrame keeps the table's document height in step with the rows
 // it holds. Sizing it to the viewport would leave nothing to scroll,
-// which made wheel scrolling work only until the next layout pass.
+// which made wheel scrolling work only until the next layout pass. Row
+// heights vary with each card's content, so the document height sums them.
 func (p *Panel) syncTableFrame() {
 	if p.table == 0 || p.scroll == 0 {
 		return
 	}
 	viewport := bounds(p.scroll.Send(sel("contentView")))
-	rowHeight := objc.Send[float64](p.table, sel("rowHeight"))
-	if rowHeight <= 0 {
-		rowHeight = tableRowHeight(p.display)
+	if len(p.rowHeights) != len(p.rows) {
+		p.recomputeRowHeights()
 	}
 	spacing := objc.Send[CGSize](p.table, sel("intercellSpacing")).Height
-	height := historyTableContentHeight(len(p.rows), rowHeight, spacing)
+	height := historyTableContentHeight(p.rowHeights, spacing)
 	if height < viewport.Size.Height {
 		height = viewport.Size.Height
 	}
@@ -185,11 +198,40 @@ func (p *Panel) syncTableFrame() {
 	}
 }
 
-func historyTableContentHeight(rows int, rowHeight, spacing float64) float64 {
-	if rows <= 0 {
+func historyTableContentHeight(heights []float64, spacing float64) float64 {
+	if len(heights) == 0 {
 		return 0
 	}
-	return float64(rows)*rowHeight + float64(rows-1)*spacing
+	total := 0.0
+	for index, height := range heights {
+		total += height
+		if index > 0 {
+			total += spacing
+		}
+	}
+	return total
+}
+
+// rowWidth is the visible list width a card lays out against.
+func (p *Panel) rowWidth() float64 {
+	if p.scroll != 0 {
+		if width := bounds(p.scroll.Send(sel("contentView"))).Size.Width; width > 0 {
+			return width
+		}
+	}
+	return 420
+}
+
+// recomputeRowHeights derives each card's natural height from its content
+// and the configured density. Callers reload the table afterwards so the
+// delegate reports the new heights.
+func (p *Panel) recomputeRowHeights() {
+	width := p.rowWidth()
+	heights := make([]float64, len(p.rows))
+	for index, row := range p.rows {
+		heights[index] = historyRowHeight(row, p.display, width)
+	}
+	p.rowHeights = heights
 }
 
 func cancelPendingClick(table objc.ID) {

@@ -48,6 +48,7 @@ func setPanelRows(p *Panel, value any) {
 	rows, _ := value.([]HistoryRow)
 	p.hideHover()
 	p.rows = rows
+	p.recomputeRowHeights()
 	p.table.Send(sel("reloadData"))
 	p.syncTableFrame()
 	p.restoreSelection()
@@ -114,7 +115,7 @@ func setPanelDrag(p *Panel, value any) {
 func setPanelDisplay(p *Panel, value any) {
 	if display, ok := value.(PanelDisplay); ok {
 		p.display = display
-		p.table.Send(sel("setRowHeight:"), tableRowHeight(display))
+		p.recomputeRowHeights()
 		p.table.Send(sel("reloadData"))
 		p.syncTableFrame()
 	}

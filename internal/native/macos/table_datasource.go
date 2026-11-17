@@ -11,6 +11,7 @@ func historyTargetMethods() []objc.MethodDef {
 		{Cmd: sel("numberOfRowsInTableView:"), Fn: historyTargetNumberOfRows},
 		{Cmd: sel("tableView:viewForTableColumn:row:"), Fn: historyTargetViewForRow},
 		{Cmd: sel("tableView:rowViewForRow:"), Fn: historyTargetRowView},
+		{Cmd: sel("tableView:heightOfRow:"), Fn: historyTargetHeightOfRow},
 		{Cmd: sel("tableViewSelectionDidChange:"), Fn: historyTargetSelectionDidChange},
 		{Cmd: sel("tableView:pasteboardWriterForRow:"), Fn: historyTargetPasteboardWriter},
 		{Cmd: sel("tableView:draggingSession:willBeginAtPoint:forRowIndexes:"), Fn: historyTargetDragWillBegin},
@@ -52,6 +53,18 @@ func historyTargetViewForRow(_ objc.ID, _ objc.SEL, table, _ objc.ID, row int64)
 	fillHistoryRow(cell, p.rows[row], p.display, p.originalRow == int(row),
 		objc.Send[int64](table, sel("selectedRow")) == row)
 	return cell
+}
+
+// historyTargetHeightOfRow returns a card's natural height. The value is
+// wrapped in a struct because purego callbacks cannot return a bare
+// float64, but a single-field float struct lands in the same register a
+// CGFloat return uses.
+func historyTargetHeightOfRow(_ objc.ID, _ objc.SEL, table objc.ID, row int64) struct{ V float64 } {
+	p := panelsByTable[table]
+	if p != nil && row >= 0 && int(row) < len(p.rowHeights) {
+		return struct{ V float64 }{p.rowHeights[row]}
+	}
+	return struct{ V float64 }{rowHeight}
 }
 
 func historyTargetRowView(_ objc.ID, _ objc.SEL, _ objc.ID, _ int64) objc.ID {

@@ -54,7 +54,22 @@ func (m *historyModel) item(ctx context.Context, id string) (*database.Item, err
 	if item == nil {
 		return nil, i18n.Error(i18n.HistoryItemMissing)
 	}
+	resolveItemFileReferences(item)
 	return item, nil
+}
+
+// resolveItemFileReferences normalizes an old files item in memory so
+// display, drag and paste all use the real paths.
+func resolveItemFileReferences(item *database.Item) {
+	if item.Kind != database.KindFiles {
+		return
+	}
+	files := clipboard.DecodeFiles(item.Content)
+	resolved := resolveFileReferences(files)
+	if sameFilePaths(files, resolved) {
+		return
+	}
+	item.Content = strings.Join(resolved, "\n")
 }
 
 func (m *historyModel) List(ctx context.Context, q ui.HistoryQuery) (ui.HistoryPage, error) {
@@ -405,7 +420,7 @@ func (m *historyModel) fillImagePreview(preview *ui.HistoryPreview, item *databa
 }
 
 func fillFilesPreview(preview *ui.HistoryPreview, item *database.Item) {
-	files := clipboard.DecodeFiles(item.Content)
+	files := resolveFileReferences(clipboard.DecodeFiles(item.Content))
 	entries := describeFileEntries(files, item.FileTypes, filePreviewEntryLimit)
 	if len(entries) == 1 {
 		preview.Title = entries[0].Name
@@ -542,6 +557,8 @@ func fillTextRow(row *ui.HistoryItem, item database.Item, cfg settings.Clipboard
 func (m *historyModel) fillImageRow(row *ui.HistoryItem, item database.Item) {
 	if item.Width != nil && item.Height != nil {
 		row.Title = i18n.Tf(i18n.ImageSizeTitle, *item.Width, *item.Height)
+		row.ImageWidth = int(*item.Width)
+		row.ImageHeight = int(*item.Height)
 	} else {
 		row.Title = i18n.T(i18n.KindImage)
 	}
@@ -553,7 +570,7 @@ func (m *historyModel) fillImageRow(row *ui.HistoryItem, item database.Item) {
 }
 
 func (m *historyModel) fillFilesRow(ctx context.Context, row *ui.HistoryItem, item database.Item, cfg settings.Clipboard) {
-	files := clipboard.DecodeFiles(item.Content)
+	files := resolveFileReferences(clipboard.DecodeFiles(item.Content))
 	display := displayOf(cfg)
 	row.Title = ui.FileTitle(files, display.FileMaxCount)
 	entries := describeFileEntries(files, item.FileTypes, display.FileMaxCount)
@@ -561,8 +578,25 @@ func (m *historyModel) fillFilesRow(ctx context.Context, row *ui.HistoryItem, it
 	if len(files) == 1 && len(entries) == 1 && !entries[0].Exists {
 		row.Title += i18n.T(i18n.ItemMissing)
 	}
-	if len(entries) > 0 && m.runtime.fileIconCache != nil {
-		row.ImagePath = m.runtime.fileIconCache.Path(ctx, entries[0].Path, entries[0].IsDir)
+	// A single copied file that is itself an image reads as an image
+	// preview, while the row keeps the files kind so paste stays file-based.
+	if len(files) == 1 && len(entries) == 1 && entries[0].Exists && entries[0].IsImage {
+		if width, height, ok := macos.ImagePixelSize(entries[0].Path); ok {
+			row.ImageWidth = width
+			row.ImageHeight = height
+		}
+		row.ImagePath = entries[0].Path
+		return
+	}
+	// Every other file, single or in a group, lists on its own line with
+	// its Finder icon and name.
+	row.Files = make([]macos.HistoryFile, 0, len(entries))
+	for _, entry := range entries {
+		file := macos.HistoryFile{Name: entry.Name, IsDir: entry.IsDir, Missing: !entry.Exists}
+		if entry.Exists && m.runtime.fileIconCache != nil {
+			file.IconPath = m.runtime.fileIconCache.Path(ctx, entry.Path, entry.IsDir)
+		}
+		row.Files = append(row.Files, file)
 	}
 }
 

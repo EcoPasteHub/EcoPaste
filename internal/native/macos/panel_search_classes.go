@@ -15,9 +15,6 @@ func registerSearchClasses() error {
 	if err != nil {
 		return err
 	}
-	searchCellClass, err = objc.RegisterClass("EcoPasteSearchCell", class("NSTextFieldCell"), nil, nil, []objc.MethodDef{
-		{Cmd: sel("drawingRectForBounds:"), Fn: searchCellDrawingRect},
-	})
 	return err
 }
 
@@ -31,12 +28,4 @@ func searchFieldMouseDown(self objc.ID, _ objc.SEL, event objc.ID) {
 		window.Send(sel("makeFirstResponder:"), self)
 	}
 	sendSuper[objc.ID](self, searchFieldClass, sel("mouseDown:"), event)
-}
-
-func searchCellDrawingRect(self objc.ID, _ objc.SEL, bounds CGRect) CGRect {
-	size := objc.Send[CGSize](self, sel("cellSize"))
-	return CGRect{
-		Origin: CGPoint{X: bounds.Origin.X, Y: bounds.Origin.Y + (bounds.Size.Height-size.Height)/2},
-		Size:   CGSize{Width: bounds.Size.Width, Height: size.Height},
-	}
 }
