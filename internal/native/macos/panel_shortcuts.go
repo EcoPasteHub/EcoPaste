@@ -48,6 +48,10 @@ func shortcutHelpHeight() float64 {
 func (p *Panel) buildShortcutHelp() {
 	view := objc.ID(class("NSView")).Send(sel("new"))
 	view.Send(sel("setAutoresizesSubviews:"), false)
+	// NSPopover owns the content view frame and insets it inside its own
+	// window. Size the view once here; moving it in every refresh would
+	// push the content out of that inset on later shows.
+	setFrame(view, 0, 0, shortcutHelpWidth, shortcutHelpHeight())
 	p.shortcutView = view
 
 	title := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(i18n.PanelShortcutsTitle)))
@@ -89,7 +93,6 @@ func (p *Panel) refreshShortcutHelp() {
 	items := shortcutHelpItems()
 	width := shortcutHelpWidth
 	height := shortcutHelpHeight()
-	setFrame(p.shortcutView, 0, 0, width, height)
 	setFrame(p.shortcutTitle, shortcutHelpPadding, height-shortcutHelpPadding-17,
 		width-2*shortcutHelpPadding, 17)
 	for index, item := range items {
@@ -103,19 +106,17 @@ func (p *Panel) refreshShortcutHelp() {
 	p.shortcutPopover.Send(sel("setContentSize:"), CGSize{Width: width, Height: height})
 }
 
-// toggleShortcutHelp shows or hides the cheat sheet next to the footer
-// keyboard button.
+// toggleShortcutHelp shows or hides the cheat sheet for the footer
+// keyboard button. Anchoring to the whole button keeps the arrow centered
+// on it; on a flipped button the maxY edge is the visual bottom, so the
+// popover opens below the button when the screen has room and above it,
+// pointing at the button's top edge, otherwise.
 func (p *Panel) toggleShortcutHelp() {
 	if p.shortcutPopover != 0 && objc.Send[bool](p.shortcutPopover, sel("isShown")) {
 		p.shortcutPopover.Send(sel("close"))
 		return
 	}
 	p.refreshShortcutHelp()
-	anchor := bounds(p.shortcutButton)
-	rect := CGRect{
-		Origin: CGPoint{X: anchor.Size.Width / 2, Y: anchor.Size.Height - 1},
-		Size:   CGSize{Width: 1, Height: 1},
-	}
 	p.shortcutPopover.Send(sel("showRelativeToRect:ofView:preferredEdge:"),
-		rect, p.shortcutButton, uint64(3))
+		bounds(p.shortcutButton), p.shortcutButton, uint64(3))
 }
