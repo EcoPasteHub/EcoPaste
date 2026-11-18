@@ -33,9 +33,16 @@ const (
 	emptyKindNone emptyStateKind = iota
 	emptyKindHistory
 	emptyKindSearch
+	emptyKindText
+	emptyKindImage
+	emptyKindFiles
+	emptyKindFavorites
 )
 
-func emptyStateFor(rows int, query string) emptyState {
+// emptyStateFor resolves the placeholder shown when the panel has no rows.
+// A search query wins so the copy is about the search, then an active custom
+// group, then the selected category (all, text, image, files or favorites).
+func emptyStateFor(rows int, query, filter, group string) emptyState {
 	switch {
 	case rows > 0:
 		return emptyState{}
@@ -44,6 +51,43 @@ func emptyStateFor(rows int, query string) emptyState {
 			Kind:   emptyKindSearch,
 			Title:  i18n.T(i18n.PanelNoMatches),
 			Detail: i18n.T(i18n.PanelNoMatchesDetail),
+		}
+	case group != "":
+		return emptyState{
+			Kind:   emptyKindHistory,
+			Title:  i18n.T(i18n.PanelEmptyGroup),
+			Detail: i18n.T(i18n.PanelEmptyGroupDetail),
+		}
+	default:
+		return categoryEmptyState(filter)
+	}
+}
+
+func categoryEmptyState(filter string) emptyState {
+	switch filter {
+	case "text":
+		return emptyState{
+			Kind:   emptyKindText,
+			Title:  i18n.T(i18n.PanelEmptyText),
+			Detail: i18n.T(i18n.PanelEmptyTextDetail),
+		}
+	case "image":
+		return emptyState{
+			Kind:   emptyKindImage,
+			Title:  i18n.T(i18n.PanelEmptyImage),
+			Detail: i18n.T(i18n.PanelEmptyImageDetail),
+		}
+	case "files":
+		return emptyState{
+			Kind:   emptyKindFiles,
+			Title:  i18n.T(i18n.PanelEmptyFiles),
+			Detail: i18n.T(i18n.PanelEmptyFilesDetail),
+		}
+	case "favorite":
+		return emptyState{
+			Kind:   emptyKindFavorites,
+			Title:  i18n.T(i18n.PanelEmptyFavorites),
+			Detail: i18n.T(i18n.PanelEmptyFavoritesDetail),
 		}
 	default:
 		return emptyState{
@@ -58,6 +102,14 @@ func emptyIconSymbol(kind emptyStateKind) *kubai.Symbol {
 	switch kind {
 	case emptyKindSearch:
 		return kubai.Search()
+	case emptyKindText:
+		return kubai.FileText()
+	case emptyKindImage:
+		return kubai.Image()
+	case emptyKindFiles:
+		return kubai.Folder()
+	case emptyKindFavorites:
+		return kubai.Star()
 	default:
 		return kubai.Clipboard()
 	}
@@ -78,7 +130,10 @@ func (p *Panel) buildEmptyIcons() {
 	if len(p.emptyIcons) > 0 {
 		return
 	}
-	kinds := []emptyStateKind{emptyKindHistory, emptyKindSearch}
+	kinds := []emptyStateKind{
+		emptyKindHistory, emptyKindSearch, emptyKindText,
+		emptyKindImage, emptyKindFiles, emptyKindFavorites,
+	}
 	p.emptyIcons = make(map[emptyStateKind]emptyIconView, len(kinds))
 	for _, kind := range kinds {
 		symbol := emptyIconSymbol(kind)

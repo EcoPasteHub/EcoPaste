@@ -369,6 +369,7 @@ func (p *Panel) togglePinned() {
 
 func (p *Panel) setGroupSelection(id string) {
 	p.groupID = id
+	p.updateStatus()
 }
 
 func (p *Panel) setFilterSelection(filter string) {
@@ -376,12 +377,13 @@ func (p *Panel) setFilterSelection(filter string) {
 	if p.nav != nil {
 		p.nav.applyFilter(filter)
 	}
+	p.updateStatus()
 }
 
 func (p *Panel) updateStatus() {
 	state := emptyState{}
 	if !p.previewing {
-		state = emptyStateFor(len(p.rows), p.query)
+		state = emptyStateFor(len(p.rows), p.query, p.filterValue, p.groupID)
 	}
 	p.setEmptyState(state)
 	p.footerDivider.Send(sel("setHidden:"), false)
