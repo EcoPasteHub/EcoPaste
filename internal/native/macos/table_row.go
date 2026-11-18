@@ -3,6 +3,7 @@
 package macos
 
 import (
+	"path/filepath"
 	"strings"
 	"sync"
 
@@ -190,13 +191,19 @@ func fillHistoryRow(cell objc.ID, row HistoryRow, display PanelDisplay, revealOr
 			showImage = true
 		}
 	}
+	files := row.Files
+	if !noteMode && !showImage && len(files) == 0 && row.Kind == "files" && row.ImagePath != "" {
+		// The file can become unreadable after the row was built. Keep the
+		// card a regular file entry rather than a lone file name.
+		files = []HistoryFile{{Name: filepath.Base(row.ImagePath), IsImage: true}}
+	}
 	fileCount := 0
-	if !noteMode && !showImage && len(row.Files) > 0 {
-		fileCount = len(row.Files)
+	if !noteMode && !showImage && len(files) > 0 {
+		fileCount = len(files)
 		if fileCount > maxRowFiles {
 			fileCount = maxRowFiles
 		}
-		layout.files = row.Files[:fileCount]
+		layout.files = files[:fileCount]
 	}
 	textMode := !noteMode && !showImage && fileCount == 0
 	if noteMode {
@@ -300,12 +307,21 @@ func fillFileRows(cell objc.ID, files []HistoryFile, selected bool) {
 }
 
 func setFileKindIcon(icon objc.ID, entry HistoryFile) {
-	name := "doc"
-	if entry.IsDir {
-		name = "folder"
-	}
-	icon.Send(sel("setImage:"), systemSymbol(name))
+	icon.Send(sel("setImage:"), systemSymbol(fileKindSymbol(entry)))
 	icon.Send(sel("setContentTintColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
+}
+
+// fileKindSymbol keeps the fallback icon recognizable when the Finder icon
+// cache has no entry, including image files whose contents cannot be read.
+func fileKindSymbol(entry HistoryFile) string {
+	switch {
+	case entry.IsDir:
+		return "folder"
+	case entry.IsImage:
+		return "photo"
+	default:
+		return "doc"
+	}
 }
 
 func viewWithTag(cell objc.ID, tag int64) objc.ID {

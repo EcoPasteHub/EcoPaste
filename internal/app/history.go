@@ -430,7 +430,9 @@ func fillFilesPreview(preview *ui.HistoryPreview, item *database.Item) {
 	preview.Meta = previewMeta(item, fileSummary(entries, len(files)))
 	preview.Text = filePreviewText(entries, len(files))
 	if len(entries) == 1 && entries[0].Exists && entries[0].IsImage {
-		preview.ImagePath = entries[0].Path
+		if _, _, ok := macos.ImagePixelSize(entries[0].Path); ok {
+			preview.ImagePath = entries[0].Path
+		}
 	}
 }
 
@@ -579,20 +581,28 @@ func (m *historyModel) fillFilesRow(ctx context.Context, row *ui.HistoryItem, it
 		row.Title += i18n.T(i18n.ItemMissing)
 	}
 	// A single copied file that is itself an image reads as an image
-	// preview, while the row keeps the files kind so paste stays file-based.
+	// preview only when its pixels can actually be decoded. Files inside
+	// protected folders without Full Disk Access still have metadata, so a
+	// failed read must fall through to the regular file layout instead of
+	// leaving a card with just the file name.
 	if len(files) == 1 && len(entries) == 1 && entries[0].Exists && entries[0].IsImage {
 		if width, height, ok := macos.ImagePixelSize(entries[0].Path); ok {
 			row.ImageWidth = width
 			row.ImageHeight = height
+			row.ImagePath = entries[0].Path
+			return
 		}
-		row.ImagePath = entries[0].Path
-		return
 	}
-	// Every other file, single or in a group, lists on its own line with
-	// its Finder icon and name.
+	// Every file, single or in a group, lists on its own line with its
+	// Finder icon and name.
 	row.Files = make([]macos.HistoryFile, 0, len(entries))
 	for _, entry := range entries {
-		file := macos.HistoryFile{Name: entry.Name, IsDir: entry.IsDir, Missing: !entry.Exists}
+		file := macos.HistoryFile{
+			Name:    entry.Name,
+			IsDir:   entry.IsDir,
+			IsImage: entry.IsImage,
+			Missing: !entry.Exists,
+		}
 		if entry.Exists && m.runtime.fileIconCache != nil {
 			file.IconPath = m.runtime.fileIconCache.Path(ctx, entry.Path, entry.IsDir)
 		}

@@ -16,8 +16,10 @@ import (
 )
 
 // ImagePixelSize reports an image file's natural size, which a
-// file-copied image uses to size its list preview. Formats the standard
-// decoders cannot read report false so the row falls back to a file entry.
+// file-copied image uses to size its list preview. Files the process
+// cannot read (for example protected folders without Full Disk Access)
+// and formats the standard decoders cannot read report false, so the row
+// falls back to a regular file entry instead of an empty image block.
 func ImagePixelSize(path string) (int, int, bool) {
 	if path == "" {
 		return 0, 0, false

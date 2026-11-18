@@ -75,7 +75,7 @@
 | P-06 | P1 | 列表内容裁剪 | `commands/clipboard.rs` | 列表不返回完整 HTML/RTF content | 已通过 | `Page` 对 text 行返回空 content |
 | P-07 | P1 | 图片缩略图 | `storage.rs` | 最长边 300px，缺失时懒生成 | 已通过 | `TestImageStoreCreatesBoundedThumbnail`、`TestEnsureThumbnailBackfillsMissingFile`；真机 3456×2234 截图使用 300×193 缩略图 |
 | P-08 | P1 | 文件条目 | `commands/clipboard.rs` | 路径、名称、目录/图片标记、存在性、大小 | 已通过 | `TestDescribeFileEntries`；真机列表显示 PDF/TXT/图片大小与“已丢失” |
-| P-09 | P1 | 文件预览模式 | `FilesPreviewKind` | 单图片走图片预览，其余列表 | 已通过 | 单图片、单非图片、多文件测试覆盖；真机图片文件 Space 预览通过 |
+| P-09 | P1 | 文件预览模式 | `FilesPreviewKind` | 单图片按图片预览，无法读取时降级为文件行 | 已通过 | 单图片、单非图片、多文件测试覆盖；真机图片文件 Space 预览通过；单个图片文件仅在实际可解码时进入图片预览，未授予完全磁盘访问权限或文件被删除/损坏时降级为「图片图标 + 文件名」卡片，行高同步按文件行计算，不保留图片预览高度；`TestHistoryFileRowPreviewsReadableImage`、`TestHistoryFileRowFallsBackForUnreadableImage`、`TestFilePreviewUnreadableImageFallsBackToText`、`TestHistoryRowHeightUsesFileLayoutForUnreadableImage`、`TestFileKindSymbolMatchesFormat` |
 | P-10 | P1 | 预览窗口 | `window/preview.rs`、`pages/Preview` | 原生 `NSPopover` 锚定所选行，Space/Esc，文本/图片/文件 | 已通过 | 真机文本/HTML/图片预览锚定所选行弹出，面板保持可见；Space 与 Esc 关闭并回到搜索框，点击外部按原生临时 popover 行为关闭；预览态回车沿用粘贴路径并触发既有辅助功能提示，`⌘C` 复制所选条目；行内文本不拦截点击，点击正文可直接选中并预览该行；预览浮层使用原生背景，与面板半透明材质分离；`TestPreviewSizeFollowsTextHeight`、`TestPreviewSizeClampsLongText`；产品调整记录在迁移计划 |
 | P-11 | P2 | HTML/RTF 富文本预览 | 当前只用纯文本摘要 | `NSAttributedString` + `NSTextView`（增强项） | 已通过 | 真机 Space 预览 HTML/RTF，粗体、字号、颜色和段落生效，Esc 返回；HTML 列表标记不再与 AppKit 文本列表重复绘制，显式彩色文本保留原色，未指定或默认黑白色使用语义 `labelColor` 适配深浅色；敏感条目继续使用脱敏纯文本且不传递原始富文本；`TestPreviewIncludesRichText`、`TestAttributedPreview`、`TestAttributedPreviewDropsImportedListMarkers`、`TestAttributedPreviewPreservesExplicitColor`、`TestPreviewInkNeedsLabelForDefaultContrast`；仅渲染文本样式，不加载外部资源 |
 

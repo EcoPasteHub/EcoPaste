@@ -95,6 +95,38 @@ func TestHistoryRowHeightFollowsImageAndFiles(t *testing.T) {
 	}
 }
 
+// TestHistoryRowHeightUsesFileLayoutForUnreadableImage guards the image
+// fallback: an inaccessible single image file must take the compact file
+// row height instead of reserving an image block.
+func TestHistoryRowHeightUsesFileLayoutForUnreadableImage(t *testing.T) {
+	display := PanelDisplay{TextMaxLines: 3, ImageMaxHeight: 64, FileMaxCount: 3}
+	fallback := HistoryRow{
+		Kind:  "files",
+		Title: "photo.png",
+		Files: []HistoryFile{{Name: "photo.png", IsImage: true}},
+	}
+	if got := historyRowHeight(fallback, display, 420); got != 56 {
+		t.Errorf("fallback height = %.0f, want 56", got)
+	}
+}
+
+func TestFileKindSymbolMatchesFormat(t *testing.T) {
+	cases := []struct {
+		name  string
+		entry HistoryFile
+		want  string
+	}{
+		{name: "folder", entry: HistoryFile{IsDir: true}, want: "folder"},
+		{name: "image", entry: HistoryFile{IsImage: true}, want: "photo"},
+		{name: "document", entry: HistoryFile{}, want: "doc"},
+	}
+	for _, tc := range cases {
+		if got := fileKindSymbol(tc.entry); got != tc.want {
+			t.Errorf("%s symbol = %q, want %q", tc.name, got, tc.want)
+		}
+	}
+}
+
 func TestFitImageSizeKeepsAspectRatioAndMaxHeight(t *testing.T) {
 	got := fitImageSize(CGSize{Width: 480, Height: 310}, 338, 64)
 	if got.Height != 64 {

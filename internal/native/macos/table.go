@@ -12,6 +12,7 @@ type HistoryFile struct {
 	Name     string
 	IconPath string
 	IsDir    bool
+	IsImage  bool
 	Missing  bool
 }
 

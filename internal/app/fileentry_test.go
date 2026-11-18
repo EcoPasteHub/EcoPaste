@@ -2,6 +2,8 @@ package app
 
 import (
 	"context"
+	"image"
+	"image/png"
 	"os"
 	"path/filepath"
 	"strings"
@@ -65,9 +67,7 @@ func TestDescribeFileEntries(t *testing.T) {
 func TestFilePreviewMode(t *testing.T) {
 	root := t.TempDir()
 	imagePath := filepath.Join(root, "photo.png")
-	if err := os.WriteFile(imagePath, []byte("image"), 0o644); err != nil {
-		t.Fatal(err)
-	}
+	writeTestImage(t, imagePath)
 	model, id := filePreviewModel(t, []string{imagePath}, "f")
 	preview, err := model.Preview(context.Background(), id)
 	if err != nil {
@@ -76,7 +76,31 @@ func TestFilePreviewMode(t *testing.T) {
 	if preview.ImagePath != imagePath {
 		t.Errorf("image path = %q", preview.ImagePath)
 	}
-	if preview.Title != "photo.png" || !strings.Contains(preview.Meta, "图片 · 5 B") {
+	if preview.Title != "photo.png" || !strings.Contains(preview.Meta, "图片 · ") {
+		t.Errorf("preview = %+v", preview)
+	}
+}
+
+func TestFilePreviewUnreadableImageFallsBackToText(t *testing.T) {
+	if os.Geteuid() == 0 {
+		t.Skip("permissions do not restrict root")
+	}
+	root := t.TempDir()
+	imagePath := filepath.Join(root, "photo.png")
+	writeTestImage(t, imagePath)
+	if err := os.Chmod(imagePath, 0); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { os.Chmod(imagePath, 0o644) })
+	model, id := filePreviewModel(t, []string{imagePath}, "f")
+	preview, err := model.Preview(context.Background(), id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if preview.ImagePath != "" {
+		t.Errorf("unreadable image used preview path %q", preview.ImagePath)
+	}
+	if preview.Title != "photo.png" || !strings.Contains(preview.Text, imagePath) {
 		t.Errorf("preview = %+v", preview)
 	}
 }
@@ -125,6 +149,61 @@ func TestFilePreviewSingleNonImage(t *testing.T) {
 	}
 }
 
+func TestHistoryFileRowPreviewsReadableImage(t *testing.T) {
+	root := t.TempDir()
+	imagePath := filepath.Join(root, "photo.png")
+	writeTestImage(t, imagePath)
+	db, err := database.Open(filepath.Join(root, "clipboard.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	model := &historyModel{runtime: &clipboardRuntime{db: db}}
+	row := model.historyItem(context.Background(), database.Item{
+		Kind:    database.KindFiles,
+		Content: imagePath,
+	}, model.clipboardConfig())
+	if row.ImagePath != imagePath || row.ImageWidth != 2 || row.ImageHeight != 3 {
+		t.Errorf("row image = %q %dx%d", row.ImagePath, row.ImageWidth, row.ImageHeight)
+	}
+	if len(row.Files) != 0 {
+		t.Errorf("image row also listed files: %+v", row.Files)
+	}
+}
+
+func TestHistoryFileRowFallsBackForUnreadableImage(t *testing.T) {
+	if os.Geteuid() == 0 {
+		t.Skip("permissions do not restrict root")
+	}
+	root := t.TempDir()
+	imagePath := filepath.Join(root, "photo.png")
+	writeTestImage(t, imagePath)
+	if err := os.Chmod(imagePath, 0); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { os.Chmod(imagePath, 0o644) })
+	db, err := database.Open(filepath.Join(root, "clipboard.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	model := &historyModel{runtime: &clipboardRuntime{db: db}}
+	row := model.historyItem(context.Background(), database.Item{
+		Kind:    database.KindFiles,
+		Content: imagePath,
+	}, model.clipboardConfig())
+	if row.ImagePath != "" {
+		t.Errorf("unreadable image used preview path %q", row.ImagePath)
+	}
+	if len(row.Files) != 1 {
+		t.Fatalf("files = %+v, want one file entry", row.Files)
+	}
+	entry := row.Files[0]
+	if entry.Name != "photo.png" || !entry.IsImage || entry.IsDir || entry.Missing {
+		t.Errorf("file entry = %+v", entry)
+	}
+}
+
 func TestHistoryFileRowSummaryAndMissingTitle(t *testing.T) {
 	root := t.TempDir()
 	db, err := database.Open(filepath.Join(root, "clipboard.db"))
@@ -166,4 +245,18 @@ func filePreviewModel(t *testing.T, files []string, types string) (*historyModel
 	}
 	model := &historyModel{runtime: &clipboardRuntime{db: db}, store: store}
 	return model, id
+}
+
+// writeTestImage writes a small valid PNG so the rows exercise the real
+// image decoder instead of an extension-only check.
+func writeTestImage(t *testing.T, path string) {
+	t.Helper()
+	file, err := os.Create(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer file.Close()
+	if err := png.Encode(file, image.NewRGBA(image.Rect(0, 0, 2, 3))); err != nil {
+		t.Fatal(err)
+	}
 }
