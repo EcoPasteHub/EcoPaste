@@ -55,7 +55,7 @@ func registerSettingsInfoTargets() {
 			}},
 			{Cmd: sel("mouseEntered:"), Fn: func(self objc.ID, _ objc.SEL, _ objc.ID) {
 				if info := settingsInfos[self]; info != nil {
-					self.Send(sel("setContentTintColor:"), objc.ID(classNSColor).Send(sel("labelColor")))
+					self.Send(sel("setContentTintColor:"), objc.ID(classNSColor).Send(sel("controlAccentColor")))
 					info.show()
 				}
 			}},
