@@ -4,8 +4,10 @@ package macos
 
 import "github.com/ebitengine/purego/objc"
 
-// drawSettingsInputChrome draws the shared focus and hover treatment used by
-// the shortcut recorder and numeric fields.
+// drawSettingsInputChrome draws the shared input treatment (default, hover
+// and focus) used by every in-app input: the shortcut recorder, numeric
+// fields and the shared textInput widget. It is the single source of truth
+// for input borders, radius and background.
 func drawSettingsInputChrome(self objc.ID, hover, focus float64) {
 	rect := bounds(self)
 	rect.Origin.X += 0.5

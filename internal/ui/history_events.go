@@ -20,7 +20,7 @@ var historyRowEvents = map[string]func(*historyPanel, any){
 }
 
 var historyGroupEvents = map[string]func(*historyPanel, any){
-	"newGroup":     createGroup,
+	"createGroup":  createGroup,
 	"renameGroup":  renameGroup,
 	"deleteGroup":  deleteGroup,
 	"clearHistory": clearHistory,
@@ -118,19 +118,20 @@ func moveRowGroup(p *historyPanel, data any) {
 	})
 }
 
-func createGroup(p *historyPanel, _ any) {
-	if p.model == nil {
+func createGroup(p *historyPanel, data any) {
+	name, _ := data.(string)
+	if p.model == nil || name == "" {
 		return
 	}
 	ctx := p.cx.Context()
 	go func() {
-		created, ok, err := p.model.CreateGroup(ctx)
+		created, err := p.model.CreateGroup(ctx, name)
 		p.cx.Post(func() {
 			if err != nil {
 				p.errorText.Set(err.Error())
 				return
 			}
-			if ok && created != nil {
+			if created != nil {
 				p.loadGroups(created.ID, true)
 			}
 		})

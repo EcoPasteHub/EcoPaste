@@ -45,7 +45,7 @@
 | D-09 | P1 | 自动收藏 | `autoFavorite` | 写非空备注时联动收藏 | 已通过 | `TestEditNoteNormalizesAndAutoFavorites`；清空备注不触发 |
 | D-10 | P0 | 置顶 | `toggle_item_pinned` | `is_pinned`，排序最前 | 已通过 | 排序测试覆盖 |
 | D-11 | P0 | 备注 | `update_item_note` | 更新 note，不刷新 `updated_at` | 已通过 | `SetNote` + `updated_at` 不变测试 |
-| D-12 | P0 | 分组 | `db/groups.rs` | 原生创建、重命名、筛选；保留 schema 的图标/隐藏字段 | 已通过（产品调整） | `TestCreateGroupAppendsAndListsInOrder`、`TestRenameGroupCancelAndDuplicate`；真机创建“工作”、重命名为“项目”成功；新建/重命名/删除对话框以剪贴板面板为基准水平垂直居中，并通过模态 run loop 重新抬到面板之上，`TestCenterDialogOrigin*` 覆盖居中和屏幕边界 |
+| D-12 | P0 | 分组 | `db/groups.rs` | 原生创建、重命名、筛选；保留 schema 的图标/隐藏字段 | 已通过（产品调整） | `TestCreateGroupNormalizesAndSelects`、`TestCreateGroupRejectsEmptyLongAndDuplicateNames`、`TestRenameGroupCancelAndDuplicate`；新建分组改为锚定分类栏「+」按钮的 `NSPopover` 内联输入框（自动聚焦、回车提交、Esc/点击外部取消），不再使用居中模态对话框；重命名/删除仍为以剪贴板面板为基准居中并通过模态 run loop 抬到面板之上的对话框，`TestCenterDialogOrigin*` 覆盖居中和屏幕边界 |
 | D-13 | P0 | 分组布局 | `update_clipboard_groups_layout` | 首版按创建顺序稳定展示，不做拖拽排序/隐藏 | 不纳入 macOS 首版（产品调整） | 决定与理由见 `03-migration-plan.md` Phase 4 分组产品调整 |
 | D-14 | P0 | 删除分组 | `delete_group` | 条目 `group_id` 置 NULL | 已通过 | `TestDeleteGroupKeepsItemsAndClearsGroupID`；真机删除后 15 条记录保留，SQLite 校验 `group_id = NULL` |
 | D-15 | P0 | 使用次数 | `increment_item_use_count` | `use_count + 1` 并刷新 `updated_at` | 已通过 | `TestUpsertDeduplicatesAndRefreshesUpdatedAt` |

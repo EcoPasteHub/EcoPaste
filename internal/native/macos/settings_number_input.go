@@ -43,8 +43,7 @@ type numberInput struct {
 	editing   bool
 	monitor   objc.ID
 
-	focus transition
-	hover transition
+	chrome *inputChrome
 }
 
 var (
@@ -89,8 +88,6 @@ func (v *SettingsView) addNumberInput(content objc.ID, y float64, title i18n.Key
 		unit:      unit,
 		get:       get,
 	}
-	n.focus.redraw = func() { control.Send(sel("setNeedsDisplay:"), true) }
-	n.hover.redraw = n.focus.redraw
 
 	n.decrease = newNumberStepButton("minus", control, "stepDown:", i18n.Tf(i18n.SettingsNumberDecrease, numberInputTitle(title, unit)))
 	control.Send(sel("addSubview:"), n.decrease)
@@ -115,6 +112,7 @@ func (v *SettingsView) addNumberInput(content objc.ID, y float64, title i18n.Key
 	n.field.Send(sel("setDelegate:"), numberTextFieldDelegate)
 	control.Send(sel("addSubview:"), n.field)
 	n.field.Send(sel("release"))
+	n.chrome = newInputChrome(control, n.field)
 
 	content.Send(sel("addSubview:"), control)
 	control.Send(sel("release"))
@@ -156,8 +154,9 @@ func (v *SettingsView) applyNumberInputs(values SettingsValues) {
 func (v *SettingsView) closeNumberInputs() {
 	for _, n := range v.numberInputs {
 		n.removeBlurMonitor()
-		n.focus.stop()
-		n.hover.stop()
+		if n.chrome != nil {
+			n.chrome.close()
+		}
 		delete(numberInputs, n.control)
 		delete(numberTextFields, n.field)
 		for editor, owner := range numberEditors {
@@ -412,11 +411,15 @@ func (n *numberInput) emit() {
 }
 
 func (n *numberInput) setFocusTarget(target float64) {
-	n.focus.setTarget(target)
+	if n.chrome != nil {
+		n.chrome.syncFocus(target > 0)
+	}
 }
 
 func (n *numberInput) setHoverTarget(target float64) {
-	n.hover.setTarget(target)
+	if n.chrome != nil {
+		n.chrome.setHoverTarget(target)
+	}
 }
 
 func registerNumberInputTargets() {
@@ -583,11 +586,7 @@ func numberInputForEditor(editor objc.ID) *numberInput {
 }
 
 func drawNumberInput(self objc.ID, _ objc.SEL, _ CGRect) {
-	n := numberInputs[self]
-	if n == nil {
-		return
-	}
-	drawSettingsInputChrome(self, n.hover.value, n.focus.value)
+	drawInputChrome(self)
 }
 
 func drawNumberStepButton(self objc.ID, _ objc.SEL, _ CGRect) {

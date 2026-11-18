@@ -116,7 +116,7 @@ type HistoryModel interface {
 	EditNote(context.Context, string) (bool, error)
 	Preview(context.Context, string) (HistoryPreview, error)
 	Groups(context.Context) ([]GroupOption, error)
-	CreateGroup(context.Context) (*GroupOption, bool, error)
+	CreateGroup(context.Context, string) (*GroupOption, error)
 	RenameGroup(context.Context, string) (bool, error)
 	DeleteGroup(context.Context, string) (bool, error)
 	MoveToGroup(context.Context, string, string) error

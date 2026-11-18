@@ -33,6 +33,13 @@ type Panel struct {
 	shortcutTitle      objc.ID
 	shortcutLabels     []objc.ID
 	shortcutKeys       []objc.ID
+	groupPopover       objc.ID
+	groupPopoverView   objc.ID
+	groupController    objc.ID
+	groupTitle         objc.ID
+	groupInput         *textInput
+	groupClosing       bool
+	groupSubmitted     bool
 	divider            objc.ID
 	scroll             objc.ID
 	table              objc.ID
@@ -201,6 +208,7 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.buildEmptyIcons()
 	p.buildHoverBar()
 	p.buildShortcutHelp()
+	p.buildNewGroupPopover()
 
 	panelsBySearch[p.search] = p
 	panelsByControl[p.pin] = p
@@ -326,6 +334,22 @@ func (p *Panel) Close() {
 	}
 	if p.shortcutView != 0 {
 		p.shortcutView.Send(sel("release"))
+	}
+	if p.groupPopover != 0 {
+		delete(panelsByGroupPopover, p.groupPopover)
+		p.groupPopover.Send(sel("close"))
+		p.groupPopover.Send(sel("release"))
+	}
+	if p.groupController != 0 {
+		delete(panelsByGroupController, p.groupController)
+		p.groupController.Send(sel("release"))
+	}
+	if p.groupInput != nil {
+		p.groupInput.close()
+		p.groupInput = nil
+	}
+	if p.groupPopoverView != 0 {
+		p.groupPopoverView.Send(sel("release"))
 	}
 	if p.previewPopover != 0 {
 		p.previewPopover.Send(sel("release"))

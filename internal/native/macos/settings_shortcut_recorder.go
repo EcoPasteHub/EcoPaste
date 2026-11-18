@@ -32,8 +32,7 @@ type shortcutRecorder struct {
 	attempted  bool
 	monitor    objc.ID
 
-	focus transition
-	hover transition
+	chrome *inputChrome
 }
 
 var (
@@ -57,7 +56,6 @@ func (v *SettingsView) addShortcutField(content objc.ID, y float64, title i18n.K
 	control.Send(sel("setAccessibilityRole:"), nsString("AXTextField"))
 	control.Send(sel("setAccessibilityLabel:"), nsString(i18n.Tf(i18n.SettingsShortcutFieldA11y, i18n.T(title))))
 	control.Send(sel("setAccessibilityHelp:"), nsString(i18n.T(i18n.SettingsShortcutHelp)))
-	content.Send(sel("addSubview:"), control)
 
 	recorder := &shortcutRecorder{
 		owner:   v,
@@ -66,11 +64,11 @@ func (v *SettingsView) addShortcutField(content objc.ID, y float64, title i18n.K
 		control: control,
 		get:     get,
 	}
-	recorder.focus.redraw = func() { control.Send(sel("setNeedsDisplay:"), true) }
-	recorder.hover.redraw = recorder.focus.redraw
+	recorder.chrome = newInputChrome(control, 0)
 	shortcutRecorders[control] = recorder
 	recorder.delete = newShortcutDeleteButton(recorder)
 	control.Send(sel("addSubview:"), recorder.delete)
+	content.Send(sel("addSubview:"), control)
 	v.shortcutRecorders = append(v.shortcutRecorders, recorder)
 	recorder.refresh()
 }
@@ -335,11 +333,15 @@ func shortcutModifierMask() uint64 {
 }
 
 func (r *shortcutRecorder) setFocusTarget(target float64) {
-	r.focus.setTarget(target)
+	if r.chrome != nil {
+		r.chrome.syncFocus(target > 0)
+	}
 }
 
 func (r *shortcutRecorder) setHoverTarget(target float64) {
-	r.hover.setTarget(target)
+	if r.chrome != nil {
+		r.chrome.setHoverTarget(target)
+	}
 }
 
 func (r *shortcutRecorder) close() {
@@ -348,8 +350,9 @@ func (r *shortcutRecorder) close() {
 		r.removeBlurMonitor()
 		r.owner.cx.Emit("suspendShortcuts", false)
 	}
-	r.focus.stop()
-	r.hover.stop()
+	if r.chrome != nil {
+		r.chrome.close()
+	}
 }
 
 func (v *SettingsView) closeShortcutRecorders() {
@@ -480,7 +483,7 @@ func drawShortcutRecorder(self objc.ID, _ objc.SEL, _ CGRect) {
 	if recorder == nil {
 		return
 	}
-	drawSettingsInputChrome(self, recorder.hover.value, recorder.focus.value)
+	drawInputChrome(self)
 	rect := bounds(self)
 	rect.Size.Width -= 1
 	rect.Size.Height -= 1

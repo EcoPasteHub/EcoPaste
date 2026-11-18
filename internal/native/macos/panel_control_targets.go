@@ -101,8 +101,8 @@ func panelCapsulePressed(_ objc.ID, _ objc.SEL, sender objc.ID) {
 }
 
 func panelNavPlusPressed(_ objc.ID, _ objc.SEL, sender objc.ID) {
-	if nav := navsByPlus[sender]; nav != nil {
-		nav.panel.cx.Emit("newGroup", nil)
+	if nav := navsByPlus[sender]; nav != nil && nav.panel != nil {
+		nav.panel.showNewGroupPopover(nav.plus)
 	}
 }
 
@@ -114,7 +114,7 @@ func panelHoverActionPressed(_ objc.ID, _ objc.SEL, sender objc.ID) {
 
 func panelMenuNewGroup(_ objc.ID, _ objc.SEL, sender objc.ID) {
 	if p := menuPanel(sender); p != nil {
-		p.cx.Emit("newGroup", nil)
+		p.showNewGroupPopover(p.filterButton)
 	}
 }
 

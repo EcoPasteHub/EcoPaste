@@ -48,7 +48,7 @@ func panelWindowBecameKey(self objc.ID, _ objc.SEL, note objc.ID) {
 
 func panelWindowResignedKey(self objc.ID, _ objc.SEL, note objc.ID) {
 	p := panelsByObserver[self]
-	if p == nil || suppressPanelBlur.Load() || p.pinned || p.dragging || p.previewing {
+	if p == nil || suppressPanelBlur.Load() || p.pinned || p.dragging || p.previewing || p.groupPopoverActive() {
 		return
 	}
 	p, window := panelForWindow(self, note)
@@ -64,6 +64,12 @@ func panelWindowDidOrderOffScreen(self objc.ID, _ objc.SEL, note objc.ID) {
 	if p != nil && p.shortcutPopover != 0 &&
 		objc.Send[bool](p.shortcutPopover, sel("isShown")) {
 		p.shortcutPopover.Send(sel("close"))
+	}
+	if p != nil && p.groupPopoverActive() {
+		if _, window := panelForWindow(self, note); window != 0 {
+			p.groupClosing = true
+			p.groupPopover.Send(sel("close"))
+		}
 	}
 	if p == nil || !p.behavior.ClearOnHide {
 		return

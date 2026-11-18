@@ -304,7 +304,11 @@ func (p *Panel) handleCommandKey(key uint16, flags uint64) bool {
 	if !handled {
 		return false
 	}
-	if action != "newGroup" && row.ID == "" {
+	if action == "newGroup" {
+		p.showNewGroupPopover(p.newGroupAnchor())
+		return true
+	}
+	if row.ID == "" {
 		return false
 	}
 	p.cx.Emit(action, row.ID)

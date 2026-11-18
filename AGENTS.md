@@ -160,7 +160,7 @@ internal/onboarding/       # 权限与旧版导入
 | 下拉/排序 | `NSPopUpButton` |
 | 开关 | `NSSwitch` |
 | 按钮 | `NSButton` |
-| 文本输入 | `NSTextField` / `NSTextView` |
+| 文本输入 | 统一 `textInput`（见 3.7，复用 `drawSettingsInputChrome`） |
 | 历史列表 | `NSTableView` / `NSCollectionView` |
 | 图片 | `NSImageView` / `NSImage` |
 | 设置窗口展示图标 | `nsgo-icons-kubai` |
@@ -205,6 +205,15 @@ internal/onboarding/       # 权限与旧版导入
 - 桥接层只暴露业务需要的最小接口；不要让业务代码直接依赖 `core.Native` 的 props/命令细节。
 - 不为“可能以后需要”的跨平台差异预建抽象；当前只实现 macOS。
 - 如果 NSGo 组件行为与 AppKit 冲突，优先保留 AppKit 原生行为。
+
+### 3.7 输入组件统一规范（Input / Textarea）
+
+- 全应用只有一套输入框视觉：边框、圆角、背景色、默认/Hover/Focus 状态全部由 `internal/native/macos/settings_input_chrome.go` 的 `drawSettingsInputChrome` 统一绘制，任何页面或组件都不得另写一套。
+- 外边框的交互状态统一由 `internal/native/macos/input_chrome.go` 的 `inputChrome` 管理：组件通过 `newInputChrome(view, field)` 把内部输入控件绑定到绘制边框的外层视图，内部输入框获得/失去焦点时由它自动同步 Focus；非文本型输入（如快捷键录入）用 `newInputChrome(view, 0)` 并手动调用 `syncFocus`。组件自身不得再各自维护焦点监听或另一套 Hover/Focus 过渡。
+- 单行输入必须复用 `internal/native/macos/text_input.go` 的 `textInput`（它内部已接入 `inputChrome`）；需要多行文本域时，在同一个公共文件内扩展共享组件，而不是在业务页面里复制样式。
+- 禁止直接使用带 bezel 的系统 `NSTextField` 作为就地输入框样式，也不得手写输入框边框、圆角、背景或 Hover/Focus 颜色；确需系统弹窗内嵌字段（如 `NSAlert` 的输入框）时，应说明为何不复用，并保持与系统弹窗一致。
+- 新增输入框默认高度对齐 `settingsControlHeight`（24pt），内边距、字体、语义色沿用共享组件；确有例外需在代码注释和迁移文档中说明。
+- 修改任一输入框样式或状态逻辑时，只改公共实现并同步验证设置页、Popover 等所有使用处，确保不出现样式分裂。
 
 ## 4. 第三方库规范
 

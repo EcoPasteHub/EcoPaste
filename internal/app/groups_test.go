@@ -13,15 +13,13 @@ import (
 func TestCreateGroupNormalizesAndSelects(t *testing.T) {
 	model, db := actionModel(t)
 	ctx := context.Background()
-	editGroup = func(string) (string, bool) { return "  Work  ", true }
-	t.Cleanup(func() { editGroup = macos.EditGroupName })
 
-	option, created, err := model.CreateGroup(ctx)
+	option, err := model.CreateGroup(ctx, "  Work  ")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !created || option == nil || option.Name != "Work" {
-		t.Fatalf("created = %v, option = %+v", created, option)
+	if option == nil || option.Name != "Work" {
+		t.Fatalf("option = %+v", option)
 	}
 	group, err := db.FindGroup(ctx, option.ID)
 	if err != nil {
@@ -38,7 +36,6 @@ func TestCreateGroupRejectsEmptyLongAndDuplicateNames(t *testing.T) {
 	if _, err := db.CreateGroup(ctx, "Work", defaultGroupIcon); err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { editGroup = macos.EditGroupName })
 
 	cases := []struct {
 		value string
@@ -49,9 +46,8 @@ func TestCreateGroupRejectsEmptyLongAndDuplicateNames(t *testing.T) {
 		{"work", i18n.T(i18n.ErrorGroupNameDuplicate)},
 	}
 	for _, tc := range cases {
-		editGroup = func(string) (string, bool) { return tc.value, true }
-		if _, created, err := model.CreateGroup(ctx); created || err == nil || !strings.Contains(err.Error(), tc.want) {
-			t.Errorf("%q: created = %v, err = %v", tc.value, created, err)
+		if _, err := model.CreateGroup(ctx, tc.value); err == nil || !strings.Contains(err.Error(), tc.want) {
+			t.Errorf("%q: err = %v", tc.value, err)
 		}
 	}
 }

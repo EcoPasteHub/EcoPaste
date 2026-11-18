@@ -32,24 +32,22 @@ func (m *historyModel) Groups(ctx context.Context) ([]ui.GroupOption, error) {
 	return options, nil
 }
 
-func (m *historyModel) CreateGroup(ctx context.Context) (*ui.GroupOption, bool, error) {
-	value, ok := editGroup("")
-	if !ok {
-		return nil, false, nil
-	}
+// CreateGroup validates a user-supplied name and appends a new group. The
+// name arrives from the panel's inline popover, so no dialog is involved.
+func (m *historyModel) CreateGroup(ctx context.Context, value string) (*ui.GroupOption, error) {
 	name, err := normalizeGroupName(value)
 	if err != nil {
-		return nil, false, err
+		return nil, err
 	}
 	if err := m.ensureUniqueGroupName(ctx, name, ""); err != nil {
-		return nil, false, err
+		return nil, err
 	}
 	group, err := m.runtime.db.CreateGroup(ctx, name, defaultGroupIcon)
 	if err != nil {
-		return nil, false, err
+		return nil, err
 	}
 	option := ui.GroupOption{ID: group.ID, Name: group.Name}
-	return &option, true, nil
+	return &option, nil
 }
 
 func (m *historyModel) RenameGroup(ctx context.Context, id string) (bool, error) {
