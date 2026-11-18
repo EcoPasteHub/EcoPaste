@@ -4,21 +4,24 @@ package macos
 
 import "github.com/ebitengine/purego/objc"
 
-// drawSettingsInputChrome draws the shared input treatment (default, hover
-// and focus) used by every in-app input: the shortcut recorder, numeric
-// fields and the shared textInput widget. It is the single source of truth
-// for input borders, radius and background.
-func drawSettingsInputChrome(self objc.ID, hover, focus float64) {
+// drawSettingsInputChrome is the single source of truth for the input
+// border, background and default/hover/focus treatment. A zero radius keeps
+// the single-line pill shape; multi-line areas pass a smaller corner radius.
+func drawSettingsInputChrome(self objc.ID, hover, focus, radius float64) {
 	rect := bounds(self)
 	rect.Origin.X += 0.5
 	rect.Origin.Y += 0.5
 	rect.Size.Width -= 1
 	rect.Size.Height -= 1
-	radius := rect.Size.Height / 2
+	if radius <= 0 {
+		radius = rect.Size.Height / 2
+	}
 
 	background := objc.ID(classNSColor).Send(sel("whiteColor"))
 	if appearanceIsDark(self) {
-		background = background.Send(sel("colorWithAlphaComponent:"), 0.075)
+		// Solid dark, not a translucent white wash: the input may sit on a
+		// light popover material and its text must stay readable there.
+		background = objc.ID(classNSColor).Send(sel("colorWithWhite:alpha:"), 0.12, 1.0)
 	}
 	fillRoundedRect(rect, radius, background)
 

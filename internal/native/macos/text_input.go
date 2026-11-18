@@ -56,7 +56,6 @@ func newTextInput(height float64) *textInput {
 	field.Send(sel("setDrawsBackground:"), false)
 	field.Send(sel("setFocusRingType:"), int64(1))
 	field.Send(sel("setFont:"), systemFont(textInputTextSize))
-	field.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("labelColor")))
 	field.Send(sel("setUsesSingleLineMode:"), true)
 	field.Send(sel("setLineBreakMode:"), int64(4))
 	field.Send(sel("setDelegate:"), textInputDelegate)
@@ -65,6 +64,7 @@ func newTextInput(height float64) *textInput {
 
 	t := &textInput{control: control, field: field}
 	t.chrome = newInputChrome(control, field)
+	t.applyTextColor()
 	textInputs[control] = t
 	textInputFields[field] = t
 	t.layout()
@@ -94,16 +94,16 @@ func (t *textInput) setStringValue(value string) {
 	t.field.Send(sel("setStringValue:"), nsString(value))
 }
 
+func (t *textInput) applyTextColor() {
+	applyFieldTextColor(t.field, t.control)
+}
+
 func (t *textInput) stringValue() string {
 	return goString(t.field.Send(sel("stringValue")))
 }
 
 func (t *textInput) setAccessibilityLabel(label string) {
 	t.control.Send(sel("setAccessibilityLabel:"), nsString(label))
-}
-
-func (t *textInput) setAccessibilityHelp(help string) {
-	t.control.Send(sel("setAccessibilityHelp:"), nsString(help))
 }
 
 func (t *textInput) setReturnHandler(fn func()) { t.onReturn = fn }
@@ -119,6 +119,7 @@ func (t *textInput) focus() {
 	window.Send(sel("makeKeyWindow"))
 	window.Send(sel("makeFirstResponder:"), t.field)
 	t.field.Send(sel("selectText:"), objc.ID(0))
+	t.applyTextColor()
 }
 
 func (t *textInput) close() {
@@ -162,6 +163,9 @@ func registerTextInputTargets() {
 			}},
 			{Cmd: sel("viewDidChangeEffectiveAppearance"), Fn: func(self objc.ID, _ objc.SEL) {
 				sendSuper[objc.ID](self, textInputClass, sel("viewDidChangeEffectiveAppearance"))
+				if t := textInputs[self]; t != nil {
+					t.applyTextColor()
+				}
 				self.Send(sel("setNeedsDisplay:"), true)
 			}},
 		})
@@ -195,4 +199,202 @@ func registerTextInputTargets() {
 		panic(err)
 	}
 	textInputDelegate = objc.ID(delegateClass).Send(sel("new"))
+}
+
+// textArea is the shared multi-line input. It reuses inputChrome for the
+// outer border and focus/hover states, while the inner NSTextView uses
+// AppKit's own text and background colors: that pair is resolved together by
+// the system, so typed text is always readable in light and dark appearances.
+const (
+	textAreaTextSize    = 13.0
+	textAreaInset       = 7.0
+	textAreaTextInset   = 5.0
+	textAreaMinTextSize = 16.0
+)
+
+type textArea struct {
+	control objc.ID
+	scroll  objc.ID
+	text    objc.ID
+	chrome  *inputChrome
+
+	onCancel func()
+}
+
+var (
+	registerTextAreaOnce sync.Once
+	textAreaClass        objc.Class
+	textAreaViewClass    objc.Class
+
+	textAreas     = map[objc.ID]*textArea{} // control -> area
+	textAreaViews = map[objc.ID]*textArea{} // text view -> area
+)
+
+func newTextArea(height float64) *textArea {
+	registerTextAreaOnce.Do(registerTextAreaTargets)
+
+	control := objc.ID(textAreaClass).Send(sel("alloc")).
+		Send(sel("initWithFrame:"), CGRect{Size: CGSize{Width: 0, Height: height}})
+	control.Send(sel("setAccessibilityElement:"), true)
+	control.Send(sel("setAccessibilityRole:"), nsString("AXTextArea"))
+
+	width := textAreaTextSize * 20
+	text := objc.ID(textAreaViewClass).Send(sel("alloc")).
+		Send(sel("initWithFrame:"), CGRect{Size: CGSize{Width: width, Height: height}})
+	text.Send(sel("setRichText:"), false)
+	text.Send(sel("setAllowsUndo:"), true)
+	text.Send(sel("setFont:"), systemFont(textAreaTextSize))
+	text.Send(sel("setDrawsBackground:"), false)
+	text.Send(sel("setHorizontallyResizable:"), false)
+	text.Send(sel("setVerticallyResizable:"), true)
+	text.Send(sel("setTextContainerInset:"), CGSize{Width: textAreaTextInset, Height: textAreaTextInset})
+	if container := text.Send(sel("textContainer")); container != 0 {
+		container.Send(sel("setWidthTracksTextView:"), true)
+		container.Send(sel("setContainerSize:"), CGSize{Width: width, Height: 10000})
+	}
+
+	scroll := objc.ID(class("NSScrollView")).Send(sel("new"))
+	scroll.Send(sel("setHasVerticalScroller:"), true)
+	scroll.Send(sel("setAutohidesScrollers:"), true)
+	scroll.Send(sel("setBorderType:"), int64(0))
+	scroll.Send(sel("setDrawsBackground:"), true)
+	scroll.Send(sel("setBackgroundColor:"), objc.ID(classNSColor).Send(sel("textBackgroundColor")))
+	scroll.Send(sel("setDocumentView:"), text)
+	control.Send(sel("addSubview:"), scroll)
+	scroll.Send(sel("release"))
+	text.Send(sel("release"))
+
+	area := &textArea{control: control, scroll: scroll, text: text}
+	area.chrome = newInputChrome(control, text)
+	area.chrome.radius = 10
+	textAreas[control] = area
+	textAreaViews[text] = area
+	area.layout()
+	return area
+}
+
+func (a *textArea) setFrame(x, y, width, height float64) {
+	setFrame(a.control, x, y, width, height)
+	a.layout()
+}
+
+func (a *textArea) layout() {
+	rect := bounds(a.control)
+	inner := textAreaInset
+	width := rect.Size.Width - 2*inner
+	height := rect.Size.Height - 2*inner
+	if width < 0 {
+		width = 0
+	}
+	if height < textAreaMinTextSize {
+		height = textAreaMinTextSize
+	}
+	setFrame(a.scroll, inner, inner, width, height)
+	clipBounds := bounds(a.scroll.Send(sel("contentView")))
+	textWidth, textHeight := clipBounds.Size.Width, clipBounds.Size.Height
+	if textWidth <= 0 {
+		textWidth = width
+	}
+	if textHeight < textAreaMinTextSize {
+		textHeight = height
+	}
+	a.text.Send(sel("setFrame:"), CGRect{Size: CGSize{Width: textWidth, Height: textHeight}})
+}
+
+func (a *textArea) setString(value string) {
+	a.text.Send(sel("setString:"), nsString(value))
+}
+
+func (a *textArea) stringValue() string {
+	return goString(a.text.Send(sel("string")))
+}
+
+func (a *textArea) setAccessibilityLabel(label string) {
+	a.control.Send(sel("setAccessibilityLabel:"), nsString(label))
+}
+
+func (a *textArea) setCancelHandler(fn func()) { a.onCancel = fn }
+
+func (a *textArea) focus() {
+	window := objc.Send[objc.ID](a.control, sel("window"))
+	if window == 0 {
+		return
+	}
+	window.Send(sel("makeKeyWindow"))
+	window.Send(sel("makeFirstResponder:"), a.text)
+}
+
+func (a *textArea) close() {
+	delete(textAreas, a.control)
+	delete(textAreaViews, a.text)
+	a.chrome.close()
+	a.control.Send(sel("release"))
+	a.control = 0
+	a.scroll = 0
+	a.text = 0
+}
+
+func registerTextAreaTargets() {
+	var err error
+	textAreaClass, err = objc.RegisterClass("EcoPasteTextArea", class("NSView"), nil, nil,
+		[]objc.MethodDef{
+			{Cmd: sel("drawRect:"), Fn: func(self objc.ID, _ objc.SEL, _ CGRect) {
+				drawInputChrome(self)
+			}},
+			{Cmd: sel("acceptsFirstMouse:"), Fn: func(_ objc.ID, _ objc.SEL, _ objc.ID) bool { return true }},
+			{Cmd: sel("mouseDown:"), Fn: func(self objc.ID, _ objc.SEL, _ objc.ID) {
+				if a := textAreas[self]; a != nil {
+					a.focus()
+				}
+			}},
+			{Cmd: sel("updateTrackingAreas"), Fn: func(self objc.ID, _ objc.SEL) {
+				sendSuper[objc.ID](self, textAreaClass, sel("updateTrackingAreas"))
+				area := objc.ID(class("NSTrackingArea")).Send(sel("alloc")).
+					Send(sel("initWithRect:options:owner:userInfo:"), CGRect{}, uint64(1|128|512), self, objc.ID(0))
+				self.Send(sel("addTrackingArea:"), area)
+				area.Send(sel("release"))
+			}},
+			{Cmd: sel("mouseEntered:"), Fn: func(self objc.ID, _ objc.SEL, _ objc.ID) {
+				if c := chromeByView[self]; c != nil {
+					c.setHoverTarget(1)
+				}
+			}},
+			{Cmd: sel("mouseExited:"), Fn: func(self objc.ID, _ objc.SEL, _ objc.ID) {
+				if c := chromeByView[self]; c != nil {
+					c.setHoverTarget(0)
+				}
+			}},
+			{Cmd: sel("viewDidChangeEffectiveAppearance"), Fn: func(self objc.ID, _ objc.SEL) {
+				sendSuper[objc.ID](self, textAreaClass, sel("viewDidChangeEffectiveAppearance"))
+				self.Send(sel("setNeedsDisplay:"), true)
+			}},
+		})
+	if err != nil {
+		panic(err)
+	}
+
+	textAreaViewClass, err = objc.RegisterClass("EcoPasteTextAreaView", class("NSTextView"), nil, nil,
+		[]objc.MethodDef{
+			{Cmd: sel("cancelOperation:"), Fn: func(self objc.ID, _ objc.SEL, _ objc.ID) {
+				if a := textAreaViews[self]; a != nil && a.onCancel != nil {
+					a.onCancel()
+				}
+			}},
+		})
+	if err != nil {
+		panic(err)
+	}
+}
+
+// inputTextColor keeps the single-line field ink in step with the chrome
+// fill: explicit black on the white light field, white on the dark one.
+func inputTextColor(view objc.ID) objc.ID {
+	if appearanceIsDark(view) {
+		return objc.ID(classNSColor).Send(sel("whiteColor"))
+	}
+	return objc.ID(classNSColor).Send(sel("blackColor"))
+}
+
+func applyFieldTextColor(field, view objc.ID) {
+	field.Send(sel("setTextColor:"), inputTextColor(view))
 }

@@ -13,17 +13,17 @@ import (
 // editable control (NSTextField / NSTextView) in an outer view, so focus
 // must be tracked from the inner control and mirrored onto that view.
 //
-// Focus is driven by the NSControl text-editing notifications, which are
-// posted with the inner control as the notification object regardless of
-// whether a delegate is set. That makes the border update reliable for every
-// input that registers its field here, instead of each component wiring its
-// own (and possibly missing) delegate callback.
+// Focus is driven by the AppKit text-editing notifications (NSControl for
+// NSTextField, NSText for NSTextView), which are posted with the inner view
+// as the notification object. That keeps every input's border in step with
+// its field instead of each component wiring its own delegate callback.
 type inputChrome struct {
 	view  objc.ID
 	field objc.ID
 
-	focus transition
-	hover transition
+	focus  transition
+	hover  transition
+	radius float64
 }
 
 var (
@@ -81,10 +81,26 @@ func drawInputChrome(view objc.ID) {
 	// Reflect the real editor state so the border tracks the inner field even
 	// if a transition frame has not landed yet. This keeps focus visible on
 	// every input, independently of the shared transition timer.
-	if c.field != 0 && objc.Send[objc.ID](c.field, sel("currentEditor")) != 0 {
+	if inputFieldFocused(c.field) {
 		focus = 1
 	}
-	drawSettingsInputChrome(view, c.hover.value, focus)
+	drawSettingsInputChrome(view, c.hover.value, focus, c.radius)
+}
+
+// inputFieldFocused reports whether a text field (via its field editor) or a
+// text view is the window's current first responder.
+func inputFieldFocused(field objc.ID) bool {
+	if field == 0 {
+		return false
+	}
+	if objc.Send[bool](field, sel("respondsToSelector:"), sel("currentEditor")) {
+		return objc.Send[objc.ID](field, sel("currentEditor")) != 0
+	}
+	window := objc.Send[objc.ID](field, sel("window"))
+	if window == 0 {
+		return false
+	}
+	return objc.Send[objc.ID](window, sel("firstResponder")) == field
 }
 
 // focusedInputChrome resolves a control-editing notification to its chrome.
@@ -111,8 +127,18 @@ func registerInputChromeObserver() {
 	}
 	observer := objc.ID(observerClass).Send(sel("new"))
 	center := objc.ID(class("NSNotificationCenter")).Send(sel("defaultCenter"))
-	center.Send(sel("addObserver:selector:name:object:"), observer,
-		sel("controlTextDidBeginEditing:"), nsString("NSControlTextDidBeginEditingNotification"), objc.ID(0))
-	center.Send(sel("addObserver:selector:name:object:"), observer,
-		sel("controlTextDidEndEditing:"), nsString("NSControlTextDidEndEditingNotification"), objc.ID(0))
+	for _, name := range []string{
+		"NSControlTextDidBeginEditingNotification",
+		"NSTextDidBeginEditingNotification",
+	} {
+		center.Send(sel("addObserver:selector:name:object:"), observer,
+			sel("controlTextDidBeginEditing:"), nsString(name), objc.ID(0))
+	}
+	for _, name := range []string{
+		"NSControlTextDidEndEditingNotification",
+		"NSTextDidEndEditingNotification",
+	} {
+		center.Send(sel("addObserver:selector:name:object:"), observer,
+			sel("controlTextDidEndEditing:"), nsString(name), objc.ID(0))
+	}
 }

@@ -311,6 +311,10 @@ func (p *Panel) handleCommandKey(key uint16, flags uint64) bool {
 	if row.ID == "" {
 		return false
 	}
+	if action == "editNote" {
+		p.showNotePopover(row.ID)
+		return true
+	}
 	p.cx.Emit(action, row.ID)
 	return true
 }

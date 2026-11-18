@@ -136,7 +136,7 @@ func TestSaveImageWritesChosenFile(t *testing.T) {
 	}
 }
 
-func TestEditNoteNormalizesAndAutoFavorites(t *testing.T) {
+func TestSaveNoteNormalizesAndAutoFavorites(t *testing.T) {
 	model, db := actionModel(t)
 	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
 	if err != nil {
@@ -159,15 +159,9 @@ func TestEditNoteNormalizesAndAutoFavorites(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	editNote = func(string) (string, bool) { return "  a useful note  ", true }
-	t.Cleanup(func() { editNote = macos.EditNote })
 
-	saved, err := model.EditNote(ctx, id)
-	if err != nil {
+	if err := model.SaveNote(ctx, id, "  a useful note  "); err != nil {
 		t.Fatal(err)
-	}
-	if !saved {
-		t.Error("note was not saved")
 	}
 	after, err := db.FindByID(ctx, id)
 	if err != nil {
@@ -184,7 +178,7 @@ func TestEditNoteNormalizesAndAutoFavorites(t *testing.T) {
 	}
 }
 
-func TestEditNoteCancelAndClear(t *testing.T) {
+func TestSaveNoteClears(t *testing.T) {
 	model, db := actionModel(t)
 	ctx := context.Background()
 	note := "existing"
@@ -193,33 +187,11 @@ func TestEditNoteCancelAndClear(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { editNote = macos.EditNote })
 
-	editNote = func(string) (string, bool) { return "", false }
-	saved, err := model.EditNote(ctx, id)
-	if err != nil {
+	if err := model.SaveNote(ctx, id, "   "); err != nil {
 		t.Fatal(err)
-	}
-	if saved {
-		t.Error("cancel reported a save")
 	}
 	found, err := db.FindByID(ctx, id)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if found.Note == nil || *found.Note != note {
-		t.Errorf("cancel changed note: %v", found.Note)
-	}
-
-	editNote = func(string) (string, bool) { return "   ", true }
-	saved, err = model.EditNote(ctx, id)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !saved {
-		t.Error("clear was not saved")
-	}
-	found, err = db.FindByID(ctx, id)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -228,7 +200,7 @@ func TestEditNoteCancelAndClear(t *testing.T) {
 	}
 }
 
-func TestEditNoteLimitsLength(t *testing.T) {
+func TestSaveNoteLimitsLength(t *testing.T) {
 	model, db := actionModel(t)
 	ctx := context.Background()
 	item := &database.Item{Kind: database.KindText, Content: "hello", Platform: "macos"}
@@ -236,9 +208,7 @@ func TestEditNoteLimitsLength(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	editNote = func(string) (string, bool) { return strings.Repeat("备", noteMaxChars+10), true }
-	t.Cleanup(func() { editNote = macos.EditNote })
-	if _, err := model.EditNote(ctx, id); err != nil {
+	if err := model.SaveNote(ctx, id, strings.Repeat("备", noteMaxChars+10)); err != nil {
 		t.Fatal(err)
 	}
 	found, err := db.FindByID(ctx, id)

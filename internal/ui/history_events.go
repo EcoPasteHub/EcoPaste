@@ -15,7 +15,7 @@ var historyRowEvents = map[string]func(*historyPanel, any){
 	"open":           openRow,
 	"reveal":         revealRow,
 	"saveImage":      saveRowImage,
-	"editNote":       editRowNote,
+	"saveNote":       saveRowNote,
 	"moveGroup":      moveRowGroup,
 }
 
@@ -91,22 +91,20 @@ func saveRowImage(p *historyPanel, data any) {
 	}
 }
 
-func editRowNote(p *historyPanel, data any) {
-	id := p.actionID(data)
-	if id == "" || p.model == nil {
+func saveRowNote(p *historyPanel, data any) {
+	payload, ok := data.(macos.NoteSave)
+	if !ok || payload.ID == "" || p.model == nil {
 		return
 	}
 	ctx := p.cx.Context()
 	go func() {
-		saved, err := p.model.EditNote(ctx, id)
+		err := p.model.SaveNote(ctx, payload.ID, payload.Text)
 		p.cx.Post(func() {
 			if err != nil {
 				p.errorText.Set(err.Error())
 				return
 			}
-			if saved {
-				p.reload()
-			}
+			p.reload()
 		})
 	}()
 }

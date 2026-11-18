@@ -277,6 +277,10 @@ func (p *Panel) runHoverAction(index int) {
 	spec := p.hoverSpecs[index]
 	id := p.rows[p.hoverRow].ID
 	p.hideHover()
+	if spec.Event == "editNote" {
+		p.showNotePopover(id)
+		return
+	}
 	p.cx.Emit(spec.Event, id)
 }
 

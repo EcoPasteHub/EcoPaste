@@ -42,7 +42,7 @@
 | D-06 | P0 | 排序 | `settings.clipboard.content.sort` | 置顶优先，再按时间/使用次数 | 已通过 | `TestPagePaginationAndPinnedFirst` |
 | D-07 | P0 | 分页 | `ClipboardItemPage` | `list + total + has_more` | 已通过 | `Page` 返回 total/hasMore |
 | D-08 | P0 | 收藏 | `toggle_item_favorite` | `is_favorite`，不刷新 `updated_at` | 已通过 | `TestMetadataUpdatesKeepUpdatedAt` |
-| D-09 | P1 | 自动收藏 | `autoFavorite` | 写非空备注时联动收藏 | 已通过 | `TestEditNoteNormalizesAndAutoFavorites`；清空备注不触发 |
+| D-09 | P1 | 自动收藏 | `autoFavorite` | 写非空备注时联动收藏 | 已通过 | `TestSaveNoteNormalizesAndAutoFavorites`；清空备注不触发 |
 | D-10 | P0 | 置顶 | `toggle_item_pinned` | `is_pinned`，排序最前 | 已通过 | 排序测试覆盖 |
 | D-11 | P0 | 备注 | `update_item_note` | 更新 note，不刷新 `updated_at` | 已通过 | `SetNote` + `updated_at` 不变测试 |
 | D-12 | P0 | 分组 | `db/groups.rs` | 原生创建、重命名、筛选；保留 schema 的图标/隐藏字段 | 已通过（产品调整） | `TestCreateGroupNormalizesAndSelects`、`TestCreateGroupRejectsEmptyLongAndDuplicateNames`、`TestRenameGroupCancelAndDuplicate`；新建分组改为锚定分类栏「+」按钮的 `NSPopover` 内联输入框（自动聚焦、回车提交、Esc/点击外部取消），不再使用居中模态对话框；重命名/删除仍为以剪贴板面板为基准居中并通过模态 run loop 抬到面板之上的对话框，`TestCenterDialogOrigin*` 覆盖居中和屏幕边界 |
@@ -97,7 +97,7 @@
 | A-12 | P1 | 拖出文件 | `drag_out/macos.rs` | `NSTableView` 拖拽源 + file URL，多文件在 `willBegin` 一次性写入全部 URL | 已通过 | `TestDragOffersFiles`、`TestWriteDragFilesWritesEveryURL`；真机将双文件条目拖入 Finder 目标目录，两个落盘文件均与源文件 SHA-256 一致 |
 | A-13 | P1 | 拖出图片 | `drag_out/macos.rs` | 拖拽源写 `public.png` | 已通过 | `TestDragOffersImageBytes`；真机从面板拖出 128×128 PNG 到 TextEdit，文稿生成原生 `AXAttachment`，图片内容保留 |
 | A-14 | P1 | 拖出文本 | `drag_out/macos.rs` | plain/HTML/RTF 多表示同一 `NSPasteboardItem` | 已通过 | `TestDragOffersRichText`；真机将 HTML 条目拖入 TextEdit，明文与标记一致；辅助功能读取到粗体 Times Bold 与红色前景，证明富文本表示未被纯文本回退替换 |
-| A-15 | P1 | 备注编辑 | `NoteModal` | 原生备注弹窗，256 字符上限 | 已通过 | `TestEditNoteNormalizesAndAutoFavorites`、`TestEditNoteCancelAndClear`、`TestEditNoteLimitsLength`；保存/取消/空值/自动收藏已覆盖；备注弹窗与分组弹窗一致，以剪贴板面板为中心并保持在面板之上，真机 `⌘M` 验证位置、层级与取消 |
+| A-15 | P1 | 备注编辑 | `NoteModal` | 面板侧边 `NSPopover` 内联编辑，256 字符上限 | 已通过 | `TestSaveNoteNormalizesAndAutoFavorites`、`TestSaveNoteClears`、`TestSaveNoteLimitsLength`；保存/取消/空值/自动收藏已覆盖；备注改为多行 Popover：箭头与目标卡片垂直中心对齐，按屏幕空间显示在面板左侧或右侧，含灰色取消与蓝色确定按钮，`⌘M`、右键菜单与悬停动作共用 |
 | A-16 | P1 | 移动到分组 | 右键子菜单 | `NSMenu` 动态分组列表与当前分组勾选 | 已通过 | `TestMoveToGroupAndBackToUngrouped`；真机移动到“工作”后分组筛选仅显示 1 条 |
 | A-17 | P0 | 删除条目 | `delete_clipboard_item` | 删除 DB 行 + 图片文件 | 已通过 | 右键/Delete 按设置确认；`TestDeleteRemovesImageFile`、`TestDeletePolicyHonorsProtectionSettings`；收藏/置顶删除入口按 `deleteFavoriteItems`/`deletePinnedItems`/`deleteFavoriteItemsOnlyInFavoriteGroup` 隐藏，普通/收藏/置顶分别使用独立确认开关 |
 | A-18 | P1 | 自动粘贴 | `Content.auto_paste` | 单击/双击、粘贴/复制、禁用 | 已通过 | `TestClickActionModes`；真机 `singleClickCopy` 单击写入、双击不触发，`doubleClickCopy` 单击不触发、双击写入 |
@@ -111,7 +111,7 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | W-01 | P0 | 剪贴板面板 | `window/macos.rs` | 双 `NSPanel`：顶部分类栏子窗口 + 主面板，均非激活、置顶、透明磨砂 | 迁移中 | 顶部分类栏为独立 `NSPanel`，通过 `addChildWindow:ordered:` 挂在主面板上方，保持 10pt 间距、同宽并随主窗口移动/显示/隐藏；两个窗口各自使用 `NSVisualEffectView` 磨砂与独立圆角，深色外观下面板为通透中灰而非发黑；分类胶囊、筛选菜单、设置、清除历史与固定按钮、卡片式历史列表和失焦隐藏已真机验证；多屏定位、负坐标屏幕、显示器间隙回退到最近屏幕、记忆位置部分越界钳制和“屏幕小于面板”边界由 `TestPanelOrigin*` 覆盖；定位只受屏幕 frame 约束，不再限制在可见工作区（可覆盖菜单栏/Dock 区域），由 `TestPanelOriginAllowsWorkAreaOverlap` 覆盖；当前环境仅单屏，多屏切换仍未真机复核；主面板与顶部分类栏的空白区域支持按住拖动整组窗口，移动在超过 3pt 阈值后开始，阈值内仍按点击处理 |
 | W-02 | P0 | 窗口定位 | `window/position.rs` | 跟随鼠标/居中/记住位置 | 已通过 | 设置“面板打开位置”三档；真机 `osascript` 读取窗口 frame：居中 `654,217`、跟随光标 `300,393`（光标 `300,400`）、记住位置恢复 `654,217`；产品调整：定位仅受屏幕边界限制，取消工作区（`visibleFrame`）约束，面板可贴近或覆盖菜单栏/Dock 区域 |
-| W-03 | P0 | 失焦隐藏 | `window/macos.rs` | 自定义 resign-key 隐藏 + modal/固定窗口期间暂停 | 已通过 | 真机切换 Finder 后隐藏；系统另存/备注弹窗期间保持；固定窗口保持可见；拖拽期间暂停失焦隐藏，拖放被接受后隐藏，取消拖拽保持；`TestShouldHideAfterDrag` 覆盖接受、取消、失 key、失活、固定和抑制分支 |
+| W-03 | P0 | 失焦隐藏 | `window/macos.rs` | 自定义 resign-key 隐藏 + modal/固定窗口期间暂停 | 已通过 | 真机切换 Finder 后隐藏；系统另存/备注 Popover 期间保持；固定窗口保持可见；拖拽期间暂停失焦隐藏，拖放被接受后隐藏，取消拖拽保持；`TestShouldHideAfterDrag` 覆盖接受、取消、失 key、失活、固定和抑制分支 |
 | W-04 | P0 | 固定窗口 | `set_clipboard_window_pinned` | 固定不隐藏；粘贴时 resign/restore key | 已通过 | 原生按钮与 `⌘P` 切换已接，`⌘T` 置顶选中条目；真机固定后失焦、切换 TextEdit 和回车粘贴均保持可见，粘贴时让出 key 并在完成后恢复表格焦点；`TestHistoryKeyAction` 覆盖两档快捷键 |
 | W-05 | P1 | 窗口生命周期 | `window/lifecycle/*` | 原生窗口状态机，无 WebView 重建 | 已通过 | 冷启动不显示面板、全局快捷键显示/隐藏、隐藏后写 `window-state.json` 已实测；快捷键切换改为显式 `Show()`/`Hide()`，避免 Carbon 回调中的窗口命令未刷新；Esc 隐藏已复测；修复退出阶段热键清理阻塞主队列导致进程残留后，应用菜单退出、托盘“重新启动”与托盘“退出 EcoPaste”均真机通过：重启产生新进程，退出在 0.78 秒内结束且无残留 |
 | W-06 | P1 | 窗口几何持久化 | `window/state.rs` | 同 `state/window-state.json` | 已通过（格式调整） | 隐藏时写入 `clipboard` 帧并重启恢复；旧版存物理像素、左上原点，新版存 AppKit points、左下原点，JSON 字段与路径不变；旧坐标不在任一屏幕时回退到光标所在屏幕居中 |
@@ -153,7 +153,7 @@
 
 | ID | 优先级 | 功能 | 现有实现 | NSGo/AppKit 目标 | 状态 | 验证方式 |
 | --- | --- | --- | --- | --- | --- | --- |
-| I-01 | P1 | 前端文案 | `legacy/frontend/src/locales/zh-CN`、`en-US` | Go i18n 目录，复用文案内容 | 已通过 | 剪贴板面板与 14 个设置分类已接入目录：搜索/分类/分组/空状态、右键与悬停动作、备注与分组弹窗、类型/时间摘要、文件摘要、全部设置项/选项/诊断报告、更新入口与结果提示；备份/清除/权限弹窗，以及历史、分组、数据目录、快捷键、来源应用、链接打开、登录项与备份容器错误均已接入；`TestHistoryPresentationFollowsLanguage`、`TestFormatDiagnosticReportInEnglish`、`TestGroupValidationFollowsLanguage`、`TestBackupErrorsFollowLanguage` 覆盖英文 |
+| I-01 | P1 | 前端文案 | `legacy/frontend/src/locales/zh-CN`、`en-US` | Go i18n 目录，复用文案内容 | 已通过 | 剪贴板面板与 14 个设置分类已接入目录：搜索/分类/分组/空状态、右键与悬停动作、备注与分组 Popover/弹窗、类型/时间摘要、文件摘要、全部设置项/选项/诊断报告、更新入口与结果提示；备份/清除/权限弹窗，以及历史、分组、数据目录、快捷键、来源应用、链接打开、登录项与备份容器错误均已接入；`TestHistoryPresentationFollowsLanguage`、`TestFormatDiagnosticReportInEnglish`、`TestGroupValidationFollowsLanguage`、`TestBackupErrorsFollowLanguage` 覆盖英文 |
 | I-02 | P1 | Rust 侧文案 | `src-tauri/src/i18n/` | go-i18n 嵌套 JSON 文案目录 | 已通过 | `internal/i18n` 使用 `github.com/nicksnyder/go-i18n/v2` 加载内嵌 `locales/zh-CN.json`、`locales/en-US.json`，翻译键按功能模块组织为多层 JSON，由 go-i18n 展平为点分隔消息 ID；覆盖托盘、列表右键、清除/删除确认、备份/存储/缓存/数据目录提示、剪贴板面板、设置与权限弹窗，并按 `appearance.language` 选择；缺失文案回退 zh-CN；`TestCatalogFilesUseNestedObjects`、`TestCatalogsShareEveryKey`、`TestMissingTranslationFallsBackToDefault`、`TestSetLanguageSelectsCatalog`、`TestTfFormatsArguments` |
 | I-03 | P1 | 语言切换 | `appearance.language` | 原生菜单/设置切换，原地响应式更新 | 已通过 | 设置“通用”页语言下拉写入 `appearance.language` 后，通过 NSGo Signal 更新语言状态；设置窗口标题、页签、表单标签/选项、面板工具栏/分类/列表行在原地更新，不关闭或重建窗口；真机中英文与跟随系统往返验证，窗口编号保持不变，托盘菜单、面板、设置与清空/备份弹窗文案同步切换；`TestSettingsModelAppliesLanguage` |
 | I-04 | P2 | 系统本地化 | 部分系统菜单 | AppKit 本地化角色项 + 系统语言识别 | 已通过 | `appearance.language=auto` 为默认值，读取 `NSGlobalDomain` 的 `AppleLanguages`（避免 `NSLocale.preferredLanguages` 带入应用级语言覆盖），无法读取时回退 `NSLocale.systemLocale`；匹配 zh-CN/en-US，无法匹配时回退 zh-CN；`internal/menu` 提供“应用/编辑/窗口”原生菜单与角色项，语言切换时重建菜单栏但不重建窗口；`TestResolveLanguageUsesSystemForAuto`、`TestApplicationBuildsLocalizedMenuBar`、`TestApplicationUsesRoleLabels`、`TestApplicationSettingsItem`；真机中英文往返验证关于/设置/隐藏/退出、撤销/重做/剪切/复制/粘贴/全选、最小化/缩放/全屏/关闭均随系统语言更新，设置项可从菜单打开偏好窗口 |

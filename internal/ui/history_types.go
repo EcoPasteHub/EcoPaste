@@ -113,7 +113,7 @@ type HistoryModel interface {
 	Reveal(context.Context, string) error
 	SaveImage(context.Context, string) error
 	Drag(context.Context, string) (macos.DragPayload, error)
-	EditNote(context.Context, string) (bool, error)
+	SaveNote(context.Context, string, string) error
 	Preview(context.Context, string) (HistoryPreview, error)
 	Groups(context.Context) ([]GroupOption, error)
 	CreateGroup(context.Context, string) (*GroupOption, error)

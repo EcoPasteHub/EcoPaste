@@ -18,7 +18,6 @@ var (
 	openFile     = macos.OpenPath
 	revealFiles  = macos.RevealPaths
 	chooseSave   = macos.SavePanel
-	editNote     = macos.EditNote
 )
 
 const noteMaxChars = 256
@@ -86,20 +85,11 @@ func (m *historyModel) SaveImage(ctx context.Context, id string) error {
 	return nil
 }
 
-// EditNote opens the native note editor, normalizes the value and applies
-// auto-favorite when the setting is enabled.
-func (m *historyModel) EditNote(ctx context.Context, id string) (bool, error) {
-	item, err := m.item(ctx, id)
-	if err != nil {
-		return false, err
-	}
-	current := ""
-	if item.Note != nil {
-		current = *item.Note
-	}
-	value, ok := editNote(current)
-	if !ok {
-		return false, nil
+// SaveNote persists a note typed in the panel's inline note popover,
+// normalizes the value and applies auto-favorite when the setting is enabled.
+func (m *historyModel) SaveNote(ctx context.Context, id, value string) error {
+	if _, err := m.item(ctx, id); err != nil {
+		return err
 	}
 	value = strings.TrimSpace(value)
 	var note *string
@@ -110,14 +100,14 @@ func (m *historyModel) EditNote(ctx context.Context, id string) (bool, error) {
 		note = &value
 	}
 	if err := m.runtime.db.SetNote(ctx, id, note); err != nil {
-		return false, err
+		return err
 	}
 	if note != nil && m.clipboardConfig().Content.AutoFavorite {
 		if err := m.runtime.db.MarkFavorite(ctx, id); err != nil {
-			return false, err
+			return err
 		}
 	}
-	return true, nil
+	return nil
 }
 
 func writeAtomic(path string, data []byte) error {

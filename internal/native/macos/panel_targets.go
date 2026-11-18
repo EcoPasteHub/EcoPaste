@@ -12,6 +12,7 @@ func registerPanelTargets() {
 		registerPanelBackdrop,
 		registerPanelObserverClass,
 		registerGroupPopoverClasses,
+		registerNotePopoverClasses,
 	}
 	for _, register := range registrations {
 		if err := register(); err != nil {

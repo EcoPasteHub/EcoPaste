@@ -40,6 +40,16 @@ type Panel struct {
 	groupInput         *textInput
 	groupClosing       bool
 	groupSubmitted     bool
+	notePopover        objc.ID
+	notePopoverView    objc.ID
+	noteController     objc.ID
+	noteTitle          objc.ID
+	noteHint           objc.ID
+	noteArea           *textArea
+	noteSave           objc.ID
+	noteCancel         objc.ID
+	noteClosing        bool
+	noteTargetID       string
 	divider            objc.ID
 	scroll             objc.ID
 	table              objc.ID
@@ -209,6 +219,7 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.buildHoverBar()
 	p.buildShortcutHelp()
 	p.buildNewGroupPopover()
+	p.buildNotePopover()
 
 	panelsBySearch[p.search] = p
 	panelsByControl[p.pin] = p
@@ -350,6 +361,25 @@ func (p *Panel) Close() {
 	}
 	if p.groupPopoverView != 0 {
 		p.groupPopoverView.Send(sel("release"))
+	}
+	if p.notePopover != 0 {
+		delete(panelsByNotePopover, p.notePopover)
+		if noteActivePanel == p {
+			noteActivePanel = nil
+		}
+		p.notePopover.Send(sel("close"))
+		p.notePopover.Send(sel("release"))
+	}
+	if p.noteController != 0 {
+		delete(panelsByNoteController, p.noteController)
+		p.noteController.Send(sel("release"))
+	}
+	if p.noteArea != nil {
+		p.noteArea.close()
+		p.noteArea = nil
+	}
+	if p.notePopoverView != 0 {
+		p.notePopoverView.Send(sel("release"))
 	}
 	if p.previewPopover != 0 {
 		p.previewPopover.Send(sel("release"))

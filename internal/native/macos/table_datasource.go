@@ -28,9 +28,15 @@ func historyTargetMethods() []objc.MethodDef {
 		{Cmd: sel("menuOpen:"), Fn: menuAction("open")},
 		{Cmd: sel("menuReveal:"), Fn: menuAction("reveal")},
 		{Cmd: sel("menuSaveImage:"), Fn: menuAction("saveImage")},
-		{Cmd: sel("menuNote:"), Fn: menuAction("editNote")},
+		{Cmd: sel("menuNote:"), Fn: historyTargetMenuNote},
 		{Cmd: sel("menuMoveGroup:"), Fn: historyTargetMoveGroup},
 		{Cmd: sel("menuDelete:"), Fn: historyTargetDelete},
+	}
+}
+
+func historyTargetMenuNote(_ objc.ID, _ objc.SEL, sender objc.ID) {
+	if p := menuPanel(sender); p != nil {
+		p.showNotePopover(p.selection)
 	}
 }
 
