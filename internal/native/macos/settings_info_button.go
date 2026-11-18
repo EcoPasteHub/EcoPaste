@@ -136,9 +136,10 @@ func (i *settingsInfo) buildPopover() {
 	i.controller = objc.ID(class("NSViewController")).Send(sel("new"))
 	i.controller.Send(sel("setView:"), i.view)
 	i.popover = objc.ID(class("NSPopover")).Send(sel("new"))
-	// Transient lets AppKit dismiss the hint on outside interaction; hover
-	// exit also closes it explicitly.
-	i.popover.Send(sel("setBehavior:"), int64(1))
+	// Hover drives both show and close, so AppKit must not dismiss the
+	// popover on its own (a transient popover can close as soon as it takes
+	// key focus, making the hint appear intermittently).
+	i.popover.Send(sel("setBehavior:"), int64(0))
 	i.popover.Send(sel("setAnimates:"), true)
 	i.popover.Send(sel("setContentViewController:"), i.controller)
 	i.layout()
@@ -167,14 +168,14 @@ func (i *settingsInfo) show() {
 		i.hide()
 		i.layout()
 	}
-	if !objc.Send[bool](i.popover, sel("isShown")) {
-		i.popover.Send(sel("showRelativeToRect:ofView:preferredEdge:"),
-			bounds(i.button), i.button, uint64(settingsInfoPopoverEdge))
-	}
+	// Always (re)anchor the popover. Guarding this on isShown drops hints
+	// when a previous close is still animating and isShown lags behind.
+	i.popover.Send(sel("showRelativeToRect:ofView:preferredEdge:"),
+		bounds(i.button), i.button, uint64(settingsInfoPopoverEdge))
 }
 
 func (i *settingsInfo) hide() {
-	if i.popover != 0 && objc.Send[bool](i.popover, sel("isShown")) {
+	if i.popover != 0 {
 		i.popover.Send(sel("close"))
 	}
 }
