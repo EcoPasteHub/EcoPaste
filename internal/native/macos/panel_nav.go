@@ -55,7 +55,7 @@ var (
 	navsByPlus       = map[objc.ID]*panelNav{}
 	navsByBackground = map[objc.ID]*panelNav{}
 	navsByParentNote = map[objc.ID]*panelNav{}
-	hoveredCapsules  = map[objc.ID]bool{}
+	navCapsuleHovers = map[objc.ID]*transition{}
 )
 
 // panelNav is the top child window of the clipboard panel.
@@ -139,12 +139,14 @@ func registerNavClasses() error {
 				area.Send(sel("release"))
 			}},
 			{Cmd: sel("mouseEntered:"), Fn: func(self objc.ID, _ objc.SEL, _ objc.ID) {
-				hoveredCapsules[self] = true
-				self.Send(sel("setNeedsDisplay:"), true)
+				if hover := navCapsuleHovers[self]; hover != nil {
+					hover.setTarget(1)
+				}
 			}},
 			{Cmd: sel("mouseExited:"), Fn: func(self objc.ID, _ objc.SEL, _ objc.ID) {
-				hoveredCapsules[self] = false
-				self.Send(sel("setNeedsDisplay:"), true)
+				if hover := navCapsuleHovers[self]; hover != nil {
+					hover.setTarget(0)
+				}
 			}},
 			{Cmd: sel("viewDidChangeEffectiveAppearance"), Fn: func(self objc.ID, _ objc.SEL) {
 				sendSuper[objc.ID](self, navCapsuleClass, sel("viewDidChangeEffectiveAppearance"))
@@ -226,6 +228,7 @@ func newPanelNav(p *Panel, parent objc.ID) *panelNav {
 		capsule.Send(sel("setAccessibilityLabel:"), nsString(labels[index]))
 		capsule.Send(sel("setAccessibilityRole:"), nsString("AXButton"))
 		navsByCapsule[capsule] = nav
+		navCapsuleHovers[capsule] = newTransition(func() { capsule.Send(sel("setNeedsDisplay:"), true) })
 		nav.capsules = append(nav.capsules, capsule)
 		nav.surface.Send(sel("addSubview:"), capsule)
 	}
@@ -373,10 +376,14 @@ func (n *panelNav) close() {
 	n.window.Send(sel("close"))
 	for _, capsule := range n.capsules {
 		delete(navsByCapsule, capsule)
-		delete(hoveredCapsules, capsule)
+		if hover := navCapsuleHovers[capsule]; hover != nil {
+			hover.stop()
+			delete(navCapsuleHovers, capsule)
+		}
 		capsule.Send(sel("release"))
 	}
 	delete(navsByPlus, n.plus)
+	discardIconButton(n.plus)
 	n.plus.Send(sel("release"))
 	n.window.Send(sel("release"))
 	n.window = 0
@@ -391,8 +398,14 @@ func drawNavCapsule(self objc.ID, _ objc.SEL, _ CGRect) {
 	capsuleRect := bounds(self)
 	labels := panelNavLabels()
 	selected := index < len(panelNavFilters) && panelNavFilters[index] == nav.selected
-	if selected || hoveredCapsules[self] {
-		fillRoundedRect(capsuleRect, panelNavCapsuleH/2, navCapsuleFill(self, selected))
+	hover := 0.0
+	if state := navCapsuleHovers[self]; state != nil {
+		hover = state.value
+	}
+	if selected {
+		fillRoundedRect(capsuleRect, panelNavCapsuleH/2, navCapsuleFill(self, true))
+	} else if hover > 0.001 {
+		fillRoundedRect(capsuleRect, panelNavCapsuleH/2, fadeColor(navCapsuleFill(self, false), hover))
 	}
 
 	dotRect := CGRect{

@@ -27,7 +27,7 @@ const (
 var (
 	registerSettingsPopupOnce sync.Once
 	settingsPopupClass        objc.Class
-	hoveredSettingsPopups     = map[objc.ID]bool{}
+	settingsPopupHovers       = map[objc.ID]*transition{}
 	suppressedPopupHover      = map[objc.ID]time.Time{}
 )
 
@@ -51,12 +51,14 @@ func registerSettingsPopupClass() {
 						return
 					}
 					delete(suppressedPopupHover, self)
-					hoveredSettingsPopups[self] = true
-					self.Send(sel("setNeedsDisplay:"), true)
+					if hover := settingsPopupHovers[self]; hover != nil {
+						hover.setTarget(1)
+					}
 				}},
 				{Cmd: sel("mouseExited:"), Fn: func(self objc.ID, _ objc.SEL, _ objc.ID) {
-					delete(hoveredSettingsPopups, self)
-					self.Send(sel("setNeedsDisplay:"), true)
+					if hover := settingsPopupHovers[self]; hover != nil {
+						hover.setTarget(0)
+					}
 				}},
 				{Cmd: sel("mouseDown:"), Fn: func(self objc.ID, cmd objc.SEL, event objc.ID) {
 					suppressSettingsPopupHover(self)
@@ -77,6 +79,7 @@ func newSettingsPopup(frame CGRect) objc.ID {
 	registerSettingsPopupClass()
 	control := objc.ID(settingsPopupClass).Send(sel("alloc")).Send(sel("initWithFrame:pullsDown:"), frame, false)
 	control.Send(sel("setFocusRingType:"), int64(1))
+	settingsPopupHovers[control] = newTransition(func() { control.Send(sel("setNeedsDisplay:"), true) })
 	return control
 }
 
@@ -89,10 +92,10 @@ func drawSettingsPopup(self objc.ID, _ objc.SEL, _ CGRect) {
 	}
 	radius := rect.Size.Height / 2
 	fill := settingsPopupFill(self)
-	hovered := hoveredSettingsPopups[self]
+	hover := settingsPopupHoverValue(self)
 
-	if hovered {
-		fillRoundedRect(rect, radius, fill)
+	if hover > 0.001 {
+		fillRoundedRect(rect, radius, fadeColor(fill, hover))
 	}
 
 	text := settingsPopupTitle(self)
@@ -105,8 +108,8 @@ func drawSettingsPopup(self objc.ID, _ objc.SEL, _ CGRect) {
 		Size: CGSize{Width: settingsPopupIconSize, Height: settingsPopupIconSize},
 	}
 	iconPath := objc.ID(class("NSBezierPath")).Send(sel("bezierPathWithOvalInRect:"), iconRect)
-	if !hovered {
-		fill.Send(sel("setFill"))
+	if hover < 0.999 {
+		fadeColor(fill, 1-hover).Send(sel("setFill"))
 		iconPath.Send(sel("fill"))
 	}
 
@@ -207,8 +210,17 @@ func fitSettingsPopupWidth(view objc.ID, width float64) {
 	view.Send(sel("setFrame:"), frame)
 }
 
+func settingsPopupHoverValue(view objc.ID) float64 {
+	if hover := settingsPopupHovers[view]; hover != nil {
+		return hover.value
+	}
+	return 0
+}
+
 func clearSettingsPopupHover(view objc.ID) {
-	delete(hoveredSettingsPopups, view)
+	if hover := settingsPopupHovers[view]; hover != nil {
+		hover.snap(0)
+	}
 	view.Send(sel("setNeedsDisplay:"), true)
 }
 
@@ -218,6 +230,9 @@ func suppressSettingsPopupHover(view objc.ID) {
 }
 
 func discardSettingsPopup(view objc.ID) {
-	delete(hoveredSettingsPopups, view)
+	if hover := settingsPopupHovers[view]; hover != nil {
+		hover.stop()
+		delete(settingsPopupHovers, view)
+	}
 	delete(suppressedPopupHover, view)
 }

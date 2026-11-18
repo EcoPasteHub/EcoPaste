@@ -8,18 +8,22 @@ import (
 	"github.com/ebitengine/purego/objc"
 )
 
+// rowHoverStates keeps one transition per cell view so the hover lift fades
+// instead of snapping. Cells are reused by the table, so entries are cheap.
+var rowHoverStates = map[objc.ID]*transition{}
+
 // drawHistoryRowCard paints the single translucent layer each record
 // gets. The window material stays visible through it, so the list reads
 // as cards on glass instead of another panel inside the window.
 func drawHistoryRowCard(self objc.ID, _ objc.SEL, _ CGRect) {
 	selected := historyRowSelected(self)
-	hovered := historyRowHoveredVal(self)
+	hover := historyRowHoveredVal(self)
 	rect := visibleRowWidth(self)
 	if selected {
 		fillHistoryRowCard(rect, historyRowSelectionColor(), historyRowRadius)
 		return
 	}
-	fillHistoryRowCard(rect, historyRowCardColor(self, hovered), historyRowRadius)
+	fillHistoryRowCard(rect, historyRowCardColor(self, hover), historyRowRadius)
 }
 
 func setHistoryRowSelected(cell objc.ID, selected bool) {
@@ -34,25 +38,23 @@ func historyRowSelected(cell objc.ID) bool {
 	return value != 0 && objc.Send[bool](value, sel("boolValue"))
 }
 
-func historyRowHoveredVal(cell objc.ID) bool {
-	value := objc.ID(objcGetAssociatedObject(uintptr(cell), uintptr(unsafe.Pointer(&associatedRowHoveredKey))))
-	return value != 0 && objc.Send[bool](value, sel("boolValue"))
+func historyRowHoveredVal(cell objc.ID) float64 {
+	if state := rowHoverStates[cell]; state != nil {
+		return state.value
+	}
+	return 0
 }
 
 // historyRowCardColor is a barely-there fill in both appearances: a
 // light lift over the light glass, a faint white veil over the dark one.
-func historyRowCardColor(rowView objc.ID, hovered bool) objc.ID {
+func historyRowCardColor(rowView objc.ID, hover float64) objc.ID {
 	white := objc.ID(classNSColor).Send(sel("whiteColor"))
+	idle, active := 0.24, 0.44
 	if appearanceIsDark(rowView) {
-		if hovered {
-			return white.Send(sel("colorWithAlphaComponent:"), 0.12)
-		}
-		return white.Send(sel("colorWithAlphaComponent:"), 0.06)
+		idle, active = 0.06, 0.12
 	}
-	if hovered {
-		return white.Send(sel("colorWithAlphaComponent:"), 0.44)
-	}
-	return white.Send(sel("colorWithAlphaComponent:"), 0.24)
+	alpha := idle + (active-idle)*hover
+	return white.Send(sel("colorWithAlphaComponent:"), alpha)
 }
 
 // historyRowSelectionColor uses the system's emphasized selection fill
@@ -98,9 +100,27 @@ func visibleRowWidth(view objc.ID) CGRect {
 	return rect
 }
 
-func setHistoryRowHovered(rowView objc.ID, hovered bool) {
-	value := objc.ID(class("NSNumber")).Send(sel("numberWithBool:"), hovered)
-	objcSetAssociatedObject(uintptr(rowView), uintptr(unsafe.Pointer(&associatedRowHoveredKey)),
-		uintptr(value), associationRetainNonatomic)
-	rowView.Send(sel("setNeedsDisplay:"), true)
+func setHistoryRowHovered(view objc.ID, hovered bool) {
+	state := rowHoverStates[view]
+	if state == nil {
+		if !hovered {
+			return
+		}
+		state = newTransition(func() { view.Send(sel("setNeedsDisplay:"), true) })
+		rowHoverStates[view] = state
+	}
+	target := 0.0
+	if hovered {
+		target = 1
+	}
+	state.setTarget(target)
+}
+
+// clearRowHoverStates stops and forgets every row transition, called when the
+// owning panel closes.
+func clearRowHoverStates() {
+	for view, state := range rowHoverStates {
+		state.stop()
+		delete(rowHoverStates, view)
+	}
 }

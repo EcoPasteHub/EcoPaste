@@ -43,11 +43,8 @@ type numberInput struct {
 	editing   bool
 	monitor   objc.ID
 
-	focus       float64
-	focusTarget float64
-	hover       float64
-	hoverTarget float64
-	timer       objc.ID
+	focus transition
+	hover transition
 }
 
 var (
@@ -60,11 +57,10 @@ var (
 	numberTextFieldDelegate      objc.ID
 	numberTextObserver           objc.ID
 
-	numberInputs       = map[objc.ID]*numberInput{}
-	numberTextFields   = map[objc.ID]*numberInput{}
-	numberEditors      = map[objc.ID]*numberInput{}
-	numberInputTimers  = map[objc.ID]*numberInput{}
-	hoveredNumberSteps = map[objc.ID]bool{}
+	numberInputs     = map[objc.ID]*numberInput{}
+	numberTextFields = map[objc.ID]*numberInput{}
+	numberEditors    = map[objc.ID]*numberInput{}
+	numberStepHovers = map[objc.ID]*transition{}
 )
 
 func (v *SettingsView) addNumberInput(content objc.ID, y float64, title i18n.Key, path string, minValue, maxValue, step float64, unit any, get func(SettingsValues) uint32) {
@@ -93,6 +89,8 @@ func (v *SettingsView) addNumberInput(content objc.ID, y float64, title i18n.Key
 		unit:      unit,
 		get:       get,
 	}
+	n.focus.redraw = func() { control.Send(sel("setNeedsDisplay:"), true) }
+	n.hover.redraw = n.focus.redraw
 
 	n.decrease = newNumberStepButton("minus", control, "stepDown:", i18n.Tf(i18n.SettingsNumberDecrease, numberInputTitle(title, unit)))
 	control.Send(sel("addSubview:"), n.decrease)
@@ -141,6 +139,7 @@ func newNumberStepButton(symbol string, target objc.ID, action, accessibility st
 	button.Send(sel("setAction:"), sel(action))
 	button.Send(sel("setToolTip:"), nsString(accessibility))
 	button.Send(sel("setAccessibilityLabel:"), nsString(accessibility))
+	numberStepHovers[button] = newTransition(func() { button.Send(sel("setNeedsDisplay:"), true) })
 	return button
 }
 
@@ -157,7 +156,8 @@ func (v *SettingsView) applyNumberInputs(values SettingsValues) {
 func (v *SettingsView) closeNumberInputs() {
 	for _, n := range v.numberInputs {
 		n.removeBlurMonitor()
-		n.stopAnimation()
+		n.focus.stop()
+		n.hover.stop()
 		delete(numberInputs, n.control)
 		delete(numberTextFields, n.field)
 		for editor, owner := range numberEditors {
@@ -165,10 +165,17 @@ func (v *SettingsView) closeNumberInputs() {
 				delete(numberEditors, editor)
 			}
 		}
-		delete(hoveredNumberSteps, n.decrease)
-		delete(hoveredNumberSteps, n.increase)
+		discardNumberStepButton(n.decrease)
+		discardNumberStepButton(n.increase)
 	}
 	v.numberInputs = nil
+}
+
+func discardNumberStepButton(button objc.ID) {
+	if hover := numberStepHovers[button]; hover != nil {
+		hover.stop()
+		delete(numberStepHovers, button)
+	}
 }
 
 func numberInputTitle(title i18n.Key, unit any) string {
@@ -405,50 +412,11 @@ func (n *numberInput) emit() {
 }
 
 func (n *numberInput) setFocusTarget(target float64) {
-	if n.focusTarget == target {
-		return
-	}
-	n.focusTarget = target
-	n.startAnimation()
+	n.focus.setTarget(target)
 }
 
 func (n *numberInput) setHoverTarget(target float64) {
-	if n.hoverTarget == target {
-		return
-	}
-	n.hoverTarget = target
-	n.startAnimation()
-}
-
-func (n *numberInput) startAnimation() {
-	if n.timer != 0 {
-		return
-	}
-	n.timer = objc.ID(class("NSTimer")).Send(sel("scheduledTimerWithTimeInterval:target:selector:userInfo:repeats:"),
-		1.0/60.0, n.control, sel("numberInputTick:"), objc.ID(0), true)
-	numberInputTimers[n.timer] = n
-}
-
-func (n *numberInput) advanceAnimation() {
-	n.focus = shortcutApproach(n.focus, n.focusTarget)
-	n.hover = shortcutApproach(n.hover, n.hoverTarget)
-	n.control.Send(sel("setNeedsDisplay:"), true)
-	if math.Abs(n.focus-n.focusTarget) > 0.001 || math.Abs(n.hover-n.hoverTarget) > 0.001 {
-		return
-	}
-	n.focus = n.focusTarget
-	n.hover = n.hoverTarget
-	n.control.Send(sel("setNeedsDisplay:"), true)
-	n.stopAnimation()
-}
-
-func (n *numberInput) stopAnimation() {
-	if n.timer == 0 {
-		return
-	}
-	n.timer.Send(sel("invalidate"))
-	delete(numberInputTimers, n.timer)
-	n.timer = 0
+	n.hover.setTarget(target)
 }
 
 func registerNumberInputTargets() {
@@ -485,11 +453,6 @@ func registerNumberInputTargets() {
 			{Cmd: sel("viewDidChangeEffectiveAppearance"), Fn: func(self objc.ID, _ objc.SEL) {
 				sendSuper[objc.ID](self, numberInputClass, sel("viewDidChangeEffectiveAppearance"))
 				self.Send(sel("setNeedsDisplay:"), true)
-			}},
-			{Cmd: sel("numberInputTick:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
-				if n := numberInputTimers[sender]; n != nil {
-					n.advanceAnimation()
-				}
 			}},
 			{Cmd: sel("stepDown:"), Fn: func(self objc.ID, _ objc.SEL, _ objc.ID) {
 				if n := numberInputs[self]; n != nil {
@@ -591,12 +554,14 @@ func registerNumberInputTargets() {
 				area.Send(sel("release"))
 			}},
 			{Cmd: sel("mouseEntered:"), Fn: func(self objc.ID, _ objc.SEL, _ objc.ID) {
-				hoveredNumberSteps[self] = true
-				self.Send(sel("setNeedsDisplay:"), true)
+				if hover := numberStepHovers[self]; hover != nil {
+					hover.setTarget(1)
+				}
 			}},
 			{Cmd: sel("mouseExited:"), Fn: func(self objc.ID, _ objc.SEL, _ objc.ID) {
-				delete(hoveredNumberSteps, self)
-				self.Send(sel("setNeedsDisplay:"), true)
+				if hover := numberStepHovers[self]; hover != nil {
+					hover.setTarget(0)
+				}
 			}},
 			{Cmd: sel("viewDidChangeEffectiveAppearance"), Fn: func(self objc.ID, _ objc.SEL) {
 				sendSuper[objc.ID](self, numberStepButtonClass, sel("viewDidChangeEffectiveAppearance"))
@@ -622,20 +587,28 @@ func drawNumberInput(self objc.ID, _ objc.SEL, _ CGRect) {
 	if n == nil {
 		return
 	}
-	drawSettingsInputChrome(self, n.hover, n.focus)
+	drawSettingsInputChrome(self, n.hover.value, n.focus.value)
 }
 
 func drawNumberStepButton(self objc.ID, _ objc.SEL, _ CGRect) {
 	enabled := objc.Send[bool](self, sel("isEnabled"))
 	pressed := objc.Send[bool](self, sel("isHighlighted"))
-	if enabled && (hoveredNumberSteps[self] || pressed) {
+	hover := 0.0
+	if state := numberStepHovers[self]; state != nil {
+		hover = state.value
+	}
+	if enabled && (hover > 0.001 || pressed) {
 		rect := bounds(self)
 		radius := rect.Size.Width / 2
 		fill := objc.ID(classNSColor).Send(sel("quaternaryLabelColor"))
 		if pressed {
 			fill = objc.ID(classNSColor).Send(sel("tertiaryLabelColor"))
 		}
-		fillRoundedRect(rect, radius, fill)
+		fraction := hover
+		if pressed {
+			fraction = 1
+		}
+		fillRoundedRect(rect, radius, fadeColor(fill, fraction))
 	}
 	sendSuper[objc.ID](self, numberStepButtonClass, sel("drawRect:"))
 }

@@ -7,8 +7,8 @@ import "github.com/ebitengine/purego/objc"
 const iconButtonRadius = 6.0
 
 var (
-	iconButtonClass    objc.Class
-	hoveredIconButtons = map[objc.ID]bool{}
+	iconButtonClass  objc.Class
+	iconButtonHovers = map[objc.ID]*transition{}
 )
 
 // registerIconButtonClass installs the shared hover treatment used by the
@@ -27,12 +27,14 @@ func registerIconButtonClass() error {
 				area.Send(sel("release"))
 			}},
 			{Cmd: sel("mouseEntered:"), Fn: func(self objc.ID, _ objc.SEL, _ objc.ID) {
-				hoveredIconButtons[self] = true
-				self.Send(sel("setNeedsDisplay:"), true)
+				if hover := iconButtonHovers[self]; hover != nil {
+					hover.setTarget(1)
+				}
 			}},
 			{Cmd: sel("mouseExited:"), Fn: func(self objc.ID, _ objc.SEL, _ objc.ID) {
-				delete(hoveredIconButtons, self)
-				self.Send(sel("setNeedsDisplay:"), true)
+				if hover := iconButtonHovers[self]; hover != nil {
+					hover.setTarget(0)
+				}
 			}},
 			{Cmd: sel("viewDidChangeEffectiveAppearance"), Fn: func(self objc.ID, _ objc.SEL) {
 				sendSuper[objc.ID](self, iconButtonClass, sel("viewDidChangeEffectiveAppearance"))
@@ -43,13 +45,33 @@ func registerIconButtonClass() error {
 }
 
 func newIconButton() objc.ID {
-	return objc.ID(iconButtonClass).Send(sel("alloc")).Send(sel("initWithFrame:"), CGRect{})
+	button := objc.ID(iconButtonClass).Send(sel("alloc")).Send(sel("initWithFrame:"), CGRect{})
+	iconButtonHovers[button] = newTransition(func() { button.Send(sel("setNeedsDisplay:"), true) })
+	return button
+}
+
+// discardIconButton releases the hover transition when the button is torn
+// down, so the shared driver keeps no reference to a dead view.
+func discardIconButton(button objc.ID) {
+	if hover := iconButtonHovers[button]; hover != nil {
+		hover.stop()
+		delete(iconButtonHovers, button)
+	}
 }
 
 func drawIconButton(self objc.ID, _ objc.SEL, _ CGRect) {
 	pressed := objc.Send[bool](self, sel("isHighlighted"))
-	if hoveredIconButtons[self] || pressed {
-		fillRoundedRect(iconButtonBackgroundRect(self), iconButtonRadius, iconButtonFill(pressed))
+	hover := 0.0
+	if state := iconButtonHovers[self]; state != nil {
+		hover = state.value
+	}
+	if hover > 0.001 || pressed {
+		fraction := hover
+		if pressed {
+			fraction = 1
+		}
+		fillRoundedRect(iconButtonBackgroundRect(self), iconButtonRadius,
+			fadeColor(iconButtonFill(pressed), fraction))
 	}
 	sendSuper[objc.ID](self, iconButtonClass, sel("drawRect:"))
 }

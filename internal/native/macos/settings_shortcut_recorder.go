@@ -3,7 +3,6 @@
 package macos
 
 import (
-	"math"
 	"sync"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
@@ -33,11 +32,8 @@ type shortcutRecorder struct {
 	attempted  bool
 	monitor    objc.ID
 
-	focus       float64
-	focusTarget float64
-	hover       float64
-	hoverTarget float64
-	timer       objc.ID
+	focus transition
+	hover transition
 }
 
 var (
@@ -45,7 +41,6 @@ var (
 	shortcutRecorderClass        objc.Class
 	shortcutRecorders            = map[objc.ID]*shortcutRecorder{}
 	shortcutDeleteButtons        = map[objc.ID]*shortcutRecorder{}
-	shortcutRecorderTimers       = map[objc.ID]*shortcutRecorder{}
 )
 
 func (v *SettingsView) addShortcutField(content objc.ID, y float64, title i18n.Key, path string, get func(SettingsValues) string) {
@@ -71,6 +66,8 @@ func (v *SettingsView) addShortcutField(content objc.ID, y float64, title i18n.K
 		control: control,
 		get:     get,
 	}
+	recorder.focus.redraw = func() { control.Send(sel("setNeedsDisplay:"), true) }
+	recorder.hover.redraw = recorder.focus.redraw
 	shortcutRecorders[control] = recorder
 	recorder.delete = newShortcutDeleteButton(recorder)
 	control.Send(sel("addSubview:"), recorder.delete)
@@ -338,58 +335,11 @@ func shortcutModifierMask() uint64 {
 }
 
 func (r *shortcutRecorder) setFocusTarget(target float64) {
-	if r.focusTarget == target {
-		return
-	}
-	r.focusTarget = target
-	r.startAnimation()
+	r.focus.setTarget(target)
 }
 
 func (r *shortcutRecorder) setHoverTarget(target float64) {
-	if r.hoverTarget == target {
-		return
-	}
-	r.hoverTarget = target
-	r.startAnimation()
-}
-
-func (r *shortcutRecorder) startAnimation() {
-	if r.timer != 0 {
-		return
-	}
-	r.timer = objc.ID(class("NSTimer")).Send(sel("scheduledTimerWithTimeInterval:target:selector:userInfo:repeats:"),
-		1.0/60.0, settingsTarget, sel("shortcutRecorderTick:"), objc.ID(0), true)
-	shortcutRecorderTimers[r.timer] = r
-}
-
-func (r *shortcutRecorder) advanceAnimation() {
-	r.focus = shortcutApproach(r.focus, r.focusTarget)
-	r.hover = shortcutApproach(r.hover, r.hoverTarget)
-	r.control.Send(sel("setNeedsDisplay:"), true)
-	if math.Abs(r.focus-r.focusTarget) > 0.001 || math.Abs(r.hover-r.hoverTarget) > 0.001 {
-		return
-	}
-	r.focus = r.focusTarget
-	r.hover = r.hoverTarget
-	r.control.Send(sel("setNeedsDisplay:"), true)
-	r.stopAnimation()
-}
-
-func shortcutApproach(current, target float64) float64 {
-	delta := target - current
-	if math.Abs(delta) < 0.02 {
-		return target
-	}
-	return current + delta*0.28
-}
-
-func (r *shortcutRecorder) stopAnimation() {
-	if r.timer == 0 {
-		return
-	}
-	r.timer.Send(sel("invalidate"))
-	delete(shortcutRecorderTimers, r.timer)
-	r.timer = 0
+	r.hover.setTarget(target)
 }
 
 func (r *shortcutRecorder) close() {
@@ -398,7 +348,8 @@ func (r *shortcutRecorder) close() {
 		r.removeBlurMonitor()
 		r.owner.cx.Emit("suspendShortcuts", false)
 	}
-	r.stopAnimation()
+	r.focus.stop()
+	r.hover.stop()
 }
 
 func (v *SettingsView) closeShortcutRecorders() {
@@ -529,7 +480,7 @@ func drawShortcutRecorder(self objc.ID, _ objc.SEL, _ CGRect) {
 	if recorder == nil {
 		return
 	}
-	drawSettingsInputChrome(self, recorder.hover, recorder.focus)
+	drawSettingsInputChrome(self, recorder.hover.value, recorder.focus.value)
 	rect := bounds(self)
 	rect.Size.Width -= 1
 	rect.Size.Height -= 1

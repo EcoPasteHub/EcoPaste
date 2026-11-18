@@ -302,10 +302,15 @@ func (p *Panel) Close() {
 	delete(panelsByControl, p.shortcutButton)
 	for _, button := range p.hoverButtons {
 		delete(panelsByControl, button)
+		discardIconButton(button)
+	}
+	for _, button := range []objc.ID{p.pin, p.filterButton, p.settingsButton, p.clearButton, p.shortcutButton} {
+		discardIconButton(button)
 	}
 	if p.hoverBar != 0 {
 		delete(panelsByControl, p.hoverBar)
 	}
+	clearRowHoverStates()
 	delete(panelsByView, p.view)
 	delete(panelsByTable, p.table)
 	delete(panelsByPreviewView, p.preview)

@@ -247,10 +247,6 @@ func (p *Panel) applyHoveredRow(row int, hovered bool) {
 	if row < 0 || row >= len(p.rows) {
 		return
 	}
-	rowView := p.table.Send(sel("rowViewAtRow:makeIfNecessary:"), int64(row), false)
-	if rowView != 0 {
-		setHistoryRowHovered(rowView, hovered)
-	}
 	inset := 0.0
 	if hovered && row == p.hoverRow && p.hoverBarWidth > 0 {
 		inset = p.hoverBarWidth + 14

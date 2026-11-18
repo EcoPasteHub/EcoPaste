@@ -34,6 +34,7 @@ type settingsInfo struct {
 	label      objc.ID
 	key        i18n.Key
 	text       string
+	hover      transition
 }
 
 var (
@@ -55,13 +56,13 @@ func registerSettingsInfoTargets() {
 			}},
 			{Cmd: sel("mouseEntered:"), Fn: func(self objc.ID, _ objc.SEL, _ objc.ID) {
 				if info := settingsInfos[self]; info != nil {
-					self.Send(sel("setContentTintColor:"), objc.ID(classNSColor).Send(sel("controlAccentColor")))
+					info.hover.setTarget(1)
 					info.show()
 				}
 			}},
 			{Cmd: sel("mouseExited:"), Fn: func(self objc.ID, _ objc.SEL, _ objc.ID) {
 				if info := settingsInfos[self]; info != nil {
-					self.Send(sel("setContentTintColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
+					info.hover.setTarget(0)
 					info.hide()
 				}
 			}},
@@ -84,6 +85,11 @@ func (v *SettingsView) newSettingsInfoButton(key i18n.Key) objc.ID {
 	button.Send(sel("setContentTintColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
 
 	info := &settingsInfo{button: button, key: key}
+	info.hover.redraw = func() {
+		secondary := objc.ID(classNSColor).Send(sel("secondaryLabelColor"))
+		accent := objc.ID(classNSColor).Send(sel("controlAccentColor"))
+		button.Send(sel("setContentTintColor:"), blendColors(secondary, accent, info.hover.value))
+	}
 	info.buildPopover()
 	settingsInfos[button] = info
 	v.infoButtons = append(v.infoButtons, button)
@@ -181,6 +187,7 @@ func (i *settingsInfo) hide() {
 }
 
 func (i *settingsInfo) close() {
+	i.hover.stop()
 	i.hide()
 	if i.popover != 0 {
 		i.popover.Send(sel("release"))

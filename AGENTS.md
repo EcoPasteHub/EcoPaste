@@ -189,7 +189,17 @@ internal/onboarding/       # 权限与旧版导入
 - 自定义视图必须提供 `accessibilityLabel`、`accessibilityRole`、`accessibilityHelp`。
 - 改 UI 后必须实际操作主路径和边界，不能只靠编译通过。
 
-### 3.5 NSGo 能力不足时
+### 3.5 交互状态过渡（Transition）
+
+- 所有具有 Hover、Focus、Active 等交互状态的自定义控件，状态切换必须使用统一的 Transition 过渡，不允许直接跳变颜色、背景或描边。
+- 唯一实现为 `internal/native/macos/transition.go`：`transition` 值在 `0..1` 之间按共享曲线逼近目标，`transitionFrameInterval`、`transitionEasing`、`transitionSnap` 等常量集中定义，任何人不得在组件内另写缓动函数或独立帧计时器。
+- 颜色过渡统一用 `blendColors`（语义色之间插值）或 `fadeColor`（按透明度淡入淡出），不要硬编码中间色值。
+- 新增自定义 Hover 状态的步骤：`newTransition(redraw)`（`redraw` 内调用 `setNeedsDisplay:`）；`mouseEntered:` 里 `setTarget(1)`；`mouseExited:` 里 `setTarget(0)`；视图销毁时调用 `stop()` 释放引用。需要立即切换时用 `snap`，不要另设定时器。
+- 使用 AppKit 原生控件（`NSSwitch`、`NSSegmentedControl`、`NSButton` 等）时沿用系统自带的动画，不要重复实现；只有自定义绘制的交互区域才需要接入统一 Transition。
+- 下拉菜单的选项列表由原生 `NSMenu` 负责，不自行实现；折叠状态的 `Select` / `NSPopUpButton` 交互区域必须接入统一 Transition。
+- 过渡应自然、轻量，避免可感知的延迟或生硬切换，符合 macOS 原生交互体验；新增或修改交互控件时必须核对是否遗漏过渡。
+
+### 3.6 NSGo 能力不足时
 
 - 在 `internal/native/macos/` 增加窄桥接，不在 `internal/ui/` 里堆平台细节。
 - 桥接层只暴露业务需要的最小接口；不要让业务代码直接依赖 `core.Native` 的 props/命令细节。

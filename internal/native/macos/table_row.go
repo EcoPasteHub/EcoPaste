@@ -35,7 +35,6 @@ var (
 	historyRowClass     objc.Class
 	historyRowViewClass objc.Class
 
-	associatedRowHoveredKey  byte
 	associatedRowSelectedKey byte
 
 	historyRowViewsOnce sync.Once

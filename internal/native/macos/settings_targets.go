@@ -40,19 +40,12 @@ func settingsTargetMethods() []objc.MethodDef {
 		{Cmd: sel("openIssuesPressed:"), Fn: settingsOpenIssuesPressed},
 		{Cmd: sel("resetSettingsPressed:"), Fn: settingsResetPressed},
 		{Cmd: sel("shortcutDeletePressed:"), Fn: settingsShortcutDeletePressed},
-		{Cmd: sel("shortcutRecorderTick:"), Fn: settingsShortcutRecorderTick},
 	}
 }
 
 func settingsShortcutDeletePressed(_ objc.ID, _ objc.SEL, sender objc.ID) {
 	if recorder := shortcutDeleteButtons[sender]; recorder != nil {
 		recorder.clear()
-	}
-}
-
-func settingsShortcutRecorderTick(_ objc.ID, _ objc.SEL, sender objc.ID) {
-	if recorder := shortcutRecorderTimers[sender]; recorder != nil {
-		recorder.advanceAnimation()
 	}
 }
 
