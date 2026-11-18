@@ -55,17 +55,16 @@ func (v *SettingsView) buildAdvancedPage() {
 		func(s SettingsValues) uint32 { return s.CleanupIntervalHours })
 	top = cardTop + 3*settingsRowHeight + settingsGroupGap
 
-	_, cardTop = v.addSectionCard(document, top, i18n.SettingsHistorySensitive, 2)
+	_, cardTop = v.addSectionCardInfo(document, top, i18n.SettingsHistorySensitive, i18n.SettingsHistoryHint, 2)
 	v.addSwitch(document, settingsRowTop(cardTop, 0), i18n.SettingsCollectSecrets, "sensitive.collectSecrets",
 		func(s SettingsValues) bool { return s.CollectSecrets })
 	v.addSwitch(document, settingsRowTop(cardTop, 1), i18n.SettingsRedactSecrets, "sensitive.redactSecrets",
 		func(s SettingsValues) bool { return s.RedactSecrets })
-	top = cardTop + 2*settingsRowHeight
-	top = v.addPageHint(document, top+8, 32, i18n.SettingsHistoryHint) + 18
+	top = cardTop + 2*settingsRowHeight + settingsGroupGap
 
 	top = v.buildHoverActions(document, top)
 
-	_, cardTop = v.addSectionCard(document, top, i18n.SettingsDeletionConfirmations, 6)
+	_, cardTop = v.addSectionCardInfo(document, top, i18n.SettingsDeletionConfirmations, i18n.SettingsDeletionIntro, 6)
 	v.addSwitch(document, settingsRowTop(cardTop, 0), i18n.SettingsDeleteConfirm, "content.deleteConfirm",
 		func(s SettingsValues) bool { return s.DeleteConfirm })
 	v.addSwitch(document, settingsRowTop(cardTop, 1), i18n.SettingsDeleteFavoriteConfirm, "content.deleteFavoriteConfirm",
@@ -88,8 +87,9 @@ func (v *SettingsView) buildAdvancedPage() {
 func (v *SettingsView) buildCapturePriorities(document objc.ID, top float64) float64 {
 	registerSettingsCaptureOnce.Do(registerSettingsCaptureTargets)
 	v.addSectionLabel(document, top, i18n.SettingsCaptureOrder)
+	v.addInfoAfterText(document, settingsContentX+4, top+8, i18n.SettingsCaptureOrder,
+		settingsSectionFont(), i18n.SettingsCaptureHint)
 	top += 24
-	top = v.addPageHint(document, top, 18, i18n.SettingsCaptureHint)
 
 	const listHeight = 112.0
 	card := CGRect{Origin: CGPoint{X: settingsContentX, Y: top},
@@ -112,8 +112,9 @@ func (v *SettingsView) buildCapturePriorities(document objc.ID, top float64) flo
 func (v *SettingsView) buildHoverActions(document objc.ID, top float64) float64 {
 	registerSettingsActionsOnce.Do(registerSettingsActionsTargets)
 	v.addSectionLabel(document, top, i18n.SettingsHoverActions)
+	v.addInfoAfterText(document, settingsContentX+4, top+8, i18n.SettingsHoverActions,
+		settingsSectionFont(), i18n.SettingsHoverIntro)
 	top += 24
-	top = v.addPageParagraph(document, top, 32, i18n.SettingsHoverIntro)
 
 	const listHeight = 300.0
 	card := CGRect{Origin: CGPoint{X: settingsContentX, Y: top},
@@ -193,6 +194,8 @@ func (v *SettingsView) buildStorageSection(document objc.ID, top float64) float6
 
 func (v *SettingsView) buildPermissionsSection(document objc.ID, top float64) float64 {
 	v.addSectionLabel(document, top, i18n.SettingsPermissionsSystem)
+	v.addInfoAfterText(document, settingsContentX+4, top+8, i18n.SettingsPermissionsSystem,
+		settingsSectionFont(), i18n.SettingsPermissionsIntro)
 	cardTop := top + 24
 	addSettingsListCard(document, CGRect{Origin: CGPoint{X: settingsContentX, Y: cardTop},
 		Size: CGSize{Width: settingsContentWidth, Height: 2 * settingsPermissionRowHeight}})
@@ -203,8 +206,7 @@ func (v *SettingsView) buildPermissionsSection(document objc.ID, top float64) fl
 	v.fullDiskStatus = v.addPermission(document, cardTop+settingsPermissionRowHeight,
 		i18n.SettingsFullDisk, i18n.SettingsFullDiskDetail,
 		"fullDiskAccessPermissionPressed:")
-	top = cardTop + 2*settingsPermissionRowHeight
-	top = v.addPageHint(document, top+8, 24, i18n.SettingsPermissionsIntro) + 18
+	top = cardTop + 2*settingsPermissionRowHeight + settingsGroupGap
 
 	v.addSectionLabel(document, top, i18n.SettingsDiagnostics)
 	top += 24

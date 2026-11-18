@@ -221,35 +221,6 @@ func (v *SettingsView) addLabelText(content objc.ID, y, width float64, text func
 	return label
 }
 
-func (v *SettingsView) addHint(content objc.ID, y, height float64, text i18n.Key) {
-	hint := objc.ID(classNSTextField).Send(sel("wrappingLabelWithString:"), nsString(i18n.T(text)))
-	hint.Send(sel("setFont:"), systemFont(11))
-	hint.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
-	hint.Send(sel("setPreferredMaxLayoutWidth:"), settingsContentWidth-2*settingsRowInset)
-	hint.Send(sel("setFrame:"), CGRect{
-		Origin: CGPoint{X: settingsContentX + settingsRowInset, Y: y},
-		Size:   CGSize{Width: settingsContentWidth - 2*settingsRowInset, Height: height},
-	})
-	content.Send(sel("addSubview:"), hint)
-	v.bindString(hint, text)
-}
-
-// addParagraph lays out a wrapped settings description with explicit typography.
-func (v *SettingsView) addParagraph(content objc.ID, frame CGRect, text string, size float64, color objc.ID, maxLines int64, key i18n.Key) {
-	paragraph := objc.ID(classNSTextField).Send(sel("wrappingLabelWithString:"), nsString(text))
-	paragraph.Send(sel("setFont:"), systemFont(size))
-	paragraph.Send(sel("setTextColor:"), color)
-	paragraph.Send(sel("setPreferredMaxLayoutWidth:"), frame.Size.Width)
-	if maxLines > 0 {
-		paragraph.Send(sel("setMaximumNumberOfLines:"), maxLines)
-	}
-	paragraph.Send(sel("setFrame:"), frame)
-	content.Send(sel("addSubview:"), paragraph)
-	if key != "" {
-		v.bindString(paragraph, key)
-	}
-}
-
 func (v *SettingsView) addField(content, control objc.ID, field *settingsField) {
 	tag := int64(len(v.fields) + 1)
 	control.Send(sel("setTag:"), tag)

@@ -7,10 +7,10 @@ import (
 	"github.com/ebitengine/purego/objc"
 )
 
-const settingsPermissionRowHeight = 60.0
+const settingsPermissionRowHeight = 44.0
 
 func (v *SettingsView) addPermission(content objc.ID, y float64, titleKey, detailKey i18n.Key, action string) objc.ID {
-	title, detail := i18n.T(titleKey), i18n.T(detailKey)
+	title := i18n.T(titleKey)
 	const (
 		buttonWidth = 132.0
 		statusWidth = 60.0
@@ -18,34 +18,26 @@ func (v *SettingsView) addPermission(content objc.ID, y float64, titleKey, detai
 	)
 	buttonX := settingsContentX + settingsContentWidth - settingsRowInset - buttonWidth
 	statusX := buttonX - controlGap - statusWidth
-	detailWidth := statusX - (settingsContentX + settingsRowInset) - controlGap
+	titleWidth := statusX - (settingsContentX + settingsRowInset) - controlGap
+	centerY := y + settingsPermissionRowHeight/2
 
 	titleLabel := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(title))
 	titleLabel.Send(sel("setFont:"), systemFont(13))
 	titleLabel.Send(sel("setLineBreakMode:"), int64(4))
 	titleLabel.Send(sel("setFrame:"), CGRect{
-		Origin: CGPoint{X: settingsContentX + settingsRowInset, Y: y + 7},
-		Size:   CGSize{Width: detailWidth, Height: 18},
+		Origin: CGPoint{X: settingsContentX + settingsRowInset, Y: centerY - 9},
+		Size:   CGSize{Width: titleWidth, Height: 18},
 	})
 	content.Send(sel("addSubview:"), titleLabel)
 	v.bindString(titleLabel, titleKey)
-	detailLabel := objc.ID(classNSTextField).Send(sel("wrappingLabelWithString:"), nsString(detail))
-	detailLabel.Send(sel("setFont:"), systemFont(11))
-	detailLabel.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
-	detailLabel.Send(sel("setMaximumNumberOfLines:"), int64(2))
-	detailLabel.Send(sel("setPreferredMaxLayoutWidth:"), detailWidth)
-	detailLabel.Send(sel("setFrame:"), CGRect{
-		Origin: CGPoint{X: settingsContentX + settingsRowInset, Y: y + 29},
-		Size:   CGSize{Width: detailWidth, Height: 28},
-	})
-	content.Send(sel("addSubview:"), detailLabel)
-	v.bindString(detailLabel, detailKey)
+	v.addInfoAfterText(content, settingsContentX+settingsRowInset, centerY,
+		titleKey, systemFont(13), detailKey)
 
 	status := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(i18n.SettingsChecking)))
 	status.Send(sel("setFont:"), systemFont(11))
 	status.Send(sel("setAlignment:"), int64(2))
 	status.Send(sel("setFrame:"), CGRect{
-		Origin: CGPoint{X: statusX, Y: y + 22},
+		Origin: CGPoint{X: statusX, Y: centerY - 9},
 		Size:   CGSize{Width: statusWidth, Height: 18},
 	})
 	content.Send(sel("addSubview:"), status)
@@ -53,7 +45,7 @@ func (v *SettingsView) addPermission(content objc.ID, y float64, titleKey, detai
 	button := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
 		nsString(i18n.T(i18n.SettingsOpenSystemSettings)), settingsTarget, sel(action))
 	button.Send(sel("setFrame:"), CGRect{
-		Origin: CGPoint{X: buttonX, Y: y + 16},
+		Origin: CGPoint{X: buttonX, Y: y + (settingsPermissionRowHeight-28)/2},
 		Size:   CGSize{Width: buttonWidth, Height: 28},
 	})
 	button.Send(sel("setAccessibilityLabel:"), nsString(i18n.Tf(i18n.SettingsOpenSystemSettingsA11y, title)))

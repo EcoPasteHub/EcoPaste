@@ -497,6 +497,9 @@
       "sensitive": "Sensitive Content",
       "sensitiveHint": "When capture is off, detected passwords and keys are not saved; redaction only changes the list and preview."
     },
+    "info": {
+      "a11y": "Show help"
+    },
     "interaction": {
       "autoFavorite": "Favorite Items With a Note",
       "content": "Content Handling",

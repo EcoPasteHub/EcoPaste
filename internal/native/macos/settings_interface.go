@@ -22,7 +22,7 @@ func (v *SettingsView) buildInterfacePage() {
 		func(s SettingsValues) uint32 { return s.FileMaxCount })
 	top = cardTop + 3*settingsRowHeight + settingsGroupGap
 
-	_, cardTop = v.addSectionCard(document, top, i18n.SettingsWindowOpen, 4)
+	_, cardTop = v.addSectionCardInfo(document, top, i18n.SettingsWindowOpen, i18n.SettingsWindowHint, 4)
 	v.addSwitch(document, settingsRowTop(cardTop, 0), i18n.SettingsScrollTop, "window.scrollToTopOnOpen",
 		func(s SettingsValues) bool { return s.ScrollToTopOnOpen })
 	v.addPopup(document, settingsRowTop(cardTop, 1), i18n.SettingsSelectRange, "window.selectRangeOnOpen",
@@ -47,8 +47,7 @@ func (v *SettingsView) buildInterfacePage() {
 			{Key: i18n.SettingsAllGroups, Value: "all"},
 		},
 		func(s SettingsValues) string { return s.GroupOnOpen })
-	top = cardTop + 4*settingsRowHeight
-	top = v.addPageHint(document, top+8, 30, i18n.SettingsWindowHint) + 18
+	top = cardTop + 4*settingsRowHeight + settingsGroupGap
 
 	_, cardTop = v.addSectionCard(document, top, i18n.SettingsWindowSearch, 2)
 	v.addSwitch(document, settingsRowTop(cardTop, 0), i18n.SettingsSearchFocus, "search.defaultFocus",
@@ -57,7 +56,7 @@ func (v *SettingsView) buildInterfacePage() {
 		func(s SettingsValues) bool { return s.SearchClear })
 	top = cardTop + 2*settingsRowHeight + settingsGroupGap
 
-	_, cardTop = v.addSectionCard(document, top, i18n.SettingsInteractionMouse, 7)
+	_, cardTop = v.addSectionCardInfo(document, top, i18n.SettingsInteractionMouse, i18n.SettingsInteractionIntro, 7)
 	v.addPopup(document, settingsRowTop(cardTop, 0), i18n.SettingsMouseLeft, "content.autoPaste",
 		[]settingsOption{
 			{Key: i18n.SettingsDisabled, Value: "disabled"},

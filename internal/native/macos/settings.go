@@ -122,6 +122,7 @@ type SettingsView struct {
 	extraExcluded       []string
 	shortcutRecorders   []*shortcutRecorder
 	numberInputs        []*numberInput
+	infoButtons         []objc.ID
 	lastValues          SettingsValues
 	fields              []*settingsField
 	currentTab          string
@@ -495,6 +496,7 @@ func (v *SettingsView) Close() {
 	}
 	v.closeShortcutRecorders()
 	v.closeNumberInputs()
+	v.closeSettingsInfoButtons()
 	delete(settingsViews, v.change)
 	v.view.Send(sel("release"))
 }

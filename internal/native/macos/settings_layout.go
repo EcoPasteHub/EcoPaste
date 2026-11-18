@@ -95,7 +95,16 @@ func registerSettingsLayoutTargets() {
 // addSectionCard places a section title and its rounded settings card.
 // It returns the card's top edge in the flipped document.
 func (v *SettingsView) addSectionCard(document objc.ID, top float64, title i18n.Key, rows int) (objc.ID, float64) {
+	return v.addSectionCardInfo(document, top, title, "", rows)
+}
+
+// addSectionCardInfo is addSectionCard with an optional "?" hint next to the
+// section title, for descriptions that explain a whole group.
+func (v *SettingsView) addSectionCardInfo(document objc.ID, top float64, title, info i18n.Key, rows int) (objc.ID, float64) {
 	v.addSectionLabel(document, top, title)
+	if info != "" {
+		v.addInfoAfterText(document, settingsContentX+4, top+8, title, settingsSectionFont(), info)
+	}
 	cardTop := top + 24
 	height := float64(rows) * settingsRowHeight
 	card := objc.ID(classNSBox).Send(sel("new"))
@@ -138,18 +147,6 @@ func (v *SettingsView) addCardSeparatorOffset(document objc.ID, cardTop, offset 
 
 func settingsRowTop(cardTop float64, row int) float64 {
 	return cardTop + float64(row)*settingsRowHeight
-}
-
-func (v *SettingsView) addPageParagraph(document objc.ID, top, height float64, text i18n.Key) float64 {
-	v.addParagraph(document,
-		CGRect{Origin: CGPoint{X: settingsContentX + 4, Y: top}, Size: CGSize{Width: settingsContentWidth - 8, Height: height}},
-		i18n.T(text), 11, objc.ID(classNSColor).Send(sel("secondaryLabelColor")), 0, text)
-	return top + height + 12
-}
-
-func (v *SettingsView) addPageHint(document objc.ID, top, height float64, text i18n.Key) float64 {
-	v.addHint(document, top, height, text)
-	return top + height + 10
 }
 
 func (v *SettingsView) addPageButton(document objc.ID, x, y, width, height float64, title i18n.Key, action string, help i18n.Key) objc.ID {

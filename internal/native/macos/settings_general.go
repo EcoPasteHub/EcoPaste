@@ -16,8 +16,14 @@ func (v *SettingsView) buildGeneralPage() {
 		func(s SettingsValues) bool { return s.AutoStart })
 	v.addShortcutField(document, settingsRowTop(cardTop, 1), i18n.SettingsOpenClipboard, "shortcuts.openClipboard",
 		func(s SettingsValues) string { return s.OpenClipboardShortcut })
+	v.addInfoAfterText(document, settingsContentX+settingsRowInset,
+		settingsRowTop(cardTop, 1)+settingsRowHeight/2, i18n.SettingsOpenClipboard,
+		systemFont(13), i18n.SettingsShortcutRule)
 	v.addShortcutField(document, settingsRowTop(cardTop, 2), i18n.SettingsOpenPreference, "shortcuts.openPreference",
 		func(s SettingsValues) string { return s.OpenPreferenceShortcut })
+	v.addInfoAfterText(document, settingsContentX+settingsRowInset,
+		settingsRowTop(cardTop, 2)+settingsRowHeight/2, i18n.SettingsOpenPreference,
+		systemFont(13), i18n.SettingsShortcutRule)
 	top = cardTop + 3*settingsRowHeight + settingsGroupGap
 
 	_, cardTop = v.addSectionCard(document, top, i18n.SettingsAppearanceGroup, 3)
@@ -62,13 +68,16 @@ func (v *SettingsView) buildGeneralPage() {
 		func(s SettingsValues) string { return s.WindowPosition })
 	top = cardTop + 5*settingsRowHeight + settingsGroupGap
 
-	top = v.addPageHint(document, top, 32, i18n.SettingsShortcutRule)
 	v.finishPage(document, top)
+}
+
+func settingsSectionFont() objc.ID {
+	return objc.ID(classNSFont).Send(sel("systemFontOfSize:weight:"), 11.0, 0.3)
 }
 
 func (v *SettingsView) addSectionLabel(content objc.ID, y float64, title i18n.Key) {
 	label := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(title)))
-	label.Send(sel("setFont:"), objc.ID(classNSFont).Send(sel("systemFontOfSize:weight:"), 11.0, 0.3))
+	label.Send(sel("setFont:"), settingsSectionFont())
 	label.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
 	label.Send(sel("setFrame:"), CGRect{
 		Origin: CGPoint{X: settingsContentX + 4, Y: y},

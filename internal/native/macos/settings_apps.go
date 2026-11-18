@@ -31,8 +31,9 @@ func (v *SettingsView) buildAppsPage() {
 	document := v.newPage("apps")
 	top := 18.0
 	v.addSectionLabel(document, top, i18n.SettingsAppsSection)
+	v.addInfoAfterText(document, settingsContentX+4, top+8, i18n.SettingsAppsSection,
+		settingsSectionFont(), i18n.SettingsAppsIntro)
 	top += 24
-	top = v.addPageParagraph(document, top, 32, i18n.SettingsAppsIntro)
 
 	const listHeight = 300.0
 	card := CGRect{

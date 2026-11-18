@@ -497,6 +497,9 @@
       "sensitive": "敏感内容",
       "sensitiveHint": "关闭“收录敏感内容”后，检测到的密码和密钥不会写入历史；脱敏只改变列表与预览的显示。"
     },
+    "info": {
+      "a11y": "显示说明"
+    },
     "interaction": {
       "autoFavorite": "有备注时自动收藏",
       "content": "内容处理",

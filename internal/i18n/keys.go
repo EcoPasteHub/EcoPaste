@@ -321,6 +321,7 @@ const (
 	SettingsRefreshA11y = Key("settings.apps.refreshA11y")
 	SettingsIgnoreApp   = Key("settings.apps.ignore")
 
+	SettingsInfoA11y          = Key("settings.info.a11y")
 	SettingsOpenClipboard     = Key("settings.shortcuts.openClipboard")
 	SettingsOpenPreference    = Key("settings.shortcuts.openPreference")
 	SettingsShortcutRule      = Key("settings.shortcuts.rule")
