@@ -26,11 +26,12 @@ type PanelPlacement struct {
 
 const panelScreenMargin = 8.0
 
-// ScreenBounds is one screen's frame and its visible part, in the global
-// bottom-left coordinate space.
+// ScreenBounds is one screen's full frame in the global bottom-left
+// coordinate space. The visible frame is deliberately ignored so the
+// panel may open over the menu bar or Dock instead of being kept inside
+// the work area.
 type ScreenBounds struct {
-	Frame   CGRect
-	Visible CGRect
+	Frame CGRect
 }
 
 // panelPlacement keeps where the clipboard panel opens. It is not
@@ -117,18 +118,18 @@ func panelOrigin(mode string, size CGSize, mouse CGPoint, screens []ScreenBounds
 		if saved != nil {
 			frame := CGRect{Origin: *saved, Size: size}
 			if remembered, found := screenForRect(frame, screens); found {
-				return clampOrigin(*saved, size, remembered.Visible)
+				return clampOrigin(*saved, size, remembered.Frame)
 			}
 		}
 		fallthrough
 	case "center":
-		visible := screen.Visible
+		bounds := screen.Frame
 		return clampOrigin(CGPoint{
-			X: visible.Origin.X + (visible.Size.Width-size.Width)/2,
-			Y: visible.Origin.Y + (visible.Size.Height-size.Height)/2,
-		}, size, visible)
+			X: bounds.Origin.X + (bounds.Size.Width-size.Width)/2,
+			Y: bounds.Origin.Y + (bounds.Size.Height-size.Height)/2,
+		}, size, bounds)
 	default:
-		return clampOrigin(CGPoint{X: mouse.X, Y: mouse.Y - size.Height}, size, screen.Visible)
+		return clampOrigin(CGPoint{X: mouse.X, Y: mouse.Y - size.Height}, size, screen.Frame)
 	}
 }
 
@@ -195,11 +196,11 @@ func pointDistance(point CGPoint, rect CGRect) float64 {
 	return dx*dx + dy*dy
 }
 
-func clampOrigin(origin CGPoint, size CGSize, visible CGRect) CGPoint {
-	minX := visible.Origin.X + panelScreenMargin
-	minY := visible.Origin.Y + panelScreenMargin
-	maxX := max(minX, visible.Origin.X+visible.Size.Width-size.Width-panelScreenMargin)
-	maxY := max(minY, visible.Origin.Y+visible.Size.Height-size.Height-panelScreenMargin)
+func clampOrigin(origin CGPoint, size CGSize, bounds CGRect) CGPoint {
+	minX := bounds.Origin.X + panelScreenMargin
+	minY := bounds.Origin.Y + panelScreenMargin
+	maxX := max(minX, bounds.Origin.X+bounds.Size.Width-size.Width-panelScreenMargin)
+	maxY := max(minY, bounds.Origin.Y+bounds.Size.Height-size.Height-panelScreenMargin)
 	x := min(max(origin.X, minX), maxX)
 	y := min(max(origin.Y, minY), maxY)
 	return CGPoint{X: x, Y: y}
@@ -214,7 +215,7 @@ func centerDialogOrigin(size CGSize, panel PanelFrame, screens []ScreenBounds) C
 	}
 	center := CGPoint{X: panel.X + panel.Width/2, Y: panel.Y + panel.Height/2}
 	if screen, ok := screenForPoint(center, screens); ok {
-		return clampOrigin(origin, size, screen.Visible)
+		return clampOrigin(origin, size, screen.Frame)
 	}
 	return origin
 }
@@ -230,8 +231,7 @@ func screensBounds() []ScreenBounds {
 	for i := range count {
 		screen := screens.Send(sel("objectAtIndex:"), int64(i))
 		bounds = append(bounds, ScreenBounds{
-			Frame:   objc.Send[CGRect](screen, sel("frame")),
-			Visible: objc.Send[CGRect](screen, sel("visibleFrame")),
+			Frame: objc.Send[CGRect](screen, sel("frame")),
 		})
 	}
 	return bounds
