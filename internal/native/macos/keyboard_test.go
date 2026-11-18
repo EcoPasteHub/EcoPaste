@@ -36,18 +36,22 @@ func TestHistoryKeyAction(t *testing.T) {
 		{name: "option space falls through", key: keySpace, flags: alternateModifier, row: image, handled: false},
 		{name: "escape hides", key: keyEscape, row: text, action: "hide", handled: true},
 		{name: "delete removes", key: keyDelete, row: text, action: "delete", handled: true},
+		{name: "forward delete removes", key: keyForwardDelete, flags: functionModifier | numericPadModifier, row: text, action: "delete", handled: true},
 		{name: "home selects first", key: keyHome, row: text, action: "firstRow", handled: true},
 		{name: "end selects last", key: keyEnd, row: text, action: "lastRow", handled: true},
 		{name: "page up moves up", key: keyPageUp, row: text, action: "pageUp", handled: true},
 		{name: "page down moves down", key: keyPageDown, row: text, action: "pageDown", handled: true},
-		{name: "fn up pages up", key: keyUpArrow, flags: functionModifier, row: text, action: "pageUp", handled: true},
-		{name: "fn down pages down", key: keyDownArrow, flags: functionModifier, row: text, action: "pageDown", handled: true},
-		{name: "fn left selects first", key: keyLeftArrow, flags: functionModifier, row: text, action: "firstRow", handled: true},
-		{name: "fn right selects last", key: keyRightArrow, flags: functionModifier, row: text, action: "lastRow", handled: true},
-		{name: "command up selects first", key: keyUpArrow, flags: commandModifier, row: text, action: "firstRow", handled: true},
-		{name: "command down selects last", key: keyDownArrow, flags: commandModifier, row: text, action: "lastRow", handled: true},
-		{name: "plain up falls through", key: keyUpArrow, row: text, handled: false},
-		{name: "command home falls through", key: keyHome, flags: commandModifier, row: text, handled: false},
+		// AppKit reports Function|NumericPad for every arrow/navigation key,
+		// so these cases use the real modifier flags a keyDown carries.
+		{name: "plain up moves one row", key: keyUpArrow, flags: functionModifier | numericPadModifier, row: text, action: "previousRow", handled: true},
+		{name: "plain down moves one row", key: keyDownArrow, flags: functionModifier | numericPadModifier, row: text, action: "nextRow", handled: true},
+		{name: "plain left falls through", key: keyLeftArrow, flags: functionModifier | numericPadModifier, row: text, handled: false},
+		{name: "plain right falls through", key: keyRightArrow, flags: functionModifier | numericPadModifier, row: text, handled: false},
+		{name: "plain up without nav flags moves one row", key: keyUpArrow, row: text, action: "previousRow", handled: true},
+		{name: "shift up falls through", key: keyUpArrow, flags: shiftModifier | functionModifier | numericPadModifier, row: text, handled: false},
+		{name: "command up selects first", key: keyUpArrow, flags: commandModifier | functionModifier | numericPadModifier, row: text, action: "firstRow", handled: true},
+		{name: "command down selects last", key: keyDownArrow, flags: commandModifier | functionModifier | numericPadModifier, row: text, action: "lastRow", handled: true},
+		{name: "command home falls through", key: keyHome, flags: commandModifier | functionModifier | numericPadModifier, row: text, handled: false},
 		{name: "command C copies", key: keyC, flags: commandModifier, row: text, action: "copy", handled: true},
 		{name: "option command C copies plain text", key: keyC, flags: commandModifier | alternateModifier, row: text, action: "copyPlain", handled: true},
 		{name: "option command C falls back for images", key: keyC, flags: commandModifier | alternateModifier, row: image, action: "copy", handled: true},
@@ -62,6 +66,36 @@ func TestHistoryKeyAction(t *testing.T) {
 			action, handled := historyKeyAction(tc.key, tc.flags, tc.row, true)
 			if action != tc.action || handled != tc.handled {
 				t.Errorf("historyKeyAction() = %q, %v; want %q, %v", action, handled, tc.action, tc.handled)
+			}
+		})
+	}
+}
+
+// TestNavigationIgnoresSyntheticFlags locks in the fix for arrow navigation:
+// AppKit reports Function and NumericPad for arrow/navigation keys, and the
+// panel must not read those bits as user-held modifiers.
+func TestNavigationIgnoresSyntheticFlags(t *testing.T) {
+	nav := functionModifier | numericPadModifier
+	cases := []struct {
+		name   string
+		key    uint16
+		flags  uint64
+		action string
+	}{
+		{"plain up steps back one row", keyUpArrow, nav, "previousRow"},
+		{"plain down steps forward one row", keyDownArrow, nav, "nextRow"},
+		{"plain left is left to AppKit", keyLeftArrow, nav, ""},
+		{"plain right is left to AppKit", keyRightArrow, nav, ""},
+		{"command up selects first row", keyUpArrow, commandModifier | nav, "firstRow"},
+		{"command down selects last row", keyDownArrow, commandModifier | nav, "lastRow"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			action, handled := historyKeyAction(tc.key, tc.flags, HistoryRow{Kind: "text"}, true)
+			wantHandled := tc.action != ""
+			if action != tc.action || handled != wantHandled {
+				t.Errorf("historyKeyAction(%d, %#x) = %q, %v; want %q, %v",
+					tc.key, tc.flags, action, handled, tc.action, wantHandled)
 			}
 		})
 	}

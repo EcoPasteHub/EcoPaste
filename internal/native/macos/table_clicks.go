@@ -106,39 +106,37 @@ func historyTableKeyDown(self objc.ID, _ objc.SEL, event objc.ID) {
 	}
 	key := objc.Send[uint16](event, sel("keyCode"))
 	flags := uint64(objc.Send[uint](event, sel("modifierFlags")))
+	// Match the legacy active item: fall back to the first row when the
+	// user has not selected anything yet, so Return/Copy act on the top item.
+	index := p.selectedIndex()
+	if index < 0 && len(p.rows) > 0 {
+		index = 0
+	}
 	row := HistoryRow{}
-	for _, candidate := range p.rows {
-		if candidate.ID == p.selection {
-			row = candidate
-			break
-		}
+	if index >= 0 && index < len(p.rows) {
+		row = p.rows[index]
 	}
 	action, handled := historyKeyAction(key, flags, row, p.behavior.SpacePreview)
+	target := p.selection
+	if target == "" {
+		target = row.ID
+	}
 	switch {
 	case !handled:
 		sendSuper[objc.ID](self, historyTableClass, sel("keyDown:"), event)
 	case action == "focusSearch":
 		p.focusSearch()
-	case action == "firstRow":
-		p.selectRow(0)
-	case action == "lastRow":
-		p.selectRow(len(p.rows) - 1)
-	case action == "pageUp" || action == "pageDown":
-		current := p.selectedIndex()
-		if current < 0 {
-			current = 0
-		}
-		delta := p.pageSize()
-		if action == "pageUp" {
-			delta = -delta
-		}
-		p.selectRow(current + delta)
+	case action == "firstRow", action == "lastRow", action == "pageUp",
+		action == "pageDown", action == "previousRow", action == "nextRow":
+		p.applyNavigation(action)
 	case action == "delete":
-		if row.CanDelete && (!row.DeleteConfirm || confirmDelete()) {
+		// Deletion stays tied to an explicit selection so an empty list
+		// focus never removes the first item by accident.
+		if p.selection != "" && row.CanDelete && (!row.DeleteConfirm || confirmDelete()) {
 			p.cx.Emit("delete", p.selection)
 		}
 	default:
-		p.cx.Emit(action, p.selection)
+		p.cx.Emit(action, target)
 	}
 }
 

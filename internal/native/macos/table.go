@@ -296,27 +296,32 @@ func (p *Panel) handleCommandKey(key uint16, flags uint64) bool {
 		return true
 	}
 	action, handled := historyKeyAction(key, flags, row, p.behavior.SpacePreview)
-	switch action {
-	case "toggleFavorite", "editNote", "open", "reveal", "newGroup", "pastePlain", "activate":
-	default:
-		return false
-	}
 	if !handled {
 		return false
 	}
-	if action == "newGroup" {
+	switch action {
+	case "toggleWindowPinned":
+		// Window pin is not tied to a row, so it works even on an empty list.
+		p.cx.Emit("toggleWindowPinned", nil)
+		return true
+	case "newGroup":
 		p.showNewGroupPopover(p.newGroupAnchor())
 		return true
-	}
-	if row.ID == "" {
-		return false
-	}
-	if action == "editNote" {
+	case "editNote":
+		if row.ID == "" {
+			return false
+		}
 		p.showNotePopover(row.ID)
 		return true
+	case "toggleFavorite", "togglePinned", "open", "reveal", "pastePlain", "activate":
+		if row.ID == "" {
+			return false
+		}
+		p.cx.Emit(action, row.ID)
+		return true
+	default:
+		return false
 	}
-	p.cx.Emit(action, row.ID)
-	return true
 }
 
 // activeIndex prefers the selected row and falls back to the first one,
@@ -343,11 +348,12 @@ func symbolImage(kind string) objc.ID {
 }
 
 const (
-	shiftModifier     uint64 = 1 << 17
-	controlModifier   uint64 = 1 << 18
-	alternateModifier uint64 = 1 << 19
-	commandModifier   uint64 = 1 << 20
-	functionModifier  uint64 = 1 << 23
+	shiftModifier      uint64 = 1 << 17
+	controlModifier    uint64 = 1 << 18
+	alternateModifier  uint64 = 1 << 19
+	commandModifier    uint64 = 1 << 20
+	numericPadModifier uint64 = 1 << 21
+	functionModifier   uint64 = 1 << 23
 )
 
 func systemSymbol(name string) objc.ID {

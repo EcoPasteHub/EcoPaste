@@ -59,7 +59,7 @@ func itemCommandKeyAction(key uint16, flags uint64, row HistoryRow) (string, boo
 }
 
 func editKeyAction(key uint16, flags uint64, spacePreview bool) (string, bool) {
-	unmodified := flags&(shiftModifier|controlModifier|alternateModifier|commandModifier) == 0
+	unmodified := userModifiers(flags) == 0
 	switch {
 	case key == keySpace && unmodified && spacePreview:
 		return "preview", true
@@ -71,23 +71,28 @@ func editKeyAction(key uint16, flags uint64, spacePreview bool) (string, bool) {
 	return "", false
 }
 
+// navigationKeyAction maps the navigation keys while ignoring the Function
+// and NumericPad flags AppKit attaches to every arrow and navigation key.
+// Treating those synthetic flags as real modifiers made plain Up/Down look
+// like page keys and plain Left/Right jump to the ends of the list.
 func navigationKeyAction(key uint16, flags uint64) (string, bool) {
 	commandOnly := commandShortcut(flags)
-	function := flags&functionModifier != 0
-	unmodified := flags&(shiftModifier|controlModifier|alternateModifier|commandModifier) == 0
+	unmodified := userModifiers(flags) == 0
 	switch {
 	case key == keyHome && unmodified ||
-		key == keyLeftArrow && function && unmodified ||
 		key == keyUpArrow && commandOnly:
 		return "firstRow", true
 	case key == keyEnd && unmodified ||
-		key == keyRightArrow && function && unmodified ||
 		key == keyDownArrow && commandOnly:
 		return "lastRow", true
-	case (key == keyPageUp || key == keyUpArrow && function) && unmodified:
+	case key == keyPageUp && unmodified:
 		return "pageUp", true
-	case (key == keyPageDown || key == keyDownArrow && function) && unmodified:
+	case key == keyPageDown && unmodified:
 		return "pageDown", true
+	case key == keyUpArrow && unmodified:
+		return "previousRow", true
+	case key == keyDownArrow && unmodified:
+		return "nextRow", true
 	}
 	return "", false
 }
@@ -140,9 +145,16 @@ func commandDigitIndex(key uint16) (int, bool) {
 	return 0, false
 }
 
+// userModifiers returns the modifiers a person is actually holding. AppKit
+// reports the Function and NumericPad bits for arrow and navigation keys,
+// so they must be masked out before a key is matched against a shortcut.
+func userModifiers(flags uint64) uint64 {
+	return flags & (shiftModifier | controlModifier | alternateModifier | commandModifier)
+}
+
 // commandShortcut reports whether Command is the only modifier pressed.
 func commandShortcut(flags uint64) bool {
-	return flags&(shiftModifier|controlModifier|alternateModifier|functionModifier|commandModifier) == commandModifier
+	return userModifiers(flags) == commandModifier
 }
 
 // rowOpenable reports whether Command-O has a target: URLs, email

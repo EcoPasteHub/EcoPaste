@@ -484,6 +484,75 @@ func (p *Panel) selectRow(index int) {
 	p.table.Send(sel("scrollRowToVisible:"), int64(index))
 }
 
+// selectRowClamped keeps a computed target inside the list instead of
+// silently doing nothing at the edges, so Page Up/Down and single-step
+// movement stop on the first or last row.
+func (p *Panel) selectRowClamped(index int) {
+	if len(p.rows) == 0 {
+		return
+	}
+	if index < 0 {
+		index = 0
+	}
+	if index >= len(p.rows) {
+		index = len(p.rows) - 1
+	}
+	p.selectRow(index)
+}
+
+// nextRowIndex returns the row reached by moving delta rows from current,
+// clamped to the list bounds. With nothing selected it activates the first
+// row, matching the legacy active item.
+func nextRowIndex(current, delta, count int) int {
+	if count <= 0 {
+		return -1
+	}
+	if current < 0 {
+		return 0
+	}
+	next := current + delta
+	if next < 0 {
+		return 0
+	}
+	if next >= count {
+		return count - 1
+	}
+	return next
+}
+
+// moveSelection moves one row, clamping to the list bounds.
+func (p *Panel) moveSelection(delta int) {
+	if len(p.rows) == 0 {
+		return
+	}
+	p.selectRow(nextRowIndex(p.selectedIndex(), delta, len(p.rows)))
+}
+
+// applyNavigation performs a navigation action shared by the table key
+// handler and the preview event monitor.
+func (p *Panel) applyNavigation(action string) {
+	switch action {
+	case "firstRow":
+		p.selectRowClamped(0)
+	case "lastRow":
+		p.selectRowClamped(len(p.rows) - 1)
+	case "pageUp", "pageDown":
+		current := p.selectedIndex()
+		if current < 0 {
+			current = 0
+		}
+		delta := p.pageSize()
+		if action == "pageUp" {
+			delta = -delta
+		}
+		p.selectRowClamped(current + delta)
+	case "previousRow":
+		p.moveSelection(-1)
+	case "nextRow":
+		p.moveSelection(1)
+	}
+}
+
 func (p *Panel) selectedIndex() int {
 	for index, row := range p.rows {
 		if row.ID == p.selection {

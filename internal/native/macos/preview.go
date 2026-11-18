@@ -283,6 +283,9 @@ func (p *Panel) handlePreviewKey(key uint16, flags uint64) bool {
 	case "focusSearch":
 		p.cx.Emit("hidePreview", nil)
 		p.focusSearch()
+	case "firstRow", "lastRow", "pageUp", "pageDown", "previousRow", "nextRow":
+		p.cx.Emit("hidePreview", nil)
+		p.applyNavigation(action)
 	case "delete":
 		if row.CanDelete && (!row.DeleteConfirm || confirmDelete()) {
 			p.cx.Emit("hidePreview", nil)
