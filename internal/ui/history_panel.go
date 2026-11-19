@@ -197,6 +197,9 @@ func (p *historyPanel) load(keyword, activeFilter, groupID string, appendRows bo
 			p.total.Set(page.Total)
 			p.hasMore.Set(page.HasMore)
 			p.loading.Set(false)
+			// Apply a pending "select first" intent even when the rows did not
+			// change, so switching views always starts at the top.
+			p.ref.Command("applyPendingSelection", nil)
 			if p.scrollTop.Load() {
 				p.scrollTop.Store(false)
 				p.ref.Command("scrollTop", nil)
@@ -304,6 +307,7 @@ func (p *historyPanel) handleListEvent(name string, data any) bool {
 		}
 		if opening.ScrollTop {
 			p.scrollTop.Store(true)
+			p.ref.Command("selectFirstOnOpen", nil)
 			changed = true
 		}
 		if changed {

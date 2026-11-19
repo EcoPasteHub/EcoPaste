@@ -90,6 +90,7 @@ type Panel struct {
 	loading            bool
 	errText            string
 	selection          string
+	selectionIntent    selectionIntent
 	pendingClick       string
 	previewing         bool
 	filterValue        string
@@ -299,7 +300,10 @@ func newToolbarButton(symbol, action string, label i18n.Key, tinted bool) objc.I
 
 func (p *Panel) clearSearch() {
 	p.search.Send(sel("setStringValue:"), nsString(""))
-	p.query = ""
+	if p.query != "" {
+		p.query = ""
+		p.markSelectionFirst()
+	}
 }
 
 // Close implements core.NativeComponent.
@@ -460,28 +464,92 @@ func (p *Panel) updateStatus() {
 	layoutPanel(p, frame.Size.Width, frame.Size.Height)
 }
 
-func (p *Panel) restoreSelection() {
-	if p.selection == "" {
-		return
+// selectionIntent tells the next list update how to place the selection.
+type selectionIntent uint8
+
+const (
+	// selectionKeep preserves the current row, or the row that took its
+	// position when it is gone (deleting a row selects the next one).
+	selectionKeep selectionIntent = iota
+	// selectionFirst always selects the top row (switching groups, categories
+	// or searches, and returning to the top on open).
+	selectionFirst
+)
+
+// selectionIndex chooses the row to select once the list is replaced. rows is
+// the new list, currentID the id selected before the change and previousIndex
+// its old position (-1 when nothing was selected). The list always keeps one
+// row selected when it is not empty.
+func selectionIndex(rows []HistoryRow, currentID string, previousIndex int, intent selectionIntent) int {
+	if len(rows) == 0 {
+		return -1
 	}
-	for i, row := range p.rows {
-		if row.ID == p.selection {
-			indexes := objc.ID(class("NSIndexSet")).Send(sel("indexSetWithIndex:"), int64(i))
-			p.table.Send(sel("selectRowIndexes:byExtendingSelection:"), indexes, false)
-			return
+	if intent == selectionFirst {
+		return 0
+	}
+	for index, row := range rows {
+		if row.ID == currentID {
+			return index
 		}
 	}
-	p.selection = ""
+	if previousIndex < 0 {
+		return 0
+	}
+	if previousIndex >= len(rows) {
+		return len(rows) - 1
+	}
+	return previousIndex
 }
 
-func (p *Panel) selectRow(index int) {
+// markSelectionFirst asks the next list update to select the top row.
+func (p *Panel) markSelectionFirst() {
+	p.selectionIntent = selectionFirst
+}
+
+// syncSelection reconciles the table selection after the rows change so the
+// list never ends up without a selected row. previousID and previousIndex are
+// the selection captured before the rows were replaced.
+func (p *Panel) syncSelection(previousID string, previousIndex int, intent selectionIntent) {
+	index := selectionIndex(p.rows, previousID, previousIndex, intent)
+	if index < 0 {
+		p.table.Send(sel("deselectAll:"), objc.ID(0))
+		if p.selection != "" {
+			p.selection = ""
+			p.cx.Emit("select", "")
+		}
+		return
+	}
+	p.selectRowIndex(index, false)
+	if p.selection != previousID {
+		p.cx.Emit("select", p.selection)
+	}
+}
+
+// ensureSelection re-applies a valid selection after the table reloads its
+// rows or row heights without the row set changing.
+func (p *Panel) ensureSelection() {
+	p.syncSelection(p.selection, p.selectedIndex(), selectionKeep)
+}
+
+// selectRowIndex highlights one row and records it as the selection. scroll
+// reveals it when asked.
+func (p *Panel) selectRowIndex(index int, scroll bool) {
 	if index < 0 || index >= len(p.rows) {
 		return
 	}
 	p.selection = p.rows[index].ID
 	indexes := objc.ID(class("NSIndexSet")).Send(sel("indexSetWithIndex:"), int64(index))
 	p.table.Send(sel("selectRowIndexes:byExtendingSelection:"), indexes, false)
-	p.table.Send(sel("scrollRowToVisible:"), int64(index))
+	if scroll {
+		p.table.Send(sel("scrollRowToVisible:"), int64(index))
+	}
+}
+
+func (p *Panel) selectRow(index int) {
+	// An explicit selection (click, keyboard navigation) wins over a pending
+	// automatic placement such as the return-to-top reset from opening.
+	p.selectionIntent = selectionKeep
+	p.selectRowIndex(index, true)
 }
 
 // selectRowClamped keeps a computed target inside the list instead of

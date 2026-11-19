@@ -65,9 +65,7 @@ func historyTableMouseDown(self objc.ID, _ objc.SEL, event objc.ID) {
 		clicks = int(objc.Send[int64](event, sel("clickCount")))
 	}
 	p := panelsByTable[self]
-	if left && row < 0 && p != nil && panelDragWindow(p, p.view.Send(sel("window")), func() {
-		self.Send(sel("deselectAll:"), objc.ID(0))
-	}) != 0 {
+	if left && row < 0 && p != nil && panelDragWindow(p, p.view.Send(sel("window")), nil) != 0 {
 		return
 	}
 	sendSuper[objc.ID](self, historyTableClass, sel("mouseDown:"), event)

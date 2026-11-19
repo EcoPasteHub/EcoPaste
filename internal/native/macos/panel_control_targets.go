@@ -36,8 +36,12 @@ func panelControlMethods() []objc.MethodDef {
 
 func panelSearchChanged(_ objc.ID, _ objc.SEL, sender objc.ID) {
 	if p := panelsBySearch[sender]; p != nil {
-		p.query = goString(sender.Send(sel("stringValue")))
-		p.cx.Emit("query", p.query)
+		next := goString(sender.Send(sel("stringValue")))
+		if next != p.query {
+			p.query = next
+			p.markSelectionFirst()
+		}
+		p.cx.Emit("query", next)
 	}
 }
 

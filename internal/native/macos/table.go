@@ -149,7 +149,7 @@ func newHistoryTable(p *Panel) objc.ID {
 	table.Send(sel("setHeaderView:"), objc.ID(0))
 	table.Send(sel("setGridStyleMask:"), int64(0))
 	table.Send(sel("setAllowsMultipleSelection:"), false)
-	table.Send(sel("setAllowsEmptySelection:"), true)
+	table.Send(sel("setAllowsEmptySelection:"), false)
 	table.Send(sel("setAllowsColumnReordering:"), false)
 	table.Send(sel("setAllowsColumnResizing:"), false)
 	table.Send(sel("setSelectionHighlightStyle:"), int64(0))

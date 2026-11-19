@@ -130,7 +130,9 @@ func createGroup(p *historyPanel, data any) {
 				return
 			}
 			if created != nil {
-				p.loadGroups(created.ID, true)
+				// Creating a group refreshes the group list without leaving
+				// the group the user is currently viewing.
+				p.loadGroups("", false)
 			}
 		})
 	}()

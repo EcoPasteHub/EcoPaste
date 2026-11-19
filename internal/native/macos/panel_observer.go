@@ -109,6 +109,7 @@ func panelPollSearch(self objc.ID, _ objc.SEL, _ objc.ID) {
 	next := goString(p.search.Send(sel("stringValue")))
 	if next != p.query {
 		p.query = next
+		p.markSelectionFirst()
 		p.cx.Emit("query", next)
 	}
 	p.pollHover()

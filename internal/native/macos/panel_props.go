@@ -25,6 +25,8 @@ var panelCommands = map[string]func(*Panel){
 	"clearSearch":            (*Panel).clearSearch,
 	"reload":                 reloadPanelTable,
 	"scrollTop":              scrollPanelToTop,
+	"selectFirstOnOpen":      selectFirstOnOpen,
+	"applyPendingSelection":  applyPendingSelection,
 	"showAccessibilityAlert": showPanelAccessibilityAlert,
 	"toggleWindowPinned":     (*Panel).togglePinned,
 	"resignKey":              resignPanelKey,
@@ -32,10 +34,13 @@ var panelCommands = map[string]func(*Panel){
 }
 
 func setPanelQuery(p *Panel, value any) {
-	if s, ok := value.(string); ok && s != p.query {
-		p.query = s
-		p.search.Send(sel("setStringValue:"), nsString(s))
+	s, ok := value.(string)
+	if !ok || s == p.query {
+		return
 	}
+	p.query = s
+	p.markSelectionFirst()
+	p.search.Send(sel("setStringValue:"), nsString(s))
 }
 
 func setPanelPlaceholder(p *Panel, value any) {
@@ -47,11 +52,15 @@ func setPanelPlaceholder(p *Panel, value any) {
 func setPanelRows(p *Panel, value any) {
 	rows, _ := value.([]HistoryRow)
 	p.hideHover()
+	previousID := p.selection
+	previousIndex := p.selectedIndex()
+	intent := p.selectionIntent
+	p.selectionIntent = selectionKeep
 	p.rows = rows
 	p.recomputeRowHeights()
 	p.table.Send(sel("reloadData"))
 	p.syncTableFrame()
-	p.restoreSelection()
+	p.syncSelection(previousID, previousIndex, intent)
 	p.updateStatus()
 }
 
@@ -89,15 +98,28 @@ func setPanelGroups(p *Panel, value any) {
 }
 
 func setPanelGroup(p *Panel, value any) {
-	if id, ok := value.(string); ok {
-		p.setGroupSelection(id)
+	id, ok := value.(string)
+	if !ok {
+		return
 	}
+	if id != p.groupID {
+		// Switching groups always starts at the top, even when the previous
+		// row also belongs to the new group.
+		p.markSelectionFirst()
+	}
+	p.setGroupSelection(id)
 }
 
 func setPanelFilter(p *Panel, value any) {
-	if filter, ok := value.(string); ok {
-		p.setFilterSelection(filter)
+	filter, ok := value.(string)
+	if !ok {
+		return
 	}
+	if filter != p.filterValue {
+		// Switching the visible category also starts at the top.
+		p.markSelectionFirst()
+	}
+	p.setFilterSelection(filter)
 }
 
 func setPanelBehavior(p *Panel, value any) {
@@ -118,6 +140,7 @@ func setPanelDisplay(p *Panel, value any) {
 		p.recomputeRowHeights()
 		p.table.Send(sel("reloadData"))
 		p.syncTableFrame()
+		p.ensureSelection()
 	}
 }
 
@@ -136,6 +159,7 @@ func setPanelActions(p *Panel, value any) {
 
 func reloadPanelTable(p *Panel) {
 	p.table.Send(sel("reloadData"))
+	p.ensureSelection()
 }
 
 func showPanelAccessibilityAlert(_ *Panel) {
@@ -146,6 +170,28 @@ func scrollPanelToTop(p *Panel) {
 	if len(p.rows) > 0 {
 		p.table.Send(sel("scrollRowToVisible:"), int64(0))
 	}
+}
+
+// selectFirstOnOpen marks the next list update to select the first row, so
+// opening the panel back at the top lands on the first item instead of an
+// unrelated row.
+func selectFirstOnOpen(p *Panel) {
+	p.markSelectionFirst()
+}
+
+// applyPendingSelection consumes a selection intent that no rows update
+// applied, which happens when a group, category or search switch returns
+// exactly the same rows as before. The list still has to start at the first
+// row.
+func applyPendingSelection(p *Panel) {
+	if p.selectionIntent == selectionKeep {
+		return
+	}
+	previousID := p.selection
+	previousIndex := p.selectedIndex()
+	intent := p.selectionIntent
+	p.selectionIntent = selectionKeep
+	p.syncSelection(previousID, previousIndex, intent)
 }
 
 func resignPanelKey(p *Panel) {
