@@ -86,6 +86,7 @@ type Panel struct {
 	query              string
 	rows               []HistoryRow
 	rowHeights         []float64
+	rowHeightsWidth    float64
 	total              int64
 	loading            bool
 	errText            string
@@ -519,7 +520,11 @@ func (p *Panel) syncSelection(previousID string, previousIndex int, intent selec
 		}
 		return
 	}
-	p.selectRowIndex(index, false)
+	// A forced-first placement happens when the list is replaced by a new
+	// category, group or search. Reveal the top row so the viewport starts at
+	// the beginning instead of keeping the old scroll offset over the new
+	// rows, which otherwise looks like a stuck or shifted list.
+	p.selectRowIndex(index, intent == selectionFirst)
 	if p.selection != previousID {
 		p.cx.Emit("select", p.selection)
 	}

@@ -89,7 +89,14 @@ func historyTargetSelectionDidChange(_ objc.ID, _ objc.SEL, note objc.ID) {
 		p.selection = p.rows[row].ID
 		p.cx.Emit("select", p.selection)
 	}
-	for index := range p.rows {
+	// Only the visible cards can have a live cell view. Refreshing just that
+	// window keeps a selection change O(visible rows) instead of walking the
+	// whole loaded list on every arrow key, which matters for long histories.
+	start, end := visibleRowRange(table)
+	if end > len(p.rows) {
+		end = len(p.rows)
+	}
+	for index := start; index < end; index++ {
 		cell := table.Send(sel("viewAtColumn:row:makeIfNecessary:"), int64(0), int64(index), false)
 		if cell != 0 {
 			selected := int64(index) == row
@@ -97,6 +104,28 @@ func historyTargetSelectionDidChange(_ objc.ID, _ objc.SEL, note objc.ID) {
 			setHistoryRowSelected(cell, selected)
 		}
 	}
+}
+
+// visibleRowRange returns a half-open range covering the rows NSTableView
+// currently has on screen, so callers can update cells without touching the
+// full list. rowsInRect: reports every row that intersects the visible rect;
+// one extra row is added on each side so a partially clipped card at either
+// edge is still refreshed.
+func visibleRowRange(table objc.ID) (int, int) {
+	visible := objc.Send[CGRect](table, sel("visibleRect"))
+	if visible.Size.Height <= 0 {
+		return 0, 0
+	}
+	rows := objc.Send[NSRange](table, sel("rowsInRect:"), visible)
+	if rows.Length == 0 {
+		return 0, 0
+	}
+	start := int(rows.Location)
+	end := start + int(rows.Length) + 1
+	if start > 0 {
+		start--
+	}
+	return start, end
 }
 
 func historyTargetPasteboardWriter(_ objc.ID, _ objc.SEL, table objc.ID, row int64) objc.ID {

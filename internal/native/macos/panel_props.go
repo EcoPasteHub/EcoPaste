@@ -58,6 +58,15 @@ func setPanelPlaceholder(p *Panel, value any) {
 
 func setPanelRows(p *Panel, value any) {
 	rows, _ := value.([]HistoryRow)
+	intent := p.selectionIntent
+	// The loadMore path only extends the list. Insert the new tail so the rows
+	// already on screen keep their views and the scroll position instead of
+	// being repainted by a full reload.
+	if intent == selectionKeep && p.canAppendRows(rows) {
+		p.appendRows(rows)
+		p.updateStatus()
+		return
+	}
 	p.hideHover()
 	// hideHover starts a fade-out on the cell under the pointer. The list is
 	// about to reload and may release that cell, so drop the pending fade
@@ -65,10 +74,8 @@ func setPanelRows(p *Panel, value any) {
 	clearRowHoverStates()
 	previousID := p.selection
 	previousIndex := p.selectedIndex()
-	intent := p.selectionIntent
 	p.selectionIntent = selectionKeep
-	p.rows = rows
-	p.recomputeRowHeights()
+	p.setRows(rows)
 	p.table.Send(sel("reloadData"))
 	p.syncTableFrame()
 	p.syncSelection(previousID, previousIndex, intent)

@@ -189,7 +189,7 @@ func (p *Panel) syncTableFrame() {
 		return
 	}
 	viewport := bounds(p.scroll.Send(sel("contentView")))
-	if len(p.rowHeights) != len(p.rows) {
+	if len(p.rowHeights) != len(p.rows) || p.rowHeightsWidth != p.rowWidth() {
 		p.recomputeRowHeights()
 	}
 	spacing := objc.Send[CGSize](p.table, sel("intercellSpacing")).Height
@@ -241,6 +241,81 @@ func (p *Panel) recomputeRowHeights() {
 		heights[index] = historyRowHeight(row, p.display, width)
 	}
 	p.rowHeights = heights
+	p.rowHeightsWidth = width
+}
+
+// setRows swaps in new rows together with their measured heights. The
+// loadMore path only extends the current list, so the heights already
+// measured for the shared prefix are reused and just the new tail is
+// measured. A full replace (search, group or category switch) still reuses
+// nothing but resets to one page, so the cost stays bounded by the page.
+func (p *Panel) setRows(rows []HistoryRow) {
+	width := p.rowWidth()
+	heights := make([]float64, len(rows))
+	reused := reusedRowHeights(p.rows, p.rowHeights, rows, p.rowHeightsWidth, width)
+	if reused > 0 {
+		copy(heights, p.rowHeights[:reused])
+	}
+	for index := reused; index < len(rows); index++ {
+		heights[index] = historyRowHeight(rows[index], p.display, width)
+	}
+	p.rows = rows
+	p.rowHeights = heights
+	p.rowHeightsWidth = width
+}
+
+// reusedRowHeights reports how many leading heights can be kept for rows.
+// Heights are only reusable when the list was measured at the same width
+// and the new rows extend the previous ones without changing their prefix,
+// which is exactly how the next history page is appended.
+func reusedRowHeights(previous []HistoryRow, previousHeights []float64, rows []HistoryRow, previousWidth, width float64) int {
+	if len(previousHeights) != len(previous) || previousWidth != width || !rowsExtend(previous, rows) {
+		return 0
+	}
+	return len(previous)
+}
+
+// rowsExtend reports whether previous is a prefix of rows by row identity,
+// which is how the panel appends the next history page.
+func rowsExtend(previous, rows []HistoryRow) bool {
+	if len(rows) < len(previous) {
+		return false
+	}
+	for index := range previous {
+		if previous[index].ID != rows[index].ID {
+			return false
+		}
+	}
+	return true
+}
+
+// canAppendRows reports whether rows only extends the loaded list, so the
+// table can insert the new tail instead of reloading the rows already on
+// screen.
+func (p *Panel) canAppendRows(rows []HistoryRow) bool {
+	if len(p.rows) == 0 || len(rows) <= len(p.rows) {
+		return false
+	}
+	if len(p.rowHeights) != len(p.rows) || p.rowHeightsWidth != p.rowWidth() {
+		return false
+	}
+	return rowsExtend(p.rows, rows)
+}
+
+// appendRows inserts the next page in place. The existing cells keep their
+// views, so paging further into history no longer flashes a reload of rows
+// that did not change. The new tail's heights are measured first because the
+// table asks for them while it lays the inserted rows out.
+func (p *Panel) appendRows(rows []HistoryRow) {
+	oldLen := len(p.rows)
+	p.setRows(rows)
+	indexes := objc.ID(class("NSMutableIndexSet")).Send(sel("alloc")).Send(sel("init"))
+	for index := oldLen; index < len(rows); index++ {
+		indexes.Send(sel("addIndex:"), int64(index))
+	}
+	p.table.Send(sel("insertRowsAtIndexes:withAnimation:"), indexes, uint64(0))
+	indexes.Send(sel("release"))
+	p.syncTableFrame()
 }
 
 func cancelPendingClick(table objc.ID) {
