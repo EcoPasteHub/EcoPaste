@@ -120,3 +120,38 @@
 - 高影响风险不允许“默认接受”，必须有缓解措施或明确延期理由。
 - 接受风险时记录：接受人、接受范围、到期时间、回滚方案。
 - 一旦触发条件出现，停止叠加新功能，先修复或回退。
+
+## 6. 稳定性专项（2026-11）
+
+针对置顶、搜索、点击条目、开关窗口等偶发闪退做的一次集中排查。R-04（purego/ObjC 内存）、R-05（后台 goroutine 操作 AppKit）与 R-25（NSTableView 复用）是实际命中的风险。
+
+### 6.1 已确认的崩溃根因
+
+| # | 现象 | 根因 | 归类 |
+| --- | --- | --- | --- |
+| 1 | 全局快捷键打开/隐藏面板时 `panic: core: the reactive graph belongs to another goroutine` | Carbon 热键回调在 AppKit 主线程直接调用 `Window.Show/Hide`（会 `Signal.Set`），不是 NSGo 反应式图的 goroutine；由 `Scope.Post` 投递即可（提交 `3602ef47`） | R-05 |
+| 2 | 置顶、搜索、点击条目、开关面板等触发列表刷新时偶发 `SIGSEGV`，栈顶为 `setHistoryRowHovered.func1 ← transition.redrawView ← advanceTransitionFrames ← transitionTick` | 行悬停淡入淡出用 `rowHoverStates` 以 `objc.ID` 为键保存 `NSTableCellView` 裸指针。`reloadData`/`reloadDataForRowIndexes` 回收并释放 cell 后，共享 `NSTimer` 下一帧仍对已释放视图调用 `setNeedsDisplay:`，构成 use-after-free | R-04 / R-25 |
+
+### 6.2 排查中发现的潜在崩溃隐患（同类问题）
+
+| # | 隐患 | 根因 | 处理 |
+| --- | --- | --- | --- |
+| 3 | 已打开设置窗口时，从面板齿轮切换设置标签 | 图 goroutine 直接调用 `NSTabView` 的 `selectTabViewItemWithIdentifier:` 操作 AppKit | `SelectSettingsTab` 切标签改走 `onMain`，并跳过已关闭的窗口 |
+| 4 | 设置页开关托盘图标 | `tray.SetIcon` 在设置保存的后台 goroutine 直接追加 NSGo 树的 mount item，与引擎 goroutine 竞争 | `settingsWiring.setTrayIcon` 改用 `app.Post` 回到图 goroutine |
+| 5 | 反复开关设置窗口 | `settingsCaptureByTable` 与 apps/actions 不同，`SettingsView.Close` 未清理，重开窗口可能命中已释放视图 | `SettingsView.Close` 一并删除 capture 表映射 |
+| 6 | 拖拽结束后关闭面板 | `checkDragFinished:` 延时选择器只取消 `activatePendingClick:`，未取消自身，可能投递到已释放的 `NSTableView` | `endPanelDrag` 取消 `checkDragFinished:` |
+
+### 6.3 修复要点
+
+- `transition` 增加被重绘视图字段 `view`：动画期间由共享驱动 `retain`，settle/`stop`/`snap` 时 `release`；新增 `newViewTransition(view)` 统一构造，所有视图型过渡（行悬停、图标按钮、导航胶囊、设置下拉/步进、信息按钮、输入框 chrome）均绑定视图。这样即使表视图在动画中途回收 cell，对象也不会被释放，最坏只是短暂多持有约 120ms。
+- 列表 `reloadData` 前（`setPanelRows`/`setPanelQuery`/`setPanelDisplay`/`reloadPanelTable`）先 `clearRowHoverStates()`，避免对即将销毁的 cell 继续做淡出。
+- 其余为上面 6.2 的线程与生命周期修正。
+
+### 6.4 验证
+
+- 自动：`gofmt -l .`、`go vet ./...`、`go test ./...`、`go test -race ./...`、`nsgo check cmd/ecopaste` 全部通过。
+- 新增回归测试（`internal/native/macos/transition_test.go`）：
+  - `TestTransitionRetainsViewWhileAnimating`：动画期间驱动持有视图引用。
+  - `TestAdvanceTransitionAfterOwnerRelease`：复现“列表先释放 cell、帧驱动再 tick”的崩溃序列，验证不再访问已释放视图且能收敛。
+  - `TestClearRowHoverStatesReleasesViews`：刷新时清理悬停过渡并释放视图。
+- 真机回归（人工，需覆盖高频/连续/快速切换）：置顶/取消置顶、长短词搜索、单击/双击/中键粘贴、收藏/删除/移动分组、反复开关面板、拖拽到 Finder、反复开关设置窗口并切换标签与托盘图标、深浅色。
