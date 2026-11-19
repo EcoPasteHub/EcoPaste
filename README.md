@@ -30,10 +30,10 @@ macOS 优先的本地剪贴板管理器。
 
 ## 开发
 
-需要 Go 1.26+ 与 NSGo CLI：
+需要 Go 1.27.3+ 与 NSGo CLI v0.2.0+：
 
 ```bash
-go install github.com/nsgo-dev/nsgo/cmd/nsgo@70cef6a4ed17f7c8428faabc9bb419ff4223745b
+go install github.com/nsgo-dev/nsgo/cmd/nsgo@v0.2.0
 nsgo check cmd/ecopaste
 nsgo dev -id com.ayangweb.eco-paste.dev cmd/ecopaste
 nsgo build -id com.ayangweb.eco-paste.dev -output build/dev cmd/ecopaste

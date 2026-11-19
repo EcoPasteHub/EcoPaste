@@ -17,7 +17,7 @@ NSGo 是一个 **Go 原生 UI 引擎**，不是 Tauri 的前端替代品：
 - 更新通过 `updater` + 平台 updater：macOS 是 Sparkle，Windows 是 WinSparkle。
 - 包管理/构建通过 `nsgo.yaml` + `nsgo` 工具：`nsgo dev`、`nsgo check`、`nsgo test`、`nsgo build`。
 
-官方状态：**早期项目，没有 release 或稳定 API**。这是迁移的第一风险。
+官方状态：**已发布正式稳定版本**（v0.1.0 为首个 release，当前 v0.2.0）。0.x 阶段 API 仍可能变动，因此仍需固定稳定 tag 并保留适配层——这是迁移的首要风险。
 
 ## 2. NSGo 与现有 Tauri/React 的概念映射
 
@@ -195,12 +195,13 @@ NSGo 是一个 **Go 原生 UI 引擎**，不是 Tauri 的前端替代品：
 
 ## 5. 关键差距与风险
 
-### 5.1 NSGo 早期 API 不稳定
+### 5.1 NSGo 0.x API 仍可能变动
 
-- 没有 release / 稳定 API。
+- 已发布正式稳定版本（v0.1.0、v0.2.0），但 0.x 阶段官方不承诺 API 完全稳定。
 - `core`、`desktop`、`internal/platform/macos` 都可能改。
-- 迁移文档必须固定 commit，并在 `go.mod` 中用 `replace` 指向可控 fork 或固定 commit。
-- 建议在 `internal/native` 与 NSGo 之间保留 adapter，不让业务层直接依赖 `core.Native` 细节。
+- 依赖固定到稳定 tag，升级单独提交并跑完整兼容矩阵；不改用 floating branch 或 `latest`。
+- 在 `internal/native` 与 NSGo 之间保留 adapter，不让业务层直接依赖 `core.Native` 细节。
+- 每次升级先评估官方新 API/新特性，能用官方能力替代的自研代码优先替换。
 
 ### 5.2 AppKit 桥接是主要工作量
 

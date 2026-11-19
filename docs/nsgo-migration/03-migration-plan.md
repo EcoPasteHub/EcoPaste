@@ -48,9 +48,9 @@ feat(release): add Sparkle appcast packaging
 
 1. 固定 NSGo：
    - 模块：`github.com/nsgo-dev/nsgo`
-   - 基线 commit：`70cef6a4ed17f7c8428faabc9bb419ff4223745b`（2026-11-12）
-   - Go 要求：`go 1.26.0`；本机验证版本 `go1.27.4 darwin/arm64`
-   - `go.mod` 使用固定 commit；升级必须单独提交并跑完整兼容矩阵。
+   - 基线版本：`v0.2.0`（2026-11-19）；历史基线 commit `70cef6a4ed17f7c8428faabc9bb419ff4223745b`（2026-11-12）
+   - Go 要求：`go 1.27.3`；本机验证版本 `go1.27.4 darwin/arm64`
+   - `go.mod` 固定稳定 tag；升级必须单独提交并跑完整兼容矩阵。
 2. 建立数据夹具（不入库）：
    - 复制真实 `prod/` 数据目录到仓库外测试目录。
    - 至少准备：空库、1k 条、10k 条、含 FTS 特殊字符、含 1–2 字符关键词、含收藏/置顶/分组/备注、含图片/文件/HTML/RTF/敏感内容。

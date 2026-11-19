@@ -21,7 +21,7 @@ jobs:
           cache: true
 
       - name: Install NSGo
-        run: go install github.com/nsgo-dev/nsgo/cmd/nsgo@70cef6a4ed17f7c8428faabc9bb419ff4223745b
+        run: go install github.com/nsgo-dev/nsgo/cmd/nsgo@v0.2.0
 
       - name: Check formatting
         run: test -z "$(gofmt -l .)"

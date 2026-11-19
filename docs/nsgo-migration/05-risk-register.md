@@ -17,9 +17,9 @@
 
 | ID | 类别 | 风险 | 影响 | 概率 | 缓解措施 | 触发条件 |
 | --- | --- | --- | --- | --- | --- | --- |
-| R-01 | 框架 | NSGo 处于早期，无稳定 API/release | 高 | 高 | 固定 commit；`internal/native` 与 `internal/ui` 做适配层；升级单独提交并跑完整矩阵 | NSGo 升级导致编译失败或行为变化 |
+| R-01 | 框架 | NSGo 0.x API 仍可能变动（已发布 v0.1.0/v0.2.0 稳定版本） | 高 | 中 | 固定稳定 tag；升级先评估官方新 API/特性；`internal/native` 与 `internal/ui` 做适配层；升级单独提交并跑完整矩阵 | NSGo 升级导致编译失败或行为变化 |
 | R-02 | 框架 | NSGo 内部实现变更影响 `core.Native`、`desktop`、`Scope` | 高 | 高 | 业务层不直接依赖 NSGo 细节；adapter 收口；保留替换能力 | 需要改业务代码才能适配 NSGo 升级 |
-| R-03 | 工具链 | NSGo 要求 Go 1.26+，本机/CI 版本不一致 | 中 | 中 | `go.mod` 固定最低版本；CI 固定 Go 版本；记录验证版本 | 本机能构建、CI 失败或反之 |
+| R-03 | 工具链 | NSGo 要求 Go 1.27.3+，本机/CI 版本不一致 | 中 | 中 | `go.mod` 固定最低版本；CI 固定 Go 版本；记录验证版本 | 本机能构建、CI 失败或反之 |
 | R-04 | 原生桥 | `purego` + Objective-C runtime 调用复杂，签名/内存管理易错 | 高 | 高 | 每个桥接函数小步验证；统一封装；开启 race/崩溃日志；优先使用 NSGo 已有封装 | 随机 crash、selector 不存在、对象提前释放 |
 | R-05 | 线程 | 从后台 goroutine 直接操作 AppKit | 高 | 高 | 所有 UI 操作 dispatch 到 main queue；托盘菜单回调统一走 `onMain`；DB/剪贴板回调只发消息 | 非主线程断言、界面卡死、崩溃 |
 | R-06 | 线程 | SQLite 写入阻塞主线程 | 中 | 中 | 单写 worker + WAL；读写分离；批量事务 | 搜索/滚动时卡顿 |
@@ -73,8 +73,8 @@
 
 ### 3.1 NSGo 版本固定
 
-- `go.mod` 固定到已验证 commit，不使用 floating branch。
-- 升级 NSGo 时单独开 PR，必须通过：
+- `go.mod` 固定到已验证的正式稳定 tag，不使用 floating branch 或 `latest`。
+- 升级 NSGo 时单独开 PR，且先按 `AGENTS.md` §4.1 阅读官方 CHANGELOG/API，评估新能力能否替代现有自研实现，必须通过：
   - `go test ./...`
   - `go test -race ./...`
   - `nsgo check`
