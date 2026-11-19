@@ -16,7 +16,8 @@ func panelObserverMethods() []objc.MethodDef {
 		{Cmd: sel("windowResignedKey:"), Fn: panelWindowResignedKey},
 		{Cmd: sel("windowDidOrderOffScreen:"), Fn: panelWindowDidOrderOffScreen},
 		{Cmd: sel("windowDidOrderOnScreen:"), Fn: panelWindowDidOrderOnScreen},
-		{Cmd: sel("pollSearch:"), Fn: panelPollSearch},
+		{Cmd: sel("searchTextChanged:"), Fn: panelSearchTextChanged},
+		{Cmd: sel("scrollBoundsChanged:"), Fn: panelScrollBoundsChanged},
 	}
 }
 
@@ -62,6 +63,9 @@ func panelWindowResignedKey(self objc.ID, _ objc.SEL, note objc.ID) {
 
 func panelWindowDidOrderOffScreen(self objc.ID, _ objc.SEL, note objc.ID) {
 	p := panelsByObserver[self]
+	if p != nil {
+		p.hideHover()
+	}
 	if p != nil && p.shortcutPopover != 0 &&
 		objc.Send[bool](p.shortcutPopover, sel("isShown")) {
 		p.shortcutPopover.Send(sel("close"))
@@ -101,17 +105,18 @@ func panelWindowDidOrderOnScreen(self objc.ID, _ objc.SEL, note objc.ID) {
 	p.cx.Emit("opened", nil)
 }
 
-func panelPollSearch(self objc.ID, _ objc.SEL, _ objc.ID) {
+func panelSearchTextChanged(_ objc.ID, _ objc.SEL, note objc.ID) {
+	panelApplySearch(objc.Send[objc.ID](note, sel("object")))
+}
+
+// panelScrollBoundsChanged reacts to the clip view scrolling: it keeps the
+// hover bar on the row under the pointer and asks for the next page when the
+// bottom nears the loaded rows.
+func panelScrollBoundsChanged(self objc.ID, _ objc.SEL, _ objc.ID) {
 	p := panelsByObserver[self]
 	if p == nil {
 		return
 	}
-	next := goString(p.search.Send(sel("stringValue")))
-	if next != p.query {
-		p.query = next
-		p.markSelectionFirst()
-		p.cx.Emit("query", next)
-	}
-	p.pollHover()
-	p.pollLoadMore()
+	p.refreshHoverFromMouse()
+	p.checkLoadMore()
 }

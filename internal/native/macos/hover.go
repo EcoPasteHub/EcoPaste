@@ -118,29 +118,80 @@ func (p *Panel) buildHoverBar() {
 	p.view.Send(sel("addSubview:"), bar)
 }
 
-// pollHover keeps the action bar under the pointer without installing a
-// tracking area, which purego cannot route reliably for this view.
-func (p *Panel) pollHover() {
-	window := p.view.Send(sel("window"))
-	if window == 0 || !objc.Send[bool](window, sel("isVisible")) || p.previewing {
-		p.hideHover()
-		return
-	}
-	location := objc.Send[CGPoint](objc.ID(class("NSEvent")), sel("mouseLocation"))
-	screen := objc.Send[CGPoint](window, sel("convertPointFromScreen:"), location)
-	point := objc.Send[CGPoint](p.view, sel("convertPoint:fromView:"), screen, objc.ID(0))
-	frame := objc.Send[CGRect](p.scroll, sel("frame"))
-	local := objc.Send[CGPoint](p.table, sel("convertPoint:fromView:"), screen, objc.ID(0))
-	row := int(objc.Send[int64](p.table, sel("rowAtPoint:"), local))
-	if !pointInRect(point, frame) {
+// updateHoverAtWindowPoint shows the action bar for the row under a point in
+// window coordinates. A mouse-moved event calls it; hover needs no polling.
+func (p *Panel) updateHoverAtWindowPoint(windowPoint CGPoint) {
+	row, ok := p.hoverRowAtWindowPoint(windowPoint)
+	if !ok {
 		p.hideHover()
 		return
 	}
 	p.updateHover(row)
 }
+
+// refreshHoverFromMouse re-anchors the existing bar after the list scrolls,
+// when the cursor has not moved and so no mouse-moved event fires.
+func (p *Panel) refreshHoverFromMouse() {
+	window := p.view.Send(sel("window"))
+	if window == 0 {
+		return
+	}
+	location := objc.Send[CGPoint](objc.ID(class("NSEvent")), sel("mouseLocation"))
+	windowPoint := objc.Send[CGPoint](window, sel("convertPointFromScreen:"), location)
+	row, ok := p.hoverRowAtWindowPoint(windowPoint)
+	if !ok {
+		p.hideHover()
+		return
+	}
+	if row == p.hoverRow && p.hoverBarVisible() {
+		p.positionHoverBar()
+		return
+	}
+	p.updateHover(row)
+}
+
+// hoverRowAtWindowPoint resolves the row under a window point, or false when
+// the point is outside the list or the panel is not showing.
+func (p *Panel) hoverRowAtWindowPoint(windowPoint CGPoint) (int, bool) {
+	window := p.view.Send(sel("window"))
+	if window == 0 || !objc.Send[bool](window, sel("isVisible")) || p.previewing {
+		return 0, false
+	}
+	point := objc.Send[CGPoint](p.view, sel("convertPoint:fromView:"), windowPoint, objc.ID(0))
+	frame := objc.Send[CGRect](p.scroll, sel("frame"))
+	if !pointInRect(point, frame) {
+		return 0, false
+	}
+	local := objc.Send[CGPoint](p.table, sel("convertPoint:fromView:"), windowPoint, objc.ID(0))
+	return int(objc.Send[int64](p.table, sel("rowAtPoint:"), local)), true
+}
+
+func (p *Panel) hoverBarVisible() bool {
+	return p.hoverBar != 0 && !objc.Send[bool](p.hoverBar, sel("isHidden"))
+}
+
+// positionHoverBar moves the already-built bar onto its row. Scrolling changes
+// the row's rect without changing the row, so only the frame is refreshed.
+func (p *Panel) positionHoverBar() {
+	if p.hoverRow < 0 || p.hoverBarWidth <= 0 {
+		return
+	}
+	rect := objc.Send[CGRect](p.table, sel("rectOfRow:"), int64(p.hoverRow))
+	rowRect := objc.Send[CGRect](p.view, sel("convertRect:fromView:"),
+		objc.Send[CGRect](p.table, sel("convertRect:toView:"), rect, objc.ID(0)), objc.ID(0))
+	bounds := objc.Send[CGRect](p.view, sel("bounds"))
+	setFrame(p.hoverBar, bounds.Size.Width-12-p.hoverBarWidth,
+		rowRect.Origin.Y+(rowRect.Size.Height-hoverBarHeight)/2, p.hoverBarWidth, hoverBarHeight)
+}
+
 func (p *Panel) updateHover(row int) {
 	if row < 0 || row >= len(p.rows) {
 		p.hideHover()
+		return
+	}
+	// Moving within the same row keeps the current bar; rebuilding its buttons
+	// on every mouse move would repeat work for nothing.
+	if row == p.hoverRow && p.hoverBarVisible() {
 		return
 	}
 	specs := hoverActionsFor(p.rows[row], p.actions)
@@ -157,12 +208,7 @@ func (p *Panel) updateHover(row int) {
 	p.hoverBarWidth = width
 	p.setHoveredRow(row)
 	p.setOriginalRow(row)
-	rect := objc.Send[CGRect](p.table, sel("rectOfRow:"), int64(row))
-	rowRect := objc.Send[CGRect](p.view, sel("convertRect:fromView:"),
-		objc.Send[CGRect](p.table, sel("convertRect:toView:"), rect, objc.ID(0)), objc.ID(0))
-	bounds := objc.Send[CGRect](p.view, sel("bounds"))
-	setFrame(p.hoverBar, bounds.Size.Width-12-width,
-		rowRect.Origin.Y+(rowRect.Size.Height-hoverBarHeight)/2, width, hoverBarHeight)
+	p.positionHoverBar()
 	for index, button := range p.hoverButtons {
 		hidden := index >= len(specs)
 		button.Send(sel("setHidden:"), hidden)

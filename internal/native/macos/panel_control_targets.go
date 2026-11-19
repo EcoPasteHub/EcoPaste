@@ -35,14 +35,24 @@ func panelControlMethods() []objc.MethodDef {
 }
 
 func panelSearchChanged(_ objc.ID, _ objc.SEL, sender objc.ID) {
-	if p := panelsBySearch[sender]; p != nil {
-		next := goString(sender.Send(sel("stringValue")))
-		if next != p.query {
-			p.query = next
-			p.markSelectionFirst()
-		}
-		p.cx.Emit("query", next)
+	panelApplySearch(sender)
+}
+
+// panelApplySearch turns a changed search field into one query event. The
+// field's action and its text-change notification both call it; whichever sees
+// the new text first announces it, and the other is a no-op.
+func panelApplySearch(sender objc.ID) {
+	p := panelsBySearch[sender]
+	if p == nil {
+		return
 	}
+	next := goString(sender.Send(sel("stringValue")))
+	if next == p.query {
+		return
+	}
+	p.query = next
+	p.markSelectionFirst()
+	p.cx.Emit("query", next)
 }
 
 func panelPinPressed(_ objc.ID, _ objc.SEL, sender objc.ID) {

@@ -12,6 +12,8 @@ func registerPanelViewClass() error {
 		{Cmd: sel("viewDidMoveToWindow"), Fn: panelViewDidMoveToWindow},
 		{Cmd: sel("setFrameSize:"), Fn: panelViewSetFrameSize},
 		{Cmd: sel("mouseDown:"), Fn: panelViewMouseDown},
+		{Cmd: sel("mouseEntered:"), Fn: panelViewMouseEntered},
+		{Cmd: sel("mouseExited:"), Fn: panelViewMouseExited},
 		{Cmd: sel("acceptsFirstMouse:"), Fn: panelViewAcceptsFirstMouse},
 		{Cmd: sel("keyDown:"), Fn: panelViewKeyDown},
 		{Cmd: sel("cancelOperation:"), Fn: panelViewCancelOperation},
@@ -22,8 +24,40 @@ func registerPanelViewClass() error {
 func panelViewDidMoveToWindow(self objc.ID, _ objc.SEL) {
 	sendSuper[objc.ID](self, panelViewClass, sel("viewDidMoveToWindow"))
 	if p := panelsByView[self]; p != nil {
+		installPanelHoverTracking(p)
 		applyPlacement(p)
 		attachNavWindow(p)
+	}
+}
+
+// installPanelHoverTracking lets the panel hide the action bar when the pointer
+// leaves it. Mouse movement itself is read from a local event monitor, which
+// also sees moves that land on the bar floating over the list.
+func installPanelHoverTracking(p *Panel) {
+	window := p.view.Send(sel("window"))
+	if window == 0 {
+		return
+	}
+	window.Send(sel("setAcceptsMouseMovedEvents:"), true)
+	if p.viewTracking != 0 {
+		return
+	}
+	area := objc.ID(class("NSTrackingArea")).Send(sel("alloc")).
+		Send(sel("initWithRect:options:owner:userInfo:"), CGRect{}, uint64(1|128|512), p.view, objc.ID(0))
+	p.view.Send(sel("addTrackingArea:"), area)
+	area.Send(sel("release"))
+	p.viewTracking = area
+}
+
+func panelViewMouseEntered(self objc.ID, _ objc.SEL, event objc.ID) {
+	if p := panelsByView[self]; p != nil {
+		p.updateHoverAtWindowPoint(objc.Send[CGPoint](event, sel("locationInWindow")))
+	}
+}
+
+func panelViewMouseExited(self objc.ID, _ objc.SEL, _ objc.ID) {
+	if p := panelsByView[self]; p != nil {
+		p.hideHover()
 	}
 }
 

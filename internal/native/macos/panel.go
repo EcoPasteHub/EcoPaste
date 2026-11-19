@@ -63,7 +63,8 @@ type Panel struct {
 	previewController  objc.ID
 	previewDelegate    objc.ID
 	observer           objc.ID
-	timer              objc.ID
+	hoverMonitor       objc.ID
+	viewTracking       objc.ID
 	monitor            objc.ID
 	previewTitle       objc.ID
 	previewMeta        objc.ID
@@ -243,8 +244,12 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 		nsString(windowDidOrderOffScreen), objc.ID(0))
 	center.Send(sel("addObserver:selector:name:object:"), p.observer, sel("windowDidOrderOnScreen:"),
 		nsString(windowDidOrderOnScreen), objc.ID(0))
-	p.timer = objc.ID(class("NSTimer")).Send(sel("scheduledTimerWithTimeInterval:target:selector:userInfo:repeats:"),
-		0.1, p.observer, sel("pollSearch:"), objc.ID(0), true)
+	center.Send(sel("addObserver:selector:name:object:"), p.observer, sel("searchTextChanged:"),
+		nsString("NSControlTextDidChangeNotification"), p.search)
+	clip := p.scroll.Send(sel("contentView"))
+	clip.Send(sel("setPostsBoundsChangedNotifications:"), true)
+	center.Send(sel("addObserver:selector:name:object:"), p.observer, sel("scrollBoundsChanged:"),
+		nsString("NSViewBoundsDidChangeNotification"), clip)
 	monitorBlock := objc.NewBlock(func(_ objc.Block, event objc.ID) objc.ID {
 		key := objc.Send[uint16](event, sel("keyCode"))
 		flags := uint64(objc.Send[uint](event, sel("modifierFlags")))
@@ -259,6 +264,18 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.monitor = objc.ID(class("NSEvent")).Send(sel("addLocalMonitorForEventsMatchingMask:handler:"),
 		uint64(1<<10), objc.ID(monitorBlock))
 	monitorBlock.Release()
+
+	// Hover is driven by mouse-moved events, not a timer: the monitor sees the
+	// event even when it lands on the floating action bar over the list.
+	hoverBlock := objc.NewBlock(func(_ objc.Block, event objc.ID) objc.ID {
+		if objc.Send[objc.ID](event, sel("window")) == p.view.Send(sel("window")) {
+			p.updateHoverAtWindowPoint(objc.Send[CGPoint](event, sel("locationInWindow")))
+		}
+		return event
+	})
+	p.hoverMonitor = objc.ID(class("NSEvent")).Send(sel("addLocalMonitorForEventsMatchingMask:handler:"),
+		uint64(1<<5), objc.ID(hoverBlock))
+	hoverBlock.Release()
 
 	return p
 }
@@ -312,10 +329,17 @@ func (p *Panel) Close() {
 	center := objc.ID(class("NSNotificationCenter")).Send(sel("defaultCenter"))
 	center.Send(sel("removeObserver:"), p.observer)
 	cancelPendingClick(p.table)
-	p.timer.Send(sel("invalidate"))
+	if p.viewTracking != 0 {
+		p.view.Send(sel("removeTrackingArea:"), p.viewTracking)
+		p.viewTracking = 0
+	}
 	endPanelDrag(p)
 	if p.monitor != 0 {
 		objc.ID(class("NSEvent")).Send(sel("removeMonitor:"), p.monitor)
+	}
+	if p.hoverMonitor != 0 {
+		objc.ID(class("NSEvent")).Send(sel("removeMonitor:"), p.hoverMonitor)
+		p.hoverMonitor = 0
 	}
 	delete(panelsByObserver, p.observer)
 	delete(panelsBySearch, p.search)
@@ -656,12 +680,16 @@ func (p *Panel) pageSize() int {
 	return size
 }
 
-// pollLoadMore asks for the next page when the last visible row nears the
-// end of the loaded rows. NSTableView's willDisplayCell callback is not
-// reliable for programmatic selection and native scroll gestures, so the
-// panel checks its visible row on the existing poll.
-func (p *Panel) pollLoadMore() {
+// checkLoadMore asks for the next page when the last visible row nears the
+// end of the loaded rows. It runs when the list's clip view reports a bounds
+// change (scroll, resize or programmatic scroll), so paging follows the user
+// instead of a timer.
+func (p *Panel) checkLoadMore() {
 	if p.loading || len(p.rows) == 0 {
+		return
+	}
+	window := p.view.Send(sel("window"))
+	if window == 0 || !objc.Send[bool](window, sel("isVisible")) {
 		return
 	}
 	visible := objc.Send[CGRect](p.table, sel("visibleRect"))

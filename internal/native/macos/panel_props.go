@@ -45,6 +45,7 @@ func setPanelQuery(p *Panel, value any) {
 	// query even when the row props arrive in the same batch. Stop any hover
 	// fade first: reloading the cells can release the view it paints.
 	if p.table != 0 {
+		p.hideHover()
 		clearRowHoverStates()
 		p.table.Send(sel("reloadData"))
 	}
@@ -156,6 +157,7 @@ func setPanelDisplay(p *Panel, value any) {
 	if display, ok := value.(PanelDisplay); ok {
 		p.display = display
 		p.recomputeRowHeights()
+		p.hideHover()
 		clearRowHoverStates()
 		p.table.Send(sel("reloadData"))
 		p.syncTableFrame()
