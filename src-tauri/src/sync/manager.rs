@@ -18,7 +18,7 @@ use tokio::time::timeout;
 
 use super::apply;
 use super::discovery::{Discovered, Discovery};
-use super::files::{self, LocalOffer};
+use super::files::{self, LocalOffer, Offers, OFFER_TTL};
 use super::identity::{current_platform, system_hostname, DeviceStore};
 use super::pairing::{PairOutcome, Pairing, PairingCode, CODE_TTL};
 use super::protocol::{
@@ -34,8 +34,6 @@ const CONNECT_TIMEOUT: Duration = Duration::from_secs(3);
 const PING_INTERVAL: Duration = Duration::from_secs(15);
 const IDLE_TIMEOUT: Duration = Duration::from_secs(45);
 const SUPERVISE_INTERVAL: Duration = Duration::from_secs(5);
-const MAX_OFFERS: usize = 3;
-const OFFER_TTL: Duration = Duration::from_secs(30 * 60);
 const FETCH_TIMEOUT: Duration = Duration::from_secs(60);
 const OUTBOX_DEPTH: usize = 64;
 
@@ -66,7 +64,7 @@ struct Inner {
     running: Mutex<Option<Running>>,
     peers: Mutex<HashMap<String, PeerConn>>,
     discovered: Mutex<HashMap<String, Discovered>>,
-    offers: Mutex<HashMap<String, Arc<LocalOffer>>>,
+    offers: Mutex<Offers>,
     /// 内容哈希 -> 已登记的文件 offer，局域网与云端广播共用同一份清单。
     prepared: Mutex<HashMap<String, PreparedOffer>>,
     pending: Mutex<HashMap<u64, Pending>>,
@@ -159,7 +157,7 @@ impl SyncState {
                 running: Mutex::new(None),
                 peers: Mutex::new(HashMap::new()),
                 discovered: Mutex::new(HashMap::new()),
-                offers: Mutex::new(HashMap::new()),
+                offers: Mutex::new(Offers::default()),
                 prepared: Mutex::new(HashMap::new()),
                 pending: Mutex::new(HashMap::new()),
                 seq: AtomicU64::new(1),
@@ -409,12 +407,7 @@ impl SyncState {
             let mut prepared = inner.prepared.lock().expect("sync poisoned");
             prepared.retain(|_, (_, _, at)| at.elapsed() < OFFER_TTL);
             if let Some((offer, entries, _)) = prepared.get(&item.content_hash) {
-                if inner
-                    .offers
-                    .lock()
-                    .expect("sync poisoned")
-                    .contains_key(offer)
-                {
+                if inner.offers.lock().expect("sync poisoned").contains(offer) {
                     return Ok((offer.clone(), entries.clone()));
                 }
             }
@@ -430,13 +423,11 @@ impl SyncState {
             tauri::async_runtime::spawn_blocking(move || files::build_offer(&roots)).await??;
 
         let offer = uuid::Uuid::new_v4().to_string();
-        inner.register_offer(
-            offer.clone(),
-            LocalOffer {
-                paths,
-                created: Instant::now(),
-            },
-        );
+        inner
+            .offers
+            .lock()
+            .expect("sync poisoned")
+            .register(offer.clone(), LocalOffer { paths });
         inner.prepared.lock().expect("sync poisoned").insert(
             item.content_hash.clone(),
             (offer.clone(), entries.clone(), Instant::now()),
@@ -452,15 +443,7 @@ impl SyncState {
         offset: u64,
         len: u32,
     ) -> Result<Vec<u8>> {
-        let local = self
-            .inner
-            .offers
-            .lock()
-            .expect("sync poisoned")
-            .get(offer)
-            .cloned()
-            .ok_or_else(|| anyhow!("file is no longer available"))?;
-        files::read_range(&local, index, offset, len.min(CHUNK_SIZE as u32)).await
+        self.inner.read_offer_range(offer, index, offset, len).await
     }
 
     /// 本机新复制了一条内容：按设置推送给所有在线的已配对设备。
@@ -578,20 +561,24 @@ impl Inner {
         }
     }
 
-    fn register_offer(&self, id: String, offer: LocalOffer) {
-        let mut offers = self.offers.lock().expect("sync poisoned");
-        offers.retain(|_, o| o.created.elapsed() < OFFER_TTL);
-        while offers.len() >= MAX_OFFERS {
-            let Some(oldest) = offers
-                .iter()
-                .min_by_key(|(_, o)| o.created)
-                .map(|(id, _)| id.clone())
-            else {
-                break;
-            };
-            offers.remove(&oldest);
+    /// 收到分块请求时立即续期文件清单，再把磁盘读取交给异步任务。
+    fn read_offer_range(
+        &self,
+        offer: &str,
+        index: u32,
+        offset: u64,
+        len: u32,
+    ) -> impl std::future::Future<Output = Result<Vec<u8>>> + Send + 'static {
+        let local = self
+            .offers
+            .lock()
+            .expect("sync poisoned")
+            .get_for_read(offer);
+
+        async move {
+            let local = local.ok_or_else(|| anyhow!("file is no longer available"))?;
+            files::read_range(&local, index, offset, len.min(CHUNK_SIZE as u32)).await
         }
-        offers.insert(id, Arc::new(offer));
     }
 }
 
@@ -1135,30 +1122,15 @@ async fn handle_message(
             offset,
             len,
         } => {
-            let local = inner
-                .offers
-                .lock()
-                .expect("sync poisoned")
-                .get(&offer)
-                .cloned();
+            let read = inner.read_offer_range(&offer, index, offset, len);
             let tx = tx.clone();
             tauri::async_runtime::spawn(async move {
-                let reply = match local {
-                    None => Message::FileError {
+                let reply = match read.await {
+                    Ok(data) => Message::FileData { req, data },
+                    Err(err) => Message::FileError {
                         req,
-                        message: "file is no longer available".to_owned(),
+                        message: err.to_string(),
                     },
-                    Some(local) => {
-                        match files::read_range(&local, index, offset, len.min(CHUNK_SIZE as u32))
-                            .await
-                        {
-                            Ok(data) => Message::FileData { req, data },
-                            Err(err) => Message::FileError {
-                                req,
-                                message: err.to_string(),
-                            },
-                        }
-                    }
                 };
                 let _ = tx.send(reply).await;
             });

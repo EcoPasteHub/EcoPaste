@@ -335,9 +335,31 @@ async fn files_are_pulled_lazily_through_virtual_data_object() {
         .and_then(|c| c.pop())
         .expect("captured offer");
 
+    let copies: Vec<_> = (0..4)
+        .map(|i| {
+            let path = src.join(format!("later-{i}.txt"));
+            std::fs::write(&path, b"another copy").unwrap();
+            build_item(
+                &store,
+                &ClipboardPayload::Files(vec![path.to_string_lossy().into_owned()]),
+            )
+            .unwrap()
+            .unwrap()
+        })
+        .collect();
+
     // 不经系统剪贴板，直接像资源管理器一样读取数据对象；
     // 在运行时之外的线程上读，`Read` 内部会 block_on 经网络拉取。
-    let reader = std::thread::spawn(move || windows_reader::read_virtual_files(captured, big));
+    let sender = fx.a.clone();
+    let reader = std::thread::spawn(move || {
+        windows_reader::read_virtual_files(captured, big, || {
+            tauri::async_runtime::block_on(async {
+                for copy in copies {
+                    sender.prepare_files(&copy).await.unwrap();
+                }
+            });
+        })
+    });
     tokio::task::spawn_blocking(move || reader.join().expect("reader thread"))
         .await
         .unwrap()
@@ -348,10 +370,11 @@ async fn files_are_pulled_lazily_through_virtual_data_object() {
 mod windows_reader {
     use windows::core::PCWSTR;
     use windows::Win32::System::Com::{
-        IDataObject, DVASPECT_CONTENT, FORMATETC, TYMED_HGLOBAL, TYMED_ISTREAM,
+        IDataObject, IStream, DVASPECT_CONTENT, FORMATETC, TYMED_HGLOBAL, TYMED_ISTREAM,
     };
     use windows::Win32::System::DataExchange::RegisterClipboardFormatW;
     use windows::Win32::System::Memory::{GlobalLock, GlobalUnlock};
+    use windows::Win32::System::Ole::ReleaseStgMedium;
     use windows::Win32::UI::Shell::FILEDESCRIPTORW;
 
     use crate::sync::remote_files::Captured;
@@ -369,10 +392,11 @@ mod windows_reader {
 
     fn descriptor_names(data: &IDataObject) -> Option<Vec<String>> {
         let fmt = format("FileGroupDescriptorW", -1, TYMED_HGLOBAL.0);
-        let medium = unsafe { data.GetData(&fmt) }.ok()?;
+        let mut medium = unsafe { data.GetData(&fmt) }.ok()?;
         let handle = unsafe { medium.u.hGlobal };
         let base = unsafe { GlobalLock(handle) } as *const u8;
         if base.is_null() {
+            unsafe { ReleaseStgMedium(&mut medium) };
             return None;
         }
 
@@ -389,32 +413,45 @@ mod windows_reader {
         }
         unsafe {
             let _ = GlobalUnlock(handle);
+            ReleaseStgMedium(&mut medium);
         }
         Some(names)
     }
 
-    fn read_stream(data: &IDataObject, index: i32) -> Result<Vec<u8>, String> {
+    fn open_stream(data: &IDataObject, index: i32) -> Result<IStream, String> {
         let fmt = format("FileContents", index, TYMED_ISTREAM.0);
-        let medium = unsafe { data.GetData(&fmt) }.map_err(|e| format!("GetData: {e}"))?;
-        let stream = unsafe { (*medium.u.pstm).clone() }.ok_or("no stream")?;
+        let mut medium = unsafe { data.GetData(&fmt) }.map_err(|e| format!("GetData: {e}"))?;
+        let stream = unsafe { (*medium.u.pstm).clone() };
+        unsafe { ReleaseStgMedium(&mut medium) };
+        stream.ok_or_else(|| "no stream".to_owned())
+    }
 
-        let mut out = Vec::new();
+    fn read_chunk(stream: &IStream, buf: &mut [u8]) -> Result<usize, String> {
+        let mut read = 0u32;
+        unsafe { stream.Read(buf.as_mut_ptr().cast(), buf.len() as u32, Some(&mut read)) }
+            .ok()
+            .map_err(|e| format!("Read: {e}"))?;
+        Ok(read as usize)
+    }
+
+    fn read_rest(stream: &IStream, out: &mut Vec<u8>) -> Result<(), String> {
         let mut buf = vec![0u8; 256 * 1024];
         loop {
-            let mut read = 0u32;
-            unsafe { stream.Read(buf.as_mut_ptr().cast(), buf.len() as u32, Some(&mut read)) }
-                .ok()
-                .map_err(|e| format!("Read: {e}"))?;
+            let read = read_chunk(stream, &mut buf)?;
             if read == 0 {
                 break;
             }
-            out.extend_from_slice(&buf[..read as usize]);
+            out.extend_from_slice(&buf[..read]);
         }
-        Ok(out)
+        Ok(())
     }
 
-    pub fn read_virtual_files(captured: Captured, expected_big: Vec<u8>) -> Result<(), String> {
-        let data = crate::sync::remote_files::create_data_object(
+    pub fn read_virtual_files(
+        captured: Captured,
+        expected_big: Vec<u8>,
+        copy_more_files: impl FnOnce(),
+    ) -> Result<(), String> {
+        let (data, is_in_use) = crate::sync::remote_files::create_data_object(
             captured.state,
             captured.peer_id,
             captured.offer,
@@ -428,14 +465,32 @@ mod windows_reader {
             find("album\\inner\\note.txt").ok_or(format!("note.txt missing in {names:?}"))?;
         find("album").ok_or("album dir missing")?;
 
-        let big = read_stream(&data, big_index as i32)?;
-        if big != expected_big {
-            return Err(format!("big.bin differs: got {} bytes", big.len()));
-        }
-        let note = read_stream(&data, note_index as i32)?;
-        if note != b"hello folder" {
-            return Err("note.txt differs".to_owned());
-        }
+        let first = open_stream(&data, big_index as i32)?;
+        let mut first_bytes = vec![0; 256 * 1024];
+        let read = read_chunk(&first, &mut first_bytes)?;
+        assert!(read > 0);
+        first_bytes.truncate(read);
+
+        copy_more_files();
+        let second = open_stream(&data, big_index as i32)?;
+        let note = open_stream(&data, note_index as i32)?;
+        drop(data);
+        assert!(is_in_use());
+
+        let mut second_bytes = vec![0; 128 * 1024];
+        let read = read_chunk(&second, &mut second_bytes)?;
+        assert!(read > 0);
+        second_bytes.truncate(read);
+        read_rest(&first, &mut first_bytes)?;
+        read_rest(&second, &mut second_bytes)?;
+        assert_eq!(blake3::hash(&first_bytes), blake3::hash(&expected_big));
+        assert_eq!(blake3::hash(&second_bytes), blake3::hash(&expected_big));
+
+        let mut note_bytes = Vec::new();
+        read_rest(&note, &mut note_bytes)?;
+        assert_eq!(note_bytes, b"hello folder");
+        drop((first, second, note));
+        assert!(!is_in_use());
         Ok(())
     }
 }

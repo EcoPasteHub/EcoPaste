@@ -4,8 +4,8 @@
 //! `FileGroupDescriptorW`（清单）与按需的 `FileContents`（每个文件一个 `IStream`）。
 //! 目标应用（资源管理器、聊天软件等）粘贴时才会读取流，流的 `Read` 再经同步会话向对端拉取数据。
 //!
-//! 线程模型：OLE 剪贴板对象必须活在带消息循环的 STA 线程上，因此每次 [`present`] 起一个专用线程，
-//! 在剪贴板被其它内容替换（`OleIsCurrentClipboard` 返回 `S_FALSE`）后退出。
+//! 线程模型：每次 [`present`] 起一个 STA 线程，为该剪贴板对象及其派生的文件流泵消息。
+//! 新复制可以替换系统剪贴板；已启动的粘贴仍会持有旧对象或旧文件流。
 
 use std::collections::VecDeque;
 use std::ffi::c_void;
@@ -44,12 +44,6 @@ const FILE_ATTRIBUTE_NORMAL: u32 = 0x80;
 const MAX_NAME_UNITS: usize = 259;
 const CLIPBOARD_POLL: u32 = 300;
 
-#[link(name = "ole32")]
-extern "system" {
-    /// `S_OK` 表示该对象仍是当前 OLE 剪贴板内容，`S_FALSE` 表示已被替换。
-    fn OleIsCurrentClipboard(pdataobj: *mut c_void) -> i32;
-}
-
 fn wide(text: &str) -> Vec<u16> {
     text.encode_utf16().chain(std::iter::once(0)).collect()
 }
@@ -82,22 +76,21 @@ pub fn present(
     }
 }
 
-/// 构造虚拟文件数据对象（尚未放上剪贴板）。
+/// 构造虚拟文件数据对象和 STA 的存活条件。派生的文件流与数据对象共同持有文件来源。
 pub fn create_data_object(
     state: SyncState,
     peer_id: String,
     offer: String,
     entries: Vec<FileEntry>,
-) -> IDataObject {
-    VirtualFiles {
+) -> (IDataObject, impl Fn() -> bool) {
+    let offer = Arc::new(RemoteOffer {
         state,
         peer_id,
         offer,
-        entries: Arc::new(entries),
-        fmt_descriptor: register_format("FileGroupDescriptorW"),
-        fmt_contents: register_format("FileContents"),
-    }
-    .into()
+        entries,
+    });
+    let lifetime = Arc::downgrade(&offer);
+    (offer.data_object(), move || lifetime.strong_count() != 0)
 }
 
 fn run_clipboard_thread(
@@ -111,12 +104,14 @@ fn run_clipboard_thread(
     }
 
     let result = (|| -> WinResult<()> {
-        let object = create_data_object(state, peer_id, offer, entries);
+        let (object, is_in_use) = create_data_object(state, peer_id, offer, entries);
 
         set_clipboard_with_retry(&object)?;
         log::info!("sync: virtual files placed on the clipboard");
 
-        pump_until_replaced(&object);
+        // OleSetClipboard 持有自己的 COM 引用。释放本地引用，使对象和派生流的实际持有者决定 STA 的寿命。
+        drop(object);
+        pump_while(is_in_use);
         Ok(())
     })();
 
@@ -146,11 +141,9 @@ fn set_clipboard_with_retry(object: &IDataObject) -> WinResult<()> {
     Ok(())
 }
 
-/// 泵消息（STA 必需），直到剪贴板被其它内容替换。
-fn pump_until_replaced(object: &IDataObject) {
-    use windows::core::Interface;
-
-    loop {
+/// 持有剪贴板对象或派生流的应用仍可能发出 COM 调用，即使剪贴板已被替换。
+fn pump_while(is_in_use: impl Fn() -> bool) {
+    while is_in_use() {
         unsafe {
             let mut msg = MSG::default();
             while PeekMessageW(&mut msg, None, 0, 0, PM_REMOVE).as_bool() {
@@ -158,21 +151,32 @@ fn pump_until_replaced(object: &IDataObject) {
                 DispatchMessageW(&msg);
             }
 
-            if OleIsCurrentClipboard(object.as_raw()) != S_OK.0 {
-                break;
-            }
-
             MsgWaitForMultipleObjects(None, FALSE, CLIPBOARD_POLL, QS_ALLINPUT);
         }
     }
 }
 
-#[implement(IDataObject)]
-struct VirtualFiles {
+struct RemoteOffer {
     state: SyncState,
     peer_id: String,
     offer: String,
-    entries: Arc<Vec<FileEntry>>,
+    entries: Vec<FileEntry>,
+}
+
+impl RemoteOffer {
+    fn data_object(self: &Arc<Self>) -> IDataObject {
+        VirtualFiles {
+            offer: self.clone(),
+            fmt_descriptor: register_format("FileGroupDescriptorW"),
+            fmt_contents: register_format("FileContents"),
+        }
+        .into()
+    }
+}
+
+#[implement(IDataObject)]
+struct VirtualFiles {
+    offer: Arc<RemoteOffer>,
     fmt_descriptor: u16,
     fmt_contents: u16,
 }
@@ -181,7 +185,7 @@ impl VirtualFiles {
     /// 构造 `FILEGROUPDESCRIPTORW`：`u32` 个数 + 逐项 `FILEDESCRIPTORW`。
     fn build_descriptor(&self) -> WinResult<STGMEDIUM> {
         let item = std::mem::size_of::<FILEDESCRIPTORW>();
-        let total = 4 + item * self.entries.len();
+        let total = 4 + item * self.offer.entries.len();
 
         unsafe {
             let handle = GlobalAlloc(GMEM_MOVEABLE, total)?;
@@ -190,8 +194,8 @@ impl VirtualFiles {
                 return Err(Error::from(E_NOTIMPL));
             }
 
-            std::ptr::write_unaligned(base as *mut u32, self.entries.len() as u32);
-            for (index, entry) in self.entries.iter().enumerate() {
+            std::ptr::write_unaligned(base as *mut u32, self.offer.entries.len() as u32);
+            for (index, entry) in self.offer.entries.iter().enumerate() {
                 let descriptor = descriptor_for(entry);
                 std::ptr::write_unaligned(
                     base.add(4 + index * item) as *mut FILEDESCRIPTORW,
@@ -211,13 +215,11 @@ impl VirtualFiles {
     fn build_stream(&self, index: i32) -> WinResult<STGMEDIUM> {
         let entry = usize::try_from(index)
             .ok()
-            .and_then(|i| self.entries.get(i))
+            .and_then(|i| self.offer.entries.get(i))
             .filter(|entry| !entry.is_dir)
             .ok_or_else(|| Error::from(DV_E_LINDEX))?;
 
         let stream: IStream = RemoteFileStream {
-            state: self.state.clone(),
-            peer_id: self.peer_id.clone(),
             offer: self.offer.clone(),
             index: index as u32,
             size: entry.size,
@@ -396,9 +398,7 @@ impl Drop for Cursor {
 /// 按需向对端拉取内容的只读文件流。
 #[implement(IStream)]
 struct RemoteFileStream {
-    state: SyncState,
-    peer_id: String,
-    offer: String,
+    offer: Arc<RemoteOffer>,
     index: u32,
     size: u64,
     cursor: Mutex<Cursor>,
@@ -414,9 +414,9 @@ impl RemoteFileStream {
 
         while cursor.inflight.len() < PREFETCH_WINDOW && next < self.size {
             let (state, peer_id, offer, index) = (
-                self.state.clone(),
-                self.peer_id.clone(),
-                self.offer.clone(),
+                self.offer.state.clone(),
+                self.offer.peer_id.clone(),
+                self.offer.offer.clone(),
                 self.index,
             );
             let task = tauri::async_runtime::spawn(async move {
@@ -650,8 +650,6 @@ impl IStream_Impl for RemoteFileStream {
             inflight: VecDeque::new(),
         };
         Ok(RemoteFileStream {
-            state: self.state.clone(),
-            peer_id: self.peer_id.clone(),
             offer: self.offer.clone(),
             index: self.index,
             size: self.size,

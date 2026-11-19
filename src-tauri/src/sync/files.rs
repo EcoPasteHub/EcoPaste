@@ -1,6 +1,9 @@
 //! 文件同步：发送侧的清单构建与按需读取；接收侧的「虚拟文件」剪贴板（平台实现）。
 
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
+use std::time::{Duration, Instant};
 
 use anyhow::{anyhow, bail, Result};
 use tokio::io::{AsyncReadExt, AsyncSeekExt};
@@ -9,11 +12,67 @@ use super::protocol::FileEntry;
 
 /// 单次复制最多同步的条目数（含目录递归），防止误复制巨型目录树。
 pub const MAX_ENTRIES: usize = 20_000;
+const MAX_PENDING_OFFERS: usize = 3;
+pub const OFFER_TTL: Duration = Duration::from_secs(30 * 60);
 
 /// 发送侧登记的一次文件 offer：与 [`FileEntry`] 一一对应的本地路径（目录为 `None`）。
 pub struct LocalOffer {
     pub paths: Vec<Option<PathBuf>>,
-    pub created: std::time::Instant,
+}
+
+struct RegisteredOffer {
+    local: Arc<LocalOffer>,
+    created: Instant,
+    last_read: Option<Instant>,
+}
+
+impl RegisteredOffer {
+    fn is_available(&self) -> bool {
+        self.last_read.unwrap_or(self.created).elapsed() < OFFER_TTL
+    }
+}
+
+#[derive(Default)]
+pub struct Offers(HashMap<String, RegisteredOffer>);
+
+impl Offers {
+    /// 回收过期清单，并限制尚未读取的清单数量；已经开始粘贴的清单按最后一次读取时间过期。
+    pub fn register(&mut self, id: String, local: LocalOffer) {
+        self.0.retain(|_, offer| offer.is_available());
+
+        let pending = self.0.iter().filter(|(_, offer)| offer.last_read.is_none());
+        if pending.clone().count() >= MAX_PENDING_OFFERS {
+            if let Some((oldest, _)) = pending.min_by_key(|(_, offer)| offer.created) {
+                let oldest = oldest.clone();
+                self.0.remove(&oldest);
+            }
+        }
+
+        self.0.insert(
+            id,
+            RegisteredOffer {
+                local: Arc::new(local),
+                created: Instant::now(),
+                last_read: None,
+            },
+        );
+    }
+
+    pub fn contains(&self, id: &str) -> bool {
+        self.0.get(id).is_some_and(RegisteredOffer::is_available)
+    }
+
+    /// 在锁内记录读取活动，让并发发布的新清单保留此传输的文件来源。
+    pub fn get_for_read(&mut self, id: &str) -> Option<Arc<LocalOffer>> {
+        let offer = self.0.get_mut(id)?;
+        if !offer.is_available() {
+            self.0.remove(id);
+            return None;
+        }
+
+        offer.last_read = Some(Instant::now());
+        Some(offer.local.clone())
+    }
 }
 
 /// 把复制的路径列表展开成清单；目录递归展开，符号链接与特殊文件跳过。
@@ -115,6 +174,39 @@ pub async fn read_range(offer: &LocalOffer, index: u32, offset: u64, len: u32) -
 mod tests {
     use super::*;
 
+    #[test]
+    fn new_offers_keep_transfers_that_have_started() {
+        let mut offers = Offers::default();
+        offers.register("reading".to_owned(), LocalOffer { paths: vec![] });
+        let started = offers.get_for_read("reading").unwrap();
+
+        for i in 0..=MAX_PENDING_OFFERS {
+            offers.register(i.to_string(), LocalOffer { paths: vec![] });
+        }
+
+        assert!(Arc::ptr_eq(
+            &started,
+            &offers.get_for_read("reading").unwrap()
+        ));
+        assert_eq!(offers.0.len(), MAX_PENDING_OFFERS + 1);
+    }
+
+    #[test]
+    fn accessed_offers_expire_only_after_the_last_read_goes_stale() {
+        let mut offers = Offers::default();
+        let id = "reading";
+        offers.register(id.to_owned(), LocalOffer { paths: vec![] });
+        assert!(offers.get_for_read(id).is_some());
+
+        let registered = offers.0.get_mut(id).unwrap();
+        registered.created -= OFFER_TTL;
+        assert!(offers.get_for_read(id).is_some());
+
+        offers.0.get_mut(id).unwrap().last_read = Some(Instant::now() - OFFER_TTL);
+        assert!(offers.get_for_read(id).is_none());
+        assert!(!offers.contains(id));
+    }
+
     #[tokio::test]
     async fn offer_expands_directories_and_serves_ranges() {
         let root = std::env::temp_dir().join(format!("ecopaste-offer-{}", uuid::Uuid::new_v4()));
@@ -132,10 +224,7 @@ mod tests {
         assert!(names.contains(&("album/a.txt", false)));
         assert!(names.contains(&("album/sub/b.txt", false)));
 
-        let offer = LocalOffer {
-            paths,
-            created: std::time::Instant::now(),
-        };
+        let offer = LocalOffer { paths };
         let index = entries
             .iter()
             .position(|e| e.rel_path == "album/a.txt")

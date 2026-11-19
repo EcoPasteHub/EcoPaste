@@ -34,9 +34,11 @@ the wire protocol, or what gets sent to peers.
   (excluded apps, disabled capture kinds), kinds disabled in `settings.sync`.
 - Received items go through `WritebackGuard` before the clipboard write, so the local
   watcher ignores them: no re-ingest and no re-broadcast (star topology, no relay).
-- Files are never pre-transferred. The sender registers a `LocalOffer`
-  (max 3, 30 min TTL); the receiver places a virtual-file `IDataObject` and pulls ranges
-  with `FetchFile` only when an app reads the stream.
+- Files are never pre-transferred. The sender keeps up to three offers that have
+  yet to be read. The first range request protects its offer from eviction by
+  newer copies, and each further request refreshes its 30-minute idle expiry.
+  The receiver places a virtual-file `IDataObject` and pulls ranges with
+  `FetchFile` only when an app reads the stream.
 
 ## Discovery fallback (manual IP)
 
@@ -54,9 +56,11 @@ the wire protocol, or what gets sent to peers.
 
 - Windows clipboard open can be refused while another app holds it: receive-side writes
   retry with backoff (`write_item_with_retry`). Do not hold `ClipboardContext` across `.await`.
-- OLE clipboard objects must live on an STA thread that pumps messages; `remote_files/windows.rs`
-  owns a dedicated thread per offer and exits when `OleIsCurrentClipboard` reports it was replaced.
-  The stream `Read` calls `block_on` -> never invoke it from a tokio worker thread.
+- OLE clipboard objects must live on an STA thread that pumps messages. In
+  `remote_files/windows.rs`, each presented offer keeps its STA alive as long as
+  OLE or a paste target holds the data object or a derived stream. A new clipboard
+  item can coexist with old paste streams, each with its own cursor and prefetch
+  window. The stream `Read` calls `block_on` and must run outside a Tokio worker.
 - macOS virtual files (`NSFilePromiseProvider`) are **not implemented** (TODO in
   `remote_files/mod.rs`); text and image sync work on both platforms.
 - `windows` crate needs the `implement` feature for `#[implement(IDataObject/IStream)]`.
