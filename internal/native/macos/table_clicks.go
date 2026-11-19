@@ -17,8 +17,15 @@ func historyTableMethods() []objc.MethodDef {
 		{Cmd: sel("activatePendingClick:"), Fn: historyTableActivatePendingClick},
 		{Cmd: sel("keyDown:"), Fn: historyTableKeyDown},
 		{Cmd: sel("menuNeedsUpdate:"), Fn: historyTableMenuNeedsUpdate},
+		{Cmd: sel("drawContextMenuHighlightForRow:"), Fn: historyTableSuppressContextMenuHighlight},
 	}
 }
+
+// historyTableSuppressContextMenuHighlight stops AppKit from outlining the
+// right-clicked row while its menu is open. The list already shows the
+// selected card, and the system outline spans the full row width, reading as
+// a stray white frame from the window edge inward.
+func historyTableSuppressContextMenuHighlight(objc.ID, objc.SEL, int64) {}
 
 func historyTableCopy(self objc.ID, _ objc.SEL, _ objc.ID) {
 	if p := panelsByTable[self]; p != nil && p.selection != "" {
