@@ -57,7 +57,7 @@ func historyTargetViewForRow(_ objc.ID, _ objc.SEL, table, _ objc.ID, row int64)
 		cell = newHistoryRow()
 	}
 	fillHistoryRow(cell, p.rows[row], p.display, p.originalRow == int(row),
-		objc.Send[int64](table, sel("selectedRow")) == row)
+		objc.Send[int64](table, sel("selectedRow")) == row, p.query)
 	return cell
 }
 
@@ -93,7 +93,7 @@ func historyTargetSelectionDidChange(_ objc.ID, _ objc.SEL, note objc.ID) {
 		cell := table.Send(sel("viewAtColumn:row:makeIfNecessary:"), int64(0), int64(index), false)
 		if cell != 0 {
 			selected := int64(index) == row
-			setHistoryRowTextColors(cell, selected)
+			applyHistoryRowText(cell, selected)
 			setHistoryRowSelected(cell, selected)
 		}
 	}

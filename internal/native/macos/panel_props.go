@@ -41,6 +41,11 @@ func setPanelQuery(p *Panel, value any) {
 	p.query = s
 	p.markSelectionFirst()
 	p.search.Send(sel("setStringValue:"), nsString(s))
+	// Re-render the visible rows so their keyword highlights follow the
+	// query even when the row props arrive in the same batch.
+	if p.table != 0 {
+		p.table.Send(sel("reloadData"))
+	}
 }
 
 func setPanelPlaceholder(p *Panel, value any) {

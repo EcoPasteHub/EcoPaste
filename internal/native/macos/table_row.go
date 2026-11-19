@@ -49,6 +49,8 @@ type rowLayout struct {
 	hasPreview  bool
 	titleText   string
 	previewText string
+	detailText  string
+	tokens      []string
 	titleMax    int
 	previewMax  int
 	showImage   bool
@@ -171,10 +173,9 @@ func newRowLabel(tag int64, font, color objc.ID, wrapping bool) objc.ID {
 	return label
 }
 
-func fillHistoryRow(cell objc.ID, row HistoryRow, display PanelDisplay, revealOriginal, selected bool) {
+func fillHistoryRow(cell objc.ID, row HistoryRow, display PanelDisplay, revealOriginal, selected bool, query string) {
 	title := viewWithTag(cell, rowTitleTag)
 	preview := viewWithTag(cell, rowPreviewTag)
-	detail := viewWithTag(cell, rowDetailTag)
 	imageView := viewWithTag(cell, rowImageTag)
 
 	titleText, previewText, detailText := historyRowText(row, display, revealOriginal)
@@ -213,6 +214,8 @@ func fillHistoryRow(cell objc.ID, row HistoryRow, display PanelDisplay, revealOr
 	layout.textMode = textMode
 	layout.showImage = showImage
 	layout.titleText = titleText
+	layout.detailText = detailText
+	layout.tokens = highlightTokens(query)
 	layout.titleMax = 1
 	layout.previewMax = 1
 	if textMode {
@@ -227,11 +230,8 @@ func fillHistoryRow(cell objc.ID, row HistoryRow, display PanelDisplay, revealOr
 		layout.previewText = previewText
 	}
 
-	title.Send(sel("setStringValue:"), nsString(titleText))
 	title.Send(sel("setHidden:"), !textMode)
-	preview.Send(sel("setStringValue:"), nsString(previewText))
 	preview.Send(sel("setHidden:"), !textMode || previewText == "")
-	detail.Send(sel("setStringValue:"), nsString(detailText))
 	imageView.Send(sel("setHidden:"), !showImage)
 
 	weight := 0.2
@@ -246,10 +246,10 @@ func fillHistoryRow(cell objc.ID, row HistoryRow, display PanelDisplay, revealOr
 
 	fillFileRows(cell, layout.files, selected)
 
-	setHistoryRowTextColors(cell, selected)
+	storeRowLayout(cell, layout)
+	applyHistoryRowText(cell, selected)
 	setHistoryRowSelected(cell, selected)
 	applySourceIcon(cell, row)
-	storeRowLayout(cell, layout)
 	layoutHistoryRow(cell, bounds(cell).Size)
 }
 
@@ -330,37 +330,55 @@ func viewWithTag(cell objc.ID, tag int64) objc.ID {
 func fileRowIconTag(index int) int64  { return int64(rowFileIconBase + index) }
 func fileRowLabelTag(index int) int64 { return int64(rowFileLabelBase + index) }
 
-// setHistoryRowTextColors switches a row between normal and selected
-// text, because the selected card is drawn with the accent color.
-func setHistoryRowTextColors(cell objc.ID, selected bool) {
+// applyHistoryRowText writes each label's text, color and search highlight
+// for the current selection state. Selection changes the card's text color,
+// so the attributed highlight has to be rebuilt too.
+func applyHistoryRowText(cell objc.ID, selected bool) {
 	title := viewWithTag(cell, rowTitleTag)
 	preview := viewWithTag(cell, rowPreviewTag)
 	detail := viewWithTag(cell, rowDetailTag)
-	titleColor := objc.ID(classNSColor).Send(sel("labelColor"))
-	previewColor := objc.ID(classNSColor).Send(sel("secondaryLabelColor"))
-	detailColor := objc.ID(classNSColor).Send(sel("secondaryLabelColor"))
+	titleColor, previewColor, detailColor := historyRowTextColors(selected)
+
+	layout := rowLayoutFor(cell)
+	if layout == nil {
+		title.Send(sel("setTextColor:"), titleColor)
+		preview.Send(sel("setTextColor:"), previewColor)
+		detail.Send(sel("setTextColor:"), detailColor)
+		return
+	}
+	setRowLabelText(title, layout.titleText, layout.tokens, title.Send(sel("font")), titleColor)
+	setRowLabelText(preview, layout.previewText, layout.tokens, preview.Send(sel("font")), previewColor)
+	setRowLabelText(detail, layout.detailText, layout.tokens, detail.Send(sel("font")), detailColor)
+	for index := 0; index < len(layout.files) && index < maxRowFiles; index++ {
+		color := historyRowFileLabelColor(selected, layout.files[index].Missing)
+		viewWithTag(cell, fileRowLabelTag(index)).Send(sel("setTextColor:"), color)
+	}
+}
+
+// historyRowTextColors is the normal and selected text palette for a card.
+func historyRowTextColors(selected bool) (title, preview, detail objc.ID) {
+	title = objc.ID(classNSColor).Send(sel("labelColor"))
+	preview = objc.ID(classNSColor).Send(sel("secondaryLabelColor"))
+	detail = objc.ID(classNSColor).Send(sel("secondaryLabelColor"))
 	if !selected {
-		detailColor = objc.ID(classNSColor).Send(sel("tertiaryLabelColor"))
+		detail = objc.ID(classNSColor).Send(sel("tertiaryLabelColor"))
 	}
 	if selected {
-		titleColor = objc.ID(classNSColor).Send(sel("alternateSelectedControlTextColor"))
-		previewColor = titleColor.Send(sel("colorWithAlphaComponent:"), 0.9)
-		detailColor = titleColor.Send(sel("colorWithAlphaComponent:"), 0.82)
+		title = objc.ID(classNSColor).Send(sel("alternateSelectedControlTextColor"))
+		preview = title.Send(sel("colorWithAlphaComponent:"), 0.9)
+		detail = title.Send(sel("colorWithAlphaComponent:"), 0.82)
 	}
-	title.Send(sel("setTextColor:"), titleColor)
-	preview.Send(sel("setTextColor:"), previewColor)
-	detail.Send(sel("setTextColor:"), detailColor)
-	if layout := rowLayoutFor(cell); layout != nil {
-		for index := 0; index < len(layout.files) && index < maxRowFiles; index++ {
-			labelColor := objc.ID(classNSColor).Send(sel("labelColor"))
-			if selected {
-				labelColor = objc.ID(classNSColor).Send(sel("alternateSelectedControlTextColor"))
-			} else if layout.files[index].Missing {
-				labelColor = objc.ID(classNSColor).Send(sel("secondaryLabelColor"))
-			}
-			viewWithTag(cell, fileRowLabelTag(index)).Send(sel("setTextColor:"), labelColor)
-		}
+	return title, preview, detail
+}
+
+func historyRowFileLabelColor(selected, missing bool) objc.ID {
+	if selected {
+		return objc.ID(classNSColor).Send(sel("alternateSelectedControlTextColor"))
 	}
+	if missing {
+		return objc.ID(classNSColor).Send(sel("secondaryLabelColor"))
+	}
+	return objc.ID(classNSColor).Send(sel("labelColor"))
 }
 
 // historyRowText keeps a note as the card's default content while hovering
