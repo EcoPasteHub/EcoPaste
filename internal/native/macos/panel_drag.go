@@ -74,6 +74,12 @@ func endPanelDrag(p *Panel) {
 		objc.ID(class("NSEvent")).Send(sel("removeMonitor:"), p.dragMonitor)
 		p.dragMonitor = 0
 	}
+	// A queued checkDragFinished: targets the table. Drop it with the drag so
+	// it cannot fire against a table the panel has already released.
+	if historyTarget != 0 && p.table != 0 {
+		objc.ID(class("NSObject")).Send(sel("cancelPreviousPerformRequestsWithTarget:selector:object:"),
+			historyTarget, sel("checkDragFinished:"), p.table)
+	}
 	p.dragging = false
 }
 
