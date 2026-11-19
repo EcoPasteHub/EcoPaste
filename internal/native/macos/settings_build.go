@@ -74,10 +74,3 @@ func (v *SettingsView) setPermissionStatus(label objc.ID, granted bool) {
 	label.Send(sel("setStringValue:"), nsString(text))
 	label.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel(color)))
 }
-
-func (v *SettingsView) startPermissionTimer() {
-	timer := objc.ID(class("NSTimer")).Send(sel("scheduledTimerWithTimeInterval:target:selector:userInfo:repeats:"),
-		1.5, settingsTarget, sel("permissionTimerFired:"), objc.ID(0), true)
-	settingsTimers[timer] = v
-	v.permissionTimer = timer
-}

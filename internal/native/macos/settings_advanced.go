@@ -240,6 +240,5 @@ func (v *SettingsView) buildPermissionsSection(document objc.ID, top float64) fl
 	document.Send(sel("addSubview:"), v.diagnosticsHint)
 
 	v.refreshPermissionLabels()
-	v.startPermissionTimer()
 	return top + 82 + settingsGroupGap
 }

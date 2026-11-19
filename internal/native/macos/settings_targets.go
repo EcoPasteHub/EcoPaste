@@ -19,6 +19,11 @@ func registerSettingsTargets() {
 		panic(err)
 	}
 	settingsTarget = objc.ID(target).Send(sel("new"))
+	// Permission status can only change while the user is in System Settings,
+	// so refresh on the way back instead of polling TCC on a timer.
+	objc.ID(class("NSNotificationCenter")).Send(sel("defaultCenter")).
+		Send(sel("addObserver:selector:name:object:"), settingsTarget, sel("appDidBecomeActive:"),
+			nsString("NSApplicationDidBecomeActiveNotification"), objc.ID(0))
 }
 
 func settingsTargetMethods() []objc.MethodDef {
@@ -29,7 +34,7 @@ func settingsTargetMethods() []objc.MethodDef {
 		{Cmd: sel("defaultDataDirPressed:"), Fn: settingsDefaultDataDirPressed},
 		{Cmd: sel("accessibilityPermissionPressed:"), Fn: settingsAccessibilityPermissionPressed},
 		{Cmd: sel("fullDiskAccessPermissionPressed:"), Fn: settingsFullDiskAccessPermissionPressed},
-		{Cmd: sel("permissionTimerFired:"), Fn: settingsPermissionTimerFired},
+		{Cmd: sel("appDidBecomeActive:"), Fn: settingsAppDidBecomeActive},
 		{Cmd: sel("copyDiagnosticsPressed:"), Fn: settingsCopyDiagnosticsPressed},
 		{Cmd: sel("addAppPressed:"), Fn: settingsAddAppPressed},
 		{Cmd: sel("refreshAppsPressed:"), Fn: settingsRefreshAppsPressed},
@@ -116,9 +121,17 @@ func settingsFullDiskAccessPermissionPressed(objc.ID, objc.SEL, objc.ID) {
 	OpenFullDiskAccessSettings()
 }
 
-func settingsPermissionTimerFired(_ objc.ID, _ objc.SEL, sender objc.ID) {
-	if v := settingsTimers[sender]; v != nil {
-		v.refreshPermissionLabels()
+func settingsAppDidBecomeActive(_ objc.ID, _ objc.SEL, _ objc.ID) {
+	settingsTabMu.Lock()
+	views := make([]*SettingsView, 0, len(settingsOpenViews))
+	for view := range settingsOpenViews {
+		views = append(views, view)
+	}
+	settingsTabMu.Unlock()
+	for _, view := range views {
+		if view.currentTab == "advanced" {
+			view.refreshPermissionLabels()
+		}
 	}
 }
 

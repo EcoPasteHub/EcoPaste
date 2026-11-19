@@ -106,7 +106,6 @@ type SettingsView struct {
 	accessibilityStatus objc.ID
 	fullDiskStatus      objc.ID
 	diagnosticsHint     objc.ID
-	permissionTimer     objc.ID
 	appsTable           objc.ID
 	appsEmpty           objc.ID
 	apps                []SettingsApp
@@ -214,7 +213,6 @@ var (
 	registerSettingsOnce sync.Once
 	settingsTarget       objc.ID
 	settingsViews        = map[objc.ID]*SettingsView{}
-	settingsTimers       = map[objc.ID]*SettingsView{}
 	settingsTabMu        sync.Mutex
 	settingsOpenViews    = map[*SettingsView]struct{}{}
 	pendingSettingsTab   string
@@ -325,6 +323,11 @@ func (v *SettingsView) applyTab(name string) {
 	}
 	v.tabs.Send(sel("selectTabViewItemWithIdentifier:"), nsString(name))
 	v.currentTab = name
+	// Permission status can only change while the user is in System Settings;
+	// refresh once when the page shows and again when the app becomes active.
+	if name == "advanced" {
+		v.refreshPermissionLabels()
+	}
 }
 
 // View implements core.NativeComponent.
@@ -492,11 +495,6 @@ func (v *SettingsView) Close() {
 		icon.Close()
 	}
 	v.aboutIcons = nil
-	if v.permissionTimer != 0 {
-		v.permissionTimer.Send(sel("invalidate"))
-		delete(settingsTimers, v.permissionTimer)
-		v.permissionTimer = 0
-	}
 	for control, owner := range settingsViews {
 		if owner == v {
 			delete(settingsViews, control)
