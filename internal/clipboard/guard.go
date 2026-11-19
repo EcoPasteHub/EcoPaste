@@ -26,7 +26,15 @@ func (g *Guard) Mark(hash string) {
 	}
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	g.entries[hash] = g.now().Add(g.ttl)
+	now := g.now()
+	// Drop marks whose write never reached the watcher, so the map holds only
+	// the writes from the last ttl instead of growing for the whole session.
+	for key, expiry := range g.entries {
+		if !now.Before(expiry) {
+			delete(g.entries, key)
+		}
+	}
+	g.entries[hash] = now.Add(g.ttl)
 }
 
 // Consume reports whether hash was written by EcoPaste recently, removing
