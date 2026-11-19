@@ -188,7 +188,10 @@ func (w *settingsWiring) setTrayIcon(visible bool) error {
 	if visible {
 		icon = trayIcon()
 	}
-	tray.SetIcon(icon, true)
+	// Settings edits run on a worker goroutine; a tray change mutates the
+	// reactive tree, so it must run on the graph's goroutine. Post it instead
+	// of touching the tree here.
+	w.app.Post(func() { tray.SetIcon(icon, true) })
 	return nil
 }
 

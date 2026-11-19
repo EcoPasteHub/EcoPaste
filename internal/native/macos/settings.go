@@ -238,9 +238,19 @@ func SelectSettingsTab(name string) bool {
 		views = append(views, view)
 	}
 	settingsTabMu.Unlock()
-	for _, view := range views {
-		view.selectTabNotify(tab)
-	}
+	// This runs on the reactive graph when the clipboard panel's gear opens
+	// settings; the tab view is AppKit, so switch it on the main thread. A
+	// view closed between the snapshot and here is skipped.
+	onMain(func() {
+		for _, view := range views {
+			settingsTabMu.Lock()
+			_, open := settingsOpenViews[view]
+			settingsTabMu.Unlock()
+			if open {
+				view.selectTabNotify(tab)
+			}
+		}
+	})
 	return true
 }
 
@@ -483,6 +493,9 @@ func (v *SettingsView) Close() {
 	}
 	if v.actionsTable != 0 {
 		delete(settingsActionsByTable, v.actionsTable)
+	}
+	if v.captureTable != 0 {
+		delete(settingsCaptureByTable, v.captureTable)
 	}
 	for control, owner := range settingsAppControls {
 		if owner == v {
