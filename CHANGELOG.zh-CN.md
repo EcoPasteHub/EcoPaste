@@ -1,5 +1,11 @@
 # 更新日志
 
+## [1.3.5](https://github.com/ack528/EcoPaste/compare/v1.3.4...v1.3.5) (2026-11-19)
+
+### 🐛 问题修复
+
+- 修复发送端复制新内容时正在进行的 Windows 跨设备文件粘贴中断的问题。每次粘贴使用独立文件流，多次粘贴可以各自完成。
+
 ## [1.1.0](https://github.com/EcoPasteHub/EcoPaste/compare/v1.0.0...v1.1.0) (2026-07-22)
 
 ### ✨ 新功能

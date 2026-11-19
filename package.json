@@ -1,7 +1,7 @@
 {
   "name": "eco-paste",
   "private": true,
-  "version": "1.3.4",
+  "version": "1.3.5",
   "description": "A local-first clipboard manager for macOS and Windows.",
   "author": "ack528",
   "license": "Apache-2.0",

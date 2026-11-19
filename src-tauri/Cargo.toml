@@ -1,6 +1,6 @@
 [package]
 name = "EcoPaste"
-version = "1.3.4"
+version = "1.3.5"
 description = "A local-first clipboard manager for macOS and Windows."
 authors = ["ack528"]
 license = "Apache-2.0"

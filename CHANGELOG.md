@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.5](https://github.com/ack528/EcoPaste/compare/v1.3.4...v1.3.5) (2026-11-19)
+
+### 🐛 Bug Fixes
+
+- Keep Windows cross-device file pastes running when the sender copies new content. Each paste reads through its own stream, so multiple pastes can proceed independently.
+
 ## [1.1.0](https://github.com/EcoPasteHub/EcoPaste/compare/v1.0.0...v1.1.0) (2026-07-22)
 
 ### ✨ Features
