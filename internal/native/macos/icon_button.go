@@ -46,7 +46,7 @@ func registerIconButtonClass() error {
 
 func newIconButton() objc.ID {
 	button := objc.ID(iconButtonClass).Send(sel("alloc")).Send(sel("initWithFrame:"), CGRect{})
-	iconButtonHovers[button] = newTransition(func() { button.Send(sel("setNeedsDisplay:"), true) })
+	iconButtonHovers[button] = newViewTransition(button)
 	return button
 }
 

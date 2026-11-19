@@ -85,6 +85,7 @@ func (v *SettingsView) newSettingsInfoButton(key i18n.Key) objc.ID {
 	button.Send(sel("setContentTintColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
 
 	info := &settingsInfo{button: button, key: key}
+	info.hover.view = button
 	info.hover.redraw = func() {
 		secondary := objc.ID(classNSColor).Send(sel("secondaryLabelColor"))
 		accent := objc.ID(classNSColor).Send(sel("controlAccentColor"))

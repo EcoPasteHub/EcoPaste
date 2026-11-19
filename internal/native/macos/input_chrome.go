@@ -38,6 +38,7 @@ var (
 func newInputChrome(view, field objc.ID) *inputChrome {
 	registerInputChromeOnce.Do(registerInputChromeObserver)
 	c := &inputChrome{view: view, field: field}
+	c.focus.view, c.hover.view = view, view
 	c.focus.redraw = func() { view.Send(sel("setNeedsDisplay:"), true) }
 	c.hover.redraw = c.focus.redraw
 	chromeByView[view] = c

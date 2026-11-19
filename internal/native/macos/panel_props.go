@@ -42,8 +42,10 @@ func setPanelQuery(p *Panel, value any) {
 	p.markSelectionFirst()
 	p.search.Send(sel("setStringValue:"), nsString(s))
 	// Re-render the visible rows so their keyword highlights follow the
-	// query even when the row props arrive in the same batch.
+	// query even when the row props arrive in the same batch. Stop any hover
+	// fade first: reloading the cells can release the view it paints.
 	if p.table != 0 {
+		clearRowHoverStates()
 		p.table.Send(sel("reloadData"))
 	}
 }
@@ -57,6 +59,10 @@ func setPanelPlaceholder(p *Panel, value any) {
 func setPanelRows(p *Panel, value any) {
 	rows, _ := value.([]HistoryRow)
 	p.hideHover()
+	// hideHover starts a fade-out on the cell under the pointer. The list is
+	// about to reload and may release that cell, so drop the pending fade
+	// before reloadData rather than animating a view that is going away.
+	clearRowHoverStates()
 	previousID := p.selection
 	previousIndex := p.selectedIndex()
 	intent := p.selectionIntent
@@ -143,6 +149,7 @@ func setPanelDisplay(p *Panel, value any) {
 	if display, ok := value.(PanelDisplay); ok {
 		p.display = display
 		p.recomputeRowHeights()
+		clearRowHoverStates()
 		p.table.Send(sel("reloadData"))
 		p.syncTableFrame()
 		p.ensureSelection()
@@ -163,6 +170,7 @@ func setPanelActions(p *Panel, value any) {
 }
 
 func reloadPanelTable(p *Panel) {
+	clearRowHoverStates()
 	p.table.Send(sel("reloadData"))
 	p.ensureSelection()
 }

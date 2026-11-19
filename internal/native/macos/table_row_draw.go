@@ -106,7 +106,7 @@ func setHistoryRowHovered(view objc.ID, hovered bool) {
 		if !hovered {
 			return
 		}
-		state = newTransition(func() { view.Send(sel("setNeedsDisplay:"), true) })
+		state = newViewTransition(view)
 		rowHoverStates[view] = state
 	}
 	target := 0.0

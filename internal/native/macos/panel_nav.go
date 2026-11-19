@@ -228,7 +228,7 @@ func newPanelNav(p *Panel, parent objc.ID) *panelNav {
 		capsule.Send(sel("setAccessibilityLabel:"), nsString(labels[index]))
 		capsule.Send(sel("setAccessibilityRole:"), nsString("AXButton"))
 		navsByCapsule[capsule] = nav
-		navCapsuleHovers[capsule] = newTransition(func() { capsule.Send(sel("setNeedsDisplay:"), true) })
+		navCapsuleHovers[capsule] = newViewTransition(capsule)
 		nav.capsules = append(nav.capsules, capsule)
 		nav.surface.Send(sel("addSubview:"), capsule)
 	}

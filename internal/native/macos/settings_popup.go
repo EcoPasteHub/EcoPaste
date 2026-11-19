@@ -79,7 +79,7 @@ func newSettingsPopup(frame CGRect) objc.ID {
 	registerSettingsPopupClass()
 	control := objc.ID(settingsPopupClass).Send(sel("alloc")).Send(sel("initWithFrame:pullsDown:"), frame, false)
 	control.Send(sel("setFocusRingType:"), int64(1))
-	settingsPopupHovers[control] = newTransition(func() { control.Send(sel("setNeedsDisplay:"), true) })
+	settingsPopupHovers[control] = newViewTransition(control)
 	return control
 }
 

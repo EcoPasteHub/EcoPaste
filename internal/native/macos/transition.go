@@ -30,14 +30,25 @@ const (
 // (idle) to 1 (hovered/focused), but any range works. redraw is invoked
 // once per frame while the value is moving, and should repaint the owning
 // view.
+//
+// view is the AppKit view redraw paints. The shared driver retains it while
+// the transition animates: a view can be owned by something that drops it
+// mid-animation (an NSTableView recycles and releases its cells as rows
+// reload), and a timed redraw into a freed view crashes the process. Retain
+// holds the object alive until the transition settles or stops, then
+// releases it.
 type transition struct {
 	value  float64
 	target float64
 	redraw func()
+	view   objc.ID
+	held   bool
 }
 
-func newTransition(redraw func()) *transition {
-	return &transition{redraw: redraw}
+// newViewTransition builds the common transition whose only repaint is a
+// redraw of view. It keeps the view alive while animating.
+func newViewTransition(view objc.ID) *transition {
+	return &transition{view: view, redraw: func() { view.Send(sel("setNeedsDisplay:"), true) }}
 }
 
 // setTarget starts (or continues) the animation toward target. Setting the
@@ -56,8 +67,10 @@ func (t *transition) setTarget(target float64) {
 func (t *transition) snap(target float64) {
 	t.target = target
 	t.value = target
-	releaseTransitionFrame(t)
+	// Repaint before releasing: if the driver was the only thing keeping the
+	// view alive, releasing first would free it before this final redraw.
 	t.redrawView()
+	releaseTransitionFrame(t)
 }
 
 // stop cancels the animation without changing the value. Call it when the
@@ -95,6 +108,7 @@ var (
 // timer if it is not already running.
 func requestTransitionFrame(t *transition) {
 	registerTransitionTickerOnce.Do(registerTransitionTicker)
+	t.retainView()
 	transitionFrames[t] = struct{}{}
 	if transitionTimer != 0 {
 		return
@@ -106,9 +120,29 @@ func requestTransitionFrame(t *transition) {
 
 func releaseTransitionFrame(t *transition) {
 	delete(transitionFrames, t)
+	t.releaseView()
 	if len(transitionFrames) == 0 {
 		stopTransitionTimer()
 	}
+}
+
+// retainView keeps the repainted view alive while the driver animates it. It is
+// idempotent so repeated setTarget calls while a frame is already pending do
+// not over-retain.
+func (t *transition) retainView() {
+	if t.view == 0 || t.held {
+		return
+	}
+	t.view.Send(sel("retain"))
+	t.held = true
+}
+
+func (t *transition) releaseView() {
+	if t.view == 0 || !t.held {
+		return
+	}
+	t.held = false
+	t.view.Send(sel("release"))
 }
 
 func stopTransitionTimer() {
@@ -126,7 +160,7 @@ func advanceTransitionFrames() {
 		settled := t.advance()
 		t.redrawView()
 		if settled {
-			delete(transitionFrames, t)
+			releaseTransitionFrame(t)
 		}
 	}
 	if len(transitionFrames) == 0 {

@@ -137,7 +137,7 @@ func newNumberStepButton(symbol string, target objc.ID, action, accessibility st
 	button.Send(sel("setAction:"), sel(action))
 	button.Send(sel("setToolTip:"), nsString(accessibility))
 	button.Send(sel("setAccessibilityLabel:"), nsString(accessibility))
-	numberStepHovers[button] = newTransition(func() { button.Send(sel("setNeedsDisplay:"), true) })
+	numberStepHovers[button] = newViewTransition(button)
 	return button
 }
 
