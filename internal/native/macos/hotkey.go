@@ -50,8 +50,10 @@ var (
 	carbonHotKeyCallbacks = map[uint32]func(){}
 )
 
-// HotKeyBinding is one global shortcut and the action it runs on the main
-// thread.
+// HotKeyBinding is one global shortcut and the action it runs when pressed.
+// Carbon delivers the action on the AppKit main thread, not on NSGo's
+// reactive graph goroutine, so an action that touches NSGo state must hand
+// its work to the graph with Scope.Post.
 type HotKeyBinding struct {
 	Key    string
 	Action func()

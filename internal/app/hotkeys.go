@@ -7,11 +7,13 @@ import (
 
 	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
 	"github.com/EcoPasteHub/EcoPaste/internal/settings"
+	"github.com/nsgo-dev/nsgo/core"
 )
 
 // hotKeySet owns the configurable global shortcuts and the manager that
 // registers them.
 type hotKeySet struct {
+	app            *core.Scope
 	manager        *macos.HotKeyManager
 	store          *settings.Store
 	openClipboard  string
@@ -20,8 +22,9 @@ type hotKeySet struct {
 	openSettings   func()
 }
 
-func newHotKeySet(manager *macos.HotKeyManager, store *settings.Store) *hotKeySet {
+func newHotKeySet(app *core.Scope, manager *macos.HotKeyManager, store *settings.Store) *hotKeySet {
 	keys := &hotKeySet{
+		app:            app,
 		manager:        manager,
 		store:          store,
 		openClipboard:  panelHotKey,
@@ -48,10 +51,10 @@ func (k *hotKeySet) reload() error {
 	k.applyStored()
 	var bindings []macos.HotKeyBinding
 	if k.openClipboard != "" && k.togglePanel != nil {
-		bindings = append(bindings, macos.HotKeyBinding{Key: k.openClipboard, Action: k.togglePanel})
+		bindings = append(bindings, macos.HotKeyBinding{Key: k.openClipboard, Action: k.onGraph(k.togglePanel)})
 	}
 	if k.openPreference != "" && k.openSettings != nil {
-		bindings = append(bindings, macos.HotKeyBinding{Key: k.openPreference, Action: k.openSettings})
+		bindings = append(bindings, macos.HotKeyBinding{Key: k.openPreference, Action: k.onGraph(k.openSettings)})
 	}
 	if err := k.manager.Set(bindings); err != nil {
 		log.Printf("register hotkeys: %v", err)
@@ -62,4 +65,17 @@ func (k *hotKeySet) reload() error {
 
 func (k *hotKeySet) shortcuts() (string, string) {
 	return k.openClipboard, k.openPreference
+}
+
+// onGraph hands fn to the reactive graph's goroutine. Carbon fires hotkeys on
+// the AppKit main thread, where NSGo window signals belong to another
+// goroutine, so a shortcut that opened or hid a window would panic there.
+func (k *hotKeySet) onGraph(fn func()) func() {
+	return func() {
+		if k.app == nil {
+			fn()
+			return
+		}
+		k.app.Post(fn)
+	}
 }

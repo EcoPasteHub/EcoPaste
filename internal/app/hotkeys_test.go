@@ -12,7 +12,7 @@ func TestHotKeySetHonorsClearedShortcuts(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	keys := newHotKeySet(nil, store)
+	keys := newHotKeySet(nil, nil, store)
 	if keys.openClipboard != "alt+c" || keys.openPreference != "alt+x" {
 		t.Fatalf("defaults = %q, %q", keys.openClipboard, keys.openPreference)
 	}

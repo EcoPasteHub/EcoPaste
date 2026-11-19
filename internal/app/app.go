@@ -47,7 +47,7 @@ func Run(app *core.Scope) {
 	}
 	applyApplicationMenu()
 	paths, store, windowState := loadStorage(app)
-	hotKeys = newHotKeySet(manager, store)
+	hotKeys = newHotKeySet(app, manager, store)
 	if store != nil {
 		syncStoredSettings(app, store)
 		wiring = &settingsWiring{
