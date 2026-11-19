@@ -22,6 +22,7 @@ type Store struct {
 	mu      sync.RWMutex
 	path    string
 	current Settings
+	subs    map[chan struct{}]struct{}
 }
 
 // Open loads the settings file, creating it with defaults on first run.
@@ -44,6 +45,35 @@ func Open(path string) (*Store, error) {
 
 // Path returns the settings file's location.
 func (s *Store) Path() string { return s.path }
+
+// Changes returns a channel notified after each successful change, plus a
+// function that stops the subscription. Notifications coalesce: one pending
+// signal is enough for a consumer to read the latest snapshot, so a burst of
+// updates never queues up behind a slow reader.
+func (s *Store) Changes() (<-chan struct{}, func()) {
+	ch := make(chan struct{}, 1)
+	s.mu.Lock()
+	if s.subs == nil {
+		s.subs = map[chan struct{}]struct{}{}
+	}
+	s.subs[ch] = struct{}{}
+	s.mu.Unlock()
+	return ch, func() {
+		s.mu.Lock()
+		delete(s.subs, ch)
+		s.mu.Unlock()
+	}
+}
+
+// notifyLocked wakes every subscriber. The caller holds s.mu.
+func (s *Store) notifyLocked() {
+	for ch := range s.subs {
+		select {
+		case ch <- struct{}{}:
+		default:
+		}
+	}
+}
 
 // Snapshot returns a copy of the current settings.
 func (s *Store) Snapshot() Settings {
@@ -73,6 +103,7 @@ func (s *Store) Update(patch map[string]any) (Settings, error) {
 		return Settings{}, err
 	}
 	s.current = merged
+	s.notifyLocked()
 	return cloneSettings(merged), nil
 }
 
@@ -88,6 +119,7 @@ func (s *Store) Replace(next Settings) error {
 		return err
 	}
 	s.current = cloneSettings(next)
+	s.notifyLocked()
 	return nil
 }
 

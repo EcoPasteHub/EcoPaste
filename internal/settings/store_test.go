@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 )
 
 func TestOpenCreatesDefaults(t *testing.T) {
@@ -263,6 +264,31 @@ func TestConcurrentUpdatesKeepCompleteSettings(t *testing.T) {
 		!got.Clipboard.Content.CopyPlain || !got.Clipboard.Content.PastePlain ||
 		!got.Clipboard.Content.AutoFavorite || !got.Clipboard.Feedback.CopySound {
 		t.Errorf("concurrent updates lost fields: %+v", got)
+	}
+}
+
+func TestChangesNotifiesAndStopsAfterUnsubscribe(t *testing.T) {
+	store, err := Open(filepath.Join(t.TempDir(), FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	changes, stop := store.Changes()
+	if _, err := store.Update(map[string]any{"appearance": map[string]any{"theme": "dark"}}); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case <-changes:
+	case <-time.After(time.Second):
+		t.Fatal("no notification after update")
+	}
+	stop()
+	if _, err := store.Update(map[string]any{"appearance": map[string]any{"theme": "light"}}); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case <-changes:
+		t.Fatal("notified after unsubscribe")
+	case <-time.After(50 * time.Millisecond):
 	}
 }
 

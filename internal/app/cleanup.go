@@ -8,14 +8,15 @@ import (
 	"github.com/EcoPasteHub/EcoPaste/internal/settings"
 )
 
-const cleanupCheckInterval = time.Minute
-
-// startCleanup runs one pass at launch, then honors the configured
-// interval. A zero interval keeps the launch pass only.
+// startCleanup runs one pass at launch, then schedules the next pass from the
+// configured interval. A zero interval keeps the launch pass only.
 func startCleanup(ctx context.Context, runtime *clipboardRuntime, store *settings.Store) {
-	startCleanupLoop(ctx, runtime, store, cleanupCheckInterval, time.Now)
+	startCleanupLoop(ctx, runtime, store, 0, time.Now)
 }
 
+// startCleanupLoop waits until the configured interval has elapsed. check is an
+// optional cap on a single wait, for tests that use a controllable clock; zero
+// waits exactly until the next pass is due, and settings changes wake it early.
 func startCleanupLoop(
 	ctx context.Context,
 	runtime *clipboardRuntime,
@@ -35,22 +36,47 @@ func startCleanupLoop(
 	}
 	run()
 	last := now()
+	changes, stopChanges := store.Changes()
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
-		ticker := time.NewTicker(check)
-		defer ticker.Stop()
+		defer stopChanges()
 		for {
-			select {
-			case <-ctx.Done():
-				return
-			case <-ticker.C:
-				hours := store.Snapshot().Clipboard.History.CleanupIntervalHours
-				if !cleanupDue(now(), last, hours) {
+			hours := store.Snapshot().Clipboard.History.CleanupIntervalHours
+			interval := time.Duration(hours) * time.Hour
+			if interval <= 0 {
+				// Disabled, or a value so large the duration overflowed: no
+				// periodic pass is due. Wait for a settings change rather than
+				// waking on a timer that can never fire.
+				select {
+				case <-ctx.Done():
+					return
+				case <-changes:
 					continue
 				}
+			}
+			due := last.Add(interval)
+			if !due.After(now()) {
 				run()
 				last = now()
+				continue
+			}
+			wait := due.Sub(now())
+			if check > 0 && wait > check {
+				wait = check
+			}
+			timer := time.NewTimer(wait)
+			select {
+			case <-ctx.Done():
+				timer.Stop()
+				return
+			case <-changes:
+				timer.Stop()
+			case <-timer.C:
+				if cleanupDue(now(), last, store.Snapshot().Clipboard.History.CleanupIntervalHours) {
+					run()
+					last = now()
+				}
 			}
 		}
 	}()
