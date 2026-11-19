@@ -382,27 +382,17 @@ func historyRowFileLabelColor(selected, missing bool) objc.ID {
 }
 
 // historyRowText keeps a note as the card's default content while hovering
-// temporarily reveals the copied content, matching the legacy note card.
+// temporarily reveals the copied content. The note lives in the content
+// area only; the metadata line stays limited to type and time.
 func historyRowText(row HistoryRow, display PanelDisplay, revealOriginal bool) (string, string, string) {
 	note := strings.TrimSpace(row.Note)
 	if note == "" {
 		return row.Title, row.Preview, row.Detail
 	}
-	if !display.ShowOriginal {
-		return row.Title, "", appendHistoryDetail(row.Detail, note)
+	if display.ShowOriginal && revealOriginal {
+		return row.Title, row.Preview, row.Detail
 	}
-	detail := appendHistoryDetail(row.Detail, i18n.T(i18n.NoteDetail))
-	if revealOriginal {
-		return row.Title, row.Preview, detail
-	}
-	return i18n.T(i18n.NoteDetailPrefix) + note, "", detail
-}
-
-func appendHistoryDetail(detail, value string) string {
-	if strings.TrimSpace(detail) == "" {
-		return value
-	}
-	return detail + " · " + value
+	return i18n.T(i18n.NoteDetailPrefix) + note, "", row.Detail
 }
 
 const (

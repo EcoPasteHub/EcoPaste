@@ -40,7 +40,7 @@ func TestHistoryRowIncludesMetadata(t *testing.T) {
 		Favorite:      true,
 		Pinned:        true,
 	})
-	if row.Title != "hello" || row.Detail != "文本 · Safari · 2 分钟前 · 已固定 · 收藏" {
+	if row.Title != "hello" || row.Detail != "文本 · 2 分钟前" {
 		t.Errorf("row = %+v", row)
 	}
 	if row.SourceIconPath != "/tmp/safari.png" {
@@ -77,7 +77,7 @@ func TestFileTitleLimitsNames(t *testing.T) {
 	}
 }
 
-func TestHistoryRowIncludesFileSummary(t *testing.T) {
+func TestHistoryRowDetailOmitsFileSummary(t *testing.T) {
 	row := historyRow(HistoryItem{
 		ID:          "1",
 		Kind:        "files",
@@ -85,7 +85,7 @@ func TestHistoryRowIncludesFileSummary(t *testing.T) {
 		FileSummary: "PDF · 2.0 KB",
 		CreatedAt:   time.Now(),
 	})
-	if !strings.HasPrefix(row.Detail, "文件 · PDF · 2.0 KB · 刚刚") {
+	if row.Detail != "文件 · 刚刚" {
 		t.Errorf("detail = %q", row.Detail)
 	}
 }
@@ -124,7 +124,7 @@ func TestHistoryPresentationFollowsLanguage(t *testing.T) {
 		CreatedAt: time.Now(),
 		Pinned:    true,
 	})
-	if row.Detail != "Text · Just now · Pinned" {
+	if row.Detail != "Text · Just now" {
 		t.Errorf("detail = %q", row.Detail)
 	}
 	if got := FileTitle([]string{"/tmp/a.txt", "/tmp/b.txt", "/tmp/c.txt"}, 2); got != "a.txt, b.txt and 3 more" {

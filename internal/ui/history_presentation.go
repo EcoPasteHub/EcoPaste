@@ -48,22 +48,12 @@ func historyRow(item HistoryItem) macos.HistoryRow {
 	if title == "" {
 		title = kindName(item.Kind)
 	}
-	detail := make([]string, 0, 5)
+	// The metadata line under the content shows only the type and the
+	// timestamp; everything else stays out of the row.
+	detail := make([]string, 0, 2)
 	detail = append(detail, TypeName(item.Kind, item.SubKind))
-	if item.FileSummary != "" && item.Kind != "image" {
-		detail = append(detail, item.FileSummary)
-	}
-	if item.SourceApp != "" {
-		detail = append(detail, item.SourceApp)
-	}
 	if !item.CreatedAt.IsZero() {
 		detail = append(detail, relativeTime(time.Now(), item.CreatedAt))
-	}
-	if item.Pinned {
-		detail = append(detail, i18n.T(i18n.RowPinned))
-	}
-	if item.Favorite {
-		detail = append(detail, i18n.T(i18n.RowFavorite))
 	}
 	return macos.HistoryRow{
 		ID:             item.ID,
