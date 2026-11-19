@@ -70,7 +70,9 @@ var settingsActionFallbackOrder = []string{
 	"sendEmail", "reveal", "note", "star", "pinItem", "delete",
 }
 
-func (v *SettingsView) applyActions(values SettingsValues) {
+// buildSettingsActions resolves the persisted selection and order into the
+// rows the table renders, localizing their titles.
+func buildSettingsActions(values SettingsValues) []settingsAction {
 	enabled := make(map[string]struct{}, len(values.ItemActions))
 	for _, key := range values.ItemActions {
 		enabled[key] = struct{}{}
@@ -101,15 +103,80 @@ func (v *SettingsView) applyActions(values SettingsValues) {
 		title, _ := settingsActionTitle(key)
 		actions = append(actions, settingsAction{key: key, title: title, enabled: on})
 	}
+	return actions
+}
+
+// settingsActionsSameShape reports whether two rows lists share the same keys
+// in the same order, ignoring their checked state and title.
+func settingsActionsSameShape(current, next []settingsAction) bool {
+	if len(current) != len(next) {
+		return false
+	}
+	for i := range current {
+		if current[i].key != next[i].key {
+			return false
+		}
+	}
+	return true
+}
+
+// settingsActionChangedRows returns the rows whose rendered content changed.
+func settingsActionChangedRows(current, next []settingsAction) []int {
+	rows := make([]int, 0, len(current))
+	for i := 0; i < len(current) && i < len(next); i++ {
+		if current[i].enabled != next[i].enabled || current[i].title != next[i].title {
+			rows = append(rows, i)
+		}
+	}
+	return rows
+}
+
+func (v *SettingsView) selectedActionKey() string {
+	if v.actionsTable == 0 {
+		return ""
+	}
+	row := int(objc.Send[int64](v.actionsTable, sel("selectedRow")))
+	if row < 0 || row >= len(v.actions) {
+		return ""
+	}
+	return v.actions[row].key
+}
+
+// applyActions refreshes the hover-action rows. It only redraws the rows whose
+// checked state or title changed, and preserves the list's scroll position and
+// selection when the row order itself changes.
+func (v *SettingsView) applyActions(values SettingsValues) {
+	actions := buildSettingsActions(values)
+	if settingsActionsSameShape(v.actions, actions) {
+		changed := settingsActionChangedRows(v.actions, actions)
+		v.actions = actions
+		if len(changed) > 0 {
+			reloadSettingsTableRows(v.actionsTable, changed)
+		}
+		return
+	}
+	selectedKey := v.selectedActionKey()
 	v.actions = actions
 	if v.actionsTable != 0 {
 		v.actionsTable.Send(sel("reloadData"))
 		sizeSettingsTable(v.actionsTable, settingsContentWidth-40, 30, len(actions))
-		if selected := selectedRowAfterResize(v.actionsTable, len(actions)); selected >= 0 {
-			v.selectAction(selected)
+		row := stringIndexKeys(v.actions, selectedKey)
+		if row < 0 && len(actions) > 0 {
+			row = 0
 		}
+		selectSettingsRowNoScroll(v.actionsTable, row)
 		v.updateMoveButtons()
 	}
+}
+
+// stringIndexKeys maps a key to its row in an action list.
+func stringIndexKeys(actions []settingsAction, key string) int {
+	for i, action := range actions {
+		if action.key == key {
+			return i
+		}
+	}
+	return -1
 }
 
 func (v *SettingsView) selectAction(row int) {

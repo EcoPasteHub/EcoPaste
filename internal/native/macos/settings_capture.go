@@ -38,7 +38,9 @@ func settingsCaptureTitle(key string) (string, bool) {
 	return "", false
 }
 
-func (v *SettingsView) applyCaptureOrder(values SettingsValues) {
+// normalizedCaptureOrder resolves the persisted capture order into a complete,
+// duplicate-free key list.
+func normalizedCaptureOrder(values SettingsValues) []string {
 	order := make([]string, 0, 5)
 	seen := map[string]struct{}{}
 	for _, key := range values.CaptureOrder {
@@ -57,15 +59,39 @@ func (v *SettingsView) applyCaptureOrder(values SettingsValues) {
 		}
 		order = append(order, key)
 	}
+	return order
+}
+
+func (v *SettingsView) selectedCaptureKey() string {
+	if v.captureTable == 0 {
+		return ""
+	}
+	row := int(objc.Send[int64](v.captureTable, sel("selectedRow")))
+	if row < 0 || row >= len(v.captureOrder) {
+		return ""
+	}
+	return v.captureOrder[row]
+}
+
+// applyCaptureOrder refreshes the capture-priority list only when its order
+// actually changed, and keeps the scroll position and selection otherwise.
+func (v *SettingsView) applyCaptureOrder(values SettingsValues) {
+	order := normalizedCaptureOrder(values)
+	if stringSlicesEqual(order, v.captureOrder) {
+		return
+	}
+	selectedKey := v.selectedCaptureKey()
 	v.captureOrder = order
 	if v.captureTable == 0 {
 		return
 	}
 	v.captureTable.Send(sel("reloadData"))
 	sizeSettingsTable(v.captureTable, settingsCaptureListWidth, settingsCaptureRowHeight, len(order))
-	if selected := selectedRowAfterResize(v.captureTable, len(order)); selected >= 0 {
-		v.selectCaptureOrder(selected)
+	row := stringIndex(order, selectedKey)
+	if row < 0 && len(order) > 0 {
+		row = 0
 	}
+	selectSettingsRowNoScroll(v.captureTable, row)
 	v.updateCaptureMoveButtons()
 }
 

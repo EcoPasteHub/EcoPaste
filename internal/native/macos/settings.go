@@ -339,7 +339,6 @@ func (v *SettingsView) SetProp(name string, value any) {
 		}
 	case "values":
 		if values, ok := value.(SettingsValues); ok {
-			v.lastValues = values
 			v.apply(values)
 		}
 	case "tab":
@@ -389,7 +388,11 @@ func (v *SettingsView) shortcutRecorder(path string) *shortcutRecorder {
 	return nil
 }
 
+// apply reconciles the native controls with the persisted values. Each list and
+// popup updates itself only when its data changed, so changing one setting does
+// not reload or re-scroll unrelated regions.
 func (v *SettingsView) apply(values SettingsValues) {
+	prev := v.lastValues
 	if v.dataDir != 0 {
 		v.dataDir.Send(sel("setStringValue:"), nsString(values.DataDir))
 		v.dataDir.Send(sel("setToolTip:"), nsString(values.DataDir))
@@ -402,7 +405,9 @@ func (v *SettingsView) apply(values SettingsValues) {
 	v.applyCaptureOrder(values)
 	v.applyShortcuts(values)
 	v.applyNumberInputs(values)
-	v.applyGroups(values)
+	if !settingsGroupsEqual(prev.Groups, values.Groups) || prev.GroupOnOpen != values.GroupOnOpen {
+		v.applyGroups(values)
+	}
 	for _, field := range v.fields {
 		switch field.kind {
 		case "bool":
@@ -414,6 +419,20 @@ func (v *SettingsView) apply(values SettingsValues) {
 			v.layoutPopup(field)
 		}
 	}
+	v.lastValues = values
+}
+
+// settingsGroupsEqual reports whether two group lists are identical.
+func settingsGroupsEqual(a, b []SettingsGroup) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
 }
 
 // applyGroups rebuilds the open-group popup from the current clipboard

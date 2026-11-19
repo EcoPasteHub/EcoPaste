@@ -34,6 +34,16 @@ func (v *SettingsView) applyLanguage(language string) {
 	}
 	v.refreshPermissionLabels()
 	v.apply(v.lastValues)
+	// The group popup and the table row labels derive their text from
+	// localized strings rather than the value snapshot, so refresh them
+	// explicitly. reloadData keeps each list's scroll offset.
+	v.applyGroups(v.lastValues)
+	if v.captureTable != 0 {
+		v.captureTable.Send(sel("reloadData"))
+	}
+	if v.appsTable != 0 {
+		v.appsTable.Send(sel("reloadData"))
+	}
 }
 
 func settingsOptionText(option settingsOption) string {

@@ -126,24 +126,81 @@ func (v *SettingsView) buildAppsPage() {
 	v.finishPage(document, top+30)
 }
 
-func (v *SettingsView) applyApps(values SettingsValues) {
-	v.apps = values.Apps
+// settingsAppsEqual reports whether two app lists are identical, including
+// each row's excluded state.
+func settingsAppsEqual(a, b []SettingsApp) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// settingsAppsSameIdentity reports whether two app lists describe the same rows
+// in the same order, ignoring their excluded state.
+func settingsAppsSameIdentity(a, b []SettingsApp) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i].ID != b[i].ID || a[i].Name != b[i].Name || a[i].IconPath != b[i].IconPath {
+			return false
+		}
+	}
+	return true
+}
+
+// settingsAppChangedRows returns the rows whose excluded state differs.
+func settingsAppChangedRows(current, next []SettingsApp) []int {
+	rows := make([]int, 0, len(current))
+	for i := 0; i < len(current) && i < len(next); i++ {
+		if current[i].Excluded != next[i].Excluded {
+			rows = append(rows, i)
+		}
+	}
+	return rows
+}
+
+func extraExcludedIDs(values SettingsValues) []string {
 	shown := make(map[string]struct{}, len(values.Apps))
 	for _, app := range values.Apps {
 		shown[app.ID] = struct{}{}
 	}
-	v.extraExcluded = v.extraExcluded[:0]
+	out := make([]string, 0, len(values.ExcludedAppIDs))
 	for _, id := range values.ExcludedAppIDs {
 		if _, ok := shown[id]; !ok {
-			v.extraExcluded = append(v.extraExcluded, id)
+			out = append(out, id)
 		}
 	}
-	if v.appsTable != 0 {
-		v.appsTable.Send(sel("reloadData"))
-		sizeSettingsTable(v.appsTable, settingsContentWidth-40, settingsAppRowHeight, len(values.Apps))
-	}
+	return out
+}
+
+// applyApps refreshes the source-app list. Toggling one app redraws only that
+// row, and the list's scroll position is never reset by an unrelated change.
+func (v *SettingsView) applyApps(values SettingsValues) {
+	apps := append([]SettingsApp(nil), values.Apps...)
+	extra := extraExcludedIDs(values)
 	if v.appsEmpty != 0 {
-		v.appsEmpty.Send(sel("setHidden:"), len(v.apps) > 0)
+		v.appsEmpty.Send(sel("setHidden:"), len(apps) > 0)
+	}
+	if settingsAppsEqual(v.apps, apps) && stringSlicesEqual(v.extraExcluded, extra) {
+		return
+	}
+	excludedOnly := settingsAppsSameIdentity(v.apps, apps)
+	changed := settingsAppChangedRows(v.apps, apps)
+	v.apps = apps
+	v.extraExcluded = extra
+	if v.appsTable != 0 {
+		if excludedOnly {
+			reloadSettingsTableRows(v.appsTable, changed)
+		} else {
+			v.appsTable.Send(sel("reloadData"))
+			sizeSettingsTable(v.appsTable, settingsContentWidth-40, settingsAppRowHeight, len(apps))
+		}
 	}
 }
 

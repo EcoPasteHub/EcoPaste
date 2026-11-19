@@ -2,19 +2,44 @@
 
 package macos
 
-import "github.com/ebitengine/purego/objc"
+import (
+	"slices"
 
-// selectedRowAfterResize keeps the table's selected row valid once its row
-// count changed, preferring the same row and falling back to the edge.
-func selectedRowAfterResize(table objc.ID, rows int) int {
-	selected := int(objc.Send[int64](table, sel("selectedRow")))
-	if selected >= rows {
-		selected = rows - 1
+	"github.com/ebitengine/purego/objc"
+)
+
+// stringSlicesEqual reports whether two string slices hold the same values.
+func stringSlicesEqual(a, b []string) bool { return slices.Equal(a, b) }
+
+// stringIndex returns the position of value in list, or -1.
+func stringIndex(list []string, value string) int {
+	return slices.Index(list, value)
+}
+
+// selectSettingsRowNoScroll selects one row without moving the scroll offset.
+// Apply-time refresh uses it so updating a table never shifts the user's view.
+func selectSettingsRowNoScroll(table objc.ID, row int) {
+	if table == 0 || row < 0 {
+		return
 	}
-	if selected < 0 && rows > 0 {
-		selected = 0
+	indexes := objc.ID(class("NSIndexSet")).Send(sel("indexSetWithIndex:"), int64(row))
+	table.Send(sel("selectRowIndexes:byExtendingSelection:"), indexes, false)
+}
+
+// reloadSettingsTableRows redraws only the given rows. It leaves the scroll
+// offset and selection untouched, so toggling one row's state does not reset
+// the list's position.
+func reloadSettingsTableRows(table objc.ID, rows []int) {
+	if table == 0 || len(rows) == 0 {
+		return
 	}
-	return selected
+	indexes := objc.ID(class("NSMutableIndexSet")).Send(sel("alloc")).Send(sel("init"))
+	for _, row := range rows {
+		indexes.Send(sel("addIndex:"), int64(row))
+	}
+	columns := objc.ID(class("NSIndexSet")).Send(sel("indexSetWithIndex:"), int64(0))
+	table.Send(sel("reloadDataForRowIndexes:columnIndexes:"), indexes, columns)
+	indexes.Send(sel("release"))
 }
 
 // moveSelectedRow swaps the selected row with a neighbor and reports the
