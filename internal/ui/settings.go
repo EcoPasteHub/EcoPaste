@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"log/slog"
+
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
 	kubai "github.com/nsgo-dev/nsgo-icons-kubai"
@@ -78,6 +80,9 @@ func SettingsWindow(model SettingsModel) func(*core.Scope) core.Node {
 							shortcutChange := isShortcutPath(change.Path)
 							go func() {
 								err := model.Apply(change.Path, change.Value)
+								if err != nil {
+									slog.Error("apply preference setting", "module", "ui.settings", "setting", change.Path, "error", err)
+								}
 								cx.Post(func() {
 									values.Set(model.Load())
 									if err != nil {

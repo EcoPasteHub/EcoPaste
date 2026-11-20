@@ -27,8 +27,44 @@ func TestOpenCreatesDefaults(t *testing.T) {
 	if got.Appearance.Language != LanguageAuto {
 		t.Errorf("default language = %q", got.Appearance.Language)
 	}
+	if got.Logging.Level != LogLevelError || got.Logging.RetentionDays != 14 {
+		t.Errorf("logging defaults = %+v", got.Logging)
+	}
 	if _, err := os.Stat(path); err != nil {
 		t.Errorf("settings file missing: %v", err)
+	}
+}
+
+func TestLoggingSettingsValidateAndPersist(t *testing.T) {
+	path := filepath.Join(t.TempDir(), FileName)
+	store, err := Open(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.Update(map[string]any{"logging": map[string]any{"level": "debug", "retentionDays": 30}}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.Update(map[string]any{"logging": map[string]any{"level": "all"}}); err != nil {
+		t.Fatal(err)
+	}
+	reopened, err := Open(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := reopened.Snapshot().Logging; got.Level != LogLevelAll || got.RetentionDays != 30 {
+		t.Fatalf("logging settings = %+v", got)
+	}
+	if _, err := reopened.Update(map[string]any{"logging": map[string]any{"level": "debug"}}); err != nil {
+		t.Fatal(err)
+	}
+	for _, patch := range []map[string]any{
+		{"logging": map[string]any{"level": "trace"}},
+		{"logging": map[string]any{"retentionDays": 0}},
+		{"logging": map[string]any{"retentionDays": 366}},
+	} {
+		if _, err := reopened.Update(patch); err == nil {
+			t.Errorf("invalid logging patch accepted: %#v", patch)
+		}
 	}
 }
 

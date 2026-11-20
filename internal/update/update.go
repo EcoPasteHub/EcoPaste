@@ -1,7 +1,7 @@
 package update
 
 import (
-	"log"
+	"log/slog"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
@@ -17,7 +17,7 @@ func CheckNow(cx *core.Scope) {
 			return
 		}
 		if result.Err != nil {
-			log.Printf("check updates: %v", result.Err)
+			slog.Error("check for updates", "module", "update", "error", result.Err)
 		}
 		title, message := Describe(result, macos.AppVersion())
 		if result.Err == nil && result.Version != "" && result.URL != "" {

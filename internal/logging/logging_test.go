@@ -1,11 +1,15 @@
 package logging
 
 import (
+	"context"
 	"log"
+	"log/slog"
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestOpenWritesRedactedLogFile(t *testing.T) {
@@ -29,6 +33,177 @@ func TestOpenWritesRedactedLogFile(t *testing.T) {
 	if !strings.Contains(text, "token=***") {
 		t.Errorf("log line = %q", text)
 	}
+	if !strings.Contains(text, `"caller":"logging_test.go:`) {
+		t.Errorf("standard logger caller was not recorded: %q", text)
+	}
+}
+
+func TestRotatingWriterStartsNewFileAtSizeLimit(t *testing.T) {
+	dir := t.TempDir()
+	writer := &rotatingWriter{dir: dir}
+	if err := writer.configure(defaultRetention); err != nil {
+		t.Fatal(err)
+	}
+	defer writer.Close()
+	for _, size := range []int{4 << 20, 2 << 20} {
+		if n, err := writer.Write(make([]byte, size)); err != nil || n != size {
+			t.Fatalf("write %d bytes returned %d, %v", size, n, err)
+		}
+	}
+	if err := writer.Close(); err != nil {
+		t.Fatal(err)
+	}
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	foundRotation := false
+	for _, entry := range entries {
+		if isRotatedLog(entry.Name()) {
+			foundRotation = true
+			break
+		}
+	}
+	if !foundRotation {
+		t.Fatal("no rotated log backup was created")
+	}
+	info, err := os.Stat(filepath.Join(dir, logFileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := info.Size(); got != 2<<20 {
+		t.Errorf("active log size = %d, want %d", got, 2<<20)
+	}
+}
+
+func TestLoggerFiltersLevelsAndAppliesRetentionImmediately(t *testing.T) {
+	dir := t.TempDir()
+	logger, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer logger.Close()
+
+	slog.Info("filtered info")
+	if err := logger.Apply(LevelInfo, 1); err != nil {
+		t.Fatal(err)
+	}
+	old := filepath.Join(dir, "ecopaste-20200101T000000.log.gz")
+	if err := os.WriteFile(old, []byte("old"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	oldTime := time.Now().Add(-48 * time.Hour)
+	if err := os.Chtimes(old, oldTime, oldTime); err != nil {
+		t.Fatal(err)
+	}
+	if err := logger.SetRetention(1); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(old); !os.IsNotExist(err) {
+		t.Fatalf("expired log still exists, stat error = %v", err)
+	}
+	slog.Info("visible info", "component", "test.module")
+	if err := logger.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	data, err := os.ReadFile(filepath.Join(dir, logFileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(data)
+	if strings.Contains(text, "filtered info") {
+		t.Errorf("below-threshold message was written: %q", text)
+	}
+	if !strings.Contains(text, `"time":`) || !strings.Contains(text, `"level":"INFO"`) ||
+		!strings.Contains(text, `"source":{`) || !strings.Contains(text, `"component":"test.module"`) {
+		t.Errorf("structured record fields missing: %q", text)
+	}
+}
+
+func TestLoggerAllLevelIncludesLevelsBelowDebug(t *testing.T) {
+	dir := t.TempDir()
+	logger, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := logger.SetLevel(LevelAll); err != nil {
+		t.Fatal(err)
+	}
+	slog.Log(context.Background(), slog.Level(math.MinInt+1), "visible custom level")
+	if err := logger.Close(); err != nil {
+		t.Fatal(err)
+	}
+	data, err := os.ReadFile(filepath.Join(dir, logFileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(data), "visible custom level") {
+		t.Fatalf("all level filtered a record below debug: %q", data)
+	}
+}
+
+func TestOpenWaitsForStoredRetentionBeforeCleaning(t *testing.T) {
+	dir := t.TempDir()
+	old := filepath.Join(dir, "ecopaste-20200101T000000.log.gz")
+	if err := os.WriteFile(old, []byte("previous log"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	oldTime := time.Now().Add(-100 * 24 * time.Hour)
+	if err := os.Chtimes(old, oldTime, oldTime); err != nil {
+		t.Fatal(err)
+	}
+	logger, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer logger.Close()
+	if _, err := os.Stat(old); err != nil {
+		t.Fatalf("log was deleted before its stored retention loaded: %v", err)
+	}
+	if err := logger.Apply(LevelError, 30); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(old); !os.IsNotExist(err) {
+		t.Fatalf("expired log was not removed after applying saved retention, stat error = %v", err)
+	}
+}
+
+func TestOpenRestrictsLogDirectoryPermissions(t *testing.T) {
+	dir := filepath.Join(t.TempDir(), "logs")
+	logger, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer logger.Close()
+	info, err := os.Stat(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := info.Mode().Perm(); got != 0o700 {
+		t.Errorf("log directory permissions = %04o, want 0700", got)
+	}
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	crashPath := ""
+	for _, entry := range entries {
+		if strings.HasPrefix(entry.Name(), crashFilePrefix) && strings.HasSuffix(entry.Name(), ".log") {
+			crashPath = filepath.Join(dir, entry.Name())
+			break
+		}
+	}
+	if crashPath == "" {
+		t.Fatal("crash output file was not prepared")
+	}
+	crashInfo, err := os.Stat(crashPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := crashInfo.Mode().Perm(); got != 0o600 {
+		t.Errorf("crash output permissions = %04o, want 0600", got)
+	}
 }
 
 func TestRedact(t *testing.T) {
@@ -38,6 +213,7 @@ func TestRedact(t *testing.T) {
 		want  string
 	}{
 		{"password = " + secret, "password = ***"},
+		{`{"authorization":"secret-value"}`, `{"authorization":"***"}`},
 		{"ordinary message", "ordinary message"},
 		{"client_secret: " + secret, "client_secret: ***"},
 		{"-----BEGIN " + "PRIVATE KEY-----\nMIIB\n-----END " + "PRIVATE KEY-----", "[private key]"},

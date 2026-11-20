@@ -36,6 +36,7 @@ func settingsTargetMethods() []objc.MethodDef {
 		{Cmd: sel("fullDiskAccessPermissionPressed:"), Fn: settingsFullDiskAccessPermissionPressed},
 		{Cmd: sel("appDidBecomeActive:"), Fn: settingsAppDidBecomeActive},
 		{Cmd: sel("copyDiagnosticsPressed:"), Fn: settingsCopyDiagnosticsPressed},
+		{Cmd: sel("openLogsPressed:"), Fn: settingsOpenLogsPressed},
 		{Cmd: sel("addAppPressed:"), Fn: settingsAddAppPressed},
 		{Cmd: sel("refreshAppsPressed:"), Fn: settingsRefreshAppsPressed},
 		{Cmd: sel("exportBackupPressed:"), Fn: settingsExportBackupPressed},
@@ -139,6 +140,10 @@ func settingsCopyDiagnosticsPressed(_ objc.ID, _ objc.SEL, sender objc.ID) {
 	if v := settingsViews[sender]; v != nil {
 		v.copyDiagnostics()
 	}
+}
+
+func settingsOpenLogsPressed(_ objc.ID, _ objc.SEL, sender objc.ID) {
+	emitSettingsChange(sender, "logs.open", true)
 }
 
 func settingsAddAppPressed(_ objc.ID, _ objc.SEL, sender objc.ID) {

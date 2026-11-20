@@ -458,6 +458,16 @@
       "copyHelp": "把应用版本、系统版本、数据目录和权限状态复制到剪贴板",
       "dataDir": "数据目录: ",
       "devBuild": "EcoPaste 开发版",
+      "logging": "日志",
+      "logLevel": "日志级别",
+      "logLevelAll": "全部",
+      "logLevelError": "错误",
+      "logLevelWarn": "警告",
+      "logLevelInfo": "信息",
+      "logLevelDebug": "调试",
+      "logRetention": "日志保留期限",
+      "openLogDirectory": "打开日志目录",
+      "openLogDirectoryHelp": "在访达中打开应用日志文件所在的目录",
       "macOSUnknown": "macOS 版本未知",
       "report": "%s\n%s\n数据目录: %s\n辅助功能: %s\n完全磁盘访问: %s",
       "title": "诊断信息"
@@ -605,6 +615,7 @@
     },
     "unit": {
       "count": " 条",
+      "days": " 天",
       "hours": " 小时",
       "items": " 个",
       "lines": " 行"

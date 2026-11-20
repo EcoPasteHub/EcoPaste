@@ -458,6 +458,16 @@
       "copyHelp": "Copy the app version, macOS version, data folder and permission status to the clipboard",
       "dataDir": "Data Folder: ",
       "devBuild": "EcoPaste Development Build",
+      "logging": "Logging",
+      "logLevel": "Log Level",
+      "logLevelAll": "All",
+      "logLevelError": "Error",
+      "logLevelWarn": "Warning",
+      "logLevelInfo": "Info",
+      "logLevelDebug": "Debug",
+      "logRetention": "Keep Logs For",
+      "openLogDirectory": "Open Log Folder",
+      "openLogDirectoryHelp": "Open the folder containing application log files in Finder",
       "macOSUnknown": "Unknown macOS version",
       "report": "%s\n%s\nData Folder: %s\nAccessibility: %s\nFull Disk Access: %s",
       "title": "Diagnostics"
@@ -605,6 +615,7 @@
     },
     "unit": {
       "count": " items",
+      "days": " days",
       "hours": " hours",
       "items": " items",
       "lines": " lines"

@@ -2,7 +2,7 @@ package app
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"os"
 	"sync/atomic"
 
@@ -23,7 +23,7 @@ const panelStateLabel = "clipboard"
 // keeps running without windows until the user quits it.
 func Run(app *core.Scope) {
 	if err := developmentIdentityError(core.App()); err != nil {
-		log.Print(err)
+		slog.Error("invalid application identity", "module", "app", "error", err)
 		os.Exit(1)
 	}
 	i18n.Bind(app)
@@ -46,13 +46,14 @@ func Run(app *core.Scope) {
 		}, func() { update.CheckNow(app) }))
 	}
 	applyApplicationMenu()
-	paths, store, windowState := loadStorage(app)
+	paths, store, windowState, logger := loadStorage(app)
 	hotKeys = newHotKeySet(app, manager, store)
 	if store != nil {
 		syncStoredSettings(app, store)
 		wiring = &settingsWiring{
 			app:                  app,
 			store:                store,
+			logger:               logger,
 			hotKeys:              manager,
 			runtime:              func() *clipboardRuntime { return runtime },
 			tray:                 func() *desktop.Tray { return tray },
@@ -65,7 +66,7 @@ func Run(app *core.Scope) {
 		var startErr error
 		runtime, startErr = startClipboard(app, paths, store, &paused)
 		if startErr != nil {
-			log.Printf("start clipboard: %v", startErr)
+			slog.Error("start clipboard service", "module", "app", "error", startErr)
 		} else {
 			history = newHistoryModel(runtime, store)
 			if model, ok := history.(*historyModel); ok {

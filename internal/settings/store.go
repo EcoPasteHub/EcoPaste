@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"slices"
@@ -156,11 +156,11 @@ func load(path string) (Settings, bool, error) {
 	}
 	next := Default()
 	if err := json.Unmarshal(data, &next); err != nil {
-		log.Printf("settings file %s is unreadable, using defaults: %v", path, err)
+		slog.Error("settings file is unreadable; using defaults", "module", "settings", "path", path, "error", err)
 		return Default(), true, nil
 	}
 	if err := validateDecoded(next); err != nil {
-		log.Printf("settings file %s has invalid values, using defaults: %v", path, err)
+		slog.Error("settings file has invalid values; using defaults", "module", "settings", "path", path, "error", err)
 		return Default(), true, nil
 	}
 	return next, true, nil
@@ -228,10 +228,22 @@ func validateDecoded(s Settings) error {
 		validateWindow,
 		validatePreview,
 		validateUpdates,
+		validateLogging,
 	} {
 		if err := validate(s); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+func validateLogging(s Settings) error {
+	if err := validateOneOf("logging.level", s.Logging.Level,
+		LogLevelAll, LogLevelError, LogLevelWarn, LogLevelInfo, LogLevelDebug); err != nil {
+		return err
+	}
+	if s.Logging.RetentionDays < 1 || s.Logging.RetentionDays > 365 {
+		return errors.New("logging.retentionDays must be between 1 and 365")
 	}
 	return nil
 }

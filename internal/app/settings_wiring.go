@@ -2,11 +2,12 @@ package app
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"time"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/database"
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
+	"github.com/EcoPasteHub/EcoPaste/internal/logging"
 	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
 	"github.com/EcoPasteHub/EcoPaste/internal/settings"
 	"github.com/EcoPasteHub/EcoPaste/internal/storage"
@@ -22,6 +23,7 @@ import (
 type settingsWiring struct {
 	app                  *core.Scope
 	store                *settings.Store
+	logger               *logging.Logger
 	hotKeys              *macos.HotKeyManager
 	runtime              func() *clipboardRuntime
 	tray                 func() *desktop.Tray
@@ -67,7 +69,23 @@ func (w *settingsWiring) newModel() *settingsModel {
 	model.importBackup = w.importBackup
 	model.checkUpdates = w.checkUpdates
 	model.restart = w.restart
+	model.onLoggingChanged = w.applyLogging
+	model.openLogs = w.openLogs
 	return model
+}
+
+func (w *settingsWiring) applyLogging(config settings.Logging) error {
+	if w.logger == nil {
+		return nil
+	}
+	return w.logger.Apply(logging.Level(config.Level), config.RetentionDays)
+}
+
+func (w *settingsWiring) openLogs() error {
+	if w.logger == nil || w.logger.Directory() == "" {
+		return i18n.Error(i18n.ErrorOpenFile)
+	}
+	return macos.OpenPath(w.logger.Directory())
 }
 
 func (w *settingsWiring) dataDir() string {
@@ -184,7 +202,7 @@ func (w *settingsWiring) cleanupHistory() {
 		defer cancel()
 		result, err := runtime.service.Cleanup(ctx, time.Now())
 		if err != nil {
-			log.Printf("cleanup after settings change: %v", err)
+			slog.Error("clean history after settings change", "module", "app.settings", "error", err)
 			return
 		}
 		if result.Removed > 0 {

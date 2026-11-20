@@ -80,6 +80,45 @@ func TestSettingsModelAppliesPaths(t *testing.T) {
 	}
 }
 
+func TestSettingsModelAppliesAndOpensLogs(t *testing.T) {
+	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	model := newSettingsModel(store)
+	var applied settings.Logging
+	model.onLoggingChanged = func(config settings.Logging) error {
+		applied = config
+		return nil
+	}
+	opened := false
+	model.openLogs = func() error {
+		opened = true
+		return nil
+	}
+	if err := model.Apply("logging.level", "debug"); err != nil {
+		t.Fatal(err)
+	}
+	if err := model.Apply("logging.level", "all"); err != nil {
+		t.Fatal(err)
+	}
+	if err := model.Apply("logging.retentionDays", uint32(30)); err != nil {
+		t.Fatal(err)
+	}
+	if applied.Level != settings.LogLevelAll || applied.RetentionDays != 30 {
+		t.Fatalf("applied logging settings = %+v", applied)
+	}
+	if err := model.Apply("logs.open", true); err != nil {
+		t.Fatal(err)
+	}
+	if !opened {
+		t.Fatal("open log directory action was not invoked")
+	}
+	if got := model.Load(); got.LogLevel != "all" || got.LogRetentionDays != 30 {
+		t.Fatalf("view logging values = %+v", got)
+	}
+}
+
 func TestSettingsModelSignalsListRefresh(t *testing.T) {
 	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
 	if err != nil {

@@ -1,7 +1,7 @@
 package app
 
 import (
-	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 
@@ -16,58 +16,65 @@ import (
 
 // loadStorage resolves the data directory, takes the single-instance lock,
 // opens logs and settings, and applies any staged backup import.
-func loadStorage(app *core.Scope) (*storage.Paths, *settings.Store, *storage.WindowState) {
+func loadStorage(app *core.Scope) (*storage.Paths, *settings.Store, *storage.WindowState, *logging.Logger) {
 	paths, err := storage.Default()
 	if err != nil {
-		log.Printf("resolve storage: %v", err)
-		return nil, nil, nil
+		slog.Error("resolve storage", "module", "app.startup", "error", err)
+		return nil, nil, nil, nil
 	}
 	lock, running, err := lockInstance(paths.State)
 	switch {
 	case err != nil:
-		log.Printf("lock instance: %v", err)
+		slog.Error("lock instance", "module", "app.startup", "error", err)
 	case running:
 		if err := signalInstance(paths.State); err != nil {
-			log.Printf("signal instance: %v", err)
+			slog.Error("signal existing instance", "module", "app.startup", "error", err)
 		}
 		os.Exit(0)
 	default:
 		app.Cleanup(func() { lock.Close() })
 	}
-	if logger, err := logging.Open(paths.Logs); err != nil {
-		log.Printf("open logs: %v", err)
+	var logger *logging.Logger
+	if logger, err = logging.Open(paths.Logs); err != nil {
+		slog.Error("open log files", "module", "app.startup", "error", err)
 	} else {
 		app.Cleanup(func() { logger.Close() })
 	}
 	if result, applied, err := backup.ApplyPendingImport(paths); err != nil {
-		log.Printf("apply pending import: %v", err)
+		slog.Error("apply pending backup import", "module", "app.startup", "error", err)
 	} else if applied {
-		log.Printf("imported backup: %d items", result.Items)
+		slog.Info("imported backup", "module", "app.startup", "items", result.Items)
 	}
-	log.Printf("data root %s", paths.Root)
+	slog.Info("application storage ready", "module", "app.startup")
 
 	var windowState *storage.WindowState
 	if state, err := storage.OpenWindowState(paths.State); err != nil {
-		log.Printf("open window state: %v", err)
+		slog.Error("open window state", "module", "app.startup", "error", err)
 	} else {
 		windowState = state
 	}
 	store, err := settings.Open(filepath.Join(paths.Config, settings.FileName))
 	if err != nil {
-		log.Printf("open settings: %v", err)
-		return paths, nil, windowState
+		slog.Error("open settings", "module", "app.startup", "error", err)
+		return paths, nil, windowState, logger
 	}
-	return paths, store, windowState
+	if logger != nil {
+		config := store.Snapshot().Logging
+		if err := logger.Apply(logging.Level(config.Level), config.RetentionDays); err != nil {
+			slog.Error("apply logging settings", "module", "app.startup", "error", err)
+		}
+	}
+	return paths, store, windowState, logger
 }
 
 func syncStoredSettings(app *core.Scope, store *settings.Store) {
 	snapshot := store.Snapshot()
 	applyAppLanguage(app, string(snapshot.Appearance.Language))
 	if err := macos.SetAppearance(string(snapshot.Appearance.Theme)); err != nil {
-		log.Printf("sync appearance: %v", err)
+		slog.Error("sync appearance", "module", "app.startup", "error", err)
 	}
 	if err := macos.SyncAutostart(snapshot.General.AutoStart); err != nil {
-		log.Printf("sync autostart: %v", err)
+		slog.Error("sync autostart", "module", "app.startup", "error", err)
 	}
 }
 

@@ -2,6 +2,7 @@ package ui
 
 import (
 	"context"
+	"log/slog"
 	"sync/atomic"
 	"time"
 
@@ -81,6 +82,7 @@ func newHistoryPanel(cx *core.Scope, model HistoryModel, hide func()) *historyPa
 		p.dragProvider = func(id string) (macos.DragPayload, bool) {
 			payload, err := model.Drag(context.Background(), id)
 			if err != nil {
+				slog.Error("prepare history drag", "module", "ui.history", "error", err)
 				return macos.DragPayload{}, false
 			}
 			return payload, true
@@ -200,6 +202,7 @@ func (p *historyPanel) load(keyword, activeFilter, groupID string, appendRows bo
 				return
 			}
 			if err != nil {
+				logHistoryFailure("load history", err)
 				p.errorText.Set(err.Error())
 				p.loading.Set(false)
 				return
@@ -237,6 +240,7 @@ func (p *historyPanel) loadGroups(selectID string, reloadRows bool) {
 		nextGroups, err := p.model.Groups(ctx)
 		p.cx.Post(func() {
 			if err != nil {
+				logHistoryFailure("load history groups", err)
 				p.errorText.Set(err.Error())
 				return
 			}

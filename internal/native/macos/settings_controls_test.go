@@ -26,6 +26,7 @@ func (f settingsEmitterFunc) Emit(name string, data any) { f(name, data) }
 
 func settingsControlPaths() map[string]bool {
 	paths := []string{
+		"logging.level", "logging.retentionDays",
 		"general.autoStart", "general.trayIcon",
 		"shortcuts.openClipboard", "shortcuts.openPreference",
 		"appearance.theme", "appearance.language",
@@ -127,6 +128,7 @@ func testSettingsControlsShowLoadedValues(t *testing.T) {
 		return
 	}
 	view.SetProp("values", SettingsValues{
+		LogLevel:              "all",
 		SearchFocus:           true,
 		SearchClear:           false,
 		Sort:                  "useCountDesc",
@@ -144,6 +146,11 @@ func testSettingsControlsShowLoadedValues(t *testing.T) {
 	})
 	for _, field := range view.fields {
 		switch field.path {
+		case "logging.level":
+			if index := int(objc.Send[int64](field.control, sel("indexOfSelectedItem"))); index < 0 ||
+				index >= len(field.options) || field.options[index] != "all" {
+				t.Errorf("log level selection = %d of %v", index, field.options)
+			}
 		case "search.defaultFocus":
 			if got := objcState(field.control); got != 1 {
 				t.Errorf("search focus = %d", got)

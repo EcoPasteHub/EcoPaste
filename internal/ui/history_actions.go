@@ -2,6 +2,7 @@ package ui
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
@@ -36,7 +37,7 @@ func (a *itemActions) copy(id string, forcePlain bool) {
 		hideAfter, err := copyAction(ctx, id)
 		a.cx.Post(func() {
 			if err != nil {
-				a.errorText.Set(err.Error())
+				a.reportError(err)
 				return
 			}
 			if hideAfterAction(*a.pinned, hideAfter) && a.hide != nil {
@@ -141,7 +142,7 @@ func (a *itemActions) run(id string, reloadAfter bool, run func(context.Context,
 		err := run(ctx, id)
 		a.cx.Post(func() {
 			if err != nil {
-				a.errorText.Set(err.Error())
+				a.reportError(err)
 				return
 			}
 			if reloadAfter {
@@ -160,7 +161,7 @@ func (a *itemActions) showPreview(id string) {
 		content, err := a.model.Preview(ctx, id)
 		a.cx.Post(func() {
 			if err != nil {
-				a.errorText.Set(err.Error())
+				a.reportError(err)
 				return
 			}
 			if !content.Enabled {
@@ -182,9 +183,14 @@ func (a *itemActions) showPreview(id string) {
 // reportError shows a failure and asks for the accessibility alert the
 // first time macOS denies posting paste keystrokes.
 func (a *itemActions) reportError(err error) {
+	logHistoryFailure("item action", err)
 	a.errorText.Set(err.Error())
 	a.loading.Set(false)
 	if a.model.NeedsAccessibility(err) {
 		a.ref.Command("showAccessibilityAlert", nil)
 	}
+}
+
+func logHistoryFailure(action string, err error) {
+	slog.Error("history operation failed", "module", "ui.history", "action", action, "error", err)
 }

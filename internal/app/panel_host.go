@@ -1,7 +1,7 @@
 package app
 
 import (
-	"log"
+	"log/slog"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
 	"github.com/EcoPasteHub/EcoPaste/internal/settings"
@@ -112,6 +112,6 @@ func (h *panelHost) saveFrame() {
 		Width: int64(frame.Width), Height: int64(frame.Height),
 	})
 	if err != nil {
-		log.Printf("save window state: %v", err)
+		slog.Error("save window state", "module", "app.panel", "error", err)
 	}
 }

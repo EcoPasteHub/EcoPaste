@@ -34,6 +34,8 @@ type settingsModel struct {
 	exportBackup         func()
 	importBackup         func()
 	checkUpdates         func()
+	openLogs             func() error
+	onLoggingChanged     func(settings.Logging) error
 }
 
 func newSettingsModel(store *settings.Store) *settingsModel {
@@ -103,6 +105,8 @@ func (m *settingsModel) Load() macos.SettingsValues {
 		OpenClipboardShortcut:  snapshot.Shortcuts.OpenClipboard,
 		OpenPreferenceShortcut: snapshot.Shortcuts.OpenPreference,
 		SpacePreview:           cfg.Preview.SpaceEnabled,
+		LogLevel:               string(snapshot.Logging.Level),
+		LogRetentionDays:       snapshot.Logging.RetentionDays,
 	}
 }
 
@@ -282,6 +286,11 @@ func (m *settingsModel) resetSettings() error {
 			return err
 		}
 	}
+	if m.onLoggingChanged != nil {
+		if err := m.onLoggingChanged(next.Logging); err != nil {
+			return err
+		}
+	}
 	m.notifyChanged()
 	m.triggerCleanup()
 	return nil
@@ -354,6 +363,8 @@ func openGroupValue(value string, groups []macos.SettingsGroup) string {
 }
 
 var settingsPaths = map[string][]string{
+	"logging.level":                 {"logging", "level"},
+	"logging.retentionDays":         {"logging", "retentionDays"},
 	"general.trayIcon":              {"general", "trayIcon"},
 	"general.autoStart":             {"general", "autoStart"},
 	"appearance.theme":              {"appearance", "theme"},

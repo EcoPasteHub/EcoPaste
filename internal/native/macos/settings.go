@@ -70,6 +70,8 @@ type SettingsValues struct {
 	OpenClipboardShortcut  string
 	OpenPreferenceShortcut string
 	SpacePreview           bool
+	LogLevel               string
+	LogRetentionDays       uint32
 }
 
 // SettingsApp is one row in the source application filter list.

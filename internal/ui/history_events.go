@@ -2,6 +2,7 @@ package ui
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
 )
@@ -50,6 +51,7 @@ func deleteRow(p *historyPanel, data any) {
 		err := p.model.Delete(ctx, id)
 		p.cx.Post(func() {
 			if err != nil {
+				logHistoryFailure("delete history item", err)
 				p.errorText.Set(err.Error())
 				return
 			}
@@ -101,6 +103,7 @@ func saveRowNote(p *historyPanel, data any) {
 		err := p.model.SaveNote(ctx, payload.ID, payload.Text)
 		p.cx.Post(func() {
 			if err != nil {
+				logHistoryFailure("save history note", err)
 				p.errorText.Set(err.Error())
 				return
 			}
@@ -126,6 +129,7 @@ func createGroup(p *historyPanel, data any) {
 		created, err := p.model.CreateGroup(ctx, name)
 		p.cx.Post(func() {
 			if err != nil {
+				slog.Error("history group operation failed", "module", "ui.history", "action", "create", "error", err)
 				p.errorText.Set(err.Error())
 				return
 			}
@@ -147,6 +151,7 @@ func renameGroup(p *historyPanel, _ any) {
 		renamed, err := p.model.RenameGroup(ctx, id)
 		p.cx.Post(func() {
 			if err != nil {
+				slog.Error("history group operation failed", "module", "ui.history", "action", "rename", "error", err)
 				p.errorText.Set(err.Error())
 				return
 			}
@@ -166,6 +171,7 @@ func deleteGroup(p *historyPanel, _ any) {
 		deleted, err := p.model.DeleteGroup(ctx, id)
 		p.cx.Post(func() {
 			if err != nil {
+				slog.Error("history group operation failed", "module", "ui.history", "action", "delete", "error", err)
 				p.errorText.Set(err.Error())
 				return
 			}
@@ -187,6 +193,7 @@ func clearHistory(p *historyPanel, _ any) {
 		err := p.model.ClearHistory(ctx)
 		p.cx.Post(func() {
 			if err != nil {
+				logHistoryFailure("clear history", err)
 				p.errorText.Set(err.Error())
 				return
 			}

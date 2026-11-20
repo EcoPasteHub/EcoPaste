@@ -2,7 +2,7 @@ package app
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"path/filepath"
 	"sync/atomic"
 	"time"
@@ -110,8 +110,9 @@ func startClipboard(app *core.Scope, paths *storage.Paths, store *settings.Store
 		Capture: func(ctx context.Context, payload clipboard.Payload, source clipboard.SourceApp) {
 			_, captured, err := service.Capture(ctx, payload, source)
 			if err != nil {
-				log.Printf("capture clipboard: %v", err)
+				slog.Error("capture clipboard item", "module", "app.clipboard", "error", err)
 			} else if captured {
+				slog.Debug("captured clipboard item", "module", "app.clipboard")
 				if store.Snapshot().Clipboard.Feedback.CopySound {
 					macos.PlayCopySound()
 				}
@@ -149,10 +150,10 @@ func startClipboard(app *core.Scope, paths *storage.Paths, store *settings.Store
 func pruneIcons(label string, referenced func(context.Context) (map[string]struct{}, error), purge func(map[string]struct{}) (int, int64, error)) {
 	keep, err := referenced(context.Background())
 	if err != nil {
-		log.Printf("list %s: %v", label, err)
+		slog.Error("list cached icon references", "module", "app.storage", "kind", label, "error", err)
 		return
 	}
 	if _, _, err := purge(keep); err != nil {
-		log.Printf("clean %s: %v", label, err)
+		slog.Error("clean unreferenced icons", "module", "app.storage", "kind", label, "error", err)
 	}
 }

@@ -2,7 +2,7 @@ package app
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"time"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/settings"
@@ -27,7 +27,7 @@ func startCleanupLoop(
 	run := func() {
 		result, err := runtime.service.Cleanup(ctx, now())
 		if err != nil {
-			log.Printf("cleanup history: %v", err)
+			slog.Error("clean clipboard history", "module", "app.cleanup", "error", err)
 			return
 		}
 		if result.Removed > 0 {

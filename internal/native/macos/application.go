@@ -3,7 +3,7 @@
 package macos
 
 import (
-	"log"
+	"log/slog"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/ebitengine/purego/objc"
@@ -40,6 +40,6 @@ func SetDockIconVisible(visible bool) error {
 // shows while any settings window is open and drops once the last closes.
 func syncSettingsDockIcon(visible bool) {
 	if err := SetDockIconVisible(visible); err != nil {
-		log.Printf("switch dock icon: %v", err)
+		slog.Error("switch dock icon", "module", "native.macos.application", "error", err)
 	}
 }

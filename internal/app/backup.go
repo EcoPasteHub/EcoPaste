@@ -3,13 +3,14 @@ package app
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/backup"
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
+	"github.com/EcoPasteHub/EcoPaste/internal/logging"
 	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
 	"github.com/EcoPasteHub/EcoPaste/internal/settings"
 	"github.com/nsgo-dev/nsgo/core"
@@ -78,6 +79,11 @@ func runBackupExport(app *core.Scope, runtime *clipboardRuntime, path string, mo
 			AppName:    "EcoPaste",
 			AppVersion: macos.AppVersion(),
 		}, path, backup.ExportOptions{Mode: mode, Password: password})
+		if err != nil {
+			slog.Error("export backup", "module", "app.backup", "error", err)
+		} else {
+			slog.Info("exported backup", "module", "app.backup", "items", result.Items, "bytes", result.TotalBytes)
+		}
 		app.Post(func() {
 			if err != nil {
 				macos.ShowMessage(i18n.T(i18n.BackupExportFailed), err.Error())
@@ -97,6 +103,7 @@ func runBackupImport(app *core.Scope, runtime *clipboardRuntime, path string, st
 	}
 	mode, err := backup.Inspect(path)
 	if err != nil {
+		slog.Error("inspect backup", "module", "app.backup", "error", err)
 		macos.ShowMessage(i18n.T(i18n.BackupImportFailed), err.Error())
 		return
 	}
@@ -120,6 +127,7 @@ func runBackupImport(app *core.Scope, runtime *clipboardRuntime, path string, st
 		return
 	}
 	if _, err := backup.StageImport(path, password, runtime.paths.State); err != nil {
+		slog.Error("stage backup import", "module", "app.backup", "error", err)
 		macos.ShowMessage(i18n.T(i18n.BackupImportFailed), err.Error())
 		return
 	}
@@ -132,6 +140,7 @@ func runBackupMerge(app *core.Scope, runtime *clipboardRuntime, path, password s
 		defer cancel()
 		result, err := backup.Merge(ctx, path, password, runtime.db, runtime.paths.Resources)
 		if err != nil {
+			slog.Error("merge backup", "module", "app.backup", "error", err)
 			app.Post(func() {
 				macos.ShowMessage(i18n.T(i18n.BackupMergeFailed), err.Error())
 			})
@@ -143,7 +152,15 @@ func runBackupMerge(app *core.Scope, runtime *clipboardRuntime, path, password s
 		)
 		if store != nil && len(result.Settings) > 0 {
 			next, settingsErr = store.Update(result.Settings)
+			if settingsErr == nil {
+				settingsErr = logging.Configure(logging.Level(next.Logging.Level), next.Logging.RetentionDays)
+			}
+			if settingsErr != nil {
+				slog.Error("apply imported settings", "module", "app.backup", "error", settingsErr)
+			}
 		}
+		slog.Info("merged backup", "module", "app.backup", "items", result.Items, "skipped", result.Skipped,
+			"resources", result.Resources)
 		app.Post(func() {
 			switch {
 			case settingsErr != nil:
@@ -153,10 +170,10 @@ func runBackupMerge(app *core.Scope, runtime *clipboardRuntime, path, password s
 					mergeSummary(result)+"\n"+i18n.T(i18n.BackupMergedSettingsNote))
 			default:
 				if err := macos.SetAppearance(string(next.Appearance.Theme)); err != nil {
-					log.Printf("sync appearance: %v", err)
+					slog.Error("sync imported appearance", "module", "app.backup", "error", err)
 				}
 				if err := macos.SyncAutostart(next.General.AutoStart); err != nil {
-					log.Printf("sync autostart: %v", err)
+					slog.Error("sync imported autostart setting", "module", "app.backup", "error", err)
 				}
 				summary := mergeSummary(result)
 				if reloadHotkeys != nil {

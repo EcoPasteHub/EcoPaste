@@ -8,7 +8,23 @@ type Settings struct {
 	Shortcuts  Shortcuts  `json:"shortcuts"`
 	Clipboard  Clipboard  `json:"clipboard"`
 	Update     Update     `json:"update"`
+	Logging    Logging    `json:"logging"`
 }
+
+type Logging struct {
+	Level         LogLevel `json:"level"`
+	RetentionDays uint32   `json:"retentionDays"`
+}
+
+type LogLevel string
+
+const (
+	LogLevelAll   LogLevel = "all"
+	LogLevelError LogLevel = "error"
+	LogLevelWarn  LogLevel = "warn"
+	LogLevelInfo  LogLevel = "info"
+	LogLevelDebug LogLevel = "debug"
+)
 
 type General struct {
 	AutoStart  bool `json:"autoStart"`
@@ -332,7 +348,8 @@ func Default() Settings {
 			Feedback: Feedback{CopySound: false},
 			Filters:  Filters{ExcludedAppIDs: defaultExcludedApps()},
 		},
-		Update: Update{Frequency: UpdateDaily},
+		Update:  Update{Frequency: UpdateDaily},
+		Logging: Logging{Level: LogLevelError, RetentionDays: 14},
 	}
 }
 

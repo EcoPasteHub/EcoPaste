@@ -1,7 +1,7 @@
 package app
 
 import (
-	"log"
+	"log/slog"
 	"os"
 	"strings"
 
@@ -57,7 +57,7 @@ func (k *hotKeySet) reload() error {
 		bindings = append(bindings, macos.HotKeyBinding{Key: k.openPreference, Action: k.onGraph(k.openSettings)})
 	}
 	if err := k.manager.Set(bindings); err != nil {
-		log.Printf("register hotkeys: %v", err)
+		slog.Error("register global shortcuts", "module", "app.hotkey", "error", err)
 		return err
 	}
 	return nil

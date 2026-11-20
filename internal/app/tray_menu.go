@@ -2,7 +2,7 @@ package app
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"sync/atomic"
 	"time"
 
@@ -66,7 +66,7 @@ func (t trayMenu) items() []desktop.MenuItem {
 		{Separator: true},
 		{Label: i18n.T(i18n.TraySource), OnSelect: func() {
 			if err := macos.OpenURL(macos.SourceURL); err != nil {
-				log.Printf("open source: %v", err)
+				slog.Error("open source page", "module", "app.tray", "error", err)
 			}
 		}},
 		{Label: i18n.T(i18n.TrayCheckUpdates), OnSelect: func() { update.CheckNow(t.app) }},
@@ -85,7 +85,7 @@ func (t trayMenu) readClipboard() {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 		if err := t.runtime.readClipboard(ctx); err != nil {
-			log.Printf("read clipboard: %v", err)
+			slog.Error("read clipboard", "module", "app.tray", "error", err)
 			return
 		}
 		t.runtime.Signal()
@@ -98,7 +98,7 @@ func (t trayMenu) clearHistory() {
 		return
 	}
 	if err := t.runtime.clearHistory(context.Background(), choice == macos.ClearHistoryAll); err != nil {
-		log.Printf("clear history: %v", err)
+		slog.Error("clear history", "module", "app.tray", "error", err)
 	}
 }
 

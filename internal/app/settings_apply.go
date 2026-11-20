@@ -56,6 +56,12 @@ var settingsCommands = map[string]func(*settingsModel, any) error{
 		m.checkUpdates()
 		return nil
 	},
+	"logs.open": func(m *settingsModel, _ any) error {
+		if m.openLogs == nil {
+			return i18n.Error(i18n.ErrorOpenFile)
+		}
+		return m.openLogs()
+	},
 	"general.dataDir": func(m *settingsModel, value any) error {
 		parent, _ := value.(string)
 		if m.changeDataDir == nil {
@@ -125,6 +131,11 @@ func (m *settingsModel) applySettingPath(path string, value any) error {
 	node[keys[len(keys)-1]] = value
 	if err := m.update(patch); err != nil {
 		return err
+	}
+	if strings.HasPrefix(path, "logging.") && m.onLoggingChanged != nil {
+		if err := m.onLoggingChanged(m.store.Snapshot().Logging); err != nil {
+			return err
+		}
 	}
 	if path == "appearance.language" && m.setLanguage != nil {
 		language, _ := value.(string)

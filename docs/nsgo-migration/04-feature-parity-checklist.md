@@ -129,7 +129,7 @@
 | W-18 | P1 | 权限 | `PermissionControl` | 辅助功能/完全磁盘访问检测与跳转 | 已通过 | `TestFullDiskAccessGranted`；权限页真机显示两项实时状态，FDA 跳转到“完全磁盘访问权限”面板，粘贴失败仍弹辅助功能说明 |
 | W-19 | P2 | 防默认行为 | `core/prevent_default.rs` | 无 WebView，不需要 | 不纳入 macOS 首版 | 确认无 WebView 入口 |
 | W-20 | P1 | 更新 | `update.rs` | NSGo updater + Sparkle appcast | 迁移中 | 已接 `core.CheckForUpdates` 与 NSGo updater：macOS 由 Sparkle 负责检查、EdDSA 校验、下载、安装和重启；应用菜单、托盘和设置“更新”页共用入口，非 Sparkle 结果使用本地化提示；`TestDescribeUpdateResult`、`TestSettingsModelChecksUpdates`、`TestApplicationUpdateItem`；真机开发版验证入口与不可用提示，`nsgo.yaml` 的 `updates.key` 与测试 appcast/真实升级仍待发布密钥配置 |
-| W-21 | P1 | 日志 | `tauri-plugin-log` | 标准 `log` + lumberjack 轮转，写入前脱敏 | 已通过 | `TestRedact`、`TestOpenWritesRedactedLogFile`；真机落盘 `<data_root>/logs/ecopaste.log`，托盘可打开日志目录 |
+| W-21 | P1 | 日志 | `tauri-plugin-log` | 标准 `log` bridge + `slog` JSON 结构化记录、敏感值脱敏、5 MB 轮转压缩、设置级别与保留期限、Go 崩溃输出文件 | 迁移中 | `internal/logging` 默认仅记录 Error、JSON 含时间/级别/module/源码位置；可选 All 记录包括自定义低于 Debug 的级别；异步有界队列优先保障错误记录，写盘失败不会影响调用方；日志文件最多保留 20 个轮转副本并按 `settings.json.logging.retentionDays`（默认 14 天）及时清理；runtime 崩溃输出写入带启动时间戳且权限受限的 `ecopaste-crash-*.log`，按保留期清理；高级设置提供 All/Error/Warn/Info/Debug、1–365 天保留期和打开日志目录；覆盖脱敏、级别过滤、轮转保留、崩溃文件权限、配置持久化/校验与 UI action 单测；macOS 真机 UI 与真实崩溃验收待执行 |
 
 ## 6. UI 页面与交互
 

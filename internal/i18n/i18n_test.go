@@ -24,6 +24,33 @@ func TestCatalogsShareEveryKey(t *testing.T) {
 	}
 }
 
+func TestLogLevelLabelsUseTheirLocale(t *testing.T) {
+	zh := readCatalog(t, LanguageZhCN)
+	en := readCatalog(t, LanguageEnUS)
+	for key, want := range map[string]string{
+		"settings.diagnostics.logLevelAll":   "全部",
+		"settings.diagnostics.logLevelError": "错误",
+		"settings.diagnostics.logLevelWarn":  "警告",
+		"settings.diagnostics.logLevelInfo":  "信息",
+		"settings.diagnostics.logLevelDebug": "调试",
+	} {
+		if got := zh[key]; got != want {
+			t.Errorf("zh-CN %s = %q, want %q", key, got, want)
+		}
+	}
+	for key, want := range map[string]string{
+		"settings.diagnostics.logLevelAll":   "All",
+		"settings.diagnostics.logLevelError": "Error",
+		"settings.diagnostics.logLevelWarn":  "Warning",
+		"settings.diagnostics.logLevelInfo":  "Info",
+		"settings.diagnostics.logLevelDebug": "Debug",
+	} {
+		if got := en[key]; got != want {
+			t.Errorf("en-US %s = %q, want %q", key, got, want)
+		}
+	}
+}
+
 func TestCatalogFilesUseNestedObjects(t *testing.T) {
 	var check func(lang, prefix string, values map[string]any)
 	check = func(lang, prefix string, values map[string]any) {
