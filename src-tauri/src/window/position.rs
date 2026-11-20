@@ -3,34 +3,79 @@ use tauri::{PhysicalPosition, PhysicalSize, WebviewWindow};
 use crate::core::Result;
 use crate::settings::WindowPosition;
 
+#[derive(Clone, Copy, Debug, PartialEq)]
 struct MonitorInfo {
     position: PhysicalPosition<i32>,
     size: PhysicalSize<u32>,
+}
+
+impl From<&tauri::Monitor> for MonitorInfo {
+    fn from(monitor: &tauri::Monitor) -> Self {
+        Self {
+            position: *monitor.position(),
+            size: *monitor.size(),
+        }
+    }
+}
+
+#[cfg(any(target_os = "windows", test))]
+impl MonitorInfo {
+    fn contains(&self, x: f64, y: f64) -> bool {
+        let left = self.position.x as f64;
+        let top = self.position.y as f64;
+
+        x >= left
+            && x < left + self.size.width as f64
+            && y >= top
+            && y < top + self.size.height as f64
+    }
+}
+
+/// 在 Windows 显示器列表中找出光标所在的显示器。
+///
+/// Windows 虚拟桌面坐标统一是物理像素，`GetCursorPos` 与 `rcMonitor` 同处这一空间，
+/// 不能按某块屏的缩放比例换算，否则缩放 > 100% 时副屏坐标会被压回主屏范围。
+#[cfg(any(target_os = "windows", test))]
+fn monitor_at_cursor(
+    cursor: PhysicalPosition<f64>,
+    monitors: &[MonitorInfo],
+) -> Option<MonitorInfo> {
+    monitors
+        .iter()
+        .copied()
+        .find(|monitor| monitor.contains(cursor.x, cursor.y))
 }
 
 fn monitor_from_cursor(
     window: &WebviewWindow,
 ) -> Result<Option<(MonitorInfo, PhysicalPosition<f64>)>> {
     let cursor = window.cursor_position().map_err(|e| anyhow::anyhow!(e))?;
-    let scale = window.scale_factor().map_err(|e| anyhow::anyhow!(e))?;
 
-    let logical = cursor.to_logical::<f64>(scale);
+    #[cfg(target_os = "windows")]
+    let monitor = {
+        let monitors: Vec<MonitorInfo> = window
+            .available_monitors()
+            .map_err(|e| anyhow::anyhow!(e))?
+            .iter()
+            .map(MonitorInfo::from)
+            .collect();
 
-    let monitor = window
-        .monitor_from_point(logical.x, logical.y)
-        .map_err(|e| anyhow::anyhow!(e))?;
-
-    let Some(monitor) = monitor else {
-        return Ok(None);
+        monitor_at_cursor(cursor, &monitors)
     };
 
-    Ok(Some((
-        MonitorInfo {
-            position: *monitor.position(),
-            size: *monitor.size(),
-        },
-        cursor,
-    )))
+    #[cfg(target_os = "macos")]
+    let monitor = {
+        let scale = window.scale_factor().map_err(|e| anyhow::anyhow!(e))?;
+        let logical = cursor.to_logical::<f64>(scale);
+
+        window
+            .monitor_from_point(logical.x, logical.y)
+            .map_err(|e| anyhow::anyhow!(e))?
+            .as_ref()
+            .map(MonitorInfo::from)
+    };
+
+    Ok(monitor.map(|monitor| (monitor, cursor)))
 }
 
 pub fn position_window(window: &WebviewWindow, position: WindowPosition) -> Result<()> {
@@ -90,4 +135,46 @@ fn apply_center(window: &WebviewWindow, monitor: &MonitorInfo) -> Result<()> {
         .set_position(PhysicalPosition::new(x.round() as i32, y.round() as i32))
         .map_err(|e| anyhow::anyhow!(e))?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn monitor(x: i32, y: i32, width: u32, height: u32) -> MonitorInfo {
+        MonitorInfo {
+            position: PhysicalPosition::new(x, y),
+            size: PhysicalSize::new(width, height),
+        }
+    }
+
+    #[test]
+    fn monitor_at_cursor_picks_secondary_when_primary_is_scaled() {
+        let primary = monitor(0, 0, 3840, 2160);
+        let secondary = monitor(3840, 0, 1920, 1080);
+        let cursor = PhysicalPosition::new(4800.0, 540.0);
+
+        let found = monitor_at_cursor(cursor, &[primary, secondary]);
+
+        assert_eq!(found, Some(secondary));
+    }
+
+    #[test]
+    fn monitor_at_cursor_picks_primary_when_cursor_on_primary() {
+        let primary = monitor(0, 0, 3840, 2160);
+        let secondary = monitor(-1920, 0, 1920, 1080);
+        let cursor = PhysicalPosition::new(3000.0, 2000.0);
+
+        let found = monitor_at_cursor(cursor, &[primary, secondary]);
+
+        assert_eq!(found, Some(primary));
+    }
+
+    #[test]
+    fn monitor_at_cursor_returns_none_outside_all_monitors() {
+        let primary = monitor(0, 0, 1920, 1080);
+        let cursor = PhysicalPosition::new(5000.0, 5000.0);
+
+        assert_eq!(monitor_at_cursor(cursor, &[primary]), None);
+    }
 }
