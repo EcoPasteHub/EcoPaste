@@ -99,18 +99,17 @@ func TestLoadKeepsDefaultsForMissingFields(t *testing.T) {
 	if !got.General.TrayIcon {
 		t.Error("trayIcon default lost")
 	}
-	if got.Update.Frequency != UpdateDaily {
-		t.Errorf("update frequency = %q", got.Update.Frequency)
+	if !got.Clipboard.Preview.SpaceEnabled {
+		t.Error("space preview default lost")
 	}
 }
 
 func TestOpenFallsBackToDefaultsForUnreadableSettings(t *testing.T) {
 	cases := map[string]string{
-		"empty":           "",
-		"truncated":       `{"general":`,
-		"wrong type":      `{"general":{"autoStart":"yes"}}`,
-		"unknown enum":    `{"appearance":{"theme":"sepia"}}`,
-		"invalid preview": `{"clipboard":{"preview":{"hoverDelayMs":200}}}`,
+		"empty":        "",
+		"truncated":    `{"general":`,
+		"wrong type":   `{"general":{"autoStart":"yes"}}`,
+		"unknown enum": `{"appearance":{"theme":"sepia"}}`,
 	}
 	for name, content := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -148,7 +147,7 @@ func TestSettingsJSONRoundTripsPublishedCamelCase(t *testing.T) {
 		`"showOriginalPreview"`,
 		`"itemActionOrder"`,
 		`"deleteFavoriteItemsOnlyInFavoriteGroup"`,
-		`"lastCheckedAt"`,
+		`"spaceEnabled"`,
 	} {
 		if !strings.Contains(string(data), key) {
 			t.Errorf("encoded settings missing %s", key)
@@ -204,9 +203,7 @@ func TestUpdateRejectsInvalidValuesWithoutChangingSettings(t *testing.T) {
 		{"clipboard": map[string]any{"content": map[string]any{
 			"itemActions": []any{"copy", "unknown"},
 		}}},
-		{"clipboard": map[string]any{"preview": map[string]any{"hoverDelayMs": 200}}},
 		{"clipboard": map[string]any{"window": map[string]any{"selectGroupOnOpen": "invalid"}}},
-		{"update": map[string]any{"frequency": "hourly"}},
 	}
 	for _, patch := range patches {
 		if _, err := store.Update(patch); err == nil {
@@ -271,7 +268,7 @@ func TestConcurrentUpdatesKeepCompleteSettings(t *testing.T) {
 	}
 	patches := []map[string]any{
 		{"general": map[string]any{"autoStart": true}},
-		{"general": map[string]any{"runAsAdmin": true}},
+		{"appearance": map[string]any{"theme": "dark"}},
 		{"general": map[string]any{"trayIcon": false}},
 		{"clipboard": map[string]any{"content": map[string]any{"copyPlain": true}}},
 		{"clipboard": map[string]any{"content": map[string]any{"pastePlain": true}}},
@@ -296,7 +293,7 @@ func TestConcurrentUpdatesKeepCompleteSettings(t *testing.T) {
 		}
 	}
 	got := store.Snapshot()
-	if !got.General.AutoStart || !got.General.RunAsAdmin || got.General.TrayIcon ||
+	if !got.General.AutoStart || got.Appearance.Theme != ThemeDark || got.General.TrayIcon ||
 		!got.Clipboard.Content.CopyPlain || !got.Clipboard.Content.PastePlain ||
 		!got.Clipboard.Content.AutoFavorite || !got.Clipboard.Feedback.CopySound {
 		t.Errorf("concurrent updates lost fields: %+v", got)

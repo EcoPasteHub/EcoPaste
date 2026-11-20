@@ -308,6 +308,8 @@ Rust 侧：
 
 `settings/model.rs` 定义，落盘 `<data_root>/config/settings.json`，全部 `serde(default)`、`rename_all = "camelCase"`。
 
+以下字段清单保留旧版数据契约作为参考，不代表当前 Go 设置模型。2026-11-20 已删除 12 个未接入字段及整个 `update` 配置组；旧文件和备份中的这些字段读取时忽略，下一次设置写入时移除，详见 `04-feature-parity-checklist.md` §8.1。
+
 顶层：
 
 ```text

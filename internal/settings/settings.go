@@ -7,7 +7,6 @@ type Settings struct {
 	Appearance Appearance `json:"appearance"`
 	Shortcuts  Shortcuts  `json:"shortcuts"`
 	Clipboard  Clipboard  `json:"clipboard"`
-	Update     Update     `json:"update"`
 	Logging    Logging    `json:"logging"`
 }
 
@@ -27,9 +26,8 @@ const (
 )
 
 type General struct {
-	AutoStart  bool `json:"autoStart"`
-	RunAsAdmin bool `json:"runAsAdmin"`
-	TrayIcon   bool `json:"trayIcon"`
+	AutoStart bool `json:"autoStart"`
+	TrayIcon  bool `json:"trayIcon"`
 }
 
 type Appearance struct {
@@ -56,7 +54,6 @@ const (
 type Shortcuts struct {
 	OpenClipboard  string `json:"openClipboard"`
 	OpenPreference string `json:"openPreference"`
-	WinV           bool   `json:"winV"`
 }
 
 type Clipboard struct {
@@ -243,8 +240,6 @@ type Window struct {
 	SelectRangeOnOpen    RangeSelection `json:"selectRangeOnOpen"`
 	SelectCategoryOnOpen CategorySelect `json:"selectCategoryOnOpen"`
 	SelectGroupOnOpen    string         `json:"selectGroupOnOpen"`
-	LightweightMode      bool           `json:"lightweightMode"`
-	IdleDestroySeconds   uint32         `json:"idleDestroySeconds"`
 }
 
 type WindowPosition string
@@ -274,9 +269,7 @@ const (
 )
 
 type Preview struct {
-	HoverEnabled bool   `json:"hoverEnabled"`
-	HoverDelayMs uint32 `json:"hoverDelayMs"`
-	SpaceEnabled bool   `json:"spaceEnabled"`
+	SpaceEnabled bool `json:"spaceEnabled"`
 }
 
 type Feedback struct {
@@ -286,23 +279,6 @@ type Feedback struct {
 type Filters struct {
 	ExcludedAppIDs []string `json:"excludedAppIds"`
 }
-
-type Update struct {
-	AutoCheck      bool            `json:"autoCheck"`
-	Frequency      UpdateFrequency `json:"frequency"`
-	IncludeBeta    bool            `json:"includeBeta"`
-	IncludeNightly bool            `json:"includeNightly"`
-	LastCheckedAt  *string         `json:"lastCheckedAt"`
-	SkippedVersion *string         `json:"skippedVersion"`
-}
-
-type UpdateFrequency string
-
-const (
-	UpdateDaily   UpdateFrequency = "daily"
-	UpdateWeekly  UpdateFrequency = "weekly"
-	UpdateMonthly UpdateFrequency = "monthly"
-)
 
 // Default returns the published defaults.
 func Default() Settings {
@@ -341,14 +317,11 @@ func Default() Settings {
 				SelectRangeOnOpen:    RangePreserve,
 				SelectCategoryOnOpen: CategoryPreserve,
 				SelectGroupOnOpen:    "preserve",
-				LightweightMode:      true,
-				IdleDestroySeconds:   60,
 			},
-			Preview:  Preview{HoverEnabled: false, HoverDelayMs: 500, SpaceEnabled: true},
+			Preview:  Preview{SpaceEnabled: true},
 			Feedback: Feedback{CopySound: false},
 			Filters:  Filters{ExcludedAppIDs: defaultExcludedApps()},
 		},
-		Update:  Update{Frequency: UpdateDaily},
 		Logging: Logging{Level: LogLevelError, RetentionDays: 14},
 	}
 }

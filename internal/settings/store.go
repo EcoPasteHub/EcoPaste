@@ -226,8 +226,6 @@ func validateDecoded(s Settings) error {
 		validateContent,
 		validateHistory,
 		validateWindow,
-		validatePreview,
-		validateUpdates,
 		validateLogging,
 	} {
 		if err := validate(s); err != nil {
@@ -310,16 +308,6 @@ func validateWindow(s Settings) error {
 	return nil
 }
 
-func validatePreview(s Settings) error {
-	return validateOneOf("clipboard.preview.hoverDelayMs", s.Clipboard.Preview.HoverDelayMs,
-		300, 500, 1000)
-}
-
-func validateUpdates(s Settings) error {
-	return validateOneOf("update.frequency", s.Update.Frequency,
-		UpdateDaily, UpdateWeekly, UpdateMonthly)
-}
-
 func validateItemActions(field string, actions []ItemAction) error {
 	for _, action := range actions {
 		if err := validateOneOf(field, action,
@@ -356,15 +344,5 @@ func cloneSettings(src Settings) Settings {
 	dst.Clipboard.Content.ItemActions = slices.Clone(src.Clipboard.Content.ItemActions)
 	dst.Clipboard.Content.ItemActionOrder = slices.Clone(src.Clipboard.Content.ItemActionOrder)
 	dst.Clipboard.Filters.ExcludedAppIDs = slices.Clone(src.Clipboard.Filters.ExcludedAppIDs)
-	dst.Update.LastCheckedAt = cloneString(src.Update.LastCheckedAt)
-	dst.Update.SkippedVersion = cloneString(src.Update.SkippedVersion)
 	return dst
-}
-
-func cloneString(value *string) *string {
-	if value == nil {
-		return nil
-	}
-	cloned := *value
-	return &cloned
 }
