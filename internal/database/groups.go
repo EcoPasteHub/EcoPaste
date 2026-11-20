@@ -8,24 +8,18 @@ import (
 	"time"
 )
 
-// Group is one user-created clipboard group. The icon and hidden fields
-// remain part of the published schema even when the native UI does not
-// expose them yet.
+// Group is one user-created clipboard group.
 type Group struct {
 	ID        string    `json:"id"`
 	Name      string    `json:"name"`
-	Icon      string    `json:"icon"`
-	Hidden    bool      `json:"isHidden"`
-	SortOrder int64     `json:"sortOrder"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
-// ListGroups returns groups in their published display order.
+// ListGroups returns groups in creation order.
 func (d *DB) ListGroups(ctx context.Context) ([]Group, error) {
-	rows, err := d.sql.QueryContext(ctx, `SELECT id, name, icon, is_hidden, sort_order,
-		created_at, updated_at FROM clipboard_groups
-		ORDER BY sort_order ASC, created_at ASC`)
+	rows, err := d.sql.QueryContext(ctx, `SELECT id, name, created_at, updated_at
+		FROM clipboard_groups ORDER BY created_at, id`)
 	if err != nil {
 		return nil, fmt.Errorf("list clipboard groups: %w", err)
 	}
@@ -38,8 +32,7 @@ func (d *DB) ListGroups(ctx context.Context) ([]Group, error) {
 			createdAt string
 			updatedAt string
 		)
-		if err := rows.Scan(&group.ID, &group.Name, &group.Icon, &group.Hidden,
-			&group.SortOrder, &createdAt, &updatedAt); err != nil {
+		if err := rows.Scan(&group.ID, &group.Name, &createdAt, &updatedAt); err != nil {
 			return nil, fmt.Errorf("scan clipboard group: %w", err)
 		}
 		group.CreatedAt = parseTime(createdAt)
@@ -59,10 +52,9 @@ func (d *DB) FindGroup(ctx context.Context, id string) (*Group, error) {
 		createdAt string
 		updatedAt string
 	)
-	err := d.sql.QueryRowContext(ctx, `SELECT id, name, icon, is_hidden, sort_order,
-		created_at, updated_at FROM clipboard_groups WHERE id = ?`, id).
-		Scan(&group.ID, &group.Name, &group.Icon, &group.Hidden, &group.SortOrder,
-			&createdAt, &updatedAt)
+	err := d.sql.QueryRowContext(ctx, `SELECT id, name, created_at, updated_at
+		FROM clipboard_groups WHERE id = ?`, id).
+		Scan(&group.ID, &group.Name, &createdAt, &updatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -75,37 +67,14 @@ func (d *DB) FindGroup(ctx context.Context, id string) (*Group, error) {
 }
 
 // CreateGroup appends a group after every existing group.
-func (d *DB) CreateGroup(ctx context.Context, name, icon string) (Group, error) {
-	tx, err := d.sql.BeginTx(ctx, nil)
-	if err != nil {
-		return Group{}, fmt.Errorf("begin create group: %w", err)
-	}
-	defer tx.Rollback()
-
-	var maxOrder sql.NullInt64
-	if err := tx.QueryRowContext(ctx, "SELECT MAX(sort_order) FROM clipboard_groups").Scan(&maxOrder); err != nil {
-		return Group{}, fmt.Errorf("read group sort order: %w", err)
-	}
-	group := Group{
-		ID:        NewID(),
-		Name:      name,
-		Icon:      icon,
-		SortOrder: 0,
-		CreatedAt: time.Now().UTC(),
-	}
-	if maxOrder.Valid {
-		group.SortOrder = maxOrder.Int64 + 1
-	}
-	group.UpdatedAt = group.CreatedAt
-	if _, err := tx.ExecContext(ctx, `INSERT INTO clipboard_groups
-		(id, name, icon, is_hidden, sort_order, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?)`,
-		group.ID, group.Name, group.Icon, group.Hidden, group.SortOrder,
-		group.CreatedAt.Format(time.RFC3339Nano), group.UpdatedAt.Format(time.RFC3339Nano)); err != nil {
+func (d *DB) CreateGroup(ctx context.Context, name string) (Group, error) {
+	created := time.Now().UTC()
+	group := Group{ID: NewID(), Name: name, CreatedAt: created, UpdatedAt: created}
+	timestamp := formatTime(created)
+	if _, err := d.sql.ExecContext(ctx, `INSERT INTO clipboard_groups
+		(id, name, created_at, updated_at) VALUES (?, ?, ?, ?)`,
+		group.ID, group.Name, timestamp, timestamp); err != nil {
 		return Group{}, fmt.Errorf("insert clipboard group: %w", err)
-	}
-	if err := tx.Commit(); err != nil {
-		return Group{}, fmt.Errorf("commit clipboard group: %w", err)
 	}
 	return group, nil
 }

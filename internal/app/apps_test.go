@@ -102,7 +102,7 @@ func TestAppRegistryDeletePrunesUnusedIcon(t *testing.T) {
 		t.Fatal(err)
 	}
 	source := "com.example.kept"
-	item := &database.Item{Kind: database.KindText, Content: "hello", Platform: "macos", SourceAppID: &source}
+	item := &database.Item{Kind: database.KindText, Content: "hello", SourceAppID: &source}
 	if _, _, err := db.Upsert(ctx, item); err != nil {
 		t.Fatal(err)
 	}

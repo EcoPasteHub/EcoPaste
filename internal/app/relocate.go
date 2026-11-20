@@ -150,7 +150,7 @@ func backupDataDirName(base, environment string) (string, error) {
 
 func skipRuntimeState(name string) bool {
 	switch name {
-	case "instance.lock", "import-pending", "import-rollback":
+	case "instance.lock", storage.PendingBackupDir, storage.BackupRollbackDir:
 		return true
 	}
 	return strings.HasPrefix(name, ".import-")

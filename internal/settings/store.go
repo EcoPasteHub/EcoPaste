@@ -137,9 +137,6 @@ func (s *Store) write(next Settings) error {
 	if err != nil {
 		return fmt.Errorf("encode settings: %w", err)
 	}
-	// Earlier builds wrote through a fixed ".tmp" sibling; drop any residue so
-	// it cannot accumulate next to the settings file.
-	_ = os.Remove(s.path + ".tmp")
 	if err := renameio.WriteFile(s.path, data, 0o644); err != nil {
 		return fmt.Errorf("write settings: %w", err)
 	}

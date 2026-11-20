@@ -22,7 +22,7 @@ func (d *DB) CleanupHistory(ctx context.Context, olderThan *time.Time, maxCount 
 			`DELETE FROM clipboard_items
 			 WHERE is_pinned = 0 AND is_favorite = 0 AND created_at < ?
 			 RETURNING kind, content`,
-			olderThan.UTC().Format(time.RFC3339Nano))
+			formatTime(*olderThan))
 		if err != nil {
 			return out, fmt.Errorf("cleanup history by retention: %w", err)
 		}

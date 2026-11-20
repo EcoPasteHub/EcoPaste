@@ -56,9 +56,8 @@ func TestHistoryItemHonorsFileMaxCount(t *testing.T) {
 		},
 	}
 	item := database.Item{
-		Kind:     database.KindFiles,
-		Content:  "/tmp/a.txt\n/tmp/b.txt\n/tmp/c.txt\n/tmp/d.txt",
-		Platform: "macos",
+		Kind:    database.KindFiles,
+		Content: "/tmp/a.txt\n/tmp/b.txt\n/tmp/c.txt\n/tmp/d.txt",
 	}
 	row := model.historyItem(context.Background(), item, model.clipboardConfig())
 	if row.Title != "a.txt、b.txt 等 4 个" {

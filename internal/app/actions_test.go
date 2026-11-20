@@ -58,7 +58,7 @@ func TestOpenDispatchesBySubKind(t *testing.T) {
 	}
 	for _, tt := range tests {
 		sub := tt.sub
-		item := &database.Item{Kind: database.KindText, Content: tt.text, SubKind: &sub, Platform: "macos"}
+		item := &database.Item{Kind: database.KindText, Content: tt.text, SubKind: &sub}
 		id, _, err := db.Upsert(ctx, item)
 		if err != nil {
 			t.Fatal(err)
@@ -82,7 +82,7 @@ func TestRevealFilesAndPath(t *testing.T) {
 	}
 	t.Cleanup(func() { revealFiles = macos.RevealPaths })
 
-	files := &database.Item{Kind: database.KindFiles, Content: "/tmp/a\n/tmp/b", Platform: "macos"}
+	files := &database.Item{Kind: database.KindFiles, Content: "/tmp/a\n/tmp/b"}
 	id, _, err := db.Upsert(ctx, files)
 	if err != nil {
 		t.Fatal(err)
@@ -91,7 +91,7 @@ func TestRevealFilesAndPath(t *testing.T) {
 		t.Fatal(err)
 	}
 	sub := database.SubPath
-	pathItem := &database.Item{Kind: database.KindText, Content: "/tmp/c", SubKind: &sub, Platform: "macos"}
+	pathItem := &database.Item{Kind: database.KindText, Content: "/tmp/c", SubKind: &sub}
 	id, _, err = db.Upsert(ctx, pathItem)
 	if err != nil {
 		t.Fatal(err)
@@ -111,7 +111,7 @@ func TestSaveImageWritesChosenFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	item := &database.Item{Kind: database.KindImage, Content: stored.FileName, Platform: "macos"}
+	item := &database.Item{Kind: database.KindImage, Content: stored.FileName}
 	id, _, err := db.Upsert(ctx, item)
 	if err != nil {
 		t.Fatal(err)
@@ -150,7 +150,7 @@ func TestSaveNoteNormalizesAndAutoFavorites(t *testing.T) {
 	model.store = store
 
 	ctx := context.Background()
-	item := &database.Item{Kind: database.KindText, Content: "hello", Platform: "macos"}
+	item := &database.Item{Kind: database.KindText, Content: "hello"}
 	id, _, err := db.Upsert(ctx, item)
 	if err != nil {
 		t.Fatal(err)
@@ -182,7 +182,7 @@ func TestSaveNoteClears(t *testing.T) {
 	model, db := actionModel(t)
 	ctx := context.Background()
 	note := "existing"
-	item := &database.Item{Kind: database.KindText, Content: "hello", Note: &note, Platform: "macos"}
+	item := &database.Item{Kind: database.KindText, Content: "hello", Note: &note}
 	id, _, err := db.Upsert(ctx, item)
 	if err != nil {
 		t.Fatal(err)
@@ -203,7 +203,7 @@ func TestSaveNoteClears(t *testing.T) {
 func TestSaveNoteLimitsLength(t *testing.T) {
 	model, db := actionModel(t)
 	ctx := context.Background()
-	item := &database.Item{Kind: database.KindText, Content: "hello", Platform: "macos"}
+	item := &database.Item{Kind: database.KindText, Content: "hello"}
 	id, _, err := db.Upsert(ctx, item)
 	if err != nil {
 		t.Fatal(err)

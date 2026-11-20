@@ -9,11 +9,11 @@ func TestCreateGroupAppendsAndListsInOrder(t *testing.T) {
 	db := openTestDB(t)
 	ctx := context.Background()
 
-	first, err := db.CreateGroup(ctx, "Work", "i-lets-icons:folder")
+	first, err := db.CreateGroup(ctx, "Work")
 	if err != nil {
 		t.Fatal(err)
 	}
-	second, err := db.CreateGroup(ctx, "Ideas", "i-lets-icons:folder")
+	second, err := db.CreateGroup(ctx, "Ideas")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -27,15 +27,12 @@ func TestCreateGroupAppendsAndListsInOrder(t *testing.T) {
 	if groups[0].ID != first.ID || groups[1].ID != second.ID {
 		t.Fatalf("order = %q, %q", groups[0].ID, groups[1].ID)
 	}
-	if first.SortOrder != 0 || second.SortOrder != 1 {
-		t.Errorf("sort order = %d, %d", first.SortOrder, second.SortOrder)
-	}
 }
 
-func TestRenameGroupPreservesSortOrder(t *testing.T) {
+func TestRenameGroupPreservesCreationTime(t *testing.T) {
 	db := openTestDB(t)
 	ctx := context.Background()
-	group, err := db.CreateGroup(ctx, "Old", "i-lets-icons:folder")
+	group, err := db.CreateGroup(ctx, "Old")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -46,7 +43,7 @@ func TestRenameGroupPreservesSortOrder(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if found == nil || found.Name != "New" || found.SortOrder != group.SortOrder {
+	if found == nil || found.Name != "New" || !found.CreatedAt.Equal(group.CreatedAt) {
 		t.Fatalf("group = %+v", found)
 	}
 }
@@ -54,7 +51,7 @@ func TestRenameGroupPreservesSortOrder(t *testing.T) {
 func TestDeleteGroupKeepsItemsAndClearsGroupID(t *testing.T) {
 	db := openTestDB(t)
 	ctx := context.Background()
-	group, err := db.CreateGroup(ctx, "Temporary", "i-lets-icons:folder")
+	group, err := db.CreateGroup(ctx, "Temporary")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -91,7 +88,7 @@ func TestDeleteGroupKeepsItemsAndClearsGroupID(t *testing.T) {
 func TestSetGroupDoesNotRefreshUpdatedAt(t *testing.T) {
 	db := openTestDB(t)
 	ctx := context.Background()
-	group, err := db.CreateGroup(ctx, "Work", "i-lets-icons:folder")
+	group, err := db.CreateGroup(ctx, "Work")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -122,7 +119,7 @@ func TestSetGroupDoesNotRefreshUpdatedAt(t *testing.T) {
 func TestPageFiltersByGroup(t *testing.T) {
 	db := openTestDB(t)
 	ctx := context.Background()
-	group, err := db.CreateGroup(ctx, "Work", "i-lets-icons:folder")
+	group, err := db.CreateGroup(ctx, "Work")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -5,6 +5,8 @@
 > 优先级：P0 数据/主路径，P1 高频能力，P2 可后补能力。
 > 旧实现路径现仅部分保留于 `legacy/backend/src/...` 与 `legacy/frontend/src/...`；未保留模块见 `legacy/README.md`。
 
+> 2.0.0 是兼容性基线；旧版仅供功能参考，不作为数据或行为的兼容要求。
+
 ## 1. 剪贴板采集
 
 | ID | 优先级 | 功能 | 现有实现 | NSGo/AppKit 目标 | 状态 | 验证方式 |
@@ -34,8 +36,8 @@
 
 | ID | 优先级 | 功能 | 现有实现 | NSGo/AppKit 目标 | 状态 | 验证方式 |
 | --- | --- | --- | --- | --- | --- | --- |
-| D-01 | P0 | SQLite 主库 | `db/init.rs`、`db/path.rs` | `modernc.org/sqlite`，同路径同 schema | 已通过 | `go test ./internal/database`：新库创建、旧时间格式读取 |
-| D-02 | P0 | Migration 兼容 | `_sqlx_migrations`、`0001_init.sql` | 识别旧 migration，不重复建表 | 已通过 | 新库与仅含 `clipboard_items` 的旧库都会创建/补齐 `_sqlx_migrations` v1，保留已有 SQLx 元数据；以 SQLx CLI 对新建库执行 `migrate run` 无重复迁移；`TestOpenRecordsLegacyMigrationBaseline`、`TestOpenAddsBaselineToDatabaseWithoutMigrationTable`、`TestOpenKeepsExistingMigrationMetadata` |
+| D-01 | P0 | SQLite 主库 | `db/init.rs`、`db/path.rs` | `modernc.org/sqlite`；空库初始化，时间统一写为定长 UTC | 已通过 | `go test ./internal/database` 覆盖新库创建与仓储操作 |
+| D-02 | P0 | Schema 版本 | 历史 SQLx 仅供参考 | SQLite `user_version=1`；拒绝未标记的现存 schema | 已通过 | `TestImportRejectsUnsupportedBackupBeforeChangingLocalData` 验证旧快照拒绝 |
 | D-03 | P0 | 全文搜索 | FTS5 trigram | 同 FTS 表与触发器 | 已通过 | `TestSearchUsesFTSAndLikeFallback` |
 | D-04 | P0 | 短词搜索 | `LIKE` 兜底 | 1–2 字符走 `LIKE` | 已通过 | 中文单字、英文双字测试 |
 | D-05 | P0 | 历史筛选 | `db/items.rs` | kind/group/favorite/pinned/keyword | 已通过 | 仓储层 `Query` 已覆盖；原生分类/自定义分组筛选真机通过 |
@@ -45,7 +47,7 @@
 | D-09 | P1 | 自动收藏 | `autoFavorite` | 写非空备注时联动收藏 | 已通过 | `TestSaveNoteNormalizesAndAutoFavorites`；清空备注不触发 |
 | D-10 | P0 | 置顶 | `toggle_item_pinned` | `is_pinned`，排序最前 | 已通过 | 排序测试覆盖 |
 | D-11 | P0 | 备注 | `update_item_note` | 更新 note，不刷新 `updated_at` | 已通过 | `SetNote` + `updated_at` 不变测试 |
-| D-12 | P0 | 分组 | `db/groups.rs` | 原生创建、重命名、筛选；保留 schema 的图标/隐藏字段 | 已通过（产品调整） | `TestCreateGroupNormalizesAndSelects`、`TestCreateGroupRejectsEmptyLongAndDuplicateNames`、`TestRenameGroupCancelAndDuplicate`；新建分组改为锚定分类栏「+」按钮的 `NSPopover` 内联输入框（自动聚焦、回车提交、Esc/点击外部取消），不再使用居中模态对话框；重命名/删除仍为以剪贴板面板为基准居中并通过模态 run loop 抬到面板之上的对话框，`TestCenterDialogOrigin*` 覆盖居中和屏幕边界 |
+| D-12 | P0 | 分组 | `db/groups.rs` | 原生创建、重命名、筛选；只保存当前需要的分组字段 | 已通过（产品调整） | `TestCreateGroupNormalizesAndSelects`、`TestCreateGroupRejectsEmptyLongAndDuplicateNames`、`TestRenameGroupCancelAndDuplicate`；新建分组改为锚定分类栏「+」按钮的 `NSPopover` 内联输入框（自动聚焦、回车提交、Esc/点击外部取消），不再使用居中模态对话框；重命名/删除仍为以剪贴板面板为基准居中并通过模态 run loop 抬到面板之上的对话框，`TestCenterDialogOrigin*` 覆盖居中和屏幕边界 |
 | D-13 | P0 | 分组布局 | `update_clipboard_groups_layout` | 首版按创建顺序稳定展示，不做拖拽排序/隐藏 | 不纳入 macOS 首版（产品调整） | 决定与理由见 `03-migration-plan.md` Phase 4 分组产品调整 |
 | D-14 | P0 | 删除分组 | `delete_group` | 条目 `group_id` 置 NULL | 已通过 | `TestDeleteGroupKeepsItemsAndClearsGroupID`；真机删除后 15 条记录保留，SQLite 校验 `group_id = NULL` |
 | D-15 | P0 | 使用次数 | `increment_item_use_count` | `use_count + 1` 并刷新 `updated_at` | 已通过 | `TestUpsertDeduplicatesAndRefreshesUpdatedAt` |
@@ -57,10 +59,10 @@
 | D-21 | P0 | 资源目录 | `core/paths.rs` | 同目录结构，图片按 hash 分片 | 已通过 | `TestImageStoreIsIdempotent`；真机图片落盘 |
 | D-22 | P1 | 存储占用 | `get_storage_usage` | total/database/resources/settings 分项 | 已通过 | `TestMeasureUsageSumsParts`；真机托盘显示 136.9 KB，与 `du` 结果可解释 |
 | D-23 | P1 | 缓存清理 | `clean_resource_cache` | 删除未被 DB 引用的图片/图标 | 已通过 | `TestCleanCacheKeepsReferencedFiles` 覆盖图片、应用图标、文件图标；真机清理孤儿文件且保留引用 |
-| D-24 | P1 | 旧版数据导入 | `commands/onboarding.rs` | 读 v0.6 `history` + `images/` | 不纳入 macOS 首版（产品调整） | 首版不提供 v0.6 数据目录导入，`internal/onboarding` 已移除；旧版用户先导出 `.ecopastebak`，再通过新版备份导入恢复数据，`TestImportBackupsWrittenByLegacyApp` 覆盖旧版明文/加密备份兼容 |
+| D-24 | P1 | 旧版数据导入 | `commands/onboarding.rs` | 2.0.0 不迁移旧目录或导入旧备份 | 不纳入 | 用户自行清理；当前版本备份见 D-27 |
 | D-25 | P1 | 来源应用注册表 | `db/apps.rs`、`apps_registry.rs` | 列表、全部应用、从路径添加、清理未引用 | 已通过 | `TestListAppsOrdersByNameAndRefreshesMetadata`、`TestDeleteUnreferencedAppsKeepsReferencedRows`、`TestAppRegistryMergesRunningApps`、`TestAppRegistryAddRefreshesWithoutDuplicates`；真机应用页勾选立即写入 `excludedAppIds`，添加 Notes 自动排除并落库，取消勾选删除未引用行与图标 |
 | D-26 | P1 | 文件图标缓存 | `db/file_icons.rs`、`file_icon_store.rs` | `NSWorkspace` 图标 + cache key | 已通过 | `TestFileIconCacheReusesType`；真机 PDF/TXT 图标正确，两个 PDF 共享 `.pdf` 缓存 |
-| D-27 | P1 | 备份入口 | `commands/backup.rs` | 导出、检查、导入、pending slot | 已通过 | 托盘明文/加密导出、merge/overwrite 导入与 pending slot；设置“数据”页复用同一导出/导入流程，真机验证导出选择、保存面板与导入文件面板均可进入并取消；`TestSettingsModelRunsBackupActions` 覆盖动作分派；`TestMergeImport` 校验跳过重复、补齐缺失资源、不覆盖已有资源和设置 patch，`TestStageAndApplyImport`、`TestApplyImportRestoresOnFailure` 校验覆盖与回滚；真机 merge 导入计数、DB/resources/设置落盘，overwrite 导入后重启校验；旧版 Rust 算法生成的明文/加密样本由 `TestImportBackupsWrittenByLegacyApp` 导入，Go 导出包由同一 Rust 读取逻辑交叉校验 |
+| D-27 | P1 | 备份入口 | `commands/backup.rs` | 导出、格式检查、合并、覆盖 | 已通过（自动化） | `TestStageAndApplyImport` 覆盖明文和加密覆盖恢复；`TestMergeImport` 覆盖去重、资源与设置；`TestImportRejectsUnsupportedBackupBeforeChangingLocalData` 验证拒绝旧格式和非当前 schema |
 | D-28 | P1 | 打开数据目录 | `commands/storage.rs` | `NSWorkspace` 打开目录 | 已通过 | 真机从托盘打开当前数据根 |
 
 ## 3. 内容识别与预览
@@ -101,7 +103,7 @@
 | A-16 | P1 | 移动到分组 | 右键子菜单 | `NSMenu` 动态分组列表与当前分组勾选 | 已通过 | `TestMoveToGroupAndBackToUngrouped`；真机移动到“工作”后分组筛选仅显示 1 条 |
 | A-17 | P0 | 删除条目 | `delete_clipboard_item` | 删除 DB 行 + 图片文件 | 已通过 | 右键/Delete 按设置确认；`TestDeleteRemovesImageFile`、`TestDeletePolicyHonorsProtectionSettings`；收藏/置顶删除入口按 `deleteFavoriteItems`/`deletePinnedItems`/`deleteFavoriteItemsOnlyInFavoriteGroup` 隐藏，普通/收藏/置顶分别使用独立确认开关 |
 | A-18 | P1 | 自动粘贴 | `Content.auto_paste` | 单击/双击、粘贴/复制、禁用 | 已通过 | `TestClickActionModes`；真机 `singleClickCopy` 单击写入、双击不触发，`doubleClickCopy` 单击不触发、双击写入 |
-| A-19 | P1 | 中键动作 | 已删除 | 产品精简，不再提供中键快捷动作 | 已移除 | 中键事件、动作接口、设置、UI 与专属文案一并删除；旧 JSON 忽略该字段 |
+| A-19 | P1 | 中键动作 | 已删除 | 产品精简，不再提供中键快捷动作 | 已移除 | 中键事件、动作接口、设置、UI 与专属文案一并删除 |
 | A-20 | P1 | 悬停快捷动作 | `Content.item_actions` | 可配置、可排序 | 已通过 | `TestHoverActionsFollowConfiguredOrder`、`TestHoverActionsSkipInapplicableRows`、`TestHoverActionReflectsItemState`、`TestQuickActionsKeepConfiguredOrder`、`TestSettingsModelAppliesItemActions`；真机悬停行显示配置按钮并即时刷新状态；设置“动作”页勾选“编辑备注”后 `itemActions` 立即落盘，上移后 `itemActionOrder` 更新且启用的动作按新顺序排列；动作条使用 `NSPopover` 材质圆角浮层，图标尺寸与点击区域同步放大，选中行上仍保持清晰边界 |
 | A-21 | P1 | 复制后隐藏 | `copyThenHideWindow` | 复制后按设置隐藏，固定窗口时保持可见 | 已通过 | `TestHideAfterActionRespectsPinnedPanel`；真机固定后复制面板保持，取消固定后复制面板隐藏 |
 
@@ -113,8 +115,8 @@
 | W-02 | P0 | 窗口定位 | `window/position.rs` | 跟随鼠标/居中/记住位置 | 已通过 | 设置“面板打开位置”三档；真机 `osascript` 读取窗口 frame：居中 `654,217`、跟随光标 `300,393`（光标 `300,400`）、记住位置恢复 `654,217`；产品调整：定位仅受屏幕边界限制，取消工作区（`visibleFrame`）约束，面板可贴近或覆盖菜单栏/Dock 区域 |
 | W-03 | P0 | 失焦隐藏 | `window/macos.rs` | 自定义 resign-key 隐藏 + modal/固定窗口期间暂停 | 已通过 | 真机切换 Finder 后隐藏；系统另存/备注 Popover 期间保持；固定窗口保持可见；拖拽期间暂停失焦隐藏，拖放被接受后隐藏，取消拖拽保持；`TestShouldHideAfterDrag` 覆盖接受、取消、失 key、失活、固定和抑制分支 |
 | W-04 | P0 | 固定窗口 | `set_clipboard_window_pinned` | 固定不隐藏；粘贴时 resign/restore key | 已通过 | 原生按钮与 `⌘P` 切换已接，`⌘T` 置顶选中条目；真机固定后失焦、切换 TextEdit 和回车粘贴均保持可见，粘贴时让出 key 并在完成后恢复表格焦点；`TestHistoryKeyAction` 覆盖两档快捷键 |
-| W-05 | P1 | 窗口生命周期 | `window/lifecycle/*` | 原生窗口状态机，无 WebView 重建 | 已通过 | 冷启动不显示面板、全局快捷键显示/隐藏、隐藏后写 `window-state.json` 已实测；快捷键切换改为显式 `Show()`/`Hide()`，避免 Carbon 回调中的窗口命令未刷新；热键动作统一经 `Scope.Post` 投递到响应式图 goroutine，修复 Carbon 回调直接调用 `Show()` 触发的跨 goroutine panic（`TestHotKeyActionRunsOnGraphGoroutine`）；Esc 隐藏已复测；修复退出阶段热键清理阻塞主队列导致进程残留后，应用菜单退出、托盘“重新启动”与托盘“退出 EcoPaste”均真机通过：重启产生新进程，退出在 0.78 秒内结束且无残留 |
-| W-06 | P1 | 窗口几何持久化 | `window/state.rs` | 同 `state/window-state.json` | 已通过（格式调整） | 隐藏时写入 `clipboard` 帧并重启恢复；旧版存物理像素、左上原点，新版存 AppKit points、左下原点，JSON 字段与路径不变；旧坐标不在任一屏幕时回退到光标所在屏幕居中 |
+| W-05 | P1 | 窗口生命周期 | `window/lifecycle/*` | 原生窗口状态机，无 WebView 重建 | 已通过 | 冷启动不显示面板、全局快捷键显示/隐藏、隐藏后写 窗口状态（见 W-06）；快捷键切换改为显式 `Show()`/`Hide()`，避免 Carbon 回调中的窗口命令未刷新；热键动作统一经 `Scope.Post` 投递到响应式图 goroutine，修复 Carbon 回调直接调用 `Show()` 触发的跨 goroutine panic（`TestHotKeyActionRunsOnGraphGoroutine`）；Esc 隐藏已复测；修复退出阶段热键清理阻塞主队列导致进程残留后，应用菜单退出、托盘“重新启动”与托盘“退出 EcoPaste”均真机通过：重启产生新进程，退出在 0.78 秒内结束且无残留 |
+| W-06 | P1 | 窗口几何持久化 | `window/state.rs` | `state/panel-frame.json` 存单个 AppKit 面板 frame | 已通过（自动化） | `TestWindowStateRoundTrip`、`TestWindowStateDropsBrokenFile` |
 | W-07 | P1 | 偏好窗口 | `window/mod.rs` | 原生侧栏 + `NSTabView` 设置窗口 | 已通过 | 左侧原生源码列表分类栏、右侧内容区；已打开窗口切换分类时同步选中侧栏行；已移除顶部设置项搜索入口，分类内的配置项保持不变 |
 | W-08 | P1 | 更新窗口 | `window/mod.rs` | Sparkle 原生更新窗口 | 迁移中 | 产品调整：不恢复独立 WebView 更新窗，入口合并到设置“更新”页、应用菜单和托盘；macOS 由 Sparkle 显示检查/下载/安装/重启界面，应用侧只传本地化不可用结果；真机开发版验证设置页与菜单入口，正式签名 appcast 升级待发布验证 |
 | W-09 | P1 | 引导窗口 | `window/mod.rs` | 不提供首启引导浮层 | 不纳入 macOS 首版（产品调整） | 冷启动不再自动展开面板或显示引导；权限缺失在粘贴动作和设置“权限”页提示；引导代码与 `onboarding` 设置字段已移除，见 S-14 |
@@ -135,9 +137,9 @@
 
 | ID | 优先级 | 功能 | 现有实现 | NSGo/AppKit 目标 | 状态 | 验证方式 |
 | --- | --- | --- | --- | --- | --- | --- |
-| U-01 | P0 | Clipboard 主页面 | `legacy/frontend/src/pages/Clipboard` | AppKit 双窗口：分类胶囊栏 + 搜索/列表/卡片/Footer | 已通过（产品调整） | 分类移入独立顶部子窗口，展示全部/文本/图片/文件/收藏胶囊与新建按钮；主窗口保留搜索、筛选菜单、设置、固定按钮、圆角卡片历史列表与 Footer；类型标签、来源/时间、置顶/收藏状态、备注切换、卡片右上角绝对定位的悬停工具栏（纯色语义背景、统一过渡且不改变内容布局；行内状态更新保留工具栏，待真机回归）、搜索/分组筛选、实时刷新与复制已真机验证；行卡片默认显示轻量底色，选中态使用系统强调色并切换白色文字；真机 420×560 主面板 + 420×48 分类栏复核；卡片统一为左侧来源应用图标、右侧内容并移除图标角标的字体图标；文本卡片按配置行数自适应高度并在超出时省略，图片按最大高度等比缩放，非图片文件逐行显示文件图标与名称，单个图片文件按图片预览展示；Finder 搜索结果复制得到的 `/.file/id=` 文件引用在采集与旧记录读取时解析为真实路径，不再误报“已丢失”；搜索栏上下与左右留白一致、内部元素垂直居中，移除自定义居中绘制后输入框聚焦前后位置不再偏移；顶部搜索栏区域改用单一 `panelHeaderMargin` 推导上下左右四个方向的留白：工具栏图标定义行高、搜索文字与图标共用同一垂直轴、列表首张卡片与图标之间保留同样间距，真机截图像素复核四个方向留白一致（原上下约 22/29pt、左右约 16/22pt）；列表滚动到底时最后一张卡片不再被裁掉：`NSTableView` 把每行放进「行高 + 行间距」的槽位并居中单元格，原文档高度按「行高之和 + (n-1) × 行间距」计算，比末行卡片底边少 1pt，滚动到底即被裁掉 1～2px，现改为补齐末行尾部行间距；`TestHistoryRowIncludesMetadata`、`TestHistoryRowTypeLabels`、`TestHistoryTableContentHeightFollowsRows`、`TestHistoryTableContentHeightCoversLastCard`、`TestPanelSearchWidthLeavesRoomForToolbar`、`TestPanelHeaderKeepsEqualMargins`、`TestPanelHeaderCentersSearchOnIconAxis`、`TestPanelNavCapsulesFitPanelWidth`；列表选中态始终保持有且仅有一项：切换分组/分类/搜索必定选中第一项（即使原选中项仍在当前列表），删除时选中下一项（无下一项则上一项），返回顶部（含打开时滚动到顶部）选中第一项；新建分组后停留在原分组，不自动切换；`TestSelectionIndexAlwaysKeepsOneRow` 覆盖；搜索结果在标题、预览与备注中命中关键词时以低饱和奶油黄高亮（不透明底、近黑文字，浅/深色自适应），未选中/选中外观均清晰可读，查询更新时列表原地重绘高亮；`TestHighlightRanges`、`TestHighlightTokensDedupesAndSplits`、`TestHighlightedRowStringAppliesBackgroundToMatches` 覆盖 |
+| U-01 | P0 | Clipboard 主页面 | `legacy/frontend/src/pages/Clipboard` | AppKit 双窗口：分类胶囊栏 + 搜索/列表/卡片/Footer | 已通过（产品调整） | 分类移入独立顶部子窗口，展示全部/文本/图片/文件/收藏胶囊与新建按钮；主窗口保留搜索、筛选菜单、设置、固定按钮、圆角卡片历史列表与 Footer；类型标签、来源/时间、置顶/收藏状态、备注切换、卡片右上角绝对定位的悬停工具栏（纯色语义背景、统一过渡且不改变内容布局；行内状态更新保留工具栏，待真机回归）、搜索/分组筛选、实时刷新与复制已真机验证；行卡片默认显示轻量底色，选中态使用系统强调色并切换白色文字；真机 420×560 主面板 + 420×48 分类栏复核；卡片统一为左侧来源应用图标、右侧内容并移除图标角标的字体图标；文本卡片按配置行数自适应高度并在超出时省略，图片按最大高度等比缩放，非图片文件逐行显示文件图标与名称，单个图片文件按图片预览展示；Finder 搜索结果复制得到的 `/.file/id=` 文件引用在采集时解析为真实路径，不再误报“已丢失”；搜索栏上下与左右留白一致、内部元素垂直居中，移除自定义居中绘制后输入框聚焦前后位置不再偏移；顶部搜索栏区域改用单一 `panelHeaderMargin` 推导上下左右四个方向的留白：工具栏图标定义行高、搜索文字与图标共用同一垂直轴、列表首张卡片与图标之间保留同样间距，真机截图像素复核四个方向留白一致（原上下约 22/29pt、左右约 16/22pt）；列表滚动到底时最后一张卡片不再被裁掉：`NSTableView` 把每行放进「行高 + 行间距」的槽位并居中单元格，原文档高度按「行高之和 + (n-1) × 行间距」计算，比末行卡片底边少 1pt，滚动到底即被裁掉 1～2px，现改为补齐末行尾部行间距；`TestHistoryRowIncludesMetadata`、`TestHistoryRowTypeLabels`、`TestHistoryTableContentHeightFollowsRows`、`TestHistoryTableContentHeightCoversLastCard`、`TestPanelSearchWidthLeavesRoomForToolbar`、`TestPanelHeaderKeepsEqualMargins`、`TestPanelHeaderCentersSearchOnIconAxis`、`TestPanelNavCapsulesFitPanelWidth`；列表选中态始终保持有且仅有一项：切换分组/分类/搜索必定选中第一项（即使原选中项仍在当前列表），删除时选中下一项（无下一项则上一项），返回顶部（含打开时滚动到顶部）选中第一项；新建分组后停留在原分组，不自动切换；`TestSelectionIndexAlwaysKeepsOneRow` 覆盖；搜索结果在标题、预览与备注中命中关键词时以低饱和奶油黄高亮（不透明底、近黑文字，浅/深色自适应），未选中/选中外观均清晰可读，查询更新时列表原地重绘高亮；`TestHighlightRanges`、`TestHighlightTokensDedupesAndSplits`、`TestHighlightedRowStringAppliesBackgroundToMatches` 覆盖 |
 | U-02 | P1 | Preview 页面 | `legacy/frontend/src/pages/Preview` | 原生 `NSPopover` 预览 | 已通过 | 真机 Space 打开、Space/Esc 关闭，popover 锚定列表行且不遮挡面板；文本、HTML、图片预览均正常；`TestPreviewRedactsSensitiveText` |
-| U-03 | P1 | Preference 页面 | `legacy/frontend/src/pages/Preference` | 原生侧栏/表单/搜索/高亮 | 已通过 | 左侧 `NSVisualEffectView` + 源码列表分类栏承载 14 个分类，右侧原生表单、全局搜索和高亮已可用；分类行支持键盘聚焦、选中强调和 VoiceOver“设置分类”标签，搜索和语言切换会同步选中侧栏行；真机验证全部分类切换、`backup` 跳转高亮及中英文重建，侧栏显示打包后的 EcoPaste 应用图标；“采集”页按内容类型、大小限制和优先级分组，中英文“上移/下移”按钮与表格宽度完整可用；“显示”页按列表密度分组，并提供文本/图片双栏原生行预览，随文本行数与图片高度实时更新；“交互”“删除”“窗口”“历史与隐私”页按操作、权限和内容类型分组，并补充自动换行的原生说明文案；“窗口”页补齐“打开时聚焦搜索”和“下次打开时清空搜索”，与现有打开行为共同覆盖 `clipboard.search` 和 `clipboard.window` 的 schema 设置；“动作”“应用”页加入分区标题和自动换行说明，上移/下移按钮的 VoiceOver 文案按页面区分；动作、应用与采集优先级列表统一使用语义色圆角内嵌容器，动作与应用列表改用 AppKit 原生 checkbox，真机验证勾选状态即时落盘并恢复，VoiceOver 标签保持；采集优先级和动作顺序按钮会按首行/末行禁用；开关行标题宽度与截断处理已修正，避免英文长标题被裁切；窗口分类图标修正为可读的 `rectangle.on.rectangle`；“数据”页按存储位置与备份恢复分组，数据目录单独占行完整展示并提供 tooltip；“权限”页按系统权限与诊断信息分组，中英文按钮宽度已适配；“预览”页控制 Space 预览，“更新”页展示版本并触发 Sparkle，说明文案改用原生多行标签并在英文长度下完整换行；2026-11-20 已删除轻量化/空闲销毁、hover 预览、更新与 Windows 专用的 12 个未接入字段，兼容规则见 §8.1；其余 schema 可配置项均已覆盖 |
+| U-03 | P1 | Preference 页面 | `legacy/frontend/src/pages/Preference` | 原生侧栏/表单/搜索/高亮 | 已通过 | 左侧 `NSVisualEffectView` + 源码列表分类栏承载 14 个分类，右侧原生表单、全局搜索和高亮已可用；分类行支持键盘聚焦、选中强调和 VoiceOver“设置分类”标签，搜索和语言切换会同步选中侧栏行；真机验证全部分类切换、`backup` 跳转高亮及中英文重建，侧栏显示打包后的 EcoPaste 应用图标；“采集”页按内容类型、大小限制和优先级分组，中英文“上移/下移”按钮与表格宽度完整可用；“显示”页按列表密度分组，并提供文本/图片双栏原生行预览，随文本行数与图片高度实时更新；“交互”“删除”“窗口”“历史与隐私”页按操作、权限和内容类型分组，并补充自动换行的原生说明文案；“窗口”页补齐“打开时聚焦搜索”和“下次打开时清空搜索”，与现有打开行为共同覆盖 `clipboard.search` 和 `clipboard.window` 的 schema 设置；“动作”“应用”页加入分区标题和自动换行说明，上移/下移按钮的 VoiceOver 文案按页面区分；动作、应用与采集优先级列表统一使用语义色圆角内嵌容器，动作与应用列表改用 AppKit 原生 checkbox，真机验证勾选状态即时落盘并恢复，VoiceOver 标签保持；采集优先级和动作顺序按钮会按首行/末行禁用；开关行标题宽度与截断处理已修正，避免英文长标题被裁切；窗口分类图标修正为可读的 `rectangle.on.rectangle`；“数据”页按存储位置与备份恢复分组，数据目录单独占行完整展示并提供 tooltip；“权限”页按系统权限与诊断信息分组，中英文按钮宽度已适配；“预览”页控制 Space 预览，“更新”页展示版本并触发 Sparkle，说明文案改用原生多行标签并在英文长度下完整换行；2026-11-20 已删除轻量化/空闲销毁、hover 预览、更新与 Windows 专用的 12 个未接入字段，字段清单见 §8.1；其余 schema 可配置项均已覆盖 |
 | U-04 | P1 | Onboarding 页面 | `legacy/frontend/src/pages/Onboarding` | 不提供独立引导页面 | 不纳入 macOS 首版（产品调整） | 产品调整：移除首启引导流程与相关面板浮层，`internal/onboarding`、对应 UI、i18n 与设置字段均已删除；权限、快捷键、排除应用与备份恢复分别由设置页、系统权限提示和备份导入承担 |
 | U-05 | P1 | Update 页面 | `legacy/frontend/src/pages/Update` | 原生更新状态/进度 | 迁移中 | 产品调整：不再自绘更新状态机，设置“更新”页展示当前版本与检查入口，下载进度、安装和重启交给 Sparkle 原生窗口；不可用或非 Sparkle 结果使用本地化提示；正式签名 appcast 升级待发布验证 |
 | U-06 | P2 | ContextMenu 页面 | `legacy/frontend/src/pages/ContextMenu` | macOS 使用 `NSMenu`，不迁移 WebView 菜单窗 | 参考 | 对比菜单结构 |
@@ -160,11 +162,11 @@
 
 ## 8. 设置项
 
-当前设置模型以 `internal/settings/settings.go` 为准，旧版模型仅作数据契约参考；落盘 `config/settings.json`，缺字段补默认值，字段使用 camelCase。设置窗口每个开关/下拉/数字/快捷键控件的路径与回读绑定由 `TestSettingsControlsEmitTheirOwnPath`、`TestSettingsControlsShowLoadedValues` 全量校验，每个可见路径由 `TestSettingsModelAcceptsEveryVisiblePath` 校验可写入。
+当前设置模型以 `internal/settings/settings.go` 为准；落盘 `config/settings.json`，缺字段补默认值，字段使用 camelCase。设置窗口每个开关/下拉/数字/快捷键控件的路径与回读绑定由 `TestSettingsControlsEmitTheirOwnPath`、`TestSettingsControlsShowLoadedValues` 全量校验，每个可见路径由 `TestSettingsModelAcceptsEveryVisiblePath` 校验可写入。
 
 | ID | 设置组 | 字段 | 迁移要求 | 状态 | 验证方式 |
 | --- | --- | --- | --- | --- | --- |
-| S-01 | general | `autoStart`、`trayIcon` | `autoStart`/`trayIcon` 已接系统副作用；未接入的 `runAsAdmin` 已移除（§8.1）；`dockIcon` 已移除，Dock 图标跟随偏好设置窗口显隐（见 W-14），旧 `settings.json`/备份中的该字段读取时忽略 | 已通过（产品调整） | `TestSettingsModelAppliesTrayIcon`；真机开发版切换“显示菜单栏图标”后状态即时落盘，重启后保持隐藏，再次开启可恢复图标；默认值、原子写回与重置副作用沿用设置层测试 |
+| S-01 | general | `autoStart`、`trayIcon` | `autoStart`/`trayIcon` 已接系统副作用；未接入的 `runAsAdmin` 已移除（§8.1）；`dockIcon` 已移除，Dock 图标跟随偏好设置窗口显隐（见 W-14） | 已通过（产品调整） | `TestSettingsModelAppliesTrayIcon`；真机开发版切换“显示菜单栏图标”后状态即时落盘，重启后保持隐藏，再次开启可恢复图标；默认值、原子写回与重置副作用沿用设置层测试 |
 | S-02 | appearance | `theme`、`language` | `auto/light/dark`、`auto/zh-CN/en-US`，语言默认 `auto` | 已通过 | 主题三档已接入并即时应用；`TestSettingsModelAppliesTheme`；语言下拉即时原地更新界面并持久化，`auto` 清除应用级语言覆盖并跟随系统语言，真机中英文往返回读 `settings.json` 正确，`TestSettingsModelAppliesLanguage` |
 | S-03 | shortcuts | `openClipboard`、`openPreference` | 两个全局快捷键保留；未接入的 `winV` 已移除（§8.1） | 已通过（产品调整） | 两个快捷键均已读取并注册；“快捷键”页原生录制、清空、非法组合和重复校验可用；`TestSettingsModelAppliesShortcutAndRejectsDuplicate`、`TestSettingsModelRollsBackShortcutWhenRebindFails`；真机 `Alt+K` 改为 `Alt+J` 后立即写盘并重绑 |
 | S-04 | clipboard.capture | `text/html/rtf/image/files`、`maxTextMb`、`maxImageMb`、`order` | 采集顺序与上限一致 | 已通过 | `TestCaptureOrderAndTypeSwitches`、`TestSettingsModelAppliesCaptureOrder`；真机设置“采集”页选择纯文本上移/下移后，`settings.json` 即时写入完整五类顺序 |
@@ -177,10 +179,10 @@
 | S-11 | clipboard.preview | `spaceEnabled` | Space 按开关生效；不实现的 hover 预览字段及校验已移除（§8.1），不影响备注悬停显示原文 | 已通过（产品调整） | `TestSpacePreviewHonorsSetting`；设置“预览”页关闭后 Space 不打开预览，开启后立即写入 `clipboard.preview.spaceEnabled`，面板下一次 props 即重读并恢复 Space 预览；`TestPanelBehaviorFollowsSettingsOnEveryPropsPass` 覆盖；设置页改用原生浮层的操作说明，不再暴露迁移计划文案；真机确认 `NSPopover` 按空间出现在面板左侧或右侧，Esc/Space 返回并保持当前行选中；短 HTML 预览按内容收缩至 406×158，长内容滚动到底完整可见，切换条目后回到顶部；默认字体为系统无衬线字体，保留粗体、显式颜色与列表，深色模式下默认深色墨水自动切换语义正文色；`TestAttributedPreviewKeepsNativeDefaultFont`、`TestAttributedPreviewPreservesExplicitColor`、`TestPreviewInkNeedsLabelForDefaultContrast`、`TestPreviewSizeFollowsTextHeight` 覆盖；悬停预览不实现的原因见 `03-migration-plan.md` Phase 4 |
 | S-12 | clipboard.feedback | `copySound` | 音效开关一致 | 已通过 | 设置“通用”页开关即时写入 `settings.json`；开启后监听/手动读取入库成功播放系统提示音，关闭后静音；`TestSettingsModelAppliesPaths` 覆盖读写 |
 | S-13 | clipboard.filters | `excludedAppIds` | bundle id 过滤一致 | 已通过 | `TestDefaultExcludedAppsAreNotCaptured` 校验默认排除密码类应用且普通来源照常入库；`TestIgnoredAppIsNotCaptured`、`TestSettingsModelAppliesExcludedAppsAndDeletesRemoved`、`TestSettingsModelAddSourceAppExcludesIt` 覆盖自定义排除、取消与来源应用清理 |
-| S-14 | onboarding | `completed`、`lastStep`、`legacyImport{checked,imported,importTypes,importedAt}` | 移除引导/导入设置 | 不纳入 macOS 首版（产品调整） | 产品调整：开发阶段不承担旧版兼容，`Onboarding` 结构与 `settings.json` 的 `onboarding` 字段已移除；未知 JSON 字段仍由解码器忽略，不影响其它设置读写 |
-| S-15 | update | 已移除 | 删除未接入的六个字段及配置组，更新行为由 NSGo/Sparkle 管理（§8.1） | 已移除（产品调整） | `TestRetiredSettingsAreIgnored` 覆盖旧设置读取、备份 patch 合并、忽略无效旧值及写回不再包含旧字段；更新检查入口保留，正式 appcast 与签名升级验收仍见 W-20 |
-| S-16 | 默认值 | `settings.Default()` | 缺字段时补当前默认值；已删除字段按 §8.1 忽略 | 已通过 | `TestLoadKeepsDefaultsForMissingFields`、`TestOpenFallsBackToDefaultsForUnreadableSettings`、`TestSettingsJSONRoundTripsPublishedCamelCase`：缺字段、空文件、损坏 JSON、类型错误和非法枚举均回退完整默认值，camelCase 编码可无损回环 |
-| S-17 | 写入语义 | 对象深合并、数组替换、`.tmp` + rename | patch 语义与原子写一致 | 已通过 | `TestUpdateDeepMergesObjectsAndReplacesArrays`、`TestWriteIsAtomicAndReadable`、`TestConcurrentUpdatesKeepCompleteSettings`、`TestCrashResidueDoesNotAffectSettings`；并发 patch 不丢字段，残留 `.tmp` 不影响主文件读取，下次写入完成替换且不残留临时文件 |
+| S-14 | onboarding | `completed`、`lastStep`、`legacyImport{checked,imported,importTypes,importedAt}` | 移除引导/导入设置 | 不纳入 macOS 首版（产品调整） | `Onboarding` 结构与设置字段已移除 |
+| S-15 | update | 已移除 | 无独立更新配置，更新行为由 NSGo/Sparkle 管理（§8.1） | 已移除（产品调整） | 更新检查入口保留，正式 appcast 与签名升级验收仍见 W-20 |
+| S-16 | 默认值 | `settings.Default()` | 缺字段时补当前默认值 | 已通过 | `TestLoadKeepsDefaultsForMissingFields`、`TestOpenFallsBackToDefaultsForUnreadableSettings`、`TestSettingsJSONRoundTripsPublishedCamelCase`：缺字段、空文件、损坏 JSON、类型错误和非法枚举均回退完整默认值，camelCase 编码可无损回环 |
+| S-17 | 写入语义 | 对象深合并、数组替换、`.tmp` + rename | patch 语义与原子写一致 | 已通过 | `TestUpdateDeepMergesObjectsAndReplacesArrays`、`TestWriteIsAtomicAndReadable`、`TestConcurrentUpdatesKeepCompleteSettings`；并发 patch 不丢字段，残留 `.tmp` 不影响主文件读取，原子替换后可读 |
 | S-18 | 跨字段校验 | 快捷键不重复、`selectGroupOnOpen` 编码合法 | 错误可定位且不破坏旧值 | 已通过 | `TestUpdateRejectsInvalidValuesWithoutChangingSettings`、`TestUpdateRejectsDuplicateShortcuts`：非法枚举、快捷键冲突和非法打开分组均拒绝，内存快照与磁盘文件保持原值 |
 | S-19 | 重置 | `reset_settings` | 恢复默认但保留必要身份/数据；设置窗口底部确认后立即生效 | 已通过 | `TestResetSettingsRestoresDefaultsAndSideEffects`：默认值、自启、主题、语言、快捷键、列表刷新均恢复；清理调度随 Store 的默认无限制策略停止；数据目录与历史不受影响；Dock 图标不再由设置控制 |
 
@@ -205,24 +207,19 @@
 
 整个 `Settings.Update` 组及专属类型、默认值和指针复制辅助函数一并移除；手动检查更新入口、Space 预览、备注悬停显示原文及其他有效设置不变。
 
-兼容与回滚：
-
-- 继续使用 JSON 的未知字段忽略行为，无需新增迁移框架或修改 SQLite schema。旧设置文件、覆盖导入的设置文件和备份合并 patch 均可读取，废弃字段中的旧类型或枚举值不再导致有效设置回退默认值。
-- 启动读取不主动改写已有设置文件；下一次正常保存、备份设置合并或重置时，只写有效字段，不再输出这 12 个字段或空的 `update` 对象。用户数据和原始备份不由本次代码变更直接修改。
-- 回滚旧版本时，缺失的废弃字段由旧版补默认值；若需恢复其原始值，使用升级前设置副本或备份。其余设置、历史、资源和备份容器格式不变。
-- `TestRetiredSettingsAreIgnored` 覆盖新建设置、旧文件读取、备份 patch 合并、无效废弃值忽略、写回删除和有效设置重开保留；原有旧版明文/加密备份兼容测试继续保留。
+2.0.0 不处理旧配置或旧动作值，不提供迁移或回滚到旧版的逻辑。
 
 验证：`gofmt -l .` 无输出，`CGO_ENABLED=0 go vet ./...`、`CGO_ENABLED=0 go test -count=1 ./...`、`CGO_ENABLED=0 go build ./...` 通过。本项未修改视图或窗口行为，未做真机交互回归。
 
 ## 8.2 进一步精简偏好设置（2026-11-21）
 
-按用户指定顺序逐项移除；旧 JSON 字段继续按 §8.1 的未知字段规则兼容，启动不重写文件，下一次正常保存省略已删除字段。
+以下功能在 2.0.0 基线中移除。
 
 1. 中键：删除事件桥接、业务动作、接口、设置状态、校验、控件及专属文案；鼠标左键、右键和滚轮行为保留。
 
-2. 文件路径粘贴：删除开关、菜单、快捷键和悬停动作；所有文件写回复用原生文件对象。解码时仅过滤旧动作数组中的已删除动作，防止旧设置因枚举校验失败而整体回退默认值。
+2. 文件路径粘贴：删除开关、菜单、快捷键和悬停动作；所有文件写回复用原生文件对象。
 
-3. 纯文本粘贴：删除开关及所有强制纯文本粘贴入口；普通粘贴保留 HTML/RTF 表示。独立的纯文本复制偏好、复制菜单和 `⌥⌘C` 保留，仅在复制路径生效；旧动作数组兼容过滤同时覆盖本次删除的值。
+3. 纯文本粘贴：删除开关及所有强制纯文本粘贴入口；普通粘贴保留 HTML/RTF 表示。独立的纯文本复制偏好、复制菜单和 `⌥⌘C` 保留，仅在复制路径生效。
 
 4. 复用排序：删除 `updateOnReuse` 开关；成功复制或准备粘贴后统一累加使用次数并刷新 `updated_at`，失败不更新。最近使用按 `updated_at` 排序，创建时间与使用次数排序各自保留原语义；备注/收藏/置顶/分组仍不刷新复用时间。
 
@@ -230,21 +227,23 @@
 
 6. 日志保留期限：删除配置字段、默认值、校验、持久化路径和 UI；移除运行时保留天数状态与调整 API。日志系统内部固定保留 14 天，启动先清理一次，运行期间每小时清理过期轮转/崩溃日志，并保留最多 20 个归档的容量上限；原 5 MB 轮转压缩、日志级别、脱敏、目录权限及打开目录入口保留。活动主日志仍按大小轮转，不按年龄直接删除。
 
-验证：逐项执行相关 Go 包测试、`CGO_ENABLED=0 go vet ./...` 与 `CGO_ENABLED=0 go build ./...` 后再进入下一项。全部完成后，`gofmt -l .` 无输出，`git diff --check`、`CGO_ENABLED=0 go test -count=1 ./...`、`go test -race ./...`、`make check`、`make build-dev` 通过；`nsgo test cmd/ecopaste` 成功但没有独立 NSGo 测试用例（0 passed/failed/skipped）。开发版真机核对通用/界面/高级页面及滚动布局：六项配置和两个粘贴动作不再展示，纯文本复制、排序方式、保留时长、最大记录数、日志级别与打开日志目录入口保留。数据行为通过临时目录中的设置/备份兼容、复用排序、清理生命周期、文件原生写回及日志保留测试验证；未执行真实目标应用粘贴、真实中键鼠标硬件与真实崩溃回归，不以 UI 展示验证替代这些交互验收。
+验证：逐项执行相关 Go 包测试、`CGO_ENABLED=0 go vet ./...` 与 `CGO_ENABLED=0 go build ./...` 后再进入下一项。全部完成后，`gofmt -l .` 无输出，`git diff --check`、`CGO_ENABLED=0 go test -count=1 ./...`、`go test -race ./...`、`make check`、`make build-dev` 通过；`nsgo test cmd/ecopaste` 成功但没有独立 NSGo 测试用例（0 passed/failed/skipped）。开发版真机核对通用/界面/高级页面及滚动布局：六项配置和两个粘贴动作不再展示，纯文本复制、排序方式、保留时长、最大记录数、日志级别与打开日志目录入口保留。数据行为通过临时目录中的设置与备份、复用排序、清理生命周期、文件原生写回及日志保留测试验证；未执行真实目标应用粘贴、真实中键鼠标硬件与真实崩溃回归，不以 UI 展示验证替代这些交互验收。
 
-## 9. 数据契约与兼容
+## 9. 2.0.0 数据契约
+
+2.0.0 开发包已在独立临时目录完成首次启动与重启，SQLite 完整性检查通过，未生成 SQLx 元数据，也未处理旧版备份暂存目录。开发包与正式身份构建的应用版本和构建版本均为 `2.0.0`。签名、公证与正式更新链路仍需发布验收。
 
 | ID | 优先级 | 契约 | 现有定义 | 迁移要求 | 状态 | 验证方式 |
 | --- | --- | --- | --- | --- | --- | --- |
-| X-01 | P0 | SQLite schema | `migrations/0001_init.sql` | 表、列、索引、触发器一致 | 已通过 | `internal/database/schema.sql` 直接复制已发布 migration |
+| X-01 | P0 | SQLite | `internal/database/schema.sql` | `user_version=1`；去除未使用的分组与平台字段 | 已通过 | 仓储、备份快照和恢复测试 |
 | X-02 | P0 | `updated_at` 语义 | 最近一次复用时间 | 备注/收藏/置顶/分组不刷新 | 已通过 | `TestMetadataUpdatesKeepUpdatedAt` |
 | X-03 | P0 | `content_hash` | `blake3("<kind>:<content>")` | 字节级一致 | 已通过 | `TestHashMatchesPublishedFormat` |
-| X-04 | P0 | 图片文件名 | `<blake3>.png` 分片 | 路径与命名一致 | 已通过 | `TestImageStoreUsesPublishedBLAKE3NameAndShard`：BLAKE3 空输入向量、文件名 `<digest>.png`、`origin/<digest[:2]>/` 路径与旧存储布局一致 |
-| X-05 | P0 | `settings.json` | camelCase、缺字段默认值 | 保留有效字段、默认值与 patch 语义；删除字段兼容规则见 §8.1 | 已通过（产品调整） | `TestSettingsJSONRoundTripsPublishedCamelCase`、`TestLoadKeepsDefaultsForMissingFields`、`TestOpenFallsBackToDefaultsForUnreadableSettings`、`TestWriteIsAtomicAndReadable`、`TestCrashResidueDoesNotAffectSettings`：有效字段 camelCase 无损回环，旧文件缺字段保留默认值，更新后重新打开可读且结构完整；`TestRetiredSettingsAreIgnored` 覆盖已删除字段的读取与写回 |
-| X-06 | P0 | 数据目录 | `storage.json` 锚点 | 默认/自定义目录均可解析 | 已通过 | `TestResolveReadsPublishedCustomManifest` 直接读取旧版 camelCase `storage.json` 与 `.ecopaste-storage.json` 并解析自定义根；`TestSetRootPointsManifestAtCustomDir`、`TestResolveFallsBackFromBrokenManifest`、`TestResolveRejectsForeignIdentity` 覆盖重写、损坏回退和环境隔离 |
-| X-07 | P0 | `.ecopastebak` | ZIP / 自定义加密容器 | 双向读写兼容 | 已通过 | `internal/backup/testdata` 固定旧版 Rust 算法生成的明文/加密样本，`TestImportBackupsWrittenByLegacyApp` 校验 ZIP 路径、manifest、数据库、设置、资源和 Argon2id/XChaCha20-Poly1305；Go 导出的两种容器均由同一 Rust 读取逻辑交叉验证；merge/overwrite 导入与 rollback 继续由 `internal/backup` 测试覆盖 |
+| X-04 | P0 | 图片文件名 | `<blake3>.png` 分片 | 路径与命名一致 | 已通过 | `TestImageStoreUsesPublishedBLAKE3NameAndShard`：BLAKE3 空输入向量、文件名 `<digest>.png`、`origin/<digest[:2]>/` 路径符合当前布局 |
+| X-05 | P0 | `settings.json` | camelCase、缺字段默认值 | 仅维护当前偏好和 patch 语义 | 已通过 | 设置默认值、校验、并发写入与原子持久化测试 |
+| X-06 | P0 | 数据目录 | `storage.json` 锚点 | 当前默认/自定义目录与 dev/prod 隔离 | 已通过 | `TestResolveReadsCustomManifest`、`TestSetRootPointsManifestAtCustomDir`、`TestResolveFallsBackFromBrokenManifest`、`TestResolveRejectsForeignIdentity` |
+| X-07 | P0 | `.ecopastebak` | ZIP manifest `formatVersion=2`；加密标识 `ECOPASTEBAK2` | 2.0.0 明文和密码备份；仅当前格式 | 已通过（自动化） | 导入前校验归档格式与数据库版本；加密头只存 salt 与 nonce，当前格式固定使用 Argon2id 与 XChaCha20-Poly1305 |
 | X-08 | P0 | 文件关联 | `.ecopastebak` | 同扩展名/UTI | 已通过 | `nsgo.yaml` 声明 `com.ayangweb.eco-paste.backup`，构建产物 Info.plist 校验 `CFBundleDocumentTypes`；真机运行中/冷启动 `open -a` 均进入导入确认，导入后重启校验 DB |
-| X-09 | P0 | Bundle ID | `com.ayangweb.eco-paste` | 正式版一致；开发版隔离 | 迁移中 | `make dev`/`make build-dev` 使用 `com.ayangweb.eco-paste.dev`；开发构建误用正式 ID 时启动退出；开发 bundle ID 在 `ECOPASTE_MODE` 之前映射到 `dev` 数据根，避免覆写正式数据；`lsof` 实测开发实例只访问 `dev/db`、`dev/logs`、`dev/state`；正式版安装/升级与登录项迁移待签名包验收 |
+| X-09 | P0 | Bundle ID | `com.ayangweb.eco-paste` | 正式版一致；开发版隔离 | 迁移中 | `make dev`/`make build-dev` 使用 `com.ayangweb.eco-paste.dev`；开发构建误用正式 ID 时启动退出；开发 bundle ID 在 `ECOPASTE_MODE` 之前映射到 `dev` 数据根，避免覆写正式数据；`lsof` 实测开发实例只访问 `dev/db`、`dev/logs`、`dev/state`；正式版安装与登录项待签名包验收 |
 
 ## 10. Windows/Linux 专用能力
 
@@ -268,6 +267,6 @@
 ## 11. 验收记录规则
 
 - 每完成一项，把状态改为 `已通过`，并在验证列补充实际命令、截图路径或手动步骤编号。
-- 任何“与旧版不同”的行为必须写明差异和理由，不能只写“已通过”。
+- 重要的产品取舍必须写明理由，不能只写“已通过”。
 - 新增功能先加入本表，再实现，避免 checklist 与代码脱节。
 - 退役 Tauri 前，P0/P1 不允许存在 `待迁移` 或 `迁移中`；P2 例外必须记录。

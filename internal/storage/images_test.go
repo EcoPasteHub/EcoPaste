@@ -124,24 +124,6 @@ func TestSmallImageThumbnailIsOriginal(t *testing.T) {
 	}
 }
 
-func TestEnsureThumbnailBackfillsMissingFile(t *testing.T) {
-	store := NewImageStore(t.TempDir())
-	stored, err := store.StorePNG(testPNG(t, 600, 200))
-	if err != nil {
-		t.Fatal(err)
-	}
-	thumbPath := store.ThumbPath(stored.FileName)
-	if err := os.Remove(thumbPath); err != nil {
-		t.Fatal(err)
-	}
-	if err := store.EnsureThumbnail(stored.FileName); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := os.Stat(thumbPath); err != nil {
-		t.Fatalf("thumbnail was not recreated: %v", err)
-	}
-}
-
 func TestRemoveUnreferencedImages(t *testing.T) {
 	root := t.TempDir()
 	store := NewImageStore(root)

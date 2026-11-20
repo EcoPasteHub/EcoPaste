@@ -603,8 +603,7 @@ func (p *Panel) selectRowClamped(index int) {
 }
 
 // nextRowIndex returns the row reached by moving delta rows from current,
-// clamped to the list bounds. With nothing selected it activates the first
-// row, matching the legacy active item.
+// clamped to the list bounds. With nothing selected it activates the first row.
 func nextRowIndex(current, delta, count int) int {
 	if count <= 0 {
 		return -1

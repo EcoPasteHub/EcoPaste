@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -54,22 +55,7 @@ func (m *historyModel) item(ctx context.Context, id string) (*database.Item, err
 	if item == nil {
 		return nil, i18n.Error(i18n.HistoryItemMissing)
 	}
-	resolveItemFileReferences(item)
 	return item, nil
-}
-
-// resolveItemFileReferences normalizes an old files item in memory so
-// display, drag and paste all use the real paths.
-func resolveItemFileReferences(item *database.Item) {
-	if item.Kind != database.KindFiles {
-		return
-	}
-	files := clipboard.DecodeFiles(item.Content)
-	resolved := resolveFileReferences(files)
-	if sameFilePaths(files, resolved) {
-		return
-	}
-	item.Content = strings.Join(resolved, "\n")
 }
 
 func (m *historyModel) List(ctx context.Context, q ui.HistoryQuery) (ui.HistoryPage, error) {
@@ -385,7 +371,7 @@ func (m *historyModel) fillImagePreview(preview *ui.HistoryPreview, item *databa
 }
 
 func fillFilesPreview(preview *ui.HistoryPreview, item *database.Item) {
-	files := resolveFileReferences(clipboard.DecodeFiles(item.Content))
+	files := clipboard.DecodeFiles(item.Content)
 	entries := describeFileEntries(files, item.FileTypes, filePreviewEntryLimit)
 	if len(entries) == 1 {
 		preview.Title = entries[0].Name
@@ -526,15 +512,14 @@ func (m *historyModel) fillImageRow(row *ui.HistoryItem, item database.Item) {
 	} else {
 		row.Title = i18n.T(i18n.KindImage)
 	}
-	if err := m.runtime.images.EnsureThumbnail(item.Content); err == nil {
-		row.ImagePath = m.runtime.images.ThumbPath(item.Content)
-	} else {
+	row.ImagePath = m.runtime.images.ThumbPath(item.Content)
+	if _, err := os.Stat(row.ImagePath); err != nil {
 		row.ImagePath = m.runtime.images.OriginPath(item.Content)
 	}
 }
 
 func (m *historyModel) fillFilesRow(ctx context.Context, row *ui.HistoryItem, item database.Item, cfg settings.Clipboard) {
-	files := resolveFileReferences(clipboard.DecodeFiles(item.Content))
+	files := clipboard.DecodeFiles(item.Content)
 	display := displayOf(cfg)
 	row.Title = ui.FileTitle(files, display.FileMaxCount)
 	entries := describeFileEntries(files, item.FileTypes, display.FileMaxCount)

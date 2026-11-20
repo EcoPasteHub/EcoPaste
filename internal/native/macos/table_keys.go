@@ -2,9 +2,7 @@
 
 package macos
 
-// historyKeyAction maps a key press to a panel action. Categories are
-// checked in the order the legacy list handled them: activation, item
-// commands, single-key edit actions, navigation, then clipboard.
+// historyKeyAction maps a key press to a panel action.
 func historyKeyAction(key uint16, flags uint64, row HistoryRow, spacePreview bool) (string, bool) {
 	if action, handled := activationKeyAction(key); handled {
 		return action, true

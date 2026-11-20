@@ -147,7 +147,6 @@ func TestHistoryItemIncludesSourceAppIcon(t *testing.T) {
 		Content:     summary,
 		Summary:     &summary,
 		SourceAppID: &source,
-		Platform:    "macos",
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -183,7 +182,6 @@ func TestPreviewRedactsSensitiveText(t *testing.T) {
 		SearchText:  &plain,
 		SubKind:     &html,
 		IsSensitive: true,
-		Platform:    "macos",
 	}
 	id, _, err := db.Upsert(context.Background(), item)
 	if err != nil {
@@ -255,7 +253,6 @@ func TestPreviewIncludesRichText(t *testing.T) {
 				Summary:    &plain,
 				SearchText: &plain,
 				SubKind:    &subKind,
-				Platform:   "macos",
 			})
 			if err != nil {
 				t.Fatal(err)
@@ -289,10 +286,9 @@ func TestDeleteRemovesImageFile(t *testing.T) {
 		t.Fatal(err)
 	}
 	item := &database.Item{
-		ID:       database.NewID(),
-		Kind:     database.KindImage,
-		Content:  stored.FileName,
-		Platform: "macos",
+		ID:      database.NewID(),
+		Kind:    database.KindImage,
+		Content: stored.FileName,
 	}
 	id, _, err := db.Upsert(context.Background(), item)
 	if err != nil {

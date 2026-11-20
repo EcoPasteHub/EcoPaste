@@ -4,7 +4,6 @@ import (
 	"archive/zip"
 	"bytes"
 	"context"
-	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -19,8 +18,6 @@ import (
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/EcoPasteHub/EcoPaste/internal/storage"
 )
-
-const pendingImportDir = "import-pending"
 
 // ImportPlan summarizes a backup before it is applied.
 type ImportPlan struct {
@@ -48,7 +45,7 @@ type MergeResult struct {
 	Settings  map[string]any
 }
 
-// Inspect reports the container mode without decrypting the payload.
+// Inspect identifies the backup format without decrypting its contents.
 func Inspect(path string) (Mode, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -61,45 +58,42 @@ func Inspect(path string) (Mode, error) {
 		return "", fmt.Errorf(i18n.T(i18n.BackupReadFile), err)
 	}
 	if n >= 2 && head[0] == 'P' && head[1] == 'K' {
+		info, err := file.Stat()
+		if err != nil {
+			return "", fmt.Errorf(i18n.T(i18n.BackupReadFile), err)
+		}
+		reader, err := zip.NewReader(file, info.Size())
+		if err != nil {
+			return "", fmt.Errorf(i18n.T(i18n.BackupReadContents), err)
+		}
+		if _, err := readZIPManifest(reader); err != nil {
+			return "", err
+		}
 		return ModePlain, nil
 	}
 	if n < len(magic) || string(head) != magic {
 		return "", errors.New(i18n.T(i18n.BackupInvalidFile))
 	}
-	length := make([]byte, 4)
-	if _, err := io.ReadFull(file, length); err != nil {
-		return "", errors.New(i18n.T(i18n.BackupInvalidHeader))
-	}
-	size := int(binary.LittleEndian.Uint32(length))
-	if size <= 0 || size > 64*1024 {
-		return "", errors.New(i18n.T(i18n.BackupInvalidHeader))
-	}
-	headerData := make([]byte, 4+size)
-	copy(headerData, length)
-	if _, err := io.ReadFull(file, headerData[4:]); err != nil {
-		return "", errors.New(i18n.T(i18n.BackupInvalidHeader))
-	}
-	header, _, err := readHeaderWithSize(headerData)
-	if err != nil {
+	if _, err := readEncryptedHeader(file); err != nil {
 		return "", err
 	}
-	if header.Mode != ModePlain && header.Mode != ModeEncrypted {
-		return "", errors.New(i18n.T(i18n.BackupInvalidContainerMode))
-	}
-	return header.Mode, nil
+	return ModeEncrypted, nil
 }
 
 // StageImport validates path and leaves an extracted copy under the
 // state directory for the next launch to swap in.
-func StageImport(path, password, stateDir string) (ImportPlan, error) {
+func StageImport(ctx context.Context, path, password, stateDir string) (ImportPlan, error) {
 	var plan ImportPlan
 	temp, manifest, err := extractImport(path, password, stateDir, ".import-*")
 	if err != nil {
 		return plan, err
 	}
 	defer os.RemoveAll(temp)
+	if err := validateSnapshot(ctx, temp); err != nil {
+		return plan, err
+	}
 
-	pending := filepath.Join(stateDir, pendingImportDir)
+	pending := filepath.Join(stateDir, storage.PendingBackupDir)
 	if err := os.RemoveAll(pending); err != nil {
 		return plan, fmt.Errorf(i18n.T(i18n.BackupCleanPending), err)
 	}
@@ -136,16 +130,16 @@ func Merge(ctx context.Context, path, password string, target *database.DB, reso
 	if err != nil {
 		return result, err
 	}
+	backupDB, err := openSnapshot(ctx, root)
+	if err != nil {
+		return result, err
+	}
+	defer backupDB.Close()
 	resources, err := mergeResources(ctx, filepath.Join(root, "resources"), resourcesRoot)
 	if err != nil {
 		return result, err
 	}
-	backupDB, err := database.Open(filepath.Join(root, "db", "clipboard.db"))
-	if err != nil {
-		return result, fmt.Errorf(i18n.T(i18n.BackupOpenDatabase), err)
-	}
 	merged, err := target.MergeBackup(ctx, backupDB)
-	backupDB.Close()
 	if err != nil {
 		return result, err
 	}
@@ -154,6 +148,22 @@ func Merge(ctx context.Context, path, password string, target *database.DB, reso
 	result.Resources = resources
 	result.Settings = settingsPatch
 	return result, nil
+}
+
+func openSnapshot(ctx context.Context, root string) (*database.DB, error) {
+	db, err := database.OpenSnapshot(ctx, filepath.Join(root, "db", "clipboard.db"))
+	if err != nil {
+		return nil, fmt.Errorf(i18n.T(i18n.BackupOpenDatabase), err)
+	}
+	return db, nil
+}
+
+func validateSnapshot(ctx context.Context, root string) error {
+	db, err := openSnapshot(ctx, root)
+	if err != nil {
+		return err
+	}
+	return db.Close()
 }
 
 func extractImport(path, password, parent, pattern string) (string, backupManifest, error) {
@@ -165,6 +175,10 @@ func extractImport(path, password, parent, pattern string) (string, backupManife
 	reader, err := zip.NewReader(bytes.NewReader(payload), int64(len(payload)))
 	if err != nil {
 		return "", manifest, fmt.Errorf(i18n.T(i18n.BackupReadContents), err)
+	}
+	manifest, err = readZIPManifest(reader)
+	if err != nil {
+		return "", manifest, err
 	}
 	if parent != "" {
 		if err := os.MkdirAll(parent, 0o755); err != nil {
@@ -181,12 +195,8 @@ func extractImport(path, password, parent, pattern string) (string, backupManife
 			os.RemoveAll(temp)
 		}
 	}()
-	manifest, err = extractPayload(reader, temp)
-	if err != nil {
+	if err := extractPayload(reader, temp); err != nil {
 		return "", manifest, err
-	}
-	if manifest.FormatVersion != formatVersion {
-		return "", manifest, fmt.Errorf(i18n.T(i18n.BackupUnsupportedVersion), manifest.FormatVersion)
 	}
 	if _, err := os.Stat(filepath.Join(temp, "db", "clipboard.db")); err != nil {
 		return "", manifest, errors.New(i18n.T(i18n.BackupMissingHistory))
@@ -198,13 +208,43 @@ func extractImport(path, password, parent, pattern string) (string, backupManife
 	return temp, manifest, nil
 }
 
-func extractPayload(reader *zip.Reader, root string) (backupManifest, error) {
+func readZIPManifest(reader *zip.Reader) (backupManifest, error) {
 	var manifest backupManifest
-	foundManifest := false
+	file, err := reader.Open("manifest.json")
+	if errors.Is(err, os.ErrNotExist) {
+		return manifest, errors.New(i18n.T(i18n.BackupMissingManifest))
+	}
+	if err != nil {
+		return manifest, fmt.Errorf(i18n.T(i18n.BackupReadManifest), err)
+	}
+	defer file.Close()
+	const maxManifestSize = 64 * 1024
+	data, err := io.ReadAll(io.LimitReader(file, maxManifestSize+1))
+	if err != nil {
+		return manifest, fmt.Errorf(i18n.T(i18n.BackupReadManifest), err)
+	}
+	if len(data) > maxManifestSize {
+		return manifest, errors.New(i18n.T(i18n.BackupInvalidFile))
+	}
+	return parseManifest(data)
+}
+
+func parseManifest(data []byte) (backupManifest, error) {
+	var manifest backupManifest
+	if err := json.Unmarshal(data, &manifest); err != nil {
+		return manifest, fmt.Errorf(i18n.T(i18n.BackupParseManifest), err)
+	}
+	if manifest.FormatVersion != formatVersion {
+		return manifest, fmt.Errorf(i18n.T(i18n.BackupUnsupportedVersion), manifest.FormatVersion)
+	}
+	return manifest, nil
+}
+
+func extractPayload(reader *zip.Reader, root string) error {
 	for _, entry := range reader.File {
 		name, err := safeArchiveName(entry.Name)
 		if err != nil {
-			return manifest, err
+			return err
 		}
 		switch {
 		case name == "manifest.json":
@@ -216,26 +256,13 @@ func extractPayload(reader *zip.Reader, root string) (backupManifest, error) {
 		}
 		path := filepath.Join(root, filepath.FromSlash(name))
 		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-			return manifest, fmt.Errorf(i18n.T(i18n.BackupCreateImportDir), err)
+			return fmt.Errorf(i18n.T(i18n.BackupCreateImportDir), err)
 		}
 		if err := extractEntry(entry, path); err != nil {
-			return manifest, err
-		}
-		if name == "manifest.json" {
-			foundManifest = true
-			data, err := os.ReadFile(path)
-			if err != nil {
-				return manifest, fmt.Errorf(i18n.T(i18n.BackupReadManifest), err)
-			}
-			if err := json.Unmarshal(data, &manifest); err != nil {
-				return manifest, fmt.Errorf(i18n.T(i18n.BackupParseManifest), err)
-			}
+			return err
 		}
 	}
-	if !foundManifest {
-		return manifest, errors.New(i18n.T(i18n.BackupMissingManifest))
-	}
-	return manifest, nil
+	return nil
 }
 
 func readSettingsPatch(path string) (map[string]any, error) {
@@ -330,7 +357,7 @@ func extractEntry(entry *zip.File, path string) error {
 		return fmt.Errorf(i18n.T(i18n.BackupReadEntry), entry.Name, err)
 	}
 	defer src.Close()
-	dst, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)
+	dst, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o644)
 	if err != nil {
 		return fmt.Errorf(i18n.T(i18n.BackupWriteEntry), entry.Name, err)
 	}
@@ -351,9 +378,9 @@ func safeArchiveName(name string) (string, error) {
 
 // ApplyPendingImport swaps a staged backup into the data root. It runs
 // before the database opens, and restores the previous files on failure.
-func ApplyPendingImport(paths *storage.Paths) (ImportResult, bool, error) {
+func ApplyPendingImport(ctx context.Context, paths *storage.Paths) (ImportResult, bool, error) {
 	var result ImportResult
-	pending := filepath.Join(paths.State, pendingImportDir)
+	pending := filepath.Join(paths.State, storage.PendingBackupDir)
 	if _, err := os.Stat(pending); errors.Is(err, os.ErrNotExist) {
 		return result, false, nil
 	}
@@ -362,14 +389,18 @@ func ApplyPendingImport(paths *storage.Paths) (ImportResult, bool, error) {
 		os.RemoveAll(pending)
 		return result, true, fmt.Errorf(i18n.T(i18n.BackupReadPendingManifest), err)
 	}
-	var manifest backupManifest
-	if err := json.Unmarshal(manifestData, &manifest); err != nil {
+	manifest, err := parseManifest(manifestData)
+	if err != nil {
 		os.RemoveAll(pending)
-		return result, true, fmt.Errorf(i18n.T(i18n.BackupParsePendingManifest), err)
+		return result, true, err
 	}
 	if _, err := os.Stat(filepath.Join(pending, "db", "clipboard.db")); err != nil {
 		os.RemoveAll(pending)
 		return result, true, errors.New(i18n.T(i18n.BackupPendingMissingDB))
+	}
+	if err := validateSnapshot(ctx, pending); err != nil {
+		os.RemoveAll(pending)
+		return result, true, err
 	}
 	settingsSrc := filepath.Join(pending, "config", "settings.json")
 	if _, err := os.Stat(settingsSrc); err != nil {
@@ -377,7 +408,7 @@ func ApplyPendingImport(paths *storage.Paths) (ImportResult, bool, error) {
 		return result, true, errors.New(i18n.T(i18n.BackupPendingMissingConfig))
 	}
 
-	rollback := filepath.Join(paths.State, "import-rollback")
+	rollback := filepath.Join(paths.State, storage.BackupRollbackDir)
 	if err := os.RemoveAll(rollback); err != nil {
 		return result, true, fmt.Errorf(i18n.T(i18n.BackupCleanRollback), err)
 	}

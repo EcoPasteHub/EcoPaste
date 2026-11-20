@@ -30,7 +30,6 @@ func TestDragOffersRichText(t *testing.T) {
 		SubKind:    &sub,
 		Content:    "<b>rich text</b>",
 		SearchText: &plain,
-		Platform:   "macos",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -57,9 +56,8 @@ func TestDragOffersFiles(t *testing.T) {
 		service: &clipboard.Service{DB: db},
 	}}
 	id, _, err := db.Upsert(context.Background(), &database.Item{
-		Kind:     database.KindFiles,
-		Content:  "/tmp/a.txt\n/tmp/b.txt",
-		Platform: "macos",
+		Kind:    database.KindFiles,
+		Content: "/tmp/a.txt\n/tmp/b.txt",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -92,9 +90,8 @@ func TestDragOffersImageBytes(t *testing.T) {
 		service: &clipboard.Service{DB: db, Images: images},
 	}}
 	id, _, err := db.Upsert(context.Background(), &database.Item{
-		Kind:     database.KindImage,
-		Content:  stored.FileName,
-		Platform: "macos",
+		Kind:    database.KindImage,
+		Content: stored.FileName,
 	})
 	if err != nil {
 		t.Fatal(err)

@@ -345,9 +345,7 @@ func loadImage(path string) objc.ID {
 // handleCommandKey claims the item shortcuts before the Window menu or
 // the focused text field can take them. Menu key equivalents win over
 // the table's keyDown, so Command-M would otherwise become Minimize.
-// The search field keeps native editing keys; only the item-level
-// commands are routed here, with the same first-row fallback as the
-// legacy list.
+// The search field keeps native editing keys; only item commands are routed here.
 func (p *Panel) handleCommandKey(key uint16, flags uint64) bool {
 	if p.previewing || !commandShortcut(flags) {
 		return false
@@ -399,8 +397,7 @@ func (p *Panel) handleCommandKey(key uint16, flags uint64) bool {
 	}
 }
 
-// activeIndex prefers the selected row and falls back to the first one,
-// matching the legacy list's active-item rule.
+// activeIndex prefers the selected row and falls back to the first one.
 func (p *Panel) activeIndex() int {
 	if index := p.selectedIndex(); index >= 0 {
 		return index

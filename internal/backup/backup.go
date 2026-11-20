@@ -17,7 +17,7 @@ import (
 const (
 	Extension = "ecopastebak"
 
-	formatVersion = 1
+	formatVersion = 2
 )
 
 // Mode is the container format: a plain ZIP or the password container.
@@ -89,7 +89,6 @@ func Export(ctx context.Context, src Source, target string, opts ExportOptions) 
 		AppName:       src.AppName,
 		AppVersion:    src.AppVersion,
 		ExportedAt:    exportedAt,
-		Platform:      database.PlatformMacOS,
 		Encryption:    "none",
 		ItemCount:     counts.Items,
 		TextCount:     counts.Text,
@@ -139,8 +138,7 @@ func Export(ctx context.Context, src Source, target string, opts ExportOptions) 
 	return result, nil
 }
 
-// NormalizePath appends the backup extension, as the old app did, and
-// rejects a different one.
+// NormalizePath appends the backup extension and rejects a different one.
 func NormalizePath(path string) (string, error) {
 	path = strings.TrimSpace(path)
 	if path == "" {

@@ -126,7 +126,7 @@ func runBackupImport(app *core.Scope, runtime *clipboardRuntime, path string, st
 		i18n.T(i18n.BackupOverwriteBody), i18n.T(i18n.BackupOverwriteConfirm)) {
 		return
 	}
-	if _, err := backup.StageImport(path, password, runtime.paths.State); err != nil {
+	if _, err := backup.StageImport(context.Background(), path, password, runtime.paths.State); err != nil {
 		slog.Error("stage backup import", "module", "app.backup", "error", err)
 		macos.ShowMessage(i18n.T(i18n.BackupImportFailed), err.Error())
 		return

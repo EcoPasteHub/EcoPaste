@@ -10,7 +10,7 @@ import (
 func (d *DB) FileIcon(ctx context.Context, cacheKey string) (string, bool, error) {
 	var iconFile string
 	err := d.sql.QueryRowContext(ctx,
-		"SELECT icon_file FROM file_type_icons WHERE cache_key = ? AND platform = 'macos'",
+		"SELECT icon_file FROM file_type_icons WHERE cache_key = ?",
 		cacheKey).Scan(&iconFile)
 	if err == sql.ErrNoRows {
 		return "", false, nil
@@ -25,9 +25,9 @@ func (d *DB) FileIcon(ctx context.Context, cacheKey string) (string, bool, error
 func (d *DB) UpsertFileIcon(ctx context.Context, cacheKey, iconFile string) error {
 	timestamp := now()
 	_, err := d.sql.ExecContext(ctx, `INSERT INTO file_type_icons
-		(cache_key, platform, icon_file, created_at, updated_at)
-		VALUES (?, 'macos', ?, ?, ?)
-		ON CONFLICT(cache_key, platform) DO UPDATE SET
+		(cache_key, icon_file, created_at, updated_at)
+		VALUES (?, ?, ?, ?)
+		ON CONFLICT(cache_key) DO UPDATE SET
 			icon_file = excluded.icon_file,
 			updated_at = excluded.updated_at`,
 		cacheKey, iconFile, timestamp, timestamp)

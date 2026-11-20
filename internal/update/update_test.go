@@ -27,20 +27,20 @@ func TestDescribeUpdateResult(t *testing.T) {
 		},
 		{
 			name:        "up to date",
-			result:      core.UpdateCheck{Current: "0.1.0"},
+			result:      core.UpdateCheck{Current: "2.0.0"},
 			wantTitle:   i18n.T(i18n.UpdateUpToDateTitle),
-			wantMessage: "0.1.0",
+			wantMessage: "2.0.0",
 		},
 		{
 			name:        "available",
-			result:      core.UpdateCheck{Current: "0.1.0", Version: "0.2.0"},
+			result:      core.UpdateCheck{Current: "2.0.0", Version: "2.1.0"},
 			wantTitle:   i18n.T(i18n.UpdateAvailableTitle),
-			wantMessage: "0.2.0",
+			wantMessage: "2.1.0",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			title, message := Describe(tt.result, "0.1.0")
+			title, message := Describe(tt.result, "2.0.0")
 			if title != tt.wantTitle {
 				t.Errorf("title = %q, want %q", title, tt.wantTitle)
 			}

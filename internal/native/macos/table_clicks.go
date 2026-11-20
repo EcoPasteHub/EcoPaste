@@ -94,12 +94,7 @@ func historyTableKeyDown(self objc.ID, _ objc.SEL, event objc.ID) {
 	}
 	key := objc.Send[uint16](event, sel("keyCode"))
 	flags := uint64(objc.Send[uint](event, sel("modifierFlags")))
-	// Match the legacy active item: fall back to the first row when the
-	// user has not selected anything yet, so Return/Copy act on the top item.
-	index := p.selectedIndex()
-	if index < 0 && len(p.rows) > 0 {
-		index = 0
-	}
+	index := p.activeIndex()
 	row := HistoryRow{}
 	if index >= 0 && index < len(p.rows) {
 		row = p.rows[index]

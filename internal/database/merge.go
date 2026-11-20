@@ -45,25 +45,18 @@ func (d *DB) MergeBackup(ctx context.Context, backup *DB) (MergeResult, error) {
 }
 
 func mergeGroups(ctx context.Context, tx *sql.Tx, backup *DB) error {
-	rows, err := backup.sql.QueryContext(ctx, `SELECT id, name, icon, is_hidden, sort_order,
-		created_at, updated_at FROM clipboard_groups`)
+	rows, err := backup.sql.QueryContext(ctx, `SELECT id, name, created_at, updated_at FROM clipboard_groups`)
 	if err != nil {
 		return fmt.Errorf("read backup groups: %w", err)
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var (
-			id, name, icon, createdAt, updatedAt string
-			hidden                               bool
-			sortOrder                            int64
-		)
-		if err := rows.Scan(&id, &name, &icon, &hidden, &sortOrder, &createdAt, &updatedAt); err != nil {
+		var id, name, createdAt, updatedAt string
+		if err := rows.Scan(&id, &name, &createdAt, &updatedAt); err != nil {
 			return fmt.Errorf("scan backup group: %w", err)
 		}
 		if _, err := tx.ExecContext(ctx, `INSERT OR IGNORE INTO clipboard_groups
-			(id, name, icon, is_hidden, sort_order, created_at, updated_at)
-			VALUES (?, ?, ?, ?, ?, ?, ?)`,
-			id, name, icon, hidden, sortOrder, createdAt, updatedAt); err != nil {
+			(id, name, created_at, updated_at) VALUES (?, ?, ?, ?)`, id, name, createdAt, updatedAt); err != nil {
 			return fmt.Errorf("merge backup group: %w", err)
 		}
 	}
@@ -74,7 +67,7 @@ func mergeGroups(ctx context.Context, tx *sql.Tx, backup *DB) error {
 }
 
 func mergeApps(ctx context.Context, tx *sql.Tx, backup *DB) error {
-	rows, err := backup.sql.QueryContext(ctx, `SELECT id, name, icon_file, platform,
+	rows, err := backup.sql.QueryContext(ctx, `SELECT id, name, icon_file,
 		created_at, updated_at FROM clipboard_apps`)
 	if err != nil {
 		return fmt.Errorf("read backup apps: %w", err)
@@ -82,16 +75,15 @@ func mergeApps(ctx context.Context, tx *sql.Tx, backup *DB) error {
 	defer rows.Close()
 	for rows.Next() {
 		var (
-			id, name, platform, createdAt, updatedAt string
-			iconFile                                 sql.NullString
+			id, name, createdAt, updatedAt string
+			iconFile                       sql.NullString
 		)
-		if err := rows.Scan(&id, &name, &iconFile, &platform, &createdAt, &updatedAt); err != nil {
+		if err := rows.Scan(&id, &name, &iconFile, &createdAt, &updatedAt); err != nil {
 			return fmt.Errorf("scan backup app: %w", err)
 		}
 		if _, err := tx.ExecContext(ctx, `INSERT OR IGNORE INTO clipboard_apps
-			(id, name, icon_file, platform, created_at, updated_at)
-			VALUES (?, ?, ?, ?, ?, ?)`,
-			id, name, iconFile, platform, createdAt, updatedAt); err != nil {
+			(id, name, icon_file, created_at, updated_at) VALUES (?, ?, ?, ?, ?)`,
+			id, name, iconFile, createdAt, updatedAt); err != nil {
 			return fmt.Errorf("merge backup app: %w", err)
 		}
 	}
@@ -102,21 +94,20 @@ func mergeApps(ctx context.Context, tx *sql.Tx, backup *DB) error {
 }
 
 func mergeFileIcons(ctx context.Context, tx *sql.Tx, backup *DB) error {
-	rows, err := backup.sql.QueryContext(ctx, `SELECT cache_key, platform, icon_file,
+	rows, err := backup.sql.QueryContext(ctx, `SELECT cache_key, icon_file,
 		created_at, updated_at FROM file_type_icons`)
 	if err != nil {
 		return fmt.Errorf("read backup file icons: %w", err)
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var cacheKey, platform, iconFile, createdAt, updatedAt string
-		if err := rows.Scan(&cacheKey, &platform, &iconFile, &createdAt, &updatedAt); err != nil {
+		var cacheKey, iconFile, createdAt, updatedAt string
+		if err := rows.Scan(&cacheKey, &iconFile, &createdAt, &updatedAt); err != nil {
 			return fmt.Errorf("scan backup file icon: %w", err)
 		}
 		if _, err := tx.ExecContext(ctx, `INSERT OR IGNORE INTO file_type_icons
-			(cache_key, platform, icon_file, created_at, updated_at)
-			VALUES (?, ?, ?, ?, ?)`,
-			cacheKey, platform, iconFile, createdAt, updatedAt); err != nil {
+			(cache_key, icon_file, created_at, updated_at) VALUES (?, ?, ?, ?)`,
+			cacheKey, iconFile, createdAt, updatedAt); err != nil {
 			return fmt.Errorf("merge backup file icon: %w", err)
 		}
 	}

@@ -15,10 +15,7 @@ var (
 	deleteGroup = macos.ConfirmDeleteGroup
 )
 
-const (
-	groupNameMaxChars = 32
-	defaultGroupIcon  = "i-lets-icons:folder"
-)
+const groupNameMaxChars = 32
 
 func (m *historyModel) Groups(ctx context.Context) ([]ui.GroupOption, error) {
 	groups, err := m.runtime.db.ListGroups(ctx)
@@ -42,7 +39,7 @@ func (m *historyModel) CreateGroup(ctx context.Context, value string) (*ui.Group
 	if err := m.ensureUniqueGroupName(ctx, name, ""); err != nil {
 		return nil, err
 	}
-	group, err := m.runtime.db.CreateGroup(ctx, name, defaultGroupIcon)
+	group, err := m.runtime.db.CreateGroup(ctx, name)
 	if err != nil {
 		return nil, err
 	}

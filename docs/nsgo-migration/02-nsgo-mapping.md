@@ -179,15 +179,15 @@ NSGo 是一个 **Go 原生 UI 引擎**，不是 Tauri 的前端替代品：
 | 剪贴板变更监听 | `NSPasteboard` 无公开通知 | 后台 goroutine 轮询 `changeCount`，120ms；变化后同步抓前台应用，再 `Scope.Post` 入库 |
 | HTML/RTF 写回 | 需要多表示 | 一次 `NSPasteboardItem` 写 plain + HTML/RTF；不要分次 clear |
 | 文件写回 | NSGo 不支持 | `NSPasteboardItem` + `public.file-url`，或 `NSFilenamesPboardType` 兼容 |
-| 图片字节哈希 | 去重必须与旧数据一致 | 读取 PNG 原始字节，`blake3("image:"+file_name)`；落盘文件名用 PNG 字节 blake3 |
+| 图片字节哈希 | 按采集后的 PNG 去重 | 读取 PNG 原始字节，`blake3("image:"+file_name)`；落盘文件名用 PNG 字节 blake3 |
 | 文件图标 | NSGo 无 | `NSWorkspace.icon(forFile:)` → `NSImage` → PNG；按 cache key + platform 缓存 |
 | 应用图标 | NSGo 无 | `NSWorkspace.icon(forApplication:)` 或 `NSRunningApplication.icon` |
 | 拖出 | NSGo 无 | `NSDraggingSession`，文件/图片/文本；保留现有 128pt 预览图策略 |
 | 粘贴模拟 | NSGo 无 | `CGEvent` ⌘V；检查 `AXIsProcessTrustedWithOptions` |
 | 权限检查 | NSGo 无 macOS 权限服务 | `ApplicationServices`（辅助功能）、`NSFileManager`/TCC（完全磁盘访问）、`SMAppService`（自启） |
-| 旧版导入 | 产品调整 | 首版不提供 v0.6 数据目录导入，旧版用户通过 `.ecopastebak` 备份恢复 |
+| 旧版导入 | 产品调整 | 2.0.0 不导入旧版数据目录或备份 |
 | 备份加密 | Go 标准库可做 | `archive/zip` + `golang.org/x/crypto/argon2` + `chacha20poly1305` |
-| 更新 appcast | 现有 endpoint 不兼容 | 增加 appcast 生成；保留旧 Tauri endpoint 直到切换 |
+| 更新 appcast | Sparkle 使用独立格式 | 新建 2.0.0 发布链路 |
 | 日志 | NSGo 无统一日志 | 标准 `log` bridge + `slog` JSON 结构化输出，默认 Error；支持 All/Error/Warn/Info/Debug 级别；有界异步写入、写入前脱敏、lumberjack 5 MB 轮转压缩并最多保留 20 个归档；内部固定保留 14 天，启动时及每小时清理过期归档和崩溃日志；runtime 崩溃输出独立落到 `<data_root>/logs/ecopaste-crash-*.log`；高级设置支持级别和打开日志目录 |
 | 单实例 | 数据根 `flock`；`desktop.OnReopen` 处理 LaunchServices 重入 | 直接执行第二个二进制也会被拦截，避免两个进程同时写 DB |
 | 防默认行为 | NSGo 无 WebView | 不需要；键盘事件由 AppKit/NSGo 处理 |
@@ -216,12 +216,10 @@ NSGo 是一个 **Go 原生 UI 引擎**，不是 Tauri 的前端替代品：
 - 不能从 watcher 直接操作 AppKit；用 `core.Scope.Post` 或 `engine.Dispatch` 回到 engine，再发 mount item 到主线程。
 - SQLite 写入不能在主线程；用后台 worker + 单写连接。
 
-### 5.4 数据兼容
+### 5.4 数据基线
 
-- 现有 DB 是 SQLx `_sqlx_migrations` 管理；Go 侧不能假设自己的 migration 表。
-- 建议首次启动做“基线检测”：检测 `clipboard_items` 与 `_sqlx_migrations`，备份数据库，再建立 Go 的 `schema_migrations`，把 0001 标记为已应用。
-- 在双跑期不要改 schema；如果必须改，同时写 SQLx 兼容 migration 或推迟到 cutover。
-- 时间字符串、`content_hash`、图片文件名、FTS 触发器必须逐字节兼容。
+- 新库从 Go 的 `schema.sql` 初始化，用 SQLite `user_version` 标识当前 schema。
+- 不识别旧 migration 元数据，也不转换旧数据库、资源或配置。
 
 ### 5.5 FTS5
 
@@ -273,7 +271,7 @@ NSGo 是一个 **Go 原生 UI 引擎**，不是 Tauri 的前端替代品：
 
 - 需要重写约 22.5k 行 Rust 的业务逻辑。
 - AppKit 桥接工作量大。
-- 需要逐项兼容数据/备份/更新。
+- 需要单独验证当前版本的数据、备份和更新。
 
 **结论**：作为主路线。
 
@@ -448,35 +446,11 @@ SQLite + resources + settings
 - **`core.Storage`**：只放小型 UI 状态（如上次窗口选择），不要放历史。
 - **图片/图标**：文件系统 + DB 引用；不要塞进 SQLite blob。
 
-## 8. 迁移前后的兼容策略
+## 8. 2.0.0 的数据与发布边界
 
-### 8.1 保留同一身份
-
-- Bundle ID：`com.ayangweb.eco-paste`。
-- 数据目录：`<app_local_data>/<dev|prod>`，沿用 `storage.json`。
-- DB 文件名：`db/clipboard.db`。
-- 设置文件：`config/settings.json`。
-- 资源目录：`resources/clipboard-images`、`app-icons`、`file-icons`。
-- 备份扩展名与格式：`.ecopastebak`。
-- 文件关联：`.ecopastebak`。
-
-### 8.2 开发期隔离
-
-- NSGo 开发版使用独立 bundle ID / 数据目录（例如 `com.ayangweb.eco-paste.dev` + `EcoPasteDataDev`），避免与已安装 Tauri 正式版互相污染。
-- 兼容性测试使用真实数据目录的**副本**，不直接在生产数据上试迁移。
-
-### 8.3 双跑期
-
-- Tauri 版继续发版，NSGo 版只做内部构建。
-- 两边都不改 schema；如果必须改，先写兼容 migration，再在 NSGo 中实现同样变更。
-- 备份格式保持只读兼容：NSGo 能读 Tauri 备份，Tauri 也能读 NSGo 备份。
-- 直到 NSGo 版通过 parity checklist，才切换默认下载。
-
-### 8.4 切换后
-
-- 不提供 v0.6 数据目录导入入口，旧版用户通过 `.ecopastebak` 备份恢复。
-- 保留 `.ecopastebak` 导入导出。
-- 旧 Tauri 代码归档到 `legacy/` 或单独分支，不留在主构建路径。
+- 2.0.0 是新项目的首个正式版本。2.0.0 之前的配置、数据库、资源和备份由用户自行清理，无升级迁移或导入入口。
+- 开发环境使用独立 bundle ID `com.ayangweb.eco-paste.dev` 与独立数据目录；验证使用临时数据或副本。
+- `.ecopastebak` 扩展名用于 2.0.0 的备份导入导出，容器格式见 [功能清单 §9](./04-feature-parity-checklist.md#9-200-数据契约)。
 
 ## 9. 结论
 

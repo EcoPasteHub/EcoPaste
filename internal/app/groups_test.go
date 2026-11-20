@@ -25,7 +25,7 @@ func TestCreateGroupNormalizesAndSelects(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if group == nil || group.Icon != defaultGroupIcon {
+	if group == nil || group.Name != "Work" {
 		t.Fatalf("group = %+v", group)
 	}
 }
@@ -33,7 +33,7 @@ func TestCreateGroupNormalizesAndSelects(t *testing.T) {
 func TestCreateGroupRejectsEmptyLongAndDuplicateNames(t *testing.T) {
 	model, db := actionModel(t)
 	ctx := context.Background()
-	if _, err := db.CreateGroup(ctx, "Work", defaultGroupIcon); err != nil {
+	if _, err := db.CreateGroup(ctx, "Work"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -55,11 +55,11 @@ func TestCreateGroupRejectsEmptyLongAndDuplicateNames(t *testing.T) {
 func TestRenameGroupCancelAndDuplicate(t *testing.T) {
 	model, db := actionModel(t)
 	ctx := context.Background()
-	work, err := db.CreateGroup(ctx, "Work", defaultGroupIcon)
+	work, err := db.CreateGroup(ctx, "Work")
 	if err != nil {
 		t.Fatal(err)
 	}
-	ideas, err := db.CreateGroup(ctx, "Ideas", defaultGroupIcon)
+	ideas, err := db.CreateGroup(ctx, "Ideas")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -108,14 +108,13 @@ func TestGroupValidationFollowsLanguage(t *testing.T) {
 func TestDeleteGroupRequiresConfirmationAndKeepsItems(t *testing.T) {
 	model, db := actionModel(t)
 	ctx := context.Background()
-	group, err := db.CreateGroup(ctx, "Temporary", defaultGroupIcon)
+	group, err := db.CreateGroup(ctx, "Temporary")
 	if err != nil {
 		t.Fatal(err)
 	}
 	groupID := group.ID
 	item := &database.Item{
-		Kind: database.KindText, Content: "hello", GroupID: &groupID, Platform: "macos",
-	}
+		Kind: database.KindText, Content: "hello", GroupID: &groupID}
 	id, _, err := db.Upsert(ctx, item)
 	if err != nil {
 		t.Fatal(err)
@@ -148,11 +147,11 @@ func TestDeleteGroupRequiresConfirmationAndKeepsItems(t *testing.T) {
 func TestMoveToGroupAndBackToUngrouped(t *testing.T) {
 	model, db := actionModel(t)
 	ctx := context.Background()
-	group, err := db.CreateGroup(ctx, "Work", defaultGroupIcon)
+	group, err := db.CreateGroup(ctx, "Work")
 	if err != nil {
 		t.Fatal(err)
 	}
-	item := &database.Item{Kind: database.KindText, Content: "hello", Platform: "macos"}
+	item := &database.Item{Kind: database.KindText, Content: "hello"}
 	id, _, err := db.Upsert(ctx, item)
 	if err != nil {
 		t.Fatal(err)

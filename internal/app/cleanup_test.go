@@ -67,8 +67,7 @@ func TestCleanupLoopRunsOnBuiltInInterval(t *testing.T) {
 
 	base := time.Date(2026, 11, 14, 12, 0, 0, 0, time.UTC)
 	item := &database.Item{
-		Kind: database.KindText, Content: "expires later", Platform: "macos",
-		CreatedAt: base.Add(-30 * time.Minute),
+		Kind: database.KindText, Content: "expires later", CreatedAt: base.Add(-30 * time.Minute),
 	}
 	item.UpdatedAt = item.CreatedAt
 	id, _, err := db.Upsert(ctx, item)

@@ -28,11 +28,3 @@ func TestFileURLPathRejectsNonFileURL(t *testing.T) {
 		t.Fatalf("fileURLPath(empty) = %q, want empty", got)
 	}
 }
-
-func TestResolveFileReferenceLeavesRealPaths(t *testing.T) {
-	for _, path := range []string{"/tmp/a.txt", "/Users/tester/Downloads/docs"} {
-		if got := ResolveFileReference(path); got != path {
-			t.Fatalf("ResolveFileReference(%q) = %q", path, got)
-		}
-	}
-}

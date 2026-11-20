@@ -1,7 +1,11 @@
 package backup
 
 import (
+	"archive/zip"
+	"bytes"
 	"context"
+	"database/sql"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -31,20 +35,31 @@ func TestInspectBackupModes(t *testing.T) {
 }
 
 func TestStageAndApplyImport(t *testing.T) {
+	for _, mode := range []Mode{ModePlain, ModeEncrypted} {
+		t.Run(string(mode), func(t *testing.T) { testStageAndApplyImport(t, mode) })
+	}
+}
+
+func testStageAndApplyImport(t *testing.T, mode Mode) {
+	ctx := context.Background()
 	src, sourceRoot := testSource(t)
 	archive := filepath.Join(sourceRoot, "history.ecopastebak")
-	if _, err := Export(context.Background(), src, archive, ExportOptions{Mode: ModePlain}); err != nil {
+	password := ""
+	if mode == ModeEncrypted {
+		password = "test password"
+	}
+	if _, err := Export(ctx, src, archive, ExportOptions{Mode: mode, Password: password}); err != nil {
 		t.Fatal(err)
 	}
 	paths := testImportPaths(t)
-	plan, err := StageImport(archive, "", paths.State)
+	plan, err := StageImport(ctx, archive, password, paths.State)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if plan.Items != 3 || plan.Texts != 1 || plan.Images != 1 || plan.Files != 1 {
+	if plan.Mode != mode || plan.Items != 3 || plan.Texts != 1 || plan.Images != 1 || plan.Files != 1 {
 		t.Errorf("plan = %+v", plan)
 	}
-	result, applied, err := ApplyPendingImport(paths)
+	result, applied, err := ApplyPendingImport(ctx, paths)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -77,8 +92,8 @@ func TestStageAndApplyImport(t *testing.T) {
 		t.Error("old resources were kept")
 	}
 	for _, path := range []string{
-		filepath.Join(paths.State, pendingImportDir),
-		filepath.Join(paths.State, "import-rollback"),
+		filepath.Join(paths.State, storage.PendingBackupDir),
+		filepath.Join(paths.State, storage.BackupRollbackDir),
 	} {
 		if _, err := os.Stat(path); err == nil {
 			t.Errorf("%s was not cleaned up", path)
@@ -102,7 +117,7 @@ func TestMergeImport(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
-	existing := &database.Item{Kind: database.KindText, Content: "hello", Platform: "macos"}
+	existing := &database.Item{Kind: database.KindText, Content: "hello"}
 	if _, _, err := db.Upsert(context.Background(), existing); err != nil {
 		t.Fatal(err)
 	}
@@ -146,7 +161,7 @@ func TestMergeImport(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if image == nil || image.Content != "a.png" || image.Platform != "macos" || image.UseCount != 1 {
+	if image == nil || image.Content != "a.png" || image.UseCount != 1 {
 		t.Errorf("imported image = %+v", image)
 	}
 	data, err := os.ReadFile(localImage)
@@ -167,17 +182,17 @@ func TestMergeImport(t *testing.T) {
 
 func TestApplyImportRestoresOnFailure(t *testing.T) {
 	paths := testImportPaths(t)
-	pending := filepath.Join(paths.State, pendingImportDir)
+	pending := filepath.Join(paths.State, storage.PendingBackupDir)
 	if err := os.MkdirAll(filepath.Join(pending, "config"), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(pending, "manifest.json"), []byte(`{"formatVersion":1}`), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(pending, "manifest.json"), fmt.Appendf(nil, `{"formatVersion":%d}`, formatVersion), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(filepath.Join(pending, "config", "settings.json"), []byte(`{}`), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if _, applied, err := ApplyPendingImport(paths); err == nil || !applied {
+	if _, applied, err := ApplyPendingImport(context.Background(), paths); err == nil || !applied {
 		t.Fatalf("applied = %t, err = %v", applied, err)
 	}
 	if _, err := os.Stat(filepath.Join(paths.DB, "clipboard.db")); err != nil {
@@ -185,6 +200,72 @@ func TestApplyImportRestoresOnFailure(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(paths.Config, "settings.json")); err != nil {
 		t.Errorf("current settings were removed: %v", err)
+	}
+}
+
+func TestImportRejectsUnsupportedBackupBeforeChangingLocalData(t *testing.T) {
+	ctx := context.Background()
+	paths := testImportPaths(t)
+	current, err := database.Open(filepath.Join(paths.DB, "clipboard.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer current.Close()
+	root := t.TempDir()
+	oldDBPath := filepath.Join(root, "clipboard.db")
+	oldDB, err := sql.Open("sqlite", oldDBPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = oldDB.Exec(`CREATE TABLE clipboard_items (id TEXT PRIMARY KEY)`)
+	oldDB.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+	dbData, err := os.ReadFile(oldDBPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, version := range []uint16{1, formatVersion} {
+		t.Run(fmt.Sprint(version), func(t *testing.T) {
+			var data bytes.Buffer
+			archive := zip.NewWriter(&data)
+			for name, contents := range map[string][]byte{
+				"manifest.json":        fmt.Appendf(nil, `{"formatVersion":%d}`, version),
+				"db/clipboard.db":      dbData,
+				"config/settings.json": []byte(`{}`),
+				"resources/new.txt":    []byte("new"),
+			} {
+				entry, err := archive.Create(name)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if _, err := entry.Write(contents); err != nil {
+					t.Fatal(err)
+				}
+			}
+			if err := archive.Close(); err != nil {
+				t.Fatal(err)
+			}
+			path := filepath.Join(root, "backup.ecopastebak")
+			if err := os.WriteFile(path, data.Bytes(), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			if _, err := Inspect(path); (err == nil) != (version == formatVersion) {
+				t.Fatalf("Inspect format %d: %v", version, err)
+			}
+			if _, err := StageImport(ctx, path, "", paths.State); err == nil {
+				t.Fatal("staged incompatible backup")
+			}
+			if _, err := Merge(ctx, path, "", current, paths.Resources); err == nil {
+				t.Fatal("merged incompatible backup")
+			}
+			for _, path := range []string{filepath.Join(paths.State, storage.PendingBackupDir), filepath.Join(paths.Resources, "new.txt")} {
+				if _, err := os.Stat(path); !os.IsNotExist(err) {
+					t.Fatalf("import changed %q: %v", path, err)
+				}
+			}
+		})
 	}
 }
 
@@ -208,7 +289,7 @@ func testImportPaths(t *testing.T) *storage.Paths {
 		t.Fatal(err)
 	}
 	if _, _, err := db.Upsert(context.Background(), &database.Item{
-		Kind: database.KindText, Content: "old", Platform: "macos",
+		Kind: database.KindText, Content: "existing",
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -216,7 +297,7 @@ func testImportPaths(t *testing.T) *storage.Paths {
 	if err := os.WriteFile(filepath.Join(paths.Resources, "old.png"), []byte("old"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(paths.Config, "settings.json"), []byte(`{"general":{"dockIcon":true}}`), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(paths.Config, "settings.json"), []byte(`{"general":{"trayIcon":false}}`), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	return paths

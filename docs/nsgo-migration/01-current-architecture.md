@@ -3,6 +3,7 @@
 > 快照范围：迁移前 `master` 工作区，`package.json` 1.1.0，Tauri v2，Rust 侧约 22,580 行，前端约 20,687 行。
 > 本文只描述代码中已经存在的行为，不把 README 或设计意图当成已实现能力。
 > 当前仓库只保留 `legacy/backend/` 剪贴板核心与 `legacy/frontend/` UI 参考；文中 `src-tauri/...` 对应 `legacy/backend/...`，`src/...` 对应 `legacy/frontend/...`，未保留模块仅作历史描述。
+> 历史快照中的数据格式和验收要求仅供参考；2.0.0 不兼容这些格式，当前规则见 [AGENTS.md](../../AGENTS.md#51-版本兼容策略)。
 
 ## 1. 总体结构
 
@@ -308,7 +309,7 @@ Rust 侧：
 
 `settings/model.rs` 定义，落盘 `<data_root>/config/settings.json`，全部 `serde(default)`、`rename_all = "camelCase"`。
 
-以下字段清单保留旧版数据契约作为参考，不代表当前 Go 设置模型。2026-11-20 已删除 12 个未接入字段及整个 `update` 配置组；2026-11-21 又移除中键、文件路径粘贴、纯文本粘贴、复用排序开关、可配置清理间隔及日志保留期限。旧文件和备份中的删除字段读取时忽略，下一次设置写入时移除，旧动作数组仅过滤已删除的粘贴动作，详见 `04-feature-parity-checklist.md` §8.1–8.2。
+以下是旧版字段清单，仅作参考；当前 Go 设置模型和功能取舍见 `04-feature-parity-checklist.md` §8。
 
 顶层：
 

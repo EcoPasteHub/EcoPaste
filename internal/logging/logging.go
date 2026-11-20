@@ -21,7 +21,6 @@ import (
 
 const (
 	logFileName     = "ecopaste.log"
-	crashFileName   = "ecopaste-crash.log"
 	crashFilePrefix = "ecopaste-crash-"
 	maxSizeMB       = 5
 	maxQueueEntries = 512
@@ -436,17 +435,6 @@ func (w bestEffortTee) Write(data []byte) (int, error) {
 }
 
 func (l *Logger) configureCrashOutput(dir string) {
-	legacyPath := filepath.Join(dir, crashFileName)
-	if info, err := os.Stat(legacyPath); err == nil {
-		if info.Size() == 0 {
-			_ = os.Remove(legacyPath)
-		} else {
-			archive := filepath.Join(dir, crashFilePrefix+time.Now().Format("20060102T150405.000000000")+".log")
-			if os.Rename(legacyPath, archive) == nil {
-				_ = os.Chmod(archive, 0o600)
-			}
-		}
-	}
 	path := filepath.Join(dir, crashFilePrefix+time.Now().Format("20060102T150405.000000000")+".log")
 	file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o600)
 	if err != nil {

@@ -88,7 +88,7 @@ func (h *panelHost) place() {
 	}
 	placement := macos.PanelPlacement{Mode: mode}
 	if h.windowState != nil {
-		if frame, ok := h.windowState.Frame(panelStateLabel); ok {
+		if frame, ok := h.windowState.Frame(); ok {
 			placement.Frame = macos.PanelFrame{
 				X: float64(frame.X), Y: float64(frame.Y),
 				Width: float64(frame.Width), Height: float64(frame.Height),
@@ -107,7 +107,7 @@ func (h *panelHost) saveFrame() {
 	if !ok {
 		return
 	}
-	err := h.windowState.SaveFrame(panelStateLabel, storage.WindowFrame{
+	err := h.windowState.SaveFrame(storage.WindowFrame{
 		X: int64(frame.X), Y: int64(frame.Y),
 		Width: int64(frame.Width), Height: int64(frame.Height),
 	})

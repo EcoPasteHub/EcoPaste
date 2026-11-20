@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -40,7 +41,7 @@ func loadStorage(app *core.Scope) (*storage.Paths, *settings.Store, *storage.Win
 	} else {
 		app.Cleanup(func() { logger.Close() })
 	}
-	if result, applied, err := backup.ApplyPendingImport(paths); err != nil {
+	if result, applied, err := backup.ApplyPendingImport(context.Background(), paths); err != nil {
 		slog.Error("apply pending backup import", "module", "app.startup", "error", err)
 	} else if applied {
 		slog.Info("imported backup", "module", "app.startup", "items", result.Items)

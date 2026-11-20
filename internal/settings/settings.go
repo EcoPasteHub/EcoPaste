@@ -1,7 +1,6 @@
 package settings
 
-// Settings mirrors config/settings.json. Every field is decoded over the
-// defaults, so an older file that lacks a field keeps the new default.
+// Settings mirrors config/settings.json. Omitted fields take their defaults.
 type Settings struct {
 	General    General    `json:"general"`
 	Appearance Appearance `json:"appearance"`
@@ -89,8 +88,7 @@ const (
 	CaptureText  CaptureKind = "text"
 )
 
-// DefaultCaptureOrder preserves the published preference: files, image,
-// HTML, RTF, then plain text.
+// DefaultCaptureOrder ranks representations from most specific to plain text.
 func DefaultCaptureOrder() []CaptureKind {
 	return []CaptureKind{CaptureFiles, CaptureImage, CaptureHTML, CaptureRTF, CaptureText}
 }

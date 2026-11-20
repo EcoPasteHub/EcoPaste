@@ -20,6 +20,10 @@ const (
 
 	manifestVersion = 1
 
+	// These directories hold an in-progress backup restore.
+	PendingBackupDir  = "pending-backup"
+	BackupRollbackDir = "backup-rollback"
+
 	Dev  = "dev"
 	Prod = "prod"
 
@@ -117,11 +121,8 @@ func Resolve(base, environment string) (*Paths, error) {
 
 	root := bootstrap
 	m, err := readManifest(filepath.Join(bootstrap, manifestName))
-	switch {
-	case err == nil && m.Version == manifestVersion && m.Environment == environment && validRoot(m.DataDir, bootstrap, environment):
+	if err == nil && m.Version == manifestVersion && m.Environment == environment && validRoot(m.DataDir, bootstrap, environment) {
 		root = m.DataDir
-	case err != nil && !errors.Is(err, os.ErrNotExist):
-		root = bootstrap
 	}
 
 	if root == bootstrap {

@@ -24,9 +24,9 @@ func testSource(t *testing.T) (Source, string) {
 	}
 	t.Cleanup(func() { db.Close() })
 	for _, item := range []*database.Item{
-		{Kind: database.KindText, Content: "hello", Platform: "macos"},
-		{Kind: database.KindImage, Content: "a.png", Platform: "macos"},
-		{Kind: database.KindFiles, Content: "/tmp/a.txt", Platform: "macos"},
+		{Kind: database.KindText, Content: "hello"},
+		{Kind: database.KindImage, Content: "a.png"},
+		{Kind: database.KindFiles, Content: "/tmp/a.txt"},
 	} {
 		if _, _, err := db.Upsert(context.Background(), item); err != nil {
 			t.Fatal(err)
@@ -51,7 +51,7 @@ func testSource(t *testing.T) (Source, string) {
 	}
 	return Source{
 		Database: db, Resources: resources, Settings: settings,
-		AppName: "EcoPaste", AppVersion: "0.1.0",
+		AppName: "EcoPaste", AppVersion: "2.0.0",
 	}, root
 }
 
@@ -87,9 +87,9 @@ func TestExportPlainBackup(t *testing.T) {
 	if err := json.Unmarshal(entries["manifest.json"], &manifest); err != nil {
 		t.Fatal(err)
 	}
-	if manifest.FormatVersion != formatVersion || manifest.Platform != "macos" ||
+	if manifest.FormatVersion != formatVersion ||
 		manifest.Encryption != "none" || manifest.ItemCount != 3 ||
-		manifest.AppName != "EcoPaste" || manifest.AppVersion != "0.1.0" {
+		manifest.AppName != "EcoPaste" || manifest.AppVersion != "2.0.0" {
 		t.Errorf("manifest = %+v", manifest)
 	}
 }
@@ -109,9 +109,6 @@ func TestExportEncryptedBackupRoundTrips(t *testing.T) {
 	}
 	if !bytes.HasPrefix(data, []byte(magic)) {
 		t.Fatal("encrypted backup has no magic header")
-	}
-	if !bytes.Contains(data, []byte(`"salt":[`)) {
-		t.Error("salt is not a JSON array")
 	}
 	payload, err := readPayload(target, password)
 	if err != nil {

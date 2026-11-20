@@ -124,7 +124,7 @@ func TestClearHistoryOptionallyKeepsFavoritesAndPinned(t *testing.T) {
 func TestCleanupReturnsImageFiles(t *testing.T) {
 	db := openTestDB(t)
 	now := time.Now().UTC()
-	item := &Item{Kind: KindImage, Content: "abc123.png", Platform: "macos", CreatedAt: now.Add(-48 * time.Hour)}
+	item := &Item{Kind: KindImage, Content: "abc123.png", CreatedAt: now.Add(-48 * time.Hour)}
 	item.UpdatedAt = item.CreatedAt
 	if _, _, err := db.Upsert(context.Background(), item); err != nil {
 		t.Fatal(err)

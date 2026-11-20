@@ -62,7 +62,6 @@ func TestCleanupRemovesExpiredImage(t *testing.T) {
 	item := &database.Item{
 		Kind:      database.KindImage,
 		Content:   stored.FileName,
-		Platform:  "macos",
 		CreatedAt: now.Add(-48 * time.Hour),
 	}
 	item.UpdatedAt = item.CreatedAt
@@ -103,8 +102,7 @@ func TestClearRemovesOnlyDeletedImageFiles(t *testing.T) {
 		{image: favorite.FileName, favorite: true},
 	} {
 		item := &database.Item{
-			Kind: database.KindImage, Content: stored.image, Platform: "macos",
-			IsFavorite: stored.favorite,
+			Kind: database.KindImage, Content: stored.image, IsFavorite: stored.favorite,
 		}
 		if _, _, err := db.Upsert(ctx, item); err != nil {
 			t.Fatal(err)

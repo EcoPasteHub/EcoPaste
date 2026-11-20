@@ -18,7 +18,7 @@ func openTestDB(t *testing.T) *DB {
 }
 
 func testItem(kind Kind, content, search string) *Item {
-	item := &Item{Kind: kind, Content: content, Platform: "macos"}
+	item := &Item{Kind: kind, Content: content}
 	if search != "" {
 		item.SearchText = &search
 		item.Summary = &search
@@ -262,28 +262,5 @@ func TestKeywordWithFTSSyntaxCharacters(t *testing.T) {
 		if _, err := db.Page(ctx, Query{Keyword: keyword}); err != nil {
 			t.Errorf("%q: %v", keyword, err)
 		}
-	}
-}
-
-func TestReadsLegacyTimestampShapes(t *testing.T) {
-	db := openTestDB(t)
-	ctx := context.Background()
-	id := NewID()
-	_, err := db.SQL().ExecContext(ctx,
-		`INSERT INTO clipboard_items (id, kind, content, content_hash, summary, platform, created_at, updated_at)
-		 VALUES (?, 'text', 'legacy', 'hash-legacy', 'legacy', 'macos', '2026-11-13 05:00:00+00:00', '2026-11-13 05:00:00+00:00')`,
-		id)
-	if err != nil {
-		t.Fatal(err)
-	}
-	item, err := db.FindByID(ctx, id)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if item.CreatedAt.IsZero() {
-		t.Fatal("legacy timestamp did not parse")
-	}
-	if item.CreatedAt.UTC().Format("2006-01-02 15:04") != "2026-11-13 05:00" {
-		t.Errorf("created_at = %v", item.CreatedAt)
 	}
 }

@@ -11,7 +11,6 @@ type App struct {
 	ID        string    `json:"id"`
 	Name      string    `json:"name"`
 	IconFile  *string   `json:"iconFile,omitempty"`
-	Platform  string    `json:"platform"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }
@@ -22,8 +21,8 @@ func (d *DB) EnsureApp(ctx context.Context, id, name string, iconFile *string) e
 	if id == "" {
 		return nil
 	}
-	const query = `INSERT INTO clipboard_apps (id, name, icon_file, platform, created_at, updated_at)
-		VALUES (?, ?, ?, 'macos', ?, ?)
+	const query = `INSERT INTO clipboard_apps (id, name, icon_file, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?)
 		ON CONFLICT(id) DO UPDATE SET
 			name = excluded.name,
 			icon_file = COALESCE(excluded.icon_file, clipboard_apps.icon_file),
@@ -39,7 +38,7 @@ func (d *DB) EnsureApp(ctx context.Context, id, name string, iconFile *string) e
 
 // FindApp returns one known source application.
 func (d *DB) FindApp(ctx context.Context, id string) (*App, error) {
-	const query = `SELECT id, name, icon_file, platform, created_at, updated_at
+	const query = `SELECT id, name, icon_file, created_at, updated_at
 		FROM clipboard_apps WHERE id = ?`
 	var (
 		app      App
@@ -48,7 +47,7 @@ func (d *DB) FindApp(ctx context.Context, id string) (*App, error) {
 		updated  string
 	)
 	err := d.sql.QueryRowContext(ctx, query, id).
-		Scan(&app.ID, &app.Name, &iconFile, &app.Platform, &created, &updated)
+		Scan(&app.ID, &app.Name, &iconFile, &created, &updated)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +59,7 @@ func (d *DB) FindApp(ctx context.Context, id string) (*App, error) {
 
 // ListApps returns every materialized source application ordered by name.
 func (d *DB) ListApps(ctx context.Context) ([]App, error) {
-	const query = `SELECT id, name, icon_file, platform, created_at, updated_at
+	const query = `SELECT id, name, icon_file, created_at, updated_at
 		FROM clipboard_apps ORDER BY name COLLATE NOCASE ASC, id ASC`
 	rows, err := d.sql.QueryContext(ctx, query)
 	if err != nil {
@@ -76,7 +75,7 @@ func (d *DB) ListApps(ctx context.Context) ([]App, error) {
 			created  string
 			updated  string
 		)
-		if err := rows.Scan(&app.ID, &app.Name, &iconFile, &app.Platform, &created, &updated); err != nil {
+		if err := rows.Scan(&app.ID, &app.Name, &iconFile, &created, &updated); err != nil {
 			return nil, fmt.Errorf("scan source app: %w", err)
 		}
 		app.IconFile = iconFile

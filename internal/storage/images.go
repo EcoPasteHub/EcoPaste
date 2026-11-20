@@ -68,20 +68,6 @@ func (s *ImageStore) Read(fileName string) ([]byte, error) {
 	return os.ReadFile(s.OriginPath(fileName))
 }
 
-// EnsureThumbnail creates a missing list thumbnail from the original,
-// so history imported from older builds gets one on first display.
-func (s *ImageStore) EnsureThumbnail(fileName string) error {
-	thumbPath := s.ThumbPath(fileName)
-	if _, err := os.Stat(thumbPath); err == nil {
-		return nil
-	}
-	data, err := os.ReadFile(s.OriginPath(fileName))
-	if err != nil {
-		return fmt.Errorf("read image for thumbnail: %w", err)
-	}
-	return s.writeThumbnail(fileName, data)
-}
-
 // OriginPath returns the absolute path of a stored image.
 func (s *ImageStore) OriginPath(fileName string) string {
 	return filepath.Join(s.root, "origin", shardName(fileName), fileName)

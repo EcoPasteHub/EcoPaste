@@ -3,7 +3,6 @@ package storage
 import (
 	"encoding/json"
 	"errors"
-	"math"
 	"os"
 	"path/filepath"
 	"sync"
@@ -11,10 +10,9 @@ import (
 	"github.com/google/renameio/v2"
 )
 
-const windowStateName = "window-state.json"
+const windowStateName = "panel-frame.json"
 
-// WindowFrame is one window's frame in screen points. The file keeps the
-// published map of labels to frames so older state files stay readable.
+// WindowFrame is the clipboard panel's frame in AppKit screen points.
 type WindowFrame struct {
 	X      int64 `json:"x"`
 	Y      int64 `json:"y"`
@@ -22,23 +20,20 @@ type WindowFrame struct {
 	Height int64 `json:"height"`
 }
 
-// WindowState stores window frames between launches. Writes replace the
-// file atomically so a crash cannot leave a truncated map behind.
+// WindowState stores the clipboard panel's frame between launches.
 type WindowState struct {
-	path   string
-	mu     sync.Mutex
-	frames map[string]WindowFrame
+	path  string
+	mu    sync.Mutex
+	frame *WindowFrame
 }
 
-// OpenWindowState reads the frames under stateDir, dropping the whole
-// map when the file is unreadable and starting empty when it is missing.
+// OpenWindowState reads the saved panel frame, if present.
 func OpenWindowState(stateDir string) (*WindowState, error) {
 	if err := os.MkdirAll(stateDir, 0o755); err != nil {
 		return nil, err
 	}
 	state := &WindowState{
-		path:   filepath.Join(stateDir, windowStateName),
-		frames: map[string]WindowFrame{},
+		path: filepath.Join(stateDir, windowStateName),
 	}
 	data, err := os.ReadFile(state.path)
 	if errors.Is(err, os.ErrNotExist) {
@@ -47,40 +42,34 @@ func OpenWindowState(stateDir string) (*WindowState, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := json.Unmarshal(data, &state.frames); err != nil {
-		state.frames = map[string]WindowFrame{}
+	var frame WindowFrame
+	if err := json.Unmarshal(data, &frame); err == nil && frame.Width > 0 && frame.Height > 0 {
+		state.frame = &frame
 	}
 	return state, nil
 }
 
 // Frame returns a window's saved frame.
-func (s *WindowState) Frame(label string) (WindowFrame, bool) {
+func (s *WindowState) Frame() (WindowFrame, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	frame, ok := s.frames[label]
-	return frame, ok
+	if s.frame == nil {
+		return WindowFrame{}, false
+	}
+	return *s.frame, true
 }
 
-// SaveFrame records a window's frame and writes the map.
-func (s *WindowState) SaveFrame(label string, frame WindowFrame) error {
-	frame.X = int64(math.Round(float64(frame.X)))
-	frame.Y = int64(math.Round(float64(frame.Y)))
-	frame.Width = int64(math.Round(float64(frame.Width)))
-	frame.Height = int64(math.Round(float64(frame.Height)))
+// SaveFrame records the panel's frame atomically.
+func (s *WindowState) SaveFrame(frame WindowFrame) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	next := make(map[string]WindowFrame, len(s.frames)+1)
-	for key, value := range s.frames {
-		next[key] = value
-	}
-	next[label] = frame
-	data, err := json.MarshalIndent(next, "", "  ")
+	data, err := json.MarshalIndent(frame, "", "  ")
 	if err != nil {
 		return err
 	}
 	if err := renameio.WriteFile(s.path, data, 0o644); err != nil {
 		return err
 	}
-	s.frames = next
+	s.frame = &frame
 	return nil
 }

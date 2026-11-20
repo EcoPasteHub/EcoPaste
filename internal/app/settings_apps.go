@@ -33,7 +33,7 @@ func (m *settingsModel) loadSourceApps(excludedIDs []string) []macos.SettingsApp
 }
 
 // applyExcludedApps saves the ignored list and deletes rows that no
-// history entry references, matching the old transfer control.
+// history entry references.
 func (m *settingsModel) applyExcludedApps(value any) error {
 	ids, ok := value.([]string)
 	if !ok {

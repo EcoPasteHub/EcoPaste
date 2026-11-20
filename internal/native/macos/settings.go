@@ -164,37 +164,12 @@ var settingsTabs = map[string]settingsTabMeta{
 	"about":     {i18n.SettingsTabAbout, "info.circle"},
 }
 
-var settingsTabAliases = map[string]string{
-	"data":        "advanced",
-	"capture":     "advanced",
-	"display":     "interface",
-	"actions":     "advanced",
-	"interaction": "interface",
-	"deletion":    "advanced",
-	"window":      "interface",
-	"history":     "advanced",
-	"permissions": "advanced",
-	"shortcuts":   "general",
-	"preview":     "interface",
-	"update":      "about",
-}
-
-func canonicalSettingsTab(name string) (string, bool) {
-	if _, ok := settingsTabs[name]; ok {
-		return name, true
-	}
-	if tab, ok := settingsTabAliases[name]; ok {
-		return tab, true
-	}
-	return "", false
-}
-
 func settingsTabTitle(name string) string {
-	tab, ok := canonicalSettingsTab(name)
+	tab, ok := settingsTabs[name]
 	if !ok {
 		return name
 	}
-	return i18n.T(settingsTabs[tab].title)
+	return i18n.T(tab.title)
 }
 
 // SettingsTabTitle returns the localized title of a primary settings tab.
@@ -204,8 +179,8 @@ func SettingsTabTitle(name string) string { return settingsTabTitle(name) }
 func InitialSettingsTab() string {
 	settingsTabMu.Lock()
 	defer settingsTabMu.Unlock()
-	if tab, ok := canonicalSettingsTab(pendingSettingsTab); ok {
-		return tab
+	if _, ok := settingsTabs[pendingSettingsTab]; ok {
+		return pendingSettingsTab
 	}
 	return "general"
 }
@@ -221,8 +196,8 @@ var (
 
 // SelectSettingsTab shows the named tab when the settings window is open,
 // or on the next open otherwise. It reports whether the name is known.
-func SelectSettingsTab(name string) bool {
-	tab, ok := canonicalSettingsTab(name)
+func SelectSettingsTab(tab string) bool {
+	_, ok := settingsTabs[tab]
 	if !ok {
 		return false
 	}
@@ -305,20 +280,20 @@ func newSettings(cx settingsEmitter) *SettingsView {
 	return v
 }
 
-func (v *SettingsView) selectTab(name string) {
-	tab, ok := canonicalSettingsTab(name)
+func (v *SettingsView) selectTab(tab string) {
+	_, ok := settingsTabs[tab]
 	if !ok {
 		return
 	}
 	v.applyTab(tab)
 }
 
-func (v *SettingsView) selectTabNotify(name string) {
-	tab, ok := canonicalSettingsTab(name)
+func (v *SettingsView) selectTabNotify(tab string) {
+	_, ok := settingsTabs[tab]
 	if !ok {
 		return
 	}
-	v.selectTab(tab)
+	v.applyTab(tab)
 	v.cx.Emit("tabSelected", tab)
 }
 

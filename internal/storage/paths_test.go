@@ -69,7 +69,7 @@ func TestSetRootPointsManifestAtCustomDir(t *testing.T) {
 	}
 }
 
-func TestResolveReadsPublishedCustomManifest(t *testing.T) {
+func TestResolveReadsCustomManifest(t *testing.T) {
 	base := t.TempDir()
 	custom := filepath.Join(t.TempDir(), "EcoPasteData", Prod)
 	if err := os.MkdirAll(custom, 0o755); err != nil {

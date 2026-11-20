@@ -20,7 +20,6 @@ type backupManifest struct {
 	AppName       string    `json:"appName"`
 	AppVersion    string    `json:"appVersion"`
 	ExportedAt    time.Time `json:"exportedAt"`
-	Platform      string    `json:"platform"`
 	Encryption    string    `json:"encryption"`
 	ItemCount     int64     `json:"itemCount"`
 	TextCount     int64     `json:"textCount"`

@@ -52,7 +52,6 @@ func TestReuseActionsPreserveRepresentations(t *testing.T) {
 		SubKind:    &sub,
 		Content:    "<b>rich text</b>",
 		SearchText: &plain,
-		Platform:   "macos",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -72,9 +71,8 @@ func TestReuseActionsPreserveRepresentations(t *testing.T) {
 
 	files := "/tmp/a\n/tmp/b"
 	fileID, _, err := db.Upsert(ctx, &database.Item{
-		Kind:     database.KindFiles,
-		Content:  files,
-		Platform: "macos",
+		Kind:    database.KindFiles,
+		Content: files,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -167,9 +165,8 @@ func TestClickActionModes(t *testing.T) {
 	ctx := context.Background()
 	content := "click text"
 	id, _, err := db.Upsert(ctx, &database.Item{
-		Kind:     database.KindText,
-		Content:  content,
-		Platform: "macos",
+		Kind:    database.KindText,
+		Content: content,
 	})
 	if err != nil {
 		t.Fatal(err)

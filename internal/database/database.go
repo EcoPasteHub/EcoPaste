@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	_ "embed"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"time"
@@ -23,14 +24,15 @@ type DB struct {
 	path string
 }
 
-// Open opens the clipboard database, creating the published schema when
-// the file has none. An existing legacy database is used as is.
+const schemaVersion = 1
+
+// Open opens the clipboard database, initializing a new database when empty.
 func Open(path string) (*DB, error) {
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return nil, fmt.Errorf("create database dir: %w", err)
 	}
-	dsn := "file:" + path +
-		"?_pragma=busy_timeout(5000)&_pragma=journal_mode(WAL)&_pragma=foreign_keys(1)&_pragma=synchronous(NORMAL)"
+	dsn := databaseURI(path) +
+		"?_pragma=busy_timeout(5000)&_pragma=foreign_keys(1)&_pragma=synchronous(NORMAL)"
 	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("open database: %w", err)
@@ -46,7 +48,33 @@ func Open(path string) (*DB, error) {
 		db.Close()
 		return nil, err
 	}
+	if _, err := db.Exec("PRAGMA journal_mode = WAL"); err != nil {
+		db.Close()
+		return nil, fmt.Errorf("enable database WAL: %w", err)
+	}
 	return d, nil
+}
+
+// OpenSnapshot opens an existing backup database without changing its schema or contents.
+func OpenSnapshot(ctx context.Context, path string) (*DB, error) {
+	db, err := sql.Open("sqlite", databaseURI(path)+"?mode=ro")
+	if err != nil {
+		return nil, fmt.Errorf("open database snapshot: %w", err)
+	}
+	var version int
+	if err := db.QueryRowContext(ctx, "PRAGMA user_version").Scan(&version); err != nil {
+		db.Close()
+		return nil, fmt.Errorf("read database snapshot schema version: %w", err)
+	}
+	if version != schemaVersion {
+		db.Close()
+		return nil, fmt.Errorf("unsupported database schema version: %d", version)
+	}
+	return &DB{sql: db, path: path}, nil
+}
+
+func databaseURI(path string) string {
+	return (&url.URL{Scheme: "file", Path: path}).String()
 }
 
 // Path returns the database file's location.
@@ -82,34 +110,48 @@ func (d *DB) queryStringSet(ctx context.Context, query string, args ...any) (map
 }
 
 func (d *DB) ensureSchema(ctx context.Context) error {
-	var name string
-	err := d.sql.QueryRowContext(ctx,
-		"SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'clipboard_items'").Scan(&name)
-	if err == nil {
-		return d.ensureSQLxBaseline(ctx)
+	tx, err := d.sql.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("begin database initialization: %w", err)
 	}
-	if err != sql.ErrNoRows {
+	defer tx.Rollback()
+	var version int
+	if err := tx.QueryRowContext(ctx, "PRAGMA user_version").Scan(&version); err != nil {
+		return fmt.Errorf("read database schema version: %w", err)
+	}
+	if version == schemaVersion {
+		return nil
+	}
+	if version != 0 {
+		return fmt.Errorf("unsupported database schema version: %d", version)
+	}
+	var hasSchema bool
+	if err := tx.QueryRowContext(ctx, "SELECT EXISTS (SELECT 1 FROM sqlite_schema)").Scan(&hasSchema); err != nil {
 		return fmt.Errorf("inspect database schema: %w", err)
 	}
-	if _, err := d.sql.ExecContext(ctx, schema); err != nil {
+	if hasSchema {
+		return fmt.Errorf("database schema has no version")
+	}
+	if _, err := tx.ExecContext(ctx, schema); err != nil {
 		return fmt.Errorf("create database schema: %w", err)
 	}
-	return d.ensureSQLxBaseline(ctx)
+	if _, err := tx.ExecContext(ctx, fmt.Sprintf("PRAGMA user_version = %d", schemaVersion)); err != nil {
+		return fmt.Errorf("set database schema version: %w", err)
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit database schema: %w", err)
+	}
+	return nil
 }
 
-func now() string { return time.Now().UTC().Format(time.RFC3339Nano) }
+// Fixed-width UTC timestamps keep SQLite's text ordering chronological.
+const timestampLayout = "2006-01-02T15:04:05.000000000Z"
+
+func formatTime(value time.Time) string { return value.UTC().Format(timestampLayout) }
+
+func now() string { return formatTime(time.Now()) }
 
 func parseTime(value string) time.Time {
-	for _, layout := range []string{
-		time.RFC3339Nano,
-		"2006-01-02 15:04:05.999999999-07:00",
-		"2006-01-02 15:04:05.999999999Z07:00",
-		"2006-01-02T15:04:05.999999999",
-		"2006-01-02 15:04:05",
-	} {
-		if t, err := time.Parse(layout, value); err == nil {
-			return t.UTC()
-		}
-	}
-	return time.Time{}
+	parsed, _ := time.Parse(timestampLayout, value)
+	return parsed
 }

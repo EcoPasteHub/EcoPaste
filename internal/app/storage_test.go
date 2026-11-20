@@ -130,8 +130,7 @@ func TestChangeDataDirCopiesLiveData(t *testing.T) {
 	}
 	defer db.Close()
 	if _, _, err := db.Upsert(ctx, &database.Item{
-		Kind: database.KindText, Content: "relocate smoke", Platform: "macos",
-	}); err != nil {
+		Kind: database.KindText, Content: "relocate smoke"}); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(filepath.Join(paths.Config, "settings.json"), []byte(`{"general":{}}`), 0o644); err != nil {
@@ -143,7 +142,7 @@ func TestChangeDataDirCopiesLiveData(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(paths.Resources, "a.png"), []byte("png"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(paths.State, "window-state.json"), []byte(`{}`), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(paths.State, "panel-frame.json"), []byte(`{"x":20,"y":30,"width":420,"height":560}`), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(filepath.Join(paths.State, "instance.lock"), []byte("123"), 0o644); err != nil {
@@ -173,7 +172,7 @@ func TestChangeDataDirCopiesLiveData(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(moved.Config, "settings.json")); err != nil {
 		t.Errorf("settings not copied: %v", err)
 	}
-	if _, err := os.Stat(filepath.Join(moved.State, "window-state.json")); err != nil {
+	if _, err := os.Stat(filepath.Join(moved.State, "panel-frame.json")); err != nil {
 		t.Errorf("window state not copied: %v", err)
 	}
 	if _, err := os.Stat(filepath.Join(moved.State, "instance.lock")); !os.IsNotExist(err) {
@@ -247,7 +246,7 @@ func TestRestoreDefaultDataDir(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(customPaths.Resources, "a.png"), []byte("png"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(customPaths.State, "window-state.json"), []byte(`{}`), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(customPaths.State, "panel-frame.json"), []byte(`{"x":20,"y":30,"width":420,"height":560}`), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	db, err := database.Open(filepath.Join(customPaths.DB, "clipboard.db"))
@@ -256,8 +255,7 @@ func TestRestoreDefaultDataDir(t *testing.T) {
 	}
 	defer db.Close()
 	if _, _, err := db.Upsert(ctx, &database.Item{
-		Kind: database.KindText, Content: "restored smoke", Platform: "macos",
-	}); err != nil {
+		Kind: database.KindText, Content: "restored smoke"}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -278,7 +276,7 @@ func TestRestoreDefaultDataDir(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(restored.Resources, "a.png")); err != nil {
 		t.Errorf("resource not restored: %v", err)
 	}
-	if _, err := os.Stat(filepath.Join(restored.State, "window-state.json")); err != nil {
+	if _, err := os.Stat(filepath.Join(restored.State, "panel-frame.json")); err != nil {
 		t.Errorf("window state not restored: %v", err)
 	}
 	copied, err := database.Open(filepath.Join(restored.DB, "clipboard.db"))

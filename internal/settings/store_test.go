@@ -346,30 +346,3 @@ func TestWriteIsAtomicAndReadable(t *testing.T) {
 		t.Errorf("theme = %q", parsed.Appearance.Theme)
 	}
 }
-
-func TestCrashResidueDoesNotAffectSettings(t *testing.T) {
-	path := filepath.Join(t.TempDir(), FileName)
-	store, err := Open(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, err := store.Update(map[string]any{"appearance": map[string]any{"theme": "dark"}}); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(path+".tmp", []byte(`{"appearance":`), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	reopened, err := Open(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if got := reopened.Snapshot().Appearance.Theme; got != ThemeDark {
-		t.Errorf("theme after crash residue = %q", got)
-	}
-	if _, err := reopened.Update(map[string]any{"general": map[string]any{"autoStart": true}}); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := os.Stat(path + ".tmp"); !os.IsNotExist(err) {
-		t.Errorf("temporary file left behind after recovery: %v", err)
-	}
-}

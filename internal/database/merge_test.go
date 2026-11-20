@@ -3,21 +3,20 @@ package database
 import (
 	"context"
 	"testing"
-	"time"
 )
 
 func TestMergeBackupAddsMissingRowsAndPreservesExistingMetadata(t *testing.T) {
 	current := openTestDB(t)
 	backup := openTestDB(t)
 	ctx := context.Background()
-	timestamp := time.Now().UTC().Format(time.RFC3339Nano)
+	timestamp := now()
 
 	if _, _, err := current.Upsert(ctx, testItem(KindText, "hello", "hello")); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := current.SQL().ExecContext(ctx, `INSERT INTO clipboard_groups
-		(id, name, icon, is_hidden, sort_order, created_at, updated_at)
-		VALUES ('group-shared', 'Current', 'folder', 0, 1, ?, ?)`, timestamp, timestamp); err != nil {
+		(id, name, created_at, updated_at)
+		VALUES ('group-shared', 'Current', ?, ?)`, timestamp, timestamp); err != nil {
 		t.Fatal(err)
 	}
 	if err := current.EnsureApp(ctx, "com.example.shared", "Current App", nil); err != nil {
@@ -28,11 +27,11 @@ func TestMergeBackupAddsMissingRowsAndPreservesExistingMetadata(t *testing.T) {
 		t.Fatal(err)
 	}
 	if _, err := backup.SQL().ExecContext(ctx, `INSERT INTO clipboard_groups
-		(id, name, icon, is_hidden, sort_order, created_at, updated_at)
-		VALUES ('group-shared', 'Backup', 'folder', 0, 1, ?, ?)`, timestamp, timestamp); err != nil {
+		(id, name, created_at, updated_at)
+		VALUES ('group-shared', 'Backup', ?, ?)`, timestamp, timestamp); err != nil {
 		t.Fatal(err)
 	}
-	group, err := backup.CreateGroup(ctx, "Imported", "tag")
+	group, err := backup.CreateGroup(ctx, "Imported")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -51,7 +50,6 @@ func TestMergeBackupAddsMissingRowsAndPreservesExistingMetadata(t *testing.T) {
 		ID: "imported-text", Kind: KindText, GroupID: &group.ID,
 		SourceAppID: &importedAppID,
 		Content:     "imported text", Note: &note, IsFavorite: true, IsSensitive: true,
-		Platform: "macos",
 	})
 	if err != nil {
 		t.Fatal(err)

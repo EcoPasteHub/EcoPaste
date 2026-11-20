@@ -238,7 +238,6 @@ func filePreviewModel(t *testing.T, files []string, types string) (*historyModel
 		Kind:      database.KindFiles,
 		Content:   strings.Join(files, "\n"),
 		FileTypes: &types,
-		Platform:  "macos",
 	})
 	if err != nil {
 		t.Fatal(err)

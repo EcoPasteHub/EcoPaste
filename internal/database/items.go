@@ -22,9 +22,6 @@ const (
 	KindFiles Kind = "files"
 )
 
-// PlatformMacOS is the platform tag stored with captured rows.
-const PlatformMacOS = "macos"
-
 // SubKind refines a text item.
 type SubKind string
 
@@ -66,7 +63,6 @@ type Item struct {
 	IsFavorite    bool      `json:"isFavorite"`
 	IsPinned      bool      `json:"isPinned"`
 	IsSensitive   bool      `json:"isSensitive"`
-	Platform      string    `json:"platform"`
 	Note          *string   `json:"note,omitempty"`
 	CreatedAt     time.Time `json:"createdAt"`
 	UpdatedAt     time.Time `json:"updatedAt"`
@@ -77,8 +73,8 @@ type Item struct {
 const insertItemSQL = `INSERT INTO clipboard_items
 	(id, kind, sub_kind, group_id, source_app_id, content, content_hash, search_text,
 	 summary, file_types, size, width, height, use_count, is_favorite, is_pinned,
-	 is_sensitive, platform, note, created_at, updated_at)
-	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	 is_sensitive, note, created_at, updated_at)
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 // Sort selects the history order. Pinned items always come first.
 type Sort string
@@ -109,7 +105,7 @@ type Page struct {
 	HasMore bool   `json:"hasMore"`
 }
 
-// Hash returns the published dedupe key, blake3("<kind>:<content>").
+// Hash returns the dedupe key, blake3("<kind>:<content>").
 func Hash(kind Kind, content string) string {
 	hasher := blake3.New()
 	_, _ = hasher.Write([]byte(kind))
@@ -118,7 +114,7 @@ func Hash(kind Kind, content string) string {
 	return fmt.Sprintf("%x", hasher.Sum(nil))
 }
 
-// NewID returns a UUID v4 string, the shape legacy rows use.
+// NewID returns a UUID v4 string.
 func NewID() string {
 	var b [16]byte
 	if _, err := rand.Read(b[:]); err != nil {
@@ -148,9 +144,6 @@ func (d *DB) Upsert(ctx context.Context, item *Item) (id string, deduplicated bo
 	if item.ID == "" {
 		item.ID = NewID()
 	}
-	if item.Platform == "" {
-		item.Platform = PlatformMacOS
-	}
 	if item.UseCount == 0 {
 		item.UseCount = 1
 	}
@@ -179,15 +172,14 @@ func (d *DB) IncrementUseCount(ctx context.Context, id string) error {
 
 const itemColumns = `id, kind, sub_kind, group_id, source_app_id, content, content_hash,
 	search_text, summary, file_types, size, width, height, use_count, is_favorite,
-	is_pinned, is_sensitive, platform, note, created_at, updated_at`
+	is_pinned, is_sensitive, note, created_at, updated_at`
 
 func itemArgs(item *Item) []any {
 	return []any{
 		item.ID, item.Kind, item.SubKind, item.GroupID, item.SourceAppID, item.Content,
 		item.ContentHash, item.SearchText, item.Summary, item.FileTypes, item.Size,
 		item.Width, item.Height, item.UseCount, item.IsFavorite, item.IsPinned,
-		item.IsSensitive, item.Platform, item.Note,
-		item.CreatedAt.UTC().Format(time.RFC3339Nano), item.UpdatedAt.UTC().Format(time.RFC3339Nano),
+		item.IsSensitive, item.Note, formatTime(item.CreatedAt), formatTime(item.UpdatedAt),
 	}
 }
 
@@ -199,7 +191,7 @@ const listColumns = `clipboard_items.id, clipboard_items.kind, clipboard_items.s
 	clipboard_items.summary, clipboard_items.file_types, clipboard_items.size,
 	clipboard_items.width, clipboard_items.height, clipboard_items.use_count,
 	clipboard_items.is_favorite, clipboard_items.is_pinned, clipboard_items.is_sensitive,
-	clipboard_items.platform, clipboard_items.note, clipboard_items.created_at,
+	clipboard_items.note, clipboard_items.created_at,
 	clipboard_items.updated_at`
 
 // FindByID returns the complete row, including content and search text.
@@ -429,7 +421,7 @@ func scanItemRow(row scanner, withAppName bool) (*Item, error) {
 		&item.ID, &item.Kind, &subKind, &groupID, &sourceAppID, &item.Content,
 		&item.ContentHash, &searchText, &summary, &fileTypes, &size, &width,
 		&height, &item.UseCount, &item.IsFavorite, &item.IsPinned, &item.IsSensitive,
-		&item.Platform, &note, &createdAt, &updatedAt,
+		&note, &createdAt, &updatedAt,
 	}
 	if withAppName {
 		dest = append(dest, &appName, &appIcon)
