@@ -13,6 +13,7 @@ const (
 	hoverBarHeight  = 26.0
 	hoverButtonW    = 28.0
 	hoverBarPadding = 5.0
+	hoverBarInset   = 10.0
 	maxHoverActions = 6
 )
 
@@ -84,28 +85,51 @@ var hoverRules = map[string]hoverRule{
 	},
 }
 
+var hoverBarClass objc.Class
+
+func registerHoverBarClass() error {
+	var err error
+	hoverBarClass, err = objc.RegisterClass("EcoPasteHoverActionBar", class("NSView"), nil, nil,
+		[]objc.MethodDef{{Cmd: sel("viewDidChangeEffectiveAppearance"), Fn: func(self objc.ID, _ objc.SEL) {
+			sendSuper[objc.ID](self, hoverBarClass, sel("viewDidChangeEffectiveAppearance"))
+			updateHoverBarStyle(self)
+		}}})
+	return err
+}
+
 // buildHoverBar creates the floating action bar shown over the hovered
 // row. Buttons are created once and activated per hovered row.
 func (p *Panel) buildHoverBar() {
-	bar := objc.ID(class("NSVisualEffectView")).Send(sel("new"))
+	// The action bar is an overlay owned by the panel view. A solid semantic
+	// background keeps its controls legible over both the panel material and
+	// colorful clipboard previews without changing the row's layout.
+	bar := objc.ID(hoverBarClass).Send(sel("new"))
 	bar.Send(sel("setHidden:"), true)
-	bar.Send(sel("setMaterial:"), int64(5))
-	bar.Send(sel("setBlendingMode:"), int64(1))
-	bar.Send(sel("setState:"), int64(1))
 	bar.Send(sel("setWantsLayer:"), true)
 	if layer := bar.Send(sel("layer")); layer != 0 {
 		layer.Send(sel("setCornerRadius:"), 8.0)
 		layer.Send(sel("setMasksToBounds:"), true)
 		layer.Send(sel("setBorderWidth:"), 0.5)
 	}
-	updateHoverBarBorder(bar)
+	updateHoverBarStyle(bar)
+	bar.Send(sel("setAlphaValue:"), 0.0)
 	p.hoverBar = bar
+	var fade *transition
+	fade = &transition{view: bar}
+	fade.redraw = func() {
+		bar.Send(sel("setAlphaValue:"), fade.value)
+		if fade.target == 0 && fade.value == 0 {
+			bar.Send(sel("setHidden:"), true)
+		}
+	}
+	p.hoverBarTransition = fade
 	panelsByControl[bar] = p
 	for index := 0; index < maxHoverActions; index++ {
 		button := newIconButton()
 		button.Send(sel("setBordered:"), false)
 		button.Send(sel("setImagePosition:"), int64(1))
 		button.Send(sel("setRefusesFirstResponder:"), true)
+		button.Send(sel("setContentTintColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
 		button.Send(sel("setTarget:"), searchTarget)
 		button.Send(sel("setAction:"), sel("hoverActionPressed:"))
 		button.Send(sel("setTag:"), int64(index))
@@ -179,9 +203,24 @@ func (p *Panel) positionHoverBar() {
 	rect := objc.Send[CGRect](p.table, sel("rectOfRow:"), int64(p.hoverRow))
 	rowRect := objc.Send[CGRect](p.view, sel("convertRect:fromView:"),
 		objc.Send[CGRect](p.table, sel("convertRect:toView:"), rect, objc.ID(0)), objc.ID(0))
-	bounds := objc.Send[CGRect](p.view, sel("bounds"))
-	setFrame(p.hoverBar, bounds.Size.Width-12-p.hoverBarWidth,
-		rowRect.Origin.Y+(rowRect.Size.Height-hoverBarHeight)/2, p.hoverBarWidth, hoverBarHeight)
+	// Keep the overlay in the row's upper-right corner. It deliberately does
+	// not reserve trailing content space: the bar is a true absolute overlay.
+	setHoverBarFrame(p.hoverBar, rowRect, p.hoverBarWidth)
+}
+
+func setHoverBarFrame(bar objc.ID, rowRect CGRect, barWidth float64) {
+	frame := hoverBarFrame(rowRect, barWidth)
+	setFrame(bar, frame.Origin.X, frame.Origin.Y, frame.Size.Width, frame.Size.Height)
+}
+
+func hoverBarFrame(rowRect CGRect, barWidth float64) CGRect {
+	return CGRect{
+		Origin: CGPoint{
+			X: rowRect.Origin.X + rowRect.Size.Width - historyRowInsetX - hoverBarInset - barWidth,
+			Y: rowRect.Origin.Y + rowRect.Size.Height - historyRowInsetY - hoverBarInset - hoverBarHeight,
+		},
+		Size: CGSize{Width: barWidth, Height: hoverBarHeight},
+	}
 }
 
 func (p *Panel) updateHover(row int) {
@@ -196,7 +235,6 @@ func (p *Panel) updateHover(row int) {
 	}
 	specs := hoverActionsFor(p.rows[row], p.actions)
 	if len(specs) == 0 {
-		p.clearHoverInset()
 		p.setHoveredRow(row)
 		p.setOriginalRow(row)
 		p.hideHoverBar()
@@ -221,24 +259,32 @@ func (p *Panel) updateHover(row int) {
 		button.Send(sel("setAccessibilityLabel:"), nsString(spec.Tooltip))
 		setFrame(button, hoverBarPadding+hoverButtonW*float64(index), 0, hoverButtonW, hoverBarHeight)
 	}
-	updateHoverBarBorder(p.hoverBar)
+	updateHoverBarStyle(p.hoverBar)
 	p.hoverBar.Send(sel("setHidden:"), false)
+	if p.hoverBarTransition != nil {
+		if reduceMotionEnabled() {
+			p.hoverBarTransition.snap(1)
+		} else {
+			p.hoverBarTransition.setTarget(1)
+		}
+	}
 }
 
-// updateHoverBarBorder resolves the separator color in the current
-// appearance; a CGColor captured at creation does not follow theme changes.
-func updateHoverBarBorder(bar objc.ID) {
+// updateHoverBarStyle resolves semantic colors in the current appearance;
+// CGColors captured at creation do not follow theme changes.
+func updateHoverBarStyle(bar objc.ID) {
 	if bar == 0 {
 		return
 	}
 	if layer := bar.Send(sel("layer")); layer != 0 {
+		background := objc.ID(classNSColor).Send(sel("controlBackgroundColor"))
+		layer.Send(sel("setBackgroundColor:"), background.Send(sel("CGColor")))
 		border := objc.ID(classNSColor).Send(sel("separatorColor"))
 		layer.Send(sel("setBorderColor:"), border.Send(sel("CGColor")))
 	}
 }
 
 func (p *Panel) hideHover() {
-	p.clearHoverInset()
 	p.setHoveredRow(-1)
 	p.hideHoverBar()
 	p.setOriginalRow(-1)
@@ -246,7 +292,13 @@ func (p *Panel) hideHover() {
 
 func (p *Panel) hideHoverBar() {
 	if p.hoverBar != 0 {
-		p.hoverBar.Send(sel("setHidden:"), true)
+		if p.hoverBarTransition == nil {
+			p.hoverBar.Send(sel("setHidden:"), true)
+		} else if reduceMotionEnabled() {
+			p.hoverBarTransition.snap(0)
+		} else {
+			p.hoverBarTransition.setTarget(0)
+		}
 	}
 	p.hoverRow = -1
 	p.hoverSpecs = nil
@@ -293,26 +345,9 @@ func (p *Panel) applyHoveredRow(row int, hovered bool) {
 	if row < 0 || row >= len(p.rows) {
 		return
 	}
-	inset := 0.0
-	if hovered && row == p.hoverRow && p.hoverBarWidth > 0 {
-		inset = p.hoverBarWidth + 14
-	}
 	cell := p.table.Send(sel("viewAtColumn:row:makeIfNecessary:"), int64(0), int64(row), false)
 	if cell != 0 {
 		setHistoryRowHovered(cell, hovered)
-		setRowTrailingInset(cell, inset)
-		layoutHistoryRow(cell, objc.Send[CGRect](cell, sel("bounds")).Size)
-	}
-}
-
-func (p *Panel) clearHoverInset() {
-	if p.hoverRow < 0 {
-		return
-	}
-	cell := p.table.Send(sel("viewAtColumn:row:makeIfNecessary:"), int64(0), int64(p.hoverRow), false)
-	if cell != 0 {
-		setRowTrailingInset(cell, 0)
-		layoutHistoryRow(cell, objc.Send[CGRect](cell, sel("bounds")).Size)
 	}
 }
 
@@ -322,7 +357,6 @@ func (p *Panel) runHoverAction(index int) {
 	}
 	spec := p.hoverSpecs[index]
 	id := p.rows[p.hoverRow].ID
-	p.hideHover()
 	if spec.Event == "editNote" {
 		p.showNotePopover(id)
 		return

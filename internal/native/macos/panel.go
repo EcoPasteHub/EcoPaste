@@ -83,6 +83,7 @@ type Panel struct {
 	hoverButtons       []objc.ID
 	hoverSpecs         []hoverAction
 	hoverBarWidth      float64
+	hoverBarTransition *transition
 	originalRow        int
 	query              string
 	rows               []HistoryRow
@@ -357,6 +358,10 @@ func (p *Panel) Close() {
 	}
 	if p.hoverBar != 0 {
 		delete(panelsByControl, p.hoverBar)
+	}
+	if p.hoverBarTransition != nil {
+		p.hoverBarTransition.stop()
+		p.hoverBarTransition = nil
 	}
 	clearRowHoverStates()
 	delete(panelsByView, p.view)

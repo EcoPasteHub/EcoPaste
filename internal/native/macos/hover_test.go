@@ -76,3 +76,22 @@ func TestHoverActionMapsSubKindLinks(t *testing.T) {
 		t.Errorf("mail = %+v", mail)
 	}
 }
+
+func TestHoverBarFrameKeepsEqualCardInsets(t *testing.T) {
+	row := CGRect{Origin: CGPoint{X: 8, Y: 24}, Size: CGSize{Width: 404, Height: 62}}
+	barWidth := 146.0
+	frame := hoverBarFrame(row, barWidth)
+	cardRight := row.Origin.X + row.Size.Width - historyRowInsetX
+	barRight := frame.Origin.X + frame.Size.Width
+	cardTop := row.Origin.Y + row.Size.Height - historyRowInsetY
+	barTop := frame.Origin.Y + frame.Size.Height
+	if got, want := cardRight-barRight, hoverBarInset; got != want {
+		t.Errorf("right inset = %v, want %v", got, want)
+	}
+	if got, want := cardTop-barTop, hoverBarInset; got != want {
+		t.Errorf("top inset = %v, want %v", got, want)
+	}
+	if frame.Size.Width != barWidth || frame.Size.Height != hoverBarHeight {
+		t.Errorf("toolbar size = %v, want %v×%v", frame.Size, barWidth, hoverBarHeight)
+	}
+}

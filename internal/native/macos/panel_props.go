@@ -68,10 +68,25 @@ func setPanelRows(p *Panel, value any) {
 		p.updateStatus()
 		return
 	}
-	p.hideHover()
-	// hideHover starts a fade-out on the cell under the pointer. The list is
-	// about to reload and may release that cell, so drop the pending fade
-	// before reloadData rather than animating a view that is going away.
+	// Keep the overlay alive when an action updates the row in place. The
+	// toolbar is owned by the panel and its buttons are reused; only rows that
+	// disappeared from the result should dismiss it.
+	hoverID := ""
+	if p.hoverRow >= 0 && p.hoverRow < len(p.rows) {
+		hoverID = p.rows[p.hoverRow].ID
+	}
+	if hoverID == "" {
+		p.hideHover()
+	} else {
+		// Invalidate the old index before replacing rows. layoutPanel runs as
+		// part of the reload and must never ask NSTableView for a row that was
+		// removed by the action.
+		p.setHoveredRow(-1)
+		p.hoverRow = -1
+	}
+	// The list is about to reload and may release its cells, so stop cell
+	// hover transitions before reloadData. The toolbar transition is separate
+	// and remains attached to the panel overlay.
 	clearRowHoverStates()
 	previousID := p.selection
 	previousIndex := p.selectedIndex()
@@ -81,6 +96,16 @@ func setPanelRows(p *Panel, value any) {
 	p.syncTableFrame()
 	p.syncSelection(previousID, previousIndex, intent)
 	p.updateStatus()
+	if hoverID != "" {
+		row := p.rowIndex(hoverID)
+		if row >= 0 {
+			// Reloading the table may recycle the cell, but the overlay itself is
+			// still valid. Rebuild only its button state and anchor it again.
+			p.updateHover(row)
+		} else {
+			p.hideHover()
+		}
+	}
 }
 
 func setPanelTotal(p *Panel, value any) {

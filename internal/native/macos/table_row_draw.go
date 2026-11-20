@@ -12,6 +12,8 @@ import (
 // instead of snapping. Cells are reused by the table, so entries are cheap.
 var rowHoverStates = map[objc.ID]*transition{}
 
+const associationRetainNonatomic = 1
+
 // drawHistoryRowCard paints the single translucent layer each record
 // gets. The window material stays visible through it, so the list reads
 // as cards on glass instead of another panel inside the window.

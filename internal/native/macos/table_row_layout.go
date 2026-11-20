@@ -5,7 +5,6 @@ package macos
 import (
 	"math"
 	"strings"
-	"unsafe"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/ebitengine/purego/objc"
@@ -93,7 +92,6 @@ func layoutHistoryRow(cell objc.ID, size CGSize) {
 	if contentRight-contentLeft < 48 {
 		contentRight = contentLeft + 48
 	}
-	contentRight -= rowTrailingInset(cell)
 	width := contentRight - contentLeft
 	if width < 40 {
 		width = 40
@@ -224,24 +222,3 @@ func rowHeightForDisplay(row HistoryRow, display PanelDisplay, contentWidth floa
 }
 
 const historyRowTextInset = 16.0
-
-const associationRetainNonatomic = 1
-
-var associatedRowTrailingKey byte
-
-func setRowTrailingInset(cell objc.ID, inset float64) {
-	if cell == 0 {
-		return
-	}
-	number := objc.ID(class("NSNumber")).Send(sel("numberWithDouble:"), inset)
-	objcSetAssociatedObject(uintptr(cell), uintptr(unsafe.Pointer(&associatedRowTrailingKey)),
-		uintptr(number), associationRetainNonatomic)
-}
-
-func rowTrailingInset(cell objc.ID) float64 {
-	value := objc.ID(objcGetAssociatedObject(uintptr(cell), uintptr(unsafe.Pointer(&associatedRowTrailingKey))))
-	if value == 0 {
-		return 0
-	}
-	return objc.Send[float64](value, sel("doubleValue"))
-}
