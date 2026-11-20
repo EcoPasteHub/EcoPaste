@@ -153,7 +153,7 @@ func runBackupMerge(app *core.Scope, runtime *clipboardRuntime, path, password s
 		if store != nil && len(result.Settings) > 0 {
 			next, settingsErr = store.Update(result.Settings)
 			if settingsErr == nil {
-				settingsErr = logging.Configure(logging.Level(next.Logging.Level), next.Logging.RetentionDays)
+				settingsErr = logging.Configure(logging.Level(next.Logging.Level))
 			}
 			if settingsErr != nil {
 				slog.Error("apply imported settings", "module", "app.backup", "error", settingsErr)

@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"log/slog"
 	"time"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/database"
@@ -62,7 +61,6 @@ func (w *settingsWiring) newModel() *settingsModel {
 	model.onShortcutsChanged = w.onShortcutsChanged
 	model.onShortcutsSuspended = w.onShortcutsSuspended
 	model.onChanged = w.signalHistory
-	model.onHistoryChanged = w.cleanupHistory
 	model.setLanguage = w.setLanguage
 	model.setTrayIcon = w.setTrayIcon
 	model.exportBackup = w.exportBackup
@@ -78,7 +76,7 @@ func (w *settingsWiring) applyLogging(config settings.Logging) error {
 	if w.logger == nil {
 		return nil
 	}
-	return w.logger.Apply(logging.Level(config.Level), config.RetentionDays)
+	return w.logger.SetLevel(logging.Level(config.Level))
 }
 
 func (w *settingsWiring) openLogs() error {
@@ -188,27 +186,6 @@ func (w *settingsWiring) signalHistory() {
 	if runtime := w.runtime(); runtime != nil {
 		runtime.Signal()
 	}
-}
-
-// cleanupHistory applies retention and count limits immediately after their
-// settings change. It runs off the graph goroutine and refreshes the list.
-func (w *settingsWiring) cleanupHistory() {
-	runtime := w.runtime()
-	if runtime == nil || runtime.service == nil {
-		return
-	}
-	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer cancel()
-		result, err := runtime.service.Cleanup(ctx, time.Now())
-		if err != nil {
-			slog.Error("clean history after settings change", "module", "app.settings", "error", err)
-			return
-		}
-		if result.Removed > 0 {
-			runtime.Signal()
-		}
-	}()
 }
 
 func (w *settingsWiring) setLanguage(language string) error {

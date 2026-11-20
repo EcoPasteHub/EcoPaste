@@ -22,7 +22,6 @@ type shortcutHelpItem struct {
 func shortcutHelpItems() []shortcutHelpItem {
 	return []shortcutHelpItem{
 		{i18n.T(i18n.MenuPaste), "↵"},
-		{i18n.T(i18n.MenuPastePlain), "⌘↩"},
 		{i18n.T(i18n.PanelShortcutPasteNth), "⌘1–0"},
 		{i18n.T(i18n.PanelShortcutPreview), "Space"},
 		{i18n.T(i18n.MenuCopy), "⌘C"},

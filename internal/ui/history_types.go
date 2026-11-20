@@ -100,10 +100,8 @@ type HistoryModel interface {
 	Copy(context.Context, string) (hide bool, err error)
 	CopyPlain(context.Context, string) (hide bool, err error)
 	Activate(context.Context, string) (paste bool, hide bool, err error)
-	ActivatePlain(context.Context, string) (paste bool, hide bool, err error)
 	ActivateSingleClick(context.Context, string) (paste bool, hide bool, err error)
 	ActivateDoubleClick(context.Context, string) (paste bool, hide bool, err error)
-	MiddleClick(context.Context, string) (hide bool, err error)
 	SendPaste() error
 	NeedsAccessibility(error) bool
 	ToggleFavorite(context.Context, string) (bool, error)

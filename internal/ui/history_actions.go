@@ -48,15 +48,11 @@ func (a *itemActions) copy(id string, forcePlain bool) {
 	}()
 }
 
-func (a *itemActions) activate(id string, forcePlain bool) {
+func (a *itemActions) activate(id string) {
 	if a.model == nil {
 		return
 	}
-	action := a.model.Activate
-	if forcePlain {
-		action = a.model.ActivatePlain
-	}
-	a.activateWith(id, action)
+	a.activateWith(id, a.model.Activate)
 }
 
 func (a *itemActions) activateSingleClick(id string) {
@@ -105,26 +101,6 @@ func (a *itemActions) activateWith(id string, action func(context.Context, strin
 					a.reload()
 				})
 				return
-			}
-			a.reload()
-		})
-	}()
-}
-
-func (a *itemActions) middleClick(id string) {
-	if id == "" || a.model == nil {
-		return
-	}
-	ctx := a.cx.Context()
-	go func() {
-		hideAfter, err := a.model.MiddleClick(ctx, id)
-		a.cx.Post(func() {
-			if err != nil {
-				a.reportError(err)
-				return
-			}
-			if hideAfterAction(*a.pinned, hideAfter) && a.hide != nil {
-				a.hide()
 			}
 			a.reload()
 		})

@@ -6,7 +6,7 @@ package macos
 // checked in the order the legacy list handled them: activation, item
 // commands, single-key edit actions, navigation, then clipboard.
 func historyKeyAction(key uint16, flags uint64, row HistoryRow, spacePreview bool) (string, bool) {
-	if action, handled := activationKeyAction(key, flags, row); handled {
+	if action, handled := activationKeyAction(key); handled {
 		return action, true
 	}
 	if action, handled := itemCommandKeyAction(key, flags, row); handled {
@@ -21,12 +21,9 @@ func historyKeyAction(key uint16, flags uint64, row HistoryRow, spacePreview boo
 	return clipboardKeyAction(key, flags, row)
 }
 
-func activationKeyAction(key uint16, flags uint64, row HistoryRow) (string, bool) {
+func activationKeyAction(key uint16) (string, bool) {
 	if key != keyReturn && key != keyEnter {
 		return "", false
-	}
-	if commandShortcut(flags) && row.Kind == "text" {
-		return "pastePlain", true
 	}
 	return "activate", true
 }
@@ -103,10 +100,6 @@ func clipboardKeyAction(key uint16, flags uint64, row HistoryRow) (string, bool)
 	switch {
 	case command && option && key == keyC && row.Kind == "text":
 		return "copyPlain", true
-	case command && option && key == keyV && row.Kind == "text":
-		return "pastePlain", true
-	case command && option && key == keyV && row.Kind == "files":
-		return "pastePath", true
 	case command && key == keyC:
 		return "copy", true
 	case command && key == keyV:

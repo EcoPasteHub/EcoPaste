@@ -27,7 +27,7 @@ func TestOpenCreatesDefaults(t *testing.T) {
 	if got.Appearance.Language != LanguageAuto {
 		t.Errorf("default language = %q", got.Appearance.Language)
 	}
-	if got.Logging.Level != LogLevelError || got.Logging.RetentionDays != 14 {
+	if got.Logging.Level != LogLevelError {
 		t.Errorf("logging defaults = %+v", got.Logging)
 	}
 	if _, err := os.Stat(path); err != nil {
@@ -41,7 +41,7 @@ func TestLoggingSettingsValidateAndPersist(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := store.Update(map[string]any{"logging": map[string]any{"level": "debug", "retentionDays": 30}}); err != nil {
+	if _, err := store.Update(map[string]any{"logging": map[string]any{"level": "debug"}}); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := store.Update(map[string]any{"logging": map[string]any{"level": "all"}}); err != nil {
@@ -51,7 +51,7 @@ func TestLoggingSettingsValidateAndPersist(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got := reopened.Snapshot().Logging; got.Level != LogLevelAll || got.RetentionDays != 30 {
+	if got := reopened.Snapshot().Logging; got.Level != LogLevelAll {
 		t.Fatalf("logging settings = %+v", got)
 	}
 	if _, err := reopened.Update(map[string]any{"logging": map[string]any{"level": "debug"}}); err != nil {
@@ -59,8 +59,6 @@ func TestLoggingSettingsValidateAndPersist(t *testing.T) {
 	}
 	for _, patch := range []map[string]any{
 		{"logging": map[string]any{"level": "trace"}},
-		{"logging": map[string]any{"retentionDays": 0}},
-		{"logging": map[string]any{"retentionDays": 366}},
 	} {
 		if _, err := reopened.Update(patch); err == nil {
 			t.Errorf("invalid logging patch accepted: %#v", patch)
@@ -170,7 +168,7 @@ func TestUpdateDeepMergesObjectsAndReplacesArrays(t *testing.T) {
 	next, err := store.Update(map[string]any{
 		"general": map[string]any{"autoStart": true},
 		"clipboard": map[string]any{
-			"content": map[string]any{"itemActions": []any{"copy", "pastePlain"}},
+			"content": map[string]any{"itemActions": []any{"copy", "paste"}},
 		},
 	})
 	if err != nil {
@@ -179,7 +177,7 @@ func TestUpdateDeepMergesObjectsAndReplacesArrays(t *testing.T) {
 	if !next.General.AutoStart || !next.General.TrayIcon {
 		t.Errorf("general = %+v", next.General)
 	}
-	if len(next.Clipboard.Content.ItemActions) != 2 || next.Clipboard.Content.ItemActions[1] != ActionPastePlain {
+	if len(next.Clipboard.Content.ItemActions) != 2 || next.Clipboard.Content.ItemActions[1] != ActionPaste {
 		t.Errorf("item actions = %v", next.Clipboard.Content.ItemActions)
 	}
 }
@@ -271,7 +269,6 @@ func TestConcurrentUpdatesKeepCompleteSettings(t *testing.T) {
 		{"appearance": map[string]any{"theme": "dark"}},
 		{"general": map[string]any{"trayIcon": false}},
 		{"clipboard": map[string]any{"content": map[string]any{"copyPlain": true}}},
-		{"clipboard": map[string]any{"content": map[string]any{"pastePlain": true}}},
 		{"clipboard": map[string]any{"content": map[string]any{"autoFavorite": true}}},
 		{"clipboard": map[string]any{"feedback": map[string]any{"copySound": true}}},
 	}
@@ -294,7 +291,7 @@ func TestConcurrentUpdatesKeepCompleteSettings(t *testing.T) {
 	}
 	got := store.Snapshot()
 	if !got.General.AutoStart || got.Appearance.Theme != ThemeDark || got.General.TrayIcon ||
-		!got.Clipboard.Content.CopyPlain || !got.Clipboard.Content.PastePlain ||
+		!got.Clipboard.Content.CopyPlain ||
 		!got.Clipboard.Content.AutoFavorite || !got.Clipboard.Feedback.CopySound {
 		t.Errorf("concurrent updates lost fields: %+v", got)
 	}

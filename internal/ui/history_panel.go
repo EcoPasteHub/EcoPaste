@@ -405,8 +405,6 @@ func (p *historyPanel) handleCopyEvent(name string, data any) bool {
 		p.actions.copy(p.actionID(data), false)
 	case "copyPlain":
 		p.actions.copy(p.actionID(data), true)
-	case "pastePlain", "pastePath":
-		p.actions.activate(p.actionID(data), true)
 	default:
 		return false
 	}
@@ -416,13 +414,11 @@ func (p *historyPanel) handleCopyEvent(name string, data any) bool {
 func (p *historyPanel) handleActivationEvent(name string, data any) bool {
 	switch name {
 	case "activate":
-		p.actions.activate(p.actionID(data), false)
+		p.actions.activate(p.actionID(data))
 	case "activateSingleClick":
 		p.actions.activateSingleClick(p.actionID(data))
 	case "activateDoubleClick":
 		p.actions.activateDoubleClick(p.actionID(data))
-	case "middleClick":
-		p.actions.middleClick(p.actionID(data))
 	default:
 		return false
 	}

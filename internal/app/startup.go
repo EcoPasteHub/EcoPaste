@@ -60,7 +60,7 @@ func loadStorage(app *core.Scope) (*storage.Paths, *settings.Store, *storage.Win
 	}
 	if logger != nil {
 		config := store.Snapshot().Logging
-		if err := logger.Apply(logging.Level(config.Level), config.RetentionDays); err != nil {
+		if err := logger.SetLevel(logging.Level(config.Level)); err != nil {
 			slog.Error("apply logging settings", "module", "app.startup", "error", err)
 		}
 	}

@@ -308,7 +308,7 @@ Rust 侧：
 
 `settings/model.rs` 定义，落盘 `<data_root>/config/settings.json`，全部 `serde(default)`、`rename_all = "camelCase"`。
 
-以下字段清单保留旧版数据契约作为参考，不代表当前 Go 设置模型。2026-11-20 已删除 12 个未接入字段及整个 `update` 配置组；旧文件和备份中的这些字段读取时忽略，下一次设置写入时移除，详见 `04-feature-parity-checklist.md` §8.1。
+以下字段清单保留旧版数据契约作为参考，不代表当前 Go 设置模型。2026-11-20 已删除 12 个未接入字段及整个 `update` 配置组；2026-11-21 又移除中键、文件路径粘贴、纯文本粘贴、复用排序开关、可配置清理间隔及日志保留期限。旧文件和备份中的删除字段读取时忽略，下一次设置写入时移除，旧动作数组仅过滤已删除的粘贴动作，详见 `04-feature-parity-checklist.md` §8.1–8.2。
 
 顶层：
 
@@ -322,10 +322,10 @@ general, appearance, shortcuts, clipboard, onboarding, update
 - `appearance`: `theme` (`auto|light|dark`), `language` (`auto|zh-CN|en-US`)
 - `shortcuts`: `openClipboard`, `openPreference`, `winV`
 - `clipboard.capture`: `text/html/rtf/image/files`, `maxTextMb`, `maxImageMb`, `order`
-- `clipboard.content`: `autoPaste`, `middleClick`, `copyPlain`, `copyThenHideWindow`, `pastePlain`, `pasteFilesAsPath`, `showOriginalPreview`, 删除保护, `autoFavorite`, `updateOnReuse`, `sort`, `itemActions`, `itemActionOrder`
+- `clipboard.content`: `autoPaste`, `copyPlain`, `copyThenHideWindow`, `showOriginalPreview`, 删除保护, `autoFavorite`, `sort`, `itemActions`, `itemActionOrder`
 - `clipboard.display`: `textMaxLines`, `imageMaxHeight`, `fileMaxCount`
 - `clipboard.sensitive`: `collectSecrets`, `redactSecrets`
-- `clipboard.history`: `retention{value,unit}`, `maxCount`, `cleanupIntervalHours`
+- `clipboard.history`: `retention{value,unit}`, `maxCount`
 - `clipboard.search`: `defaultFocus`, `clearOnHide`
 - `clipboard.window`: `position`, `scrollToTopOnOpen`, `selectRangeOnOpen`, `selectCategoryOnOpen`, `selectGroupOnOpen`, `lightweightMode`, `idleDestroySeconds`
 - `clipboard.preview`: `hoverEnabled`, `hoverDelayMs`, `spaceEnabled`

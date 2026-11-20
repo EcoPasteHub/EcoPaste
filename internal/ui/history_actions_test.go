@@ -36,10 +36,6 @@ func (s *stubHistoryModel) Activate(context.Context, string) (bool, bool, error)
 	return true, s.hideAfter, s.err
 }
 
-func (s *stubHistoryModel) MiddleClick(context.Context, string) (bool, error) {
-	return s.hideAfter, s.err
-}
-
 func (s *stubHistoryModel) SendPaste() error {
 	s.pastes++
 	return s.pasteErr
@@ -183,7 +179,7 @@ func TestItemActionsCopyReportsFailureWithoutReloading(t *testing.T) {
 func TestItemActionsActivatePastesAndReloads(t *testing.T) {
 	model := &stubHistoryModel{}
 	h := newActionsHarness(t, model)
-	h.actions.activate("1", false)
+	h.actions.activate("1")
 	h.waitReload(t)
 	if model.pastes != 1 {
 		t.Errorf("paste calls = %d", model.pastes)
@@ -196,22 +192,12 @@ func TestItemActionsActivatePastesAndReloads(t *testing.T) {
 func TestItemActionsActivateReportsPermissionFailure(t *testing.T) {
 	model := &stubHistoryModel{err: errors.New("permission"), accessError: true}
 	h := newActionsHarness(t, model)
-	h.actions.activate("1", false)
+	h.actions.activate("1")
 	h.waitError(t, "permission")
 	if h.loading.GetUntracked() {
 		t.Error("loading stayed set after a failure")
 	}
 	h.expectNoReload(t)
-}
-
-func TestItemActionsMiddleClickHides(t *testing.T) {
-	model := &stubHistoryModel{hideAfter: true}
-	h := newActionsHarness(t, model)
-	h.actions.middleClick("1")
-	h.waitReload(t)
-	if h.hides != 1 {
-		t.Errorf("hide calls = %d", h.hides)
-	}
 }
 
 func TestItemActionsPreviewPublishesEnabledContent(t *testing.T) {

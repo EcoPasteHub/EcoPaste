@@ -11,8 +11,6 @@ func historyTableMethods() []objc.MethodDef {
 		{Cmd: sel("copy:"), Fn: historyTableCopy},
 		{Cmd: sel("paste:"), Fn: historyTablePaste},
 		{Cmd: sel("rightMouseDown:"), Fn: historyTableRightMouseDown},
-		{Cmd: sel("otherMouseDown:"), Fn: historyTableOtherMouseDown},
-		{Cmd: sel("otherMouseUp:"), Fn: historyTableOtherMouseUp},
 		{Cmd: sel("mouseDown:"), Fn: historyTableMouseDown},
 		{Cmd: sel("activatePendingClick:"), Fn: historyTableActivatePendingClick},
 		{Cmd: sel("keyDown:"), Fn: historyTableKeyDown},
@@ -48,21 +46,6 @@ func historyTableRightMouseDown(self objc.ID, _ objc.SEL, event objc.ID) {
 	}
 	sendSuper[objc.ID](self, historyTableClass, sel("rightMouseDown:"), event)
 }
-
-func historyTableOtherMouseDown(self objc.ID, _ objc.SEL, event objc.ID) {
-	p := panelsByTable[self]
-	if p == nil || objc.Send[int64](event, sel("buttonNumber")) != 2 {
-		return
-	}
-	row := historyRowAtEvent(self, event)
-	if row < 0 || row >= len(p.rows) {
-		return
-	}
-	p.selectRow(row)
-	p.cx.Emit("middleClick", p.rows[row].ID)
-}
-
-func historyTableOtherMouseUp(objc.ID, objc.SEL, objc.ID) {}
 
 func historyTableMouseDown(self objc.ID, _ objc.SEL, event objc.ID) {
 	left := objc.Send[int64](event, sel("buttonNumber")) == 0

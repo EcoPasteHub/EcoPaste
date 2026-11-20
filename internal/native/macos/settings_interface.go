@@ -56,7 +56,7 @@ func (v *SettingsView) buildInterfacePage() {
 		func(s SettingsValues) bool { return s.SearchClear })
 	top = cardTop + 2*settingsRowHeight + settingsGroupGap
 
-	_, cardTop = v.addSectionCardInfo(document, top, i18n.SettingsInteractionMouse, i18n.SettingsInteractionIntro, 7)
+	_, cardTop = v.addSectionCardInfo(document, top, i18n.SettingsInteractionMouse, i18n.SettingsInteractionIntro, 4)
 	v.addPopup(document, settingsRowTop(cardTop, 0), i18n.SettingsMouseLeft, "content.autoPaste",
 		[]settingsOption{
 			{Key: i18n.SettingsDisabled, Value: "disabled"},
@@ -66,26 +66,13 @@ func (v *SettingsView) buildInterfacePage() {
 			{Key: i18n.SettingsDoubleClickCopy, Value: "doubleClickCopy"},
 		},
 		func(s SettingsValues) string { return s.AutoPaste })
-	v.addPopup(document, settingsRowTop(cardTop, 1), i18n.SettingsMouseMiddle, "content.middleClick",
-		[]settingsOption{
-			{Key: i18n.SettingsDisabled, Value: "disabled"},
-			{Key: i18n.MenuPaste, Value: "singleClickPaste"},
-			{Key: i18n.SettingsSinglePastePlain, Value: "singleClickPastePlain"},
-			{Key: i18n.MenuCopy, Value: "singleClickCopy"},
-			{Key: i18n.SettingsSingleCopyPlain, Value: "singleClickCopyPlain"},
-		},
-		func(s SettingsValues) string { return s.MiddleClick })
-	v.addSwitch(document, settingsRowTop(cardTop, 2), i18n.SettingsPasteFilesAsPath, "content.pasteFilesAsPath",
-		func(s SettingsValues) bool { return s.PasteFilesAsPath })
-	v.addSwitch(document, settingsRowTop(cardTop, 3), i18n.SettingsAutoFavorite, "content.autoFavorite",
+	v.addSwitch(document, settingsRowTop(cardTop, 1), i18n.SettingsAutoFavorite, "content.autoFavorite",
 		func(s SettingsValues) bool { return s.AutoFavorite })
-	v.addSwitch(document, settingsRowTop(cardTop, 4), i18n.SettingsShowOriginal, "content.showOriginalPreview",
+	v.addSwitch(document, settingsRowTop(cardTop, 2), i18n.SettingsShowOriginal, "content.showOriginalPreview",
 		func(s SettingsValues) bool { return s.ShowOriginalPreview })
-	v.addSwitch(document, settingsRowTop(cardTop, 5), i18n.SettingsCopyTextPlain, "copyPlain",
+	v.addSwitch(document, settingsRowTop(cardTop, 3), i18n.SettingsCopyTextPlain, "copyPlain",
 		func(s SettingsValues) bool { return s.CopyPlain })
-	v.addSwitch(document, settingsRowTop(cardTop, 6), i18n.SettingsPasteTextPlain, "pastePlain",
-		func(s SettingsValues) bool { return s.PastePlain })
-	top = cardTop + 7*settingsRowHeight + settingsGroupGap
+	top = cardTop + 4*settingsRowHeight + settingsGroupGap
 
 	_, cardTop = v.addSectionCard(document, top, i18n.SettingsInteractionKeyboard, 1)
 	v.addSwitch(document, settingsRowTop(cardTop, 0), i18n.SettingsSpacePreview, "preview.spaceEnabled",

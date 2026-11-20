@@ -45,28 +45,26 @@ func (v *SettingsView) buildGeneralPage() {
 		func(s SettingsValues) bool { return s.TrayIcon })
 	top = cardTop + 3*settingsRowHeight + settingsGroupGap
 
-	_, cardTop = v.addSectionCard(document, top, i18n.SettingsBehavior, 5)
+	_, cardTop = v.addSectionCard(document, top, i18n.SettingsBehavior, 4)
 	v.addSwitch(document, settingsRowTop(cardTop, 0), i18n.SettingsCopyThenHide, "copyThenHideWindow",
 		func(s SettingsValues) bool { return s.CopyThenHideWindow })
 	v.addSwitch(document, settingsRowTop(cardTop, 1), i18n.SettingsCopySound, "feedback.copySound",
 		func(s SettingsValues) bool { return s.CopySound })
-	v.addSwitch(document, settingsRowTop(cardTop, 2), i18n.SettingsUpdateOnReuse, "updateOnReuse",
-		func(s SettingsValues) bool { return s.UpdateOnReuse })
-	v.addPopup(document, settingsRowTop(cardTop, 3), i18n.SettingsSort, "sort",
+	v.addPopup(document, settingsRowTop(cardTop, 2), i18n.SettingsSort, "sort",
 		[]settingsOption{
 			{Key: i18n.SettingsSortRecent, Value: "updatedAtDesc"},
 			{Key: i18n.SettingsSortCreated, Value: "createdAtDesc"},
 			{Key: i18n.SettingsSortUseCount, Value: "useCountDesc"},
 		},
 		func(s SettingsValues) string { return s.Sort })
-	v.addPopup(document, settingsRowTop(cardTop, 4), i18n.SettingsPosition, "window.position",
+	v.addPopup(document, settingsRowTop(cardTop, 3), i18n.SettingsPosition, "window.position",
 		[]settingsOption{
 			{Key: i18n.SettingsPositionFollow, Value: "followCursor"},
 			{Key: i18n.SettingsPositionCenter, Value: "center"},
 			{Key: i18n.SettingsPositionKeep, Value: "remember"},
 		},
 		func(s SettingsValues) string { return s.WindowPosition })
-	top = cardTop + 5*settingsRowHeight + settingsGroupGap
+	top = cardTop + 4*settingsRowHeight + settingsGroupGap
 
 	v.finishPage(document, top)
 }

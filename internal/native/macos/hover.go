@@ -38,15 +38,6 @@ var hoverRules = map[string]hoverRule{
 	"paste": {
 		symbol: "arrow.down.doc", event: "activate", tooltip: i18n.MenuPaste,
 	},
-	"pastePlain": {
-		symbol: "textformat", event: "pastePlain", tooltip: i18n.MenuPastePlain,
-		allowed: func(row HistoryRow) bool { return row.Kind == "text" },
-	},
-	"pastePath": {
-		symbol: "point.topleft.down.to.point.bottomright.curvepath",
-		event:  "pastePath", tooltip: i18n.MenuPastePath,
-		allowed: func(row HistoryRow) bool { return row.Kind == "files" },
-	},
 	"copy": {
 		symbol: "doc.on.doc", event: "copy", tooltip: i18n.MenuCopy,
 	},

@@ -14,14 +14,8 @@ func (p *Panel) populateMenu(menu objc.ID, row HistoryRow) {
 	addMenuItem(menu, p.table, i18n.T(i18n.MenuPaste), "menuPaste:", "arrow.down.doc", "")
 	addMenuItem(menu, p.table, i18n.T(i18n.MenuCopy), "menuCopy:", "doc.on.doc", "c")
 	if row.Kind == "text" {
-		plainPaste := addMenuItem(menu, p.table, i18n.T(i18n.MenuPastePlain), "menuPastePlain:", "textformat", "v")
-		setMenuModifiers(plainPaste, commandModifier|alternateModifier)
 		plainCopy := addMenuItem(menu, p.table, i18n.T(i18n.MenuCopyPlain), "menuCopyPlain:", "doc.plaintext", "c")
 		setMenuModifiers(plainCopy, commandModifier|alternateModifier)
-	}
-	if row.Kind == "files" {
-		pathPaste := addMenuItem(menu, p.table, i18n.T(i18n.MenuPastePath), "menuPastePath:", "point.topleft.down.to.point.bottomright.curvepath", "v")
-		setMenuModifiers(pathPaste, commandModifier|alternateModifier)
 	}
 	switch row.SubKind {
 	case "url":

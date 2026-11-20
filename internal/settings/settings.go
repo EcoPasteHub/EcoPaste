@@ -11,8 +11,7 @@ type Settings struct {
 }
 
 type Logging struct {
-	Level         LogLevel `json:"level"`
-	RetentionDays uint32   `json:"retentionDays"`
+	Level LogLevel `json:"level"`
 }
 
 type LogLevel string
@@ -133,11 +132,8 @@ func NormalizeCaptureOrder(order []CaptureKind) []CaptureKind {
 
 type Content struct {
 	AutoPaste                         AutoPaste    `json:"autoPaste"`
-	MiddleClick                       MiddleClick  `json:"middleClick"`
 	CopyPlain                         bool         `json:"copyPlain"`
 	CopyThenHideWindow                bool         `json:"copyThenHideWindow"`
-	PastePlain                        bool         `json:"pastePlain"`
-	PasteFilesAsPath                  bool         `json:"pasteFilesAsPath"`
 	ShowOriginalPreview               bool         `json:"showOriginalPreview"`
 	DeleteConfirm                     bool         `json:"deleteConfirm"`
 	DeleteFavoriteItems               bool         `json:"deleteFavoriteItems"`
@@ -146,7 +142,6 @@ type Content struct {
 	DeletePinnedConfirm               bool         `json:"deletePinnedConfirm"`
 	DeleteFavoriteItemsOnlyInFavGroup bool         `json:"deleteFavoriteItemsOnlyInFavoriteGroup"`
 	AutoFavorite                      bool         `json:"autoFavorite"`
-	UpdateOnReuse                     bool         `json:"updateOnReuse"`
 	Sort                              Sort         `json:"sort"`
 	ItemActions                       []ItemAction `json:"itemActions"`
 	ItemActionOrder                   []ItemAction `json:"itemActionOrder"`
@@ -162,16 +157,6 @@ const (
 	AutoPasteDoubleClickCopy  AutoPaste = "doubleClickCopy"
 )
 
-type MiddleClick string
-
-const (
-	MiddleClickDisabled          MiddleClick = "disabled"
-	MiddleClickSingleClickPaste  MiddleClick = "singleClickPaste"
-	MiddleClickSingleClickPlain  MiddleClick = "singleClickPastePlain"
-	MiddleClickSingleClickCopy   MiddleClick = "singleClickCopy"
-	MiddleClickSingleClickCopyPl MiddleClick = "singleClickCopyPlain"
-)
-
 type Sort string
 
 const (
@@ -183,18 +168,16 @@ const (
 type ItemAction string
 
 const (
-	ActionPaste      ItemAction = "paste"
-	ActionPastePlain ItemAction = "pastePlain"
-	ActionPastePath  ItemAction = "pastePath"
-	ActionCopy       ItemAction = "copy"
-	ActionCopyPlain  ItemAction = "copyPlain"
-	ActionOpenLink   ItemAction = "openLink"
-	ActionSendEmail  ItemAction = "sendEmail"
-	ActionReveal     ItemAction = "reveal"
-	ActionNote       ItemAction = "note"
-	ActionStar       ItemAction = "star"
-	ActionPin        ItemAction = "pinItem"
-	ActionDelete     ItemAction = "delete"
+	ActionPaste     ItemAction = "paste"
+	ActionCopy      ItemAction = "copy"
+	ActionCopyPlain ItemAction = "copyPlain"
+	ActionOpenLink  ItemAction = "openLink"
+	ActionSendEmail ItemAction = "sendEmail"
+	ActionReveal    ItemAction = "reveal"
+	ActionNote      ItemAction = "note"
+	ActionStar      ItemAction = "star"
+	ActionPin       ItemAction = "pinItem"
+	ActionDelete    ItemAction = "delete"
 )
 
 type Display struct {
@@ -209,9 +192,8 @@ type Sensitive struct {
 }
 
 type History struct {
-	Retention            Retention `json:"retention"`
-	MaxCount             uint32    `json:"maxCount"`
-	CleanupIntervalHours uint32    `json:"cleanupIntervalHours"`
+	Retention Retention `json:"retention"`
+	MaxCount  uint32    `json:"maxCount"`
 }
 
 type Retention struct {
@@ -294,7 +276,6 @@ func Default() Settings {
 			},
 			Content: Content{
 				AutoPaste:                         AutoPasteDoubleClickPaste,
-				MiddleClick:                       MiddleClickDisabled,
 				ShowOriginalPreview:               true,
 				DeleteConfirm:                     true,
 				DeleteFavoriteConfirm:             true,
@@ -303,13 +284,13 @@ func Default() Settings {
 				Sort:                              SortUpdatedAt,
 				ItemActions:                       []ItemAction{ActionCopy, ActionStar, ActionPin, ActionDelete},
 				ItemActionOrder: []ItemAction{
-					ActionPaste, ActionPastePlain, ActionPastePath, ActionCopy, ActionCopyPlain,
+					ActionPaste, ActionCopy, ActionCopyPlain,
 					ActionOpenLink, ActionSendEmail, ActionReveal, ActionNote, ActionStar, ActionPin, ActionDelete,
 				},
 			},
 			Display:   Display{TextMaxLines: 3, ImageMaxHeight: 64, FileMaxCount: 3},
 			Sensitive: Sensitive{CollectSecrets: true, RedactSecrets: true},
-			History:   History{Retention: Retention{Unit: RetentionForever}, MaxCount: 0, CleanupIntervalHours: 0},
+			History:   History{Retention: Retention{Unit: RetentionForever}, MaxCount: 0},
 			Search:    Search{DefaultFocus: false, ClearOnHide: true},
 			Window: Window{
 				Position:             PositionFollowCursor,
@@ -322,7 +303,7 @@ func Default() Settings {
 			Feedback: Feedback{CopySound: false},
 			Filters:  Filters{ExcludedAppIDs: defaultExcludedApps()},
 		},
-		Logging: Logging{Level: LogLevelError, RetentionDays: 14},
+		Logging: Logging{Level: LogLevelError},
 	}
 }
 

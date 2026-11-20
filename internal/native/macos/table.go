@@ -388,7 +388,7 @@ func (p *Panel) handleCommandKey(key uint16, flags uint64) bool {
 		}
 		p.showNotePopover(row.ID)
 		return true
-	case "toggleFavorite", "togglePinned", "open", "reveal", "pastePlain", "activate":
+	case "toggleFavorite", "togglePinned", "open", "reveal", "activate":
 		if row.ID == "" {
 			return false
 		}

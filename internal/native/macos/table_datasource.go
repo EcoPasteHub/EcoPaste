@@ -19,8 +19,6 @@ func historyTargetMethods() []objc.MethodDef {
 		{Cmd: sel("tableView:draggingSession:endedAtPoint:operation:"), Fn: historyTargetDragEnded},
 		{Cmd: sel("tableView:willDisplayCell:forTableColumn:row:"), Fn: historyTargetWillDisplayCell},
 		{Cmd: sel("menuPaste:"), Fn: menuAction("activate")},
-		{Cmd: sel("menuPastePlain:"), Fn: menuAction("pastePlain")},
-		{Cmd: sel("menuPastePath:"), Fn: menuAction("pastePath")},
 		{Cmd: sel("menuCopy:"), Fn: menuAction("copy")},
 		{Cmd: sel("menuCopyPlain:"), Fn: menuAction("copyPlain")},
 		{Cmd: sel("menuFavorite:"), Fn: menuAction("toggleFavorite")},

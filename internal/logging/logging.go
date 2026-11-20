@@ -14,20 +14,18 @@ import (
 	"sort"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 const (
-	logFileName       = "ecopaste.log"
-	crashFileName     = "ecopaste-crash.log"
-	crashFilePrefix   = "ecopaste-crash-"
-	maxSizeMB         = 5
-	maxQueueEntries   = 512
-	defaultRetention  = 14
-	maximumLogAgeDays = 365
+	logFileName     = "ecopaste.log"
+	crashFileName   = "ecopaste-crash.log"
+	crashFilePrefix = "ecopaste-crash-"
+	maxSizeMB       = 5
+	maxQueueEntries = 512
+	logRetention    = 14 * 24 * time.Hour
 )
 
 // Level is the minimum severity written by the application's structured logger.
@@ -87,14 +85,14 @@ func Open(dir string) (*Logger, error) {
 
 // Configure updates the active logger when settings change outside the
 // preferences view, such as during a backup merge.
-func Configure(level Level, retentionDays uint32) error {
+func Configure(level Level) error {
 	activeLogger.Lock()
 	logger := activeLogger.active
 	activeLogger.Unlock()
 	if logger == nil || logger.level == nil {
 		return nil
 	}
-	return logger.Apply(level, retentionDays)
+	return logger.SetLevel(level)
 }
 
 func open(dir string) (*Logger, error) {
@@ -102,7 +100,7 @@ func open(dir string) (*Logger, error) {
 		return nil, fmt.Errorf("create log directory: %w", err)
 	}
 	rotating := &rotatingWriter{dir: dir}
-	if err := rotating.configure(defaultRetention); err != nil {
+	if err := rotating.configure(); err != nil {
 		return nil, err
 	}
 	level := &slog.LevelVar{}
@@ -119,6 +117,9 @@ func open(dir string) (*Logger, error) {
 		previousLogPrefix: log.Prefix(),
 	}
 	logger.configureCrashOutput(dir)
+	if err := rotating.cleanup(); err != nil {
+		slog.Error("remove expired log files", "module", "logging", "error", err)
+	}
 	logger.rotating.startCleanup()
 	handler := slog.NewJSONHandler(async, &slog.HandlerOptions{Level: level, AddSource: true})
 	slog.SetDefault(slog.New(handler))
@@ -141,25 +142,6 @@ func (l *Logger) SetLevel(level Level) error {
 	return nil
 }
 
-// Apply updates the active severity threshold and retention together.
-func (l *Logger) Apply(level Level, retentionDays uint32) error {
-	parsed, err := parseLevel(level)
-	if err != nil {
-		return err
-	}
-	if retentionDays < 1 || retentionDays > 365 {
-		return fmt.Errorf("log retention must be between 1 and 365 days")
-	}
-	if l == nil {
-		return errors.New("logger is not available")
-	}
-	if err := l.SetRetention(retentionDays); err != nil {
-		return err
-	}
-	l.level.Set(parsed)
-	return nil
-}
-
 func parseLevel(level Level) (slog.Level, error) {
 	switch level {
 	case LevelAll:
@@ -175,19 +157,6 @@ func parseLevel(level Level) (slog.Level, error) {
 	default:
 		return 0, fmt.Errorf("invalid log level %q", level)
 	}
-}
-
-// SetRetention changes the automatic age limit for rotated log files and
-// immediately removes existing rotated files older than days. Zero disables
-// age-based deletion; size rotation still keeps a bounded number of backups.
-func (l *Logger) SetRetention(days uint32) error {
-	if l == nil {
-		return errors.New("logger is not available")
-	}
-	if days > maximumLogAgeDays {
-		return fmt.Errorf("log retention exceeds maximum %d days", maximumLogAgeDays)
-	}
-	return l.rotating.setRetention(days)
 }
 
 // Directory returns the active log directory.
@@ -251,36 +220,20 @@ func (w standardLogWriter) Write(data []byte) (int, error) {
 }
 
 type rotatingWriter struct {
-	dir       string
-	mu        sync.Mutex
-	file      *lumberjack.Logger
-	retention atomic.Uint32
-	stop      chan struct{}
-	done      chan struct{}
-	closed    bool
+	dir    string
+	mu     sync.Mutex
+	file   *lumberjack.Logger
+	stop   chan struct{}
+	done   chan struct{}
+	closed bool
 }
 
-func (w *rotatingWriter) configure(days int) error {
+func (w *rotatingWriter) configure() error {
 	if err := os.MkdirAll(w.dir, 0o700); err != nil {
 		return fmt.Errorf("create log directory: %w", err)
 	}
 	_ = os.Chmod(w.dir, 0o700)
 	w.file = newRotator(w.dir)
-	w.retention.Store(uint32(days))
-	return nil
-}
-
-func (w *rotatingWriter) setRetention(days uint32) error {
-	w.mu.Lock()
-	if w.closed {
-		w.mu.Unlock()
-		return errors.New("log writer is closed")
-	}
-	w.retention.Store(days)
-	w.mu.Unlock()
-	if err := w.cleanup(); err != nil {
-		slog.Error("apply log retention", "module", "logging", "error", err)
-	}
 	return nil
 }
 
@@ -315,11 +268,7 @@ func (w *rotatingWriter) cleanup() error {
 	if err != nil {
 		return fmt.Errorf("read log directory: %w", err)
 	}
-	days := w.retention.Load()
-	cutoff := time.Time{}
-	if days > 0 {
-		cutoff = time.Now().Add(-time.Duration(days) * 24 * time.Hour)
-	}
+	cutoff := time.Now().Add(-logRetention)
 	var backups []os.FileInfo
 	for _, entry := range entries {
 		name := entry.Name()
@@ -330,7 +279,7 @@ func (w *rotatingWriter) cleanup() error {
 		if err != nil {
 			continue
 		}
-		if !cutoff.IsZero() && info.ModTime().Before(cutoff) {
+		if info.ModTime().Before(cutoff) {
 			_ = os.Remove(filepath.Join(w.dir, name))
 			continue
 		}

@@ -101,7 +101,6 @@ var settingsCommands = map[string]func(*settingsModel, any) error{
 			return err
 		}
 		m.notifyChanged()
-		m.triggerCleanup()
 		return nil
 	},
 }
@@ -144,8 +143,5 @@ func (m *settingsModel) applySettingPath(path string, value any) error {
 		}
 	}
 	m.notifyChanged()
-	if strings.HasPrefix(path, "history.") {
-		m.triggerCleanup()
-	}
 	return nil
 }

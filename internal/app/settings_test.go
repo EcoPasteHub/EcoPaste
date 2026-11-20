@@ -37,12 +37,6 @@ func TestSettingsModelAppliesPaths(t *testing.T) {
 	if err := model.Apply("content.autoPaste", "singleClickCopy"); err != nil {
 		t.Fatal(err)
 	}
-	if err := model.Apply("content.middleClick", "singleClickPastePlain"); err != nil {
-		t.Fatal(err)
-	}
-	if err := model.Apply("content.pasteFilesAsPath", true); err != nil {
-		t.Fatal(err)
-	}
 	if err := model.Apply("content.autoFavorite", true); err != nil {
 		t.Fatal(err)
 	}
@@ -65,8 +59,8 @@ func TestSettingsModelAppliesPaths(t *testing.T) {
 	values := model.Load()
 	if !values.CopyPlain || values.MaxTextMB != 8 || values.Retention != "7d" || values.RedactSecrets ||
 		values.WindowPosition != "remember" || !values.CopySound ||
-		values.AutoPaste != "singleClickCopy" || values.MiddleClick != "singleClickPastePlain" ||
-		!values.PasteFilesAsPath || !values.AutoFavorite || values.ShowOriginalPreview ||
+		values.AutoPaste != "singleClickCopy" ||
+		!values.AutoFavorite || values.ShowOriginalPreview ||
 		values.DeleteConfirm || !values.DeleteFavoriteItems ||
 		!values.SearchFocus || values.SearchClear {
 		t.Errorf("values = %+v", values)
@@ -102,10 +96,7 @@ func TestSettingsModelAppliesAndOpensLogs(t *testing.T) {
 	if err := model.Apply("logging.level", "all"); err != nil {
 		t.Fatal(err)
 	}
-	if err := model.Apply("logging.retentionDays", uint32(30)); err != nil {
-		t.Fatal(err)
-	}
-	if applied.Level != settings.LogLevelAll || applied.RetentionDays != 30 {
+	if applied.Level != settings.LogLevelAll {
 		t.Fatalf("applied logging settings = %+v", applied)
 	}
 	if err := model.Apply("logs.open", true); err != nil {
@@ -114,7 +105,7 @@ func TestSettingsModelAppliesAndOpensLogs(t *testing.T) {
 	if !opened {
 		t.Fatal("open log directory action was not invoked")
 	}
-	if got := model.Load(); got.LogLevel != "all" || got.LogRetentionDays != 30 {
+	if got := model.Load(); got.LogLevel != "all" {
 		t.Fatalf("view logging values = %+v", got)
 	}
 }
@@ -144,28 +135,6 @@ func TestSettingsModelSignalsListRefresh(t *testing.T) {
 	}
 	if changed != 6 {
 		t.Errorf("refresh signals = %d, want 6", changed)
-	}
-}
-
-func TestSettingsModelCleansUpWhenHistoryLimitsChange(t *testing.T) {
-	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
-	if err != nil {
-		t.Fatal(err)
-	}
-	model := newSettingsModel(store)
-	cleaned := 0
-	model.onHistoryChanged = func() { cleaned++ }
-	if err := model.Apply("history.retention", "1h"); err != nil {
-		t.Fatal(err)
-	}
-	if err := model.Apply("history.maxCount", uint32(100)); err != nil {
-		t.Fatal(err)
-	}
-	if err := model.Apply("history.cleanupIntervalHours", uint32(1)); err != nil {
-		t.Fatal(err)
-	}
-	if cleaned != 3 {
-		t.Errorf("cleanup runs = %d, want 3", cleaned)
 	}
 }
 
@@ -233,7 +202,7 @@ func TestSettingsModelAppliesItemActions(t *testing.T) {
 	changed := 0
 	model.onChanged = func() { changed++ }
 	order := []string{
-		"star", "copy", "paste", "pastePlain", "pastePath", "copyPlain",
+		"star", "copy", "paste", "copyPlain",
 		"openLink", "sendEmail", "reveal", "note", "pinItem", "delete",
 	}
 	if err := model.Apply("actions.update", macos.SettingsItemActions{
@@ -537,14 +506,13 @@ func TestResetSettingsRestoresDefaultsAndSideEffects(t *testing.T) {
 	model := newSettingsModel(store)
 	var trayIcon, autoStart bool
 	var theme, language string
-	rebound, redisplayed, cleaned := false, false, false
+	rebound, redisplayed := false, false
 	model.setTrayIcon = func(on bool) error { trayIcon = on; return nil }
 	model.setAutoStart = func(on bool) error { autoStart = on; return nil }
 	model.setAppearance = func(name string) error { theme = name; return nil }
 	model.setLanguage = func(name string) error { language = name; return nil }
 	model.onShortcutsChanged = func(string) error { rebound = true; return nil }
 	model.onChanged = func() { redisplayed = true }
-	model.onHistoryChanged = func() { cleaned = true }
 
 	if err := model.Apply("settings.reset", true); err != nil {
 		t.Fatal(err)
@@ -562,8 +530,8 @@ func TestResetSettingsRestoresDefaultsAndSideEffects(t *testing.T) {
 	if language != string(defaults.Appearance.Language) {
 		t.Errorf("language = %q", language)
 	}
-	if !rebound || !redisplayed || !cleaned {
-		t.Errorf("rebound = %v, redisplayed = %v, cleaned = %v", rebound, redisplayed, cleaned)
+	if !rebound || !redisplayed {
+		t.Errorf("rebound = %v, redisplayed = %v", rebound, redisplayed)
 	}
 }
 
@@ -589,7 +557,6 @@ func TestSettingsModelAcceptsEveryVisiblePath(t *testing.T) {
 		{"appearance.language", "en-US"},
 		{"copyThenHideWindow", true},
 		{"feedback.copySound", true},
-		{"updateOnReuse", false},
 		{"sort", "createdAtDesc"},
 		{"window.position", "center"},
 		{"display.textMaxLines", uint32(5)},
@@ -602,12 +569,9 @@ func TestSettingsModelAcceptsEveryVisiblePath(t *testing.T) {
 		{"search.defaultFocus", true},
 		{"search.clearOnHide", false},
 		{"content.autoPaste", "singleClickPaste"},
-		{"content.middleClick", "singleClickCopy"},
-		{"content.pasteFilesAsPath", true},
 		{"content.autoFavorite", false},
 		{"content.showOriginalPreview", false},
 		{"copyPlain", true},
-		{"pastePlain", true},
 		{"preview.spaceEnabled", false},
 		{"capture.text", false},
 		{"capture.html", false},
@@ -618,7 +582,6 @@ func TestSettingsModelAcceptsEveryVisiblePath(t *testing.T) {
 		{"capture.maxImageMb", uint32(50)},
 		{"history.retention", "3d"},
 		{"history.maxCount", uint32(500)},
-		{"history.cleanupIntervalHours", uint32(12)},
 		{"sensitive.collectSecrets", false},
 		{"sensitive.redactSecrets", false},
 		{"content.deleteConfirm", false},

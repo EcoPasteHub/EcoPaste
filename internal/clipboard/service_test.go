@@ -343,8 +343,8 @@ func TestBuildWritePreservesRepresentations(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got.Text != files || len(got.Files) != 0 {
-		t.Errorf("files as text = %+v", got)
+	if got.Text != "" || len(got.Files) != 2 || got.Files[0] != "/a" || got.Files[1] != "/b" {
+		t.Errorf("plain text option changed files = %+v", got)
 	}
 }
 
@@ -420,7 +420,7 @@ func TestWriteRichTextSuppressesHTMLAndPlainFallback(t *testing.T) {
 	}
 }
 
-func TestWriteFilesAsTextSuppressesFallbackCapture(t *testing.T) {
+func TestWriteFilesSuppressesOnlyFileCapture(t *testing.T) {
 	cfg := settings.Default().Clipboard
 	svc, db, _ := testService(t, cfg)
 	svc.Guard = NewGuard(2 * time.Second)
@@ -437,7 +437,10 @@ func TestWriteFilesAsTextSuppressesFallbackCapture(t *testing.T) {
 	if err := svc.WriteItem(ctx, item, true); err != nil {
 		t.Fatal(err)
 	}
-	if _, changed, err := svc.Capture(ctx, Payload{Text: "/tmp/a\n/tmp/b"}, SourceApp{}); err != nil || changed {
-		t.Fatalf("path text was captured: changed = %v err = %v", changed, err)
+	if _, changed, err := svc.Capture(ctx, Payload{Files: []string{"/tmp/a", "/tmp/b"}}, SourceApp{}); err != nil || changed {
+		t.Fatalf("file write was captured: changed = %v err = %v", changed, err)
+	}
+	if _, changed, err := svc.Capture(ctx, Payload{Text: "/tmp/a\n/tmp/b"}, SourceApp{}); err != nil || !changed {
+		t.Fatalf("independently copied path text was suppressed: changed = %v err = %v", changed, err)
 	}
 }

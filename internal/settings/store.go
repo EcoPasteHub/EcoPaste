@@ -236,14 +236,8 @@ func validateDecoded(s Settings) error {
 }
 
 func validateLogging(s Settings) error {
-	if err := validateOneOf("logging.level", s.Logging.Level,
-		LogLevelAll, LogLevelError, LogLevelWarn, LogLevelInfo, LogLevelDebug); err != nil {
-		return err
-	}
-	if s.Logging.RetentionDays < 1 || s.Logging.RetentionDays > 365 {
-		return errors.New("logging.retentionDays must be between 1 and 365")
-	}
-	return nil
+	return validateOneOf("logging.level", s.Logging.Level,
+		LogLevelAll, LogLevelError, LogLevelWarn, LogLevelInfo, LogLevelDebug)
 }
 
 func validateAppearance(s Settings) error {
@@ -267,11 +261,6 @@ func validateContent(s Settings) error {
 	if err := validateOneOf("clipboard.content.autoPaste", s.Clipboard.Content.AutoPaste,
 		AutoPasteDisabled, AutoPasteSingleClickPaste, AutoPasteDoubleClickPaste,
 		AutoPasteSingleClickCopy, AutoPasteDoubleClickCopy); err != nil {
-		return err
-	}
-	if err := validateOneOf("clipboard.content.middleClick", s.Clipboard.Content.MiddleClick,
-		MiddleClickDisabled, MiddleClickSingleClickPaste, MiddleClickSingleClickPlain,
-		MiddleClickSingleClickCopy, MiddleClickSingleClickCopyPl); err != nil {
 		return err
 	}
 	if err := validateOneOf("clipboard.content.sort", s.Clipboard.Content.Sort,
@@ -311,7 +300,7 @@ func validateWindow(s Settings) error {
 func validateItemActions(field string, actions []ItemAction) error {
 	for _, action := range actions {
 		if err := validateOneOf(field, action,
-			ActionPaste, ActionPastePlain, ActionPastePath, ActionCopy, ActionCopyPlain,
+			ActionPaste, ActionCopy, ActionCopyPlain,
 			ActionOpenLink, ActionSendEmail, ActionReveal, ActionNote, ActionStar,
 			ActionPin, ActionDelete); err != nil {
 			return err

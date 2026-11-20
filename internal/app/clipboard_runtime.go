@@ -134,13 +134,14 @@ func startClipboard(app *core.Scope, paths *storage.Paths, store *settings.Store
 		fileIcons: fileIcons, fileIconCache: fileIconCache, paths: paths,
 		apps: registry, watcher: watcher, changed: changed,
 	}
-	startCleanup(ctx, runtime, store)
+	cleanupDone := startCleanup(ctx, runtime, store)
 	app.OnQuit(func(context.Context) {
 		cancel()
 		select {
 		case <-done:
 		case <-time.After(150 * time.Millisecond):
 		}
+		<-cleanupDone
 		db.Close()
 	})
 	return runtime, nil

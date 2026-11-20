@@ -32,7 +32,7 @@ func (v *SettingsView) buildAdvancedPage() {
 	top = cardTop + 2*settingsRowHeight + settingsGroupGap
 	top = v.buildCapturePriorities(document, top)
 
-	_, cardTop = v.addSectionCard(document, top, i18n.SettingsHistoryCleanup, 3)
+	_, cardTop = v.addSectionCard(document, top, i18n.SettingsHistoryCleanup, 2)
 	v.addPopup(document, settingsRowTop(cardTop, 0), i18n.SettingsRetention, "history.retention",
 		[]settingsOption{
 			{Key: i18n.SettingsRetentionForever, Value: "forever"},
@@ -50,10 +50,7 @@ func (v *SettingsView) buildAdvancedPage() {
 	v.addNumberInput(document, settingsRowTop(cardTop, 1), i18n.SettingsMaxCount, "history.maxCount",
 		0, 100000, 100, i18n.SettingsUnitCount,
 		func(s SettingsValues) uint32 { return s.MaxCount })
-	v.addNumberInput(document, settingsRowTop(cardTop, 2), i18n.SettingsCleanupInterval, "history.cleanupIntervalHours",
-		0, 168, 1, i18n.SettingsUnitHours,
-		func(s SettingsValues) uint32 { return s.CleanupIntervalHours })
-	top = cardTop + 3*settingsRowHeight + settingsGroupGap
+	top = cardTop + 2*settingsRowHeight + settingsGroupGap
 
 	_, cardTop = v.addSectionCardInfo(document, top, i18n.SettingsHistorySensitive, i18n.SettingsHistoryHint, 2)
 	v.addSwitch(document, settingsRowTop(cardTop, 0), i18n.SettingsCollectSecrets, "sensitive.collectSecrets",
@@ -242,7 +239,7 @@ func (v *SettingsView) buildPermissionsSection(document objc.ID, top float64) fl
 	v.refreshPermissionLabels()
 	top += 82 + settingsGroupGap
 
-	_, cardTop = v.addSectionCard(document, top, i18n.SettingsLogging, 3)
+	_, cardTop = v.addSectionCard(document, top, i18n.SettingsLogging, 2)
 	v.addPopup(document, settingsRowTop(cardTop, 0), i18n.SettingsLogLevel, "logging.level",
 		[]settingsOption{
 			{Key: i18n.SettingsLogLevelAll, Value: "all"},
@@ -251,14 +248,11 @@ func (v *SettingsView) buildPermissionsSection(document objc.ID, top float64) fl
 			{Key: i18n.SettingsLogLevelInfo, Value: "info"},
 			{Key: i18n.SettingsLogLevelDebug, Value: "debug"},
 		}, func(s SettingsValues) string { return s.LogLevel })
-	v.addNumberInput(document, settingsRowTop(cardTop, 1), i18n.SettingsLogRetention,
-		"logging.retentionDays", 1, 365, 1, i18n.SettingsUnitDays,
-		func(s SettingsValues) uint32 { return s.LogRetentionDays })
-	logsButton := v.addPageButton(document, settingsContentX+settingsRowInset, settingsRowTop(cardTop, 2)+7,
+	logsButton := v.addPageButton(document, settingsContentX+settingsRowInset, settingsRowTop(cardTop, 1)+7,
 		148, 28, i18n.SettingsOpenLogDirectory, "openLogsPressed:", i18n.SettingsOpenLogDirectoryHelp)
 	logsButton.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsOpenLogDirectory)))
 	v.bindText(func() {
 		logsButton.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsOpenLogDirectory)))
 	})
-	return cardTop + 3*settingsRowHeight + settingsGroupGap
+	return cardTop + 2*settingsRowHeight + settingsGroupGap
 }

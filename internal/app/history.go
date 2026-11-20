@@ -136,7 +136,7 @@ func (m *historyModel) copyItem(ctx context.Context, id string, forcePlain bool)
 	}
 	cfg := m.clipboardConfig()
 	plain := forcePlain || item.Kind == database.KindText && cfg.Content.CopyPlain
-	if err := m.write(ctx, item, plain, cfg.Content.UpdateOnReuse); err != nil {
+	if err := m.write(ctx, item, plain); err != nil {
 		return false, err
 	}
 	return cfg.Content.CopyThenHideWindow, nil
@@ -245,11 +245,7 @@ func clampInt(value, low, high int) int {
 }
 
 func (m *historyModel) Activate(ctx context.Context, id string) (bool, bool, error) {
-	return m.activateItem(ctx, id, false, true)
-}
-
-func (m *historyModel) ActivatePlain(ctx context.Context, id string) (bool, bool, error) {
-	return m.activateItem(ctx, id, true, true)
+	return m.activateItem(ctx, id, true)
 }
 
 func (m *historyModel) ActivateSingleClick(ctx context.Context, id string) (bool, bool, error) {
@@ -264,14 +260,14 @@ func (m *historyModel) activateByMode(ctx context.Context, id string, pasteMode,
 	mode := m.clipboardConfig().Content.AutoPaste
 	switch mode {
 	case pasteMode:
-		return m.activateItem(ctx, id, false, true)
+		return m.activateItem(ctx, id, true)
 	case copyMode:
-		return m.activateItem(ctx, id, false, false)
+		return m.activateItem(ctx, id, false)
 	}
 	return false, false, nil
 }
 
-func (m *historyModel) activateItem(ctx context.Context, id string, forcePlain, paste bool) (bool, bool, error) {
+func (m *historyModel) activateItem(ctx context.Context, id string, paste bool) (bool, bool, error) {
 	item, err := m.item(ctx, id)
 	if err != nil {
 		return false, false, err
@@ -280,10 +276,8 @@ func (m *historyModel) activateItem(ctx context.Context, id string, forcePlain, 
 	if paste && !inputTrusted() {
 		return false, false, keystroke.ErrPermission
 	}
-	plain := forcePlain ||
-		item.Kind == database.KindText && (cfg.Content.CopyPlain || cfg.Content.PastePlain) ||
-		item.Kind == database.KindFiles && cfg.Content.PasteFilesAsPath
-	if err := m.write(ctx, item, plain, cfg.Content.UpdateOnReuse); err != nil {
+	plain := !paste && item.Kind == database.KindText && cfg.Content.CopyPlain
+	if err := m.write(ctx, item, plain); err != nil {
 		return false, false, err
 	}
 	return paste, paste || cfg.Content.CopyThenHideWindow, nil
@@ -309,35 +303,6 @@ func (m *historyModel) Drag(ctx context.Context, id string) (macos.DragPayload, 
 		ImageData: payload.PNG,
 		Files:     payload.Files,
 	}, nil
-}
-
-// MiddleClick runs the configured middle-button action for one row.
-func (m *historyModel) MiddleClick(ctx context.Context, id string) (bool, error) {
-	item, err := m.item(ctx, id)
-	if err != nil {
-		return false, err
-	}
-	cfg := m.clipboardConfig()
-	plain := false
-	paste := false
-	switch cfg.Content.MiddleClick {
-	case settings.MiddleClickSingleClickPaste:
-		paste = true
-	case settings.MiddleClickSingleClickPlain:
-		plain, paste = true, true
-	case settings.MiddleClickSingleClickCopy:
-	case settings.MiddleClickSingleClickCopyPl:
-		plain = true
-	default:
-		return false, nil
-	}
-	if paste && !inputTrusted() {
-		return false, keystroke.ErrPermission
-	}
-	if err := m.write(ctx, item, plain, cfg.Content.UpdateOnReuse); err != nil {
-		return false, err
-	}
-	return paste || cfg.Content.CopyThenHideWindow, nil
 }
 
 func (m *historyModel) NeedsAccessibility(err error) bool {
@@ -496,14 +461,11 @@ func formatBytes(size int64) string {
 	return fmt.Sprintf("%.1f PB", value/1024)
 }
 
-func (m *historyModel) write(ctx context.Context, item *database.Item, plain, countReuse bool) error {
+func (m *historyModel) write(ctx context.Context, item *database.Item, plain bool) error {
 	if err := m.runtime.service.WriteItem(ctx, item, plain); err != nil {
 		return err
 	}
-	if countReuse {
-		return m.runtime.db.IncrementUseCount(ctx, item.ID)
-	}
-	return nil
+	return m.runtime.db.IncrementUseCount(ctx, item.ID)
 }
 
 func (m *historyModel) historyItem(ctx context.Context, item database.Item, cfg settings.Clipboard) ui.HistoryItem {

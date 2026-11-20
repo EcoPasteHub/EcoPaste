@@ -56,8 +56,8 @@ func TestHistoryKeyAction(t *testing.T) {
 		{name: "option command C copies plain text", key: keyC, flags: commandModifier | alternateModifier, row: text, action: "copyPlain", handled: true},
 		{name: "option command C falls back for images", key: keyC, flags: commandModifier | alternateModifier, row: image, action: "copy", handled: true},
 		{name: "command V activates", key: keyV, flags: commandModifier, row: files, action: "activate", handled: true},
-		{name: "option command V pastes plain text", key: keyV, flags: commandModifier | alternateModifier, row: text, action: "pastePlain", handled: true},
-		{name: "option command V pastes file paths", key: keyV, flags: commandModifier | alternateModifier, row: files, action: "pastePath", handled: true},
+		{name: "option command V preserves text formatting", key: keyV, flags: commandModifier | alternateModifier, row: text, action: "activate", handled: true},
+		{name: "option command V preserves files", key: keyV, flags: commandModifier | alternateModifier, row: files, action: "activate", handled: true},
 		{name: "option command V activates images", key: keyV, flags: commandModifier | alternateModifier, row: image, action: "activate", handled: true},
 		{name: "command F focuses search", key: keyF, flags: commandModifier, row: text, action: "focusSearch", handled: true},
 	}
@@ -147,8 +147,8 @@ func TestCommandDigitIndex(t *testing.T) {
 	}
 }
 
-func TestCommandEnterPastesPlain(t *testing.T) {
-	if action, handled := historyKeyAction(keyReturn, commandModifier, HistoryRow{Kind: "text"}, true); action != "pastePlain" || !handled {
+func TestCommandEnterActivates(t *testing.T) {
+	if action, handled := historyKeyAction(keyReturn, commandModifier, HistoryRow{Kind: "text"}, true); action != "activate" || !handled {
 		t.Errorf("command return = %q, %v", action, handled)
 	}
 	if action, handled := historyKeyAction(keyEnter, commandModifier, HistoryRow{Kind: "image"}, true); action != "activate" || !handled {

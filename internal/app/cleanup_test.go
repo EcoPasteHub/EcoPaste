@@ -12,29 +12,42 @@ import (
 	"github.com/EcoPasteHub/EcoPaste/internal/settings"
 )
 
-func TestCleanupDue(t *testing.T) {
-	now := time.Date(2026, 11, 14, 12, 0, 0, 0, time.UTC)
-	tests := []struct {
-		name  string
-		last  time.Time
-		hours uint32
-		want  bool
+func TestHistoryCleanupEnabled(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		history settings.History
+		want    bool
 	}{
-		{"disabled", now.Add(-24 * time.Hour), 0, false},
-		{"not yet due", now.Add(-59 * time.Minute), 1, false},
-		{"exactly due", now.Add(-time.Hour), 1, true},
-		{"overdue", now.Add(-25 * time.Hour), 24, true},
-		{"clock moved backwards", now.Add(time.Minute), 1, false},
-		{"overflow is not due", now.Add(-24 * time.Hour), ^uint32(0), false},
-	}
-	for _, tt := range tests {
-		if got := cleanupDue(now, tt.last, tt.hours); got != tt.want {
-			t.Errorf("%s: cleanupDue() = %v, want %v", tt.name, got, tt.want)
-		}
+		{"defaults", settings.Default().Clipboard.History, false},
+		{"zero age", settings.History{Retention: settings.Retention{Unit: settings.RetentionHours}}, false},
+		{"forever", settings.History{Retention: settings.Retention{Value: 1, Unit: settings.RetentionForever}}, false},
+		{"age only", settings.History{Retention: settings.Retention{Value: 1, Unit: settings.RetentionHours}}, true},
+		{"count only", settings.History{MaxCount: 1}, true},
+		{"both", settings.History{Retention: settings.Retention{Value: 1, Unit: settings.RetentionDays}, MaxCount: 1}, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := historyCleanupEnabled(tc.history); got != tc.want {
+				t.Fatalf("enabled = %t, want %t", got, tc.want)
+			}
+		})
 	}
 }
 
-func TestCleanupLoopRunsOnConfiguredInterval(t *testing.T) {
+func startTestCleanup(t *testing.T, runtime *clipboardRuntime, store *settings.Store, interval time.Duration, now func() time.Time) {
+	t.Helper()
+	ctx, cancel := context.WithCancel(context.Background())
+	done := startCleanupLoop(ctx, runtime, store, interval, now)
+	t.Cleanup(func() {
+		cancel()
+		select {
+		case <-done:
+		case <-time.After(time.Second):
+			t.Error("cleanup loop did not stop")
+		}
+	})
+}
+
+func TestCleanupLoopRunsOnBuiltInInterval(t *testing.T) {
 	ctx := context.Background()
 	root := t.TempDir()
 	db, err := database.Open(filepath.Join(root, "clipboard.db"))
@@ -47,8 +60,7 @@ func TestCleanupLoopRunsOnConfiguredInterval(t *testing.T) {
 		t.Fatal(err)
 	}
 	if _, err := store.Update(map[string]any{"clipboard": map[string]any{"history": map[string]any{
-		"retention":            map[string]any{"value": 1, "unit": "hours"},
-		"cleanupIntervalHours": 1,
+		"retention": map[string]any{"value": 1, "unit": "hours"},
 	}}}); err != nil {
 		t.Fatal(err)
 	}
@@ -64,10 +76,17 @@ func TestCleanupLoopRunsOnConfiguredInterval(t *testing.T) {
 		t.Fatal(err)
 	}
 	changed := make(chan struct{}, 1)
+	passes := make(chan struct{}, 8)
 	runtime := &clipboardRuntime{
 		service: &clipboard.Service{
-			DB:       db,
-			Settings: func() settings.Clipboard { return store.Snapshot().Clipboard },
+			DB: db,
+			Settings: func() settings.Clipboard {
+				select {
+				case passes <- struct{}{}:
+				default:
+				}
+				return store.Snapshot().Clipboard
+			},
 		},
 		changed: changed,
 	}
@@ -79,8 +98,12 @@ func TestCleanupLoopRunsOnConfiguredInterval(t *testing.T) {
 		defer mu.Unlock()
 		return now
 	}
-	runCtx, cancel := context.WithCancel(ctx)
-	done := startCleanupLoop(runCtx, runtime, store, 10*time.Millisecond, clock)
+	startTestCleanup(t, runtime, store, 10*time.Millisecond, clock)
+	select {
+	case <-passes:
+	case <-time.After(time.Second):
+		t.Fatal("startup cleanup did not run")
+	}
 	mu.Lock()
 	now = base.Add(2 * time.Hour)
 	mu.Unlock()
@@ -89,12 +112,6 @@ func TestCleanupLoopRunsOnConfiguredInterval(t *testing.T) {
 	case <-changed:
 	case <-time.After(2 * time.Second):
 		t.Fatal("periodic cleanup did not run")
-	}
-	cancel()
-	select {
-	case <-done:
-	case <-time.After(time.Second):
-		t.Fatal("cleanup loop did not stop")
 	}
 	found, err := db.FindByID(ctx, id)
 	if err != nil {
@@ -126,11 +143,7 @@ func TestRetentionSettingCleansHistoryImmediately(t *testing.T) {
 		changed: make(chan struct{}, 1),
 	}
 	model := newSettingsModel(store)
-	model.onHistoryChanged = func() {
-		if _, err := runtime.service.Cleanup(ctx, time.Now()); err != nil {
-			t.Errorf("cleanup: %v", err)
-		}
-	}
+	startTestCleanup(t, runtime, store, time.Hour, time.Now)
 	old := &database.Item{Kind: database.KindText, Content: "old", CreatedAt: time.Now().Add(-2 * time.Hour)}
 	oldID, _, err := db.Upsert(ctx, old)
 	if err != nil {
@@ -145,6 +158,7 @@ func TestRetentionSettingCleansHistoryImmediately(t *testing.T) {
 	if err := model.Apply("history.retention", "1h"); err != nil {
 		t.Fatal(err)
 	}
+	waitCleanupChange(t, runtime.changed)
 	removed, err := db.FindByID(ctx, oldID)
 	if err != nil {
 		t.Fatal(err)
@@ -182,11 +196,7 @@ func TestMaxCountSettingCleansHistoryImmediately(t *testing.T) {
 		changed: make(chan struct{}, 1),
 	}
 	model := newSettingsModel(store)
-	model.onHistoryChanged = func() {
-		if _, err := runtime.service.Cleanup(ctx, time.Now()); err != nil {
-			t.Errorf("cleanup: %v", err)
-		}
-	}
+	startTestCleanup(t, runtime, store, time.Hour, time.Now)
 	for index, content := range []string{"one", "two", "three"} {
 		item := &database.Item{
 			Kind: database.KindText, Content: content,
@@ -199,11 +209,21 @@ func TestMaxCountSettingCleansHistoryImmediately(t *testing.T) {
 	if err := model.Apply("history.maxCount", uint32(1)); err != nil {
 		t.Fatal(err)
 	}
+	waitCleanupChange(t, runtime.changed)
 	page, err := db.Page(ctx, database.Query{Limit: 10})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(page.Items) != 1 {
 		t.Errorf("items = %d, want 1", len(page.Items))
+	}
+}
+
+func waitCleanupChange(t *testing.T, changed <-chan struct{}) {
+	t.Helper()
+	select {
+	case <-changed:
+	case <-time.After(2 * time.Second):
+		t.Fatal("cleanup did not refresh history")
 	}
 }

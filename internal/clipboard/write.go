@@ -51,9 +51,6 @@ func (s *Service) BuildWrite(item *database.Item, plainText bool) (WritePayload,
 		}
 		return WritePayload{PNG: png}, nil
 	case database.KindFiles:
-		if plainText {
-			return WritePayload{Text: item.Content}, nil
-		}
 		return WritePayload{Files: DecodeFiles(item.Content)}, nil
 	}
 	return WritePayload{}, fmt.Errorf("unknown clipboard kind %q", item.Kind)

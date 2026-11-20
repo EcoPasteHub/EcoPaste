@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
-	"time"
 )
 
 func TestOpenWritesRedactedLogFile(t *testing.T) {
@@ -41,7 +40,7 @@ func TestOpenWritesRedactedLogFile(t *testing.T) {
 func TestRotatingWriterStartsNewFileAtSizeLimit(t *testing.T) {
 	dir := t.TempDir()
 	writer := &rotatingWriter{dir: dir}
-	if err := writer.configure(defaultRetention); err != nil {
+	if err := writer.configure(); err != nil {
 		t.Fatal(err)
 	}
 	defer writer.Close()
@@ -76,7 +75,7 @@ func TestRotatingWriterStartsNewFileAtSizeLimit(t *testing.T) {
 	}
 }
 
-func TestLoggerFiltersLevelsAndAppliesRetentionImmediately(t *testing.T) {
+func TestLoggerFiltersLevels(t *testing.T) {
 	dir := t.TempDir()
 	logger, err := Open(dir)
 	if err != nil {
@@ -85,22 +84,8 @@ func TestLoggerFiltersLevelsAndAppliesRetentionImmediately(t *testing.T) {
 	defer logger.Close()
 
 	slog.Info("filtered info")
-	if err := logger.Apply(LevelInfo, 1); err != nil {
+	if err := logger.SetLevel(LevelInfo); err != nil {
 		t.Fatal(err)
-	}
-	old := filepath.Join(dir, "ecopaste-20200101T000000.log.gz")
-	if err := os.WriteFile(old, []byte("old"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	oldTime := time.Now().Add(-48 * time.Hour)
-	if err := os.Chtimes(old, oldTime, oldTime); err != nil {
-		t.Fatal(err)
-	}
-	if err := logger.SetRetention(1); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := os.Stat(old); !os.IsNotExist(err) {
-		t.Fatalf("expired log still exists, stat error = %v", err)
 	}
 	slog.Info("visible info", "component", "test.module")
 	if err := logger.Close(); err != nil {
@@ -140,32 +125,6 @@ func TestLoggerAllLevelIncludesLevelsBelowDebug(t *testing.T) {
 	}
 	if !strings.Contains(string(data), "visible custom level") {
 		t.Fatalf("all level filtered a record below debug: %q", data)
-	}
-}
-
-func TestOpenWaitsForStoredRetentionBeforeCleaning(t *testing.T) {
-	dir := t.TempDir()
-	old := filepath.Join(dir, "ecopaste-20200101T000000.log.gz")
-	if err := os.WriteFile(old, []byte("previous log"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	oldTime := time.Now().Add(-100 * 24 * time.Hour)
-	if err := os.Chtimes(old, oldTime, oldTime); err != nil {
-		t.Fatal(err)
-	}
-	logger, err := Open(dir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer logger.Close()
-	if _, err := os.Stat(old); err != nil {
-		t.Fatalf("log was deleted before its stored retention loaded: %v", err)
-	}
-	if err := logger.Apply(LevelError, 30); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := os.Stat(old); !os.IsNotExist(err) {
-		t.Fatalf("expired log was not removed after applying saved retention, stat error = %v", err)
 	}
 }
 

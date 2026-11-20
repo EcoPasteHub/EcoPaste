@@ -6,18 +6,18 @@ import "testing"
 
 func TestHoverActionsFollowConfiguredOrder(t *testing.T) {
 	row := HistoryRow{Kind: "text", CanDelete: true}
-	specs := hoverActionsFor(row, []string{"copy", "pastePlain", "delete"})
+	specs := hoverActionsFor(row, []string{"copy", "copyPlain", "delete"})
 	if len(specs) != 3 {
 		t.Fatalf("specs = %+v", specs)
 	}
-	if specs[0].Event != "copy" || specs[1].Event != "pastePlain" || specs[2].Event != "delete" {
+	if specs[0].Event != "copy" || specs[1].Event != "copyPlain" || specs[2].Event != "delete" {
 		t.Errorf("events = %+v", specs)
 	}
 }
 
 func TestHoverActionsSkipInapplicableRows(t *testing.T) {
 	row := HistoryRow{Kind: "image"}
-	specs := hoverActionsFor(row, []string{"pastePlain", "pastePath", "reveal", "openLink", "copy"})
+	specs := hoverActionsFor(row, []string{"copyPlain", "reveal", "openLink", "copy"})
 	if len(specs) != 1 || specs[0].Event != "copy" {
 		t.Fatalf("specs = %+v", specs)
 	}
@@ -26,13 +26,13 @@ func TestHoverActionsSkipInapplicableRows(t *testing.T) {
 func TestHoverActionsCapAtSix(t *testing.T) {
 	row := HistoryRow{Kind: "files", SubKind: "path"}
 	row.CanDelete = true
-	actions := []string{"paste", "pastePath", "copy"}
+	actions := []string{"paste", "copy"}
 	specs := hoverActionsFor(row, actions)
 	if len(specs) != len(actions) {
 		t.Fatalf("specs = %+v", specs)
 	}
 	long := hoverActionsFor(row, []string{
-		"paste", "pastePath", "copy", "reveal", "note", "star", "pinItem", "delete",
+		"paste", "copy", "reveal", "note", "star", "pinItem", "delete",
 	})
 	if len(long) != maxHoverActions {
 		t.Errorf("len = %d", len(long))

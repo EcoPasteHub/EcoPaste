@@ -13,14 +13,15 @@ import (
 
 type recordingWriter struct {
 	payload clipboard.WritePayload
+	err     error
 }
 
 func (w *recordingWriter) Write(payload clipboard.WritePayload) error {
 	w.payload = payload
-	return nil
+	return w.err
 }
 
-func TestPlainAndPathReuseActions(t *testing.T) {
+func TestReuseActionsPreserveRepresentations(t *testing.T) {
 	root := t.TempDir()
 	db, err := database.Open(filepath.Join(root, "clipboard.db"))
 	if err != nil {
@@ -78,20 +79,19 @@ func TestPlainAndPathReuseActions(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	paste, hide, err := model.ActivatePlain(ctx, fileID)
+	paste, hide, err := model.Activate(ctx, fileID)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if !paste || !hide {
-		t.Errorf("activate plain returned paste=%v hide=%v", paste, hide)
+		t.Errorf("activate files returned paste=%v hide=%v", paste, hide)
 	}
-	if writer.payload.Text != files || len(writer.payload.Files) != 0 {
-		t.Errorf("path payload = %+v", writer.payload)
+	if writer.payload.Text != "" || len(writer.payload.Files) != 2 || writer.payload.Files[0] != "/tmp/a" || writer.payload.Files[1] != "/tmp/b" {
+		t.Errorf("files payload = %+v", writer.payload)
 	}
 
 	if _, err := store.Update(map[string]any{
 		"clipboard": map[string]any{"content": map[string]any{
-			"pasteFilesAsPath":   true,
 			"copyThenHideWindow": true,
 		}},
 	}); err != nil {
@@ -101,8 +101,8 @@ func TestPlainAndPathReuseActions(t *testing.T) {
 	if _, _, err := model.Activate(ctx, fileID); err != nil {
 		t.Fatal(err)
 	}
-	if writer.payload.Text != files || len(writer.payload.Files) != 0 {
-		t.Errorf("configured path payload = %+v", writer.payload)
+	if writer.payload.Text != "" || len(writer.payload.Files) != 2 || writer.payload.Files[0] != "/tmp/a" || writer.payload.Files[1] != "/tmp/b" {
+		t.Errorf("files payload with hide enabled = %+v", writer.payload)
 	}
 	hide, err = model.Copy(ctx, htmlID)
 	if err != nil {
@@ -112,11 +112,6 @@ func TestPlainAndPathReuseActions(t *testing.T) {
 		t.Error("copy did not request hiding the panel")
 	}
 
-	if _, err := store.Update(map[string]any{
-		"clipboard": map[string]any{"content": map[string]any{"updateOnReuse": false}},
-	}); err != nil {
-		t.Fatal(err)
-	}
 	before, err := db.FindByID(ctx, htmlID)
 	if err != nil {
 		t.Fatal(err)
@@ -128,27 +123,12 @@ func TestPlainAndPathReuseActions(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if after.UseCount != before.UseCount {
-		t.Errorf("use count changed with updateOnReuse off: %d -> %d", before.UseCount, after.UseCount)
-	}
-	if _, err := store.Update(map[string]any{
-		"clipboard": map[string]any{"content": map[string]any{"updateOnReuse": true}},
-	}); err != nil {
-		t.Fatal(err)
-	}
-	if _, _, err := model.Activate(ctx, htmlID); err != nil {
-		t.Fatal(err)
-	}
-	after, err = db.FindByID(ctx, htmlID)
-	if err != nil {
-		t.Fatal(err)
-	}
 	if after.UseCount != before.UseCount+1 {
 		t.Errorf("use count = %d, want %d", after.UseCount, before.UseCount+1)
 	}
 
 	if _, err := store.Update(map[string]any{
-		"clipboard": map[string]any{"content": map[string]any{"pastePlain": true}},
+		"clipboard": map[string]any{"content": map[string]any{"copyPlain": true}},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -156,74 +136,8 @@ func TestPlainAndPathReuseActions(t *testing.T) {
 	if _, _, err := model.Activate(ctx, htmlID); err != nil {
 		t.Fatal(err)
 	}
-	if writer.payload.Text != plain || writer.payload.HTML != "" {
-		t.Errorf("configured plain paste payload = %+v", writer.payload)
-	}
-}
-
-func TestMiddleClickActions(t *testing.T) {
-	root := t.TempDir()
-	db, err := database.Open(filepath.Join(root, "clipboard.db"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() { db.Close() })
-	store, err := settings.Open(filepath.Join(root, settings.FileName))
-	if err != nil {
-		t.Fatal(err)
-	}
-	writer := &recordingWriter{}
-	model := &historyModel{
-		store: store,
-		runtime: &clipboardRuntime{
-			db:      db,
-			images:  storage.NewImageStore(filepath.Join(root, "resources")),
-			service: &clipboard.Service{DB: db, Writer: writer},
-		},
-	}
-	ctx := context.Background()
-	plain := "middle text"
-	sub := database.SubHTML
-	id, _, err := db.Upsert(ctx, &database.Item{
-		Kind:       database.KindText,
-		SubKind:    &sub,
-		Content:    "<b>middle text</b>",
-		SearchText: &plain,
-		Platform:   "macos",
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	setMiddleClick := func(value string) {
-		t.Helper()
-		if _, err := store.Update(map[string]any{
-			"clipboard": map[string]any{"content": map[string]any{"middleClick": value}},
-		}); err != nil {
-			t.Fatal(err)
-		}
-	}
-	setMiddleClick("singleClickCopyPlain")
-	if hide, err := model.MiddleClick(ctx, id); err != nil || hide {
-		t.Fatalf("copy plain = %t, %v", hide, err)
-	}
-	if writer.payload.Text != plain || writer.payload.HTML != "" {
-		t.Errorf("copy plain payload = %+v", writer.payload)
-	}
-	writer.payload = clipboard.WritePayload{}
-	setMiddleClick("singleClickCopy")
-	if _, err := model.MiddleClick(ctx, id); err != nil {
-		t.Fatal(err)
-	}
-	if writer.payload.Text != plain || writer.payload.HTML != "<b>middle text</b>" {
-		t.Errorf("copy rich payload = %+v", writer.payload)
-	}
-	writer.payload = clipboard.WritePayload{}
-	setMiddleClick("disabled")
-	if hide, err := model.MiddleClick(ctx, id); err != nil || hide {
-		t.Fatalf("disabled = %t, %v", hide, err)
-	}
-	if writer.payload.Text != "" || writer.payload.HTML != "" {
-		t.Errorf("disabled wrote %+v", writer.payload)
+	if writer.payload.Text != plain || writer.payload.HTML != "<b>rich text</b>" {
+		t.Errorf("copy preference changed paste formatting = %+v", writer.payload)
 	}
 }
 

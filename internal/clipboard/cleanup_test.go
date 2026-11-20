@@ -40,6 +40,14 @@ func TestRetentionCutoff(t *testing.T) {
 
 func timePtr(t time.Time) *time.Time { return &t }
 
+func TestCleanupWithNoLimitsDoesNotAccessDatabase(t *testing.T) {
+	service := &Service{Settings: func() settings.Clipboard { return settings.Default().Clipboard }}
+	result, err := service.Cleanup(context.Background(), time.Now())
+	if err != nil || result.Removed != 0 {
+		t.Fatalf("disabled cleanup = %+v, %v", result, err)
+	}
+}
+
 func TestCleanupRemovesExpiredImage(t *testing.T) {
 	cfg := settings.Default().Clipboard
 	cfg.History.Retention = settings.Retention{Value: 1, Unit: settings.RetentionDays}

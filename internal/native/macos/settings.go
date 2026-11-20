@@ -25,11 +25,7 @@ type SettingsValues struct {
 	CopyPlain              bool
 	CopyThenHideWindow     bool
 	CopySound              bool
-	PastePlain             bool
-	UpdateOnReuse          bool
 	AutoPaste              string
-	MiddleClick            string
-	PasteFilesAsPath       bool
 	AutoFavorite           bool
 	ShowOriginalPreview    bool
 	DeleteConfirm          bool
@@ -60,7 +56,6 @@ type SettingsValues struct {
 	Groups                 []SettingsGroup
 	Retention              string
 	MaxCount               uint32
-	CleanupIntervalHours   uint32
 	CollectSecrets         bool
 	RedactSecrets          bool
 	ExcludedAppIDs         []string
@@ -71,7 +66,6 @@ type SettingsValues struct {
 	OpenPreferenceShortcut string
 	SpacePreview           bool
 	LogLevel               string
-	LogRetentionDays       uint32
 }
 
 // SettingsApp is one row in the source application filter list.

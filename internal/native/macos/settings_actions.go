@@ -39,10 +39,6 @@ func settingsActionTitle(key string) (string, bool) {
 	switch key {
 	case "paste":
 		return i18n.T(i18n.MenuPaste), true
-	case "pastePlain":
-		return i18n.T(i18n.MenuPastePlain), true
-	case "pastePath":
-		return i18n.T(i18n.MenuPastePath), true
 	case "copy":
 		return i18n.T(i18n.MenuCopy), true
 	case "copyPlain":
@@ -66,7 +62,7 @@ func settingsActionTitle(key string) (string, bool) {
 }
 
 var settingsActionFallbackOrder = []string{
-	"paste", "pastePlain", "pastePath", "copy", "copyPlain", "openLink",
+	"paste", "copy", "copyPlain", "openLink",
 	"sendEmail", "reveal", "note", "star", "pinItem", "delete",
 }
 

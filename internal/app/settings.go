@@ -25,7 +25,6 @@ type settingsModel struct {
 	onShortcutsChanged   func(string) error
 	onShortcutsSuspended func(bool)
 	onChanged            func()
-	onHistoryChanged     func()
 	dataDir              func() string
 	changeDataDir        func(string) error
 	restoreDataDir       func() error
@@ -60,11 +59,7 @@ func (m *settingsModel) Load() macos.SettingsValues {
 		CopyPlain:              cfg.Content.CopyPlain,
 		CopyThenHideWindow:     cfg.Content.CopyThenHideWindow,
 		CopySound:              cfg.Feedback.CopySound,
-		PastePlain:             cfg.Content.PastePlain,
-		UpdateOnReuse:          cfg.Content.UpdateOnReuse,
 		AutoPaste:              string(cfg.Content.AutoPaste),
-		MiddleClick:            string(cfg.Content.MiddleClick),
-		PasteFilesAsPath:       cfg.Content.PasteFilesAsPath,
 		AutoFavorite:           cfg.Content.AutoFavorite,
 		ShowOriginalPreview:    cfg.Content.ShowOriginalPreview,
 		DeleteConfirm:          cfg.Content.DeleteConfirm,
@@ -95,7 +90,6 @@ func (m *settingsModel) Load() macos.SettingsValues {
 		Groups:                 groups,
 		Retention:              encodeRetention(cfg.History.Retention),
 		MaxCount:               cfg.History.MaxCount,
-		CleanupIntervalHours:   cfg.History.CleanupIntervalHours,
 		CollectSecrets:         cfg.Sensitive.CollectSecrets,
 		RedactSecrets:          cfg.Sensitive.RedactSecrets,
 		ExcludedAppIDs:         excluded,
@@ -106,7 +100,6 @@ func (m *settingsModel) Load() macos.SettingsValues {
 		OpenPreferenceShortcut: snapshot.Shortcuts.OpenPreference,
 		SpacePreview:           cfg.Preview.SpaceEnabled,
 		LogLevel:               string(snapshot.Logging.Level),
-		LogRetentionDays:       snapshot.Logging.RetentionDays,
 	}
 }
 
@@ -292,7 +285,6 @@ func (m *settingsModel) resetSettings() error {
 		}
 	}
 	m.notifyChanged()
-	m.triggerCleanup()
 	return nil
 }
 
@@ -306,14 +298,6 @@ func (m *settingsModel) update(patch map[string]any) error {
 func (m *settingsModel) notifyChanged() {
 	if m.onChanged != nil {
 		m.onChanged()
-	}
-}
-
-// triggerCleanup applies a new retention or count limit right away instead of
-// waiting for the next scheduled cleanup pass, which may be disabled.
-func (m *settingsModel) triggerCleanup() {
-	if m.onHistoryChanged != nil {
-		m.onHistoryChanged()
 	}
 }
 
@@ -364,7 +348,6 @@ func openGroupValue(value string, groups []macos.SettingsGroup) string {
 
 var settingsPaths = map[string][]string{
 	"logging.level":                 {"logging", "level"},
-	"logging.retentionDays":         {"logging", "retentionDays"},
 	"general.trayIcon":              {"general", "trayIcon"},
 	"general.autoStart":             {"general", "autoStart"},
 	"appearance.theme":              {"appearance", "theme"},
@@ -372,10 +355,7 @@ var settingsPaths = map[string][]string{
 	"copyPlain":                     {"clipboard", "content", "copyPlain"},
 	"copyThenHideWindow":            {"clipboard", "content", "copyThenHideWindow"},
 	"feedback.copySound":            {"clipboard", "feedback", "copySound"},
-	"pastePlain":                    {"clipboard", "content", "pastePlain"},
 	"content.autoPaste":             {"clipboard", "content", "autoPaste"},
-	"content.middleClick":           {"clipboard", "content", "middleClick"},
-	"content.pasteFilesAsPath":      {"clipboard", "content", "pasteFilesAsPath"},
 	"content.autoFavorite":          {"clipboard", "content", "autoFavorite"},
 	"content.showOriginalPreview":   {"clipboard", "content", "showOriginalPreview"},
 	"content.deleteConfirm":         {"clipboard", "content", "deleteConfirm"},
@@ -384,7 +364,6 @@ var settingsPaths = map[string][]string{
 	"content.deleteFavoriteItems":   {"clipboard", "content", "deleteFavoriteItems"},
 	"content.deletePinnedItems":     {"clipboard", "content", "deletePinnedItems"},
 	"content.deleteFavoriteOnlyFav": {"clipboard", "content", "deleteFavoriteItemsOnlyInFavoriteGroup"},
-	"updateOnReuse":                 {"clipboard", "content", "updateOnReuse"},
 	"sort":                          {"clipboard", "content", "sort"},
 	"window.position":               {"clipboard", "window", "position"},
 	"capture.text":                  {"clipboard", "capture", "text"},
@@ -404,7 +383,6 @@ var settingsPaths = map[string][]string{
 	"search.defaultFocus":           {"clipboard", "search", "defaultFocus"},
 	"search.clearOnHide":            {"clipboard", "search", "clearOnHide"},
 	"history.maxCount":              {"clipboard", "history", "maxCount"},
-	"history.cleanupIntervalHours":  {"clipboard", "history", "cleanupIntervalHours"},
 	"sensitive.collectSecrets":      {"clipboard", "sensitive", "collectSecrets"},
 	"sensitive.redactSecrets":       {"clipboard", "sensitive", "redactSecrets"},
 	"preview.spaceEnabled":          {"clipboard", "preview", "spaceEnabled"},
