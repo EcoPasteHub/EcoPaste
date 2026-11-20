@@ -24,8 +24,8 @@ type settingsModel struct {
 	appIconPath          func(string) string
 	onShortcutsChanged   func(string) error
 	onShortcutsSuspended func(bool)
-	onDisplayChanged     func()
-	onActionsChanged     func()
+	onChanged            func()
+	onHistoryChanged     func()
 	dataDir              func() string
 	changeDataDir        func(string) error
 	restoreDataDir       func() error
@@ -47,6 +47,7 @@ func (m *settingsModel) Load() macos.SettingsValues {
 	snapshot := m.store.Snapshot()
 	cfg := snapshot.Clipboard
 	excluded := cfg.Filters.ExcludedAppIDs
+	groups := m.loadGroups()
 	return macos.SettingsValues{
 		TrayIcon:               snapshot.General.TrayIcon,
 		AutoStart:              snapshot.General.AutoStart,
@@ -86,10 +87,10 @@ func (m *settingsModel) Load() macos.SettingsValues {
 		ScrollToTopOnOpen:      cfg.Window.ScrollToTopOnOpen,
 		RangeOnOpen:            string(cfg.Window.SelectRangeOnOpen),
 		CategoryOnOpen:         string(cfg.Window.SelectCategoryOnOpen),
-		GroupOnOpen:            cfg.Window.SelectGroupOnOpen,
+		GroupOnOpen:            openGroupValue(cfg.Window.SelectGroupOnOpen, groups),
 		SearchFocus:            cfg.Search.DefaultFocus,
 		SearchClear:            cfg.Search.ClearOnHide,
-		Groups:                 m.loadGroups(),
+		Groups:                 groups,
 		Retention:              encodeRetention(cfg.History.Retention),
 		MaxCount:               cfg.History.MaxCount,
 		CleanupIntervalHours:   cfg.History.CleanupIntervalHours,
@@ -177,9 +178,7 @@ func (m *settingsModel) applyActions(value any) error {
 	}}}); err != nil {
 		return err
 	}
-	if m.onActionsChanged != nil {
-		m.onActionsChanged()
-	}
+	m.notifyChanged()
 	return nil
 }
 
@@ -273,20 +272,40 @@ func (m *settingsModel) resetSettings() error {
 			return err
 		}
 	}
+	if m.setLanguage != nil {
+		if err := m.setLanguage(string(next.Appearance.Language)); err != nil {
+			return err
+		}
+	}
 	if m.onShortcutsChanged != nil {
 		if err := m.onShortcutsChanged(""); err != nil {
 			return err
 		}
 	}
-	if m.onDisplayChanged != nil {
-		m.onDisplayChanged()
-	}
+	m.notifyChanged()
+	m.triggerCleanup()
 	return nil
 }
 
 func (m *settingsModel) update(patch map[string]any) error {
 	_, err := m.store.Update(patch)
 	return err
+}
+
+// notifyChanged refreshes list-only settings (sort, redaction, delete rules,
+// preview and search behavior) in the already-built panel.
+func (m *settingsModel) notifyChanged() {
+	if m.onChanged != nil {
+		m.onChanged()
+	}
+}
+
+// triggerCleanup applies a new retention or count limit right away instead of
+// waiting for the next scheduled cleanup pass, which may be disabled.
+func (m *settingsModel) triggerCleanup() {
+	if m.onHistoryChanged != nil {
+		m.onHistoryChanged()
+	}
 }
 
 // SuspendShortcuts releases the global bindings while the recorder is
@@ -317,6 +336,21 @@ func (m *settingsModel) loadGroups() []macos.SettingsGroup {
 		out = append(out, macos.SettingsGroup{ID: group.ID, Name: group.Name})
 	}
 	return out
+}
+
+// openGroupValue falls back to "preserve" when the stored group was deleted,
+// so the popup never shows a stale "group:<id>" item.
+func openGroupValue(value string, groups []macos.SettingsGroup) string {
+	if !strings.HasPrefix(value, "group:") {
+		return value
+	}
+	id := strings.TrimPrefix(value, "group:")
+	for _, group := range groups {
+		if group.ID == id {
+			return value
+		}
+	}
+	return "preserve"
 }
 
 var settingsPaths = map[string][]string{

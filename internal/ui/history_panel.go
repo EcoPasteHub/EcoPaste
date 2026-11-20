@@ -117,6 +117,21 @@ func (p *historyPanel) start() {
 	}
 }
 
+// panelBehavior reads the current search and preview settings on every props
+// pass, so changing them in the settings window applies to the next open
+// without rebuilding the panel.
+func (p *historyPanel) panelBehavior() macos.PanelBehavior {
+	if p.model == nil {
+		return p.behavior
+	}
+	search := p.model.SearchBehavior()
+	preview := p.model.PreviewBehavior()
+	p.behavior.DefaultFocus = search.DefaultFocus
+	p.behavior.ClearOnHide = search.ClearOnHide
+	p.behavior.SpacePreview = preview.SpaceEnabled
+	return p.behavior
+}
+
 func (p *historyPanel) node() core.Node {
 	return core.Native{
 		Component: macos.PanelComponent,
@@ -124,6 +139,7 @@ func (p *historyPanel) node() core.Node {
 		Style:     core.Style{Width: core.Pct(100), Height: core.Pct(100)},
 		PropsFunc: func() map[string]any {
 			language := i18n.Watch(p.cx)
+			behavior := p.panelBehavior()
 			display := macos.PanelDisplay{TextMaxLines: 1, ImageMaxHeight: 32, FileMaxCount: 3}
 			var quickActions []string
 			if p.model != nil {
@@ -147,7 +163,7 @@ func (p *historyPanel) node() core.Node {
 				"group":    p.group.Get(),
 				"filter":   p.filter.Get(),
 				"query":    p.query,
-				"behavior": p.behavior,
+				"behavior": behavior,
 				"drag":     p.dragProvider,
 				"display":  display,
 				"actions":  quickActions,

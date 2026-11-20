@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/EcoPasteHub/EcoPaste/internal/database"
 	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
 	"github.com/EcoPasteHub/EcoPaste/internal/settings"
 )
@@ -79,6 +80,79 @@ func TestSettingsModelAppliesPaths(t *testing.T) {
 	}
 }
 
+func TestSettingsModelSignalsListRefresh(t *testing.T) {
+	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	model := newSettingsModel(store)
+	changed := 0
+	model.onChanged = func() { changed++ }
+	for _, change := range []struct {
+		path  string
+		value any
+	}{
+		{"sort", "useCountDesc"},
+		{"sensitive.redactSecrets", false},
+		{"content.showOriginalPreview", true},
+		{"content.deleteConfirm", false},
+		{"preview.spaceEnabled", false},
+		{"search.defaultFocus", true},
+	} {
+		if err := model.Apply(change.path, change.value); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if changed != 6 {
+		t.Errorf("refresh signals = %d, want 6", changed)
+	}
+}
+
+func TestSettingsModelCleansUpWhenHistoryLimitsChange(t *testing.T) {
+	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	model := newSettingsModel(store)
+	cleaned := 0
+	model.onHistoryChanged = func() { cleaned++ }
+	if err := model.Apply("history.retention", "1h"); err != nil {
+		t.Fatal(err)
+	}
+	if err := model.Apply("history.maxCount", uint32(100)); err != nil {
+		t.Fatal(err)
+	}
+	if err := model.Apply("history.cleanupIntervalHours", uint32(1)); err != nil {
+		t.Fatal(err)
+	}
+	if cleaned != 3 {
+		t.Errorf("cleanup runs = %d, want 3", cleaned)
+	}
+}
+
+func TestLoadFallsBackWhenOpenGroupWasDeleted(t *testing.T) {
+	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := newSettingsModel(store).Apply("window.selectGroupOnOpen", "group:gone"); err != nil {
+		t.Fatal(err)
+	}
+	model := newSettingsModel(store)
+	model.listGroups = func() ([]database.Group, error) {
+		return []database.Group{{ID: "kept", Name: "Kept"}}, nil
+	}
+	if got := model.Load().GroupOnOpen; got != "preserve" {
+		t.Errorf("open group = %q, want preserve", got)
+	}
+	model.listGroups = func() ([]database.Group, error) {
+		return []database.Group{{ID: "gone", Name: "Gone"}}, nil
+	}
+	if got := model.Load().GroupOnOpen; got != "group:gone" {
+		t.Errorf("open group = %q, want the existing group", got)
+	}
+}
+
 func TestRetentionEncoding(t *testing.T) {
 	cases := map[settings.Retention]string{
 		{Unit: settings.RetentionForever}:          "forever",
@@ -118,7 +192,7 @@ func TestSettingsModelAppliesItemActions(t *testing.T) {
 	}
 	model := newSettingsModel(store)
 	changed := 0
-	model.onActionsChanged = func() { changed++ }
+	model.onChanged = func() { changed++ }
 	order := []string{
 		"star", "copy", "paste", "pastePlain", "pastePath", "copyPlain",
 		"openLink", "sendEmail", "reveal", "note", "pinItem", "delete",
@@ -409,23 +483,29 @@ func TestResetSettingsRestoresDefaultsAndSideEffects(t *testing.T) {
 		t.Fatal(err)
 	}
 	if _, err := store.Update(map[string]any{
-		"clipboard": map[string]any{"content": map[string]any{"copyPlain": true}},
-		"general":   map[string]any{"autoStart": true},
+		"general": map[string]any{"autoStart": true},
 		"appearance": map[string]any{
-			"theme": "dark",
+			"theme":    "dark",
+			"language": "en-US",
+		},
+		"clipboard": map[string]any{
+			"content": map[string]any{"copyPlain": true},
+			"history": map[string]any{"maxCount": 20},
 		},
 	}); err != nil {
 		t.Fatal(err)
 	}
 	model := newSettingsModel(store)
 	var trayIcon, autoStart bool
-	var theme string
-	rebound, redisplayed := false, false
+	var theme, language string
+	rebound, redisplayed, cleaned := false, false, false
 	model.setTrayIcon = func(on bool) error { trayIcon = on; return nil }
 	model.setAutoStart = func(on bool) error { autoStart = on; return nil }
 	model.setAppearance = func(name string) error { theme = name; return nil }
+	model.setLanguage = func(name string) error { language = name; return nil }
 	model.onShortcutsChanged = func(string) error { rebound = true; return nil }
-	model.onDisplayChanged = func() { redisplayed = true }
+	model.onChanged = func() { redisplayed = true }
+	model.onHistoryChanged = func() { cleaned = true }
 
 	if err := model.Apply("settings.reset", true); err != nil {
 		t.Fatal(err)
@@ -440,7 +520,88 @@ func TestResetSettingsRestoresDefaultsAndSideEffects(t *testing.T) {
 	if theme != string(defaults.Appearance.Theme) {
 		t.Errorf("theme = %q", theme)
 	}
-	if !rebound || !redisplayed {
-		t.Errorf("rebound = %v, redisplayed = %v", rebound, redisplayed)
+	if language != string(defaults.Appearance.Language) {
+		t.Errorf("language = %q", language)
+	}
+	if !rebound || !redisplayed || !cleaned {
+		t.Errorf("rebound = %v, redisplayed = %v, cleaned = %v", rebound, redisplayed, cleaned)
+	}
+}
+
+func TestSettingsModelAcceptsEveryVisiblePath(t *testing.T) {
+	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	model := newSettingsModel(store)
+	// The native login item, appearance and tray calls need AppKit's main
+	// queue; their own tests use fakes, so leave them out here.
+	model.setAutoStart = nil
+	model.setAppearance = nil
+	cases := []struct {
+		path  string
+		value any
+	}{
+		{"general.autoStart", true},
+		{"general.trayIcon", false},
+		{"shortcuts.openClipboard", "Command+Shift+K"},
+		{"shortcuts.openPreference", "Command+Shift+J"},
+		{"appearance.theme", "dark"},
+		{"appearance.language", "en-US"},
+		{"copyThenHideWindow", true},
+		{"feedback.copySound", true},
+		{"updateOnReuse", false},
+		{"sort", "createdAtDesc"},
+		{"window.position", "center"},
+		{"display.textMaxLines", uint32(5)},
+		{"display.imageMaxHeight", uint32(100)},
+		{"display.fileMaxCount", uint32(5)},
+		{"window.scrollToTopOnOpen", false},
+		{"window.selectRangeOnOpen", "all"},
+		{"window.selectCategoryOnOpen", "image"},
+		{"window.selectGroupOnOpen", "all"},
+		{"search.defaultFocus", true},
+		{"search.clearOnHide", false},
+		{"content.autoPaste", "singleClickPaste"},
+		{"content.middleClick", "singleClickCopy"},
+		{"content.pasteFilesAsPath", true},
+		{"content.autoFavorite", false},
+		{"content.showOriginalPreview", false},
+		{"copyPlain", true},
+		{"pastePlain", true},
+		{"preview.spaceEnabled", false},
+		{"capture.text", false},
+		{"capture.html", false},
+		{"capture.rtf", false},
+		{"capture.image", false},
+		{"capture.files", true},
+		{"capture.maxTextMb", uint32(8)},
+		{"capture.maxImageMb", uint32(50)},
+		{"history.retention", "3d"},
+		{"history.maxCount", uint32(500)},
+		{"history.cleanupIntervalHours", uint32(12)},
+		{"sensitive.collectSecrets", false},
+		{"sensitive.redactSecrets", false},
+		{"content.deleteConfirm", false},
+		{"content.deleteFavoriteConfirm", false},
+		{"content.deletePinnedConfirm", false},
+		{"content.deleteFavoriteItems", true},
+		{"content.deletePinnedItems", true},
+		{"content.deleteFavoriteOnlyFav", false},
+	}
+	for _, tc := range cases {
+		if err := model.Apply(tc.path, tc.value); err != nil {
+			t.Errorf("apply %s: %v", tc.path, err)
+		}
+	}
+	reopened, err := settings.Open(store.Path())
+	if err != nil {
+		t.Fatal(err)
+	}
+	snapshot := reopened.Snapshot()
+	if !snapshot.Clipboard.Search.DefaultFocus || snapshot.Clipboard.Search.ClearOnHide ||
+		snapshot.Clipboard.Preview.SpaceEnabled || snapshot.Clipboard.History.Retention.Value != 3 ||
+		snapshot.Clipboard.History.MaxCount != 500 {
+		t.Errorf("reopened settings = %+v", snapshot.Clipboard)
 	}
 }

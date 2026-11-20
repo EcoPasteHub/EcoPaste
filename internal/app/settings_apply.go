@@ -87,11 +87,16 @@ var settingsCommands = map[string]func(*settingsModel, any) error{
 		if err != nil {
 			return err
 		}
-		return m.update(map[string]any{
+		if err := m.update(map[string]any{
 			"clipboard": map[string]any{
 				"history": map[string]any{"retention": retention},
 			},
-		})
+		}); err != nil {
+			return err
+		}
+		m.notifyChanged()
+		m.triggerCleanup()
+		return nil
 	},
 }
 
@@ -127,8 +132,9 @@ func (m *settingsModel) applySettingPath(path string, value any) error {
 			return err
 		}
 	}
-	if strings.HasPrefix(path, "display.") && m.onDisplayChanged != nil {
-		m.onDisplayChanged()
+	m.notifyChanged()
+	if strings.HasPrefix(path, "history.") {
+		m.triggerCleanup()
 	}
 	return nil
 }

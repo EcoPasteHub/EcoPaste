@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
+	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
+	"github.com/nsgo-dev/nsgo/core"
 )
 
 func TestRelativeTimeBuckets(t *testing.T) {
@@ -166,5 +168,41 @@ func TestOpenSelectionAppliesCategoryAndGroup(t *testing.T) {
 				t.Errorf("open selection = %q, %q; want %q, %q", filter, group, tc.want[0], tc.want[1])
 			}
 		})
+	}
+}
+
+type behaviorModel struct {
+	HistoryModel
+	search  HistorySearchBehavior
+	preview HistoryPreviewBehavior
+}
+
+func (m *behaviorModel) SearchBehavior() HistorySearchBehavior   { return m.search }
+func (m *behaviorModel) PreviewBehavior() HistoryPreviewBehavior { return m.preview }
+func (m *behaviorModel) OpenBehavior() HistoryOpenBehavior {
+	return HistoryOpenBehavior{Filter: "preserve", GroupID: "preserve"}
+}
+func (m *behaviorModel) Display() HistoryDisplay { return HistoryDisplay{} }
+func (m *behaviorModel) QuickActions() []string  { return nil }
+
+func TestPanelBehaviorFollowsSettingsOnEveryPropsPass(t *testing.T) {
+	cx := core.NewRoot(core.RootOptions{Post: func(fn func()) { fn() }})
+	t.Cleanup(cx.Dispose)
+	model := &behaviorModel{
+		search:  HistorySearchBehavior{DefaultFocus: false, ClearOnHide: true},
+		preview: HistoryPreviewBehavior{SpaceEnabled: false},
+	}
+	panel := newHistoryPanel(cx, model, nil)
+	node := panel.node().(core.Native)
+	behavior, _ := node.PropsFunc()["behavior"].(macos.PanelBehavior)
+	if behavior.DefaultFocus || !behavior.ClearOnHide || behavior.SpacePreview {
+		t.Fatalf("initial behavior = %+v", behavior)
+	}
+
+	model.search = HistorySearchBehavior{DefaultFocus: true, ClearOnHide: false}
+	model.preview = HistoryPreviewBehavior{SpaceEnabled: true}
+	behavior, _ = node.PropsFunc()["behavior"].(macos.PanelBehavior)
+	if !behavior.DefaultFocus || behavior.ClearOnHide || !behavior.SpacePreview {
+		t.Fatalf("updated behavior = %+v", behavior)
 	}
 }

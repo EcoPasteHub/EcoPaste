@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/database"
@@ -58,8 +59,8 @@ func (w *settingsWiring) newModel() *settingsModel {
 	model.appIconPath = w.appIconPath
 	model.onShortcutsChanged = w.onShortcutsChanged
 	model.onShortcutsSuspended = w.onShortcutsSuspended
-	model.onDisplayChanged = w.signalHistory
-	model.onActionsChanged = w.signalHistory
+	model.onChanged = w.signalHistory
+	model.onHistoryChanged = w.cleanupHistory
 	model.setLanguage = w.setLanguage
 	model.setTrayIcon = w.setTrayIcon
 	model.exportBackup = w.exportBackup
@@ -169,6 +170,27 @@ func (w *settingsWiring) signalHistory() {
 	if runtime := w.runtime(); runtime != nil {
 		runtime.Signal()
 	}
+}
+
+// cleanupHistory applies retention and count limits immediately after their
+// settings change. It runs off the graph goroutine and refreshes the list.
+func (w *settingsWiring) cleanupHistory() {
+	runtime := w.runtime()
+	if runtime == nil || runtime.service == nil {
+		return
+	}
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		result, err := runtime.service.Cleanup(ctx, time.Now())
+		if err != nil {
+			log.Printf("cleanup after settings change: %v", err)
+			return
+		}
+		if result.Removed > 0 {
+			runtime.Signal()
+		}
+	}()
 }
 
 func (w *settingsWiring) setLanguage(language string) error {

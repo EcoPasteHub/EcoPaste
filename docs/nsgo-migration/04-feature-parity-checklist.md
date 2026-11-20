@@ -160,7 +160,7 @@
 
 ## 8. 设置项
 
-设置模型以 `legacy/backend/src/settings/model.rs` 为准，落盘 `config/settings.json`，全部 `serde(default)`、camelCase。
+设置模型以 `legacy/backend/src/settings/model.rs` 为准，落盘 `config/settings.json`，全部 `serde(default)`、camelCase。设置窗口每个开关/下拉/数字/快捷键控件的路径与回读绑定由 `TestSettingsControlsEmitTheirOwnPath`、`TestSettingsControlsShowLoadedValues` 全量校验，每个可见路径由 `TestSettingsModelAcceptsEveryVisiblePath` 校验可写入。
 
 | ID | 设置组 | 字段 | 迁移要求 | 状态 | 验证方式 |
 | --- | --- | --- | --- | --- | --- |
@@ -171,10 +171,10 @@
 | S-05 | clipboard.content | `autoPaste`、`middleClick`、`copyPlain`、`copyThenHideWindow`、`pastePlain`、`pasteFilesAsPath`、`showOriginalPreview`、删除保护、`autoFavorite`、`updateOnReuse`、`sort`、`itemActions`、`itemActionOrder` | 行为语义逐项一致 | 已通过 | 纯文本复制/粘贴、文件路径粘贴、复制后隐藏、复用排序、排序方式、中键动作、单击/双击触发已接入；设置“交互”页可改左键/中键动作、文件路径粘贴、备注自动收藏和“悬停备注条目显示原始内容”，真机写盘验证通过；有备注条目默认显示备注、真实鼠标移入后切回原内容并在移出后恢复备注，`TestHistoryRowTextUsesNoteUntilHover` 覆盖同一逻辑；“删除”页接入普通/收藏/置顶确认与删除保护，列表、右键、悬停和 Delete 键共用同一策略；悬停动作支持勾选与上下排序 |
 | S-06 | clipboard.display | `textMaxLines`、`imageMaxHeight`、`fileMaxCount` | 列表展示上限一致：文本标题行数、图片缩略图高度、文件名数量；因 purego 不支持 CGFloat 回调，列表使用统一行高`max(58, 文本行高, 图片高度+24)` | 已通过 | `TestDisplayClampsStoredDensity`、`TestHistoryItemHonorsFileMaxCount`；设置“显示”页可调；真机 `textMaxLines=3` 时 89pt 行高完整显示多行长文本与元数据，`imageMaxHeight=64` 时图片缩略图完整、无裁切，切换文本/图片分类后列表密度一致 |
 | S-07 | clipboard.sensitive | `collectSecrets`、`redactSecrets` | 两种策略互斥语义一致 | 已通过 | 设置 UI 可切换；敏感样本与预览脱敏测试 |
-| S-08 | clipboard.history | `retention{value,unit}`、`maxCount`、`cleanupIntervalHours` | 清理规则一致 | 已通过 | 设置 UI 可调；`TestCleanupHistoryByRetentionKeepsProtectedItems`、`TestCleanupHistoryByMaxCount` |
-| S-09 | clipboard.search | `defaultFocus`、`clearOnHide` | 面板打开/隐藏行为一致 | 已通过 | 设置“窗口”页提供“打开时聚焦搜索”和“下次打开时清空搜索”，写入 `clipboard.search.*` 后由面板观察器立即生效；真机验证表格/搜索框初始焦点、失焦隐藏后保留查询、隐藏后清空查询并恢复完整列表；`TestSettingsModelAppliesPaths` 覆盖路径映射与回读 |
+| S-08 | clipboard.history | `retention{value,unit}`、`maxCount`、`cleanupIntervalHours` | 清理规则一致 | 已通过 | 设置 UI 可调；修改保留期/上限后立即执行一次清理并按结果刷新面板，不必等待定时任务，定时任务仍按间隔运行；`TestCleanupHistoryByRetentionKeepsProtectedItems`、`TestCleanupHistoryByMaxCount`、`TestRetentionSettingCleansHistoryImmediately`、`TestMaxCountSettingCleansHistoryImmediately`、`TestSettingsModelCleansUpWhenHistoryLimitsChange` |
+| S-09 | clipboard.search | `defaultFocus`、`clearOnHide` | 面板打开/隐藏行为一致 | 已通过 | 设置“窗口”页提供“打开时聚焦搜索”和“下次打开时清空搜索”，写入 `clipboard.search.*` 后由面板每次 props 重读设置，下一次打开立即使用新值；真机验证表格/搜索框初始焦点、失焦隐藏后保留查询、隐藏后清空查询并恢复完整列表；`TestSettingsModelAppliesPaths`、`TestPanelBehaviorFollowsSettingsOnEveryPropsPass` 覆盖路径映射、回读与即时行为刷新 |
 | S-10 | clipboard.window | `position`、`scrollToTopOnOpen`、`selectRangeOnOpen`、`selectCategoryOnOpen`、`selectGroupOnOpen`、`lightweightMode`、`idleDestroySeconds` | 原生窗口等价行为；无 WebView 时轻量化/空闲销毁按“不适用”处理，字段继续读写 | 已通过 | `position` 三档已真机验证；`TestOpenBehavior*`、`TestOpenSelectionAppliesCategoryAndGroup` 覆盖滚动/范围/分类/分组及组合优先级；真机设置“分类=图片 + 分组=全部”冷启动后图片分类选中且仅显示 1 条图片，设置“分组=测试打开”冷启动后分组下拉选中该组且仅显示组内 1 条，分类与分组选择不再互相清空 |
-| S-11 | clipboard.preview | `hoverEnabled`、`hoverDelayMs`、`spaceEnabled` | Space 按开关生效；hover 按迁移计划不提供 | 已通过（产品调整） | `TestSpacePreviewHonorsSetting`；设置“预览”页关闭后 Space 不打开预览，开启后立即写入 `clipboard.preview.spaceEnabled` 并恢复 Space 预览；设置页改用原生浮层的操作说明，不再暴露迁移计划文案；真机确认 `NSPopover` 按空间出现在面板左侧或右侧，Esc/Space 返回并保持当前行选中；短 HTML 预览按内容收缩至 406×158，长内容滚动到底完整可见，切换条目后回到顶部；默认字体为系统无衬线字体，保留粗体、显式颜色与列表，深色模式下默认深色墨水自动切换语义正文色；`TestAttributedPreviewKeepsNativeDefaultFont`、`TestAttributedPreviewPreservesExplicitColor`、`TestPreviewInkNeedsLabelForDefaultContrast`、`TestPreviewSizeFollowsTextHeight` 覆盖；悬停预览不实现的原因见 `03-migration-plan.md` Phase 4 |
+| S-11 | clipboard.preview | `hoverEnabled`、`hoverDelayMs`、`spaceEnabled` | Space 按开关生效；hover 按迁移计划不提供 | 已通过（产品调整） | `TestSpacePreviewHonorsSetting`；设置“预览”页关闭后 Space 不打开预览，开启后立即写入 `clipboard.preview.spaceEnabled`，面板下一次 props 即重读并恢复 Space 预览；`TestPanelBehaviorFollowsSettingsOnEveryPropsPass` 覆盖；设置页改用原生浮层的操作说明，不再暴露迁移计划文案；真机确认 `NSPopover` 按空间出现在面板左侧或右侧，Esc/Space 返回并保持当前行选中；短 HTML 预览按内容收缩至 406×158，长内容滚动到底完整可见，切换条目后回到顶部；默认字体为系统无衬线字体，保留粗体、显式颜色与列表，深色模式下默认深色墨水自动切换语义正文色；`TestAttributedPreviewKeepsNativeDefaultFont`、`TestAttributedPreviewPreservesExplicitColor`、`TestPreviewInkNeedsLabelForDefaultContrast`、`TestPreviewSizeFollowsTextHeight` 覆盖；悬停预览不实现的原因见 `03-migration-plan.md` Phase 4 |
 | S-12 | clipboard.feedback | `copySound` | 音效开关一致 | 已通过 | 设置“通用”页开关即时写入 `settings.json`；开启后监听/手动读取入库成功播放系统提示音，关闭后静音；`TestSettingsModelAppliesPaths` 覆盖读写 |
 | S-13 | clipboard.filters | `excludedAppIds` | bundle id 过滤一致 | 已通过 | `TestDefaultExcludedAppsAreNotCaptured` 校验默认排除密码类应用且普通来源照常入库；`TestIgnoredAppIsNotCaptured`、`TestSettingsModelAppliesExcludedAppsAndDeletesRemoved`、`TestSettingsModelAddSourceAppExcludesIt` 覆盖自定义排除、取消与来源应用清理 |
 | S-14 | onboarding | `completed`、`lastStep`、`legacyImport{checked,imported,importTypes,importedAt}` | 移除引导/导入设置 | 不纳入 macOS 首版（产品调整） | 产品调整：开发阶段不承担旧版兼容，`Onboarding` 结构与 `settings.json` 的 `onboarding` 字段已移除；未知 JSON 字段仍由解码器忽略，不影响其它设置读写 |
@@ -182,7 +182,7 @@
 | S-16 | 默认值 | 所有 `serde(default)` | 缺字段时行为与旧版一致 | 已通过 | `TestLoadKeepsDefaultsForMissingFields`、`TestOpenFallsBackToDefaultsForUnreadableSettings`、`TestSettingsJSONRoundTripsPublishedCamelCase`：缺字段、空文件、损坏 JSON、类型错误和非法枚举均回退完整默认值，camelCase 编码可无损回环 |
 | S-17 | 写入语义 | 对象深合并、数组替换、`.tmp` + rename | patch 语义与原子写一致 | 已通过 | `TestUpdateDeepMergesObjectsAndReplacesArrays`、`TestWriteIsAtomicAndReadable`、`TestConcurrentUpdatesKeepCompleteSettings`、`TestCrashResidueDoesNotAffectSettings`；并发 patch 不丢字段，残留 `.tmp` 不影响主文件读取，下次写入完成替换且不残留临时文件 |
 | S-18 | 跨字段校验 | 快捷键不重复、`selectGroupOnOpen` 编码合法 | 错误可定位且不破坏旧值 | 已通过 | `TestUpdateRejectsInvalidValuesWithoutChangingSettings`、`TestUpdateRejectsDuplicateShortcuts`：非法枚举、快捷键冲突和非法打开分组均拒绝，内存快照与磁盘文件保持原值 |
-| S-19 | 重置 | `reset_settings` | 恢复默认但保留必要身份/数据；设置窗口底部确认后立即生效 | 已通过 | `TestResetSettingsRestoresDefaultsAndSideEffects`：默认值、自启、主题与快捷键/列表刷新均恢复；数据目录与历史不受影响；Dock 图标不再由设置控制 |
+| S-19 | 重置 | `reset_settings` | 恢复默认但保留必要身份/数据；设置窗口底部确认后立即生效 | 已通过 | `TestResetSettingsRestoresDefaultsAndSideEffects`：默认值、自启、主题、语言、快捷键、列表刷新与一次清理均恢复；数据目录与历史不受影响；Dock 图标不再由设置控制 |
 
 ## 9. 数据契约与兼容
 

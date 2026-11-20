@@ -93,9 +93,14 @@ type SettingsChange struct {
 	Value any
 }
 
+// settingsEmitter reports a settings window's events to its element.
+type settingsEmitter interface {
+	Emit(name string, data any)
+}
+
 // SettingsView is the AppKit settings window content.
 type SettingsView struct {
-	cx                  *core.NativeContext
+	cx                  settingsEmitter
 	view                objc.ID
 	tabs                objc.ID
 	footer              objc.ID
@@ -254,6 +259,10 @@ func SelectSettingsTab(name string) bool {
 
 // NewSettings builds the native settings controls.
 func NewSettings(cx *core.NativeContext) core.NativeComponent {
+	return newSettings(cx)
+}
+
+func newSettings(cx settingsEmitter) *SettingsView {
 	registerSettingsOnce.Do(registerSettingsTargets)
 	syncSettingsDockIcon(true)
 	v := &SettingsView{

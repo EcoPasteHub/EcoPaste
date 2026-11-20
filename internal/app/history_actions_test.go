@@ -88,6 +88,77 @@ func TestPlainAndPathReuseActions(t *testing.T) {
 	if writer.payload.Text != files || len(writer.payload.Files) != 0 {
 		t.Errorf("path payload = %+v", writer.payload)
 	}
+
+	if _, err := store.Update(map[string]any{
+		"clipboard": map[string]any{"content": map[string]any{
+			"pasteFilesAsPath":   true,
+			"copyThenHideWindow": true,
+		}},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	writer.payload = clipboard.WritePayload{}
+	if _, _, err := model.Activate(ctx, fileID); err != nil {
+		t.Fatal(err)
+	}
+	if writer.payload.Text != files || len(writer.payload.Files) != 0 {
+		t.Errorf("configured path payload = %+v", writer.payload)
+	}
+	hide, err = model.Copy(ctx, htmlID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !hide {
+		t.Error("copy did not request hiding the panel")
+	}
+
+	if _, err := store.Update(map[string]any{
+		"clipboard": map[string]any{"content": map[string]any{"updateOnReuse": false}},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	before, err := db.FindByID(ctx, htmlID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := model.Activate(ctx, htmlID); err != nil {
+		t.Fatal(err)
+	}
+	after, err := db.FindByID(ctx, htmlID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if after.UseCount != before.UseCount {
+		t.Errorf("use count changed with updateOnReuse off: %d -> %d", before.UseCount, after.UseCount)
+	}
+	if _, err := store.Update(map[string]any{
+		"clipboard": map[string]any{"content": map[string]any{"updateOnReuse": true}},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := model.Activate(ctx, htmlID); err != nil {
+		t.Fatal(err)
+	}
+	after, err = db.FindByID(ctx, htmlID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if after.UseCount != before.UseCount+1 {
+		t.Errorf("use count = %d, want %d", after.UseCount, before.UseCount+1)
+	}
+
+	if _, err := store.Update(map[string]any{
+		"clipboard": map[string]any{"content": map[string]any{"pastePlain": true}},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	writer.payload = clipboard.WritePayload{}
+	if _, _, err := model.Activate(ctx, htmlID); err != nil {
+		t.Fatal(err)
+	}
+	if writer.payload.Text != plain || writer.payload.HTML != "" {
+		t.Errorf("configured plain paste payload = %+v", writer.payload)
+	}
 }
 
 func TestMiddleClickActions(t *testing.T) {

@@ -104,3 +104,106 @@ func TestCleanupLoopRunsOnConfiguredInterval(t *testing.T) {
 		t.Error("expired item was not removed by periodic cleanup")
 	}
 }
+
+func TestRetentionSettingCleansHistoryImmediately(t *testing.T) {
+	ctx := context.Background()
+	root := t.TempDir()
+	db, err := database.Open(filepath.Join(root, "clipboard.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { db.Close() })
+	store, err := settings.Open(filepath.Join(root, settings.FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	runtime := &clipboardRuntime{
+		db: db,
+		service: &clipboard.Service{
+			DB:       db,
+			Settings: func() settings.Clipboard { return store.Snapshot().Clipboard },
+		},
+		changed: make(chan struct{}, 1),
+	}
+	model := newSettingsModel(store)
+	model.onHistoryChanged = func() {
+		if _, err := runtime.service.Cleanup(ctx, time.Now()); err != nil {
+			t.Errorf("cleanup: %v", err)
+		}
+	}
+	old := &database.Item{Kind: database.KindText, Content: "old", CreatedAt: time.Now().Add(-2 * time.Hour)}
+	oldID, _, err := db.Upsert(ctx, old)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fresh := &database.Item{Kind: database.KindText, Content: "fresh"}
+	freshID, _, err := db.Upsert(ctx, fresh)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := model.Apply("history.retention", "1h"); err != nil {
+		t.Fatal(err)
+	}
+	removed, err := db.FindByID(ctx, oldID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if removed != nil {
+		t.Error("expired item survived the retention change")
+	}
+	kept, err := db.FindByID(ctx, freshID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if kept == nil {
+		t.Error("fresh item was removed")
+	}
+}
+
+func TestMaxCountSettingCleansHistoryImmediately(t *testing.T) {
+	ctx := context.Background()
+	root := t.TempDir()
+	db, err := database.Open(filepath.Join(root, "clipboard.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { db.Close() })
+	store, err := settings.Open(filepath.Join(root, settings.FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	runtime := &clipboardRuntime{
+		db: db,
+		service: &clipboard.Service{
+			DB:       db,
+			Settings: func() settings.Clipboard { return store.Snapshot().Clipboard },
+		},
+		changed: make(chan struct{}, 1),
+	}
+	model := newSettingsModel(store)
+	model.onHistoryChanged = func() {
+		if _, err := runtime.service.Cleanup(ctx, time.Now()); err != nil {
+			t.Errorf("cleanup: %v", err)
+		}
+	}
+	for index, content := range []string{"one", "two", "three"} {
+		item := &database.Item{
+			Kind: database.KindText, Content: content,
+			CreatedAt: time.Now().Add(time.Duration(index) * time.Minute),
+		}
+		if _, _, err := db.Upsert(ctx, item); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := model.Apply("history.maxCount", uint32(1)); err != nil {
+		t.Fatal(err)
+	}
+	page, err := db.Page(ctx, database.Query{Limit: 10})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(page.Items) != 1 {
+		t.Errorf("items = %d, want 1", len(page.Items))
+	}
+}
