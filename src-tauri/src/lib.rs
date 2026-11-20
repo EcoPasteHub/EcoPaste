@@ -212,7 +212,9 @@ pub fn run() {
                     log::error!("database initialization failed: {err:?}");
                     err
                 })?;
-                handle_db.manage(db::DatabaseState::new(pool));
+                handle_db.manage(db::DatabaseState::new(pool.clone()));
+                // 列表索引在后台载入：窗口打开时只按主键取可见行，未就绪则回落 SQL。
+                db::list_index::activate(pool);
                 clipboard::init(&handle_db)?;
                 Ok::<_, anyhow::Error>(())
             })?;

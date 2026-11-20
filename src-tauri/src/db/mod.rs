@@ -3,6 +3,7 @@ pub mod file_icons;
 pub mod groups;
 pub mod init;
 pub mod items;
+pub mod list_index;
 pub mod models;
 pub mod path;
 pub mod state;

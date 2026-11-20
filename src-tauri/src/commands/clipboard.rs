@@ -527,7 +527,11 @@ pub async fn list_clipboard_items(
 ) -> Result<ClipboardItemPage> {
     let pool = db.pool().await;
     let q = query.unwrap_or_default();
+    #[cfg(debug_assertions)]
+    let started = std::time::Instant::now();
     let (mut items, total) = crate::db::items::query_items_page(&pool, &q).await?;
+    #[cfg(debug_assertions)]
+    let db_elapsed = started.elapsed();
     let now = Local::now();
     let settings = app.state::<SettingsStore>().snapshot();
     let file_entry_limit = settings.clipboard.display.file_entry_limit();
@@ -542,6 +546,15 @@ pub async fn list_clipboard_items(
         item.available_actions = compute_available_actions(item);
     }
     let has_more = q.offset + (items.len() as i64) < total;
+    #[cfg(debug_assertions)]
+    log::debug!(
+        "list_clipboard_items: db {:.2}ms, enrich+serialize {:.2}ms, total {:.2}ms, items={}, total={}",
+        db_elapsed.as_secs_f64() * 1000.0,
+        (started.elapsed() - db_elapsed).as_secs_f64() * 1000.0,
+        started.elapsed().as_secs_f64() * 1000.0,
+        items.len(),
+        total
+    );
     Ok(ClipboardItemPage {
         list: items,
         total,
