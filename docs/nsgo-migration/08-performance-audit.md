@@ -67,6 +67,20 @@ go test ./internal/storage -run '^$' -bench BenchmarkImageStoreRepeatedPNG -benc
 
 这衡量的是缩略图缓存命中的重复采集路径；未证明首次解码、更大历史库、整应用 CPU 或总内存具有相同比例的改进。
 
+文件历史行转换的缺失路径回退曾对每个缺失项重复拆分一次完整的 `file_types` 字符串。现在只在首次需要回退时解析一次。Apple M1 Pro、64 个缺失路径、2 秒基准、3 轮：
+
+```sh
+go test ./internal/app -run '^$' -bench '^BenchmarkDescribeFileEntriesMissing$' -benchmem -benchtime=2s -count=3
+```
+
+| | 修改前 | 修改后 |
+| --- | --- | --- |
+| 每次耗时 | 150.7–156.0µs | 95.5–101.8µs |
+| 每次分配 | 102,784B | 30,080–30,144B |
+| 每次分配次数 | 257 | 194 |
+
+此基准只衡量 64 个路径均缺失且需使用文件类型提示的转换，不代表实际每页的平均收益。
+
 ## 验证
 
 - `history_loading_test.go`：隐藏不查询、窗口信号驱动加载、取消旧请求、隐藏保留最新搜索、销毁取消、筛选消费 debounce、禁止混合分页、行 memo。

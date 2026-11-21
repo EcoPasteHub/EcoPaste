@@ -30,6 +30,8 @@ func describeFileEntries(paths []string, types *string, limit int) []fileEntry {
 		count = limit
 	}
 	entries := make([]fileEntry, 0, count)
+	var typeHints []string
+	typeHintsLoaded := false
 	for index, path := range paths[:count] {
 		entry := fileEntry{Path: path, Name: filepath.Base(path)}
 		info, err := os.Stat(path)
@@ -40,7 +42,13 @@ func describeFileEntries(paths []string, types *string, limit int) []fileEntry {
 				entry.Size = info.Size()
 			}
 		} else {
-			entry.IsDir = fileTypeAt(types, index)
+			if !typeHintsLoaded {
+				if types != nil {
+					typeHints = strings.Split(*types, ",")
+				}
+				typeHintsLoaded = true
+			}
+			entry.IsDir = index < len(typeHints) && typeHints[index] == "d"
 		}
 		entry.IsImage = !entry.IsDir && isImageFile(path)
 		entries = append(entries, entry)

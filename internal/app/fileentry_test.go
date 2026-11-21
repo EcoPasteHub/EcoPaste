@@ -44,6 +44,12 @@ func TestDescribeFileEntries(t *testing.T) {
 	if entries[3].Exists || !entries[3].IsDir {
 		t.Errorf("missing folder entry = %+v", entries[3])
 	}
+	missingPaths := []string{filepath.Join(root, "gone-file"), filepath.Join(root, "gone-folder")}
+	missingTypes := "f,d"
+	missingEntries := describeFileEntries(missingPaths, &missingTypes, 10)
+	if missingEntries[0].IsDir || !missingEntries[1].IsDir {
+		t.Errorf("missing entries lost their type hints: %+v", missingEntries)
+	}
 	if got := fileEntryLabel(entries[0]); got != "TXT" {
 		t.Errorf("text label = %q", got)
 	}
@@ -61,6 +67,19 @@ func TestDescribeFileEntries(t *testing.T) {
 	}
 	if got := fileSummary(entries, 4); got != "4 项 · 1 项已丢失" {
 		t.Errorf("multi summary = %q", got)
+	}
+}
+
+func BenchmarkDescribeFileEntriesMissing(b *testing.B) {
+	root := b.TempDir()
+	paths := make([]string, filePreviewEntryLimit)
+	for index := range paths {
+		paths[index] = filepath.Join(root, "missing", strings.Repeat("x", index+1))
+	}
+	types := strings.Repeat("f,", len(paths)-1) + "f"
+	b.ResetTimer()
+	for range b.N {
+		describeFileEntries(paths, &types, filePreviewEntryLimit)
 	}
 }
 

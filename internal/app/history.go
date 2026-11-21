@@ -567,11 +567,3 @@ func (m *historyModel) fillFilesRow(ctx context.Context, row *ui.HistoryItem, it
 		row.Files = append(row.Files, file)
 	}
 }
-
-func fileTypeAt(types *string, index int) bool {
-	if types == nil {
-		return false
-	}
-	parts := strings.Split(*types, ",")
-	return index >= 0 && index < len(parts) && parts[index] == "d"
-}
