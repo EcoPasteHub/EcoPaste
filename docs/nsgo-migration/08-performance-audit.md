@@ -79,7 +79,7 @@ go test ./internal/storage -run '^$' -bench BenchmarkImageStoreRepeatedPNG -benc
 
 自动检查：`git diff --check`、`gofmt -l .`、`go vet ./...`、`go test ./...`、`go test -race ./...`、`nsgo check cmd/ecopaste`、`nsgo test cmd/ecopaste`、`make build-dev`。其中 `nsgo test` 没有独立应用测试用例（0 passed / 0 failed / 0 skipped），不能算作额外 UI 覆盖。
 
-`internal/ui`、`internal/clipboard`、`internal/native/macos`、`internal/app` 另以 `-count=10` 连续通过。补充执行 `staticcheck ./...` 未全绿：`hover.go` 的分开声明/赋值（S1021），`objc.go` 的 `associatedRowMetricsKey` / `classNSSearchField`，以及 `SettingsView.reset` 未使用（U1000）。已对照 HEAD 确认这些代码与未使用状态在本轮之前就存在，不为通过额外工具检查而混入无关清理。
+`internal/ui`、`internal/clipboard`、`internal/native/macos`、`internal/app` 另以 `-count=10` 连续通过。复核时清理了此前记录的 4 个原生包静态检查项：合并 hover transition 声明，并移除未使用的 associated-object key、搜索框 class 缓存和 settings reset 字段；这些字段均无运行时引用。
 
 验证边界：自动键盘事件未能确认 Carbon 全局热键，自动 drag 未能确认真实的接受/取消拖放；未进行物理键鼠、目标应用实际粘贴、长时间 Instruments CPU / Allocations / 能耗剖析或完整发布验收。上述入口应做人工主路径回归，当前不宣称所有性能与稳定性风险已消除。
 
@@ -92,6 +92,6 @@ go test ./internal/storage -run '^$' -bench BenchmarkImageStoreRepeatedPNG -benc
 
 补充 `TestNativeDragEndCancelsFallback` 与 `TestPanelCancelsQueuedClickActions`，实际安排原生 delayed selector，验证原生拖拽结束、隐藏、禁用单击动作后延时任务立即释放其 table 引用；不将此测试等同于真实拖放成功。
 
-本次重新通过 `gofmt -l .`、`git diff --check`、`go vet ./...`、`go test -count=1 ./...`、`go test -race -count=1 ./...`、四个重点包 `-count=10`、原生包 `-race -count=10`、`nsgo check cmd/ecopaste`、`nsgo test cmd/ecopaste` 和 `make build-dev`。`nsgo test` 仍为 0 个应用测试；staticcheck 仍是前文列出的 4 个基线问题，没有新增项。
+本轮复核通过 `staticcheck ./...`，此前记录的 4 个原生包告警已清除。完整测试及打包结果以本次清理后的验证为准；`nsgo test` 没有独立应用测试用例，不能算作额外 UI 覆盖。
 
 同一重复 PNG 基准复测为 77.3–82.8µs/op、1,424–1,456B/op、10 allocs/op。以新建的独立 `ECOPASTE_HOME` 和 `EcoPaste-2.0.0-macos_arm64/EcoPaste.app` 验证 150 条临时历史的冷启动加载，alpha 替换为 beta 后仅有 75 条匹配结果，Space/Esc 打开/关闭对应预览，数字控件 3→4→3，以及设置关闭后重开。只使用临时夹具，未操作正式数据；真实拖放、物理全局热键及目标应用粘贴仍保留上述验证边界。

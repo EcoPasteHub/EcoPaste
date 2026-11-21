@@ -105,8 +105,7 @@ func (p *Panel) buildHoverBar() {
 	updateHoverBarStyle(bar)
 	bar.Send(sel("setAlphaValue:"), 0.0)
 	p.hoverBar = bar
-	var fade *transition
-	fade = &transition{view: bar}
+	fade := &transition{view: bar}
 	fade.redraw = func() {
 		bar.Send(sel("setAlphaValue:"), fade.value)
 		if fade.target == 0 && fade.value == 0 {

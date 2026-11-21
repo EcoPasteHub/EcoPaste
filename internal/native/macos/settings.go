@@ -103,7 +103,6 @@ type SettingsView struct {
 	dataDir             objc.ID
 	change              objc.ID
 	restore             objc.ID
-	reset               objc.ID
 	accessibilityStatus objc.ID
 	fullDiskStatus      objc.ID
 	diagnosticsHint     objc.ID

@@ -33,16 +33,11 @@ var (
 	objcSetAssociatedObject func(object, key, value, policy uintptr)
 	objcGetAssociatedObject func(object, key uintptr) uintptr
 
-	// associatedRowMetricsKey is the address that identifies the row
-	// density stored on each cell view.
-	associatedRowMetricsKey byte
-
-	classNSFont        objc.Class
-	classNSColor       objc.Class
-	classNSBox         objc.Class
-	classNSTextField   objc.Class
-	classNSSearchField objc.Class
-	classNSString      objc.Class
+	classNSFont      objc.Class
+	classNSColor     objc.Class
+	classNSBox       objc.Class
+	classNSTextField objc.Class
+	classNSString    objc.Class
 
 	utf8StringEncoding      = uint32(0x08000100)
 	windowDidBecomeKey      = "NSWindowDidBecomeKeyNotification"
@@ -82,7 +77,6 @@ func init() {
 	classNSColor = class("NSColor")
 	classNSBox = class("NSBox")
 	classNSTextField = class("NSTextField")
-	classNSSearchField = class("NSSearchField")
 	classNSString = class("NSString")
 }
 
