@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"strings"
 	"time"
@@ -20,8 +21,7 @@ func (d *DB) CleanupHistory(ctx context.Context, olderThan *time.Time, maxCount 
 	if olderThan != nil {
 		result, err := d.deleteReturning(ctx,
 			`DELETE FROM clipboard_items
-			 WHERE is_pinned = 0 AND is_favorite = 0 AND created_at < ?
-			 RETURNING kind, content`,
+			 WHERE is_pinned = 0 AND is_favorite = 0 AND created_at < ?`,
 			formatTime(*olderThan))
 		if err != nil {
 			return out, fmt.Errorf("cleanup history by retention: %w", err)
@@ -35,7 +35,7 @@ func (d *DB) CleanupHistory(ctx context.Context, olderThan *time.Time, maxCount 
 				WHERE is_pinned = 0 AND is_favorite = 0
 				ORDER BY created_at DESC
 				LIMIT -1 OFFSET ?
-			 ) RETURNING kind, content`, int64(maxCount))
+			 )`, int64(maxCount))
 		if err != nil {
 			return out, fmt.Errorf("cleanup history by max count: %w", err)
 		}
@@ -57,7 +57,7 @@ func (d *DB) ClearHistory(ctx context.Context, deleteFavorites, deletePinned boo
 	if len(where) > 0 {
 		query += " WHERE " + strings.Join(where, " AND ")
 	}
-	result, err := d.deleteReturning(ctx, query+" RETURNING kind, content")
+	result, err := d.deleteReturning(ctx, query)
 	if err != nil {
 		return CleanupResult{}, fmt.Errorf("clear history: %w", err)
 	}
@@ -65,7 +65,9 @@ func (d *DB) ClearHistory(ctx context.Context, deleteFavorites, deletePinned boo
 }
 
 func (d *DB) deleteReturning(ctx context.Context, query string, args ...any) (CleanupResult, error) {
-	rows, err := d.sql.QueryContext(ctx, query, args...)
+	// Copy only image file names into SQLite's RETURNING buffer. A text or
+	// file row may contain large content that cleanup never uses.
+	rows, err := d.sql.QueryContext(ctx, query+" RETURNING CASE WHEN kind = 'image' THEN content END", args...)
 	if err != nil {
 		return CleanupResult{}, err
 	}
@@ -73,13 +75,13 @@ func (d *DB) deleteReturning(ctx context.Context, query string, args ...any) (Cl
 
 	var out CleanupResult
 	for rows.Next() {
-		var kind, content string
-		if err := rows.Scan(&kind, &content); err != nil {
+		var image sql.NullString
+		if err := rows.Scan(&image); err != nil {
 			return out, err
 		}
 		out.Removed++
-		if Kind(kind) == KindImage {
-			out.ImageFiles = append(out.ImageFiles, content)
+		if image.Valid {
+			out.ImageFiles = append(out.ImageFiles, image.String)
 		}
 	}
 	return out, rows.Err()

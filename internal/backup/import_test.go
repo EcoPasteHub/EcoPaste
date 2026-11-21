@@ -150,19 +150,20 @@ func TestMergeImport(t *testing.T) {
 	if counts.Items != 4 {
 		t.Errorf("counts = %+v", counts)
 	}
-	merged, err := db.FindByHash(context.Background(), database.Hash(database.KindText, "hello"))
+	merged, err := db.FindByID(context.Background(), existing.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if merged == nil || merged.Note == nil || *merged.Note != note {
 		t.Errorf("duplicate metadata = %+v", merged)
 	}
-	image, err := db.FindByHash(context.Background(), database.Hash(database.KindImage, "a.png"))
+	imageKind := database.KindImage
+	images, err := db.Page(context.Background(), database.Query{Kind: &imageKind})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if image == nil || image.Content != "a.png" || image.UseCount != 1 {
-		t.Errorf("imported image = %+v", image)
+	if len(images.Items) != 1 || images.Items[0].Content != "a.png" || images.Items[0].UseCount != 1 {
+		t.Errorf("imported images = %+v", images.Items)
 	}
 	data, err := os.ReadFile(localImage)
 	if err != nil {

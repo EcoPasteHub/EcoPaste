@@ -131,15 +131,17 @@ func (d *DB) Upsert(ctx context.Context, item *Item) (id string, deduplicated bo
 	if item.ContentHash == "" {
 		item.ContentHash = Hash(item.Kind, item.Content)
 	}
-	existing, err := d.FindByHash(ctx, item.ContentHash)
-	if err != nil {
-		return "", false, err
-	}
-	if existing != nil {
-		if err := d.IncrementUseCount(ctx, existing.ID); err != nil {
-			return "", false, err
+	const lookup = `SELECT id FROM clipboard_items WHERE content_hash = ? ORDER BY created_at DESC LIMIT 1`
+	err = d.sql.QueryRowContext(ctx, lookup, item.ContentHash).Scan(&id)
+	if err == nil {
+		if _, err := d.sql.ExecContext(ctx,
+			"UPDATE clipboard_items SET use_count = use_count + 1, updated_at = ? WHERE id = ?", now(), id); err != nil {
+			return "", false, fmt.Errorf("reuse clipboard item: %w", err)
 		}
-		return existing.ID, true, nil
+		return id, true, nil
+	}
+	if !errors.Is(err, sql.ErrNoRows) {
+		return "", false, fmt.Errorf("find matching clipboard item: %w", err)
 	}
 	if item.ID == "" {
 		item.ID = NewID()
@@ -157,17 +159,6 @@ func (d *DB) Upsert(ctx context.Context, item *Item) (id string, deduplicated bo
 		return "", false, fmt.Errorf("insert clipboard item: %w", err)
 	}
 	return item.ID, false, nil
-}
-
-// IncrementUseCount marks a row as reused: one more use, a fresh
-// updated_at and no new row.
-func (d *DB) IncrementUseCount(ctx context.Context, id string) error {
-	_, err := d.sql.ExecContext(ctx,
-		"UPDATE clipboard_items SET use_count = use_count + 1, updated_at = ? WHERE id = ?", now(), id)
-	if err != nil {
-		return fmt.Errorf("increment item use count: %w", err)
-	}
-	return nil
 }
 
 const itemColumns = `id, kind, sub_kind, group_id, source_app_id, content, content_hash,
@@ -207,20 +198,6 @@ func (d *DB) FindByID(ctx context.Context, id string) (*Item, error) {
 	}
 	if err != nil {
 		return nil, fmt.Errorf("find clipboard item: %w", err)
-	}
-	return item, nil
-}
-
-// FindByHash returns the newest row with the given content hash.
-func (d *DB) FindByHash(ctx context.Context, hash string) (*Item, error) {
-	row := d.sql.QueryRowContext(ctx,
-		"SELECT "+itemColumns+" FROM clipboard_items WHERE content_hash = ? ORDER BY created_at DESC LIMIT 1", hash)
-	item, err := scanItem(row)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, fmt.Errorf("find clipboard item by hash: %w", err)
 	}
 	return item, nil
 }
