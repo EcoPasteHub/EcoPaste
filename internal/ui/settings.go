@@ -25,9 +25,11 @@ type settingsTab struct {
 func settingsTabs() []settingsTab {
 	return []settingsTab{
 		{id: "general", icon: kubai.Settings},
-		{id: "interface", icon: kubai.Appearance},
-		{id: "apps", icon: kubai.Grid},
-		{id: "advanced", icon: kubai.Sliders},
+		{id: "appearance", icon: kubai.Palette},
+		{id: "clipboard", icon: kubai.Clipboard},
+		{id: "interaction", icon: kubai.Mouse},
+		{id: "data", icon: kubai.Database},
+		{id: "system", icon: kubai.Sliders},
 		{id: "about", icon: kubai.Info},
 	}
 }
@@ -151,8 +153,8 @@ func settingsTabBar(cx *core.Scope, selected *core.Signal[string]) core.Node {
 		Style: core.Style{
 			Direction:      core.Row,
 			Height:         core.Pt(80),
-			Padding:        core.Symmetric(6, 18),
-			Gap:            8,
+			Padding:        core.Symmetric(6, 4),
+			Gap:            2,
 			AlignItems:     core.AlignCenter,
 			JustifyContent: core.JustifyCenter,
 			Borders:        core.Edges{Bottom: 1},
@@ -177,7 +179,7 @@ func settingsTabButtonStyle(active, dark bool) core.Style {
 
 func settingsTabTextStyle(active bool, muted core.Color, dark bool) core.Style {
 	return core.Style{
-		FontSize:   12,
+		FontSize:   11,
 		FontWeight: core.FontWeightMedium,
 		Color:      settingsTabTextColor(active, muted, dark),
 	}

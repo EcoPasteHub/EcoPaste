@@ -134,6 +134,7 @@ type SettingsView struct {
 
 type settingsField struct {
 	path    string
+	tab     string
 	kind    string
 	control objc.ID
 	options []string
@@ -156,11 +157,13 @@ type settingsTabMeta struct {
 }
 
 var settingsTabs = map[string]settingsTabMeta{
-	"general":   {i18n.SettingsTabGeneral, "gearshape"},
-	"interface": {i18n.SettingsTabInterface, "paintpalette"},
-	"apps":      {i18n.SettingsTabApps, "square.grid.2x2"},
-	"advanced":  {i18n.SettingsTabAdvanced, "slider.horizontal.3"},
-	"about":     {i18n.SettingsTabAbout, "info.circle"},
+	"general":     {i18n.SettingsTabGeneral, "gearshape"},
+	"appearance":  {i18n.SettingsTabAppearance, "paintpalette"},
+	"clipboard":   {i18n.SettingsTabClipboard, "clipboard"},
+	"interaction": {i18n.SettingsTabInteraction, "hand.point.up.left"},
+	"data":        {i18n.SettingsTabData, "externaldrive"},
+	"system":      {i18n.SettingsTabSystem, "slider.horizontal.3"},
+	"about":       {i18n.SettingsTabAbout, "info.circle"},
 }
 
 func settingsTabTitle(name string) string {
@@ -264,9 +267,11 @@ func newSettings(cx settingsEmitter) *SettingsView {
 	v.view.Send(sel("addSubview:"), v.footer)
 
 	v.buildGeneralPage()
-	v.buildInterfacePage()
-	v.buildAppsPage()
-	v.buildAdvancedPage()
+	v.buildAppearancePage()
+	v.buildClipboardPage()
+	v.buildInteractionPage()
+	v.buildDataPage()
+	v.buildSystemPage()
 	v.buildAboutPage()
 	settingsTabMu.Lock()
 	settingsOpenViews[v] = struct{}{}
@@ -305,7 +310,7 @@ func (v *SettingsView) applyTab(name string) {
 	v.currentTab = name
 	// Permission status can only change while the user is in System Settings;
 	// refresh once when the page shows and again when the app becomes active.
-	if name == "advanced" {
+	if name == "system" {
 		v.refreshPermissionLabels()
 	}
 }

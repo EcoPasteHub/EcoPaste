@@ -222,6 +222,7 @@ func (v *SettingsView) addLabelText(content objc.ID, y, width float64, text func
 }
 
 func (v *SettingsView) addField(content, control objc.ID, field *settingsField) {
+	field.tab = v.currentTab
 	tag := int64(len(v.fields) + 1)
 	control.Send(sel("setTag:"), tag)
 	v.fields = append(v.fields, field)

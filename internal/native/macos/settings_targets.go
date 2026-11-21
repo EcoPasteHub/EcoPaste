@@ -130,7 +130,7 @@ func settingsAppDidBecomeActive(_ objc.ID, _ objc.SEL, _ objc.ID) {
 	}
 	settingsTabMu.Unlock()
 	for _, view := range views {
-		if view.currentTab == "advanced" {
+		if view.currentTab == "system" {
 			view.refreshPermissionLabels()
 		}
 	}

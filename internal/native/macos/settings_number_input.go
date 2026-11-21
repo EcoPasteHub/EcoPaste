@@ -28,6 +28,7 @@ const (
 type numberInput struct {
 	owner    *SettingsView
 	path     string
+	tab      string
 	title    i18n.Key
 	control  objc.ID
 	field    objc.ID
@@ -80,6 +81,7 @@ func (v *SettingsView) addNumberInput(content objc.ID, y float64, title i18n.Key
 	n := &numberInput{
 		owner:     v,
 		path:      path,
+		tab:       v.currentTab,
 		title:     title,
 		control:   control,
 		minValue:  int64(math.Round(minValue)),

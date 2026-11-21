@@ -479,7 +479,9 @@
       "copyThenHide": "复制后隐藏面板",
       "dataDir": "数据目录",
       "language": "语言",
+      "menuBar": "菜单栏",
       "position": "面板打开位置",
+      "shortcuts": "快捷键",
       "sort": "排序方式",
       "startup": "启动",
       "theme": "主题",
@@ -489,6 +491,7 @@
     "history": {
       "cleanup": "保留与清理",
       "collectSecrets": "收录敏感内容",
+      "title": "历史记录",
       "maxCount": "最大记录数",
       "redactSecrets": "脱敏显示",
       "retention": "保留时长",
@@ -585,11 +588,12 @@
     },
     "tab": {
       "about": "关于",
-      "advanced": "高级",
-      "apps": "应用",
       "general": "通用",
-      "interface": "界面",
-      "update": "更新"
+      "appearance": "外观",
+      "clipboard": "剪贴板",
+      "interaction": "交互",
+      "data": "数据",
+      "system": "系统"
     },
     "theme": {
       "auto": "跟随系统",

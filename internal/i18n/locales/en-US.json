@@ -479,7 +479,9 @@
       "copyThenHide": "Hide Panel After Copy",
       "dataDir": "Data Folder",
       "language": "Language",
+      "menuBar": "Menu Bar",
       "position": "Panel Position",
+      "shortcuts": "Keyboard Shortcuts",
       "sort": "Sort Order",
       "startup": "Startup",
       "theme": "Appearance",
@@ -489,6 +491,7 @@
     "history": {
       "cleanup": "Retention & Cleanup",
       "collectSecrets": "Capture Sensitive Content",
+      "title": "History",
       "maxCount": "Maximum Items",
       "redactSecrets": "Redact Sensitive Content",
       "retention": "Keep History For",
@@ -585,11 +588,12 @@
     },
     "tab": {
       "about": "About",
-      "advanced": "Advanced",
-      "apps": "Apps",
       "general": "General",
-      "interface": "Interface",
-      "update": "Updates"
+      "appearance": "Appearance",
+      "clipboard": "Clipboard",
+      "interaction": "Interaction",
+      "data": "Data",
+      "system": "System"
     },
     "theme": {
       "auto": "Use System Setting",

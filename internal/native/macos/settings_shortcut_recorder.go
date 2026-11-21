@@ -20,6 +20,7 @@ const (
 type shortcutRecorder struct {
 	owner   *SettingsView
 	path    string
+	tab     string
 	title   i18n.Key
 	control objc.ID
 	delete  objc.ID
@@ -60,6 +61,7 @@ func (v *SettingsView) addShortcutField(content objc.ID, y float64, title i18n.K
 	recorder := &shortcutRecorder{
 		owner:   v,
 		path:    path,
+		tab:     v.currentTab,
 		title:   title,
 		control: control,
 		get:     get,

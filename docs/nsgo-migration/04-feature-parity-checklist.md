@@ -139,7 +139,7 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | U-01 | P0 | Clipboard 主页面 | `legacy/frontend/src/pages/Clipboard` | AppKit 双窗口：分类胶囊栏 + 搜索/列表/卡片/Footer | 已通过（产品调整） | 分类移入独立顶部子窗口，展示全部/文本/图片/文件/收藏胶囊与新建按钮；主窗口保留搜索、筛选菜单、设置、固定按钮、圆角卡片历史列表与 Footer；类型标签、来源/时间、置顶/收藏状态、备注切换、卡片右上角绝对定位的悬停工具栏（纯色语义背景、统一过渡且不改变内容布局；行内状态更新保留工具栏，待真机回归）、搜索/分组筛选、实时刷新与复制已真机验证；行卡片默认显示轻量底色，选中态使用系统强调色并切换白色文字；真机 420×560 主面板 + 420×48 分类栏复核；卡片统一为左侧来源应用图标、右侧内容并移除图标角标的字体图标；文本卡片按配置行数自适应高度并在超出时省略，图片按最大高度等比缩放，非图片文件逐行显示文件图标与名称，单个图片文件按图片预览展示；Finder 搜索结果复制得到的 `/.file/id=` 文件引用在采集时解析为真实路径，不再误报“已丢失”；搜索栏上下与左右留白一致、内部元素垂直居中，移除自定义居中绘制后输入框聚焦前后位置不再偏移；顶部搜索栏区域改用单一 `panelHeaderMargin` 推导上下左右四个方向的留白：工具栏图标定义行高、搜索文字与图标共用同一垂直轴、列表首张卡片与图标之间保留同样间距，真机截图像素复核四个方向留白一致（原上下约 22/29pt、左右约 16/22pt）；列表滚动到底时最后一张卡片不再被裁掉：`NSTableView` 把每行放进「行高 + 行间距」的槽位并居中单元格，原文档高度按「行高之和 + (n-1) × 行间距」计算，比末行卡片底边少 1pt，滚动到底即被裁掉 1～2px，现改为补齐末行尾部行间距；`TestHistoryRowIncludesMetadata`、`TestHistoryRowTypeLabels`、`TestHistoryTableContentHeightFollowsRows`、`TestHistoryTableContentHeightCoversLastCard`、`TestPanelSearchWidthLeavesRoomForToolbar`、`TestPanelHeaderKeepsEqualMargins`、`TestPanelHeaderCentersSearchOnIconAxis`、`TestPanelNavCapsulesFitPanelWidth`；列表选中态始终保持有且仅有一项：切换分组/分类/搜索必定选中第一项（即使原选中项仍在当前列表），删除时选中下一项（无下一项则上一项），返回顶部（含打开时滚动到顶部）选中第一项；新建分组后停留在原分组，不自动切换；`TestSelectionIndexAlwaysKeepsOneRow` 覆盖；搜索结果在标题、预览与备注中命中关键词时以低饱和奶油黄高亮（不透明底、近黑文字，浅/深色自适应），未选中/选中外观均清晰可读，查询更新时列表原地重绘高亮；`TestHighlightRanges`、`TestHighlightTokensDedupesAndSplits`、`TestHighlightedRowStringAppliesBackgroundToMatches` 覆盖 |
 | U-02 | P1 | Preview 页面 | `legacy/frontend/src/pages/Preview` | 原生 `NSPopover` 预览 | 已通过 | 真机 Space 打开、Space/Esc 关闭，popover 锚定列表行且不遮挡面板；文本、HTML、图片预览均正常；`TestPreviewRedactsSensitiveText` |
-| U-03 | P1 | Preference 页面 | `legacy/frontend/src/pages/Preference` | 原生侧栏/表单/搜索/高亮 | 已通过 | 左侧 `NSVisualEffectView` + 源码列表分类栏承载 14 个分类，右侧原生表单、全局搜索和高亮已可用；分类行支持键盘聚焦、选中强调和 VoiceOver“设置分类”标签，搜索和语言切换会同步选中侧栏行；真机验证全部分类切换、`backup` 跳转高亮及中英文重建，侧栏显示打包后的 EcoPaste 应用图标；“采集”页按内容类型、大小限制和优先级分组，中英文“上移/下移”按钮与表格宽度完整可用；“显示”页按列表密度分组，并提供文本/图片双栏原生行预览，随文本行数与图片高度实时更新；“交互”“删除”“窗口”“历史与隐私”页按操作、权限和内容类型分组，并补充自动换行的原生说明文案；“窗口”页补齐“打开时聚焦搜索”和“下次打开时清空搜索”，与现有打开行为共同覆盖 `clipboard.search` 和 `clipboard.window` 的 schema 设置；“动作”“应用”页加入分区标题和自动换行说明，上移/下移按钮的 VoiceOver 文案按页面区分；动作、应用与采集优先级列表统一使用语义色圆角内嵌容器，动作与应用列表改用 AppKit 原生 checkbox，真机验证勾选状态即时落盘并恢复，VoiceOver 标签保持；采集优先级和动作顺序按钮会按首行/末行禁用；开关行标题宽度与截断处理已修正，避免英文长标题被裁切；窗口分类图标修正为可读的 `rectangle.on.rectangle`；“数据”页按存储位置与备份恢复分组，数据目录单独占行完整展示并提供 tooltip；“权限”页按系统权限与诊断信息分组，中英文按钮宽度已适配；“预览”页控制 Space 预览，“更新”页展示版本并触发 Sparkle，说明文案改用原生多行标签并在英文长度下完整换行；2026-11-20 已删除轻量化/空闲销毁、hover 预览、更新与 Windows 专用的 12 个未接入字段，字段清单见 §8.1；其余 schema 可配置项均已覆盖 |
+| U-03 | P1 | Preference 页面 | `legacy/frontend/src/pages/Preference` | 原生分类导航与表单 | 已通过 | 当前偏好设置按通用、外观、剪贴板、交互、数据、系统、关于七类组织。登录启动和快捷键归通用；主题、语言和列表密度归外观；采集类型/优先级与来源应用过滤归剪贴板；面板打开、搜索、复制粘贴与预览动作归交互；排序、保留策略、敏感内容、删除、存储与备份归数据；权限和日志诊断归系统；版本、更新和项目链接归关于。`TestEveryScalarSettingBelongsToOneCategory` 校验字段唯一归类，`TestSettingsPagesMatchNavigation` 校验导航页齐全；改组不改变设置 schema 路径。中英文标签通过共享 i18n catalog。
 | U-04 | P1 | Onboarding 页面 | `legacy/frontend/src/pages/Onboarding` | 不提供独立引导页面 | 不纳入 macOS 首版（产品调整） | 产品调整：移除首启引导流程与相关面板浮层，`internal/onboarding`、对应 UI、i18n 与设置字段均已删除；权限、快捷键、排除应用与备份恢复分别由设置页、系统权限提示和备份导入承担 |
 | U-05 | P1 | Update 页面 | `legacy/frontend/src/pages/Update` | 原生更新状态/进度 | 迁移中 | 产品调整：不再自绘更新状态机，设置“更新”页展示当前版本与检查入口，下载进度、安装和重启交给 Sparkle 原生窗口；不可用或非 Sparkle 结果使用本地化提示；正式签名 appcast 升级待发布验证 |
 | U-06 | P2 | ContextMenu 页面 | `legacy/frontend/src/pages/ContextMenu` | macOS 使用 `NSMenu`，不迁移 WebView 菜单窗 | 参考 | 对比菜单结构 |
@@ -155,7 +155,7 @@
 
 | ID | 优先级 | 功能 | 现有实现 | NSGo/AppKit 目标 | 状态 | 验证方式 |
 | --- | --- | --- | --- | --- | --- | --- |
-| I-01 | P1 | 前端文案 | `legacy/frontend/src/locales/zh-CN`、`en-US` | Go i18n 目录，复用文案内容 | 已通过 | 剪贴板面板与 14 个设置分类已接入目录：搜索/分类/分组/空状态、右键与悬停动作、备注与分组 Popover/弹窗、类型/时间摘要、文件摘要、全部设置项/选项/诊断报告、更新入口与结果提示；备份/清除/权限弹窗，以及历史、分组、数据目录、快捷键、来源应用、链接打开、登录项与备份容器错误均已接入；`TestHistoryPresentationFollowsLanguage`、`TestFormatDiagnosticReportInEnglish`、`TestGroupValidationFollowsLanguage`、`TestBackupErrorsFollowLanguage` 覆盖英文 |
+| I-01 | P1 | 前端文案 | `legacy/frontend/src/locales/zh-CN`、`en-US` | Go i18n 目录，复用文案内容 | 已通过 | 剪贴板面板和偏好设置七个分类均由共享目录提供中英文文案；设置字段、选项、诊断报告、更新入口和结果提示，以及备份/清除/权限弹窗等文案均已接入；`TestHistoryPresentationFollowsLanguage`、`TestFormatDiagnosticReportInEnglish`、`TestGroupValidationFollowsLanguage`、`TestBackupErrorsFollowLanguage` 覆盖英文
 | I-02 | P1 | Rust 侧文案 | `src-tauri/src/i18n/` | go-i18n 嵌套 JSON 文案目录 | 已通过 | `internal/i18n` 使用 `github.com/nicksnyder/go-i18n/v2` 加载内嵌 `locales/zh-CN.json`、`locales/en-US.json`，翻译键按功能模块组织为多层 JSON，由 go-i18n 展平为点分隔消息 ID；覆盖托盘、列表右键、清除/删除确认、备份/存储/缓存/数据目录提示、剪贴板面板、设置与权限弹窗，并按 `appearance.language` 选择；缺失文案回退 zh-CN；`TestCatalogFilesUseNestedObjects`、`TestCatalogsShareEveryKey`、`TestMissingTranslationFallsBackToDefault`、`TestSetLanguageSelectsCatalog`、`TestTfFormatsArguments` |
 | I-03 | P1 | 语言切换 | `appearance.language` | 原生菜单/设置切换，原地响应式更新 | 已通过 | 设置“通用”页语言下拉写入 `appearance.language` 后，通过 NSGo Signal 更新语言状态；设置窗口标题、页签、表单标签/选项、面板工具栏/分类/列表行在原地更新，不关闭或重建窗口；真机中英文与跟随系统往返验证，窗口编号保持不变，托盘菜单、面板、设置与清空/备份弹窗文案同步切换；`TestSettingsModelAppliesLanguage` |
 | I-04 | P2 | 系统本地化 | 部分系统菜单 | AppKit 本地化角色项 + 系统语言识别 | 已通过 | `appearance.language=auto` 为默认值，读取 `NSGlobalDomain` 的 `AppleLanguages`（避免 `NSLocale.preferredLanguages` 带入应用级语言覆盖），无法读取时回退 `NSLocale.systemLocale`；匹配 zh-CN/en-US，无法匹配时回退 zh-CN；`internal/menu` 提供“应用/编辑/窗口”原生菜单与角色项，语言切换时重建菜单栏但不重建窗口；`TestResolveLanguageUsesSystemForAuto`、`TestApplicationBuildsLocalizedMenuBar`、`TestApplicationUsesRoleLabels`、`TestApplicationSettingsItem`；真机中英文往返验证关于/设置/隐藏/退出、撤销/重做/剪切/复制/粘贴/全选、最小化/缩放/全屏/关闭均随系统语言更新，设置项可从菜单打开偏好窗口 |
@@ -228,6 +228,22 @@
 6. 日志保留期限：删除配置字段、默认值、校验、持久化路径和 UI；移除运行时保留天数状态与调整 API。日志系统内部固定保留 14 天，启动先清理一次，运行期间每小时清理过期轮转/崩溃日志，并保留最多 20 个归档的容量上限；原 5 MB 轮转压缩、日志级别、脱敏、目录权限及打开目录入口保留。活动主日志仍按大小轮转，不按年龄直接删除。
 
 验证：逐项执行相关 Go 包测试、`CGO_ENABLED=0 go vet ./...` 与 `CGO_ENABLED=0 go build ./...` 后再进入下一项。全部完成后，`gofmt -l .` 无输出，`git diff --check`、`CGO_ENABLED=0 go test -count=1 ./...`、`go test -race ./...`、`make check`、`make build-dev` 通过；`nsgo test cmd/ecopaste` 成功但没有独立 NSGo 测试用例（0 passed/failed/skipped）。开发版真机核对通用/界面/高级页面及滚动布局：六项配置和两个粘贴动作不再展示，纯文本复制、排序方式、保留时长、最大记录数、日志级别与打开日志目录入口保留。数据行为通过临时目录中的设置与备份、复用排序、清理生命周期、文件原生写回及日志保留测试验证；未执行真实目标应用粘贴、真实中键鼠标硬件与真实崩溃回归，不以 UI 展示验证替代这些交互验收。
+
+## 8.3 偏好设置分类重组（2026-11-21）
+
+设置导航按用户任务重组为七类，原有设置字段、存储路径与运行行为不变：
+
+| 分类 | 内容 |
+| --- | --- |
+| 通用 | 登录启动、菜单栏图标、全局快捷键 |
+| 外观 | 主题、语言、文本/图片/文件列表展示密度 |
+| 剪贴板 | 采集类型、大小限制、表示优先级、来源应用过滤 |
+| 交互 | 面板打开位置与初始选择、搜索、复制/粘贴操作、预览、悬停动作 |
+| 数据 | 排序、历史保留和数量、敏感内容策略、删除规则、数据目录与备份恢复 |
+| 系统 | macOS 权限、诊断信息、日志级别与日志目录 |
+| 关于 | 版本、更新检查、项目链接、设置重置 |
+
+原先混在“通用/界面/高级”的设置按功能场景拆开；应用过滤与采集规则合并到“剪贴板”，历史生命周期及存储/备份归入“数据”。导航仍使用统一的七个图标按钮布局，并为中英文提供一致分类名。`TestEveryScalarSettingBelongsToOneCategory` 覆盖全部原生标量字段的唯一分类，`TestSettingsPagesMatchNavigation` 检查导航和页面一一对应；设置字段的读写路径不变。
 
 ## 9. 2.0.0 数据契约
 
