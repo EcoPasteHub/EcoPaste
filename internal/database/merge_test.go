@@ -2,6 +2,8 @@ package database
 
 import (
 	"context"
+	"fmt"
+	"path/filepath"
 	"testing"
 )
 
@@ -102,4 +104,54 @@ func TestMergeBackupAddsMissingRowsAndPreservesExistingMetadata(t *testing.T) {
 	if _, ok, err := current.FileIcon(ctx, ".pdf"); err != nil || !ok {
 		t.Errorf("merged file icon = %t, %v", ok, err)
 	}
+}
+
+func TestMergeBackupRejectsConflictingItemID(t *testing.T) {
+	current := openTestDB(t)
+	backup := openTestDB(t)
+	ctx := context.Background()
+	if _, _, err := current.Upsert(ctx, &Item{ID: "shared-id", Kind: KindText, Content: "current"}); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := backup.Upsert(ctx, &Item{ID: "shared-id", Kind: KindText, Content: "backup"}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := current.MergeBackup(ctx, backup); err == nil {
+		t.Fatal("merge succeeded with a conflicting item ID")
+	}
+}
+
+func BenchmarkMergeBackupItems(b *testing.B) {
+	ctx := context.Background()
+	backup := openBenchmarkDB(b, "backup")
+	current := openBenchmarkDB(b, "current")
+	for index := range 1000 {
+		content := fmt.Sprintf("clipboard item %d with searchable content", index)
+		if _, _, err := backup.Upsert(ctx, testItem(KindText, content, content)); err != nil {
+			b.Fatal(err)
+		}
+	}
+	b.StopTimer()
+	for index := range b.N {
+		if index > 0 {
+			if _, err := current.SQL().ExecContext(ctx, "DELETE FROM clipboard_items"); err != nil {
+				b.Fatal(err)
+			}
+		}
+		b.StartTimer()
+		if _, err := current.MergeBackup(ctx, backup); err != nil {
+			b.Fatal(err)
+		}
+		b.StopTimer()
+	}
+}
+
+func openBenchmarkDB(b *testing.B, name string) *DB {
+	b.Helper()
+	db, err := Open(filepath.Join(b.TempDir(), name, "clipboard.db"))
+	if err != nil {
+		b.Fatal(err)
+	}
+	b.Cleanup(func() { _ = db.Close() })
+	return db
 }

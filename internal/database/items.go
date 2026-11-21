@@ -175,12 +175,16 @@ const itemColumns = `id, kind, sub_kind, group_id, source_app_id, content, conte
 	is_pinned, is_sensitive, note, created_at, updated_at`
 
 func itemArgs(item *Item) []any {
-	return []any{
+	return appendItemArgs(make([]any, 0, 20), item)
+}
+
+func appendItemArgs(args []any, item *Item) []any {
+	return append(args,
 		item.ID, item.Kind, item.SubKind, item.GroupID, item.SourceAppID, item.Content,
 		item.ContentHash, item.SearchText, item.Summary, item.FileTypes, item.Size,
 		item.Width, item.Height, item.UseCount, item.IsFavorite, item.IsPinned,
 		item.IsSensitive, item.Note, formatTime(item.CreatedAt), formatTime(item.UpdatedAt),
-	}
+	)
 }
 
 const listColumns = `clipboard_items.id, clipboard_items.kind, clipboard_items.sub_kind,

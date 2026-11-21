@@ -95,6 +95,20 @@ go test ./internal/storage -run '^$' -bench '^BenchmarkMeasureUsage$' -benchmem 
 
 此基准反映资源目录文件较多时手动请求存储统计的路径，不代表启动时或日常剪贴板路径。
 
+备份合并原先为每条历史记录单独执行一次存在性查询，再执行插入。现在在事务内复用预编译语句，由同一条 `INSERT ... SELECT ... WHERE NOT EXISTS` 语句检查 `(kind, content_hash)` 并插入。Apple M1 Pro、1,000 条文本记录、5 次操作、3 轮：
+
+```sh
+go test ./internal/database -run '^$' -bench '^BenchmarkMergeBackupItems$' -benchmem -benchtime=5x -count=3
+```
+
+| | 修改前 | 修改后 |
+| --- | --- | --- |
+| 每次耗时 | 97.1–99.7ms | 77.2–80.0ms |
+| 每次分配 | 5,057,891–5,073,651B | 4,143,852–4,144,089B |
+| 每次分配次数 | 108,165–108,196 | 87,962–87,963 |
+
+合并语义保持不变：已有相同 kind/hash 的记录计入 `Skipped`，其余记录保留备份顺序插入。
+
 ## 验证
 
 - `history_loading_test.go`：隐藏不查询、窗口信号驱动加载、取消旧请求、隐藏保留最新搜索、销毁取消、筛选消费 debounce、禁止混合分页、行 memo。

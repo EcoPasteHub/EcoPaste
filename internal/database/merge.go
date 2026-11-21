@@ -124,23 +124,26 @@ func mergeItems(ctx context.Context, tx *sql.Tx, backup *DB, result *MergeResult
 		return fmt.Errorf("read backup items: %w", err)
 	}
 	defer rows.Close()
+	statement, err := tx.PrepareContext(ctx, `INSERT INTO clipboard_items
+		(id, kind, sub_kind, group_id, source_app_id, content, content_hash, search_text,
+		 summary, file_types, size, width, height, use_count, is_favorite, is_pinned,
+		 is_sensitive, note, created_at, updated_at)
+		SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+		WHERE NOT EXISTS (
+			SELECT 1 FROM clipboard_items WHERE kind = ? AND content_hash = ?
+		)`)
+	if err != nil {
+		return fmt.Errorf("prepare backup item merge: %w", err)
+	}
+	defer statement.Close()
 	for rows.Next() {
 		item, err := scanItem(rows)
 		if err != nil {
 			return fmt.Errorf("scan backup item: %w", err)
 		}
-		var existing int
-		err = tx.QueryRowContext(ctx,
-			"SELECT 1 FROM clipboard_items WHERE kind = ? AND content_hash = ? LIMIT 1",
-			item.Kind, item.ContentHash).Scan(&existing)
-		switch {
-		case err == nil:
-			result.Skipped++
-			continue
-		case err != sql.ErrNoRows:
-			return fmt.Errorf("check backup item: %w", err)
-		}
-		inserted, err := tx.ExecContext(ctx, insertItemSQL, itemArgs(item)...)
+		args := appendItemArgs(make([]any, 0, 22), item)
+		args = append(args, item.Kind, item.ContentHash)
+		inserted, err := statement.ExecContext(ctx, args...)
 		if err != nil {
 			return fmt.Errorf("merge backup item: %w", err)
 		}
