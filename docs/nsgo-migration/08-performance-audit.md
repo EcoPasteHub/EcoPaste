@@ -81,6 +81,20 @@ go test ./internal/app -run '^$' -bench '^BenchmarkDescribeFileEntriesMissing$' 
 
 此基准只衡量 64 个路径均缺失且需使用文件类型提示的转换，不代表实际每页的平均收益。
 
+托盘存储用量原先分别遍历数据库、资源、配置和整个数据根目录，因此这些子目录被重复枚举。现在由一次根目录遍历累加分项与总量。Apple M1 Pro、资源目录内 1,000 个 1KiB 文件、2 秒基准、3 轮：
+
+```sh
+go test ./internal/storage -run '^$' -bench '^BenchmarkMeasureUsage$' -benchmem -benchtime=2s -count=3
+```
+
+| | 修改前 | 修改后 |
+| --- | --- | --- |
+| 每次耗时 | 6.61–6.69ms | 3.30–3.42ms |
+| 每次分配 | 1,519,476–1,519,478B | 762,605–762,613B |
+| 每次分配次数 | 12,174 | 6,108 |
+
+此基准反映资源目录文件较多时手动请求存储统计的路径，不代表启动时或日常剪贴板路径。
+
 ## 验证
 
 - `history_loading_test.go`：隐藏不查询、窗口信号驱动加载、取消旧请求、隐藏保留最新搜索、销毁取消、筛选消费 debounce、禁止混合分页、行 memo。

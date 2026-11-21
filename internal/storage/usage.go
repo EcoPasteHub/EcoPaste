@@ -3,6 +3,7 @@ package storage
 import (
 	"io/fs"
 	"path/filepath"
+	"strings"
 )
 
 // Usage is how many bytes the data root's parts take.
@@ -13,37 +14,15 @@ type Usage struct {
 	Config   int64
 }
 
-// MeasureUsage sums the database, resources and config directories.
+// MeasureUsage sums the database, resources, config and complete data root.
 func MeasureUsage(paths *Paths) (Usage, error) {
 	var usage Usage
-	dirs := []struct {
-		path string
-		sum  *int64
-	}{
-		{paths.DB, &usage.Database},
-		{paths.Resources, &usage.Resource},
-		{paths.Config, &usage.Config},
-	}
-	for _, dir := range dirs {
-		size, err := dirSize(dir.path)
+	databasePrefix := usagePathPrefix(paths.DB)
+	resourcePrefix := usagePathPrefix(paths.Resources)
+	configPrefix := usagePathPrefix(paths.Config)
+	err := filepath.WalkDir(paths.Root, func(path string, entry fs.DirEntry, err error) error {
 		if err != nil {
-			return usage, err
-		}
-		*dir.sum = size
-	}
-	total, err := dirSize(paths.Root)
-	if err != nil {
-		return usage, err
-	}
-	usage.Total = total
-	return usage, nil
-}
-
-func dirSize(root string) (int64, error) {
-	var total int64
-	err := filepath.WalkDir(root, func(path string, entry fs.DirEntry, err error) error {
-		if err != nil {
-			if path == root {
+			if path == paths.Root {
 				return nil
 			}
 			return err
@@ -55,8 +34,26 @@ func dirSize(root string) (int64, error) {
 		if err != nil {
 			return err
 		}
-		total += info.Size()
+		size := info.Size()
+		usage.Total += size
+		if strings.HasPrefix(path, databasePrefix) {
+			usage.Database += size
+		}
+		if strings.HasPrefix(path, resourcePrefix) {
+			usage.Resource += size
+		}
+		if strings.HasPrefix(path, configPrefix) {
+			usage.Config += size
+		}
 		return nil
 	})
-	return total, err
+	return usage, err
+}
+
+func usagePathPrefix(root string) string {
+	prefix := filepath.Clean(root)
+	if strings.HasSuffix(prefix, string(filepath.Separator)) {
+		return prefix
+	}
+	return prefix + string(filepath.Separator)
 }
