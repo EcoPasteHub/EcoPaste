@@ -430,7 +430,7 @@ func TestWriteItemsSuppressTheirOwnEventsAndAllowExternalRepeats(t *testing.T) {
 				t.Fatal(err)
 			}
 			source.count = writer.changeCount
-			source.payload = payloadFromWrite(writer.payload)
+			source.payload = Payload(writer.payload)
 			if read, err := watcher.Poll(ctx, false); err != nil || read {
 				t.Fatalf("internal write poll = %t, %v", read, err)
 			}
@@ -457,10 +457,6 @@ func TestWriteItemsSuppressTheirOwnEventsAndAllowExternalRepeats(t *testing.T) {
 			}
 		})
 	}
-}
-
-func payloadFromWrite(payload WritePayload) Payload {
-	return Payload{Text: payload.Text, HTML: payload.HTML, RTF: payload.RTF, PNG: payload.PNG, Files: payload.Files}
 }
 
 func TestWriteItemHonorsCanceledContext(t *testing.T) {

@@ -33,10 +33,14 @@ func (s *Service) Capture(ctx context.Context, payload Payload, source SourceApp
 
 // CaptureDetailed also reports whether the snapshot reused an existing row.
 func (s *Service) CaptureDetailed(ctx context.Context, payload Payload, source SourceApp) (id string, changed, deduplicated bool, err error) {
-	if s.Settings != nil && source.ID != "" && slices.Contains(s.Settings().Filters.ExcludedAppIDs, source.ID) {
+	cfg := settings.Clipboard{Sensitive: settings.Sensitive{CollectSecrets: true}}
+	if s.Settings != nil {
+		cfg = s.Settings()
+	}
+	if source.ID != "" && slices.Contains(cfg.Filters.ExcludedAppIDs, source.ID) {
 		return "", false, false, nil
 	}
-	item, err := s.buildItem(payload, source)
+	item, err := s.buildItem(payload, source, cfg)
 	if err != nil {
 		return "", false, false, err
 	}
@@ -55,24 +59,11 @@ func (s *Service) CaptureDetailed(ctx context.Context, payload Payload, source S
 	return id, true, deduplicated, nil
 }
 
-// BuildItem maps a payload to a history row with the current capture and
-// sensitive settings, without storing it. Importers use it to keep the
-// same size limits, detection and image handling as live capture.
-func (s *Service) BuildItem(payload Payload) (*database.Item, error) {
-	return s.buildItem(payload, SourceApp{})
-}
-
-func (s *Service) buildItem(payload Payload, source SourceApp) (*database.Item, error) {
-	capture := settings.Capture{}
-	sensitiveCfg := settings.Sensitive{CollectSecrets: true}
-	if s.Settings != nil {
-		cfg := s.Settings()
-		capture = cfg.Capture
-		sensitiveCfg = cfg.Sensitive
-	}
+func (s *Service) buildItem(payload Payload, source SourceApp, cfg settings.Clipboard) (*database.Item, error) {
+	capture := cfg.Capture
 	plain := strings.TrimSpace(payload.Text)
 	sensitive := ContainsSecret(plain)
-	if sensitive && !sensitiveCfg.CollectSecrets {
+	if sensitive && !cfg.Sensitive.CollectSecrets {
 		return nil, nil
 	}
 	for _, kind := range settings.NormalizeCaptureOrder(capture.Order) {
@@ -200,9 +191,19 @@ func summarize(plain string) *string {
 	if trimmed == "" {
 		return nil
 	}
-	if utf8.RuneCountInString(trimmed) > SummaryMaxChars {
-		runes := []rune(trimmed)
-		trimmed = string(runes[:SummaryMaxChars])
+	characters := 0
+	for offset := range trimmed {
+		if characters == SummaryMaxChars {
+			prefix := trimmed[:offset]
+			if utf8.ValidString(prefix) {
+				trimmed = strings.Clone(prefix)
+			} else {
+				// Keep one replacement rune per malformed byte when truncating.
+				trimmed = string([]rune(prefix))
+			}
+			break
+		}
+		characters++
 	}
 	return &trimmed
 }

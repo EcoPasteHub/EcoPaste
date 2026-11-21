@@ -113,10 +113,11 @@ func startClipboard(app *core.Scope, paths *storage.Paths, store *settings.Store
 				slog.Error("capture clipboard item", "module", "app.clipboard", "error", err)
 			} else if captured {
 				slog.Debug("captured clipboard item", "module", "app.clipboard")
-				if store.Snapshot().Clipboard.Feedback.CopySound {
+				cfg := store.Snapshot().Clipboard
+				if cfg.Feedback.CopySound {
 					macos.PlayCopySound()
 				}
-				if shouldRefreshHistory(store.Snapshot().Clipboard.Content.Sort, deduplicated) {
+				if shouldRefreshHistory(cfg.Content.Sort, deduplicated) {
 					select {
 					case changed <- struct{}{}:
 					default:
