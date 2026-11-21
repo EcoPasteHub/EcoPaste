@@ -83,9 +83,19 @@ func layoutPanel(p *Panel, width, height float64) {
 	setFrame(p.settingsButton, header.settingsX, header.iconY, panelIconSize, panelIconSize)
 	setFrame(p.pin, header.pinX, header.iconY, panelIconSize, panelIconSize)
 
-	p.divider.Send(sel("setHidden:"), true)
-	p.footerDivider.Send(sel("setHidden:"), true)
+	layoutFooter(p, width)
 
+	scrollY := panelFooterHeight + 4
+	scrollHeight := header.listTop - scrollY
+	setFrame(p.scroll, 0, scrollY, width, scrollHeight)
+	if p.table != 0 {
+		p.syncTableFrame()
+	}
+
+	layoutEmptyState(p, width, scrollY, scrollHeight)
+}
+
+func layoutFooter(p *Panel, width float64) {
 	footerWidth := width - 2*panelSidePadding
 	if p.errText != "" {
 		p.shortcutButton.Send(sel("setHidden:"), true)
@@ -97,15 +107,6 @@ func layoutPanel(p *Panel, width, height float64) {
 		footerWidth, panelFooterText)
 	setFrame(p.shortcutButton, width-panelSidePadding-panelShortcutSize,
 		(panelFooterHeight-panelShortcutSize)/2, panelShortcutSize, panelShortcutSize)
-
-	scrollY := panelFooterHeight + 4
-	scrollHeight := header.listTop - scrollY
-	setFrame(p.scroll, 0, scrollY, width, scrollHeight)
-	if p.table != 0 {
-		p.syncTableFrame()
-	}
-
-	layoutEmptyState(p, width, scrollY, scrollHeight)
 }
 
 // layoutHeader places the header row. The toolbar icons set the height of

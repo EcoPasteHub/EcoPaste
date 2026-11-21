@@ -23,7 +23,6 @@ var panelPropertySetters = map[string]func(*Panel, any){
 var panelCommands = map[string]func(*Panel){
 	"focusSearch":            (*Panel).focusSearch,
 	"clearSearch":            (*Panel).clearSearch,
-	"reload":                 reloadPanelTable,
 	"scrollTop":              scrollPanelToTop,
 	"selectFirstOnOpen":      selectFirstOnOpen,
 	"applyPendingSelection":  applyPendingSelection,
@@ -36,7 +35,12 @@ var panelCommands = map[string]func(*Panel){
 
 func setPanelQuery(p *Panel, value any) {
 	s, ok := value.(string)
-	if !ok || s == p.query {
+	if !ok {
+		return
+	}
+	if s == p.query {
+		// Native typing already recorded the query before emitting its event.
+		p.updateEmptyState()
 		return
 	}
 	p.query = s
@@ -50,6 +54,7 @@ func setPanelQuery(p *Panel, value any) {
 		clearRowHoverStates()
 		p.table.Send(sel("reloadData"))
 	}
+	p.updateEmptyState()
 }
 
 func setPanelPlaceholder(p *Panel, value any) {
@@ -66,7 +71,7 @@ func setPanelRows(p *Panel, value any) {
 	// being repainted by a full reload.
 	if intent == selectionKeep && p.canAppendRows(rows) {
 		p.appendRows(rows)
-		p.updateStatus()
+		p.updateEmptyState()
 		return
 	}
 	// Keep the overlay alive when an action updates the row in place. The
@@ -96,7 +101,7 @@ func setPanelRows(p *Panel, value any) {
 	p.table.Send(sel("reloadData"))
 	p.syncTableFrame()
 	p.syncSelection(previousID, previousIndex, intent)
-	p.updateStatus()
+	p.updateEmptyState()
 	if hoverID != "" {
 		row := p.rowIndex(hoverID)
 		if row >= 0 {
@@ -112,21 +117,25 @@ func setPanelRows(p *Panel, value any) {
 func setPanelTotal(p *Panel, value any) {
 	if n, ok := int64Value(value); ok {
 		p.total = n
-		p.updateStatus()
+		p.updateFooter()
 	}
 }
 
 func setPanelLoading(p *Panel, value any) {
 	if b, ok := value.(bool); ok {
 		p.loading = b
-		p.updateStatus()
+		p.updateFooter()
 	}
 }
 
 func setPanelError(p *Panel, value any) {
 	if s, ok := value.(string); ok {
+		changedVisibility := (p.errText == "") != (s == "")
 		p.errText = s
-		p.updateStatus()
+		p.updateFooter()
+		if changedVisibility {
+			layoutFooter(p, bounds(p.view).Size.Width)
+		}
 	}
 }
 
@@ -206,12 +215,6 @@ func setPanelActions(p *Panel, value any) {
 		p.actions = actions
 		p.hideHover()
 	}
-}
-
-func reloadPanelTable(p *Panel) {
-	clearRowHoverStates()
-	p.table.Send(sel("reloadData"))
-	p.ensureSelection()
 }
 
 func showPanelAccessibilityAlert(_ *Panel) {

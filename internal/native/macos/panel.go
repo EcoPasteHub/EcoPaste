@@ -50,13 +50,11 @@ type Panel struct {
 	noteCancel         objc.ID
 	noteClosing        bool
 	noteTargetID       string
-	divider            objc.ID
 	scroll             objc.ID
 	table              objc.ID
 	empty              objc.ID
 	emptyIcons         map[emptyStateKind]emptyIconView
 	emptyDetail        objc.ID
-	footerDivider      objc.ID
 	footer             objc.ID
 	preview            objc.ID
 	previewPopover     objc.ID
@@ -187,10 +185,6 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.clearButton = newToolbarButton("trash", "clearPressed:", i18n.PanelClearHistory, true)
 	p.shortcutButton = newToolbarButton("keyboard", "shortcutHelpPressed:", i18n.PanelShortcutsAction, true)
 
-	p.divider = objc.ID(classNSBox).Send(sel("new"))
-	p.divider.Send(sel("setBoxType:"), 2)
-	p.divider.Send(sel("setTitlePosition:"), 0)
-
 	p.empty = objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(i18n.PanelEmpty)))
 	p.empty.Send(sel("setFont:"), systemFont(13))
 	p.empty.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
@@ -205,10 +199,6 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.emptyDetail.Send(sel("setLineBreakMode:"), int64(4))
 	p.emptyDetail.Send(sel("setMaximumNumberOfLines:"), int64(1))
 
-	p.footerDivider = objc.ID(classNSBox).Send(sel("new"))
-	p.footerDivider.Send(sel("setBoxType:"), 2)
-	p.footerDivider.Send(sel("setTitlePosition:"), 0)
-
 	p.footer = objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(""))
 	p.footer.Send(sel("setFont:"), systemFont(11))
 	p.footer.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("tertiaryLabelColor")))
@@ -217,8 +207,7 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.buildPreview()
 
 	for _, v := range []objc.ID{p.search, p.pin, p.filterButton, p.settingsButton,
-		p.clearButton, p.shortcutButton, p.divider, p.scroll, p.empty, p.emptyDetail,
-		p.footerDivider, p.footer} {
+		p.clearButton, p.shortcutButton, p.scroll, p.empty, p.emptyDetail, p.footer} {
 		p.view.Send(sel("addSubview:"), v)
 	}
 	p.buildEmptyIcons()
@@ -430,8 +419,6 @@ func (p *Panel) Close() {
 	if p.preview != 0 {
 		p.preview.Send(sel("release"))
 	}
-	p.divider.Send(sel("release"))
-	p.footerDivider.Send(sel("release"))
 	p.scroll.Send(sel("release"))
 	p.search.Send(sel("release"))
 	p.pin.Send(sel("release"))
@@ -465,7 +452,7 @@ func (p *Panel) togglePinned() {
 
 func (p *Panel) setGroupSelection(id string) {
 	p.groupID = id
-	p.updateStatus()
+	p.updateEmptyState()
 }
 
 func (p *Panel) setFilterSelection(filter string) {
@@ -473,16 +460,20 @@ func (p *Panel) setFilterSelection(filter string) {
 	if p.nav != nil {
 		p.nav.applyFilter(filter)
 	}
-	p.updateStatus()
+	p.updateEmptyState()
 }
 
-func (p *Panel) updateStatus() {
+func (p *Panel) updateEmptyState() {
 	state := emptyState{}
 	if !p.previewing {
 		state = emptyStateFor(len(p.rows), p.query, p.filterValue, p.groupID)
 	}
 	p.setEmptyState(state)
-	p.footerDivider.Send(sel("setHidden:"), false)
+	scroll := objc.Send[CGRect](p.scroll, sel("frame"))
+	layoutEmptyState(p, scroll.Size.Width, scroll.Origin.Y, scroll.Size.Height)
+}
+
+func (p *Panel) updateFooter() {
 	if p.errText != "" {
 		p.footer.Send(sel("setStringValue:"), nsString(p.errText))
 		p.footer.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("systemRedColor")))
@@ -493,8 +484,6 @@ func (p *Panel) updateStatus() {
 		p.footer.Send(sel("setStringValue:"), nsString(i18n.Tf(i18n.PanelCount, p.total)))
 		p.footer.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
 	}
-	frame := bounds(p.view)
-	layoutPanel(p, frame.Size.Width, frame.Size.Height)
 }
 
 // checkLoadMore asks for the next page when the last visible row nears the

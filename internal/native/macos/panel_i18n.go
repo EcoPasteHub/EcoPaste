@@ -29,7 +29,8 @@ func (p *Panel) applyLanguage(language string) {
 	}
 	p.refreshNewGroupPopoverText()
 	p.refreshNotePopoverText()
-	p.updateStatus()
+	p.updateEmptyState()
+	p.updateFooter()
 	if p.hoveredRow >= 0 {
 		p.updateHover(p.hoveredRow)
 	}

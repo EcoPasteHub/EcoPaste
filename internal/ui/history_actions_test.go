@@ -115,15 +115,6 @@ func newActionsHarness(t *testing.T, model HistoryModel) *actionsHarness {
 	return h
 }
 
-func (h *actionsHarness) waitReload(t *testing.T) {
-	t.Helper()
-	select {
-	case <-h.reloads:
-	case <-time.After(2 * time.Second):
-		t.Fatal("action did not reload the list")
-	}
-}
-
 // waitSettled waits for the action to post its result and for that result to
 // run, so the test can read signals without racing the action goroutine.
 func (h *actionsHarness) waitSettled(t *testing.T) {

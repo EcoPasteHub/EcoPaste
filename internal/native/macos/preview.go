@@ -185,7 +185,7 @@ func (p *Panel) setPreview(content PreviewContent) {
 		if p.previewing {
 			p.previewing = false
 			p.closePreview()
-			p.updateStatus()
+			p.updateEmptyState()
 			p.makeSearchFirstResponder()
 		}
 		return
@@ -209,7 +209,7 @@ func (p *Panel) setPreview(content PreviewContent) {
 		p.previewPopover.Send(sel("showRelativeToRect:ofView:preferredEdge:"),
 			p.previewAnchor(), p.table, uint64(2))
 	}
-	p.updateStatus()
+	p.updateEmptyState()
 }
 
 func (p *Panel) setPreviewImage(image objc.ID, width, height float64) {

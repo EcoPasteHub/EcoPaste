@@ -6,7 +6,37 @@ import (
 	"testing"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
+	"github.com/ebitengine/purego/objc"
 )
+
+func TestPanelStatusUpdatesKeepSearchAndFooterInSync(t *testing.T) {
+	onMain(func() {
+		panel := NewPanel(nil).(*Panel)
+		defer panel.Close()
+		text := func(label objc.ID) string { return goString(label.Send(sel("stringValue"))) }
+
+		// A native search can change the query while both the old and new
+		// result lists are empty, so there may be no rows prop to repaint it.
+		panel.query = "missing"
+		panel.SetProp("query", "missing")
+		if got := text(panel.empty); got != i18n.T(i18n.PanelNoMatches) {
+			t.Errorf("search status = %q", got)
+		}
+		panel.SetProp("error", "database unavailable")
+		if got := text(panel.footer); got != "database unavailable" || !objc.Send[bool](panel.shortcutButton, sel("isHidden")) {
+			t.Errorf("error footer = %q, want error with shortcuts hidden", got)
+		}
+		panel.SetProp("loading", true)
+		panel.SetProp("error", "")
+		if got := text(panel.footer); got != i18n.T(i18n.PanelLoading) || objc.Send[bool](panel.shortcutButton, sel("isHidden")) {
+			t.Errorf("loading footer = %q, want loading with shortcuts visible", got)
+		}
+		panel.SetProp("loading", false)
+		if got := text(panel.footer); got != i18n.Tf(i18n.PanelCount, 0) {
+			t.Errorf("result footer = %q", got)
+		}
+	})
+}
 
 func TestEmptyStateForContent(t *testing.T) {
 	previous := string(i18n.Current())

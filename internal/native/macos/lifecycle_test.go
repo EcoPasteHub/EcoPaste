@@ -54,7 +54,7 @@ func TestPanelCloseReleasesOwnedChildren(t *testing.T) {
 		pool := objc.ID(class("NSAutoreleasePool")).Send(sel("new"))
 		panel := NewPanel(nil).(*Panel)
 		children := map[string]objc.ID{
-			"table": panel.table, "hover": panel.hoverBar, "footer divider": panel.footerDivider,
+			"table": panel.table, "hover": panel.hoverBar,
 			"preview divider": panel.previewDivider, "preview scroll": panel.previewScroll,
 			"preview image": panel.previewImage,
 		}
