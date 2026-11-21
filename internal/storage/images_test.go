@@ -124,6 +124,43 @@ func TestSmallImageThumbnailIsOriginal(t *testing.T) {
 	}
 }
 
+func TestCachedThumbnailSkipsImageDecoding(t *testing.T) {
+	store := NewImageStore(t.TempDir())
+	stored, err := store.StorePNG(testPNG(t, 900, 300))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := store.writeThumbnail(stored.FileName, nil); err != nil {
+		t.Fatalf("cached thumbnail tried to decode the source again: %v", err)
+	}
+	if err := store.writeThumbnail("missing.png", nil); err == nil {
+		t.Fatal("uncached invalid source bypassed image validation")
+	}
+}
+
+func TestImageStoreRecreatesMissingThumbnail(t *testing.T) {
+	store := NewImageStore(t.TempDir())
+	data := testPNG(t, 900, 300)
+	stored, err := store.StorePNG(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	path := store.ThumbPath(stored.FileName)
+	if err := os.Remove(path); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.StorePNG(data); err != nil {
+		t.Fatal(err)
+	}
+	thumb, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if width, height := PNGDimensions(thumb); width != 300 || height != 100 {
+		t.Fatalf("restored thumbnail size = %d×%d", width, height)
+	}
+}
+
 func TestRemoveUnreferencedImages(t *testing.T) {
 	root := t.TempDir()
 	store := NewImageStore(root)

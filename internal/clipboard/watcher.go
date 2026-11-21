@@ -3,6 +3,7 @@ package clipboard
 import (
 	"context"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -13,10 +14,32 @@ type Watcher struct {
 	Source   Source
 	Interval time.Duration
 	Capture  func(ctx context.Context, payload Payload, source SourceApp)
-	Paused   func() bool
 
-	mu   sync.Mutex
-	last int
+	mu           sync.Mutex
+	last         int
+	paused       atomic.Bool
+	pauseOnce    sync.Once
+	pauseChanges chan struct{}
+}
+
+func (w *Watcher) Paused() bool { return w.paused.Load() }
+
+// SetPaused wakes the watcher so pausing also stops its polling timer.
+// Manual Poll calls remain available while automatic capture is paused.
+func (w *Watcher) SetPaused(paused bool) {
+	changes := w.pauseNotifications()
+	if w.paused.Swap(paused) == paused {
+		return
+	}
+	select {
+	case changes <- struct{}{}:
+	default:
+	}
+}
+
+func (w *Watcher) pauseNotifications() chan struct{} {
+	w.pauseOnce.Do(func() { w.pauseChanges = make(chan struct{}, 1) })
+	return w.pauseChanges
 }
 
 // Run watches until ctx ends.
@@ -28,13 +51,32 @@ func (w *Watcher) Run(ctx context.Context) {
 	w.mu.Lock()
 	w.last = w.Source.ChangeCount()
 	w.mu.Unlock()
-	ticker := time.NewTicker(interval)
-	defer ticker.Stop()
+	changes := w.pauseNotifications()
+	var ticker *time.Ticker
+	var ticks <-chan time.Time
+	stop := func() {
+		if ticker != nil {
+			ticker.Stop()
+			ticker, ticks = nil, nil
+		}
+	}
+	defer stop()
+	configure := func() {
+		if w.Paused() {
+			stop()
+		} else if ticker == nil {
+			ticker = time.NewTicker(interval)
+			ticks = ticker.C
+		}
+	}
+	configure()
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case <-ticker.C:
+		case <-changes:
+			configure()
+		case <-ticks:
 			_, _ = w.Poll(ctx, false)
 		}
 	}
@@ -46,7 +88,10 @@ func (w *Watcher) Run(ctx context.Context) {
 func (w *Watcher) Poll(ctx context.Context, force bool) (bool, error) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
-	if !force && w.Paused != nil && w.Paused() {
+	if err := ctx.Err(); err != nil {
+		return false, err
+	}
+	if !force && w.Paused() {
 		return false, nil
 	}
 	count := w.Source.ChangeCount()

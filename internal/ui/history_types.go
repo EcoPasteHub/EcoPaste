@@ -75,6 +75,12 @@ type HistoryPreviewBehavior struct {
 	SpaceEnabled bool
 }
 
+// HistoryClickBehavior lets the native table skip inactive click actions.
+type HistoryClickBehavior struct {
+	SingleClick bool
+	DoubleClick bool
+}
+
 // HistoryDisplay is the list density and note-hover behavior taken from
 // clipboard settings.
 type HistoryDisplay struct {
@@ -121,6 +127,7 @@ type HistoryModel interface {
 	ClearHistory(context.Context) error
 	SearchBehavior() HistorySearchBehavior
 	PreviewBehavior() HistoryPreviewBehavior
+	ClickBehavior() HistoryClickBehavior
 	Display() HistoryDisplay
 	OpenBehavior() HistoryOpenBehavior
 	QuickActions() []string

@@ -47,16 +47,15 @@ func TestWatcherPollReadsOnlyChanges(t *testing.T) {
 }
 
 func TestWatcherPollBypassesPause(t *testing.T) {
-	paused := true
 	source := &pollSource{count: 3, payload: Payload{Text: "paused"}}
 	var captured []Payload
 	watcher := &Watcher{
 		Source: source,
-		Paused: func() bool { return paused },
 		Capture: func(_ context.Context, payload Payload, _ SourceApp) {
 			captured = append(captured, payload)
 		},
 	}
+	watcher.SetPaused(true)
 	ctx := context.Background()
 	if read, err := watcher.Poll(ctx, false); err != nil || read {
 		t.Fatalf("paused poll = %t, %v", read, err)
@@ -64,7 +63,7 @@ func TestWatcherPollBypassesPause(t *testing.T) {
 	if read, err := watcher.Poll(ctx, true); err != nil || !read {
 		t.Fatalf("manual poll = %t, %v", read, err)
 	}
-	paused = false
+	watcher.SetPaused(false)
 	if read, err := watcher.Poll(ctx, false); err != nil || read {
 		t.Fatalf("resumed poll = %t, %v", read, err)
 	}

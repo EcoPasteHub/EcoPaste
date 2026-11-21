@@ -1,15 +1,13 @@
 package app
 
 import (
-	"sync/atomic"
-
 	"github.com/EcoPasteHub/EcoPaste/internal/settings"
 	"github.com/nsgo-dev/nsgo/core"
 	"github.com/nsgo-dev/nsgo/desktop"
 )
 
 func newAppTray(app *core.Scope, panel *desktop.Window, runtime *clipboardRuntime,
-	store *settings.Store, paused *atomic.Bool, showPanel, openSettings func(),
+	store *settings.Store, showPanel, openSettings func(),
 	hotKeys *hotKeySet) *desktop.Tray {
 	visible := settings.Default().General.TrayIcon
 	if store != nil {
@@ -28,7 +26,6 @@ func newAppTray(app *core.Scope, panel *desktop.Window, runtime *clipboardRuntim
 			app:       app,
 			runtime:   runtime,
 			store:     store,
-			paused:    paused,
 			showPanel: showPanel,
 			openSettings: func() {
 				if openSettings != nil {

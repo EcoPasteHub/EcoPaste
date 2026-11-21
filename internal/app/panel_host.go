@@ -16,18 +16,16 @@ type panelHost struct {
 	app         *core.Scope
 	store       *settings.Store
 	windowState *storage.WindowState
-	runtime     func() *clipboardRuntime
 	content     func(*core.Scope) core.Node
 	window      *desktop.Window
 }
 
 func newPanelHost(app *core.Scope, store *settings.Store, windowState *storage.WindowState,
-	runtime func() *clipboardRuntime, history ui.HistoryModel) *panelHost {
+	history ui.HistoryModel) *panelHost {
 	host := &panelHost{
 		app:         app,
 		store:       store,
 		windowState: windowState,
-		runtime:     runtime,
 	}
 	host.content = ui.ClipboardPanel(history, host.Hide)
 	host.open()
@@ -47,7 +45,6 @@ func (h *panelHost) open() {
 }
 
 func (h *panelHost) Show() {
-	h.signal()
 	h.place()
 	h.window.Show()
 }
@@ -58,9 +55,6 @@ func (h *panelHost) Hide() {
 	// path, opens where the panel was left.
 	h.place()
 	h.window.Hide()
-	// Window commands issued from a Carbon callback need a tree update
-	// before NSGo applies them.
-	h.signal()
 }
 
 func (h *panelHost) Toggle() {
@@ -73,12 +67,6 @@ func (h *panelHost) Toggle() {
 
 func (h *panelHost) Window() *desktop.Window {
 	return h.window
-}
-
-func (h *panelHost) signal() {
-	if runtime := h.runtime(); runtime != nil {
-		runtime.Signal()
-	}
 }
 
 func (h *panelHost) place() {

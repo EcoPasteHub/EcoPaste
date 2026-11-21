@@ -4,7 +4,6 @@ import (
 	"context"
 	"log/slog"
 	"os"
-	"sync/atomic"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/EcoPasteHub/EcoPaste/internal/menu"
@@ -27,7 +26,6 @@ func Run(app *core.Scope) {
 	i18n.Bind(app)
 	desktop.SetShutdownMode(app, desktop.ShutdownOnExplicit)
 	activation := instanceRequests(app)
-	var paused atomic.Bool
 	var history ui.HistoryModel
 	var runtime *clipboardRuntime
 	var openSettings func()
@@ -62,7 +60,7 @@ func Run(app *core.Scope) {
 		openSettings = wiring.open
 		hotKeys.openSettings = openSettings
 		var startErr error
-		runtime, startErr = startClipboard(app, paths, store, &paused)
+		runtime, startErr = startClipboard(app, paths, store)
 		if startErr != nil {
 			slog.Error("start clipboard service", "module", "app", "error", startErr)
 		} else {
@@ -72,12 +70,12 @@ func Run(app *core.Scope) {
 			}
 		}
 	}
-	panelHost := newPanelHost(app, store, windowState, func() *clipboardRuntime { return runtime }, history)
+	panelHost := newPanelHost(app, store, windowState, history)
 	hotKeys.togglePanel = panelHost.Toggle
 
 	showPanel := panelHost.Show
 
-	tray = newAppTray(app, panelHost.Window(), runtime, store, &paused, showPanel, openSettings, hotKeys)
+	tray = newAppTray(app, panelHost.Window(), runtime, store, showPanel, openSettings, hotKeys)
 
 	if wiring != nil {
 		wiring.reloadHotkeys = hotKeys.reload
@@ -101,10 +99,11 @@ func Run(app *core.Scope) {
 			runBackupImport(app, runtime, path, store, hotKeys.reload)
 		}
 	})
+	ctx := app.Context()
 	go func() {
 		for {
 			select {
-			case <-app.Context().Done():
+			case <-ctx.Done():
 				return
 			case <-activation:
 				if openSettings != nil {

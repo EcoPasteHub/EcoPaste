@@ -179,6 +179,7 @@ type behaviorModel struct {
 
 func (m *behaviorModel) SearchBehavior() HistorySearchBehavior   { return m.search }
 func (m *behaviorModel) PreviewBehavior() HistoryPreviewBehavior { return m.preview }
+func (m *behaviorModel) ClickBehavior() HistoryClickBehavior     { return HistoryClickBehavior{} }
 func (m *behaviorModel) OpenBehavior() HistoryOpenBehavior {
 	return HistoryOpenBehavior{Filter: "preserve", GroupID: "preserve"}
 }

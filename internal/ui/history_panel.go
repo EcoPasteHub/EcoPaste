@@ -9,6 +9,7 @@ import (
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
 	"github.com/nsgo-dev/nsgo/core"
+	"github.com/nsgo-dev/nsgo/desktop"
 )
 
 type historyPanel struct {
@@ -18,6 +19,7 @@ type historyPanel struct {
 	ref   *core.Ref
 
 	items     *core.Signal[[]HistoryItem]
+	rows      *core.Memo[[]macos.HistoryRow]
 	total     *core.Signal[int64]
 	loading   *core.Signal[bool]
 	errorText *core.Signal[string]
@@ -27,15 +29,17 @@ type historyPanel struct {
 	filter    *core.Signal[string]
 	group     *core.Signal[string]
 
-	behavior    macos.PanelBehavior
-	query       string
-	filterValue string
-	groupID     string
-	selectedID  string
-	pinned      bool
-	scrollTop   atomic.Bool
-	pageSize    int
-	request     atomic.Int64
+	behavior      macos.PanelBehavior
+	query         string
+	filterValue   string
+	groupID       string
+	selectedID    string
+	pinned        bool
+	scrollTop     atomic.Bool
+	pageSize      int
+	request       atomic.Int64
+	visible       bool
+	cancelRequest context.CancelFunc
 
 	language      i18n.Language
 	pendingSearch func() bool
@@ -58,14 +62,12 @@ func newHistoryPanel(cx *core.Scope, model HistoryModel, hide func()) *historyPa
 		pageSize:  80,
 		language:  i18n.Watch(cx),
 	}
+	p.rows = core.NewMemoFunc(cx, func() []macos.HistoryRow {
+		i18n.Watch(cx)
+		return historyRows(p.items.Get())
+	}, nil)
 	if model != nil {
-		search := model.SearchBehavior()
-		previewBehavior := model.PreviewBehavior()
-		p.behavior = macos.PanelBehavior{
-			DefaultFocus: search.DefaultFocus,
-			ClearOnHide:  search.ClearOnHide,
-			SpacePreview: previewBehavior.SpaceEnabled,
-		}
+		p.panelBehavior()
 	}
 
 	opening := HistoryOpenBehavior{Filter: "preserve", GroupID: "preserve"}
@@ -89,6 +91,7 @@ func newHistoryPanel(cx *core.Scope, model HistoryModel, hide func()) *historyPa
 		}
 	}
 	cx.Cleanup(p.cancelPendingSearch)
+	cx.Cleanup(p.cancelLoad)
 	return p
 }
 
@@ -96,20 +99,30 @@ func (p *historyPanel) start() {
 	p.watchLanguage()
 	p.filter.Set(p.filterValue)
 	p.group.Set(p.groupID)
-	p.load("", p.filterValue, p.groupID, false)
 	p.loadGroups(p.groupID, false)
+	if window := desktop.CurrentWindow(p.cx); window != nil {
+		p.cx.Effect(func() { p.setVisible(window.Visible()) })
+	}
 	if p.model == nil {
 		return
 	}
 	if updates := p.model.Updates(); updates != nil {
 		ctx := p.cx.Context()
+		var pending atomic.Bool
 		go func() {
 			for {
 				select {
 				case <-ctx.Done():
 					return
-				case <-updates:
+				case _, ok := <-updates:
+					if !ok {
+						return
+					}
+					if !pending.CompareAndSwap(false, true) {
+						continue
+					}
 					p.cx.Post(func() {
+						pending.Store(false)
 						p.preview.Set(macos.PreviewContent{})
 						p.reload()
 					})
@@ -128,9 +141,12 @@ func (p *historyPanel) panelBehavior() macos.PanelBehavior {
 	}
 	search := p.model.SearchBehavior()
 	preview := p.model.PreviewBehavior()
+	clicks := p.model.ClickBehavior()
 	p.behavior.DefaultFocus = search.DefaultFocus
 	p.behavior.ClearOnHide = search.ClearOnHide
 	p.behavior.SpacePreview = preview.SpaceEnabled
+	p.behavior.SingleClick = clicks.SingleClick
+	p.behavior.DoubleClick = clicks.DoubleClick
 	return p.behavior
 }
 
@@ -156,7 +172,7 @@ func (p *historyPanel) node() core.Node {
 			}
 			return map[string]any{
 				"language": string(language),
-				"rows":     historyRows(p.items.Get()),
+				"rows":     p.rows.Get(),
 				"total":    p.total.Get(),
 				"loading":  p.loading.Get(),
 				"error":    p.errorText.Get(),
@@ -176,6 +192,7 @@ func (p *historyPanel) node() core.Node {
 }
 
 func (p *historyPanel) load(keyword, activeFilter, groupID string, appendRows bool) {
+	p.cancelLoad()
 	if p.model == nil {
 		p.errorText.Set(i18n.T(i18n.DatabaseOpenFailed))
 		p.loading.Set(false)
@@ -187,9 +204,11 @@ func (p *historyPanel) load(keyword, activeFilter, groupID string, appendRows bo
 	if appendRows {
 		offset = len(p.items.GetUntracked())
 	}
-	serial := p.request.Add(1)
-	ctx := p.cx.Context()
+	serial := p.request.Load()
+	ctx, cancel := context.WithCancel(p.cx.Context())
+	p.cancelRequest = cancel
 	go func() {
+		defer cancel()
 		page, err := p.model.List(ctx, HistoryQuery{
 			Keyword: keyword,
 			Filter:  activeFilter,
@@ -201,6 +220,7 @@ func (p *historyPanel) load(keyword, activeFilter, groupID string, appendRows bo
 			if p.request.Load() != serial {
 				return
 			}
+			p.cancelRequest = nil
 			if err != nil {
 				logHistoryFailure("load history", err)
 				p.errorText.Set(err.Error())
@@ -228,7 +248,18 @@ func (p *historyPanel) load(keyword, activeFilter, groupID string, appendRows bo
 }
 
 func (p *historyPanel) reload() {
-	p.load(p.query, p.filterValue, p.groupID, false)
+	if p.visible {
+		p.cancelPendingSearch()
+		p.load(p.query, p.filterValue, p.groupID, false)
+	}
+}
+
+func (p *historyPanel) cancelLoad() {
+	p.request.Add(1)
+	if p.cancelRequest != nil {
+		p.cancelRequest()
+		p.cancelRequest = nil
+	}
 }
 
 func (p *historyPanel) loadGroups(selectID string, reloadRows bool) {
@@ -310,34 +341,16 @@ func (p *historyPanel) handleEvent(name string, data any) {
 
 func (p *historyPanel) handleListEvent(name string, data any) bool {
 	switch name {
-	case "opened":
-		if p.model == nil {
-			return true
-		}
-		opening := p.model.OpenBehavior()
-		nextFilter, nextGroup := openSelection(opening, p.filterValue, p.groupID)
-		changed := nextFilter != p.filterValue || nextGroup != p.groupID
-		if nextFilter != p.filterValue {
-			p.filterValue = nextFilter
-			p.filter.Set(nextFilter)
-		}
-		if nextGroup != p.groupID {
-			p.groupID = nextGroup
-			p.group.Set(nextGroup)
-		}
-		if opening.ScrollTop {
-			p.scrollTop.Store(true)
-			p.ref.Command("selectFirstOnOpen", nil)
-			changed = true
-		}
-		if changed {
-			p.reload()
-		}
 	case "query":
 		text, _ := data.(string)
+		if text == p.query {
+			return true
+		}
 		p.cancelPendingSearch()
+		p.cancelLoad()
+		p.query = text
 		p.pendingSearch = p.cx.AfterFunc(120*time.Millisecond, func() {
-			p.query = text
+			p.pendingSearch = nil
 			p.reload()
 		})
 	case "searchCleared":
@@ -347,6 +360,9 @@ func (p *historyPanel) handleListEvent(name string, data any) bool {
 		p.reload()
 	case "filter":
 		value, _ := data.(string)
+		if value == p.filterValue && p.groupID == "" {
+			return true
+		}
 		p.filterValue = value
 		p.groupID = ""
 		p.filter.Set(value)
@@ -354,6 +370,9 @@ func (p *historyPanel) handleListEvent(name string, data any) bool {
 		p.reload()
 	case "group":
 		value, _ := data.(string)
+		if value == p.groupID && p.filterValue == "" {
+			return true
+		}
 		p.groupID = value
 		p.filterValue = ""
 		p.group.Set(value)
@@ -363,13 +382,46 @@ func (p *historyPanel) handleListEvent(name string, data any) bool {
 	case "select":
 		p.selectedID, _ = data.(string)
 	case "loadMore":
-		if p.hasMore.GetUntracked() && !p.loading.GetUntracked() {
+		if p.visible && p.pendingSearch == nil && p.hasMore.GetUntracked() && !p.loading.GetUntracked() {
 			p.load(p.query, p.filterValue, p.groupID, true)
 		}
 	default:
 		return false
 	}
 	return true
+}
+
+func (p *historyPanel) setVisible(visible bool) {
+	if p.visible == visible {
+		return
+	}
+	p.visible = visible
+	if !visible {
+		p.cancelPendingSearch()
+		p.cancelLoad()
+		p.loading.Set(false)
+		p.ref.Command("cancelInteractions", nil)
+		return
+	}
+	if p.model == nil {
+		p.reload()
+		return
+	}
+	opening := p.model.OpenBehavior()
+	nextFilter, nextGroup := openSelection(opening, p.filterValue, p.groupID)
+	if nextFilter != p.filterValue {
+		p.filterValue = nextFilter
+		p.filter.Set(nextFilter)
+	}
+	if nextGroup != p.groupID {
+		p.groupID = nextGroup
+		p.group.Set(nextGroup)
+	}
+	if opening.ScrollTop {
+		p.scrollTop.Store(true)
+		p.ref.Command("selectFirstOnOpen", nil)
+	}
+	p.reload()
 }
 
 func (p *historyPanel) handleWindowEvent(name string, data any) bool {

@@ -69,6 +69,7 @@ func (v *SettingsView) addShortcutField(content objc.ID, y float64, title i18n.K
 	recorder.delete = newShortcutDeleteButton(recorder)
 	control.Send(sel("addSubview:"), recorder.delete)
 	content.Send(sel("addSubview:"), control)
+	control.Send(sel("release"))
 	v.shortcutRecorders = append(v.shortcutRecorders, recorder)
 	recorder.refresh()
 }
@@ -453,10 +454,7 @@ func registerShortcutRecorderTargets() {
 			}},
 			{Cmd: sel("updateTrackingAreas"), Fn: func(self objc.ID, _ objc.SEL) {
 				sendSuper[objc.ID](self, shortcutRecorderClass, sel("updateTrackingAreas"))
-				area := objc.ID(class("NSTrackingArea")).Send(sel("alloc")).
-					Send(sel("initWithRect:options:owner:userInfo:"), CGRect{}, uint64(1|128|512), self, objc.ID(0))
-				self.Send(sel("addTrackingArea:"), area)
-				area.Send(sel("release"))
+				ensureHoverTracking(self)
 			}},
 			{Cmd: sel("mouseEntered:"), Fn: func(self objc.ID, _ objc.SEL, _ objc.ID) {
 				if recorder := shortcutRecorders[self]; recorder != nil {

@@ -133,10 +133,7 @@ func registerNavClasses() error {
 			}},
 			{Cmd: sel("updateTrackingAreas"), Fn: func(self objc.ID, _ objc.SEL) {
 				sendSuper[objc.ID](self, navCapsuleClass, sel("updateTrackingAreas"))
-				area := objc.ID(class("NSTrackingArea")).Send(sel("alloc")).
-					Send(sel("initWithRect:options:owner:userInfo:"), CGRect{}, uint64(1|128|512), self, objc.ID(0))
-				self.Send(sel("addTrackingArea:"), area)
-				area.Send(sel("release"))
+				ensureHoverTracking(self)
 			}},
 			{Cmd: sel("mouseEntered:"), Fn: func(self objc.ID, _ objc.SEL, _ objc.ID) {
 				if hover := navCapsuleHovers[self]; hover != nil {

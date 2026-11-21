@@ -114,7 +114,7 @@ func finishDrag(p *Panel, accepted bool) {
 	if p == nil || !p.dragging {
 		return
 	}
-	p.dragging = false
+	endPanelDrag(p)
 	window := p.view.Send(sel("window"))
 	if window == 0 {
 		return
@@ -176,6 +176,7 @@ func newHistoryTable(p *Panel) objc.ID {
 	table.Send(sel("setColumnAutoresizingStyle:"), int64(1))
 
 	scroll.Send(sel("setDocumentView:"), table)
+	table.Send(sel("release"))
 	panelsByTable[table] = p
 	return scroll
 }

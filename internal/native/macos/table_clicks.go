@@ -65,12 +65,19 @@ func historyTableMouseDown(self objc.ID, _ objc.SEL, event objc.ID) {
 	switch {
 	case clicks == 2 && row >= 0 && row < len(p.rows):
 		cancelPendingClick(self)
+		p.pendingClick = ""
 		p.selectRow(row)
-		p.cx.Emit("activateDoubleClick", p.rows[row].ID)
+		if p.behavior.DoubleClick {
+			p.cx.Emit("activateDoubleClick", p.rows[row].ID)
+		}
 	case clicks == 1 && row >= 0 && row < len(p.rows):
 		cancelPendingClick(self)
-		p.pendingClick = p.rows[row].ID
+		p.pendingClick = ""
 		p.selectRow(row)
+		if !p.behavior.SingleClick {
+			return
+		}
+		p.pendingClick = p.rows[row].ID
 		self.Send(sel("performSelector:withObject:afterDelay:"),
 			sel("activatePendingClick:"), objc.ID(0), doubleClickDelay())
 	}
@@ -78,7 +85,7 @@ func historyTableMouseDown(self objc.ID, _ objc.SEL, event objc.ID) {
 
 func historyTableActivatePendingClick(self objc.ID, _ objc.SEL, _ objc.ID) {
 	p := panelsByTable[self]
-	if p == nil || p.pendingClick == "" {
+	if p == nil || p.pendingClick == "" || !p.behavior.SingleClick {
 		return
 	}
 	id := p.pendingClick

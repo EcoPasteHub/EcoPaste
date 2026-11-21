@@ -131,6 +131,7 @@ func (p *Panel) buildHoverBar() {
 		panelsByControl[button] = p
 	}
 	p.view.Send(sel("addSubview:"), bar)
+	bar.Send(sel("release"))
 }
 
 // updateHoverAtWindowPoint shows the action bar for the row under a point in

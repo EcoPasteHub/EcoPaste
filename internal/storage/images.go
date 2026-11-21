@@ -156,11 +156,17 @@ func shardName(fileName string) string {
 }
 
 func (s *ImageStore) writeThumbnail(fileName string, data []byte) error {
+	path := s.ThumbPath(fileName)
+	if _, err := os.Stat(path); err == nil {
+		return nil
+	} else if !os.IsNotExist(err) {
+		return fmt.Errorf("read thumbnail: %w", err)
+	}
 	thumb, err := thumbnailPNG(data)
 	if err != nil {
 		return err
 	}
-	if err := writeIfMissing(s.ThumbPath(fileName), thumb); err != nil {
+	if err := writeIfMissing(path, thumb); err != nil {
 		return fmt.Errorf("store thumbnail: %w", err)
 	}
 	return nil

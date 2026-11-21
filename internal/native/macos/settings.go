@@ -252,6 +252,7 @@ func newSettings(cx settingsEmitter) *SettingsView {
 	})
 	v.tabs.Send(sel("setAutoresizingMask:"), int64(18))
 	v.view.Send(sel("addSubview:"), v.tabs)
+	v.tabs.Send(sel("release"))
 
 	v.footer = objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(""))
 	v.footer.Send(sel("setFont:"), systemFont(11))

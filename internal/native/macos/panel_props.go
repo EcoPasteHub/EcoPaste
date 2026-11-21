@@ -31,6 +31,7 @@ var panelCommands = map[string]func(*Panel){
 	"toggleWindowPinned":     (*Panel).togglePinned,
 	"resignKey":              resignPanelKey,
 	"makeKey":                makePanelKey,
+	"cancelInteractions":     (*Panel).cancelInteractions,
 }
 
 func setPanelQuery(p *Panel, value any) {
@@ -169,6 +170,10 @@ func setPanelFilter(p *Panel, value any) {
 func setPanelBehavior(p *Panel, value any) {
 	if behavior, ok := value.(PanelBehavior); ok {
 		p.behavior = behavior
+		if !behavior.SingleClick {
+			cancelPendingClick(p.table)
+			p.pendingClick = ""
+		}
 	}
 }
 

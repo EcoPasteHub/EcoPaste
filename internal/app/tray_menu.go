@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"log/slog"
-	"sync/atomic"
 	"time"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
@@ -18,7 +17,6 @@ type trayMenu struct {
 	app           *core.Scope
 	runtime       *clipboardRuntime
 	store         *settings.Store
-	paused        *atomic.Bool
 	showPanel     func()
 	openSettings  func()
 	shortcuts     func() (string, string)
@@ -28,12 +26,12 @@ type trayMenu struct {
 func (t trayMenu) items() []desktop.MenuItem {
 	hotKey, preferenceHotKey := t.shortcuts()
 	pauseLabel := i18n.T(i18n.TrayPause)
-	if t.paused.Load() {
+	if t.runtime != nil && t.runtime.watcher.Paused() {
 		pauseLabel = i18n.T(i18n.TrayResume)
 	}
 	return []desktop.MenuItem{
 		{Label: i18n.T(i18n.TrayShow), Shortcut: hotKey, OnSelect: t.showPanel},
-		{Label: pauseLabel, OnSelect: func() { t.paused.Store(!t.paused.Load()) }},
+		{Label: pauseLabel, Disabled: t.runtime == nil, OnSelect: t.togglePause},
 		{Label: i18n.T(i18n.TrayReadClipboard), OnSelect: t.readClipboard},
 		{Label: i18n.T(i18n.TraySettings), Shortcut: preferenceHotKey, OnSelect: t.openSettings},
 		{Separator: true},
@@ -77,18 +75,25 @@ func (t trayMenu) items() []desktop.MenuItem {
 	}
 }
 
+func (t trayMenu) togglePause() {
+	if t.runtime != nil {
+		watcher := t.runtime.watcher
+		watcher.SetPaused(!watcher.Paused())
+	}
+}
+
 func (t trayMenu) readClipboard() {
 	if t.runtime == nil {
 		return
 	}
+	parent := t.runtime.ctx
 	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		ctx, cancel := context.WithTimeout(parent, 30*time.Second)
 		defer cancel()
 		if err := t.runtime.readClipboard(ctx); err != nil {
 			slog.Error("read clipboard", "module", "app.tray", "error", err)
 			return
 		}
-		t.runtime.Signal()
 	}()
 }
 

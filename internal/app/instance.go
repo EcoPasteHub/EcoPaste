@@ -111,11 +111,12 @@ func instanceRequests(cx *core.Scope) <-chan struct{} {
 	requests := make(chan struct{}, 1)
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, syscall.SIGUSR1)
+	ctx := cx.Context()
 	go func() {
 		defer signal.Stop(signals)
 		for {
 			select {
-			case <-cx.Context().Done():
+			case <-ctx.Done():
 				return
 			case <-signals:
 				select {

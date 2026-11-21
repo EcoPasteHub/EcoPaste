@@ -194,6 +194,10 @@ func TestClickActionModes(t *testing.T) {
 	}
 	for _, tc := range cases {
 		setMode(string(tc.mode))
+		clicks := model.ClickBehavior()
+		if clicks.SingleClick != tc.singleWrites || clicks.DoubleClick != tc.doubleWrites {
+			t.Errorf("%s click behavior = %+v", tc.mode, clicks)
+		}
 		writer.payload = clipboard.WritePayload{}
 		paste, _, err := model.ActivateSingleClick(ctx, id)
 		if err != nil {

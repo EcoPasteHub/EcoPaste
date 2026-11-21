@@ -28,7 +28,7 @@
 | C-15 | P0 | 敏感内容识别 | `clipboard/secrets.rs` | 私钥、token、AWS key、JWT、标签 secret | 已通过 | `TestContainsSecret` 固定样本矩阵 |
 | C-16 | P0 | 敏感内容策略 | `collectSecrets`、`redactSecrets` | 跳过或脱敏，日志不落原文 | 已通过 | `TestSecretCapturePolicy`、`TestPreviewRedactsSensitiveText` |
 | C-17 | P0 | 回环抑制 | `clipboard/guard.rs` | 写回前登记所有实际写出的表示 hash，2 秒 TTL | 已通过 | `TestWriteItemSuppressesItsOwnCapture`、`TestWriteRichTextSuppressesHTMLAndPlainFallback`、`TestWriteFilesAsTextSuppressesFallbackCapture`；真机复制 HTML 后 DB 不新增纯文本回环 |
-| C-18 | P1 | 监听暂停 | `WatcherPause`、托盘 | 暂停期间跳过入库，watcher 不退出 | 已通过 | 真机托盘暂停后复制不入库，恢复后继续监听；`TestWatcherPollBypassesPause` |
+| C-18 | P1 | 监听暂停 | `WatcherPause`、托盘 | 暂停停止采样 ticker，以事件恢复，watcher 等待事件而不退出 | 已通过 | 既有真机托盘暂停/恢复验证；`TestWatcherPollBypassesPause`、`TestWatcherStopsPollingWhilePausedAndResumes`、`TestCanceledPollDoesNotReadPasteboard` 覆盖无轮询、恢复、手动读取及取消 |
 | C-19 | P2 | 复制音效 | `clipboard/sound.rs` | `AVAudioPlayer` 或 Go 音频库 | 已通过（产品调整） | `TestCopySoundIsAvailable`、`TestSettingsModelAppliesPaths`；真机开启“复制提示音”后系统 `Pop` 音效可用，关闭后不再播放；按产品调整改用系统音效，见迁移计划 |
 | C-20 | P1 | 手动读取剪贴板 | `read_clipboard` | 与自动采集共用同一条管线 | 已通过 | `TestWatcherPollReadsOnlyChanges`；真机暂停时读取入库，恢复后不重复；冷启动前已有剪贴板内容可由托盘读取入库 |
 
@@ -264,7 +264,21 @@
 | N-11 | Windows 构建/发布 | `.github/workflows/*` Windows job | 保留 | 平台适配阶段重写 |
 | N-12 | Linux 支持 | 当前无实现 | 不新增 | 未来单独立项 |
 
-## 11. 验收记录规则
+## 11. 性能与资源生命周期复核（2026-11-21）
+
+完整依据、定时任务清单与基准见 [08-performance-audit.md](./08-performance-audit.md)。本轮没有改变既有功能的产品范围，也不以本轮局部回归代替所有既有人工验收。
+
+| 关联项 | 本轮结果 | 验证与边界 |
+| --- | --- | --- |
+| C-01 / C-18 / C-20 | 暂停不创建/运行采样 ticker，恢复事件重新启用；手动读取保留且不再重复发送刷新信号 | watcher 生命周期测试与 race 测试；物理复制/粘贴矩阵未重跑 |
+| D-03 / D-05 / U-01 / U-07 | 隐藏不读历史；快速搜索取消旧查询；搜索与筛选合并；行展示仅在数据/语言变化时重算 | `TestHiddenHistoryDefersRefreshUntilOpen`、`TestHistoryFollowsWindowVisibilityWithoutNativeNotifications`、`TestFilterConsumesPendingSearchWithoutDuplicateOrMixedPages`、`TestHistoryRowsAreMemoizedAcrossUnrelatedProps`；150 条隔离夹具真机验证首次加载、快速搜索与预览 |
+| C-05 / D-21 | 已缓存缩略图不重复解码/缩放/编码；缺失仍重建 | `TestCachedThumbnailSkipsImageDecoding`、`TestImageStoreRecreatesMissingThumbnail`；重复 1600×1000 PNG 的局部基准约 30ms→0.08ms，不代表首次解码或整应用速度 |
+| W-03 / W-05 / W-07 / S-05 | 隐藏/销毁取消加载与点击延时；未启用单击不安排任务；释放设置与面板的原生引用，复用 hover tracking area，cell 销毁清理 layout | 原生 lifecycle/tracking 测试；真机设置值 3→4→3、关闭重开通过；Carbon 全局热键、真实拖放与目标应用粘贴仍需人工复核；拖拽兜底保留并在原生结束时立即取消 |
+| A-12 / A-13 / A-14 | 保留原生拖放与既有检测兜底；结束/隐藏/关闭统一释放拖拽资源 | `TestShouldHideAfterDrag`；本轮自动 drag 未能确认真实拖放，不更新为新一轮真机通过 |
+
+中断后复核补齐 runtime 上下文捕获的线程/owner 边界，以及服务不可用时首次显示的错误状态；增加设置 worker、服务缺失和原生延时任务取消测试，完整 Go / race / NSGo 检查与开发构建重新通过。隔离 150 条数据的加载、搜索、预览和设置重开回归通过；真实拖放与粘贴仍按表中边界保留。详见性能排查文档的“中断后的复核与补充”。
+
+## 12. 验收记录规则
 
 - 每完成一项，把状态改为 `已通过`，并在验证列补充实际命令、截图路径或手动步骤编号。
 - 重要的产品取舍必须写明理由，不能只写“已通过”。

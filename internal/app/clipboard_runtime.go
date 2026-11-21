@@ -4,7 +4,6 @@ import (
 	"context"
 	"log/slog"
 	"path/filepath"
-	"sync/atomic"
 	"time"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/clipboard"
@@ -17,6 +16,7 @@ import (
 )
 
 type clipboardRuntime struct {
+	ctx           context.Context
 	db            *database.DB
 	service       *clipboard.Service
 	images        *storage.ImageStore
@@ -68,7 +68,7 @@ func runWithTimeout(rt *clipboardRuntime, timeout time.Duration, fn func(context
 	if rt == nil {
 		return clipboardServiceDown()
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	ctx, cancel := context.WithTimeout(rt.ctx, timeout)
 	defer cancel()
 	return fn(ctx, rt)
 }
@@ -78,12 +78,12 @@ func runWithTimeoutValue[T any](rt *clipboardRuntime, timeout time.Duration, fn 
 	if rt == nil {
 		return *new(T), clipboardServiceDown()
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	ctx, cancel := context.WithTimeout(rt.ctx, timeout)
 	defer cancel()
 	return fn(ctx, rt)
 }
 
-func startClipboard(app *core.Scope, paths *storage.Paths, store *settings.Store, paused *atomic.Bool) (*clipboardRuntime, error) {
+func startClipboard(app *core.Scope, paths *storage.Paths, store *settings.Store) (*clipboardRuntime, error) {
 	db, err := database.Open(filepath.Join(paths.DB, "clipboard.db"))
 	if err != nil {
 		return nil, err
@@ -106,7 +106,6 @@ func startClipboard(app *core.Scope, paths *storage.Paths, store *settings.Store
 	}
 	watcher := &clipboard.Watcher{
 		Source: pasteboardSource{icons: iconCache},
-		Paused: paused.Load,
 		Capture: func(ctx context.Context, payload clipboard.Payload, source clipboard.SourceApp) {
 			_, captured, err := service.Capture(ctx, payload, source)
 			if err != nil {
@@ -123,14 +122,16 @@ func startClipboard(app *core.Scope, paths *storage.Paths, store *settings.Store
 			}
 		},
 	}
-	ctx, cancel := context.WithCancel(context.Background())
+	// Capture the owner on the graph once; workers must not ask Scope.Context
+	// for whichever computation happens to be active when they run.
+	ctx, cancel := context.WithCancel(app.Context())
 	done := make(chan struct{})
 	go func() {
 		watcher.Run(ctx)
 		close(done)
 	}()
 	runtime := &clipboardRuntime{
-		db: db, service: service, images: images, appIcons: appIcons,
+		ctx: ctx, db: db, service: service, images: images, appIcons: appIcons,
 		fileIcons: fileIcons, fileIconCache: fileIconCache, paths: paths,
 		apps: registry, watcher: watcher, changed: changed,
 	}

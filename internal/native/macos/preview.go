@@ -150,6 +150,7 @@ func (p *Panel) buildPreviewContent() {
 	p.previewScroll.Send(sel("setDrawsBackground:"), false)
 	p.previewScroll.Send(sel("setBorderType:"), int64(0))
 	p.previewScroll.Send(sel("setDocumentView:"), p.previewText)
+	p.previewText.Send(sel("release"))
 
 	p.previewImage = objc.ID(class("NSImageView")).Send(sel("new"))
 	p.previewImage.Send(sel("setImageScaling:"), int64(3))
@@ -161,6 +162,9 @@ func (p *Panel) buildPreviewContent() {
 	p.preview.Send(sel("addSubview:"), p.previewDivider)
 	p.preview.Send(sel("addSubview:"), p.previewScroll)
 	p.preview.Send(sel("addSubview:"), p.previewImage)
+	p.previewDivider.Send(sel("release"))
+	p.previewScroll.Send(sel("release"))
+	p.previewImage.Send(sel("release"))
 }
 
 func (p *Panel) buildPreviewPopover() {

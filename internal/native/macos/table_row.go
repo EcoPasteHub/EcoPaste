@@ -83,6 +83,11 @@ func registerHistoryRowViewsClass() error {
 	var err error
 	historyRowClass, err = objc.RegisterClass("EcoPasteHistoryRow", class("NSTableCellView"), nil, nil,
 		[]objc.MethodDef{
+			{Cmd: sel("dealloc"), Fn: func(self objc.ID, cmd objc.SEL) {
+				rowLayouts.Delete(self)
+				delete(rowHoverStates, self)
+				sendSuper[objc.ID](self, historyRowClass, cmd)
+			}},
 			{Cmd: sel("setFrameSize:"), Fn: func(self objc.ID, _ objc.SEL, size CGSize) {
 				sendSuper[objc.ID](self, historyRowClass, sel("setFrameSize:"), size)
 				layoutHistoryRow(self, size)

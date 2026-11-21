@@ -62,36 +62,36 @@ func panelWindowResignedKey(self objc.ID, _ objc.SEL, note objc.ID) {
 }
 
 func panelWindowDidOrderOffScreen(self objc.ID, _ objc.SEL, note objc.ID) {
-	p := panelsByObserver[self]
-	if p != nil {
-		p.hideHover()
+	p, _ := panelForWindow(self, note)
+	if p == nil {
+		return
 	}
-	if p != nil && p.shortcutPopover != 0 &&
+	p.cancelInteractions()
+	if p.shortcutPopover != 0 &&
 		objc.Send[bool](p.shortcutPopover, sel("isShown")) {
 		p.shortcutPopover.Send(sel("close"))
 	}
-	if p != nil && p.groupPopoverActive() {
-		if _, window := panelForWindow(self, note); window != 0 {
-			p.groupClosing = true
-			p.groupPopover.Send(sel("close"))
-		}
+	if p.groupPopoverActive() {
+		p.groupClosing = true
+		p.groupPopover.Send(sel("close"))
 	}
-	if p != nil && p.notePopoverActive() {
-		if _, window := panelForWindow(self, note); window != 0 {
-			p.noteClosing = true
-			p.notePopover.Send(sel("close"))
-		}
+	if p.notePopoverActive() {
+		p.noteClosing = true
+		p.notePopover.Send(sel("close"))
 	}
-	if p == nil || !p.behavior.ClearOnHide {
-		return
-	}
-	p, _ = panelForWindow(self, note)
-	if p == nil {
+	if !p.behavior.ClearOnHide {
 		return
 	}
 	p.clearSearch()
 	syncNavVisibility(p)
 	p.cx.Emit("searchCleared", nil)
+}
+
+func (p *Panel) cancelInteractions() {
+	cancelPendingClick(p.table)
+	p.pendingClick = ""
+	endPanelDrag(p)
+	p.hideHover()
 }
 
 func panelWindowDidOrderOnScreen(self objc.ID, _ objc.SEL, note objc.ID) {
@@ -102,7 +102,6 @@ func panelWindowDidOrderOnScreen(self objc.ID, _ objc.SEL, note objc.ID) {
 	applyPlacement(p)
 	syncNavVisibility(p)
 	animateIn(p.view, panelFadeDuration)
-	p.cx.Emit("opened", nil)
 }
 
 func panelSearchTextChanged(_ objc.ID, _ objc.SEL, note objc.ID) {

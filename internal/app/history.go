@@ -77,6 +77,9 @@ func (m *historyModel) List(ctx context.Context, q ui.HistoryQuery) (ui.HistoryP
 	}
 	items := make([]ui.HistoryItem, 0, len(page.Items))
 	for _, item := range page.Items {
+		if err := ctx.Err(); err != nil {
+			return ui.HistoryPage{}, err
+		}
 		row := m.historyItem(ctx, item, cfg)
 		row.CanDelete, row.DeleteConfirm = deletePolicy(item, q, cfg.Content)
 		items = append(items, row)
@@ -137,6 +140,14 @@ func (m *historyModel) SearchBehavior() ui.HistorySearchBehavior {
 
 func (m *historyModel) PreviewBehavior() ui.HistoryPreviewBehavior {
 	return ui.HistoryPreviewBehavior{SpaceEnabled: m.clipboardConfig().Preview.SpaceEnabled}
+}
+
+func (m *historyModel) ClickBehavior() ui.HistoryClickBehavior {
+	mode := m.clipboardConfig().Content.AutoPaste
+	return ui.HistoryClickBehavior{
+		SingleClick: mode == settings.AutoPasteSingleClickCopy || mode == settings.AutoPasteSingleClickPaste,
+		DoubleClick: mode == settings.AutoPasteDoubleClickCopy || mode == settings.AutoPasteDoubleClickPaste,
+	}
 }
 
 // Display reports the clamped list density, so a hand-edited settings

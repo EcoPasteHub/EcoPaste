@@ -22,6 +22,7 @@
 | [05-risk-register.md](./05-risk-register.md) | 技术、数据、平台、发布和产品风险 |
 | [06-cleanup-report.md](./06-cleanup-report.md) | 本轮清理范围、保留项和后续删除条件 |
 | [07-nsgo-upgrade-log.md](./07-nsgo-upgrade-log.md) | NSGo v0.2.0 与依赖升级记录、新特性评估结论 |
+| [08-performance-audit.md](./08-performance-audit.md) | 性能、定时任务与资源生命周期排查、基准及验证边界 |
 
 ## 证据来源
 

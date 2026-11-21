@@ -69,8 +69,9 @@ func importBackupWithUI(app *core.Scope, runtime *clipboardRuntime, store *setti
 }
 
 func runBackupExport(app *core.Scope, runtime *clipboardRuntime, path string, mode backup.Mode, password string) {
+	parent := runtime.ctx
 	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+		ctx, cancel := context.WithTimeout(parent, 5*time.Minute)
 		defer cancel()
 		result, err := backup.Export(ctx, backup.Source{
 			Database:   runtime.db,
@@ -135,8 +136,9 @@ func runBackupImport(app *core.Scope, runtime *clipboardRuntime, path string, st
 }
 
 func runBackupMerge(app *core.Scope, runtime *clipboardRuntime, path, password string, store *settings.Store, reloadHotkeys func() error) {
+	parent := runtime.ctx
 	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+		ctx, cancel := context.WithTimeout(parent, 10*time.Minute)
 		defer cancel()
 		result, err := backup.Merge(ctx, path, password, runtime.db, runtime.paths.Resources)
 		if err != nil {

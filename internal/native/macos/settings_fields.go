@@ -227,6 +227,7 @@ func (v *SettingsView) addField(content, control objc.ID, field *settingsField) 
 	v.fields = append(v.fields, field)
 	content.Send(sel("addSubview:"), control)
 	settingsViews[control] = v
+	control.Send(sel("release"))
 }
 
 func (v *SettingsView) fieldFor(sender objc.ID) *settingsField {
