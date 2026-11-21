@@ -115,11 +115,10 @@ func (s *ImageStore) RemoveUnreferenced(referenced map[string]struct{}) (int, in
 			if err != nil {
 				return files, bytes, fmt.Errorf("list image shard: %w", err)
 			}
+			empty := true
 			for _, entry := range names {
-				if entry.IsDir() {
-					continue
-				}
-				if _, ok := referenced[entry.Name()]; ok {
+				if _, keep := referenced[entry.Name()]; keep || entry.IsDir() {
+					empty = false
 					continue
 				}
 				info, err := entry.Info()
@@ -132,20 +131,14 @@ func (s *ImageStore) RemoveUnreferenced(referenced map[string]struct{}) (int, in
 				files++
 				bytes += info.Size()
 			}
-			if empty, err := dirEmpty(shardPath); err == nil && empty {
-				os.Remove(shardPath)
+			if empty {
+				// Remove only an empty directory. A concurrent writer may have
+				// added a file since it was listed.
+				_ = os.Remove(shardPath)
 			}
 		}
 	}
 	return files, bytes, nil
-}
-
-func dirEmpty(path string) (bool, error) {
-	entries, err := os.ReadDir(path)
-	if err != nil {
-		return false, err
-	}
-	return len(entries) == 0, nil
 }
 
 func shardName(fileName string) string {

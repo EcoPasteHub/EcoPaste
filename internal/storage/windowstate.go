@@ -59,10 +59,13 @@ func (s *WindowState) Frame() (WindowFrame, bool) {
 	return *s.frame, true
 }
 
-// SaveFrame records the panel's frame atomically.
+// SaveFrame records a changed panel frame atomically.
 func (s *WindowState) SaveFrame(frame WindowFrame) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if s.frame != nil && *s.frame == frame {
+		return nil
+	}
 	data, err := json.MarshalIndent(frame, "", "  ")
 	if err != nil {
 		return err

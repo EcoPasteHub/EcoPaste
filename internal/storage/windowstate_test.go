@@ -42,3 +42,28 @@ func TestWindowStateDropsBrokenFile(t *testing.T) {
 		t.Fatal("broken file kept a frame")
 	}
 }
+
+func TestSavingSameWindowFrameKeepsPersistedFile(t *testing.T) {
+	state, err := OpenWindowState(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	frame := WindowFrame{X: 120, Y: 240, Width: 420, Height: 560}
+	if err := state.SaveFrame(frame); err != nil {
+		t.Fatal(err)
+	}
+	before, err := os.Stat(state.path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := state.SaveFrame(frame); err != nil {
+		t.Fatal(err)
+	}
+	after, err := os.Stat(state.path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !os.SameFile(before, after) {
+		t.Error("saving the same frame replaced the state file")
+	}
+}

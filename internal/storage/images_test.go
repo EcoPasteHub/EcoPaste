@@ -188,4 +188,9 @@ func TestRemoveUnreferencedImages(t *testing.T) {
 	if _, err := os.Stat(store.ThumbPath(orphan.FileName)); !os.IsNotExist(err) {
 		t.Fatalf("orphan thumbnail kept: %v", err)
 	}
+	for _, path := range []string{store.OriginPath(orphan.FileName), store.ThumbPath(orphan.FileName)} {
+		if _, err := os.Stat(filepath.Dir(path)); !os.IsNotExist(err) {
+			t.Errorf("empty shard was kept: %v", err)
+		}
+	}
 }
