@@ -137,3 +137,37 @@ go test ./internal/database -run '^$' -bench '^BenchmarkMergeBackupItems$' -benc
 本轮复核通过 `staticcheck ./...`，此前记录的 4 个原生包告警已清除。完整测试及打包结果以本次清理后的验证为准；`nsgo test` 没有独立应用测试用例，不能算作额外 UI 覆盖。
 
 同一重复 PNG 基准复测为 77.3–82.8µs/op、1,424–1,456B/op、10 allocs/op。以新建的独立 `ECOPASTE_HOME` 和 `EcoPaste-2.0.0-macos_arm64/EcoPaste.app` 验证 150 条临时历史的冷启动加载，alpha 替换为 beta 后仅有 75 条匹配结果，Space/Esc 打开/关闭对应预览，数字控件 3→4→3，以及设置关闭后重开。只使用临时夹具，未操作正式数据；真实拖放、物理全局热键及目标应用粘贴仍保留上述验证边界。
+
+## 全项目复查（2026-11-21）
+
+从 `b555fe89` 开始复查当前 macOS 构建目标的采集、写回、历史查询与清理、备份、原生面板与偏好设置、应用编排、存储、日志、国际化、菜单、快捷键、粘贴注入、更新和构建配置。重新核对周期任务的启动和停止条件、原生状态更新的触发点、Go 静态检查和依赖清单。
+
+| 模块 | 改动 | 提交 |
+| --- | --- | --- |
+| 剪贴板 | 生成 256 字符摘要时只扫描到截断点，保留多字节字符边界和无效 UTF-8 的原有处理。同次采集的来源过滤和内容转换共用一份设置，删除无调用方的条目构建入口 | `fb421137` |
+| 备份 | 明文导入直接从 ZIP 文件读取索引及各条目，明文导出直接写入最终原子替换用的临时文件。加密导入在校验头部和密码后读取密文，并原地解密。ZIP、清单和加密容器格式保持兼容 | `e8a2df12` |
+| 数据库 | 去重查询只读 ID，保留原有的最新记录选择和使用次数更新规则。批量清理时只返回图片文件名，仍统计所有删除项 | `9a4e7092` |
+| 偏好设置 | 页面搭建时记录高度，切换时直接使用。开关、下拉和数字控件跳过重复写入和布局，语言更新仍刷新本地化控件。删除未使用的菜单标题缓存和旧标签图标元数据 | `e2e65a9a` |
+| 历史面板 | 结果计数和加载提示只更新页脚。筛选、查询和预览的空状态更新独立处理，避免重排表格。删除两条始终隐藏的分隔线和无调用方的重载命令 | `94ba2b76` |
+| 存储 | 面板坐标不变时跳过原子写入。清理图片缓存时复用已经读到的分片目录信息，只尝试移除空目录 | `abd3db50` |
+| 应用层 | 预览数据组装从历史模型主文件拆出，文件预览只生成一次元数据，通用字节数格式化放回存储编排文件 | `00be887f` |
+
+在 Apple M1 Pro 上对比 3 轮微基准。耗时包含各自的操作范围，分配量为 `go test -benchmem` 记录的 Go 堆分配。
+
+| 基准 | 修改前 | 修改后 |
+| --- | --- | --- |
+| `BenchmarkSummarizeLargeText`，768 KiB 多字节文本生成摘要 | 2.09–2.15 ms，约 1 MiB/次 | 1.28–1.29 µs，784 B/次 |
+| `BenchmarkExtractPlainBackup`，含 32 MiB 资源的明文 ZIP 解包 | 32.6–42.5 ms，约 32 MiB/次 | 19.1–21.8 ms，约 170–180 KiB/次 |
+| `BenchmarkUpsertRepeatedRichText`，重复写入 240 KiB 富文本 | 255–288 µs，约 259 KiB/次 | 127–133 µs，880 B/次 |
+
+复现命令：
+
+```sh
+go test ./internal/clipboard -run '^$' -bench '^BenchmarkSummarizeLargeText$' -benchmem -benchtime=300ms -count=3
+go test ./internal/backup -run '^$' -bench '^BenchmarkExtractPlainBackup$' -benchmem -benchtime=5x -count=3
+go test ./internal/database -run '^$' -bench '^BenchmarkUpsertRepeatedRichText$' -benchmem -benchtime=300ms -count=3
+```
+
+去重试过合并为一条 `UPDATE … RETURNING`，同一富文本夹具上的耗时约为 333–341 µs。最终保留 ID 查询加更新的两步写法。加密备份保留整段认证的容器契约，因此密文读取仍需与备份大小成比例的内存。Go 依赖清单与 `go mod tidy -diff` 的输出一致。
+
+验证通过 `git diff --check`、`gofmt`、`go vet`、`staticcheck`、`go test -count=1 ./...`、`go test -race -count=1 ./...`、`nsgo check` 和开发包构建。`nsgo test` 未发现独立用例。使用独立 `ECOPASTE_HOME` 的开发包验证设置七个分类、窗口自适应、数字设置保存及重开，以及历史面板首次加载、分类空状态和搜索从零条到一条的切换。预览数据、页脚错误态和备份往返由自动化测试覆盖。本轮未完成物理全局热键、实际拖放与跨应用粘贴的真机回归，也没有测量整应用长期 CPU 或能耗。
