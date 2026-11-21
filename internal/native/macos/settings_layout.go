@@ -20,12 +20,15 @@ const (
 	settingsSwitchHeight = 24.0
 	// settingsControlHeight is the shared row control height: the native
 	// NSSwitch size other interactive controls align to.
-	settingsControlHeight = settingsSwitchHeight
+	settingsControlHeight   = settingsSwitchHeight
+	settingsPageBottomInset = 24.0
 )
 
 var (
 	registerSettingsLayoutOnce sync.Once
+	settingsRootClass          objc.Class
 	settingsDocumentClass      objc.Class
+	settingsRoots              = map[objc.ID]*SettingsView{}
 )
 
 func settingsCardFillColor() objc.ID {
@@ -44,10 +47,11 @@ func (v *SettingsView) newPage(identifier string) objc.ID {
 	v.tabItems[identifier] = item
 
 	page := objc.ID(class("NSView")).Send(sel("new"))
-	setFrame(page, 0, 0, settingsWidth, settingsHeight)
+	setFrame(page, 0, 0, settingsWidth, settingsMinimumPageHeight)
+	page.Send(sel("setAutoresizingMask:"), int64(18))
 
 	scroll := objc.ID(class("NSScrollView")).Send(sel("new"))
-	setFrame(scroll, 0, 0, settingsWidth, settingsHeight)
+	setFrame(scroll, 0, 0, settingsWidth, settingsMinimumPageHeight)
 	scroll.Send(sel("setAutoresizingMask:"), int64(18))
 	scroll.Send(sel("setHasVerticalScroller:"), true)
 	scroll.Send(sel("setAutohidesScrollers:"), true)
@@ -55,13 +59,15 @@ func (v *SettingsView) newPage(identifier string) objc.ID {
 	scroll.Send(sel("setBorderType:"), int64(0))
 
 	document := objc.ID(settingsDocumentClass).Send(sel("new"))
-	setFrame(document, 0, 0, settingsWidth, settingsHeight)
+	setFrame(document, 0, 0, settingsWidth, settingsMinimumPageHeight)
 	document.Send(sel("setAutoresizingMask:"), int64(2))
 	scroll.Send(sel("setDocumentView:"), document)
 	page.Send(sel("addSubview:"), scroll)
 
 	item.Send(sel("setView:"), page)
 	v.tabs.Send(sel("addTabViewItem:"), item)
+	v.pageViews[identifier] = page
+	v.pageDocuments[identifier] = document
 
 	document.Send(sel("release"))
 	scroll.Send(sel("release"))
@@ -69,20 +75,31 @@ func (v *SettingsView) newPage(identifier string) objc.ID {
 	item.Send(sel("release"))
 
 	v.currentTab = identifier
-	v.currentTabTitle = settingsTabTitle(identifier)
 	return document
 }
 
-func (v *SettingsView) finishPage(document objc.ID, height float64) {
+func (v *SettingsView) finishPage(document objc.ID) {
 	if document == 0 {
 		return
 	}
-	final := max(height+settingsGroupGap, settingsHeight)
-	setFrame(document, 0, 0, settingsWidth, final)
+	for tab, candidate := range v.pageDocuments {
+		if candidate == document {
+			v.measurePage(tab)
+			return
+		}
+	}
 }
 
 func registerSettingsLayoutTargets() {
 	var err error
+	settingsRootClass, err = objc.RegisterClass("EcoPasteSettingsRoot", class("NSView"), nil, nil,
+		[]objc.MethodDef{
+			{Cmd: sel("viewDidMoveToWindow"), Fn: settingsRootDidMoveToWindow},
+			{Cmd: sel("setFrameSize:"), Fn: settingsRootSetFrameSize},
+		})
+	if err != nil {
+		panic(err)
+	}
 	settingsDocumentClass, err = objc.RegisterClass("EcoPasteSettingsDocument", class("NSView"), nil, nil,
 		[]objc.MethodDef{
 			{Cmd: sel("isFlipped"), Fn: func(objc.ID, objc.SEL) bool { return true }},
@@ -90,6 +107,45 @@ func registerSettingsLayoutTargets() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func settingsRootDidMoveToWindow(self objc.ID, _ objc.SEL) {
+	sendSuper[objc.ID](self, settingsRootClass, sel("viewDidMoveToWindow"))
+	if view := settingsRoots[self]; view != nil && view.view.Send(sel("window")) != 0 {
+		// The root joins its window before NSGo orders the window on screen.
+		// Set the first page's exact size here so the user never sees the
+		// placeholder frame used while the native tree is being built.
+		view.resizeWindow(false)
+	}
+}
+
+func settingsRootSetFrameSize(self objc.ID, _ objc.SEL, size CGSize) {
+	sendSuper[objc.ID](self, settingsRootClass, sel("setFrameSize:"), size)
+	if view := settingsRoots[self]; view != nil && view.tabs != 0 {
+		view.tabs.Send(sel("setFrame:"), CGRect{Size: size})
+	}
+}
+
+func (v *SettingsView) measurePage(tab string) {
+	document := v.pageDocuments[tab]
+	if document == 0 {
+		return
+	}
+	final := settingsMeasuredPageHeight(document)
+	v.pageHeights[tab] = final
+	setFrame(document, 0, 0, settingsWidth, final)
+}
+
+func settingsMeasuredPageHeight(document objc.ID) float64 {
+	views := objc.Send[objc.ID](document, sel("subviews"))
+	count := int(objc.Send[uint](views, sel("count")))
+	contentBottom := 0.0
+	for index := range count {
+		view := objc.Send[objc.ID](views, sel("objectAtIndex:"), uint(index))
+		frame := objc.Send[CGRect](view, sel("frame"))
+		contentBottom = max(contentBottom, frame.Origin.Y+frame.Size.Height)
+	}
+	return max(settingsMinimumPageHeight, contentBottom+settingsPageBottomInset)
 }
 
 // addSectionCard places a section title and its rounded settings card.

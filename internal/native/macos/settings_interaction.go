@@ -75,7 +75,7 @@ func (v *SettingsView) buildInteractionPage() {
 	top = cardTop + settingsRowHeight + settingsGroupGap
 	top = v.buildHoverActions(document, top)
 
-	v.finishPage(document, top)
+	v.finishPage(document)
 }
 
 func (v *SettingsView) buildHoverActions(document objc.ID, top float64) float64 {

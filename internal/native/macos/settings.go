@@ -125,7 +125,10 @@ type SettingsView struct {
 	lastValues          SettingsValues
 	fields              []*settingsField
 	currentTab          string
-	currentTabTitle     string
+	pageHeights         map[string]float64
+	pageViews           map[string]objc.ID
+	pageDocuments       map[string]objc.ID
+	targetWindowHeight  float64
 	language            string
 	texts               []func()
 	tabItems            map[string]objc.ID
@@ -145,10 +148,12 @@ type settingsField struct {
 }
 
 const (
-	settingsWidth    = 480.0
-	settingsHeight   = 560.0
-	settingsFooterH  = 0.0
-	settingsTabAreaH = settingsHeight
+	settingsWidth                  = 480.0
+	settingsNavigationHeight       = 80.0
+	settingsMinimumWindowHeight    = 420.0
+	settingsMinimumPageHeight      = settingsMinimumWindowHeight - settingsNavigationHeight
+	settingsScreenMargin           = 24.0
+	settingsPageTransitionDuration = 0.18
 )
 
 type settingsTabMeta struct {
@@ -237,20 +242,25 @@ func NewSettings(cx *core.NativeContext) core.NativeComponent {
 
 func newSettings(cx settingsEmitter) *SettingsView {
 	registerSettingsOnce.Do(registerSettingsTargets)
+	registerSettingsLayoutOnce.Do(registerSettingsLayoutTargets)
 	syncSettingsDockIcon(true)
 	v := &SettingsView{
-		cx:       cx,
-		view:     objc.ID(class("NSView")).Send(sel("new")),
-		language: string(i18n.Current()),
-		tabItems: map[string]objc.ID{},
+		cx:            cx,
+		view:          objc.ID(settingsRootClass).Send(sel("new")),
+		language:      string(i18n.Current()),
+		tabItems:      map[string]objc.ID{},
+		pageHeights:   map[string]float64{},
+		pageViews:     map[string]objc.ID{},
+		pageDocuments: map[string]objc.ID{},
 	}
 	v.view.Send(sel("setAutoresizesSubviews:"), false)
+	settingsRoots[v.view] = v
 
 	v.tabs = objc.ID(class("NSTabView")).Send(sel("new"))
 	v.tabs.Send(sel("setTabViewType:"), int64(6))
 	v.tabs.Send(sel("setFrame:"), CGRect{
 		Origin: CGPoint{X: 0, Y: 0},
-		Size:   CGSize{Width: settingsWidth, Height: settingsTabAreaH},
+		Size:   CGSize{Width: settingsWidth, Height: settingsMinimumPageHeight},
 	})
 	v.tabs.Send(sel("setAutoresizingMask:"), int64(18))
 	v.view.Send(sel("addSubview:"), v.tabs)
@@ -281,6 +291,9 @@ func newSettings(cx settingsEmitter) *SettingsView {
 	if tab == "" {
 		tab = "general"
 	}
+	// The page builders use currentTab to associate controls with their
+	// category. NSTabView initially selects the first added page.
+	v.currentTab = "general"
 	v.selectTab(tab)
 	return v
 }
@@ -308,6 +321,14 @@ func (v *SettingsView) applyTab(name string) {
 	}
 	v.tabs.Send(sel("selectTabViewItemWithIdentifier:"), nsString(name))
 	v.currentTab = name
+	// Page geometry is normally fixed after construction. Measuring here also
+	// picks up any page whose controls were added or expanded while it was
+	// inactive, without measuring on every settings value update.
+	v.resizeWindow(true)
+	window := v.view.Send(sel("window"))
+	if window != 0 && objc.Send[bool](window, sel("isVisible")) {
+		animateIn(v.pageViews[name], settingsPageTransitionDuration)
+	}
 	// Permission status can only change while the user is in System Settings;
 	// refresh once when the page shows and again when the app becomes active.
 	if name == "system" {
@@ -408,6 +429,9 @@ func (v *SettingsView) apply(values SettingsValues) {
 		}
 	}
 	v.lastValues = values
+	// Value-driven pages can add or remove controls. Re-measure on settings
+	// changes, then let the resize path skip targets that remain unchanged.
+	v.resizeWindow(true)
 }
 
 // settingsGroupsEqual reports whether two group lists are identical.
@@ -476,6 +500,7 @@ func (v *SettingsView) Close() {
 	if remaining == 0 {
 		syncSettingsDockIcon(false)
 	}
+	delete(settingsRoots, v.view)
 	for _, icon := range v.aboutIcons {
 		icon.Close()
 	}

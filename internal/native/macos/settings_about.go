@@ -28,7 +28,7 @@ func (v *SettingsView) buildAboutPage() {
 	top = v.addAboutHero(document, top)
 	top = v.addAboutInfoCard(document, top+24)
 	v.addAboutActions(document, top+28)
-	setFrame(document, 0, 0, settingsWidth, settingsHeight)
+	v.finishPage(document)
 }
 
 func (v *SettingsView) addAboutHero(document objc.ID, top float64) float64 {

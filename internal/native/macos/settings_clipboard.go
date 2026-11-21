@@ -32,7 +32,7 @@ func (v *SettingsView) buildClipboardPage() {
 	top = cardTop + 2*settingsRowHeight + settingsGroupGap
 	top = v.buildCapturePriorities(document, top)
 	top = v.buildSourceAppsSection(document, top)
-	v.finishPage(document, top)
+	v.finishPage(document)
 }
 
 func (v *SettingsView) buildCapturePriorities(document objc.ID, top float64) float64 {

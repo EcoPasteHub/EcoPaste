@@ -33,6 +33,10 @@ func TestSettingsPagesMatchNavigation(t *testing.T) {
 		if len(view.tabItems) != len(want) {
 			t.Errorf("settings pages = %d; want %d", len(view.tabItems), len(want))
 		}
+		if view.pageHeights["interaction"] <= view.pageHeights["appearance"] {
+			t.Errorf("measured page heights do not reflect content: interaction=%v appearance=%v",
+				view.pageHeights["interaction"], view.pageHeights["appearance"])
+		}
 	})
 }
 

@@ -12,7 +12,7 @@ func (v *SettingsView) buildSystemPage() {
 	top := 18.0
 
 	top = v.buildPermissionsSection(document, top)
-	v.finishPage(document, top)
+	v.finishPage(document)
 }
 
 func (v *SettingsView) buildPermissionsSection(document objc.ID, top float64) float64 {

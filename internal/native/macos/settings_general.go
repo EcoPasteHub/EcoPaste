@@ -33,7 +33,7 @@ func (v *SettingsView) buildGeneralPage() {
 		settingsRowTop(cardTop, 1)+settingsRowHeight/2, i18n.SettingsOpenPreference,
 		systemFont(13), i18n.SettingsShortcutRule)
 
-	v.finishPage(document, top)
+	v.finishPage(document)
 }
 
 func settingsSectionFont() objc.ID {

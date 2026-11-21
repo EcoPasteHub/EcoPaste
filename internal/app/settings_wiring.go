@@ -36,9 +36,9 @@ func (w *settingsWiring) open() {
 	desktop.OpenWindow(w.app, desktop.WindowOptions{
 		Title:       i18n.T(i18n.SettingsWindowTitle),
 		Width:       480,
-		Height:      640,
+		Height:      500,
 		Key:         "settings",
-		Constraints: core.WindowConstraints{NoResize: true, NoMaximize: true},
+		Constraints: core.WindowConstraints{MinWidth: 480, MaxWidth: 480, NoResize: true, NoMaximize: true},
 	}, ui.SettingsWindow(w.newModel()))
 }
 

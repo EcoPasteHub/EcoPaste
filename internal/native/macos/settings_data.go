@@ -59,5 +59,5 @@ func (v *SettingsView) buildDataPage() {
 	top = cardTop + 6*settingsRowHeight + settingsGroupGap
 	top = v.buildStorageSection(document, top)
 
-	v.finishPage(document, top)
+	v.finishPage(document)
 }
