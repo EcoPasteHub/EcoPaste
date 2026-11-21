@@ -1,7 +1,6 @@
 package backup
 
 import (
-	"bytes"
 	"crypto/rand"
 	"encoding/binary"
 	"encoding/json"
@@ -30,6 +29,22 @@ const (
 type containerHeader struct {
 	Salt  []byte `json:"salt"`
 	Nonce []byte `json:"nonce"`
+}
+
+func writeEncryptedContainer(dst io.Writer, path string, src payloadSource, password string) error {
+	file, err := os.Create(path)
+	if err != nil {
+		return fmt.Errorf(i18n.T(i18n.BackupCreatePayload), err)
+	}
+	err = writePayload(file, src)
+	closeErr := file.Close()
+	if err != nil {
+		return err
+	}
+	if closeErr != nil {
+		return fmt.Errorf(i18n.T(i18n.BackupCloseFile), closeErr)
+	}
+	return writeEncrypted(dst, path, password)
 }
 
 func writeEncrypted(dst io.Writer, payload, password string) error {
@@ -79,36 +94,33 @@ func encryptPayload(payload []byte, password string) (*containerHeader, []byte, 
 	return header, ciphertext, nil
 }
 
-// readPayload returns the ZIP payload of a plain or encrypted backup.
-func readPayload(path, password string) ([]byte, error) {
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf(i18n.T(i18n.BackupReadFile), err)
-	}
-	return decodePayload(data, password)
-}
-
-func decodePayload(data []byte, password string) ([]byte, error) {
-	if len(data) >= 2 && data[0] == 'P' && data[1] == 'K' {
-		return data, nil
-	}
-	if len(data) < len(magic) || string(data[:len(magic)]) != magic {
-		return nil, errors.New(i18n.T(i18n.BackupInvalidFile))
-	}
-	contents := bytes.NewReader(data[len(magic):])
-	header, err := readEncryptedHeader(contents)
+// readEncryptedPayload starts immediately after the container magic.
+func readEncryptedPayload(file *os.File, password string) ([]byte, error) {
+	header, err := readEncryptedHeader(file)
 	if err != nil {
 		return nil, err
 	}
 	if password == "" {
 		return nil, errors.New(i18n.T(i18n.BackupPasswordMissing))
 	}
+	info, err := file.Stat()
+	if err != nil {
+		return nil, fmt.Errorf(i18n.T(i18n.BackupReadFile), err)
+	}
+	offset, err := file.Seek(0, io.SeekCurrent)
+	if err != nil {
+		return nil, fmt.Errorf(i18n.T(i18n.BackupReadFile), err)
+	}
+	ciphertext := make([]byte, max(0, info.Size()-offset))
+	if _, err := io.ReadFull(file, ciphertext); err != nil {
+		return nil, fmt.Errorf(i18n.T(i18n.BackupReadFile), err)
+	}
 	key := argon2.IDKey([]byte(password), header.Salt, argonTimeCost, argonMemoryKiB, argonThreads, keyLength)
 	aead, err := chacha20poly1305.NewX(key)
 	if err != nil {
 		return nil, fmt.Errorf(i18n.T(i18n.BackupInitDecrypt), err)
 	}
-	payload, err := aead.Open(nil, header.Nonce, data[len(data)-contents.Len():], nil)
+	payload, err := aead.Open(ciphertext[:0], header.Nonce, ciphertext, nil)
 	if err != nil {
 		return nil, errors.New(i18n.T(i18n.BackupWrongPassword))
 	}

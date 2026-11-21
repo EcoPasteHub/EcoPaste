@@ -56,8 +56,8 @@ func testSource(t *testing.T) (Source, string) {
 }
 
 func TestExportPlainBackup(t *testing.T) {
-	src, root := testSource(t)
-	target := filepath.Join(root, "history")
+	src, _ := testSource(t)
+	target := filepath.Join(src.Resources, "history")
 	result, err := Export(context.Background(), src, target, ExportOptions{Mode: ModePlain})
 	if err != nil {
 		t.Fatal(err)
@@ -82,6 +82,11 @@ func TestExportPlainBackup(t *testing.T) {
 	}
 	if _, ok := entries["resources/.DS_Store"]; ok {
 		t.Error("backup included .DS_Store")
+	}
+	for name := range entries {
+		if strings.HasPrefix(name, "resources/.tmp-ecopastebak-") {
+			t.Errorf("backup included its own temporary archive: %s", name)
+		}
 	}
 	var manifest backupManifest
 	if err := json.Unmarshal(entries["manifest.json"], &manifest); err != nil {
@@ -110,14 +115,25 @@ func TestExportEncryptedBackupRoundTrips(t *testing.T) {
 	if !bytes.HasPrefix(data, []byte(magic)) {
 		t.Fatal("encrypted backup has no magic header")
 	}
-	payload, err := readPayload(target, password)
+	file, err := os.Open(target)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer file.Close()
+	if mode, err := readContainerMode(file); err != nil || mode != ModeEncrypted {
+		t.Fatalf("container mode = %q, %v", mode, err)
+	}
+	payload, err := readEncryptedPayload(file, password)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if !bytes.HasPrefix(payload, []byte("PK")) {
 		t.Error("decrypted payload is not a zip")
 	}
-	if _, err := readPayload(target, "wrong password"); err == nil ||
+	if _, err := file.Seek(int64(len(magic)), io.SeekStart); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := readEncryptedPayload(file, "wrong password"); err == nil ||
 		!strings.Contains(err.Error(), "密码") {
 		t.Errorf("wrong password error = %v", err)
 	}

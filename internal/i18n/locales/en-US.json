@@ -141,7 +141,6 @@
       "missingManifest": "Backup is missing manifest.json",
       "missingSettings": "Backup is missing its settings file",
       "openDatabase": "Open backup database: %w",
-      "openPayload": "Open backup payload: %w",
       "openSource": "Open backup source %s: %w",
       "parseHeader": "Parse backup header: %w",
       "parseManifest": "Parse backup manifest: %w",
@@ -171,7 +170,6 @@
       "writeEntry": "Write backup entry %s: %w",
       "writeFile": "Write backup file: %w",
       "writeManifest": "Write backup manifest: %w",
-      "writePayload": "Write backup payload: %w",
       "writeResources": "Write imported resources: %w",
       "writeSettings": "Write imported settings: %w",
       "wrongPassword": "The backup password is incorrect or the file is damaged"

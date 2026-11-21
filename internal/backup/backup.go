@@ -116,14 +116,10 @@ func Export(ctx context.Context, src Source, target string, opts ExportOptions) 
 	if err := src.Database.Snapshot(ctx, snapshot); err != nil {
 		return result, err
 	}
-	payload := filepath.Join(work, "payload.zip")
-	if err := writePayload(payload, payloadSource{
+	if err := writeContainer(path, work, payloadSource{
 		Database: snapshot, Resources: src.Resources,
 		Settings: src.Settings, Manifest: manifest,
-	}); err != nil {
-		return result, err
-	}
-	if err := writeContainer(path, payload, opts); err != nil {
+	}, opts); err != nil {
 		return result, err
 	}
 	info, err := os.Stat(path)
@@ -155,29 +151,30 @@ func NormalizePath(path string) (string, error) {
 	}
 }
 
-func writeContainer(target, payload string, opts ExportOptions) error {
+func writeContainer(target, work string, src payloadSource, opts ExportOptions) error {
 	parent := filepath.Dir(target)
-	temp, err := os.CreateTemp(parent, ".ecopastebak-*")
+	// The destination may be inside Resources, so use an entry name the ZIP
+	// walker skips while the archive is still being written.
+	temp, err := os.CreateTemp(parent, ".tmp-ecopastebak-*")
 	if err != nil {
 		return fmt.Errorf(i18n.T(i18n.BackupCreateFile), err)
 	}
 	tempName := temp.Name()
 	defer os.Remove(tempName)
+	defer temp.Close()
 
 	switch opts.Mode {
 	case ModePlain:
-		err = copyFile(temp, payload)
+		err = writePayload(temp, src)
 	case ModeEncrypted:
-		err = writeEncrypted(temp, payload, opts.Password)
+		err = writeEncryptedContainer(temp, filepath.Join(work, "payload.zip"), src, opts.Password)
 	default:
 		err = fmt.Errorf(i18n.T(i18n.BackupUnknownMode), opts.Mode)
 	}
 	if err != nil {
-		temp.Close()
 		return err
 	}
 	if err := temp.Sync(); err != nil {
-		temp.Close()
 		return fmt.Errorf(i18n.T(i18n.BackupSyncFile), err)
 	}
 	if err := temp.Close(); err != nil {
@@ -185,18 +182,6 @@ func writeContainer(target, payload string, opts ExportOptions) error {
 	}
 	if err := os.Rename(tempName, target); err != nil {
 		return fmt.Errorf(i18n.T(i18n.BackupSaveFile), err)
-	}
-	return nil
-}
-
-func copyFile(dst *os.File, path string) error {
-	src, err := os.Open(path)
-	if err != nil {
-		return fmt.Errorf(i18n.T(i18n.BackupOpenPayload), err)
-	}
-	defer src.Close()
-	if _, err := dst.ReadFrom(src); err != nil {
-		return fmt.Errorf(i18n.T(i18n.BackupWritePayload), err)
 	}
 	return nil
 }

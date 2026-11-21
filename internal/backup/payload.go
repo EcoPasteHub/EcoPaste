@@ -35,13 +35,7 @@ type payloadSource struct {
 	Manifest  backupManifest
 }
 
-func writePayload(path string, src payloadSource) error {
-	file, err := os.Create(path)
-	if err != nil {
-		return fmt.Errorf(i18n.T(i18n.BackupCreatePayload), err)
-	}
-	defer file.Close()
-
+func writePayload(file io.Writer, src payloadSource) error {
 	writer := zip.NewWriter(file)
 	if err := writeManifest(writer, src.Manifest); err != nil {
 		writer.Close()

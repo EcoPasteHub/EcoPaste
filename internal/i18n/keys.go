@@ -515,8 +515,6 @@ const (
 	BackupSyncFile             = Key("error.backup.syncFile")
 	BackupCloseFile            = Key("error.backup.closeFile")
 	BackupSaveFile             = Key("error.backup.saveFile")
-	BackupOpenPayload          = Key("error.backup.openPayload")
-	BackupWritePayload         = Key("error.backup.writePayload")
 	BackupReadPayload          = Key("error.backup.readPayload")
 	BackupEncodeHeader         = Key("error.backup.encodeHeader")
 	BackupWriteFile            = Key("error.backup.writeFile")

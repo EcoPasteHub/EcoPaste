@@ -52,32 +52,55 @@ func Inspect(path string) (Mode, error) {
 		return "", fmt.Errorf(i18n.T(i18n.BackupReadFile), err)
 	}
 	defer file.Close()
-	head := make([]byte, len(magic))
-	n, err := io.ReadFull(file, head)
-	if err != nil && !errors.Is(err, io.ErrUnexpectedEOF) && !errors.Is(err, io.EOF) {
-		return "", fmt.Errorf(i18n.T(i18n.BackupReadFile), err)
+	mode, err := readContainerMode(file)
+	if err != nil {
+		return "", err
 	}
-	if n >= 2 && head[0] == 'P' && head[1] == 'K' {
-		info, err := file.Stat()
+	if mode == ModePlain {
+		reader, err := readPlainZIP(file)
 		if err != nil {
-			return "", fmt.Errorf(i18n.T(i18n.BackupReadFile), err)
-		}
-		reader, err := zip.NewReader(file, info.Size())
-		if err != nil {
-			return "", fmt.Errorf(i18n.T(i18n.BackupReadContents), err)
+			return "", err
 		}
 		if _, err := readZIPManifest(reader); err != nil {
 			return "", err
 		}
 		return ModePlain, nil
 	}
-	if n < len(magic) || string(head) != magic {
-		return "", errors.New(i18n.T(i18n.BackupInvalidFile))
-	}
 	if _, err := readEncryptedHeader(file); err != nil {
 		return "", err
 	}
 	return ModeEncrypted, nil
+}
+
+func readContainerMode(file *os.File) (Mode, error) {
+	var head [len(magic)]byte
+	n, err := io.ReadFull(file, head[:])
+	if err != nil && !errors.Is(err, io.ErrUnexpectedEOF) && !errors.Is(err, io.EOF) {
+		return "", fmt.Errorf(i18n.T(i18n.BackupReadFile), err)
+	}
+	if n >= 2 && head[0] == 'P' && head[1] == 'K' {
+		return ModePlain, nil
+	}
+	if n == len(magic) && string(head[:]) == magic {
+		return ModeEncrypted, nil
+	}
+	return "", errors.New(i18n.T(i18n.BackupInvalidFile))
+}
+
+func readPlainZIP(file *os.File) (*zip.Reader, error) {
+	info, err := file.Stat()
+	if err != nil {
+		return nil, fmt.Errorf(i18n.T(i18n.BackupReadFile), err)
+	}
+	return readZIP(file, info.Size())
+}
+
+func readZIP(source io.ReaderAt, size int64) (*zip.Reader, error) {
+	reader, err := zip.NewReader(source, size)
+	if err != nil {
+		return nil, fmt.Errorf(i18n.T(i18n.BackupReadContents), err)
+	}
+	return reader, nil
 }
 
 // StageImport validates path and leaves an extracted copy under the
@@ -168,13 +191,27 @@ func validateSnapshot(ctx context.Context, root string) error {
 
 func extractImport(path, password, parent, pattern string) (string, backupManifest, error) {
 	var manifest backupManifest
-	payload, err := readPayload(path, password)
+	file, err := os.Open(path)
+	if err != nil {
+		return "", manifest, fmt.Errorf(i18n.T(i18n.BackupReadFile), err)
+	}
+	defer file.Close()
+	mode, err := readContainerMode(file)
 	if err != nil {
 		return "", manifest, err
 	}
-	reader, err := zip.NewReader(bytes.NewReader(payload), int64(len(payload)))
+	var reader *zip.Reader
+	if mode == ModePlain {
+		reader, err = readPlainZIP(file)
+	} else {
+		var payload []byte
+		payload, err = readEncryptedPayload(file, password)
+		if err == nil {
+			reader, err = readZIP(bytes.NewReader(payload), int64(len(payload)))
+		}
+	}
 	if err != nil {
-		return "", manifest, fmt.Errorf(i18n.T(i18n.BackupReadContents), err)
+		return "", manifest, err
 	}
 	manifest, err = readZIPManifest(reader)
 	if err != nil {
