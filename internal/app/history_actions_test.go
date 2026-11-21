@@ -12,13 +12,18 @@ import (
 )
 
 type recordingWriter struct {
-	payload clipboard.WritePayload
-	err     error
+	payload     clipboard.WritePayload
+	err         error
+	changeCount int
 }
 
-func (w *recordingWriter) Write(payload clipboard.WritePayload) error {
+func (w *recordingWriter) Write(payload clipboard.WritePayload) (int, bool, error) {
 	w.payload = payload
-	return w.err
+	if w.err != nil {
+		return 0, false, w.err
+	}
+	w.changeCount++
+	return w.changeCount, true, nil
 }
 
 func TestReuseActionsPreserveRepresentations(t *testing.T) {
@@ -121,8 +126,8 @@ func TestReuseActionsPreserveRepresentations(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if after.UseCount != before.UseCount+1 {
-		t.Errorf("use count = %d, want %d", after.UseCount, before.UseCount+1)
+	if after.UseCount != before.UseCount || !after.CreatedAt.Equal(before.CreatedAt) || !after.UpdatedAt.Equal(before.UpdatedAt) {
+		t.Errorf("internal paste changed usage fields: before=%+v after=%+v", before, after)
 	}
 
 	if _, err := store.Update(map[string]any{

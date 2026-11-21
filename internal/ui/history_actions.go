@@ -22,6 +22,7 @@ type itemActions struct {
 	pinned    *bool
 	hide      func()
 	reload    func()
+	schedule  func(time.Duration, func())
 }
 
 func (a *itemActions) copy(id string, forcePlain bool) {
@@ -43,7 +44,6 @@ func (a *itemActions) copy(id string, forcePlain bool) {
 			if hideAfterAction(*a.pinned, hideAfter) && a.hide != nil {
 				a.hide()
 			}
-			a.reload()
 		})
 	}()
 }
@@ -88,23 +88,29 @@ func (a *itemActions) activateWith(id string, action func(context.Context, strin
 				if *a.pinned {
 					a.ref.Command("resignKey", nil)
 				}
-				a.cx.AfterFunc(70*time.Millisecond, func() {
+				a.after(70*time.Millisecond, func() {
 					if err := a.model.SendPaste(); err != nil {
 						a.reportError(err)
 						return
 					}
 					if *a.pinned {
-						a.cx.AfterFunc(50*time.Millisecond, func() {
+						a.after(50*time.Millisecond, func() {
 							a.ref.Command("makeKey", nil)
 						})
 					}
-					a.reload()
 				})
 				return
 			}
-			a.reload()
 		})
 	}()
+}
+
+func (a *itemActions) after(delay time.Duration, fn func()) {
+	if a.schedule != nil {
+		a.schedule(delay, fn)
+		return
+	}
+	a.cx.AfterFunc(delay, fn)
 }
 
 // run performs one item action. Actions that change the list ask for a

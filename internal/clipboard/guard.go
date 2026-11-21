@@ -1,54 +1,47 @@
 package clipboard
 
-import (
-	"sync"
-	"time"
-)
+import "sync"
 
-// Guard suppresses the watcher's own pasteboard writes so pasting an
-// item does not create a new history row.
+// Guard serializes watcher snapshots with EcoPaste pasteboard writes.
 type Guard struct {
-	mu      sync.Mutex
-	entries map[string]time.Time
-	ttl     time.Duration
-	now     func() time.Time
+	mu                 sync.Mutex
+	lastSelfWriteCount int
+	hasLastSelfWrite   bool
 }
 
-// NewGuard returns a guard whose marks live for ttl.
-func NewGuard(ttl time.Duration) *Guard {
-	return &Guard{entries: map[string]time.Time{}, ttl: ttl, now: time.Now}
-}
+// NewGuard creates a guard for pasteboard writes.
+func NewGuard() *Guard { return &Guard{} }
 
-// Mark records a hash about to be written to the pasteboard.
-func (g *Guard) Mark(hash string) {
-	if hash == "" {
-		return
-	}
+// Write performs a pasteboard write while excluding watcher reads and records
+// the exact change count produced by a successful write.
+func (g *Guard) Write(write func() (int, bool, error)) error {
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	now := g.now()
-	// Drop marks whose write never reached the watcher, so the map holds only
-	// the writes from the last ttl instead of growing for the whole session.
-	for key, expiry := range g.entries {
-		if !now.Before(expiry) {
-			delete(g.entries, key)
-		}
+	changeCount, changed, err := write()
+	if changed {
+		g.lastSelfWriteCount = changeCount
+		g.hasLastSelfWrite = true
 	}
-	g.entries[hash] = now.Add(g.ttl)
+	return err
 }
 
-// Consume reports whether hash was written by EcoPaste recently, removing
-// the mark so one write suppresses one capture.
-func (g *Guard) Consume(hash string) bool {
-	if hash == "" {
-		return false
-	}
+// Synchronize keeps an entire watcher snapshot on one side of an EcoPaste
+// write, preventing the watcher from reading a pasteboard mid-replacement.
+func (g *Guard) Synchronize(read func(isSelfWrite func(changeCount int) bool) error) error {
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	expiry, ok := g.entries[hash]
-	if !ok {
+	return read(g.isSelfWriteLocked)
+}
+
+func (g *Guard) isSelfWriteLocked(changeCount int) bool {
+	if !g.hasLastSelfWrite {
 		return false
 	}
-	delete(g.entries, hash)
-	return g.now().Before(expiry)
+	if changeCount == g.lastSelfWriteCount {
+		return true
+	}
+	if changeCount > g.lastSelfWriteCount {
+		g.hasLastSelfWrite = false
+	}
+	return false
 }

@@ -16,9 +16,9 @@ type WritePayload struct {
 	Files []string
 }
 
-// Writer replaces the system pasteboard.
+// Writer replaces the system pasteboard and returns its resulting change count.
 type Writer interface {
-	Write(WritePayload) error
+	Write(WritePayload) (changeCount int, changed bool, err error)
 }
 
 // BuildWrite converts a history row into the pasteboard content that
@@ -69,42 +69,15 @@ func (s *Service) WriteItem(ctx context.Context, item *database.Item, plainText 
 	if s.Writer == nil {
 		return fmt.Errorf("no pasteboard writer")
 	}
+	write := func() (int, bool, error) { return s.Writer.Write(payload) }
 	if s.Guard != nil {
-		for _, hash := range guardHashes(item, payload) {
-			s.Guard.Mark(hash)
+		if err := s.Guard.Write(write); err != nil {
+			return fmt.Errorf("write pasteboard: %w", err)
 		}
+		return nil
 	}
-	if err := s.Writer.Write(payload); err != nil {
+	if _, _, err := write(); err != nil {
 		return fmt.Errorf("write pasteboard: %w", err)
 	}
 	return nil
-}
-
-// guardHashes covers every representation the pasteboard write exposes.
-// Rich text also carries a plain fallback, so marking only the item hash
-// would let the watcher capture that fallback as a new item.
-func guardHashes(item *database.Item, payload WritePayload) []string {
-	hashes := []string{ItemHash(item)}
-	if payload.Text != "" {
-		hashes = append(hashes, database.Hash(database.KindText, payload.Text))
-	}
-	if payload.HTML != "" {
-		hashes = append(hashes, database.Hash(database.KindText, payload.HTML))
-	}
-	if payload.RTF != "" {
-		hashes = append(hashes, database.Hash(database.KindText, payload.RTF))
-	}
-	seen := make(map[string]struct{}, len(hashes))
-	unique := hashes[:0]
-	for _, hash := range hashes {
-		if hash == "" {
-			continue
-		}
-		if _, ok := seen[hash]; ok {
-			continue
-		}
-		seen[hash] = struct{}{}
-		unique = append(unique, hash)
-	}
-	return unique
 }

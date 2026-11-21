@@ -459,10 +459,14 @@ func formatBytes(size int64) string {
 }
 
 func (m *historyModel) write(ctx context.Context, item *database.Item, plain bool) error {
-	if err := m.runtime.service.WriteItem(ctx, item, plain); err != nil {
-		return err
+	return m.runtime.service.WriteItem(ctx, item, plain)
+}
+
+func shouldRefreshHistory(sort settings.Sort, deduplicated bool) bool {
+	if !deduplicated {
+		return true
 	}
-	return m.runtime.db.IncrementUseCount(ctx, item.ID)
+	return sort == settings.SortUpdatedAt || sort == settings.SortUseCount
 }
 
 func (m *historyModel) historyItem(ctx context.Context, item database.Item, cfg settings.Clipboard) ui.HistoryItem {

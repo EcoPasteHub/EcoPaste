@@ -7,14 +7,21 @@ import (
 )
 
 type pollSource struct {
-	count   int
-	payload Payload
-	err     error
+	count            int
+	payload          Payload
+	err              error
+	changeDuringRead bool
+	reads            int
 }
 
 func (f *pollSource) ChangeCount() int { return f.count }
 
 func (f *pollSource) Read() (Payload, SourceApp, error) {
+	f.reads++
+	if f.changeDuringRead {
+		f.count++
+		f.changeDuringRead = false
+	}
 	return f.payload, SourceApp{ID: "com.example.editor"}, f.err
 }
 
@@ -83,5 +90,72 @@ func TestWatcherPollKeepsCountOnReadError(t *testing.T) {
 	source.payload = Payload{Text: "retry"}
 	if read, err := watcher.Poll(ctx, false); err != nil || !read {
 		t.Fatalf("retry poll = %t, %v", read, err)
+	}
+}
+
+func TestWatcherSkipsInternalWriteButCapturesExternalRepeat(t *testing.T) {
+	guard := NewGuard()
+	source := &pollSource{payload: Payload{Text: "same content"}}
+	var captured []Payload
+	watcher := &Watcher{
+		Source: source,
+		Guard:  guard,
+		Capture: func(_ context.Context, payload Payload, _ SourceApp) {
+			captured = append(captured, payload)
+		},
+	}
+	ctx := context.Background()
+	if read, err := watcher.Poll(ctx, false); err != nil || read {
+		t.Fatalf("initial poll = %t, %v", read, err)
+	}
+	if err := guard.Write(func() (int, bool, error) {
+		source.count++
+		return source.count, true, nil
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if read, err := watcher.Poll(ctx, false); err != nil || read {
+		t.Fatalf("internal write poll = %t, %v", read, err)
+	}
+	if len(captured) != 0 {
+		t.Fatalf("internal write captured: %+v", captured)
+	}
+	source.count++
+	if read, err := watcher.Poll(ctx, false); err != nil || !read {
+		t.Fatalf("external repeat poll = %t, %v", read, err)
+	}
+	if len(captured) != 1 || captured[0].Text != "same content" {
+		t.Fatalf("external repeat captures = %+v", captured)
+	}
+}
+
+func TestWatcherUsesStableSnapshotOnceWhenPasteboardChangesDuringRead(t *testing.T) {
+	source := &pollSource{
+		count:            1,
+		payload:          Payload{Text: "external update"},
+		changeDuringRead: true,
+	}
+	var captures int
+	watcher := &Watcher{
+		Source: source,
+		Capture: func(_ context.Context, payload Payload, _ SourceApp) {
+			captures++
+			if payload.Text != "external update" {
+				t.Errorf("captured payload = %+v", payload)
+			}
+		},
+	}
+	ctx := context.Background()
+	if read, err := watcher.Poll(ctx, false); err != nil || !read {
+		t.Fatalf("poll = %t, %v", read, err)
+	}
+	if source.reads != 2 || captures != 1 {
+		t.Fatalf("reads = %d, captures = %d, want 2 and 1", source.reads, captures)
+	}
+	if read, err := watcher.Poll(ctx, false); err != nil || read {
+		t.Fatalf("repeat poll = %t, %v", read, err)
+	}
+	if captures != 1 {
+		t.Fatalf("capture count after settled poll = %d, want 1", captures)
 	}
 }

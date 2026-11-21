@@ -14,6 +14,7 @@ type Watcher struct {
 	Source   Source
 	Interval time.Duration
 	Capture  func(ctx context.Context, payload Payload, source SourceApp)
+	Guard    *Guard
 
 	mu           sync.Mutex
 	last         int
@@ -94,15 +95,46 @@ func (w *Watcher) Poll(ctx context.Context, force bool) (bool, error) {
 	if !force && w.Paused() {
 		return false, nil
 	}
-	count := w.Source.ChangeCount()
-	if !force && count == w.last {
-		return false, nil
+	var payload Payload
+	var source SourceApp
+	readSnapshot := false
+	read := func(isSelfWrite func(int) bool) error {
+		for attempt := 0; attempt < 3; attempt++ {
+			count := w.Source.ChangeCount()
+			if !force && count == w.last {
+				return nil
+			}
+			if isSelfWrite(count) {
+				w.last = count
+				return nil
+			}
+			var err error
+			payload, source, err = w.Source.Read()
+			if err != nil {
+				return err
+			}
+			after := w.Source.ChangeCount()
+			if after != count {
+				continue
+			}
+			w.last = after
+			readSnapshot = true
+			return nil
+		}
+		return nil
 	}
-	payload, source, err := w.Source.Read()
+	var err error
+	if w.Guard != nil {
+		err = w.Guard.Synchronize(read)
+	} else {
+		err = read(func(int) bool { return false })
+	}
 	if err != nil {
 		return false, err
 	}
-	w.last = count
+	if !readSnapshot {
+		return false, nil
+	}
 	if w.Capture != nil {
 		w.Capture(ctx, payload, source)
 	}

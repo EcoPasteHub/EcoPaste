@@ -101,13 +101,14 @@ func startClipboard(app *core.Scope, paths *storage.Paths, store *settings.Store
 		DB:       db,
 		Images:   images,
 		Settings: func() settings.Clipboard { return store.Snapshot().Clipboard },
-		Guard:    clipboard.NewGuard(2 * time.Second),
+		Guard:    clipboard.NewGuard(),
 		Writer:   pasteboardWriter{},
 	}
 	watcher := &clipboard.Watcher{
 		Source: pasteboardSource{icons: iconCache},
+		Guard:  service.Guard,
 		Capture: func(ctx context.Context, payload clipboard.Payload, source clipboard.SourceApp) {
-			_, captured, err := service.Capture(ctx, payload, source)
+			_, captured, deduplicated, err := service.CaptureDetailed(ctx, payload, source)
 			if err != nil {
 				slog.Error("capture clipboard item", "module", "app.clipboard", "error", err)
 			} else if captured {
@@ -115,9 +116,11 @@ func startClipboard(app *core.Scope, paths *storage.Paths, store *settings.Store
 				if store.Snapshot().Clipboard.Feedback.CopySound {
 					macos.PlayCopySound()
 				}
-				select {
-				case changed <- struct{}{}:
-				default:
+				if shouldRefreshHistory(store.Snapshot().Clipboard.Content.Sort, deduplicated) {
+					select {
+					case changed <- struct{}{}:
+					default:
+					}
 				}
 			}
 		},

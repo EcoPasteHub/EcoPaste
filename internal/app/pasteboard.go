@@ -36,12 +36,15 @@ func (s pasteboardSource) Read() (clipboard.Payload, clipboard.SourceApp, error)
 // AppKit's pasteboard.
 type pasteboardWriter struct{}
 
-func (pasteboardWriter) Write(p clipboard.WritePayload) error {
-	return macos.WritePasteboard(macos.WriteContent{
+func (pasteboardWriter) Write(p clipboard.WritePayload) (int, bool, error) {
+	before := macos.PasteboardChangeCount()
+	err := macos.WritePasteboard(macos.WriteContent{
 		Text:     p.Text,
 		HTML:     p.HTML,
 		RTF:      p.RTF,
 		ImagePNG: p.PNG,
 		Files:    p.Files,
 	})
+	changeCount := macos.PasteboardChangeCount()
+	return changeCount, changeCount != before, err
 }

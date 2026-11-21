@@ -13,7 +13,7 @@ import (
 	"github.com/EcoPasteHub/EcoPaste/internal/ui"
 )
 
-func TestReuseUpdatesUsageAndRespectsSort(t *testing.T) {
+func TestInternalReuseDoesNotUpdateUsageOrOrder(t *testing.T) {
 	root := t.TempDir()
 	db, err := database.Open(filepath.Join(root, "clipboard.db"))
 	if err != nil {
@@ -61,18 +61,14 @@ func TestReuseUpdatesUsageAndRespectsSort(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if after.UseCount != before.UseCount+3 || !after.UpdatedAt.After(before.UpdatedAt) || !after.CreatedAt.Equal(created) {
+			if after.UseCount != before.UseCount || !after.UpdatedAt.Equal(before.UpdatedAt) || !after.CreatedAt.Equal(before.CreatedAt) {
 				t.Fatalf("usage before=%+v after=%+v", before, after)
 			}
 			page, err := model.List(ctx, ui.HistoryQuery{Limit: 10})
 			if err != nil {
 				t.Fatal(err)
 			}
-			wantFirst := id
-			if sort == settings.SortCreatedAt {
-				wantFirst = newerID
-			}
-			if len(page.Items) != 2 || page.Items[0].ID != wantFirst {
+			if len(page.Items) != 2 || page.Items[0].ID != newerID {
 				t.Fatalf("sort %s = %+v", sort, page.Items)
 			}
 			writer.err = errors.New("write failed")
@@ -84,8 +80,72 @@ func TestReuseUpdatesUsageAndRespectsSort(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if failed.UseCount != after.UseCount || !failed.UpdatedAt.Equal(after.UpdatedAt) {
+			if failed.UseCount != after.UseCount || !failed.UpdatedAt.Equal(after.UpdatedAt) || !failed.CreatedAt.Equal(after.CreatedAt) {
 				t.Fatal("failed write updated usage")
+			}
+		})
+	}
+}
+
+func TestShouldRefreshHistoryForDuplicateCapture(t *testing.T) {
+	for _, tc := range []struct {
+		sort         settings.Sort
+		deduplicated bool
+		wantRefresh  bool
+	}{
+		{settings.SortCreatedAt, false, true},
+		{settings.SortCreatedAt, true, false},
+		{settings.SortUpdatedAt, true, true},
+		{settings.SortUseCount, true, true},
+	} {
+		if got := shouldRefreshHistory(tc.sort, tc.deduplicated); got != tc.wantRefresh {
+			t.Errorf("shouldRefreshHistory(%q, %t) = %t, want %t", tc.sort, tc.deduplicated, got, tc.wantRefresh)
+		}
+	}
+}
+
+func TestExternalDuplicateMovesOnlyForUsageBasedSorts(t *testing.T) {
+	for _, sort := range []settings.Sort{settings.SortUpdatedAt, settings.SortUseCount, settings.SortCreatedAt} {
+		t.Run(string(sort), func(t *testing.T) {
+			root := t.TempDir()
+			db, err := database.Open(filepath.Join(root, "clipboard.db"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			t.Cleanup(func() { db.Close() })
+			store, err := settings.Open(filepath.Join(root, settings.FileName))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if _, err := store.Update(map[string]any{"clipboard": map[string]any{"content": map[string]any{"sort": sort}}}); err != nil {
+				t.Fatal(err)
+			}
+			cfg := store.Snapshot().Clipboard
+			service := &clipboard.Service{DB: db, Settings: func() settings.Clipboard { return cfg }}
+			model := newHistoryModel(&clipboardRuntime{db: db, service: service}, store)
+			ctx := context.Background()
+			created := time.Now().UTC().Add(-2 * time.Hour)
+			olderID, _, err := db.Upsert(ctx, &database.Item{Kind: database.KindText, Content: "older", CreatedAt: created})
+			if err != nil {
+				t.Fatal(err)
+			}
+			newerID, _, err := db.Upsert(ctx, &database.Item{Kind: database.KindText, Content: "newer", CreatedAt: created.Add(time.Hour)})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if id, changed, err := service.Capture(ctx, clipboard.Payload{Text: "older"}, clipboard.SourceApp{}); err != nil || !changed || id != olderID {
+				t.Fatalf("duplicate capture id=%q changed=%t err=%v", id, changed, err)
+			}
+			page, err := model.List(ctx, ui.HistoryQuery{Limit: 10})
+			if err != nil {
+				t.Fatal(err)
+			}
+			wantFirst := olderID
+			if sort == settings.SortCreatedAt {
+				wantFirst = newerID
+			}
+			if len(page.Items) != 2 || page.Items[0].ID != wantFirst {
+				t.Fatalf("sort %s after external duplicate = %+v", sort, page.Items)
 			}
 		})
 	}

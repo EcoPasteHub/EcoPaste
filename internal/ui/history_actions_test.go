@@ -104,6 +104,7 @@ func newActionsHarness(t *testing.T, model HistoryModel) *actionsHarness {
 		preview:   h.preview,
 		pinned:    &h.pinned,
 		hide:      func() { h.hides++ },
+		schedule:  func(_ time.Duration, fn func()) { fn() },
 		reload: func() {
 			select {
 			case h.reloads <- struct{}{}:
@@ -147,16 +148,17 @@ func (h *actionsHarness) expectNoReload(t *testing.T) {
 	t.Helper()
 	select {
 	case <-h.reloads:
-		t.Fatal("action reloaded the list after a failure")
+		t.Fatal("copy or paste reloaded the list")
 	case <-time.After(100 * time.Millisecond):
 	}
 }
 
-func TestItemActionsCopyHidesAndReloads(t *testing.T) {
+func TestItemActionsCopyHidesWithoutReloading(t *testing.T) {
 	model := &stubHistoryModel{hideAfter: true}
 	h := newActionsHarness(t, model)
 	h.actions.copy("1", true)
-	h.waitReload(t)
+	h.waitSettled(t)
+	h.expectNoReload(t)
 	if h.hides != 1 {
 		t.Errorf("hide calls = %d", h.hides)
 	}
@@ -176,11 +178,12 @@ func TestItemActionsCopyReportsFailureWithoutReloading(t *testing.T) {
 	}
 }
 
-func TestItemActionsActivatePastesAndReloads(t *testing.T) {
+func TestItemActionsActivatePastesWithoutReloading(t *testing.T) {
 	model := &stubHistoryModel{}
 	h := newActionsHarness(t, model)
 	h.actions.activate("1")
-	h.waitReload(t)
+	h.waitSettled(t)
+	h.expectNoReload(t)
 	if model.pastes != 1 {
 		t.Errorf("paste calls = %d", model.pastes)
 	}

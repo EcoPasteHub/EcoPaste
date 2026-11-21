@@ -25,31 +25,34 @@ type Service struct {
 }
 
 // Capture stores one snapshot, or returns changed=false when the settings
-// exclude it, its size exceeds a limit, or EcoPaste wrote it itself.
+// exclude it or its size exceeds a limit.
 func (s *Service) Capture(ctx context.Context, payload Payload, source SourceApp) (id string, changed bool, err error) {
+	id, changed, _, err = s.CaptureDetailed(ctx, payload, source)
+	return id, changed, err
+}
+
+// CaptureDetailed also reports whether the snapshot reused an existing row.
+func (s *Service) CaptureDetailed(ctx context.Context, payload Payload, source SourceApp) (id string, changed, deduplicated bool, err error) {
 	if s.Settings != nil && source.ID != "" && slices.Contains(s.Settings().Filters.ExcludedAppIDs, source.ID) {
-		return "", false, nil
+		return "", false, false, nil
 	}
 	item, err := s.buildItem(payload, source)
 	if err != nil {
-		return "", false, err
+		return "", false, false, err
 	}
 	if item == nil {
-		return "", false, nil
-	}
-	if s.Guard != nil && s.Guard.Consume(item.ContentHash) {
-		return "", false, nil
+		return "", false, false, nil
 	}
 	if source.ID != "" {
 		if err := s.DB.EnsureApp(ctx, source.ID, source.Name, source.IconFile); err != nil {
-			return "", false, err
+			return "", false, false, err
 		}
 	}
-	id, _, err = s.DB.Upsert(ctx, item)
+	id, deduplicated, err = s.DB.Upsert(ctx, item)
 	if err != nil {
-		return "", false, err
+		return "", false, false, err
 	}
-	return id, true, nil
+	return id, true, deduplicated, nil
 }
 
 // BuildItem maps a payload to a history row with the current capture and
@@ -220,14 +223,6 @@ func fileTypes(paths []string) *string {
 	}
 	value := strings.Join(types, ",")
 	return &value
-}
-
-// ItemHash is the guard key for writing an existing item back.
-func ItemHash(item *database.Item) string {
-	if item == nil {
-		return ""
-	}
-	return item.ContentHash
 }
 
 // DecodeFiles splits a file item's content back into paths.

@@ -58,6 +58,10 @@ func TestCaptureStoresTextAndDeduplicates(t *testing.T) {
 	if item.SourceAppID == nil || *item.SourceAppID != source.ID {
 		t.Errorf("source = %v", item.SourceAppID)
 	}
+	if item.UseCount != 1 || item.CreatedAt.IsZero() || !item.UpdatedAt.Equal(item.CreatedAt) {
+		t.Errorf("new item timestamps/use count = %+v", item)
+	}
+	createdAt := item.CreatedAt
 
 	id, _, err = svc.Capture(ctx, Payload{Text: "hello world"}, source)
 	if err != nil {
@@ -72,16 +76,50 @@ func TestCaptureStoresTextAndDeduplicates(t *testing.T) {
 	}
 	if again, _ := db.FindByID(ctx, id); again.UseCount != 2 {
 		t.Errorf("use count = %d, want 2", again.UseCount)
+	} else if !again.CreatedAt.Equal(createdAt) {
+		t.Errorf("duplicate capture changed created_at: %v -> %v", createdAt, again.CreatedAt)
 	}
 }
 
-func TestGuardSuppressesOwnWrite(t *testing.T) {
+func TestCaptureDetailedDistinguishesNewAndRepeatedContent(t *testing.T) {
 	cfg := settings.Default().Clipboard
-	svc, _, _ := testService(t, cfg)
-	svc.Guard = NewGuard(2 * time.Second)
-	svc.Guard.Mark(database.Hash(database.KindText, "echo"))
-	if _, changed, err := svc.Capture(context.Background(), Payload{Text: "echo"}, SourceApp{}); err != nil || changed {
-		t.Fatalf("changed = %v err = %v", changed, err)
+	svc, db, _ := testService(t, cfg)
+	ctx := context.Background()
+	createdAt := time.Now().UTC().Add(-time.Hour)
+	seed := &database.Item{
+		Kind:      database.KindText,
+		Content:   "repeat me",
+		CreatedAt: createdAt,
+		UpdatedAt: createdAt,
+		UseCount:  1,
+	}
+	id, duplicate, err := db.Upsert(ctx, seed)
+	if err != nil || duplicate {
+		t.Fatalf("seed upsert duplicate=%t err=%v", duplicate, err)
+	}
+
+	gotID, changed, deduplicated, err := svc.CaptureDetailed(ctx, Payload{Text: "repeat me"}, SourceApp{})
+	if err != nil || !changed || !deduplicated || gotID != id {
+		t.Fatalf("repeat capture id=%q changed=%t duplicate=%t err=%v", gotID, changed, deduplicated, err)
+	}
+	item, err := db.FindByID(ctx, id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !item.CreatedAt.Equal(createdAt) || !item.UpdatedAt.After(createdAt) || item.UseCount != 2 {
+		t.Fatalf("repeat capture fields = %+v", item)
+	}
+
+	newID, changed, deduplicated, err := svc.CaptureDetailed(ctx, Payload{Text: "new content"}, SourceApp{})
+	if err != nil || !changed || deduplicated || newID == "" {
+		t.Fatalf("new capture id=%q changed=%t duplicate=%t err=%v", newID, changed, deduplicated, err)
+	}
+	newItem, err := db.FindByID(ctx, newID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if newItem.UseCount != 1 || newItem.CreatedAt.IsZero() || !newItem.UpdatedAt.Equal(newItem.CreatedAt) {
+		t.Fatalf("new capture fields = %+v", newItem)
 	}
 }
 
@@ -299,14 +337,16 @@ func TestWatcherReportsChangesOnly(t *testing.T) {
 }
 
 type fakeWriter struct {
-	payload WritePayload
-	calls   int
+	payload     WritePayload
+	calls       int
+	changeCount int
 }
 
-func (f *fakeWriter) Write(p WritePayload) error {
+func (f *fakeWriter) Write(p WritePayload) (int, bool, error) {
 	f.calls++
 	f.payload = p
-	return nil
+	f.changeCount++
+	return f.changeCount, true, nil
 }
 
 func TestBuildWritePreservesRepresentations(t *testing.T) {
@@ -348,30 +388,79 @@ func TestBuildWritePreservesRepresentations(t *testing.T) {
 	}
 }
 
-func TestWriteItemSuppressesItsOwnCapture(t *testing.T) {
-	cfg := settings.Default().Clipboard
-	svc, db, _ := testService(t, cfg)
-	svc.Guard = NewGuard(2 * time.Second)
-	writer := &fakeWriter{}
-	svc.Writer = writer
-	ctx := context.Background()
-	id, _, err := svc.Capture(ctx, Payload{Text: "round trip"}, SourceApp{})
-	if err != nil {
-		t.Fatal(err)
+func TestWriteItemsSuppressTheirOwnEventsAndAllowExternalRepeats(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		payload Payload
+	}{
+		{name: "text", payload: Payload{Text: "round trip"}},
+		{name: "rich text", payload: Payload{Text: "rich text", HTML: "<b>rich text</b>"}},
+		{name: "files", payload: Payload{Files: []string{"/tmp/a", "/tmp/b"}}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := settings.Default().Clipboard
+			svc, db, _ := testService(t, cfg)
+			svc.Guard = NewGuard()
+			writer := &fakeWriter{}
+			svc.Writer = writer
+			ctx := context.Background()
+			id, _, err := svc.Capture(ctx, tc.payload, SourceApp{})
+			if err != nil {
+				t.Fatal(err)
+			}
+			item, err := db.FindByID(ctx, id)
+			if err != nil {
+				t.Fatal(err)
+			}
+			before := *item
+			source := &pollSource{count: writer.changeCount, payload: tc.payload}
+			watcher := &Watcher{
+				Source: source,
+				Guard:  svc.Guard,
+				Capture: func(ctx context.Context, payload Payload, source SourceApp) {
+					if _, _, err := svc.Capture(ctx, payload, source); err != nil {
+						t.Errorf("capture: %v", err)
+					}
+				},
+			}
+			if read, err := watcher.Poll(ctx, false); err != nil || read {
+				t.Fatalf("initial poll = %t, %v", read, err)
+			}
+			if err := svc.WriteItem(ctx, item, false); err != nil {
+				t.Fatal(err)
+			}
+			source.count = writer.changeCount
+			source.payload = payloadFromWrite(writer.payload)
+			if read, err := watcher.Poll(ctx, false); err != nil || read {
+				t.Fatalf("internal write poll = %t, %v", read, err)
+			}
+			if read, err := watcher.Poll(ctx, true); err != nil || read {
+				t.Fatalf("forced internal write poll = %t, %v", read, err)
+			}
+			afterWrite, err := db.FindByID(ctx, id)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if afterWrite.UseCount != before.UseCount || !afterWrite.CreatedAt.Equal(before.CreatedAt) || !afterWrite.UpdatedAt.Equal(before.UpdatedAt) {
+				t.Fatalf("internal write changed row: before=%+v after=%+v", before, afterWrite)
+			}
+			source.count++
+			if read, err := watcher.Poll(ctx, false); err != nil || !read {
+				t.Fatalf("external repeat poll = %t, %v", read, err)
+			}
+			afterRepeat, err := db.FindByID(ctx, id)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if afterRepeat.UseCount != before.UseCount+1 || !afterRepeat.CreatedAt.Equal(before.CreatedAt) || !afterRepeat.UpdatedAt.After(before.UpdatedAt) {
+				t.Fatalf("external repeat fields: before=%+v after=%+v", before, afterRepeat)
+			}
+		})
 	}
-	item, err := db.FindByID(ctx, id)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := svc.WriteItem(ctx, item, false); err != nil {
-		t.Fatal(err)
-	}
-	if writer.payload.Text != "round trip" {
-		t.Errorf("write = %+v", writer.payload)
-	}
-	if _, changed, err := svc.Capture(ctx, Payload{Text: writer.payload.Text}, SourceApp{}); err != nil || changed {
-		t.Fatalf("own write was captured: changed = %v err = %v", changed, err)
-	}
+}
+
+func payloadFromWrite(payload WritePayload) Payload {
+	return Payload{Text: payload.Text, HTML: payload.HTML, RTF: payload.RTF, PNG: payload.PNG, Files: payload.Files}
 }
 
 func TestWriteItemHonorsCanceledContext(t *testing.T) {
@@ -386,61 +475,5 @@ func TestWriteItemHonorsCanceledContext(t *testing.T) {
 	}
 	if writer.calls != 0 {
 		t.Fatalf("writer called %d times after cancellation", writer.calls)
-	}
-}
-
-func TestWriteRichTextSuppressesHTMLAndPlainFallback(t *testing.T) {
-	cfg := settings.Default().Clipboard
-	svc, db, _ := testService(t, cfg)
-	svc.Guard = NewGuard(2 * time.Second)
-	svc.Writer = &fakeWriter{}
-	ctx := context.Background()
-	id, _, err := svc.Capture(ctx, Payload{
-		Text: "rich text",
-		HTML: "<b>rich text</b>",
-	}, SourceApp{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	item, err := db.FindByID(ctx, id)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := svc.WriteItem(ctx, item, false); err != nil {
-		t.Fatal(err)
-	}
-	if _, changed, err := svc.Capture(ctx, Payload{Text: "rich text"}, SourceApp{}); err != nil || changed {
-		t.Fatalf("plain fallback was captured: changed = %v err = %v", changed, err)
-	}
-	if _, changed, err := svc.Capture(ctx, Payload{
-		Text: "rich text",
-		HTML: "<b>rich text</b>",
-	}, SourceApp{}); err != nil || changed {
-		t.Fatalf("HTML representation was captured: changed = %v err = %v", changed, err)
-	}
-}
-
-func TestWriteFilesSuppressesOnlyFileCapture(t *testing.T) {
-	cfg := settings.Default().Clipboard
-	svc, db, _ := testService(t, cfg)
-	svc.Guard = NewGuard(2 * time.Second)
-	svc.Writer = &fakeWriter{}
-	ctx := context.Background()
-	id, _, err := svc.Capture(ctx, Payload{Files: []string{"/tmp/a", "/tmp/b"}}, SourceApp{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	item, err := db.FindByID(ctx, id)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := svc.WriteItem(ctx, item, true); err != nil {
-		t.Fatal(err)
-	}
-	if _, changed, err := svc.Capture(ctx, Payload{Files: []string{"/tmp/a", "/tmp/b"}}, SourceApp{}); err != nil || changed {
-		t.Fatalf("file write was captured: changed = %v err = %v", changed, err)
-	}
-	if _, changed, err := svc.Capture(ctx, Payload{Text: "/tmp/a\n/tmp/b"}, SourceApp{}); err != nil || !changed {
-		t.Fatalf("independently copied path text was suppressed: changed = %v err = %v", changed, err)
 	}
 }
