@@ -57,7 +57,7 @@ func (v *SettingsView) buildDataPage() {
 	v.addSwitch(document, settingsRowTop(cardTop, 5), i18n.SettingsDeleteFavoriteOnlyFav, "content.deleteFavoriteOnlyFav",
 		func(s SettingsValues) bool { return s.DeleteFavoriteOnlyFav })
 	top = cardTop + 6*settingsRowHeight + settingsGroupGap
-	top = v.buildStorageSection(document, top)
+	v.buildStorageSection(document, top)
 
 	v.finishPage(document)
 }

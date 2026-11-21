@@ -11,11 +11,11 @@ func (v *SettingsView) buildSystemPage() {
 	document := v.newPage("system")
 	top := 18.0
 
-	top = v.buildPermissionsSection(document, top)
+	v.buildPermissionsSection(document, top)
 	v.finishPage(document)
 }
 
-func (v *SettingsView) buildPermissionsSection(document objc.ID, top float64) float64 {
+func (v *SettingsView) buildPermissionsSection(document objc.ID, top float64) {
 	v.addSectionLabel(document, top, i18n.SettingsPermissionsSystem)
 	v.addInfoAfterText(document, settingsContentX+4, top+8, i18n.SettingsPermissionsSystem,
 		settingsSectionFont(), i18n.SettingsPermissionsIntro)
@@ -80,5 +80,4 @@ func (v *SettingsView) buildPermissionsSection(document objc.ID, top float64) fl
 	v.bindText(func() {
 		logsButton.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsOpenLogDirectory)))
 	})
-	return cardTop + 2*settingsRowHeight + settingsGroupGap
 }

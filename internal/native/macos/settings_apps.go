@@ -26,7 +26,7 @@ var (
 	settingsAppControls      = map[objc.ID]*SettingsView{}
 )
 
-func (v *SettingsView) buildSourceAppsSection(document objc.ID, top float64) float64 {
+func (v *SettingsView) buildSourceAppsSection(document objc.ID, top float64) {
 	registerSettingsAppsOnce.Do(registerSettingsAppsTargets)
 	v.addSectionLabel(document, top, i18n.SettingsAppsSection)
 	v.addInfoAfterText(document, settingsContentX+4, top+8, i18n.SettingsAppsSection,
@@ -121,7 +121,6 @@ func (v *SettingsView) buildSourceAppsSection(document objc.ID, top float64) flo
 		refresh.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsRefreshA11y)))
 	})
 
-	return top + 30 + settingsGroupGap
 }
 
 // settingsAppsEqual reports whether two app lists are identical, including

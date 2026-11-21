@@ -37,6 +37,5 @@ func (v *SettingsView) buildAppearancePage() {
 	v.addNumberInput(document, settingsRowTop(cardTop, 2), i18n.SettingsFileMaxCount, "display.fileMaxCount",
 		1, 5, 1, i18n.SettingsUnitItems,
 		func(s SettingsValues) uint32 { return s.FileMaxCount })
-	top = cardTop + 3*settingsRowHeight + settingsGroupGap
 	v.finishPage(document)
 }

@@ -14,8 +14,6 @@ func (v *SettingsView) resizeWindow(animated bool) {
 	if window == 0 {
 		return
 	}
-	v.measurePage(v.currentTab)
-
 	frame := objc.Send[CGRect](window, sel("frame"))
 	contentView := window.Send(sel("contentView"))
 	contentHeight := objc.Send[CGRect](contentView, sel("frame")).Size.Height

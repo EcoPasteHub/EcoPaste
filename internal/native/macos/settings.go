@@ -3,6 +3,7 @@
 package macos
 
 import (
+	"slices"
 	"sync"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
@@ -127,7 +128,6 @@ type SettingsView struct {
 	currentTab          string
 	pageHeights         map[string]float64
 	pageViews           map[string]objc.ID
-	pageDocuments       map[string]objc.ID
 	targetWindowHeight  float64
 	language            string
 	texts               []func()
@@ -141,7 +141,6 @@ type settingsField struct {
 	kind    string
 	control objc.ID
 	options []string
-	titles  []string
 	choices []settingsOption
 	title   i18n.Key
 	get     func(SettingsValues) any
@@ -156,31 +155,24 @@ const (
 	settingsPageTransitionDuration = 0.18
 )
 
-type settingsTabMeta struct {
-	title  i18n.Key
-	symbol string
-}
-
-var settingsTabs = map[string]settingsTabMeta{
-	"general":     {i18n.SettingsTabGeneral, "gearshape"},
-	"appearance":  {i18n.SettingsTabAppearance, "paintpalette"},
-	"clipboard":   {i18n.SettingsTabClipboard, "clipboard"},
-	"interaction": {i18n.SettingsTabInteraction, "hand.point.up.left"},
-	"data":        {i18n.SettingsTabData, "externaldrive"},
-	"system":      {i18n.SettingsTabSystem, "slider.horizontal.3"},
-	"about":       {i18n.SettingsTabAbout, "info.circle"},
-}
-
-func settingsTabTitle(name string) string {
-	tab, ok := settingsTabs[name]
-	if !ok {
-		return name
-	}
-	return i18n.T(tab.title)
+var settingsTabs = map[string]i18n.Key{
+	"general":     i18n.SettingsTabGeneral,
+	"appearance":  i18n.SettingsTabAppearance,
+	"clipboard":   i18n.SettingsTabClipboard,
+	"interaction": i18n.SettingsTabInteraction,
+	"data":        i18n.SettingsTabData,
+	"system":      i18n.SettingsTabSystem,
+	"about":       i18n.SettingsTabAbout,
 }
 
 // SettingsTabTitle returns the localized title of a primary settings tab.
-func SettingsTabTitle(name string) string { return settingsTabTitle(name) }
+func SettingsTabTitle(name string) string {
+	title, ok := settingsTabs[name]
+	if !ok {
+		return name
+	}
+	return i18n.T(title)
+}
 
 // InitialSettingsTab returns the tab a new settings window should show.
 func InitialSettingsTab() string {
@@ -245,13 +237,12 @@ func newSettings(cx settingsEmitter) *SettingsView {
 	registerSettingsLayoutOnce.Do(registerSettingsLayoutTargets)
 	syncSettingsDockIcon(true)
 	v := &SettingsView{
-		cx:            cx,
-		view:          objc.ID(settingsRootClass).Send(sel("new")),
-		language:      string(i18n.Current()),
-		tabItems:      map[string]objc.ID{},
-		pageHeights:   map[string]float64{},
-		pageViews:     map[string]objc.ID{},
-		pageDocuments: map[string]objc.ID{},
+		cx:          cx,
+		view:        objc.ID(settingsRootClass).Send(sel("new")),
+		language:    string(i18n.Current()),
+		tabItems:    map[string]objc.ID{},
+		pageHeights: map[string]float64{},
+		pageViews:   map[string]objc.ID{},
 	}
 	v.view.Send(sel("setAutoresizesSubviews:"), false)
 	settingsRoots[v.view] = v
@@ -321,9 +312,6 @@ func (v *SettingsView) applyTab(name string) {
 	}
 	v.tabs.Send(sel("selectTabViewItemWithIdentifier:"), nsString(name))
 	v.currentTab = name
-	// Page geometry is normally fixed after construction. Measuring here also
-	// picks up any page whose controls were added or expanded while it was
-	// inactive, without measuring on every settings value update.
 	v.resizeWindow(true)
 	window := v.view.Send(sel("window"))
 	if window != 0 && objc.Send[bool](window, sel("isVisible")) {
@@ -402,49 +390,37 @@ func (v *SettingsView) shortcutRecorder(path string) *shortcutRecorder {
 // not reload or re-scroll unrelated regions.
 func (v *SettingsView) apply(values SettingsValues) {
 	prev := v.lastValues
-	if v.dataDir != 0 {
+	if v.dataDir != 0 && prev.DataDir != values.DataDir {
 		v.dataDir.Send(sel("setStringValue:"), nsString(values.DataDir))
 		v.dataDir.Send(sel("setToolTip:"), nsString(values.DataDir))
 	}
-	if v.restore != 0 {
+	if v.restore != 0 && objc.Send[bool](v.restore, sel("isEnabled")) != values.CanRestoreDataDir {
 		v.restore.Send(sel("setEnabled:"), values.CanRestoreDataDir)
 	}
 	v.applyApps(values)
 	v.applyActions(values)
 	v.applyCaptureOrder(values)
 	v.applyShortcuts(values)
-	v.applyNumberInputs(values)
-	if !settingsGroupsEqual(prev.Groups, values.Groups) || prev.GroupOnOpen != values.GroupOnOpen {
+	v.applyNumberInputs(values, false)
+	if !slices.Equal(prev.Groups, values.Groups) || prev.GroupOnOpen != values.GroupOnOpen {
 		v.applyGroups(values)
 	}
 	for _, field := range v.fields {
 		switch field.kind {
 		case "bool":
 			on, _ := field.get(values).(bool)
-			field.control.Send(sel("setState:"), int64(boolInt(on)))
+			state := boolInt(on)
+			if objc.Send[int64](field.control, sel("state")) != state {
+				field.control.Send(sel("setState:"), state)
+			}
 		case "popup":
 			value, _ := field.get(values).(string)
-			selectPopup(field, value)
-			v.layoutPopup(field)
+			if selectPopup(field, value) {
+				v.layoutPopup(field)
+			}
 		}
 	}
 	v.lastValues = values
-	// Value-driven pages can add or remove controls. Re-measure on settings
-	// changes, then let the resize path skip targets that remain unchanged.
-	v.resizeWindow(true)
-}
-
-// settingsGroupsEqual reports whether two group lists are identical.
-func settingsGroupsEqual(a, b []SettingsGroup) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
 }
 
 // applyGroups rebuilds the open-group popup from the current clipboard
@@ -462,7 +438,6 @@ func (v *SettingsView) applyGroups(values SettingsValues) {
 		titles = append(titles, group.Name)
 	}
 	field.options = options
-	field.titles = titles
 	field.control.Send(sel("removeAllItems"))
 	for _, title := range titles {
 		field.control.Send(sel("addItemWithTitle:"), nsString(title))
@@ -471,17 +446,18 @@ func (v *SettingsView) applyGroups(values SettingsValues) {
 	v.layoutPopup(field)
 }
 
-func selectPopup(field *settingsField, value string) {
-	for i, option := range field.options {
-		if option == value {
-			field.control.Send(sel("selectItemAtIndex:"), int64(i))
-			return
-		}
+func selectPopup(field *settingsField, value string) bool {
+	index := slices.Index(field.options, value)
+	if index < 0 {
+		index = len(field.options)
+		field.options = append(field.options, value)
+		field.control.Send(sel("addItemWithTitle:"), nsString(value))
 	}
-	field.options = append(field.options, value)
-	field.titles = append(field.titles, value)
-	field.control.Send(sel("addItemWithTitle:"), nsString(value))
-	field.control.Send(sel("selectItemAtIndex:"), int64(len(field.options)-1))
+	if objc.Send[int64](field.control, sel("indexOfSelectedItem")) == int64(index) {
+		return false
+	}
+	field.control.Send(sel("selectItemAtIndex:"), int64(index))
+	return true
 }
 
 func boolInt(value bool) int64 {

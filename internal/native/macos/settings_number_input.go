@@ -143,12 +143,16 @@ func newNumberStepButton(symbol string, target objc.ID, action, accessibility st
 	return button
 }
 
-func (v *SettingsView) applyNumberInputs(values SettingsValues) {
+func (v *SettingsView) applyNumberInputs(values SettingsValues, languageChanged bool) {
 	for _, n := range v.numberInputs {
 		if n.editing {
 			continue
 		}
-		n.value = n.get(values)
+		value := n.get(values)
+		if !languageChanged && n.value == value {
+			continue
+		}
+		n.value = value
 		n.refresh()
 	}
 }

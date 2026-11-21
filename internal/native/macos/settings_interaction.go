@@ -73,12 +73,12 @@ func (v *SettingsView) buildInteractionPage() {
 	v.addSwitch(document, settingsRowTop(cardTop, 0), i18n.SettingsSpacePreview, "preview.spaceEnabled",
 		func(s SettingsValues) bool { return s.SpacePreview })
 	top = cardTop + settingsRowHeight + settingsGroupGap
-	top = v.buildHoverActions(document, top)
+	v.buildHoverActions(document, top)
 
 	v.finishPage(document)
 }
 
-func (v *SettingsView) buildHoverActions(document objc.ID, top float64) float64 {
+func (v *SettingsView) buildHoverActions(document objc.ID, top float64) {
 	registerSettingsActionsOnce.Do(registerSettingsActionsTargets)
 	v.addSectionLabel(document, top, i18n.SettingsHoverActions)
 	v.addInfoAfterText(document, settingsContentX+4, top+8, i18n.SettingsHoverActions,
@@ -100,5 +100,4 @@ func (v *SettingsView) buildHoverActions(document objc.ID, top float64) float64 
 	v.actionDown = v.addSettingsMoveButton(document,
 		CGRect{Origin: CGPoint{X: buttonX, Y: top + listHeight + 12}, Size: CGSize{Width: 90, Height: 28}},
 		i18n.SettingsMoveDown, i18n.SettingsActionMoveDownA11y, settingsActionsTarget, "actionDownPressed:")
-	return top + listHeight + 52
 }

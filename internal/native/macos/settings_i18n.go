@@ -30,10 +30,11 @@ func (v *SettingsView) applyLanguage(language string) {
 		update()
 	}
 	for id, item := range v.tabItems {
-		item.Send(sel("setLabel:"), nsString(settingsTabTitle(id)))
+		item.Send(sel("setLabel:"), nsString(SettingsTabTitle(id)))
 	}
 	v.refreshPermissionLabels()
-	v.apply(v.lastValues)
+	v.applyNumberInputs(v.lastValues, true)
+	v.applyActions(v.lastValues)
 	// The group popup and the table row labels derive their text from
 	// localized strings rather than the value snapshot, so refresh them
 	// explicitly. reloadData keeps each list's scroll offset.

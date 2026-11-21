@@ -14,8 +14,8 @@ func TestSettingsTabsHaveMetadata(t *testing.T) {
 		if !ok {
 			t.Fatalf("settings tab %q is missing", name)
 		}
-		if tab.title == "" || tab.symbol == "" {
-			t.Fatalf("tab %q has incomplete metadata: %+v", name, tab)
+		if tab == "" {
+			t.Fatalf("tab %q has no title", name)
 		}
 	}
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/ebitengine/purego/objc"
 )
 
-func (v *SettingsView) buildStorageSection(document objc.ID, top float64) float64 {
+func (v *SettingsView) buildStorageSection(document objc.ID, top float64) {
 	v.addSectionLabel(document, top, i18n.SettingsStorage)
 	cardTop := top + 24
 	card := objc.ID(classNSBox).Send(sel("new"))
@@ -62,5 +62,4 @@ func (v *SettingsView) buildStorageSection(document objc.ID, top float64) float6
 	importButton := v.addPageButton(document, settingsContentX+settingsRowInset+144, cardTop+14, 136, 28,
 		i18n.SettingsImportBackup, "importBackupPressed:", i18n.SettingsBackupHint)
 	importButton.Send(sel("setAccessibilityHelp:"), nsString(i18n.T(i18n.SettingsBackupHint)))
-	return cardTop + 56 + settingsGroupGap
 }

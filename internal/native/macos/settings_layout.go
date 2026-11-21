@@ -43,7 +43,7 @@ func settingsSeparatorColor() objc.ID {
 func (v *SettingsView) newPage(identifier string) objc.ID {
 	registerSettingsLayoutOnce.Do(registerSettingsLayoutTargets)
 	item := objc.ID(class("NSTabViewItem")).Send(sel("alloc")).Send(sel("initWithIdentifier:"), nsString(identifier))
-	item.Send(sel("setLabel:"), nsString(settingsTabTitle(identifier)))
+	item.Send(sel("setLabel:"), nsString(SettingsTabTitle(identifier)))
 	v.tabItems[identifier] = item
 
 	page := objc.ID(class("NSView")).Send(sel("new"))
@@ -67,7 +67,6 @@ func (v *SettingsView) newPage(identifier string) objc.ID {
 	item.Send(sel("setView:"), page)
 	v.tabs.Send(sel("addTabViewItem:"), item)
 	v.pageViews[identifier] = page
-	v.pageDocuments[identifier] = document
 
 	document.Send(sel("release"))
 	scroll.Send(sel("release"))
@@ -79,15 +78,9 @@ func (v *SettingsView) newPage(identifier string) objc.ID {
 }
 
 func (v *SettingsView) finishPage(document objc.ID) {
-	if document == 0 {
-		return
-	}
-	for tab, candidate := range v.pageDocuments {
-		if candidate == document {
-			v.measurePage(tab)
-			return
-		}
-	}
+	height := settingsMeasuredPageHeight(document)
+	v.pageHeights[v.currentTab] = height
+	setFrame(document, 0, 0, settingsWidth, height)
 }
 
 func registerSettingsLayoutTargets() {
@@ -124,16 +117,6 @@ func settingsRootSetFrameSize(self objc.ID, _ objc.SEL, size CGSize) {
 	if view := settingsRoots[self]; view != nil && view.tabs != 0 {
 		view.tabs.Send(sel("setFrame:"), CGRect{Size: size})
 	}
-}
-
-func (v *SettingsView) measurePage(tab string) {
-	document := v.pageDocuments[tab]
-	if document == 0 {
-		return
-	}
-	final := settingsMeasuredPageHeight(document)
-	v.pageHeights[tab] = final
-	setFrame(document, 0, 0, settingsWidth, final)
 }
 
 func settingsMeasuredPageHeight(document objc.ID) float64 {

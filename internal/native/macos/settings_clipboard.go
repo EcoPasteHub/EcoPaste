@@ -31,7 +31,7 @@ func (v *SettingsView) buildClipboardPage() {
 		10, 4096, 10, " MB", func(s SettingsValues) uint32 { return s.MaxImageMB })
 	top = cardTop + 2*settingsRowHeight + settingsGroupGap
 	top = v.buildCapturePriorities(document, top)
-	top = v.buildSourceAppsSection(document, top)
+	v.buildSourceAppsSection(document, top)
 	v.finishPage(document)
 }
 

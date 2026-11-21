@@ -131,7 +131,6 @@ func (v *SettingsView) addSwitch(content objc.ID, y float64, title i18n.Key, pat
 func (v *SettingsView) addPopup(content objc.ID, y float64, title i18n.Key, path string, options []settingsOption, get func(SettingsValues) string) *settingsField {
 	v.addLabel(content, y, title)
 	values := make([]string, 0, len(options))
-	titles := make([]string, 0, len(options))
 	control := newSettingsPopup(CGRect{
 		Origin: CGPoint{
 			X: settingsContentX + settingsContentWidth - settingsRowInset - settingsPopupMinWidth,
@@ -142,14 +141,13 @@ func (v *SettingsView) addPopup(content objc.ID, y float64, title i18n.Key, path
 	for _, option := range options {
 		text := settingsOptionText(option)
 		values = append(values, option.Value)
-		titles = append(titles, text)
 		control.Send(sel("addItemWithTitle:"), nsString(text))
 	}
 	control.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(title)))
 	control.Send(sel("setTarget:"), settingsTarget)
 	control.Send(sel("setAction:"), sel("popupChanged:"))
 	field := &settingsField{
-		path: path, kind: "popup", control: control, options: values, titles: titles,
+		path: path, kind: "popup", control: control, options: values,
 		title: title, choices: options,
 		get: func(s SettingsValues) any { return get(s) },
 	}
@@ -186,11 +184,9 @@ func (v *SettingsView) rebuildPopup(field *settingsField) {
 	}
 	field.control.Send(sel("removeAllItems"))
 	field.options = field.options[:0]
-	field.titles = field.titles[:0]
 	for _, choice := range field.choices {
 		text := settingsOptionText(choice)
 		field.options = append(field.options, choice.Value)
-		field.titles = append(field.titles, text)
 		field.control.Send(sel("addItemWithTitle:"), nsString(text))
 	}
 	field.control.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(field.title)))
