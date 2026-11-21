@@ -1,0 +1,496 @@
+package ui
+
+import (
+	"context"
+	"log/slog"
+	"sync/atomic"
+	"time"
+
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
+	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
+	"github.com/nsgo-dev/nsgo/core"
+	"github.com/nsgo-dev/nsgo/desktop"
+)
+
+type historyPanel struct {
+	cx    *core.Scope
+	model HistoryModel
+	hide  func()
+	ref   *core.Ref
+
+	items     *core.Signal[[]HistoryItem]
+	rows      *core.Memo[[]macos.HistoryRow]
+	total     *core.Signal[int64]
+	loading   *core.Signal[bool]
+	errorText *core.Signal[string]
+	hasMore   *core.Signal[bool]
+	preview   *core.Signal[macos.PreviewContent]
+	groups    *core.Signal[[]macos.GroupOption]
+	filter    *core.Signal[string]
+	group     *core.Signal[string]
+
+	behavior      macos.PanelBehavior
+	query         string
+	filterValue   string
+	groupID       string
+	selectedID    string
+	pinned        bool
+	scrollTop     atomic.Bool
+	pageSize      int
+	request       atomic.Int64
+	visible       bool
+	cancelRequest context.CancelFunc
+
+	language      i18n.Language
+	pendingSearch func() bool
+	actions       *itemActions
+	dragProvider  func(string) (macos.DragPayload, bool)
+}
+
+func newHistoryPanel(cx *core.Scope, model HistoryModel, hide func()) *historyPanel {
+	p := &historyPanel{
+		cx: cx, model: model, hide: hide, ref: &core.Ref{},
+		items:     core.NewSignalFunc(cx, []HistoryItem(nil), nil),
+		total:     core.NewSignal(cx, int64(0)),
+		loading:   core.NewSignal(cx, true),
+		errorText: core.NewSignal(cx, ""),
+		hasMore:   core.NewSignal(cx, false),
+		preview:   core.NewSignal(cx, macos.PreviewContent{}),
+		groups:    core.NewSignalFunc(cx, []macos.GroupOption(nil), nil),
+		filter:    core.NewSignal(cx, ""),
+		group:     core.NewSignal(cx, ""),
+		pageSize:  80,
+		language:  i18n.Watch(cx),
+	}
+	p.rows = core.NewMemoFunc(cx, func() []macos.HistoryRow {
+		i18n.Watch(cx)
+		return historyRows(p.items.Get())
+	}, nil)
+	if model != nil {
+		p.panelBehavior()
+	}
+
+	opening := HistoryOpenBehavior{Filter: "preserve", GroupID: "preserve"}
+	if model != nil {
+		opening = model.OpenBehavior()
+	}
+	p.filterValue, p.groupID = openSelection(opening, "", "")
+	p.actions = &itemActions{
+		cx: cx, model: model, ref: p.ref,
+		errorText: p.errorText, loading: p.loading, preview: p.preview,
+		pinned: &p.pinned, hide: hide, reload: p.reload,
+	}
+	if model != nil {
+		p.dragProvider = func(id string) (macos.DragPayload, bool) {
+			payload, err := model.Drag(context.Background(), id)
+			if err != nil {
+				slog.Error("prepare history drag", "module", "ui.history", "error", err)
+				return macos.DragPayload{}, false
+			}
+			return payload, true
+		}
+	}
+	cx.Cleanup(p.cancelPendingSearch)
+	cx.Cleanup(p.cancelLoad)
+	return p
+}
+
+func (p *historyPanel) start() {
+	p.watchLanguage()
+	p.filter.Set(p.filterValue)
+	p.group.Set(p.groupID)
+	p.loadGroups(p.groupID, false)
+	if window := desktop.CurrentWindow(p.cx); window != nil {
+		p.cx.Effect(func() { p.setVisible(window.Visible()) })
+	}
+	if p.model == nil {
+		return
+	}
+	if updates := p.model.Updates(); updates != nil {
+		ctx := p.cx.Context()
+		var pending atomic.Bool
+		go func() {
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case _, ok := <-updates:
+					if !ok {
+						return
+					}
+					if !pending.CompareAndSwap(false, true) {
+						continue
+					}
+					p.cx.Post(func() {
+						pending.Store(false)
+						p.preview.Set(macos.PreviewContent{})
+						p.reload()
+					})
+				}
+			}
+		}()
+	}
+}
+
+// panelBehavior reads the current search and preview settings on every props
+// pass, so changing them in the settings window applies to the next open
+// without rebuilding the panel.
+func (p *historyPanel) panelBehavior() macos.PanelBehavior {
+	if p.model == nil {
+		return p.behavior
+	}
+	search := p.model.SearchBehavior()
+	preview := p.model.PreviewBehavior()
+	clicks := p.model.ClickBehavior()
+	p.behavior.DefaultFocus = search.DefaultFocus
+	p.behavior.ClearOnHide = search.ClearOnHide
+	p.behavior.SpacePreview = preview.SpaceEnabled
+	p.behavior.SingleClick = clicks.SingleClick
+	p.behavior.DoubleClick = clicks.DoubleClick
+	return p.behavior
+}
+
+func (p *historyPanel) node() core.Node {
+	return core.Native{
+		Component: macos.PanelComponent,
+		Ref:       p.ref,
+		Style:     core.Style{Width: core.Pct(100), Height: core.Pct(100)},
+		PropsFunc: func() map[string]any {
+			language := i18n.Watch(p.cx)
+			behavior := p.panelBehavior()
+			display := macos.PanelDisplay{TextMaxLines: 1, ImageMaxHeight: 32, FileMaxCount: 3}
+			var quickActions []string
+			if p.model != nil {
+				density := p.model.Display()
+				display = macos.PanelDisplay{
+					TextMaxLines:   density.TextMaxLines,
+					ImageMaxHeight: density.ImageMaxHeight,
+					FileMaxCount:   density.FileMaxCount,
+					ShowOriginal:   density.ShowOriginal,
+				}
+				quickActions = p.model.QuickActions()
+			}
+			return map[string]any{
+				"language": string(language),
+				"rows":     p.rows.Get(),
+				"total":    p.total.Get(),
+				"loading":  p.loading.Get(),
+				"error":    p.errorText.Get(),
+				"preview":  p.preview.Get(),
+				"groups":   p.groups.Get(),
+				"group":    p.group.Get(),
+				"filter":   p.filter.Get(),
+				"query":    p.query,
+				"behavior": behavior,
+				"drag":     p.dragProvider,
+				"display":  display,
+				"actions":  quickActions,
+			}
+		},
+		OnEvent: p.handleEvent,
+	}
+}
+
+func (p *historyPanel) load(keyword, activeFilter, groupID string, appendRows bool) {
+	p.cancelLoad()
+	if p.model == nil {
+		p.errorText.Set(i18n.T(i18n.DatabaseOpenFailed))
+		p.loading.Set(false)
+		return
+	}
+	p.loading.Set(true)
+	p.errorText.Set("")
+	offset := 0
+	if appendRows {
+		offset = len(p.items.GetUntracked())
+	}
+	serial := p.request.Load()
+	ctx, cancel := context.WithCancel(p.cx.Context())
+	p.cancelRequest = cancel
+	go func() {
+		defer cancel()
+		page, err := p.model.List(ctx, HistoryQuery{
+			Keyword: keyword,
+			Filter:  activeFilter,
+			GroupID: groupID,
+			Limit:   p.pageSize,
+			Offset:  offset,
+		})
+		p.cx.Post(func() {
+			if p.request.Load() != serial {
+				return
+			}
+			p.cancelRequest = nil
+			if err != nil {
+				logHistoryFailure("load history", err)
+				p.errorText.Set(err.Error())
+				p.loading.Set(false)
+				return
+			}
+			next := make([]HistoryItem, 0, len(page.Items)+offset)
+			if appendRows {
+				next = append(next, p.items.GetUntracked()...)
+			}
+			next = append(next, page.Items...)
+			p.items.Set(next)
+			p.total.Set(page.Total)
+			p.hasMore.Set(page.HasMore)
+			p.loading.Set(false)
+			// Apply a pending "select first" intent even when the rows did not
+			// change, so switching views always starts at the top.
+			p.ref.Command("applyPendingSelection", nil)
+			if p.scrollTop.Load() {
+				p.scrollTop.Store(false)
+				p.ref.Command("scrollTop", nil)
+			}
+		})
+	}()
+}
+
+func (p *historyPanel) reload() {
+	if p.visible {
+		p.cancelPendingSearch()
+		p.load(p.query, p.filterValue, p.groupID, false)
+	}
+}
+
+func (p *historyPanel) cancelLoad() {
+	p.request.Add(1)
+	if p.cancelRequest != nil {
+		p.cancelRequest()
+		p.cancelRequest = nil
+	}
+}
+
+func (p *historyPanel) loadGroups(selectID string, reloadRows bool) {
+	if p.model == nil {
+		return
+	}
+	ctx := p.cx.Context()
+	go func() {
+		nextGroups, err := p.model.Groups(ctx)
+		p.cx.Post(func() {
+			if err != nil {
+				logHistoryFailure("load history groups", err)
+				p.errorText.Set(err.Error())
+				return
+			}
+			options := make([]macos.GroupOption, 0, len(nextGroups))
+			foundSelected := selectID == ""
+			for _, option := range nextGroups {
+				options = append(options, macos.GroupOption{ID: option.ID, Name: option.Name})
+				if option.ID == selectID {
+					foundSelected = true
+				}
+			}
+			p.groups.Set(options)
+			if selectID != "" && foundSelected {
+				p.groupID = selectID
+				p.filterValue = ""
+				p.group.Set(p.groupID)
+				p.filter.Set("")
+			} else if p.groupID != "" && !groupExists(nextGroups, p.groupID) {
+				p.groupID = ""
+				p.group.Set("")
+			}
+			if reloadRows {
+				p.reload()
+			}
+		})
+	}()
+}
+
+func (p *historyPanel) cancelPendingSearch() {
+	if p.pendingSearch != nil {
+		p.pendingSearch()
+		p.pendingSearch = nil
+	}
+}
+
+// watchLanguage clears a visible preview when the language changes: its
+// title and metadata were translated when it opened, while the list is
+// rebuilt from its raw items by the panel props.
+func (p *historyPanel) watchLanguage() {
+	p.cx.Effect(func() {
+		language := i18n.Watch(p.cx)
+		if language == p.language {
+			return
+		}
+		p.language = language
+		p.preview.Set(macos.PreviewContent{})
+	})
+}
+
+func (p *historyPanel) actionID(data any) string {
+	if value, ok := data.(string); ok && value != "" {
+		return value
+	}
+	return p.selectedID
+}
+
+func (p *historyPanel) handleEvent(name string, data any) {
+	switch {
+	case p.handleListEvent(name, data):
+	case p.handleWindowEvent(name, data):
+	case p.handleCopyEvent(name, data):
+	case p.handleActivationEvent(name, data):
+	case p.handleRowEvent(name, data):
+	case p.handleGroupEvent(name, data):
+	}
+}
+
+func (p *historyPanel) handleListEvent(name string, data any) bool {
+	switch name {
+	case "query":
+		text, _ := data.(string)
+		if text == p.query {
+			return true
+		}
+		p.cancelPendingSearch()
+		p.cancelLoad()
+		p.query = text
+		p.pendingSearch = p.cx.AfterFunc(120*time.Millisecond, func() {
+			p.pendingSearch = nil
+			p.reload()
+		})
+	case "searchCleared":
+		p.cancelPendingSearch()
+		p.query = ""
+		p.preview.Set(macos.PreviewContent{})
+		p.reload()
+	case "filter":
+		value, _ := data.(string)
+		if value == p.filterValue && p.groupID == "" {
+			return true
+		}
+		p.filterValue = value
+		p.groupID = ""
+		p.filter.Set(value)
+		p.group.Set("")
+		p.reload()
+	case "group":
+		value, _ := data.(string)
+		if value == p.groupID && p.filterValue == "" {
+			return true
+		}
+		p.groupID = value
+		p.filterValue = ""
+		p.group.Set(value)
+		p.filter.Set("")
+		p.preview.Set(macos.PreviewContent{})
+		p.reload()
+	case "select":
+		p.selectedID, _ = data.(string)
+	case "loadMore":
+		if p.visible && p.pendingSearch == nil && p.hasMore.GetUntracked() && !p.loading.GetUntracked() {
+			p.load(p.query, p.filterValue, p.groupID, true)
+		}
+	default:
+		return false
+	}
+	return true
+}
+
+func (p *historyPanel) setVisible(visible bool) {
+	if p.visible == visible {
+		return
+	}
+	p.visible = visible
+	if !visible {
+		p.cancelPendingSearch()
+		p.cancelLoad()
+		p.loading.Set(false)
+		p.ref.Command("cancelInteractions", nil)
+		return
+	}
+	if p.model == nil {
+		p.reload()
+		return
+	}
+	opening := p.model.OpenBehavior()
+	nextFilter, nextGroup := openSelection(opening, p.filterValue, p.groupID)
+	if nextFilter != p.filterValue {
+		p.filterValue = nextFilter
+		p.filter.Set(nextFilter)
+	}
+	if nextGroup != p.groupID {
+		p.groupID = nextGroup
+		p.group.Set(nextGroup)
+	}
+	if opening.ScrollTop {
+		p.scrollTop.Store(true)
+		p.ref.Command("selectFirstOnOpen", nil)
+	}
+	p.reload()
+}
+
+func (p *historyPanel) handleWindowEvent(name string, data any) bool {
+	switch name {
+	case "openSettings":
+		if p.model != nil {
+			tab, _ := data.(string)
+			p.model.OpenSettings(tab)
+		}
+	case "pinChanged":
+		p.pinned, _ = data.(bool)
+	case "toggleWindowPinned":
+		if p.ref != nil {
+			p.ref.Command("toggleWindowPinned", nil)
+		}
+	case "hide":
+		if p.hide != nil {
+			p.hide()
+		}
+	case "blurHide":
+		if !p.pinned && p.hide != nil {
+			p.hide()
+		}
+	default:
+		return false
+	}
+	return true
+}
+
+func (p *historyPanel) handleCopyEvent(name string, data any) bool {
+	switch name {
+	case "copy":
+		p.actions.copy(p.actionID(data), false)
+	case "copyPlain":
+		p.actions.copy(p.actionID(data), true)
+	default:
+		return false
+	}
+	return true
+}
+
+func (p *historyPanel) handleActivationEvent(name string, data any) bool {
+	switch name {
+	case "activate":
+		p.actions.activate(p.actionID(data))
+	case "activateSingleClick":
+		p.actions.activateSingleClick(p.actionID(data))
+	case "activateDoubleClick":
+		p.actions.activateDoubleClick(p.actionID(data))
+	default:
+		return false
+	}
+	return true
+}
+
+func (p *historyPanel) handleRowEvent(name string, data any) bool {
+	handler, ok := historyRowEvents[name]
+	if !ok {
+		return false
+	}
+	handler(p, data)
+	return true
+}
+
+func (p *historyPanel) handleGroupEvent(name string, data any) bool {
+	handler, ok := historyGroupEvents[name]
+	if !ok {
+		return false
+	}
+	handler(p, data)
+	return true
+}

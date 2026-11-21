@@ -1,4 +1,0 @@
-{
-  "commit-msg": "npx --no-install commitlint -e",
-  "pre-commit": "npx lint-staged"
-}
