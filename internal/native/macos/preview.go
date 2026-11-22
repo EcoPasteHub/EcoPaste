@@ -13,6 +13,7 @@ import (
 // PreviewContent is the content shown in the native preview popover.
 type PreviewContent struct {
 	Active     bool
+	Kind       string
 	Title      string
 	Meta       string
 	Text       string
@@ -25,17 +26,29 @@ const (
 	previewTitleTag = 200
 	previewMetaTag  = 201
 
-	previewPadding        = 16.0
+	// The popover content is fully transparent: it has no backdrop, card
+	// fill or divider. A single vertical rhythm — a compact title/meta header,
+	// a short gap, then the body — carries the hierarchy instead.
+	previewPadding        = popoverContentPadding
 	previewWidth          = 380.0
-	previewChrome         = 70.0
-	previewGap            = 8.0
-	previewMinHeight      = 132.0
-	previewImageMinHeight = previewChrome + previewGap + 150
+	previewMinWidth       = 240.0
+	previewMaxWidth       = 420.0
+	previewTitleHeight    = 18.0
+	previewMetaHeight     = 15.0
+	previewHeaderGap      = 3.0
+	previewContentGap     = 10.0
+	previewMinHeight      = 92.0
+	previewImageMinHeight = 180.0
 	previewMaxHeight      = 460.0
-	previewTextInset      = 6.0
+	previewScreenMargin   = 72.0
+	previewTextInset      = 1.0
+	previewTextFontSize   = 13.0
+	previewMetaFontSize   = 11.0
+	previewTitleFontSize  = 13.0
+	previewLineSpacing    = 3.0
 
 	previewHTMLStyle = `<style>
-body { font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; font-size: 13px; line-height: 1.45; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; font-size: 13px; line-height: 1.55; }
 code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 </style>`
 )
@@ -74,10 +87,13 @@ func registerPreviewTargets() {
 		[]objc.MethodDef{
 			{Cmd: sel("popoverDidClose:"), Fn: func(self objc.ID, _ objc.SEL, _ objc.ID) {
 				p := panelsByPopover[self]
-				if p == nil || !p.previewing {
+				// Re-anchoring to another row is not a dismissal; AppKit can
+				// transiently reconfigure the popover while it moves.
+				if p == nil || !p.previewing || p.previewReanchor {
 					return
 				}
 				p.previewing = false
+				p.previewRowIndex = -1
 				p.cx.Emit("hidePreview", nil)
 				window := p.view.Send(sel("window"))
 				if window != 0 && !objc.Send[bool](window, sel("isKeyWindow")) &&
@@ -94,6 +110,7 @@ func registerPreviewTargets() {
 func (p *Panel) buildPreview() {
 	p.preview = objc.ID(previewViewClass).Send(sel("new"))
 	p.preview.Send(sel("setAutoresizesSubviews:"), false)
+	setFrame(p.preview, 0, 0, previewWidth, previewMinHeight)
 	p.buildPreviewContent()
 	p.buildPreviewPopover()
 	panelsByPreviewView[p.preview] = p
@@ -101,40 +118,29 @@ func (p *Panel) buildPreview() {
 }
 
 func (p *Panel) buildPreviewContent() {
-	backdrop := objc.ID(class("NSVisualEffectView")).Send(sel("new"))
-	backdrop.Send(sel("setMaterial:"), int64(10))
-	backdrop.Send(sel("setBlendingMode:"), int64(1))
-	backdrop.Send(sel("setState:"), int64(1))
-	backdrop.Send(sel("setAutoresizingMask:"), int64(18))
-	p.preview.Send(sel("addSubview:"), backdrop)
-	p.previewBackdrop = backdrop
-	backdrop.Send(sel("release"))
-
 	p.previewTitle = objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(""))
 	p.previewTitle.Send(sel("setTag:"), int64(previewTitleTag))
-	p.previewTitle.Send(sel("setFont:"), objc.ID(classNSFont).Send(sel("boldSystemFontOfSize:"), 14.0))
+	p.previewTitle.Send(sel("setFont:"), objc.ID(classNSFont).Send(sel("boldSystemFontOfSize:"), previewTitleFontSize))
 	p.previewTitle.Send(sel("setLineBreakMode:"), int64(4))
 	p.previewTitle.Send(sel("setMaximumNumberOfLines:"), int64(1))
 
 	p.previewMeta = objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(""))
 	p.previewMeta.Send(sel("setTag:"), int64(previewMetaTag))
-	p.previewMeta.Send(sel("setFont:"), systemFont(11))
+	p.previewMeta.Send(sel("setFont:"), systemFont(previewMetaFontSize))
 	p.previewMeta.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
 	p.previewMeta.Send(sel("setLineBreakMode:"), int64(4))
 	p.previewMeta.Send(sel("setMaximumNumberOfLines:"), int64(1))
-
-	p.previewDivider = objc.ID(classNSBox).Send(sel("new"))
-	p.previewDivider.Send(sel("setBoxType:"), 2)
-	p.previewDivider.Send(sel("setTitlePosition:"), 0)
 
 	p.previewText = objc.ID(class("NSTextView")).Send(sel("alloc")).Send(sel("initWithFrame:"),
 		CGRect{})
 	p.previewText.Send(sel("setEditable:"), false)
 	p.previewText.Send(sel("setSelectable:"), true)
 	p.previewText.Send(sel("setDrawsBackground:"), false)
-	p.previewText.Send(sel("setFont:"), systemFont(13))
+	p.previewText.Send(sel("setFont:"), systemFont(previewTextFontSize))
 	p.previewText.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("labelColor")))
-	p.previewText.Send(sel("setTextContainerInset:"), CGSize{Width: 0, Height: previewTextInset})
+	// Horizontal padding lives in the text view, not in the scroll view, so the
+	// scroller stays pinned to the popover's right edge.
+	p.previewText.Send(sel("setTextContainerInset:"), CGSize{Width: previewPadding, Height: previewTextInset})
 	p.previewText.Send(sel("setVerticallyResizable:"), true)
 	p.previewText.Send(sel("setHorizontallyResizable:"), false)
 	p.previewText.Send(sel("setAutoresizingMask:"), int64(2))
@@ -144,11 +150,9 @@ func (p *Panel) buildPreviewContent() {
 		container.Send(sel("setLineFragmentPadding:"), 0.0)
 	}
 
-	p.previewScroll = objc.ID(class("NSScrollView")).Send(sel("new"))
-	p.previewScroll.Send(sel("setHasVerticalScroller:"), true)
-	p.previewScroll.Send(sel("setAutohidesScrollers:"), true)
-	p.previewScroll.Send(sel("setDrawsBackground:"), false)
-	p.previewScroll.Send(sel("setBorderType:"), int64(0))
+	// Full-width scroll view keeps its scroller on the right edge; the text
+	// inset above provides the left/right content padding without shrinking it.
+	p.previewScroll = newPopoverContentScrollView()
 	p.previewScroll.Send(sel("setDocumentView:"), p.previewText)
 	p.previewText.Send(sel("release"))
 
@@ -157,19 +161,18 @@ func (p *Panel) buildPreviewContent() {
 	p.previewImage.Send(sel("setImageAlignment:"), int64(5))
 	p.previewImage.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.PreviewImageLabel)))
 
+	// No backdrop or divider: the popover's own translucent chrome is the
+	// only surface, so the content sits directly on the main panel material.
 	p.preview.Send(sel("addSubview:"), p.previewTitle)
 	p.preview.Send(sel("addSubview:"), p.previewMeta)
-	p.preview.Send(sel("addSubview:"), p.previewDivider)
 	p.preview.Send(sel("addSubview:"), p.previewScroll)
 	p.preview.Send(sel("addSubview:"), p.previewImage)
-	p.previewDivider.Send(sel("release"))
 	p.previewScroll.Send(sel("release"))
 	p.previewImage.Send(sel("release"))
 }
 
 func (p *Panel) buildPreviewPopover() {
-	p.previewController = objc.ID(class("NSViewController")).Send(sel("new"))
-	p.previewController.Send(sel("setView:"), p.preview)
+	p.previewController = newPopoverController(p.preview)
 
 	p.previewPopover = objc.ID(class("NSPopover")).Send(sel("new"))
 	p.previewPopover.Send(sel("setBehavior:"), int64(1))
@@ -184,6 +187,7 @@ func (p *Panel) setPreview(content PreviewContent) {
 	if !content.Active {
 		if p.previewing {
 			p.previewing = false
+			p.previewRowIndex = -1
 			p.closePreview()
 			p.updateEmptyState()
 			p.makeSearchFirstResponder()
@@ -199,20 +203,37 @@ func (p *Panel) setPreview(content PreviewContent) {
 	if content.ImagePath != "" {
 		image = loadImage(content.ImagePath)
 	}
-	width, height := previewSize(content, image)
-	p.previewPopover.Send(sel("setContentSize:"), CGSize{Width: width, Height: height})
+	width, height := previewSize(content, image, p.maxPreviewHeight())
+	setPopoverContentSize(p.previewPopover, p.preview, width, height)
 	p.setTextPreview(content)
-	p.setPreviewImage(image, width, height)
-	layoutPreview(p, width, height)
+	p.setPreviewImage(image, width, height, content.Meta)
+	layoutPreview(p, content, width, height)
+	p.showPreviewAtSelection()
 
-	if !objc.Send[bool](p.previewPopover, sel("isShown")) {
-		p.previewPopover.Send(sel("showRelativeToRect:ofView:preferredEdge:"),
-			p.previewAnchor(), p.table, uint64(2))
-	}
 	p.updateEmptyState()
 }
 
-func (p *Panel) setPreviewImage(image objc.ID, width, height float64) {
+// showPreviewAtSelection shows the popover anchored to the selected row, or
+// re-anchors an already visible popover when keyboard navigation moved the
+// selection to a different row. Keeping the anchor on the current row makes
+// the preview follow the highlight instead of pointing at the previous item.
+func (p *Panel) showPreviewAtSelection() {
+	index := p.selectedIndex()
+	shown := objc.Send[bool](p.previewPopover, sel("isShown"))
+	if shown {
+		if index == p.previewRowIndex {
+			return
+		}
+		// Re-anchoring an open popover is not a dismissal; guard the close
+		// delegate in case AppKit briefly reconfigures the popover.
+		p.previewReanchor = true
+	}
+	showPopover(p.previewPopover, p.table, p.previewAnchor(), uint64(2))
+	p.previewReanchor = false
+	p.previewRowIndex = index
+}
+
+func (p *Panel) setPreviewImage(image objc.ID, width, height float64, meta string) {
 	hasImage := image != 0
 	p.previewScroll.Send(sel("setHidden:"), hasImage)
 	p.previewImage.Send(sel("setHidden:"), !hasImage)
@@ -228,7 +249,7 @@ func (p *Panel) setPreviewImage(image objc.ID, width, height float64) {
 		return
 	}
 	scale := math.Min(1, math.Min((width-2*previewPadding)/size.Width,
-		previewContentHeight(height)/size.Height))
+		previewContentHeight(height, meta)/size.Height))
 	p.previewImageSize = CGSize{Width: size.Width * scale, Height: size.Height * scale}
 	p.previewImage.Send(sel("setImage:"), image)
 }
@@ -254,46 +275,70 @@ func (p *Panel) previewAnchor() CGRect {
 	return objc.Send[CGRect](p.table, sel("rectOfRow:"), int64(index))
 }
 
+// previewKeyAction maps a key press to an action while the preview popover
+// is open. Space and Escape explicitly close it, Return activates the
+// selected row, and every other key reuses the list keyboard contract.
+func previewKeyAction(key uint16, flags uint64, row HistoryRow, spacePreview bool) (string, bool) {
+	switch key {
+	case keyEscape, keySpace:
+		return "hide", true
+	case keyReturn, keyEnter:
+		return "activate", true
+	}
+	return historyKeyAction(key, flags, row, spacePreview)
+}
+
+// selectedRow returns the row marked as selected, or an empty row when the
+// list has no selection.
+func (p *Panel) selectedRow() HistoryRow {
+	if index := p.selectedIndex(); index >= 0 {
+		return p.rows[index]
+	}
+	return HistoryRow{}
+}
+
 // handlePreviewKey keeps the list's keyboard contract while the popover
-// holds focus: Space and Escape dismiss it, Return copies, and the
-// command shortcuts still act on the selected row.
-func (p *Panel) handlePreviewKey(key uint16, flags uint64) bool {
+// holds focus. Navigation moves the selection and refreshes the preview in
+// place instead of dismissing it; only Space, Escape, Return and the item
+// actions close the popover.
+func (p *Panel) handlePreviewKey(key uint16, flags uint64, repeat bool) bool {
 	if !p.previewing {
 		return false
 	}
-	switch key {
-	case keySpace, keyEscape:
-		p.cx.Emit("hidePreview", nil)
-		return true
-	case keyReturn, keyEnter:
-		p.cx.Emit("hidePreview", nil)
-		p.cx.Emit("activate", p.selection)
-		return true
-	}
-	row := HistoryRow{}
-	for _, candidate := range p.rows {
-		if candidate.ID == p.selection {
-			row = candidate
-			break
-		}
-	}
-	action, handled := historyKeyAction(key, flags, row, p.behavior.SpacePreview)
+	row := p.selectedRow()
+	action, handled := previewKeyAction(key, flags, row, p.behavior.SpacePreview)
 	if !handled {
 		return false
 	}
 	switch action {
 	case "hide", "preview":
+		// A held Space auto-repeats; only the first press toggles so the
+		// popover cannot flicker open and shut.
+		if repeat && key == keySpace {
+			return true
+		}
 		p.cx.Emit("hidePreview", nil)
 	case "focusSearch":
 		p.cx.Emit("hidePreview", nil)
 		p.focusSearch()
 	case "firstRow", "lastRow", "pageUp", "pageDown", "previousRow", "nextRow":
-		p.cx.Emit("hidePreview", nil)
+		before := p.selection
 		p.applyNavigation(action)
+		if p.selection != before {
+			p.cx.Emit("previewSelection", p.selection)
+		}
+	case "activate":
+		if repeat {
+			return true
+		}
+		p.cx.Emit("hidePreview", nil)
+		p.cx.Emit("activate", p.selection)
 	case "delete":
-		if row.CanDelete && (!row.DeleteConfirm || confirmDelete()) {
+		if repeat {
+			return true
+		}
+		if p.deleteRow(row) {
 			p.cx.Emit("hidePreview", nil)
-			p.cx.Emit("delete", p.selection)
 		}
 	default:
 		p.cx.Emit("hidePreview", nil)
@@ -310,8 +355,88 @@ func (p *Panel) setTextPreview(content PreviewContent) {
 		}
 		return
 	}
-	p.previewText.Send(sel("setString:"), nsString(content.Text))
+	if content.Text == "" {
+		p.previewText.Send(sel("setString:"), nsString(""))
+		return
+	}
+	if content.Kind == "files" {
+		p.setFilePreviewText(content.Text)
+		return
+	}
+	// Build plain preview text with the same type scale and line spacing the
+	// height measurement uses, so short text sits tight and long text reads
+	// comfortably.
+	paragraph := previewParagraphStyle()
+	attributes := objc.ID(class("NSMutableDictionary")).Send(sel("dictionary"))
+	attributes.Send(sel("setObject:forKey:"), systemFont(previewTextFontSize), nsString("NSFont"))
+	attributes.Send(sel("setObject:forKey:"), objc.ID(classNSColor).Send(sel("labelColor")), nsString("NSColor"))
+	attributes.Send(sel("setObject:forKey:"), paragraph, nsString("NSParagraphStyle"))
+	paragraph.Send(sel("release"))
+	attr := objc.ID(class("NSAttributedString")).Send(sel("alloc")).
+		Send(sel("initWithString:attributes:"), nsString(content.Text), attributes)
+	if attr != 0 {
+		if storage := p.previewText.Send(sel("textStorage")); storage != 0 {
+			storage.Send(sel("setAttributedString:"), attr)
+		}
+		attr.Send(sel("release"))
+	}
 	p.previewText.Send(sel("scrollRangeToVisible:"), NSRange{})
+}
+
+// setFilePreviewText renders a file list with a clear hierarchy: the file name
+// line uses the primary label at body size, while each path line drops to the
+// secondary color at a smaller size. It avoids cards, icons or bullets so the
+// list stays as light as the rest of the preview.
+func (p *Panel) setFilePreviewText(text string) {
+	lines := strings.Split(text, "\n")
+	paragraph := previewParagraphStyle()
+	result := objc.ID(class("NSMutableAttributedString")).Send(sel("alloc")).
+		Send(sel("initWithString:"), nsString(""))
+	for index, line := range lines {
+		body := line
+		if index < len(lines)-1 {
+			body += "\n"
+		}
+		if body == "" {
+			continue
+		}
+		font := systemFont(previewTextFontSize)
+		color := objc.ID(classNSColor).Send(sel("labelColor"))
+		if isPreviewPathLine(line) {
+			font = systemFont(previewMetaFontSize)
+			color = objc.ID(classNSColor).Send(sel("secondaryLabelColor"))
+		}
+		attributes := objc.ID(class("NSMutableDictionary")).Send(sel("dictionary"))
+		attributes.Send(sel("setObject:forKey:"), font, nsString("NSFont"))
+		attributes.Send(sel("setObject:forKey:"), color, nsString("NSColor"))
+		attributes.Send(sel("setObject:forKey:"), paragraph, nsString("NSParagraphStyle"))
+		piece := objc.ID(class("NSAttributedString")).Send(sel("alloc")).
+			Send(sel("initWithString:attributes:"), nsString(body), attributes)
+		result.Send(sel("appendAttributedString:"), piece)
+		piece.Send(sel("release"))
+	}
+	paragraph.Send(sel("release"))
+	if storage := p.previewText.Send(sel("textStorage")); storage != 0 {
+		storage.Send(sel("setAttributedString:"), result)
+	}
+	result.Send(sel("release"))
+	p.previewText.Send(sel("scrollRangeToVisible:"), NSRange{})
+}
+
+// isPreviewPathLine reports whether a file-list line is a filesystem path
+// rather than the name/detail headline.
+func isPreviewPathLine(line string) bool {
+	trimmed := strings.TrimSpace(line)
+	return strings.HasPrefix(trimmed, "/") || strings.HasPrefix(trimmed, "~")
+}
+
+// previewParagraphStyle is the shared line rhythm for plain preview text.
+// Height measurement uses the same style so the popover never clips a line.
+func previewParagraphStyle() objc.ID {
+	style := objc.ID(class("NSMutableParagraphStyle")).Send(sel("new"))
+	style.Send(sel("setLineSpacing:"), previewLineSpacing)
+	style.Send(sel("setParagraphSpacing:"), 0.0)
+	return style
 }
 
 func attributedPreview(text, format string) objc.ID {
@@ -470,18 +595,57 @@ func normalizePreviewHTML(text string) string {
 	return text
 }
 
-func previewSize(content PreviewContent, image objc.ID) (float64, float64) {
+// previewHeaderHeight is the title/meta block above the body. The meta line
+// is only reserved when there is metadata to show.
+func previewHeaderHeight(meta string) float64 {
+	if meta == "" {
+		return previewTitleHeight
+	}
+	return previewTitleHeight + previewHeaderGap + previewMetaHeight
+}
+
+// previewChrome is everything outside the body: outer padding, header and the
+// gap between header and body.
+func previewChrome(meta string) float64 {
+	return 2*previewPadding + previewHeaderHeight(meta) + previewContentGap
+}
+
+// maxPreviewHeight keeps the popover inside the screen it is anchored to,
+// leaving room for the anchor row and menu bar instead of running off-screen.
+func (p *Panel) maxPreviewHeight() float64 {
+	limit := previewMaxHeight
+	if window := p.view.Send(sel("window")); window != 0 {
+		if screen := objc.Send[objc.ID](window, sel("screen")); screen != 0 {
+			frame := objc.Send[CGRect](screen, sel("visibleFrame"))
+			if frame.Size.Height > 0 {
+				available := frame.Size.Height - previewScreenMargin
+				if available < limit {
+					limit = available
+				}
+			}
+		}
+	}
+	return clampFloat(limit, previewImageMinHeight, previewMaxHeight)
+}
+
+func previewSize(content PreviewContent, image objc.ID, maxHeight float64) (float64, float64) {
+	if maxHeight < previewMinHeight {
+		maxHeight = previewMinHeight
+	}
+	chrome := previewChrome(content.Meta)
 	if image != 0 {
 		size := objc.Send[CGSize](image, sel("size"))
-		width := clampFloat(size.Width+2*previewPadding, 260, 420)
-		height := size.Height
-		if size.Width > 0 {
-			height = size.Height * math.Min(1, (width-2*previewPadding)/size.Width)
+		if size.Width > 0 && size.Height > 0 {
+			availWidth := previewMaxWidth - 2*previewPadding
+			availHeight := math.Max(1, maxHeight-chrome)
+			scale := math.Min(1, math.Min(availWidth/size.Width, availHeight/size.Height))
+			width := clampFloat(size.Width*scale+2*previewPadding, previewMinWidth, previewMaxWidth)
+			height := clampFloat(size.Height*scale+chrome, previewImageMinHeight, maxHeight)
+			return width, height
 		}
-		return width, clampFloat(height+previewChrome+previewGap, previewImageMinHeight, previewMaxHeight)
 	}
-	height := previewTextHeight(content)
-	return previewWidth, clampFloat(height+previewChrome+previewGap, previewMinHeight, previewMaxHeight)
+	bodyHeight := previewTextHeight(content)
+	return previewWidth, clampFloat(chrome+bodyHeight, previewMinHeight, maxHeight)
 }
 
 func previewTextHeight(content PreviewContent) float64 {
@@ -492,12 +656,15 @@ func previewTextHeight(content PreviewContent) float64 {
 		return rect.Size.Height + 2*previewTextInset
 	}
 	if content.Text == "" {
-		return 120
+		return 40
 	}
+	paragraph := previewParagraphStyle()
+	defer paragraph.Send(sel("release"))
 	attributes := objc.ID(class("NSMutableDictionary")).Send(sel("dictionary"))
-	attributes.Send(sel("setObject:forKey:"), systemFont(13), nsString("NSFont"))
+	attributes.Send(sel("setObject:forKey:"), systemFont(previewTextFontSize), nsString("NSFont"))
 	attributes.Send(sel("setObject:forKey:"),
 		objc.ID(classNSColor).Send(sel("labelColor")), nsString("NSColor"))
+	attributes.Send(sel("setObject:forKey:"), paragraph, nsString("NSParagraphStyle"))
 	rect := objc.Send[CGRect](nsString(content.Text), sel("boundingRectWithSize:options:attributes:"),
 		CGSize{Width: width, Height: 10000}, uint64(3), attributes)
 	return rect.Size.Height + 2*previewTextInset
@@ -510,24 +677,36 @@ func (p *Panel) makeSearchFirstResponder() {
 	}
 }
 
-func layoutPreview(p *Panel, width, height float64) {
-	setFrame(p.preview, 0, 0, width, height)
-	setFrame(p.previewBackdrop, 0, 0, width, height)
-	setFrame(p.previewTitle, previewPadding, height-30, width-2*previewPadding, 18)
-	setFrame(p.previewMeta, previewPadding, height-48, width-2*previewPadding, 15)
-	setFrame(p.previewDivider, previewPadding, height-57, width-2*previewPadding, 1)
+func layoutPreview(p *Panel, content PreviewContent, width, height float64) {
+	headerHeight := previewHeaderHeight(content.Meta)
+	titleY := height - previewPadding - previewTitleHeight
+	setFrame(p.previewTitle, previewPadding, titleY, width-2*previewPadding, previewTitleHeight)
+	if content.Meta != "" {
+		metaY := titleY - previewHeaderGap - previewMetaHeight
+		setFrame(p.previewMeta, previewPadding, metaY, width-2*previewPadding, previewMetaHeight)
+		p.previewMeta.Send(sel("setHidden:"), false)
+	} else {
+		p.previewMeta.Send(sel("setHidden:"), true)
+	}
 
-	contentY := 12.0
-	contentHeight := previewContentHeight(height)
-	setFrame(p.previewScroll, previewPadding, contentY, width-2*previewPadding, contentHeight)
+	contentY := previewPadding
+	contentHeight := height - 2*previewPadding - headerHeight - previewContentGap
+	if contentHeight < 0 {
+		contentHeight = 0
+	}
+	layoutPopoverContentScroll(p.previewScroll, contentY, width, contentHeight)
 	setFrame(p.previewImage,
 		(width-p.previewImageSize.Width)/2,
 		contentY+(contentHeight-p.previewImageSize.Height)/2,
 		p.previewImageSize.Width, p.previewImageSize.Height)
 }
 
-func previewContentHeight(height float64) float64 {
-	return height - previewChrome - previewGap
+func previewContentHeight(height float64, meta string) float64 {
+	content := height - previewChrome(meta)
+	if content < 0 {
+		return 0
+	}
+	return content
 }
 
 func clampFloat(value, low, high float64) float64 {

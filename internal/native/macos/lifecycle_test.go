@@ -55,8 +55,8 @@ func TestPanelCloseReleasesOwnedChildren(t *testing.T) {
 		panel := NewPanel(nil).(*Panel)
 		children := map[string]objc.ID{
 			"table": panel.table, "hover": panel.hoverBar,
-			"preview divider": panel.previewDivider, "preview scroll": panel.previewScroll,
-			"preview image": panel.previewImage,
+			"preview scroll": panel.previewScroll,
+			"preview image":  panel.previewImage,
 		}
 		for _, child := range children {
 			child.Send(sel("retain"))

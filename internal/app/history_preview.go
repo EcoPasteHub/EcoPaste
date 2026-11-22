@@ -22,7 +22,7 @@ func (m *historyModel) Preview(ctx context.Context, id string) (ui.HistoryPrevie
 		return ui.HistoryPreview{}, err
 	}
 	redact := item.IsSensitive && cfg.Sensitive.RedactSecrets
-	preview := ui.HistoryPreview{Enabled: true}
+	preview := ui.HistoryPreview{Enabled: true, Kind: string(item.Kind)}
 	switch item.Kind {
 	case database.KindImage:
 		preview.Meta = previewMeta(item, "")

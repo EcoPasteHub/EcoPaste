@@ -409,6 +409,20 @@ func (p *Panel) activeIndex() int {
 	return -1
 }
 
+// deleteRow asks the model to delete one row, honoring the row's own delete
+// permission and confirmation. The table, preview and search handlers share
+// this path so every keyboard entry point behaves the same.
+func (p *Panel) deleteRow(row HistoryRow) bool {
+	if row.ID == "" || !row.CanDelete {
+		return false
+	}
+	if row.DeleteConfirm && !confirmDelete() {
+		return false
+	}
+	p.cx.Emit("delete", row.ID)
+	return true
+}
+
 func symbolImage(kind string) objc.ID {
 	name := "doc.text"
 	switch kind {

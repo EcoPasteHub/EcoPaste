@@ -214,6 +214,14 @@ internal/i18n/             # 文案目录
 - 新增输入框默认高度对齐 `settingsControlHeight`（24pt），内边距、字体、语义色沿用共享组件；确有例外需在代码注释和迁移文档中说明。
 - 修改任一输入框样式或状态逻辑时，只改公共实现并同步验证设置页、Popover 等所有使用处，确保不出现样式分裂。
 
+### 3.8 Popover 统一规范（NSPopover）
+
+- 所有 Popover 必须通过 `internal/native/macos/popover.go` 的公共能力构建：`newPopoverContentView` 创建根内容视图、`newPopoverController` 绑定控制器、`setPopoverContentSize` 调整内容尺寸、`showPopover` 负责展示。
+- **内容视图的 frame origin 由 AppKit（NSPopover）管理，禁止再用 `setFrame(view, 0, 0, …)` 移动根内容视图。** NSPopover 会把内容视图放在自己窗口内约 13pt 的内缩原点；改写 origin 会把内容挤进箭头/阴影边距，表现为内容贴边、内边距消失。需要改变尺寸时只能调用 `setPopoverContentSize`，它会保留 AppKit 分配的 origin。
+- 统一使用 `popoverContentPadding`（14pt）作为内容外内边距；不同业务可在其内部继续细分间距，但不得各自另定外层内边距或另写尺寸管理逻辑。
+- 固定尺寸的 Popover 只在构建时确定一次内容尺寸；动态尺寸（如预览）通过 `setPopoverContentSize` 调整，且不得在 show/refresh 时重设根视图原点。
+- Popover 内的滚动区域必须用 `newPopoverContentScrollView` 创建、`layoutPopoverContentScroll` 铺满内容宽度，让滚动条始终贴近 Popover 右边缘；内容左右内边距由文档视图（如 `NSTextView` 的 `textContainerInset`）提供，禁止通过缩小滚动视图 frame 来加内边距（那会把滚动条一起内移）。
+
 ## 4. 第三方库规范
 
 - UI 层优先使用 AppKit；不要为了统一外观引入跨平台 UI 库。

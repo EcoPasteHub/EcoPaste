@@ -8,16 +8,17 @@ import (
 )
 
 var historyRowEvents = map[string]func(*historyPanel, any){
-	"toggleFavorite": toggleRowFavorite,
-	"togglePinned":   toggleRowPinned,
-	"delete":         deleteRow,
-	"preview":        previewRow,
-	"hidePreview":    hideRowPreview,
-	"open":           openRow,
-	"reveal":         revealRow,
-	"saveImage":      saveRowImage,
-	"saveNote":       saveRowNote,
-	"moveGroup":      moveRowGroup,
+	"toggleFavorite":   toggleRowFavorite,
+	"togglePinned":     toggleRowPinned,
+	"delete":           deleteRow,
+	"preview":          previewRow,
+	"previewSelection": previewSelection,
+	"hidePreview":      hideRowPreview,
+	"open":             openRow,
+	"reveal":           revealRow,
+	"saveImage":        saveRowImage,
+	"saveNote":         saveRowNote,
+	"moveGroup":        moveRowGroup,
 }
 
 var historyGroupEvents = map[string]func(*historyPanel, any){
@@ -63,16 +64,22 @@ func deleteRow(p *historyPanel, data any) {
 	}()
 }
 
-func previewRow(p *historyPanel, _ any) {
+func previewRow(p *historyPanel, data any) {
 	if p.preview.GetUntracked().Active {
-		p.preview.Set(macos.PreviewContent{})
+		p.actions.clearPreview()
 		return
 	}
-	p.actions.showPreview(p.selectedID)
+	p.actions.showPreview(p.actionID(data))
+}
+
+// previewSelection refreshes an open preview after keyboard navigation moved
+// the selection, without toggling it closed.
+func previewSelection(p *historyPanel, data any) {
+	p.actions.showPreview(p.actionID(data))
 }
 
 func hideRowPreview(p *historyPanel, _ any) {
-	p.preview.Set(macos.PreviewContent{})
+	p.actions.clearPreview()
 }
 
 func openRow(p *historyPanel, data any) {

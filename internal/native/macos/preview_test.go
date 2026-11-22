@@ -139,7 +139,7 @@ func TestPreviewInkNeedsLabelForDefaultContrast(t *testing.T) {
 }
 
 func TestPreviewSizeFollowsTextHeight(t *testing.T) {
-	width, height := previewSize(PreviewContent{Text: "hello"}, 0)
+	width, height := previewSize(PreviewContent{Text: "hello"}, 0, previewMaxHeight)
 	if width != previewWidth {
 		t.Fatalf("preview width = %v, want %v", width, previewWidth)
 	}
@@ -156,16 +156,45 @@ func TestPreviewSizeKeepsSmallImagesReadable(t *testing.T) {
 	defer image.Send(sel("release"))
 	image.Send(sel("setSize:"), CGSize{Width: 128, Height: 128})
 
-	_, height := previewSize(PreviewContent{ImagePath: "ignored.png"}, image)
-	if height != previewImageMinHeight {
-		t.Fatalf("small image preview height = %v, want %v", height, previewImageMinHeight)
+	_, height := previewSize(PreviewContent{ImagePath: "ignored.png"}, image, previewMaxHeight)
+	if height < previewImageMinHeight || height > previewMaxHeight {
+		t.Fatalf("small image preview height = %v, want %v...%v", height, previewImageMinHeight, previewMaxHeight)
 	}
 }
 
 func TestPreviewSizeClampsLongText(t *testing.T) {
-	_, height := previewSize(PreviewContent{Text: strings.Repeat("line\n", 200)}, 0)
+	_, height := previewSize(PreviewContent{Text: strings.Repeat("line\n", 200)}, 0, previewMaxHeight)
 	if height != previewMaxHeight {
 		t.Fatalf("preview height = %v, want the %v cap", height, previewMaxHeight)
+	}
+}
+
+// TestPreviewSizeReservesMetaHeader verifies the extra header line is counted
+// so a metadata subtitle never overlaps the body.
+func TestPreviewSizeReservesMetaHeader(t *testing.T) {
+	body := "line one\nline two\nline three\nline four\nline five"
+	_, withoutMeta := previewSize(PreviewContent{Text: body}, 0, previewMaxHeight)
+	_, withMeta := previewSize(PreviewContent{Text: body, Meta: "文本 · 1 B"}, 0, previewMaxHeight)
+	gap := withMeta - withoutMeta
+	want := previewHeaderGap + previewMetaHeight
+	if gap != want {
+		t.Fatalf("meta header adds %v, want %v", gap, want)
+	}
+}
+
+func TestIsPreviewPathLine(t *testing.T) {
+	cases := map[string]bool{
+		"/Users/demo/file.pdf":      true,
+		"  /tmp/photo.heic":         true,
+		"~/Documents/notes.txt":     true,
+		"report.pdf · PDF · 2.4 MB": false,
+		"":                          false,
+		"relative/path.txt":         false,
+	}
+	for line, want := range cases {
+		if got := isPreviewPathLine(line); got != want {
+			t.Errorf("isPreviewPathLine(%q) = %v, want %v", line, got, want)
+		}
 	}
 }
 
@@ -179,4 +208,31 @@ func TestClampFloat(t *testing.T) {
 	if got := clampFloat(300, 180, 460); got != 300 {
 		t.Errorf("clamp inside = %v", got)
 	}
+}
+
+// TestPreviewScrollKeepsScrollerAtEdge locks in the scroll layout rule: the
+// scroll view spans the full popover width so its scroller hugs the right edge,
+// while horizontal padding lives in the text view's inset instead of shrinking
+// the scroll view (which would pull the scroller inward).
+func TestPreviewScrollKeepsScrollerAtEdge(t *testing.T) {
+	onMain(func() {
+		pool := objc.ID(class("NSAutoreleasePool")).Send(sel("new"))
+		defer pool.Send(sel("drain"))
+		panel := NewPanel(nil).(*Panel)
+		defer panel.Close()
+
+		inset := objc.Send[CGSize](panel.previewText, sel("textContainerInset"))
+		if inset.Width != previewPadding {
+			t.Fatalf("text container inset width = %v, want %v", inset.Width, previewPadding)
+		}
+
+		content := PreviewContent{Text: strings.Repeat("line\n", 100), Meta: "meta"}
+		width, height := previewSize(content, 0, previewMaxHeight)
+		layoutPreview(panel, content, width, height)
+		frame := objc.Send[CGRect](panel.previewScroll, sel("frame"))
+		if frame.Origin.X != 0 || frame.Size.Width != width {
+			t.Fatalf("scroll frame = (%.1f,%.1f,%.1f), want x=0 width=%.1f",
+				frame.Origin.X, frame.Origin.Y, frame.Size.Width, width)
+		}
+	})
 }

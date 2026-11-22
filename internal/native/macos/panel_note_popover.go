@@ -19,7 +19,7 @@ type NoteSave struct {
 // right, whichever has room) so it never covers the history list.
 const (
 	notePopoverWidth   = 340.0
-	notePopoverPadding = 14.0
+	notePopoverPadding = popoverContentPadding
 	noteTitleHeight    = 17.0
 	noteTitleGap       = 6.0
 	noteHintHeight     = 32.0
@@ -84,9 +84,7 @@ func (p *Panel) buildNotePopover() {
 	width := notePopoverWidth
 	height := notePopoverHeight()
 
-	view := objc.ID(class("NSView")).Send(sel("new"))
-	view.Send(sel("setAutoresizesSubviews:"), false)
-	setFrame(view, 0, 0, width, height)
+	view := newPopoverContentView(width, height)
 	p.notePopoverView = view
 
 	title := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(i18n.NoteEditTitle)))
@@ -126,7 +124,7 @@ func (p *Panel) buildNotePopover() {
 	popover.Send(sel("setBehavior:"), int64(1))
 	popover.Send(sel("setAnimates:"), true)
 	popover.Send(sel("setContentViewController:"), controller)
-	popover.Send(sel("setContentSize:"), CGSize{Width: width, Height: height})
+	setPopoverContentSize(popover, view, width, height)
 	popover.Send(sel("setDelegate:"), notePopoverTarget)
 	p.notePopover = popover
 	panelsByNotePopover[popover] = p
@@ -209,7 +207,7 @@ func (p *Panel) showNotePopover(rowID string) {
 	p.refreshNotePopoverText()
 	p.noteClosing = false
 	rect, edge := p.notePopoverAnchor(rowID)
-	p.notePopover.Send(sel("showRelativeToRect:ofView:preferredEdge:"), rect, p.view, edge)
+	showPopover(p.notePopover, p.view, rect, edge)
 }
 
 // notePopoverAnchor points at the card's vertical center on the panel's left

@@ -66,12 +66,12 @@ type Panel struct {
 	monitor            objc.ID
 	previewTitle       objc.ID
 	previewMeta        objc.ID
-	previewDivider     objc.ID
-	previewBackdrop    objc.ID
 	previewText        objc.ID
 	previewScroll      objc.ID
 	previewImage       objc.ID
 	previewImageSize   CGSize
+	previewRowIndex    int
+	previewReanchor    bool
 	drag               func(string) (DragPayload, bool)
 	dragFiles          []string
 	actions            []string
@@ -150,14 +150,15 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	registerPanelOnce.Do(registerPanelTargets)
 
 	p := &Panel{
-		cx:          cx,
-		view:        objc.ID(panelViewClass).Send(sel("new")),
-		display:     PanelDisplay{TextMaxLines: 1, ImageMaxHeight: 32, FileMaxCount: 3},
-		behavior:    PanelBehavior{SpacePreview: true},
-		originalRow: -1,
-		hoverRow:    -1,
-		hoveredRow:  -1,
-		language:    string(i18n.Current()),
+		cx:              cx,
+		view:            objc.ID(panelViewClass).Send(sel("new")),
+		display:         PanelDisplay{TextMaxLines: 1, ImageMaxHeight: 32, FileMaxCount: 3},
+		behavior:        PanelBehavior{SpacePreview: true},
+		originalRow:     -1,
+		hoverRow:        -1,
+		hoveredRow:      -1,
+		previewRowIndex: -1,
+		language:        string(i18n.Current()),
 	}
 	p.view.Send(sel("setAutoresizesSubviews:"), false)
 
@@ -245,7 +246,11 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	monitorBlock := objc.NewBlock(func(_ objc.Block, event objc.ID) objc.ID {
 		key := objc.Send[uint16](event, sel("keyCode"))
 		flags := uint64(objc.Send[uint](event, sel("modifierFlags")))
-		if p.handlePreviewKey(key, flags) {
+		repeat := objc.Send[bool](event, sel("isARepeat"))
+		if p.handlePreviewKey(key, flags, repeat) {
+			return 0
+		}
+		if p.handleSearchKey(key, flags, repeat) {
 			return 0
 		}
 		if p.handleCommandKey(key, flags) {

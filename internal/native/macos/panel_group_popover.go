@@ -16,7 +16,7 @@ import (
 // so it uses the same chrome as the settings inputs.
 const (
 	newGroupPopoverWidth   = 260.0
-	newGroupPopoverPadding = 14.0
+	newGroupPopoverPadding = popoverContentPadding
 	newGroupTitleHeight    = 17.0
 	newGroupTitleGap       = 8.0
 	newGroupFieldHeight    = settingsControlHeight
@@ -66,9 +66,7 @@ func (p *Panel) buildNewGroupPopover() {
 	width := newGroupPopoverWidth
 	height := newGroupPopoverHeight()
 
-	view := objc.ID(class("NSView")).Send(sel("new"))
-	view.Send(sel("setAutoresizesSubviews:"), false)
-	setFrame(view, 0, 0, width, height)
+	view := newPopoverContentView(width, height)
 	p.groupPopoverView = view
 
 	title := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(i18n.GroupNewTitle)))
@@ -97,7 +95,7 @@ func (p *Panel) buildNewGroupPopover() {
 	popover.Send(sel("setBehavior:"), int64(1))
 	popover.Send(sel("setAnimates:"), true)
 	popover.Send(sel("setContentViewController:"), controller)
-	popover.Send(sel("setContentSize:"), CGSize{Width: width, Height: height})
+	setPopoverContentSize(popover, view, width, height)
 	popover.Send(sel("setDelegate:"), groupPopoverTarget)
 	p.groupPopover = popover
 	panelsByGroupPopover[popover] = p
@@ -155,7 +153,7 @@ func (p *Panel) showNewGroupPopover(anchor objc.ID) {
 	p.refreshNewGroupPopoverText()
 	p.groupClosing = false
 	p.groupSubmitted = false
-	p.groupPopover.Send(sel("showRelativeToRect:ofView:preferredEdge:"), bounds(anchor), anchor, uint64(1))
+	showPopover(p.groupPopover, anchor, bounds(anchor), uint64(1))
 }
 
 // newGroupAnchor is the button the prompt should drop down from: the nav

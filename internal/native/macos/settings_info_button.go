@@ -14,7 +14,7 @@ const (
 	settingsInfoButtonSize  = 15.0
 	settingsInfoButtonGap   = 6.0
 	settingsInfoTextSize    = 12.0
-	settingsInfoPadding     = 12.0
+	settingsInfoPadding     = popoverContentPadding
 	settingsInfoMinWidth    = 120.0
 	settingsInfoMaxWidth    = 260.0
 	settingsInfoMinHeight   = 40.0
@@ -129,7 +129,7 @@ func settingsTextWidth(text string, font objc.ID) float64 {
 }
 
 func (i *settingsInfo) buildPopover() {
-	i.view = objc.ID(class("NSView")).Send(sel("new"))
+	i.view = newPopoverContentView(settingsInfoMinWidth, settingsInfoMinHeight)
 	i.label = objc.ID(classNSTextField).Send(sel("wrappingLabelWithString:"), nsString(""))
 	i.label.Send(sel("setFont:"), systemFont(settingsInfoTextSize))
 	i.label.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("labelColor")))
@@ -137,8 +137,7 @@ func (i *settingsInfo) buildPopover() {
 	i.label.Send(sel("setMaximumNumberOfLines:"), int64(0))
 	i.view.Send(sel("addSubview:"), i.label)
 
-	i.controller = objc.ID(class("NSViewController")).Send(sel("new"))
-	i.controller.Send(sel("setView:"), i.view)
+	i.controller = newPopoverController(i.view)
 	i.popover = objc.ID(class("NSPopover")).Send(sel("new"))
 	// Hover drives both show and close, so AppKit must not dismiss the
 	// popover on its own (a transient popover can close as soon as it takes
@@ -154,13 +153,11 @@ func (i *settingsInfo) buildPopover() {
 func (i *settingsInfo) layout() {
 	text := i18n.T(i.key)
 	width, height := settingsInfoPopoverSize(text)
-	contentWidth := width - 2*settingsInfoPadding
+	inner := popoverContentBounds(width, height, settingsInfoPadding)
 	i.label.Send(sel("setStringValue:"), nsString(text))
-	i.label.Send(sel("setPreferredMaxLayoutWidth:"), contentWidth)
-	setFrame(i.view, 0, 0, width, height)
-	setFrame(i.label, settingsInfoPadding, settingsInfoPadding,
-		contentWidth, height-2*settingsInfoPadding)
-	i.popover.Send(sel("setContentSize:"), CGSize{Width: width, Height: height})
+	i.label.Send(sel("setPreferredMaxLayoutWidth:"), inner.Size.Width)
+	setFrame(i.label, inner.Origin.X, inner.Origin.Y, inner.Size.Width, inner.Size.Height)
+	setPopoverContentSize(i.popover, i.view, width, height)
 	i.text = text
 }
 
@@ -174,8 +171,7 @@ func (i *settingsInfo) show() {
 	}
 	// Always (re)anchor the popover. Guarding this on isShown drops hints
 	// when a previous close is still animating and isShown lags behind.
-	i.popover.Send(sel("showRelativeToRect:ofView:preferredEdge:"),
-		bounds(i.button), i.button, uint64(settingsInfoPopoverEdge))
+	showPopover(i.popover, i.button, bounds(i.button), uint64(settingsInfoPopoverEdge))
 }
 
 func (i *settingsInfo) hide() {

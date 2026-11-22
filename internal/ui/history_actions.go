@@ -3,6 +3,7 @@ package ui
 import (
 	"context"
 	"log/slog"
+	"sync/atomic"
 	"time"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
@@ -13,16 +14,17 @@ import (
 // loading and preview signals the panel shows, plus the reload and hide
 // behavior the action results feed back into.
 type itemActions struct {
-	cx        *core.Scope
-	model     HistoryModel
-	ref       *core.Ref
-	errorText *core.Signal[string]
-	loading   *core.Signal[bool]
-	preview   *core.Signal[macos.PreviewContent]
-	pinned    *bool
-	hide      func()
-	reload    func()
-	schedule  func(time.Duration, func())
+	cx         *core.Scope
+	model      HistoryModel
+	ref        *core.Ref
+	errorText  *core.Signal[string]
+	loading    *core.Signal[bool]
+	preview    *core.Signal[macos.PreviewContent]
+	previewSeq atomic.Int64
+	pinned     *bool
+	hide       func()
+	reload     func()
+	schedule   func(time.Duration, func())
 }
 
 func (a *itemActions) copy(id string, forcePlain bool) {
@@ -138,10 +140,16 @@ func (a *itemActions) showPreview(id string) {
 	if id == "" || a.model == nil {
 		return
 	}
+	// Serialize preview requests so rapid keyboard navigation lands on the
+	// last selected row instead of a slower earlier response.
+	seq := a.previewSeq.Add(1)
 	ctx := a.cx.Context()
 	go func() {
 		content, err := a.model.Preview(ctx, id)
 		a.cx.Post(func() {
+			if a.previewSeq.Load() != seq {
+				return
+			}
 			if err != nil {
 				a.reportError(err)
 				return
@@ -151,6 +159,7 @@ func (a *itemActions) showPreview(id string) {
 			}
 			a.preview.Set(macos.PreviewContent{
 				Active:     true,
+				Kind:       content.Kind,
 				Title:      content.Title,
 				Meta:       content.Meta,
 				Text:       content.Text,
@@ -160,6 +169,13 @@ func (a *itemActions) showPreview(id string) {
 			})
 		})
 	}()
+}
+
+// clearPreview closes the preview and invalidates any in-flight preview
+// request so a late response cannot reopen a dismissed popover.
+func (a *itemActions) clearPreview() {
+	a.previewSeq.Add(1)
+	a.preview.Set(macos.PreviewContent{})
 }
 
 // reportError shows a failure and asks for the accessibility alert the

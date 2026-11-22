@@ -122,8 +122,8 @@ func historyTableKeyDown(self objc.ID, _ objc.SEL, event objc.ID) {
 	case action == "delete":
 		// Deletion stays tied to an explicit selection so an empty list
 		// focus never removes the first item by accident.
-		if p.selection != "" && row.CanDelete && (!row.DeleteConfirm || confirmDelete()) {
-			p.cx.Emit("delete", p.selection)
+		if p.selection != "" {
+			p.deleteRow(row)
 		}
 	default:
 		p.cx.Emit(action, target)

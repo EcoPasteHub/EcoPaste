@@ -123,7 +123,7 @@ func (p *historyPanel) start() {
 					}
 					p.cx.Post(func() {
 						pending.Store(false)
-						p.preview.Set(macos.PreviewContent{})
+						p.actions.clearPreview()
 						p.reload()
 					})
 				}
@@ -317,7 +317,7 @@ func (p *historyPanel) watchLanguage() {
 			return
 		}
 		p.language = language
-		p.preview.Set(macos.PreviewContent{})
+		p.actions.clearPreview()
 	})
 }
 
@@ -356,7 +356,7 @@ func (p *historyPanel) handleListEvent(name string, data any) bool {
 	case "searchCleared":
 		p.cancelPendingSearch()
 		p.query = ""
-		p.preview.Set(macos.PreviewContent{})
+		p.actions.clearPreview()
 		p.reload()
 	case "filter":
 		value, _ := data.(string)
@@ -377,7 +377,7 @@ func (p *historyPanel) handleListEvent(name string, data any) bool {
 		p.filterValue = ""
 		p.group.Set(value)
 		p.filter.Set("")
-		p.preview.Set(macos.PreviewContent{})
+		p.actions.clearPreview()
 		p.reload()
 	case "select":
 		p.selectedID, _ = data.(string)

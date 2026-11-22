@@ -9,7 +9,7 @@ import (
 
 const (
 	shortcutHelpWidth   = 300.0
-	shortcutHelpPadding = 16.0
+	shortcutHelpPadding = popoverContentPadding
 	shortcutHelpHeader  = 32.0
 	shortcutHelpRow     = 24.0
 )
@@ -45,12 +45,10 @@ func shortcutHelpHeight() float64 {
 // buildShortcutHelp creates the keyboard cheat sheet shown by Command-K
 // and the footer keyboard button.
 func (p *Panel) buildShortcutHelp() {
-	view := objc.ID(class("NSView")).Send(sel("new"))
-	view.Send(sel("setAutoresizesSubviews:"), false)
 	// NSPopover owns the content view frame and insets it inside its own
-	// window. Size the view once here; moving it in every refresh would
-	// push the content out of that inset on later shows.
-	setFrame(view, 0, 0, shortcutHelpWidth, shortcutHelpHeight())
+	// window, so the view is only ever resized through setPopoverContentSize;
+	// its origin must not be rewritten on refresh.
+	view := newPopoverContentView(shortcutHelpWidth, shortcutHelpHeight())
 	p.shortcutView = view
 
 	title := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(i18n.PanelShortcutsTitle)))
@@ -78,8 +76,7 @@ func (p *Panel) buildShortcutHelp() {
 		p.shortcutKeys = append(p.shortcutKeys, keys)
 	}
 
-	controller := objc.ID(class("NSViewController")).Send(sel("new"))
-	controller.Send(sel("setView:"), view)
+	controller := newPopoverController(view)
 	p.shortcutController = controller
 
 	p.shortcutPopover = objc.ID(class("NSPopover")).Send(sel("new"))
@@ -102,7 +99,7 @@ func (p *Panel) refreshShortcutHelp() {
 		p.shortcutLabels[index].Send(sel("setStringValue:"), nsString(item.Label))
 		p.shortcutKeys[index].Send(sel("setStringValue:"), nsString(item.Keys))
 	}
-	p.shortcutPopover.Send(sel("setContentSize:"), CGSize{Width: width, Height: height})
+	setPopoverContentSize(p.shortcutPopover, p.shortcutView, width, height)
 }
 
 // toggleShortcutHelp shows or hides the cheat sheet for the footer
@@ -116,6 +113,5 @@ func (p *Panel) toggleShortcutHelp() {
 		return
 	}
 	p.refreshShortcutHelp()
-	p.shortcutPopover.Send(sel("showRelativeToRect:ofView:preferredEdge:"),
-		bounds(p.shortcutButton), p.shortcutButton, uint64(3))
+	showPopover(p.shortcutPopover, p.shortcutButton, bounds(p.shortcutButton), uint64(3))
 }
