@@ -133,6 +133,9 @@ type SettingsView struct {
 	texts               []func()
 	tabItems            map[string]objc.ID
 	aboutIcons          []*nsgo.View
+	// managesDock marks a view built for the running app, whose lifetime
+	// decides whether the Dock icon shows. Views built by tests do not.
+	managesDock bool
 }
 
 type settingsField struct {
@@ -229,13 +232,18 @@ func SelectSettingsTab(tab string) bool {
 
 // NewSettings builds the native settings controls.
 func NewSettings(cx *core.NativeContext) core.NativeComponent {
-	return newSettings(cx)
+	v := newSettings(cx)
+	// Only a settings window in the real app shows the Dock icon. Tying it to
+	// NewSettings instead of the view constructor keeps a test binary, which
+	// has no bundle icon, from registering as a Dock app when it builds a view.
+	v.managesDock = true
+	syncSettingsDockIcon(true)
+	return v
 }
 
 func newSettings(cx settingsEmitter) *SettingsView {
 	registerSettingsOnce.Do(registerSettingsTargets)
 	registerSettingsLayoutOnce.Do(registerSettingsLayoutTargets)
-	syncSettingsDockIcon(true)
 	v := &SettingsView{
 		cx:          cx,
 		view:        objc.ID(settingsRootClass).Send(sel("new")),
@@ -473,7 +481,7 @@ func (v *SettingsView) Close() {
 	delete(settingsOpenViews, v)
 	remaining := len(settingsOpenViews)
 	settingsTabMu.Unlock()
-	if remaining == 0 {
+	if v.managesDock && remaining == 0 {
 		syncSettingsDockIcon(false)
 	}
 	delete(settingsRoots, v.view)

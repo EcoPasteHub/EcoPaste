@@ -124,7 +124,7 @@
 | W-11 | P0 | 全局快捷键 | `shortcut/mod.rs` | `desktop.RegisterHotKey` | 已通过 | Carbon 注册支持热更新；只增量替换变化的按键，按快捷键返回注册失败并在设置页显示，失败时恢复原值；`TestSettingsModelRollsBackShortcutWhenRebindFails`；真机录制 `Alt+J` 后立即重绑，未影响另一快捷键 |
 | W-12 | P1 | 快捷键录制 | 前端录制器 | 原生 `NSTextField` 捕获 | 已通过 | 原生输入框捕获组合键，Delete 清空、Esc 取消；`TestSettingsModelAppliesShortcutAndRejectsDuplicate`；真机快捷键页完成录制与写盘 |
 | W-13 | P1 | 开机自启 | `autostart/macos.rs` | `SMAppService` | 迁移中 | `TestAutostartNeedsChange`；真机开关、持久化通过；重启登录需签名安装包验收 |
-| W-14 | P1 | Dock 图标显隐 | `show_taskbar_icon` | `NSApplication.setActivationPolicy` | 已通过（产品调整） | 移除设置项与 `general.dockIcon` 字段，改为偏好设置窗口打开时显示 Dock 图标、关闭最后一个设置窗口即隐藏；`internal/native/macos/settings.go` 的 `NewSettings`/`Close` 前后切换 activation policy；真机待验收 |
+| W-14 | P1 | Dock 图标显隐 | `show_taskbar_icon` | `NSApplication.setActivationPolicy` | 已通过（产品调整） | 移除设置项与 `general.dockIcon` 字段，改为偏好设置窗口打开时显示 Dock 图标、关闭最后一个设置窗口即隐藏；`internal/native/macos/settings.go` 的 `NewSettings`/`Close` 前后切换 activation policy；Dock 切换只由面向应用的 `NewSettings` 触发（`managesDock` 标记），`newSettings` 视图构造不再改动进程策略，避免 `go test` 的 `macos.test` 以 Regular 策略在 Dock 留下空白图标；真机待验收 |
 | W-15 | P1 | 单实例 | `tauri-plugin-single-instance` | 数据根 `flock` + `OnReopen` | 已通过 | `TestLockInstanceRejectsSecond`；真机二次进程 0.1s 退出，主实例打开设置；`open` 重入同样打开设置 |
 | W-16 | P1 | 文件关联 | `tauri.conf.json`、`backup/*` | `nsgo.yaml file_types` + `OnOpenFiles` | 已通过 | `com.ayangweb.eco-paste.backup` 写入 Info.plist；真机运行中与冷启动 `open -a` 均触发导入，导入后重启校验 DB |
 | W-17 | P1 | 原生右键菜单 | `menu/clipboard_item.rs` | `NSMenu` 按内容动态生成动作 | 已通过 | URL/图片/路径菜单与分组子菜单已真机验证；`⌘C`/`⌘V`/`⌥⌘C`/`⌥⌘V` 与标准编辑菜单复制/粘贴已真机验证 |
