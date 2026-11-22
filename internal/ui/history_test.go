@@ -190,20 +190,20 @@ func TestPanelBehaviorFollowsSettingsOnEveryPropsPass(t *testing.T) {
 	cx := core.NewRoot(core.RootOptions{Post: func(fn func()) { fn() }})
 	t.Cleanup(cx.Dispose)
 	model := &behaviorModel{
-		search:  HistorySearchBehavior{DefaultFocus: false, ClearOnHide: true},
+		search:  HistorySearchBehavior{ClearOnHide: true},
 		preview: HistoryPreviewBehavior{SpaceEnabled: false},
 	}
 	panel := newHistoryPanel(cx, model, nil)
 	node := panel.node().(core.Native)
 	behavior, _ := node.PropsFunc()["behavior"].(macos.PanelBehavior)
-	if behavior.DefaultFocus || !behavior.ClearOnHide || behavior.SpacePreview {
+	if !behavior.ClearOnHide || behavior.SpacePreview {
 		t.Fatalf("initial behavior = %+v", behavior)
 	}
 
-	model.search = HistorySearchBehavior{DefaultFocus: true, ClearOnHide: false}
+	model.search = HistorySearchBehavior{ClearOnHide: false}
 	model.preview = HistoryPreviewBehavior{SpaceEnabled: true}
 	behavior, _ = node.PropsFunc()["behavior"].(macos.PanelBehavior)
-	if !behavior.DefaultFocus || behavior.ClearOnHide || !behavior.SpacePreview {
+	if behavior.ClearOnHide || !behavior.SpacePreview {
 		t.Fatalf("updated behavior = %+v", behavior)
 	}
 }

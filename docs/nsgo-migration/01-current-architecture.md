@@ -327,7 +327,7 @@ general, appearance, shortcuts, clipboard, onboarding, update
 - `clipboard.display`: `textMaxLines`, `imageMaxHeight`, `fileMaxCount`
 - `clipboard.sensitive`: `collectSecrets`, `redactSecrets`
 - `clipboard.history`: `retention{value,unit}`, `maxCount`
-- `clipboard.search`: `defaultFocus`, `clearOnHide`
+- `clipboard.search`: `clearOnHide`（面板打开时始终聚焦搜索框）
 - `clipboard.window`: `position`, `scrollToTopOnOpen`, `selectRangeOnOpen`, `selectCategoryOnOpen`, `selectGroupOnOpen`, `lightweightMode`, `idleDestroySeconds`
 - `clipboard.preview`: `hoverEnabled`, `hoverDelayMs`, `spaceEnabled`
 - `clipboard.feedback`: `copySound`

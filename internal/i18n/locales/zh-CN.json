@@ -616,7 +616,6 @@
       "scrollTop": "打开时滚动到顶部",
       "searchBehavior": "搜索",
       "searchClear": "下次打开时清空搜索",
-      "searchFocus": "打开时聚焦搜索",
       "selectCategory": "打开时选中分类",
       "selectGroup": "打开时选中分组",
       "selectRange": "打开时选中范围"

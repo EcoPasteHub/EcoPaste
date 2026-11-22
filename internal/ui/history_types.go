@@ -64,11 +64,9 @@ type HistoryPreview struct {
 	ImagePath  string
 }
 
-// HistorySearchBehavior controls where focus starts and whether a hidden
-// panel keeps its query.
+// HistorySearchBehavior controls whether a hidden panel keeps its query.
 type HistorySearchBehavior struct {
-	DefaultFocus bool
-	ClearOnHide  bool
+	ClearOnHide bool
 }
 
 // HistoryPreviewBehavior controls keyboard preview.

@@ -56,11 +56,9 @@ func panelWindowBecameKey(self objc.ID, _ objc.SEL, note objc.ID) {
 	if p.previewing || (p.shortcutPopover != 0 && objc.Send[bool](p.shortcutPopover, sel("isShown"))) {
 		return
 	}
-	responder := p.table
-	if p.behavior.DefaultFocus {
-		responder = p.search
-	}
-	window.Send(sel("makeFirstResponder:"), responder)
+	// The search field always takes focus when the panel opens, so typing
+	// filters immediately; arrow keys then move into the list.
+	window.Send(sel("makeFirstResponder:"), p.search)
 }
 
 func panelWindowResignedKey(self objc.ID, _ objc.SEL, note objc.ID) {

@@ -268,7 +268,6 @@ const (
 	SettingsSelectGroup    = Key("settings.window.selectGroup")
 	SettingsWindowOpen     = Key("settings.window.openBehavior")
 	SettingsWindowSearch   = Key("settings.window.searchBehavior")
-	SettingsSearchFocus    = Key("settings.window.searchFocus")
 	SettingsSearchClear    = Key("settings.window.searchClear")
 	SettingsWindowHint     = Key("settings.window.hint")
 

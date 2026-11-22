@@ -14,18 +14,18 @@ func TestSearchBehaviorReadsSettings(t *testing.T) {
 	}
 	model := &historyModel{store: store}
 	behavior := model.SearchBehavior()
-	if behavior.DefaultFocus || !behavior.ClearOnHide {
+	if !behavior.ClearOnHide {
 		t.Fatalf("default behavior = %+v", behavior)
 	}
 	if _, err := store.Update(map[string]any{
 		"clipboard": map[string]any{
-			"search": map[string]any{"defaultFocus": true, "clearOnHide": false},
+			"search": map[string]any{"clearOnHide": false},
 		},
 	}); err != nil {
 		t.Fatal(err)
 	}
 	behavior = model.SearchBehavior()
-	if !behavior.DefaultFocus || behavior.ClearOnHide {
+	if behavior.ClearOnHide {
 		t.Fatalf("updated behavior = %+v", behavior)
 	}
 }
@@ -33,7 +33,7 @@ func TestSearchBehaviorReadsSettings(t *testing.T) {
 func TestSearchBehaviorFallsBackToDefaults(t *testing.T) {
 	behavior := (&historyModel{}).SearchBehavior()
 	expected := settings.Default().Clipboard.Search
-	if behavior.DefaultFocus != expected.DefaultFocus || behavior.ClearOnHide != expected.ClearOnHide {
+	if behavior.ClearOnHide != expected.ClearOnHide {
 		t.Fatalf("fallback behavior = %+v", behavior)
 	}
 }

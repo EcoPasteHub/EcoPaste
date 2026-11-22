@@ -49,9 +49,6 @@ func TestSettingsModelAppliesPaths(t *testing.T) {
 	if err := model.Apply("content.deleteFavoriteItems", true); err != nil {
 		t.Fatal(err)
 	}
-	if err := model.Apply("search.defaultFocus", true); err != nil {
-		t.Fatal(err)
-	}
 	if err := model.Apply("search.clearOnHide", false); err != nil {
 		t.Fatal(err)
 	}
@@ -62,7 +59,7 @@ func TestSettingsModelAppliesPaths(t *testing.T) {
 		values.AutoPaste != "singleClickCopy" ||
 		!values.AutoFavorite || values.ShowOriginalPreview ||
 		values.DeleteConfirm || !values.DeleteFavoriteItems ||
-		!values.SearchFocus || values.SearchClear {
+		values.SearchClear {
 		t.Errorf("values = %+v", values)
 	}
 	cfg := store.Snapshot().Clipboard
@@ -127,14 +124,13 @@ func TestSettingsModelSignalsListRefresh(t *testing.T) {
 		{"content.showOriginalPreview", true},
 		{"content.deleteConfirm", false},
 		{"preview.spaceEnabled", false},
-		{"search.defaultFocus", true},
 	} {
 		if err := model.Apply(change.path, change.value); err != nil {
 			t.Fatal(err)
 		}
 	}
-	if changed != 6 {
-		t.Errorf("refresh signals = %d, want 6", changed)
+	if changed != 5 {
+		t.Errorf("refresh signals = %d, want 5", changed)
 	}
 }
 
@@ -566,7 +562,6 @@ func TestSettingsModelAcceptsEveryVisiblePath(t *testing.T) {
 		{"window.selectRangeOnOpen", "all"},
 		{"window.selectCategoryOnOpen", "image"},
 		{"window.selectGroupOnOpen", "all"},
-		{"search.defaultFocus", true},
 		{"search.clearOnHide", false},
 		{"content.autoPaste", "singleClickPaste"},
 		{"content.autoFavorite", false},
@@ -601,7 +596,7 @@ func TestSettingsModelAcceptsEveryVisiblePath(t *testing.T) {
 		t.Fatal(err)
 	}
 	snapshot := reopened.Snapshot()
-	if !snapshot.Clipboard.Search.DefaultFocus || snapshot.Clipboard.Search.ClearOnHide ||
+	if snapshot.Clipboard.Search.ClearOnHide ||
 		snapshot.Clipboard.Preview.SpaceEnabled || snapshot.Clipboard.History.Retention.Value != 3 ||
 		snapshot.Clipboard.History.MaxCount != 500 {
 		t.Errorf("reopened settings = %+v", snapshot.Clipboard)

@@ -210,8 +210,7 @@ const (
 )
 
 type Search struct {
-	DefaultFocus bool `json:"defaultFocus"`
-	ClearOnHide  bool `json:"clearOnHide"`
+	ClearOnHide bool `json:"clearOnHide"`
 }
 
 type Window struct {
@@ -289,7 +288,7 @@ func Default() Settings {
 			Display:   Display{TextMaxLines: 3, ImageMaxHeight: 64, FileMaxCount: 3},
 			Sensitive: Sensitive{CollectSecrets: true, RedactSecrets: true},
 			History:   History{Retention: Retention{Unit: RetentionForever}, MaxCount: 0},
-			Search:    Search{DefaultFocus: false, ClearOnHide: true},
+			Search:    Search{ClearOnHide: true},
 			Window: Window{
 				Position:             PositionFollowCursor,
 				ScrollToTopOnOpen:    true,

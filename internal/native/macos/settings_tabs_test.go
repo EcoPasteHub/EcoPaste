@@ -76,7 +76,6 @@ func TestEveryScalarSettingBelongsToOneCategory(t *testing.T) {
 		"window.selectRangeOnOpen":      "interaction",
 		"window.selectCategoryOnOpen":   "interaction",
 		"window.selectGroupOnOpen":      "interaction",
-		"search.defaultFocus":           "interaction",
 		"search.clearOnHide":            "interaction",
 		"content.autoPaste":             "interaction",
 		"content.autoFavorite":          "interaction",

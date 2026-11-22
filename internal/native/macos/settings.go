@@ -52,7 +52,6 @@ type SettingsValues struct {
 	RangeOnOpen            string
 	CategoryOnOpen         string
 	GroupOnOpen            string
-	SearchFocus            bool
 	SearchClear            bool
 	Groups                 []SettingsGroup
 	Retention              string

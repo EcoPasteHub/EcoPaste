@@ -34,7 +34,7 @@ func settingsControlPaths() map[string]bool {
 		"display.textMaxLines", "display.imageMaxHeight", "display.fileMaxCount",
 		"window.scrollToTopOnOpen", "window.selectRangeOnOpen",
 		"window.selectCategoryOnOpen", "window.selectGroupOnOpen",
-		"search.defaultFocus", "search.clearOnHide",
+		"search.clearOnHide",
 		"content.autoPaste",
 		"content.autoFavorite", "content.showOriginalPreview", "copyPlain",
 		"preview.spaceEnabled",
@@ -129,7 +129,6 @@ func testSettingsControlsShowLoadedValues(t *testing.T) {
 	}
 	view.SetProp("values", SettingsValues{
 		LogLevel:              "all",
-		SearchFocus:           true,
 		SearchClear:           false,
 		Sort:                  "useCountDesc",
 		TextMaxLines:          5,
@@ -149,10 +148,6 @@ func testSettingsControlsShowLoadedValues(t *testing.T) {
 			if index := int(objc.Send[int64](field.control, sel("indexOfSelectedItem"))); index < 0 ||
 				index >= len(field.options) || field.options[index] != "all" {
 				t.Errorf("log level selection = %d of %v", index, field.options)
-			}
-		case "search.defaultFocus":
-			if got := objcState(field.control); got != 1 {
-				t.Errorf("search focus = %d", got)
 			}
 		case "search.clearOnHide", "content.deleteConfirm":
 			if got := objcState(field.control); got != 0 {

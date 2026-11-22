@@ -142,7 +142,6 @@ func (p *historyPanel) panelBehavior() macos.PanelBehavior {
 	search := p.model.SearchBehavior()
 	preview := p.model.PreviewBehavior()
 	clicks := p.model.ClickBehavior()
-	p.behavior.DefaultFocus = search.DefaultFocus
 	p.behavior.ClearOnHide = search.ClearOnHide
 	p.behavior.SpacePreview = preview.SpaceEnabled
 	p.behavior.SingleClick = clicks.SingleClick

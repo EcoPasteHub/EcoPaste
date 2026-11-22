@@ -41,12 +41,10 @@ func (v *SettingsView) buildInteractionPage() {
 		}, func(s SettingsValues) string { return s.GroupOnOpen })
 	top = cardTop + 5*settingsRowHeight + settingsGroupGap
 
-	_, cardTop = v.addSectionCard(document, top, i18n.SettingsWindowSearch, 2)
-	v.addSwitch(document, settingsRowTop(cardTop, 0), i18n.SettingsSearchFocus, "search.defaultFocus",
-		func(s SettingsValues) bool { return s.SearchFocus })
-	v.addSwitch(document, settingsRowTop(cardTop, 1), i18n.SettingsSearchClear, "search.clearOnHide",
+	_, cardTop = v.addSectionCard(document, top, i18n.SettingsWindowSearch, 1)
+	v.addSwitch(document, settingsRowTop(cardTop, 0), i18n.SettingsSearchClear, "search.clearOnHide",
 		func(s SettingsValues) bool { return s.SearchClear })
-	top = cardTop + 2*settingsRowHeight + settingsGroupGap
+	top = cardTop + settingsRowHeight + settingsGroupGap
 
 	_, cardTop = v.addSectionCardInfo(document, top, i18n.SettingsInteractionContent, i18n.SettingsInteractionIntro, 6)
 	v.addPopup(document, settingsRowTop(cardTop, 0), i18n.SettingsMouseLeft, "content.autoPaste",

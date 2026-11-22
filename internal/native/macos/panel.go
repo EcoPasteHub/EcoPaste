@@ -108,10 +108,9 @@ type Panel struct {
 	language           string
 }
 
-// PanelBehavior controls focus and query persistence when the panel opens
-// and hides.
+// PanelBehavior controls query persistence and interaction handling when the
+// panel opens and hides.
 type PanelBehavior struct {
-	DefaultFocus bool
 	ClearOnHide  bool
 	SpacePreview bool
 	SingleClick  bool

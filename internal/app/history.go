@@ -134,7 +134,7 @@ func (m *historyModel) Updates() <-chan struct{} { return m.runtime.changed }
 
 func (m *historyModel) SearchBehavior() ui.HistorySearchBehavior {
 	search := m.clipboardConfig().Search
-	return ui.HistorySearchBehavior{DefaultFocus: search.DefaultFocus, ClearOnHide: search.ClearOnHide}
+	return ui.HistorySearchBehavior{ClearOnHide: search.ClearOnHide}
 }
 
 func (m *historyModel) PreviewBehavior() ui.HistoryPreviewBehavior {

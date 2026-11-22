@@ -209,11 +209,7 @@ func panelGroupPopoverDidClose(_ objc.ID, _ objc.SEL, note objc.ID) {
 		// after a submit or cancel.
 		if window != 0 && objc.Send[bool](window, sel("isVisible")) {
 			window.Send(sel("makeKeyWindow"))
-			responder := p.table
-			if p.behavior.DefaultFocus {
-				responder = p.search
-			}
-			window.Send(sel("makeFirstResponder:"), responder)
+			window.Send(sel("makeFirstResponder:"), p.search)
 		}
 		return
 	}

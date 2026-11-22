@@ -302,11 +302,7 @@ func panelNotePopoverDidClose(_ objc.ID, _ objc.SEL, note objc.ID) {
 	if programmatic {
 		if window != 0 && objc.Send[bool](window, sel("isVisible")) {
 			window.Send(sel("makeKeyWindow"))
-			responder := p.table
-			if p.behavior.DefaultFocus {
-				responder = p.search
-			}
-			window.Send(sel("makeFirstResponder:"), responder)
+			window.Send(sel("makeFirstResponder:"), p.search)
 		}
 		return
 	}
