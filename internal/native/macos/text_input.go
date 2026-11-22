@@ -110,16 +110,48 @@ func (t *textInput) setReturnHandler(fn func()) { t.onReturn = fn }
 
 func (t *textInput) setCancelHandler(fn func()) { t.onCancel = fn }
 
-// focus moves key focus to the input and selects its contents.
+// focus moves key focus to the input and marks its border focused.
 func (t *textInput) focus() {
 	window := objc.Send[objc.ID](t.control, sel("window"))
 	if window == 0 {
 		return
 	}
-	window.Send(sel("makeKeyWindow"))
 	window.Send(sel("makeFirstResponder:"), t.field)
 	t.field.Send(sel("selectText:"), objc.ID(0))
 	t.applyTextColor()
+	t.chrome.syncFocus(true)
+}
+
+// focusOnShow gives a popover input a real editing session once its window is
+// key. AppKit can set the field as first responder while the popover window is
+// still keyless, which leaves the field without an insertion point; resigning
+// first and refocusing now (while the window really is key) makes the caret
+// appear. It reports false while the window is not key so the caller retries on
+// the next key transition instead of guessing a delay.
+func (t *textInput) focusOnShow() bool {
+	window := objc.Send[objc.ID](t.control, sel("window"))
+	if window == 0 {
+		return false
+	}
+	window.Send(sel("makeKeyWindow"))
+	if !objc.Send[bool](window, sel("isKeyWindow")) {
+		return false
+	}
+	first := objc.Send[objc.ID](window, sel("firstResponder"))
+	if first == t.field || objc.Send[objc.ID](t.field, sel("currentEditor")) != 0 {
+		window.Send(sel("makeFirstResponder:"), objc.ID(0))
+	}
+	window.Send(sel("makeFirstResponder:"), t.field)
+	t.field.Send(sel("selectText:"), objc.ID(0))
+	t.applyTextColor()
+	t.chrome.syncFocus(true)
+	return true
+}
+
+// resetFocus clears any cached border focus when the input is about to be
+// shown again in a reused popover.
+func (t *textInput) resetFocus() {
+	t.chrome.resetFocus()
 }
 
 func (t *textInput) close() {
@@ -317,8 +349,37 @@ func (a *textArea) focus() {
 	if window == 0 {
 		return
 	}
-	window.Send(sel("makeKeyWindow"))
 	window.Send(sel("makeFirstResponder:"), a.text)
+	a.chrome.syncFocus(true)
+}
+
+// focusOnShow starts a real editing session for the note editor once the
+// popover window is key. A first responder set while the window was keyless has
+// no caret and no begin-editing notification, so resign and refocus here. It
+// reports false while the window is not key so the caller can retry on the key
+// transition rather than with a timer.
+func (a *textArea) focusOnShow() bool {
+	window := objc.Send[objc.ID](a.control, sel("window"))
+	if window == 0 {
+		return false
+	}
+	window.Send(sel("makeKeyWindow"))
+	if !objc.Send[bool](window, sel("isKeyWindow")) {
+		return false
+	}
+	if objc.Send[objc.ID](window, sel("firstResponder")) == a.text {
+		window.Send(sel("makeFirstResponder:"), objc.ID(0))
+	}
+	window.Send(sel("makeFirstResponder:"), a.text)
+	a.text.Send(sel("moveToEndOfDocument:"), objc.ID(0))
+	a.chrome.syncFocus(true)
+	return true
+}
+
+// resetFocus clears any cached border focus when the area is about to be shown
+// again in a reused popover.
+func (a *textArea) resetFocus() {
+	a.chrome.resetFocus()
 }
 
 func (a *textArea) close() {

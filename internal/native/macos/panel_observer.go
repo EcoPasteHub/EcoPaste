@@ -40,6 +40,22 @@ func panelWindowBecameKey(self objc.ID, _ objc.SEL, note objc.ID) {
 	if p == nil {
 		return
 	}
+	// An open popover owns keyboard focus. On the first summon the app becomes
+	// active and this panel-key notification can arrive after the popover opened;
+	// moving first responder back to the list would steal the caret from the
+	// popover. Keep the popover focused instead: the guarded focus helper re-keys
+	// the popover window and focuses its input if that is still pending.
+	if p.notePopoverActive() {
+		p.focusNoteArea()
+		return
+	}
+	if p.groupPopoverActive() {
+		p.focusGroupInput()
+		return
+	}
+	if p.previewing || (p.shortcutPopover != 0 && objc.Send[bool](p.shortcutPopover, sel("isShown"))) {
+		return
+	}
 	responder := p.table
 	if p.behavior.DefaultFocus {
 		responder = p.search

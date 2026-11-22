@@ -48,13 +48,7 @@ var (
 func registerNotePopoverClasses() error {
 	var err error
 	noteControllerClass, err = objc.RegisterClass("EcoPasteNotePopoverController",
-		class("NSViewController"), nil, nil, []objc.MethodDef{
-			{Cmd: sel("viewDidAppear"), Fn: func(self objc.ID, _ objc.SEL) {
-				if p := panelsByNoteController[self]; p != nil && p.noteArea != nil {
-					p.noteArea.focus()
-				}
-			}},
-		})
+		class("NSViewController"), nil, nil, nil)
 	if err != nil {
 		return err
 	}
@@ -72,12 +66,33 @@ func registerNotePopoverClasses() error {
 				}
 			}},
 			{Cmd: sel("popoverDidClose:"), Fn: panelNotePopoverDidClose},
+			// Focus after the popover has finished showing. This is the point at
+			// which the popover window is key; focusing in viewDidAppear happens
+			// before that on the first open, leaving a first responder with no
+			// editing session and no caret.
+			{Cmd: sel("popoverDidShow:"), Fn: func(_ objc.ID, _ objc.SEL, note objc.ID) {
+				p := panelsByNotePopover[objc.Send[objc.ID](note, sel("object"))]
+				if p != nil {
+					p.focusNoteArea()
+				}
+			}},
 		})
 	if err != nil {
 		return err
 	}
 	notePopoverTarget = objc.ID(target).Send(sel("new"))
 	return nil
+}
+
+// focusNoteArea focuses the note editor once per opening, only after its
+// popover window is key so the caret really appears.
+func (p *Panel) focusNoteArea() {
+	if p.noteArea == nil || p.noteFocusDone {
+		return
+	}
+	if p.noteArea.focusOnShow() {
+		p.noteFocusDone = true
+	}
 }
 
 func (p *Panel) buildNotePopover() {
@@ -203,6 +218,8 @@ func (p *Panel) showNotePopover(rowID string) {
 	}
 	noteActivePanel = p
 	p.noteTargetID = rowID
+	p.noteFocusDone = false
+	p.noteArea.resetFocus()
 	p.noteArea.setString(note)
 	p.refreshNotePopoverText()
 	p.noteClosing = false

@@ -40,6 +40,7 @@ type Panel struct {
 	groupInput         *textInput
 	groupClosing       bool
 	groupSubmitted     bool
+	groupFocusDone     bool
 	notePopover        objc.ID
 	notePopoverView    objc.ID
 	noteController     objc.ID
@@ -50,6 +51,7 @@ type Panel struct {
 	noteCancel         objc.ID
 	noteClosing        bool
 	noteTargetID       string
+	noteFocusDone      bool
 	scroll             objc.ID
 	table              objc.ID
 	empty              objc.ID

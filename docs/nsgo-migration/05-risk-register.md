@@ -156,3 +156,17 @@
 - §6.2 第 6 项的 `checkDragFinished:` 兜底保留：自动 drag 未能验证真实拖放，不在缺乏证据时删除既有保障。原生结束回调现在也经由 `endPanelDrag` 立即取消延迟任务，隐藏/关闭同步清理。
 - 完整变更、保留定时器理由、基准、自动检查及未验证交互见 [08-performance-audit.md](./08-performance-audit.md)。
 - 中断后复核进一步修正后台读取 `Scope.Context()` 的 owner/线程风险：runtime 在图上捕获上下文，后台设置、备份与手动采集不再访问 Scope 的当前 owner；信号循环同样在启动前捕获。另补回服务不可用时的面板错误状态，并以原生 delayed selector 引用测试确认拖拽结束与取消单击会释放排队任务。
+
+### 6.6 输入框聚焦样式与真实焦点不同步（2026-11-22）
+
+- 现象：编辑备注 Popover 打开时，输入框显示聚焦边框但没有插入光标（仍可输入），需手动点击后才出现光标；手动聚焦一次后，后续重开又恢复正常。
+- 根因（实测结论）：
+  1. `inputChrome` 的聚焦状态此前同时来自「编辑通知缓存」和「绘制时读取真实编辑器」两条路径，二者会漂移；绘制回落只强制点亮、不熄灭，上一次 Popover 会话遗留的焦点值会一直保留。
+  2. 以代码方式让 `NSTextView` 成为 first responder 不会发送 `NSTextDidBeginEditingNotification`（swift 实测），所以备注文本域自动聚焦后没有通知把边框点亮。
+  3. 首次打开时 `NSPopover` 在 `viewDidAppear` 阶段就把文本域设为 first responder，但此时窗口/文本布局尚未稳定，`NSTextInsertionIndicator` 的几何为零（`frame=(0,0,0,0)`）：窗口随后成为 key，`firstResponder == field` 成立，于是边框被点亮，但插入点尺寸为零所以看不到光标。`[textView.window makeFirstResponder:textView]` 对已是 first responder 的文本域是空操作，只有真正「resign 再 refocus」才能重建编辑会话并给出非零插入点几何（实测 refocus 后 `frame` 变为 `(44,0,0,14)`）。
+  4. 首次唤起时应用从非激活转为激活，`panelWindowBecameKey` 会把 first responder 抢回搜索框/列表；Popover 窗口不发送 `NSWindowDidBecomeKey/ResignKey` 通知，边框不会被及时代谢，形成「亮边框无光标」。
+- 处理：
+  - `inputChrome.syncFocus`/`drawInputChrome` 以真实编辑器状态为唯一真源（key window + first responder + `currentEditor`），窗口 key 变化时重新推导；Popover 复用输入前 `resetFocus` 清陈旧值。无绑定字段的快捷键录入框保留手动焦点，仅在窗口失 key 时熄灭。
+  - Popover 焦点改在 `popoverDidShow:`（动画结束、窗口 key）执行 `focusOnShow`：先 `makeKeyWindow`，若文本域已是 first responder 则先 `makeFirstResponder:nil` 再重新聚焦（并 `moveToEndOfDocument:`），确保重建编辑会话、插入点几何非零。不再在 `viewDidAppear` 提前聚焦（首次即在此阶段产生零几何）。每次打开用 `noteFocusDone`/`groupFocusDone` 守卫，只执行一次，不使用延时或轮询。
+  - `panelWindowBecameKey` 在备注/分组/预览/快捷键 Popover 打开时不再抢 first responder，避免首次激活时把光标从 Popover 抢走。
+- 验证：`gofmt`、`go vet ./...`、`go test ./...`、`go test -race ./internal/native/macos/`、`nsgo check cmd/ecopaste`、`nsgo build -id com.ayangweb.eco-paste.dev` 通过；swift 对照实验确认：`viewDidAppear` 阶段插入点几何为 0（无光标），`popoverDidShow` 后 resign+refocus 使其变为非零（有光标）。真机 Popover 首次打开光标显示待人工回归。

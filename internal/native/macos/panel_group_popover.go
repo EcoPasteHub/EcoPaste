@@ -37,16 +37,7 @@ var (
 func registerGroupPopoverClasses() error {
 	var err error
 	groupControllerClass, err = objc.RegisterClass("EcoPasteGroupPopoverController",
-		class("NSViewController"), nil, nil, []objc.MethodDef{
-			// Focus the field once the popover window is on screen; doing
-			// it before the show animation finishes lets AppKit reset the
-			// first responder back to the panel.
-			{Cmd: sel("viewDidAppear"), Fn: func(self objc.ID, _ objc.SEL) {
-				if p := panelsByGroupController[self]; p != nil {
-					p.focusNewGroupField()
-				}
-			}},
-		})
+		class("NSViewController"), nil, nil, nil)
 	if err != nil {
 		return err
 	}
@@ -54,6 +45,13 @@ func registerGroupPopoverClasses() error {
 	target, err := objc.RegisterClass("EcoPasteGroupPopoverTarget", class("NSObject"), nil, nil,
 		[]objc.MethodDef{
 			{Cmd: sel("popoverDidClose:"), Fn: panelGroupPopoverDidClose},
+			// Focus after the popover finished showing, when its window is key.
+			{Cmd: sel("popoverDidShow:"), Fn: func(_ objc.ID, _ objc.SEL, note objc.ID) {
+				p := panelsByGroupPopover[objc.Send[objc.ID](note, sel("object"))]
+				if p != nil {
+					p.focusGroupInput()
+				}
+			}},
 		})
 	if err != nil {
 		return err
@@ -125,9 +123,15 @@ func (p *Panel) groupPopoverActive() bool {
 	return p.groupPopover != 0 && objc.Send[bool](p.groupPopover, sel("isShown"))
 }
 
-func (p *Panel) focusNewGroupField() {
-	if p.groupInput != nil {
-		p.groupInput.focus()
+// focusGroupInput focuses the new-group field once per opening, only when the
+// popover window is already key so the caret appears; otherwise it stays
+// pending for the next activation event.
+func (p *Panel) focusGroupInput() {
+	if p.groupInput == nil || p.groupFocusDone {
+		return
+	}
+	if p.groupInput.focusOnShow() {
+		p.groupFocusDone = true
 	}
 }
 
@@ -149,7 +153,9 @@ func (p *Panel) showNewGroupPopover(anchor objc.ID) {
 	if anchor == 0 {
 		return
 	}
+	p.groupInput.resetFocus()
 	p.groupInput.setStringValue("")
+	p.groupFocusDone = false
 	p.refreshNewGroupPopoverText()
 	p.groupClosing = false
 	p.groupSubmitted = false
