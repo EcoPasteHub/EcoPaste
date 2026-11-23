@@ -49,6 +49,20 @@ pub fn write_to_clipboard(
     }
 }
 
+/// 只尝试写一次，不做任何重试。
+///
+/// 供自带「是否已被更新内容取代」判定的调用方使用（局域网 / 云端同步接收）：
+/// 若在这里再套一层不可打断的重试，旧内容会在剪贴板被占用时卡在重试里，
+/// 并在新内容写入之后才落地，反过来覆盖新内容。
+pub fn write_to_clipboard_once(
+    store: &ImageStore,
+    guard: &WritebackGuard,
+    item: &ClipboardItem,
+    plain: bool,
+) -> Result<()> {
+    write_once(store, guard, item, plain)
+}
+
 fn write_once(
     store: &ImageStore,
     guard: &WritebackGuard,

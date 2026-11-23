@@ -4,13 +4,14 @@
 //! 因此收到的内容不会被再次入库，也不会再广播出去（星型同步天然无回环）。
 
 use std::io::Cursor;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 
 use anyhow::{anyhow, Result};
 use tauri::{AppHandle, Manager};
 
 use crate::clipboard::{
-    build_item_with_settings, persist_and_notify, write_to_clipboard, ClipboardPayload,
+    build_item_with_settings, persist_and_notify, write_to_clipboard_once, ClipboardPayload,
     ImagePayload, ImageStore, TextPayload, WritebackGuard,
 };
 use crate::db::models::ClipboardItem;
@@ -27,6 +28,25 @@ pub static TEST_SINK: std::sync::Mutex<Option<Vec<ClipboardItem>>> = std::sync::
 const WRITE_RETRY_ATTEMPTS: u32 = 40;
 const WRITE_RETRY_MAX_DELAY: std::time::Duration = std::time::Duration::from_millis(500);
 const WRITE_RETRY_BASE: std::time::Duration = std::time::Duration::from_millis(30);
+
+/// 最新一次剪贴板写入意图的序号。远端内容到达时领取新序号，本机发生新复制时也会推进；
+/// 序号已被推进的写入视为过期并放弃，防止剪贴板忙时退避重试的旧内容晚于新内容落地、覆盖新内容。
+static LATEST_WRITE: AtomicU64 = AtomicU64::new(0);
+
+/// 为一次远端写入领取序号。
+pub(crate) fn claim_write() -> u64 {
+    LATEST_WRITE.fetch_add(1, Ordering::SeqCst) + 1
+}
+
+/// 领取 `ticket` 之后是否已有更新的远端内容或本机复制。
+pub(crate) fn is_superseded(ticket: u64) -> bool {
+    LATEST_WRITE.load(Ordering::SeqCst) != ticket
+}
+
+/// 本机发生了新的复制：作废尚未完成的远端写入。
+pub fn supersede_remote_writes() {
+    LATEST_WRITE.fetch_add(1, Ordering::SeqCst);
+}
 
 /// 本机允许接收的图片字节上限。
 pub fn image_limit(app: &AppHandle) -> u64 {
@@ -54,18 +74,33 @@ fn seen_recently(hash: &str) -> bool {
     false
 }
 
+/// 局域网收到的文本：`ticket` 须在消息到达时（按到达顺序）用 [`claim_write`] 领取，
+/// 这样并发处理的多条消息仍以到达顺序决定谁是「最新」。
 pub async fn apply_text(
     app: &AppHandle,
+    ticket: u64,
     plain: String,
     html: Option<String>,
     rtf: Option<String>,
 ) -> Result<()> {
-    apply_text_with(app, plain, html, rtf, true).await
+    apply_text_ticketed(app, ticket, plain, html, rtf, true).await
 }
 
 /// `to_clipboard = false` 时只入历史、不写系统剪贴板（拉取云端历史用）。
 pub async fn apply_text_with(
     app: &AppHandle,
+    plain: String,
+    html: Option<String>,
+    rtf: Option<String>,
+    to_clipboard: bool,
+) -> Result<()> {
+    let ticket = if to_clipboard { claim_write() } else { 0 };
+    apply_text_ticketed(app, ticket, plain, html, rtf, to_clipboard).await
+}
+
+async fn apply_text_ticketed(
+    app: &AppHandle,
+    ticket: u64,
     plain: String,
     html: Option<String>,
     rtf: Option<String>,
@@ -83,15 +118,27 @@ pub async fn apply_text_with(
             rtf,
         }),
         to_clipboard,
+        ticket,
     )
     .await
 }
 
-pub async fn apply_image(app: &AppHandle, png: Vec<u8>) -> Result<()> {
-    apply_image_with(app, png, true).await
+/// 局域网收到的图片：`ticket` 的领取时机同 [`apply_text`]。
+pub async fn apply_image(app: &AppHandle, ticket: u64, png: Vec<u8>) -> Result<()> {
+    apply_image_ticketed(app, ticket, png, true).await
 }
 
 pub async fn apply_image_with(app: &AppHandle, png: Vec<u8>, to_clipboard: bool) -> Result<()> {
+    let ticket = if to_clipboard { claim_write() } else { 0 };
+    apply_image_ticketed(app, ticket, png, to_clipboard).await
+}
+
+async fn apply_image_ticketed(
+    app: &AppHandle,
+    ticket: u64,
+    png: Vec<u8>,
+    to_clipboard: bool,
+) -> Result<()> {
     if !app.state::<SettingsStore>().snapshot().sync.sync_image {
         return Ok(());
     }
@@ -109,6 +156,7 @@ pub async fn apply_image_with(app: &AppHandle, png: Vec<u8>, to_clipboard: bool)
             height,
         }),
         to_clipboard,
+        ticket,
     )
     .await
 }
@@ -117,6 +165,7 @@ async fn apply_payload(
     app: &AppHandle,
     payload: ClipboardPayload,
     to_clipboard: bool,
+    ticket: u64,
 ) -> Result<()> {
     let settings = app.state::<SettingsStore>().snapshot();
     let store = app.state::<ImageStore>().inner().clone();
@@ -133,12 +182,13 @@ async fn apply_payload(
     };
 
     if to_clipboard && seen_recently(&item.content_hash) {
+        log::info!("sync: ignored a repeated received item (ticket {ticket})");
         return Ok(());
     }
 
     if to_clipboard {
         // 写入失败（如剪贴板被长期占用）时仍入历史，用户可从历史面板粘贴。
-        if let Err(err) = write_item_with_retry(app, &store, &item).await {
+        if let Err(err) = write_item_with_retry(app, &store, &item, ticket).await {
             log::warn!("sync: writing received item to the clipboard failed: {err:#}");
         }
     }
@@ -149,15 +199,22 @@ async fn apply_payload(
 }
 
 /// 其它程序（剪贴板监听器、历史面板等）可能短暂占用剪贴板导致打开被拒绝，退避重试。
+/// 重试期间若 `ticket` 已过期（来了更新的内容），放弃写入，避免旧内容覆盖新内容。
 async fn write_item_with_retry(
     app: &AppHandle,
     store: &ImageStore,
     item: &ClipboardItem,
+    ticket: u64,
 ) -> Result<()> {
     let mut delay = WRITE_RETRY_BASE;
     let mut attempt = 1;
 
     loop {
+        if is_superseded(ticket) {
+            log::info!("sync: dropped a received item superseded by newer clipboard content (ticket {ticket})");
+            return Ok(());
+        }
+
         match write_item(app, store, item) {
             Ok(()) => return Ok(()),
             Err(err) if attempt >= WRITE_RETRY_ATTEMPTS => return Err(err),
@@ -180,6 +237,6 @@ fn write_item(app: &AppHandle, store: &ImageStore, item: &ClipboardItem) -> Resu
     }
 
     let guard = app.state::<Arc<WritebackGuard>>();
-    write_to_clipboard(store, guard.inner().as_ref(), item, false)?;
+    write_to_clipboard_once(store, guard.inner().as_ref(), item, false)?;
     Ok(())
 }

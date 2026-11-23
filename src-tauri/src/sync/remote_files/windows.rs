@@ -60,6 +60,7 @@ pub fn present(
     peer_id: &str,
     offer: &str,
     entries: Vec<FileEntry>,
+    ticket: u64,
 ) {
     let peer_id = peer_id.to_owned();
     let offer = offer.to_owned();
@@ -67,7 +68,7 @@ pub fn present(
     let spawned = std::thread::Builder::new()
         .name("sync-virtual-files".to_owned())
         .spawn(move || {
-            if let Err(err) = run_clipboard_thread(state, peer_id, offer, entries) {
+            if let Err(err) = run_clipboard_thread(state, peer_id, offer, entries, ticket) {
                 log::warn!("sync: virtual file clipboard failed: {err}");
             }
         });
@@ -98,6 +99,7 @@ fn run_clipboard_thread(
     peer_id: String,
     offer: String,
     entries: Vec<FileEntry>,
+    ticket: u64,
 ) -> WinResult<()> {
     unsafe {
         OleInitialize(None)?;
@@ -106,7 +108,10 @@ fn run_clipboard_thread(
     let result = (|| -> WinResult<()> {
         let (object, is_in_use) = create_data_object(state, peer_id, offer, entries);
 
-        set_clipboard_with_retry(&object)?;
+        if !set_clipboard_with_retry(&object, ticket)? {
+            log::debug!("sync: dropped virtual files superseded by newer clipboard content");
+            return Ok(());
+        }
         log::info!("sync: virtual files placed on the clipboard");
 
         // OleSetClipboard 持有自己的 COM 引用。释放本地引用，使对象和派生流的实际持有者决定 STA 的寿命。
@@ -122,14 +127,19 @@ fn run_clipboard_thread(
 }
 
 /// 远程桌面等程序会长时间占用剪贴板，`OleSetClipboard` 因此返回 `CLIPBRD_E_CANT_OPEN`；
-/// 退避重试约 15 秒，期间泵消息保持 STA 响应。
-fn set_clipboard_with_retry(object: &IDataObject) -> WinResult<()> {
+/// 退避重试约 15 秒。重试期间来了更新的内容（`ticket` 过期）时放弃并返回 `false`，
+/// 避免旧文件晚于新内容落地、覆盖新内容。
+fn set_clipboard_with_retry(object: &IDataObject, ticket: u64) -> WinResult<bool> {
     const MAX_ATTEMPTS: u32 = 40;
     let mut delay = std::time::Duration::from_millis(30);
 
     for attempt in 1..=MAX_ATTEMPTS {
+        if crate::sync::apply::is_superseded(ticket) {
+            return Ok(false);
+        }
+
         match unsafe { OleSetClipboard(object) } {
-            Ok(()) => return Ok(()),
+            Ok(()) => return Ok(true),
             Err(err) if attempt == MAX_ATTEMPTS => return Err(err),
             Err(err) => {
                 log::debug!("sync: clipboard busy for virtual files (attempt {attempt}): {err}");
@@ -138,7 +148,7 @@ fn set_clipboard_with_retry(object: &IDataObject) -> WinResult<()> {
             }
         }
     }
-    Ok(())
+    Ok(false)
 }
 
 /// 持有剪贴板对象或派生流的应用仍可能发出 COM 调用，即使剪贴板已被替换。

@@ -22,6 +22,7 @@ mod protocol;
 mod remote_files;
 mod session;
 
+pub use apply::supersede_remote_writes;
 pub(crate) use apply::{apply_image_with, apply_text_with, image_limit};
 pub use manager::{text_parts, PairError, PeerStatus, SyncState, SyncStatus};
 pub use pairing::PairingCode;
@@ -30,7 +31,7 @@ pub(crate) use protocol::FileEntry;
 use tauri::{AppHandle, Manager};
 
 use crate::core::Result;
-use crate::db::models::ClipboardItem;
+use crate::db::models::{ClipboardItem, ClipboardKind};
 
 /// 设备列表 / 在线状态变化。与前端 `src/constants/events.ts` 同步。
 pub const DEVICES_EVENT: &str = "sync://devices";
@@ -85,6 +86,16 @@ pub fn apply_settings(app: &AppHandle) {
     tauri::async_runtime::spawn(async move {
         state.apply_settings().await;
     });
+}
+
+/// 本机捕获的文件条目是否只是近期收到的远端文件被其它程序落盘后放回剪贴板（不应再广播）。
+pub fn is_remote_files_echo(item: &ClipboardItem) -> bool {
+    if item.kind != ClipboardKind::Files {
+        return false;
+    }
+
+    let paths: Vec<&str> = item.content.split('\n').filter(|p| !p.is_empty()).collect();
+    remote_files::is_echo(&paths)
 }
 
 /// 剪贴板监听新入库一条本机复制后调用，推送给已配对设备。

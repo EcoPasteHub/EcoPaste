@@ -1066,8 +1066,10 @@ async fn handle_message(
         }
         Message::ClipText { plain, html, rtf } => {
             let app = inner.app.clone();
+            let ticket = apply::claim_write();
+            log::info!("sync: received text from {peer_id} (ticket {ticket})");
             tauri::async_runtime::spawn(async move {
-                if let Err(err) = apply::apply_text(&app, plain, html, rtf).await {
+                if let Err(err) = apply::apply_text(&app, ticket, plain, html, rtf).await {
                     log::warn!("sync: apply text failed: {err:#}");
                 }
             });
@@ -1092,8 +1094,10 @@ async fn handle_message(
             if let Some((png, total)) = images.remove(&id) {
                 if png.len() as u64 == total {
                     let app = inner.app.clone();
+                    let ticket = apply::claim_write();
+                    log::info!("sync: received image from {peer_id} (ticket {ticket})");
                     tauri::async_runtime::spawn(async move {
-                        if let Err(err) = apply::apply_image(&app, png).await {
+                        if let Err(err) = apply::apply_image(&app, ticket, png).await {
                             log::warn!("sync: apply image failed: {err:#}");
                         }
                     });

@@ -9,8 +9,8 @@
 //! 投递进 Tauri 异步运行时做 sqlx 入库与事件 emit。
 
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
-use std::time::Duration;
+use std::sync::{Arc, Mutex};
+use std::time::{Duration, Instant};
 
 use chrono::Utc;
 use clipboard_rs::{ClipboardHandler, ClipboardWatcher, ClipboardWatcherContext};
@@ -54,6 +54,12 @@ const CLIPBOARD_READ_RETRY_DELAYS: [Duration; 8] = [
     Duration::from_millis(900),
     Duration::from_millis(1000),
 ];
+
+/// 同一内容在此时间内被再次读到时视为同一次变化，不重复入库与广播。
+///
+/// 读取会触发其它程序的延迟渲染、远程桌面 / 输入法工具也会原样重写剪贴板，这些都会推进剪贴板序号，
+/// 让监听线程与补偿轮询各处理一次；重复处理会消耗写回指纹、把收到的内容当本机复制再广播回去。
+const DUPLICATE_WINDOW: Duration = Duration::from_secs(5);
 
 /// Windows 补偿轮询间隔：个别程序会让 `WM_CLIPBOARDUPDATE` 通知丢失，按剪贴板序号兜底。
 #[cfg(target_os = "windows")]
@@ -228,7 +234,7 @@ fn spawn_watch_thread(
     registry: AppsRegistry,
     pause: WatcherPause,
 ) {
-    let handled = HandledSequence::default();
+    let handled = Handled::default();
 
     #[cfg(target_os = "windows")]
     spawn_sequence_poller(
@@ -282,10 +288,10 @@ fn spawn_watch_thread(
 
 /// Windows 补偿线程：定期比对剪贴板序号，发现「内容变了但监听线程没收到通知」时补处理一次。
 ///
-/// 与监听线程共用 [`HandledSequence`]，同一个序号只会被其中一方处理。
+/// 与监听线程共用 [`Handled`]，同一个序号只会被其中一方处理。
 #[cfg(target_os = "windows")]
 fn spawn_sequence_poller(
-    handled: HandledSequence,
+    handled: Handled,
     app: AppHandle,
     guard: Arc<WritebackGuard>,
     store: ImageStore,
@@ -316,21 +322,15 @@ fn spawn_sequence_poller(
 
             // 以启动时的序号为基线，避免把启动前已有的内容当作新复制。
             {
-                let mut last = handled.0.lock().expect("handled sequence poisoned");
-                if *last == 0 {
-                    *last = clipboard_sequence();
+                let mut state = handled.lock();
+                if state.sequence == 0 {
+                    state.sequence = clipboard_sequence();
                 }
             }
 
             loop {
                 std::thread::sleep(SEQUENCE_POLL_INTERVAL);
-                if handled
-                    .0
-                    .lock()
-                    .expect("handled sequence poisoned")
-                    .to_owned()
-                    != clipboard_sequence()
-                {
+                if handled.lock().sequence != clipboard_sequence() {
                     log::debug!("clipboard poller: change without notification, handling");
                     handler.on_clipboard_change();
                 }
@@ -341,12 +341,38 @@ fn spawn_sequence_poller(
     }
 }
 
-/// 已处理的剪贴板序号，监听线程与补偿轮询线程共用，保证同一次变化只处理一次。
+/// 监听线程与补偿轮询线程共用的已处理状态，保证同一次变化只处理一次。
 #[derive(Clone, Default)]
-struct HandledSequence(Arc<std::sync::Mutex<u32>>);
+struct Handled(Arc<Mutex<HandledState>>);
+
+#[derive(Default)]
+struct HandledState {
+    /// 已处理的剪贴板序号。
+    #[cfg(target_os = "windows")]
+    sequence: u32,
+    /// 最近一次读到的内容指纹与读到的时间。
+    content: Option<(String, Instant)>,
+}
+
+impl Handled {
+    fn lock(&self) -> std::sync::MutexGuard<'_, HandledState> {
+        self.0.lock().expect("handled state poisoned")
+    }
+
+    /// 记录本次读到的内容；与上一次读到的内容相同且间隔不超过 [`DUPLICATE_WINDOW`] 时返回 `false`。
+    fn observe_content(&self, content_hash: &str) -> bool {
+        let mut state = self.lock();
+        let repeated = state
+            .content
+            .as_ref()
+            .is_some_and(|(hash, at)| hash == content_hash && at.elapsed() <= DUPLICATE_WINDOW);
+        state.content = Some((content_hash.to_owned(), Instant::now()));
+        !repeated
+    }
+}
 
 struct ClipboardChangeHandler {
-    handled: HandledSequence,
+    handled: Handled,
     reader: ClipboardReader,
     app: AppHandle,
     guard: Arc<WritebackGuard>,
@@ -361,11 +387,11 @@ impl ClipboardHandler for ClipboardChangeHandler {
         #[cfg(target_os = "windows")]
         {
             let current = clipboard_sequence();
-            let mut last = self.handled.0.lock().expect("handled sequence poisoned");
-            if *last == current {
+            let mut state = self.handled.lock();
+            if state.sequence == current {
                 return;
             }
-            *last = current;
+            state.sequence = current;
         }
 
         self.process_change();
@@ -438,10 +464,27 @@ impl ClipboardChangeHandler {
             }
         };
 
-        // 自身写回触发的变更：跳过入库，避免回环。
-        if self.guard.should_skip(&item.content_hash) {
+        // 先于写回指纹判定：重复读到同一内容不能把指纹消耗掉。
+        let short = item
+            .content_hash
+            .get(..8)
+            .unwrap_or(&item.content_hash)
+            .to_owned();
+        if !self.handled.observe_content(&item.content_hash) {
+            log::info!("clipboard watcher: repeated content {short} ignored");
             return;
         }
+
+        // 自身写回触发的变更：跳过入库，避免回环。
+        if self.guard.should_skip(&item.content_hash) {
+            log::info!("clipboard watcher: own write-back {short} skipped");
+            return;
+        }
+        log::info!("clipboard watcher: captured {:?} {short}", item.kind);
+
+        // 本机新复制优先：作废仍在重试中的远端写入，避免它们稍后覆盖这次复制。
+        crate::sync::supersede_remote_writes();
+        let echo = crate::sync::is_remote_files_echo(&item);
 
         let source_app =
             source.map(|src| materialize_source(&self.app_icon_store, Some(&self.registry), src));
@@ -454,6 +497,9 @@ impl ClipboardChangeHandler {
         tauri::async_runtime::spawn(async move {
             let pool = app.state::<crate::db::DatabaseState>().pool().await;
             match persist_and_notify(&app, &pool, &item, source_app.as_ref()).await {
+                Ok(_) if echo => {
+                    log::debug!("clipboard watcher: remote files echoed back, not broadcasting");
+                }
                 Ok(_) => {
                     crate::sync::broadcast_item(&app, &item);
                     crate::cloud::broadcast_item(&app, &item);
@@ -476,6 +522,27 @@ mod tests {
     use crate::db::test_support::memory_pool;
 
     const ZERO_DELAY_RETRIES: [Duration; 3] = [Duration::ZERO; 3];
+
+    #[test]
+    fn repeated_content_is_observed_once() {
+        let handled = Handled::default();
+
+        assert!(handled.observe_content("a"));
+        assert!(!handled.observe_content("a"));
+        assert!(handled.observe_content("b"));
+        assert!(handled.observe_content("a"));
+    }
+
+    #[test]
+    fn same_content_after_window_is_observed_again() {
+        let handled = Handled::default();
+        assert!(handled.observe_content("a"));
+
+        handled.lock().content = Some(("a".to_owned(), Instant::now() - DUPLICATE_WINDOW));
+        std::thread::sleep(Duration::from_millis(5));
+
+        assert!(handled.observe_content("a"));
+    }
 
     #[test]
     fn clipboard_read_retry_returns_immediate_success() {
