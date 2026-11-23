@@ -59,8 +59,6 @@ type SettingsValues struct {
 	CollectSecrets         bool
 	RedactSecrets          bool
 	Apps                   []SettingsApp
-	ItemActions            []string
-	ItemActionOrder        []string
 	OpenClipboardShortcut  string
 	OpenPreferenceShortcut string
 	SpacePreview           bool
@@ -117,10 +115,6 @@ type SettingsView struct {
 	appsHost            objc.ID
 	apps                []SettingsApp
 	appsRowViews        []settingsAppRowView
-	actionsTable        objc.ID
-	actionUp            objc.ID
-	actionDown          objc.ID
-	actions             []settingsAction
 	captureTable        objc.ID
 	captureUp           objc.ID
 	captureDown         objc.ID
@@ -412,7 +406,6 @@ func (v *SettingsView) apply(values SettingsValues) {
 		v.restore.Send(sel("setEnabled:"), values.CanRestoreDataDir)
 	}
 	v.applyApps(values)
-	v.applyActions(values)
 	v.applyCaptureOrder(values)
 	v.applyShortcuts(values)
 	v.applyNumberInputs(values, false)
@@ -505,9 +498,6 @@ func (v *SettingsView) Close() {
 			discardSettingsPopup(field.control)
 		}
 	}
-	if v.actionsTable != 0 {
-		delete(settingsActionsByTable, v.actionsTable)
-	}
 	if v.captureTable != 0 {
 		delete(settingsCaptureByTable, v.captureTable)
 	}
@@ -515,11 +505,6 @@ func (v *SettingsView) Close() {
 		if owner.view == v {
 			discardSettingsPopup(control)
 			delete(settingsAppControls, control)
-		}
-	}
-	for control, owner := range settingsActionControls {
-		if owner == v {
-			delete(settingsActionControls, control)
 		}
 	}
 	v.closeShortcutRecorders()

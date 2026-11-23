@@ -61,6 +61,14 @@ func selectSettingsRow(table objc.ID, row int) {
 	table.Send(sel("scrollRowToVisible:"), int64(row))
 }
 
+// orderMoveEnabled reports which reorder buttons apply to a selection.
+func orderMoveEnabled(selected, total int) (bool, bool) {
+	if selected < 0 || selected >= total {
+		return false, false
+	}
+	return selected > 0, selected < total-1
+}
+
 // updateSettingsMoveButtons enables the reorder controls for the current
 // selection.
 func updateSettingsMoveButtons(table, up, down objc.ID, total int) {

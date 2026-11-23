@@ -143,7 +143,6 @@ func TestSettingsJSONRoundTripsPublishedCamelCase(t *testing.T) {
 		`"autoStart"`,
 		`"maxTextMb"`,
 		`"showOriginalPreview"`,
-		`"itemActionOrder"`,
 		`"deleteFavoriteItemsOnlyInFavoriteGroup"`,
 		`"spaceEnabled"`,
 	} {
@@ -168,7 +167,7 @@ func TestUpdateDeepMergesObjectsAndReplacesArrays(t *testing.T) {
 	next, err := store.Update(map[string]any{
 		"general": map[string]any{"autoStart": true},
 		"clipboard": map[string]any{
-			"content": map[string]any{"itemActions": []any{"copy", "paste"}},
+			"capture": map[string]any{"order": []any{"text"}},
 		},
 	})
 	if err != nil {
@@ -177,8 +176,8 @@ func TestUpdateDeepMergesObjectsAndReplacesArrays(t *testing.T) {
 	if !next.General.AutoStart || !next.General.TrayIcon {
 		t.Errorf("general = %+v", next.General)
 	}
-	if len(next.Clipboard.Content.ItemActions) != 2 || next.Clipboard.Content.ItemActions[1] != ActionPaste {
-		t.Errorf("item actions = %v", next.Clipboard.Content.ItemActions)
+	if len(next.Clipboard.Capture.Order) != 1 || next.Clipboard.Capture.Order[0] != CaptureText {
+		t.Errorf("capture order = %v", next.Clipboard.Capture.Order)
 	}
 }
 
@@ -197,9 +196,6 @@ func TestUpdateRejectsInvalidValuesWithoutChangingSettings(t *testing.T) {
 		{"appearance": map[string]any{"theme": "sepia"}},
 		{"clipboard": map[string]any{"capture": map[string]any{
 			"order": []any{"text", "unknown"},
-		}}},
-		{"clipboard": map[string]any{"content": map[string]any{
-			"itemActions": []any{"copy", "unknown"},
 		}}},
 		{"clipboard": map[string]any{"window": map[string]any{"selectGroupOnOpen": "invalid"}}},
 	}
@@ -242,13 +238,9 @@ func TestSnapshotAndUpdateResultsDoNotAliasStore(t *testing.T) {
 	}
 	snapshot := store.Snapshot()
 	snapshot.Clipboard.Capture.Order[0] = CaptureText
-	snapshot.Clipboard.Content.ItemActions[0] = ActionDelete
 	snapshot.Clipboard.SourceApps.Rules[0].Mode = SourceAppAllowed
 	if got := store.Snapshot().Clipboard.Capture.Order[0]; got != CaptureFiles {
 		t.Errorf("capture order aliased store: %q", got)
-	}
-	if got := store.Snapshot().Clipboard.Content.ItemActions[0]; got != ActionCopy {
-		t.Errorf("item actions aliased store: %q", got)
 	}
 	if got := store.Snapshot().Clipboard.SourceApps.Rules[0].Mode; got != SourceAppBlockCapture {
 		t.Errorf("source app rules aliased store: %q", got)

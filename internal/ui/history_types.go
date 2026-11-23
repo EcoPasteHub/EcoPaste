@@ -129,7 +129,6 @@ type HistoryModel interface {
 	ClickBehavior() HistoryClickBehavior
 	Display() HistoryDisplay
 	OpenBehavior() HistoryOpenBehavior
-	QuickActions() []string
 	OpenSettings(tab string)
 	Updates() <-chan struct{}
 }

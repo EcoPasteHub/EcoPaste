@@ -84,14 +84,6 @@ func (v *SettingsView) addSettingsListTable(content objc.ID, card CGRect, rowHei
 	return table
 }
 
-func newSettingsCheckbox(target objc.ID, action string) objc.ID {
-	checkbox := objc.ID(class("NSButton")).Send(sel("checkboxWithTitle:target:action:"),
-		nsString(""), target, sel(action))
-	checkbox.Send(sel("retain"))
-	checkbox.Send(sel("setFocusRingType:"), int64(1))
-	return checkbox
-}
-
 // addSettingsMoveButton adds one reorder button, disabled until a row is
 // selected, and registers the view it belongs to.
 func (v *SettingsView) addSettingsMoveButton(content objc.ID, frame CGRect, title, accessibility i18n.Key, target objc.ID, action string) objc.ID {

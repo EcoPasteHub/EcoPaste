@@ -4,36 +4,6 @@ package macos
 
 import "testing"
 
-func TestSettingsActionsSameShape(t *testing.T) {
-	a := []settingsAction{{key: "copy", title: "Copy", enabled: true}, {key: "delete", title: "Delete"}}
-	sameShapeDifferentState := []settingsAction{{key: "copy", title: "复制", enabled: false}, {key: "delete", title: "删除", enabled: true}}
-	reordered := []settingsAction{{key: "delete", title: "Delete"}, {key: "copy", title: "Copy"}}
-
-	if !settingsActionsSameShape(a, sameShapeDifferentState) {
-		t.Fatal("expected same shape for identical key order")
-	}
-	if settingsActionsSameShape(a, reordered) {
-		t.Fatal("expected reordered rows to differ in shape")
-	}
-	if settingsActionsSameShape(a, a[:1]) {
-		t.Fatal("expected shorter list to differ in shape")
-	}
-}
-
-func TestSettingsActionChangedRows(t *testing.T) {
-	current := []settingsAction{{key: "copy", title: "Copy", enabled: true}, {key: "delete", title: "Delete"}}
-	next := []settingsAction{{key: "copy", title: "Copy", enabled: false}, {key: "delete", title: "Delete"}}
-
-	rows := settingsActionChangedRows(current, next)
-	if len(rows) != 1 || rows[0] != 0 {
-		t.Fatalf("changed rows = %v; want [0]", rows)
-	}
-
-	if got := settingsActionChangedRows(current, current); len(got) != 0 {
-		t.Fatalf("unchanged rows = %v; want none", got)
-	}
-}
-
 func TestSettingsAppsDiff(t *testing.T) {
 	base := []SettingsApp{{ID: "a", Name: "A", Mode: "allowed"}, {ID: "b", Name: "B", Mode: "allowed"}}
 	toggled := []SettingsApp{{ID: "a", Name: "A", Mode: "blockCapture"}, {ID: "b", Name: "B", Mode: "allowed"}}

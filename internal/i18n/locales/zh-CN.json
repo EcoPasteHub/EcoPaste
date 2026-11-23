@@ -203,7 +203,6 @@
     "groupNameEmpty": "分组名称不能为空",
     "groupNameLong": "分组名称不能超过 %d 个字符",
     "historyItemMissing": "剪贴板记录不存在",
-    "invalidActions": "无效的动作配置",
     "invalidCaptureOrder": "无效的采集顺序",
     "invalidRetention": "无法识别保留时长 %q",
     "invalidRetentionUnit": "无法识别保留时长单位 %q",
@@ -242,7 +241,6 @@
     "shortcutUnsupportedKey": "不支持的快捷键 %q",
     "shortcutUnsupportedModifier": "不支持的修饰键 %q",
     "trayNotReady": "菜单栏图标尚未初始化",
-    "unknownAction": "未知动作 %q",
     "unknownCaptureKind": "未知采集类型 %q",
     "unknownSetting": "未知设置项 %q",
     "writeDataFile": "写入数据文件 %s: %w"
@@ -372,15 +370,6 @@
       "license": "开源许可",
       "source": "开源地址",
       "sourceA11y": "在浏览器中打开 EcoPaste 的 GitHub 页面"
-    },
-    "actions": {
-      "enable": "启用%s",
-      "hover": "悬停动作",
-      "intro": "勾选悬停时显示的动作；选中一行后用下方按钮调整顺序，最多显示 6 个。",
-      "moveDownA11y": "下移选中悬停动作",
-      "moveUpA11y": "上移选中悬停动作",
-      "note": "编辑备注",
-      "table": "悬停动作"
     },
     "all": "全部",
     "allGroups": "全部分组",

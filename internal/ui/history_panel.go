@@ -158,7 +158,6 @@ func (p *historyPanel) node() core.Node {
 			language := i18n.Watch(p.cx)
 			behavior := p.panelBehavior()
 			display := macos.PanelDisplay{TextMaxLines: 1, ImageMaxHeight: 32, FileMaxCount: 3}
-			var quickActions []string
 			if p.model != nil {
 				density := p.model.Display()
 				display = macos.PanelDisplay{
@@ -167,7 +166,6 @@ func (p *historyPanel) node() core.Node {
 					FileMaxCount:   density.FileMaxCount,
 					ShowOriginal:   density.ShowOriginal,
 				}
-				quickActions = p.model.QuickActions()
 			}
 			return map[string]any{
 				"language": string(language),
@@ -183,7 +181,6 @@ func (p *historyPanel) node() core.Node {
 				"behavior": behavior,
 				"drag":     p.dragProvider,
 				"display":  display,
-				"actions":  quickActions,
 			}
 		},
 		OnEvent: p.handleEvent,

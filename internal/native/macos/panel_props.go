@@ -16,7 +16,6 @@ var panelPropertySetters = map[string]func(*Panel, any){
 	"behavior":    setPanelBehavior,
 	"drag":        setPanelDrag,
 	"display":     setPanelDisplay,
-	"actions":     setPanelActions,
 	"language":    setPanelLanguage,
 }
 
@@ -74,9 +73,8 @@ func setPanelRows(p *Panel, value any) {
 		p.updateEmptyState()
 		return
 	}
-	// Keep the overlay alive when an action updates the row in place. The
-	// toolbar is owned by the panel and its buttons are reused; only rows that
-	// disappeared from the result should dismiss it.
+	// Keep the hovered row when an in-place update replaces the list; only rows
+	// that disappeared from the result should drop the hover state.
 	hoverID := ""
 	if p.hoverRow >= 0 && p.hoverRow < len(p.rows) {
 		hoverID = p.rows[p.hoverRow].ID
@@ -86,13 +84,12 @@ func setPanelRows(p *Panel, value any) {
 	} else {
 		// Invalidate the old index before replacing rows. layoutPanel runs as
 		// part of the reload and must never ask NSTableView for a row that was
-		// removed by the action.
+		// removed.
 		p.setHoveredRow(-1)
 		p.hoverRow = -1
 	}
 	// The list is about to reload and may release its cells, so stop cell
-	// hover transitions before reloadData. The toolbar transition is separate
-	// and remains attached to the panel overlay.
+	// hover transitions before reloadData.
 	clearRowHoverStates()
 	previousID := p.selection
 	previousIndex := p.selectedIndex()
@@ -105,8 +102,7 @@ func setPanelRows(p *Panel, value any) {
 	if hoverID != "" {
 		row := p.rowIndex(hoverID)
 		if row >= 0 {
-			// Reloading the table may recycle the cell, but the overlay itself is
-			// still valid. Rebuild only its button state and anchor it again.
+			// Reloading the table may recycle the cell; re-apply its hover state.
 			p.updateHover(row)
 		} else {
 			p.hideHover()
@@ -207,13 +203,6 @@ func setPanelDisplay(p *Panel, value any) {
 func setPanelLanguage(p *Panel, value any) {
 	if language, ok := value.(string); ok {
 		p.applyLanguage(language)
-	}
-}
-
-func setPanelActions(p *Panel, value any) {
-	if actions, ok := value.([]string); ok {
-		p.actions = actions
-		p.hideHover()
 	}
 }
 

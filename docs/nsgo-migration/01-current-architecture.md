@@ -221,7 +221,7 @@ EcoPaste 当前是典型的 Tauri v2 双进程/多 WebView 结构：
 
 | 页面 | 主要能力 |
 | --- | --- |
-| Clipboard |  Header 搜索、pin/unpin、清空、打开偏好；分类 Tab（全部/文本/图片/文件/收藏）；自定义分组；虚拟列表；文本/图片/文件卡片；颜色预览；来源应用图标；备注；悬停快捷动作；右键菜单；键盘导航；Footer 总数与快捷键 |
+| Clipboard |  Header 搜索、pin/unpin、清空、打开偏好；分类 Tab（全部/文本/图片/文件/收藏）；自定义分组；虚拟列表；文本/图片/文件卡片；颜色预览；来源应用图标；备注；右键菜单；键盘导航；Footer 总数与快捷键 |
 | Preview |  文本/图片/文件预览；hover 与 Space；边缘定位；连接线动画；内容切换；最大 480×480；缓存 16 条 |
 | Preference |  记录/整理/复用/工作流/快捷键/数据/关于 7 个 Tab；存储占用；数据目录；缓存清理；备份导入导出；分组管理；来源应用忽略；权限；主题/语言；更新设置；诊断；重置 |
 | Onboarding |  Welcome → Permissions → Shortcuts → Ignore Apps → Legacy Import → Done；可回退；记录 `lastStep`；完成打开剪贴板 |
@@ -323,7 +323,7 @@ general, appearance, shortcuts, clipboard, onboarding, update
 - `appearance`: `theme` (`auto|light|dark`), `language` (`auto|zh-CN|en-US`)
 - `shortcuts`: `openClipboard`, `openPreference`, `winV`
 - `clipboard.capture`: `text/html/rtf/image/files`, `maxTextMb`, `maxImageMb`, `order`
-- `clipboard.content`: `autoPaste`, `copyPlain`, `copyThenHideWindow`, `showOriginalPreview`, 删除保护, `autoFavorite`, `sort`, `itemActions`, `itemActionOrder`
+- `clipboard.content`: `autoPaste`, `copyPlain`, `copyThenHideWindow`, `showOriginalPreview`, 删除保护, `autoFavorite`, `sort`
 - `clipboard.display`: `textMaxLines`, `imageMaxHeight`, `fileMaxCount`
 - `clipboard.sensitive`: `collectSecrets`, `redactSecrets`
 - `clipboard.history`: `retention{value,unit}`, `maxCount`

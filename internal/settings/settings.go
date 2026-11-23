@@ -264,20 +264,18 @@ func NormalizeCaptureOrder(order []CaptureKind) []CaptureKind {
 }
 
 type Content struct {
-	AutoPaste                         AutoPaste    `json:"autoPaste"`
-	CopyPlain                         bool         `json:"copyPlain"`
-	CopyThenHideWindow                bool         `json:"copyThenHideWindow"`
-	ShowOriginalPreview               bool         `json:"showOriginalPreview"`
-	DeleteConfirm                     bool         `json:"deleteConfirm"`
-	DeleteFavoriteItems               bool         `json:"deleteFavoriteItems"`
-	DeleteFavoriteConfirm             bool         `json:"deleteFavoriteConfirm"`
-	DeletePinnedItems                 bool         `json:"deletePinnedItems"`
-	DeletePinnedConfirm               bool         `json:"deletePinnedConfirm"`
-	DeleteFavoriteItemsOnlyInFavGroup bool         `json:"deleteFavoriteItemsOnlyInFavoriteGroup"`
-	AutoFavorite                      bool         `json:"autoFavorite"`
-	Sort                              Sort         `json:"sort"`
-	ItemActions                       []ItemAction `json:"itemActions"`
-	ItemActionOrder                   []ItemAction `json:"itemActionOrder"`
+	AutoPaste                         AutoPaste `json:"autoPaste"`
+	CopyPlain                         bool      `json:"copyPlain"`
+	CopyThenHideWindow                bool      `json:"copyThenHideWindow"`
+	ShowOriginalPreview               bool      `json:"showOriginalPreview"`
+	DeleteConfirm                     bool      `json:"deleteConfirm"`
+	DeleteFavoriteItems               bool      `json:"deleteFavoriteItems"`
+	DeleteFavoriteConfirm             bool      `json:"deleteFavoriteConfirm"`
+	DeletePinnedItems                 bool      `json:"deletePinnedItems"`
+	DeletePinnedConfirm               bool      `json:"deletePinnedConfirm"`
+	DeleteFavoriteItemsOnlyInFavGroup bool      `json:"deleteFavoriteItemsOnlyInFavoriteGroup"`
+	AutoFavorite                      bool      `json:"autoFavorite"`
+	Sort                              Sort      `json:"sort"`
 }
 
 type AutoPaste string
@@ -296,21 +294,6 @@ const (
 	SortCreatedAt Sort = "createdAtDesc"
 	SortUpdatedAt Sort = "updatedAtDesc"
 	SortUseCount  Sort = "useCountDesc"
-)
-
-type ItemAction string
-
-const (
-	ActionPaste     ItemAction = "paste"
-	ActionCopy      ItemAction = "copy"
-	ActionCopyPlain ItemAction = "copyPlain"
-	ActionOpenLink  ItemAction = "openLink"
-	ActionSendEmail ItemAction = "sendEmail"
-	ActionReveal    ItemAction = "reveal"
-	ActionNote      ItemAction = "note"
-	ActionStar      ItemAction = "star"
-	ActionPin       ItemAction = "pinItem"
-	ActionDelete    ItemAction = "delete"
 )
 
 type Display struct {
@@ -410,11 +393,6 @@ func Default() Settings {
 				DeletePinnedConfirm:               true,
 				DeleteFavoriteItemsOnlyInFavGroup: true,
 				Sort:                              SortUpdatedAt,
-				ItemActions:                       []ItemAction{ActionCopy, ActionStar, ActionPin, ActionDelete},
-				ItemActionOrder: []ItemAction{
-					ActionPaste, ActionCopy, ActionCopyPlain,
-					ActionOpenLink, ActionSendEmail, ActionReveal, ActionNote, ActionStar, ActionPin, ActionDelete,
-				},
 			},
 			Display:   Display{TextMaxLines: 3, ImageMaxHeight: 64, FileMaxCount: 3},
 			Sensitive: Sensitive{CollectSecrets: true, RedactSecrets: true},

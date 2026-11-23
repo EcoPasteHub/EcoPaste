@@ -203,7 +203,6 @@
     "groupNameEmpty": "Group name cannot be empty",
     "groupNameLong": "Group name cannot exceed %d characters",
     "historyItemMissing": "Clipboard item not found",
-    "invalidActions": "Invalid action configuration",
     "invalidCaptureOrder": "Invalid capture order",
     "invalidRetention": "Unrecognized retention period %q",
     "invalidRetentionUnit": "Unrecognized retention unit %q",
@@ -242,7 +241,6 @@
     "shortcutUnsupportedKey": "Unsupported shortcut key %q",
     "shortcutUnsupportedModifier": "Unsupported modifier key %q",
     "trayNotReady": "The menu bar icon is not ready",
-    "unknownAction": "Unknown action %q",
     "unknownCaptureKind": "Unknown capture type %q",
     "unknownSetting": "Unknown setting %q",
     "writeDataFile": "Write data file %s: %w"
@@ -372,15 +370,6 @@
       "license": "License",
       "source": "Source",
       "sourceA11y": "Open EcoPaste's GitHub page in your browser"
-    },
-    "actions": {
-      "enable": "Enable %s",
-      "hover": "Hover Actions",
-      "intro": "Check the actions shown on hover; select a row and use the buttons below to change the order. At most 6 are shown.",
-      "moveDownA11y": "Move selected hover action down",
-      "moveUpA11y": "Move selected hover action up",
-      "note": "Edit Note",
-      "table": "Hover actions"
     },
     "all": "All",
     "allGroups": "All Groups",

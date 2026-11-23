@@ -184,7 +184,6 @@ func (m *behaviorModel) OpenBehavior() HistoryOpenBehavior {
 	return HistoryOpenBehavior{Filter: "preserve", GroupID: "preserve"}
 }
 func (m *behaviorModel) Display() HistoryDisplay { return HistoryDisplay{} }
-func (m *behaviorModel) QuickActions() []string  { return nil }
 
 func TestPanelBehaviorFollowsSettingsOnEveryPropsPass(t *testing.T) {
 	cx := core.NewRoot(core.RootOptions{Post: func(fn func()) { fn() }})

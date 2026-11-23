@@ -31,9 +31,6 @@ func (p *Panel) applyLanguage(language string) {
 	p.refreshNotePopoverText()
 	p.updateEmptyState()
 	p.updateFooter()
-	if p.hoveredRow >= 0 {
-		p.updateHover(p.hoveredRow)
-	}
 }
 
 func (p *Panel) updatePinLabel() {

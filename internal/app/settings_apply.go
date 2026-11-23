@@ -22,9 +22,6 @@ var settingsCommands = map[string]func(*settingsModel, any) error{
 	"shortcuts.openPreference": func(m *settingsModel, value any) error {
 		return m.applyShortcut("shortcuts.openPreference", value)
 	},
-	"actions.update": func(m *settingsModel, value any) error {
-		return m.applyActions(value)
-	},
 	"capture.updateOrder": func(m *settingsModel, value any) error {
 		return m.applyCaptureOrder(value)
 	},

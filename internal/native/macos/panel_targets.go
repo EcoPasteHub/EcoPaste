@@ -8,7 +8,6 @@ func registerPanelTargets() {
 		registerPanelControlTargetClass,
 		registerNavClasses,
 		registerIconButtonClass,
-		registerHoverBarClass,
 		registerSearchClasses,
 		registerPanelBackdrop,
 		registerPanelObserverClass,

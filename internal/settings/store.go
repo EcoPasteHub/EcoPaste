@@ -265,12 +265,6 @@ func validateContent(s Settings) error {
 		SortCreatedAt, SortUpdatedAt, SortUseCount); err != nil {
 		return err
 	}
-	if err := validateItemActions("clipboard.content.itemActions", s.Clipboard.Content.ItemActions); err != nil {
-		return err
-	}
-	if err := validateItemActions("clipboard.content.itemActionOrder", s.Clipboard.Content.ItemActionOrder); err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -312,18 +306,6 @@ func validateWindow(s Settings) error {
 	return nil
 }
 
-func validateItemActions(field string, actions []ItemAction) error {
-	for _, action := range actions {
-		if err := validateOneOf(field, action,
-			ActionPaste, ActionCopy, ActionCopyPlain,
-			ActionOpenLink, ActionSendEmail, ActionReveal, ActionNote, ActionStar,
-			ActionPin, ActionDelete); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func validateOneOf[T comparable](field string, value T, allowed ...T) error {
 	if slices.Contains(allowed, value) {
 		return nil
@@ -345,8 +327,6 @@ func normalizeShortcut(value string) string {
 func cloneSettings(src Settings) Settings {
 	dst := src
 	dst.Clipboard.Capture.Order = slices.Clone(src.Clipboard.Capture.Order)
-	dst.Clipboard.Content.ItemActions = slices.Clone(src.Clipboard.Content.ItemActions)
-	dst.Clipboard.Content.ItemActionOrder = slices.Clone(src.Clipboard.Content.ItemActionOrder)
 	dst.Clipboard.SourceApps.Rules = slices.Clone(src.Clipboard.SourceApps.Rules)
 	return dst
 }

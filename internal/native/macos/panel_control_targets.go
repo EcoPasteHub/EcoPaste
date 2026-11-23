@@ -27,7 +27,6 @@ func panelControlMethods() []objc.MethodDef {
 		{Cmd: sel("shortcutHelpPressed:"), Fn: panelShortcutHelpPressed},
 		{Cmd: sel("capsulePressed:"), Fn: panelCapsulePressed},
 		{Cmd: sel("navPlusPressed:"), Fn: panelNavPlusPressed},
-		{Cmd: sel("hoverActionPressed:"), Fn: panelHoverActionPressed},
 		{Cmd: sel("menuNewGroup:"), Fn: panelMenuNewGroup},
 		{Cmd: sel("menuRenameGroup:"), Fn: panelMenuRenameGroup},
 		{Cmd: sel("menuDeleteGroup:"), Fn: panelMenuDeleteGroup},
@@ -117,12 +116,6 @@ func panelCapsulePressed(_ objc.ID, _ objc.SEL, sender objc.ID) {
 func panelNavPlusPressed(_ objc.ID, _ objc.SEL, sender objc.ID) {
 	if nav := navsByPlus[sender]; nav != nil && nav.panel != nil {
 		nav.panel.showNewGroupPopover(nav.plus)
-	}
-}
-
-func panelHoverActionPressed(_ objc.ID, _ objc.SEL, sender objc.ID) {
-	if p := panelsByControl[sender]; p != nil {
-		p.runHoverAction(int(objc.Send[int64](sender, sel("tag"))))
 	}
 }
 

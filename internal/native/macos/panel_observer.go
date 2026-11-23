@@ -123,8 +123,8 @@ func panelSearchTextChanged(_ objc.ID, _ objc.SEL, note objc.ID) {
 }
 
 // panelScrollBoundsChanged reacts to the clip view scrolling: it keeps the
-// hover bar on the row under the pointer and asks for the next page when the
-// bottom nears the loaded rows.
+// hovered-row highlight on the row under the pointer and asks for the next page
+// when the bottom nears the loaded rows.
 func panelScrollBoundsChanged(self objc.ID, _ objc.SEL, _ objc.ID) {
 	p := panelsByObserver[self]
 	if p == nil {

@@ -34,7 +34,6 @@ func (v *SettingsView) applyLanguage(language string) {
 	}
 	v.refreshPermissionLabels()
 	v.applyNumberInputs(v.lastValues, true)
-	v.applyActions(v.lastValues)
 	// The group popup and the table row labels derive their text from
 	// localized strings rather than the value snapshot, so refresh them
 	// explicitly. reloadData keeps each list's scroll offset.

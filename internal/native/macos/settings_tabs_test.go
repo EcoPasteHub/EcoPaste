@@ -113,9 +113,6 @@ func TestEveryScalarSettingBelongsToOneCategory(t *testing.T) {
 		if view.captureTable == 0 || view.appsHost == 0 {
 			t.Error("clipboard category is missing capture order or source-app controls")
 		}
-		if view.actionsTable == 0 {
-			t.Error("interaction category is missing hover-action controls")
-		}
 		if view.dataDir == 0 || view.change == 0 || view.restore == 0 {
 			t.Error("data category is missing storage controls")
 		}

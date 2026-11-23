@@ -30,9 +30,9 @@ func panelViewDidMoveToWindow(self objc.ID, _ objc.SEL) {
 	}
 }
 
-// installPanelHoverTracking lets the panel hide the action bar when the pointer
-// leaves it. Mouse movement itself is read from a local event monitor, which
-// also sees moves that land on the bar floating over the list.
+// installPanelHoverTracking lets the panel clear the hovered-row highlight when
+// the pointer leaves it. Mouse movement itself is read from a local event
+// monitor.
 func installPanelHoverTracking(p *Panel) {
 	window := p.view.Send(sel("window"))
 	if window == 0 {

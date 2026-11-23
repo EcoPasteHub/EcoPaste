@@ -4,7 +4,6 @@ package macos
 
 import (
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
-	"github.com/ebitengine/purego/objc"
 )
 
 func (v *SettingsView) buildInteractionPage() {
@@ -70,32 +69,6 @@ func (v *SettingsView) buildInteractionPage() {
 	_, cardTop = v.addSectionCard(document, top, i18n.SettingsInteractionKeyboard, 1)
 	v.addSwitch(document, settingsRowTop(cardTop, 0), i18n.SettingsSpacePreview, "preview.spaceEnabled",
 		func(s SettingsValues) bool { return s.SpacePreview })
-	top = cardTop + settingsRowHeight + settingsGroupGap
-	v.buildHoverActions(document, top)
 
 	v.finishPage(document)
-}
-
-func (v *SettingsView) buildHoverActions(document objc.ID, top float64) {
-	registerSettingsActionsOnce.Do(registerSettingsActionsTargets)
-	v.addSectionLabel(document, top, i18n.SettingsHoverActions)
-	v.addInfoAfterText(document, settingsContentX+4, top+8, i18n.SettingsHoverActions,
-		settingsSectionFont(), i18n.SettingsHoverIntro)
-	top += 24
-
-	const listHeight = 300.0
-	card := CGRect{Origin: CGPoint{X: settingsContentX, Y: top},
-		Size: CGSize{Width: settingsContentWidth, Height: listHeight}}
-	table := v.addSettingsListTable(document, card, 30.0, settingsContentWidth-4,
-		"actions", i18n.SettingsHoverTable, settingsActionsTarget)
-	v.actionsTable = table
-	settingsActionsByTable[table] = v
-
-	buttonX := settingsContentX + settingsContentWidth - 90
-	v.actionUp = v.addSettingsMoveButton(document,
-		CGRect{Origin: CGPoint{X: buttonX - 98, Y: top + listHeight + 12}, Size: CGSize{Width: 90, Height: 28}},
-		i18n.SettingsMoveUp, i18n.SettingsActionMoveUpA11y, settingsActionsTarget, "actionUpPressed:")
-	v.actionDown = v.addSettingsMoveButton(document,
-		CGRect{Origin: CGPoint{X: buttonX, Y: top + listHeight + 12}, Size: CGSize{Width: 90, Height: 28}},
-		i18n.SettingsMoveDown, i18n.SettingsActionMoveDownA11y, settingsActionsTarget, "actionDownPressed:")
 }

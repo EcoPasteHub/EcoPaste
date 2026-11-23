@@ -76,14 +76,8 @@ type Panel struct {
 	previewReanchor    bool
 	drag               func(string) (DragPayload, bool)
 	dragFiles          []string
-	actions            []string
 	hoverRow           int
 	hoveredRow         int
-	hoverBar           objc.ID
-	hoverButtons       []objc.ID
-	hoverSpecs         []hoverAction
-	hoverBarWidth      float64
-	hoverBarTransition *transition
 	originalRow        int
 	query              string
 	rows               []HistoryRow
@@ -213,7 +207,6 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 		p.view.Send(sel("addSubview:"), v)
 	}
 	p.buildEmptyIcons()
-	p.buildHoverBar()
 	p.buildShortcutHelp()
 	p.buildNewGroupPopover()
 	p.buildNotePopover()
@@ -263,8 +256,8 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 		uint64(1<<10), objc.ID(monitorBlock))
 	monitorBlock.Release()
 
-	// Hover is driven by mouse-moved events, not a timer: the monitor sees the
-	// event even when it lands on the floating action bar over the list.
+	// Hover is driven by mouse-moved events, not a timer, so the highlighted
+	// row follows the pointer without polling.
 	hoverBlock := objc.NewBlock(func(_ objc.Block, event objc.ID) objc.ID {
 		if objc.Send[objc.ID](event, sel("window")) == p.view.Send(sel("window")) {
 			p.updateHoverAtWindowPoint(objc.Send[CGPoint](event, sel("locationInWindow")))
@@ -346,19 +339,8 @@ func (p *Panel) Close() {
 	delete(panelsByControl, p.settingsButton)
 	delete(panelsByControl, p.clearButton)
 	delete(panelsByControl, p.shortcutButton)
-	for _, button := range p.hoverButtons {
-		delete(panelsByControl, button)
-		discardIconButton(button)
-	}
 	for _, button := range []objc.ID{p.pin, p.filterButton, p.settingsButton, p.clearButton, p.shortcutButton} {
 		discardIconButton(button)
-	}
-	if p.hoverBar != 0 {
-		delete(panelsByControl, p.hoverBar)
-	}
-	if p.hoverBarTransition != nil {
-		p.hoverBarTransition.stop()
-		p.hoverBarTransition = nil
 	}
 	clearRowHoverStates()
 	delete(panelsByView, p.view)
