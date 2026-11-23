@@ -110,7 +110,7 @@ func TestEveryScalarSettingBelongsToOneCategory(t *testing.T) {
 		for _, recorder := range view.shortcutRecorders {
 			mark(recorder.path, recorder.tab)
 		}
-		if view.captureTable == 0 || view.appsTable == 0 {
+		if view.captureTable == 0 || view.appsHost == 0 {
 			t.Error("clipboard category is missing capture order or source-app controls")
 		}
 		if view.actionsTable == 0 {

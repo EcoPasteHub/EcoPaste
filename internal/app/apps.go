@@ -21,6 +21,7 @@ type appRegistry struct {
 	iconStore    *storage.AppIconStore
 	running      func() []macos.RunningApp
 	resolve      func(string) (macos.RunningApp, error)
+	pathForID    func(string) string
 	iconFromPath func(string) []byte
 }
 
@@ -28,13 +29,15 @@ func newAppRegistry(db *database.DB, store *storage.AppIconStore, icons *appIcon
 	return &appRegistry{
 		db: db, icons: icons, iconStore: store,
 		running: macos.RunningApps, resolve: macos.ResolveApp,
-		iconFromPath: macos.AppIconForPath,
+		pathForID: macos.AppPathForBundleID, iconFromPath: macos.AppIconForPath,
 	}
 }
 
-// List returns persisted apps plus running apps that have not been stored.
-// Running apps stay transient; copying from one materializes it later.
-func (r *appRegistry) List(ctx context.Context) ([]database.App, error) {
+// List returns persisted apps, running apps and every required app that has
+// not been stored. Running and required apps stay transient until copied or
+// configured; requiring an id keeps default and configured apps in the list
+// even when they are not running.
+func (r *appRegistry) List(ctx context.Context, requiredIDs []string) ([]database.App, error) {
 	known, err := r.db.ListApps(ctx)
 	if err != nil {
 		return nil, err
@@ -67,6 +70,34 @@ func (r *appRegistry) List(ctx context.Context) ([]database.App, error) {
 		})
 		byID[running.BundleID] = len(known) - 1
 	}
+	for _, id := range requiredIDs {
+		if id == "" {
+			continue
+		}
+		path := ""
+		if r.pathForID != nil {
+			path = r.pathForID(id)
+		}
+		if index, ok := byID[id]; ok {
+			if known[index].IconFile == nil && path != "" {
+				known[index].IconFile = r.icons.FileAtPath(id, path)
+			}
+			continue
+		}
+		name := id
+		var iconFile *string
+		if path != "" {
+			if meta, err := r.resolve(path); err == nil && meta.Name != "" {
+				name = meta.Name
+			}
+			iconFile = r.icons.FileAtPath(id, path)
+		}
+		known = append(known, database.App{
+			ID: id, Name: name, IconFile: iconFile,
+			CreatedAt: now, UpdatedAt: now,
+		})
+		byID[id] = len(known) - 1
+	}
 	sort.SliceStable(known, func(i, j int) bool {
 		left := strings.ToLower(known[i].Name)
 		right := strings.ToLower(known[j].Name)
@@ -76,6 +107,27 @@ func (r *appRegistry) List(ctx context.Context) ([]database.App, error) {
 		return left < right
 	})
 	return known, nil
+}
+
+// Ensure stores an application discovered from the running list without
+// requiring its bundle path, so a configured rule keeps a row after it quits.
+func (r *appRegistry) Ensure(ctx context.Context, id, name string) error {
+	if id == "" {
+		return nil
+	}
+	if name == "" {
+		name = id
+	}
+	icon := r.icons.File(id)
+	if icon == nil && r.pathForID != nil {
+		if path := r.pathForID(id); path != "" {
+			icon = r.icons.FileAtPath(id, path)
+		}
+	}
+	if err := r.db.EnsureApp(ctx, id, name, icon); err != nil {
+		return fmt.Errorf(i18n.T(i18n.ErrorSaveApp), err)
+	}
+	return nil
 }
 
 // Add registers an app bundle and returns the stored row. Re-adding the

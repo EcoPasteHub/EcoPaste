@@ -42,8 +42,8 @@ func (v *SettingsView) applyLanguage(language string) {
 	if v.captureTable != 0 {
 		v.captureTable.Send(sel("reloadData"))
 	}
-	if v.appsTable != 0 {
-		v.appsTable.Send(sel("reloadData"))
+	if v.appsHost != 0 && len(v.apps) > 0 {
+		v.rebuildSourceApps(v.apps)
 	}
 }
 

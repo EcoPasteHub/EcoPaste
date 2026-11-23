@@ -1,5 +1,10 @@
 package settings
 
+import (
+	"runtime"
+	"sort"
+)
+
 // Settings mirrors config/settings.json. Omitted fields take their defaults.
 type Settings struct {
 	General    General    `json:"general"`
@@ -55,16 +60,146 @@ type Shortcuts struct {
 }
 
 type Clipboard struct {
-	Capture   Capture   `json:"capture"`
-	Content   Content   `json:"content"`
-	Display   Display   `json:"display"`
-	Sensitive Sensitive `json:"sensitive"`
-	History   History   `json:"history"`
-	Search    Search    `json:"search"`
-	Window    Window    `json:"window"`
-	Preview   Preview   `json:"preview"`
-	Feedback  Feedback  `json:"feedback"`
-	Filters   Filters   `json:"filters"`
+	Capture    Capture    `json:"capture"`
+	Content    Content    `json:"content"`
+	Display    Display    `json:"display"`
+	Sensitive  Sensitive  `json:"sensitive"`
+	History    History    `json:"history"`
+	Search     Search     `json:"search"`
+	Window     Window     `json:"window"`
+	Preview    Preview    `json:"preview"`
+	Feedback   Feedback   `json:"feedback"`
+	SourceApps SourceApps `json:"sourceApps"`
+}
+
+// SourceAppMode is how clipboard content from one application is handled.
+type SourceAppMode string
+
+const (
+	// SourceAppAllowed captures content and allows the global shortcut. It is
+	// the default and is represented by the absence of a stored rule.
+	SourceAppAllowed SourceAppMode = "allowed"
+	// SourceAppBlockCapture keeps the application's copies out of history.
+	SourceAppBlockCapture SourceAppMode = "blockCapture"
+	// SourceAppBlockWake ignores the global shortcut while the application is
+	// frontmost.
+	SourceAppBlockWake SourceAppMode = "blockWake"
+	// SourceAppBlockCaptureAndWake applies both restrictions at once.
+	SourceAppBlockCaptureAndWake SourceAppMode = "blockCaptureAndWake"
+)
+
+// SourceAppRule is one application's non-default handling mode.
+type SourceAppRule struct {
+	ID   string        `json:"id"`
+	Mode SourceAppMode `json:"mode"`
+}
+
+// SourceApps stores only the applications the user has configured. Every
+// other application follows the platform default, so the default state has no
+// per-application records.
+type SourceApps struct {
+	Rules []SourceAppRule `json:"rules,omitempty"`
+}
+
+// ModeFor returns the configured mode for id, or its platform default.
+func (s SourceApps) ModeFor(id string) SourceAppMode {
+	for _, rule := range s.Rules {
+		if rule.ID == id {
+			return rule.Mode
+		}
+	}
+	return DefaultSourceAppMode(id)
+}
+
+// BlocksCapture reports whether copies from id must stay out of history.
+func (s SourceApps) BlocksCapture(id string) bool {
+	mode := s.ModeFor(id)
+	return mode == SourceAppBlockCapture || mode == SourceAppBlockCaptureAndWake
+}
+
+// BlocksWake reports whether the global shortcut is ignored while id is
+// frontmost.
+func (s SourceApps) BlocksWake(id string) bool {
+	mode := s.ModeFor(id)
+	return mode == SourceAppBlockWake || mode == SourceAppBlockCaptureAndWake
+}
+
+const (
+	keychainAccessBundleID = "com.apple.keychainaccess"
+	passwordsBundleID      = "com.apple.Passwords"
+)
+
+// DefaultSourceAppIDs returns the applications that must always appear in the
+// source-app list because the platform gives them a non-default mode. Only
+// macOS has such applications.
+func DefaultSourceAppIDs() []string {
+	if runtime.GOOS != "darwin" {
+		return nil
+	}
+	return []string{keychainAccessBundleID, passwordsBundleID}
+}
+
+// DefaultSourceAppMode returns the platform default for an application. Only
+// macOS excludes its password managers out of the box, and only from capture.
+func DefaultSourceAppMode(id string) SourceAppMode {
+	switch id {
+	case keychainAccessBundleID, passwordsBundleID:
+		if runtime.GOOS == "darwin" {
+			return SourceAppBlockCapture
+		}
+	}
+	return SourceAppAllowed
+}
+
+// ListedIDs returns every application the settings list must always show:
+// platform defaults plus applications the user has configured. Running and
+// historical apps are added by the app registry.
+func (s SourceApps) ListedIDs() []string {
+	ids := DefaultSourceAppIDs()
+	seen := make(map[string]struct{}, len(ids)+len(s.Rules))
+	for _, id := range ids {
+		seen[id] = struct{}{}
+	}
+	for _, rule := range s.Rules {
+		if rule.ID == "" {
+			continue
+		}
+		if _, ok := seen[rule.ID]; ok {
+			continue
+		}
+		seen[rule.ID] = struct{}{}
+		ids = append(ids, rule.ID)
+	}
+	return ids
+}
+
+// IsSourceAppMode reports whether mode is one of the four supported states.
+func IsSourceAppMode(mode SourceAppMode) bool {
+	switch mode {
+	case SourceAppAllowed, SourceAppBlockCapture, SourceAppBlockWake, SourceAppBlockCaptureAndWake:
+		return true
+	}
+	return false
+}
+
+// NormalizeSourceAppRules keeps one valid rule per application in a stable
+// order and drops rules that merely restate the platform default, so the
+// default state needs no per-application records.
+func NormalizeSourceAppRules(rules []SourceAppRule) []SourceAppRule {
+	seen := make(map[string]struct{}, len(rules))
+	out := make([]SourceAppRule, 0, len(rules))
+	for _, rule := range rules {
+		if rule.ID == "" || !IsSourceAppMode(rule.Mode) || rule.Mode == DefaultSourceAppMode(rule.ID) {
+			continue
+		}
+		if _, ok := seen[rule.ID]; ok {
+			continue
+		}
+		seen[rule.ID] = struct{}{}
+		out = append(out, rule)
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].ID < out[j].ID })
+	return out
 }
 
 type Capture struct {
@@ -255,10 +390,6 @@ type Feedback struct {
 	CopySound bool `json:"copySound"`
 }
 
-type Filters struct {
-	ExcludedAppIDs []string `json:"excludedAppIds"`
-}
-
 // Default returns the published defaults.
 func Default() Settings {
 	return Settings{
@@ -296,14 +427,10 @@ func Default() Settings {
 				SelectCategoryOnOpen: CategoryPreserve,
 				SelectGroupOnOpen:    "preserve",
 			},
-			Preview:  Preview{SpaceEnabled: true},
-			Feedback: Feedback{CopySound: false},
-			Filters:  Filters{ExcludedAppIDs: defaultExcludedApps()},
+			Preview:    Preview{SpaceEnabled: true},
+			Feedback:   Feedback{CopySound: false},
+			SourceApps: SourceApps{},
 		},
 		Logging: Logging{Level: LogLevelError},
 	}
-}
-
-func defaultExcludedApps() []string {
-	return []string{"com.apple.keychainaccess", "com.apple.Passwords"}
 }

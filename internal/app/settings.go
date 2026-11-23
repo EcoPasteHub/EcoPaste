@@ -19,8 +19,7 @@ type settingsModel struct {
 	setLanguage          func(string) error
 	listApps             func() ([]database.App, error)
 	listGroups           func() ([]database.Group, error)
-	addApp               func(string) (database.App, error)
-	deleteApps           func([]string) error
+	ensureApp            func(id, name string) error
 	appIconPath          func(string) string
 	onShortcutsChanged   func(string) error
 	onShortcutsSuspended func(bool)
@@ -47,7 +46,6 @@ func newSettingsModel(store *settings.Store) *settingsModel {
 func (m *settingsModel) Load() macos.SettingsValues {
 	snapshot := m.store.Snapshot()
 	cfg := snapshot.Clipboard
-	excluded := cfg.Filters.ExcludedAppIDs
 	groups := m.loadGroups()
 	return macos.SettingsValues{
 		TrayIcon:               snapshot.General.TrayIcon,
@@ -91,8 +89,7 @@ func (m *settingsModel) Load() macos.SettingsValues {
 		MaxCount:               cfg.History.MaxCount,
 		CollectSecrets:         cfg.Sensitive.CollectSecrets,
 		RedactSecrets:          cfg.Sensitive.RedactSecrets,
-		ExcludedAppIDs:         excluded,
-		Apps:                   m.loadSourceApps(excluded),
+		Apps:                   m.loadSourceApps(cfg.SourceApps),
 		ItemActions:            actionValues(cfg.Content.ItemActions),
 		ItemActionOrder:        actionValues(resolvedActionOrder(cfg.Content.ItemActionOrder)),
 		OpenClipboardShortcut:  snapshot.Shortcuts.OpenClipboard,

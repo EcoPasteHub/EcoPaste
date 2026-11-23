@@ -55,8 +55,7 @@ func (w *settingsWiring) newModel() *settingsModel {
 	model.restoreDataDir = w.restoreDataDir
 	model.listApps = w.listApps
 	model.listGroups = w.listGroups
-	model.addApp = w.addApp
-	model.deleteApps = w.deleteApps
+	model.ensureApp = w.ensureApp
 	model.appIconPath = w.appIconPath
 	model.onShortcutsChanged = w.onShortcutsChanged
 	model.onShortcutsSuspended = w.onShortcutsSuspended
@@ -117,11 +116,12 @@ func (w *settingsWiring) restoreDataDir() error {
 }
 
 func (w *settingsWiring) listApps() ([]database.App, error) {
+	required := w.store.Snapshot().Clipboard.SourceApps.ListedIDs()
 	return runWithTimeoutValue(w.runtime(), 5*time.Second, func(ctx context.Context, rt *clipboardRuntime) ([]database.App, error) {
 		if rt.apps == nil {
 			return nil, clipboardServiceDown()
 		}
-		return rt.apps.List(ctx)
+		return rt.apps.List(ctx, required)
 	})
 }
 
@@ -131,22 +131,14 @@ func (w *settingsWiring) listGroups() ([]database.Group, error) {
 	})
 }
 
-func (w *settingsWiring) addApp(path string) (database.App, error) {
-	return runWithTimeoutValue(w.runtime(), 10*time.Second, func(ctx context.Context, rt *clipboardRuntime) (database.App, error) {
-		if rt.apps == nil {
-			return database.App{}, clipboardServiceDown()
-		}
-		return rt.apps.Add(ctx, path)
-	})
-}
-
-func (w *settingsWiring) deleteApps(ids []string) error {
-	return runWithTimeout(w.runtime(), 10*time.Second, func(ctx context.Context, rt *clipboardRuntime) error {
+// ensureApp materializes an app discovered from the running list so a saved
+// rule stays visible after the app quits.
+func (w *settingsWiring) ensureApp(id, name string) error {
+	return runWithTimeout(w.runtime(), 5*time.Second, func(ctx context.Context, rt *clipboardRuntime) error {
 		if rt.apps == nil {
 			return clipboardServiceDown()
 		}
-		_, err := rt.apps.DeleteUnreferenced(ctx, ids)
-		return err
+		return rt.apps.Ensure(ctx, id, name)
 	})
 }
 

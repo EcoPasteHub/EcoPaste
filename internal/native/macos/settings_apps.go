@@ -10,121 +10,65 @@ import (
 )
 
 const (
-	settingsAppRowIdentifier = "ecopaste.settings-app-row"
-	settingsAppRowHeight     = 44.0
-	settingsAppCheckTagBase  = 1000
-	settingsAppIconTag       = 201
-	settingsAppNameTag       = 202
-	settingsAppIDTag         = 203
+	settingsAppRowHeight               = settingsRowHeight
+	settingsAppIconInset               = settingsRowInset
+	settingsAppIconEdge                = 24.0
+	settingsAppTextGap                 = 10.0
+	settingsAppTextInset               = settingsAppIconInset + settingsAppIconEdge + settingsAppTextGap
+	settingsAppPopupInset              = settingsRowInset
+	settingsAppNameTag                 = 202
+	settingsAppModeAllowed             = "allowed"
+	settingsAppModeBlockCapture        = "blockCapture"
+	settingsAppModeBlockWake           = "blockWake"
+	settingsAppModeBlockCaptureAndWake = "blockCaptureAndWake"
 )
+
+// settingsAppRowView is one ordinary settings row: an icon, the app name and
+// the mode popup. Rows are rebuilt only when the app list itself changes.
+type settingsAppRowView struct {
+	view  objc.ID
+	popup objc.ID
+}
+
+// settingsAppControl links a row's mode popup to its view and row.
+type settingsAppControl struct {
+	view *SettingsView
+	row  int
+}
 
 var (
 	registerSettingsAppsOnce sync.Once
 	settingsAppsTarget       objc.ID
-	settingsAppsRowClass     objc.Class
-	settingsAppsByTable      = map[objc.ID]*SettingsView{}
-	settingsAppControls      = map[objc.ID]*SettingsView{}
+	settingsAppsHostClass    objc.Class
+	settingsAppControls      = map[objc.ID]settingsAppControl{}
 )
+
+func settingsAppModeOptions() []settingsOption {
+	return []settingsOption{
+		{Key: i18n.SettingsAppModeAllowed, Value: settingsAppModeAllowed},
+		{Key: i18n.SettingsAppModeBlockCapture, Value: settingsAppModeBlockCapture},
+		{Key: i18n.SettingsAppModeBlockWake, Value: settingsAppModeBlockWake},
+		{Key: i18n.SettingsAppModeBlockCaptureAndWake, Value: settingsAppModeBlockCaptureAndWake},
+	}
+}
 
 func (v *SettingsView) buildSourceAppsSection(document objc.ID, top float64) {
 	registerSettingsAppsOnce.Do(registerSettingsAppsTargets)
 	v.addSectionLabel(document, top, i18n.SettingsAppsSection)
 	v.addInfoAfterText(document, settingsContentX+4, top+8, i18n.SettingsAppsSection,
 		settingsSectionFont(), i18n.SettingsAppsIntro)
-	top += 24
 
-	const listHeight = 300.0
-	card := CGRect{
-		Origin: CGPoint{X: settingsContentX, Y: top},
-		Size:   CGSize{Width: settingsContentWidth, Height: listHeight},
-	}
-	addSettingsListCard(document, card)
-
-	scroll := objc.ID(class("NSScrollView")).Send(sel("new"))
-	scroll.Send(sel("setFrame:"), CGRect{
-		Origin: CGPoint{X: settingsContentX + 1, Y: top + 1},
-		Size:   CGSize{Width: settingsContentWidth - 2, Height: listHeight - 2},
-	})
-	scroll.Send(sel("setHasVerticalScroller:"), true)
-	scroll.Send(sel("setAutohidesScrollers:"), true)
-	scroll.Send(sel("setDrawsBackground:"), false)
-	scroll.Send(sel("setBorderType:"), int64(0))
-
-	table := objc.ID(class("NSTableView")).Send(sel("new"))
-	table.Send(sel("setRowHeight:"), settingsAppRowHeight)
-	table.Send(sel("setIntercellSpacing:"), CGSize{})
-	table.Send(sel("setHeaderView:"), objc.ID(0))
-	table.Send(sel("setGridStyleMask:"), int64(0))
-	table.Send(sel("setAllowsMultipleSelection:"), false)
-	table.Send(sel("setAllowsEmptySelection:"), true)
-	table.Send(sel("setSelectionHighlightStyle:"), int64(-1))
-	table.Send(sel("setFocusRingType:"), int64(1))
-	table.Send(sel("setStyle:"), int64(3))
-	table.Send(sel("setBackgroundColor:"), objc.ID(classNSColor).Send(sel("clearColor")))
-	table.Send(sel("setDataSource:"), settingsAppsTarget)
-	table.Send(sel("setDelegate:"), settingsAppsTarget)
-	table.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsSourceApps)))
-	v.bindText(func() {
-		table.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsSourceApps)))
-	})
-
-	column := objc.ID(class("NSTableColumn")).Send(sel("new"))
-	column.Send(sel("setIdentifier:"), nsString("apps"))
-	column.Send(sel("setResizingMask:"), int64(1))
-	column.Send(sel("setWidth:"), settingsContentWidth-4)
-	table.Send(sel("addTableColumn:"), column)
-	column.Send(sel("release"))
-	table.Send(sel("setColumnAutoresizingStyle:"), int64(1))
-
-	scroll.Send(sel("setDocumentView:"), table)
-	table.Send(sel("release"))
-	document.Send(sel("addSubview:"), scroll)
-	scroll.Send(sel("release"))
-	v.appsTable = table
-	settingsAppsByTable[table] = v
-
-	empty := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(i18n.SettingsAppsEmpty)))
-	empty.Send(sel("setFont:"), systemFont(12))
-	empty.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
-	empty.Send(sel("setAlignment:"), int64(2))
-	empty.Send(sel("setFrame:"), CGRect{
-		Origin: CGPoint{X: settingsContentX + 24, Y: top + listHeight/2 - 10},
-		Size:   CGSize{Width: settingsContentWidth - 48, Height: 20},
-	})
-	empty.Send(sel("setHidden:"), true)
-	document.Send(sel("addSubview:"), empty)
-	v.appsEmpty = empty
-	v.bindString(empty, i18n.SettingsAppsEmpty)
-
-	top += listHeight + 16
-	add := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
-		nsString(i18n.T(i18n.SettingsAddApp)), settingsTarget, sel("addAppPressed:"))
-	add.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: settingsContentX + settingsContentWidth - 110, Y: top},
-		Size: CGSize{Width: 110, Height: 30}})
-	add.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsAddAppA11y)))
-	document.Send(sel("addSubview:"), add)
-	settingsViews[add] = v
-	v.bindText(func() {
-		add.Send(sel("setTitle:"), nsString(i18n.T(i18n.SettingsAddApp)))
-		add.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsAddAppA11y)))
-	})
-
-	refresh := objc.ID(class("NSButton")).Send(sel("buttonWithTitle:target:action:"),
-		nsString(i18n.T(i18n.SettingsRefresh)), settingsTarget, sel("refreshAppsPressed:"))
-	refresh.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: settingsContentX + settingsContentWidth - 192, Y: top},
-		Size: CGSize{Width: 74, Height: 30}})
-	refresh.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsRefreshA11y)))
-	document.Send(sel("addSubview:"), refresh)
-	settingsViews[refresh] = v
-	v.bindText(func() {
-		refresh.Send(sel("setTitle:"), nsString(i18n.T(i18n.SettingsRefresh)))
-		refresh.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.SettingsRefreshA11y)))
-	})
-
+	v.appsDocument = document
+	v.appsTop = top + 24
+	v.appsHost = objc.ID(settingsAppsHostClass).Send(sel("new"))
+	v.appsHost.Send(sel("setAutoresizesSubviews:"), false)
+	setFrame(v.appsHost, settingsContentX, v.appsTop, settingsContentWidth, 0)
+	document.Send(sel("addSubview:"), v.appsHost)
+	v.appsHost.Send(sel("release"))
 }
 
 // settingsAppsEqual reports whether two app lists are identical, including
-// each row's excluded state.
+// each row's mode.
 func settingsAppsEqual(a, b []SettingsApp) bool {
 	if len(a) != len(b) {
 		return false
@@ -138,7 +82,7 @@ func settingsAppsEqual(a, b []SettingsApp) bool {
 }
 
 // settingsAppsSameIdentity reports whether two app lists describe the same rows
-// in the same order, ignoring their excluded state.
+// in the same order, ignoring their mode.
 func settingsAppsSameIdentity(a, b []SettingsApp) bool {
 	if len(a) != len(b) {
 		return false
@@ -151,201 +95,215 @@ func settingsAppsSameIdentity(a, b []SettingsApp) bool {
 	return true
 }
 
-// settingsAppChangedRows returns the rows whose excluded state differs.
+// settingsAppChangedRows returns the rows whose mode differs.
 func settingsAppChangedRows(current, next []SettingsApp) []int {
 	rows := make([]int, 0, len(current))
 	for i := 0; i < len(current) && i < len(next); i++ {
-		if current[i].Excluded != next[i].Excluded {
+		if current[i].Mode != next[i].Mode {
 			rows = append(rows, i)
 		}
 	}
 	return rows
 }
 
-func extraExcludedIDs(values SettingsValues) []string {
-	shown := make(map[string]struct{}, len(values.Apps))
-	for _, app := range values.Apps {
-		shown[app.ID] = struct{}{}
-	}
-	out := make([]string, 0, len(values.ExcludedAppIDs))
-	for _, id := range values.ExcludedAppIDs {
-		if _, ok := shown[id]; !ok {
-			out = append(out, id)
-		}
-	}
-	return out
-}
-
-// applyApps refreshes the source-app list. Toggling one app redraws only that
-// row, and the list's scroll position is never reset by an unrelated change.
+// applyApps reconciles the ordinary settings rows with the loaded apps. A mode
+// change only updates that row's popup; an app-list change rebuilds the rows
+// and reflows the page height.
 func (v *SettingsView) applyApps(values SettingsValues) {
 	apps := append([]SettingsApp(nil), values.Apps...)
-	extra := extraExcludedIDs(values)
-	if v.appsEmpty != 0 {
-		v.appsEmpty.Send(sel("setHidden:"), len(apps) > 0)
-	}
-	if settingsAppsEqual(v.apps, apps) && stringSlicesEqual(v.extraExcluded, extra) {
+	if v.appsHost == 0 {
+		v.apps = apps
 		return
 	}
-	excludedOnly := settingsAppsSameIdentity(v.apps, apps)
-	changed := settingsAppChangedRows(v.apps, apps)
-	v.apps = apps
-	v.extraExcluded = extra
-	if v.appsTable != 0 {
-		if excludedOnly {
-			reloadSettingsTableRows(v.appsTable, changed)
-		} else {
-			v.appsTable.Send(sel("reloadData"))
-			sizeSettingsTable(v.appsTable, settingsContentWidth-40, settingsAppRowHeight, len(apps))
+	if settingsAppsEqual(v.apps, apps) {
+		return
+	}
+	previous := v.apps
+	if settingsAppsSameIdentity(previous, apps) {
+		v.apps = apps
+		for _, row := range settingsAppChangedRows(previous, apps) {
+			v.selectSourceAppMode(row, apps[row].Mode)
 		}
+		return
+	}
+	v.rebuildSourceApps(apps)
+}
+
+// rebuildSourceApps replaces the rows inside the standard settings card.
+func (v *SettingsView) rebuildSourceApps(apps []SettingsApp) {
+	if v.appsHost == 0 {
+		v.apps = apps
+		return
+	}
+	for control, owner := range settingsAppControls {
+		if owner.view == v {
+			discardSettingsPopup(control)
+			delete(settingsAppControls, control)
+		}
+	}
+	subviews := objc.Send[objc.ID](v.appsHost, sel("subviews"))
+	for i := int(objc.Send[uint](subviews, sel("count"))) - 1; i >= 0; i-- {
+		view := objc.Send[objc.ID](subviews, sel("objectAtIndex:"), uint(i))
+		view.Send(sel("removeFromSuperview"))
+	}
+	v.appsRowViews = v.appsRowViews[:0]
+	v.apps = apps
+
+	height := float64(len(apps)) * settingsAppRowHeight
+	if height > 0 {
+		addSettingsListCard(v.appsHost, CGRect{
+			Size: CGSize{Width: settingsContentWidth, Height: height},
+		})
+	}
+	popupWidth := settingsAppPopupWidth()
+	for i, app := range apps {
+		rowTop := float64(i) * settingsAppRowHeight
+		row := objc.ID(class("NSView")).Send(sel("new"))
+		row.Send(sel("setAutoresizesSubviews:"), false)
+		setFrame(row, 0, rowTop, settingsContentWidth, settingsAppRowHeight)
+
+		icon := objc.ID(class("NSImageView")).Send(sel("new"))
+		setFrame(icon, settingsAppIconInset, (settingsAppRowHeight-settingsAppIconEdge)/2,
+			settingsAppIconEdge, settingsAppIconEdge)
+		icon.Send(sel("setImageScaling:"), int64(3))
+		icon.Send(sel("setAccessibilityElement:"), false)
+		if app.IconPath != "" {
+			icon.Send(sel("setImage:"), loadImage(app.IconPath))
+		}
+		row.Send(sel("addSubview:"), icon)
+		icon.Send(sel("release"))
+
+		name := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(app.Name))
+		name.Send(sel("setTag:"), int64(settingsAppNameTag))
+		name.Send(sel("setFont:"), systemFont(13))
+		name.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("labelColor")))
+		name.Send(sel("setLineBreakMode:"), int64(4))
+		name.Send(sel("setMaximumNumberOfLines:"), int64(1))
+		popupX := settingsContentWidth - settingsAppPopupInset - popupWidth
+		nameWidth := popupX - settingsAppTextInset - settingsAppTextGap
+		if nameWidth < 1 {
+			nameWidth = 1
+		}
+		setFrame(name, settingsAppTextInset, (settingsAppRowHeight-18)/2, nameWidth, 18)
+		row.Send(sel("addSubview:"), name)
+
+		popup := newSettingsPopup(CGRect{
+			Origin: CGPoint{X: popupX, Y: (settingsAppRowHeight - settingsPopupHeight) / 2},
+			Size:   CGSize{Width: popupWidth, Height: settingsPopupHeight},
+		})
+		popup.Send(sel("setTarget:"), settingsAppsTarget)
+		popup.Send(sel("setAction:"), sel("appModeChanged:"))
+		popup.Send(sel("setAccessibilityLabel:"), nsString(i18n.Tf(i18n.SettingsAppModeA11y, app.Name)))
+		for _, option := range settingsAppModeOptions() {
+			popup.Send(sel("addItemWithTitle:"), nsString(settingsOptionText(option)))
+		}
+		popup.Send(sel("selectItemAtIndex:"), int64(settingsAppModeIndex(app.Mode)))
+		row.Send(sel("addSubview:"), popup)
+		popup.Send(sel("release"))
+		settingsAppControls[popup] = settingsAppControl{view: v, row: i}
+
+		v.appsHost.Send(sel("addSubview:"), row)
+		row.Send(sel("release"))
+		v.appsRowViews = append(v.appsRowViews, settingsAppRowView{view: row, popup: popup})
+
+		if i > 0 {
+			v.addSourceAppSeparator(rowTop)
+		}
+	}
+	setFrame(v.appsHost, settingsContentX, v.appsTop, settingsContentWidth, height)
+	v.updateAppsPageHeight()
+}
+
+func (v *SettingsView) addSourceAppSeparator(top float64) {
+	separator := objc.ID(classNSBox).Send(sel("new"))
+	separator.Send(sel("setBoxType:"), int64(2))
+	separator.Send(sel("setTitlePosition:"), int64(0))
+	separator.Send(sel("setBorderColor:"), settingsSeparatorColor())
+	setFrame(separator, settingsRowInset, top-1, settingsContentWidth-2*settingsRowInset, 1)
+	v.appsHost.Send(sel("addSubview:"), separator)
+	separator.Send(sel("release"))
+}
+
+// updateAppsPageHeight recalculates the clipboard page after rows are added or
+// removed, because the app list is loaded after the native tree is built.
+func (v *SettingsView) updateAppsPageHeight() {
+	if v.appsDocument == 0 {
+		return
+	}
+	height := settingsMeasuredPageHeight(v.appsDocument)
+	setFrame(v.appsDocument, 0, 0, settingsWidth, height)
+	v.pageHeights["clipboard"] = height
+	if v.currentTab == "clipboard" {
+		v.resizeWindow(false)
 	}
 }
 
-func (v *SettingsView) emitExcludedApps() {
-	ids := make([]string, 0, len(v.apps)+len(v.extraExcluded))
-	seen := map[string]struct{}{}
-	for _, app := range v.apps {
-		if app.Excluded {
-			ids = append(ids, app.ID)
-			seen[app.ID] = struct{}{}
+func (v *SettingsView) selectSourceAppMode(row int, mode string) {
+	if row < 0 || row >= len(v.appsRowViews) {
+		return
+	}
+	v.appsRowViews[row].popup.Send(sel("selectItemAtIndex:"), int64(settingsAppModeIndex(mode)))
+}
+
+func settingsAppModeIndex(mode string) int {
+	for i, option := range settingsAppModeOptions() {
+		if option.Value == mode {
+			return i
 		}
 	}
-	for _, id := range v.extraExcluded {
-		if _, ok := seen[id]; !ok {
-			ids = append(ids, id)
-			seen[id] = struct{}{}
-		}
+	return 0
+}
+
+// settingsAppPopupWidth reserves the width of the longest mode so the popup
+// stays right aligned when the selected title changes.
+func settingsAppPopupWidth() float64 {
+	width := settingsPopupMinWidth
+	for _, option := range settingsAppModeOptions() {
+		width = max(width, settingsPopupWidth(settingsOptionText(option)))
 	}
-	v.cx.Emit("change", SettingsChange{Path: "filters.excludedAppIds", Value: ids})
+	return width
+}
+
+func (v *SettingsView) emitSourceAppMode(row int) {
+	if row < 0 || row >= len(v.apps) {
+		return
+	}
+	app := v.apps[row]
+	v.cx.Emit("change", SettingsChange{
+		Path:  "sourceApps.mode",
+		Value: SettingsAppSelection{ID: app.ID, Name: app.Name, Mode: app.Mode},
+	})
 }
 
 func registerSettingsAppsTargets() {
 	var err error
-	settingsAppsRowClass, err = objc.RegisterClass("EcoPasteSettingsAppRow", class("NSTableCellView"), nil, nil,
-		[]objc.MethodDef{{Cmd: sel("setFrameSize:"), Fn: func(self objc.ID, _ objc.SEL, size CGSize) {
-			sendSuper[objc.ID](self, settingsAppsRowClass, sel("setFrameSize:"), size)
-			layoutSettingsAppRow(self, size)
-		}}})
+	settingsAppsHostClass, err = objc.RegisterClass("EcoPasteSettingsAppsHost", class("NSView"), nil, nil,
+		[]objc.MethodDef{{Cmd: sel("isFlipped"), Fn: func(objc.ID, objc.SEL) bool { return true }}})
 	if err != nil {
 		panic(err)
 	}
 	target, err := objc.RegisterClass("EcoPasteSettingsAppsTarget", class("NSObject"), nil, nil, []objc.MethodDef{
-		{Cmd: sel("numberOfRowsInTableView:"), Fn: func(_ objc.ID, _ objc.SEL, table objc.ID) int64 {
-			if v := settingsAppsByTable[table]; v != nil {
-				return int64(len(v.apps))
-			}
-			return 0
-		}},
-		{Cmd: sel("tableView:viewForTableColumn:row:"), Fn: func(_ objc.ID, _ objc.SEL, table, _ objc.ID, row int64) objc.ID {
-			v := settingsAppsByTable[table]
-			if v == nil || row < 0 || int(row) >= len(v.apps) {
-				return 0
-			}
-			cell := table.Send(sel("makeViewWithIdentifier:owner:"), nsString(settingsAppRowIdentifier), table)
-			if cell == 0 {
-				cell = newSettingsAppRow()
-			}
-			fillSettingsAppRow(v, cell, int(row), v.apps[row])
-			return cell
-		}},
-		{Cmd: sel("appToggle:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
-			v := settingsAppControls[sender]
-			if v == nil {
+		{Cmd: sel("appModeChanged:"), Fn: func(_ objc.ID, _ objc.SEL, sender objc.ID) {
+			control, ok := settingsAppControls[sender]
+			if !ok || control.view == nil {
 				return
 			}
-			row := int(objc.Send[int64](sender, sel("tag"))) - settingsAppCheckTagBase
+			v := control.view
+			row := control.row
 			if row < 0 || row >= len(v.apps) {
 				return
 			}
-			v.apps[row].Excluded = objc.Send[int64](sender, sel("state")) == 1
-			v.emitExcludedApps()
+			index := int(objc.Send[int64](sender, sel("indexOfSelectedItem")))
+			options := settingsAppModeOptions()
+			if index < 0 || index >= len(options) {
+				return
+			}
+			v.apps[row].Mode = options[index].Value
+			v.emitSourceAppMode(row)
 		}},
 	})
 	if err != nil {
 		panic(err)
 	}
 	settingsAppsTarget = objc.ID(target).Send(sel("new"))
-}
-
-func newSettingsAppRow() objc.ID {
-	cell := objc.ID(settingsAppsRowClass).Send(sel("new"))
-	cell.Send(sel("setIdentifier:"), nsString(settingsAppRowIdentifier))
-
-	checkbox := newSettingsCheckbox(settingsAppsTarget, "appToggle:")
-	cell.Send(sel("addSubview:"), checkbox)
-	checkbox.Send(sel("release"))
-
-	icon := objc.ID(class("NSImageView")).Send(sel("new"))
-	icon.Send(sel("setTag:"), int64(settingsAppIconTag))
-	icon.Send(sel("setImageScaling:"), int64(3))
-	icon.Send(sel("setAccessibilityElement:"), false)
-	cell.Send(sel("addSubview:"), icon)
-	icon.Send(sel("release"))
-
-	name := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(""))
-	name.Send(sel("setTag:"), int64(settingsAppNameTag))
-	name.Send(sel("setFont:"), systemFont(13))
-	name.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("labelColor")))
-	name.Send(sel("setLineBreakMode:"), int64(4))
-	name.Send(sel("setMaximumNumberOfLines:"), int64(1))
-	cell.Send(sel("addSubview:"), name)
-
-	detail := objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(""))
-	detail.Send(sel("setTag:"), int64(settingsAppIDTag))
-	detail.Send(sel("setFont:"), systemFont(10))
-	detail.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
-	detail.Send(sel("setLineBreakMode:"), int64(4))
-	detail.Send(sel("setMaximumNumberOfLines:"), int64(1))
-	cell.Send(sel("addSubview:"), detail)
-
-	return cell.Send(sel("autorelease"))
-}
-
-func fillSettingsAppRow(v *SettingsView, cell objc.ID, row int, app SettingsApp) {
-	checkbox := firstSettingsAppCheckbox(cell)
-	if checkbox != 0 {
-		checkbox.Send(sel("setTag:"), int64(settingsAppCheckTagBase+row))
-		checkbox.Send(sel("setState:"), int64(boolInt(app.Excluded)))
-		checkbox.Send(sel("setAccessibilityLabel:"), nsString(i18n.Tf(i18n.SettingsIgnoreApp, app.Name)))
-		settingsAppControls[checkbox] = v
-	}
-	icon := cell.Send(sel("viewWithTag:"), int64(settingsAppIconTag))
-	if icon != 0 {
-		image := objc.ID(0)
-		if app.IconPath != "" {
-			image = loadImage(app.IconPath)
-		}
-		icon.Send(sel("setImage:"), image)
-	}
-	name := cell.Send(sel("viewWithTag:"), int64(settingsAppNameTag))
-	if name != 0 {
-		name.Send(sel("setStringValue:"), nsString(app.Name))
-	}
-	detail := cell.Send(sel("viewWithTag:"), int64(settingsAppIDTag))
-	if detail != 0 {
-		detail.Send(sel("setStringValue:"), nsString(app.ID))
-	}
-}
-
-func firstSettingsAppCheckbox(cell objc.ID) objc.ID {
-	subviews := objc.Send[objc.ID](cell, sel("subviews"))
-	if subviews == 0 || objc.Send[uint](subviews, sel("count")) == 0 {
-		return 0
-	}
-	return objc.Send[objc.ID](subviews, sel("objectAtIndex:"), uint(0))
-}
-
-func layoutSettingsAppRow(cell objc.ID, size CGSize) {
-	if checkbox := firstSettingsAppCheckbox(cell); checkbox != 0 {
-		checkbox.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 8, Y: 14}, Size: CGSize{Width: 16, Height: 16}})
-	}
-	if icon := cell.Send(sel("viewWithTag:"), int64(settingsAppIconTag)); icon != 0 {
-		icon.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 36, Y: 10}, Size: CGSize{Width: 24, Height: 24}})
-	}
-	if name := cell.Send(sel("viewWithTag:"), int64(settingsAppNameTag)); name != 0 {
-		name.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 68, Y: 22}, Size: CGSize{Width: size.Width - 76, Height: 18}})
-	}
-	if detail := cell.Send(sel("viewWithTag:"), int64(settingsAppIDTag)); detail != 0 {
-		detail.Send(sel("setFrame:"), CGRect{Origin: CGPoint{X: 68, Y: 6}, Size: CGSize{Width: size.Width - 76, Height: 14}})
-	}
 }

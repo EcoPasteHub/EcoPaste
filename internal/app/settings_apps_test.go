@@ -2,73 +2,115 @@ package app
 
 import (
 	"path/filepath"
-	"slices"
 	"testing"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/database"
+	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
 	"github.com/EcoPasteHub/EcoPaste/internal/settings"
 )
 
-func TestSettingsModelAppliesExcludedAppsAndDeletesRemoved(t *testing.T) {
+func TestSettingsModelAppliesSourceAppModeAndKeepsOneRule(t *testing.T) {
 	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
 	if err != nil {
 		t.Fatal(err)
 	}
 	model := newSettingsModel(store)
+	icon := "icon.png"
 	model.listApps = func() ([]database.App, error) {
-		icon := "icon.png"
 		return []database.App{
 			{ID: "com.example.a", Name: "A", IconFile: &icon},
 			{ID: "com.example.b", Name: "B"},
+			{ID: "com.apple.Passwords", Name: "Passwords"},
 		}, nil
 	}
 	model.appIconPath = func(name string) string { return "/icons/" + name }
-	var deleted []string
-	model.deleteApps = func(ids []string) error {
-		deleted = append(deleted, ids...)
+	var ensured []string
+	model.ensureApp = func(id, name string) error {
+		ensured = append(ensured, id+":"+name)
 		return nil
 	}
-	removedID := "com.example.a"
-	keptID := "com.example.b"
-	if err := model.Apply("filters.excludedAppIds",
-		[]string{"com.apple.keychainaccess", "com.apple.Passwords", removedID, keptID}); err != nil {
-		t.Fatal(err)
+
+	apply := func(id, name, mode string) {
+		t.Helper()
+		if err := model.Apply("sourceApps.mode", macos.SettingsAppSelection{ID: id, Name: name, Mode: mode}); err != nil {
+			t.Fatal(err)
+		}
 	}
-	if err := model.Apply("filters.excludedAppIds",
-		[]string{"com.apple.keychainaccess", "com.apple.Passwords", keptID}); err != nil {
-		t.Fatal(err)
+	apply("com.example.a", "A", string(settings.SourceAppBlockCapture))
+	apply("com.example.b", "B", string(settings.SourceAppBlockWake))
+	// Changing A's mode overwrites its single rule instead of adding another.
+	apply("com.example.a", "A", string(settings.SourceAppBlockCaptureAndWake))
+
+	rules := store.Snapshot().Clipboard.SourceApps.Rules
+	if len(rules) != 2 {
+		t.Fatalf("rules = %+v, want two apps", rules)
 	}
-	if !slices.Equal(deleted, []string{removedID}) {
-		t.Errorf("deleted = %v", deleted)
+	if rules[0].ID != "com.example.a" || rules[0].Mode != settings.SourceAppBlockCaptureAndWake {
+		t.Errorf("rule for A = %+v", rules[0])
 	}
-	if got := store.Snapshot().Clipboard.Filters.ExcludedAppIDs; !slices.Contains(got, keptID) ||
-		slices.Contains(got, removedID) {
-		t.Errorf("excluded = %v", got)
+	if rules[1].ID != "com.example.b" || rules[1].Mode != settings.SourceAppBlockWake {
+		t.Errorf("rule for B = %+v", rules[1])
+	}
+
+	// Choosing the default removes the record.
+	apply("com.example.a", "A", string(settings.SourceAppAllowed))
+	rules = store.Snapshot().Clipboard.SourceApps.Rules
+	if len(rules) != 1 || rules[0].ID != "com.example.b" {
+		t.Fatalf("rules after reset = %+v", rules)
 	}
 
 	values := model.Load()
-	if len(values.Apps) != 2 || values.Apps[0].IconPath != "/icons/icon.png" || !values.Apps[1].Excluded {
-		t.Errorf("apps = %+v", values.Apps)
+	if len(values.Apps) != 3 {
+		t.Fatalf("apps = %+v", values.Apps)
+	}
+	byID := map[string]macos.SettingsApp{}
+	for _, app := range values.Apps {
+		byID[app.ID] = app
+	}
+	if got := byID["com.example.a"].Mode; got != string(settings.SourceAppAllowed) {
+		t.Errorf("A mode = %q", got)
+	}
+	if got := byID["com.example.b"].Mode; got != string(settings.SourceAppBlockWake) {
+		t.Errorf("B mode = %q", got)
+	}
+	if got := byID["com.apple.Passwords"].Mode; got != string(settings.SourceAppBlockCapture) {
+		t.Errorf("Passwords default mode = %q", got)
+	}
+
+	// Defaults are not persisted; only the app the user changed was ensured.
+	if len(ensured) != 3 || ensured[2] != "com.example.a:A" {
+		t.Errorf("ensured = %v", ensured)
 	}
 }
 
-func TestSettingsModelAddSourceAppExcludesIt(t *testing.T) {
+func TestSettingsModelCanExplicitlyAllowPasswordApp(t *testing.T) {
 	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
 	if err != nil {
 		t.Fatal(err)
 	}
 	model := newSettingsModel(store)
-	model.addApp = func(path string) (database.App, error) {
-		if path != "/Applications/Example.app" {
-			t.Errorf("path = %q", path)
-		}
-		return database.App{ID: "com.example.added", Name: "Added"}, nil
-	}
-	if err := model.Apply("apps.add", "/Applications/Example.app"); err != nil {
+	model.ensureApp = func(id, name string) error { return nil }
+	if err := model.Apply("sourceApps.mode", macos.SettingsAppSelection{
+		ID: "com.apple.Passwords", Name: "Passwords", Mode: string(settings.SourceAppAllowed),
+	}); err != nil {
 		t.Fatal(err)
 	}
-	excluded := store.Snapshot().Clipboard.Filters.ExcludedAppIDs
-	if !slices.Contains(excluded, "com.example.added") {
-		t.Errorf("excluded = %v", excluded)
+	rules := store.Snapshot().Clipboard.SourceApps.Rules
+	if len(rules) != 1 || rules[0].ID != "com.apple.Passwords" || rules[0].Mode != settings.SourceAppAllowed {
+		t.Fatalf("rules = %+v", rules)
+	}
+}
+
+func TestSettingsModelRejectsUnknownSourceAppMode(t *testing.T) {
+	store, err := settings.Open(filepath.Join(t.TempDir(), settings.FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	model := newSettingsModel(store)
+	if err := model.Apply("sourceApps.mode", macos.SettingsAppSelection{ID: "com.example.a", Mode: "silent"}); err == nil {
+		t.Fatal("expected an invalid mode error")
+	}
+	if rules := store.Snapshot().Clipboard.SourceApps.Rules; len(rules) != 0 {
+		t.Fatalf("rules = %+v", rules)
 	}
 }

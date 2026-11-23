@@ -381,7 +381,7 @@ internal/native/macos
 ```text
 NSPasteboard changeCount poll
   -> read all available representations
-  -> capture order / size / filters / secrets
+  -> capture order / size / source-app mode / secrets
   -> build payload (plain, html, rtf, image bytes, file paths)
   -> content hash
   -> SQLite upsert
@@ -441,7 +441,7 @@ SQLite + resources + settings
 ### 7.5 状态与持久化边界
 
 - **SQLite**：历史、分组、来源应用、文件图标缓存。唯一业务数据源。
-- **settings.json**：用户偏好。Go struct + JSON patch，保持 camelCase。
+- **settings.json**：用户偏好。Go struct + JSON patch，保持 camelCase。来源应用只保存用户修改过的 `sourceApps.rules[]`，默认规则由平台默认值在读取时补齐；设置列表始终展示平台默认应用与已配置应用，即使它们没有运行。
 - **NSGo signals**：当前窗口的 UI 状态（搜索词、选中项、滚动位置、加载状态）。
 - **`core.Storage`**：只放小型 UI 状态（如上次窗口选择），不要放历史。
 - **图片/图标**：文件系统 + DB 引用；不要塞进 SQLite blob。

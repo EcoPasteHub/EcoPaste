@@ -23,6 +23,7 @@ func testAppRegistry(t *testing.T) (*appRegistry, *database.DB, *storage.AppIcon
 	icons.load = func(string) []byte { return testPNG(t) }
 	registry := newAppRegistry(db, store, icons)
 	registry.running = func() []macos.RunningApp { return nil }
+	registry.pathForID = func(string) string { return "" }
 	return registry, db, store
 }
 
@@ -39,7 +40,7 @@ func TestAppRegistryMergesRunningApps(t *testing.T) {
 		}
 	}
 
-	apps, err := registry.List(ctx)
+	apps, err := registry.List(ctx, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -49,6 +50,36 @@ func TestAppRegistryMergesRunningApps(t *testing.T) {
 	for _, app := range apps {
 		if app.IconFile == nil {
 			t.Errorf("%s has no icon", app.ID)
+		}
+	}
+}
+
+func TestAppRegistryIncludesRequiredApps(t *testing.T) {
+	registry, _, _ := testAppRegistry(t)
+	ctx := context.Background()
+	registry.pathForID = func(id string) string { return "/Applications/" + id + ".app" }
+	registry.resolve = func(path string) (macos.RunningApp, error) {
+		return macos.RunningApp{BundleID: "com.example.configured", Name: "Configured " + path, Path: path}, nil
+	}
+	registry.icons.loadPath = func(string) []byte { return testPNG(t) }
+
+	apps, err := registry.List(ctx, []string{"com.example.configured", "com.apple.Passwords"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(apps) != 2 {
+		t.Fatalf("apps = %+v", apps)
+	}
+	byID := map[string]database.App{}
+	for _, app := range apps {
+		byID[app.ID] = app
+	}
+	if byID["com.apple.Passwords"].Name != "Configured /Applications/com.apple.Passwords.app" {
+		t.Errorf("configured app = %+v", byID["com.example.configured"])
+	}
+	for _, id := range []string{"com.example.configured", "com.apple.Passwords"} {
+		if byID[id].IconFile == nil {
+			t.Errorf("%s has no icon", id)
 		}
 	}
 }

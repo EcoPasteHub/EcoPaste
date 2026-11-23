@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/ebitengine/purego/objc"
@@ -56,6 +57,23 @@ func RunningApps() []RunningApp {
 	return apps
 }
 
+// AppPathForBundleID returns the installed application bundle path for a
+// bundle identifier, including applications that are not currently running.
+func AppPathForBundleID(bundleID string) string {
+	if bundleID == "" {
+		return ""
+	}
+	var path string
+	onMain(func() {
+		workspace := objc.ID(class("NSWorkspace")).Send(sel("sharedWorkspace"))
+		url := workspace.Send(sel("URLForApplicationWithBundleIdentifier:"), nsString(bundleID))
+		if url != 0 {
+			path = goString(url.Send(sel("path")))
+		}
+	})
+	return path
+}
+
 // ResolveApp reads a .app bundle's identity and display name.
 func ResolveApp(path string) (RunningApp, error) {
 	if filepath.Ext(path) != ".app" {
@@ -76,7 +94,10 @@ func ResolveApp(path string) (RunningApp, error) {
 			return
 		}
 		result.BundleID = bundleString(bundle, sel("infoDictionary"), "CFBundleIdentifier")
-		result.Name = bundleDisplayName(bundle)
+		result.Name = localizedBundleName(path)
+		if result.Name == "" {
+			result.Name = bundleDisplayName(bundle)
+		}
 	})
 	if result.BundleID == "" {
 		return RunningApp{}, i18n.Error(i18n.ErrorAppIdentifier)
@@ -85,6 +106,20 @@ func ResolveApp(path string) (RunningApp, error) {
 		result.Name = filepath.Base(path[:len(path)-len(".app")])
 	}
 	return result, nil
+}
+
+// localizedBundleName asks LaunchServices for the user-facing application name,
+// which includes the system language for apps that are not running. It is
+// empty when metadata is unavailable, so callers fall back to Info.plist.
+func localizedBundleName(path string) string {
+	url := objc.ID(class("NSURL")).Send(sel("fileURLWithPath:"), nsString(path))
+	item := objc.ID(class("NSMetadataItem")).Send(sel("alloc")).Send(sel("initWithURL:"), url)
+	if item == 0 {
+		return ""
+	}
+	defer item.Send(sel("release"))
+	name := goString(item.Send(sel("valueForAttribute:"), nsString("kMDItemDisplayName")))
+	return strings.TrimSuffix(name, ".app")
 }
 
 func bundleDisplayName(bundle objc.ID) string {

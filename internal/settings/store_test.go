@@ -235,18 +235,23 @@ func TestSnapshotAndUpdateResultsDoNotAliasStore(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if _, err := store.Update(map[string]any{"clipboard": map[string]any{"sourceApps": map[string]any{
+		"rules": []any{map[string]any{"id": "com.example.app", "mode": "blockCapture"}},
+	}}}); err != nil {
+		t.Fatal(err)
+	}
 	snapshot := store.Snapshot()
 	snapshot.Clipboard.Capture.Order[0] = CaptureText
 	snapshot.Clipboard.Content.ItemActions[0] = ActionDelete
-	snapshot.Clipboard.Filters.ExcludedAppIDs[0] = "changed"
+	snapshot.Clipboard.SourceApps.Rules[0].Mode = SourceAppAllowed
 	if got := store.Snapshot().Clipboard.Capture.Order[0]; got != CaptureFiles {
 		t.Errorf("capture order aliased store: %q", got)
 	}
 	if got := store.Snapshot().Clipboard.Content.ItemActions[0]; got != ActionCopy {
 		t.Errorf("item actions aliased store: %q", got)
 	}
-	if got := store.Snapshot().Clipboard.Filters.ExcludedAppIDs[0]; got != "com.apple.keychainaccess" {
-		t.Errorf("excluded apps aliased store: %q", got)
+	if got := store.Snapshot().Clipboard.SourceApps.Rules[0].Mode; got != SourceAppBlockCapture {
+		t.Errorf("source app rules aliased store: %q", got)
 	}
 
 	updated, err := store.Update(map[string]any{"appearance": map[string]any{"theme": "dark"}})

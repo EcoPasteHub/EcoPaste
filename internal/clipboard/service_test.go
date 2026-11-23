@@ -9,6 +9,7 @@ import (
 	"image/png"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -123,27 +124,43 @@ func TestCaptureDetailedDistinguishesNewAndRepeatedContent(t *testing.T) {
 	}
 }
 
-func TestIgnoredAppIsNotCaptured(t *testing.T) {
+func TestBlockCaptureAppsAreNotCaptured(t *testing.T) {
 	cfg := settings.Default().Clipboard
-	cfg.Filters.ExcludedAppIDs = []string{"com.apple.Passwords"}
-	svc, db, _ := testService(t, cfg)
-	if _, changed, err := svc.Capture(context.Background(), Payload{Text: "secret"}, SourceApp{ID: "com.apple.Passwords"}); err != nil || changed {
-		t.Fatalf("changed = %v err = %v", changed, err)
+	cfg.SourceApps.Rules = []settings.SourceAppRule{
+		{ID: "com.example.blockCapture", Mode: settings.SourceAppBlockCapture},
+		{ID: "com.example.blockBoth", Mode: settings.SourceAppBlockCaptureAndWake},
 	}
-	page, err := db.Page(context.Background(), database.Query{})
+	svc, db, _ := testService(t, cfg)
+	ctx := context.Background()
+	for _, id := range []string{"com.example.blockCapture", "com.example.blockBoth"} {
+		if _, changed, err := svc.Capture(ctx, Payload{Text: "secret"}, SourceApp{ID: id}); err != nil || changed {
+			t.Errorf("%s: changed = %v err = %v", id, changed, err)
+		}
+	}
+	// Blocking wake alone still records the content.
+	if _, changed, err := svc.Capture(ctx, Payload{Text: "still captured"}, SourceApp{ID: "com.example.blockWake"}); err != nil || !changed {
+		t.Fatalf("block wake app: changed = %v err = %v", changed, err)
+	}
+	page, err := db.Page(ctx, database.Query{})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if page.Total != 0 {
-		t.Errorf("ignored app created %d rows", page.Total)
+	if page.Total != 1 {
+		t.Errorf("recorded %d rows, want only the block-wake app", page.Total)
 	}
 }
 
-func TestDefaultExcludedAppsAreNotCaptured(t *testing.T) {
+func TestDefaultPasswordAppsAreNotCaptured(t *testing.T) {
+	if runtime.GOOS != "darwin" {
+		t.Skip("password-manager defaults only apply on macOS")
+	}
 	cfg := settings.Default().Clipboard
+	if len(cfg.SourceApps.Rules) != 0 {
+		t.Fatalf("default rules = %+v, want none", cfg.SourceApps.Rules)
+	}
 	svc, db, _ := testService(t, cfg)
 	ctx := context.Background()
-	for _, id := range cfg.Filters.ExcludedAppIDs {
+	for _, id := range []string{"com.apple.keychainaccess", "com.apple.Passwords"} {
 		if _, changed, err := svc.Capture(ctx, Payload{Text: "secret from " + id}, SourceApp{ID: id}); err != nil || changed {
 			t.Errorf("%s: changed = %v err = %v", id, changed, err)
 		}
@@ -151,7 +168,7 @@ func TestDefaultExcludedAppsAreNotCaptured(t *testing.T) {
 	if _, changed, err := svc.Capture(ctx, Payload{Text: "normal"}, SourceApp{ID: "com.example.editor"}); err != nil || !changed {
 		t.Fatalf("normal app: changed = %v err = %v", changed, err)
 	}
-	page, err := db.Page(ctx, database.Query{})
+	page, err := db.Page(context.Background(), database.Query{})
 	if err != nil {
 		t.Fatal(err)
 	}

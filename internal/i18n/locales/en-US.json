@@ -93,7 +93,6 @@
     }
   },
   "error": {
-    "addAppUnavailable": "Apps cannot be added in this environment",
     "appIdentifier": "Unable to read the app identifier",
     "appMissing": "App does not exist: %w",
     "appPackage": "App bundle is unavailable",
@@ -178,7 +177,6 @@
     "backupUnavailable": "Backup is not available in this environment",
     "checkBackupDir": "Check backup directory: %w",
     "checkTargetDir": "Check target directory: %w",
-    "cleanApps": "Clean source apps: %w",
     "clipboardService": "The clipboard service is not running",
     "createDataDir": "Create data directory %s: %w",
     "createTargetDir": "Create target directory: %w",
@@ -207,9 +205,9 @@
     "historyItemMissing": "Clipboard item not found",
     "invalidActions": "Invalid action configuration",
     "invalidCaptureOrder": "Invalid capture order",
-    "invalidExcludedApps": "Invalid ignored app list",
     "invalidRetention": "Unrecognized retention period %q",
     "invalidRetentionUnit": "Unrecognized retention unit %q",
+    "invalidSourceApp": "Invalid source app setting",
     "notImage": "This item is not an image",
     "openFile": "Unable to open the file",
     "openLink": "Unable to open the link",
@@ -387,16 +385,15 @@
     "all": "All",
     "allGroups": "All Groups",
     "apps": {
-      "add": "Add App…",
-      "addA11y": "Add source app",
-      "choose": "Choose an app to exclude from capture",
-      "empty": "No apps to show",
-      "ignore": "Exclude %s",
-      "intro": "Checked apps are kept out of clipboard history. The list includes running apps and past sources.",
-      "refresh": "Refresh",
-      "refreshA11y": "Refresh source apps",
-      "section": "Source Apps",
-      "source": "Source Apps"
+      "intro": "“Don’t Capture” keeps the app’s copies out of history; “Block Shortcut” ignores the global shortcut while the app is frontmost; both can apply together. Unrestricted by default, with password managers set to Don’t Capture.",
+      "mode": {
+        "allowed": "Unrestricted",
+        "blockCapture": "Don’t Capture",
+        "blockWake": "Block Shortcut",
+        "blockCaptureAndWake": "Don’t Capture or Wake"
+      },
+      "modeA11y": "Handling for %s",
+      "section": "Source Apps"
     },
     "capture": {
       "hint": "Uses the first available representation from the top down",

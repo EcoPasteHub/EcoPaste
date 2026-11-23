@@ -24,7 +24,7 @@
 | C-11 | P0 | 内容去重 | `db/items::upsert_item` | `blake3("<kind>:<content>")` 命中更新 | 已通过 | 真机重复复制 `use_count` 2；数据库测试 |
 | C-12 | P0 | 来源应用同步抓取 | `clipboard/source.rs` | 监听回调内取 frontmost app | 已通过 | 真机来源记录为 `com.openai.codex` |
 | C-13 | P1 | 来源应用图标 | `clipboard/icon.rs`、`app_store.rs` | `NSRunningApplication` 取图标，128px PNG 去重缓存 | 已通过 | `TestAppIconStoreIsIdempotent`、`TestDownscalePNG`、`TestAppIconStoreRemovesUnreferenced`；真机 Finder 图标缓存为 9.4KB / 128×128 |
-| C-14 | P0 | 忽略应用 | `Filters.excluded_app_ids` | bundle id 命中即跳过 | 已通过 | 默认排除密码类 App；`TestIgnoredAppIsNotCaptured` |
+| C-14 | P0 | 来源应用处理模式 | `SourceApps.Rules` | 三档模式：不收录 / 禁止唤醒 / 不收录并禁止唤醒，默认不限制；macOS 密码类默认不收录且始终在列表展示 | 已通过 | 捕获路径按 `SourceApps.BlocksCapture` 跳过不收录应用；`TestBlockCaptureAppsAreNotCaptured`、`TestDefaultPasswordAppsAreNotCaptured`、`TestSourceAppsListedIDsKeepDefaultsAndRules` 校验自定义、macOS 默认规则与常驻列表 |
 | C-15 | P0 | 敏感内容识别 | `clipboard/secrets.rs` | 私钥、token、AWS key、JWT、标签 secret | 已通过 | `TestContainsSecret` 固定样本矩阵 |
 | C-16 | P0 | 敏感内容策略 | `collectSecrets`、`redactSecrets` | 跳过或脱敏，日志不落原文 | 已通过 | `TestSecretCapturePolicy`、`TestPreviewRedactsSensitiveText` |
 | C-17 | P0 | 回环抑制 | `clipboard/guard.rs` | 写回前登记所有实际写出的表示 hash，2 秒 TTL | 已通过 | `TestWriteItemSuppressesItsOwnCapture`、`TestWriteRichTextSuppressesHTMLAndPlainFallback`、`TestWriteFilesAsTextSuppressesFallbackCapture`；真机复制 HTML 后 DB 不新增纯文本回环 |
@@ -60,7 +60,7 @@
 | D-22 | P1 | 存储占用 | `get_storage_usage` | total/database/resources/settings 分项 | 已通过 | `TestMeasureUsageSumsParts`；真机托盘显示 136.9 KB，与 `du` 结果可解释 |
 | D-23 | P1 | 缓存清理 | `clean_resource_cache` | 删除未被 DB 引用的图片/图标 | 已通过 | `TestCleanCacheKeepsReferencedFiles` 覆盖图片、应用图标、文件图标；真机清理孤儿文件且保留引用 |
 | D-24 | P1 | 旧版数据导入 | `commands/onboarding.rs` | 2.0.0 不迁移旧目录或导入旧备份 | 不纳入 | 用户自行清理；当前版本备份见 D-27 |
-| D-25 | P1 | 来源应用注册表 | `db/apps.rs`、`apps_registry.rs` | 列表、全部应用、从路径添加、清理未引用 | 已通过 | `TestListAppsOrdersByNameAndRefreshesMetadata`、`TestDeleteUnreferencedAppsKeepsReferencedRows`、`TestAppRegistryMergesRunningApps`、`TestAppRegistryAddRefreshesWithoutDuplicates`；真机应用页勾选立即写入 `excludedAppIds`，添加 Notes 自动排除并落库，取消勾选删除未引用行与图标 |
+| D-25 | P1 | 来源应用注册表 | `db/apps.go`、`app/apps.go` | 运行中、历史来源、平台默认应用与已配置应用合并展示 | 已通过 | 来源应用列表复用普通设置卡片行（带分割线），始终包含 macOS 密码类默认应用与所有已配置应用，即使未运行；其余按运行中与历史来源展示。行内显示应用图标、名称与处理模式下拉；`TestAppRegistryIncludesRequiredApps`、`TestSourceAppsListedIDsKeepDefaultsAndRules` 覆盖 |
 | D-26 | P1 | 文件图标缓存 | `db/file_icons.rs`、`file_icon_store.rs` | `NSWorkspace` 图标 + cache key | 已通过 | `TestFileIconCacheReusesType`；真机 PDF/TXT 图标正确，两个 PDF 共享 `.pdf` 缓存 |
 | D-27 | P1 | 备份入口 | `commands/backup.rs` | 导出、格式检查、合并、覆盖 | 已通过（自动化） | `TestStageAndApplyImport` 覆盖明文和加密覆盖恢复；`TestMergeImport` 覆盖去重、资源与设置；`TestImportRejectsUnsupportedBackupBeforeChangingLocalData` 验证拒绝旧格式和非当前 schema |
 | D-28 | P1 | 打开数据目录 | `commands/storage.rs` | `NSWorkspace` 打开目录 | 已通过 | 真机从托盘打开当前数据根 |
@@ -139,7 +139,7 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | U-01 | P0 | Clipboard 主页面 | `legacy/frontend/src/pages/Clipboard` | AppKit 双窗口：分类胶囊栏 + 搜索/列表/卡片/Footer | 已通过（产品调整） | 分类移入独立顶部子窗口，展示全部/文本/图片/文件/收藏胶囊与新建按钮；主窗口保留搜索、筛选菜单、设置、固定按钮、圆角卡片历史列表与 Footer；类型标签、来源/时间、置顶/收藏状态、备注切换、卡片右上角绝对定位的悬停工具栏（纯色语义背景、统一过渡且不改变内容布局；行内状态更新保留工具栏，待真机回归）、搜索/分组筛选、实时刷新与复制已真机验证；行卡片默认显示轻量底色，选中态使用系统强调色并切换白色文字；真机 420×560 主面板 + 420×48 分类栏复核；卡片统一为左侧来源应用图标、右侧内容并移除图标角标的字体图标；文本卡片按配置行数自适应高度并在超出时省略，图片按最大高度等比缩放，非图片文件逐行显示文件图标与名称，单个图片文件按图片预览展示；Finder 搜索结果复制得到的 `/.file/id=` 文件引用在采集时解析为真实路径，不再误报“已丢失”；搜索栏上下与左右留白一致、内部元素垂直居中，移除自定义居中绘制后输入框聚焦前后位置不再偏移；顶部搜索栏区域改用单一 `panelHeaderMargin` 推导上下左右四个方向的留白：工具栏图标定义行高、搜索文字与图标共用同一垂直轴、列表首张卡片与图标之间保留同样间距，真机截图像素复核四个方向留白一致（原上下约 22/29pt、左右约 16/22pt）；列表滚动到底时最后一张卡片不再被裁掉：`NSTableView` 把每行放进「行高 + 行间距」的槽位并居中单元格，原文档高度按「行高之和 + (n-1) × 行间距」计算，比末行卡片底边少 1pt，滚动到底即被裁掉 1～2px，现改为补齐末行尾部行间距；`TestHistoryRowIncludesMetadata`、`TestHistoryRowTypeLabels`、`TestHistoryTableContentHeightFollowsRows`、`TestHistoryTableContentHeightCoversLastCard`、`TestPanelSearchWidthLeavesRoomForToolbar`、`TestPanelHeaderKeepsEqualMargins`、`TestPanelHeaderCentersSearchOnIconAxis`、`TestPanelNavCapsulesFitPanelWidth`；列表选中态始终保持有且仅有一项：切换分组/分类/搜索必定选中第一项（即使原选中项仍在当前列表），删除时选中下一项（无下一项则上一项），返回顶部（含打开时滚动到顶部）选中第一项；新建分组后停留在原分组，不自动切换；`TestSelectionIndexAlwaysKeepsOneRow` 覆盖；搜索结果在标题、预览与备注中命中关键词时以低饱和奶油黄高亮（不透明底、近黑文字，浅/深色自适应），未选中/选中外观均清晰可读，查询更新时列表原地重绘高亮；`TestHighlightRanges`、`TestHighlightTokensDedupesAndSplits`、`TestHighlightedRowStringAppliesBackgroundToMatches` 覆盖 |
 | U-02 | P1 | Preview 页面 | `legacy/frontend/src/pages/Preview` | 原生 `NSPopover` 预览 | 已通过 | 真机 Space 打开、Space/Esc 关闭，popover 锚定列表行且不遮挡面板；文本、HTML、图片预览均正常；方向键在预览中切换条目并同步内容（不关闭 popover）；预览无额外背景、无分隔线，文本/图片/文件按类型排版，长内容在屏幕内滚动；`TestPreviewRedactsSensitiveText` |
-| U-03 | P1 | Preference 页面 | `legacy/frontend/src/pages/Preference` | 原生分类导航与表单 | 已通过 | 当前偏好设置按通用、外观、剪贴板、交互、数据、系统、关于七类组织。登录启动和快捷键归通用；主题、语言和列表密度归外观；采集类型/优先级与来源应用过滤归剪贴板；面板打开、搜索、复制粘贴与预览动作归交互；排序、保留策略、敏感内容、删除、存储与备份归数据；权限和日志诊断归系统；版本、更新和项目链接归关于。`TestEveryScalarSettingBelongsToOneCategory` 校验字段唯一归类，`TestSettingsPagesMatchNavigation` 校验导航页齐全；改组不改变设置 schema 路径。中英文标签通过共享 i18n catalog。
+| U-03 | P1 | Preference 页面 | `legacy/frontend/src/pages/Preference` | 原生分类导航与表单 | 已通过 | 当前偏好设置按通用、外观、剪贴板、交互、数据、系统、关于七类组织。登录启动和快捷键归通用；主题、语言和列表密度归外观；采集类型/优先级与来源应用处理模式归剪贴板；面板打开、搜索、复制粘贴与预览动作归交互；排序、保留策略、敏感内容、删除、存储与备份归数据；权限和日志诊断归系统；版本、更新和项目链接归关于。`TestEveryScalarSettingBelongsToOneCategory` 校验字段唯一归类，`TestSettingsPagesMatchNavigation` 校验导航页齐全；改组不改变设置 schema 路径。中英文标签通过共享 i18n catalog。
 | U-04 | P1 | Onboarding 页面 | `legacy/frontend/src/pages/Onboarding` | 不提供独立引导页面 | 不纳入 macOS 首版（产品调整） | 产品调整：移除首启引导流程与相关面板浮层，`internal/onboarding`、对应 UI、i18n 与设置字段均已删除；权限、快捷键、排除应用与备份恢复分别由设置页、系统权限提示和备份导入承担 |
 | U-05 | P1 | Update 页面 | `legacy/frontend/src/pages/Update` | 原生更新状态/进度 | 迁移中 | 产品调整：不再自绘更新状态机，设置“更新”页展示当前版本与检查入口，下载进度、安装和重启交给 Sparkle 原生窗口；不可用或非 Sparkle 结果使用本地化提示；正式签名 appcast 升级待发布验证 |
 | U-06 | P2 | ContextMenu 页面 | `legacy/frontend/src/pages/ContextMenu` | macOS 使用 `NSMenu`，不迁移 WebView 菜单窗 | 参考 | 对比菜单结构 |
@@ -178,7 +178,7 @@
 | S-10 | clipboard.window | `position`、`scrollToTopOnOpen`、`selectRangeOnOpen`、`selectCategoryOnOpen`、`selectGroupOnOpen` | 原生窗口等价行为；无运行时消费的 `lightweightMode`/`idleDestroySeconds` 已移除（§8.1） | 已通过（产品调整） | `position` 三档已真机验证；`TestOpenBehavior*`、`TestOpenSelectionAppliesCategoryAndGroup` 覆盖滚动/范围/分类/分组及组合优先级；真机设置“分类=图片 + 分组=全部”冷启动后图片分类选中且仅显示 1 条图片，设置“分组=测试打开”冷启动后分组下拉选中该组且仅显示组内 1 条，分类与分组选择不再互相清空 |
 | S-11 | clipboard.preview | `spaceEnabled` | Space 按开关生效；不实现的 hover 预览字段及校验已移除（§8.1），不影响备注悬停显示原文 | 已通过（产品调整） | `TestSpacePreviewHonorsSetting`；设置“预览”页关闭后 Space 不打开预览，开启后立即写入 `clipboard.preview.spaceEnabled`，面板下一次 props 即重读并恢复 Space 预览；`TestPanelBehaviorFollowsSettingsOnEveryPropsPass` 覆盖；设置页改用原生浮层的操作说明，不再暴露迁移计划文案；真机确认 `NSPopover` 按空间出现在面板左侧或右侧，Esc/Space 返回并保持当前行选中；短 HTML 预览按内容收缩至 406×158，长内容滚动到底完整可见，切换条目后回到顶部；默认字体为系统无衬线字体，保留粗体、显式颜色与列表，深色模式下默认深色墨水自动切换语义正文色；`TestAttributedPreviewKeepsNativeDefaultFont`、`TestAttributedPreviewPreservesExplicitColor`、`TestPreviewInkNeedsLabelForDefaultContrast`、`TestPreviewSizeFollowsTextHeight` 覆盖；悬停预览不实现的原因见 `03-migration-plan.md` Phase 4 |
 | S-12 | clipboard.feedback | `copySound` | 音效开关一致 | 已通过 | 设置“通用”页开关即时写入 `settings.json`；开启后监听/手动读取入库成功播放系统提示音，关闭后静音；`TestSettingsModelAppliesPaths` 覆盖读写 |
-| S-13 | clipboard.filters | `excludedAppIds` | bundle id 过滤一致 | 已通过 | `TestDefaultExcludedAppsAreNotCaptured` 校验默认排除密码类应用且普通来源照常入库；`TestIgnoredAppIsNotCaptured`、`TestSettingsModelAppliesExcludedAppsAndDeletesRemoved`、`TestSettingsModelAddSourceAppExcludesIt` 覆盖自定义排除、取消与来源应用清理 |
+| S-13 | clipboard.sourceApps | `rules[]`（`id` + `mode`） | 同应用单条记录、三种模式互斥、默认不落盘 | 已通过 | 仅保存用户修改过的应用；选择「不限制」删除记录；`TestSettingsModelAppliesSourceAppModeAndKeepsOneRule`、`TestNormalizeSourceAppRulesKeepsOneValidRule`、`TestDefaultSourceAppModeFollowsPlatform` 覆盖覆盖写、去重、默认规则与清理 |
 | S-14 | onboarding | `completed`、`lastStep`、`legacyImport{checked,imported,importTypes,importedAt}` | 移除引导/导入设置 | 不纳入 macOS 首版（产品调整） | `Onboarding` 结构与设置字段已移除 |
 | S-15 | update | 已移除 | 无独立更新配置，更新行为由 NSGo/Sparkle 管理（§8.1） | 已移除（产品调整） | 更新检查入口保留，正式 appcast 与签名升级验收仍见 W-20 |
 | S-16 | 默认值 | `settings.Default()` | 缺字段时补当前默认值 | 已通过 | `TestLoadKeepsDefaultsForMissingFields`、`TestOpenFallsBackToDefaultsForUnreadableSettings`、`TestSettingsJSONRoundTripsPublishedCamelCase`：缺字段、空文件、损坏 JSON、类型错误和非法枚举均回退完整默认值，camelCase 编码可无损回环 |
@@ -237,7 +237,7 @@
 | --- | --- |
 | 通用 | 登录启动、菜单栏图标、全局快捷键 |
 | 外观 | 主题、语言、文本/图片/文件列表展示密度 |
-| 剪贴板 | 采集类型、大小限制、表示优先级、来源应用过滤 |
+| 剪贴板 | 采集类型、大小限制、表示优先级、来源应用处理模式 |
 | 交互 | 面板打开位置与初始选择、搜索、复制/粘贴操作、预览、悬停动作 |
 | 数据 | 排序、历史保留和数量、敏感内容策略、删除规则、数据目录与备份恢复 |
 | 系统 | macOS 权限、诊断信息、日志级别与日志目录 |

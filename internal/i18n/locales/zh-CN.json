@@ -93,7 +93,6 @@
     }
   },
   "error": {
-    "addAppUnavailable": "当前环境无法添加应用",
     "appIdentifier": "无法读取应用标识",
     "appMissing": "应用不存在: %w",
     "appPackage": "应用包不可用",
@@ -178,7 +177,6 @@
     "backupUnavailable": "当前环境无法使用备份",
     "checkBackupDir": "检查备份目录: %w",
     "checkTargetDir": "检查目标目录: %w",
-    "cleanApps": "清理来源应用: %w",
     "clipboardService": "剪贴板服务未启动",
     "createDataDir": "创建数据目录 %s: %w",
     "createTargetDir": "创建目标目录: %w",
@@ -207,9 +205,9 @@
     "historyItemMissing": "剪贴板记录不存在",
     "invalidActions": "无效的动作配置",
     "invalidCaptureOrder": "无效的采集顺序",
-    "invalidExcludedApps": "忽略应用列表格式无效",
     "invalidRetention": "无法识别保留时长 %q",
     "invalidRetentionUnit": "无法识别保留时长单位 %q",
+    "invalidSourceApp": "来源应用设置无效",
     "notImage": "该记录不是图片",
     "openFile": "无法打开文件",
     "openLink": "无法打开链接",
@@ -387,16 +385,15 @@
     "all": "全部",
     "allGroups": "全部分组",
     "apps": {
-      "add": "添加应用…",
-      "addA11y": "添加来源应用",
-      "choose": "选择要忽略来源的应用",
-      "empty": "没有可显示的应用",
-      "ignore": "忽略 %s",
-      "intro": "勾选的应用不会进入剪贴板历史；列表包含正在运行和历史来源。",
-      "refresh": "刷新",
-      "refreshA11y": "刷新来源应用",
-      "section": "来源应用",
-      "source": "来源应用"
+      "intro": "「不收录」不记录该应用复制的内容；「禁止唤醒」在该应用处于前台时不响应全局快捷键；两者可同时选择。默认不限制，系统密码管理类应用默认不收录。",
+      "mode": {
+        "allowed": "不限制",
+        "blockCapture": "不收录",
+        "blockWake": "禁止唤醒",
+        "blockCaptureAndWake": "不收录并禁止唤醒"
+      },
+      "modeA11y": "设置 %s 的处理方式",
+      "section": "来源应用"
     },
     "capture": {
       "hint": "从上到下依次选择可用的主表示",

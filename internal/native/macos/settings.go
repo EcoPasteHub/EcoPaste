@@ -58,7 +58,6 @@ type SettingsValues struct {
 	MaxCount               uint32
 	CollectSecrets         bool
 	RedactSecrets          bool
-	ExcludedAppIDs         []string
 	Apps                   []SettingsApp
 	ItemActions            []string
 	ItemActionOrder        []string
@@ -68,12 +67,19 @@ type SettingsValues struct {
 	LogLevel               string
 }
 
-// SettingsApp is one row in the source application filter list.
+// SettingsApp is one row in the source application list.
 type SettingsApp struct {
 	ID       string
 	Name     string
 	IconPath string
-	Excluded bool
+	Mode     string
+}
+
+// SettingsAppSelection is one application's chosen source-app mode.
+type SettingsAppSelection struct {
+	ID   string
+	Name string
+	Mode string
 }
 
 // SettingsGroup is one clipboard group offered by the open-selection
@@ -106,9 +112,11 @@ type SettingsView struct {
 	accessibilityStatus objc.ID
 	fullDiskStatus      objc.ID
 	diagnosticsHint     objc.ID
-	appsTable           objc.ID
-	appsEmpty           objc.ID
+	appsDocument        objc.ID
+	appsTop             float64
+	appsHost            objc.ID
 	apps                []SettingsApp
+	appsRowViews        []settingsAppRowView
 	actionsTable        objc.ID
 	actionUp            objc.ID
 	actionDown          objc.ID
@@ -118,7 +126,6 @@ type SettingsView struct {
 	captureDown         objc.ID
 	captureOrder        []string
 	groupField          *settingsField
-	extraExcluded       []string
 	shortcutRecorders   []*shortcutRecorder
 	numberInputs        []*numberInput
 	infoButtons         []objc.ID
@@ -498,9 +505,6 @@ func (v *SettingsView) Close() {
 			discardSettingsPopup(field.control)
 		}
 	}
-	if v.appsTable != 0 {
-		delete(settingsAppsByTable, v.appsTable)
-	}
 	if v.actionsTable != 0 {
 		delete(settingsActionsByTable, v.actionsTable)
 	}
@@ -508,7 +512,8 @@ func (v *SettingsView) Close() {
 		delete(settingsCaptureByTable, v.captureTable)
 	}
 	for control, owner := range settingsAppControls {
-		if owner == v {
+		if owner.view == v {
+			discardSettingsPopup(control)
 			delete(settingsAppControls, control)
 		}
 	}

@@ -1,16 +1,15 @@
 package app
 
 import (
-	"fmt"
-	"slices"
-
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/EcoPasteHub/EcoPaste/internal/native/macos"
+	"github.com/EcoPasteHub/EcoPaste/internal/settings"
 )
 
-// loadSourceApps presents the registry to the settings window and marks
-// which applications are currently excluded from capture.
-func (m *settingsModel) loadSourceApps(excludedIDs []string) []macos.SettingsApp {
+// loadSourceApps presents the registry to the settings window with each
+// application's effective mode, including the macOS default for password
+// managers that is never written to settings.json.
+func (m *settingsModel) loadSourceApps(cfg settings.SourceApps) []macos.SettingsApp {
 	if m.listApps == nil {
 		return nil
 	}
@@ -26,75 +25,48 @@ func (m *settingsModel) loadSourceApps(excludedIDs []string) []macos.SettingsApp
 		}
 		out = append(out, macos.SettingsApp{
 			ID: app.ID, Name: app.Name, IconPath: iconPath,
-			Excluded: slices.Contains(excludedIDs, app.ID),
+			Mode: string(cfg.ModeFor(app.ID)),
 		})
 	}
 	return out
 }
 
-// applyExcludedApps saves the ignored list and deletes rows that no
-// history entry references.
-func (m *settingsModel) applyExcludedApps(value any) error {
-	ids, ok := value.([]string)
-	if !ok {
-		return i18n.Error(i18n.ErrorInvalidExcludedApps)
+// applySourceAppMode stores one application's mode. Selecting the default
+// removes the rule so only modified applications keep a record.
+func (m *settingsModel) applySourceAppMode(value any) error {
+	selection, ok := value.(macos.SettingsAppSelection)
+	if !ok || selection.ID == "" {
+		return i18n.Error(i18n.ErrorInvalidSourceApp)
 	}
-	ids = dedupeIDs(ids)
-	previous := m.store.Snapshot().Clipboard.Filters.ExcludedAppIDs
-	if err := m.setExcludedApps(ids); err != nil {
-		return err
+	mode := settings.SourceAppMode(selection.Mode)
+	if !settings.IsSourceAppMode(mode) {
+		return i18n.Error(i18n.ErrorInvalidSourceApp)
 	}
-	removed := differenceIDs(previous, ids)
-	if len(removed) == 0 || m.deleteApps == nil {
-		return nil
+	rules := m.store.Snapshot().Clipboard.SourceApps.Rules
+	next := make([]settings.SourceAppRule, 0, len(rules)+1)
+	for _, rule := range rules {
+		if rule.ID != selection.ID {
+			next = append(next, rule)
+		}
 	}
-	if err := m.deleteApps(removed); err != nil {
-		return fmt.Errorf(i18n.T(i18n.ErrorCleanApps), err)
+	// A rule is only needed when it differs from the platform default. This
+	// also lets a password app be explicitly allowed without losing that
+	// choice to the default rule.
+	if mode != settings.DefaultSourceAppMode(selection.ID) {
+		next = append(next, settings.SourceAppRule{ID: selection.ID, Mode: mode})
+		if m.ensureApp != nil {
+			if err := m.ensureApp(selection.ID, selection.Name); err != nil {
+				return err
+			}
+		}
 	}
-	return nil
+	return m.setSourceApps(settings.NormalizeSourceAppRules(next))
 }
 
-// addSourceApp registers a bundle chosen in the native open panel and
-// adds it to the ignored list so the user sees the effect immediately.
-func (m *settingsModel) addSourceApp(path string) error {
-	if m.addApp == nil {
-		return i18n.Error(i18n.ErrorAddAppUnavailable)
-	}
-	app, err := m.addApp(path)
-	if err != nil {
-		return err
-	}
-	ids := append([]string(nil), m.store.Snapshot().Clipboard.Filters.ExcludedAppIDs...)
-	if !slices.Contains(ids, app.ID) {
-		ids = append(ids, app.ID)
-	}
-	return m.setExcludedApps(ids)
-}
-
-func (m *settingsModel) setExcludedApps(ids []string) error {
+func (m *settingsModel) setSourceApps(rules []settings.SourceAppRule) error {
 	return m.update(map[string]any{
 		"clipboard": map[string]any{
-			"filters": map[string]any{"excludedAppIds": ids},
+			"sourceApps": map[string]any{"rules": rules},
 		},
 	})
-}
-
-func dedupeIDs(ids []string) []string {
-	out := make([]string, 0, len(ids))
-	for _, id := range ids {
-		if id != "" && !slices.Contains(out, id) {
-			out = append(out, id)
-		}
-	}
-	return out
-}
-
-func differenceIDs(left, right []string) []string {
-	var out []string
-	for _, id := range left {
-		if !slices.Contains(right, id) {
-			out = append(out, id)
-		}
-	}
-	return out
 }

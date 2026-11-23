@@ -13,15 +13,8 @@ var settingsCommands = map[string]func(*settingsModel, any) error{
 	"settings.reset": func(m *settingsModel, _ any) error {
 		return m.resetSettings()
 	},
-	"apps.refresh": func(*settingsModel, any) error {
-		return nil
-	},
-	"apps.add": func(m *settingsModel, value any) error {
-		text, _ := value.(string)
-		return m.addSourceApp(text)
-	},
-	"filters.excludedAppIds": func(m *settingsModel, value any) error {
-		return m.applyExcludedApps(value)
+	"sourceApps.mode": func(m *settingsModel, value any) error {
+		return m.applySourceAppMode(value)
 	},
 	"shortcuts.openClipboard": func(m *settingsModel, value any) error {
 		return m.applyShortcut("shortcuts.openClipboard", value)

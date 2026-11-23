@@ -35,15 +35,15 @@ func TestSettingsActionChangedRows(t *testing.T) {
 }
 
 func TestSettingsAppsDiff(t *testing.T) {
-	base := []SettingsApp{{ID: "a", Name: "A"}, {ID: "b", Name: "B"}}
-	toggled := []SettingsApp{{ID: "a", Name: "A", Excluded: true}, {ID: "b", Name: "B"}}
+	base := []SettingsApp{{ID: "a", Name: "A", Mode: "allowed"}, {ID: "b", Name: "B", Mode: "allowed"}}
+	toggled := []SettingsApp{{ID: "a", Name: "A", Mode: "blockCapture"}, {ID: "b", Name: "B", Mode: "allowed"}}
 	added := append(append([]SettingsApp(nil), base...), SettingsApp{ID: "c", Name: "C"})
 
 	if settingsAppsEqual(base, toggled) {
-		t.Fatal("excluded change must not compare equal")
+		t.Fatal("mode change must not compare equal")
 	}
 	if !settingsAppsSameIdentity(base, toggled) {
-		t.Fatal("excluded change should keep the same identity")
+		t.Fatal("mode change should keep the same identity")
 	}
 	if settingsAppsSameIdentity(base, added) {
 		t.Fatal("added app should change identity")

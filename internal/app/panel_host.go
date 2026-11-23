@@ -62,7 +62,30 @@ func (h *panelHost) Toggle() {
 		h.Hide()
 		return
 	}
+	if h.wakeBlocked() {
+		return
+	}
 	h.Show()
+}
+
+// wakeBlocked reports whether the app that is frontmost now has been
+// configured to ignore the global shortcut. The check only guards opening the
+// panel; closing an already visible panel still works.
+func (h *panelHost) wakeBlocked() bool {
+	if h.store == nil {
+		return false
+	}
+	front := macos.FrontmostApp()
+	return sourceAppWakeBlocked(h.store.Snapshot().Clipboard, front.BundleID)
+}
+
+// sourceAppWakeBlocked reports whether the shortcut must be ignored for the
+// frontmost application.
+func sourceAppWakeBlocked(cfg settings.Clipboard, bundleID string) bool {
+	if bundleID == "" {
+		return false
+	}
+	return cfg.SourceApps.BlocksWake(bundleID)
 }
 
 func (h *panelHost) Window() *desktop.Window {

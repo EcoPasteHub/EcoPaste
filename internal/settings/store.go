@@ -224,6 +224,7 @@ func validateDecoded(s Settings) error {
 		validateHistory,
 		validateWindow,
 		validateLogging,
+		validateSourceApps,
 	} {
 		if err := validate(s); err != nil {
 			return err
@@ -278,6 +279,23 @@ func validateHistory(s Settings) error {
 		RetentionHours, RetentionDays, RetentionWeeks, RetentionMonths, RetentionForever)
 }
 
+func validateSourceApps(s Settings) error {
+	seen := make(map[string]struct{}, len(s.Clipboard.SourceApps.Rules))
+	for _, rule := range s.Clipboard.SourceApps.Rules {
+		if rule.ID == "" {
+			return errors.New("source app id is empty")
+		}
+		if !IsSourceAppMode(rule.Mode) {
+			return fmt.Errorf("source app %s mode is invalid: %v", rule.ID, rule.Mode)
+		}
+		if _, ok := seen[rule.ID]; ok {
+			return fmt.Errorf("source app %s has more than one rule", rule.ID)
+		}
+		seen[rule.ID] = struct{}{}
+	}
+	return nil
+}
+
 func validateWindow(s Settings) error {
 	if err := validateOneOf("clipboard.window.position", s.Clipboard.Window.Position,
 		PositionRemember, PositionFollowCursor, PositionCenter); err != nil {
@@ -329,6 +347,6 @@ func cloneSettings(src Settings) Settings {
 	dst.Clipboard.Capture.Order = slices.Clone(src.Clipboard.Capture.Order)
 	dst.Clipboard.Content.ItemActions = slices.Clone(src.Clipboard.Content.ItemActions)
 	dst.Clipboard.Content.ItemActionOrder = slices.Clone(src.Clipboard.Content.ItemActionOrder)
-	dst.Clipboard.Filters.ExcludedAppIDs = slices.Clone(src.Clipboard.Filters.ExcludedAppIDs)
+	dst.Clipboard.SourceApps.Rules = slices.Clone(src.Clipboard.SourceApps.Rules)
 	return dst
 }

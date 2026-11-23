@@ -37,8 +37,6 @@ func settingsTargetMethods() []objc.MethodDef {
 		{Cmd: sel("appDidBecomeActive:"), Fn: settingsAppDidBecomeActive},
 		{Cmd: sel("copyDiagnosticsPressed:"), Fn: settingsCopyDiagnosticsPressed},
 		{Cmd: sel("openLogsPressed:"), Fn: settingsOpenLogsPressed},
-		{Cmd: sel("addAppPressed:"), Fn: settingsAddAppPressed},
-		{Cmd: sel("refreshAppsPressed:"), Fn: settingsRefreshAppsPressed},
 		{Cmd: sel("exportBackupPressed:"), Fn: settingsExportBackupPressed},
 		{Cmd: sel("importBackupPressed:"), Fn: settingsImportBackupPressed},
 		{Cmd: sel("updateCheckPressed:"), Fn: settingsUpdateCheckPressed},
@@ -144,18 +142,6 @@ func settingsCopyDiagnosticsPressed(_ objc.ID, _ objc.SEL, sender objc.ID) {
 
 func settingsOpenLogsPressed(_ objc.ID, _ objc.SEL, sender objc.ID) {
 	emitSettingsChange(sender, "logs.open", true)
-}
-
-func settingsAddAppPressed(_ objc.ID, _ objc.SEL, sender objc.ID) {
-	path, ok := OpenApplicationPanel(i18n.T(i18n.SettingsChooseExcludedApp))
-	if !ok {
-		return
-	}
-	emitSettingsChange(sender, "apps.add", path)
-}
-
-func settingsRefreshAppsPressed(_ objc.ID, _ objc.SEL, sender objc.ID) {
-	emitSettingsChange(sender, "apps.refresh", true)
 }
 
 func settingsExportBackupPressed(_ objc.ID, _ objc.SEL, sender objc.ID) {

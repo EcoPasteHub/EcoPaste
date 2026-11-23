@@ -3,7 +3,6 @@ package clipboard
 import (
 	"context"
 	"os"
-	"slices"
 	"strings"
 	"unicode/utf8"
 
@@ -37,7 +36,7 @@ func (s *Service) CaptureDetailed(ctx context.Context, payload Payload, source S
 	if s.Settings != nil {
 		cfg = s.Settings()
 	}
-	if source.ID != "" && slices.Contains(cfg.Filters.ExcludedAppIDs, source.ID) {
+	if source.ID != "" && cfg.SourceApps.BlocksCapture(source.ID) {
 		return "", false, false, nil
 	}
 	item, err := s.buildItem(payload, source, cfg)
