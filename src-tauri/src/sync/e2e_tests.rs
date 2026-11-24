@@ -54,6 +54,11 @@ impl Drop for Fixture {
     }
 }
 
+/// 收发两端同在一个进程、共用同一个时钟，所以发送端的时间戳要比本机已登记的更新才会被接收端采用。
+fn remote_stamp() -> u64 {
+    super::apply::stamp_local_copy() + 1
+}
+
 fn sink_items() -> Vec<ClipboardItem> {
     super::apply::TEST_SINK
         .lock()
@@ -226,7 +231,7 @@ async fn pair_then_sync_text_and_image() {
     )
     .unwrap()
     .unwrap();
-    fx.a.broadcast(item.clone());
+    fx.a.broadcast(item.clone(), remote_stamp());
 
     wait_until(
         "text is applied on the peer",
@@ -274,7 +279,7 @@ async fn pair_then_sync_text_and_image() {
     )
     .unwrap()
     .unwrap();
-    fx.a.broadcast(image_item);
+    fx.a.broadcast(image_item, remote_stamp());
 
     wait_until(
         "image is applied on the peer",
@@ -318,7 +323,7 @@ async fn files_are_pulled_lazily_through_virtual_data_object() {
     )
     .unwrap()
     .unwrap();
-    fx.a.broadcast(item);
+    fx.a.broadcast(item, remote_stamp());
 
     wait_until("file offer arrives", Duration::from_secs(10), || {
         super::remote_files::CAPTURED

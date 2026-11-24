@@ -13,7 +13,7 @@ use sha2::Sha256;
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 
 /// 协议版本；不兼容变更时递增，握手阶段不匹配直接拒绝。
-pub const PROTOCOL_VERSION: u8 = 2;
+pub const PROTOCOL_VERSION: u8 = 3;
 /// 优先监听的固定端口，便于手动输入 IP 连接；被占用时回落到随机端口。
 pub const DEFAULT_PORT: u16 = 52526;
 /// 单帧（密文）上限。大负载由上层分块。
@@ -64,12 +64,15 @@ pub enum Message {
     Pong,
     /// 对端解除配对。
     Unpair,
+    /// `ts` 为复制发生时的逻辑时间戳（毫秒），接收方只采用比本机已知内容更新的一条。
     ClipText {
+        ts: u64,
         plain: String,
         html: Option<String>,
         rtf: Option<String>,
     },
     ImageStart {
+        ts: u64,
         id: u64,
         total: u64,
     },
@@ -82,6 +85,7 @@ pub enum Message {
     },
     /// 文件清单；内容不预传，对端粘贴时再 [`Message::FetchFile`]。
     ClipFiles {
+        ts: u64,
         offer: String,
         entries: Vec<FileEntry>,
     },
@@ -229,6 +233,7 @@ mod tests {
         let mut reader = SecureReader::new(b, &key);
 
         let msg = Message::ClipText {
+            ts: 1,
             plain: "hello".into(),
             html: Some("<b>hello</b>".into()),
             rtf: None,

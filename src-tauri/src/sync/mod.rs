@@ -22,8 +22,8 @@ mod protocol;
 mod remote_files;
 mod session;
 
-pub use apply::supersede_remote_writes;
 pub(crate) use apply::{apply_image_with, apply_text_with, image_limit};
+pub use apply::{is_recent_content, remember_content, stamp_local_copy};
 pub use manager::{text_parts, PairError, PeerStatus, SyncState, SyncStatus};
 pub use pairing::PairingCode;
 pub(crate) use protocol::FileEntry;
@@ -62,7 +62,7 @@ pub(crate) fn present_remote_files(
     offer: &str,
     entries: Vec<FileEntry>,
 ) {
-    remote_files::present(app, state, peer_id, offer, entries);
+    remote_files::present(app, state, peer_id, offer, entries, apply::claim_write());
 }
 
 /// 在 setup 中调用：注册 [`SyncState`]，设置已开启时立即启动。
@@ -99,8 +99,8 @@ pub fn is_remote_files_echo(item: &ClipboardItem) -> bool {
 }
 
 /// 剪贴板监听新入库一条本机复制后调用，推送给已配对设备。
-pub fn broadcast_item(app: &AppHandle, item: &ClipboardItem) {
+pub fn broadcast_item(app: &AppHandle, item: &ClipboardItem, ts: u64) {
     if let Some(state) = app.try_state::<SyncState>() {
-        state.broadcast(item.clone());
+        state.broadcast(item.clone(), ts);
     }
 }

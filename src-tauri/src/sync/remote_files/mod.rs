@@ -99,6 +99,7 @@ pub fn present(
     peer_id: &str,
     offer: &str,
     entries: Vec<FileEntry>,
+    ticket: u64,
 ) {
     remember_offer(&entries);
 
@@ -114,18 +115,11 @@ pub fn present(
     }
 
     #[cfg(target_os = "windows")]
-    windows::present(
-        app,
-        state,
-        peer_id,
-        offer,
-        entries,
-        super::apply::claim_write(),
-    );
+    windows::present(app, state, peer_id, offer, entries, ticket);
 
     #[cfg(not(target_os = "windows"))]
     {
-        let _ = (app, state, offer);
+        let _ = (app, state, offer, ticket);
         log::info!(
             "sync: received {} file entries from {peer_id}; virtual file clipboard is not implemented on this platform yet",
             entries.len()

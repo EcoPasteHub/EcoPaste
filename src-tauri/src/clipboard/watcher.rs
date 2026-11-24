@@ -480,10 +480,17 @@ impl ClipboardChangeHandler {
             log::info!("clipboard watcher: own write-back {short} skipped");
             return;
         }
+
+        // 输入法的跨设备剪贴板同步会把近期内容重放回剪贴板：不是新复制，不入库也不广播。
+        if is_input_method_replay(&item.content_hash) {
+            log::info!("clipboard watcher: {short} replayed by the input method, ignored");
+            return;
+        }
+        crate::sync::remember_content(&item.content_hash);
         log::info!("clipboard watcher: captured {:?} {short}", item.kind);
 
-        // 本机新复制优先：作废仍在重试中的远端写入，避免它们稍后覆盖这次复制。
-        crate::sync::supersede_remote_writes();
+        // 登记本机复制的时间戳：作废仍在重试中的远端写入，并随广播让对端判断谁更新。
+        let stamp = crate::sync::stamp_local_copy();
         let echo = crate::sync::is_remote_files_echo(&item);
 
         let source_app =
@@ -501,13 +508,19 @@ impl ClipboardChangeHandler {
                     log::debug!("clipboard watcher: remote files echoed back, not broadcasting");
                 }
                 Ok(_) => {
-                    crate::sync::broadcast_item(&app, &item);
+                    crate::sync::broadcast_item(&app, &item, stamp);
                     crate::cloud::broadcast_item(&app, &item);
                 }
                 Err(err) => log::error!("clipboard watcher: persist failed: {err}"),
             }
         });
     }
+}
+
+/// 写入方是输入法、且内容就是近期刚出现过的：判定为输入法对剪贴板的重放。
+fn is_input_method_replay(content_hash: &str) -> bool {
+    let from_input_method = super::clipboard_owner_exe().is_some_and(|exe| exe.contains("wetype"));
+    from_input_method && crate::sync::is_recent_content(content_hash)
 }
 
 #[cfg(test)]

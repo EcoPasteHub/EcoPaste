@@ -447,10 +447,10 @@ impl SyncState {
     }
 
     /// 本机新复制了一条内容：按设置推送给所有在线的已配对设备。
-    pub fn broadcast(&self, item: ClipboardItem) {
+    pub fn broadcast(&self, item: ClipboardItem, ts: u64) {
         let inner = self.inner.clone();
         tauri::async_runtime::spawn(async move {
-            if let Err(err) = broadcast_item(&inner, item).await {
+            if let Err(err) = broadcast_item(&inner, item, ts).await {
                 log::warn!("sync: broadcast failed: {err:#}");
             }
         });
@@ -1010,7 +1010,7 @@ async fn run_connection<R, W>(
         }
     });
 
-    let mut images: HashMap<u64, (Vec<u8>, u64)> = HashMap::new();
+    let mut images: HashMap<u64, (Vec<u8>, u64, u64)> = HashMap::new();
     loop {
         let message = tokio::select! {
             _ = stop.changed() => break,
@@ -1051,7 +1051,7 @@ async fn handle_message(
     peer_id: &str,
     tx: &mpsc::Sender<Message>,
     message: Message,
-    images: &mut HashMap<u64, (Vec<u8>, u64)>,
+    images: &mut HashMap<u64, (Vec<u8>, u64, u64)>,
 ) -> bool {
     match message {
         Message::Ping => {
@@ -1064,25 +1064,34 @@ async fn handle_message(
             }
             return false;
         }
-        Message::ClipText { plain, html, rtf } => {
+        Message::ClipText {
+            ts,
+            plain,
+            html,
+            rtf,
+        } => {
             let app = inner.app.clone();
-            let ticket = apply::claim_write();
-            log::info!("sync: received text from {peer_id} (ticket {ticket})");
+            let ticket = apply::accept_remote(ts);
+            log::info!("sync: received text from {peer_id} (ts {ts}, accepted {ticket:?})");
             tauri::async_runtime::spawn(async move {
-                if let Err(err) = apply::apply_text(&app, ticket, plain, html, rtf).await {
+                let result = match ticket {
+                    Some(ticket) => apply::apply_text(&app, ticket, plain, html, rtf).await,
+                    None => apply::apply_text_with(&app, plain, html, rtf, false).await,
+                };
+                if let Err(err) = result {
                     log::warn!("sync: apply text failed: {err:#}");
                 }
             });
         }
-        Message::ImageStart { id, total } => {
+        Message::ImageStart { ts, id, total } => {
             if total > apply::image_limit(&inner.app) {
                 log::info!("sync: image of {total} bytes exceeds the local limit");
                 return true;
             }
-            images.insert(id, (Vec::with_capacity(total as usize), total));
+            images.insert(id, (Vec::with_capacity(total as usize), total, ts));
         }
         Message::ImageChunk { id, data } => {
-            if let Some((buf, total)) = images.get_mut(&id) {
+            if let Some((buf, total, _)) = images.get_mut(&id) {
                 if (buf.len() + data.len()) as u64 > *total {
                     images.remove(&id);
                 } else {
@@ -1091,20 +1100,26 @@ async fn handle_message(
             }
         }
         Message::ImageEnd { id } => {
-            if let Some((png, total)) = images.remove(&id) {
+            if let Some((png, total, ts)) = images.remove(&id) {
                 if png.len() as u64 == total {
                     let app = inner.app.clone();
-                    let ticket = apply::claim_write();
-                    log::info!("sync: received image from {peer_id} (ticket {ticket})");
+                    let ticket = apply::accept_remote(ts);
+                    log::info!(
+                        "sync: received image from {peer_id} (ts {ts}, accepted {ticket:?})"
+                    );
                     tauri::async_runtime::spawn(async move {
-                        if let Err(err) = apply::apply_image(&app, ticket, png).await {
+                        let result = match ticket {
+                            Some(ticket) => apply::apply_image(&app, ticket, png).await,
+                            None => apply::apply_image_with(&app, png, false).await,
+                        };
+                        if let Err(err) = result {
                             log::warn!("sync: apply image failed: {err:#}");
                         }
                     });
                 }
             }
         }
-        Message::ClipFiles { offer, entries } => {
+        Message::ClipFiles { ts, offer, entries } => {
             if !inner
                 .app
                 .state::<SettingsStore>()
@@ -1117,7 +1132,13 @@ async fn handle_message(
             let state = SyncState {
                 inner: inner.clone(),
             };
-            remote_files::present(&inner.app, state, peer_id, &offer, entries);
+            let Some(ticket) = apply::accept_remote(ts) else {
+                log::info!(
+                    "sync: ignored files from {peer_id} older than the local clipboard (ts {ts})"
+                );
+                return true;
+            };
+            remote_files::present(&inner.app, state, peer_id, &offer, entries, ticket);
         }
         Message::FetchFile {
             req,
@@ -1154,7 +1175,7 @@ async fn handle_message(
 }
 
 /// 把本机新复制的条目转换为消息并推送给所有在线设备。
-async fn broadcast_item(inner: &Arc<Inner>, item: ClipboardItem) -> Result<()> {
+async fn broadcast_item(inner: &Arc<Inner>, item: ClipboardItem, ts: u64) -> Result<()> {
     let settings = inner.app.state::<SettingsStore>().snapshot();
     if !settings.sync.enabled || item.is_sensitive {
         return Ok(());
@@ -1173,7 +1194,7 @@ async fn broadcast_item(inner: &Arc<Inner>, item: ClipboardItem) -> Result<()> {
 
     match item.kind {
         ClipboardKind::Text if settings.sync.sync_text => {
-            let message = text_message(&item);
+            let message = text_message(&item, ts);
             for tx in &senders {
                 let _ = tx.send(message.clone()).await;
             }
@@ -1191,6 +1212,7 @@ async fn broadcast_item(inner: &Arc<Inner>, item: ClipboardItem) -> Result<()> {
                 tauri::async_runtime::spawn(async move {
                     if tx
                         .send(Message::ImageStart {
+                            ts,
                             id,
                             total: png.len() as u64,
                         })
@@ -1221,7 +1243,7 @@ async fn broadcast_item(inner: &Arc<Inner>, item: ClipboardItem) -> Result<()> {
             }
             .prepare_files(&item)
             .await?;
-            let message = Message::ClipFiles { offer, entries };
+            let message = Message::ClipFiles { ts, offer, entries };
             for tx in &senders {
                 let _ = tx.send(message.clone()).await;
             }
@@ -1245,9 +1267,10 @@ pub fn text_parts(item: &ClipboardItem) -> (String, Option<String>, Option<Strin
     }
 }
 
-fn text_message(item: &ClipboardItem) -> Message {
+fn text_message(item: &ClipboardItem, ts: u64) -> Message {
     match item.sub_kind {
         Some(ClipboardSubKind::Html) => Message::ClipText {
+            ts,
             plain: item
                 .search_text
                 .clone()
@@ -1256,6 +1279,7 @@ fn text_message(item: &ClipboardItem) -> Message {
             rtf: None,
         },
         Some(ClipboardSubKind::Rtf) => Message::ClipText {
+            ts,
             plain: item
                 .search_text
                 .clone()
@@ -1264,6 +1288,7 @@ fn text_message(item: &ClipboardItem) -> Message {
             rtf: Some(item.content.clone()),
         },
         _ => Message::ClipText {
+            ts,
             plain: item.content.clone(),
             html: None,
             rtf: None,

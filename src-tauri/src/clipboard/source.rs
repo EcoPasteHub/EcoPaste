@@ -36,6 +36,21 @@ pub fn detect_frontmost() -> Option<FrontmostApp> {
     }
 }
 
+/// 当前剪贴板内容的写入方可执行文件名（小写）；取不到或平台不支持时返回 `None`。
+///
+/// 与 [`detect_frontmost`] 不同，它回答的是「谁把这份内容放进剪贴板」，
+/// 用于识别输入法等后台程序对剪贴板的重写。macOS 的 NSPasteboard 不暴露写入方。
+pub fn clipboard_owner_exe() -> Option<String> {
+    #[cfg(target_os = "windows")]
+    {
+        windows::clipboard_owner_exe()
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        None
+    }
+}
+
 #[cfg(target_os = "macos")]
 mod macos {
     use super::{FrontmostApp, Platform};
@@ -95,7 +110,13 @@ mod windows {
     use winapi::um::processthreadsapi::OpenProcess;
     use winapi::um::winbase::QueryFullProcessImageNameW;
     use winapi::um::winnt::PROCESS_QUERY_LIMITED_INFORMATION;
-    use winapi::um::winuser::{GetForegroundWindow, GetWindowThreadProcessId};
+    use winapi::um::winuser::{GetClipboardOwner, GetForegroundWindow, GetWindowThreadProcessId};
+
+    pub(super) fn clipboard_owner_exe() -> Option<String> {
+        let path = unsafe { exe_path_of_window(GetClipboardOwner()) }?;
+        let name = Path::new(&path).file_name()?.to_str()?.to_ascii_lowercase();
+        Some(name)
+    }
 
     pub(super) fn detect() -> Option<FrontmostApp> {
         let exe_path = unsafe { foreground_exe_path() }?;
@@ -117,7 +138,10 @@ mod windows {
     }
 
     unsafe fn foreground_exe_path() -> Option<String> {
-        let hwnd: HWND = GetForegroundWindow();
+        exe_path_of_window(GetForegroundWindow())
+    }
+
+    unsafe fn exe_path_of_window(hwnd: HWND) -> Option<String> {
         if hwnd.is_null() {
             return None;
         }

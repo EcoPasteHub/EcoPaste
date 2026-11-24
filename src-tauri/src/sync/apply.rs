@@ -29,23 +29,87 @@ const WRITE_RETRY_ATTEMPTS: u32 = 40;
 const WRITE_RETRY_MAX_DELAY: std::time::Duration = std::time::Duration::from_millis(500);
 const WRITE_RETRY_BASE: std::time::Duration = std::time::Duration::from_millis(30);
 
-/// 最新一次剪贴板写入意图的序号。远端内容到达时领取新序号，本机发生新复制时也会推进；
-/// 序号已被推进的写入视为过期并放弃，防止剪贴板忙时退避重试的旧内容晚于新内容落地、覆盖新内容。
-static LATEST_WRITE: AtomicU64 = AtomicU64::new(0);
+/// 本机已知最新一条内容（本机复制或已采用的远端内容）的逻辑时间戳，单位毫秒。
+///
+/// 混合逻辑时钟：本机复制取 `max(墙钟, 已知最新 + 1)`，因此看过对端内容之后的复制一定更新；
+/// 对端内容只有时间戳更大才会被采用，较旧的到达不会覆盖较新的剪贴板。
+static LATEST_STAMP: AtomicU64 = AtomicU64::new(0);
 
-/// 为一次远端写入领取序号。
+/// 对端时间戳允许超前本机墙钟的上限，防止时钟错乱的设备把「最新」推到遥远的未来。
+const MAX_FUTURE_SKEW_MS: u64 = 10 * 60 * 1000;
+
+fn wall_clock_ms() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_or(0, |d| d.as_millis() as u64)
+}
+
+/// 取下一个本机时间戳并把它登记为最新。
 pub(crate) fn claim_write() -> u64 {
-    LATEST_WRITE.fetch_add(1, Ordering::SeqCst) + 1
+    let now = wall_clock_ms();
+    let mut current = LATEST_STAMP.load(Ordering::SeqCst);
+
+    loop {
+        let next = now.max(current + 1);
+        match LATEST_STAMP.compare_exchange(current, next, Ordering::SeqCst, Ordering::SeqCst) {
+            Ok(_) => return next,
+            Err(actual) => current = actual,
+        }
+    }
 }
 
-/// 领取 `ticket` 之后是否已有更新的远端内容或本机复制。
-pub(crate) fn is_superseded(ticket: u64) -> bool {
-    LATEST_WRITE.load(Ordering::SeqCst) != ticket
+fn clamp_future(ts: u64, now: u64) -> u64 {
+    ts.min(now + MAX_FUTURE_SKEW_MS)
 }
 
-/// 本机发生了新的复制：作废尚未完成的远端写入。
-pub fn supersede_remote_writes() {
-    LATEST_WRITE.fetch_add(1, Ordering::SeqCst);
+/// 对端内容带着时间戳 `ts` 到达：比本机已知最新更新则登记并返回采用的时间戳，否则返回 `None`。
+pub(crate) fn accept_remote(ts: u64) -> Option<u64> {
+    let ts = clamp_future(ts, wall_clock_ms());
+    let mut current = LATEST_STAMP.load(Ordering::SeqCst);
+
+    loop {
+        if ts <= current {
+            return None;
+        }
+        match LATEST_STAMP.compare_exchange(current, ts, Ordering::SeqCst, Ordering::SeqCst) {
+            Ok(_) => return Some(ts),
+            Err(actual) => current = actual,
+        }
+    }
+}
+
+/// 登记之后是否已有更新的内容（本机新复制或更晚的远端内容）。
+pub(crate) fn is_superseded(stamp: u64) -> bool {
+    LATEST_STAMP.load(Ordering::SeqCst) != stamp
+}
+
+/// 本机发生了新的复制：登记并返回它的时间戳（随广播发出），同时作废尚未完成的远端写入。
+pub fn stamp_local_copy() -> u64 {
+    claim_write()
+}
+
+/// 近期出现在本机剪贴板上的内容哈希（远端写入的与本机复制的）。
+///
+/// 微信输入法的跨设备剪贴板同步会在对端写入后，把这些内容按序重放回本机剪贴板；
+/// 若把重放当作新复制再广播，内容会在两台设备间来回弹跳（A、B 交替互相覆盖）。
+static RECENT_CONTENT: std::sync::Mutex<Vec<(String, std::time::Instant)>> =
+    std::sync::Mutex::new(Vec::new());
+
+/// 重放判定窗口：覆盖输入法经云端往返所需的时间。
+const REPLAY_WINDOW: std::time::Duration = std::time::Duration::from_secs(15);
+
+/// 登记一条刚出现在本机剪贴板上的内容。
+pub fn remember_content(content_hash: &str) {
+    let mut recent = RECENT_CONTENT.lock().expect("recent content poisoned");
+    recent.retain(|(_, at)| at.elapsed() < REPLAY_WINDOW);
+    recent.push((content_hash.to_owned(), std::time::Instant::now()));
+}
+
+/// 该内容近期是否已出现在本机剪贴板上。
+pub fn is_recent_content(content_hash: &str) -> bool {
+    let mut recent = RECENT_CONTENT.lock().expect("recent content poisoned");
+    recent.retain(|(_, at)| at.elapsed() < REPLAY_WINDOW);
+    recent.iter().any(|(hash, _)| hash == content_hash)
 }
 
 /// 本机允许接收的图片字节上限。
@@ -74,8 +138,7 @@ fn seen_recently(hash: &str) -> bool {
     false
 }
 
-/// 局域网收到的文本：`ticket` 须在消息到达时（按到达顺序）用 [`claim_write`] 领取，
-/// 这样并发处理的多条消息仍以到达顺序决定谁是「最新」。
+/// 局域网收到的文本：`ticket` 是 [`accept_remote`] 在消息到达时登记的时间戳。
 pub async fn apply_text(
     app: &AppHandle,
     ticket: u64,
@@ -123,7 +186,7 @@ async fn apply_text_ticketed(
     .await
 }
 
-/// 局域网收到的图片：`ticket` 的领取时机同 [`apply_text`]。
+/// 局域网收到的图片：`ticket` 同 [`apply_text`]。
 pub async fn apply_image(app: &AppHandle, ticket: u64, png: Vec<u8>) -> Result<()> {
     apply_image_ticketed(app, ticket, png, true).await
 }
@@ -187,6 +250,10 @@ async fn apply_payload(
     }
 
     if to_clipboard {
+        if !is_superseded(ticket) {
+            remember_content(&item.content_hash);
+        }
+
         // 写入失败（如剪贴板被长期占用）时仍入历史，用户可从历史面板粘贴。
         if let Err(err) = write_item_with_retry(app, &store, &item, ticket).await {
             log::warn!("sync: writing received item to the clipboard failed: {err:#}");
@@ -239,4 +306,31 @@ fn write_item(app: &AppHandle, store: &ImageStore, item: &ClipboardItem) -> Resu
     let guard = app.state::<Arc<WritebackGuard>>();
     write_to_clipboard_once(store, guard.inner().as_ref(), item, false)?;
     Ok(())
+}
+
+#[cfg(test)]
+mod clock_tests {
+    use super::*;
+
+    #[test]
+    fn newest_stamp_wins_and_older_arrivals_are_rejected() {
+        let local = stamp_local_copy();
+
+        assert_eq!(accept_remote(local), None);
+        assert_eq!(accept_remote(local.saturating_sub(5_000)), None);
+
+        let newer = accept_remote(wall_clock_ms() + 60_000).expect("newer content is accepted");
+        assert!(is_superseded(local));
+        assert!(!is_superseded(newer));
+        assert_eq!(accept_remote(newer), None);
+
+        // 看过对端内容之后的本机复制必然更新。
+        assert!(stamp_local_copy() > newer);
+    }
+
+    #[test]
+    fn far_future_stamps_are_clamped() {
+        assert_eq!(clamp_future(u64::MAX, 1_000), 1_000 + MAX_FUTURE_SKEW_MS);
+        assert_eq!(clamp_future(500, 1_000), 500);
+    }
 }
