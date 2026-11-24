@@ -90,6 +90,9 @@
       "capture": {
         "title": "内容类型"
       },
+      "cloudSync": {
+        "title": "云同步"
+      },
       "control": {
         "title": "系统入口"
       },
@@ -131,6 +134,12 @@
       },
       "source": {
         "title": "应用过滤"
+      },
+      "syncDevices": {
+        "title": "我的设备"
+      },
+      "syncGeneral": {
+        "title": "局域网同步"
       },
       "updates": {
         "title": "更新"
@@ -558,6 +567,29 @@
           "title": "忽略应用"
         }
       },
+      "syncGeneral": {
+        "deviceName": {
+          "description": "其它设备上显示的本机名称，留空使用电脑名称。",
+          "placeholder": "使用电脑名称",
+          "title": "本机名称"
+        },
+        "enabled": {
+          "description": "在同一局域网内的已关联设备之间自动同步剪贴板，数据经加密传输。",
+          "title": "跨设备剪贴板同步"
+        },
+        "files": {
+          "description": "文件不会提前传输，在其它设备粘贴时才会按需拉取。",
+          "title": "同步文件"
+        },
+        "image": {
+          "description": "复制图片后立即同步到其它设备。",
+          "title": "同步图片"
+        },
+        "text": {
+          "description": "同步纯文本、HTML 与 RTF。",
+          "title": "同步文本"
+        }
+      },
       "updates": {
         "autoCheck": {
           "description": "定期检查 EcoPaste 是否有可用的新版本。",
@@ -653,6 +685,9 @@
       "shortcuts": {
         "title": "快捷键"
       },
+      "sync": {
+        "title": "跨设备"
+      },
       "workflow": {
         "title": "界面"
       }
@@ -681,5 +716,67 @@
     "reset": "还原默认目录",
     "resetConfirmContent": "将把当前历史数据库、设置文件和资源缓存迁回默认数据目录，并在迁移成功后删除当前自定义数据目录。",
     "resetConfirmTitle": "还原默认数据目录"
+  },
+  "sync": {
+    "cloud": {
+      "connect": "连接",
+      "description": "连接你自己搭建的 EcoPasteServer，在不同网络的设备之间同步，并保留云端近期历史。",
+      "enable": "启用云同步",
+      "fingerprint": "证书指纹",
+      "loggedInAs": "已登录：{{username}}",
+      "login": "登录",
+      "loginTitle": "登录云同步",
+      "logout": "退出登录",
+      "notLoggedIn": "未登录",
+      "password": "密码",
+      "pull": "拉取最近记录",
+      "pulled": "已拉取 {{count}} 条",
+      "server": "服务器：{{server}}",
+      "serverLabel": "服务器地址",
+      "serverPlaceholder": "例如 203.0.113.5:52530 或 sync.example.com",
+      "state": {
+        "connected": "已连接",
+        "connecting": "连接中",
+        "disconnected": "未连接",
+        "error": "连接失败"
+      },
+      "title": "云同步",
+      "trustAction": "信任并继续",
+      "trustHint": "请与服务器管理程序「概览」页显示的证书指纹逐段核对。一致才点「信任并继续」，之后只接受这张证书。",
+      "trustTitle": "确认服务器证书",
+      "username": "用户名",
+      "warning": "云同步使用 HTTPS 加密传输，但服务器管理员可以看到同步的内容（没有端到端加密）。敏感内容和被排除应用的内容不会上传。"
+    },
+    "devices": {
+      "cancel": "取消",
+      "disabled": "开启上方「跨设备剪贴板同步」后即可关联设备。",
+      "hint": "在同一局域网内的两台设备上，一台点击「查看匹配码」，另一台点击「关联设备」并输入匹配码。",
+      "link": "关联设备",
+      "macos": "macOS",
+      "offline": "离线",
+      "online": "在线",
+      "self": "本机",
+      "showCode": "查看匹配码",
+      "unlink": "解除关联",
+      "unlinkConfirm": "确定解除与「{{name}}」的关联吗？",
+      "windows": "Windows"
+    },
+    "input": {
+      "hint": "请输入另一台设备上「查看匹配码」中显示的 6 位匹配码。",
+      "hostHint": "填写 IP 后再输入匹配码，将直接连接该设备。",
+      "hostLabel": "对方 IP（在对方「查看匹配码」弹窗中显示）",
+      "hostPlaceholder": "例如 192.168.1.20",
+      "manual": "找不到设备？手动输入对方 IP",
+      "title": "关联设备"
+    },
+    "pairing": {
+      "addresses": "本机 IP：{{addresses}}",
+      "expired": "匹配码已过期",
+      "hint": "请在另一台设备的 EcoPaste 中进入「跨设备 → 关联设备」，输入上方匹配码完成关联。",
+      "regenerate": "重新生成",
+      "success": "已与「{{name}}」关联",
+      "title": "本机匹配码",
+      "validFor": "匹配码 {{time}} 内有效"
+    }
   }
 }

@@ -9,8 +9,8 @@
 //! 投递进 Tauri 异步运行时做 sqlx 入库与事件 emit。
 
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
-use std::time::Duration;
+use std::sync::{Arc, Mutex};
+use std::time::{Duration, Instant};
 
 use chrono::Utc;
 use clipboard_rs::{ClipboardHandler, ClipboardWatcher, ClipboardWatcherContext};
@@ -41,11 +41,36 @@ const CLIPBOARD_POLL_INTERVAL: std::time::Duration = std::time::Duration::from_m
 
 /// Another clipboard listener can briefly hold the Windows clipboard open. Retry those read
 /// failures within a bounded window before dropping the update.
-const CLIPBOARD_READ_RETRY_DELAYS: [Duration; 3] = [
+///
+/// 远程桌面类软件（UU 远程、ToDesk 等）会频繁接管剪贴板或使用延迟渲染，读取可能在较长时间内失败，
+/// 所以退避窗口拉长到约 3 秒；等待发生在监听线程上，期间的新变更由事件队列 / 序号补偿兜住。
+const CLIPBOARD_READ_RETRY_DELAYS: [Duration; 8] = [
     Duration::from_millis(15),
     Duration::from_millis(35),
     Duration::from_millis(75),
+    Duration::from_millis(150),
+    Duration::from_millis(300),
+    Duration::from_millis(600),
+    Duration::from_millis(900),
+    Duration::from_millis(1000),
 ];
+
+/// 同一内容在此时间内被再次读到时视为同一次变化，不重复入库与广播。
+///
+/// 读取会触发其它程序的延迟渲染、远程桌面 / 输入法工具也会原样重写剪贴板，这些都会推进剪贴板序号，
+/// 让监听线程与补偿轮询各处理一次；重复处理会消耗写回指纹、把收到的内容当本机复制再广播回去。
+const DUPLICATE_WINDOW: Duration = Duration::from_secs(5);
+
+/// Windows 补偿轮询间隔：个别程序会让 `WM_CLIPBOARDUPDATE` 通知丢失，按剪贴板序号兜底。
+#[cfg(target_os = "windows")]
+const SEQUENCE_POLL_INTERVAL: Duration = Duration::from_millis(700);
+
+/// 剪贴板序号（每次内容变化递增）；用于识别「变化发生了但没收到通知」。
+#[cfg(target_os = "windows")]
+fn clipboard_sequence() -> u32 {
+    // SAFETY: 无参数的只读系统调用。
+    unsafe { windows::Win32::System::DataExchange::GetClipboardSequenceNumber() }
+}
 
 fn read_with_retry<T, E>(
     retry_delays: &[Duration],
@@ -209,6 +234,19 @@ fn spawn_watch_thread(
     registry: AppsRegistry,
     pause: WatcherPause,
 ) {
+    let handled = Handled::default();
+
+    #[cfg(target_os = "windows")]
+    spawn_sequence_poller(
+        handled.clone(),
+        app.clone(),
+        guard.clone(),
+        store.clone(),
+        app_icon_store.clone(),
+        registry.clone(),
+        pause.clone(),
+    );
+
     std::thread::Builder::new()
         .name("clipboard-watcher".to_owned())
         .spawn(move || {
@@ -231,6 +269,7 @@ fn spawn_watch_thread(
                 };
 
             watcher.add_handler(ClipboardChangeHandler {
+                handled,
                 reader,
                 app,
                 guard,
@@ -247,7 +286,93 @@ fn spawn_watch_thread(
         .expect("failed to spawn clipboard watcher thread");
 }
 
+/// Windows 补偿线程：定期比对剪贴板序号，发现「内容变了但监听线程没收到通知」时补处理一次。
+///
+/// 与监听线程共用 [`Handled`]，同一个序号只会被其中一方处理。
+#[cfg(target_os = "windows")]
+fn spawn_sequence_poller(
+    handled: Handled,
+    app: AppHandle,
+    guard: Arc<WritebackGuard>,
+    store: ImageStore,
+    app_icon_store: AppIconStore,
+    registry: AppsRegistry,
+    pause: WatcherPause,
+) {
+    let spawned = std::thread::Builder::new()
+        .name("clipboard-sequence-poller".to_owned())
+        .spawn(move || {
+            let reader = match ClipboardReader::new() {
+                Ok(reader) => reader,
+                Err(err) => {
+                    log::error!("clipboard poller: failed to create reader: {err}");
+                    return;
+                }
+            };
+            let mut handler = ClipboardChangeHandler {
+                handled: handled.clone(),
+                reader,
+                app,
+                guard,
+                store,
+                app_icon_store,
+                registry,
+                pause,
+            };
+
+            // 以启动时的序号为基线，避免把启动前已有的内容当作新复制。
+            {
+                let mut state = handled.lock();
+                if state.sequence == 0 {
+                    state.sequence = clipboard_sequence();
+                }
+            }
+
+            loop {
+                std::thread::sleep(SEQUENCE_POLL_INTERVAL);
+                if handled.lock().sequence != clipboard_sequence() {
+                    log::debug!("clipboard poller: change without notification, handling");
+                    handler.on_clipboard_change();
+                }
+            }
+        });
+    if let Err(err) = spawned {
+        log::error!("failed to spawn clipboard sequence poller: {err}");
+    }
+}
+
+/// 监听线程与补偿轮询线程共用的已处理状态，保证同一次变化只处理一次。
+#[derive(Clone, Default)]
+struct Handled(Arc<Mutex<HandledState>>);
+
+#[derive(Default)]
+struct HandledState {
+    /// 已处理的剪贴板序号。
+    #[cfg(target_os = "windows")]
+    sequence: u32,
+    /// 最近一次读到的内容指纹与读到的时间。
+    content: Option<(String, Instant)>,
+}
+
+impl Handled {
+    fn lock(&self) -> std::sync::MutexGuard<'_, HandledState> {
+        self.0.lock().expect("handled state poisoned")
+    }
+
+    /// 记录本次读到的内容；与上一次读到的内容相同且间隔不超过 [`DUPLICATE_WINDOW`] 时返回 `false`。
+    fn observe_content(&self, content_hash: &str) -> bool {
+        let mut state = self.lock();
+        let repeated = state
+            .content
+            .as_ref()
+            .is_some_and(|(hash, at)| hash == content_hash && at.elapsed() <= DUPLICATE_WINDOW);
+        state.content = Some((content_hash.to_owned(), Instant::now()));
+        !repeated
+    }
+}
+
 struct ClipboardChangeHandler {
+    handled: Handled,
     reader: ClipboardReader,
     app: AppHandle,
     guard: Arc<WritebackGuard>,
@@ -259,6 +384,22 @@ struct ClipboardChangeHandler {
 
 impl ClipboardHandler for ClipboardChangeHandler {
     fn on_clipboard_change(&mut self) {
+        #[cfg(target_os = "windows")]
+        {
+            let current = clipboard_sequence();
+            let mut state = self.handled.lock();
+            if state.sequence == current {
+                return;
+            }
+            state.sequence = current;
+        }
+
+        self.process_change();
+    }
+}
+
+impl ClipboardChangeHandler {
+    fn process_change(&mut self) {
         // 用户从托盘关掉「监听」时直接早退，不读取、不入库、不 emit。
         if self.pause.is_paused() {
             return;
@@ -323,10 +464,34 @@ impl ClipboardHandler for ClipboardChangeHandler {
             }
         };
 
-        // 自身写回触发的变更：跳过入库，避免回环。
-        if self.guard.should_skip(&item.content_hash) {
+        // 先于写回指纹判定：重复读到同一内容不能把指纹消耗掉。
+        let short = item
+            .content_hash
+            .get(..8)
+            .unwrap_or(&item.content_hash)
+            .to_owned();
+        if !self.handled.observe_content(&item.content_hash) {
+            log::info!("clipboard watcher: repeated content {short} ignored");
             return;
         }
+
+        // 自身写回触发的变更：跳过入库，避免回环。
+        if self.guard.should_skip(&item.content_hash) {
+            log::info!("clipboard watcher: own write-back {short} skipped");
+            return;
+        }
+
+        // 输入法的跨设备剪贴板同步会把近期内容重放回剪贴板：不是新复制，不入库也不广播。
+        if is_input_method_replay(&item.content_hash) {
+            log::info!("clipboard watcher: {short} replayed by the input method, ignored");
+            return;
+        }
+        crate::sync::remember_content(&item.content_hash);
+        log::info!("clipboard watcher: captured {:?} {short}", item.kind);
+
+        // 登记本机复制的时间戳：作废仍在重试中的远端写入，并随广播让对端判断谁更新。
+        let stamp = crate::sync::stamp_local_copy();
+        let echo = crate::sync::is_remote_files_echo(&item);
 
         let source_app =
             source.map(|src| materialize_source(&self.app_icon_store, Some(&self.registry), src));
@@ -338,11 +503,24 @@ impl ClipboardHandler for ClipboardChangeHandler {
         let app = self.app.clone();
         tauri::async_runtime::spawn(async move {
             let pool = app.state::<crate::db::DatabaseState>().pool().await;
-            if let Err(err) = persist_and_notify(&app, &pool, &item, source_app.as_ref()).await {
-                log::error!("clipboard watcher: persist failed: {err}");
+            match persist_and_notify(&app, &pool, &item, source_app.as_ref()).await {
+                Ok(_) if echo => {
+                    log::debug!("clipboard watcher: remote files echoed back, not broadcasting");
+                }
+                Ok(_) => {
+                    crate::sync::broadcast_item(&app, &item, stamp);
+                    crate::cloud::broadcast_item(&app, &item);
+                }
+                Err(err) => log::error!("clipboard watcher: persist failed: {err}"),
             }
         });
     }
+}
+
+/// 写入方是输入法、且内容就是近期刚出现过的：判定为输入法对剪贴板的重放。
+fn is_input_method_replay(content_hash: &str) -> bool {
+    let from_input_method = super::clipboard_owner_exe().is_some_and(|exe| exe.contains("wetype"));
+    from_input_method && crate::sync::is_recent_content(content_hash)
 }
 
 #[cfg(test)]
@@ -357,6 +535,27 @@ mod tests {
     use crate::db::test_support::memory_pool;
 
     const ZERO_DELAY_RETRIES: [Duration; 3] = [Duration::ZERO; 3];
+
+    #[test]
+    fn repeated_content_is_observed_once() {
+        let handled = Handled::default();
+
+        assert!(handled.observe_content("a"));
+        assert!(!handled.observe_content("a"));
+        assert!(handled.observe_content("b"));
+        assert!(handled.observe_content("a"));
+    }
+
+    #[test]
+    fn same_content_after_window_is_observed_again() {
+        let handled = Handled::default();
+        assert!(handled.observe_content("a"));
+
+        handled.lock().content = Some(("a".to_owned(), Instant::now() - DUPLICATE_WINDOW));
+        std::thread::sleep(Duration::from_millis(5));
+
+        assert!(handled.observe_content("a"));
+    }
 
     #[test]
     fn clipboard_read_retry_returns_immediate_success() {

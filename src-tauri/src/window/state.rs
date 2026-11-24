@@ -11,12 +11,23 @@ use crate::core::Result;
 
 const STATE_FILENAME: &str = "window-state.json";
 
+/// 低于此尺寸（物理像素）的存档视为无效：最小化 / 隐藏 / 异常退出时窗口可能报告 0×0，
+/// 存下来再恢复就会得到一个看不见的窗口（设置界面「打不开」）。
+const MIN_VALID_SIZE: u32 = 100;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WindowState {
     pub x: i32,
     pub y: i32,
     pub width: u32,
     pub height: u32,
+}
+
+impl WindowState {
+    /// 尺寸是否足以作为可见窗口恢复。
+    pub fn is_usable(&self) -> bool {
+        self.width >= MIN_VALID_SIZE && self.height >= MIN_VALID_SIZE
+    }
 }
 
 pub struct WindowStateStore {
@@ -55,6 +66,10 @@ impl WindowStateStore {
     }
 
     pub fn save(&self, label: &str, state: WindowState) -> Result<()> {
+        if !state.is_usable() {
+            log::debug!("skip saving unusable window state for {label}: {state:?}");
+            return Ok(());
+        }
         let mut states = self.states.lock().unwrap_or_else(|poisoned| {
             log::error!("window state mutex poisoned on save, recovering");
             poisoned.into_inner()
@@ -73,7 +88,7 @@ impl WindowStateStore {
             log::error!("window state mutex poisoned on get, recovering");
             poisoned.into_inner()
         });
-        states.get(label).cloned()
+        states.get(label).filter(|state| state.is_usable()).cloned()
     }
 
     /// 数据目录热切换后重新绑定窗口状态文件，并重新读取新目录里的状态。
@@ -177,4 +192,27 @@ pub fn restore_window_state(app: &AppHandle, label: &str) -> Result<bool> {
     }
 
     Ok(true)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn state(width: u32, height: u32) -> WindowState {
+        WindowState {
+            x: 0,
+            y: 0,
+            width,
+            height,
+        }
+    }
+
+    #[test]
+    fn zero_or_tiny_sizes_are_not_usable() {
+        assert!(!state(0, 0).is_usable());
+        assert!(!state(800, 0).is_usable());
+        assert!(!state(99, 600).is_usable());
+        assert!(state(100, 100).is_usable());
+        assert!(state(1350, 900).is_usable());
+    }
 }

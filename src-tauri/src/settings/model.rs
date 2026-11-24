@@ -19,6 +19,8 @@ pub struct Settings {
     pub clipboard: Clipboard,
     pub onboarding: Onboarding,
     pub update: Update,
+    pub sync: Sync,
+    pub cloud: Cloud,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -40,6 +42,48 @@ impl Default for General {
             run_as_admin: false,
             tray_icon: true,
             dock_icon: false,
+        }
+    }
+}
+
+/// 局域网剪贴板同步设置。配对设备与密钥不放这里，见 `sync::identity`。
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(default, rename_all = "camelCase")]
+pub struct Sync {
+    pub enabled: bool,
+    /// 本机在其它设备上显示的名称；空串表示使用系统主机名。
+    pub device_name: String,
+    pub sync_text: bool,
+    pub sync_image: bool,
+    pub sync_files: bool,
+}
+
+impl Default for Sync {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            device_name: String::new(),
+            sync_text: true,
+            sync_image: true,
+            sync_files: true,
+        }
+    }
+}
+
+/// 云同步设置。服务器地址、证书指纹与令牌不放这里，见 `cloud` 模块的 `state/cloud.json`。
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(default, rename_all = "camelCase")]
+pub struct Cloud {
+    pub enabled: bool,
+    /// 「拉取最近记录」的条数。
+    pub pull_recent: u32,
+}
+
+impl Default for Cloud {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            pull_recent: 50,
         }
     }
 }

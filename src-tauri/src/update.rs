@@ -13,9 +13,11 @@ const UPDATE_PROGRESS_EVENT: &str = "update://progress";
 const STABLE_ENDPOINT_ENV: &str = "ECOPASTE_UPDATE_ENDPOINT";
 const BETA_ENDPOINT_ENV: &str = "ECOPASTE_UPDATE_BETA_ENDPOINT";
 const NIGHTLY_ENDPOINT_ENV: &str = "ECOPASTE_UPDATE_NIGHTLY_ENDPOINT";
-const DEFAULT_STABLE_ENDPOINT: &str = "https://releases.ecopaste.cn/update?channel=stable";
-const DEFAULT_BETA_ENDPOINT: &str = "https://releases.ecopaste.cn/update?channel=beta";
-const DEFAULT_NIGHTLY_ENDPOINT: &str = "https://releases.ecopaste.cn/update?channel=nightly";
+/// 更新清单托管在 GitHub Releases 的最新正式版上；fork 只有一个发布通道，beta / nightly 复用同一清单。
+const DEFAULT_STABLE_ENDPOINT: &str =
+    "https://github.com/ack528/EcoPaste/releases/latest/download/latest.json";
+const DEFAULT_BETA_ENDPOINT: &str = DEFAULT_STABLE_ENDPOINT;
+const DEFAULT_NIGHTLY_ENDPOINT: &str = DEFAULT_STABLE_ENDPOINT;
 const AUTO_CHECK_INITIAL_DELAY_SECONDS: u64 = 8;
 const AUTO_CHECK_SETTINGS_REFRESH_SECONDS: u64 = 60 * 60;
 const AUTO_CHECK_FAILURE_RETRY_SECONDS: u64 = 60 * 60;

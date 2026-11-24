@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.4.0](https://github.com/ack528/EcoPaste/compare/v1.3.5...v1.4.0) (2026-11-23)
+
+### ✨ Features
+
+- LAN sync now orders clipboard content by timestamp: each copy carries a logical timestamp and a device only adopts content newer than what it already has, so older arrivals no longer overwrite newer copies. The sync protocol version is bumped, so both devices must be updated together.
+
+### 🐛 Bug Fixes
+
+- Stop clipboard content bouncing between devices when an input method with cross-device clipboard sync (such as WeType) replays recent items: replays from the input method are ignored instead of being re-broadcast.
+- Stop synced items from overwriting newer copies, and stop remote files echoed back by other apps from being re-broadcast.
+
+## [1.3.5](https://github.com/ack528/EcoPaste/compare/v1.3.4...v1.3.5) (2026-11-19)
+
+### 🐛 Bug Fixes
+
+- Keep Windows cross-device file pastes running when the sender copies new content. Each paste reads through its own stream, so multiple pastes can proceed independently.
+
 ## [1.1.0](https://github.com/EcoPasteHub/EcoPaste/compare/v1.0.0...v1.1.0) (2026-07-22)
 
 ### ✨ Features

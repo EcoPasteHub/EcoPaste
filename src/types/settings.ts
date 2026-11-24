@@ -205,6 +205,27 @@ export interface Update {
   skippedVersion: string | null;
 }
 
+export interface Sync {
+  deviceName: string;
+  enabled: boolean;
+  syncFiles: boolean;
+  syncImage: boolean;
+  syncText: boolean;
+}
+
+export interface Sync {
+  deviceName: string;
+  enabled: boolean;
+  syncFiles: boolean;
+  syncImage: boolean;
+  syncText: boolean;
+}
+
+export interface Cloud {
+  enabled: boolean;
+  pullRecent: number;
+}
+
 export interface Settings {
   general: General;
   appearance: Appearance;
@@ -212,6 +233,8 @@ export interface Settings {
   clipboard: Clipboard;
   onboarding: Onboarding;
   update: Update;
+  sync: Sync;
+  cloud: Cloud;
 }
 
 /**

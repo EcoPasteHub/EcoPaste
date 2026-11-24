@@ -17,6 +17,8 @@ import { translatePreferenceSection } from "../utils/preferenceI18n";
 import PreferenceCountTag from "./PreferenceCountTag";
 import PreferenceSettingRow from "./PreferenceSettingRow";
 import SourceAppsTransfer from "./SourceAppsTransfer";
+import CloudSyncPanel from "./sync/CloudSyncPanel";
+import SyncDevicesPanel from "./sync/SyncDevicesPanel";
 
 interface PreferenceSectionProps {
   highlightedSettingId: string | null;
@@ -102,12 +104,16 @@ const PreferenceSection: FC<PreferenceSectionProps> = (props) => {
           </div>
         </div>
 
-        <PreferenceCountTag>
-          {t("common:units.items", { count: section.settings.length })}
-        </PreferenceCountTag>
+        {section.settings.length > 0 && (
+          <PreferenceCountTag>
+            {t("common:units.items", { count: section.settings.length })}
+          </PreferenceCountTag>
+        )}
       </div>
 
       <div>
+        {section.id === "syncDevices" && <SyncDevicesPanel />}
+        {section.id === "cloudSync" && <CloudSyncPanel />}
         {section.settings.map((setting) => {
           return (
             <PreferenceSettingRow
@@ -135,6 +141,12 @@ export default PreferenceSection;
  */
 function resolveSectionVisual(id: string): SectionVisual {
   const normalizedId = id.toLowerCase();
+
+  if (normalizedId.includes("sync")) {
+    return {
+      icon: "i-lucide:monitor-smartphone",
+    };
+  }
 
   if (normalizedId.includes("about")) {
     return {

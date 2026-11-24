@@ -27,6 +27,15 @@ pub struct SettingsStore {
 }
 
 impl SettingsStore {
+    /// 测试用：指向任意文件的设置存储，避免触碰真实用户配置。
+    #[cfg(test)]
+    pub fn for_test(path: PathBuf) -> Self {
+        Self {
+            path: RwLock::new(path),
+            current: RwLock::new(Settings::default()),
+        }
+    }
+
     pub fn new(app: &AppHandle) -> Result<Self> {
         let dir = crate::core::paths::config_dir(app)?;
         fs::create_dir_all(&dir).with_context(|| format!("failed to create dir at {dir:?}"))?;

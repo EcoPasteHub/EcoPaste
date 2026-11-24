@@ -1,0 +1,9 @@
+{"_example": "Fill with {\"file\": \"<path>\", \"reason\": \"<why>\"}. Put spec/research files only — no code paths. Run `python3 .trellis/scripts/get_context.py --mode packages` to list available specs. Delete this line once real entries are added."}
+{"file": ".trellis/spec/backend/index.md", "reason": "Review against backend spec"}
+{"file": ".trellis/spec/backend/architecture.md", "reason": "Review against backend spec"}
+{"file": ".trellis/spec/backend/commands-and-events.md", "reason": "Review against backend spec"}
+{"file": ".trellis/spec/backend/clipboard-pipeline.md", "reason": "Review against backend spec"}
+{"file": ".trellis/spec/backend/settings-window-platform.md", "reason": "Review against backend spec"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Review against frontend spec"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Review against frontend spec"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "Review against frontend spec"}

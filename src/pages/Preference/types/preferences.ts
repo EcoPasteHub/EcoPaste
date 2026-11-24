@@ -5,6 +5,7 @@ export type PreferenceTabId =
   | "organize"
   | "reuse"
   | "workflow"
+  | "sync"
   | "shortcuts"
   | "data"
   | "about";

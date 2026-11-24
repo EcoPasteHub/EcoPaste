@@ -40,7 +40,7 @@
   },
   "bundle": {
     "active": true,
-    "copyright": "Copyright 2026 ayangweb",
+    "copyright": "Copyright 2026 ayangweb, ack528",
     "createUpdaterArtifacts": true,
     "fileAssociations": [
       {
@@ -64,6 +64,7 @@
     ],
     "license": "Apache-2.0",
     "licenseFile": "../LICENSE",
+    "publisher": "ack528",
     "resources": ["assets/tray.ico"],
     "shortDescription": "EcoPaste",
     "targets": ["nsis", "dmg", "app"]
@@ -72,8 +73,10 @@
   "plugins": {
     "updater": {
       "active": true,
-      "endpoints": ["https://releases.ecopaste.cn/update?channel=stable"],
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDIwMzUzRkJCQUI3NjY4RgpSV1NQWnJlNisxTURBbFE2WWJpUlBJR0x0OXJOclVuUGlVYVhoNjJPZitYN0Q4V05GeW1aU2w0Zwo=",
+      "endpoints": [
+        "https://github.com/ack528/EcoPaste/releases/latest/download/latest.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDYzNjg2N0NBNURBRUQ0MjUKUldRbDFLNWR5bWRvWS9HN2s2eDRLMHVwSmtISVpHb1Z4ZTY2OS9vTnBTMWh3NDJxYjlqRTVEYmkK",
       "windows": {
         "installMode": "passive"
       }

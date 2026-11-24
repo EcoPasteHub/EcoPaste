@@ -1478,3 +1478,172 @@ export const hideContextMenus = async () => {
     log.error("hide context menus failed", toAppError(error));
   }
 };
+
+export interface SyncPeer {
+  id: string;
+  name: string;
+  online: boolean;
+  pairedAt: string;
+  platform: "macos" | "windows";
+}
+
+export interface SyncPairingCode {
+  code: string;
+  /** Unix 毫秒。 */
+  expiresAt: number;
+}
+
+export interface SyncStatus {
+  /** 本机可供手动连接的地址。 */
+  addresses: string[];
+  deviceId: string;
+  deviceName: string;
+  enabled: boolean;
+  pairing: SyncPairingCode | null;
+  peers: SyncPeer[];
+  platform: "macos" | "windows";
+  running: boolean;
+}
+
+export type CloudLinkState =
+  | "connected"
+  | "connecting"
+  | "disconnected"
+  | "error";
+
+export interface CloudStatus {
+  enabled: boolean;
+  error: string | null;
+  fingerprint: string;
+  loggedIn: boolean;
+  serverUrl: string;
+  state: CloudLinkState;
+  username: string;
+}
+
+export interface CloudProbeResult {
+  fingerprint: string;
+  serverUrl: string;
+}
+
+export interface SyncPairingEvent {
+  peer: string | null;
+  state: "expired" | "failed" | "success";
+}
+
+/**
+ * 读取跨设备同步状态：本机信息、已配对设备与当前配对码。
+ */
+export const syncGetStatus = () => {
+  return call<SyncStatus>(
+    TAURI_COMMAND.SYNC_GET_STATUS,
+    "commands:labels.loadSyncStatus",
+  );
+};
+
+/**
+ * 生成 6 位匹配码，等待另一台设备输入。
+ */
+export const syncStartPairing = () => {
+  return call<SyncPairingCode>(
+    TAURI_COMMAND.SYNC_START_PAIRING,
+    "commands:labels.startSyncPairing",
+  );
+};
+
+/**
+ * 取消当前展示的匹配码。
+ */
+export const syncCancelPairing = () => {
+  return call<void>(
+    TAURI_COMMAND.SYNC_CANCEL_PAIRING,
+    "commands:labels.cancelSyncPairing",
+  );
+};
+
+/**
+ * 输入另一台设备展示的 6 位匹配码完成关联。
+ */
+export const syncPairWithCode = (code: string, host?: string) => {
+  return call<SyncPeer>(
+    TAURI_COMMAND.SYNC_PAIR_WITH_CODE,
+    "commands:labels.pairSyncDevice",
+    { code, host },
+  );
+};
+
+/**
+ * 重命名已关联设备。
+ */
+export const syncRenamePeer = (id: string, name: string) => {
+  return call<void>(
+    TAURI_COMMAND.SYNC_RENAME_PEER,
+    "commands:labels.renameSyncDevice",
+    { id, name },
+  );
+};
+
+/**
+ * 解除与某台设备的关联。
+ */
+export const syncRemovePeer = (id: string) => {
+  return call<void>(
+    TAURI_COMMAND.SYNC_REMOVE_PEER,
+    "commands:labels.removeSyncDevice",
+    { id },
+  );
+};
+
+/**
+ * 读取云同步状态：登录信息与连接状态。
+ */
+export const cloudGetStatus = () => {
+  return call<CloudStatus>(
+    TAURI_COMMAND.CLOUD_GET_STATUS,
+    "commands:labels.loadCloudStatus",
+  );
+};
+
+/**
+ * 连接服务器并读取其证书指纹，供用户核对后确认。
+ */
+export const cloudProbe = (serverUrl: string) => {
+  return call<CloudProbeResult>(
+    TAURI_COMMAND.CLOUD_PROBE,
+    "commands:labels.probeCloudServer",
+    { serverUrl },
+  );
+};
+
+/**
+ * 用已确认的证书指纹登录云同步服务器。
+ */
+export const cloudLogin = (input: {
+  fingerprint: string;
+  password: string;
+  serverUrl: string;
+  username: string;
+}) => {
+  return call<CloudStatus>(
+    TAURI_COMMAND.CLOUD_LOGIN,
+    "commands:labels.loginCloud",
+    input,
+  );
+};
+
+/**
+ * 退出云同步登录。
+ */
+export const cloudLogout = () => {
+  return call<void>(TAURI_COMMAND.CLOUD_LOGOUT, "commands:labels.logoutCloud");
+};
+
+/**
+ * 拉取云端近期的文本 / 图片到本机历史，返回条数。
+ */
+export const cloudPullRecent = () => {
+  return call<number>(
+    TAURI_COMMAND.CLOUD_PULL_RECENT,
+    "commands:labels.pullCloudHistory",
+  );
+};

@@ -24,7 +24,7 @@ use crate::window::CLIPBOARD_WINDOW_LABEL;
 use crate::window::{self, PREFERENCE_WINDOW_LABEL};
 
 const TRAY_ID: &str = "app-tray";
-const GITHUB_URL: &str = "https://github.com/EcoPasteHub/EcoPaste";
+const GITHUB_URL: &str = "https://github.com/ack528/EcoPaste";
 
 const MENU_PREFERENCE: &str = "tray::preference";
 const MENU_TOGGLE_LISTEN: &str = "tray::toggle_listen";

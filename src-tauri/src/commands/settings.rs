@@ -69,6 +69,8 @@ pub async fn update_settings(app: AppHandle, patch: serde_json::Value) -> Result
         admin::sync_scheduled_task(next.general.run_as_admin);
     }
 
+    crate::sync::apply_settings(&app);
+    crate::cloud::apply_settings(&app);
     emit_settings_updated(&app, &next);
 
     Ok(next)
@@ -80,6 +82,8 @@ pub async fn reset_settings(app: AppHandle) -> Result<Settings> {
     let next = app.state::<SettingsStore>().reset()?;
 
     apply_reset_side_effects(&app, &next);
+    crate::sync::apply_settings(&app);
+    crate::cloud::apply_settings(&app);
     emit_settings_updated(&app, &next);
 
     Ok(next)

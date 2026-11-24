@@ -765,6 +765,82 @@ export const preferenceTabs: PreferenceTab[] = [
     ],
   },
   {
+    icon: "i-lucide:monitor-smartphone",
+    id: "sync",
+    sections: [
+      {
+        id: "syncGeneral",
+        settings: [
+          {
+            control: { type: "switch" },
+            id: "syncGeneral.enabled",
+            keywords: ["sync", "lan", "device", "cross"],
+            path: ["sync", "enabled"],
+            value: (settings) => {
+              return settings.sync.enabled;
+            },
+          },
+          {
+            control: { type: "text" },
+            disabledWhen: (settings) => {
+              return !settings.sync.enabled;
+            },
+            id: "syncGeneral.deviceName",
+            keywords: ["name", "device", "hostname"],
+            path: ["sync", "deviceName"],
+            value: (settings) => {
+              return settings.sync.deviceName;
+            },
+          },
+          {
+            control: { type: "switch" },
+            disabledWhen: (settings) => {
+              return !settings.sync.enabled;
+            },
+            id: "syncGeneral.text",
+            keywords: ["text", "html", "rtf", "sync"],
+            path: ["sync", "syncText"],
+            value: (settings) => {
+              return settings.sync.syncText;
+            },
+          },
+          {
+            control: { type: "switch" },
+            disabledWhen: (settings) => {
+              return !settings.sync.enabled;
+            },
+            id: "syncGeneral.image",
+            keywords: ["image", "picture", "sync"],
+            path: ["sync", "syncImage"],
+            value: (settings) => {
+              return settings.sync.syncImage;
+            },
+          },
+          {
+            control: { type: "switch" },
+            disabledWhen: (settings) => {
+              return !settings.sync.enabled;
+            },
+            id: "syncGeneral.files",
+            keywords: ["file", "folder", "sync"],
+            path: ["sync", "syncFiles"],
+            value: (settings) => {
+              return settings.sync.syncFiles;
+            },
+          },
+        ],
+      },
+      {
+        id: "syncDevices",
+        settings: [],
+      },
+      {
+        id: "cloudSync",
+        settings: [],
+      },
+    ],
+  },
+  {
     icon: "i-lucide:database",
     id: "data",
     sections: [

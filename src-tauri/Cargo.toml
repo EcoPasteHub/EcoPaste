@@ -1,11 +1,11 @@
 [package]
 name = "EcoPaste"
-version = "1.1.0"
+version = "1.4.0"
 description = "A local-first clipboard manager for macOS and Windows."
-authors = ["ayangweb"]
+authors = ["ack528"]
 license = "Apache-2.0"
-homepage = "https://github.com/EcoPasteHub/EcoPaste"
-repository = "https://github.com/EcoPasteHub/EcoPaste"
+homepage = "https://github.com/ack528/EcoPaste"
+repository = "https://github.com/ack528/EcoPaste"
 readme = "../README.md"
 publish = false
 edition = "2021"
@@ -36,7 +36,7 @@ blake3 = "1"
 clipboard-rs = "0.3"
 uuid = { version = "1", features = ["v4"] }
 regex = "1"
-tokio = { version = "1", features = ["time"] }
+tokio = { version = "1", features = ["time", "net", "io-util", "sync", "fs", "rt-multi-thread", "macros"] }
 tauri-plugin-global-shortcut = "2"
 tauri-plugin-single-instance = "2"
 tauri-plugin-opener = "2"
@@ -58,6 +58,19 @@ chacha20poly1305 = { version = "0.10", features = ["std"] }
 rand = "0.8"
 zeroize = "1"
 url = "2"
+mdns-sd = "0.13"
+if-addrs = "0.13"
+spake2 = "0.4"
+hkdf = "0.12"
+sha2 = "0.10"
+hmac = "0.12"
+postcard = { version = "1", features = ["use-std"] }
+subtle = "2"
+tokio-tungstenite = { version = "0.30", default-features = false, features = ["connect", "rustls-tls-webpki-roots"] }
+reqwest = { version = "0.13", default-features = false, features = ["rustls-no-provider", "json"] }
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
+base64 = "0.22"
+futures-util = "0.3"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 core-graphics = "0.25"
@@ -81,6 +94,9 @@ winapi = { version = "0.3", features = [
 windows-registry = "0.6"
 windows-result = "0.4"
 windows = { version = "0.52", features = [
+    "implement",
+    "Win32_Graphics_Gdi",
+    "Win32_System_Com_StructuredStorage",
     "Win32_Foundation",
     "Win32_Security",
     "Win32_System_Com",

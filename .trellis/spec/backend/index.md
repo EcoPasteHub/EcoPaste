@@ -13,6 +13,8 @@ window placement, or OS-specific side effects.
 | [Clipboard Pipeline](./clipboard-pipeline.md) | Clipboard capture, content typing, writeback, source apps, preview/list payloads |
 | [Database and Storage](./database-and-storage.md) | SQLite schema, repositories, FTS search, backups, data directory changes |
 | [Settings, Windowing, and Platform](./settings-window-platform.md) | Settings model, shortcuts, tray, autostart, window lifecycle, macOS/Windows code |
+| [Cloud Sync](./cloud-sync.md) | Self-hosted server client: pinned TLS, login, realtime items, history, file relay |
+| [LAN Clipboard Sync](./lan-sync.md) | Pairing, sync wire protocol, discovery, virtual-file paste, what is sent to peers |
 
 ## Layer Map
 
@@ -25,6 +27,7 @@ window placement, or OS-specific side effects.
 | `src-tauri/src/window/` | Window labels, geometry, lifecycle, preview positioning, platform show/hide |
 | `src-tauri/src/shortcut/`, `keyboard/`, `mouse/`, `keystroke/` | OS shortcuts, Windows navigation hooks, paste simulation |
 | `src-tauri/src/tray/`, `menu/`, `autostart/` | Native tray/menu/autostart integration |
+| `src-tauri/src/sync/`, `commands/sync.rs` | LAN clipboard sync: mDNS discovery, code pairing, encrypted sessions, virtual files |
 | `src-tauri/src/backup/`, `commands/storage.rs`, `core/paths.rs` | Backup containers, hot data directory switching, persistent path roots |
 
 ## Default Rule

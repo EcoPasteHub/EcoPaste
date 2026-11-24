@@ -25,6 +25,17 @@ pub enum CommandKey {
     DragImageMissing,
     DragTextEmpty,
     ExternalUrlUnsupported,
+    SyncNotRunning,
+    SyncNoDevice,
+    SyncCodeInvalid,
+    SyncAddressInvalid,
+    SyncUnreachable,
+    CloudUnreachable,
+    CloudPinMismatch,
+    CloudBadCredentials,
+    CloudLocked,
+    CloudNotSignedIn,
+    CloudBadAddress,
 }
 
 #[derive(Debug, Clone, Copy)]

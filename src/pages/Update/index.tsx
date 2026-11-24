@@ -362,7 +362,7 @@ function resolveProgressPercent(
 function resolveReleaseNotesUrl(version: string) {
   const tag = version.startsWith("v") ? version : `v${version}`;
 
-  return `https://github.com/EcoPasteHub/EcoPaste/releases/tag/${tag}`;
+  return `https://github.com/ack528/EcoPaste/releases/tag/${tag}`;
 }
 
 function formatBytes(value: number) {
