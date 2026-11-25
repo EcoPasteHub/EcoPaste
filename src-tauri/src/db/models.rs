@@ -262,4 +262,7 @@ pub struct ClipboardItemPage {
     pub list: Vec<ClipboardItem>,
     pub total: i64,
     pub has_more: bool,
+    /// 列表数据版本号（见 `db::list_index::revision`）。前端据此判断
+    /// 「本次返回与上次完全一致」，数据未变时跳过 setState，省掉打开窗口时的一次整页重渲染。
+    pub revision: u64,
 }

@@ -1,6 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { listClipboardItems } from "@/commands";
-import type { ClipboardItem, ClipboardItemQuery } from "@/types/clipboard";
+import { TAURI_EVENT } from "@/constants/events";
+import { useTauriListen } from "@/hooks/useTauriListen";
+import type {
+  ClipboardItem,
+  ClipboardItemPage,
+  ClipboardItemQuery,
+  ClipboardPageReadyPayload,
+} from "@/types/clipboard";
+import { isDev } from "@/utils/is";
+import { log } from "@/utils/log";
+import { settleClipboardOpen } from "@/utils/openLatency";
 
 /**
  * 后端分页大小。保持略大于一屏的原有取值，range cache 以此对齐请求边界。
@@ -25,12 +35,32 @@ interface FetchRangeOptions {
  * 剪贴板列表 range cache：Rust 仍是查询、排序、搜索和 payload 裁剪的唯一真相；
  * 前端只按 Virtuoso 的可视范围缓存少量已加载行，避免无限滚动后持有完整列表。
  */
-export const useClipboardItems = (query: ClipboardItemQuery) => {
+interface UseClipboardItemsOptions {
+  /**
+   * 隐藏期预热页是否可被采纳。列表离开顶部时返回 false ——
+   * 换掉整页会打乱用户当前浏览位置，那种情况留给打开时的正常刷新。
+   */
+  canAdoptReadyPage?: () => boolean;
+  /**
+   * 采纳回调：调用方据此认定「隐藏期那次刷新已经完成」，
+   * 打开窗口时不必再补一次 reload。
+   */
+  onReadyPageAdopted?: () => void;
+}
+
+export const useClipboardItems = (
+  query: ClipboardItemQuery,
+  options?: UseClipboardItemsOptions,
+) => {
   const queryRef = useRef(query);
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
 
   const requestTokenRef = useRef(0);
   const itemsRef = useRef(new Map<number, ClipboardItem>());
   const totalRef = useRef(0);
+  /** 上一次提交到 state 的数据版本号；与后端返回一致时说明内容未变，可跳过 setState。 */
+  const revisionRef = useRef(-1);
   const loadingRangesRef = useRef<ClipboardItemsRange[]>([]);
   const loadedInitialRef = useRef(false);
   const viewRangeRef = useRef<ClipboardItemsRange>({
@@ -76,6 +106,36 @@ export const useClipboardItems = (query: ClipboardItemQuery) => {
     setLoadingRangeCount(loadingRangesRef.current.length);
   }, []);
 
+  /**
+   * 采纳 Rust 隐藏期算好的整页：直接替换本地镜像，作废在途请求。
+   * 数据版本号同步推进，随后打开窗口时那次刷新会因版本一致而退化为 no-op。
+   */
+  const adoptReadyPage = useCallback(
+    (page: ClipboardItemPage) => {
+      const nextTotal = Math.max(0, page.total);
+      const nextItems = new Map<number, ClipboardItem>();
+      page.list.forEach((item, offset) => {
+        if (offset < nextTotal) nextItems.set(offset, item);
+      });
+
+      // 在途请求此刻已经过期：它们的 token 被作废，回来不会覆盖这份更新的整页。
+      requestTokenRef.current += 1;
+      resetLoadingRanges();
+
+      viewRangeRef.current = {
+        end: Math.max(PAGE_SIZE - 1, page.list.length - 1),
+        start: 0,
+      };
+
+      commitItems(nextItems);
+      commitTotal(nextTotal);
+      commitLoadedInitial(true);
+      revisionRef.current = page.revision;
+      setLoading(false);
+    },
+    [commitItems, commitLoadedInitial, commitTotal, resetLoadingRanges],
+  );
+
   const fetchRange = useCallback(
     async (
       rawStartIndex: number,
@@ -97,6 +157,8 @@ export const useClipboardItems = (query: ClipboardItemQuery) => {
 
       addLoadingRange(range);
 
+      const startedAt = isDev ? performance.now() : 0;
+
       try {
         const page = await listClipboardItems({
           ...queryRef.current,
@@ -106,7 +168,27 @@ export const useClipboardItems = (query: ClipboardItemQuery) => {
 
         if (options.token !== requestTokenRef.current) return;
 
+        const requestMs = isDev ? performance.now() - startedAt : 0;
         const nextTotal = Math.max(0, page.total);
+
+        // 数据版本号一致 + 该区间已完整加载 + 总数未变 → 这一页与屏幕上完全相同，
+        // 不必重建 Map、也不必 setState（打开窗口时常见：这次刷新其实没有新内容）。
+        if (
+          page.revision === revisionRef.current &&
+          nextTotal === totalRef.current &&
+          isRangeLoaded(itemsRef.current, range)
+        ) {
+          if (isDev) {
+            log.debug("clipboard list ipc (no-op)", {
+              requestMs: Math.round(requestMs * 10) / 10,
+              revision: page.revision,
+            });
+          }
+          commitLoadedInitial(true);
+          settleClipboardOpen("noop");
+          return;
+        }
+
         const nextItems = options.replace
           ? new Map<number, ClipboardItem>()
           : new Map(itemsRef.current);
@@ -120,6 +202,17 @@ export const useClipboardItems = (query: ClipboardItemQuery) => {
         commitItems(nextItems);
         commitTotal(nextTotal);
         commitLoadedInitial(true);
+        revisionRef.current = page.revision;
+
+        if (isDev) {
+          log.debug("clipboard list ipc", {
+            items: page.list.length,
+            offset: range.start,
+            requestMs: Math.round(requestMs * 10) / 10,
+            revision: page.revision,
+          });
+        }
+        settleClipboardOpen("reload");
       } catch {
         // 命令包装层已统一 log + toast；这里只避免初始请求失败后卡在 loading。
         if (
@@ -300,6 +393,30 @@ export const useClipboardItems = (query: ClipboardItemQuery) => {
     [commitItems, getItemIndexById],
   );
 
+  // 窗口不可见时 Rust 已经把最新的第一页算好并推过来：直接采纳，
+  // 打开窗口的那一刻列表就是最新内容，省掉那次跨进程往返。
+  useTauriListen<ClipboardPageReadyPayload>(
+    TAURI_EVENT.CLIPBOARD_PAGE_READY,
+    ({ payload }) => {
+      const page = payload?.page;
+      if (!page) return;
+      if (!isSameQuery(payload.query, queryRef.current)) return;
+      // 不比已提交的版本新：内容没变，采纳只会白跑一次重渲染。
+      if (page.revision <= revisionRef.current) return;
+      if (optionsRef.current?.canAdoptReadyPage?.() === false) return;
+
+      adoptReadyPage(page);
+      optionsRef.current?.onReadyPageAdopted?.();
+
+      if (isDev) {
+        log.debug("clipboard list prewarmed page adopted", {
+          items: page.list.length,
+          revision: page.revision,
+        });
+      }
+    },
+  );
+
   useEffect(() => {
     queryRef.current = {
       favorite: query.favorite,
@@ -337,6 +454,31 @@ export const useClipboardItems = (query: ClipboardItemQuery) => {
     total,
   };
 };
+
+/**
+ * 过滤条件指纹：只比较影响结果集的字段（忽略 limit/offset 这类视窗参数），
+ * `undefined` / `null` / 空白关键字统一归一，避免前后端序列化差异导致误判。
+ */
+function normalizeQueryKey(query: ClipboardItemQuery) {
+  return {
+    favorite: query.favorite ?? null,
+    group: query.group ?? null,
+    groupId: query.groupId ?? null,
+    keyword: query.keyword?.trim() || null,
+    kind: query.kind ?? null,
+    pinned: query.pinned ?? null,
+    sort: query.sort ?? null,
+  };
+}
+
+function isSameQuery(a: ClipboardItemQuery, b: ClipboardItemQuery) {
+  const left = normalizeQueryKey(a);
+  const right = normalizeQueryKey(b);
+
+  return (Object.keys(left) as Array<keyof typeof left>).every((key) => {
+    return left[key] === right[key];
+  });
+}
 
 function normalizeFetchRange(
   rawStartIndex: number,

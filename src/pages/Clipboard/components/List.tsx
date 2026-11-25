@@ -53,7 +53,12 @@ import type {
 } from "@/types/clipboard";
 import type { ItemAction } from "@/types/settings";
 import { cn } from "@/utils/cn";
-import { isMac } from "@/utils/is";
+import { isDev, isMac } from "@/utils/is";
+import { log } from "@/utils/log";
+import {
+  markClipboardWindowShown,
+  settleClipboardOpen,
+} from "@/utils/openLatency";
 import type { WindowVisibilityPayload } from "../hooks/previewController";
 import {
   isSpaceKey,
@@ -98,6 +103,8 @@ const List: FC = () => {
   const keywordRef = useRef("");
   const reloadCurrentRangeRef = useRef<() => void>(() => {});
   const deferredReloadRef = useRef(false);
+  // 隐藏期 Rust 推来的整页已被采纳：打开时 state 里就是最新内容，不必再 reload。
+  const adoptedReadyPageRef = useRef(false);
   // 剪贴板窗口启动即隐藏，初值取 false；首个 `window://visibility` show 事件会翻正。
   // dormant（隐藏）期间到达的剪贴板更新一律延后，不 reload 隐藏窗口。
   const clipboardWindowVisibleRef = useRef(false);
@@ -132,13 +139,24 @@ const List: FC = () => {
     reloadCurrentRange,
     removeItemById,
     total,
-  } = useClipboardItems({
-    favorite: range === "favorite" ? true : void 0,
-    groupId: groupId ?? void 0,
-    keyword,
-    kind: category ?? void 0,
-    sort,
-  });
+  } = useClipboardItems(
+    {
+      favorite: range === "favorite" ? true : void 0,
+      groupId: groupId ?? void 0,
+      keyword,
+      kind: category ?? void 0,
+      sort,
+    },
+    {
+      // 只有位于顶部时才敢整页替换：否则会打乱用户当前浏览的位置。
+      canAdoptReadyPage: () => isAtTopRef.current,
+      onReadyPageAdopted: () => {
+        adoptedReadyPageRef.current = true;
+        // 隐藏期这次刷新已经落地，打开时不必再补一次。
+        deferredReloadRef.current = false;
+      },
+    },
+  );
   const topItemCount = countLeadingPinnedItems(getItem);
   const {
     closeHoverPreviewForScroll,
@@ -324,8 +342,27 @@ const List: FC = () => {
     if (!scrollToTopOnOpen) return;
 
     setSelectedId(null);
+
+    // 先发起刷新、再回顶：IPC 在途时 Virtuoso 同步滚动，省掉「回顶 → atTopStateChange 回调 → 才发请求」
+    // 这一跳。随后的 rangeChanged 请求同一区间时会被覆盖中的 loading range 拦掉，不会重复 IPC。
+    if (isDev) {
+      log.debug("clipboard open refresh", {
+        adopted: adoptedReadyPageRef.current,
+        deferred: deferredReloadRef.current,
+      });
+    }
+    // 只有「隐藏期确实挂起了刷新」才需要度量「可见 → 内容刷新」这段耗时。
+    if (deferredReloadRef.current) markClipboardWindowShown();
+
+    // 隐藏期已采纳最新整页：内容早在可见之前就提交好了，打开只剩最后一帧绘制。
+    if (adoptedReadyPageRef.current && !deferredReloadRef.current) {
+      markClipboardWindowShown();
+      settleClipboardOpen("adopted");
+    }
+    adoptedReadyPageRef.current = false;
+
+    consumeDeferredReloadAtTop({ force: true });
     virtuosoRef.current?.scrollToIndex({ behavior: "auto", index: 0 });
-    consumeDeferredReloadAtTop();
   };
 
   useTauriListen<WindowVisibilityPayload>(
@@ -764,9 +801,18 @@ const List: FC = () => {
 
   /**
    * 消费已有 pending；用于窗口回顶偏好或用户手动回到顶部后的补刷。
+   *
+   * `force`：调用方此刻正强制回顶（打开窗口的「滚动到顶部」偏好），
+   * 不必等待 Virtuoso 的 atTopStateChange 回调，直接放行刷新，少一跳延迟。
    */
-  function consumeDeferredReloadAtTop() {
+  function consumeDeferredReloadAtTop(options?: { force?: boolean }) {
     if (!deferredReloadRef.current) return;
+
+    if (options?.force) {
+      deferredReloadRef.current = false;
+      reload();
+      return;
+    }
 
     requestReloadAtTop();
   }

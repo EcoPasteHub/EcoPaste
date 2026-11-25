@@ -19,6 +19,7 @@
 
 use std::cmp::Ordering;
 use std::collections::HashMap;
+use std::sync::atomic::{AtomicU64, Ordering as AtomicOrdering};
 use std::sync::{Arc, OnceLock, RwLock};
 use std::time::Instant;
 
@@ -569,6 +570,23 @@ impl ListIndex {
 
 static GLOBAL: OnceLock<Arc<ListIndex>> = OnceLock::new();
 
+/// 列表数据版本号：任何会改变列表内容的事件（行增删改、设置变更、切换数据目录）
+/// 都让它自增。列表页缓存以它为唯一有效凭据 —— 版本不符即作废，避免返回旧数据。
+///
+/// 与索引是否就绪无关：即使索引未安装（单测）或正在重建，版本号仍照常累加。
+static REVISION: AtomicU64 = AtomicU64::new(0);
+
+/// 当前列表数据版本号。
+pub fn revision() -> u64 {
+    REVISION.load(AtomicOrdering::Acquire)
+}
+
+/// 主动作废所有按版本号缓存的列表结果。供「设置变更 / 切换数据目录」等
+/// 不经过行写路径、但会改变列表渲染结果的场景调用。
+pub fn invalidate() {
+    REVISION.fetch_add(1, AtomicOrdering::AcqRel);
+}
+
 /// 取进程级索引实例；未创建时创建（未载入 → 所有查询回落 SQL）。
 pub fn shared() -> &'static Arc<ListIndex> {
     GLOBAL.get_or_init(|| Arc::new(ListIndex::default()))
@@ -593,6 +611,8 @@ pub fn activate(pool: SqlitePool) {
 /// 写路径通知：这些 id 的行已落库，按库里最新值刷新索引
 /// （`updated_at` / `use_count` 由 SQL 生成，所以回读而不是在内存里推算）。
 pub async fn note_rows_changed(pool: &SqlitePool, ids: &[String]) {
+    // 版本号先自增：并发的列表缓存构建即使引用到旧行，也会因版本不符而不被采纳。
+    invalidate();
     let Some(index) = installed() else {
         return;
     };
@@ -624,6 +644,7 @@ pub async fn note_rows_changed(pool: &SqlitePool, ids: &[String]) {
 
 /// 写路径通知：这些 id 的行已从库里删除。
 pub fn note_rows_removed(ids: &[String]) {
+    invalidate();
     let Some(index) = installed() else {
         return;
     };

@@ -107,8 +107,13 @@ fn apply_reset_side_effects(app: &AppHandle, settings: &Settings) {
 }
 
 /// 广播最新设置快照给所有前端窗口。
+///
+/// 设置会影响列表渲染结果（文件条目数量、敏感内容脱敏等），故同时作废列表页缓存；
+/// 剪贴板窗口隐藏时顺手预热，避免下次打开时先看到按旧设置渲染的内容。
 pub(crate) fn emit_settings_updated(app: &AppHandle, settings: &Settings) {
+    crate::db::list_index::invalidate();
     if let Err(err) = app.emit(SETTINGS_UPDATED_EVENT, settings) {
         log::warn!("emit settings updated event failed: {err}");
     }
+    crate::clipboard::maybe_prewarm(app);
 }
