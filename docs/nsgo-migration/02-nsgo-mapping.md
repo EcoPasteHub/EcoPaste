@@ -77,6 +77,8 @@ NSGo 是一个 **Go 原生 UI 引擎**，不是 Tauri 的前端替代品：
 - menu 可以每次点击时生成。
 - template image（macOS 菜单栏）。
 
+菜单栏图标沿用重构前的 `src-tauri/assets/tray-mac.ico`（EcoPaste 的 “p” 标记），转存为 `internal/app/assets/tray-mac.png` 内嵌进二进制，仍以 template image 渲染，跟随菜单栏明暗外观。
+
 现有托盘菜单项可直接映射：偏好、暂停/开始监听、开源地址、检查更新、版本、重启、退出。
 
 ### 3.3 全局快捷键

@@ -18,7 +18,7 @@ func newAppTray(app *core.Scope, panel *desktop.Window, runtime *clipboardRuntim
 		image = trayIcon()
 	}
 	return desktop.NewTray(app, desktop.TrayOptions{
-		Icon:     image,
+		Icon:     image, // the pre-refactor "p" mark, tinted like system icons
 		Template: true,
 		Tooltip:  "EcoPaste",
 		Panel:    panel,
