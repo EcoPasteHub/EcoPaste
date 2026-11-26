@@ -9,43 +9,50 @@ import (
 	"github.com/ebitengine/purego/objc"
 )
 
+// Key equivalents for menu items whose shortcut is a named key rather than a
+// printable character. NSMenuItem renders "\r" (Return) as ↩ and "\b"
+// (backspace, U+0008) as ⌫.
+const (
+	keyEquivalentReturn    = "\r"
+	keyEquivalentBackspace = "\b"
+)
+
 func (p *Panel) populateMenu(menu objc.ID, row HistoryRow) {
 	menu.Send(sel("removeAllItems"))
-	addMenuItem(menu, p.table, i18n.T(i18n.MenuPaste), "menuPaste:", "arrow.down.doc", "")
-	addMenuItem(menu, p.table, i18n.T(i18n.MenuCopy), "menuCopy:", "doc.on.doc", "c")
+	addMenuItem(menu, p.table, i18n.T(i18n.MenuPaste), "menuPaste:", "arrow.down.doc")
+	addMenuItem(menu, p.table, i18n.T(i18n.MenuCopy), "menuCopy:", "doc.on.doc")
 	if row.Kind == "text" {
-		plainCopy := addMenuItem(menu, p.table, i18n.T(i18n.MenuCopyPlain), "menuCopyPlain:", "doc.plaintext", "c")
-		setMenuModifiers(plainCopy, commandModifier|alternateModifier)
+		addMenuItem(menu, p.table, i18n.T(i18n.MenuCopyPlain), "menuCopyPlain:", "doc.plaintext")
 	}
 	switch row.SubKind {
 	case "url":
-		addMenuItem(menu, p.table, i18n.T(i18n.MenuOpenLink), "menuOpen:", "arrow.up.right.square", "")
+		addMenuItem(menu, p.table, i18n.T(i18n.MenuOpenLink), "menuOpen:", "arrow.up.right.square")
 	case "email":
-		addMenuItem(menu, p.table, i18n.T(i18n.MenuSendEmail), "menuOpen:", "envelope", "")
+		addMenuItem(menu, p.table, i18n.T(i18n.MenuSendEmail), "menuOpen:", "envelope")
 	}
 	if row.SubKind == "path" || row.Kind == "files" {
-		addMenuItem(menu, p.table, i18n.T(i18n.MenuReveal), "menuReveal:", "folder", "")
+		addMenuItem(menu, p.table, i18n.T(i18n.MenuReveal), "menuReveal:", "folder")
 	}
 	if row.Kind == "image" {
-		addMenuItem(menu, p.table, i18n.T(i18n.MenuSaveImage), "menuSaveImage:", "square.and.arrow.down", "")
+		addMenuItem(menu, p.table, i18n.T(i18n.MenuSaveImage), "menuSaveImage:", "square.and.arrow.down")
 	}
 	note := i18n.T(i18n.MenuAddNote)
 	if strings.TrimSpace(row.Note) != "" {
 		note = i18n.T(i18n.MenuEditNote)
 	}
-	addMenuItem(menu, p.table, note, "menuNote:", "note.text", "")
+	addMenuItem(menu, p.table, note, "menuNote:", "note.text")
 	menu.Send(sel("addItem:"), objc.ID(class("NSMenuItem")).Send(sel("separatorItem")))
 
 	favorite := i18n.T(i18n.MenuFavorite)
 	if row.Favorite {
 		favorite = i18n.T(i18n.MenuUnfavorite)
 	}
-	addMenuItem(menu, p.table, favorite, "menuFavorite:", "star", "")
+	addMenuItem(menu, p.table, favorite, "menuFavorite:", "star")
 	pin := i18n.T(i18n.MenuPin)
 	if row.Pinned {
 		pin = i18n.T(i18n.MenuUnpin)
 	}
-	addMenuItem(menu, p.table, pin, "menuPin:", "pin", "")
+	addMenuItem(menu, p.table, pin, "menuPin:", "pin")
 	moveItem := objc.ID(class("NSMenuItem")).Send(sel("alloc")).
 		Send(sel("initWithTitle:action:keyEquivalent:"), nsString(i18n.T(i18n.MenuMoveToGroup)), objc.SEL(0), nsString(""))
 	moveItem.Send(sel("setImage:"), systemSymbol("folder"))
@@ -63,7 +70,7 @@ func (p *Panel) populateMenu(menu objc.ID, row HistoryRow) {
 	moveItem.Send(sel("release"))
 	if row.CanDelete {
 		menu.Send(sel("addItem:"), objc.ID(class("NSMenuItem")).Send(sel("separatorItem")))
-		addMenuItem(menu, p.table, i18n.T(i18n.CommonDelete), "menuDelete:", "trash", "")
+		addMenuItem(menu, p.table, i18n.T(i18n.CommonDelete), "menuDelete:", "trash")
 	}
 }
 
@@ -89,19 +96,45 @@ func addMoveGroupItem(menu objc.ID, p *Panel, title, groupID string, selected bo
 	item.Send(sel("release"))
 }
 
-func addMenuItem(menu, table objc.ID, title, action, icon, key string) objc.ID {
+func addMenuItem(menu, table objc.ID, title, action, icon string) objc.ID {
+	key, modifiers := contextMenuAccelerator(action)
 	item := objc.ID(class("NSMenuItem")).Send(sel("alloc")).Send(sel("initWithTitle:action:keyEquivalent:"),
 		nsString(title), sel(action), nsString(key))
 	item.Send(sel("setTarget:"), historyTarget)
 	item.Send(sel("setRepresentedObject:"), table)
 	item.Send(sel("setImage:"), systemSymbol(icon))
+	if key != "" {
+		item.Send(sel("setKeyEquivalentModifierMask:"), modifiers)
+	}
 	menu.Send(sel("addItem:"), item)
 	item.Send(sel("release"))
 	return item
 }
 
-func setMenuModifiers(item objc.ID, modifiers uint64) {
-	item.Send(sel("setKeyEquivalentModifierMask:"), modifiers)
+// contextMenuAccelerator returns the key equivalent and modifier mask shown on
+// the right of a context-menu item. It mirrors the shortcuts the panel actually
+// handles in table_keys.go, so the menu never advertises a shortcut that does
+// nothing; an empty key means the action has no shortcut.
+func contextMenuAccelerator(action string) (key string, modifiers uint64) {
+	switch action {
+	case "menuPaste:":
+		return keyEquivalentReturn, 0
+	case "menuCopy:":
+		return "c", commandModifier
+	case "menuCopyPlain:":
+		return "c", commandModifier | alternateModifier
+	case "menuOpen:", "menuReveal:":
+		return "o", commandModifier
+	case "menuNote:":
+		return "m", commandModifier
+	case "menuFavorite:":
+		return "d", commandModifier
+	case "menuPin:":
+		return "t", commandModifier
+	case "menuDelete:":
+		return keyEquivalentBackspace, 0
+	}
+	return "", 0
 }
 
 func menuPanel(item objc.ID) *Panel {
