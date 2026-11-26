@@ -239,6 +239,7 @@ func newPanelNav(p *Panel, parent objc.ID) *panelNav {
 	nav.plus.Send(sel("setAction:"), sel("navPlusPressed:"))
 	nav.plus.Send(sel("setAccessibilityLabel:"), nsString(i18n.T(i18n.PanelNewGroup)))
 	navsByPlus[nav.plus] = nav
+	p.addKeyHint(nav.plus, keyHintNewGroupKey)
 	nav.surface.Send(sel("addSubview:"), nav.plus)
 
 	parent.Send(sel("addChildWindow:ordered:"), nav.window, int64(windowOrderedAbove))
@@ -380,6 +381,9 @@ func (n *panelNav) close() {
 		capsule.Send(sel("release"))
 	}
 	delete(navsByPlus, n.plus)
+	if n.panel != nil {
+		n.panel.removeKeyHint(n.plus)
+	}
 	discardIconButton(n.plus)
 	n.plus.Send(sel("release"))
 	n.window.Send(sel("release"))

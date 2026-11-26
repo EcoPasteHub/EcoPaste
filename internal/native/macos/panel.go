@@ -66,6 +66,9 @@ type Panel struct {
 	hoverMonitor       objc.ID
 	viewTracking       objc.ID
 	monitor            objc.ID
+	flagsMonitor       objc.ID
+	commandHeld        bool
+	keyHints           []*keyHintRef
 	previewTitle       objc.ID
 	previewMeta        objc.ID
 	previewText        objc.ID
@@ -181,6 +184,10 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 	p.clearButton = newToolbarButton("trash", "clearPressed:", i18n.PanelClearHistory, true)
 	p.shortcutButton = newToolbarButton("keyboard", "shortcutHelpPressed:", i18n.PanelShortcutsAction, true)
 
+	p.addKeyHint(p.pin, keyHintPinKey)
+	p.addKeyHint(p.settingsButton, keyHintSettingsKey)
+	p.addKeyHint(p.shortcutButton, keyHintShortcutKey)
+
 	p.empty = objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(i18n.T(i18n.PanelEmpty)))
 	p.empty.Send(sel("setFont:"), systemFont(13))
 	p.empty.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("secondaryLabelColor")))
@@ -268,6 +275,18 @@ func NewPanel(cx *core.NativeContext) core.NativeComponent {
 		uint64(1<<5), objc.ID(hoverBlock))
 	hoverBlock.Release()
 
+	// Holding Command reveals the panel's shortcut hints. The flag change is
+	// observed before AppKit routes it so the hints appear the moment the key
+	// goes down and vanish the moment it is released.
+	flagsBlock := objc.NewBlock(func(_ objc.Block, event objc.ID) objc.ID {
+		flags := uint64(objc.Send[uint](event, sel("modifierFlags")))
+		p.setCommandHeld(flags&commandModifier != 0)
+		return event
+	})
+	p.flagsMonitor = objc.ID(class("NSEvent")).Send(sel("addLocalMonitorForEventsMatchingMask:handler:"),
+		uint64(eventMaskFlagsChanged), objc.ID(flagsBlock))
+	flagsBlock.Release()
+
 	return p
 }
 
@@ -320,6 +339,7 @@ func (p *Panel) Close() {
 	center := objc.ID(class("NSNotificationCenter")).Send(sel("defaultCenter"))
 	center.Send(sel("removeObserver:"), p.observer)
 	cancelPendingClick(p.table)
+	p.clearKeyHints()
 	if p.viewTracking != 0 {
 		p.view.Send(sel("removeTrackingArea:"), p.viewTracking)
 		p.viewTracking = 0
@@ -331,6 +351,10 @@ func (p *Panel) Close() {
 	if p.hoverMonitor != 0 {
 		objc.ID(class("NSEvent")).Send(sel("removeMonitor:"), p.hoverMonitor)
 		p.hoverMonitor = 0
+	}
+	if p.flagsMonitor != 0 {
+		objc.ID(class("NSEvent")).Send(sel("removeMonitor:"), p.flagsMonitor)
+		p.flagsMonitor = 0
 	}
 	delete(panelsByObserver, p.observer)
 	delete(panelsBySearch, p.search)

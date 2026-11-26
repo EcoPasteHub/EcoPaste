@@ -40,6 +40,11 @@ func panelWindowBecameKey(self objc.ID, _ objc.SEL, note objc.ID) {
 	if p == nil {
 		return
 	}
+	// A popover closing can hand key focus back while Command is still down, so
+	// re-sync the hints with the live modifier state instead of waiting for the
+	// next flag change (which would not fire until Command is pressed again).
+	flags := uint64(objc.Send[uint](objc.ID(class("NSEvent")), sel("modifierFlags")))
+	p.setCommandHeld(flags&commandModifier != 0)
 	// An open popover owns keyboard focus. On the first summon the app becomes
 	// active and this panel-key notification can arrive after the popover opened;
 	// moving first responder back to the list would steal the caret from the
@@ -63,7 +68,13 @@ func panelWindowBecameKey(self objc.ID, _ objc.SEL, note objc.ID) {
 
 func panelWindowResignedKey(self objc.ID, _ objc.SEL, note objc.ID) {
 	p := panelsByObserver[self]
-	if p == nil || suppressPanelBlur.Load() || p.pinned || p.dragging || p.previewing ||
+	if p == nil {
+		return
+	}
+	// Command-hold hints belong to the focused panel; drop them when key focus
+	// leaves so they cannot stay stuck on screen.
+	p.setCommandHeld(false)
+	if suppressPanelBlur.Load() || p.pinned || p.dragging || p.previewing ||
 		p.groupPopoverActive() || p.notePopoverActive() {
 		return
 	}
@@ -80,6 +91,7 @@ func panelWindowDidOrderOffScreen(self objc.ID, _ objc.SEL, note objc.ID) {
 	if p == nil {
 		return
 	}
+	p.setCommandHeld(false)
 	p.cancelInteractions()
 	if p.shortcutPopover != 0 &&
 		objc.Send[bool](p.shortcutPopover, sel("isShown")) {
@@ -132,4 +144,9 @@ func panelScrollBoundsChanged(self objc.ID, _ objc.SEL, _ objc.ID) {
 	}
 	p.refreshHoverFromMouse()
 	p.checkLoadMore()
+	if p.commandHeld {
+		// The Command-digit hints are numbered from the first visible row, so a
+		// scroll while Command is held has to renumber the cards on screen.
+		p.refreshRowHints()
+	}
 }

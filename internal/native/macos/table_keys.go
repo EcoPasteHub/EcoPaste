@@ -108,8 +108,8 @@ func clipboardKeyAction(key uint16, flags uint64, row HistoryRow) (string, bool)
 	return "", false
 }
 
-// commandDigitIndex maps Command-1 through Command-0 to the first ten
-// visible rows.
+// commandDigitIndex maps Command-1 through Command-0 to an offset from the
+// first visible row.
 func commandDigitIndex(key uint16) (int, bool) {
 	switch key {
 	case key1:
@@ -134,6 +134,21 @@ func commandDigitIndex(key uint16) (int, bool) {
 		return 9, true
 	}
 	return 0, false
+}
+
+// visibleDigitIndex resolves a Command-digit to an absolute row relative to the
+// first visible row, so quick paste follows the scroll position: whichever row
+// is at the top of the viewport becomes Command-1.
+func visibleDigitIndex(key uint16, firstVisible, rowCount int) (int, bool) {
+	offset, ok := commandDigitIndex(key)
+	if !ok || firstVisible < 0 {
+		return 0, false
+	}
+	index := firstVisible + offset
+	if index >= rowCount {
+		return 0, false
+	}
+	return index, true
 }
 
 // userModifiers returns the modifiers a person is actually holding. AppKit

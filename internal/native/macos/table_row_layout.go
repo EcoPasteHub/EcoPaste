@@ -87,6 +87,13 @@ func layoutHistoryRow(cell objc.ID, size CGSize) {
 	icon := viewWithTag(cell, rowIconTag)
 	setFrame(icon, left, (size.Height-historyRowIconSize)/2, historyRowIconSize, historyRowIconSize)
 
+	// The quick-paste digit floats centered on the app icon while Command is
+	// held, painted over the icon without touching the row layout.
+	if hint := rowHintBadge(cell); hint != 0 {
+		setFrame(hint, left+(historyRowIconSize-keyHintRowBadgeSize)/2, (size.Height-keyHintRowBadgeSize)/2,
+			keyHintRowBadgeSize, keyHintRowBadgeSize)
+	}
+
 	contentLeft := rowContentLeft()
 	contentRight := size.Width - historyRowInsetX - historyRowTextInset
 	if contentRight-contentLeft < 48 {

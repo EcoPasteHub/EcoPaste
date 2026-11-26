@@ -363,8 +363,8 @@ func (p *Panel) handleCommandKey(key uint16, flags uint64) bool {
 	if index := p.activeIndex(); index >= 0 {
 		row = p.rows[index]
 	}
-	if index, ok := commandDigitIndex(key); ok {
-		if index < len(p.rows) {
+	if _, ok := commandDigitIndex(key); ok {
+		if index, ok := visibleDigitIndex(key, firstVisibleRow(p.table), len(p.rows)); ok {
 			p.cx.Emit("activate", p.rows[index].ID)
 		}
 		return true

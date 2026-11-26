@@ -150,6 +150,7 @@
 | U-11 | P2 | 滚动条 | `overlayscrollbars` | 系统 `NSScrollView` 滚动条 | 不纳入 macOS 首版（产品调整） | 原生 `NSScrollView` 已按系统“显示滚动条”偏好自动选择 overlay/legacy，强制 overlay 会覆盖用户系统设置；旧版自定义滚动条不再迁移 |
 | U-12 | P2 | 诊断 | `pages/Preference` 诊断区 | 原生诊断面板/复制信息 | 已通过 | “权限”页展示版本、macOS 版本、数据目录与两项权限状态，“复制诊断信息”写入剪贴板并显示反馈；真机 `pbpaste` 校验五项内容完整；`TestFormatDiagnosticReport` |
 | U-13 | P2 | 快捷键速查 | `Clipboard/components/ShortcutList.tsx` | Footer 键盘按钮 + `NSPopover` 快捷键列表，⌘K 打开 | 已通过（产品精简） | Footer 仅保留 `keyboard` 图标按钮，⌘K 与点击均可打开原生 popover；面板底栏不再显示常驻快捷键文字提示，完整列表由 popover 承载；列表覆盖粘贴、前 10 项、预览、复制、打开、收藏、置顶、备注、删除、导航、搜索、固定窗口、新建分组与关闭；纯文本粘贴条目随功能移除；`TestShortcutHelpItemsAreComplete` 校验条目完整与按键不重复；速查 popover 与预览等所有 Popover 统一通过 `popover.go` 管理内容尺寸与内边距，修复内容视图原点被改写导致的内容贴边 |
+| U-14 | P2 | 按住 Command 显示快捷键提示 | `legacy/frontend/src/components/KeyHint` | 图标按钮/历史卡片应用图标上叠加原生徽标，按住 ⌘ 显示、松开立即隐藏 | 迁移中（自动验证） | 参考旧版 KeyHint：徽标绝对定位居中覆盖在图标上，不参与布局；`NSEvent` flagsChanged 本地监听切换显示，按钮图标用清空 `contentTintColor` 隐藏，卡片应用图标用 `alphaValue=0` 隐藏，松开恢复。工具栏提示固定窗口 `P`、设置 `,`、快捷键速查 `K`、新建分组 `N`；历史列表按当前视口从首个可见行起的前 10 条卡片在来源应用图标上显示 `1`–`9`、`0`（对应 `⌘1`–`⌘0`），随滚动重新编号，视口第 11 条起保留原图标；`⌘1`–`⌘0` 的粘贴目标同样以首个可见行为基准，滚动到哪里就从哪里开始计数。窗口失焦/隐藏时主动收起；单元格复用、滚动加载与列表刷新时按当前 ⌘ 状态重算。`TestKeyHintKeysAreSingleUppercase`、`TestCommandHeldTogglesKeyHints`、`TestKeyHintDigitForRow`、`TestVisibleDigitIndexFollowsFirstVisibleRow`、`TestRowIconHintShowsDigitOverIcon` 覆盖按键合法性、工具栏徽标显隐、相对可见行编号与卡片图标覆盖；标记为迁移中表示徽标配色与旧版视觉对比尚待真机确认 |
 
 ## 7. 国际化与文案
 

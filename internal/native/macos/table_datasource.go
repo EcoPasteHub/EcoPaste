@@ -55,7 +55,7 @@ func historyTargetViewForRow(_ objc.ID, _ objc.SEL, table, _ objc.ID, row int64)
 		cell = newHistoryRow()
 	}
 	fillHistoryRow(cell, p.rows[row], p.display, p.originalRow == int(row),
-		objc.Send[int64](table, sel("selectedRow")) == row, p.query)
+		objc.Send[int64](table, sel("selectedRow")) == row, p.query, int(row)-firstVisibleRow(table), p.commandHeld)
 	return cell
 }
 

@@ -342,7 +342,7 @@
       "navigate": "Move selection",
       "note": "Edit note",
       "open": "Open link, email, or file location",
-      "pasteNth": "Paste first 10 items",
+      "pasteNth": "Paste first 10 visible items",
       "preview": "Preview selected",
       "search": "Focus search",
       "title": "Keyboard Shortcuts"

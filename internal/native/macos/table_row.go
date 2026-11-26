@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"unsafe"
 
 	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
 	"github.com/ebitengine/purego/objc"
@@ -147,7 +148,27 @@ func newHistoryRow() objc.ID {
 		cell.Send(sel("addSubview:"), fileLabel)
 	}
 
+	// Quick-paste digit shown over the app icon while Command is held; added
+	// last so it paints above the icon it replaces.
+	hint := newKeyHintBadge("")
+	setRowHintBadge(cell, hint)
+	cell.Send(sel("addSubview:"), hint)
+	hint.Send(sel("release"))
+
 	return cell.Send(sel("autorelease"))
+}
+
+// associatedRowHintKey links a cell to the digit badge that overlays its app
+// icon. The badge is a plain NSView, so it cannot carry a tag of its own.
+var associatedRowHintKey byte
+
+func setRowHintBadge(cell, badge objc.ID) {
+	objcSetAssociatedObject(uintptr(cell), uintptr(unsafe.Pointer(&associatedRowHintKey)),
+		uintptr(badge), associationRetainNonatomic)
+}
+
+func rowHintBadge(cell objc.ID) objc.ID {
+	return objc.ID(objcGetAssociatedObject(uintptr(cell), uintptr(unsafe.Pointer(&associatedRowHintKey))))
 }
 
 func newRowImageView(tag int64) objc.ID {
@@ -178,7 +199,8 @@ func newRowLabel(tag int64, font, color objc.ID, wrapping bool) objc.ID {
 	return label
 }
 
-func fillHistoryRow(cell objc.ID, row HistoryRow, display PanelDisplay, revealOriginal, selected bool, query string) {
+func fillHistoryRow(cell objc.ID, row HistoryRow, display PanelDisplay, revealOriginal, selected bool,
+	query string, offset int, hintsActive bool) {
 	title := viewWithTag(cell, rowTitleTag)
 	preview := viewWithTag(cell, rowPreviewTag)
 	imageView := viewWithTag(cell, rowImageTag)
@@ -255,6 +277,8 @@ func fillHistoryRow(cell objc.ID, row HistoryRow, display PanelDisplay, revealOr
 	applyHistoryRowText(cell, selected)
 	setHistoryRowSelected(cell, selected)
 	applySourceIcon(cell, row)
+	setRowIconHintDigit(cell, keyHintDigitForRow(offset))
+	applyRowIconHint(cell, hintsActive)
 	layoutHistoryRow(cell, bounds(cell).Size)
 }
 

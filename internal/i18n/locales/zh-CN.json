@@ -342,7 +342,7 @@
       "navigate": "上下选择",
       "note": "编辑备注",
       "open": "打开链接、邮件或文件位置",
-      "pasteNth": "粘贴前 10 项",
+      "pasteNth": "粘贴当前可见前 10 项",
       "preview": "预览选中项",
       "search": "聚焦搜索",
       "title": "快捷键"
