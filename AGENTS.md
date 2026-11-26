@@ -233,7 +233,7 @@ internal/i18n/             # 文案目录
   - 是否需要 CGO；
   - 安全记录与传递依赖；
   - 能否被薄封装替换。
-- 依赖版本必须可复现：Go module 固定版本；NSGo 固定到正式发布的稳定版本 tag（如 `v0.2.0`），不使用 floating branch、`latest` 或 preview/beta/伪版本。
+- 依赖版本必须可复现：Go module 固定版本；NSGo 固定到正式发布的稳定版本 tag（如 `v0.3.4`），不使用 floating branch、`latest` 或 preview/beta/伪版本。
 - NSGo 升级单独提交，并跑完整兼容矩阵；升级说明写入迁移文档。
 - 自研只用于：没有合适库、库无法满足原生体验、或桥接成本明显更低。自研前先查 NSGo 官方文档和源码。
 - 新增非显然依赖时记录原因、替代方案和移除条件。
@@ -246,7 +246,7 @@ internal/i18n/             # 文案目录
 2. **优先采用官方实现**：若新版本提供了更合适的官方能力，优先替换项目中重复维护的自定义实现或冗余代码，并删除不再需要的自研逻辑，避免长期双轨维护。
 3. **以实际代码为准**：只有确认官方能力在语义、时序、线程和原生体验上确实更合适时才采用；不要为了“用新特性”而盲目重构。
 4. **记录评估结论**：采用或拒绝都要在 `docs/nsgo-migration/` 写明依据（API、限制、行为差异），供后续复核。
-5. **升级后必须验证**：至少运行 `gofmt -l .`、`go vet ./...`、`go test ./...`，涉及并发/剪贴板/数据库 worker 追加 `go test -race ./...`，涉及 NSGo 视图/窗口/打包追加 `nsgo check`、`nsgo build`，并完成主面板/托盘/快捷键/粘贴真机回归。
+5. **升级后必须验证**：至少运行 `gofmt -l $(git ls-files --cached --others --exclude-standard '*.go')`、`go vet ./...`、`go test ./...`，涉及并发/剪贴板/数据库 worker 追加 `go test -race ./...`，涉及 NSGo 视图/窗口/打包追加 `nsgo check`、`nsgo build`，并完成主面板/托盘/快捷键/粘贴真机回归。
 
 ## 5. 数据与安全
 
@@ -289,7 +289,7 @@ internal/i18n/             # 文案目录
 Go/NSGo 变更至少运行：
 
 ```bash
-gofmt -l .
+gofmt -l $(git ls-files --cached --others --exclude-standard '*.go')
 go vet ./...
 go test ./...
 ```

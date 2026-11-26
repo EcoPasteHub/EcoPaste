@@ -30,10 +30,10 @@ EcoPaste **2.0.0** 使用 **Go + NSGo + AppKit** 全新开发，旧 Tauri 项目
 
 ## 开发
 
-需要 Go 1.27.3+ 与 NSGo CLI v0.2.0+：
+需要 Go 1.27.3+ 与 NSGo CLI v0.3.4+：
 
 ```bash
-go install github.com/nsgo-dev/nsgo/cmd/nsgo@v0.2.0
+go install github.com/nsgo-dev/nsgo/cmd/nsgo@v0.3.4
 nsgo check cmd/ecopaste
 nsgo dev -id com.ayangweb.eco-paste.dev cmd/ecopaste
 nsgo build -id com.ayangweb.eco-paste.dev -output build/dev cmd/ecopaste

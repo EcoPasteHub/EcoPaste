@@ -29,7 +29,8 @@ check:
 	nsgo check cmd/ecopaste
 
 fmt:
-	@test -z "$$(gofmt -l .)" || { gofmt -l .; exit 1; }
+	@files="$$(git ls-files --cached --others --exclude-standard '*.go')"; \
+	test -z "$$(gofmt -l $$files)" || { gofmt -l $$files; exit 1; }
 
 vet:
 	go vet ./...

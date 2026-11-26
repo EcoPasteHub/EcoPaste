@@ -21,18 +21,18 @@
 | [04-feature-parity-checklist.md](./04-feature-parity-checklist.md) | 逐项功能对照表，防止迁移遗漏 |
 | [05-risk-register.md](./05-risk-register.md) | 技术、数据、平台、发布和产品风险 |
 | [06-cleanup-report.md](./06-cleanup-report.md) | 本轮清理范围、保留项和后续删除条件 |
-| [07-nsgo-upgrade-log.md](./07-nsgo-upgrade-log.md) | NSGo v0.2.0 与依赖升级记录、新特性评估结论 |
+| [07-nsgo-upgrade-log.md](./07-nsgo-upgrade-log.md) | NSGo v0.3.4 与依赖升级记录、新特性评估结论 |
 | [08-performance-audit.md](./08-performance-audit.md) | 性能、定时任务与资源生命周期排查、基准及验证边界 |
 
 ## 证据来源
 
 - 迁移前实现快照：`src-tauri/src/`、`src/`、`src-tauri/migrations/`、`src-tauri/tauri.conf.json`；当前保留部分于 `legacy/backend/` 与 `legacy/frontend/`。
-- NSGo 源码：`github.com/nsgo-dev/nsgo`（用户给出的 `oneo-me/nsgo` 为同一仓库入口）。当前固定正式发布版本 **v0.2.0**（2026-11-19）；早期分析的 commit `70cef6a4ed17f7c8428faabc9bb419ff4223745b`（2026-11-12）仅作历史基线。
+- NSGo 源码：`github.com/nsgo-dev/nsgo`（用户给出的 `oneo-me/nsgo` 为同一仓库入口）。当前固定正式发布版本 **v0.3.4**（2026-11-26）；早期分析的 commit `70cef6a4ed17f7c8428faabc9bb419ff4223745b`（2026-11-12）仅作历史基线。
 - NSGo 关键文档：`CHANGELOG.md`、`ARCHITECTURE.md`、`docs/architecture/application.md`、`docs/architecture/services.md`、`docs/architecture/updates.md`、`docs/architecture/tool.md`。
 
 ## 重要提醒
 
-NSGo 已发布正式稳定版本（v0.1.0 为首个 release，当前 v0.2.0），不再使用 preview/beta 或伪版本。但 0.x 阶段 API 仍可能变动：迁移方案固定到稳定 tag，并为 AppKit 桥接层保留可替换边界，不把业务代码直接耦合到 NSGo 内部实现。每次升级 NSGo 或其他依赖前，按 `AGENTS.md` §4.1 先评估官方新 API/新特性，合适时优先用官方实现替换重复的自研代码（评估记录见 [07-nsgo-upgrade-log.md](./07-nsgo-upgrade-log.md)）。
+NSGo 已发布正式稳定版本（v0.1.0 为首个 release，当前 v0.3.4），不再使用 preview/beta 或伪版本。但 0.x 阶段 API 仍可能变动：迁移方案固定到稳定 tag，并为 AppKit 桥接层保留可替换边界，不把业务代码直接耦合到 NSGo 内部实现。每次升级 NSGo 或其他依赖前，按 `AGENTS.md` §4.1 先评估官方新 API/新特性，合适时优先用官方实现替换重复的自研代码（评估记录见 [07-nsgo-upgrade-log.md](./07-nsgo-upgrade-log.md)）。
 
 ## 路径说明
 

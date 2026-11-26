@@ -48,7 +48,7 @@ feat(release): add Sparkle appcast packaging
 
 1. 固定 NSGo：
    - 模块：`github.com/nsgo-dev/nsgo`
-   - 基线版本：`v0.2.0`（2026-11-19）；历史基线 commit `70cef6a4ed17f7c8428faabc9bb419ff4223745b`（2026-11-12）
+   - 基线版本：`v0.3.4`（2026-11-26）；历史基线 commit `70cef6a4ed17f7c8428faabc9bb419ff4223745b`（2026-11-12）
    - Go 要求：`go 1.27.3`；本机验证版本 `go1.27.4 darwin/arm64`
    - `go.mod` 固定稳定 tag；升级必须单独提交并跑完整兼容矩阵。
 2. 建立数据夹具（不入库）：
@@ -109,7 +109,7 @@ internal/native/macos/
 
 ### 退出条件
 
-- `go build ./...`、`go vet ./...`、`gofmt -l .` 通过。
+- `go build ./...`、`go vet ./...`、`gofmt -l $(git ls-files --cached --others --exclude-standard '*.go')` 无输出。
 - `nsgo check` 通过。
 - 应用可启动、显示面板、托盘可退出。
 - `Alt+C` 可稳定唤起，不抢错焦点。
@@ -358,7 +358,7 @@ internal/native/macos/
 ### 每次提交的最低门槛
 
 ```bash
-gofmt -l .
+gofmt -l $(git ls-files --cached --others --exclude-standard '*.go')
 go vet ./...
 go test ./...
 ```

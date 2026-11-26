@@ -18,3 +18,8 @@ file_types:
     id: com.ayangweb.eco-paste.backup
     role: editor
     conforms: [public.data]
+
+licenses:
+  allow:
+    - modernc.org/memory
+    - modernc.org/sqlite

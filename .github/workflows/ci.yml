@@ -21,10 +21,10 @@ jobs:
           cache: true
 
       - name: Install NSGo
-        run: go install github.com/nsgo-dev/nsgo/cmd/nsgo@v0.2.0
+        run: go install github.com/nsgo-dev/nsgo/cmd/nsgo@v0.3.4
 
       - name: Check formatting
-        run: test -z "$(gofmt -l .)"
+        run: test -z "$(gofmt -l $(git ls-files --cached --others --exclude-standard '*.go'))"
 
       - name: Vet
         run: go vet ./...
