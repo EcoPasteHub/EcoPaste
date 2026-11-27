@@ -66,9 +66,6 @@ func (s *Service) buildItem(payload Payload, source SourceApp, cfg settings.Clip
 		return nil, nil
 	}
 	for _, kind := range settings.NormalizeCaptureOrder(capture.Order) {
-		if !captureEnabled(capture, kind) {
-			continue
-		}
 		switch kind {
 		case settings.CaptureFiles:
 			if item := filesItem(payload); item != nil {
@@ -163,22 +160,6 @@ func (s *Service) withSource(item *database.Item, source SourceApp) *database.It
 		item.SourceAppID = &id
 	}
 	return item
-}
-
-func captureEnabled(c settings.Capture, kind settings.CaptureKind) bool {
-	switch kind {
-	case settings.CaptureText:
-		return c.Text
-	case settings.CaptureHTML:
-		return c.HTML
-	case settings.CaptureRTF:
-		return c.RTF
-	case settings.CaptureImage:
-		return c.Image
-	case settings.CaptureFiles:
-		return c.Files
-	}
-	return false
 }
 
 func exceeds(size int, maxMB uint32) bool {

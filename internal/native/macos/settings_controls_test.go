@@ -38,7 +38,6 @@ func settingsControlPaths() map[string]bool {
 		"content.autoPaste",
 		"content.autoFavorite", "content.showOriginalPreview", "copyPlain",
 		"preview.spaceEnabled",
-		"capture.text", "capture.html", "capture.rtf", "capture.image", "capture.files",
 		"capture.maxTextMb", "capture.maxImageMb",
 		"history.retention", "history.maxCount",
 		"sensitive.collectSecrets", "sensitive.redactSecrets",
@@ -137,7 +136,6 @@ func testSettingsControlsShowLoadedValues(t *testing.T) {
 		DeletePinned:          "confirm",
 		ShowOriginalPreview:   true,
 		SpacePreview:          true,
-		CaptureFiles:          true,
 		CollectSecrets:        true,
 		GroupOnOpen:           "group:work",
 		Groups:                []SettingsGroup{{ID: "work", Name: "Work"}},
@@ -167,7 +165,7 @@ func testSettingsControlsShowLoadedValues(t *testing.T) {
 				t.Errorf("%s selection = %d of %v", field.path, index, field.options)
 			}
 		case "content.showOriginalPreview", "preview.spaceEnabled",
-			"capture.files", "sensitive.collectSecrets":
+			"sensitive.collectSecrets":
 			if got := objcState(field.control); got != 1 {
 				t.Errorf("%s = %d", field.path, got)
 			}

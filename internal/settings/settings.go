@@ -203,11 +203,6 @@ func NormalizeSourceAppRules(rules []SourceAppRule) []SourceAppRule {
 }
 
 type Capture struct {
-	Text       bool          `json:"text"`
-	HTML       bool          `json:"html"`
-	RTF        bool          `json:"rtf"`
-	Image      bool          `json:"image"`
-	Files      bool          `json:"files"`
 	MaxTextMB  uint32        `json:"maxTextMb"`
 	MaxImageMB uint32        `json:"maxImageMb"`
 	Order      []CaptureKind `json:"order"`
@@ -390,7 +385,6 @@ func Default() Settings {
 		Shortcuts:  Shortcuts{OpenClipboard: "Alt+C", OpenPreference: "Alt+X"},
 		Clipboard: Clipboard{
 			Capture: Capture{
-				Text: true, HTML: true, RTF: true, Image: true, Files: true,
 				MaxTextMB: 4, MaxImageMB: 100,
 				Order: DefaultCaptureOrder(),
 			},

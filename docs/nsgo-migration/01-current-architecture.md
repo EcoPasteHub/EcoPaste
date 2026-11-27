@@ -116,7 +116,6 @@ EcoPaste 当前是典型的 Tauri v2 双进程/多 WebView 结构：
 | 图片采集 | `read.rs`、`storage.rs` | 优先 PNG 直通；非 PNG 解码后重编码；原图 + 缩略图落盘 |
 | 文件/文件夹采集 | `read.rs`、`ingest.rs` | `content` 为换行分隔的绝对路径；`file_types` 为 `d/f` 紧凑串 |
 | 采集优先级 | `settings::Capture.order` | 默认 `files > image > html > rtf > text`，可配置 |
-| 类型开关 | `settings::Capture` | text/html/rtf/image/files 分别开关 |
 | 大小上限 | `settings::Capture.max_text_mb`、`max_image_mb` | 0 表示不限；超限跳过 |
 | 去重 | `db::items::upsert_item` | `blake3("<kind>:<content>")`；命中则 `use_count + 1` 并刷新 `updated_at` |
 | 来源应用 | `clipboard/source.rs`、`apps_registry.rs` | 在监听回调同步抓前台应用；macOS bundle id，Windows exe 路径 |

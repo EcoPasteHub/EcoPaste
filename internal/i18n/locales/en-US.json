@@ -395,8 +395,7 @@
       "order": "Capture Priority",
       "priorityLabel": "Priority %d: %s",
       "rtf": "RTF",
-      "text": "Plain Text",
-      "types": "Content Types"
+      "text": "Plain Text"
     },
     "data": {
       "backupHint": "Export history, resources and settings to an .ecopastebak file, or import a previous backup.",

@@ -395,8 +395,7 @@
       "order": "采集优先级",
       "priorityLabel": "第 %d 优先级：%s",
       "rtf": "RTF",
-      "text": "纯文本",
-      "types": "采集内容"
+      "text": "纯文本"
     },
     "data": {
       "backupHint": "可将历史、资源和设置导出为 .ecopastebak 文件，或导入之前的备份。",

@@ -127,7 +127,7 @@ internal/native/macos/
    - 多表示同时存在时按 `capture.order` 选择主类型，同时保留可写回表示。
    - 写入时使用单个 `NSPasteboardItem`，一次写入 plain + HTML/RTF 或多文件 URL。
 2. `internal/clipboard`：
-   - 采集优先级、类型开关、大小上限。
+   - 采集优先级、大小上限。
    - `blake3("<kind>:<content>")` 去重。
    - 图片 PNG 直通/重编码、原图与缩略图落盘。
    - 文件路径换行拼接与 `file_types`。

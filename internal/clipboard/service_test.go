@@ -210,7 +210,7 @@ func TestSecretCapturePolicy(t *testing.T) {
 	}
 }
 
-func TestCaptureOrderAndTypeSwitches(t *testing.T) {
+func TestCaptureOrder(t *testing.T) {
 	cfg := settings.Default().Clipboard
 	cfg.Capture.Order = []settings.CaptureKind{settings.CaptureRTF, settings.CaptureHTML, settings.CaptureText}
 	svc, db, _ := testService(t, cfg)
@@ -226,17 +226,6 @@ func TestCaptureOrderAndTypeSwitches(t *testing.T) {
 	}
 	if item.SearchText == nil || *item.SearchText != "plain" {
 		t.Errorf("search text = %v", item.SearchText)
-	}
-
-	cfg.Capture.RTF = false
-	svc.Settings = func() settings.Clipboard { return cfg }
-	id, _, err = svc.Capture(ctx, payload, SourceApp{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	item, _ = db.FindByID(ctx, id)
-	if item.SubKind == nil || *item.SubKind != database.SubHTML {
-		t.Fatalf("sub kind = %v, want html", item.SubKind)
 	}
 }
 

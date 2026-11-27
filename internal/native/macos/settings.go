@@ -34,11 +34,6 @@ type SettingsValues struct {
 	DeletePinned           string
 	Sort                   string
 	WindowPosition         string
-	CaptureText            bool
-	CaptureHTML            bool
-	CaptureRTF             bool
-	CaptureImage           bool
-	CaptureFiles           bool
 	CaptureOrder           []string
 	MaxTextMB              uint32
 	MaxImageMB             uint32

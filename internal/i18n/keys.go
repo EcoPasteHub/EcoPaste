@@ -242,7 +242,6 @@ const (
 	SettingsCaptureText   = Key("settings.capture.text")
 	SettingsCaptureHTML   = Key("settings.capture.html")
 	SettingsCaptureRTF    = Key("settings.capture.rtf")
-	SettingsCaptureTypes  = Key("settings.capture.types")
 	SettingsCaptureLimits = Key("settings.capture.limits")
 	SettingsMaxText       = Key("settings.capture.maxText")
 	SettingsMaxImage      = Key("settings.capture.maxImage")

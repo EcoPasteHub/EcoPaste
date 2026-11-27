@@ -11,20 +11,7 @@ func (v *SettingsView) buildClipboardPage() {
 	document := v.newPage("clipboard")
 	top := 18.0
 
-	_, cardTop := v.addSectionCard(document, top, i18n.SettingsCaptureTypes, 5)
-	v.addSwitch(document, settingsRowTop(cardTop, 0), i18n.SettingsCaptureText, "capture.text",
-		func(s SettingsValues) bool { return s.CaptureText })
-	v.addSwitch(document, settingsRowTop(cardTop, 1), i18n.SettingsCaptureHTML, "capture.html",
-		func(s SettingsValues) bool { return s.CaptureHTML })
-	v.addSwitch(document, settingsRowTop(cardTop, 2), i18n.SettingsCaptureRTF, "capture.rtf",
-		func(s SettingsValues) bool { return s.CaptureRTF })
-	v.addSwitch(document, settingsRowTop(cardTop, 3), i18n.KindImage, "capture.image",
-		func(s SettingsValues) bool { return s.CaptureImage })
-	v.addSwitch(document, settingsRowTop(cardTop, 4), i18n.KindFiles, "capture.files",
-		func(s SettingsValues) bool { return s.CaptureFiles })
-	top = cardTop + 5*settingsRowHeight + settingsGroupGap
-
-	_, cardTop = v.addSectionCard(document, top, i18n.SettingsCaptureLimits, 2)
+	_, cardTop := v.addSectionCard(document, top, i18n.SettingsCaptureLimits, 2)
 	v.addNumberInput(document, settingsRowTop(cardTop, 0), i18n.SettingsMaxText, "capture.maxTextMb",
 		1, 1024, 1, " MB", func(s SettingsValues) uint32 { return s.MaxTextMB })
 	v.addNumberInput(document, settingsRowTop(cardTop, 1), i18n.SettingsMaxImage, "capture.maxImageMb",

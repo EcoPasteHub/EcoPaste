@@ -14,11 +14,11 @@
 | C-01 | P0 | 系统剪贴板监听 | `clipboard/watcher.rs` | 后台轮询 `NSPasteboard.changeCount`，120ms | 已通过 | `TestWatcherReportsChangesOnly` + 真机连续复制 |
 | C-02 | P0 | 纯文本采集 | `read.rs`、`ingest.rs` | `NSPasteboard.string(forType:)` | 已通过 | 真机复制中英文、多行 |
 | C-03 | P0 | HTML 采集 | `read.rs`、`ingest.rs` | `public.html` 读取，plain 作文本回退 | 已通过 | 真机 `NSPasteboardItem` 写入 html + plain |
-| C-04 | P0 | RTF 采集 | `read.rs`、`ingest.rs` | `public.rtf` 读取，plain 作文本回退 | 已通过 | `TestCaptureOrderAndTypeSwitches`；待真机 Pages/Word |
+| C-04 | P0 | RTF 采集 | `read.rs`、`ingest.rs` | `public.rtf` 读取，plain 作文本回退 | 已通过 | `TestCaptureOrder`；待真机 Pages/Word |
 | C-05 | P0 | 图片采集 | `read.rs`、`storage.rs` | PNG 直通，其他 `NSImage` 转 PNG | 已通过 | 真机 NSImage → TIFF → PNG，尺寸 520×520 |
 | C-06 | P0 | 文件/文件夹采集 | `read.rs`、`ingest.rs` | `public.file-url` 列表 | 已通过 | 真机多文件 URL；`TestCaptureFiles` |
-| C-07 | P0 | 采集优先级 | `settings::Capture.order` | 同一 pasteboard 多表示时按配置选主类型 | 已通过 | `TestCaptureOrderAndTypeSwitches` |
-| C-08 | P0 | 类型开关 | `settings::Capture` | 五类内容独立开关 | 已通过 | 同上，关闭 RTF 后回退 HTML |
+| C-07 | P0 | 采集优先级 | `settings::Capture.order` | 同一 pasteboard 多表示时按配置选主类型 | 已通过 | `TestCaptureOrder` |
+| C-08 | P0 | 类型开关 | `settings::Capture` | 已移除（产品调整）：默认采集全部类型，不再提供逐类开关 | 已通过（产品调整） | 默认捕获 text/html/rtf/image/files；`TestCaptureOrder` |
 | C-09 | P0 | 文本大小上限 | `max_text_mb` | 字节数判断，0 为不限 | 已通过 | `TestTextSizeLimit` |
 | C-10 | P0 | 图片大小上限 | `max_image_mb` | 解码前/后大小判断，0 为不限 | 已通过 | `TestImageSizeLimit` |
 | C-11 | P0 | 内容去重 | `db/items::upsert_item` | `blake3("<kind>:<content>")` 命中更新 | 已通过 | 真机重复复制 `use_count` 2；数据库测试 |
@@ -139,7 +139,7 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | U-01 | P0 | Clipboard 主页面 | `legacy/frontend/src/pages/Clipboard` | AppKit 双窗口：分类胶囊栏 + 搜索/列表/卡片/Footer | 已通过（产品调整） | 分类移入独立顶部子窗口，展示全部/文本/图片/文件/收藏胶囊与新建按钮；主窗口保留搜索、筛选菜单、设置、固定按钮、圆角卡片历史列表与 Footer；类型标签、来源/时间、置顶/收藏状态、备注切换、搜索/分组筛选、实时刷新与复制已真机验证；行卡片默认显示轻量底色，选中态使用系统强调色并切换白色文字；真机 420×560 主面板 + 420×48 分类栏复核；卡片统一为左侧来源应用图标、右侧内容并移除图标角标的字体图标；文本卡片按配置行数自适应高度并在超出时省略，图片按最大高度等比缩放，非图片文件逐行显示文件图标与名称，单个图片文件按图片预览展示；Finder 搜索结果复制得到的 `/.file/id=` 文件引用在采集时解析为真实路径，不再误报“已丢失”；搜索栏上下与左右留白一致、内部元素垂直居中，移除自定义居中绘制后输入框聚焦前后位置不再偏移；顶部搜索栏区域改用单一 `panelHeaderMargin` 推导上下左右四个方向的留白：工具栏图标定义行高、搜索文字与图标共用同一垂直轴、列表首张卡片与图标之间保留同样间距，真机截图像素复核四个方向留白一致（原上下约 22/29pt、左右约 16/22pt）；列表滚动到底时最后一张卡片不再被裁掉：`NSTableView` 把每行放进「行高 + 行间距」的槽位并居中单元格，原文档高度按「行高之和 + (n-1) × 行间距」计算，比末行卡片底边少 1pt，滚动到底即被裁掉 1～2px，现改为补齐末行尾部行间距；`TestHistoryRowIncludesMetadata`、`TestHistoryRowTypeLabels`、`TestHistoryTableContentHeightFollowsRows`、`TestHistoryTableContentHeightCoversLastCard`、`TestPanelSearchWidthLeavesRoomForToolbar`、`TestPanelHeaderKeepsEqualMargins`、`TestPanelHeaderCentersSearchOnIconAxis`、`TestPanelNavCapsulesFitPanelWidth`；列表选中态始终保持有且仅有一项：切换分组/分类/搜索必定选中第一项（即使原选中项仍在当前列表），删除时选中下一项（无下一项则上一项），返回顶部（含打开时滚动到顶部）选中第一项；新建分组后停留在原分组，不自动切换；`TestSelectionIndexAlwaysKeepsOneRow` 覆盖；搜索结果在标题、预览与备注中命中关键词时以低饱和奶油黄高亮（不透明底、近黑文字，浅/深色自适应），未选中/选中外观均清晰可读，查询更新时列表原地重绘高亮；`TestHighlightRanges`、`TestHighlightTokensDedupesAndSplits`、`TestHighlightedRowStringAppliesBackgroundToMatches` 覆盖 |
 | U-02 | P1 | Preview 页面 | `legacy/frontend/src/pages/Preview` | 原生 `NSPopover` 预览 | 已通过 | 真机 Space 打开、Space/Esc 关闭，popover 锚定列表行且不遮挡面板；文本、HTML、图片预览均正常；方向键在预览中切换条目并同步内容（不关闭 popover）；预览无额外背景、无分隔线，文本/图片/文件按类型排版，长内容在屏幕内滚动；`TestPreviewRedactsSensitiveText` |
-| U-03 | P1 | Preference 页面 | `legacy/frontend/src/pages/Preference` | 原生分类导航与表单 | 已通过 | 当前偏好设置按通用、外观、剪贴板、交互、数据、系统、关于七类组织。登录启动和快捷键归通用；主题、语言和列表密度归外观；采集类型/优先级与来源应用处理模式归剪贴板；面板打开、搜索、复制粘贴与预览动作归交互；排序、保留策略、敏感内容、删除、存储与备份归数据；权限和日志诊断归系统；版本、更新和项目链接归关于。`TestEveryScalarSettingBelongsToOneCategory` 校验字段唯一归类，`TestSettingsPagesMatchNavigation` 校验导航页齐全；改组不改变设置 schema 路径。中英文标签通过共享 i18n catalog。
+| U-03 | P1 | Preference 页面 | `legacy/frontend/src/pages/Preference` | 原生分类导航与表单 | 已通过 | 当前偏好设置按通用、外观、剪贴板、交互、数据、系统、关于七类组织。登录启动和快捷键归通用；主题、语言和列表密度归外观；采集优先级与来源应用处理模式归剪贴板；面板打开、搜索、复制粘贴与预览动作归交互；排序、保留策略、敏感内容、删除、存储与备份归数据；权限和日志诊断归系统；版本、更新和项目链接归关于。`TestEveryScalarSettingBelongsToOneCategory` 校验字段唯一归类，`TestSettingsPagesMatchNavigation` 校验导航页齐全；改组不改变设置 schema 路径。中英文标签通过共享 i18n catalog。
 | U-04 | P1 | Onboarding 页面 | `legacy/frontend/src/pages/Onboarding` | 不提供独立引导页面 | 不纳入 macOS 首版（产品调整） | 产品调整：移除首启引导流程与相关面板浮层，`internal/onboarding`、对应 UI、i18n 与设置字段均已删除；权限、快捷键、排除应用与备份恢复分别由设置页、系统权限提示和备份导入承担 |
 | U-05 | P1 | Update 页面 | `legacy/frontend/src/pages/Update` | 原生更新状态/进度 | 迁移中 | 产品调整：不再自绘更新状态机，设置“更新”页展示当前版本与检查入口，下载进度、安装和重启交给 Sparkle 原生窗口；不可用或非 Sparkle 结果使用本地化提示；正式签名 appcast 升级待发布验证 |
 | U-06 | P2 | ContextMenu 页面 | `legacy/frontend/src/pages/ContextMenu` | macOS 使用 `NSMenu`，不迁移 WebView 菜单窗 | 参考 | 对比菜单结构 |
@@ -170,7 +170,7 @@
 | S-01 | general | `autoStart`、`trayIcon` | `autoStart`/`trayIcon` 已接系统副作用；未接入的 `runAsAdmin` 已移除（§8.1）；`dockIcon` 已移除，Dock 图标跟随偏好设置窗口显隐（见 W-14） | 已通过（产品调整） | `TestSettingsModelAppliesTrayIcon`；真机开发版切换“显示菜单栏图标”后状态即时落盘，重启后保持隐藏，再次开启可恢复图标；默认值、原子写回与重置副作用沿用设置层测试 |
 | S-02 | appearance | `theme`、`language` | `auto/light/dark`、`auto/zh-CN/en-US`，语言默认 `auto` | 已通过 | 主题三档已接入并即时应用；`TestSettingsModelAppliesTheme`；语言下拉即时原地更新界面并持久化，`auto` 清除应用级语言覆盖并跟随系统语言，真机中英文往返回读 `settings.json` 正确，`TestSettingsModelAppliesLanguage` |
 | S-03 | shortcuts | `openClipboard`、`openPreference` | 两个全局快捷键保留；未接入的 `winV` 已移除（§8.1） | 已通过（产品调整） | 两个快捷键均已读取并注册；“快捷键”页原生录制、清空、非法组合和重复校验可用；`TestSettingsModelAppliesShortcutAndRejectsDuplicate`、`TestSettingsModelRollsBackShortcutWhenRebindFails`；真机 `Alt+K` 改为 `Alt+J` 后立即写盘并重绑 |
-| S-04 | clipboard.capture | `text/html/rtf/image/files`、`maxTextMb`、`maxImageMb`、`order` | 采集顺序与上限一致 | 已通过 | `TestCaptureOrderAndTypeSwitches`、`TestSettingsModelAppliesCaptureOrder`；真机设置“采集”页选择纯文本上移/下移后，`settings.json` 即时写入完整五类顺序 |
+| S-04 | clipboard.capture | `maxTextMb`、`maxImageMb`、`order` | 采集顺序与上限一致；类型开关已移除（§C-08） | 已通过（产品调整） | `TestCaptureOrder`、`TestSettingsModelAppliesCaptureOrder`；真机设置“采集”页选择纯文本上移/下移后，`settings.json` 即时写入完整五类顺序 |
 | S-05 | clipboard.content | `autoPaste`、`copyPlain`、`copyThenHideWindow`、`showOriginalPreview`、删除行为、`autoFavorite`、`sort` | 行为语义逐项一致 | 已通过 | 纯文本复制、复制后隐藏、固定记录复用时间/次数、排序方式、单击/双击触发已接入；设置“交互”页可改左键动作、备注自动收藏和“悬停备注条目显示原始内容”，真机写盘验证通过；有备注条目默认显示备注、真实鼠标移入后切回原内容并在移出后恢复备注，`TestHistoryRowTextUsesNoteUntilHover` 覆盖同一逻辑；“删除行为”页以普通/收藏/置顶三个下拉统一控制 `direct`/`confirm`/`forbidden`，列表、右键和 Delete 键共用同一策略，真机确认下拉文案与选中值正确；悬停工具栏已移除，操作由右键菜单与快捷键提供 |
 | S-06 | clipboard.display | `textMaxLines`、`imageMaxHeight`、`fileMaxCount` | 列表展示上限一致：文本标题行数、图片缩略图高度、文件名数量；因 purego 不支持 CGFloat 回调，列表使用统一行高`max(58, 文本行高, 图片高度+24)` | 已通过 | `TestDisplayClampsStoredDensity`、`TestHistoryItemHonorsFileMaxCount`；设置“显示”页可调；真机 `textMaxLines=3` 时 89pt 行高完整显示多行长文本与元数据，`imageMaxHeight=64` 时图片缩略图完整、无裁切，切换文本/图片分类后列表密度一致 |
 | S-07 | clipboard.sensitive | `collectSecrets`、`redactSecrets` | 两种策略互斥语义一致 | 已通过 | 设置 UI 可切换；敏感样本与预览脱敏测试 |
@@ -238,7 +238,7 @@
 | --- | --- |
 | 通用 | 登录启动、菜单栏图标、全局快捷键 |
 | 外观 | 主题、语言、文本/图片/文件列表展示密度 |
-| 剪贴板 | 采集类型、大小限制、表示优先级、来源应用处理模式 |
+| 剪贴板 | 大小限制、表示优先级、来源应用处理模式 |
 | 交互 | 面板打开位置与初始选择、搜索、复制/粘贴操作、预览、右键菜单与快捷键 |
 | 数据 | 排序、历史保留和数量、敏感内容策略、删除规则、数据目录与备份恢复 |
 | 系统 | macOS 权限、诊断信息、日志级别与日志目录 |
