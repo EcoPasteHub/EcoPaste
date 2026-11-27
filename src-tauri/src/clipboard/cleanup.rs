@@ -66,6 +66,7 @@ async fn run_once(app: &AppHandle) {
             ) {
                 log::warn!("emit cleanup event failed: {err}");
             }
+            super::page::maybe_prewarm(app);
         }
         Err(err) => log::warn!("history cleanup failed: {err}"),
     }

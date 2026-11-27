@@ -383,12 +383,15 @@ fn emit_settings_updated(app: &AppHandle, settings: &Settings) {
 }
 
 fn emit_clipboard_imported(app: &AppHandle) {
+    // 库已整体换掉：先作废按版本号缓存的列表页，再广播刷新。
+    crate::db::list_index::invalidate();
     if let Err(err) = app.emit(
         CLIPBOARD_UPDATED_EVENT,
         serde_json::json!({ "imported": true }),
     ) {
         log::warn!("emit clipboard imported event failed: {err}");
     }
+    crate::clipboard::maybe_prewarm(app);
 }
 
 fn pause_watcher(app: &AppHandle) -> WatcherPauseRestore {

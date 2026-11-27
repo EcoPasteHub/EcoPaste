@@ -152,6 +152,8 @@ pub async fn persist_and_notify(
     ) {
         log::warn!("emit {CLIPBOARD_UPDATED_EVENT} failed: {err}");
     }
+    // 窗口隐藏时后台把首屏重算一遍（去抖），下一次打开直接命中缓存。
+    super::page::maybe_prewarm(app);
     Ok(result)
 }
 

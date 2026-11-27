@@ -110,6 +110,9 @@ pub(super) fn get_window(app_handle: &AppHandle, label: &str) -> Result<WebviewW
 }
 
 pub fn show_window(app_handle: &AppHandle, label: &str) -> Result<()> {
+    #[cfg(debug_assertions)]
+    let opened_at = std::time::Instant::now();
+
     // 销毁后重建：`DestroyWhenIdle` 窗口空闲超时后 WebView 已被销毁，打开时按 descriptor
     // 的 build fn 重新建窗。重建后窗口为 `visible: false`，下方走与既有一致的恢复 + show 流程。
     if app_handle.get_webview_window(label).is_none() {
@@ -148,6 +151,15 @@ pub fn show_window(app_handle: &AppHandle, label: &str) -> Result<()> {
         }
         emit_visibility(app_handle, label, true);
         lifecycle::on_shown(app_handle, label);
+    }
+    // 计量点：只覆盖「调用 show_window 入口 → 窗口可见且已广播 visibility」，
+    // 用于给「打开窗口」与「内容更新」两段延迟分账（前端拿到事件后的耗时不在此处）。
+    #[cfg(debug_assertions)]
+    if label == CLIPBOARD_WINDOW_LABEL {
+        log::debug!(
+            "show_window[{label}]: entry→visible+emit {:.2}ms",
+            opened_at.elapsed().as_secs_f64() * 1000.0
+        );
     }
     result
 }

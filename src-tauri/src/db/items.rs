@@ -133,6 +133,8 @@ pub async fn insert_item(pool: &SqlitePool, item: &ClipboardItem) -> Result<()> 
     .execute(pool)
     .await
     .context("failed to insert clipboard item")?;
+
+    crate::db::list_index::note_rows_changed(pool, std::slice::from_ref(&item.id)).await;
     Ok(())
 }
 
@@ -151,10 +153,74 @@ pub async fn query_items_page(
     pool: &SqlitePool,
     q: &ClipboardItemQuery,
 ) -> Result<(Vec<ClipboardItem>, i64)> {
+    #[cfg(debug_assertions)]
+    let started = std::time::Instant::now();
+
+    // 内存索引负责排序与计数：打开窗口时只按主键取可见行（实测 0.26 ms），
+    // 页数 / 总数都不再扫表。索引未就绪（首次载入中、切换数据目录后）或带关键词时返回 None。
+    if let Some(page) = crate::db::list_index::installed()
+        .as_ref()
+        .and_then(|index| index.page(q))
+    {
+        let items = fetch_items_by_ids(pool, &page.ids).await?;
+        #[cfg(debug_assertions)]
+        log::debug!(
+            "list page via index: index+hydrate {:.2}ms, ids={}, total={}",
+            started.elapsed().as_secs_f64() * 1000.0,
+            page.ids.len(),
+            page.total
+        );
+        return Ok((items, page.total));
+    }
+
     let keyword = KeywordFilter::from_keyword(q.keyword.as_deref());
     let items = fetch_items(pool, q, keyword.clone()).await?;
     let total = fetch_items_count(pool, q, keyword).await?;
+    #[cfg(debug_assertions)]
+    log::debug!(
+        "list page via sql: {:.2}ms, ids={}, total={}",
+        started.elapsed().as_secs_f64() * 1000.0,
+        items.len(),
+        total
+    );
     Ok((items, total))
+}
+
+/// 按主键批量取「列表视图」行，并按传入顺序回排。
+///
+/// 供内存索引路径使用：`IN (...)` 的返回顺序不可依赖，而排序位由索引决定，
+/// 所以这里以 `ids` 的顺序为准重组结果。主键命中走 `sqlite_autoindex_clipboard_items_1`，
+/// 只读这些行的记录，不触发全表扫描。
+pub async fn fetch_items_by_ids(pool: &SqlitePool, ids: &[String]) -> Result<Vec<ClipboardItem>> {
+    if ids.is_empty() {
+        return Ok(Vec::new());
+    }
+
+    let mut qb: QueryBuilder<Sqlite> = QueryBuilder::new(LIST_SELECT_ITEM);
+    qb.push(" WHERE clipboard_items.id IN (");
+    let mut separated = qb.separated(", ");
+    for id in ids {
+        separated.push_bind(id.clone());
+    }
+    separated.push_unseparated(")");
+
+    let rows = qb
+        .build_query_as::<ClipboardItem>()
+        .fetch_all(pool)
+        .await
+        .context("failed to fetch clipboard items by ids")?;
+
+    let mut fetched: std::collections::HashMap<String, ClipboardItem> =
+        std::collections::HashMap::with_capacity(rows.len());
+    for row in rows {
+        fetched.insert(row.id.clone(), row);
+    }
+
+    let ordered = ids
+        .iter()
+        .filter_map(|id| fetched.remove(id))
+        .collect::<Vec<_>>();
+    Ok(ordered)
 }
 
 /// 按 `id` 查找单条记录，不存在时返回 `None`。
@@ -199,6 +265,7 @@ pub async fn toggle_item_favorite(pool: &SqlitePool, id: &str) -> Result<bool> {
     .fetch_one(pool)
     .await
     .context("failed to toggle clipboard item favorite")?;
+    crate::db::list_index::note_rows_changed(pool, &[id.to_owned()]).await;
     Ok(new_value)
 }
 
@@ -209,6 +276,7 @@ pub async fn mark_item_favorite(pool: &SqlitePool, id: &str) -> Result<()> {
         .execute(pool)
         .await
         .context("failed to mark clipboard item favorite")?;
+    crate::db::list_index::note_rows_changed(pool, &[id.to_owned()]).await;
     Ok(())
 }
 
@@ -221,6 +289,7 @@ pub async fn toggle_item_pinned(pool: &SqlitePool, id: &str) -> Result<bool> {
     .fetch_one(pool)
     .await
     .context("failed to toggle clipboard item pinned")?;
+    crate::db::list_index::note_rows_changed(pool, &[id.to_owned()]).await;
     Ok(new_value)
 }
 
@@ -232,6 +301,7 @@ pub async fn update_item_note(pool: &SqlitePool, id: &str, note: Option<&str>) -
         .execute(pool)
         .await
         .context("failed to update clipboard item note")?;
+    crate::db::list_index::note_rows_changed(pool, &[id.to_owned()]).await;
     Ok(())
 }
 
@@ -243,6 +313,7 @@ pub async fn update_item_group(pool: &SqlitePool, id: &str, group_id: Option<&st
         .execute(pool)
         .await
         .context("failed to update clipboard item group")?;
+    crate::db::list_index::note_rows_changed(pool, &[id.to_owned()]).await;
     Ok(())
 }
 
@@ -256,6 +327,7 @@ pub async fn increment_item_use_count(pool: &SqlitePool, id: &str) -> Result<()>
     .execute(pool)
     .await
     .context("failed to increment clipboard item use_count")?;
+    crate::db::list_index::note_rows_changed(pool, &[id.to_owned()]).await;
     Ok(())
 }
 
@@ -272,6 +344,7 @@ pub async fn delete_item(pool: &SqlitePool, id: &str) -> Result<Option<String>> 
     .fetch_optional(pool)
     .await
     .context("failed to delete clipboard item")?;
+    crate::db::list_index::note_rows_removed(&[id.to_owned()]);
     Ok(row.and_then(|(kind, content)| image_file_name(kind, content)))
 }
 
@@ -300,13 +373,15 @@ pub async fn delete_items(pool: &SqlitePool, ids: &[String]) -> Result<u64> {
         .execute(pool)
         .await
         .context("failed to delete clipboard items")?;
+    crate::db::list_index::note_rows_removed(ids);
     Ok(result.rows_affected())
 }
 
-/// 历史清理的结果：删除行数 + 其中图片记录的落盘文件名（供调用方删图）。
+/// 历史清理的结果：删除行数 + 被删行 id（供内存索引同步）+ 其中图片记录的落盘文件名（供调用方删图）。
 #[derive(Debug, Default)]
 pub struct CleanupOutcome {
     pub removed: u64,
+    pub ids: Vec<String>,
     pub image_files: Vec<String>,
 }
 
@@ -320,10 +395,10 @@ pub async fn cleanup_history(
     let mut outcome = CleanupOutcome::default();
 
     if let Some(cutoff) = older_than {
-        let rows = sqlx::query_as::<_, (ClipboardKind, String)>(
+        let rows = sqlx::query_as::<_, (String, ClipboardKind, String)>(
             "DELETE FROM clipboard_items \
              WHERE is_pinned = 0 AND is_favorite = 0 AND created_at < ? \
-             RETURNING kind, content",
+             RETURNING id, kind, content",
         )
         .bind(cutoff)
         .fetch_all(pool)
@@ -335,14 +410,14 @@ pub async fn cleanup_history(
     if let Some(max) = max_count.filter(|n| *n > 0) {
         // 仅在非置顶 / 非收藏集合内按 created_at DESC 保留前 max 条，多余的删除。
         // SQLite 中 `LIMIT -1 OFFSET n` 表示「跳过前 n 条，剩下全要」。
-        let rows = sqlx::query_as::<_, (ClipboardKind, String)>(
+        let rows = sqlx::query_as::<_, (String, ClipboardKind, String)>(
             "DELETE FROM clipboard_items WHERE id IN ( \
                  SELECT id FROM clipboard_items \
                  WHERE is_pinned = 0 AND is_favorite = 0 \
                  ORDER BY created_at DESC \
                  LIMIT -1 OFFSET ? \
              ) \
-             RETURNING kind, content",
+             RETURNING id, kind, content",
         )
         .bind(max as i64)
         .fetch_all(pool)
@@ -351,16 +426,19 @@ pub async fn cleanup_history(
         absorb_deleted(&mut outcome, rows);
     }
 
+    crate::db::list_index::note_rows_removed(&outcome.ids);
     Ok(outcome)
 }
 
-/// 把一批被删行计入 outcome：累加行数，并收集其中的图片文件名。
-fn absorb_deleted(outcome: &mut CleanupOutcome, rows: Vec<(ClipboardKind, String)>) {
+/// 把一批被删行计入 outcome：累加行数、记下被删 id，并收集其中的图片文件名。
+fn absorb_deleted(outcome: &mut CleanupOutcome, rows: Vec<(String, ClipboardKind, String)>) {
     outcome.removed += rows.len() as u64;
-    outcome.image_files.extend(
-        rows.into_iter()
-            .filter_map(|(kind, content)| image_file_name(kind, content)),
-    );
+    for (id, kind, content) in rows {
+        if let Some(file_name) = image_file_name(kind, content) {
+            outcome.image_files.push(file_name);
+        }
+        outcome.ids.push(id);
+    }
 }
 
 /// 清空记录，返回删除行数与被删图片文件名；未显式删除的收藏 / 置顶项会保留。
@@ -380,16 +458,17 @@ pub async fn clear_items(
         qb.push(if has_condition { " AND " } else { " WHERE " });
         qb.push("is_pinned = 0");
     }
-    qb.push(" RETURNING kind, content");
+    qb.push(" RETURNING id, kind, content");
 
     let rows = qb
-        .build_query_as::<(ClipboardKind, String)>()
+        .build_query_as::<(String, ClipboardKind, String)>()
         .fetch_all(pool)
         .await
         .context("failed to clear clipboard items")?;
 
     let mut outcome = CleanupOutcome::default();
     absorb_deleted(&mut outcome, rows);
+    crate::db::list_index::note_rows_removed(&outcome.ids);
     Ok(outcome)
 }
 
@@ -534,14 +613,7 @@ fn push_filter_clauses(
         }
     }
     // group（UI Tab）覆盖显式 kind / favorite；为 None 时回退到显式字段（单测使用）。
-    let (effective_kind, effective_favorite) = match q.group {
-        Some(ClipboardGroupFilter::All) => (None, None),
-        Some(ClipboardGroupFilter::Text) => (Some(ClipboardKind::Text), None),
-        Some(ClipboardGroupFilter::Image) => (Some(ClipboardKind::Image), None),
-        Some(ClipboardGroupFilter::Files) => (Some(ClipboardKind::Files), None),
-        Some(ClipboardGroupFilter::Favorite) => (None, Some(true)),
-        None => (q.kind, q.favorite),
-    };
+    let (effective_kind, effective_favorite) = effective_kind_favorite(q);
     if let Some(kind) = effective_kind {
         qb.push(" AND clipboard_items.kind = ").push_bind(kind);
     }
@@ -556,6 +628,23 @@ fn push_filter_clauses(
     if let Some(pinned) = q.pinned {
         qb.push(" AND clipboard_items.is_pinned = ")
             .push_bind(pinned);
+    }
+}
+
+/// 把 Tab 过滤解析成「生效的 kind / favorite」：`group` 显式设置时覆盖 `kind` / `favorite`，
+/// 为 `None` 时回退显式字段（单测与内部调用）。
+///
+/// SQL 路径与内存索引（[`crate::db::list_index`]）共用这一份语义，避免两边过滤条件漂移。
+pub(crate) fn effective_kind_favorite(
+    q: &ClipboardItemQuery,
+) -> (Option<ClipboardKind>, Option<bool>) {
+    match q.group {
+        Some(ClipboardGroupFilter::All) => (None, None),
+        Some(ClipboardGroupFilter::Text) => (Some(ClipboardKind::Text), None),
+        Some(ClipboardGroupFilter::Image) => (Some(ClipboardKind::Image), None),
+        Some(ClipboardGroupFilter::Files) => (Some(ClipboardKind::Files), None),
+        Some(ClipboardGroupFilter::Favorite) => (None, Some(true)),
+        None => (q.kind, q.favorite),
     }
 }
 

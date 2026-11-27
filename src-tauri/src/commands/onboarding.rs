@@ -232,6 +232,7 @@ pub async fn import_legacy_data(
     ) {
         log::warn!("emit {CLIPBOARD_UPDATED_EVENT} after legacy import failed: {err}");
     }
+    crate::clipboard::maybe_prewarm(&app);
 
     Ok(OnboardingLegacyImportResult {
         imported,

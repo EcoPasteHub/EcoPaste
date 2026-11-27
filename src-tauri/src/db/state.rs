@@ -32,7 +32,9 @@ impl DatabaseState {
         let mut current = self.pool.lock().await;
         current.close().await;
         let next = replace().await?;
-        *current = next;
+        *current = next.clone();
+        // 换了库（切换数据目录 / 备份覆盖导入）就重建列表索引，否则窗口打开还在用旧库的顺序。
+        crate::db::list_index::activate(next);
         Ok(())
     }
 }

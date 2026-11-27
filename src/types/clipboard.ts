@@ -149,6 +149,21 @@ export interface ClipboardItemPage {
   list: ClipboardItem[];
   total: number;
   hasMore: boolean;
+  /**
+   * 列表数据版本号（Rust `db::list_index::revision`）。
+   * 与上次一致说明「这一页内容没有任何变化」，前端可跳过整页 setState，
+   * 省掉打开窗口时一次无意义的重渲染。
+   */
+  revision: number;
+}
+
+/**
+ * 隐藏期预热结果（`clipboard://page-ready`）：窗口不可见时 Rust 已经算好的整页，
+ * 前端可直接采纳，把「可见 → 内容刷新」压缩到零 IPC。
+ */
+export interface ClipboardPageReadyPayload {
+  query: ClipboardItemQuery;
+  page: ClipboardItemPage;
 }
 
 /**

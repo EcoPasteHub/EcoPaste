@@ -32,6 +32,23 @@ const IMAGES_DIR: &str = "clipboard-images";
 const ORIGIN_DIR: &str = "origin";
 const THUMBNAILS_DIR: &str = "thumbnails";
 
+/// 校验托管图片文件名：必须是 `<hash>.png` 形式的纯文件名，
+/// 拒绝空串 / 路径分隔符 / `..`，避免 `content` 被构造成越界路径。
+pub fn validate_image_file_name(file_name: &str) -> Result<()> {
+    let invalid = file_name.is_empty()
+        || file_name.contains('/')
+        || file_name.contains('\\')
+        || file_name.contains("..")
+        || !file_name.ends_with(".png");
+
+    if invalid {
+        return Err(AppError::Clipboard(format!(
+            "invalid image file name: {file_name:?}"
+        )));
+    }
+
+    Ok(())
+}
 /// 一次图片落盘的结果，交给 ingest 写入 `ClipboardItem`。
 pub struct StoredImage {
     /// 入库 `content`：图片文件名 `<hash>.png`（不含分片目录）。

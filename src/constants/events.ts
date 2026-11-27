@@ -6,6 +6,7 @@ export const TAURI_EVENT = {
   BACKUP_RECEIVED: "backup://received",
   CLIPBOARD_GROUPS_UPDATED: "clipboard-groups://updated",
   CLIPBOARD_MENU_ACTION: "clipboard://menu-action",
+  CLIPBOARD_PAGE_READY: "clipboard://page-ready",
   CLIPBOARD_UPDATED: "clipboard://updated",
   CONTEXT_MENU_SHOW: "context-menu://show",
   CONTEXT_SUBMENU_SHOW: "context-submenu://show",

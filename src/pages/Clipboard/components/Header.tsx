@@ -146,7 +146,11 @@ const Header: FC = () => {
     }
 
     if (settings.clipboard.search.clearOnHide) {
-      clearSearch();
+      // 隐藏时已清空过一次；这里只在仍有残留关键字时兜底。
+      // 无条件再清会递增 clearToken → 输入框在「打开窗口」这一帧重新挂载，白付一次重渲染。
+      if (clipboardViewState.keyword !== "") {
+        clearSearch();
+      }
     }
 
     if (!settings.clipboard.search.defaultFocus) {

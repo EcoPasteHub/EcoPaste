@@ -4,24 +4,29 @@ use std::collections::HashMap;
 use std::path::Path;
 use std::sync::Arc;
 
-use chrono::{DateTime, Datelike, Local, Utc};
+use chrono::{DateTime, Local, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
 use tauri::{AppHandle, Emitter, Manager, State};
 use tauri_plugin_dialog::DialogExt;
 
+use crate::clipboard::page::{
+    attach_color_preview, attach_display_created_at, attach_file_entries,
+    attach_image_thumbnail_path, attach_source_app_icon_path, compute_available_actions,
+    is_image_path, mask_sensitive_text, redact_sensitive_list_item, resolve_file_icon_path,
+};
 use crate::clipboard::{
     add_app_from_path, build_item_with_settings, delete_unreferenced_apps, detect_frontmost,
-    materialize_source, persist_and_notify, refresh_running_apps, sanitize_css_color, AppIconStore,
-    AppsRegistry, ClipboardReader, FileIconStore, ImageStore, WritebackGuard,
+    materialize_source, persist_and_notify, refresh_running_apps, validate_image_file_name,
+    AppIconStore, AppsRegistry, ClipboardReader, FileIconStore, ImageStore, WritebackGuard,
 };
 use crate::core::{AppError, Result};
 use crate::db::items::{
     clear_items, find_item_by_id, find_item_for_list_by_id, increment_item_use_count,
 };
 use crate::db::models::{
-    ClipboardAction, ClipboardApp, ClipboardGroup, ClipboardItem, ClipboardItemPage,
-    ClipboardItemQuery, ClipboardKind, ClipboardSubKind, FileEntry, Platform,
+    ClipboardApp, ClipboardGroup, ClipboardItem, ClipboardItemPage, ClipboardItemQuery,
+    ClipboardKind, ClipboardSubKind, Platform,
 };
 use crate::db::DatabaseState;
 use crate::settings::SettingsStore;
@@ -495,6 +500,7 @@ async fn mark_item_reused_if_enabled(
     ) {
         log::warn!("emit {CLIPBOARD_UPDATED_EVENT} after item reuse failed: {err}");
     }
+    crate::clipboard::maybe_prewarm(app);
 
     Ok(())
 }
@@ -512,41 +518,17 @@ fn hide_clipboard_window_after_copy(app: &AppHandle) {
 
 /// 列表查询命令（薄封装）：参数缺省时走 Rust 端默认（limit=20, offset=0, updatedAtDesc）；
 /// `keyword` 非空时由 `query_items` 内部自动委派 FTS5。
-/// 返回 [`ClipboardItemPage`]：顶页项 + 同过滤下的总数 + `hasMore`，
+/// 返回 [`ClipboardItemPage`]：顶页项 + 同过滤下的总数 + `hasMore` + 数据版本号，
 /// 供前端一次 IPC 同时拿到「列表 / Footer 总数 / 是否还有下一页」。
-/// 顺带把 `source_app_icon_file` 解析为绝对路径写到 `source_app_icon_path`，
-/// 前端无需再拉 `get_clipboard_app_icon_path`。
+///
+/// 组装与缓存都在 [`crate::clipboard::page`]：命中隐藏期预热的缓存时，
+/// 打开窗口后的这次刷新退化为纯内存返回，不再重跑 DB + enrich。
 #[tauri::command]
 pub async fn list_clipboard_items(
     app: AppHandle,
-    db: State<'_, DatabaseState>,
-    image_store: State<'_, ImageStore>,
-    app_icon_store: State<'_, AppIconStore>,
-    file_icon_store: State<'_, FileIconStore>,
     query: Option<ClipboardItemQuery>,
 ) -> Result<ClipboardItemPage> {
-    let pool = db.pool().await;
-    let q = query.unwrap_or_default();
-    let (mut items, total) = crate::db::items::query_items_page(&pool, &q).await?;
-    let now = Local::now();
-    let settings = app.state::<SettingsStore>().snapshot();
-    let file_entry_limit = settings.clipboard.display.file_entry_limit();
-    let redact_sensitive = settings.clipboard.sensitive.redact_secrets;
-    for item in &mut items {
-        attach_image_thumbnail_path(&image_store, item).await?;
-        attach_source_app_icon_path(&app_icon_store, item);
-        attach_file_entries(&pool, &file_icon_store, item, file_entry_limit).await?;
-        attach_color_preview(item);
-        attach_display_created_at(item, &now);
-        redact_sensitive_list_item(item, redact_sensitive);
-        item.available_actions = compute_available_actions(item);
-    }
-    let has_more = q.offset + (items.len() as i64) < total;
-    Ok(ClipboardItemPage {
-        list: items,
-        total,
-        has_more,
-    })
+    crate::clipboard::load_page(&app, query.unwrap_or_default()).await
 }
 
 /// 单条查询命令：监听到 `clipboard://updated` 后前端按 id 拉单条，
@@ -580,206 +562,6 @@ pub async fn get_clipboard_item(
     Ok(item)
 }
 
-/// 为 image 条目补齐缩略图绝对路径，前端可直接渲染。
-/// 历史脏数据（非 `<hash>.png`）或缩略图生成失败时降级为 `None`，不影响列表返回。
-async fn attach_image_thumbnail_path(store: &ImageStore, item: &mut ClipboardItem) -> Result<()> {
-    if item.kind != ClipboardKind::Image {
-        return Ok(());
-    }
-
-    if validate_image_file_name(&item.content).is_err() {
-        item.image_thumbnail_path = None;
-        return Ok(());
-    }
-
-    let file_name = item.content.clone();
-    let thumb_path = store.thumbnail_path(&file_name);
-    let thumb_exists = thumb_path.exists();
-
-    let immediate_path = if thumb_exists {
-        thumb_path
-    } else {
-        store.origin_path(&file_name)
-    };
-
-    item.image_thumbnail_path = immediate_path.to_str().map(str::to_owned);
-
-    // 缩略图不存在时后台异步预热，避免把大图缩放阻塞在列表/单条查询的返回路径上。
-    if !thumb_exists {
-        let store = store.clone();
-        tauri::async_runtime::spawn_blocking(move || {
-            if let Err(err) = store.ensure_thumbnail(&file_name) {
-                log::warn!("ensure image thumbnail failed for {:?}: {err}", file_name);
-            }
-        });
-    }
-
-    Ok(())
-}
-
-/// 把 `clipboard_apps.icon_file` 解析为磁盘绝对路径写回 [`ClipboardItem::source_app_icon_path`]，
-/// utf-8 转换失败时直接置 `None`（前端可降级到首字母占位）。
-fn attach_source_app_icon_path(store: &AppIconStore, item: &mut ClipboardItem) {
-    item.source_app_icon_path = item
-        .source_app_icon_file
-        .as_deref()
-        .and_then(|name| store.icon_path(name).to_str().map(str::to_owned));
-}
-
-/// 把来源应用 DB 模型转换为偏好页列表可直接渲染的视图模型。
-fn build_clipboard_app_view(store: &AppIconStore, app: ClipboardApp) -> ClipboardAppView {
-    let icon_path = app
-        .icon_file
-        .as_deref()
-        .and_then(|name| store.icon_path(name).to_str().map(str::to_owned));
-
-    ClipboardAppView {
-        id: app.id,
-        name: app.name,
-        icon_file: app.icon_file,
-        icon_path,
-        platform: app.platform,
-        created_at: app.created_at,
-        updated_at: app.updated_at,
-    }
-}
-
-/// 仅当 `sub_kind = Color` 时，把 `summary`（或 `content` 兜底）规范化为可信 CSS 颜色串
-/// 写入 `color_preview`，前端无需再自行校验即可塞 `style.background`。
-fn attach_color_preview(item: &mut ClipboardItem) {
-    if item.sub_kind != Some(ClipboardSubKind::Color) {
-        return;
-    }
-
-    let source = item.summary.as_deref().unwrap_or(&item.content);
-    item.color_preview = sanitize_css_color(source);
-}
-
-/// 按当前设置对敏感文本列表项返回脱敏摘要，避免前端列表暴露完整凭据。
-fn redact_sensitive_list_item(item: &mut ClipboardItem, redact_sensitive: bool) {
-    if !redact_sensitive || !item.is_sensitive || item.kind != ClipboardKind::Text {
-        return;
-    }
-
-    if let Some(summary) = item.summary.as_mut() {
-        *summary = mask_sensitive_text(summary);
-    }
-    item.color_preview = None;
-}
-
-/// 生成敏感文本遮罩：每行保留头尾少量字符，中间以星号替换。
-fn mask_sensitive_text(text: &str) -> String {
-    text.split('\n')
-        .map(mask_sensitive_line)
-        .collect::<Vec<_>>()
-        .join("\n")
-}
-
-/// 遮罩单行敏感文本；短文本全量替换，长文本保留前后 4 个字符。
-fn mask_sensitive_line(line: &str) -> String {
-    const VISIBLE_EDGE_CHARS: usize = 4;
-    const MAX_MASK_CHARS: usize = 8;
-
-    let chars: Vec<char> = line.chars().collect();
-    let len = chars.len();
-    if len == 0 {
-        return String::new();
-    }
-    if len <= VISIBLE_EDGE_CHARS * 2 {
-        return "*".repeat(len);
-    }
-
-    let head = chars[..VISIBLE_EDGE_CHARS].iter().collect::<String>();
-    let tail = chars[len - VISIBLE_EDGE_CHARS..].iter().collect::<String>();
-    let mask_len = (len - VISIBLE_EDGE_CHARS * 2).min(MAX_MASK_CHARS);
-
-    [head, "*".repeat(mask_len), tail].concat()
-}
-
-/// 返回预览 payload 的文本子类型；脱敏展示时敏感内容强制按纯文本展示。
-fn preview_sub_kind(item: &ClipboardItem, redact_sensitive: bool) -> Option<ClipboardSubKind> {
-    if redact_sensitive && item.is_sensitive && item.kind == ClipboardKind::Text {
-        return None;
-    }
-
-    item.sub_kind
-}
-
-/// 返回预览窗口展示用文本；HTML / RTF 使用 OS 提供的纯文本表示，避免前端渲染富文本源。
-fn preview_text(item: &ClipboardItem, redact_sensitive: bool) -> String {
-    let source = match item.sub_kind {
-        Some(ClipboardSubKind::Html | ClipboardSubKind::Rtf) => {
-            item.search_text.as_deref().unwrap_or(&item.content)
-        }
-        _ => &item.content,
-    };
-
-    if redact_sensitive && item.is_sensitive {
-        return mask_sensitive_text(source);
-    }
-
-    source.to_owned()
-}
-
-/// 把 `created_at`（UTC）按本地时区做三档展示格式化：
-/// 今天 → `HH:mm:ss`，今年内 → `MM-DD HH:mm`，跨年 → `YYYY-MM-DD HH:mm`。
-/// `now` 由调用方在批处理外取一次，避免列表内逐条 syscall。
-fn attach_display_created_at(item: &mut ClipboardItem, now: &chrono::DateTime<Local>) {
-    let local = item.created_at.with_timezone(&Local);
-    let today = now.date_naive() == local.date_naive();
-    let same_year = now.year() == local.year();
-
-    item.display_created_at = if today {
-        local.format("%H:%M").to_string()
-    } else if same_year {
-        local.format("%m-%d %H:%M").to_string()
-    } else {
-        local.format("%Y-%m-%d %H:%M").to_string()
-    };
-}
-
-/// 按 `kind` / `sub_kind` 计算右键菜单可用动作，按建议展示顺序返回。
-/// 前端只负责把每个动作映射成 `MenuItemOptions`（文案 + 快捷键），
-/// 不再自行判定「能否打开链接 / 是否文件可揭示」等业务规则。
-fn compute_available_actions(item: &ClipboardItem) -> Vec<ClipboardAction> {
-    let mut actions = Vec::with_capacity(10);
-
-    actions.push(ClipboardAction::Paste);
-
-    match item.kind {
-        ClipboardKind::Text => actions.push(ClipboardAction::PasteAsPlainText),
-        ClipboardKind::Files => actions.push(ClipboardAction::PasteAsPath),
-        ClipboardKind::Image => {}
-    }
-
-    actions.push(ClipboardAction::Copy);
-    if item.kind == ClipboardKind::Image {
-        actions.push(ClipboardAction::SaveImage);
-    }
-
-    match item.sub_kind {
-        Some(ClipboardSubKind::Url) => actions.push(ClipboardAction::OpenLink),
-        Some(ClipboardSubKind::Email) => actions.push(ClipboardAction::SendEmail),
-        _ => {}
-    }
-
-    let can_reveal =
-        item.kind == ClipboardKind::Files || item.sub_kind == Some(ClipboardSubKind::Path);
-    if can_reveal {
-        #[cfg(target_os = "macos")]
-        actions.push(ClipboardAction::RevealInFinder);
-        #[cfg(target_os = "windows")]
-        actions.push(ClipboardAction::RevealInExplorer);
-    }
-
-    actions.push(ClipboardAction::ToggleFavorite);
-    actions.push(ClipboardAction::TogglePinned);
-    actions.push(ClipboardAction::EditNote);
-    actions.push(ClipboardAction::Delete);
-
-    actions
-}
-
 /// 生成图片另存为对话框默认文件名。
 fn default_saved_image_file_name(item: &ClipboardItem) -> String {
     let local = item.created_at.with_timezone(&Local);
@@ -802,68 +584,6 @@ impl Drop for ClipboardAutoHideSuspendGuard {
     fn drop(&mut self) {
         window::set_clipboard_window_auto_hide_suspended(false);
     }
-}
-
-/// 为 files 条目按设置组装前若干项 [`FileEntry`]：
-/// 路径 / 文件名 / 目录标记 / 图片标记 / icon 绝对路径，前端直接渲染。
-/// 非 files 条目或无路径时保持 `file_entries = None`。
-async fn attach_file_entries(
-    pool: &SqlitePool,
-    store: &FileIconStore,
-    item: &mut ClipboardItem,
-    limit: usize,
-) -> Result<()> {
-    if item.kind != ClipboardKind::Files {
-        return Ok(());
-    }
-
-    let paths: Vec<&str> = item
-        .content
-        .split('\n')
-        .filter(|p| !p.is_empty())
-        .take(limit)
-        .collect();
-    if paths.is_empty() {
-        return Ok(());
-    }
-
-    let types: Vec<&str> = item
-        .file_types
-        .as_deref()
-        .unwrap_or("")
-        .split(',')
-        .collect();
-
-    let mut entries = Vec::with_capacity(paths.len());
-    for (index, path) in paths.iter().enumerate() {
-        let (icon_path, exists) =
-            resolve_file_icon_path(pool, store, path, item.file_types.as_deref(), index).await?;
-        let is_dir = types.get(index).copied() == Some("d");
-        let name = std::path::Path::new(path)
-            .file_name()
-            .and_then(|n| n.to_str())
-            .map(str::to_owned)
-            .unwrap_or_else(|| (*path).to_owned());
-        let is_image = !is_dir && is_image_path(path);
-
-        entries.push(FileEntry {
-            path: (*path).to_owned(),
-            name,
-            is_dir,
-            is_image,
-            exists,
-            icon_path,
-        });
-    }
-
-    item.file_entries = Some(entries);
-    item.files_preview_kind = Some(match item.file_entries.as_deref() {
-        Some([only]) if only.is_image && only.exists => {
-            crate::db::models::FilesPreviewKind::ImagePreview
-        }
-        _ => crate::db::models::FilesPreviewKind::List,
-    });
-    Ok(())
 }
 
 /// 将完整 `ClipboardItem` 转为预览窗口的轻量数据模型。
@@ -986,89 +706,6 @@ fn path_to_string(path: &Path, label: &str) -> Result<String> {
     path.to_str()
         .map(str::to_owned)
         .ok_or_else(|| AppError::Clipboard(format!("{label} is not valid utf-8")))
-}
-
-/// 与前端 `utils/is.ts` 的 `isImage` 同义：按扩展名（大小写不敏感）判断常见图片格式。
-fn is_image_path(path: &str) -> bool {
-    let Some(ext) = Path::new(path).extension().and_then(|e| e.to_str()) else {
-        return false;
-    };
-
-    matches!(
-        ext.to_ascii_lowercase().as_str(),
-        "jpg"
-            | "jpeg"
-            | "png"
-            | "webp"
-            | "avif"
-            | "gif"
-            | "svg"
-            | "bmp"
-            | "ico"
-            | "tif"
-            | "tiff"
-            | "heic"
-            | "apng"
-    )
-}
-
-/// 解析文件 icon 路径：优先命中缓存，未命中时在路径存在的前提下抽取并落盘缓存。
-/// 返回 `(icon_path, exists)`，其中 `icon_path` 可能为 `None`（抽取失败或已删除且无缓存）。
-async fn resolve_file_icon_path(
-    pool: &SqlitePool,
-    file_icon_store: &FileIconStore,
-    path: &str,
-    file_types: Option<&str>,
-    index: usize,
-) -> Result<(Option<String>, bool)> {
-    let path_obj = Path::new(path);
-    let exists = path_obj.exists();
-    let platform = if cfg!(target_os = "macos") {
-        Platform::Macos
-    } else {
-        Platform::Windows
-    };
-
-    let is_directory = file_types
-        .and_then(|types| types.split(',').nth(index))
-        .map(|t| t == "d");
-
-    let cache_key = if is_directory == Some(true) {
-        crate::clipboard::DIR_CACHE_KEY.to_string()
-    } else {
-        // 路径存在时实时判断（覆盖入库后类型变化的情况）；已删除时按扩展名推断。
-        crate::clipboard::get_icon_cache_key(path_obj)
-    };
-
-    // DB 命中后还要确认 icon 文件仍在磁盘上：用户清缓存 / 手动删 file-icons 目录后，
-    // 表里的 <hash>.png 映射就成了死引用，落到前端 convertFileSrc 会 404。缺了就当 miss 重抽。
-    if let Some(icon_file) = crate::db::file_icons::get_icon(pool, &cache_key, platform).await? {
-        let icon_path = file_icon_store.icon_path(&icon_file);
-        if icon_path.exists() {
-            return Ok((icon_path.to_str().map(str::to_owned), exists));
-        }
-    }
-
-    if !exists {
-        return Ok((None, false));
-    }
-
-    let path_for_extract = path_obj.to_path_buf();
-    let png_bytes = tauri::async_runtime::spawn_blocking(move || {
-        crate::clipboard::icon_png(&path_for_extract, None)
-    })
-    .await
-    .map_err(|err| AppError::Clipboard(format!("icon extract task join failed: {err}")))?;
-
-    let Some(png) = png_bytes else {
-        return Ok((None, exists));
-    };
-
-    let icon_file = file_icon_store.store(&png)?;
-    crate::db::file_icons::upsert_icon(pool, &cache_key, platform, &icon_file).await?;
-
-    let icon_path = file_icon_store.icon_path(&icon_file);
-    Ok((icon_path.to_str().map(str::to_owned), exists))
 }
 
 /// 按 id 列表批量取来源应用——前端渲染卡片时一次性补齐图标/名称。
@@ -1286,7 +923,10 @@ pub async fn delete_clipboard_group(
 ) -> Result<()> {
     let pool = db.pool().await;
 
-    crate::db::groups::delete_group(&pool, &id).await?;
+    let affected = crate::db::groups::delete_group(&pool, &id).await?;
+    // 外键把该组记录的 group_id 置空，但这一步不经过逐行写路径；
+    // 不回读索引会继续按旧 group_id 过滤出已不属于该组的记录。
+    crate::db::list_index::note_rows_changed(&pool, &affected).await;
     emit_clipboard_groups_updated(&app);
 
     Ok(())
@@ -1382,6 +1022,7 @@ pub async fn clear_clipboard_items(
     ) {
         log::warn!("emit {CLIPBOARD_UPDATED_EVENT} after clear failed: {err}");
     }
+    crate::clipboard::maybe_prewarm(&app);
 
     Ok(outcome.removed)
 }
@@ -1523,27 +1164,54 @@ pub async fn reveal_clipboard_item(
         .map_err(|err| AppError::Clipboard(err.to_string()))
 }
 
-/// 校验图片文件名：必须是单层 `<name>.png`，不含路径分隔符 / 父目录引用。
-fn validate_image_file_name(file_name: &str) -> Result<()> {
-    let invalid = file_name.is_empty()
-        || file_name.contains('/')
-        || file_name.contains('\\')
-        || file_name.contains("..")
-        || !file_name.ends_with(".png");
+/// 把来源应用 DB 模型转换为偏好页列表可直接渲染的视图模型。
+fn build_clipboard_app_view(store: &AppIconStore, app: ClipboardApp) -> ClipboardAppView {
+    let icon_path = app
+        .icon_file
+        .as_deref()
+        .and_then(|name| store.icon_path(name).to_str().map(str::to_owned));
 
-    if invalid {
-        return Err(AppError::Clipboard(format!(
-            "invalid image file name: {file_name:?}"
-        )));
+    ClipboardAppView {
+        id: app.id,
+        name: app.name,
+        icon_file: app.icon_file,
+        icon_path,
+        platform: app.platform,
+        created_at: app.created_at,
+        updated_at: app.updated_at,
     }
-    Ok(())
+}
+
+/// 返回预览 payload 的文本子类型；脱敏展示时敏感内容强制按纯文本展示。
+fn preview_sub_kind(item: &ClipboardItem, redact_sensitive: bool) -> Option<ClipboardSubKind> {
+    if redact_sensitive && item.is_sensitive && item.kind == ClipboardKind::Text {
+        return None;
+    }
+
+    item.sub_kind
+}
+
+/// 返回预览窗口展示用文本；HTML / RTF 使用 OS 提供的纯文本表示，避免前端渲染富文本源。
+fn preview_text(item: &ClipboardItem, redact_sensitive: bool) -> String {
+    let source = match item.sub_kind {
+        Some(ClipboardSubKind::Html | ClipboardSubKind::Rtf) => {
+            item.search_text.as_deref().unwrap_or(&item.content)
+        }
+        _ => &item.content,
+    };
+
+    if redact_sensitive && item.is_sensitive {
+        return mask_sensitive_text(source);
+    }
+
+    source.to_owned()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::db::items::content_hash;
-    use crate::db::models::Platform;
+    use crate::db::models::{ClipboardAction, Platform};
     use chrono::Utc;
 
     fn text_item(sub_kind: Option<ClipboardSubKind>, is_sensitive: bool) -> ClipboardItem {
