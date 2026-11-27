@@ -62,10 +62,10 @@ func TestDeletePolicyHonorsProtectionSettings(t *testing.T) {
 	for _, row := range page.Items {
 		rows[row.ID] = row
 	}
-	if rows[favorite].CanDelete || !rows[favorite].DeleteConfirm {
+	if rows[favorite].CanDelete || rows[favorite].DeleteConfirm {
 		t.Errorf("favorite row = %+v", rows[favorite])
 	}
-	if rows[pinned].CanDelete || !rows[pinned].DeleteConfirm {
+	if rows[pinned].CanDelete || rows[pinned].DeleteConfirm {
 		t.Errorf("pinned row = %+v", rows[pinned])
 	}
 	if !rows[normal].CanDelete || !rows[normal].DeleteConfirm {
@@ -76,29 +76,29 @@ func TestDeletePolicyHonorsProtectionSettings(t *testing.T) {
 	}
 
 	if _, err := store.Update(map[string]any{"clipboard": map[string]any{"content": map[string]any{
-		"deleteFavoriteItems":   true,
-		"deletePinnedItems":     true,
-		"deleteFavoriteConfirm": false,
+		"deleteFavorite": "direct",
+		"deletePinned":   "confirm",
 	}}}); err != nil {
 		t.Fatal(err)
-	}
-	page, err = model.List(ctx, ui.HistoryQuery{Filter: "favorite", Limit: 10})
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, row := range page.Items {
-		if row.ID == favorite && (!row.CanDelete || row.DeleteConfirm) {
-			t.Errorf("favorite in favorite group = %+v", row)
-		}
 	}
 	page, err = model.List(ctx, ui.HistoryQuery{Limit: 10})
 	if err != nil {
 		t.Fatal(err)
 	}
 	for _, row := range page.Items {
-		if row.ID == favorite && row.CanDelete {
-			t.Errorf("favorite outside favorite group = %+v", row)
+		switch row.ID {
+		case favorite:
+			if !row.CanDelete || row.DeleteConfirm {
+				t.Errorf("direct favorite = %+v", row)
+			}
+		case pinned:
+			if !row.CanDelete || !row.DeleteConfirm {
+				t.Errorf("confirm pinned = %+v", row)
+			}
 		}
+	}
+	if err := model.Delete(ctx, favorite); err != nil {
+		t.Errorf("direct favorite delete failed: %v", err)
 	}
 }
 

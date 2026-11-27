@@ -264,19 +264,28 @@ func NormalizeCaptureOrder(order []CaptureKind) []CaptureKind {
 }
 
 type Content struct {
-	AutoPaste                         AutoPaste `json:"autoPaste"`
-	CopyPlain                         bool      `json:"copyPlain"`
-	CopyThenHideWindow                bool      `json:"copyThenHideWindow"`
-	ShowOriginalPreview               bool      `json:"showOriginalPreview"`
-	DeleteConfirm                     bool      `json:"deleteConfirm"`
-	DeleteFavoriteItems               bool      `json:"deleteFavoriteItems"`
-	DeleteFavoriteConfirm             bool      `json:"deleteFavoriteConfirm"`
-	DeletePinnedItems                 bool      `json:"deletePinnedItems"`
-	DeletePinnedConfirm               bool      `json:"deletePinnedConfirm"`
-	DeleteFavoriteItemsOnlyInFavGroup bool      `json:"deleteFavoriteItemsOnlyInFavoriteGroup"`
-	AutoFavorite                      bool      `json:"autoFavorite"`
-	Sort                              Sort      `json:"sort"`
+	AutoPaste           AutoPaste      `json:"autoPaste"`
+	CopyPlain           bool           `json:"copyPlain"`
+	CopyThenHideWindow  bool           `json:"copyThenHideWindow"`
+	ShowOriginalPreview bool           `json:"showOriginalPreview"`
+	DeleteNormal        DeleteBehavior `json:"deleteNormal"`
+	DeleteFavorite      DeleteBehavior `json:"deleteFavorite"`
+	DeletePinned        DeleteBehavior `json:"deletePinned"`
+	AutoFavorite        bool           `json:"autoFavorite"`
+	Sort                Sort           `json:"sort"`
 }
+
+// DeleteBehavior is how one item category responds to a delete request.
+type DeleteBehavior string
+
+const (
+	// DeleteBehaviorDirect deletes without a confirmation dialog.
+	DeleteBehaviorDirect DeleteBehavior = "direct"
+	// DeleteBehaviorConfirm asks the user before deleting.
+	DeleteBehaviorConfirm DeleteBehavior = "confirm"
+	// DeleteBehaviorForbidden hides the delete action for this category.
+	DeleteBehaviorForbidden DeleteBehavior = "forbidden"
+)
 
 type AutoPaste string
 
@@ -386,13 +395,12 @@ func Default() Settings {
 				Order: DefaultCaptureOrder(),
 			},
 			Content: Content{
-				AutoPaste:                         AutoPasteDoubleClickPaste,
-				ShowOriginalPreview:               true,
-				DeleteConfirm:                     true,
-				DeleteFavoriteConfirm:             true,
-				DeletePinnedConfirm:               true,
-				DeleteFavoriteItemsOnlyInFavGroup: true,
-				Sort:                              SortUpdatedAt,
+				AutoPaste:           AutoPasteDoubleClickPaste,
+				ShowOriginalPreview: true,
+				DeleteNormal:        DeleteBehaviorConfirm,
+				DeleteFavorite:      DeleteBehaviorForbidden,
+				DeletePinned:        DeleteBehaviorForbidden,
+				Sort:                SortUpdatedAt,
 			},
 			Display:   Display{TextMaxLines: 3, ImageMaxHeight: 64, FileMaxCount: 3},
 			Sensitive: Sensitive{CollectSecrets: true, RedactSecrets: true},

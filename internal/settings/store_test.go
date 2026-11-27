@@ -143,7 +143,9 @@ func TestSettingsJSONRoundTripsPublishedCamelCase(t *testing.T) {
 		`"autoStart"`,
 		`"maxTextMb"`,
 		`"showOriginalPreview"`,
-		`"deleteFavoriteItemsOnlyInFavoriteGroup"`,
+		`"deleteNormal"`,
+		`"deleteFavorite"`,
+		`"deletePinned"`,
 		`"spaceEnabled"`,
 	} {
 		if !strings.Contains(string(data), key) {

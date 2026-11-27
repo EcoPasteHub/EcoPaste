@@ -42,8 +42,7 @@ func settingsControlPaths() map[string]bool {
 		"capture.maxTextMb", "capture.maxImageMb",
 		"history.retention", "history.maxCount",
 		"sensitive.collectSecrets", "sensitive.redactSecrets",
-		"content.deleteConfirm", "content.deleteFavoriteConfirm", "content.deletePinnedConfirm",
-		"content.deleteFavoriteItems", "content.deletePinnedItems", "content.deleteFavoriteOnlyFav",
+		"content.deleteNormal", "content.deleteFavorite", "content.deletePinned",
 	}
 	want := make(map[string]bool, len(paths))
 	for _, path := range paths {
@@ -134,7 +133,8 @@ func testSettingsControlsShowLoadedValues(t *testing.T) {
 		TextMaxLines:          5,
 		OpenClipboardShortcut: "Alt+J",
 		CopyThenHideWindow:    true,
-		DeleteFavoriteItems:   true,
+		DeleteFavorite:        "direct",
+		DeletePinned:          "confirm",
 		ShowOriginalPreview:   true,
 		SpacePreview:          true,
 		CaptureFiles:          true,
@@ -149,7 +149,7 @@ func testSettingsControlsShowLoadedValues(t *testing.T) {
 				index >= len(field.options) || field.options[index] != "all" {
 				t.Errorf("log level selection = %d of %v", index, field.options)
 			}
-		case "search.clearOnHide", "content.deleteConfirm":
+		case "search.clearOnHide":
 			if got := objcState(field.control); got != 0 {
 				t.Errorf("%s = %d", field.path, got)
 			}
@@ -157,8 +157,17 @@ func testSettingsControlsShowLoadedValues(t *testing.T) {
 			if got := field.options[int(field.control.Send(sel("indexOfSelectedItem")))]; got != "useCountDesc" {
 				t.Errorf("sort = %q", got)
 			}
+		case "content.deleteFavorite", "content.deletePinned":
+			want := "direct"
+			if field.path == "content.deletePinned" {
+				want = "confirm"
+			}
+			if index := int(objc.Send[int64](field.control, sel("indexOfSelectedItem"))); index < 0 ||
+				index >= len(field.options) || field.options[index] != want {
+				t.Errorf("%s selection = %d of %v", field.path, index, field.options)
+			}
 		case "content.showOriginalPreview", "preview.spaceEnabled",
-			"content.deleteFavoriteItems", "capture.files", "sensitive.collectSecrets":
+			"capture.files", "sensitive.collectSecrets":
 			if got := objcState(field.control); got != 1 {
 				t.Errorf("%s = %d", field.path, got)
 			}

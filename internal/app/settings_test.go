@@ -42,10 +42,10 @@ func TestSettingsModelAppliesPaths(t *testing.T) {
 	if err := model.Apply("content.showOriginalPreview", false); err != nil {
 		t.Fatal(err)
 	}
-	if err := model.Apply("content.deleteConfirm", false); err != nil {
+	if err := model.Apply("content.deleteNormal", "direct"); err != nil {
 		t.Fatal(err)
 	}
-	if err := model.Apply("content.deleteFavoriteItems", true); err != nil {
+	if err := model.Apply("content.deleteFavorite", "confirm"); err != nil {
 		t.Fatal(err)
 	}
 	if err := model.Apply("search.clearOnHide", false); err != nil {
@@ -57,7 +57,7 @@ func TestSettingsModelAppliesPaths(t *testing.T) {
 		values.WindowPosition != "remember" || !values.CopySound ||
 		values.AutoPaste != "singleClickCopy" ||
 		!values.AutoFavorite || values.ShowOriginalPreview ||
-		values.DeleteConfirm || !values.DeleteFavoriteItems ||
+		values.DeleteNormal != "direct" || values.DeleteFavorite != "confirm" ||
 		values.SearchClear {
 		t.Errorf("values = %+v", values)
 	}
@@ -121,7 +121,7 @@ func TestSettingsModelSignalsListRefresh(t *testing.T) {
 		{"sort", "useCountDesc"},
 		{"sensitive.redactSecrets", false},
 		{"content.showOriginalPreview", true},
-		{"content.deleteConfirm", false},
+		{"content.deleteNormal", "direct"},
 		{"preview.spaceEnabled", false},
 	} {
 		if err := model.Apply(change.path, change.value); err != nil {
@@ -530,12 +530,9 @@ func TestSettingsModelAcceptsEveryVisiblePath(t *testing.T) {
 		{"history.maxCount", uint32(500)},
 		{"sensitive.collectSecrets", false},
 		{"sensitive.redactSecrets", false},
-		{"content.deleteConfirm", false},
-		{"content.deleteFavoriteConfirm", false},
-		{"content.deletePinnedConfirm", false},
-		{"content.deleteFavoriteItems", true},
-		{"content.deletePinnedItems", true},
-		{"content.deleteFavoriteOnlyFav", false},
+		{"content.deleteNormal", "confirm"},
+		{"content.deleteFavorite", "direct"},
+		{"content.deletePinned", "forbidden"},
 	}
 	for _, tc := range cases {
 		if err := model.Apply(tc.path, tc.value); err != nil {

@@ -417,15 +417,14 @@
       "restoreTitle": "Restore the default data folder?"
     },
     "deletion": {
-      "allowFavorite": "Allow Deleting Favorite Items",
-      "allowPinned": "Allow Deleting Pinned Items",
-      "confirm": "Confirm Before Deleting Regular Items",
-      "confirmations": "Confirmation",
-      "favoriteConfirm": "Confirm Before Deleting Favorites",
-      "favoriteOnlyInFavorites": "Only Delete Favorites in the Favorites Group",
-      "intro": "Confirmation switches apply to their own item type; with “Allow Deletion” off, that type has no delete action.",
-      "permissions": "Deletion Permissions",
-      "pinnedConfirm": "Confirm Before Deleting Pinned Items"
+      "behavior": "Deletion Behavior",
+      "normal": "Regular Items",
+      "favorite": "Favorite Items",
+      "pinned": "Pinned Items",
+      "direct": "Delete Directly",
+      "confirm": "Confirm Before Deleting",
+      "forbidden": "Prevent Deletion",
+      "intro": "Choose how each item type is deleted. With “Prevent Deletion”, that type has no delete action."
     },
     "diagnostics": {
       "copied": "Copied to clipboard",

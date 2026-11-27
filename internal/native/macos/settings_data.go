@@ -43,20 +43,25 @@ func (v *SettingsView) buildDataPage() {
 		func(s SettingsValues) bool { return s.RedactSecrets })
 	top = cardTop + 2*settingsRowHeight + settingsGroupGap
 
-	_, cardTop = v.addSectionCardInfo(document, top, i18n.SettingsDeletionConfirmations, i18n.SettingsDeletionIntro, 6)
-	v.addSwitch(document, settingsRowTop(cardTop, 0), i18n.SettingsDeleteConfirm, "content.deleteConfirm",
-		func(s SettingsValues) bool { return s.DeleteConfirm })
-	v.addSwitch(document, settingsRowTop(cardTop, 1), i18n.SettingsDeleteFavoriteConfirm, "content.deleteFavoriteConfirm",
-		func(s SettingsValues) bool { return s.DeleteFavoriteConfirm })
-	v.addSwitch(document, settingsRowTop(cardTop, 2), i18n.SettingsDeletePinnedConfirm, "content.deletePinnedConfirm",
-		func(s SettingsValues) bool { return s.DeletePinnedConfirm })
-	v.addSwitch(document, settingsRowTop(cardTop, 3), i18n.SettingsDeleteFavoriteItems, "content.deleteFavoriteItems",
-		func(s SettingsValues) bool { return s.DeleteFavoriteItems })
-	v.addSwitch(document, settingsRowTop(cardTop, 4), i18n.SettingsDeletePinnedItems, "content.deletePinnedItems",
-		func(s SettingsValues) bool { return s.DeletePinnedItems })
-	v.addSwitch(document, settingsRowTop(cardTop, 5), i18n.SettingsDeleteFavoriteOnlyFav, "content.deleteFavoriteOnlyFav",
-		func(s SettingsValues) bool { return s.DeleteFavoriteOnlyFav })
-	top = cardTop + 6*settingsRowHeight + settingsGroupGap
+	_, cardTop = v.addSectionCardInfo(document, top, i18n.SettingsDeletionBehavior, i18n.SettingsDeletionIntro, 3)
+	v.addPopup(document, settingsRowTop(cardTop, 0), i18n.SettingsDeleteNormal, "content.deleteNormal",
+		[]settingsOption{
+			{Key: i18n.SettingsDeleteDirect, Value: "direct"},
+			{Key: i18n.SettingsDeleteConfirm, Value: "confirm"},
+		}, func(s SettingsValues) string { return s.DeleteNormal })
+	v.addPopup(document, settingsRowTop(cardTop, 1), i18n.SettingsDeleteFavorite, "content.deleteFavorite",
+		[]settingsOption{
+			{Key: i18n.SettingsDeleteDirect, Value: "direct"},
+			{Key: i18n.SettingsDeleteConfirm, Value: "confirm"},
+			{Key: i18n.SettingsDeleteForbidden, Value: "forbidden"},
+		}, func(s SettingsValues) string { return s.DeleteFavorite })
+	v.addPopup(document, settingsRowTop(cardTop, 2), i18n.SettingsDeletePinned, "content.deletePinned",
+		[]settingsOption{
+			{Key: i18n.SettingsDeleteDirect, Value: "direct"},
+			{Key: i18n.SettingsDeleteConfirm, Value: "confirm"},
+			{Key: i18n.SettingsDeleteForbidden, Value: "forbidden"},
+		}, func(s SettingsValues) string { return s.DeletePinned })
+	top = cardTop + 3*settingsRowHeight + settingsGroupGap
 	v.buildStorageSection(document, top)
 
 	v.finishPage(document)

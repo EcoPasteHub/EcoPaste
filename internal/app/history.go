@@ -80,33 +80,36 @@ func (m *historyModel) List(ctx context.Context, q ui.HistoryQuery) (ui.HistoryP
 			return ui.HistoryPage{}, err
 		}
 		row := m.historyItem(ctx, item, cfg)
-		row.CanDelete, row.DeleteConfirm = deletePolicy(item, q, cfg.Content)
+		row.CanDelete, row.DeleteConfirm = deletePolicy(item, cfg.Content)
 		items = append(items, row)
 	}
 	return ui.HistoryPage{Items: items, Total: page.Total, HasMore: page.HasMore}, nil
 }
 
-// deletePolicy applies the published per-row delete rules: favorites and
-// pinned rows can be protected, and each category has its own confirm
-// switch.
-func deletePolicy(item database.Item, q ui.HistoryQuery, content settings.Content) (bool, bool) {
-	canDelete := true
-	if item.IsFavorite && !content.DeleteFavoriteItems {
-		canDelete = false
+// deletePolicy maps one row to its published category policy: normal,
+// favorite and pinned items each carry an independent delete behavior.
+func deletePolicy(item database.Item, content settings.Content) (bool, bool) {
+	switch deleteBehavior(item, content) {
+	case settings.DeleteBehaviorDirect:
+		return true, false
+	case settings.DeleteBehaviorForbidden:
+		return false, false
+	default:
+		return true, true
 	}
-	if item.IsFavorite && content.DeleteFavoriteItemsOnlyInFavGroup && q.Filter != "favorite" {
-		canDelete = false
+}
+
+// deleteBehavior returns the policy that applies to one item. Pinned items
+// take priority over favorites, matching the row's primary status.
+func deleteBehavior(item database.Item, content settings.Content) settings.DeleteBehavior {
+	switch {
+	case item.IsPinned:
+		return content.DeletePinned
+	case item.IsFavorite:
+		return content.DeleteFavorite
+	default:
+		return content.DeleteNormal
 	}
-	if item.IsPinned && !content.DeletePinnedItems {
-		canDelete = false
-	}
-	confirm := content.DeleteConfirm
-	if item.IsPinned {
-		confirm = content.DeletePinnedConfirm
-	} else if item.IsFavorite {
-		confirm = content.DeleteFavoriteConfirm
-	}
-	return canDelete, confirm
 }
 
 func (m *historyModel) Copy(ctx context.Context, id string) (bool, error) {
@@ -302,11 +305,11 @@ func (m *historyModel) Delete(ctx context.Context, id string) error {
 		return nil
 	}
 	content := m.clipboardConfig().Content
-	if item.IsFavorite && !content.DeleteFavoriteItems {
+	if deleteBehavior(*item, content) == settings.DeleteBehaviorForbidden {
+		if item.IsPinned {
+			return i18n.Error(i18n.ErrorDeletePinned)
+		}
 		return i18n.Error(i18n.ErrorDeleteFavorite)
-	}
-	if item.IsPinned && !content.DeletePinnedItems {
-		return i18n.Error(i18n.ErrorDeletePinned)
 	}
 	if err := m.runtime.db.Delete(ctx, id); err != nil {
 		return err

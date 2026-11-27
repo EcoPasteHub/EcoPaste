@@ -323,7 +323,7 @@ general, appearance, shortcuts, clipboard, onboarding, update
 - `appearance`: `theme` (`auto|light|dark`), `language` (`auto|zh-CN|en-US`)
 - `shortcuts`: `openClipboard`, `openPreference`, `winV`
 - `clipboard.capture`: `text/html/rtf/image/files`, `maxTextMb`, `maxImageMb`, `order`
-- `clipboard.content`: `autoPaste`, `copyPlain`, `copyThenHideWindow`, `showOriginalPreview`, 删除保护, `autoFavorite`, `sort`
+- `clipboard.content`: `autoPaste`, `copyPlain`, `copyThenHideWindow`, `showOriginalPreview`, `deleteNormal`/`deleteFavorite`/`deletePinned` 删除行为（`direct`/`confirm`/`forbidden`）, `autoFavorite`, `sort`
 - `clipboard.display`: `textMaxLines`, `imageMaxHeight`, `fileMaxCount`
 - `clipboard.sensitive`: `collectSecrets`, `redactSecrets`
 - `clipboard.history`: `retention{value,unit}`, `maxCount`

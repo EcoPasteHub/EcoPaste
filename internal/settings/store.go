@@ -265,7 +265,16 @@ func validateContent(s Settings) error {
 		SortCreatedAt, SortUpdatedAt, SortUseCount); err != nil {
 		return err
 	}
-	return nil
+	if err := validateOneOf("clipboard.content.deleteNormal", s.Clipboard.Content.DeleteNormal,
+		DeleteBehaviorDirect, DeleteBehaviorConfirm); err != nil {
+		return err
+	}
+	if err := validateOneOf("clipboard.content.deleteFavorite", s.Clipboard.Content.DeleteFavorite,
+		DeleteBehaviorDirect, DeleteBehaviorConfirm, DeleteBehaviorForbidden); err != nil {
+		return err
+	}
+	return validateOneOf("clipboard.content.deletePinned", s.Clipboard.Content.DeletePinned,
+		DeleteBehaviorDirect, DeleteBehaviorConfirm, DeleteBehaviorForbidden)
 }
 
 func validateHistory(s Settings) error {
