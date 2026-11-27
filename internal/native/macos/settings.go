@@ -1,0 +1,507 @@
+//go:build darwin
+
+package macos
+
+import (
+	"slices"
+	"sync"
+
+	"github.com/EcoPasteHub/EcoPaste/internal/i18n"
+	"github.com/ebitengine/purego/objc"
+	"github.com/nsgo-dev/nsgo"
+	"github.com/nsgo-dev/nsgo/core"
+)
+
+// SettingsComponent is the native settings window's content view.
+const SettingsComponent = "ecopaste.settings"
+
+// SettingsValues is the view state of the settings window.
+type SettingsValues struct {
+	TrayIcon               bool
+	AutoStart              bool
+	Theme                  string
+	Language               string
+	DataDir                string
+	CanRestoreDataDir      bool
+	CopyPlain              bool
+	CopyThenHideWindow     bool
+	CopySound              bool
+	AutoPaste              string
+	AutoFavorite           bool
+	ShowOriginalPreview    bool
+	DeleteNormal           string
+	DeleteFavorite         string
+	DeletePinned           string
+	Sort                   string
+	WindowPosition         string
+	CaptureOrder           []string
+	MaxTextMB              uint32
+	MaxImageMB             uint32
+	TextMaxLines           uint32
+	ImageMaxHeight         uint32
+	FileMaxCount           uint32
+	ScrollToTopOnOpen      bool
+	RangeOnOpen            string
+	CategoryOnOpen         string
+	GroupOnOpen            string
+	SearchClear            bool
+	Groups                 []SettingsGroup
+	Retention              string
+	MaxCount               uint32
+	CollectSecrets         bool
+	RedactSecrets          bool
+	Apps                   []SettingsApp
+	OpenClipboardShortcut  string
+	OpenPreferenceShortcut string
+	SpacePreview           bool
+	LogLevel               string
+}
+
+// SettingsApp is one row in the source application list.
+type SettingsApp struct {
+	ID       string
+	Name     string
+	IconPath string
+	Mode     string
+}
+
+// SettingsAppSelection is one application's chosen source-app mode.
+type SettingsAppSelection struct {
+	ID   string
+	Name string
+	Mode string
+}
+
+// SettingsGroup is one clipboard group offered by the open-selection
+// popup.
+type SettingsGroup struct {
+	ID   string
+	Name string
+}
+
+// SettingsChange is one native control's new value.
+type SettingsChange struct {
+	Path  string
+	Value any
+}
+
+// settingsEmitter reports a settings window's events to its element.
+type settingsEmitter interface {
+	Emit(name string, data any)
+}
+
+// SettingsView is the AppKit settings window content.
+type SettingsView struct {
+	cx                  settingsEmitter
+	view                objc.ID
+	tabs                objc.ID
+	footer              objc.ID
+	dataDir             objc.ID
+	change              objc.ID
+	restore             objc.ID
+	accessibilityStatus objc.ID
+	fullDiskStatus      objc.ID
+	diagnosticsHint     objc.ID
+	appsDocument        objc.ID
+	appsTop             float64
+	appsHost            objc.ID
+	apps                []SettingsApp
+	appsRowViews        []settingsAppRowView
+	captureTable        objc.ID
+	captureUp           objc.ID
+	captureDown         objc.ID
+	captureOrder        []string
+	groupField          *settingsField
+	shortcutRecorders   []*shortcutRecorder
+	numberInputs        []*numberInput
+	infoButtons         []objc.ID
+	lastValues          SettingsValues
+	fields              []*settingsField
+	currentTab          string
+	pageHeights         map[string]float64
+	pageViews           map[string]objc.ID
+	targetWindowHeight  float64
+	language            string
+	texts               []func()
+	tabItems            map[string]objc.ID
+	aboutIcons          []*nsgo.View
+	// managesDock marks a view built for the running app, whose lifetime
+	// decides whether the Dock icon shows. Views built by tests do not.
+	managesDock bool
+}
+
+type settingsField struct {
+	path    string
+	tab     string
+	kind    string
+	control objc.ID
+	options []string
+	choices []settingsOption
+	title   i18n.Key
+	get     func(SettingsValues) any
+}
+
+const (
+	settingsWidth                  = 480.0
+	settingsNavigationHeight       = 80.0
+	settingsMinimumWindowHeight    = 420.0
+	settingsMinimumPageHeight      = settingsMinimumWindowHeight - settingsNavigationHeight
+	settingsScreenMargin           = 24.0
+	settingsPageTransitionDuration = 0.18
+)
+
+var settingsTabs = map[string]i18n.Key{
+	"general":     i18n.SettingsTabGeneral,
+	"appearance":  i18n.SettingsTabAppearance,
+	"clipboard":   i18n.SettingsTabClipboard,
+	"interaction": i18n.SettingsTabInteraction,
+	"data":        i18n.SettingsTabData,
+	"system":      i18n.SettingsTabSystem,
+	"about":       i18n.SettingsTabAbout,
+}
+
+// SettingsTabTitle returns the localized title of a primary settings tab.
+func SettingsTabTitle(name string) string {
+	title, ok := settingsTabs[name]
+	if !ok {
+		return name
+	}
+	return i18n.T(title)
+}
+
+// InitialSettingsTab returns the tab a new settings window should show.
+func InitialSettingsTab() string {
+	settingsTabMu.Lock()
+	defer settingsTabMu.Unlock()
+	if _, ok := settingsTabs[pendingSettingsTab]; ok {
+		return pendingSettingsTab
+	}
+	return "general"
+}
+
+var (
+	registerSettingsOnce sync.Once
+	settingsTarget       objc.ID
+	settingsViews        = map[objc.ID]*SettingsView{}
+	settingsTabMu        sync.Mutex
+	settingsOpenViews    = map[*SettingsView]struct{}{}
+	pendingSettingsTab   string
+)
+
+// SelectSettingsTab shows the named tab when the settings window is open,
+// or on the next open otherwise. It reports whether the name is known.
+func SelectSettingsTab(tab string) bool {
+	_, ok := settingsTabs[tab]
+	if !ok {
+		return false
+	}
+	settingsTabMu.Lock()
+	if len(settingsOpenViews) == 0 {
+		pendingSettingsTab = tab
+		settingsTabMu.Unlock()
+		return true
+	}
+	views := make([]*SettingsView, 0, len(settingsOpenViews))
+	for view := range settingsOpenViews {
+		views = append(views, view)
+	}
+	settingsTabMu.Unlock()
+	// This runs on the reactive graph when the clipboard panel's gear opens
+	// settings; the tab view is AppKit, so switch it on the main thread. A
+	// view closed between the snapshot and here is skipped.
+	onMain(func() {
+		for _, view := range views {
+			settingsTabMu.Lock()
+			_, open := settingsOpenViews[view]
+			settingsTabMu.Unlock()
+			if open {
+				view.selectTabNotify(tab)
+			}
+		}
+	})
+	return true
+}
+
+// NewSettings builds the native settings controls.
+func NewSettings(cx *core.NativeContext) core.NativeComponent {
+	v := newSettings(cx)
+	// Only a settings window in the real app shows the Dock icon. Tying it to
+	// NewSettings instead of the view constructor keeps a test binary, which
+	// has no bundle icon, from registering as a Dock app when it builds a view.
+	v.managesDock = true
+	syncSettingsDockIcon(true)
+	return v
+}
+
+func newSettings(cx settingsEmitter) *SettingsView {
+	registerSettingsOnce.Do(registerSettingsTargets)
+	registerSettingsLayoutOnce.Do(registerSettingsLayoutTargets)
+	v := &SettingsView{
+		cx:          cx,
+		view:        objc.ID(settingsRootClass).Send(sel("new")),
+		language:    string(i18n.Current()),
+		tabItems:    map[string]objc.ID{},
+		pageHeights: map[string]float64{},
+		pageViews:   map[string]objc.ID{},
+	}
+	v.view.Send(sel("setAutoresizesSubviews:"), false)
+	settingsRoots[v.view] = v
+
+	v.tabs = objc.ID(class("NSTabView")).Send(sel("new"))
+	v.tabs.Send(sel("setTabViewType:"), int64(6))
+	v.tabs.Send(sel("setFrame:"), CGRect{
+		Origin: CGPoint{X: 0, Y: 0},
+		Size:   CGSize{Width: settingsWidth, Height: settingsMinimumPageHeight},
+	})
+	v.tabs.Send(sel("setAutoresizingMask:"), int64(18))
+	v.view.Send(sel("addSubview:"), v.tabs)
+	v.tabs.Send(sel("release"))
+
+	v.footer = objc.ID(classNSTextField).Send(sel("labelWithString:"), nsString(""))
+	v.footer.Send(sel("setFont:"), systemFont(11))
+	v.footer.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("systemRedColor")))
+	v.footer.Send(sel("setFrame:"), CGRect{
+		Origin: CGPoint{X: 28, Y: 6},
+		Size:   CGSize{Width: settingsWidth - 56, Height: 16},
+	})
+	v.footer.Send(sel("setHidden:"), true)
+	v.view.Send(sel("addSubview:"), v.footer)
+
+	v.buildGeneralPage()
+	v.buildAppearancePage()
+	v.buildClipboardPage()
+	v.buildInteractionPage()
+	v.buildDataPage()
+	v.buildSystemPage()
+	v.buildAboutPage()
+	settingsTabMu.Lock()
+	settingsOpenViews[v] = struct{}{}
+	tab := pendingSettingsTab
+	pendingSettingsTab = ""
+	settingsTabMu.Unlock()
+	if tab == "" {
+		tab = "general"
+	}
+	// The page builders use currentTab to associate controls with their
+	// category. NSTabView initially selects the first added page.
+	v.currentTab = "general"
+	v.selectTab(tab)
+	return v
+}
+
+func (v *SettingsView) selectTab(tab string) {
+	_, ok := settingsTabs[tab]
+	if !ok {
+		return
+	}
+	v.applyTab(tab)
+}
+
+func (v *SettingsView) selectTabNotify(tab string) {
+	_, ok := settingsTabs[tab]
+	if !ok {
+		return
+	}
+	v.applyTab(tab)
+	v.cx.Emit("tabSelected", tab)
+}
+
+func (v *SettingsView) applyTab(name string) {
+	if v.currentTab == name {
+		return
+	}
+	v.tabs.Send(sel("selectTabViewItemWithIdentifier:"), nsString(name))
+	v.currentTab = name
+	v.resizeWindow(true)
+	window := v.view.Send(sel("window"))
+	if window != 0 && objc.Send[bool](window, sel("isVisible")) {
+		animateIn(v.pageViews[name], settingsPageTransitionDuration)
+	}
+	// Permission status can only change while the user is in System Settings;
+	// refresh once when the page shows and again when the app becomes active.
+	if name == "system" {
+		v.refreshPermissionLabels()
+	}
+}
+
+// View implements core.NativeComponent.
+func (v *SettingsView) View() any { return v.view }
+
+// SetProp implements core.NativeComponent.
+func (v *SettingsView) SetProp(name string, value any) {
+	switch name {
+	case "language":
+		if language, ok := value.(string); ok {
+			v.applyLanguage(language)
+		}
+	case "values":
+		if values, ok := value.(SettingsValues); ok {
+			v.apply(values)
+		}
+	case "tab":
+		if tab, ok := value.(string); ok {
+			v.selectTab(tab)
+		}
+	case "error":
+		text, _ := value.(string)
+		if text == "" {
+			v.footer.Send(sel("setStringValue:"), nsString(""))
+			v.footer.Send(sel("setHidden:"), true)
+			return
+		}
+		v.footer.Send(sel("setStringValue:"), nsString(text))
+		v.footer.Send(sel("setTextColor:"), objc.ID(classNSColor).Send(sel("systemRedColor")))
+		v.footer.Send(sel("setHidden:"), false)
+		v.apply(v.lastValues)
+	}
+}
+
+// Command implements core.NativeComponent.
+func (v *SettingsView) Command(name string, args any) {
+	switch name {
+	case "shortcutAccepted":
+		change, ok := args.(SettingsChange)
+		if !ok {
+			return
+		}
+		if recorder := v.shortcutRecorder(change.Path); recorder != nil {
+			value, _ := change.Value.(string)
+			recorder.acceptRecording(value)
+		}
+	case "shortcutRejected":
+		path, _ := args.(string)
+		if recorder := v.shortcutRecorder(path); recorder != nil {
+			recorder.rejectRecording()
+		}
+	}
+}
+
+func (v *SettingsView) shortcutRecorder(path string) *shortcutRecorder {
+	for _, recorder := range v.shortcutRecorders {
+		if recorder.path == path {
+			return recorder
+		}
+	}
+	return nil
+}
+
+// apply reconciles the native controls with the persisted values. Each list and
+// popup updates itself only when its data changed, so changing one setting does
+// not reload or re-scroll unrelated regions.
+func (v *SettingsView) apply(values SettingsValues) {
+	prev := v.lastValues
+	if v.dataDir != 0 && prev.DataDir != values.DataDir {
+		v.dataDir.Send(sel("setStringValue:"), nsString(values.DataDir))
+		v.dataDir.Send(sel("setToolTip:"), nsString(values.DataDir))
+	}
+	if v.restore != 0 && objc.Send[bool](v.restore, sel("isEnabled")) != values.CanRestoreDataDir {
+		v.restore.Send(sel("setEnabled:"), values.CanRestoreDataDir)
+	}
+	v.applyApps(values)
+	v.applyCaptureOrder(values)
+	v.applyShortcuts(values)
+	v.applyNumberInputs(values, false)
+	if !slices.Equal(prev.Groups, values.Groups) || prev.GroupOnOpen != values.GroupOnOpen {
+		v.applyGroups(values)
+	}
+	for _, field := range v.fields {
+		switch field.kind {
+		case "bool":
+			on, _ := field.get(values).(bool)
+			state := boolInt(on)
+			if objc.Send[int64](field.control, sel("state")) != state {
+				field.control.Send(sel("setState:"), state)
+			}
+		case "popup":
+			value, _ := field.get(values).(string)
+			if selectPopup(field, value) {
+				v.layoutPopup(field)
+			}
+		}
+	}
+	v.lastValues = values
+}
+
+// applyGroups rebuilds the open-group popup from the current clipboard
+// groups instead of static options.
+func (v *SettingsView) applyGroups(values SettingsValues) {
+	field := v.groupField
+	if field == nil {
+		return
+	}
+	selected, _ := field.get(values).(string)
+	options := []string{"preserve", "all"}
+	titles := []string{i18n.T(i18n.SettingsPreserve), i18n.T(i18n.SettingsAllGroups)}
+	for _, group := range values.Groups {
+		options = append(options, "group:"+group.ID)
+		titles = append(titles, group.Name)
+	}
+	field.options = options
+	field.control.Send(sel("removeAllItems"))
+	for _, title := range titles {
+		field.control.Send(sel("addItemWithTitle:"), nsString(title))
+	}
+	selectPopup(field, selected)
+	v.layoutPopup(field)
+}
+
+func selectPopup(field *settingsField, value string) bool {
+	index := slices.Index(field.options, value)
+	if index < 0 {
+		index = len(field.options)
+		field.options = append(field.options, value)
+		field.control.Send(sel("addItemWithTitle:"), nsString(value))
+	}
+	if objc.Send[int64](field.control, sel("indexOfSelectedItem")) == int64(index) {
+		return false
+	}
+	field.control.Send(sel("selectItemAtIndex:"), int64(index))
+	return true
+}
+
+func boolInt(value bool) int64 {
+	if value {
+		return 1
+	}
+	return 0
+}
+
+// Close implements core.NativeComponent.
+func (v *SettingsView) Close() {
+	settingsTabMu.Lock()
+	delete(settingsOpenViews, v)
+	remaining := len(settingsOpenViews)
+	settingsTabMu.Unlock()
+	if v.managesDock && remaining == 0 {
+		syncSettingsDockIcon(false)
+	}
+	delete(settingsRoots, v.view)
+	for _, icon := range v.aboutIcons {
+		icon.Close()
+	}
+	v.aboutIcons = nil
+	for control, owner := range settingsViews {
+		if owner == v {
+			delete(settingsViews, control)
+		}
+	}
+	for _, field := range v.fields {
+		if field.kind == "popup" {
+			discardSettingsPopup(field.control)
+		}
+	}
+	if v.captureTable != 0 {
+		delete(settingsCaptureByTable, v.captureTable)
+	}
+	for control, owner := range settingsAppControls {
+		if owner.view == v {
+			discardSettingsPopup(control)
+			delete(settingsAppControls, control)
+		}
+	}
+	v.closeShortcutRecorders()
+	v.closeNumberInputs()
+	v.closeSettingsInfoButtons()
+	delete(settingsViews, v.change)
+	v.view.Send(sel("release"))
+}

@@ -1,0 +1,138 @@
+//go:build darwin
+
+package macos
+
+import "testing"
+
+func testScreens() []ScreenBounds {
+	main := CGRect{Origin: CGPoint{X: 0, Y: 0}, Size: CGSize{Width: 1512, Height: 982}}
+	second := CGRect{Origin: CGPoint{X: 1512, Y: 0}, Size: CGSize{Width: 1920, Height: 1080}}
+	return []ScreenBounds{
+		{Frame: main},
+		{Frame: second},
+	}
+}
+
+func TestPanelOriginFollowsCursor(t *testing.T) {
+	size := CGSize{Width: 420, Height: 560}
+	origin := panelOrigin("followCursor", size, CGPoint{X: 800, Y: 700}, testScreens(), nil)
+	if origin.X != 800 || origin.Y != 700-560 {
+		t.Fatalf("origin = %+v", origin)
+	}
+}
+
+func TestPanelOriginClampsToScreenEdge(t *testing.T) {
+	size := CGSize{Width: 420, Height: 560}
+	origin := panelOrigin("followCursor", size, CGPoint{X: 1500, Y: 100}, testScreens(), nil)
+	if origin.X != 1512-420-panelScreenMargin {
+		t.Fatalf("x = %v", origin.X)
+	}
+	if origin.Y != panelScreenMargin {
+		t.Fatalf("y = %v", origin.Y)
+	}
+}
+
+func TestPanelOriginAllowsWorkAreaOverlap(t *testing.T) {
+	size := CGSize{Width: 420, Height: 560}
+	// The cursor sits above the visible frame (under the menu bar) but
+	// still inside the screen, so the panel should follow it there
+	// instead of being clamped into the work area.
+	origin := panelOrigin("followCursor", size, CGPoint{X: 800, Y: 970}, testScreens(), nil)
+	if origin.X != 800 || origin.Y != 970-560 {
+		t.Fatalf("origin = %+v", origin)
+	}
+}
+
+func TestPanelOriginCentersOnPointerScreen(t *testing.T) {
+	size := CGSize{Width: 420, Height: 560}
+	origin := panelOrigin("center", size, CGPoint{X: 2000, Y: 500}, testScreens(), nil)
+	if origin.X != 1512+(1920-420)/2 || origin.Y != (1080-560)/2 {
+		t.Fatalf("origin = %+v", origin)
+	}
+}
+
+func TestPanelOriginRememberFallsBackWhenOffScreen(t *testing.T) {
+	size := CGSize{Width: 420, Height: 560}
+	saved := CGPoint{X: 5000, Y: 5000}
+	origin := panelOrigin("remember", size, CGPoint{X: 800, Y: 500}, testScreens(), &saved)
+	if origin.X != (1512-420)/2 || origin.Y != (982-560)/2 {
+		t.Fatalf("origin = %+v", origin)
+	}
+}
+
+func TestPanelOriginRememberRestoresSavedPosition(t *testing.T) {
+	size := CGSize{Width: 420, Height: 560}
+	saved := CGPoint{X: 300, Y: 200}
+	origin := panelOrigin("remember", size, CGPoint{X: 800, Y: 500}, testScreens(), &saved)
+	if origin.X != 300 || origin.Y != 200 {
+		t.Fatalf("origin = %+v", origin)
+	}
+}
+
+func TestPanelOriginPicksNearestScreenFromDisplayGap(t *testing.T) {
+	size := CGSize{Width: 420, Height: 560}
+	screens := []ScreenBounds{
+		{
+			Frame: CGRect{Origin: CGPoint{X: 0, Y: 0}, Size: CGSize{Width: 1000, Height: 800}},
+		},
+		{
+			Frame: CGRect{Origin: CGPoint{X: 1100, Y: 0}, Size: CGSize{Width: 800, Height: 800}},
+		},
+	}
+	origin := panelOrigin("center", size, CGPoint{X: 1070, Y: 400}, screens, nil)
+	if origin.X != 1100+(800-420)/2 || origin.Y != (800-560)/2 {
+		t.Fatalf("origin = %+v", origin)
+	}
+}
+
+func TestPanelOriginRememberClampsPartiallyVisibleFrame(t *testing.T) {
+	size := CGSize{Width: 420, Height: 560}
+	saved := CGPoint{X: 3400, Y: -120}
+	origin := panelOrigin("remember", size, CGPoint{X: 800, Y: 500}, testScreens(), &saved)
+	if origin.X != 1512+1920-420-panelScreenMargin || origin.Y != panelScreenMargin {
+		t.Fatalf("origin = %+v", origin)
+	}
+}
+
+func TestPanelOriginKeepsTopLeftVisibleOnTinyScreen(t *testing.T) {
+	size := CGSize{Width: 420, Height: 560}
+	screens := []ScreenBounds{{
+		Frame: CGRect{Origin: CGPoint{X: -300, Y: 100}, Size: CGSize{Width: 300, Height: 400}},
+	}}
+	origin := panelOrigin("center", size, CGPoint{X: -100, Y: 300}, screens, nil)
+	if origin.X != -300+panelScreenMargin || origin.Y != 100+panelScreenMargin {
+		t.Fatalf("origin = %+v", origin)
+	}
+}
+
+func TestCenterDialogOriginFollowsPanelCenter(t *testing.T) {
+	panel := PanelFrame{X: 1000, Y: 277, Width: 420, Height: 560}
+	origin := centerDialogOrigin(CGSize{Width: 400, Height: 150}, panel, testScreens())
+	if origin.X != 1010 || origin.Y != 482 {
+		t.Fatalf("origin = %+v", origin)
+	}
+}
+
+func TestCenterDialogOriginClampsToPanelScreen(t *testing.T) {
+	panel := PanelFrame{X: 1512, Y: 0, Width: 420, Height: 560}
+	origin := centerDialogOrigin(CGSize{Width: 500, Height: 700}, panel, testScreens())
+	if origin.X != 1512+panelScreenMargin || origin.Y != panelScreenMargin {
+		t.Fatalf("origin = %+v", origin)
+	}
+}
+
+// TestPanelPlacementStaysForEveryShow checks that a placement keeps
+// applying after it is read, so a shortcut, a tray click and a repeated
+// open all place the window the same way.
+func TestPanelPlacementStaysForEveryShow(t *testing.T) {
+	SetPanelPlacement(PanelPlacement{Mode: "center"})
+	for show := 1; show <= 3; show++ {
+		placement, ok := currentPlacement()
+		if !ok {
+			t.Fatalf("show %d: placement missing", show)
+		}
+		if placement.Mode != "center" {
+			t.Fatalf("show %d: mode = %q", show, placement.Mode)
+		}
+	}
+}

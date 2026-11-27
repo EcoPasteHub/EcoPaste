@@ -1,18 +1,15 @@
-* text=auto
+* text=auto eol=lf
 
+*.go text eol=lf
 *.rs text eol=lf
-*.toml text eol=lf
-*.json text eol=lf
-*.jsonl text eol=lf
-*.ts text eol=lf
-*.tsx text eol=lf
-*.js text eol=lf
-*.jsx text eol=lf
-*.css text eol=lf
+*.sql text eol=lf
 *.md text eol=lf
-*.yml text eol=lf
+*.json text eol=lf
 *.yaml text eol=lf
+*.yml text eol=lf
 
 *.png binary
-*.ico binary
+*.jpg binary
+*.jpeg binary
 *.icns binary
+*.ico binary

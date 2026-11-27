@@ -1,0 +1,247 @@
+//go:build darwin
+
+package macos
+
+var panelPropertySetters = map[string]func(*Panel, any){
+	"query":       setPanelQuery,
+	"placeholder": setPanelPlaceholder,
+	"rows":        setPanelRows,
+	"total":       setPanelTotal,
+	"loading":     setPanelLoading,
+	"error":       setPanelError,
+	"preview":     setPanelPreview,
+	"groups":      setPanelGroups,
+	"group":       setPanelGroup,
+	"filter":      setPanelFilter,
+	"behavior":    setPanelBehavior,
+	"drag":        setPanelDrag,
+	"display":     setPanelDisplay,
+	"language":    setPanelLanguage,
+}
+
+var panelCommands = map[string]func(*Panel){
+	"focusSearch":            (*Panel).focusSearch,
+	"clearSearch":            (*Panel).clearSearch,
+	"scrollTop":              scrollPanelToTop,
+	"selectFirstOnOpen":      selectFirstOnOpen,
+	"applyPendingSelection":  applyPendingSelection,
+	"showAccessibilityAlert": showPanelAccessibilityAlert,
+	"toggleWindowPinned":     (*Panel).togglePinned,
+	"resignKey":              resignPanelKey,
+	"makeKey":                makePanelKey,
+	"cancelInteractions":     (*Panel).cancelInteractions,
+}
+
+func setPanelQuery(p *Panel, value any) {
+	s, ok := value.(string)
+	if !ok {
+		return
+	}
+	if s == p.query {
+		// Native typing already recorded the query before emitting its event.
+		p.updateEmptyState()
+		return
+	}
+	p.query = s
+	p.markSelectionFirst()
+	p.search.Send(sel("setStringValue:"), nsString(s))
+	// Re-render the visible rows so their keyword highlights follow the
+	// query even when the row props arrive in the same batch. Stop any hover
+	// fade first: reloading the cells can release the view it paints.
+	if p.table != 0 {
+		p.hideHover()
+		clearRowHoverStates()
+		p.table.Send(sel("reloadData"))
+	}
+	p.updateEmptyState()
+}
+
+func setPanelPlaceholder(p *Panel, value any) {
+	if s, ok := value.(string); ok {
+		p.search.Send(sel("setPlaceholderString:"), nsString(s))
+	}
+}
+
+func setPanelRows(p *Panel, value any) {
+	rows, _ := value.([]HistoryRow)
+	intent := p.selectionIntent
+	// The loadMore path only extends the list. Insert the new tail so the rows
+	// already on screen keep their views and the scroll position instead of
+	// being repainted by a full reload.
+	if intent == selectionKeep && p.canAppendRows(rows) {
+		p.appendRows(rows)
+		p.updateEmptyState()
+		return
+	}
+	// Keep the hovered row when an in-place update replaces the list; only rows
+	// that disappeared from the result should drop the hover state.
+	hoverID := ""
+	if p.hoverRow >= 0 && p.hoverRow < len(p.rows) {
+		hoverID = p.rows[p.hoverRow].ID
+	}
+	if hoverID == "" {
+		p.hideHover()
+	} else {
+		// Invalidate the old index before replacing rows. layoutPanel runs as
+		// part of the reload and must never ask NSTableView for a row that was
+		// removed.
+		p.setHoveredRow(-1)
+		p.hoverRow = -1
+	}
+	// The list is about to reload and may release its cells, so stop cell
+	// hover transitions before reloadData.
+	clearRowHoverStates()
+	previousID := p.selection
+	previousIndex := p.selectedIndex()
+	p.selectionIntent = selectionKeep
+	p.setRows(rows)
+	p.table.Send(sel("reloadData"))
+	p.syncTableFrame()
+	p.syncSelection(previousID, previousIndex, intent)
+	p.updateEmptyState()
+	if hoverID != "" {
+		row := p.rowIndex(hoverID)
+		if row >= 0 {
+			// Reloading the table may recycle the cell; re-apply its hover state.
+			p.updateHover(row)
+		} else {
+			p.hideHover()
+		}
+	}
+}
+
+func setPanelTotal(p *Panel, value any) {
+	if n, ok := int64Value(value); ok {
+		p.total = n
+		p.updateFooter()
+	}
+}
+
+func setPanelLoading(p *Panel, value any) {
+	if b, ok := value.(bool); ok {
+		p.loading = b
+		p.updateFooter()
+	}
+}
+
+func setPanelError(p *Panel, value any) {
+	if s, ok := value.(string); ok {
+		changedVisibility := (p.errText == "") != (s == "")
+		p.errText = s
+		p.updateFooter()
+		if changedVisibility {
+			layoutFooter(p, bounds(p.view).Size.Width)
+		}
+	}
+}
+
+func setPanelPreview(p *Panel, value any) {
+	if content, ok := value.(PreviewContent); ok {
+		p.setPreview(content)
+	}
+}
+
+func setPanelGroups(p *Panel, value any) {
+	if groups, ok := value.([]GroupOption); ok {
+		p.groups = groups
+	}
+}
+
+func setPanelGroup(p *Panel, value any) {
+	id, ok := value.(string)
+	if !ok {
+		return
+	}
+	if id != p.groupID {
+		// Switching groups always starts at the top, even when the previous
+		// row also belongs to the new group.
+		p.markSelectionFirst()
+	}
+	p.setGroupSelection(id)
+}
+
+func setPanelFilter(p *Panel, value any) {
+	filter, ok := value.(string)
+	if !ok {
+		return
+	}
+	if filter != p.filterValue {
+		// Switching the visible category also starts at the top.
+		p.markSelectionFirst()
+	}
+	p.setFilterSelection(filter)
+}
+
+func setPanelBehavior(p *Panel, value any) {
+	if behavior, ok := value.(PanelBehavior); ok {
+		p.behavior = behavior
+		if !behavior.SingleClick {
+			cancelPendingClick(p.table)
+			p.pendingClick = ""
+		}
+	}
+}
+
+func setPanelDrag(p *Panel, value any) {
+	if provider, ok := value.(func(string) (DragPayload, bool)); ok {
+		p.drag = provider
+	}
+}
+
+func setPanelDisplay(p *Panel, value any) {
+	if display, ok := value.(PanelDisplay); ok {
+		p.display = display
+		p.recomputeRowHeights()
+		p.hideHover()
+		clearRowHoverStates()
+		p.table.Send(sel("reloadData"))
+		p.syncTableFrame()
+		p.ensureSelection()
+	}
+}
+
+func setPanelLanguage(p *Panel, value any) {
+	if language, ok := value.(string); ok {
+		p.applyLanguage(language)
+	}
+}
+
+func showPanelAccessibilityAlert(_ *Panel) {
+	showAccessibilityAlert()
+}
+
+func scrollPanelToTop(p *Panel) {
+	if len(p.rows) > 0 {
+		p.table.Send(sel("scrollRowToVisible:"), int64(0))
+	}
+}
+
+// selectFirstOnOpen marks the next list update to select the first row, so
+// opening the panel back at the top lands on the first item instead of an
+// unrelated row.
+func selectFirstOnOpen(p *Panel) {
+	p.markSelectionFirst()
+}
+
+// applyPendingSelection consumes a selection intent that no rows update
+// applied, which happens when a group, category or search switch returns
+// exactly the same rows as before. The list still has to start at the first
+// row.
+func applyPendingSelection(p *Panel) {
+	if p.selectionIntent == selectionKeep {
+		return
+	}
+	previousID := p.selection
+	previousIndex := p.selectedIndex()
+	intent := p.selectionIntent
+	p.selectionIntent = selectionKeep
+	p.syncSelection(previousID, previousIndex, intent)
+}
+
+func resignPanelKey(p *Panel) {
+	p.view.Send(sel("window")).Send(sel("resignKeyWindow"))
+}
+
+func makePanelKey(p *Panel) {
+	p.view.Send(sel("window")).Send(sel("makeKeyWindow"))
+}

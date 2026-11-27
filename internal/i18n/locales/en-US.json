@@ -1,0 +1,666 @@
+{
+  "backup": {
+    "exportFailed": "Failed to Export Backup",
+    "exportPanel": "Export EcoPaste Backup",
+    "exported": {
+      "body": "%s\n%d items · %s",
+      "title": "Backup Exported"
+    },
+    "importFailed": "Unable to Import Backup",
+    "importPanel": "Import EcoPaste Backup",
+    "mergeFailed": "Unable to Merge Backup",
+    "mergeSummary": "Merged %d items, skipped %d duplicates and restored %d resource files.",
+    "merged": {
+      "settingsNote": "Current settings were not updated.",
+      "title": "Backup Merged"
+    },
+    "mergedDone": {
+      "title": "Backup Merge Complete"
+    },
+    "mergedNoSettings": "Backup Merged, Settings Not Applied",
+    "overwrite": {
+      "body": "Overwriting replaces the current history, settings and resources, then restarts EcoPaste.",
+      "confirm": "Import and Restart",
+      "title": "Overwrite current data?"
+    },
+    "password": {
+      "body": "Enter the password for this backup.",
+      "required": "The password cannot be empty.",
+      "title": "Backup Password"
+    },
+    "shortcutFailed": "Shortcuts were not applied: ",
+    "unencrypted": {
+      "body": "Unencrypted backups can be read by anyone who has the file.",
+      "confirm": "Export Anyway",
+      "title": "Export an unencrypted backup?"
+    }
+  },
+  "cleanCache": {
+    "body": "Only images and source app icons no longer referenced by clipboard history are removed.",
+    "confirm": "Clean",
+    "done": {
+      "body": "Removed %d files, freeing %s.",
+      "title": "Cleanup Complete"
+    },
+    "empty": {
+      "body": "There is nothing to clean.",
+      "title": "Cache Is Up to Date"
+    },
+    "failed": "Failed to Clean Cache",
+    "title": "Clean unused cache?"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "confirm": "OK",
+    "delete": "Delete",
+    "later": "Later",
+    "ok": "OK",
+    "save": "Save"
+  },
+  "dataDirChanged": {
+    "body": "History, settings and resources were moved. EcoPaste will restart. The previous folder is kept on disk.",
+    "title": "Data Folder Changed"
+  },
+  "deleteItem": {
+    "detail": "This cannot be undone.",
+    "title": "Delete this item?"
+  },
+  "dialog": {
+    "accessibility": {
+      "body": "EcoPaste needs Accessibility permission to paste automatically. Allow EcoPaste in System Settings > Privacy & Security > Accessibility.",
+      "title": "Accessibility Permission Required"
+    },
+    "backupExport": {
+      "body": "Encrypted backups need a password; plain backups are unencrypted and readable by anyone with the file.",
+      "encrypted": "Encrypted Backup",
+      "plain": "Plain Backup",
+      "title": "Export EcoPaste Backup"
+    },
+    "backupImport": {
+      "body": "Merge keeps the current history and adds missing items and resources. Overwrite replaces the current history, settings and resources.",
+      "merge": "Merge",
+      "overwrite": "Overwrite",
+      "title": "Import EcoPaste Backup"
+    },
+    "backupPassword": {
+      "field": "Backup password"
+    },
+    "clearHistory": {
+      "all": "Clear Everything",
+      "body": "Favorites and pinned items can be kept.",
+      "protected": "Keep Favorites and Pinned",
+      "title": "Clear clipboard history?"
+    }
+  },
+  "error": {
+    "appIdentifier": "Unable to read the app identifier",
+    "appMissing": "App does not exist: %w",
+    "appPackage": "App bundle is unavailable",
+    "autostartDisable": "Unable to disable launch at login (status %d)",
+    "autostartEnable": "Unable to enable launch at login (status %d)",
+    "autostartInstall": "Unable to register the login item. Install EcoPaste in Applications and try again",
+    "autostartQuery": "Query login item status: %w",
+    "autostartService": "Load login item service: %w",
+    "autostartUnavailable": "Unable to access the login item service",
+    "autostartVersion": "Launch at login requires macOS 13 or later",
+    "backup": {
+      "choosePath": "Choose a location for the backup file",
+      "cleanImport": "Clean import directory: %w",
+      "cleanPending": "Clean previous import: %w",
+      "cleanRollback": "Clean previous rollback directory: %w",
+      "closeFile": "Close backup file: %w",
+      "contentEscape": "Backup content path escapes its root",
+      "createDirectory": "Create backup directory: %w",
+      "createFile": "Create backup file: %w",
+      "createImportDirectory": "Create import directory: %w",
+      "createImportTemp": "Create import temporary directory: %w",
+      "createPayload": "Create backup payload: %w",
+      "createResources": "Create resources directory: %w",
+      "createRollback": "Create rollback directory: %w",
+      "createTemp": "Create backup temporary directory: %w",
+      "currentDatabase": "Back up the current database: %w",
+      "currentResources": "Back up the current resources: %w",
+      "currentSettings": "Back up the current settings: %w",
+      "encodeHeader": "Encode backup header: %w",
+      "encodeManifest": "Encode backup manifest: %w",
+      "extension": "Backup file extension must be .%s",
+      "finishPayload": "Finish backup payload: %w",
+      "generateNonce": "Generate backup nonce: %w",
+      "generateSalt": "Generate backup salt: %w",
+      "initDecrypt": "Initialize backup decryption: %w",
+      "initEncrypt": "Initialize backup encryption: %w",
+      "invalidFile": "Not a valid EcoPaste backup file",
+      "invalidHeader": "Encrypted backup header is invalid",
+      "measureResources": "Measure backup resources: %w",
+      "mergeResources": "Merge backup resources: %w",
+      "missingCurrentDatabase": "Backup merge is missing the current database",
+      "missingDatabase": "Backup is missing its database",
+      "missingEntry": "Backup is missing %s",
+      "missingHistory": "Backup is missing its history database",
+      "missingManifest": "Backup is missing manifest.json",
+      "missingSettings": "Backup is missing its settings file",
+      "openDatabase": "Open backup database: %w",
+      "openSource": "Open backup source %s: %w",
+      "parseHeader": "Parse backup header: %w",
+      "parseManifest": "Parse backup manifest: %w",
+      "parseSettings": "Parse backup settings: %w",
+      "passwordMissing": "Enter the backup password",
+      "pathEscape": "Backup path escapes its root",
+      "pendingMissingHistory": "Pending backup is missing its history database",
+      "pendingMissingSettings": "Pending backup is missing its settings file",
+      "readContents": "Read backup contents: %w",
+      "readEntry": "Read backup entry %s: %w",
+      "readFile": "Read backup file: %w",
+      "readManifest": "Read backup manifest: %w",
+      "readPayload": "Read backup payload: %w",
+      "readPendingManifest": "Read pending import manifest: %w",
+      "readResources": "Read backup resources: %w",
+      "readSettings": "Read backup settings: %w",
+      "readSource": "Read backup source %s: %w",
+      "resourcePath": "Resolve backup resource path: %w",
+      "saveFile": "Save backup file: %w",
+      "settingsObject": "Backup settings must be a JSON object",
+      "sourceDirectory": "Backup source %s is a directory",
+      "stagePending": "Prepare import: %w",
+      "syncFile": "Sync backup file: %w",
+      "unknownMode": "Unknown backup mode %q",
+      "unsupportedVersion": "Backup format version %d is not supported",
+      "writeDatabase": "Write the imported database: %w",
+      "writeEntry": "Write backup entry %s: %w",
+      "writeFile": "Write backup file: %w",
+      "writeManifest": "Write backup manifest: %w",
+      "writeResources": "Write imported resources: %w",
+      "writeSettings": "Write imported settings: %w",
+      "wrongPassword": "The backup password is incorrect or the file is damaged"
+    },
+    "backupDefaultDir": "Back up the default data directory: %w",
+    "backupUnavailable": "Backup is not available in this environment",
+    "checkBackupDir": "Check backup directory: %w",
+    "checkTargetDir": "Check target directory: %w",
+    "clipboardService": "The clipboard service is not running",
+    "createDataDir": "Create data directory %s: %w",
+    "createTargetDir": "Create target directory: %w",
+    "createTempDir": "Create temporary directory: %w",
+    "dataDirChangeUnavailable": "The data directory cannot be changed in this environment",
+    "dataDirExists": "Target directory already exists: %s",
+    "dataDirInUse": "This directory is already in use",
+    "dataDirNotSelected": "No data directory selected",
+    "dataDirRestoreUnavailable": "The default data directory cannot be restored in this environment",
+    "dataPathNotDir": "Data path %s is not a directory",
+    "database": {
+      "countBackup": "Count backup items: %w",
+      "snapshot": "Snapshot database: %w"
+    },
+    "databaseOpen": "Unable to open the clipboard database",
+    "defaultDataDirInUse": "The default data directory is already in use",
+    "deleteFavorite": "Favorite items cannot be deleted",
+    "deleteImage": "Delete image file: %w",
+    "deletePinned": "Pinned items cannot be deleted",
+    "fileMissing": "File does not exist: %w",
+    "filesMissing": "File does not exist",
+    "groupMissing": "Group not found",
+    "groupNameDuplicate": "A group with this name already exists",
+    "groupNameEmpty": "Group name cannot be empty",
+    "groupNameLong": "Group name cannot exceed %d characters",
+    "historyItemMissing": "Clipboard item not found",
+    "invalidCaptureOrder": "Invalid capture order",
+    "invalidRetention": "Unrecognized retention period %q",
+    "invalidRetentionUnit": "Unrecognized retention unit %q",
+    "invalidSourceApp": "Invalid source app setting",
+    "notImage": "This item is not an image",
+    "openFile": "Unable to open the file",
+    "openLink": "Unable to open the link",
+    "openLinkParse": "Unable to parse the link",
+    "openUnsupported": "This item cannot be opened",
+    "pasteEvent": "Unable to create the paste key event",
+    "pastePermission": "Accessibility permission is required to paste automatically",
+    "pasteRelease": "Unable to create the paste key release event",
+    "readApp": "Read source app: %w",
+    "readDataDir": "Read data directory %s: %w",
+    "readDataFile": "Read data file %s: %w",
+    "readImage": "Read image: %w",
+    "resetSettings": "Restore default settings: %w",
+    "restoreDefaultDir": "Restore the default data directory: %w",
+    "revealUnsupported": "This item cannot be shown in Finder",
+    "saveApp": "Save source app: %w",
+    "saveImage": "Save image: %w",
+    "selectBundle": "Select a macOS app (.app)",
+    "shortcutDuplicate": "Duplicate shortcut: %s",
+    "shortcutInUse": "This shortcut is already used by another action",
+    "shortcutInstallHandler": "Unable to install the global shortcut handler",
+    "shortcutInvalid": "Invalid shortcut: %s",
+    "shortcutLoadCarbon": "Load Carbon: %w",
+    "shortcutMissingKey": "The shortcut must include a key",
+    "shortcutMissingModifier": "The shortcut must include a modifier key",
+    "shortcutNeedsPrimaryModifier": "The shortcut requires Command, Option or Control",
+    "shortcutOccupied": "Shortcut %s is used by another app",
+    "shortcutRegister": "Unable to register shortcut %s",
+    "shortcutRestore": "%w; failed to restore the previous shortcut: %v",
+    "shortcutRestoreRegister": "%w; failed to register the previous shortcut: %v",
+    "shortcutSave": "Save shortcut: %w",
+    "shortcutUnsupportedKey": "Unsupported shortcut key %q",
+    "shortcutUnsupportedModifier": "Unsupported modifier key %q",
+    "trayNotReady": "The menu bar icon is not ready",
+    "unknownCaptureKind": "Unknown capture type %q",
+    "unknownSetting": "Unknown setting %q",
+    "writeDataFile": "Write data file %s: %w"
+  },
+  "file": {
+    "folder": "Folder",
+    "missing": "Missing",
+    "previewTruncated": "Showing the first %d of %d items.",
+    "summaryCount": "%d items",
+    "summaryMissing": " · %d missing"
+  },
+  "files": {
+    "more": " and %d more",
+    "separator": ", "
+  },
+  "group": {
+    "deleteBody": "Clipboard items stay in history and move to “Ungrouped”.",
+    "deleteTitle": "Delete group “%s”?",
+    "nameLabel": "Group name",
+    "namePlaceholder": "e.g. Work",
+    "nameTooLong": "Group names can be at most 32 characters.",
+    "newTitle": "New Group",
+    "renameTitle": "Rename Group"
+  },
+  "history": {
+    "filesCount": "%d files",
+    "imageSize": "Image %d × %d",
+    "missing": " (missing)",
+    "saveImagePanel": "Save Clipboard Image"
+  },
+  "kind": {
+    "files": "Files",
+    "image": "Image",
+    "text": "Text"
+  },
+  "menu": {
+    "addNote": "Add Note…",
+    "copy": "Copy",
+    "copyPlain": "Copy as Plain Text",
+    "editNote": "Edit Note…",
+    "favorite": "Favorite",
+    "moveToGroup": "Move to Group",
+    "openLink": "Open Link",
+    "paste": "Paste",
+    "pin": "Pin to Top",
+    "reveal": "Show in Finder",
+    "saveImage": "Save Image…",
+    "sendEmail": "Send Email",
+    "unfavorite": "Unfavorite",
+    "ungrouped": "Ungrouped",
+    "unpin": "Unpin from Top"
+  },
+  "note": {
+    "detail": "Note",
+    "detailPrefix": "Note: ",
+    "editBody": "The note appears in the list and is included in clipboard search.",
+    "editTitle": "Edit Note"
+  },
+  "openDataDir": {
+    "failed": "Unable to Open Data Folder"
+  },
+  "openLogs": {
+    "failed": "Unable to Open Logs Folder"
+  },
+  "panel": {
+    "all": "All",
+    "allGroups": "All Groups",
+    "clearHistory": "Clear History…",
+    "count": "%d items",
+    "deleteGroup": "Delete Current Group…",
+    "empty": "No clipboard history yet",
+    "emptyDetail": "Copy something and it will show up here",
+    "emptyFavorites": "No favorites yet",
+    "emptyFavoritesDetail": "Favorite an item and it will show up here",
+    "emptyFiles": "No files yet",
+    "emptyFilesDetail": "Copy files and they will show up here",
+    "emptyGroup": "This group is empty",
+    "emptyGroupDetail": "Move clipboard items into this group and they will show up here",
+    "emptyImage": "No images yet",
+    "emptyImageDetail": "Copy an image and it will show up here",
+    "emptyText": "No text yet",
+    "emptyTextDetail": "Copy some text and it will show up here",
+    "favorites": "Favorites",
+    "files": "Files",
+    "filter": "Filter",
+    "historyLabel": "Clipboard history",
+    "image": "Images",
+    "loading": "Loading…",
+    "newGroup": "New Group…",
+    "noMatches": "No matching items",
+    "noMatchesDetail": "Try another keyword or filter",
+    "pinWindow": "Pin Window",
+    "renameGroup": "Rename Current Group…",
+    "searchPlaceholder": "Search clipboard…",
+    "shortcuts": {
+      "action": "Keyboard shortcuts (⌘K)",
+      "close": "Close panel or preview",
+      "favorite": "Favorite / Unfavorite",
+      "navigate": "Move selection",
+      "note": "Edit note",
+      "open": "Open link, email, or file location",
+      "pasteNth": "Paste first 10 visible items",
+      "preview": "Preview selected",
+      "search": "Focus search",
+      "title": "Keyboard Shortcuts"
+    },
+    "text": "Text",
+    "unpinWindow": "Unpin Window"
+  },
+  "permission": {
+    "granted": "Granted",
+    "notGranted": "Not Granted",
+    "openSettings": "Open Settings"
+  },
+  "preview": {
+    "imageLabel": "Clipboard image preview"
+  },
+  "row": {
+    "favorite": "Favorite",
+    "note": "Note",
+    "pinned": "Pinned"
+  },
+  "settings": {
+    "about": {
+      "feedback": "Feedback",
+      "feedbackA11y": "Open EcoPaste's GitHub Issues page in your browser",
+      "license": "License",
+      "source": "Source",
+      "sourceA11y": "Open EcoPaste's GitHub page in your browser"
+    },
+    "all": "All",
+    "allGroups": "All Groups",
+    "apps": {
+      "intro": "“Don’t Capture” keeps the app’s copies out of history; “Block Shortcut” ignores the global shortcut while the app is frontmost; both can apply together. Unrestricted by default, with password managers set to Don’t Capture.",
+      "mode": {
+        "allowed": "Unrestricted",
+        "blockCapture": "Don’t Capture",
+        "blockWake": "Block Shortcut",
+        "blockCaptureAndWake": "Don’t Capture or Wake"
+      },
+      "modeA11y": "Handling for %s",
+      "section": "Source Apps"
+    },
+    "capture": {
+      "hint": "Uses the first available representation from the top down",
+      "html": "HTML",
+      "limits": "Size Limits",
+      "maxImage": "Maximum Image Size",
+      "maxText": "Maximum Text Size",
+      "moveDownA11y": "Move selected capture type down",
+      "moveUpA11y": "Move selected capture type up",
+      "order": "Capture Priority",
+      "priorityLabel": "Priority %d: %s",
+      "rtf": "RTF",
+      "text": "Plain Text"
+    },
+    "data": {
+      "backupHint": "Export history, resources and settings to an .ecopastebak file, or import a previous backup.",
+      "backupIntro": "Backup & Restore",
+      "backupKeywords": "backup export import ecopastebak restore",
+      "export": "Export Backup…",
+      "import": "Import Backup…",
+      "storage": "Storage Location"
+    },
+    "dataDir": {
+      "change": "Change…",
+      "changeBody": "History, settings and resources are copied to the selected folder, then EcoPaste restarts. The previous folder is kept.",
+      "changeTitle": "Change the data folder?",
+      "choose": "Choose EcoPaste Data Folder",
+      "migrateRestart": "Migrate and Restart",
+      "restore": "Restore Default…",
+      "restoreBody": "History, settings and resources are copied back to the default folder, then EcoPaste restarts. The current default folder is kept as a backup.",
+      "restoreTitle": "Restore the default data folder?"
+    },
+    "deletion": {
+      "behavior": "Deletion Behavior",
+      "normal": "Regular Items",
+      "favorite": "Favorite Items",
+      "pinned": "Pinned Items",
+      "direct": "Delete Directly",
+      "confirm": "Confirm Before Deleting",
+      "forbidden": "Prevent Deletion",
+      "intro": "Choose how each item type is deleted. With “Prevent Deletion”, that type has no delete action."
+    },
+    "diagnostics": {
+      "copied": "Copied to clipboard",
+      "copy": "Copy Diagnostics",
+      "copyFailed": "Copy failed",
+      "copyHelp": "Copy the app version, macOS version, data folder and permission status to the clipboard",
+      "dataDir": "Data Folder: ",
+      "devBuild": "EcoPaste Development Build",
+      "logging": "Logging",
+      "logLevel": "Log Level",
+      "logLevelAll": "All",
+      "logLevelError": "Error",
+      "logLevelWarn": "Warning",
+      "logLevelInfo": "Info",
+      "logLevelDebug": "Debug",
+      "openLogDirectory": "Open Log Folder",
+      "openLogDirectoryHelp": "Open the folder containing application log files in Finder",
+      "macOSUnknown": "Unknown macOS version",
+      "report": "%s\n%s\nData Folder: %s\nAccessibility: %s\nFull Disk Access: %s",
+      "title": "Diagnostics"
+    },
+    "display": {
+      "density": "List Density",
+      "fileMaxCount": "File Names Shown",
+      "imageMaxHeight": "Maximum Image Height",
+      "textMaxLines": "Text Lines"
+    },
+    "general": {
+      "appearanceGroup": "Appearance",
+      "autoStart": "Launch at Login",
+      "behavior": "Behavior",
+      "clipboard": "Clipboard",
+      "copySound": "Copy Sound",
+      "copyTextPlain": "Copy Text as Plain Text",
+      "copyThenHide": "Hide Panel After Copy",
+      "dataDir": "Data Folder",
+      "language": "Language",
+      "menuBar": "Menu Bar",
+      "position": "Panel Position",
+      "shortcuts": "Keyboard Shortcuts",
+      "sort": "Sort Order",
+      "startup": "Startup",
+      "theme": "Appearance",
+      "trayIcon": "Show Menu Bar Icon",
+      "windowAppearance": "Window & Appearance"
+    },
+    "history": {
+      "cleanup": "Retention & Cleanup",
+      "collectSecrets": "Capture Sensitive Content",
+      "title": "History",
+      "maxCount": "Maximum Items",
+      "redactSecrets": "Redact Sensitive Content",
+      "retention": "Keep History For",
+      "sensitive": "Sensitive Content",
+      "sensitiveHint": "When capture is off, detected passwords and keys are not saved; redaction only changes the list and preview."
+    },
+    "info": {
+      "a11y": "Show help"
+    },
+    "interaction": {
+      "autoFavorite": "Favorite Items With a Note",
+      "content": "Content Handling",
+      "disabled": "Disabled",
+      "doubleClickCopy": "Double-click to Copy",
+      "doubleClickPaste": "Double-click to Paste",
+      "intro": "Left mouse actions apply in the clipboard panel; automatic paste needs Accessibility permission.",
+      "mouse": "Mouse Actions",
+      "mouseLeft": "Left Mouse Button",
+      "plainText": "Plain Text",
+      "showOriginal": "Show Original While Hovering a Note",
+      "singleClickCopy": "Single-click to Copy",
+      "singleClickPaste": "Single-click to Paste",
+      "keyboard": "Keyboard"
+    },
+    "language": {
+      "auto": "Follow System",
+      "en": "English",
+      "zh": "简体中文"
+    },
+    "moveDown": "Move Down",
+    "moveUp": "Move Up",
+    "number": {
+      "decrease": "Decrease %s",
+      "fieldA11y": "%s value",
+      "help": "Enter a number or use the side buttons to adjust it",
+      "increase": "Increase %s",
+      "titleWithUnit": "%s (%s)"
+    },
+    "permissions": {
+      "accessibility": "Accessibility",
+      "accessibilityDetail": "Automatic paste simulates the Command-V shortcut.",
+      "checking": "Checking…",
+      "fullDisk": "Full Disk Access",
+      "fullDiskDetail": "Needed to read files in protected folders.",
+      "intro": "macOS manages these permissions; changes take effect immediately after granting.",
+      "openSettings": "Open System Settings…",
+      "openSettingsA11y": "Open %s system settings",
+      "system": "System Permissions"
+    },
+    "position": {
+      "center": "Screen Center",
+      "follow": "Follow Cursor",
+      "remember": "Remember Position"
+    },
+    "preserve": "Keep Current",
+    "preview": {
+      "space": "Preview Selected Item When Pressing Space"
+    },
+    "reset": {
+      "action": "Reset to Defaults…",
+      "body": "All preferences return to their defaults. Clipboard history, the data folder and backups are not affected.",
+      "confirm": "Reset",
+      "section": "Reset",
+      "title": "Reset all settings?"
+    },
+    "retention": {
+      "1d": "1 Day",
+      "1h": "1 Hour",
+      "1mo": "1 Month",
+      "2w": "2 Weeks",
+      "365d": "1 Year",
+      "3d": "3 Days",
+      "3mo": "3 Months",
+      "6h": "6 Hours",
+      "7d": "7 Days",
+      "forever": "Forever"
+    },
+    "shortcuts": {
+      "clear": "Clear shortcut",
+      "clearHelp": "Clear the recorded shortcut",
+      "fieldA11y": "%s shortcut",
+      "help": "Press a shortcut to record, Delete to clear, Esc to cancel",
+      "idle": "Click to record shortcut",
+      "invalid": "Include ⌘ / ⌥ / ⌃",
+      "openClipboard": "Open Clipboard",
+      "openPreference": "Open Settings",
+      "recording": "Press a shortcut to record",
+      "rule": "Shortcuts need at least Command, Option or Control; F1–F12 may be used alone."
+    },
+    "sort": {
+      "created": "Date Created",
+      "recent": "Recently Used",
+      "useCount": "Use Count"
+    },
+    "tab": {
+      "about": "About",
+      "general": "General",
+      "appearance": "Appearance",
+      "clipboard": "Clipboard",
+      "interaction": "Interaction",
+      "data": "Data",
+      "system": "System"
+    },
+    "theme": {
+      "auto": "Use System Setting",
+      "dark": "Dark",
+      "light": "Light"
+    },
+    "unit": {
+      "count": " items",
+      "items": " items",
+      "lines": " lines"
+    },
+    "unlimited": "Unlimited",
+    "update": {
+      "check": "Check for Updates…",
+      "intro": "EcoPaste uses Sparkle to check for, verify and install signed updates.",
+      "managed": "Update checks, downloads and skipped versions use the system update window.",
+      "version": "Version %s"
+    },
+    "window": {
+      "hint": "Keep Current preserves the range, category and group from when the panel last closed.",
+      "openBehavior": "When the Panel Opens",
+      "scrollTop": "Scroll to Top on Open",
+      "searchBehavior": "Search",
+      "searchClear": "Clear Search on Next Open",
+      "selectCategory": "Select Category on Open",
+      "selectGroup": "Select Group on Open",
+      "selectRange": "Select Range on Open"
+    },
+    "windowTitle": "EcoPaste Settings"
+  },
+  "shortcut": {
+    "notSet": "Not Set"
+  },
+  "storage": {
+    "usage": {
+      "body": "Database %s · Resources %s · Settings %s\nTotal %s",
+      "title": "Storage Usage"
+    },
+    "usageFailed": "Unable to Read Storage Usage"
+  },
+  "subKind": {
+    "color": "Color",
+    "email": "Email",
+    "path": "Path",
+    "url": "Link"
+  },
+  "time": {
+    "daysAgo": "%d days ago",
+    "hoursAgo": "%d hr ago",
+    "minutesAgo": "%d min ago",
+    "now": "Just now",
+    "yesterday": "Yesterday"
+  },
+  "tray": {
+    "checkUpdates": "Check for Updates…",
+    "cleanCache": "Clean Unused Cache…",
+    "clearHistory": "Clear History…",
+    "exportBackup": "Export Backup…",
+    "importBackup": "Import Backup…",
+    "openDataDir": "Open Data Folder",
+    "openLogs": "Open Logs Folder",
+    "pause": "Pause Capture",
+    "quit": "Quit EcoPaste",
+    "readClipboard": "Read Clipboard",
+    "restart": "Restart",
+    "resume": "Resume Capture",
+    "settings": "Settings…",
+    "show": "Show EcoPaste",
+    "source": "Source Code",
+    "storageUsage": "Storage Usage…",
+    "version": "Version %s"
+  },
+  "update": {
+    "available": {
+      "body": "Version %s is available. You are running %s.",
+      "title": "A New EcoPaste Version Is Available"
+    },
+    "checkFailed": {
+      "body": "Try again later. Development builds do not connect to the release feed.",
+      "title": "Could Not Check for Updates"
+    },
+    "openDownload": "Open Download",
+    "upToDate": {
+      "body": "You are running version %s.",
+      "title": "EcoPaste Is Up to Date"
+    }
+  }
+}
