@@ -18,7 +18,7 @@
 //! 3. 索引未就绪时一律回落 SQL —— [`ListIndex::page`] 返回 `None`，调用方走原查询路径。
 
 use std::cmp::Ordering;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::atomic::{AtomicU64, Ordering as AtomicOrdering};
 use std::sync::{Arc, OnceLock, RwLock};
 use std::time::Instant;
@@ -125,8 +125,10 @@ struct Inner {
     counts: Counters,
     /// 全量载入完成前为 `false`，此间所有查询回落 SQL。
     ready: bool,
-    /// 未就绪期间到达的写次数；载入完成时若该值变化，说明快照可能落后，需要再载一次。
-    writes_during_load: u64,
+    /// 未就绪期间到达、尚未并入的行变更；载入完成后按 id 回读并补差量。
+    pending_changed: HashSet<String>,
+    /// 未就绪期间已被删除的行 id；即使同一 id 随后又写入，也按最新一次操作记账。
+    pending_removed: HashSet<String>,
 }
 
 impl Inner {
@@ -155,7 +157,8 @@ impl Inner {
             order_use: (0..slots).collect(),
             counts,
             ready: true,
-            writes_during_load: 0,
+            pending_changed: HashSet::new(),
+            pending_removed: HashSet::new(),
         };
 
         let Self {
@@ -289,18 +292,38 @@ impl Inner {
             .into_iter()
             .filter(|row| !doomed.contains(row.id.as_ref()))
             .collect();
-        let writes_during_load = self.writes_during_load;
+        let pending_changed = std::mem::take(&mut self.pending_changed);
+        let pending_removed = std::mem::take(&mut self.pending_removed);
         *self = Self::from_rows(kept);
-        self.writes_during_load = writes_during_load;
+        self.pending_changed = pending_changed;
+        self.pending_removed = pending_removed;
+    }
+
+    /// 记一笔「载入期间这行变了」；同一 id 的删除记账会被撤销。
+    fn note_changed(&mut self, id: &str) {
+        self.pending_removed.remove(id);
+        if !self.pending_changed.contains(id) {
+            self.pending_changed.insert(id.to_owned());
+        }
+    }
+
+    /// 记一笔「载入期间这行被删了」；同一 id 的变更记账会被撤销。
+    fn note_removed(&mut self, id: &str) {
+        self.pending_changed.remove(id);
+        if !self.pending_removed.contains(id) {
+            self.pending_removed.insert(id.to_owned());
+        }
     }
 
     /// 清空全部行（保留就绪状态，计数归零）。单测用。
     #[cfg(test)]
     fn clear(&mut self) {
-        let writes_during_load = self.writes_during_load;
+        let pending_changed = std::mem::take(&mut self.pending_changed);
+        let pending_removed = std::mem::take(&mut self.pending_removed);
         *self = Self {
             ready: true,
-            writes_during_load,
+            pending_changed,
+            pending_removed,
             ..Self::default()
         };
     }
@@ -397,44 +420,92 @@ impl ListIndex {
         self.inner.read().expect("list index lock poisoned").ready
     }
 
-    /// 从库里全量重建索引。载入期间到达的写会在结束时被检出，并再载一次（最多三轮）。
+    /// 从库里全量重建索引。载入期间到达的写只按 id 记账，
+    /// 快照载入后补差量（回读改动行、删除已删行），不再整份重扫。
     pub async fn rebuild(&self, pool: &SqlitePool) -> Result<usize> {
         let started = Instant::now();
-        let mut rows_len = 0;
 
-        for _ in 0..3 {
-            let mark = self
-                .inner
-                .read()
-                .expect("list index lock poisoned")
-                .writes_during_load;
-            let rows = fetch_all_keys(pool).await?;
-            rows_len = rows.len();
-            let mut rebuilt = Inner::from_rows(rows);
+        // 先停服：旧快照若继续吃写，而新快照没读到这些行，差量里就不会有它们。
+        self.inner.write().expect("list index lock poisoned").ready = false;
 
+        let rows = fetch_all_keys(pool).await?;
+
+        // 落快照：载入期间到达的写已按 id 记在 pending 里，随后补差量。
+        {
             let mut guard = self.inner.write().expect("list index lock poisoned");
-            rebuilt.writes_during_load = guard.writes_during_load;
-            if guard.writes_during_load == mark {
-                *guard = rebuilt;
-                log::info!(
-                    "clipboard list index ready: {rows_len} rows in {:.1}ms",
-                    started.elapsed().as_secs_f64() * 1000.0
-                );
-                return Ok(rows_len);
-            }
-            // 载入期间有写入落库，快照可能不完整：丢弃本轮，重载。
-            log::debug!("clipboard list index reload: writes landed during load");
+            let mut rebuilt = Inner::from_rows(rows);
+            rebuilt.ready = false;
+            rebuilt.pending_changed = std::mem::take(&mut guard.pending_changed);
+            rebuilt.pending_removed = std::mem::take(&mut guard.pending_removed);
+            *guard = rebuilt;
         }
 
-        log::warn!("clipboard list index kept falling behind during load; serving from sql");
-        Ok(rows_len)
+        // 补差量：只回读/删除载入期间动过的 id，代价与写入量成正比，不再全表重扫。
+        loop {
+            let (changed, removed) = {
+                let mut guard = self.inner.write().expect("list index lock poisoned");
+                (
+                    std::mem::take(&mut guard.pending_changed),
+                    std::mem::take(&mut guard.pending_removed),
+                )
+            };
+
+            if changed.is_empty() && removed.is_empty() {
+                let mut guard = self.inner.write().expect("list index lock poisoned");
+                // 取完待办与置 ready 之间可能又有写入记账：再确认一次。
+                if guard.pending_changed.is_empty() && guard.pending_removed.is_empty() {
+                    guard.ready = true;
+                    let rows_len = guard.rows.len();
+                    log::info!(
+                        "clipboard list index ready: {rows_len} rows in {:.1}ms",
+                        started.elapsed().as_secs_f64() * 1000.0
+                    );
+                    return Ok(rows_len);
+                }
+                continue;
+            }
+
+            let requested: Vec<String> = changed.difference(&removed).cloned().collect();
+            let rows = if requested.is_empty() {
+                Vec::new()
+            } else {
+                fetch_keys_by_ids(pool, &requested).await?
+            };
+            let removed: Vec<String> = removed.into_iter().collect();
+            self.apply_delta(rows, &requested, &removed);
+        }
     }
 
-    /// 未就绪时记一笔「载入期间有写入」，供 rebuild 判断快照是否可用。
-    fn note_write_while_loading(&self) {
+    /// 把载入期间动过的 id 补进当前（未就绪）索引：回读到的行覆盖进来，
+    /// 回读不到的行与明确删除的 id 一并移除。
+    fn apply_delta(&self, rows: Vec<Row>, requested: &[String], removed: &[String]) {
+        let mut inner = self.inner.write().expect("list index lock poisoned");
+        let mut returned: HashSet<String> = HashSet::with_capacity(rows.len());
+        for row in rows {
+            returned.insert(row.id.to_string());
+            inner.upsert(row);
+        }
+        for id in requested {
+            if !returned.contains(id) {
+                inner.remove(id);
+            }
+        }
+        if removed.len() > BULK_REMOVE_THRESHOLD {
+            inner.remove_many(removed);
+        } else {
+            for id in removed {
+                inner.remove(id);
+            }
+        }
+    }
+
+    /// 未就绪时按 id 记下「载入期间这行变了」，载入完成后补差量。
+    fn note_write_while_loading(&self, ids: &[String]) {
         let mut inner = self.inner.write().expect("list index lock poisoned");
         if !inner.ready {
-            inner.writes_during_load += 1;
+            for id in ids {
+                inner.note_changed(id);
+            }
         }
     }
 
@@ -442,7 +513,9 @@ impl ListIndex {
     fn apply_rows(&self, rows: Vec<Row>, requested: &[String]) {
         let mut inner = self.inner.write().expect("list index lock poisoned");
         if !inner.ready {
-            inner.writes_during_load += 1;
+            for id in requested {
+                inner.note_changed(id);
+            }
             return;
         }
 
@@ -461,7 +534,9 @@ impl ListIndex {
     fn apply_removed(&self, ids: &[String]) {
         let mut inner = self.inner.write().expect("list index lock poisoned");
         if !inner.ready {
-            inner.writes_during_load += 1;
+            for id in ids {
+                inner.note_removed(id);
+            }
             return;
         }
         if ids.len() > BULK_REMOVE_THRESHOLD {
@@ -602,9 +677,16 @@ pub fn installed() -> Option<Arc<ListIndex>> {
 pub fn activate(pool: SqlitePool) {
     let index = shared().clone();
     tauri::async_runtime::spawn(async move {
-        if let Err(err) = index.rebuild(&pool).await {
-            log::warn!("clipboard list index rebuild failed: {err:?}");
+        for attempt in 1..=3 {
+            match index.rebuild(&pool).await {
+                Ok(_) => return,
+                Err(err) => {
+                    log::warn!("clipboard list index rebuild failed (attempt {attempt}): {err:?}");
+                    tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+                }
+            }
         }
+        log::warn!("clipboard list index rebuild gave up after 3 attempts; serving from sql");
     });
 }
 
@@ -620,7 +702,7 @@ pub async fn note_rows_changed(pool: &SqlitePool, ids: &[String]) {
         return;
     }
     if !index.is_ready() {
-        index.note_write_while_loading();
+        index.note_write_while_loading(ids);
         return;
     }
 
@@ -1166,5 +1248,68 @@ mod tests {
         }
         println!("mismatches: {mismatches}");
         assert_eq!(mismatches, 0, "index order must match sql order");
+    }
+
+    fn key_row(id: &str, seq: i64) -> Row {
+        Row {
+            id: id.to_owned().into_boxed_str(),
+            created_at: format!("2023-11-14 22:13:{seq:02}").into_boxed_str(),
+            updated_at: format!("2023-11-14 22:13:{seq:02}").into_boxed_str(),
+            group_id: None,
+            use_count: 1,
+            seq,
+            kind: KIND_TEXT,
+            flags: 0,
+        }
+    }
+
+    /// 载入期间的写按 id 记账，载入后只补差量，不再整份重扫。
+    #[test]
+    fn loading_writes_are_drained_as_delta() {
+        let index = ListIndex::default();
+
+        // 模拟「快照已落、尚未就绪」：索引里只有 a、b 两行。
+        {
+            let mut inner = index.inner.write().unwrap();
+            *inner = Inner::from_rows(vec![key_row("a", 1), key_row("b", 2)]);
+            inner.ready = false;
+        }
+
+        // 载入期间：b 被改写、c 新增、a 被删。
+        index.note_write_while_loading(&["b".to_owned(), "c".to_owned()]);
+        index.apply_removed(&["a".to_owned()]);
+
+        {
+            let inner = index.inner.read().unwrap();
+            assert!(inner.pending_changed.contains("b"));
+            assert!(inner.pending_changed.contains("c"));
+            assert!(
+                !inner.pending_changed.contains("a"),
+                "删除记账要覆盖更早的变更"
+            );
+            assert!(inner.pending_removed.contains("a"));
+            assert!(!inner.ready, "补差量期间不能对外服务");
+        }
+
+        let (changed, removed) = {
+            let mut inner = index.inner.write().unwrap();
+            (
+                std::mem::take(&mut inner.pending_changed),
+                std::mem::take(&mut inner.pending_removed),
+            )
+        };
+        let requested: Vec<String> = changed.difference(&removed).cloned().collect();
+        let removed: Vec<String> = removed.into_iter().collect();
+
+        index.apply_delta(vec![key_row("b", 2), key_row("c", 3)], &requested, &removed);
+
+        let inner = index.inner.read().unwrap();
+        assert!(!inner.ready);
+        assert!(inner.ids.contains_key("b"));
+        assert!(inner.ids.contains_key("c"));
+        assert!(!inner.ids.contains_key("a"));
+        assert!(inner.pending_changed.is_empty());
+        assert!(inner.pending_removed.is_empty());
+        assert_eq!(inner.rows.len(), 2);
     }
 }

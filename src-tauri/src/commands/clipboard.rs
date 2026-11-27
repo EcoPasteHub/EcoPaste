@@ -923,7 +923,10 @@ pub async fn delete_clipboard_group(
 ) -> Result<()> {
     let pool = db.pool().await;
 
-    crate::db::groups::delete_group(&pool, &id).await?;
+    let affected = crate::db::groups::delete_group(&pool, &id).await?;
+    // 外键把该组记录的 group_id 置空，但这一步不经过逐行写路径；
+    // 不回读索引会继续按旧 group_id 过滤出已不属于该组的记录。
+    crate::db::list_index::note_rows_changed(&pool, &affected).await;
     emit_clipboard_groups_updated(&app);
 
     Ok(())

@@ -96,13 +96,22 @@ pub async fn update_group_layout(
 }
 
 /// 删除分组；其下记录的 `group_id` 由外键 `ON DELETE SET NULL` 自动置空（已启用 `foreign_keys`）。
-pub async fn delete_group(pool: &SqlitePool, id: &str) -> Result<()> {
+/// 返回被置空的记录 id，供调用方同步内存索引与列表缓存。
+pub async fn delete_group(pool: &SqlitePool, id: &str) -> Result<Vec<String>> {
+    let affected: Vec<String> =
+        sqlx::query_scalar::<_, String>("SELECT id FROM clipboard_items WHERE group_id = ?")
+            .bind(id)
+            .fetch_all(pool)
+            .await
+            .context("failed to list clipboard items in group")?;
+
     sqlx::query("DELETE FROM clipboard_groups WHERE id = ?")
         .bind(id)
         .execute(pool)
         .await
         .context("failed to delete clipboard group")?;
-    Ok(())
+
+    Ok(affected)
 }
 
 #[cfg(test)]
@@ -230,7 +239,8 @@ mod tests {
         };
         insert_item(&pool, &item).await.unwrap();
 
-        delete_group(&pool, "g").await.unwrap();
+        let affected = delete_group(&pool, "g").await.unwrap();
+        assert_eq!(affected, ["i"]);
 
         assert!(list_groups(&pool).await.unwrap().is_empty());
         // 外键 ON DELETE SET NULL：分组删除后记录仍在，但 group_id 被置空。

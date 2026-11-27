@@ -963,6 +963,10 @@ async fn merge_import(
     let db_path = root.join(DB_ARCHIVE_DIR).join(DB_FILENAME);
     let backup_pool = open_backup_db(&db_path).await?;
     let outcome = merge_history(pool, &backup_pool).await?;
+    // 合并导入直接 INSERT 进库，不经过单行写路径；索引必须整份重建，
+    // 否则合并进来的条目在索引里不存在，各 Tab 要等重启才能看到。
+    crate::db::list_index::invalidate();
+    crate::db::list_index::activate(pool.clone());
     let resources = root.join(RESOURCES_ARCHIVE_DIR);
     let imported_resources =
         copy_dir_missing(&resources, &crate::core::paths::resources_dir(app)?)?;
